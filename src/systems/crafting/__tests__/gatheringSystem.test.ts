@@ -8,7 +8,7 @@ import { Crafter } from '../craftingSystem';
 import { GatherableResource } from '../gatheringData';
 
 // Mock the dice rolling utility from combatUtils
-vi.mock('../../../utils/combatUtils', () => ({
+vi.mock('../../dice/rollers', () => ({
     rollDice: vi.fn(() => 6) // Consistent value for yield calculations
 }));
 

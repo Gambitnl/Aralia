@@ -2,12 +2,13 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import BattleMap from '../BattleMap';
+import { createBattleMapCombatState } from './fixtures/battleMapCombatState';
 import { SummoningCommand } from '../../../commands/effects/SummoningCommand';
 import type { CommandContext } from '../../../commands/base/SpellCommand';
 import type { BattleMapData, CombatCharacter, CombatLogEntry, CombatState } from '../../../types/combat';
 import type { SummoningEffect } from '../../../types/spells';
 import { createMockCombatCharacter } from '../../../utils/core';
-import summonBeast from '../../../../public/data/spells/level-2/summon-beast.json';
+import summonBeast from '@/data/spells/level-2/summon-beast.json';
 
 /**
  * This proof stays at the BattleMap boundary because the map layer already
@@ -38,11 +39,11 @@ vi.mock('../../../hooks/combat/useVisibility', () => ({
 }));
 
 vi.mock('../CharacterToken', () => ({
-  default: (...args: unknown[]) => mockCharacterToken(...args)
+  default: (props: any) => mockCharacterToken(props)
 }));
 
 vi.mock('../BattleMapOverlay', () => ({
-  default: (...args: unknown[]) => mockBattleMapOverlay(...args)
+  default: () => mockBattleMapOverlay()
 }));
 
 const createTile = (x: number, y: number) => ({
@@ -108,7 +109,7 @@ describe('BattleMap summon presence proof', () => {
         cr: '0'
       }
     });
-    const summonEffect = summonBeast.effects.find(effect => effect.type === 'SUMMONING') as SummoningEffect;
+    const summonEffect = summonBeast.effects.find(effect => effect.type === 'SUMMONING') as unknown as SummoningEffect;
     const context = {
       spellId: summonBeast.id,
       spellName: summonBeast.name,
@@ -117,13 +118,13 @@ describe('BattleMap summon presence proof', () => {
       targets: [],
       playerInput: 'Air',
       gameState: {}
-    } as CommandContext;
+    } as unknown as CommandContext;
     const initialState = {
       characters: [caster],
       currentTurn: 1,
       round: 1,
       combatLog: [] as CombatLogEntry[]
-    } as CombatState;
+    } as unknown as CombatState;
 
     const summonState = new SummoningCommand(summonEffect, context).execute(initialState);
     const summoned = summonState.characters.find(character =>
@@ -153,47 +154,14 @@ describe('BattleMap summon presence proof', () => {
       <BattleMap
         mapData={mapData}
         characters={[caster, summoned!]}
-        combatState={{
-          turnManager: {
-            turnState: {
-              currentTurn: 1,
-              turnOrder: [caster.id, summoned!.id],
-              currentCharacterId: caster.id,
-              phase: 'action',
-              actionsThisTurn: []
-            },
-            activeLightSources: [],
-            reactiveTriggers: [],
-            damageNumbers: [],
-            animations: [],
-            spellZones: [],
-            scheduledSpellEffects: [],
-            movementDebuffs: [],
-            spellMovementVisuals: [],
-            spellDeliveryVisuals: [],
-            canAffordAction: vi.fn(() => true)
-          } as never,
+        combatState={createBattleMapCombatState({
           turnState: {
             currentTurn: 1,
             turnOrder: [caster.id, summoned!.id],
-            currentCharacterId: caster.id,
-            phase: 'action',
-            actionsThisTurn: []
-          } as never,
-          abilitySystem: {
-            targetingMode: false,
-            selectedAbility: null,
-            aoePreview: null,
-            teleportDestinationPreview: null,
-            pendingTeleportAssignment: null,
-            previewAoE: vi.fn(),
-            isValidTarget: vi.fn(),
-            cancelTargeting: vi.fn(),
-            startTargeting: vi.fn()
-          } as never,
-          isCharacterTurn: vi.fn(() => false),
-          onCharacterUpdate: vi.fn()
-        }}
+            currentCharacterId: caster.id
+          },
+          turnManager: { canAffordAction: vi.fn(() => true) }
+        })}
       />
     );
 
@@ -215,12 +183,13 @@ describe('BattleMap summon presence proof', () => {
       })
     }));
     expect(screen.getByTestId(`character-${summoned!.id}`)).toBeInTheDocument();
+    // The CharacterToken mock wrapper forwards a single props argument, so the
+    // assertion must not expect React's legacy second argument.
     expect(mockCharacterToken).toHaveBeenCalledWith(
       expect.objectContaining({
         character: expect.objectContaining({ id: summoned!.id }),
         position: summoned!.position
-      }),
-      undefined
+      })
     );
   });
 });

@@ -1,6 +1,6 @@
 {
     "id":  "tensers-floating-disk",
-    "name":  "Tenser\u0027s Floating Disk",
+    "name":  "Tenser's Floating Disk",
     "aliases":  [
 
                 ],
@@ -14,6 +14,30 @@
 
                    ],
     "ritual":  true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a drop of mercury; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity":  "common",
     "attackType":  "",
     "castingTime":  {
@@ -97,7 +121,7 @@
                                                                   "surface":  "ground",
                                                                   "destination":  "caster_choice_visible_within_range",
                                                                   "hoverHeightFeet":  3,
-                                                                  "notes":  "Tenser\u0027s Floating Disk must be created in an unoccupied visible space and floats 3 feet above the ground."
+                                                                  "notes":  "Tenser's Floating Disk must be created in an unoccupied visible space and floats 3 feet above the ground."
                                                               }
                                  },
                       "rangeUnit":  "feet",
@@ -267,7 +291,7 @@
                       "prompt":  "",
                       "playerInputRequired":  false
                   },
-    "description":  "This spell creates a circular, horizontal plane of force, 3 feet in diameter and 1 inch thick, that floats 3 feet above the ground in an unoccupied space of your choice that you can see within range. The disk remains for the duration and can hold up to 500 pounds. If more weight is placed on it, the spell ends, and everything on the disk falls to the ground. The disk is immobile while you are within 20 feet of it. If you move more than 20 feet away from it, the disk follows you so that it remains within 20 feet of you. It can move across uneven terrain, up or down stairs, slopes and the like, but it can\u0027t cross an elevation change of 10 feet or more. For example, the disk can\u0027t move across a 10-foot-deep pit, nor could it leave such a pit if it was created at the bottom. If you move more than 100 feet from the disk (typically because it can\u0027t move around an obstacle to follow you), the spell ends.",
+    "description":  "This spell creates a circular, horizontal plane of force, 3 feet in diameter and 1 inch thick, that floats 3 feet above the ground in an unoccupied space of your choice that you can see within range. The disk remains for the duration and can hold up to 500 pounds. If more weight is placed on it, the spell ends, and everything on the disk falls to the ground. The disk is immobile while you are within 20 feet of it. If you move more than 20 feet away from it, the disk follows you so that it remains within 20 feet of you. It can move across uneven terrain, up or down stairs, slopes and the like, but it can't cross an elevation change of 10 feet or more. For example, the disk can't move across a 10-foot-deep pit, nor could it leave such a pit if it was created at the bottom. If you move more than 100 feet from the disk (typically because it can't move around an obstacle to follow you), the spell ends.",
     "higherLevels":  "",
     "tags":  [
                  "summoning",

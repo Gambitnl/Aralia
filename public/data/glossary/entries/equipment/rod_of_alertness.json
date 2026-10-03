@@ -29,6 +29,7 @@
     "type": "Rod",
     "rarity": "Very rare",
     "reqAttune": "Required",
-    "weight": 2
+    "weight": 2,
+    "bonusAc": "+1"
   }
 }

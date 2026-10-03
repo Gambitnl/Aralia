@@ -22,7 +22,7 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Monster, GroundingChunk, Action, TempPartyMember } from '../../types';
 import { CLASSES_DATA } from '../../constants';
-import { t } from '../../utils/i18n';
+import { t } from '../../utils/core';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import MonsterPicker, { PickedMonster } from './MonsterPicker';

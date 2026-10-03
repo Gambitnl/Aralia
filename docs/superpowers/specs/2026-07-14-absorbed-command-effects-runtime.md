@@ -1,6 +1,6 @@
-# Command Effects Runtime — Absorbed 2026-07-14
+# Command Effects Runtime - Absorbed 2026-07-14
 
-Status: active — G1 delegated reactive payload execution implemented 2026-06-19
+Status: active - G1 delegated reactive payload execution implemented 2026-06-19
 Last updated: 2026-06-19
 
 ## Purpose
@@ -46,10 +46,12 @@ Owns executable effect logic under `src/commands/effects`. Applies spell and abi
 
 ## Proof Log
 
-- **2026-06-19**: G1 delegated reactive payload execution — Passed. `CommandContext` exposes `delegatedReactivePayload`; `ReactiveEffectCommand` rehydrates supported delegated payloads through `CommandExecutor`; 2 tests passed.
-- **2026-06-19**: Focused effects command subset — Passed. 6 files / 28 tests.
-- **2026-06-09**: G1 review gate recorded — `ReactiveEffectCommand` callback path blocked until delegated payload source-of-truth decided (resolved by D-03).
+- **2026-06-19**: G1 delegated reactive payload execution - Passed. `CommandContext` exposes `delegatedReactivePayload`; `ReactiveEffectCommand` rehydrates supported delegated payloads through `CommandExecutor`; 2 tests passed.
+- **2026-06-19**: Focused effects command subset - Passed. 6 files / 28 tests.
+- **2026-06-09**: G1 review gate recorded - `ReactiveEffectCommand` callback path blocked until delegated payload source-of-truth decided (resolved by D-03).
 
 ---
 
 Absorbed from `docs/projects/command-effects-runtime/` via absorption wave 2026-07-14. Source archive in git history.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-command-effects-runtime.md","sha256WithoutMarker":"ec531a9c92dfd4bc78a0c8602a0dd24ce3a9c5f78ea544edc89d6441ef1fe912","markedAtUtc":"2026-08-09T20:22:07.601Z"} -->

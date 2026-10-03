@@ -3,10 +3,10 @@ import { StatusConditionCommand } from '../effects/StatusConditionCommand';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatState } from '../../types/combat';
 import type { StatusConditionEffect } from '../../types/spells';
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../utils/factories';
-import dominateBeast from '../../../public/data/spells/level-4/dominate-beast.json';
-import dominatePerson from '../../../public/data/spells/level-5/dominate-person.json';
-import dominateMonster from '../../../public/data/spells/level-8/dominate-monster.json';
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../utils/core';
+import dominateBeast from '@/data/spells/level-4/dominate-beast.json';
+import dominatePerson from '@/data/spells/level-5/dominate-person.json';
+import dominateMonster from '@/data/spells/level-8/dominate-monster.json';
 
 /**
  * Dominate Beast, Dominate Person, and Dominate Monster control an existing
@@ -16,17 +16,24 @@ import dominateMonster from '../../../public/data/spells/level-8/dominate-monste
  * combat state.
  */
 
-vi.mock('../../utils/savingThrowUtils', () => ({
-  calculateSpellDC: vi.fn(() => 15),
-  rollSavingThrow: vi.fn(() => ({
-    roll: 2,
-    modifier: 0,
-    total: 2,
-    dc: 15,
-    success: false,
-    modifiersApplied: []
-  }))
-}));
+vi.mock('../../utils/character/savingThrowUtils', async importOriginal => {
+  // Spread the real module: only the rolled save is stubbed. Anything
+  // else the commands call (resolveSaveOutcomeOverride) is pure and must
+  // keep its real behavior, or it arrives undefined (agora-f821.52).
+  const actual = await importOriginal<typeof import('../../utils/character/savingThrowUtils')>();
+  return {
+    ...actual,
+    calculateSpellDC: vi.fn(() => 15),
+    rollSavingThrow: vi.fn(() => ({
+      roll: 2,
+      modifier: 0,
+      total: 2,
+      dc: 15,
+      success: false,
+      modifiersApplied: []
+    }))
+  };
+});
 
 type DominationCase = {
   spell: typeof dominateBeast;
@@ -148,5 +155,13 @@ describe('Domination control live data bridge', () => {
       ]));
     }
     expect(charmedCondition?.dominationControl).toEqual(charmedStatus?.dominationControl);
+    expect(charmedStatus?.repeatSave).toEqual(expect.objectContaining({
+      timing: 'on_damage',
+      saveType: 'Wisdom',
+      successEnds: true,
+      useOriginalDC: true,
+      dc: 15
+    }));
+    expect(charmedCondition?.repeatSave).toEqual(charmedStatus?.repeatSave);
   });
 });

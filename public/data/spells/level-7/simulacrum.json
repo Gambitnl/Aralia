@@ -177,7 +177,7 @@
                                        "commandCost":  "none",
                                        "commandsPerTurn":  1,
                                        "initiative":  "shared",
-                                       "objectDescription":  "Persistent Construct duplicate of one Beast or Humanoid; it obeys the caster\u0027s commands, acts on the caster\u0027s turn, uses copied statistics with half Hit Point maximum, and cannot rest or level.",
+                                       "objectDescription":  "Persistent Construct duplicate of one Beast or Humanoid; it obeys the caster's commands, acts on the caster's turn, uses copied statistics with half Hit Point maximum, and cannot rest or level.",
                                        "specialActions":  [
 
                                                           ],
@@ -395,11 +395,11 @@
                                                },
                                                {
                                                    "name":  "Construct Copy",
-                                                   "effect":  "The simulacrum uses the original creature\u0027s statistics except it is a Construct."
+                                                   "effect":  "The simulacrum uses the original creature's statistics except it is a Construct."
                                                },
                                                {
                                                    "name":  "Half Hit Point Maximum",
-                                                   "effect":  "The simulacrum\u0027s Hit Point maximum is half the original creature\u0027s."
+                                                   "effect":  "The simulacrum's Hit Point maximum is half the original creature's."
                                                },
                                                {
                                                    "name":  "Cannot Cast Simulacrum",
@@ -485,7 +485,7 @@
                       "prompt":  "",
                       "playerInputRequired":  false
                   },
-    "description":  "You create a simulacrum of one Beast or Humanoid that is within 10 feet of you for the entire casting of the spell. You finish the casting by touching both the creature and a pile of ice or snow that is the same size as that creature, and the pile turns into the simulacrum, which is a creature. It uses the game statistics of the original creature at the time of casting, except it is a Construct, its Hit Point maximum is half as much, and it can\u0027t cast this spell. The simulacrum is Friendly to you and creatures you designate. It obeys your commands and acts on your turn in combat. The simulacrum can\u0027t gain levels, and it can\u0027t take Short or Long Rests. If the simulacrum takes damage, the only way to restore its Hit Points is to repair it as you take a Long Rest, during which you expend components worth 100 GP per Hit Point restored. The simulacrum must stay within 5 feet of you for the repair. The simulacrum lasts until it drops to 0 Hit Points, at which point it reverts to snow and melts away. If you cast this spell again, any simulacrum you created with this spell is instantly destroyed.",
+    "description":  "You create a simulacrum of one Beast or Humanoid that is within 10 feet of you for the entire casting of the spell. You finish the casting by touching both the creature and a pile of ice or snow that is the same size as that creature, and the pile turns into the simulacrum, which is a creature. It uses the game statistics of the original creature at the time of casting, except it is a Construct, its Hit Point maximum is half as much, and it can't cast this spell. The simulacrum is Friendly to you and creatures you designate. It obeys your commands and acts on your turn in combat. The simulacrum can't gain levels, and it can't take Short or Long Rests. If the simulacrum takes damage, the only way to restore its Hit Points is to repair it as you take a Long Rest, during which you expend components worth 100 GP per Hit Point restored. The simulacrum must stay within 5 feet of you for the repair. The simulacrum lasts until it drops to 0 Hit Points, at which point it reverts to snow and melts away. If you cast this spell again, any simulacrum you created with this spell is instantly destroyed.",
     "higherLevels":  "",
     "tags":  [
                  "summoning",

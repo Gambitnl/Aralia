@@ -33,7 +33,7 @@
 - **Somatic**: false
 - **Material**: false
 
-- **Duration Type**: special
+- **Duration Type**: instantaneous
 - **Concentration**: false
 
 - **Effect Type**: STATUS_CONDITION, MOVEMENT, ATTACK_ROLL_MODIFIER, UTILITY

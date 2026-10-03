@@ -1,19 +1,18 @@
 import { GenerateContentResponse, GenerationConfig } from "@google/genai";
 import { ai, isAiEnabled } from "../aiClient";
-import { withRetry } from "../../utils/networkUtils";
-import { logger } from "../../utils/logger";
-import { sanitizeAIInput, redactSensitiveData } from "../../utils/securityUtils";
+import { withRetry } from "../../utils/context";
+import { logger } from "../../utils/core";
+import { sanitizeAIInput, redactSensitiveData, redactUserText } from "../../utils/core";
 import { FAST_MODEL, GEMINI_TEXT_MODEL_FALLBACK_CHAIN } from "../../config/geminiConfig";
 import { ExtendedGenerationConfig, GeminiTextData, StandardizedResult } from "./types";
 
 const API_TIMEOUT_MS = 20000; // 20 seconds
 
 // --- Adaptive Rate Limiting State ---
-// TODO #417: The `lastRequestTimestamp` is the single source of truth for adaptive throttling.
-// However, `generateEncounter` in encounters.ts does NOT update this timestamp after its API calls.
-// This can cause drift: encounter generation doesn't reset the timer, so subsequent calls (e.g., NPC chat)
-// might incorrectly think enough time has passed. Consider refactoring to ensure ALL API calls
-// funnel through a single timestamp-updating pathway, or have encounters.ts call a shared updater.
+// `lastRequestTimestamp` is the single source of truth for adaptive throttling.
+// Every Gemini call updates it: `generateText` below writes it around its own request,
+// and callers outside this module (e.g. `generateEncounter` in encounters.ts) go through
+// the exported `throttledGenerate` helper, which both spaces requests and stamps the time.
 let lastRequestTimestamp = 0;
 let globalCooldownUntil = 0; // Timestamp when cooldown ends (0 = no cooldown)
 
@@ -23,7 +22,11 @@ const RATE_LIMIT_CONFIG = {
   MAX_RETRY_DELAY_MS: 8000,       // Maximum delay between retries
   GLOBAL_COOLDOWN_MS: 30000,      // 30 second cooldown after exhausting all models
   COOLDOWN_MULTIPLIER: 1.5,       // Multiplier for exponential backoff
+  MIN_REQUEST_SPACING_MS: 1000,   // Minimum gap between two outbound Gemini requests
 };
+
+/** Minimum gap enforced between two outbound Gemini requests. */
+export const MIN_REQUEST_SPACING_MS = RATE_LIMIT_CONFIG.MIN_REQUEST_SPACING_MS;
 
 /**
  * Checks if we're currently in a global rate limit cooldown period.
@@ -46,21 +49,11 @@ function activateGlobalCooldown(): void {
 }
 
 /**
- * Resets rate limit tracking after a successful request.
- * TODO #418: This function is a no-op stub. If it was intended to reset state after successful requests,
- * it should be implemented or removed to avoid confusion. Consider:
- * 1. Resetting `globalCooldownUntil` here, OR
- * 2. Removing the call at L212 if no reset is truly needed.
- */
-function resetRateLimitTracking(): void {
-}
-
-/**
  * Calculates exponential backoff delay for retries.
  * @param attemptNumber The current retry attempt (0-indexed)
  * @returns Delay in milliseconds
  */
-function calculateBackoffDelay(attemptNumber: number): number {
+export function calculateBackoffDelay(attemptNumber: number): number {
   const delay = RATE_LIMIT_CONFIG.BASE_RETRY_DELAY_MS * Math.pow(RATE_LIMIT_CONFIG.COOLDOWN_MULTIPLIER, attemptNumber);
   return Math.min(delay, RATE_LIMIT_CONFIG.MAX_RETRY_DELAY_MS);
 }
@@ -68,8 +61,33 @@ function calculateBackoffDelay(attemptNumber: number): number {
 /**
  * Utility to wait for a specified duration.
  */
-function sleep(ms: number): Promise<void> {
+export function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * The shared outbound pathway for every Gemini request made outside `generateText`.
+ *
+ * It waits until at least `MIN_REQUEST_SPACING_MS` has passed since the previous request,
+ * then stamps `lastRequestTimestamp` so adaptive model selection stays accurate.
+ *
+ * @param request The request payload passed straight to `ai.models.generateContent`.
+ * @returns The raw Gemini response.
+ */
+export async function throttledGenerate(
+  request: Parameters<typeof ai.models.generateContent>[0]
+): Promise<GenerateContentResponse> {
+  const elapsed = Date.now() - lastRequestTimestamp;
+  if (elapsed < RATE_LIMIT_CONFIG.MIN_REQUEST_SPACING_MS) {
+    await sleep(RATE_LIMIT_CONFIG.MIN_REQUEST_SPACING_MS - elapsed);
+  }
+
+  lastRequestTimestamp = Date.now();
+  try {
+    return await ai.models.generateContent(request);
+  } finally {
+    lastRequestTimestamp = Date.now();
+  }
 }
 
 /**
@@ -127,7 +145,10 @@ export async function generateText(
   preferredModel?: string,
   thinkingBudget?: number
 ): Promise<StandardizedResult<GeminiTextData>> {
-  const fullPromptForLogging = `System Instruction: ${systemInstruction || defaultSystemInstruction}\nUser Prompt: ${promptContent}`;
+  // User-provided text can carry PII, so it is masked before it ever reaches GeminiMetadata.
+  const fullPromptForLogging = redactUserText(
+    `System Instruction: ${systemInstruction || defaultSystemInstruction}\nUser Prompt: ${promptContent}`
+  );
 
   const remainingCooldown = getRemainingCooldown();
   if (remainingCooldown > 0) {
@@ -218,7 +239,6 @@ export async function generateText(
       });
 
       lastRequestTimestamp = Date.now();
-      resetRateLimitTracking();
 
       const responseText = response.text?.trim();
 
@@ -227,7 +247,7 @@ export async function generateText(
           data: {
             text: "You notice nothing particularly remarkable.",
             promptSent: fullPromptForLogging,
-            rawResponse: JSON.stringify(response),
+            rawResponse: redactUserText(JSON.stringify(response)),
             rateLimitHit: rateLimitHitInChain,
           },
           error: null
@@ -238,7 +258,7 @@ export async function generateText(
         data: {
           text: responseText || "",
           promptSent: fullPromptForLogging,
-          rawResponse: JSON.stringify(response),
+          rawResponse: redactUserText(JSON.stringify(response)),
           rateLimitHit: rateLimitHitInChain,
         },
         error: null

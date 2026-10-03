@@ -297,4 +297,4 @@ Anything beyond that is a gap. Report it here.
 
 (empty - include rationale when moving something here)
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/ATLAS_GAPS_REGISTRY.md","sha256WithoutMarker":"0e099713f74c266d5c8267bc6c50aac2e160c4187b3b06ed5d176612d991df40","markedAtUtc":"2026-06-25T22:29:38.336Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spells/ATLAS_GAPS_REGISTRY.md","sha256WithoutMarker":"e4a461c801c3a471fe8111fec2761b8881b8253d6988875edbef469a50129cc7","markedAtUtc":"2026-08-09T20:14:15.571Z"} -->

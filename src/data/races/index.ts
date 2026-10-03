@@ -99,21 +99,6 @@ for (const path in raceModules) {
 // Aggregated data map (auto-populated from race files)
 export const ALL_RACES_DATA: Record<string, Race> = racesData;
 
-// Import legacy data bundles that are still used by deprecated systems
-// TODO #238: These can be removed once deprecated race selection components are cleaned up
-import { DRAGONBORN_ANCESTRIES_DATA } from './dragonborn.js';
-import { GIANT_ANCESTRY_BENEFITS_DATA } from './goliath.js';
-import { FIENDISH_LEGACIES_DATA } from './tiefling.js';
-
-// Bundled exports for subraces/legacies that need to be accessed by constants.ts
-// This prevents circular dependencies or missing exports
-export const RACE_DATA_BUNDLE = {
-  dragonbornAncestries: DRAGONBORN_ANCESTRIES_DATA,
-  goliathGiantAncestries: GIANT_ANCESTRY_BENEFITS_DATA,
-  tieflingLegacies: FIENDISH_LEGACIES_DATA,
-  gnomeSubraces: [] as any[], // Deprecated - will be removed
-};
-
 let _traitLibraryCache: RacialTraitLibrary | null = null;
 export const getRacialTraitLibrary = (): RacialTraitLibrary => {
   if (!_traitLibraryCache) {

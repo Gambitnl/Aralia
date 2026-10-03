@@ -2,14 +2,16 @@ import { describe, it, expect } from 'vitest'
 import { TerrainCommand } from '../TerrainCommand'
 import { Spell, TerrainEffect } from '@/types/spells'
 import { CombatState, SelectedSpellTarget } from '@/types/combat'
-import greaseJson from '../../../../public/data/spells/level-1/grease.json'
-import entangleJson from '../../../../public/data/spells/level-1/entangle.json'
-import spikeGrowthJson from '../../../../public/data/spells/level-2/spike-growth.json'
+import greaseJson from '@/data/spells/level-1/grease.json'
+import entangleJson from '@/data/spells/level-1/entangle.json'
+import spikeGrowthJson from '@/data/spells/level-2/spike-growth.json'
 
 const makeCharacter = (id: string, position: { x: number, y: number }): any => ({
   id,
   name: id,
   position,
+  // A cube cast on the caster tile extends along the caster facing (ruling Q4, 2026-09-22).
+  facing: 'east',
   hp: 10,
   maxHp: 10,
   initiative: 0,
@@ -25,7 +27,7 @@ const makeState = (characters: ReturnType<typeof makeCharacter>[]): CombatState 
   const tiles = new Map()
   for (let x = 0; x < 5; x++) {
     for (let y = 0; y < 5; y++) {
-      tiles.set(`${x}-${y}`, { position: { x, y }, terrain: 'grass', elevation: 0, movementCost: 1, environmentalEffects: [] })
+      tiles.set(`${x}-${y}`, { position: { x, y }, coordinates: { x, y }, terrain: 'grass', elevation: 0, movementCost: 1, environmentalEffects: [] })
     }
   }
 
@@ -185,7 +187,7 @@ describe('TerrainCommand', () => {
       casterId: 'caster'
     }))
     expect(greaseResult.combatLog.at(-1)?.data?.affectedPositions).toEqual(
-      expect.arrayContaining(greaseTiles.map(tile => tile.position))
+      expect.arrayContaining(greaseTiles.map(tile => tile.coordinates))
     )
 
     expect(entangleTiles.length).toBeGreaterThan(greaseTiles.length)
@@ -197,7 +199,7 @@ describe('TerrainCommand', () => {
       casterId: 'caster'
     }))
     expect(entangleResult.combatLog.at(-1)?.data?.affectedPositions).toEqual(
-      expect.arrayContaining(entangleTiles.map(tile => tile.position))
+      expect.arrayContaining(entangleTiles.map(tile => tile.coordinates))
     )
   })
 

@@ -5,8 +5,8 @@ import {
 } from '../effects/UtilityCommand'
 import type { CombatCharacter } from '@/types/combat'
 import type { Spell, UtilityEffect } from '@/types/spells'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
-import druidGrove from '../../../public/data/spells/level-6/druid-grove.json'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
+import druidGrove from '@/data/spells/level-6/druid-grove.json'
 
 /**
  * This file proves Druid Grove's guardian trees are not just JSON prose.

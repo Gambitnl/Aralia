@@ -35,16 +35,35 @@ describe('Underdark Biome Mechanics', () => {
         expect(underdark.lightLevel).toBe('darkness');
     });
 
-    it('should accelerate sanity decay in Shadowfell Rift', () => {
+    it('should set light level to magical_darkness in Shadowfell Rift without sources', () => {
+        const state = createMockState('shadowfell_rift');
+        const { underdark } = UnderdarkMechanics.processTime(state, 0);
+
+        expect(underdark.lightLevel).toBe('magical_darkness');
+    });
+
+    it('should accelerate sanity decay in Shadowfell Rift (magical darkness doubles it)', () => {
         const state = createMockState('shadowfell_rift');
         // Shadowfell has sanityModifier 3.0
         // Base loss is 1 per 30 mins (2 per hour)
-        // Base light level is darkness, so no magical-darkness multiplier applies.
-        // Total change = 2 (base units) * 3.0 = 6 points lost per hour.
-        // Expected: 100 - 6 = 94.
+        // Base light level is magical_darkness, which doubles the multiplier: 3.0 * 2 = 6.0
+        // Total change = 2 (base units) * 6.0 = 12 points lost per hour.
+        // Expected: 100 - 12 = 88.
 
         const { underdark } = UnderdarkMechanics.processTime(state, 3600);
-        expect(underdark.sanity.current).toBe(94);
+        expect(underdark.lightLevel).toBe('magical_darkness');
+        expect(underdark.sanity.current).toBe(88);
+    });
+
+    it('should fall back to plain dim (not magical darkness) in Shadowfell Rift when lit', () => {
+        const state = createMockState('shadowfell_rift');
+        state.underdark.activeLightSources = [{
+            id: '1', type: 'torch', name: 'Torch',
+            radius: 20, durationRemaining: 120, isActive: true
+        }];
+
+        const { underdark } = UnderdarkMechanics.processTime(state, 0);
+        expect(underdark.lightLevel).toBe('dim');
     });
 
     it('should halt sanity decay in Fungal Forest (Safe Biome) when lit', () => {

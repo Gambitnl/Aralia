@@ -1,6 +1,6 @@
 import { CombatState } from '@/types/combat'
 import { SpellCommand } from './SpellCommand'
-import { logger } from '@/utils/logger'
+import { logger } from '@/utils/core'
 
 export interface ExecutionResult {
   success: boolean
@@ -60,49 +60,5 @@ export class CommandExecutor {
         error: error as Error
       }
     }
-  }
-
-  /**
-   * Execute commands with rollback on failure
-   */
-  static async executeWithRollback(
-    commands: SpellCommand[],
-    initialState: CombatState
-  ): Promise<ExecutionResult> {
-    const result = await this.execute(commands, initialState)
-
-    if (!result.success && result.executedCommands.length > 0) {
-      // Attempt rollback
-      logger.warn('[CommandExecutor] Rolling back executed commands...', {
-        count: result.executedCommands.length,
-        failedCommandId: result.failedCommand?.id
-      })
-
-      try {
-        let rolledBackState = result.finalState
-
-        for (let i = result.executedCommands.length - 1; i >= 0; i--) {
-          const command = result.executedCommands[i]
-          if (command.undo) {
-            rolledBackState = command.undo(rolledBackState)
-          } else {
-             logger.warn(`[CommandExecutor] Command ${command.id} does not support undo. Rollback incomplete.`)
-          }
-        }
-
-        return {
-          ...result,
-          finalState: rolledBackState
-        }
-      } catch (rollbackError) {
-        logger.error('[CommandExecutor] Rollback failed', {
-          error: rollbackError instanceof Error ? rollbackError.message : String(rollbackError),
-          originalError: result.error?.message
-        })
-        return result
-      }
-    }
-
-    return result
   }
 }

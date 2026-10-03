@@ -107,11 +107,15 @@ export const MOUNTAIN_MAX_ELEV_FT = 7000;
  * their rolling look, mountain windows grow real peaks. */
 export const RIDGE_START_N = 0.55;
 
-/** Ridged-noise amplitude share at full ramp — how jagged the high country reads. */
-export const RIDGE_AMPLITUDE = 0.25;
+/** Ridged-noise amplitude share at full ramp — how jagged the high country reads.
+ * (2026-07-21 look pass: 0.25 → 0.12 — the old amplitude pushed most peak-window
+ * samples past n = 1, clamping the high country into a needle-studded mesa.) */
+export const RIDGE_AMPLITUDE = 0.12;
 
-/** Vertical span (ft) the ridged component can add at full ramp. */
-export const RIDGE_SPAN_FT = 2500;
+/** Vertical span (ft) the ridged component can add at full ramp. Doubles as the
+ * crest wavelength of the ridged noise — 5,000 ft gives massif-scale crests
+ * instead of the 2,500 ft spike field the first pass produced. */
+export const RIDGE_SPAN_FT = 5000;
 
 /** Temperature class for the tree line — resolved per biome by treelineClassOf. */
 export type TreelineClass = 'cold' | 'temperate' | 'none';
@@ -181,6 +185,37 @@ export function resolveSnowLine(anchorLatitudeDeg: number | null): number {
   if (absLat > 60) return SNOW_LINE_POLAR;
   if (absLat >= 25) return SNOW_LINE_H;
   return SNOW_LINE_TROPICAL;
+}
+
+// ── Absolute snow line (2026-07-21 look pass) ───────────────────────────────
+// The 3D ground adapter re-bases every window so its lowest point sits at
+// y = 0, so the encoded-height snow line above (SNOW_LINE_H, pack-h units)
+// could NEVER fire in practice: a window needed ~990 m of INTERNAL relief
+// before any vertex crossed it. Even the tallest seed-42 peak window carries
+// ~70 m. These constants restate the three latitude bands as ABSOLUTE feet of
+// local elevation (the elevationCurveFt domain, 0..MOUNTAIN_MAX_ELEV_FT);
+// makeGroundWorld converts them to each window's relative encoded units.
+
+/** Temperate snow line (25°..60° latitude), absolute local-elevation feet. */
+export const SNOW_LINE_FT_TEMPERATE = 4300;
+
+/** Polar snow line (|latitude| > 60°): snow reaches far lower down. */
+export const SNOW_LINE_FT_POLAR = 2200;
+
+/** Tropical snow line (|latitude| < 25°): only the very highest ground whitens. */
+export const SNOW_LINE_FT_TROPICAL = 6100;
+
+/**
+ * Resolve the ABSOLUTE snow line (local-elevation feet) for a window from its
+ * anchor cell's latitude — the same 3-band table as `resolveSnowLine`, in the
+ * elevation-curve domain. `null` latitude falls back to temperate. Pure.
+ */
+export function resolveSnowLineFt(anchorLatitudeDeg: number | null): number {
+  if (anchorLatitudeDeg == null) return SNOW_LINE_FT_TEMPERATE;
+  const absLat = Math.abs(anchorLatitudeDeg);
+  if (absLat > 60) return SNOW_LINE_FT_POLAR;
+  if (absLat >= 25) return SNOW_LINE_FT_TEMPERATE;
+  return SNOW_LINE_FT_TROPICAL;
 }
 
 /** Snow-cap blend target color (linear RGB 0–1) — near-white with a cool cast. */

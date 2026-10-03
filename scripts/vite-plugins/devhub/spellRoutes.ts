@@ -12,7 +12,7 @@ let spellFieldInventoryLoadedAt = 0;
 const getSpellFieldInventory = (forceRefresh = false): SpellFieldInventory => {
   const now = Date.now();
   const cacheIsFresh = spellFieldInventoryCache && (now - spellFieldInventoryLoadedAt) < 15_000;
-  if (!forceRefresh && cacheIsFresh) {
+  if (!forceRefresh && cacheIsFresh && spellFieldInventoryCache) {
     return spellFieldInventoryCache;
   }
 

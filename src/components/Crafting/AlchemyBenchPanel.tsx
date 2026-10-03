@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 08/06/2026, 16:13:35
- * Dependents: components/Crafting/index.ts
- * Imports: 13 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file src/components/Crafting/AlchemyBenchPanel.tsx
  * UI component for the alchemy crafting bench with tabs for Recipe Browser,
@@ -25,6 +9,23 @@
  * 'handleProgressionUpdate' function signature to improve type safety 
  * and maintainability.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 09/09/2026, 13:27:22
+ * Dependents: components/Crafting/index.ts
+ * Imports: 14 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useEffect, useMemo, useState } from 'react';
 import { useGameState } from '../../state/GameContext';
 import {
@@ -37,7 +38,7 @@ import {
 import { CraftingRecipe, CraftingTool, getResearchCost } from '../../systems/crafting/alchemyRecipes';
 import { CraftingQuality } from '../../systems/crafting/crafterProgression';
 import { attemptBatchCraft, generateBatchCraftActions, getBatchDCDisplay, DEFAULT_BATCH_CONFIG } from '../../systems/crafting/batchCrafting';
-import { CraftingLocationType } from '../../systems/crafting/craftingLocations';
+import { CRAFTING_LOCATIONS, CraftingLocationType } from '../../systems/crafting/craftingLocations';
 import { ExperimentPanel } from './ExperimentPanel';
 import { IngredientGlossaryPanel } from './IngredientGlossaryPanel';
 import { CraftingState } from '../../types/crafting';
@@ -48,6 +49,10 @@ import {
     resolveAlchemyBenchCraftingState
 } from './alchemyBenchSelectors';
 import { WINDOW_KEYS } from '../../styles/uiIds';
+import {
+    describeCraftingBenchActionMismatch,
+    isCraftingBenchAction
+} from '../../state/craftingActionContract';
 import './AlchemyBenchPanel.css';
 
 interface AlchemyBenchPanelProps {
@@ -130,6 +135,33 @@ export const AlchemyBenchPanel: React.FC<AlchemyBenchPanelProps> = ({ onClose })
         crafterModifier
     } = benchState;
 
+    /**
+     * Forwards one engine-generated action to the reducer.
+     *
+     * WHAT: `generateCraftingActions` and `generateBatchCraftActions` are typed
+     * `{ type: string; payload: unknown }[]`, so each element used to be widened
+     * with a cast straight into `dispatch`. That cast hid payload drift: rename a
+     * field in either engine and the build stays green while the reducer drops
+     * the action at runtime. Each action is now checked against the declared
+     * `CraftingBenchAction` shapes first.
+     *
+     * PRESERVED: a mismatched action is still dispatched, exactly as before. The
+     * guard only reports, so a drifted engine cannot silently lose a craft AND
+     * cannot be turned into a new failure mode by this check. The contract test
+     * (state/__tests__/craftingActionContract.test.ts) is what fails on drift.
+     */
+    const dispatchCraftingAction = (action: { type: string; payload: unknown }) => {
+        if (isCraftingBenchAction(action)) {
+            dispatch(action);
+            return;
+        }
+        console.error(
+            '[AlchemyBenchPanel] crafting action does not match its declared shape: ' +
+                describeCraftingBenchActionMismatch(action)
+        );
+        dispatch(action as Parameters<typeof dispatch>[0]);
+    };
+
     const handleCraft = () => {
         if (!selectedRecipe) return;
 
@@ -142,7 +174,7 @@ export const AlchemyBenchPanel: React.FC<AlchemyBenchPanelProps> = ({ onClose })
                 const actions = generateBatchCraftActions(selectedRecipe.recipe, result);
 
                 for (const action of actions) {
-                    dispatch(action as Parameters<typeof dispatch>[0]);
+                    dispatchCraftingAction(action);
                 }
 
                 // Update crafting stats
@@ -179,8 +211,10 @@ export const AlchemyBenchPanel: React.FC<AlchemyBenchPanelProps> = ({ onClose })
                     state.party[0]
                 );
 
-                const actions = generateCraftingActions(selectedRecipe.recipe, result);                for (const action of actions) {
-                    dispatch(action as Parameters<typeof dispatch>[0]);
+                const actions = generateCraftingActions(selectedRecipe.recipe, result);
+
+                for (const action of actions) {
+                    dispatchCraftingAction(action);
                 }
 
                 // Update crafting stats

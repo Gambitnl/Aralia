@@ -1,6 +1,48 @@
+import { createMockSpellSlots } from '@/utils/core/factories';
 import { describe, it, expect } from 'vitest';
-import { canAffordActionCost, consumeActionCost, createDefaultActionEconomy, resetEconomy } from '../actionEconomyUtils';
-import { createMockCombatCharacter } from '../../factories';
+import { calculateMovementModeTotal, canAffordActionCost, consumeActionCost, createDefaultActionEconomy, resetEconomy } from '../actionEconomyUtils';
+import { createMockCombatCharacter } from '../../core/factories';
+
+// ============================================================================
+// Dev Player Spell-Slot Exception
+// ============================================================================
+// These cases prove the preview-only marker skips only spell-slot accounting.
+// The character still spends its action, while an ordinary caster keeps the
+// existing refusal and decrement behavior.
+// ============================================================================
+
+describe('Dev Player unlimited spell slots', () => {
+    it('casts without a slot and still spends the normal action', () => {
+        const character = {
+            ...createMockCombatCharacter(),
+            devPlaytest: { unlimitedSpellSlots: true },
+            spellSlots: createMockSpellSlots({
+                level_1: { current: 0, max: 1 },
+            }),
+        } as ReturnType<typeof createMockCombatCharacter>;
+        const cost = { type: 'action' as const, spellSlotLevel: 1 };
+
+        expect(canAffordActionCost(character, cost)).toBe(true);
+        const spent = consumeActionCost(character, cost);
+        expect(spent.actionEconomy.action.used).toBe(true);
+        expect(spent.spellSlots?.level_1?.current).toBe(0);
+    });
+
+    it('keeps ordinary casters blocked or decremented by their slot pool', () => {
+        const emptySlots = {
+            ...createMockCombatCharacter(),
+            spellSlots: createMockSpellSlots({ level_1: { current: 0, max: 1 } }),
+        };
+        const availableSlot = {
+            ...createMockCombatCharacter(),
+            spellSlots: createMockSpellSlots({ level_1: { current: 1, max: 1 } }),
+        };
+        const cost = { type: 'action' as const, spellSlotLevel: 1 };
+
+        expect(canAffordActionCost(emptySlots, cost)).toBe(false);
+        expect(consumeActionCost(availableSlot, cost).spellSlots?.level_1?.current).toBe(0);
+    });
+});
 import { resolveRacialSpellLimitedUseId } from '../../character/characterUtils';
 
 type LimitedUseEntry = {
@@ -34,6 +76,18 @@ describe('actionEconomyUtils', () => {
   });
 
   describe('resetEconomy', () => {
+    it('publishes the fastest pool while preserving each mixed movement-mode cap', () => {
+      const character = createMockCombatCharacter();
+      character.stats.speed = 30;
+      character.stats.extraMovementSpeeds = { fly: 40, swim: 20 };
+
+      // The turn ledger is shared, but a slower mode cannot borrow the faster
+      // mode's ceiling. A normal Move resolver selects the relevant mode total.
+      expect(calculateMovementModeTotal(character, 'walk')).toBe(30);
+      expect(calculateMovementModeTotal(character, 'fly')).toBe(40);
+      expect(calculateMovementModeTotal(character, 'swim')).toBe(20);
+      expect(resetEconomy(character).actionEconomy.movement.total).toBe(40);
+    });
     it('should reset a character\'s action economy', () => {
       const character = createMockCombatCharacter({
         stats: { speed: 40, strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, baseInitiative: 0, cr: "1" },
@@ -80,7 +134,7 @@ describe('actionEconomyUtils', () => {
           startTime: 0,
           mechanics: {
             movementSpeed: 20
-          }
+          } as any
         }]
       });
 
@@ -119,10 +173,10 @@ describe('actionEconomyUtils', () => {
             resetOn: 'long_rest',
           },
         },
-        spellSlots: {
+        spellSlots: createMockSpellSlots({
           level_1: { current: 1, max: 1 },
           level_3: { current: 2, max: 2 },
-        },
+        }),
         spellbook: {
           cantrips: [],
           knownSpells: [],
@@ -182,9 +236,9 @@ describe('actionEconomyUtils', () => {
 
     it('blocks racial spells cast above the racial max when upcast is disabled', () => {
       const character = createMockCombatCharacter({
-        spellSlots: {
+        spellSlots: createMockSpellSlots({
           level_5: { current: 1, max: 1 },
-        },
+        }),
         spellbook: {
           cantrips: [],
           knownSpells: [],
@@ -205,7 +259,7 @@ describe('actionEconomyUtils', () => {
 
       const racialCost = { type: 'action' as const, spellSlotLevel: 6, castSource: { type: 'racial' as const, spellId: 'nondetection', allowSlotFallback: true } };
       expect(canAffordActionCost(character, racialCost)).toBe(false);
-      expect(consumeActionCost(character, racialCost).spellSlots?.level_6).toBeUndefined();
+      expect(consumeActionCost(character, racialCost).spellSlots?.level_6).toEqual({ current: 0, max: 0 });
     });
 
     it('marks an action as spent so a second action cannot be afforded', () => {
@@ -215,6 +269,7 @@ describe('actionEconomyUtils', () => {
       const afterAttack = consumeActionCost(character, { type: 'action' });
 
       expect(afterAttack.actionEconomy.action.used).toBe(true);
+      expect(afterAttack.actionEconomy.action.remaining).toBe(0);
       expect(canAffordActionCost(afterAttack, { type: 'action' })).toBe(false);
       expect(canAffordActionCost(afterAttack, { type: 'bonus' })).toBe(true);
     });
@@ -233,7 +288,7 @@ describe('actionEconomyUtils', () => {
 
     it('does not spend a spell slot for a cantrip cost', () => {
       const character = createMockCombatCharacter({
-        spellSlots: {
+        spellSlots: createMockSpellSlots({
           level_1: { current: 2, max: 2 },
           level_2: { current: 0, max: 0 },
           level_3: { current: 0, max: 0 },
@@ -243,7 +298,7 @@ describe('actionEconomyUtils', () => {
           level_7: { current: 0, max: 0 },
           level_8: { current: 0, max: 0 },
           level_9: { current: 0, max: 0 }
-        }
+        })
       });
 
       const afterCantrip = consumeActionCost(character, { type: 'action', spellSlotLevel: 0 });
@@ -254,7 +309,7 @@ describe('actionEconomyUtils', () => {
 
     it('spends the matching spell slot for a level 1 spell cost', () => {
       const character = createMockCombatCharacter({
-        spellSlots: {
+        spellSlots: createMockSpellSlots({
           level_1: { current: 2, max: 2 },
           level_2: { current: 0, max: 0 },
           level_3: { current: 0, max: 0 },
@@ -264,7 +319,7 @@ describe('actionEconomyUtils', () => {
           level_7: { current: 0, max: 0 },
           level_8: { current: 0, max: 0 },
           level_9: { current: 0, max: 0 }
-        }
+        })
       });
 
       const afterSpell = consumeActionCost(character, { type: 'action', spellSlotLevel: 1 });

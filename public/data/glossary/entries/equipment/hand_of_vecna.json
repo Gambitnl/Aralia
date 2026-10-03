@@ -23,6 +23,12 @@
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Artifact",
-    "reqAttune": "Required"
+    "reqAttune": "Required",
+    "abilitySet": {
+      "str": 20
+    },
+    "charges": 8,
+    "recharge": "dawn",
+    "rechargeAmount": "1d4 + 4"
   }
 }

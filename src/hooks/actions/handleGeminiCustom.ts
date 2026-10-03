@@ -25,10 +25,10 @@ import * as GeminiService from '../../services/geminiService';
 import { AddMessageFn, AddGeminiLogFn, GetCurrentLocationFn, GetCurrentNPCsFn } from './actionHandlerTypes';
 import { NPCS } from '../../constants';
 import { SKILLS_DATA } from '../../data/skills';
-import { getAbilityModifierValue } from '../../utils/characterUtils';
-import { assessPlausibility } from '../../utils/socialUtils';
+import { getAbilityModifierValue } from '../../utils/character';
+import { assessPlausibility } from '../../utils/world';
 import { handleImmediateGossip } from './handleWorldEvents';
-import { resolveAndRegisterEntities } from '../../utils/entityIntegrationUtils';
+import { resolveAndRegisterEntities } from '../../utils/context';
 import { generateId } from '../../utils/core/idGenerator';
 
 interface HandleGeminiCustomProps {
@@ -193,9 +193,9 @@ export async function handleGeminiCustom({
       }
 
       // --- Linker Coherence Check ---
+      // resolveAndRegisterEntities also links any new NPC to the current
+      // location's npcIds and seeds a neutral player relationship.
       await resolveAndRegisterEntities(outcomeResult.data.text, gameState, dispatch, addGeminiLog);
-
-      // TODO #252(Linker): Enhance entity creation by linking new NPCs to the current location (e.g. location.npcIds.push(newNpc.id)) and establishing relationships.
       // -----------------------------
 
     } else {

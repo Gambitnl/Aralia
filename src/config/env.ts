@@ -28,10 +28,25 @@ interface EnvConfig {
 // Strategy: Prefer strict Vite env vars (VITE_GEMINI_API_KEY).
 // Fallback: Use process.env only outside browser contexts for legacy support or non-Vite runtimes.
 
+// ============================================================================
+// Environment Variable Access Helpers
+// ============================================================================
+// Safely access Vite's import.meta.env across both browser and Node runtime environments.
+// TypeScript's standard ImportMeta interface does not always expose .env in hybrid script passes,
+// so this helper casts import.meta to prevent TS2339 compiler errors while preserving runtime behavior.
+// ============================================================================
+const getMetaEnv = (): Record<string, any> => {
+  if (typeof import.meta !== 'undefined') {
+    return (import.meta as unknown as { env?: Record<string, any> }).env || {};
+  }
+  return {};
+};
+
 const getApiKey = () => {
   // 1. Try modern Vite env var
-  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_GEMINI_API_KEY) {
-    return import.meta.env.VITE_GEMINI_API_KEY;
+  const metaEnv = getMetaEnv();
+  if (metaEnv.VITE_GEMINI_API_KEY) {
+    return String(metaEnv.VITE_GEMINI_API_KEY);
   }
   // 2. In non-browser runtimes, use legacy shims (process.env.API_KEY / process.env.GEMINI_API_KEY)
   // Note: verify shim existence before access to avoid ReferenceError in strict ESM if shim is missing
@@ -47,14 +62,11 @@ const getImageApiKey = () => {
   // 1. VITE_IMAGE_API_KEY (Vite .env or System Env) - Highest priority, specific to images.
   // 2. IMAGE_API_KEY / GEMINI_IMAGE_API_KEY (Process Env) - Legacy/System fallback for specific image key.
   // 3. API_KEY (General Fallback) - If no specific image key is found, we reuse the general Gemini API Key.
-  //
-  // This value is eventually exposed as `ENV.IMAGE_API_KEY`.
-  // Consumers (like `src/services/PortraitService.ts` or `scripts/workflows/gemini/core/image-gen-mcp.ts`) import `ENV`
-  // and use `ENV.IMAGE_API_KEY` to authenticate requests to the Gemini Imagen 3 model.
 
   // 1. Check for modern Vite-injected environment variable (specific to images)
-  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_IMAGE_API_KEY) {
-    return import.meta.env.VITE_IMAGE_API_KEY;
+  const metaEnv = getMetaEnv();
+  if (metaEnv.VITE_IMAGE_API_KEY) {
+    return String(metaEnv.VITE_IMAGE_API_KEY);
   }
 
   // 2. Check for legacy node-style process.env variables (specific to images)
@@ -71,8 +83,9 @@ const getImageApiKey = () => {
 };
 
 const getGoogleClientId = (): string => {
-  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_GOOGLE_CLIENT_ID) {
-    return import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const metaEnv = getMetaEnv();
+  if (metaEnv.VITE_GOOGLE_CLIENT_ID) {
+    return String(metaEnv.VITE_GOOGLE_CLIENT_ID);
   }
   if (typeof process !== 'undefined' && process.env) {
     return process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '';
@@ -88,8 +101,9 @@ const DEFAULT_GOOGLE_OAUTH_SCOPE =
   'https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/userinfo.email';
 
 const getGoogleOAuthScope = (): string => {
-  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_GOOGLE_OAUTH_SCOPE) {
-    return import.meta.env.VITE_GOOGLE_OAUTH_SCOPE;
+  const metaEnv = getMetaEnv();
+  if (metaEnv.VITE_GOOGLE_OAUTH_SCOPE) {
+    return String(metaEnv.VITE_GOOGLE_OAUTH_SCOPE);
   }
   if (typeof process !== 'undefined' && process.env && process.env.VITE_GOOGLE_OAUTH_SCOPE) {
     return process.env.VITE_GOOGLE_OAUTH_SCOPE;
@@ -97,22 +111,24 @@ const getGoogleOAuthScope = (): string => {
   return DEFAULT_GOOGLE_OAUTH_SCOPE;
 };
 
+const metaEnv = getMetaEnv();
+
 const RAW_ENV = {
   API_KEY: getApiKey(),
   IMAGE_API_KEY: getImageApiKey(),
   GOOGLE_CLIENT_ID: getGoogleClientId(),
   GOOGLE_OAUTH_SCOPE: getGoogleOAuthScope(),
-  BASE_URL: (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env.BASE_URL : '/',
-  DEV: (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env.DEV : true,
+  BASE_URL: (metaEnv.BASE_URL as string) || '/',
+  DEV: metaEnv.DEV !== undefined ? Boolean(metaEnv.DEV) : true,
 
   // Parse 'true', '1', 'on' as true for VITE_ENABLE_DEV_TOOLS
-  VITE_ENABLE_DEV_TOOLS: (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_ENABLE_DEV_TOOLS)
-    ? ['true', '1', 'on'].includes((import.meta.env.VITE_ENABLE_DEV_TOOLS || '').toLowerCase())
+  VITE_ENABLE_DEV_TOOLS: metaEnv.VITE_ENABLE_DEV_TOOLS
+    ? ['true', '1', 'on'].includes(String(metaEnv.VITE_ENABLE_DEV_TOOLS).toLowerCase())
     : undefined,
 
   // Parse 'true', '1', 'on' as true for VITE_ENABLE_PORTRAITS
-  VITE_ENABLE_PORTRAITS: (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_ENABLE_PORTRAITS)
-    ? ['true', '1', 'on'].includes((import.meta.env.VITE_ENABLE_PORTRAITS || '').toLowerCase())
+  VITE_ENABLE_PORTRAITS: metaEnv.VITE_ENABLE_PORTRAITS
+    ? ['true', '1', 'on'].includes(String(metaEnv.VITE_ENABLE_PORTRAITS).toLowerCase())
     : undefined,
 };
 

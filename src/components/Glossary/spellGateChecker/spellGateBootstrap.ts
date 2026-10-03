@@ -27,7 +27,7 @@
  */
 
 import { assetUrl } from "../../../config/env";
-import { fetchWithTimeout } from "../../../utils/networkUtils";
+import { fetchWithTimeout } from "../../../utils/context";
 import type {
   FidelityData,
   SpellGateArtifact,
@@ -173,9 +173,8 @@ export async function fetchSpellGateBootstrap() {
 
   let gateArtifact: SpellGateArtifact | null = null;
 
-  // DEBT: The generated public artifact is optional because the glossary must
-  // still function if the report has not been refreshed yet. We intentionally
-  // fail open here instead of turning the whole gate checker into a hard error.
+  // Fail-open reporting and link gating for missing generated public artifacts is tracked in Agora task agora-65d0.
+  // The generated report artifact is optional so the glossary gate checker continues functioning even when the build report is not yet emitted.
   try {
     gateArtifact = await fetchWithTimeout<SpellGateArtifact>(assetUrl("data/spell_gate_report.json"));
   } catch {

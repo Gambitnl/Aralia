@@ -113,3 +113,45 @@ describe('CharacterActor defense badges', () => {
     expect(screen.queryByTestId('defense-badge-immunity')).not.toBeInTheDocument();
   });
 });
+
+describe('CharacterActor temporary HP cue', () => {
+  it('keeps the separate temporary-hit-point value visible beside the 3D HP pip', () => {
+    render(
+      <CharacterActor
+        character={buildCharacter({ currentHP: 12, maxHP: 24, tempHP: 12 })}
+        allCharacters={[buildCharacter()]}
+        tileElevation={0}
+        isSelected={false}
+        isTurn={false}
+        isTargetable={false}
+        targetingMode={false}
+        onClick={() => undefined}
+        activeCharacterId={null}
+      />
+    );
+
+    expect(screen.getByTestId('temporary-hit-points-badge-3d')).toHaveTextContent('+12');
+    expect(screen.getByTestId('temporary-hit-points-badge-3d')).toHaveAttribute(
+      'aria-label',
+      '12 temporary hit points',
+    );
+  });
+
+  it('omits the 3D temporary HP cue after the buffer is depleted', () => {
+    render(
+      <CharacterActor
+        character={buildCharacter({ tempHP: 0 })}
+        allCharacters={[buildCharacter()]}
+        tileElevation={0}
+        isSelected={false}
+        isTurn={false}
+        isTargetable={false}
+        targetingMode={false}
+        onClick={() => undefined}
+        activeCharacterId={null}
+      />
+    );
+
+    expect(screen.queryByTestId('temporary-hit-points-badge-3d')).not.toBeInTheDocument();
+  });
+});

@@ -35,6 +35,21 @@
 - **Duration Type**: instantaneous
 - **Concentration**: false
 - **Effect Type**: HEALING
+- **Utility Option 1 Name**: Remove Exhaustion
+- **Utility Option 1 Effect**: remove_exhaustion_level
+- **Utility Option 1 Details**: Remove one Exhaustion level from the touched creature.
+- **Utility Option 2 Name**: Remove Charmed or Petrified
+- **Utility Option 2 Effect**: remove_condition
+- **Utility Option 2 Details**: Remove either the Charmed condition or the Petrified condition from the touched creature.
+- **Utility Option 3 Name**: Remove curse or cursed attunement
+- **Utility Option 3 Effect**: remove_curse
+- **Utility Option 3 Details**: End a curse affecting the creature, including attunement to a cursed magic item.
+- **Utility Option 4 Name**: Restore ability score reduction
+- **Utility Option 4 Effect**: restore_ability_score
+- **Utility Option 4 Details**: End one reduction to one of the target's ability scores.
+- **Utility Option 5 Name**: Restore hit point maximum reduction
+- **Utility Option 5 Effect**: restore_hit_point_maximum
+- **Utility Option 5 Details**: End one reduction to the target's Hit Point maximum.
 - **Save Cover Ignored**: not_applicable
 - **Save Auto Outcome**: not_applicable
 - **Save Auto Outcome Condition**: not_applicable

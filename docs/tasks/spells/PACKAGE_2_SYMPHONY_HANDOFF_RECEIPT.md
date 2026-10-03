@@ -1,5 +1,10 @@
 # Package 2 Symphony Handoff Receipt
 
+> **Paths below are historical.** `conductor/symphony/` was deleted on
+> 2026-08-31. This record is left exactly as written, because rewriting a
+> receipt to match today's tree would falsify it. See
+> [`docs/projects/CONDUCTOR_RETIRED.md`](../../projects/CONDUCTOR_RETIRED.md).
+
 Status: PR #935 merged; Package 2 closeout recorded.
 
 Date/time: 2026-05-21 23:54 Europe/Amsterdam.

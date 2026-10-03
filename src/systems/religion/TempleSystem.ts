@@ -22,8 +22,8 @@ import {
   GameState
 } from '../../types';
 import { AppAction } from '../../state/actionTypes';
-import { canAffordService, getDivineStanding } from '../../utils/religionUtils';
-import { logger } from '../../utils/logger';
+import { canAffordService, getDivineStanding } from '../../utils/world';
+import { logger } from '../../utils/core';
 import { generateId } from '../../utils/core/idGenerator';
 
 export interface ServiceResult {
@@ -59,10 +59,10 @@ type TempleEffectResolution = {
  * explicit about what is and is not a heal.
  */
 const LEGACY_TEMPLE_EFFECT_HANDLERS: Record<
-  TempleLegacyExactEffect,
+  string,
   (context: TempleEffectContext) => TempleEffectResolution
 > = {
-  grant_blessing_minor: ({ dispatch }) => {
+  grant_blessing_minor: ({ dispatch }: TempleEffectContext) => {
     dispatch({
       type: 'ADD_NOTIFICATION',
       payload: {

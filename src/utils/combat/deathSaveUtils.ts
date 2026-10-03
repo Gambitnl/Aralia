@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 29/06/2026, 12:05:39
- * Dependents: commands/effects/DamageCommand.ts, commands/effects/HealingCommand.ts, hooks/combat/engine/useCombatEngine.ts, utils/combat/actionEconomyUtils.ts
+ * Last Sync: 13/08/2026, 18:02:52
+ * Dependents: commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/HealingCommand.ts, commands/effects/StatusConditionCommand.ts, components/DesignPreview/steps/raceDomain/leaves/bugbearRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/centaurRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fallenAasimarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fireGenasiRaceLeaf.tsx, components/DesignPreview/steps/scenarioControls/companionReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/counterspellNestedReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/deathSavesScenarioControls.ts, components/DesignPreview/steps/scenarioControls/healingTempHpScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reachCreatureSizeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/resistanceScenarioControls.ts, components/DesignPreview/steps/scenarioControls/savingThrowsHalfDamageScenarioControls.ts, components/DesignPreview/steps/spells/fireBoltScenario.tsx, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useTurnManager.ts, systems/combat/fallingGroundImpactResolution.ts, systems/combat/reactions/companionProtectionReaction.ts, systems/spells/mechanics/areaDamageSpellCastResolution.ts, systems/spells/mechanics/directDamageSpellCastResolution.ts, systems/spells/mechanics/healingTemporaryHitPointResolution.ts, systems/spells/mechanics/reactiveDamageRetaliationResolution.ts, systems/spells/mechanics/witchBoltOngoingResolution.ts, utils/combat/actionEconomyUtils.ts, utils/combat/grappleUtils.ts, utils/combat/multiattackUtils.ts
  * Imports: 1 files
  *
  * MULTI-AGENT SAFETY:
@@ -22,6 +22,8 @@
  * This system is built to strictly implement standard D&D 5e Rules:
  * - When a player drops to 0 HP, they gain the Unconscious condition and death save tracking initializes.
  * - Taking damage while at 0 HP inflicts death save failures (1 failure standard, 2 if critical).
+ * - A turn-start death save records success or failure, stabilizes at three successes,
+ *   marks death at three failures, and restores 1 HP on a natural 20.
  * - Receiving healing while downed immediately restores consciousness, clears saves, and removes Unconscious.
  * - Unconscious or incapacitated creatures are restricted from executing actions, reactions, or moving.
  *
@@ -124,6 +126,149 @@ export function removeUnconsciousCondition(character: CombatCharacter): CombatCh
     statusEffects,
     conditions
   };
+}
+
+// ============================================================================
+// Turn-Start Death Saving Throw
+// ============================================================================
+// The combat turn manager and deterministic teaching scenarios share this one
+// transaction. The caller owns when the roll occurs; this helper owns every
+// resulting HP, pip, stabilization, death, and Unconscious transition.
+// ============================================================================
+
+export type DeathSavingThrowOutcome =
+  | 'not_eligible'
+  | 'success'
+  | 'failure'
+  | 'stable'
+  | 'dead'
+  | 'revived';
+
+export interface DeathSavingThrowResult {
+  character: CombatCharacter;
+  roll: number | null;
+  outcome: DeathSavingThrowOutcome;
+}
+
+/**
+ * Resolves one death saving throw for a downed player character.
+ *
+ * Stable, dead, recovered, and non-player combatants are explicit no-ops. A
+ * natural 20 restores 1 HP and clears the downed condition; a natural 1 adds
+ * two failures; ordinary 10-19 rolls add one success; and other rolls add one
+ * failure. Three successes stabilize and three failures represent death.
+ */
+export function resolveDeathSavingThrow(
+  character: CombatCharacter,
+  roll: number,
+): DeathSavingThrowResult {
+  const deathSaves = character.deathSaves;
+
+  // A death save only belongs to a living player at 0 HP whose tracker is
+  // still active. Replaying Stable or Dead therefore preserves exact state.
+  if (
+    character.team !== 'player'
+    || character.currentHP !== 0
+    || !deathSaves
+    || deathSaves.isStable
+    || deathSaves.failures >= 3
+  ) {
+    return { character, roll: null, outcome: 'not_eligible' };
+  }
+
+  // Dice sources must provide a real d20 face. Rejecting invalid input keeps
+  // production bugs visible instead of silently converting them into a rule.
+  if (!Number.isInteger(roll) || roll < 1 || roll > 20) {
+    throw new RangeError(`Death saving throw must be an integer from 1 to 20; received ${roll}.`);
+  }
+
+  // A natural 20 is immediate recovery rather than a recorded success. The
+  // ordinary healing helper is not used because this rule sets exactly 1 HP.
+  if (roll === 20) {
+    return {
+      character: removeUnconsciousCondition({
+        ...character,
+        currentHP: 1,
+        deathSaves: undefined,
+      }),
+      roll,
+      outcome: 'revived',
+    };
+  }
+
+  const successes = Math.min(3, deathSaves.successes + (roll >= 10 ? 1 : 0));
+  const failures = Math.min(3, deathSaves.failures + (roll === 1 ? 2 : roll < 10 ? 1 : 0));
+  const isStable = successes >= 3;
+  const outcome: DeathSavingThrowOutcome = failures >= 3
+    ? 'dead'
+    : isStable
+      ? 'stable'
+      : roll >= 10
+        ? 'success'
+        : 'failure';
+
+  // Death remains represented by three failed pips, matching initiative and
+  // group-turn consumers. Stabilization changes only the tracker and leaves
+  // the character Unconscious at 0 HP until healing or a natural 20 occurs.
+  return {
+    character: {
+      ...character,
+      deathSaves: { successes, failures, isStable },
+    },
+    roll,
+    outcome,
+  };
+}
+
+// ============================================================================
+// Temporary Hit Point Replacement
+// ============================================================================
+// Temporary hit points are a separate buffer rather than healing. Every spell,
+// feature, and sandbox proof uses this one replacement rule so a smaller offer
+// can never stack with or silently overwrite a larger pool.
+// ============================================================================
+
+/**
+ * Offers a character a new temporary-hit-point pool.
+ *
+ * The higher pool wins. When a new pool replaces the old one, its optional
+ * source replaces the old source as well; a source-less grant clears stale
+ * spell ownership so reactive effects cannot claim another feature's buffer.
+ *
+ * @param character The character receiving the temporary-hit-point offer.
+ * @param amount The size of the newly offered pool.
+ * @param source The spell or feature that owns the new pool, when relevant.
+ * @returns A copied character carrying the canonical non-stacking result.
+ */
+export function applyTemporaryHitPoints(
+  character: CombatCharacter,
+  amount: number,
+  source?: CombatCharacter['temporaryHitPointSource'],
+): CombatCharacter {
+  const currentTemporaryHitPoints = character.tempHP ?? 0;
+  const offeredTemporaryHitPoints = Math.max(0, amount);
+
+  // Equal or smaller offers leave both the pool and its ownership untouched.
+  // This preserves effects such as Armor of Agathys when another feature offers
+  // a weaker buffer that the character optimally declines.
+  if (offeredTemporaryHitPoints <= currentTemporaryHitPoints) {
+    return { ...character };
+  }
+
+  // Replacing the pool also replaces its provenance. A generic grant has no
+  // spell owner, so omit the old source rather than carrying stale retaliation.
+  const updatedCharacter: CombatCharacter = {
+    ...character,
+    tempHP: offeredTemporaryHitPoints,
+  };
+
+  if (source) {
+    updatedCharacter.temporaryHitPointSource = { ...source };
+  } else {
+    delete updatedCharacter.temporaryHitPointSource;
+  }
+
+  return updatedCharacter;
 }
 
 /**

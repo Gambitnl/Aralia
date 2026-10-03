@@ -119,6 +119,7 @@ async function main() {
   // --------------------------------------------------------------------------
   console.log("Launching headless browser for rendering...");
   const browser = await chromium.launch({ headless: true });
+  try {
   const page = await browser.newPage({ viewport: { width: W, height: H } });
 
   // 1. Set up page canvas
@@ -983,8 +984,12 @@ async function main() {
   await page.screenshot({ path: compositeOutPath, fullPage: true });
   console.log(`Saved A6 descend-sequence composite proof to: ${compositeOutPath}`);
 
-  await browser.close();
   console.log("Rendering and performance tests completed successfully.");
+  } finally {
+    // Fail-closed teardown (WF-G30): close the browser even if rendering threw
+    // above, so a failed proof run never orphans a headless Chromium process.
+    await browser.close();
+  }
 }
 
 main().catch((err) => {

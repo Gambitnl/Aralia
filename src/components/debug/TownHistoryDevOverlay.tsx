@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 10/07/2026, 14:01:57
+ * Last Sync: 09/08/2026, 17:31:12
  * Dependents: components/layout/GameModals.tsx
- * Imports: 6 files
+ * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,13 +14,16 @@
  */
 // @dependencies-end
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useGameState } from '../../state/GameContext';
 import { getGameDay } from '../../utils/core';
 import { resolveTownForLocation } from '../../systems/worldforge/townsim/chronicleForLocation';
 import { selectTownNews, type NewsProminence } from '../../systems/worldforge/townsim/townNews';
 import { ageOf } from '../../systems/worldforge/townsim/townSim';
 import type { TownSimState, LivingVillager } from '../../systems/worldforge/townsim/types';
+import { WINDOW_KEYS } from '../../styles/uiIds';
+import { WindowFrame } from '../ui/WindowFrame';
+import { OPEN_TOWN_HISTORY_EVENT } from './devOverlayEvents';
 
 /**
  * Dev-only live overlay for the living-world town chronicle (sibling of
@@ -41,19 +44,6 @@ const PROMINENCE_COLOR: Record<NewsProminence, string> = {
   headline: '#f87171',
   notice: '#fbbf24',
   gossip: '#8b949e',
-};
-
-// Share the agent inspector's horizontal safety lane so neither developer
-// launcher covers World3D's Atlas/HUD controls at the lower-right edge.
-const DEV_INSPECTOR_RIGHT_OFFSET_PX = 220;
-
-const panelStyle: React.CSSProperties = {
-  background: 'rgba(13,17,23,0.96)',
-  border: '1px solid #30363d',
-  borderRadius: 8,
-  padding: 8,
-  boxShadow: '0 6px 24px rgba(0,0,0,0.5)',
-  width: 320,
 };
 
 /** The institution-holders alive in this town, with role + name + current age. */
@@ -92,37 +82,31 @@ const TownHistoryDevOverlay: React.FC = () => {
     [town, day],
   );
 
-  if (!open) {
-    return (
-      <div style={{ position: 'fixed', right: DEV_INSPECTOR_RIGHT_OFFSET_PX, bottom: 56, zIndex: 4000, fontFamily: 'sans-serif' }} data-testid="town-history-dev-overlay">
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          style={{ background: 'rgba(13,17,23,0.92)', color: '#79c0ff', border: '1px solid #30363d', borderRadius: 6, fontSize: 12, cursor: 'pointer', padding: '5px 10px' }}
-        >
-          ▤ Town history
-        </button>
-      </div>
-    );
-  }
+  // The launcher lives in the World 3D Controls menu while this inspector is
+  // mounted by GameModals. A data-free event bridges those sibling UI trees
+  // without making developer visibility part of saved game state.
+  useEffect(() => {
+    const handleOpenRequest = () => setOpen(true);
+    window.addEventListener(OPEN_TOWN_HISTORY_EVENT, handleOpenRequest);
+    return () => window.removeEventListener(OPEN_TOWN_HISTORY_EVENT, handleOpenRequest);
+  }, []);
+
+  if (!open) return null;
 
   return (
-    <div style={{ position: 'fixed', right: DEV_INSPECTOR_RIGHT_OFFSET_PX, bottom: 56, zIndex: 4000, fontFamily: 'sans-serif' }} data-testid="town-history-dev-overlay">
-      <div style={panelStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-          <span style={{ color: '#e2e8f0', fontSize: 12, fontWeight: 700 }}>
-            {town ? `Town history · burg #${town.burgId}` : 'Town history'}
-          </span>
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            style={{ background: '#21262d', color: '#c9d1d9', border: '1px solid #30363d', borderRadius: 4, fontSize: 12, cursor: 'pointer', padding: '1px 7px' }}
-            aria-label="Close town history overlay"
-          >
-            ×
-          </button>
-        </div>
-
+    <WindowFrame
+      title={town ? `Town history · burg #${town.burgId}` : 'Town history'}
+      onClose={() => setOpen(false)}
+      storageKey={WINDOW_KEYS.TOWN_HISTORY}
+      minimumSize={{ width: 420, height: 420 }}
+    >
+      {/* WindowFrame owns the movable, resizable shell. This wrapper preserves
+          the chronicle's compact typography while allowing its lists to use
+          all of the available window area. */}
+      <div
+        className="h-full overflow-y-auto bg-gray-950 p-4 font-sans"
+        data-testid="town-history-dev-overlay"
+      >
         {!town ? (
           <div style={{ color: '#8b949e', fontSize: 11 }} data-testid="town-history-empty">
             Not in a tracked town.
@@ -186,7 +170,7 @@ const TownHistoryDevOverlay: React.FC = () => {
           </>
         )}
       </div>
-    </div>
+    </WindowFrame>
   );
 };
 

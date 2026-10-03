@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * This file appears to be an ISOLATED UTILITY or ORPHAN.
- *
- * Last Sync: 17/07/2026, 22:34:53
- * Dependents: None (Orphan)
- * Imports: 85 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * Copyright (c) 2024 Aralia RPG.
  * Licensed under the MIT License.
@@ -25,6 +9,22 @@
  * It manages all game state, phases (menu, character creation, gameplay), and orchestrates
  * the rendering of all other components.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ *
+ * Last Sync: 29/09/2026, 00:50:48
+ * Dependents: None (Orphan)
+ * Imports: 80 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * This is the master coordinator for the entire game UI.
@@ -58,7 +58,7 @@ import {
   Location,
   GameMessage,
   NPC,
-  MapTile,
+  WorldCellView,
   Item,
   PlayerCharacter,
   GamePhase,
@@ -67,14 +67,10 @@ import {
 } from "./types";
 import type { GameState } from "./types/state";
 import type { TravelCombatEncounter, TravelMeta } from "./types/travelMeta";
-import {
-  BATTLE_MAP_BIOMES,
-  type BattleMapBiome,
-  type BattleMapData,
-} from "./types/combat";
+import type { BattleMapData } from "./types/combat";
 import { buildProvisionActions } from "./systems/travel/applyProvision";
 import { resolveForcedMarch } from "./systems/travel/forcedMarch";
-import { rollD20 } from "./utils/combat/combatUtils";
+import { rollD20 } from "./systems/dice/rollers";
 import { createBattleEndActions } from "./utils/combat/battleEndActions";
 import { loadMonstersData } from "./data/monsters";
 // State management - appReducer handles all state updates via actions, initialGameState provides defaults
@@ -83,6 +79,7 @@ import { initialGameState } from "./state/initialState";
 // Custom hooks - encapsulate reusable logic for audio, game actions, and initialization
 import { useAudio } from "./hooks/useAudio";
 import { useGameActions } from "./hooks/useGameActions";
+import { useGameHotkeys } from "./hooks/useGameHotkeys";
 import { useGameInitialization } from "./hooks/useGameInitialization";
 import { useOllamaLogBridge } from "./hooks/useOllamaLogBridge";
 import { useHistorySync } from "./hooks/useHistorySync";
@@ -98,7 +95,7 @@ import { useOverheardGossip } from "./hooks/useOverheardGossip";
 import { useMissingChoice } from "./hooks/useMissingChoice";
 import { useOllamaCheck } from "./hooks/useOllamaCheck";
 import { useAutoSave } from "./hooks/useAutoSave";
-import { t } from "./utils/i18n";
+import { t } from "./utils/core";
 
 // Utility functions
 import { determineActiveDynamicNpcsForLocation } from "@/utils/spatial";
@@ -125,15 +122,17 @@ import {
   isWildernessLocationId,
 } from "./utils/location/cellLocationId";
 import { parseCoordinateLocationId } from "./utils/locationUtils";
-import { canUseDevTools } from "./utils/permissions";
+import { canUseDevTools } from "./utils/core";
+import { isCombatDifficulty } from "./config/combatConfig";
 import { validateEnv } from "./config/env";
 import { DiceOverlay } from "./components/dice/DiceOverlay";
 import { Z_INDEX, applyZIndexCssVariables } from "./styles/zIndex";
 
 import { GameProvider } from "./state/GameContext";
-import { WORLD3D_CONFIG } from "./systems/world3d/config";
-import MainMenu from "./components/layout/MainMenu";
+import { getRulesEdition, nextRulesEdition } from "./config/rulesEdition";
+import { applyCampaignDiceStream, getAllowSaveScum } from "./config/saveScum";
 import ErrorBoundary from "./components/ui/ErrorBoundary";
+import { PerfOverlay, installPerfAutoProbe } from "./devtools/perf";
 import * as SaveLoadService from "./services/saveLoadService";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
 import { ConversationPanel } from "./components/ConversationPanel";
@@ -143,21 +142,24 @@ import { shouldPassiveGameClockRun } from "./utils/core/timekeeperUtils";
 
 import { CollapsibleBanterPanel } from "./components/ui/CollapsibleBanterPanel";
 import { BanterAttentionBanner } from "./components/ui/BanterAttentionBanner";
-import { generateMap } from "./services/mapService";
 import { generateWorldSeed } from "./utils/random/generateWorldSeed";
+
+// Dedicated phase screen containers modularized from App.tsx
+import {
+  MainMenuScreen,
+  CharacterCreatorScreen,
+  BattleScreen,
+  PlayingScreen,
+} from "./components/screens";
 
 // Lazy load large components to reduce initial bundle size
 // Grid retirement: the legacy 2D village view (TownCanvas) is retired — town
 // entry is the cell-native 3D town (Enter-3D on the world map). No lazy import.
-const CombatView = lazy(() =>
-  import("./components/Combat").then((module) => ({
-    default: module.CombatView,
-  })),
-);
-const CharacterCreator = lazy(
-  () => import("./components/CharacterCreator/CharacterCreator"),
-);
-const GameLayout = lazy(() => import("./components/layout/GameLayout"));
+// THE RENDERER PROBE, development builds only (2026-09-29). Module scope, so it
+// is installed before any 3D screen can build a renderer: it then measures
+// every three.js canvas the game draws, not only the ones with a PerfProbe.
+if (import.meta.env.DEV) installPerfAutoProbe();
+
 const LoadGameTransition = lazy(() =>
   import("./components/SaveLoad").then((module) => ({
     default: module.LoadGameTransition,
@@ -180,11 +182,6 @@ const CompanionReaction = lazy(() =>
   })),
 );
 const GameModals = lazy(() => import("./components/layout/GameModals"));
-// Worldforge atlas cartographer demo (?phase=worldforge) — lazy: pulls the
-// whole ported-FMG generation stack, which the main bundle must not pay for.
-const WorldforgeAtlasDemo = lazy(
-  () => import("./components/Worldforge/AtlasDemo"),
-);
 // Spawn-on-land preview harness (?phase=spawnpreview) — lazy: pulls the ported-FMG
 // generation stack like the cartographer demo, kept off the main bundle.
 const SpawnPreview = lazy(() => import("./components/Worldforge/SpawnPreview"));
@@ -200,16 +197,6 @@ const AgentSim3DPreview = lazy(
 const LivingWorldPreview = lazy(
   () => import("./components/Worldforge/LivingWorldPreview"),
 );
-const TransitionController = lazy(
-  () => import("./components/World3D/TransitionController"),
-);
-const World3DWrapper = lazy(
-  () => import("./components/World3D/World3DWrapper"),
-);
-// Classic ↔ Worldforge 2D-surface toggle (small, eager — no generation stack).
-const MapSurfaceToggle = lazy(
-  () => import("./components/Worldforge/MapSurfaceToggle"),
-);
 // Combat Messaging Demo handles mock logging events to visualize unified messages in dev mode.
 const CombatMessagingDemo = lazy(() =>
   import("./components/demo/CombatMessagingDemo").then((module) => ({
@@ -224,11 +211,6 @@ const CombatMessagingDemo = lazy(() =>
 // - Design Preview: /Aralia/misc/design.html
 // - Developer Hub:  /Aralia/misc/dev_hub.html (Central landing page)
 // -------------------------------------------
-
-// TODO #1: Add AI model OPTIONALITY settings to allow players to choose between local (Ollama) or cloud (Gemini) models
-// PROGRESS: Most AI functions (location descriptions, NPC interactions, etc.) now use local Ollama instead of Gemini,
-// significantly reducing internet dependency. Players should be able to configure their preferred AI model in settings
-// and have the system gracefully fall back between local and cloud models based on availability and preference.
 
 // ============================================================================
 // Main Component
@@ -275,10 +257,12 @@ async function prepareTravelBattlefield(
         import("./components/World3D/createWorldGenClient"),
         import("./systems/combat/worldScenario/travelAmbushBattlefield"),
       ]);
+    // Game clock is an in-world UTC Date; read UTC fields so the ambush
+    // battlefield lighting hour matches the HUD clock (never host getHours()).
     const hour =
       sourceState.gameTime instanceof Date
-        ? sourceState.gameTime.getHours() +
-          sourceState.gameTime.getMinutes() / 60
+        ? sourceState.gameTime.getUTCHours() +
+          sourceState.gameTime.getUTCMinutes() / 60
         : 12;
     const ground = await loadCompleteGroundWorld({
       wfSeed: sourceState.worldSeed,
@@ -306,6 +290,7 @@ async function prepareTravelBattlefield(
 
 const App: React.FC = () => {
   const AUTO_SAVE_PREF_KEY = "aralia_rpg_pref_auto_save_enabled";
+  const COMBAT_DIFFICULTY_PREF_KEY = "aralia_rpg_pref_combat_difficulty";
   // Validate environment variables on startup
   useEffect(() => {
     validateEnv();
@@ -431,8 +416,25 @@ const App: React.FC = () => {
         normalized === "1" || normalized === "true" || normalized === "on";
       dispatch({ type: "SET_AUTO_SAVE_ENABLED", payload: enabled });
     }
+    // Combat difficulty (agora-a46a.1): same persistence pattern as auto-save.
+    const storedDifficulty = SafeStorage.getItem(COMBAT_DIFFICULTY_PREF_KEY);
+    if (isCombatDifficulty(storedDifficulty)) {
+      dispatch({ type: "SET_COMBAT_DIFFICULTY", payload: storedDifficulty });
+    }
     setIsAutoSavePrefHydrated(true);
   }, []);
+
+  const combatDifficulty = gameState.combatDifficulty ?? "normal";
+  // Rules edition lives on GameState and travels with the save, so it needs no
+  // separate localStorage pref. `getRulesEdition` supplies the only default.
+  const rulesEdition = getRulesEdition(gameState);
+  // Same story for save-scum: it travels with the save, and `getAllowSaveScum`
+  // supplies the only default (agora-f821.63).
+  const allowSaveScum = getAllowSaveScum(gameState);
+  useEffect(() => {
+    if (!isAutoSavePrefHydrated) return;
+    SafeStorage.trySetItem(COMBAT_DIFFICULTY_PREF_KEY, combatDifficulty);
+  }, [combatDifficulty, isAutoSavePrefHydrated]);
 
   // Persist preference any time the user toggles it.
   useEffect(() => {
@@ -477,7 +479,7 @@ const App: React.FC = () => {
   // Keep the check side-effect active; UI wiring can consume this state later.
   const {
     ollamaWarningDismissed: _ollamaWarningDismissed,
-    setOllamaWarningDismissed: _setOllamaWarningDismissed,
+    setOllamaWarningDismissed,
   } = useOllamaCheck(dispatch);
 
   const addMessage = useCallback(
@@ -639,24 +641,28 @@ const App: React.FC = () => {
     gameState.playerCell?.cellId,
   ]);
 
-  const getTileTooltipText = useCallback((worldMapTile: MapTile): string => {
-    const biome = BIOMES[worldMapTile.biomeId];
-    if (!worldMapTile.discovered) {
+  // Grid retirement (agora-608b): the tooltip is formatted from a cell-native
+  // `WorldCellView`. The x,y it prints are display bookkeeping (a legacy
+  // coord_X_Y save keeps its coords; a cell_<id> save labels by cell id) — the
+  // canonical identity on the payload is `cellId`.
+  const getTileTooltipText = useCallback((worldCell: WorldCellView): string => {
+    const biome = BIOMES[worldCell.biomeId];
+    if (!worldCell.discovered) {
       return t("app.tooltip.undiscovered", {
-        x: worldMapTile.x,
-        y: worldMapTile.y,
+        x: worldCell.x,
+        y: worldCell.y,
         biome: biome?.name || t("app.tooltip.undiscovered_biome_unknown"),
       });
     }
     let tooltip = t("app.tooltip.discovered", {
       biome: biome?.name || t("app.tooltip.biome_unknown"),
-      x: worldMapTile.x,
-      y: worldMapTile.y,
+      x: worldCell.x,
+      y: worldCell.y,
     });
 
-    if (worldMapTile.locationId && LOCATIONS[worldMapTile.locationId]) {
+    if (worldCell.locationId && LOCATIONS[worldCell.locationId]) {
       tooltip += t("app.tooltip.location", {
-        locationName: LOCATIONS[worldMapTile.locationId].name,
+        locationName: LOCATIONS[worldCell.locationId].name,
       });
     } else {
       tooltip += t("app.tooltip.dot");
@@ -669,8 +675,6 @@ const App: React.FC = () => {
     return tooltip;
   }, []);
 
-  // TODO #2(QOL): If re-render hotspots appear, profile callback dependencies here and in useGameActions/useGameInitialization (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path).
-  // TODO #3(FEATURES): Add AI model optionality settings to allow players to choose between local (Ollama) or cloud (Gemini) models in settings, with graceful fallback between models based on availability and preference.
   const { processAction } = useGameActions({
     gameState,
     dispatch,
@@ -978,9 +982,49 @@ const App: React.FC = () => {
         },
       },
     });
+
+    // ?dev_ritual=1 (with ?dev_combat=1): seed a ritual in progress so the
+    // battle-map ritual panel can be eyeballed without a real 10-minute cast.
+    // Fixture data only; it goes through the real START_RITUAL reducer path.
+    if (sandboxFixture && params.get("dev_ritual") === "1") {
+      const casterId = gameState.party[0]?.id ?? "dev-caster";
+      window.setTimeout(() => {
+        dispatch({
+          type: "START_RITUAL",
+          payload: {
+            id: "dev-ritual-fixture",
+            spellId: "detect-magic",
+            spellName: "Detect Magic (ritual)",
+            casterId,
+            startTime: 1,
+            durationTotalSeconds: 600,
+            progressSeconds: 180,
+            durationTotal: 10,
+            durationUnit: "minutes",
+            progress: 3,
+            isPaused: false,
+            participantIds: [],
+            interruptConditions: [
+              { type: "damage", threshold: 1, saveType: "Constitution", dcCalculation: "damage_half" },
+              { type: "movement" },
+              { type: "silence" },
+            ],
+            config: {
+              breaksOnDamage: true,
+              breaksOnMove: true,
+              requiresConcentration: true,
+              allowCooperation: false,
+              consumptionTiming: "end",
+            },
+          },
+        });
+      }, 1500);
+    }
   }, [
     addMessage,
+    dispatch,
     gameState.gameTime,
+    gameState.party,
     gameState.phase,
     gameState.worldforgeDeltas,
     processAction,
@@ -1157,8 +1201,8 @@ const App: React.FC = () => {
   }, [dispatch]);
 
   const handleTileClick = useCallback(
-    (x: number, y: number, tile: MapTile, travelMeta?: TravelMeta) => {
-      const targetBiome = BIOMES[tile.biomeId];
+    (x: number, y: number, cell: WorldCellView, travelMeta?: TravelMeta) => {
+      const targetBiome = BIOMES[cell.biomeId];
       // Travel-mode picks carry the planned route's real duration + a pre-rolled
       // "danger on the road" message; fall back to the legacy flat hour otherwise.
       // Navigation drift (travel G2): when MapPane's get-lost roll failed, the party
@@ -1356,9 +1400,9 @@ const App: React.FC = () => {
       }
 
       if (
-        tile.discovered &&
-        tile.locationId &&
-        tile.locationId !== gameState.currentLocationId
+        cell.discovered &&
+        cell.locationId &&
+        cell.locationId !== gameState.currentLocationId
       ) {
         // Check if this is a town location - prevent direct quick travel to towns
         const townKeywords = [
@@ -1368,7 +1412,7 @@ const App: React.FC = () => {
           "settlement",
           "hamlet",
         ];
-        const targetLocation = LOCATIONS[tile.locationId];
+        const targetLocation = LOCATIONS[cell.locationId];
         const isTownLocation =
           targetLocation &&
           townKeywords.some(
@@ -1390,9 +1434,9 @@ const App: React.FC = () => {
         dispatch({
           type: "MOVE_PLAYER",
           payload: {
-            newLocationId: tile.locationId,
+            newLocationId: cell.locationId,
             activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(
-              tile.locationId,
+              cell.locationId,
               LOCATIONS,
             ),
             destinationCell: travelMeta?.destinationCell,
@@ -1406,7 +1450,7 @@ const App: React.FC = () => {
         if (travelMeta?.destinationCell)
           recordCellDiscovery(
             travelMeta.destinationCell.cellId,
-            tile.locationId,
+            cell.locationId,
           );
         dispatch({ type: "TOGGLE_MAP_VISIBILITY" });
         applyProvisionEffects();
@@ -1416,7 +1460,7 @@ const App: React.FC = () => {
         announceTripEvent();
         announceEncounter();
         triggerTravelEncounter();
-      } else if (tile.discovered && !tile.locationId) {
+      } else if (cell.discovered && !cell.locationId) {
         // Grid retirement: the wilderness location id is the cell-native id of the
         // clicked atlas cell (carried by destinationCell), not a coord_X_Y tile.
         const destCellId = travelMeta?.destinationCell?.cellId;
@@ -1461,8 +1505,8 @@ const App: React.FC = () => {
           }
         } else {
           // Grid retirement: no coordinates in player-facing text — name the place.
-          const settlementName = tile.locationId
-            ? LOCATIONS[tile.locationId]?.name
+          const settlementName = cell.locationId
+            ? LOCATIONS[cell.locationId]?.name
             : undefined;
           addMessage(
             settlementName
@@ -1471,7 +1515,7 @@ const App: React.FC = () => {
             "system",
           );
         }
-      } else if (tile.discovered) {
+      } else if (cell.discovered) {
         addMessage(
           `This is ${targetBiome.name.toLowerCase()} country. ${targetBiome.description}`,
           "system",
@@ -1505,10 +1549,10 @@ const App: React.FC = () => {
     (
       _x: number,
       _y: number,
-      tile: MapTile,
+      cell: WorldCellView,
       anchor?: import("./types/state").Entry3DAnchor,
     ) => {
-      if (!tile.discovered) {
+      if (!cell.discovered) {
         addMessage(
           "You cannot enter the 3D world in undiscovered areas.",
           "system",
@@ -2024,12 +2068,17 @@ const App: React.FC = () => {
   const handleNavigateToGlossaryFromTooltip = useCallback(
     (termId: string) => {
       if (!gameState.isGlossaryVisible) {
-        dispatch({ type: "SET_GLOSSARY_TERM_FOR_MODAL", payload: termId });
+        // Opening and selecting must be one reducer action. A separate selection
+        // dispatch is cleared by the glossary toggle while it closes the other
+        // overlays, which previously made spell links fall back to Acolyte.
         processAction({
           type: "TOGGLE_GLOSSARY_VISIBILITY",
           label: "Open Glossary",
+          payload: { initialTermId: termId },
         });
       } else {
+        // An already-open glossary only needs to move its current selection;
+        // toggling here would close the modal instead of following the link.
         dispatch({ type: "SET_GLOSSARY_TERM_FOR_MODAL", payload: termId });
       }
     },
@@ -2079,6 +2128,17 @@ const App: React.FC = () => {
     !gameState.isCourierPouchVisible &&
     !missingChoiceModal.isOpen;
 
+  // Global exploration keyboard shortcuts (M: map, C: character, Q: quests…).
+  // MUST stay below `isUIInteractive`: called above its declaration the whole
+  // app threw "Cannot access 'isUIInteractive' before initialization" on every
+  // render and no screen ever mounted.
+  useGameHotkeys({
+    gameState,
+    dispatch,
+    onAction: processAction,
+    disabled: Boolean(gameState.isLoading || gameState.isImageLoading),
+  });
+
   const handleGoBackFromMainMenu = useCallback(() => {
     const prevPhase: GamePhase | undefined = gameState.previousPhase;
     if (prevPhase !== undefined && prevPhase !== GamePhase.MAIN_MENU) {
@@ -2100,42 +2160,48 @@ const App: React.FC = () => {
       prevPhase !== GamePhase.NOT_FOUND &&
       prevPhase !== GamePhase.GAME_OVER;
     mainContent = (
-      <ErrorBoundary fallbackMessage="An error occurred in the Main Menu.">
-        <MainMenu
-          onNewGame={handleNewGame}
-          onLoadGame={handleLoadGameFlow}
-          // Arrow function wrapper prevents React's onClick event from being passed as initialTermId
-          onShowCompendium={() => handleOpenGlossary()}
-          hasSaveGame={hasStoredSaveGame}
-          latestSaveTimestamp={SaveLoadService.getLatestSaveTimestamp()}
-          isDevDummyActive={canUseDevTools()}
-          onSkipCharacterCreator={handleSkipCharacterCreator}
-          onClearAllSaves={handleClearAllSaves}
-          hasActiveRun={hasActiveRunInMemory}
-          onAbandonRun={handleAbandonRun}
-          onOpenWorldGeneration={handleOpenWorldGenerationFromMainMenu}
-          isWorldGenerationLocked={!canRegenerateWorldMap}
-          worldGenerationLockedReason={worldGenerationLockedReason}
-          // The main-menu Dev Menu button now reuses the same shared modal as gameplay,
-          // but it preserves the current Dev Mode flag instead of force-enabling it.
-          onOpenDevMenu={handleOpenDevMenuFromMainMenu}
-          onGoBack={canGoBack ? handleGoBackFromMainMenu : undefined}
-          canGoBack={canGoBack}
-        />
-      </ErrorBoundary>
+      <MainMenuScreen
+        onNewGame={handleNewGame}
+        rulesEdition={rulesEdition}
+        // The main menu is outside the gameplay action pipeline (no party, no
+        // location), so this setting dispatches the reducer action directly.
+        onCycleRulesEdition={() => dispatch({ type: 'SET_RULES_EDITION', payload: nextRulesEdition(rulesEdition) })}
+        allowSaveScum={allowSaveScum}
+        onToggleSaveScum={() => {
+          const next = !allowSaveScum;
+          dispatch({ type: 'SET_ALLOW_SAVE_SCUM', payload: next });
+          applyCampaignDiceStream({ ...gameState, allowSaveScum: next });
+        }}
+        onLoadGame={handleLoadGameFlow}
+        // Arrow function wrapper prevents React's onClick event from being passed as initialTermId
+        onShowCompendium={() => handleOpenGlossary()}
+        hasSaveGame={hasStoredSaveGame}
+        latestSaveTimestamp={SaveLoadService.getLatestSaveTimestamp()}
+        isDevDummyActive={canUseDevTools()}
+        onSkipCharacterCreator={handleSkipCharacterCreator}
+        onClearAllSaves={handleClearAllSaves}
+        hasActiveRun={hasActiveRunInMemory}
+        onAbandonRun={handleAbandonRun}
+        onOpenWorldGeneration={handleOpenWorldGenerationFromMainMenu}
+        isWorldGenerationLocked={!canRegenerateWorldMap}
+        worldGenerationLockedReason={worldGenerationLockedReason ?? undefined}
+        // The main-menu Dev Menu button now reuses the same shared modal as gameplay,
+        // but it preserves the current Dev Mode flag instead of force-enabling it.
+        onOpenDevMenu={handleOpenDevMenuFromMainMenu}
+        onGoBack={canGoBack ? handleGoBackFromMainMenu : undefined}
+        canGoBack={canGoBack}
+      />
     );
   } else if (gameState.phase === GamePhase.CHARACTER_CREATION) {
     // Render the Character Creator interface
     mainContent = (
-      <ErrorBoundary fallbackMessage="An error occurred during Character Creation.">
-        <CharacterCreator
-          onCharacterCreate={(character, inventory) =>
-            handleCharacterCreated(character, inventory)
-          }
-          onExitToMainMenu={handleExitCharacterCreatorToMainMenu}
-          dispatch={dispatch}
-        />
-      </ErrorBoundary>
+      <CharacterCreatorScreen
+        onCharacterCreate={(character, inventory) =>
+          handleCharacterCreated(character, inventory)
+        }
+        onExitToMainMenu={handleExitCharacterCreatorToMainMenu}
+        dispatch={dispatch}
+      />
     );
   } else if (gameState.phase === GamePhase.WORLD3D_DEMO) {
     // `?phase=world3d&ground=1` remains an explicit developer reconstruction
@@ -2161,12 +2227,16 @@ const App: React.FC = () => {
       </ErrorBoundary>
     );
   } else if (gameState.phase === GamePhase.WORLDFORGE_DEMO) {
-    // Worldforge atlas cartographer (?phase=worldforge): the native
-    // ported-FMG map surface (docs/projects/worldforge, orchestration Lane A).
+    // Keep the enum branch as a save-compatible fail-closed boundary. URL
+    // parsing rejects every legacy spelling, and no in-app command dispatches
+    // this phase; an old persisted value therefore reaches safety instead of
+    // mounting the retired canvas world-map route.
     mainContent = (
-      <ErrorBoundary fallbackMessage="An error occurred in the Worldforge cartographer.">
-        <WorldforgeAtlasDemo />
-      </ErrorBoundary>
+      <NotFound
+        onReturnToMainMenu={() =>
+          dispatch({ type: "SET_GAME_PHASE", payload: GamePhase.MAIN_MENU })
+        }
+      />
     );
   } else if (gameState.phase === GamePhase.START_POINT_SELECTION) {
     // Start Point Selection (?phase=startselect): after character creation, the
@@ -2226,177 +2296,68 @@ const App: React.FC = () => {
       </ErrorBoundary>
     );
   } else if (gameState.phase === GamePhase.COMBAT) {
-    // Render the full Combat View
-    const allowedBiomes: readonly BattleMapBiome[] = BATTLE_MAP_BIOMES;
-    // Dev-only override (?biome=swamp) so headless proofs can shoot every
-    // painted biome without needing a save located in one.
-    const devBiomeParam = canUseDevTools()
-      ? new URLSearchParams(window.location.search).get("biome")
-      : null;
-    const combatBiome: BattleMapBiome =
-      devBiomeParam &&
-      allowedBiomes.includes(devBiomeParam as (typeof allowedBiomes)[number])
-        ? (devBiomeParam as (typeof allowedBiomes)[number])
-        : currentLocationData.biomeId &&
-            allowedBiomes.includes(
-              currentLocationData.biomeId as (typeof allowedBiomes)[number],
-            )
-          ? (currentLocationData.biomeId as (typeof allowedBiomes)[number])
-          : "forest";
-
+    // Render the full Combat View via the BattleScreen container
     mainContent = (
-      <ErrorBoundary fallbackMessage="An error occurred during Combat.">
-        <CombatView
-          party={gameState.party}
-          enemies={gameState.currentEnemies || []}
-          biome={combatBiome}
-          onRoundElapsed={handleCombatRoundElapsed}
-          onBattleEnd={(result, rewards, finalPartyState, finalEnemyState) => {
-            addMessage(
-              result === "victory"
-                ? "Victory! The enemies are defeated."
-                : "Defeat! The party has fallen.",
-              "system",
-            );
-            // Source-authored enemy results settle before combat teardown so
-            // WorldForge can still validate the exact tactical map and roster.
-            // Defeat then enters GAME_OVER; victory resumes exploration.
-            for (const action of createBattleEndActions(
-              result,
-              rewards,
-              finalPartyState,
-              finalEnemyState,
-            ))
-              dispatch(action);
-          }}
-        />
-      </ErrorBoundary>
+      <BattleScreen
+        party={gameState.party}
+        enemies={gameState.currentEnemies || []}
+        currentLocationBiomeId={currentLocationData.biomeId}
+        onRoundElapsed={handleCombatRoundElapsed}
+        onBattleEnd={(result, rewards, finalPartyState, finalEnemyState) => {
+          addMessage(
+            result === "victory"
+              ? "Victory! The enemies are defeated."
+              : result === "flee" ? "The party retreats from battle." : "Defeat! The party has fallen.",
+            "system",
+          );
+          // Source-authored enemy results settle before combat teardown so
+          // WorldForge can still validate the exact tactical map and roster.
+          // Defeat then enters GAME_OVER; victory resumes exploration.
+          for (const action of createBattleEndActions(
+            result,
+            rewards,
+            finalPartyState,
+            finalEnemyState,
+          ))
+            dispatch(action);
+        }}
+      />
     );
   } else if (
     gameState.phase === GamePhase.PLAYING &&
     gameState.party.length > 0
   ) {
-    // Render the Main Game Layout (Exploration Mode)
-    // <GameLayout> extracts the complexity of the Compass, Action, World, and Minimap panes.
-    // When worldViewMode === '3d', render the 3D world instead of the 2D atlas.
-    // mapSurface ('classic' | 'worldforge') swaps the 2D surface between the
-    // legacy GameLayout and the native ported-FMG Worldforge cartographer.
-    const openingGateOwnsMainView =
-      gameState.gameEntry?.status === "generating" ||
-      gameState.gameEntry?.status === "model-unavailable";
-    const useWorldforgeSurface =
-      (gameState.mapSurface ?? "classic") === "worldforge";
-
-    const atlasContent = useWorldforgeSurface ? (
-      <div style={{ position: "relative", width: "100%", height: "100%" }}>
-        <Suspense fallback={<LoadingSpinner />}>
-          <WorldforgeAtlasDemo
-            embeddedInGame
-            worldSeed={gameState.worldSeed}
-            onEnterPlayingGround={handleEnterPlayingGroundFromAtlas}
-            groundReturnReceipt={activeAtlasGroundDrilldown}
-            discoveredHiddenSites={gameState.discoveredHiddenSites}
-          />
-        </Suspense>
-        <div
-          style={{
-            position: "absolute",
-            top: "12px",
-            right: "12px",
-            zIndex: 40,
-          }}
-        >
-          <MapSurfaceToggle />
-        </div>
-      </div>
-    ) : (
-      <div className="relative h-full w-full">
-        <GameLayout
-          currentLocation={currentLocationData}
-          gameTime={gameState.gameTime}
-          messages={gameState.messages}
-          openingStatus={gameState.gameEntry?.status}
-          onNavigateToGlossary={handleNavigateToGlossaryFromTooltip}
-          npcsInLocation={npcs}
-          itemsInLocation={itemsInCurrentLocation}
-          party={gameState.party}
-          geminiGeneratedActions={gameState.geminiGeneratedActions}
-          unreadDiscoveryCount={gameState.unreadDiscoveryCount}
-          hasNewRateLimitError={gameState.hasNewRateLimitError}
-          worldSeed={gameState.worldSeed}
-          isDevModeEnabled={gameState.isDevModeEnabled ?? false}
-          autoSaveEnabled={autoSaveEnabled}
-          disabled={!isUIInteractive}
-          onAction={processAction}
-          playerWorldPos={gameState.playerWorldPos}
-          surfaceToggle={<MapSurfaceToggle />}
-        />
-      </div>
-    );
-
-    // Entry position: use the saved 3D position, else seed from the player's
-    // CELL. Grid retirement: the old default read `location.mapCoordinates`
-    // (a 30x20 grid tile) — that field is gone. World3DWrapper enters on the
-    // player's atlas cell and treats cellId as the x axis (`coords = {x: cellId,
-    // y: 0}`), mapping to meters as `(cell + 0.5) * METERS_PER_CELL`; this seed
-    // mirrors that convention so the frozen scene origin agrees with it. The
-    // cell-native ground recenters on entry, and `playerWorldPos` overrides this
-    // once the camera moves, so it is only the first-frame origin hint.
-    const entryCellId = gameState.playerCell?.cellId ?? 0;
-    const entryPosition = gameState.playerWorldPos ?? {
-      x: (entryCellId + 0.5) * WORLD3D_CONFIG.METERS_PER_CELL,
-      y: 0,
-      z: 0.5 * WORLD3D_CONFIG.METERS_PER_CELL,
-    };
-
-    mainContent = openingGateOwnsMainView ? (
-      // The opening gate is the honest entry blocker while the local model is
-      // generating or unavailable. Do not render the normal game panes underneath:
-      // they require the opening context and would throw into the generic error
-      // boundary, visually competing with the real blocker.
-      <div
-        data-testid="opening-gate-backdrop"
-        className="min-h-screen bg-gray-950"
+    // Render the Main Game Layout (Exploration Mode) via the PlayingScreen container
+    mainContent = (
+      <PlayingScreen
+        gameState={gameState}
+        currentLocation={currentLocationData}
+        npcs={npcs}
+        itemsInCurrentLocation={itemsInCurrentLocation}
+        isUIInteractive={isUIInteractive}
+        autoSaveEnabled={autoSaveEnabled}
+        combatDifficulty={combatDifficulty}
+        rulesEdition={rulesEdition}
+        allowSaveScum={allowSaveScum}
+        activeAtlasGroundDrilldown={activeAtlasGroundDrilldown}
+        safeWorldViewMode={safeWorldViewMode}
+        onAction={processAction}
+        onNavigateToGlossary={handleNavigateToGlossaryFromTooltip}
+        onEnterPlayingGroundFromAtlas={handleEnterPlayingGroundFromAtlas}
+        onTransitionComplete={handleTransitionComplete}
+        onAtlasRestored={() => {
+          setAtlasGroundDrilldown(null);
+          dispatch({ type: "SET_ATLAS_GROUND_ADDRESS", payload: null });
+        }}
+        onTalkToNpc={(npcId) =>
+          processAction({
+            type: "talk",
+            label: "Talk",
+            payload: { targetNpcId: npcId },
+            targetId: npcId,
+          })
+        }
       />
-    ) : (
-      <ErrorBoundary fallbackMessage="An error occurred in the main game view.">
-        <Suspense fallback={<LoadingSpinner />}>
-          <TransitionController
-            mode={safeWorldViewMode}
-            onComplete={handleTransitionComplete}
-            // Atlas has copied the receipt's exact artifacts into its Local
-            // hierarchy by this point and PLAYING ground is fully unmounted.
-            // Atlas has copied the receipt into component state. Clear both the
-            // transient carrier and compact address so a later root-Atlas page
-            // reload does not reopen a Local the player already ascended from.
-            onAtlasRestored={() => {
-              setAtlasGroundDrilldown(null);
-              dispatch({ type: "SET_ATLAS_GROUND_ADDRESS", payload: null });
-            }}
-            atlasContent={atlasContent}
-            // Grid retirement: the legacy continent-3D terrain (derived from the
-            // 30x20 mapData) is gone; the streamed cell-native ground
-            // (getWorldforgeLocalForCell) is the world. No worldData prop.
-            sceneContent={
-              <World3DWrapper
-                entryPosition={entryPosition}
-                atlasGroundDrilldown={activeAtlasGroundDrilldown}
-                // Interactive 3D: clicking a townsperson/stranger in the world runs
-                // the SAME talk action as the 2D "Talk to X" button, so the
-                // conversation opens with full met/disposition/recruit bookkeeping.
-                onTalkToNpc={(npcId) =>
-                  processAction({
-                    type: "talk",
-                    label: "Talk",
-                    payload: { targetNpcId: npcId },
-                    targetId: npcId,
-                  })
-                }
-              />
-            }
-          />
-        </Suspense>
-      </ErrorBoundary>
     );
   } else if (gameState.phase === GamePhase.GAME_OVER) {
     mainContent = (
@@ -2497,6 +2458,21 @@ const App: React.FC = () => {
     >
       <GameProvider state={gameState} dispatch={dispatch}>
         <div className="App min-h-screen bg-gray-900">
+          {/* The same performance display the design preview uses, so a reading
+            * taken in a sandbox and a reading taken in the running game are the
+            * same measurement. It starts as a small fps pill; Alt+P cycles it to
+            * the full panel or off.
+            *
+            * ONLY WITH DEV MODE ON (Remy, 2026-09-30, questionnaire q1: "not in
+            * the main game, unless dev mode is enabled"). Until then it showed in
+            * every development build whatever the dev-mode setting said. Dev
+            * mode starts on in a dev build and off in production
+            * (initialState.ts), and SET_DEV_MODE_ENABLED turns it either way. In
+            * a production build the probe is installed only when this mounts, so
+            * a canvas built before dev mode came on is measured only if it
+            * carries a PerfProbe (World3DScene does). */}
+          {gameState.isDevModeEnabled && <PerfOverlay />}
+
           <Suspense fallback={null}>
             <NotificationSystem
               notifications={areNotificationsSuppressed ? [] : notifications}
@@ -2549,7 +2525,11 @@ const App: React.FC = () => {
           {/* Opening-situation entry gate (GAME-ENTRY-SITUATION): runs the
               generator and renders the generating overlay / honest model block. */}
           {gameState.phase === GamePhase.PLAYING && (
-            <OpeningSituationGate gameState={gameState} dispatch={dispatch} />
+            <OpeningSituationGate
+              gameState={gameState}
+              dispatch={dispatch}
+              onOllamaDontShowAgain={setOllamaWarningDismissed}
+            />
           )}
 
           {/* Modal Manager: Handles all overlays (Inventory, Map, Logs, etc.) */}

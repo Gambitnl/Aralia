@@ -1,6 +1,29 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createMockCombatCharacter, WeaponAttackCommand, combatEvents } from './AbilityCommandFactory.testHelpers';
+import { WeaponAttackCommand, combatEvents, createMockCombatCharacter, createMockCombatState } from './AbilityCommandFactory.testHelpers';
 import type { Ability, GameState } from './AbilityCommandFactory.testHelpers';
+
+// agora-f821.4: this file pins Math.random to make a roll deterministic. Game rolls now
+// run on the audit log's own seed stream, so the pin only reaches them
+// through the roller's supported injected-source seam. Feeding
+// Math.random in as that source keeps every pin below meaning what it
+// meant before the migration.
+vi.mock('../../../systems/dice/rollers', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../../systems/dice/rollers')>()
+  return {
+    ...actual,
+    rollDice: (notation: string, options: { rng?: () => number } = {}) =>
+      actual.rollDice(notation, { ...options, rng: options.rng ?? Math.random }),
+    rollD20: (options: { rng?: () => number } = {}) =>
+      actual.rollD20({ ...options, rng: options.rng ?? Math.random }),
+    rollDamage: (
+      notation: string,
+      isCritical: boolean,
+      minRoll = 1,
+      rng?: () => number,
+    ) => actual.rollDamage(notation, isCritical, minRoll, rng ?? Math.random),
+  }
+})
+
 
 describe('WeaponAttackCommand Proficiency Penalties', () => {
   it('emits structured miss results for attack-event subscribers', async () => {
@@ -53,7 +76,7 @@ describe('WeaponAttackCommand Proficiency Penalties', () => {
         gameState: { characters: [attacker, target], combatLog: [] } as unknown as GameState
       });
 
-      await command.execute({ characters: [attacker, target], combatLog: [] } as any);
+      await command.execute(createMockCombatState({ characters: [attacker, target] }));
 
       expect(combatEvents.getDispatchLog()).toEqual(expect.arrayContaining([
         expect.objectContaining({
@@ -121,7 +144,7 @@ describe('WeaponAttackCommand Proficiency Penalties', () => {
         gameState: { characters: [attacker, target], combatLog: [] } as unknown as GameState
       });
 
-      await command.execute({ characters: [attacker, target], combatLog: [] } as any);
+      await command.execute(createMockCombatState({ characters: [attacker, target] }));
 
       expect(combatEvents.getDispatchLog()).toEqual(expect.arrayContaining([
         expect.objectContaining({
@@ -171,7 +194,7 @@ describe('WeaponAttackCommand Proficiency Penalties', () => {
         targets: [metalTarget],
         gameState: { characters: [caster, metalTarget], combatLog: [] } as unknown as GameState
       });
-      const result = await command.execute({ characters: [caster, metalTarget], combatLog: [] } as any);
+      const result = await command.execute(createMockCombatState({ characters: [caster, metalTarget] }));
 
       // The attack log is the player-visible proof surface for advantage.
       // Metal armor should add advantage before the roll resolves.
@@ -214,7 +237,7 @@ describe('WeaponAttackCommand Proficiency Penalties', () => {
         targets: [clothTarget],
         gameState: { characters: [caster, clothTarget], combatLog: [] } as unknown as GameState
       });
-      const result = await command.execute({ characters: [caster, clothTarget], combatLog: [] } as any);
+      const result = await command.execute(createMockCombatState({ characters: [caster, clothTarget] }));
 
       // Non-metal armor follows the ordinary melee spell attack path.
       expect(result.combatLog[0].message).not.toContain('with Advantage');
@@ -274,7 +297,7 @@ describe('WeaponAttackCommand Proficiency Penalties', () => {
         gameState: { characters: [attacker, target], combatLog: [] } as unknown as GameState
       });
 
-      await command.execute({ characters: [attacker, target], combatLog: [] } as any);
+      await command.execute(createMockCombatState({ characters: [attacker, target] }));
 
       expect(combatEvents.getDispatchLog()).toEqual(expect.arrayContaining([
         expect.objectContaining({
@@ -329,7 +352,7 @@ describe('WeaponAttackCommand Proficiency Penalties', () => {
       gameState: { characters: [attacker, target], combatLog: [] } as unknown as GameState
     });
 
-    const newState = await command.execute({ characters: [attacker, target], combatLog: [] } as any);
+    const newState = await command.execute(createMockCombatState({ characters: [attacker, target] }));
 
     const logMessage = newState.combatLog[0].message;
     expect(logMessage).toContain('+ 2 =');

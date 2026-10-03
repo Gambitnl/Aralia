@@ -1,10 +1,18 @@
+/**
+ * Copyright (c) 2024 Aralia RPG
+ * Licensed under the MIT License
+ *
+ * @file src/systems/puzzles/pressurePlateSystem.ts
+ * Implements mechanics for pressure plates: triggering, detection, and jamming.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/06/2026, 02:18:23
- * Dependents: None (Orphan)
+ * Last Sync: 09/09/2026, 15:02:05
+ * Dependents: systems/puzzles/battleMapBridge.ts
  * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
@@ -14,18 +22,10 @@
  */
 // @dependencies-end
 
-/**
- * Copyright (c) 2024 Aralia RPG
- * Licensed under the MIT License
- *
- * @file src/systems/puzzles/pressurePlateSystem.ts
- * Implements mechanics for pressure plates: triggering, detection, and jamming.
- */
-
 import { PlayerCharacter } from '../../types/character';
 import type { Item } from '../../types/items';
-import { rollDice } from '../../utils/combatUtils';
-import { getAbilityModifierValue } from '../../utils/statUtils';
+import { rollDice } from '../dice/rollers';
+import { getAbilityModifierValue } from '../../utils/character';
 import { PressurePlate, PressurePlateResult, PressurePlateJamResult, SizeCategory, Trap } from './types';
 import { getPuzzleCharacterStats } from './characterAbilityBridge';
 import { hasTool, hasToolProficiency } from './lockSystem';
@@ -40,10 +40,20 @@ const SIZE_VALUES: Record<SizeCategory, number> = {
 };
 
 /**
+ * Anything heavy enough to stand on a plate.
+ *
+ * Widened from `PlayerCharacter` for the BattleMap wiring (#903): the tactical
+ * layer's `CombatCharacter` carries no size field at all, so the movement bridge
+ * supplies the size directly. Every existing `PlayerCharacter` caller still
+ * satisfies this shape, so no call site changed.
+ */
+export type PlateOccupant = Pick<PlayerCharacter, 'ageSizeOverride'>;
+
+/**
  * Helper to get character size.
  * Defaults to 'Medium' if not specified.
  */
-function getCharacterSize(character: PlayerCharacter): SizeCategory {
+function getCharacterSize(character: PlateOccupant): SizeCategory {
   return character.ageSizeOverride || 'Medium';
 }
 
@@ -54,7 +64,7 @@ function getCharacterSize(character: PlayerCharacter): SizeCategory {
  * @param linkedTrap Optional trap definition if the plate triggers a trap directly.
  */
 export function checkPressurePlate(
-  character: PlayerCharacter,
+  character: PlateOccupant,
   plate: PressurePlate,
   linkedTrap?: Trap
 ): PressurePlateResult {
@@ -221,4 +231,8 @@ export function updatePressurePlateState(plate: PressurePlate): void {
     }
 }
 
-// TODO #903(Lockpick): Integrate pressure plate trigger zones into the BattleMap movement handler.
+// #903 resolved (2026-09-09): trigger zones now speak the BattleMap's own tile
+// vocabulary. See `resolvePlateTriggers` in ./battleMapBridge.ts, which takes a
+// CombatAction-style movement path and reports every plate walked over. The
+// remaining step is the one-line call in the tactical move handler; that call
+// site is tracked as GG-215 because it belongs to the combat package, not here.

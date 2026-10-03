@@ -1,6 +1,6 @@
 {
     "id":  "bigbys-hand",
-    "name":  "Bigby\u0027s Hand",
+    "name":  "Bigby's Hand",
     "aliases":  [
 
                 ],
@@ -174,7 +174,7 @@
                                                                    ]
                                       },
                         "utilityType":  "creation",
-                        "description":  "Create a Large shimmering force hand in a visible unoccupied space within 120 feet for up to 1 minute with concentration. When cast and on later Bonus Actions, the caster can move the hand up to 60 feet and choose Clenched Fist, Forceful Hand, Grasping Hand, or Interposing Hand; the hand has AC 20, Hit Points equal to the caster\u0027s Hit Point maximum, Strength 26, Dexterity 10, and the spell ends if the hand drops to 0 Hit Points.",
+                        "description":  "Create a Large shimmering force hand in a visible unoccupied space within 120 feet for up to 1 minute with concentration. When cast and on later Bonus Actions, the caster can move the hand up to 60 feet and choose Clenched Fist, Forceful Hand, Grasping Hand, or Interposing Hand; the hand has AC 20, Hit Points equal to the caster's Hit Point maximum, Strength 26, Dexterity 10, and the spell ends if the hand drops to 0 Hit Points.",
                         "scaling":  {
                                         "type":  "slot_level",
                                         "bonusPerLevel":  "+2d8 clenched-fist damage and +2d6 grasping-hand damage per slot level above 5th",
@@ -183,7 +183,7 @@
                         "grantedActions":  [
                                                {
                                                    "type":  "bonus_action",
-                                                   "action":  "Move and Command Bigby\u0027s Hand",
+                                                   "action":  "Move and Command Bigby's Hand",
                                                    "frequency":  "each_turn",
                                                    "actor":  "caster",
                                                    "distance":  60,
@@ -200,9 +200,9 @@
                                            ],
                         "attackAugments":  [
                                                {
-                                                   "name":  "Bigby\u0027s Hand Checks",
+                                                   "name":  "Bigby's Hand Checks",
                                                    "forcefulHandCheck":  "Hand Strength contested by target Strength (Athletics); Advantage if target is Medium or smaller.",
-                                                   "graspingHandCheck":  "Use the hand\u0027s Strength to grapple a Huge or smaller creature; Advantage if target is Medium or smaller.",
+                                                   "graspingHandCheck":  "Use the hand's Strength to grapple a Huge or smaller creature; Advantage if target is Medium or smaller.",
                                                    "crushDamage":  "2d6 + spellcasting ability modifier Bludgeoning, +2d6 per slot level above 5."
                                                }
                                            ],
@@ -215,7 +215,7 @@
                                                },
                                                {
                                                    "label":  "Forceful Hand",
-                                                   "summary":  "The hand pushes a creature within 5 feet in a direction chosen by the caster, using the hand\u0027s Strength contested by the target\u0027s Athletics.",
+                                                   "summary":  "The hand pushes a creature within 5 feet in a direction chosen by the caster, using the hand's Strength contested by the target's Athletics.",
                                                    "actionCost":  "cast_or_bonus_action",
                                                    "requiresDirectionChoice":  true
                                                },
@@ -332,7 +332,7 @@
                 ],
     "arbitrationType":  "mechanical",
     "aiContext":  {
-                      "prompt":  "Choose the hand\u0027s space, then choose Clenched Fist, Forceful Hand, Grasping Hand, or Interposing Hand when casting and whenever using the later Bonus Action command. Record any required target and push direction.",
+                      "prompt":  "Choose the hand's space, then choose Clenched Fist, Forceful Hand, Grasping Hand, or Interposing Hand when casting and whenever using the later Bonus Action command. Record any required target and push direction.",
                       "playerInputRequired":  true
                   },
     "modeChoice":  {
@@ -383,9 +383,9 @@
                                                            ]
                                        }
                                    ],
-                       "notes":  "The selected command controls the hand\u0027s immediate or later Bonus Action behavior while the same created hand object remains active."
+                       "notes":  "The selected command controls the hand's immediate or later Bonus Action behavior while the same created hand object remains active."
                    },
-    "description":  "You create a Large hand of shimmering, translucent force in an unoccupied space that you can see within range. The hand lasts for the spell\u0027s duration, and it moves at your command, mimicking the movements of your own hand. The hand is an object that has AC 20 and hit points equal to your hit point maximum. If it drops to 0 hit points, the spell ends. It has a Strength of 26 (+8) and a Dexterity of 10 (+0). The hand doesn\u0027t fill its space. When you cast the spell and as a bonus action on your subsequent turns, you can move the hand up to 60 feet and then cause one of the following effects with it. Clenched Fist. The hand strikes one creature or object within 5 feet of it. Make a melee spell attack for the hand using your game statistics. On a hit, the target takes 4d8 force damage. Forceful Hand. The hand attempts to push a creature within 5 feet of it in a direction you choose. Make a check with the hand\u0027s Strength contested by the Strength (Athletics) check of the target. If the target is Medium or smaller, you have advantage on the check. If you succeed, the hand pushes the target up to 5 feet plus a number of feet equal to five times your spellcasting ability modifier. The hand moves with the target to remain within 5 feet of it. Grasping Hand. The hand attempts to grapple a Huge or smaller creature within 5 feet of it. You use the hand\u0027s Strength score to resolve the grapple. If the target is Medium or smaller, you have advantage on the check. While the hand is grappling the target, you can use a bonus action to have the hand crush it. When you do so, the target takes bludgeoning damage equal to 2d6 + your spellcasting ability modifier. Interposing Hand. The hand interposes itself between you and a creature you choose until you give the hand a different command. The hand moves to stay between you and the target, providing you with half cover against the target. The target can\u0027t move through the hand\u0027s space if its Strength score is less than or equal to the hand\u0027s Strength score. If its Strength score is higher than the hand\u0027s Strength score, the target can move toward you through the hand\u0027s space, but that space is difficult terrain for the target.",
+    "description":  "You create a Large hand of shimmering, translucent force in an unoccupied space that you can see within range. The hand lasts for the spell's duration, and it moves at your command, mimicking the movements of your own hand. The hand is an object that has AC 20 and hit points equal to your hit point maximum. If it drops to 0 hit points, the spell ends. It has a Strength of 26 (+8) and a Dexterity of 10 (+0). The hand doesn't fill its space. When you cast the spell and as a bonus action on your subsequent turns, you can move the hand up to 60 feet and then cause one of the following effects with it. Clenched Fist. The hand strikes one creature or object within 5 feet of it. Make a melee spell attack for the hand using your game statistics. On a hit, the target takes 4d8 force damage. Forceful Hand. The hand attempts to push a creature within 5 feet of it in a direction you choose. Make a check with the hand's Strength contested by the Strength (Athletics) check of the target. If the target is Medium or smaller, you have advantage on the check. If you succeed, the hand pushes the target up to 5 feet plus a number of feet equal to five times your spellcasting ability modifier. The hand moves with the target to remain within 5 feet of it. Grasping Hand. The hand attempts to grapple a Huge or smaller creature within 5 feet of it. You use the hand's Strength score to resolve the grapple. If the target is Medium or smaller, you have advantage on the check. While the hand is grappling the target, you can use a bonus action to have the hand crush it. When you do so, the target takes bludgeoning damage equal to 2d6 + your spellcasting ability modifier. Interposing Hand. The hand interposes itself between you and a creature you choose until you give the hand a different command. The hand moves to stay between you and the target, providing you with half cover against the target. The target can't move through the hand's space if its Strength score is less than or equal to the hand's Strength score. If its Strength score is higher than the hand's Strength score, the target can move toward you through the hand's space, but that space is difficult terrain for the target.",
     "higherLevels":  "When you cast this spell using a spell slot of 6th level or higher, the damage from the clenched fist option increases by 2d8 and the damage from the grasping hand increases by 2d6 for each slot level above 5th.",
     "tags":  [
                  "legacy",

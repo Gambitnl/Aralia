@@ -4,8 +4,8 @@ import { resolveAreaTargetSelection } from '../useAbilitySystem';
 import { createMockCombatCharacter } from '../../utils/core/factories';
 import type { BattleMapData, CombatCharacter, SelectedSpellTarget } from '../../types/combat';
 import type { Spell } from '../../types/spells';
-import swordBurst from '../../../public/data/spells/level-0/sword-burst.json';
-import wordOfRadiance from '../../../public/data/spells/level-0/word-of-radiance.json';
+import swordBurst from '@/data/spells/level-0/sword-burst.json';
+import wordOfRadiance from '@/data/spells/level-0/word-of-radiance.json';
 
 /**
  * These tests pin the pure area-resolution bridge used by the ability hook.

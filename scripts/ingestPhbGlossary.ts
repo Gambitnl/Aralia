@@ -1,9 +1,22 @@
 /**
- * Script to ingest various 2024 PHB content from 5eTools vendor repo into the Aralia glossary.
+ * This script turns supported 2024 PHB records from the vendored 5eTools data
+ * into Aralia glossary entries.
+ *
+ * The item-metadata boundary is intentionally defensive because the vendor JSON
+ * is external input: valid 5eTools fields become the existing glossary metadata
+ * shape, while malformed or unknown values are ignored instead of leaking into
+ * generated UI data. The rest of the file owns markdown conversion, entry-file
+ * emission, and the final link-repair pass for those generated entries.
+ *
+ * Called by: the PHB glossary ingest command and its focused Vitest coverage.
+ * Depends on: vendored 5eTools JSON, GlossaryEntry's shared UI contract, and
+ * the glossary term-link repair helpers.
  */
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'node:url';
+import type { GlossaryEntry } from '../src/types/ui';
 import {
   buildResolvableIdSet,
   makeEmitter,
@@ -11,43 +24,206 @@ import {
   repairSeeAlso,
 } from './glossary/lib/termLinks';
 
-// This function is exported for testing purposes.
-export function buildItemMetadata(item: any, typeMap: Record<string, string>): any {
-    const itemMetadata: any = {};
+// ============================================================================
+// Typed 5eTools Item Metadata Boundary
+// ============================================================================
+// Only fields used by the glossary transform are modeled here. Every value is
+// unknown until checked because JSON can contain malformed data, while extra
+// 5eTools fields remain structurally compatible and pass through unused.
+// ============================================================================
 
-    if (item.type) {
+type ItemMetadata = NonNullable<GlossaryEntry['itemMetadata']>;
+
+interface Raw5eToolsItem {
+    type?: unknown;
+    wondrous?: unknown;
+    potion?: unknown;
+    ring?: unknown;
+    rod?: unknown;
+    scroll?: unknown;
+    staff?: unknown;
+    wand?: unknown;
+    rarity?: unknown;
+    tier?: unknown;
+    reqAttune?: unknown;
+    value?: unknown;
+    weight?: unknown;
+    dmg1?: unknown;
+    dmgType?: unknown;
+    property?: unknown;
+    ac?: unknown;
+    bonusWeapon?: unknown;
+    bonusAc?: unknown;
+    ability?: unknown;
+    charges?: unknown;
+    recharge?: unknown;
+    rechargeAmount?: unknown;
+}
+
+interface Raw5eToolsPropertyNote {
+    uid?: unknown;
+    note?: unknown;
+}
+
+// Vendor records must be plain objects. Arrays, null, and primitive values do
+// not describe an item, so they cannot produce glossary metadata.
+function isRaw5eToolsItem(value: unknown): value is Raw5eToolsItem {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+// Rarity and tier labels arrive lowercase in normal 5eTools data. Capitalizing
+// only real, non-empty strings preserves that display while rejecting bad JSON.
+function capitalizeLabel(value: unknown): string | undefined {
+    if (typeof value !== 'string' || value.length === 0) return undefined;
+    return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+// Numeric item facts must be finite and non-zero. Zero was historically omitted,
+// and rejecting NaN or infinity prevents values that JSON cannot faithfully store.
+function isUsefulNumber(value: unknown): value is number {
+    return typeof value === 'number' && Number.isFinite(value) && value !== 0;
+}
+
+// A few 5eTools weapons mix normal property codes with a conditional property
+// object such as `{ uid: '2H|XPHB', note: 'unless mounted' }`. The glossary UI
+// accepts display strings, so the boundary keeps both facts in one readable label.
+function buildItemProperties(value: unknown): string[] | undefined {
+    if (!Array.isArray(value) || value.length === 0) return undefined;
+
+    const properties: string[] = [];
+    for (const entry of value) {
+        if (typeof entry === 'string' && entry.length > 0) {
+            properties.push(entry);
+            continue;
+        }
+
+        if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) return undefined;
+        const propertyNote = entry as Raw5eToolsPropertyNote;
+        if (typeof propertyNote.uid !== 'string' || propertyNote.uid.length === 0) return undefined;
+
+        const note = typeof propertyNote.note === 'string' && propertyNote.note.length > 0
+            ? ` (${propertyNote.note})`
+            : '';
+        properties.push(`${propertyNote.uid}${note}`);
+    }
+
+    return properties;
+}
+
+// A "+N" bonus label such as "+1" is the only shape the runtime can turn into
+// a mechanical bonus. Other raw shapes carry no usable number.
+function readBonusLabel(value: unknown): string | undefined {
+    if (typeof value !== 'string') return undefined;
+    return /^\+\d+$/.test(value.trim()) ? value.trim() : undefined;
+}
+
+const ABILITY_KEYS = new Set(['str', 'dex', 'con', 'int', 'wis', 'cha']);
+
+// Reduce a raw ability map to the six known short keys with positive integer
+// values. Anything else (choose blocks, malformed values) is dropped.
+function readAbilityMap(value: unknown): Record<string, number> | undefined {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined;
+    const out: Record<string, number> = {};
+    for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
+        if (!ABILITY_KEYS.has(key)) continue;
+        if (typeof raw !== 'number' || !Number.isInteger(raw) || raw <= 0) continue;
+        out[key] = raw;
+    }
+    return Object.keys(out).length > 0 ? out : undefined;
+}
+
+// The recharge amount arrives as a number or as a "{@dice 1d6 + 1}" tag. The
+// glossary stores plain text, so unwrap the dice tag here.
+function readRechargeAmount(value: unknown): string | undefined {
+    if (typeof value === 'number' && Number.isFinite(value) && value > 0) return String(value);
+    if (typeof value !== 'string' || value.length === 0) return undefined;
+    const diceMatch = value.match(/\{@dice\s+([^|}]+)(?:\|[^}]+)?\}/i);
+    return (diceMatch ? diceMatch[1] : value).trim();
+}
+
+// This function is exported so focused tests can protect the ingest boundary
+// without running the file-emission pipeline.
+export function buildItemMetadata(
+    item: unknown,
+    typeMap: Readonly<Record<string, string>>,
+): ItemMetadata | null {
+    if (!isRaw5eToolsItem(item)) return null;
+
+    const itemMetadata: ItemMetadata = {};
+
+    // Prefer the normal 5eTools type abbreviation and resolve it through the
+    // vendor type table. Unknown abbreviations retain their original code.
+    if (typeof item.type === 'string' && item.type.length > 0) {
         const typeAbbr = item.type.split('|')[0];
         const typeName = typeMap[typeAbbr] || typeAbbr;
         itemMetadata.type = typeName;
     } else {
-        if (item.wondrous) {
+        // Magic items sometimes omit the general type field and instead carry
+        // one of these boolean category flags. Their established priority order
+        // is preserved so ambiguous raw records still resolve exactly as before.
+        if (item.wondrous === true) {
             itemMetadata.type = 'Wondrous Item';
-        } else if (item.potion) {
+        } else if (item.potion === true) {
             itemMetadata.type = 'Potion';
-        } else if (item.ring) {
+        } else if (item.ring === true) {
             itemMetadata.type = 'Ring';
-        } else if (item.rod) {
+        } else if (item.rod === true) {
             itemMetadata.type = 'Rod';
-        } else if (item.scroll) {
+        } else if (item.scroll === true) {
             itemMetadata.type = 'Scroll';
-        } else if (item.staff) {
+        } else if (item.staff === true) {
             itemMetadata.type = 'Staff';
-        } else if (item.wand) {
+        } else if (item.wand === true) {
             itemMetadata.type = 'Wand';
         }
     }
-    if (item.rarity) itemMetadata.rarity = item.rarity.charAt(0).toUpperCase() + item.rarity.slice(1);
-    if (item.tier) itemMetadata.tier = item.tier.charAt(0).toUpperCase() + item.tier.slice(1);
-    if (item.reqAttune) {
+
+    // Preserve the title-style labels used by item stat blocks, but only when
+    // the raw values are valid strings.
+    const rarity = capitalizeLabel(item.rarity);
+    const tier = capitalizeLabel(item.tier);
+    if (rarity) itemMetadata.rarity = rarity;
+    if (tier) itemMetadata.tier = tier;
+
+    // Attunement is either a simple requirement or a vendor-supplied qualifier
+    // such as "by a spellcaster". Other raw shapes are not meaningful here.
+    if (item.reqAttune === true || (typeof item.reqAttune === 'string' && item.reqAttune.length > 0)) {
         if (item.reqAttune === true) itemMetadata.reqAttune = 'Required';
         else itemMetadata.reqAttune = `Required ${item.reqAttune}`;
     }
-    if (item.value) itemMetadata.cost = item.value / 100;
-    if (item.weight) itemMetadata.weight = item.weight;
-    if (item.dmg1) itemMetadata.damage = `${item.dmg1} ${item.dmgType || ''}`.trim();
-    if (item.property && item.property.length > 0) itemMetadata.properties = item.property;
-    if (item.ac) itemMetadata.ac = item.ac;
 
+    // 5eTools stores value in copper pieces; glossary stat blocks display gold.
+    // Other numeric facts retain their original units and established formatting.
+    if (isUsefulNumber(item.value)) itemMetadata.cost = item.value / 100;
+    if (isUsefulNumber(item.weight)) itemMetadata.weight = item.weight;
+    if (typeof item.dmg1 === 'string' && item.dmg1.length > 0) {
+        const damageType = typeof item.dmgType === 'string' ? item.dmgType : '';
+        itemMetadata.damage = `${item.dmg1} ${damageType}`.trim();
+    }
+    const properties = buildItemProperties(item.property);
+    if (properties) itemMetadata.properties = properties;
+    if (isUsefulNumber(item.ac)) itemMetadata.ac = item.ac;
+
+    // Mechanical magic-item facts. 5eTools stores these as structured fields,
+    // so the runtime item registry can read them without prose parsing.
+    const bonusWeapon = readBonusLabel(item.bonusWeapon);
+    if (bonusWeapon) itemMetadata.bonusWeapon = bonusWeapon;
+    const bonusAc = readBonusLabel(item.bonusAc);
+    if (bonusAc) itemMetadata.bonusAc = bonusAc;
+    if (typeof item.ability === 'object' && item.ability !== null && !Array.isArray(item.ability)) {
+        const rawAbility = item.ability as Record<string, unknown>;
+        const abilitySet = readAbilityMap(rawAbility.static);
+        if (abilitySet) itemMetadata.abilitySet = abilitySet;
+        const abilityBonus = readAbilityMap(rawAbility);
+        if (abilityBonus) itemMetadata.abilityBonus = abilityBonus;
+    }
+    if (isUsefulNumber(item.charges) && item.charges > 0) itemMetadata.charges = item.charges;
+    if (typeof item.recharge === 'string' && item.recharge.length > 0) itemMetadata.recharge = item.recharge;
+    const rechargeAmount = readRechargeAmount(item.rechargeAmount);
+    if (rechargeAmount) itemMetadata.rechargeAmount = rechargeAmount;
+
+    // Records containing only unrelated or malformed fields should not gain an
+    // empty metadata object; downstream consumers use absence as the signal to skip it.
     if (Object.keys(itemMetadata).length === 0) {
         return null;
     }
@@ -256,7 +432,7 @@ function processSourceFiles() {
         let mdBody = '';
         const itemTags = [`source:xphb`, source.key];
         
-        let itemMetadata: any = null;
+        let itemMetadata: ItemMetadata | null = null;
 
         // --- GAP RESOLUTION: Parse Item Metadata ---
         if (source.category === 'Equipment') {
@@ -364,4 +540,18 @@ function processSourceFiles() {
   console.log(`Successfully ingested ${count} PHB 2024 glossary elements.`);
 }
 
-processSourceFiles();
+// ============================================================================
+// Direct-Run Entrypoint
+// ============================================================================
+// Running this file through `npx tsx scripts/ingestPhbGlossary.ts` still emits
+// the complete glossary dataset. Importers such as Vitest need only the typed
+// metadata builder, so they must not rewrite generated files as a side effect.
+// ============================================================================
+
+const isDirectRun = process.argv[1]
+  ? path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+  : false;
+
+if (isDirectRun) {
+  processSourceFiles();
+}

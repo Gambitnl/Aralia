@@ -1,6 +1,6 @@
 /**
  * @file src/components/World3D/World3DMinimap.tsx
- * In-3D minimap overlay (Plan 4 deferred UX) — composited inside InWorldHUD.
+ * In-3D minimap overlay (originally planned for Plan 4, now active) — composited inside InWorldHUD.
  *
  * While exploring the streamed 3D world you lose the bird's-eye sense of where you
  * are. This paints a compact top-down view of the world straight from `WorldData`

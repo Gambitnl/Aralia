@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/06/2026, 14:53:17
+ * Last Sync: 09/08/2026, 22:42:49
  * Dependents: state/appState.ts
- * Imports: 3 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -155,7 +155,8 @@ export function companionReducer(state: GameState, action: AppAction): Partial<G
         companion,
         targetId,
         change,
-        reason
+        reason,
+        state.gameTime.getTime()
       );
 
       // If approval changed significantly, maybe queue a message
@@ -204,6 +205,30 @@ export function companionReducer(state: GameState, action: AppAction): Partial<G
         },
         messages
       };
+    }
+
+    // ADVANCE_TIME reaches this reducer after worldReducer has already advanced
+    // GameState.gameTime. Re-evaluating romance here ties the 24-hour policy to the
+    // existing durable Chronos action without adding a second clock or action.
+    case 'ADVANCE_TIME': {
+      let companionsChanged = false;
+
+      // Most time advances do nothing. Only companions with a newly started or
+      // completed hostile-romance interval receive a new persisted object.
+      const companions = Object.fromEntries(
+        Object.entries(state.companions).map(([companionId, companion]) => {
+          const updatedCompanion = RelationshipManager.processInWorldTime(
+            companion,
+            state.gameTime.getTime()
+          );
+          if (updatedCompanion !== companion) {
+            companionsChanged = true;
+          }
+          return [companionId, updatedCompanion];
+        })
+      );
+
+      return companionsChanged ? { companions } : {};
     }
 
     // Adjust a companion's loyalty (0–100), the "will they leave/betray" meter.

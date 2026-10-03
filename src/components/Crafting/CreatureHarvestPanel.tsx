@@ -22,7 +22,7 @@ import React, { useMemo, useState } from 'react';
 import { useGameState } from '../../state/GameContext';
 import { attemptCreatureHarvest, getHarvestableParts } from '../../systems/crafting/creatureHarvestSystem';
 import { HarvestableCreature, CreaturePart, getCreatureById } from '../../systems/crafting/creatureHarvestData';
-import { resolveCraftingCrafter } from './crafterAdapter';
+import { resolveCraftingCrafter, NO_CRAFTER_MESSAGE } from './crafterAdapter';
 import './CreatureHarvestPanel.css';
 
 interface CreatureHarvestPanelProps {
@@ -38,8 +38,8 @@ export const CreatureHarvestPanel: React.FC<CreatureHarvestPanelProps> = ({ crea
 
     const creature = getCreatureById(creatureId);
     const parts = getHarvestableParts(creatureId);
-    const crafter = useMemo(
-        () => resolveCraftingCrafter(state, { allowCharacterSheetSelection: false }).crafter,
+    const crafterResolution = useMemo(
+        () => resolveCraftingCrafter(state, { allowCharacterSheetSelection: false }),
         [state.party]
     );
 
@@ -51,6 +51,19 @@ export const CreatureHarvestPanel: React.FC<CreatureHarvestPanelProps> = ({ crea
             </div>
         );
     }
+
+    // No fallbacks: an empty party has no crafter, so the panel says so rather
+    // than rolling an unmodified d20 for an "Unassigned" stub.
+    if (crafterResolution.status === 'no_crafter') {
+        return (
+            <div className="creature-harvest-panel error">
+                <p>{NO_CRAFTER_MESSAGE}</p>
+                {onClose && <button onClick={onClose}>Close</button>}
+            </div>
+        );
+    }
+
+    const crafter = crafterResolution.crafter;
 
     const handleHarvest = (part: CreaturePart) => {
         if (harvestedParts.has(part.id)) return; // Already harvested

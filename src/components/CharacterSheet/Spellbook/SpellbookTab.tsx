@@ -1,34 +1,129 @@
+// @dependencies-start
 /**
- * @file SpellbookTab.tsx
- * Tab version of spellbook display for the character sheet.
- * Shows spell slots, abilities, and spell list with casting functionality.
- * 2-column master-detail layout with inline glossary display.
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 18/07/2026, 11:28:11
+ * Dependents: components/CharacterSheet/Spellbook/index.ts
+ * Imports: 14 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+/**
+ * This file renders the Spellbook tab inside the resizable Character Sheet.
+ *
+ * It combines the character's known and prepared spells with the shared spell
+ * registry, then shows casting controls and details for the selected spell. When
+ * the compiled glossary contains that spell, the tab uses the same structured
+ * detail renderer as the full Spellbook overlay so rule links stay interactive.
+ * The older spell detail pane remains the fallback for spells that have not been
+ * compiled yet.
+ *
+ * Called by: CharacterSheetModal.tsx
+ * Depends on: SpellContext, GlossaryContext, FullEntryDisplay, and SpellDetailPane
  */
 import React, { useState, useContext, useMemo, useEffect } from 'react';
 import { PlayerCharacter, Spell, Action } from '../../../types';
 import SpellContext from '../../../context/SpellContext';
+import GlossaryContext from '../../../context/GlossaryContext';
 import { CLASSES_DATA } from '../../../constants';
 import { getMaxPreparedSpells, getPreparedSpellsAffectingLimit, isRacialSpellLockedForPreparation } from '../../../utils/character/characterUtils';
+import { findGlossaryEntryAndPath } from '../../../utils/visuals';
+import { fetchWithTimeout } from '../../../utils/context';
+import { assetUrl } from '../../../config/env';
+import { FullEntryDisplay } from '../../Glossary/FullEntryDisplay';
+import SpellCardTemplate from '../../Glossary/SpellCardTemplate';
 import SpellSlotDisplay from './SpellSlotDisplay';
 import SpellDetailPane from './SpellDetailPane';
 import CastSpellControls from './CastSpellControls';
 import { SpellSummaryCard } from '../../ui/SpellSummaryCard';
 
+// ============================================================================
+// Spellbook Rules and Inputs
+// ============================================================================
+// These declarations describe the caster behavior and navigation hooks the
+// Character Sheet supplies before the component assembles its visible spell list.
+// ============================================================================
+
 // Casters that pick spells permanently (no daily preparation step).
 const KNOWN_CASTER_CLASS_IDS = ['bard', 'sorcerer', 'warlock', 'ranger'];
+
+interface SpellReferencedRule {
+    label: string;
+    description: string;
+    glossaryTermId?: string;
+}
+
+interface SpellReferencedRulesEnrichmentFile {
+    enrichmentDataset?: {
+        spells?: Array<{
+            spellId: string;
+            referencedRules?: SpellReferencedRule[];
+        }>;
+    };
+}
 
 interface SpellbookTabProps {
     character: PlayerCharacter;
     onAction: (action: Action) => void;
     /** Full party, used by the out-of-combat cast target picker. */
     party?: PlayerCharacter[];
+    /** Opens a linked rule in the application's existing glossary route. */
+    onNavigateToGlossary?: (termId: string) => void;
 }
 
-const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party }) => {
+const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party, onNavigateToGlossary }) => {
     const [currentLevel, setCurrentLevel] = useState(0);
     const [selectedSpellId, setSelectedSpellId] = useState<string | null>(null);
     const [showAllPossibleSpells, setShowAllPossibleSpells] = useState(false);
+    const [referencedRulesBySpellId, setReferencedRulesBySpellId] = useState<Record<string, SpellReferencedRule[]>>({});
+    // A failed enrichment load used to be indistinguishable from a spell that
+    // simply cites no rules. This records the failure so the tab can say so.
+    const [ruleLinkLoadError, setRuleLinkLoadError] = useState<string | null>(null);
     const allSpellsData = useContext(SpellContext);
+    const glossaryEntries = useContext(GlossaryContext);
+
+    // Load the same generated spell-to-rule links used by the full Glossary.
+    // Keeping this as one lazy request per mounted tab avoids parsing spell text
+    // in the browser and gives every structured spell card canonical link ids.
+    useEffect(() => {
+        let cancelled = false;
+
+        fetchWithTimeout<SpellReferencedRulesEnrichmentFile>(
+            assetUrl('data/glossary/entries/rules/spells/spell_referenced_rules_enrichment.json')
+        )
+            .then((data) => {
+                if (cancelled) return;
+
+                const nextRulesBySpellId = Object.fromEntries(
+                    (data.enrichmentDataset?.spells ?? []).map((spellRecord) => [
+                        spellRecord.spellId,
+                        spellRecord.referencedRules ?? [],
+                    ])
+                );
+
+                setReferencedRulesBySpellId(nextRulesBySpellId);
+                setRuleLinkLoadError(null);
+            })
+            .catch((error: unknown) => {
+                if (cancelled) return;
+                // The spell itself must stay readable, so a missing enrichment file
+                // does not blank the card. It does gate the rule links and says so
+                // in the UI: silently showing spell prose with no rule chips looked
+                // identical to a spell that cites no rules (agora-65d0).
+                setReferencedRulesBySpellId({});
+                setRuleLinkLoadError(error instanceof Error ? error.message : String(error));
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     // Compute spell lists
     const { spellsToDisplay, knownSpellIds, preparedSpellIds, levels } = useMemo(() => {
@@ -90,6 +185,15 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party 
         if (!selectedSpellId || !allSpellsData) return null;
         return allSpellsData[selectedSpellId] || null;
     }, [selectedSpellId, allSpellsData]);
+
+    // Resolve the selected spell against the compiled glossary index. A missing
+    // match is expected while migration is incomplete and deliberately falls
+    // through to the legacy SpellDetailPane below.
+    const selectedSpellEntry = useMemo(() => {
+        if (!selectedSpellId || !glossaryEntries) return null;
+        const { entry } = findGlossaryEntryAndPath(selectedSpellId, glossaryEntries);
+        return entry;
+    }, [selectedSpellId, glossaryEntries]);
 
     // Readiness gate for the out-of-combat Cast button: cantrips must be known;
     // leveled spells must be prepared (or simply known for known-spell casters).
@@ -285,9 +389,40 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party 
                     />
                 )}
 
-                {/* Spell Detail Pane */}
+                {/* Compiled JSON-backed spells use the shared spell card because
+                    their glossary records intentionally have no filePath. Future
+                    file-backed spell entries can flow through FullEntryDisplay,
+                    while missing compiled entries preserve the legacy pane. */}
+                {/* Rule-link gate: the spell stays visible, but the tab states
+                    plainly that its glossary rule chips are unavailable and names
+                    the generator that produces them. */}
+                {ruleLinkLoadError && (
+                    <div
+                        role="status"
+                        className="mx-6 mt-4 rounded border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200"
+                    >
+                        <p className="font-semibold">Rule links unavailable</p>
+                        <p className="text-amber-200/80">
+                            The generated spell rule-link dataset did not load, so this spell's rules are shown without glossary links.
+                            Run <code className="font-mono">npx tsx scripts/generateSpellReferencedRulesEnrichment.ts</code> to rebuild it.
+                        </p>
+                        <p className="text-amber-200/60">{ruleLinkLoadError}</p>
+                    </div>
+                )}
+
                 <div className="flex-1 overflow-y-auto p-6 scrollable-content">
-                    {selectedSpell ? (
+                    {selectedSpellEntry?.hasSpellJson && selectedSpell ? (
+                        <SpellCardTemplate
+                            spell={selectedSpell}
+                            referencedRules={referencedRulesBySpellId[selectedSpell.id] ?? []}
+                            onNavigateToGlossary={onNavigateToGlossary}
+                        />
+                    ) : selectedSpellEntry?.filePath ? (
+                        <FullEntryDisplay
+                            entry={selectedSpellEntry}
+                            onNavigate={onNavigateToGlossary}
+                        />
+                    ) : selectedSpell ? (
                         <SpellDetailPane spell={selectedSpell} />
                     ) : selectedSpellId ? (
                         <div className="flex flex-col items-center justify-center h-full text-slate-500">

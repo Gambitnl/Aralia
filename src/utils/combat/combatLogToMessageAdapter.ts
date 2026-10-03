@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/06/2026, 12:30:04
+ * Last Sync: 09/09/2026, 09:05:55
  * Dependents: components/Combat/CombatView.tsx
  * Imports: 2 files
  *
@@ -32,21 +32,28 @@
 
 // --- Imports ---
 // CombatLogEntry: The simple log entry structure emitted by the existing combat hooks.
-//   Contains: id, timestamp, type ('action'|'damage'|'heal'|'status'|'turn_start'|'turn_end'),
-//   message (string), characterId, targetIds, and a flexible data bag (CombatLogData).
+//   Contains: id, timestamp, a discriminated type, message, actor/target ids,
+//   and the category-checked payload selected by that type.
 // CombatCharacter: The full character model used during combat, needed here to look up
 //   entity IDs by name when the log entry only provides a name string (e.g. data.source).
-import type { CombatLogEntry, CombatCharacter } from '../../types/combat';
+import type { CombatLogEntry, CombatCharacter, StatusEffect } from '../../types/combat';
 
 // Enums imported as values (not just types) because we use them to construct MessageMapping objects.
 // CombatMessageType: 25+ enum values categorizing combat events (DAMAGE_DEALT, KILLING_BLOW, etc.)
 // MessagePriority: LOW | MEDIUM | HIGH | CRITICAL — controls visual emphasis and display channels.
 // MessageChannel: COMBAT_LOG | NOTIFICATION | VISUAL_EFFECT | AUDIO_CUE — declares where a message
 //   should be routed. Currently only COMBAT_LOG is consumed; the others are populated for future use.
+// CombatEventClass: the typed event taxonomy (CMB-GAP-003). Replaces the message-text
+//   matching that used to decide a record's meaning.
+// getEventRouting: the single lookup from an event class to its CombatMessageType,
+//   MessagePriority, MessageChannel[], visual effect and sound cue.
+// CombatMessageType is still imported as a value because buildDataPayload and deriveTitle
+//   switch on the resulting presentation type.
 import {
+  CombatEventClass,
   CombatMessageType,
-  MessagePriority,
-  MessageChannel,
+  getEventRouting,
+  getStatusDiscriminator,
 } from '../../types/combatMessages';
 
 // Type-only imports for the output structures we build.
@@ -56,12 +63,112 @@ import {
 // HealMessageData: Typed payload for healing events (healType, isCritical, etc.).
 // StatusMessageData: Typed payload for status/condition events (statusName, statusType, isResisted).
 import type {
+  CombatEventRouting,
   CombatMessage,
   BaseMessageData,
   DamageMessageData,
   HealMessageData,
+  StatusDiscriminator,
+  StatusEffectKind,
   StatusMessageData,
 } from '../../types/combatMessages';
+
+// --- Status Kind Bridge (agora-6acd) ---
+
+/**
+ * STATUS_KIND_BY_DOMAIN_KIND — the compile-time guard between the domain's status kinds and
+ * the messaging mirror of them.
+ *
+ * types/combatMessages.ts cannot import types/combat.ts (that module documents combatMessages
+ * as importing nothing, so a back-import would make the note false), which leaves
+ * StatusEffectKind a hand-written copy of StatusEffect['type']. This record keys on the DOMAIN
+ * union and values in the MIRROR union, so adding a sixth kind to StatusEffect, or renaming one,
+ * fails to compile here instead of quietly routing that kind as an unclassified status.
+ *
+ * It is not a lookup of convenience: resolveStatusKind() uses it to narrow a domain value into
+ * the mirror union, so the guard sits on the real path and cannot rot into dead code.
+ */
+const STATUS_KIND_BY_DOMAIN_KIND: Record<StatusEffect['type'], StatusEffectKind> = {
+  buff: 'buff',
+  debuff: 'debuff',
+  neutral: 'neutral',
+  dot: 'dot',
+  hot: 'hot',
+};
+
+/**
+ * resolveStatusName — the one place this module decides what a status record is ABOUT.
+ *
+ * WHAT CHANGED (2026-09-20, agora-6acd): the name used to be resolved inside buildDataPayload
+ * only. It is lifted out because the buff/debuff discriminator has to look the SAME status up
+ * on the character; resolving the name twice would let the displayed name and the routed class
+ * disagree about which effect a record describes.
+ *
+ * Structured data wins. extractStatusName() is the existing text shim, kept for the emitters
+ * that only write the sentence.
+ */
+function resolveStatusName(entry: CombatLogEntry): string {
+  const structured = entry.data?.statusEffectName ?? entry.data?.condition?.name;
+  if (typeof structured === 'string' && structured.length > 0) return structured;
+  return extractStatusName(entry.message);
+}
+
+/**
+ * resolveStatusKind — reads the buff/debuff discriminator off LIVE combat state.
+ *
+ * WHY STATE AND NOT TEXT: "Goblin is affected by Bless" and "Goblin is affected by Bane" are
+ * the same sentence. Only the applied StatusEffect knows which one helps, and it already says
+ * so in its `type` field. The discriminator is therefore read from the record the engine
+ * actually wrote onto the character, never inferred from the wording of the log line.
+ *
+ * WHY NOT FROM entry.data: a kind field on CommonCombatLogData would mean editing
+ * types/combat.ts, which this packet does not own (PK-02), and every emitter would then have
+ * to start setting it. Reading the applied status needs neither.
+ *
+ * FAILS HONESTLY: returns undefined when the record is not a status record, when no character
+ * matches, or when no status of that name is on the character (an expiry has already removed
+ * it). Undefined means STATUS_CHANGE, exactly as every status record behaved before this.
+ */
+function resolveStatusKind(
+  entry: CombatLogEntry,
+  characters: CombatCharacter[] | undefined,
+): StatusEffectKind | undefined {
+  if (entry.type !== 'status' || !characters || characters.length === 0) return undefined;
+
+  // Status records name the AFFECTED creature as characterId; targetIds[0] is that same
+  // creature for the emitters that fill both. Either field identifies whose list to read.
+  const affectedId = entry.characterId ?? entry.targetIds?.[0];
+  if (!affectedId) return undefined;
+
+  const affected = characters.find(character => character.id === affectedId);
+  if (!affected) return undefined;
+
+  const wanted = resolveStatusName(entry).trim().toLowerCase();
+  // 'unknown effect' is extractStatusName's explicit "no pattern matched" answer, not a name.
+  if (!wanted || wanted === 'unknown effect') return undefined;
+
+  const status = affected.statusEffects?.find(
+    effect => String(effect.name).trim().toLowerCase() === wanted,
+  );
+  if (!status) return undefined;
+
+  return STATUS_KIND_BY_DOMAIN_KIND[status.type];
+}
+
+/**
+ * refineStatusClass — upgrades a plain STATUS_CHANGE to BUFF or DEBUFF when the kind is known.
+ *
+ * Only STATUS_CHANGE is refined. A class that is already specific (STATUS_RESIST, DEATH_SAVE,
+ * STATUS_EXPIRE, or anything an emitter stamped itself) states something the kind does not,
+ * and is left exactly as it was.
+ */
+function refineStatusClass(
+  eventClass: CombatEventClass,
+  discriminator: StatusDiscriminator | undefined,
+): CombatEventClass {
+  if (eventClass !== CombatEventClass.STATUS_CHANGE || !discriminator) return eventClass;
+  return discriminator.eventClass;
+}
 
 // --- Internal Types ---
 
@@ -71,33 +178,35 @@ import type {
  * should be assigned to the resulting CombatMessage, before we build the
  * title, description, or data payload.
  */
-interface MessageMapping {
-  type: CombatMessageType;
-  priority: MessagePriority;
-  channels: MessageChannel[];
-}
+// MessageMapping is now simply the routing row for the record's event class, plus the
+// class itself so the finished CombatMessage can carry it. The old hand-written shape
+// (type/priority/channels) is preserved because CombatEventRouting declares exactly those
+// fields, so buildDataPayload and deriveTitle keep reading `mapping.type` unchanged.
+type MessageMapping = CombatEventRouting & { eventClass: CombatEventClass };
 
 // =============================================================================
 // CLASSIFICATION
 // =============================================================================
 
 /**
- * classifyEntry — Determines the CombatMessageType, priority, and channels for a log entry.
+ * deriveEventClass — best-effort classification for records emitted WITHOUT an eventClass.
  *
- * This is the core mapping logic. It uses a two-level strategy:
- *   1. First, switch on the CombatLogEntry.type field ('damage', 'heal', 'status', etc.)
- *      to narrow down the broad category.
- *   2. Then, for ambiguous categories (especially 'status' and 'turn_start'), inspect
- *      the message text with string matching to refine into a specific CombatMessageType.
+ * WHAT CHANGED (2026-09-09, CMB-GAP-003): this is the old classifyEntry() string matcher,
+ * demoted. It no longer decides message type, priority or channels — it only answers the one
+ * question "which CombatEventClass is this?", and COMBAT_EVENT_ROUTING decides the rest.
  *
- * The message text matching is case-insensitive (msg is lowercased at the top).
- * The order of checks within each case matters — more specific patterns are checked first
- * to avoid false matches on more general ones.
+ * WHY IT IS STILL HERE: log records are emitted from dozens of hooks and systems
+ * (useTurnManager, useCombatEngine, useActionExecutor, spell commands, zone effects). Deleting
+ * the text fallback before those emitters stamp `entry.eventClass` would silently downgrade
+ * every one of them to UNKNOWN. It is a migration shim, not the routing table.
+ *
+ * PRESERVED: every branch maps to the class whose routing row reproduces the exact
+ * CombatMessageType, priority and channel set that branch produced before the enum existed.
  *
  * @param entry - The CombatLogEntry to classify.
- * @returns A MessageMapping with the determined type, priority, and channels.
+ * @returns The inferred CombatEventClass.
  */
-function classifyEntry(entry: CombatLogEntry): MessageMapping {
+export function deriveEventClass(entry: CombatLogEntry): CombatEventClass {
   // Lowercase once for all subsequent string.includes() checks.
   const msg = entry.message.toLowerCase();
   const isCritical = Boolean(entry.data?.isCritical ?? entry.data?.isCrit);
@@ -105,233 +214,146 @@ function classifyEntry(entry: CombatLogEntry): MessageMapping {
   switch (entry.type) {
     // --- DAMAGE ENTRIES ---
     // Emitted by useCombatEngine.handleDamage() and useActionExecutor (zone damage, reactive effects).
-    // The data bag includes: damage (number), damageType (string), source (string), isDeath (boolean).
     case 'damage': {
-      if (isCritical) {
-        return {
-          type: CombatMessageType.CRITICAL_HIT,
-          priority: MessagePriority.HIGH,
-          channels: [MessageChannel.COMBAT_LOG, MessageChannel.NOTIFICATION, MessageChannel.VISUAL_EFFECT],
-        };
-      }
-      // If isDeath is true, the character was killed by this damage — map to KILLING_BLOW
-      // with HIGH priority and three channels (log, notification, and visual effect).
-      if (entry.data?.isDeath) {
-        return {
-          type: CombatMessageType.KILLING_BLOW,
-          priority: MessagePriority.HIGH,
-          channels: [MessageChannel.COMBAT_LOG, MessageChannel.NOTIFICATION, MessageChannel.VISUAL_EFFECT],
-        };
-      }
-      // Standard damage — MEDIUM priority, log + notification channels.
-      return {
-        type: CombatMessageType.DAMAGE_DEALT,
-        priority: MessagePriority.MEDIUM,
-        channels: [MessageChannel.COMBAT_LOG, MessageChannel.NOTIFICATION],
-      };
+      if (isCritical) return CombatEventClass.CRITICAL_DAMAGE;
+      // isDeath means the character was killed by this damage.
+      if (entry.data?.isDeath) return CombatEventClass.KILL;
+      return CombatEventClass.DAMAGE;
     }
 
     // --- HEAL ENTRIES ---
-    // Emitted by useCombatEngine.processEndOfTurnEffects() for heal_per_turn status effects.
-    // Also emitted by useActionExecutor for zone-based healing.
+    // Emitted by useCombatEngine.processEndOfTurnEffects() and zone healing in useActionExecutor.
     case 'heal':
-      return {
-        type: CombatMessageType.HEALING_RECEIVED,
-        priority: MessagePriority.MEDIUM,
-        channels: [MessageChannel.COMBAT_LOG, MessageChannel.NOTIFICATION],
-      };
+      return CombatEventClass.HEAL;
 
     // --- STATUS ENTRIES ---
-    // Emitted by several sources: processRepeatSaves, processTileEffects, useActionExecutor (zone conditions).
-    // The message text varies widely, so we use string matching to determine the specific subtype.
+    // Emitted by processRepeatSaves, processTileEffects, useActionExecutor (zone conditions),
+    // and the death-save resolver. Order matters: more specific patterns are tested first.
     case 'status': {
+      // Death saves carry a structured deathSaves payload; the text check is the fallback for
+      // emitters that only write the sentence. NEW in 2026-09-09: these used to land in the
+      // generic save branches, which gave them no notification path at all.
+      if (entry.data?.deathSaves !== undefined || msg.includes('death save') || msg.includes('death saving throw')) {
+        return CombatEventClass.DEATH_SAVE;
+      }
       // "X succeeds on repeat save against Y!" — successful saving throw.
-      // Check for 'succeeds' AND 'save' to distinguish from other status messages.
-      if (msg.includes('succeeds') && msg.includes('save')) {
-        return {
-          type: CombatMessageType.STATUS_RESISTED,
-          priority: MessagePriority.MEDIUM,
-          channels: [MessageChannel.COMBAT_LOG],
-        };
-      }
-      // "X fails repeat save against Y." — failed saving throw (condition persists).
-      if (msg.includes('fails') && msg.includes('save')) {
-        return {
-          type: CombatMessageType.STATUS_APPLIED,
-          priority: MessagePriority.MEDIUM,
-          channels: [MessageChannel.COMBAT_LOG],
-        };
-      }
-      // "X lost concentration on Fireball" or effects that have expired.
-      // These indicate a buff/debuff ending, mapped to STATUS_EXPIRED.
-      if (msg.includes('concentration') || msg.includes('expired')) {
-        return {
-          type: CombatMessageType.STATUS_EXPIRED,
-          priority: MessagePriority.MEDIUM,
-          channels: [MessageChannel.COMBAT_LOG, MessageChannel.NOTIFICATION],
-        };
-      }
-      // "X resists Y" — general resistance without a saving throw context.
-      if (msg.includes('resists')) {
-        return {
-          type: CombatMessageType.STATUS_RESISTED,
-          priority: MessagePriority.MEDIUM,
-          channels: [MessageChannel.COMBAT_LOG],
-        };
-      }
-      // "Environmental effects updated" — map-level status messages about terrain.
-      if (msg.includes('environmental')) {
-        return {
-          type: CombatMessageType.ENVIRONMENTAL_DAMAGE,
-          priority: MessagePriority.LOW,
-          channels: [MessageChannel.COMBAT_LOG],
-        };
-      }
-      // Default for all other status messages: "X is affected by Burning", "X is now Restrained", etc.
-      return {
-        type: CombatMessageType.STATUS_APPLIED,
-        priority: MessagePriority.MEDIUM,
-        channels: [MessageChannel.COMBAT_LOG, MessageChannel.NOTIFICATION],
-      };
+      if (msg.includes('succeeds') && msg.includes('save')) return CombatEventClass.STATUS_RESIST;
+      // "X fails repeat save against Y." — failed saving throw, the condition persists.
+      if (msg.includes('fails') && msg.includes('save')) return CombatEventClass.STATUS_SAVE_FAILED;
+      // "X lost concentration on Fireball" / effects that have expired.
+      if (msg.includes('concentration') || msg.includes('expired')) return CombatEventClass.STATUS_EXPIRE;
+      // "X resists Y" — resistance without a saving-throw context.
+      if (msg.includes('resists')) return CombatEventClass.STATUS_RESIST;
+      // "Environmental effects updated" — map-level terrain status.
+      if (msg.includes('environmental')) return CombatEventClass.ENVIRONMENTAL;
+      // Default: "X is affected by Burning", "X is now Restrained", etc.
+      // BUFF/DEBUFF are still not guessed from TEXT here: the wording cannot tell Bless from
+      // Bane. classifyEntry refines this afterwards from the applied status (agora-6acd).
+      return CombatEventClass.STATUS_CHANGE;
     }
 
     // --- TURN START ENTRIES ---
-    // Emitted by useTurnManager for combat initialization, turn changes, round transitions,
-    // and characters joining mid-combat. The same CombatLogEntry type is used for all of these,
-    // so we differentiate by message text.
+    // useTurnManager reuses one record type for initialization, turn changes, round
+    // transitions and mid-combat joins, so these are still separated by text.
     case 'turn_start': {
-      // "Combat begins! Turn order: ..." — the very first log entry when combat initializes.
-      if (msg.includes('combat begins')) {
-        return {
-          type: CombatMessageType.COMBAT_ENTER,
-          priority: MessagePriority.HIGH,
-          channels: [MessageChannel.COMBAT_LOG, MessageChannel.NOTIFICATION],
-        };
-      }
-      // "Round N begins!" — a new round boundary, low priority as it's routine.
-      if (msg.includes('round')) {
-        return {
-          type: CombatMessageType.ROUND_START,
-          priority: MessagePriority.LOW,
-          channels: [MessageChannel.COMBAT_LOG],
-        };
-      }
-      // "X joins the combat!" — a character entering mid-fight (e.g. summons, reinforcements).
-      if (msg.includes('joins')) {
-        return {
-          type: CombatMessageType.COMBAT_ENTER,
-          priority: MessagePriority.MEDIUM,
-          channels: [MessageChannel.COMBAT_LOG, MessageChannel.NOTIFICATION],
-        };
-      }
-      // Default: "X's turn." — standard turn transition, low priority.
-      return {
-        type: CombatMessageType.TURN_START,
-        priority: MessagePriority.LOW,
-        channels: [MessageChannel.COMBAT_LOG],
-      };
+      if (msg.includes('combat begins')) return CombatEventClass.COMBAT_ENTER;
+      if (msg.includes('round')) return CombatEventClass.ROUND_START;
+      if (msg.includes('joins')) return CombatEventClass.COMBAT_JOIN;
+      return CombatEventClass.TURN_START;
     }
 
     // --- TURN END ENTRIES ---
-    // There is no TURN_END value in the CombatMessageType enum, so we reuse TURN_START
-    // with LOW priority. These entries are rarely emitted (the engine mostly uses turn_start).
     case 'turn_end':
-      return {
-        type: CombatMessageType.TURN_START,
-        priority: MessagePriority.LOW,
-        channels: [MessageChannel.COMBAT_LOG],
-      };
+      return CombatEventClass.TURN_END;
 
     // --- ACTION ENTRIES ---
-    // Emitted by useActionExecutor for ability usage, opportunity attacks, sustain actions,
-    // and "cannot perform" errors. The message text is the primary differentiator.
+    // useActionExecutor emits ability usage, opportunity attacks, sustains and refusals.
     case 'action': {
-      // Opportunity attacks are distinguished from regular actions by their message text.
-      // They include roll details like "(d20+5=18 vs AC 15)".
       if (msg.includes('opportunity attack')) {
-        // "X hits Y with Opportunity Attack!" — successful opportunity attack.
         if (msg.includes('hits')) {
-          if (isCritical) {
-            return {
-              type: CombatMessageType.CRITICAL_HIT,
-              priority: MessagePriority.HIGH,
-              channels: [MessageChannel.COMBAT_LOG, MessageChannel.NOTIFICATION, MessageChannel.VISUAL_EFFECT],
-            };
-          }
-          return {
-            type: CombatMessageType.DAMAGE_DEALT,
-            priority: MessagePriority.HIGH,
-            channels: [MessageChannel.COMBAT_LOG, MessageChannel.NOTIFICATION],
-          };
+          return isCritical ? CombatEventClass.CRITICAL_DAMAGE : CombatEventClass.OPPORTUNITY_ATTACK_HIT;
         }
-        // "X misses Opportunity Attack against Y." — missed opportunity attack.
-        if (msg.includes('misses')) {
-          return {
-            type: CombatMessageType.MISSED_ATTACK,
-            priority: MessagePriority.LOW,
-            channels: [MessageChannel.COMBAT_LOG],
-          };
-        }
+        if (msg.includes('misses')) return CombatEventClass.MISS;
       }
-      // "X cannot perform this action" — resource/economy failure, low importance.
-      if (msg.includes('cannot perform')) {
-        return {
-          type: CombatMessageType.DEFENDED,
-          priority: MessagePriority.LOW,
-          channels: [MessageChannel.COMBAT_LOG],
-        };
-      }
-      // "X sustains Spell Name" — concentration maintenance, routine.
-      if (msg.includes('sustains')) {
-        return {
-          type: CombatMessageType.ABILITY_USED,
-          priority: MessagePriority.LOW,
-          channels: [MessageChannel.COMBAT_LOG],
-        };
-      }
-      // Default for all other action entries — general ability usage.
-      return {
-        type: CombatMessageType.ABILITY_USED,
-        priority: MessagePriority.MEDIUM,
-        channels: [MessageChannel.COMBAT_LOG],
-      };
+      // "X cannot perform this action" — action-economy refusal.
+      if (msg.includes('cannot perform')) return CombatEventClass.ACTION_BLOCKED;
+      // "X sustains Spell Name" — concentration maintenance.
+      if (msg.includes('sustains')) return CombatEventClass.SPELL_SUSTAIN;
+      return CombatEventClass.ABILITY;
     }
 
-    // --- FALLBACK ---
-    // Safety net for any unexpected entry.type values. Should not normally be reached
-    // since CombatLogEntry.type is a union literal, but guards against future additions.
+    // Guardian and forced-movement systems already emit this runtime category.
+    case 'movement':
+      return CombatEventClass.MOVEMENT;
+
+    // Creature and persistent-entity records.
+    case 'summon':
+      return CombatEventClass.SUMMON;
+
+    // Safety net for future CombatLogType additions.
     default:
-      return {
-        type: CombatMessageType.ABILITY_USED,
-        priority: MessagePriority.LOW,
-        channels: [MessageChannel.COMBAT_LOG],
-      };
+      return CombatEventClass.UNKNOWN;
   }
+}
+
+/**
+ * resolveEventClass — the enum-first read of a record's class.
+ *
+ * Prefers what the emitter stamped; falls back to the text shim above. This is the ONLY place
+ * that decides whether the shim runs, so as emitters adopt `eventClass` the shim quietly stops
+ * being consulted without any other file changing.
+ */
+export function resolveEventClass(
+  entry: CombatLogEntry,
+  characters?: CombatCharacter[],
+): CombatEventClass {
+  const eventClass = entry.eventClass ?? deriveEventClass(entry);
+  // agora-6acd: `characters` stays optional so the enum-first read can still be exercised on
+  // its own. With the roster in hand, a plain STATUS_CHANGE becomes BUFF or DEBUFF when the
+  // applied status says which it is.
+  return refineStatusClass(eventClass, getStatusDiscriminator(resolveStatusKind(entry, characters)));
+}
+
+/**
+ * classifyEntry — resolves the record's event class and looks up its routing row.
+ *
+ * WHAT CHANGED: this used to be a ~200 line switch that decided type, priority and channels
+ * inline, with the channel set duplicated across a dozen return statements. Those decisions
+ * now live once, as data, in COMBAT_EVENT_ROUTING (src/types/combatMessages.ts).
+ */
+function classifyEntry(
+  entry: CombatLogEntry,
+  characters: CombatCharacter[],
+): { mapping: MessageMapping; discriminator: StatusDiscriminator | undefined } {
+  // agora-6acd: the discriminator is resolved ONCE and handed to both consumers, so the
+  // routed class and the payload's statusType always come from one reading of live state.
+  const discriminator = getStatusDiscriminator(resolveStatusKind(entry, characters));
+  const eventClass = refineStatusClass(entry.eventClass ?? deriveEventClass(entry), discriminator);
+  return { mapping: { eventClass, ...getEventRouting(eventClass) }, discriminator };
 }
 
 // =============================================================================
 // DATA PAYLOAD CONSTRUCTION
 // =============================================================================
-
 /**
- * buildDataPayload — Constructs a typed data payload from the loose CombatLogData bag.
+ * buildDataPayload — Constructs a typed display payload from a combat-log record.
  *
- * CombatLogEntry.data is a flexible object with optional fields (damage, damageType,
- * healAmount, statusEffectName, etc.) plus a catch-all index signature. This function
- * reads those fields and builds the appropriate discriminated union member
+ * CombatLogEntry.data is selected by CombatLogEntry.type. This function reads
+ * the shared display fields and builds the appropriate discriminated union member
  * (DamageMessageData, HealMessageData, StatusMessageData, or BaseMessageData).
  *
  * The mapping.type (output of classifyEntry) determines which payload shape to build.
  * Multiple CombatMessageType values can map to the same payload shape — e.g. DAMAGE_DEALT,
  * CRITICAL_HIT, KILLING_BLOW, and ENVIRONMENTAL_DAMAGE all produce DamageMessageData.
  *
- * @param entry   - The original CombatLogEntry with its data bag.
+ * @param entry   - The original CombatLogEntry with its category-checked data.
  * @param mapping - The classification result that tells us which payload shape to build.
  * @returns A typed data payload matching one of the CombatMessageData union members.
  */
 function buildDataPayload(
   entry: CombatLogEntry,
-  mapping: MessageMapping
+  mapping: MessageMapping,
+  discriminator: StatusDiscriminator | undefined
 ): DamageMessageData | HealMessageData | StatusMessageData | BaseMessageData {
   const data = entry.data;
 
@@ -341,15 +363,20 @@ function buildDataPayload(
     // We extract the numeric damage and damage type string from the data bag.
     // The data bag uses two different field names for damage amount depending on the source:
     //   - handleDamage() writes `data.damage`
-    //   - CombatLogData interface defines `data.damageAmount`
+    //   - DamageCombatLogData also accepts the canonical `data.damageAmount`
     // We check both with nullish coalescing, falling back to 0.
     case CombatMessageType.DAMAGE_DEALT:
     case CombatMessageType.CRITICAL_HIT:
     case CombatMessageType.KILLING_BLOW:
     case CombatMessageType.ENVIRONMENTAL_DAMAGE: {
-      const damage = data?.damage as number ?? data?.damageAmount ?? 0;
-      const damageType = (data?.damageType as string) ?? '';
+      const damage = data?.damageAmount ?? data?.damage ?? 0;
+      const damageType = data?.damageType ?? '';
       const isCritical = Boolean(data?.isCritical ?? data?.isCrit);
+      const isResisted = Boolean(data?.resistanceApplied ?? data?.isResisted);
+      const isVulnerable = Boolean(data?.vulnerabilityApplied ?? data?.isVulnerable);
+      const isImmune = Boolean(data?.immunityApplied ?? data?.isImmune);
+      const defenseTags = (data?.defenseTags as string[] | undefined) ?? [];
+
       return {
         rawValue: damage,
         formattedValue: damageType ? `${damage} ${damageType}` : `${damage}`,
@@ -358,20 +385,27 @@ function buildDataPayload(
         // Older logs omit it, so the adapter stays backward compatible by defaulting false.
         isCritical,
         isSneakAttack: false,
-        resistanceApplied: false,
-        vulnerabilityApplied: false,
+        resistanceApplied: isResisted,
+        vulnerabilityApplied: isVulnerable,
+        isResisted,
+        isVulnerable,
+        isImmune,
+        immunityApplied: isImmune,
+        resistedDamageType: data?.resistedDamageType,
+        vulnerableDamageType: data?.vulnerableDamageType,
+        immuneDamageType: data?.immuneDamageType,
+        defenseTags: defenseTags.length > 0 ? defenseTags : undefined,
+        defenseMultiplier: data?.defenseMultiplier,
       } satisfies DamageMessageData;
     }
 
     // --- Heal payloads ---
-    // HealMessageData requires a healType discriminator. We default to 'hit_points' since
-    // the existing log entries don't distinguish between HP heals, temp HP, or stat restores.
     // The heal amount also uses two field names: `healAmount` (canonical) and `heal` (legacy).
     case CombatMessageType.HEALING_RECEIVED: {
       const heal = data?.healAmount ?? data?.heal ?? 0;
-      const source = (data?.source as string) ?? '';
+      const source = data?.source ?? '';
       return {
-        rawValue: heal as number,
+        rawValue: heal,
         formattedValue: `${heal} HP`,
         healType: 'hit_points',
         isCritical: false,
@@ -389,13 +423,13 @@ function buildDataPayload(
     case CombatMessageType.STATUS_RESISTED:
     case CombatMessageType.STATUS_EXPIRED:
     case CombatMessageType.CONDITION_CLEARED: {
-      const statusName = (data?.statusEffectName as string) ?? extractStatusName(entry.message);
+      const statusName = resolveStatusName(entry);
       return {
         rawValue: statusName,
         formattedValue: statusName,
         statusName,
-        // Default to 'condition' since the log entry doesn't distinguish buff/debuff/condition.
-        statusType: 'condition',
+        // agora-6acd: 'condition' is now the honest "no kind was found" answer, not the only answer.
+        statusType: discriminator?.statusType ?? 'condition',
         // Mark isResisted based on whether we classified this as STATUS_RESISTED.
         isResisted: mapping.type === CombatMessageType.STATUS_RESISTED,
       } satisfies StatusMessageData;
@@ -532,10 +566,10 @@ export function convertLogEntryToMessage(
   characters: CombatCharacter[]
 ): CombatMessage {
   // Step 1: Classify — determine the message type, priority, and channels.
-  const mapping = classifyEntry(entry);
+  const { mapping, discriminator } = classifyEntry(entry, characters);
 
-  // Step 2: Build data payload — extract structured data from the loose data bag.
-  const dataPayload = buildDataPayload(entry, mapping);
+  // Step 2: Build data payload — extract the record's structured display fields.
+  const dataPayload = buildDataPayload(entry, mapping, discriminator);
 
   // Step 3: Derive title — generate a short title for compact display.
   const title = deriveTitle(entry, mapping);
@@ -551,7 +585,7 @@ export function convertLogEntryToMessage(
   // attacker's name is stored as a string in data.source (not as an ID).
   // We look up the attacker by name in the characters array to get their ID.
   if (entry.type === 'damage' && entry.data?.source) {
-    const sourceName = entry.data.source as string;
+    const sourceName = entry.data.source;
     const sourceChar = characters.find(c => c.name === sourceName);
     targetEntityId = entry.characterId;       // The character taking damage is the target
     sourceEntityId = sourceChar?.id;           // The attacker is the source (may be undefined if name not found)
@@ -571,5 +605,11 @@ export function convertLogEntryToMessage(
     sourceEntityId,
     targetEntityId,
     data: dataPayload,
+    // CMB-GAP-003/004: the class is carried through so consumers can branch on the event
+    // itself rather than re-deriving it, and the VISUAL_EFFECT / AUDIO_CUE channels now
+    // ship a named payload instead of being an empty declaration.
+    eventClass: mapping.eventClass,
+    visualEffect: mapping.visualEffect,
+    soundCue: mapping.soundCue,
   };
 }

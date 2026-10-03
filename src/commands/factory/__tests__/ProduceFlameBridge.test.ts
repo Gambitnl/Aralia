@@ -2,18 +2,32 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { AbilityCommandFactory } from '../AbilityCommandFactory'
 import { GrantedActionCommand } from '../../effects/GrantedActionCommand'
 import { createAbilityFromSpell } from '@/utils/character/spellAbilityFactory'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
 import { Ability, SelectedSpellTarget } from '@/types/combat'
 import type { Spell } from '@/types/spells'
-import * as combatUtils from '@/utils/combatUtils'
-import produceFlame from '../../../../public/data/spells/level-0/produce-flame.json'
+import type { PlayerCharacter } from '@/types/character'
+import * as diceRollers from '@/systems/dice/rollers'
+import produceFlame from '@/data/spells/level-0/produce-flame.json'
 
-vi.mock('@/utils/combatUtils', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/utils/combatUtils')>()
+// agora-f821.4 retired the combatUtils roller family; the modules under
+// test roll through systems/dice/rollers now. One hoisted set of mocks
+// stands in for BOTH specifiers, so one vi.mocked(...) pins every die.
+const diceMocks = vi.hoisted(() => ({
+    rollD20: vi.fn()
+}))
+
+
+vi.mock('@/systems/dice/rollers', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/systems/dice/rollers')>()
+  return { ...actual, ...diceMocks }
+})
+
+vi.mock('@/utils/combat', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/utils/combat')>()
   return {
     ...actual,
-    rollD20: vi.fn()
-  }
+    ...diceMocks,
+}
 })
 
 /**
@@ -62,7 +76,7 @@ describe('Produce Flame bridge', () => {
   }
 
   const createProduceFlameAbility = (): Ability => {
-    const baseAbility = createAbilityFromSpell(spell, caster)
+    const baseAbility = createAbilityFromSpell(spell, caster as unknown as PlayerCharacter)
     const grantedAction = baseAbility.grantedActions?.[0]
     if (!grantedAction) {
       throw new Error('Produce Flame is expected to expose one granted action.')
@@ -99,11 +113,11 @@ describe('Produce Flame bridge', () => {
   }
 
   beforeEach(() => {
-    vi.mocked(combatUtils.rollD20).mockReset()
+    vi.mocked(diceRollers.rollD20).mockReset()
   })
 
   it('keeps Produce Flame attached to the caster when it is cast and preserves the self-cast light payload', async () => {
-    const ability = createAbilityFromSpell(spell, caster)
+    const ability = createAbilityFromSpell(spell, caster as unknown as PlayerCharacter)
 
     expect(ability.grantedActions).toHaveLength(1)
     expect(ability.grantedActions?.[0]).toMatchObject({
@@ -140,36 +154,36 @@ describe('Produce Flame bridge', () => {
 
     const attackCommand = commands[0] as GrantedActionCommand
 
-    vi.mocked(combatUtils.rollD20).mockReturnValueOnce(12)
+    vi.mocked(diceRollers.rollD20).mockReturnValueOnce(12)
     const hitState = await attackCommand.execute(createMockCombatState({
       characters: [caster, creatureTarget],
       combatLog: []
     }))
     const hitTarget = hitState.characters.find(character => character.id === creatureTarget.id)
-    const hitLog = hitState.combatLog.find(entry => entry.data?.grantedAction === 'Hurl Flame')
+    const hitLog = hitState.combatLog.find(entry => entry.data?.grantedActionName === 'Hurl Flame' && entry.data?.isHit === true)
 
     expect(hitTarget?.currentHP).toBeLessThan(creatureTarget.currentHP)
     expect(hitLog?.data).toMatchObject({
       spellId: 'produce-flame',
-      grantedAction: 'Hurl Flame',
+      grantedActionName: 'Hurl Flame',
       grantedActionRangeLimit: 60,
       grantedActionDamageType: 'fire',
       isHit: true
     })
     expect(hitState.combatLog.some(entry => entry.type === 'damage' && entry.message.includes('Hurl Flame'))).toBe(true)
 
-    vi.mocked(combatUtils.rollD20).mockReturnValueOnce(1)
+    vi.mocked(diceRollers.rollD20).mockReturnValueOnce(1)
     const missState = await attackCommand.execute(createMockCombatState({
       characters: [caster, creatureTarget],
       combatLog: []
     }))
     const missTarget = missState.characters.find(character => character.id === creatureTarget.id)
-    const missLog = missState.combatLog.find(entry => entry.data?.grantedAction === 'Hurl Flame')
+    const missLog = missState.combatLog.find(entry => entry.data?.grantedActionName === 'Hurl Flame' && entry.data?.isHit === false)
 
     expect(missTarget?.currentHP).toBe(creatureTarget.currentHP)
     expect(missLog?.data).toMatchObject({
       spellId: 'produce-flame',
-      grantedAction: 'Hurl Flame',
+      grantedActionName: 'Hurl Flame',
       grantedActionDamageType: 'fire',
       isHit: false
     })
@@ -189,7 +203,7 @@ describe('Produce Flame bridge', () => {
     expect(commands).toHaveLength(1)
     expect(commands[0]).toBeInstanceOf(GrantedActionCommand)
 
-    vi.mocked(combatUtils.rollD20).mockReturnValueOnce(12)
+    vi.mocked(diceRollers.rollD20).mockReturnValueOnce(12)
     const resultState = await commands[0].execute(createMockCombatState({
       characters: [caster],
       combatLog: []

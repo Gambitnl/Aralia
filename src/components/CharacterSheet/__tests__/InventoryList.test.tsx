@@ -1,9 +1,10 @@
 import React from 'react';
+import { ItemType } from '../../../types';
 import { render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import InventoryList from '../Overview/InventoryList';
 import { Item } from '../../../types';
-import { createMockPlayerCharacter } from '../../../utils/factories';
+import { createMockPlayerCharacter } from '../../../utils/core';
 
 /**
  * This file proves the character sheet inventory shows perishable food correctly.
@@ -31,7 +32,7 @@ const buildFood = (id: string, name: string, acquiredAt: number): Item => ({
   id,
   name,
   description: 'A simple ration that spoils if carried too long.',
-  type: 'food_drink',
+  type: ItemType.FoodDrink,
   perishable: true,
   shelfLife: '1 day',
   nutritionValue: 5,
@@ -85,7 +86,7 @@ describe('InventoryList food expiration', () => {
       id: 'test_sword',
       name: 'Test Sword',
       description: 'A simple test weapon.',
-      type: 'weapon',
+      type: ItemType.Weapon,
       slot: 'MainHand',
       damageDice: '1d6',
     };

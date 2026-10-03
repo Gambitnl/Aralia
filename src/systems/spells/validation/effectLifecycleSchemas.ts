@@ -40,7 +40,7 @@ import { z } from 'zod';
 // prevents the runtime from stripping unrelated state from another spell.
 // ============================================================================
 
-export const EffectEndCleanup = z.object({
+const StructuredEffectEndCleanup = z.object({
   trigger: z.enum(["spell_ends", "effect_ends", "item_effect_ends", "not_applicable"]),
   removes: z.enum(["temporary_hit_points", "spell_granted_flying_speed", "extradimensional_space", "created_ammunition", "spell_material_container", "not_applicable"]),
   source: z.enum(["this_spell", "this_effect", "not_applicable"]),
@@ -51,6 +51,23 @@ export const EffectEndCleanup = z.object({
   preventedBy: z.enum(["can_prevent_fall", "not_applicable"]).optional(),
   notes: z.string().optional(),
 });
+
+// Some authored spells preserve a compact source-facing cleanup sentence
+// instead of the normalized cleanup packet above. Keep the original trigger,
+// result, and note together until a lifecycle adapter can map that sentence to
+// a concrete state-removal operation; rejecting it would lose real evidence.
+const SourceBackedEffectEndCleanup = z.object({
+  trigger: z.string().trim().min(1),
+  result: z.string().trim().min(1),
+  note: z.string().optional(),
+}).passthrough();
+
+// Both forms remain explicit so normalized cleanup rows keep their required
+// executable fields while source-backed rows remain lossless and reviewable.
+export const EffectEndCleanup = z.union([
+  StructuredEffectEndCleanup,
+  SourceBackedEffectEndCleanup,
+]);
 
 // ============================================================================
 // Conditional Endings

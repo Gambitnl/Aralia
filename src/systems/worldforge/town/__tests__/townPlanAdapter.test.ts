@@ -10,7 +10,7 @@
 import { describe, it, expect } from 'vitest';
 import { toArtifactPlan, storeysForRole, STREET_TIERS } from '../townPlanAdapter';
 
-const { avenue: AVENUE, street: STREET, lane: LANE } = STREET_TIERS;
+const { plaza: PLAZA, avenue: AVENUE, street: STREET, lane: LANE } = STREET_TIERS;
 import { STYLE_FAMILIES } from '../architectureStyle';
 import { constructionKitsForFamily } from '../buildingMaterials';
 import type { TownPlan as EngineTownPlan } from '../townEngine';
@@ -29,9 +29,19 @@ function makeEnginePlan(): EngineTownPlan {
     wards: [{ polygon: sq(0, 0, 70), block: sq(1, 1, 68), plots: [shop, home], civic: undefined }],
     plots: [shop, home],
     outskirts: [],
+    openLand: [],
     walls: { ring: sq(0, 0, 70), gatehouses: [[35, 0]] },
     civic: [{ kind: 'temple', polygon: sq(40, 40, 18), wardIndex: 0 }],
     streets: [[[0, 0], [25, 25], [50, 50]]],
+    // The generator's network. The adapter TRANSLATES this (tier → tint, width →
+    // widthFt); it no longer decides tiers itself, so the fixture states them.
+    streetNetwork: [
+      { centerline: [[0, 0], [70, 0]], tier: 'lane', role: 'ward', width: LANE.widthFt },
+      { centerline: [[70, 0], [70, 70]], tier: 'lane', role: 'ward', width: LANE.widthFt },
+      { centerline: [[70, 70], [0, 70]], tier: 'lane', role: 'ward', width: LANE.widthFt },
+      { centerline: [[0, 70], [0, 0]], tier: 'lane', role: 'ward', width: LANE.widthFt },
+      { centerline: [[0, 0], [25, 25], [50, 50]], tier: 'avenue', role: 'approach', width: AVENUE.widthFt },
+    ],
     courtyards: [{
       id: 'ward:0:court',
       wardIndex: 0,
@@ -91,54 +101,58 @@ describe('toArtifactPlan', () => {
     expect(walls.gatehouses.length).toBe(1);
   });
 
-  it('turns every ward edge into a lane and keeps the inherited road as an avenue', () => {
-    // One 4-sided ward → 4 lane edges; plus the one inherited regional road.
+  it('translates every network street, tier tint and generated width intact', () => {
+    // WHO DECIDES (roads slice, 2026-08-23): the tiering rules moved into the
+    // generator (`townStreetNetwork`, tested there). What the adapter owes is a
+    // faithful translation — one artifact street per network street, the tier's
+    // tint as the wire identity, and the GENERATED width rather than the tier's
+    // nominal one. Taking the nominal width back was the old drift: a ribbon
+    // wider than the gap the ward blocks were inset to leave.
     expect(plan.streets.length).toBe(5);
-    expect(plan.streets.filter((s) => s.widthFt === LANE.widthFt).length).toBe(4);
-    expect(plan.streets.filter((s) => s.widthFt === AVENUE.widthFt).length).toBe(1);
+    expect(plan.streets.filter((s) => s.colorHex === LANE.colorHex).length).toBe(4);
+    expect(plan.streets.filter((s) => s.colorHex === AVENUE.colorHex).length).toBe(1);
+    for (const s of plan.streets) expect(s.widthFt).toBeGreaterThan(0);
   });
 
-  it('tags the inherited road as a wide pale avenue, centerline untouched', () => {
-    const avenue = plan.streets.find((s) => s.widthFt === AVENUE.widthFt)!;
-    expect(avenue.colorHex).toBe(AVENUE.colorHex);
-    expect(avenue.centerline).toEqual([[0, 0], [25, 25], [50, 50]]);
+  it('keeps an approach road centerline untouched apart from densification', () => {
+    const avenue = plan.streets.find((s) => s.colorHex === AVENUE.colorHex)!;
+    expect(avenue.centerline[0]).toEqual([0, 0]);
+    expect(avenue.centerline.at(-1)).toEqual([50, 50]);
   });
 
-  it('lanes are narrow packed dirt', () => {
-    for (const lane of plan.streets.filter((s) => s.widthFt === LANE.widthFt)) {
-      expect(lane.colorHex).toBe(LANE.colorHex);
-      expect(lane.centerline.length).toBeGreaterThanOrEqual(2);
-    }
+  it('carries the GENERATED width, not the tier default', () => {
+    const engine = makeEnginePlan();
+    // A lane the generator squeezed to 3 ft because its ward is tight.
+    engine.streetNetwork = [{ centerline: [[0, 0], [70, 0]], tier: 'lane', role: 'ward', width: 3 }];
+    const { plan: p } = toArtifactPlan(engine, 9);
+    expect(p.streets[0].widthFt).toBe(3);
+    expect(p.streets[0].colorHex).toBe(LANE.colorHex);
   });
 
-  it('promotes plaza-ward frontage to paved streets', () => {
-    const plaza = {
-      ...makeEnginePlan(),
-      wards: [{ polygon: sq(0, 0, 40), block: sq(1, 1, 38), plots: [{ polygon: sq(4, 4, 16), frontageEdge: 0, buildingType: 'shop' as const }], civic: 'plaza' as const }],
-      plots: [{ polygon: sq(4, 4, 16), frontageEdge: 0, buildingType: 'shop' as const }],
-      streets: [],
-    } as EngineTownPlan;
-    const { plan: p } = toArtifactPlan(plaza, 3);
-    expect(p.streets.length).toBe(4); // the plaza ward's 4 edges, no inherited road
-    for (const s of p.streets) {
-      expect(s.widthFt).toBe(STREET.widthFt);
-      expect(s.colorHex).toBe(STREET.colorHex);
-    }
+  it('densifies a long street so the ground bake can drape it', () => {
+    const engine = makeEnginePlan();
+    engine.streetNetwork = [{ centerline: [[0, 0], [400, 0]], tier: 'avenue', role: 'spine', width: 22 }];
+    const { plan: p } = toArtifactPlan(engine, 9);
+    // 400 ft at <= 24 ft spacing.
+    expect(p.streets[0].centerline.length).toBeGreaterThanOrEqual(18);
+    expect(p.streets[0].centerline[0]).toEqual([0, 0]);
+    expect(p.streets[0].centerline.at(-1)).toEqual([400, 0]);
   });
 
-  it('dedups ward edges shared between two adjacent wards', () => {
-    const twoWard = {
-      ...makeEnginePlan(),
-      wards: [
-        { polygon: sq(0, 0, 20), block: sq(1, 1, 18), plots: [], civic: undefined },
-        { polygon: sq(20, 0, 20), block: sq(21, 1, 18), plots: [], civic: undefined },
-      ],
-      plots: [],
-      streets: [],
-    } as EngineTownPlan;
-    const { plan: p } = toArtifactPlan(twoWard, 4);
-    // 4 + 4 edges, one shared → 7 unique streets.
-    expect(p.streets.length).toBe(7);
+  it('drops a degenerate one-point street rather than emitting a zero-length ribbon', () => {
+    const engine = makeEnginePlan();
+    engine.streetNetwork = [
+      { centerline: [[5, 5]], tier: 'lane', role: 'ward', width: 10 },
+      { centerline: [[0, 0], [70, 0]], tier: 'lane', role: 'ward', width: 10 },
+    ];
+    const { plan: p } = toArtifactPlan(engine, 9);
+    expect(p.streets.length).toBe(1);
+  });
+
+  it('orders tier widths strictly plaza > avenue > street > lane', () => {
+    expect(PLAZA.widthFt).toBeGreaterThan(AVENUE.widthFt);
+    expect(AVENUE.widthFt).toBeGreaterThan(STREET.widthFt);
+    expect(STREET.widthFt).toBeGreaterThan(LANE.widthFt);
   });
 
   it('emits no style fields when no family is given (legacy shape)', () => {

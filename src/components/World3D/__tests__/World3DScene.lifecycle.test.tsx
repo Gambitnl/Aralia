@@ -32,6 +32,11 @@ vi.mock('@react-three/fiber', () => ({
   // SiteBuilding subscribes to the frame loop for roof auto-hide; the
   // structural proof does not run a render loop, so a no-op is sufficient.
   useFrame: vi.fn(),
+  // The shared performance probe reads the renderer through useThree.
+  useThree: (select?: (s: unknown) => unknown) => {
+    const state = { gl: { info: { render: {}, memory: {} } } };
+    return select ? select(state) : state;
+  },
   Canvas: ({ children, camera, onCreated }: any) => {
     React.useEffect(() => {
       const domElement = { addEventListener: vi.fn() };
@@ -166,10 +171,11 @@ describe('World3DScene lifecycle proof', () => {
     // The wrapper fills its pane (height:100%) with a 520px floor as a blank-render
     // defense: the TransitionController root anchors the subtree to the viewport
     // (100dvh) so this 100% resolves to the full window instead of collapsing; the
-    // minHeight keeps the scene visible even if an ancestor ever loses its height.
+    // The scene fills its pane while allowing short flex layouts to shrink.
     const shell = container.firstElementChild as HTMLElement;
     expect(shell.style.height).toBe('100%');
-    expect(shell.style.minHeight).toBe('520px');
+    // The pane now allows its flex parent to size short viewports without overflow.
+    expect(shell.style.minHeight).toBe('0');
 
     // The camera shell and scene origin are the mount-time values the renderer needs to keep the
     // world anchored around the player instead of drifting or pointing at empty space.

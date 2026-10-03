@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createMockCombatCharacter, SpellCommandFactory, RegisterRiderCommand } from './AbilityCommandFactory.testHelpers';
 import type { CombatState, GameState, Spell } from './AbilityCommandFactory.testHelpers';
-import lightningArrow from '../../../../public/data/spells/level-3/lightning-arrow.json';
+import lightningArrow from '@/data/spells/level-3/lightning-arrow.json';
 
 // ============================================================================
 // Next-Attack Rider Data Contracts
@@ -46,7 +46,7 @@ describe('next-attack rider data contracts', () => {
       currentTurn: 1,
       round: 1,
       combatLog: []
-    } as CombatState;
+    } as unknown as CombatState;
 
     // The hand-built hit/miss tests below prove rider behavior after the
     // riders exist. This live-data guard proves the actual spell-cast factory

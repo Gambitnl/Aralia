@@ -1,9 +1,9 @@
 
 import { describe, it, expect } from 'vitest';
+import { ItemType } from '../../../types';
 import { calculateEncumbrance, calculateGroupTravelStats, calculateForcedMarchStatus } from '../TravelCalculations';
 import { Item } from '../../../types/items';
 import { PlayerCharacter, AbilityScores, AbilityScoreName } from '../../../types/character';
-// TODO #1102(lint-intent): 'TravelVehicle' is unused in this test; use it in the assertion path or remove it.
 import { STANDARD_VEHICLES } from '../../../types/travel';
 
 // Mock character creation directly to avoid path issues and dependency on other files during this task
@@ -29,7 +29,7 @@ const mockItem = (weight: number): Item => ({
   id: 'item',
   name: 'Heavy Rock',
   description: 'It is heavy.',
-  type: 'treasure',
+  type: ItemType.Treasure,
   weight,
   quantity: 1,
 });

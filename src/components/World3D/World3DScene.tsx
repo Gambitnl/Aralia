@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 14/07/2026, 21:08:12
- * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx
- * Imports: 29 files
+ * Last Sync: 08/09/2026, 01:36:07
+ * Dependents: components/Combat/InPlaceCombatScene.tsx, components/DesignPreview/steps/PreviewTown3D.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx, components/Worldforge/WorldforgeGroundDrilldown.tsx
+ * Imports: 46 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -33,26 +33,40 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import World3DLighting from './World3DLighting';
+import NightSky from './NightSky';
+import VolumetricClouds from './VolumetricClouds';
 import { canopyInterior, NEUTRAL_INTERIOR, type CanopyInterior } from './canopyInterior';
 import InteriorLights from './InteriorLights';
 import InteriorOccupants from './InteriorOccupants';
 import { InteriorHourProvider, useInteriorHour, emissiveForPart } from './InteriorHourContext';
 import FreeRoamCameraController, { type CameraFrameRequest } from './FreeRoamCameraController';
 import { syncVegetationInstanceMatrices } from './vegetationInstanceMatrices';
-import { VegetationTrees } from './vegetation/VegetationTrees';
+import { VegetationTreeField } from './vegetation/VegetationTreeField';
+import { UnderstoryField } from './vegetation/UnderstoryField';
+import {
+  advanceWaterRipple,
+  getWaterSurfaceMaterial,
+  RIPPLE_METERS_PER_TILE,
+} from './water/waterSurfaceMaterial';
 import { GrassLayer } from './vegetation/GrassLayer';
 import { useChunkStreaming } from './useChunkStreaming';
 import World3DNameplates from './World3DNameplates';
 import GroundAgents from './GroundAgents';
 import GroundProps from './GroundProps';
 import DungeonEntrances from './DungeonEntrances';
+import FarShells from './FarShells';
+import VolumeGroundBubble from './VolumeGroundBubble';
+import { substance } from '@/systems/worldforge/terrain/materials';
+import { Material } from '@/systems/worldforge/terrain/voxelVolume';
 import SceneCast, { type SceneCastMember } from './SceneCast';
 import PlayerAvatar from './PlayerAvatar';
 import GroundMovePlane from './GroundMovePlane';
-import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
+import { GroundKeyboardDriver } from './useGroundKeyboardControls';
+import { groundSurfaceY, type GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
+import { applyRoofSurfaceUvs, applyWallSurfaceUvs } from './buildingSurfaceUvs';
 import type { ChunkCoord, ChunkLoader, LoadedChunk, TerrainEdgeSkirt } from '@/systems/world3d/types';
 import { buildRoofGeometry } from '@/systems/world3d/buildingModels';
 import type { RoofForm } from '@/systems/worldforge/town/architectureStyle';
@@ -64,11 +78,21 @@ import {
   isSitePartRenderable,
   sitePartLocalOffset,
 } from '@/systems/worldforge/bridge/sitePartTransform';
+import { EffectComposer, N8AO, ToneMapping, SMAA } from '@react-three/postprocessing';
+import { ToneMappingMode } from 'postprocessing';
+import { getGroundDetailTexture, getGroundNormalTexture } from './terrain/groundDetailTexture';
+import {
+  applyTerrainSurfaceNoise,
+  TERRAIN_SURFACE_NOISE_CACHE_KEY,
+} from './terrain/terrainSurfaceNoise';
 import type { PlayerWorldPosition } from '@/types';
 import { useForgeTexture, getSemanticAssetKey } from '@/systems/worldforge/bridge/forgeMaterials';
 import type { ForgeAssetService } from '@/systems/worldforge/assets/forgeAssetService';
-
-export const ForgeAssetContext = React.createContext<ForgeAssetService | undefined>(undefined);
+import { PerfProbe } from '@/devtools/perf';
+import { setPerfSceneDiagnostics } from '@/devtools/perf/perfRegistry';
+import { ForgeAssetContext } from './ForgeAssetContext';
+import { buildExteriorGeometry } from './buildingExteriorGeometry';
+import { townSurfaceTexture, houseSurfaceColor } from './townSurfaceTextures';
 
 interface World3DSceneProps {
   loader: ChunkLoader;
@@ -149,9 +173,232 @@ interface World3DSceneProps {
    * fight can frame its own combat area on initiative start).
    */
   cameraFrameRequest?: CameraFrameRequest | null;
+  /**
+   * Town-on-LAND mode (town3d's Land pane, Remy 2026-08-24): false hides the
+   * streamed terrain SKIN — the sheet meshes, their frontier skirts, and the
+   * far shells — so the volume bubble is the only visible ground. Chunk
+   * heights still stream: buildings, streets, walls, water, and physics all
+   * read them. Default true = the normal streamed world.
+   */
+  terrainSkin?: boolean;
+  /** Volume bubble width override, meters (ground profile only). The Land
+   * pane asks for a bubble that holds the whole burg. Pair a wide one with
+   * `volumeBubbleHeightM`: extent alone still buys a CUBE. */
+  volumeBubbleExtentM?: number;
+  /** Volume bubble cell override, meters. */
+  volumeBubbleCellM?: number;
+  /**
+   * Volume bubble HEIGHT override, meters (ground profile only). Omitted keeps
+   * the cube. A wide bubble that stays a cube pays for hundreds of metres of
+   * sky and rock, which is what capped the town pane's footprint at 480 m; the
+   * worker treats this as a floor and fits it to the terrain it measures.
+   */
+  volumeBubbleHeightM?: number;
+  /** Draw the water sheets in this flat OPAQUE color (LAND pane debug, Remy
+   * 2026-08-24: see exactly where water sits on the volume ground). Absent =
+   * the normal shared ripple material. */
+  waterFlatColorHex?: string;
+  /**
+   * Per-layer visibility (LAND pane debug, Remy 2026-08-25): turn scene
+   * components on and off one by one — trees, water, buildings — to see what
+   * each contributes and what each costs. Absent key = visible. Implemented
+   * as `visible` flags on wrapper groups, never as unmounts, so a toggle is
+   * instant and no GPU state is rebuilt.
+   */
+  layers?: World3DLayerVisibility;
+}
+
+/** The scene's toggleable layers. Every key defaults to visible. */
+export interface World3DLayerVisibility {
+  trees?: boolean;
+  bushes?: boolean;
+  grass?: boolean;
+  understory?: boolean;
+  water?: boolean;
+  buildings?: boolean;
+  roads?: boolean;
+  walls?: boolean;
+  props?: boolean;
+  agents?: boolean;
+  farShells?: boolean;
 }
 
 const SHADOWS = WORLD3D_CONFIG.STREAMED_WORLD_SHADOWS;
+
+/**
+ * Ferns, saplings and fallen forest-floor pieces are walking-scale detail.
+ * Keep them for the five-by-five chunk window around the player; beyond 256 m
+ * their geometry is sub-pixel beneath the tree canopy, while the terrain,
+ * trees and fog continue to carry the distant forest silhouette.
+ */
+const UNDERSTORY_CHUNK_RADIUS = 2;
+
+// ============================================================================
+// Opt-in mounted-scene census
+// ============================================================================
+// Development builds attach a factual inventory of the live scene to the
+// performance session. `?perfCensus=1` additionally exposes the full raw rows
+// on the document for deep browser investigations. Neither path writes game
+// state, and the traversal runs only when the streamed scene composition moves.
+// ============================================================================
+
+interface World3DMeshCensusRow {
+  path: string;
+  type: string;
+  geometry: string;
+  material: string;
+  instances: number;
+  triangles: number;
+  castShadow: boolean;
+}
+
+const World3DPerfCensusProbe: React.FC<{ loadedSignature: string }> = ({ loadedSignature }) => {
+  const { scene } = useThree();
+  const enabled = import.meta.env.DEV && typeof window !== 'undefined';
+  const exposeRawRows = enabled
+    && new URLSearchParams(window.location.search).get('perfCensus') === '1';
+
+  useEffect(() => {
+    // Lightweight R3F mocks used by structural tests may not provide a scene.
+    // The diagnostic is optional, so absence must never affect the world shell.
+    if (!enabled || !scene) return;
+
+    // Wait one animation turn so every streamed child has committed its Three
+    // object before the inventory walks the scene graph.
+    const timeoutId = window.setTimeout(() => {
+      const rows: World3DMeshCensusRow[] = [];
+      const geometries = new Set<THREE.BufferGeometry>();
+      const materials = new Set<THREE.Material>();
+
+      scene.traverse((object) => {
+        if (!(object instanceof THREE.Mesh)) return;
+        const mesh = object as THREE.Mesh<THREE.BufferGeometry, THREE.Material | THREE.Material[]>;
+        const geometry = mesh.geometry;
+        const instanceCount = object instanceof THREE.InstancedMesh ? object.count : 1;
+        const baseTriangles = geometry.index
+          ? geometry.index.count / 3
+          : (geometry.getAttribute('position')?.count ?? 0) / 3;
+        const path: string[] = [];
+        let cursor: THREE.Object3D | null = object;
+        while (cursor) {
+          if (cursor.name) path.unshift(cursor.name);
+          cursor = cursor.parent;
+        }
+
+        geometries.add(geometry);
+        const meshMaterials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+        meshMaterials.forEach((material) => materials.add(material));
+        rows.push({
+          path: path.join(' > ') || '(unnamed)',
+          type: object.type,
+          geometry: geometry.type,
+          material: meshMaterials.map((material) => material.type).join('+'),
+          instances: instanceCount,
+          triangles: Math.round(baseTriangles * instanceCount),
+          castShadow: object.castShadow,
+        });
+      });
+
+      const totals = rows.reduce(
+        (sum, row) => ({
+          meshes: sum.meshes + 1,
+          instances: sum.instances + row.instances,
+          triangles: sum.triangles + row.triangles,
+          shadowMeshes: sum.shadowMeshes + (row.castShadow ? 1 : 0),
+          shadowTriangles: sum.shadowTriangles + (row.castShadow ? row.triangles : 0),
+        }),
+        { meshes: 0, instances: 0, triangles: 0, shadowMeshes: 0, shadowTriangles: 0 },
+      );
+
+      // Group the full inventory by its nearest named render family. Unnamed
+      // instanced meshes remain together rather than being omitted; those are
+      // usually vegetation and are often the dominant triangle source.
+      const byFamily = new Map<string, typeof totals>();
+      rows.forEach((row) => {
+        const family = row.path.includes('world3d:trees:')
+          ? 'trees'
+          : row.path.includes('world3d:understory:')
+            ? 'understory'
+            : row.path.includes('world3d:grass')
+              ? 'grass'
+              : row.path.includes('groundAgentsCrowd')
+                ? 'agents'
+              : row.path.includes('ground-props')
+          ? 'ground-props'
+          : row.path.includes('world3d:site-building') || row.path.includes('world3d:sites')
+            ? 'sites'
+            : row.path.startsWith('world3d:')
+              ? row.path.split(' > ')[0]
+              : row.type === 'Mesh' && row.instances > 1
+                ? 'unnamed-instanced'
+                : 'unnamed-individual';
+        const sum = byFamily.get(family)
+          ?? { meshes: 0, instances: 0, triangles: 0, shadowMeshes: 0, shadowTriangles: 0 };
+        sum.meshes += 1;
+        sum.instances += row.instances;
+        sum.triangles += row.triangles;
+        if (row.castShadow) {
+          sum.shadowMeshes += 1;
+          sum.shadowTriangles += row.triangles;
+        }
+        byFamily.set(family, sum);
+      });
+
+      const families = [...byFamily.entries()]
+        .map(([family, values]) => ({ family, ...values }))
+        .sort((a, b) => b.triangles - a.triangles);
+      const diagnostics = {
+        ...totals,
+        geometries: geometries.size,
+        materials: materials.size,
+        families,
+      };
+      setPerfSceneDiagnostics('world3d', diagnostics);
+
+      if (exposeRawRows) {
+        document.documentElement.dataset.world3dCensus = JSON.stringify({
+          loadedSignature,
+          totals: diagnostics,
+          byFamily: families,
+          topTriangleRows: rows.sort((a, b) => b.triangles - a.triangles).slice(0, 40),
+        });
+      }
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      setPerfSceneDiagnostics('world3d', null);
+      delete document.documentElement.dataset.world3dCensus;
+    };
+  }, [enabled, exposeRawRows, loadedSignature, scene]);
+
+  return null;
+};
+
+/**
+ * World metres one tile of the ground texture spans.
+ *
+ * Chosen against the failure it has to avoid: too small and the tiling period is
+ * obvious at walking distance (the ceiling the world3d critic set on target #1a),
+ * too large and the texture stops reading as material at all. 12 m puts several
+ * repeats inside the near field without the eye locking onto the period.
+ */
+const GROUND_TEXTURE_METERS_PER_TILE = 3;
+
+/**
+ * Ground normal-map strength. Low on purpose: the terrain already carries real
+ * geometric relief, so this only has to break the flat-paint read at grazing
+ * angles. Pushed higher the ground starts to look like crumpled foil, which is
+ * the same failure the water ripple guards against.
+ */
+const GROUND_NORMAL_SCALE = new THREE.Vector2(0.6, 0.6);
+
+/**
+ * Module-level so the identity is stable across renders: three keys compiled
+ * programs on this string, and a fresh closure every render would keep
+ * invalidating the cache entry.
+ */
+const terrainProgramCacheKey = (): string => TERRAIN_SURFACE_NOISE_CACHE_KEY;
 
 // --- per-chunk rendering ---
 
@@ -201,8 +448,19 @@ const FrontierSkirt: React.FC<{
   const geometry = useDisposableGeometry(rebased);
   if (!visible) return null;
   return (
-    <mesh geometry={geometry} position={scenePos} receiveShadow={SHADOWS}>
-      <meshStandardMaterial vertexColors flatShading map={tex || null} />
+    <mesh name="world3d:terrain-skirt" geometry={geometry} position={scenePos} receiveShadow={SHADOWS}>
+      {/* The skirt carries the same surface noise as the terrain it hangs off:
+          without it the wall reads as a different material along the top edge,
+          which is the one place a frontier skirt has to be invisible. */}
+      <meshStandardMaterial
+        vertexColors
+        flatShading
+        map={tex || null}
+        // Opaque from both sides, for the same reason as the terrain surface.
+        side={THREE.DoubleSide}
+        onBeforeCompile={applyTerrainSurfaceNoise}
+        customProgramCacheKey={terrainProgramCacheKey}
+      />
     </mesh>
   );
 };
@@ -240,11 +498,74 @@ const TerrainPiece: React.FC<{
   const geometry = useDisposableGeometry(rebased);
   const service = React.useContext(ForgeAssetContext);
   const tex = useForgeTexture(getSemanticAssetKey({ surface: 'ground' }), service);
+  const groundDetail = useMemo(() => getGroundDetailTexture(), []);
+  const groundNormal = useMemo(() => getGroundNormalTexture(), []);
   const scenePos = chunkScenePos(anchor.cx, anchor.cy, origin);
+
+  // The ground texture was wired but structurally inert: `map` was bound while
+  // the geometry carried position/normal/color and NO uv, so the sampler read a
+  // single texel for the entire world — the texture multiplied everything by one
+  // flat colour. Found by the world3d critic, 2026-07-30.
+  //
+  // UVs come from WORLD x/z, not chunk-local x/z, for the same reason WaterPiece
+  // does it (see its note): chunk-local UVs restart the pattern at every chunk
+  // boundary and put a visible seam on every edge.
+  useMemo(() => {
+    const pos = geometry.getAttribute('position');
+    if (!pos || pos.count === 0) return;
+    const uv = new Float32Array(pos.count * 2);
+    for (let i = 0; i < pos.count; i++) {
+      uv[i * 2] = (pos.getX(i) + scenePos[0]) / GROUND_TEXTURE_METERS_PER_TILE;
+      uv[i * 2 + 1] = (pos.getZ(i) + scenePos[2]) / GROUND_TEXTURE_METERS_PER_TILE;
+    }
+    geometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  }, [geometry, scenePos[0], scenePos[2]]);
+
   return (
     <>
-      <mesh geometry={geometry} position={scenePos} receiveShadow={SHADOWS}>
-        <meshStandardMaterial vertexColors flatShading map={tex || null} />
+      {/* Smooth-shaded, not flat (Remy's call 2026-07-30: BG3 is the bar, so the
+          low-poly faceting goes). chunkGeometry already accumulates and
+          normalizes per-VERTEX normals across adjacent faces — `flatShading` was
+          throwing those away and re-deriving per-face normals in the shader, which
+          is what made every triangle countable. */}
+      {/* Ground material detail. `tex` comes from ForgeAssetContext and is
+          undefined whenever no asset service is mounted — which is the case in
+          the capture rig and in plain ground mode — so the ground rendered as
+          one flat colour per biome at every distance. The generated detail and
+          normal maps remove that dependency: Aralia is procedural, so its
+          ground detail is generated rather than authored.
+
+          The generated map is used only as a FALLBACK, so a real forge ground
+          texture still wins when the asset service provides one. The normal map
+          applies either way: it is what makes the surface catch the sun at
+          grazing angles, which a colour map alone cannot do. */}
+      {/* Surface noise in the 2.4-41 m band (terrainSurfaceNoise). The detail
+          map above only carries sub-metre grain, so nothing existed between one
+          metre and the 8 m per-vertex colour lattice — which is why natural
+          material boundaries rendered as straight diagonal lines and why the
+          ground measured as a numerically flat plane at walking distance. */}
+      <mesh name="world3d:terrain" geometry={geometry} position={scenePos} receiveShadow={SHADOWS}>
+        <meshStandardMaterial
+          vertexColors
+          map={tex ?? groundDetail}
+          normalMap={groundNormal}
+          normalScale={GROUND_NORMAL_SCALE}
+          roughness={0.95}
+          /* Two-sided, so the ground is opaque from BELOW.
+           *
+           * Single-sided terrain is the last hollow thing in the streamed
+           * world. The frontier walls close its sides and the underside plane
+           * closes its bottom, but a camera that dipped under the surface still
+           * looked up through the ground at open sky.
+           *
+           * There is no extra geometry and no lighting hack: three.js flips the
+           * normal on a back face, so the underside faces down, the sun above
+           * misses it, and it reads as dark rock rather than as grass on a
+           * ceiling. */
+          side={THREE.DoubleSide}
+          onBeforeCompile={applyTerrainSurfaceNoise}
+          customProgramCacheKey={terrainProgramCacheKey}
+        />
       </mesh>
       {terrain.skirts &&
         SKIRT_EDGES.map(({ edge, dx, dy }) => (
@@ -262,32 +583,60 @@ const TerrainPiece: React.FC<{
   );
 };
 
-const WaterPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => {
+/** Flat OPAQUE water materials for the LAND pane's debug look, one per color.
+ * Shared across chunks — a per-chunk material would defeat batching and leak. */
+const flatWaterMaterials = new Map<string, THREE.MeshStandardMaterial>();
+function flatWaterMaterialFor(colorHex: string): THREE.MeshStandardMaterial {
+  let m = flatWaterMaterials.get(colorHex);
+  if (!m) {
+    m = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.6, metalness: 0 });
+    flatWaterMaterials.set(colorHex, m);
+  }
+  return m;
+}
+
+const WaterPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin; flatColorHex?: string }> = ({ chunk, origin, flatColorHex }) => {
   const water = chunk.bundle.water;
   // Hooks must run unconditionally: build geometry from water or a tiny empty stand-in.
   const geometry = useDisposableGeometry(
     water ?? { positions: new Float32Array(0), indices: new Uint32Array(0), normals: new Float32Array(0) },
   );
+  const scenePos = chunkScenePos(chunk.cx, chunk.cy, origin);
+
+  // The sheets are 2-triangle quads, so the ripple has to come from a normal
+  // map, and that needs UVs the geometry never carried. Deriving them from
+  // WORLD x/z (chunk offset included) keeps the ripple continuous across chunk
+  // seams — chunk-local UVs would restart the pattern at every boundary.
+  useMemo(() => {
+    const pos = geometry.getAttribute('position');
+    if (!pos || pos.count === 0) return;
+    const uv = new Float32Array(pos.count * 2);
+    for (let i = 0; i < pos.count; i++) {
+      uv[i * 2] = (pos.getX(i) + scenePos[0]) / RIPPLE_METERS_PER_TILE;
+      uv[i * 2 + 1] = (pos.getZ(i) + scenePos[2]) / RIPPLE_METERS_PER_TILE;
+    }
+    geometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  }, [geometry, scenePos[0], scenePos[2]]);
+
   if (!water) return null;
   return (
-    <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
-      {/* Ground/walking-scale water. Metalness is kept near-zero: a metallic
-          surface goes black wherever it isn't catching a light, which is most
-          of the frame at the low/grazing, back-lit angles normal at eye level —
-          that was the "dark pit" read (TG4). A brighter dielectric tint plus a
-          small emissive lift keeps it reading as blue water from any angle,
-          while a low roughness still gives the sun a specular sheen. */}
-      <meshStandardMaterial
-        color="#2f78b4"
-        emissive="#123a5c"
-        emissiveIntensity={0.35}
-        transparent
-        opacity={0.86}
-        roughness={0.22}
-        metalness={0.0}
-      />
-    </mesh>
+    <mesh
+      name="world3d:water"
+      geometry={geometry}
+      position={scenePos}
+      material={flatColorHex ? flatWaterMaterialFor(flatColorHex) : getWaterSurfaceMaterial()}
+    />
   );
+};
+
+/**
+ * Scrolls the shared water ripple. One driver for the whole world: the material
+ * and its texture are shared, so advancing it per chunk would multiply the
+ * speed by the number of loaded chunks.
+ */
+const WaterRippleDriver: React.FC = () => {
+  useFrame(({ clock }) => advanceWaterRipple(clock.getElapsedTime()));
+  return null;
 };
 
 const RoadPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => {
@@ -300,10 +649,17 @@ const RoadPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chun
   // packed-dirt lanes read under one white-base vertex-colored material. Inherited
   // regional roads bake the same #a08b62 dirt they used before this slice.
   return (
-    <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} receiveShadow={SHADOWS}>
+    <mesh name="world3d:roads" geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} receiveShadow={SHADOWS}>
       <meshStandardMaterial vertexColors color="#ffffff" roughness={0.95} />
     </mesh>
   );
+};
+
+/** Walking up to a house keeps the same material scale as its distant batch. */
+const HousePartGeometry: React.FC<{ w: number; h: number; d: number; x: number; y: number; z: number }> = ({ w, h, d, x, y, z }) => {
+  const geometry = useMemo(() => applyWallSurfaceUvs(new THREE.BoxGeometry(w, h, d), { x, y, z }), [w, h, d, x, y, z]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  return <primitive object={geometry} attach="geometry" />;
 };
 
 const WallPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => {
@@ -311,13 +667,19 @@ const WallPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chun
   const geometry = useDisposableGeometry(
     walls ?? { positions: new Float32Array(0), indices: new Uint32Array(0), normals: new Float32Array(0) },
   );
+  // Meter-scaled masonry continues across chunk boundaries and the capped top.
+  const stoneGeometry = useMemo(() => applyWallSurfaceUvs(geometry, {
+    x: chunk.cx * WORLD3D_CONFIG.CHUNK_WORLD_SIZE, y: 0,
+    z: chunk.cy * WORLD3D_CONFIG.CHUNK_WORLD_SIZE,
+  }), [geometry, chunk.cx, chunk.cy]);
+  const stone = townSurfaceTexture('stone');
   if (!walls) return null;
   // Styled-architecture slice: each town's ramparts carry their style family's
   // wall tint as per-vertex colors (buildWallMesh); the white base avoids
   // re-tinting them. Runs without a tint bake the legacy #9a9387 stone.
   return (
-    <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} castShadow={SHADOWS} receiveShadow={SHADOWS}>
-      <meshStandardMaterial vertexColors color="#ffffff" roughness={0.95} side={THREE.DoubleSide} />
+    <mesh name="world3d:walls" geometry={stoneGeometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} castShadow={SHADOWS} receiveShadow={SHADOWS}>
+      <meshStandardMaterial vertexColors color="#ffffff" map={stone} bumpMap={stone} bumpScale={0.08} roughness={0.95} />
     </mesh>
   );
 };
@@ -331,7 +693,7 @@ const GatePiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chun
   // Gatehouse towers/lintels at town road gates (buildGateMesh), vertex-tinted
   // with the burg's wall color so they read as part of the same rampart.
   return (
-    <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} castShadow={SHADOWS} receiveShadow={SHADOWS}>
+    <mesh name="world3d:gates" geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} castShadow={SHADOWS} receiveShadow={SHADOWS}>
       <meshStandardMaterial vertexColors color="#ffffff" roughness={0.95} side={THREE.DoubleSide} />
     </mesh>
   );
@@ -348,7 +710,7 @@ const DeckPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chun
   // quay and a bridge span read distinctly. `vertexColors` consumes the per-deck
   // colors emitted by buildDeckMesh; the white base avoids tinting them.
   return (
-    <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} castShadow={SHADOWS} receiveShadow={SHADOWS}>
+    <mesh name="world3d:decks" geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} castShadow={SHADOWS} receiveShadow={SHADOWS}>
       <meshStandardMaterial vertexColors color="#ffffff" roughness={0.9} side={THREE.DoubleSide} />
     </mesh>
   );
@@ -398,6 +760,7 @@ function useRoofGeometry(form: RoofForm, w: number, d: number, h: number): THREE
       geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.BufferAttribute(a.positions, 3));
       geo.setAttribute('normal', new THREE.BufferAttribute(a.normals, 3));
+      geo.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(Array.from({ length: a.positions.length / 3 }, (_, i) => [a.positions[i * 3] / 4, a.positions[i * 3 + 2] / 4]).flat()), 2));
       geo.setIndex(new THREE.BufferAttribute(a.indices, 1));
       roofGeomCache.set(key, geo);
     }
@@ -426,6 +789,21 @@ const ROOFLESS =
 const ROOF_EMISSIVE_FLOOR = 0.3;
 
 /**
+ * Smaller floor for wall-mounted construction dressing (courses, shutters,
+ * foundations, facade trim). On a building face inside its own shadow the
+ * derived contrast tones (bridge dressingContrastTone) compress back into the
+ * shaded wall and vanish (proof: after-single-se.png before this floor — 81
+ * courses in the payload, zero readable). Applies ONLY to parts tagged with
+ * the bridge's MATERIAL_PART_TAG / FACADE_PART_TAG contract strings; walls,
+ * furnishings, and light-role parts keep their exact previous response.
+ */
+const DRESSING_EMISSIVE_FLOOR = 0.22;
+/** Bridge contract strings (interiorParts MATERIAL_PART_TAG / FACADE_PART_TAG).
+ * Compared as literals so the scene bundle does not import the generator chain
+ * (see vite-chunk-eager-3d-leak); the bridge tests pin the exported values. */
+const DRESSING_TAGS = new Set(['building-material', 'facade']);
+
+/**
  * One footprint-true building (Worldforge town plan): rotated walls/parts +
  * hip roof + door/windows. The roof AUTO-HIDES when the camera moves inside
  * the building so the player can look around an interior without the
@@ -451,8 +829,17 @@ const SiteBuilding: React.FC<{
   // sniff survives ONLY as a legacy tail for old chunks minted before `role`
   // existed — palette wall colors would break it, so it must never be primary.
   const role = s.role ?? (s.colorHex === '#c8923f' ? 'market' : s.colorHex === '#b09a72' ? 'house' : s.kind);
-  const wallTex = useForgeTexture(getSemanticAssetKey({ surface: 'wall', role }), service);
-  const roofTex = useForgeTexture(getSemanticAssetKey({ surface: 'roof', role }), service);
+  const wallKey = getSemanticAssetKey({ surface: 'wall', role, wallMaterial: s.parts?.find(p => p.wallMaterial)?.wallMaterial });
+  const roofKey = getSemanticAssetKey({ surface: 'roof', role, roofCovering: s.solvedRoof?.roofCovering });
+  const generatedWallTex = useForgeTexture(wallKey, service);
+  const generatedRoofTex = useForgeTexture(roofKey, service);
+  const wallTex = generatedWallTex ?? townSurfaceTexture('wall', wallKey);
+  const roofTex = generatedRoofTex ?? townSurfaceTexture('roof', roofKey);
+  // Exterior-only batches retain type-specific silhouettes and actual window
+  // openings. Interior furniture still obeys the original walk-up budget.
+  const exterior = useMemo(() => buildExteriorGeometry(s, wallKey), [s, wallKey]);
+  useEffect(() => () => Object.values(exterior).forEach(g => g.dispose()), [exterior]);
+  const hasExterior = exterior.walls.getAttribute('position').count > 0;
   const hasLiveInterior = renderInterior && !!s.parts;
   // Shadow maps are camera-local too: distant shells keep their color and
   // silhouette, while nearby buildings retain the grounding/readability pass.
@@ -506,13 +893,21 @@ const SiteBuilding: React.FC<{
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(s.solvedRoof.positions, 3));
     g.setAttribute('normal', new THREE.BufferAttribute(s.solvedRoof.normals, 3));
+    const positions = s.solvedRoof.positions;
+    const uv = new Float32Array(positions.length / 3 * 2);
+    for (let i = 0; i < positions.length / 3; i++) {
+      uv[i * 2] = positions[i * 3] / 4;
+      uv[i * 2 + 1] = positions[i * 3 + 2] / 4;
+    }
+    g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
     g.setIndex(new THREE.BufferAttribute(s.solvedRoof.indices, 1));
-    return g;
+    return applyRoofSurfaceUvs(g);
   }, [s.solvedRoof]);
+  React.useEffect(() => () => { solvedRoofGeom?.dispose(); }, [solvedRoofGeom]);
   const hasSolvedRoof = !!solvedRoofGeom;
 
   return (
-    <group ref={groupRef} position={[s.localX, s.surfaceY, s.localZ]} rotation={[0, s.rotationY ?? 0, 0]}>
+    <group name="world3d:site-building" ref={groupRef} position={[s.localX, s.surfaceY, s.localZ]} rotation={[0, s.rotationY ?? 0, 0]}>
       {hasLiveInterior ? (
         // Seamless interior (Worldforge L4): perimeter + room walls with real
         // door gaps, plus furnishing blocks. Parts use +z = inward-from-street;
@@ -524,9 +919,12 @@ const SiteBuilding: React.FC<{
           .map((p, i) => {
           const off = sitePartLocalOffset(p, s.doorZSign ?? -1);
           // Window/hearth parts carry a `lightRole` and NO baked emissive; the
-          // renderer decides their glow live from the hourly schedule. All other
-          // parts stay dark.
+          // renderer decides their glow live from the hourly schedule. Tagged
+          // construction dressing gets the small self-color floor (see
+          // DRESSING_EMISSIVE_FLOOR) so contrast tones survive building
+          // self-shadow; every other part stays dark exactly as before.
           const em = emissiveForPart(p.lightRole, hour, s.litHours, s.hearthHours);
+          const isDressing = em.emissiveIntensity === 0 && p.tag !== undefined && DRESSING_TAGS.has(p.tag);
           return (
           <mesh
             key={`part-${i}`}
@@ -537,17 +935,29 @@ const SiteBuilding: React.FC<{
             castShadow={false}
             receiveShadow={castsLocalShadow}
           >
-            <boxGeometry args={[p.w, p.h, p.d]} />
+            <HousePartGeometry w={p.w} h={p.h} d={p.d} x={off.x} y={off.y} z={off.z} />
             {/* Apply wall texture only to tall perimeter/interior walls (h >= 2.0) */}
             <meshStandardMaterial
-              color={p.colorHex}
-              map={p.h >= 2.0 ? (wallTex || null) : null}
-              emissive={em.emissive}
-              emissiveIntensity={em.emissiveIntensity}
+              color={p.tag === 'exterior' && p.lightRole !== 'window' ? houseSurfaceColor('wall', wallKey, p.colorHex) : p.colorHex}
+              map={p.tag === 'exterior' && p.lightRole !== 'window' ? (wallTex || null) : null}
+              emissive={isDressing ? p.colorHex : em.emissive}
+              emissiveIntensity={isDressing ? DRESSING_EMISSIVE_FLOOR : em.emissiveIntensity}
             />
           </mesh>
           );
           })
+      ) : hasExterior ? (
+        <>
+          <mesh geometry={exterior.walls} castShadow={SHADOWS} receiveShadow={SHADOWS}>
+            <meshStandardMaterial vertexColors map={wallTex} roughness={0.92} />
+          </mesh>
+          <mesh geometry={exterior.detail} receiveShadow={SHADOWS}>
+            <meshStandardMaterial vertexColors roughness={0.88} />
+          </mesh>
+          <mesh geometry={exterior.glass}>
+            <meshStandardMaterial vertexColors roughness={0.3} metalness={0.12} emissive="#e8ae64" emissiveIntensity={emissiveForPart('window', hour, s.litHours, s.hearthHours).emissiveIntensity} />
+          </mesh>
+        </>
       ) : (
         // Performance LOD: distant interior-bearing buildings retain their
         // footprint-true shell. Their authored parts remain in the payload and
@@ -564,15 +974,16 @@ const SiteBuilding: React.FC<{
           Auto-hides on camera-enter via roofRef, exactly like the prism. */}
       {hasSolvedRoof ? (
         <group scale={[1, 1, -(s.doorZSign ?? -1)]}>
-          <mesh ref={roofRef} geometry={solvedRoofGeom!} castShadow={castsLocalShadow}>
+          <mesh ref={roofRef} geometry={solvedRoofGeom!} castShadow={SHADOWS} receiveShadow={SHADOWS}>
             {/* Covering-color floor: see ROOF_EMISSIVE_FLOOR — dark coverings
                 on hemisphere-only faces read as their material, not black. */}
             <meshStandardMaterial
-              color={s.solvedRoof!.colorHex}
+              color={houseSurfaceColor('roof', roofKey, s.solvedRoof!.colorHex)}
               flatShading
               side={THREE.DoubleSide}
               map={roofTex || null}
-              emissive={s.solvedRoof!.colorHex}
+              emissive={houseSurfaceColor('roof', roofKey, s.solvedRoof!.colorHex)}
+              emissiveMap={roofTex || null}
               emissiveIntensity={ROOF_EMISSIVE_FLOOR}
             />
           </mesh>
@@ -642,7 +1053,7 @@ const SitePieces: React.FC<{
   const renderInteriors = chunk.cx === detailAnchor.cx && chunk.cy === detailAnchor.cy;
   const chunkWorldOrigin = chunkOriginWorld(chunk.cx, chunk.cy);
   return (
-    <group position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
+    <group name="world3d:sites" position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
       {chunk.bundle.sites.map((s) =>
         s.markerOnly ? null : s.boxWidth && s.boxDepth && s.boxHeight ? (
           <SiteBuilding
@@ -685,9 +1096,9 @@ const VegetationPiece: React.FC<{
   const bushes = chunk.bundle.bushes;
   const bushRef = useRef<THREE.InstancedMesh>(null);
   // Track the last payload key so identical worker-cloned scatters do not
-  // rewrite every instance matrix again (W3D-G25). Trees moved to the
-  // procedural VegetationTrees layer (vegetation lift 2026-07-04); bushes
-  // remain a single instanced sphere layer with palette colors.
+  // rewrite every instance matrix again (W3D-G25). Trees moved out of the
+  // per-chunk path entirely (see VegetationTreeField); bushes remain a single
+  // instanced sphere layer with palette colors.
   const lastBushCacheKey = useRef<string | null>(null);
   useEffect(() => {
     if (!bushes || !bushRef.current) {
@@ -696,21 +1107,20 @@ const VegetationPiece: React.FC<{
     }
     syncVegetationInstanceMatrices(bushRef.current, bushes, lastBushCacheKey, 'bush');
   }, [bushes?.cacheKey]);
-  const treeCount = veg ? veg.positions.length / 3 : 0;
   const bushCount = bushes ? bushes.positions.length / 3 : 0;
   // The lighting frustum follows the player, so vegetation beyond the adjacent
   // chunks cannot contribute a useful visible shadow. Keeping those instances
   // out of the shadow pass avoids replaying the whole 81-chunk forest.
   const castsNearbyShadow = SHADOWS
     && Math.max(Math.abs(chunk.cx - anchor.cx), Math.abs(chunk.cy - anchor.cy)) <= 1;
-  if (treeCount === 0 && bushCount === 0) return null;
+  // Trees are NOT drawn here any more: per-chunk instanced meshes fragmented the
+  // batching (2,340 trees across 379 meshes in a measured frame). They are
+  // batched field-wide by VegetationTreeField at the scene root instead.
+  if (bushCount === 0) return null;
   return (
     <group position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
-      {/* Vegetation lift (beautification wave): procedural instanced trees
-          replace the old placeholder cones. Same scatter positions, new look. */}
-      {treeCount > 0 && veg && <VegetationTrees scatter={veg} castShadow={castsNearbyShadow} />}
       {bushCount > 0 && (
-        <instancedMesh ref={bushRef} args={[undefined, undefined, bushCount]} castShadow={castsNearbyShadow}>
+        <instancedMesh name="world3d:bushes" ref={bushRef} args={[undefined, undefined, bushCount]} castShadow={castsNearbyShadow}>
           <sphereGeometry args={[1, 6, 4]} />
           <meshStandardMaterial color="#ffffff" flatShading />
         </instancedMesh>
@@ -726,26 +1136,48 @@ const ChunkPieces: React.FC<{
   detailAnchor: ChunkCoord;
   detailCenter: { x: number; z: number };
   loadedKeys: Set<string>;
-}> = ({ chunk, origin, anchor, detailAnchor, detailCenter, loadedKeys }) => (
+  /** false = town-on-LAND mode: no sheet, no skirts; everything else stays. */
+  terrainSkin?: boolean;
+  waterFlatColorHex?: string;
+  /** Per-layer visibility. Absent key = visible. See `World3DLayerVisibility`. */
+  layers?: World3DLayerVisibility;
+}> = ({ chunk, origin, anchor, detailAnchor, detailCenter, loadedKeys, terrainSkin = true, waterFlatColorHex, layers }) => {
+  const on = (k: keyof World3DLayerVisibility): boolean => layers?.[k] !== false;
+  return (
   <>
-    <TerrainPiece chunk={chunk} origin={origin} anchor={anchor} loadedKeys={loadedKeys} />
-    <WaterPiece chunk={chunk} origin={origin} />
-    <RoadPiece chunk={chunk} origin={origin} />
-    <WallPiece chunk={chunk} origin={origin} />
-    <GatePiece chunk={chunk} origin={origin} />
-    <DeckPiece chunk={chunk} origin={origin} />
-    <SitePieces
-      chunk={chunk}
-      origin={origin}
-      detailAnchor={detailAnchor}
-      detailCenter={detailCenter}
-    />
-    <VegetationPiece chunk={chunk} origin={origin} anchor={detailAnchor} />
+    {terrainSkin && (
+      <TerrainPiece chunk={chunk} origin={origin} anchor={anchor} loadedKeys={loadedKeys} />
+    )}
+    <group visible={on('water')}>
+      <WaterPiece chunk={chunk} origin={origin} flatColorHex={waterFlatColorHex} />
+    </group>
+    <group visible={on('roads')}>
+      <RoadPiece chunk={chunk} origin={origin} />
+    </group>
+    <group visible={on('walls')}>
+      <WallPiece chunk={chunk} origin={origin} />
+      <GatePiece chunk={chunk} origin={origin} />
+    </group>
+    <group visible={on('buildings')}>
+      <DeckPiece chunk={chunk} origin={origin} />
+      <SitePieces
+        chunk={chunk}
+        origin={origin}
+        detailAnchor={detailAnchor}
+        detailCenter={detailCenter}
+      />
+    </group>
+    <group visible={on('bushes')}>
+      <VegetationPiece chunk={chunk} origin={origin} anchor={detailAnchor} />
+    </group>
     {/* Near-camera instanced grass (vegetation lift): only chunks near the
         anchor mount a grass mesh — cheap distance falloff. */}
-    <GrassLayer chunk={chunk} anchor={anchor} position={chunkScenePos(chunk.cx, chunk.cy, origin)} />
+    <group visible={on('grass')}>
+      <GrassLayer chunk={chunk} anchor={anchor} position={chunkScenePos(chunk.cx, chunk.cy, origin)} />
+    </group>
   </>
-);
+  );
+};
 
 /** Exp-damp rate for the canopy transition: ~95% converged after ~2 s. */
 const CANOPY_DAMP_LAMBDA = 1.5;
@@ -809,6 +1241,37 @@ const CanopyDampedLighting: React.FC<{
   );
 };
 
+/**
+ * The underside of the world.
+ *
+ * The streamed terrain is one triangle layer. Walls close the streaming
+ * frontier and nothing closed the bottom, so a camera below grade looked
+ * straight through the ground into an empty scene — the world was a sheet, not
+ * a solid.
+ *
+ * This is the floor of that solid. One plane, at the same `GROUND_FLOOR_Y` the
+ * frontier walls now reach, so the loaded region is closed on every side. It
+ * faces DOWN, because it is only ever seen from beneath; an upward face would
+ * be a second ground hiding under the real one.
+ *
+ * Its color is granite, read from the material registry rather than typed here.
+ * Deep rock is what you would actually be looking at, and taking the value from
+ * the registry stops the floor drifting away from the substance a cut face
+ * shows at that depth.
+ */
+const WorldUnderside: React.FC = () => {
+  const rock = substance(Material.Granite).rgb;
+  // Wide enough to cover the streaming window from any angle inside it. Two
+  // triangles, so the span costs nothing.
+  const SPAN = WORLD3D_CONFIG.CHUNK_WORLD_SIZE * 24;
+  return (
+    <mesh position={[0, WORLD3D_CONFIG.GROUND_FLOOR_Y, 0]} rotation={[Math.PI / 2, 0, 0]}>
+      <planeGeometry args={[SPAN, SPAN]} />
+      <meshStandardMaterial color={new THREE.Color(rock[0], rock[1], rock[2])} roughness={1} />
+    </mesh>
+  );
+};
+
 const World3DScene: React.FC<World3DSceneProps> = ({
   loader,
   start,
@@ -829,7 +1292,15 @@ const World3DScene: React.FC<World3DSceneProps> = ({
   timeOfDayHours,
   combatLayer,
   cameraFrameRequest = null,
+  terrainSkin = true,
+  volumeBubbleExtentM,
+  volumeBubbleCellM,
+  volumeBubbleHeightM,
+  waterFlatColorHex,
+  layers,
 }) => {
+  /** Layer visibility: an absent key is VISIBLE. */
+  const layerOn = (k: keyof World3DLayerVisibility): boolean => layers?.[k] !== false;
   const { loaded, update } = useChunkStreaming(loader);
 
   // Lift the camera + its look-at target to the spawn ground elevation. With vertical
@@ -905,11 +1376,25 @@ const World3DScene: React.FC<World3DSceneProps> = ({
         if (dist < bestDist) { bestDist = dist; best = t; }
       }
       const s = worldToScene(best.xM, best.zM, sceneOrigin);
-      target = [s.x, startSurfaceY, s.z];
+      target = [s.x, groundSurfaceY(groundWorld!, best.xM, best.zM), s.z];
       halfM = best.halfM;
+      // Fit real plot corners rather than the much larger terrain cell. This
+      // keeps a small settlement inspectable after parcel-size changes too.
+      const corners = groundWorld!.buildings
+        .filter(b => b.id.startsWith(`wf-plot-${best.burgId}-`))
+        .flatMap(b => b.cornersM);
+      if (corners.length) {
+        const minX = Math.min(...corners.map(p => p.x)), maxX = Math.max(...corners.map(p => p.x));
+        const minZ = Math.min(...corners.map(p => p.z)), maxZ = Math.max(...corners.map(p => p.z));
+        const center = worldToScene((minX + maxX) / 2, (minZ + maxZ) / 2, sceneOrigin);
+        // The town may sit below the initial spawn terrain. Aim at its actual
+        // surface so the frame command cannot point above the rooftops.
+        target = [center.x, groundSurfaceY(groundWorld!, (minX + maxX) / 2, (minZ + maxZ) / 2), center.z];
+        halfM = Math.max(maxX - minX, maxZ - minZ) / 2;
+      }
     }
-    const height = Math.min(1400, Math.max(120, halfM * 2.6));
-    return { nonce: frameTownCellNonce, target, height };
+    const height = Math.min(1400, Math.max(35, halfM * 1.1));
+    return { nonce: frameTownCellNonce, target, height, oblique: true };
   }, [frameTownCellNonce, groundWorld, sceneOrigin, startSurfaceY]);
 
   // Kick off the first window once (in absolute world coords).
@@ -945,7 +1430,7 @@ const World3DScene: React.FC<World3DSceneProps> = ({
   }, [onGroundPick]);
 
   return (
-    <div style={{ width: '100%', height: '100%', minHeight: '520px', flex: '1 1 auto', background: '#cdd9e6', borderRadius: '12px', overflow: 'hidden' }}>
+    <div style={{ width: '100%', height: '100%', minHeight: 0, flex: '1 1 auto', background: '#0e1a2b', borderRadius: '12px', overflow: 'hidden' }}>
       <ForgeAssetContext.Provider value={forgeAssetService}>
       <Canvas
         // Avoid a 4K backing buffer on DPR-2 monitors. Ground mode draws the
@@ -980,6 +1465,10 @@ const World3DScene: React.FC<World3DSceneProps> = ({
           );
         }}
       >
+        <PerfProbe id="world3d" label="World 3D" />
+        <World3DPerfCensusProbe
+          loadedSignature={loaded.map((chunk) => `${chunk.cx}|${chunk.cy}|${chunk.lod}`).join(';')}
+        />
         {/* Sun + sky + hemisphere fill + distance fog + soft follow-frustum
             shadows (ground profile). Time-of-day plumbed, fixed late-morning.
             Wrapped in the canopy damper (forests Task 11): under forest canopy
@@ -990,6 +1479,13 @@ const World3DScene: React.FC<World3DSceneProps> = ({
           target={canopyTarget}
           shadowReferenceY={startSurfaceY}
         />
+        {/* Physically-based night sky (stars/moon/Bruneton dome), driven by
+            the same game-clock hour as World3DLighting. Renders nothing while
+            the true sun is up, so the daytime look is untouched. Volumetric
+            clouds do NOT live here — they are a post-processing effect that
+            rides the scene's own composer below (see VolumetricClouds), so
+            they render in daylight too. */}
+        <NightSky timeOfDayHours={timeOfDayHours} />
         {/* Interior lighting (ground profile): warm hearth flame point lights
             near the camera (nearest ≤4), lit-window emissive glow (baked into
             parts), and a camera-inside fill so any interior is readable. */}
@@ -1034,12 +1530,96 @@ const World3DScene: React.FC<World3DSceneProps> = ({
               detailAnchor={detailAnchor}
               detailCenter={detailCenter}
               loadedKeys={loadedKeys}
+              terrainSkin={terrainSkin}
+              waterFlatColorHex={waterFlatColorHex}
+              layers={layers}
             />
           ))}
         </InteriorHourProvider>
-        <GroundAgents ground={groundWorld} clock={agentClock} sceneOrigin={sceneOrigin} />
+        <WaterRippleDriver />
+        {/* Every chunk's trees in one batch set (2026-07-27). Sits outside the
+            per-chunk groups because its instance positions are already scene
+            space — see treeBatching.ts for why per-chunk meshes were dropped. */}
+        <group visible={layerOn('trees')}>
+        <VegetationTreeField
+          inputs={loaded.flatMap((c) => {
+            const veg = c.bundle.vegetation;
+            if (!veg || veg.positions.length === 0) return [];
+            return [{
+              scatter: veg,
+              offset: chunkScenePos(c.cx, c.cy, sceneOrigin),
+              castShadow: SHADOWS
+                && Math.max(Math.abs(c.cx - anchorChunk.cx), Math.abs(c.cy - anchorChunk.cy)) <= 1,
+            }];
+          })}
+        />
+        </group>
+        {/* The forest floor — ferns, fallen logs and saplings (2026-08-04).
+            Batched across chunks like the trees above, and for the same reason:
+            it is the most numerous thing in the world. */}
+        <group visible={layerOn('understory')}>
+        <UnderstoryField
+          chunks={loaded.flatMap((c) => {
+            const u = c.bundle.understory;
+            if (!u || u.count === 0) return [];
+            const distance = Math.max(
+              Math.abs(c.cx - detailAnchor.cx),
+              Math.abs(c.cy - detailAnchor.cy),
+            );
+            if (distance > UNDERSTORY_CHUNK_RADIUS) return [];
+            return [{ understory: u, offset: chunkScenePos(c.cx, c.cy, sceneOrigin) }];
+          })}
+        />
+        </group>
+        <group visible={layerOn('agents')}>
+        <GroundAgents
+          ground={groundWorld}
+          loaded={loaded}
+          clock={agentClock}
+          sceneOrigin={sceneOrigin}
+        />
+        </group>
+        {/* Far-distance terrain shells (2026-07-21): the region ring + atlas
+            horizon that replace the old visible world edge. Static, built once
+            per window; fog dissolves their outer rim into the sky. */}
+        {/* The world's floor. Mounted with the ground profile, the only view
+            from which a camera can get beneath the terrain. */}
+        {viewProfile === 'ground' && <WorldUnderside />}
+        {/* ADR 0002, wiring slice 1: the ground around the player is a real
+            VOLUME, filled from this same GroundWorld in a worker and drawn with
+            the substance material. It lies over the heightfield skin and dives
+            under it at its rim, so the join has no seam and no wall. Nothing
+            digs it yet — that is a later slice — but the volume it hands out is
+            the object that carve will run against. */}
         {viewProfile === 'ground' && (
-          <GroundProps ground={groundWorld} sceneOrigin={sceneOrigin} />
+          <VolumeGroundBubble
+            ground={groundWorld}
+            sceneOrigin={sceneOrigin}
+            playerGroundPos={playerGroundPos}
+            extentM={volumeBubbleExtentM}
+            cellM={volumeBubbleCellM}
+            heightM={volumeBubbleHeightM}
+          />
+        )}
+        {/* THE HORIZON IS NOT PART OF THE SKIN (agora-0774).
+            These shells were gated on `terrainSkin`, which made sense while
+            only the skin drew ground — but the town-on-LAND pane turns the skin
+            off and keeps a volume bubble, and beyond that bubble's rim it was
+            then left with nothing: a hard silhouette against empty fog, with
+            distant trees standing on air. The shells are a distant backdrop,
+            not a sheet under the town (they carry a hole over the streamed
+            window precisely so they never cut up through its detail), so they
+            belong to the ground PROFILE, not to the skin. The `farShells` chip
+            still hides them for anyone who wants the bare bubble. */}
+        {viewProfile === 'ground' && (
+          <group visible={layerOn('farShells')}>
+            <FarShells ground={groundWorld} sceneOrigin={sceneOrigin} />
+          </group>
+        )}
+        {viewProfile === 'ground' && (
+          <group visible={layerOn('props')}>
+            <GroundProps ground={groundWorld} sceneOrigin={sceneOrigin} />
+          </group>
         )}
         {/* Pillar 2: world-grown dungeon entrances (sealed doors) as readable
             markers the player can walk up to and discover. */}
@@ -1067,9 +1647,84 @@ const World3DScene: React.FC<World3DSceneProps> = ({
         {viewProfile === 'ground' && (
           <GroundMovePlane ground={groundWorld} sceneOrigin={sceneOrigin} onGroundPick={onGroundPick} />
         )}
+        {/* Real-time keyboard WASD and Arrow key locomotion (ground mode). */}
+        {viewProfile === 'ground' && (
+          <GroundKeyboardDriver
+            groundWorld={groundWorld}
+            sceneOrigin={sceneOrigin}
+            playerGroundPos={playerGroundPos}
+            onGroundPick={onGroundPick}
+          />
+        )}
         {/* Fight-in-place slice 2: the combat surface (tokens, reachable disc,
             ground-pick plane) drawn on the same streamed terrain. */}
         {combatLayer}
+        {/* BG3 parity, world3d-ground target #6 (ambient occlusion). Ported from
+            the proven BattleMap3D stack rather than reinvented — including its
+            two hard-won lessons:
+
+            1. N8AO, not postprocessing's SSAOEffect. SSAO needs enableNormalPass,
+               and under WebGL2 with three r172 + @react-three/postprocessing 3.x
+               that fired `GL_INVALID_OPERATION: Read and write depth stencil
+               attachments cannot be the same image` every frame. N8AO
+               reconstructs normals from depth in its own pass, so no NormalPass.
+            2. ToneMapping MUST be in this chain. While EffectComposer is
+               mounted it sets `gl.toneMapping = NoToneMapping`, silently killing
+               the ACESFilmic setting on the Canvas above — that is what made an
+               earlier surface read as raw, uncomposited 3D.
+
+            Ground profile only: the continent view draws at a scale where
+            contact shading buys nothing and the extra pass is pure cost. */}
+        {/* Cloud compositing needs color and depth from the same coverage
+              sample. MSAA resolves leaf-edge color before the depth-aware sky
+              pass, leaving bright sky fringes. Antialias the final image. */}
+        {viewProfile === 'ground' && (
+          <EffectComposer multisampling={0}>
+            {/* aoRadius stays at BattleMap3D's 1.8 m, and the earlier claim that
+                it "does not port" was wrong — corrected after the world3d critic
+                measured it (2026-07-30).
+
+                What happened: AO and ToneMapping were wired in ONE change, so the
+                A/B had two variables. ToneMapping lifted the sky 86.9 → 176.2 and
+                the whole frame read brighter, which was misread as "AO absent".
+                It was never absent — at 1.8 the critic measured rock base
+                60.7 → 29.9 (−51%) and grass tuft 81.7 → 45.3, while UNOCCLUDED
+                open ground correctly held 94.2 → 94.0.
+
+                Raising it to 5 was a net regression: unoccluded open ground dimmed
+                94.0 → 85.3 (−9%, which AO must never do) and grass tufts crushed
+                to 3.2x darker than baseline, reading as black scorch marks.
+
+                Rule this leaves behind: never A/B two rendering changes at once,
+                and a claimed AO pass must show that unoccluded ground did NOT
+                darken. */}
+            {/* BG3 parity world3d-ground #6, re-measured 2026-08-01 for the
+                EXPLORATION camera (~100 m look-across), not the close combat
+                camera the 1.8 value was tuned for. FINDINGS item 2 measured
+                1.8 = no visible darkening, 5 = too faint, 7 = occluders seated,
+                8 = muddies ground cover, at this camera. The in-code 1.8
+                measurement (rock base 60.7->29.9) was a closer framing. The
+                blind A/B critic (2026-08-01) flagged contact shading missing,
+                supporting the larger radius here. Re-A/B vs open-ground luma:
+                if unoccluded ground dims >3%, back off toward 5. */}
+            <N8AO
+              halfRes
+              quality="performance"
+              aoRadius={7}
+              distanceFalloff={3.5}
+              intensity={3.2}
+            />
+            {/* Physically-based volumetric clouds (takram ray-march), driven
+                by the same clock hour as the lighting. An Effect, not a
+                second composer: Clouds joins this chain after AO and before
+                tone mapping, wrapped in its own <Atmosphere> context for the
+                sun/ECEF state. Works day AND night — NightSky only supplies
+                the stars/moon/dome. Depth-buffer only (no normal pass). */}
+            <VolumetricClouds timeOfDayHours={timeOfDayHours} />
+            <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+            <SMAA />
+          </EffectComposer>
+        )}
       </Canvas>
       </ForgeAssetContext.Provider>
     </div>

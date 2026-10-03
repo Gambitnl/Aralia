@@ -91,10 +91,15 @@ describe('gait drivers (segment emission)', () => {
   it('biped: full humanoid part list with CONNECTED limb chains', () => {
     const sink = collect('biped');
     const ids = sink.segments.map((s) => s.id);
-    for (const required of ['torso.pelvis', 'torso.chest', 'neck', 'armL.upper', 'armL.fore', 'armR.upper', 'armR.fore', 'legL.thigh', 'legL.shin', 'legR.thigh', 'legR.shin']) {
+    // round 2 (humanoid-anatomy): hands are palm+thumb segments (mitt), the
+    // old handL/handR balloon balls are gone, and deltoid balls cap the arm
+    // roots
+    // round 5 (humanoid-anatomy): feet are heel-to-toe wedge SEGMENTS now
+    // (footL/footR moved from the ball list to the segment list)
+    for (const required of ['torso.pelvis', 'torso.chest', 'neck', 'armL.upper', 'armL.fore', 'handL.thumba', 'handL.thumbb', 'handL.thenar0', 'handL.palm', 'armR.upper', 'armR.fore', 'handR.thumba', 'handR.thumbb', 'handR.thenar0', 'handR.palm', 'legL.thigh', 'legL.shin', 'footL', 'legR.thigh', 'legR.shin', 'footR']) {
       expect(ids, `missing segment ${required}`).toContain(required);
     }
-    for (const b of ['head', 'handL', 'handR', 'footL', 'footR']) {
+    for (const b of ['head', 'deltoidL', 'deltoidR']) {
       expect(sink.balls.map((x) => x.id), `missing ball ${b}`).toContain(b);
     }
     const by = new Map(sink.segments.map((s) => [s.id, s]));
@@ -170,6 +175,44 @@ describe('gait drivers (segment emission)', () => {
     floater.update(0.4, 1 / 60, loco(0.5));
     expect(floater.verticalOffsetM).toBeGreaterThan(0.2);
     expect(floater.flap).toBe(0);
+  });
+
+  it('grounded winged gaits beat their wings: biped and quad flap, hopper does not', () => {
+    // dragons (quad) and celestials/fiends/fairies/aarakocra (biped) carry
+    // wing parts; the assembler only applies flap to wingL/wingR groups, so a
+    // nonzero beat is harmless on wingless bodies. Hopper has no winged
+    // profiles anywhere — pinned at 0.
+    for (const gait of ['biped', 'quad'] as const) {
+      const driver = createGaitDriver(gait, deriveFrame(gait, 5.5, 1, 1));
+      let min = Infinity;
+      let max = -Infinity;
+      for (let t = 0; t < 1.2; t += 1 / 60) {
+        driver.update(t, 1 / 60, loco(1.2));
+        min = Math.min(min, driver.flap);
+        max = Math.max(max, driver.flap);
+      }
+      expect(max - min, `${gait} wings never move`).toBeGreaterThan(0.5);
+      expect(max, `${gait} flap exceeds the grounded beat envelope`).toBeLessThanOrEqual(0.7 + 1e-6);
+    }
+    const hopper = createGaitDriver('hopper', deriveFrame('hopper', 5.5, 1.3, 0.9));
+    hopper.update(0.4, 1 / 60, loco(0.8));
+    expect(hopper.flap).toBe(0);
+  });
+
+  it('grounded wing beat keeps a gentle idle sway and deepens with speed', () => {
+    const amp = (speed: number): number => {
+      const driver = createGaitDriver('quad', deriveFrame('quad', 3.3, 1, 1));
+      let m = 0;
+      for (let t = 0; t < 1.2; t += 1 / 60) {
+        driver.update(t, 1 / 60, loco(speed));
+        m = Math.max(m, Math.abs(driver.flap));
+      }
+      return m;
+    };
+    const idle = amp(0);
+    const walk = amp(1.2);
+    expect(idle, 'idle wings must stay alive, not freeze').toBeGreaterThan(0.2);
+    expect(walk, 'the beat must deepen under way').toBeGreaterThan(idle + 0.2);
   });
 
   it('gait phase advances with time while moving', () => {

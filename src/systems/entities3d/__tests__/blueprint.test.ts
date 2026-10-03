@@ -61,11 +61,16 @@ describe('entities3d blueprint generator', () => {
   });
 
   it('resolves creatures through the type table', () => {
+    // creature-quality pass: plan-templated types compile to the universal
+    // 'plan' gait; legacy stances (hopper, flyer) keep their drivers
     const bp = generateEntityBlueprint({ kind: 'creature', creatureType: 'Beast', size: 'Large', seed: 'wolf-1', cues: ['wolf'] });
-    expect(bp.gait).toBe('quad');
+    expect(bp.gait).toBe('plan');
+    expect(bp.planSpec).toBeTruthy();
     expect(bp.label).toBe('Large Beast');
     const spider = generateEntityBlueprint({ kind: 'creature', creatureType: 'Monstrosity', size: 'Medium', seed: 'sp', cues: ['spider'] });
-    expect(spider.gait).toBe('hexapod');
+    expect(spider.gait).toBe('plan');
+    expect(generateEntityBlueprint({ kind: 'creature', creatureType: 'Ooze', size: 'Medium', seed: 'oz' }).gait).toBe('hopper');
+    expect(generateEntityBlueprint({ kind: 'creature', creatureType: 'Beast', size: 'Small', seed: 'bd', cues: ['bird'] }).gait).toBe('flyer');
   });
 
   it('creature frames still vary by seed but stay near the size band', () => {

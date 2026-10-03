@@ -131,11 +131,13 @@ export const LockpickingModal: React.FC<LockpickingModalProps> = ({
     const handlePickLock = useCallback(async () => {
         setIsRolling(true);
 
-        // Show visual dice roll first
-        await visualRoll('1d20');
+        // The die the player watches IS the die that resolves (agora-f821.1):
+        // read the face back out and hand it to the resolver, the way
+        // useDeEscalation does, instead of letting the system roll a second one.
+        const shown = await visualRoll('1d20');
+        const face = shown.rolls[0]?.value ?? shown.total;
 
-        // Then perform the actual check
-        const pickResult: LockpickResult = attemptLockpick(character, lockState, inventory);
+        const pickResult: LockpickResult = attemptLockpick(character, lockState, inventory, face);
         setIsRolling(false);
 
         if (pickResult.success) {
@@ -169,10 +171,11 @@ export const LockpickingModal: React.FC<LockpickingModalProps> = ({
     const handleBreakLock = useCallback(async () => {
         setIsRolling(true);
 
-        // Show visual dice roll first
-        await visualRoll('1d20');
+        // The shown face decides the break check too (agora-f821.1).
+        const shown = await visualRoll('1d20');
+        const face = shown.rolls[0]?.value ?? shown.total;
 
-        const breakResult: BreakResult = attemptBreak(character, lockState);
+        const breakResult: BreakResult = attemptBreak(character, lockState, face);
         setIsRolling(false);
 
         if (breakResult.success) {
@@ -200,13 +203,14 @@ export const LockpickingModal: React.FC<LockpickingModalProps> = ({
 
         setIsRolling(true);
 
-        // Show visual dice roll first
-        await visualRoll('1d20');
+        // The shown face decides the disarm check too (agora-f821.1).
+        const shown = await visualRoll('1d20');
+        const face = shown.rolls[0]?.value ?? shown.total;
 
         // Route to appropriate disarm function based on trap type
         const disarmResult: TrapDisarmResult = lockState.trap.type === 'magical'
-            ? disarmGlyph(character, lockState.trap)
-            : disarmTrap(character, lockState.trap, inventory);
+            ? disarmGlyph(character, lockState.trap, face)
+            : disarmTrap(character, lockState.trap, inventory, face);
         setIsRolling(false);
 
         if (disarmResult.success) {

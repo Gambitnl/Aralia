@@ -1,28 +1,42 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { ItemType } from '../../../types';
 import { UtilityCommand } from '../../effects/UtilityCommand';
 import { WeaponAttackCommand } from '../AbilityCommandFactory';
-import shillelagh from '../../../../public/data/spells/level-0/shillelagh.json';
-import { rollDamage } from '@/utils/combatUtils';
+import shillelagh from '@/data/spells/level-0/shillelagh.json';
+import { rollDamage } from '@/systems/dice/rollers';
 import type { Ability, CombatCharacter, CombatState } from '@/types/combat';
 import type { Item } from '@/types/items';
 
-vi.mock('@/utils/combatUtils', async () => {
-  const actual = await vi.importActual<typeof import('@/utils/combatUtils')>('@/utils/combatUtils');
+// agora-f821.4 retired the combatUtils roller family; the modules under
+// test roll through systems/dice/rollers now. One hoisted set of mocks
+// stands in for BOTH specifiers, so one vi.mocked(...) pins every die.
+const diceMocks = vi.hoisted(() => ({
+    rollD20: vi.fn(() => 10),
+    rollDamage: vi.fn((formula: string) => formula === '1d10+3' ? 13 : 1)
+}))
+
+
+vi.mock('@/systems/dice/rollers', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/systems/dice/rollers')>()
+  return { ...actual, ...diceMocks }
+})
+
+vi.mock('@/utils/combat', async () => {
+  const actual = await vi.importActual<typeof import('@/utils/combat')>('@/utils/combat');
 
   return {
     ...actual,
-    rollD20: vi.fn(() => 10),
-    rollDamage: vi.fn((formula: string) => formula === '1d10+3' ? 13 : 1)
-  };
+    ...diceMocks,
+};
 });
 
 const club: Item = {
   id: 'club',
   name: 'Club',
   description: 'A simple wooden club.',
-  type: 'weapon',
+  type: ItemType.Weapon,
   damageDice: '1d4',
-  damageType: 'bludgeoning',
+  damageType: 'Bludgeoning',
   properties: []
 };
 
@@ -30,9 +44,9 @@ const sword: Item = {
   id: 'longsword',
   name: 'Longsword',
   description: 'A sword that Shillelagh cannot empower.',
-  type: 'weapon',
+  type: ItemType.Weapon,
   damageDice: '1d8',
-  damageType: 'slashing',
+  damageType: 'Slashing',
   properties: []
 };
 
@@ -40,9 +54,9 @@ const quarterstaff: Item = {
   id: 'quarterstaff',
   name: 'Quarterstaff',
   description: 'A simple wooden quarterstaff.',
-  type: 'weapon',
+  type: ItemType.Weapon,
   damageDice: '1d6',
-  damageType: 'bludgeoning',
+  damageType: 'Bludgeoning',
   properties: []
 };
 
@@ -67,8 +81,10 @@ const createCaster = (weapon: Item | undefined = club): CombatCharacter => ({
   abilities: [],
   actionEconomy: { action: { used: false, remaining: 1 }, bonusAction: { used: false, remaining: 1 }, reaction: { used: false, remaining: 1 }, legendary: { used: 0, total: 0 }, movement: { used: 0, total: 30 }, freeActions: 1 },
   activeEffects: [],
+  // Required on CombatCharacter; the attack path reads it unguarded.
+  statusEffects: [],
   equippedItems: weapon ? { MainHand: weapon } : {}
-} as CombatCharacter);
+} as unknown as CombatCharacter);
 
 const createTarget = (): CombatCharacter => ({
   id: 'target',
@@ -87,8 +103,9 @@ const createTarget = (): CombatCharacter => ({
   maxHP: 30,
   armorClass: 14,
   abilities: [],
-  actionEconomy: { action: { used: false, remaining: 1 }, bonusAction: { used: false, remaining: 1 }, reaction: { used: false, remaining: 1 }, legendary: { used: 0, total: 0 }, movement: { used: 0, total: 30 }, freeActions: 1 }
-} as CombatCharacter);
+  actionEconomy: { action: { used: false, remaining: 1 }, bonusAction: { used: false, remaining: 1 }, reaction: { used: false, remaining: 1 }, legendary: { used: 0, total: 0 }, movement: { used: 0, total: 30 }, freeActions: 1 },
+  statusEffects: []
+} as unknown as CombatCharacter);
 
 const createAllyWielder = (weapon: Item = club): CombatCharacter => ({
   ...createCaster(weapon),
@@ -96,7 +113,7 @@ const createAllyWielder = (weapon: Item = club): CombatCharacter => ({
   name: 'Ally Wielder',
   spellcastingAbility: undefined,
   activeEffects: []
-} as CombatCharacter);
+} as unknown as CombatCharacter);
 
 const createState = (caster: CombatCharacter, target = createTarget()): CombatState => ({
   characters: [caster, target],
@@ -108,7 +125,7 @@ const createState = (caster: CombatCharacter, target = createTarget()): CombatSt
     phase: 'action',
     actionsThisTurn: []
   }
-} as CombatState);
+} as unknown as CombatState);
 
 const createShillelaghCommand = (caster: CombatCharacter): UtilityCommand => {
   const effect = shillelagh.effects[0] as any;
@@ -186,7 +203,7 @@ describe('Shillelagh held-weapon bridge', () => {
     const damagedTarget = result.characters.find(character => character.id === 'target')!;
 
     expect(damagedTarget.currentHP).toBeLessThan(30);
-    expect(rollDamage).toHaveBeenCalledWith('1d10+3', false, 1);
+    expect(rollDamage).toHaveBeenCalledWith('1d10+3', false, 1, undefined);
     expect(result.combatLog.some(entry => entry.message.includes('= 16 vs AC 14. HIT!'))).toBe(true);
   });
 
@@ -223,7 +240,7 @@ describe('Shillelagh held-weapon bridge', () => {
 
     await swappedCommand.execute(createState(empoweredCaster, swappedTarget));
 
-    expect(rollDamage).toHaveBeenCalledWith('1d8', false, 1);
+    expect(rollDamage).toHaveBeenCalledWith('1d8', false, 1, undefined);
   });
 
   it('refreshes the prior Shillelagh active effect on recast', () => {
@@ -264,7 +281,7 @@ describe('Shillelagh held-weapon bridge', () => {
     const damagedTarget = result.characters.find(character => character.id === 'target')!;
 
     expect(result.temporaryWeaponEnchantments?.[0]?.heldWeaponAugment.isMagical).toBe(true);
-    expect(rollDamage).toHaveBeenCalledWith('1d10+3', false, 1);
+    expect(rollDamage).toHaveBeenCalledWith('1d10+3', false, 1, undefined);
     expect(damagedTarget.currentHP).toBe(17);
   });
 });

@@ -13,9 +13,11 @@
  */
 
 import {
+  CombatEventClass,
   CombatMessageType,
   MessagePriority,
   MessageChannel,
+  getEventRouting,
 } from '../../types/combatMessages';
 import type {
   CombatMessage,
@@ -52,6 +54,63 @@ function getCharacterName(character: CombatCharacter): string {
   return character.name || 'Unknown';
 }
 
+/**
+ * NOTIFICATION_PRIORITY_FLOOR — how loud an event must be to interrupt the player.
+ *
+ * The NOTIFICATION channel is listed on plenty of routine events (ordinary damage, a status
+ * being applied) because those events ARE notification-worthy in a summary sense. Turning
+ * every one of them into a toast would bury the screen during a normal round, so the toast
+ * consumer additionally requires HIGH or CRITICAL priority: critical hits, killing blows,
+ * death saves, combat start/end and level ups.
+ */
+export const NOTIFICATION_PRIORITY_FLOOR: MessagePriority[] = [
+  MessagePriority.HIGH,
+  MessagePriority.CRITICAL,
+];
+
+export interface CombatNotificationDraft {
+  message: string;
+  type: 'success' | 'error' | 'info' | 'warning';
+  duration: number;
+}
+
+/**
+ * toNotificationDraft — turns a CombatMessage into an ADD_NOTIFICATION payload, or null.
+ *
+ * WHAT CHANGED (2026-09-09, CMB-GAP-004/005): before this, MessageChannel.NOTIFICATION was
+ * stored on messages and never read by anything. This is the translation step that lets the
+ * existing toast surface (state.notifications -> components/ui/NotificationSystem.tsx) act as
+ * that channel's consumer, without inventing a second notification system.
+ *
+ * Returns null when the message does not carry the channel or is below the priority floor,
+ * so callers can treat "no notification" as a normal outcome rather than an error.
+ */
+export function toNotificationDraft(message: CombatMessage): CombatNotificationDraft | null {
+  if (!message.channels?.includes(MessageChannel.NOTIFICATION)) return null;
+  if (!NOTIFICATION_PRIORITY_FLOOR.includes(message.priority)) return null;
+
+  // Toast severity is a reading of tone, not of success: a killing blow or a critical hit is
+  // loud regardless of who landed it, and the log entry text already names the participants.
+  let type: CombatNotificationDraft['type'] = 'info';
+  if (
+    message.type === CombatMessageType.CRITICAL_HIT ||
+    message.type === CombatMessageType.KILLING_BLOW
+  ) {
+    type = 'warning';
+  } else if (
+    message.type === CombatMessageType.LEVEL_UP ||
+    message.type === CombatMessageType.MILESTONE_ACHIEVED
+  ) {
+    type = 'success';
+  }
+
+  return {
+    message: message.description || message.title,
+    type,
+    duration: message.duration ?? getDuration(message.priority),
+  };
+}
+
 // Message Creation Functions
 
 export function createDamageMessage(params: {
@@ -62,10 +121,40 @@ export function createDamageMessage(params: {
   isCritical?: boolean;
   weaponName?: string;
   spellName?: string;
+  isResisted?: boolean;
+  resistanceApplied?: boolean;
+  isVulnerable?: boolean;
+  vulnerabilityApplied?: boolean;
+  isImmune?: boolean;
+  immunityApplied?: boolean;
+  defenseTags?: string[];
+  defenseMultiplier?: number;
 }): CombatMessage {
-  const { source, target, damage, damageType, isCritical = false, weaponName, spellName } = params;
+  const {
+    source,
+    target,
+    damage,
+    damageType,
+    isCritical = false,
+    weaponName,
+    spellName,
+    isResisted = false,
+    resistanceApplied = isResisted,
+    isVulnerable = false,
+    vulnerabilityApplied = isVulnerable,
+    isImmune = false,
+    immunityApplied = isImmune,
+    defenseTags,
+    defenseMultiplier,
+  } = params;
   
-  const messageType = isCritical ? CombatMessageType.CRITICAL_HIT : CombatMessageType.DAMAGE_DEALT;
+  const messageType = isImmune
+    ? CombatMessageType.SPELL_IMMUNE
+    : isCritical
+      ? CombatMessageType.CRITICAL_HIT
+      : CombatMessageType.DAMAGE_DEALT;
+
+  const tagText = defenseTags?.length ? ` ${defenseTags.join(' ')}` : '';
   
   const variables = {
     source: getCharacterName(source),
@@ -77,10 +166,17 @@ export function createDamageMessage(params: {
     spell: spellName || ''
   };
   
-  const title = isCritical ? 'Critical Hit!' : `${variables.source} hits ${variables.target}`;
-  const description = isCritical 
-    ? `${variables.source} lands a devastating critical hit on ${variables.target} for ${variables.value} damage!`
-    : `${variables.source} deals ${variables.value} ${variables.damageType} damage to ${variables.target}${variables.critText}`;
+  const title = isImmune
+    ? `${variables.target} is immune!`
+    : isCritical
+      ? 'Critical Hit!'
+      : `${variables.source} hits ${variables.target}`;
+
+  const description = isImmune
+    ? `${variables.target} is immune to ${variables.damageType} damage from ${variables.source}!${tagText}`
+    : isCritical 
+      ? `${variables.source} lands a devastating critical hit on ${variables.target} for ${variables.value} damage!${tagText}`
+      : `${variables.source} deals ${variables.value} ${variables.damageType} damage to ${variables.target}${variables.critText}${tagText}`;
   
   const data: DamageMessageData = {
     rawValue: damage,
@@ -90,19 +186,31 @@ export function createDamageMessage(params: {
     isSneakAttack: false,
     weaponName,
     spellName,
-    resistanceApplied: false,
-    vulnerabilityApplied: false
+    resistanceApplied,
+    vulnerabilityApplied,
+    isResisted,
+    isVulnerable,
+    isImmune,
+    immunityApplied,
+    defenseTags,
+    defenseMultiplier,
   };
   
+  // WHAT CHANGED (2026-09-09, CMB-GAP-004): channels and channel payloads now come from the
+  // shared routing table so the factory and combatLogToMessageAdapter cannot drift apart.
+  // The presentation type is still computed above, because SPELL_IMMUNE is a factory-only
+  // refinement that the log-entry path has no way to express.
+  const routing = getEventRouting(isCritical ? CombatEventClass.CRITICAL_DAMAGE : CombatEventClass.DAMAGE);
+
   return {
     id: generateId(),
     type: messageType,
-    priority: isCritical ? MessagePriority.HIGH : MessagePriority.MEDIUM,
+    eventClass: isCritical ? CombatEventClass.CRITICAL_DAMAGE : CombatEventClass.DAMAGE,
+    priority: routing.priority,
     timestamp: Date.now(),
-    channels: [
-      MessageChannel.COMBAT_LOG,
-      ...(isCritical ? [MessageChannel.NOTIFICATION, MessageChannel.VISUAL_EFFECT] : [MessageChannel.NOTIFICATION])
-    ],
+    channels: routing.channels,
+    visualEffect: routing.visualEffect,
+    soundCue: routing.soundCue,
     title,
     description,
     sourceEntityId: source.id,
@@ -123,12 +231,17 @@ export function createKillMessage(params: {
     victim: getCharacterName(victim)
   };
   
+  const routing = getEventRouting(CombatEventClass.KILL);
+
   return {
     id: generateId(),
-    type: CombatMessageType.KILLING_BLOW,
-    priority: MessagePriority.HIGH,
+    type: routing.type,
+    eventClass: CombatEventClass.KILL,
+    priority: routing.priority,
     timestamp: Date.now(),
-    channels: [MessageChannel.COMBAT_LOG, MessageChannel.NOTIFICATION, MessageChannel.VISUAL_EFFECT],
+    channels: routing.channels,
+    visualEffect: routing.visualEffect,
+    soundCue: routing.soundCue,
     title: `${variables.victim} defeated!`,
     description: `${variables.killer} delivers the killing blow to ${variables.victim}!`,
     sourceEntityId: killer.id,
@@ -152,12 +265,15 @@ export function createMissMessage(params: {
     defender: getCharacterName(defender)
   };
   
+  const routing = getEventRouting(CombatEventClass.MISS);
+
   return {
     id: generateId(),
-    type: CombatMessageType.MISSED_ATTACK,
-    priority: MessagePriority.LOW,
+    type: routing.type,
+    eventClass: CombatEventClass.MISS,
+    priority: routing.priority,
     timestamp: Date.now(),
-    channels: [MessageChannel.COMBAT_LOG],
+    channels: routing.channels,
     title: `${variables.attacker} misses`,
     description: `${variables.attacker}'s attack misses ${variables.defender}`,
     sourceEntityId: attacker.id,
@@ -193,12 +309,16 @@ export function createSpellMessage(params: {
     ? `${variables.caster} casts ${variables.spell} on ${variables.target}`
     : `${variables.target} successfully resists ${variables.caster}'s ${variables.spell}`;
   
+  const eventClass = success ? CombatEventClass.SPELL_CAST : CombatEventClass.STATUS_RESIST;
+  const routing = getEventRouting(eventClass);
+
   return {
     id: generateId(),
     type: messageType,
-    priority: MessagePriority.MEDIUM,
+    eventClass,
+    priority: routing.priority,
     timestamp: Date.now(),
-    channels: [MessageChannel.COMBAT_LOG, ...(success ? [MessageChannel.NOTIFICATION] : [])],
+    channels: routing.channels,
     title,
     description,
     sourceEntityId: caster.id,
@@ -228,12 +348,23 @@ export function createStatusMessage(params: {
     durationText: duration ? ` for ${duration} rounds` : ''
   };
   
+  // statusType is already known here, so a buff/debuff can be stated instead of guessed.
+  const eventClass =
+    statusType === 'buff'
+      ? CombatEventClass.BUFF
+      : statusType === 'debuff'
+        ? CombatEventClass.DEBUFF
+        : CombatEventClass.STATUS_CHANGE;
+  const routing = getEventRouting(eventClass);
+
   return {
     id: generateId(),
-    type: CombatMessageType.STATUS_APPLIED,
-    priority: MessagePriority.MEDIUM,
+    type: routing.type,
+    eventClass,
+    priority: routing.priority,
     timestamp: Date.now(),
-    channels: [MessageChannel.COMBAT_LOG, MessageChannel.NOTIFICATION],
+    channels: routing.channels,
+    visualEffect: routing.visualEffect,
     title: `${variables.status} applied`,
     description: `${variables.target} is affected by ${variables.status}${variables.durationText}`,
     targetEntityId: target.id,
@@ -261,12 +392,17 @@ export function createLevelUpMessage(params: {
     level: newLevel.toString()
   };
   
+  const routing = getEventRouting(CombatEventClass.LEVEL_UP);
+
   return {
     id: generateId(),
-    type: CombatMessageType.LEVEL_UP,
-    priority: MessagePriority.CRITICAL,
+    type: routing.type,
+    eventClass: CombatEventClass.LEVEL_UP,
+    priority: routing.priority,
     timestamp: Date.now(),
-    channels: [MessageChannel.COMBAT_LOG, MessageChannel.NOTIFICATION, MessageChannel.VISUAL_EFFECT, MessageChannel.AUDIO_CUE],
+    channels: routing.channels,
+    visualEffect: routing.visualEffect,
+    soundCue: routing.soundCue,
     title: `${variables.character} leveled up!`,
     description: `${variables.character} reaches level ${variables.level}!`,
     sourceEntityId: character.id,

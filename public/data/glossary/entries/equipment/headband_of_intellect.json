@@ -15,6 +15,9 @@
   "itemMetadata": {
     "type": "Wondrous Item",
     "rarity": "Uncommon",
-    "reqAttune": "Required"
+    "reqAttune": "Required",
+    "abilitySet": {
+      "int": 19
+    }
   }
 }

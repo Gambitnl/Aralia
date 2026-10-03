@@ -36,171 +36,17 @@ type SpawnConfig =
   "left-right" | "top-bottom" | "corners-tl-br" | "corners-tr-bl";
 
 // Teams spawn inside a bounded engagement window centered in the arena, not at
-// the arena's far edges. When the battlefield quadrupled to 80×60 (2026-07-01)
-// percentage-of-map spawn strips put teams 40-70 tiles apart — many turns of
-// pure walking before first contact. The window keeps opening engagement range
-// at the proven 40×30-era pacing; the arena beyond it is maneuvering room.
-const SPAWN_WINDOW = { width: 48, height: 36 };
-
-const _getSpawnTiles = (
-  mapData: BattleMapData,
-  config: SpawnConfig,
-  rng: SeededRandom,
-): { playerTiles: BattleMapTile[]; enemyTiles: BattleMapTile[] } => {
-  const playerSpawnTiles: BattleMapTile[] = [];
-  const enemySpawnTiles: BattleMapTile[] = [];
-  const { width: mapW, height: mapH } = mapData.dimensions;
-  const width = Math.min(mapW, SPAWN_WINDOW.width);
-  const height = Math.min(mapH, SPAWN_WINDOW.height);
-  const ox = Math.floor((mapW - width) / 2);
-  const oy = Math.floor((mapH - height) / 2);
-  // Wide corners ensure enough walkable tiles even in dense biomes
-  const cornerSize = Math.floor(Math.min(width, height) * 0.35); // ~35% of shorter dimension
-
-  const addTilesFromRect = (
-    tiles: BattleMapTile[],
-    x1: number,
-    y1: number,
-    x2: number,
-    y2: number,
-  ) => {
-    for (let y = y1 + oy; y < y2 + oy; y++) {
-      for (let x = x1 + ox; x < x2 + ox; x++) {
-        const tile = mapData.tiles.get(`${x}-${y}`);
-        if (tile && !tile.blocksMovement) tiles.push(tile);
-      }
-    }
-  };
-
-  switch (config) {
-    case "top-bottom": {
-      const stripH = Math.floor(height * 0.25); // top/bottom 25% each
-      addTilesFromRect(playerSpawnTiles, 0, 0, width, stripH);
-      addTilesFromRect(enemySpawnTiles, 0, height - stripH, width, height);
-      break;
-    }
-    case "corners-tl-br":
-      addTilesFromRect(playerSpawnTiles, 0, 0, cornerSize, cornerSize);
-      addTilesFromRect(
-        enemySpawnTiles,
-        width - cornerSize,
-        height - cornerSize,
-        width,
-        height,
-      );
-      break;
-    case "corners-tr-bl":
-      addTilesFromRect(
-        playerSpawnTiles,
-        width - cornerSize,
-        0,
-        width,
-        cornerSize,
-      );
-      addTilesFromRect(
-        enemySpawnTiles,
-        0,
-        height - cornerSize,
-        cornerSize,
-        height,
-      );
-      break;
-    case "left-right":
-    default: {
-      const stripW = Math.floor(width * 0.25); // left/right 25% each
-      addTilesFromRect(playerSpawnTiles, 0, 0, stripW, height);
-      addTilesFromRect(enemySpawnTiles, width - stripW, 0, width, height);
-      break;
-    }
-  }
-
-  // Shuffle results
-  const shuffle = (array: BattleMapTile[]) => {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(rng.next() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-  };
-
-  // Tactical spawn score (battle-map G6 / GOAL #64): spawns should use the
-  // terrain — high ground and cover-adjacent tiles beat open ground. Scored
-  // candidates are stable-sorted best-first AFTER the seeded shuffle, so the
-  // shuffle remains the tiebreak among equal scores and same-seed runs stay
-  // deterministic. Wedged pockets (nearly enclosed tiles) are penalized so
-  // "near cover" never degrades into "stuck in a hole".
-  const tacticalScore = (tile: BattleMapTile): number => {
-    const { x, y } = tile.coordinates;
-    let coverNeighbors = 0;
-    for (let dx = -1; dx <= 1; dx++) {
-      for (let dy = -1; dy <= 1; dy++) {
-        if (dx === 0 && dy === 0) continue;
-        const n = mapData.tiles.get(`${x + dx}-${y + dy}`);
-        if (n && (n.blocksMovement || n.blocksLoS || n.providesCover))
-          coverNeighbors++;
-      }
-    }
-    const coverScore =
-      coverNeighbors === 0
-        ? 0 // open ground
-        : coverNeighbors <= 2
-          ? 3 // flanking a rock/tree — ideal
-          : coverNeighbors <= 4
-            ? 1 // cramped but covered
-            : -2; // wedged pocket — avoid
-    return tile.elevation * 2 + coverScore + (tile.providesCover ? 1 : 0);
-  };
-
-  // Spread characters within their zone: claim a tile only if no already-claimed
-  // tile is within MIN_SEP (Chebyshev). MIN_SEP=2 gives a visible formation
-  // (≥2-tile gaps) instead of a clump; fallback fills if the zone is too tight.
-  const MIN_SEP = 2;
-  const spreadTiles = (
-    tiles: BattleMapTile[],
-    count: number,
-  ): BattleMapTile[] => {
-    // Seeded shuffle first (tiebreak), then stable sort by tactical score so
-    // the spread pass claims the best terrain positions first.
-    const shuffled = shuffle([...tiles]).sort(
-      (a, b) => tacticalScore(b) - tacticalScore(a),
-    );
-    const occupied = new Set<string>();
-    const result: BattleMapTile[] = [];
-    const fallback: BattleMapTile[] = [];
-
-    for (const tile of shuffled) {
-      const { x, y } = tile.coordinates;
-      const key = `${x}-${y}`;
-      let hasNeighbor = false;
-      for (let dx = -MIN_SEP; dx <= MIN_SEP && !hasNeighbor; dx++) {
-        for (let dy = -MIN_SEP; dy <= MIN_SEP; dy++) {
-          if (dx === 0 && dy === 0) continue;
-          if (occupied.has(`${x + dx}-${y + dy}`)) {
-            hasNeighbor = true;
-            break;
-          }
-        }
-      }
-      if (!hasNeighbor) {
-        occupied.add(key);
-        result.push(tile);
-      } else {
-        fallback.push(tile);
-      }
-    }
-    // Fill remaining slots from fallback if spread tiles don't cover all characters
-    for (const tile of fallback) {
-      if (result.length >= count) break;
-      result.push(tile);
-    }
-    return result;
-  };
-
-  return {
-    playerTiles: spreadTiles(playerSpawnTiles, 20),
-    enemyTiles: spreadTiles(enemySpawnTiles, 20),
-  };
-};
+// the arena's far edges. When the battlefield grew to 120×90 (2026-07-06),
+// percentage-of-map spawn strips put the closest opposing units 60-96 tiles
+// apart at SEED-pinned test seeds — 11-16 full move-turns of walking before
+// first contact, with most of the field reduced to scenic backdrop. The window
+// restores an approach phase measured in a few turns; the arena beyond it is
+// flanking and maneuvering room. 72 is sized to the team-centroid separation
+// contract (> 30% of the map diagonal = 45 tiles on 120×90): strips sit
+// 0.75 × 72 = 54 apart at their centers, and the enemy-distance scoring band
+// pulls placements ~8 tiles toward each other, leaving ~46-65 measured across
+// the pinned test seeds. Going tighter needs that contract relaxed first.
+const SPAWN_WINDOW = { width: 72, height: 72 };
 
 // ============================================================================
 // G6 Tactical Spawn Selection
@@ -235,43 +81,64 @@ const rectCenter = (rect: SpawnRect): { x: number; y: number } => ({
 });
 
 const spawnRectsForConfig = (
-  width: number,
-  height: number,
+  mapWidth: number,
+  mapHeight: number,
   config: SpawnConfig,
 ): { player: SpawnRect; enemy: SpawnRect } => {
-  // Keep the same deployment shapes as the legacy helper so scoring changes
-  // tile preference, not the high-level encounter formation.
+  // All deployment shapes live inside the centered SPAWN_WINDOW, not the full
+  // arena — see the SPAWN_WINDOW note. Small maps (test fixtures, extracted
+  // crops) clamp the window to the map and behave exactly as before.
+  const width = Math.min(mapWidth, SPAWN_WINDOW.width);
+  const height = Math.min(mapHeight, SPAWN_WINDOW.height);
+  const ox = Math.floor((mapWidth - width) / 2);
+  const oy = Math.floor((mapHeight - height) / 2);
+  const at = (rect: SpawnRect): SpawnRect => ({
+    x1: rect.x1 + ox,
+    y1: rect.y1 + oy,
+    x2: rect.x2 + ox,
+    y2: rect.y2 + oy,
+  });
   const cornerSize = Math.floor(Math.min(width, height) * 0.35);
 
   switch (config) {
     case "top-bottom": {
       const stripH = Math.floor(height * 0.25);
       return {
-        player: { x1: 0, y1: 0, x2: width, y2: stripH },
-        enemy: { x1: 0, y1: height - stripH, x2: width, y2: height },
+        player: at({ x1: 0, y1: 0, x2: width, y2: stripH }),
+        enemy: at({ x1: 0, y1: height - stripH, x2: width, y2: height }),
       };
     }
     case "corners-tl-br":
       return {
-        player: { x1: 0, y1: 0, x2: cornerSize, y2: cornerSize },
-        enemy: {
+        player: at({ x1: 0, y1: 0, x2: cornerSize, y2: cornerSize }),
+        enemy: at({
           x1: width - cornerSize,
           y1: height - cornerSize,
           x2: width,
           y2: height,
-        },
+        }),
       };
     case "corners-tr-bl":
       return {
-        player: { x1: width - cornerSize, y1: 0, x2: width, y2: cornerSize },
-        enemy: { x1: 0, y1: height - cornerSize, x2: cornerSize, y2: height },
+        player: at({
+          x1: width - cornerSize,
+          y1: 0,
+          x2: width,
+          y2: cornerSize,
+        }),
+        enemy: at({
+          x1: 0,
+          y1: height - cornerSize,
+          x2: cornerSize,
+          y2: height,
+        }),
       };
     case "left-right":
     default: {
       const stripW = Math.floor(width * 0.25);
       return {
-        player: { x1: 0, y1: 0, x2: stripW, y2: height },
-        enemy: { x1: width - stripW, y1: 0, x2: width, y2: height },
+        player: at({ x1: 0, y1: 0, x2: stripW, y2: height }),
+        enemy: at({ x1: width - stripW, y1: 0, x2: width, y2: height }),
       };
     }
   }

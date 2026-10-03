@@ -1,4 +1,4 @@
-# Design Preview Tool — Absorbed Spec
+# Design Preview Tool - Absorbed Spec
 
 **Absorbed:** 2026-07-15  
 **Evidence:** docs/projects/design-preview (now deleted); verification in `/misc/design.html`
@@ -34,13 +34,15 @@ Use this when a visual pass is requested (from RUNBOOK.md):
 
 ## Implementation Files
 
-- `misc/design.html` — standalone shell
-- `src/design-preview.tsx` — React mount
-- `src/components/DesignPreview/DesignPreviewPage.tsx` — multi-lane router
-- `src/components/DesignPreview/VariantSwitcher.tsx`, `StyleVariants.tsx` — style variants
-- `src/components/DesignPreview/steps/*` — lane implementations (25+ files)
-- `src/md-library-entry.tsx`, `misc/md_library.html` — docs library reuse
+- `misc/design.html` - standalone shell
+- `src/design-preview.tsx` - React mount
+- `src/components/DesignPreview/DesignPreviewPage.tsx` - multi-lane router
+- `src/components/DesignPreview/VariantSwitcher.tsx`, `StyleVariants.tsx` - style variants
+- `src/components/DesignPreview/steps/*` - lane implementations (25+ files)
+- `src/md-library-entry.tsx`, `misc/md_library.html` - docs library reuse
 
 ## Next Steward
 
 Scenario-specific Tactical Sandbox work routes through `docs/projects/design-preview-scenarios/SUBPROJECTS.md`. The broad Design Preview steward preserves the lane map and routes split/move work through the checklist above.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-design-preview.md","sha256WithoutMarker":"38eae8b26ca20cda129305e95c238112e909352f9a6b8b636c608f45d76f3416","markedAtUtc":"2026-08-09T20:24:28.235Z"} -->

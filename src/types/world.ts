@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 27/06/2026, 01:55:55
- * Dependents: components/CharacterSheet/Family/FamilyTreeTab.tsx, components/World3D/DebugHUD.tsx, components/World3D/InWorldHUD.tsx, services/strongholdService.ts, state/migrations/worldDataMigration.ts, systems/economy/TradeRouteSystem.ts, systems/gameEntry/situationNpcToRichNpc.ts, systems/spells/ai/AISpellArbitrator.ts, systems/worldforge/bridge/groundChunkLoader.ts, types/index.ts, utils/mapDataToWorldData.ts, utils/world/worldGeographyAdapter.ts
- * Imports: 2 files
+ * Last Sync: 09/09/2026, 10:30:30
+ * Dependents: components/CharacterSheet/Family/FamilyTreeTab.tsx, components/World3D/DebugHUD.tsx, components/World3D/InWorldHUD.tsx, hooks/actions/handleEncounter.ts, hooks/actions/handleMerchantInteraction.ts, hooks/actions/handleNpcInteraction.ts, services/strongholdService.ts, state/migrations/npcMemoryMigration.ts, state/migrations/worldDataMigration.ts, systems/entities3d/recipeFromCharacter.ts, systems/gameEntry/deEscalationToCombat.ts, systems/gameEntry/situationNpcToRichNpc.ts, systems/intrigue/RumorMillSystem.ts, systems/memory/actionMemoryMatrix.ts, systems/memory/factPropagation.ts, systems/npc/backgroundBrief.ts, systems/party/authoredCompanionToRichNpc.ts, systems/party/npcToPartyMember.ts, systems/party/recruitConsent.ts, systems/planar/PlanarService.ts, systems/social/npcEmotionalMemory.ts, systems/social/npcWitnessMemory.ts, systems/spells/ai/AISpellArbitrator.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/townsim/npcsForCell.ts, systems/worldforge/townsim/registerBurgMerchants.ts, types/index.ts, types/memory.ts, utils/world/chronicleNewsToRumors.ts, utils/world/dungeonRumorsToWorldRumors.ts, utils/world/memoryUtils.ts
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -15,13 +15,25 @@
 // @dependencies-end
 
 import type { NPCVisualSpec } from './visuals.js';
-import type { NPCKnowledgeProfile } from './dialogue.js';
+import type { NPCKnowledgeProfile, SpeechProfile } from './dialogue.js';
 import type { Position as CombatPosition } from './combat.js';
 import type { Interaction } from './memory.js'; // Rich interaction records for the merged NPC memory lane.
 import type { AbilityScores } from './character.js';
 import type { EquipmentSlotType, Item } from './items.js';
 import type { WorldData } from '../services/worldSim/types';
 import type { Lock, Puzzle } from '../systems/puzzles/types.js';
+// 2026-09-09 consolidation (sweep follow-up to board tasks agora-fe77, agora-9712, agora-171b):
+// three NPC tasks shipped optional memory/biography extensions as intersection types because
+// this file was lock-held all day. The fields now live on the canonical interfaces; the
+// intersection names remain as aliases so no caller changes. Type-only imports keep the
+// runtime graph acyclic.
+import type { EmotionalMarker } from '../systems/social/npcEmotionalMemory';
+import type { WitnessedAct } from '../systems/social/npcWitnessMemory';
+import type { BackgroundBrief } from '../systems/npc/backgroundBrief';
+// 2026-09-09 (agora-d9e1): NPC personality follows the same type-only-import
+// pattern as the three lines above. `personality` is optional and additive.
+import type { NPCPersonality } from '../systems/npcPersonality/types';
+
 
 export type Position = CombatPosition;
 
@@ -50,6 +62,8 @@ export interface RichNPC extends NPC {
     level: number;
     family: FamilyMember[];
     abilityScores: AbilityScores;
+    /** Deterministic mini-backstory (agora-171b). Optional: authored/legacy NPCs may lack one. */
+    background?: BackgroundBrief;
   }
   stats: {
     hp: number;
@@ -186,6 +200,10 @@ export interface DiscoveryResidue {
 export interface NpcMemory {
   disposition: number;
   knownFacts: KnownFact[];
+  /** Grudge/bond markers with per-marker decay (agora-fe77). Optional; absent on legacy saves. */
+  emotionalMarkers?: EmotionalMarker[];
+  /** First- and second-hand observations of the player's acts (agora-9712). Optional. */
+  witnessedActs?: WitnessedAct[];
   suspicion: SuspicionLevel;
   goals: Goal[];
   /** Optional lightweight fact list used by AI helpers (distinct from structured KnownFacts). */
@@ -222,6 +240,24 @@ export interface NPC {
   faction?: string;
   dialoguePromptSeed?: string;
   voice?: TTSVoiceOption;
+  /**
+   * Per-NPC speech fingerprint (agora-9e0f). Optional and additive: when absent,
+   * dialogue post-processing is a no-op and the NPC behaves exactly as before.
+   * Distinct from `voice`, which selects a TTS timbre rather than word choice.
+   */
+  speechProfile?: SpeechProfile;
+  /**
+   * Stable disposition: archetype, five-factor traits and 2-3 behavioral quirks
+   * (agora-d9e1). Optional and additive — every consumer in
+   * `systems/npcPersonality/personalityEffects.ts` returns its neutral value when
+   * this is absent, so legacy and authored NPCs are unaffected.
+   *
+   * Distinct from the three neighboring NPC layers: `speechProfile` owns HOW they
+   * talk, `biography.background` owns where they came from, and
+   * `memory.emotionalMarkers` owns how they feel about the player specifically.
+   * Personality is the part that does not change when you meet them.
+   */
+  personality?: NPCPersonality;
   goals?: Goal[];
   knowledgeProfile?: NPCKnowledgeProfile;
   visual?: NPCVisualSpec;
@@ -270,11 +306,50 @@ export interface Biome {
   resourceWeights?: Record<string, number>; // e.g., { wood: 3, ore: 2, fish: 1 }
 }
 
+/**
+ * One cell of the legacy 30x20 rectangular world grid.
+ *
+ * @deprecated Grid retirement (see `docs/adr/0003-mapdata-tiles-grid-retirement.md`).
+ * The world is the cell-native Worldforge Voronoi atlas: `getBridgeAtlas(worldSeed)`
+ * for the cell graph, `state.playerCell` for position, `biomeIdForCell()` for
+ * terrain. Use `WorldCellView` for click/observation payloads. This type survives
+ * only as the element type of the optional `MapData.tiles` legacy-save grid.
+ */
 export interface MapTile {
   x: number;
   y: number;
   biomeId: string;
   locationId?: string;
+  discovered: boolean;
+  isPlayerCurrent: boolean;
+}
+
+/**
+ * Cell-native description of one world cell, as handed to click / 3D-entry /
+ * observation handlers.
+ *
+ * Grid retirement (agora-608b): this replaces `MapTile` in every runtime
+ * contract. The difference that matters is `cellId` — the canonical Worldforge
+ * atlas identity. The old payloads were synthesized from a cell and then threw
+ * that identity away, forcing callers to recover it from `travelMeta` or an
+ * `Entry3DAnchor`.
+ *
+ * `x` / `y` are preserved (not removed) because the tooltip formatter and the
+ * `coord_X_Y` location-id shape still exist for legacy saves. They are display
+ * bookkeeping only — never a grid index. They go away with the
+ * `coord_X_Y` -> `cell_<id>` cut, not before.
+ *
+ * Structurally a superset of `MapTile`, so the migration preserved behavior.
+ */
+export interface WorldCellView {
+  /** Canonical Worldforge atlas cell id. The identity of this place. */
+  cellId: number;
+  /** Legacy display coords: real for a `coord_X_Y` save, otherwise bookkeeping. */
+  x: number;
+  y: number;
+  biomeId: string;
+  locationId?: string;
+  /** Whether the party knows this cell (persisted explored-cell set). */
   discovered: boolean;
   isPlayerCurrent: boolean;
 }
@@ -308,9 +383,28 @@ export interface WorldGenDiagnostics {
   at: number;
 }
 
+/**
+ * A saved world's map payload.
+ *
+ * @deprecated as a runtime type. Grid retirement (2026-06-30 + agora-608b, see
+ * `docs/adr/0003-mapdata-tiles-grid-retirement.md`): `mapData` is no longer in
+ * `GameState` and no longer in the save format. Nothing in the running game
+ * constructs or reads a `MapData`. It survives ONLY as the input shape of the
+ * pre-v2 save backfill (`migrateMapDataToWorldDataV2`).
+ */
 export interface MapData {
   gridSize: { rows: number; cols: number };
-  tiles: MapTile[][];
+  /**
+   * The legacy rectangular tile grid.
+   *
+   * @deprecated Optional as of agora-608b. Migration path: read the cell-native
+   * atlas instead (`getBridgeAtlas(worldSeed)` + `biomeIdForCell()`); a click or
+   * observation payload is a `WorldCellView`. The field is kept, not deleted,
+   * because a pre-v2 save's grid is the ONLY record of that world's biomes —
+   * the atlas is derived from `worldSeed` and may not reproduce it. Delete this
+   * field when the project decides pre-v2 saves are no longer loadable.
+   */
+  tiles?: MapTile[][];
   /** @deprecated Use `worldData` instead. Kept for one release for migration. */
   azgaarWorld?: AzgaarWorldRenderData;
   /** Rich world artifact — produced by worldSim. Required for new saves; populated by migration on load for old saves. */
@@ -374,6 +468,11 @@ export interface VillageActionContext {
 // Import them from there if needed in this file
 
 export interface Monster {
+  /**
+   * Stable bestiary key (MonsterData.id), e.g. "goblin_boss". Absent on
+   * encounter entries built from a name alone, such as AI-authored encounters.
+   */
+  id?: string;
   name: string;
   quantity: number;
   cr: string;

@@ -48,10 +48,6 @@ const OrgMissionsList: React.FC<OrgMissionsListProps> = ({ organization, onStart
         <form onSubmit={handleStart} className="bg-gray-700 p-4 rounded mb-4 border border-gray-600">
             <h4 className="text-lg text-white mb-2">Plan Operation</h4>
 
-            {/*
-              TODO #106(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
-              TODO #107(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
-            */}
             <div className="mb-3">
                 
                 
@@ -84,11 +80,6 @@ const OrgMissionsList: React.FC<OrgMissionsListProps> = ({ organization, onStart
                 <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto bg-gray-900 p-2 rounded">
                     {availableMembers.length === 0 && <span className="text-xs text-gray-400">No agents available.</span>}
                     {availableMembers.map(m => (
-                        
-                        
-                        /* TODO #109(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
-                        TODO #110(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
-                        */
                         <div
                             key={m.id}
                             onClick={() => toggleMember(m.id)}

@@ -6,7 +6,9 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { recipeFromRichNpc } from '../recipeFromCharacter';
 import { generateEntityBlueprint } from '../generateEntityBlueprint';
 import { registerAllParts } from '../parts';
-import { castMemberRecipe } from '../../../components/World3D/SceneCast';
+// Scene-cast recipe rules belong to the entity engine. Importing them locally
+// proves this suite no longer reaches upward into the World3D component layer.
+import { castMemberRecipe } from '../sceneCastUtils';
 import type { RichNPC } from '../../../types/world';
 
 const npc = (over: Partial<RichNPC> & { id: string }): RichNPC =>

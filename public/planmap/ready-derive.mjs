@@ -33,6 +33,25 @@ export const isActionable = (t, byId) => !isDead(t) &&
     return isDead(byId[d.id]);
   });
 
+// Parent status says whether its dependency graph permits work. Feature status
+// says whether there is any unparked work inside that permitted parent. Keep
+// both facts together so the map never advertises a blank, all-parked topic as
+// READY while preserving featureless topics as valid roadmap work.
+export const topicReadiness = (t, byId) => {
+  const features = t?.features || [];
+  const pendingFeatures = features.filter((f) => !featureDead(f));
+  const readyFeatures = pendingFeatures.filter((f) => f.status !== 'parked');
+  const topicReady = isActionable(t, byId);
+  const hasFeatures = features.length > 0;
+
+  return {
+    ready: topicReady && (!hasFeatures || readyFeatures.length > 0),
+    hasFeatures,
+    pendingFeatureCount: pendingFeatures.length,
+    readyFeatureCount: readyFeatures.length,
+  };
+};
+
 if (typeof window !== 'undefined') {
-  window.PlanmapReady = { slug, isDead, isActionable };
+  window.PlanmapReady = { slug, isDead, isActionable, topicReadiness };
 }

@@ -18,6 +18,14 @@ const mockUseVisibility = vi.fn();
 const mockVFXSystem = vi.fn((_props: unknown) => null);
 
 vi.mock('@react-three/fiber', () => ({
+  // The shared performance probe sits inside every Canvas and reads the
+  // renderer through these two hooks. A mock without them throws before the
+  // scene under test renders at all.
+  useThree: (select?: (s: unknown) => unknown) => {
+    const state = { gl: { info: { render: {}, memory: {} } } };
+    return select ? select(state) : state;
+  },
+  useFrame: vi.fn(),
   Canvas: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-canvas">{children}</div>
 }));
 
@@ -28,11 +36,14 @@ vi.mock('@react-three/drei', () => ({
 vi.mock('@react-three/postprocessing', () => ({
   EffectComposer: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   Bloom: () => null,
+  N8AO: () => null,
+  ToneMapping: () => null,
   Vignette: () => null
 }));
 
 vi.mock('postprocessing', () => ({
-  BlendFunction: { NORMAL: 'normal' }
+  BlendFunction: { NORMAL: 'normal' },
+  ToneMappingMode: { ACES_FILMIC: 'aces-filmic' }
 }));
 
 vi.mock('../../../hooks/useBattleMap', () => ({
@@ -66,7 +77,7 @@ vi.mock('../terrain', () => ({
   DecorationProps: () => null,
   GroundScatter: () => null,
   EzTreeLayer: () => null,
-  DistantTerrain: () => null,
+  TerrainApron: () => null,
   GroundMist: () => null,
   FordStones: () => null,
   makeTerrainHeightSampler: () => () => 0
@@ -152,7 +163,7 @@ describe('BattleMap3D visibility handoff', () => {
       getLightLevel: (tileId: string) => lightLevels.get(tileId) || 'darkness'
     });
 
-    render(
+    const { container } = render(
       <BattleMap3D
         mapData={mapData}
         characters={[hero]}
@@ -194,6 +205,11 @@ describe('BattleMap3D visibility handoff', () => {
       />
     );
 
+    // A tall scenario sidebar must not stretch the shared WebGL drawing buffer
+    // several pages below the visible camera controls. The viewport cap is a
+    // shared renderer guard; ordinary combat panes shorter than 100dvh still
+    // fill their parent exactly as before.
+    expect(container.firstElementChild).toHaveStyle({ maxHeight: '100dvh' });
     expect(mockUseVisibility).toHaveBeenCalledWith(expect.objectContaining({
       activeCharacterId: hero.id,
       combatState: expect.objectContaining({

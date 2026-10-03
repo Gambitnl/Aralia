@@ -903,6 +903,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a bell and silver wire; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -1885,6 +1909,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a morsel of food; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -2476,6 +2524,12 @@
     "effects": [
       {
         "type": "SUMMONING",
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "+2 Undead",
+          "customFormula": ""
+        },
+        "description": "Animate one pile of bones or one corpse of a Medium or Small Humanoid within 10 feet, creating one persistent Undead for 24 hours: bones become a Skeleton and a corpse becomes a Zombie.",
         "trigger": {
           "type": "immediate"
         },
@@ -2597,6 +2651,7 @@
           {
             "actionType": "bonus_action",
             "name": "Mentally Command Animated Undead",
+            "frequency": "each_turn",
             "rangeFeet": 60,
             "description": "On each of the caster's turns, the caster can use a Bonus Action to mentally command one or more Undead made by this spell within 60 feet, giving the same command to multiple controlled Undead."
           }
@@ -6012,6 +6067,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs specially marked sticks, bones, cards, or other divinatory tokens worth 25+ GP; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -9005,6 +9084,20 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -9627,7 +9720,14 @@
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "3": "up to 1 minute, Concentration",
+            "4": "up to 10 minutes, Concentration",
+            "5": "8 hours, no Concentration",
+            "7": "24 hours, no Concentration",
+            "9": "until dispelled, no Concentration"
+          }
         },
         "grantedActions": [],
         "attackAugments": [],
@@ -12863,7 +12963,7 @@
         },
         "scaling": {
           "type": "slot_level",
-          "bonusPerLevel": "",
+          "bonusPerLevel": "+2 pillars",
           "customFormula": ""
         },
         "description": "If a pillar is blocked by a ceiling or other obstacle, a creature on the pillar makes a Dexterity save, taking 6d6 Bludgeoning damage on a failed save or no damage on a success.",
@@ -14667,7 +14767,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -14717,7 +14820,10 @@
           "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -14747,7 +14853,8 @@
           "saveModifiers": [
             {
               "type": "advantage",
-              "reason": "The target has Advantage on the Wisdom saving throw if the caster or the caster's allies are fighting it."
+              "reason": "The target has Advantage on the Wisdom saving throw if the caster or the caster's allies are fighting it.",
+              "condition": "caster_or_allies_fighting_target"
             }
           ],
           "saveOutcomeOverrides": []
@@ -14954,6 +15061,7 @@
             {
               "type": "advantage",
               "reason": "The target has advantage on the saving throw if you or your companions are fighting it.",
+              "condition": "caster_or_allies_fighting_target",
               "value": 0,
               "appliesTo": {
                 "creatureTypes": [],
@@ -17382,6 +17490,7 @@
         "conditionalEndings": [
           {
             "trigger": "strong_wind",
+            "scope": "area",
             "result": "fog_disperses_and_spell_ends",
             "examples": [
               "Gust of Wind"
@@ -17678,7 +17787,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -17728,7 +17840,10 @@
           "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -17874,6 +17989,30 @@
       "Paladin - Oath of Devotion"
     ],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs incense; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -18076,6 +18215,33 @@
       "Paladin - Oath of the Ancients"
     ],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "location",
+          "value": [
+            "outdoors",
+            "indoors"
+          ],
+          "description": "Commune with Nature fails underground; the caster must be able to reach the natural world."
+        },
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -18301,6 +18467,58 @@
       "optionCount": 3,
       "optionsSource": "effects[0].controlOptions",
       "canDismissActive": false,
+      "options": [
+        {
+          "label": "Terrain and bodies of water",
+          "summary": "Learn information about terrain features and bodies of water in the spell's natural area.",
+          "controlOptionIndices": [
+            0
+          ],
+          "effectTypes": [
+            "UTILITY"
+          ]
+        },
+        {
+          "label": "Prevalent plants, minerals, animals, or peoples",
+          "summary": "Learn information about prevalent plants, minerals, Beasts, or peoples in the spell's natural area.",
+          "controlOptionIndices": [
+            1
+          ],
+          "effectTypes": [
+            "UTILITY"
+          ]
+        },
+        {
+          "label": "Powerful otherworldly creature",
+          "summary": "Learn about one DM-chosen powerful Celestial, Elemental, Fey, Fiend, or Undead in the spell's area.",
+          "controlOptionIndices": [
+            2
+          ],
+          "effectTypes": [
+            "UTILITY"
+          ]
+        },
+        {
+          "label": "Planar influence or portal",
+          "summary": "Learn whether planar influence, a portal, or similar other-planar feature affects the spell's area.",
+          "controlOptionIndices": [
+            3
+          ],
+          "effectTypes": [
+            "UTILITY"
+          ]
+        },
+        {
+          "label": "Settlements or constructed features",
+          "summary": "Learn about settlements or constructed features where they are relevant to the natural area and do not make the spell fail.",
+          "controlOptionIndices": [
+            4
+          ],
+          "effectTypes": [
+            "UTILITY"
+          ]
+        }
+      ],
       "notes": "The caster chooses three information categories; the DM answers those categories as they pertain to the spell's natural area."
     },
     "description": "You commune with nature spirits and gain knowledge of the surrounding area. In the outdoors, the spell gives you knowledge of the area within 3 miles of you. In caves and other natural underground settings, the radius is limited to 300 feet. The spell doesn't function where nature has been replaced by construction, such as in castles and settlements. Choose three of the following facts; you learn those facts as they pertain to the spell's area: For example, you could determine the location of a powerful monster in the area, the locations of bodies of water, and the locations of any towns.",
@@ -18365,7 +18583,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -18415,7 +18636,10 @@
           "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -18450,6 +18674,12 @@
         "taunt": {
           "disadvantageAgainstOthers": true,
           "leashRangeFeet": 30,
+          "breakEvents": [
+            "caster_attacks_other",
+            "caster_casts_spell_on_other_enemy",
+            "caster_ally_damages_target",
+            "caster_ends_turn_outside_leash"
+          ],
           "breakConditions": [
             "You attack another creature",
             "You cast a spell on an enemy other than the target",
@@ -18511,7 +18741,10 @@
           "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -18600,7 +18833,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -18697,6 +18933,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a pinch of soot and salt; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -19504,7 +19764,7 @@
         ],
         "scaling": {
           "type": "slot_level",
-          "bonusPerLevel": "",
+          "bonusPerLevel": "+5 feet Sphere radius",
           "customFormula": ""
         },
         "description": "Each creature in the 10-foot-radius Sphere centered on a point within 90 feet makes a Wisdom save or becomes Confused for up to 1 minute with concentration. While Confused, the target cannot take Bonus Actions or Reactions, rolls 1d10 at the start of each turn to determine that turn behavior from the spell table, and repeats the Wisdom save at the end of each turn to end the spell on itself; each slot level above 4 adds 5 feet to the Sphere radius.",
@@ -19717,7 +19977,7 @@
         ],
         "scaling": {
           "type": "slot_level",
-          "bonusPerLevel": "",
+          "bonusPerLevel": "+1d10",
           "customFormula": ""
         },
         "description": "Creates the summoned creature group as a persistent combat effect; form selection, creature count, and detailed command behavior are deferred to separate summoning work.",
@@ -20273,10 +20533,31 @@
       "playerInputRequired": true
     },
     "modeChoice": {
-      "selectionType": "choose_one_per_target",
+      "type": "choose_one_per_target",
+      "timing": "on_area_entry_or_turn_start",
+      "optionCount": 2,
+      "optionsSource": "effects[3].controlOptions",
       "options": [
-        "Healing Light",
-        "Searing Light"
+        {
+          "label": "Healing Light",
+          "summary": "The chosen target regains Hit Points equal to 4d12 plus the caster's spellcasting ability modifier.",
+          "effectIndices": [
+            1
+          ],
+          "effectTypes": [
+            "HEALING"
+          ]
+        },
+        {
+          "label": "Searing Light",
+          "summary": "The chosen target makes a Dexterity save, taking 6d12 Radiant damage on a failed save or half as much on a success.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "DAMAGE"
+          ]
+        }
       ],
       "secondaryChoices": [
         "initial cylinder point",
@@ -21900,6 +22181,28 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ],
+      "backlash": {
+        "type": "damage",
+        "value": "6d6",
+        "damageType": "psychic",
+        "saveDC": 15,
+        "minProgress": 0.5,
+        "description": "The alien mind on the far end of the contact tears free: DC 15 Intelligence save or take 6d6 psychic damage and go insane until the caster finishes a long rest."
+      }
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -23641,6 +23944,7 @@
         "conditionalEndings": [
           {
             "trigger": "caster_goes_indoors",
+            "scope": "area",
             "result": "spell_ends_early_and_weather_gradually_returns_to_normal"
           }
         ],
@@ -24303,7 +24607,7 @@
       "requiredCost": "reaction",
       "targetBinding": "triggering_spell_caster",
       "maxRangeFeet": 60,
-      "notes": "Routes Counterspell through the shared pre-command spell-interruption gate so the original spell can be stopped before its effects execute."
+      "notes": "Routes Counterspell through the shared pre-command spell-interruption gate so the original spell can be stopped before its effects execute. Empty-effects contract: Counterspell deliberately carries no rows in `effects`; its whole mechanic is the interruption described in `interruptionState`, which the reaction gate executes. The spell-to-ability factory therefore builds an ability with an empty effect list for it, and the corpus test in src/utils/character/__tests__/spellAbilityFactory.test.ts allows an empty list only for spells that declare `interruptionState`."
     },
     "interruptionState": {
       "event": "visible_creature_casts_spell",
@@ -26028,7 +26332,7 @@
         ],
         "scaling": {
           "type": "slot_level",
-          "bonusPerLevel": "",
+          "bonusPerLevel": "+5 feet Cube size",
           "customFormula": ""
         },
         "grantedActions": [],
@@ -29858,6 +30162,25 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -30077,6 +30400,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a yew leaf; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -31977,7 +32324,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -32027,7 +32377,10 @@
           "saveEffect": "half",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -32096,7 +32449,10 @@
           "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -32183,6 +32539,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs incense worth 25+ GP; the casting consumes it."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -33750,7 +34130,8 @@
           "saveModifiers": [
             {
               "type": "advantage",
-              "reason": "The target has Advantage on the Wisdom saving throw if the caster or the caster's allies are fighting it."
+              "reason": "The target has Advantage on the Wisdom saving throw if the caster or the caster's allies are fighting it.",
+              "condition": "caster_or_allies_fighting_target"
             }
           ],
           "saveOutcomeOverrides": []
@@ -33784,7 +34165,13 @@
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "4": "up to 1 minute",
+            "5": "up to 10 minutes",
+            "6": "up to 1 hour",
+            "7": "up to 8 hours"
+          }
         },
         "description": "One visible Beast within 60 feet makes a Wisdom save, with Advantage if the caster or the caster's allies are fighting it; on a failed save, it is Charmed for up to 1 minute, and each time it takes damage it repeats the Wisdom save, ending the spell on itself on a success.",
         "conditionalEndings": [],
@@ -33897,7 +34284,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -33945,7 +34335,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -34079,7 +34472,10 @@
           "type": "save",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -34111,7 +34507,10 @@
               "type": "advantage",
               "appliesTo": {
                 "creatureTypes": [],
-                "excludeCreatureTypes": [],
+                "excludeCreatureTypes": [
+                  "Construct",
+                  "Undead"
+                ],
                 "sizes": [],
                 "alignments": [],
                 "hasCondition": [],
@@ -34137,7 +34536,8 @@
                 },
                 "selfRelation": "not_applicable"
               },
-              "reason": "The target has Advantage on the save if the caster or caster allies are fighting it."
+              "reason": "The target has Advantage on the save if the caster or caster allies are fighting it.",
+              "condition": "caster_or_allies_fighting_target"
             }
           ],
           "saveType": "Wisdom",
@@ -34147,7 +34547,11 @@
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "8": "up to 1 hour",
+            "9": "up to 8 hours"
+          }
         },
         "description": "One visible creature within 60 feet has Advantage on the Wisdom save if you or your allies are fighting it; on a failed save, it is Charmed for the concentration duration, linked telepathically for commands, and repeats the save whenever it takes damage, ending the spell on a success.",
         "statusCondition": {
@@ -34305,7 +34709,9 @@
           }
         },
         "condition": {
-          "type": "always",
+          "type": "save",
+          "saveType": "Wisdom",
+          "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [
               "Humanoid"
@@ -34341,7 +34747,8 @@
             {
               "type": "advantage",
               "appliesTo": "initial_wisdom_save",
-              "condition": "The target has Advantage on the save if the caster or the caster's allies are fighting it."
+              "condition": "caster_or_allies_fighting_target",
+              "reason": "The target has Advantage on the save if the caster or the caster's allies are fighting it."
             }
           ],
           "saveOutcomeOverrides": [
@@ -35156,6 +35563,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a sapphire worth 1,000+ GP; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -36334,11 +36765,24 @@
       "playerInputRequired": true
     },
     "modeChoice": {
-      "selectionType": "choose_one",
+      "type": "choose_one",
+      "timing": "on_cast",
+      "optionCount": 3,
+      "optionsSource": "modeChoice.options",
+      "canDismissActive": false,
       "options": [
-        "Gust of Wind",
-        "Spike Growth",
-        "Wind Wall"
+        {
+          "label": "Gust of Wind",
+          "summary": "Place a Gust of Wind effect within the warded grove; creatures declared immune treat it as a gentle fragrant breeze."
+        },
+        {
+          "label": "Spike Growth",
+          "summary": "Place a Spike Growth effect within the warded grove; creatures declared immune can cross it harmlessly."
+        },
+        {
+          "label": "Wind Wall",
+          "summary": "Place a Wind Wall effect within the warded grove; creatures declared immune treat it as a gentle fragrant breeze."
+        }
       ],
       "secondaryChoices": [
         "warded area size and placement",
@@ -37833,7 +38277,12 @@
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "3": "+1 to attack rolls, 1d4 extra damage",
+            "5": "+2 to attack rolls, 2d4 extra damage",
+            "7": "+3 to attack rolls, 3d4 extra damage"
+          }
         },
         "description": "The touched weapon deals an extra 1d4 damage of the chosen Acid, Cold, Fire, Lightning, or Thunder type when it hits.",
         "conditionalEndings": []
@@ -38441,7 +38890,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -38491,7 +38943,10 @@
           "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -43063,6 +43518,22 @@
           "requestChannel": "caster asks services in a friendly manner while target is charmed",
           "harmfulRequestSave": "target repeats save when asked to do something that would harm it"
         },
+        "grantedActions": [
+          {
+            "type": "action",
+            "action": "Request Service",
+            "frequency": "while_active",
+            "actor": "caster",
+            "actionKind": "standard_action",
+            "targeting": "single_any",
+            "socialServiceRequest": "fast_friends",
+            "prerequisites": [
+              "target_within_spell_range"
+            ],
+            "rangeLimit": 30,
+            "notes": "Ask the charmed creature to undertake a service; classify the request as friendly, harmful, conflicting, or certain death."
+          }
+        ],
         "memoryState": {
           "kind": "post_charm_awareness",
           "when": "spell_ends",
@@ -43527,7 +43998,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -43575,7 +44049,10 @@
           "type": "save",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -43639,7 +44116,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -43749,7 +44229,10 @@
           "type": "save",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -43820,6 +44303,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a pinch of graveyard dirt; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -44103,6 +44610,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs burning incense worth 10+ GP, which the spell consumes; the casting consumes it."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -47136,7 +47667,7 @@
         },
         "scaling": {
           "type": "slot_level",
-          "bonusPerLevel": "",
+          "bonusPerLevel": "+2 pieces of ammunition",
           "customFormula": ""
         },
         "description": "A target hit by a ranged weapon attack using ammunition drawn from the touched quiver takes an extra 1d6 Fire damage.",
@@ -48923,6 +49454,7 @@
         "conditionalEndings": [
           {
             "trigger": "strong_wind",
+            "scope": "area",
             "result": "fog_disperses_and_spell_ends",
             "examples": [
               "Gust of Wind"
@@ -48988,6 +49520,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs ruby dust worth 1,000+ GP; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -50581,7 +51137,9 @@
       "lineOfSight": true,
       "maxTargets": 1,
       "filter": {
-        "creatureTypes": [],
+        "creatureTypes": [
+          "Humanoid"
+        ],
         "excludeCreatureTypes": [],
         "sizes": [],
         "alignments": [],
@@ -50631,7 +51189,9 @@
           "saveType": "Wisdom",
           "saveEffect": "negates_condition",
           "targetFilter": {
-            "creatureTypes": [],
+            "creatureTypes": [
+              "Humanoid"
+            ],
             "excludeCreatureTypes": [],
             "sizes": [],
             "alignments": [],
@@ -51116,6 +51676,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a fragment of stone, wood, or other building material; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -52177,7 +52761,12 @@
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "5": "30 days",
+            "7": "365 days",
+            "9": "until ended by remove curse, greater restoration, or wish"
+          }
         },
         "grantedActions": [],
         "attackAugments": [],
@@ -52345,6 +52934,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs 2 Copper Pieces, which the spell consumes; the casting consumes it."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -53488,8 +54101,8 @@
         },
         "scaling": {
           "type": "slot_level",
-          "bonusPerLevel": "",
-          "customFormula": ""
+          "bonusPerLevel": "+1d8",
+          "customFormula": "A spell glyph can store a spell of up to the level of the slot used to cast Glyph of Warding."
         },
         "description": "When the explosive rune is triggered, each creature in the 20-foot-radius Sphere centered on the glyph makes a Dexterity save, taking 5d8 Acid, Cold, Fire, Lightning, or Thunder damage chosen when the glyph was created on a failure or half as much on a success; the glyph breaks harmlessly if moved more than 10 feet from where it was cast, and each slot level above 3 adds +1d8 damage.",
         "conditionalEndings": [
@@ -54080,7 +54693,7 @@
         },
         "scaling": {
           "type": "slot_level",
-          "bonusPerLevel": "",
+          "bonusPerLevel": "+1 creature grappled",
           "customFormula": ""
         },
         "description": "On the triggering melee spell attack hit from the vine, a Huge or smaller target gains the Grappled condition for up to 1 minute and can use an action to make the spell-save-DC escape check.",
@@ -55036,8 +55649,45 @@
       "type": "choose_one",
       "timing": "on_cast",
       "optionCount": 5,
-      "optionsSource": "effects[0].controlOptions",
+      "optionsSource": "controlOptions",
       "canDismissActive": false,
+      "options": [
+        {
+          "label": "Remove Exhaustion",
+          "summary": "Remove one Exhaustion level from the touched creature.",
+          "controlOptionIndices": [
+            0
+          ]
+        },
+        {
+          "label": "Remove Charmed or Petrified",
+          "summary": "Remove either the Charmed condition or the Petrified condition from the touched creature.",
+          "controlOptionIndices": [
+            1
+          ]
+        },
+        {
+          "label": "Remove Curse",
+          "summary": "End a curse affecting the creature, including attunement to a cursed magic item.",
+          "controlOptionIndices": [
+            2
+          ]
+        },
+        {
+          "label": "Restore Ability Score",
+          "summary": "End one reduction to one of the target's ability scores.",
+          "controlOptionIndices": [
+            3
+          ]
+        },
+        {
+          "label": "Restore Hit Point Maximum",
+          "summary": "End one reduction to the target's Hit Point maximum.",
+          "controlOptionIndices": [
+            4
+          ]
+        }
+      ],
       "notes": "Greater Restoration removes exactly one listed major affliction per casting."
     },
     "description": "You touch a creature and magically remove one of the following effects from it:\n1 Exhaustion level\nThe Charmed or Petrified condition\nA curse, including the target's Attunement to a cursed magic item\nAny reduction to one of the target's ability scores\nAny reduction to the target's Hit Point maximum",
@@ -55533,6 +56183,7 @@
     "aliases": [],
     "level": 4,
     "school": "Transmutation",
+    "source": "XGE p. 157 (5e.tools)",
     "legacy": false,
     "classes": [
       "Druid",
@@ -55613,91 +56264,29 @@
       {
         "type": "UTILITY",
         "trigger": {
-          "type": "immediate",
-          "frequency": "every_time",
-          "consumption": "unlimited",
-          "attackFilter": {
-            "weaponType": "any",
-            "attackType": "any"
-          },
-          "movementType": "any",
-          "sustainCost": {
-            "actionType": "action",
-            "optional": false
-          }
+          "type": "immediate"
         },
         "condition": {
-          "type": "always",
-          "targetFilter": {
-            "creatureTypes": [],
-            "excludeCreatureTypes": [],
-            "sizes": [],
-            "alignments": [],
-            "hasCondition": [],
-            "isNativeToPlane": false,
-            "willing": "not_applicable",
-            "objectEligibility": {
-              "wornOrCarried": "not_applicable",
-              "magicalStatus": "not_applicable",
-              "fixedToSurface": "not_applicable",
-              "maxSize": "not_applicable",
-              "maxWeightPounds": "not_applicable",
-              "maxWeightScaling": "not_applicable"
-            },
-            "communicationPrerequisites": {
-              "canHearCaster": "not_applicable",
-              "canUnderstandCaster": "not_applicable",
-              "canSeeCaster": "not_applicable"
-            },
-            "abilityThreshold": {
-              "ability": "not_applicable",
-              "operator": "not_applicable",
-              "value": "not_applicable"
-            },
-            "selfRelation": "not_applicable"
-          },
-          "requiresStatus": [],
-          "saveModifiers": [],
-          "saveOutcomeOverrides": []
+          "type": "always"
         },
         "utilityType": "other",
-        "description": "Transforms the caster into a primal guardian form for the duration, granting a nature-themed combat and movement buff chosen from the spell's available forms.",
-        "scaling": {
-          "type": "slot_level",
-          "bonusPerLevel": "",
-          "customFormula": ""
+        "description": "Transforms the caster into a Primal Beast for the duration, granting 10 feet of walking speed, 120-foot darkvision, Advantage on Strength-based attack rolls, and an extra 1d6 Force damage on melee weapon hits.",
+        "tags": [
+          "self-buff",
+          "primal-form",
+          "mode-choice"
+        ]
+      },
+      {
+        "type": "UTILITY",
+        "trigger": {
+          "type": "immediate"
         },
-        "grantedActions": [],
-        "attackAugments": [],
-        "controlOptions": [],
-        "taunt": {
-          "disadvantageAgainstOthers": false,
-          "leashRangeFeet": 0,
-          "breakConditions": []
+        "condition": {
+          "type": "always"
         },
-        "savePenalty": {
-          "dice": "",
-          "flat": 0,
-          "applies": "next_save",
-          "duration": {
-            "type": "rounds",
-            "value": 0
-          }
-        },
-        "light": {
-          "brightRadius": 0,
-          "dimRadius": 0,
-          "attachedTo": "caster",
-          "color": "",
-          "colorChoice": "not_applicable",
-          "opaqueCoverBlocks": "not_applicable",
-          "emitsHeat": "not_applicable",
-          "ignitesObjects": "not_applicable",
-          "consumesFuel": "not_applicable",
-          "canBeCoveredOrHidden": "not_applicable",
-          "canBeSmotheredOrQuenched": "not_applicable"
-        },
-        "conditionalEndings": [],
+        "utilityType": "other",
+        "description": "Transforms the caster into a Great Tree for the duration, granting 10 temporary hit points, Advantage on Constitution saves and Dexterity- or Wisdom-based attack rolls, and makes ground within 15 feet difficult terrain for enemies while you are on the ground.",
         "tags": [
           "self-buff",
           "primal-form",
@@ -55710,14 +56299,45 @@
       "prompt": "",
       "playerInputRequired": false
     },
-    "description": "A nature spirit answers your call and transforms you into a powerful guardian. The transformation lasts until the spell ends. You choose one of the following forms to assume: Primal Beast or Great Tree. Primal Beast. Bestial fur covers your body, your facial features become feral, and you gain the following benefits: Great Tree. Your skin appears barky, leaves sprout from your hair, and you gain the following benefits:",
+    "description": "Choose Primal Beast or Great Tree when you cast this spell. Primal Beast grants 10 feet of walking speed, 120-foot darkvision, Advantage on Strength-based attack rolls, and an extra 1d6 Force damage on melee weapon hits. Great Tree grants 10 temporary hit points, Advantage on Constitution saves and Dexterity- or Wisdom-based attack rolls, and makes ground within 15 feet difficult terrain for enemies while you are on the ground.",
     "higherLevels": "",
     "tags": [
       "buff",
       "shapechanging",
       "self-buff",
       "concentration"
-    ]
+    ],
+    "modeChoice": {
+      "type": "choose_one",
+      "timing": "on_cast",
+      "optionCount": 2,
+      "optionsSource": "effects",
+      "canDismissActive": false,
+      "options": [
+        {
+          "label": "Primal Beast",
+          "summary": "You gain 10 feet of walking speed, 120-foot darkvision, Advantage on Strength-based attack rolls, and an extra 1d6 Force damage on melee weapon hits.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "UTILITY"
+          ],
+          "duration": "timed"
+        },
+        {
+          "label": "Great Tree",
+          "summary": "You gain 10 temporary hit points, Advantage on Constitution saves and Dexterity- or Wisdom-based attack rolls, and makes ground within 15 feet difficult terrain for enemies while you are on the ground.",
+          "effectIndices": [
+            1
+          ],
+          "effectTypes": [
+            "UTILITY"
+          ],
+          "duration": "timed"
+        }
+      ]
+    }
   },
   "guards-and-wards": {
     "id": "guards-and-wards",
@@ -56028,13 +56648,32 @@
       "playerInputRequired": true
     },
     "modeChoice": {
-      "selectionType": "choose_one",
+      "type": "choose_one",
+      "timing": "on_cast",
+      "optionCount": 5,
+      "optionsSource": "modeChoice.options",
+      "canDismissActive": false,
       "options": [
-        "Dancing Lights",
-        "Magic Mouth",
-        "Stinking Cloud",
-        "Gust of Wind",
-        "Suggestion"
+        {
+          "label": "Dancing Lights",
+          "summary": "Place Dancing Lights in four corridors of the warded area and assign their repeating patrol pattern."
+        },
+        {
+          "label": "Magic Mouth",
+          "summary": "Place Magic Mouth at two locations in the warded area with messages chosen by the caster."
+        },
+        {
+          "label": "Stinking Cloud",
+          "summary": "Place Stinking Cloud at two locations in the warded area; the vapors return after dispersal while the ward lasts."
+        },
+        {
+          "label": "Gust of Wind",
+          "summary": "Place a constant Gust of Wind in one corridor or room of the warded area."
+        },
+        {
+          "label": "Suggestion",
+          "summary": "Place one Suggestion effect at a chosen location in the warded area."
+        }
       ],
       "secondaryChoices": [
         "ward shape",
@@ -57418,8 +58057,80 @@
       "type": "choose_one",
       "timing": "on_cast",
       "optionCount": 10,
-      "optionsSource": "effects[0].controlOptions",
+      "optionsSource": "controlOptions",
       "canDismissActive": false,
+      "options": [
+        {
+          "label": "Courage",
+          "summary": "Chosen creature types cannot gain the Frightened condition while in the area.",
+          "controlOptionIndices": [
+            0
+          ]
+        },
+        {
+          "label": "Darkness",
+          "summary": "Darkness fills the area and lower-level magical light cannot illuminate it.",
+          "controlOptionIndices": [
+            1
+          ]
+        },
+        {
+          "label": "Daylight",
+          "summary": "Bright light fills the area and lower-level magical Darkness cannot extinguish it.",
+          "controlOptionIndices": [
+            2
+          ]
+        },
+        {
+          "label": "Peaceful Rest",
+          "summary": "Dead bodies interred in the area cannot be turned into Undead.",
+          "controlOptionIndices": [
+            3
+          ]
+        },
+        {
+          "label": "Extradimensional Interference",
+          "summary": "Chosen creature types cannot enter or exit using teleportation or interplanar travel.",
+          "controlOptionIndices": [
+            4
+          ]
+        },
+        {
+          "label": "Fear",
+          "summary": "Chosen creature types have the Frightened condition while in the area.",
+          "controlOptionIndices": [
+            5
+          ]
+        },
+        {
+          "label": "Resistance",
+          "summary": "Chosen creature types gain Resistance to one selected damage type in the area.",
+          "controlOptionIndices": [
+            6
+          ]
+        },
+        {
+          "label": "Silence",
+          "summary": "No sound can emanate from within the area or reach into it.",
+          "controlOptionIndices": [
+            7
+          ]
+        },
+        {
+          "label": "Tongues",
+          "summary": "Chosen creature types can communicate with any other creature in the area.",
+          "controlOptionIndices": [
+            8
+          ]
+        },
+        {
+          "label": "Vulnerability",
+          "summary": "Chosen creature types gain Vulnerability to one selected damage type in the area.",
+          "controlOptionIndices": [
+            9
+          ]
+        }
+      ],
       "secondaryChoices": {
         "hallowedWardCreatureTypeOptions": [
           "Aberration",
@@ -59129,6 +59840,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a gem-encrusted bowl worth 1,000+ GP, which the spell consumes; the casting consumes it."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -60113,7 +60848,13 @@
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "1": "up to 1 hour",
+            "2": "up to 4 hours",
+            "3": "up to 8 hours",
+            "5": "up to 24 hours"
+          }
         },
         "grantedActions": [],
         "attackAugments": [],
@@ -60340,7 +61081,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -60388,7 +61132,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -62069,7 +62816,12 @@
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "1": "up to 1 hour",
+            "3": "up to 8 hours",
+            "5": "up to 24 hours"
+          }
         },
         "grantedActions": [],
         "attackAugments": [],
@@ -62987,6 +63739,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a pearl worth 100+ GP; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -63673,6 +64449,25 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs ink worth 10+ GP, which the spell consumes; the casting consumes it."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -65078,6 +65873,7 @@
         "conditionalEndings": [
           {
             "trigger": "strong_wind",
+            "scope": "area",
             "result": "cloud_disperses_and_spell_ends",
             "examples": [
               "Gust of Wind"
@@ -70104,6 +70900,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a crystal bead; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -71924,6 +72744,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs fur from a bloodhound; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -73806,6 +74650,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs salt and powdered silver worth 100+ GP, which the spell consumes; the casting consumes it."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -73966,7 +74834,7 @@
         },
         "scaling": {
           "type": "slot_level",
-          "bonusPerLevel": "",
+          "bonusPerLevel": "+1 hour duration",
           "customFormula": ""
         },
         "grantedActions": [],
@@ -74721,6 +75589,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs jade dust worth 10+ GP, which the spell consumes; the casting consumes it."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -75607,7 +76499,11 @@
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "3": "10 minutes, Concentration",
+            "4": "until dispelled, no Concentration"
+          }
         },
         "grantedActions": [],
         "attackAugments": [],
@@ -76953,7 +77849,13 @@
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "6": "24 hours",
+            "7": "10 days",
+            "8": "30 days",
+            "9": "366 days"
+          }
         },
         "grantedActions": [],
         "attackAugments": [],
@@ -77277,6 +78179,34 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "location",
+          "value": [
+            "outdoors",
+            "indoors",
+            "underground"
+          ],
+          "description": "The ritual needs a stone object or surface large enough to hold the caster."
+        },
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -80110,7 +81040,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -80160,7 +81093,10 @@
           "saveEffect": "none",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -80229,7 +81165,10 @@
           "saveEffect": "none",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -82067,7 +83006,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -82115,7 +83057,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -82282,7 +83227,10 @@
           "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -82312,7 +83260,8 @@
           "saveModifiers": [
             {
               "type": "advantage",
-              "reason": "The target has advantage on the Wisdom save if you are fighting it."
+              "reason": "The target has advantage on the Wisdom save if you are fighting it.",
+              "condition": "caster_fighting_target"
             }
           ],
           "saveOutcomeOverrides": []
@@ -82407,7 +83356,10 @@
           "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -82437,7 +83389,8 @@
           "saveModifiers": [
             {
               "type": "advantage",
-              "reason": "The target has advantage on the Wisdom save if you are fighting it."
+              "reason": "The target has advantage on the Wisdom save if you are fighting it.",
+              "condition": "caster_fighting_target"
             }
           ],
           "saveOutcomeOverrides": []
@@ -86787,7 +87740,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -86837,7 +87793,10 @@
           "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -86994,7 +87953,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -88241,6 +89203,25 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -88803,12 +89784,28 @@
       "playerInputRequired": true
     },
     "modeChoice": {
-      "selectionType": "choose_one",
+      "type": "choose_one",
+      "timing": "on_cast",
+      "optionCount": 4,
+      "optionsSource": "modeChoice.options",
+      "canDismissActive": false,
       "options": [
-        "Celestial",
-        "Elemental",
-        "Fiend",
-        "Specific named creature"
+        {
+          "label": "Celestial",
+          "summary": "Request that the known cosmic power send a Celestial ally to the chosen unoccupied space."
+        },
+        {
+          "label": "Elemental",
+          "summary": "Request that the known cosmic power send an Elemental ally to the chosen unoccupied space."
+        },
+        {
+          "label": "Fiend",
+          "summary": "Request that the known cosmic power send a Fiend ally to the chosen unoccupied space."
+        },
+        {
+          "label": "Specific Named Creature",
+          "summary": "Request a known creature by name; the cosmic power can send a different eligible ally instead."
+        }
       ],
       "secondaryChoices": [
         "known cosmic power",
@@ -88979,7 +89976,14 @@
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "5": "24 hours",
+            "6": "10 days",
+            "7": "30 days",
+            "8": "180 days",
+            "9": "a year and a day"
+          }
         },
         "grantedActions": [],
         "attackAugments": [],
@@ -89117,7 +90121,14 @@
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "5": "24 hours",
+            "6": "10 days",
+            "7": "30 days",
+            "8": "180 days",
+            "9": "a year and a day"
+          }
         },
         "description": "On a failed Charisma save, the Celestial, Elemental, Fey, or Fiend gains the Bound condition and serves the caster for the 24-hour base duration; higher slots extend Bound to 10 days at slot 6, 30 days at slot 7, 180 days at slot 8, or a year and a day at slot 9.",
         "conditionalEndings": [
@@ -90777,7 +91788,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -90825,7 +91839,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -90893,7 +91910,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -91029,7 +92049,7 @@
       "isConsumed": false
     },
     "duration": {
-      "type": "special",
+      "type": "instantaneous",
       "concentration": false,
       "value": 0,
       "unit": "round"
@@ -91045,7 +92065,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -91093,7 +92116,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -91191,7 +92217,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -91271,7 +92300,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -91346,7 +92378,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -91544,7 +92579,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -91599,7 +92637,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -91705,7 +92746,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -91775,7 +92819,10 @@
           "type": "always",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -96123,6 +97170,25 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -96610,6 +97676,7 @@
         "conditionalEndings": [
           {
             "trigger": "strong_wind",
+            "scope": "area",
             "result": "smoke_disperses_early"
           }
         ],
@@ -96952,6 +98019,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs pieces of eggshell from two different kinds of creatures; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -101623,7 +102714,7 @@
         },
         "scaling": {
           "type": "slot_level",
-          "bonusPerLevel": "",
+          "bonusPerLevel": "+1d6",
           "customFormula": ""
         },
         "description": "On the triggering weapon hit, the target takes 1d6 Fire damage as the smite damage rider.",
@@ -101716,7 +102807,7 @@
         ],
         "scaling": {
           "type": "slot_level",
-          "bonusPerLevel": "",
+          "bonusPerLevel": "+1d6",
           "customFormula": ""
         },
         "description": "On the triggering melee weapon hit, the target gains the Ignited condition for up to 1 minute; at the start of each of its turns, it takes 1d6 Fire damage and then makes a Constitution save that ends the spell on a success.",
@@ -102852,10 +103943,20 @@
       "playerInputRequired": true
     },
     "modeChoice": {
-      "selectionType": "choose_one",
+      "type": "choose_one",
+      "timing": "on_cast",
+      "optionCount": 2,
+      "optionsSource": "modeChoice.options",
+      "canDismissActive": false,
       "options": [
-        "Object",
-        "Willing creature"
+        {
+          "label": "Object",
+          "summary": "Hide the touched object from sight, Divination, magical detection, and remote viewing until the spell ends."
+        },
+        {
+          "label": "Willing Creature",
+          "summary": "Hide the willing creature and place it in suspended animation without aging or needing food, water, or air."
+        }
       ],
       "secondaryChoices": [
         "early ending condition",
@@ -105698,6 +106799,25 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -106902,6 +108022,25 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -107216,7 +108355,9 @@
           "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -107300,7 +108441,9 @@
           "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -108770,9 +109913,15 @@
         "utilityType": "other",
         "description": "Choose one creature within 15 feet that has 0 Hit Points and is not dead; the creature becomes Stable and is no longer dying. The range increases to 30 feet at level 5, 60 feet at level 11, and 120 feet at level 17.",
         "scaling": {
-          "type": "slot_level",
+          "type": "character_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "1": "15 feet",
+            "5": "30 feet",
+            "11": "60 feet",
+            "17": "120 feet"
+          }
         },
         "grantedActions": [],
         "attackAugments": [],
@@ -108908,6 +110057,25 @@
       "Paladin - Oath of the Ancients"
     ],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -110124,6 +111292,68 @@
           "response": "2d4_piercing_damage_per_5_feet_moved",
           "detection": "creature_that_could_not_see_casting_area_must_Search_and_succeed_to_notice_hazard"
         }
+      },
+      {
+        "type": "DAMAGE",
+        "trigger": {
+          "type": "on_move_in_area",
+          "frequency": "every_time",
+          "consumption": "unlimited",
+          "attackFilter": {
+            "weaponType": "any",
+            "attackType": "any"
+          },
+          "movementType": "any",
+          "sustainCost": {
+            "actionType": "action",
+            "optional": false
+          }
+        },
+        "condition": {
+          "type": "always",
+          "targetFilter": {
+            "creatureTypes": [],
+            "excludeCreatureTypes": [],
+            "sizes": [],
+            "alignments": [],
+            "hasCondition": [],
+            "isNativeToPlane": false,
+            "willing": "not_applicable",
+            "objectEligibility": {
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
+              "fixedToSurface": "not_applicable",
+              "maxSize": "not_applicable",
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
+            },
+            "communicationPrerequisites": {
+              "canHearCaster": "not_applicable",
+              "canUnderstandCaster": "not_applicable",
+              "canSeeCaster": "not_applicable"
+            },
+            "abilityThreshold": {
+              "ability": "not_applicable",
+              "operator": "not_applicable",
+              "value": "not_applicable"
+            },
+            "selfRelation": "not_applicable"
+          },
+          "requiresStatus": [],
+          "saveModifiers": [],
+          "saveOutcomeOverrides": []
+        },
+        "damage": {
+          "dice": "2d4",
+          "type": "Piercing"
+        },
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "",
+          "customFormula": ""
+        },
+        "description": "A creature takes 2d4 Piercing damage for every 5 feet it moves into or within the 20-foot-radius Sphere; the runtime fires this row once per 5-foot step traveled inside the area.",
+        "conditionalEndings": []
       }
     ],
     "arbitrationType": "mechanical",
@@ -111749,6 +112979,7 @@
         "conditionalEndings": [
           {
             "trigger": "strong_wind",
+            "scope": "area",
             "result": "cloud_disperses_and_spell_ends",
             "examples": [
               "Gust of Wind"
@@ -116494,7 +117725,12 @@
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
-          "customFormula": ""
+          "customFormula": "",
+          "scalingTiers": {
+            "3": "the rolled number of demons",
+            "6": "twice the rolled number of demons",
+            "8": "three times the rolled number of demons"
+          }
         },
         "grantedActions": [],
         "attackAugments": [],
@@ -118670,14 +119906,72 @@
       "playerInputRequired": true
     },
     "modeChoice": {
-      "selectionType": "choose_one",
+      "type": "choose_one",
+      "timing": "on_cast",
+      "optionCount": 6,
+      "optionsSource": "effects",
+      "canDismissActive": false,
       "options": [
-        "Death",
-        "Discord",
-        "Fear",
-        "Pain",
-        "Sleep",
-        "Stunning"
+        {
+          "label": "Death",
+          "summary": "Targets make a Constitution save against 10d10 Necrotic damage.",
+          "effectIndices": [
+            0
+          ],
+          "effectTypes": [
+            "DAMAGE"
+          ]
+        },
+        {
+          "label": "Discord",
+          "summary": "Targets make a Wisdom save or argue for 1 minute with impaired attacks, checks, and communication.",
+          "effectIndices": [
+            5
+          ],
+          "effectTypes": [
+            "ATTACK_ROLL_MODIFIER"
+          ]
+        },
+        {
+          "label": "Fear",
+          "summary": "Targets make a Wisdom save or become Frightened for 1 minute and move away from the glyph.",
+          "effectIndices": [
+            1
+          ],
+          "effectTypes": [
+            "STATUS_CONDITION"
+          ]
+        },
+        {
+          "label": "Pain",
+          "summary": "Targets make a Constitution save or become Incapacitated for 1 minute.",
+          "effectIndices": [
+            2
+          ],
+          "effectTypes": [
+            "STATUS_CONDITION"
+          ]
+        },
+        {
+          "label": "Sleep",
+          "summary": "Targets make a Wisdom save or become Unconscious for 10 minutes, ending on damage or being shaken awake.",
+          "effectIndices": [
+            3
+          ],
+          "effectTypes": [
+            "STATUS_CONDITION"
+          ]
+        },
+        {
+          "label": "Stunning",
+          "summary": "Targets make a Wisdom save or become Stunned for 1 minute.",
+          "effectIndices": [
+            4
+          ],
+          "effectTypes": [
+            "STATUS_CONDITION"
+          ]
+        }
       ],
       "secondaryChoices": [
         "glyph surface or object",
@@ -119488,7 +120782,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -119538,7 +120835,10 @@
           "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -119618,7 +120918,10 @@
           "saveEffect": "negates_condition",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -120550,10 +121853,20 @@
       "playerInputRequired": true
     },
     "modeChoice": {
-      "selectionType": "choose_one",
+      "type": "choose_one",
+      "timing": "on_cast",
+      "optionCount": 2,
+      "optionsSource": "modeChoice.options",
+      "canDismissActive": false,
       "options": [
-        "Caster plus willing creatures",
-        "Single eligible object"
+        {
+          "label": "Caster Plus Willing Creatures",
+          "summary": "Transport the caster and up to eight willing visible creatures to the selected known destination on the same plane."
+        },
+        {
+          "label": "Single Eligible Object",
+          "summary": "Transport one visible Large-or-smaller object that is not held or carried by an unwilling creature."
+        }
       ],
       "secondaryChoices": [
         "selected travelers or object",
@@ -121436,6 +122749,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a drop of mercury; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -127202,6 +128539,7 @@
         "conditionalEndings": [
           {
             "trigger": "wall_height_reaches_0_feet",
+            "scope": "area",
             "result": "spell_ends"
           }
         ],
@@ -127474,6 +128812,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a bit of string and of wood; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -128136,7 +129498,10 @@
       "maxTargets": 1,
       "filter": {
         "creatureTypes": [],
-        "excludeCreatureTypes": [],
+        "excludeCreatureTypes": [
+          "Construct",
+          "Undead"
+        ],
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
@@ -128186,7 +129551,10 @@
           "saveEffect": "none",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -128255,7 +129623,10 @@
           "saveEffect": "none",
           "targetFilter": {
             "creatureTypes": [],
-            "excludeCreatureTypes": [],
+            "excludeCreatureTypes": [
+              "Construct",
+              "Undead"
+            ],
             "sizes": [],
             "alignments": [],
             "hasCondition": [],
@@ -129903,11 +131274,24 @@
       "playerInputRequired": true
     },
     "modeChoice": {
-      "selectionType": "choose_one",
+      "type": "choose_one",
+      "timing": "on_cast",
+      "optionCount": 3,
+      "optionsSource": "modeChoice.options",
+      "canDismissActive": false,
       "options": [
-        "Hemisphere",
-        "Globe",
-        "Flat contiguous panels"
+        {
+          "label": "Hemisphere",
+          "summary": "Create a 1-foot-thick hemispherical ice dome with a radius of up to 10 feet on a solid surface."
+        },
+        {
+          "label": "Globe",
+          "summary": "Create a 1-foot-thick ice globe with a radius of up to 10 feet on a solid surface."
+        },
+        {
+          "label": "Flat Contiguous Panels",
+          "summary": "Create up to ten contiguous 10-foot-square ice panels on a solid surface."
+        }
       ],
       "secondaryChoices": [
         "solid-surface placement",
@@ -132253,6 +133637,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a short reed; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {
@@ -132453,6 +133861,30 @@
     ],
     "subClasses": [],
     "ritual": true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a piece of cork; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity": "common",
     "attackType": "",
     "castingTime": {

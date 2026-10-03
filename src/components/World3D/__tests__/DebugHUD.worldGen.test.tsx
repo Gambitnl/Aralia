@@ -7,7 +7,8 @@ import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import DebugHUD from '../DebugHUD';
 
-const baseProps = { chunkCount: 0, fps: 60, playerPos: null };
+// No `fps` prop: the HUD reads the shared 'world3d' perf session (src/devtools/perf).
+const baseProps = { chunkCount: 0, playerPos: null };
 
 describe('DebugHUD world-generation provenance', () => {
   it('shows the primary source label and no warning for azgaar-derived worlds', () => {

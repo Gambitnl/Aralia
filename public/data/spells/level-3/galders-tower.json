@@ -1,6 +1,6 @@
 {
     "id":  "galders-tower",
-    "name":  "Galder\u0027s Tower",
+    "name":  "Galder's Tower",
     "aliases":  [
 
                 ],
@@ -14,6 +14,30 @@
 
                    ],
     "ritual":  true,
+    "ritualData": {
+      "requirements": [
+        {
+          "type": "custom",
+          "value": "component:verbal",
+          "description": "The ritual must be chanted aloud from start to finish."
+        },
+        {
+          "type": "custom",
+          "value": "component:somatic",
+          "description": "The ritual needs a free hand for its gestures throughout."
+        },
+        {
+          "type": "custom",
+          "value": "component:material",
+          "description": "The ritual needs a fragment of stone, wood, or other building material; it is held throughout the casting."
+        },
+        {
+          "type": "custom",
+          "value": "uninterrupted_casting",
+          "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+        }
+      ]
+    },
     "rarity":  "common",
     "attackType":  "",
     "castingTime":  {
@@ -178,7 +202,7 @@
                         "createdObjects":  [
                                                {
                                                    "objectType":  "structure",
-                                                   "name":  "Galder\u0027s Tower",
+                                                   "name":  "Galder's Tower",
                                                    "count":  1,
                                                    "countUnit":  "structure",
                                                    "appearsIn":  "ground",
@@ -258,7 +282,7 @@
                       "prompt":  "",
                       "playerInputRequired":  false
                   },
-    "description":  "You conjure a two-story tower made of stone, wood, or other similar materials. The tower can be round or square in shape. Each level of the tower is 10 feet tall and has an area of up to 100 square feet. Access between levels is provided by a simple ladder and hatch. The tower has sturdy doors and windows that can be barred from the inside. You choose the furnishings and decorations of the tower, which are simple but comfortable. The tower is warm and dry, regardless of the weather outside. You can cast this spell again while it is active to maintain the tower\u0027s existence for another 24 hours. You can create a permanent tower by casting this spell in the same location and with the same configuration every day for one year.",
+    "description":  "You conjure a two-story tower made of stone, wood, or other similar materials. The tower can be round or square in shape. Each level of the tower is 10 feet tall and has an area of up to 100 square feet. Access between levels is provided by a simple ladder and hatch. The tower has sturdy doors and windows that can be barred from the inside. You choose the furnishings and decorations of the tower, which are simple but comfortable. The tower is warm and dry, regardless of the weather outside. You can cast this spell again while it is active to maintain the tower's existence for another 24 hours. You can create a permanent tower by casting this spell in the same location and with the same configuration every day for one year.",
     "higherLevels":  "When you cast this spell using a spell slot of 4th level or higher, the tower can have one additional story for each slot level above 3rd.",
     "tags":  [
                  "creation",

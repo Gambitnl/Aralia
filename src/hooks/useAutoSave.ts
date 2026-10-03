@@ -27,6 +27,13 @@ import * as SaveLoadService from '../services/saveLoadService';
  *
  * App.tsx supplies the live GameState. The save service owns serialization,
  * storage selection, slot metadata, and migration behavior.
+ *
+ * agora-f821.63: this hook deliberately does NOT dispatch the dice counter that
+ * `saveGame` returns back into state, unlike the manual save paths. Every
+ * autosave therefore writes the same counter for the whole session, so an
+ * autosave slot reloaded twice replays the same dice — which is exactly the
+ * property the save-scum setting is protecting. Dispatching here would also
+ * re-arm this hook's own state-change effect on every write.
  */
 
 const AUTO_SAVE_DEBOUNCE_MS = 1500;
@@ -129,11 +136,18 @@ export function useAutoSave(gameState: GameState, enabledOverride?: boolean) {
 
     // Debounce + throttle: frequent actions reschedule, but we still guarantee
     // a save at least every AUTO_SAVE_THROTTLE_MS while the player is active.
+    //
+    // The guarantee has to be a SHORTER delay, never a longer one. The world
+    // clock dispatches a fresh state about once a second during exploration,
+    // so every re-arm of a 1.5s debounce was cancelled by the next tick before
+    // it could fire — the rolling save starved for as long as the player kept
+    // playing, and only the reload-time emergency save persisted anything.
+    // Once the throttle window has elapsed, save on this change instead of
+    // waiting for a quiet moment that an active game never provides.
     if (timerRef.current) clearTimeout(timerRef.current);
     const now = Date.now();
     const sinceLast = now - lastSaveAtRef.current;
-    const throttleDelay = sinceLast >= AUTO_SAVE_THROTTLE_MS ? 0 : (AUTO_SAVE_THROTTLE_MS - sinceLast);
-    const delay = Math.max(AUTO_SAVE_DEBOUNCE_MS, throttleDelay);
+    const delay = sinceLast >= AUTO_SAVE_THROTTLE_MS ? 0 : AUTO_SAVE_DEBOUNCE_MS;
 
     timerRef.current = setTimeout(() => {
       void saveNow();

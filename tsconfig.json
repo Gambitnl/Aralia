@@ -25,6 +25,14 @@
     "strict": true,
     "jsx": "react-jsx",
     "paths": {
+      // The spell corpus lives only in public/data/spells. src/data/spells was a
+      // hand-made symbolic link to it until 2026-09-28, so 135 files importing
+      // @/data/spells/... depended on a link git could not see. vite.config.ts
+      // and vitest.config.ts carry the matching alias; this entry is how tsc
+      // resolves the same imports.
+      "@/data/spells/*": [
+        "./public/data/spells/*"
+      ],
       "@/*": [
         "./src/*"
       ]
@@ -33,16 +41,13 @@
     "noEmit": true
   },
   "include": [
-    "src"
+    "src",
+    "vite.config.ts",
+    "scripts/**/*.ts"
   ],
   "exclude": [
     "scripts/**/*.js",
     "src/md-library-entry.tsx",
     "**/*.test-d.ts"
-  ],
-  "references": [
-    {
-      "path": "./tsconfig.node.json"
-    }
   ]
 }

@@ -18,6 +18,7 @@ import type { AbilityScoreName, AbilityScores } from './core.js';
 import type { MagicItemProperties } from './magicItems.js';
 import type { ItemProvenance } from './provenance.js';
 import type { ItemVisualSpec } from './visuals.js';
+import type { CanonicalDamageType } from './spellDamageMetadata.js';
 
 /**
  * Equipment and inventory focused types.
@@ -132,6 +133,10 @@ export enum ItemType {
   SpellComponent = 'spell_component',
   CraftingMaterial = 'crafting_material',
   Treasure = 'treasure',
+  /** Raw alchemical and crafting ingredients consumed by recipes. */
+  Reagent = 'reagent',
+  /** Purchased intangibles: information, passage, lodging. Carries no physical form. */
+  Service = 'service',
 }
 
 export interface ItemTypeTraits {
@@ -227,6 +232,14 @@ export const ItemTypeDefinitions: Record<ItemType, ItemTypeTraits> = {
     isStackable: true,
     description: "Valuables primarily intended for sale or collection.",
   },
+  [ItemType.Reagent]: {
+    isStackable: true,
+    description: "Ingredients consumed by alchemy, refining, and enchanting recipes.",
+  },
+  [ItemType.Service]: {
+    isStackable: false,
+    description: "Intangible goods bought rather than carried, such as information, passage, or lodging.",
+  },
 };
 
 export type ItemEffect =
@@ -245,34 +258,8 @@ export interface Item {
   value?: number | string;
   /** Optional stack size for legacy inventory math; kept flexible for encumbrance tests. */
   quantity?: number;
-  /**
-   * The classification of the item.
-   * Prefer using ItemType enum values.
-   *
-   * // TODO(Taxonomist): Refactor codebase to strictly use ItemType enum and remove magic strings
-   */
-  type: ItemType |
-    'weapon'
-    | 'armor'
-    | 'accessory'
-    | 'clothing'
-    | 'consumable'
-    | 'potion'
-    | 'food_drink'
-    | 'poison_toxin'
-    | 'tool'
-    | 'light_source'
-    | 'ammunition'
-    | 'trap'
-    | 'note'
-    | 'book'
-    | 'map'
-    | 'scroll'
-    | 'key'
-    | 'spell_component'
-    | 'reagent'
-    | 'crafting_material'
-    | 'treasure';
+  /** The classification of the item. */
+  type: ItemType;
 
   /**
    * The rarity of the item.
@@ -287,6 +274,32 @@ export interface Item {
   effect?: ItemEffect;
   mastery?: string;
   category?: string;
+
+  /**
+   * Id of the world object this item was created from, when the item is a record
+   * of something rather than a thing in its own right. A Service receipt bought
+   * from the Rumor Mill carries the id of the rumor it records.
+   */
+  sourceId?: string;
+
+  /**
+   * Quests this item starts, so the trigger lives in item data instead of a
+   * hardcoded branch in the interaction handler. Each field names a quest id in
+   * the quest registry; the handler dispatches ACCEPT_QUEST for it when that
+   * interaction happens. The quest reducer ignores a quest already in the log,
+   * so a hook is safe to fire more than once.
+   */
+  questHooks?: {
+    /** Quest accepted when the item is used from the inventory. */
+    onUse?: string;
+    /** Quest accepted when the item is picked up off a location. */
+    onPickup?: string;
+    /**
+     * Objective on the hooked quest that the interaction itself satisfies, marked
+     * complete alongside the accept (picking the map fragment up IS finding it).
+     */
+    completesObjective?: string;
+  };
 
   /** homeId of the household this item was stolen from; set when taken from an owned container. */
   stolenFrom?: string;
@@ -311,8 +324,7 @@ export interface Item {
   stealthDisadvantage?: boolean;
   armorClassBonus?: number;
   damageDice?: string;
-  // TODO(Taxonomist): Update to use DamageType enum and remove magic strings
-  damageType?: string;
+  damageType?: CanonicalDamageType;
   properties?: string[];
   isMartial?: boolean;
   donTime?: string;
@@ -321,6 +333,12 @@ export interface Item {
   cost?: string;
   costInGp?: number;
   isConsumed?: boolean;
+  /**
+   * Uses left on a limited-use kit or tool (a Healer's Kit has ten). Absent
+   * means the item has never been used, so systems read it as the item's full
+   * allotment rather than zero. The item is discarded once this reaches 0.
+   */
+  usesRemaining?: number;
   substitutable?: boolean;
   /**
    * Real-world epoch milliseconds for when this item entered the inventory.

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/06/2026, 00:45:15
+ * Last Sync: 15/08/2026, 00:55:11
  * Dependents: components/CharacterSheet/Overview/index.ts
  * Imports: 6 files
  *
@@ -17,8 +17,9 @@
 import React, { useState } from 'react';
 import { PlayerCharacter, AbilityScoreName } from '../../../types';
 import Tooltip from '../../ui/Tooltip';
-import { getAbilityModifierValue, getAbilityModifierString, getCharacterRaceDisplayString, buildHitPointDicePools } from '../../../utils/characterUtils';
-import { calculatePassiveScore } from '../../../utils/statUtils';
+import { getAbilityModifierValue, getAbilityModifierString, getCharacterRaceDisplayString, buildHitPointDicePools, getRacialMovementSpeedsForLevel } from '../../../utils/character';
+import { calculatePassiveScore } from '../../../utils/character';
+import { AbilityScoreIcon } from '../../../utils/abilityIcons';
 import { FEATS_DATA } from '../../../data/feats/featsData';
 import { classFeaturesForLevel } from '../../../data/classes/classFeatureProgression';
 import { useCharacterProficiencies } from '../../../hooks/useCharacterProficiencies';
@@ -51,6 +52,7 @@ import { useCharacterProficiencies } from '../../../hooks/useCharacterProficienc
 interface CharacterOverviewProps {
     character: PlayerCharacter;
 }
+
 
 /** Collapsible section wrapper */
 interface CollapsibleSectionProps {
@@ -208,6 +210,12 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
         (character.finalAbilityScores?.Strength ?? 10) < torsoItem.strengthRequirement
     );
 
+    // Alternate movement speeds (swim/climb/fly/burrow) granted by the race
+    // (GG-7). Read at the character level (GG-259): a later-level racial mode
+    // such as Dragonborn Draconic Flight stays off the sheet until its own
+    // level is reached, instead of being handed to a level-1 character.
+    const movementSpeeds = getRacialMovementSpeedsForLevel(character);
+
     // Passive scores
     const wisdomMod = getAbilityModifierValue(character.finalAbilityScores.Wisdom);
     const intelligenceMod = getAbilityModifierValue(character.finalAbilityScores.Intelligence);
@@ -309,6 +317,15 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                                 {character.isFlying ? <span className="text-sky-300 ml-1"> (Flying)</span> : ''}
                             </p>
                         )}
+                        {Object.values(movementSpeeds).length > 0 && (
+                            <p className="text-sm col-span-2">
+                                {Object.entries(movementSpeeds).map(([mode, speedFt]) => (
+                                    <span key={mode} className="mr-2 capitalize">
+                                        {mode}: <span className="font-semibold text-sky-300">{speedFt}ft</span>
+                                    </span>
+                                ))}
+                            </p>
+                        )}
                         <p className="text-sm">Prof. Bonus: <span className="font-semibold text-amber-300">+{profBonus}</span></p>
                         {character.darkvisionRange > 0 && <p className="text-sm col-span-2">Darkvision: {character.darkvisionRange}ft</p>}
                     </div>
@@ -320,9 +337,14 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                     <h4 className="text-lg font-semibold font-cinzel text-sky-300 mb-1.5 flex items-center gap-2">
                         <span className="text-sm">🎲</span> Ability Scores
                     </h4>
-                    <div className="grid grid-cols-3 gap-x-3 gap-y-1 text-sm">
+                    <div className="grid grid-cols-3 gap-x-3 gap-y-2 text-sm">
                         {Object.entries(character.finalAbilityScores).map(([key, value]) => (
-                            <p key={key}>{key.substring(0, 3)}: <span className="font-semibold text-amber-300">{value as number}</span> ({getAbilityModifierString(value as number)})</p>
+                            <div key={key} className="flex items-center gap-1.5 min-w-0">
+                                <AbilityScoreIcon name={key} className="w-4 h-4 text-amber-400 shrink-0" />
+                                <p className="truncate">
+                                    {key.substring(0, 3)}: <span className="font-semibold text-amber-300">{value as number}</span> <span className="text-xs text-gray-400">({getAbilityModifierString(value as number)})</span>
+                                </p>
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -333,7 +355,7 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                     <h4 className="text-lg font-semibold font-cinzel text-sky-300 mb-1.5 flex items-center gap-2">
                         <span className="text-sm">🛡️</span> Saving Throws
                     </h4>
-                    <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm">
                         {SAVING_THROW_ABILITIES.map(ability => {
                             const abilityScore = character.finalAbilityScores[ability] as number;
                             const modifier = getAbilityModifierValue(abilityScore);
@@ -342,10 +364,13 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                             const bonusStr = totalBonus >= 0 ? `+${totalBonus}` : `${totalBonus}`;
 
                             return (
-                                <p key={ability} className={isProficient ? 'text-amber-200' : 'text-gray-400'}>
-                                    {isProficient && <span className="mr-1">●</span>}
-                                    {ability.substring(0, 3)}: <span className="font-semibold">{bonusStr}</span>
-                                </p>
+                                <div key={ability} className={`flex items-center gap-1.5 ${isProficient ? 'text-amber-200' : 'text-gray-400'}`}>
+                                    <AbilityScoreIcon name={ability} className={`w-3.5 h-3.5 shrink-0 ${isProficient ? 'text-amber-400' : 'text-gray-500'}`} />
+                                    <p>
+                                        {isProficient && <span className="mr-0.5 text-amber-400">●</span>}
+                                        {ability.substring(0, 3)}: <span className="font-semibold">{bonusStr}</span>
+                                    </p>
+                                </div>
                             );
                         })}
                     </div>

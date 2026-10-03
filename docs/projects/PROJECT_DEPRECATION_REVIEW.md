@@ -14,8 +14,11 @@ target are clear.
   review-only candidates in this file.
 - Duplicate gameplay/world tracker rows were merged back into their canonical
   tracker sections; no systems or project folders were removed.
-- The stale `conductor/projects/3d-combat-map` row now points at
-  `docs/projects/3d-combat-map`.
+- The stale `conductor/projects/3d-combat-map` row was repointed here on
+  2026-09-05. **Both paths are gone**: `conductor/` was deleted, and
+  `docs/projects/3d-combat-map` never existed either. The lane now lives at
+  `docs/superpowers/specs/2026-07-14-absorbed-3d-combat-map.md`. See
+  `docs/projects/CONDUCTOR_RETIRED.md`.
 - `demo-area`, `phb2024_glossary_audit`, `script-tests`,
   `scripts-spell-runtime-template-audit`, `three-d-modal`, and `crime` now carry
   dashboard-facing lifecycle/review fields in their North Stars.
@@ -58,7 +61,7 @@ target are clear.
 | Duplicate gameplay/world rows in `Projectized Planning Areas` | merge-tracker-row | strong | Duplicate tracker rows repeat system projects already owned under `Gameplay & World Systems`. | Keep canonical project folders; merge duplicate registry rows only. | `docs/projects/PROJECT_TRACKER.md` |
 | Spell Phase Workstream separate project card | archive-after-routing | strong | Looks like a milestone/phase inside Structured Spell Execution rather than a durable standalone project. | `docs/tasks/spell-system-overhaul/NORTH_STAR.md` or structured spell execution project. | `docs/projects/PROJECT_TRACKER.md`, `docs/tasks/spell-system-overhaul/NORTH_STAR.md` |
 | Crime `NORTH_STAR.md` surface | keep-but-repair-docs | strong | Project should remain, but North Star appears abnormally large/corrupted and contains unrelated corpus/glossary material. | Rebuild `docs/projects/crime/NORTH_STAR.md` from tracker/gaps/source evidence before dispatch. | `docs/projects/crime/NORTH_STAR.md`, `docs/projects/crime/TRACKER.md` |
-| 3D Combat Map old conductor pointer | keep-but-repair-docs | medium | Tracker still points at old conductor path while `docs/projects/3d-combat-map` now owns living docs. | Keep `docs/projects/3d-combat-map`; demote old conductor pointer if still present. | `docs/projects/PROJECT_TRACKER.md`, `docs/projects/3d-combat-map/NORTH_STAR.md` |
+| 3D Combat Map old conductor pointer | RESOLVED 2026-09-05 | - | Repaired. Both the conductor path and `docs/projects/3d-combat-map` are gone; the lane is at `docs/superpowers/specs/2026-07-14-absorbed-3d-combat-map.md`. Was: tracker still points at old conductor path while `docs/projects/3d-combat-map` now owns living docs. | Keep `docs/projects/3d-combat-map`; demote old conductor pointer if still present. | `docs/projects/PROJECT_TRACKER.md`, `docs/projects/3d-combat-map/NORTH_STAR.md` |
 | Documentation Cleanup | archive-as-historical-reference | strong | Current docs say the cleanup lane is complete enough and evidence is preserved. | Keep `docs/projects/documentation-cleanup`; do not dispatch forward work unless stale evidence reopens it. | `docs/projects/documentation-cleanup/NORTH_STAR.md` |
 | PHB 2024 Glossary Audit | archived-reference-only | strong | Decision log records archive as reference-only and names adjacent owners for remaining work. | Keep as archived reference; route active glossary/source-data work to canonical owners. | `docs/projects/phb2024_glossary_audit/DECISIONS.md`, `docs/projects/phb2024_glossary_audit/NORTH_STAR.md` |
 | Script Tests | merged-reference | strong | Decision log records merge into Scripts: Quality and the North Star names `scripts-quality` as canonical owner. | `docs/projects/scripts-quality` | `docs/projects/script-tests/DECISIONS.md`, `docs/projects/script-tests/NORTH_STAR.md` |
@@ -72,7 +75,7 @@ target are clear.
 | Gameplay/world systems repeated under `Projectized Planning Areas` | duplicate_tracker_row | Merge duplicate registry rows; keep the canonical project folders. |
 | UI/runtime pairs such as Crafting UI + Crafting System, Quest Log + Quests, Trade UI + Economy | ui_runtime_pair | Keep separate unless the North Stars collapse onto the same owner, evidence, and next action. |
 | Spell Phase Workstream + Structured Spell Execution | task_project_overlap | Route phase work into the structured spell owner unless a standalone phase dashboard is explicitly needed. |
-| 3D Combat Map conductor docs + `docs/projects/3d-combat-map` | stale_pointer | Keep docs/projects as canonical and review old conductor pointer. |
+| 3D Combat Map conductor docs + `docs/projects/3d-combat-map` | RESOLVED 2026-09-05 | Neither exists. The lane is at `docs/superpowers/specs/2026-07-14-absorbed-3d-combat-map.md`. See CONDUCTOR_RETIRED.md. |
 | Script tests + Scripts quality/audits | task_project_overlap | Human decision: keep if tests need a standalone ownership surface; otherwise merge into scripts quality/audits. |
 | ThreeD Modal + World 3D UI | possible_ui_runtime_pair | Human decision: keep if modal entrypoint has separate UX ownership; merge if it only duplicates World 3D UI transition work. |
 | Submap Generation + Submap | merged_reference | Keep Submap Generation as evidence only; route forward generation/extraction work through Submap. |

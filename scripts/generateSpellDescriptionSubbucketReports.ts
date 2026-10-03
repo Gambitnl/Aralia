@@ -30,7 +30,7 @@ import { fileURLToPath } from 'node:url';
 // Description bucket can be regenerated without hunting through the repo.
 // ============================================================================
 
-const REPO_ROOT = 'F:/Repos/Aralia';
+const REPO_ROOT = '.';
 const SCRIPT_FILE = fileURLToPath(import.meta.url);
 const CANONICAL_REPORT_PATH = path.join(REPO_ROOT, '.agent', 'roadmap-local', 'spell-validation', 'spell-structured-vs-canonical-report.json');
 const RUNTIME_REPORT_PATH = path.join(REPO_ROOT, '.agent', 'roadmap-local', 'spell-validation', 'spell-structured-vs-json-report.json');

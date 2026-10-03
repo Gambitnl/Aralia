@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { DamageCommand, recordGuardianOfFaithDamage } from '../effects/DamageCommand'
 import type { CombatCharacter } from '@/types/combat'
 import type { DamageEffect, EffectDuration, Spell } from '@/types/spells'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
-import guardianOfFaith from '../../../public/data/spells/level-4/guardian-of-faith.json'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
+import guardianOfFaith from '@/data/spells/level-4/guardian-of-faith.json'
 
 /**
  * Guardian of Faith creates a stationary spectral guardian, not a summon actor.

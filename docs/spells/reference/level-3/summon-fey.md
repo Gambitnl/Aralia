@@ -88,8 +88,8 @@
 - **Scaling Rule 1 Applies To**: canonical higher-level prose
 - **Scaling Rule 1 Notes**: Use the slot level as the spell's level in the Fey Spirit stat block: AC is 12 + spell level, HP is 30 + 10 for each spell level above 3, and Fey Aura damage is 2d6 + 3 + spell level.
 
-- **Description**: You summon a Fey Spirit in a visible unoccupied space within 90 feet. Choose Mirthful, Joyful, or Tricksy; the spirit is an ally that acts immediately after you, obeys verbal commands, vanishes at 0 Hit Points or when the spell ends, and scales its defenses and Fey Aura damage with the slot level.
-- **Higher Levels**: Use the spell slot's level for the spell's level in the stat block. The Fey Spirit's AC, Hit Points, and Fey Aura damage increase as the spell's level increases.
+- **Description**: You call forth a fey spirit. It manifests in an unoccupied space that you can see within range and uses the Fey Spirit stat block. When you cast the spell, choose a mood: Mirthful, Joyful, or Tricksy. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.
+- **Higher Levels**: Using a Higher-Level Spell Slot. Use the spell slot's level for the spell's level in the stat block. The Fey Spirit's AC, Hit Points, and Fey Aura damage increase as the spell's level increases.
 ## Canonical D&D Beyond Snapshot
 
 This section stores the local source-summary snapshot so the structured Aralia field block remains the validator-facing markdown surface.
@@ -106,8 +106,8 @@ Attack/Save: None
 Damage/Effect: Summoning
 
 Rules Text:
-Summon a Fey Spirit in a visible unoccupied space within range. Choose Mirthful, Joyful, or Tricksy. The spirit is an ally, acts right after you, obeys verbal commands, vanishes at 0 HP or when the spell ends, and its mood changes the rider on Fey Aura.
-Using a Higher-Level Spell Slot. The spirit's AC, HP, and Fey Aura damage scale with the slot level.
+You call forth a fey spirit. It manifests in an unoccupied space that you can see within range and uses the Fey Spirit stat block. When you cast the spell, choose a mood: Mirthful, Joyful, or Tricksy. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.
+Using a Higher-Level Spell Slot. Use the spell slot's level for the spell's level in the stat block. The Fey Spirit's AC, Hit Points, and Fey Aura damage increase as the spell's level increases.
 
 Material Component:
 * - (a gilded flower worth 300+ GP)

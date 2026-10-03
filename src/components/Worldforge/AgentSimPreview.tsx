@@ -1,12 +1,31 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 18/07/2026, 19:36:53
+ * Dependents: App.tsx
+ * Imports: 8 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file AgentSimPreview.tsx — standalone preview for the WF-AGENTSIM motion slice.
  *
  * Reachable at `?phase=agentsim`. Generates a deterministic demo burg + roster
  * (same recipe as the in-game AgentSimDevOverlay) and renders its townsfolk via
- * `TownAgentSnapshotView` in MOTION mode: as the clock scrubs the day, commuters
- * walk the streets between home and work instead of teleporting at the hour
- * boundary. This is the visual sign-off for the street-movement layer
- * (`townMotionSnapshotAt`), reachable without a playing session.
+ * `TownAgentSnapshotView`. There is ONE mode: the behaviour sim. Townsfolk decide
+ * by their needs (sleep, eat, work, socialise, shop) and walk the streets to wherever
+ * that sends them. Scrubbing the clock deterministically RE-SIMULATES the day from its
+ * anchor to the chosen hour (`simulateMindsTo`), so scrub-anywhere lands on one truthful
+ * state; pressing play advances that same state smoothly. The old fixed-schedule motion
+ * (`townMotionSnapshotAt`) is retired from this preview — it survives as an internal
+ * fallback for other consumers (dev overlay, 3D), not as a competing mode here.
  *
  * `window.__agentSimPreview` exposes `setClock(h)` and `current()` for headless
  * proof. Pure presentation over deterministic generators — no game state.
@@ -16,9 +35,15 @@ import TownAgentSnapshotView from './TownAgentSnapshotView';
 import { rootSeedPath } from '../../systems/worldforge/seedPath';
 import { buildDemoTownPlan, DEMO_BURG_ID } from '../../systems/worldforge/town/demoTownPlan';
 import { generateTownRoster } from '../../systems/worldforge/roster/generateTownRoster';
-import { buildStreetGraph, routeAlongStreets, positionAlongPath, pathLength, type Point } from '../../systems/worldforge/roster/agentPath';
-import { townMotionSnapshotAt } from '../../systems/worldforge/roster/townSnapshot';
-import { initAgentMinds, stepAgentSim, type AgentMind, type AgentActivity } from '../../systems/worldforge/roster/agentSim';
+import {
+  buildStreetGraph,
+  frontDoorForPlot,
+  routeAlongStreets,
+  positionAlongPath,
+  pathLength,
+  type Point,
+} from '../../systems/worldforge/roster/agentPath';
+import { stepAgentSim, simulateMindsTo, type AgentMind, type AgentActivity } from '../../systems/worldforge/roster/agentSim';
 import { assignFamilies, familySummary } from '../../systems/worldforge/roster/family';
 import VillagerRegistry from './VillagerRegistry';
 
@@ -41,14 +66,18 @@ const AgentSimPreview: React.FC = () => {
   // (per animation frame) so time passes in fine, seconds-level steps — not
   // minute jumps — and you watch townsfolk stream along the streets.
   const [speed, setSpeed] = useState(0.5);
-  // Behaviour sim (needs/decisions/interactions) vs the fixed schedule motion.
-  const [simMode, setSimMode] = useState(false);
   // The villager registry panel (census + family ties) beside the map.
   const [showRegistry, setShowRegistry] = useState(true);
   const rafRef = useRef<number | null>(null);
   const lastTickRef = useRef<number | null>(null);
+  // Every playback run owns one generation. A scrub invalidates that generation
+  // immediately, so even a browser callback already queued for delivery cannot
+  // advance the old clock after the deterministic replay has landed.
+  const playbackGenerationRef = useRef(0);
+  // Playback and scrub handlers update this authoritative clock synchronously;
+  // it deliberately does not mirror React state during render, where a queued
+  // frame could otherwise observe a value before the scrub has neutralised it.
   const clockRef = useRef(clock);
-  clockRef.current = clock;
   // Behaviour-sim runtime: evolving minds + smoothed render positions (feet).
   const mindsRef = useRef<AgentMind[]>([]);
   const posRef = useRef<Map<number, { x: number; y: number }>>(new Map());
@@ -109,12 +138,21 @@ const AgentSimPreview: React.FC = () => {
     return { centroids: c, context: { gatheringPlotIds, kin } };
   }, [plan, families]);
 
+  // The street router is the single owner of known building endpoints. Waiting,
+  // starting a route, and arriving all use the same door; malformed/no-street
+  // plans keep the previous centroid fallback instead of losing an agent.
+  const settledPositionForPlot = useCallback((plotId: number): { x: number; y: number } | undefined => {
+    const door = frontDoorForPlot(graph, plotId);
+    if (door) return { x: door[0], y: door[1] };
+    return centroids.get(plotId);
+  }, [graph, centroids]);
+
   // Build the renderable sim frame (positions + per-activity colour) and the HUD
   // stats from the current minds + smoothed positions.
   const buildSimFrame = useCallback(() => {
     const minds = mindsRef.current;
     const agents = minds.map((m) => {
-      const p = posRef.current.get(m.occupantId) ?? centroids.get(m.targetPlotId) ?? { x: 0, y: 0 };
+      const p = posRef.current.get(m.occupantId) ?? settledPositionForPlot(m.targetPlotId) ?? { x: 0, y: 0 };
       return { occupantId: m.occupantId, x: p.x, y: p.y, colorHex: ACTIVITY_HEX[m.activity] };
     });
     const counts: Record<AgentActivity, number> = { sleep: 0, eat: 0, work: 0, socialize: 0, shop: 0, home: 0 };
@@ -127,66 +165,85 @@ const AgentSimPreview: React.FC = () => {
     setSimAgents(agents);
     setSimStats(counts);
     setAvgNeeds({ energy: sums.energy / n, satiety: sums.satiety / n, social: sums.social / n, wealth: sums.wealth / n });
-  }, [centroids]);
+  }, [settledPositionForPlot]);
 
-  // (Re)initialise minds + positions when entering sim mode or changing seed.
-  useEffect(() => {
-    if (!simMode) return;
-    mindsRef.current = initAgentMinds(roster.occupants);
+  // Deterministic scrub: replay the whole day from its anchor to `targetClock` and
+  // SNAP every agent to the plot its decision sent them to. Same hour → same town,
+  // every time (no carried-over frame state). Playback then continues smoothly from
+  // this state; a fresh scrub re-derives it from scratch. Also the init/seed reset.
+  const resimulate = useCallback((targetClock: number) => {
+    const minds = simulateMindsTo(roster.occupants, context, targetClock);
+    mindsRef.current = minds;
     const pos = new Map<number, { x: number; y: number }>();
-    for (const o of roster.occupants) pos.set(o.id, centroids.get(o.homePlotId) ?? { x: 0, y: 0 });
+    for (const m of minds) {
+      pos.set(m.occupantId, settledPositionForPlot(m.targetPlotId) ?? { x: 0, y: 0 });
+    }
     posRef.current = pos;
-    routeRef.current = new Map(); // drop stale walk routes
+    routeRef.current = new Map(); // drop stale walk routes; playback re-commits them
     buildSimFrame();
-  }, [simMode, roster, centroids, buildSimFrame]);
+  }, [roster, context, settledPositionForPlot, buildSimFrame]);
 
-  const snapshot = useMemo(() => townMotionSnapshotAt(plan, graph, roster, clock), [plan, graph, roster, clock]);
-  const walking = snapshot.filter((a) => a.moving).length;
+  // Seed/roster change (or first mount) → re-derive the town at the current hour.
+  useEffect(() => {
+    resimulate(clockRef.current);
+  }, [resimulate]);
+
+  // Cancel the browser request and invalidate its generation together. The
+  // generation guard covers the narrow race where cancellation arrives after
+  // the browser has already selected that callback for delivery.
+  const cancelQueuedPlayback = useCallback(() => {
+    playbackGenerationRef.current += 1;
+    if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+    rafRef.current = null;
+    lastTickRef.current = null;
+  }, []);
 
   // Auto-play: advance the clock per animation frame by the elapsed real time
   // scaled by `speed` (game-minutes/sec). requestAnimationFrame's timestamp drives
   // it, so steps are sub-second-smooth and wrap cleanly at midnight.
   useEffect(() => {
     if (!playing) { lastTickRef.current = null; return; }
+    const generation = playbackGenerationRef.current + 1;
+    playbackGenerationRef.current = generation;
     let active = true;
     const tick = (t: number) => {
-      if (!active) return;
+      if (!active || generation !== playbackGenerationRef.current) return;
       if (lastTickRef.current != null) {
         const dtSec = (t - lastTickRef.current) / 1000;
         const dHours = (dtSec * speed) / 60; // game-min/sec → hours
         const nextClock = (((clockRef.current + dHours) % 24) + 24) % 24;
         clockRef.current = nextClock;
         setClock(nextClock);
-        if (simMode) {
-          // Advance the behaviour sim, then ease each agent toward the plot its
-          // decision sent it to (smooth movement, not teleport).
-          mindsRef.current = stepAgentSim(mindsRef.current, roster.occupants, { hour: nextClock, dtHours: dHours, context });
-          const WALK_FT_PER_HOUR = 16000; // ~3 mph walking pace in the game-time frame
-          for (const m of mindsRef.current) {
-            const destC = centroids.get(m.targetPlotId);
-            if (!destC) continue;
-            let cur = posRef.current.get(m.occupantId) ?? destC;
-            let rs = routeRef.current.get(m.occupantId);
-            const arrived = !rs || rs.progressFt >= rs.lenFt;
-            // Commit to a new destination ONLY when the current walk is finished —
-            // so a flickering decision can't yank an agent mid-street (no hang), and
-            // the path runs along the ROADS (routeAlongStreets), not across buildings.
-            if (arrived && (!rs || rs.destPlotId !== m.targetPlotId)) {
-              const route = routeAlongStreets(graph, [cur.x, cur.y] as Point, [destC.x, destC.y] as Point);
-              rs = { destPlotId: m.targetPlotId, route, lenFt: Math.max(1, pathLength(route)), progressFt: 0 };
-              routeRef.current.set(m.occupantId, rs);
-            }
-            if (rs && rs.progressFt < rs.lenFt) {
-              rs.progressFt = Math.min(rs.lenFt, rs.progressFt + WALK_FT_PER_HOUR * dHours);
-              const [px, py] = positionAlongPath(rs.route, rs.progressFt / rs.lenFt);
-              cur = { x: px, y: py };
-            } else {
-              cur = destC; // arrived and at the right plot → rest at its centre
-            }
-            posRef.current.set(m.occupantId, cur);
+        // Advance the behaviour sim, then ease each agent toward the plot its
+        // decision sent it to (smooth movement, not teleport). Playback picks up
+        // from whatever state the last scrub/replay left, so the two agree.
+        mindsRef.current = stepAgentSim(mindsRef.current, roster.occupants, { hour: nextClock, dtHours: dHours, context });
+        const WALK_FT_PER_HOUR = 16000; // ~3 mph walking pace in the game-time frame
+        for (const m of mindsRef.current) {
+          const destination = settledPositionForPlot(m.targetPlotId);
+          if (!destination) continue;
+          let cur = posRef.current.get(m.occupantId) ?? destination;
+          let rs = routeRef.current.get(m.occupantId);
+          const arrived = !rs || rs.progressFt >= rs.lenFt;
+          // Commit to a new destination ONLY when the current walk is finished —
+          // so a flickering decision can't yank an agent mid-street (no hang), and
+          // the path runs along the ROADS (routeAlongStreets), not across buildings.
+          if (arrived && (!rs || rs.destPlotId !== m.targetPlotId)) {
+            const route = routeAlongStreets(graph, [cur.x, cur.y] as Point, [destination.x, destination.y] as Point);
+            rs = { destPlotId: m.targetPlotId, route, lenFt: Math.max(1, pathLength(route)), progressFt: 0 };
+            routeRef.current.set(m.occupantId, rs);
           }
-          buildSimFrame();
+          if (rs && rs.progressFt < rs.lenFt) {
+            rs.progressFt = Math.min(rs.lenFt, rs.progressFt + WALK_FT_PER_HOUR * dHours);
+            const [px, py] = positionAlongPath(rs.route, rs.progressFt / rs.lenFt);
+            cur = { x: px, y: py };
+          } else {
+            // Arrival stays on the canonical door, matching the final route point.
+            cur = destination;
+          }
+          posRef.current.set(m.occupantId, cur);
         }
+        buildSimFrame();
       }
       lastTickRef.current = t;
       rafRef.current = requestAnimationFrame(tick);
@@ -194,22 +251,31 @@ const AgentSimPreview: React.FC = () => {
     rafRef.current = requestAnimationFrame(tick);
     return () => {
       active = false;
-      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      cancelQueuedPlayback();
     };
-  }, [playing, speed, simMode, roster, context, centroids, graph, buildSimFrame]);
+  }, [playing, speed, roster, context, graph, settledPositionForPlot, buildSimFrame, cancelQueuedPlayback]);
 
-  const setClockExt = useCallback((h: number) => setClock(((h % 24) + 24) % 24), []);
+  // Scrubbing first neutralises the old playback generation, then updates the
+  // authoritative clock before replay. React state may commit later, but neither
+  // a stale frame nor the replay can observe the pre-scrub time.
+  const setClockExt = useCallback((h: number) => {
+    const w = ((h % 24) + 24) % 24;
+    cancelQueuedPlayback();
+    clockRef.current = w;
+    setPlaying(false);
+    setClock(w);
+    resimulate(w);
+  }, [cancelQueuedPlayback, resimulate]);
   useEffect(() => {
     (window as unknown as Record<string, unknown>).__agentSimPreview = {
       setClock: setClockExt,
       setSeed,
       setPlaying,
       setSpeed,
-      setSimMode,
-      current: () => ({ clock, walking, total: snapshot.length, playing, speed, simMode, simStats, avgNeeds }),
+      current: () => ({ clock, total: mindsRef.current.length, playing, speed, simStats, avgNeeds }),
     };
     return () => { delete (window as unknown as Record<string, unknown>).__agentSimPreview; };
-  }, [setClockExt, clock, walking, snapshot.length, playing, speed, simMode, simStats, avgNeeds]);
+  }, [setClockExt, clock, playing, speed, simStats, avgNeeds]);
 
   const totalSec = Math.floor((((clock % 24) + 24) % 24) * 3600);
   const hh = String(Math.floor(totalSec / 3600)).padStart(2, '0');
@@ -220,7 +286,7 @@ const AgentSimPreview: React.FC = () => {
   // from the sim's minds + walk routes so the card tracks them as they move.
   const inspectId = hoveredId ?? selectedId;
   const inspect = (() => {
-    if (!simMode || inspectId == null) return null;
+    if (inspectId == null) return null;
     const occ = roster.occupants.find((o) => o.id === inspectId);
     const mind = mindsRef.current.find((m) => m.occupantId === inspectId);
     if (!occ || !mind) return null;
@@ -244,9 +310,8 @@ const AgentSimPreview: React.FC = () => {
       <div style={{ textAlign: 'center', flex: '0 0 auto' }}>
         <h1 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Agent-Sim Motion Preview</h1>
         <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>
-          Demo burg #{DEMO_BURG_ID} · {simMode
-            ? 'townsfolk decide by their needs — sleep, eat, work, socialise — and wander accordingly.'
-            : 'townsfolk walk streets between home and work as the clock advances.'}
+          Demo burg #{DEMO_BURG_ID} · townsfolk decide by their needs — sleep, eat, work, socialise —
+          and walk the streets accordingly. Scrub the clock to re-simulate the day to any hour.
         </p>
       </div>
 
@@ -256,11 +321,10 @@ const AgentSimPreview: React.FC = () => {
           plan={plan}
           roster={roster}
           hour={Math.floor(clock)}
-          clock={simMode ? undefined : clock}
-          externalAgents={simMode ? simAgents : undefined}
-          onHoverAgent={simMode ? setHoveredId : undefined}
-          onClickAgent={simMode ? ((id) => setSelectedId((p) => (p === id ? null : id))) : undefined}
-          highlightId={simMode ? inspectId : null}
+          externalAgents={simAgents}
+          onHoverAgent={setHoveredId}
+          onClickAgent={(id) => setSelectedId((p) => (p === id ? null : id))}
+          highlightId={inspectId}
           width={mapSize.width}
           height={mapSize.height}
         />
@@ -318,18 +382,11 @@ const AgentSimPreview: React.FC = () => {
             {playing ? '⏸ Pause' : '▶ Play'}
           </button>
           <strong style={{ fontVariantNumeric: 'tabular-nums', fontSize: 16 }}>{hh}:{mm}:{ss}</strong>
-          <button
-            onClick={() => setSimMode((s) => !s)}
-            data-testid="agentsim-mode"
-            style={{ padding: '4px 12px', borderRadius: 6, background: simMode ? '#6d28d9' : '#334155', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 12 }}
-          >
-            {simMode ? '🧠 Behaviour sim' : '🕒 Schedule'}
-          </button>
-          {!simMode && <span style={{ color: walking > 0 ? '#6ee7b7' : '#94a3b8', fontSize: 13 }}>{walking} walking</span>}
+          <span data-testid="agentsim-mode-label" style={{ color: '#a5b4fc', fontSize: 12, fontWeight: 600 }}>🧠 Behaviour sim</span>
         </div>
         <input
           type="range" min={0} max={24} step={1 / 3600} value={clock}
-          onChange={(e) => { setPlaying(false); setClock(Number(e.target.value)); }}
+          onChange={(e) => setClockExt(Number(e.target.value))}
           aria-label="Town clock" data-testid="agentsim-clock"
           style={{ width: '100%' }}
         />
@@ -355,7 +412,7 @@ const AgentSimPreview: React.FC = () => {
           {[6, 7, 8, 12, 18].map((h) => (
             <button
               key={h}
-              onClick={() => setClock(h + 0.25)}
+              onClick={() => setClockExt(h + 0.25)}
               style={{ padding: '4px 10px', borderRadius: 6, background: '#334155', color: 'white', border: 'none', cursor: 'pointer', fontSize: 12 }}
             >
               {h}:15
@@ -373,7 +430,7 @@ const AgentSimPreview: React.FC = () => {
           </button>
         </div>
 
-        {simMode && (
+        {(
           <div data-testid="agentsim-hud" style={{ marginTop: 4, padding: 10, borderRadius: 8, background: '#0f172a', border: '1px solid #1e293b', display: 'flex', flexDirection: 'column', gap: 8 }}>
             {/* What everyone is doing right now. */}
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', fontSize: 12 }}>

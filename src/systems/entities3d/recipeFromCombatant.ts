@@ -4,13 +4,16 @@
  * Combat characters carry identity loosely: race travels as a creatureTypes
  * tag (['Humanoid', 'Elf']) or a name keyword; monsters carry a canonical
  * creature type plus size. PCs and humanoid monsters take the humanoid path
- * (real race body + class kit); everything else takes the creature path.
- * A combatant with no recognizable creature type throws — no silent shape.
+ * (real race body + class kit); everything else takes the creature path —
+ * where an approved library creature with a matching name wins outright
+ * (see library/acceptedEntities). A combatant with no recognizable creature
+ * type throws — no silent shape.
  */
 import { CreatureType } from '../../types/creatures';
 import { CLASSES_DATA } from '../../data/classes';
 import type { CombatCharacter } from '../../types/combat';
 import type { EntityRecipe, SizeCategory } from './types';
+import { acceptedByName, recipeForAccepted } from './library/acceptedEntities';
 
 /** Race keywords → race id, checked in order (specific before generic). */
 const RACE_KEYWORDS: Array<[RegExp, string]> = [
@@ -64,6 +67,12 @@ export function recipeFromCombatant(c: CombatCharacter): EntityRecipe {
       seed,
     };
   }
+
+  // PRIORITY selection, not a fallback: a monster whose name matches an
+  // approved library creature always uses that hand-approved body plan.
+  // The procedural creature path below only runs when the library misses.
+  const accepted = acceptedByName(c.name);
+  if (accepted) return recipeForAccepted(accepted);
 
   const creatureType = tags.find((t) => CANONICAL_TYPES.has(t));
   if (!creatureType) {

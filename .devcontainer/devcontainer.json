@@ -1,0 +1,65 @@
+{
+  // This container gives every Aralia Codespace the same Node and Python
+  // toolchain. TRELLIS still runs on Hugging Face; the Codespace only hosts
+  // the editor, dev server, job orchestration, and GLB optimization stages.
+  "name": "Aralia",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.11"
+    }
+  },
+
+  // Dependency installation happens after the repository is mounted so npm
+  // can use Aralia's lockfile and Python can use the pinned TRELLIS client.
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postStartCommand": "bash .devcontainer/post-start.sh",
+
+  // Port 3000 is the normal Aralia and Design Preview surface. Codespaces
+  // keeps forwarded ports private by default, so this does not publish Hero
+  // Lab or its scratch artifacts to the open internet.
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "Aralia Design Preview",
+      "onAutoForward": "notify"
+    }
+  },
+
+  // Hero Lab uses the personal Hugging Face credential as a server-side
+  // environment variable. The name deliberately lacks VITE_ so Vite cannot
+  // copy it into the browser bundle.
+  "secrets": {
+    "HF_TOKEN": {
+      "description": "Personal Hugging Face token used by Hero Lab to call the hosted Microsoft TRELLIS.2 Space.",
+      "documentationUrl": "https://huggingface.co/settings/tokens"
+    }
+  },
+
+  // Aralia's dependency graph is large enough to need the standard 8 GB
+  // Codespaces tier. These are minimums, not a request for GPU hardware.
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "8gb",
+    "storage": "32gb"
+  },
+
+  // Keep the web editor useful without introducing extensions that execute
+  // project-specific automation or require additional credentials.
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "bradlc.vscode-tailwindcss"
+      ],
+      "settings": {
+        "editor.formatOnSave": false,
+        "typescript.tsdk": "node_modules/typescript/lib"
+      }
+    }
+  },
+
+  // The base image owns this non-root user. Keeping normal development out of
+  // root reduces the damage from an accidental command or dependency script.
+  "remoteUser": "node"
+}

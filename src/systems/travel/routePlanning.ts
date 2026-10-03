@@ -90,6 +90,15 @@ export interface RoutePlanOptions {
   milesPerUnit: number;
   /** Effective transport speed in miles/hour (see transportSpeedMph). */
   speedMph: number;
+  /**
+   * Global travel-time multiplier applied to every edge (> 1 is slower).
+   * This is the season contract's movement hook: callers pass
+   * `getSeasonalTravelCostMultiplier(gameTime)` from
+   * `systems/time/seasonContract` so winter routes honestly take 1.5x as long.
+   * Applies to `edgeMinutes` graphs too (multi-modal sea legs share the
+   * season's weather). Defaults to 1 (neutral).
+   */
+  timeCostMultiplier?: number;
 }
 
 /**
@@ -164,14 +173,15 @@ export interface RouteField {
 /** Run Dijkstra from `start` over the whole reachable (passable) graph. */
 export function planRoutesFrom(graph: TravelGraph, start: number, opts: RoutePlanOptions): RouteField {
   const speed = Math.max(0.1, opts.speedMph);
+  const timeCost = Math.max(0.05, opts.timeCostMultiplier ?? 1);
   const minutesOf = (from: number, to: number): number => {
-    if (graph.edgeMinutes) return graph.edgeMinutes(from, to);
+    if (graph.edgeMinutes) return graph.edgeMinutes(from, to) * timeCost;
     const miles = dist(graph.position(from), graph.position(to)) * opts.milesPerUnit;
     const base = graph.speedFactor
       ? graph.speedFactor(to)
       : (TERRAIN_TRAVEL_MODIFIERS[graph.terrain(to)] || 1);
     const factor = base * (graph.climbFactor?.(from, to) ?? 1);
-    return (miles / (speed * Math.max(0.05, factor))) * 60;
+    return (miles / (speed * Math.max(0.05, factor))) * 60 * timeCost;
   };
 
   const best = new Map<number, number>([[start, 0]]);

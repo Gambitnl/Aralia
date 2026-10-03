@@ -55,7 +55,7 @@ interface WaterColors {
   causticTint: THREE.Color;
 }
 
-function getBiomeWaterColors(biome: string): WaterColors {
+export function getBiomeWaterColors(biome: string): WaterColors {
   switch (biome) {
     case 'swamp':
       return {
@@ -237,7 +237,17 @@ interface WaterShaderUniforms {
   uWaterCaustic: { value: THREE.Color };
 }
 
-function createWaterMaterial(colors: WaterColors): {
+/**
+ * Exported so the VOLUME arena's water sheet draws with the same water this
+ * board has always had.
+ *
+ * The solver underneath changes — a conservative shallow-water field over a bed
+ * derived from voxels, instead of per-tile sheets pinned to tile elevation —
+ * but what water LOOKS like on this board was judged in this file and there is
+ * no reason to grow a second answer. Both surfaces feed the same
+ * `aWaterDepth` attribute; only who computes it differs.
+ */
+export function createWaterMaterial(colors: WaterColors): {
   material: THREE.MeshStandardMaterial;
   uniforms: WaterShaderUniforms;
 } {

@@ -57,14 +57,14 @@ external AI service. That stricter boundary controls this work.
 
 No matching source package was found in these inspected locations:
 
-- `C:\ProgramData\Epic\EpicGamesLauncher\VaultCache` — absent
-- `C:\Users\Gambit\Documents\Unreal Projects` — absent
-- `C:\Users\Gambit\Downloads` — no matching Unreal or Hivemind package
-- `C:\Users\Gambit\Desktop` — no matching package
-- `F:\Assets` — absent
-- `F:\Unreal` — absent
-- `F:\Repos` — no matching Hivemind, listing-id or Stylized Village source
-- common Epic Games installation and launcher-manifest locations — absent
+- `C:\ProgramData\Epic\EpicGamesLauncher\VaultCache` - absent
+- `C:\Users\Gambit\Documents\Unreal Projects` - absent
+- `C:\Users\Gambit\Downloads` - no matching Unreal or Hivemind package
+- `C:\Users\Gambit\Desktop` - no matching package
+- `F:\Assets` - absent
+- `F:\Unreal` - absent
+- `F:\Repos` - no matching Hivemind, listing-id or Stylized Village source
+- common Epic Games installation and launcher-manifest locations - absent
 
 The machine has local Unreal cache folders for 4.21, 4.25 and 5.1. That does not
 prove that the collection is installed or that a usable Unreal editor is
@@ -159,7 +159,7 @@ side and cover the checks in the task specification.
 
 ## Critic findings
 
-### BLOCKER — no acquired source or entitlement evidence
+### BLOCKER - no acquired source or entitlement evidence
 
 **Evidence:** no matching local package was found, and no Fab account was
 accessed. The public listing is not proof of acquisition.
@@ -168,7 +168,7 @@ accessed. The public listing is not proof of acquisition.
 provide a local source path outside the repository, plus non-secret entitlement
 evidence naming the listing, acquisition date, licence class and selected tier.
 
-### BLOCKER — public-repository and browser distribution are unresolved
+### BLOCKER - public-repository and browser distribution are unresolved
 
 **Evidence:** Aralia is public. Fab permits incorporated project distribution but
 forbids standalone redistribution. A public GLB path is directly retrievable.
@@ -178,7 +178,7 @@ confirmation from Epic or Hivemind for the proposed browser-delivery treatment,
 or choose an approved packaging and delivery boundary that keeps the repository
 compliant. Record the decision before conversion.
 
-### BLOCKER — current chunk-site data does not preserve an exact doorway
+### BLOCKER - current chunk-site data does not preserve an exact doorway
 
 **Evidence:** the site contract retains `doorZSign`, footprint and procedural
 parts, but not a structured entrance coordinate suitable for checking an asset
@@ -189,7 +189,7 @@ door against the blueprint.
 skin. Until then, a building asset can only be a distant shell or a clearly
 non-enterable background building.
 
-### BLOCKER — external AI cannot perform the licensed visual review
+### BLOCKER - external AI cannot perform the licensed visual review
 
 **Evidence:** the task forbids uploading source assets and renders to external AI
 services. Matrix workers are model-backed external lanes.
@@ -199,7 +199,7 @@ reviewer for the actual asset screenshots and rendered eye test. A Matrix worker
 may change bounded code and tests, but must not open, inspect, encode or transmit
 the proprietary files or their renders.
 
-### MAJOR — no explicit asset-backed renderer mode exists
+### MAJOR - no explicit asset-backed renderer mode exists
 
 **Evidence:** the current wrapper distinguishes ground and legacy modes. It does
 not distinguish procedural and asset-backed presentation.
@@ -208,7 +208,7 @@ not distinguish procedural and asset-backed presentation.
 `procedural` and `village-assets` modes. Missing expected models must produce a
 visible development error. Do not silently switch back to procedural mode.
 
-### MAJOR — naive per-building GLTF cloning will fail at town scale
+### MAJOR - naive per-building GLTF cloning will fail at town scale
 
 **Evidence:** production streams a 9 by 9 chunk window, caps concurrent loads,
 limits DPR to 0.65 to 0.75 in ground mode, and already uses distance-gated
@@ -218,7 +218,7 @@ interiors and instanced props and vegetation.
 repeated props and foliage. Keep detailed interiors procedural and near-player.
 Measure the exact baseline before enabling the first asset family.
 
-### MAJOR — source units and preview units disagree
+### MAJOR - source units and preview units disagree
 
 **Evidence:** live ground contracts use metres, blueprint models use feet, and
 the existing town preview rescales a synthetic plan.
@@ -226,7 +226,7 @@ the existing town preview rescales a synthetic plan.
 **Correction:** every catalogue record must store source units, converted metre
 bounds, axes, pivot, scale, rotation, footprint, storeys and doorway coordinates.
 
-### GOOD — WorldForge already has a clean presentation boundary
+### GOOD - WorldForge already has a clean presentation boundary
 
 `GroundWorld`, chunk sites, stable prop IDs, `SiteBuilding`, `GroundProps` and
 the instanced vegetation layers provide suitable adapter seams. The integration
@@ -301,22 +301,24 @@ Matrix dispatch and live integration remain incomplete.
 
 ## Code evidence
 
-- `src/App.tsx:1030-1042`, `2132-2222` — normal journey and live wrapper
-- `src/components/World3D/World3DWrapper.tsx:284-476`, `1469-1498` — canonical
+- `src/App.tsx:1030-1042`, `2132-2222` - normal journey and live wrapper
+- `src/components/World3D/World3DWrapper.tsx:284-476`, `1469-1498` - canonical
   entry, worker-backed loading and explicit world-generation errors
 - `src/systems/worldforge/bridge/groundChunkLoader.ts:1545-1713`,
-  `1954-2044` — canonical town generation, styling and blueprint build
-- `src/components/World3D/World3DScene.tsx:421-622` — `SiteBuilding` and
+  `1954-2044` - canonical town generation, styling and blueprint build
+- `src/components/World3D/World3DScene.tsx:421-622` - `SiteBuilding` and
   near-player detail boundary
-- `src/components/World3D/World3DScene.tsx:923` — live DPR limit
-- `src/components/World3D/GroundProps.tsx:68-164`, `353-391` — prop adapter and
+- `src/components/World3D/World3DScene.tsx:923` - live DPR limit
+- `src/components/World3D/GroundProps.tsx:68-164`, `353-391` - prop adapter and
   instancing pattern
-- `src/components/DesignPreview/DesignPreviewPage.tsx:137`, `533` — current
+- `src/components/DesignPreview/DesignPreviewPage.tsx:137`, `533` - current
   `town3d` preview entry
-- `src/components/DesignPreview/steps/PreviewTown3D.tsx:13-134` — current
+- `src/components/DesignPreview/steps/PreviewTown3D.tsx:13-134` - current
   side-by-side plan preview
-- `src/components/DesignPreview/steps/Town3DScene.tsx:10-96` — synthetic town
+- `src/components/DesignPreview/steps/Town3DScene.tsx:10-96` - synthetic town
   renderer rather than production scene
-- `src/systems/world3d/types.ts:295-345` — current site contract and doorway gap
-- `src/systems/worldforge/interior/blueprintTypes.ts:174-175`, `730-743` — exact
+- `src/systems/world3d/types.ts:295-345` - current site contract and doorway gap
+- `src/systems/worldforge/interior/blueprintTypes.ts:174-175`, `730-743` - exact
   blueprint entry and door data exists upstream
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/research/2026-07-17-stylized-village-integration-preflight.md","sha256WithoutMarker":"457f1f34f3a2c5c65cad373d12982b72dad69ffd7c4e3eb89203745e5124a688","markedAtUtc":"2026-08-09T20:24:28.254Z"} -->

@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { UtilityCommand } from '../effects/UtilityCommand';
-import { createMockCombatCharacter } from '../../utils/factories';
+import { createMockCombatCharacter } from '../../utils/core';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatLogEntry, CombatState } from '../../types/combat';
 import type { UtilityEffect } from '../../types/spells';
-import infernalCalling from '../../../public/data/spells/level-5/infernal-calling.json';
+import infernalCalling from '@/data/spells/level-5/infernal-calling.json';
 
 /**
  * Infernal Calling is authored as a utility packet because the caster chooses a

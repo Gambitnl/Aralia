@@ -44,7 +44,7 @@ describe('getTownTilesForGrid', () => {
         expect.objectContaining({ x: 16, y: 4 }),
       ]),
     );
-  }, 30_000); // first test pays the full atlas build; 5s default flakes under parallel load
+  }, 60_000); // first test pays the full atlas build; use the generation lane's bound
 
   it('only reports tiles that the forward bridge opens with town content', () => {
     const townTiles = getTownTilesForGrid(42, 30, 20);
@@ -64,7 +64,7 @@ describe('getTownTilesForGrid', () => {
 
       expect(ground.towns.length).toBeGreaterThan(0);
     }
-  }, 30_000);
+  }, 60_000);
 
   it('returns deterministic results for repeat calls', () => {
     const first = getTownTilesForGrid(42, 30, 20);

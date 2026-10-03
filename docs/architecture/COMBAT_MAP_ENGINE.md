@@ -32,7 +32,7 @@ There is no separate "game engine" in the Unity/Unreal sense. The runtime is the
 | Post-FX | `@react-three/postprocessing` | SSAO, Bloom, Vignette |
 | Atmosphere | `@takram/three-atmosphere`, `@takram/three-clouds`, `@takram/three-geospatial` | Physically based sky + clouds (used by the world-scale views) |
 
-The 2D combat map uses no engine — it is HTML/CSS grid styled with Tailwind. Both frontends consume the same generator output and the same hooks.
+The 2D combat map uses no engine - it is HTML/CSS grid styled with Tailwind. Both frontends consume the same generator output and the same hooks.
 
 ---
 
@@ -56,10 +56,10 @@ Inputs are `width`, `height`, `biome`, and `seed`. Output is deterministic for a
 
 ### 3.2 Algorithm
 
-1. **Base terrain** — `PerlinNoise(x/10, y/10)` produces a 2D noise field; the value is bucketed per biome into a terrain type (grass / wall / floor / sand / rock / mud / water / difficult).
-2. **Elevation** — a separate Perlin noise field at `x/8`, `y/8` is mapped to integer height steps 0–3, centred around 1. Decorations bump elevation further (boulder +1, tree/pillar/mangrove/cactus +2).
-3. **Obstacles** — per-biome decoration tables drive density (forest 15%, swamp 15%, cave 10%, desert 8%, dungeon 7%) and decoration mix. Tiles already marked `blocksMovement` are excluded; the rest are shuffled with the seeded RNG and the top N tiles are decorated.
-4. **Connectivity guard** — for `cave` and `dungeon` biomes, `ensureConnectivity()` is a placeholder hook for path-carving (currently a stub).
+1. **Base terrain** - `PerlinNoise(x/10, y/10)` produces a 2D noise field; the value is bucketed per biome into a terrain type (grass / wall / floor / sand / rock / mud / water / difficult).
+2. **Elevation** - a separate Perlin noise field at `x/8`, `y/8` is mapped to integer height steps 0-3, centred around 1. Decorations bump elevation further (boulder +1, tree/pillar/mangrove/cactus +2).
+3. **Obstacles** - per-biome decoration tables drive density (forest 15%, swamp 15%, cave 10%, desert 8%, dungeon 7%) and decoration mix. Tiles already marked `blocksMovement` are excluded; the rest are shuffled with the seeded RNG and the top N tiles are decorated.
+4. **Connectivity guard** - for `cave` and `dungeon` biomes, `ensureConnectivity()` is a placeholder hook for path-carving (currently a stub).
 
 Each tile carries `id`, `coordinates`, `terrain`, `elevation`, `movementCost`, `blocksLoS`, `blocksMovement`, `decoration`, `providesCover?`, `effects[]`.
 
@@ -69,11 +69,11 @@ The generator uses `SeededRandom` from `@/utils/random` and `PerlinNoise` from `
 
 ### 3.4 Setup hook
 
-`src/hooks/useBattleMapGeneration.ts` is named like a hook but exports stateless battle-setup helper logic (party placement, encounter prep). Keep that drift in mind — see the domain doc for context.
+`src/hooks/useBattleMapGeneration.ts` is named like a hook but exports stateless battle-setup helper logic (party placement, encounter prep). Keep that drift in mind - see the domain doc for context.
 
 ---
 
-## 4. Rendering Frontends — 2D / 3D Parity
+## 4. Rendering Frontends - 2D / 3D Parity
 
 The system is intentionally a *single generator, two renderers*. Both consume the same `BattleMapData` and the same combat hooks.
 
@@ -111,7 +111,7 @@ Every player-visible behaviour goes through the same hooks no matter which rende
 | `pathfinding.ts` | A* with D&D 5e diagonal rules |
 | `lineOfSight.ts` | Bresenham's line algorithm |
 
-The 3D renderer translates these outputs into world-space visuals (raycast hits → tile coords, `validMoves[]` → green highlight zones, `activePath[]` → ground arrow, `aoePreview` → ground decal), but does not own any of the rules. If a rule needs changing, change the hook — both renderers update.
+The 3D renderer translates these outputs into world-space visuals (raycast hits -> tile coords, `validMoves[]` -> green highlight zones, `activePath[]` -> ground arrow, `aoePreview` -> ground decal), but does not own any of the rules. If a rule needs changing, change the hook - both renderers update.
 
 ### 4.2 The 2D frontend
 
@@ -149,11 +149,11 @@ The 3D frontend ships five biome presets, each one a tuple of `(BIOME_LIGHTING, 
 
 | Biome | Lighting mood | Sky | Fog |
 |-------|---------------|-----|-----|
-| forest | warm gold sun, soft green ambient | blue/green | light haze, 12–32 |
-| cave | no sun, deep blue ambient, dim point light | near-black | dense, 6–20 |
-| dungeon | dim amber, cool gray ambient | desaturated purple-gray | medium, 8–24 |
-| desert | harsh white sun, warm sand ambient | sand-tan | heat shimmer, 14–35 |
-| swamp | filtered green, murky teal | green-gray | heavy, 8–22 |
+| forest | warm gold sun, soft green ambient | blue/green | light haze, 12-32 |
+| cave | no sun, deep blue ambient, dim point light | near-black | dense, 6-20 |
+| dungeon | dim amber, cool gray ambient | desaturated purple-gray | medium, 8-24 |
+| desert | harsh white sun, warm sand ambient | sand-tan | heat shimmer, 14-35 |
+| swamp | filtered green, murky teal | green-gray | heavy, 8-22 |
 
 ---
 
@@ -177,8 +177,9 @@ These are *not* the combat map but they share data, services, or screen real est
 
 ### 5.3 Town map
 
-- Code: `src/components/Town/TownCanvas.tsx`, `VillageScene.tsx`, `useTownController.ts`, `src/services/RealmSmithTownGenerator.ts` + `BuildingGenerator`, `RoadGenerator`, `TerrainGenerator`, `DoodadGenerator`, `src/state/reducers/townReducer.ts`.
+- Code: `src/components/Town/TownCanvas.tsx`, `VillageScene.tsx`, `useTownController.ts`, `src/state/reducers/townReducer.ts`. The RealmSmith generators (`BuildingGenerator`, `RoadGenerator`, `TerrainGenerator`, `DoodadGenerator`) were deleted 2026-09-23 (ruling Q9, Agora task `agora-e840.7`).
 - Doc: `docs/architecture/domains/town-map.md`.
+- RETIRED 2026-09-14 (Agora task `agora-e840.5`): `RealmSmithTownGenerator.ts`, `RealmSmithAssetPainter.ts` and `src/services/realmsmith/` were deleted as dead code. The glyphs, the biome palette, and the night light pool live on in `src/rendering2d/`. The paragraph below is history.
 - Shape: canvas-based renderer (not R3F) driven through `AssetPainter`. Deterministic town layouts with movement, zoom, pan, ambient life, NPC clicks, merchant entry.
 - Combat link: town does not directly trigger combat, but transitions back to the submap layer when the player leaves.
 
@@ -186,7 +187,7 @@ These are *not* the combat map but they share data, services, or screen real est
 
 - Code: `src/systems/environment/EnvironmentSystem.ts`, `TerrainSystem.ts`, `WeatherSystem.ts`, `hazards.ts`; `src/systems/physics/ElementalInteractionSystem.ts`; `src/utils/combat/physicsUtils.ts`; `src/systems/visibility/VisibilitySystem.ts`.
 - Doc: `docs/architecture/domains/environment-physics.md`.
-- Shape: world-state behaviour (weather, hazards, elemental interactions, visibility). These act *on top of* the combat-map tiles — for example, a fire spell zone lives in `useCombatEngine`'s `spellZones[]` and is consumed both by combat rules and by the 3D `VFXSystem`.
+- Shape: world-state behaviour (weather, hazards, elemental interactions, visibility). These act *on top of* the combat-map tiles - for example, a fire spell zone lives in `useCombatEngine`'s `spellZones[]` and is consumed both by combat rules and by the 3D `VFXSystem`.
 - Combat link: direct. Visibility checks read tile `blocksLoS`; hazards apply per-tile effects; weather influences lighting presets.
 
 ---
@@ -227,8 +228,8 @@ Recorded so future readers don't trip on the same things:
 ## 8. Cross-Cutting Constraints
 
 - **Determinism.** Every generator on these surfaces must be deterministic from `(seed, world-coord, biome)`. This is the contract that lets the 2D ↔ 3D toggle, save/load, and the test suite all work. Don't add `Math.random()` calls to generation code.
-- **Rendering is a thin layer.** Game logic lives in hooks. If a behaviour is only correct in one renderer, that is a bug — fix it in the hook, not in the renderer.
+- **Rendering is a thin layer.** Game logic lives in hooks. If a behaviour is only correct in one renderer, that is a bug - fix it in the hook, not in the renderer.
 - **Asset locality.** 3D assets (glTF models, KTX2 textures) are loaded from `/models/` and `/textures/`. Keep them out of the JS bundle.
 - **Performance target.** 60fps on GTX 1060+. Prefer `InstancedMesh` for any repeated geometry. Profile before optimising.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/architecture/COMBAT_MAP_ENGINE.md","sha256WithoutMarker":"783cccdbca2b3a984f7740ea3f28941db9034624962f283deff774f34bc5eeee","markedAtUtc":"2026-06-26T00:12:35.430Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/architecture/COMBAT_MAP_ENGINE.md","sha256WithoutMarker":"ec03953556ea3a2755ea5d68dc728b8d003614f944b8ad849827dc2df3e07817","markedAtUtc":"2026-08-09T20:14:15.933Z"} -->

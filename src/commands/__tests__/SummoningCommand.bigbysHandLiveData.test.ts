@@ -3,8 +3,8 @@ import { BreakConcentrationCommand } from '../effects/ConcentrationCommands'
 import { UtilityCommand, recordBigbysHandDamage } from '../effects/UtilityCommand'
 import type { CombatCharacter } from '@/types/combat'
 import type { EffectDuration, Spell, UtilityEffect } from '@/types/spells'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
-import bigbysHand from '../../../public/data/spells/level-5/bigbys-hand.json'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
+import bigbysHand from '@/data/spells/level-5/bigbys-hand.json'
 
 /**
  * Bigby's Hand is a damageable controlled force object, not a creature summon.

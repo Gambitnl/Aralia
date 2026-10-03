@@ -7,7 +7,7 @@
  */
 
 import React, { useState } from 'react';
-import { getAllFactions } from '../../utils/factionUtils';
+import { getAllFactions } from '../../utils/world';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import { NobleHouse, Heraldry } from '../../types/noble';
@@ -96,8 +96,7 @@ const HeraldryDisplay: React.FC<{ heraldry: Heraldry; size?: number }> = ({ hera
 
 const NobleHouseList: React.FC<NobleHouseListProps> = ({ worldSeed, onClose }) => {
     const factions = getAllFactions(worldSeed);
-    // TODO #73(lint-intent): If NobleHouse adds required fields (heraldry, seat), legacy saves/generators might yield incomplete objects.
-    // TODO #74(lint-intent): consider a robust guard functions that checks for 'heraldry' existence before narrowing.
+
     const nobleHouses = Object.values(factions)
         .filter((f): f is NobleHouse => f.type === 'NOBLE_HOUSE');
 

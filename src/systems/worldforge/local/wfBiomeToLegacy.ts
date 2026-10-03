@@ -27,11 +27,29 @@ const WF_INDEX_TO_LEGACY: readonly string[] = [
   'wetland_marsh',       // 12 Wetland
 ];
 
+/** FMG biome index → FMG biome NAME. Index order matches `fmg/biomes.ts`. */
+const WF_INDEX_TO_NAME: readonly string[] = [
+  'Marine', 'Hot desert', 'Cold desert', 'Savanna', 'Grassland',
+  'Tropical seasonal forest', 'Temperate deciduous forest', 'Tropical rainforest',
+  'Temperate rainforest', 'Taiga', 'Tundra', 'Glacier', 'Wetland',
+];
+
 const WF_NAME_TO_INDEX: Record<string, number> = {
   Marine: 0, 'Hot desert': 1, 'Cold desert': 2, Savanna: 3, Grassland: 4,
   'Tropical seasonal forest': 5, 'Temperate deciduous forest': 6, 'Tropical rainforest': 7,
   'Temperate rainforest': 8, Taiga: 9, Tundra: 10, Glacier: 11, Wetland: 12,
 };
+
+/** FMG biome index → FMG biome NAME, or undefined when out of range.
+ *
+ * The grown-tree path (`vegetation/treeEnvironment.ts`) keys its environments
+ * on these names, so it needs the name the atlas cell carries, not the legacy
+ * id the gameplay vocabulary translates it into. Honest undefined, no default:
+ * a cell with no biome must not silently become a Grassland. */
+export function wfBiomeIndexToName(index: number | undefined): string | undefined {
+  if (index == null) return undefined;
+  return WF_INDEX_TO_NAME[index];
+}
 
 /** Translate an FMG biome index → legacy biome id (fallback for out-of-range). */
 export function wfBiomeIndexToLegacyId(index: number | undefined, fallback = 'plains_meadow'): string {

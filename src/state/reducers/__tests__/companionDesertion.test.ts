@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { companionReducer } from '../companionReducer';
 import { GameState } from '../../../types';
 import { AppAction } from '../../actionTypes';
-import { createMockGameState } from '../../../utils/factories';
+import { createMockGameState } from '../../../utils/core';
 import type { Companion } from '../../../types/companions';
 import type { PlayerCharacter } from '../../../types/character';
 

@@ -23,8 +23,8 @@ longer the current-status authority.
 
 ## What Was Executed (Resolution Record)
 
-- The headline gap this folder carried — "re-run the local-vs-PHB comparison
-  from live data" — was **executed 2026-06-28**: the snapshot generator
+- The headline gap this folder carried - "re-run the local-vs-PHB comparison
+  from live data" - was **executed 2026-06-28**: the snapshot generator
   (`scripts/generateSpellCompletenessSnapshot.ts`, wired as
   `npm run spells:completeness`) produces the maintained coverage snapshot with
   separated Dataset Coverage, Canonical Source, and Runtime Verification gates.
@@ -37,11 +37,11 @@ longer the current-status authority.
 
 ## Historical Evidence Preserved Here
 
-- `output/LOCAL-INVENTORY.md` — historical local spell list snapshot (Dec 2025).
-- `output/PHB-2024-REFERENCE.md` — historical PHB 2024 reference snapshot.
-- `@SPELL-COMPLETENESS-REPORT.md` — historical present/missing/extra output,
+- `output/LOCAL-INVENTORY.md` - historical local spell list snapshot (Dec 2025).
+- `output/PHB-2024-REFERENCE.md` - historical PHB 2024 reference snapshot.
+- `@SPELL-COMPLETENESS-REPORT.md` - historical present/missing/extra output,
   with the 2026-06-28 redirect to the maintained snapshot.
-- `@PROJECT-INDEX.md`, `@WORKFLOW.md`, `PROPOSED_SCHEMA_V2.md` — historical
+- `@PROJECT-INDEX.md`, `@WORKFLOW.md`, `PROPOSED_SCHEMA_V2.md` - historical
   task context.
 - Backlog retirement ledger rows cover the retired `1A~`, `1B~`, `1C~`, `2A~`,
   `2B~`, and old task-folder `GAPS.md` packets.
@@ -49,7 +49,7 @@ longer the current-status authority.
 ## What Must Not Be Lost
 
 - The historical artifact chain from inventory list, PHB reference list, and
-  report — these explain where the original coverage claims came from.
+  report - these explain where the original coverage claims came from.
 - The distinction that everything in this folder is a snapshot, not a current
   guarantee.
 - The handoff relationships: `docs/tasks/spell-system-overhaul` owns migration
@@ -58,7 +58,7 @@ longer the current-status authority.
 
 ## Resume Path For A Cold Agent
 
-1. Do not resume work from this folder — it is closed historical evidence.
+1. Do not resume work from this folder - it is closed historical evidence.
 2. For current status, read
    `docs/projects/spells/subprojects/spell-completeness-audit/NORTH_STAR.md`,
    `TRACKER.md`, and `GAPS.md`.
@@ -68,4 +68,4 @@ longer the current-status authority.
 4. Consult this folder only when you need the provenance of the original
    Dec 2025 audit.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-completeness-audit/NORTH_STAR.md","sha256WithoutMarker":"b625631e635a59be10150cb2df9925f36a4e88cd51fc8718959c83a01f3c8b85","markedAtUtc":"2026-06-25T22:29:38.619Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-completeness-audit/NORTH_STAR.md","sha256WithoutMarker":"3a692e158b9fee17595e98242e311287d029dc35674ef2441c22c2f25c78f801","markedAtUtc":"2026-08-09T20:14:15.780Z"} -->

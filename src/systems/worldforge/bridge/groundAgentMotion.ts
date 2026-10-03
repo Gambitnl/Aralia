@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 24/08/2026, 09:20:42
+ * Dependents: components/World3D/GroundAgents.tsx, components/World3D/World3DWrapper.tsx, components/World3D/agentInstanceMatrices.ts, components/World3D/crowdInstancePlan.ts, components/World3D/streetOwnedAgents.ts, systems/combat/worldScenario/worldBattleScenario.ts
+ * Imports: 7 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file groundAgentMotion.ts — agent motion in the 3D GROUND-METERS frame.
  *
@@ -19,6 +35,22 @@ import type { TownRoster } from '../roster/types';
 import type { ActivityKind } from '../roster/occupantSchedule';
 import { groundSurfaceY, type GroundWorld } from './groundChunkLoader';
 import { WORLD3D_CONFIG } from '../../world3d/config';
+
+// Town plans are immutable generated artifacts, so their street topology is
+// stable for the lifetime of the plan object. The 3D agent loop runs several
+// times per second; retaining this derived graph prevents that loop from
+// projecting every plot against every street again while preserving the same
+// routing inputs. Scheduled route reuse remains owned by townSnapshot.
+const streetGraphByPlan = new WeakMap<TownPlan, StreetGraph>();
+
+function streetGraphForPlan(plan: TownPlan): StreetGraph {
+  const cached = streetGraphByPlan.get(plan);
+  if (cached) return cached;
+
+  const graph = buildStreetGraph(plan);
+  streetGraphByPlan.set(plan, graph);
+  return graph;
+}
 
 const FEET_TO_METERS = 0.3048;
 
@@ -78,7 +110,7 @@ export function allGroundAgentsAt(ground: GroundWorld, clock: number): GroundAge
   for (const { burgId, plan } of ground.townPlans) {
     const roster = ground.rosters.find((r) => r.burgId === burgId);
     if (!roster) continue;
-    out.push(...groundTownAgentsAt(burgId, plan, roster, bounds, clock));
+    out.push(...groundTownAgentsAt(burgId, plan, roster, bounds, clock, streetGraphForPlan(plan)));
   }
   return out;
 }

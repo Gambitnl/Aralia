@@ -44,6 +44,80 @@
       "ritual": {
         "type": "boolean"
       },
+      "ritualData": {
+        "type": "object",
+        "description": "Spell-side data the ritual runtime reads: ceremony requirements, failure backlash, and a prose casting time for \"Special\" headers.",
+        "properties": {
+          "requirements": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "time_of_day",
+                    "location",
+                    "biome",
+                    "weather",
+                    "participants_count",
+                    "custom"
+                  ]
+                },
+                "value": {},
+                "description": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "value"
+              ]
+            }
+          },
+          "backlash": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "damage",
+                  "status",
+                  "summon",
+                  "area_damage",
+                  "drain_slot"
+                ]
+              },
+              "value": {
+                "type": "string"
+              },
+              "damageType": {
+                "type": "string"
+              },
+              "radius": {
+                "type": "number"
+              },
+              "saveDC": {
+                "type": "number"
+              },
+              "minProgress": {
+                "type": "number"
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "value",
+              "description"
+            ]
+          },
+          "castingTimeSpecial": {
+            "type": "string"
+          }
+        }
+      },
       "rarity": {
         "type": "string",
         "enum": [
@@ -207,7 +281,8 @@
               {
                 "type": "string",
                 "enum": [
-                  "unlimited"
+                  "unlimited",
+                  "any_number"
                 ]
               },
               {
@@ -250,15 +325,7 @@
             "type": "array",
             "items": {
               "type": "string",
-              "enum": [
-                "self",
-                "creatures",
-                "allies",
-                "enemies",
-                "objects",
-                "point",
-                "ground"
-              ]
+              "minLength": 1
             }
           },
           "lineOfSight": {
@@ -283,10 +350,14 @@
             "type": "object",
             "properties": {
               "willing": {
-                "type": "string",
-                "enum": [
-                  "required",
-                  "not_applicable"
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  {
+                    "type": "boolean"
+                  }
                 ]
               },
               "objectEligibility": {
@@ -294,10 +365,7 @@
                 "properties": {
                   "wornOrCarried": {
                     "type": "string",
-                    "enum": [
-                      "excluded",
-                      "not_applicable"
-                    ]
+                    "minLength": 1
                   },
                   "magicalStatus": {
                     "type": "string",
@@ -347,24 +415,36 @@
                 "type": "object",
                 "properties": {
                   "canHearCaster": {
-                    "type": "string",
-                    "enum": [
-                      "required",
-                      "not_applicable"
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      {
+                        "type": "boolean"
+                      }
                     ]
                   },
                   "canUnderstandCaster": {
-                    "type": "string",
-                    "enum": [
-                      "required",
-                      "not_applicable"
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      {
+                        "type": "boolean"
+                      }
                     ]
                   },
                   "canSeeCaster": {
-                    "type": "string",
-                    "enum": [
-                      "required",
-                      "not_applicable"
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      {
+                        "type": "boolean"
+                      }
                     ]
                   }
                 },
@@ -952,5 +1032,3 @@
     ]
   }
 }
-
-

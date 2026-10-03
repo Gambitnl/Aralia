@@ -9,7 +9,7 @@
  * CSS transitions to eliminate massive frameworks from the initial Main Menu bundle.
  */
 import React from 'react';
-import { t } from '../../utils/i18n';
+import { t } from '../../utils/core';
 import { UI_ID } from '../../styles/uiIds';
 
 export interface LoadingSpinnerProps {

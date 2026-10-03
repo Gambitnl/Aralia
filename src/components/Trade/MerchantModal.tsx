@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/06/2026, 17:22:06
- * Dependents: components/Trade/index.ts, components/layout/GameModals.tsx
- * Imports: 9 files
+ * Last Sync: 17/08/2026, 14:21:21
+ * Dependents: components/DesignPreview/steps/PreviewTrade.tsx, components/Trade/index.ts, components/layout/GameModals.tsx
+ * Imports: 11 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -25,13 +25,14 @@ import { Item, Action, EconomyState, MarketEvent } from '../../types';
 import Tooltip from '../Tooltip';
 import { useGameState } from '../../state/GameContext';
 import { calculatePrice } from '../../utils/economy/economyUtils';
-import { formatGpAsCoins } from '../../utils/coinPurseUtils';
+import { formatGpAsCoins } from '../../utils/character';
 import CoinPurseDisplay from '../ui/CoinPurseDisplay';
 import { WindowFrame } from '../ui/WindowFrame';
 import { RumorMill } from '../Town/Intrigue/RumorMill';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import { resolveItemVisual } from '../../utils/visuals/visualUtils';
 import { assetUrl } from '../../config/env';
+import { activeHagglePriceMultiplier, roundToCopper } from '../../utils/economy/haggleFact';
 
 /**
  * Renders an item's glyph: an <img> when the item has a real icon asset
@@ -120,6 +121,30 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
     // Use prop economy if provided (for tests), otherwise fall back to global state economy
     const economy = propEconomy || state.economy;
 
+    // The merchant NPC behind this shop. OPEN_MERCHANT now carries the id so the
+    // UI can address the same NPC the merchant action handlers do. Without it
+    // (ad-hoc merchants, and every shop before 2026-09-09) a haggle could not be
+    // recorded, no cooldown applied, and no negotiated price reached the buy.
+    const merchantId = state.merchantModal?.merchantId;
+
+    /**
+     * Multiplier from an active `recent_haggle` fact on this merchant, or 1.
+     *
+     * This is the SAME helper `handleMerchantAction` uses to price a purchase,
+     * so what the button shows is what the purchase charges. When the save has
+     * no game clock (lean test fixtures), expiry is unanswerable, so we fall
+     * back to full price rather than guessing a discount into existence.
+     */
+    const haggleMultiplier = useMemo(() => {
+        if (!merchantId) return 1;
+        const nowMs = state.gameTime instanceof Date ? state.gameTime.getTime() : undefined;
+        if (nowMs === undefined) return 1;
+        return activeHagglePriceMultiplier(state.npcMemory?.[merchantId], nowMs);
+    }, [merchantId, state.gameTime, state.npcMemory]);
+
+    /** Base price after economy/faction modifiers, then the negotiated multiplier. */
+    const hagglePrice = (basePrice: number): number => roundToCopper(basePrice * haggleMultiplier);
+
     // Faction context for trade bonuses — player standing affects prices
     const priceContext = useMemo(() => ({
         factions: state.factions,
@@ -150,18 +175,22 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
 
     const handleBuy = (item: Item) => {
         const { finalPrice } = calculatePrice(item, economy, 'buy', regionId, priceContext);
-        if (finalPrice > 0 && playerGold >= finalPrice) {
+        // Affordability is judged against the price the player actually pays.
+        // `cost` stays the pre-haggle price: the handler re-reads the merchant's
+        // memory and applies the multiplier itself, so a stale client-side number
+        // can never become the charged number.
+        if (finalPrice > 0 && playerGold >= hagglePrice(finalPrice)) {
             // handleMerchantAction expects the transaction-wrapped shape; a flat
             // { item, cost } was silently ignored (payload.transaction was undefined),
             // which is why every Buy click did nothing.
-            onAction({ type: 'BUY_ITEM', label: `Buy ${item.name}`, payload: { transaction: { buy: { item, cost: finalPrice } } } as any });
+            onAction({ type: 'BUY_ITEM', label: `Buy ${item.name}`, payload: { merchantId, transaction: { buy: { item, cost: finalPrice } } } });
         }
     };
 
     const handleSell = (item: Item) => {
         const { finalPrice } = calculatePrice(item, economy, 'sell', regionId, priceContext);
         if (finalPrice > 0) {
-            onAction({ type: 'SELL_ITEM', label: `Sell ${item.name}`, payload: { transaction: { sell: { itemId: item.id, value: finalPrice } } } as any });
+            onAction({ type: 'SELL_ITEM', label: `Sell ${item.name}`, payload: { merchantId, transaction: { sell: { itemId: item.id, value: finalPrice } } } });
         }
     };
 
@@ -173,7 +202,10 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
         onAction({
             type: 'HAGGLE_ITEM',
             label: `Haggle (${strategy})`,
-            payload: { strategy, interactorId: state.party?.[0]?.id } as any,
+            // merchantId is what lets the handler apply the cooldown, record the
+            // `recent_haggle` fact, and nudge this merchant's disposition. Omitting
+            // it made every UI haggle a no-op roll with no lasting effect.
+            payload: { merchantId, strategy, interactorId: state.party?.[0]?.id },
         });
     };
 
@@ -264,7 +296,10 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                 </div>
                                 <div className="space-y-2 pr-1 md:flex-grow md:overflow-y-auto md:scrollable-content md:pr-2">
                                     {merchantInventory.map((item, idx) => {
-                                        const { finalPrice, isModified, multiplier } = calculatePrice(item, economy, 'buy', regionId, priceContext);
+                                        const { finalPrice: basePrice, isModified, multiplier } = calculatePrice(item, economy, 'buy', regionId, priceContext);
+                                        // Shown price includes the negotiated haggle multiplier, so the
+                                        // button and the charge agree.
+                                        const finalPrice = hagglePrice(basePrice);
                                         const canAfford = playerGold >= finalPrice;
                                         return (
                                             <div key={`${item.id}-${idx}`} className="bg-gray-700 p-3 rounded-lg flex flex-col items-stretch gap-3 shadow-sm sm:flex-row sm:justify-between sm:items-center">
@@ -291,6 +326,11 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                                     {isModified && (
                                                         <span className={`text-[10px] font-bold ${multiplier > 1 ? 'text-red-400' : 'text-green-400'}`}>
                                                             {multiplier > 1 ? '▲ High Demand' : '▼ Low Price'}
+                                                        </span>
+                                                    )}
+                                                    {haggleMultiplier !== 1 && (
+                                                        <span className={`text-[10px] font-bold ${haggleMultiplier > 1 ? 'text-red-400' : 'text-green-400'}`}>
+                                                            {haggleMultiplier > 1 ? '▲ Haggled Up' : '▼ Haggled Down'}
                                                         </span>
                                                     )}
                                                 </div>

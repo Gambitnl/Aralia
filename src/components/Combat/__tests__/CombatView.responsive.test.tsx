@@ -139,7 +139,7 @@ vi.mock('../../../hooks/useBattleMapGeneration', () => ({
   }),
 }));
 
-vi.mock('../../../utils/combatUtils', () => ({
+vi.mock('../../../utils/combat', () => ({
   createPlayerCombatCharacter: () => combatants.player,
 }));
 
@@ -156,6 +156,18 @@ vi.mock('../../../hooks/combat/useTurnManager', () => ({
     executeAction: vi.fn(),
     skipToCharacter: vi.fn(),
     canAffordAction: () => true,
+    // Edge-of-map escape (9B). This layout suite fights in the middle of the
+    // board, so the referee refuses and no Escape button is drawn — the escape
+    // behavior itself is proven in useTurnManager.edgeEscape.test.ts.
+    canEscapeFromCombat: () => ({
+      available: false,
+      code: 'not-at-edge' as const,
+      reason: 'not at the edge',
+      tilesFromEdge: 5,
+      movementCostFeet: 30,
+      contested: false,
+    }),
+    escapeFromCombat: vi.fn(),
     addDamageNumber: vi.fn(),
     reactiveTriggers: [],
     setReactiveTriggers: vi.fn(),

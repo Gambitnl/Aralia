@@ -17,6 +17,11 @@
 /**
  * Translates a finished combat into application-level state actions. CombatView
  * reports the outcome; App owns whether play resumes or reaches game over.
+ *
+ * The final enemy roster travels twice on a victory, to two different consumers:
+ * `RESOLVE_WORLDFORGE_OPENING_SCENE` reconciles source-authored identities while
+ * the tactical map still exists, and `END_BATTLE` carries it so post-combat
+ * consequences can read which enemies were actually killed (agora-31fa).
  */
 import type { AppAction } from "../../state/actionTypes";
 import { GamePhase, type Item } from "../../types";
@@ -25,7 +30,7 @@ import type {
   CombatPartySnapshotEntry,
 } from "../../types/combat";
 
-export type BattleEndResult = "victory" | "defeat";
+export type BattleEndResult = "victory" | "defeat" | "flee";
 export type BattleRewards = { gold: number; items: Item[]; xp: number };
 
 // Victory keeps the established reward path. Defeat tears combat down first,
@@ -39,7 +44,7 @@ export const createBattleEndActions = (
   // WorldForge must see final source identities while the tactical map still
   // exists. This action intentionally precedes END_BATTLE, which clears both
   // the enemy roster and the extracted source map from application state.
-  const sourceOutcomeActions: AppAction[] = finalEnemyState?.length
+  const sourceOutcomeActions: AppAction[] = result !== "flee" && finalEnemyState?.length
     ? [
         {
           type: "RESOLVE_WORLDFORGE_OPENING_SCENE",
@@ -48,12 +53,20 @@ export const createBattleEndActions = (
       ]
     : [];
 
+  // A retreat preserves the party's final health but grants no victory rewards
+  // and does not resolve the source scene as a victory or defeat.
+  if (result === "flee") {
+    return [{ type: "END_BATTLE", payload: { finalPartyState, finalEnemyState } }];
+  }
+
   if (result === "victory") {
     return [
       ...sourceOutcomeActions,
       {
         type: "END_BATTLE",
-        ...(rewards ? { payload: { rewards, finalPartyState } } : {}),
+        ...(rewards
+          ? { payload: { rewards, finalPartyState, finalEnemyState } }
+          : {}),
       },
     ];
   }

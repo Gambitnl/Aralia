@@ -14,9 +14,11 @@ This document provides a high-level map of the Aralia codebase, organized by pro
 |--------|-------------|-------------|
 | [Glossary](./architecture/domains/glossary.md) | In-game reference system for rules, spells, items | `Glossary.tsx` |
 | [World Map](./architecture/domains/world-map.md) | Region-level navigation and exploration | `MapPane.tsx` |
+| [Overland Travel](./architecture/domains/overland-travel.md) | Route planning, ferries and fares, getting lost, forced marches | `systems/travel` |
 | [Submap](./architecture/domains/submap.md) | Tile-based exploration within regions | `SubmapPane.tsx` |
 | [Town Map](./architecture/domains/town-map.md) | Village/town interior navigation | `TownCanvas.tsx` |
 | [Battle Map](./architecture/domains/battle-map.md) | Tactical combat grid and tokens | `BattleMap.tsx` |
+| [Streamed 3D World](./architecture/domains/streamed-3d-world.md) | The walkable 3D world: terrain, water, walls, roads, vegetation | `World3DScene.tsx` |
 | [Combat](./architecture/domains/combat.md) | Combat mechanics, initiative, actions | `combatUtils.ts` |
 | [Spells](./architecture/domains/spells.md) | Spell data, targeting, effects | Spell system |
 | [Character Creator](./architecture/domains/character-creator.md) | Character generation wizard | `CharacterCreator.tsx` |
@@ -25,6 +27,8 @@ This document provides a high-level map of the Aralia codebase, organized by pro
 | [Items / Trade / Inventory](./architecture/domains/items-trade-inventory.md) | Item management and economy | `InventoryList.tsx` |
 | [Planes / Travel](./architecture/domains/planes-travel.md) | Planar mechanics and travel systems | Planar systems |
 | [Data Pipelines](./architecture/domains/data-pipelines.md) | Scripts, generators, validators | `scripts/` |
+| [Nightly Git Save](./architecture/domains/nightly-git-save.md) | The 02:00 private recovery and public change review, with deliberate reviewed publication | `scripts/git/nightly-snapshot.mjs` |
+| [GitHub CI and Deployment](./architecture/domains/github-ci-cd.md) | Pull request checks, public Pages deployment, GitHub enforcement, and verified pipeline gaps | `.github/workflows/` |
 | [Monster Data Pipeline](./architecture/MONSTER_DATA_PIPELINE.md) | 5eTools ingestion and bestiary adapter | `5eToolsAdapter.ts` |
 
 ---

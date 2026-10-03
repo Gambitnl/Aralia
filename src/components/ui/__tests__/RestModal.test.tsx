@@ -4,6 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import RestModal from '../RestModal';
 import LongRestModal from '../LongRestModal';
 import { createMockPlayerCharacter } from '../../../utils/core/factories';
+import type { Class, AbilityScores } from '../../../types';
 
 vi.mock('../../../hooks/useFocusTrap', () => ({
   useFocusTrap: () => React.createRef(),
@@ -17,8 +18,8 @@ describe('RestModal', () => {
       hp: 10,
       maxHp: 20,
       level: 2,
-      class: { name: 'Fighter' },
-      finalAbilityScores: { Constitution: 14 },
+      class: { name: 'Fighter' } as unknown as Class,
+      finalAbilityScores: { Constitution: 14 } as unknown as AbilityScores,
       // Fighter level 2 has 2d10 hit dice pool
       classLevels: { fighter: 2 },
     }),

@@ -1,11 +1,16 @@
+/**
+ * @file src/utils/character/checkUtils.ts
+ * Utility functions for handling ability checks and skill checks in D&D 5e.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 29/06/2026, 02:45:39
- * Dependents: systems/crafting/batchCrafting.ts, systems/crafting/craftingEngine.ts, systems/puzzles/mechanism.ts, utils/character/index.ts
- * Imports: 5 files
+ * Last Sync: 20/09/2026, 21:00:39
+ * Dependents: components/DesignPreview/steps/raceDomain/leaves/deepGnomeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/draconbloodDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/drowRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/forgebornHumanRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/giffRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/guardianHumanRaceLeaf.tsx, systems/crafting/batchCrafting.ts, systems/crafting/craftingEngine.ts, systems/crafting/craftingService.ts, systems/puzzles/arcaneGlyphSystem.ts, systems/puzzles/mechanism.ts, systems/spells/mechanics/dispelMagicResolution.ts, utils/character/index.ts, utils/combat/grappleUtils.ts
+ * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,14 +19,12 @@
  */
 // @dependencies-end
 
-/**
- * @file src/utils/character/checkUtils.ts
- * Utility functions for handling ability checks and skill checks in D&D 5e.
- */
 import { PlayerCharacter } from '../../types/character';
 import { CombatCharacter, StatusEffect } from '../../types/combat';
-import { rollDice } from '../combat/combatUtils';
+import { rollDice } from '../../systems/dice/rollers';
 import { getAbilityModifierValue } from './statUtils';
+import { calculateProficiencyBonus } from './savingThrowUtils';
+import { calculateExpertiseBonus, hasExpertiseInSkill } from './skillModifierUtils';
 import { AbilityScoreName } from '../../types/core';
 
 /**
@@ -34,6 +37,15 @@ export interface CheckResult {
     total: number;
     /** List of modifiers that were applied (e.g., Guidance, Racial Intuition) */
     modifiersApplied?: { source: string; value: number }[];
+}
+
+/** Optional roll controls used by deterministic simulations and focused tests. */
+export interface AbilityCheckRollOptions {
+    advantage?: boolean;
+    disadvantage?: boolean;
+    externalModifier?: number;
+    /** Supplies the random stream without replacing the shared dice engine. */
+    rng?: () => number;
 }
 
 // ---------------------------------------------------------------------------
@@ -64,38 +76,101 @@ function modifierAppliesToCheck(text: string, ability: AbilityScoreName, skill?:
     return normalized.includes('ability check');
 }
 
-function collectStructuredAbilityCheckBonuses(
-    character: PlayerCharacter | CombatCharacter,
+interface StructuredAbilityCheckModifier {
+    source: string;
+    value?: number;
+    bonusDice?: string;
+    advantage?: boolean;
+    disadvantage?: boolean;
+}
+
+function normalizedLabel(value: string): string {
+    return value.trim().toLowerCase().replace(/[_-]+/g, ' ');
+}
+
+function labelList(value: string | string[] | undefined): string[] {
+    return (Array.isArray(value) ? value : value ? [value] : []).map(normalizedLabel);
+}
+
+function abilityCheckModifierApplies(
+    modifier: NonNullable<StatusEffect['abilityCheckModifier']>,
+    statusEffect: StatusEffect,
+    ability: AbilityScoreName,
     skill?: string
-): { source: string; value: number }[] {
+): boolean {
+    const selection = normalizedLabel(modifier.skillSelection || '');
+    const selected = statusEffect.modifiers?.skill?.trim();
+    const pool = labelList(modifier.skillPool);
+    const requestedAbility = normalizedLabel(ability);
+    const requestedSkill = skill ? normalizedLabel(skill) : undefined;
+    const appliesTo = normalizedLabel(modifier.appliesTo || '');
+    const poolMatches = (value: string | undefined): boolean => Boolean(value && pool.includes(value));
+
+    if (selection === 'chosen skill') {
+        return Boolean(requestedSkill && selected && normalizedLabel(selected) === requestedSkill);
+    }
+
+    if (selection === 'chosen ability') {
+        return Boolean(selected && normalizedLabel(selected) === requestedAbility);
+    }
+
+    if (selection === 'all abilities') {
+        return pool.length === 0 || poolMatches(requestedAbility);
+    }
+
+    if (selection === 'fixed skill' || selection === 'fixed skills') {
+        return Boolean(requestedSkill && (poolMatches(requestedSkill) || appliesTo.includes(requestedSkill)));
+    }
+
+    if (selection === 'not applicable' || selection === '') {
+        return appliesTo === 'ability check' || (requestedSkill ? appliesTo.includes(requestedSkill) : appliesTo.includes(requestedAbility));
+    }
+
+    // Preserve future selection labels while still allowing source text that
+    // names a concrete skill or ability to participate in a matching check.
+    return poolMatches(requestedSkill) || poolMatches(requestedAbility) ||
+        (requestedSkill ? appliesTo.includes(requestedSkill) : appliesTo.includes(requestedAbility));
+}
+
+function collectStructuredAbilityCheckModifiers(
+    character: PlayerCharacter | CombatCharacter,
+    ability: AbilityScoreName,
+    skill?: string
+): StructuredAbilityCheckModifier[] {
     const statusEffects = 'statusEffects' in character ? character.statusEffects ?? [] : []
-    const applied: { source: string; value: number }[] = []
+    const applied: StructuredAbilityCheckModifier[] = []
 
     for (const effect of statusEffects as StatusEffect[]) {
         const modifier = effect.abilityCheckModifier
-        if (!modifier || modifier.appliesTo !== 'ability_check') {
-            continue
-        }
-
-        const chosenSkill = effect.modifiers?.skill?.trim()
-        if (modifier.skillSelection === 'chosen_skill') {
-            if (!skill || !chosenSkill || chosenSkill.toLowerCase() !== skill.toLowerCase()) {
-                continue
-            }
-        } else if (skill && chosenSkill && chosenSkill.toLowerCase() !== skill.toLowerCase()) {
-            continue
-        }
-
+        const statusModifiers = effect.modifiers
         const source = effect.source || effect.name
-        const bonusDice = modifier.bonusDice?.trim()
-        if (bonusDice) {
-            const val = rollDice(bonusDice)
-            applied.push({ source, value: val })
-            continue
+
+        if (modifier && abilityCheckModifierApplies(modifier, effect, ability, skill)) {
+            const bonusDice = modifier.bonusDice?.trim()
+            if (bonusDice) {
+                applied.push({ source, bonusDice })
+            } else if (typeof modifier.flatModifier === 'number') {
+                applied.push({ source, value: modifier.flatModifier })
+            } else if (modifier.flatModifier === 'advantage' || modifier.flatModifier === 'disadvantage') {
+                applied.push({
+                    source,
+                    [modifier.flatModifier]: true,
+                })
+            }
         }
 
-        if (modifier.flatModifier !== undefined) {
-            applied.push({ source, value: modifier.flatModifier })
+        // Some command bridges expose advantage/disadvantage as a status
+        // modifier without duplicating the full source payload. Honor that
+        // packet here so pre-roll offers and Enhance Ability share one roll path.
+        const statusSkill = statusModifiers?.skill
+        const statusScopeMatches = !statusSkill ||
+            normalizedLabel(statusSkill) === normalizedLabel(ability) ||
+            normalizedLabel(statusSkill) === normalizedLabel(skill || '');
+        if (statusScopeMatches && statusModifiers?.advantage?.includes('check')) {
+            applied.push({ source, advantage: true })
+        }
+        if (statusScopeMatches && statusModifiers?.disadvantage?.includes('check')) {
+            applied.push({ source, disadvantage: true })
         }
     }
 
@@ -109,10 +184,19 @@ export function rollAbilityCheck(
     character: PlayerCharacter | CombatCharacter,
     ability: AbilityScoreName,
     skill?: string,
-    options?: { advantage?: boolean; disadvantage?: boolean; externalModifier?: number }
+    options?: AbilityCheckRollOptions
 ): CheckResult {
     let hasAdvantage = options?.advantage || false;
     let hasDisadvantage = options?.disadvantage || false;
+
+    // Read structured spell riders before rolling so advantage/disadvantage
+    // changes the d20 selection while numeric and dice riders are applied to
+    // the final modifier below.
+    const structuredModifiers = collectStructuredAbilityCheckModifiers(character, ability, skill)
+    for (const modifier of structuredModifiers) {
+        hasAdvantage ||= modifier.advantage === true
+        hasDisadvantage ||= modifier.disadvantage === true
+    }
 
     // Check racial advantage/disadvantage
     character.modifiers?.advantage.forEach(adv => {
@@ -126,12 +210,17 @@ export function rollAbilityCheck(
         }
     });
 
-    // Roll d20
-    let roll = rollDice('1d20');
+    // Route deterministic callers through the same dice parser as ordinary
+    // play. Production callers omit rng and keep the normal random stream.
+    const rollD20 = (): number => options?.rng
+        ? rollDice('1d20', { rng: options.rng })
+        : rollDice('1d20');
+
+    let roll = rollD20();
     if (hasAdvantage && !hasDisadvantage) {
-        roll = Math.max(roll, rollDice('1d20'));
+        roll = Math.max(roll, rollD20());
     } else if (hasDisadvantage && !hasAdvantage) {
-        roll = Math.min(roll, rollDice('1d20'));
+        roll = Math.min(roll, rollD20());
     }
 
     // Base ability modifier
@@ -158,8 +247,18 @@ export function rollAbilityCheck(
     }
 
     let mod = getAbilityModifierValue(score);
+    const proficiencyBonus = calculateProficiencyBonus(level);
+    let expertiseBonusApplied = 0;
     if (isProficient) {
-        mod += (2 + Math.floor(Math.max(0, level - 1) / 4)); // calculateProficiencyBonus inline or import
+        mod += proficiencyBonus;
+        // Expertise doubles the proficiency bonus on a chosen skill. Only a
+        // PlayerCharacter records the choice, and only a named skill can carry it.
+        expertiseBonusApplied = calculateExpertiseBonus({
+            hasProficiency: true,
+            hasExpertise: Boolean(skill) && 'featChoices' in character && hasExpertiseInSkill(character, skill as string),
+            proficiencyBonus
+        });
+        mod += expertiseBonusApplied;
     }
 
     // Add external modifier (e.g. from crafting progression or location)
@@ -169,6 +268,9 @@ export function rollAbilityCheck(
 
     // Track modifiers for logging
     const modifiersApplied: { source: string; value: number }[] = [];
+    if (expertiseBonusApplied > 0) {
+        modifiersApplied.push({ source: 'Expertise', value: expertiseBonusApplied });
+    }
 
     // Racial Intuition / Bonuses
     character.modifiers?.bonuses.forEach(bonus => {
@@ -194,9 +296,11 @@ export function rollAbilityCheck(
     // effects so concentration cleanup can remove them without re-parsing
     // combat log text. They still feed the same modifier list here so the
     // shared check roll stays the single consumer of the bonus dice.
-    for (const modifier of collectStructuredAbilityCheckBonuses(character, skill)) {
-        mod += modifier.value;
-        modifiersApplied.push(modifier);
+    for (const modifier of structuredModifiers) {
+        const value = modifier.value ?? (modifier.bonusDice ? rollDice(modifier.bonusDice) : undefined)
+        if (value === undefined) continue
+        mod += value
+        modifiersApplied.push({ source: modifier.source, value })
     }
 
     return {
@@ -204,4 +308,32 @@ export function rollAbilityCheck(
         total: roll + mod,
         modifiersApplied: modifiersApplied.length > 0 ? modifiersApplied : undefined
     };
+}
+
+/**
+ * Structured advantage and disadvantage sources that would apply to a check.
+ *
+ * Character sheets need to name the reason next to a skill without rolling, and
+ * blessings such as Scales of Justice carry that reason on a status effect. Text
+ * modifiers on `character.modifiers` are deliberately excluded: the sheet already
+ * renders racial traits from its own data.
+ */
+export function getCheckAdvantageSources(
+    character: PlayerCharacter | CombatCharacter,
+    ability: AbilityScoreName,
+    skill?: string
+): { advantage: string[]; disadvantage: string[] } {
+    const advantage: string[] = [];
+    const disadvantage: string[] = [];
+
+    for (const modifier of collectStructuredAbilityCheckModifiers(character, ability, skill)) {
+        if (modifier.advantage === true && !advantage.includes(modifier.source)) {
+            advantage.push(modifier.source);
+        }
+        if (modifier.disadvantage === true && !disadvantage.includes(modifier.source)) {
+            disadvantage.push(modifier.source);
+        }
+    }
+
+    return { advantage, disadvantage };
 }

@@ -73,7 +73,7 @@
         "tags": [
           "level 0"
         ],
-        "excerpt": "Evocation spell",
+        "excerpt": "Illusion spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true
@@ -2164,7 +2164,7 @@
         "tags": [
           "level 3"
         ],
-        "excerpt": "Evocation spell",
+        "excerpt": "Abjuration spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true
@@ -2620,7 +2620,7 @@
         "tags": [
           "level 3"
         ],
-        "excerpt": "Evocation spell",
+        "excerpt": "Abjuration spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true
@@ -2740,7 +2740,7 @@
         "tags": [
           "level 3"
         ],
-        "excerpt": "Evocation spell",
+        "excerpt": "Divination spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true
@@ -3308,7 +3308,7 @@
       },
       {
         "id": "guardian-of-nature",
-        "title": "Guardian Of Nature",
+        "title": "Guardian of Nature",
         "category": "Spells",
         "tags": [
           "level 4"
@@ -3428,7 +3428,7 @@
       },
       {
         "id": "shadow-of-moil",
-        "title": "Shadow Of Moil",
+        "title": "Shadow of Moil",
         "category": "Spells",
         "tags": [
           "level 4"
@@ -3457,7 +3457,7 @@
         "tags": [
           "level 4"
         ],
-        "excerpt": "Enchantment spell",
+        "excerpt": "Evocation spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true
@@ -4128,7 +4128,7 @@
         "tags": [
           "level 5"
         ],
-        "excerpt": "Necromancy spell",
+        "excerpt": "Transmutation spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true
@@ -4427,7 +4427,7 @@
         "tags": [
           "level 6"
         ],
-        "excerpt": "Evocation spell",
+        "excerpt": "Abjuration spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true
@@ -4583,7 +4583,7 @@
         "tags": [
           "level 6"
         ],
-        "excerpt": "Evocation spell",
+        "excerpt": "Abjuration spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true
@@ -5361,7 +5361,7 @@
         "tags": [
           "level 8"
         ],
-        "excerpt": "Evocation spell",
+        "excerpt": "Transmutation spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true
@@ -5385,7 +5385,7 @@
         "tags": [
           "level 8"
         ],
-        "excerpt": "Transmutation spell",
+        "excerpt": "Enchantment spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true
@@ -5505,7 +5505,7 @@
         "tags": [
           "level 8"
         ],
-        "excerpt": "Evocation spell",
+        "excerpt": "Divination spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true

@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 02/07/2026, 05:06:19
- * Dependents: commands/effects/DamageCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/StatusConditionCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, hooks/useAbilitySystem.ts
+ * Last Sync: 26/08/2026, 03:10:52
+ * Dependents: commands/effects/DamageCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/StatusConditionCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, components/DesignPreview/steps/scenarioControls/summonsControlledScenarioControls.ts, hooks/useAbilitySystem.ts, systems/spells/socialServiceResolution.ts
  * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
@@ -19,7 +19,7 @@ import { CommandContext } from '../base/SpellCommand'
 import { CombatCharacter, CombatState, ConcentrationState } from '../../types/combat'
 import type { Spell, UtilityEffect } from '../../types/spells'
 import { AttackRiderSystem } from '../../systems/combat/AttackRiderSystem'
-import { generateId } from '../../utils/combatUtils'
+import { generateId } from '../../utils/combat'
 
 /**
  * Command to initiate concentration on a spell.
@@ -49,7 +49,25 @@ export class StartConcentrationCommand extends BaseEffectCommand {
      * 4. Logs the event.
      */
     execute(state: CombatState): CombatState {
-        const caster = this.getCaster(state)
+        let currentState = state
+        const liveCaster = this.getCaster(currentState)
+
+        // A concentration command is safe even when a caller forgets to prepend
+        // the factory's normal break command. Ending the live caster's exact old
+        // spell first prevents two owned concentration effects from coexisting,
+        // while the owner-aware cleanup below leaves every other caster alone.
+        if (liveCaster.concentratingOn) {
+            const breakPrevious = new BreakConcentrationCommand({
+                ...this.context,
+                caster: liveCaster,
+                spellId: liveCaster.concentratingOn.spellId,
+                spellName: liveCaster.concentratingOn.spellName,
+                targets: []
+            })
+            currentState = breakPrevious.execute(currentState)
+        }
+
+        const caster = this.getCaster(currentState)
         const spellId = this.context.spellId;
 
         // Collect effect IDs from combat log
@@ -57,58 +75,50 @@ export class StartConcentrationCommand extends BaseEffectCommand {
 
         // Scan logs for effects created by this spell
         // We look backwards as the effects were likely just added
-        for (let i = state.combatLog.length - 1; i >= 0; i--) {
-            const entry = state.combatLog[i];
+        for (let i = currentState.combatLog.length - 1; i >= 0; i--) {
+            const entry = currentState.combatLog[i];
 
             // Optimization: Stop if we go back too far in time?
             // For now, simple iteration is fine given log size usually isn't massive within a turn
 
             if (!entry.data) continue;
-            const data = entry.data as Record<string, unknown>;
 
-            // 1. Status Effects (StatusConditionCommand)
-            const condition = data.condition;
-            const statusId = typeof data.statusId === 'string' ? data.statusId : null;
-            if (statusId && condition && typeof condition === 'object' && 'source' in condition) {
-                const source = (condition as { source?: string }).source;
-                // TODO #4: formalize combat log data shapes so we don't have to duck-type log entries here.
-                if (source === spellId || source === this.context.spellName) {
+            // Status records carry concentration-owned conditions, lightweight
+            // status mirrors, delayed attack riders and light sources. The log
+            // discriminator now exposes each of these links without casts.
+            if (entry.type === 'status') {
+                const { condition, lightSource, rider, sourceSpellId, statusId } = entry.data;
+
+                if (
+                    statusId &&
+                    (condition?.source === spellId || condition?.source === this.context.spellName)
+                ) {
                     effectIds.push(statusId);
                 }
-            }
 
-            // Guidance-style utility spells log their own status mirror instead
-            // of a legacy condition payload. Keep those effect ids on the same
-            // concentration cleanup path so a recast or concentration break can
-            // remove the target-side bonus cleanly.
-            if (statusId && typeof data.sourceSpellId === 'string' && data.sourceSpellId === spellId) {
-                effectIds.push(statusId);
-            }
+                // Guidance-style utility spells log a status mirror instead of
+                // a condition. It still belongs to the same cleanup path.
+                if (statusId && sourceSpellId === spellId) {
+                    effectIds.push(statusId);
+                }
 
-            // 2. Riders (RegisterRiderCommand)
-            const rider = data.rider;
-            if (rider && typeof rider === 'object' && 'spellId' in rider && (rider as { spellId?: string }).spellId === spellId) {
-                const riderId = (rider as { id?: string }).id;
-                if (riderId) {
-                    effectIds.push(riderId);
+                if (rider?.spellId === spellId) {
+                    effectIds.push(rider.id);
+                }
+
+                if (lightSource?.sourceSpellId === spellId) {
+                    effectIds.push(lightSource.id);
                 }
             }
 
-            // 3. Light Sources (UtilityCommand)
-            const lightSource = data.lightSource;
-            if (lightSource && typeof lightSource === 'object' && 'sourceSpellId' in lightSource) {
-                if ((lightSource as { sourceSpellId?: string }).sourceSpellId === spellId) {
-                    const lightId = (lightSource as { id?: string }).id;
-                    if (lightId) {
-                        effectIds.push(lightId);
-                    }
-                }
-            }
-
-            // 4. Summons (SummoningCommand)
-            const summonedId = typeof data.summonedId === 'string' ? data.summonedId : null;
-            if (summonedId && data.spellId === spellId) {
-                effectIds.push(summonedId);
+            // Creature summons are recorded as either deliberate actions or
+            // persistent summon records. Both use the same typed spell link.
+            if (
+                (entry.type === 'action' || entry.type === 'summon') &&
+                entry.data.summonedId &&
+                entry.data.spellId === spellId
+            ) {
+                effectIds.push(entry.data.summonedId);
             }
         }
 
@@ -117,7 +127,7 @@ export class StartConcentrationCommand extends BaseEffectCommand {
             spellId: this.spell.id,
             spellName: this.spell.name,
             spellLevel: this.context.castAtLevel,
-            startedTurn: state.turnState.currentTurn,
+            startedTurn: currentState.turnState.currentTurn,
             effectIds: effectIds,
             canDropAsFreeAction: true,
             sustainCost: (() => {
@@ -131,7 +141,7 @@ export class StartConcentrationCommand extends BaseEffectCommand {
         }
 
         // Apply the state change to the character
-        const updatedState = this.updateCharacter(state, caster.id, {
+        const updatedState = this.updateCharacter(currentState, caster.id, {
             concentratingOn: concentrationState
         })
 
@@ -198,13 +208,21 @@ export class BreakConcentrationCommand extends BaseEffectCommand {
                     trackedEffectIds.has(eff.id) && eff.socialLifecycle?.targetKnowsOnEnd === true
                 )
                 // Filter out StatusEffects that match tracked IDs
-                const newStatusEffects = (char.statusEffects || []).filter(eff => !trackedEffectIds.has(eff.id));
+                const newStatusEffects = (char.statusEffects || []).filter(eff => {
+                    const ownedSource = eff.sourceCasterId === caster.id && (
+                        eff.sourceSpellId === previousSpellId ||
+                        eff.source === previousSpellId ||
+                        eff.source === previousSpell
+                    )
+                    return !trackedEffectIds.has(eff.id) && !ownedSource
+                });
 
                 // Filter out ActiveConditions that match the spell source
                 // (Note: Conditions don't have IDs tracked in effectIds usually, but source matches)
-                const newConditions = (char.conditions || []).filter(cond =>
-                    cond.source !== previousSpellId && cond.source !== previousSpell
-                );
+                const newConditions = (char.conditions || []).filter(cond => {
+                    const sourceMatches = cond.source === previousSpellId || cond.source === previousSpell
+                    return !(sourceMatches && cond.sourceCasterId === caster.id)
+                });
 
                 if (newStatusEffects.length !== (char.statusEffects || []).length ||
                     newConditions.length !== (char.conditions || []).length) {
@@ -238,7 +256,7 @@ export class BreakConcentrationCommand extends BaseEffectCommand {
               updatedState = {
                   ...updatedState,
                   activeLightSources: updatedState.activeLightSources.filter(
-                      ls => ls.sourceSpellId !== previousSpellId && !trackedEffectIds.has(ls.id)
+                      ls => (ls.sourceSpellId !== previousSpellId || ls.casterId !== caster.id) && !trackedEffectIds.has(ls.id)
                   )
               };
           }
@@ -247,7 +265,7 @@ export class BreakConcentrationCommand extends BaseEffectCommand {
               updatedState = {
                   ...updatedState,
                   activeSpellForces: updatedState.activeSpellForces.filter(
-                      force => force.spellId !== previousSpellId && !trackedEffectIds.has(force.id)
+                      force => (force.spellId !== previousSpellId || force.casterId !== caster.id) && !trackedEffectIds.has(force.id)
                   )
               };
           }
@@ -256,7 +274,7 @@ export class BreakConcentrationCommand extends BaseEffectCommand {
               updatedState = {
                   ...updatedState,
                   activeSpellGuardians: updatedState.activeSpellGuardians.filter(
-                      guardian => guardian.spellId !== previousSpellId && !trackedEffectIds.has(guardian.id)
+                      guardian => (guardian.spellId !== previousSpellId || guardian.casterId !== caster.id) && !trackedEffectIds.has(guardian.id)
                   )
               };
           }
@@ -268,7 +286,7 @@ export class BreakConcentrationCommand extends BaseEffectCommand {
               updatedState = {
                   ...updatedState,
                   activeSpellEmanations: updatedState.activeSpellEmanations.filter(
-                      emanation => emanation.spellId !== previousSpellId && !trackedEffectIds.has(emanation.id)
+                      emanation => (emanation.spellId !== previousSpellId || emanation.casterId !== caster.id) && !trackedEffectIds.has(emanation.id)
                   )
               };
           }
@@ -279,7 +297,7 @@ export class BreakConcentrationCommand extends BaseEffectCommand {
               updatedState = {
                   ...updatedState,
                   activeEnvironmentalControls: updatedState.activeEnvironmentalControls.filter(
-                      control => control.spellId !== previousSpellId && !trackedEffectIds.has(control.id)
+                      control => (control.spellId !== previousSpellId || control.casterId !== caster.id) && !trackedEffectIds.has(control.id)
                   )
               };
           }
@@ -291,7 +309,7 @@ export class BreakConcentrationCommand extends BaseEffectCommand {
               updatedState = {
                   ...updatedState,
                   activeFireEffects: updatedState.activeFireEffects.filter(
-                      fire => fire.spellId !== previousSpellId && !trackedEffectIds.has(fire.id)
+                      fire => (fire.spellId !== previousSpellId || fire.casterId !== caster.id) && !trackedEffectIds.has(fire.id)
                   )
               };
           }
@@ -304,7 +322,7 @@ export class BreakConcentrationCommand extends BaseEffectCommand {
               updatedState = {
                   ...updatedState,
                   spellZones: updatedState.spellZones.filter(
-                      zone => zone.spellId !== previousSpellId && !trackedEffectIds.has(zone.id)
+                      zone => (zone.spellId !== previousSpellId || zone.casterId !== caster.id) && !trackedEffectIds.has(zone.id)
                   )
               };
           }
@@ -373,7 +391,7 @@ export class BreakConcentrationCommand extends BaseEffectCommand {
             ...updatedState,
             characters: updatedState.characters.map(char => {
                 const newActiveEffects = (char.activeEffects || []).filter(effect =>
-                    effect.spellId !== previousSpellId && !trackedEffectIds.has(effect.id)
+                    (effect.spellId !== previousSpellId || effect.casterId !== caster.id) && !trackedEffectIds.has(effect.id)
                 );
 
                 if (newActiveEffects.length !== (char.activeEffects || []).length) {

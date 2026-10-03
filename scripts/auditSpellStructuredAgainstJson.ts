@@ -30,7 +30,7 @@ import { SpellValidator } from '../src/systems/spells/validation/spellValidator'
 // other tooling expect.
 // ============================================================================
 
-const REPO_ROOT = 'F:/Repos/Aralia';
+const REPO_ROOT = '.';
 const SCRIPT_FILE = fileURLToPath(import.meta.url);
 const SPELL_REFERENCE_ROOT = path.join(REPO_ROOT, 'docs', 'spells', 'reference');
 const SPELLS_ROOT = path.join(REPO_ROOT, 'public', 'data', 'spells');
@@ -328,7 +328,7 @@ function formatAreaMeasurement(size: number, unit: string, sizeType?: string): s
     return `${size.toLocaleString('en-US')} ${renderedUnit}`;
   }
 
-  return formatMeasuredDistance(size, unit, 'hyphenated');
+  return formatMeasuredDistance(size, unit as any, 'hyphenated');
 }
 
 function formatStructuredCastingTime(labels: Map<string, string>): string {
@@ -789,7 +789,7 @@ function formatJsonDuration(spell: unknown): string {
   const { duration } = parsed.data;
   if (duration.type === 'instantaneous') return 'Instantaneous';
   if (duration.type === 'special') return 'Special';
-  if (duration.type === 'permanent') return 'Permanent';
+  if ((duration.type as string) === 'permanent') return 'Permanent';
   if (duration.type === 'until_dispelled') return 'Until Dispelled';
 
   if (typeof duration.value === 'number' && duration.value > 0 && duration.unit) {
@@ -911,10 +911,10 @@ function formatJsonUtilityOptions(spell: unknown): string {
 
   return parsed.data.effects
     .flatMap((effect) => effect.type === 'UTILITY' ? (effect.controlOptions ?? []) : [])
-    .map((option) => [
-      option.name,
+    .map((option: any) => [
+      option.name ?? option.label ?? option.mode,
       option.effect ? `effect=${option.effect}` : '',
-      option.details ? `details=${option.details}` : '',
+      option.details ? `details=${option.details}` : (option.summary ? `details=${option.summary}` : ''),
     ].filter(Boolean).join('|'))
     .sort()
     .join('; ');

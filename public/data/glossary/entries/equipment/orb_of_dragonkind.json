@@ -28,6 +28,9 @@
     "type": "Wondrous Item",
     "rarity": "Artifact",
     "reqAttune": "Required",
-    "weight": 3
+    "weight": 3,
+    "charges": 7,
+    "recharge": "dawn",
+    "rechargeAmount": "1d4 + 3"
   }
 }

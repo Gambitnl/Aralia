@@ -8,9 +8,10 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { handleLongRest, handleShortRest } from '../handleResourceActions';
-import { createMockGameState, createMockPlayerCharacter } from '../../../utils/factories';
+import { createMockGameState, createMockPlayerCharacter } from '../../../utils/core';
 import { getGameDay } from '../../../utils/core';
 import type { GameState } from '../../../types';
+import type { AppAction } from '../../../state/actionTypes';
 import { createInitialJournalState } from '../../../types/journal';
 import type { AddMessageFn } from '../../actions/actionHandlerTypes';
 
@@ -22,6 +23,12 @@ vi.mock('../handleWorldEvents', () => ({
   handleResidueChecks: vi.fn().mockResolvedValue(undefined),
   handleGossipEvent: vi.fn().mockResolvedValue(undefined),
   handleLongRestWorldEvents: vi.fn((gameState) => gameState.npcMemory),
+  // DIAL-002: the long rest now also runs the deterministic fact-propagation
+  // pass; stubbed here for the same reason the gossip lane is.
+  handleFactPropagationEvent: vi.fn(),
+  // The long rest also nudges the town's occupant routines; stubbed for the
+  // same reason the gossip lane is (it would build a canonical town roster).
+  handleTownRoutineEvents: vi.fn().mockResolvedValue([]),
 }));
 
 describe('handleShortRest', () => {
@@ -99,8 +106,43 @@ describe('handleShortRest', () => {
     expect(advanceTimeAction?.[0].payload.seconds).toBe(3600);
   });
 
-  it('opens a new journal entry after long rest so queued quest events can flush into it', async () => {
+  it('resets an exhausted short-rest count when the rest finishes after midnight', () => {
+    // This rest begins on an exhausted day but belongs to the new day when its
+    // one-hour duration finishes. The real action path must therefore allow it
+    // and record the fresh day's first rest without changing the time cost.
+    const gameTime = new Date(Date.UTC(351, 0, 1, 23, 30, 0));
+    const restEndMs = gameTime.getTime() + 3600 * 1000;
+    const state = {
+      ...baseState,
+      gameTime,
+      shortRestTracker: {
+        restsTakenToday: 3,
+        lastRestDay: getGameDay(gameTime),
+        lastRestEndedAtMs: gameTime.getTime() - 3 * 3600 * 1000,
+      },
+    };
+
+    handleShortRest({ gameState: state, dispatch: mockDispatch as unknown as React.Dispatch<AppAction>, addMessage: mockAddMessage as AddMessageFn });
+
+    // Keep the mechanical rest update ahead of the authoritative clock update,
+    // and prove the tracker uses the post-midnight day reached by that update.
+    expect(mockDispatch.mock.calls.map(([action]) => action.type)).toEqual(['SHORT_REST', 'ADVANCE_TIME']);
+    expect(mockDispatch.mock.calls[0][0].payload.shortRestTracker).toEqual({
+      restsTakenToday: 1,
+      lastRestDay: getGameDay(new Date(restEndMs)),
+      lastRestEndedAtMs: restEndMs,
+    });
+    expect(mockDispatch.mock.calls[1][0]).toEqual({
+      type: 'ADVANCE_TIME',
+      payload: { seconds: 3600 },
+    });
+  });
+
+  it('keeps the long-rest update, midnight-crossing clock advance, and journal entry in order', async () => {
+    // The fixed timestamps make the day boundary part of the contract: the rest
+    // starts late on one UTC game day and its eight-hour advance ends next day.
     const gameTime = new Date(Date.UTC(351, 0, 1, 21, 0, 0));
+    const restEndMs = gameTime.getTime() + 8 * 3600 * 1000;
     const state = createMockGameState({
       party: [createMockPlayerCharacter({ id: 'rest-1', hp: 5, maxHp: 10 })],
       gameTime,
@@ -134,14 +176,22 @@ describe('handleShortRest', () => {
       racialRestChoices,
     });
 
-    const longRestAction = mockDispatch.mock.calls.find(([action]) => action.type === 'LONG_REST');
+    const longRestIndex = mockDispatch.mock.calls.findIndex(([action]) => action.type === 'LONG_REST');
     const advanceTimeIndex = mockDispatch.mock.calls.findIndex(([action]) => action.type === 'ADVANCE_TIME');
     const addJournalIndex = mockDispatch.mock.calls.findIndex(([action]) => action.type === 'ADD_JOURNAL_ENTRY');
+    const longRestAction = mockDispatch.mock.calls[longRestIndex]?.[0];
+    const advanceTimeAction = mockDispatch.mock.calls[advanceTimeIndex]?.[0];
     const addJournalAction = mockDispatch.mock.calls.find(([action]) => action.type === 'ADD_JOURNAL_ENTRY');
 
-    expect(longRestAction?.[0].payload).toMatchObject({ racialRestChoices });
-    expect(advanceTimeIndex).toBeGreaterThan(-1);
-    expect(addJournalIndex).toBeGreaterThan(-1);
+    // Prove this scenario actually crosses midnight before checking the action
+    // sequence that reducers consume to apply the rest, clock, and journal page.
+    expect(gameTime.toISOString()).toBe('0351-01-01T21:00:00.000Z');
+    expect(new Date(restEndMs).toISOString()).toBe('0351-01-02T05:00:00.000Z');
+    expect(getGameDay(new Date(restEndMs))).not.toBe(getGameDay(gameTime));
+    expect(longRestIndex).toBeGreaterThan(-1);
+    expect(longRestAction?.payload).toMatchObject({ racialRestChoices });
+    expect(advanceTimeIndex).toBeGreaterThan(longRestIndex);
+    expect(advanceTimeAction).toEqual({ type: 'ADVANCE_TIME', payload: { seconds: 8 * 3600 } });
     expect(addJournalIndex).toBeGreaterThan(advanceTimeIndex);
     expect(addJournalAction?.[0].payload).toMatchObject({
       narrativeText: expect.stringContaining('long rest'),

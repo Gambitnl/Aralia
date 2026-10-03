@@ -55,6 +55,8 @@ The plan-map sits *above the swamp*: ~343 open gaps (`docs/projects/**/GAPS.md`)
 - `focus: true` — **at most ONE topic** may carry this: the thing actually being touched right now (capacity-of-one). The validator warns on duplicates. Move it, don't accumulate it.
 - `deps[]` — **product ordering** (see §5). `link` — repo-relative path to the topic's spec doc.
 - `killed` — one-line reason (only when `superseded`). `history` — `{designed, built, builtApprox?}` real dates for pre-git work (timeline only; `builtApprox: true` if derived — never fake a precise date).
+- `verified` — optional `YYYY-MM-DD`, the day the topic was last checked against the code (same discipline as the `Verified:` lines in `docs/architecture/domains/*.md`). Set it when you audit a topic's claims against source, not when you merely edit it. The health derivation (`sync-surfaces.mjs --steps health`) flags active/specced topics with no verification or verified >30 days ago as `staleUnverified` (GG-121).
+- **Prose discipline in `sub` (GG-120):** `sub` describes what IS, not what happened. Do not append dated findings, incident logs, or FINDING sentences to `sub` — they rot into hidden falsehoods that misroute future campaigns (two found 2026-08-26: a claim that no sky-clock existed when World3DLighting already ran one, and that Scene3D fed the battle map after it was orphaned). Dated narrative belongs in the linked spec doc or in dated `status_note` entries; prune superseded claims from `sub` when you correct them.
 
 **Feature** (`required: title, status`), a tile inside a topic:
 - `title`, `status` (same enum). List order = build order.
@@ -62,6 +64,7 @@ The plan-map sits *above the swamp*: ~343 open gaps (`docs/projects/**/GAPS.md`)
 - `open: n` — integer **mirror** of the "## Open" bullet count in that subspec. **Counted from the doc, never guessed**; recompute when the doc changes. It's the settledness axis.
 - `spike: true` — research that could invalidate the approach (renders dashed ⚠; do not let it masquerade as a build step).
 - `parallel: true` — this step branches off the parent tile instead of chaining after the previous step (default is sequential).
+- `status_note` — free-text nuance the five status words cannot hold. `verified` — optional `YYYY-MM-DD`, the day this tile was last checked against the code (same discipline as the topic-level field above). Both are written by `planmap-add --status-note` / `--verified` with a `--feature-match` selector.
 - `killed`, `history` — as above.
 
 ---
@@ -109,14 +112,29 @@ node tools/agora/planmap-add.mjs --topic <id> --feature "…" [--status parked] 
 
 # Flip a status (topic, or a feature matched by substring)
 node tools/agora/planmap-add.mjs --topic <id> [--feature-match "ground picking"] --set-status active
+
+# Annotate WITHOUT flipping a status — same --feature-match selector, topic or feature
+node tools/agora/planmap-add.mjs --topic <id> [--feature-match "…"] --verified 2026-09-09
+node tools/agora/planmap-add.mjs --topic <id> [--feature-match "…"] --status-note "what you checked, in one line"
+node tools/agora/planmap-add.mjs --topic <id> [--feature-match "…"] --status-note ""   # retract the note
 ```
 After adding a `--dep`, go fill in its `why` (the CLI leaves it blank/TODO — an edge without a `why` is a lie).
+
+`--status-note` and `--verified` also work on `--new-topic` and on `--feature`, so an audit-driven capture is one command. `--verified` must be `YYYY-MM-DD`; the CLI rejects anything else rather than writing a value the schema will fail later. Set `verified` when you actually checked the entry against source — not when you merely edited it.
+
+**Two behaviors worth knowing (WF-G117, 2026-09-09):**
+- **Validation is scoped to the topic you name.** The validator still runs over the WHOLE map, but only a problem that names your topic refuses the write; everything else prints as `planmap-add: warning (elsewhere in the map, not "<id>")` and is stepped over. Before this, one broken topic anywhere blocked every other agent's one-field edit and pushed workers onto `--no-validate`. Do not "fix" the warnings you see — they belong to whoever owns that topic.
+- **The file's indentation is preserved.** `topics.json` is written one-space; the CLI detects the existing indent and hands it back, so a status flip is a one-line diff instead of a 7,000-line reformat. If you hand-edit, keep the file's indent — do not reformat it.
+
+**Status flips during an orchestrated wave:** you usually do NOT need this command at all. `planmap-reconcile.mjs` runs after a wave and flips statuses from each task's `planmap:<topic>/<feature>` refs. Put the ref on the task, let the reconciler close the loop, and reserve `planmap-add` for captures the board cannot express (new topics/features, notes, verification dates).
 
 **Fallback: hand-edit `topics.json`.** Only when the CLI can't express the change (e.g. adding `open:`, `spike:`, `parallel:`, `history`, `killed`, or a `deps[].feature`). Then **always** run:
 ```bash
 node tools/agora/validate-planmap.mjs   # must exit 0
 ```
 It checks required fields/enums, unique ids, every `deps[].id` resolves, every `link` file exists, campaigns resolve, and slug references resolve.
+
+**Identity on every guarded write (WF-G120):** `planmap-add.mjs` checks the Agora lock through `lockGuard.mjs`, which reads the SAME per-agent identity file as `client.mjs`. Prefix it exactly like a client call: `AGORA_AGENT_ID=<your-handle> node tools/agora/planmap-add.mjs ...`. Without the prefix the guard reads no identity and refuses your own lock; the self-service fallback is `AGORA_HELD_LOCK=<lockId>`.
 
 **Multi-agent safety:** when other agents are live in the tree, acquire the Agora file lock first — `node tools/agora/client.mjs lock public/planmap/topics.json` — because `topics.json` is a single hot file and concurrent writes clobber (last-write-wins). If you can't lock, prefer the CLI (atomic read-mutate-write) over a raw editor, and re-read immediately before editing.
 
@@ -180,7 +198,7 @@ node tools/agora/validate-planmap.mjs         # structural sanity
 
 ## 12. Quick reference
 
-**Commands:** `planmap-add.mjs` (capture/flip), `validate-planmap.mjs` (sanity, exit 0), `planmap-reconcile.mjs [--apply]` (board→map status), `planmap-to-wave.mjs <id>` (map→wave skeleton), `client.mjs lock <file>` (multi-agent lock).
+**Commands:** `planmap-add.mjs` (capture/flip/annotate — `--status-note`, `--verified`; topic-scoped validation; preserves the file indent), `validate-planmap.mjs` (sanity, exit 0), `planmap-reconcile.mjs [--apply]` (board→map status), `planmap-to-wave.mjs <id>` (map→wave skeleton), `client.mjs lock <file>` (multi-agent lock).
 
 **Status:** parked → specced → active → done (+ superseded/killed).
 

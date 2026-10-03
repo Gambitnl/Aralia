@@ -1,35 +1,35 @@
-# Combat-Oriented Opening Scenario — Implementation Plan
+# Combat-Oriented Opening Scenario - Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Let a hostile opening situation resolve into a tactical combat encounter driven by the player's free-text response — an LLM reads it as a skill attempt, the player rolls a real dice check (character sheet + boost spells), success avoids the fight, failure or attacking starts it.
+**Goal:** Let a hostile opening situation resolve into a tactical combat encounter driven by the player's free-text response - an LLM reads it as a skill attempt, the player rolls a real dice check (character sheet + boost spells), success avoids the fight, failure or attacking starts it.
 
 **Architecture:** The generator tags hostile openings with a `threat` (real bestiary enemies + a DC). The player's typed response goes to a structured Ollama call that returns a skill/attack/ambiguous intent. A check orchestrator composes the modifier (via existing `rollAbilityCheck`/buff plumbing) and drives a player-facing 3D dice roll (`useDice`); the outcome routes to either peaceful resolution (`SKIP_OPENING_SITUATION`) or combat (`handleStartBattleMapEncounter`). Pure logic lives in `src/systems/gameEntry/`; a `useDeEscalation` hook wires it into `ConversationPanel`.
 
 **Tech Stack:** TypeScript, React, Vitest, existing Ollama client (`generateForTask`), `checkUtils.rollAbilityCheck`, `useDice`, `handleStartBattleMapEncounter`.
 
-**PROJECT CONVENTION — NO MANUAL COMMITS:** Do NOT run `git commit`. Work is persisted by the repo's 2am auto-snapshot. Wherever a normal plan would say "commit", this plan says **"Checkpoint"** = run the relevant test suites and confirm green. Leave changes in the working tree.
+**PROJECT CONVENTION - NO MANUAL COMMITS:** Do NOT run `git commit`. Work is persisted by the repo's 2am auto-snapshot. Wherever a normal plan would say "commit", this plan says **"Checkpoint"** = run the relevant test suites and confirm green. Leave changes in the working tree.
 
 ---
 
 ## File Structure
 
 **New files:**
-- `src/systems/gameEntry/deEscalationToCombat.ts` — pure: `SituationThreat` → `Monster[]`.
-- `src/systems/gameEntry/resolveDeEscalationIntent.ts` — structured Ollama call: player sentence → intent.
-- `src/systems/gameEntry/runDeEscalationCheck.ts` — compose skill modifier + eligible boost spells + resolve vs DC.
-- `src/hooks/useDeEscalation.ts` — orchestration hook (intent → clarify → offer buffs → roll → route).
-- `src/components/gameEntry/SkillClarificationPane.tsx` — slide-in skill picker for ambiguous intent.
+- `src/systems/gameEntry/deEscalationToCombat.ts` - pure: `SituationThreat` -> `Monster[]`.
+- `src/systems/gameEntry/resolveDeEscalationIntent.ts` - structured Ollama call: player sentence -> intent.
+- `src/systems/gameEntry/runDeEscalationCheck.ts` - compose skill modifier + eligible boost spells + resolve vs DC.
+- `src/hooks/useDeEscalation.ts` - orchestration hook (intent -> clarify -> offer buffs -> roll -> route).
+- `src/components/gameEntry/SkillClarificationPane.tsx` - slide-in skill picker for ambiguous intent.
 - Tests colocated under `__tests__/` beside each unit.
 
 **Modified files:**
-- `src/systems/gameEntry/types.ts` — add `SituationThreat`, `OpeningSituation.threat`.
-- `src/systems/gameEntry/generateOpeningSituation.ts` — prompt threat section + `mapRawSituation` threat validation.
-- `src/components/ConversationPanel/ConversationPanel.tsx` — hostile mode, prompt chips, mount `useDeEscalation` + pane.
+- `src/systems/gameEntry/types.ts` - add `SituationThreat`, `OpeningSituation.threat`.
+- `src/systems/gameEntry/generateOpeningSituation.ts` - prompt threat section + `mapRawSituation` threat validation.
+- `src/components/ConversationPanel/ConversationPanel.tsx` - hostile mode, prompt chips, mount `useDeEscalation` + pane.
 
 ---
 
-## STEP 1 — Threat data + attack→combat pipe
+## STEP 1 - Threat data + attack->combat pipe
 
 ### Task 1: `SituationThreat` type
 
@@ -67,11 +67,11 @@ Then add to the `OpeningSituation` interface:
 Run: `npx tsc -b 2>&1 | grep -iE "gameEntry/types" || echo clean`
 Expected: `clean`
 
-- [ ] **Step 3: Checkpoint** — no tests yet; proceed.
+- [ ] **Step 3: Checkpoint** - no tests yet; proceed.
 
 ---
 
-### Task 2: `deEscalationToCombat` — threat → Monster[]
+### Task 2: `deEscalationToCombat` - threat -> Monster[]
 
 **Files:**
 - Create: `src/systems/gameEntry/deEscalationToCombat.ts`
@@ -120,7 +120,7 @@ describe('threatToMonsters', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run src/systems/gameEntry/__tests__/deEscalationToCombat.test.ts`
-Expected: FAIL — cannot find module `../deEscalationToCombat`.
+Expected: FAIL - cannot find module `../deEscalationToCombat`.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -131,7 +131,7 @@ Create `src/systems/gameEntry/deEscalationToCombat.ts`:
  * Licensed under the MIT License
  *
  * @file src/systems/gameEntry/deEscalationToCombat.ts
- * Pure transform: a hostile scene's SituationThreat → the Monster[] payload the
+ * Pure transform: a hostile scene's SituationThreat -> the Monster[] payload the
  * combat entry point (handleStartBattleMapEncounter) consumes.
  */
 import type { Monster } from '../../types/world';
@@ -154,7 +154,7 @@ export function threatToMonsters(threat: SituationThreat): Monster[] {
 Run: `npx vitest run src/systems/gameEntry/__tests__/deEscalationToCombat.test.ts`
 Expected: PASS (2 tests).
 
-- [ ] **Step 5: Checkpoint** — suite green.
+- [ ] **Step 5: Checkpoint** - suite green.
 
 ---
 
@@ -166,7 +166,7 @@ Expected: PASS (2 tests).
 
 - [ ] **Step 1: Write the failing tests**
 
-Add to the existing test file (it already injects a stub client + id factory — mirror its setup):
+Add to the existing test file (it already injects a stub client + id factory - mirror its setup):
 
 ```ts
 it('parses a valid threat block when the model flags the scene hostile', async () => {
@@ -174,7 +174,7 @@ it('parses a valid threat block when the model flags the scene hostile', async (
     setting: { place: 'the toll bridge', timeOfDay: 'dusk', weather: 'cold drizzle' },
     predicament: 'Two toll-collectors block the bridge, hands on their hilts.',
     npcs: [{ name: 'Garrok', role: 'toll-collector', disposition: 'greedy', goal: 'shake you down' }],
-    openingLine: { speakerName: 'Garrok', text: 'Pay the toll — or bleed.' },
+    openingLine: { speakerName: 'Garrok', text: 'Pay the toll - or bleed.' },
     suggestedReplies: ['Pay up', 'Refuse'],
     threat: {
       hostile: true,
@@ -211,9 +211,9 @@ it('drops a malformed threat but keeps the (peaceful) scene', async () => {
 - [ ] **Step 2: Run to verify fail**
 
 Run: `npx vitest run src/systems/gameEntry/__tests__/generateOpeningSituation.test.ts`
-Expected: FAIL — `situation.threat` is `undefined` in the first test (validation not implemented).
+Expected: FAIL - `situation.threat` is `undefined` in the first test (validation not implemented).
 
-- [ ] **Step 3: Implement — prompt + validation**
+- [ ] **Step 3: Implement - prompt + validation**
 
 In `generateOpeningSituation.ts`:
 
@@ -258,7 +258,7 @@ function mapThreat(raw: RawSituation['threat']): SituationThreat | undefined {
 
 (c) In `mapRawSituation`, add `threat: mapThreat(raw.threat)` to the returned object (after `suggestedReplies`).
 
-(d) Extend the prompt in `buildOpeningSituationPrompt` — after the TASK paragraph, before `## OUTPUT`, insert:
+(d) Extend the prompt in `buildOpeningSituationPrompt` - after the TASK paragraph, before `## OUTPUT`, insert:
 ```ts
     }
 
@@ -268,7 +268,7 @@ ambush where violence is a real next beat, add a "threat" block: the enemies as
 REAL monster-manual names (bandit, wolf, goblin, cultist, thug, guard, etc.) with
 a "cr" (challenge rating string like "1/8", "1/4", "1", "2") and a whole-number
 "quantity"; a "deEscalationDC" chosen from this ladder by your toughest enemy's
-CR — CR<=1/8 → 10, CR 1/4-1 → 13, CR 2-4 → 15, CR 5+ → 18; and a short "tension"
+CR - CR<=1/8 -> 10, CR 1/4-1 -> 13, CR 2-4 -> 15, CR 5+ -> 18; and a short "tension"
 phrase. If the scene is peaceful, DO NOT include "threat".
 ```
 And append `threat` to the OUTPUT JSON shape:
@@ -283,11 +283,11 @@ And append `threat` to the OUTPUT JSON shape:
 Run: `npx vitest run src/systems/gameEntry/__tests__/generateOpeningSituation.test.ts`
 Expected: PASS (existing + 2 new).
 
-- [ ] **Step 5: Checkpoint** — run `npx vitest run src/systems/gameEntry/` green.
+- [ ] **Step 5: Checkpoint** - run `npx vitest run src/systems/gameEntry/` green.
 
 ---
 
-### Task 4: Attack → combat launch (temporary trigger, proves the pipe)
+### Task 4: Attack -> combat launch (temporary trigger, proves the pipe)
 
 **Files:**
 - Modify: `src/components/ConversationPanel/ConversationPanel.tsx`
@@ -317,17 +317,17 @@ Button:
 
 - [ ] **Step 2: Verify (live eyeball, standing rule)**
 
-Start a new game with Ollama up until you get a hostile opening (retry a few new games if needed — most are peaceful). Confirm the ⚔ Attack button appears; click it; assert the app enters `GamePhase.COMBAT` and `CombatView` renders with the threat's enemies. If Ollama can't produce a hostile scene, temporarily hardcode a `threat` on the resolved situation in dev to verify the pipe, then remove.
+Start a new game with Ollama up until you get a hostile opening (retry a few new games if needed - most are peaceful). Confirm the ⚔ Attack button appears; click it; assert the app enters `GamePhase.COMBAT` and `CombatView` renders with the threat's enemies. If Ollama can't produce a hostile scene, temporarily hardcode a `threat` on the resolved situation in dev to verify the pipe, then remove.
 
-- [ ] **Step 3: Checkpoint** — `npx tsc -b 2>&1 | grep -iE "ConversationPanel" || echo clean`.
+- [ ] **Step 3: Checkpoint** - `npx tsc -b 2>&1 | grep -iE "ConversationPanel" || echo clean`.
 
 > The ⚔ Attack button is superseded by free-text intent in Step 2 (Task 7) but stays as the explicit "I attack" path.
 
 ---
 
-## STEP 2 — Intent → skill → dice check (with roll-boosting spells)
+## STEP 2 - Intent -> skill -> dice check (with roll-boosting spells)
 
-### Task 5: `resolveDeEscalationIntent` — structured Ollama call
+### Task 5: `resolveDeEscalationIntent` - structured Ollama call
 
 **Files:**
 - Create: `src/systems/gameEntry/resolveDeEscalationIntent.ts`
@@ -377,7 +377,7 @@ describe('resolveDeEscalationIntent', () => {
 - [ ] **Step 2: Run to verify fail**
 
 Run: `npx vitest run src/systems/gameEntry/__tests__/resolveDeEscalationIntent.test.ts`
-Expected: FAIL — module missing.
+Expected: FAIL - module missing.
 
 - [ ] **Step 3: Implement**
 
@@ -441,12 +441,12 @@ export async function resolveDeEscalationIntent(
     `PLAYER ACTION: ${playerText}\n` +
     `THE PLAYER\'S SKILLS: ${skillList}\n\n` +
     'Rules:\n' +
-    '- If they clearly attack / commit violence → {"kind":"attack"}\n' +
+    '- If they clearly attack / commit violence -> {"kind":"attack"}\n' +
     '- If the action clearly implies ONE skill (sneak=Stealth, threaten=Intimidation, ' +
-    'lie=Deception, reason=Persuasion, run=Athletics, etc.) → ' +
+    'lie=Deception, reason=Persuasion, run=Athletics, etc.) -> ' +
     '{"kind":"skill","skill":"<one of their skills>","rationale":"<short>"}\n' +
     '- Use "flee" instead of "skill" only when they are escaping the scene entirely.\n' +
-    '- If it could reasonably be two or more skills → ' +
+    '- If it could reasonably be two or more skills -> ' +
     '{"kind":"ambiguous","candidateSkills":["Skill A","Skill B"]}\n' +
     'Pick skills ONLY from the player\'s skill list names.';
 
@@ -455,7 +455,7 @@ export async function resolveDeEscalationIntent(
 
   const raw = parseJsonRobustly<RawIntent>(result.data.response);
   if (!raw || typeof raw.kind !== 'string') {
-    throw new Error('Could not read your intent — try rephrasing.');
+    throw new Error('Could not read your intent - try rephrasing.');
   }
 
   if (raw.kind === 'attack') return { kind: 'attack' };
@@ -475,7 +475,7 @@ export async function resolveDeEscalationIntent(
     return { kind, skill: skillName, ability, rationale: typeof raw.rationale === 'string' ? raw.rationale : '' };
   }
 
-  throw new Error('Could not read your intent — try rephrasing.');
+  throw new Error('Could not read your intent - try rephrasing.');
 }
 ```
 
@@ -484,11 +484,11 @@ export async function resolveDeEscalationIntent(
 Run: `npx vitest run src/systems/gameEntry/__tests__/resolveDeEscalationIntent.test.ts`
 Expected: PASS (4 tests).
 
-- [ ] **Step 5: Checkpoint** — suite green.
+- [ ] **Step 5: Checkpoint** - suite green.
 
 ---
 
-### Task 6: `runDeEscalationCheck` — modifier + buffs + resolve
+### Task 6: `runDeEscalationCheck` - modifier + buffs + resolve
 
 **Files:**
 - Create: `src/systems/gameEntry/runDeEscalationCheck.ts`
@@ -519,7 +519,7 @@ describe('resolveCheck', () => {
 - [ ] **Step 2: Run to verify fail**
 
 Run: `npx vitest run src/systems/gameEntry/__tests__/runDeEscalationCheck.test.ts`
-Expected: FAIL — module missing.
+Expected: FAIL - module missing.
 
 - [ ] **Step 3: Implement**
 
@@ -552,7 +552,7 @@ export function resolveCheck(args: { d20: number; modifier: number; dc: number }
 /**
  * Compose the non-d20 modifier for a character's skill check: ability mod +
  * proficiency (if the character has the skill). Spell bonus DICE (Guidance 1d4)
- * are NOT added here — they are applied through the existing rollAbilityCheck
+ * are NOT added here - they are applied through the existing rollAbilityCheck
  * plumbing when the buff StatusEffect is present; the hook adds them via the
  * dice notation. This returns the flat, deterministic part.
  */
@@ -578,7 +578,7 @@ export function computeSkillModifier(
 Run: `npx vitest run src/systems/gameEntry/__tests__/runDeEscalationCheck.test.ts`
 Expected: PASS (3 tests).
 
-- [ ] **Step 5: Checkpoint** — suite green.
+- [ ] **Step 5: Checkpoint** - suite green.
 
 ---
 
@@ -619,9 +619,9 @@ it('ignores a Guidance bound to a different skill', () => {
 - [ ] **Step 2: Run to verify fail**
 
 Run: `npx vitest run src/systems/gameEntry/__tests__/runDeEscalationCheck.test.ts`
-Expected: FAIL — `getActiveCheckBoosts` not exported.
+Expected: FAIL - `getActiveCheckBoosts` not exported.
 
-- [ ] **Step 3: Implement — add to `runDeEscalationCheck.ts`**
+- [ ] **Step 3: Implement - add to `runDeEscalationCheck.ts`**
 
 ```ts
 import type { StatusEffect } from '../../types/combat';
@@ -664,13 +664,13 @@ export function getActiveCheckBoosts(
 Run: `npx vitest run src/systems/gameEntry/__tests__/runDeEscalationCheck.test.ts`
 Expected: PASS (5 tests).
 
-- [ ] **Step 5: Checkpoint** — `npx vitest run src/systems/gameEntry/` green.
+- [ ] **Step 5: Checkpoint** - `npx vitest run src/systems/gameEntry/` green.
 
 > Offering CASTABLE (not-yet-active) buffs is a UI affordance handled in the hook (Task 8): if the character knows Guidance/Bless and it isn't active, show a "cast before rolling" prompt that dispatches the existing cast path, then re-reads active boosts. The out-of-combat cast path is the same one the spellbook uses; wire to it during Task 8 and verify live.
 
 ---
 
-### Task 8: `useDeEscalation` hook — orchestration + routing
+### Task 8: `useDeEscalation` hook - orchestration + routing
 
 **Files:**
 - Create: `src/hooks/useDeEscalation.ts`
@@ -725,7 +725,7 @@ it('attack intent goes straight to combat, no roll', async () => {
 - [ ] **Step 2: Run to verify fail**
 
 Run: `npx vitest run src/hooks/__tests__/useDeEscalation.test.ts`
-Expected: FAIL — module missing.
+Expected: FAIL - module missing.
 
 - [ ] **Step 3: Implement the pure flow + the hook wrapper**
 
@@ -733,7 +733,7 @@ Create `src/hooks/useDeEscalation.ts`:
 ```ts
 /**
  * @file src/hooks/useDeEscalation.ts
- * Orchestrates a hostile opening's resolution: intent → (roll) → route to
+ * Orchestrates a hostile opening's resolution: intent -> (roll) -> route to
  * peaceful resolution or combat. `runDeEscalationFlow` is the pure, injectable
  * core; the hook binds it to useDice + the real encounter launcher.
  */
@@ -802,7 +802,7 @@ export function useDeEscalation() {
 Run: `npx vitest run src/hooks/__tests__/useDeEscalation.test.ts`
 Expected: PASS (3 tests).
 
-- [ ] **Step 5: Checkpoint** — suite green.
+- [ ] **Step 5: Checkpoint** - suite green.
 
 ---
 
@@ -836,15 +836,15 @@ const handleHostileSubmit = useCallback(async (text: string) => {
   await runDeEscalationFlow({ intent, character: pc, threat, dispatch, rollD20 });
 }, [threat, pc, skillInfos, runDeEscalationFlow, rollD20, dispatch]);
 ```
-Route the panel's submit to `handleHostileSubmit` when `threat` is present, else the existing `sendPlayerMessage`. Wrap in try/catch: on throw, show the message inline ("Couldn't read your intent — try rephrasing") without ending the conversation. Keep the ⚔ Attack button (explicit attack path) calling `runDeEscalationFlow({ intent: { kind: 'attack' }, ... })`.
+Route the panel's submit to `handleHostileSubmit` when `threat` is present, else the existing `sendPlayerMessage`. Wrap in try/catch: on throw, show the message inline ("Couldn't read your intent - try rephrasing") without ending the conversation. Keep the ⚔ Attack button (explicit attack path) calling `runDeEscalationFlow({ intent: { kind: 'attack' }, ... })`.
 
-- [ ] **Step 2: Live eyeball** — hostile opening → type "I sneak away" → intent resolves → dice roll → success escapes / failure fights. Type "I attack" → straight to combat.
+- [ ] **Step 2: Live eyeball** - hostile opening -> type "I sneak away" -> intent resolves -> dice roll -> success escapes / failure fights. Type "I attack" -> straight to combat.
 
-- [ ] **Step 3: Checkpoint** — `npx tsc -b 2>&1 | grep -iE "ConversationPanel|useDeEscalation" || echo clean`; `npx vitest run src/systems/gameEntry/ src/hooks/__tests__/useDeEscalation.test.ts` green.
+- [ ] **Step 3: Checkpoint** - `npx tsc -b 2>&1 | grep -iE "ConversationPanel|useDeEscalation" || echo clean`; `npx vitest run src/systems/gameEntry/ src/hooks/__tests__/useDeEscalation.test.ts` green.
 
 ---
 
-## STEP 3 — Clarification pane
+## STEP 3 - Clarification pane
 
 ### Task 10: `SkillClarificationPane`
 
@@ -881,7 +881,7 @@ describe('SkillClarificationPane', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify fail** — `npx vitest run src/components/gameEntry/__tests__/SkillClarificationPane.test.tsx` → FAIL (module missing).
+- [ ] **Step 2: Run to verify fail** - `npx vitest run src/components/gameEntry/__tests__/SkillClarificationPane.test.tsx` -> FAIL (module missing).
 
 - [ ] **Step 3: Implement**
 
@@ -898,7 +898,7 @@ interface Props {
 }
 
 export const SkillClarificationPane: React.FC<Props> = ({ candidates, onPick, onCancel }) => (
-  // z-index via inline style — Tailwind z-[${...}] silently fails in this repo.
+  // z-index via inline style - Tailwind z-[${...}] silently fails in this repo.
   <div data-testid="skill-clarification" style={{ zIndex: Z_INDEX.MODAL_INTERACTIVE }}
     className="fixed right-0 top-1/4 bottom-1/4 w-80 bg-gray-900 border-l border-amber-500/60 shadow-2xl p-4 flex flex-col gap-2 animate-in slide-in-from-right">
     <h3 className="text-amber-300 font-bold text-sm">Which approach?</h3>
@@ -916,15 +916,15 @@ export const SkillClarificationPane: React.FC<Props> = ({ candidates, onPick, on
 );
 ```
 
-- [ ] **Step 4: Run to verify pass** — PASS (2 tests).
+- [ ] **Step 4: Run to verify pass** - PASS (2 tests).
 
-- [ ] **Step 5: Wire into ConversationPanel** — add `const [pendingClarification, setPendingClarification] = useState<string[] | null>(null);`. When set, render `<SkillClarificationPane candidates={skillInfos.filter(s => pendingClarification.includes(s.name))} onPick={(s) => { setPendingClarification(null); runDeEscalationFlow({ intent: { kind: 'skill', skill: s.name, ability: s.ability, rationale: '' }, character: pc!, threat: threat!, dispatch, rollD20 }); }} onCancel={() => setPendingClarification(null)} />`.
+- [ ] **Step 5: Wire into ConversationPanel** - add `const [pendingClarification, setPendingClarification] = useState<string[] | null>(null);`. When set, render `<SkillClarificationPane candidates={skillInfos.filter(s => pendingClarification.includes(s.name))} onPick={(s) => { setPendingClarification(null); runDeEscalationFlow({ intent: { kind: 'skill', skill: s.name, ability: s.ability, rationale: '' }, character: pc!, threat: threat!, dispatch, rollD20 }); }} onCancel={() => setPendingClarification(null)} />`.
 
-- [ ] **Step 6: Checkpoint** — suites green; live eyeball an ambiguous reply ("I deal with them") → pane slides in → pick → roll.
+- [ ] **Step 6: Checkpoint** - suites green; live eyeball an ambiguous reply ("I deal with them") -> pane slides in -> pick -> roll.
 
 ---
 
-## STEP 4 — Hostile-mode polish
+## STEP 4 - Hostile-mode polish
 
 ### Task 11: Threat banner + suggested-reply chips
 
@@ -935,15 +935,17 @@ export const SkillClarificationPane: React.FC<Props> = ({ candidates, onPick, on
 
 - [ ] **Step 2:** Render `conversation`'s `suggestedReplies` (from `gameState.gameEntry?.situation?.suggestedReplies`) as clickable chips above the input; clicking one prefills the input (`setInputText(reply)`), still free-text/editable. `data-testid="reply-chip"`.
 
-- [ ] **Step 3: Live eyeball** — hostile opening shows the banner + chips; clicking a chip fills the box; editing + submit still runs the intent flow.
+- [ ] **Step 3: Live eyeball** - hostile opening shows the banner + chips; clicking a chip fills the box; editing + submit still runs the intent flow.
 
-- [ ] **Step 4: Checkpoint** — `npx tsc -b 2>&1 | grep -iE "ConversationPanel" || echo clean`; full `npx vitest run src/systems/gameEntry/ src/hooks/__tests__/useDeEscalation.test.ts src/components/gameEntry/` green.
+- [ ] **Step 4: Checkpoint** - `npx tsc -b 2>&1 | grep -iE "ConversationPanel" || echo clean`; full `npx vitest run src/systems/gameEntry/ src/hooks/__tests__/useDeEscalation.test.ts src/components/gameEntry/` green.
 
 ---
 
 ## Self-review notes
 
-- **Spec coverage:** threat data (T1), enemy mapping (T2), generator emit/validate + DC ladder (T3), attack→combat (T4), intent resolver + ambiguity + honest failure (T5), check + character sheet (T6), roll-boost detection (T7), routing success-avoids/failure-fights (T8), free-text wiring (T9), clarification pane with proficiency highlight (T10), banner + chips (T11). All spec sections map to a task.
-- **No-fallback:** T3 drops malformed threats (peaceful), T5 throws on unreachable/unparseable, T9 surfaces the throw inline — never a canned fight.
+- **Spec coverage:** threat data (T1), enemy mapping (T2), generator emit/validate + DC ladder (T3), attack->combat (T4), intent resolver + ambiguity + honest failure (T5), check + character sheet (T6), roll-boost detection (T7), routing success-avoids/failure-fights (T8), free-text wiring (T9), clarification pane with proficiency highlight (T10), banner + chips (T11). All spec sections map to a task.
+- **No-fallback:** T3 drops malformed threats (peaceful), T5 throws on unreachable/unparseable, T9 surfaces the throw inline - never a canned fight.
 - **Type consistency:** `SituationThreat` (T1) used identically in T2/T3/T8; `IntentResolution`/`IntentSkillInfo` (T5) reused in T8/T9/T10; `resolveCheck`/`computeSkillModifier`/`getActiveCheckBoosts` (T6/T7) consumed only in T8.
-- **Deferred detail (flagged, not hidden):** casting a not-yet-active buff spell mid-flow (T7 note) and adding Guidance bonus-DICE to the rolled notation (T8 note) are wired during T8/T9 against the real spellbook cast path and verified live — the deterministic flat-modifier core is fully tested; the dice-bonus rider is additive.
+- **Deferred detail (flagged, not hidden):** casting a not-yet-active buff spell mid-flow (T7 note) and adding Guidance bonus-DICE to the rolled notation (T8 note) are wired during T8/T9 against the real spellbook cast path and verified live - the deterministic flat-modifier core is fully tested; the dice-bonus rider is additive.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-06-29-combat-oriented-opening-scenario.md","sha256WithoutMarker":"33d7501a9593b95e503d9d376ac615d0f9ee94c6b1c600fc595af11bce68fd4b","markedAtUtc":"2026-08-09T20:22:07.605Z"} -->

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 16/07/2026, 10:30:30
+ * Last Sync: 04/08/2026, 01:54:54
  * Dependents: components/DesignPreview/steps/PreviewVisTest.tsx, devtools/vistest/runnerCore.ts
  * Imports: None
  *
@@ -42,7 +42,7 @@ export interface VisScenario {
   /** kebab-case, unique — becomes the capture filename `<id>.png`. */
   id: string;
   title: string;
-  group: "entities" | "combat" | "world" | "interiors" | "crowds";
+  group: "entities" | "combat" | "world" | "interiors" | "crowds" | "dungeons";
   /** Relative to the dev base (no leading slash), e.g. `misc/design.html?step=…`. */
   url: string;
   /** What a reviewer should look for in the capture. */
@@ -51,19 +51,198 @@ export interface VisScenario {
   capture: CaptureStep[];
 }
 
+/**
+ * Zoom the 2D town map in on its open-land parcels. `TownPlanView` fits the
+ * whole parent cell, which leaves the walled town about a third of the panel —
+ * far too small to judge a garden from a paddock. The map's wheel zoom anchors
+ * on the cursor, so anchoring on the upper third of the open-land spread both
+ * magnifies the town and holds the northern slack on screen.
+ */
+const ZOOM_TOWN_ON_OPEN_LAND = `(() => {
+  const svg = document.querySelector('[data-testid="preview-town"] svg');
+  if (!svg) throw new Error('no town svg');
+  const parcels = [...document.querySelectorAll('[data-testid^="town-open-land-"]')];
+  if (parcels.length === 0) throw new Error('no open-land parcels');
+  let l = Infinity, t = Infinity, r = -Infinity, b = -Infinity;
+  for (const p of parcels) { const q = p.getBoundingClientRect(); if (q.width <= 0) continue; l = Math.min(l, q.left); t = Math.min(t, q.top); r = Math.max(r, q.right); b = Math.max(b, q.bottom); }
+  const cx = (l + r) / 2, cy = t + (b - t) * 0.3;
+  for (let i = 0; i < 9; i++) svg.dispatchEvent(new WheelEvent('wheel', { clientX: cx, clientY: cy, deltaY: -200, bubbles: true, cancelable: true }));
+  return 'zoomed on ' + parcels.length + ' parcels';
+})()`;
+
+/**
+ * Tip the town minimap's OrbitControls toward top-down and zoom in.
+ *
+ * The minimap's opening pose is a low three-quarter view from the south, which
+ * puts the northern half of the town BEHIND its own rooftops — the exact ground
+ * these captures exist to judge. Dragging up raises the polar angle to a near
+ * plan view, so every square foot inside the wall is visible at once.
+ */
+const TOWN_MINIMAP_TOPDOWN = `(() => {
+  const cs = [...document.querySelectorAll('canvas')].filter((c) => c.clientWidth > 0 && c.offsetParent !== null);
+  const c = cs[0];
+  if (!c) throw new Error('no visible minimap canvas');
+  const r = c.getBoundingClientRect();
+  const x = r.left + r.width / 2, y = r.top + r.height / 2;
+  const ev = (t, cx, cy) => c.dispatchEvent(new PointerEvent(t, { clientX: cx, clientY: cy, button: 0, buttons: t === 'pointerup' ? 0 : 1, pointerId: 1, pointerType: 'mouse', bubbles: true, cancelable: true }));
+  ev('pointerdown', x, y);
+  for (let i = 1; i <= 12; i++) ev('pointermove', x, y + i * 5);
+  ev('pointerup', x, y + 60);
+  for (let i = 0; i < 6; i++) c.dispatchEvent(new WheelEvent('wheel', { clientX: x, clientY: y, deltaY: -240, bubbles: true, cancelable: true }));
+  return 'minimap tipped top-down';
+})()`;
+
 /** Zoom the world3d MapControls camera in by dispatching wheel ticks. */
 const WHEEL_ZOOM_34 = `(() => { const c = document.querySelector('canvas'); if (!c) return; const r = c.getBoundingClientRect(); for (let i = 0; i < 34; i++) { c.dispatchEvent(new WheelEvent('wheel', { clientX: r.left + r.width * 0.485, clientY: r.top + r.height * 0.5, deltaY: -300, bubbles: true, cancelable: true })); } })()`;
 
-/** Park the camera on interior occupant[0] (close-high, inside the room). */
-const POSE_AT_OCCUPANT = `(() => { const s = window.__wf3dScene; const occ = []; s.traverse((o) => { if (o.userData && o.userData.isOccupant) occ.push(o); }); const t = occ[0]; if (!t) return 'no occupants'; const p = t.getWorldPosition(new (t.position.constructor)()); window.__wf3dSetPose([p.x + 2.0, p.y + 1.7, p.z + 2.0], [p.x, p.y + 0.7, p.z]); return 'posed'; })()`;
+// ── ground-world geometry helper ────────────────────────────────────────────
+// `__wfGroundWorld` publishes town data in GROUND metres (0 … extentMeters),
+// while the scene is centred on the cell, so scene x = xM − extentMetersX / 2.
+// Terrain height comes from the same heightfield expression the wilds
+// scenarios already use. Injected as a prelude so every pose helper shares one
+// coordinate conversion instead of re-deriving it slightly differently.
+const GROUND_XFORM = `const g = window.__wfGroundWorld; const toScene = (xM, zM) => { const mpc = g.extentMetersX / g.cols; const col = Math.min(g.cols - 1, Math.max(0, Math.floor(xM / mpc))); const row = Math.min(g.rows - 1, Math.max(0, Math.floor(zM / mpc))); return { x: xM - g.extentMetersX / 2, y: ((g.heights[row * g.cols + col] ?? 0) / 100) * 1800, z: zM - g.extentMetersZ / 2 }; };`;
 
-/** Pose on the walking commuter farthest from any building (open street). */
-const POSE_AT_OPEN_WALKER = `(() => { const root = window.__wf3dScene.getObjectByName('groundAgentsCrowd'); const g = window.__wfGroundWorld; if (!root || !g) return 'missing hooks'; const OX = g.extentMetersX / 2, OZ = g.extentMetersZ / 2; const buildings = g.buildings ?? []; let best = null, bestScore = -1, idx = 0; const M = new (root.matrix.constructor)(); root.children.forEach((o) => { const isWalk = idx % 9 !== 0; idx += 1; if (!isWalk || !o.isInstancedMesh || o.count === 0) return; for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, M); const x = M.elements[12], y = M.elements[13], z = M.elements[14]; let dMin = Infinity; for (const b of buildings) { const d = Math.hypot(b.xM - (x + OX), b.zM - (z + OZ)); if (d < dMin) dMin = d; } if (dMin > bestScore) { bestScore = dMin; best = { x, y, z }; } } }); if (best) window.__wf3dSetPose([best.x + 5.5, best.y + 3.2, best.z + 5.5], [best.x, best.y + 0.8, best.z]); return best ? 'posed' : 'no walkers'; })()`;
+/**
+ * Stage the camera beside an at-home household, using OCCUPANT DATA.
+ *
+ * Why a data-driven stage step exists at all: interior bodies are mounted only
+ * within `BODY_RADIUS_M` (18 m) of the camera, re-evaluated at 2 Hz
+ * (`InteriorOccupants.tsx`). The dev entry's opening camera is hundreds of
+ * metres up, so NOTHING carries `userData.isOccupant` yet and any recipe that
+ * searches the scene graph first finds zero and gives up — which is exactly how
+ * `interior-villager` came to fail with "no occupants" while
+ * `__wfGroundWorld.occupants` held 886 residents.
+ *
+ * So: read the household from data, fly in, and let the body budget mount.
+ *
+ * `activity === 'home'` is a preference, not a requirement: the occupant
+ * snapshot carries the activity for the URL's hour, and at 23:00 nobody reports
+ * `home`, which used to abort the night variant outright. Any occupant is a
+ * good enough address, because the pose step that follows anchors on the
+ * building's hearth light rather than on the resident.
+ */
+const STAGE_NEAR_OCCUPANT = `(() => { ${GROUND_XFORM} if (!g) return 'MISSING ground world'; const all = g.occupants ?? []; if (all.length === 0) return 'MISSING town occupants'; const atHome = all.filter((o) => o.activity === 'home'); const home = atHome.length > 0 ? atHome : all; const cx = g.extentMetersX / 2, cz = g.extentMetersZ / 2; let best = home[0], bd = Infinity; for (const o of home) { const d = Math.hypot(o.xM - cx, o.zM - cz); if (d < bd) { bd = d; best = o; } } const p = toScene(best.xM, best.zM); window.__wfStagedHousehold = p; window.__wf3dSetPose([p.x + 5, p.y + 6, p.z + 5], [p.x, p.y + 1, p.z]); return 'household staged'; })()`;
+
+/**
+ * Drop the camera INSIDE the room at standing eye height, once bodies exist.
+ *
+ * Ground-mode MapControls clamp the polar angle to 0.48π, so a target at chest
+ * height with the eye a short distance away lands a near-horizontal look — the
+ * BG3 interior framing, rather than the previous overhead peek that judged
+ * nothing about hearth light or window shafts.
+ *
+ * The camera retreats TOWARD the host building's centre rather than along a
+ * fixed diagonal. Measured rooms are 20 × 25 ft (6.1 × 7.6 m), so the old
+ * 2.2 m diagonal offset put the eye level with or beyond the wall and the
+ * capture came out on the lawn. Backing off into the room, capped at 3.1 m,
+ * keeps the eye inside the shell whichever way the plot is rotated, and looking
+ * from the room centre at a station-bound resident puts the wall behind them —
+ * where the hearth and window are — in the same frame.
+ */
+/**
+ * Frame the room from inside, anchored on its HEARTH light.
+ *
+ * Why the hearth and not the resident: measured 2026-07-30 at this seed, every
+ * member of a household reports the same world position, several metres from
+ * any hearth (see CAPTURE-FRAMING.md — that is a product finding, not a rig
+ * one). Residents are therefore not a trustworthy anchor for "inside a room".
+ * `InteriorLights` places a warm point light (distance 9 m) at each hearth part
+ * through the same `siteLocalToScene` transform `SiteBuilding` uses for the
+ * shell, so a hearth light is by construction inside a real room — and it is
+ * also the thing the interior targets actually ask about.
+ *
+ * The eye retreats from the hearth toward the host building's centre so it
+ * stays inside a 20 × 25 ft room whichever way the plot is rotated, and sits
+ * about 1.6 m above the floor: standing height, looking at the fire.
+ */
+const POSE_AT_HEARTH = `(() => { ${GROUND_XFORM} if (!g) return 'MISSING ground world'; const s = window.__wf3dScene; if (!s) return 'MISSING scene'; const V = new (s.position.constructor)(); const lights = []; s.traverse((o) => { if (o.isPointLight && o.visible && (o.distance ?? 0) > 0 && (o.distance ?? 0) <= 12) { o.getWorldPosition(V); lights.push({ x: V.x, y: V.y, z: V.z }); } }); if (lights.length === 0) return 'MISSING mounted hearth lights'; const staged = window.__wfStagedHousehold ?? { x: 0, z: 0 }; let h = lights[0], bd = Infinity; for (const L of lights) { const d = Math.hypot(L.x - staged.x, L.z - staged.z); if (d < bd) { bd = d; h = L; } } const OX = g.extentMetersX / 2, OZ = g.extentMetersZ / 2; let dx = 1, dz = 1, nd = Infinity; for (const b of (g.buildings ?? [])) { const d = Math.hypot(b.xM - (h.x + OX), b.zM - (h.z + OZ)); if (d < nd) { nd = d; dx = (b.xM - OX) - h.x; dz = (b.zM - OZ) - h.z; } } let len = Math.hypot(dx, dz); if (len < 0.05) { dx = 1; dz = 1; len = Math.SQRT2; } const D = Math.min(3.2, Math.max(2.4, len * 1.6)); window.__wf3dSetPose([h.x + (dx / len) * D, h.y + 0.55, h.z + (dz / len) * D], [h.x, h.y - 0.15, h.z]); return 'hearth framed (' + lights.length + ' lit)'; })()`;
+
+
+
+
+/**
+ * Collect every live crowd instance position in scene coordinates.
+ *
+ * Replaces a stale index heuristic. The old helper skipped any child whose
+ * position in `groundAgentsCrowd.children` was a multiple of nine, on the
+ * assumption that index was a non-walker. Measured 2026-07-30: the crowd holds
+ * 108 children in twelve groups of nine, and the instance-bearing mesh is the
+ * FIRST of each group — so every index carrying instances was a multiple of
+ * nine and the filter excluded the entire crowd. 46 walkers were on screen
+ * while the recipe reported "no walkers".
+ */
+const CROWD_POSITIONS = `const crowdPositions = () => { const root = window.__wf3dScene.getObjectByName('groundAgentsCrowd'); if (!root) return []; const M = new (root.matrix.constructor)(); const out = []; root.children.forEach((o) => { if (!o.isInstancedMesh || o.count === 0) return; for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, M); const x = M.elements[12], y = M.elements[13], z = M.elements[14]; if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z)) continue; if (x === 0 && y === 0 && z === 0) continue; out.push({ x, y, z }); } }); return out; };`;
+
+/** Pick the crowd instance standing farthest from any building (open street). */
+const MOST_OPEN_WALKER = `${CROWD_POSITIONS} const mostOpenWalker = () => { const pts = crowdPositions(); if (pts.length === 0) return null; const OX = g.extentMetersX / 2, OZ = g.extentMetersZ / 2; const buildings = g.buildings ?? []; let best = null, bestScore = -1; for (const p of pts) { let dMin = Infinity; for (const b of buildings) { const d = Math.hypot(b.xM - (p.x + OX), b.zM - (p.z + OZ)); if (d < dMin) dMin = d; } if (dMin > bestScore) { bestScore = dMin; best = p; } } return best; };`;
+
+/**
+ * Choose the camera azimuth around a target with the most open ground.
+ *
+ * Standing at a fixed +x/+z diagonal repeatedly parked the lens against a house
+ * wall, which filled half the frame with flat plaster and shrank the actual
+ * subject. Sampling twelve azimuths and keeping the one whose camera point is
+ * farthest from any building centre puts the lens in the street instead.
+ */
+const OPEN_AZIMUTH = `const openAzimuth = (t, radius) => { const OX = g.extentMetersX / 2, OZ = g.extentMetersZ / 2; const buildings = g.buildings ?? []; let bestDir = { dx: radius, dz: radius }, bestScore = -1; for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; const dx = Math.cos(a) * radius, dz = Math.sin(a) * radius; let dMin = Infinity; for (const b of buildings) { const d = Math.hypot(b.xM - (t.x + dx + OX), b.zM - (t.z + dz + OZ)); if (d < dMin) dMin = d; } if (dMin > bestScore) { bestScore = dMin; bestDir = { dx, dz }; } } return bestDir; };`;
+
+/** Pose on the commuter farthest from any building, close enough to read stride. */
+const POSE_AT_OPEN_WALKER = `(() => { ${GROUND_XFORM} ${MOST_OPEN_WALKER} ${OPEN_AZIMUTH} if (!g) return 'MISSING ground world'; const best = mostOpenWalker(); if (!best) return 'MISSING live crowd instances'; window.__wfWalkerTarget = best; const d = openAzimuth(best, 3.0); window.__wf3dSetPose([best.x + d.dx, best.y + 1.5, best.z + d.dz], [best.x, best.y + 0.85, best.z]); return 'walker framed close'; })()`;
+
+/**
+ * Street-level town framing: stand in the street and look ALONG it.
+ *
+ * BG3's Rivington is judged from the pavement, not from a helicopter, and the
+ * aerial shot cannot show whether a street surface reads as cobble, whether a
+ * wall has thickness at its opening, or whether props break a silhouette. The
+ * eye sits at 1.7 m; the polar clamp keeps the look near-horizontal.
+ */
+const POSE_STREET_LEVEL = `(() => { ${GROUND_XFORM} ${MOST_OPEN_WALKER} ${OPEN_AZIMUTH} if (!g) return 'MISSING ground world'; const best = mostOpenWalker(); if (!best) return 'MISSING live crowd instances'; const ground = toScene(best.x + g.extentMetersX / 2, best.z + g.extentMetersZ / 2); const d = openAzimuth(best, 9); window.__wf3dSetPose([best.x + d.dx, ground.y + 1.7, best.z + d.dz], [best.x, ground.y + 1.5, best.z]); return 'street level framed'; })()`;
+
+/**
+ * Frame the staged opening cast (`?cast=1`) at conversation distance.
+ *
+ * The old recipe just fired 34 wheel ticks from wherever the dev entry opened,
+ * which dollied the MapControls camera straight into a roof and produced a
+ * frame with no cast in it at all. The cast members render as `entity:<label>`
+ * groups, so this finds them, frames their centroid at head height, and picks
+ * an open azimuth so a building does not stand between lens and subject.
+ */
+const POSE_AT_CAST = `(() => { ${GROUND_XFORM} ${OPEN_AZIMUTH} const s = window.__wf3dScene; if (!s) return 'MISSING scene'; const V = new (s.position.constructor)(); const pts = []; s.traverse((o) => { if (o.name && o.name.indexOf('entity:') === 0) { o.getWorldPosition(V); pts.push({ x: V.x, y: V.y, z: V.z }); } }); if (pts.length === 0) return 'MISSING staged cast bodies'; const c = pts.reduce((a, p) => ({ x: a.x + p.x / pts.length, y: a.y + p.y / pts.length, z: a.z + p.z / pts.length }), { x: 0, y: 0, z: 0 }); let spread = 0; for (const p of pts) spread = Math.max(spread, Math.hypot(p.x - c.x, p.z - c.z)); const radius = Math.max(3.4, spread * 1.9); const d = g ? openAzimuth(c, radius) : { dx: radius, dz: radius }; window.__wf3dSetPose([c.x + d.dx, c.y + 1.9, c.z + d.dz], [c.x, c.y + 1.1, c.z]); return 'cast framed (' + pts.length + ' bodies)'; })()`;
+
+/**
+ * Third-person eye height on open ground, looking OUT across the terrain.
+ *
+ * Ground-mode MapControls cap the polar angle at 0.48π, so a target placed far
+ * out and level with the eye gets clamped up to roughly a 3 m camera — still
+ * the exploration camera family, and honest about what the controls allow.
+ * `reach` sets how far out the aim point sits, which is what decides whether
+ * the frame is a ground-contact close-up or a look down the valley.
+ *
+ * The standing point is the HIGHEST of a sampled grid around the cell centre,
+ * not the centre itself. Cell 3023's centre sits on a lake shore, and standing
+ * there produced a frame of flat sand and flat water with no ground cover in it
+ * at all — nothing the terrain or cover targets ask about. Highest-of-sample is
+ * a cheap guarantee of dry land, and it aims back across the cell so the frame
+ * looks over the terrain rather than off the window edge.
+ */
+const POSE_GROUND_EYE = (reach: number, drop: number, eyeUp: number) =>
+  `(() => { ${GROUND_XFORM} if (!g) return 'MISSING ground world'; const cx = g.extentMetersX / 2, cz = g.extentMetersZ / 2; const SPAN = 120, STEPS = 8; let here = null, bestH = -Infinity; for (let i = 0; i <= STEPS; i++) for (let j = 0; j <= STEPS; j++) { const xM = cx + (i / STEPS - 0.5) * 2 * SPAN, zM = cz + (j / STEPS - 0.5) * 2 * SPAN; const p = toScene(xM, zM); if (p.y > bestH) { bestH = p.y; here = p; } } if (!here) return 'MISSING sampled ground'; const len = Math.hypot(here.x, here.z) || 1; const ax = -here.x / len, az = -here.z / len; const tx = here.x + ax * ${reach}, tz = here.z + az * ${reach}; const there = toScene(tx + cx, tz + cz); window.__wf3dSetPose([here.x, here.y + ${eyeUp}, here.z], [tx, there.y + ${drop}, tz]); return 'ground eye framed'; })()`;
 
 /** Pose an aerial above the first live crowd walker (street context view). */
 const POSE_STREET_AERIAL = `(() => { const root = window.__wf3dScene.getObjectByName('groundAgentsCrowd'); if (!root) return 'no crowd'; let best = null; const M = new (root.matrix.constructor)(); root.traverse((o) => { if (!best && o.isInstancedMesh && o.count > 0) { o.getMatrixAt(0, M); best = { x: M.elements[12], y: M.elements[13], z: M.elements[14] }; } }); if (best) window.__wf3dSetPose([best.x + 14, best.y + 11, best.z + 14], [best.x, best.y + 0.5, best.z]); return best ? 'posed' : 'no instances'; })()`;
 
 const CLICK_3D_VIEW = `(() => { const b = [...document.querySelectorAll('button')].find((x) => /3D View/i.test(x.textContent ?? '')); if (!b) return 'MISSING'; b.click(); return 'clicked'; })()`;
+
+/**
+ * Wait for the canonical Battle Map design-preview surface before touching it.
+ * The biome select proves the sandbox controls mounted, while the 3D button
+ * proves the concrete capture can still enter the renderer it exists to judge.
+ * Together they turn a future route move into a loud timeout instead of a
+ * screenshot of an unrelated Design Preview page.
+ */
+const BATTLE_MAP_READY = `document.querySelector('#biomeSelect') && [...document.querySelectorAll('button')].some((button) => /3D View/i.test(button.textContent ?? ''))`;
 
 /**
  * Reject blank or nearly uniform WebGL readbacks before accepting a 3D frame.
@@ -73,6 +252,76 @@ const CLICK_3D_VIEW = `(() => { const b = [...document.querySelectorAll('button'
 const VERIFY_3D_CANVAS_PIXELS = `(async () => { const api = window.__bm3dCam; if (!api?.capture || !api?.sceneBreakdown) return 'missing 3D capture hook'; const roots = JSON.stringify(api.sceneBreakdown()?.topRoots ?? []); if (!roots.includes('opening-resolved-body-3d-goblin') || !roots.includes('opening-resolved-body-3d-wolf') || !roots.includes('opening-activity-site-3d') || !roots.includes('opening-combat-disturbance-3d')) return 'missing opening scene meshes'; const dataUrl = api.capture(); if (!dataUrl || dataUrl.length < 10000) return 'missing 3D framebuffer'; const image = new Image(); await new Promise((resolve, reject) => { image.onload = resolve; image.onerror = reject; image.src = dataUrl; }); const probe = document.createElement('canvas'); probe.width = 64; probe.height = 64; const ctx = probe.getContext('2d', { willReadFrequently: true }); if (!ctx) return 'missing pixel probe'; ctx.drawImage(image, 0, 0, 64, 64); const pixels = ctx.getImageData(0, 0, 64, 64).data; let opaque = 0, min = 255, max = 0; const bins = new Set(); for (let i = 0; i < pixels.length; i += 16) { const alpha = pixels[i + 3]; if (alpha < 16) continue; opaque += 1; const luma = Math.round(pixels[i] * 0.2126 + pixels[i + 1] * 0.7152 + pixels[i + 2] * 0.0722); min = Math.min(min, luma); max = Math.max(max, luma); bins.add(Math.floor(luma / 12)); } if (opaque < 700 || max - min < 34 || bins.size < 5) return 'missing canvas contrast'; return 'pixels ok: ' + opaque + ' samples, range ' + (max - min) + ', bins ' + bins.size; })()`;
 
 const TOWN_WINDOW = "?phase=world3d&ground=1&gx=16&gy=4&wfseed=42";
+
+// ── dungeon capture helpers ─────────────────────────────────────────────────
+// The dungeon workbench (`?step=dungeon`) opens on the 3D Expedition view and
+// keeps the parchment module sheet behind a presentation toggle. Both are the
+// SAME generated plan, so a pinned `dseed` makes the pair directly comparable.
+
+/** Press one of the workbench's named camera presets (tactical | entrance | objective). */
+const DUNGEON_CAMERA = (preset: "tactical" | "entrance" | "objective") =>
+  `(() => { const b = document.querySelector('[data-testid="dungeon-camera-${preset}"]'); if (!b) return 'MISSING ${preset} preset'; b.click(); return 'preset ${preset}'; })()`;
+
+/**
+ * Pull the orbit camera in toward its target with wheel ticks.
+ *
+ * Why this and not a pose hook: the dungeon preview exposes no camera setter,
+ * only the three intent presets. `entrance` already aims at the entrance room,
+ * but at a distance derived from the room radius — far enough that torch
+ * falloff and stone material are a few pixels tall. Dollying along the existing
+ * look direction keeps the preset's aim and buys critique distance.
+ */
+const DUNGEON_DOLLY_IN = (ticks: number) =>
+  `(() => { const c = document.querySelector('[data-testid="dungeon-3d-preview"] canvas'); if (!c) return 'MISSING dungeon canvas'; const r = c.getBoundingClientRect(); for (let i = 0; i < ${ticks}; i++) { c.dispatchEvent(new WheelEvent('wheel', { clientX: r.left + r.width * 0.5, clientY: r.top + r.height * 0.5, deltaY: -240, bubbles: true, cancelable: true })); } return 'dollied ${ticks}'; })()`;
+
+/**
+ * Lift the parchment sheet out of the workbench chrome for a clean plate.
+ *
+ * The module sheet is a 2D canvas, so the WebGL `readback` path cannot reach it
+ * and a plain page screenshot would be two-thirds slider panel. This moves the
+ * live canvas into a fixed full-viewport backdrop so the capture is the SHEET,
+ * judged on its ink — not the design harness around it.
+ */
+/**
+ * Zoom the parchment viewport onto the plan so the LINEWORK is judgeable.
+ *
+ * The full-plate shot is the right frame for page composition, but the plan
+ * occupies about a third of the sheet, which leaves wall hatch and corner blots
+ * a few pixels wide — the same "cannot judge it" failure the whole framing pass
+ * exists to remove.
+ *
+ * PRODUCT BUG this has to route around: the sheet's zoom-to-cursor wheel
+ * listener is bound in an effect keyed on `error`, and the parchment canvas is
+ * created only when the presentation toggle leaves the 3D view. Arriving at the
+ * default 3D view and switching to Parchment therefore leaves the canvas with
+ * NO wheel listener, so wheel zoom silently does nothing for a real user too.
+ * The button cluster and the React pointer handlers are wired per render, so
+ * this drives those instead: three centre-zoom clicks, then one pan-drag that
+ * recentres the viewport on the plan (which sits left of and below sheet
+ * centre, because the legend column occupies the upper right).
+ */
+const PARCHMENT_ZOOM_IN = `(() => { const zoomIn = document.querySelector('[title="Zoom in"]'); if (!zoomIn) return 'MISSING zoom-in control'; for (let i = 0; i < 3; i++) zoomIn.click(); return 'zoomed 2.74x'; })()`;
+
+/**
+ * Pan the zoomed sheet so the plan — not the empty lower page — fills the frame.
+ *
+ * Runs as its own step after a pause, because the pan handler reads `view.zoom`
+ * from the render closure: dispatched in the same task as the zoom clicks it
+ * would still see zoom 1 and bail. `setPointerCapture` is neutralised for the
+ * same reason a synthetic drag needs it — there is no real active pointer, so
+ * the genuine call would throw before the drag state is ever recorded.
+ */
+const PARCHMENT_PAN_TO_PLAN = `(() => { const canvas = [...document.querySelectorAll('canvas')].find((c) => { try { return !(c.getContext('webgl2') || c.getContext('webgl')); } catch { return true; } }); if (!canvas) return 'MISSING parchment canvas'; canvas.setPointerCapture = () => {}; canvas.releasePointerCapture = () => {}; const ZOOM = Math.pow(1.4, 3); const r = canvas.getBoundingClientRect(); const cx = r.left + r.width * 0.5, cy = r.top + r.height * 0.5; const dx = (0.5 - 0.46) * ZOOM * r.width, dy = (0.5 - 0.54) * ZOOM * r.height; const send = (type, x, y) => canvas.dispatchEvent(new PointerEvent(type, { clientX: x, clientY: y, pointerId: 1, isPrimary: true, button: 0, buttons: 1, bubbles: true, cancelable: true })); send('pointerdown', cx, cy); send('pointermove', cx + dx, cy + dy); send('pointerup', cx + dx, cy + dy); return 'panned to plan'; })()`;
+
+const ISOLATE_PARCHMENT_SHEET = `(() => { const canvas = [...document.querySelectorAll('canvas')].find((c) => { try { return !(c.getContext('webgl2') || c.getContext('webgl')); } catch { return true; } }); if (!canvas) return 'MISSING parchment canvas'; if (canvas.width < 400) return 'MISSING composed sheet (width ' + canvas.width + ')'; const stage = document.createElement('div'); stage.id = 'vistest-sheet-stage'; stage.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:#1a1a1a;display:flex;align-items:center;justify-content:center;padding:0'; canvas.style.cssText = 'width:auto;height:100vh;max-width:100vw;display:block'; stage.appendChild(canvas); document.body.appendChild(stage); return 'sheet isolated ' + canvas.width + 'x' + canvas.height; })()`;
+
+/**
+ * A9 hygiene: drop entrance/objective waypoint markers (gameplay chrome) from the 3D scene so
+ * the captured frame is the environment, not decorated with UI gizmos. Design Preview passes no
+ * `gameplay`, so the player/treasure markers never render anyway; this hides the always-on
+ * SceneMarkers. Set AFTER the camera/dolly and right before the final readback.
+ */
+const HIDE_DUNGEON_MARKERS = `(() => { window.__dungeon3dMarkers = false; return 'markers hidden'; })()`;
 
 export const SCENARIOS: VisScenario[] = [
   // --- entities (forge + debugger) -------------------------------------
@@ -112,6 +361,45 @@ export const SCENARIOS: VisScenario[] = [
       "Fifteen labeled anchor markers ride the body: head cluster on the head, hands at the hands, hips/tail at the pelvis.",
     capture: [{ kind: "sleep", ms: 9000 }, { kind: "screenshot" }],
   },
+  {
+    id: "entitydebug-portrait",
+    title: "Creature: portrait distance (face, skin, cloth, metal)",
+    group: "entities",
+    url: "misc/design.html?step=entitydebug&race=wood_elf&class=ranger&wire=0",
+    notes:
+      "The BG3 character-portrait frame. Face and shoulders fill the frame, so judge whether skin, cloth, hair and metal each respond to light differently, whether eyes and facial features read at all, and whether the toon shading holds up or flattens into one plastic tone at close range.",
+    capture: [
+      { kind: "waitHook", expr: "window.__entitydebug", timeoutMs: 90000 },
+      // AutoFrame owns the camera for the first frames; the workbench's own
+      // `cam:face` preset is the surface's real portrait pose, so use it rather
+      // than fighting OrbitControls with a synthetic camera write.
+      { kind: "sleep", ms: 9000 },
+      {
+        kind: "eval",
+        js: `(() => { const b = [...document.querySelectorAll('button')].find((x) => (x.textContent ?? '').trim() === 'cam:face'); if (!b) return 'MISSING cam:face preset'; b.click(); return 'portrait posed'; })()`,
+      },
+      { kind: "sleep", ms: 4000 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "entitydebug-silhouette",
+    title: "Creature: full-body silhouette in profile",
+    group: "entities",
+    url: "misc/design.html?step=entitydebug&race=wood_elf&class=ranger&wire=0",
+    notes:
+      "Full body from the side, the classic silhouette test: judge whether the outline is readable as this creature with no interior detail, whether proportions hold, and whether limb masses connect rather than floating. Pairs with entitydebug-portrait on the same subject.",
+    capture: [
+      { kind: "waitHook", expr: "window.__entitydebug", timeoutMs: 90000 },
+      { kind: "sleep", ms: 9000 },
+      {
+        kind: "eval",
+        js: `(() => { const b = [...document.querySelectorAll('button')].find((x) => (x.textContent ?? '').trim() === 'cam:side'); if (!b) return 'MISSING cam:side preset'; b.click(); return 'silhouette posed'; })()`,
+      },
+      { kind: "sleep", ms: 4000 },
+      { kind: "readback" },
+    ],
+  },
   // --- combat -----------------------------------------------------------
   {
     id: "combat3d-party",
@@ -121,6 +409,7 @@ export const SCENARIOS: VisScenario[] = [
     notes:
       "Party members as generated bodies with team rings, HP pips, turn beam; gear visible (shield, helmet).",
     capture: [
+      { kind: "waitHook", expr: BATTLE_MAP_READY, timeoutMs: 120000 },
       { kind: "sleep", ms: 12000 },
       { kind: "eval", js: CLICK_3D_VIEW },
       { kind: "sleep", ms: 14000 },
@@ -138,11 +427,34 @@ export const SCENARIOS: VisScenario[] = [
     notes:
       "Enemy monsters as generated bodies (orcs with tusks, caster with hat/robe) under red team rings.",
     capture: [
+      { kind: "waitHook", expr: BATTLE_MAP_READY, timeoutMs: 120000 },
       { kind: "sleep", ms: 12000 },
       { kind: "eval", js: CLICK_3D_VIEW },
       { kind: "sleep", ms: 14000 },
       { kind: "waitHook", expr: "window.__bm3dCam", timeoutMs: 60000 },
       { kind: "eval", js: `window.__bm3dCam.poseTeam('enemy', 9, 58, 25)` },
+      { kind: "sleep", ms: 10000 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "combat3d-play-camera",
+    title: "Battle map 3D: the camera a player actually fights from",
+    group: "combat",
+    url: "misc/design.html?step=battlemap",
+    notes:
+      "Not a unit close-up — the real playing distance, with both teams and the ground between them in frame. Judge whether unit silhouettes stay readable against the ground, whether movement range, cover and threat are legible without hunting, and whether elevation reads instantly. combat3d-party and combat3d-enemies stay as the close inspection shots.",
+    capture: [
+      { kind: "waitHook", expr: BATTLE_MAP_READY, timeoutMs: 120000 },
+      { kind: "sleep", ms: 12000 },
+      { kind: "eval", js: CLICK_3D_VIEW },
+      { kind: "sleep", ms: 14000 },
+      { kind: "waitHook", expr: "window.__bm3dCam", timeoutMs: 60000 },
+      // `polarDeg` is measured FROM +Y, so a SMALLER number is more overhead —
+      // 44 produced a top-down canopy shot with no units in it. 66 is 24 degrees
+      // above the horizon, pulled back to 18 units so the frame holds the whole
+      // engagement instead of one body.
+      { kind: "eval", js: `window.__bm3dCam.poseTeam('player', 18, 66, 205)` },
       { kind: "sleep", ms: 10000 },
       { kind: "readback" },
     ],
@@ -546,6 +858,61 @@ export const SCENARIOS: VisScenario[] = [
       { kind: "screenshot" },
     ],
   },
+
+
+  // --- town open land ----------------------------------------------------
+  // The `?step=town` harness shows one real burg in three panels with a
+  // typology row. These recipes drive it by BUTTON TEXT because the harness
+  // lives in the gitignored steps/ tree and carries no test ids.
+  ...(
+    [
+      { slug: 'hafting', band: 'Walled town', burg: 'Hafting' },
+      { slug: 'borieborum', band: 'Capital', burg: 'Borieborum' },
+    ] as const
+  ).flatMap(({ slug, band, burg }) => {
+    const pick = (label: string) =>
+      `(() => { const b = [...document.querySelectorAll('button')].find((x) => (x.textContent ?? '').trim().startsWith(${JSON.stringify(label)})); if (!b) throw new Error('no button: ' + ${JSON.stringify(label)}); b.click(); return 'clicked ' + ${JSON.stringify(label)}; })()`;
+    return [
+      {
+        id: `town-open-land-2d-${slug}`,
+        title: `Town 2D: intramural open land — ${burg}`,
+        group: 'world' as const,
+        url: 'misc/design.html?step=town3d',
+        notes:
+          `${burg}'s 2D plan with only the map panel showing. Judge that NO ground inside the wall ring is blank parchment: the slack between the built edge and the wall must read as legible parcels (hatched gardens, dotted orchards, rubble ruins, plain paddocks/yards), and any ward block that packed no buildings must show parcels rather than an empty block.`,
+        capture: [
+          { kind: 'waitHook' as const, expr: `document.querySelector('[data-testid="preview-town"]') != null`, timeoutMs: 60000 },
+          { kind: 'eval' as const, js: pick(band) },
+          { kind: 'sleep' as const, ms: 4000 },
+          { kind: 'eval' as const, js: pick('2D map') },
+          { kind: 'sleep' as const, ms: 2500 },
+          { kind: 'waitHook' as const, expr: `document.querySelectorAll('[data-testid^="town-open-land-"]').length > 0`, timeoutMs: 60000 },
+          { kind: 'eval' as const, js: ZOOM_TOWN_ON_OPEN_LAND },
+          { kind: 'sleep' as const, ms: 1500 },
+          { kind: 'screenshot' as const },
+        ],
+      },
+      {
+        id: `town-open-land-3d-${slug}`,
+        title: `Town 3D: intramural open land — ${burg}`,
+        group: 'world' as const,
+        url: 'misc/design.html?step=town3d',
+        notes:
+          `${burg}'s 3D minimap with only that panel showing. Judge that the ground inside the wall ring is tinted by land use everywhere — no blank tan ground between the outermost blocks and the wall.`,
+        capture: [
+          { kind: 'waitHook' as const, expr: `document.querySelector('[data-testid="preview-town"]') != null`, timeoutMs: 60000 },
+          { kind: 'eval' as const, js: pick(band) },
+          { kind: 'sleep' as const, ms: 4000 },
+          { kind: 'eval' as const, js: pick('3D minimap') },
+          { kind: 'sleep' as const, ms: 9000 },
+          { kind: 'eval' as const, js: TOWN_MINIMAP_TOPDOWN },
+          { kind: 'sleep' as const, ms: 3000 },
+          { kind: 'screenshot' as const },
+        ],
+      },
+    ];
+  }),
+
   // --- world ------------------------------------------------------------
   {
     id: "world-cast-diorama",
@@ -557,7 +924,9 @@ export const SCENARIOS: VisScenario[] = [
     capture: [
       { kind: "waitHook", expr: "window.__wf3dScene", timeoutMs: 90000 },
       { kind: "sleep", ms: 12000 },
-      { kind: "eval", js: WHEEL_ZOOM_34 },
+      // Replaces a blind 34-tick wheel dolly that drove the camera into a roof
+      // and captured no cast at all. Find the bodies, then frame them.
+      { kind: "eval", js: POSE_AT_CAST },
       { kind: "sleep", ms: 6000 },
       { kind: "readback" },
     ],
@@ -583,6 +952,117 @@ export const SCENARIOS: VisScenario[] = [
       { kind: "readback" },
     ],
   },
+  {
+    id: "town-street-level",
+    title: "World: town street at eye level, morning commute",
+    group: "world",
+    url: TOWN_WINDOW,
+    notes:
+      "The BG3 Rivington frame: standing in the street looking along it. Judge the street SURFACE as material (cobble, dirt, plank) rather than a tinted ribbon, wall material and window recesses on the buildings either side, prop clutter breaking the silhouette, and contact shadows where walls meet the road.",
+    capture: [
+      {
+        kind: "waitHook",
+        expr: "window.__wf3dScene && window.__wfGroundWorld",
+        timeoutMs: 90000,
+      },
+      { kind: "sleep", ms: 10000 },
+      { kind: "eval", js: `window.__wfAgentClock = 7.2` },
+      { kind: "sleep", ms: 1500 },
+      { kind: "eval", js: POSE_STREET_LEVEL },
+      { kind: "sleep", ms: 5000 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "wilds-mountain-summit",
+    title: "Wilds: Mount Wildlands summit (snow + far shells)",
+    group: "world",
+    url: "?phase=world3d&ground=1&dcell=1199&wfseed=42",
+    notes:
+      "Snowfields with rock breaking through on steep faces; ridgelines, no needle spikes; distant ranges continue past the window (no world edge).",
+    capture: [
+      { kind: "waitHook", expr: "window.__wf3dScene && window.__wfGroundWorld && window.__wf3dSetPose", timeoutMs: 180000 },
+      { kind: "sleep", ms: 15000 },
+      { kind: "eval", js: `(() => { const gw = window.__wfGroundWorld; if (!gw.farShells) return 'MISSING farShells'; const MPC = 1.524; const c0 = Math.floor(gw.cols * 0.2), c1 = Math.ceil(gw.cols * 0.8); let best = -1, bc = 0, br = 0; for (let r = c0; r < c1; r++) for (let c = c0; c < c1; c++) { const v = gw.heights[r * gw.cols + c]; if (v > best) { best = v; bc = c; br = r; } } const fx = (bc + 0.5) * MPC - gw.extentMetersX / 2, fz = (br + 0.5) * MPC - gw.extentMetersZ / 2, y = (best / 100) * 1800; window.__wf3dSetPose([fx + 240, y + 110, fz + 240], [fx, y, fz]); return 'posed'; })()` },
+      { kind: "sleep", ms: 8000 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "wilds-road-bridge",
+    title: "Wilds: inland bridge + far vista",
+    group: "world",
+    url: "?phase=world3d&ground=1&dcell=4214&wfseed=42",
+    notes:
+      "Bridge deck meets both banks; river continues past the window border as a blue course; terrain runs to a fogged horizon in every direction.",
+    capture: [
+      { kind: "waitHook", expr: "window.__wf3dScene && window.__wfGroundWorld && window.__wf3dSetPose", timeoutMs: 180000 },
+      { kind: "sleep", ms: 15000 },
+      { kind: "eval", js: `(() => { const gw = window.__wfGroundWorld; if (!gw.farShells) return 'MISSING farShells'; const c = (gw.crossings ?? []).find((x) => x.kind === 'bridge'); if (!c) return 'MISSING bridge'; const fx = c.xM - gw.extentMetersX / 2, fz = c.zM - gw.extentMetersZ / 2; const deck = (gw.decks ?? []).find((d) => d.sourceCrossingId === c.id); const y = deck ? deck.topY : 2; window.__wf3dSetPose([fx + 45, y + 24, fz + 45], [fx, y, fz]); return 'posed'; })()` },
+      { kind: "sleep", ms: 8000 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "wilds-ancient-forest",
+    title: "Wilds: Slovan Ancientwood interior",
+    group: "world",
+    url: "?phase=world3d&ground=1&dcell=3023&wfseed=42",
+    notes:
+      "Thickets and clearings with undergrowth; canopy shade dims the light and pulls fog in (anchorCellId now threads on dev entries).",
+    capture: [
+      { kind: "waitHook", expr: "window.__wf3dScene && window.__wfGroundWorld && window.__wf3dSetPose", timeoutMs: 180000 },
+      { kind: "sleep", ms: 15000 },
+      { kind: "eval", js: `(() => { const gw = window.__wfGroundWorld; const MPC = 1.524; const col = Math.floor(gw.cols / 2), row = Math.floor(gw.rows / 2); const y = ((gw.heights[row * gw.cols + col] ?? 0) / 100) * 1800; window.__wf3dSetPose([30, y + 16, 30], [0, y, 0]); return 'posed'; })()` },
+      { kind: "sleep", ms: 8000 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "wilds-ford-causeway",
+    title: "Wilds: stream ford causeway (cell 3090)",
+    group: "world",
+    url: "?phase=world3d&ground=1&dcell=3090&wfseed=42",
+    notes:
+      "Wet-sand causeway strips bank to bank with stepping stones confined to the water; three trails converge on the crossing.",
+    capture: [
+      { kind: "waitHook", expr: "window.__wf3dScene && window.__wfGroundWorld && window.__wf3dSetPose", timeoutMs: 180000 },
+      { kind: "sleep", ms: 15000 },
+      { kind: "eval", js: `(() => { const gw = window.__wfGroundWorld; const f = (gw.crossings ?? []).find((c) => c.kind === 'ford'); if (!f) return 'MISSING ford'; const fx = f.xM - gw.extentMetersX / 2, fz = f.zM - gw.extentMetersZ / 2; const strip = (gw.decks ?? []).find((d) => d.kind === 'ford'); const y = strip ? strip.topY : 1; window.__wf3dSetPose([fx + 32, y + 18, fz + 32], [fx, y, fz]); return 'posed'; })()` },
+      { kind: "sleep", ms: 8000 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "wilds-eye-level-vista",
+    title: "Wilds: eye height looking out over the valley",
+    group: "world",
+    url: "?phase=world3d&ground=1&dcell=4214&wfseed=42",
+    notes:
+      "The exploration camera looking OUT, not down: judge aerial perspective (does far terrain desaturate and lighten, or carry foreground contrast?), the sky's sun disc and cloud layer, tree canopy breaking against that sky, and whether the terrain silhouette recedes in layers.",
+    capture: [
+      { kind: "waitHook", expr: "window.__wf3dScene && window.__wfGroundWorld && window.__wf3dSetPose", timeoutMs: 180000 },
+      { kind: "sleep", ms: 15000 },
+      { kind: "eval", js: POSE_GROUND_EYE(260, 6, 2.0) },
+      { kind: "sleep", ms: 8000 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "wilds-ground-contact",
+    title: "Wilds: ground contact close-up (grass, soil, seating)",
+    group: "world",
+    url: "?phase=world3d&ground=1&dcell=3023&wfseed=42",
+    notes:
+      "Close on the forest floor at walking distance: judge terrain facets (are individual triangles countable?), how many depth layers the ground cover has, whether tufts and trunks are visibly SEATED by ambient occlusion or appear to hover, and whether the ground carries any texture at all.",
+    capture: [
+      { kind: "waitHook", expr: "window.__wf3dScene && window.__wfGroundWorld && window.__wf3dSetPose", timeoutMs: 180000 },
+      { kind: "sleep", ms: 15000 },
+      { kind: "eval", js: POSE_GROUND_EYE(4.5, 0.1, 1.7) },
+      { kind: "sleep", ms: 8000 },
+      { kind: "readback" },
+    ],
+  },
   // --- interiors ----------------------------------------------------------
   {
     id: "interior-villager",
@@ -598,10 +1078,85 @@ export const SCENARIOS: VisScenario[] = [
         timeoutMs: 90000,
       },
       { kind: "sleep", ms: 10000 },
+      // The URL's &hour= drives the world sun, sky and occupant placement, so
+      // each variant loads at its own real hour. Only FINDING the room needs a
+      // trick: InteriorLights skips a hearth its site schedule marks dark, so
+      // at 10:00 or 23:00 there is no lit fire to anchor on. Hop the LIVE
+      // interior clock to 20:00 just long enough to locate a hearth, pose, then
+      // hand the clock back — hearths and windows track it, so the captured
+      // frame is honestly this hour and all three stand in the same room.
       { kind: "eval", js: `window.__wfAgentClock = 20` },
       { kind: "sleep", ms: 2500 },
-      { kind: "eval", js: POSE_AT_OCCUPANT },
-      { kind: "sleep", ms: 4000 },
+      { kind: "eval", js: STAGE_NEAR_OCCUPANT },
+      { kind: "sleep", ms: 6000 },
+      { kind: "eval", js: POSE_AT_HEARTH },
+      { kind: "sleep", ms: 2000 },
+      { kind: "eval", js: `window.__wfAgentClock = 20` },
+      { kind: "sleep", ms: 5000 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "interior-hearth-day",
+    title: "Interiors: hearth room at 10:00 (window light)",
+    group: "interiors",
+    url: `${TOWN_WINDOW}&hour=10`,
+    notes:
+      "Standing inside a house at mid-morning: window light should be the dominant source and throw a directional shaft, the hearth a secondary warm pool. Surfaces must differ from one another (plaster, timber, stone, cloth) rather than sharing one flat tint. Pairs with interior-hearth-night at the same seed.",
+    capture: [
+      {
+        kind: "waitHook",
+        expr: "window.__wf3dScene && window.__wfGroundWorld",
+        timeoutMs: 90000,
+      },
+      { kind: "sleep", ms: 10000 },
+      // The URL's &hour= drives the world sun, sky and occupant placement, so
+      // each variant loads at its own real hour. Only FINDING the room needs a
+      // trick: InteriorLights skips a hearth its site schedule marks dark, so
+      // at 10:00 or 23:00 there is no lit fire to anchor on. Hop the LIVE
+      // interior clock to 20:00 just long enough to locate a hearth, pose, then
+      // hand the clock back — hearths and windows track it, so the captured
+      // frame is honestly this hour and all three stand in the same room.
+      { kind: "eval", js: `window.__wfAgentClock = 20` },
+      { kind: "sleep", ms: 2500 },
+      { kind: "eval", js: STAGE_NEAR_OCCUPANT },
+      { kind: "sleep", ms: 6000 },
+      { kind: "eval", js: POSE_AT_HEARTH },
+      { kind: "sleep", ms: 2000 },
+      { kind: "eval", js: `window.__wfAgentClock = 10` },
+      { kind: "sleep", ms: 5000 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "interior-hearth-night",
+    title: "Interiors: hearth room at 23:00 (hearth-only light)",
+    group: "interiors",
+    url: `${TOWN_WINDOW}&hour=23`,
+    notes:
+      "The same framing after dark: the hearth must be the only meaningful source, with warm falloff across the near wall and the far side of the room going properly dark. Occupants must be lit BY the room, not by a flat ambient that ignores the hour.",
+    capture: [
+      {
+        kind: "waitHook",
+        expr: "window.__wf3dScene && window.__wfGroundWorld",
+        timeoutMs: 90000,
+      },
+      { kind: "sleep", ms: 10000 },
+      // The URL's &hour= drives the world sun, sky and occupant placement, so
+      // each variant loads at its own real hour. Only FINDING the room needs a
+      // trick: InteriorLights skips a hearth its site schedule marks dark, so
+      // at 10:00 or 23:00 there is no lit fire to anchor on. Hop the LIVE
+      // interior clock to 20:00 just long enough to locate a hearth, pose, then
+      // hand the clock back — hearths and windows track it, so the captured
+      // frame is honestly this hour and all three stand in the same room.
+      { kind: "eval", js: `window.__wfAgentClock = 20` },
+      { kind: "sleep", ms: 2500 },
+      { kind: "eval", js: STAGE_NEAR_OCCUPANT },
+      { kind: "sleep", ms: 6000 },
+      { kind: "eval", js: POSE_AT_HEARTH },
+      { kind: "sleep", ms: 2000 },
+      { kind: "eval", js: `window.__wfAgentClock = 23` },
+      { kind: "sleep", ms: 5000 },
       { kind: "readback" },
     ],
   },
@@ -627,9 +1182,132 @@ export const SCENARIOS: VisScenario[] = [
       { kind: "readback" },
     ],
   },
+  // --- dungeons -----------------------------------------------------------
+  // The dungeon surface had NO capture scenario at all before this program, so
+  // its critic had nothing to judge. These are the first two: the lit 3D room
+  // an expedition actually stands in, and the diegetic parchment module sheet.
+  {
+    id: "dungeon-3d-entrance-room",
+    title: "Dungeon 3D: torch-lit entrance room at expedition distance",
+    group: "dungeons",
+    url: "misc/design.html?step=dungeon&dseed=20260730&dtheme=crypt",
+    notes:
+      "Standing inside the entrance chamber, not surveying the level: torch flames with warm falloff onto the nearest walls, coursed stone reading as stone at arm's length, floor-to-wall contact readable, and darkness closing the far side of the room rather than a uniform grey wash.",
+    capture: [
+      // __dungeon3dReady only flips after three consecutive drawn frames, so it
+      // is a real paint gate rather than a mount gate.
+      { kind: "waitHook", expr: "window.__dungeon3dReady === true", timeoutMs: 180000 },
+      { kind: "eval", js: DUNGEON_CAMERA("entrance") },
+      { kind: "sleep", ms: 3000 },
+      // Detail props (torches among them) are culled at the tactical preset, so
+      // the dolly happens only after `entrance` has restored them.
+      { kind: "eval", js: DUNGEON_DOLLY_IN(9) },
+      { kind: "sleep", ms: 5000 },
+      { kind: "eval", js: HIDE_DUNGEON_MARKERS },
+      { kind: "sleep", ms: 800 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "dungeon-parchment-sheet",
+    title: "Dungeon 2D: hand-inked module sheet, full plate",
+    group: "dungeons",
+    url: "misc/design.html?step=dungeon&dseed=20260730&dtheme=crypt",
+    notes:
+      "The Gozzy-style module sheet as a page, free of workbench chrome: one ink hand across walls and corridors, pressure on the shadow side, warm paper, keyed room numbers, cartouche and legend. Same seed as dungeon-3d-entrance-room, so the two views are the same dungeon.",
+    capture: [
+      { kind: "waitHook", expr: "window.__dungeon3dReady === true", timeoutMs: 180000 },
+      {
+        kind: "eval",
+        js: `(() => { const b = document.querySelector('[data-testid="dungeon-view-parchment"]'); if (!b) return 'MISSING parchment toggle'; b.click(); return 'parchment'; })()`,
+      },
+      // renderSheet composes a supersampled buffer on the view switch; this is
+      // the slow step, and the blit onto the visible canvas follows it.
+      { kind: "sleep", ms: 6000 },
+      { kind: "eval", js: ISOLATE_PARCHMENT_SHEET },
+      { kind: "sleep", ms: 800 },
+      { kind: "screenshot" },
+    ],
+  },
+  {
+    id: "dungeon-parchment-linework",
+    title: "Dungeon 2D: module-sheet linework at critique distance",
+    group: "dungeons",
+    url: "misc/design.html?step=dungeon&dseed=20260730&dtheme=crypt",
+    notes:
+      "The same sheet zoomed onto the plan so the ink itself is judgeable: wall stroke weight swelling on the shadow side, corner blots, corridor jambs and threshold ticks, event overlays under the ink, and door states (leaf / bricked red brick / secret dash).",
+    capture: [
+      { kind: "waitHook", expr: "window.__dungeon3dReady === true", timeoutMs: 180000 },
+      {
+        kind: "eval",
+        js: `(() => { const b = document.querySelector('[data-testid="dungeon-view-parchment"]'); if (!b) return 'MISSING parchment toggle'; b.click(); return 'parchment'; })()`,
+      },
+      { kind: "sleep", ms: 6000 },
+      { kind: "eval", js: PARCHMENT_ZOOM_IN },
+      { kind: "sleep", ms: 1500 },
+      { kind: "eval", js: PARCHMENT_PAN_TO_PLAN },
+      { kind: "sleep", ms: 1500 },
+      { kind: "eval", js: ISOLATE_PARCHMENT_SHEET },
+      { kind: "sleep", ms: 800 },
+      { kind: "screenshot" },
+    ],
+  },
+  {
+    id: "dungeon-parchment-sheet-frost",
+    title: "Dungeon 2D: frost module sheet, full plate (second theme for B6)",
+    group: "dungeons",
+    url: "misc/design.html?step=dungeon&dseed=20260730&dtheme=frost",
+    notes:
+      "The same crypt seed re-themed to frost so the B6 'theme palette triad' target becomes scorable against dungeon-parchment-sheet: cold rime walls, warm paper retained, ice accents instead of the crypt's warm pyre light. Same seed as the other dungeon scenarios so 2D and 3D and both themes describe the same plan.",
+    capture: [
+      { kind: "waitHook", expr: "window.__dungeon3dReady === true", timeoutMs: 180000 },
+      {
+        kind: "eval",
+        js: `(() => { const b = document.querySelector('[data-testid="dungeon-view-parchment"]'); if (!b) return 'MISSING parchment toggle'; b.click(); return 'parchment'; })()`,
+      },
+      { kind: "sleep", ms: 6000 },
+      { kind: "eval", js: ISOLATE_PARCHMENT_SHEET },
+      { kind: "sleep", ms: 800 },
+      { kind: "screenshot" },
+    ],
+  },
+  {
+    id: "dungeon-3d-corridor-depth",
+    title: "Dungeon 3D: corridor-depth shot toward a lit mouth",
+    group: "dungeons",
+    url: "misc/design.html?step=dungeon&dseed=20260730&dtheme=crypt",
+    notes:
+      "A down-the-depth framing for A4/A6: the objective preset aims from the entrance toward the deepest room, then a dolly-in buys a corridor run. Purpose is measuring fog/darkness ALONG depth (near-to-far), so the shot should keep a receding run of floor and wall with a warm mouth in the far field. (Approximation of a strict corridor preset, which does not exist yet.)",
+    capture: [
+      { kind: "waitHook", expr: "window.__dungeon3dReady === true", timeoutMs: 180000 },
+      { kind: "eval", js: DUNGEON_CAMERA("objective") },
+      { kind: "sleep", ms: 3000 },
+      { kind: "eval", js: DUNGEON_DOLLY_IN(6) },
+      { kind: "sleep", ms: 5000 },
+      { kind: "eval", js: HIDE_DUNGEON_MARKERS },
+      { kind: "sleep", ms: 800 },
+      { kind: "readback" },
+    ],
+  },
+  {
+    id: "dungeon-3d-entrance-room-frost",
+    title: "Dungeon 3D: frost entrance room (second theme for A/B cross-theme)",
+    group: "dungeons",
+    url: "misc/design.html?step=dungeon&dseed=20260730&dtheme=frost",
+    notes:
+      "The crypt entrance camera re-themed to frost, so the A-series darkness-floor/atmosphere targets can be checked across a second theme (same plan, colder palette) rather than tuning on the crypt alone. Mirrors dungeon-3d-entrance-room exactly.",
+    capture: [
+      { kind: "waitHook", expr: "window.__dungeon3dReady === true", timeoutMs: 180000 },
+      { kind: "eval", js: DUNGEON_CAMERA("entrance") },
+      { kind: "sleep", ms: 3000 },
+      { kind: "eval", js: DUNGEON_DOLLY_IN(9) },
+      { kind: "sleep", ms: 5000 },
+      { kind: "eval", js: HIDE_DUNGEON_MARKERS },
+      { kind: "sleep", ms: 800 },
+      { kind: "readback" },
+    ],
+  },
 ];
-
-/** Validate a scenario list; returns human-readable problems ([] = valid). */
 export function validateScenarios(list: VisScenario[]): string[] {
   const problems: string[] = [];
   const seen = new Set<string>();
@@ -639,6 +1317,7 @@ export function validateScenarios(list: VisScenario[]): string[] {
     "world",
     "interiors",
     "crowds",
+    "dungeons",
   ]);
   for (const s of list) {
     if (seen.has(s.id)) problems.push(`"${s.id}": duplicate id`);

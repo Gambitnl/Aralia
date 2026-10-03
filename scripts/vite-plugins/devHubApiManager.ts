@@ -19,6 +19,43 @@
  * running dev server from restarting when those modules change. See the
  * vite-dynamic-import-config-deps pattern.
  */
+import path from 'path';
+import { pathToFileURL } from 'url';
+
+// ============================================================================
+// Creature Planner Isolation
+// ============================================================================
+// Most route modules can use ordinary lazy imports. The creature planner is different:
+// it eventually reaches the actively developed 3D entity system, so even a literal lazy
+// import makes Vite watch those game files as configuration dependencies. An absolute URL
+// held in a variable keeps that route available without exposing its source graph to Vite.
+// ============================================================================
+
+function creaturePlanRoutesModuleUrl(): string {
+  return pathToFileURL(
+    path.resolve(process.cwd(), 'scripts/vite-plugins/devhub/creaturePlanRoutes.ts'),
+  ).href;
+}
+
+function heroLabRoutesModuleUrl(): string {
+  return pathToFileURL(
+    path.resolve(process.cwd(), 'scripts/vite-plugins/devhub/heroLabRoutes.ts'),
+  ).href;
+}
+
+function partLabRoutesModuleUrl(): string {
+  return pathToFileURL(
+    path.resolve(process.cwd(), 'scripts/vite-plugins/devhub/partLabRoutes.ts'),
+  ).href;
+}
+
+// ============================================================================
+// Vite Middleware
+// ============================================================================
+// This manager builds one shared request context and gives each devhub domain a chance to
+// answer. A domain that handles the request ends the chain; otherwise the request continues.
+// ============================================================================
+
 export const devHubApiManager = () => ({
   name: 'devhub-api-manager',
   configureServer(server: any) {
@@ -30,7 +67,7 @@ export const devHubApiManager = () => ({
 
       const parsedUrl = new URL(req.url || '/', 'http://localhost');
       const urlPath = parsedUrl.pathname;
-      const ctx = { req, res, json, parsedUrl, urlPath };
+      const ctx = { req, res, json, parsedUrl, urlPath, server };
 
       const { handleProjectRoutes } = await import('./devhub/projectRoutes.ts');
       if (await handleProjectRoutes(ctx)) return;
@@ -59,8 +96,45 @@ export const devHubApiManager = () => ({
       const { handleDocsRoutes } = await import('./devhub/docsRoutes.ts');
       if (await handleDocsRoutes(ctx)) return;
 
-      const { handleCreaturePlanRoutes } = await import('./devhub/creaturePlanRoutes.ts');
-      if (await handleCreaturePlanRoutes(ctx)) return;
+      // Only load the isolated creature planner for one of its three public URLs. The URL is
+      // deliberately opaque to Vite, because a literal import here would reconnect every 3D
+      // entity source file to vite.config.ts and restart the server during entity work.
+      if (
+        urlPath === '/devhub/api/creature-plan'
+        || urlPath === '/devhub/api/creature-plan/approve'
+        || urlPath === '/devhub/api/creature-plans'
+      ) {
+        const moduleUrl = creaturePlanRoutesModuleUrl();
+        const { handleCreaturePlanRoutes } = await import(/* @vite-ignore */ moduleUrl) as {
+          handleCreaturePlanRoutes: (routeContext: typeof ctx) => Promise<boolean>;
+        };
+        if (await handleCreaturePlanRoutes(ctx)) return;
+      }
+
+      // Hero Lab owns long-running child processes and scratch GLB artifacts.
+      // Keep that Node-only graph behind its URL prefix so ordinary preview
+      // navigation does not load the remote-generation machinery.
+      if (urlPath.startsWith('/devhub/api/hero-lab/')) {
+        const moduleUrl = heroLabRoutesModuleUrl();
+        const { handleHeroLabRoutes } = await import(/* @vite-ignore */ moduleUrl) as {
+          handleHeroLabRoutes: (routeContext: typeof ctx) => Promise<boolean>;
+        };
+        if (await handleHeroLabRoutes(ctx)) return;
+      }
+
+      // Skeleton Lab: landmark saves + Blender re-rig child processes. Same
+      // opaque-URL treatment as Hero Lab — editing the module must not
+      // restart the dev server mid-drag.
+      if (urlPath.startsWith('/devhub/api/partlab/')) {
+        const moduleUrl = partLabRoutesModuleUrl();
+        const { handlePartLabRoutes } = await import(/* @vite-ignore */ moduleUrl) as {
+          handlePartLabRoutes: (routeContext: typeof ctx) => Promise<boolean>;
+        };
+        if (await handlePartLabRoutes(ctx)) return;
+      }
+
+      const { handleLoreSearchRoutes } = await import('./devhub/loreSearchRoutes.ts');
+      if (await handleLoreSearchRoutes(ctx)) return;
 
       // Character Review uses the canonical charset scanner but never exposes a
       // write route, so policy decisions remain separate from inspection.

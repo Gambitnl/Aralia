@@ -12,7 +12,8 @@ import {
   InterruptCondition,
   RitualRequirement,
   RitualContext,
-  RequirementValidationResult
+  RequirementValidationResult,
+  RitualBacklash
 } from '../../types/rituals';
 import { Spell } from '../../types/spells';
 import {
@@ -44,6 +45,33 @@ function buildDisplayTiming(totalSeconds: number, progressSeconds: number, prefe
 }
 
 /**
+ * Reads a prose casting time such as "1 hour" or "10 minutes" into seconds.
+ *
+ * Spells whose header reads "Special" keep their real timing in prose. Rather
+ * than let such a spell fall through to a wrong single-round ritual, the ritual
+ * runtime reads the prose the spell states and returns null when it states none.
+ */
+export function parseSpecialCastingTimeSeconds(castingTimeSpecial?: string): number | null {
+  if (!castingTimeSpecial) return null;
+
+  const match = /(\d+(?:\.\d+)?)\s*(second|minute|hour|day|round)s?/i.exec(castingTimeSpecial);
+  if (!match) return null;
+
+  const amount = Number(match[1]);
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+
+  const unitSeconds: Record<string, number> = {
+    second: 1,
+    round: ROUND_DURATION_SECONDS,
+    minute: 60,
+    hour: 3600,
+    day: 86400
+  };
+
+  return amount * unitSeconds[match[2].toLowerCase()];
+}
+
+/**
  * Creates a new RitualState for a caster and spell.
  */
 export function startRitual(
@@ -56,11 +84,18 @@ export function startRitual(
   // systems think in seconds while combat-facing UI can still derive rounds.
   let durationTotalSeconds = getSpellCastingDurationSeconds(spell, asRitual);
 
-  // HACK: "Special" casting times are not fully modeled yet. If a special-case spell
-  // is routed into the ritual system before its bespoke timing exists, keep the game
-  // moving with a single-round placeholder instead of producing a zero-duration ritual.
+  // "Special" casting times carry their timing in prose rather than in the
+  // structured header, so the spell now states it in `ritualData.castingTimeSpecial`
+  // and the ritual runtime parses that string instead of guessing.
   if (durationTotalSeconds === null || durationTotalSeconds <= 0) {
-    durationTotalSeconds = ROUND_DURATION_SECONDS;
+    durationTotalSeconds = parseSpecialCastingTimeSeconds(spell.ritualData?.castingTimeSpecial);
+  }
+
+  if (durationTotalSeconds === null || durationTotalSeconds <= 0) {
+    throw new Error(
+      `Cannot start a ritual for "${spell.name}": its casting time is not modeled. ` +
+      `Give the spell a ritualData.castingTimeSpecial value such as "1 hour".`
+    );
   }
 
   const displayTiming = buildDisplayTiming(durationTotalSeconds, 0, spell.castingTime.unit);
@@ -106,11 +141,9 @@ export function canStartRitual(
   spell: Spell,
   context: RitualContext
 ): RequirementValidationResult {
-  // If spell has no specific requirements property (yet), we assume it's valid.
-  // In a real implementation, we'd check `spell.ritualRequirements`.
-  // Since `Spell` type might not have `ritualRequirements` yet, this is future-proofing.
-  // TODO #935(2026-01-03 pass 4 Codex-CLI): ritualRequirements cast placeholder until spells carry explicit ritual requirement schema.
-  const requirements: RitualRequirement[] = ((spell as unknown as { ritualRequirements?: RitualRequirement[] }).ritualRequirements) || [];
+  // Spells state their ceremony conditions in `ritualData.requirements`. A spell
+  // with no block states no conditions, which is a valid start.
+  const requirements: RitualRequirement[] = spell.ritualData?.requirements ?? [];
 
   if (requirements.length === 0) {
     return { valid: true };
@@ -198,11 +231,33 @@ export function checkRitualInterrupt(
 /**
  * Returns potential backlash effects if a ritual fails catastrophically.
  */
-export function getBacklashOnFailure(_ritual: RitualState): { description: string }[] {
-    // Placeholder logic for wild magic or ritual backlash
-    // Could depend on spell level, ritual type, etc.
-    // TODO #939(Ritualist): Implement full RitualBacklash evaluation based on ritual.backlash definitions
+export function getBacklashOnFailure(
+  ritual: RitualState,
+  spell?: Spell
+): RitualBacklash[] {
+  // A backlash already recorded on the ritual state wins: it is the effect the
+  // runtime committed to when the ceremony started.
+  if (ritual.backlash && ritual.backlash.length > 0) {
+    return ritual.backlash;
+  }
+
+  const backlash = spell?.ritualData?.backlash;
+  if (!backlash) {
     return [];
+  }
+
+  // `minProgress` is the share of the ceremony that must be finished before the
+  // consequence can fire, so a ritual broken in its first seconds stays harmless.
+  const minProgress = backlash.minProgress ?? 0;
+  const completedShare = ritual.durationTotalSeconds > 0
+    ? ritual.progressSeconds / ritual.durationTotalSeconds
+    : 0;
+
+  if (completedShare < minProgress) {
+    return [];
+  }
+
+  return [backlash];
 }
 
 /**

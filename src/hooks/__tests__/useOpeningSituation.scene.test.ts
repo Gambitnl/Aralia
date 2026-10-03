@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useOpeningSituation } from '../useOpeningSituation';
-import { createMockGameState } from '../../utils/factories';
+import { createMockGameState } from '../../utils/core';
 import { INITIAL_GAME_ENTRY_STATE, type OpeningSituation } from '../../systems/gameEntry/types';
 import type { GameState } from '../../types';
 

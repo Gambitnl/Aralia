@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { ItemType } from '../../../types';
 import { isWeaponMartial, isWeaponProficient } from '../weaponUtils';
 import { createMockPlayerCharacter, createMockItem } from '../../core/factories';
 
@@ -6,7 +7,7 @@ describe('weaponUtils', () => {
     describe('isWeaponMartial', () => {
         it('should return true for weapons with "Martial" category', () => {
             const weapon = createMockItem({
-                type: 'weapon',
+                type: ItemType.Weapon,
                 category: 'Martial Weapons'
             });
             expect(isWeaponMartial(weapon)).toBe(true);
@@ -14,7 +15,7 @@ describe('weaponUtils', () => {
 
         it('should return false for weapons with "Simple" category', () => {
             const weapon = createMockItem({
-                type: 'weapon',
+                type: ItemType.Weapon,
                 category: 'Simple Weapons'
             });
             expect(isWeaponMartial(weapon)).toBe(false);
@@ -22,7 +23,7 @@ describe('weaponUtils', () => {
 
         it('should be case insensitive', () => {
             const weapon = createMockItem({
-                type: 'weapon',
+                type: ItemType.Weapon,
                 category: 'martial weapons'
             });
             expect(isWeaponMartial(weapon)).toBe(true);
@@ -30,7 +31,7 @@ describe('weaponUtils', () => {
 
         it('should return false for non-weapon items', () => {
             const potion = createMockItem({
-                type: 'potion',
+                type: ItemType.Potion,
                 category: 'Consumable'
             });
             expect(isWeaponMartial(potion)).toBe(false);
@@ -45,7 +46,7 @@ describe('weaponUtils', () => {
 
         it('should default to Simple (false) if category is missing', () => {
             const weapon = createMockItem({
-                type: 'weapon',
+                type: ItemType.Weapon,
                 // category is missing
             });
             expect(isWeaponMartial(weapon)).toBe(false);
@@ -53,7 +54,7 @@ describe('weaponUtils', () => {
 
         it('should prioritize "martial" keyword if category contains both', () => {
             const weapon = createMockItem({
-                type: 'weapon',
+                type: ItemType.Weapon,
                 category: 'Simple Martial Hybrid'
             });
             expect(isWeaponMartial(weapon)).toBe(true);
@@ -67,7 +68,7 @@ describe('weaponUtils', () => {
             character.class.weaponProficiencies = ['Simple weapons'];
 
             const simpleWeapon = createMockItem({
-                type: 'weapon',
+                type: ItemType.Weapon,
                 category: 'Simple Weapons',
                 name: 'Club'
             });
@@ -80,7 +81,7 @@ describe('weaponUtils', () => {
             character.class.weaponProficiencies = ['Martial weapons'];
 
             const martialWeapon = createMockItem({
-                type: 'weapon',
+                type: ItemType.Weapon,
                 category: 'Martial Weapons',
                 name: 'Longsword'
             });
@@ -93,7 +94,7 @@ describe('weaponUtils', () => {
             character.class.weaponProficiencies = ['Simple weapons'];
 
             const martialWeapon = createMockItem({
-                type: 'weapon',
+                type: ItemType.Weapon,
                 category: 'Martial Weapons',
                 name: 'Greatsword'
             });
@@ -106,7 +107,7 @@ describe('weaponUtils', () => {
             character.class.weaponProficiencies = ['Longsword', 'Dagger'];
 
             const longsword = createMockItem({
-                type: 'weapon',
+                type: ItemType.Weapon,
                 category: 'Martial Weapons',
                 name: 'Longsword'
             });
@@ -119,7 +120,7 @@ describe('weaponUtils', () => {
             character.class.weaponProficiencies = ['Longswords'];
 
             const longsword = createMockItem({
-                type: 'weapon',
+                type: ItemType.Weapon,
                 name: 'Longsword'
             });
 
@@ -132,7 +133,7 @@ describe('weaponUtils', () => {
             character.class.weaponProficiencies = ['Longsword'];
 
             const longswords = createMockItem({
-                type: 'weapon',
+                type: ItemType.Weapon,
                 name: 'Longswords'
             });
 
@@ -141,7 +142,7 @@ describe('weaponUtils', () => {
 
         it('should return false for null character or weapon', () => {
             const character = createMockPlayerCharacter();
-            const weapon = createMockItem({ type: 'weapon' });
+            const weapon = createMockItem({ type: ItemType.Weapon });
             // @ts-expect-error - null character coverage
             expect(isWeaponProficient(null, weapon)).toBe(false);
             // @ts-expect-error - null weapon coverage
@@ -153,7 +154,7 @@ describe('weaponUtils', () => {
             character.class.weaponProficiencies = ['Simple weapons'];
 
             const potion = createMockItem({
-                type: 'potion',
+                type: ItemType.Potion,
                 category: 'Simple Weapons' // Even if category matches, type must be weapon
             });
 
@@ -165,7 +166,7 @@ describe('weaponUtils', () => {
             character.class.weaponProficiencies = ['longsword']; // lowercase in char sheet
 
             const weapon = createMockItem({
-                type: 'weapon',
+                type: ItemType.Weapon,
                 name: 'Longsword' // Title case in item
             });
 
@@ -176,7 +177,7 @@ describe('weaponUtils', () => {
              const character = createMockPlayerCharacter();
              // @ts-expect-error - simulating data corruption
              character.class = undefined;
-             const weapon = createMockItem({ type: 'weapon' });
+             const weapon = createMockItem({ type: ItemType.Weapon });
              expect(isWeaponProficient(character, weapon)).toBe(false);
         });
     });

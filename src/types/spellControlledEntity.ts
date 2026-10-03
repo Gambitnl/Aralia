@@ -35,21 +35,22 @@
 
 /** Describes a persistent spell-created utility helper such as Mage Hand, Unseen Servant, or Spiritual Weapon. */
 export interface ControlledEntity {
-  entityType: "spectral_hand" | "unseen_servant" | "spectral_force_weapon" | "Large force hand" | "elemental_spirit_eruption";
+  /** Source-backed entity label; runtime adapters narrow known executable kinds. */
+  entityType?: string;
   count?: number;
-  appearsAt?: "chosen_point";
-  durationScope?: "spell_duration";
-  controlActionType?: "magic_action" | "action" | "bonus_action";
+  appearsAt?: string;
+  durationScope?: string;
+  controlActionType?: string;
   initialUseOnCast?: boolean;
-  laterControlTiming?: "later_turns";
+  laterControlTiming?: string;
   movementDistance?: number;
-  movementUnit?: "feet";
+  movementUnit?: string;
   maxDistanceFromCaster?: number;
   canAttack?: boolean;
   canActivateMagicItems?: boolean;
   carryCapacityPounds?: number | "not_applicable";
   allowedInteractions?: string[];
-  endingTriggers?: ("caster_recasts" | "beyond_max_distance" | "drops_to_0_hp")[];
+  endingTriggers?: string[];
   persistent?: boolean;
   duration?: string;
   position?: string;
@@ -66,4 +67,6 @@ export interface ControlledEntity {
   mechanicalRole?: string;
   control?: string;
   notes?: string;
+  /** Preserve additional source-backed fields until their runtime lane owns them. */
+  [key: string]: unknown;
 }

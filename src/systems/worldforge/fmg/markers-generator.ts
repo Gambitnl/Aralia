@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/07/2026, 18:43:00
+ * Dependents: systems/worldforge/fmg/generateWorld.ts, systems/worldforge/forests/forestsPass.ts, systems/worldforge/mountains/mountainsPass.ts
+ * Imports: 14 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file markers-generator.ts — ported from Azgaar's Fantasy-Map-Generator
  * (MIT). Upstream: .tmp/azgaar-src/public/modules/markers-generator.js. See
@@ -29,8 +45,11 @@
  * addStatue's ra() over a string indexes UTF-16 code units (can split
  * surrogate pairs — upstream behavior); dungeon/encounter legends keep
  * their upstream iframe HTML verbatim.
+ *
+ * TYPE REMEDIATION (GG-46, no behavior change): the scattered `as any`
+ * pack accesses were replaced by one documented CivStagePack assertion at
+ * the constructor; list/add helpers now take the typed stage view.
  */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { mean } from "./d3Shim";
 import { last } from "./utils/arrayUtils";
 import { findClosestCell, type Grid } from "./utils/graphUtils";
@@ -40,10 +59,10 @@ import { P, gauss, ra, rand, rw } from "./utils/probabilityUtils";
 import { capitalize } from "./utils/stringUtils";
 import { generateDate } from "./utils/commonUtils";
 import { convertTemperature, makeGetFriendlyHeight } from "./utils/unitUtils";
-import type { Pack } from "./features";
+import type { CivStagePack, Pack } from "./features";
 import type { NamesGenerator } from "./names-generator";
 import type { RoutesModule } from "./routes-generator";
-import type { StatesModule, State } from "./states-generator";
+import type { StatesModule } from "./states-generator";
 import type { MapNote } from "./military-generator";
 
 export interface Marker {
@@ -68,7 +87,7 @@ export interface MarkerConfigRow {
   min: number;
   each: number;
   multiplier: number;
-  list: (pack: Pack) => number[] | ArrayLike<number>;
+  list: (pack: CivStagePack) => number[] | ArrayLike<number>;
   add: (id: string, cell: number) => void;
 }
 
@@ -91,7 +110,7 @@ export interface MarkersContext {
 }
 
 export class MarkersModule {
-  private pack: Pack;
+  private pack: CivStagePack;
   private seed: string;
   private Names: NamesGenerator;
   private Routes: RoutesModule;
@@ -109,7 +128,11 @@ export class MarkersModule {
   private isFantasy: boolean;
 
   constructor(context: MarkersContext) {
-    this.pack = context.pack;
+    // Stage-34 boundary assertion: every optional Pack field this module
+    // reads (cells.culture/burg/…, burgs, rivers, religions, states) is
+    // populated by the earlier pipeline stages. Single documented cast
+    // instead of per-field `as any`.
+    this.pack = context.pack as CivStagePack;
     this.seed = context.seed;
     this.Names = context.Names;
     this.Routes = context.Routes;
@@ -122,9 +145,9 @@ export class MarkersModule {
     this.heightUnit = context.heightUnit ?? "ft";
     this.isFantasy = (context.culturesSet ?? "").includes("Fantasy");
 
-    const cells = this.pack.cells as any;
+    const cells = this.pack.cells;
     this.getFriendlyHeight = makeGetFriendlyHeight(
-      (x, y) => findClosestCell(x, y, Infinity, this.pack as any) as number,
+      (x, y) => findClosestCell(x, y, Infinity, this.pack)!,
       cells.h,
       context.grid,
       this.heightUnit,
@@ -198,12 +221,12 @@ export class MarkersModule {
 
   generate(): void {
     this.setConfig(this.getDefaultConfig());
-    (this.pack as any).markers = [];
+    this.pack.markers = [];
     this.generateTypes();
   }
 
   regenerate(): void {
-    (this.pack as any).markers = (this.pack as any).markers.filter(({i, lock, cell}: Marker) => {
+    this.pack.markers = this.pack.markers.filter(({i, lock, cell}) => {
       if (lock) {
         this.occupied[cell] = true;
         return true;
@@ -227,7 +250,7 @@ export class MarkersModule {
       return added;
     }
 
-    const markers = (this.pack as any).markers as Marker[];
+    const markers = this.pack.markers;
     const i = (last(markers)?.i ?? -1) + 1 || 0;
     markers.push({...(marker as Marker), i});
     this.occupied[marker.cell] = true;
@@ -238,7 +261,7 @@ export class MarkersModule {
     this.config.forEach(({type, icon, dx, dy, px, min, each, multiplier, list, add}) => {
       if (multiplier === 0) return;
 
-      const candidates = Array.from(list(this.pack) as ArrayLike<number>);
+      const candidates = Array.from(list(this.pack));
       let quantity = this.getQuantity(candidates, min, each, multiplier);
 
       while (quantity && candidates.length) {
@@ -265,7 +288,7 @@ export class MarkersModule {
   }
 
   private getMarkerCoordinates(cell: number): [number, number] {
-    const {cells, burgs} = this.pack as any;
+    const {cells, burgs} = this.pack;
     const burgId = cells.burg[cell];
 
     if (burgId) {
@@ -278,7 +301,7 @@ export class MarkersModule {
 
   private addMarker(base: Partial<Marker>, marker: Partial<Marker> & {cell?: number}): Marker | undefined {
     if (marker.cell === undefined) return;
-    const markers = (this.pack as any).markers as Marker[];
+    const markers = this.pack.markers;
     const i = (last(markers)?.i ?? -1) + 1 || 0;
     const [x, y] = this.getMarkerCoordinates(marker.cell);
     const full = {...base, x, y, ...marker, i} as Marker;
@@ -293,17 +316,17 @@ export class MarkersModule {
     const keep = this.notes.filter(note => note.id !== noteId);
     this.notes.length = 0;
     this.notes.push(...keep);
-    (this.pack as any).markers = ((this.pack as any).markers as Marker[]).filter(m => m.i !== markerId);
+    this.pack.markers = this.pack.markers.filter(m => m.i !== markerId);
   }
 
   // ── candidate lists + legend writers (verbatim per type) ─────────────────
 
-  private listVolcanoes({cells}: any) {
+  private listVolcanoes({cells}: CivStagePack) {
     return cells.i.filter((i: number) => !this.occupied[i] && cells.h[i] >= 70);
   }
 
   private addVolcano(id: string, cell: number) {
-    const {cells} = this.pack as any;
+    const {cells} = this.pack;
 
     const proper = this.Names.getCulture(cells.culture[cell]);
     const name = P(0.3) ? "Mount " + proper : P(0.7) ? proper + " Volcano" : proper;
@@ -311,12 +334,12 @@ export class MarkersModule {
     this.notes.push({id, name, legend: `${status} volcano. Height: ${this.getFriendlyHeight(cells.p[cell])}.`});
   }
 
-  private listHotSprings({cells}: any) {
+  private listHotSprings({cells}: CivStagePack) {
     return cells.i.filter((i: number) => !this.occupied[i] && cells.h[i] > 50 && cells.culture[i]);
   }
 
   private addHotSpring(id: string, cell: number) {
-    const {cells} = this.pack as any;
+    const {cells} = this.pack;
 
     const proper = this.Names.getCulture(cells.culture[cell]);
     const temp = convertTemperature(gauss(35, 15, 20, 100));
@@ -326,12 +349,12 @@ export class MarkersModule {
     this.notes.push({id, name, legend});
   }
 
-  private listWaterSources({cells}: any) {
+  private listWaterSources({cells}: CivStagePack) {
     return cells.i.filter((i: number) => !this.occupied[i] && cells.h[i] > 30 && cells.r[i]);
   }
 
   private addWaterSource(id: string, cell: number) {
-    const {cells} = this.pack as any;
+    const {cells} = this.pack;
 
     const type = rw({
       "Healing Spring": 5,
@@ -353,40 +376,40 @@ export class MarkersModule {
     this.notes.push({id, name, legend});
   }
 
-  private listMines({cells}: any) {
+  private listMines({cells}: CivStagePack) {
     return cells.i.filter((i: number) => !this.occupied[i] && cells.h[i] > 47 && cells.burg[i]);
   }
 
   private addMine(id: string, cell: number) {
-    const {cells} = this.pack as any;
+    const {cells} = this.pack;
 
     const resources = {salt: 5, gold: 2, silver: 4, copper: 2, iron: 3, lead: 1, tin: 1};
     const resource = rw(resources);
-    const burg = (this.pack as any).burgs[cells.burg[cell]];
+    const burg = this.pack.burgs[cells.burg[cell]];
     const name = `${burg.name} — ${resource} mining town`;
-    const population = rn(burg.population * this.populationRate * this.urbanization);
+    const population = rn(burg.population! * this.populationRate * this.urbanization);
     const legend = `${burg.name} is a mining town of ${population} people just nearby the ${resource} mine.`;
     this.notes.push({id, name, legend});
   }
 
-  private listBridges({cells, burgs}: any) {
-    const meanFlux = mean(Array.from(cells.fl as ArrayLike<number>).filter((fl: number) => fl > 0));
+  private listBridges({cells, burgs}: CivStagePack) {
+    const meanFlux = mean(Array.from(cells.fl).filter(fl => fl > 0));
     return cells.i.filter(
       (i: number) =>
         !this.occupied[i] &&
         cells.burg[i] &&
         cells.t[i] !== 1 &&
-        burgs[cells.burg[i]].population > 20 &&
+        burgs[cells.burg[i]].population! > 20 &&
         cells.r[i] &&
-        cells.fl[i] > (meanFlux as number)
+        cells.fl[i] > meanFlux!
     );
   }
 
   private addBridge(id: string, cell: number) {
-    const {cells} = this.pack as any;
+    const {cells} = this.pack;
 
-    const burg = (this.pack as any).burgs[cells.burg[cell]];
-    const river = (this.pack as any).rivers.find((r: any) => r.i === cells.r[cell]);
+    const burg = this.pack.burgs[cells.burg[cell]];
+    const river = this.pack.rivers.find(r => r.i === cells.r[cell]);
     const riverName = river ? `${river.name} ${river.type}` : "river";
     const name = river && P(0.2) ? `${river.name} Bridge` : `${burg.name} Bridge`;
     const weightedAdjectives = {
@@ -412,7 +435,7 @@ export class MarkersModule {
     this.notes.push({id, name, legend});
   }
 
-  private listInns({cells}: any) {
+  private listInns({cells}: CivStagePack) {
     const crossRoads = cells.i.filter(
       (i: number) => !this.occupied[i] && cells.pop[i] > 5 && this.Routes.isCrossroad(i)
     );
@@ -483,7 +506,7 @@ export class MarkersModule {
     this.notes.push({id, name: "The " + name, legend});
   }
 
-  private listLighthouses({cells}: any) {
+  private listLighthouses({cells}: CivStagePack) {
     return cells.i.filter(
       (i: number) =>
         !this.occupied[i] &&
@@ -493,10 +516,10 @@ export class MarkersModule {
   }
 
   private addLighthouse(id: string, cell: number) {
-    const {cells} = this.pack as any;
+    const {cells} = this.pack;
 
     const proper = cells.burg[cell]
-      ? (this.pack as any).burgs[cells.burg[cell]].name
+      ? this.pack.burgs[cells.burg[cell]].name!
       : this.Names.getCulture(cells.culture[cell]);
     this.notes.push({
       id,
@@ -506,7 +529,7 @@ export class MarkersModule {
     });
   }
 
-  private listWaterfalls({cells}: any) {
+  private listWaterfalls({cells}: CivStagePack) {
     return cells.i.filter(
       (i: number) =>
         cells.r[i] &&
@@ -517,7 +540,7 @@ export class MarkersModule {
   }
 
   private addWaterfall(id: string, cell: number) {
-    const {cells} = this.pack as any;
+    const {cells} = this.pack;
 
     const descriptions = [
       "A gorgeous waterfall flows here.",
@@ -529,32 +552,32 @@ export class MarkersModule {
     ];
 
     const proper = cells.burg[cell]
-      ? (this.pack as any).burgs[cells.burg[cell]].name
+      ? this.pack.burgs[cells.burg[cell]].name!
       : this.Names.getCulture(cells.culture[cell]);
     // upstream appends a bare `name` identifier (= window.name = "")
     this.notes.push({id, name: getAdjective(proper) + " Waterfall" + "", legend: `${ra(descriptions)}`});
   }
 
-  private listBattlefields({cells}: any) {
+  private listBattlefields({cells}: CivStagePack) {
     return cells.i.filter(
       (i: number) => !this.occupied[i] && cells.state[i] && cells.pop[i] > 2 && cells.h[i] < 50 && cells.h[i] > 25
     );
   }
 
   private addBattlefield(id: string, cell: number) {
-    const {cells} = this.pack as any;
-    const states = (this.pack as any).states as State[];
+    const {cells} = this.pack;
+    const states = this.pack.states;
 
-    const state = states[cells.state[cell]] as any;
+    const state = states[cells.state[cell]];
     if (!state.campaigns) state.campaigns = this.States.generateCampaign(state);
-    const campaign = ra(state.campaigns) as { name: string; start: number; end: number };
+    const campaign = ra(state.campaigns);
     const date = generateDate(campaign.start, campaign.end);
     const name = this.Names.getCulture(cells.culture[cell]) + " Battlefield";
     const legend = `A historical battle of the ${campaign.name}. \r\nDate: ${date} ${this.era}.`;
     this.notes.push({id, name, legend});
   }
 
-  private listDungeons({cells}: any) {
+  private listDungeons({cells}: CivStagePack) {
     return cells.i.filter((i: number) => !this.occupied[i] && cells.pop[i] && cells.pop[i] < 3);
   }
 
@@ -565,17 +588,17 @@ export class MarkersModule {
     this.notes.push({id, name, legend});
   }
 
-  private listLakeMonsters({features}: any) {
+  private listLakeMonsters({features}: CivStagePack) {
     return features
       .filter(
-        (feature: any) =>
+        feature =>
           feature && feature.type === "lake" && feature.group === "freshwater" && !this.occupied[feature.firstCell]
       )
-      .map((feature: any) => feature.firstCell);
+      .map(feature => feature.firstCell);
   }
 
   private addLakeMonster(id: string, cell: number) {
-    const lake = (this.pack as any).features[(this.pack as any).cells.f[cell]];
+    const lake = this.pack.features[this.pack.cells.f[cell]];
 
     // Check that the feature is a lake in case the user clicked on a wrong square
     if (lake.type !== "lake") return;
@@ -592,7 +615,7 @@ export class MarkersModule {
     this.notes.push({id, name, legend});
   }
 
-  private listSeaMonsters({cells, features}: any) {
+  private listSeaMonsters({cells, features}: CivStagePack) {
     return cells.i.filter(
       (i: number) =>
         !this.occupied[i] && cells.h[i] < 20 && this.Routes.isConnected(i) && features[cells.f[i]].type === "ocean"
@@ -606,12 +629,12 @@ export class MarkersModule {
     this.notes.push({id, name, legend});
   }
 
-  private listHillMonsters({cells}: any) {
+  private listHillMonsters({cells}: CivStagePack) {
     return cells.i.filter((i: number) => !this.occupied[i] && cells.h[i] >= 50 && cells.pop[i]);
   }
 
   private addHillMonster(id: string, cell: number) {
-    const {cells} = this.pack as any;
+    const {cells} = this.pack;
 
     const adjectives = [
       "great", "big", "huge", "prime", "golden", "proud", "lucky", "fat",
@@ -646,7 +669,7 @@ export class MarkersModule {
   }
 
   // Sacred mountains spawn on lonely mountains
-  private listSacredMountains({cells}: any) {
+  private listSacredMountains({cells}: CivStagePack) {
     return cells.i.filter(
       (i: number) =>
         !this.occupied[i] &&
@@ -657,27 +680,28 @@ export class MarkersModule {
   }
 
   private addSacredMountain(id: string, cell: number) {
-    const {cells} = this.pack as any;
-    const religions = (this.pack as any).religions;
+    const {cells} = this.pack;
+    const religions = this.pack.religions;
 
     const culture = cells.c[cell].map((c: number) => cells.culture[c]).find((c: number) => c);
     const religion = cells.religion[cell];
-    const name = `${this.Names.getCulture(culture)} Mountain`;
+    // upstream passes the possibly-undefined find() result straight through
+    const name = `${this.Names.getCulture(culture!)} Mountain`;
     const height = this.getFriendlyHeight(cells.p[cell]);
     const legend = `A sacred mountain of ${religions[religion].name}. Height: ${height}.`;
     this.notes.push({id, name, legend});
   }
 
   // Sacred forests spawn on temperate forests
-  private listSacredForests({cells}: any) {
+  private listSacredForests({cells}: CivStagePack) {
     return cells.i.filter(
       (i: number) => !this.occupied[i] && cells.culture[i] && cells.religion[i] && [6, 8].includes(cells.biome[i])
     );
   }
 
   private addSacredForest(id: string, cell: number) {
-    const {cells} = this.pack as any;
-    const religions = (this.pack as any).religions;
+    const {cells} = this.pack;
+    const religions = this.pack.religions;
 
     const culture = cells.culture[cell];
     const religion = cells.religion[cell];
@@ -687,15 +711,15 @@ export class MarkersModule {
   }
 
   // Sacred pineries spawn on boreal forests
-  private listSacredPineries({cells}: any) {
+  private listSacredPineries({cells}: CivStagePack) {
     return cells.i.filter(
       (i: number) => !this.occupied[i] && cells.culture[i] && cells.religion[i] && cells.biome[i] === 9
     );
   }
 
   private addSacredPinery(id: string, cell: number) {
-    const {cells} = this.pack as any;
-    const religions = (this.pack as any).religions;
+    const {cells} = this.pack;
+    const religions = this.pack.religions;
 
     const culture = cells.culture[cell];
     const religion = cells.religion[cell];
@@ -705,7 +729,7 @@ export class MarkersModule {
   }
 
   // Sacred palm groves spawn on oasises
-  private listSacredPalmGroves({cells}: any) {
+  private listSacredPalmGroves({cells}: CivStagePack) {
     return cells.i.filter(
       (i: number) =>
         !this.occupied[i] &&
@@ -718,8 +742,8 @@ export class MarkersModule {
   }
 
   private addSacredPalmGrove(id: string, cell: number) {
-    const {cells} = this.pack as any;
-    const religions = (this.pack as any).religions;
+    const {cells} = this.pack;
+    const religions = this.pack.religions;
 
     const culture = cells.culture[cell];
     const religion = cells.religion[cell];
@@ -728,12 +752,12 @@ export class MarkersModule {
     this.notes.push({id, name, legend});
   }
 
-  private listBrigands({cells}: any) {
+  private listBrigands({cells}: CivStagePack) {
     return cells.i.filter((i: number) => !this.occupied[i] && cells.culture[i] && this.Routes.hasRoad(i));
   }
 
   private addBrigands(id: string, cell: number) {
-    const {cells} = this.pack as any;
+    const {cells} = this.pack;
 
     const animals = [
       "Apes", "Badgers", "Bears", "Beavers", "Bisons", "Boars", "Cats",
@@ -747,10 +771,11 @@ export class MarkersModule {
     const culture = cells.culture[cell];
     const biome = cells.biome[cell];
     // UPSTREAM QUIRK: `height` is assigned the cell's POINT (cells.p), not
-    // its height, so the `height >= 70` branch never fires — preserved.
-    const height = cells.p[cell];
+    // its height, so the `height >= 70` branch never fires — preserved
+    // (the double cast documents the wrong-typed pass-through).
+    const height = cells.p[cell] as unknown as number;
 
-    const locality = ((height: any, biome: number) => {
+    const locality = ((height: number, biome: number) => {
       if (height >= 70) return "highlander";
       if ([1, 2].includes(biome)) return "desert";
       if ([3, 4].includes(biome)) return "mounted";
@@ -765,7 +790,7 @@ export class MarkersModule {
   }
 
   // Pirates spawn on sea routes
-  private listPirates({cells}: any) {
+  private listPirates({cells}: CivStagePack) {
     return cells.i.filter((i: number) => !this.occupied[i] && cells.h[i] < 20 && this.Routes.isConnected(i));
   }
 
@@ -775,12 +800,12 @@ export class MarkersModule {
     this.notes.push({id, name, legend});
   }
 
-  private listStatues({cells}: any) {
+  private listStatues({cells}: CivStagePack) {
     return cells.i.filter((i: number) => !this.occupied[i] && cells.h[i] >= 20 && cells.h[i] < 40);
   }
 
   private addStatue(id: string, cell: number) {
-    const {cells} = this.pack as any;
+    const {cells} = this.pack;
 
     const variants = [
       "Statue", "Obelisk", "Monument", "Column", "Monolith", "Pillar",
@@ -803,14 +828,14 @@ export class MarkersModule {
     const script = scripts[ra(Object.keys(scripts))];
     const inscription = Array(rand(40, 100))
       .fill(null)
-      .map(() => (ra as any)(script))
+      .map(() => ra(script))
       .join("");
     const legend = `An ancient ${variant.toLowerCase()}. It has an inscription, but no one can translate it:
         <div style="font-size: 1.8em; line-break: anywhere;">${inscription}</div>`;
     this.notes.push({id, name, legend});
   }
 
-  private listRuins({cells}: any) {
+  private listRuins({cells}: CivStagePack) {
     return cells.i.filter(
       (i: number) => !this.occupied[i] && cells.culture[i] && cells.h[i] >= 20 && cells.h[i] < 60
     );
@@ -829,14 +854,14 @@ export class MarkersModule {
     this.notes.push({id, name, legend});
   }
 
-  private listLibraries({cells}: any) {
+  private listLibraries({cells}: CivStagePack) {
     return cells.i.filter(
       (i: number) => !this.occupied[i] && cells.culture[i] && cells.burg[i] && cells.pop[i] > 10
     );
   }
 
   private addLibrary(id: string, cell: number) {
-    const {cells} = this.pack as any;
+    const {cells} = this.pack;
 
     const type = rw({Library: 3, Archive: 1, Collection: 1});
     const name = `${this.Names.getCulture(cells.culture[cell])} ${type}`;
@@ -845,7 +870,7 @@ export class MarkersModule {
     this.notes.push({id, name, legend});
   }
 
-  private listCircuses({cells}: any) {
+  private listCircuses({cells}: CivStagePack) {
     return cells.i.filter(
       (i: number) => !this.occupied[i] && cells.culture[i] && cells.h[i] >= 20 && this.Routes.isConnected(i)
     );
@@ -863,15 +888,15 @@ export class MarkersModule {
     this.notes.push({id, name, legend});
   }
 
-  private listJousts({cells, burgs}: any) {
+  private listJousts({cells, burgs}: CivStagePack) {
     return cells.i.filter(
-      (i: number) => !this.occupied[i] && cells.burg[i] && burgs[cells.burg[i]].population > 20
+      (i: number) => !this.occupied[i] && cells.burg[i] && burgs[cells.burg[i]].population! > 20
     );
   }
 
   private addJoust(id: string, cell: number) {
-    const {cells} = this.pack as any;
-    const burgs = (this.pack as any).burgs;
+    const {cells} = this.pack;
+    const burgs = this.pack.burgs;
     const types = ["Joust", "Competition", "Melee", "Tournament", "Contest"];
     const virtues = ["cunning", "might", "speed", "the greats", "acumen", "brutality"];
 
@@ -885,20 +910,20 @@ export class MarkersModule {
     this.notes.push({id, name, legend});
   }
 
-  private listFairs({cells, burgs}: any) {
+  private listFairs({cells, burgs}: CivStagePack) {
     // upstream's redundant double population condition preserved
     return cells.i.filter(
       (i: number) =>
         !this.occupied[i] &&
         cells.burg[i] &&
-        burgs[cells.burg[i]].population < 20 &&
-        burgs[cells.burg[i]].population < 5
+        burgs[cells.burg[i]].population! < 20 &&
+        burgs[cells.burg[i]].population! < 5
     );
   }
 
   private addFair(id: string, cell: number) {
-    const {cells} = this.pack as any;
-    const burgs = (this.pack as any).burgs;
+    const {cells} = this.pack;
+    const burgs = this.pack.burgs;
     if (!cells.burg[cell]) return;
 
     const burgName = burgs[cells.burg[cell]].name;
@@ -909,12 +934,12 @@ export class MarkersModule {
     this.notes.push({id, name, legend});
   }
 
-  private listCanoes({cells}: any) {
+  private listCanoes({cells}: CivStagePack) {
     return cells.i.filter((i: number) => !this.occupied[i] && cells.r[i]);
   }
 
   private addCanoe(id: string, cell: number) {
-    const river = (this.pack as any).rivers.find((r: any) => r.i === (this.pack as any).cells.r[cell]);
+    const river = this.pack.rivers.find(r => r.i === this.pack.cells.r[cell]);
 
     const name = `Minor Jetty`;
     const riverName = river ? `${river.name} ${river.type}` : "river";
@@ -922,7 +947,7 @@ export class MarkersModule {
     this.notes.push({id, name, legend});
   }
 
-  private listMigrations({cells}: any) {
+  private listMigrations({cells}: CivStagePack) {
     return cells.i.filter((i: number) => !this.occupied[i] && cells.h[i] >= 20 && cells.pop[i] <= 2);
   }
 
@@ -944,15 +969,15 @@ export class MarkersModule {
     this.notes.push({id, name, legend});
   }
 
-  private listDances({cells, burgs}: any) {
+  private listDances({cells, burgs}: CivStagePack) {
     return cells.i.filter(
-      (i: number) => !this.occupied[i] && cells.burg[i] && burgs[cells.burg[i]].population > 15
+      (i: number) => !this.occupied[i] && cells.burg[i] && burgs[cells.burg[i]].population! > 15
     );
   }
 
   private addDances(id: string, cell: number) {
-    const {cells} = this.pack as any;
-    const burgs = (this.pack as any).burgs;
+    const {cells} = this.pack;
+    const burgs = this.pack.burgs;
     const burgName = burgs[cells.burg[cell]].name;
     const socialTypes = [
       "gala", "dance", "performance", "ball", "soiree", "jamboree",
@@ -972,7 +997,7 @@ export class MarkersModule {
     this.notes.push({id, name, legend});
   }
 
-  private listMirage({cells}: any) {
+  private listMirage({cells}: CivStagePack) {
     return cells.i.filter((i: number) => !this.occupied[i] && cells.biome[i] === 1);
   }
 
@@ -985,12 +1010,12 @@ export class MarkersModule {
     this.notes.push({id, name, legend});
   }
 
-  private listCaves({cells}: any) {
+  private listCaves({cells}: CivStagePack) {
     return cells.i.filter((i: number) => !this.occupied[i] && cells.h[i] >= 50 && cells.pop[i]);
   }
 
   private addCave(id: string, cell: number) {
-    const {cells} = this.pack as any;
+    const {cells} = this.pack;
 
     const formations = {
       Cave: 10,
@@ -1012,7 +1037,7 @@ export class MarkersModule {
       "slowly filling with lava": 1
     };
 
-    let formation = rw(formations) as string;
+    let formation = rw(formations);
     const toponym = this.Names.getCulture(cells.culture[cell]);
     if (cells.biome[cell] === 11) {
       formation = "Glacial " + formation;
@@ -1022,16 +1047,16 @@ export class MarkersModule {
     this.notes.push({id, name, legend});
   }
 
-  private listPortals({burgs}: any) {
+  private listPortals({burgs}: CivStagePack) {
     return burgs
       .slice(1, Math.ceil(burgs.length / 10) + 1)
-      .filter(({cell}: any) => !this.occupied[cell])
-      .map((burg: any) => burg.cell);
+      .filter(({cell}) => !this.occupied[cell])
+      .map(burg => burg.cell);
   }
 
   private addPortal(id: string, cell: number) {
-    const {cells} = this.pack as any;
-    const burgs = (this.pack as any).burgs;
+    const {cells} = this.pack;
+    const burgs = this.pack.burgs;
 
     if (!cells.burg[cell]) return;
     const burgName = burgs[cells.burg[cell]].name;
@@ -1041,7 +1066,7 @@ export class MarkersModule {
     this.notes.push({id, name, legend});
   }
 
-  private listRifts({cells}: any) {
+  private listRifts({cells}: CivStagePack) {
     return cells.i.filter(
       (i: number) =>
         !this.occupied[i] && cells.pop[i] <= 3 && this.biomesData.habitability[cells.biome[i]]
@@ -1065,7 +1090,7 @@ export class MarkersModule {
     this.notes.push({id, name, legend});
   }
 
-  private listDisturbedBurial({cells}: any) {
+  private listDisturbedBurial({cells}: CivStagePack) {
     return cells.i.filter((i: number) => !this.occupied[i] && cells.h[i] >= 20 && cells.pop[i] > 2);
   }
 
@@ -1075,12 +1100,12 @@ export class MarkersModule {
     this.notes.push({id, name, legend});
   }
 
-  private listNecropolis({cells}: any) {
+  private listNecropolis({cells}: CivStagePack) {
     return cells.i.filter((i: number) => !this.occupied[i] && cells.h[i] >= 20 && cells.pop[i] < 2);
   }
 
   private addNecropolis(id: string, cell: number) {
-    const {cells} = this.pack as any;
+    const {cells} = this.pack;
 
     const toponym = this.Names.getCulture(cells.culture[cell]);
     const type = rw({
@@ -1105,12 +1130,12 @@ export class MarkersModule {
       "A sprawling necropolis built within a labyrinthine network of catacombs. Its halls are lined with countless alcoves, each housing the remains of the departed, while the distant sound of rattling bones fills the air.",
       "A desolate necropolis where an eerie stillness reigns. Time seems frozen amidst the decaying mausoleums, and the silence is broken only by the whispers of the wind and the rustle of tattered banners.",
       "A foreboding necropolis perched atop a jagged cliff, overlooking a desolate wasteland. Its towering walls harbor restless spirits, and the imposing gates bear the marks of countless battles and ancient curses."
-    ]) as string;
+    ]);
 
     this.notes.push({id, name, legend});
   }
 
-  private listEncounters({cells}: any) {
+  private listEncounters({cells}: CivStagePack) {
     return cells.i.filter((i: number) => !this.occupied[i] && cells.h[i] >= 20 && cells.pop[i] > 1);
   }
 

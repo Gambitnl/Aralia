@@ -29,6 +29,14 @@ const mockTargetingDecals = vi.fn<(props: unknown) => void>();
 const mockOpeningThreatScene3D = vi.fn<(...args: unknown[]) => null>(() => null);
 
 vi.mock('@react-three/fiber', () => ({
+  // The shared performance probe sits inside every Canvas and reads the
+  // renderer through these two hooks. A mock without them throws before the
+  // scene under test renders at all.
+  useThree: (select?: (s: unknown) => unknown) => {
+    const state = { gl: { info: { render: {}, memory: {} } } };
+    return select ? select(state) : state;
+  },
+  useFrame: vi.fn(),
   Canvas: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-canvas">{children}</div>
 }));
 
@@ -40,11 +48,14 @@ vi.mock('@react-three/drei', () => ({
 vi.mock('@react-three/postprocessing', () => ({
   EffectComposer: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   Bloom: () => null,
+  N8AO: () => null,
+  ToneMapping: () => null,
   Vignette: () => null
 }));
 
 vi.mock('postprocessing', () => ({
-  BlendFunction: { NORMAL: 'normal' }
+  BlendFunction: { NORMAL: 'normal' },
+  ToneMappingMode: { ACES_FILMIC: 'aces-filmic' }
 }));
 
 vi.mock('../../../hooks/useBattleMap', () => ({
@@ -67,7 +78,7 @@ vi.mock('../terrain', () => ({
   DecorationProps: (...args: unknown[]) => mockDecorationProps(...args),
   GroundScatter: (...args: unknown[]) => mockGroundScatter(...args),
   EzTreeLayer: (...args: unknown[]) => mockEzTreeLayer(...args),
-  DistantTerrain: () => null,
+  TerrainApron: () => null,
   GroundMist: () => null,
   FordStones: () => null,
   makeTerrainHeightSampler: () => () => 0

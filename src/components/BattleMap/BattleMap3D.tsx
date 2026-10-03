@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 16/07/2026, 10:29:18
+ * Last Sync: 13/08/2026, 18:32:11
  * Dependents: components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
- * Imports: 19 files
+ * Imports: 23 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -34,21 +34,29 @@
  * @see docs/superpowers/specs/2026-05-21-3d-combat-map-design.md
  */
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { canUseDevTools } from '../../utils/permissions';
+import { canUseDevTools } from '../../utils/core';
 import { Z_INDEX } from '../../styles/zIndex';
 import { Canvas } from '@react-three/fiber';
 // MapControls now handled by CameraController
 import { ContactShadows, Html } from '@react-three/drei';
-import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
-import { BlendFunction } from 'postprocessing';
+import { EffectComposer, Bloom, Vignette, N8AO, ToneMapping } from '@react-three/postprocessing';
+import { BlendFunction, ToneMappingMode } from 'postprocessing';
 import * as THREE from 'three';
-import { BattleMapData, BattleMapTile, CombatCharacter, CombatState, LightSource, TargetableMapObject } from '../../types/combat';
+import { GridlessAoEOutline } from './GridlessAoEOutline';
+import { Animation, BattleMapData, BattleMapTile, CombatCharacter, CombatState, LightSource, SpellEffectAnimationData, TargetableMapObject } from '../../types/combat';
 import { useBattleMap } from '../../hooks/useBattleMap';
 import { useTargetSelection } from '../../hooks/combat/useTargetSelection';
 import { useVisibility } from '../../hooks/combat/useVisibility';
 import type { useTurnManager } from '../../hooks/combat/useTurnManager';
 import type { useAbilitySystem } from '../../hooks/useAbilitySystem';
-import { TerrainMesh, GridOverlay, GrassLayer, WaterSystem, FordStones, DecorationProps, GroundScatter, EzTreeLayer, DistantTerrain, GroundMist, makeTerrainHeightSampler } from './terrain';
+import { TerrainMesh, GridOverlay, GrassLayer, FordStones, DecorationProps, GroundScatter, EzTreeLayer, TerrainApron, GroundMist, makeTerrainHeightSampler } from './terrain';
+/* Straight from its own module, not through the barrel: this is arithmetic on
+ * the map, not a scene component, and the 3D suites replace the whole barrel
+ * with stub components. A scene that cannot compute how far it can see is not
+ * a scene worth testing. */
+import { resolveHorizon } from './terrain/apronField';
+import VolumeArenaGround, { ARENA_HEIGHTFIELD_INSET_TILES, type ArenaSurface } from './terrain/VolumeArenaGround';
+import VolumeArenaWater from './terrain/VolumeArenaWater';
 import { CharacterActor } from './characters';
 import TargetingDecals from './TargetingDecals';
 import { CameraController } from './camera';
@@ -58,6 +66,7 @@ import { SpellArtifact3DMarker } from './SpellArtifact3DMarker';
 import { buildSpellMapArtifactMarkers, type SpellMapArtifacts } from './spellMapArtifacts';
 import { isWebGpuBattleMapEnabled } from './webgpuBattleMapFlag';
 import OpeningThreatScene3D, { selectOpeningThreatScene3DFacts } from './OpeningThreatScene3D';
+import { PerfProbe } from '../../devtools/perf';
 
 // Experimental WebGPU render path (opt-in via ?gpu=1). Lazily imported so
 // `three/webgpu` + TSL are never pulled onto the default WebGL battle-map path.
@@ -146,6 +155,16 @@ interface BiomeLighting {
   fogFar: number;
   /** Optional sun offset from map center [dx, y, dz] — lower Y = longer shadows */
   sunPos?: [number, number, number];
+  /**
+   * The BELOW-GRADE BOUNCE. See `SceneLighting`.
+   *
+   * A neutral counter-key from the opposite azimuth, aimed at the surfaces a
+   * flat board never had: the inside of a crater. Optional, because the two
+   * enclosed biomes light their interiors with pooled point lights already and
+   * a second sun in a cave is a contradiction.
+   */
+  bounceColor?: number;
+  bounceIntensity?: number;
 }
 
 const BIOME_LIGHTING: Record<string, BiomeLighting> = {
@@ -153,6 +172,9 @@ const BIOME_LIGHTING: Record<string, BiomeLighting> = {
     sunColor: 0xffe0a0, sunIntensity: 2.2,
     ambientColor: 0x2c3a24, ambientIntensity: 0.45,
     hemisphereTop: 0x87ceeb, hemisphereBottom: 0x3a2a1a,
+    // The ground has an inside now, and this preset was built for a board with
+    // none. See SceneLighting's bounce note.
+    bounceColor: 0xcacdd1, bounceIntensity: 0.85,
     // Fog pushed back so the battlefield reads clearly at tactical zoom; fog now
     // only hazes the far map edges instead of swallowing the play area.
     // Hue: cool airy sage — the old 0x8fa07a khaki tinted every horizon and
@@ -185,6 +207,8 @@ const BIOME_LIGHTING: Record<string, BiomeLighting> = {
     // sand fades into the warm horizon haze instead of a hard cliff into void.
     fogColor: 0xd8c8a0, fogNear: 24, fogFar: 70,
     sunPos: [16, 11, 8],
+    // Sand is bright and bounces hard; a pit in a dune is not a black hole.
+    bounceColor: 0xd6d2c8, bounceIntensity: 1.05,
   },
   swamp: {
     // Readability nudge (kept murky/green on purpose); fog pushed back a little
@@ -193,6 +217,8 @@ const BIOME_LIGHTING: Record<string, BiomeLighting> = {
     ambientColor: 0x2a3a24, ambientIntensity: 0.42,
     hemisphereTop: 0x405030, hemisphereBottom: 0x2a2010,
     fogColor: 0x2a3020, fogNear: 12, fogFar: 34,
+    // Overcast and murky, so less of it — but still not none.
+    bounceColor: 0xb9bcbb, bounceIntensity: 0.6,
   },
 };
 
@@ -206,6 +232,16 @@ const BIOME_LIGHTING: Record<string, BiomeLighting> = {
  *  outside the center region once the map grew past 40×30). */
 const SceneLighting: React.FC<{ biome: string; mapCenter: readonly [number, number, number]; shadowHalf?: number }> = ({ biome, mapCenter, shadowHalf = 25 }) => {
   const preset = BIOME_LIGHTING[biome] ?? BIOME_LIGHTING.forest;
+  /* `?bounce=0` puts the rig back the way it was before the ground had an
+   * inside, so the crater-interior A/B is one page reload apart instead of one
+   * git checkout apart. Dev surfaces only; 1 everywhere else. */
+  const bounceScale = useMemo(() => {
+    if (typeof window === 'undefined' || !canUseDevTools()) return 1;
+    const raw = new URLSearchParams(window.location.search).get('bounce');
+    if (raw === null) return 1;
+    const v = Number(raw);
+    return Number.isFinite(v) ? Math.max(0, v) : 1;
+  }, []);
   const directionalRef = useRef<THREE.DirectionalLight>(null);
   const cx = mapCenter?.[0] ?? 0;
   const cz = mapCenter?.[2] ?? 0;
@@ -261,6 +297,38 @@ const SceneLighting: React.FC<{ biome: string; mapCenter: readonly [number, numb
         position={[cx - 8, 4, cz - 6]}
       />
 
+      {/* THE BELOW-GRADE BOUNCE — a NEUTRAL counter-key, low and from the
+          opposite azimuth.
+
+          These presets were authored for a board with no inside. Nothing on a
+          heightfield ever faced away from the sun AND away from the sky at
+          once, so a rig of one warm key, one cool 0.4 fill and 0.45 of dark
+          GREEN ambient was enough. The arena is voxels now: an eight-metre
+          bore under this rig read as a silhouette with no material in it at
+          all, which is the same fault the sandbox hit twice and cured twice.
+          Its cure is the one copied here — the round-4 lesson that ambience
+          may not carry a HUE (a saturated fill repaints the shade side of a
+          wall instead of darkening it) and the round-5 lesson that the fix for
+          near-black shade is to lift its VALUE with a near-neutral term.
+
+          It is a directional and not more hemisphere on purpose. A hemisphere
+          light is driven by the normal's Y, so raising it brightens the flat
+          top of the board — the surface that is already lit — far more than a
+          crater's vertical walls. A low counter-key does the opposite: the
+          open ground barely moves because it is saturated by the key, and the
+          faces that gain are exactly the ones turned away from it. */}
+      {preset.bounceIntensity !== undefined && bounceScale > 0 && (
+        <directionalLight
+          color={preset.bounceColor ?? 0xcacdd1}
+          intensity={preset.bounceIntensity * bounceScale}
+          position={[
+            cx - (preset.sunPos?.[0] ?? 12) * accentSpread * 0.8,
+            (preset.sunPos?.[1] ?? 16) * accentSpread * 0.35,
+            cz - (preset.sunPos?.[2] ?? 12) * accentSpread * 0.8,
+          ]}
+        />
+      )}
+
       {/* Biome accent point-lights — pooled torch (dungeon) / crystal (cave) glow
           for underground drama: warm/cool light pools with darker space between,
           instead of flat uniform ambient. Only for enclosed biomes. */}
@@ -282,61 +350,117 @@ const SceneLighting: React.FC<{ biome: string; mapCenter: readonly [number, numb
   );
 };
 
-/** Procedural gradient sky dome — prevents fade-to-void at map edges. Centered
- *  on the map and enlarged so the distant-terrain ridge band sits inside it. */
-const SkyDome: React.FC<{ biome: string; mapCenter: readonly [number, number, number] }> = ({ biome, mapCenter }) => {
-  const skyMaterial = useMemo(() => {
-    // Per-biome sky colors
-    const skyPresets: Record<string, { top: string; horizon: string; bottom: string }> = {
-      // horizon matches forest fogColor (0x8fa07a) so the fogged ground apron
-      // blends into the sky at the horizon instead of showing a hard seam.
-      forest:  { top: '#5a86c0', horizon: '#8fa07a', bottom: '#5a6a4a' },
-      // horizon = each biome's fogColor so the fogged ground apron blends into
-      // the sky at the horizon (no hard seam). top stays biome-appropriate.
-      cave:    { top: '#0a0a18', horizon: '#0a0a1a', bottom: '#060608' },
-      dungeon: { top: '#241a2c', horizon: '#1a1520', bottom: '#120d10' },
-      desert:  { top: '#6a8ac0', horizon: '#d8c8a0', bottom: '#c8a060' },
-      swamp:   { top: '#2a3a2a', horizon: '#2a3020', bottom: '#1a1f14' },
-    };
-    const p = skyPresets[biome] ?? skyPresets.forest;
+/**
+ * Procedural gradient sky dome.
+ *
+ * The horizon band is NOT a per-biome colour any more — it is the scene's fog
+ * colour, passed in. It was a duplicated hex, and the duplicate had drifted:
+ * the forest preset still said `#8fa07a` (khaki) while `BIOME_LIGHTING.forest`
+ * had moved to `0x9db8b0` (sage). Two different colours meeting along the
+ * dome's equator draw a dead-straight line across the entire frame at every
+ * camera azimuth — measured at 11.3 luma on the same scanline from all eight
+ * orbit angles. That line is half of the "cliff down to nothingness".
+ *
+ * The radius comes from the apron's reach for the same reason: a dome smaller
+ * than the ground it covers has the ground poking out of it.
+ */
+/**
+ * The dome's material, exported so a test can assert its output conversion
+ * without a WebGL context. See the note at the end of the fragment shader:
+ * this material is the one surface in the scene that is not a built-in, so it
+ * is the one surface that can silently write the wrong colour space.
+ */
+export function createSkyDomeMaterial(biome: string, fogColor: number): THREE.ShaderMaterial {
+  // Only the ZENITH is a biome choice; the horizon is the fog it meets.
+  const skyTops: Record<string, string> = {
+    forest:  '#5a86c0',
+    cave:    '#0a0a18',
+    dungeon: '#241a2c',
+    desert:  '#6a8ac0',
+    swamp:   '#2a3a2a',
+  };
+  const horizon = new THREE.Color(fogColor);
+  // Below the horizon the dome is only ever seen through fogged ground, so
+  // it is the fog colour taken down a stop rather than a fourth palette.
+  const bottom = horizon.clone().multiplyScalar(0.62);
 
-    return new THREE.ShaderMaterial({
-      side: THREE.BackSide,
-      depthWrite: false,
-      fog: false,
-      uniforms: {
-        uTopColor:     { value: new THREE.Color(p.top) },
-        uHorizonColor: { value: new THREE.Color(p.horizon) },
-        uBottomColor:  { value: new THREE.Color(p.bottom) },
-      },
-      vertexShader: /* glsl */ `
-        varying vec3 vDir;
-        void main() {
-          // Key the gradient to the dome's own latitude (object space) so it
-          // stays correct no matter where the dome is centered or how large it
-          // is — lets us recenter on the map and enlarge it freely.
-          vDir = normalize(position);
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  return new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    depthWrite: false,
+    fog: false,
+    uniforms: {
+      uTopColor:     { value: new THREE.Color(skyTops[biome] ?? skyTops.forest) },
+      uHorizonColor: { value: horizon },
+      uBottomColor:  { value: bottom },
+    },
+    vertexShader: /* glsl */ `
+      varying vec3 vDir;
+      void main() {
+        // Key the gradient to the dome's own latitude (object space) so it
+        // stays correct no matter where the dome is centered or how large it
+        // is — lets us recenter on the map and enlarge it freely.
+        vDir = normalize(position);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      uniform vec3 uTopColor;
+      uniform vec3 uHorizonColor;
+      uniform vec3 uBottomColor;
+      varying vec3 vDir;
+      void main() {
+        float h = vDir.y;
+        vec3 color;
+        if (h > 0.0) {
+          color = mix(uHorizonColor, uTopColor, smoothstep(0.0, 0.5, h));
+        } else {
+          color = mix(uHorizonColor, uBottomColor, smoothstep(0.0, -0.3, h));
         }
-      `,
-      fragmentShader: /* glsl */ `
-        uniform vec3 uTopColor;
-        uniform vec3 uHorizonColor;
-        uniform vec3 uBottomColor;
-        varying vec3 vDir;
-        void main() {
-          float h = vDir.y;
-          vec3 color;
-          if (h > 0.0) {
-            color = mix(uHorizonColor, uTopColor, smoothstep(0.0, 0.5, h));
-          } else {
-            color = mix(uHorizonColor, uBottomColor, smoothstep(0.0, -0.3, h));
-          }
-          gl_FragColor = vec4(color, 1.0);
-        }
-      `,
-    });
-  }, [biome]);
+        gl_FragColor = vec4(color, 1.0);
+        /* A hand-written ShaderMaterial gets the DEFINITIONS of the output
+         * conversion for free and none of the CALLS, so without these two
+         * lines the dome writes working-space linear straight to an sRGB
+         * framebuffer and every uniform lands a stop and a half too dark.
+         * THREE.Color(0xd8c8a0) — the desert fog — is (0.687, 0.580, 0.351)
+         * linear; unconverted that displays as (175, 148, 90) against a
+         * fogged apron that tone-maps to (205, 191, 160), and the difference
+         * between the two is a flat dark band lying along the top of the
+         * frame exactly where the far dunes end. Measured 2026-09-20 at
+         * poseTeam('enemy', 14, 70, 20) on the desert board. The ground is
+         * lit by a MeshStandardMaterial and has always been converted, which
+         * is why only the sky was dark and why the mismatch reads as an
+         * object rather than as a mood.
+         *
+         * WHERE IT BITES, measured rather than assumed. While the
+         * EffectComposer is mounted it sets gl.toneMapping = NoToneMapping
+         * and renders into a linear target, so on the COMPOSED path both
+         * includes compile to nothing and the on-screen sky was always
+         * right — the apron-off frame measures (189, 183, 167) before and
+         * after. __bm3dCam.capture() calls gl.render straight to the sRGB
+         * canvas instead, and that is the path every headless proof of this
+         * board goes through: sky (166, 142, 90) before, (218, 212, 192)
+         * after, against an apron of (205, 191, 160). So the defect was
+         * never in the game and always in the evidence.
+         *
+         * Order matters and so does the position: tone map in linear, THEN
+         * encode. See the shadermaterial-output-encoding note — same defect,
+         * same two lines, previously in dropletSkin.ts. */
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }
+    `,
+  });
+}
+
+const SkyDome: React.FC<{
+  biome: string;
+  mapCenter: readonly [number, number, number];
+  fogColor: number;
+  radius: number;
+}> = ({ biome, mapCenter, fogColor, radius }) => {
+  const skyMaterial = useMemo(() => createSkyDomeMaterial(biome, fogColor), [biome, fogColor]);
+
+  React.useEffect(() => () => skyMaterial.dispose(), [skyMaterial]);
 
   return (
     <mesh
@@ -344,35 +468,59 @@ const SkyDome: React.FC<{ biome: string; mapCenter: readonly [number, number, nu
       renderOrder={-1}
       position={[mapCenter[0], 0, mapCenter[2]]}
     >
-      <sphereGeometry args={[140, 48, 24]} />
+      <sphereGeometry args={[radius, 48, 24]} />
     </mesh>
   );
 };
 
 /**
- * Postprocessing stack — Bloom + Vignette for BG3 atmosphere.
+ * Postprocessing stack — N8AO + Bloom + tone mapping + Vignette.
  *
- * SSAO + enableNormalPass were removed: under WebGL2 with three r170 +
- * @react-three/postprocessing 3.x, that combination caused glBlitFramebuffer
- * to fire `GL_INVALID_OPERATION: Read and write depth stencil attachments
- * cannot be the same image` on every rendered frame, eventually exhausting
- * the WebGL context. ContactShadows (mounted in the main scene) provides
- * the soft ground darkening SSAO used to give.
+ * SSAO history: the postprocessing SSAOEffect needed enableNormalPass, and
+ * under WebGL2 with three r170 + @react-three/postprocessing 3.x that
+ * combination fired `GL_INVALID_OPERATION: Read and write depth stencil
+ * attachments cannot be the same image` on every frame (gap #1). N8AO
+ * reconstructs normals from depth in its own pass, so it needs no
+ * NormalPass and sidesteps the bug entirely.
+ *
+ * Tone mapping MUST live in this stack: while mounted, EffectComposer sets
+ * `gl.toneMapping = NoToneMapping`, silently disabling the ACESFilmic
+ * setting on the Canvas — that un-tone-mapped output was the "raw 3D, not
+ * composited" look (GOAL #60). The ToneMapping effect restores ACES at the
+ * end of the chain.
  */
-const PostProcessingStack: React.FC = () => (
-  <EffectComposer>
-    <Bloom
-      luminanceThreshold={0.8}
-      luminanceSmoothing={0.3}
-      intensity={0.4}
-    />
-    <Vignette
-      offset={0.3}
-      darkness={0.6}
-      blendFunction={BlendFunction.NORMAL}
-    />
-  </EffectComposer>
-);
+const PostProcessingStack: React.FC<{ biome: string }> = ({ biome }) => {
+  const dark = biome === 'cave' || biome === 'dungeon';
+  return (
+    <EffectComposer>
+      {/* Half-res + performance mode keeps the 60fps gate; radius/falloff are
+          world units tuned to ~1-tile creases (rocks, tree roots, wall bases). */}
+      <N8AO
+        halfRes
+        quality="performance"
+        aoRadius={1.8}
+        distanceFalloff={3.5}
+        intensity={dark ? 2.2 : 3.2}
+      />
+      {/* Threshold lowered from 0.8 so additive daylight motes and bright
+          highlights actually cross it (GOAL #57 residual); mipmapBlur gives
+          the soft wide halo instead of a tight ring. Dark biomes get a lower
+          threshold + more intensity so torch/crystal pools glow. */}
+      <Bloom
+        mipmapBlur
+        luminanceThreshold={dark ? 0.45 : 0.62}
+        luminanceSmoothing={0.25}
+        intensity={dark ? 0.9 : 0.65}
+      />
+      <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+      <Vignette
+        offset={0.3}
+        darkness={0.6}
+        blendFunction={BlendFunction.NORMAL}
+      />
+    </EffectComposer>
+  );
+};
 
 // ---------------------------------------------------------------------------
 // Main component
@@ -498,10 +646,40 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
     return [cx, 0, cz] as const;
   }, [mapData]);
 
-  // Ground-height sampler — the same surface formula the terrain mesh is built
-  // from, so actors stand exactly on the rendered ground (GOAL #10 / gap #27:
-  // raw tile elevation hovers over banks carved by water basins).
-  const groundSampler = useMemo(() => {
+  /* The voxel arena. Built in a worker on map change; until it lands, the
+   * heightfield IS the drawn ground and everything reads that. See
+   * VolumeArenaGround. */
+  const [arenaSurface, setArenaSurface] = React.useState<ArenaSurface | null>(null);
+  React.useEffect(() => {
+    setArenaSurface(null);
+    firedImpactsRef.current.clear();
+  }, [mapData]);
+
+  /* ------------------------------------------------------ CARVING IN COMBAT */
+
+  /* Animations are a list, not a stream: it is re-rendered while an effect is
+   * on screen and the same crater would be dug on every frame of it. */
+  const firedImpactsRef = React.useRef<Set<string>>(new Set());
+  const animations = turnManager.animations as Animation[] | undefined;
+
+  React.useEffect(() => {
+    if (!arenaSurface || !animations) return;
+    for (const anim of animations) {
+      if (anim.type !== 'spell_effect') continue;
+      if (firedImpactsRef.current.has(anim.id)) continue;
+      const impact = (anim.data as SpellEffectAnimationData | undefined)?.groundImpact;
+      const at = anim.endPosition;
+      if (!impact || !at) continue;
+      firedImpactsRef.current.add(anim.id);
+      /* Tile centres. A blast is aimed at a SQUARE and the square's middle is
+       * where the charge sat; digging at the corner puts the crater a metre
+       * off, which reads as the spell having missed. */
+      arenaSurface.carve(at.x + 0.5, at.y + 0.5, impact.radiusM, impact.depthM);
+    }
+  }, [animations, arenaSurface]);
+
+  // Heightfield surface — the same formula the terrain mesh is built from.
+  const heightfieldSampler = useMemo(() => {
     if (!mapData) return null;
     const { width, height } = mapData.dimensions;
     const grid: (BattleMapTile | null)[][] = [];
@@ -513,6 +691,26 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
     }
     return makeTerrainHeightSampler(grid, width, height, mapData.seed ?? 42);
   }, [mapData]);
+
+  /* THE DRAWN GROUND, and the only height anything in this scene should use.
+   *
+   * Actors, tokens, decals, the grid, grass, scatter and props all sit ON the
+   * ground, and the ground is whichever of the two surfaces the camera can see:
+   * the volume inside the arena, the heightfield across the rim ramp and out
+   * into the fringe. That is not a fallback between two candidates — it is the
+   * literal definition of the visible surface, which is the higher of the two,
+   * and the volume sampler reports -Infinity exactly where it draws nothing.
+   */
+  const groundSampler = useMemo(() => {
+    if (!heightfieldSampler) return null;
+    if (!arenaSurface) return heightfieldSampler;
+    const vol = arenaSurface.sampleY;
+    return (tileX: number, tileZ: number): number => {
+      const v = vol(tileX, tileZ);
+      const h = heightfieldSampler(tileX, tileZ);
+      return Number.isFinite(v) && v > h ? v : h;
+    };
+  }, [heightfieldSampler, arenaSurface]);
 
   // Keep scene-wide helpers centered on the map's horizontal midpoint, but
   // calculate a separate terrain-aware camera spawn. Raising the entire scene
@@ -560,10 +758,16 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
     const h = mapData?.dimensions.height ?? 30;
     return (Math.hypot(w, h) / 2) * TILE_WORLD_SIZE;
   }, [mapData]);
-  // Fog distances were authored for the 40×30 map; stretch them moderately with
-  // map size so the far half of a large battlefield stays readable while close
-  // combat keeps its atmosphere.
-  const fogScale = Math.max(1, mapHalfDiag / 36);
+  /* The scene's distance budget: how far the ground goes, how far you can see
+   * through the air, how big the sky is, and where the far plane sits. These
+   * four have to be ORDERED, and they were four unrelated constants in four
+   * places — with fog saturating at 125 world units and the sky dome only 140
+   * across on a board whose camera orbits out to 120. Resolved together, from
+   * the map, in `apronField`. */
+  const horizon = useMemo(
+    () => resolveHorizon(mapData ?? { dimensions: { width: 40, height: 30 } }),
+    [mapData],
+  );
 
   if (!mapData) {
     return <div className="text-gray-400">Generating 3D battlefield...</div>;
@@ -599,11 +803,15 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
 
   // The combat view supplies the available windowpane size; this wrapper fills
   // that box so the Three.js canvas resizes with the encounter instead of
-  // collapsing into a short, content-sized strip.
+  // collapsing into a short, content-sized strip. Some teaching surfaces pair
+  // it with a much taller sidebar, however, and CSS grid stretch can then make
+  // `h-full` several pages high. Cap only that pathological stretch at one
+  // viewport: normal combat panes remain unchanged, while the initial camera
+  // target cannot land thousands of pixels below the visible screen.
   return (
     <div
       className="relative h-full min-h-[320px] w-full overflow-hidden rounded-lg bg-slate-950"
-      style={{ flex: '1 1 0%' }}
+      style={{ flex: '1 1 0%', maxHeight: '100dvh' }}
     >
       {openingSceneFacts3D && (
         <span
@@ -649,10 +857,13 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
         shadows
         camera={{
           fov: 50,
-          near: 0.1,
-          // Far plane pushed out so the enlarged sky dome and the distant-terrain
-          // ridge band are not clipped; scales with the map.
-          far: Math.max(220, mapHalfDiag * 5.2),
+          // Near and far come as a PAIR from the horizon setup: the far plane
+          // has to contain the sky dome, and depth precision is the ratio of
+          // the two, so pushing the horizon out without lifting the near plane
+          // off 0.1 would buy the distance and pay for it in z-fighting on the
+          // board. Orbit controls clamp the camera 5 units from its target.
+          near: horizon.cameraNear,
+          far: horizon.cameraFar,
           position: initialCameraPosition,
         }}
         gl={{
@@ -665,48 +876,46 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
           gl.shadowMap.type = THREE.PCFSoftShadowMap;
         }}
       >
-        {/* Sky dome — gradient background prevents fade-to-void */}
-        <SkyDome biome={biome} mapCenter={cameraTarget} />
+        <PerfProbe id="battlemap" label="Battle Map" />
+        {/* Sky dome. Its horizon band is the fog colour and its radius contains
+            the apron, so ground → haze → sky is one continuous value. */}
+        <SkyDome
+          biome={biome}
+          mapCenter={cameraTarget}
+          fogColor={BIOME_LIGHTING[biome]?.fogColor ?? 0x9db8b0}
+          radius={horizon.skyRadius}
+        />
 
-        {/* Distant terrain — procedural ridge band ringing the battlefield so the
-            map reads as part of a larger landscape (rolling hills/mesas on open
-            biomes, dark cavern walls on cave/dungeon) instead of a flat slab in
-            fog. Sits on the apron and dissolves into the scene fog. */}
-        <DistantTerrain mapData={mapData} />
+        {/* THE GROUND, CONTINUED. One mesh from the edge of the heightfield's
+            fringe to the horizon, built from the same height function the
+            fringe is, with ring spacing that grows from about a tile to about a
+            hundred. It replaces two things: a decorative ridge band that
+            floated on the scene, and a flat fog-coloured quad whose far edge
+            drew the straight line against the sky that Remy circled
+            (2026-08-10, "shouldn't have a 'cliff down to nothingness'"). */}
+        <TerrainApron mapData={mapData} />
 
-        {/* Ground apron — a large biome-colored plane at sea level beyond the map
-            edges. On open biomes (desert/cave/dungeon) the terrain plane otherwise
-            ends in a hard cliff over the sky void; this extends the ground outward
-            so it fades into fog. Sits below micro-noise terrain dips to avoid
-            z-fighting inside the playable area. Color matches the biome fog so the
-            apron→horizon transition is seamless. */}
-        <mesh
-          position={[cameraTarget[0], -0.15, cameraTarget[2]]}
-          rotation={[-Math.PI / 2, 0, 0]}
-          renderOrder={-1}
-        >
-          <planeGeometry args={[Math.max(260, mapHalfDiag * 10), Math.max(260, mapHalfDiag * 10)]} />
-          <meshStandardMaterial
-            color={BIOME_LIGHTING[biome]?.fogColor ?? 0x8fa07a}
-            roughness={1}
-            metalness={0}
-          />
-        </mesh>
-
-        {/* Fog */}
+        {/* Fog. The COLOUR is the biome's, from the lighting preset. The
+            DISTANCES come from the apron profile, because fog far and apron
+            reach are one decision: fog is how far you can see and the apron is
+            what there is to see. The old pair saturated at 125 world units on a
+            board the camera orbits 120 units away from, which is why the
+            overview read as a sheet of haze. */}
         <fog
           attach="fog"
           args={[
-            BIOME_LIGHTING[biome]?.fogColor ?? 0x8a9a7a,
-            (BIOME_LIGHTING[biome]?.fogNear ?? 15) * fogScale,
-            (BIOME_LIGHTING[biome]?.fogFar ?? 35) * fogScale,
+            BIOME_LIGHTING[biome]?.fogColor ?? 0x9db8b0,
+            horizon.fogNear,
+            horizon.fogFar,
           ]}
         />
 
         {/* Lighting rig */}
         <SceneLighting biome={biome} mapCenter={cameraTarget} shadowHalf={mapHalfDiag + 8} />
 
-        {/* Camera controller — BG3-style orbit with snap-to-character and cinematic cam */}
+        {/* Camera controller — BG3-style orbit with snap-to-character and cinematic cam.
+            Its zoom ceiling comes from the same horizon contract as fog, so a
+            legal overview can never move its camera target beyond fogFar. */}
         <CameraController
           mapCenter={cameraTarget}
           groundYAt={groundSampler ?? undefined}
@@ -714,7 +923,7 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
           selectedCharacter={selectedCharacter}
           characters={characters}
           cinematicEnabled={true}
-          maxDistance={Math.max(35, mapHalfDiag * 1.6)}
+          maxDistance={horizon.cameraMaxDistance}
           onCameraSelectCharacter={handleCharacterClick ? (id) => {
             const char = characters.find(c => c.id === id);
             if (char) handleCharacterClick(char);
@@ -732,12 +941,26 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
           // raycast the whole heightfield per mouse move — only pay that
           // while the player is actually aiming.
           onTileHover={abilitySystem.targetingMode ? handleTileHover : undefined}
+          // The volume ground covers the playable rect; the heightfield keeps
+          // its border band across the rim ramp and its fringe run-out. The
+          // hole only opens once the volume is on screen.
+          interiorHoleInsetTiles={ARENA_HEIGHTFIELD_INSET_TILES}
+          interiorHoleActive={arenaSurface !== null}
+        />
+        {/* The arena as matter — voxels, surface nets, the substance material.
+            Ground with an inside, and the surface every other layer stands on. */}
+        <VolumeArenaGround
+          mapData={mapData}
+          onSurface={setArenaSurface}
+          onTileClick={handleTileClick}
+          onTileHover={abilitySystem.targetingMode ? handleTileHover : undefined}
         />
         <GridOverlay
           mapData={mapData}
           validMoves={validMoves}
           activePath={activePath}
           actionMode={actionMode}
+          surfaceY={groundSampler ?? undefined}
         />
         {/* Ability-targeting tile decals (gap #29): the 3D scene previously
             gave ZERO visual response to targeting mode — the sets existed
@@ -749,12 +972,31 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
           targetingMode={abilitySystem.targetingMode}
           groundSampler={groundSampler}
         />
-        <GrassLayer mapData={mapData} />
-        <WaterSystem mapData={mapData} />
+        {/* Gridless (Euclidean) AoE outline over the snapped tile decals
+            (agora-79fa.2 / GG-211): the true cone, circle, line or square. */}
+        <GridlessAoEOutline
+          aoePreview={abilitySystem.aoePreview}
+          caster={currentCharacter ?? null}
+          groundSampler={groundSampler}
+        />
+        <GrassLayer mapData={mapData} surfaceY={groundSampler ?? undefined} />
+        {/* Water is a QUANTITY now: a conservative shallow-water field over the
+            bed the voxels derive, with a boundary source and an exact ledger.
+            It cannot exist before the volume it rests on, and nothing else
+            draws water in the meantime — a plane pinned to tile elevation for
+            one second and then replaced is a flicker, not a stand-in. */}
+        {arenaSurface && (
+          <VolumeArenaWater
+            mapData={mapData}
+            handle={arenaSurface.handle}
+            columnTopY={arenaSurface.columnTopY}
+            lastCarve={arenaSurface.carveWindow}
+          />
+        )}
         <FordStones mapData={mapData} />
-        <DecorationProps mapData={mapData} />
-        <EzTreeLayer mapData={mapData} />
-        <GroundScatter mapData={mapData} />
+        <DecorationProps mapData={mapData} surfaceY={groundSampler ?? undefined} />
+        <EzTreeLayer mapData={mapData} surfaceY={groundSampler ?? undefined} />
+        <GroundScatter mapData={mapData} surfaceY={groundSampler ?? undefined} />
 
         {/* Saved opening ecology and aftermath. This layer owns only static
             world facts; live combatants remain CharacterActor instances. */}
@@ -863,7 +1105,7 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
         <LivingWorld mapData={mapData} />
 
         {/* Postprocessing */}
-        <PostProcessingStack />
+        <PostProcessingStack biome={biome} />
       </Canvas>
     </div>
   );

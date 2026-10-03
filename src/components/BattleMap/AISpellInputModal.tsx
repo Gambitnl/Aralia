@@ -15,8 +15,8 @@
 // @dependencies-end
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Spell, UtilityEffect } from '../../types/spells';
-import { detectSuspiciousInput } from '../../utils/securityUtils';
+import { Spell, UtilityEffect, isExecutableControlOption } from '../../types/spells';
+import { detectSuspiciousInput } from '../../utils/core';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 
@@ -53,7 +53,7 @@ const AISpellInputModal: React.FC<AISpellInputModalProps> = ({ spell, onSubmit, 
             return [];
         }
 
-        return ((effect as UtilityEffect).controlOptions ?? []).map(option => ({
+        return ((effect as UtilityEffect).controlOptions ?? []).filter(isExecutableControlOption).map(option => ({
             label: option.name,
             summary: option.details || `Command the target to ${option.effect}.`
         }));

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { UtilityCommand } from '../UtilityCommand';
-import thaumaturgy from '../../../../public/data/spells/level-0/thaumaturgy.json';
+import thaumaturgy from '@/data/spells/level-0/thaumaturgy.json';
 import type { CombatCharacter, CombatState, SelectedSpellTarget } from '@/types/combat';
 
 const caster: CombatCharacter = {
@@ -21,7 +21,7 @@ const caster: CombatCharacter = {
   armorClass: 12,
   abilities: [],
   actionEconomy: { action: { used: false, remaining: 1 }, bonusAction: { used: false, remaining: 1 }, reaction: { used: false, remaining: 1 }, legendary: { used: 0, total: 0 }, movement: { used: 0, total: 30 }, freeActions: 1 }
-} as CombatCharacter;
+} as unknown as CombatCharacter;
 
 const pointTarget: SelectedSpellTarget = {
   kind: 'point',

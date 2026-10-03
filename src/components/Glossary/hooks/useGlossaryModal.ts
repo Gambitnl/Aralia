@@ -4,8 +4,8 @@
  * Extracted from Glossary.tsx for better modularity and testability.
  */
 import { useState, useCallback, useEffect, RefObject } from 'react';
-import { SafeStorage } from '../../../utils/storageUtils';
-import { safeJSONParse } from '../../../utils/securityUtils';
+import { SafeStorage } from '../../../utils/core';
+import { safeJSONParse } from '../../../utils/core';
 
 export interface ModalSize {
     width: number;

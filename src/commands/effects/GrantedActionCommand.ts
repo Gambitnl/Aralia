@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/07/2026, 14:04:24
+ * Last Sync: 04/10/2026, 00:42:28
  * Dependents: commands/factory/AbilityCommandFactory.ts
- * Imports: 10 files
+ * Imports: 13 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -17,13 +17,17 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { CombatState, LightSource, Position, SelectedSpellTarget, SpellObjectImpact } from '../../types/combat'
+import type { CommonCombatLogData } from '../../types/combat'
 import type { DamageEffect, DamageType, UtilityEffect } from '../../types/spells'
-import { generateId } from '../../utils/idGenerator'
-import { rollD20, resolveAttack } from '../../utils/combatUtils'
+import { generateId } from '../../utils/core'
+import { resolveAttack } from '../../utils/combat';
+import { rollD20 } from '../../systems/dice/rollers';
 import { getAbilityModifierValue } from '../../utils/character/statUtils'
 import { calculateProficiencyBonus } from '../../utils/character/savingThrowUtils'
 import { DamageCommand } from './DamageCommand'
 import { BreakConcentrationCommand } from './ConcentrationCommands'
+import { resolveFastFriendsServiceRequest } from '../../systems/spells/socialServiceResolution'
+import { GraspingVineCommand } from './GraspingVineCommand'
 
 /**
  * This command records a spell-granted follow-up action being used.
@@ -54,6 +58,7 @@ export interface GrantedActionCommandOptions {
   damageAbilityModifier?: 'spellcasting_ability' | 'not_applicable';
   wallLengthReduction?: number;
   endsWhenLengthZero?: boolean;
+  socialServiceRequest?: 'fast_friends' | string;
   notes?: string;
 }
 
@@ -82,6 +87,25 @@ export class GrantedActionCommand extends BaseEffectCommand {
     const actor = this.getCaster(state)
     const actionLabel = this.options.actionLabel ?? this.context.spellName
     const targetIds = this.context.targets.map(target => target.id)
+
+    // Fast Friends is the first social spell with a real post-cast service
+    // event. Route that action into the shared adapter so harmless requests,
+    // repeat saves, Advantage conditions, and certain-death endings all use
+    // the same live status and concentration records.
+    if (this.options.socialServiceRequest === 'fast_friends') {
+      return resolveFastFriendsServiceRequest(state, this.context)
+    }
+
+    // Grasping Vine's generated Bonus Action is not just another damage roll:
+    // it reuses the active vine's origin and the original damage, grapple, and
+    // pull rows. Delegate before the generic attack payload can flatten it.
+    if (this.context.spellId === 'grasping-vine') {
+      return new GraspingVineCommand(
+        this.context,
+        [],
+        'repeat_bonus_action'
+      ).execute(state)
+    }
 
     // Some granted actions, such as Wall of Light's beam, include enough
     // structured payload to resolve a real spell attack and delegate hit damage
@@ -117,15 +141,16 @@ export class GrantedActionCommand extends BaseEffectCommand {
         grantedActionPrerequisites: this.options.prerequisites,
         grantedActionAttackType: this.options.attackType,
         grantedActionAreaShape: this.options.areaShape,
-        grantedActionAreaSize: this.options.areaSize,
+        grantedActionAreaSize: typeof this.options.areaSize === 'number' ? this.options.areaSize : undefined,
         grantedActionAreaSizeUnit: this.options.areaSizeUnit,
         grantedActionDamageDice: this.options.damageDice,
         grantedActionDamageType: this.options.damageType,
         grantedActionSaveType: this.options.saveType,
         grantedActionSaveEffect: this.options.saveEffect,
-        grantedActionDamageAbilityModifier: this.options.damageAbilityModifier,
+        grantedActionDamageAbilityModifier: this.options.damageAbilityModifier === 'spellcasting_ability',
         grantedActionWallLengthReduction: this.options.wallLengthReduction,
         grantedActionEndsWhenLengthZero: this.options.endsWhenLengthZero,
+        socialServiceRequest: this.options.socialServiceRequest,
         notes: this.options.notes
       }
     })
@@ -459,12 +484,12 @@ export class GrantedActionCommand extends BaseEffectCommand {
     const targetId = targetSelection.kind === 'creature'
       ? targetSelection.target.id
       : targetSelection.target.id
-    const targetArmorClass = targetSelection.kind === 'creature'
+    const targetArmorClass = targetSelection.kind === 'creature' && typeof targetSelection.target.armorClass === 'number'
       ? targetSelection.target.armorClass
       : 10
 
     const d20 = rollD20()
-    const attackModifier = this.calculateSpellAttackModifier(actor)
+    const attackModifier = this.calculateSpellAttackModifier(actor) ?? 0
     const attackResult = resolveAttack(d20, attackModifier, targetArmorClass)
     let currentState = this.addLogEntry(state, {
       type: 'action',
@@ -504,28 +529,23 @@ export class GrantedActionCommand extends BaseEffectCommand {
           expiresAtRound: state.turnState.currentTurn + 1
         }
 
-        currentState = {
+        const stateWithObjectImpact: CombatState = {
           ...currentState,
           spellObjectImpacts: [
             ...(currentState.spellObjectImpacts || []),
             objectImpact
-          ],
-          combatLog: [
-            ...currentState.combatLog,
-            {
-              id: generateId(),
-              timestamp: Date.now(),
-              type: 'damage',
-              message: `${targetName} takes ${objectImpact.damage.dice} ${objectImpact.damage.type} damage from ${actionLabel}.`,
-              characterId: actor.id,
-              targetIds: [targetId],
-              data: {
-                ...this.createLogData(actionLabel),
-                objectImpact
-              }
-            }
           ]
         }
+        currentState = this.addLogEntry(stateWithObjectImpact, {
+          type: 'damage',
+          message: `${targetName} takes ${objectImpact.damage?.dice ?? '0d0'} ${objectImpact.damage?.type ?? ''} damage from ${actionLabel}.`,
+          characterId: actor.id,
+          targetIds: [targetId],
+          data: {
+            ...this.createLogData(actionLabel),
+            objectImpact
+          }
+        })
       } else {
         const damageEffect: DamageEffect = {
           type: 'DAMAGE',
@@ -597,21 +617,22 @@ export class GrantedActionCommand extends BaseEffectCommand {
 
   private createLogData(actionLabel: string): Record<string, unknown> {
     return {
+      // A later granted action still belongs to the spell that created it.
       spellId: this.context.spellId,
-      grantedAction: actionLabel,
+      grantedActionName: actionLabel,
       grantedActionCost: this.options.actionCost,
       grantedActionFrequency: this.options.frequency,
       grantedActionRangeLimit: this.options.rangeLimit,
       grantedActionPrerequisites: this.options.prerequisites,
       grantedActionAttackType: this.options.attackType,
       grantedActionAreaShape: this.options.areaShape,
-      grantedActionAreaSize: this.options.areaSize,
+      grantedActionAreaSize: typeof this.options.areaSize === 'number' ? this.options.areaSize : undefined,
       grantedActionAreaSizeUnit: this.options.areaSizeUnit,
       grantedActionDamageDice: this.options.damageDice,
       grantedActionDamageType: this.options.damageType,
       grantedActionSaveType: this.options.saveType,
       grantedActionSaveEffect: this.options.saveEffect,
-      grantedActionDamageAbilityModifier: this.options.damageAbilityModifier,
+      grantedActionDamageAbilityModifier: this.options.damageAbilityModifier === 'spellcasting_ability',
       grantedActionWallLengthReduction: this.options.wallLengthReduction,
       grantedActionEndsWhenLengthZero: this.options.endsWhenLengthZero,
       notes: this.options.notes
@@ -619,17 +640,12 @@ export class GrantedActionCommand extends BaseEffectCommand {
   }
 
   private reduceSpellZoneWallLength(state: CombatState): CombatState {
-    // If a granted action declares no wall reduction, or this command state has
-    // no live zones, leave state untouched. This keeps illusion and familiar
-    // granted actions away from wall-specific behavior.
     if (!this.options.wallLengthReduction || !state.spellZones?.length) {
       return state
     }
 
     let removedAtZero = false
     const nextZones = state.spellZones.flatMap(zone => {
-      // Match the caster-owned wall created by the source spell. This avoids
-      // shrinking another caster's copy of the same spell in crowded combats.
       const isMatchingWall = zone.spellId === this.context.spellId &&
         zone.casterId === this.context.caster.id &&
         zone.areaOfEffect?.shape?.toLowerCase() === 'wall'
@@ -638,8 +654,9 @@ export class GrantedActionCommand extends BaseEffectCommand {
         return [zone]
       }
 
-      const startingLength = zone.remainingWallLength ?? zone.areaOfEffect?.size ?? this.options.wallLengthReduction ?? 0
-      const remainingWallLength = Math.max(0, startingLength - this.options.wallLengthReduction)
+      const reduction = this.options.wallLengthReduction ?? 0
+      const startingLength = zone.remainingWallLength ?? zone.areaOfEffect?.size ?? reduction
+      const remainingWallLength = Math.max(0, startingLength - reduction)
 
       if (remainingWallLength <= 0 && this.options.endsWhenLengthZero) {
         removedAtZero = true
@@ -654,7 +671,7 @@ export class GrantedActionCommand extends BaseEffectCommand {
       }]
     })
 
-    const stateWithReducedZones = {
+    const stateWithReducedZones: CombatState = {
       ...state,
       spellZones: nextZones,
       combatLog: removedAtZero

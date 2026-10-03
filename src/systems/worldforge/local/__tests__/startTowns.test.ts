@@ -3,7 +3,7 @@ import { listSelectableTowns, groupTownsByState } from '../startTowns';
 import { generateFmgWorld } from '../../fmg/generateWorld';
 import { applyWfSpawnToMap } from '../resolveSpawn';
 import { wfBiomeIndexToLegacyId } from '../wfBiomeToLegacy';
-import type { MapData } from '../../../../types';
+// Grid retirement (agora-608b): the dead `MapData` import is gone; start-town resolution is cell-native.
 
 function fakeWorld(burgs: unknown[], states: unknown[] = [], opts: Record<string, unknown> = {}): any {
   return {

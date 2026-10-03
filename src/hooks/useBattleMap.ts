@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 12/06/2026, 22:40:15
- * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx
- * Imports: 6 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file useBattleMap.ts
  * Custom hook to manage the state and logic of a procedural battle map.
@@ -33,13 +17,35 @@
  * - Pathfinding recalculated frequently without caching
  * - No batched state updates for multiple simultaneous changes
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 20/09/2026, 21:00:39
+ * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/hooks/useBattleMapPointer.ts
+ * Imports: 7 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useState, useCallback, useMemo } from 'react';
 import { BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition, AbilityCost, CombatAction } from '../types/combat';
 import { useTurnManager } from './combat/useTurnManager';
 import { useAbilitySystem } from './useAbilitySystem';
 import { useGridMovement } from './combat/useGridMovement';
-import { findPath } from '../utils/pathfinding';
-import { calculatePathMovementCost } from '../utils/movementUtils';
+import { findPath } from '../utils/spatial/pathfinding';
+import {
+  calculatePathMovementCost,
+  getCharacterSizeMultiplier,
+  resolveCombatantTerrainMovementPolicy,
+} from '../utils/combat';
+import { resolveAerialMovement } from '../utils/combat/aerialMovementUtils';
 
 interface UseBattleMapReturn {
   characterPositions: Map<string, CharacterPosition>;
@@ -47,7 +53,8 @@ interface UseBattleMapReturn {
   validMoves: Set<string>;
   activePath: BattleMapTile[];
   actionMode: 'move' | 'ability' | null;
-  setActionMode: React.Dispatch<React.SetStateAction<'move' | 'ability' | null>>;
+  /** Plain setter, never an updater function — a controlled owner cannot honor one. */
+  setActionMode: (mode: 'move' | 'ability' | null) => void;
   handleTileClick: (tile: BattleMapTile) => void;
   handleCharacterClick: (character: CombatCharacter) => void;
 }
@@ -64,12 +71,36 @@ export function inferMovementModeForAction(character: CombatCharacter): CombatAc
   // without hardcoding any one spell into the movement executor. Summon Beast's
   // Air form currently uses this to mark normal map movement as flying so
   // Flyby can mean "while flying out of reach."
-  return matchingTraits.find(trait =>
+  const summonedMode = matchingTraits.find(trait =>
     trait.opportunityAttackPolicy &&
     trait.opportunityAttackPolicy !== 'normal' &&
     trait.movementModeRequired &&
     trait.movementModeRequired !== 'any'
   )?.movementModeRequired;
+
+  if (summonedMode) return summonedMode;
+
+  // A creature already occupying aerial space uses its Fly Speed for ordinary
+  // map Move clicks. Grounded creatures with a Fly Speed keep walking until a
+  // dedicated takeoff/altitude choice puts them into aerial state.
+  return character.aerialMovement?.isFlying
+    && (character.stats.extraMovementSpeeds?.fly ?? 0) > 0
+    ? 'fly'
+    : undefined;
+}
+
+/**
+ * Optional external ownership of the action mode.
+ *
+ * The Move / Attack commands moved out of the map and into the ACTIONS panel,
+ * which is a SIBLING of the map, not a child. Passing this makes the mode a
+ * controlled value so both surfaces read and write the same one. Omit it and
+ * the hook keeps its own state exactly as before — the design-lab demo and the
+ * preview scenarios still mount uncontrolled.
+ */
+export interface ControlledActionMode {
+  value: 'move' | 'ability' | null;
+  onChange: (mode: 'move' | 'ability' | null) => void;
 }
 
 export function useBattleMap(
@@ -77,9 +108,17 @@ export function useBattleMap(
   characters: CombatCharacter[],
   turnManager: ReturnType<typeof useTurnManager>,
   abilitySystem: ReturnType<typeof useAbilitySystem>,
+  controlledActionMode?: ControlledActionMode,
 ): UseBattleMapReturn {
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
-  const [actionMode, setActionMode] = useState<'move' | 'ability' | null>(null);
+  const [uncontrolledActionMode, setUncontrolledActionMode] =
+    useState<'move' | 'ability' | null>(null);
+  const actionMode = controlledActionMode
+    ? controlledActionMode.value
+    : uncontrolledActionMode;
+  const setActionMode = controlledActionMode
+    ? controlledActionMode.onChange
+    : setUncontrolledActionMode;
   const currentCharacterId = turnManager.turnState.currentCharacterId;
   const currentCharacter = useMemo(
     () => characters.find(c => c.id === currentCharacterId) || null,
@@ -127,7 +166,7 @@ export function useBattleMap(
     activePath,
     calculatePath,
     clearMovementState
-  } = useGridMovement({ mapData, characterPositions, selectedCharacter });
+  } = useGridMovement({ mapData, characterPositions, selectedCharacter, characters });
 
   const selectCharacter = useCallback((character: CombatCharacter) => {
     if (character.team !== 'player') return; // Prevent selecting enemy characters
@@ -185,7 +224,33 @@ export function useBattleMap(
       const startTile = startPos ? mapData.tiles.get(`${startPos.x}-${startPos.y}`) : null;
 
       if (startTile) {
-        const path = findPath(startTile, tile, mapData);
+        const movementMode = inferMovementModeForAction(character);
+        const targetAltitudeFeet = movementMode === 'fly'
+          ? character.aerialMovement?.altitudeFeet
+          : undefined;
+        const aerialPreview = movementMode === 'fly' && typeof targetAltitudeFeet === 'number'
+          ? resolveAerialMovement({
+              character,
+              destination: tile.coordinates,
+              destinationAltitudeFeet: targetAltitudeFeet,
+              mapData,
+              characters,
+            })
+          : null;
+        if (aerialPreview && !aerialPreview.allowed) return;
+
+        // The mover's own terrain waiver prices this route. Earth Walk and
+        // Timberwalk name a surface, so the policy is asked per tile instead of
+        // waiving every difficult square: an Earth Genasi still pays full cost
+        // through difficult water (GG-257). The remaining arguments mirror
+        // useGridMovement so the executed path matches the previewed one.
+        const terrainPolicy = resolveCombatantTerrainMovementPolicy(character);
+        const isProne = character.conditions?.some(c => c.name === 'Prone' || c.name === 'prone') || false;
+        const sizeMultiplier = getCharacterSizeMultiplier(character.stats.size);
+        const path = aerialPreview
+          ? aerialPreview.route.map(waypoint => mapData.tiles.get(`${waypoint.position.x}-${waypoint.position.y}`))
+              .filter((pathTile): pathTile is BattleMapTile => Boolean(pathTile))
+          : findPath(startTile, tile, mapData, { isCrawling: isProne }, sizeMultiplier, terrainPolicy);
         // We call calculatePath to update the visual state in the hook,
         // but we use the local 'path' var for immediate execution logic.
         calculatePath(character, tile);
@@ -193,7 +258,7 @@ export function useBattleMap(
         // Charge movement with the same feet-based path cost used by the range
         // preview. Summing raw tile movementCost was unsafe because maps mix
         // two conventions: 5/10 feet-per-tile and 1/2 terrain multipliers.
-        const moveCost = calculatePathMovementCost(path);
+        const moveCost = aerialPreview?.costFeet ?? calculatePathMovementCost(path, terrainPolicy);
         const moveActionCost: AbilityCost = { type: 'movement-only', movementCost: moveCost };
 
         if (await turnManager.executeAction({
@@ -202,7 +267,8 @@ export function useBattleMap(
           type: 'move',
           cost: moveActionCost,
           targetPosition: tile.coordinates,
-          movementMode: inferMovementModeForAction(character),
+          movementMode,
+          targetAltitudeFeet,
           // Preserve the exact path found by the map click so spell zones that
           // react to movement through an area can count walked tiles instead of
           // only seeing the start and destination squares.

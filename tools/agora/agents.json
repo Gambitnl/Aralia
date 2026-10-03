@@ -1,6 +1,6 @@
 {
-  "comment": "Machine-readable Agent Matrix registry. THE source orchestrators consume programmatically (orchestrate.mjs validates plans against it; `orchestrate agents` prints it). Prose detail lives in the operator dashboard's onboarding contract (Aralia-operator-dashboard/docs/agent-matrix/sections/05-agent-offering-registration-contract.md) — when that changes, update this file. Statuses: ready | quota_limited | trial | deprecated | unknown. A packet agent must have role 'worker', status ready/quota_limited, and dispatch wiring (dispatch.command or type agent-tool) to pass validatePlan.",
-  "updated": "2026-07-14",
+  "comment": "Machine-readable Agent Matrix registry. THE source orchestrators consume programmatically (orchestrate.mjs validates plans against it; `orchestrate agents` prints it). Prose detail lives in the operator dashboard's onboarding contract (Aralia-operator-dashboard/docs/agent-matrix/sections/05-agent-offering-registration-contract.md) — when that changes, update this file. Statuses: ready | quota_limited | trial | benched | deprecated | unknown. A packet agent must have role 'worker', status ready/quota_limited, and dispatch wiring (dispatch.command, dispatch.type api with an endpoint, or dispatch.type agent-tool) to pass validatePlan. Every entry in `agents` carries a `vendor` string — the company that supplies the model or agent, or \"unknown\". It is descriptive metadata; validatePlan does not read it. Every entry also carries `matrixId` — the dashboard offering id in ../Aralia-operator-dashboard/.agent/orchestration/agent-offerings.json, or null for a local-only lane with no dashboard offering. `node tools/agora/orchestrate.mjs agents --matrix` diffs this file against the dashboard ledger through matrixId and prints every disagreement. A lane that must NOT follow the ledger carries `matrixOverride` with the reason; the diff accepts it and prints it. Do not hand-edit a lane without running the diff after.",
+  "updated": "2026-09-20",
   "wakeAdapters": {
     "codex-cli-resume": {
       "label": "Codex CLI session resume",
@@ -31,8 +31,12 @@
         "health": "child-exit-and-agora-awake-proof",
         "stop": "child-process-exits-after-one-turn"
       },
+      "completionAction": {
+        "type": "codex-thread-deep-link",
+        "when": "child-completed"
+      },
       "desktopInjection": "not-required",
-      "notes": "The watcher reads the saved session's cli_version, finds the matching locally installed Codex engine, resumes that session for one Agora heartbeat turn, then exits. A 0.144.0-alpha.4 desktop-session resume probe passed after the earlier 0.140.0 mismatch failed. Full dormant delivery remains live-test gated."
+      "notes": "The watcher reads the saved session's cli_version, finds the matching locally installed Codex engine, resumes that session for one Agora heartbeat turn, then opens the same technical thread through the documented codex://threads/<thread-id> desktop route. No desktop message injection or keyboard automation is required."
     },
     "codex-app-heartbeat": {
       "label": "Codex app recurring in-thread heartbeat",
@@ -82,15 +86,24 @@
   "agents": {
     "claude": {
       "label": "Claude subagent (Agent tool)",
+      "vendor": "Anthropic",
+      "matrixId": "claude",
       "roles": ["worker", "orchestrator"],
       "status": "ready",
       "dispatch": { "type": "agent-tool" },
+      "matrixOverride": {
+        "reason": "The dashboard benches the `claude` CLI surface for Matrix worker dispatch. This row is a different surface: the in-process Agent-tool subagent lane. tools/agora/ORCHESTRATOR.md keeps it as the default worker, so it stays ready. Bench the CLI surface, not this lane.",
+        "matrixStatus": "benched",
+        "decidedOn": "2026-09-20"
+      },
       "notes": "Default worker. Dispatched by the orchestrator via the Agent tool with the prompt from `orchestrate prompt <plan> <packet>`; a script cannot spawn Claude subagents."
     },
     "codex": {
       "label": "Codex CLI (gpt-5.5)",
+      "vendor": "OpenAI",
+      "matrixId": "codex",
       "roles": ["orchestrator"],
-      "status": "ready",
+      "status": "benched",
       "dispatch": {
         "type": "cli",
         "command": "codex",
@@ -105,12 +118,14 @@
       },
       "constraints": [
         { "kind": "quota", "note": "usage quota resets ~2am — probe before dispatch" },
-        { "kind": "policy", "note": "reserved for orchestrator/supervisor role — do NOT dispatch as a worker lane" }
+        { "kind": "policy", "note": "benched for worker dispatch by operator policy; reserved for the orchestrator/supervisor role" }
       ],
-      "notes": "Proven orchestrator workhorse. Honors .gitignore — inline full specs in the prompt, never point it at .agent/scratch paths."
+      "notes": "Proven orchestrator workhorse. The dashboard benches it for worker dispatch, and this row matches that. Orchestrator use is unchanged. Honors .gitignore — inline full specs in the prompt, never point it at .agent/scratch paths."
     },
     "codex-spark": {
       "label": "Codex CLI — GPT-5.3-Codex-Spark (fast worker lane)",
+      "vendor": "OpenAI",
+      "matrixId": null,
       "roles": ["worker"],
       "status": "ready",
       "dispatch": {
@@ -129,53 +144,549 @@
         { "kind": "quota", "note": "Has its OWN usage quota, SEPARATE from the `codex` orchestrator lane — Spark packets do not eat the orchestrator's budget, so this lane can run in parallel with `codex` without contention. Probe before dispatch" },
         { "kind": "capability", "note": "text-only, 128k context. Strong on targeted edits and rapid frontend/iteration loops; weak on multi-step architecture and stateful debugging (SWE-Bench Pro ~56% vs ~72% for full Codex 5.3) — do NOT give it deep refactors or cross-cutting design work" }
       ],
-      "notes": "Real-time coding model, Cerebras-served at 1000+ tok/s (~15x standard Codex). Research preview. Verified reachable on this account 2026-07-14: `codex exec -m gpt-5.3-codex-spark ...` returned PROBE_OK. Use for fast, well-scoped packets. Honors .gitignore like the codex lane — inline full specs in the prompt, never point it at .agent/scratch paths."
+      "notes": "Real-time coding model, Cerebras-served at 1000+ tok/s (~15x standard Codex). Research preview. Verified reachable on this account 2026-07-14: `codex exec -m gpt-5.3-codex-spark ...` returned PROBE_OK. No dashboard offering covers this model lane, so matrixId is null. Use for fast, well-scoped packets. Honors .gitignore like the codex lane — inline full specs in the prompt, never point it at .agent/scratch paths."
     },
     "gemini": {
       "label": "Gemini CLI",
+      "vendor": "Google",
+      "matrixId": "gemini",
       "roles": [],
       "status": "deprecated",
       "dispatch": { "type": "cli", "command": "gemini", "args": ["--approval-mode", "yolo", "-p"] },
-      "notes": "Deprecated for new coding-worker lanes (2026-06); historical sessions preserved for audit only."
+      "notes": "Deprecated for new coding-worker lanes (2026-06); the dashboard benches it too. Historical sessions are preserved for audit only."
     },
     "agy": {
       "label": "Google Antigravity CLI",
+      "vendor": "Google",
+      "matrixId": "agy",
       "roles": ["worker"],
-      "status": "trial",
-      "dispatch": { "type": "cli", "command": null },
-      "notes": "Preferred Google-family lane per policy. Probe 2026-07-02: `agy -p \"...\"` produced NO output in 90s — auth/quota unverified; stays unwired until a human verifies login."
+      "status": "ready",
+      "dispatch": {
+        "type": "cli",
+        "command": "powershell",
+        "args": [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "F:\\Repos\\Aralia-operator-dashboard\\.agent\\matrix-cli-prompt-runner.ps1",
+          "-Tool",
+          "agy",
+          "-PromptFile",
+          "{promptFile}"
+        ],
+        "promptMode": "file",
+        "localEngine": true,
+        "maxConcurrent": 2
+      },
+      "quotaProbe": { "command": "agy", "args": ["--version"], "timeoutMs": 30000 },
+      "constraints": [
+        { "kind": "policy", "note": "free/approved account capacity only — a paid upgrade or an account change needs operator approval" }
+      ],
+      "notes": "Preferred Google-family lane per policy. The dashboard quantified the quota and proved PTY dispatch, so the lane is worker-ready. The bare `agy -p` probe produced no output, so dispatch goes through the dashboard prompt-file runner."
     },
     "cursor": {
       "label": "Cursor CLI",
+      "vendor": "Anysphere",
+      "matrixId": "cursor-cli",
       "roles": ["worker"],
-      "status": "quota_limited",
-      "dispatch": { "type": "cli", "command": null },
+      "status": "ready",
+      "dispatch": {
+        "type": "cli",
+        "command": "C:\\Users\\Gambit\\AppData\\Local\\cursor-agent\\versions\\2026.06.16-20-30-07-a07d3ac\\cursor-agent.cmd",
+        "args": ["-p", "--model", "auto"],
+        "localEngine": true,
+        "maxConcurrent": 2
+      },
       "constraints": [
-        { "kind": "quota", "note": "free plan 100% used; use --model auto (Ask-mode) only", "expiresAt": "2026-07-10" }
+        { "kind": "policy", "note": "dispatch ONLY with --model auto; the premium/default route is quota-spent and needs operator approval" },
+        { "kind": "policy", "note": "use the versioned cursor-agent.cmd path — the top-level wrapper is broken" }
       ],
-      "notes": "trial-verified per onboarding contract, but no orchestrate.mjs launch spec yet — wire dispatch.command/args before first campaign use."
+      "notes": "Re-authenticated and trial-verified 2026-06-28 (cursor-ok). Pin the versioned path: a Cursor update writes a new versions/<stamp> folder, so re-check this command when the version changes."
     },
     "kilo": {
       "label": "Kilo CLI (@kilocode/cli)",
+      "vendor": "Kilo Code",
+      "matrixId": "kilo-cli",
       "roles": ["worker"],
       "status": "ready",
-      "dispatch": { "type": "cli", "command": "kilo", "args": ["run", "-m", "kilo/kilo-auto/free"] },
+      "dispatch": {
+        "type": "cli",
+        "command": "kilo",
+        "args": ["run", "-m", "kilo/kilo-auto/free"],
+        "localEngine": true,
+        "maxConcurrent": 4
+      },
       "quotaProbe": { "command": "kilo", "args": ["--version"], "timeoutMs": 30000 },
       "constraints": [
         { "kind": "policy", "note": "free model kilo/kilo-auto/free ONLY — no paid/partner routes without operator approval" }
       ],
       "notes": "VERIFIED 2026-07-02: `kilo run -m kilo/kilo-auto/free \"<prompt>\"` returned PROBE_OK (exit 0) on the free tier. First non-Claude worker lane."
     },
+    "cline": {
+      "label": "Cline CLI (headless one-shot)",
+      "vendor": "Cline",
+      "matrixId": null,
+      "roles": ["worker"],
+      "status": "ready",
+      "dispatch": {
+        "type": "cli",
+        "command": "cline",
+        "args": ["--json", "--auto-approve", "true", "-m", "cline-free/muse-spark", "-t", "900"],
+        "localEngine": true,
+        "maxConcurrent": 2
+      },
+      "quotaProbe": { "command": "cline", "args": ["--version"], "timeoutMs": 30000 },
+      "constraints": [
+        { "kind": "policy", "note": "free model cline-free/muse-spark ONLY — a paid provider or model needs operator approval" },
+        { "kind": "capability", "note": "small bounded tasks only — one file or one short prompt per packet; the timeout is a hard 900-second stop" }
+      ],
+      "notes": "Installed CLI 3.0.60, checked 2026-09-20. Headless form: `cline --json --auto-approve true -t <seconds> \"<prompt>\"`. No dashboard offering covers it yet, so matrixId is null — register it on the dashboard to close that gap."
+    },
+    "opencode-cli": {
+      "label": "OpenCode CLI (isolated Matrix profile)",
+      "vendor": "OpenCode",
+      "matrixId": "opencode-cli",
+      "roles": ["worker"],
+      "status": "ready",
+      "dispatch": {
+        "type": "cli",
+        "command": "powershell",
+        "args": [
+          "-NoLogo",
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "F:\\Repos\\Aralia-operator-dashboard\\.agent\\opencode-prompt-runner.ps1",
+          "-PromptFile",
+          "{promptFile}"
+        ],
+        "promptMode": "file",
+        "localEngine": true,
+        "maxConcurrent": 2
+      },
+      "quotaProbe": { "command": "opencode", "args": ["--version"], "timeoutMs": 30000 },
+      "constraints": [
+        { "kind": "policy", "note": "explicit opencode/*-free model only; the runner defaults to opencode/north-mini-code-free. Paid models need operator approval" }
+      ],
+      "notes": "OpenCode 1.14.48. The runner uses a Matrix-owned profile, which avoids the session_message.seq SQLite failure seen on the default profile. Pass -Model to change the free alias."
+    },
+    "mistral-vibe-cli": {
+      "label": "Mistral Vibe CLI (zero-price cap)",
+      "vendor": "Mistral",
+      "matrixId": "mistral-vibe-cli",
+      "roles": ["worker"],
+      "status": "ready",
+      "dispatch": {
+        "type": "cli",
+        "command": "powershell",
+        "args": [
+          "-NoLogo",
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "F:\\Repos\\Aralia-operator-dashboard\\.agent\\vibe-prompt-runner.ps1",
+          "-PromptFile",
+          "{promptFile}"
+        ],
+        "promptMode": "file",
+        "localEngine": true,
+        "maxConcurrent": 2
+      },
+      "quotaProbe": { "command": "vibe", "args": ["--version"], "timeoutMs": 30000 },
+      "constraints": [
+        { "kind": "policy", "note": "keep the max-price cap at 0 — paid Mistral usage needs operator approval" }
+      ],
+      "notes": "vibe 2.17.1, installed with `uv tool install mistral-vibe`. Browser-authenticated; the zero-price capped trial returned vibe-ok."
+    },
+    "kiro-cli": {
+      "label": "Kiro CLI (qwen3-coder-next)",
+      "vendor": "Amazon",
+      "matrixId": "kiro-cli",
+      "roles": ["worker"],
+      "status": "quota_limited",
+      "dispatch": {
+        "type": "cli",
+        "command": "powershell",
+        "args": [
+          "-NoLogo",
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "F:\\Repos\\Aralia-operator-dashboard\\.agent\\kiro-prompt-runner.ps1",
+          "-PromptFile",
+          "{promptFile}",
+          "-Model",
+          "qwen3-coder-next"
+        ],
+        "promptMode": "file",
+        "localEngine": true,
+        "maxConcurrent": 2
+      },
+      "constraints": [
+        { "kind": "quota", "note": "Kiro Free gives 50 credits; a tiny probe spent 0.02. The CLI does not expose the remaining balance, so keep packets small" },
+        { "kind": "policy", "note": "qwen3-coder-next only (0.05x rate). Paid plans, pay-per-use overage, API-key automation and trust-all-tools need operator approval" }
+      ],
+      "notes": "Installed and launch-verified through the dashboard runner. Status is quota_limited because the free credit balance is small and unreadable from the CLI."
+    },
+    "copilot-cli": {
+      "label": "GitHub Copilot CLI",
+      "vendor": "GitHub",
+      "matrixId": "copilot-cli",
+      "roles": ["worker"],
+      "status": "quota_limited",
+      "dispatch": {
+        "type": "cli",
+        "command": "copilot",
+        "args": ["-p"],
+        "localEngine": true,
+        "maxConcurrent": 2
+      },
+      "quotaProbe": { "command": "copilot", "args": ["--version"], "timeoutMs": 30000 },
+      "constraints": [
+        { "kind": "quota", "note": "every run spends GitHub Copilot AI credits (~2.69 credits for a 7-second prompt)" },
+        { "kind": "policy", "note": "SMALL bounded tasks only — single-file fixes and short prompts. Larger or sustained dispatch needs a fresh operator nod" }
+      ],
+      "notes": "copilot 1.0.61 on PATH. Add --allow-all for autonomous file and shell work, and --add-dir to scope it."
+    },
+    "jules-cli": {
+      "label": "Jules (Google) CLI — async cloud session",
+      "vendor": "Google",
+      "matrixId": "jules-cli",
+      "roles": ["worker"],
+      "status": "ready",
+      "dispatch": {
+        "type": "cli",
+        "command": "jules",
+        "args": ["new", "--repo", "Gambitnl/Aralia"],
+        "maxConcurrent": 2
+      },
+      "quotaProbe": { "command": "jules", "args": ["--version"], "timeoutMs": 30000 },
+      "constraints": [
+        { "kind": "policy", "note": "ASYNC REMOTE lane — it works on a cloud clone of Gambitnl/Aralia, not this checkout. Keep it out of Agora shared-tree waves" },
+        { "kind": "policy", "note": "results come back only through `jules remote list` and `jules remote pull --session <id> --apply`; the dispatch call returns before the work is done" },
+        { "kind": "quota", "note": "plan and quota are not verified — check before any large dispatch" }
+      ],
+      "notes": "jules v0.1.42. Authenticated, with session history on Gambitnl/Aralia."
+    },
+    "devin": {
+      "label": "Devin CLI",
+      "vendor": "Cognition",
+      "matrixId": "devin-cli",
+      "roles": ["worker"],
+      "status": "ready",
+      "dispatch": {
+        "type": "cli",
+        "command": "C:\\Users\\Gambit\\AppData\\Local\\devin\\cli\\bin\\devin.exe",
+        "args": ["-p", "--prompt-file", "{promptFile}"],
+        "promptMode": "file",
+        "maxConcurrent": 1
+      },
+      "constraints": [
+        { "kind": "quota", "note": "Devin Free plan; the CLI does not report the remaining usage" },
+        { "kind": "policy", "note": "treat Devin as a paid/account boundary — a plan change, upgrade or overage needs operator approval" }
+      ],
+      "notes": "Logged in and prompt-file smoke-probed through the dashboard. Installed at the local AppData path above."
+    },
+    "google-litert-lm": {
+      "label": "Google LiteRT-LM local Gemma",
+      "vendor": "Google",
+      "matrixId": "google-litert-lm",
+      "roles": ["worker"],
+      "status": "ready",
+      "dispatch": {
+        "type": "cli",
+        "command": "powershell",
+        "args": [
+          "-NoLogo",
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "F:\\Repos\\Aralia-operator-dashboard\\.agent\\litert-lm-prompt-runner.ps1",
+          "-PromptFile",
+          "{promptFile}",
+          "-Model",
+          "gemma4-e2b",
+          "-Backend",
+          "cpu"
+        ],
+        "promptMode": "file",
+        "localEngine": true,
+        "maxConcurrent": 1
+      },
+      "constraints": [
+        { "kind": "capability", "note": "small local Gemma model — give it short, mechanical packets, not design or refactor work" }
+      ],
+      "notes": "Local on-device Gemma through LiteRT-LM. This is not the Gemini API and not Google Cloud hosted inference. It also serves an OpenAI-compatible endpoint at http://127.0.0.1:9379/v1 when the server is running. No hosted token cost after the model import."
+    },
+    "github-models": {
+      "label": "GitHub Models (free inference)",
+      "vendor": "GitHub",
+      "matrixId": "github-models",
+      "roles": ["worker"],
+      "status": "quota_limited",
+      "dispatch": {
+        "type": "api",
+        "endpoint": "https://models.github.ai/inference",
+        "path": "/chat/completions",
+        "model": "openai/gpt-4o-mini",
+        "openAiCompatible": true,
+        "credential": "gh auth token",
+        "maxConcurrent": 2
+      },
+      "constraints": [
+        { "kind": "quota", "note": "~8K input / 4K output per request, ~15 RPM and ~150 RPD — small bounded tasks only" }
+      ],
+      "notes": "Trial-verified (ghmodels-ok). Reuses the existing GitHub token, so no new account is needed."
+    },
+    "groq-free": {
+      "label": "Groq (free tier)",
+      "vendor": "Groq",
+      "matrixId": "groq-free",
+      "roles": ["worker"],
+      "status": "ready",
+      "dispatch": {
+        "type": "api",
+        "endpoint": "https://api.groq.com/openai/v1",
+        "path": "/chat/completions",
+        "model": "llama-3.3-70b-versatile",
+        "openAiCompatible": true,
+        "credential": "AgentMatrix/Groq/GROQ_API_KEY",
+        "maxConcurrent": 4
+      },
+      "constraints": [
+        { "kind": "quota", "note": "free tier ~30 RPM and 1K-14.4K RPD per model" },
+        { "kind": "policy", "note": "free tier only — paid usage needs operator approval" }
+      ],
+      "notes": "Trial-verified (groq-ok). Fastest free inference. Other models: moonshotai/kimi-k2-instruct-0905, openai/gpt-oss-120b, qwen/qwen3-32b."
+    },
+    "cerebras-free": {
+      "label": "Cerebras (free tier)",
+      "vendor": "Cerebras",
+      "matrixId": "cerebras-free",
+      "roles": ["worker"],
+      "status": "ready",
+      "dispatch": {
+        "type": "api",
+        "endpoint": "https://api.cerebras.ai/v1",
+        "path": "/chat/completions",
+        "model": "gpt-oss-120b",
+        "openAiCompatible": true,
+        "credential": "AgentMatrix/Cerebras/CEREBRAS_API_KEY",
+        "maxConcurrent": 4
+      },
+      "constraints": [
+        { "kind": "quota", "note": "free ~1M tokens/day, ~30 RPM, ~8K context" },
+        { "kind": "capability", "note": "this account serves gpt-oss-120b and zai-glm-4.7 — llama-3.3-70b is NOT available here" }
+      ],
+      "notes": "Trial-verified (cerebras-ok)."
+    },
+    "openrouter-free": {
+      "label": "OpenRouter (free models)",
+      "vendor": "OpenRouter",
+      "matrixId": "openrouter-free",
+      "roles": ["worker"],
+      "status": "quota_limited",
+      "dispatch": {
+        "type": "api",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "path": "/chat/completions",
+        "model": "deepseek/deepseek-r1:free",
+        "openAiCompatible": true,
+        "credential": "AgentMatrix/OpenRouter/OPENROUTER_API_KEY",
+        "maxConcurrent": 2
+      },
+      "constraints": [
+        { "kind": "quota", "note": "~50 requests/day on the free tier. Popular models return 429 — back off ~3 seconds and try the next id" },
+        { "kind": "capability", "note": "the :free roster changes. GET /api/v1/models and filter pricing.prompt == 0 before each wave. A reasoning model needs max_tokens >= 512" }
+      ],
+      "notes": "Free generation proven 2026-06-29 with 22 :free models live."
+    },
+    "google-gemini-api": {
+      "label": "Google Gemini API (free tier)",
+      "vendor": "Google",
+      "matrixId": "google-gemini-api",
+      "roles": ["worker"],
+      "status": "quota_limited",
+      "dispatch": {
+        "type": "api",
+        "endpoint": "https://generativelanguage.googleapis.com/v1beta/openai",
+        "path": "/chat/completions",
+        "model": "gemini-2.5-flash",
+        "openAiCompatible": true,
+        "credential": "AgentMatrix/Google/GEMINI_API_KEY",
+        "maxConcurrent": 2
+      },
+      "constraints": [
+        { "kind": "privacy", "note": "the free tier TRAINS ON and human-reviews prompts — route only non-sensitive work here" },
+        { "kind": "quota", "note": "gemini-2.5-flash 10 RPM / 250 RPD; gemini-2.5-pro 100 RPD; gemini-2.5-flash-lite 1000 RPD" },
+        { "kind": "capability", "note": "gemini-2.5-flash needs max_tokens >= ~64 because of the thinking budget" }
+      ],
+      "notes": "Trial-verified (gemini-ok). This is the hosted Gemini API lane, not the deprecated Gemini CLI."
+    },
+    "nvidia-nim": {
+      "label": "NVIDIA NIM (build.nvidia.com)",
+      "vendor": "NVIDIA",
+      "matrixId": "nvidia-nim",
+      "roles": ["worker"],
+      "status": "quota_limited",
+      "dispatch": {
+        "type": "api",
+        "endpoint": "https://integrate.api.nvidia.com/v1",
+        "path": "/chat/completions",
+        "model": "qwen/qwen2.5-coder-32b-instruct",
+        "openAiCompatible": true,
+        "credential": "AgentMatrix/NVIDIA/NVIDIA_API_KEY",
+        "maxConcurrent": 2,
+        "timeoutMs": 90000
+      },
+      "constraints": [
+        { "kind": "privacy", "note": "the free tier logs and trains on input and output — route only non-sensitive work here" },
+        { "kind": "quota", "note": "free trial credits only, and they expire" },
+        { "kind": "capability", "note": "cold start is slow — allow 60 seconds or more per call" }
+      ],
+      "notes": "Trial-verified (nvidia-ok). Large model list, including meta/llama-3.3-70b-instruct and deepseek-ai/deepseek-r1."
+    },
+    "huggingface-inference": {
+      "label": "Hugging Face Inference Providers (router)",
+      "vendor": "Hugging Face",
+      "matrixId": "huggingface-inference",
+      "roles": ["worker"],
+      "status": "quota_limited",
+      "dispatch": {
+        "type": "api",
+        "endpoint": "https://router.huggingface.co/v1",
+        "path": "/chat/completions",
+        "model": "Qwen/Qwen2.5-Coder-32B-Instruct:cheapest",
+        "openAiCompatible": true,
+        "credential": "AgentMatrix/HuggingFace/HF_TOKEN",
+        "maxConcurrent": 2
+      },
+      "constraints": [
+        { "kind": "quota", "note": "burns the small monthly HF credit — keep it behind the fully free lanes. The :cheapest suffix picks the lowest-price backend" }
+      ],
+      "notes": "Trial-verified (hf-router-ok). One token reaches about 119 models across about 15 providers, with HF-side failover."
+    },
+    "sambanova-free": {
+      "label": "SambaNova Cloud (free tier)",
+      "vendor": "SambaNova",
+      "matrixId": "sambanova-free",
+      "roles": ["worker"],
+      "status": "quota_limited",
+      "dispatch": {
+        "type": "api",
+        "endpoint": "https://api.sambanova.ai/v1",
+        "path": "/chat/completions",
+        "model": "DeepSeek-V3.1",
+        "openAiCompatible": true,
+        "credential": "AgentMatrix/SambaNova/SAMBANOVA_API_KEY",
+        "maxConcurrent": 1
+      },
+      "constraints": [
+        { "kind": "quota", "note": "permanent free but only 20 requests/day and 200K tokens/day — spot tasks, not a workhorse" }
+      ],
+      "notes": "Trial-verified (sambanova-ok)."
+    },
+    "cloudflare-workers-ai": {
+      "label": "Cloudflare Workers AI (free tier)",
+      "vendor": "Cloudflare",
+      "matrixId": "cloudflare-workers-ai",
+      "roles": ["worker"],
+      "status": "ready",
+      "dispatch": {
+        "type": "api",
+        "endpoint": "https://api.cloudflare.com/client/v4/accounts/9369552759a63c38dad79bbbb5569f81/ai/v1",
+        "path": "/chat/completions",
+        "model": "@cf/qwen/qwen2.5-coder-32b-instruct",
+        "openAiCompatible": true,
+        "credential": "AgentMatrix/Cloudflare/CLOUDFLARE_API_TOKEN",
+        "maxConcurrent": 2
+      },
+      "constraints": [
+        { "kind": "quota", "note": "permanent free 10,000 Neurons/day, reset at 00:00 UTC. A Neuron budget is not a request count — large models spend it faster" }
+      ],
+      "notes": "Trial-verified (cloudflare-ok). The account id is part of the endpoint and is not a secret."
+    },
+    "zai-glm-free": {
+      "label": "Z.AI GLM-Flash (free tier)",
+      "vendor": "Z.AI",
+      "matrixId": "zai-glm-free",
+      "roles": ["worker"],
+      "status": "quota_limited",
+      "dispatch": {
+        "type": "api",
+        "endpoint": "https://api.z.ai/api/paas/v4",
+        "path": "/chat/completions",
+        "model": "glm-4.5-flash",
+        "openAiCompatible": true,
+        "credential": "AgentMatrix/ZAI/ZAI_API_KEY",
+        "requestDefaults": { "thinking": { "type": "disabled" } },
+        "maxConcurrent": 1
+      },
+      "constraints": [
+        { "kind": "capability", "note": "send thinking:{type:disabled} in the body or Flash reasoning eats the token budget and the content comes back empty" },
+        { "kind": "quota", "note": "about one concurrent request. glm-4.7-flash returns 429 — use glm-4.5-flash" },
+        { "kind": "privacy", "note": "CN jurisdiction — route only non-sensitive work here" }
+      ],
+      "notes": "Trial-verified (zai-ok, glm-4.5-flash). Permanent free Flash tier."
+    },
+    "vertex-gemini": {
+      "label": "Google Vertex AI (Gemini Enterprise)",
+      "vendor": "Google",
+      "matrixId": "vertex-gemini",
+      "roles": ["worker"],
+      "status": "ready",
+      "dispatch": {
+        "type": "api",
+        "endpoint": "https://aiplatform.googleapis.com/v1beta1/projects/gen-lang-client-0692467106/locations/global/endpoints/openapi",
+        "path": "/chat/completions",
+        "model": "google/gemini-2.5-flash",
+        "openAiCompatible": true,
+        "credential": "gcloud auth print-access-token",
+        "maxConcurrent": 2
+      },
+      "constraints": [
+        { "kind": "policy", "note": "spends GCP credit (~$1000 available) — operator-approved, but route free lanes first" },
+        { "kind": "capability", "note": "the access token lasts about one hour; refresh it through gcloud before a long wave" }
+      ],
+      "notes": "Proven (vertex-ok). Enterprise tier, so it does NOT train on the data. Third-party MaaS models are reachable once enabled."
+    },
+    "gemini-interactions-agent": {
+      "label": "Gemini Managed Agent (Interactions API)",
+      "vendor": "Google",
+      "matrixId": "gemini-interactions-agent",
+      "roles": ["worker"],
+      "status": "ready",
+      "dispatch": {
+        "type": "api",
+        "endpoint": "https://generativelanguage.googleapis.com/v1beta/interactions",
+        "model": "antigravity-preview-05-2026",
+        "openAiCompatible": false,
+        "credential": "AgentMatrix/Google/GEMINI_API_KEY",
+        "maxConcurrent": 2
+      },
+      "constraints": [
+        { "kind": "policy", "note": "preview pricing is undisclosed and bills the Gemini key project — watch the billing before heavy use" },
+        { "kind": "capability", "note": "async hosted worker: POST the interaction with background:true, then poll GET /v1beta/interactions/<id>. It runs in its own cloud sandbox, NOT in this checkout" }
+      ],
+      "notes": "Live-verified with a 9-step sandbox run. The sandbox covers reasoning, code execution, package install, file management, git clone and web access. See the gemini-interactions-api skill for the request shape."
+    },
     "ollama": {
       "label": "Ollama local runtime",
+      "vendor": "Ollama",
+      "matrixId": "ollama-runtime",
       "roles": [],
       "status": "trial",
       "dispatch": { "type": "runtime" },
-      "notes": "A model runtime, not a coding agent — needs an external adapter (Kilo/Aider/OpenCode) to become a worker lane."
+      "notes": "A model runtime, not a coding agent — needs an external adapter (Kilo/Aider/OpenCode) to become a worker lane. The dashboard rates it support-ready for the same reason."
     },
-    "devin": { "label": "Devin CLI", "roles": [], "status": "unknown", "dispatch": { "type": "cli", "command": null }, "notes": "Not installed locally; auth/launch/permissions unverified." },
-    "amp": { "label": "Amp CLI", "roles": [], "status": "unknown", "dispatch": { "type": "cli", "command": null }, "notes": "Not installed; charges credits — operator approval needed for paid routes." },
-    "poolside": { "label": "Poolside Agent CLI", "roles": [], "status": "unknown", "dispatch": { "type": "cli", "command": null }, "notes": "Not installed; preview/free claims unverified." },
-    "zcode": { "label": "ZCode native app", "roles": [], "status": "unknown", "dispatch": { "type": "app" }, "notes": "Desktop IDE, not a terminal CLI; Remote Control stream unproven." }
+    "amp": { "label": "Amp CLI", "vendor": "Sourcegraph", "matrixId": "amp-cli", "roles": [], "status": "unknown", "dispatch": { "type": "cli", "command": null }, "notes": "Authenticated but blocked: $0 individual credits and no free mode on this account." },
+    "poolside": { "label": "Poolside Agent CLI", "vendor": "Poolside", "matrixId": "poolside-cli", "roles": [], "status": "unknown", "dispatch": { "type": "cli", "command": null }, "notes": "Blocked at operator EULA/account setup; no CLI credentials." },
+    "zcode": { "label": "ZCode native app", "vendor": "unknown", "matrixId": "zcode-native", "roles": [], "status": "unknown", "dispatch": { "type": "app" }, "notes": "Desktop ADE with no terminal stdin/stdout, so it is not a headless CLI lane. A Remote Control + Bot Channel bridge could make it viable; that bridge is unbuilt." },
+    "freebuff": { "label": "FreeBuff CLI", "vendor": "FreeBuff", "matrixId": "freebuff-cli", "roles": [], "status": "unknown", "dispatch": { "type": "cli", "command": null }, "notes": "NOT VIABLE for worker lanes. Installed version 0.0.175 is TUI-only: the official CLI has no headless one-shot prompt mode, so the orchestrator cannot dispatch a bounded prompt or classify completion. Do not wire dispatch.command." }
   }
 }

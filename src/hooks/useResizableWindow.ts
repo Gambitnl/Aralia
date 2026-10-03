@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 23/06/2026, 13:47:37
+ * Last Sync: 27/08/2026, 03:33:12
  * Dependents: components/ui/WindowFrame.tsx
- * Imports: 2 files
+ * Imports: 1 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,13 +14,21 @@
  */
 // @dependencies-end
 
-/**
- * @file useResizableWindow.ts
- * Generic hook for managing a resizable, draggable window's state.
- */
 import { useState, useCallback, useEffect, RefObject } from 'react';
-import { SafeStorage } from '../utils/storageUtils';
-import { safeJSONParse } from '../utils/securityUtils';
+import { SafeStorage } from '../utils/core';
+import { safeJSONParse } from '../utils/core';
+
+/**
+ * This file owns the neutral geometry behavior behind Aralia's floating windows.
+ *
+ * WindowFrame connects these values and callbacks to Aralia's visual shell. The
+ * hook itself calculates responsive size and position, pointer drag and resize,
+ * maximize/default restore, reset, and size-only persistence. It deliberately
+ * does not own window content, open state, stacking, focus, Escape, or styling.
+ *
+ * Called by: WindowFrame.tsx
+ * Depends on: React state/effects, browser geometry APIs, and safe local storage
+ */
 
 export interface WindowSize {
     width: number;
@@ -447,6 +455,10 @@ export function useResizableWindow(
         const defaultSize = clampSizeToWorkspace(DEFAULT_SIZE, bounds, requestedMinimum);
         setSize(defaultSize);
         setPosition(centerWindowInWorkspace(defaultSize, bounds));
+        // Reset means a genuinely restored layout, not maximized state wearing
+        // smaller geometry. Clearing this flag also prevents the next viewport
+        // resize from immediately expanding the frame again.
+        setIsMaximized(false);
         SafeStorage.removeItem(storageKey);
     }, [requestedMinimum.height, requestedMinimum.width, storageKey]);
 

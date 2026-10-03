@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
  *
- * Last Sync: 18/06/2026, 03:23:31
- * Dependents: services/mapService.ts, services/saveLoadService.ts, utils/mapDataToWorldData.ts
- * Imports: 5 files
+ * Last Sync: 14/08/2026, 20:05:59
+ * Dependents: None (Orphan)
+ * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -15,7 +15,17 @@
 // @dependencies-end
 
 /**
- * @file worldDataMigration.ts
+ * @file worldDataMigration.ts — ORPHANED (kept per expansion-first policy)
+ * 
+ * 2026-08-14 (GG-85): This one-shot migration backfilled MapData.worldData for
+ * pre-v2 saves. The 30×20 mapData grid has since been retired from the save
+ * format (Grid Retirement); saveLoadService no longer carries mapData at all.
+ * The world is now the atlas derived from worldSeed. No production path calls
+ * this function — it exists only as a reference for the migration shape if a
+ * future restore pipeline ever reintroduces a similar map-level backfill.
+ * Retained but deliberately uncalled. Do not delete without a clear migration
+ * plan for legacy v1 saves that might still carry the old grid structure.
+ * 
  * @description One-shot loader-side migration: backfills `MapData.worldData` for saves created
  * before WorldData v2 existed. Idempotent — safe to call on already-migrated saves.
  *
@@ -52,10 +62,20 @@ export function migrateMapDataToWorldDataV2(mapData: MapData, worldSeed: number)
   }
 
   const { rows, cols } = mapData.gridSize;
+  // Grid retirement (agora-608b): `MapData.tiles` is now OPTIONAL and deprecated.
+  // This is the one remaining honest consumer and it CANNOT migrate to the
+  // cell-native atlas: for a pre-v2 save the grid is the only surviving record of
+  // that world's biomes, and the atlas derived from `worldSeed` may not reproduce
+  // it. So the grid is still read when present. When it is absent (a save written
+  // after the grid left the save format, or a hand-built MapData) the loop falls
+  // back to 'plains' exactly as it always did for a hole in the grid — no crash,
+  // and `heightFromBiomes`/`climateFromBiomes` still produce a playable world.
+  // See docs/adr/0003-mapdata-tiles-grid-retirement.md.
+  const legacyTiles = mapData.tiles;
   const biomeIds: string[] = [];
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
-      biomeIds.push(mapData.tiles[y]?.[x]?.biomeId ?? 'plains');
+      biomeIds.push(legacyTiles?.[y]?.[x]?.biomeId ?? 'plains');
     }
   }
 
@@ -86,9 +106,9 @@ export function migrateMapDataToWorldDataV2(mapData: MapData, worldSeed: number)
 
   const migrated: MapData = { ...mapData, worldData };
 
-  // Record provenance only when we derived heights from biomes (no Azgaar terrain), and only if a
-  // generator upstream (e.g. mapService legacy fallback) has not already recorded a more specific
-  // reason. This is lower-fidelity than the Azgaar path, so it stays flagged in the DebugHUD.
+  // Record provenance only when we derived heights from biomes (no Azgaar terrain), and only if an
+  // upstream generator (an old save's map) has not already recorded a more specific reason. This is
+  // lower-fidelity than real terrain, so it stays flagged in the DebugHUD.
   if (usedBiomeDerivedHeights && !migrated.generation) {
     migrated.generation = {
       source: 'biome-derived',

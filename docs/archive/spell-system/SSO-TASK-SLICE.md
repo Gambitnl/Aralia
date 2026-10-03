@@ -1,4 +1,4 @@
-> **ARCHIVED 2026-07-01 — exhausted SSO slice log (formerly `docs/tasks/spell-system-overhaul/TASK_SLICE.md`).**
+> **ARCHIVED 2026-07-01 - exhausted SSO slice log (formerly `docs/tasks/spell-system-overhaul/TASK_SLICE.md`).**
 > The 2026-05-31 slice named in the header completed long ago and the 2026-06-25 tail already
 > self-annotated this file as "not the current execution queue". Live obligations live in
 > `docs/tasks/spell-system-overhaul/TRACKER.md` (historical index) and the child lanes under
@@ -342,4 +342,4 @@ and the owning Spells child project rows, especially
 `SSO-AREA-MOVE-WITHIN-COVERAGE-001` when continuing movement-through-zone
 behavior proof.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/TASK_SLICE.md","sha256WithoutMarker":"ba368d500c0d65a09e36a3cd9ebf588c53f21bae3cbbe0bf9dc72963269ca454","markedAtUtc":"2026-06-25T22:29:38.334Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/archive/spell-system/SSO-TASK-SLICE.md","sha256WithoutMarker":"dee5552cf202f7f1e263a83dbdff5de98e4dce89f2e1ed936686a6ee70d538b0","markedAtUtc":"2026-08-09T20:22:07.638Z"} -->

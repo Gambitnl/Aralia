@@ -29,7 +29,6 @@ vi.mock('../../../services/dialogueService', () => ({
 const session: DialogueSession = {
     npcId: 'npc-grizelda',
     discussedTopicIds: [],
-    availableTopicIds: [],
 } as unknown as DialogueSession;
 
 const npc: NPC = {

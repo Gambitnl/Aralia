@@ -35,22 +35,24 @@
 
 /** Describes a spell-created modifier for ability checks. */
 export interface AbilityCheckModifier {
-  /** Which d20 roll family is modified. */
-  appliesTo: "ability_check";
+  /** Source-backed check family or a spell-specific check description. */
+  appliesTo?: string;
   /** Dice added or subtracted, such as Guidance's 1d4. */
   bonusDice?: string;
-  /** Flat modifier when a spell uses a number instead of dice. */
-  flatModifier?: number;
-  /** Whether the spell affects all checks or only checks using a chosen skill. */
-  skillSelection: "chosen_skill" | "not_applicable";
-  /** Who chooses the skill when skillSelection is chosen_skill. */
-  skillChooser?: "caster";
-  /** Allowed skill pool for the choice. */
-  skillPool?: "any_skill";
+  /** Flat modifier or source-backed advantage/disadvantage label. */
+  flatModifier?: number | string;
+  /** Source-backed selection mode, such as chosen_skill or fixed_skill. */
+  skillSelection?: string;
+  /** Source-backed chooser label for player, spell, or per-target choices. */
+  skillChooser?: string;
+  /** One skill-family label or a list of fixed abilities/skills. */
+  skillPool?: string | string[];
   /** How often the modifier can apply while the spell lasts. */
-  frequency: "every_matching_check" | "once";
-  /** Duration relationship to the parent spell duration. */
-  durationScope: "while_active" | "next_check";
+  frequency?: string;
+  /** Source-backed duration relationship to the parent spell duration. */
+  durationScope?: string;
+  /** Preserve authored metadata fields until their owning runtime lane exists. */
+  [key: string]: unknown;
   /** Short review note for details that do not deserve another field yet. */
   notes?: string;
 }

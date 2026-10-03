@@ -179,5 +179,70 @@ describe('TradeRouteManager', () => {
       expect(newRoute.daysInStatus).toBe(0);
       expect(result.state.economy.marketFactors.surplus).not.toContain('gems');
     });
+
+    it('should disrupt active routes without a full blockade (partial impact)', () => {
+      // A roll between blockChance (0.05) and blockChance+disruptChance (0.125)
+      // lands the route in the partial-impact `disrupted` state.
+      const rng = { next: () => 0.1 } as SeededRandom;
+
+      const route: TradeRoute = {
+        id: 'r5',
+        name: 'Caravan Route',
+        originId: 'A',
+        destinationId: 'B',
+        goods: ['Grain'],
+        status: 'active',
+        riskLevel: 0.5,
+        profitability: 0.5,
+        daysInStatus: 0
+      };
+
+      mockState.economy.tradeRoutes = [route];
+
+      const result = processDailyRoutes(mockState, 1, rng);
+      expect(result.state.economy.tradeRoutes[0].status).toBe('disrupted');
+    });
+
+    it('should recover disrupted routes back to active', () => {
+      const rng = { next: () => 0.1 } as SeededRandom;
+
+      const route: TradeRoute = {
+        id: 'r6',
+        name: 'Disrupted Route',
+        originId: 'A',
+        destinationId: 'B',
+        goods: ['Timber'],
+        status: 'disrupted',
+        riskLevel: 0.1,
+        profitability: 0.5,
+        daysInStatus: 0
+      };
+
+      mockState.economy.tradeRoutes = [route];
+
+      const result = processDailyRoutes(mockState, 1, rng);
+      expect(result.state.economy.tradeRoutes[0].status).toBe('active');
+    });
+
+    it('should escalate disrupted routes to blockaded on a severe risk event', () => {
+      const rng = { next: () => 0.01 } as SeededRandom;
+
+      const route: TradeRoute = {
+        id: 'r7',
+        name: 'Disrupted Route',
+        originId: 'A',
+        destinationId: 'B',
+        goods: ['Ore'],
+        status: 'disrupted',
+        riskLevel: 0.5,
+        profitability: 0.5,
+        daysInStatus: 0
+      };
+
+      mockState.economy.tradeRoutes = [route];
+
+      const result = processDailyRoutes(mockState, 1, rng);
+      expect(result.state.economy.tradeRoutes[0].status).toBe('blockaded');
+    });
   });
 });

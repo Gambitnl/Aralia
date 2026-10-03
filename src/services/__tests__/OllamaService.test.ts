@@ -1,6 +1,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OllamaService, resetDefaultClient } from '../ollama';
+import { OLLAMA_CATEGORY_DEFAULT_MODEL } from '../../config/llmProviderConfig';
 import { DEFAULT_OLLAMA_CONFIG } from '../../types/ollama';
 
 // Mock global fetch
@@ -32,7 +33,7 @@ describe('OllamaService', () => {
         // Mock getModel first
         mockFetch.mockResolvedValueOnce({
             ok: true,
-            json: async () => ({ models: [{ name: 'llama3' }] })
+            json: async () => ({ models: [{ name: OLLAMA_CATEGORY_DEFAULT_MODEL.dialogue }] })
         });
 
         // Mock generate call that hangs FOREVER unless aborted
@@ -70,7 +71,7 @@ describe('OllamaService', () => {
         // Mock getModel
         mockFetch.mockResolvedValueOnce({
             ok: true,
-            json: async () => ({ models: [{ name: 'llama3' }] })
+            json: async () => ({ models: [{ name: OLLAMA_CATEGORY_DEFAULT_MODEL.dialogue }] })
         });
 
         // Mock generate response with bad JSON
@@ -94,7 +95,7 @@ describe('OllamaService', () => {
         // Mock getModel
         mockFetch.mockResolvedValueOnce({
             ok: true,
-            json: async () => ({ models: [{ name: 'llama3' }] })
+            json: async () => ({ models: [{ name: OLLAMA_CATEGORY_DEFAULT_MODEL.dialogue }] })
         });
 
         // Mock generate error (e.g. 500)
@@ -117,7 +118,7 @@ describe('OllamaService', () => {
         // Mock getModel
         mockFetch.mockResolvedValueOnce({
             ok: true,
-            json: async () => ({ models: [{ name: 'llama3' }] })
+            json: async () => ({ models: [{ name: OLLAMA_CATEGORY_DEFAULT_MODEL.dialogue }] })
         });
 
         const validBanter = {
@@ -159,7 +160,7 @@ describe('OllamaService', () => {
         // check to stay quiet.
         mockFetch.mockResolvedValueOnce({
             ok: true,
-            json: async () => ({ models: [{ name: 'llama3' }] })
+            json: async () => ({ models: [{ name: OLLAMA_CATEGORY_DEFAULT_MODEL.dialogue }] })
         });
 
         const isAvailable = await OllamaService.isAvailable();

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { characterReducer } from '../characterReducer';
 import { GameState } from '../../../types';
 import { AppAction } from '../../actionTypes';
-import { createMockGameState, createMockPlayerCharacter } from '../../../utils/factories';
+import { createMockGameState, createMockPlayerCharacter } from '../../../utils/core';
 
 /**
  * Starvation (and half-rations fatigue) mark a status on every party member via a

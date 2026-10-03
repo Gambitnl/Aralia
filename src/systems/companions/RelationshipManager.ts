@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/06/2026, 14:12:11
- * Dependents: state/reducers/companionReducer.ts
- * Imports: 3 files
+ * Last Sync: 09/08/2026, 22:42:05
+ * Dependents: state/reducers/companionReducer.ts, systems/party/recruitConsent.ts
+ * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -23,9 +23,20 @@
  */
 
 // Logic for companion approval and relationship progression
-import { Companion, RelationshipLevel, ApprovalEvent, RelationshipUnlock } from '../../types/companions';
+import {
+  Companion,
+  Relationship,
+  RelationshipLevel,
+  ApprovalEvent,
+  RelationshipUnlock,
+} from '../../types/companions';
 import { generateId } from '../../utils/core/idGenerator';
 
+/**
+ * This manager turns companion approval events and the saved in-world clock into
+ * relationship state. The companion reducer supplies both inputs, and the manager
+ * preserves approval history, unlocks, and the special romance-exit policy.
+ */
 export class RelationshipManager {
   // Canonical runtime approval scale: -500 to +500 with 100-point step changes.
   // Each relationship level spans exactly 100 points for clean progression
@@ -47,6 +58,14 @@ export class RelationshipManager {
   // When a companion falls below this floor, callers can make the story-specific decision.
   private static readonly LOYALTY_RETENTION_FLOOR = 10;
 
+  // Romance only begins its exit timer in enemy-or-worse territory. Rival approval
+  // (-300) is still a serious conflict, but it is not the decided hostile boundary.
+  private static readonly ROMANCE_EXIT_APPROVAL_THRESHOLD = -301;
+
+  // A hostile romance must remain hostile for one complete in-world day. This is
+  // measured from GameState.gameTime and therefore survives saves and reloads.
+  private static readonly ROMANCE_EXIT_DURATION_MS = 24 * 60 * 60 * 1000;
+
   /**
    * Calculates the new approval value and returns the updated companion state.
    */
@@ -54,7 +73,8 @@ export class RelationshipManager {
     companion: Companion,
     targetId: string, // Usually player ID
     change: number,
-    reason: string
+    reason: string,
+    currentGameTimeMs: number
   ): Companion {
     // RALPH: Core state mutation for relationships.
     // Handles arithmetic, clamping (-500 to 500), and level transitions.
@@ -68,12 +88,11 @@ export class RelationshipManager {
 
     const newApproval = Math.max(-500, Math.min(500, currentRelationship.approval + change));
 
-    // Determine new level based on approval
-    // Note: We don't automatically switch to 'romance', that requires explicit triggers.
-    // We strictly map based on thresholds unless current state is 'romance'.
-    // RALPH: "Hysteresis-like" logic: once in 'romance', you stay there unless (presumably) a specific breakup event occurs,
-    // though this code implies approval drops won't auto-downgrade 'romance' back to 'devoted' automatically here.
+    // Ordinary relationships continue to follow the existing threshold table.
+    // Romance instead uses the saved hostile-since marker so one immediate approval
+    // collapse cannot masquerade as a sustained breakup condition.
     let newLevel: RelationshipLevel = currentRelationship.level;
+    let romanceHostileSinceGameTimeMs = currentRelationship.romanceHostileSinceGameTimeMs;
 
     if (newLevel !== 'romance') {
       for (const [level, [min, max]] of Object.entries(this.APPROVAL_THRESHOLDS)) {
@@ -82,6 +101,15 @@ export class RelationshipManager {
           break;
         }
       }
+      romanceHostileSinceGameTimeMs = undefined;
+    } else {
+      const romanceState = this.evaluateRomanceExit(
+        currentRelationship,
+        newApproval,
+        currentGameTimeMs
+      );
+      newLevel = romanceState.level;
+      romanceHostileSinceGameTimeMs = romanceState.romanceHostileSinceGameTimeMs;
     }
 
     // Process Unlocks
@@ -167,9 +195,101 @@ export class RelationshipManager {
           approval: newApproval,
           level: newLevel,
           history,
-          unlocks: [...currentUnlocks, ...newUnlocks]
+          unlocks: [...currentUnlocks, ...newUnlocks],
+          romanceHostileSinceGameTimeMs,
         }
       }
+    };
+  }
+
+  // ============================================================================
+  // In-world Romance Timer
+  // ============================================================================
+  // ADVANCE_TIME reaches this method through companionReducer. It changes only a
+  // romance whose durable hostile interval has reached the full 24-hour policy.
+  // ============================================================================
+
+  static processInWorldTime(companion: Companion, currentGameTimeMs: number): Companion {
+    let relationshipsChanged = false;
+
+    // Check every relationship because the data model is target-keyed even though
+    // the current reducer normally updates the player relationship.
+    const relationships = Object.fromEntries(
+      Object.entries(companion.relationships).map(([targetId, relationship]) => {
+        if (relationship.level !== 'romance') {
+          return [targetId, relationship];
+        }
+
+        const romanceState = this.evaluateRomanceExit(
+          relationship,
+          relationship.approval,
+          currentGameTimeMs
+        );
+
+        // Preserve the existing object when neither the timer nor level changed.
+        // This lets reducers avoid save churn on unrelated time advances.
+        if (
+          romanceState.level === relationship.level &&
+          romanceState.romanceHostileSinceGameTimeMs === relationship.romanceHostileSinceGameTimeMs
+        ) {
+          return [targetId, relationship];
+        }
+
+        relationshipsChanged = true;
+        const history = [...relationship.history];
+
+        // Only the completed 24-hour interval creates a relationship milestone.
+        // Starting or clearing the timer remains invisible bookkeeping.
+        if (romanceState.level !== relationship.level) {
+          history.push({
+            id: generateId(),
+            timestamp: currentGameTimeMs,
+            description: `Relationship changed from ${relationship.level} to ${romanceState.level}`,
+            type: 'milestone',
+          });
+        }
+
+        return [
+          targetId,
+          {
+            ...relationship,
+            level: romanceState.level,
+            history,
+            romanceHostileSinceGameTimeMs: romanceState.romanceHostileSinceGameTimeMs,
+          },
+        ];
+      })
+    );
+
+    // A no-op time tick returns the original companion reference. Once the timer
+    // changes, the updated relationship remains inside normal persisted state.
+    return relationshipsChanged ? { ...companion, relationships } : companion;
+  }
+
+  private static evaluateRomanceExit(
+    relationship: Relationship,
+    approval: number,
+    currentGameTimeMs: number
+  ): Pick<Relationship, 'level' | 'romanceHostileSinceGameTimeMs'> {
+    // Recovery above the enemy boundary cancels any partial interval. A future
+    // collapse must then sustain a fresh full day before romance can exit.
+    if (approval > this.ROMANCE_EXIT_APPROVAL_THRESHOLD) {
+      return { level: 'romance', romanceHostileSinceGameTimeMs: undefined };
+    }
+
+    // The first hostile observation starts the durable in-world interval. It does
+    // not exit romance, regardless of how deep the single approval loss was.
+    const hostileSince = relationship.romanceHostileSinceGameTimeMs ?? currentGameTimeMs;
+    const hostileDuration = currentGameTimeMs - hostileSince;
+    if (hostileDuration < this.ROMANCE_EXIT_DURATION_MS) {
+      return { level: 'romance', romanceHostileSinceGameTimeMs: hostileSince };
+    }
+
+    // Once the interval completes, derive the destination from the canonical table
+    // so enemy and hated approval retain their existing distinct meanings.
+    return {
+      level: this.getRelationshipLevel(approval),
+      romanceHostileSinceGameTimeMs: undefined,
     };
   }
 

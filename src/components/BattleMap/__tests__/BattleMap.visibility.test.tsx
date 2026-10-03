@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import BattleMap from '../BattleMap';
+import { createBattleMapCombatState } from './fixtures/battleMapCombatState';
 import type { BattleMapData, CombatCharacter, LightSource, LightLevel } from '../../../types/combat';
 
 /**
@@ -121,46 +122,10 @@ describe('BattleMap visibility handoff', () => {
       <BattleMap
         mapData={mapData}
         characters={[hero]}
-        combatState={{
-          turnManager: {
-            turnState: {
-              currentTurn: 0,
-              turnOrder: [hero.id],
-              currentCharacterId: hero.id,
-              phase: 'action',
-              actionsThisTurn: []
-            },
-            activeLightSources: [lightSource],
-            reactiveTriggers: [],
-            damageNumbers: [],
-            animations: [],
-            spellZones: [],
-            scheduledSpellEffects: [],
-            movementDebuffs: [],
-            spellMovementVisuals: [],
-            canAffordAction: vi.fn(() => false)
-          } as any,
-          turnState: {
-            currentTurn: 0,
-            turnOrder: [hero.id],
-            currentCharacterId: hero.id,
-            phase: 'action',
-            actionsThisTurn: []
-          } as any,
-          abilitySystem: {
-            targetingMode: false,
-            selectedAbility: null,
-            aoePreview: null,
-            teleportDestinationPreview: null,
-            pendingTeleportAssignment: null,
-            previewAoE: vi.fn(),
-            isValidTarget: vi.fn(),
-            cancelTargeting: vi.fn(),
-            startTargeting: vi.fn()
-          } as any,
-          isCharacterTurn: vi.fn(() => false),
-          onCharacterUpdate: vi.fn()
-        }}
+        combatState={createBattleMapCombatState({
+          turnState: { turnOrder: [hero.id], currentCharacterId: hero.id },
+          turnManager: { activeLightSources: [lightSource] }
+        })}
       />
     );
 
@@ -174,11 +139,13 @@ describe('BattleMap visibility handoff', () => {
         mapData
       })
     }));
-    const dimTile = screen.getByRole('button', { name: 'Tile floor at 0, 0' });
-    const hiddenTile = screen.getByRole('button', { name: 'Tile floor at 1, 0' });
+    // Tile names and titles carry an elevation phrase whose wording is owned by
+    // BattleMapTile.test.tsx; match around it and pin only the light level here.
+    const dimTile = screen.getByRole('button', { name: /^Tile floor at 0, 0,/ });
+    const hiddenTile = screen.getByRole('button', { name: /^Tile floor at 1, 0,/ });
 
-    expect(dimTile).toHaveAttribute('title', expect.stringContaining('(0, 0) - floor - Elev: 0 - dim'));
-    expect(hiddenTile).toHaveAttribute('title', expect.stringContaining('(1, 0) - floor - Elev: 0 - hidden'));
+    expect(dimTile).toHaveAttribute('title', expect.stringMatching(/^\(0, 0\) - floor - .* - dim - /));
+    expect(hiddenTile).toHaveAttribute('title', expect.stringMatching(/^\(1, 0\) - floor - .* - hidden - /));
   });
 
   it('lets the player hide the line-of-sight overlay from the map legend', () => {
@@ -219,46 +186,9 @@ describe('BattleMap visibility handoff', () => {
         mapData={mapData}
         characters={[hero]}
         showLineOfSightCone
-        combatState={{
-          turnManager: {
-            turnState: {
-              currentTurn: 0,
-              turnOrder: [hero.id],
-              currentCharacterId: hero.id,
-              phase: 'action',
-              actionsThisTurn: []
-            },
-            activeLightSources: [],
-            reactiveTriggers: [],
-            damageNumbers: [],
-            animations: [],
-            spellZones: [],
-            scheduledSpellEffects: [],
-            movementDebuffs: [],
-            spellMovementVisuals: [],
-            canAffordAction: vi.fn(() => false)
-          } as any,
-          turnState: {
-            currentTurn: 0,
-            turnOrder: [hero.id],
-            currentCharacterId: hero.id,
-            phase: 'action',
-            actionsThisTurn: []
-          } as any,
-          abilitySystem: {
-            targetingMode: false,
-            selectedAbility: null,
-            aoePreview: null,
-            teleportDestinationPreview: null,
-            pendingTeleportAssignment: null,
-            previewAoE: vi.fn(),
-            isValidTarget: vi.fn(),
-            cancelTargeting: vi.fn(),
-            startTargeting: vi.fn()
-          } as any,
-          isCharacterTurn: vi.fn(() => false),
-          onCharacterUpdate: vi.fn()
-        }}
+        combatState={createBattleMapCombatState({
+          turnState: { turnOrder: [hero.id], currentCharacterId: hero.id }
+        })}
       />
     );
 

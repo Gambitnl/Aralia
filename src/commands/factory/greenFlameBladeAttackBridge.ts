@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/06/2026, 13:45:05
+ * Last Sync: 26/08/2026, 10:39:14
  * Dependents: commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
  * Imports: 7 files
  *
@@ -23,12 +23,12 @@
  * the secondary target and tiered fire damage in one narrow place.
  */
 
-import { Ability, CombatCharacter, SelectedSpellTarget } from '@/types/combat'
+import { Ability, AbilityEffect, CombatCharacter, SelectedSpellTarget } from '@/types/combat'
 import { Item } from '@/types/items'
 import { DamageEffect, isDamageEffect, Spell, SpellEffect } from '@/types/spells'
 import { calculateProficiencyBonus } from '@/utils/character/savingThrowUtils'
 import { getAbilityModifierValue } from '@/utils/character/statUtils'
-import { getDistance } from '@/utils/combatUtils'
+import { getDistance } from '@/utils/combat'
 import { isWeaponProficient } from '@/utils/character/weaponUtils'
 
 type EquippedItemSnapshot = Partial<Record<'MainHand' | 'OffHand', Item>>
@@ -46,7 +46,7 @@ export interface GreenFlameBladeWeaponValidation {
 
 export interface GreenFlameBladeRuntimeAbility extends Ability {
   greenFlameBladeSecondaryTargetId?: string
-  greenFlameBladeSecondaryEffect?: SpellEffect
+  greenFlameBladeSecondaryEffect?: DamageEffect
 }
 
 // Keep the bridge narrow so only Green-Flame Blade gets the weapon-attack
@@ -237,6 +237,37 @@ const appendFlatModifierToDice = (dice: string, modifier: number): string => {
   return `${dice}${sign}${modifier}`
 }
 
+const CANONICAL_DAMAGE_TYPES: Record<string, string> = {
+  acid: 'Acid',
+  bludgeoning: 'Bludgeoning',
+  cold: 'Cold',
+  fire: 'Fire',
+  force: 'Force',
+  lightning: 'Lightning',
+  necrotic: 'Necrotic',
+  piercing: 'Piercing',
+  poison: 'Poison',
+  psychic: 'Psychic',
+  radiant: 'Radiant',
+  slashing: 'Slashing',
+  thunder: 'Thunder',
+  physical: 'Slashing'
+}
+
+// Convert any casing or legacy physical damage type to the standard D&D title-case name.
+const standardizeDamageType = (damageType?: string): string => {
+  if (!damageType) {
+    return 'Slashing'
+  }
+
+  const normalized = damageType.trim().toLowerCase()
+  if (!normalized) {
+    return 'Slashing'
+  }
+
+  return CANONICAL_DAMAGE_TYPES[normalized] ?? (damageType.charAt(0).toUpperCase() + damageType.slice(1))
+}
+
 const resolvePrimaryDamageEffect = (spell: Spell, casterLevel: number): DamageEffect | undefined => {
   const primaryEffect = spell.effects.find((effect): effect is DamageEffect =>
     isDamageEffect(effect) && !effect.secondaryTargeting
@@ -248,14 +279,21 @@ const resolvePrimaryDamageEffect = (spell: Spell, casterLevel: number): DamageEf
 
   const scaledDice = resolveCustomFormulaDice(primaryEffect, casterLevel)
   if (!scaledDice || scaledDice === '0') {
-    return primaryEffect
+    return {
+      ...primaryEffect,
+      damage: {
+        ...primaryEffect.damage,
+        type: standardizeDamageType(primaryEffect.damage.type) as DamageEffect['damage']['type']
+      }
+    }
   }
 
   return {
     ...primaryEffect,
     damage: {
       ...primaryEffect.damage,
-      dice: scaledDice
+      dice: scaledDice,
+      type: standardizeDamageType(primaryEffect.damage.type) as DamageEffect['damage']['type']
     }
   }
 }
@@ -281,7 +319,8 @@ const resolveSecondaryDamageEffect = (
       ...secondaryEffect,
       damage: {
         ...secondaryEffect.damage,
-        dice: String(spellcastingModifier)
+        dice: String(spellcastingModifier),
+        type: standardizeDamageType(secondaryEffect.damage.type) as DamageEffect['damage']['type']
       }
     }
   }
@@ -290,7 +329,8 @@ const resolveSecondaryDamageEffect = (
     ...secondaryEffect,
     damage: {
       ...secondaryEffect.damage,
-      dice: appendFlatModifierToDice(scaledDice, spellcastingModifier)
+      dice: appendFlatModifierToDice(scaledDice, spellcastingModifier),
+      type: standardizeDamageType(secondaryEffect.damage.type) as DamageEffect['damage']['type']
     }
   }
 }
@@ -313,6 +353,23 @@ export const buildGreenFlameBladeAttack = (
     ? resolveGreenFlameBladeSecondaryTarget(selectedSpellTargets, targets, attackTarget.id, caster.id, attackTarget)
     : undefined
 
+  const effects = [
+    {
+      type: 'damage' as const,
+      value: 0,
+      dice: weaponSnapshot.damageDice ? appendFlatModifierToDice(weaponSnapshot.damageDice, strengthModifier) : String(strengthModifier),
+      damageType: standardizeDamageType(weaponSnapshot.damageType) as AbilityEffect['damageType']
+    },
+    ...(primaryDamageEffect
+      ? [{
+          type: 'damage' as const,
+          value: 0,
+          dice: primaryDamageEffect.damage.dice,
+          damageType: standardizeDamageType(primaryDamageEffect.damage.type) as AbilityEffect['damageType']
+        }]
+      : [])
+  ] satisfies Ability['effects']
+
   const attackAbility: GreenFlameBladeRuntimeAbility = {
     id: `${spell.id}-attack`,
     name: spell.name,
@@ -321,22 +378,7 @@ export const buildGreenFlameBladeAttack = (
     cost: { type: 'action' },
     targeting: 'single_any',
     range: 5,
-    effects: [
-      {
-        type: 'damage',
-        value: 0,
-        dice: weaponSnapshot.damageDice ? appendFlatModifierToDice(weaponSnapshot.damageDice, strengthModifier) : String(strengthModifier),
-        damageType: weaponSnapshot.damageType || 'slashing'
-      },
-      ...(primaryDamageEffect
-        ? [{
-            type: 'damage' as const,
-            value: 0,
-            dice: primaryDamageEffect.damage.dice,
-            damageType: primaryDamageEffect.damage.type
-          }]
-        : [])
-    ],
+    effects,
     weapon: weaponSnapshot,
     isProficient: true,
     attackBonus,

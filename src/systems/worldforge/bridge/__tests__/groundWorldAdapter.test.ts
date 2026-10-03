@@ -65,6 +65,32 @@ describe('groundWorldAdapter (LocalArtifact → WorldData)', () => {
     expect(wd.biomeIds.length).toBe(wd.heights.length);
   });
 
+  it('a forest anchor turns `grass` ground into forest floor, and nothing else', () => {
+    const meadow = localArtifactToWorldData(local, 42);
+    const forest = localArtifactToWorldData(local, 42, 'forest_temperate');
+    // Under a canopy every grass cell is leaf litter; a forest window rendered
+    // as meadow green is what the golden-hour sun washed out into beach sand.
+    expect(new Set(forest.biomeIds).has('grassland')).toBe(false);
+    expect(new Set(forest.biomeIds).has('forest_floor')).toBe(true);
+    // Every non-grass cell keeps the tint the material alone decides. Counted
+    // in plain JS — 360k per-element expect() calls time out (see above).
+    let wrong = 0;
+    for (let i = 0; i < meadow.biomeIds.length; i++) {
+      const want = meadow.biomeIds[i] === 'grassland' ? 'forest_floor' : meadow.biomeIds[i];
+      if (forest.biomeIds[i] !== want) wrong++;
+    }
+    expect(wrong).toBe(0);
+  });
+
+  it('a non-forest anchor leaves the ground exactly as the meadow default', () => {
+    // The guard against a global darkening: savanna, desert and every other
+    // open biome must be byte-identical to the no-anchor result.
+    const base = localArtifactToWorldData(local, 42);
+    for (const anchor of ['plains_savanna', 'desert_dune', 'wetland_marsh']) {
+      expect(localArtifactToWorldData(local, 42, anchor).biomeIds).toEqual(base.biomeIds);
+    }
+  });
+
   it('the real world3d sampleChunk accepts the adapted world (pipeline compat)', () => {
     const wd = localArtifactToWorldData(local, 42);
     const chunk = sampleChunk(wd, 0, 0, 16);

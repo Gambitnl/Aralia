@@ -27,7 +27,11 @@
  * It uses a responsive flexbox layout to adapt between mobile (column) and desktop (row) views.
  */
 import React, { useMemo } from 'react';
-import { Location, MapData, GameMessage, Action, NPC, Item, PlayerCharacter } from '../../types';
+// Grid retirement (agora-608b): the `MapData` import is gone — GameLayout stopped
+// feeding the legacy 30x20 grid to the removed minimap adapter, so the import was
+// dead. The world is cell-native (worldSeed -> atlas); nothing here needs a grid.
+import { Location, GameMessage, Action, NPC, Item, PlayerCharacter } from '../../types';
+import type { RulesEdition } from '../../config/rulesEdition';
 import ErrorBoundary from '../ui/ErrorBoundary';
 import { VersionDisplay } from '../ui/VersionDisplay';
 import { ConditionChips } from '../ui/PartyConditionChips';
@@ -68,6 +72,9 @@ interface GameLayoutProps {
     isDevModeEnabled: boolean;
     /** User preference: if true, the game periodically saves to the auto-save slot. */
     autoSaveEnabled: boolean;
+    combatDifficulty?: 'easy' | 'normal' | 'hard';
+    rulesEdition?: RulesEdition;
+    allowSaveScum?: boolean;
     /** If true, disables all interactive elements (buttons, inputs) in the layout. */
     disabled: boolean;
     /** Central handler for dispatching user actions (movement, interaction, etc.). */
@@ -100,6 +107,9 @@ const GameLayout: React.FC<GameLayoutProps> = ({
     worldSeed,
     isDevModeEnabled,
     autoSaveEnabled,
+    combatDifficulty,
+    rulesEdition,
+    allowSaveScum,
     disabled,
     onAction,
     surfaceToggle,
@@ -145,9 +155,11 @@ const GameLayout: React.FC<GameLayoutProps> = ({
                         onClick={openWorldMap}
                         disabled={disabled}
                         data-testid="open-world-map"
-                        className="min-w-0 flex-1 rounded-lg border border-amber-600/60 bg-gray-800 px-3 py-3 text-sm font-semibold text-amber-200 hover:bg-gray-700 disabled:opacity-50 sm:px-4"
+                        className="min-w-0 flex-1 rounded-lg border border-amber-600/60 bg-gray-800 px-3 py-3 text-sm font-semibold text-amber-200 hover:bg-gray-700 disabled:opacity-50 sm:px-4 flex items-center justify-center gap-2"
+                        title="Open World Map (Hotkey: M)"
                     >
-                        Open World Map
+                        <span>🗺 Open World Map</span>
+                        <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-gray-900 text-amber-300 font-mono text-[10px] border border-gray-700">M</kbd>
                     </button>
                     {surfaceToggle && (
                         <div className="flex shrink-0 items-center">
@@ -160,13 +172,15 @@ const GameLayout: React.FC<GameLayoutProps> = ({
                         currentLocation={currentLocation}
                         npcsInLocation={npcsInLocation}
                         itemsInLocation={itemsInLocation}
-                        party={party}
                         onAction={onAction}
                         disabled={disabled}
                         geminiGeneratedActions={geminiGeneratedActions || []}
                         isDevModeEnabled={isDevModeEnabled}
                         unreadDiscoveryCount={unreadDiscoveryCount}
                         autoSaveEnabled={autoSaveEnabled}
+                        combatDifficulty={combatDifficulty}
+                        rulesEdition={rulesEdition}
+                        allowSaveScum={allowSaveScum}
                         hasNewRateLimitError={hasNewRateLimitError}
                     />
                 </ErrorBoundary>

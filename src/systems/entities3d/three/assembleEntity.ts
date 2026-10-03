@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 04/08/2026, 02:01:12
+ * Dependents: components/BattleMap/characters/characterActor/EntityModel.tsx, components/DesignPreview/steps/EntityDebugScene.tsx, components/World3D/OccupantFigure.tsx, components/World3D/PlayerAvatar.tsx, systems/entities3d/three/Entity3D.tsx
+ * Imports: 8 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file assembleEntity.ts — blueprint → live entity (body v2: segments).
  *
@@ -18,15 +34,21 @@
  * Framework-agnostic: no React. Entity3D.tsx wraps this for R3F scenes.
  */
 import {
+  BoxGeometry,
+  CatmullRomCurve3,
   CircleGeometry,
+  Color,
   Group,
   Material,
+  Matrix4,
   Mesh,
   MeshBasicMaterial,
   Object3D,
   Quaternion,
   SphereGeometry,
+  TubeGeometry,
   Vector3,
+  type Bone,
 } from 'three';
 import type { Anchor, EntityBlueprint, PartAnchors, PartPhase, Vec3Like } from '../types';
 import { ANCHORS, headRadiusM, heightM } from '../types';
@@ -34,11 +56,20 @@ import { getPart } from '../registry';
 import type { GaitDriver, LocomotionState, Pose } from './gaits';
 import { createGaitDriver } from './gaits';
 import { createSegmentBody, wireframeifyPart } from './segmentBody';
-import { createSkinnedBiped } from './skinnedBody';
-import { buildHeadForm } from './headForms';
+import { createSkinnedBiped, createSkinnedChains, createSkinnedFromRig, createSkinnedPlan, createSkinnedSpecies } from './skinnedBody';
+import { isSpeciesGait } from './speciesSkeleton';
+import { createSkinnedClipPlayer, type SkinnedClipPlayer } from './skinnedClipPlayer';
+import type { AnimationClip } from 'three';
+import { buildHeadForm, buildHumanoidHead, HUMANOID_EYE, PLAN_EYE_STATION } from './headForms';
+import { bipedSkullRadiusM } from './skeletonBuilder';
+import type { PartChoice } from './partVariants';
+import type { SkinnedMesh } from 'three';
+import { HAFT_WEAPON_IDS } from '../parts/gearWeapons';
+import type { WingJointPose } from '../parts/wingParts';
 import {
   blobShadowMaterial,
   outlineMaterial,
+  smoothShellGeometry,
   toonMaterial,
   ENTITY_RENDER_MODE,
   type EntityRenderMode,
@@ -81,6 +112,26 @@ export interface AssembleOptions {
   /** Body construction technique. Default 'segments' — opting in is the only
    * way to get the slice-1 skinned body; nothing else changes. */
   bodyTech?: BodyTech;
+  /** Skinned-body weight style (slice 3). 'rigid' reproduces the segment
+   * look exactly; 'smooth' lofts one-piece chain tubes with joint-blended
+   * weights (creased elbows/knees). Default 'rigid' until the eyeball gate. */
+  skinnedWeights?: 'rigid' | 'smooth';
+  /** Animation source (CC0 clip slice 1). 'procedural' (default) = the gait
+   * driver poses the bones. 'clip' = a retargeted mocap clip drives them via
+   * an AnimationMixer; requires bodyTech 'skinned' and a loaded clip pack. */
+  animSource?: 'procedural' | 'clip';
+  /** Retargeted clip pack (from loadHumanoidClips) — required when
+   * animSource is 'clip'. */
+  clips?: Map<string, AnimationClip>;
+  /** Part Lab slot variants (partVariants.ts): swap the hand, head, or foot
+   * build on a skinned smooth BIPED. Any other body throws — a variant has
+   * no meaning there, and silently ignoring it would fake a review. */
+  parts?: PartChoice;
+  /** Part Lab base meshes: a foreign SkinnedMesh that carries OUR bone names
+   * (tools/blender/rig_basemesh.py) stands in for the procedural biped body.
+   * It brings its own head, so no humanoid head is mounted. Needs bodyTech
+   * 'skinned' on a biped gait; anything else throws. */
+  rig?: SkinnedMesh;
 }
 
 const IDLE: LocomotionState = {
@@ -88,6 +139,20 @@ const IDLE: LocomotionState = {
   heading: new Vector3(0, 0, 1),
   speed: 0,
 };
+
+/**
+ * The GAME surfaces' body options — the skeleton pivot flip (2026-08-18).
+ * Every gait carries a skeleton (slices 1/4/5) and the chain parts are boned
+ * (slice 6), so the game default is the skinned body: 2 draw calls per figure
+ * instead of ~60. Bipeds wear the slice-3 smooth one-piece look — the mapping
+ * the Entity Debug eyeball surface renders; plan and species bodies use rigid
+ * weights (smooth is deferred there by design). Debug surfaces keep passing
+ * their own explicit options; assembleEntity's own default stays 'segments'
+ * so wireframe debug looks keep working unchanged.
+ */
+export function gameBodyOptions(blueprint: EntityBlueprint): Pick<AssembleOptions, 'bodyTech' | 'skinnedWeights'> {
+  return { bodyTech: 'skinned', skinnedWeights: blueprint.gait === 'biped' ? 'smooth' : 'rigid' };
+}
 
 export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOptions = {}): EntityHandle {
   const { frame, palette, gait } = blueprint;
@@ -97,15 +162,36 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   const renderMode = options.renderMode ?? ENTITY_RENDER_MODE;
   const wireframe = renderMode === 'wireframe';
   const bodyTech = options.bodyTech ?? 'segments';
-  // Slice 1 scope guards — fail honestly instead of falling back:
-  // creature/plan skeletons are slice 4, and skinned wireframe is an open
-  // design decision (the spec parks it), so neither pretends to work.
-  if (bodyTech === 'skinned' && gait !== 'biped') {
-    throw new Error(`bodyTech 'skinned' supports only the biped gait in slice 1 (got '${gait}')`);
+  // Scope guards — fail honestly instead of falling back:
+  // slice 1 skinned the biped, slice 4 the plan creatures, slice 5 the five
+  // SPECIES gaits (quad/hexapod/hopper/flyer/float). Every gait in the Gait
+  // union now has a bone hierarchy; an unhandled one still throws rather than
+  // silently rendering as segments. Wireframe on a deforming body is DECIDED
+  // (Remy 2026-07-21): skinned bodies render solid shaded, period — wireframe
+  // stays a segment-body debug look and never comes to the skeleton path, so
+  // requesting it is a caller bug, not a parked feature.
+  if (bodyTech === 'skinned' && gait !== 'biped' && gait !== 'plan' && !isSpeciesGait(gait)) {
+    throw new Error(`bodyTech 'skinned' has no skeleton for the '${gait}' gait`);
   }
   if (bodyTech === 'skinned' && wireframe) {
-    throw new Error("bodyTech 'skinned' has no wireframe path in slice 1 — use renderMode 'solid'");
+    throw new Error("bodyTech 'skinned' renders solid shaded only (decided 2026-07-21) — wireframe is a segment-body debug look");
   }
+  const animSource = options.animSource ?? 'procedural';
+  if (animSource === 'clip' && bodyTech !== 'skinned') {
+    throw new Error("animSource 'clip' needs bodyTech 'skinned' — a clip drives bones, and only the skinned body has them");
+  }
+  if (animSource === 'clip' && !options.clips) {
+    throw new Error("animSource 'clip' needs a loaded clip pack (options.clips) — load it with loadHumanoidClips first");
+  }
+
+  if (options.parts && (bodyTech !== 'skinned' || options.skinnedWeights !== 'smooth' || gait !== 'biped' || blueprint.planSpec)) {
+    throw new Error('assembleEntity: options.parts needs a skinned smooth biped (bodyTech skinned, skinnedWeights smooth, biped gait, no plan)');
+  }
+  if (options.rig && (bodyTech !== 'skinned' || gait !== 'biped' || blueprint.planSpec || options.parts)) {
+    throw new Error('assembleEntity: options.rig needs a skinned biped without parts (the rig is the whole body)');
+  }
+  // a foreign rig brings its own head
+  const headChoice = options.rig ? 'none' : (options.parts?.head ?? 'humanoid');
 
   const group = new Group();
   group.name = `entity:${blueprint.label}`;
@@ -114,30 +200,104 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   group.add(bodyRoot);
 
   const outlineThickness = Math.max(hM * 0.011, 0.006);
-  // The segment renderer stays even in skinned mode: chain parts (tails,
-  // beards) are procedural wagging chains outside the skeleton until slice 4.
-  // In skinned mode the DRIVER's emissions bypass it (they feed the bones),
-  // so it only ever draws chain-part segments there.
+  // The segment renderer stays even in skinned mode, but since slice 6 it no
+  // longer draws chain parts there (they ride their own skinned pair). In
+  // skinned mode it only ever draws the plan decorations the decorative
+  // delegate forwards (snouts, cilia, toes, fingers, rings, collars).
   const body = createSegmentBody({
     renderMode,
     colorHex: palette.skinHex,
+    // Plan-driven bodies (compiled CreaturePlans) carry their belly tone in
+    // secondaryHex — the tube renderer countershades with it. Segment gaits
+    // emit no tubes, so their secondaryHex (cloak lining etc.) stays unused.
+    bellyHex: blueprint.planSpec ? palette.secondaryHex : undefined,
     accentHex: palette.accentHex,
     outlineThickness,
     opacity: blueprint.planSpec?.opacity,
+    // round 10 (creature-anatomy): grounded translucent bodies (oozes, gel
+    // cubes) draw ONE surface via the depth prepass — interior shells never
+    // show through. Floating mist (the ghost) keeps its layered look.
+    oneSurface: !!blueprint.planSpec && blueprint.planSpec.stance !== 'floating',
+    bodyTech,
   });
   bodyRoot.add(body.root);
 
   const skinnedBody =
     bodyTech === 'skinned'
-      ? createSkinnedBiped(frame, {
-          colorHex: palette.skinHex,
-          outlineThickness,
-          opacity: blueprint.planSpec?.opacity,
-        })
+      ? blueprint.planSpec
+        ? // Slice 4: plan creatures get a real bone hierarchy + rigid-weight
+          // skinned body. Decorative emissions (snouts, cilia, toes, fingers,
+          // rings, collars) stay on the anchor path — forwarded to the segment
+          // renderer so nothing that renders today is dropped in skinned mode.
+          createSkinnedPlan(frame, blueprint.planSpec, {
+            colorHex: palette.skinHex,
+            // GG-152 (agora-2976): the belly tone the segment renderer already
+            // takes as bellyHex above. Without it the skinned half of the A/B
+            // read as one flat tone against the segment half's countershaded
+            // trunk. Gels are excluded on BOTH paths (segmentBody skips the
+            // countershade when opacity < 1) — one gel is one tint.
+            bellyHex:
+              (blueprint.planSpec.opacity ?? 1) < 1 ? undefined : palette.secondaryHex,
+            outlineThickness,
+            opacity: blueprint.planSpec?.opacity,
+            weights: options.skinnedWeights,
+            decorativeDelegate: body.sink,
+          })
+        : isSpeciesGait(gait)
+          ? // Slice 5: the five species gaits get a bone hierarchy captured
+            // from their own driver's rest emissions. They emit nothing
+            // decorative, so no delegate is needed — every emission is a bone.
+            createSkinnedSpecies(gait, frame, {
+              colorHex: palette.skinHex,
+              outlineThickness,
+              opacity: undefined,
+              weights: options.skinnedWeights,
+            })
+          : options.rig
+            ? createSkinnedFromRig(frame, options.rig, { colorHex: palette.skinHex, outlineThickness })
+            : createSkinnedBiped(frame, {
+              colorHex: palette.skinHex,
+              outlineThickness,
+              // biped branch: this is the else of `blueprint.planSpec ?`, so
+              // planSpec is absent — humanoids carry no plan opacity.
+              opacity: undefined,
+              weights: options.skinnedWeights,
+              parts: options.parts,
+            })
       : null;
   if (skinnedBody) bodyRoot.add(skinnedBody.root);
 
-  const driver: GaitDriver = createGaitDriver(gait, frame, blueprint.planSpec);
+  // CC0 clip playback: a mixer poses the skinned bones instead of the driver.
+  // The bones live under skinnedBody.root, so the mixer resolves them by name.
+  // The mixer must bind to the SkinnedMesh (which carries .skeleton) — the
+  // retargeted tracks are `.bones[name].quaternion`, which PropertyBinding can
+  // only resolve on an object with a skeleton, never the wrapping group.
+  const clipPlayer: SkinnedClipPlayer | null =
+    animSource === 'clip' && skinnedBody && options.clips
+      ? createSkinnedClipPlayer(skinnedBody.skinnedMesh, options.clips)
+      : null;
+  // slice 1: auto-select Walk vs Idle by speed. The full action table is slice 2.
+  const idleClip = clipPlayer?.clipNames().includes('Idle_A') ? 'Idle_A' : 'Idle';
+  let clipMode: 'idle' | 'walk' | null = clipPlayer ? 'idle' : null;
+  if (clipPlayer) clipPlayer.play(idleClip);
+
+  // Wing mesh parts (wingsFeathered/wingsMembrane) are garnish the driver
+  // cannot see — plan-driven bodies (the Emberwing dragon) need the hint or
+  // their wings freeze; biped/quad drivers beat unconditionally (harmless).
+  const winged = blueprint.parts.some((p) => p.partId.startsWith('wings'));
+  // round 9 (creature-anatomy): plan bodies own their dorsal crest — the
+  // finRidge chain part rode a 3-anchor bezier and detached laterally from
+  // the slithering spine (the round-8 "floating teardrops" top view). The
+  // driver emits the crest along its LIVE spine stations instead.
+  const crested = !!blueprint.planSpec && blueprint.parts.some((p) => p.partId === 'finRidge');
+  // real-finger update: hands that hold a HAFT weapon wrap their digits
+  // around it (biped gait only; other gaits ignore grips)
+  // a foreign rig stands open-handed: the lab reads the rig, not a weapon grip
+  const grips = {
+    L: !options.rig && blueprint.parts.some((p) => HAFT_WEAPON_IDS.has(p.partId) && p.anchor === 'handL'),
+    R: !options.rig && blueprint.parts.some((p) => HAFT_WEAPON_IDS.has(p.partId) && p.anchor === 'handR'),
+  };
+  const driver: GaitDriver = createGaitDriver(gait, frame, blueprint.planSpec, { winged, crested, grips });
 
   // --- modular parts
   const partsRoot = new Group();
@@ -150,10 +310,32 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     params: Record<string, number | string>;
   }> = [];
 
+  // round 11 (humanoid-anatomy): faceSculpt is the per-race face-param
+  // carrier (speciesProfiles features → blueprint.parts) — its params feed
+  // buildHumanoidHead below; it builds no geometry, so skip the part loop.
+  const faceSculptParams = blueprint.parts.find((p) => p.partId === 'faceSculpt')?.params;
+  const face = {
+    noseDepth: Number(faceSculptParams?.noseDepth ?? 1),
+    noseWidth: Number(faceSculptParams?.noseWidth ?? 1),
+    mouthWidth: Number(faceSculptParams?.mouthWidth ?? 1),
+    // round 23 (humanoid-anatomy): jaw mass (see headForms.HumanoidFaceParams)
+    jawWidth: Number(faceSculptParams?.jawWidth ?? 1),
+    // round 13 (humanoid-anatomy): >1 raises the upper lid (smaller cap,
+    // less forward roll) — the round-12 orc's "droopy half-lidded ... sleepy"
+    // read. Assembler furniture only; buildHumanoidHead ignores it.
+    lidOpen: Number(faceSculptParams?.lidOpen ?? 1),
+    // round 14 (humanoid-anatomy): per-race eyeball scale (<1 shrinks the
+    // whole eye assembly) — the dwarf/orc "huge glossy anime eyes" clash
+    // with the gritty kit; smaller whites read grim, not cute.
+    eyeScale: Number(faceSculptParams?.eyeScale ?? 1),
+  };
   for (const instance of blueprint.parts) {
+    if (instance.partId === 'faceSculpt') continue;
     const def = getPart(instance.partId);
     const params = instance.params ?? {};
     if (def.kind === 'chain') {
+      // plan bodies: the driver already emits the spine-following crest
+      if (instance.partId === 'finRidge' && blueprint.planSpec) continue;
       chainParts.push({ partId: instance.partId, build: def.buildChain!, params });
       continue;
     }
@@ -161,17 +343,55 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
       frame,
       palette,
       params,
-      material: (hex) => toonMaterial(hex),
+      material: (hex, surface) => toonMaterial(hex, surface),
     });
     if (wireframe) {
       // clean edge lines for parts too — no fill, no material.wireframe soup
       wireframeifyPart(object);
     } else {
-      // ink outlines for every mesh in the part
+      // ink outlines for every mesh in the part. round 7 (creature-anatomy):
+      // parts opt thin pieces out via userData.noOutline — the inverse hull on
+      // near-zero-radius tips (horn points, wing spars) rendered as detached
+      // scribble wires, and on two-sided membrane sheets as dark slabs.
       object.traverse((o) => {
         const m = o as Mesh;
+        if ((m.userData as { noOutline?: boolean }).noOutline) return;
         if (m.isMesh) {
-          const shell = new Mesh(m.geometry, outlineMaterial('#20242c', outlineThickness));
+          // 2026-08-13 (Remy, live eyeball on a generated gnoll): the ink is
+          // CLAMPED TO EACH MESH'S OWN GIRTH, not just the entity's height.
+          //
+          // `outlineThickness` is one entity-scale number (hM * 0.011). On a
+          // slim part that is not an outline, it is the part. The gnoll's ear
+          // cone has radius 0.053 m and the hull pushed 0.024 m — 45% of the
+          // radius — so the dark BackSide rim was as wide as the ear itself and
+          // swallowed it completely toward the tip, where the radius goes to 0.
+          // It read as a hollow shell you could see inside. The note above
+          // describes the same failure on horn points and wing spars; those
+          // were fixed one at a time with `noOutline`, which every new thin
+          // part has to remember. Clamping needs no opt-out: a chunky mesh
+          // keeps the full weight (its girth term is larger), and only genuinely
+          // slim geometry gets a proportionate line.
+          m.geometry.computeBoundingBox();
+          const bb = m.geometry.boundingBox;
+          let ink = outlineThickness;
+          if (bb) {
+            // Girth in WORLD units: the bounding box is geometry-local, so a
+            // scaled-down mesh is thinner than its box claims. The first pass
+            // of this clamp ignored `scale` and under-corrected exactly those
+            // meshes — the shellAssumptions guard caught it on the Undead
+            // archetype (ink 0.0169 vs girth 0.0298) minutes after being added.
+            const halfX = ((bb.max.x - bb.min.x) / 2) * Math.abs(m.scale.x);
+            const halfY = ((bb.max.y - bb.min.y) / 2) * Math.abs(m.scale.y);
+            const halfZ = ((bb.max.z - bb.min.z) / 2) * Math.abs(m.scale.z);
+            const girth = Math.min(halfX, halfY, halfZ);
+            if (girth > 0) ink = Math.min(ink, girth * 0.25);
+          }
+          // 2026-08-18 (Remy close-up eyeball): the hull inflates a SMOOTH
+          // welded clone, not the render geometry. Inflating flat facets tears
+          // the hull at every hard edge — the hat cone showed sky slivers and
+          // the robe skirt grew detached black wedges. Same cure the head
+          // loft has carried since round 8 (userData.shellGeometry).
+          const shell = new Mesh(smoothShellGeometry(m.geometry), outlineMaterial('#20242c', ink));
           shell.name = 'partOutline';
           shell.position.copy(m.position);
           shell.quaternion.copy(m.quaternion);
@@ -187,38 +407,155 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     meshContainers.push({ container, anchor: instance.anchor });
   }
 
-  // --- sculpted head forms (planned bodies) — posed at live sockets per frame
-  const formHeads: Array<{ group: Group; head: number }> = [];
+  // --- skinned chain parts (skeleton pivot slice 6)
+  // In skinned mode the chain parts (tails, tentacles, antennae, fin ridges)
+  // get real bones and their own fill+ink SkinnedMesh pair, so no flesh is
+  // left on the segment renderer's boneless path. Rest anchors come from a
+  // FRESH driver stepped to its own rest (t = 0, dt = 0, speed = 0) — the
+  // live driver must reach its first real frame unmutated.
+  const skinnedChains = (() => {
+    if (bodyTech !== 'skinned' || chainParts.length === 0) return null;
+    const restDriver = createGaitDriver(gait, frame, blueprint.planSpec, { winged, crested, grips });
+    restDriver.update(0, 0, IDLE);
+    const restAnchors = Object.fromEntries(
+      ANCHORS.map((a) => [a, restDriver.pose.anchors[a].pos as Vec3Like]),
+    ) as PartAnchors;
+    return createSkinnedChains(chainParts, frame, restAnchors, {
+      colorHex: palette.skinHex,
+      outlineThickness,
+      opacity: blueprint.planSpec?.opacity,
+    });
+  })();
+  if (skinnedChains) bodyRoot.add(skinnedChains.root);
+
+  // --- sculpted head forms (planned bodies)
+  // Task 3 (skeleton pivot slice 4): in SKINNED mode each formed head is
+  // parented to its `head<i>` bone, which the pose sink writes from the
+  // driver's live sockets every frame — the sculpted skull rides the skeleton
+  // like every ball head does. In segments mode there are no bones, so the
+  // head keeps the original per-frame socket placement below.
+  const formHeads: Array<{ group: Group; head: number; bone: Bone | null }> = [];
+  /** head index → its sculpted form, for the eye station (see the eye loop). */
+  const formHeadByIndex = new Map<number, { group: Group; head: number; bone: Bone | null }>();
   if (blueprint.planSpec && !wireframe) {
     const toothMaterial = toonMaterial('#e8e2d4');
     blueprint.planSpec.heads.forEach((headSpec, h) => {
       if (!headSpec.form) return;
-      const formGroup = buildHeadForm(headSpec.form, toonMaterial(palette.skinHex), toothMaterial);
+      // round 8 (creature-anatomy): formed heads repurpose the plan's
+      // per-head snout.droop as a jaw-gape scale (1 + droop) — the cone
+      // snout is skipped on formed heads, so droop was dead data; now a
+      // drooped snout closes the hinge partway and multi-head creatures
+      // stop gaping in cloned unison (the hydra fixture's flankers).
+      const formGroup = buildHeadForm(headSpec.form, toonMaterial(palette.skinHex), toothMaterial, {
+        gapeScale: 1 + (headSpec.snout?.droop ?? 0),
+      });
       formGroup.name = `head${h}:form`;
-      bodyRoot.add(formGroup);
-      formHeads.push({ group: formGroup, head: h });
+      const headBone = skinnedBody?.boneNamed(`head${h}`) ?? null;
+      if (headBone) headBone.add(formGroup);
+      else bodyRoot.add(formGroup);
+      formHeads.push({ group: formGroup, head: h, bone: headBone });
+      formHeadByIndex.set(h, formHeads[formHeads.length - 1]);
     });
   }
 
+  // --- sculpted humanoid head (biped gait, solid modes)
+  // round 8 (humanoid-anatomy): the biped head is ONE continuous loft
+  // (headForms.buildHumanoidHead) — chin, jawline, mouth, nose, carved eye
+  // sockets, brow shelf, and cranium all stations of a single surface — and
+  // it gets exactly ONE ink shell around that loft. The round-7 head was a
+  // collage of attached feature boxes, each with its own outline; the
+  // per-piece ink was what made every close-up read as a cardboard mask kit.
+  // Skinned bodies skip baking the ball sphere and the head group parents to
+  // the head bone (the ball emission still drives it); the segment renderer
+  // still builds its ball node, which is hidden below. Wireframe keeps the
+  // ball — it is a segment-body debug look.
+  const headSkinMaterial = gait === 'biped' && !blueprint.planSpec && !wireframe && headChoice === 'humanoid' ? toonMaterial(palette.skinHex) : null;
+  // Part Lab head swap: a creature head form, or no head, on the biped's head
+  // bone. The legacy floating eye pair is suppressed below for both cases.
+  const headSwapped = gait === 'biped' && !blueprint.planSpec && !wireframe && headChoice !== 'humanoid';
+  // round 11 (humanoid-anatomy): per-race face params (nose depth/width,
+  // mouth width) flow into the loft — orc broad-flat, dwarf prominent.
+  const humanoidHead = headSkinMaterial ? buildHumanoidHead(headSkinMaterial, face) : null;
+  let segHeadNode: Object3D | null | undefined;
+  if (humanoidHead) {
+    humanoidHead.name = 'head:form';
+    const skullR = bipedSkullRadiusM(frame);
+    humanoidHead.scale.setScalar(skullR);
+    // ONE outline for the whole head: an inverse hull of the skull loft. The
+    // head group is scaled by skullR, so the shell thickness converts to the
+    // loft's unit space to match the body's ink weight. The hull inflates the
+    // SMOOTH-normal indexed clone the loft carries (userData.shellGeometry) —
+    // inflating the flat-faceted render geometry tears the hull open at every
+    // hard edge.
+    const skullMesh = humanoidHead.getObjectByName('skull') as Mesh;
+    const shellGeometry = (skullMesh.userData as { shellGeometry?: Mesh['geometry'] }).shellGeometry ?? skullMesh.geometry;
+    const headShell = new Mesh(shellGeometry, outlineMaterial(palette.skinHex, outlineThickness / skullR));
+    headShell.name = 'headOutline';
+    humanoidHead.add(headShell);
+    const headBone = skinnedBody?.boneNamed('head');
+    if (headBone) headBone.add(humanoidHead);
+    else bodyRoot.add(humanoidHead);
+  }
+  if (headSwapped && headChoice !== 'none') {
+    // the creature skull loft at the biped's skull radius; eyes sit at the
+    // plan eye station in head-local space, so they ride the head bone
+    const formGroup = buildHeadForm(headChoice, toonMaterial(palette.skinHex), toonMaterial('#e8e2d4'));
+    formGroup.name = 'head:form';
+    formGroup.scale.setScalar(bipedSkullRadiusM(frame));
+    const formEyeMaterial = new MeshBasicMaterial({ color: '#f4f1e6' });
+    const formPupilMaterial = new MeshBasicMaterial({ color: palette.eyeHex });
+    for (const sgn of [-1, 1] as const) {
+      const eye = new Mesh(new SphereGeometry(0.2, 12, 10), formEyeMaterial);
+      eye.name = sgn < 0 ? 'eyeL' : 'eyeR';
+      eye.position.set(sgn * PLAN_EYE_STATION.x, PLAN_EYE_STATION.y, PLAN_EYE_STATION.z);
+      const pupil = new Mesh(new SphereGeometry(0.12, 10, 8), formPupilMaterial);
+      pupil.position.z = 0.14;
+      eye.add(pupil);
+      formGroup.add(eye);
+    }
+    const headBone = skinnedBody?.boneNamed('head');
+    if (headBone) headBone.add(formGroup);
+    else bodyRoot.add(formGroup);
+  }
+
   // --- eyes (the charm organ) — solid in both render modes
-  const eyeMaterial = new MeshBasicMaterial({ color: '#ffffff' });
-  const pupilMaterial = new MeshBasicMaterial({ color: palette.eyeHex });
+  // Warm off-white reads softer than pure #ffffff against toon skin; radius
+  // factors tuned down twice 2026-07-27 (0.32hr whites read "googly" on beast
+  // heads; still lemur-eyed at 0.27, so 0.24 planned / 0.25 legacy).
+  const eyeMaterial = new MeshBasicMaterial({ color: '#f4f1e6' });
+  // Contrast guard: a gold pupil on gold skin (forge-7 dragon) is invisible.
+  // When iris and skin luminance are too close, fall back to a dark pupil.
+  const lum = (hex: string) => {
+    const c = new Color(hex);
+    return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+  };
+  const pupilHex = Math.abs(lum(palette.eyeHex) - lum(palette.skinHex)) < 0.12 ? '#1c1c22' : palette.eyeHex;
+  const pupilMaterial = new MeshBasicMaterial({ color: pupilHex });
+  // round 9 (humanoid-anatomy): unlit near-black for the biped lash lines —
+  // the same ink tone the creature heads use for their lid lines.
+  const lashMaterial = new MeshBasicMaterial({ color: '#231a1c' });
   const eyes: Mesh[] = [];
   /** Planned bodies: eye i belongs to head socket plannedEyeHead[i], slot plannedEyeSlot[i]. */
   const plannedEyeHead: number[] = [];
   const plannedEyeSlot: number[] = [];
   if (blueprint.planSpec) {
     blueprint.planSpec.heads.forEach((headSpec, h) => {
-      const r = hr * headSpec.sizeScale * 0.32 * headSpec.eyes.sizeScale;
+      const r = hr * headSpec.sizeScale * 0.24 * headSpec.eyes.sizeScale;
       for (let k = 0; k < headSpec.eyes.count; k++) {
         const eye = new Mesh(new SphereGeometry(Math.max(0.008, r), 12, 10), eyeMaterial);
         eye.name = `eyeP${h}_${k}`;
-        const pupil = new Mesh(new SphereGeometry(Math.max(0.005, r * 0.55), 10, 8), pupilMaterial);
-        pupil.position.z = r * 0.72;
+        // round 23 (creature-anatomy): SOLID LENS BULGE — Remy orbited the
+        // Construct Large live and the pupils vanished off-front ("outside of
+        // the frame not visible?"). Every detail part must be a solid 3D form
+        // that survives a 360° orbit: the pupil is now a larger sphere seated
+        // shallower in the eyeball with no z-flatten, so a dark cap stays
+        // proud of the white from every angle.
+        const pupil = new Mesh(new SphereGeometry(Math.max(0.005, r * 0.64), 10, 8), pupilMaterial);
+        pupil.position.z = r * 0.62;
         // pupil character: slit (reptile) is tall-thin, goat is wide-flat
         const pupilShape = headSpec.eyes.pupil ?? 'round';
-        if (pupilShape === 'slit') pupil.scale.set(0.38, 1.55, 0.8);
-        else if (pupilShape === 'goat') pupil.scale.set(1.55, 0.42, 0.8);
+        if (pupilShape === 'slit') pupil.scale.set(0.38, 1.45, 1);
+        else if (pupilShape === 'goat') pupil.scale.set(1.45, 0.42, 1);
         eye.add(pupil);
         bodyRoot.add(eye);
         eyes.push(eye);
@@ -226,11 +563,172 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
         plannedEyeSlot.push(k);
       }
     });
-  } else {
+  } else if (humanoidHead && headSkinMaterial) {
+    // round 12 (humanoid-anatomy): MOUTH INK — ONE curved tube that tracks
+    // the loft's recessed mouth ring analytically (y −0.235: half-width
+    // 0.46, zF 0.47, front-half flatten cos^0.75 — mirror of loftFace). The
+    // round-11 three-segment bar broke on the human: at mouthWidth 1 the
+    // raked corner bars' inner ends (x ≈ 0.098, z ≈ 0.43) sank below the
+    // loft surface (~0.46 there), burying the joins so the ink read as a
+    // center dash plus two detached ticks — the critic's "disconnected
+    // black scribble". A groove-following curve cannot disconnect at any
+    // mouthWidth. End samples pull back into the cheek so the tube's open
+    // ends stay buried; scale.y flattens the tube into a lip line. Lives
+    // here, not in buildHumanoidHead: the head stays ONE loft mesh (the
+    // round-8 pin); ink features are assembler furniture like the eyes.
+    const mouthGroup = new Group();
+    mouthGroup.name = 'mouthLine';
+    const mw = face.mouthWidth;
+    const grooveZ = (theta: number) => 0.47 * Math.pow(Math.cos(theta), 0.75);
+    const thetaMax = Math.min(0.85, 0.5 * mw);
+    const mouthPts: Vector3[] = [];
+    const MOUTH_SAMPLES = 8;
+    for (let i = -MOUTH_SAMPLES; i <= MOUTH_SAMPLES; i++) {
+      const theta = (i / MOUTH_SAMPLES) * thetaMax;
+      mouthPts.push(new Vector3(Math.sin(theta) * 0.46, 0, grooveZ(theta) + 0.02));
+    }
+    // buried end samples: past the corner, dive under the cheek. Remy
+    // 2026-08-19: 0.06 was tuned on the human loft — on the beardless dwarf
+    // the shallower cheek let both end segments resurface as two dark fangs
+    // below the mouth corners. 0.16 buries them on every face profile.
+    const endTheta = thetaMax + 0.14;
+    mouthPts.unshift(new Vector3(Math.sin(-endTheta) * 0.46, 0, grooveZ(endTheta) - 0.16));
+    mouthPts.push(new Vector3(Math.sin(endTheta) * 0.46, 0, grooveZ(endTheta) - 0.16));
+    const mouthCurve = new CatmullRomCurve3(mouthPts, false, 'catmullrom', 0.5);
+    const mouthTube = new Mesh(new TubeGeometry(mouthCurve, 24, 0.036, 6, false), lashMaterial);
+    mouthTube.scale.y = 0.55; // tube → flattened lip line
+    mouthGroup.add(mouthTube);
+    mouthGroup.position.set(0, -0.235, 0);
+    humanoidHead.add(mouthGroup);
+    // round 12: NOSE SHADOW — one short dark bar tucked under the nose tip
+    // (replaces the round-11 nostril-pit pair, which sat flat on the
+    // underside plane and vanished from the front at sheet scale). The bar
+    // rides the underside slope between the upper-lip station (y −0.17) and
+    // the tip station (y −0.08), so its z tracks the race nose depth: the
+    // orc's flat nose pulls it in, the dwarf's prominent nose pushes it out.
+    // One connected shadow under the tip is what makes the ridge above read
+    // as a NOSE at panel distance.
+    const noseShadow = new Mesh(new BoxGeometry(0.19 * face.noseWidth, 0.032, 0.09), lashMaterial);
+    noseShadow.position.set(0, -0.135, 0.585 + 0.16 * face.noseDepth);
+    noseShadow.name = 'noseShadow';
+    humanoidHead.add(noseShadow);
+    // round 8 (humanoid-anatomy): INSET eyes — children of the sculpted head
+    // in its unit space, nested in the socket recess the loft carves under
+    // the brow shelf (HUMANOID_EYE is now smaller and deeper: r 0.13,
+    // z 0.46, so most of the ball sits inside the surface). Each eye carries
+    // a skin-toned UPPER LID cap that crops the top of the iris — the googly
+    // full-circle sticker read dies with the lid. Parented to the eye, the
+    // lid rides the blink squash (scale.y), so a blink reads as the lid
+    // closing; the blink loop is untouched.
     for (const name of ['eyeL', 'eyeR'] as const) {
-      const eye = new Mesh(new SphereGeometry(hr * 0.32, 12, 10), eyeMaterial);
+      const sgn = name === 'eyeL' ? -1 : 1;
+      const eye = new Mesh(new SphereGeometry(HUMANOID_EYE.r, 12, 10), eyeMaterial);
       eye.name = name;
-      const pupil = new Mesh(new SphereGeometry(hr * 0.17, 10, 8), pupilMaterial);
+      eye.position.set(sgn * HUMANOID_EYE.x, HUMANOID_EYE.y, HUMANOID_EYE.z);
+      const pupil = new Mesh(new SphereGeometry(HUMANOID_EYE.r * 0.58, 10, 8), pupilMaterial);
+      pupil.position.z = HUMANOID_EYE.r * 0.72;
+      eye.add(pupil);
+      // upper lid: a skin cap over the ball's top-front, tilted forward so
+      // its rim crosses the iris top — visible lid coverage from the front
+      // round 13 (humanoid-anatomy): lidOpen > 1 (orc) shrinks the cap and
+      // eases the forward roll — the rim rides above the iris top instead of
+      // drooping across it (the "sleepy" read).
+      // round 14 (humanoid-anatomy): the 1.6 raise DID reach the geometry but
+      // was eaten downstream — the roll eased only 0.24 rad and the LASH BAND
+      // kept its full π·0.18 thickness riding across the iris top, so the
+      // dark "droopy lid" line never moved. The raise now nearly levels the
+      // rim (0.55 slope), shrinks the cap harder (0.12), and thins/raises the
+      // lash band itself (see below).
+      const lidRaise = Math.max(0, face.lidOpen - 1);
+      // round-14 probe numbers: the pupil's top sits at ~51° polar; the old
+      // raised band still spanned 50–70° after the forward roll — a dark bar
+      // straight across the iris = the sleepy read. The raised rim now
+      // finishes ABOVE the pupil top and the whole lid tilts inner-corner-
+      // down (angry glare), not outer-corner-down (sleepy droop).
+      const lidRot = -0.5 + 0.7 * lidRaise;
+      const angryTilt = 0.28 * lidRaise;
+      const lid = new Mesh(
+        new SphereGeometry(HUMANOID_EYE.r * 1.14, 12, 5, 0, Math.PI * 2, 0, Math.PI * (0.42 - 0.15 * lidRaise)),
+        headSkinMaterial,
+      );
+      lid.rotation.x = lidRot; // roll the cap rim down over the iris top
+      lid.rotation.z = sgn * -angryTilt; // inner corner dips — mean, not sleepy
+      lid.name = `${name}Lid`;
+      eye.add(lid);
+      // round 12 (humanoid-anatomy): SOCKET FILLER — a skin-toned sphere
+      // tucked behind the ball that plugs the ball-to-loft junction at every
+      // azimuth. At 3/4 angles, sightlines slipped between the ball and the
+      // (backface-culled) loft front into the head interior and hit the
+      // BackSide ink shell — a thin dark drip under the far eye, the last of
+      // the critic's stray face lines. Socket-carve and lid experiments left
+      // it untouched; only sealing the junction kills it.
+      const socketFiller = new Mesh(new SphereGeometry(HUMANOID_EYE.r * 1.32, 12, 10), headSkinMaterial);
+      socketFiller.position.z = -0.055;
+      socketFiller.name = `${name}SocketFiller`;
+      eye.add(socketFiller);
+      // round 9 (humanoid-anatomy): dark LASH LINE along the lid rim. The
+      // skin-toned lid cap is invisible against pale skin (the round-8 human
+      // read as an iris dot with no lid; the dwarf's white ball read as a
+      // googly sticker) — the same near-black line the creature heads carry
+      // (headForms eyeSocketPair lidMaterial) makes "lidded" read on every
+      // skin tone. Parented to the lid, it rides the blink squash.
+      // round 11 (humanoid-anatomy): the band DEEPENS (length π0.1 → π0.18).
+      // Round 10 pulled the ball forward (z 0.42 → 0.45) and eased the socket
+      // carve to open the orc's sleepy aperture; on the dwarf that exposed a
+      // full white annulus around the pupil below the narrow band — the
+      // white-circle googly regression the round-10 verdict called. The wider
+      // band re-crops the iris top at the new exposure on every skin tone.
+      // round 12 (humanoid-anatomy): FRONT ARC only (±80° around +z), not a
+      // full 2π ring — the ring's outer side limb leaked past the socket rim
+      // at 3/4 angles and hung below the far eye as a short dark vertical
+      // drip (one of the critic's "tear streak" stray lines). The front arc
+      // keeps the identical iris crop in every face-on read.
+      // round 13 (humanoid-anatomy): the lash band tracks the raised lid rim
+      // (thetaStart shifts up with lidOpen, same roll as the lid).
+      // round 14 (humanoid-anatomy): the band also THINS with the raise
+      // (π·0.18 → π·0.11 at lidOpen 1.6) and starts higher (0.10 slope) —
+      // the fat dark band across the iris top WAS the sleepy read; a thin
+      // high rim line under the brow reads open and mean.
+      const lash = new Mesh(
+        new SphereGeometry(HUMANOID_EYE.r * 1.16, 12, 3, Math.PI / 2 - 1.4, 2.8, Math.PI * (0.34 - 0.14 * lidRaise), Math.PI * (0.18 - 0.11 * lidRaise)),
+        lashMaterial,
+      );
+      lash.rotation.x = lidRot; // same roll as the lid — the band sits at its rim
+      lash.rotation.z = sgn * -angryTilt; // rides the lid's angry tilt
+      lash.name = `${name}Lash`;
+      eye.add(lash);
+      // round 20 (humanoid-anatomy): THE LOWER LID — round 19 on the dwarf:
+      // "pale streaks under both eyes that read as tears". The eye has carried
+      // an upper lid since round 8 but never a lower one, so the pale sclera
+      // sphere spilled BELOW the dark lash line as a bright wedge hanging off
+      // each eye — the tear. (Round 11's alar creases and round 12's lash-ring
+      // side limb were different sources of the same artifact; this is the
+      // ball itself.) A skin-toned bottom cap, mirror of the upper lid and
+      // slightly wider, crops the sclera at the lower rim on every skin tone
+      // and every azimuth. Parented to the eye, so it rides the blink squash.
+      const lowerLid = new Mesh(
+        new SphereGeometry(HUMANOID_EYE.r * 1.15, 12, 5, 0, Math.PI * 2, Math.PI * 0.66, Math.PI * 0.34),
+        headSkinMaterial,
+      );
+      // NEGATIVE x rolls a BOTTOM cap forward (+z), the mirror of the upper
+      // lid's negative lidRot rolling a TOP cap forward — a positive angle
+      // tips this rim backwards and leaves the sclera showing.
+      lowerLid.rotation.x = -0.32; // roll the rim up over the sclera's bottom-front
+      lowerLid.rotation.z = sgn * -angryTilt; // matches the upper lid's tilt
+      lowerLid.name = `${name}LowerLid`;
+      eye.add(lowerLid);
+      // round 14 (humanoid-anatomy): per-race eye shrink — scaling the eye
+      // group scales pupil, lid, lash, and socket filler with it; the loft
+      // socket recess is unchanged, so the smaller ball sits deeper-set.
+      if (face.eyeScale !== 1) eye.scale.setScalar(face.eyeScale);
+      humanoidHead.add(eye);
+      eyes.push(eye);
+    }
+  } else if (!headSwapped) {
+    for (const name of ['eyeL', 'eyeR'] as const) {
+      const eye = new Mesh(new SphereGeometry(hr * 0.25, 12, 10), eyeMaterial);
+      eye.name = name;
+      const pupil = new Mesh(new SphereGeometry(hr * 0.16, 10, 8), pupilMaterial);
       pupil.position.z = hr * 0.24;
       eye.add(pupil);
       bodyRoot.add(eye);
@@ -255,8 +753,18 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
 
   const phase: { -readonly [K in keyof PartPhase]: PartPhase[K] } = { t: 0, gaitPhase: 0, flap: 0 };
   const tmpQuat = new Quaternion();
+  const tmpQuatB = new Quaternion();
   const tmpVecA = new Vector3();
   const FORWARD = new Vector3(0, 0, 1);
+  // planned-eye placement scratch (see the eye loop in update()): the head
+  // form's transform expressed in bodyRoot space, and a throwaway scale sink
+  // for decompose() so the blink squash on eye.scale survives.
+  const eyeHeadMat = new Matrix4();
+  const bodyRootInv = new Matrix4();
+  const eyeScrapVec = new Vector3();
+  const eyeScrapScale = new Vector3();
+  const AXIS_Z = new Vector3(0, 0, 1);
+  const WING_JOINT_NAMES = ['wingArm', 'wingElbow', 'wingHand'] as const;
 
   function update(t: number, dt: number, loco: LocomotionState = IDLE): void {
     driver.update(t, dt, loco);
@@ -266,20 +774,41 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     bodyRoot.position.y = driver.verticalOffsetM;
 
     // skeleton + animated chain parts, transform-only after the first frame.
-    // Skinned mode: the driver's emissions drive the bones (pose adapter);
-    // chain parts still render through the segment renderer either way.
+    // Skinned mode: the driver's emissions drive the bones (pose adapter),
+    // and since slice 6 the chain builds drive their own chain bones too.
     body.beginFrame();
-    if (skinnedBody) {
+    if (clipPlayer && skinnedBody) {
+      // clip mode: the mixer owns the bones; the driver still ran (above) for
+      // facing + group movement, but must NOT also pose the skeleton.
+      const walking = loco.speed > 0.1;
+      const want = walking ? 'walk' : 'idle';
+      if (want !== clipMode) {
+        clipPlayer.play(walking ? 'Walk' : idleClip, { fadeSec: 0.2 });
+        clipMode = want;
+      }
+      if (walking) clipPlayer.setSpeed(loco.speed);
+      clipPlayer.update(dt);
+    } else if (skinnedBody) {
       driver.buildBody(skinnedBody.sink);
+      // Task 3: formed heads emit no ball, so the pose sink never sees their
+      // head<i> bones — write them from the driver's live sockets before the
+      // locals resolve, or bone-parented sculpted heads freeze at bind pose.
+      if (driver.headSockets && skinnedBody.poseHeadSockets) {
+        skinnedBody.poseHeadSockets(driver.headSockets());
+      }
       skinnedBody.finishFrame();
     } else {
       driver.buildBody(body.sink);
     }
+    // Slice 6: in skinned mode the chain builds drive their own bones; the
+    // segment renderer receives them only on the segments path.
+    const chainSink = skinnedChains ? skinnedChains.sink : body.sink;
     for (const chain of chainParts) {
       for (const s of chain.build(frame, chain.params, phase, anchorsView)) {
-        body.sink.seg(`${chain.partId}:${s.id}`, s.ax, s.ay, s.az, s.bx, s.by, s.bz, s.r0, s.r1);
+        chainSink.seg(`${chain.partId}:${s.id}`, s.ax, s.ay, s.az, s.bx, s.by, s.bz, s.r0, s.r1);
       }
     }
+    skinnedChains?.finishFrame();
     body.finishFrame();
 
     for (const { container, anchor } of meshContainers) {
@@ -289,8 +818,80 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
       const wingL = container.getObjectByName('wingL');
       const wingR = container.getObjectByName('wingR');
       if (wingL && wingR) {
-        wingL.rotation.z = driver.flap;
-        wingR.rotation.z = -driver.flap;
+        // Sign convention (from the original beat): +z-rotation on wingL and
+        // -z on wingR BOTH lower the tips symmetrically; ±y sweeps tips back.
+        const fold = driver.wingFold;
+        const beat = driver.flap * (1 - fold * 0.55);
+        for (const [wing, sgn] of [
+          [wingL, -1],
+          [wingR, 1],
+        ] as const) {
+          const armJoint = wing.getObjectByName('wingArm');
+          const foldedBlade = wing.getObjectByName('wingFolded');
+          if (armJoint && foldedBlade) {
+            // round 9 (creature-anatomy): folded and spread are DIFFERENT
+            // MESHES (the low-poly game trick) — articulating the spread
+            // armature into a fold failed three rounds straight. The
+            // purpose-built folded blade (wingParts buildFoldedWing) shows at
+            // fold ≈ 1; the three-joint armature holds its SPREAD pose (plus
+            // the flap beat) and only shows at fold ≈ 0; a short smoothstep
+            // cross-scale bridges the transition so neither pops.
+            // round 10 (creature-anatomy): the swap is COMPLETE — every child
+            // of the wing group that is not the folded blade counts as spread
+            // assembly and hides with it, so no arm bone, spar, or joint ball
+            // can ever render next to the blade.
+            const f = fold * fold * (3 - 2 * fold);
+            for (const child of wing.children) {
+              const k = child === foldedBlade ? f : 1 - f;
+              child.scale.setScalar(Math.max(1e-3, k));
+              child.visible = k > 0.02;
+            }
+            for (const jointName of WING_JOINT_NAMES) {
+              const joint = jointName === 'wingArm' ? armJoint : wing.getObjectByName(jointName);
+              const pose = joint && (joint.userData as { wingJoint?: WingJointPose }).wingJoint;
+              if (!joint || !pose) continue;
+              if (pose.beatSign) {
+                tmpQuatB.setFromAxisAngle(AXIS_Z, pose.beatSign * beat);
+                joint.quaternion.multiplyQuaternions(tmpQuatB, pose.spread);
+              } else {
+                joint.quaternion.copy(pose.spread);
+              }
+            }
+          } else if (armJoint) {
+            // round 7 (creature-anatomy): membrane wings are a THREE-JOINT
+            // armature (shoulder › elbow › wrist). Each joint group carries
+            // its own spread/folded local pose (wingParts POSE); blending per
+            // joint gives the folded wing real anatomy — humerus up-and-back
+            // to a high elbow peak, radius forward-down to a wrist spike over
+            // the shoulder, finger spars fanned back along the flank with the
+            // membrane draped between them. Round 6's whole-wing slerp
+            // produced the rigid kite-sail panels the critic called out.
+            for (const jointName of WING_JOINT_NAMES) {
+              const joint = jointName === 'wingArm' ? armJoint : wing.getObjectByName(jointName);
+              const pose = joint && (joint.userData as { wingJoint?: WingJointPose }).wingJoint;
+              if (!joint || !pose) continue;
+              tmpQuat.copy(pose.spread).slerp(pose.folded, fold);
+              if (pose.beatSign) {
+                tmpQuatB.setFromAxisAngle(AXIS_Z, pose.beatSign * beat);
+                joint.quaternion.multiplyQuaternions(tmpQuatB, tmpQuat);
+              } else {
+                joint.quaternion.copy(tmpQuat);
+              }
+            }
+          } else {
+            // feathered wings keep the round-5 parked-bird drape: tips drop
+            // past horizontal and trail along the rear flank.
+            // round 25 (creature-anatomy): the rear sweep halves (0.9 → 0.45)
+            // and the lateral squash eases (0.6 → 0.35). With the round-25
+            // layered feather groups the wing is a real sheet, and the old
+            // sweep tucked the whole thing directly behind the torso — the
+            // orbit check showed the front panel with no wing visible at all,
+            // on the archetype whose wings ARE its identity statement.
+            wing.rotation.z = -sgn * (beat + fold * 1.62);
+            wing.rotation.y = sgn * fold * 0.45;
+            wing.scale.x = 1 - fold * 0.35;
+          }
+        }
       }
     }
 
@@ -301,26 +902,69 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
       for (const fh of formHeads) {
         const socket = sockets[fh.head];
         if (!socket) continue;
+        if (fh.bone) {
+          // Skinned mode (Task 3): the head<i> bone already carries position
+          // and facing — the mesh only keeps its radius scale (buildHeadForm
+          // geometry is unit-radius by construction).
+          fh.group.scale.setScalar(socket.r);
+          continue;
+        }
         fh.group.position.set(socket.x, socket.y, socket.z);
         tmpVecA.set(socket.fx, socket.fy, socket.fz);
         fh.group.quaternion.setFromUnitVectors(FORWARD, tmpVecA);
         fh.group.scale.setScalar(socket.r);
       }
+      // EYES SEAT IN THEIR SOCKETS. The eyeball is placed by the SAME
+      // transform the socket art rides, from the SAME constant
+      // (PLAN_EYE_STATION) the art is built from — see the note on that
+      // constant for what the two independent placements had drifted into.
+      //
+      // A head that has a sculpted form takes its transform from the form
+      // group itself, in whatever frame that group actually lives in (bodyRoot
+      // for segment bodies, the head<i> BONE for skinned ones); the eye is a
+      // child of bodyRoot, so the form's world matrix comes back through
+      // bodyRoot's inverse. A head with no form is a ball at the socket, and
+      // its transform is composed from the socket exactly as the assembler
+      // composes a form group's above.
+      bodyRoot.updateWorldMatrix(true, false);
+      bodyRootInv.copy(bodyRoot.matrixWorld).invert();
       for (const [i, eye] of eyes.entries()) {
-        const socket = sockets[plannedEyeHead[i]];
+        const headIndex = plannedEyeHead[i];
+        const socket = sockets[headIndex];
         if (!socket) continue;
         const K = socket.eyes.count;
         const spread = K === 1 ? 0 : plannedEyeSlot[i] / (K - 1) - 0.5;
-        // face frame: forward f, right = f × up (horizontal)
-        const rx = -socket.fz;
-        const rz = socket.fx;
-        eye.position.set(
-          socket.x + socket.fx * socket.r * 0.72 + rx * spread * socket.r * 0.95,
-          socket.y + socket.r * 0.16,
-          socket.z + socket.fz * socket.r * 0.72 + rz * spread * socket.r * 0.95,
-        );
-        tmpVecA.set(socket.fx, socket.fy, socket.fz);
-        eye.quaternion.setFromUnitVectors(FORWARD, tmpVecA);
+        const fh = formHeadByIndex.get(headIndex);
+        if (fh) {
+          fh.group.updateWorldMatrix(true, false);
+          eyeHeadMat.multiplyMatrices(bodyRootInv, fh.group.matrixWorld);
+        } else {
+          tmpVecA.set(socket.fx, socket.fy, socket.fz);
+          tmpQuat.setFromUnitVectors(FORWARD, tmpVecA);
+          eyeHeadMat.compose(
+            eyeScrapVec.set(socket.x, socket.y, socket.z),
+            tmpQuat,
+            eyeScrapScale.setScalar(socket.r),
+          );
+        }
+        // `spread` runs −0.5…+0.5 over the head's eye slots, so ±0.5 lands on
+        // ±PLAN_EYE_STATION.x — the station IS the two-eye case, and extra
+        // eyes on a many-eyed head interpolate across the same span.
+        eye.position
+          .set(spread * 2 * PLAN_EYE_STATION.x, PLAN_EYE_STATION.y, PLAN_EYE_STATION.z)
+          .applyMatrix4(eyeHeadMat);
+        eyeHeadMat.decompose(eyeScrapVec, eye.quaternion, eyeScrapScale);
+      }
+    } else if (humanoidHead) {
+      // round 7 (humanoid-anatomy): the sculpted head rides the head bone in
+      // skinned mode (nothing to do); in segments mode it tracks the head
+      // anchor (the drawn ball's center) and the segment renderer's ball node
+      // hides behind it. Eyes are children of the head — they ride along.
+      if (!skinnedBody) {
+        const head = driver.pose.anchors.head.pos;
+        humanoidHead.position.set(head.x, head.y, head.z);
+        if (segHeadNode === undefined) segHeadNode = body.root.getObjectByName('seg:head') ?? null;
+        if (segHeadNode) segHeadNode.visible = false;
       }
     } else {
       const head = driver.pose.anchors.head.pos;
@@ -354,9 +998,11 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     if (disposed) return;
     disposed = true;
     body.dispose();
+    clipPlayer?.dispose();
     // skinned extras: shared geometry/materials plus the skeleton's bone
     // texture; the traverse below re-hits the meshes harmlessly
     skinnedBody?.dispose();
+    skinnedChains?.dispose();
     group.traverse((o: Object3D) => {
       const m = o as Mesh;
       if (m.isMesh || (o as unknown as { isLineSegments?: boolean }).isLineSegments) {
@@ -385,11 +1031,12 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   }
 
   function stats(): { segments: number; triangles: number; renderMode: EntityRenderMode } {
-    // skinned mode: segment count only covers chain parts (honest — the body
-    // is not segments there); triangles add the skinned fill + shell
+    // skinned mode: chains ride their own skinned pair since slice 6, so the
+    // segment renderer only draws plan decorations there; triangles add the
+    // skinned fill + shell pairs (body and chains)
     return {
       segments: body.segmentCount(),
-      triangles: body.triangles() + (skinnedBody?.triangles() ?? 0),
+      triangles: body.triangles() + (skinnedBody?.triangles() ?? 0) + (skinnedChains?.triangles() ?? 0),
       renderMode,
     };
   }

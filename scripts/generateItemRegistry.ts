@@ -8,6 +8,39 @@ const EQUIPMENT_DIR = path.join(ENTRIES_BASE, 'equipment');
 const MAGIC_ITEMS_DIR = path.join(ENTRIES_BASE, 'magic_items');
 const OUT_FILE = path.join(process.cwd(), 'src/data/items/generatedGlossaryItems.ts');
 
+
+/** 5etools single-letter damage codes, plus the canonical names themselves. */
+const DAMAGE_TYPE_BY_CODE: Record<string, string> = {
+  a: 'Acid',
+  b: 'Bludgeoning',
+  c: 'Cold',
+  f: 'Fire',
+  o: 'Force',
+  l: 'Lightning',
+  n: 'Necrotic',
+  p: 'Piercing',
+  i: 'Poison',
+  y: 'Psychic',
+  r: 'Radiant',
+  s: 'Slashing',
+  t: 'Thunder',
+};
+
+const CANONICAL_DAMAGE_TYPES = Object.values(DAMAGE_TYPE_BY_CODE);
+
+/**
+ * Resolves a 5etools damage token to a canonical damage-type name. Returns
+ * undefined when the token names no damage type, so the item is written with no
+ * damage type rather than with a code the game cannot read.
+ */
+function resolveDamageType(token: string): string | undefined {
+  const value = token.trim();
+  const full = CANONICAL_DAMAGE_TYPES.find((name) => name.toLowerCase() === value.toLowerCase());
+  if (full) return full;
+  if (value.length === 1) return DAMAGE_TYPE_BY_CODE[value.toLowerCase()];
+  return undefined;
+}
+
 function getAllFiles(dirPath: string, arrayOfFiles: string[] = []): string[] {
   if (!fs.existsSync(dirPath)) return arrayOfFiles;
   const files = fs.readdirSync(dirPath);
@@ -83,6 +116,29 @@ export function parseItemEffect(markdown: string): any {
 }
 
 /**
+ * Infer the wear slot for a wondrous accessory from its name.
+ * Order matters: the first match wins, so more specific words come first.
+ * Returns undefined when no word matches; the item stays slotless.
+ */
+export function inferAccessorySlot(name: string): string | undefined {
+  const n = name.toLowerCase();
+  const slotWords: Array<[string[], string]> = [
+    [['gauntlet', 'glove'], 'Hands'],
+    [['belt', 'girdle'], 'Belt'],
+    [['cloak', 'mantle', 'cape'], 'Cloak'],
+    [['amulet', 'necklace', 'periapt', 'medallion', 'talisman', 'brooch', 'scarab'], 'Neck'],
+    [['headband', 'circlet', 'helm', 'hat ', 'crown', 'diadem', 'mask', 'goggles'], 'Head'],
+    [['boots', 'slippers'], 'Feet'],
+    [['bracers', 'wraps', 'bracelet'], 'Wrists'],
+    [['robe'], 'Torso'],
+  ];
+  for (const [words, slot] of slotWords) {
+    if (words.some(w => n.includes(w))) return slot;
+  }
+  return undefined;
+}
+
+/**
  * Convert a single glossary entry into a simplified registry item.
  *
  * This is the mechanical conversion seam (type / slot / damage / value /
@@ -131,6 +187,13 @@ export function convertEntryToItem(data: any): { id: string; item: Record<string
     itemType = 'accessory';
   }
 
+  // Wondrous accessories need a wear slot or EQUIP_ITEM cannot place them,
+  // which would keep their boons unreachable. The item name is the only slot
+  // signal 5eTools provides for these, so infer from it.
+  if (itemType === 'accessory' && !slot) {
+    slot = inferAccessorySlot(name);
+  }
+
   let iconString = getIconForType(name + ' ' + t);
   const svgPath = path.join(process.cwd(), 'public', 'assets', 'icons', 'items', `${id}.svg`);
   if (fs.existsSync(svgPath)) {
@@ -154,16 +217,15 @@ export function convertEntryToItem(data: any): { id: string; item: Record<string
   if (slot) item.slot = slot;
   if (armorCategory) item.armorCategory = armorCategory;
 
-  // Damage parsing: "1d8 S" -> damageDice: "1d8", damageType: "Slashing"
+  // Damage parsing: "1d8 S" -> damageDice: "1d8", damageType: "Slashing".
+  // 5etools writes the damage type as a single-letter code; the whole table is
+  // mapped here so no code leaks into the registry as a damage type of its own.
   if (meta.damage) {
     const parts = meta.damage.split(' ');
     if (parts.length > 0) item.damageDice = parts[0];
     if (parts.length > 1) {
-      const dType = parts[1].toLowerCase();
-      if (dType.startsWith('s')) item.damageType = 'Slashing';
-      else if (dType.startsWith('p')) item.damageType = 'Piercing';
-      else if (dType.startsWith('b')) item.damageType = 'Bludgeoning';
-      else item.damageType = parts[1]; // fallback
+      const canonical = resolveDamageType(parts[1]);
+      if (canonical) item.damageType = canonical;
     }
   }
 
@@ -189,17 +251,74 @@ export function convertEntryToItem(data: any): { id: string; item: Record<string
     else if (r === 'artifact') item.rarity = 'ItemRarity.Artifact';
   }
 
+  // Lazily create the nested magicProperties block shared by the mechanical
+  // fields below, so items without any magic facts stay lean.
+  const magicProps = (): Record<string, any> => {
+    if (!item.magicProperties) item.magicProperties = { isIdentified: true };
+    return item.magicProperties;
+  };
+
   if (meta.reqAttune) {
-    item.magicProperties = {
-      isIdentified: true,
-      attunement: {
-        required: true,
-        // reqAttune arrives with raw 5eTools tags (e.g.
-        // "{@item Belt of Dwarvenkind|XDMG}"). requirements renders as plain
-        // text in the inventory, so resolve the tags to their display text
-        // here rather than leaking markup into the shipped registry.
-        requirements: strip5eToolsMarkup(meta.reqAttune)
-      }
+    // The runtime (characterReducer, statUtils) reads the FLAT
+    // requiresAttunement field; the nested attunement block feeds display.
+    // Both come from the same source fact so they cannot drift.
+    item.requiresAttunement = true;
+    magicProps().attunement = {
+      required: true,
+      // reqAttune arrives with raw 5eTools tags (e.g.
+      // "{@item Belt of Dwarvenkind|XDMG}"). requirements renders as plain
+      // text in the inventory, so resolve the tags to their display text
+      // here rather than leaking markup into the shipped registry.
+      requirements: strip5eToolsMarkup(meta.reqAttune)
+    };
+  }
+
+  // Magic attack/damage bonus ("+1 Wraps of Unarmed Power"). partyStatUtils
+  // reads magicProperties.magicalBonus for the equipped main-hand weapon.
+  if (meta.bonusWeapon) {
+    const bonus = parseInt(meta.bonusWeapon, 10);
+    if (Number.isInteger(bonus) && bonus > 0) magicProps().magicalBonus = bonus;
+  }
+
+  // Magic AC bonus (Ring/Cloak of Protection, magic shields, magic armor).
+  // calculateArmorClass reads the flat armorClassBonus and gates it on
+  // attunement, so the magic part stays out of baseArmorClass.
+  if (meta.bonusAc) {
+    const bonus = parseInt(meta.bonusAc, 10);
+    if (Number.isInteger(bonus) && bonus > 0) {
+      item.armorClassBonus = (item.armorClassBonus || 0) + bonus;
+      magicProps().acBonus = bonus;
+    }
+  }
+
+  // Ability score facts. "set" items (Gauntlets of Ogre Power) become
+  // statOverrides; "add" items (Belt of Dwarvenkind) become statBonuses.
+  // Both are read by calculateFinalAbilityScores, gated on attunement.
+  const abilityNameMap: Record<string, string> = {
+    str: 'Strength', dex: 'Dexterity', con: 'Constitution',
+    int: 'Intelligence', wis: 'Wisdom', cha: 'Charisma',
+  };
+  const mapAbilityKeys = (source: Record<string, number> | undefined): Record<string, number> | undefined => {
+    if (!source) return undefined;
+    const out: Record<string, number> = {};
+    for (const [key, value] of Object.entries(source)) {
+      const fullName = abilityNameMap[key];
+      if (fullName) out[fullName] = value;
+    }
+    return Object.keys(out).length > 0 ? out : undefined;
+  };
+  const statOverrides = mapAbilityKeys(meta.abilitySet);
+  if (statOverrides) item.statOverrides = statOverrides;
+  const statBonuses = mapAbilityKeys(meta.abilityBonus);
+  if (statBonuses) item.statBonuses = statBonuses;
+
+  // Charges (wands, staffs). The vendor data only uses dawn recharge.
+  if (typeof meta.charges === 'number' && meta.charges > 0) {
+    magicProps().charges = {
+      current: meta.charges,
+      max: meta.charges,
+      resetCondition: meta.recharge === 'dawn' ? 'dawn' : 'never',
+      ...(meta.rechargeAmount ? { resetDice: meta.rechargeAmount } : {}),
     };
   }
 

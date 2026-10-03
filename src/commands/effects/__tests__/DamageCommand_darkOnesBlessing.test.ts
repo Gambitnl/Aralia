@@ -2,17 +2,30 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { DamageCommand } from '../DamageCommand'
 import { CombatState, CombatCharacter } from '../../../types/combat'
 import { SpellEffect } from '../../../types/spells'
+import type { DamageEffect } from '../../../types/spellEffectTypes'
 import { CommandContext } from '../../base/SpellCommand'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../../utils/core/factories'
-import * as combatUtils from '../../../utils/combat/combatUtils'
+import * as diceRollers from '../../../systems/dice/rollers'
+
+// agora-f821.4 retired the combatUtils roller family; the modules under
+// test roll through systems/dice/rollers now. One hoisted set of mocks
+// stands in for BOTH specifiers, so one vi.mocked(...) pins every die.
+const diceMocks = vi.hoisted(() => ({
+    rollDice: vi.fn(),
+    rollDamage: vi.fn(),
+}))
+
+vi.mock('../../../systems/dice/rollers', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../systems/dice/rollers')>()
+  return { ...actual, ...diceMocks }
+})
 
 vi.mock('../../../utils/combat/combatUtils', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../../utils/combat/combatUtils')>()
   return {
     ...actual,
-    rollDice: vi.fn(),
-    rollDamage: vi.fn(),
-  }
+    ...diceMocks,
+}
 })
 
 // Deterministic dice: sum of every face (e.g. "2d6" -> 12), so a modest damage
@@ -25,12 +38,12 @@ const sumFaces = (dice: string): number => {
   return count * sides
 }
 
-const alwaysDamage = (dice: string, type = 'Fire'): SpellEffect => ({
+const alwaysDamage = (dice: string, type = 'Fire'): DamageEffect => ({
   type: 'DAMAGE',
   damage: { dice, type },
   trigger: { type: 'immediate' },
   condition: { type: 'always' }
-})
+}) as unknown as DamageEffect
 
 describe("DamageCommand — Dark One's Blessing (Fiend warlock, level 3)", () => {
   let mockState: CombatState
@@ -39,8 +52,8 @@ describe("DamageCommand — Dark One's Blessing (Fiend warlock, level 3)", () =>
   let context: CommandContext
 
   beforeEach(() => {
-    vi.mocked(combatUtils.rollDice).mockImplementation((dice: string) => (dice === '1d20' ? 10 : sumFaces(dice)))
-    vi.mocked(combatUtils.rollDamage).mockImplementation((dice: string) => sumFaces(dice))
+    vi.mocked(diceRollers.rollDice).mockImplementation((dice: string) => (dice === '1d20' ? 10 : sumFaces(dice)))
+    vi.mocked(diceRollers.rollDamage).mockImplementation((dice: string) => sumFaces(dice))
 
     // Cha modifier +3 (16) + warlock level 3 = 6 temporary hit points.
     warlock = createMockCombatCharacter({
@@ -163,6 +176,46 @@ describe("DamageCommand — Dark One's Blessing (Fiend warlock, level 3)", () =>
     })
     mockState = createMockCombatState({ characters: [warlock, summon], combatLog: [] })
     context = { ...context, targets: [summon] }
+
+    const command = new DamageCommand(alwaysDamage('2d6'), context)
+    const newState = await command.execute(mockState)
+
+    const caster = newState.characters.find(c => c.id === 'warlock-1')!
+    expect(caster.tempHP ?? 0).toBe(0)
+    expect(newState.combatLog.some(l => l.data?.feature === 'dark_ones_blessing')).toBe(false)
+  })
+
+  it('does not fire when the reduced-to-0 creature is on the same team', async () => {
+    const ally = createMockCombatCharacter({
+      id: 'enemy-1',
+      name: 'Friendly Rogue',
+      team: 'player', // same team as the warlock
+      position: { x: 1, y: 1 },
+      currentHP: 8,
+      maxHP: 8
+    })
+    mockState = createMockCombatState({ characters: [warlock, ally], combatLog: [] })
+    context = { ...context, targets: [ally] }
+
+    const command = new DamageCommand(alwaysDamage('2d6'), context)
+    const newState = await command.execute(mockState)
+
+    const caster = newState.characters.find(c => c.id === 'warlock-1')!
+    expect(caster.tempHP ?? 0).toBe(0)
+    expect(newState.combatLog.some(l => l.data?.feature === 'dark_ones_blessing')).toBe(false)
+  })
+
+  it('does not fire when the reduced-to-0 creature is neutral', async () => {
+    const neutral = createMockCombatCharacter({
+      id: 'enemy-1',
+      name: 'Bystander',
+      team: 'neutral',
+      position: { x: 1, y: 1 },
+      currentHP: 8,
+      maxHP: 8
+    })
+    mockState = createMockCombatState({ characters: [warlock, neutral], combatLog: [] })
+    context = { ...context, targets: [neutral] }
 
     const command = new DamageCommand(alwaysDamage('2d6'), context)
     const newState = await command.execute(mockState)

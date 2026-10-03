@@ -327,7 +327,7 @@
                                                                    ]
                                       },
                         "utilityType":  "control",
-                        "description":  "If a creature takes this damage while holding or wearing the object, it must succeed on a Constitution saving throw or drop the object if it can. If it doesn\u0027t drop the object, it has Disadvantage on attack rolls and ability checks until the start of your next turn.",
+                        "description":  "If a creature takes this damage while holding or wearing the object, it must succeed on a Constitution saving throw or drop the object if it can. If it doesn't drop the object, it has Disadvantage on attack rolls and ability checks until the start of your next turn.",
                         "attackRollModifier":  {
                                                    "modifier":  "disadvantage",
                                                    "direction":  "outgoing",
@@ -337,7 +337,7 @@
                                                                     "type":  "rounds",
                                                                     "value":  1
                                                                 },
-                                                   "notes":  "If the damaged holder or wearer cannot or does not drop the heated object, it has Disadvantage on attack rolls until the start of the caster\u0027s next turn."
+                                                   "notes":  "If the damaged holder or wearer cannot or does not drop the heated object, it has Disadvantage on attack rolls until the start of the caster's next turn."
                                                },
                         "abilityCheckModifier":  {
                                                      "appliesTo":  "ability_check",
@@ -355,7 +355,7 @@
                                                                    ],
                                                      "frequency":  "every_matching_check",
                                                      "durationScope":  "until_start_of_caster_next_turn",
-                                                     "notes":  "If the damaged holder or wearer cannot or does not drop the heated object, it has Disadvantage on ability checks until the start of the caster\u0027s next turn."
+                                                     "notes":  "If the damaged holder or wearer cannot or does not drop the heated object, it has Disadvantage on ability checks until the start of the caster's next turn."
                                                  },
                         "scaling":  {
                                         "type":  "slot_level",
@@ -449,10 +449,10 @@
                 ],
     "arbitrationType":  "mechanical",
     "aiContext":  {
-                      "prompt":  "Ask the caster to choose the visible manufactured metal object; when a holder or wearer takes the damage, prompt the Constitution save to drop it, and if it remains held or worn apply Disadvantage on attacks and ability checks until the start of the caster\u0027s next turn.",
+                      "prompt":  "Ask the caster to choose the visible manufactured metal object; when a holder or wearer takes the damage, prompt the Constitution save to drop it, and if it remains held or worn apply Disadvantage on attacks and ability checks until the start of the caster's next turn.",
                       "playerInputRequired":  true
                   },
-    "description":  "Choose a manufactured metal object, such as a metal weapon or a suit of Heavy or Medium metal armor, that you can see within range. You cause the object to glow red-hot. Any creature in physical contact with the object takes 2d8 Fire damage when you cast the spell. Until the spell ends, you can take a Bonus Action on each of your later turns to deal this damage again if the object is within range. If a creature is holding or wearing the object and takes the damage from it, the creature must succeed on a Constitution saving throw or drop the object if it can. If it doesn\u0027t drop the object, it has Disadvantage on attack rolls and ability checks until the start of your next turn.",
+    "description":  "Choose a manufactured metal object, such as a metal weapon or a suit of Heavy or Medium metal armor, that you can see within range. You cause the object to glow red-hot. Any creature in physical contact with the object takes 2d8 Fire damage when you cast the spell. Until the spell ends, you can take a Bonus Action on each of your later turns to deal this damage again if the object is within range. If a creature is holding or wearing the object and takes the damage from it, the creature must succeed on a Constitution saving throw or drop the object if it can. If it doesn't drop the object, it has Disadvantage on attack rolls and ability checks until the start of your next turn.",
     "higherLevels":  "Using a Higher-Level Spell Slot. The damage increases by 1d8 for each spell slot level above 2.",
     "tags":  [
                  "damage",

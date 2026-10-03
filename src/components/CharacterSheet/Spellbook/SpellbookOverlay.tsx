@@ -11,7 +11,7 @@ import { CLASSES_DATA } from '../../../constants';
 import { WindowFrame } from '../../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../../styles/uiIds';
 import { FullEntryDisplay } from '../../Glossary/FullEntryDisplay';
-import { findGlossaryEntryAndPath } from '../../../utils/glossaryUtils';
+import { findGlossaryEntryAndPath } from '../../../utils/visuals';
 import SpellSlotDisplay from './SpellSlotDisplay';
 import CastSpellControls from './CastSpellControls';
 import { getPreparedSpellsAffectingLimit, isRacialSpellLockedForPreparation, getMaxPreparedSpells } from '../../../utils/character/characterUtils';

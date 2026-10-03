@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/06/2026, 13:48:54
+ * Last Sync: 18/07/2026, 19:30:57
  * Dependents: systems/world3d/chunkBundle.ts
  * Imports: 3 files
  *
@@ -16,11 +16,11 @@
 
 /**
  * @file waterGeometry.ts
- * Build flat ribbon meshes along clipped river polylines. Each polyline point
- * produces a left/right vertex pair offset perpendicular to the local direction
- * by half the river width (grid→meters). Lake polygons are filled as flat
- * triangulated surfaces first, so the river ribbons can still read on top.
- * Output is chunk-local.
+ * Build visible water surfaces for clipped rivers and lake polygons. Ground
+ * rivers arrive with a loader-computed waterline that crossings can query too,
+ * so this file renders that shared truth instead of hiding a second guessed
+ * ribbon beneath the carved bed. Legacy continent rivers keep their previous
+ * terrain-following fallback. Output is chunk-local.
  */
 import type { ChunkData, ChunkGeometryArrays, ClippedPolyline } from './types';
 import earcut from 'earcut';
@@ -28,16 +28,59 @@ import { WORLD3D_CONFIG, heightToMeters } from './config';
 import { gridPointToLocal } from './coords';
 
 const M = WORLD3D_CONFIG.METERS_PER_CELL;
-const WATER_DROP_M = 0.5;
-const LAKE_DROP_M = WATER_DROP_M + 0.05;
+// Legacy continent rivers do not yet carry the ground-mode waterline contract.
+// Keep their historical buried offset rather than changing a separate renderer
+// as a side effect of this walking-scale feature.
+const LEGACY_RIVER_DROP_M = 0.5;
+const LAKE_DROP_M = LEGACY_RIVER_DROP_M + 0.05;
 
-const EMPTY: ChunkGeometryArrays = {
+/**
+ * Water depth at which the surface stops reading through to the bed, in meters.
+ *
+ * Measured on the streamed world at dcell 785 / seed 42 (11x11 chunk sweep,
+ * 14,453 water polygons): the carved bed sits a median 0.44 m under the water
+ * surface in a body's interior and a median -0.03 m — i.e. level with it — at
+ * the polygon's own edge. So the whole shoreline transition lives inside the
+ * first half meter of depth, which is where the opacity ramp has to spend its
+ * range. A ramp normalized to the 21.9 m maximum would leave every pool in the
+ * scene at the pale end of it.
+ */
+const OPAQUE_DEPTH_M = 0.55;
+
+/**
+ * Depth at which water reaches its deepest color. Deliberately much longer than
+ * the opacity ramp: opacity is about seeing the bed, which stops fast, while
+ * color keeps deepening down the channel long after the bed is hidden.
+ */
+const DEEP_COLOR_DEPTH_M = 2.5;
+
+/** Ease so the pale margin holds its width instead of snapping to full tone. */
+function smoothstep01(t: number): number {
+  const c = t <= 0 ? 0 : t >= 1 ? 1 : t;
+  return c * c * (3 - 2 * c);
+}
+
+/**
+ * Water geometry carries a per-vertex DEPTH encoding in its color attribute.
+ *
+ * Not a color: the three channels are (opacity ramp, color ramp, raw normalized
+ * depth), unpacked by `waterSurfaceMaterial`'s shader hooks. Depth is a CPU-side
+ * fact — it needs the carved bed heightfield, which the fragment shader has no
+ * access to — and the color attribute is the only per-vertex channel the chunk
+ * geometry pipeline already transports end to end.
+ */
+export interface WaterMesh extends ChunkGeometryArrays {
+  colors: Float32Array;
+}
+
+const EMPTY: WaterMesh = {
   positions: new Float32Array(0),
   indices: new Uint32Array(0),
   normals: new Float32Array(0),
+  colors: new Float32Array(0),
 };
 
-export function buildWaterMesh(data: ChunkData): ChunkGeometryArrays {
+export function buildWaterMesh(data: ChunkData): WaterMesh {
   const lakes = data.lakes?.filter((l) => l.points.length >= 3) ?? [];
   const ribbons = data.rivers.filter((r) => r.points.length >= 2);
   if (lakes.length === 0 && ribbons.length === 0) return EMPTY;
@@ -45,21 +88,22 @@ export function buildWaterMesh(data: ChunkData): ChunkGeometryArrays {
   const positions: number[] = [];
   const indices: number[] = [];
   const normals: number[] = [];
+  const colors: number[] = [];
 
   for (const lake of lakes) {
     const startVert = positions.length / 3;
-    emitLake(lake, data, positions, normals);
+    emitLake(lake, data, positions, normals, colors);
     const flat: number[] = [];
     for (const p of lake.points) {
       const local = gridPointToLocal(p.x, p.y, data.cx, data.cy);
       flat.push(local.x, local.z);
     }
-    for (const index of earcut(flat)) indices.push(startVert + index);
+    pushUpwardTriangles(earcut(flat), startVert, positions, indices);
   }
 
   for (const ribbon of ribbons) {
     const startVert = positions.length / 3;
-    emitRibbon(ribbon, data, positions, normals);
+    emitRibbon(ribbon, data, positions, normals, colors);
     const ptCount = ribbon.points.length;
     for (let i = 0; i < ptCount - 1; i++) {
       const l0 = startVert + i * 2;
@@ -74,7 +118,101 @@ export function buildWaterMesh(data: ChunkData): ChunkGeometryArrays {
     positions: new Float32Array(positions),
     indices: new Uint32Array(indices),
     normals: new Float32Array(normals),
+    colors: new Float32Array(colors),
   };
+}
+
+/**
+ * Encode one vertex's water depth into the color attribute.
+ *
+ * Both ramps are evaluated here rather than in the shader because the constants
+ * that set them are measurements of this world's carve pass, and they belong
+ * next to the note recording those measurements.
+ */
+function pushDepthEncoding(colors: number[], depthM: number): void {
+  const d = Math.max(0, depthM);
+  colors.push(
+    smoothstep01(d / OPAQUE_DEPTH_M),
+    smoothstep01(d / DEEP_COLOR_DEPTH_M),
+    Math.min(1, d / DEEP_COLOR_DEPTH_M),
+  );
+}
+
+/**
+ * Water height for one polygon vertex.
+ *
+ * Sea and lake are flat, so they use the body's single height. A river is not
+ * flat: its surface descends, so the vertex is projected onto the centerline and
+ * the height interpolated between the two points it falls between. Clipping to a
+ * chunk invents vertices, which is why this is computed per vertex here instead
+ * of being carried as an array from the loader.
+ */
+export function waterSurfaceYAt(
+  body: NonNullable<ChunkData['lakes']>[number],
+  gx: number,
+  gy: number,
+): number {
+  const line = body.centerline;
+  if (body.kind !== 'river' || !line || line.length === 0) return body.surfaceY;
+  if (line.length === 1) return line[0].surfaceY;
+
+  let best = { d2: Infinity, y: line[0].surfaceY };
+  for (let i = 0; i < line.length - 1; i++) {
+    const a = line[i];
+    const b = line[i + 1];
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const lenSq = dx * dx + dy * dy;
+    // Where along a→b the vertex projects, clamped to the segment.
+    const t = lenSq === 0 ? 0 : Math.max(0, Math.min(1, ((gx - a.x) * dx + (gy - a.y) * dy) / lenSq));
+    const px = a.x + dx * t;
+    const py = a.y + dy * t;
+    const d2 = (gx - px) ** 2 + (gy - py) ** 2;
+    if (d2 < best.d2) {
+      best = { d2, y: a.surfaceY + (b.surfaceY - a.surfaceY) * t };
+    }
+  }
+  return best.y;
+}
+
+/**
+ * Append earcut's triangles with every face pointing UP.
+ *
+ * Water was invisible everywhere in the game and this is why: earcut's winding
+ * follows the input ring's orientation, and these rings come out clockwise, so
+ * the triangles faced DOWN. Every vertex normal says (0,1,0), but back-face
+ * culling goes by winding, not by the normal attribute — so a surface that
+ * claimed to face up was culled from every camera above it. Measured in-game
+ * 2026-07-28: rendering the water alone drew 0 pixels front-side and 24,864
+ * double-sided.
+ *
+ * Orienting the geometry is the fix rather than switching the material to
+ * DoubleSide: a sheet drawn from both sides is two sets of faces at one depth,
+ * which is the z-fighting trap that already bit the town walls and gates.
+ */
+export function pushUpwardTriangles(
+  tris: number[],
+  startVert: number,
+  positions: number[],
+  indices: number[],
+): void {
+  for (let t = 0; t + 2 < tris.length; t += 3) {
+    const a = startVert + tris[t];
+    const b = startVert + tris[t + 1];
+    const c = startVert + tris[t + 2];
+    // Cross product's Y component decides which way the face looks. Reading the
+    // emitted positions avoids reasoning about the 2D winding convention.
+    const ax = positions[a * 3];
+    const az = positions[a * 3 + 2];
+    const bx = positions[b * 3];
+    const bz = positions[b * 3 + 2];
+    const cx = positions[c * 3];
+    const cz = positions[c * 3 + 2];
+    const normalY = (bx - ax) * (cz - az) - (bz - az) * (cx - ax);
+    // In a right-handed Y-up frame a face points up when this term is negative.
+    if (normalY <= 0) indices.push(a, b, c);
+    else indices.push(a, c, b);
+  }
 }
 
 function emitLake(
@@ -82,11 +220,18 @@ function emitLake(
   data: ChunkData,
   positions: number[],
   normals: number[],
+  colors: number[],
 ): void {
+  // Sea surfaces are already AT their true height (zero) and must not be pushed
+  // under their own floor; the legacy buried offset applies to the old flat
+  // lake path only.
+  const drop = lake.kind === 'sea' || lake.kind === 'river' ? 0 : LAKE_DROP_M;
   for (const p of lake.points) {
     const local = gridPointToLocal(p.x, p.y, data.cx, data.cy);
-    positions.push(local.x, lake.surfaceY - LAKE_DROP_M, local.z);
+    const y = waterSurfaceYAt(lake, p.x, p.y) - drop;
+    positions.push(local.x, y, local.z);
     normals.push(0, 1, 0);
+    pushDepthEncoding(colors, y - waterHeightAt(data, p.x, p.y));
   }
 }
 
@@ -95,6 +240,7 @@ function emitRibbon(
   data: ChunkData,
   positions: number[],
   normals: number[],
+  colors: number[],
 ): void {
   const pts = ribbon.points;
   for (let i = 0; i < pts.length; i++) {
@@ -109,12 +255,26 @@ function emitRibbon(
     const halfW = ((ribbon.width[i] ?? 0.01) * M) / 2;
 
     const local = gridPointToLocal(p.x, p.y, data.cx, data.cy);
-    const y = waterHeightAt(data, p.x, p.y) - WATER_DROP_M;
+    // Ground-mode chunks carry the authoritative per-point surface. Older
+    // callers remain byte-compatible by falling back to their original bed
+    // sample and drop when no shared waterline is present.
+    const sharedWaterlineY = ribbon.waterlineY?.[i];
+    const y = typeof sharedWaterlineY === 'number' && Number.isFinite(sharedWaterlineY)
+      ? sharedWaterlineY
+      : waterHeightAt(data, p.x, p.y) - LEGACY_RIVER_DROP_M;
 
     positions.push(local.x - perpX * halfW, y, local.z - perpZ * halfW);
     normals.push(0, 1, 0);
     positions.push(local.x + perpX * halfW, y, local.z + perpZ * halfW);
     normals.push(0, 1, 0);
+
+    // Bed sampled UNDER each bank vertex, not under the centerline. The two are
+    // the whole point here: a ribbon is ~18 m wide against a 4 m heightfield
+    // sample spacing, so its edges land on genuinely shallower bed than its
+    // middle and that difference is what draws the shoreline.
+    const halfGrid = halfW / M;
+    pushDepthEncoding(colors, y - waterHeightAt(data, p.x - perpX * halfGrid, p.y - perpZ * halfGrid));
+    pushDepthEncoding(colors, y - waterHeightAt(data, p.x + perpX * halfGrid, p.y + perpZ * halfGrid));
   }
 }
 

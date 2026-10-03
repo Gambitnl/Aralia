@@ -520,3 +520,64 @@ describe('All Classes Integration Check', () => {
         }
     });
 });
+/**
+ * The level-1 subclass choice (agora-f821.56 / .57). Under the 2014 PHB the
+ * cleric picks a Divine Domain and the sorcerer a Sorcerous Origin during
+ * creation; the component sends the id and the reducer parks it on
+ * `selectedSubclassId`, which `useCharacterAssembly` copies to the character's
+ * `subclassId`. Under the 2024 PHB no id is sent and the field stays null, so
+ * the level-3 level-up flow still asks.
+ */
+describe('Level-1 subclass choice (rules edition)', () => {
+    it('parks the cleric Divine Domain on selectedSubclassId when one is sent', () => {
+        const next = characterCreatorReducer(initialCharacterCreatorState, {
+            type: 'SELECT_CLERIC_FEATURES',
+            payload: { order: 'Protector', cantrips: [], spellsL1: [], domainId: 'life_domain' },
+        });
+
+        expect(next.selectedSubclassId).toBe('life_domain');
+        expect(next.selectedDivineOrder).toBe('Protector');
+    });
+
+    it('leaves selectedSubclassId null for a cleric when no domain is sent', () => {
+        const next = characterCreatorReducer(initialCharacterCreatorState, {
+            type: 'SELECT_CLERIC_FEATURES',
+            payload: { order: 'Protector', cantrips: [], spellsL1: [] },
+        });
+
+        expect(next.selectedSubclassId).toBeNull();
+    });
+
+    it('parks the Sorcerous Origin on selectedSubclassId when one is sent', () => {
+        const next = characterCreatorReducer(initialCharacterCreatorState, {
+            type: 'SELECT_SORCERER_FEATURES',
+            payload: { cantrips: [], spellsL1: [], originId: 'draconic' },
+        });
+
+        expect(next.selectedSubclassId).toBe('draconic');
+    });
+
+    it('leaves selectedSubclassId null for a sorcerer when no origin is sent', () => {
+        const next = characterCreatorReducer(initialCharacterCreatorState, {
+            type: 'SELECT_SORCERER_FEATURES',
+            payload: { cantrips: [], spellsL1: [] },
+        });
+
+        expect(next.selectedSubclassId).toBeNull();
+    });
+
+    it('clears a level-1 subclass choice when the class is changed', () => {
+        const chosen = characterCreatorReducer(initialCharacterCreatorState, {
+            type: 'SELECT_SORCERER_FEATURES',
+            payload: { cantrips: [], spellsL1: [], originId: 'wild_magic' },
+        });
+        expect(chosen.selectedSubclassId).toBe('wild_magic');
+
+        const switched = characterCreatorReducer(chosen, {
+            type: 'SELECT_CLASS',
+            payload: CLASSES_DATA['cleric'],
+        });
+
+        expect(switched.selectedSubclassId).toBeNull();
+    });
+});

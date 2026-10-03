@@ -9,9 +9,9 @@ Instructions for the reviewing agent:
 - If a remaining issue is not clearly a real accented word, flag it for deeper investigation instead of guessing.
 - Soft documentation mojibake can be handled separately unless the owner asks for full docs cleanup.
 
-Total remaining manual/suspicious issues: 255
+Total remaining manual/suspicious issues: 198
 Strict data issues requiring owner decision: 0
-Soft documentation issues: 255
+Soft documentation issues: 198
 
 ## Strict Data Issues
 
@@ -28,7 +28,7 @@ No strict data issues remain.
 - Line text:
 
 ```text
-| `mass-suggestion::message_or_communication` | `closed` | Closed 2026-06-27 - added communicationDetails for 25-word mass suggestion, 12 targets, and hear/understand/seen gates. | You suggest a course of activityÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬"described in no more than 25 wordsÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬"to twelve or fewer creatures you can see within range that can hear and understand you. | Utility Type: communication | Runtime JSON contains related hints: communication, UTILITY. |\r
+| `mass-suggestion::message_or_communication` | `closed` | Closed 2026-06-27 - added communicationDetails for 25-word mass suggestion, 12 targets, and hear/understand/seen gates. | You suggest a course of activityÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬"described in no more than 25 wordsÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬"to twelve or fewer creatures you can see within range that can hear and understand you. | Utility Type: communication | Runtime JSON contains related hints: communication, UTILITY. |\r
 ```
 
 ## SOFT docs\tasks\spells\mechanics-discovery\buckets\message_or_communication.md:66:223
@@ -40,7 +40,7 @@ No strict data issues remain.
 - Line text:
 
 ```text
-| `mass-suggestion::message_or_communication` | `closed` | Closed 2026-06-27 - added communicationDetails for 25-word mass suggestion, 12 targets, and hear/understand/seen gates. | You suggest a course of activityÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬"described in no more than 25 wordsÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬"to twelve or fewer creatures you can see within range that can hear and understand you. | Utility Type: communication | Runtime JSON contains related hints: communication, UTILITY. |\r
+| `mass-suggestion::message_or_communication` | `closed` | Closed 2026-06-27 - added communicationDetails for 25-word mass suggestion, 12 targets, and hear/understand/seen gates. | You suggest a course of activityÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬"described in no more than 25 wordsÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬"to twelve or fewer creatures you can see within range that can hear and understand you. | Utility Type: communication | Runtime JSON contains related hints: communication, UTILITY. |\r
 ```
 
 ## SOFT docs\tasks\spells\mechanics-discovery\buckets\message_or_communication.md:66:273
@@ -52,7 +52,7 @@ No strict data issues remain.
 - Line text:
 
 ```text
-| `mass-suggestion::message_or_communication` | `closed` | Closed 2026-06-27 - added communicationDetails for 25-word mass suggestion, 12 targets, and hear/understand/seen gates. | You suggest a course of activityÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬"described in no more than 25 wordsÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬"to twelve or fewer creatures you can see within range that can hear and understand you. | Utility Type: communication | Runtime JSON contains related hints: communication, UTILITY. |\r
+| `mass-suggestion::message_or_communication` | `closed` | Closed 2026-06-27 - added communicationDetails for 25-word mass suggestion, 12 targets, and hear/understand/seen gates. | You suggest a course of activityÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬"described in no more than 25 wordsÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬"to twelve or fewer creatures you can see within range that can hear and understand you. | Utility Type: communication | Runtime JSON contains related hints: communication, UTILITY. |\r
 ```
 
 ## SOFT docs\tasks\spells\mechanics-discovery\buckets\message_or_communication.md:66:281
@@ -64,682 +64,10 @@ No strict data issues remain.
 - Line text:
 
 ```text
-| `mass-suggestion::message_or_communication` | `closed` | Closed 2026-06-27 - added communicationDetails for 25-word mass suggestion, 12 targets, and hear/understand/seen gates. | You suggest a course of activityÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬"described in no more than 25 wordsÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬"to twelve or fewer creatures you can see within range that can hear and understand you. | Utility Type: communication | Runtime JSON contains related hints: communication, UTILITY. |\r
+| `mass-suggestion::message_or_communication` | `closed` | Closed 2026-06-27 - added communicationDetails for 25-word mass suggestion, 12 targets, and hear/understand/seen gates. | You suggest a course of activityÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬"described in no more than 25 wordsÃƒÆ'Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬"to twelve or fewer creatures you can see within range that can hear and understand you. | Utility Type: communication | Runtime JSON contains related hints: communication, UTILITY. |\r
 ```
 
-## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1772:239
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-| WF-G2 | resolved 2026-06-11 | contract_follow_up | 2026-06-11 (spine) | Delta-layer schema landed via Lane B directive B3: `delta/{types,applyDeltas,serialize}.ts` (versioned envelope, ordered pure replay, JSON round-trip; 6 tests). | ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â |
-```
-
-## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1773:293
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-| WF-INT-1 | resolved 2026-06-11 | integration_debt | 2026-06-11 (B1/C1 review) | Lane C's `generateRegion` and Lane A's descend path use placeholder `feetPerPixel: 1000`; the canonical `FEET_PER_FMG_PIXEL` (9,842.52, adapter) must be wired through both once their lanes have an idle window ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â orchestrator-owned integration (cross-lane scope). | RESOLVED with WF-G4: the demo already passed canonical (that's what exposed the bug); region bounds are now scale-invariant (anchor-centered 25,000 ft square) so feetPerPixel only affects sampling context; canonical-scale contract pinned by 3 regression tests in generateRegion.test.ts. The remaining `1000` in suites is a deliberate multi-cell stress scale, not a placeholder. |
-```
-
-## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1774:193
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ’Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ’Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ’Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ’Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ’Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |
-```
-
-## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1774:228
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ’Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ’Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ’Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ’Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ’Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |
-```
-
-## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1774:250
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ’Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ’Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ’Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ’Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ’Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |
-```
-
-## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1774:270
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ’Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ’Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ’Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ’Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ’Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |
-```
-
-## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1774:615
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ’Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ’Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ’Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ’Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ’Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |
-```
-
-## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1774:655
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ’Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ’Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ’Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ’Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ’Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |
-```
-
-## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1774:690
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ’Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ’Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ’Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ’Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ’Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |
-```
-
-## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1774:721
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ’Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ’Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ’Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ’Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ’Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |
-```
-
-## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1775:184
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-| WF-G4 | resolved 2026-06-11 | generation_bug | 2026-06-11 (WF-G3 re-verify) | The DEMO's region canvas stays black for demo-clicked anchors even at sane post-fix sizes (24k ft, 241ÃƒÆ’Ã¢â‚¬â€136 grid, 15s wait) while Lane C's proof rig renders the same regions fine ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â a `RegionMapView`/`regionDraw` integration defect in components/Worldforge (suspects: non-square grid handling, cache blit order, local-stretch on thin grids). | RESOLVED via A8 takeover. Reclassified: root cause was region/ at canonical scale (membership degenerated to 1 cell; member-extent bounds collapsed to 0ÃƒÆ’Ã¢â‚¬â€0 ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ zero samples). Fixed: anchor-centered scale-invariant 25,000 ft bounds + forced 1-ring membership + river/road clipping; component hardening (fixed-res cache ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤2048 px, lazy fitted view, finite-scale guard); demo markers rescaled to entity feet. 137/137; proofs laneA8-region-ingame.png / laneA8-region-river.png. Goldens re-frozen (pre-release). |
-```
-
-## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1775:271
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-| WF-G4 | resolved 2026-06-11 | generation_bug | 2026-06-11 (WF-G3 re-verify) | The DEMO's region canvas stays black for demo-clicked anchors even at sane post-fix sizes (24k ft, 241ÃƒÆ’Ã¢â‚¬â€136 grid, 15s wait) while Lane C's proof rig renders the same regions fine ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â a `RegionMapView`/`regionDraw` integration defect in components/Worldforge (suspects: non-square grid handling, cache blit order, local-stretch on thin grids). | RESOLVED via A8 takeover. Reclassified: root cause was region/ at canonical scale (membership degenerated to 1 cell; member-extent bounds collapsed to 0ÃƒÆ’Ã¢â‚¬â€0 ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ zero samples). Fixed: anchor-centered scale-invariant 25,000 ft bounds + forced 1-ring membership + river/road clipping; component hardening (fixed-res cache ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤2048 px, lazy fitted view, finite-scale guard); demo markers rescaled to entity feet. 137/137; proofs laneA8-region-ingame.png / laneA8-region-river.png. Goldens re-frozen (pre-release). |
-```
-
-## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1775:604
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-| WF-G4 | resolved 2026-06-11 | generation_bug | 2026-06-11 (WF-G3 re-verify) | The DEMO's region canvas stays black for demo-clicked anchors even at sane post-fix sizes (24k ft, 241ÃƒÆ’Ã¢â‚¬â€136 grid, 15s wait) while Lane C's proof rig renders the same regions fine ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â a `RegionMapView`/`regionDraw` integration defect in components/Worldforge (suspects: non-square grid handling, cache blit order, local-stretch on thin grids). | RESOLVED via A8 takeover. Reclassified: root cause was region/ at canonical scale (membership degenerated to 1 cell; member-extent bounds collapsed to 0ÃƒÆ’Ã¢â‚¬â€0 ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ zero samples). Fixed: anchor-centered scale-invariant 25,000 ft bounds + forced 1-ring membership + river/road clipping; component hardening (fixed-res cache ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤2048 px, lazy fitted view, finite-scale guard); demo markers rescaled to entity feet. 137/137; proofs laneA8-region-ingame.png / laneA8-region-river.png. Goldens re-frozen (pre-release). |
-```
-
-## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1775:618
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-| WF-G4 | resolved 2026-06-11 | generation_bug | 2026-06-11 (WF-G3 re-verify) | The DEMO's region canvas stays black for demo-clicked anchors even at sane post-fix sizes (24k ft, 241ÃƒÆ’Ã¢â‚¬â€136 grid, 15s wait) while Lane C's proof rig renders the same regions fine ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â a `RegionMapView`/`regionDraw` integration defect in components/Worldforge (suspects: non-square grid handling, cache blit order, local-stretch on thin grids). | RESOLVED via A8 takeover. Reclassified: root cause was region/ at canonical scale (membership degenerated to 1 cell; member-extent bounds collapsed to 0ÃƒÆ’Ã¢â‚¬â€0 ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ zero samples). Fixed: anchor-centered scale-invariant 25,000 ft bounds + forced 1-ring membership + river/road clipping; component hardening (fixed-res cache ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤2048 px, lazy fitted view, finite-scale guard); demo markers rescaled to entity feet. 137/137; proofs laneA8-region-ingame.png / laneA8-region-river.png. Goldens re-frozen (pre-release). |
-```
-
-## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1775:796
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-| WF-G4 | resolved 2026-06-11 | generation_bug | 2026-06-11 (WF-G3 re-verify) | The DEMO's region canvas stays black for demo-clicked anchors even at sane post-fix sizes (24k ft, 241ÃƒÆ’Ã¢â‚¬â€136 grid, 15s wait) while Lane C's proof rig renders the same regions fine ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â a `RegionMapView`/`regionDraw` integration defect in components/Worldforge (suspects: non-square grid handling, cache blit order, local-stretch on thin grids). | RESOLVED via A8 takeover. Reclassified: root cause was region/ at canonical scale (membership degenerated to 1 cell; member-extent bounds collapsed to 0ÃƒÆ’Ã¢â‚¬â€0 ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ zero samples). Fixed: anchor-centered scale-invariant 25,000 ft bounds + forced 1-ring membership + river/road clipping; component hardening (fixed-res cache ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤2048 px, lazy fitted view, finite-scale guard); demo markers rescaled to entity feet. 137/137; proofs laneA8-region-ingame.png / laneA8-region-river.png. Goldens re-frozen (pre-release). |
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:96:43
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-the member-extent bounds collapsed to **0Ãƒâ€”0 ft / 0Ãƒâ€”0 grid / zero samples**
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:96:56
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-the member-extent bounds collapsed to **0Ãƒâ€”0 ft / 0Ãƒâ€”0 grid / zero samples**
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:107:57
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-  (Ã¢â€°Â¤2048 px/side, scaled blit Ã¢â‚¬â€ old boundsÃƒâ€”scale cache silently exceeded the
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:117:26
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-exploder Ã¢â‚¬â€ 25,000Ãƒâ€”25,000 ft HUD, river as ~4 px band; A-COND-1 satisfied).
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:121:25
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-(25,000Ã‚Â² bounds, 250Ãƒâ€”250 grid), smoothness-laplacian, c2-region-golden,
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:153:39
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-full-map cache would be ~530 MB at 16Ãƒâ€” (the WF-G4 canvas-cap lesson), so past
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:156:57
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-re-render). Verified live in the in-app preview at ~9.4Ãƒâ€”: crisp Voronoi cells,
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:159:64
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-setPointerCapture) Ã¢â‚¬â€ Remy to feel out drag-pan + the 16Ãƒâ€” descend by hand.
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:164:37
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-   sized by ResizeObserver (min 480Ãƒâ€”320). AtlasMapView/RegionMapView receive
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:256:19
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-local; "Grid: 600Ãƒâ€”600 @ 5 ft | Features: 1125") + headless eyeball:
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:311:54
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-   renders roads (casing+fill, trail vs road tones, Ãƒâ€”2 width for fit-zoom
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:417:27
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-VERTICAL_EXAGGERATION (12Ãƒâ€”) Ã¢â‚¬â€ groundWorldAdapter now pre-divides so
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:454:55
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-widthÃ‚Â·METERS_PER_CELL, so points emitted as metersÃƒÂ·M and widths as
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:455:8
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-metersÃƒÂ·M yield TRUE ground meters from the unmodified continent builders).
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:516:12
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-  boxWidthÃƒâ€”boxHeightÃƒâ€”boxDepth in warm plaster (#b09a72); legacy cubes
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:516:26
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-  boxWidthÃƒâ€”boxHeightÃƒâ€”boxDepth in warm plaster (#b09a72); legacy cubes
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:519:21
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-  heightM = storeysÃƒâ€”3 m from the C3 plan.
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:551:49
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-3. Wrong place too: App.tsx entryPosition used Ãƒâ€”128 (CHUNK_WORLD_SIZE) for
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:558:51
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-Flagged follow-up (spawn_task): getTerrainHeight Ãƒâ€”200-on-0..100 scale
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:559:32
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-mismatch (playerWorldPos.y ~11Ãƒâ€” too large) + CHUNK_SIZE audit.
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:845:21
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-The demo grid is 25Ãƒâ€”16 (town at 16,4) but PLAYING mapData is 30Ãƒâ€”20
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:845:69
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-The demo grid is 25Ãƒâ€”16 (town at 16,4) but PLAYING mapData is 30Ãƒâ€”20
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:848:4
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-30Ãƒâ€”20 grid are (17,6) full village (10 bld), (19,7), (20,7 partial).
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:871:15
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-meters (grid Ãƒâ€” 1024) and the autosave clamp assumes that scale. Mixing
-```
-
-## SOFT docs\projects\worldforge\TRACKER.md:885:38
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-   center in continent meters (tile Ãƒâ€” METERS_PER_CELL) so the continent
-```
-
-## SOFT docs\projects\worldforge\NORTH_STAR.md:52:15
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-# Worldforge ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â North Star\r
-```
-
-## SOFT docs\projects\worldforge\NORTH_STAR.md:58:37
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-Canonical spec: [SPEC.md](SPEC.md) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â the 24-decision interview record and full\r
-```
-
-## SOFT docs\projects\worldforge\NORTH_STAR.md:63:75
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-One deterministic generation pipeline producing the world at every scale ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â\r
-```
-
-## SOFT docs\projects\worldforge\NORTH_STAR.md:64:22
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-ported-Azgaar atlas ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ region ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ local area ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ 3D ground world ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ grown towns ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢\r
-```
-
-## SOFT docs\projects\worldforge\NORTH_STAR.md:64:49
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-ported-Azgaar atlas ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ region ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ local area ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ 3D ground world ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ grown towns ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢\r
-```
-
-## SOFT docs\projects\worldforge\NORTH_STAR.md:64:80
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-ported-Azgaar atlas ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ region ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ local area ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ 3D ground world ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ grown towns ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢\r
-```
-
-## SOFT docs\projects\worldforge\NORTH_STAR.md:64:116
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-ported-Azgaar atlas ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ region ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ local area ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ 3D ground world ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ grown towns ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢\r
-```
-
-## SOFT docs\projects\worldforge\NORTH_STAR.md:64:148
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-ported-Azgaar atlas ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ region ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ local area ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ 3D ground world ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ grown towns ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢\r
-```
-
-## SOFT docs\projects\worldforge\NORTH_STAR.md:65:32
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-seamless procedural interiors ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â inhabited by a full agent simulation, with\r
-```
-
-## SOFT docs\projects\worldforge\NORTH_STAR.md:75:73
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-- Replaces **Submap** as canonical local navigation (Decision Blitz D3 ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â the\r
-```
-
-## SOFT docs\projects\worldforge\NORTH_STAR.md:107:11
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-   (SPEC Ãƒâ€šÃ‚Â§9), do what we can.\r
-```
-
-## SOFT docs\projects\worldforge\NORTH_STAR.md:111:77
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-4. Asset policy: procedural shaders + runtime AI-gen with local cache only ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â\r
-```
-
-## SOFT docs\projects\worldforge\NORTH_STAR.md:149:15
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-- TRACKER.md ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â task log (create rows as work starts; follow the\r
-```
-
-## SOFT docs\projects\worldforge\NORTH_STAR.md:151:12
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-- GAPS.md ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â gap log per living-project protocol.\r
-```
-
-## SOFT docs\projects\worldforge\NORTH_STAR.md:156:58
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-2. Read `docs/projects/DECISION_BLITZ_2026-06-10.md` (D1ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“D5 context).\r
-```
-
-## SOFT docs\projects\worldforge\GAPS.md:114:120
-
-- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
-- Character: ƒ
-- Code point: U+0192
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-| WF-G1 | open | design_decision_deferred | 2026-06-11 (spine) | `Feet` is a plain `number` alias, not a branded type ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â unit-mixing bugs are possible at the FMG-port boundary where meters exist. Deliberate ergonomics choice (units.ts header). | Revisit branding if a unit bug actually appears during the FMG port. |
-```
-
-## SOFT docs\projects\worldforge\orchestration\LANE-B.md:440:17
+## SOFT docs\superpowers\specs\2026-07-14-absorbed-travel.md:1:17
 
 - Type: Mojibake: Replacement Character (U+FFFD)
 - Character: �
@@ -748,214 +76,10 @@ seamless procedural interiors ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â inhabited b
 - Line text:
 
 ```text
-## Directive B6 � TownPlan persistence contract (CURRENT)\r
+# Travel System � Cell-Native Movement (Absorbed 2026-07-14)
 ```
 
-## SOFT docs\projects\worldforge\orchestration\LANE-B.md:448:34
-
-- Type: Mojibake: Replacement Character (U+FFFD)
-- Character: �
-- Code point: U+FFFD
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-accepted B5 with no body changes � header reset by orchestrator. This B6 is\r
-```
-
-## SOFT docs\projects\worldforge\orchestration\LANE-B.md:456:73
-
-- Type: Mojibake: Replacement Character (U+FFFD)
-- Character: �
-- Code point: U+FFFD
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-   `remove-plot`, `add-building` (plotId + building params placeholder) �\r
-```
-
-## SOFT docs\projects\worldforge\orchestration\LANE-B.md:460:58
-
-- Type: Mojibake: Replacement Character (U+FFFD)
-- Character: �
-- Code point: U+FFFD
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-3. WorldStore: no schema change needed if deltas suffice � document\r
-```
-
-## SOFT docs\projects\worldforge\orchestration\LANE-B.md:461:74
-
-- Type: Mojibake: Replacement Character (U+FFFD)
-- Character: �
-- Code point: U+FFFD
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-   explicitly WHY (or bump WORLD_DELTA_OPERATION_VERSION if op set grows �\r
-```
-
-## SOFT docs\projects\worldforge\orchestration\LANE-B.md:463:60
-
-- Type: Mojibake: Replacement Character (U+FFFD)
-- Character: �
-- Code point: U+FFFD
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-4. Integration suite: extend pipeline.test.ts (or sibling) � generate a\r
-```
-
-## SOFT docs\projects\worldforge\orchestration\LANE-B.md:538:27
-
-- Type: Mojibake: Replacement Character (U+FFFD)
-- Character: �
-- Code point: U+FFFD
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-## Verifier Feedback (B6) � VERDICT: accepted\r
-```
-
-## SOFT docs\projects\worldforge\orchestration\LANE-B.md:547:35
-
-- Type: Mojibake: Replacement Character (U+FFFD)
-- Character: �
-- Code point: U+FFFD
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-  (Remy's agentUsageProbe wiring) � correctly left alone.\r
-```
-
-## SOFT docs\projects\worldforge\orchestration\LANE-B.md:554:58
-
-- Type: Mojibake: Replacement Character (U+FFFD)
-- Character: �
-- Code point: U+FFFD
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-(`src/systems/worldforge/interior/`, landed in parallel) � B7 candidate.\r
-```
-
-## SOFT docs\projects\worldforge\orchestration\LANE-B.md:556:17
-
-- Type: Mojibake: Replacement Character (U+FFFD)
-- Character: �
-- Code point: U+FFFD
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-## Directive B7 � Delta?Interior coherence (CURRENT)\r
-```
-
-## SOFT docs\projects\worldforge\orchestration\LANE-B.md:566:6
-
-- Type: Mojibake: Replacement Character (U+FFFD)
-- Character: �
-- Code point: U+FFFD
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-ONLY � the InteriorPlotInput shape is the contract you are reconciling\r
-```
-
-## SOFT docs\projects\worldforge\orchestration\LANE-B.md:572:8
-
-- Type: Mojibake: Replacement Character (U+FFFD)
-- Character: �
-- Code point: U+FFFD
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-change � say so in the report if you agree, argue if not).\r
-```
-
-## SOFT docs\projects\worldforge\orchestration\LANE-B.md:579:38
-
-- Type: Mojibake: Replacement Character (U+FFFD)
-- Character: �
-- Code point: U+FFFD
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-   sized from the op or plot context � your design, document it). Replay\r
-```
-
-## SOFT docs\projects\worldforge\orchestration\LANE-B.md:582:47
-
-- Type: Mojibake: Replacement Character (U+FFFD)
-- Character: �
-- Code point: U+FFFD
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-   the existing feature marker as you see fit � justify.\r
-```
-
-## SOFT docs\projects\worldforge\orchestration\LANE-B.md:583:59
-
-- Type: Mojibake: Replacement Character (U+FFFD)
-- Character: �
-- Code point: U+FFFD
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-2. Versioning: this CHANGES the meaning of an existing op � decide whether\r
-```
-
-## SOFT docs\projects\worldforge\orchestration\LANE-B.md:681:27
-
-- Type: Mojibake: Replacement Character (U+FFFD)
-- Character: �
-- Code point: U+FFFD
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-## Verifier Feedback (B7) � VERDICT: accepted\r
-```
-
-## SOFT docs\projects\worldforge\orchestration\LANE-B.md:687:66
-
-- Type: Mojibake: Replacement Character (U+FFFD)
-- Character: �
-- Code point: U+FFFD
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-  file only (other working-tree changes belong to parallel lanes � left\r
-```
-
-## SOFT docs\projects\worldforge\orchestration\LANE-B.md:692:7
-
-- Type: Mojibake: Replacement Character (U+FFFD)
-- Character: �
-- Code point: U+FFFD
-- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
-- Line text:
-
-```text
-  ? 40�40 fallback) is documented in types. Version decision (amend the\r
-```
-
-## SOFT docs\projects\world3d\NORTH_STAR.md:148:54
+## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1780:239
 
 - Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
 - Character: ƒ
@@ -964,10 +88,10 @@ change � say so in the report if you agree, argue if not).\r
 - Line text:
 
 ```text
-  **31 of 34** roads (total clipped length up to 2.0Ãƒâ€” the original Ã¢â‚¬â€ whole roads drawn twice), the
+| WF-G2 | resolved 2026-06-11 | contract_follow_up | 2026-06-11 (spine) | Delta-layer schema landed via Lane B directive B3: `delta/{types,applyDeltas,serialize}.ts` (versioned envelope, ordered pure replay, JSON round-trip; 6 tests). | ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â |
 ```
 
-## SOFT docs\projects\world3d\NORTH_STAR.md:149:40
+## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1781:293
 
 - Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
 - Character: ƒ
@@ -976,10 +100,10 @@ change � say so in the report if you agree, argue if not).\r
 - Line text:
 
 ```text
-  half-open clipper yields exactly 1.0Ãƒâ€” for all 34. 2 new unit tests; 67 world3d tests pass; tsc clean;
+| WF-INT-1 | resolved 2026-06-11 | integration_debt | 2026-06-11 (B1/C1 review) | Lane C's `generateRegion` and Lane A's descend path use placeholder `feetPerPixel: 1000`; the canonical `FEET_PER_FMG_PIXEL` (9,842.52, adapter) must be wired through both once their lanes have an idle window ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â orchestrator-owned integration (cross-lane scope). | RESOLVED with WF-G4: the demo already passed canonical (that's what exposed the bug); region bounds are now scale-invariant (anchor-centered 25,000 ft square) so feetPerPixel only affects sampling context; canonical-scale contract pinned by 3 regression tests in generateRegion.test.ts. The remaining `1000` in suites is a deliberate multi-cell stress scale, not a placeholder. |
 ```
 
-## SOFT docs\projects\world3d\NORTH_STAR.md:176:86
+## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1782:193
 
 - Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
 - Character: ƒ
@@ -988,7 +112,199 @@ change � say so in the report if you agree, argue if not).\r
 - Line text:
 
 ```text
-**Residual relief limitation (Ã¢â€ â€™ W3D-G16):** the streamed window (`LOAD_RADIUSÃƒâ€”CHUNK_WORLD_SIZE`
+| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ'Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ'Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ'Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ'Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ'Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |
+```
+
+## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1782:227
+
+- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
+- Character: ƒ
+- Code point: U+0192
+- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
+- Line text:
+
+```text
+| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ'Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ'Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ'Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ'Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ'Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |
+```
+
+## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1782:248
+
+- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
+- Character: ƒ
+- Code point: U+0192
+- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
+- Line text:
+
+```text
+| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ'Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ'Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ'Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ'Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ'Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |
+```
+
+## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1782:267
+
+- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
+- Character: ƒ
+- Code point: U+0192
+- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
+- Line text:
+
+```text
+| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ'Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ'Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ'Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ'Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ'Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |
+```
+
+## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1782:611
+
+- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
+- Character: ƒ
+- Code point: U+0192
+- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
+- Line text:
+
+```text
+| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ'Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ'Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ'Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ'Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ'Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |
+```
+
+## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1782:651
+
+- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
+- Character: ƒ
+- Code point: U+0192
+- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
+- Line text:
+
+```text
+| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ'Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ'Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ'Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ'Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ'Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |
+```
+
+## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1782:685
+
+- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
+- Character: ƒ
+- Code point: U+0192
+- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
+- Line text:
+
+```text
+| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ'Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ'Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ'Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ'Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ'Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |
+```
+
+## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1782:715
+
+- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
+- Character: ƒ
+- Code point: U+0192
+- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
+- Line text:
+
+```text
+| WF-G3 | resolved 2026-06-11 | generation_bug | 2026-06-11 (A7 in-game proof) | `generateRegion` ring-expansion explodes on coastal anchors: cell #2275 (world-42 defaults) produced a 157,854ÃƒÆ'Ã¢â‚¬â€170,738 ft region (1579ÃƒÆ'Ã¢â‚¬â€1708 grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 6ÃƒÆ'Ã¢â‚¬â€ REGION_SIZE_FT) with 0 rivers and a black/unrenderable canvas in the live demo. Coarse ocean pack cells inflate the BFS neighborhood; bounds are not clamped. Hand-picked test anchors (110/347) never hit it. | RESOLVED by orchestrator (region/ unclaimed window): anchor-distance admission filter in expandRegionMembership (Chebyshev ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤ targetSize from anchor) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â #1928 now 24,035ÃƒÆ'Ã¢â‚¬â€13,533 ft (was 131kÃƒÆ'Ã¢â‚¬â€157k); +2 regression tests (exploding anchors + every-250th-land-cell sweep); existing goldens UNCHANGED (no world-break needed); 103/103 full run. Residual split to WF-G4. |
+```
+
+## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1783:184
+
+- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
+- Character: ƒ
+- Code point: U+0192
+- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
+- Line text:
+
+```text
+| WF-G4 | resolved 2026-06-11 | generation_bug | 2026-06-11 (WF-G3 re-verify) | The DEMO's region canvas stays black for demo-clicked anchors even at sane post-fix sizes (24k ft, 241ÃƒÆ'Ã¢â‚¬â€136 grid, 15s wait) while Lane C's proof rig renders the same regions fine ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â a `RegionMapView`/`regionDraw` integration defect in components/Worldforge (suspects: non-square grid handling, cache blit order, local-stretch on thin grids). | RESOLVED via A8 takeover. Reclassified: root cause was region/ at canonical scale (membership degenerated to 1 cell; member-extent bounds collapsed to 0ÃƒÆ'Ã¢â‚¬â€0 ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ zero samples). Fixed: anchor-centered scale-invariant 25,000 ft bounds + forced 1-ring membership + river/road clipping; component hardening (fixed-res cache ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤2048 px, lazy fitted view, finite-scale guard); demo markers rescaled to entity feet. 137/137; proofs laneA8-region-ingame.png / laneA8-region-river.png. Goldens re-frozen (pre-release). |
+```
+
+## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1783:270
+
+- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
+- Character: ƒ
+- Code point: U+0192
+- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
+- Line text:
+
+```text
+| WF-G4 | resolved 2026-06-11 | generation_bug | 2026-06-11 (WF-G3 re-verify) | The DEMO's region canvas stays black for demo-clicked anchors even at sane post-fix sizes (24k ft, 241ÃƒÆ'Ã¢â‚¬â€136 grid, 15s wait) while Lane C's proof rig renders the same regions fine ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â a `RegionMapView`/`regionDraw` integration defect in components/Worldforge (suspects: non-square grid handling, cache blit order, local-stretch on thin grids). | RESOLVED via A8 takeover. Reclassified: root cause was region/ at canonical scale (membership degenerated to 1 cell; member-extent bounds collapsed to 0ÃƒÆ'Ã¢â‚¬â€0 ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ zero samples). Fixed: anchor-centered scale-invariant 25,000 ft bounds + forced 1-ring membership + river/road clipping; component hardening (fixed-res cache ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤2048 px, lazy fitted view, finite-scale guard); demo markers rescaled to entity feet. 137/137; proofs laneA8-region-ingame.png / laneA8-region-river.png. Goldens re-frozen (pre-release). |
+```
+
+## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1783:602
+
+- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
+- Character: ƒ
+- Code point: U+0192
+- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
+- Line text:
+
+```text
+| WF-G4 | resolved 2026-06-11 | generation_bug | 2026-06-11 (WF-G3 re-verify) | The DEMO's region canvas stays black for demo-clicked anchors even at sane post-fix sizes (24k ft, 241ÃƒÆ'Ã¢â‚¬â€136 grid, 15s wait) while Lane C's proof rig renders the same regions fine ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â a `RegionMapView`/`regionDraw` integration defect in components/Worldforge (suspects: non-square grid handling, cache blit order, local-stretch on thin grids). | RESOLVED via A8 takeover. Reclassified: root cause was region/ at canonical scale (membership degenerated to 1 cell; member-extent bounds collapsed to 0ÃƒÆ'Ã¢â‚¬â€0 ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ zero samples). Fixed: anchor-centered scale-invariant 25,000 ft bounds + forced 1-ring membership + river/road clipping; component hardening (fixed-res cache ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤2048 px, lazy fitted view, finite-scale guard); demo markers rescaled to entity feet. 137/137; proofs laneA8-region-ingame.png / laneA8-region-river.png. Goldens re-frozen (pre-release). |
+```
+
+## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1783:615
+
+- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
+- Character: ƒ
+- Code point: U+0192
+- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
+- Line text:
+
+```text
+| WF-G4 | resolved 2026-06-11 | generation_bug | 2026-06-11 (WF-G3 re-verify) | The DEMO's region canvas stays black for demo-clicked anchors even at sane post-fix sizes (24k ft, 241ÃƒÆ'Ã¢â‚¬â€136 grid, 15s wait) while Lane C's proof rig renders the same regions fine ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â a `RegionMapView`/`regionDraw` integration defect in components/Worldforge (suspects: non-square grid handling, cache blit order, local-stretch on thin grids). | RESOLVED via A8 takeover. Reclassified: root cause was region/ at canonical scale (membership degenerated to 1 cell; member-extent bounds collapsed to 0ÃƒÆ'Ã¢â‚¬â€0 ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ zero samples). Fixed: anchor-centered scale-invariant 25,000 ft bounds + forced 1-ring membership + river/road clipping; component hardening (fixed-res cache ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤2048 px, lazy fitted view, finite-scale guard); demo markers rescaled to entity feet. 137/137; proofs laneA8-region-ingame.png / laneA8-region-river.png. Goldens re-frozen (pre-release). |
+```
+
+## SOFT docs\projects\PROJECT_COMPLETION_ARCHIVE.md:1783:793
+
+- Type: Mojibake: Latin Small Letter F With Hook (ƒ - common mojibake artifact)
+- Character: ƒ
+- Code point: U+0192
+- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
+- Line text:
+
+```text
+| WF-G4 | resolved 2026-06-11 | generation_bug | 2026-06-11 (WF-G3 re-verify) | The DEMO's region canvas stays black for demo-clicked anchors even at sane post-fix sizes (24k ft, 241ÃƒÆ'Ã¢â‚¬â€136 grid, 15s wait) while Lane C's proof rig renders the same regions fine ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â a `RegionMapView`/`regionDraw` integration defect in components/Worldforge (suspects: non-square grid handling, cache blit order, local-stretch on thin grids). | RESOLVED via A8 takeover. Reclassified: root cause was region/ at canonical scale (membership degenerated to 1 cell; member-extent bounds collapsed to 0ÃƒÆ'Ã¢â‚¬â€0 ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ zero samples). Fixed: anchor-centered scale-invariant 25,000 ft bounds + forced 1-ring membership + river/road clipping; component hardening (fixed-res cache ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¤2048 px, lazy fitted view, finite-scale guard); demo markers rescaled to entity feet. 137/137; proofs laneA8-region-ingame.png / laneA8-region-river.png. Goldens re-frozen (pre-release). |
+```
+
+## SOFT docs\projects\GLOBAL_GAPS.md:354:591
+
+- Type: Mojibake: Replacement Character (U+FFFD)
+- Character: �
+- Code point: U+FFFD
+- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
+- Line text:
+
+```text
+| GG-119 | untriaged | workflow_dashboard_gap | ThreeDModal orphan-sweep session (2026-08-26) | File locks expire silently after ~30 minutes: there is no T-minus reminder, no broadcast to the lock holder, and no notification to other agents that a previously-locked path just became editable. Long verification steps (typecheck, vitest) alone can approach the TTL. | `tools/agora/client.mjs lock` output ("expires in 30m"); AGENTS.md heartbeat guidance is manual | A lock lapsing mid-task lets a second agent start editing the same files while the first still believes it holds exclusivity � the exact shared-edit corruption the daemon exists to prevent. | Agora tooling | in_progress | `tools/agora/WORKFLOW_GAPS.md` **WF-G69** (client visibility done) + **WF-G75** (canonical daemon-broadcast row, open) | Add expiry-warning broadcasts (e.g. daemon message to holder at T-5m) and an unlock/expire event visible in `pets`/board state; consider auto-renewal while the holder's heartbeat is alive. | A lock nearing expiry produces a visible warning row/message; an expired lock appears as an event, not just silent absence. |
+```
+
+## SOFT docs\projects\GLOBAL_GAPS.md:355:369
+
+- Type: Mojibake: Replacement Character (U+FFFD)
+- Character: �
+- Code point: U+FFFD
+- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
+- Line text:
+
+```text
+| GG-120 | untriaged | planning_surface_drift | ThreeDModal orphan-sweep session (2026-08-26) | Planmap `topics.json` campaign topics accumulate prose-blob `sub` fields: one ever-growing paragraph mixes historical log, findings, and current state. Stale claims hide inside and mislead later agents (two found and corrected today: "no sun/moon/sky-clock system exists" � false, World3DLighting runs a clock-driven model; "Scene3D feeds the Battle Map 3D surface" � false since GG-116). | `public/planmap/topics.json` topic `combat-3d-visual-quality` (`sub` FINDING sentence, corrected 2026-08-26); `docs/architecture/domains/ui-modals.md` (corrected same day) | Planmap is the declared home for "what is planned and its status"; embedded falsehoods in prose blobs route future campaigns toward deleted/orphaned systems. | Planmap / roadmap surface | in_progress | `tools/agora/WORKFLOW_GAPS.md` **WF-G70** (convention settled) + **WF-G77** (backlog remediation sweep, open); convention in PLANMAP-AGENT-GUIDE �4) | Prefer dated `status_note`-style entries (the schema already supports them on gap rows) over appending to `sub`; keep `sub` describing current state only; prune superseded findings into the dated trail. | New topic updates use dated notes; a grep of `sub` fields no longer surfaces assertions contradicted by code audits. |
+```
+
+## SOFT docs\projects\GLOBAL_GAPS.md:355:463
+
+- Type: Mojibake: Replacement Character (U+FFFD)
+- Character: �
+- Code point: U+FFFD
+- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
+- Line text:
+
+```text
+| GG-120 | untriaged | planning_surface_drift | ThreeDModal orphan-sweep session (2026-08-26) | Planmap `topics.json` campaign topics accumulate prose-blob `sub` fields: one ever-growing paragraph mixes historical log, findings, and current state. Stale claims hide inside and mislead later agents (two found and corrected today: "no sun/moon/sky-clock system exists" � false, World3DLighting runs a clock-driven model; "Scene3D feeds the Battle Map 3D surface" � false since GG-116). | `public/planmap/topics.json` topic `combat-3d-visual-quality` (`sub` FINDING sentence, corrected 2026-08-26); `docs/architecture/domains/ui-modals.md` (corrected same day) | Planmap is the declared home for "what is planned and its status"; embedded falsehoods in prose blobs route future campaigns toward deleted/orphaned systems. | Planmap / roadmap surface | in_progress | `tools/agora/WORKFLOW_GAPS.md` **WF-G70** (convention settled) + **WF-G77** (backlog remediation sweep, open); convention in PLANMAP-AGENT-GUIDE �4) | Prefer dated `status_note`-style entries (the schema already supports them on gap rows) over appending to `sub`; keep `sub` describing current state only; prune superseded findings into the dated trail. | New topic updates use dated notes; a grep of `sub` fields no longer surfaces assertions contradicted by code audits. |
+```
+
+## SOFT docs\projects\GLOBAL_GAPS.md:355:1009
+
+- Type: Mojibake: Replacement Character (U+FFFD)
+- Character: �
+- Code point: U+FFFD
+- Review note: Mojibake/corruption candidate. Do not auto-fix unless a deterministic replacement is established.
+- Line text:
+
+```text
+| GG-120 | untriaged | planning_surface_drift | ThreeDModal orphan-sweep session (2026-08-26) | Planmap `topics.json` campaign topics accumulate prose-blob `sub` fields: one ever-growing paragraph mixes historical log, findings, and current state. Stale claims hide inside and mislead later agents (two found and corrected today: "no sun/moon/sky-clock system exists" � false, World3DLighting runs a clock-driven model; "Scene3D feeds the Battle Map 3D surface" � false since GG-116). | `public/planmap/topics.json` topic `combat-3d-visual-quality` (`sub` FINDING sentence, corrected 2026-08-26); `docs/architecture/domains/ui-modals.md` (corrected same day) | Planmap is the declared home for "what is planned and its status"; embedded falsehoods in prose blobs route future campaigns toward deleted/orphaned systems. | Planmap / roadmap surface | in_progress | `tools/agora/WORKFLOW_GAPS.md` **WF-G70** (convention settled) + **WF-G77** (backlog remediation sweep, open); convention in PLANMAP-AGENT-GUIDE �4) | Prefer dated `status_note`-style entries (the schema already supports them on gap rows) over appending to `sub`; keep `sub` describing current state only; prune superseded findings into the dated trail. | New topic updates use dated notes; a grep of `sub` fields no longer surfaces assertions contradicted by code audits. |
 ```
 
 ## SOFT docs\audits\source-references-inventory.md:696:159
@@ -3078,4 +2394,3 @@ change � say so in the report if you agree, argue if not).\r
 ```text
 - **docs\portraits\race_profiles\research-status.json:36**: `"message": "Attempt 1 failed: elementHandle.fill: Element is not attached to the DOM\nCall log:\n\u001b[2m    - fill(\"You are a senior RPG lore researcher writing a world-agnostic race dossier for \"Giff\" (giff).\u001b[22m\n\n\u001b[2mResearch mode requirements:\u001b[22m\n\u001b[2m- Perform live web research before drafting. Use Gemini's Deep Research workflow if available.\u001b[22m\n\u001b[2m- Cross-check multiple sources and resolve contradictions when possible.\u001b[22m\n\u001b[2m- Include only verifiable source URLs in the Sources section.\u001b[22m\n\n\u001b[2mContent constraints:\u001b[22m\n\u001b[2m- Keep this generalized for procedural world generation.\u001b[22m\n\u001b[2m- Do not anchor to named cities, kingdoms, nations, or timeline-specific events.\u001b[22m\n\u001b[2m- Avoid setting-locked proper nouns unless unavoidable for origin context; generalize them when possible.\u001b[22m\n\u001b[2m- Write in concise wiki-like prose with a light narrative flow (not a novel).\u001b[22m\n\u001b[2m- Do NOT output a Q&A table or question list format.\u001b[22m\n\n\u001b[2mOutput format (markdown only):\u001b[22m\n\u001b[2m1) # <Race Name>\u001b[22m\n\u001b[2m2) ## Overview\u001b[22m\n\u001b[2m3) ## Cultural Throughline\u001b[22m\n\u001b[2m4) ## Ten-Point Generalized Profile\u001b[22m\n\u001b[2m   - Provide 10 numbered subsections, one per required topic, each with a heading and 1-3 concise paragraphs.\u001b[22m\n\u001b[2m5) ## Design Hooks for Procedural Worldgen\u001b[22m\n\u001b[2m6) ## Sources\u001b[22m\n\u001b[2m   - List at least 5 web sources as markdown bullets with working URLs.\u001b[22m\n\n\u001b[2mRequired ten topics to cover inside 'Ten-Point Generalized Profile':\u001b[22m\n\u001b[2m1. (q1) What is this race's broad origin pattern (ancestral, planar, created, transformed, or unknown)?\u001b[22m\n\u001b[2m2. (q2) What core survival pressures historically shaped this race's behavior and values?\u001b[22m\n\u001b[2m3. (q3) Which social structures are most common (clans, houses, councils, bands, guilds, loose networks)?\u001b[22m\n\u001b[2m4. (q4) What roles or labors are most culturally typical in day-to-day life (non-combat)?\u001b[22m\n\u001b[2m5. (q5) What tensions commonly exist between this race's natural traits and broader society?\u001b[22m\n\u001b[2m6. (q6) What rites of passage or adulthood markers are culturally important?\u001b[22m\n\u001b[2m7. (q7) How does this race usually approach conflict resolution before violence?\u001b[22m\n\u001b[2m8. (q8) What family and kinship norms are typical (child-rearing, elders, obligation, inheritance)?\u001b[22m\n\u001b[2m9. (q9) What are common misunderstandings outsiders have about this race, and what is usually true instead?\u001b[22m\n\u001b[2m10. (q10) What generalized character hooks fit this race for play (duty, ambition, exile, craft, faith, curiosity, survival)?\u001b[22m\n\n\u001b[2mQuality bar:\u001b[22m\n\u001b[2m- Prefer official/primary sources first, then reputable references.\u001b[22m\n\u001b[2m- If sources disagree, include a short caveat in the relevant section.\u001b[22m\n\u001b[2m- Keep claims specific but setting-generalized.\u001b[22m\n\n\u001b[2mCandidate internal context to cross-check (may be stale; verify externally):\u001b[22m\n\u001b[2mentryLore: Giff are hippo-headed humanoids of impressive size who are renowned across the multiverse for their martial prowess and their love of firearms. Originally from a world whose name has been lost to time, giff now travel throughout Wildspace, often serving as mercenaries, bodyguards, or soldiers. They are fiercely proud of their military heritage and maintain strict hierarchies and traditions even when far from their kin. A giff's word is their bond, and they take contracts and oaths extremely seriously.\u001b[22m\n\u001b[2m\n\u001b[2mtags: race, giff, humanoid, spelljammer, beastfolk, military\u001b[22m\n\u001b[2msocietyType: Giff society is intensely hierarchical and organized around the military regiment. Loyalty to the group, the chain of command, and one's personal word is the foundation of their culture. They value discipline, tactical brilliance, and the fulfillment of one's duty above all else. Status is earned through merit, service, and the demonstration of martial skill. They possess a deep sense of honor and a collective identity as the multiverse's premier soldiers of fortune.\u001b[22m\n\u001b[2mtypicalEnvironment: Shipboard decks, fortified borderlands, and any location with a strong military presence are the giff's preferred habitats. They thrive in environments where they can establish a clear chain of command and utilize their tactical expertise. Many serve as professional mercenaries, elite bodyguards, or specialized soldiers in large interplanetary empires. They are comfortable in a variety of terrestrial and cosmic habitats, provided they have a clear mission and the means to maintain their martial traditions.\u001b[22m\n\n\u001b[2mReturn markdown only.\")\u001b[22m\n\u001b[2m  - attempting fill action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and editable\u001b[22m\n"`\r
 ```
-

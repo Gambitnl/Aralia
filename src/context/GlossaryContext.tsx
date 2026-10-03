@@ -17,7 +17,7 @@
 // src/context/GlossaryContext.tsx
 import React, { createContext, useState, useEffect, ReactNode } from "react";
 import { GlossaryEntry } from '../types';
-import { fetchWithTimeout } from '../utils/networkUtils';
+import { fetchWithTimeout } from '../utils/context';
 import { assetUrl } from '../config/env';
 import { ErrorOverlay } from '../components/ui/ErrorOverlay';
 

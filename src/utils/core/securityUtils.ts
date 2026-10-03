@@ -212,3 +212,46 @@ export function validateCharacterName(name: string): { valid: boolean; error?: s
 
   return { valid: true };
 }
+
+/**
+ * Masks user-provided personal data before a prompt or response is stored for diagnostics.
+ *
+ * Removes three classes of content:
+ * 1. Email addresses -> [REDACTED_EMAIL]
+ * 2. Long digit runs (7+ digits, optionally separated by spaces/dashes) -> [REDACTED_NUMBER]
+ * 3. Anything wrapped in <user>...</user> tags -> <user>[REDACTED_USER_TEXT]</user>
+ *
+ * The surrounding prompt scaffolding is left intact so model issues stay diagnosable.
+ *
+ * @param text The raw text about to be stored.
+ * @returns The text with personal data masked.
+ */
+export function redactUserText(text: string): string {
+  if (!text) return '';
+
+  let redacted = text;
+
+  // 1. <user>...</user> blocks (non-greedy, multiline, case-insensitive)
+  redacted = redacted.replace(
+    /<user>[\s\S]*?<\/user>/gi,
+    '<user>[REDACTED_USER_TEXT]</user>'
+  );
+
+  // 2. Email addresses
+  redacted = redacted.replace(
+    /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g,
+    '[REDACTED_EMAIL]'
+  );
+
+  // 3. Long digit runs (phone numbers, card numbers, account ids).
+  // Matches 7 or more digits, tolerating spaces, dashes, dots and parentheses between groups.
+  redacted = redacted.replace(
+    /\d(?:[\d\s().-]*\d){6,}/g,
+    (match) => {
+      const digitCount = (match.match(/\d/g) || []).length;
+      return digitCount >= 7 ? '[REDACTED_NUMBER]' : match;
+    }
+  );
+
+  return redacted;
+}

@@ -24,7 +24,7 @@ import SpellContext from '../../context/SpellContext';
 import {
   filterSpellsForRequirement,
   getSpellLevelLabel,
-} from '../../utils/spellFilterUtils';
+} from '../../utils/character';
 import { SpellSummaryCard } from '../ui/SpellSummaryCard';
 
 interface FeatSpellPickerProps {

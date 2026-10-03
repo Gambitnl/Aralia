@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 04/08/2026, 01:51:40
+ * Dependents: components/BattleMap/BattleMapDemo.tsx, components/BattleMap/index.ts, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file ActionEconomyBar.tsx
  * A component to display the character's current action economy status.
@@ -6,14 +22,22 @@ import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { CombatCharacter, CombatAction, AbilityCost } from '../../types/combat';
 import Tooltip from '../Tooltip';
-import { generateId } from '../../utils/combatUtils';
+import { generateId } from '../../utils/combat';
 
 interface ActionEconomyBarProps {
   character: CombatCharacter;
   onExecuteAction: (action: CombatAction) => boolean | Promise<boolean>;
+  /**
+   * The Move / Attack command pair, rendered above the economy it spends.
+   *
+   * A slot rather than a hard import: this bar is also mounted by the design
+   * lab and the preview scenarios, which have no battle-map command state to
+   * give it. Those keep passing nothing and render exactly as before.
+   */
+  commandToolbar?: React.ReactNode;
 }
 
-const ActionEconomyBar: React.FC<ActionEconomyBarProps> = ({ character, onExecuteAction }) => {
+const ActionEconomyBar: React.FC<ActionEconomyBarProps> = ({ character, onExecuteAction, commandToolbar }) => {
   const shouldReduceMotion = useReducedMotion();
   const { actionEconomy, concentratingOn } = character;
 
@@ -60,6 +84,10 @@ const ActionEconomyBar: React.FC<ActionEconomyBarProps> = ({ character, onExecut
   return (
     <div className="rounded-xl border border-amber-900/40 bg-slate-900/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_10px_30px_rgba(0,0,0,0.45)] backdrop-blur-sm p-3 space-y-2">
       <h3 className="text-[11px] font-bold uppercase tracking-[0.22em] text-amber-400/90 mb-2">Actions</h3>
+
+      {/* Move / Attack. These sat on the battle map until 2026-08-16; the turn
+          now reads in one place, beside the economy the commands spend. */}
+      {commandToolbar}
 
       {/* Action, Bonus, Reaction, Free */}
       <div className="flex gap-1.5 text-center">

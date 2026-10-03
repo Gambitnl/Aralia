@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 27/07/2026, 22:33:27
+ * Dependents: systems/entities3d/generateEntityBlueprint.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file creatureProfiles.ts — body plans for monsters: creature type × size,
  * steered by name cues ('spider', 'wolf', 'bird'…).
@@ -68,7 +84,10 @@ const TYPE_SPECS: Record<CreatureType, CreatureTypeSpec> = {
       { partId: 'earsPointed', anchor: 'head' },
       { partId: 'tailThin', anchor: 'tailRoot' },
     ],
-    skinTones: ['#8a6a4a', '#7a5a3a', '#9a7a52', '#5a5c66'],
+    // round 23 (creature-anatomy): the slate roll lifted #5a5c66 → #767a86 —
+    // near-black under the toon ramp carries no internal detail (the wing
+    // membrane lesson); the Beast Large archetype read "gray featureless"
+    skinTones: ['#8a6a4a', '#7a5a3a', '#9a7a52', '#767a86'],
     accentHex: '#6e4a32',
     eyeHex: '#c9a227',
     cueOverrides: [
@@ -98,8 +117,32 @@ const TYPE_SPECS: Record<CreatureType, CreatureTypeSpec> = {
     heightMul: 1.05,
     bulk: 1.05,
     headScale: 1,
-    parts: [{ partId: 'wingsFeathered', anchor: 'back' }],
-    skinTones: ['#ffe8c4', '#f5d9a8', '#e8d4c4'],
+    // round 23 (creature-anatomy): scale 1.9 — at 1.0 the fan read as "tiny
+    // vestigial feather stubs buried in its back" on the Large archetype;
+    // a celestial's wings are its identity statement and must span the torso.
+    // round 25 (creature-anatomy): A DESIGNED BODY. The round-24 verdict:
+    // "a naked featureless tan mannequin ... no garment, and nothing
+    // celestial — no halo, no light, no radiance". The archetype now wears
+    // the celestial kit (halo, shoulder mantle, robe — celestialParts.ts) and
+    // a brow, so the silhouette carries a shoulder mass event, a garment
+    // value break and a radiance form before a single anatomy tweak lands.
+    parts: [
+      // round-25 eyeball fix: 1.9 → 1.35. With the round-25 layered feather
+      // groups the wing is a real sheet rather than five stubs, so 1.9 put a
+      // 9 m spread on a 3 m body and the primaries dragged on the grass.
+      { partId: 'wingsFeathered', anchor: 'back', params: { scale: 1.35 } },
+      { partId: 'celestialMantle', anchor: 'chest' },
+      { partId: 'celestialRobe', anchor: 'hips' },
+      { partId: 'halo', anchor: 'crown' },
+      { partId: 'brow', anchor: 'head' },
+    ],
+    // round 24 (creature-anatomy): the round-23 verdict called the Large roll
+    // "a beige mannequin" and the round-24 sheet confirmed it — every tone sat
+    // within one toon band of cream, so the countershade lift (which targets
+    // cream) produced NO value change and the body read as one flat beige.
+    // The hides drop to a mid gold-bronze so the cream ventral lift lands a
+    // full band lighter and the torso finally has a light and a dark side.
+    skinTones: ['#c9a878', '#b89a6e', '#c4a98c'],
     accentHex: '#d9a828',
     eyeHex: '#e8e0cf',
   },
@@ -120,7 +163,9 @@ const TYPE_SPECS: Record<CreatureType, CreatureTypeSpec> = {
     headScale: 1.1,
     parts: [
       { partId: 'snout', anchor: 'jaw', params: { lengthScale: 1.3 } },
-      { partId: 'wingsMembrane', anchor: 'back' },
+      // scale 2.2: span keys off frame HEIGHT but a dragon body is 2.8x its
+      // height — scale-1 wings were a suitcase handle on the hot dog
+      { partId: 'wingsMembrane', anchor: 'back', params: { scale: 2.2 } },
       { partId: 'tailThick', anchor: 'tailRoot', params: { lengthScale: 1.5, droop: 0.1, arc: 0.7 } },
       { partId: 'hornsStraight', anchor: 'head' },
       { partId: 'crest', anchor: 'crown' },
@@ -134,10 +179,15 @@ const TYPE_SPECS: Record<CreatureType, CreatureTypeSpec> = {
     heightMul: 0.9,
     bulk: 1.15,
     headScale: 1.1,
-    parts: [{ partId: 'crest', anchor: 'crown' }],
-    skinTones: ['#b05c3a', '#6a9a9a', '#8a7a5a', '#b4c4d9'],
-    accentHex: '#e0b830',
-    eyeHex: '#e8e0cf',
+    // round 24 (creature-anatomy): the crest garnish is gone — the rock body
+    // (surface 'rock' in creaturePlans) carries its own moss/crystal accents,
+    // and a fin on the sunken head read as clutter.
+    parts: [],
+    // Earth-rock tones (one convincing earth elemental this round beats six
+    // weak subtypes — Remy). Accent = the crack-glow amber, rendered UNLIT.
+    skinTones: ['#8a7f68', '#7d7266', '#94846c', '#6f695c'],
+    accentHex: '#e8a13c',
+    eyeHex: '#ffd977',
   },
   [CreatureType.Fey]: {
     gait: 'biped',

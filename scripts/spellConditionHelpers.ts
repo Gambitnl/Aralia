@@ -16,7 +16,7 @@
 
 import { SpellValidator } from "../src/systems/spells/validation/spellValidator";
 import { ConditionType } from "../src/types/conditions";
-import { isStatusConditionEffect } from "../src/types/spells";
+import { isStatusConditionEffect, type SpellEffect } from "../src/types/spells";
 
 /**
  * Shared helpers for comparing spell condition rows against runtime spell JSON.
@@ -93,7 +93,7 @@ export function formatRuntimeConditionsApplied(spell: unknown): RuntimeCondition
     };
   }
 
-  const conditions = parsed.data.effects
+  const conditions = (parsed.data.effects as SpellEffect[])
     .filter(isStatusConditionEffect)
     .map((effect) => effect.statusCondition.name.trim())
     .filter((name) => name.length > 0);

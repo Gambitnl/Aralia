@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 18/07/2026, 19:53:47
+ * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, systems/worldforge/bridge/buildingOccupancy.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/interior/occupancy.ts, systems/worldforge/roster/generateTownRoster.ts, systems/worldforge/town/buildingPlotInput.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file householdBrief.ts — town → blueprint household brief bridge.
  *
@@ -10,13 +26,69 @@
  * Determinism flows entirely from `generateHousehold` (deterministic per
  * `(townSeed, homeId)`); both functions here are pure.
  */
-import type { BriefWealth, HouseholdBrief, MemberSlot } from '../interior/blueprintTypes';
-import { generateHousehold, type Household } from './household';
-import type { TownPlotPopulation } from './townEngine';
-import type { SeedPath } from '../seedPath';
+import type {
+  BriefWealth,
+  HouseholdBrief,
+  MemberSlot,
+} from "../interior/blueprintTypes";
+import type { TownPlan } from "../artifacts";
+import { generateHousehold, type Household } from "./household";
+import type { TownPlotPopulation } from "./townEngine";
+import type { SeedPath } from "../seedPath";
 
-/** Servant count by wealth — wealthy homes staff up, others never. */
-const SERVANTS: Record<BriefWealth, number> = { poor: 0, common: 0, wealthy: 2 };
+// ============================================================================
+// Canonical Wealth and Population Context
+// ============================================================================
+// Architecture is the final building-level wealth stamp, while population
+// district is the older social input. These helpers merge them once so roster,
+// blueprint, and live-body callers cannot make different staffing decisions.
+// ============================================================================
+
+/** Population data enriched with the final wealth stamp for its artifact plot. */
+export interface HouseholdPopulationContext extends TownPlotPopulation {
+  /** Architecture wins over the population district when both are present. */
+  resolvedWealth?: BriefWealth;
+}
+
+/** Resolve the final wealth of one artifact building through one precedence rule. */
+export function resolvePlotWealth(
+  plot: Pick<TownPlan["plots"][number], "architecture" | "pop">,
+): BriefWealth {
+  return plot.architecture?.wealth ?? plot.pop?.district ?? "common";
+}
+
+/** Carry one artifact plot's canonical wealth beside its population record. */
+export function householdPopulationForPlot(
+  plot: TownPlan["plots"][number],
+): HouseholdPopulationContext | undefined {
+  if (!plot.pop) return undefined;
+  return { ...plot.pop, resolvedWealth: resolvePlotWealth(plot) };
+}
+
+/** Build the cross-reference set used for home/workplace household resolution. */
+export function householdPopulationsForPlan(
+  plan: Pick<TownPlan, "plots">,
+): HouseholdPopulationContext[] {
+  return plan.plots
+    .map(householdPopulationForPlot)
+    .filter((plot): plot is HouseholdPopulationContext => plot !== undefined);
+}
+
+/**
+ * Resolve staffing wealth from the household's HOME, even when the caller is
+ * inspecting a proprietor workplace in another district. This prevents the
+ * same named family from gaining or losing servants by call path.
+ */
+export function resolveHouseholdWealth(
+  plot: HouseholdPopulationContext,
+  allPlots: readonly HouseholdPopulationContext[],
+): BriefWealth {
+  const home =
+    !plot.residential && plot.proprietorHomeId
+      ? allPlots.find((candidate) => candidate.homeId === plot.proprietorHomeId)
+      : plot;
+  return home?.resolvedWealth ?? home?.district ?? "common";
+}
 
 /**
  * The single member-slot tag scheme: 'head'/'spouse' stay bare (unique
@@ -26,13 +98,34 @@ const SERVANTS: Record<BriefWealth, number> = { poor: 0, common: 0, wealthy: 2 }
  * scheme, so brief slots and station lookups can never drift apart.
  */
 export const memberTag = (role: string, n: number): string =>
-  role === 'head' || role === 'spouse' ? role : `${role}:${n}`;
+  role === "head" || role === "spouse" ? role : `${role}:${n}`;
+
+/**
+ * Stable cross-system identity for one named household member. The home id
+ * anchors the family and the role-local slot keeps identities deterministic
+ * even when unrelated roster residents are inserted before or after them.
+ */
+export function householdMemberIdentity(
+  household: Household,
+  memberIndex: number,
+): string {
+  const member = household.members[memberIndex];
+  if (!member) {
+    throw new Error(
+      `householdMemberIdentity: home ${household.homeId} has no member ${memberIndex}.`,
+    );
+  }
+  const roleIndex = household.members
+    .slice(0, memberIndex)
+    .filter((candidate) => candidate.role === member.role).length;
+  return `${household.homeId}:${memberTag(member.role, roleIndex)}`;
+}
 
 /**
  * Coarsen a named household into the slots-and-counts brief the generator
- * designs for. Slot tags are stable and unique ('head', 'spouse', 'child:0'…);
- * servants are appended by wealth and exist only as brief slots (never as
- * named {@link Household} members).
+ * designs for. Slot tags are stable and unique ('head', 'spouse', 'child:0'…).
+ * Servants are ordinary named household members by this boundary, so this
+ * adapter maps them exactly once instead of inventing anonymous extra slots.
  */
 export function briefFromHousehold(
   hh: Household,
@@ -46,9 +139,6 @@ export function briefFromHousehold(
     const tag = memberTag(role, n);
     return { tag, role, ageBand: m.ageBand };
   });
-  for (let i = 0; i < SERVANTS[opts.wealth]; i++) {
-    slots.push({ tag: `servant:${i}`, role: 'servant', ageBand: 'adult' });
-  }
   return {
     homeId: hh.homeId,
     slots,
@@ -72,19 +162,29 @@ export function briefFromHousehold(
  * `worksAtHome: true` (they live over the shop).
  */
 export function householdForPlot(
-  plot: TownPlotPopulation,
-  allPlots: readonly TownPlotPopulation[],
+  plot: HouseholdPopulationContext,
+  allPlots: readonly HouseholdPopulationContext[],
   townSeed: SeedPath,
-): { household: Household; wealth: BriefWealth; worksAtHome: boolean } | undefined {
+):
+  | { household: Household; wealth: BriefWealth; worksAtHome: boolean }
+  | undefined {
   // Workplace run by a family: the proprietor's household lives over the shop.
   if (!plot.residential && plot.proprietorHomeId) {
     const home = allPlots.find((p) => p.homeId === plot.proprietorHomeId);
     if (!home?.homeId || !home.occupants) return undefined;
-    const household = generateHousehold(townSeed, home.homeId, home.occupants, home.buildingType, {
-      role: 'proprietor',
-      workplaceType: plot.buildingType,
-    });
-    return { household, wealth: plot.district ?? 'common', worksAtHome: true };
+    const wealth = resolveHouseholdWealth(plot, allPlots);
+    const household = generateHousehold(
+      townSeed,
+      home.homeId,
+      home.occupants,
+      home.buildingType,
+      {
+        role: "proprietor",
+        workplaceType: plot.buildingType,
+      },
+      wealth,
+    );
+    return { household, wealth, worksAtHome: true };
   }
   if (!plot.residential || !plot.homeId || !plot.occupants) return undefined;
   // A staff household works at a workplace ELSEWHERE: resolve that workplace's
@@ -92,12 +192,20 @@ export function householdForPlot(
   const workplace = plot.workplaceId
     ? allPlots.find((p) => p.homeId === plot.workplaceId)
     : undefined;
-  const household = generateHousehold(townSeed, plot.homeId, plot.occupants, plot.buildingType, {
-    role: plot.workRole,
-    workplaceType: workplace?.buildingType,
-  });
+  const wealth = resolveHouseholdWealth(plot, allPlots);
+  const household = generateHousehold(
+    townSeed,
+    plot.homeId,
+    plot.occupants,
+    plot.buildingType,
+    {
+      role: plot.workRole,
+      workplaceType: workplace?.buildingType,
+    },
+    wealth,
+  );
   // Workers at a workplace elsewhere do NOT work at home.
-  return { household, wealth: plot.district ?? 'common', worksAtHome: false };
+  return { household, wealth, worksAtHome: false };
 }
 
 /**
@@ -109,8 +217,8 @@ export function householdForPlot(
  * {@link householdForPlot}, coarsening its named family into the brief.
  */
 export function briefForPlot(
-  plot: TownPlotPopulation,
-  allPlots: readonly TownPlotPopulation[],
+  plot: HouseholdPopulationContext,
+  allPlots: readonly HouseholdPopulationContext[],
   townSeed: SeedPath,
 ): HouseholdBrief | undefined {
   const resolved = householdForPlot(plot, allPlots, townSeed);

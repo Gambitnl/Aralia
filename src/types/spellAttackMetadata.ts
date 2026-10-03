@@ -116,7 +116,27 @@ export interface AttackDamageTypeChoice {
 /** Adds structured rider effects to weapon attacks. */
 export interface AttackAugment {
   /** Which weapon attack family is affected. */
-  attackType: "weapon" | "melee_weapon" | "ranged_weapon";
+  /** Source-backed attack packets may use another discriminator or omit this field. */
+  attackType?: string;
+  name?: string;
+  trigger?: string;
+  attackKinds?: string[];
+  attackRollModifier?: string;
+  damageRollModifier?: string;
+  damageBonus?: Record<string, unknown>;
+  damagePenalty?: Record<string, unknown>;
+  forcefulHandCheck?: string;
+  graspingHandCheck?: string;
+  crushDamage?: string;
+  condition?: string;
+  failure?: string;
+  saveType?: string;
+  areaTiming?: string;
+  validTargets?: string[];
+  attacksPerActivation?: number;
+  reachFeet?: number;
+  criticalHitThreshold?: number;
+  criticalDamage?: DamageData;
   /** Attack bonus source for spell-created stat blocks such as Animated Object Slam. */
   attackBonusSource?: string;
   /** Size-keyed damage rows for spell-created attack stat blocks. */
@@ -160,7 +180,8 @@ export interface AttackAugment {
   /** Existing extra damage rider shape, preserved for spells already using it. */
   additionalDamage?: DamageData;
   /** Trigger condition for the attack augment. */
-  appliesOn?: "hit";
+  appliesOn?: string;
   /** Short review note for mixed attack mechanics. */
   notes?: string;
+  [key: string]: unknown;
 }

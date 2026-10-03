@@ -66,7 +66,7 @@ export interface Range {
 /**
  * A number-like spell count used for targets and other scalable spell facts.
  */
-export type ScalableNumber = number | "unlimited" | ScalableNumberObject;
+export type ScalableNumber = number | "unlimited" | "any_number" | ScalableNumberObject;
 
 /** Object form of ScalableNumber with explicit scaling thresholds. */
 export interface ScalableNumberObject {
@@ -79,25 +79,23 @@ export interface ScalableNumberObject {
 }
 
 /**
- * Resolves a scalable target count to the number the engine can compare.
+ * Resolves a level-keyed threshold table to the value of the highest threshold
+ * the level reaches. Returns undefined when the level reaches no threshold, so
+ * callers decide their own low-level fallback.
+ *
+ * This is the one shared threshold lookup for spells: target counts
+ * (`resolveScalableNumber`) and cantrip damage tiers both read a
+ * `Record<levelKey, value>` this way.
  */
-export function resolveScalableNumber(value: ScalableNumber, level: number): number {
-  // Unlimited counts become Infinity so callers can compare capacity without a
-  // fake finite cap such as 999.
-  if (value === "unlimited") {
-    return Number.POSITIVE_INFINITY;
-  }
-
-  // Fixed counts do not need any threshold lookup.
-  if (typeof value === 'number') {
-    return value;
-  }
-
+export function resolveByLevelThreshold<T>(
+  thresholds: Record<string, T>,
+  level: number
+): T | undefined {
   // Thresholds are sorted from highest to lowest so the first eligible threshold
   // is the active value for this cast.
-  const thresholds = value.scaling.thresholds;
   const sortedThresholds = Object.keys(thresholds)
     .map(k => parseInt(k, 10))
+    .filter(k => Number.isFinite(k))
     .sort((a, b) => b - a);
 
   for (const threshold of sortedThresholds) {
@@ -106,8 +104,36 @@ export function resolveScalableNumber(value: ScalableNumber, level: number): num
     }
   }
 
+  return undefined;
+}
+
+/**
+ * Counts how many level thresholds a level has reached. Cantrip scaling uses
+ * this tier count as a multiplier (for example [5, 11, 17] at level 11 -> 2).
+ */
+export function countLevelThresholdsReached(thresholds: number[], level: number): number {
+  return thresholds.filter(threshold => level >= threshold).length;
+}
+
+/**
+ * Resolves a scalable target count to the number the engine can compare.
+ */
+export function resolveScalableNumber(value: ScalableNumber, level: number): number {
+  // Unlimited counts become Infinity so callers can compare capacity without a
+  // fake finite cap such as 999.
+  if (value === "unlimited" || value === "any_number") {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  // Fixed counts do not need any threshold lookup.
+  if (typeof value === 'number') {
+    return value;
+  }
+
+  const resolved = resolveByLevelThreshold(value.scaling.thresholds, level);
+
   // If no threshold applies, the base count is the correct low-level value.
-  return value.base;
+  return resolved ?? value.base;
 }
 
 /**
@@ -127,7 +153,11 @@ export function isScalableNumberObject(value: ScalableNumber): value is Scalable
 //==============================================================================
 
 /** Specifies filters for what can be targeted by a spell. */
-export type TargetFilter = "creatures" | "objects" | "allies" | "enemies" | "self" | "point" | "ground";
+/**
+ * Normalized target categories plus source-backed labels such as `corpse` or
+ * `surfaces` that await a dedicated target adapter.
+ */
+export type TargetFilter = "creatures" | "objects" | "allies" | "enemies" | "self" | "point" | "ground" | string;
 
 /** Defines how complex target selection, such as Sleep pools, is allocated. */
 export interface TargetAllocation {

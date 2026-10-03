@@ -42,13 +42,24 @@ import { OllamaService, BanterContext } from '../services/ollama';
 import { townChronicleForLocation } from '../systems/worldforge/townsim/chronicleForLocation';
 import { ConversationMessage } from '../types/conversation';
 import { generateId } from '../utils/core/idGenerator';
+import { getDayPartLabel, getGameDay } from '../utils/core/timeUtils';
+import { buildActionMemoryDispatches } from '../systems/memory/actionMemoryMatrix';
 import { OPENING_QUEST_ID, OPENING_QUEST_OBJECTIVE_ID } from '../systems/gameEntry/openingQuest';
+import { buildNpcDialoguePromptContext } from '../services/dialogueService';
+import { describeNpcHearsay, resolveDialogueNpc } from './useDialogueSystem';
 
 export interface UseConversationResult {
     /** Start a new conversation with a companion */
     startConversation: (companionId: string) => void;
-    /** Send a player message and get AI response */
-    sendPlayerMessage: (text: string) => Promise<void>;
+    /**
+     * Send a player message and get AI response.
+     *
+     * `mechanicalNote` carries the result of a resolved skill check ("Performance
+     * check: 17 … — success."). It is added as a narrator line BETWEEN the
+     * player's words and the reply, so it reaches the model inside the history
+     * and the NPCs answer the OUTCOME instead of only the words.
+     */
+    sendPlayerMessage: (text: string, mechanicalNote?: string) => Promise<void>;
     /** End the conversation and generate memory summary */
     endConversation: () => Promise<void>;
     /** Whether currently blocked from sending because it's not player turn or waiting for AI response */
@@ -82,8 +93,9 @@ export function useConversation(
         const locId = state.currentLocationId;
         const locName = state.dynamicLocations?.[locId]?.name || locId;
         const weather = getWeatherSummary(state.environment);
-        const hour = new Date(state.gameTime).getHours();
-        const timeOfDay = hour < 6 ? 'Night' : hour < 12 ? 'Morning' : hour < 18 ? 'Afternoon' : 'Evening';
+        // G5: day-part word from the character's local in-world clock (the HUD
+        // clock, UTC-rendered) — never host-machine getHours().
+        const timeOfDay = getDayPartLabel(new Date(state.gameTime));
         
         // WHAT CHANGED: Added case-insensitive quest status check.
         // WHY IT CHANGED: The quest engine recently switched from 'active' (lowercase) 
@@ -117,14 +129,29 @@ export function useConversation(
         // `companions`. Resolve them here so the opening-situation stranger can be
         // voiced through the same continueConversation path.
         const npcParticipants = state.activeConversation?.npcParticipants ?? [];
+        // Memory-derived knowledge (agora-f821.12, deepdive F8/F9). The chat lane's
+        // prompt builder (`buildContinuePrompt`) interpolates exactly two things it
+        // does not own: the shared `BanterContext` and each speaker's `personality`
+        // string. Knowledge is per-speaker — two people in the same room have not
+        // heard the same things — so it rides on `personality`, not on the context.
+        // Same three builders the topic lane uses, through the same two seams, so a
+        // witnessed act or a propagated fact reads identically in both lanes.
+        const knowledgeFor = (id: string): string => [
+            buildNpcDialoguePromptContext(state, id, resolveDialogueNpc(state, id)),
+            describeNpcHearsay(state, id),
+        ].filter(Boolean).join(' ');
+        const withKnowledge = (personality: string, id: string): string => {
+            const knowledge = knowledgeFor(id);
+            return knowledge ? `${personality} ${knowledge}`.trim() : personality;
+        };
         return companionIds.map(id => {
             const companion = state.companions[id];
             if (!companion) {
                 const situational = npcParticipants.find(p => p.id === id);
                 if (situational) {
-                    return { id, name: situational.name, personality: situational.personality, race: '', class: '', sex: '', age: '', physicalDescription: '' };
+                    return { id, name: situational.name, personality: withKnowledge(situational.personality, id), race: '', class: '', sex: '', age: '', physicalDescription: '' };
                 }
-                return { id, name: id, personality: '', race: '', class: '', sex: '', age: '', physicalDescription: '' };
+                return { id, name: id, personality: withKnowledge('', id), race: '', class: '', sex: '', age: '', physicalDescription: '' };
             }
             return {
                 id,
@@ -134,7 +161,10 @@ export function useConversation(
                 sex: companion.identity.sex,
                 age: companion.identity.age,
                 physicalDescription: companion.identity.physicalDescription,
-                personality: `Values: ${companion.personality.values.join(', ')}. Quirks: ${companion.personality.quirks.join(', ')}.`
+                personality: withKnowledge(
+                    `Values: ${companion.personality.values.join(', ')}. Quirks: ${companion.personality.quirks.join(', ')}.`,
+                    id
+                )
             };
         });
     }, []);
@@ -206,8 +236,10 @@ export function useConversation(
     /**
      * Send a player message and get AI response.
      * @param text - The player's message (may contain @mention to address specific companion)
+     * @param mechanicalNote - Optional resolved-check line, narrated after the
+     *   player's words so the NPCs react to the result of what was attempted.
      */
-    const sendPlayerMessage = useCallback(async (text: string) => {
+    const sendPlayerMessage = useCallback(async (text: string, mechanicalNote?: string) => {
         const state = gameStateRef.current;
         if (!state.activeConversation || state.activeConversation.pendingResponse || !state.activeConversation.isPlayerTurn) return;
 
@@ -235,6 +267,18 @@ export function useConversation(
         };
 
         dispatch({ type: 'ADD_CONVERSATION_MESSAGE', payload: playerMessage });
+
+        // The check result is a real message in the transcript, not a UI badge:
+        // the player reads it, and the prose model reads it too because the
+        // history below is built from these same messages.
+        const note = mechanicalNote?.trim();
+        const noteMessage: ConversationMessage | null = note
+            ? { id: generateId(), speakerId: 'narrator', text: note, timestamp: Date.now() }
+            : null;
+        if (noteMessage) {
+            dispatch({ type: 'ADD_CONVERSATION_MESSAGE', payload: noteMessage });
+        }
+
         dispatch({ type: 'SET_CONVERSATION_PENDING', payload: true });
 
         // Get AI response - prioritize the addressed companion
@@ -246,7 +290,11 @@ export function useConversation(
         const context = buildContext();
 
         // Build history from conversation
-        const history = [...state.activeConversation.messages, playerMessage].map(m => ({
+        const history = [
+            ...state.activeConversation.messages,
+            playerMessage,
+            ...(noteMessage ? [noteMessage] : []),
+        ].map(m => ({
             speakerId: m.speakerId,
             text: m.text,
         }));
@@ -375,21 +423,19 @@ export function useConversation(
                 // sentiment nudge their disposition. These npcMemory writes stick
                 // because PLACE_SITUATION_NPCS seeds a memory entry for each stranger.
                 for (const npcId of strangerIds) {
-                    dispatch({
-                        type: 'ADD_NPC_KNOWN_FACT',
-                        payload: {
-                            npcId,
-                            fact: {
-                                id: generateId(),
-                                text: summary.text,
-                                source: 'direct',
-                                isPublic: false,
-                                timestamp: Date.now(),
-                                strength: 4,
-                                lifespan: 999,
-                            },
-                        },
-                    });
+                    // A finished conversation is a remembered act like any other, so it
+                    // goes through the action-memory matrix: the table owns the strength,
+                    // the lifespan, the provenance and the fact id; the summarizer owns
+                    // only the wording. The conversation id is passed as `targetId` so two
+                    // talks with the same NPC on one day stay two distinct facts.
+                    buildActionMemoryDispatches({
+                        actionType: 'converse',
+                        observerNpcId: npcId,
+                        targetId: conversation.id,
+                        gameDay: getGameDay(new Date(state.gameTime)),
+                        timestamp: Date.now(),
+                        detail: summary.text,
+                    }).forEach(memoryAction => dispatch(memoryAction));
                     if (summary.approvalChange !== 0) {
                         // Disposition runs -100..100; scale the modest sentiment up a little.
                         dispatch({

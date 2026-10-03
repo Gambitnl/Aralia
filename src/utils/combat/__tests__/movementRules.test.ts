@@ -141,4 +141,16 @@ describe('pathfinding: findPath (5-10-5)', () => {
 
     expect(calculatePathMovementCost(path)).toBe(30);
   });
+
+  it('charges real vertical feet when a ground path climbs or descends', () => {
+    const map = createMap(4, 2);
+    const low = map.tiles.get('0-0')!;
+    const high = map.tiles.get('1-0')!;
+    high.elevation = 10;
+
+    // Each one-square transition costs five horizontal feet plus the ten-foot
+    // height change. Reversing the path proves descent uses the same ruler.
+    expect(calculatePathMovementCost([low, high])).toBe(15);
+    expect(calculatePathMovementCost([high, low])).toBe(15);
+  });
 });

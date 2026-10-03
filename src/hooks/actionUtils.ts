@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 10/07/2026, 14:02:14
+ * Last Sync: 04/08/2026, 01:55:11
  * Dependents: hooks/useAbilitySystem.ts
  * Imports: 6 files
  *
@@ -19,7 +19,7 @@ import { resolveScalableNumber } from '../types/spells';
 import { AoEParams } from '../utils/combat/aoeCalculations';
 import { GameState } from '../types';
 import { Plane } from '../types/planes';
-import { generateId, getDistance } from '../utils/combatUtils';
+import { generateId, getDistance } from '../utils/combat';
 
 export const buildAbilityCombatAction = (
   ability: Ability,

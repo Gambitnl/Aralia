@@ -10,6 +10,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { attemptPuzzleInput, checkPuzzleHint, getPuzzleHint } from '../puzzleSystem';
 import { Puzzle } from '../types';
 import { CharacterStats } from '../../../types/combat';
+import * as rollers from '../../dice/rollers';
 
 describe('Puzzle System', () => {
   let riddlePuzzle: Puzzle;
@@ -136,7 +137,9 @@ describe('Puzzle System', () => {
     });
 
     it('returns a live hint when the puzzle check passes', () => {
-      vi.spyOn(Math, 'random').mockReturnValue(0.4); // 1d20 => 9, plus INT mod +3 = 12.
+      // Since agora-f821.4 the hint check rolls through the audited contract,
+      // so the pin goes on the roller, not on Math.random.
+      vi.spyOn(rollers, 'rollDice').mockReturnValue(9); // plus INT mod +3 = 12.
 
       const hint = getPuzzleHint(hintCharacter, riddlePuzzle);
 

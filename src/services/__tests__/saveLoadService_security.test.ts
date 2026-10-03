@@ -3,7 +3,7 @@ import { loadGame, getSaveSlots } from '../saveLoadService';
 // Mock storage
 const mockStorage: Record<string, string> = {};
 
-vi.mock('../../utils/storageUtils', () => ({
+vi.mock('../../utils/core/storageUtils', () => ({
   SafeStorage: {
     getItem: vi.fn((key: string) => mockStorage[key] || null),
     setItem: vi.fn((key: string, value: string) => { mockStorage[key] = value; }),

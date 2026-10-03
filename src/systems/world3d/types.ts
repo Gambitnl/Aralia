@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 14/07/2026, 21:07:58
- * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/InteriorLights.tsx, components/World3D/InteriorOccupants.tsx, components/World3D/WebGPUProbe.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DNameplates.tsx, components/World3D/World3DScene.tsx, components/World3D/createGroundWorkerChunkLoader.ts, components/World3D/createWorkerChunkLoader.ts, components/World3D/createWorldGenClient.ts, components/World3D/useChunkStreaming.ts, components/World3D/vegetation/GrassLayer.tsx, components/World3D/vegetation/VegetationTrees.tsx, components/World3D/vegetationInstanceMatrices.ts, systems/world3d/buildingModels.ts, systems/world3d/chunkBundle.ts, systems/world3d/chunkGeometry.ts, systems/world3d/chunkManager.ts, systems/world3d/chunkSampler.ts, systems/world3d/chunkStreamer.ts, systems/world3d/chunkWorkerCore.ts, systems/world3d/config.ts, systems/world3d/coords.ts, systems/world3d/deckGeometry.ts, systems/world3d/gateGeometry.ts, systems/world3d/lod.ts, systems/world3d/polylineClip.ts, systems/world3d/roadGeometry.ts, systems/world3d/siteGeometry.ts, systems/world3d/vegetationScatter.ts, systems/world3d/wallGeometry.ts, systems/world3d/waterGeometry.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundChunkWorkerCore.ts, systems/worldforge/bridge/interiorParts.ts
- * Imports: 2 files
+ * Last Sync: 07/09/2026, 23:24:41
+ * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/GroundAgents.tsx, components/World3D/InteriorLights.tsx, components/World3D/InteriorOccupants.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DNameplates.tsx, components/World3D/World3DScene.tsx, components/World3D/buildingExteriorGeometry.ts, components/World3D/createGroundWorkerChunkLoader.ts, components/World3D/createWorkerChunkLoader.ts, components/World3D/createWorldGenClient.ts, components/World3D/useChunkStreaming.ts, components/World3D/vegetation/GrassLayer.tsx, components/World3D/vegetationInstanceMatrices.ts, systems/world3d/buildingModels.ts, systems/world3d/chunkBundle.ts, systems/world3d/chunkGeometry.ts, systems/world3d/chunkManager.ts, systems/world3d/chunkSampler.ts, systems/world3d/chunkStreamer.ts, systems/world3d/chunkWorkerCore.ts, systems/world3d/config.ts, systems/world3d/coords.ts, systems/world3d/deckGeometry.ts, systems/world3d/gateGeometry.ts, systems/world3d/lod.ts, systems/world3d/polylineClip.ts, systems/world3d/roadGeometry.ts, systems/world3d/siteBoxBatches.ts, systems/world3d/siteGeometry.ts, systems/world3d/vegetationScatter.ts, systems/world3d/wallGeometry.ts, systems/world3d/waterGeometry.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundChunkWorkerCore.ts, systems/worldforge/vegetation/treeBatching.ts
+ * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -29,6 +29,7 @@
 // occupancy resolver's plan-feet station point and the interior body shape.
 // Type-only imports — erased at compile, so they add no runtime dependency.
 import type { StationFeetPoint } from "../worldforge/bridge/buildingOccupancy";
+import type { WallMaterial, RoofCovering } from '../worldforge/interior/blueprintTypes';
 import type { OccupantBody } from "../worldforge/bridge/interiorParts";
 
 /**
@@ -39,8 +40,22 @@ import type { OccupantBody } from "../worldforge/bridge/interiorParts";
  * the old static occupant boxes that were baked into `parts`.
  */
 export interface BuildingOccupantRender {
-  /** Stable per-member id: plotId * 100 + memberIndex. */
+  /**
+   * Settlement owner for this body. Numeric roster ids restart in every burg,
+   * so the render handoff needs the burg beside the landed household member key
+   * before it can prove that an indoor body and a street instance are one person.
+   * Older serialized/test packets may omit it and remain interior-only.
+   */
+  burgId?: number;
+  /**
+   * Stable render id. Named roster-backed members reuse the roster id so their
+   * live body and marker nameplate refer to the same person.
+   */
   id: number;
+  /** Full display name carried with the body instead of inferred by the renderer. */
+  name: string;
+  /** Stable named-household identity shared with the roster when available. */
+  householdMemberId?: string;
   /** Age band ('child' | 'adult' | 'elder'). */
   ageBand: string;
   /** Ancestry (a `raceGroups` name, e.g. "Elf", "Greenskins") — shapes the
@@ -50,6 +65,13 @@ export interface BuildingOccupantRender {
   body: OccupantBody;
   /** stationsByHour[h] = the member's station at hour h (plan feet), or null when OUT. */
   stationsByHour: (StationFeetPoint | null)[];
+  /**
+   * Canonical roster ownership for each hour. A household station can describe
+   * an authored work/chores pose even while the town simulation owns that
+   * person outside, so joined residents must prefer this street-schedule flag
+   * over station nullability. Older packets fall back to stationsByHour.
+   */
+  interiorOwnedByHour?: boolean[];
 }
 
 /** Integer chunk coordinate on the chunk grid. */
@@ -92,7 +114,7 @@ export interface ChunkData {
   decks?: {
     points: { x: number; y: number }[];
     topY: number;
-    kind: 'dock' | 'bridge' | 'ford' | 'fordStone';
+    kind: "dock" | "bridge" | "ford" | "fordStone";
     /**
      * Style-family deck detailing (styled-architecture slice): support-piling
      * spacing, edge railings, and parabolic bridge-arch rise. Absent decks
@@ -106,9 +128,33 @@ export interface ChunkData {
    * Lake polygons clipped to this chunk (grid space) with a shared flat water surface.
    * Lakes are filled meshes, not ribbons, so the builder can triangulate them directly.
    */
-  lakes?: { points: { x: number; y: number }[]; surfaceY: number }[];
+  lakes?: {
+    points: { x: number; y: number }[];
+    /** Flat surface height for sea/lake; a river's LOWEST point (see centerline). */
+    surfaceY: number;
+    /**
+     * What this body is. The three cannot share a height rule: the sea is flat
+     * at zero, a lake is flat at its own elevation, and a river descends along
+     * its course. Absent means a legacy continent lake (flat, as before).
+     */
+    kind?: "sea" | "lake" | "river";
+    /**
+     * Rivers only: ordered centerline (grid space) with a surface height per
+     * point. Chunk clipping invents polygon vertices, so the renderer projects
+     * each vertex onto this line and interpolates rather than carrying a
+     * per-vertex height array that clipping would invalidate.
+     */
+    centerline?: { x: number; y: number; surfaceY: number }[];
+  }[];
   /** Town road-gate gatehouse placements in this chunk (grid space), meshed by gateGeometry. */
-  gatehouses?: Array<{ x: number; y: number; angleRad: number; gapHalfM: number; form: 'twinTowers' | 'tunnelBlock' | 'singleTower'; colorHex: string }>;
+  gatehouses?: Array<{
+    x: number;
+    y: number;
+    angleRad: number;
+    gapHalfM: number;
+    form: "twinTowers" | "tunnelBlock" | "singleTower";
+    colorHex: string;
+  }>;
   /** Sites whose center falls within this chunk (grid space). */
   sites: {
     id: string;
@@ -116,7 +162,7 @@ export interface ChunkData {
      * The type of site. Extended to include 'monster' to support rendering
      * hostile creatures as site-like markers in 3D ground mode.
      */
-    kind: 'town' | 'dungeon' | 'ruin' | 'landmark' | 'monster';
+    kind: "town" | "dungeon" | "ruin" | "landmark" | "monster";
     position: { x: number; y: number };
     footprint: { x: number; y: number }[];
     walled: boolean;
@@ -143,7 +189,7 @@ export interface ChunkData {
     /** Explicit role for texture/label semantics (replaces colorHex sniffing). */
     role?: string;
     /** Styled-architecture roof (absent = legacy hip + default brown). */
-    roofForm?: 'gable' | 'hip' | 'steep' | 'flat';
+    roofForm?: "gable" | "hip" | "steep" | "flat";
     roofColorHex?: string;
     /** Family builds chimneys (solid-shell, non-flat roofs only). */
     chimney?: boolean;
@@ -175,9 +221,10 @@ export interface ChunkData {
       baseY?: number;
       emissiveHex?: string;
       tag?: string;
-      lightRole?: 'window' | 'hearth';
+      wallMaterial?: WallMaterial;
+      lightRole?: "window" | "hearth";
       /** Present in collision data but intentionally omitted from rendering. */
-      renderRole?: 'tactical-only';
+      renderRole?: "tactical-only";
     }>;
     /**
      * Interior wall envelope in meters (≤ plot footprint). Roofs and floor
@@ -205,12 +252,25 @@ export interface ChunkData {
     interiorOriginXFt?: number;
     interiorOriginYFt?: number;
     /**
+     * Canonical router door relative to the building center in scene-axis
+     * meters. The interior resident layer uses this exact endpoint for ownership
+     * transfer; absent legacy packets retain the wall-center fallback.
+     */
+    frontDoorOffsetX?: number;
+    frontDoorOffsetZ?: number;
+    /**
      * Solved roof (BGv2 Task 5): the triangulated roof planes + tower caps as
      * ONE geometry group in site-local METERS (Y up). Present only for
      * blueprint-driven buildings whose plan carried a resolved style. When set,
      * the renderer draws this mesh AND skips the legacy whole-rect roof prism.
      */
-    solvedRoof?: { positions: Float32Array; indices: Uint32Array; normals: Float32Array; colorHex: string };
+    solvedRoof?: {
+      roofCovering?: RoofCovering;
+      positions: Float32Array;
+      indices: Uint32Array;
+      normals: Float32Array;
+      colorHex: string;
+    };
   }[];
 }
 
@@ -225,7 +285,7 @@ export interface ChunkGeometryArrays {
 }
 
 /** LOD tier for a loaded chunk, by chunk-distance from the camera. */
-export type LodTier = 'full' | 'mid' | 'low' | 'culled';
+export type LodTier = "full" | "mid" | "low" | "culled";
 
 /** Terrain mesh: heightfield geometry plus per-vertex RGB for biome tinting. */
 export interface TerrainMesh extends ChunkGeometryArrays {
@@ -259,6 +319,12 @@ export interface ClippedPolyline {
   /** Width in grid units, one per point (length === points.length). */
   width: number[];
   /**
+   * Optional world-meter surface height at each point. Ground-mode rivers
+   * carry this shared waterline so the mesh does not have to guess from the
+   * already-carved terrain; roads and legacy continent rivers leave it absent.
+   */
+  waterlineY?: number[];
+  /**
    * Optional render tint. Town wall-ring runs carry their style family's
    * wallTint (styled-architecture slice) so wallGeometry can vertex-color them.
    */
@@ -272,7 +338,7 @@ export interface ChunkSite {
    * The type of site. Extended to include 'monster' to support rendering
    * hostile creatures as site-like markers in 3D ground mode.
    */
-  kind: 'town' | 'dungeon' | 'ruin' | 'landmark' | 'monster';
+  kind: "town" | "dungeon" | "ruin" | "landmark" | "monster";
   localX: number;
   localZ: number;
   /** Surface Y in world-space meters (heightToMeters applied), matching terrain exaggeration. */
@@ -300,7 +366,7 @@ export interface ChunkSite {
   /** Explicit role for texture/label semantics (replaces colorHex sniffing). */
   role?: string;
   /** Styled-architecture roof (absent = legacy hip + default brown). */
-  roofForm?: 'gable' | 'hip' | 'steep' | 'flat';
+  roofForm?: "gable" | "hip" | "steep" | "flat";
   roofColorHex?: string;
   /** Family builds chimneys (solid-shell, non-flat roofs only). */
   chimney?: boolean;
@@ -319,9 +385,10 @@ export interface ChunkSite {
     baseY?: number;
     emissiveHex?: string;
     tag?: string;
-    lightRole?: 'window' | 'hearth';
+    wallMaterial?: WallMaterial;
+    lightRole?: "window" | "hearth";
     /** Present in collision data but intentionally omitted from rendering. */
-    renderRole?: 'tactical-only';
+    renderRole?: "tactical-only";
   }>;
   /** Interior wall envelope, meters (see ChunkData.sites.wallWidthM). */
   wallWidthM?: number;
@@ -338,9 +405,18 @@ export interface ChunkSite {
   /** Optional stable plan origin for one-sided structural extensions. */
   interiorOriginXFt?: number;
   interiorOriginYFt?: number;
+  /** Canonical street-router door offset from this site center, scene meters. */
+  frontDoorOffsetX?: number;
+  frontDoorOffsetZ?: number;
   /** Solved roof group, site-local meters (see ChunkData.sites.solvedRoof).
    *  When set, the renderer draws it and skips the legacy roof prism. */
-  solvedRoof?: { positions: Float32Array; indices: Uint32Array; normals: Float32Array; colorHex: string };
+  solvedRoof?: {
+    roofCovering?: RoofCovering;
+    positions: Float32Array;
+    indices: Uint32Array;
+    normals: Float32Array;
+    colorHex: string;
+  };
   boxWidth?: number;
   boxDepth?: number;
   boxHeight?: number;
@@ -360,6 +436,31 @@ export interface VegetationScatter {
   rotations: Float32Array;
   /** Optional per-instance RGB (3 floats per instance) for color variety. */
   colors?: Float32Array;
+  /**
+   * Per-instance BIOME, as an index into `biomeTable` (grown-tree wave).
+   *
+   * The grown-tree path grows geometry from the biome's environment, so it
+   * needs the biome itself. It used to be inferred from `colors`, which in
+   * ground mode is a three-entry green table hashed off the feature id and
+   * carries no biome at all. Codes rather than strings so the channel crosses
+   * a worker boundary as one typed array instead of one string per tree.
+   *
+   * Absent on payloads built before this channel existed; the grown path then
+   * FAILS LOUDLY rather than guessing a biome.
+   */
+  biomeCodes?: Uint8Array;
+  /** The distinct biome keys `biomeCodes` indexes (`treeEnvironment` names). */
+  biomeTable?: string[];
+  /**
+   * Lean toward the ground normal, radians, one per instance (surface-gate
+   * wave). Baked at scatter time from a `SurfaceProbe`; the renderer applies it
+   * as a tilt about `tiltAxes`. Absent = every instance stands upright.
+   */
+  tilts?: Float32Array;
+  /** Horizontal tilt axis (x, z) per instance — 2 floats each, unit length. */
+  tiltAxes?: Float32Array;
+  /** Surface-gate rejection tally for this build. Instrumentation only. */
+  gateStats?: import('../worldforge/terrain/surfaceProbe').SurfaceGateStats;
   /**
    * Stable payload fingerprint for the chunk that produced these buffers.
    * The renderer uses this to skip rewriting instance matrices when a worker
@@ -402,6 +503,20 @@ export interface ChunkMeshBundle {
   /** Second vegetation layer (ground mode): bushes, rendered as their own
    * instanced mesh so trees and bushes can differ in geometry/palette. */
   bushes?: VegetationScatter;
+  /**
+   * Third vegetation layer (ground mode): the understory — ferns, fallen logs
+   * and saplings. Its own type rather than a VegetationScatter because every
+   * instance carries which species it is; the three share one placement pass
+   * but not a mesh.
+   */
+  understory?: {
+    positions: Float32Array;
+    scales: Float32Array;
+    rotations: Float32Array;
+    colors: Float32Array;
+    species: Array<'fern' | 'log' | 'sapling'>;
+    count: number;
+  };
 }
 
 /**
@@ -410,7 +525,11 @@ export interface ChunkMeshBundle {
  * loader can sample/build the chunk at the matching mesh resolution
  * (W3D-G10 / T7); loaders fall back to full resolution when it is omitted.
  */
-export type ChunkLoader = (cx: number, cy: number, lod?: LodTier) => Promise<ChunkMeshBundle>;
+export type ChunkLoader = (
+  cx: number,
+  cy: number,
+  lod?: LodTier,
+) => Promise<ChunkMeshBundle>;
 
 /** A chunk currently held in memory by the streamer. */
 export interface LoadedChunk {

@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import { DamageCommand } from '../effects/DamageCommand';
 import { SummoningCommand } from '../effects/SummoningCommand';
-import { createMockCombatCharacter, createMockCombatState, createMockCommandContext, createMockGameState, createMockPlayerCharacter } from '../../utils/factories';
+import { createMockCombatCharacter, createMockCombatState, createMockCommandContext, createMockGameState, createMockPlayerCharacter } from '../../utils/core';
+import type { CommandContext } from '../base/SpellCommand';
 import type { DamageEffect } from '../../types/spells';
 import type { SummoningEffect } from '../../types/spells';
-import simulacrum from '../../../public/data/spells/level-7/simulacrum.json';
+import simulacrum from '@/data/spells/level-7/simulacrum.json';
 
 // This regression keeps the direct damage command honest: one hit should lower
 // HP and leave a readable combat log entry behind. It intentionally stays tiny
@@ -46,9 +47,9 @@ describe('DamageCommand', () => {
       condition: { type: 'hit' }
     };
 
-    // Force the verb choice so the log assertion stays stable while the damage
-    // amount itself remains deterministic because `10d1` always rolls 10.
-    vi.spyOn(Math, 'random').mockReturnValue(0);
+    // Flavor verbs use the command's seeded RNG, rather than Math.random.
+    // Inject it here so this assertion checks the complete readable receipt.
+    context.damageRng = () => 0;
 
     const command = new DamageCommand(effect, context);
     const result = await command.execute(createMockCombatState({
@@ -138,20 +139,20 @@ describe('DamageCommand', () => {
       team: 'enemy',
       featChoices: {}
     });
-    const summonEffect = simulacrum.effects.find((entry): entry is SummoningEffect => entry.type === 'SUMMONING');
+    const summonEffect = simulacrum.effects.find(entry => entry.type === 'SUMMONING') as unknown as SummoningEffect;
 
     expect(summonEffect).toBeDefined();
 
     // Build the summon through the real summon command so the proof uses the
     // live Simulacrum packet instead of a hand-written summon mock.
-    const summonedState = new SummoningCommand(summonEffect!, createMockCommandContext({
+    const summonedState = await new SummoningCommand(summonEffect!, createMockCommandContext({
       spellId: simulacrum.id,
       spellName: simulacrum.name,
       castAtLevel: 7,
       caster,
       targets: [],
       gameState: createMockGameState()
-    })).execute(createMockCombatState({
+    }) as unknown as CommandContext).execute(createMockCombatState({
       characters: [caster, enemy],
       combatLog: []
     }));

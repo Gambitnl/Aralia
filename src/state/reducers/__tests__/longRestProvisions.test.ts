@@ -10,7 +10,7 @@ import { describe, it, expect } from 'vitest';
 import { characterReducer } from '../characterReducer';
 import { GameState, Item } from '../../../types';
 import { AppAction } from '../../actionTypes';
-import { createMockGameState, createMockPlayerCharacter } from '../../../utils/factories';
+import { createMockGameState, createMockPlayerCharacter } from '../../../utils/core';
 
 const provisionItem = (id: string): Item => ({ id, name: id, description: '', type: 'food_drink' } as unknown as Item);
 

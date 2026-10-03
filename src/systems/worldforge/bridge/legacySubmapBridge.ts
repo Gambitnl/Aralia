@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 17/07/2026, 23:25:40
- * Dependents: components/DesignPreview/steps/PreviewStartSelect.tsx, components/MapPane.tsx, components/World3D/WebGPUProbe.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx, components/World3D/worldGenCore.ts, components/Worldforge/AtlasDemo.tsx, components/Worldforge/SpawnPreview.tsx, components/Worldforge/StartPointSelection.tsx, hooks/useKnownPortsSync.ts, hooks/useVoyageArrival.ts, systems/spells/ai/MaterialTagService.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/settlementDefense.ts, systems/worldforge/chronicle/worldChronicle.ts, systems/worldforge/dungeon/world/chronicle.ts, systems/worldforge/dungeon/world/deriveIdentity.ts, systems/worldforge/dungeon/world/dungeonSites.ts, systems/worldforge/dungeon/world/raidPressure.ts, systems/worldforge/dungeon/world/rumors.ts, systems/worldforge/forests/forestKindForCell.ts, systems/worldforge/leaf3d/atlasGroundRestore.ts, systems/worldforge/local/biomeForCell.ts, systems/worldforge/local/burgProximity.ts, systems/worldforge/local/resolveSpawn.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/chronicleForLocation.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
- * Imports: 11 files
+ * Last Sync: 19/07/2026, 22:06:11
+ * Dependents: components/DesignPreview/steps/PreviewStartSelect.tsx, components/MapPane.tsx, components/World3D/WebGPUProbe.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx, components/World3D/worldGenCore.ts, components/Worldforge/AtlasDemo.tsx, components/Worldforge/SpawnPreview.tsx, components/Worldforge/StartPointSelection.tsx, components/Worldforge/responsiveAtlasCore.ts, components/Worldforge/responsiveAtlasPreparation.ts, hooks/useKnownPortsSync.ts, hooks/useVoyageArrival.ts, systems/spells/ai/MaterialTagService.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/settlementDefense.ts, systems/worldforge/chronicle/worldChronicle.ts, systems/worldforge/dungeon/world/chronicle.ts, systems/worldforge/dungeon/world/deriveIdentity.ts, systems/worldforge/dungeon/world/dungeonSites.ts, systems/worldforge/dungeon/world/raidPressure.ts, systems/worldforge/dungeon/world/rumors.ts, systems/worldforge/forests/forestKindForCell.ts, systems/worldforge/leaf3d/atlasGroundRestore.ts, systems/worldforge/local/biomeForCell.ts, systems/worldforge/local/burgProximity.ts, systems/worldforge/local/resolveSpawn.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/chronicleForLocation.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Imports: 12 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -50,6 +50,7 @@ import type { Burg } from "../fmg/burgs-generator";
 import { NamesGenerator } from "../fmg/names-generator";
 import Alea from "alea";
 import { canonicalArtifactTownForSiteFromAtlas } from "../town/canonicalTown";
+import { quadtree } from "../fmg/utils/quadtree";
 
 /** FMG canvas the bridge generates against (the demo's standard frame). */
 const FMG_WIDTH = 960;
@@ -192,6 +193,35 @@ export function getBridgeAtlas(worldSeed: number): FmgWorldResult {
     });
     atlasCache.set(seedStr, atlas);
   }
+  return atlas;
+}
+
+/**
+ * Install an atlas prepared by the browser worker into the existing canonical
+ * per-seed cache.
+ *
+ * Structured clone cannot carry the runtime quadtree because it owns function
+ * accessors. Rebuilding that lookup from the unchanged cell points restores the
+ * same exact-cell behavior without regenerating or changing any world data.
+ */
+export function installPreparedBridgeAtlas(
+  worldSeed: number,
+  atlas: FmgWorldResult,
+  transferProperties?: {
+    gridPrecipitation?: ReadonlyArray<readonly [string, number]>;
+  },
+): FmgWorldResult {
+  // Structured clone keeps every indexed typed-array value but omits custom
+  // properties. Restore FMG's deterministic precipitation properties in their
+  // original insertion order before exposing the atlas to any consumer.
+  const precipitation = atlas.grid.cells.prec as unknown as Record<string, number>;
+  for (const [key, value] of transferProperties?.gridPrecipitation ?? []) {
+    precipitation[key] = value;
+  }
+  atlas.pack.cells.q = quadtree(
+    atlas.pack.cells.p.map(([x, y], i) => [x, y, i] as number[]),
+  );
+  atlasCache.set(worldforgeSeedString(worldSeed), atlas);
   return atlas;
 }
 

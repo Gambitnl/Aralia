@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/06/2026, 00:45:56
+ * Last Sync: 10/08/2026, 14:00:38
  * Dependents: components/CharacterSheet/Overview/index.ts
- * Imports: 5 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -25,13 +25,15 @@
  * guard by removing unnecessary type assertions, improving type safety
  * and code readability.
  */
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ChevronRight, ChevronDown, FilterX, AlertTriangle } from 'lucide-react';
-import { PlayerCharacter, Item, Action, ItemContainer, InventoryEntry, EquipmentSlotType, ItemType as _ItemType } from '../../../types';
-import { canEquipItem, calculatePotentialAcChange } from '../../../utils/characterUtils';
+import { PlayerCharacter, Item, Action, ItemContainer, InventoryEntry, EquipmentSlotType, ItemType } from '../../../types';
+import { canEquipItem, calculatePotentialAcChange } from '../../../utils/character';
 import { ENV } from '../../../config/env';
-import { resolveItemVisual } from '../../../utils/visuals/visualUtils';
+import { resolveItemAssetSrc, resolveItemVisual } from '../../../utils/visuals/visualUtils';
+import { slotAcceptsItem, slotRejectionReason } from './EquipmentMannequin';
 import Tooltip from '../../ui/Tooltip';
+import { ItemComparisonPanel } from './ItemComparisonPanel';
 import { CoinBadge } from '../../ui/CoinPurseDisplay';
 
 /**
@@ -87,7 +89,38 @@ const isEquippableItemType = (item: InventoryEntry): boolean =>
  */
 const _warnedSlotlessEquippable = new Set<string>();
 
-// TODO #53(FEATURES): Add container browsing UI and item comparison panels for inventory entries (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+/**
+ * Where an EQUIP_ITEM dispatch would actually put `item`, or `null` when the
+ * reducer would find no target and silently drop the action.
+ *
+ * This mirrors the slot resolution in `characterReducer.ts` (`case 'EQUIP_ITEM'`)
+ * on purpose: the button must not promise an equip the reducer will not perform,
+ * and must not hide one it would. Two consequences the old `item.slot` check got
+ * wrong:
+ *  - a SLOTLESS one-handed weapon IS equippable (the reducer routes it to the
+ *    free hand), yet the Equip button was hidden for it entirely;
+ *  - a one-handed weapon's authored `slot` is IGNORED by the reducer, so the
+ *    hand it lands in - not the authored slot - is what the slot rules must
+ *    validate.
+ * Preserved: slotless armor / two-handed weapons still resolve to `null` here,
+ * exactly as the reducer treats them; they now surface a disabled button with a
+ * reason instead of no button at all.
+ */
+const resolveEquipTargetSlot = (
+  character: PlayerCharacter,
+  item: InventoryEntry
+): EquipmentSlotType | null => {
+  const isOneHandedWeapon = item.type === 'weapon' && !item.properties?.includes('Two-Handed');
+  if (isOneHandedWeapon) {
+    if (!character.equippedItems?.MainHand) return 'MainHand';
+    if (!character.equippedItems?.OffHand) return 'OffHand';
+    return 'MainHand'; // both hands full: the reducer swaps out the main hand
+  }
+  return item.slot ?? null;
+};
+
+// Container browsing lives below (buckets, nesting, move-to-container); the equipped-vs-candidate
+// comparison is ItemComparisonPanel, shown while an equippable item is hovered (agora-d1c7.13).
 // ============================================================================
 // Item Tooltip Generator
 // ============================================================================
@@ -161,6 +194,12 @@ const getItemTooltipContent = (item: Item, warning?: string): React.ReactNode =>
 };
 
 const ROOT_CONTAINER_ID = 'root-backpack';
+/**
+ * Virtual bucket id for Service items (bought information). Service items have no
+ * physical form, so they are listed apart from the carried containers under an
+ * "Information" heading instead of sitting in the backpack.
+ */
+const INFORMATION_BUCKET_ID = 'information-bucket';
 
 /** Item type filter categories for the inventory UI */
 type ItemTypeFilter = 'all' | 'armor' | 'weapons' | 'consumables' | 'tools' | 'accessories' | 'other';
@@ -172,19 +211,8 @@ const ITEM_TYPE_FILTERS: { id: ItemTypeFilter; label: string; icon: string; type
   { id: 'consumables', label: 'Consumables', icon: 'local_drink', types: ['consumable', 'potion', 'food_drink', 'scroll'] },
   { id: 'tools', label: 'Tools', icon: 'construction', types: ['tool', 'light_source'] },
   { id: 'accessories', label: 'Accessories', icon: 'diamond', types: ['accessory', 'clothing'] },
-  { id: 'other', label: 'Other', icon: 'category', types: ['note', 'book', 'map', 'key', 'spell_component', 'crafting_material', 'treasure', 'reagent', 'ammunition', 'trap'] },
+  { id: 'other', label: 'Other', icon: 'category', types: ['note', 'book', 'map', 'key', 'spell_component', 'crafting_material', 'treasure', 'reagent', 'ammunition', 'trap', 'service'] },
 ];
-
-/**
- * Inventory item visuals may come from Vite-served public assets or from
- * absolute/external URLs. Relative public paths need the app base URL so
- * `/Aralia/` preview builds and localhost roots both resolve correctly.
- */
-const resolveInventoryAssetSrc = (src?: string): string | undefined => {
-  if (!src) return undefined;
-  if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) return src;
-  return `${ENV.BASE_URL}${src}`;
-};
 
 // ============================================================================
 // Perishable Food Timing
@@ -334,10 +362,20 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
               `surfacing it in the slot filter rather than dropping it. Define an EquipmentSlotType for this item.`
             );
           }
-          return true;
+          // Surface it only under a slot that could actually receive its item
+          // kind. G9's intent (never silently hide the item) is preserved - a
+          // slotless dagger still appears, under Main/Off Hand - while a slot
+          // filter no longer shows gear the slot physically cannot take.
+          return slotAcceptsItem(filterBySlot, item);
         }
         return false;
       }
+
+      // Weapon vs armor slot rules: an item whose authored slot disagrees with
+      // the slot's kind (a greatsword slotted to Torso, a breastplate slotted to
+      // MainHand) must not be offered for that slot. The rule table lives on the
+      // mannequin so both surfaces agree.
+      if (!slotAcceptsItem(filterBySlot, item)) return false;
 
       // Special case: Ring1 and Ring2 both accept items with slot='Ring' or 'Ring1' or 'Ring2'
       if ((filterBySlot === 'Ring1' || filterBySlot === 'Ring2')) {
@@ -377,28 +415,24 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
   }, [filteredInventory, activeTypeFilter]);
 
   /**
-   * Containers introduce a hierarchy. Because duplicate items are allowed,
-   * we fabricate a stable instanceId for rendering and for in-component
-   * grouping state. The grouping state lives locally because reducers have
-   * not yet been expanded to persist container assignments globally.
+   * Containers introduce a hierarchy. Because duplicate items are allowed, we
+   * fabricate an instanceId that disambiguates React keys and the collapse
+   * toggles within one render pass.
+   *
+   * It is deliberately NOT the grouping identity: an index-derived key changes
+   * whenever a filter changes or an item is gained, so it can never address the
+   * same item across renders or across a save. The grouping identity is the
+   * item's own id, which ADD_ITEM makes unique per acquired instance, and the
+   * assignment itself now lives on `Item.containerId` in game state rather than
+   * in local component state (agora-17eb).
    */
   const inventoryInstances = useMemo(() => {
     return typeFilteredInventory.map((item, index) => ({ ...item, instanceId: `${item.id}-${index}` }));
   }, [typeFilteredInventory]);
 
-  const [containerAssignments, setContainerAssignments] = useState<Record<string, string>>({});
   const [collapsedContainers, setCollapsedContainers] = useState<Record<string, boolean>>({});
-
-  // Keep local container assignments in sync with incoming inventory payloads
-  useEffect(() => {
-    setContainerAssignments(prev => {
-      const nextAssignments: Record<string, string> = {};
-      inventoryInstances.forEach(instance => {
-        nextAssignments[instance.instanceId] = prev[instance.instanceId] || instance.containerId || ROOT_CONTAINER_ID;
-      });
-      return nextAssignments;
-    });
-  }, [inventoryInstances]);
+  // agora-d1c7.13: the item under the pointer, compared against what its slot holds.
+  const [compareItem, setCompareItem] = useState<Item | null>(null);
 
   const containerEntries = useMemo(() => inventoryInstances.filter(isContainerItem), [inventoryInstances]);
 
@@ -407,22 +441,29 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
   const containerBuckets = useMemo(() => {
     const buckets = new Map<string, ContainerBucket>();
     buckets.set(ROOT_CONTAINER_ID, { children: [] });
+    buckets.set(INFORMATION_BUCKET_ID, { children: [] });
 
     // Ensure every container has a bucket, then place all entries into their bucket.
+    // Buckets are keyed by the container item's own id so a persisted
+    // `containerId` resolves to the same bucket on every later render.
     inventoryInstances.forEach(instance => {
       if (isContainerItem(instance)) {
-        buckets.set(instance.instanceId, { containerItem: instance, children: [] });
+        buckets.set(instance.id, { containerItem: instance, children: [] });
       }
     });
 
     inventoryInstances.forEach(instance => {
-      const assignedContainerId = containerAssignments[instance.instanceId] || instance.containerId || ROOT_CONTAINER_ID;
+      let assignedContainerId = instance.containerId || ROOT_CONTAINER_ID;
+      // Unstowed Service items (bought information) collect under the Information heading.
+      if (assignedContainerId === ROOT_CONTAINER_ID && instance.type === ItemType.Service) {
+        assignedContainerId = INFORMATION_BUCKET_ID;
+      }
       const targetBucket = buckets.get(assignedContainerId) || buckets.get(ROOT_CONTAINER_ID)!;
       targetBucket.children.push(instance);
     });
 
     return buckets;
-  }, [containerAssignments, inventoryInstances]);
+  }, [inventoryInstances]);
 
   const calculateContainedWeight = (containerId: string, visited: Set<string> = new Set()): number => {
     // Defensive recursion guard against accidental self-assignment cycles.
@@ -433,13 +474,21 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
     if (!bucket) return 0;
 
     return bucket.children.reduce((total, entry) => {
-      const childWeight = (entry.weight || 0) + (isContainerItem(entry) ? calculateContainedWeight(entry.instanceId, visited) : 0);
+      const childWeight = (entry.weight || 0) + (isContainerItem(entry) ? calculateContainedWeight(entry.id, visited) : 0);
       return total + childWeight;
     }, 0);
   };
 
-  const handleMoveToContainer = (itemInstanceId: string, containerId: string) => {
-    setContainerAssignments(prev => ({ ...prev, [itemInstanceId]: containerId }));
+  /**
+   * Stow `itemId` in a container, or return it to the root backpack. The root
+   * bucket is a display-only heading, not an item, so it is sent as `null`.
+   */
+  const handleMoveToContainer = (item: InventoryEntry, containerId: string) => {
+    onAction({
+      type: 'MOVE_ITEM_TO_CONTAINER',
+      label: `Stow ${item.name}`,
+      payload: { itemId: item.id, containerId: containerId === ROOT_CONTAINER_ID ? null : containerId },
+    });
   };
 
   const renderContainer = (bucketId: string, depth = 0): React.ReactNode => {
@@ -447,7 +496,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
     if (!bucket) return null;
 
     const containerItem = bucket.containerItem as (InventoryEntry & { instanceId: string }) | undefined;
-    const containerName = containerItem ? containerItem.name : 'Backpack';
+    const containerName = containerItem ? containerItem.name : (bucketId === INFORMATION_BUCKET_ID ? 'Information' : 'Backpack');
     const isCollapsed = collapsedContainers[bucketId];
     const availableCapacitySlots = containerItem?.capacitySlots;
     const availableCapacityWeight = containerItem?.capacityWeight;
@@ -502,15 +551,24 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
             }).map(child => {
               const key = child.instanceId;
               const isEquippableType = isEquippableItemType(child);
-              // REVIEW Q13 (G9): per-slot equip validation only runs when the
-              // item declares a slot; a slotless equippable item cannot be
-              // matched to a specific slot, so it falls through to canBeEquipped=false
-              // here (rendered as not-yet-equippable) rather than being hidden.
-              // Slotless equippable items are no longer dropped from the list — the
-              // slot filter surfaces them and warns in dev (see filteredInventory above).
+              // REVIEW Q13 (G9): slotless equippable items are no longer dropped
+              // from the list — the slot filter surfaces them and warns in dev
+              // (see filteredInventory above). They are now also validated the way
+              // the reducer would actually treat them rather than being written
+              // off wholesale: a slotless one-handed weapon resolves to a free
+              // hand and IS equippable, while slotless armor and slotless
+              // two-handed weapons resolve to no target and stay blocked.
+              const equipTargetSlot = isEquippableType ? resolveEquipTargetSlot(character, child) : null;
+              // Weapon vs armor slot rules run before the proficiency check: an
+              // item whose resolved target slot cannot hold its kind is blocked
+              // outright, no matter how proficient the character is.
+              const slotRuleReason = equipTargetSlot ? slotRejectionReason(equipTargetSlot, child) : undefined;
               const { can: canBeEquipped, reason: cantEquipReason } =
-                isEquippableType && child.slot ?
-                  canEquipItem(character, child) : { can: false, reason: undefined };
+                !isEquippableType || !equipTargetSlot
+                  ? { can: false, reason: isEquippableType ? 'No equipment slot defined for this item.' : undefined }
+                  : slotRuleReason
+                    ? { can: false, reason: slotRuleReason }
+                    : canEquipItem(character, child);
 
               const isFood = child.type === 'food_drink';
               const foodExpiration = getFoodExpirationState(child);
@@ -519,8 +577,8 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
 
               // UX IMPROVEMENT: Distinguish between "Cannot Equip" (Blocked/Red) and "Warning" (Penalty/Amber)
               const hasWarning = !!cantEquipReason;
-              const isBlocked = isEquippableType && child.slot && !canBeEquipped;
-              const isWarningOnly = isEquippableType && child.slot && canBeEquipped && hasWarning;
+              const isBlocked = isEquippableType && !!equipTargetSlot && !canBeEquipped;
+              const isWarningOnly = isEquippableType && !!equipTargetSlot && canBeEquipped && hasWarning;
 
               let rowStyle = 'bg-gray-700/70 border-gray-600/40';
               if (isBlocked) {
@@ -534,7 +592,9 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
               // Calculate potential AC change for armor items
               const acChange = child.type === 'armor' ? calculatePotentialAcChange(character, child) : 0;
               const childVisual = resolveItemVisual(child);
-              const childIconSrc = resolveInventoryAssetSrc(childVisual.src);
+              // Use the same base-aware URL resolver as equipped slots so an
+              // item keeps one SVG while moving between backpack and mannequin.
+              const childIconSrc = resolveItemAssetSrc(childVisual.src);
               const childFallbackIcon = childVisual.fallbackContent;
 
               return (
@@ -557,7 +617,12 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                         </span>
                       )}
                       <Tooltip content={getItemTooltipContent(child, cantEquipReason)}>
-                        <div className="flex flex-col min-w-0">
+                        <div
+                          className="flex flex-col min-w-0"
+                          data-testid={`inventory-item-${child.id}`}
+                          onMouseEnter={() => setCompareItem(resolveEquipTargetSlot(character, child) ? child : null)}
+                          onMouseLeave={() => setCompareItem(null)}
+                        >
                           <div className="flex items-center gap-1">
                             <span className="font-medium text-amber-200 text-sm cursor-help truncate" title={child.name}>{child.name}</span>
                             {/* AC Upgrade Indicator */}
@@ -604,13 +669,13 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                       {containerEntries.length > 0 && (
                         <select
                           className="min-h-11 rounded border border-gray-600 bg-gray-800 px-2 py-1 text-xs text-gray-200"
-                          value={containerAssignments[child.instanceId] || ROOT_CONTAINER_ID}
-                          onChange={e => handleMoveToContainer(child.instanceId, e.target.value)}
+                          value={child.containerId || ROOT_CONTAINER_ID}
+                          onChange={e => handleMoveToContainer(child, e.target.value)}
                           aria-label={`Move ${child.name} to container`}
                         >
                           <option value={ROOT_CONTAINER_ID}>Backpack</option>
                           {containerEntries.map(container => (
-                            <option key={container.instanceId} value={container.instanceId} disabled={container.instanceId === child.instanceId}>
+                            <option key={container.instanceId} value={container.id} disabled={container.id === child.id}>
                               {container.name}
                             </option>
                           ))}
@@ -635,7 +700,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                           Read
                         </button>
                       )}
-                      {isEquippableType && child.slot && (
+                      {isEquippableType && (
                         <Tooltip content={canBeEquipped ? (cantEquipReason ? `Equip ${child.name}\n⚠️ ${cantEquipReason}` : `Equip ${child.name}`) : (cantEquipReason || "Cannot equip")}>
                           <button onClick={() => onAction({ type: 'EQUIP_ITEM', label: `Equip ${child.name}`, payload: { itemId: child.id, characterId: character.id! } })}
                             disabled={!canBeEquipped}
@@ -666,7 +731,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                   </li>
                   {childIsContainer && (
                     <div className="mt-2 ml-4">
-                      {renderContainer(child.instanceId, depth + 1)}
+                      {renderContainer(child.id, depth + 1)}
                     </div>
                   )}
                 </React.Fragment>
@@ -692,6 +757,13 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
           <CoinBadge type="cp" amount={currency.CP} />
         </div>
       </div>
+
+      {/* Equipped-versus-candidate comparison (agora-d1c7.13): hover an equippable item. */}
+      {compareItem && (() => {
+        const slot = resolveEquipTargetSlot(character, compareItem);
+        const equipped = slot ? character.equippedItems?.[slot] ?? null : null;
+        return <ItemComparisonPanel candidate={compareItem} equipped={equipped} slot={slot} />;
+      })()}
 
       {/* Equipped Attunement Items */}
       {equippedAttunementItems.length > 0 && (
@@ -807,6 +879,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
       {nonCoinInventory.length > 0 ? (
         <div className="space-y-2 max-h-[calc(100vh-300px)] overflow-y-auto scrollable-content pr-1">
           {renderContainer(ROOT_CONTAINER_ID)}
+          {(containerBuckets.get(INFORMATION_BUCKET_ID)?.children.length ?? 0) > 0 && renderContainer(INFORMATION_BUCKET_ID)}
         </div>
       ) : <p className="text-sm text-gray-400 italic p-4 text-center border border-dashed border-gray-700 rounded">Backpack is empty.</p>}
     </div>

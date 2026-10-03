@@ -1,23 +1,36 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { SpellCommandFactory } from '../SpellCommandFactory'
-import starryWisp from '../../../../public/data/spells/level-0/starry-wisp.json'
-import fireBolt from '../../../../public/data/spells/level-0/fire-bolt.json'
-import createBonfire from '../../../../public/data/spells/level-0/create-bonfire.json'
-import chillTouch from '../../../../public/data/spells/level-0/chill-touch.json'
-import eldritchBlast from '../../../../public/data/spells/level-0/eldritch-blast.json'
-import primalSavagery from '../../../../public/data/spells/level-0/primal-savagery.json'
+import starryWisp from '@/data/spells/level-0/starry-wisp.json'
+import fireBolt from '@/data/spells/level-0/fire-bolt.json'
+import createBonfire from '@/data/spells/level-0/create-bonfire.json'
+import chillTouch from '@/data/spells/level-0/chill-touch.json'
+import eldritchBlast from '@/data/spells/level-0/eldritch-blast.json'
+import primalSavagery from '@/data/spells/level-0/primal-savagery.json'
 import { HealingEffect, Spell } from '@/types/spells'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
-import * as combatUtils from '@/utils/combatUtils'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
+import * as diceRollers from '@/systems/dice/rollers'
 import { BreakConcentrationCommand } from '@/commands/effects/ConcentrationCommands'
 import { HealingCommand } from '@/commands/effects/HealingCommand'
 
-vi.mock('@/utils/combatUtils', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/utils/combatUtils')>()
+// agora-f821.4 retired the combatUtils roller family; the modules under
+// test roll through systems/dice/rollers now. One hoisted set of mocks
+// stands in for BOTH specifiers, so one vi.mocked(...) pins every die.
+const diceMocks = vi.hoisted(() => ({
+    rollD20: vi.fn()
+}))
+
+
+vi.mock('@/systems/dice/rollers', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/systems/dice/rollers')>()
+  return { ...actual, ...diceMocks }
+})
+
+vi.mock('@/utils/combat', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/utils/combat')>()
   return {
     ...actual,
-    rollD20: vi.fn()
-  }
+    ...diceMocks,
+}
 })
 
 /**
@@ -61,7 +74,7 @@ describe('SpellCommandFactory spell attack execution', () => {
   })
 
   beforeEach(() => {
-    vi.mocked(combatUtils.rollD20).mockReset()
+    vi.mocked(diceRollers.rollD20).mockReset()
   })
 
   describe('Primal Savagery bridge', () => {
@@ -99,7 +112,7 @@ describe('SpellCommandFactory spell attack execution', () => {
     })
 
     it('resolves as a melee spell attack and applies acid damage on hit', async () => {
-      vi.mocked(combatUtils.rollD20).mockReturnValue(12)
+      vi.mocked(diceRollers.rollD20).mockReturnValue(12)
       const commands = await SpellCommandFactory.createCommands(primalSpell, primalCaster, [primalTarget], 0, createMockGameState())
       const result = await commands[0].execute(createPrimalState())
       const targetAfterHit = result.characters.find(character => character.id === primalTarget.id)
@@ -119,7 +132,7 @@ describe('SpellCommandFactory spell attack execution', () => {
     })
 
     it('skips acid damage on miss and still reverts the transient sharpening', async () => {
-      vi.mocked(combatUtils.rollD20).mockReturnValue(2)
+      vi.mocked(diceRollers.rollD20).mockReturnValue(2)
       const commands = await SpellCommandFactory.createCommands(primalSpell, primalCaster, [primalTarget], 0, createMockGameState())
       const result = await commands[0].execute(createPrimalState())
       const targetAfterMiss = result.characters.find(character => character.id === primalTarget.id)
@@ -141,7 +154,7 @@ describe('SpellCommandFactory spell attack execution', () => {
       [11, '3d10'],
       [17, '4d10']
     ])('scales Primal Savagery damage dice at character level %i', async (casterLevel, expectedDice) => {
-      vi.mocked(combatUtils.rollD20).mockReturnValue(12)
+      vi.mocked(diceRollers.rollD20).mockReturnValue(12)
       const leveledCaster = {
         ...primalCaster,
         level: casterLevel
@@ -155,7 +168,7 @@ describe('SpellCommandFactory spell attack execution', () => {
   })
 
   it('executes Starry Wisp damage, dim light, and anti-Invisible rider only after a hit', async () => {
-    vi.mocked(combatUtils.rollD20).mockReturnValue(10)
+    vi.mocked(diceRollers.rollD20).mockReturnValue(10)
     const commands = await SpellCommandFactory.createCommands(spell, caster, [target], 0, createMockGameState())
     const state = createMockCombatState({
       characters: [caster, target],
@@ -175,7 +188,7 @@ describe('SpellCommandFactory spell attack execution', () => {
     const starryLight = result.activeLightSources.find(light => light.sourceSpellId === 'starry-wisp')
     const suppression = targetAfterHit?.statusEffects.find(status =>
       status.source === 'Starry Wisp' &&
-      status.suppressedConditionBenefit === 'Invisible'
+      (status as any).suppressedConditionBenefit === 'Invisible'
     )
 
     // A hit should run both effect rows from the live Starry Wisp JSON: radiant
@@ -200,7 +213,7 @@ describe('SpellCommandFactory spell attack execution', () => {
   })
 
   it('skips Starry Wisp damage, dim light, and anti-Invisible rider after a miss', async () => {
-    vi.mocked(combatUtils.rollD20).mockReturnValue(2)
+    vi.mocked(diceRollers.rollD20).mockReturnValue(2)
     const commands = await SpellCommandFactory.createCommands(spell, caster, [target], 0, createMockGameState())
     const state = createMockCombatState({
       characters: [caster, target],
@@ -224,12 +237,12 @@ describe('SpellCommandFactory spell attack execution', () => {
     expect(commands).toHaveLength(1)
     expect(targetAfterMiss?.currentHP).toBe(target.currentHP)
     expect(result.activeLightSources.filter(light => light.sourceSpellId === 'starry-wisp')).toHaveLength(0)
-    expect(targetAfterMiss?.statusEffects.some(status => status.suppressedConditionBenefit === 'Invisible')).toBe(false)
+    expect(targetAfterMiss?.statusEffects.some(status => (status as any).suppressedConditionBenefit === 'Invisible')).toBe(false)
     expect(result.combatLog.some(entry => entry.data?.spellId === 'starry-wisp' && entry.data?.isHit === false)).toBe(true)
   })
 
   it('records Starry Wisp object damage and object-position dim light after an object hit', async () => {
-    vi.mocked(combatUtils.rollD20).mockReturnValue(10)
+    vi.mocked(diceRollers.rollD20).mockReturnValue(10)
     const selectedObjectTarget = {
       kind: 'object' as const,
       id: 'glowing-statue',
@@ -302,7 +315,7 @@ describe('SpellCommandFactory spell attack execution', () => {
   })
 
   it('skips Starry Wisp object damage and object-position light after an object miss', async () => {
-    vi.mocked(combatUtils.rollD20).mockReturnValue(2)
+    vi.mocked(diceRollers.rollD20).mockReturnValue(2)
     const selectedObjectTarget = {
       kind: 'object' as const,
       id: 'missed-statue',
@@ -342,7 +355,7 @@ describe('SpellCommandFactory spell attack execution', () => {
   })
 
   it('records Fire Bolt object ignition only after a hit on an unattended object', async () => {
-    vi.mocked(combatUtils.rollD20).mockReturnValue(10)
+    vi.mocked(diceRollers.rollD20).mockReturnValue(10)
     const selectedObjectTarget = {
       kind: 'object' as const,
       id: 'dry-crate',
@@ -401,7 +414,7 @@ describe('SpellCommandFactory spell attack execution', () => {
   })
 
   it('ends Friends early when its caster makes a spell attack roll', async () => {
-    vi.mocked(combatUtils.rollD20).mockReturnValue(2)
+    vi.mocked(diceRollers.rollD20).mockReturnValue(2)
     const friendsCaster = createMockCombatCharacter({
       id: 'friends-caster',
       name: 'Warlock',
@@ -460,7 +473,10 @@ describe('SpellCommandFactory spell attack execution', () => {
       combatLog: []
     })
 
-    const result = await commands[0].execute(state)
+    let result = state
+    for (const cmd of commands) {
+      result = await cmd.execute(result)
+    }
     const updatedCaster = result.characters.find(character => character.id === friendsCaster.id)
     const updatedCharmedTarget = result.characters.find(character => character.id === charmedTarget.id)
 
@@ -478,7 +494,7 @@ describe('SpellCommandFactory spell attack execution', () => {
   })
 
   it('suppresses Fire Bolt object ignition when the hit object is worn or carried', async () => {
-    vi.mocked(combatUtils.rollD20).mockReturnValue(10)
+    vi.mocked(diceRollers.rollD20).mockReturnValue(10)
     const selectedObjectTarget = {
       kind: 'object' as const,
       id: 'worn-cloak',
@@ -595,7 +611,7 @@ describe('SpellCommandFactory spell attack execution', () => {
   })
 
   it('applies Chill Touch damage and healing lockout only after a melee spell hit', async () => {
-    vi.mocked(combatUtils.rollD20).mockReturnValue(10)
+    vi.mocked(diceRollers.rollD20).mockReturnValue(10)
     const chillCaster = createMockCombatCharacter({
       id: 'chill-caster',
       name: 'Necromancer',
@@ -695,7 +711,7 @@ describe('SpellCommandFactory spell attack execution', () => {
   })
 
   it('skips Chill Touch damage and healing lockout after a miss', async () => {
-    vi.mocked(combatUtils.rollD20).mockReturnValue(2)
+    vi.mocked(diceRollers.rollD20).mockReturnValue(2)
     const chillCaster = createMockCombatCharacter({
       id: 'miss-caster',
       name: 'Necromancer',
@@ -747,7 +763,7 @@ describe('SpellCommandFactory spell attack execution', () => {
   })
 
   it('applies Chill Touch caster-scoped attack disadvantage only to Undead hit targets', async () => {
-    vi.mocked(combatUtils.rollD20).mockReturnValue(10)
+    vi.mocked(diceRollers.rollD20).mockReturnValue(10)
     const chillCaster = createMockCombatCharacter({
       id: 'undead-rider-caster',
       name: 'Necromancer',
@@ -839,7 +855,7 @@ describe('SpellCommandFactory spell attack execution', () => {
   })
 
   it('resolves a level 1 Eldritch Blast as one ranged spell attack beam', async () => {
-    vi.mocked(combatUtils.rollD20).mockReturnValue(10)
+    vi.mocked(diceRollers.rollD20).mockReturnValue(10)
     const warlock = createMockCombatCharacter({
       id: 'eldritch-caster-level-1',
       name: 'Warlock',
@@ -881,7 +897,7 @@ describe('SpellCommandFactory spell attack execution', () => {
     const attackLogs = result.combatLog.filter(entry => entry.data?.spellId === 'eldritch-blast' && entry.data?.attackType === 'spell')
 
     expect(commands).toHaveLength(1)
-    expect(combatUtils.rollD20).toHaveBeenCalledTimes(1)
+    expect(diceRollers.rollD20).toHaveBeenCalledTimes(1)
     expect(targetAfterHit?.currentHP).toBeLessThan(goblin.currentHP)
     expect(attackLogs).toHaveLength(1)
     expect(attackLogs[0].data).toMatchObject({
@@ -893,7 +909,7 @@ describe('SpellCommandFactory spell attack execution', () => {
   })
 
   it('lets a level 5 Eldritch Blast place both beams on the same creature', async () => {
-    vi.mocked(combatUtils.rollD20).mockReturnValue(10)
+    vi.mocked(diceRollers.rollD20).mockReturnValue(10)
     const warlock = createMockCombatCharacter({
       id: 'eldritch-caster-level-5',
       name: 'Warlock',
@@ -938,16 +954,16 @@ describe('SpellCommandFactory spell attack execution', () => {
     const targetAfterHits = result.characters.find(character => character.id === ogre.id)
     const attackLogs = result.combatLog.filter(entry => entry.data?.spellId === 'eldritch-blast' && entry.data?.attackType === 'spell')
 
-    expect(combatUtils.rollD20).toHaveBeenCalledTimes(2)
+    expect(diceRollers.rollD20).toHaveBeenCalledTimes(2)
     expect(targetAfterHits?.currentHP).toBeLessThan(ogre.currentHP)
     expect(attackLogs).toHaveLength(2)
     expect(attackLogs.map(entry => entry.data?.spellAttackInstanceIndex)).toEqual([0, 1])
-    expect(attackLogs.every(entry => entry.targetIds.includes(ogre.id))).toBe(true)
+    expect(attackLogs.every(entry => entry.targetIds?.includes(ogre.id))).toBe(true)
     expect(attackLogs.every(entry => entry.data?.spellAttackInstanceCount === 2)).toBe(true)
   })
 
   it('resolves level 5 Eldritch Blast split targets with independent hit and miss outcomes', async () => {
-    vi.mocked(combatUtils.rollD20)
+    vi.mocked(diceRollers.rollD20)
       .mockReturnValueOnce(10)
       .mockReturnValueOnce(2)
     const warlock = createMockCombatCharacter({
@@ -1005,16 +1021,16 @@ describe('SpellCommandFactory spell attack execution', () => {
     const secondAfter = result.characters.find(character => character.id === secondTarget.id)
     const attackLogs = result.combatLog.filter(entry => entry.data?.spellId === 'eldritch-blast' && entry.data?.attackType === 'spell')
 
-    expect(combatUtils.rollD20).toHaveBeenCalledTimes(2)
+    expect(diceRollers.rollD20).toHaveBeenCalledTimes(2)
     expect(firstAfter?.currentHP).toBeLessThan(firstTarget.currentHP)
     expect(secondAfter?.currentHP).toBe(secondTarget.currentHP)
     expect(attackLogs).toHaveLength(2)
-    expect(attackLogs.map(entry => entry.targetIds[0])).toEqual([firstTarget.id, secondTarget.id])
+    expect(attackLogs.map(entry => entry.targetIds?.[0])).toEqual([firstTarget.id, secondTarget.id])
     expect(attackLogs.map(entry => entry.data?.isHit)).toEqual([true, false])
   })
 
   it('records Eldritch Blast object damage after an object beam hit', async () => {
-    vi.mocked(combatUtils.rollD20).mockReturnValue(10)
+    vi.mocked(diceRollers.rollD20).mockReturnValue(10)
     const warlock = createMockCombatCharacter({
       id: 'eldritch-object-caster',
       name: 'Warlock',
@@ -1058,7 +1074,7 @@ describe('SpellCommandFactory spell attack execution', () => {
     const impact = result.spellObjectImpacts?.find(entry => entry.objectId === selectedObjectTarget.id)
     const attackLogs = result.combatLog.filter(entry => entry.data?.spellId === 'eldritch-blast' && entry.data?.attackType === 'spell')
 
-    expect(combatUtils.rollD20).toHaveBeenCalledTimes(1)
+    expect(diceRollers.rollD20).toHaveBeenCalledTimes(1)
     expect(attackLogs).toHaveLength(1)
     expect(impact).toMatchObject({
       objectId: 'force-cracked-door',

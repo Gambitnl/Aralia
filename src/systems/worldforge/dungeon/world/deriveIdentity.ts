@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 19/07/2026, 08:43:22
+ * Dependents: components/World3D/dungeonEntryRuntime.ts, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/dungeon/world/rumors.ts
+ * Imports: 9 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file deriveIdentity.ts — Pillar 2, Task 3: turn a DungeonSite into the fully
  * WORLD-DERIVED generation parameters and naming a dungeon needs.
@@ -30,14 +46,93 @@
  * Pure data, zero THREE imports, deterministic (new streams only — perturbs no
  * existing worldforge golden).
  */
-import { streamPath, rngFromPath } from '../../seedPath';
+import { streamPath, rngFromPath, type SeedPath } from '../../seedPath';
 import { getBridgeAtlas, getBurgNamer } from '../../bridge/legacySubmapBridge';
 import { computeDangerField } from '../../overlays/dangerField';
 import { ARCHETYPES } from '../archetypes';
 import { generateDungeon } from '../generateDungeon';
 import type { DungeonParams, DungeonPlan, WorldIdentity } from '../types';
-import type { DungeonSite } from './dungeonSites';
+import { enumerateDungeonSites, type DungeonSite } from './dungeonSites';
 import { chronicleForSite } from './chronicle';
+import { canonicalDungeonId, type DungeonIdentity } from './dungeonIdentity';
+
+// Existing callers import the receipt from this generation boundary. Re-exporting the lightweight
+// owner preserves that public path while allowing state/save code to avoid the atlas dependency.
+export { canonicalDungeonId, type DungeonIdentity } from './dungeonIdentity';
+
+// ============================================================================
+// Canonical Dungeon Runtime Identity
+// ============================================================================
+// The world entrance, runtime generator, and future save-state owner all pass
+// this same small plain-data receipt. The dungeon id is deliberately derived
+// from the frozen site seed path, so the two values cannot drift independently.
+// ============================================================================
+
+/** Build the identity receipt attached to a known canonical world site. */
+export function dungeonIdentityForSite(site: DungeonSite): DungeonIdentity {
+  return {
+    dungeonId: canonicalDungeonId(site.sitePath),
+    seedPath: site.sitePath,
+  };
+}
+
+/** Read and validate the world seed embedded in a dungeon seed path. */
+function worldSeedForDungeonIdentity(seedPath: SeedPath): number {
+  const match = /^wf:(\d+)\//.exec(seedPath);
+  if (!match) {
+    throw new Error(`Dungeon identity has a malformed seed path: "${seedPath}".`);
+  }
+
+  // Worldforge serializes roots from unsigned 32-bit seeds. Requiring the same
+  // canonical spelling rejects negative, fractional, padded, or overflow roots.
+  const worldSeed = Number(match[1]) >>> 0;
+  if (!Number.isSafeInteger(Number(match[1])) || !seedPath.startsWith(`wf:${worldSeed}/`)) {
+    throw new Error(`Dungeon identity has a malformed seed path: "${seedPath}".`);
+  }
+  return worldSeed;
+}
+
+/**
+ * Resolve a serialized identity back to its authoritative world attachment.
+ *
+ * Every failure is explicit: absent fields, an id/path mismatch, a wrong world,
+ * or a path that no longer names a site all throw before generation begins.
+ */
+export function resolveDungeonIdentity(
+  identity: DungeonIdentity,
+  expectedWorldSeed?: number,
+): { worldSeed: number; site: DungeonSite } {
+  if (!identity || !identity.dungeonId || !identity.seedPath) {
+    throw new Error('Dungeon runtime identity is missing its dungeon id or seed path.');
+  }
+
+  const worldSeed = worldSeedForDungeonIdentity(identity.seedPath);
+  const expectedDungeonId = canonicalDungeonId(identity.seedPath);
+  if (identity.dungeonId !== expectedDungeonId) {
+    throw new Error(
+      `Dungeon identity mismatch: id "${identity.dungeonId}" does not match seed path "${identity.seedPath}".`,
+    );
+  }
+
+  // A caller that already owns a world seed (the ground-window bridge) must
+  // agree with the seed embedded in the receipt instead of silently crossing worlds.
+  if (expectedWorldSeed !== undefined && worldSeed !== (expectedWorldSeed >>> 0)) {
+    throw new Error(
+      `Dungeon identity world mismatch: seed path belongs to world ${worldSeed}, not world ${expectedWorldSeed >>> 0}.`,
+    );
+  }
+
+  const site = enumerateDungeonSites(worldSeed).find(
+    (candidate) => candidate.sitePath === identity.seedPath,
+  );
+  if (!site) {
+    throw new Error(
+      `Dungeon identity "${identity.dungeonId}" does not resolve to a world attachment.`,
+    );
+  }
+
+  return { worldSeed, site };
+}
 
 /** Base room count for a calm, town-adjacent site (danger ≈ remoteness ≈ 0). */
 const ROOM_BASE = 24;
@@ -234,20 +329,33 @@ export function deriveDungeonIdentity(
  * One-call convenience: derive a site's identity, then generate its full plan.
  *
  * Seeding choice (the honest one): the dungeon seeds from the site's FROZEN
- * `sitePath` via `DungeonInput.basePath` — the generator appends its `dungeon`
- * segment to that base instead of `rootSeedPath(seed)`. The sitePath IS the
- * base. This ties the plan's determinism to the site's world identity (two
- * different sites in the same world get independent dungeons; the SAME site
- * always regenerates byte-identically) without hashing the path down to a lossy
- * numeric seed. `input.seed` is still stamped on the plan (the numeric world
- * seed) for provenance.
+ * `sitePath` via `DungeonInput.seedPath`. The generator consumes that path
+ * VERBATIM because the frozen site grammar already ends in `dungeon:<site>`;
+ * it must not append a second dungeon segment. This ties the plan's determinism
+ * to the site's world identity without hashing the path down to a lossy numeric
+ * seed. `input.seed` is still stamped on the plan for provenance.
  */
 export function generateDungeonForSite(worldSeed: number, site: DungeonSite): DungeonPlan {
   const { params, world } = deriveDungeonIdentity(worldSeed, site);
   return generateDungeon({
     seed: worldSeed >>> 0,
-    basePath: site.sitePath,
+    seedPath: site.sitePath,
     params,
     world,
   });
+}
+
+/**
+ * Existing runtime generation boundary, addressed only by canonical identity.
+ *
+ * This is the handoff future entry/save/revisit work should call. It resolves
+ * the saved receipt back to the real world site, then reuses the established
+ * world-derived identity and generator path instead of reconstructing params.
+ */
+export function generateDungeonForIdentity(
+  identity: DungeonIdentity,
+  expectedWorldSeed?: number,
+): DungeonPlan {
+  const { worldSeed, site } = resolveDungeonIdentity(identity, expectedWorldSeed);
+  return generateDungeonForSite(worldSeed, site);
 }

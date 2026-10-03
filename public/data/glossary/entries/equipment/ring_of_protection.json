@@ -17,6 +17,7 @@
   "itemMetadata": {
     "type": "Ring",
     "rarity": "Rare",
-    "reqAttune": "Required"
+    "reqAttune": "Required",
+    "bonusAc": "+1"
   }
 }

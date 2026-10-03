@@ -24,6 +24,9 @@
     "properties": [
       "T|XPHB",
       "V|XPHB"
-    ]
+    ],
+    "charges": 3,
+    "recharge": "dawn",
+    "rechargeAmount": "1d3"
   }
 }

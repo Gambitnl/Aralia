@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 14/07/2026, 22:28:23
- * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, components/DesignPreview/steps/PreviewBuilding3D.tsx, components/World3D/World3DWrapper.tsx, components/World3D/worldGenCore.ts, components/Worldforge/TownPlanView.tsx, systems/world3d/buildingModels.ts, systems/world3d/buildingSceneModel.ts, systems/worldforge/bridge/buildingEnsembleParts.ts, systems/worldforge/bridge/buildingHistoryParts.ts, systems/worldforge/bridge/buildingMaterialParts.ts, systems/worldforge/bridge/buildingMotifParts.ts, systems/worldforge/bridge/buildingOccupancy.ts, systems/worldforge/bridge/buildingPartyWalls.ts, systems/worldforge/bridge/buildingWeatheringParts.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/interiorParts.ts, systems/worldforge/interior/briefProgram.ts, systems/worldforge/interior/buildingEventHistory.ts, systems/worldforge/interior/buildingExtensions.ts, systems/worldforge/interior/buildingHistory.ts, systems/worldforge/interior/doors.ts, systems/worldforge/interior/footprint.ts, systems/worldforge/interior/furnish.ts, systems/worldforge/interior/generateBuilding.ts, systems/worldforge/interior/generateInterior.ts, systems/worldforge/interior/manifests.ts, systems/worldforge/interior/occupancy.ts, systems/worldforge/interior/partition.ts, systems/worldforge/interior/program.ts, systems/worldforge/interior/renderBlueprintSvg.ts, systems/worldforge/interior/roofPlan.ts, systems/worldforge/interior/tradeRooms.ts, systems/worldforge/interior/walls.ts, systems/worldforge/town/architectureStyle.ts, systems/worldforge/town/buildingAge.ts, systems/worldforge/town/buildingEnsembles.ts, systems/worldforge/town/buildingMaterials.ts, systems/worldforge/town/buildingMotifs.ts, systems/worldforge/town/buildingPlotInput.ts, systems/worldforge/town/buildingWeathering.ts, systems/worldforge/town/detachedParcels.ts, systems/worldforge/town/householdBrief.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/townSim.ts, systems/worldforge/townsim/townSimRegistration.ts, systems/worldforge/townsim/types.ts
+ * Last Sync: 04/10/2026, 00:42:29
+ * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, components/World3D/World3DWrapper.tsx, components/World3D/worldGenCore.ts, components/Worldforge/TownPlanView.tsx, devtools/buildingIdentityLab/PreviewBuilding3D.tsx, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/world3d/buildingModels.ts, systems/world3d/buildingSceneModel.ts, systems/world3d/types.ts, systems/worldforge/bridge/buildingEnsembleParts.ts, systems/worldforge/bridge/buildingHistoryParts.ts, systems/worldforge/bridge/buildingMaterialParts.ts, systems/worldforge/bridge/buildingMotifParts.ts, systems/worldforge/bridge/buildingOccupancy.ts, systems/worldforge/bridge/buildingPartyWalls.ts, systems/worldforge/bridge/buildingWeatheringParts.ts, systems/worldforge/bridge/forgeMaterials.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/interiorParts.ts, systems/worldforge/bridge/terrainTerraces.ts, systems/worldforge/interior/briefProgram.ts, systems/worldforge/interior/buildingEventHistory.ts, systems/worldforge/interior/buildingExtensions.ts, systems/worldforge/interior/buildingHistory.ts, systems/worldforge/interior/doors.ts, systems/worldforge/interior/footprint.ts, systems/worldforge/interior/furnish.ts, systems/worldforge/interior/generateBuilding.ts, systems/worldforge/interior/generateInterior.ts, systems/worldforge/interior/manifests.ts, systems/worldforge/interior/occupancy.ts, systems/worldforge/interior/partition.ts, systems/worldforge/interior/program.ts, systems/worldforge/interior/renderBlueprintSvg.ts, systems/worldforge/interior/roofPlan.ts, systems/worldforge/interior/tradeRooms.ts, systems/worldforge/interior/walls.ts, systems/worldforge/roster/generateTownRoster.ts, systems/worldforge/town/architectureStyle.ts, systems/worldforge/town/buildingAge.ts, systems/worldforge/town/buildingEnsembles.ts, systems/worldforge/town/buildingMaterials.ts, systems/worldforge/town/buildingMotifs.ts, systems/worldforge/town/buildingPlotInput.ts, systems/worldforge/town/buildingWeathering.ts, systems/worldforge/town/detachedParcels.ts, systems/worldforge/town/household.ts, systems/worldforge/town/householdBrief.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/townSim.ts, systems/worldforge/townsim/townSimRegistration.ts, systems/worldforge/townsim/types.ts
  * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
@@ -50,7 +50,10 @@ export type BuildingType =
   // workplaces
   | 'shop' | 'smithy' | 'workshop' | 'inn' | 'tavern' | 'storehouse'
   // grand / civic
-  | 'manor' | 'temple' | 'keep' | 'civic';
+  | 'manor' | 'temple' | 'keep' | 'civic'
+  // named landmarks — capped per town by town/population.ts (see LANDMARK_CAPS)
+  | 'library' | 'guildhall' | 'granary' | 'windmill' | 'lumbermill'
+  | 'school' | 'shrine' | 'barracks' | 'bakery';
 
 export type RoomPurpose =
   | 'hall' | 'common-room' | 'great-hall' | 'nave'
@@ -427,6 +430,13 @@ export interface RoofPlan {
   planes: RoofPlane[];
   ridges: Array<{ x1: Feet; y1: Feet; x2: Feet; y2: Feet; zFt: Feet }>;
   valleys: Array<{ x1: Feet; y1: Feet; x2: Feet; y2: Feet }>;
+  /**
+   * Vertical closures. Where two sections of roof sit at different heights
+   * and their surfaces never meet, the skin steps down and the step is open.
+   * A skirt is the small wall that closes it. Skirts are vertical, so they
+   * have no plan-view area and take no part in roof coverage.
+   */
+  skirts?: RoofPlane[];
   chimneys: RoofChimney[];
   dormers: RoofDormer[];
   towerCaps: RoofTowerCap[];
@@ -573,7 +583,9 @@ export type ConstructionKitId =
   | 'rough-pole-thatch'
   | 'temperate-frame-thatch'
   | 'temperate-brick-tile'
-  | 'temperate-board-shingle';
+  | 'temperate-board-shingle'
+  // Defensive keeps already resolve to their dedicated ashlar construction kit.
+  | 'keep-ashlar';
 
 /** One fully resolved construction answer shared by every visual consumer. */
 export interface BuildingConstruction {

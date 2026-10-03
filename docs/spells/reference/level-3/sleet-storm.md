@@ -76,7 +76,7 @@ This section stores the raw canonical spell content in an HTML comment so the st
 Name: Sleet Storm
 Level: 3rd
 Casting Time: 1 Action
-Range/Area: 150 ft. (40 ft. *)
+Range/Area: 150 ft. (20-ft. Cylinder)
 Components: V, S, M *
 Duration: Concentration 1 Minute
 School: Conjuration

@@ -90,10 +90,7 @@
           ]
         },
         "recurringMechanics": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/RecurringMechanic"
-          }
+          "$ref": "#/definitions/RecurringMechanics"
         },
         "secondaryTargeting": {
           "$ref": "#/definitions/SecondaryTargeting"
@@ -224,10 +221,7 @@
           ]
         },
         "recurringMechanics": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/RecurringMechanic"
-          }
+          "$ref": "#/definitions/RecurringMechanics"
         },
         "trigger": {
           "$ref": "#/definitions/EffectTrigger"
@@ -349,6 +343,13 @@
                 "skill": {
                   "type": "string"
                 },
+                "abilityOptions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
                 "dc": {
                   "oneOf": [
                     {
@@ -356,16 +357,16 @@
                     },
                     {
                       "type": "string",
-                      "const": "spell_save_dc"
+                      "minLength": 1
                     }
                   ]
                 },
                 "actionCost": {
                   "type": "string",
-                  "enum": [
-                    "action",
-                    "bonus_action"
-                  ]
+                  "minLength": 1
+                },
+                "success": {
+                  "type": "string"
                 },
                 "eligibleActors": {
                   "type": "array",
@@ -501,10 +502,7 @@
               ]
             },
             "recurringMechanics": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/RecurringMechanic"
-              }
+              "$ref": "#/definitions/RecurringMechanics"
             }
           },
           "required": [
@@ -513,10 +511,7 @@
           ]
         },
         "recurringMechanics": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/RecurringMechanic"
-          }
+          "$ref": "#/definitions/RecurringMechanics"
         },
         "trigger": {
           "$ref": "#/definitions/EffectTrigger"
@@ -743,19 +738,13 @@
     },
     "CreatedObject": {
       "type": "object",
+      "minProperties": 1,
       "properties": {
+        "kind": {
+          "type": "string"
+        },
         "objectType": {
-          "type": "string",
-          "enum": [
-            "food",
-            "water",
-            "ammunition",
-            "weapon",
-            "portal",
-            "structure",
-            "hazard",
-            "other"
-          ]
+          "type": "string"
         },
         "name": {
           "type": "string"
@@ -779,27 +768,10 @@
           ]
         },
         "countUnit": {
-          "type": "string",
-          "enum": [
-            "item",
-            "pound",
-            "gallon",
-            "cubic_foot",
-            "square_foot",
-            "structure",
-            "not_applicable"
-          ]
+          "type": "string"
         },
         "appearsIn": {
-          "type": "string",
-          "enum": [
-            "caster_hand",
-            "target_container",
-            "ground",
-            "unoccupied_space",
-            "spell_area",
-            "not_applicable"
-          ]
+          "type": "string"
         },
         "shapeOptions": {
           "type": "array",
@@ -1341,7 +1313,8 @@
           "enum": [
             "none",
             "half",
-            "negates_condition"
+            "negates_condition",
+            "negates"
           ]
         },
         "lingeringHazardFrequency": {
@@ -1506,14 +1479,7 @@
           }
         },
         "affectedVolumeShape": {
-          "type": "string",
-          "enum": [
-            "Cube",
-            "Sphere",
-            "Line",
-            "Wall",
-            "not_applicable"
-          ]
+          "type": "string"
         },
         "affectedVolumeSizeFeet": {
           "type": "number"
@@ -1731,10 +1697,7 @@
           "type": "string"
         },
         "recurringMechanics": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/RecurringMechanic"
-          }
+          "$ref": "#/definitions/RecurringMechanics"
         },
         "conditionRemoval": {
           "type": "array",
@@ -1764,6 +1727,16 @@
             },
             "maxLocksAffected": {
               "type": "number"
+            },
+            "targetObjects": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "newState": {
+              "type": "string",
+              "minLength": 1
             },
             "suppressesMagicalClosure": {
               "type": "string"
@@ -1815,10 +1788,20 @@
               ]
             }
           },
-          "required": [
-            "eligibleObjectTypes",
-            "mundaneStateChanges",
-            "maxLocksAffected"
+          "anyOf": [
+            {
+              "required": [
+                "eligibleObjectTypes",
+                "mundaneStateChanges",
+                "maxLocksAffected"
+              ]
+            },
+            {
+              "required": [
+                "targetObjects",
+                "newState"
+              ]
+            }
           ]
         },
         "attackAugments": {
@@ -1838,6 +1821,74 @@
         },
         "controlledEntity": {
           "$ref": "#/definitions/ControlledEntity"
+        },
+        "summonControl": {
+          "type": "object",
+          "minProperties": 1,
+          "properties": {
+            "entityType": {
+              "type": "string",
+              "minLength": 1
+            },
+            "mode": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "anyOf": [
+            {
+              "required": [
+                "entityType"
+              ]
+            },
+            {
+              "required": [
+                "mode"
+              ]
+            }
+          ]
+        },
+        "controlOptions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "effect": {
+                "type": "string",
+                "minLength": 1
+              },
+              "mode": {
+                "type": "string",
+                "minLength": 1
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "anyOf": [
+              {
+                "required": [
+                  "name",
+                  "effect"
+                ]
+              },
+              {
+                "required": [
+                  "mode"
+                ]
+              },
+              {
+                "required": [
+                  "label"
+                ]
+              }
+            ]
+          }
         },
         "createdObjects": {
           "type": "array",
@@ -2011,10 +2062,13 @@
           "$ref": "#/definitions/DeathPrevention"
         },
         "endCleanup": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/EffectEndCleanup"
-          }
+          "oneOf": [
+            {
+              "type": "array",
+              "items": { "$ref": "#/definitions/EffectEndCleanup" }
+            },
+            { "$ref": "#/definitions/EffectEndCleanup" }
+          ]
         },
         "sustainRequirement": {
           "$ref": "#/definitions/SustainRequirement"
@@ -2280,10 +2334,13 @@
           "$ref": "#/definitions/DeathPrevention"
         },
         "endCleanup": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/EffectEndCleanup"
-          }
+          "oneOf": [
+            {
+              "type": "array",
+              "items": { "$ref": "#/definitions/EffectEndCleanup" }
+            },
+            { "$ref": "#/definitions/EffectEndCleanup" }
+          ]
         },
         "conditionImmunity": {
           "type": "array",
@@ -2300,7 +2357,10 @@
         "savingThrow": {
           "type": "array",
           "items": {
-            "type": "string"
+            "oneOf": [
+              { "type": "string", "minLength": 1 },
+              { "type": "object", "minProperties": 1, "additionalProperties": true }
+            ]
           }
         },
         "defenseSourceFilter": {
@@ -2347,24 +2407,7 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": [
-            "immediate",
-            "after_primary",
-            "turn_start",
-            "turn_end",
-            "on_enter_area",
-            "on_exit_area",
-            "on_end_turn_in_area",
-            "on_move_in_area",
-            "on_target_move",
-            "on_target_takes_damage",
-            "on_attack_hit",
-            "on_target_attack",
-            "on_target_cast",
-            "on_entity_proximity",
-            "on_caster_action",
-            "on_granted_action"
-          ]
+          "minLength": 1
         },
         "frequency": {
           "type": "string",
@@ -2432,6 +2475,22 @@
             "actionType",
             "optional"
           ]
+        },
+        "areaTiming": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "repeatAction": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "onlyIf": {
+          "type": "string"
+        },
+        "oncePerTurn": {
+          "type": "boolean"
         }
       },
       "required": [

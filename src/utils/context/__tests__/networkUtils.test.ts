@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { withRetry, fetchWithTimeout } from '../networkUtils';
 
 describe('fetchWithTimeout', () => {

@@ -16,7 +16,7 @@
 import { FlatQueue } from "./flatqueue";
 import { polylabel } from "./polylabel";
 import { rn } from "./numberUtils";
-import type { Vertices } from "../voronoi";
+import type { Vertices, Point } from "../voronoi";
 
 /**
  * Walks the vertex graph from a starting vertex, keeping to the boundary
@@ -105,13 +105,15 @@ const restorePath = (exit: number, start: number, from: number[]) => {
  * cell scan order, the inner-lake skip and the vertex-chain walk are
  * verbatim.
  */
+type IsolineMap = Record<string, { polygons?: Point[][] }>;
+
 export const getIsolines = (
   graph: any,
   getType: (cellId: number) => any,
   options: { polygons?: boolean } = { polygons: false },
-): any => {
+): IsolineMap => {
   const { cells, vertices } = graph;
-  const isolines: any = {};
+  const isolines: IsolineMap = {};
 
   const checkedCells = new Uint8Array(cells.i.length);
   const addToChecked = (cellId: number) => {
@@ -156,11 +158,11 @@ export const getIsolines = (
   return isolines;
 
   function addIsolineTo(
-    type: any,
-    vertices: any,
+    type: string,
+    vertices: Vertices,
     vertexChain: number[],
-    isolines: any,
-    options: any,
+    isolines: IsolineMap,
+    options: { polygons?: boolean },
   ) {
     if (!isolines[type]) isolines[type] = {};
 
@@ -184,8 +186,8 @@ export const getPolesOfInaccessibility = (
   const isolines = getIsolines(graph, getType, { polygons: true });
 
   const poles = Object.entries(isolines).map(([id, isoline]) => {
-    const multiPolygon = (isoline as any).polygons.sort(
-      (a: any, b: any) => b.length - a.length,
+    const multiPolygon = (isoline.polygons ?? []).sort(
+      (a, b) => b.length - a.length,
     );
     const [x, y] = polylabel(multiPolygon, 20);
     return [id, [rn(x), rn(y)]];

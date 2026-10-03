@@ -282,7 +282,7 @@
                                                    "countUnit":  "item",
                                                    "appearsIn":  "caster_hand",
                                                    "expiresWithSpell":  true,
-                                                   "notes":  "A scimitar-shaped flame appears in the caster\u0027s free hand, disappears if released, and can be re-evoked as a Bonus Action while the spell lasts."
+                                                   "notes":  "A scimitar-shaped flame appears in the caster's free hand, disappears if released, and can be re-evoked as a Bonus Action while the spell lasts."
                                                }
                                            ],
                         "grantedActions":  [
@@ -305,7 +305,7 @@
                                                                   "type":  "Fire"
                                                               },
                                                    "damageAbilityModifier":  "spellcasting_ability",
-                                                   "notes":  "As a Magic action, make a melee spell attack with the fiery blade; on a hit, deal 3d6 Fire damage plus the caster\u0027s spellcasting ability modifier."
+                                                   "notes":  "As a Magic action, make a melee spell attack with the fiery blade; on a hit, deal 3d6 Fire damage plus the caster's spellcasting ability modifier."
                                                },
                                                {
                                                    "type":  "bonus_action",
@@ -354,7 +354,7 @@
                 ],
     "arbitrationType":  "mechanical",
     "aiContext":  {
-                      "prompt":  "Create the fiery blade in the caster\u0027s free hand; on later Magic actions, prompt for the melee spell attack target, and if the caster let go of the blade, offer the Bonus Action to re-evoke it.",
+                      "prompt":  "Create the fiery blade in the caster's free hand; on later Magic actions, prompt for the melee spell attack target, and if the caster let go of the blade, offer the Bonus Action to re-evoke it.",
                       "playerInputRequired":  true
                   },
     "description":  "You evoke a fiery blade in your free hand. The blade is similar in size and shape to a scimitar, and it lasts for the duration. If you let go of the blade, it disappears, but you can evoke it again as a Bonus Action. As a Magic action, you can make a melee spell attack with the fiery blade. On a hit, the target takes Fire damage equal to 3d6 plus your spellcasting ability modifier. The flaming blade sheds Bright Light in a 10-foot radius and Dim Light for an additional 10 feet.",

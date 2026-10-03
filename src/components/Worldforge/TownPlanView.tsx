@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 17/07/2026, 21:36:50
- * Dependents: components/DesignPreview/steps/PreviewTown3D.tsx, components/DesignPreview/steps/PreviewTowns.tsx, components/MapPane.tsx, devtools/buildingIdentityLab/BuildingIdentityLab.tsx
- * Imports: 15 files
+ * Last Sync: 24/08/2026, 00:56:03
+ * Dependents: components/DesignPreview/steps/PreviewTown3D.tsx, components/MapPane.tsx, devtools/buildingIdentityLab/BuildingIdentityLab.tsx
+ * Imports: 17 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -47,6 +47,13 @@ import type {
   FacadePattern,
   WallPatina,
 } from '../../systems/worldforge/interior/blueprintTypes';
+import {
+  STREET_TIER_SPECS,
+  streetRibbonLayers,
+  type StreetTierName,
+} from '../../systems/worldforge/town/streetRibbons';
+import type { TownStreet } from '../../systems/worldforge/town/townStreetNetwork';
+import type { VillageIntegrationProfile } from '../../data/villagePersonalityProfiles';
 import { useTownLayers, TOWN_LAYER_DEFS } from './useDrillLayers';
 import DrillLayerPanel from './DrillLayerPanel';
 
@@ -74,6 +81,35 @@ export interface TownPlanViewProps {
   selectedPlotId?: number;
   /** Authoritative artifact plan, containing exact plot IDs and oriented quads. */
   artifactPlan?: import('../../systems/worldforge/artifacts').TownPlan;
+  /**
+   * Inherited water polylines in the SAME frame as the plan (the polylines fed
+   * to `generateTownPlan`). Drawn as a river channel so the docks, bridges, and
+   * water-gates the generator seats against them are visibly IN water.
+   */
+  water?: Pt[][];
+  /**
+   * Shoreline segments, drawn as a COAST rather than a river.
+   *
+   * Kept separate because they are not the same thing: a river is a channel with
+   * two banks, a coast is the edge of open sea. Drawing a coast with the river's
+   * fat round-capped ribbon produced the stub that appeared to jut out of Kalg's
+   * east side — a 285-unit straight segment rendered as a 60-unit-wide river
+   * ending in a rounded cap.
+   */
+  coast?: Pt[][];
+  /**
+   * River width in plan units. Without it the ribbon falls back to a fraction of
+   * the TOWN, so a brook and a great river drew identically.
+   */
+  riverWidth?: number;
+  /**
+   * The settlement's authored FLAVOR — tagline, cultural signature and encounter
+   * hooks — resolved by `getCanonicalTownPersonality` from the same (atlas,
+   * worldSeed, burgId) that produced `plan`. Rendered as a caption over the map
+   * so the reader gets what the place FEELS like beside what it looks like.
+   * Absent for previews and fixtures that have no burg behind them.
+   */
+  personality?: VillageIntegrationProfile;
 }
 
 const CIVIC_COLOR: Record<CivicKind, string> = {
@@ -88,6 +124,21 @@ const CIVIC_LABEL: Record<CivicKind, string> = {
 // pasture (grassland) beyond, scrub/barren at the rim.
 const OUTSKIRT_FILL: Record<'farm' | 'pasture' | 'scrub', string> = {
   farm: 'url(#town-farm)', pasture: '#7c9a57', scrub: '#9b9576',
+};
+
+// Intramural open land: the ground inside the walls the wards never built on.
+// Same visual language as the outskirts (land-use fills, hatched where the use
+// has a texture) but keyed WARMER and lighter, so a garden inside the walls
+// reads as town ground rather than a piece of countryside that leaked in.
+const OPEN_LAND_FILL: Record<'yard' | 'garden' | 'orchard' | 'paddock' | 'ruin', string> = {
+  yard: 'url(#town-yard)',
+  garden: 'url(#town-garden)',
+  orchard: 'url(#town-orchard)',
+  paddock: '#a6b183',
+  ruin: 'url(#town-ruin)',
+};
+const OPEN_LAND_STROKE: Record<'yard' | 'garden' | 'orchard' | 'paddock' | 'ruin', string> = {
+  yard: '#8e7c54', garden: '#77894f', orchard: '#5f7440', paddock: '#849060', ruin: '#857960',
 };
 
 const poly = (pts: Pt[]): string => 'M' + pts.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join('L') + 'Z';
@@ -478,9 +529,62 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
   onSelectPlot,
   selectedPlotId,
   artifactPlan,
+  water,
+  coast,
+  riverWidth,
+  personality,
 }) => {
   const { layers, toggle } = useTownLayers(prefsScope);
   const bounds = useMemo(() => polygonBounds(plan.footprint), [plan]);
+
+  /**
+   * THE STREETS (roads slice, 2026-08-23). The map used to draw no street at
+   * all: it drew the GAP left between inset ward blocks and trusted the reader
+   * to see a road there. Every gap was one width, so a market frontage and a
+   * back alley looked identical, and the 3D views — which did tier their
+   * ribbons — disagreed with this map about the same town.
+   *
+   * Now both draw `plan.streetNetwork`: same centerlines, same widths (they are
+   * the very gaps the generator inset the blocks to leave), same four tiers, and
+   * the same paint recipe out of `streetRibbons.ts` — the stone edging on a
+   * plaza or avenue, the worn wheel rut down a lane.
+   *
+   * Painted band-by-band and tier-by-tier, narrowest tier first, so a crossing
+   * resolves the same way it does in 3D (where `liftBiasM` stacks the tiers):
+   * the plaza ring paints over the lane that meets it, never the reverse.
+   * Round caps and joins close the junctions where streets meet.
+   */
+  const streetBands = useMemo(() => {
+    const order: StreetTierName[] = ['lane', 'street', 'avenue', 'plaza'];
+    const byTier = new Map<StreetTierName, TownStreet[]>();
+    for (const st of plan.streetNetwork ?? []) {
+      if (st.centerline.length < 2) continue;
+      const arr = byTier.get(st.tier);
+      if (arr) arr.push(st); else byTier.set(st.tier, [st]);
+    }
+    const out: Array<{ key: string; d: string; color: string; width: number; cap: 'round' | 'butt' }> = [];
+    for (const tier of order) {
+      const streets = byTier.get(tier);
+      if (!streets) continue;
+      // Bottom→top within a tier: edging under core, or core under wheel rut.
+      streetRibbonLayers(STREET_TIER_SPECS[tier]).forEach((band, bi) => {
+        streets.forEach((st, si) => {
+          out.push({
+            key: `${tier}:${bi}:${si}`,
+            d: open(st.centerline),
+            color: band.colorHex,
+            width: Math.max(0.4, st.width * band.widthScale),
+            // Round caps close the junctions where town streets meet. An
+            // APPROACH road ends at the edge of the cell, where the road carries
+            // on into open country — a round cap there draws a lollipop head in
+            // a field, so those get a flat end that reads as "continues".
+            cap: st.role === 'approach' ? 'butt' : 'round',
+          });
+        });
+      });
+    }
+    return out;
+  }, [plan.streetNetwork]);
 
   // Resolve the exact same architecture identity the artifact adapter and 3D
   // blueprint receive. Object identity is safe as the map key because the town
@@ -899,6 +1003,33 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
           <rect width="7" height="7" fill="#c7a567" />
           <line x1="0" y1="0" x2="0" y2="7" stroke="#a6843f" strokeWidth="1.5" />
         </pattern>
+        {/* Intramural open-land textures: garden beds, orchard rows, rubble. */}
+        <pattern id="town-garden" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(-20)">
+          <rect width="5" height="5" fill="#93a967" />
+          <line x1="0" y1="0" x2="5" y2="0" stroke="#74883f" strokeWidth="1" />
+        </pattern>
+        <pattern id="town-orchard" width="8" height="8" patternUnits="userSpaceOnUse">
+          <rect width="8" height="8" fill="#87a05e" />
+          <circle cx="4" cy="4" r="1.7" fill="#4f6a35" />
+        </pattern>
+        {/* Trodden yard: bare dun ground, scuffed. Deliberately well off the
+            parchment street tone (#cdbf9c) — at the previous flat #c0ac83 a
+            capital's yard band read as slightly dirty road, not as land use. */}
+        <pattern id="town-yard" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(15)">
+          <rect width="6" height="6" fill="#b3a074" />
+          <line x1="0.8" y1="1.4" x2="2.6" y2="1.4" stroke="#95815a" strokeWidth="0.7" />
+          <line x1="3.6" y1="4.3" x2="5.2" y2="4.3" stroke="#95815a" strokeWidth="0.7" />
+        </pattern>
+        {/* Ruin: broken footings and rubble — deliberately IRREGULAR marks, since
+            an even grid of squares reads as gravel paving rather than collapse. */}
+        <pattern id="town-ruin" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(8)">
+          <rect width="9" height="9" fill="#b5a891" />
+          <rect x="0.5" y="1.1" width="3.4" height="1.1" fill="#7f7360" />
+          <rect x="0.5" y="2.2" width="1.1" height="2.3" fill="#7f7360" />
+          <rect x="5.4" y="4.6" width="2.6" height="1" fill="#7f7360" />
+          <rect x="6.9" y="5.6" width="1" height="2.1" fill="#7f7360" />
+          <rect x="3.2" y="7.1" width="1.4" height="0.9" fill="#8d8069" />
+        </pattern>
         {/* District facade grammars reuse the production resolver's wall and
             trim colors. Definitions are deduplicated by material + pattern. */}
         {architecturePatterns.map((style) => (
@@ -913,24 +1044,89 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
         {(plan.outskirts ?? []).map((o, i) => (
           <path key={`out${i}`} d={poly(o.polygon)} fill={OUTSKIRT_FILL[o.kind]} stroke="#6f7a52" strokeWidth={0.3} vectorEffect="non-scaling-stroke" data-testid={`town-outskirt-${o.kind}`} />
         ))}
-        {/* Organic built-up CORE filled in the STREET/ground tone: the gaps between
-            block fills (the ward insets) then read as the street network. */}
-        <path d={poly(plan.core ?? plan.footprint)} fill="#cdbf9c" stroke="#8a7a55" strokeWidth={1} vectorEffect="non-scaling-stroke" />
-        {/* Buildable blocks (ward insets) in parchment — the area between them is
-            street. Fall back to the full ward if no block (older plans). */}
+        {/* Organic built-up CORE in bare TOWN GROUND. It used to be filled in the
+            street tone so the gaps between blocks would read as roads; the roads
+            are now drawn (see `streetBands`), so this tone must sit BELOW them or
+            the whole town reads as one continuous paved surface. Slightly duller
+            and browner than the old #cdbf9c for exactly that reason. */}
+        <path d={poly(plan.core ?? plan.footprint)} fill="#bcae8b" stroke="#8a7a55" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+        {/* Buildable blocks (ward insets) in parchment. Their edges are the street
+            frontages: the generator inset each block by the half-width of the
+            street on that side, so the gap between two blocks IS the ribbon
+            painted over it. Fall back to the full ward if no block (older plans). */}
         {plan.wards.map((w, i) => (
           <path key={`w${i}`} d={poly(w.block ?? w.polygon)} fill={w.civic === 'plaza' ? '#e7dcc0' : '#efe6d2'} stroke="#b7a77f" strokeWidth={0.4} vectorEffect="non-scaling-stroke"
             data-architecture-district-key={w.architectureDistrict?.key}
             data-architecture-district-label={w.architectureDistrict?.label} />
+        ))}
+        {/* Intramural open land: the ground the walls enclose but the wards never
+            built on, plus ward blocks that packed no plots. Drawn AFTER the block
+            fills so an unbuilt block shows as its parcels, not as blank parchment,
+            and BEFORE buildings so nothing covers a roof. */}
+        {(plan.openLand ?? []).map((o, i) => (
+          <path key={`ol${i}`} d={poly(o.polygon)} fill={OPEN_LAND_FILL[o.kind]}
+            stroke={OPEN_LAND_STROKE[o.kind]} strokeWidth={0.5} vectorEffect="non-scaling-stroke"
+            data-testid={`town-open-land-${o.kind}`} data-open-land-source={o.source} />
         ))}
         {/* Shared courts sit below roofs and above the block fill. Each glyph is
             backed by the same canonical receipt consumed by production props. */}
         {layers.buildings && (plan.courtyards ?? []).map((court) => (
           <CourtyardGlyph key={court.id} court={court} />
         ))}
-        {/* Inherited main roads on top of the street grid (wider, distinct). */}
-        {layers.roads && plan.streets.map((s, i) => (
-          <path key={`st${i}`} d={open(s)} fill="none" stroke="#b8a577" strokeWidth={7} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+        {/* Coast FIRST and underneath: a shoreline, not a channel. Drawn as a
+            thin edge with square caps, because a coast has one bank, not two —
+            rendering it with the river's fat round-capped ribbon is what made
+            Kalg's single 285-unit shore segment jut out of the town as a stub
+            with a rounded end. */}
+        {layers.water && (coast ?? []).map((line, i) => (
+          <path
+            key={`cst${i}`}
+            d={open(line)}
+            fill="none"
+            stroke="#4a7d9e"
+            strokeWidth={Math.max(2, stats.span * 0.006)}
+            strokeLinecap="butt"
+            strokeLinejoin="round"
+            opacity={0.75}
+            data-testid="town-coast"
+          />
+        ))}
+        {/* River channel over the ground/blocks but under roads and civic, so
+            bridge decks and dock piers draw ON the water. Width is the RIVER's
+            own width, carried down from the same discharge formula the region
+            tier uses — it used to be `span * 0.06`, i.e. a fixed 6% of the
+            settlement, so a brook and a great river drew identically and the
+            deck that crossed them was mis-sized to match. Real geometry, so it
+            scales with zoom. The plot carve keeps buildings out of it. */}
+        {layers.water && (water ?? []).map((line, i) => (
+          <path
+            key={`wtr${i}`}
+            d={open(line)}
+            fill="none"
+            stroke="#4a7d9e"
+            strokeWidth={riverWidth && riverWidth > 0 ? riverWidth : stats.span * 0.06}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            opacity={0.92}
+            data-testid="town-water"
+          />
+        ))}
+        {/* THE STREET NETWORK — the same `plan.streetNetwork` the 3D minimap and
+            the streamed game ground bake into ribbons, at the same widths and in
+            the same tier colours. Widths are REAL plan units (so they scale with
+            zoom, unlike the old fixed 7px inherited-road stroke, which drew a
+            highway the same size whatever the town or the zoom level). */}
+        {layers.roads && streetBands.map((b) => (
+          <path
+            key={b.key}
+            d={b.d}
+            fill="none"
+            stroke={b.color}
+            strokeWidth={b.width}
+            strokeLinecap={b.cap}
+            strokeLinejoin="round"
+            data-testid="town-street"
+          />
         ))}
         {layers.buildings && plan.wards.flatMap((w, wi) => w.plots.map((pl, pi) => {
           const architecture = architectureByPlot.get(pl);
@@ -1046,6 +1242,28 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
         </g>
       )}
     </svg>
+    {/* Settlement flavor caption. The map answers what the town looks like; this
+        answers what it feels like. Both are derived from the same canonical burg,
+        so the caption can never describe a different settlement than the one drawn. */}
+    {personality && (
+      <div
+        data-testid="town-personality"
+        data-personality-profile-id={personality.id}
+        style={{
+          position: 'absolute', left: 8, right: 8, bottom: 8,
+          padding: '6px 10px', borderRadius: 4,
+          background: '#1c150aee', border: '1px solid #ffe08a',
+          fontFamily: 'Georgia, serif', pointerEvents: 'none',
+        }}
+      >
+        <div data-testid="town-personality-tagline" style={{ fontSize: 13, fontWeight: 700, color: '#ffe08a' }}>
+          {personality.tagline}
+        </div>
+        <div data-testid="town-personality-signature" style={{ fontSize: 11, color: '#e8dcc0' }}>
+          {personality.culturalSignature}
+        </div>
+      </div>
+    )}
     </div>
   );
 };

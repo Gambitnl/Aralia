@@ -20,8 +20,8 @@ import { GameState } from '../../../types'
 import { generateText } from '../../../services/geminiService'
 import { Position } from '../../../types/world'
 import { MaterialTagService } from './MaterialTagService'
-import { sanitizeAIInput, detectSuspiciousInput, cleanAIJSON, safeJSONParse } from '../../../utils/securityUtils'
-import { logger } from '../../../utils/logger'
+import { sanitizeAIInput, detectSuspiciousInput, cleanAIJSON, safeJSONParse } from '../../../utils/core'
+import { logger } from '../../../utils/core'
 
 export interface ArbitrationRequest {
     spell: Spell

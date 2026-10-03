@@ -1,9 +1,25 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ *
+ * Last Sync: 04/08/2026, 02:02:08
+ * Dependents: None (Orphan)
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import { PlayerCharacter, GameState } from '../../types/index';
-import { rollSavingThrow } from '../../utils/savingThrowUtils';
-import { createPlayerCombatCharacter, rollDice } from '../../utils/combatUtils'; // Using standard factory
-import { logger } from '../../utils/logger';
-import { generateId } from '../../utils/idGenerator';
+import { rollSavingThrow } from '../../utils/character';
+import { createPlayerCombatCharacter } from '../../utils/combat';
+import { rollDice } from '../dice/rollers'; // Using standard factory
+import { logger } from '../../utils/core';
+import { generateId } from '../../utils/core';
 import { formatDuration } from '../../utils/core';
 
 export interface MemoryLossResult {

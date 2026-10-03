@@ -1,5 +1,6 @@
 
 import { describe, it, expect } from 'vitest';
+import { ItemType } from '../../../types';
 import { calculateArmorClass, calculateFinalAbilityScores, calculatePassiveScore } from '../statUtils';
 import { createMockPlayerCharacter } from '../../core/factories';
 import { ActiveEffect } from '@/types/effects';
@@ -32,7 +33,7 @@ describe('statUtils', () => {
                     Torso: {
                         id: 'leather_armor',
                         name: 'Leather Armor',
-                        type: 'armor',
+                        type: ItemType.Armor,
                         description: '',
                         armorCategory: 'Light',
                         baseArmorClass: 11,
@@ -55,7 +56,7 @@ describe('statUtils', () => {
                     Torso: {
                         id: 'scale_mail',
                         name: 'Scale Mail',
-                        type: 'armor',
+                        type: ItemType.Armor,
                         description: '',
                         armorCategory: 'Medium',
                         baseArmorClass: 14,
@@ -80,7 +81,7 @@ describe('statUtils', () => {
                     OffHand: {
                         id: 'shield',
                         name: 'Shield',
-                        type: 'armor',
+                        type: ItemType.Armor,
                         description: '',
                         armorCategory: 'Shield',
                         armorClassBonus: 2
@@ -118,7 +119,7 @@ describe('statUtils', () => {
                     OffHand: {
                         id: 'shield',
                         name: 'Shield',
-                        type: 'armor',
+                        type: ItemType.Armor,
                         description: '',
                         armorCategory: 'Shield',
                         armorClassBonus: 2
@@ -160,7 +161,7 @@ describe('statUtils', () => {
                     OffHand: {
                         id: 'shield',
                         name: 'Shield',
-                        type: 'armor',
+                        type: ItemType.Armor,
                         description: '',
                         armorCategory: 'Shield',
                         armorClassBonus: 2
@@ -238,7 +239,7 @@ describe('statUtils', () => {
                         id: 'leather',
                         name: 'Leather Armor',
                         description: '',
-                        type: 'armor',
+                        type: ItemType.Armor,
                         armorCategory: 'Light',
                         baseArmorClass: 11,
                         addsDexterityModifier: true
@@ -277,7 +278,7 @@ describe('statUtils', () => {
             // Item that adds +2 Strength (e.g. Manual of Gainful Exercise)
             const item: Item = {
                 id: 'book_str', name: 'Manual of Str', description: 'Adds +2 Str',
-                type: 'accessory',
+                type: ItemType.Accessory,
                 statBonuses: { Strength: 2 }
             };
 
@@ -302,7 +303,7 @@ describe('statUtils', () => {
             const gauntlets: Item = {
                 id: 'gauntlets', name: 'Gauntlets of Ogre Power',
                 description: 'Sets Str to 19',
-                type: 'accessory',
+                type: ItemType.Accessory,
                 statOverrides: { Strength: 19 } // Now using the correct field
             };
 
@@ -327,7 +328,7 @@ describe('statUtils', () => {
             const gauntlets: Item = {
                 id: 'gauntlets', name: 'Gauntlets of Ogre Power',
                 description: 'Sets Str to 19',
-                type: 'accessory',
+                type: ItemType.Accessory,
                 statOverrides: { Strength: 19 }
             };
 
@@ -366,5 +367,173 @@ describe('statUtils', () => {
             // Wis +2, Prof +2, Disadvantage -> 14 - 5 = 9
             expect(calculatePassiveScore(2, 2, 'disadvantage')).toBe(9);
         });
+    });
+
+    describe('calculateArmorClass — magic AC bonuses from equipped items', () => {
+        const flatScores = {
+            Strength: 10, Dexterity: 10, Constitution: 10,
+            Intelligence: 10, Wisdom: 10, Charisma: 10
+        };
+        const ringOfProtection: Item = {
+            id: 'ring_of_protection',
+            name: 'Ring of Protection',
+            type: ItemType.Accessory,
+            description: '',
+            slot: 'Ring',
+            armorClassBonus: 1,
+            requiresAttunement: true,
+        };
+
+        it('adds an attuned accessory AC bonus (Ring of Protection)', () => {
+            const char = createMockPlayerCharacter({
+                finalAbilityScores: flatScores,
+                equippedItems: {
+                    Torso: undefined,
+                    OffHand: undefined,
+                    Ring1: { ...ringOfProtection, isAttuned: true }
+                }
+            });
+            // 10 base + 1 ring = 11
+            expect(calculateArmorClass(char)).toBe(11);
+        });
+
+        it('ignores an unattuned accessory AC bonus', () => {
+            const char = createMockPlayerCharacter({
+                finalAbilityScores: flatScores,
+                equippedItems: {
+                    Torso: undefined,
+                    OffHand: undefined,
+                    Ring1: { ...ringOfProtection }
+                }
+            });
+            expect(calculateArmorClass(char)).toBe(10);
+        });
+
+        it('adds magic body armor armorClassBonus on top of its base AC', () => {
+            const char = createMockPlayerCharacter({
+                finalAbilityScores: flatScores,
+                equippedItems: {
+                    Torso: {
+                        id: 'demon_armor',
+                        name: 'Demon Armor',
+                        type: ItemType.Armor,
+                        description: '',
+                        armorCategory: 'Heavy',
+                        baseArmorClass: 18,
+                        armorClassBonus: 1,
+                        requiresAttunement: true,
+                        isAttuned: true
+                    },
+                    OffHand: undefined
+                }
+            });
+            // 18 base + 1 magic = 19
+            expect(calculateArmorClass(char)).toBe(19);
+        });
+
+        it('does not double-count a shield bonus through the magic path', () => {
+            const char = createMockPlayerCharacter({
+                finalAbilityScores: flatScores,
+                equippedItems: {
+                    Torso: undefined,
+                    OffHand: {
+                        id: 'shield',
+                        name: 'Shield',
+                        type: ItemType.Armor,
+                        description: '',
+                        armorCategory: 'Shield',
+                        armorClassBonus: 2
+                    }
+                }
+            });
+            // 10 base + 2 shield only = 12
+            expect(calculateArmorClass(char)).toBe(12);
+        });
+    });
+
+    describe('attunement gating of equipped item bonuses (GG-11)', () => {
+      it('ignores statBonuses from attunement-required items that are not attuned', () => {
+        const char = createMockPlayerCharacter({
+          abilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+          finalAbilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+        });
+
+        const headband: Item = {
+          id: 'headband-of-intellect',
+          name: 'Headband of Intellect',
+          type: 'armor',
+          slot: 'Head',
+          description: '',
+          weight: 0,
+          statOverrides: { Intelligence: 19 },
+          requiresAttunement: true,
+          isAttuned: false,
+        } as Item;
+
+        const equipped: Partial<Record<string, Item>> = { Head: headband };
+        const scores = calculateFinalAbilityScores(char.abilityScores, char.race, equipped as any);
+        expect(scores.Intelligence).toBe(10);
+      });
+
+      it('applies statBonuses from attunement-required items that ARE attuned', () => {
+        const char = createMockPlayerCharacter({
+          abilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+          finalAbilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+        });
+
+        const headband: Item = {
+          id: 'headband-of-intellect',
+          name: 'Headband of Intellect',
+          type: 'armor',
+          slot: 'Head',
+          description: '',
+          weight: 0,
+          statOverrides: { Intelligence: 19 },
+          requiresAttunement: true,
+          isAttuned: true,
+        } as Item;
+
+        const equipped: Partial<Record<string, Item>> = { Head: headband };
+        const scores = calculateFinalAbilityScores(char.abilityScores, char.race, equipped as any);
+        expect(scores.Intelligence).toBe(19);
+      });
+
+      it('ignores AC bonus from an unattuned Ring of Protection', () => {
+        const char = createMockPlayerCharacter({
+          finalAbilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+        });
+        const ring: Item = {
+          id: 'ring-of-protection',
+          name: 'Ring of Protection',
+          type: 'accessory',
+          slot: 'Ring1',
+          description: '',
+          weight: 0,
+          armorClassBonus: 1,
+          requiresAttunement: true,
+          isAttuned: false,
+        } as Item;
+        char.equippedItems = { Ring1: ring } as any;
+        expect(calculateArmorClass(char)).toBe(10);
+      });
+
+      it('includes AC bonus from an attuned Ring of Protection', () => {
+        const char = createMockPlayerCharacter({
+          finalAbilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+        });
+        const ring: Item = {
+          id: 'ring-of-protection',
+          name: 'Ring of Protection',
+          type: 'accessory',
+          slot: 'Ring1',
+          description: '',
+          weight: 0,
+          armorClassBonus: 1,
+          requiresAttunement: true,
+          isAttuned: true,
+        } as Item;
+        char.equippedItems = { Ring1: ring } as any;
+        expect(calculateArmorClass(char)).toBe(11);
+      });
     });
 });

@@ -64,7 +64,8 @@
 
                                                        ],
                                      "excludeCreatureTypes":  [
-
+                                                                  "Construct",
+                                                                  "Undead"
                                                               ],
                                      "sizes":  [
 
@@ -129,7 +130,8 @@
 
                                                                                  ],
                                                                "excludeCreatureTypes":  [
-
+                                                                                            "Construct",
+                                                                                            "Undead"
                                                                                         ],
                                                                "sizes":  [
 
@@ -259,7 +261,8 @@
 
                                                                                  ],
                                                                "excludeCreatureTypes":  [
-
+                                                                                            "Construct",
+                                                                                            "Undead"
                                                                                         ],
                                                                "sizes":  [
 
@@ -347,7 +350,8 @@
 
                                                                                  ],
                                                                "excludeCreatureTypes":  [
-
+                                                                                            "Construct",
+                                                                                            "Undead"
                                                                                         ],
                                                                "sizes":  [
 

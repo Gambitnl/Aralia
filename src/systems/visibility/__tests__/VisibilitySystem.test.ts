@@ -1,4 +1,15 @@
 
+/**
+ * This file proves production light and senses consume canonical grid sight.
+ *
+ * It covers light radii, darkvision, opaque objects, walls, sealed corners,
+ * and endpoint blockers so 2D, 3D, attacks, and target selection share one
+ * spatial answer.
+ *
+ * Exercises: VisibilitySystem.
+ * Depends on: the shared line-of-sight tracer and combat map types.
+ */
+
 import { describe, it, expect } from 'vitest';
 import { VisibilitySystem } from '../VisibilitySystem';
 import { BattleMapData, BattleMapTile, LightSource, CombatCharacter, TargetableMapObject } from '../../../types/combat';
@@ -220,6 +231,32 @@ describe('VisibilitySystem', () => {
 
       // Can see the illuminated center
       expect(visible.get('5-5')).toBe('visible');
+    });
+
+    it('uses the shared sealed-corner and endpoint rules for visibility', () => {
+      const cornerMap = createMockMap(5, 5);
+      addWall(cornerMap, 1, 0);
+      addWall(cornerMap, 0, 1);
+      const endpointMap = createMockMap(5, 5);
+      addWall(endpointMap, 2, 0);
+      const observer = {
+        id: 'corner-observer',
+        position: { x: 0, y: 0 },
+        stats: { senses: { darkvision: 0, blindsight: 30 } },
+      } as CombatCharacter;
+
+      // Blindsight removes the need for light, but it cannot pass through the
+      // same Total Cover geometry that blocks ordinary target validation.
+      expect(VisibilitySystem.calculateVisibility(
+        observer,
+        cornerMap,
+        VisibilitySystem.calculateLightLevels(cornerMap, []),
+      ).get('2-2')).toBe('hidden');
+      expect(VisibilitySystem.calculateVisibility(
+        observer,
+        endpointMap,
+        VisibilitySystem.calculateLightLevels(endpointMap, []),
+      ).get('2-0')).toBe('hidden');
     });
   });
 });

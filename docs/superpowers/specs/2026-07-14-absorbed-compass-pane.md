@@ -8,21 +8,21 @@ Compass Pane is the player movement and orientation control UI for exploration w
 
 ## Navigation Affordance Rules (T3)
 
-Context-aware toggle visibility — proven in `src/components/CompassPane/__tests__/CompassPane.test.tsx`:
+Context-aware toggle visibility - proven in `src/components/CompassPane/__tests__/CompassPane.test.tsx`:
 
 | Context | Map Toggle | Submap Toggle | 3D Toggle |
 |---|---|---|---|
-| GameLayout (main exploration) | ✅ Visible | ✅ Visible | ✅ Visible |
-| SubmapPane (submap modal) | ✅ Visible | ❌ Hidden | ❌ Hidden |
+| GameLayout (main exploration) | PASSED Visible | PASSED Visible | PASSED Visible |
+| SubmapPane (submap modal) | PASSED Visible | FAILED Hidden | FAILED Hidden |
 
 **Rationale**: World map provides global context from submap; submap/3D toggles are redundant when user is already inside submap view.
 
 ## UI Pre-check Contract (G3)
 
 CompassPane pre-checks only what it can verify from props:
-- Global `disabled` flag → disable all controls
-- Current world location vs `mapData.gridSize` → disable out-of-bounds directions  
-- Adjacent world tile biome passability → disable impassable directions
+- Global `disabled` flag -> disable all controls
+- Current world location vs `mapData.gridSize` -> disable out-of-bounds directions  
+- Adjacent world tile biome passability -> disable impassable directions
 
 **Handler ownership**: `handleMovement` owns submap terrain validation and messaging. In-bounds submap moves remain enabled in UI.
 

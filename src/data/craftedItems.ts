@@ -1,6 +1,18 @@
 /**
  * Craftable item definitions (potions, oils, poisons, bombs).
- * Costs use rough rarity-based defaults; TODO #193(preserve-lint): revisit values and mechanical details during balance pass.
+ *
+ * Costs are rough rarity-based defaults (roughly 50/200/1000/5000 gp per tier),
+ * not a balanced curve. Deferred 2026-09-09 to GG-220 in
+ * docs/projects/GLOBAL_GAPS.md: the owner sets the cost numbers, and they cannot
+ * be validated until this registry is actually consumed. CRAFTED_ITEMS is
+ * exported but imported nowhere in src/ today, which is why
+ * scripts/quality/orphan-triage.json lists this file as SALVAGE-CANDIDATE. The
+ * data is preserved verbatim for that wiring rather than repriced on a guess.
+ *
+ * Mechanical debt below is recorded per entry with the gap that owns it. The
+ * rule applied on 2026-09-09: an entry whose mechanic has a live channel on the
+ * Item type is encoded now; an entry that would need a new channel on a core
+ * shared type points at the gap instead of inventing a local mini-system.
  */
 import { Item, ItemEffect, ItemRarity, ItemType } from '../types';
 
@@ -20,7 +32,13 @@ export const CRAFTED_ITEMS: Record<string, Item> = {
     cost: '50',
     weight: 1,
     rarity: ItemRarity.Common,
-    // TODO #194(preserve-lint): model ongoing burn/Extinguish action instead of single damage roll.
+    // Deferred 2026-09-09 -> GG-218. The ongoing-burn machinery already exists:
+    // ConditionType.Ignited (src/types/conditions.ts) plus the scheduled
+    // damage-over-time effects the combat engine runs for Searing Smite. What is
+    // missing is a way for Item.effect to apply a condition at all, so this stays
+    // a single 1d4 fire roll. That preserves the damage profile; the per-turn
+    // tick and the Extinguish action land when GG-218 gives consumables a
+    // condition channel.
     effect: damageEffect('fire', '1d4'),
   },
   smokebomb: {
@@ -43,7 +61,12 @@ export const CRAFTED_ITEMS: Record<string, Item> = {
     cost: '75',
     weight: 0.5,
     rarity: ItemRarity.Common,
-    // TODO #195(preserve-lint): encode save DC and combined charge scaling once bomb mechanics are formalized.
+    // Deferred 2026-09-09 -> GG-218. saveDC / saveAbility / saveEffect exist only
+    // on TrapEffect (src/types/mechanics.ts:72), never on Item, so the DC 13 Dex
+    // save has nowhere to live and the 3d6 is stored as an unconditional profile.
+    // Combining charges is a separate, unanswered design question (how many vials
+    // stack, how the dice and the DC scale with them) and is an owner call, not a
+    // number to invent here.
     effect: damageEffect('bludgeoning', '3d6'),
   },
   potion_of_climbing: {
@@ -99,7 +122,10 @@ export const CRAFTED_ITEMS: Record<string, Item> = {
     cost: '50',
     weight: 0.25,
     rarity: ItemRarity.Common,
-    // TODO #196(preserve-lint): move to a status-effect representation when saves/conditions are formalized.
+    // Deferred 2026-09-09 -> GG-218. ActiveEffect already models
+    // 'advantage_on_saves' with a savingThrows list (src/types/effects.ts), which
+    // is exactly this item. Item.effect cannot express it, so the advantage stays
+    // narrative text rather than a mechanic.
     effect: utilityEffect('Advantage on poison saves for one hour.'),
   },
   basic_poison: {
@@ -146,7 +172,19 @@ export const CRAFTED_ITEMS: Record<string, Item> = {
     cost: '200',
     weight: 0.5,
     rarity: ItemRarity.Uncommon,
-    // TODO #197(preserve-lint): support limited charges; for now capture the damage profile.
+    // Wired 2026-09-09. The three uses are real charges now, carried in the
+    // existing ItemCharges block on magicProperties (src/types/magicItems.ts) —
+    // the same channel the generated magic-item registry already uses for wands
+    // (see src/data/items/__tests__/generatedItemMechanics.test.ts). A potion is
+    // spent rather than recharged, so resetCondition is 'never'. The competing
+    // 1-hour window that also ends the potion is duration, not charges, and still
+    // waits on GG-218; the damage profile below is unchanged.
+    magicProperties: {
+      rarity: 'Uncommon',
+      category: 'Potion',
+      isIdentified: true,
+      charges: { current: 3, max: 3, resetCondition: 'never' },
+    },
     effect: damageEffect('fire', '4d6'),
   },
   potion_of_growth: {
@@ -237,7 +275,12 @@ export const CRAFTED_ITEMS: Record<string, Item> = {
     cost: '1000',
     weight: 0.5,
     rarity: ItemRarity.Rare,
-    // TODO #198(preserve-lint): formalize creature-type bonus damage instead of narrative utility.
+    // Deferred 2026-09-09 -> GG-219. AttackRiderSystem already matches
+    // conditional bonus damage against an incoming attack, and
+    // TargetConditionFilter carries creatureTypes (src/types/combat.ts:75), but
+    // riders can only be registered from spells and abilities — item data has no
+    // path in. Kept as narrative utility so the +6d6-vs-Dragons intent survives
+    // until that path exists.
     effect: utilityEffect('Adds significant bonus damage vs Dragons for one hour.'),
   },
   potion_of_gaseous_form: {
@@ -293,7 +336,12 @@ export const CRAFTED_ITEMS: Record<string, Item> = {
     cost: '1000',
     weight: 0.5,
     rarity: ItemRarity.Rare,
-    // TODO #199(preserve-lint): split temp HP and Bless bonuses explicitly.
+    // Deferred 2026-09-09 -> GG-218. This needs two simultaneous effects (10
+    // temporary HP and a Bless bonus) and Item.effect holds exactly one.
+    // src/types/religion.ts:166 already accepts MechanicalEffect[], which is the
+    // shape this wants. The single buff value of 10 preserves the temporary-HP
+    // half; the Bless half is currently invisible to mechanics and lives only in
+    // the description.
     effect: buffEffect(10, 60),
   },
   potion_of_mind_reading: {

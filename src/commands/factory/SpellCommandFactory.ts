@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 10/07/2026, 14:11:22
+ * Last Sync: 04/10/2026, 00:42:28
  * Dependents: commands/index.ts
- * Imports: 31 files
+ * Imports: 38 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,8 +14,8 @@
  */
 // @dependencies-end
 
-import { Spell, SpellEffect, UtilityEffect, CreatedObject, isAttackRollModifierEffect, isDamageEffect, isHealingEffect, StatusConditionEffect, isUtilityEffect, resolveScalableNumber, type DamageEffect, type MovementEffect } from '@/types/spells'
-import { ActiveFireEffect, CombatCharacter, CombatState, LightSource, SelectedSpellTarget, SpellObjectImpact } from '@/types/combat'
+import { Spell, SpellEffect, UtilityEffect, CreatedObject, isAttackRollModifierEffect, isDamageEffect, isHealingEffect, StatusConditionEffect, isUtilityEffect, resolveScalableNumber, resolveByLevelThreshold, countLevelThresholdsReached, type DamageEffect, type MovementEffect } from '@/types/spells'
+import { ActiveFireEffect, ActiveSpellHelper, ActiveSpellTargetLockout, CombatCharacter, CombatState, LightSource, SelectedSpellTarget, SpellObjectImpact, StatusEffect } from '@/types/combat'
 
 import { SpellCommand, CommandContext, CommandMetadata } from '../base/SpellCommand'
 import { DamageCommand } from '../effects/DamageCommand'
@@ -32,13 +32,16 @@ import { ReactiveEffectCommand } from '../effects/ReactiveEffectCommand'
 import { RegisterRiderCommand } from '../effects/RegisterRiderCommand'
 import { NarrativeCommand } from '../effects/NarrativeCommand'
 import { EnhanceAbilityCommand, type EnhanceAbilityChoiceMap } from '../effects/EnhanceAbilityCommand'
+import { ElementalBaneCommand } from '../effects/ElementalBaneCommand'
+import { GraspingVineCommand } from '../effects/GraspingVineCommand'
 import { WeaponAttackCommand } from './AbilityCommandFactory'
 import { GameState } from '@/types'
 import { TargetValidationUtils } from '@/systems/spells/targeting/TargetValidationUtils'
 import { Plane } from '@/types/planes'
 import { calculateProficiencyBonus } from '@/utils/character/savingThrowUtils'
 import { getAbilityModifierValue } from '@/utils/character/statUtils'
-import { generateId, getCharacterDistance, resolveAttack, rollD20 } from '@/utils/combatUtils'
+import { generateId, getCharacterDistance, resolveAttack } from '@/utils/combat';
+import { rollD20 } from '@/systems/dice/rollers';
 import { calculateSpellDC, rollSavingThrow } from '@/utils/character/savingThrowUtils'
 import { combatEvents } from '@/systems/events/CombatEvents'
 import { SavePenaltySystem } from '@/systems/combat/SavePenaltySystem'
@@ -63,6 +66,11 @@ import {
   resolveGreenFlameBladeWeaponSnapshot,
   validateGreenFlameBladeWeaponSnapshot
 } from './greenFlameBladeAttackBridge'
+import { addDice } from '@/utils/diceUtils'
+import { DiceRoller } from '@/systems/spells/mechanics/DiceRoller'
+import { breakTauntsForEvent, hasTauntAttackDisadvantage } from '@/systems/combat/tauntConstraint'
+import type { SavingThrowModifier, SavingThrowResult } from '@/utils/character/savingThrowUtils'
+import { isDeferredAreaZoneTrigger } from '@/hooks/spellEffectUtils'
 
 type SpellWithPerTargetChoices = Spell & {
   perTargetChoicesByTargetId?: EnhanceAbilityChoiceMap
@@ -71,6 +79,786 @@ type SpellWithPerTargetChoices = Spell & {
 type SpellAttackInstance = {
   target?: CombatCharacter
   objectTarget?: Extract<SelectedSpellTarget, { kind: 'object' }>
+}
+
+type ScryingSelection = {
+  mode: 'creature' | 'location'
+  knowledge?: string
+  connection?: string
+  targetKnowsCasting: boolean
+  voluntaryFailure: boolean
+}
+
+const normalizeScryingChoice = (value: string): string =>
+  value.trim().toLowerCase().replace(/\s+/g, ' ')
+
+/** Reads the compact choice payload passed through the existing spell-input bridge. */
+const parseScryingSelection = (playerInput?: string): ScryingSelection => {
+  const tokens = (playerInput ?? '')
+    .split(';')
+    .map(token => token.trim())
+    .filter(Boolean)
+  const selection: ScryingSelection = {
+    mode: tokens.some(token => normalizeScryingChoice(token) === 'location target') ? 'location' : 'creature',
+    targetKnowsCasting: false,
+    voluntaryFailure: false
+  }
+
+  for (const token of tokens) {
+    const separator = token.indexOf('=')
+    if (separator < 0) continue
+    const key = normalizeScryingChoice(token.slice(0, separator)).replace(/[ _-]/g, '')
+    const value = token.slice(separator + 1).trim()
+    if (key === 'knowledge' || key === 'familiarity') selection.knowledge = value
+    if (key === 'connection' || key === 'physicalconnection') selection.connection = value
+    if (key === 'targetknowscasting' || key === 'knowscasting') selection.targetKnowsCasting = value.toLowerCase() === 'true'
+    if (key === 'voluntaryfailure' || key === 'voluntaryfail') selection.voluntaryFailure = value.toLowerCase() === 'true'
+  }
+
+  return selection
+}
+
+const resolveScryingSaveModifiers = (
+  effect: UtilityEffect,
+  selection: ScryingSelection
+): SavingThrowModifier[] => {
+  const modifiers: SavingThrowModifier[] = []
+  const sourceChoices = [
+    { source: 'knowledge', selected: selection.knowledge },
+    { source: 'connection', selected: selection.connection }
+  ]
+
+  for (const { source, selected } of sourceChoices) {
+    if (!selected) continue
+    const sourceModifier = effect.condition.saveModifiers?.find(modifier =>
+      modifier.source?.toLowerCase() === source
+    )
+    const option = sourceModifier?.options?.find(candidate =>
+      normalizeScryingChoice(candidate.label) === normalizeScryingChoice(selected)
+    )
+    if (option) {
+      modifiers.push({
+        flat: option.modifier,
+        source: `Scrying ${source}: ${option.label}`
+      })
+    }
+  }
+
+  return modifiers
+}
+
+const createScryingSensorState = (
+  state: CombatState,
+  spell: Spell,
+  effect: UtilityEffect,
+  caster: CombatCharacter,
+  context: CommandContext,
+  selection: ScryingSelection,
+  target?: CombatCharacter
+): CombatState => {
+  const pointTarget = context.selectedSpellTargets?.find(
+    (selectedTarget): selectedTarget is Extract<SelectedSpellTarget, { kind: 'point' }> => selectedTarget.kind === 'point'
+  )
+  const sensorState = effect.sensorState ?? {}
+  const senses = Array.isArray(sensorState.senses)
+    ? sensorState.senses.filter((sense): sense is string => typeof sense === 'string')
+    : ['sight', 'hearing']
+  const sensor: ActiveSpellHelper = {
+    id: `spell_helper_scrying_sensor_${generateId()}`,
+    spellId: spell.id,
+    spellName: spell.name,
+    casterId: caster.id,
+    kind: 'scrying_sensor',
+    entityType: 'invisible_remote_sensor',
+    position: target?.position ?? pointTarget?.position ?? caster.position,
+    size: 'Tiny',
+    creature: false,
+    occupiesSpace: false,
+    active: true,
+    createdTurn: state.turnState.currentTurn,
+    expiresAtRound: state.turnState.currentTurn + resolveSpellDurationRounds(spell),
+    remoteSensor: {
+      mode: selection.mode === 'location' ? 'location_stationary' : 'creature_following',
+      targetId: target?.id,
+      followDistanceFeet: selection.mode === 'creature' ? 10 : undefined,
+      senses,
+      visibility: typeof sensorState.visibleTo === 'string' ? 'invisible' : undefined,
+      visibleAs: typeof sensorState.visibleTo === 'string' ? sensorState.visibleTo : undefined
+    }
+  }
+  const previousHelpers = state.activeSpellHelpers ?? []
+  const retainedHelpers = previousHelpers.filter(helper =>
+    helper.spellId !== spell.id || helper.casterId !== caster.id
+  )
+  return {
+    ...state,
+    activeSpellHelpers: [...retainedHelpers, sensor],
+    combatLog: [
+      ...state.combatLog,
+      {
+        id: generateId(),
+        timestamp: Date.now(),
+        type: 'summon',
+        message: selection.mode === 'location'
+          ? `${caster.name} places an invisible Scrying sensor at the chosen location.`
+          : `${caster.name} creates an invisible Scrying sensor within 10 feet of ${target?.name ?? 'the target'}.`,
+        characterId: caster.id,
+        targetIds: target ? [target.id] : undefined,
+        data: {
+          spellId: spell.id,
+          spellHelperSurface: 'scrying_sensor',
+          spellHelper: sensor,
+          removedRecastHelpers: previousHelpers.length - retainedHelpers.length
+        }
+      }
+    ]
+  }
+}
+
+const addScryingTargetLockout = (
+  state: CombatState,
+  spell: Spell,
+  target: CombatCharacter
+): CombatState => {
+  const createdAtTimestamp = Date.now()
+  const lockout: ActiveSpellTargetLockout = {
+    id: `spell_target_lockout_scrying_${generateId()}`,
+    spellId: spell.id,
+    targetId: target.id,
+    targetName: target.name,
+    createdAtTimestamp,
+    expiresAtTimestamp: createdAtTimestamp + 24 * 60 * 60 * 1000,
+    reason: 'successful Wisdom save prevents Scrying retargeting for 24 hours'
+  }
+  const activeLockouts = (state.activeSpellTargetLockouts ?? []).filter(existing =>
+    existing.expiresAtTimestamp > createdAtTimestamp &&
+    !(existing.spellId === spell.id && existing.targetId === target.id)
+  )
+  return {
+    ...state,
+    activeSpellTargetLockouts: [...activeLockouts, lockout]
+  }
+}
+
+/** Resolves Scrying's authored creature-save choices before generic utility narration. */
+class ScryingBridgeCommand implements SpellCommand {
+  public readonly id = generateId()
+  public readonly description: string
+  public readonly metadata: CommandMetadata
+
+  constructor(
+    private readonly spell: Spell,
+    private readonly effect: UtilityEffect,
+    private readonly caster: CombatCharacter,
+    private readonly context: CommandContext
+  ) {
+    this.description = `${spell.name} resolves the target's Wisdom save and authored save modifiers`
+    this.metadata = {
+      spellId: spell.id,
+      spellName: spell.name,
+      casterId: caster.id,
+      casterName: caster.name,
+      targetIds: context.targets.map(target => target.id),
+      effectType: 'scrying_save',
+      timestamp: Date.now()
+    }
+  }
+
+  execute(state: CombatState): CombatState {
+    const selection = parseScryingSelection(this.context.playerInput)
+    const target = state.characters.find(character => character.id === this.context.targets[0]?.id)
+    if (selection.mode === 'location') {
+      const sensorState = createScryingSensorState(state, this.spell, this.effect, this.caster, this.context, selection)
+      return this.spell.duration.concentration
+        ? new StartConcentrationCommand(this.spell, this.context).execute(sensorState)
+        : sensorState
+    }
+    if (!target) {
+      return {
+        ...state,
+        combatLog: [
+          ...state.combatLog,
+          {
+            id: generateId(),
+            timestamp: Date.now(),
+            type: 'action',
+            message: `${this.spell.name} creature mode needs a creature target.`,
+            characterId: this.caster.id,
+            data: { spellId: this.spell.id, rejectedReason: 'missing_creature_target' }
+          }
+        ]
+      }
+    }
+
+    const now = Date.now()
+    const activeLockouts = (state.activeSpellTargetLockouts ?? []).filter(lockout =>
+      lockout.expiresAtTimestamp > now
+    )
+    const targetLockout = activeLockouts.find(lockout =>
+      lockout.spellId === this.spell.id && lockout.targetId === target.id
+    )
+    if (targetLockout) {
+      return {
+        ...state,
+        activeSpellTargetLockouts: activeLockouts,
+        combatLog: [
+          ...state.combatLog,
+          {
+            id: generateId(),
+            timestamp: now,
+            type: 'action',
+            message: `${target.name} cannot be targeted by ${this.spell.name} again for 24 hours after succeeding on the Wisdom save.`,
+            characterId: this.caster.id,
+            targetIds: [target.id],
+            data: {
+              spellId: this.spell.id,
+              rejectedReason: 'target_locked_out_24_hours',
+              lockoutExpiresAtTimestamp: targetLockout.expiresAtTimestamp
+            }
+          }
+        ]
+      }
+    }
+
+    const caster = state.characters.find(character => character.id === this.caster.id) ?? this.caster
+    const spellDc = calculateSpellDC(caster)
+    const saveModifiers = resolveScryingSaveModifiers(this.effect, selection)
+    const voluntaryFailureRule = this.effect.condition.saveOutcomeOverrides?.find(override =>
+      override.outcome === 'voluntary_failure'
+    )
+    const successRule = this.effect.condition.saveOutcomeOverrides?.find(override =>
+      override.outcome === 'success'
+    )
+    const voluntaryFailure = Boolean(
+      voluntaryFailureRule &&
+      selection.targetKnowsCasting &&
+      selection.voluntaryFailure
+    )
+    const saveResult: SavingThrowResult = voluntaryFailure
+      ? {
+          success: false,
+          roll: 0,
+          total: 0,
+          dc: spellDc,
+          natural20: false,
+          natural1: false,
+          modifiersApplied: saveModifiers.map(modifier => ({
+            source: modifier.source,
+            value: modifier.flat ?? 0
+          }))
+        }
+      : rollSavingThrow(target, 'Wisdom', spellDc, saveModifiers)
+    const outcomeOverride = voluntaryFailure
+      ? 'voluntary_failure'
+      : saveResult.success
+        ? (successRule ? 'success_no_effect_24_hours' : undefined)
+        : undefined
+    const nextState: CombatState = {
+      ...state,
+      combatLog: [
+        ...state.combatLog,
+        {
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'status',
+          message: voluntaryFailure
+            ? `${target.name} voluntarily fails the Wisdom save against ${this.spell.name}.`
+            : `${target.name} ${saveResult.success ? 'succeeds' : 'fails'} the Wisdom save (${saveResult.total} vs DC ${spellDc}) against ${this.spell.name}.`,
+          characterId: target.id,
+          targetIds: [target.id],
+          data: {
+            spellId: this.spell.id,
+            saveType: 'Wisdom',
+            saveTotal: saveResult.total,
+            saveSucceeded: saveResult.success,
+            modifiersApplied: saveResult.modifiersApplied,
+            saveOutcomeOverride: outcomeOverride
+          }
+        }
+      ]
+    }
+
+    if (saveResult.success) {
+      return addScryingTargetLockout(nextState, this.spell, target)
+    }
+
+    const resolvedState = createScryingSensorState(nextState, this.spell, this.effect, caster, this.context, selection, target)
+    return this.spell.duration.concentration
+      ? new StartConcentrationCommand(this.spell, this.context).execute(resolvedState)
+      : resolvedState
+  }
+}
+
+// ============================================================================
+// Seeming Selection and Execution Bridge
+// ============================================================================
+// Seeming (5th level Illusion) gives an illusory appearance to chosen creatures.
+// Willing targets accept the disguise without making a saving throw. Unwilling
+// targets can make a Charisma saving throw; on success, the creature is unaffected.
+// Physical inspection fails to hold up, and a creature taking the Study action
+// can make an Intelligence (Investigation) check against the spell save DC.
+// ============================================================================
+
+interface SeemingSelection {
+  willingTargetIds: Set<string>;
+  unwillingTargetIds: Set<string>;
+  appearance?: string;
+}
+
+const parseSeemingSelection = (playerInput?: string): SeemingSelection => {
+  const selection: SeemingSelection = {
+    willingTargetIds: new Set<string>(),
+    unwillingTargetIds: new Set<string>()
+  };
+
+  const tokens = (playerInput ?? '').split(';').map(t => t.trim()).filter(Boolean);
+  for (const token of tokens) {
+    const [rawKey, rawVal] = token.split('=').map(s => s?.trim());
+    if (!rawKey) continue;
+    const key = rawKey.toLowerCase();
+    if (key === 'willing' && rawVal) {
+      rawVal.split(',').forEach(id => selection.willingTargetIds.add(id.trim()));
+    } else if (key === 'unwilling' && rawVal) {
+      rawVal.split(',').forEach(id => selection.unwillingTargetIds.add(id.trim()));
+    } else if (key === 'appearance' && rawVal) {
+      selection.appearance = rawVal;
+    }
+  }
+
+  return selection;
+};
+
+/** Resolves Seeming's multi-target illusory appearance and willing vs unwilling save mechanics. */
+class SeemingBridgeCommand implements SpellCommand {
+  public readonly id = generateId();
+  public readonly description: string;
+  public readonly metadata: CommandMetadata;
+
+  constructor(
+    private readonly spell: Spell,
+    private readonly effect: UtilityEffect,
+    private readonly caster: CombatCharacter,
+    private readonly context: CommandContext
+  ) {
+    this.description = `${spell.name} applies illusory disguises to targets with Charisma save resolution for unwilling creatures`;
+    this.metadata = {
+      spellId: spell.id,
+      spellName: spell.name,
+      casterId: caster.id,
+      casterName: caster.name,
+      targetIds: context.targets.map(t => t.id),
+      effectType: 'seeming_disguise',
+      timestamp: Date.now()
+    };
+  }
+
+  execute(state: CombatState): CombatState {
+    const selection = parseSeemingSelection(this.context.playerInput);
+    const caster = state.characters.find(c => c.id === this.caster.id) ?? this.caster;
+    const spellDc = calculateSpellDC(caster);
+    let currentState = state;
+
+    for (const target of this.context.targets) {
+      const liveTarget = currentState.characters.find(c => c.id === target.id) ?? target;
+
+      // Determine willingness:
+      // 1. Explicitly marked in playerInput selection
+      // 2. Default: same team as caster = willing; opposing team = unwilling
+      let isWilling = true;
+      if (selection.unwillingTargetIds.has(liveTarget.id)) {
+        isWilling = false;
+      } else if (selection.willingTargetIds.has(liveTarget.id)) {
+        isWilling = true;
+      } else if (caster.team && liveTarget.team && caster.team !== liveTarget.team) {
+        isWilling = false;
+      }
+
+      if (isWilling) {
+        // Willing target receives disguise without rolling a save
+        const disguiseStatus: StatusEffect = {
+          id: `status_seeming_disguise_${generateId()}`,
+          name: 'Disguised (Seeming)',
+          type: 'buff',
+          description: `Illusory appearance altered by Seeming for 8 hours. Physical inspection fails to hold up. Study action (Intelligence Investigation vs DC ${spellDc}) reveals the disguise.`,
+          duration: 4800,
+          source: this.spell.name,
+          sourceSpellId: this.spell.id,
+          sourceCasterId: caster.id,
+          escapeCheck: {
+            abilityOptions: ['Intelligence'],
+            dc: spellDc,
+            actionCost: 'action'
+          }
+        };
+
+        currentState = {
+          ...currentState,
+          characters: currentState.characters.map(c =>
+            c.id === liveTarget.id
+              ? { ...c, statusEffects: [...(c.statusEffects || []), disguiseStatus] }
+              : c
+          ),
+          combatLog: [
+            ...currentState.combatLog,
+            {
+              id: generateId(),
+              timestamp: Date.now(),
+              type: 'status',
+              message: `${liveTarget.name} willingly accepts the illusory disguise from ${this.spell.name}.`,
+              characterId: liveTarget.id,
+              targetIds: [liveTarget.id],
+              data: {
+                spellId: this.spell.id,
+                targetWilling: true,
+                appliedStatusId: disguiseStatus.id
+              }
+            }
+          ]
+        };
+      } else {
+        // Unwilling target makes a Charisma save
+        const saveResult = rollSavingThrow(liveTarget, 'Charisma', spellDc);
+        if (saveResult.success) {
+          // Resisted — unaffected by the spell
+          currentState = {
+            ...currentState,
+            combatLog: [
+              ...currentState.combatLog,
+              {
+                id: generateId(),
+                timestamp: Date.now(),
+                type: 'status',
+                message: `${liveTarget.name} succeeds the Charisma save (${saveResult.total} vs DC ${spellDc}) and is unaffected by ${this.spell.name}.`,
+                characterId: liveTarget.id,
+                targetIds: [liveTarget.id],
+                data: {
+                  spellId: this.spell.id,
+                  saveType: 'Charisma',
+                  saveTotal: saveResult.total,
+                  saveSucceeded: true,
+                  targetWilling: false
+                }
+              }
+            ]
+          };
+        } else {
+          // Failed save — disguise is applied
+          const disguiseStatus: StatusEffect = {
+            id: `status_seeming_disguise_${generateId()}`,
+            name: 'Disguised (Seeming)',
+            type: 'debuff',
+            description: `Illusory appearance altered by Seeming for 8 hours. Physical inspection fails to hold up. Study action (Intelligence Investigation vs DC ${spellDc}) reveals the disguise.`,
+            duration: 4800,
+            source: this.spell.name,
+            sourceSpellId: this.spell.id,
+            sourceCasterId: caster.id,
+            escapeCheck: {
+              abilityOptions: ['Intelligence'],
+              dc: spellDc,
+              actionCost: 'action'
+            }
+          };
+
+          currentState = {
+            ...currentState,
+            characters: currentState.characters.map(c =>
+              c.id === liveTarget.id
+                ? { ...c, statusEffects: [...(c.statusEffects || []), disguiseStatus] }
+                : c
+            ),
+            combatLog: [
+              ...currentState.combatLog,
+              {
+                id: generateId(),
+                timestamp: Date.now(),
+                type: 'status',
+                message: `${liveTarget.name} fails the Charisma save (${saveResult.total} vs DC ${spellDc}) and is disguised by ${this.spell.name}.`,
+                characterId: liveTarget.id,
+                targetIds: [liveTarget.id],
+                data: {
+                  spellId: this.spell.id,
+                  saveType: 'Charisma',
+                  saveTotal: saveResult.total,
+                  saveSucceeded: false,
+                  targetWilling: false,
+                  appliedStatusId: disguiseStatus.id
+                }
+              }
+            ]
+          };
+        }
+      }
+    }
+
+    return currentState;
+  }
+}
+
+// ============================================================================
+// Bones of the Earth Selection and Execution Bridge
+// ============================================================================
+// Bones of the Earth (6th level Transmutation) causes up to 6 stone pillars to
+// burst from the ground. Creatures under pillars must make a Dexterity save or be
+// lifted atop the pillar. A creature can voluntarily choose to fail the save.
+// If a pillar is blocked by a ceiling or obstacle, the creature takes 6d6
+// Bludgeoning damage and is Restrained (escaping with an action Strength/Dexterity check).
+// ============================================================================
+
+interface BonesOfTheEarthSelection {
+  voluntaryFailure: boolean;
+  blockedPillar: boolean;
+}
+
+const parseBonesOfTheEarthSelection = (playerInput?: string): BonesOfTheEarthSelection => {
+  const selection: BonesOfTheEarthSelection = {
+    voluntaryFailure: false,
+    blockedPillar: false
+  };
+
+  const tokens = (playerInput ?? '').split(';').map(t => t.trim()).filter(Boolean);
+  for (const token of tokens) {
+    const [rawKey, rawVal] = token.split('=').map(s => s?.trim());
+    if (!rawKey) continue;
+    const key = rawKey.toLowerCase();
+    if (key === 'voluntaryfailure' || key === 'voluntary_failure' || key === 'voluntaryfail') {
+      selection.voluntaryFailure = rawVal ? rawVal.toLowerCase() === 'true' : true;
+    } else if (key === 'blocked' || key === 'blockedpillar' || key === 'blocked_pillar' || key === 'lowceiling' || key === 'low_ceiling') {
+      selection.blockedPillar = rawVal ? rawVal.toLowerCase() === 'true' : true;
+    }
+  }
+
+  return selection;
+};
+
+/** Resolves Bones of the Earth stone pillar creation, creature lift, voluntary failure, and ceiling crushing. */
+class BonesOfTheEarthBridgeCommand implements SpellCommand {
+  public readonly id = generateId();
+  public readonly description: string;
+  public readonly metadata: CommandMetadata;
+
+  constructor(
+    private readonly spell: Spell,
+    private readonly effect: DamageEffect | SpellEffect,
+    private readonly caster: CombatCharacter,
+    private readonly context: CommandContext
+  ) {
+    this.description = `${spell.name} raises stone pillars under targets with Dexterity save and blocked ceiling resolution`;
+    this.metadata = {
+      spellId: spell.id,
+      spellName: spell.name,
+      casterId: caster.id,
+      casterName: caster.name,
+      targetIds: context.targets.map(t => t.id),
+      effectType: 'bones_of_the_earth_pillar',
+      timestamp: Date.now()
+    };
+  }
+
+  execute(state: CombatState): CombatState {
+    const selection = parseBonesOfTheEarthSelection(this.context.playerInput);
+    const caster = state.characters.find(c => c.id === this.caster.id) ?? this.caster;
+    const spellDc = calculateSpellDC(caster);
+    let currentState = state;
+
+    for (const target of this.context.targets) {
+      const liveTarget = currentState.characters.find(c => c.id === target.id) ?? target;
+
+      if (selection.voluntaryFailure) {
+        // Creature voluntarily chooses to fail the Dexterity save to be lifted
+        currentState = {
+          ...currentState,
+          combatLog: [
+            ...currentState.combatLog,
+            {
+              id: generateId(),
+              timestamp: Date.now(),
+              type: 'action',
+              message: `${liveTarget.name} voluntarily fails the Dexterity save against ${this.spell.name} and is lifted atop the rising stone pillar.`,
+              characterId: liveTarget.id,
+              targetIds: [liveTarget.id],
+              data: {
+                spellId: this.spell.id,
+                voluntaryFailure: true,
+                pillarLifted: true
+              }
+            }
+          ]
+        };
+      } else {
+        // Roll Dexterity saving throw
+        const saveResult = rollSavingThrow(liveTarget, 'Dexterity', spellDc);
+        if (saveResult.success) {
+          // Avoids being lifted
+          currentState = {
+            ...currentState,
+            combatLog: [
+              ...currentState.combatLog,
+              {
+                id: generateId(),
+                timestamp: Date.now(),
+                type: 'status',
+                message: `${liveTarget.name} succeeds the Dexterity save (${saveResult.total} vs DC ${spellDc}) and avoids the rising stone pillar from ${this.spell.name}.`,
+                characterId: liveTarget.id,
+                targetIds: [liveTarget.id],
+                data: {
+                  spellId: this.spell.id,
+                  saveType: 'Dexterity',
+                  saveTotal: saveResult.total,
+                  saveSucceeded: true,
+                  pillarLifted: false
+                }
+              }
+            ]
+          };
+        } else {
+          // Failed save
+          if (selection.blockedPillar) {
+            // Blocked by ceiling or obstacle: takes 6d6 bludgeoning damage and is Restrained
+            const damage = DiceRoller.roll('6d6');
+            const newHp = Math.max(0, liveTarget.currentHP - damage);
+
+            const restrainedStatus: StatusEffect = {
+              id: `status_bones_earth_restrained_${generateId()}`,
+              name: 'Restrained',
+              type: 'debuff',
+              description: `Restrained between a stone pillar and an obstacle. An action can be used to make a Strength or Dexterity check vs DC ${spellDc} to escape.`,
+              duration: 10,
+              persistsUntilRemoved: true,
+              source: this.spell.name,
+              sourceSpellId: this.spell.id,
+              sourceCasterId: caster.id,
+              escapeCheck: {
+                abilityOptions: ['Strength', 'Dexterity'],
+                dc: spellDc,
+                actionCost: 'action'
+              }
+            };
+
+            currentState = {
+              ...currentState,
+              characters: currentState.characters.map(c =>
+                c.id === liveTarget.id
+                  ? {
+                      ...c,
+                      currentHP: newHp,
+                      statusEffects: [...(c.statusEffects || []), restrainedStatus],
+                      conditions: [
+                        ...(c.conditions || []),
+                        {
+                          name: 'Restrained' as const,
+                          source: this.spell.name,
+                          sourceCasterId: caster.id,
+                          duration: { type: 'rounds', value: 10 },
+                          appliedTurn: currentState.turnState.currentTurn
+                        }
+                      ]
+                    }
+                  : c
+              ),
+              combatLog: [
+                ...currentState.combatLog,
+                {
+                  id: generateId(),
+                  timestamp: Date.now(),
+                  type: 'damage',
+                  message: `${liveTarget.name} fails the Dexterity save (${saveResult.total} vs DC ${spellDc}), is crushed against an obstacle for ${damage} bludgeoning damage, and is Restrained by ${this.spell.name}.`,
+                  characterId: liveTarget.id,
+                  targetIds: [liveTarget.id],
+                  data: {
+                    spellId: this.spell.id,
+                    damage,
+                    damageType: 'Bludgeoning',
+                    saveType: 'Dexterity',
+                    saveTotal: saveResult.total,
+                    saveSucceeded: false,
+                    blockedPillar: true,
+                    appliedStatusId: restrainedStatus.id
+                  }
+                }
+              ]
+            };
+          } else {
+            // Normal lift atop pillar
+            currentState = {
+              ...currentState,
+              combatLog: [
+                ...currentState.combatLog,
+                {
+                  id: generateId(),
+                  timestamp: Date.now(),
+                  type: 'status',
+                  message: `${liveTarget.name} fails the Dexterity save (${saveResult.total} vs DC ${spellDc}) and is lifted 30 feet atop the stone pillar.`,
+                  characterId: liveTarget.id,
+                  targetIds: [liveTarget.id],
+                  data: {
+                    spellId: this.spell.id,
+                    saveType: 'Dexterity',
+                    saveTotal: saveResult.total,
+                    saveSucceeded: false,
+                    pillarLifted: true
+                  }
+                }
+              ]
+            };
+          }
+        }
+      }
+    }
+
+    return currentState;
+  }
+}
+
+/** Ends caster-owned taunts before a spell affects a different enemy. */
+class TauntSpellCastBreakCommand implements SpellCommand {
+  public readonly id = generateId()
+  public readonly description: string
+  public readonly metadata: CommandMetadata
+
+  constructor(
+    private readonly spell: Spell,
+    private readonly caster: CombatCharacter,
+    private readonly context: CommandContext
+  ) {
+    this.description = `Checks ${spell.name} against active taunt constraints`
+    this.metadata = {
+      spellId: spell.id,
+      spellName: spell.name,
+      casterId: caster.id,
+      casterName: caster.name,
+      targetIds: context.targets.map(target => target.id),
+      effectType: 'taunt_break_check',
+      timestamp: Date.now()
+    }
+  }
+
+  execute(state: CombatState): CombatState {
+    const result = breakTauntsForEvent(state.characters, {
+      event: 'caster_casts_spell_on_other_enemy',
+      casterId: this.caster.id,
+      targetIds: this.context.targets.map(target => target.id)
+    })
+    if (result.characters === state.characters) {
+      return state
+    }
+
+    return {
+      ...state,
+      characters: result.characters,
+      combatLog: [
+        ...state.combatLog,
+        ...result.breaks.map(record => ({
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'status' as const,
+          message: `${record.spellName} ends because its caster casts ${this.spell.name} on another enemy.`,
+          characterId: record.casterId,
+          targetIds: [record.targetId],
+          data: { spellId: record.spellId, tauntBreakEvent: record.event }
+        }))
+      ]
+    }
+  }
 }
 
 class SpellAttackCommand implements SpellCommand {
@@ -146,7 +934,14 @@ class SpellAttackCommand implements SpellCommand {
       const objectTarget = attackInstance.objectTarget
       const targetName = liveTarget?.name ?? objectTarget?.name ?? objectTarget?.id ?? 'object'
       const targetId = liveTarget?.id ?? objectTarget?.id ?? 'object'
-      const attackRoll = rollD20()
+      const liveCaster = nextState.characters.find(character => character.id === this.caster.id) ?? this.caster
+      const hasDisadvantage = liveTarget
+        // Spell attacks obey the same source-viability rule as weapon attacks.
+        // The live roster prevents a missing or downed taunter from imposing a
+        // stale penalty while status cleanup is still being reconciled.
+        ? hasTauntAttackDisadvantage(liveCaster, liveTarget.id, nextState.characters)
+        : false
+      const attackRoll = rollD20({ disadvantage: hasDisadvantage })
       const targetAC = liveTarget?.armorClass || 10
       const resolvedAttack = resolveAttack(attackRoll, attackBonus, targetAC)
       const total = attackRoll + attackBonus
@@ -256,19 +1051,19 @@ class SpellAttackCommand implements SpellCommand {
         const target = liveTarget ?? snapshotTarget
         return target ? { target } : null
       })
-      .filter((instance): instance is SpellAttackInstance => instance !== null)
+      .filter((instance): instance is any => instance !== null)
 
     const baseInstances = selectedInstances.length > 0
       ? selectedInstances
       : this.targets.map(target => ({ target }))
 
     if (!this.usesBeamAttackAllocation() || baseInstances.length === 0) {
-      return baseInstances.slice(0, 1)
+      return baseInstances.slice(0, 1) as SpellAttackInstance[]
     }
 
     const beamCount = this.resolveBeamCount()
     if (baseInstances.length >= beamCount) {
-      return baseInstances.slice(0, beamCount)
+      return baseInstances.slice(0, beamCount) as SpellAttackInstance[]
     }
 
     // Eldritch Blast can assign multiple beam instances to the same target.
@@ -279,16 +1074,18 @@ class SpellAttackCommand implements SpellCommand {
       paddedInstances.push(baseInstances[baseInstances.length - 1])
     }
 
-    return paddedInstances
+    return paddedInstances as SpellAttackInstance[]
   }
 
   private usesBeamAttackAllocation(): boolean {
-    return this.spell.targeting.type === 'multi' &&
+    return (this.spell.targeting.type as string) === 'multi' &&
       this.spell.targeting.instanceAllocation?.instanceType === 'beam' &&
       this.spell.targeting.instanceAllocation.assignment === 'same_or_different_targets'
   }
 
   private resolveBeamCount(): number {
+    // Comparing the literal `type` directly (no `as string`) keeps the
+    // discriminated union narrowing, so `maxTargets` resolves without a cast.
     const maxTargets = this.spell.targeting.type === 'multi'
       ? this.spell.targeting.maxTargets
       : undefined
@@ -297,7 +1094,8 @@ class SpellAttackCommand implements SpellCommand {
       return Math.max(1, resolveScalableNumber(maxTargets, this.caster.level || 1))
     }
 
-    return Math.max(1, this.spell.targeting.instanceAllocation?.baseCount ?? 1)
+    const baseCount = this.spell.targeting.instanceAllocation?.baseCount
+    return Math.max(1, typeof baseCount === 'number' ? baseCount : 1)
   }
 
   private resolveAttackInstanceType(): string {
@@ -496,7 +1294,7 @@ class SpellAttackCommand implements SpellCommand {
   }
 
   private resolveSpellAttackWeaponType(): 'melee' | 'ranged' {
-    if (this.spell.id === 'primal-savagery' || this.spell.attackType === 'melee' || this.spell.targeting.type === 'melee') {
+    if (this.spell.id === 'primal-savagery' || this.spell.attackType === 'melee' || (this.spell.targeting.type as string) === 'melee') {
       return 'melee'
     }
 
@@ -868,9 +1666,9 @@ function resolveSpellDurationRounds(spell: Spell): number {
 
   switch (spell.duration.unit) {
     case 'round':
-      return spell.duration.value
+      return spell.duration.value ?? 1
     case 'minute':
-      return spell.duration.value * 10
+      return (spell.duration.value ?? 1) * 10
     default:
       return 1
   }
@@ -899,7 +1697,7 @@ export class SpellCommandFactory {
     let planarMod = 0;
 
     if (currentPlane && spell.school) {
-      const { getPlanarSpellModifier } = await import('@/utils/planarUtils')
+      const { getPlanarSpellModifier } = await import('@/utils/planar')
       planarMod = getPlanarSpellModifier(spell.school, currentPlane)
 
       if (planarMod > 0) {
@@ -1016,6 +1814,66 @@ export class SpellCommandFactory {
         // regression test guards the spell files so this fallback stays a last
         // resort rather than hiding bad package data.
         activeEffects = chosenOption.effectIndices.map(index => spell.effects[index]).filter(Boolean);
+      }
+    }
+
+    // Scrying owns both creature-save and location-sensor resolution; keep it
+    // ahead of generic utility narration so the active sensor state survives.
+    if (spell.id === 'scrying') {
+      const scryingEffect = activeEffects.find(isUtilityEffect)
+      if (scryingEffect) {
+        const commands: SpellCommand[] = []
+        if (spell.duration.concentration && caster.concentratingOn) {
+          commands.push(new BreakConcentrationCommand(context))
+        }
+        commands.push(new ScryingBridgeCommand(spell, scryingEffect, caster, context))
+        return commands
+      }
+    }
+
+    // Elemental Bane's utility row is a cast-time save plus a delayed damage
+    // event. Route it into its explicit owner before generic utility narration
+    // can discard the chosen type and recurring damage state.
+    if (spell.id === 'elemental-bane') {
+      const elementalBaneEffect = activeEffects.find(isUtilityEffect)
+      if (elementalBaneEffect) {
+        const scaledEffect = this.applyScaling(
+          elementalBaneEffect,
+          spell.level,
+          effectiveCastLevel,
+          caster.level
+        ) as UtilityEffect
+        return this.withConcentrationLifecycle([
+          new ElementalBaneCommand(scaledEffect, context)
+        ], spell, caster, context)
+      }
+    }
+
+    // Grasping Vine is the one live composite trigger whose same attack fires
+    // immediately and on later Bonus Actions. Its command stores the vine
+    // origin and delegates all three hit rows through one shared event owner.
+    if (spell.id === 'grasping-vine') {
+      const scaledEffects = activeEffects.map(effect =>
+        this.applyScaling(effect, spell.level, effectiveCastLevel, caster.level)
+      )
+      return this.withConcentrationLifecycle([
+        new GraspingVineCommand(context, scaledEffects, 'initial_cast')
+      ], spell, caster, context)
+    }
+
+    // Seeming handles per-target willing consent, Charisma save resistance, and disguise status effects.
+    if (spell.id === 'seeming') {
+      const seemingEffect = activeEffects.find(isUtilityEffect)
+      if (seemingEffect) {
+        return [new SeemingBridgeCommand(spell, seemingEffect, caster, context)]
+      }
+    }
+
+    // Bones of the Earth handles stone pillar creation, creature lift, voluntary failure, and ceiling crushing.
+    if (spell.id === 'bones-of-the-earth') {
+      const bonesEffect = activeEffects[0] || spell.effects[0]
+      if (bonesEffect) {
+        return [new BonesOfTheEarthBridgeCommand(spell, bonesEffect, caster, context)]
       }
     }
 
@@ -1243,8 +2101,8 @@ export class SpellCommandFactory {
       // Support for option-specific status payloads (e.g. Command's Grovel option)
       if (scaledEffect.type === 'UTILITY' && scaledEffect.controlOptions && playerInput) {
         const chosenOption = scaledEffect.controlOptions.find(opt =>
-          opt.name.toLowerCase() === playerInput.toLowerCase() ||
-          opt.effect.toLowerCase() === playerInput.toLowerCase()
+          (opt.name ?? '').toLowerCase() === playerInput.toLowerCase() ||
+          (opt.effect ?? '').toLowerCase() === playerInput.toLowerCase()
         );
         if (chosenOption && chosenOption.statusCondition) {
           const statusEffect: SpellEffect = {
@@ -1252,7 +2110,7 @@ export class SpellCommandFactory {
             type: 'STATUS_CONDITION',
             statusCondition: chosenOption.statusCondition
           } as StatusConditionEffect;
-          const statusCommand = this.createCommand(statusEffect, context);
+          const statusCommand = new StatusConditionCommand(statusEffect, context);
           if (statusCommand) {
             commands.push(statusCommand);
           }
@@ -1276,20 +2134,24 @@ export class SpellCommandFactory {
     caster: CombatCharacter,
     context: CommandContext
   ): SpellCommand[] {
-    if (!spell.duration.concentration) {
-      return commands
-    }
-
     // Concentration setup must wrap every successful spell command path, not
     // only the generic effect loop. Spell attacks and bridge commands often
     // return early after building a single runtime command, so they need the
     // same break-then-start contract to avoid stale concentration artifacts.
     const lifecycleCommands = [...commands]
-    if (caster.concentratingOn) {
+    // Casting a new concentration spell already drops the old concentration
+    // below. Non-concentration spells need this explicit event check so a
+    // caster cannot keep Compelled Duel while targeting another enemy.
+    if (!spell.duration.concentration && caster.concentratingOn) {
+      lifecycleCommands.unshift(new TauntSpellCastBreakCommand(spell, caster, context))
+    }
+    if (spell.duration.concentration && caster.concentratingOn) {
       lifecycleCommands.unshift(new BreakConcentrationCommand(context))
     }
 
-    lifecycleCommands.push(new StartConcentrationCommand(spell, context))
+    if (spell.duration.concentration) {
+      lifecycleCommands.push(new StartConcentrationCommand(spell, context))
+    }
     return lifecycleCommands
   }
 
@@ -1308,7 +2170,7 @@ export class SpellCommandFactory {
     // Legacy authored/test spells can predate structured targeting metadata.
     // Treat an absent targeting packet as "not explicitly melee" and let their
     // effects continue through the generic command path instead of crashing.
-    const hasMeleeHitTargeting = spell.targeting?.type === 'melee'
+    const hasMeleeHitTargeting = (spell.targeting?.type as string) === 'melee'
     const isPrimalSavagery = spell.id === 'primal-savagery'
     const hasObjectIgnitionHitRider = activeEffects.some(effect =>
       isDamageEffect(effect) &&
@@ -1337,12 +2199,9 @@ export class SpellCommandFactory {
    * Create a single command from an effect, filtering targets if necessary
    */
   private static isPersistentAreaZoneTrigger(effect: SpellEffect): boolean {
-    return [
-      'on_enter_area',
-      'on_exit_area',
-      'on_end_turn_in_area',
-      'on_move_in_area'
-    ].includes(effect.trigger.type)
+    // Composite source rows are delayed unless their areaTiming or controlled
+    // entity explicitly requires an initial command to create live state.
+    return isDeferredAreaZoneTrigger(effect)
   }
 
   private static isScheduledRuntimeTrigger(effect: SpellEffect): boolean {
@@ -1387,7 +2246,10 @@ export class SpellCommandFactory {
       }
     }
 
-    if (['on_target_move', 'on_target_attack', 'on_target_cast', 'on_caster_action'].includes(effect.trigger.type)) {
+    // Narrow on the REACTIVE discriminator so the constructor receives a real
+    // ReactiveEffect instead of a cast SpellEffect. The trigger-type check is
+    // kept as a second condition so routing stays limited to reactive triggers.
+    if (effect.type === 'REACTIVE' && ['on_target_move', 'on_target_attack', 'on_target_cast', 'on_caster_action'].includes(effect.trigger.type)) {
       return new ReactiveEffectCommand(effect, context)
     }
 
@@ -1432,6 +2294,16 @@ export class SpellCommandFactory {
       case 'TERRAIN':
         return new TerrainCommand(effect, context)
       case 'UTILITY':
+        // Some older control records keep their Charmed payload inside a
+        // utility row. StatusConditionCommand already normalizes that shape and
+        // owns its save, repeat-save, and domination metadata; routing it here
+        // prevents the generic utility logger from bypassing the initial save.
+        if (
+          (effect as { statusCondition?: unknown }).statusCondition &&
+          effect.summonControl?.summonsNewEntity === false
+        ) {
+          return new StatusConditionCommand(effect as unknown as StatusConditionEffect, context)
+        }
         return new UtilityCommand(effect, context)
       case 'DEFENSIVE':
         return new DefensiveCommand(effect, context)
@@ -1443,9 +2315,13 @@ export class SpellCommandFactory {
   }
 
   /**
-   * Apply scaling formulas to effect
-   * TODO #15(TechDebt): This manual scaling logic duplicates `resolveScalableNumber` from `src/types/spells.ts`.
-   * We should refactor this to use the shared utility, especially for resolving numeric values.
+   * Apply scaling formulas to effect.
+   *
+   * Character-level (cantrip) scaling reads the same level-threshold tables as
+   * target counts, so it goes through the shared `resolveByLevelThreshold` /
+   * `countLevelThresholdsReached` helpers in `src/types/spellTargeting.ts`.
+   * Slot-level scaling stays here: it adds dice per slot above the base level
+   * and has no threshold table to share.
    */
   private static applyScaling(
     effect: SpellEffect,
@@ -1485,10 +2361,10 @@ export class SpellCommandFactory {
 
     const diceMatch = bonusPerLevel.match(/\+(\d+)d(\d+)/)
 
-    if (diceMatch) {
+    if (diceMatch && (isDamageEffect(effect) || (isAttackRollModifierEffect(effect) && effect.damage))) {
       const [, count, size] = diceMatch
-      const originalDice = effect.damage.dice || '0d0'
-      const newDice = this.addDice(originalDice, `${count}d${size}`, levelsAbove)
+      const originalDice = effect.damage?.dice || '0d0'
+      const newDice = addDice(originalDice, `${count}d${size}`, levelsAbove)
 
       return this.applyScaledDamageDice(effect, newDice)
     }
@@ -1496,7 +2372,7 @@ export class SpellCommandFactory {
     if (diceMatch && isHealingEffect(effect)) {
       const [, count, size] = diceMatch
       const originalDice = effect.healing.dice || '0d0'
-      const newDice = this.addDice(originalDice, `${count}d${size}`, levelsAbove)
+      const newDice = addDice(originalDice, `${count}d${size}`, levelsAbove)
       return {
         ...effect,
         healing: { ...effect.healing, dice: newDice }
@@ -1512,13 +2388,13 @@ export class SpellCommandFactory {
         createdObjects: effect.createdObjects.map(createdObject => ({
           ...createdObject,
           count: createdObject.countScaling?.type === 'slot_level'
-            ? createdObject.count + (createdObject.countScaling.bonusPerLevel * levelsAbove)
+            ? (createdObject.count ?? 1) + (createdObject.countScaling.bonusPerLevel * levelsAbove)
             : createdObject.count,
           levels: createdObject.levelScaling?.type === 'slot_level'
             ? (createdObject.levels ?? 0) + (createdObject.levelScaling.bonusPerLevel * levelsAbove)
             : createdObject.levels,
           inventoryQuantity: createdObject.inventoryQuantityScaling?.type === 'slot_level'
-            ? (createdObject.inventoryQuantity ?? createdObject.count) + (createdObject.inventoryQuantityScaling.bonusPerLevel * levelsAbove)
+            ? ((createdObject.inventoryQuantity ?? createdObject.count) ?? 1) + (createdObject.inventoryQuantityScaling.bonusPerLevel * levelsAbove)
             : createdObject.inventoryQuantity
         }))
       }
@@ -1565,20 +2441,15 @@ export class SpellCommandFactory {
     casterLevel: number,
     scalingLevels: number[]
   ): SpellEffect {
-    const tier = scalingLevels.filter(l => casterLevel >= l).length
+    const tier = countLevelThresholdsReached(scalingLevels, casterLevel)
 
     if (tier === 0 || !effect.scaling) return effect
 
     const scalingTiers = effect.scaling.scalingTiers
     if (scalingTiers) {
-      const tierKeys = Object.keys(scalingTiers).map(Number).sort((a, b) => a - b)
-      const qualifiedTier = tierKeys.filter(l => casterLevel >= l).pop()
-
-      if (qualifiedTier !== undefined) {
-        const tierDice = scalingTiers[String(qualifiedTier)]
-        if (tierDice && /^\d+d\d+$/.test(tierDice)) {
-          return this.applyScaledDamageDice(effect, tierDice)
-        }
+      const tierDice = resolveByLevelThreshold(scalingTiers, casterLevel)
+      if (tierDice && /^\d+d\d+$/.test(tierDice)) {
+        return this.applyScaledDamageDice(effect, tierDice)
       }
     }
 
@@ -1587,10 +2458,10 @@ export class SpellCommandFactory {
 
     const diceMatch = bonusPerLevel.match(/\+(\d+)d(\d+)/)
 
-    if (diceMatch) {
+    if (diceMatch && (isDamageEffect(effect) || (isAttackRollModifierEffect(effect) && effect.damage))) {
       const [, count, size] = diceMatch
-      const originalDice = effect.damage.dice || '0d0'
-      const newDice = this.addDice(originalDice, `${count}d${size}`, tier)
+      const originalDice = effect.damage?.dice || '0d0'
+      const newDice = addDice(originalDice, `${count}d${size}`, tier)
       return this.applyScaledDamageDice(effect, newDice)
     }
 
@@ -1628,32 +2499,7 @@ export class SpellCommandFactory {
     return effect
   }
 
-  /**
-   * Helper: Add dice notation
-   * TODO #16(Refactor): Move to `src/utils/diceUtils.ts`.
-   * This dice notation parsing and addition logic is generic and should be reusable
-   * across the system (e.g. for item scaling or rider damage calculation).
-   * Consider sharing this logic via a shared utility if the same path appears
-   * in additional scaling or effects pipelines.
-   */
-  private static addDice(base: string, bonus: string, multiplier: number): string {
-    const parseMatch = (s: string) => {
-      const match = s.match(/(\d+)d(\d+)/)
-      return match ? { count: parseInt(match[1]), size: parseInt(match[2]) } : null
-    }
 
-    const baseDice = parseMatch(base)
-    const bonusDice = parseMatch(bonus)
-
-    if (!baseDice || !bonusDice) return base
-    if (baseDice.size !== bonusDice.size) {
-      console.warn('Cannot add dice with different sizes')
-      return base
-    }
-
-    const newCount = baseDice.count + (bonusDice.count * multiplier)
-    return `${newCount}d${baseDice.size}`
-  }
 
   /**
    * Build the rich target envelope for the current creature-only command path.

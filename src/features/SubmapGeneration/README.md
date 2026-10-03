@@ -1,76 +1,130 @@
 # Submap Generation
 
-This feature is responsible for the procedural generation of local submaps that the player explores.
+Verified: 2026-09-20
 
-## Architecture & Design History
+A submap is one Worldforge map cell drawn as its own SVG map of smaller cells. The player drills from the world atlas into a submap, and from a submap cell into a deeper submap. The drill stops at L3.
 
-This document provides a deep dive into the submap generation system for the Aralia RPG. It explains how the system works in relation to the core design requirements and details the algorithmic tools used to achieve diverse environments.
+This directory holds only this document. The live code is in `src/systems/worldforge/submap/` and `src/components/Worldforge/`.
 
-### How the Current Submap System Works
+## Where the live submap lives
 
-The system in place is a robust and well-designed **deterministic procedural generation** system. This means it creates dynamic, random-looking maps that are actually the same every time for a given starting "seed." This is a perfect design choice for ensuring a consistent and replayable world in each playthrough.
+| Part | File |
+|---|---|
+| Generator (pure, headless) | `src/systems/worldforge/submap/submapEngine.ts` |
+| Atlas cell to generator input | `src/systems/worldforge/submap/l0Adapter.ts` |
+| Focus cell plus its atlas neighbours | `src/systems/worldforge/submap/neighbourhood.ts` |
+| SVG renderer | `src/components/Worldforge/SubmapSvgView.tsx` |
+| Region-tier renderer | `src/components/Worldforge/NeighbourhoodSvgView.tsx` |
+| Drill host and drill stack | `src/components/MapPane.tsx` |
+| Layer toggles | `src/components/Worldforge/useDrillLayers.ts` |
+| Travel graph across submap cells | `src/systems/worldforge/travel/submapTravelGraph.ts` |
+| Seed paths and seeded RNG | `src/systems/worldforge/seedPath.ts`, `src/utils/random/seededRandom.ts` |
 
-The core of this system is the `useSubmapProceduralData` hook (`src/hooks/useSubmapProceduralData.ts`), which acts as the central engine for generating the *data* of a submap. It takes the parent world map coordinates and biome ID as input and produces a memoized object containing the placement of all major features, including paths and seeded features like ponds or ruins.
+## The pipeline
 
-The visual appearance of each biome is defined in `src/config/submapVisualsConfig.ts`, which acts as a "visual recipe book," separating artistic and design decisions from the core generation logic.
+1. `atlasCellToSubmapContext(atlas, cellId, worldSeedPath)` in `l0Adapter.ts` turns one FMG atlas cell into a `SubmapParentContext`. The context carries the cell polygon, a seed path, the biome **name** (not a numeric id), and the set pieces the cell inherits: burgs, road junctions, river bends, and the river and road polylines.
+2. `buildAtlasNeighbourhood(atlas, focusCellId, isExplored, seedPath, opts)` in `neighbourhood.ts` builds the focus cell's context plus a context for each adjacent atlas cell. `MapPane.tsx` calls it with `submapCount: 160`.
+3. `generateSubmap(ctx, { count })` in `submapEngine.ts` returns a `SubmapModel`: a boundary, a list of `SubmapCell`, the burg cell index, and the clipped polylines.
+4. `SubmapSvgView` draws the model. `MapPane.tsx` keeps a `submapStack: DrillTier[]` and pushes a new tier on each drill.
+5. `submapCellToChildContext(cell, parent)` turns a clicked cell into the next tier's context. The child seed path gets the segment `sub:<siteIndex>`.
 
-#### Path Connectivity
+## How the generator works
 
-The illusion of connected roads between adjacent world map tiles is achieved in a clever, emergent way. Each submap generates its own path segment independently, but because the generation algorithm is deterministic and seeded by the world map coordinates, the paths naturally align at the borders. The system does not track a single, continuous "road object" across the entire world map.
+`generateSubmapSites` builds the site set in two steps.
 
-#### Travel Time
+- Every inherited feature is force-placed at its exact relative position. Identity travels on the feature object and is never regenerated.
+- The remaining sites are scattered by rejection sampling inside the parent polygon. The default count is 60; the map passes 160.
 
-Travel time is currently calculated using fixed, abstract time costs in the `handleMovement` action handler (`src/hooks/actions/handleMovement.ts`). A move between world map tiles costs 1 hour, and a move within a submap costs 30 minutes. The architecture is designed to be extensible to incorporate more granular calculations based on factors like mount speed, terrain type (roads), and character-specific movement rates.
+`generateSubmap` then builds the diagram.
 
-### Implemented Algorithms
+- Eight frame points are placed outside the bounding box, so every real site gets a bounded cell.
+- `Delaunator` triangulates, and `src/systems/worldforge/fmg/voronoi.ts` builds the Voronoi cells.
+- `clipPolygon` trims each cell to the parent polygon with Sutherland-Hodgman. The submap is therefore exactly the parent cell's shape.
+- `clipPolylineToPolygon` trims the inherited rivers and roads to the same boundary.
 
-The submap generation system utilizes distinct algorithms tailored to specific biome types to create diverse and appropriate environments.
+### Sub-biome variation
 
-#### 1. Standard Seeded Generation
+`subBiomeFor(parentBiome, seedPath, siteIndex, blend?)` gives each cell its biome name. About 62 percent of cells keep the parent biome. The rest draw from the module-local `BIOME_VARIANTS` palette for that parent biome. Without `blend` the function sees no geometry: it has the site index only.
 
-**Used For**: General biomes (Plains, some Forests)
+`SubmapSvgView.tsx` maps the biome name to a fill through its internal `BIOME_TINT` table.
 
-The default generation method uses seeded random hashing to place individual features (trees, rocks, ponds) and paths. It ensures that features do not overlap with the main path and respects collision boundaries.
+### Determinism
 
-#### 2. Cellular Automata (Organic Maps)
+Every draw comes from `rngFromPath(streamPath(path, '<stream>'))`, which returns a `SeededRandom`. Never use `Math.random` here. The engine uses three streams: `submap-sites` for the scatter, `subbiome:<siteIndex>` for the biome draw, and `edge-blend:<siteIndex>` for the transition band. The path-to-seed mapping in `seedPath.ts` is frozen, because a change to it breaks saved worlds. Any new feature must take a new named stream, so the existing streams keep their values.
 
-**Used For**: Caves, Dungeons
-**Implementation**: `src/services/cellularAutomataService.ts`
+### Gradual biome transitions
 
-For environments that require natural, cavernous layouts, the system uses a **Cellular Automata (CA)** algorithm.
-- **Initialization**: The grid is filled with random noise (walls vs. floors) based on a fill probability.
-- **Simulation**: The grid iterates through several steps of simulation. A cell becomes a wall or floor based on the count of its neighbors (Moore neighborhood), naturally smoothing out noise into cohesive cavern structures.
-- **Connectivity**: A post-processing step identifies disconnected floor regions (using flood fill) and carves corridors between them to ensure the entire map is traversable.
+A submap cell next to a different parent-tier biome leans toward that biome, so the drill boundary is a band and not a line.
 
-#### 3. Wave Function Collapse (Structured Maps)
+`SubmapParentContext` carries an optional `neighbourBiomes`: one `{ biome, centroid }` per adjacent parent cell, in the same coordinate frame as the context polygon. There are two producers, one per tier.
 
-**Used For**: Mountains, Dense Forests, specialized biomes
-**Implementation**: `src/services/wfcService.ts`
+- Region tier: `buildAtlasNeighbourhood` reads the true adjacency from `atlas.pack.cells.c`, keeps the neighbours this neighbourhood actually holds, and takes each centroid from the cluster-scaled polygon.
+- Every deeper tier: `submapCellToChildContext(cell, parent, siblings)` reads the parent submap own adjacency. See "Blending below the region tier" below.
 
-For environments requiring logical structure or specific adjacency rules, a simplified **Wave Function Collapse (WFC)** algorithm is used.
-- **Row-Scanning**: Unlike a full-entropy WFC solver which can be computationally expensive, this implementation uses a row-by-row scan. This trades some flexibility for the speed required to generate maps on the fly during render.
-- **Rulesets**: Adjacency constraints are defined in `src/config/wfcRulesets/`. For example, a "mountain base" tile might only be allowed below a "mountain peak" tile.
-- **Biome Context**: The generator filters tiles based on the current biome, ensuring that a "Swamp" submap uses swamp-appropriate tiles while falling back to neutral terrain if constraints cannot be met.
+`generateSubmap` has the clipped cell polygon in hand, so it passes the cell centroid to `subBiomeFor`. `edgeBlendPull` then does the geometry:
 
-### Future Improvements
+1. Skip any neighbour whose biome equals the parent biome. A same-biome edge gets no band.
+2. Take the unit direction `u` from the parent bbox centre toward the neighbour centroid.
+3. Measure the parent's reach along `u` as its support radius: the largest vertex projection.
+4. Normalize the cell's own projection by that reach to get `t`. `t` is near 1 at the shared edge and at or below 0 on the far side.
+5. Below `EDGE_BLEND_START` the cell is interior and keeps its local variant. Above it, the pull rises to `EDGE_BLEND_MAX_PULL` at the boundary, shaped by `EDGE_BLEND_FALLOFF`.
+6. The strongest pull wins, so a corner cell leans toward its nearest neighbour.
 
-#### 1. Gradual Biome Transitions
+The cell adopts the neighbour biome when a draw from the `edge-blend:<siteIndex>` stream falls under that pull. The band is therefore dappled, not a solid wedge.
 
-**Status**: Not Implemented
+A context with no `neighbourBiomes` produces exactly the biomes it produced before this feature existed. The blend takes its own stream, so the frozen `subbiome` stream keeps every value. `submapEngine.test.ts` pins that with a literal golden.
 
-**Concept**: To improve immersion, the system could be enhanced to create smooth, gradual transitions between different biomes. When a player travels from a "plains" world tile to a "forest" world tile, the edge of the new forest submap would contain a few rows of plains terrain.
+### Blending below the region tier
 
-**Implementation Plan**: This would be an algorithmic enhancement. The `handleMovement` action would be modified to pass the `previousBiomeId` and `entryDirection` to the `useSubmapProceduralData` hook. The rendering logic in `SubmapPane.tsx` would then use this context to "paint" a few rows of the previous biome's visuals onto the edge of the new submap.
+Every tier blends, not only the region tier.
 
-#### 2. PixiJS for High-Performance Rendering
+Each `SubmapCell` carries `neighbours`: the site indices that share a Voronoi edge with it, taken from the submap's own Delaunay graph (`voronoi.cells.c`). That is the deeper tier's equivalent of `atlas.pack.cells.c`.
 
-**Status**: Planned (Major Refactor)
+`submapCellToChildContext(cell, parent, siblings)` uses it. Pass the parent submap's cells as `siblings` and it builds the child's `neighbourBiomes`: the sub-biome of each adjacent sub-cell, with the bbox centre of that sub-cell as the centroid. The frame is the parent submap's frame, which is the frame the child polygon is already in. A neighbour with no biome, or one whose cell was dropped as degenerate, is skipped.
 
-**Concept**: To drastically improve rendering performance and unlock advanced visual effects (lighting, particles), the current system of rendering hundreds of React `<div>` elements could be replaced with a WebGL-based canvas managed by the **PixiJS library**.
+The child also inherits the sub-cell's OWN biome, not the whole submap's inherited biome. Drill a Wetland sub-cell of a Grassland region and the child opens as a Wetland.
 
-**Implementation Plan**:
-1.  Integrate the PixiJS library.
-2.  Create a dedicated React component (`SubmapRendererPixi.tsx`) to encapsulate all PixiJS logic.
-3.  Refactor `SubmapPane.tsx` to act as a container that manages data and renders the new PixiJS component instead of the DOM-based grid.
+`edgeBlendPull` then runs unchanged. It ignores every neighbour that matches the child's own biome, so:
+
+- A sub-cell on a sub-biome band edge gets a band that leans toward the adjacent sub-biome.
+- A sub-cell in the core of a uniform patch gets no pull at all, and keeps pure local variation.
+
+Omit `siblings` and the child gets no `neighbourBiomes`, which is exactly the behaviour the wrapper had before this feature. `MapPane.tsx` passes the cells at both drill call sites.
+
+Both scale helpers (`normalizeParentContextScale` and the local `normalizeCtxScale` in `MapPane.tsx`) scale the neighbour centroids with the polygon. A deeper tier is normalized to the canonical span AFTER its child context is built, so a centroid left unscaled would aim the blend in the wrong direction.
+
+## Travel
+
+`buildSubmapTravelGraph(model)` turns a `SubmapModel` into a travel graph. `MapPane.tsx` feeds that graph to `planRoutesFrom` in `src/systems/travel/routePlanning.ts`, with the party speed, the selected transport, and the season multiplier. Submap travel time is therefore computed from the route, not from a fixed per-move cost.
+
+## Tests
+
+- `src/systems/worldforge/submap/__tests__/submapEngine.test.ts`
+- `src/systems/worldforge/submap/__tests__/l0Adapter.test.ts`
+- `src/systems/worldforge/submap/__tests__/neighbourhood.test.ts`
+- `src/components/Worldforge/__tests__/SubmapSvgView.test.tsx`
+- `src/components/Worldforge/__tests__/NeighbourhoodSvgView.test.tsx`
+
+`submapEngine.test.ts` and `neighbourhood.test.ts` pin determinism. Any change to a seed stream shows up there first.
+
+## Algorithm ideas, not current code
+
+These two algorithms are written up here as ideas for richer submap interiors. **Neither one runs in the live SVG submap.** The Voronoi engine above is the only generator on the drill path.
+
+### Cellular automata for organic interiors
+
+Implementation that exists: `src/services/cellularAutomataService.ts`.
+
+Fill a grid with seeded noise, then smooth it over several passes. A cell becomes wall or floor from its Moore-neighbourhood count. A flood fill then finds disconnected floor regions and carves corridors between them, so the whole map stays traversable. This suits caves and dungeons.
+
+### Wave function collapse for structured interiors
+
+Implementation that exists: `src/services/wfcService.ts`, with rulesets in `src/config/wfcRulesets/`.
+
+A row-by-row scan picks tiles under adjacency constraints, for example a "mountain base" tile only below a "mountain peak" tile. The row scan is cheaper than a full-entropy solver, which matters if the map is built during a render. The generator filters the tile set by biome.
+
+## Legacy grid submap
+
+`src/utils/spatial/submapUtils.ts` still exports `getSubmapTileInfo`, and `src/config/submapVisualsConfig.ts` still holds its per-biome visual recipes. That pair is the old tile-grid submap. It takes a numeric Aralia biome id, not a biome name. It is still read by `src/utils/context/contextUtils.ts` and `src/services/landmarkService.ts`, but it is **not** wired to the Worldforge SVG submap. Do not confuse the two paths.
 
 <!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"src/features/SubmapGeneration/README.md","sha256WithoutMarker":"cee0973de824deb8cf3114e72f9d7a066ac93f9a37755bd70a837ca46ad04662","markedAtUtc":"2026-06-26T00:53:11.791Z"} -->

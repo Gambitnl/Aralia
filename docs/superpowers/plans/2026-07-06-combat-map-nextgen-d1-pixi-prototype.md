@@ -1,21 +1,21 @@
-# Next-gen combat map — deliverable 1: Pixi visual prototype — implementation plan
+# Next-gen combat map - deliverable 1: Pixi visual prototype - implementation plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** A PixiJS v8 (WebGPU-first) board behind `?pixiboard=1` that renders one real battlefield — painted ground + combatant tokens + soft fog — with pan/zoom that stays crisp, ending at Remy's eyeball gate.
+**Goal:** A PixiJS v8 (WebGPU-first) board behind `?pixiboard=1` that renders one real battlefield - painted ground + combatant tokens + soft fog - with pan/zoom that stays crisp, ending at Remy's eyeball gate.
 
-**Architecture:** The existing DOM board stays the default and is untouched in behavior. Two pieces of its rendering (ground painting, fog raster) are extracted into shared pure modules so the Pixi board shows the *same approved art* on the new engine. A new `PixiBattleBoard` component builds the layered Pixi scene; a thin harness swaps it in for the center board pane when the URL has `?pixiboard=1`. No interaction (clicks/targeting) in this deliverable — it is a look prototype.
+**Architecture:** The existing DOM board stays the default and is untouched in behavior. Two pieces of its rendering (ground painting, fog raster) are extracted into shared pure modules so the Pixi board shows the *same approved art* on the new engine. A new `PixiBattleBoard` component builds the layered Pixi scene; a thin harness swaps it in for the center board pane when the URL has `?pixiboard=1`. No interaction (clicks/targeting) in this deliverable - it is a look prototype.
 
 **Tech Stack:** React 19, TypeScript, PixiJS 8.14.3 (already installed; `vendor-pixi` chunk already in `vite.config.ts`), Vitest 4 (jsdom), Playwright headless for proof shots.
 
 ## Global Constraints
 
-- **NO git commits.** Work only in master, leave everything uncommitted — a 2am snapshot commits daily. Every "commit" step in the usual template is replaced by a verification step.
-- **Agora locks:** before modifying `src/components/Combat/CombatView.tsx`, run `curl -s http://localhost:4319/locks` — if it is held by another agent, coordinate via the `agora-coordination` skill instead of editing.
+- **NO git commits.** Work only in master, leave everything uncommitted - a 2am snapshot commits daily. Every "commit" step in the usual template is replaced by a verification step.
+- **Agora locks:** before modifying `src/components/Combat/CombatView.tsx`, run `curl -s http://localhost:4319/locks` - if it is held by another agent, coordinate via the `agora-coordination` skill instead of editing.
 - **Do not change combat mechanics:** no edits to the combat engine, `types/combat.ts`, hooks, or reducers.
 - **Existing BattleMap suites must stay green:** `npx vitest run src/components/BattleMap` (55+ tests). The extraction tasks refactor `BattleMapGroundCanvas.tsx` / `BattleMapFogCanvas.tsx` internals without changing their props or rendered output.
 - **Touched files must be tsc-clean.** Repo-wide pre-existing errors are background noise (memory `known-preexisting-issues`); check only files this plan touches: `npx tsc --noEmit 2>&1 | grep -E "groundPainter|fogModel|cameraMath|tokenViewModel|PixiBattleBoard|PixiBoardPrototype|BattleMapGroundCanvas|BattleMapFogCanvas|CombatView"` must print nothing.
-- **jsdom cannot run Pixi or canvas 2D.** Unit tests cover only the pure modules (tasks 1–4). The Pixi component itself is verified by typecheck + headless screenshots (task 7).
+- **jsdom cannot run Pixi or canvas 2D.** Unit tests cover only the pure modules (tasks 1-4). The Pixi component itself is verified by typecheck + headless screenshots (task 7).
 - **Plain English, US spelling** in all comments and docs.
 - The prototype board is display-only. The default (no flag) path must behave exactly as today at every task boundary.
 
@@ -37,7 +37,7 @@ The Pixi board must show the same approved painted ground. Extract the drawing c
   - `terrainToGround(terrain: string): Ground`
   - `type GroundTextures = { grass: HTMLImageElement | null; dirt: HTMLImageElement | null }`
   - `loadGroundTextures(): Promise<GroundTextures>` (module-level decode cache preserved)
-  - `paintGround(ctx: CanvasRenderingContext2D, mapData: BattleMapData, tileSize: number, textures: GroundTextures, res: number): void` — assumes the caller has sized the canvas to `(W*tileSize*res, H*tileSize*res)` and set `ctx.setTransform(res,0,0,res,0,0)`; draws the complete ground (grass base, patches, road, water sheet + feather + banks, per-cell overpaint, foliage, vignette, dapples, time-of-day tint).
+  - `paintGround(ctx: CanvasRenderingContext2D, mapData: BattleMapData, tileSize: number, textures: GroundTextures, res: number): void` - assumes the caller has sized the canvas to `(W*tileSize*res, H*tileSize*res)` and set `ctx.setTransform(res,0,0,res,0,0)`; draws the complete ground (grass base, patches, road, water sheet + feather + banks, per-cell overpaint, foliage, vignette, dapples, time-of-day tint).
 
 - [ ] **Step 1: Write the failing test**
 
@@ -67,7 +67,7 @@ describe('terrainToGround', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run src/components/BattleMap/__tests__/groundPainter.test.ts`
-Expected: FAIL — `Cannot find module '../groundPainter'`
+Expected: FAIL - `Cannot find module '../groundPainter'`
 
 - [ ] **Step 3: Create the module by moving code**
 
@@ -123,13 +123,13 @@ loadGroundTextures().then((textures) => {
 });
 ```
 
-Props, the `res` computation (dpr × 2 supersample, 24M pixel budget), canvas sizing, and `imageSmoothingQuality` stay in the component unchanged.
+Props, the `res` computation (dpr x 2 supersample, 24M pixel budget), canvas sizing, and `imageSmoothingQuality` stay in the component unchanged.
 
 - [ ] **Step 5: Run tests to verify everything passes**
 
-Run: `npx vitest run src/components/BattleMap/__tests__/groundPainter.test.ts` — Expected: PASS
-Run: `npx vitest run src/components/BattleMap` — Expected: all suites PASS (rendered output unchanged)
-Run the tsc grep from Global Constraints — Expected: no output.
+Run: `npx vitest run src/components/BattleMap/__tests__/groundPainter.test.ts` - Expected: PASS
+Run: `npx vitest run src/components/BattleMap` - Expected: all suites PASS (rendered output unchanged)
+Run the tsc grep from Global Constraints - Expected: no output.
 
 ---
 
@@ -144,8 +144,8 @@ Run the tsc grep from Global Constraints — Expected: no output.
 - Consumes: `BattleMapData`, `LightLevel` from `src/types/combat`.
 - Produces (used by Task 5):
   - `fogAlpha(visible: boolean, light: LightLevel): number`
-  - `FOG_TINT = { r: 4, g: 8, b: 14 }` (the rgba(4,8,14,…) fog color as data)
-  - `buildFogAlphaGrid(mapData: BattleMapData, visibleTiles: Set<string>, getLightLevel: (tileId: string) => LightLevel): { width: number; height: number; alphas: Float32Array }` — row-major `alphas[y * width + x]`, 0 where fully lit.
+  - `FOG_TINT = { r: 4, g: 8, b: 14 }` (the rgba(4,8,14,...) fog color as data)
+  - `buildFogAlphaGrid(mapData: BattleMapData, visibleTiles: Set<string>, getLightLevel: (tileId: string) => LightLevel): { width: number; height: number; alphas: Float32Array }` - row-major `alphas[y * width + x]`, 0 where fully lit.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -188,12 +188,12 @@ describe('buildFogAlphaGrid', () => {
 });
 ```
 
-Note: `mapData.tiles` is iterated with `.forEach`, which works for both `Map` and array — match whichever `BattleMapFogCanvas` compiles against (it calls `mapData.tiles.forEach(tile => …)` today; the Map above satisfies that).
+Note: `mapData.tiles` is iterated with `.forEach`, which works for both `Map` and array - match whichever `BattleMapFogCanvas` compiles against (it calls `mapData.tiles.forEach(tile => ...)` today; the Map above satisfies that).
 
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run src/components/BattleMap/__tests__/fogModel.test.ts`
-Expected: FAIL — `Cannot find module '../fogModel'`
+Expected: FAIL - `Cannot find module '../fogModel'`
 
 - [ ] **Step 3: Create the module**
 
@@ -260,9 +260,9 @@ for (let y = 0; y < grid.height; y++) {
 
 - [ ] **Step 5: Run tests to verify everything passes**
 
-Run: `npx vitest run src/components/BattleMap/__tests__/fogModel.test.ts` — Expected: PASS
-Run: `npx vitest run src/components/BattleMap` — Expected: all suites PASS
-Run the tsc grep — Expected: no output.
+Run: `npx vitest run src/components/BattleMap/__tests__/fogModel.test.ts` - Expected: PASS
+Run: `npx vitest run src/components/BattleMap` - Expected: all suites PASS
+Run the tsc grep - Expected: no output.
 
 ---
 
@@ -276,12 +276,12 @@ Pan/zoom math for the Pixi board, written as pure functions so the anchored-zoom
 
 **Interfaces:**
 - Produces (used by Task 5):
-  - `interface CameraView { x: number; y: number; zoom: number }` — `x,y` = world-space coordinate at the viewport's top-left; `zoom` = world→screen scale.
-  - `clampZoom(z: number): number` — clamps to [0.15, 4].
-  - `zoomAtCursor(view: CameraView, factor: number, cursor: { x: number; y: number }): CameraView` — zooms keeping the world point under `cursor` (viewport px) stationary.
-  - `panBy(view: CameraView, dx: number, dy: number): CameraView` — drag by viewport px.
-  - `fitView(mapPxW: number, mapPxH: number, viewportW: number, viewportH: number): CameraView` — whole board centered.
-  - `groundResolutionFor(zoom: number, dpr: number, mapPxW: number, mapPxH: number): number` — rasterization density for the ground plate: `min(max(dpr, 1) * max(1, zoom) * 2, 4, sqrt(48_000_000 / (mapPxW * mapPxH)))`, floored at 1. (Same pixel-budget idea as the DOM board, doubled budget because chunk culling comes later; deliverable 1 rasters one plate.)
+  - `interface CameraView { x: number; y: number; zoom: number }` - `x,y` = world-space coordinate at the viewport's top-left; `zoom` = world->screen scale.
+  - `clampZoom(z: number): number` - clamps to [0.15, 4].
+  - `zoomAtCursor(view: CameraView, factor: number, cursor: { x: number; y: number }): CameraView` - zooms keeping the world point under `cursor` (viewport px) stationary.
+  - `panBy(view: CameraView, dx: number, dy: number): CameraView` - drag by viewport px.
+  - `fitView(mapPxW: number, mapPxH: number, viewportW: number, viewportH: number): CameraView` - whole board centered.
+  - `groundResolutionFor(zoom: number, dpr: number, mapPxW: number, mapPxH: number): number` - rasterization density for the ground plate: `min(max(dpr, 1) * max(1, zoom) * 2, 4, sqrt(48_000_000 / (mapPxW * mapPxH)))`, floored at 1. (Same pixel-budget idea as the DOM board, doubled budget because chunk culling comes later; deliverable 1 rasters one plate.)
 
 - [ ] **Step 1: Write the failing test**
 
@@ -351,19 +351,19 @@ describe('groundResolutionFor', () => {
 });
 ```
 
-(In the first `fitView` test, delete the sanity line and keep only the exact-centering test if it reads confused — the second test is the real assertion.)
+(In the first `fitView` test, delete the sanity line and keep only the exact-centering test if it reads confused - the second test is the real assertion.)
 
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run src/components/BattleMap/pixi/__tests__/cameraMath.test.ts`
-Expected: FAIL — module not found.
+Expected: FAIL - module not found.
 
 - [ ] **Step 3: Implement**
 
 ```typescript
 // src/components/BattleMap/pixi/cameraMath.ts
 /** Camera state for the Pixi board: x,y = world coordinate at the viewport's
- *  top-left corner; zoom = world→screen scale factor. Pure math only. */
+ *  top-left corner; zoom = world->screen scale factor. Pure math only. */
 export interface CameraView {
   x: number;
   y: number;
@@ -423,7 +423,7 @@ export const groundResolutionFor = (
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `npx vitest run src/components/BattleMap/pixi/__tests__/cameraMath.test.ts` — Expected: PASS. Run the tsc grep — Expected: no output.
+Run: `npx vitest run src/components/BattleMap/pixi/__tests__/cameraMath.test.ts` - Expected: PASS. Run the tsc grep - Expected: no output.
 
 ---
 
@@ -468,7 +468,7 @@ describe('buildTokenViewModel', () => {
   it('selection overrides faction with amber', () => {
     expect(buildTokenViewModel(char({}), { isSelected: true, isTurn: false }).ringColor).toBe(0xfbbf24);
   });
-  it('grades the HP arc green → amber → red', () => {
+  it('grades the HP arc green -> amber -> red', () => {
     expect(buildTokenViewModel(char({ currentHP: 20 }), { isSelected: false, isTurn: false }).hpColor).toBe(0x34d399);
     expect(buildTokenViewModel(char({ currentHP: 8 }), { isSelected: false, isTurn: false }).hpColor).toBe(0xfbbf24);
     expect(buildTokenViewModel(char({ currentHP: 3 }), { isSelected: false, isTurn: false }).hpColor).toBe(0xf87171);
@@ -485,7 +485,7 @@ describe('buildTokenViewModel', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run src/components/BattleMap/pixi/__tests__/tokenViewModel.test.ts`
-Expected: FAIL — module not found.
+Expected: FAIL - module not found.
 
 - [ ] **Step 3: Implement**
 
@@ -496,7 +496,7 @@ import { getCharacterSizeMultiplier } from '../../../utils/combatUtils';
 
 /** Everything the Pixi token needs to draw, matching CharacterToken.tsx:
  *  blue-400 ally / red-500 hostile rings, amber-400 selection, and the
- *  green→amber→red HP arc. Colors are Pixi hex numbers. */
+ *  green->amber->red HP arc. Colors are Pixi hex numbers. */
 export interface TokenViewModel {
   ringColor: number;
   hpPct: number;
@@ -527,13 +527,13 @@ export const buildTokenViewModel = (
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `npx vitest run src/components/BattleMap/pixi/__tests__/tokenViewModel.test.ts` — Expected: PASS. Run the tsc grep — Expected: no output.
+Run: `npx vitest run src/components/BattleMap/pixi/__tests__/tokenViewModel.test.ts` - Expected: PASS. Run the tsc grep - Expected: no output.
 
 ---
 
 ### Task 5: The PixiBattleBoard component
 
-The scene itself: ground plate (from Task 1's painter, rasterized into a texture), fog sprite (from Task 2's grid, 1px/tile with linear upscaling — the same feathering trick), token layer (Task 4's view models drawn as Pixi graphics, gliding between tiles), pan/zoom (Task 3's math), and ground re-rasterization when zoom crosses a resolution step.
+The scene itself: ground plate (from Task 1's painter, rasterized into a texture), fog sprite (from Task 2's grid, 1px/tile with linear upscaling - the same feathering trick), token layer (Task 4's view models drawn as Pixi graphics, gliding between tiles), pan/zoom (Task 3's math), and ground re-rasterization when zoom crosses a resolution step.
 
 **Files:**
 - Create: `src/components/BattleMap/pixi/PixiBattleBoard.tsx`
@@ -563,7 +563,7 @@ No unit test (jsdom cannot host Pixi); verification is typecheck now, headless r
  * @file PixiBattleBoard.tsx
  * Deliverable-1 prototype of the single-scene combat renderer (next-gen
  * combat map spec, Pillar 1). Renders ground + tokens + fog in one PixiJS v8
- * scene, WebGPU-first. Display only: no clicks, no targeting — the DOM board
+ * scene, WebGPU-first. Display only: no clicks, no targeting - the DOM board
  * remains the playable surface until the migration flips.
  */
 import React, { useEffect, useRef } from 'react';
@@ -771,7 +771,7 @@ const PixiBattleBoard: React.FC<PixiBattleBoardProps> = ({
         });
         applyCamera();
         // Re-rasterize the ground when the needed density steps up past what
-        // we last painted — this is the "crisp at any zoom" proof.
+        // we last painted - this is the "crisp at any zoom" proof.
         const wanted = groundResolutionFor(view.zoom, window.devicePixelRatio || 1, mapPxW, mapPxH);
         if (wanted > groundRes * 1.4) void rasterizeGround(wanted);
       };
@@ -828,11 +828,11 @@ export default PixiBattleBoard;
 
 - [ ] **Step 2: Typecheck**
 
-Run the tsc grep from Global Constraints — Expected: no output. If pixi.js v8 typings disagree with any call above (e.g. `Text` options, `stroke` signatures), fix to the installed 8.14.3 API — check `node_modules/pixi.js/lib` typings, do not downgrade patterns to v7 (`new Text(string, style)` is the deprecated form).
+Run the tsc grep from Global Constraints - Expected: no output. If pixi.js v8 typings disagree with any call above (e.g. `Text` options, `stroke` signatures), fix to the installed 8.14.3 API - check `node_modules/pixi.js/lib` typings, do not downgrade patterns to v7 (`new Text(string, style)` is the deprecated form).
 
 - [ ] **Step 3: Confirm no import leaks into the eager path**
 
-Run: `npx vite build 2>&1 | tail -5` is NOT required here (dev_hub build failure is known background noise). Instead verify the only importer of `PixiBattleBoard` after Task 6 is the lazy harness: `grep -rn "PixiBattleBoard" src/ --include=*.tsx --include=*.ts` — Expected: definition + one `React.lazy` import site.
+Run: `npx vite build 2>&1 | tail -5` is NOT required here (dev_hub build failure is known background noise). Instead verify the only importer of `PixiBattleBoard` after Task 6 is the lazy harness: `grep -rn "PixiBattleBoard" src/ --include=*.tsx --include=*.ts` - Expected: definition + one `React.lazy` import site.
 
 ---
 
@@ -844,7 +844,7 @@ Run: `npx vite build 2>&1 | tail -5` is NOT required here (dev_hub build failure
 
 **Interfaces:**
 - Consumes: `PixiBattleBoard` (Task 5); `useVisibility` from `src/hooks/combat/useVisibility`; `selectVisibilityObserver` from `src/components/BattleMap/visibilityObserverPolicy`.
-- Produces: default export `PixiBoardPrototype: React.FC<BattleMapProps>` — SAME props shape as `BattleMap` (`mapData`, `characters`, `combatState`, and it ignores the rest), so CombatView's swap is a one-line ternary.
+- Produces: default export `PixiBoardPrototype: React.FC<BattleMapProps>` - SAME props shape as `BattleMap` (`mapData`, `characters`, `combatState`, and it ignores the rest), so CombatView's swap is a one-line ternary.
 
 - [ ] **Step 1: Write the harness**
 
@@ -856,7 +856,7 @@ The harness owns the visibility wiring the DOM board does in `BattleMap.tsx:155-
  * @file PixiBoardPrototype.tsx
  * Dev-flag harness (?pixiboard=1) that feeds live combat state into the
  * PixiBattleBoard prototype. Mirrors BattleMap's visibility bridge so fog
- * matches the DOM board exactly. Display only — see the next-gen combat map
+ * matches the DOM board exactly. Display only - see the next-gen combat map
  * spec, migration step 1.
  */
 import React, { useMemo } from 'react';
@@ -911,7 +911,7 @@ If the `React.ComponentProps<typeof import(...)>` type gymnastics displeases tsc
 
 - [ ] **Step 2: Check the Agora lock, then wire CombatView**
 
-Run: `curl -s http://localhost:4319/locks` — if `CombatView.tsx` appears in a live lock, STOP and coordinate via the `agora-coordination` skill. Otherwise, in `src/components/Combat/CombatView.tsx`:
+Run: `curl -s http://localhost:4319/locks` - if `CombatView.tsx` appears in a live lock, STOP and coordinate via the `agora-coordination` skill. Otherwise, in `src/components/Combat/CombatView.tsx`:
 
 Near the other lazy imports (where `BattleMap3D`/`InPlaceCombatScene` are lazied):
 
@@ -922,7 +922,7 @@ const usePixiBoard = typeof window !== 'undefined'
   && new URLSearchParams(window.location.search).has('pixiboard');
 ```
 
-And in the render branch at `CombatView.tsx:918-931`, wrap the existing `<BattleMap …/>` case:
+And in the render branch at `CombatView.tsx:918-931`, wrap the existing `<BattleMap .../>` case:
 
 ```tsx
 ) : usePixiBoard ? (
@@ -949,8 +949,8 @@ And in the render branch at `CombatView.tsx:918-931`, wrap the existing `<Battle
 
 - [ ] **Step 3: Verify the default path is untouched**
 
-Run: `npx vitest run src/components/BattleMap src/components/Combat` — Expected: all suites PASS (no test sets `?pixiboard`, so every existing test exercises the DOM board unchanged).
-Run the tsc grep — Expected: no output.
+Run: `npx vitest run src/components/BattleMap src/components/Combat` - Expected: all suites PASS (no test sets `?pixiboard`, so every existing test exercises the DOM board unchanged).
+Run the tsc grep - Expected: no output.
 
 ---
 
@@ -968,7 +968,7 @@ Run the tsc grep — Expected: no output.
 Model on `.agent/scratch/shoot-combat2.mjs` (read it first; reuse its wait/click/Escape choreography). The essential shape:
 
 ```javascript
-// .agent/scratch/shoot-pixiboard.mjs — throwaway proof capture
+// .agent/scratch/shoot-pixiboard.mjs - throwaway proof capture
 import { chromium } from 'playwright';
 
 const PORT = process.env.PORT ?? '5199';
@@ -1001,7 +1001,7 @@ console.log('shots: pixiboard-fit.png, pixiboard-zoom.png');
 Run (background): `node -r ./scripts/dev-crash-logger.cjs node_modules/vite/bin/vite.js --port 5199 --strictPort`
 Wait for "ready", then: `node .agent/scratch/shoot-pixiboard.mjs`
 Expected: both PNGs written; the fit shot shows the whole painted board with tokens and fog pools; the zoom shot shows tree/texture detail WITHOUT bilinear mush (compare against a DOM-board shot at the same zoom if in doubt: rerun without `&pixiboard=1`).
-Also capture the renderer actually in use: `await page.evaluate(() => document.querySelector('[data-testid="pixi-battle-board"] canvas').getContext ? 'context-check-n/a' : '')` is not reliable — instead log it from the app if needed; headless Chromium may lack WebGPU and fall back to WebGL, which is acceptable for the eyeball (note which one ran when reporting).
+Also capture the renderer actually in use: `await page.evaluate(() => document.querySelector('[data-testid="pixi-battle-board"] canvas').getContext ? 'context-check-n/a' : '')` is not reliable - instead log it from the app if needed; headless Chromium may lack WebGPU and fall back to WebGL, which is acceptable for the eyeball (note which one ran when reporting).
 
 - [ ] **Step 3: Present at the gate**
 
@@ -1009,12 +1009,14 @@ Send both screenshots to Remy (SendUserFile) with a one-paragraph plain-English 
 
 - [ ] **Step 4: Record the outcome**
 
-On approval: in `public/planmap/topics.json`, set the `combat-map-nextgen` feature tile `renderer prototype (Pixi ground + tokens + fog) — eyeball gate` to `"status": "done"`, and validate: `node -e "JSON.parse(require('fs').readFileSync('public/planmap/topics.json','utf8')); console.log('valid')"` — Expected: `valid`. Update memory `combat-map-nextgen-design.md` NEXT line. Leave everything uncommitted.
+On approval: in `public/planmap/topics.json`, set the `combat-map-nextgen` feature tile `renderer prototype (Pixi ground + tokens + fog) - eyeball gate` to `"status": "done"`, and validate: `node -e "JSON.parse(require('fs').readFileSync('public/planmap/topics.json','utf8')); console.log('valid')"` - Expected: `valid`. Update memory `combat-map-nextgen-design.md` NEXT line. Leave everything uncommitted.
 
 ---
 
 ## Self-review notes (already applied)
 
-- **Spec coverage (deliverable 1 only):** ground plate ✔ (Task 5 raster + Task 1 painter), tokens ✔ (Tasks 4–5), fog ✔ (Tasks 2, 5), crisp zoom ✔ (Task 3 `groundResolutionFor` + Task 5 re-raster), WebGPU-first ✔ (`preference: 'webgpu'`), flag + untouched default path ✔ (Task 6), eyeball gate ✔ (Task 7). Deliberately absent per spec: grid fade, overlays, interaction, DOM mirror, chunk culling — those are later migration steps gated on this eyeball.
-- **Type consistency:** `paintGround(ctx, mapData, tileSize, textures, res)` (Tasks 1, 5); `buildFogAlphaGrid → {width, height, alphas}` (Tasks 2, 5); `CameraView {x, y, zoom}` (Tasks 3, 5); `buildTokenViewModel(character, {isSelected, isTurn})` (Tasks 4, 5) — all match.
+- **Spec coverage (deliverable 1 only):** ground plate ✔ (Task 5 raster + Task 1 painter), tokens ✔ (Tasks 4-5), fog ✔ (Tasks 2, 5), crisp zoom ✔ (Task 3 `groundResolutionFor` + Task 5 re-raster), WebGPU-first ✔ (`preference: 'webgpu'`), flag + untouched default path ✔ (Task 6), eyeball gate ✔ (Task 7). Deliberately absent per spec: grid fade, overlays, interaction, DOM mirror, chunk culling - those are later migration steps gated on this eyeball.
+- **Type consistency:** `paintGround(ctx, mapData, tileSize, textures, res)` (Tasks 1, 5); `buildFogAlphaGrid -> {width, height, alphas}` (Tasks 2, 5); `CameraView {x, y, zoom}` (Tasks 3, 5); `buildTokenViewModel(character, {isSelected, isTurn})` (Tasks 4, 5) - all match.
 - **Known risk, called out:** headless Chromium may run the WebGL backend; the eyeball still judges the identical scene graph. Remy's own browser (Chrome/Edge) exercises WebGPU.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-06-combat-map-nextgen-d1-pixi-prototype.md","sha256WithoutMarker":"710b4603009a35540bd8672f4e80ae99d8374a126160d245118f440ca0207cf5","markedAtUtc":"2026-08-09T20:22:07.611Z"} -->

@@ -31,7 +31,7 @@ state mismatch rather than an npm install failure.
 
 Evidence:
 
-- `docs/tasks/spells/evidence/jules-env-config-spell-phase1-typecheck-failed-2026-05-21.png`
+- `(images removed 2026-09-04)`
 
 ## Package 2 Scoped Setup Script
 
@@ -60,7 +60,7 @@ pre-existing non-Package-2 module gaps.
 - Result captured by: Codex browser-capable foreman through Playwright MCP
 - Captured at: 2026-05-21 08:02 Europe/Amsterdam
 - Evidence link or screenshot path:
-  `docs/tasks/spells/evidence/jules-env-config-spell-phase1-package2-scoped-snapshot-passed-2026-05-21.png`
+  `(images removed 2026-09-04)`
 - Evidence summary:
   - `npm ci --no-audit --no-fund` completed in the Jules clean clone.
   - `npm run validate:spells` completed the spell validation report with 0
@@ -81,7 +81,7 @@ pre-existing non-Package-2 module gaps.
    - Result: failed during `npm run typecheck`.
    - Classification: pre-existing tracked-clone typecheck mismatch.
    - Evidence:
-     `docs/tasks/spells/evidence/jules-env-config-spell-phase1-typecheck-failed-2026-05-21.png`
+     `(images removed 2026-09-04)`
 2. First scoped attempt:
    - Script:
      `npm ci --no-audit --no-fund`; `npm run validate:spells`;
@@ -90,14 +90,14 @@ pre-existing non-Package-2 module gaps.
      test file at the aggregate `combatUtils.test.ts` path.
    - Classification: task-packet test-path error.
    - Evidence:
-     `docs/tasks/spells/evidence/jules-env-config-spell-phase1-focused-test-path-failed-2026-05-21.png`
+     `(images removed 2026-09-04)`
 3. Corrected scoped attempt:
    - Script:
      `npm ci --no-audit --no-fund`; `npm run validate:spells`;
      `npx vitest run src/utils/combat/__tests__/combatUtils_*.test.ts --reporter=verbose`
    - Result: passed for Package 2 environment readiness.
    - Evidence:
-     `docs/tasks/spells/evidence/jules-env-config-spell-phase1-package2-scoped-snapshot-passed-2026-05-21.png`
+     `(images removed 2026-09-04)`
 
 ## Latest Read-Only Page Observation
 
@@ -109,7 +109,7 @@ pre-existing non-Package-2 module gaps.
   setup` text and `Run and snapshot` button
 - Snapshot action performed: `yes after text-entry tooling became available`
 - Evidence captured: Playwright MCP screenshot
-  `docs/tasks/spells/evidence/jules-env-config-spell-phase1-pending-2026-05-21.png`
+  `(images removed 2026-09-04)`
 - Follow-up: the Playwright MCP tool surface later exposed `browser_fill_form`
   and `browser_type`, so Codex filled the setup textbox and ran the snapshot
   boundary as the browser-capable foreman.

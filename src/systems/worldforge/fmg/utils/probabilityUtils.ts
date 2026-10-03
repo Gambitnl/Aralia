@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 29/07/2026, 18:42:39
+ * Dependents: systems/worldforge/fmg/burgs-generator.ts, systems/worldforge/fmg/coa-generator.ts, systems/worldforge/fmg/cultures-generator.ts, systems/worldforge/fmg/ice.ts, systems/worldforge/fmg/markers-generator.ts, systems/worldforge/fmg/military-generator.ts, systems/worldforge/fmg/names-generator.ts, systems/worldforge/fmg/provinces-generator.ts, systems/worldforge/fmg/religions-generator.ts, systems/worldforge/fmg/states-generator.ts, systems/worldforge/fmg/utils/commonUtils.ts, systems/worldforge/fmg/utils/index.ts, systems/worldforge/fmg/utils/languageUtils.ts, systems/worldforge/fmg/zones-generator.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file utils/probabilityUtils.ts — ported from Azgaar's Fantasy-Map-Generator
  * (MIT). Upstream: .tmp/azgaar-src/src/utils/probabilityUtils.ts. See
@@ -89,10 +105,14 @@ export const Pint = (float: number): number => {
 
 /**
  * Returns a random element from an array.
- * @param {Array} array - the array to pick from
+ * Accepts any ArrayLike (arrays, typed arrays, strings) — upstream calls it
+ * on Uint32Array candidate lists and even bare strings (markers' addStatue
+ * UTF-16 code-unit draw), so the wide signature is the honest contract.
+ * Runtime behavior is unchanged: one Math.random draw, index access.
+ * @param {ArrayLike} array - the array-like to pick from
  * @return {any} a random element from the array
  */
-export const ra = <T>(array: T[]): T => {
+export const ra = <T>(array: ArrayLike<T>): T => {
   return array[Math.floor(Math.random() * array.length)];
 };
 

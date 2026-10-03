@@ -25,6 +25,7 @@
     "type": "Rod",
     "rarity": "Legendary",
     "reqAttune": "Required",
-    "weight": 2
+    "weight": 2,
+    "bonusWeapon": "+3"
   }
 }

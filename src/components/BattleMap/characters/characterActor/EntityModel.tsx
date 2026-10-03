@@ -9,26 +9,63 @@
  */
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Vector3 } from 'three';
+import { Vector3, type Object3D } from 'three';
 import type { EntityBlueprint } from '@/systems/entities3d/types';
-import { assembleEntity } from '@/systems/entities3d/three/assembleEntity';
+import { assembleEntity, gameBodyOptions } from '@/systems/entities3d/three/assembleEntity';
 import type { LocomotionState } from '@/systems/entities3d/three/gaits';
 import type { AnimationState } from './models';
 import { combatOverlayPose } from './entityOverlays';
+import {
+  easeActorPose,
+  type AppliedActorPose,
+  type ControlPose,
+} from '../../controlOptionPose';
 
 interface EntityModelProps {
   blueprint: EntityBlueprint;
   animState: AnimationState;
   /** Live animation clock — a ref so per-frame time never goes stale. */
   animTimeRef: React.MutableRefObject<number>;
+  /** G7 shared contract: sustained control-option pose (grovel/halt/…), eased
+   * on per frame and eased back off when the directive expires. Null = base. */
+  controlPose?: ControlPose | null;
+  /**
+   * Render-backend hook: called ONCE with the freshly assembled root, before
+   * it is mounted, so a caller can rebuild materials the backend cannot draw.
+   *
+   * This exists for the WebGPU battle scene, whose renderer cannot compile the
+   * body's raw-GLSL ink outline and blob shadow and whose lightless scene would
+   * draw the lit toon body black (see
+   * `systems/entities3d/three/gpu/gpuMaterialSwap.ts`). It is a CALLBACK rather
+   * than a `gpu` boolean on purpose: a boolean would force this file to import
+   * `three/webgpu`, dragging the whole node renderer into the WebGL bundle that
+   * every normal battle map loads.
+   *
+   * Must be referentially stable (module constant or `useCallback`) — a new
+   * function identity rebuilds the body.
+   */
+  adaptMaterials?: (root: Object3D) => void;
 }
 
-export const EntityModel: React.FC<EntityModelProps> = ({ blueprint, animState, animTimeRef }) => {
+export const EntityModel: React.FC<EntityModelProps> = ({ blueprint, animState, animTimeRef, controlPose = null, adaptMaterials }) => {
   // Tactical camera distance affords chunkier fields, and stationary tokens
   // don't need 60 Hz body rebuilds — a whole encounter must stay cheap.
+  // Skinned by default (skeleton pivot flip 2026-08-18): a whole encounter of
+  // actors at 2 draw calls per body instead of ~60 each.
   const handle = useMemo(
-    () => assembleEntity(blueprint, { resolutionScale: 0.7, fieldUpdateHz: 10 }),
-    [blueprint],
+    () => {
+      const assembled = assembleEntity(blueprint, {
+        resolutionScale: 0.7,
+        fieldUpdateHz: 10,
+        ...gameBodyOptions(blueprint),
+      });
+      // Backend adaptation happens here, not in an effect: the group is handed
+      // to the renderer on this same commit, and a one-frame black body would
+      // be visible on every actor spawn.
+      adaptMaterials?.(assembled.group);
+      return assembled;
+    },
+    [blueprint, adaptMaterials],
   );
   useEffect(() => {
     handle.retain();
@@ -41,6 +78,10 @@ export const EntityModel: React.FC<EntityModelProps> = ({ blueprint, animState, 
     speed: 0,
   });
   const settledRef = useRef(false);
+  // G7: the eased control-option pose lives in a ref so per-frame updates
+  // allocate nothing; easeActorPose walks it toward the target (or back to
+  // zero on expiry — the restore half of the contract).
+  const appliedControlRef = useRef<AppliedActorPose>({ pitch: 0, yOffset: 0 });
 
   useEffect(() => {
     // leaving death (revive) unfreezes the corpse
@@ -49,8 +90,14 @@ export const EntityModel: React.FC<EntityModelProps> = ({ blueprint, animState, 
 
   useFrame((state, delta) => {
     const pose = combatOverlayPose(animState, animTimeRef.current);
-    handle.group.rotation.x = pose.pitch;
-    handle.group.position.y = pose.yOffset;
+    // Death overrides any standing directive — a corpse does not grovel.
+    const control = easeActorPose(
+      appliedControlRef.current,
+      animState === 'death' ? null : controlPose,
+      delta,
+    );
+    handle.group.rotation.x = pose.pitch + control.pitch;
+    handle.group.position.y = pose.yOffset + control.yOffset;
     if (pose.settled) {
       settledRef.current = true;
       return; // corpse is down — keep the last body frame, skip field rebuilds

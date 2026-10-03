@@ -101,5 +101,4 @@ Paladin - Oath of the Watchers (TCoE)
 Sorcerer - Clockwork Sorcery
 
 Capture Method: http
-Legacy Page: true
 -->

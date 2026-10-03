@@ -85,16 +85,20 @@
   .edgeg.member.lit .edge, .edgeg.member.pinned .edge, .edgeg.member:hover .edge { stroke: #c084fc; opacity: 1; stroke-width: 2.5; }
   .stepedge.lit .edge, .stepedge:hover .edge { stroke: #22d3ee; opacity: 1; stroke-width: 2; }
   /* Internal step edges (parent→step, step→step) — lighter than cross-topic. */
-  svg.focus .node:not(.lit), svg.focus .edgeg:not(.lit), svg.focus .stepedge:not(.lit) { opacity: 0.12; }
+  svg.focus .node:not(.lit), svg.focus .shipnode:not(.lit), svg.focus .edgeg:not(.lit), svg.focus .stepedge:not(.lit) { opacity: 0.12; }
   /* Legend-filter dimming (item 4) — independent of hover focus. */
   .node.dimmed, .edgeg.dimmed, .stepedge.dimmed { opacity: 0.15; }
   /* Pinned node/edge outline (item 1). */
-  .node.pinned > rect:first-of-type { stroke: #fbbf24 !important; stroke-width: 3.5 !important; }
+  .node.pinned > rect:first-of-type, .shipnode.pinned > rect:first-of-type { stroke: #fbbf24 !important; stroke-width: 3.5 !important; }
   /* Feature-anchored ("member") edges — read as pointing INTO a feature tile:
      lighter/thinner stroke + a small hollow circle at the feature end. */
   .edgeg.member .member-end { fill: #0f172a; stroke: #c084fc; stroke-width: 1.25; opacity: 0.7; }
   .edgeg.member.lit .member-end, .edgeg.member:hover .member-end, .edgeg.member.pinned .member-end { stroke: #c084fc; opacity: 1; stroke-width: 2; }
   .node, .edgeg { transition: none; }
+  .edge-source { cursor: pointer; }
+  .edge-source circle { fill: #0f172a; stroke: #94a3b8; stroke-width: 1.5; }
+  .edge-source text { fill: #e2e8f0; font-size: 16px; pointer-events: none; }
+  .edge-source:hover circle, .edge-source:focus circle { stroke: #38bdf8; stroke-width: 3; }
   .step-toggle { cursor: pointer; }
   .step-toggle:hover rect { stroke-width: 2.4; }
   #invariants { padding: 0 22px 8px; font-size: 11px; color: #64748b; }
@@ -123,8 +127,8 @@
   .ship-doc { font-size: 11px; text-decoration: none; }
   .ship-tick { font-size: 10px; letter-spacing: 0.03em; }
   .ship-axis-label { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
-  .shipnode { opacity: 0.9; }
-  .shipnode:hover { opacity: 1; }
+  .shipnode { opacity: 0.9; cursor: pointer; }
+  .shipnode:hover, .shipnode:focus { opacity: 1; }
   /* Ready outline legend: the same green frame used on actionable parent tiles. */
   .ready-outline-swatch { display: inline-block; width: 18px; height: 11px; border: 2px solid #4ade80; border-radius: 4px; margin-right: 5px; vertical-align: -2px; background: rgba(74,222,128,0.08); }
   a { color: #7dd3fc; }
@@ -266,6 +270,7 @@
   <h1>ARALIA PLAN-MAP</h1>
   <span class="hint">solid arrow = hard prerequisite · dashed = chosen order · steps branch off their parent tile (chained = sequential) · click any tile or arrow to pin details · edit <code>public/planmap/topics.json</code> · age heat + sync banner show freshness</span>
   <span class="hint" style="margin-left: auto;" id="header-links">
+    <a href="explorer.html">Roadmap explorer</a> ·
     <a id="grillprompt-link" href="#">🤖 Grill prompt</a> ·
     <a id="glossary-link" href="#">📖 Glossary</a> ·
     <a id="atlas-link" href="#">🗺️ Doc atlas</a> ·
@@ -293,6 +298,10 @@
   <button id="heat-toggle" aria-pressed="false" title="Show colored age shading for roadmap items based on how long they have stayed unchanged.">Age heat: Off</button>
   <button id="tier-toggle" aria-pressed="false" title="Show the absorbed detail topics (tier: component). Off keeps the strategic picture readable.">Detail topics: Off</button>
   <span id="sync-banner" style="margin-left:10px;font-size:11px;"></span>
+  <!-- Coverage: what SHOULD be on a planning surface and is not. Sits beside
+       the sync banner because staleness and absence are the same class of
+       question and a reader checks them together. -->
+  <button id="coverage-banner" style="margin-left:10px;font-size:11px;background:none;border:none;padding:0;cursor:pointer;text-decoration:underline dotted;"></button>
   <span id="heat-legend" style="display:none;">
     <span><span class="hsw" style="background:#22d3ee;"></span>≤2d</span>
     <span><span class="hsw" style="background:#fbbf24;"></span>≤7d</span>
@@ -378,8 +387,10 @@
 <!-- Shared readiness derivation (isDead / isActionable). Attaches
      window.PlanmapReady; the same module is imported by vitest and the
      roadmap tool, so "what counts as READY" has exactly one home. -->
-<script type="module" src="./ready-derive.mjs"></script>
-<script>
+<script type="module">
+import { isDead as deriveIsDead, topicReadiness } from './ready-derive.mjs';
+import { createDocLinkResolver } from './doc-link-derive.mjs';
+
 const COLORS = {
   purple: { fill: '#2e1065', stroke: '#a78bfa', title: '#ede9fe', sub: '#c4b5fd' },
   teal:   { fill: '#042f2e', stroke: '#2dd4bf', title: '#ccfbf1', sub: '#5eead4' },
@@ -667,11 +678,60 @@ Promise.all([
       el.style.color = '#4ade80';
     }
   })();
+  /* Coverage banner: gaps a surface cannot show by itself.
+   *
+   * Absence is invisible by construction — a surface only shows what somebody
+   * put in it, so a missing entry looks exactly like empty space. This is the
+   * check that would have named the streamed 3D world months earlier.
+   *
+   * Never filtered. An ignored area still counts toward the total and appears
+   * in the detail list, marked; hiding it would make the tool judge instead of
+   * the reader. See tools/agora/PLANNING-STACK.md section 6. */
+  (() => {
+    const el = document.getElementById('coverage-banner');
+    if (!el) return;
+    const cov = health && health.coverage;
+    if (!cov) {
+      el.textContent = 'coverage: not measured';
+      el.style.color = '#94a3b8';
+      return;
+    }
+    const gaps = (cov.domainDocs && cov.domainDocs.gaps) || [];
+    const stale = (cov.domainDocDrift && cov.domainDocDrift.stale) || [];
+    // Drift leads. A doc naming a deleted file still reads as authoritative,
+    // which is worse than a missing doc — a reader trusts it.
+    el.textContent = `coverage: ${gaps.length} undocumented, ${stale.length} drifted`;
+    el.style.color = stale.length > 0 ? '#f87171' : (gaps.length > 0 ? '#fbbf24' : '#4ade80');
+    el.title = 'Click for the ranked list of code areas with no domain doc, and docs naming files that no longer exist.';
+    el.onclick = () => {
+      // Escape line breaks so this report cannot break the map's module parsing.
+      const top = gaps.slice(0, 20)
+        .map(g => `${String(g.files).padStart(4)}  ${g.repoPath}${g.ignored ? '   [ignored]' : ''}`)
+        .join('\n');
+      const rot = stale.slice(0, 20)
+        .map(s => `${String(s.missing.length).padStart(3)}  ${s.doc}`)
+        .join('\n');
+      alert(
+        'UNDOCUMENTED code areas (ranked by file count)\n' + (top || '  none') +
+        '\n\nDOCS NAMING FILES THAT NO LONGER EXIST\n' + (rot || '  none') +
+        '\n\nRule: tools/agora/PLANNING-STACK.md section 6'
+      );
+    };
+  })();
+
   const repoRoot = data.repoRoot || '';
-  // Repo docs aren't under public/ — open them through Vite's /@fs bridge
-  // (mounted under the app base, derived from the URL, not hardcoded).
-  const docHref = link => APP_BASE + '/@fs/' + repoRoot + '/' + link;
+  // Document cards need two destinations: Vite can read the active checkout,
+  // but static hosts cannot see that local disk path. The resolver preserves
+  // fast local drawer loading and gives published maps a working GitHub view.
+  const docLinks = createDocLinkResolver({
+    appBase: APP_BASE,
+    repoRoot,
+    useFsBridge: Boolean(import.meta.hot),
+  });
+  const docHref = link => docLinks.href(link);
+  const docFetchUrl = link => docLinks.fetchUrl(link);
   window.docHref = docHref;
+  window.docFetchUrl = docFetchUrl;
   window.repoRoot = repoRoot;
 
   // ---- Wire header links off repoRoot / APP_BASE (item 5) --------------
@@ -728,7 +788,7 @@ Promise.all([
   const depList = t => (t.deps || []).map(d => typeof d === 'string' ? { id: d, kind: 'hard' } : d);
   // "Dead" = out of the live graph: done (Shipped strip) or superseded (Graveyard).
   // Delegates to the shared module so the viewer, tests, and roadmap tool agree.
-  const isDead = t => window.PlanmapReady.isDead(t);
+  const isDead = t => deriveIsDead(t);
 
   // Feature slug — MUST match tools/agora/validate-planmap.mjs's slug() exactly
   // (lowercase → non-alphanumeric runs to '-' → trim '-' → cap 40 chars).
@@ -836,7 +896,17 @@ Promise.all([
   // never stored — can't rot.
   // A feature-targeted hard dep is satisfied when THAT feature is dead, not the
   // whole target topic. If the slug doesn't resolve, fall back to whole-topic.
-  const isActionable = t => window.PlanmapReady.isActionable(t, byId);
+  // A READY parent needs a satisfiable dependency graph and at least one
+  // unfinished child that has not been explicitly parked. Feature list order
+  // remains informational, so the badge reports availability rather than a chain.
+  const readinessOf = t => topicReadiness(t, byId);
+  const isActionable = t => readinessOf(t).ready;
+  const readyLabel = t => {
+    const readiness = readinessOf(t);
+    return readiness.hasFeatures
+      ? `▶ READY ${readiness.readyFeatureCount}/${readiness.pendingFeatureCount}`
+      : '▶ READY';
+  };
 
   // ============= Stable campaign-lane layout (item 2) ================
   // Horizontal band per campaign (in campaigns-object order); x = dependency
@@ -1042,7 +1112,7 @@ Promise.all([
         const info = shipInfoById[t.id];
         const raw = t.title;
         const disp = raw.length > 20 ? raw.slice(0, 19) + '…' : raw;
-        S.push(`<g class="shipnode" data-id="${esc(t.id)}" data-campaign="${esc(key)}">`);
+        S.push(`<g class="shipnode" data-id="${esc(t.id)}" data-campaign="${esc(key)}" role="button" tabindex="0" aria-pressed="false" aria-label="Inspect completed topic: ${esc(raw)}">`);
         S.push(`<rect x="${x}" y="${y}" width="${w}" height="${SHIP_CHIP_H}" rx="12" fill="${cc.fill}" fill-opacity="0.4" stroke="${cc.stroke}" stroke-opacity="0.5"/>`);
         S.push(`<circle cx="${x + 11}" cy="${y + SHIP_CHIP_H / 2}" r="3.5" fill="${cc.stroke}"/>`);
         const completionLabel = info.date
@@ -1200,7 +1270,7 @@ Promise.all([
     // (its left-edge y-center) inside e.from, so the arrow points into the
     // specific required feature. Arrowhead sits just outside the tile.
     const fp = e.feature ? featPos[`${e.from}|${e.feature}`] : null;
-    let d, endX, endY;
+    let d, endX, endY, startX, startY;
     if (fp) {
       // Start from e.to on the side facing e.from; terminate at the feature
       // tile's left edge in e.from.
@@ -1208,12 +1278,14 @@ Promise.all([
       const toRightOfFrom = b.x >= a.x;
       const x1 = toRightOfFrom ? b.x : b.x + NODE_W; // e.to side facing e.from
       const y1 = inPort[`${e.from}|${e.to}`];
+      startX = x1; startY = y1;
       const mx = x1 + (endX - x1) * 0.5;
       d = `M${x1},${y1} C${mx},${y1} ${mx},${endY} ${endX - 4},${endY}`;
     } else {
       // Whole-topic edges leave from the RIGHT OF THE BAY (past e.from's steps)
       // so the arrow flows out of the parent's finished sub-flow into e.to.
       const x1 = a.x + bayWidth(byId[e.from]), y1 = outPort[`${e.from}|${e.to}`];
+      startX = x1; startY = y1;
       endX = b.x; endY = inPort[`${e.from}|${e.to}`];
       const mx = x1 + (endX - x1) * 0.5;
       d = `M${x1},${y1} C${mx},${y1} ${mx},${endY} ${endX - 4},${endY}`;
@@ -1240,7 +1312,9 @@ Promise.all([
     const markerAttr = fp ? '' : ' marker-end="url(#arr)"';
     S.push(`<g class="edgeg${memberCls}${kindCls}" mask="url(#edge-clearance)" data-from="${esc(e.from)}" data-to="${esc(e.to)}"${fp ? ` data-feature="${esc(e.feature)}"` : ''}><title>${esc(tip)}</title>` +
       `<path class="edge-hit" d="${d}"/>` +
-      `<path class="edge"${markerAttr}${dash} d="${d}"/>${endMark}</g>`);
+      `<path class="edge"${markerAttr}${dash} d="${d}"/>${endMark}` +
+      `<g class="edge-source" data-jump="${esc(e.from)}" role="button" tabindex="0" aria-label="Go to source: ${esc(byId[e.from].title)}" transform="translate(${fp ? startX + (startX <= endX ? 26 : -26) : endX - 26},${fp ? startY : endY})"><title>Go to source: ${esc(byId[e.from].title)}</title><circle r="11"/><text text-anchor="middle" dominant-baseline="central">↖</text></g>` +
+      `<g class="edge-source edge-destination" data-jump="${esc(e.to)}" role="button" tabindex="0" aria-label="Go to destination: ${esc(byId[e.to].title)}" transform="translate(${fp ? endX - 26 : startX + 26},${fp ? endY : startY})"><title>Go to destination: ${esc(byId[e.to].title)}</title><circle r="11"/><text text-anchor="middle" dominant-baseline="central">↗</text></g></g>`);
   });
 
   // --- Internal step edges (drawn UNDER the tiles): parent→step branch and
@@ -1295,7 +1369,7 @@ Promise.all([
     // Top-right badge stack: READY (possibility) and FOCUS (what's actually
     // in hand — at most one topic, validator-enforced) are different claims.
     const badges = [];
-    if (go) badges.push(['▶ READY', '#4ade80']);
+    if (go) badges.push([readyLabel(t), '#4ade80']);
     if (t.focus) badges.push(['★ FOCUS', '#fbbf24']);
     badges.forEach(([txt, col], bi) =>
       S.push(`<text class="status" x="${p.x + NODE_W - 12}" y="${p.y + 20 + bi * 13}" text-anchor="end" fill="${col}">${txt}</text>`));
@@ -1393,7 +1467,7 @@ Promise.all([
   };
   const clearChainHighlight = () => {
     svgEl.classList.remove('focus');
-    svgEl.querySelectorAll('.node.lit, .edgeg.lit, .stepedge.lit').forEach(el => el.classList.remove('lit'));
+    svgEl.querySelectorAll('.node.lit, .shipnode.lit, .edgeg.lit, .stepedge.lit').forEach(el => el.classList.remove('lit'));
   };
   const applyChainHighlight = (...topicIds) => {
     const roots = topicIds.filter(id => id && byId[id]);
@@ -1404,6 +1478,7 @@ Promise.all([
     roots.forEach(id => chainOf(id).forEach(memberId => lit.add(memberId)));
     svgEl.classList.add('focus');
     svgEl.querySelectorAll('.node').forEach(n => n.classList.toggle('lit', lit.has(n.dataset.topic || n.dataset.id)));
+    svgEl.querySelectorAll('.shipnode').forEach(n => n.classList.toggle('lit', lit.has(n.dataset.id)));
     svgEl.querySelectorAll('.edgeg').forEach(eg =>
       eg.classList.toggle('lit', lit.has(eg.dataset.from) && lit.has(eg.dataset.to)));
     svgEl.querySelectorAll('.stepedge').forEach(se => se.classList.toggle('lit', lit.has(se.dataset.topic)));
@@ -1424,9 +1499,9 @@ Promise.all([
   const detailBody = document.getElementById('detail-body');
   let pinnedNode = null, pinnedEdge = null;
   const clearPins = () => {
-    svgEl.querySelectorAll('.node.pinned, .edgeg.pinned').forEach(el => {
+    svgEl.querySelectorAll('.node.pinned, .shipnode.pinned, .edgeg.pinned').forEach(el => {
       el.classList.remove('pinned');
-      if (el.classList.contains('node')) el.setAttribute('aria-pressed', 'false');
+      if (el.classList.contains('node') || el.classList.contains('shipnode')) el.setAttribute('aria-pressed', 'false');
     });
     pinnedNode = pinnedEdge = null;
   };
@@ -1451,7 +1526,7 @@ Promise.all([
       `<span class="d-tag">${esc(campLabel(t.campaign))}</span>` +
       (t.subcampaign ? `<span class="d-tag">${esc(t.subcampaign)}</span>` : '') +
       statusTag(t.status) +
-      (go ? `<span class="d-tag" style="color:#4ade80">▶ READY</span>` : '') +
+      (go ? `<span class="d-tag" style="color:#4ade80">${readyLabel(t)}</span>` : '') +
       (t.focus ? `<span class="d-tag" style="color:#fbbf24">★ FOCUS</span>` : '') +
       (t.tier === 'component' ? `<span class="d-tag" style="color:#94a3b8">detail tier</span>` : '') +
       `</div>`;
@@ -1528,7 +1603,7 @@ Promise.all([
 
   const pinNode = (id) => {
     clearPins();
-    const g = svgEl.querySelector(`.node[data-id="${CSS.escape(id)}"]`);
+    const g = svgEl.querySelector(`.node[data-id="${CSS.escape(id)}"], .shipnode[data-id="${CSS.escape(id)}"]`);
     if (g) {
       g.classList.add('pinned');
       g.setAttribute('aria-pressed', 'true');
@@ -1549,6 +1624,14 @@ Promise.all([
     if (e) renderEdgeDetail(e);
     detail.classList.add('open');
   };
+
+  svgEl.querySelectorAll('.shipnode').forEach(g => {
+    const inspect = ev => { ev.stopPropagation(); pinNode(g.dataset.id); };
+    g.addEventListener('click', inspect);
+    g.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); inspect(ev); }
+    });
+  });
 
   svgEl.querySelectorAll('.node').forEach(g => {
     g.addEventListener('click', ev => {
@@ -1598,6 +1681,32 @@ Promise.all([
   if (restorePinnedId && byId[restorePinnedId]) pinNode(restorePinnedId);
   else if (restorePinnedId) closeDetail();
   svgEl.querySelectorAll('.edgeg').forEach(g => {
+    g.querySelectorAll('.edge-source').forEach(source => {
+    const jumpToSource = ev => {
+      ev.stopPropagation();
+      const id = source.dataset.jump;
+      const p = pos[id];
+      if (!p) return;
+      pinNode(id);
+      // Use a readable zoom and center the source outside the detail panel.
+      const box = svgEl.getBoundingClientRect();
+      const panel = detail.getBoundingClientRect();
+      const obscured = Math.max(0, box.right - Math.max(box.left, panel.left));
+      const usableFraction = Math.max(0.25, 1 - obscured / box.width);
+      view.w = Math.min(view.w, Math.max(MIN_READABLE_VIEW_W, 13 * box.width / READABLE_TITLE_PX));
+      view.h = view.w * box.height / box.width;
+      view.x = p.x + NODE_W / 2 - view.w * usableFraction / 2;
+      view.y = p.y + parentHeight(byId[id]) / 2 - view.h / 2;
+      applyView();
+    };
+    source.addEventListener('click', jumpToSource);
+    source.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter' || ev.key === ' ') {
+        ev.preventDefault();
+        jumpToSource(ev);
+      }
+    });
+    });
     g.addEventListener('click', ev => { ev.stopPropagation(); pinEdge(g); });
   });
   // Click empty SVG background unpins (Esc unpins via the module-scope
@@ -1751,6 +1860,35 @@ Promise.all([
   // asks to preserve the view re-applies the existing `view` to the fresh svgEl.
   if (!view || !opts.preserveView) { fit(); } else { applyView(); }
 
+  // A deep link is a request to SEE its topic, not merely to open its detail
+  // panel. Completed topics live in the shipped lane, so find either kind of
+  // SVG tile and frame it in the part of the canvas not covered by the panel.
+  window.__focusRenderedTopic = id => {
+    const target = [...svgEl.querySelectorAll('.node[data-id], .shipnode[data-id]')]
+      .find(el => el.dataset.id === id);
+    if (!target || !byId[id]) return false;
+    pinNode(id);
+    const tile = target.getBBox();
+    const box = svgEl.getBoundingClientRect();
+    if (!box.width || !box.height) return false;
+    const panelWidth = Math.min(box.width * 0.6, detail.getBoundingClientRect().width);
+    const usableWidth = box.width - panelWidth;
+    const targetW = Math.min(W, Math.max(
+      MIN_READABLE_VIEW_W,
+      13 * box.width / READABLE_TITLE_PX,
+      tile.width * box.width / (usableWidth * 0.8)
+    ));
+    const targetH = targetW * box.height / box.width;
+    view = {
+      x: tile.x + tile.width / 2 - targetW * usableWidth / box.width / 2,
+      y: tile.y + tile.height / 2 - targetH / 2,
+      w: targetW,
+      h: targetH
+    };
+    applyView();
+    return true;
+  };
+
   // ================= Legend + filters (item 4) =======================
   const allStatuses = [...topics, ...topics.flatMap(t => t.features || [])];
   const counts = Object.keys(STATUS)
@@ -1880,16 +2018,40 @@ Promise.all([
   });
   syncLegendPanel();
 
+  // Hash links and ?topic= links point to the same topic. A hash wins when
+  // both are present; malformed or unknown ids leave the overview intact.
+  const requestedTopicId = () => {
+    if (location.hash.length > 1) {
+      try { return decodeURIComponent(location.hash.slice(1)); } catch { return ''; }
+    }
+    return new URLSearchParams(location.search).get('topic') || '';
+  };
+  const showDetailTier = () => {
+    componentOn = true;
+    const toggle = document.getElementById('tier-toggle');
+    toggle.setAttribute('aria-pressed', 'true');
+    toggle.textContent = 'Detail topics: On';
+  };
+  const initialTopic = data.topics.find(t => t.id === requestedTopicId());
+  if (initialTopic?.tier === 'component') showDetailTier();
   buildAndShow(data.topics);   // live map, first render → fits
 
-  // Deep link: ?topic=<id> pins and opens that topic on load (seeds cross-tool nav).
-  // Applied after the first render AND after the history-driven re-render below —
-  // that rebuild replaces the SVG, which would wipe a pin applied only here.
-  const focusTopic = new URLSearchParams(location.search).get('topic');
+  // Focus after each initial render (the history load replaces the SVG) and
+  // when a link changes in place. Auto-enable the detail tier before framing a
+  // component tile, including a completed topic in the shipped lane.
   const applyTopicFocus = () => {
-    if (focusTopic && window.__byId[focusTopic]) window.__pinNode(focusTopic);
+    const id = requestedTopicId();
+    const topics = timeline ? timeline[dayIndex].topics : data.topics;
+    const topic = topics.find(t => t.id === id);
+    if (!topic) { if (closeDetailCurrent) closeDetailCurrent(); return; }
+    if (topic.tier === 'component' && !componentOn) {
+      showDetailTier();
+      buildAndShow(topics, { preserveView: true });
+    }
+    window.__focusRenderedTopic(id);
   };
   applyTopicFocus();
+  window.addEventListener('hashchange', applyTopicFocus);
 
   // ================= Staleness heat overlay toggle (Task 6) ==============
   // Flips module-scope heatOn and rebuilds from the CURRENTLY SELECTED day
@@ -2014,7 +2176,7 @@ Promise.all([
     window.__timeline = timeline; // expose for replay verification, now that it's populated
     buildAndShow(timeline[dayIndex].topics);
     wireTimelineControls(); // Task 5: drag-to-scrub + play, now that `timeline` exists
-    applyTopicFocus(); // re-apply the ?topic= pin — this rebuild replaced the SVG
+    applyTopicFocus(); // reframe the deep-linked tile — this rebuild replaced the SVG
   }).catch(() => {});
 }).catch(e => {
   document.getElementById('canvas').innerHTML =
@@ -2124,11 +2286,14 @@ Promise.all([
     return out.join('');
   };
 
-  const docUrl = path => (window.docHref
-    ? window.docHref(path)
-    : appBase + '/@fs/' + (window.repoRoot || 'F:/Repos/Aralia') + '/' + path);
-  // Windows absolute path, for handing to an agent ("read this file").
-  const absPath = path => ((window.repoRoot || 'F:/Repos/Aralia') + '/' + path).replace(/\//g, '\\');
+  // The first module publishes a fetch-specific URL. Keep the link destination
+  // separate so static readers see GitHub while the drawer receives raw Markdown.
+  const docUrl = path => (window.docFetchUrl ? window.docFetchUrl(path) : window.docHref(path));
+  // Static readers do not have a checkout path. Preserve a useful relative path
+  // instead of inventing F:\\Repos\\Aralia in agent-facing copy text.
+  const absPath = path => (window.repoRoot
+    ? (window.repoRoot + '/' + path).replace(/\//g, '\\')
+    : path);
 
   const loadDoc = (doc) => {
     if (cache[doc.path]) return Promise.resolve(cache[doc.path]);

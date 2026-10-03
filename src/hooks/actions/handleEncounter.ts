@@ -22,7 +22,7 @@ import React from 'react';
 import { GameState, ShowEncounterModalPayload, StartBattleMapEncounterPayload, Item, TempPartyMember } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import * as GeminiService from '../../services/geminiService';
-import { calculateEncounterParameters, processAndValidateEncounter } from '../../utils/encounterUtils';
+import { calculateEncounterParameters, processAndValidateEncounter } from '../../utils/world';
 import { simpleHash } from '../../utils/core/hashUtils';
 import type { RichNPC } from '../../types/world';
 // Shared recruitment building blocks — the SAME converter/consent modules used

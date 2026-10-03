@@ -21,7 +21,7 @@
  *   check lets callers fall back to localStorage gracefully.
  */
 
-import { logger } from '../utils/logger';
+import { logger } from '../utils/core';
 
 // ============================================================================
 // Database Configuration

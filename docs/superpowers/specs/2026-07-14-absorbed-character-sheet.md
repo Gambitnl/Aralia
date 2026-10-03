@@ -1,6 +1,6 @@
 # Absorbed: Character Sheet
 
-Absorbed 2026-07-14 from `docs/projects/character-sheet/` — living project tracking now lives in planmap `character-sheet` topic with 5 active gaps and 1 completed feature.
+Absorbed 2026-07-14 from `docs/projects/character-sheet/` - living project tracking now lives in planmap `character-sheet` topic with 5 active gaps and 1 completed feature.
 
 ## Quick Start
 
@@ -31,8 +31,7 @@ G7 (food freshness, 2026-06-19): Added `acquiredAt` acquisition timestamp to ite
 
 ## Open Work
 
-See planmap topic `character-sheet` for 5 active gaps: G5 (race/derivation contract), G10 (container persistence), G12–G14 (level-up UI and state).
-
+See planmap topic `character-sheet` for 5 active gaps: G5 (race/derivation contract), G10 (container persistence), G12-G14 (level-up UI and state).
 
 ## Appendix: Field-by-Field Schema Map
 
@@ -143,12 +142,13 @@ Below is the authoritative mapping of fields consumed by the Character Sheet com
 | `questType` | `QuestType` | QuestLogSidebar | Renders quest category badge (Main, Side, Personal, etc.). |
 | `title` | `string` | QuestLogSidebar | Renders quest title. |
 | `description` | `string` | QuestLogSidebar | Renders description preview block. |
-| `rewards` | `object` | QuestLogSidebar | Displays rewards indicators (Gold ðŸ’°, XP âœ¨, Items ðŸŽ). |
+| `rewards` | `object` | QuestLogSidebar | Displays rewards indicators (Gold ðŸ'°, XP âœ¨, Items ðŸŽ). |
 | `regionHint` | `string` | QuestLogSidebar | Displays geographical region name. |
-
 
 ## Schema Fit Notes
 
 | Issue | Existing content shape | Why schema does not fit | Proposed schema change |
 |---|---|---|---|
 | Compact registry retained | Existing rows preserve the project's current compact gap notes, routing context, and proof wording. | A full canonical expansion would require a deeper row-by-row provenance pass than this schema-only migration. | Keep the compact table shape for now; expand only when each row can be normalized without guesswork. |
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-character-sheet.md","sha256WithoutMarker":"573a702252dea705915dfbba7f370d396123fbe60c01b7ec8313ee3e110a80d0","markedAtUtc":"2026-08-09T20:24:29.257Z"} -->

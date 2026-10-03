@@ -175,7 +175,7 @@
                                         "bonusPerLevel":  "+1d8",
                                         "customFormula":  ""
                                     },
-                        "description":  "One visible creature within 60 feet makes a Dexterity save; on a failure it takes 4d8 Necrotic damage and can be damaged again by the caster\u0027s action each turn until the spell ends, while on a success it takes 2d8 Necrotic damage and the spell ends. Whenever this spell deals Necrotic damage, the caster regains Hit Points equal to half the damage dealt, and each slot level above 5 adds +1d8 damage.",
+                        "description":  "One visible creature within 60 feet makes a Dexterity save; on a failure it takes 4d8 Necrotic damage and can be damaged again by the caster's action each turn until the spell ends, while on a success it takes 2d8 Necrotic damage and the spell ends. Whenever this spell deals Necrotic damage, the caster regains Hit Points equal to half the damage dealt, and each slot level above 5 adds +1d8 damage.",
                         "saveOutcomeOverrides":  [
                                                      {
                                                          "outcome":  "success",
@@ -192,7 +192,7 @@
                                                    "actionType":  "action",
                                                    "timing":  "each_caster_turn_before_spell_ends",
                                                    "target":  "enervated_target",
-                                                   "description":  "Automatically deal the spell\u0027s Necrotic damage again to the failed-save target."
+                                                   "description":  "Automatically deal the spell's Necrotic damage again to the failed-save target."
                                                }
                                            ],
                         "healing":  {
@@ -240,7 +240,7 @@
                       "prompt":  "Resolve the initial Dexterity save, halve damage and end the spell on success, or track the failed-save target for automatic action-based Necrotic damage, self-healing equal to half damage dealt, and end conditions for range, total cover, or using the action for another purpose.",
                       "playerInputRequired":  true
                   },
-    "description":  "A tendril of inky darkness reaches out from you, touching a creature you can see within range to drain life from it. The target must make a Dexterity saving throw. On a successful save, the target takes 2d8 necrotic damage, and the spell ends. On a failed save, the target takes 4d8 necrotic damage, and until the spell ends, you can use your action on each of your turns to automatically deal 4d8 necrotic damage to the target. The spell ends if you use your action to do anything else, if the target is ever outside the spell\u0027s range, or if the target has total cover from you. Whenever the spell deals damage to a target, you regain hit points equal to half the amount of necrotic damage the target takes.",
+    "description":  "A tendril of inky darkness reaches out from you, touching a creature you can see within range to drain life from it. The target must make a Dexterity saving throw. On a successful save, the target takes 2d8 necrotic damage, and the spell ends. On a failed save, the target takes 4d8 necrotic damage, and until the spell ends, you can use your action on each of your turns to automatically deal 4d8 necrotic damage to the target. The spell ends if you use your action to do anything else, if the target is ever outside the spell's range, or if the target has total cover from you. Whenever the spell deals damage to a target, you regain hit points equal to half the amount of necrotic damage the target takes.",
     "higherLevels":  "When you cast this spell using a spell slot of 6th level or higher, the damage increases by 1d8 for each slot level above 5th.",
     "tags":  [
                  "concentration"

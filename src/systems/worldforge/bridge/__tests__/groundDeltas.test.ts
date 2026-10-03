@@ -8,7 +8,7 @@
  * WorldDelta envelope as the full pipeline.
  *
  * Called by: Vitest worldforge bridge checks.
- * Depends on: localWithDeltas, WorldDelta version constants, generateInterior.
+ * Depends on: localWithDeltas, WorldDelta version constants, blueprintForPlot.
  */
 import { describe, expect, it } from 'vitest';
 import type { LocalArtifact, TownPlan } from '../../artifacts';
@@ -18,7 +18,7 @@ import {
   type WorldDelta,
   type WorldDeltaOperation,
 } from '../../delta/types';
-import { generateInterior } from '../../interior/generateInterior';
+import { blueprintForPlot } from '../../interior/generateInterior';
 import { rootSeedPath } from '../../seedPath';
 import { localWithDeltas } from '../groundDeltas';
 
@@ -46,9 +46,7 @@ function makeLocalArtifact(): LocalArtifact {
       materialIndex: new Uint8Array([0, 0, 0, 0]),
       materials: ['grass'],
     },
-    features: [
-      { id: 10, kind: 'tree', x: 1_050, y: 2_050 },
-    ],
+    features: [{ id: 10, kind: 'tree', x: 1_050, y: 2_050 }],
   };
 }
 
@@ -192,25 +190,31 @@ describe('localWithDeltas', () => {
     const addedPlot = replayed.townPlan?.plots.find(
       (plot) => plot.id === addedPlotId,
     );
-    const addedInterior = addedPlot
-      ? generateInterior(addedPlot, replayed.seedPath)
+    const addedBlueprint = addedPlot
+      ? blueprintForPlot(addedPlot, replayed.seedPath)
       : undefined;
+    const addedGroundFloor = addedBlueprint?.floors.find(
+      (floor) => floor.level === 0,
+    );
 
     expect({
-      plotIds: replayed.townPlan?.plots.map((plot) => plot.id).sort((a, b) => a - b),
+      plotIds: replayed.townPlan?.plots
+        .map((plot) => plot.id)
+        .sort((a, b) => a - b),
       removedPlotPresent: Boolean(removedPlot),
       addedRole: addedPlot?.role,
       addedStoreys: addedPlot?.storeys,
-      addedRoomCount: addedInterior?.rooms.length,
-      buildingFeatureData: replayed.features.find((feature) => feature.id === 500)?.data,
+      addedRoomCount: addedGroundFloor?.rooms.length,
+      buildingFeatureData: replayed.features.find(
+        (feature) => feature.id === 500,
+      )?.data,
     }).toEqual({
       plotIds: [1, 99],
       removedPlotPresent: false,
       addedRole: 'market',
       addedStoreys: 2,
-      // Wave A5 room-cap: market → shop caps at 6 rooms; this seed lands 5
-      // (the pre-cap generator produced 8 here — stale expectation).
-      addedRoomCount: 5,
+      // The accepted larger shop footprint now reaches the six-room cap.
+      addedRoomCount: 6,
       buildingFeatureData: {
         plotId: 99,
         role: 'market',

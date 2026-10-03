@@ -1,0 +1,253 @@
+{
+  "summary": {
+    "projectName": "Aralia",
+    "locale": "en",
+    "modelId": "agent-work-loop-v4",
+    "reportContractVersion": 25,
+    "overview": "Aralia has an unusually rich harness surface — a detailed AGENTS.md, 2,224 tracked test files, 9 CI workflows, 86 planning specs, and a documented memory system — but this review found the signal channels around that surface degraded: git-history evidence is unreadable in this checkout, diff severity saturates on routine work, two of three MCP connectors are broken or degraded on disk, and the sole Qoder rules entrypoint mandates routes that do not resolve at Qoder project scope. Session evidence for the 30-day window admitted zero task episodes, so all behavior claims stay unobserved; scores reflect configured and wired mechanisms only.",
+    "aiAgentPractice": {
+      "inspectedSurfaces": [
+        "Rules",
+        "Skills",
+        "MCP"
+      ],
+      "coverageRows": [
+        {
+          "surface": "Rules",
+          "scopes": [
+            "Project"
+          ],
+          "count": 1,
+          "paths": [
+            "AGENTS.md"
+          ]
+        },
+        {
+          "surface": "Skills",
+          "scopes": [
+            "Project"
+          ],
+          "count": 1,
+          "paths": [
+            ".agents/skills/gemini-interactions-api/SKILL.md"
+          ]
+        },
+        {
+          "surface": "MCP",
+          "scopes": [
+            "Project"
+          ],
+          "count": 3,
+          "paths": [
+            ".mcp.json"
+          ]
+        },
+        {
+          "surface": "Workflows",
+          "scopes": [
+            "Project"
+          ],
+          "count": 9,
+          "paths": [
+            ".github/workflows/ci-fix.yml",
+            ".github/workflows/ci.yml",
+            ".github/workflows/deploy.yml",
+            ".github/workflows/gemini-dispatch.yml",
+            ".github/workflows/gemini-invoke.yml",
+            ".github/workflows/gemini-review.yml",
+            ".github/workflows/gemini-scheduled-triage.yml",
+            ".github/workflows/gemini-triage.yml",
+            ".github/workflows/scout-conflict-detection.yml"
+          ]
+        },
+        {
+          "surface": "Custom Agents",
+          "scopes": [
+            "Project"
+          ],
+          "count": 0
+        }
+      ]
+    },
+    "assignmentSummaries": [],
+    "dimensions": [
+      {
+        "id": "task-understanding",
+        "label": "Task Understanding",
+        "score": 58,
+        "summary": "Guidance is broad and wired (root AGENTS.md, docs/AGENT.md, docs/ARCHITECTURE.md, 86 planning specs), but nested instruction coverage is near zero across ~4,076 source files, history-based routing evidence is unavailable in this checkout, and the inferred core boundary saturates severity signals. No session episode confirms guidance was applied.",
+        "findingRefs": [
+          "agents-md-unresolvable-qoder-routes",
+          "git-history-scan-blindspot",
+          "orphan-gitlink-phantom-diffs",
+          "tracked-generated-churn-misroutes-review",
+          "core-severity-signal-saturated",
+          "skill-invalid-typescript-sample"
+        ]
+      },
+      {
+        "id": "controlled-execution",
+        "label": "Controlled Execution",
+        "score": 50,
+        "summary": "Run/build/test scripts and three MCP connectors are configured, but the image-gen MCP entrypoint file is missing on disk, the github MCP carries an empty hardcoded token, and AGENTS.md mandates slash commands and an MCP tool that are not registered at Qoder project scope. No supported operation was observed in use.",
+        "findingRefs": [
+          "image-gen-mcp-missing-entrypoint",
+          "github-mcp-empty-inline-token",
+          "agents-md-unresolvable-qoder-routes"
+        ]
+      },
+      {
+        "id": "change-validation",
+        "label": "Change Validation",
+        "score": 55,
+        "summary": "2,224 tracked test files and layered test scripts (shards, bounded mode, type tests) sit next to the changed core, including focused fmg suites. However the current large uncommitted core generator change has no retained validation result, its only mechanical companions are snapshot re-bakes, and no validation command was observed in any analyzed session.",
+        "findingRefs": [
+          "core-change-no-retained-validation"
+        ]
+      },
+      {
+        "id": "reliable-delivery",
+        "label": "Reliable Delivery",
+        "score": 48,
+        "summary": "Nine CI workflows and a pre-push gate script exist, with sync-check, git-hygiene, and intent-gate blocking by policy while type/lint stay opt-in. Whether the pre-push delegator is installed in this clone is unverified, and no acceptance, approval, or recovery decision was observed for current work in the window.",
+        "findingRefs": []
+      },
+      {
+        "id": "learning-capture",
+        "label": "Learning Capture",
+        "score": 42,
+        "summary": "Durable learning owners are configured (a documented project memory system, one project skill, 11 skill-shaped candidates), but none were observed routed or applied. The Qoder session channel admitted zero episodes in the window, so repeated-work detection and any clean-window decision are blocked; this is an unresolved evidence boundary, not a clean result.",
+        "findingRefs": []
+      }
+    ]
+  },
+  "findings": [
+    {
+      "id": "image-gen-mcp-missing-entrypoint",
+      "title": "The image-gen MCP server points at a script that does not exist",
+      "severity": "Medium",
+      "reason": "Fact: the image-gen entry in .mcp.json runs 'npx.cmd tsx scripts/image-gen-mcp.ts', and scripts/image-gen-mcp.ts does not exist anywhere in the workspace. Inference: every Qoder session that resolves project MCP config attempts to launch a server whose entrypoint is missing, so the connector is configured-and-broken. Owner: the image-gen object in .mcp.json. Uncertainty: runtime failure presentation and whether any session ever invokes it are unobserved; a root-level image-gen-mcp.log hints at past activity but was not opened.",
+      "expectedOutput": [
+        "The image-gen MCP entry resolves to a real entrypoint and the server starts, or the entry is consciously removed with the decision recorded."
+      ],
+      "expectedArtifact": "Config",
+      "aiFixPrompt": "/better-harness fix this issue\n\nRepair the image-gen entry in .mcp.json at the smallest owner: either restore or relocate the missing scripts/image-gen-mcp.ts entrypoint (check git history with 'git log --diff-filter=D -- scripts/image-gen-mcp.ts' to find where it went), or update the entry to the script's current location. Do not delete the connector without confirming it is unused. While editing the entry, pin the tsx package version instead of an unpinned npx run.\n\n## Validation\n\n- Confirm the referenced script path exists on disk\n- Start the image-gen MCP server (or check the MCP status panel) and confirm it launches without a module-not-found error",
+      "dimensionRefs": [
+        "controlled-execution"
+      ]
+    },
+    {
+      "id": "github-mcp-empty-inline-token",
+      "title": "The github MCP entry hardcodes an empty token in a tracked config",
+      "severity": "Medium",
+      "reason": "Fact: .mcp.json commits 'GITHUB_PERSONAL_ACCESS_TOKEN': \"\" inline in a git-tracked file, on the deprecated unpinned @modelcontextprotocol/server-github package, and project docs state the repo auto-commits the working tree daily. Inference: the empty string likely overrides any ambient token so the connector runs unauthenticated or fails auth, and the inline field is a standing invitation to paste a real secret into a tracked, auto-pushed file. Uncertainty: token injection by another mechanism is not ruled out, and no session evidence shows the connector being used or failing.",
+      "expectedOutput": [
+        "The tracked MCP config carries no inline credential slot, and the github connector's auth route is explicit and verified."
+      ],
+      "expectedArtifact": "Config",
+      "aiFixPrompt": "/better-harness fix this issue\n\nRemove the empty inline GITHUB_PERSONAL_ACCESS_TOKEN value from the github entry in .mcp.json so a real secret can never land in this tracked, auto-committed file. First discover how the environment actually supplies credentials for MCP servers in this setup before choosing an injection route; do not assume an environment-reference syntax. Check 'git log -p -- .mcp.json' for any historical real-token exposure; if one is found, revocation/rotation requires separate authorization. Migrating off the deprecated server package is optional follow-up and needs its own discovery.\n\n## Validation\n\n- Confirm .mcp.json no longer contains an inline token field\n- Invoke one github MCP tool in a live session and confirm it either authenticates via the discovered route or fails with a clear, non-secret-leaking auth error\n- Confirm git history for .mcp.json shows no real token value",
+      "dimensionRefs": [
+        "controlled-execution"
+      ]
+    },
+    {
+      "id": "agents-md-unresolvable-qoder-routes",
+      "title": "Required tooling routes in AGENTS.md do not resolve in Qoder sessions",
+      "severity": "Medium",
+      "reason": "Fact: AGENTS.md, the single Qoder project rules entrypoint, mandates '/test-ts' and '/session-ritual' slash commands and states the 'mempalace' MCP tool is already configured — but the Qoder project inventory shows 0 project commands and .mcp.json registers only chrome-devtools, github, and image-gen. Inference: a Qoder session following these mandatory-sounding instructions hits unresolvable routes and either wastes routing attempts or silently skips 'required' steps. This is Qoder-scope evidence only. Uncertainty: the routes may resolve in other harnesses (.claude/, .codex/ exist but were not inspected) or via user-home Qoder config, which was outside this review's authority; no session shows an actual failed attempt.",
+      "expectedOutput": [
+        "Every route AGENTS.md calls required is either resolvable in the current harness or explicitly scoped, so agents stop hitting dead mandatory instructions."
+      ],
+      "expectedArtifact": "Doc",
+      "aiFixPrompt": "/better-harness fix this issue\n\nReconcile the 'Required Tooling' and 'MemPalace' passages of AGENTS.md with what actually resolves per harness: either register the mandated routes for Qoder project scope (a /test-ts and /session-ritual equivalent, and the mempalace MCP server in .mcp.json if it should be project-scoped), or annotate each mandated route with the harness it applies to so agents in other harnesses know to use the underlying npm scripts instead. Before editing, check whether user-home Qoder config already supplies these routes — that check needs its own authorization.\n\n## Validation\n\n- From a Qoder session, confirm each mandated route either resolves or is explicitly labelled with its owning harness and a working fallback command",
+      "dimensionRefs": [
+        "controlled-execution",
+        "task-understanding"
+      ]
+    },
+    {
+      "id": "git-history-scan-blindspot",
+      "title": "Git history scans return zero commits, hiding hotspot and churn evidence",
+      "severity": "Medium",
+      "reason": "Fact: the project evidence pack's history profile reports 0 analyzed commits at low confidence, while 'git rev-list --count --since=2026-06-29 HEAD' returns 95 commits; a bounded 'git log -500 --numstat' was reproduced timing out at 180s while 'git log -3 --numstat' returns instantly, and the checkout is a shallow clone (oldest visible commit 2026-05-28). Inference: daily whole-working-tree snapshot commits over 16,095 tracked files make per-commit numstat output enormous, so any history-scanning tool silently degrades to 'no evidence' instead of erroring, and hotspot/co-change review routing is structurally unavailable here. Owner: the auto-commit snapshot job plus this checkout's shallow-clone setup; no src/ code is involved. Uncertainty: the script performing the auto-commit was not located.",
+      "expectedOutput": [
+        "History-based review tooling either works within a bounded time budget or fails loudly with a documented cause, instead of silently reporting an inactive repo."
+      ],
+      "expectedArtifact": "Runbook",
+      "aiFixPrompt": "/better-harness fix this issue\n\nLocate the job that writes the daily working-tree snapshot commits, then reduce the file breadth of those commits (ignore runtime artifacts, generated outputs, and proof captures that currently ride along) so bounded history scans become tractable. Separately decide whether this checkout should stay shallow; deepening it via network fetch requires its own authorization. If snapshot breadth is intentional, record the limitation where history-consuming tooling can see it instead of returning silent zeros.\n\n## Validation\n\n- Time 'git log -50 --numstat' vs 'git log -500 --numstat' in this checkout and confirm the bounded scan completes\n- Re-run the project evidence pack and confirm the history profile reports a nonzero analyzed-commit count or an explicit documented limitation",
+      "dimensionRefs": [
+        "task-understanding"
+      ]
+    },
+    {
+      "id": "orphan-gitlink-phantom-diffs",
+      "title": "Two orphan gitlink entries show as permanently modified in every review",
+      "severity": "Medium",
+      "reason": "Fact: index entries Aralia/gifted-satoshi-a456bd and Aralia/sharp-saha-8201b1 are mode-160000 gitlinks with no .gitmodules, and the directories contain full nested working copies of the repo itself; both appeared among the 11 changed files in the current diff-impact scan. Inference: every git status and diff review inherits phantom modified entries, fresh clones receive unresolvable stubs, and file search returns duplicated hits from the nested copies, polluting context routing. Owner: the two index entries — a deliberate register-or-untrack decision. Uncertainty: what the nested checkouts are used for was not verified, so disposition must check references first.",
+      "expectedOutput": [
+        "Diff and status reviews stop carrying two phantom modified entries, and fresh clones no longer receive unresolvable submodule stubs."
+      ],
+      "expectedArtifact": "Config",
+      "aiFixPrompt": "/better-harness fix this issue\n\nResolve the two gitlink index entries under Aralia/ at the smallest owner: first search for any tooling or docs referencing Aralia/gifted-satoshi-* or Aralia/sharp-saha-* to confirm nothing depends on them as submodules, then either register them properly with .gitmodules metadata or untrack the stub entries (keeping the working directories on disk if they are live agent worktrees). This repo is expansion-first: surface what you find before removing anything you did not create.\n\n## Validation\n\n- 'git ls-files -s -- Aralia' shows either valid registered submodules or no gitlink entries\n- 'git status --short -- Aralia' no longer reports the two paths as perpetually modified",
+      "dimensionRefs": [
+        "task-understanding"
+      ]
+    },
+    {
+      "id": "tracked-generated-churn-misroutes-review",
+      "title": "Tracked generated outputs churn continuously and misroute review attention",
+      "severity": "Medium",
+      "reason": "Fact: public/planmap/health.json is machine-generated (it regenerated between the evidence-pack snapshot and inspection minutes later) yet tracked, and it triggered this run's only drift finding — a doc-sync advisory treating it as hand-edited configuration; tracked root litter files '0', '{const', and 'build_log.txt' are also in the index of an auto-committing repo. Inference: generated churn is indistinguishable from intentional config change, so companion-drift detectors emit false positives and reviewers are routed toward doc-sync work for machine-written artifacts, while junk files get pushed upstream daily. Owner: the planmap health writer's output location/ignore rules plus the three root litter entries. Uncertainty: the writer script and whether the planmap UI consumes health.json from git were not identified — surface before untracking.",
+      "expectedOutput": [
+        "Drift and diff detectors stop firing on machine-written churn, so their next finding about real configuration change is believable."
+      ],
+      "expectedArtifact": "Config",
+      "aiFixPrompt": "/better-harness fix this issue\n\nLocate the writer of public/planmap/health.json (search scripts/ and devtools/ for 'planmap/health') and confirm whether the planmap page loads it at runtime from public/. If it is a runtime-served generated snapshot, keep serving it but stop tracking its churn (gitignore or a generated-output convention); if git tracking is intentional, record why where drift tooling can see it. Separately, surface the tracked root files '0', '{const', and 'build_log.txt' to the owner before untracking them — do not delete content you did not create without confirmation.\n\n## Validation\n\n- Two consecutive health.json generations no longer appear as tracked diff churn, or the tracking decision is recorded\n- 'git status' after a generation cycle shows no phantom modified generated files at repo root",
+      "dimensionRefs": [
+        "task-understanding"
+      ]
+    },
+    {
+      "id": "core-severity-signal-saturated",
+      "title": "Routine source changes score maximum diff severity, eroding the core-risk signal",
+      "severity": "Medium",
+      "reason": "Fact: with no declared core boundary (core-code rules missing, boundary inferred), the current routine worldforge/fmg iteration scored critical/100 — the maximum — and nested instruction coverage is 2 files against a suggested 17 for ~4,076 source files (src/systems alone holds 1,070 files with no module-local guidance). Inference: when ordinary daily work saturates the severity scale, humans and agents learn to discount 'critical', and genuinely dangerous core changes lose their alarm channel; meanwhile an agent landing in the live hot area (src/systems/worldforge) has no local guidance. Uncertainty: whether docs/AGENT.md or docs/ARCHITECTURE.md already cover worldforge adequately was not audited — only their existence was verified.",
+      "expectedOutput": [
+        "Severity signals regain contrast between routine iteration and genuine core risk, and agents entering the largest source trees get local guidance."
+      ],
+      "expectedArtifact": "Doc",
+      "aiFixPrompt": "/better-harness fix this issue\n\nAdd module-local agent guidance for the top two or three source trees, starting with src/systems/worldforge (the current hot area): what the module owns, its canonical entry points, its focused test route, and what the project genuinely considers core there. First read docs/AGENT.md and docs/ARCHITECTURE.md to extend rather than duplicate existing coverage. Then confirm the owner's view of which paths are truly core so severity scoring has a real boundary to calibrate against; describe the boundary only — do not edit any internal review-tool configuration as part of this fix.\n\n## Validation\n\n- A module-local guidance file exists for src/systems/worldforge naming its focused test route\n- Re-run the project evidence pack and confirm a plausible non-core change (for example docs-only) no longer scores critical",
+      "dimensionRefs": [
+        "task-understanding"
+      ]
+    },
+    {
+      "id": "core-change-no-retained-validation",
+      "title": "The current core generator change has no retained validation result",
+      "severity": "Medium",
+      "reason": "Fact: the uncommitted worldforge/fmg change set (7 source files, roughly +401/-210, including a widened signature in probabilityUtils.ts and reworked markers/zones/military generators) has as its only mechanical companions two updated snapshot files; focused fmg test suites exist but no run result is retained, type/lint gates are opt-in by declared policy, and whether the pre-push delegator is installed in this clone is unverified. Inference: snapshot re-baking validates 'output changed as recorded', not 'output changed as intended', so this wide port-fidelity change can currently reach push with no acceptance evidence. Uncertainty: all gate-strength claims are declarative — nothing was executed, and the snapshot updates may be intentional reviewed re-bakes.",
+      "expectedOutput": [
+        "The live core change carries a retained, relevant validation result instead of only snapshot re-bakes, and the push gate is confirmed installed."
+      ],
+      "expectedArtifact": "Test",
+      "aiFixPrompt": "/better-harness fix this issue\n\nRun the focused validation the change already owns: the fmg test suites under src/systems/worldforge/fmg/__tests__ plus the local/region generation tests via the project's vitest scripts, and 'npm run test:types'. Retain the results with the change. Review the two updated .snap files against intended behavior rather than accepting the re-bake. Then confirm '.git/hooks/pre-push' contains the project delegator, running 'npm run hooks:install' if absent.\n\n## Validation\n\n- Focused fmg and generation tests pass on the current working tree with results retained\n- 'npm run test:types' passes\n- '.git/hooks/pre-push' exists and delegates to scripts/git/pre-push-aralia.sh",
+      "dimensionRefs": [
+        "change-validation"
+      ]
+    },
+    {
+      "id": "skill-invalid-typescript-sample",
+      "title": "The Gemini skill ships an invalid TypeScript example agents can copy",
+      "severity": "Low",
+      "reason": "Fact: the custom-agent example around line 254 of .agents/skills/gemini-interactions-api/SKILL.md uses Python keyword-argument syntax inside a TypeScript object literal — invalid TS — and roughly 170 lines of always-loaded body are doc-link tables and data-model reference material; a references/migration.md already exists and is cited, so the progressive-disclosure pattern is established. Inference: an agent following the skill can propagate broken code verbatim, and the trigger-loaded body is larger than needed. Uncertainty: no evidence the skill has ever triggered in a session, and the model catalog's freshness was not externally verified.",
+      "expectedOutput": [
+        "Agents triggered into the skill get compilable example code and a lighter always-loaded body with reference material one hop away."
+      ],
+      "expectedArtifact": "Doc",
+      "aiFixPrompt": "/better-harness fix this issue\n\nFix the TypeScript custom-agent example near line 254 of .agents/skills/gemini-interactions-api/SKILL.md so it is valid TS (the current snippet uses Python kwarg syntax in an object literal). Then move the documentation-pages link table and data-model reference sections into the existing references/ directory alongside migration.md, leaving pointers in the body — extend the established progressive-disclosure pattern rather than inventing a new layout.\n\n## Validation\n\n- The corrected snippet type-checks as standalone TypeScript\n- SKILL.md body shrinks with the moved content reachable via references/ links that resolve",
+      "dimensionRefs": [
+        "task-understanding"
+      ]
+    }
+  ]
+}

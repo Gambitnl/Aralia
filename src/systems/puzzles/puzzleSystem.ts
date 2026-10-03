@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/08/2026, 02:03:45
+ * Dependents: systems/puzzles/puzzleRuntime.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -8,8 +24,8 @@
 
 import { Puzzle, PuzzleResult } from './types';
 import { CharacterStats } from '../../types/combat';
-import { rollDice } from '../../utils/combatUtils';
-import { getAbilityModifierValue } from '../../utils/statUtils';
+import { rollDice } from '../dice/rollers';
+import { getAbilityModifierValue } from '../../utils/character';
 
 /**
  * Attempts to solve a step of the puzzle or the whole puzzle.
@@ -131,8 +147,15 @@ export function attemptPuzzleInput(
     return result;
   }
 
-// TODO #910(Lockpick): Integrate this system with the Dungeon Map generation (Submap) to place puzzles.
 }
+
+// #910 (2026-09-09): not wired, and deliberately so. The marker sat unreachably
+// after the function's final `return`, which is why it never described live
+// behavior; it is moved to file scope here so a reader can actually see it.
+// The "Submap" generation it named no longer exists as code, and the live
+// dungeon generator emits no Puzzle records, so placing puzzles is a generator
+// change, not a puzzle-system change. Tracked as GG-196 in
+// docs/projects/GLOBAL_GAPS.md.
 
 /**
  * Checks if a character can deduce a hint for the puzzle.

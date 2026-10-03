@@ -2,76 +2,103 @@
 name: whisk-image-generation
 description: Generate D&D character images using Google Gemini or Whisk via manual browser automation (DevTools MCP).
 ---
-# Image Generation Skill (Gemini & Whisk)
+# Image Generation Skill (Gemini)
 
-Use this skill to generate character art using Google's AI tools. This approach uses the unified `image-gen` MCP server or the agent's native `devtools` tools to drive the browser.
+Use this skill to generate character art with the Gemini web UI. The `image-gen` MCP server drives a headed Chrome with the repo profile `.chrome-gemini-profile`. Whisk support stays in the code but is not maintained.
+
+## Status (verified 2026-09-03)
+
+The pipeline works end to end against the current Gemini UI. A test prompt produced a 2048 x 2048 PNG through `generate_image` and `download_image`. The `verify_image_adherence` upload path is blocked by a one-time Gemini terms dialog (see Obstacles).
 
 ## Prerequisites
-- **Chrome Browser**: The script `scripts/workflows/gemini/core/image-gen-mcp.ts` manages the browser session (launching `chrome` with a persistent profile).
-  - **Manual Login**: Required on the first run. The script will pause and alert you if you are not logged in.
-- **Unified MCP Server**:
-  - **Server Name**: `image-gen`
-  - **Tools**: `generate_image`, `download_image`, `verify_image_adherence`
 
-## Core Learnings & Obstacles
-- **Whisk vs. Gemini**: Whisk (labs.google) is highly reactive and often ignores automated clicks. **Gemini (gemini.google.com) is much more stable** and is the default provider for the unified tool.
-- **Visual Verification**: Use `verify_image_adherence` to check generated images against the "Full Body D&D Villager" guidelines. This tool re-uploads the image to Gemini and asks for a critique.
-- **One-Turn Search & Generate**: Gemini can handle "Search then Generate" in a single prompt. This is faster and more accurate than doing it in two steps.
+- **Debug Chrome**: run `npm run mcp:chrome`. This starts Google Chrome with `--remote-debugging-port=9222` and the profile `.chrome-gemini-profile`. The MCP server attaches to it when the port answers. When the port is down, the server launches its own Chrome on the same profile.
+- **Manual login**: the profile must hold a Google login. When the server sees a login page, it stops with a "LOGGED OUT" error. Log in by hand in the Chrome window, then retry. Never type credentials through automation.
+- **MCP server**: name `image-gen`, command `npx tsx scripts/workflows/gemini/core/image-gen-mcp.ts` (path fixed in `.mcp.json` on 2026-09-03; it pointed at a deleted file before).
+- **Tools**: `generate_image`, `download_image`, `verify_image_adherence`. The tool API did not change.
+
+## Environment variables
+
+| Variable | Effect |
+| --- | --- |
+| `IMAGE_GEN_USE_CDP` | `1` forces attach to port 9222 and fails when it is down. `0` forces a fresh launch. Unset = attach when the port answers. |
+| `IMAGE_GEN_CDP_URL` | CDP URL, default `http://localhost:9222`. |
+| `GEMINI_PROFILE_DIR` | Profile dir for a fresh launch, default `.chrome-gemini-profile`. |
+| `IMAGE_GEN_GEMINI_IMAGE_TIMEOUT_MS` | Wait limit for one image turn, default 240000. |
+| `IMAGE_GEN_STRICT_NEW_CHAT` | `1` fails a generation when "New chat" cannot be clicked. |
+
+## Selectors (Gemini UI, 2026-09-03)
+
+Prefer aria labels and custom element tags. Angular class names change often.
+
+| Step | Selector | Note |
+| --- | --- | --- |
+| Prompt box | `div[role="textbox"][aria-label="Enter a prompt for Gemini"]` | Quill editor inside `rich-textarea`. |
+| Send | `button[aria-label="Send message"]` | Appears only after text is typed. The mic button sits there when the box is empty. |
+| New chat | `a[aria-label="New chat"]` | Always visible in the left nav. No hamburger step needed. |
+| Turn in progress | `button[aria-label="Stop response"]` | Was "Stop generation" before. |
+| Response turn | `model-response` | Count before send, wait for count to grow, then wait for Stop to detach. |
+| Generated image | `generated-image img` | `src` is a `blob:` URL, 1024 px wide preview. Fetch from Node fails. |
+| Download | `button[aria-label="Download full size image"]` | Inside the same `generated-image`. Fires a browser download of a JPEG (2048 x 2048 for a 1:1 prompt). The server converts to PNG with `sharp` when the output path ends in `.png`. |
+| Upload menu | `button[aria-label="Upload & tools"]` then `[data-test-id="local-images-files-uploader-button"]` | Opens the file chooser. Used by `verify_image_adherence`. |
+| Zero state | `zero-state-v2` or zero `user-query` elements | The greeting text rotates, so do not match on it. |
+
+## What changed on 2026-09-03
+
+- The generated image moved from a `googleusercontent` URL to a `blob:` URL. The old image selector never matched, so generation timed out.
+- The Stop button label changed from "Stop generation" to "Stop response".
+- The greeting heading changed, so the old welcome selectors never matched.
+- The download path now clicks the per-image download button and captures the download event. The URL-fetch and screenshot fallbacks are gone.
+- The verify upload now goes through the Upload & tools menu. The old hidden `input[type="file"]` does not exist until the menu opens.
+- `.mcp.json` pointed at `scripts/image-gen-mcp.ts`, which no longer exists.
+
+## Obstacles
+
+- **Upload terms dialog**: the first file upload in a profile shows "Creating content from images and files" with Cancel and Agree. The server does not click Agree. Read it and click Agree by hand in the Chrome window, then retry. Seen 2026-09-03; not yet accepted.
+- **Info card on load**: a "You're in control of your settings" card with a Dismiss button can appear. It does not block clicks.
+- **Rate limits**: none seen on 2026-09-03 across three image turns (about 35 s each). When Gemini answers with text and no image, the server returns the response text and flags limit phrases such as "reached your limit" or "try again later".
+- **Whisk**: labs.google ignores automated clicks. Do not use it.
 
 ## Workflow
 
-### 1. Launch & Connect
-The script handles launching automatically.
-1.  Run the server or script: `npx tsx scripts/workflows/gemini/core/image-gen-mcp.ts`
-2.  If it's your first time, the window will open. **Log in to Google.**
-3.  Once logged in, the script will be ready to accept tool calls.
+### 1. Launch and connect
+1. Run `npm run mcp:chrome`.
+2. Check the Gemini tab shows the prompt box. If it shows a login page, log in by hand.
+3. Start the MCP server or a caller script. The server attaches over CDP.
 
-### 2. Optimized Prompting (Two-Step Strategy)
-To ensure accuracy and "mundane/slice-of-life" grounding, use a two-step approach.
+### 2. Prompt
+Use one prompt per image. Ask for a square 1:1 image and a full body view when the image is a race portrait. The two-step research-then-generate pattern below still works.
 
-**Step 1: Research & Describe**
-> "Research the visual characteristics of the [Race] race from canon D&D 5e sources. Focus on: physical appearance (skin, features, build), typical mundane habitat, and typical clothing for a COMMON VILLAGER or WORKER (not an adventurer/hero).
->
-> based on this, write a detailed visual description of a [Gender] [Race] Villager in a slice-of-life setting. The description should be vivid and suitable for image generation. **DO NOT generate an image yet.**"
+**Step 1: Research and describe**
+> "Research the visual characteristics of the [Race] race from canon D&D 5e sources. Focus on physical appearance, mundane habitat, and clothing for a COMMON VILLAGER or WORKER. Based on this, write a detailed visual description of a [Gender] [Race] villager in a slice-of-life setting. **DO NOT generate an image yet.**"
 
 **Step 2: Generate**
-> "Generate a high-quality, detailed fantasy illustration based on the description above. D&D 5e art style. **Full body view, showing the character from head to toe.** Aspect ratio 1:1 (square)."
+> "Generate a high-quality, detailed fantasy illustration based on the description above. D&D 5e art style. **Full body view, from head to toe.** Aspect ratio 1:1 (square)."
 
-### 3. Submission & Interaction
-- Use `evaluate_script` to insert text and click send (see Fast-Path Automation below).
-- Always wait for the first response to complete (approx 10-15s) before sending the second prompt.
+### 3. Download and rename
+Call `download_image(outputPath: "absolute/path/to/Parent_Subrace_Gender.png")`.
 
-### 4. Downloading & Renaming
-Use the `download_image` tool. It automatically handles finding the high-res URL or clicking the download button.
-
-- **Tool Call**: `download_image(outputPath: "absolute/path/to/Parent_Subrace_Gender.png")`
-- **Path Convention**: `public/assets/images/races/[Parent]_[Subrace]_[Gender].png` (TitleCase).
+- **Path convention**: `public/assets/images/races/[Parent]_[Subrace]_[Gender].png` (TitleCase).
   - Example: `Elf_Wood_Male.png`
   - Example: `Dragonborn_Red_Male.png`
-  - Example: `Aarakocra_Female.png` (No subrace)
+  - Example: `Aarakocra_Female.png` (no subrace)
 
-### 5. Verification
-Use the `verify_image_adherence` tool to ensure quality.
+### 4. Verify
+Call `verify_image_adherence(imagePath: "...")`. The tool starts a new chat, uploads the file, and asks Gemini for a JSON verdict. When it returns `complies: false`, regenerate.
 
-- **Tool Call**: `verify_image_adherence(imagePath: "...")`
-- **Guidelines Checked**: Full Body (Head to Toe), Common Villager/Worker, Slice-of-Life, D&D 5e Style.
-- **Action**: If verification returns `complies: false`, consider regenerating the image.
+### 5. Reset
+When the UI wedges, close the Chrome window and run `npm run mcp:chrome` again. Do not delete `.chrome-gemini-profile`; it holds the login.
 
 ### 6. Layout Consistency
 - **Sizing**: To ensure race images aren't "huge," generate **both Male and Female** (or two variations) for every race. This triggers the `hasDualImages` layout in the glossary, which uses small thumbnails instead of full-card width.
 
-### 6. Automated Wiring & Auditing
+### 7. Automated Wiring & Auditing
 Use the `scripts/audit_and_wire_images.ts` script to automatically:
 - **Rename** files to the `Parent_Subrace_Gender.png` convention.
 - **Wire** the new paths into `src/data/races/*.ts` and `glossary/*.json`.
 - **Audit** for missing wiring.
 
 Run with: `npx tsx scripts/audit_and_wire_images.ts`
-### 7. Cleanup & Efficiency
-- **New Chat Protocol**: The script automatically handles "New Chat" logic when necessary to avoid context bleed.
-- **Session Reset**: If you encounter issues, kill the terminal and run `taskkill /F /IM chrome.exe /T` to fully reset the browser.
-- **Fast-Path Automation**: To save tokens and time, avoid `take_snapshot` for known static elements. Use `evaluate_script` with stable CSS selectors:
-
 ### 8. Implementation (Linking Images)
 You must wire up the images in **TWO** places: the Glossary (JSON) and the Character Creator (TypeScript).
 

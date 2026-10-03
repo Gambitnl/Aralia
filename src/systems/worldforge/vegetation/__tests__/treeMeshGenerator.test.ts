@@ -3,9 +3,33 @@ import {
   generateTreeGeometry,
   generateTreeVariantSet,
   TREE_SPECIES,
+  TREE_FORMS,
   VARIANTS_PER_SPECIES,
   SPECIES_HEIGHT_M,
+  treeVariantPlan,
 } from '../treeMeshGenerator';
+import type { TreeGeometryData } from '../treeMeshGenerator';
+
+/**
+ * Outline signature: the widest canopy radius in each of 5 height bands,
+ * normalized to the tree's own widest point. Two trees that differ only in
+ * scale share a signature; two trees with genuinely different silhouettes
+ * (a narrow spire vs a high wide umbrella) do not. This is what "trees differ
+ * in outline, not just size" has to mean to be testable.
+ */
+const outlineSignature = (g: TreeGeometryData, bands = 5): string => {
+  const widest = new Array(bands).fill(0);
+  let maxY = 0;
+  for (let i = 1; i < g.positions.length; i += 3) maxY = Math.max(maxY, g.positions[i]);
+  for (let i = 0; i < g.positions.length; i += 3) {
+    const r = Math.hypot(g.positions[i], g.positions[i + 2]);
+    const band = Math.min(bands - 1, Math.floor((g.positions[i + 1] / maxY) * bands));
+    if (band >= 0) widest[band] = Math.max(widest[band], r);
+  }
+  const peak = Math.max(...widest) || 1;
+  // Quantized so trivial jitter does not read as a different silhouette.
+  return widest.map((w) => Math.round((w / peak) * 4)).join('-');
+};
 
 describe('treeMeshGenerator', () => {
   it('is deterministic: same species+seed gives bit-identical arrays', () => {
@@ -78,6 +102,85 @@ describe('treeMeshGenerator', () => {
       }
       expect(hasBark).toBe(true);
       expect(hasFoliage).toBe(true);
+    }
+  });
+
+  it('declares at least two forms per species', () => {
+    for (const species of TREE_SPECIES) {
+      expect(TREE_FORMS[species].length).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  it('each declared form builds a valid unit-frame mesh', () => {
+    for (const species of TREE_SPECIES) {
+      for (const form of TREE_FORMS[species]) {
+        const g = generateTreeGeometry(species, 31, form);
+        let minY = Infinity;
+        let maxY = -Infinity;
+        let maxR = 0;
+        for (let i = 0; i < g.positions.length; i += 3) {
+          minY = Math.min(minY, g.positions[i + 1]);
+          maxY = Math.max(maxY, g.positions[i + 1]);
+          maxR = Math.max(maxR, Math.hypot(g.positions[i], g.positions[i + 2]));
+        }
+        expect(minY).toBeGreaterThanOrEqual(-0.15);
+        expect(minY).toBeLessThanOrEqual(0.05);
+        expect(maxY).toBeGreaterThan(species === 'scrub' ? 0.45 : 0.8);
+        expect(maxY).toBeLessThanOrEqual(1.15);
+        expect(maxR).toBeLessThan(0.8);
+        expect(g.indices.length % 3).toBe(0);
+        expect(g.normals.length).toBe(g.positions.length);
+        expect(g.colors.length).toBe(g.positions.length);
+      }
+    }
+  });
+
+  it('forms of one species have genuinely different outlines', () => {
+    for (const species of TREE_SPECIES) {
+      const signatures = TREE_FORMS[species].map(
+        (form) => outlineSignature(generateTreeGeometry(species, 77, form)),
+      );
+      expect(new Set(signatures).size).toBe(signatures.length);
+    }
+  });
+
+  it('a variant set covers more than one outline per species', () => {
+    // Variety has to survive the path the world actually uses. If every variant
+    // landed on the same form, the world would show one tree shape at assorted
+    // scales — which is the look this replaced.
+    // Signature-diversity alone is too weak — per-tree jitter alone can satisfy
+    // it. Demand that EVERY declared form actually shows up in the set, checked
+    // against the exact seeds the set builds from.
+    const seed = 2026;
+    const set = generateTreeVariantSet(seed);
+    for (const species of TREE_SPECIES) {
+      const plan = treeVariantPlan(species, seed);
+      expect(plan).toHaveLength(set[species].length);
+      // Every declared form is scheduled...
+      expect(new Set(plan.map((p) => p.form))).toEqual(new Set(TREE_FORMS[species]));
+      // ...and each scheduled variant is the geometry that form+seed produces.
+      const setSignatures = set[species].map((g) => outlineSignature(g));
+      plan.forEach((p, v) => {
+        expect(
+          setSignatures[v],
+          `${species} variant ${v} should be the "${p.form}" outline`,
+        ).toBe(outlineSignature(generateTreeGeometry(species, p.seed, p.form)));
+      });
+      // And the scheduled forms really are different outlines from each other.
+      const perForm = TREE_FORMS[species].map(
+        (form) => outlineSignature(generateTreeGeometry(species, seed, form)),
+      );
+      expect(new Set(perForm).size).toBe(perForm.length);
+    }
+  });
+
+  it('form choice is deterministic', () => {
+    for (const species of TREE_SPECIES) {
+      for (const form of TREE_FORMS[species]) {
+        const a = generateTreeGeometry(species, 5, form);
+        const b = generateTreeGeometry(species, 5, form);
+        expect(Array.from(a.positions)).toEqual(Array.from(b.positions));
+      }
     }
   });
 

@@ -1,30 +1,30 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useAbilitySystem } from '../useAbilitySystem';
-import { createPlayerCombatCharacter } from '../../utils/combatUtils';
+import { createPlayerCombatCharacter } from '../../utils/combat';
 import { createMockCombatCharacter } from '../../utils/core/factories';
 import type { BattleMapData, BattleMapTile, CombatAction, CombatCharacter } from '../../types/combat';
 import type { SpellSlots } from '../../types/character';
 import type { PlayerCharacter } from '../../types';
 import maelisQuill from '../../../public/premade-characters/maelis_quill.json';
-import fireBolt from '../../../public/data/spells/level-0/fire-bolt.json';
-import mageHand from '../../../public/data/spells/level-0/mage-hand.json';
-import minorIllusion from '../../../public/data/spells/level-0/minor-illusion.json';
-import detectMagic from '../../../public/data/spells/level-1/detect-magic.json';
-import findFamiliar from '../../../public/data/spells/level-1/find-familiar.json';
-import mageArmor from '../../../public/data/spells/level-1/mage-armor.json';
-import magicMissile from '../../../public/data/spells/level-1/magic-missile.json';
-import healingWord from '../../../public/data/spells/level-1/healing-word.json';
-import shield from '../../../public/data/spells/level-1/shield.json';
-import sleep from '../../../public/data/spells/level-1/sleep.json';
-import scorchingRay from '../../../public/data/spells/level-2/scorching-ray.json';
-import fireball from '../../../public/data/spells/level-3/fireball.json';
-import viciousMockery from '../../../public/data/spells/level-0/vicious-mockery.json';
-import swordBurst from '../../../public/data/spells/level-0/sword-burst.json';
-import wordOfRadiance from '../../../public/data/spells/level-0/word-of-radiance.json';
-import faerieFire from '../../../public/data/spells/level-1/faerie-fire.json';
-import charmPerson from '../../../public/data/spells/level-1/charm-person.json';
-import dissonantWhispers from '../../../public/data/spells/level-1/dissonant-whispers.json';
+import fireBolt from '@/data/spells/level-0/fire-bolt.json';
+import mageHand from '@/data/spells/level-0/mage-hand.json';
+import minorIllusion from '@/data/spells/level-0/minor-illusion.json';
+import detectMagic from '@/data/spells/level-1/detect-magic.json';
+import findFamiliar from '@/data/spells/level-1/find-familiar.json';
+import mageArmor from '@/data/spells/level-1/mage-armor.json';
+import magicMissile from '@/data/spells/level-1/magic-missile.json';
+import healingWord from '@/data/spells/level-1/healing-word.json';
+import shield from '@/data/spells/level-1/shield.json';
+import sleep from '@/data/spells/level-1/sleep.json';
+import scorchingRay from '@/data/spells/level-2/scorching-ray.json';
+import fireball from '@/data/spells/level-3/fireball.json';
+import viciousMockery from '@/data/spells/level-0/vicious-mockery.json';
+import swordBurst from '@/data/spells/level-0/sword-burst.json';
+import wordOfRadiance from '@/data/spells/level-0/word-of-radiance.json';
+import faerieFire from '@/data/spells/level-1/faerie-fire.json';
+import charmPerson from '@/data/spells/level-1/charm-person.json';
+import dissonantWhispers from '@/data/spells/level-1/dissonant-whispers.json';
 import lyrisSongweaver from '../../../public/premade-characters/lyris_songweaver.json';
 
 /**
@@ -75,8 +75,21 @@ vi.mock('../../commands', () => ({
   CommandExecutor: { execute: vi.fn().mockReturnValue({ success: true, finalState: { characters: [], combatLog: [] } }) }
 }));
 
-vi.mock('../../utils/combatUtils', async () => {
-  const actual = await vi.importActual<typeof import('../../utils/combatUtils')>('../../utils/combatUtils');
+// agora-f821.4 retired the combatUtils roller family; the modules under
+// test roll through systems/dice/rollers now. One hoisted set of mocks
+// stands in for BOTH specifiers, so one vi.mocked(...) pins every die.
+const diceMocks = vi.hoisted(() => ({
+    rollDamage: () => 5,
+    rollDice: () => 15
+}))
+
+vi.mock('../../systems/dice/rollers', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../systems/dice/rollers')>()
+  return { ...actual, ...diceMocks }
+})
+
+vi.mock('../../utils/combat', async () => {
+  const actual = await vi.importActual<typeof import('../../utils/combat')>('../../utils/combat');
 
   // Keep the real player-to-combat bridge available so the test exercises the
   // actual premade wizard spellbook, but make geometry and dice deterministic.
@@ -86,9 +99,8 @@ vi.mock('../../utils/combatUtils', async () => {
     getCharacterDistance: () => 1,
     getOccupiedTiles: (character: CombatCharacter) => [character.position],
     generateId: () => 'test-id',
-    rollDamage: () => 5,
-    rollDice: () => 15
-  };
+    ...diceMocks,
+};
 });
 
 // ============================================================================
@@ -194,7 +206,7 @@ const openFloorMap = (width = 8, height = 8): BattleMapData => {
 const hiddenCreature = (overrides: Partial<CombatCharacter>) => createMockCombatCharacter({
   currentHP: 7,
   maxHP: 7,
-  statusEffects: [{ id: 'hidden', name: 'Hidden' }],
+  statusEffects: [{ id: 'hidden', name: 'Hidden', type: 'buff', duration: 1 }],
   ...overrides
 });
 

@@ -1,4 +1,3 @@
-// TODO #84(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 import React, { useEffect, useMemo, useState, useContext } from 'react';
 // Dedicated modal for showing a single glossary entry with navigation controls
 import { GlossaryEntry } from '../../types';
@@ -7,8 +6,8 @@ import { FullEntryDisplay } from './FullEntryDisplay';
 import SpellCardTemplate, { SpellData } from './SpellCardTemplate';
 import { AnimatePresence, motion, MotionProps } from 'framer-motion';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
-import { findGlossaryEntryAndPath } from '../../utils/glossaryUtils';
-import { fetchWithTimeout } from '../../utils/networkUtils';
+import { findGlossaryEntryAndPath } from '../../utils/visuals';
+import { fetchWithTimeout } from '../../utils/context';
 import { assetUrl } from '../../config/env';
 
 /**

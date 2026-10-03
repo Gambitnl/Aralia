@@ -266,7 +266,7 @@
                                                                    "useOriginalDC":  true
                                                                }
                                             },
-                        "description":  "On a melee spell hit, the target gains the No Healing condition and cannot regain Hit Points until the start of the caster\u0027s next turn.",
+                        "description":  "On a melee spell hit, the target gains the No Healing condition and cannot regain Hit Points until the start of the caster's next turn.",
                         "scaling":  {
                                         "type":  "slot_level",
                                         "bonusPerLevel":  "",
@@ -366,7 +366,7 @@
                                                                    "useOriginalDC":  true
                                                                }
                                             },
-                        "description":  "On a melee spell hit against an Undead target, that target gains Disadvantage on attacks against the caster until the end of the caster\u0027s next turn.",
+                        "description":  "On a melee spell hit against an Undead target, that target gains Disadvantage on attacks against the caster until the end of the caster's next turn.",
                         "scaling":  {
                                         "type":  "slot_level",
                                         "bonusPerLevel":  "",
@@ -382,7 +382,7 @@
                       "prompt":  "",
                       "playerInputRequired":  false
                   },
-    "description":  "Channeling the chill of the grave, make a melee spell attack against a target within reach. On a hit, the target takes 1d10 Necrotic damage, and it can\u0027t regain Hit Points until the end of your next turn.",
+    "description":  "Channeling the chill of the grave, make a melee spell attack against a target within reach. On a hit, the target takes 1d10 Necrotic damage, and it can't regain Hit Points until the end of your next turn.",
     "higherLevels":  "Cantrip Upgrade. The damage increases by 1d10 when you reach levels 5 (2d10), 11 (3d10), and 17 (4d10).",
     "tags":  [
                  "damage",

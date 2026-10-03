@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 26/06/2026, 20:16:29
+ * Last Sync: 04/08/2026, 01:57:04
  * Dependents: hooks/useAbilitySystem.ts
- * Imports: 6 files
+ * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -22,11 +22,17 @@
 import { useCallback } from 'react';
 import { CombatCharacter, Ability, Position, BattleMapData, CombatState, AbilityCost } from '../../types/combat';
 import type { SpellTargeting } from '../../types/spells';
-import { getDistance, getCharacterDistance, getOccupiedTiles } from '../../utils/combatUtils';
+import { getCharacterDistance, getOccupiedTiles } from '../../utils/combat';
 import { canAffordActionCost } from '../../utils/combat/actionEconomyUtils';
-import { hasLineOfSight } from '../../utils/lineOfSight';
+import { hasLineOfSight } from '../../utils/spatial';
 import { CreatureTaxonomy } from '../../systems/creatures/CreatureTaxonomy';
 import { TargetResolver } from '../../systems/spells/targeting/TargetResolver';
+import {
+    getBattleMapTileAltitudeFeet,
+    getCombatDistanceFeet,
+    getCombatantAltitudeFeet,
+    getCombatantToPositionDistanceFeet,
+} from '../../utils/spatial/elevationGeometry';
 
 interface UseTargetValidatorProps {
     characters: CombatCharacter[];
@@ -55,6 +61,24 @@ const formatTileDistance = (distance: number): string => {
 // generic label for empty-ground clicks and malformed map state.
 const getTargetLabel = (targetCharacter: CombatCharacter | null): string => {
     return targetCharacter?.name ?? 'That target';
+};
+
+export const getBloodCircleRejection = (
+    caster: CombatCharacter,
+    targetCharacter: CombatCharacter | null
+): string | null => {
+    const protectedTiles = caster.summonMetadata?.bloodCircle?.protectedTiles;
+    if (!targetCharacter || !protectedTiles?.length) {
+        return null;
+    }
+
+    const targetTiles = getOccupiedTiles(targetCharacter);
+    const isInsideCircle = targetTiles.some(targetTile => protectedTiles.some(protectedTile =>
+        protectedTile.x === targetTile.x && protectedTile.y === targetTile.y
+    ));
+    return isInsideCircle
+        ? `${caster.name} cannot target creatures inside its protective blood circle.`
+        : null;
 };
 
 // Spell-created abilities can carry the original structured spell data. When
@@ -118,7 +142,8 @@ export const findTouchDeliveryActor = (
     ability: Ability,
     caster: CombatCharacter,
     targetCharacter: CombatCharacter | null,
-    characters: CombatCharacter[]
+    characters: CombatCharacter[],
+    mapData?: BattleMapData | null,
 ): { deliveryActor: CombatCharacter; casterDistance: number; targetDistance: number } | null => {
     if (!targetCharacter || !isTouchSpell(ability)) {
         return null;
@@ -129,9 +154,13 @@ export const findTouchDeliveryActor = (
             return false;
         }
 
-        const casterDistanceFeet = getCharacterDistance(caster, candidate) * 5;
+        const casterDistanceFeet = mapData
+            ? getCombatDistanceFeet(caster, candidate, mapData)
+            : getCharacterDistance(caster, candidate) * 5;
         const deliveryRangeFeet = candidate.summonMetadata?.actionPermissions?.touchDeliveryRangeFeet ?? 100;
-        const targetDistanceTiles = getCharacterDistance(candidate, targetCharacter);
+        const targetDistanceTiles = mapData
+            ? getCombatDistanceFeet(candidate, targetCharacter, mapData) / 5
+            : getCharacterDistance(candidate, targetCharacter);
         const touchDeliveryCost = candidate.summonMetadata?.actionPermissions?.touchDeliveryCost ?? 'reaction';
         const deliveryActionCost = getTouchDeliveryActionCost(touchDeliveryCost);
         const deliveryCostAvailable = !deliveryActionCost ||
@@ -146,8 +175,12 @@ export const findTouchDeliveryActor = (
 
     return {
         deliveryActor: familiar,
-        casterDistance: getCharacterDistance(caster, familiar),
-        targetDistance: getCharacterDistance(familiar, targetCharacter)
+        casterDistance: mapData
+            ? getCombatDistanceFeet(caster, familiar, mapData) / 5
+            : getCharacterDistance(caster, familiar),
+        targetDistance: mapData
+            ? getCombatDistanceFeet(familiar, targetCharacter, mapData) / 5
+            : getCharacterDistance(familiar, targetCharacter)
     };
 };
 
@@ -190,17 +223,28 @@ export function useTargetValidator({ characters, mapData }: UseTargetValidatorPr
 
         const targetCharacter = getCharacterAtPosition(targetPosition);
 
+        const bloodCircleRejection = getBloodCircleRejection(caster, targetCharacter);
+        if (bloodCircleRejection) {
+            return { isValid: false, reason: bloodCircleRejection };
+        }
+
         // 2. Range Check
         // If we targeted a character, use character-to-character distance (closest tiles).
         // Otherwise use position-to-position distance.
-        const distance = targetCharacter 
-            ? getCharacterDistance(caster, targetCharacter)
-            : getDistance(caster.position, targetPosition);
+        const distance = targetCharacter
+            ? getCombatDistanceFeet(caster, targetCharacter, mapData) / 5
+            : getCombatantToPositionDistanceFeet(caster, targetPosition, mapData) / 5;
 
         // Touch spells can originate from a permissioned controlled actor when
         // the caster is personally out of reach. Keep the local name shared so
         // this path does not drift back into Find Familiar-only assumptions.
-        const touchDelivery = findTouchDeliveryActor(ability, caster, targetCharacter, characters);
+        const touchDelivery = findTouchDeliveryActor(
+            ability,
+            caster,
+            targetCharacter,
+            characters,
+            mapData,
+        );
 
         if (distance > ability.range && !touchDelivery) {
             const targetLabel = getTargetLabel(targetCharacter);
@@ -228,7 +272,18 @@ export function useTargetValidator({ characters, mapData }: UseTargetValidatorPr
                 return targetTiles.some(tPos => {
                     const tTile = mapData.tiles.get(`${tPos.x}-${tPos.y}`);
                     if (!tTile) return false;
-                    return hasLineOfSight(cTile, tTile, mapData);
+                    const startAltitudeFeet = getCombatantAltitudeFeet(
+                        lineOfSightSource,
+                        mapData,
+                        cPos,
+                    );
+                    const endAltitudeFeet = targetCharacter
+                        ? getCombatantAltitudeFeet(targetCharacter, mapData, tPos)
+                        : getBattleMapTileAltitudeFeet(tTile);
+                    return hasLineOfSight(cTile, tTile, mapData, {
+                        startAltitudeFeet,
+                        endAltitudeFeet,
+                    });
                 });
             });
 
@@ -339,7 +394,7 @@ export function useTargetValidator({ characters, mapData }: UseTargetValidatorPr
                 }
                 return { isValid: true };
             case 'single_any':
-                if (!targetCharacter) {
+                if (!targetCharacter && ability.spell?.id !== 'scrying') {
                     return {
                         isValid: false,
                         reason: `${ability.name} needs a creature target.`

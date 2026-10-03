@@ -28,4 +28,4 @@ Last updated: 2026-06-25
 - Route cross-project items to `docs/projects/GLOBAL_GAPS.md` only if ownership is truly outside this task area.
 - Keep in-project gap IDs here and mirror in `TRACKER.md` for visibility.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/action-system-refactor/GAPS.md","sha256WithoutMarker":"01054b7669aec12953686bcb31cdf0afbaf943cb2d48b30720770e49d662479d","markedAtUtc":"2026-06-25T22:29:38.301Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/action-system-refactor/GAPS.md","sha256WithoutMarker":"106ed844f5177ab52e10e4b4b6b1a0acd10dfe1720384025cb0eed179e1426c1","markedAtUtc":"2026-08-09T20:14:15.525Z"} -->

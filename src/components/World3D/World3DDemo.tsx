@@ -1,23 +1,21 @@
 ﻿/**
  * @file World3DDemo.tsx
- * @description Self-contained host for the streamed 3D world. Generates a full world via the
- * real generation pipeline (`generateMap` â†’ `WorldData` v2) and feeds World3DScene an inline
- * (main-thread) chunk loader.
- *
- * Why this is built this way:
- * - Using the real `generateMap` pipeline (instead of a synthetic all-`plains` heightmap) means
- *   the demo showcases the *actual* implemented content: varied biomes, flow-traced rivers,
- *   the MST road graph, and placed towns/dungeons/ruins â€” the same data the live atlas + 3D
- *   world consume. (Resolves gap W3D-G8 / task T4.)
- * - The inline loader keeps the sandbox runnable without the Web Worker pool (worker-backed
- *   loading is tracked separately as W3D-G1).
- * - The camera spawns on the town with the greatest local terrain relief and is lifted to that
- *   ground elevation, so the now vertically-exaggerated hills read immediately rather than
- *   spawning on flat coast/ocean or a flat plateau (W3D-G11 / T8).
+ * @description Self-contained host for the streamed 3D ground world. One-worldmap
+ * cleanup 2026-08-05: the legacy continent sandbox (generateMap → WorldData grid,
+ * inline chunk loader) is gone. The demo now always runs the canonical Worldforge
+ * ground pipeline — the same cell-addressed Local artifacts the game streams.
+ * URL tuning: ?gx/?gy (grid window), ?dcell (atlas cell), ?wfseed, ?hour, ?seam=1.
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import World3DScene from './World3DScene';
+import SubmapSvgView from '../Worldforge/SubmapSvgView';
+import { atlasCellToSubmapContext } from '@/systems/worldforge/submap/l0Adapter';
+import {
+  generateSubmap,
+  normalizeParentContextScale,
+} from '@/systems/worldforge/submap/submapEngine';
+import { rootSeedPath } from '@/systems/worldforge/seedPath';
 import { createForgeAssetService } from '@/systems/worldforge/assets/forgeAssetService';
 import { assetAddress } from '@/systems/worldforge/assets/assetKey';
 
@@ -36,8 +34,6 @@ if (urlParams.get('stubForgeAssets') === '1') {
   });
 }
 
-import { generateMap } from '@/services/mapService';
-import { BIOMES } from '@/constants';
 import { ALL_RACES_DATA } from '@/data/races';
 import { CLASSES_DATA } from '@/data/classes';
 import type { PlayerCharacter } from '@/types/character';
@@ -73,30 +69,45 @@ const demoCast: SceneCastMember[] = [
   },
   { id: 'demo-commoner', name: 'Quiet Stranger' },
 ];
-import { handleChunkRequest } from '@/systems/world3d/chunkWorkerCore';
-import { WORLD3D_CONFIG, heightToMeters, resolutionForLod } from '@/systems/world3d/config';
+import { heightToMeters } from '@/systems/world3d/config';
 import type { ChunkLoader } from '@/systems/world3d/types';
 import { getWorldforgeLocalForLocation, getWorldforgeLocalForCell, getBridgeAtlas } from '@/systems/worldforge/bridge/legacySubmapBridge';
 import { createGroundChunkLoader } from '@/systems/worldforge/bridge/groundChunkLoader';
 import { pickSeamCellPair, buildSeamStitchedLocal } from '@/systems/worldforge/bridge/seamProbe';
 
-const DEMO_COLS = 60;
-const DEMO_ROWS = 40;
-const DEMO_SEED = 2026;
 /** Worldforge world seed for the ground/seam sandbox (matches the .agent probes). */
 const DEMO_WF_SEED = 42;
 
 const World3DDemo: React.FC = () => {
-  // Worldforge GROUND MODE (?ground=1, slice 3b): stream an L2 LocalArtifact
-  // at walking scale (5 ft cells) through the same scene/streamer the
-  // continent demo uses â€” the loaders differ, nothing else does.
-  const groundMode = useMemo(
-    () => new URLSearchParams(window.location.search).get('ground') === '1',
-    [],
-  );
+  // One-worldmap cleanup: the demo is ground-mode only. `?ground=1` is accepted
+  // for old bookmarks but no longer selects between pipelines.
+  const groundMode = true;
+
+  // The ground harness's cell address, re-read here for the 2D zoom-out
+  // overlay (the loader memo consumes the same params internally).
+  const { dcell, wfSeed } = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    const dcellParam = params.get('dcell');
+    return {
+      dcell: groundMode && dcellParam != null ? Number(dcellParam) : null,
+      wfSeed: Number(params.get('wfseed') ?? DEMO_WF_SEED),
+    };
+  }, [groundMode]);
+  // ?ground=1&dcell=N only: "zoom out" overlay showing the 2D Voronoi submap
+  // of the SAME atlas cell this window streams, via the same engine the
+  // in-game MapPane drill uses.
+  const [show2dSubmap, setShow2dSubmap] = useState(false);
+  const submapModel = useMemo(() => {
+    if (!show2dSubmap || dcell == null) return null;
+    const atlas = getBridgeAtlas(wfSeed);
+    const ctx = normalizeParentContextScale(
+      atlasCellToSubmapContext(atlas, dcell, rootSeedPath(wfSeed)),
+    );
+    return generateSubmap(ctx);
+  }, [show2dSubmap, dcell, wfSeed]);
 
   const { loader, start, startSurfaceY, ground: demoGround } = useMemo(() => {
-    if (groundMode) {
+    {
       // Location is URL-tunable: ?ground=1&gx=17&gy=4 → river window;
       // default (16,4) spawns at a town site. Scans: find-river/find-town
       // probes in .agent/a8/.
@@ -148,7 +159,11 @@ const World3DDemo: React.FC = () => {
         dcellParam != null
           ? getWorldforgeLocalForCell(wfSeed, Number(dcellParam))
           : getWorldforgeLocalForLocation(wfSeed, gx, gy, 25, 16);
-      const { ground, loader: groundLoader } = createGroundChunkLoader(bridged.local, wfSeed, bridged.region, { hour });
+      // anchorCellId threads the per-window canopy (forests) and snow line
+      // (mountains) into dev ground entries — without it every dcell/gx-gy
+      // shoot rendered snowless, canopy-less terrain the game path never shows.
+      const { ground, loader: groundLoader } = createGroundChunkLoader(
+        bridged.local, wfSeed, bridged.region, { hour, anchorCellId: bridged.anchorCellId });
 
       // Spawn at the artifact center, on the ground surface
       const startX = ground.extentMetersX / 2;
@@ -166,55 +181,6 @@ const World3DDemo: React.FC = () => {
         ground,
       };
     }
-    // Run the real world-generation pipeline so the demo renders authentic rivers, roads,
-    // towns, and varied biomes rather than a uniform-plains placeholder.
-    const map = generateMap(DEMO_ROWS, DEMO_COLS, {}, BIOMES, DEMO_SEED);
-    const world = map.worldData;
-    if (!world) {
-      throw new Error('World3DDemo: generateMap did not produce worldData (v2). Check the worldSim pipeline.');
-    }
-
-    const inlineLoader: ChunkLoader = async (cx, cy, lod) =>
-      handleChunkRequest(world, { cx, cy, resolution: resolutionForLod(lod) });
-
-    // Spawn on the town with the greatest *local relief* (maxâˆ’min terrain height in its
-    // neighborhood) so the camera frames varied, hilly ground where the now vertically-exaggerated
-    // relief reads clearly â€” rather than the first town (often a flat coastal/sea-level site) or
-    // the highest town (often a flat plateau top). Falls back to the world's geometric center.
-    const { cols: wCols, rows: wRows } = world.gridSize;
-    const heightAtCell = (gx: number, gy: number): number => {
-      const cx = Math.max(0, Math.min(wCols - 1, Math.round(gx)));
-      const cy = Math.max(0, Math.min(wRows - 1, Math.round(gy)));
-      return world.heights[cy * wCols + cx] ?? 0;
-    };
-    const localRelief = (gx: number, gy: number): number => {
-      let min = Infinity, max = -Infinity;
-      for (let dy = -2; dy <= 2; dy++) {
-        for (let dx = -2; dx <= 2; dx++) {
-          const h = heightAtCell(gx + dx, gy + dy);
-          if (h < min) min = h;
-          if (h > max) max = h;
-        }
-      }
-      return max - min;
-    };
-    const towns = world.sites.filter((s) => s.kind === 'town');
-    const spawnTown = towns.length
-      ? towns.reduce((best, s) =>
-          localRelief(s.position.x, s.position.y) > localRelief(best.position.x, best.position.y) ? s : best,
-        )
-      : undefined;
-    const startGridX = spawnTown ? spawnTown.position.x : DEMO_COLS / 2;
-    const startGridY = spawnTown ? spawnTown.position.y : DEMO_ROWS / 2;
-    const startX = startGridX * WORLD3D_CONFIG.METERS_PER_CELL;
-    const startZ = startGridY * WORLD3D_CONFIG.METERS_PER_CELL;
-
-    // Terrain is now vertically exaggerated, so the spawn surface can sit hundreds of meters up.
-    // Convert the spawn cell's height (via the same exaggerated mapping the geometry builders use)
-    // so the scene can frame the camera on the actual ground, not Y=0.
-    const startSurfaceY = heightToMeters(heightAtCell(startGridX, startGridY));
-
-    return { loader: inlineLoader, start: [startX, 0, startZ] as const, startSurfaceY, ground: null };
   }, [groundMode]);
 
   return (
@@ -229,10 +195,52 @@ const World3DDemo: React.FC = () => {
         {groundMode
           ? 'This URL-only harness reconstructs a canonical cell-addressed Local artifact for diagnostics. Player exploration enters through Atlas and preserves its selected artifact in memory.'
           : 'Right-click and drag to pan the camera across the landscape. Chunks will stream in and out in real time!'}
+        {dcell != null && (
+          <button
+            type="button"
+            onClick={() => setShow2dSubmap((v) => !v)}
+            style={{
+              marginLeft: '12px',
+              padding: '4px 12px',
+              fontSize: '13px',
+              fontFamily: 'Outfit, sans-serif',
+              color: '#e8eef4',
+              background: '#2c4a68',
+              border: '1px solid #1a2a3a',
+              borderRadius: '6px',
+              cursor: 'pointer',
+            }}
+          >
+            {show2dSubmap ? `Back to 3D` : `Zoom out — 2D submap of cell ${dcell}`}
+          </button>
+        )}
       </p>
       {/* Absolute-inset slot: gives World3DScene's height:100% root a DEFINITE
           height regardless of how the flex column resolves percentages. */}
       <div style={{ flex: '1 1 auto', minHeight: '520px', position: 'relative' }}>
+        {/* 2D zoom-out overlay: the streamed cell's Voronoi submap, over the
+            (kept-mounted) 3D scene so toggling back is instant. */}
+        {show2dSubmap && submapModel && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: '#0b1420',
+              borderRadius: '8px',
+            }}
+          >
+            <SubmapSvgView
+              model={submapModel}
+              width={Math.min(1100, window.innerWidth - 120)}
+              height={Math.min(760, window.innerHeight - 220)}
+              prefsScope={wfSeed}
+            />
+          </div>
+        )}
         <div style={{ position: 'absolute', inset: 0 }}>
           <World3DScene loader={loader} start={start} startSurfaceY={startSurfaceY} viewProfile={groundMode ? 'ground' : 'continent'}
             forgeAssetService={_stubService}

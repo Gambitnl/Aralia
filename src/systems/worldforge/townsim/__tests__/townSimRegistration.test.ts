@@ -104,7 +104,9 @@ describe('canonical building lifecycle', () => {
     expect(kinds).toContain('abandonment');
     expect(kinds).toContain('reoccupation');
     expect(kinds).toContain('ruin');
-  }, 20000);
+    // 2026-07-20: 20s → 60s. Corner-wedge packing raised canonical town
+    // density ~25%, and this century sim scales with building count.
+  }, 60_000);
 });
 
 describe('TOWNSIM_REGISTER_BURG reducer (Plan D wiring)', () => {

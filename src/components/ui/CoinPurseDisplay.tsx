@@ -20,7 +20,7 @@
  * @component-owner Gameplay Team / Core UI
  */
 import React from 'react';
-import { gpToCoins, COIN_ICONS, COIN_COLORS, CoinBreakdown } from '../../utils/coinPurseUtils';
+import { gpToCoins, COIN_ICONS, COIN_COLORS, CoinBreakdown } from '../../utils/character';
 import Tooltip from '../Tooltip';
 
 interface CoinPurseDisplayProps {

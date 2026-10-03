@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * RE-EXPORT BRIDGE / MIDDLEMAN: Forwards exports to another file.
  *
- * Last Sync: 31/05/2026, 23:02:40
+ * Last Sync: 23/07/2026, 20:43:33
  * Dependents: hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionExecutor.ts
  * Imports: 1 files
  *
@@ -37,6 +37,7 @@ export {
     processMovementTriggers,
     convertSpellEffectToProcessed,
     resetZoneTurnTracking,
+    recenterConjureAnimalsZonesForPackMove,
     createSpellZone,
     createScheduledSpellEffect,
     createMovementDebuff

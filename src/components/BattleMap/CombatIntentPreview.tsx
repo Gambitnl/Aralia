@@ -54,6 +54,8 @@ const targetInstruction = (targeting: TargetingType): string => {
     self: 'Choose a destination',
     all_enemies: 'All enemies are targeted',
     all_allies: 'All allies are targeted',
+    multiple_enemies: 'Choose enemies',
+    multiple_any: 'Choose creatures',
   };
 
   return instructions[targeting];

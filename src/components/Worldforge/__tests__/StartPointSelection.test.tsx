@@ -4,12 +4,17 @@ import StartPointSelection from '../StartPointSelection';
 
 // Heavy SVG atlas → stub it; we only test the selection panel behavior here.
 vi.mock('../AtlasSvgView', () => ({
-  default: ({ marker }: { marker: { x: number; y: number } | null }) => (
-    <div data-testid="atlas-stub" data-marker={marker ? `${marker.x},${marker.y}` : 'none'} />
+  default: ({ marker, prefsScope }: { marker: { x: number; y: number } | null; prefsScope?: string | number }) => (
+    <div
+      data-testid="atlas-stub"
+      data-marker={marker ? `${marker.x},${marker.y}` : 'none'}
+      data-prefs-scope={prefsScope}
+    />
   ),
 }));
 
-// Deterministic fake world: two states + three burgs (one capital each region).
+// Deterministic fake world: two states plus enough burgs to exercise the same
+// bounded paging contract used by canonical 700+ town worlds.
 vi.mock('../../../systems/worldforge/fmg/generateWorld', () => ({
   generateFmgWorld: () => ({
     pack: {
@@ -24,6 +29,15 @@ vi.mock('../../../systems/worldforge/fmg/generateWorld', () => ({
         { i: 1, cell: 10, name: 'Aldermoor', x: 5, y: 5, state: 1, population: 3 },
         { i: 2, cell: 20, name: 'Riverford', x: 9, y: 2, state: 2, population: 6, capital: 1, port: 1 },
         { i: 3, cell: 30, name: 'Briar', x: 1, y: 8, state: 1, population: 1, capital: 1 },
+        ...Array.from({ length: 202 }, (_, index) => ({
+          i: index + 4,
+          cell: index + 40,
+          name: `Town ${String(index + 1).padStart(3, '0')}`,
+          x: index + 2,
+          y: index + 3,
+          state: 1,
+          population: 0.5,
+        })),
       ],
     },
   }),
@@ -37,6 +51,12 @@ beforeEach(() => {
 });
 
 describe('StartPointSelection', () => {
+  it('scopes saved map colors to the selected world seed', () => {
+    render(<StartPointSelection worldSeed={5678} onConfirm={vi.fn()} />);
+
+    expect(screen.getByTestId('atlas-stub')).toHaveAttribute('data-prefs-scope', '5678');
+  });
+
   it('lists towns, defaults to a selection, and fires onConfirm with the chosen town', () => {
     const onConfirm = vi.fn();
     render(<StartPointSelection worldSeed={123} onConfirm={onConfirm} characterName="Aria" />);
@@ -60,7 +80,7 @@ describe('StartPointSelection', () => {
   it('filters towns by region', () => {
     render(<StartPointSelection worldSeed={123} onConfirm={vi.fn()} />);
     const list = screen.getByTestId('start-town-list');
-    // All three real towns visible initially.
+    // Named fixtures remain available in the larger catalogue.
     expect(within(list).queryByText('Aldermoor')).toBeTruthy();
     expect(within(list).queryByText('Riverford')).toBeTruthy();
 
@@ -130,5 +150,83 @@ describe('StartPointSelection', () => {
     expect(screen.getByRole('button', { name: 'Back' })).toHaveStyle({ minHeight: '44px' });
     expect(screen.getByTestId('start-surprise')).toHaveStyle({ minHeight: '44px' });
     expect(screen.getByTestId('start-confirm')).toHaveStyle({ minHeight: '44px' });
+  });
+
+  it('exposes the town list as a bounded ARIA listbox with keyboard navigation (GG-40)', () => {
+    render(<StartPointSelection worldSeed={123} onConfirm={vi.fn()} />);
+
+    // One listbox (a single tab stop) that announces the result count, instead
+    // of hundreds of sibling buttons flooding the accessibility tree.
+    const list = screen.getByTestId('start-town-list');
+    expect(list).toHaveAttribute('role', 'listbox');
+    expect(list).toHaveAttribute('tabindex', '0');
+    expect(list.getAttribute('aria-label')).toMatch(/Selectable towns, \d+ result/);
+
+    // Rows are options carrying selection state; the active option is referenced.
+    const rows = screen.getAllByTestId('start-town-row');
+    expect(rows[0]).toHaveAttribute('role', 'option');
+    expect(rows.every((r) => r.getAttribute('tabindex') === '-1')).toBe(true);
+    const selected = rows.find((r) => r.getAttribute('aria-selected') === 'true')!;
+    expect(selected).toBeTruthy();
+    expect(list.getAttribute('aria-activedescendant')).toBe(selected.id);
+
+    // Arrow-down moves the active option to the next town without leaving the listbox.
+    fireEvent.keyDown(list, { key: 'ArrowDown' });
+    const nextSelected = screen
+      .getAllByTestId('start-town-row')
+      .find((r) => r.getAttribute('aria-selected') === 'true')!;
+    expect(nextSelected.id).not.toBe(selected.id);
+    expect(screen.getByTestId('start-town-list').getAttribute('aria-activedescendant')).toBe(nextSelected.id);
+  });
+
+  it('keeps broad search results bounded and makes every result reachable by page or exact search', () => {
+    render(<StartPointSelection worldSeed={123} onConfirm={vi.fn()} />);
+
+    expect(screen.getAllByTestId('start-town-row')).toHaveLength(150);
+    expect(screen.getByTestId('start-town-results')).toHaveTextContent('Showing towns 1 to 150 of 205. Page 1 of 2.');
+
+    // A broad query still exposes one bounded page, rather than rebuilding a
+    // 202-option accessibility tree.
+    fireEvent.change(screen.getByTestId('start-search'), { target: { value: 'Town' } });
+    expect(screen.getAllByTestId('start-town-row')).toHaveLength(150);
+    expect(screen.getByTestId('start-town-results')).toHaveTextContent('Showing towns 1 to 150 of 202. Page 1 of 2.');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next towns' }));
+    expect(screen.getAllByTestId('start-town-row')).toHaveLength(52);
+    expect(screen.getByTestId('start-town-results')).toHaveTextContent('Showing towns 151 to 202 of 202. Page 2 of 2.');
+    expect(within(screen.getByTestId('start-town-list')).getByText('Town 202')).toBeTruthy();
+
+    // Exact search remains the shortest route to any canonical town.
+    fireEvent.change(screen.getByTestId('start-search'), { target: { value: 'Town 202' } });
+    expect(screen.getAllByTestId('start-town-row')).toHaveLength(1);
+    expect(within(screen.getByTestId('start-town-list')).getByText('Town 202')).toBeTruthy();
+  });
+
+  it('never confirms a town hidden by filtering and supports the full listbox key set', () => {
+    const onConfirm = vi.fn();
+    render(<StartPointSelection worldSeed={123} onConfirm={onConfirm} />);
+
+    // The default capital is not Aldermoor. Filtering must move the active
+    // option before Enter is allowed to confirm anything.
+    fireEvent.change(screen.getByTestId('start-search'), { target: { value: 'Aldermoor' } });
+    const list = screen.getByTestId('start-town-list');
+    expect(list).toHaveAttribute('aria-activedescendant', 'start-town-opt-1');
+    fireEvent.keyDown(list, { key: 'Enter' });
+    expect(onConfirm).toHaveBeenLastCalledWith(expect.objectContaining({ name: 'Aldermoor' }));
+
+    // Home and End stay within the visible page; Space confirms its visible
+    // active option just like Enter.
+    fireEvent.change(screen.getByTestId('start-search'), { target: { value: 'Town' } });
+    fireEvent.keyDown(list, { key: 'End' });
+    expect(list).toHaveAttribute('aria-activedescendant', 'start-town-opt-153');
+    fireEvent.keyDown(list, { key: 'Home' });
+    expect(list).toHaveAttribute('aria-activedescendant', 'start-town-opt-4');
+    fireEvent.keyDown(list, { key: ' ' });
+    expect(onConfirm).toHaveBeenLastCalledWith(expect.objectContaining({ name: 'Town 001' }));
+
+    fireEvent.change(screen.getByTestId('start-search'), { target: { value: 'not a real town' } });
+    expect(screen.getByTestId('start-confirm')).toBeDisabled();
+    fireEvent.keyDown(list, { key: 'Enter' });
+    expect(onConfirm).toHaveBeenCalledTimes(2);
   });
 });

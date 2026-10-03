@@ -54,4 +54,12 @@ describe('Pathfinding Heuristic (Chebyshev Distance)', () => {
     const a = createTile(5, 5);
     expect(heuristic(a, a)).toBe(0);
   });
+
+  it('includes unavoidable vertical feet in the optimistic path cost', () => {
+    const low = createTile(0, 0);
+    const high = { ...createTile(4, 0), elevation: 10 };
+
+    expect(heuristic(low, high)).toBe(30);
+    expect(heuristic(high, low)).toBe(30);
+  });
 });

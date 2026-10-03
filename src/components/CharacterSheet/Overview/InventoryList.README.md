@@ -42,8 +42,10 @@ This component was extracted from `CharacterSheetModal.tsx` to improve modularit
             *   Weight and Cost.
         *   **Action Buttons**:
             *   **Use**: Shown for 'consumable' items. Triggers `onAction` with `type: 'USE_ITEM'`.
-            *   **Equip**: Shown for 'armor' or 'weapon' items that have a `slot`.
-                *   Its `disabled` state is determined by `checkCanEquipItem(character, item)`.
+            *   **Equip**: Shown for every equippable item type ('armor', 'weapon', 'accessory'), whether or not it declares a `slot`.
+                *   The target slot is resolved the way `characterReducer`'s `EQUIP_ITEM` case resolves it, so the button never promises an equip the reducer would drop: a slotless ONE-HANDED weapon routes to the free hand and stays enabled, while slotless armor and slotless two-handed weapons render disabled with "No equipment slot defined for this item."
+                *   Weapon vs armor slot rules run next, using `slotAcceptsItem` / `slotRejectionReason` exported from `EquipmentMannequin.tsx` (the paper doll owns the slot-kind table). Armor resolved into a hand, or a weapon resolved into a body slot, is blocked with the reason regardless of proficiency. Accessories stay permissive.
+                *   Only then is `canEquipItem(character, item)` consulted for level/class/ability/proficiency requirements.
                 *   The tooltip for the "Equip" button shows "Equip [Item Name]" if enabled, or the reason why it cannot be equipped (e.g., "Not proficient", "Requires X Strength") if disabled.
                 *   Triggers `onAction` with `type: 'EQUIP_ITEM'`.
             *   **Drop**: Shown for all items. Triggers `onAction` with `type: 'DROP_ITEM'`.

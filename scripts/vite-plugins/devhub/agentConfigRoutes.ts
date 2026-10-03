@@ -46,23 +46,12 @@ export async function handleAgentConfigRoutes(ctx: DevHubRouteContext): Promise<
             return item;
           })
         : [];
-      const claudeCmdsDir = path.resolve(process.cwd(), '.claude/commands');
-      const conductorCommands = fs.existsSync(claudeCmdsDir)
-        ? fs.readdirSync(claudeCmdsDir, { withFileTypes: true })
-          .filter((d: any) => d.isFile() && d.name.startsWith('conductor-') && d.name.endsWith('.md'))
-          .map((d: any) => ({ name: d.name.replace('.md', ''), path: `.claude/commands/${d.name}`, source: 'claude' }))
-        : [];
-      const allWorkflows = readMdFiles('workflows');
-      const trackWorkflows = allWorkflows
-        .filter((w: any) => w.name.startsWith('track-'))
-        .map((w: any) => ({ ...w, source: 'agent' }));
-      const workflows = allWorkflows.filter((w: any) => !w.name.startsWith('track-'));
-      const conductor = [...conductorCommands, ...trackWorkflows];
+      const workflows = readMdFiles('workflows');
       const chainExtras = (chainConfig.extras || []).map((e: any) => ({
         ...e,
         chain: 'tidy-up',
       }));
-      json({ rules: readMdFiles('rules'), skills, workflows: [...workflows, ...chainExtras], conductor });
+      json({ rules: readMdFiles('rules'), skills, workflows: [...workflows, ...chainExtras] });
     } catch (e) {
       json({ error: String(e) }, 500);
     }

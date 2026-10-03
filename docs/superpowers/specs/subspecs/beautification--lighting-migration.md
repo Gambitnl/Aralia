@@ -1,10 +1,12 @@
 # Sub-spec: Lighting/atmosphere migration
 
-**Parent:** `../2026-07-02-world-beautification-wave.md` · **Status:** BUILT + screenshot-verified 2026-07-04 (`src/components/World3D/World3DLighting.tsx`): time-of-day sun model (fixed late-morning default), warm sun key + cool/warm hemisphere fill, drei `Sky` aligned to the sun, sky-tinted distance fog, and soft shadows via a camera-following texel-snapped ortho frustum — ground profile only (continent stays shadowless; that km-wide shadow pass caused the historical stalls). Volumetric/region-bounded fog volumes and clouds remain open.
+**Parent:** `../2026-07-02-world-beautification-wave.md` · **Status:** BUILT + screenshot-verified 2026-07-04 (`src/components/World3D/World3DLighting.tsx`): time-of-day sun model (fixed late-morning default), warm sun key + cool/warm hemisphere fill, drei `Sky` aligned to the sun, sky-tinted distance fog, and soft shadows via a camera-following texel-snapped ortho frustum - ground profile only (continent stays shadowless; that km-wide shadow pass caused the historical stalls). Volumetric/region-bounded fog volumes and clouds remain open.
 
 ## Decision
-The battle map's theme lighting/atmosphere moves into ground mode. Sky: adopt three.js in-tree `Sky` (MIT) as baseline. Clouds: trial the Nubis-port and WebGPU-fallback repos (verify licenses). Fog: port the analytic volumetric-primitive technique (closed-form GLSL, re-derive the math — the source blog post has no license, so no literal code copying). Region-bounded fog volumes (valley mist, swamp fog) are the target use.
+The battle map's theme lighting/atmosphere moves into ground mode. Sky: adopt three.js in-tree `Sky` (MIT) as baseline. Clouds: trial the Nubis-port and WebGPU-fallback repos (verify licenses). Fog: port the analytic volumetric-primitive technique (closed-form GLSL, re-derive the math - the source blog post has no license, so no literal code copying). Region-bounded fog volumes (valley mist, swamp fog) are the target use.
 
 ## Open
 - Time-of-day integration with the game clock (occupant schedules already keyed to hours).
 - Whether Bruneton-quality sky (`@takram/three-atmosphere` trial) is worth the lift now or later.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/subspecs/beautification--lighting-migration.md","sha256WithoutMarker":"dd45af937a657a83c95a755271e49b82e46f6056c8e068bb429624b5e2852e5b","markedAtUtc":"2026-08-09T20:24:28.237Z"} -->

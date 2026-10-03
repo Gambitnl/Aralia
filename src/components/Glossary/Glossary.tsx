@@ -33,10 +33,10 @@
 import React, { useEffect, useRef, useState, useCallback, useContext, useMemo } from 'react';
 import GlossaryContext from '../../context/GlossaryContext';
 import { GlossaryEntry } from '../../types';
-import { findGlossaryEntryAndPath } from '../../utils/glossaryUtils';
+import { findGlossaryEntryAndPath } from '../../utils/visuals';
 import { useSpellGateChecks } from './spellGateChecker/useSpellGateChecks';
 import { SpellData } from './SpellCardTemplate';
-import { fetchWithTimeout } from '../../utils/networkUtils';
+import { fetchWithTimeout } from '../../utils/context';
 import { assetUrl } from '../../config/env';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
@@ -389,9 +389,8 @@ const Glossary: React.FC<GlossaryProps> = ({
       })
       .catch(() => {
         if (cancelled) return;
-        // DEBT: We currently fail open here because missing enrichment data should not
-        // break the whole glossary. If the canonical rule-link lane becomes mandatory,
-        // surface a user-visible warning instead of silently hiding the chips.
+        // Adding visible warnings or link gate when rule-link enrichment dataset is missing is tracked in Agora task agora-65d0.
+        // We currently fail open here because missing enrichment data should not break the whole glossary.
         setSpellReferencedRulesBySpellId({});
       });
 

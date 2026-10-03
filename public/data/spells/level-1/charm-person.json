@@ -163,6 +163,7 @@
                                                                 {
                                                                     "type":  "advantage",
                                                                     "reason":  "The target has advantage on the saving throw if you or your companions are fighting it.",
+                                                                    "condition":  "caster_or_allies_fighting_target",
                                                                     "value":  0,
                                                                     "appliesTo":  {
                                                                                       "creatureTypes":  [
@@ -246,7 +247,7 @@
                                                    {
                                                        "trigger":  "caster_or_ally_damages_target",
                                                        "scope":  "spell",
-                                                       "description":  "The spell ends if the caster or one of the caster\u0027s allies damages the target."
+                                                       "description":  "The spell ends if the caster or one of the caster's allies damages the target."
                                                    }
                                                ],
                         "tags":  [

@@ -316,17 +316,21 @@ export function generatePrecipitation(
     // subsequent typed-array accesses (cells.h[first], cells.prec[current])
     // hit junk string keys / produce NaN humidity — no real element is
     // modified and no RNG is drawn on that path. Replicated verbatim via the
-    // `any` typing below.
-    for (let first of source as any[]) {
-      if (first[0]) {
-        maxPrec = Math.min(maxPrecInit * first[1], 255);
-        first = first[0];
+    // two narrowing casts below (the tuple cast reproduces number[0]/number[1]
+    // junk accesses on the `number[]` source; the index cast preserves the
+    // tuple-indexed typed-array junk access on the cellId-0 path).
+    for (let first of source) {
+      const tuple = first as [number, number, number];
+      if (tuple[0]) {
+        maxPrec = Math.min(maxPrecInit * tuple[1], 255);
+        first = tuple[0];
       }
 
-      let humidity = maxPrec - cells.h![first]; // initial water amount
+      const index = first as number;
+      let humidity = maxPrec - cells.h![index]; // initial water amount
       if (humidity <= 0) continue; // if first cell in row is too elevated consider wind dry
 
-      for (let s = 0, current = first; s < steps; s++, current += next) {
+      for (let s = 0, current = index; s < steps; s++, current += next) {
         if (cells.temp![current] < -5) continue; // no flux in permafrost
 
         if (cells.h![current] < 20) {

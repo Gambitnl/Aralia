@@ -15,6 +15,9 @@
   "itemMetadata": {
     "type": "Potion",
     "rarity": "Legendary",
-    "weight": 0.5
+    "weight": 0.5,
+    "abilitySet": {
+      "str": 29
+    }
   }
 }

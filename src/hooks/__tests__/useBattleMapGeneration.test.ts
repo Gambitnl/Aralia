@@ -11,7 +11,7 @@ import {
   generateProceduralSandboxBattleSetup,
   generateWorldBattleSetup,
 } from "../useBattleMapGeneration";
-import { createMockCombatCharacter } from "../../utils/factories";
+import { createMockCombatCharacter } from "../../utils/core";
 import type { BattleMapData, BattleMapTile } from "../../types/combat";
 
 // ============================================================================

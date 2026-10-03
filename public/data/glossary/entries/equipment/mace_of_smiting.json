@@ -18,6 +18,7 @@
     "type": "Melee Weapon",
     "rarity": "Rare",
     "weight": 4,
-    "damage": "1d6 B"
+    "damage": "1d6 B",
+    "bonusWeapon": "+1"
   }
 }

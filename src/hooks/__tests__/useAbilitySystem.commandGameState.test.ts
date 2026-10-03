@@ -5,11 +5,11 @@ import { ActiveTruePolymorphTransformation, CombatCharacter, Ability, BattleMapD
 import { Spell } from '../../types/spells';
 import { Item } from '../../types';
 import type { ActiveSpellZone } from '../../systems/spells/effects';
-import * as savingThrowUtils from '../../utils/savingThrowUtils';
+import * as savingThrowUtils from '../../utils/character';
 import { combatEvents } from '../../systems/events/CombatEvents';
-import * as combatUtils from '../../utils/combatUtils';
-import shiningSmite from '../../../public/data/spells/level-2/shining-smite.json';
-import blindingSmite from '../../../public/data/spells/level-3/blinding-smite.json';
+import * as combatUtils from '../../utils/combat';
+import shiningSmite from '@/data/spells/level-2/shining-smite.json';
+import blindingSmite from '@/data/spells/level-3/blinding-smite.json';
 import { shieldSpell, attacker, defender, swordItem, basicAttack } from './useAbilitySystem.fixtures';
 
 /**
@@ -86,7 +86,20 @@ vi.mock('../../commands', () => ({
     CommandExecutor: { execute: vi.fn().mockReturnValue({ success: true, finalState: { characters: [], combatLog: [] } }) }
 }));
 
-vi.mock('../../utils/combatUtils', () => ({
+// agora-f821.4 retired the combatUtils roller family; the modules under
+// test roll through systems/dice/rollers now. One hoisted set of mocks
+// stands in for BOTH specifiers, so one vi.mocked(...) pins every die.
+const diceMocks = vi.hoisted(() => ({
+    rollDice: () => 15, // Always roll high for testing hits
+    rollDamage: () => 5
+}))
+
+vi.mock('../../systems/dice/rollers', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../systems/dice/rollers')>()
+  return { ...actual, ...diceMocks }
+})
+
+vi.mock('../../utils/combat', () => ({
     getDistance: vi.fn(() => 5),
     getCharacterDistance: vi.fn(() => 5),
     // useTargetValidator asks for every occupied tile so large tokens and
@@ -95,11 +108,10 @@ vi.mock('../../utils/combatUtils', () => ({
     getOccupiedTiles: (character: CombatCharacter) => [character.position],
     calculateDamage: () => 5,
     generateId: () => 'test-id',
-    rollDice: () => 15, // Always roll high for testing hits
-    rollDamage: () => 5
+    ...diceMocks,
 }));
 
-vi.mock('../../utils/savingThrowUtils', () => ({
+vi.mock('../../utils/character/savingThrowUtils', () => ({
     calculateSpellDC: () => 17,
     rollSavingThrow: vi.fn(() => ({ total: 18, success: true, modifiersApplied: [] }))
 }));
@@ -186,6 +198,83 @@ describe('useAbilitySystem - command game-state context', () => {
         );
     });
 
+    it('wastes a spell before command creation when a target-owned pre-cast save fails', async () => {
+        const { SpellCommandFactory, CommandExecutor } = await import('../../commands');
+        vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValueOnce({
+            total: 8,
+            success: false,
+            modifiersApplied: []
+        });
+
+        const onLogEntry = vi.fn();
+        const onNotification = vi.fn();
+        const restrictedCaster = {
+            ...attacker,
+            id: 'power-word-pain-target',
+            name: 'Pain Target',
+            statusEffects: [{
+                id: 'power-word-pain-status',
+                name: 'Crippling Pain',
+                type: 'debuff',
+                duration: 10,
+                sourceCasterId: 'pain-caster',
+                spellcastingRestriction: {
+                    saveType: 'Constitution',
+                    dc: 16,
+                    failureOutcome: 'casting_fails_and_spell_is_wasted'
+                }
+            }]
+        } as unknown as CombatCharacter;
+        const attemptedSpell = {
+            id: 'attempted-spell',
+            name: 'Attempted Spell',
+            level: 1,
+            school: 'Evocation',
+            classes: ['Wizard'],
+            description: 'A spell used to prove the pre-cast gate.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'ranged', distance: 30 },
+            components: { verbal: true, somatic: true, material: false },
+            duration: { type: 'instantaneous' },
+            targeting: { type: 'single', validTargets: ['enemies'] },
+            effects: [{
+                type: 'DAMAGE',
+                damage: { dice: '1d6', type: 'fire' },
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            }]
+        } as unknown as Spell;
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [restrictedCaster, defender],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate: vi.fn(),
+            onLogEntry,
+            onNotification,
+            onAbilityEffect: vi.fn()
+        }));
+
+        let resolved: unknown;
+        await act(async () => {
+            resolved = await result.current.executeSpell(
+                attemptedSpell,
+                restrictedCaster,
+                [defender],
+                1
+            );
+        });
+
+        expect(resolved).toBe(false);
+        expect(savingThrowUtils.rollSavingThrow).toHaveBeenCalledWith(restrictedCaster, 'Constitution', 16);
+        expect(vi.mocked(SpellCommandFactory.createCommands)).not.toHaveBeenCalled();
+        expect(vi.mocked(CommandExecutor.execute)).not.toHaveBeenCalled();
+        expect(onNotification).toHaveBeenCalledWith(expect.stringContaining('is wasted'), 'warning');
+        expect(onLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+            data: expect.objectContaining({ preCastRestriction: true, castingFailed: true })
+        }));
+    });
+
     it('registers scheduled turn effects after command creation owns the immediate cast', async () => {
         const { CommandExecutor } = await import('../../commands');
         const onAddScheduledSpellEffect = vi.fn();
@@ -213,6 +302,17 @@ describe('useAbilitySystem - command game-state context', () => {
                     statusCondition: { name: 'Dazed', duration: { type: 'rounds', value: 1 } },
                     trigger: { type: 'turn_end' },
                     condition: { type: 'always' }
+                },
+                {
+                    type: 'DAMAGE',
+                    damage: { dice: '2d6', type: 'fire' },
+                    trigger: { type: 'immediate' },
+                    condition: { type: 'always' },
+                    recurringMechanics: {
+                        timing: 'turn_start',
+                        frequency: 'first_per_turn',
+                        damage: { dice: '1d6', type: 'fire' }
+                    }
                 }
             ]
         } as unknown as Spell;
@@ -260,7 +360,7 @@ describe('useAbilitySystem - command game-state context', () => {
         // factory deliberately skips bare scheduled triggers during immediate
         // command creation, then this post-command branch registers durable
         // records for the turn manager/combat engine to resolve later.
-        expect(onAddScheduledSpellEffect).toHaveBeenCalledTimes(2);
+        expect(onAddScheduledSpellEffect).toHaveBeenCalledTimes(3);
         expect(onAddScheduledSpellEffect).toHaveBeenCalledWith(expect.objectContaining({
             spellId: scheduledSpell.id,
             casterId: attacker.id,
@@ -276,6 +376,17 @@ describe('useAbilitySystem - command game-state context', () => {
             timing: 'turn_end',
             saveDC: 17,
             effects: [expect.objectContaining({ trigger: expect.objectContaining({ type: 'turn_end' }) })]
+        }));
+        expect(onAddScheduledSpellEffect).toHaveBeenCalledWith(expect.objectContaining({
+            spellId: scheduledSpell.id,
+            casterId: attacker.id,
+            targetId: defender.id,
+            timing: 'turn_start',
+            recurringMechanic: expect.objectContaining({
+                timing: 'turn_start',
+                frequency: 'first_per_turn'
+            }),
+            effects: [expect.objectContaining({ trigger: expect.objectContaining({ type: 'immediate' }) })]
         }));
     });
 });

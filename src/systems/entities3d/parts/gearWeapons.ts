@@ -16,6 +16,9 @@ import type { Frame, PartDef } from '../types';
 import { heightM } from '../types';
 
 const STEEL = '#b9c2cc';
+/** Forged (unpolished) steel — axe cheeks, poll. The light STEEL tone on the
+ * broad axe cheeks read as a white slab (round-7 verdict). */
+const DARK_STEEL = '#79828c';
 const WOOD = '#7a5a38';
 const GRIP = '#54402c';
 const STRING = '#e8ddc8';
@@ -26,6 +29,21 @@ function unit(frame: Frame): number {
   return heightM(frame) * 0.31;
 }
 
+/** Real-finger update: the round-9/20 gripBand (a worn stack of finger
+ * ellipsoids + thumb over the haft) is GONE. The biped skeleton now carries
+ * real digit bones and the driver wraps them around the haft (gaits.ts
+ * BipedDriver grips), so the hand that grips IS the hand — one code path.
+ * These part ids mark the haft weapons whose holding hand should curl. */
+export const HAFT_WEAPON_IDS: ReadonlySet<string> = new Set([
+  'swordMain',
+  'daggerMain',
+  'daggerOff',
+  'axeMain',
+  'maceMain',
+  'staffMain',
+  'bowMain',
+]);
+
 const swordMain: PartDef = {
   id: 'swordMain',
   anchor: 'handR',
@@ -35,17 +53,38 @@ const swordMain: PartDef = {
     const group = new Group();
     const blade = new Mesh(new BoxGeometry(u * 0.14, u * 1.7, u * 0.045), ctx.material(STEEL));
     blade.position.y = u * 1.05;
-    const guard = new Mesh(new BoxGeometry(u * 0.5, u * 0.09, u * 0.11), ctx.material(ctx.palette.accentHex));
-    guard.position.y = u * 0.2;
-    const grip = new Mesh(new CylinderGeometry(u * 0.05, u * 0.05, u * 0.34, 8), ctx.material(GRIP));
-    const pommel = new Mesh(new SphereGeometry(u * 0.08, 8, 6), ctx.material(ctx.palette.accentHex));
+    // round 8 (humanoid-anatomy): STEEL guard. The accent-colored crossguard
+    // (#8a3333 on the fighter kit) sat at the fist with the blade emerging
+    // above it — from every angle it read as a detached red fragment floating
+    // at the hand (the round-7 pommel fix hit the wrong piece). Steel ties it
+    // into the blade; it also drops to y 0.16 so it seats against the fist.
+    const guard = new Mesh(new BoxGeometry(u * 0.5, u * 0.1, u * 0.12), ctx.material(STEEL));
+    // real-finger update: 0.16 u sat exactly on the digit wrap's top edge
+    // (~0.8 handR above the anchor) and clipped the index finger — the guard
+    // now clears the wrapped fist
+    guard.position.y = u * 0.26;
+    // part-quality re-fit (2026-08-23, hands campaign close-out): the round-7
+    // hilt was sized for the loft fist. Over the REFERENCE hand (fist bottom
+    // ≈ 0.18 u below the anchor) the r-0.09 light-STEEL sphere at -0.27 u
+    // read as a detached PALE BALL with its own ink ring — its radius was
+    // ~75% of the fist half-width, a second fist in the silhouette. The
+    // pommel is now a wheel: r 0.055 u, squashed flat, DARK_STEEL (the axe
+    // cheek tone — round 6 still holds: never accent, and dark leather alone
+    // vanishes against dark tunics), and its top edge SEATS INTO the fist
+    // heel, so it terminates the hilt instead of orbiting below it.
+    // The grip stops where the pommel seats — the round-7 0.52 length would
+    // run a bare stub past the raised pommel.
+    const grip = new Mesh(new CylinderGeometry(u * 0.06, u * 0.06, u * 0.41, 8), ctx.material(GRIP));
+    grip.position.y = u * 0.005;
+    const pommel = new Mesh(new SphereGeometry(u * 0.055, 8, 6), ctx.material(DARK_STEEL));
+    pommel.scale.y = 0.75; // wheel pommel, not a ball
     pommel.position.y = -u * 0.2;
     group.add(blade, guard, grip, pommel);
     return { object: group };
   },
 };
 
-const daggerBuild: PartDef['buildMesh'] = (ctx) => {
+const daggerBuild = (): PartDef['buildMesh'] => (ctx) => {
   const u = unit(ctx!.frame) * 0.55;
   const group = new Group();
   const blade = new Mesh(new BoxGeometry(u * 0.16, u * 1.3, u * 0.05), ctx!.material(STEEL));
@@ -57,8 +96,8 @@ const daggerBuild: PartDef['buildMesh'] = (ctx) => {
   return { object: group };
 };
 
-const daggerMain: PartDef = { id: 'daggerMain', anchor: 'handR', kind: 'mesh', buildMesh: daggerBuild };
-const daggerOff: PartDef = { id: 'daggerOff', anchor: 'handL', kind: 'mesh', buildMesh: daggerBuild };
+const daggerMain: PartDef = { id: 'daggerMain', anchor: 'handR', kind: 'mesh', buildMesh: daggerBuild() };
+const daggerOff: PartDef = { id: 'daggerOff', anchor: 'handL', kind: 'mesh', buildMesh: daggerBuild() };
 
 const axeMain: PartDef = {
   id: 'axeMain',
@@ -69,11 +108,27 @@ const axeMain: PartDef = {
     const group = new Group();
     const haft = new Mesh(new CylinderGeometry(u * 0.055, u * 0.065, u * 1.9, 8), ctx.material(WOOD));
     haft.position.y = u * 0.55;
-    const head = new Mesh(new BoxGeometry(u * 0.65, u * 0.5, u * 0.08), ctx.material(STEEL));
-    head.position.set(u * 0.28, u * 1.25, 0);
-    const edge = new Mesh(new BoxGeometry(u * 0.12, u * 0.6, u * 0.1), ctx.material('#dfe6ec'));
-    edge.position.set(u * 0.6, u * 1.25, 0);
-    group.add(haft, head, edge);
+    // round 8 (humanoid-anatomy): the flat light-gray box head read as "a
+    // strapped-on white book" from the side. Darker forged-steel cheeks, a
+    // wedge PRISM bevel (a triangular cylinder, point leading) carrying a
+    // bright honed line at the cutting edge, and a poll collar where the
+    // head meets the haft.
+    const head = new Mesh(new BoxGeometry(u * 0.5, u * 0.46, u * 0.09), ctx.material(DARK_STEEL));
+    head.position.set(u * 0.24, u * 1.25, 0);
+    const bevel = new Mesh(new CylinderGeometry(u * 0.28, u * 0.28, u * 0.55, 3, 1), ctx.material('#98a1ab'));
+    // triangular prism: axis along the blade height (y), rotated so one
+    // vertex LINE leads +x (the cutting edge) and the flat face behind it
+    // seats against the head cheeks — a real beveled edge, thinned in z
+    bevel.rotation.y = Math.PI / 2; // local +z (a triangle vertex) → world +x
+    // matrix order T·R·S: scale acts on LOCAL axes. Local x lands on world z
+    // after the y-rotation, so thinning the blade means scaling local x.
+    bevel.scale.set(0.35, 1, 1);
+    bevel.position.set(u * 0.52, u * 1.25, 0);
+    const edge = new Mesh(new BoxGeometry(u * 0.04, u * 0.5, u * 0.03), ctx.material('#e9eef3'));
+    edge.position.set(u * 0.77, u * 1.25, 0);
+    const poll = new Mesh(new CylinderGeometry(u * 0.09, u * 0.09, u * 0.34, 8), ctx.material(DARK_STEEL));
+    poll.position.set(0, u * 1.25, 0);
+    group.add(haft, head, bevel, edge, poll);
     return { object: group };
   },
 };

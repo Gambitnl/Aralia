@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 09/09/2026, 11:37:24
+ * Dependents: systems/world3d/buildingSceneModel.ts, systems/world3d/types.ts, systems/worldforge/bridge/groundChunkLoader.ts
+ * Imports: 8 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file buildingOccupancy.ts — the living overlay, resolved for the 3D scene.
  *
@@ -16,6 +32,11 @@
  * here are exactly the family the building was BUILT for; and computeOccupancy
  * is itself RNG-free. Identical (plot, seedPath, hour) always yields identical
  * output.
+ *
+ * A public house (a plan with a `common-room`) also emits evening PATRON rows.
+ * They share the OccupantDaySchedule shape so nothing downstream needs a
+ * visitor branch, but their `memberIndex` continues past the household so they
+ * can never be mistaken for a named family member or joined to the roster.
  */
 import type { SeedPath } from '../seedPath';
 import type { Feet } from '../units';
@@ -32,7 +53,7 @@ export interface OccupancyStationPoint {
   memberIndex: number;
   /** The member's given name (first token of their full name). */
   name: string;
-  activity: 'sleeping' | 'meal' | 'work' | 'hearthside' | 'chores' | 'out';
+  activity: 'sleeping' | 'meal' | 'work' | 'hearthside' | 'chores' | 'out' | 'visiting';
   /** Plan-feet position (blueprint frame; 0 = min corner). */
   x: Feet;
   y: Feet;
@@ -64,12 +85,20 @@ export interface StationFeetPoint {
 
 /** One household member's whole day: their station every hour, or null when out. */
 export interface OccupantDaySchedule {
+  /**
+   * Index into `household.members` for a resident. Visitor rows continue PAST
+   * the member list (`household.members.length + visitorIndex`) so every body
+   * baked for one plot still has a unique, stable render index; consumers that
+   * look the index up in `members` correctly find `undefined` for a patron.
+   */
   memberIndex: number;
   /** Given name (first token of the full name). */
   name: string;
   /** Age band ('child' | 'adult' | 'elder'). */
   ageBand: string;
   occupation: 'resident' | 'shopkeeper' | 'artisan';
+  /** True on a public-house patron row — a body with no household identity. */
+  visitor?: boolean;
   /** stationsByHour[h] = the member's station at hour h, or null when OUT. */
   stationsByHour: (StationFeetPoint | null)[];
 }
@@ -185,6 +214,9 @@ export function occupationForMember(
  * @param plotInput the geometric plot input (footprint/role/storeys).
  * @param seedPath  the town's canonical seed path (blueprintForPlot's frame).
  * @param townSeed  the town seed path householdForPlot / generateHousehold key on.
+ * @param precomputedBlueprint the exact plan already resolved by the building
+ *                  load packet. Supplying it prevents this schedule pass from
+ *                  rebuilding generateBuilding's digest key for the same plot.
  */
 export function occupancyScheduleForPlot(
   plotPop: TownPlotPopulation,
@@ -192,18 +224,17 @@ export function occupancyScheduleForPlot(
   plotInput: InteriorPlotInput,
   seedPath: SeedPath,
   townSeed: SeedPath,
+  precomputedBlueprint?: BlueprintPlan,
 ): PlotOccupancySchedule | undefined {
   const resolved = householdForPlot(plotPop, allPlots, townSeed);
   if (!resolved) return undefined;
   const { household, worksAtHome } = resolved;
 
-  // PERF NOTE (2026-07-08): this is 1 of ~3 blueprintForPlot calls per populated
-  // plot (the other two are in buildInterior). generateBuilding is memoized, so
-  // the repeat calls are cache hits — measured ~17 ms total (1.9%) over a
-  // 650-plot capital bake; the real cost is cold generation (~1.3 ms/plot). Left
-  // un-threaded on purpose; full verdict in bridge/interiorParts.ts (buildInterior).
-  // Bench: .agent/scratch/bench-blueprint-fetch.ts
-  const plan = blueprintForPlot(plotInput, seedPath);
+  // Production now resolves the canonical plan once before its schedule and 3D
+  // projections fan out. Standalone callers still resolve here, preserving the
+  // public helper's old convenience without making the world-load path rebuild
+  // household/style/history digests for a plan it already owns.
+  const plan = precomputedBlueprint ?? blueprintForPlot(plotInput, seedPath);
   const occ = computeOccupancy(plan, household, { worksAtHome });
 
   const litHours: boolean[] = [];
@@ -222,10 +253,20 @@ export function occupancyScheduleForPlot(
         byMember.get(st.memberIndex)?.splice(h, 1, feet);
       }
     }
+    // Patrons count as occupancy for the WINDOW schedule only. An inn whose
+    // family is still out at 17:00 but whose taproom is full should not read as
+    // a dark building from the street. The hearth schedule is untouched: it
+    // remains the household's fire, per the WF-INTERIORS #7 decision below.
+    const anyVisitor = (occ.visitorStationsByHour[h] ?? []).some(
+      (st) => st.where === 'home',
+    );
     const hearth = occ.flags.hearthLitHours[h] ?? false;
     hearthHours[h] = hearth;
     // Occupied = the hearth is lit (implies home) OR any member stands home.
-    litHours[h] = windowsLitAt(hearth || anyHome, h);
+    // NOTE: window glow and hearth glow are intentionally SEPARATE schedules
+    // (hearth 06–08/17–22, window/dusk 17–23) — Remy resolved WF-INTERIORS #7 on
+    // 2026-07-21 to keep them separate, so the dusk band is the sole window driver.
+    litHours[h] = windowsLitAt(hearth || anyHome || anyVisitor, h);
   }
 
   const occupants: OccupantDaySchedule[] = [];
@@ -239,6 +280,28 @@ export function occupancyScheduleForPlot(
       name: member.name.split(' ')[0] ?? `#${memberIndex}`,
       ageBand: member.ageBand ?? 'adult',
       occupation: occupationForMember(member),
+      stationsByHour: stations,
+    });
+  });
+
+  // Public-house patrons ride the same day-schedule shape so the 3D bake, the
+  // 2D overlay and the live-clock renderer need no visitor-specific branch.
+  // Their indices continue past the family, keeping the render id derived from
+  // (plot, index) unique without disturbing any existing member's id.
+  occ.visitors.forEach((visitor) => {
+    const stations: (StationFeetPoint | null)[] = new Array(24).fill(null);
+    for (let h = 0; h < 24; h++) {
+      const st = occ.visitorStationsByHour[h]?.[visitor.visitorIndex];
+      if (st) stations[h] = stationToFeet(st, plan);
+    }
+    if (stations.every((s) => s === null)) return;
+    occupants.push({
+      memberIndex: household.members.length + visitor.visitorIndex,
+      name: visitor.name,
+      ageBand: visitor.ageBand,
+      // A patron carries no household trade; they are drawn as a plain body.
+      occupation: 'resident',
+      visitor: true,
       stationsByHour: stations,
     });
   });

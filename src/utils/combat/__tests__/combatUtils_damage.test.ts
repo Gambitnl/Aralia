@@ -1,6 +1,6 @@
 
 import { describe, it, expect } from 'vitest';
-import { calculateDamage } from '../../combat/combatUtils';
+import { calculateDamage, calculateDamageWithDefense } from '../../combat/combatUtils';
 import { CombatCharacter } from '../../../types/combat';
 import { DamageType } from '../../../types/spells';
 
@@ -62,7 +62,69 @@ describe('calculateDamage', () => {
         expect(calculateDamage(10, caster, target, 'fire')).toBe(0);
     });
 
-    it('should allow forcing magical bypass', () => {
-        // Not implemented yet, but function signature might change to support options
+    // ------------------------------------------------------------------
+    // Magical bypass options (agora-5143)
+    // ------------------------------------------------------------------
+    // nonMagicalResistances / nonMagicalImmunities only engage when the caller
+    // states the damage is NOT magical. Before the options parameter existed
+    // these two entry points hard-coded `undefined`, so a nonmagical-only
+    // defense could never fire through them.
+    // ------------------------------------------------------------------
+    describe('magical bypass options', () => {
+        const createNonMagicalDefender = (
+            name: string,
+            nonMagicalResistances: string[] = [],
+            nonMagicalImmunities: string[] = []
+        ): CombatCharacter => ({
+            ...createTestChar(name),
+            nonMagicalResistances,
+            nonMagicalImmunities,
+        });
+
+        it('applies nonmagical resistance when the damage is declared nonmagical', () => {
+            const target = createNonMagicalDefender('Lycanthrope', ['bludgeoning']);
+            expect(calculateDamage(10, caster, target, 'bludgeoning', undefined, { isMagical: false })).toBe(5);
+        });
+
+        it('forces a magical bypass past nonmagical resistance', () => {
+            const target = createNonMagicalDefender('Lycanthrope', ['bludgeoning']);
+            expect(calculateDamage(10, caster, target, 'bludgeoning', undefined, { isMagical: true })).toBe(10);
+        });
+
+        it('applies nonmagical immunity only when the damage is declared nonmagical', () => {
+            const target = createNonMagicalDefender('Specter', [], ['slashing']);
+            expect(calculateDamage(12, caster, target, 'slashing', undefined, { isMagical: false })).toBe(0);
+            expect(calculateDamage(12, caster, target, 'slashing', undefined, { isMagical: true })).toBe(12);
+        });
+
+        it('leaves an undeclared damage instance exactly as it behaved before', () => {
+            const target = createNonMagicalDefender('Lycanthrope', ['bludgeoning']);
+            // No options object and an empty options object both mean "not stated".
+            expect(calculateDamage(10, caster, target, 'bludgeoning')).toBe(10);
+            expect(calculateDamage(10, caster, target, 'bludgeoning', undefined, {})).toBe(10);
+        });
+
+        it('does not let the magical flag touch ordinary resistances', () => {
+            const target = createTestChar('Fire Resistant', ['fire']);
+            expect(calculateDamage(10, caster, target, 'fire', undefined, { isMagical: true })).toBe(5);
+        });
+
+        it('reports the nonmagical resistance in the defense breakdown', () => {
+            const target = createNonMagicalDefender('Lycanthrope', ['bludgeoning']);
+            const breakdown = calculateDamageWithDefense(10, caster, target, 'bludgeoning', undefined, { isMagical: false });
+
+            expect(breakdown.finalDamage).toBe(5);
+            expect(breakdown.isResistant).toBe(true);
+            expect(breakdown.tags).toContain('[Resisted: Bludgeoning (-50%)]');
+        });
+
+        it('reports no resistance in the breakdown once the damage is magical', () => {
+            const target = createNonMagicalDefender('Lycanthrope', ['bludgeoning']);
+            const breakdown = calculateDamageWithDefense(10, caster, target, 'bludgeoning', undefined, { isMagical: true });
+
+            expect(breakdown.finalDamage).toBe(10);
+            expect(breakdown.isResistant).toBe(false);
+            expect(breakdown.tags).toEqual([]);
+        });
     });
 });

@@ -14,6 +14,9 @@
  */
 // @dependencies-end
 
+import { COMBAT_DIFFICULTY_LABEL, DEFAULT_COMBAT_DIFFICULTY, nextCombatDifficulty } from '../../config/combatConfig';
+import { RULES_EDITION_LABEL, getRulesEdition, nextRulesEdition } from '../../config/rulesEdition';
+import { applyCampaignDiceStream, getAllowSaveScum } from '../../config/saveScum';
 /**
  * @file src/hooks/actions/actionHandlers.ts
  * Central registry builder for action handlers.
@@ -74,9 +77,10 @@ import { handleLookAround, handleAnalyzeSituation } from './handleObservation';
 // NPC interaction handlers are implemented in src/hooks/actions/handleNpcInteraction.ts.
 import { handleTalk, handleStartDialogue } from './handleNpcInteraction';
 // Item interaction handlers are implemented in src/hooks/actions/handleItemInteraction.ts.
-import { handleTakeItem, handleEquipItem, handleUnequipItem, handleUseItem, handleDropItem, handleHarvestResource, handleSearchArea } from './handleItemInteraction';
+import { handleTakeItem, handleEquipItem, handleUnequipItem, handleUseItem, handleUseHealersKit, handleDropItem, handleHarvestResource, handleSearchArea } from './handleItemInteraction';
 // Oracle/Gemini handlers are implemented in src/hooks/actions/handleOracle.ts and handleGeminiCustom.ts.
 import { handleOracle } from './handleOracle';
+import { handleTownRoutineEvents } from './handleWorldEvents';
 import { handleGeminiCustom } from './handleGeminiCustom';
 // Encounter handlers are implemented in src/hooks/actions/handleEncounter.ts.
 import { handleGenerateEncounter, handleTriggerAiEncounter, handleShowEncounterModal, handleHideEncounterModal, handleStartBattleMapEncounter, handleEndBattle } from './handleEncounter';
@@ -169,6 +173,11 @@ export function buildActionHandlers({
 
     // Item interactions and inventory changes (handleItemInteraction.ts).
     take_item: async (action) => {
+      // The registry is keyed by ActionType but typed against the whole Action
+      // union, so narrow on the discriminant here. The guard is unreachable in
+      // practice (dispatch routes by `action.type`); it exists so the handler
+      // can take a precisely typed action instead of casting its payload.
+      if (action.type !== 'take_item') return;
       await handleTakeItem({ action, gameState, dispatch, addMessage });
     },
     EQUIP_ITEM: (action) => {
@@ -180,6 +189,12 @@ export function buildActionHandlers({
     // Align item-use action names with reducer/action contracts used by character state.
     USE_ITEM: (action) => {
       handleUseItem(dispatch, action.payload as UseItemPayload);
+    },
+    // Healer's Kit Utilize action: stabilize a dying ally and, for a character
+    // with the Healer feat, let that ally spend one Hit Die (rerolling a 1).
+    USE_HEALERS_KIT: (action) => {
+      if (action.type !== 'USE_HEALERS_KIT') return;
+      handleUseHealersKit({ payload: action.payload, gameState, dispatch, addMessage });
     },
     DROP_ITEM: (action) => {
       handleDropItem(dispatch, action.payload as DropItemPayload);
@@ -219,6 +234,12 @@ export function buildActionHandlers({
     TOGGLE_ITEM_JUNK: (action) => {
       dispatch({ type: 'TOGGLE_ITEM_JUNK', payload: action.payload as { itemId: string } });
     },
+    MOVE_ITEM_TO_CONTAINER: (action) => {
+      dispatch({
+        type: 'MOVE_ITEM_TO_CONTAINER',
+        payload: action.payload as { itemId: string; containerId: string | null },
+      });
+    },
     SELL_ALL_JUNK: (action) => {
       const payload = action.payload as { items: { itemId: string; value: number }[] };
       dispatch({ type: 'SELL_ALL_JUNK', payload });
@@ -226,6 +247,7 @@ export function buildActionHandlers({
       addMessage(`You sold ${payload.items.length} junk items for ${totalGold.toFixed(2)} gold.`, 'system');
     },
     HARVEST_RESOURCE: async (action) => {
+      if (action.type !== 'HARVEST_RESOURCE') return;
       await handleHarvestResource({ action, gameState, dispatch, addMessage, addGeminiLog });
     },
     SEARCH_AREA: async (_action) => {
@@ -283,6 +305,9 @@ export function buildActionHandlers({
     TOGGLE_LONG_REST_MODAL: () => {
       dispatch({ type: 'TOGGLE_LONG_REST_MODAL' });
     },
+    TOGGLE_SHORT_REST_MODAL: () => {
+      dispatch({ type: 'TOGGLE_SHORT_REST_MODAL' });
+    },
     SHORT_REST: (action) => {
       // The short-rest UI supplies a spend map keyed by character id, which we pass to the handler.
       const restPayload = action.payload as { hitPointDiceSpend?: HitPointDiceSpendMap } | undefined;
@@ -294,6 +319,14 @@ export function buildActionHandlers({
         const durationString = formatDuration(seconds);
         addMessage(`You wait for ${durationString}. Time passes.`, 'system');
         dispatch({ type: 'ADVANCE_TIME', payload: { seconds } });
+        // World-time advanced: let the town's occupant routines move with it.
+        // `gameState.gameTime` is still the pre-advance clock here, so the
+        // handler is told where the clock ARRIVED and how far it came.
+        void handleTownRoutineEvents(
+          { ...gameState, gameTime: new Date(gameState.gameTime.getTime() + seconds * 1000) },
+          dispatch,
+          { hoursAdvanced: seconds / 3600 },
+        );
       }
     },
 
@@ -326,6 +359,31 @@ export function buildActionHandlers({
       dispatch({ type: 'SET_AUTO_SAVE_ENABLED', payload: next });
       addMessage(`Auto-save ${next ? 'enabled' : 'disabled'}.`, 'system');
     },
+    cycle_combat_difficulty: () => {
+      const current = gameState.combatDifficulty ?? DEFAULT_COMBAT_DIFFICULTY;
+      const next = nextCombatDifficulty(current);
+      dispatch({ type: 'SET_COMBAT_DIFFICULTY', payload: next });
+      addMessage(`Combat difficulty set to ${COMBAT_DIFFICULTY_LABEL[next]}.`, 'system');
+    },
+    cycle_rules_edition: () => {
+      const next = nextRulesEdition(getRulesEdition(gameState));
+      dispatch({ type: 'SET_RULES_EDITION', payload: next });
+      addMessage(`Rules edition set to the ${RULES_EDITION_LABEL[next]}.`, 'system');
+    },
+    toggle_save_scum: () => {
+      const next = !getAllowSaveScum(gameState);
+      dispatch({ type: 'SET_ALLOW_SAVE_SCUM', payload: next });
+      // Turning replay ON mid-campaign has to take effect now, not only at the
+      // next load, or the rest of this session keeps rolling from the clock
+      // seed and the setting would be a lie until the player reloads.
+      applyCampaignDiceStream({ ...gameState, allowSaveScum: next });
+      addMessage(
+        next
+          ? 'Save-scumming allowed: reloading a save rerolls the dice.'
+          : 'Save-scumming blocked: reloading a save replays the same dice.',
+        'system',
+      );
+    },
     TOGGLE_DISCOVERY_LOG: () => {
       handleToggleDiscoveryLog(dispatch);
     },
@@ -352,6 +410,32 @@ export function buildActionHandlers({
     },
     TOGGLE_QUEST_LOG: () => {
       handleToggleQuestLog(dispatch);
+    },
+    TOGGLE_COMMERCE_DESK: () => {
+      // Commerce Desk — dedicated non-debug home for businesses, trade routes,
+      // ventures, and courier intel (economy E-G1).
+      dispatch({ type: 'TOGGLE_COMMERCE_DESK' });
+    },
+    TOGGLE_INVESTMENT_BOARD: () => {
+      dispatch({ type: 'TOGGLE_INVESTMENT_BOARD' });
+    },
+    TOGGLE_TRADE_ROUTE_DASHBOARD: () => {
+      dispatch({ type: 'TOGGLE_TRADE_ROUTE_DASHBOARD' });
+    },
+    TOGGLE_SALVAGE_MODAL: () => {
+      dispatch({ type: 'TOGGLE_SALVAGE_MODAL' });
+    },
+    TOGGLE_BANK_MODAL: () => {
+      dispatch({ type: 'TOGGLE_BANK_MODAL' });
+    },
+    TOGGLE_REAL_ESTATE_MODAL: () => {
+      dispatch({ type: 'TOGGLE_REAL_ESTATE_MODAL' });
+    },
+    TOGGLE_SHOP_MODAL: () => {
+      dispatch({ type: 'TOGGLE_SHOP_MODAL' });
+    },
+    TOGGLE_TRADE_ROUTE_MODAL: () => {
+      dispatch({ type: 'TOGGLE_TRADE_ROUTE_MODAL' });
     },
     OPEN_NOTICE_BOARD: () => {
       // Open the living-world town news modal; the modal computes its own news
@@ -477,10 +561,12 @@ export function buildActionHandlers({
       }
     },
     ADD_LOCATION_RESIDUE: (action) => {
-      dispatch({ type: 'ADD_LOCATION_RESIDUE', payload: (action.payload as any) });
+      if (action.type !== 'ADD_LOCATION_RESIDUE') return;
+      dispatch({ type: 'ADD_LOCATION_RESIDUE', payload: action.payload });
     },
     REMOVE_LOCATION_RESIDUE: (action) => {
-      dispatch({ type: 'REMOVE_LOCATION_RESIDUE', payload: (action.payload as any) });
+      if (action.type !== 'REMOVE_LOCATION_RESIDUE') return;
+      dispatch({ type: 'REMOVE_LOCATION_RESIDUE', payload: action.payload });
     },
     UPDATE_NPC_GOAL_STATUS: (action) => {
       const payload = action.payload as { npcId: string; goalId: string; status: GoalStatus };
@@ -500,7 +586,8 @@ export function buildActionHandlers({
       dispatch({ type: 'USE_TEMPLE_SERVICE', payload });
     },
     UPDATE_CHARACTER_CHOICE: (action) => {
-      dispatch({ type: 'UPDATE_CHARACTER_CHOICE', payload: (action.payload as any) });
+      if (action.type !== 'UPDATE_CHARACTER_CHOICE') return;
+      dispatch({ type: 'UPDATE_CHARACTER_CHOICE', payload: action.payload });
     },
     ACCEPT_QUEST: (action) => {
       dispatch({ type: 'ACCEPT_QUEST', payload: action.payload as Quest });
@@ -512,19 +599,26 @@ export function buildActionHandlers({
       dispatch({ type: 'COMPLETE_QUEST', payload: action.payload as { questId: string } });
     },
     PRAY: (action) => {
-      dispatch({ type: 'PRAY', payload: (action.payload as any) });
+      if (action.type !== 'PRAY') return;
+      dispatch({ type: 'PRAY', payload: action.payload });
     },
     TOGGLE_THIEVES_GUILD: () => {
       dispatch({ type: 'TOGGLE_THIEVES_GUILD' });
     },
     REGISTER_DYNAMIC_ENTITY: (action) => {
-      dispatch({ type: 'REGISTER_DYNAMIC_ENTITY', payload: (action.payload as any) });
+      if (action.type !== 'REGISTER_DYNAMIC_ENTITY') return;
+      dispatch({ type: 'REGISTER_DYNAMIC_ENTITY', payload: action.payload });
     },
     START_DIALOGUE_SESSION: async (action) => {
       await handleStartDialogue({ action, gameState, dispatch, addMessage, addGeminiLog, playPcmAudio, playerContext, generalActionContext });
     },
     UPDATE_DIALOGUE_SESSION: (action) => {
-      dispatch({ type: 'UPDATE_DIALOGUE_SESSION', payload: (action.payload as any)?.session });
+      if (action.type !== 'UPDATE_DIALOGUE_SESSION') return;
+      // BUG FIX exposed by removing the cast: this used to unwrap `.session` and
+      // dispatch the bare DialogueSession, but dialogueReducer destructures
+      // `action.payload.session`, so the reducer always stored `undefined` and
+      // silently cleared the active dialogue. Pass the payload through intact.
+      dispatch({ type: 'UPDATE_DIALOGUE_SESSION', payload: action.payload });
     },
     END_DIALOGUE_SESSION: () => {
       dispatch({ type: 'END_DIALOGUE_SESSION' });

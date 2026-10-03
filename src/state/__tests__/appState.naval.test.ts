@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { appReducer } from '../appState';
-import { createMockGameState } from '../../utils/factories';
+import { createMockGameState } from '../../utils/core';
 
 /**
  * Integration guard: navalReducer must be wired into the root appReducer pipeline.

@@ -81,6 +81,14 @@ test('reconcileGaps: routed/unknown statuses land in their own buckets', () => {
   assert.ok(CLOSED_STATUSES.has('routed'));
 });
 
+test('WF-G259: reconcile never auto-resolves a repair awaiting daemon restart', () => {
+  const task = { id: 't259', state: 'done', title: 'daemon repair', refs: ['workflow:WF-G50'], result: 'local tests passed' };
+  const gap = { id: 'WF-G50', project: 'workflow', status: 'pending_restart', file: 'tools/agora/WORKFLOW_GAPS.md' };
+  const report = reconcileGaps([task], [gap]);
+  assert.equal(report.staleOpen.length, 0);
+  assert.deepEqual(report.pendingRestart.map((item) => item.gap.id), ['WF-G50']);
+});
+
 // --- WF-G5/G2: registry-driven dispatch -------------------------------------
 
 test('launchSpec + probeAgent are registry-driven; kilo is wired', () => {
@@ -90,7 +98,12 @@ test('launchSpec + probeAgent are registry-driven; kilo is wired', () => {
   assert.deepEqual(kilo.args, ['run', '-m', 'kilo/kilo-auto/free', 'PROMPT']);
   const codex = launchSpec('codex', 'P', reg);
   assert.equal(codex.cmd, 'codex');
-  assert.throws(() => launchSpec('cursor', 'P', reg), /no launch spec/);
+  // cursor was wired after this test was written (agents.json pins the
+  // versioned cursor-agent.cmd path), so it now HAS a launch spec.
+  assert.equal(launchSpec('cursor', 'P', reg).cmd.endsWith('cursor-agent.cmd'), true);
+  // agy dispatches through the dashboard prompt-file runner, not through
+  // `orchestrate dispatch`, so it is the lane with no launch spec.
+  assert.throws(() => launchSpec('agy', 'P', reg), /needs a prompt file/);
 
   // probeAgent honors quotaProbe from an injected registry (stubbed command).
   const stub = {
@@ -108,7 +121,7 @@ test('launchSpec + probeAgent are registry-driven; kilo is wired', () => {
 });
 
 test('validatePlan accepts kilo as a worker now (wired + ready)', () => {
-  const plan = { wave: 'w', packets: [{ id: 'PK-1', handle: 'h', agent: 'kilo', scope: 's', files: ['src/x.ts'] }] };
+  const plan = { wave: 'w', pet: 'gf-sd', packets: [{ id: 'PK-1', handle: 'h', pet: 'dream-girl', agent: 'kilo', scope: 's', files: ['src/x.ts'] }] };
   assert.equal(validatePlan(plan), true);
 });
 
@@ -125,7 +138,7 @@ test('validatePlan warns (via onWarn) when a packet agent has expired constraint
     },
   };
   const warnings = [];
-  const plan = { wave: 'w', packets: [{ id: 'PK-1', handle: 'h', agent: 'oldbot', scope: 's', files: ['a'] }] };
+  const plan = { wave: 'w', pet: 'gf-sd', packets: [{ id: 'PK-1', handle: 'h', pet: 'dream-girl', agent: 'oldbot', scope: 's', files: ['a'] }] };
   assert.equal(validatePlan(plan, { registry, onWarn: (m) => warnings.push(m) }), true);
   assert.equal(warnings.length, 1);
   assert.match(warnings[0], /EXPIRED constraint \(2020-01-01\)/);

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 19/07/2026, 06:00:22
+ * Dependents: components/World3D/World3DWrapper.tsx, systems/worldforge/bridge/groundChunkLoader.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file dungeonEntrances.ts — Pillar 2, Task 6: surface a world's dungeon SITES
  * as sealed-door ENTRANCES inside a ground window.
@@ -29,7 +45,11 @@
  */
 import type { LocalArtifact } from '../artifacts';
 import { enumerateDungeonSites, type DungeonSite } from '../dungeon/world/dungeonSites';
-import { generateDungeonForSite } from '../dungeon/world/deriveIdentity';
+import {
+  canonicalDungeonId,
+  generateDungeonForIdentity,
+  type DungeonIdentity,
+} from '../dungeon/world/deriveIdentity';
 import type { GroundDungeonEntrance } from './groundChunkLoader';
 
 const FEET_TO_METERS = 0.3048;
@@ -49,7 +69,10 @@ const MARGIN_M = 50;
 
 /** A short, stable id for an entrance, derived from its frozen site path. */
 function entranceId(site: DungeonSite): string {
-  return `wf-dungeon-${site.sitePath}`;
+  // The discovery key is also the canonical dungeon id. Reusing one helper
+  // prevents the world attachment and runtime/save identity from naming the
+  // same dungeon differently.
+  return canonicalDungeonId(site.sitePath);
 }
 
 /**
@@ -104,9 +127,16 @@ export function dungeonNameForEntrance(seed: number, sitePath: string): string |
   const key = `${seed >>> 0}|${sitePath}`;
   const cached = nameCache.get(key);
   if (cached !== undefined) return cached;
-  const site = enumerateDungeonSites(seed).find((s) => s.sitePath === sitePath);
-  if (!site) return undefined;
-  const name = generateDungeonForSite(seed, site).name;
+
+  // Reconstruct the same two-field receipt the entrance supplies. The runtime
+  // resolver validates both values and the expected world before generating;
+  // stale or mismatched attachments now fail visibly instead of naming a
+  // different dungeon or silently returning an unrelated fallback.
+  const identity: DungeonIdentity = {
+    dungeonId: canonicalDungeonId(sitePath),
+    seedPath: sitePath,
+  };
+  const name = generateDungeonForIdentity(identity, seed).name;
   nameCache.set(key, name);
   return name;
 }

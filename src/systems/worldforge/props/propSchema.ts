@@ -101,6 +101,27 @@ export interface PropDefinition {
    * anchors. Free-form but drawn from the strawman's context names.
    */
   placementTags: string[];
+  /**
+   * Mobility fact for spell targeting. `true` = the prop is rooted, embedded,
+   * or built into the ground (fence, wall, well, tree, terrain mass) and is NOT
+   * a discrete object a spell can lift; `false` = a self-contained object that
+   * merely rests on the surface (crate, cart, sack, boat) and can be moved by a
+   * strong enough effect.
+   */
+  isFixedToSurface: boolean;
+  /**
+   * Plausible weight in pounds. Authored estimate — the strawman did not
+   * specify weights, so these are round, physics-plausible values open to Remy
+   * refinement. Loose props MUST carry a weight so telekinesis/movement spells
+   * can apply their pound limits honestly instead of treating unknown facts
+   * conservatively.
+   */
+  weightPounds: number;
+  /**
+   * Real magical flag. `false` for the whole mundane scenery catalog; a future
+   * enchanted prop sets it `true` without a code change.
+   */
+  isMagical: boolean;
 }
 
 /**
@@ -126,6 +147,21 @@ export interface PropInstance {
     scale: number;
     /** Integer variant index (0..N) — generator picks a sub-form. */
     variant: number;
+  };
+  /**
+   * SURFACE FIT (surface-gate wave). Present when the placement context carried
+   * a `SurfaceProbe`, so the engine could read the ground under this instance.
+   * Baked once at placement; the renderer never re-samples per frame.
+   */
+  surface?: {
+    /** Lean toward the ground normal, radians. A rock lies flat; a post stays up. */
+    tiltRad: number;
+    /** Horizontal tilt axis (x, z) in ground meters space, unit length. */
+    tiltAxis: [number, number];
+    /** Sink depth in METERS — subtract from the ground Y so the base meets the slope. */
+    sinkM: number;
+    /** Ground elevation under the instance, METERS, as the probe read it. */
+    groundYM: number;
   };
 }
 
@@ -163,6 +199,15 @@ export function validatePropDefinition(def: PropDefinition): string[] {
   }
   if (!def.placementTags || def.placementTags.length === 0) {
     problems.push(`${def.id}: needs at least one placement tag`);
+  }
+  if (typeof def.isFixedToSurface !== 'boolean') {
+    problems.push(`${def.id}: isFixedToSurface must be a boolean`);
+  }
+  if (!(def.weightPounds > 0)) {
+    problems.push(`${def.id}: weightPounds must be > 0 (got ${def.weightPounds})`);
+  }
+  if (typeof def.isMagical !== 'boolean') {
+    problems.push(`${def.id}: isMagical must be a boolean`);
   }
   return problems;
 }

@@ -2,8 +2,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ShadowfellMechanics, ShadowfellDespairEffect } from '../ShadowfellMechanics';
 import { PlayerCharacter, GameState } from '../../../types';
-import { createMockPlayerCharacter, createMockGameState } from '../../../utils/factories';
-import * as SavingThrowUtils from '../../../utils/savingThrowUtils';
+import { createMockPlayerCharacter, createMockGameState } from '../../../utils/core';
+import * as SavingThrowUtils from '../../../utils/character';
 
 // Mock factories if not fully available or simply create objects
 const mockCharacter = (id: string, name: string): PlayerCharacter => ({

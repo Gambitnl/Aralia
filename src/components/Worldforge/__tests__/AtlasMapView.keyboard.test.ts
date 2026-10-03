@@ -1,10 +1,10 @@
 /**
  * Keyboard navigation proof for the irregular Worldforge cell graph.
- * Component rendering is covered by the live audit; this unit keeps the
- * direction chooser deterministic without needing a canvas backend.
+ * The chooser now lives outside both renderers so the canonical SVG map never
+ * imports the retired canvas implementation merely to move keyboard focus.
  */
 import { describe, expect, it } from "vitest";
-import { directionalAtlasNeighbor } from "../AtlasMapView";
+import { directionalAtlasNeighbor } from "../atlasKeyboardNavigation";
 
 describe("directionalAtlasNeighbor", () => {
   const points: Array<readonly [number, number]> = [

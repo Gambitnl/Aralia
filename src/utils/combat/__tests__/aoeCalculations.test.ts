@@ -127,19 +127,66 @@ describe('calculateAffectedTiles', () => {
     });
   })
 
-  describe('Cube', () => {
-    it('calculates a 10-foot cube', () => {
-      const result = calculateAffectedTiles({
-        shape: 'Cube',
-        origin: { x: 5, y: 5 },
-        size: 10
-      })
+  // Ruling Q4 (2026-09-22): "Anchor on a face (rules)". The origin tile is in the
+  // near row of the cube, the near row is centered on the origin, and the cube
+  // extends away from the caster. An even width puts its extra tile east or south.
+  describe('Cube (face anchor)', () => {
+    const origin = { x: 10, y: 10 }
+    const sortTiles = (tiles: Position[]) =>
+      [...tiles].sort((a, b) => a.x - b.x || a.y - b.y)
+    const box = (x0: number, x1: number, y0: number, y1: number) => {
+      const tiles: Position[] = []
+      for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++) tiles.push({ x, y })
+      return sortTiles(tiles)
+    }
+    const cube = (size: number, casterPosition: Position) =>
+      sortTiles(calculateAffectedTiles({ shape: 'Cube', origin, size, casterPosition }))
 
-      expect(result.length).toBe(4)
-      expect(result).toContainEqual({ x: 5, y: 5 })
-      expect(result).toContainEqual({ x: 6, y: 5 })
-      expect(result).toContainEqual({ x: 5, y: 6 })
-      expect(result).toContainEqual({ x: 6, y: 6 })
+    it('15-foot cube extends 3 tiles away from a caster in each cardinal direction', () => {
+      // Caster to the west: cube extends east.
+      expect(cube(15, { x: 7, y: 10 })).toEqual(box(10, 12, 9, 11))
+      // Caster to the east: cube extends west.
+      expect(cube(15, { x: 13, y: 10 })).toEqual(box(8, 10, 9, 11))
+      // Caster to the north: cube extends south.
+      expect(cube(15, { x: 10, y: 6 })).toEqual(box(9, 11, 10, 12))
+      // Caster to the south: cube extends north.
+      expect(cube(15, { x: 10, y: 14 })).toEqual(box(9, 11, 8, 10))
+    })
+
+    it('10-foot cube extends 2 tiles away from the caster; the extra width tile goes east or south', () => {
+      expect(cube(10, { x: 7, y: 10 })).toEqual(box(10, 11, 10, 11)) // extends east
+      expect(cube(10, { x: 13, y: 10 })).toEqual(box(9, 10, 10, 11)) // extends west
+      expect(cube(10, { x: 10, y: 6 })).toEqual(box(10, 11, 10, 11)) // extends south
+      expect(cube(10, { x: 10, y: 14 })).toEqual(box(10, 11, 9, 10)) // extends north
+    })
+
+    it('diagonal caster -> origin uses the dominant axis, and a true diagonal uses the horizontal axis', () => {
+      // dx = 3, dy = 1: east dominates.
+      expect(cube(15, { x: 7, y: 9 })).toEqual(box(10, 12, 9, 11))
+      // dx = -1, dy = 4: south dominates (origin is south of the caster).
+      expect(cube(15, { x: 11, y: 6 })).toEqual(box(9, 11, 10, 12))
+      // dx = -2, dy = -2: a tie, so the horizontal axis wins (extends west).
+      expect(cube(15, { x: 12, y: 12 })).toEqual(box(8, 10, 9, 11))
+    })
+
+    it('origin on the caster tile uses the caster facing', () => {
+      const tiles = sortTiles(calculateAffectedTiles({
+        shape: 'Cube', origin, size: 15, casterPosition: origin, casterFacing: 'north'
+      }))
+      expect(tiles).toEqual(box(9, 11, 8, 10))
+    })
+
+    it('a compass direction alone (a stored zone) gives the same cube', () => {
+      const fromCaster = cube(15, { x: 7, y: 10 })
+      const fromDirection = sortTiles(calculateAffectedTiles({ shape: 'Cube', origin, size: 15, direction: 90 }))
+      expect(fromDirection).toEqual(fromCaster)
+    })
+
+    it('throws, naming the spell and the caster, when no direction exists', () => {
+      expect(() => calculateAffectedTiles({
+        shape: 'Cube', origin, size: 15, casterPosition: origin, spellName: 'Thunderwave', casterName: 'Aria'
+      })).toThrow(/Cube area needs a direction: spell "Thunderwave" by caster "Aria"/)
+      expect(() => calculateAffectedTiles({ shape: 'Cube', origin, size: 15 })).toThrow(/Cube area needs a direction/)
     })
   })
 

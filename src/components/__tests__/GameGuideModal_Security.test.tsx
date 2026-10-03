@@ -20,8 +20,10 @@ vi.mock('../../services/ollamaTextService', () => ({
 }));
 const mockGenerateGuideResponse = ollamaService.generateGuideResponse as unknown as ReturnType<typeof vi.fn>;
 
-// Mock i18n
-vi.mock('../../utils/i18n', () => ({
+// Mock i18n. Targets the direct file (utils/core/i18n), not the barrel: a
+// partial-factory barrel mock would hide cleanAIJSON/safeJSONParse and other
+// exports GameGuideModal imports from utils/core.
+vi.mock('../../utils/core/i18n', () => ({
   t: (key: string, _params?: Record<string, unknown>) => key,
 }));
 

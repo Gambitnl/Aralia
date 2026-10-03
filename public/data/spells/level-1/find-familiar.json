@@ -10,6 +10,30 @@
   ],
   "subClasses": [],
   "ritual": true,
+  "ritualData": {
+    "requirements": [
+      {
+        "type": "custom",
+        "value": "component:verbal",
+        "description": "The ritual must be chanted aloud from start to finish."
+      },
+      {
+        "type": "custom",
+        "value": "component:somatic",
+        "description": "The ritual needs a free hand for its gestures throughout."
+      },
+      {
+        "type": "custom",
+        "value": "component:material",
+        "description": "The ritual needs burning incense worth 10+ GP, which the spell consumes; the casting consumes it."
+      },
+      {
+        "type": "custom",
+        "value": "uninterrupted_casting",
+        "description": "Ritual casting adds 10 minutes to the casting time and must run uninterrupted."
+      }
+    ]
+  },
   "rarity": "common",
   "attackType": "",
   "castingTime": {

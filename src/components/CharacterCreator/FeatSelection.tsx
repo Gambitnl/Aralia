@@ -44,7 +44,7 @@ import type { FeatChoiceState, FeatChoiceValue } from './state/characterCreatorS
 import SpellContext from '../../context/SpellContext';
 import FeatSpellPicker from './FeatSpellPicker';
 import SpellSourceSelector from './SpellSourceSelector';
-import { getSchoolIcon } from '../../utils/spellFilterUtils';
+import { getSchoolIcon } from '../../utils/character';
 import { CreationStepLayout } from './ui/CreationStepLayout';
 import { SplitPaneLayout } from '../ui/SplitPaneLayout';
 import { SKILLS_DATA } from '../../data/skills';

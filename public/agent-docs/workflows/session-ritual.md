@@ -4,6 +4,15 @@ description: Execute the "Implicit Rituals" at the end of a session to maintain 
 
 This workflow automates the maintenance tasks that should be performed before ending a task or session.
 
+## Scope
+
+For ordinary task completion, apply only the steps relevant to the changed files and
+the completion rules in root `AGENTS.md`. Do not launch a tidy-up, full validation
+suite, retrospective skill extraction, profile update, or chronicle entry merely
+because a focused test completed. Reuse verification already performed this session.
+An explicit tidy-up request uses the tidy-up checkpoints below. Existing authorization
+and memory-writing restrictions still apply; this workflow does not grant new permission.
+
 Tracked workflow docs live in `public/agent-docs/workflows/`.
 The `.agent/workflows/` directory is local-only and ignored by Git; use it only
 for local calibration files such as `USER.local.md` and `INTENT-GATE.local.md`.
@@ -18,7 +27,7 @@ Use sub-agents only for independent branches that do not require earlier gates t
 4. Always rejoin all branches before Step 7 (`/verify`), then run Steps 7-9 sequentially.
 5. Parent agent is responsible for the final merged summary block and completion decision.
 
-1. **Sync Dependencies**: For every file you have modified, run the visualizer sync command to update the architectural "Stop Signs".
+1. **Sync Dependencies**: For code files covered by root `AGENTS.md` dependency-tracking rules, run the visualizer sync command to update the architectural "Stop Signs". Skip documentation, data, and files already synced after their last change.
    // turbo
    `npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync path/to/modified_file.ts`
 
@@ -47,17 +56,20 @@ Use sub-agents only for independent branches that do not require earlier gates t
    - Do not force questionnaire-style updates just to satisfy the step.
    - Required reporting fields are defined in `public/agent-docs/workflows/user-profile-calibration.md`.
 
-5. **Extract Terminal Learnings**: Capture any new PowerShell quirks or environment-specific fixes discovered during the session.
-   Execute the `/extract-terminal-learnings` workflow.
+5. **Extract Terminal Learnings**: If the task established a verified, reusable
+   PowerShell or environment workaround, consult `/extract-terminal-learnings`.
+   Ordinary successful commands do not require a new learning artifact.
 
-6. **Session Review**: Review the changes made and propose future improvements or cleanup tasks.
-   Execute the `/review-session` workflow.
+6. **Session Review**: Review the task's diff and unresolved gaps. Use `/review-session`
+   for an explicit session review or tidy-up; do not invent cleanup work to fill a report.
 
-7. **Verify**: Run the pre-completion QA checklist - lint, type-check, build, tests, and red flag scan.
-   Execute the `/verify` workflow from `public/agent-docs/workflows/verify.md`.
+7. **Verify**: Complete relevant checks under root `AGENTS.md`. For a requested full
+   QA pass, consult `public/agent-docs/workflows/verify.md`. Do not repeat passing
+   checks unless subsequent changes or new evidence invalidate them.
 
-8. **Code Commentary Check**: Verify that all files touched during the session follow the Code Commentary skill standards.
-   Reference: `.agent/skills/code_commentary/SKILL.md`
+8. **Code Commentary Check**: Review changed code using
+   `.codex/skills/code-commentary/SKILL.md`; documentation-only tasks skip this step.
 
-9. **Log Session**: Capture a summary of the session's work to the Development Chronicle.
-   Execute the `/log-session` workflow.
+9. **Log Session**: Use `/log-session` when a chronicle update is requested or required
+   by the active handoff. Ordinary completion reports belong in the task response and
+   any owning tracker that actually changed status.

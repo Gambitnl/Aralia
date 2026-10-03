@@ -116,4 +116,4 @@ Before finishing your turn, ask yourself:
 2. Did I forget the `trigger` field because the example didn't have it? -> **Check SPELL_JSON_EXAMPLES.md again, they ALL have it.**
 3. Did I invent a `buff` type? -> **Change to DEFENSIVE or STATUS_CONDITION.**
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/JULES_ACCEPTANCE_CRITERIA.md","sha256WithoutMarker":"fbe9423aebe92a839b1874fc92afee5a015e6ee81dfead6c70216cabd1f04f57","markedAtUtc":"2026-06-25T22:29:38.586Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/JULES_ACCEPTANCE_CRITERIA.md","sha256WithoutMarker":"ab8181a1729798b2d0f8548a4e2ab342f9a083498b2356cd214e0fc88966d97b","markedAtUtc":"2026-08-09T20:14:15.711Z"} -->

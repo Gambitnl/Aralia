@@ -125,10 +125,10 @@ export function climateFromBiomes(
   const moistureRng = new SeededRandom((seed ^ MOISTURE_SALT) >>> 0);
 
   for (let i = 0; i < cells; i++) {
-    const biome = BIOMES[biomeIds[i]] ?? {};
-    const climate = biome.climate ?? DEFAULT_CLIMATE;
-    const moistureBand = biome.moisture ?? DEFAULT_MOISTURE;
-    const elevation = biome.elevation ?? DEFAULT_ELEVATION;
+    const biome = BIOMES[biomeIds[i]];
+    const climate = biome?.climate ?? DEFAULT_CLIMATE;
+    const moistureBand = biome?.moisture ?? DEFAULT_MOISTURE;
+    const elevation = biome?.elevation ?? DEFAULT_ELEVATION;
 
     const temperatureBase = TEMPERATURE_BASE[climate] + TEMPERATURE_ELEVATION_OFFSET[elevation];
     const moistureBase = MOISTURE_BASE[moistureBand] + MOISTURE_ELEVATION_OFFSET[elevation];

@@ -45,7 +45,7 @@ export const LeverageUI: React.FC<LeverageUIProps> = ({
             type: 'APPLY_LEVERAGE',
             label: `Apply leverage: ${selectedGoal}`,
             payload: { secretId: selectedSecretId, targetId: selectedTargetId, goal: selectedGoal }
-        } as Action);
+        } as unknown as Action);
     };
 
     if (knownSecrets.length === 0) {

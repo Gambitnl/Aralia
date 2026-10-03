@@ -13,7 +13,7 @@ import type { LocalArtifact } from '../../../systems/worldforge/artifacts';
 
 vi.mock('../localDraw', () => ({
   drawLocalFeatures: vi.fn(),
-  rasterizeLocalTerrain: vi.fn(() => ({ width: 1, height: 1 })),
+  rasterizeLocalTerrain: vi.fn(() => new ImageData(1, 1)),
 }));
 
 // This focused fixture supplies only the fields LocalMapView reads. Keeping it small makes

@@ -5,26 +5,34 @@
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { StatusConditionCommand } from '../StatusConditionCommand';
-import { BattleMapData, CombatState } from '@/types/combat';
-import { StatusConditionEffect, SpellEffect } from '@/types/spells';
-import { createMockCombatCharacter, createMockCombatState } from '@/utils/factories';
+import { BattleMapData, BattleMapTile, CombatState } from '@/types/combat';
+import { StatusConditionEffect, SpellEffect, DamageEffect } from '@/types/spells';
+import { createMockCombatCharacter, createMockCombatState } from '@/utils/core';
 import { CommandContext } from '../../base/SpellCommand';
-import * as savingThrowUtils from '@/utils/savingThrowUtils';
-import { generateId } from '@/utils/combatUtils';
+import * as savingThrowUtils from '@/utils/character';
+import { generateId } from '@/utils/combat';
 import { BreakConcentrationCommand } from '../ConcentrationCommands';
 import { DamageCommand } from '../DamageCommand';
-import friends from '../../../../public/data/spells/level-0/friends.json';
+import friends from '@/data/spells/level-0/friends.json';
+import sleep from '@/data/spells/level-1/sleep.json';
+import enemiesAbound from '@/data/spells/level-3/enemies-abound.json';
 import type { ActiveSpellZone } from '@/systems/spells/effects';
+import { resolveEventClass } from '@/utils/combat/combatLogToMessageAdapter';
+import { CombatEventClass } from '@/types/combatMessages';
 
 // We mock saving throws so we don't have to deal with RNG in tests
-vi.mock('@/utils/savingThrowUtils', () => ({
-  calculateSpellDC: vi.fn(() => 13),
-  rollSavingThrow: vi.fn()
-}));
+vi.mock('@/utils/character/savingThrowUtils', async importOriginal => {
+  const actual = await importOriginal<typeof import('@/utils/character/savingThrowUtils')>();
+  return {
+    ...actual,
+    calculateSpellDC: vi.fn(() => 13),
+    rollSavingThrow: vi.fn()
+  };
+});
 
 // Mock unique ID generation for predictable tests
-vi.mock('@/utils/combatUtils', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/utils/combatUtils')>();
+vi.mock('@/utils/combat', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/utils/combat')>();
   return {
     ...actual,
     generateId: vi.fn(() => 'test-id')
@@ -300,7 +308,7 @@ describe('StatusConditionCommand', () => {
         name: 'Target',
         conditions: [],
         statusEffects: [],
-        stateTags: ['wet']
+        stateTags: ['wet' as any]
       });
 
       state = {
@@ -311,7 +319,7 @@ describe('StatusConditionCommand', () => {
       const effect: StatusConditionEffect = {
         type: 'STATUS_CONDITION',
         statusCondition: {
-          name: 'Chilled',
+          name: 'Chilled' as any,
           duration: { type: 'rounds', value: 1 },
           level: 0
         },
@@ -336,7 +344,7 @@ describe('StatusConditionCommand', () => {
   });
 
   describe('Friends lifecycle', () => {
-    const friendsEffect = (friends as { effects: StatusConditionEffect[] }).effects[0];
+    const friendsEffect = (friends as unknown as { effects: StatusConditionEffect[] }).effects[0];
 
     function buildFriendsContext(caster = state.characters[0], target = state.characters[1]): CommandContext {
       return {
@@ -409,7 +417,7 @@ describe('StatusConditionCommand', () => {
         name: 'Target',
         conditions: [],
         statusEffects: [],
-        ...targetPatch
+        ...(targetPatch as any)
       });
       state = { ...state, characters: [state.characters[0], autoTarget] };
 
@@ -532,7 +540,7 @@ describe('StatusConditionCommand', () => {
             effect: { id: 'web-status', name: 'Difficult Terrain', type: 'debuff', duration: 10, effect: { type: 'condition' } }
           }
         ]
-      } as BattleMapData['tiles'] extends Map<string, infer Tile> ? Tile : never;
+      } as unknown as BattleMapTile;
       const mapData = {
         tiles: new Map([['2-2', terrainTile]]),
         dimensions: { width: 3, height: 3 },
@@ -602,7 +610,7 @@ describe('StatusConditionCommand', () => {
         damage: { dice: '1d1', type: 'Force' },
         trigger: { type: 'immediate' },
         condition: { type: 'always' }
-      } as SpellEffect;
+      } as unknown as DamageEffect;
 
       const command = new DamageCommand(damageEffect, {
         ...context,
@@ -661,7 +669,7 @@ describe('StatusConditionCommand', () => {
         damage: { dice: '1d1', type: 'Force' },
         trigger: { type: 'immediate' },
         condition: { type: 'always' }
-      } as SpellEffect;
+      } as unknown as DamageEffect;
 
       const command = new DamageCommand(damageEffect, {
         ...context,
@@ -746,6 +754,106 @@ describe('StatusConditionCommand', () => {
       expect(updatedFriendTarget.statusEffects.some(effect => effect.name === 'Charmed')).toBe(false);
       expect(updatedFriendTarget.socialAwareness?.some(entry => entry.sourceSpellId === 'friends' && entry.casterId === 'caster')).toBe(true);
       expect(result.combatLog.some(entry => entry.data?.earlyEndReason === 'caster_forces_saving_throw')).toBe(true);
+    });
+  });
+
+  describe('source-backed save outcome overrides', () => {
+    it('auto-succeeds live Sleep targets with Exhaustion immunity without rolling', async () => {
+      const sleepEffect = (sleep as unknown as { effects: StatusConditionEffect[] }).effects[0];
+      const target = createMockCombatCharacter({
+        id: 'sleep-immune',
+        name: 'Elf Target',
+        conditions: [],
+        statusEffects: [],
+        creatureTypes: ['Humanoid', 'Elf'],
+        conditionImmunities: ['Exhaustion']
+      });
+      const command = new StatusConditionCommand(sleepEffect, {
+        ...context,
+        caster: state.characters[0],
+        targets: [target],
+        spellId: 'sleep',
+        spellName: 'Sleep'
+      });
+
+      const result = await command.execute({ ...state, characters: [state.characters[0], target] });
+
+      expect(savingThrowUtils.rollSavingThrow).not.toHaveBeenCalled();
+      expect(result.characters.find(character => character.id === target.id)?.conditions).toEqual([]);
+      expect(result.combatLog.some(entry => entry.message.includes('source-backed outcome override'))).toBe(true);
+    });
+
+    it('auto-succeeds live Enemies Abound targets immune to Frightened', async () => {
+      const effect = (enemiesAbound as unknown as { effects: StatusConditionEffect[] }).effects[0];
+      const target = createMockCombatCharacter({
+        id: 'frightened-immune',
+        name: 'Frightened-Immune Target',
+        conditions: [],
+        statusEffects: [],
+        creatureTypes: ['Humanoid'],
+        conditionImmunities: ['Frightened']
+      });
+      const command = new StatusConditionCommand(effect, {
+        ...context,
+        caster: state.characters[0],
+        targets: [target],
+        spellId: 'enemies-abound',
+        spellName: 'Enemies Abound'
+      });
+
+      const result = await command.execute({ ...state, characters: [state.characters[0], target] });
+
+      expect(savingThrowUtils.rollSavingThrow).not.toHaveBeenCalled();
+      expect(result.characters.find(character => character.id === target.id)?.conditions).toEqual([]);
+    });
+  });
+  // ==========================================================================
+  // eventClass stamping (agora-db71.10)
+  // ==========================================================================
+  describe('eventClass stamping', () => {
+    const poisoned: StatusConditionEffect = {
+      type: 'STATUS_CONDITION',
+      statusCondition: {
+        name: 'Poisoned',
+        duration: { type: 'rounds', value: 1 },
+        level: 0
+      },
+      condition: { type: 'hit' } as any,
+      trigger: { type: 'immediate' } as any
+    };
+
+    const findAppliedEntry = (newState: CombatState) =>
+      newState.combatLog.find(entry => entry.message.includes('is now Poisoned'));
+
+    it('stamps DEBUFF on the record that says the condition was applied', async () => {
+      const command = new StatusConditionCommand(poisoned, context);
+      const newState = await command.execute(state);
+
+      const entry = findAppliedEntry(newState);
+      expect(entry).toBeDefined();
+      expect(entry!.eventClass).toBe(CombatEventClass.DEBUFF);
+    });
+
+    it('keeps the class when the adapter cannot find the effect on the character', async () => {
+      const command = new StatusConditionCommand(poisoned, context);
+      const newState = await command.execute(state);
+      const entry = findAppliedEntry(newState)!;
+
+      // An empty roster is exactly the case the adapter's live lookup cannot
+      // serve: the effect has expired or the creature is gone. The stamp holds.
+      expect(resolveEventClass(entry, [])).toBe(CombatEventClass.DEBUFF);
+    });
+
+    it('falls back to STATUS_CHANGE for the same record without the stamp', async () => {
+      const command = new StatusConditionCommand(poisoned, context);
+      const newState = await command.execute(state);
+      const entry = findAppliedEntry(newState)!;
+
+      const unstamped = { ...entry };
+      delete unstamped.eventClass;
+
+      // This is the behavior the stamp replaces, proving the stamp is load-bearing.
+      expect(resolveEventClass(unstamped, [])).toBe(CombatEventClass.STATUS_CHANGE);
     });
   });
 });

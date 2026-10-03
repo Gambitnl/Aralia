@@ -41,7 +41,7 @@ describe('useActionExecutor', () => {
             spellId: 'spike-growth-style-zone',
             casterId: 'caster',
             position: { x: 0, y: 0 },
-            areaOfEffect: { shape: 'cube', size: 30 },
+            areaOfEffect: { shape: 'cube', size: 30 }, direction: { x: 1, y: 0 },
             effects: [spikeGrowthStyleEffect],
             triggeredThisTurn: new Set(),
             triggeredEver: new Set()
@@ -94,7 +94,8 @@ describe('useActionExecutor', () => {
             expect.objectContaining({ id: pathingMover.id }),
             expect.any(Number),
             'zone effect',
-            'Piercing'
+            'Piercing',
+            expect.any(Number)
         );
     });
 
@@ -110,7 +111,7 @@ describe('useActionExecutor', () => {
             spellId: 'entangling-zone',
             casterId: 'caster',
             position: { x: 1, y: 1 },
-            areaOfEffect: { shape: 'cube', size: 10 },
+            areaOfEffect: { shape: 'cube', size: 10 }, direction: { x: 1, y: 0 },
             effects: [zoneStatusEffect],
             triggeredThisTurn: new Set(),
             triggeredEver: new Set()
@@ -118,18 +119,21 @@ describe('useActionExecutor', () => {
         const restrainedMover: CombatCharacter = {
             ...mockCharacter,
             position: { x: 0, y: 0 },
+            // Seeded as a previous trigger of THIS zone: the status mirror
+            // carries no source (that is what the executor writes) and the
+            // condition mirror carries the zone_effect source. Ownership
+            // matching therefore refreshes both records in place.
             statusEffects: [{
                 id: 'existing-restrained',
                 name: 'Restrained',
                 type: 'debuff',
-                duration: 3,
-                source: 'old-vines'
+                duration: 3
             }],
             conditions: [{
                 name: 'Restrained',
                 duration: { type: 'rounds', value: 3 },
                 appliedTurn: 0,
-                source: 'old-vines'
+                source: 'zone_effect'
             }]
         };
         mockConsumeAction.mockReturnValue(restrainedMover);

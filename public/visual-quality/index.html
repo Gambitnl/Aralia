@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Visual quality — moved into Judge</title>
+<!--
+  RETIRED 2026-08-13 (Remy). The judging portal moved INTO the Design Preview
+  harness and merged with the Judge step, so there is one address for a human
+  eye instead of two: `?step=judge`, tab "Quality campaign".
+
+  The DATA still lives in this directory and is still the source of truth:
+    pieces.json · status.json · verdicts/<piece>.json · sheets/<piece>/*.png
+  The React board reads exactly these files. Do not move them, and do not
+  gitignore them — the sheet IS the judging record, and it dies with a working
+  tree if it never enters git. `.claude/hooks/stray-image-warn.cjs` carries an
+  allowlist for `public/visual-quality/sheets/` for that reason.
+
+  This page is a redirect, not a copy. A second renderer would drift from the
+  React one and quietly show a stale verdict.
+-->
+<meta http-equiv="refresh" content="0; url=/Aralia/misc/design.html?step=judge" />
+<style>
+  body { margin: 0; background: #0d1117; color: #dfe6f0;
+         font: 14px/1.6 system-ui, sans-serif; padding: 40px 24px; }
+  a { color: #6f9de0; }
+  code { color: #8fc0f0; }
+</style>
+</head>
+<body>
+  <h1 style="font-size:19px;margin:0 0 8px">This portal moved.</h1>
+  <p>The visual-quality board is now a tab inside the Judge step.</p>
+  <p><a href="/Aralia/misc/design.html?step=judge">Open Judge → Quality campaign</a></p>
+  <p style="color:#66788f;font-size:13px;max-width:80ch">
+    The data did not move. <code>pieces.json</code>, <code>status.json</code>,
+    <code>verdicts/</code> and <code>sheets/</code> still live in this directory,
+    and the board reads them from here.
+  </p>
+</body>
+</html>

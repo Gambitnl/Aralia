@@ -37,11 +37,19 @@ import type {
   CtxCourtyard,
   CtxGatehouse,
   CtxHiddenSite,
+  CtxDeadEnd,
 } from '../props/placementEngine';
-import { placeProps } from '../props/placementEngine';
+import { placePropsInstrumented, type PropPlacementStats } from '../props/placementEngine';
+import {
+  makeGroundWorldProbe,
+  runPropPlacementGate,
+  summarizeGate,
+} from './propPlacementGate';
+import type { GateResult } from '../placement/gate';
 import type { WorldBusiness } from '../../../types/business';
 import { WAVE1_PROPS_BY_ID, PROPS_BY_ID } from '../props/catalog';
 import { CELL_METERS, providesCover as defProvidesCover, type PropInstance, type PropDefinition } from '../props/propSchema';
+import { polylineDeadEnds } from '../town/townStreetNetwork';
 import type { SeedPath } from '../seedPath';
 import { childSeedPath, rootSeedPath, streamPath } from '../seedPath';
 import type { BattleMapTile, BattleMapDecoration } from '@/types/combat';
@@ -149,6 +157,9 @@ export function groundToPlacementContext(
     angleRad: g.angleRad,
   }));
 
+  // SLICE C — dead ends: the lane ends of THIS window's road graph.
+  const deadEnds: CtxDeadEnd[] = windowDeadEnds(ground);
+
   // SLICE B — ruin: 'ruin'-kind hidden sites seed ruin dressing.
   const hiddenSites: CtxHiddenSite[] = ground.hiddenSites.map((h) => ({
     id: h.id,
@@ -157,7 +168,13 @@ export function groundToPlacementContext(
     zM: h.zM,
   }));
 
+  // STAGE 2 (WorldClaw wave 2): the ground under the window, as a probe. Without
+  // this the prop engine's surface gate considers NOTHING and every prop lands
+  // level on whatever slope it fell on.
+  const surface = makeGroundWorldProbe(ground) ?? undefined;
+
   return {
+    surface,
     extentMetersX: ground.extentMetersX,
     extentMetersZ: ground.extentMetersZ,
     cols: ground.cols,
@@ -173,9 +190,37 @@ export function groundToPlacementContext(
     heights: ground.heights,
     walls: ground.walls.map((w) => ({ points: w.points })),
     gatehouses,
+    deadEnds,
     rivers: ground.rivers.map((r) => ({ points: r.points })),
     hiddenSites,
   };
+}
+
+/**
+ * A road tip inside this margin of the window edge is where the polyline was
+ * CLIPPED, not where the lane stops. Dressing those would ring every window
+ * boundary with shrines and graves, so they are dropped.
+ */
+const DEAD_END_WINDOW_MARGIN_M = CELL_METERS * 4;
+/** Two road vertices within this distance are the same node (meters). */
+const DEAD_END_NODE_QUANT_M = 0.25;
+
+/**
+ * The street dead ends of one ground window: terminal (degree-1) nodes of the
+ * road graph, found by the same node-degree pass the town street network uses
+ * (`town/townStreetNetwork.ts` `polylineDeadEnds`), minus the tips that are
+ * only the window's own clip line.
+ */
+function windowDeadEnds(ground: GroundWorld): CtxDeadEnd[] {
+  const lines = ground.roads.map((r) => r.points.map((p) => [p.x, p.z] as [number, number]));
+  const out: CtxDeadEnd[] = [];
+  for (const d of polylineDeadEnds(lines, DEAD_END_NODE_QUANT_M)) {
+    const [xM, zM] = d.point;
+    const m = DEAD_END_WINDOW_MARGIN_M;
+    if (xM < m || zM < m || xM > ground.extentMetersX - m || zM > ground.extentMetersZ - m) continue;
+    out.push({ id: `r${d.lineIndex}:${Math.round(xM * 4)}:${Math.round(zM * 4)}`, xM, zM, inwardRad: d.inwardRad });
+  }
+  return out;
 }
 
 /** Feet-to-meters conversion shared with the ground loader's town projection. */
@@ -307,9 +352,81 @@ export function buildGroundProps(
   regionSeedPath?: SeedPath,
   worldBusinesses?: Record<string, WorldBusiness>,
 ): PropInstance[] {
+  return buildGroundPropsInstrumented(ground, seed, regionSeedPath, worldBusinesses).props;
+}
+
+/** Everything one window's prop build produced, including the two gate reports. */
+export interface GroundPropsBuild {
+  props: PropInstance[];
+  /** Stage-2 surface-gate tallies. `total.considered === 0` means NO gate ran. */
+  gateStats: PropPlacementStats;
+  /** Which placement profile this window used. A window with plots is a town. */
+  placementSurface: 'town' | 'region';
+  /** WorldClaw refinement report. null = no probe, so nothing was judged. */
+  placement: GateResult | null;
+}
+
+/**
+ * The instrumented build. Two gates run, in order:
+ *
+ *  1. The prop engine's per-candidate SURFACE gate (reject on slope/elevation,
+ *     then tilt + sink what survives). Its tallies prove the probe is wired.
+ *  2. The WorldClaw refinement loop, on the town or region profile. It seats
+ *     what the first gate kept, and REPORTS what the ground cannot hold. It
+ *     never deforms ground here — a town window shares its ground with streets
+ *     and plots, so only the prop pose moves.
+ */
+export function buildGroundPropsInstrumented(
+  ground: GroundWorld,
+  seed: number,
+  regionSeedPath?: SeedPath,
+  worldBusinesses?: Record<string, WorldBusiness>,
+  report?: (line: string) => void,
+): GroundPropsBuild {
   const ctx = groundToPlacementContext(ground, worldBusinesses);
   const path = propsSeedPathFor(ground, seed, regionSeedPath);
-  return placeProps(path, ctx);
+  const { instances, stats } = placePropsInstrumented(path, ctx);
+
+  // A window holding building plots is the town surface; an empty window is
+  // open region. The two profiles differ in tolerance, not in behavior: both
+  // REPORT. Only the battle map treats an unseated prop as fatal.
+  const placementSurface: 'town' | 'region' = ground.buildings.length > 0 ? 'town' : 'region';
+  const gate = runPropPlacementGate(instances, ctx.surface ?? null, {
+    surface: placementSurface,
+    groundMutable: false,
+    report,
+  });
+
+  LAST_GROUND_PROPS_BUILD = {
+    props: gate.props,
+    gateStats: stats,
+    placementSurface,
+    placement: gate.result,
+  };
+  return LAST_GROUND_PROPS_BUILD;
+}
+
+/**
+ * The most recent window build. Instrumentation ONLY — read by tests and by the
+ * live proof in the browser, never by render code.
+ */
+let LAST_GROUND_PROPS_BUILD: GroundPropsBuild | null = null;
+
+export function lastGroundPropsBuild(): GroundPropsBuild | null {
+  return LAST_GROUND_PROPS_BUILD;
+}
+
+/** One line naming both gates' real numbers. Empty string before any build. */
+export function groundPropsGateSummary(): string {
+  const b = LAST_GROUND_PROPS_BUILD;
+  if (!b) return '';
+  const t = b.gateStats.total;
+  return (
+    `[props/surface-gate] considered=${t.considered} kept=${t.kept} rejected=${t.rejected} ` +
+    `(steep=${t.byReason['too-steep']} low=${t.byReason['too-low']} high=${t.byReason['too-high']} ` +
+    `aspect=${t.byReason['wrong-aspect']}) rate=${(t.rejectionRate * 100).toFixed(1)}% | ` +
+    summarizeGate(b.placementSurface, b.placement)
+  );
 }
 
 // ── Combat extraction imprint ───────────────────────────────────────────────

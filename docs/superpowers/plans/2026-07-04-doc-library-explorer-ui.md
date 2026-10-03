@@ -1,8 +1,8 @@
-# Doc Library Explorer UI — Implementation Plan (Feature A, Plan 2 of 2)
+# Doc Library Explorer UI - Implementation Plan (Feature A, Plan 2 of 2)
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a folder-tree view, per-doc badges (role / age / consumed-by-app / duplicate / open-tasks / retirement-candidate), the four new filters (consumed, role, duplicate, confidence), a headline count bar, a Rescan button, and a diagnostics disclosure to the Doc Library — all driven by the `/api/docs/usage` payload from Plan 1.
+**Goal:** Add a folder-tree view, per-doc badges (role / age / consumed-by-app / duplicate / open-tasks / retirement-candidate), the four new filters (consumed, role, duplicate, confidence), a headline count bar, a Rescan button, and a diagnostics disclosure to the Doc Library - all driven by the `/api/docs/usage` payload from Plan 1.
 
 **Architecture:** Three small pure helper modules (a typed client, a tree builder, a filter predicate) hold the testable logic; `PreviewMdLibrary.tsx` gains state + effects that fetch `/api/docs/usage`, merge it onto the existing `DocFile[]` by `path`, and render the new controls/badges/tree. The existing flat list, editor, category/status filters, and safe-delete flow are untouched and keep working.
 
@@ -10,20 +10,20 @@
 
 ## Global Constraints
 
-- **Depends on Plan 1:** consumes `GET /api/docs/usage` → `DocUsagePayload` unchanged. Do not modify the backend here.
+- **Depends on Plan 1:** consumes `GET /api/docs/usage` -> `DocUsagePayload` unchanged. Do not modify the backend here.
 - **Additive only:** the flat list, editor, and delete flow must keep working. New view is a toggle, new filters default to "all".
 - **Do NOT `git commit`:** the 2 a.m. snapshot handles commits. Each task ends at "tests green" / "eyeballed working".
-- **Verify UI changes live (Remy's visual-inspection rule):** component tasks end with a real browser check via the preview tools, not just a screenshot. Serve the Doc Library at `misc/md_library.html` on a full dev server (`npm run dev:hub`, port 3030) — `/api/docs/usage` only exists there, not on the static planmap server.
+- **Verify UI changes live (Remy's visual-inspection rule):** component tasks end with a real browser check via the preview tools, not just a screenshot. Serve the Doc Library at `misc/md_library.html` on a full dev server (`npm run dev:hub`, port 3030) - `/api/docs/usage` only exists there, not on the static planmap server.
 - **Paths** are repo-relative with `/`. **Test command:** `npx vitest run <path>`.
 - **Merge key:** `DocFile.path` === `DocUsageEntry.path` (both from the same enumeration).
 
 ## File Structure
 
-- `src/components/DesignPreview/steps/docLibrary/docUsageClient.ts` — client type + `fetchDocUsage()` + `indexByPath()` (Task 1).
-- `src/components/DesignPreview/steps/docLibrary/buildDocTree.ts` — pure flat-paths → tree (Task 2).
-- `src/components/DesignPreview/steps/docLibrary/docUsageFilter.ts` — pure filter predicate (Task 3).
-- `src/components/DesignPreview/steps/PreviewMdLibrary.tsx` — state/effects/render wiring (Tasks 4-8).
-- `src/components/DesignPreview/steps/docLibrary/__tests__/*.test.ts` — util tests.
+- `src/components/DesignPreview/steps/docLibrary/docUsageClient.ts` - client type + `fetchDocUsage()` + `indexByPath()` (Task 1).
+- `src/components/DesignPreview/steps/docLibrary/buildDocTree.ts` - pure flat-paths -> tree (Task 2).
+- `src/components/DesignPreview/steps/docLibrary/docUsageFilter.ts` - pure filter predicate (Task 3).
+- `src/components/DesignPreview/steps/PreviewMdLibrary.tsx` - state/effects/render wiring (Tasks 4-8).
+- `src/components/DesignPreview/steps/docLibrary/__tests__/*.test.ts` - util tests.
 
 ---
 
@@ -76,7 +76,7 @@ describe('indexByPath', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run src/components/DesignPreview/steps/docLibrary/__tests__/docUsageClient.test.ts`
-Expected: FAIL — cannot find module `../docUsageClient`.
+Expected: FAIL - cannot find module `../docUsageClient`.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -156,7 +156,7 @@ describe('buildDocTree', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run src/components/DesignPreview/steps/docLibrary/__tests__/buildDocTree.test.ts`
-Expected: FAIL — cannot find module.
+Expected: FAIL - cannot find module.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -216,7 +216,7 @@ Expected: PASS.
   }
   export function matchesUsageFilters(u: DocUsage | undefined, f: UsageFilterState): boolean;
   ```
-  A doc with no usage entry (`undefined`) passes only when all four filters are "all" (so a missing scan never hides docs silently under an active filter — it fails visibly by dropping out).
+  A doc with no usage entry (`undefined`) passes only when all four filters are "all" (so a missing scan never hides docs silently under an active filter - it fails visibly by dropping out).
 
 - [ ] **Step 1: Write the failing test**
 
@@ -260,7 +260,7 @@ describe('matchesUsageFilters', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run src/components/DesignPreview/steps/docLibrary/__tests__/docUsageFilter.test.ts`
-Expected: FAIL — cannot find module.
+Expected: FAIL - cannot find module.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -290,7 +290,7 @@ export function matchesUsageFilters(u: DocUsage | undefined, f: UsageFilterState
 - [ ] **Step 4: Run test to verify it passes + whole util suite**
 
 Run: `npx vitest run src/components/DesignPreview/steps/docLibrary/`
-Expected: PASS — three util test files green.
+Expected: PASS - three util test files green.
 
 ---
 
@@ -371,14 +371,14 @@ Just inside the sidebar `<aside ...>` (before the search `<label>`), add:
               <span><strong className="text-slate-200">{Object.values(usageByPath).filter(u => u.role === 'plan').length}</strong> plan</span>
               <span><strong className="text-amber-300">{Object.values(usageByPath).filter(u => u.candidate.isCandidate).length}</strong> candidates</span>
               <span><strong className="text-slate-200">{new Set(Object.values(usageByPath).map(u => u.duplicateGroupId).filter(x => x != null)).size}</strong> dupe groups</span>
-              {isLoadingUsage && <span className="text-slate-500">scanning…</span>}
+              {isLoadingUsage && <span className="text-slate-500">scanning...</span>}
             </div>
 ```
 
 - [ ] **Step 6: Live verification**
 
 Ensure a full dev server is up (`npm run dev:hub`, port 3030). Then, via the preview tools, open `http://localhost:3030/Aralia/misc/md_library.html`, wait for load, and run in-page:
-`document.body.innerText.match(/\d+ docs/)` → expect a match; and confirm the "candidates" and "dupe groups" counts are present. If `usageDiag.atlasMissing` was true, the plan/role count will read 0 — correct until the Atlas export exists.
+`document.body.innerText.match(/\d+ docs/)` -> expect a match; and confirm the "candidates" and "dupe groups" counts are present. If `usageDiag.atlasMissing` was true, the plan/role count will read 0 - correct until the Atlas export exists.
 
 Expected: headline bar shows non-zero doc count and the scan-derived counts; no console errors.
 
@@ -428,7 +428,7 @@ Inside the `filteredFiles.map((file) => ( ... ))` row markup, immediately after 
 - [ ] **Step 3: Live verification**
 
 Reload the Doc Library. Run in-page:
-`[...document.querySelectorAll('*')].some(e => e.textContent === 'unused')` → expect `true`; and confirm at least one row shows an app chip (consumed). Confirm spell/reference docs show an app chip rather than "unused".
+`[...document.querySelectorAll('*')].some(e => e.textContent === 'unused')` -> expect `true`; and confirm at least one row shows an app chip (consumed). Confirm spell/reference docs show an app chip rather than "unused".
 
 Expected: badges render on rows; consumed docs show app chips, orphans show "unused", plan docs with open items show "N open".
 
@@ -600,7 +600,7 @@ Next to the headline bar (Task 4 Step 5), add:
               disabled={isLoadingUsage}
               className="mx-3 my-1 text-[11px] px-2 py-0.5 rounded bg-slate-800/60 text-slate-300 hover:bg-slate-700/60 disabled:opacity-50 self-start"
             >
-              {isLoadingUsage ? 'Scanning…' : '↻ Rescan usage'}
+              {isLoadingUsage ? 'Scanning...' : '↻ Rescan usage'}
             </button>
 ```
 
@@ -625,31 +625,33 @@ Below the Rescan button, add:
 
 - [ ] **Step 3: Live verification**
 
-Reload. Via preview tools click "↻ Rescan usage"; confirm the button shows "Scanning…" then returns, and the headline counts refresh (network shows a `/api/docs/usage?refresh=1` call). If the Atlas export is absent, confirm the diagnostics disclosure shows "Atlas export missing (roles blank)".
+Reload. Via preview tools click "↻ Rescan usage"; confirm the button shows "Scanning..." then returns, and the headline counts refresh (network shows a `/api/docs/usage?refresh=1` call). If the Atlas export is absent, confirm the diagnostics disclosure shows "Atlas export missing (roles blank)".
 
 Expected: Rescan triggers a refresh request and updates counts; diagnostics disclosure appears when the scan reports atlas-missing / ambiguous / unresolved refs.
 
 - [ ] **Step 4: Full util regression**
 
 Run: `npx vitest run src/components/DesignPreview/steps/docLibrary/`
-Expected: PASS — all three util suites still green.
+Expected: PASS - all three util suites still green.
 
 ---
 
 ## Self-Review
 
 **Spec coverage (Feature A UI):**
-- Folder-tree view → Task 2 (builder) + Task 7 (render/toggle). ✓
-- Per-doc badges (role/age/consumed/duplicate/open-tasks/candidate) → Task 5. ✓
-- Filters (consumed/role/duplicate/confidence) stacking on search/category/status → Task 3 (predicate) + Task 4 (filteredFiles wiring) + Task 6 (controls). ✓
-- Headline counts → Task 4. ✓
-- Rescan button → Task 8. ✓
-- Diagnostics disclosure (atlas-missing/ambiguous/unresolved) → Task 8. ✓
-- Additive (existing list/editor/delete intact) → all component tasks insert alongside; list guarded by `layoutMode === 'list'`. ✓
+- Folder-tree view -> Task 2 (builder) + Task 7 (render/toggle). ✓
+- Per-doc badges (role/age/consumed/duplicate/open-tasks/candidate) -> Task 5. ✓
+- Filters (consumed/role/duplicate/confidence) stacking on search/category/status -> Task 3 (predicate) + Task 4 (filteredFiles wiring) + Task 6 (controls). ✓
+- Headline counts -> Task 4. ✓
+- Rescan button -> Task 8. ✓
+- Diagnostics disclosure (atlas-missing/ambiguous/unresolved) -> Task 8. ✓
+- Additive (existing list/editor/delete intact) -> all component tasks insert alongside; list guarded by `layoutMode === 'list'`. ✓
 
-**Placeholder scan:** none — every step ships real code or a concrete in-page check.
+**Placeholder scan:** none - every step ships real code or a concrete in-page check.
 
 **Type consistency:** `DocUsage`/`DocUsageResponse` (Task 1) reused verbatim in Tasks 3-8; `UsageFilterState` (Task 3) matches `usageFilters` state (Task 4) and the controls (Task 6); `TreeNode`/`buildDocTree` (Task 2) match `docTree`/`renderTree` (Task 7); `renderBadges` defined once (Task 5), reused in Task 7.
 
 ## Depends on
-Plan 1 (`2026-07-04-doc-usage-scanner.md`) — the `/api/docs/usage` endpoint must exist and return `DocUsagePayload`.
+Plan 1 (`2026-07-04-doc-usage-scanner.md`) - the `/api/docs/usage` endpoint must exist and return `DocUsagePayload`.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-04-doc-library-explorer-ui.md","sha256WithoutMarker":"ca0876ade6e143c285410a59ac5be6209b3418acd8a86d65f337a18fcc24f542","markedAtUtc":"2026-08-09T20:22:07.607Z"} -->

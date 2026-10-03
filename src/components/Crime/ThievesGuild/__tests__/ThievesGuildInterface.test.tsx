@@ -7,7 +7,7 @@ import { GameProvider } from '../../../../state/GameContext';
 import { initialGameState } from '../../../../state/initialState';
 import { GuildJob, GuildJobType } from '../../../../types/crime';
 import { GuildMembership } from '../../../../types';
-import { createMockPlayerCharacter } from '../../../../utils/factories';
+import { createMockPlayerCharacter } from '../../../../utils/core';
 
 // Mock the system to control random generation
 vi.mock('../../../../systems/crime/ThievesGuildSystem', () => ({

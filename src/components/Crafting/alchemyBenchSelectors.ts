@@ -64,16 +64,57 @@ export function collectPartyToolProficiencies(party: PlayerCharacter[]): string[
     return proficiencies;
 }
 
+// ============================================================================
+// Saved Crafting-State Boundary
+// ============================================================================
+// Save files can outlive additions to CraftingState. This section gives the
+// Alchemy Bench a complete read-only view without pretending to migrate the save.
+// ============================================================================
+
 /**
- * Reuses the standard initial crafting state when the reducer has not seeded
- * one yet. This keeps the bench aligned with the same starting recipe set the
- * rest of the crafting flow expects.
+ * Builds a complete bench-facing state from either a current save, a partial
+ * legacy save, or no crafting state at all.
+ *
+ * Missing fields inherit the standard game defaults, while every saved value is
+ * preserved. Fresh arrays and nested statistics ensure the bench cannot mutate
+ * the object owned by the loaded game state. Loader-wide migration remains a
+ * separate responsibility of the save service.
  */
 export function resolveAlchemyBenchCraftingState(
     craftingState: CraftingState | undefined,
     partyToolProficiencies: string[]
 ): CraftingState {
-    return craftingState ?? createInitialCraftingState(partyToolProficiencies);
+    const defaultState = createInitialCraftingState(partyToolProficiencies);
+
+    // A new game still receives the canonical starter recipes and tool choices.
+    if (!craftingState) {
+        return defaultState;
+    }
+
+    // A loaded JSON save can be missing fields even though current TypeScript
+    // callers see CraftingState. Merge each nested collection separately so a
+    // partial `stats` object cannot erase newer counters or category tracking.
+    const savedStats = craftingState.stats ?? defaultState.stats;
+
+    return {
+        ...defaultState,
+        ...craftingState,
+        knownRecipes: [...(craftingState.knownRecipes ?? defaultState.knownRecipes)],
+        toolProficiencies: [
+            ...(craftingState.toolProficiencies ?? defaultState.toolProficiencies)
+        ],
+        unlockedAchievements: [
+            ...(craftingState.unlockedAchievements ?? defaultState.unlockedAchievements)
+        ],
+        stats: {
+            ...defaultState.stats,
+            ...savedStats,
+            categoryCounts: {
+                ...defaultState.stats.categoryCounts,
+                ...(savedStats.categoryCounts ?? {})
+            }
+        }
+    };
 }
 
 /**

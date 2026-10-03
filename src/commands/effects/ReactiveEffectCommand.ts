@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/06/2026, 23:50:22
+ * Last Sync: 04/08/2026, 01:49:17
  * Dependents: commands/factory/SpellCommandFactory.ts
- * Imports: 8 files
+ * Imports: 20 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -22,13 +22,11 @@ import { BaseEffectCommand } from '../base/BaseEffectCommand';
 import { CommandContext, SpellCommand } from '../base/SpellCommand';
 import { CommandExecutor } from '../base/CommandExecutor';
 import { CombatState } from '../../types/combat';
-import { SpellEffect } from '../../types/spells';
-import { generateId } from '../../utils/combatUtils';
-import { movementEvents, MovementEvent } from '../../systems/combat/MovementEventEmitter';
-import { attackEvents, AttackEvent } from '../../systems/combat/AttackEventEmitter';
-import { combatEvents, CastEvent } from '../../systems/events/CombatEvents';
+import { ReactiveEffect, SpellEffect } from '../../types/spells';
+import { generateId } from '../../utils/combat';
+import { combatEvents, CastEvent, CombatEventEmitter } from '../../systems/events/CombatEvents';
 import { sustainActionSystem, SustainedSpell } from '../../systems/combat/SustainActionSystem';
-import { logger } from '../../utils/logger';
+import { logger } from '../../utils/core';
 import { DamageCommand } from './DamageCommand';
 import { HealingCommand } from './HealingCommand';
 import { StatusConditionCommand } from './StatusConditionCommand';
@@ -39,8 +37,29 @@ import { TerrainCommand } from './TerrainCommand';
 import { UtilityCommand } from './UtilityCommand';
 import { DefensiveCommand } from './DefensiveCommand';
 
-type ReactiveEvent = MovementEvent | AttackEvent | CastEvent;
+type ReactiveEvent = CastEvent;
 type DurationLike = { type?: string; unit?: string; value?: number };
+
+/**
+ * Event buses used by a reactive command.
+ *
+ * Normal game commands use the shared bus below. Tests and isolated combat
+ * simulations can provide a fresh bus so listeners cannot leak between runs.
+ *
+ * Only the combat bus is here. 'on_target_move' and 'on_target_attack' used to
+ * register listeners on a movement emitter and an attack emitter that no
+ * production file ever fired. Both trigger types are still recorded in
+ * `state.reactiveTriggers` by `execute` below, and that array is what the live
+ * consumers read: `useActionExecutor.resolveOnTargetAttackReactiveEffects` for
+ * an attack, and the movement-debuff pipeline for a move.
+ */
+export interface ReactiveEventEmitters {
+    combat: Pick<CombatEventEmitter, 'on' | 'off'>;
+}
+
+const sharedReactiveEventEmitters: ReactiveEventEmitters = {
+    combat: combatEvents
+};
 
 /**
  * Command that registers reactive triggers or sustain requirements for a spell.
@@ -54,8 +73,16 @@ type DurationLike = { type?: string; unit?: string; value?: number };
  * - **Sustained Effects:** Spells like *Witch Bolt* or *Call Lightning* that allow/require actions in future turns.
  * - **Traps/Wards:** Effects like *Glyph of Warding* that wait for a trigger condition.
  */
-export class ReactiveEffectCommand extends BaseEffectCommand {
+export class ReactiveEffectCommand extends BaseEffectCommand<ReactiveEffect> {
     private registeredListeners: (() => void)[] = []; // Store cleanup functions
+
+    constructor(
+        effect: ReactiveEffect,
+        context: CommandContext,
+        private readonly eventEmitters: ReactiveEventEmitters = sharedReactiveEventEmitters
+    ) {
+        super(effect, context);
+    }
 
     execute(state: CombatState): CombatState {
         const trigger = this.effect.trigger;
@@ -107,39 +134,10 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
         const targetId = this.context.targets[0]?.id;
 
         switch (trigger.type) {
-            case 'on_target_move':
-                if (targetId) {
-                    const listener = async (event: MovementEvent) => {
-                        // Check if movement matches our criteria
-                        if (event.creatureId !== targetId) return;
-
-                        const movementType = trigger.movementType || 'any';
-                        if (movementType !== 'any' && event.movementType !== movementType) return;
-
-                        // Trigger the effect
-                        await this.executeReactiveEffect(event);
-                    };
-
-                    movementEvents.onMovement(listener);
-                    this.registeredListeners.push(() => movementEvents.offMovement(listener));
-                }
-                break;
-
-            case 'on_target_attack':
-                if (targetId) {
-                    const listener = async (event: AttackEvent) => {
-                        // Check if this is an attack against our target
-                        if (event.targetId !== targetId) return;
-
-                        // Trigger the effect (save vs lose attack for compelled duel)
-                        await this.executeReactiveEffect(event);
-                    };
-
-                    attackEvents.onPreAttack(listener);
-                    this.registeredListeners.push(() => attackEvents.offPreAttack(listener));
-                }
-                break;
-
+            // 'on_target_move' and 'on_target_attack' register nothing here. The
+            // row `execute` pushed onto `state.reactiveTriggers` is the whole
+            // registration, and the hook layer reads that array when a creature
+            // moves or is attacked.
             case 'on_target_cast':
                 if (targetId) {
                     const listener = (event: CastEvent) => {
@@ -147,8 +145,8 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
                         this.executeReactiveEffect(event);
                     };
 
-                    combatEvents.on('unit_cast', listener);
-                    this.registeredListeners.push(() => combatEvents.off('unit_cast', listener));
+                    this.eventEmitters.combat.on('unit_cast', listener);
+                    this.registeredListeners.push(() => this.eventEmitters.combat.off('unit_cast', listener));
                 }
                 break;
 

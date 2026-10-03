@@ -145,6 +145,14 @@ export function buildPlanmapNodes(
 }
 
 const CURATED_SUBFEATURES: Record<string, Set<string>> = {
+  'magic item attunement and character boons': new Set([
+    'Magic Item Attunement and Character Boons',
+    'Magic Item Boons > Attunement Enforcement Per Character',
+    'Magic Item Boons > Ability Score Boons From Equipment',
+    'Magic Item Boons > Weapon Magical Attack Bonuses',
+    'Magic Item Boons > Ingested Mechanical Field Population',
+    'Magic Item Boons > Unified Attunement Field Shape'
+  ]),
   '3d exploration & combat': new Set([
     '3D Exploration & Combat',
     'World Map > Visuals',
@@ -323,6 +331,30 @@ const CURATED_SUBFEATURES: Record<string, Set<string>> = {
 // This is where we keep roadmap nodes tied to concrete scripts/docs instead of vague prose.
 // ============================================================================
 const CURATED_SUBFEATURE_DETAILS: Record<string, { layman: string; canonicalDocs: string[] }> = {
+  'Magic Item Attunement and Character Boons': {
+    layman: 'How a magic item\'s benefits reach the character, and how attunement gates them. The enforcement code is built and tested, but no item data fills the fields it reads, so magic items are inert in play.',
+    canonicalDocs: ['docs/tasks/magic-items/magic-item-boons-and-attunement.md']
+  },
+  'Magic Item Boons > Attunement Enforcement Per Character': {
+    layman: 'The 3-item attunement limit and attune/unattune actions. Built and tested in the character reducer.',
+    canonicalDocs: ['docs/tasks/magic-items/magic-item-boons-and-attunement.md']
+  },
+  'Magic Item Boons > Ability Score Boons From Equipment': {
+    layman: 'Equipped items raise or set ability scores (like Gauntlets of Ogre Power setting Strength to 19), gated on attunement. The math exists; no item data populates it yet.',
+    canonicalDocs: ['docs/tasks/magic-items/magic-item-boons-and-attunement.md']
+  },
+  'Magic Item Boons > Weapon Magical Attack Bonuses': {
+    layman: 'A +1/+2/+3 weapon adds its bonus to attack and damage rolls. The math exists; no item data populates it yet.',
+    canonicalDocs: ['docs/tasks/magic-items/magic-item-boons-and-attunement.md']
+  },
+  'Magic Item Boons > Ingested Mechanical Field Population': {
+    layman: 'The glossary ingest should turn each magic item\'s rules text into the mechanical fields the game reads, instead of emitting prose only.',
+    canonicalDocs: ['docs/tasks/magic-items/magic-item-boons-and-attunement.md']
+  },
+  'Magic Item Boons > Unified Attunement Field Shape': {
+    layman: 'Settle on one attunement representation so the reducer, stat math, and ingested data all agree. Today the runtime reads a flat flag while the data writes a nested one, and nothing bridges them.',
+    canonicalDocs: ['docs/tasks/magic-items/magic-item-boons-and-attunement.md']
+  },
   '3D Exploration & Combat': {
     layman: 'Top-level branch for 3D traversal and combat work under World Exploration.',
     canonicalDocs: [
@@ -1485,6 +1517,14 @@ const CURATED_SUBFEATURE_DETAILS: Record<string, { layman: string; canonicalDocs
 };
 
 const CURATED_REQUIRED_SUBFEATURES: Record<string, string[]> = {
+  'magic item attunement and character boons': [
+    'Magic Item Attunement and Character Boons',
+    'Magic Item Boons > Attunement Enforcement Per Character',
+    'Magic Item Boons > Ability Score Boons From Equipment',
+    'Magic Item Boons > Weapon Magical Attack Bonuses',
+    'Magic Item Boons > Ingested Mechanical Field Population',
+    'Magic Item Boons > Unified Attunement Field Shape'
+  ],
   '3d exploration & combat': [
     '3D Exploration & Combat',
     'World Map > Visuals',
@@ -2860,6 +2900,17 @@ export function generateRoadmapData() {
       const scoredSubfeatures = Array.from(featureSubfeatures.values())
         .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
 
+      // Manifest-authored states keyed by the raw subfeature label. Required
+      // subfeatures are added below even when the curated-name match skipped
+      // them above (prefix vs raw-label mismatch), so without this they would
+      // all default to 'active' and lose their planned/done state.
+      const manifestStateByName = new Map<string, RoadmapNode['status']>();
+      for (const doc of feature.docs) {
+        for (const sub of doc.subFeatures ?? []) {
+          manifestStateByName.set(sub.name.toLowerCase(), normalizeState(sub.state));
+        }
+      }
+
       const requiredSubfeatures = CURATED_REQUIRED_SUBFEATURES[feature.feature.toLowerCase()] ?? [];
       for (const requiredName of requiredSubfeatures) {
         if (scoredSubfeatures.some((sub) => sub.name === requiredName)) continue;
@@ -2868,7 +2919,9 @@ export function generateRoadmapData() {
         const canonicalFallback = feature.docs.map((doc) => doc.canonicalPath || doc.sourcePath);
         scoredSubfeatures.unshift({
           name: requiredName,
-          state: 'active',
+          // Honor the manifest state; fall back to 'active' only when the
+          // required label has no manifest entry (curated-only required node).
+          state: manifestStateByName.get(requiredName.toLowerCase()) ?? 'active',
           score: 999,
           sourceDocs: new Set(details?.canonicalDocs?.length ? details.canonicalDocs : docsFallback),
           canonicalDocs: new Set(details?.canonicalDocs?.length ? details.canonicalDocs : canonicalFallback)

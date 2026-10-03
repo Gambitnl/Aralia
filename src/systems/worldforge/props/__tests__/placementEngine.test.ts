@@ -9,6 +9,7 @@ import {
   DEFILE_SLOPE_THRESHOLD_ENC,
   ORNAMENT_BUILDING_CLEAR_M,
   type PropPlacementContext,
+  type CtxDeadEnd,
 } from '../placementEngine';
 import { PROPS_BY_ID } from '../catalog';
 
@@ -547,5 +548,247 @@ describe('placementEngine — BG3 density calibration bounds', () => {
         expect(Math.hypot(s.xM - b.xM, s.zM - b.zM)).toBeGreaterThan(1.524 * 3 - 1e-9);
       }
     }
+  });
+});
+
+// ── Stage 2: the surface gate (WorldClaw) ───────────────────────────────────
+
+import { placePropsInstrumented } from '../placementEngine';
+import { surfaceGateFor } from '../catalog';
+import { makeGridSurfaceProbe, FEET_PER_METER } from '../../terrain/surfaceProbe';
+
+const GRID = 64;
+
+/** A context whose ground is a uniform ramp of `slopeDeg`, rising with +x. */
+function slopedCtx(slopeDeg: number, biome: string, extent = 512): PropPlacementContext {
+  const elevationsFt = new Float32Array(GRID * GRID);
+  const stepM = extent / (GRID - 1);
+  const riseFtPerCol = stepM * Math.tan((slopeDeg * Math.PI) / 180) * FEET_PER_METER;
+  for (let r = 0; r < GRID; r++) {
+    for (let c = 0; c < GRID; c++) elevationsFt[r * GRID + c] = 60 * FEET_PER_METER + c * riseFtPerCol;
+  }
+  const cellFt = stepM * FEET_PER_METER;
+  return {
+    extentMetersX: extent,
+    extentMetersZ: extent,
+    cols: GRID,
+    rows: GRID,
+    biomeIds: new Array(GRID * GRID).fill(biome),
+    buildings: [],
+    roads: [],
+    decks: [],
+    plazas: [],
+    surface: makeGridSurfaceProbe({
+      elevationsFt, cols: GRID, rows: GRID, cellSizeXFt: cellFt, cellSizeZFt: cellFt,
+    }),
+  };
+}
+
+describe('placementEngine — surface gate', () => {
+  it('reports a tally for every pass', () => {
+    const { stats } = placePropsInstrumented(SEED, slopedCtx(0, 'grassland'));
+    expect(Object.keys(stats.byPass)).toContain('wilderness');
+    expect(stats.total.considered).toBe(stats.total.kept + stats.total.rejected);
+  });
+
+  it('reports considered=0 when the context carries NO probe, rather than pretending it passed', () => {
+    const ctx = slopedCtx(0, 'grassland');
+    delete (ctx as { surface?: unknown }).surface;
+    const { stats } = placePropsInstrumented(SEED, ctx);
+    expect(stats.total.considered).toBe(0);
+  });
+
+  it('keeps everything on flat ground', () => {
+    const { stats } = placePropsInstrumented(SEED, slopedCtx(0, 'grassland'));
+    expect(stats.total.considered).toBeGreaterThan(0);
+    expect(stats.total.rejected).toBe(0);
+  });
+
+  it('places NO prop on a cliff face', () => {
+    const { instances, stats } = placePropsInstrumented(SEED, slopedCtx(60, 'hills'));
+    expect(stats.byPass.wilderness.considered).toBeGreaterThan(0);
+    expect(stats.byPass.wilderness.rejectionRate).toBe(1);
+    expect(instances).toHaveLength(0);
+  });
+
+  it('rejects more as the ground steepens', () => {
+    const rate = (d: number) => placePropsInstrumented(SEED, slopedCtx(d, 'hills')).stats.total.rejectionRate;
+    const gentle = rate(5);
+    const steep = rate(30);
+    const cliff = rate(60);
+    expect(gentle).toBe(0);
+    expect(steep).toBeGreaterThan(gentle);
+    expect(cliff).toBeGreaterThan(steep);
+  });
+
+  it('keeps a boulder where it drops a cairn — tolerance follows form', () => {
+    const { instances } = placePropsInstrumented(SEED, slopedCtx(30, 'hills'));
+    const ids = new Set(instances.map((p) => p.defId));
+    expect(ids.has('cairn')).toBe(false);        // standing stone: 20 deg limit
+    expect(ids.has('standing-stone')).toBe(false);
+    expect(ids.has('boulder')).toBe(true);       // lying stone: 45 deg limit
+  });
+
+  it('lays a boulder flat on the slope and stands a cairn upright', () => {
+    expect(surfaceGateFor('boulder').maxTiltRad).toBeGreaterThan(surfaceGateFor('cairn').maxTiltRad);
+    const { instances } = placePropsInstrumented(SEED, slopedCtx(30, 'hills'));
+    const rock = instances.find((p) => p.defId === 'boulder');
+    expect(rock?.surface).toBeDefined();
+    expect((rock!.surface!.tiltRad * 180) / Math.PI).toBeCloseTo(30, 1);
+  });
+
+  it('sinks every instance so nothing hovers on a slope', () => {
+    const { instances } = placePropsInstrumented(SEED, slopedCtx(25, 'hills'));
+    expect(instances.length).toBeGreaterThan(0);
+    for (const p of instances) {
+      expect(p.surface!.sinkM).toBeGreaterThan(0);
+      expect(Math.hypot(p.surface!.tiltAxis[0], p.surface!.tiltAxis[1])).toBeCloseTo(1, 6);
+    }
+  });
+
+  it('never sinks anything on flat ground', () => {
+    const { instances } = placePropsInstrumented(SEED, slopedCtx(0, 'grassland'));
+    for (const p of instances) expect(p.surface!.sinkM).toBe(0);
+  });
+
+  it('treats an unclassified prop as BUILT — level ground only', () => {
+    expect(surfaceGateFor('an-id-that-does-not-exist')).toEqual(surfaceGateFor('crate'));
+  });
+
+  it('stays deterministic with the gate applied', () => {
+    const a = placePropsInstrumented(SEED, slopedCtx(20, 'hills')).instances;
+    const b = placePropsInstrumented(SEED, slopedCtx(20, 'hills')).instances;
+    expect(a).toEqual(b);
+  });
+
+  it('placeProps returns exactly the gated instances', () => {
+    const ctx = slopedCtx(20, 'hills');
+    expect(placeProps(SEED, ctx)).toEqual(placePropsInstrumented(SEED, ctx).instances);
+  });
+});
+
+// ── Dead-end street dressing (RealmSmith F11 port) ──────────────────────────
+
+const GRAVE_DEF_IDS = new Set(['gravestone', 'tomb', 'stone-cross']);
+
+/** Lane ends spaced far enough apart that no dressing reaches its neighbour. */
+const DEAD_END_SPACING_M = 60;
+
+function deadEndRow(count: number, prefix = 'de'): CtxDeadEnd[] {
+  const out: CtxDeadEnd[] = [];
+  for (let i = 0; i < count; i++) {
+    out.push({
+      id: `${prefix}${i}`,
+      xM: 40 + (i % 10) * DEAD_END_SPACING_M,
+      zM: 40 + Math.floor(i / 10) * DEAD_END_SPACING_M,
+      inwardRad: 0,
+    });
+  }
+  return out;
+}
+
+/** A window big enough to hold a 10 x 10 grid of spaced lane ends. */
+function deadEndCtx(count: number): PropPlacementContext {
+  return emptyCtx({ extentMetersX: 700, extentMetersZ: 700, deadEnds: deadEndRow(count) });
+}
+
+describe('placementEngine — dead-end street dressing', () => {
+  it('dresses a dead end, and does nothing at all without one', () => {
+    const bare = placeProps(SEED, emptyCtx());
+    const dressed = placeProps(SEED, deadEndCtx(1));
+    expect(bare).toEqual([]);
+    expect(dressed.length).toBeGreaterThan(0);
+  });
+
+  it('is deterministic for one seed path', () => {
+    const ctx = deadEndCtx(24);
+    expect(placeProps(SEED, ctx)).toEqual(placeProps(SEED, ctx));
+    expect(placeProps(makeSeedPath(4242, 'cell:3-3'), ctx)).not.toEqual(placeProps(SEED, ctx));
+  });
+
+  it('gives a town at most one cemetery cluster, however many lanes end', () => {
+    for (const seed of [SEED, makeSeedPath(7, 'cell:1-2'), makeSeedPath(88, 'cell:9-9')]) {
+      const ends = deadEndRow(60);
+      const props = placeProps(seed, deadEndCtx(60));
+      // Each dead end's dressing stays inside its own patch, so grave props are
+      // counted by which end they sit nearest.
+      const cemeteryEnds = new Set<string>();
+      for (const p of props) {
+        if (!GRAVE_DEF_IDS.has(p.defId)) continue;
+        let best = '';
+        let bestD = Infinity;
+        for (const e of ends) {
+          const d = (e.xM - p.xM) ** 2 + (e.zM - p.zM) ** 2;
+          if (d < bestD) { bestD = d; best = e.id; }
+        }
+        cemeteryEnds.add(best);
+      }
+      expect(cemeteryEnds.size).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('places the cemetery at the same lane end whatever order the ends arrive in', () => {
+    const ends = deadEndRow(40);
+    const graves = (ctxEnds: CtxDeadEnd[]): string =>
+      JSON.stringify(
+        placeProps(SEED, emptyCtx({ extentMetersX: 700, extentMetersZ: 700, deadEnds: ctxEnds }))
+          .filter((p) => GRAVE_DEF_IDS.has(p.defId))
+          .map((p) => [p.defId, Math.round(p.xM * 100), Math.round(p.zM * 100)])
+          .sort(),
+      );
+    expect(graves([...ends].reverse())).toEqual(graves(ends));
+  });
+
+  it('keeps its dressing off the pavement and inside the window', () => {
+    const ctx = emptyCtx({
+      deadEnds: [{ id: 'd0', xM: 100, zM: 100, inwardRad: Math.PI }],
+      roads: [{ points: [{ x: 0, z: 100 }, { x: 100, z: 100 }] }],
+    });
+    for (const p of placeProps(SEED, ctx)) {
+      // The road runs along z = 100 up to the tip; nothing may sit on it.
+      const onRoad = p.xM <= 100 && Math.abs(p.zM - 100) < 1.5;
+      expect(onRoad).toBe(false);
+      expect(p.xM).toBeGreaterThanOrEqual(0);
+      expect(p.xM).toBeLessThanOrEqual(ctx.extentMetersX);
+    }
+  });
+
+  it('emits only renderable catalog defs', () => {
+    for (const p of placeProps(SEED, deadEndCtx(40))) {
+      expect(RENDERABLE_DEF_IDS.has(p.defId)).toBe(true);
+      expect(PROPS_BY_ID.has(p.defId)).toBe(true);
+    }
+  });
+
+  it('draws all four features across a town with many lane ends', () => {
+    const ids = new Set(placeProps(SEED, deadEndCtx(60)).map((p) => p.defId));
+    expect([...ids].some((d) => d === 'bush' || d === 'tree-stump' || d === 'fern-clump')).toBe(true); // nature
+    expect([...ids].some((d) => d === 'crate' || d === 'crate-stack' || d === 'tool-rack')).toBe(true); // storage
+    expect([...ids].some((d) => d === 'wayside-shrine' || d === 'cairn' || d === 'standing-stone')).toBe(true); // shrine
+    expect(ids.has('gravestone')).toBe(true); // cemetery
+  });
+});
+
+describe('placementEngine — farmstead crop identity', () => {
+  const farmCtx = (crop?: string): PropPlacementContext =>
+    emptyCtx({ buildings: [{ id: 'f1', xM: 100, zM: 100, role: 'farm', crop }] });
+
+  it('dresses a farm with its crop kit, and a cropless farm with none of it', () => {
+    const CROP_KIT = new Set(['scarecrow', 'plough', 'produce-basket', 'beehive', 'hedge-run', 'net-drying-rack', 'trestle-table']);
+    const bare = placeProps(SEED, farmCtx()).filter((p) => CROP_KIT.has(p.defId));
+    const grain = placeProps(SEED, farmCtx('grain')).filter((p) => CROP_KIT.has(p.defId));
+    expect(bare).toEqual([]);
+    expect(grain.length).toBeGreaterThan(0);
+  });
+
+  it('gives two crops two different yards, and repeats each one exactly', () => {
+    const a = placeProps(SEED, farmCtx('grain'));
+    const b = placeProps(SEED, farmCtx('orchard-fruit'));
+    expect(a).not.toEqual(b);
+    expect(placeProps(SEED, farmCtx('grain'))).toEqual(a);
+  });
+
+  it('dresses an unknown crop as a bare farm rather than inventing one', () => {
+    expect(placeProps(SEED, farmCtx('sky-melon'))).toEqual(placeProps(SEED, farmCtx()));
   });
 });

@@ -1,4 +1,4 @@
-> **ARCHIVED 2026-07-01 (doc-triage batch 1).** Project complete — 810 SVG assets verified on disk at `public/assets/icons/items/` and 810 registry references in `src/data/items/generatedGlossaryItems.ts`. Future art-direction passes may replace icons in place. Taxonomy questions live in `docs/projects/item_categorization/GAPS.md`.
+> **ARCHIVED 2026-07-01 (doc-triage batch 1).** Project complete - 810 SVG assets verified on disk at `public/assets/icons/items/` and 810 registry references in `src/data/items/generatedGlossaryItems.ts`. Future art-direction passes may replace icons in place. Taxonomy questions live in `docs/projects/item_categorization/GAPS.md`.
 
 # Item Icons Living Tracker
 
@@ -35,4 +35,4 @@ Last updated: 2026-06-25
 - Keep active rows with owner, evidence, and explicit next proof/action.
 - Route cross-project or non-item-related findings to `docs/projects/GLOBAL_GAPS.md` from `GAPS.md`.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/item-icons/TRACKER.md","sha256WithoutMarker":"0df3b313bd383e65fa0b549b2ae5ffab4d99130874119d94dd75b58310d88801","markedAtUtc":"2026-06-25T22:29:38.310Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/archive/tasks/item-icons/TRACKER.md","sha256WithoutMarker":"31430936ce120bc4f5e4dfc13904fcc46c6713966385676fc667e6d0c0e3b5fb","markedAtUtc":"2026-08-09T20:22:07.643Z"} -->

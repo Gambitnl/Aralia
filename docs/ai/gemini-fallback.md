@@ -2,8 +2,8 @@
 
 Aralia generates narrative text (location/wilderness descriptions, NPC replies,
 action outcomes, oracle guidance, etc.) with a **local Ollama** model by
-default. When Ollama isn't available — not installed, not running, or no model
-pulled — the player can opt in to fall back to **Google Gemini** using a
+default. When Ollama isn't available - not installed, not running, or no model
+pulled - the player can opt in to fall back to **Google Gemini** using a
 credential **they supply themselves**.
 
 Nothing is baked into the app. No shared API key ships with Aralia. The player's
@@ -12,10 +12,10 @@ Google's API from their own machine.
 
 ## Two ways for a player to authenticate
 
-1. **API key** — the player pastes their own key from
+1. **API key** - the player pastes their own key from
    [Google AI Studio](https://aistudio.google.com/apikey). Always available;
    fully self-contained.
-2. **Sign in with Google (OAuth)** — the player signs in with their own Google
+2. **Sign in with Google (OAuth)** - the player signs in with their own Google
    account and Aralia receives a short-lived access token. This path is only
    offered when the deployment has configured a public OAuth client ID (see
    below), and requires the player's Google Cloud project to have the Generative
@@ -29,8 +29,8 @@ Gemini instead."*
 
 All narrative calls funnel through `src/services/ollamaTextService.ts`. When an
 Ollama call fails (no model / unreachable), it checks
-`isGeminiFallbackReady()` — true only when the player has both opted in **and**
-supplied a usable credential — and, if ready, forwards the same prompt +
+`isGeminiFallbackReady()` - true only when the player has both opted in **and**
+supplied a usable credential - and, if ready, forwards the same prompt +
 system instruction to Gemini via `src/services/gemini/core.ts`. Consumers are
 unchanged; the redirect is transparent.
 
@@ -38,13 +38,13 @@ Credential resolution for every Gemini-backed service is centralized in
 `src/services/aiClient.ts`, which picks (in priority order):
 
 1. the player's runtime credential (API key or OAuth token), else
-2. a build-time `GEMINI_API_KEY`, if a deployment chose to bake one in.
+2. a build-time `VITE_GEMINI_API_KEY`, if a deployment chose to bake one in.
 
 ## Deployment configuration (optional)
 
 | Env var | Purpose |
 | --- | --- |
-| `GEMINI_API_KEY` | Optional build-time key for the whole deployment. Most setups leave this unset. |
+| `VITE_GEMINI_API_KEY` | Optional build-time key for the whole deployment. Most setups leave this unset. The `VITE_` prefix is required - Vite only exposes prefixed vars to the browser. Never set this for the public GitHub Pages build; anything reaching the client bundle is extractable. |
 | `VITE_GOOGLE_CLIENT_ID` | Public OAuth 2.0 client ID that enables the "Sign in with Google" button. Not a secret. When unset, only the API-key path is shown. |
 | `VITE_GOOGLE_OAUTH_SCOPE` | Override the requested OAuth scopes (defaults to `cloud-platform` + `userinfo.email`). |
 
@@ -58,10 +58,10 @@ Credential resolution for every Gemini-backed service is centralized in
 
 ## Relevant modules
 
-- `src/services/ai/aiCredentials.ts` — runtime credential store + readiness gate.
-- `src/services/ai/googleOAuth.ts` — Google Identity Services sign-in wrapper.
-- `src/services/ai/oauthGeminiClient.ts` — REST adapter that calls Gemini with a
+- `src/services/ai/aiCredentials.ts` - runtime credential store + readiness gate.
+- `src/services/ai/googleOAuth.ts` - Google Identity Services sign-in wrapper.
+- `src/services/ai/oauthGeminiClient.ts` - REST adapter that calls Gemini with a
   bearer token (the SDK is API-key-only in the browser).
-- `src/services/aiClient.ts` — central credential resolver / shared client.
-- `src/services/ollamaTextService.ts` — Ollama→Gemini redirect on failure.
-- `src/components/ui/GeminiFallbackSettings.tsx` — the opt-in UI.
+- `src/services/aiClient.ts` - central credential resolver / shared client.
+- `src/services/ollamaTextService.ts` - Ollama->Gemini redirect on failure.
+- `src/components/ui/GeminiFallbackSettings.tsx` - the opt-in UI.

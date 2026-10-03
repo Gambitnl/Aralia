@@ -332,10 +332,24 @@ export class Quadtree<T> {
   }
 }
 
+/**
+ * Internal quadtree state the verbatim `addPoint` port mutates directly.
+ * The fields are `private` on `Quadtree`, so this structural view is the
+ * single documented boundary for the port instead of `as any` per access.
+ */
+type QuadtreeInternals<T> = {
+  _root: QuadNode<T> | undefined;
+  _x0: number;
+  _y0: number;
+  _x1: number;
+  _y1: number;
+  _x: XAccessor<T>;
+  _y: XAccessor<T>;
+};
+
 // d3-quadtree add.js `add(tree, x, y, d)` — verbatim port
 function addPoint<T>(tree: Quadtree<T>, x: number, y: number, d: T): Quadtree<T> {
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-  const t = tree as any;
+  const t = tree as unknown as QuadtreeInternals<T>;
   if (isNaN(x) || isNaN(y)) return tree; // ignore invalid points
 
   let parent: InternalNode<T> | undefined;

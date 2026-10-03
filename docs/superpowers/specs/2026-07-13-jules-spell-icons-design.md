@@ -1,4 +1,4 @@
-# Jules spell icons — design
+# Jules spell icons - design
 
 Date: 2026-07-13
 Status: draft for review
@@ -47,7 +47,7 @@ Jules's method, per spell:
   Fire Bolt reference at `PreviewIcons.tsx` around line 828.
 - Colour: each spell's dominant colour follows its school (see the colour map).
 - Hardcoded hex colours, not `currentColor`.
-- Well-formed, self-contained `<svg>` — no external files, no scripts.
+- Well-formed, self-contained `<svg>` - no external files, no scripts.
 
 ## School colour map
 
@@ -130,7 +130,7 @@ I write one prompt template, reused for every batch. It states:
 - the method above (3 concepts, each drafted then improved twice)
 - the style rules (100 by 100, gradients, glow, school colour, hardcoded hex)
 - the exact output paths, and the rule to write only SVG files in the spell's icon
-  folder — no code edits, no other files
+  folder - no code edits, no other files
 - the list of spell ids and JSON paths for that batch
 
 ## What I build
@@ -150,7 +150,7 @@ I write one prompt template, reused for every batch. It states:
   to Windows Credential Manager at `AgentMatrix/Jules/JULES_API_KEY`, the same
   style as the Groq key. I never see the value.
 - my batch script reads that target at run time through CredRead, and reports only
-  its length and that it loaded — never the value. It never lands in a file or in git.
+  its length and that it loaded - never the value. It never lands in a file or in git.
 
 ## Verify before the full run
 
@@ -161,7 +161,7 @@ I write one prompt template, reused for every batch. It states:
 4. Adjust the prompt or colours.
 5. Then run the rest.
 
-## Preview filters — BUILT 2026-07-14
+## Preview filters - BUILT 2026-07-14
 
 All requested filters are live in the Spell Icons panel, and they combine.
 
@@ -180,8 +180,8 @@ How it works: a new endpoint `GET /api/spell-icon-coverage`
 reports, per spell, how many of the 9 exist and which ones share a SHA-1 hash. The
 lazy-loading grid cannot know this, so coverage comes from the server, not the DOM.
 
-Verified: complete → 1 (Fire Bolt), none → 472, Necromancy → 36,
-Necromancy + cantrip → 4, Wizard → 313.
+Verified: complete -> 1 (Fire Bolt), none -> 472, Necromancy -> 36,
+Necromancy + cantrip -> 4, Wizard -> 313.
 
 ### Overlap detection is similarity-based, not byte-identity (fixed 2026-07-14)
 
@@ -192,12 +192,12 @@ shared 88-96% of their markup. Nothing was byte-identical, so nothing was flagge
 Now we measure content similarity (Jaccard over character trigrams of the normalised
 markup) and report the two ways a generator fakes the job:
 
-- conceptsSimilar (>= 0.85): the 3 concepts are near-copies — you have 1 idea, not 3
-- versionsStagnant (>= 0.93): a version barely changed — the iteration did no work
+- conceptsSimilar (>= 0.85): the 3 concepts are near-copies - you have 1 idea, not 3
+- versionsStagnant (>= 0.93): a version barely changed - the iteration did no work
 
 Both surface as warnings on the spell panel, and drive the overlapping filter.
 
-Proof: re-scored the real Jules batch — 10/10 spells flagged (93-96% concept
+Proof: re-scored the real Jules batch - 10/10 spells flagged (93-96% concept
 similarity), where the old byte-hash flagged 0/10. Fire Bolt, whose 3 concepts are
 genuinely different subjects (82%), is correctly NOT flagged.
 

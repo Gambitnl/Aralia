@@ -30,7 +30,10 @@ describe('cell-addressed Locale entry', () => {
     const ground = makeGroundWorld(local, seed, region);
 
     expect(ground.towns.some((t) => t.burgId === town.burgIndex)).toBe(true);
-  });
+    // Baking a full atlas, region and ground world for one seed measures ~3.4 s,
+    // so the 5 s default left no headroom. Stated explicitly rather than left to
+    // tip over under parallel load (2026-07-29 region-rivers pass).
+  }, 30_000);
 
   // The grid path rendered the chosen burg 0/219 times across seeds; the
   // position-centered entry must render it every time.
@@ -47,5 +50,7 @@ describe('cell-addressed Locale entry', () => {
       const ground = makeGroundWorld(local, seed, region);
       expect(ground.towns.some((t) => t.burgId === town.burgIndex)).toBe(true);
     },
+    // One full world bake per seed, ~3.4 s each; see the note above.
+    30_000,
   );
 });

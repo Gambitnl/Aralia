@@ -7,7 +7,7 @@ import { GameState, GamePhase } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import * as SaveLoadService from '../../services/saveLoadService';
 import { AddMessageFn } from './actionHandlerTypes';
-import { canUseDevTools } from '../../utils/permissions';
+import { canUseDevTools } from '../../utils/core';
 
 interface HandleSystemAndUiProps {
   gameState: GameState;
@@ -35,6 +35,11 @@ export async function handleSaveGame({
   dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Saving your progress..." } });
   const result = await SaveLoadService.saveGame(gameState);
   if (result.success) {
+    // agora-f821.63: keep the in-memory counter level with the one just written,
+    // so the next save advances instead of rewriting the same dice stream.
+    if (typeof result.diceSaveCounter === 'number') {
+      dispatch({ type: 'SET_DICE_SAVE_COUNTER', payload: result.diceSaveCounter });
+    }
     addMessage("Game Saved!", 'system');
     dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'success', message: result.message || "Game saved successfully." } });
   } else {
@@ -55,6 +60,8 @@ export async function handleGoToMainMenu({
     const result = await SaveLoadService.saveGame(gameState);
     if (!result.success) {
       dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'error', message: "Failed to save game on exit." } });
+    } else if (typeof result.diceSaveCounter === 'number') {
+      dispatch({ type: 'SET_DICE_SAVE_COUNTER', payload: result.diceSaveCounter });
     }
   }
   dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU });

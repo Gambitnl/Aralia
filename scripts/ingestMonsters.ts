@@ -11,7 +11,7 @@
 //            → src/data/monsters.ts (re-exports)
 //
 // How to run:
-//   npx ts-node scripts/ingestMonsters.ts
+//   npm run ingest:monsters
 //   (Must be run from the project root.)
 //
 // Adding new monsters:

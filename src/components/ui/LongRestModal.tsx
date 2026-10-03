@@ -123,10 +123,10 @@ const LongRestModal: React.FC<LongRestModalProps> = ({ isOpen, party, onClose, o
             return (
               <div key={charId} className="bg-gray-900/50 rounded p-4 border border-gray-700">
                 <h3 className="font-semibold text-white mb-2">{member.name}'s Racial Traits</h3>
-                {member.race.restChoices?.map(choice => (
+                {member.race.restChoices?.map((choice: any) => (
                   <div key={choice.id} className="mb-4 last:mb-0">
                     <p className="text-sm text-gray-400 mb-2">{choice.traitName}</p>
-                    {choice.options.map((opt, i) => (
+                    {choice.options.map((opt: any, i: number) => (
                       <div key={i} className="mt-2">
                         <label className="block text-xs font-medium text-gray-400 mb-1 capitalize">
                           Select {opt.type} Proficiency
@@ -143,7 +143,7 @@ const LongRestModal: React.FC<LongRestModalProps> = ({ isOpen, party, onClose, o
                             if (opt.type === 'skill') updateChoice(charId, choice.id, { skillIds: [val] });
                             else if (opt.type === 'tool') updateChoice(charId, choice.id, { toolIds: [val] });
                             else if (opt.type === 'weapon') updateChoice(charId, choice.id, { weaponIds: [val] });
-                            else if (opt.type === 'season') updateChoice(charId, choice.id, { season: val });
+                            else if (opt.type === 'season') updateChoice(charId, choice.id, { season: val } as any);
                           }}
                         >
                           <option value="">-- Choose --</option>

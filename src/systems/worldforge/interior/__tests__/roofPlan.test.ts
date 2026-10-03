@@ -49,8 +49,40 @@ const pointInPolyXY = (px: number, py: number, pts: Array<[number, number, numbe
   return inside;
 };
 
+/**
+ * Is (px, py) on the boundary of this polygon, within a hair?
+ *
+ * The roof is built on one shared subdivision, so two faces meet along an
+ * exact seam. A seam can run straight through a cell centre — a valley between
+ * a main block and a wing does exactly that on seed 2. Such a point is roofed:
+ * there is surface on both sides of it, and the two faces share the edge. A
+ * strict inside-test reports false for both, which would call a sound roof a
+ * hole. So the oracle asks about the CLOSED polygon.
+ */
+const onPolyEdgeXY = (
+  px: number,
+  py: number,
+  pts: Array<[number, number, number]>,
+  tol = 1e-6,
+): boolean => {
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const [xi, yi] = pts[i];
+    const [xj, yj] = pts[j];
+    const dx = xj - xi;
+    const dy = yj - yi;
+    const len2 = dx * dx + dy * dy;
+    if (len2 < tol) continue;
+    let t = ((px - xi) * dx + (py - yi) * dy) / len2;
+    t = Math.max(0, Math.min(1, t));
+    const cx = xi + t * dx;
+    const cy = yi + t * dy;
+    if (Math.hypot(px - cx, py - cy) <= tol) return true;
+  }
+  return false;
+};
+
 const coveredBySomePlane = (px: number, py: number, planes: RoofPlane[]): boolean =>
-  planes.some((p) => pointInPolyXY(px, py, p.pts));
+  planes.some((p) => pointInPolyXY(px, py, p.pts) || onPolyEdgeXY(px, py, p.pts));
 
 const baseStyle = (roofForm: 'gable' | 'hip' | 'steep' | 'flat'): SolveRoofInput['style'] => ({
   roofForm,

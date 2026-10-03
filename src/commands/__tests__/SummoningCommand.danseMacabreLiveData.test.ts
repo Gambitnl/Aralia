@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { AbilityCommandFactory } from '../factory/AbilityCommandFactory'
 import { UtilityCommand } from '../effects/UtilityCommand'
-import { createMockCombatCharacter } from '../../utils/factories'
+import { createMockCombatCharacter } from '../../utils/core'
 import type { CommandContext } from '../base/SpellCommand'
 import type { CombatCharacter, CombatLogEntry, CombatState } from '../../types/combat'
 import type { UtilityEffect } from '../../types/spells'
-import danseMacabre from '../../../public/data/spells/level-5/danse-macabre.json'
+import danseMacabre from '@/data/spells/level-5/danse-macabre.json'
 
 /**
  * This file proves the live Danse Macabre spell packet creates commandable undead.
@@ -21,7 +21,7 @@ import danseMacabre from '../../../public/data/spells/level-5/danse-macabre.json
  */
 
 describe('UtilityCommand live Danse Macabre controlled-undead bridge', () => {
-  it('creates commandable Skeleton or Zombie actors from selected corpses', () => {
+  it('creates commandable Skeleton or Zombie actors from selected corpses', async () => {
     const caster = createMockCombatCharacter({
       id: 'danse-macabre-caster',
       name: 'Danse Macabre Caster',
@@ -36,21 +36,18 @@ describe('UtilityCommand live Danse Macabre controlled-undead bridge', () => {
       castAtLevel: 5,
       caster,
       targets: [],
-      gameState: {},
       playerInput: {
         undeadForms: ['Skeleton', 'Zombie'],
-        corpseIds: ['corpse-1', 'corpse-2'],
-        positions: [
-          { x: 5, y: 4 },
-          { x: 6, y: 4 }
-        ]
-      }
+        corpseIds: ['skeleton-corpse', 'zombie-corpse'],
+        positions: [{ x: 5, y: 4 }, { x: 5, y: 5 }],
+      },
+      gameState: {}
     } as unknown as CommandContext
-    const state = createCombatState([caster])
 
     expect(utilityEffect).toBeDefined()
 
-    const afterCast = new UtilityCommand(utilityEffect!, context).execute(state)
+    const state = createCombatState([caster])
+    const afterCast = await new UtilityCommand(utilityEffect!, context).execute(state)
     const undead = afterCast.characters.filter(character =>
       character.isSummon &&
       character.summonMetadata?.spellId === danseMacabre.id &&
@@ -97,7 +94,7 @@ describe('UtilityCommand live Danse Macabre controlled-undead bridge', () => {
     expect(commandAbility?.cost.type).toBe('bonus')
     expect(commandAbility?.range).toBe(60)
 
-    const afterCommand = AbilityCommandFactory.createCommands(
+    const afterCommand = await AbilityCommandFactory.createCommands(
       commandAbility!,
       undead[0],
       [undead[0]],

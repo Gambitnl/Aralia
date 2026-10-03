@@ -30,3 +30,5 @@ player without localStorage quota risk.
 
 Save compression, cross-tab sync strategy, advanced export/import, long-term save
 migration version strategy.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-tiered-autosave.md","sha256WithoutMarker":"444123e52d7f483b96776181deac18038a8b99fa3105addb6b2b88ad8fd504c6","markedAtUtc":"2026-08-09T20:24:29.264Z"} -->

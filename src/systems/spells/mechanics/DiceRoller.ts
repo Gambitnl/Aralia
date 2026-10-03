@@ -17,8 +17,7 @@
 /**
  * Dice rolling utilities
  */
-import { rollDamage, rollD20 as rollD20Core } from '@/utils/combat/combatUtils'
-
+import { rollDamage, rollD20 as rollD20Core } from '@/systems/dice/rollers';
 export class DiceRoller {
   /**
    * Roll a d20 (1-20)

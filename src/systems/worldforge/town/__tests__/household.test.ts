@@ -1,8 +1,20 @@
+/**
+ * These tests prove lazy household generation produces stable, named people.
+ *
+ * The wealthy-home case also protects the servant boundary: staff are real
+ * adult members generated after the family without renaming the family that
+ * older saves and tooltips already know.
+ */
 import { describe, it, expect } from 'vitest';
 import { generateHousehold } from '../household';
 import { rootSeedPath } from '../../seedPath';
 
 const seed = rootSeedPath(99);
+
+// ============================================================================
+// Named Household Contract
+// ============================================================================
+// These checks keep household size, identity, and age behavior deterministic.
 
 describe('household — lazy named family', () => {
   it('names exactly the resident count', () => {
@@ -36,5 +48,21 @@ describe('household — lazy named family', () => {
     if (kids.length && adults.length) {
       expect(Math.max(...kids.map((k) => k.age))).toBeLessThan(Math.max(...adults.map((a) => a.age)) + 1);
     }
+  });
+
+  it('adds two deterministic adult servants to wealthy homes without renaming the family', () => {
+    const family = generateHousehold(seed, 'b-rich', 4, 'townhouse');
+    const wealthy = generateHousehold(seed, 'b-rich', 4, 'townhouse', undefined, 'wealthy');
+    const again = generateHousehold(seed, 'b-rich', 4, 'townhouse', undefined, 'wealthy');
+    const servants = wealthy.members.filter((member) => member.role === 'servant');
+
+    // Staffing is additive: the original four family members keep their exact
+    // identities, while two named adult employees join after them.
+    expect(wealthy.members.slice(0, family.members.length)).toEqual(family.members);
+    expect(servants).toHaveLength(2);
+    expect(servants.every((member) => member.ageBand === 'adult')).toBe(true);
+    expect(servants.every((member) => member.occupation === 'household servant')).toBe(true);
+    expect(new Set(servants.map((member) => member.name)).size).toBe(2);
+    expect(again).toEqual(wealthy);
   });
 });

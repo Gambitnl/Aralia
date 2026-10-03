@@ -15,7 +15,7 @@
 import { describe, it, expect } from 'vitest';
 import { SustainActionSystem, SustainedSpell } from '../SustainActionSystem';
 import { isolateSustainSystem } from '../../../test/combatEmitters';
-import { createMockCombatState } from '@/utils/factories';
+import { createMockCombatState } from '@/utils/core';
 
 // ============================================================================
 // Test Suite: SustainActionSystem and Test Isolation

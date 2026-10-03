@@ -1,9 +1,9 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ * RE-EXPORT BRIDGE / MIDDLEMAN: Forwards exports to another file.
  *
- * Last Sync: 27/02/2026, 09:32:39
+ * Last Sync: 04/08/2026, 02:07:38
  * Dependents: None (Orphan)
  * Imports: 13 files
  *
@@ -19,15 +19,20 @@
  * Root barrel export for all utilities.
  *
  * USAGE:
- *   import { rollDice, createMockSpell, SeededRandom } from '@/utils';
+ *   import { calculateCover, createMockSpell, SeededRandom } from '@/utils';
  *   // OR import from specific modules:
- *   import { rollDice } from '@/utils/combat';
+ *   import { calculateCover } from '@/utils/combat';
  *   import { createMockSpell } from '@/utils/core';
  *
- * MIGRATION GUIDE:
- *   Old: import { rollDice } from '@/utils/combatUtils'
- *   New: import { rollDice } from '@/utils/combat'
- *        OR: import { rollDice } from '@/utils'
+ * DICE (agora-f821.4, Remy ruling q1 2026-09-20): rollDice, rollD20 and
+ * rollDamage are NOT utils any more. They retired from utils/combat/combatUtils
+ * and live in '@/systems/dice/rollers', where every roll lands in DiceAuditLog:
+ *   import { rollDice } from '@/systems/dice/rollers'
+ *
+ * MIGRATION GUIDE (completed 2026-08-04): the deprecated '@/utils/combatUtils'
+ * bridge was removed after all dependents were migrated. Import combat helpers
+ * from the real module directly:
+ *   import { calculateCover } from '@/utils/combat'
  */
 
 // Core utilities - foundational functions
@@ -59,9 +64,6 @@ export * from './economy';
 
 // Travel utilities - distance, time calculations
 export * from './travel';
-
-// Validation utilities - spell auditing, data validation
-export * from './validation';
 
 // Visual utilities - spell visuals, UI assets
 export * from './visuals';

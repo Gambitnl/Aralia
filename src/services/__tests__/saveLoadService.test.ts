@@ -11,7 +11,22 @@ import {
     atlasHiddenSiteForAddress,
 } from '../../systems/worldforge/leaf3d/atlasGroundContinuity';
 import { MAX_DISCOVERY_LOG_ENTRIES } from '../../state/reducers/logReducer';
-import { logger } from '../../utils/logger';
+import { logger } from '../../utils/core';
+import { canonicalDungeonId } from '../../systems/worldforge/dungeon/world/deriveIdentity';
+import {
+    completeDungeonExpedition,
+    enterDungeonExpedition,
+    recordDungeonProgress,
+} from '../../systems/worldforge/dungeon/world/dungeonLifecycle';
+import { DUNGEON_SURFACE_LEVEL_ID } from '../../systems/worldforge/dungeon/world/dungeonMap';
+
+/**
+ * This file proves Aralia's ordinary save service preserves and migrates durable game state.
+ *
+ * It uses browser-storage stand-ins to cover serialization, checksums, legacy backfills, IndexedDB
+ * fallback, and feature-specific round trips. Dungeon lifecycle assertions live here because the
+ * expedition ledger must use the same GameState payload as every other saved system.
+ */
 
 // ---------------------------------------------------------------------------
 // IndexedDB is mocked with an in-memory store so the localStorage -> IndexedDB
@@ -221,7 +236,77 @@ describe('SaveLoadService', () => {
             expect(result.data).toBeDefined();
             expect(result.data?.gold).toBe(100);
             expect(result.data?.gameTime).toBeInstanceOf(Date);
+            // Saves written before dungeon lifecycle persistence heal to explicit empty collections.
+            expect(result.data?.dungeonExpeditions).toEqual({});
+            expect(result.data?.clearedDungeons).toEqual([]);
             expect(mockNotify).toHaveBeenCalledWith({ message: "Game loaded successfully.", type: 'success' });
+        });
+
+        it('round-trips canonical dungeon progress and heals completion into ecology clearing', async () => {
+            const seedPath = 'wf:12345/cell:9/dungeon:save-proof';
+            const identity = {
+                dungeonId: canonicalDungeonId(seedPath),
+                seedPath,
+            };
+            const entered = enterDungeonExpedition(identity);
+            const childSeedPath = `${seedPath}/level:1`;
+            const progressed = recordDungeonProgress(entered, {
+                clearedEncounterIds: ['encounter:threshold'],
+                openedRouteIds: ['route:lower-vault'],
+                claimedTreasureIds: ['treasure:house-seal'],
+                objectives: { 'objective:find-seal': 'completed' },
+                // Parchment discovery uses the ordinary GameState payload. The surface key is
+                // explicit so later level pages cannot overwrite the cells remembered here.
+                exploredCellKeysByLevel: {
+                    [DUNGEON_SURFACE_LEVEL_ID]: ['8,11', '9,11', '9,12'],
+                    'level:1': ['3,4', '3,5'],
+                },
+                // The child receipt is compact regenerable evidence: save data keeps the stable
+                // identity, parent link, and return coordinate without serializing DungeonPlan.
+                levelVisits: {
+                    'level:1': {
+                        levelId: 'level:1',
+                        depth: 1,
+                        identity: {
+                            dungeonId: canonicalDungeonId(childSeedPath),
+                            seedPath: childSeedPath,
+                        },
+                        parentLevelId: 'level:0',
+                        entryCellKey: '3,4',
+                        parentReturnCellKey: '20,22',
+                    },
+                },
+            });
+            const completed = completeDungeonExpedition(progressed);
+            const stateWithDungeon = {
+                ...mockGameState,
+                dungeonExpeditions: { [identity.dungeonId]: completed },
+                clearedDungeons: [],
+            };
+
+            // The ordinary save API owns this proof; no parallel dungeon storage key is introduced.
+            await SaveLoadService.saveGame(stateWithDungeon, 'dungeon_lifecycle_slot');
+            const result = await SaveLoadService.loadGame('dungeon_lifecycle_slot');
+
+            expect(result.success).toBe(true);
+            expect(result.data?.dungeonExpeditions?.[identity.dungeonId]).toEqual(completed);
+            expect(
+                result.data?.dungeonExpeditions?.[identity.dungeonId]
+                    ?.progress.exploredCellKeysByLevel[DUNGEON_SURFACE_LEVEL_ID],
+            ).toEqual(['8,11', '9,11', '9,12']);
+            expect(
+                result.data?.dungeonExpeditions?.[identity.dungeonId]
+                    ?.progress.exploredCellKeysByLevel['level:1'],
+            ).toEqual(['3,4', '3,5']);
+            expect(
+                result.data?.dungeonExpeditions?.[identity.dungeonId]
+                    ?.progress.levelVisits['level:1'],
+            ).toMatchObject({
+                parentLevelId: 'level:0',
+                parentReturnCellKey: '20,22',
+                identity: { seedPath: childSeedPath },
+            });
+            expect(result.data?.clearedDungeons).toEqual([seedPath]);
         });
 
         it('should return failure if save does not exist', async () => {
@@ -278,6 +363,11 @@ describe('SaveLoadService', () => {
              expect(result.message).toContain("integrity check failed");
              expect(mockNotify).toHaveBeenCalledWith({ message: expect.stringContaining("integrity check failed"), type: 'error' });
         });
+        // migrateMapDataToWorldDataV2 is ORPHANED — no production load path calls it
+        // since Grid Retirement dropped mapData from the save format. Kept here as a
+        // v1-shape regression guard; the canonical unit coverage lives in
+        // src/state/migrations/__tests__/worldDataMigration.test.ts. (An exact copy of
+        // this case sat further down the file and was removed as a duplicate.)
 
         it('migrateMapDataToWorldDataV2 backfills worldData when applied to a v1 mapData', () => {
             const cols = 6;
@@ -713,29 +803,6 @@ describe('SaveLoadService', () => {
         it('should return false if save does not exist', () => {
             expect(SaveLoadService.hasSaveGame('ghost_slot')).toBe(false);
         });
-    });
-
-    it('migrateMapDataToWorldDataV2 backfills worldData when applied to a v1 mapData', () => {
-      const cols = 6;
-      const rows = 4;
-      const legacyMap = {
-        gridSize: { rows, cols },
-        tiles: new Array(rows).fill(0).map((_, y) =>
-          new Array(cols).fill(0).map((__, x) => ({
-            x, y, biomeId: 'plains', discovered: false, isPlayerCurrent: false,
-          })),
-        ),
-        azgaarWorld: {
-          version: 1 as const,
-          templateId: 'continents',
-          heights: new Array(cols * rows).fill(30),
-          temperatures: new Array(cols * rows).fill(15),
-          moisture: new Array(cols * rows).fill(20),
-          rivers: new Array(cols * rows).fill(false),
-        },
-      };
-      const migrated = migrateMapDataToWorldDataV2(legacyMap as any, 42);
-      expect(migrated.worldData?.version).toBe(2);
     });
 
     // ------------------------------------------------------------------------

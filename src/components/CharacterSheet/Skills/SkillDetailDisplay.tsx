@@ -1,13 +1,19 @@
 /**
  * @file SkillDetailDisplay.tsx
  * This component displays detailed statistics for each character skill as a modal overlay.
- * It includes base ability, modifier, proficiency, expertise (placeholder),
- * total bonus, and any advantage notes, presented in a table format.
+ * It includes base ability, modifier, proficiency, expertise, total bonus, and any
+ * advantage notes, presented in a table format.
+ *
+ * Expertise was a literal 0 here until agora-db71.18. It now shares the Skills tab's
+ * math (`skillModifierUtils`), so the two views of one sheet cannot disagree.
  */
 import React, { useEffect, useRef } from 'react';
 import { PlayerCharacter, Skill as SkillType } from '../../../types';
 import { SKILLS_DATA } from '../../../data/skills';
-import { getAbilityModifierValue } from '../../../utils/characterUtils';
+import { getAbilityModifierValue } from '../../../utils/character';
+import { calculateExpertiseBonus, getExpertiseSkillIds } from '../../../utils/character/skillModifierUtils';
+import { SkillIcon } from '../../../utils/skillIcons';
+import { ProficiencyIcon } from '../../../utils/proficiencyIcons';
 import { Z_INDEX } from '../../../styles/zIndex';
 import Tooltip from '../../ui/Tooltip';
 // Inline glossary tooltips live under the Glossary folder
@@ -20,10 +26,19 @@ interface SkillDetailDisplayProps {
   onNavigateToGlossary?: (termId: string) => void;
 }
 
-const PROFICIENCY_BONUS_VALUE = 2; // Assuming Level 1 for now
+/** Fallback for a character sheet that predates a stored proficiency bonus. */
+const DEFAULT_PROFICIENCY_BONUS = 2;
 
 const SkillDetailDisplay: React.FC<SkillDetailDisplayProps> = ({ isOpen, onClose, character, onNavigateToGlossary }) => {
   const allGameSkills: SkillType[] = Object.values(SKILLS_DATA);
+  // WHAT CHANGED (agora-db71.18): this view read a hard-coded +2 proficiency and a
+  // literal `expertiseBonus = 0`, so a level-5 rogue with Expertise in Stealth saw
+  // "+2 / N/A" here and "+4 / +4" on the Skills tab of the same sheet.
+  // WHY: the two surfaces must agree, and the Skills tab is the one that is right.
+  // Both numbers now come from the same places SkillsTab uses — the character's own
+  // proficiency bonus and `calculateExpertiseBonus` over `featChoices` (PK-20).
+  const profBonus = character.proficiencyBonus || DEFAULT_PROFICIENCY_BONUS;
+  const expertiseSkillIds = getExpertiseSkillIds(character);
   const modalContentRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -108,8 +123,12 @@ const SkillDetailDisplay: React.FC<SkillDetailDisplayProps> = ({ isOpen, onClose
                 const baseAbilityScore = character.finalAbilityScores[skill.ability];
                 const abilityModifier = getAbilityModifierValue(baseAbilityScore);
                 const isProficient = character.skills.some(profSkill => profSkill.id === skill.id);
-                const proficiencyBonusApplied = isProficient ? PROFICIENCY_BONUS_VALUE : 0;
-                const expertiseBonus = 0; // Placeholder
+                const proficiencyBonusApplied = isProficient ? profBonus : 0;
+                const expertiseBonus = calculateExpertiseBonus({
+                  hasProficiency: isProficient,
+                  hasExpertise: expertiseSkillIds.includes(skill.id),
+                  proficiencyBonus: profBonus,
+                });
                 const totalBonus = abilityModifier + proficiencyBonusApplied + expertiseBonus;
 
                 let advantageNotes = '-';
@@ -126,14 +145,30 @@ const SkillDetailDisplay: React.FC<SkillDetailDisplayProps> = ({ isOpen, onClose
                 return (
                   <tr key={skill.id} className={alternatingRowClass}>
                     <td className={`${tableCellClass} font-medium text-amber-200`}>
-                      {skill.name} <span className="text-xs text-gray-400">({skill.ability.substring(0, 3)})</span>
+                      <Tooltip content={skill.description ?? skill.name}>
+                        <span className="inline-flex items-center gap-1.5 cursor-help" data-testid={`skill-name-${skill.id}`}>
+                          <SkillIcon name={skill.id} className="w-4 h-4 text-amber-300 shrink-0" />
+                          <span className="underline decoration-dotted decoration-amber-300/50 underline-offset-2">{skill.name}</span>
+                          <span className="text-xs text-gray-400">({skill.ability.substring(0, 3)})</span>
+                        </span>
+                      </Tooltip>
+                      {/* First sentence inline (what the skill covers); the tooltip carries both. */}
+                      <div className="mt-0.5 max-w-[22rem] whitespace-normal text-[11px] font-normal leading-snug text-gray-400">
+                        {(skill.description ?? '').split('. ')[0]}{skill.description ? '.' : ''}
+                      </div>
                     </td>
                     <td className={`${tableCellClass} text-center`}>{abilityModifier >= 0 ? '+' : ''}{abilityModifier}</td>
                     <td className={`${tableCellClass} text-center`}>
-                      {isProficient ? <span className="text-green-400">+{PROFICIENCY_BONUS_VALUE}</span> : <span className="text-gray-400">N/A</span>}
+                      <span className="inline-flex items-center justify-center gap-1.5">
+                        <ProficiencyIcon level={isProficient ? 'proficient' : 'unskilled'} className={`w-3.5 h-3.5 ${isProficient ? 'text-green-400' : 'text-gray-600'}`} />
+                        {isProficient ? <span className="text-green-400">+{profBonus}</span> : <span className="text-gray-400">N/A</span>}
+                      </span>
                     </td>
                     <td className={`${tableCellClass} text-center text-gray-400`}>
-                      {expertiseBonus > 0 ? <span className="text-green-400">+{expertiseBonus}</span> : 'N/A'}
+                      <span className="inline-flex items-center justify-center gap-1.5">
+                        <ProficiencyIcon level={expertiseBonus > 0 ? 'expertise' : 'unskilled'} className={`w-3.5 h-3.5 ${expertiseBonus > 0 ? 'text-green-400' : 'text-gray-600'}`} />
+                        {expertiseBonus > 0 ? <span className="text-green-400">+{expertiseBonus}</span> : 'N/A'}
+                      </span>
                     </td>
                     <td className={`${tableCellClass} text-center font-bold ${totalBonus >= 0 ? 'text-green-300' : 'text-red-300'}`}>
                       {totalBonus >= 0 ? '+' : ''}{totalBonus}

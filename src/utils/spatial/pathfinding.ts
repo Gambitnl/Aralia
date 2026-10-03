@@ -1,11 +1,17 @@
+/**
+ * @file pathfinding.ts
+ * Implements the A* pathfinding algorithm for grid-based movement.
+ * Updated to support D&D 5e Variant 5-10-5 diagonal movement.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 01/05/2026, 14:09:19
- * Dependents: utils/pathfinding.ts, utils/spatial/index.ts
- * Imports: 3 files
+ * Last Sync: 20/09/2026, 21:00:39
+ * Dependents: commands/effects/MovementCommand.ts, components/DesignPreview/steps/scenarioControls/elevationRangeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/terrainScenarioControls.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useGridMovement.ts, hooks/movementUtils.ts, hooks/useBattleMap.ts, utils/spatial/index.ts
+ * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,14 +20,14 @@
  */
 // @dependencies-end
 
-/**
- * @file pathfinding.ts
- * Implements the A* pathfinding algorithm for grid-based movement.
- * Updated to support D&D 5e Variant 5-10-5 diagonal movement.
- */
 import { BattleMapTile, BattleMapData, Position } from '../../types/combat';
-import { calculateMovementCost, isDifficultMovementCost } from '../combat/movementUtils';
+import {
+  calculateMovementCost,
+  getPolicyAwareTileMovementMultiplier,
+  type TerrainMovementPolicy,
+} from '../combat/movementUtils';
 import { applyMovementCostModifiers, MovementConfig } from '../combat/physicsUtils';
+import { assessElevationStep } from './elevationSemantics';
 
 interface PathNode {
   tile: BattleMapTile;
@@ -38,7 +44,12 @@ interface PathNode {
  * Multiplied by 5 to match 5e movement scale.
  */
 export function heuristic(a: BattleMapTile, b: BattleMapTile): number {
-  return Math.max(Math.abs(a.coordinates.x - b.coordinates.x), Math.abs(a.coordinates.y - b.coordinates.y)) * 5;
+  const horizontalFeet = Math.max(
+    Math.abs(a.coordinates.x - b.coordinates.x),
+    Math.abs(a.coordinates.y - b.coordinates.y),
+  ) * 5;
+  const step = assessElevationStep(a, b);
+  return horizontalFeet + Math.max(step.riseFeet, step.dropFeet);
 }
 
 /**
@@ -50,6 +61,10 @@ export function heuristic(a: BattleMapTile, b: BattleMapTile): number {
  * @param mapData - The complete battle map data containing all tiles.
  * @param movementConfig - Optional configuration for movement physics (climbing, swimming, etc.).
  * @param sizeMultiplier - The width/height of the creature in tiles (default 1).
+ * @param terrainPolicy - Optional race-aware terrain policy for THIS mover. Earth
+ *        Walk and Timberwalk waive the difficult-terrain surcharge only over the
+ *        surface their trait names, so the policy is consulted per tile rather than
+ *        collapsed into one boolean before the search starts.
  * @returns An array of tiles representing the path from start to end (inclusive of start).
  *          Returns an empty array if no path is found.
  */
@@ -58,7 +73,8 @@ export function findPath(
   endTile: BattleMapTile,
   mapData: BattleMapData,
   movementConfig: Partial<MovementConfig> = {},
-  sizeMultiplier: number = 1
+  sizeMultiplier: number = 1,
+  terrainPolicy: TerrainMovementPolicy | null = null
 ): BattleMapTile[] {
   const openSet: PathNode[] = [];
   const closedSet = new Map<string, number>();
@@ -114,6 +130,11 @@ export function findPath(
         // Multi-tile collision check
         let canPass = true;
         let maxTerrainCost = 1; // Normalized base cost
+        let maxElevationCostFeet = 0;
+        // A slope ascent counts as climbing even though it stays walkable;
+        // cliff faces are never walkable unless this mover explicitly climbs
+        // (G14 combat-elevation referee semantics).
+        let stepRequiresClimb = false;
         
         for (let sx = 0; sx < sizeMultiplier; sx++) {
           for (let sy = 0; sy < sizeMultiplier; sy++) {
@@ -125,8 +146,31 @@ export function findPath(
               break;
             }
             
-            if (isDifficultMovementCost(checkTile.movementCost)) {
+            // The mover's terrain policy prices this square. Without a policy
+            // this is the ordinary multiplier, so unaffected movers are unchanged.
+            if (getPolicyAwareTileMovementMultiplier(checkTile, terrainPolicy) > 1) {
               maxTerrainCost = 2;
+            }
+
+            // Large creatures pay the greatest height transition under any
+            // occupied square, preventing part of a footprint from clipping
+            // up a ledge for free.
+            const currentFootprintTile = mapData.tiles.get(
+              `${currentNode.tile.coordinates.x + sx}-${currentNode.tile.coordinates.y + sy}`,
+            );
+            if (currentFootprintTile) {
+              const step = assessElevationStep(currentFootprintTile, checkTile);
+              maxElevationCostFeet = Math.max(
+                maxElevationCostFeet,
+                Math.max(step.riseFeet, step.dropFeet),
+              );
+              if (step.requiresClimb) {
+                stepRequiresClimb = true;
+              }
+              if (step.blocksWalking && !movementConfig.isClimbing && !movementConfig.hasClimbSpeed) {
+                canPass = false;
+                break;
+              }
             }
           }
           if (!canPass) break;
@@ -140,9 +184,13 @@ export function findPath(
         const stepConfig: MovementConfig = {
           ...movementConfig,
           isDifficultTerrain: maxTerrainCost === 2,
+          // Slope ascents join any caller-requested climb mode; movers with a
+          // native climb speed still skip the extra cost inside the modifier.
+          isClimbing: movementConfig.isClimbing || stepRequiresClimb,
         };
 
-        const stepCost = applyMovementCostModifiers(baseStepCost, stepConfig);
+        const stepCost = applyMovementCostModifiers(baseStepCost, stepConfig)
+          + maxElevationCostFeet;
         const gScore = currentNode.g + stepCost;
         const newDiagonalCount = isDiagonal ? currentNode.diagonalCount + 1 : currentNode.diagonalCount;
         const newParity = newDiagonalCount % 2;

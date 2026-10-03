@@ -8,10 +8,11 @@
  */
 import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Action, Item } from '../../../types';
+import { Action, Item, ItemType } from '../../../types';
 import { TavernGossipSystem, PurchaseableRumor } from '../../../systems/intrigue/TavernGossipSystem';
 import { useGameState } from '../../../state/GameContext';
-import { formatGpAsCoins } from '../../../utils/coinPurseUtils';
+import { formatGpAsCoins } from '../../../utils/character';
+import { INITIAL_QUESTS } from '../../../data/quests';
 
 interface RumorMillProps {
     merchantName: string;
@@ -25,15 +26,14 @@ export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, 
 
   const availableRumors = TavernGossipSystem.getAvailableRumors(state, merchantName);
 
-    // Track purchased rumors by checking inventory for the unique items we create
-    // This ensures persistence across modal closes.
+    // Track purchased rumors by checking inventory for the Service receipts we create.
+    // Each receipt records the rumor it came from in sourceId, so the lookup needs no
+    // id-naming convention and survives modal closes.
     const purchasedMap = useMemo(() => {
         const map = new Set<string>();
         playerInventory.forEach(item => {
-            if (item.id.startsWith('rumor_')) {
-                 // The item ID is constructed as rumor_{originalId} to be unique and identifiable
-                 const originalId = item.id.replace('rumor_', '');
-                 map.add(originalId);
+            if (item.type === ItemType.Service && item.sourceId) {
+                map.add(item.sourceId);
             }
         });
         return map;
@@ -45,9 +45,10 @@ export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, 
         // Construct a service item that acts as the "Receipt" and the Log Entry.
         // Important: Description MUST contain the content so it can be read later.
         const serviceItem: Item = {
-            id: `rumor_${rumor.id}`, // Unique ID linking back to the rumor
+            id: `rumor_${rumor.id}`, // Unique ID so repeat purchases stay distinguishable
+            sourceId: rumor.id, // Records which rumor this receipt was bought from
             name: rumor.type === 'secret' ? 'Secret Info' : rumor.type === 'lead' ? 'Lead' : 'Rumor',
-            type: 'note', // TODO #137(Intriguer): Promote to a dedicated "service" item type once taxonomy expands.
+            type: ItemType.Service,
             cost: '0', // Resell value is 0 (info degrades)
             description: `Purchased from ${merchantName}: "${rumor.content}"`, // Store content here!
             weight: 0,
@@ -64,7 +65,21 @@ export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, 
         // Log specific event for intrigue system hook (optional, handled by BUY_ITEM logs generally)
         // [Sentinel] Removed console.log that exposed secret payload
 
-        // TODO #138(Intriguer): If type is 'lead', trigger a QUEST_START or add a map marker here via custom action.
+        // A lead is a quest hook: buying it accepts the quest it points at. ACCEPT_QUEST is
+        // the only quest-start seam in the app, and the quest reducer drops a quest already
+        // in the log, so a repeat purchase is harmless.
+        // The lead's map marker is deliberately not placed: MapMarker (src/types/world.ts)
+        // has no reducer and no renderer, so there is nothing to dispatch a marker to.
+        if (rumor.type === 'lead' && rumor.questId) {
+            const quest = INITIAL_QUESTS[rumor.questId];
+            if (quest) {
+                onAction({
+                    type: 'ACCEPT_QUEST',
+                    label: `Follow up: ${quest.title}`,
+                    payload: quest
+                });
+            }
+        }
     };
 
     return (

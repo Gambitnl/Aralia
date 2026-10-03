@@ -31,6 +31,8 @@
     "properties": [
       "T|XPHB",
       "V|XPHB"
-    ]
+    ],
+    "bonusWeapon": "+2",
+    "bonusAc": "+5"
   }
 }

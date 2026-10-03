@@ -58,6 +58,24 @@ describe('architectureStyle', () => {
     }
   });
 
+  it('keeps coastal timber walls, roofs, and trim visually distinct', () => {
+    // Coastal buildings need a bright facade, a dark roof silhouette, and a
+    // sea-blue frame so their structural details do not dissolve into one mud tone.
+    const coastal = STYLE_FAMILIES.coastalTimber;
+    const luminance = (hex: string) => {
+      const channels = [1, 3, 5].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16) / 255);
+      const linear = (value: number) => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+      const [red, green, blue] = channels.map(linear);
+      return red * 0.2126 + green * 0.7152 + blue * 0.0722;
+    };
+    const darkestWall = Math.min(...coastal.wallPalette.map(luminance));
+    const brightestRoof = Math.max(...coastal.roofPalette.map(luminance));
+
+    expect(darkestWall - brightestRoof).toBeGreaterThan(0.18);
+    expect(coastal.roofPalette).not.toContain(coastal.wallTint);
+    expect(coastal.wallPalette).not.toContain(coastal.wallTint);
+  });
+
   it('per-plot picks are deterministic from the polygon + frame', () => {
     const poly: Array<[number, number]> = [[10, 10], [40, 10], [40, 30], [10, 30]];
     const frame = styleFrameOf([[0, 0], [100, 0], [100, 100], [0, 100]]);
@@ -512,10 +530,13 @@ describe('climate-constrained construction kits', () => {
     return out;
   }
 
-  it('temperate output is byte-identical to the pre-change baseline (digest pin)', () => {
+  it('pins the approved temperate output after the coastal contrast pass', () => {
+    // The coastalTimber palette deliberately changes the generated colors while
+    // preserving every deterministic selection index. This new digest records
+    // that reviewed visual change and still catches any future unapproved drift.
     const samples = sampleClimateOutputs('temperate');
     expect(samples).toHaveLength(270);
-    expect(fnv1a(JSON.stringify(samples, null, 1)).toString(36)).toBe('4ckbfw');
+    expect(fnv1a(JSON.stringify(samples, null, 1)).toString(36)).toBe('1yaurve');
   });
 
   it('an allowed kit passes through as the SAME object — the fitness pass adds nothing', () => {
@@ -647,9 +668,86 @@ describe('climate-constrained construction kits', () => {
         const fitness = CLIMATE_KIT_FITNESS[climate];
         const allowed = constructionKitsForFamily(fam.id).filter((kit) =>
           !fitness.bannedCoverings.includes(kit.roofCovering)
-          && !fitness.bannedWallMaterials.includes(kit.wallMaterial));
+          && !fitness.bannedWallMaterials.includes(kit.wallMaterial)
+          && !fitness.bannedFoundations.includes(kit.foundation));
         expect(allowed.length, `${fam.id} in ${climate}`).toBeGreaterThan(0);
       }
     }
+  });
+
+  // ==========================================================================
+  // Foundation Bans (agora-70a2)
+  // ==========================================================================
+
+  /** The one coastalTimber kit that stands on timber piles, rebuilt as a
+   *  resolved construction. constructionFromKit keys on covering, and this
+   *  family offers TWO wood-shingle kits, so the kit id is named directly. */
+  const pilesConstruction = (): BuildingConstruction => {
+    const kit = constructionKitsForFamily('coastalTimber')
+      .find((candidate) => candidate.foundation === 'timber-piles');
+    if (!kit) throw new Error('coastalTimber offers no timber-piles kit');
+    return {
+      kitId: kit.id,
+      wallMaterial: kit.wallMaterial,
+      wallCourseFt: kit.wallCourseFt,
+      timberWidthFt: kit.timberWidthFt,
+      roofCovering: kit.roofCovering,
+      foundation: kit.foundation,
+      glazing: kit.glazingByWealth[1],
+      shutters: kit.shutters[0],
+      ornamentKit: kit.ornamentByWealth[1],
+      constructionSignature: 'coastalTimber:piles-test',
+    };
+  };
+
+  it('arid bans timber piles and never resolves one across 200 resolutions', () => {
+    // The operator's named case: buried timber only lasts where the ground
+    // stays wet, so a desert pile dries out and fails.
+    expect(CLIMATE_KIT_FITNESS.arid.bannedFoundations).toContain('timber-piles');
+    let resolutions = 0;
+    for (const fam of Object.values(STYLE_FAMILIES)) {
+      for (let b = 0; b < 40; b++) {
+        const variant = resolveArchitectureVariant(
+          fam, 'arid', WEALTH_TIERS[b % 3], identityOf(`district:${b % 4}`, `plot:${b}`));
+        expect(variant.construction.foundation).not.toBe('timber-piles');
+        resolutions += 1;
+      }
+    }
+    expect(resolutions).toBe(200);
+    for (const cultureType of CULTURE_TYPES) {
+      const style = resolveStyle(
+        { cultureType, climate: 'arid', wealth: 'common', buildingType: 'cottage' },
+        makeSeedPath(9, 'cell:1-1', `bldg:${cultureType}`));
+      expect(style.construction.foundation).not.toBe('timber-piles');
+    }
+  });
+
+  it('a banned FOUNDATION alone fires the remap — covering and wall both pass', () => {
+    // coastal-tarred-board-shingle: wood-shingle roof and tarred-board wall are
+    // both arid-legal, so only the foundation column can move this kit.
+    const piles = pilesConstruction();
+    expect(piles.foundation).toBe('timber-piles');
+    expect(CLIMATE_KIT_FITNESS.arid.bannedCoverings)
+      .not.toContain(piles.roofCovering);
+    expect(CLIMATE_KIT_FITNESS.arid.bannedWallMaterials)
+      .not.toContain(piles.wallMaterial);
+
+    const swapped = applyClimateKitFitness('coastalTimber', 'arid', 'common', piles);
+    expect(swapped).not.toBe(piles);
+    expect(swapped.kitId).toBe('coastal-weatherboard-shingle');
+    expect(swapped.foundation).toBe('stone-piers');
+    // Whole-kit swap, same family, no reroll: deterministic on repeat.
+    expect(applyClimateKitFitness('coastalTimber', 'arid', 'common', piles))
+      .toEqual(swapped);
+    // Non-kit receipts survive the swap.
+    expect(swapped.constructionSignature).toBe(piles.constructionSignature);
+    expect(swapped.shutters).toBe(piles.shutters);
+  });
+
+  it('temperate bans no foundation, so its kits still pass through untouched', () => {
+    expect(CLIMATE_KIT_FITNESS.temperate.bannedFoundations).toEqual([]);
+    const piles = pilesConstruction();
+    expect(applyClimateKitFitness('coastalTimber', 'temperate', 'common', piles))
+      .toBe(piles);
   });
 });

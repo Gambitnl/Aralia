@@ -57,6 +57,14 @@ Command traffic must reach you even when your turn has ended. Two layers:
   without it, the watchdog injects a headless `claude --resume` turn into the same session your
   own watcher is about to answer (two concurrent turns on one conversation). The vega target is
   already set to 120000ms.
+- **Unavailable wake state is audited, not delivered.** The delivery `cursor` stays before every
+  human/direct/callsign wake until a target posts AWAKE or a launched child completes cleanly.
+  A separate durable `auditedUndelivered.seqs` receipt suppresses repeated `wake-unavailable`
+  audits while preserving the original wake for replay as soon as its adapter becomes ready.
+- **Codex resume pins both engine and model.** The watchdog selects the session's recorded CLI
+  version and passes the model from its last successfully completed turn. A failed attempt with
+  a newer default model cannot silently replace that pin. This applies to both the version-matched
+  one-shot wrapper and direct `codex exec resume` adapters.
 - **Pact rule §7.7: at least one orchestrator stays responsive at all times.** Announce
   dormancy on the command channel before you end a turn, and only when Sol is active or
   reliably wakeable.
@@ -83,15 +91,18 @@ Command traffic must reach you even when your turn has ended. Two layers:
   `CO-ORCHESTRATION.md`, `VEGA.md`, and taste work (UI/UX/3D/layout). Shared files
   (`WORKFLOW_GAPS.md`, `ORCHESTRATOR.md`, `AGENT.md`, `GLOSSARY.md`) are lock-per-edit + announce.
 
-## 5. CURRENT STATE — 2026-07-10 midday (update this section on handover)
+## 5. CURRENT STATE — wake repair refresh 2026-07-18 (update this section on handover)
 
 **Wake system:** Test 1 (Sol wakes dormant Vega) PASSED scripted. Test 2 root cause found by
 Sol (desktop threads need the exact session `cli_version`; PATH had 0.140.0 vs 0.144.0-alpha.4)
-and FIXED: event-driven `codex-session-turn-once` adapter reads the session's cli_version,
-selects the matching local engine, runs one heartbeat turn, exits. **Vega peer-reviewed and
-APPROVED it (144/144 tests verified independently).** Remaining: the scripted dormant live
-mention test (arm it with Sol; Vega offered, Sol picks timing). Vega's watchdog target binding
-was refreshed to the current session — refresh it again on YOUR first turn
+and FIXED: event-driven `codex-session-turn-once` reads the session's CLI version, selects the
+matching local engine, and now also pins the last successfully completed model. WF-G26 source
+and isolated-daemon tests are resolved: own dormancy posts cannot self-wake; unavailable adapters
+audit each wake once without advancing delivery; recovery replays the original human/direct batch.
+The focused protections passed, followed by a quiet 14/14 watchdog sweep in 2,287 ms wall time.
+**No worker restarted the live watchdog or daemon**, so these 2026-07-18 source changes await the
+next operator-owned watchdog restart before live activation proof. The older scripted dormant live
+mention test remains outstanding. Refresh Vega's target binding on YOUR first turn
 (`watchdog.mjs register-target … --session <your-session-id> --grace 120000`).
 
 **Modularization wave 1: CLOSED 2026-07-10 (~10:50).** All nine packets done and gated; wave
@@ -106,13 +117,14 @@ clean). Full tsc: 1,101 pre-existing error lines, zero in packet files. All new 
 were STAGED for the snapshot; none gitignored. Next wave (if Remy wants one): re-run the
 inventory, `.agent/scratch/modularization/INVENTORY.md` still lists the remaining candidates.
 
-**Daemon:** died silently ~10:40 and was restarted detached by Vega (state recovered in full;
-staged Wave1/Wave2 + WF-G15..17 code is now LIVE). Cause unknown — that is WF-G25.
+**Daemon:** the 2026-07-10 silent crash remains historically unexplained, but WF-G25 is resolved
+for future failures: fatal stacks and merged detached output now have durable log paths. The live
+daemon was not restarted for this documentation refresh, so the installed source takes effect at
+the next operator-owned restart.
 
-**Open workflow gaps:** WF-G18 (close after the live dormant test), WF-G19..G22 (as before),
-WF-G23 (worker prompt injection, standing rule), WF-G24 (CLOSED 2026-07-13 — tokens stripped
-from public GET /agents and SSE by claude-wfg24, task 5d2a8aba done), **WF-G25 (daemon dies silently, no crash
-log — Sol task ef3976c1)**. All in `WORKFLOW_GAPS.md`.
+**Workflow gaps:** WF-G18 remains open until the live dormant test; WF-G19..G23 remain as recorded;
+WF-G24 is closed; WF-G25 and WF-G26 are resolved and archived with test evidence. Newer registry
+rows may exist after this handover, so treat `WORKFLOW_GAPS.md` as the authoritative current list.
 
 **Planmap:** topics `co-orchestration-pipeline` and `code-modularization-sweep` are live in
 `public/planmap/topics.json`; WF-G24 node added. NOTE: `validate-planmap.mjs` exits 1 on 17
@@ -133,9 +145,20 @@ verify by reading topics.json (hygiene task 696a78c5).
    — a force-add exception tracks the originals. Any module a worker creates there must be
    `git add -f`'d, or a fresh clone imports files that aren't in version control. Check
    `git check-ignore` after any split in that tree.
-4. **Start the daemon DETACHED** or it dies with your session: PowerShell
-   `Start-Process node -ArgumentList 'tools/agora/server.mjs' -WorkingDirectory 'F:\Repos\Aralia' -WindowStyle Hidden`.
+4. **Start the daemon DETACHED and keep its output** or it dies with your session and leaves no
+   terminal evidence. From PowerShell, launch a hidden `cmd.exe` wrapper so stdout and stderr append
+   to the same durable log:
+
+   ```powershell
+   $agoraLog = 'F:\Repos\Aralia\.agent\agora\daemon.log'
+   Start-Process -FilePath 'cmd.exe' `
+     -ArgumentList '/d', '/s', '/c', "node tools\agora\server.mjs >> `"$agoraLog`" 2>&1" `
+     -WorkingDirectory 'F:\Repos\Aralia' -WindowStyle Hidden
+   ```
+
    State (snapshot + journal in `.agent/agora/`) survives a restart; tokens and locks persist.
+   Ordinary output accumulates in `daemon.log`; uncaught exceptions and unhandled rejections also
+   append a timestamped stack to `.agent/agora/daemon-crash.log` before the daemon exits with failure.
 5. **`orchestrate seed` uses a per-wave identity**, so it cannot re-claim a lead campaign you
    already own — seed your waves as `role: deputy` under your lead campaign.
 6. **`planmap-add.mjs` prints a trailing `Node.js v22.19.0` on success** — piping through

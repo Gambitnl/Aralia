@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { appReducer, initialGameState } from '../appState';
 import { GamePhase } from '../../types';
 import { createMockGameState } from '../../utils/core/factories';
-import { createEmptyHistory } from '../../utils/historyUtils';
+import { createEmptyHistory } from '../../utils/world';
 
 // ============================================================================
 // World State Shape Defaults

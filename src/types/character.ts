@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 11/07/2026, 18:52:50
- * Dependents: components/World3D/PlayerAvatar.tsx, components/World3D/World3DDemo.tsx, components/puzzles/LockpickingModal.tsx, data/classes/classFeatureProgression.ts, data/classes/subclasses.ts, data/classes/tierOneFeatures.ts, hooks/combat/useSummons.ts, services/travelService.ts, systems/crafting/craftingService.ts, systems/crime/SmugglingSystem.ts, systems/crime/fencing/FenceSystem.ts, systems/entities3d/recipeFromCharacter.ts, systems/party/npcToPartyMember.ts, systems/party/partyConstants.ts, systems/party/recruitTypes.ts, systems/puzzles/arcaneGlyphSystem.ts, systems/puzzles/characterAbilityBridge.ts, systems/puzzles/lockSystem.ts, systems/puzzles/mechanism.ts, systems/puzzles/pressurePlateSystem.ts, systems/puzzles/secretDoorSystem.ts, systems/travel/TravelCalculations.ts, systems/travel/forcedMarch.ts, types/index.ts, utils/character/checkUtils.ts, utils/sandbox/quickCharacterGenerator.ts
+ * Last Sync: 20/09/2026, 21:00:39
+ * Dependents: commands/effects/EnhanceAbilityCommand.ts, commands/effects/SummoningCommand.ts, components/DesignPreview/steps/classes/classesDomainModel.ts, components/DesignPreview/steps/classes/subclasses/artificer/AlchemistDemo.tsx, components/DesignPreview/steps/classes/subclasses/artificer/ArmorerDemo.tsx, components/DesignPreview/steps/classes/subclasses/barbarian/BerserkerDemo.tsx, components/DesignPreview/steps/classes/subclasses/bard/CollegeOfLoreDemo.tsx, components/DesignPreview/steps/classes/subclasses/bard/CollegeOfValorDemo.tsx, components/DesignPreview/steps/classes/subclasses/cleric/LifeDomainDemo.tsx, components/DesignPreview/steps/classes/subclasses/cleric/LightDomainDemo.tsx, components/DesignPreview/steps/classes/subclasses/druid/CircleOfTheLandDemo.tsx, components/DesignPreview/steps/classes/subclasses/druid/CircleOfTheMoonDemo.tsx, components/DesignPreview/steps/classes/subclasses/fighter/BattleMasterDemo.tsx, components/DesignPreview/steps/classes/subclasses/monk/WarriorOfShadowDemo.tsx, components/DesignPreview/steps/classes/subclasses/monk/WarriorOfTheOpenHandDemo.tsx, components/DesignPreview/steps/classes/subclasses/paladin/OathOfDevotionDemo.tsx, components/DesignPreview/steps/classes/subclasses/paladin/OathOfVengeanceDemo.tsx, components/DesignPreview/steps/classes/subclasses/ranger/BeastMasterDemo.tsx, components/DesignPreview/steps/classes/subclasses/ranger/HunterDemo.tsx, components/DesignPreview/steps/classes/subclasses/rogue/AssassinDemo.tsx, components/DesignPreview/steps/classes/subclasses/rogue/ThiefDemo.tsx, components/DesignPreview/steps/classes/subclasses/sorcerer/DraconicSorceryDemo.tsx, components/DesignPreview/steps/classes/subclasses/sorcerer/WildMagicSorceryDemo.tsx, components/DesignPreview/steps/classes/subclasses/warlock/ArchfeyPatronDemo.tsx, components/DesignPreview/steps/classes/subclasses/warlock/FiendPatronDemo.tsx, components/DesignPreview/steps/classes/subclasses/wizard/AbjurerDemo.tsx, components/DesignPreview/steps/classes/subclasses/wizard/EvokerDemo.tsx, components/DesignPreview/steps/raceDomain/leaves/draconbloodDragonbornRaceLeaf.tsx, components/DesignPreview/steps/scenarioControls/fallingGroundImpactScenarioControls.ts, components/DesignPreview/steps/spells/shieldScenario.tsx, components/World3D/PlayerAvatar.tsx, components/World3D/World3DDemo.tsx, components/puzzles/LockpickingModal.tsx, data/classes/classFeatureProgression.ts, data/classes/subclasses.ts, data/classes/tierOneFeatures.ts, hooks/combat/useSummons.ts, systems/crafting/craftingService.ts, systems/crime/SmugglingSystem.ts, systems/crime/fencing/FenceSystem.ts, systems/entities3d/recipeFromCharacter.ts, systems/healing/healersKit.ts, systems/party/npcToPartyMember.ts, systems/party/partyConstants.ts, systems/party/recruitTypes.ts, systems/puzzles/arcaneGlyphSystem.ts, systems/puzzles/characterAbilityBridge.ts, systems/puzzles/dialogueBridge.ts, systems/puzzles/lockSystem.ts, systems/puzzles/mechanism.ts, systems/puzzles/pressurePlateSystem.ts, systems/puzzles/secretDoorSystem.ts, systems/travel/TravelCalculations.ts, systems/travel/forcedMarch.ts, types/index.ts, utils/character/checkUtils.ts, utils/combat/archfeyUtils.ts, utils/combat/battleMasterUtils.ts, utils/combat/circleOfTheLandUtils.ts, utils/combat/circleOfTheMoonUtils.ts, utils/combat/collegeOfLoreUtils.ts, utils/combat/lightDomainUtils.ts, utils/combat/oathOfDevotionUtils.ts, utils/combat/oathOfVengeanceUtils.ts, utils/combat/shadowMonkUtils.ts, utils/combat/wildMagicUtils.ts, utils/sandbox/quickCharacterGenerator.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -209,6 +209,7 @@ export interface Race {
   knownSpells?: RacialSpell[];
   modernizationStatus?: 'official_2024' | 'modified_legacy';
   languages?: Language[];
+  restChoices?: any;
 }
 
 
@@ -381,6 +382,12 @@ export interface Feat {
     heavyWeaponProficiencyBonus?: boolean;
     /** Lucky (2024): Creates a Luck Points pool = Proficiency Bonus, resets on Long Rest. */
     luckyPoints?: boolean;
+    /**
+     * Healer (2024): using a Healer's Kit to stabilize or tend a creature lets
+     * that creature immediately spend one Hit Point Die, rerolling a 1.
+     * Resolved in src/systems/healing/healersKit.ts.
+     */
+    healersKitMastery?: boolean;
     // Spell-granting benefits for feats like Magic Initiate, Fey-Touched, etc.
     spellBenefits?: FeatSpellBenefits;
   };
@@ -500,6 +507,7 @@ export interface RacialRestChoiceData {
   toolIds?: string[];
   weaponIds?: string[];
   selectedSpellIds?: string[];
+  season?: string;
 }
 
 export type TransportMode = 'foot' | 'mounted';
@@ -519,6 +527,14 @@ export interface RacialBreathWeapon {
 export interface PlayerCharacter {
   id: string;
   name: string;
+  /**
+   * Preview-only capability switches. These never come from campaign saves or
+   * character creation; Design Preview uses them to make a disposable playtest
+   * character inspectable without weakening ordinary resource rules.
+   */
+  devPlaytest?: {
+    unlimitedSpellSlots: boolean;
+  };
   soul?: any; // CompanionSoul; - defined as any to avoid circular deps
   age?: number;
   ageSizeOverride?: 'Tiny' | 'Small' | 'Medium' | 'Large' | 'Huge' | 'Gargantuan';
@@ -527,6 +543,22 @@ export interface PlayerCharacter {
   xp?: number;
   /** The subclass chosen at level 3 (id from SUBCLASSES[class.id]). */
   subclassId?: string;
+  /**
+   * Hunter's Prey (Hunter ranger, level 3): which of Colossus Slayer, Giant
+   * Killer, and Horde Breaker this ranger took. The option is a level-3 choice
+   * the player makes once, so it lives on the persistent character and is
+   * projected onto `CombatCharacter.hunterPreyChoice` by
+   * `createPlayerCombatCharacter`. Without it the Hunter riders in
+   * `utils/combat/hunterUtils` can never pass their `wrong_choice` gate.
+   */
+  hunterPreyChoice?: 'colossus_slayer' | 'giant_killer' | 'horde_breaker';
+  /**
+   * Primal Companion (Beast Master ranger, level 3): the beast form this ranger
+   * summons. Held here for the same reason as `hunterPreyChoice` — it is a
+   * persistent choice, and `utils/combat/beastMasterUtils.bindPrimalBeast`
+   * needs it when the companion token is built.
+   */
+  primalBeastForm?: 'land' | 'sea' | 'sky';
   /**
    * Starting gold handed off from character creation to the new game (class
    * package + background coin). Consumed by START_GAME_SUCCESS to seed

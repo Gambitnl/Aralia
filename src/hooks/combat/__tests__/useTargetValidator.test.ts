@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { findTouchDeliveryActor, useTargetValidator } from '../useTargetValidator';
 import type { Ability, BattleMapData, BattleMapTile, CombatCharacter } from '../../../types/combat';
 import { createMockCombatCharacter } from '../../../utils/core/factories';
-import findFamiliar from '../../../../public/data/spells/level-1/find-familiar.json';
+import findFamiliar from '@/data/spells/level-1/find-familiar.json';
 
 /**
  * This test file covers the targeting rulebook used by the battle-map UI.
@@ -115,7 +115,61 @@ const touchSpellAbility: Ability = {
     }
 };
 
+const scryingLocationAbility: Ability = {
+    id: 'scrying-location',
+    name: 'Scrying Location',
+    description: 'A remote sensor anchored to a chosen location.',
+    type: 'spell',
+    cost: { type: 'action' },
+    targeting: 'single_any',
+    range: 60,
+    effects: [{ type: 'status' as any, condition: 'scrying_sensor' } as any],
+    spell: {
+        id: 'scrying',
+        targeting: {
+            type: 'single',
+            range: 60,
+            validTargets: ['any'],
+            lineOfSight: false
+        }
+    }
+};
+
 describe('useTargetValidator', () => {
+    it('rejects demon attacks against creatures inside its authored blood circle', () => {
+        const demon = createMockCombatCharacter({
+            id: 'summoned-demon',
+            name: 'Summoned Demon',
+            team: 'enemy',
+            position: { x: 3, y: 3 },
+            isSummon: true,
+            summonMetadata: {
+                casterId: 'caster',
+                spellId: 'summon-greater-demon',
+                bloodCircle: {
+                    center: { x: 0, y: 0 },
+                    protectedTiles: [{ x: 0, y: 0 }]
+                }
+            }
+        });
+        const protectedCreature = createMockCombatCharacter({
+            id: 'protected-creature',
+            name: 'Protected Creature',
+            team: 'player',
+            position: { x: 0, y: 0 }
+        });
+
+        const { result } = renderHook(() => useTargetValidator({
+            characters: [demon, protectedCreature],
+            mapData: createMap(5, 5)
+        }));
+
+        expect(result.current.getTargetValidation(meleeAttack, demon, protectedCreature.position)).toEqual({
+            isValid: false,
+            reason: 'Summoned Demon cannot target creatures inside its protective blood circle.'
+        });
+    });
+
     it('keeps existing boolean validation while explaining out-of-range enemies', () => {
         const caster = createMockCombatCharacter({
             id: 'kaelen',
@@ -167,6 +221,68 @@ describe('useTargetValidator', () => {
             isValid: true
         });
         expect(result.current.getValidTargets(meleeAttack, caster)).toEqual([adjacentEnemy.position]);
+    });
+
+    it('uses terrain elevation in ordinary attack range validation', () => {
+        const mapData = createMap(8, 3);
+        const caster = createMockCombatCharacter({
+            id: 'elevation-caster',
+            name: 'Elevation Caster',
+            team: 'player',
+            position: { x: 0, y: 1 }
+        });
+        const target = createMockCombatCharacter({
+            id: 'elevation-target',
+            name: 'Elevation Target',
+            team: 'enemy',
+            position: { x: 4, y: 1 }
+        });
+        mapData.tiles.get('4-1')!.elevation = 10;
+        const thirtyFootProbe = { ...meleeAttack, name: 'Elevation Probe', range: 6 };
+        const twentyFiveFootProbe = { ...thirtyFootProbe, range: 5 };
+
+        const { result } = renderHook(() => useTargetValidator({
+            characters: [caster, target],
+            mapData
+        }));
+
+        expect(result.current.getTargetValidation(thirtyFootProbe, caster, target.position))
+            .toEqual({ isValid: true });
+        expect(result.current.getTargetValidation(twentyFiveFootProbe, caster, target.position))
+            .toEqual({
+                isValid: false,
+                reason: 'Elevation Target is too far away for Elevation Probe. Range: 5 tiles (25 ft); distance: 6 tiles (30 ft).'
+            });
+    });
+
+    it('uses a flying creature altitude for range and line-of-sight origins', () => {
+        const mapData = createMap(8, 3);
+        const caster = createMockCombatCharacter({
+            id: 'flying-caster',
+            name: 'Flying Caster',
+            team: 'player',
+            position: { x: 0, y: 1 },
+            aerialMovement: { altitudeFeet: 20, isFlying: true, canHover: true, source: 'test' }
+        });
+        const target = createMockCombatCharacter({
+            id: 'ground-target',
+            name: 'Ground Target',
+            team: 'enemy',
+            position: { x: 2, y: 1 }
+        });
+        mapData.tiles.get('1-1')!.blocksLoS = true;
+        mapData.tiles.get('1-1')!.airspace = { blockerTopFeet: 8 };
+        const thirtyFootProbe = { ...meleeAttack, name: 'Aerial Probe', range: 6 };
+
+        const { result } = renderHook(() => useTargetValidator({
+            characters: [caster, target],
+            mapData
+        }));
+
+        // Ten horizontal plus twenty vertical feet is in range, and the eye
+        // ray from altitude passes above the eight-foot blocker.
+        expect(result.current.getTargetValidation(thirtyFootProbe, caster, target.position))
+            .toEqual({ isValid: true });
     });
 
     it('explains when a single-target enemy ability is aimed at empty ground', () => {
@@ -458,7 +574,9 @@ describe('findTouchDeliveryActor action-cost variants', () => {
                 action: { used: false, remaining: 1 },
                 bonusAction: { used: false, remaining: 1 },
                 reaction: { used: false, remaining: 1 },
-                movement: { used: 0, total: 30 }
+                movement: { used: 0, total: 30 },
+                legendary: { used: 0, total: 0 },
+                freeActions: 1
             },
             summonMetadata: {
                 casterId: caster.id,
@@ -506,6 +624,24 @@ describe('findTouchDeliveryActor action-cost variants', () => {
         ])).toBeNull();
     });
 
+    it('allows Scrying to resolve an empty location tile for its remote sensor', () => {
+        const caster = createMockCombatCharacter({
+            id: 'scryer',
+            name: 'Scryer',
+            team: 'player',
+            position: { x: 0, y: 0 }
+        });
+
+        const { result } = renderHook(() => useTargetValidator({
+            characters: [caster],
+            mapData: createMap(5, 5)
+        }));
+
+        expect(result.current.getTargetValidation(scryingLocationAbility, caster, { x: 2, y: 2 })).toEqual({
+            isValid: true
+        });
+    });
+
     it('rejects touch-delivery actors that cannot afford their declared action, bonus-action, or free cost', () => {
         const caster = createMockCombatCharacter({
             id: 'caster-touch-costs',
@@ -533,6 +669,7 @@ describe('findTouchDeliveryActor action-cost variants', () => {
             },
             summonMetadata: {
                 casterId: caster.id,
+                spellId: 'find-familiar',
                 entityType: 'familiar',
                 sourceName: 'Find Familiar',
                 actionPermissions: {
@@ -554,6 +691,7 @@ describe('findTouchDeliveryActor action-cost variants', () => {
             },
             summonMetadata: {
                 casterId: caster.id,
+                spellId: 'find-familiar',
                 entityType: 'familiar',
                 sourceName: 'Find Familiar',
                 actionPermissions: {
@@ -575,6 +713,7 @@ describe('findTouchDeliveryActor action-cost variants', () => {
             },
             summonMetadata: {
                 casterId: caster.id,
+                spellId: 'find-familiar',
                 entityType: 'familiar',
                 sourceName: 'Find Familiar',
                 actionPermissions: {

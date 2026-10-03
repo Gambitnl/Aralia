@@ -227,7 +227,7 @@ This report makes unsupported race details explicit instead of leaving them hidd
   - sea_elf / Child of the Sea / trait_text_only
   - sea_elf / Friend of the Sea / trait_text_only
   - simic_hybrid / Animal Enhancement (1st Level) / trait_text_only
-  - tabaxi / Cat’s Claws / trait_text_only
+  - tabaxi / Cat's Claws / trait_text_only
   - triton / Emissary of the Sea / trait_text_only
 
 ## breath_weapon

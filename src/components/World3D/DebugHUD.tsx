@@ -3,7 +3,7 @@
  * Dev-only overlay showing diagnostic information:
  * - Player world coordinates (X, Y, Z)
  * - Chunk count loaded
- * - FPS counter
+ * - FPS, read from the shared performance session 'world3d' (see below)
  * - Streamer stats (chunks loaded/unloaded, pending requests)
  *
  * Only visible when gameState.isDevModeEnabled is true.
@@ -12,12 +12,11 @@
 
 import React from 'react';
 import type { WorldGenDiagnostics } from '../../types/world';
+import { PerfFpsText } from '../../devtools/perf/PerfFpsText';
 
 interface DebugHUDProps {
   /** Number of chunks currently loaded. */
   chunkCount: number;
-  /** Current FPS value. */
-  fps: number;
   /** Player world position (or null). */
   playerPos: { x: number; y: number; z: number } | null;
   /** Streamer statistics. */
@@ -40,7 +39,7 @@ const WORLD_SOURCE_META: Record<
   'biome-derived': { label: 'BIOME-DERIVED', color: '#f0ad4e', isFallback: true },
 };
 
-const DebugHUD: React.FC<DebugHUDProps> = ({ chunkCount, fps, playerPos, streamerStats, worldGen }) => {
+const DebugHUD: React.FC<DebugHUDProps> = ({ chunkCount, playerPos, streamerStats, worldGen }) => {
   const posStr = playerPos
     ? `X: ${playerPos.x.toFixed(1)}  Y: ${playerPos.y.toFixed(1)}  Z: ${playerPos.z.toFixed(1)}`
     : 'X: —  Y: —  Z: —';
@@ -63,7 +62,14 @@ const DebugHUD: React.FC<DebugHUDProps> = ({ chunkCount, fps, playerPos, streame
         Debug HUD
       </div>
       <div>
-        <span style={{ color: 'var(--text-secondary, #8a9aaa)' }}>FPS:</span> {fps}
+        {/* THE SHARED NUMBER (2026-09-29). This used to come from a second
+          * requestAnimationFrame loop in World3DWrapper that counted browser
+          * callbacks, not drawn frames, and re-rendered the wrapper once a
+          * second even with this HUD closed. The 'world3d' session counts
+          * the frames World3DScene actually draws: the same number the Alt+P
+          * performance panel shows. */}
+        <span style={{ color: 'var(--text-secondary, #8a9aaa)' }}>FPS:</span>{' '}
+        <PerfFpsText sessionId="world3d" />
       </div>
       <div>
         <span style={{ color: 'var(--text-secondary, #8a9aaa)' }}>Chunks:</span> {chunkCount}

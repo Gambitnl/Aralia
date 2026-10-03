@@ -1,0 +1,5 @@
+# Hero Lab calls TRELLIS through Gradio's authenticated Python client. This is
+# the exact client version used by the successful 2026-08-12 acceptance run;
+# pinning it prevents a future Codespace rebuild from silently changing the
+# hosted Space request contract.
+gradio_client==1.13.3

@@ -44,7 +44,7 @@ import { registerAllParts } from '@/systems/entities3d/parts';
 import { generateEntityBlueprint } from '@/systems/entities3d/generateEntityBlueprint';
 import { recipeFromCharacter } from '@/systems/entities3d/recipeFromCharacter';
 import { heightM } from '@/systems/entities3d/types';
-import { assembleEntity } from '@/systems/entities3d/three/assembleEntity';
+import { assembleEntity, gameBodyOptions } from '@/systems/entities3d/three/assembleEntity';
 import type { LocomotionState } from '@/systems/entities3d/three/gaits';
 
 registerAllParts();
@@ -54,18 +54,13 @@ registerAllParts();
  * body. The avatar itself no longer uses this — race frames come from the
  * entity generator's species profiles.
  */
+import { groundSurfaceYM } from './terrain/groundSurfaceYM';
+
 export function raceScale(raceName: string | undefined): number {
   const n = (raceName ?? '').toLowerCase();
   if (/gnome|halfling|goblin|kobold|fairy/.test(n)) return 0.55;
   if (/dwarf|duergar/.test(n)) return 0.8;
   return 1;
-}
-
-/** Sample the ground-world surface height (meters) at tile-local meters. */
-export function groundSurfaceYM(ground: GroundWorld, xM: number, zM: number): number {
-  const gx = Math.max(0, Math.min(ground.cols - 1, Math.round(xM / GROUND_METERS_PER_CELL)));
-  const gy = Math.max(0, Math.min(ground.rows - 1, Math.round(zM / GROUND_METERS_PER_CELL)));
-  return heightToMeters(ground.heights[gy * ground.cols + gx] ?? 0);
 }
 
 interface PlayerAvatarProps {
@@ -97,8 +92,10 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
   // the soft body surface itself does not need to be rebuilt at monitor speed.
   // A smaller field updated ten times per second preserves the animated body
   // while leaving enough frame budget for terrain, buildings, and townsfolk.
+  // Skinned by default (skeleton pivot flip 2026-08-18): 2 draw calls per
+  // figure instead of ~60, smooth one-piece look on bipeds.
   const handle = useMemo(
-    () => (blueprint ? assembleEntity(blueprint, { resolutionScale: 0.7, fieldUpdateHz: 10 }) : null),
+    () => (blueprint ? assembleEntity(blueprint, { resolutionScale: 0.7, fieldUpdateHz: 10, ...gameBodyOptions(blueprint) }) : null),
     [blueprint],
   );
   useEffect(() => {

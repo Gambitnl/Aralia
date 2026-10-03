@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * This file appears to be an ISOLATED UTILITY or ORPHAN.
  *
- * Last Sync: 15/07/2026, 01:31:22
+ * Last Sync: 29/09/2026, 00:50:48
  * Dependents: None (Orphan)
- * Imports: 2 files
+ * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -16,8 +16,12 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+// The shared performance tool: fps pill, Alt+P panel, every canvas measured.
+// First, so the probe is installed before the lab builds its renderer.
+import './devtools/perf/staple';
 import './index.css';
 import BuildingIdentityLab from './devtools/buildingIdentityLab/BuildingIdentityLab';
+import { applyZIndexCssVariables } from './styles/zIndex';
 
 /**
  * This is the standalone browser entry for the procedural building identity workbench.
@@ -27,6 +31,14 @@ import BuildingIdentityLab from './devtools/buildingIdentityLab/BuildingIdentity
 
 // Mount the workbench only when its dedicated HTML entry supplied a root.
 // StrictMode helps expose accidental non-determinism during development.
+
+/* The game app defines the --z-index-* variables in App.tsx, which this page
+ * never mounts. Without them every `z-[var(--z-index-*)]` class computes
+ * `z-index: auto`, so a layered element silently sits under the content it
+ * should cover. Cheap and idempotent, so it runs whether or not this page's
+ * tree happens to use one today (Remy 2026-08-31). */
+applyZIndexCssVariables();
+
 const rootElement = document.getElementById('root');
 if (rootElement) {
   ReactDOM.createRoot(rootElement).render(

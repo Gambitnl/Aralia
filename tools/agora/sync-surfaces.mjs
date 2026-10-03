@@ -5,15 +5,86 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { reconcileBoardToPlanmap } from './planmap-reconcile-lib.mjs';
+import { coverageReport } from './coverage-lib.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/* Areas a reader has already judged as needing no architecture domain doc.
+ *
+ * This records a decision; it does not hide anything. An ignored area is still
+ * reported, marked `ignored`, so the coverage list stays a complete picture of
+ * the repository rather than a curated one. */
+const COVERAGE_IGNORE = ['ui', 'layout'];
 const dayDiff = (now, d) => Math.max(0, Math.round((now - new Date(d)) / 86400000));
 
-const atomicWrite = (file, text) => {
-  const tmp = `${file}.tmp`;
-  fs.writeFileSync(tmp, text);
-  fs.renameSync(tmp, file);
+// Writes here fail transiently, in bursts of up to ~1.5 s, as EPERM on the
+// rename and as libuv's UNKNOWN (-4094) on a direct open. Giving up on the first
+// failure is what froze health.json for three days (2026-07-23 → 26) with every
+// age on the plan-map page stale, so a transient lock must not lose the step.
+//
+// Measured 2026-07-28, same file, same directory, only one variable changed:
+//   nobody requesting it over HTTP ....  0 failures / 250 writes
+//   dev server serving it ............ 175 failures / 200 writes
+// So the holder is the dev server SERVING the file, not its watcher: sibling
+// files in the same watched directories never failed while merely being watched.
+// Restart Manager never attributes a holder, so the handle is short-lived rather
+// than parked — which is exactly what retrying is good for.
+//
+// The budget below rides out about 10 s. It survives one or two readers hitting
+// the file back to back; against three or more it becomes a coin flip, and no
+// retry budget wins against a reader that never lets go. A browser on the
+// plan-map page sits well inside the survivable range.
+const WRITE_ATTEMPTS = 12;
+const WRITE_BACKOFF_MS = 150;
+const WRITE_BACKOFF_CAP_MS = 1500;
+const backoffFor = (attempt) => Math.min(WRITE_BACKOFF_CAP_MS, WRITE_BACKOFF_MS * attempt);
+
+/**
+ * Block the thread — this is a one-shot batch program, not a server. Atomics
+ * rather than a spin loop: a spin burns a core competing with the very process
+ * that has to finish reading the file before the write can land.
+ */
+const sleepSync = (ms) => {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+};
+
+const atomicWrite = (file, text, { attempts = WRITE_ATTEMPTS, sleep = sleepSync } = {}) => {
+  // A pid-scoped tmp name means two concurrent writers cannot fight over one
+  // scratch path while they retry.
+  const tmp = `${file}.${process.pid}.tmp`;
+  let lastError;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      fs.writeFileSync(tmp, text);
+      fs.renameSync(tmp, file);
+      return { attempts: attempt };
+    } catch (e) {
+      lastError = e;
+      // Never leave scratch files behind for the next run to trip over.
+      try { fs.rmSync(tmp, { force: true }); } catch { /* ignore */ }
+      if (attempt < attempts) sleep(backoffFor(attempt));
+    }
+  }
+  // LAST RESORT: WRITE IN PLACE. On 2026-09-12 every rename over
+  // public/planmap/topics.json failed with EPERM (40 of 40 in a probe), while a
+  // plain in-place write to the same file succeeded every time. The board step
+  // had failed on every run, so no task progress reached the plan map at all.
+  // An in-place write is not atomic, but a reader that catches a half-written
+  // file retries on its next poll, and a map that never updates is worse.
+  // Read the file back to prove the write landed.
+  if (lastError?.code === 'EPERM' || lastError?.code === 'EBUSY') {
+    try {
+      fs.writeFileSync(file, text);
+      if (fs.readFileSync(file, 'utf8') === text) return { attempts, inPlace: true };
+    } catch (e) {
+      lastError = e;
+    }
+  }
+  throw new Error(
+    `could not write ${path.basename(file)} after ${attempts} attempts — ` +
+    `something is holding it open (${lastError?.code ?? lastError?.message})`,
+  );
 };
 
 const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -27,6 +98,7 @@ export async function runSync({
   steps = ['board', 'docs', 'tidy', 'health'],
   dryRun = false,
   tasksProvider, // test seam; defaults to fetching the daemon
+  campaignsProvider, // test seam; WF-G150 needs each campaign's charter primary
 } = {}) {
   const topicsPath = path.join(repoRoot, 'public', 'planmap', 'topics.json');
   const healthPath = path.join(repoRoot, 'public', 'planmap', 'health.json');
@@ -40,26 +112,63 @@ export async function runSync({
     return { ok: false, stepResults: [{ name: 'guard', ok: false, changed: false, detail: String(e.message) }] };
   }
 
-  // Bearer token for authed daemon calls: read from the stored client identity
-  // file the same way client.mjs does — { "<baseUrl>": { agentId, handle, token } }
-  // keyed by base URL (AGORA_DIR overrides the default .agent/agora dir).
-  const authHeaders = () => {
-    try {
-      const idDir = process.env.AGORA_DIR
-        ? path.resolve(process.cwd(), process.env.AGORA_DIR)
-        : path.join(repoRoot, '.agent', 'agora');
-      const all = JSON.parse(fs.readFileSync(path.join(idDir, 'client-identity.json'), 'utf8'));
-      const id = all[agoraUrl.replace(/\/+$/, '')];
-      return id && id.token ? { Authorization: `Bearer ${id.token}` } : {};
-    } catch {
-      return {}; // no identity — the daemon answers 401 and the step reports it
-    }
+  // --- daemon identity for authed calls -------------------------------------
+  // A stored client identity cannot work here. The daemon resolves bearer tokens
+  // through its live agent registry, and its sweep reaps any agent that stops
+  // checking in — deleting the record, so the token stops working. sync is a
+  // detached one-shot that never heartbeats, so a token saved by one run is dead
+  // by the next. Claiming a fresh identity per run is the only durable way in.
+  //
+  // The identity is retired as soon as tidy is done. An abandoned one would sit
+  // in Presence until the drop horizon and then be reaped WITH a crash dossier,
+  // so every nightly sync would look like a crashed agent.
+  const SYNC_HANDLE = 'sync-surfaces';
+
+  const daemonPost = (route, { token, body } = {}) => fetch(`${agoraUrl}${route}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(body ?? {}),
+  });
+
+  // Claim a short-lived service identity. Resolves to a bearer token, or throws.
+  // Errors the DAEMON caused are tagged `answered` so the caller can tell "the
+  // daemon declined" from "nothing is listening" — a thrown fetch is the latter.
+  const declined = (message) => Object.assign(new Error(message), { answered: true });
+
+  const claimSyncIdentity = async () => {
+    // Registration requires a pet slug from the daemon's own catalog, and that
+    // catalog changes — ask rather than hardcode a slug that may be retired.
+    const petsRes = await fetch(`${agoraUrl}/pets`);
+    if (!petsRes.ok) throw declined(`HTTP ${petsRes.status} from /pets`);
+    const petSlug = ((await petsRes.json()).pets ?? [])[0]?.slug;
+    if (!petSlug) throw declined('daemon offers no pet identities');
+
+    // unique:false is the documented opt-out for a flow that deliberately
+    // re-registers under the same name. sync is a singleton batch program
+    // reclaiming its own handle, which is exactly that case; each registration
+    // still mints its own agent record and its own token.
+    const res = await daemonPost('/agents/register', {
+      body: { handle: SYNC_HANDLE, petSlug, unique: false, type: 'service', note: 'planning-surface sync (board tidy)' },
+    });
+    if (!res.ok) throw declined(`HTTP ${res.status} from /agents/register`);
+    const body = await res.json();
+    if (!body.token) throw declined('register returned no token');
+    return body.token;
   };
 
   const getTasks = tasksProvider ?? (async () => {
     const res = await fetch(`${agoraUrl}/tasks`);
     const body = await res.json();
     return body.tasks ?? body ?? [];
+  });
+  // A test that injects tasks and no campaigns must not reach a real daemon.
+  const getCampaigns = campaignsProvider ?? (tasksProvider ? async () => [] : async () => {
+    const res = await fetch(`${agoraUrl}/campaigns`);
+    const body = await res.json();
+    return body.campaigns ?? [];
   });
 
   const today = now.toISOString().slice(0, 10);
@@ -69,7 +178,10 @@ export async function runSync({
     board: async () => {
       const tasks = await getTasks();
       const before = JSON.stringify(map);
-      const { changes, disconnected } = reconcileBoardToPlanmap(map, tasks);
+      // WF-G150: without the campaigns, a feature named as a charter's primary
+      // could be marked done by its approval task alone.
+      const campaigns = await getCampaigns();
+      const { changes, disconnected } = reconcileBoardToPlanmap(map, tasks, { campaigns });
       for (const line of changes) {
         const id = /^"([a-z0-9-]+)"/.exec(line)?.[1];
         const topic = map.topics.find((t) => t.id === id);
@@ -85,15 +197,44 @@ export async function runSync({
       if (dryRun) return { changed: false, detail: 'dry run' };
       // The daemon owns its store files; tidying goes through its authed admin
       // endpoint, never by touching .agent/agora on disk from here.
-      const res = await fetch(`${agoraUrl}/admin/tidy`, { method: 'POST', headers: authHeaders() }).catch(() => null);
-      if (!res || !res.ok) return { changed: false, detail: 'daemon unreachable or refused — skipped' };
-      const body = await res.json();
-      return { changed: body.archived > 0, detail: `${body.archived} task(s) archived` };
+      let token;
+      try {
+        token = await claimSyncIdentity();
+      } catch (e) {
+        if (!e.answered) return { changed: false, detail: `daemon unreachable at ${agoraUrl} — skipped` };
+        return { changed: false, detail: `could not claim a sync identity: ${e.message} — skipped` };
+      }
+
+      try {
+        // Say which of the two it was. "unreachable or refused" reads as a dead
+        // daemon and sends the reader looking for the wrong problem — a live
+        // daemon answering 401 needs a different fix than one not listening.
+        const res = await daemonPost('/admin/tidy', { token }).catch(() => null);
+        if (!res) return { changed: false, detail: `daemon unreachable at ${agoraUrl} — skipped` };
+        if (!res.ok) return { changed: false, detail: `daemon refused: HTTP ${res.status} — skipped` };
+        const body = await res.json();
+        return { changed: body.archived > 0, detail: `${body.archived} task(s) archived` };
+      } finally {
+        // Retire even when tidy failed — see the note on claimSyncIdentity.
+        await daemonPost('/agents/retire', { token, body: { note: 'sync-surfaces tidy complete' } }).catch(() => {});
+      }
     },
     health: async () => {
       const topics = {};
+      // GG-121: `updated` says when a topic was last touched, not when it was
+      // last checked against reality. Topics may carry an optional `verified`
+      // date (same discipline as docs/architecture/domains `Verified:` lines).
+      // Active topics with no verification, or verified too long ago, are
+      // flagged so stale claims are visible in derived output rather than
+      // incubating inside prose until they misroute a future campaign.
+      const STALE_VERIFIED_DAYS = 30;
       for (const t of map.topics) {
         const entry = { ageDays: t.updated && DATE_RE.test(t.updated) ? dayDiff(now, t.updated) : null };
+        const verifiedAge = t.verified && DATE_RE.test(t.verified) ? dayDiff(now, t.verified) : null;
+        if (verifiedAge !== null) entry.verifiedAgeDays = verifiedAge;
+        if ((t.status === 'active' || t.status === 'specced')) {
+          entry.staleUnverified = verifiedAge === null || verifiedAge > STALE_VERIFIED_DAYS;
+        }
         if (t.docset) {
           const projDir = path.join(repoRoot, 'docs', 'projects', t.docset);
           entry.docset = t.docset;
@@ -119,6 +260,16 @@ export async function runSync({
           chronicleDaysSilent: mtimeDays(path.join(repoRoot, 'misc', 'chronicle', 'chronicle.db')),
           atlasDaysSilent: mtimeDays(path.join(repoRoot, '.agent', 'atlas', 'atlas.sqlite')),
         },
+        /* What SHOULD be on a planning surface and is not.
+         *
+         * The block above measures staleness — has a surface gone quiet. This
+         * one measures coverage — was it ever there. They are different faults
+         * and only the first was ever checked, which is how the streamed 3D
+         * world reached 154 files with no architecture doc and nothing said so.
+         *
+         * Never filtered. See PLANNING-STACK.md section 6 for why a threshold
+         * here would be the tool making a judgment it cannot make. */
+        coverage: coverageReport(repoRoot, { ignore: COVERAGE_IGNORE }),
         topics,
       };
       if (!dryRun) atomicWrite(healthPath, JSON.stringify(health, null, 2) + '\n');

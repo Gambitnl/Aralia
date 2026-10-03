@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 18/07/2026, 18:28:36
+ * Dependents: components/BattleMap/forge/index.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file caveForge.ts
  * The cave asset set for the procedural asset forge: ore rocks, crystal-ore
@@ -74,7 +90,13 @@ export function drawRock(ctx: CanvasRenderingContext2D, cx: number, cy: number, 
   return base;
 }
 
-// -------------------------------------------------- chunky faceted crystal ---
+// ============================================================================
+// Chunky Faceted Crystals
+// ============================================================================
+// Crystal shards use broad colored planes, a dark silhouette, and one small
+// white glint at the point. Keeping that glint restrained lets the colored
+// facets carry the shape instead of turning every tip into a white bead.
+// ============================================================================
 export interface CrystalPalette { glow: string; hi: string; light: string; mid: string; dark: string; darker: string; ink: string; }
 export const CRYSTAL_BLUE: CrystalPalette = { glow: '#3fb6e0', hi: '#c9f2fc', light: '#7fd6ef', mid: '#3f9fc8', dark: '#236f9e', darker: '#164f78', ink: '#0a2f4a' };
 export const CRYSTAL_PURPLE: CrystalPalette = { glow: '#a45fd8', hi: '#ecccf7', light: '#c78fe8', mid: '#9a5fce', dark: '#6a37a0', darker: '#48217a', ink: '#280a48' };
@@ -93,7 +115,14 @@ function shard(ctx: CanvasRenderingContext2D, bx: number, by: number, ang: numbe
   ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(E.x, E.y); ctx.lineTo(D.x, D.y); ctx.stroke();
   ctx.strokeStyle = pal.ink; ctx.lineWidth = Math.max(1.4, w * 0.2); ctx.lineJoin = 'round';
   ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(E.x, E.y); ctx.lineTo(D.x, D.y); ctx.lineTo(C.x, C.y); ctx.lineTo(B.x, B.y); ctx.closePath(); ctx.stroke();
-  ctx.fillStyle = 'rgba(255,255,255,0.95)'; ctx.beginPath(); ctx.arc(D.x, D.y, Math.max(1.5, w * 0.16), 0, TAU); ctx.fill();
+  // Finish with a pinprick glint rather than a large white cap. The minimum
+  // keeps tiny ore-node shards legible, while the scale stays subtle on the
+  // showcase's largest crystals.
+  const tipGlintRadius = Math.max(0.75, w * 0.075);
+  ctx.fillStyle = 'rgba(255,255,255,0.82)';
+  ctx.beginPath();
+  ctx.arc(D.x, D.y, tipGlintRadius, 0, TAU);
+  ctx.fill();
 }
 
 export function drawCrystal(ctx: CanvasRenderingContext2D, cx: number, cy: number, R: number, seed: number, pal: CrystalPalette): void {
@@ -110,47 +139,147 @@ export function drawCrystal(ctx: CanvasRenderingContext2D, cx: number, cy: numbe
   for (let i = 0; i < 2; i++) shard(ctx, cx + (rnd() - 0.5) * R * 1.1, cy + R * 0.25, -Math.PI / 2 + (rnd() - 0.5) * 0.8, R * (0.3 + rnd() * 0.2), R * 0.11, pal);
 }
 
-// ------------------------------------------------------------- stalagmite ---
+// ============================================================================
+// Rock-Faced Stalagmites
+// ============================================================================
+// Stalagmites share the rocks' upper-left lighting and inked silhouette, but
+// use stacked, asymmetric ledges so they read as mineral growth instead of
+// smooth cones. Every ledge and surface mark comes from the supplied seed.
+// ============================================================================
 export function drawStalagmite(ctx: CanvasRenderingContext2D, cx: number, cy: number, Hh: number, seed: number): void {
   const rnd = mulberry32(seed), w = Hh * (0.3 + rnd() * 0.08), lean = (rnd() - 0.5) * Hh * 0.14;
-  ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(cx + w * 0.3, cy + w * 0.16, w * 1.3, w * 0.5, 0, 0, TAU); ctx.fill();
-  // Irregular per-side silhouette (a few kinked control points) so it reads as
-  // a rough stone spire, not a smooth traffic cone.
-  const jitterR = (): number => (rnd() - 0.5);
-  const apex = { x: cx + lean, y: cy - Hh };
-  const bl = { x: cx - w, y: cy }, br = { x: cx + w, y: cy };
-  const lc1 = { x: cx - w * (0.85 + jitterR() * 0.25), y: cy - Hh * 0.35 };
-  const lc2 = { x: cx - w * (0.42 + jitterR() * 0.22), y: cy - Hh * 0.68 };
-  const rc1 = { x: cx + w * (0.85 + jitterR() * 0.25), y: cy - Hh * 0.32 };
-  const rc2 = { x: cx + w * (0.44 + jitterR() * 0.22), y: cy - Hh * 0.66 };
+
+  // A soft ground shadow anchors the tall prop without changing the footprint
+  // that future battle-map placement code will use.
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath();
+  ctx.ellipse(cx + w * 0.3, cy + w * 0.16, w * 1.3, w * 0.5, 0, 0, TAU);
+  ctx.fill();
+
+  // Build two independent rock edges from broad base to narrow tip. Each band
+  // can jut out or tuck inward, creating ledges and scars while the taper and
+  // gradual lean keep the overall silhouette unmistakably stalagmite-shaped.
+  const rises = [0, 0.18, 0.36, 0.54, 0.71, 0.86];
+  const leftEdge: Pt[] = [];
+  const rightEdge: Pt[] = [];
+  for (const rise of rises) {
+    const verticalJitter = rise === 0 ? 0 : (rnd() - 0.5) * Hh * 0.035;
+    const center = cx + lean * rise + (rnd() - 0.5) * w * 0.14;
+    const taper = Math.pow(1 - rise, 0.78);
+    const leftWidth = w * taper * (0.78 + rnd() * 0.34);
+    const rightWidth = w * taper * (0.78 + rnd() * 0.34);
+    const y = cy - Hh * rise + verticalJitter;
+    leftEdge.push({ x: center - leftWidth, y });
+    rightEdge.push({ x: center + rightWidth, y });
+  }
+  const apex: Pt = { x: cx + lean + (rnd() - 0.5) * w * 0.08, y: cy - Hh };
+
+  // Reuse this exact outline for the clipped paint, final ink, and all surface
+  // details so texture never leaks beyond the jagged stone silhouette.
   const trace = (): void => {
     ctx.beginPath();
-    ctx.moveTo(bl.x, bl.y);
-    ctx.lineTo(lc1.x, lc1.y); ctx.lineTo(lc2.x, lc2.y); ctx.lineTo(apex.x - w * 0.05, apex.y);
-    ctx.lineTo(apex.x + w * 0.05, apex.y);
-    ctx.lineTo(rc2.x, rc2.y); ctx.lineTo(rc1.x, rc1.y);
+    ctx.moveTo(leftEdge[0].x, leftEdge[0].y);
+    for (let i = 1; i < leftEdge.length; i++) ctx.lineTo(leftEdge[i].x, leftEdge[i].y);
+    ctx.lineTo(apex.x, apex.y);
+    for (let i = rightEdge.length - 1; i >= 0; i--) ctx.lineTo(rightEdge[i].x, rightEdge[i].y);
     ctx.closePath();
   };
-  ctx.save(); trace(); ctx.clip();
+
+  // Fill the spire with the same cool stone range as the ore rocks. The broad
+  // gradient establishes the shared upper-left light before smaller marks add
+  // local texture.
+  ctx.save();
+  trace();
+  ctx.clip();
   const g = ctx.createLinearGradient(cx - w, cy - Hh, cx + w, cy);
-  g.addColorStop(0, '#8a7f74'); g.addColorStop(0.5, '#5f564f'); g.addColorStop(1, '#332e2b');
-  ctx.fillStyle = g; ctx.fillRect(cx - w * 2, cy - Hh * 1.2, w * 4, Hh * 1.4);
+  g.addColorStop(0, '#9a9184');
+  g.addColorStop(0.5, '#625b54');
+  g.addColorStop(1, '#302b29');
+  ctx.fillStyle = g;
+  ctx.fillRect(cx - w * 2, cy - Hh * 1.2, w * 4, Hh * 1.4);
+
+  // A darker right plane gives the stalagmite the same chunky, carved volume
+  // seen in the crystal and ore assets without making it look crystalline.
   const rg = ctx.createLinearGradient(cx, 0, cx + w, 0);
-  rg.addColorStop(0, 'rgba(0,0,0,0)'); rg.addColorStop(1, 'rgba(0,0,0,0.32)');
-  ctx.fillStyle = rg; ctx.fillRect(cx, cy - Hh * 1.2, w * 2, Hh * 1.4);
-  // rocky mottle + drip banding
-  for (let i = 0; i < 24; i++) {
-    const yy = cy - rnd() * Hh, xw = w * (1 - (cy - yy) / Hh) * 0.9, xx = cx + (rnd() - 0.5) * xw * 1.6, s = w * (0.06 + rnd() * 0.1);
-    ctx.fillStyle = rnd() > 0.5 ? `rgba(180,168,150,${0.05 + rnd() * 0.08})` : `rgba(15,12,10,${0.06 + rnd() * 0.1})`;
-    ctx.beginPath(); ctx.ellipse(xx, yy, s, s * 0.7, 0, 0, TAU); ctx.fill();
+  rg.addColorStop(0, 'rgba(0,0,0,0)');
+  rg.addColorStop(1, 'rgba(0,0,0,0.34)');
+  ctx.fillStyle = rg;
+  ctx.fillRect(cx, cy - Hh * 1.2, w * 2, Hh * 1.4);
+
+  // Scatter angular chips across the face. Their stronger contrast and varied
+  // rotation remain readable at battle-map scale, unlike the old faint circles.
+  for (let i = 0; i < 34; i++) {
+    const rise = 0.06 + rnd() * 0.86;
+    const halfWidth = w * Math.pow(1 - rise, 0.78) * 0.82;
+    const px = cx + lean * rise + (rnd() - 0.5) * halfWidth * 1.65;
+    const py = cy - Hh * rise;
+    const chip = w * (0.035 + rnd() * 0.075);
+    const tilt = (rnd() - 0.5) * chip;
+    const color = rnd() > 0.48
+      ? `rgba(214,205,191,${0.08 + rnd() * 0.11})`
+      : `rgba(25,20,18,${0.09 + rnd() * 0.13})`;
+    poly(ctx, [
+      { x: px - chip, y: py + tilt },
+      { x: px - tilt * 0.35, y: py - chip * 0.55 },
+      { x: px + chip, y: py - tilt * 0.2 },
+      { x: px + tilt * 0.3, y: py + chip * 0.52 },
+    ], color);
   }
-  ctx.strokeStyle = 'rgba(20,16,14,0.25)'; ctx.lineWidth = 1.5;
-  for (let i = 1; i < 5; i++) { const yy = cy - Hh * (i / 5), ww = w * (1 - i / 5) * 0.9; ctx.beginPath(); ctx.moveTo(cx - ww, yy); ctx.quadraticCurveTo(cx, yy + ww * 0.2, cx + ww, yy); ctx.stroke(); }
+
+  // Etch sloped mineral shelves between the silhouette ledges. Each line has
+  // a short pale rim above a darker cut, matching the forge's upper-left light.
+  ctx.lineCap = 'round';
+  for (let i = 1; i < rises.length - 1; i++) {
+    const rise = rises[i] + (rnd() - 0.5) * 0.025;
+    const halfWidth = w * Math.pow(1 - rise, 0.78) * 0.72;
+    const center = cx + lean * rise;
+    const y = cy - Hh * rise;
+    const slope = (rnd() - 0.5) * w * 0.16;
+    ctx.strokeStyle = 'rgba(24,18,16,0.42)';
+    ctx.lineWidth = Math.max(1, w * 0.045);
+    ctx.beginPath();
+    ctx.moveTo(center - halfWidth, y - slope);
+    ctx.lineTo(center - halfWidth * 0.12, y + slope * 0.4 + w * 0.04);
+    ctx.lineTo(center + halfWidth, y + slope);
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(215,204,188,0.16)';
+    ctx.lineWidth = Math.max(0.8, w * 0.025);
+    ctx.beginPath();
+    ctx.moveTo(center - halfWidth * 0.92, y - slope - w * 0.045);
+    ctx.lineTo(center + halfWidth * 0.75, y + slope - w * 0.045);
+    ctx.stroke();
+  }
+
+  // Add a few short vertical fissures to break up the shelf rhythm. The cracks
+  // stop well before the base and tip so they remain surface detail, not splits.
+  ctx.strokeStyle = 'rgba(24,18,16,0.48)';
+  ctx.lineWidth = Math.max(1, w * 0.035);
+  for (let i = 0; i < 3; i++) {
+    const rise = 0.2 + rnd() * 0.52;
+    const startX = cx + lean * rise + (rnd() - 0.5) * w * Math.pow(1 - rise, 0.78);
+    const startY = cy - Hh * rise;
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(startX + (rnd() - 0.5) * w * 0.16, startY + Hh * (0.045 + rnd() * 0.035));
+    ctx.lineTo(startX + (rnd() - 0.5) * w * 0.24, startY + Hh * (0.09 + rnd() * 0.045));
+    ctx.stroke();
+  }
+
+  // Preserve the broad upper-left sheen used across the whole cave set.
   const hg = ctx.createLinearGradient(cx - w, 0, cx, 0);
-  hg.addColorStop(0, 'rgba(210,200,190,0.32)'); hg.addColorStop(1, 'rgba(210,200,190,0)');
-  ctx.fillStyle = hg; ctx.fillRect(cx - w, cy - Hh * 1.2, w, Hh * 1.4);
+  hg.addColorStop(0, 'rgba(224,216,202,0.3)');
+  hg.addColorStop(1, 'rgba(224,216,202,0)');
+  ctx.fillStyle = hg;
+  ctx.fillRect(cx - w, cy - Hh * 1.2, w, Hh * 1.4);
   ctx.restore();
-  trace(); ctx.strokeStyle = '#1a1512'; ctx.lineWidth = Math.max(1.6, w * 0.13); ctx.lineJoin = 'round'; ctx.stroke();
+
+  // The final ink joins the ledges into one readable prop silhouette and keeps
+  // the result cohesive with the outlined rocks, crystals, and mushrooms.
+  trace();
+  ctx.strokeStyle = '#181513';
+  ctx.lineWidth = Math.max(1.6, w * 0.12);
+  ctx.lineJoin = 'round';
+  ctx.stroke();
 }
 
 // ------------------------------------------------ glowing mushroom cluster ---

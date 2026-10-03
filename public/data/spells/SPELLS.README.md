@@ -71,3 +71,11 @@ Use `targeting.areaOfEffect` (not legacy `targeting.shape`/`targeting.radius`):
   "size": 5
 }
 ```
+
+## Authoring and generated outputs
+
+Edit the individual runtime definitions here. Canonical prose and structured migration documents are reference and audit inputs, rather than an automatic replacement for these definitions.
+
+Run `npm run spells:generate` to validate and refresh the manifest, bundle, racial preview subset, and class lists together. Run `npm run spells:check` to check them without writing. Build preparation requires current outputs. Do not edit generated files separately.
+
+See [the spell domain](../../../docs/architecture/domains/spells.md) and [the delivery decision](../../../docs/adr/0005-spell-data-authoring-and-delivery.md).

@@ -26,6 +26,9 @@
     "damage": "1d6 B",
     "properties": [
       "V|XPHB"
-    ]
+    ],
+    "charges": 10,
+    "recharge": "dawn",
+    "rechargeAmount": "1d6 + 4"
   }
 }

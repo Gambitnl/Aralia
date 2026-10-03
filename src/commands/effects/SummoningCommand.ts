@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/07/2026, 13:59:36
- * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/SpellCommandFactory.ts
- * Imports: 9 files
+ * Last Sync: 20/09/2026, 21:00:39
+ * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/SpellCommandFactory.ts, components/DesignPreview/steps/scenarioControls/summonsControlledScenarioControls.ts
+ * Imports: 10 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -19,10 +19,11 @@ import { CommandContext } from '../base/SpellCommand'
 import { SummoningEffect } from '@/types/spells'
 import { CombatState, CombatCharacter, Position, CharacterStats, Ability, AbilityEffect } from '@/types/combat'
 import type { ExtraMovementSpeeds } from '@/types/core'
-import { CLASSES_DATA } from '@/constants'
+import type { Class } from '@/types/character'
 import { MONSTERS_DATA } from '../../data/monsters'
-import { generateId } from '../../utils/combatUtils'
+import { generateId } from '../../utils/combat'
 import { getSummonTemplate, type SummonTemplate } from '../../data/summonTemplates'
+import { resolveSummonPlacement } from '../../systems/combat/summonControlledResolution'
 
 /**
  * This command creates temporary combat characters for spells that summon a creature,
@@ -74,14 +75,35 @@ export class SummoningCommand extends BaseEffectCommand {
             newState = this.removeExistingPersistentSummon(newState, caster.id)
         }
 
+        // A one-creature point summon must honor the exact chosen space. Multi-
+        // creature spells still use the established nearby-space search because
+        // one point cannot hold their complete group.
+        const selectedPoint = this.context.selectedSpellTargets?.find(target => target.kind === 'point')?.position
+        const summonOrigin = selectedPoint
+            ?? caster.position
+
         for (let i = 0; i < count; i++) {
-            const spawnPosition = this.findSpawnPosition(newState, caster.position)
+            const exactPlacement = selectedPoint && count === 1
+                ? resolveSummonPlacement({
+                    caster,
+                    destination: selectedPoint,
+                    characters: newState.characters,
+                    mapData: newState.mapData,
+                    requireLineOfSight: false
+                })
+                : null
+            const spawnPosition = exactPlacement?.status === 'allowed'
+                ? selectedPoint
+                : exactPlacement?.status === 'rejected'
+                    ? null
+                    : this.findSpawnPosition(newState, summonOrigin)
 
             if (!spawnPosition) {
-                // If no space is available, log failure and stop spawning
+                // Exact placement failures keep their production reason. Generic
+                // multi-summon searches retain the established no-space message.
                 newState = this.addLogEntry(newState, {
                     type: 'action',
-                    message: `${caster.name} fails to summon ${effect.summon?.entityType ?? effect.summonType ?? 'entity'}: No space available`,
+                    message: `${caster.name} fails to summon ${effect.summon?.entityType ?? effect.summonType ?? 'entity'}: ${exactPlacement?.status === 'rejected' ? exactPlacement.message : 'No space available'}`,
                     characterId: caster.id
                 })
                 break
@@ -526,6 +548,7 @@ export class SummoningCommand extends BaseEffectCommand {
         let maxHP = 10
         let abilities: CombatCharacter['abilities'] = []
         let creatureTypes: string[] | undefined
+        let armorClass: number | undefined
 
         // Prefer the spell's inline stat block, then reusable summon templates,
         // then monster data. This keeps Package 15 spell JSON testable before
@@ -543,8 +566,14 @@ export class SummoningCommand extends BaseEffectCommand {
                 cr: '0'
             }
             maxHP = effect.summon.statBlock.hp ?? 10
+            armorClass = effect.summon.statBlock.ac
         } else if (templateData) {
             name = templateData.name ?? name
+            // Summon templates already carry the creature family that the
+            // inline stat-block branch above reads. Carrying it here too
+            // stops a templated Bat or Owl reaching the map as a typeless
+            // token that Beast-only rules cannot see (agora-375e).
+            creatureTypes = templateData.type ? [templateData.type] : undefined
             const tStats = templateData.abilities || { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }
             stats = {
                 strength: tStats.str, dexterity: tStats.dex, constitution: tStats.con,
@@ -552,11 +581,18 @@ export class SummoningCommand extends BaseEffectCommand {
                 baseInitiative: 0, speed: templateData.speed ?? 30, cr: '0'
             }
             maxHP = templateData.hp ?? 10
+            armorClass = templateData.ac
         } else if (monsterData) {
             name = monsterData.name
             stats = monsterData.baseStats
             maxHP = monsterData.maxHP
             abilities = monsterData.abilities || []
+            armorClass = monsterData.armorClass
+            // Bestiary tags are stored lower-case; creature-type rules match
+            // the capitalised taxonomy, so normalise on the way onto the actor.
+            creatureTypes = monsterData.tags.length > 0
+                ? monsterData.tags.map(tag => tag.charAt(0).toUpperCase() + tag.slice(1))
+                : undefined
         } else if (effect.summon?.objectDescription || effect.objectDescription) {
             name = effect.summon?.objectDescription ?? effect.objectDescription ?? effect.summon?.entityType ?? effect.summonType ?? 'Object'
         }
@@ -568,7 +604,11 @@ export class SummoningCommand extends BaseEffectCommand {
             id: uniqueId,
             name: `${name} ${index + 1}`,
             level: 1, // Default to level 1 for summons
-            class: CLASSES_DATA['fighter'], // Placeholder class
+            class: this.createSummonClass(creatureTypes),
+            // A summon with no template or monster AC keeps the unarmoured
+            // default the attack pipelines already assume for a missing value.
+            armorClass: armorClass ?? 10,
+            baseAC: armorClass ?? 10,
             position: position,
             stats: stats,
             // Inline spell stat blocks name their creature family even when no
@@ -642,6 +682,40 @@ export class SummoningCommand extends BaseEffectCommand {
         }
     }
 
+    /**
+     * Build the pseudo-class every summoned actor carries.
+     *
+     * What changed (agora-375e): summons used to be handed
+     * `CLASSES_DATA['fighter']` as a placeholder. That is not inert. Saving
+     * throws read `target.class.savingThrowProficiencies`, so every summoned
+     * Beast, Fey, or object was silently proficient in Fighter's Strength and
+     * Constitution saves, and any rule gated on `class.id === 'fighter'` saw a
+     * Fighter. The class slot now names the resolved creature family instead.
+     *
+     * What was preserved: `CombatCharacter.class` is still required, so the
+     * summon keeps a structurally valid Class rather than dropping the field.
+     * The `monster` id is the same one useSummons.ts already uses for its own
+     * summon path, and it deliberately matches none of the class-gated
+     * feature checks.
+     */
+    private createSummonClass(creatureTypes: string[] | undefined): Class {
+        const family = creatureTypes?.[0] ?? 'Monster'
+
+        return {
+            id: 'monster',
+            name: family,
+            description: `Summoned ${family.toLowerCase()}`,
+            hitDie: 10,
+            primaryAbility: ['Constitution'],
+            savingThrowProficiencies: [],
+            skillProficienciesAvailable: [],
+            numberOfSkillProficiencies: 0,
+            armorProficiencies: [],
+            weaponProficiencies: [],
+            features: []
+        }
+    }
+
     private getSummonDurationValue(effect: SummoningEffect): number | undefined {
         const durationValue = effect.duration?.value
 
@@ -673,7 +747,10 @@ export class SummoningCommand extends BaseEffectCommand {
                 : []
             const damageEffect: AbilityEffect[] = specialAction.damage ? [{
                 type: 'damage',
-                dice: specialAction.damage.dice,
+                // Structured summon formulas use the selected slot as the spell
+                // level. Materialize it when the live actor is created so the
+                // ordinary damage roller receives executable dice notation.
+                dice: specialAction.damage.dice.replace(/spell_level/g, String(this.context.castAtLevel)),
                 damageType: specialAction.damage.type as AbilityEffect['damageType']
             }] : []
 

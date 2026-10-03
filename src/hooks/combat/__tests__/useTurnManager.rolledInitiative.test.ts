@@ -1,5 +1,4 @@
 import { act, renderHook } from '@testing-library/react';
-import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { useTurnManager } from '../useTurnManager';
 import { SummoningCommand } from '../../../commands/effects/SummoningCommand';
@@ -7,7 +6,7 @@ import { createMockCombatCharacter } from '../../../utils/core';
 import type { CombatCharacter, CombatLogEntry, CombatState } from '../../../types/combat';
 import type { CommandContext } from '../../../commands/base/SpellCommand';
 import type { SummoningEffect } from '../../../types/spells';
-import conjureAnimals from '../../../../public/data/spells/level-3/conjure-animals.json';
+import conjureAnimals from '@/data/spells/level-3/conjure-animals.json';
 
 /**
  * This test proves a live Conjure Animals summon with rolled initiative keeps
@@ -83,8 +82,8 @@ describe('useTurnManager rolled summon scheduling', () => {
         cr: '0'
       }
     });
-    const summonEffect = conjureAnimals.effects.find(effect => effect.type === 'SUMMONING') as SummoningEffect;
-    const context = {
+    const summonEffect = (conjureAnimals.effects.find(effect => effect.type === 'SUMMONING') as unknown) as SummoningEffect;
+    const context: any = {
       spellId: conjureAnimals.id,
       spellName: conjureAnimals.name,
       castAtLevel: 3,
@@ -92,7 +91,7 @@ describe('useTurnManager rolled summon scheduling', () => {
       targets: [],
       playerInput: 'Wolf',
       gameState: {}
-    } as CommandContext;
+    } as unknown as CommandContext;
     const summonState = new SummoningCommand(summonEffect, context).execute({
       isActive: true,
       characters: [caster],

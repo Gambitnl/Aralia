@@ -57,15 +57,16 @@ export function useDrillLayers(scope?: string | number): { layers: DrillLayers; 
 // ── Town leaf tier ────────────────────────────────────────────────────────────
 // A town plan's geometry is wards/streets/plots/walls/civic, not Voronoi features,
 // so it gets its own toggle set. The ground (blocks, core, outskirts) stays on.
-export type TownLayerId = 'buildings' | 'roads' | 'walls' | 'civic';
+export type TownLayerId = 'buildings' | 'roads' | 'walls' | 'civic' | 'water';
 export type TownLayers = Record<TownLayerId, boolean>;
 export const TOWN_LAYER_DEFS: Array<LayerDef<TownLayerId>> = [
   { id: 'buildings', label: 'Buildings', desc: 'Building plots and rural farmsteads' },
   { id: 'roads', label: 'Main roads', desc: 'Inherited through-roads over the street grid' },
   { id: 'walls', label: 'Walls', desc: 'Defensive ring and gatehouses' },
   { id: 'civic', label: 'Civic', desc: 'Plaza, temple, keep, citadel, docks' },
+  { id: 'water', label: 'Water', desc: 'River channel the docks and bridges sit against' },
 ];
-const TOWN_DEFAULTS: TownLayers = { buildings: true, roads: true, walls: true, civic: true };
+const TOWN_DEFAULTS: TownLayers = { buildings: true, roads: true, walls: true, civic: true, water: true };
 
 export function useTownLayers(scope?: string | number): { layers: TownLayers; toggle: (id: TownLayerId) => void } {
   return usePersistedToggles('aralia.atlas.townLayers.v1', TOWN_DEFAULTS, scope);

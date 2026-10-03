@@ -10,7 +10,7 @@ import { describe, it, expect } from 'vitest';
 import { checkQuestDeadlines } from '../QuestManager';
 import { Quest, QuestStatus } from '@/types';
 import { createInitialJournalState } from '@/types/journal';
-import { createMockGameState } from '@/utils/factories';
+import { createMockGameState } from '@/utils/core';
 
 describe('QuestManager', () => {
   it('should fail quests when deadline is passed', () => {

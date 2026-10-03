@@ -23,6 +23,9 @@
     "rarity": "Rare",
     "reqAttune": "Required",
     "weight": 4,
-    "damage": "1d6 B"
+    "damage": "1d6 B",
+    "charges": 3,
+    "recharge": "dawn",
+    "rechargeAmount": "1d3"
   }
 }

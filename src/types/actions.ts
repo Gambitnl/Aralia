@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 16/07/2026, 13:27:17
- * Dependents: components/Combat/BattlefieldSourceGap.tsx, hooks/actions/actionHandlers.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleResourceActions.ts, systems/combat/fightInPlace/activeGroundCombatSession.ts, systems/combat/fightInPlace/authoredTownWatchSourceGap.ts, types/index.ts
+ * Last Sync: 17/08/2026, 16:22:38
+ * Dependents: components/Combat/BattlefieldSourceGap.tsx, hooks/actions/actionHandlers.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleResourceActions.ts, systems/combat/fightInPlace/activeGroundCombatSession.ts, systems/combat/fightInPlace/authoredTownWatchSourceGap.ts, systems/combat/unsupportedBattlefieldSources.ts, types/index.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -17,7 +17,7 @@
 import { EquipmentSlotType, Item } from './items.js';
 import { Monster, Location, VillageActionContext, DiscoveryResidue, GoalStatus, GossipUpdatePayload } from './world.js';
 import { Quest } from './quests.js';
-import { TempPartyMember, PlayerCharacter, HitPointDiceSpendMap } from './character.js';
+import { TempPartyMember, PlayerCharacter, HitPointDiceSpendMap, LevelUpChoices } from './character.js';
 import { Faction } from './factions.js';
 import { DialogueSession } from './dialogue.js';
 import type { Lock, Puzzle } from '../systems/puzzles/types.js';
@@ -60,11 +60,15 @@ export type ActionType =
   | 'talk'
   | 'take_item'
   | 'USE_ITEM'
+  | 'USE_HEALERS_KIT'
   | 'custom'
   | 'ask_oracle'
   | 'toggle_map'
   | 'toggle_three_d'
   | 'toggle_auto_save'
+  | 'cycle_combat_difficulty'
+  | 'cycle_rules_edition'
+  | 'toggle_save_scum'
   | 'gemini_custom_action'
   | 'save_game'
   | 'go_to_main_menu'
@@ -76,6 +80,14 @@ export type ActionType =
   | 'TOGGLE_DISCOVERY_LOG'
   | 'TOGGLE_GLOSSARY_VISIBILITY'
   | 'TOGGLE_LOGBOOK'
+  | 'TOGGLE_COMMERCE_DESK'
+  | 'TOGGLE_INVESTMENT_BOARD'
+  | 'TOGGLE_TRADE_ROUTE_DASHBOARD'
+  | 'TOGGLE_SALVAGE_MODAL'
+  | 'TOGGLE_BANK_MODAL'
+  | 'TOGGLE_REAL_ESTATE_MODAL'
+  | 'TOGGLE_SHOP_MODAL'
+  | 'TOGGLE_TRADE_ROUTE_MODAL'
   | 'ADD_MET_NPC'
   | 'EQUIP_ITEM'
   | 'UNEQUIP_ITEM'
@@ -91,6 +103,7 @@ export type ActionType =
   | 'USE_LIMITED_ABILITY'
   | 'LONG_REST'
   | 'TOGGLE_LONG_REST_MODAL'
+  | 'TOGGLE_SHORT_REST_MODAL'
   | 'SHORT_REST'
   | 'TOGGLE_PREPARED_SPELL'
   | 'UPDATE_NPC_GOAL_STATUS'
@@ -127,6 +140,7 @@ export type ActionType =
   | 'ATTUNE_ITEM'
   | 'UNATTUNE_ITEM'
   | 'TOGGLE_ITEM_JUNK'
+  | 'MOVE_ITEM_TO_CONTAINER'
   | 'SELL_ALL_JUNK'
   | 'START_DIALOGUE_SESSION'
   | 'UPDATE_DIALOGUE_SESSION'
@@ -157,8 +171,12 @@ export interface ActionMetadata {
 export const ACTION_METADATA: Partial<Record<ActionType, ActionMetadata>> = {
   toggle_map: { isUiToggle: true },
   TOGGLE_LONG_REST_MODAL: { isUiToggle: true },
+  TOGGLE_SHORT_REST_MODAL: { isUiToggle: true },
   toggle_three_d: { isUiToggle: true },
   toggle_auto_save: { isUiToggle: true },
+  cycle_combat_difficulty: { isUiToggle: true },
+  cycle_rules_edition: { isUiToggle: true },
+  toggle_save_scum: { isUiToggle: true },
   toggle_dev_menu: { isUiToggle: true },
   toggle_gemini_log_viewer: { isUiToggle: true },
   TOGGLE_DISCOVERY_LOG: { isUiToggle: true },
@@ -169,6 +187,14 @@ export const ACTION_METADATA: Partial<Record<ActionType, ActionMetadata>> = {
   toggle_party_overlay: { isUiToggle: true },
   TOGGLE_NPC_TEST_MODAL: { isUiToggle: true },
   TOGGLE_LOGBOOK: { isUiToggle: true },
+  TOGGLE_COMMERCE_DESK: { isUiToggle: true },
+  TOGGLE_INVESTMENT_BOARD: { isUiToggle: true },
+  TOGGLE_TRADE_ROUTE_DASHBOARD: { isUiToggle: true },
+  TOGGLE_SALVAGE_MODAL: { isUiToggle: true },
+  TOGGLE_BANK_MODAL: { isUiToggle: true },
+  TOGGLE_REAL_ESTATE_MODAL: { isUiToggle: true },
+  TOGGLE_SHOP_MODAL: { isUiToggle: true },
+  TOGGLE_TRADE_ROUTE_MODAL: { isUiToggle: true },
   CLOSE_MERCHANT: { isUiToggle: true },
   BUY_ITEM: { isUiToggle: true },
   SELL_ITEM: { isUiToggle: true },
@@ -183,6 +209,7 @@ export const ACTION_METADATA: Partial<Record<ActionType, ActionMetadata>> = {
   ATTUNE_ITEM: { isUiToggle: true },
   UNATTUNE_ITEM: { isUiToggle: true },
   TOGGLE_ITEM_JUNK: { isUiToggle: true },
+  MOVE_ITEM_TO_CONTAINER: { isUiToggle: true },
   SELL_ALL_JUNK: { isUiToggle: true },
   // Actions that manage their own loading state
   save_game: { managesLoading: true },
@@ -223,6 +250,18 @@ export interface UseItemPayload {
   itemId: string;
   characterId: string;
 }
+/**
+ * Utilize action with a Healer's Kit. The user spends one of the kit's ten
+ * uses; the target is the creature being stabilized or tended. Resolution
+ * lives in src/systems/healing/healersKit.ts.
+ */
+export interface UseHealersKitPayload {
+  /** Character taking the Utilize action. */
+  userCharacterId: string;
+  /** Creature being stabilized or tended. */
+  targetCharacterId: string;
+}
+
 export interface DropItemPayload {
   itemId: string;
   characterId: string;
@@ -364,11 +403,15 @@ export type Action =
   | { type: 'take_item'; payload: { itemId: string }; label?: string; targetId?: string }
   // Keep item-use actions on the reducer-facing uppercase contract used by the item state flow.
   | { type: 'USE_ITEM'; payload: UseItemPayload; label?: string }
+  | { type: 'USE_HEALERS_KIT'; payload: UseHealersKitPayload; label?: string }
   | { type: 'custom'; payload?: { villageContext?: VillageActionContext }; label?: string }
   | { type: 'ask_oracle'; payload: { query: string }; label?: string }
   | { type: 'toggle_map'; payload?: never; label?: string }
   | { type: 'toggle_three_d'; payload?: never; label?: string }
   | { type: 'toggle_auto_save'; payload?: never; label?: string }
+  | { type: 'cycle_combat_difficulty'; payload?: never; label?: string }
+  | { type: 'cycle_rules_edition'; payload?: never; label?: string }
+  | { type: 'toggle_save_scum'; payload?: never; label?: string }
   | { type: 'gemini_custom_action'; payload: { query?: string; geminiPrompt?: string; check?: string; targetNpcId?: string; eventResidue?: unknown; isEgregious?: boolean }; label?: string }
   | { type: 'save_game'; payload?: never; label?: string }
   | { type: 'go_to_main_menu'; payload?: never; label?: string }
@@ -380,6 +423,7 @@ export type Action =
   | { type: 'TOGGLE_DISCOVERY_LOG'; payload?: never; label?: string }
   | { type: 'TOGGLE_GLOSSARY_VISIBILITY'; payload?: { initialTermId?: string }; label?: string }
   | { type: 'TOGGLE_LOGBOOK'; payload?: never; label?: string }
+  | { type: 'TOGGLE_COMMERCE_DESK'; payload?: never; label?: string }
   | { type: 'ADD_MET_NPC'; payload: { npcId: string }; label?: string }
   | { type: 'EQUIP_ITEM'; payload: EquipItemPayload; label?: string }
   | { type: 'UNEQUIP_ITEM'; payload: UnequipItemPayload; label?: string }
@@ -394,6 +438,7 @@ export type Action =
   | { type: 'USE_LIMITED_ABILITY'; payload: { characterId: string; abilityId: string }; label?: string }
   | { type: 'LONG_REST'; payload?: never; label?: string }
   | { type: 'TOGGLE_LONG_REST_MODAL'; payload?: never; label?: string }
+  | { type: 'TOGGLE_SHORT_REST_MODAL'; payload?: never; label?: string }
   | { type: 'SHORT_REST'; payload?: { hitPointDiceSpend?: HitPointDiceSpendMap }; label?: string }
   | { type: 'TOGGLE_PREPARED_SPELL'; payload: { characterId: string; spellId: string }; label?: string }
   | { type: 'UPDATE_NPC_GOAL_STATUS'; payload: { npcId: string; goalId: string; status: GoalStatus }; label?: string }
@@ -401,7 +446,7 @@ export type Action =
   | { type: 'ADD_LOCATION_RESIDUE'; payload: AddLocationResiduePayload; label?: string }
   | { type: 'REMOVE_LOCATION_RESIDUE'; payload: RemoveLocationResiduePayload; label?: string }
   | { type: 'QUICK_TRAVEL'; payload: { quickTravel: QuickTravelPayload }; label?: string }
-  | { type: 'OPEN_MERCHANT'; payload: { merchantName: string; inventory: Item[]; economy?: import('./economy.js').EconomyState }; label?: string }
+  | { type: 'OPEN_MERCHANT'; payload: { merchantId?: string; merchantName: string; inventory: Item[]; economy?: import('./economy.js').EconomyState }; label?: string }
   | { type: 'CLOSE_MERCHANT'; payload?: unknown; label?: string }
   | { type: 'BUY_ITEM'; payload: MerchantActionPayload; label?: string }
   | { type: 'SELL_ITEM'; payload: MerchantActionPayload; label?: string }
@@ -410,7 +455,7 @@ export type Action =
   | { type: 'OPEN_DYNAMIC_MERCHANT'; payload: { merchantType: string; villageContext?: VillageActionContext; buildingId?: string; seedKey?: string; hire?: boolean }; label?: string }
   | { type: 'OPEN_TEMPLE'; payload: { villageContext: VillageActionContext }; label?: string }
   | { type: 'CLOSE_TEMPLE'; payload?: never; label?: string }
-  | { type: 'USE_TEMPLE_SERVICE'; payload: { templeId: string; deityId: string; cost: number; effect: unknown }; label?: string }
+  | { type: 'USE_TEMPLE_SERVICE'; payload: { templeId: string; deityId: string; serviceId?: string; cost: number; effect: unknown }; label?: string }
   | { type: 'OPEN_LOCKPICKING_MODAL'; payload: Lock; label?: string }
   | { type: 'OPEN_PUZZLE_RUNTIME'; payload: Puzzle; label?: string }
   | { type: 'HARVEST_RESOURCE'; payload: { harvestContext?: string; skillCheck?: { skill: string; dc: number } }; label?: string }
@@ -418,7 +463,25 @@ export type Action =
   | { type: 'ANALYZE_SITUATION'; payload?: never; label?: string }
   | { type: 'wait'; payload?: { seconds?: number }; label?: string }
   | { type: 'TOGGLE_GAME_GUIDE'; payload?: never; label?: string }
-  | { type: 'UPDATE_CHARACTER_CHOICE'; payload: { characterId: string; choiceType: string; choiceId: string; secondaryValue?: unknown }; label?: string }
+  // `secondaryValue` was `unknown`, which is why the handler had to cast before
+  // dispatching. It now names the same optional level-up carrier the reducer
+  // already accepts (AppAction UPDATE_CHARACTER_CHOICE), so the payload crosses
+  // the action boundary unchanged. Still optional: choice types that carry no
+  // extra data keep working.
+  | {
+      type: 'UPDATE_CHARACTER_CHOICE';
+      payload: {
+        characterId: string;
+        choiceType: string;
+        choiceId: string;
+        secondaryValue?: {
+          choices?: LevelUpChoices;
+          xpGained?: number;
+          isCantrip?: boolean;
+        };
+      };
+      label?: string;
+    }
   | { type: 'ACCEPT_QUEST'; payload: Quest; label?: string }
   | { type: 'UPDATE_QUEST_OBJECTIVE'; payload: { questId: string; objectiveId: string; isCompleted: boolean }; label?: string }
   | { type: 'COMPLETE_QUEST'; payload: { questId: string }; label?: string }
@@ -428,9 +491,29 @@ export type Action =
   | { type: 'ATTUNE_ITEM'; payload: { characterId: string; itemId: string }; label?: string }
   | { type: 'UNATTUNE_ITEM'; payload: { characterId: string; itemId: string }; label?: string }
   | { type: 'TOGGLE_ITEM_JUNK'; payload: { itemId: string }; label?: string }
+  /**
+   * Stow an inventory item inside a carried container (or back into the root
+   * backpack with `containerId: null`). `containerId` is the CONTAINER ITEM's
+   * own id, which ADD_ITEM makes unique per instance, so the assignment
+   * survives a save/load instead of living only in the sheet's local state.
+   */
+  | { type: 'MOVE_ITEM_TO_CONTAINER'; payload: { itemId: string; containerId: string | null }; label?: string }
   | { type: 'SELL_ALL_JUNK'; payload: { items: { itemId: string; value: number }[] }; label?: string }
   | { type: 'TOGGLE_THIEVES_GUILD'; payload?: never; label?: string }
-  | { type: 'REGISTER_DYNAMIC_ENTITY'; payload: { entityType: 'location' | 'faction'; entity: Location | Faction }; label?: string }
+  // Discriminated on `entityType` so a handler can hand this payload straight to
+  // the reducer without widening it. The previous shape paired a union of tags
+  // with a union of entities, which allowed impossible combinations and forced
+  // the dispatch site to cast. The `npc` branch is added to match the reducer's
+  // existing contract (worldReducer already registers dynamic NPCs), so the
+  // action boundary no longer under-describes what the state layer accepts.
+  | {
+      type: 'REGISTER_DYNAMIC_ENTITY';
+      payload:
+        | { entityType: 'location'; entity: Location }
+        | { entityType: 'faction'; entity: Faction }
+        | { entityType: 'npc'; entity: import('./world.js').NPC };
+      label?: string;
+    }
   | { type: 'START_DIALOGUE_SESSION'; payload: { npcId: string }; label?: string }
   | { type: 'UPDATE_DIALOGUE_SESSION'; payload: { session: DialogueSession }; label?: string }
   | { type: 'END_DIALOGUE_SESSION'; payload?: never; label?: string }

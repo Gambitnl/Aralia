@@ -12,7 +12,7 @@ function findShopBurg(): { burgId: number; shopPlotIds: number[] } {
   for (const b of burgs) {
     const id = b.i ?? 0;
     if (!id || b.removed) continue;
-    const site = { burgId: id, envelope: { x: 0, y: 0, width: 200, height: 200 } } as never;
+    const site = { burgId: id, envelope: { x: 0, y: 0, width: 200, height: 200 }, gates: [] } as never;
     const { plan } = canonicalArtifactTownForSite(SEED, site);
     const shops = plan.plots.filter((p) => p.role === 'market' || p.role === 'workshop');
     if (shops.length > 0) return { burgId: id, shopPlotIds: shops.map((p) => p.id) };

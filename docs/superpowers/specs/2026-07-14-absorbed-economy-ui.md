@@ -16,7 +16,7 @@ simulation math itself is out of scope here (see
 
 ## Live design decisions (keep true)
 
-- Reducer ownership contract (T4, intentional split — do NOT migrate):
+- Reducer ownership contract (T4, intentional split - do NOT migrate):
   `uiReducer` owns the TradeRouteDashboard and InvestmentBoard visibility
   flags; `economyReducer` owns the LedgerBook and CourierPouch visibility
   flags.
@@ -26,20 +26,20 @@ simulation math itself is out of scope here (see
   chain, and open via `TOGGLE_*` dispatches. InvestmentBoard buttons dispatch
   `INVEST_IN_CARAVAN` and `TAKE_LOAN`.
 - Entry points are dev-menu-only by design until a product pass requests
-  player-visible economy surfaces — do not wire in-world triggers
+  player-visible economy surfaces - do not wire in-world triggers
   prematurely (G4).
 
 ## File map
 
-- `src/components/Trade/MerchantModal.tsx` — live merchant/shop UI (trade +
+- `src/components/Trade/MerchantModal.tsx` - live merchant/shop UI (trade +
   rumor tabs)
 - `src/components/Trade/TradeRouteDashboard.tsx`, `RouteCard.tsx`,
   `MarketEventCard.tsx`
-- `src/components/Economy/LedgerBook.tsx` — treasury, investments,
+- `src/components/Economy/LedgerBook.tsx` - treasury, investments,
   businesses, debts tabs
-- `src/components/Economy/InvestmentBoard.tsx` — caravan, loan, speculation
-- `src/components/Economy/CourierPouch.tsx` — courier messages, market intel
-- `src/components/layout/GameModals.tsx` — overlay host + Escape chain
+- `src/components/Economy/InvestmentBoard.tsx` - caravan, loan, speculation
+- `src/components/Economy/CourierPouch.tsx` - courier messages, market intel
+- `src/components/layout/GameModals.tsx` - overlay host + Escape chain
 - Close-path regression coverage:
   `src/components/layout/__tests__/GameModals.test.tsx`
 

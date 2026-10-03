@@ -1,26 +1,56 @@
 import { describe, expect, it, vi } from 'vitest';
 import { DamageCommand } from '../effects/DamageCommand';
-import { createMockCombatCharacter, createMockCombatState, createMockCommandContext, createMockGameState } from '../../utils/factories';
+import { createMockCombatCharacter, createMockCombatState, createMockCommandContext, createMockGameState } from '../../utils/core';
 import type { DamageEffect } from '../../types/spells';
-import negativeEnergyFlood from '../../../public/data/spells/level-5/negative-energy-flood.json';
+import negativeEnergyFlood from '@/data/spells/level-5/negative-energy-flood.json';
+
+// agora-f821.4: this file pins Math.random to make a roll deterministic. Game rolls now
+// run on the audit log's own seed stream, so the pin only reaches them
+// through the roller's supported injected-source seam. Feeding
+// Math.random in as that source keeps every pin below meaning what it
+// meant before the migration.
+vi.mock('../../systems/dice/rollers', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../systems/dice/rollers')>()
+  return {
+    ...actual,
+    rollDice: (notation: string, options: { rng?: () => number } = {}) =>
+      actual.rollDice(notation, { ...options, rng: options.rng ?? Math.random }),
+    rollD20: (options: { rng?: () => number } = {}) =>
+      actual.rollD20({ ...options, rng: options.rng ?? Math.random }),
+    rollDamage: (
+      notation: string,
+      isCritical: boolean,
+      minRoll = 1,
+      rng?: () => number,
+    ) => actual.rollDamage(notation, isCritical, minRoll, rng ?? Math.random),
+  }
+})
+
 
 /**
  * Negative Energy Flood stores its delayed zombie clause on the live damage
  * row. This proof keeps lethal damage from stopping at 0 HP and forgetting the
  * start-of-caster-next-turn aftermath.
  */
-vi.mock('../../utils/savingThrowUtils', () => ({
-  calculateSpellDC: vi.fn(() => 16),
-  rollSavingThrow: vi.fn(() => ({
-    roll: 1,
-    modifier: 0,
-    total: 1,
-    dc: 16,
-    success: false,
-    modifiersApplied: []
-  })),
-  calculateSaveDamage: vi.fn((damage: number) => damage)
-}));
+vi.mock('../../utils/character/savingThrowUtils', async importOriginal => {
+  // Spread the real module: only the rolled save is stubbed. Anything
+  // else the commands call (resolveSaveOutcomeOverride) is pure and must
+  // keep its real behavior, or it arrives undefined (agora-f821.52).
+  const actual = await importOriginal<typeof import('../../utils/character/savingThrowUtils')>();
+  return {
+    ...actual,
+    calculateSpellDC: vi.fn(() => 16),
+    rollSavingThrow: vi.fn(() => ({
+      roll: 1,
+      modifier: 0,
+      total: 1,
+      dc: 16,
+      success: false,
+      modifiersApplied: []
+    })),
+    calculateSaveDamage: vi.fn((damage: number) => damage)
+  };
+});
 
 describe('DamageCommand live Negative Energy Flood aftermath bridge', () => {
   it('records a pending zombie rise when live spell damage kills a non-Undead target', async () => {

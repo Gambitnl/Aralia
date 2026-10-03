@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 05:39:30
+ * Last Sync: 17/08/2026, 14:11:59
  * Dependents: state/appState.ts
- * Imports: 4 files
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -16,7 +16,7 @@
 
 import { GameState, DeityAction, DivineFavor, ReligionState, StatusEffect, Blessing } from '../../types';
 import { AppAction } from '../actionTypes';
-import { calculateFavorChange, getDeity, evaluateAction, grantBlessing, resolveBlessingDefinition } from '../../utils/religionUtils';
+import { calculateFavorChange, getDeity, evaluateAction, grantBlessing, resolveBlessingDefinition } from '../../utils/world';
 import { DEITIES } from '../../data/deities';
 import { inGameTimestamp } from '../../utils/core/timeUtils';
 

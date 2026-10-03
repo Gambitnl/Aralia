@@ -33,6 +33,7 @@
     "damage": "1d8 S",
     "properties": [
       "V|XPHB"
-    ]
+    ],
+    "bonusWeapon": "+3"
   }
 }

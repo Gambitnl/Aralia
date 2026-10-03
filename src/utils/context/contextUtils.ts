@@ -21,7 +21,8 @@
 import { GameState, PlayerCharacter, NPC, Location } from '../../types';
 import { QuestObjectiveProgress } from '../../types/quests';
 import { BIOMES, ITEMS } from '../../constants';
-import { getTimeModifiers, formatGameTime } from '../core/timeUtils';
+import { formatGameTime } from '../core/timeUtils';
+import { getTimeModifiers } from '../../systems/time/seasonContract';
 import { BACKGROUNDS } from '../../data/backgrounds';
 import { CLASSES_DATA } from '../../data/classes';
 

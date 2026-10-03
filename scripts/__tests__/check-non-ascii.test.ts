@@ -2,13 +2,14 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { randomUUID } from 'crypto';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
     buildCharsetReviewReport,
     checkFile,
     groupCharacterSummaryByAction,
     summarizeIssuesByCharacter,
+    writeCharsetReviewReport,
 } from '../check-non-ascii';
 
 /**
@@ -24,6 +25,19 @@ import {
  */
 
 const TEMP_FILES: string[] = [];
+
+it('enforces strict spell-reference checks with either platform path separator', () => {
+    const reader = vi.spyOn(fs, 'readFileSync').mockReturnValue('Corrupt character: \u00e2');
+    try {
+        for (const file of ['docs/spells/reference/example.md', 'docs\\spells\\reference\\example.md']) {
+            expect(checkFile(file)).toEqual(expect.arrayContaining([
+                expect.objectContaining({ severity: 'strict', char: '\u00e2' }),
+            ]));
+        }
+    } finally {
+        reader.mockRestore();
+    }
+});
 
 // ============================================================================
 // Temporary File Helpers
@@ -158,6 +172,8 @@ describe('charset scan report and summary rollups', () => {
         // Per-issue review notes route accented data and mojibake to the right guidance.
         expect(report).toContain('Real accented-word candidate');
         expect(report).toContain('Mojibake/corruption candidate');
+        expect(report.endsWith('\n')).toBe(true);
+        expect(report.endsWith('\n\n')).toBe(false);
     });
 
     it('emits an empty-state report when no manual review issues remain', () => {
@@ -166,5 +182,19 @@ describe('charset scan report and summary rollups', () => {
         expect(report).toContain('# Charset Review Report');
         expect(report).toContain('Total remaining manual/suspicious issues: 0');
         expect(report).toContain('No manual charset review issues remain.');
+    });
+
+    it('reports a failed advisory report write without aborting strict validation', () => {
+        const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'aralia-charset-report-'));
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+        try {
+            // Writing to a directory deterministically fails on Windows and
+            // Linux, standing in for a transient -4094/EBUSY file lock.
+            expect(writeCharsetReviewReport([], directory)).toBe(false);
+            expect(warn).toHaveBeenCalledWith(expect.stringContaining(`report not written to ${directory}`));
+        } finally {
+            warn.mockRestore();
+            fs.rmSync(directory, { recursive: true, force: true });
+        }
     });
 });

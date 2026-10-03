@@ -7,7 +7,7 @@ import { appReducer } from '../appState';
 import { uiReducer } from '../reducers/uiReducer';
 import { GamePhase, GameState } from '../../types';
 import { AppAction } from '../actionTypes';
-import { createMockPlayerCharacter } from '../../utils/factories';
+import { createMockPlayerCharacter } from '../../utils/core';
 import { getGameDay } from '../../utils/core';
 
 const makeState = (overrides: Partial<GameState> = {}): GameState =>

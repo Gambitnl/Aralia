@@ -23,7 +23,7 @@
 import { PlayerCharacter, AbilityScores, SpellbookData, SpellSlots, LimitedUses, Item, Skill, EquipmentSlotType } from '../types';
 import { RACES_DATA as ALL_RACES_DATA, CLASSES_DATA, WEAPONS_DATA, ITEMS } from '../constants';
 import { SKILLS_DATA } from '../data/skills';
-import { getAbilityModifierValue, calculateArmorClass, buildHitPointDicePools } from '../utils/characterUtils';
+import { getAbilityModifierValue, calculateArmorClass, buildHitPointDicePools } from '../utils/character';
 import { generateId } from '../utils/core/idGenerator';
 
 export interface CharacterGenerationConfig {

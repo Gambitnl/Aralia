@@ -111,6 +111,5 @@ Warlock - Celestial Patron
 Cleric - Community Domain (HCS)
 
 Capture Method: http
-Legacy Page: true
 -->
 

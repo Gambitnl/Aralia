@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-08-24T02:22:50.883Z",
+  "repositoryRoot": "F:/Repos/Aralia",
+  "gitHead": "96af520abd241e6a87defc857bce2ca56ae1124f",
+  "sourceSnapshot": {
+    "scanPath": ".understand-anything/intermediate/scan-result.json",
+    "scanSha256": "9a1e8b86edaa3b351fdfae638adbc0e27a9d50531183e70243fbef0be875d73b",
+    "totalFiles": 8827,
+    "assignedFiles": 8827,
+    "resolvedInternalImports": 11971,
+    "filteredByUnderstandIgnore": 197,
+    "dirtyTrackedInputs": [
+      "public/planmap/health.json",
+      "public/planmap/topics.json",
+      "public/references/basemesh/lowpoly-female.landmarks.json",
+      "public/references/basemesh/lowpoly-female.packrig.glb",
+      "public/references/basemesh/lowpoly-male.landmarks.json",
+      "public/references/basemesh/lowpoly-male.packrig.glb",
+      "public/references/basemesh/lowpoly-nogender.landmarks.json",
+      "public/references/basemesh/lowpoly-nogender.packrig.glb",
+      "src/components/World3D/FarShells.tsx",
+      "src/components/World3D/VolumeGroundBubble.tsx",
+      "src/components/World3D/World3DScene.tsx",
+      "src/systems/entities3d/three/baseMeshCatalog.ts",
+      "src/systems/worldforge/bridge/farShells.ts",
+      "src/systems/worldforge/bridge/groundChunkLoader.ts",
+      "tools/blender/rig_basemesh.py",
+      "tools/creatureGate/partGate.mjs",
+      "tools/entities3d/centerlineFit.mjs",
+      "vite.config.ts"
+    ],
+    "untrackedInputs": [
+      "src/systems/worldforge/bridge/__tests__/farShells.test.ts",
+      "tools/creatureGate/silhouetteDiff.py",
+      "tools/creatureGate/silhouetteDiff.test.mjs",
+      "tools/entities3d/bandWeights.mjs"
+    ]
+  },
+  "artifacts": {
+    "docs/codemap/codemap.json": {
+      "sha256": "4d1cda191d0359f00ab721be88ee06ef30b6056fcff6cf7076df2a7c1c7e2d9b",
+      "sizeBytes": 733922
+    },
+    "docs/codemap/codemap.html": {
+      "sha256": "5a6a41c280e3050a7194423f160c3206189b86ba9c9e25025fdbff8e27759a21",
+      "sizeBytes": 634466
+    }
+  },
+  "validation": {
+    "primaryNodes": 19,
+    "primaryNodeLimit": 20,
+    "allScannedFilesAssignedExactlyOnce": true,
+    "missingClaimedPaths": [],
+    "missingImportEndpoints": 0,
+    "danglingModuleRelationships": 0,
+    "browserVerification": {
+      "status": "passed",
+      "verifiedAt": "2026-08-24T02:28:51.606Z",
+      "transport": "localhost HTTP for automation; standalone file opened in the default browser",
+      "checks": [
+        "all 19 primary nodes fit in the initial desktop viewport",
+        "module click shows role, upstream callers, dependencies, downstream impact, source evidence, related tests, and owned files",
+        "global file search selects the owning module",
+        "owned-file filtering narrows the nested path list",
+        "combat/spell flow shows six ordered steps with source evidence",
+        "keyboard Enter activates a focused module",
+        "fresh browser session reports zero console errors and zero warnings"
+      ]
+    }
+  }
+}

@@ -42,9 +42,9 @@ import { motion } from 'framer-motion';
 import { PlayerCharacter, DraconicAncestryInfo } from '../../types';
 import { RACES_DATA, WEAPONS_DATA, MASTERY_DATA, DRAGONBORN_ANCESTRIES } from '../../constants';
 import { FEATS_DATA } from '../../data/feats/featsData';
-import { getCharacterSpells } from '../../utils/spellUtils';
-import { getAbilityModifierString, getCharacterRaceDisplayString } from '../../utils/characterUtils';
-import { validateCharacterName } from '../../utils/securityUtils';
+import { getCharacterSpells } from '../../utils/character';
+import { getAbilityModifierString, getCharacterRaceDisplayString } from '../../utils/character';
+import { validateCharacterName } from '../../utils/core';
 import { assetUrl } from '../../config/env';
 import SpellContext from '../../context/SpellContext';
 import Tooltip from '../ui/Tooltip';
@@ -52,8 +52,8 @@ import { CreationStepLayout } from './ui/CreationStepLayout';
 import { SplitPaneLayout } from '../ui/SplitPaneLayout';
 import { Shield, Zap, BookOpen } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { GlossaryIcon } from '../Glossary/IconRegistry';
-import { getClassIcon } from '../../utils/classIcons';
+import { ClassIcon } from '../../utils/classIcons';
+import { findSubclass } from '../../data/classes/subclasses';
 import { getAgeAdjustmentSummary } from './hooks/useCharacterAssembly';
 import type { PortraitGenerationStatus } from './state/characterCreatorState';
 
@@ -77,6 +77,13 @@ interface NameAndReviewProps {
   initialName?: string;
   featStepSkipped?: boolean;
 }
+
+/** What each class calls its subclass, for the review summary row. */
+const SUBCLASS_LABELS: Record<string, string> = {
+  warlock: 'Patron',
+  cleric: 'Divine Domain',
+  sorcerer: 'Sorcerous Origin',
+};
 
 const NameAndReview: React.FC<NameAndReviewProps> = ({
   characterPreview,
@@ -107,21 +114,29 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
     selectedFightingStyle, 
     selectedDivineOrder, 
     selectedDruidOrder, 
-    selectedWarlockPatron,
+    subclassId,
     racialSelections,
     selectedWeaponMasteries,
     speed,
     feats
   } = characterPreview;
 
-  const classIconName = getClassIcon(charClass.name);
-  // WHAT CHANGED: Integrated class icons into the review header.
-  // WHY IT CHANGED: To provide visual consistency across the UI. 
-  // Displaying the class icon next to the Level/Race/Class string 
-  // helps ground the character identity and aligns with the design 
-  // language used in the rest of the app.
+  // WHAT CHANGED: Integrated TW-D&D vector class icons into the review header.
+  // WHY IT CHANGED: Provides visual consistency across the Character Creator
+  // by displaying the canonical vector class silhouette next to the character summary.
 
   const allSpells = useContext(SpellContext);
+
+  // WHAT CHANGED: the review now names the chosen subclass with its display name.
+  // WHY IT CHANGED: it printed the raw warlock patron id ('archfey') and showed
+  // nothing for a 2014 cleric Divine Domain or sorcerer Sorcerous Origin.
+  const subclassSummary = useMemo(() => {
+    const classId = charClass?.id;
+    if (!classId || !subclassId) return null;
+    const subclass = findSubclass(classId, subclassId);
+    if (!subclass) return null;
+    return { label: SUBCLASS_LABELS[classId] ?? 'Subclass', name: subclass.name };
+  }, [charClass?.id, subclassId]);
   const isGeneratingPortrait = portrait.status === 'requesting' || portrait.status === 'polling';
   const hasSeededDescriptionRef = useRef(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -258,11 +273,11 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
                     />
                   ) : (
                     <span
-                      className="text-4xl text-gray-400 group-hover:text-amber-500/50 transition-colors"
+                      className="text-gray-400 group-hover:text-amber-500/80 transition-colors flex items-center justify-center"
                       role="img"
                       aria-label={`${charClass.name} icon`}
                     >
-                      {fallbackPortraitGlyph}
+                      <ClassIcon name={charClass.name} className="w-12 h-12 text-amber-400/80 group-hover:text-amber-300 transition-colors" />
                     </span>
                   )}
 
@@ -393,7 +408,7 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
                   <h2 className="text-3xl font-bold text-amber-400 font-cinzel">{name || 'Unnamed Hero'}</h2>
                   <p className="text-gray-400 font-medium flex items-center gap-1.5">
                     Level 1 {getCharacterRaceDisplayString(characterPreview)}
-                    {classIconName && <GlossaryIcon name={classIconName} className="w-3.5 h-3.5 flex-shrink-0" />}
+                    <ClassIcon name={charClass.name} className="w-4 h-4 flex-shrink-0 text-amber-400" />
                     {charClass.name}
                   </p>
                 </div>
@@ -515,7 +530,12 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
                     })}
                     {selectedDivineOrder && <div className="text-gray-300"><span className="text-purple-400 font-semibold mr-2">Divine Order:</span> {selectedDivineOrder}</div>}
                     {selectedDruidOrder && <div className="text-gray-300"><span className="text-emerald-400 font-semibold mr-2">Primal Order:</span> {selectedDruidOrder}</div>}
-                    {selectedWarlockPatron && <div className="text-gray-300"><span className="text-pink-400 font-semibold mr-2">Patron:</span> {selectedWarlockPatron}</div>}
+                    {subclassSummary && (
+                      <div className="text-gray-300">
+                        <span className="text-pink-400 font-semibold mr-2">{subclassSummary.label}:</span>
+                        {subclassSummary.name}
+                      </div>
+                    )}
                   </div>
 
                   {(allKnownCantrips.length > 0 || allKnownSpells.length > 0) && (

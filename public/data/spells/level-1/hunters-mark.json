@@ -1,6 +1,6 @@
 {
     "id":  "hunters-mark",
-    "name":  "Hunter\u0027s Mark",
+    "name":  "Hunter's Mark",
     "aliases":  [
 
                 ],
@@ -266,8 +266,13 @@
                         "scaling":  {
                                         "type":  "slot_level",
                                         "bonusPerLevel":  "",
-                                        "customFormula":  ""
-                                    },
+                                        "customFormula":  "",
+                                        "scalingTiers":  {
+                                                        "1":  "up to 1 hour",
+                                                        "3":  "up to 8 hours",
+                                                        "5":  "up to 24 hours"
+                                        }
+                        },
                         "grantedActions":  [
 
                                            ],

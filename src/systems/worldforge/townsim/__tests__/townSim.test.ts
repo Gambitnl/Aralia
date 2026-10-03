@@ -545,10 +545,16 @@ describe('town-scale events', () => {
     // household receives only one entry for each town fire incident.
     const buildingLogs = Object.entries(a.buildingEvents ?? {});
     expect(buildingLogs.length).toBeGreaterThan(0);
-    const knownHomes = new Set(Object.values(a.villagers).map((v) => v.homePlotId));
+    // Every logged plot is a REAL canonical home of this town. It is not
+    // necessarily still somebody's home: a couple who marry move into one
+    // house, so the plot one of them left stands empty, gets boarded up
+    // ('abandonment') and can eventually fall in ('ruin') with no villager
+    // naming it any more. Asserting continued occupancy held only by luck of
+    // which households a given town's plot layout happened to pair off.
+    const townHomes = new Set(roster.occupants.map((o) => o.homePlotId));
     for (const [plotId, history] of buildingLogs) {
       const events = recentEvents(history);
-      expect(knownHomes.has(Number(plotId))).toBe(true);
+      expect(townHomes.has(Number(plotId))).toBe(true);
       // Prosperous years may repair earlier fire damage. No structural growth
       // appears here because this fixture intentionally has no evolution brief.
       expect(events.every((event) => [

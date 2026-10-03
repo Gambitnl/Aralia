@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/06/2026, 22:33:25
+ * Last Sync: 23/07/2026, 21:41:20
  * Dependents: hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionExecutor.ts
  * Imports: 3 files
  *
@@ -21,13 +21,23 @@
  * Manages entry, exit, and end-of-turn triggers for area effects.
  * Emits combat events for zone interactions.
  */
-// TODO #951: `processEntry`/`processExit`/`processEndTurn` in this class **duplicate** the logic
-// found in `processAreaEntryTriggers`/`processAreaExitTriggers`/`processAreaEndTurnTriggers`
-// in `triggerHandler.ts`. This violates DRY and risks drift.
-// Options:
-// 1. Have `AreaEffectTracker` delegate to the standalone functions in `triggerHandler.ts`.
-// 2. Deprecate the standalone functions and make `AreaEffectTracker` the single source of truth.
-// Recommend Option 2 for cleaner architecture.
+// RESOLVED 2026-09-09 (was TODO #951, "processEntry/processExit/processEndTurn duplicate
+// triggerHandler"). WHAT CHANGED: nothing today; the marker was stale. WHY IT IS GONE: every
+// public method on this class already delegates its effect decision to the shared trigger
+// functions re-exported from `triggerHandler.ts` (now living in `./trigger/areaTriggerProcessing.ts`) --
+// `processEntry`/`processExit` call `processAreaEntryTriggers`/`processAreaExitTriggers`,
+// `processEndTurn` calls `processAreaEndTurnTriggers` plus `processAreaProximityTriggers`,
+// `processStartTurn` calls `processAreaStartTurnTriggers`, and `processMovementWithin` calls
+// `processAreaMoveWithinTriggers`. Effect filtering, frequency gates, target filters, and
+// source context therefore have one implementation, not two.
+// WHAT IS PRESERVED: the division of labour that made the tracker worth keeping. The tracker
+// owns `combatEvents` emission (`unit_enter_area`/`unit_exit_area`) and the zone list; the
+// shared functions own the rules. That is why `processEntry`/`processExit` still evaluate
+// `isPositionInArea` themselves: the boundary crossing gates the EVENT, and the delegate then
+// re-derives it to gate the EFFECTS. The duplicated predicate call is deliberate and cheap;
+// collapsing it would require the shared functions to emit combat events, which would couple
+// pure trigger math to the event bus.
+// STILL DEFERRED: nothing for this marker. Zone geometry accuracy is tracked separately (GG-201).
 
 import { combatEvents } from '../../events/CombatEvents';
 import {
@@ -35,7 +45,9 @@ import {
     processAreaEntryTriggers,
     processAreaExitTriggers,
     processAreaEndTurnTriggers,
+    processAreaStartTurnTriggers,
     processAreaMoveWithinTriggers,
+    processAreaProximityTriggers,
     ActiveSpellZone,
     TriggerResult
 } from './triggerHandler';
@@ -87,13 +99,31 @@ export class AreaEffectTracker {
         const movementResults = this.processMovementWithin(character, newPosition, previousPosition, movementPath);
         results.push(...movementResults);
 
+        // Source-backed proximity mechanics fire when a creature enters the
+        // threat radius. Their recurring payload is resolved by the same
+        // caller that already handles ordinary area-trigger results.
+        results.push(...processAreaProximityTriggers(this.zones, character, newPosition, previousPosition));
+
         return results;
     }
 
     /**
      * Process triggers when a character moves within an area.
      * Used by spells like Spike Growth that damage "for every 5 feet traveled within the area".
-     * TODO #952(Analyst): Migrate Spike Growth and similar spells from simple 'TERRAIN' effects to use this 'on_move_in_area' Zone capability.
+     * RESOLVED 2026-09-13 (was TODO #952, then DEFERRED as GG-204). WHAT CHANGED: the missing half
+     * was DATA, and it landed. `public/data/spells/level-2/spike-growth.json` now carries a third
+     * effect row -- `type: "DAMAGE"`, `trigger.type: "on_move_in_area"`, `damage 2d4 Piercing` --
+     * so `processAreaMoveWithinTriggers` emits one 2d4 packet per five-foot step traveled inside
+     * the sphere. The two original `TERRAIN` rows are untouched: they still create the damaging
+     * and difficult terrain at cast time, which is why the damage was ADDED as its own row rather
+     * than migrated onto a TERRAIN row (`convertSpellEffectToProcessed` has no TERRAIN branch and
+     * would drop the payload). Proof: `src/systems/spells/effects/__tests__/spikeGrowthMoveTrigger.test.ts`
+     * moves a token 10 ft inside the zone and asserts 4d4 total.
+     * CORPUS AUDIT (2026-09-13): Spike Growth is the only spell in `public/data/spells` whose text
+     * charges damage per distance traveled. Every other damaging-terrain spell (cloud of daggers,
+     * moonbeam, wall of fire, spirit guardians, Evard's black tentacles, grease, create bonfire)
+     * damages on ENTRY or TURN END, and each already carries the matching
+     * `on_enter_area` / `on_end_turn_in_area` / composite trigger, so none gained `on_move_in_area`.
      */
     public processMovementWithin(
         character: CombatCharacter,
@@ -191,7 +221,18 @@ export class AreaEffectTracker {
         // so the tracker can fully delegate this decision path to the shared
         // trigger handler and preserve one source of truth for frequency gates,
         // target filters, legacy `turn_end`, and source context.
-        return processAreaEndTurnTriggers(this.zones, character, _currentRound);
+        return [
+            ...processAreaEndTurnTriggers(this.zones, character, _currentRound),
+            ...processAreaProximityTriggers(this.zones, character, character.position, undefined, true)
+        ];
+    }
+
+    /** Process turn-start effects for a creature currently inside each zone. */
+    public processStartTurn(
+        character: CombatCharacter,
+        _currentRound: number
+    ): TriggerResult[] {
+        return processAreaStartTurnTriggers(this.zones, character, _currentRound);
     }
 
     /**

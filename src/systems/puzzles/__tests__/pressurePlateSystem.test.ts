@@ -3,12 +3,13 @@
  * Tests for the Pressure Plate system.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { checkPressurePlate, detectPressurePlate, jamPressurePlate } from '../pressurePlateSystem';
 import { PressurePlate, Trap } from '../types';
 import { PlayerCharacter } from '../../../types/character';
 import { CharacterStats } from '../../../types/core'; // Added to type the stats helper explicitly.
-import { createMockPlayerCharacter } from '../../../utils/factories';
+import { createMockPlayerCharacter } from '../../../utils/core';
+import * as rollers from '../../dice/rollers';
 
 // Mock character factory
 // Was an inline stats literal per character; extracted to ensure required fields are always present.
@@ -113,14 +114,33 @@ describe('Pressure Plate System', () => {
   });
 
   describe('detectPressurePlate', () => {
-    it('detects with high perception roll (mocked/stat based)', () => {
+    it('detects with high perception (Wisdom 20 → +5) against an easy plate', () => {
+      // getPuzzleCharacterStats prefers the modern finalAbilityScores over the
+      // legacy `stats` field, so the Wisdom bump must land on the modern score
+      // for the +5 Perception modifier to actually apply (GG-32).
       const char = createMockCharacter({
-        stats: { ...createMockCharacter().stats, wisdom: 20 } // +5 mod
+        finalAbilityScores: { Strength: 10, Dexterity: 16, Constitution: 10, Intelligence: 14, Wisdom: 20, Charisma: 10 },
+        abilityScores: { Strength: 10, Dexterity: 16, Constitution: 10, Intelligence: 14, Wisdom: 20, Charisma: 10 },
       });
-      // 1d20 + 5. If DC is 5, it's guaranteed.
+      // 1d20 + 5 >= 5 for every possible roll (minimum 6), so this is
+      // deterministic without pinning the random source.
       const easyPlate = { ...plate, detectionDC: 5 };
       const result = detectPressurePlate(char, easyPlate);
       expect(result.detected).toBe(true);
+    });
+
+    it('fails to detect on a low perception roll (pinned random)', () => {
+      // Pin the die to a natural 1 so the failure branch is exercised
+      // deterministically. Since agora-f821.4 the puzzle rolls through the
+      // audited contract, not Math.random, so the pin goes on the roller.
+      const randomSpy = vi.spyOn(rollers, 'rollDice').mockReturnValue(1);
+      try {
+        const char = createMockCharacter(); // Wisdom 10 → +0 modifier
+        const result = detectPressurePlate(char, { ...plate, detectionDC: 2 });
+        expect(result.detected).toBe(false);
+      } finally {
+        randomSpy.mockRestore();
+      }
     });
   });
 

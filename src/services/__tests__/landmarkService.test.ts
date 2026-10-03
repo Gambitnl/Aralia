@@ -1,4 +1,3 @@
-// TODO #533(lint-intent): 'vi' is unused in this test; use it in the assertion path or remove it.
 import { describe, it, expect } from 'vitest';
 import { generateLandmark } from '../landmarkService';
 

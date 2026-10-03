@@ -28,13 +28,11 @@
  * NO-FALLBACK DIRECTIVE
  * ---------------------
  * Remy's directive: on the CHOSEN provider, a failure is returned honestly —
- * there is NO silent multi-model swapping. This module does NOT introduce any
- * new fallback behavior. Where a divergent fallback CHAIN already existed in the
- * code (the global preferred-models list, the per-task preference lists walked
- * against installed models, and the biome hook's model loop), this module simply
- * CENTRALIZES the existing list rather than expanding it. Those lists are marked
- * with `TODO(llm-provider-config)` to flag them as the seam a future
- * user-selectable, single-model choice will replace — see each marker below.
+ * there is NO silent multi-model swapping. Since 2026-09-13 (agora-d1c7.1) every
+ * Ollama task category runs on exactly ONE model: the player's choice from the
+ * AI settings (`services/ai/aiProviderSettings.ts` resolveOllamaModel), else the
+ * category default in OLLAMA_CATEGORY_DEFAULT_MODEL below. The lists that used
+ * to be walked as fallback chains are kept only as the CATALOG the picker offers.
  */
 
 // ---------------------------------------------------------------------------
@@ -75,9 +73,8 @@ export const OLLAMA_RETRY_ATTEMPTS = 0;
  * spec-recommended models first, legacy entries after so existing installs keep
  * working. See docs/ai/local-llm-model-routing.md.
  *
- * TODO(llm-provider-config): user-selectable; no-fallback per directive. This
- * chain is preserved as-is for behavior parity; a future user setting will pick
- * one model and this list becomes an availability-ordered default only.
+ * No longer walked at runtime (agora-d1c7.1): it is the catalog offered by the
+ * model picker. The runtime model is resolveOllamaModel(category).
  */
 export const OLLAMA_GLOBAL_FALLBACK_MODELS: string[] = [
   'granite4.1:8b-q4_K_M',
@@ -100,9 +97,9 @@ export const OLLAMA_GLOBAL_FALLBACK_MODELS: string[] = [
  * against installed models (then falls back to {@link OLLAMA_GLOBAL_FALLBACK_MODELS}).
  * Keys map to the four categories used by `services/ollama/taskProfiles.ts`.
  *
- * TODO(llm-provider-config): user-selectable; no-fallback per directive. Lists
- * are centralized verbatim; a future user setting will let a chosen model
- * override the category default without expanding fallback behavior.
+ * No longer walked at runtime (agora-d1c7.1): the first entry of each list is
+ * that category's default (OLLAMA_CATEGORY_DEFAULT_MODEL) and the rest is the
+ * catalog the picker offers.
  */
 export const OLLAMA_TASK_MODELS: {
   dialogue: string[];
@@ -149,7 +146,7 @@ export const OLLAMA_TASK_MODELS: {
  * is chosen for its reliable structured-JSON output. Single model, no fallback
  * (matches the pre-config `services/CompanionGenerator.ts` literal).
  *
- * TODO(llm-provider-config): user-selectable; no-fallback per directive.
+ * Default for the 'companion' category (agora-d1c7.1); the player may pick another.
  */
 export const COMPANION_GENERATION_MODEL = 'mistral:instruct';
 
@@ -158,12 +155,49 @@ export const COMPANION_GENERATION_MODEL = 'mistral:instruct';
  * (`hooks/useBiomeGenerator.ts`). Centralized verbatim to preserve today's
  * behavior; the hook still walks this list itself.
  *
- * TODO(llm-provider-config): user-selectable; no-fallback per directive. This
- * is an EXISTING fallback loop preserved for parity — this slice does NOT change
- * or remove it; a future slice replaces the loop with the user's chosen model.
+ * No longer walked (agora-d1c7.1): the first entry is the 'biome' category
+ * default; the hook runs exactly one model, the player's choice or that default.
  */
 export const BIOME_GENERATION_MODELS: string[] = [
   'mistral:instruct',
   'phi4-mini:3.8b',
   'gemma3:1b',
 ];
+
+// ---------------------------------------------------------------------------
+// One model per category (agora-d1c7.1)
+// ---------------------------------------------------------------------------
+
+/** The task categories a player can pin an Ollama model to. */
+export type OllamaModelCategory = 'dialogue' | 'judgment' | 'utility' | 'prose' | 'companion' | 'biome';
+export const OLLAMA_MODEL_CATEGORIES: readonly OllamaModelCategory[] = ['dialogue', 'judgment', 'utility', 'prose', 'companion', 'biome'];
+
+export const OLLAMA_MODEL_CATEGORY_LABEL: Record<OllamaModelCategory, string> = {
+  dialogue: 'Dialogue (NPC and companion voices)',
+  judgment: 'Judgment (rules and checks)',
+  utility: 'Utility (short structured answers)',
+  prose: 'Prose (scenes and descriptions)',
+  companion: 'Companion generation',
+  biome: 'Biome generation',
+};
+
+/** The one model each category runs on when the player has not chosen one. */
+export const OLLAMA_CATEGORY_DEFAULT_MODEL: Record<OllamaModelCategory, string> = {
+  dialogue: OLLAMA_TASK_MODELS.dialogue[0],
+  judgment: OLLAMA_TASK_MODELS.judgment[0],
+  utility: OLLAMA_TASK_MODELS.utility[0],
+  prose: OLLAMA_TASK_MODELS.prose[0],
+  companion: COMPANION_GENERATION_MODEL,
+  biome: BIOME_GENERATION_MODELS[0],
+};
+
+/** Every model name the catalog knows, for the picker (installed models are added at runtime). */
+export const OLLAMA_MODEL_CATALOG: readonly string[] = Array.from(new Set([
+  ...OLLAMA_GLOBAL_FALLBACK_MODELS,
+  ...OLLAMA_TASK_MODELS.dialogue,
+  ...OLLAMA_TASK_MODELS.judgment,
+  ...OLLAMA_TASK_MODELS.utility,
+  ...OLLAMA_TASK_MODELS.prose,
+  COMPANION_GENERATION_MODEL,
+  ...BIOME_GENERATION_MODELS,
+]));

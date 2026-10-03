@@ -89,5 +89,4 @@ Spell Tags:
 Control
 Available For:
 Capture Method: http
-Legacy Page: true
 -->

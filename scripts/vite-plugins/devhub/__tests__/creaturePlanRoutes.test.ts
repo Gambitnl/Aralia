@@ -15,6 +15,13 @@ import {
 } from '../creaturePlanRoutes';
 import { PLAN_FIXTURES } from '../../../../src/systems/entities3d/textPlan/fixtures';
 
+// ============================================================================
+// Isolated Library Setup
+// ============================================================================
+// Each route test gets a disposable creature library so it cannot read or change the
+// game's checked-in plans. The override is always cleared, even when an assertion fails.
+// ============================================================================
+
 let dir: string;
 
 beforeEach(() => {
@@ -32,6 +39,8 @@ interface Captured {
   status: number;
 }
 
+// Build the small request-and-response surface used by the devhub route. This keeps every
+// test focused on route behavior without starting a Vite server or invoking the real CLI.
 function makeCtx(method: string, urlPath: string, body?: unknown): { ctx: Parameters<typeof handleCreaturePlanRoutes>[0]; out: Captured } {
   const out: Captured = { data: undefined, status: 0 };
   const req = body === undefined ? Readable.from([]) : Readable.from([JSON.stringify(body)]);
@@ -46,12 +55,84 @@ function makeCtx(method: string, urlPath: string, body?: unknown): { ctx: Parame
       },
       parsedUrl: new URL(`http://localhost${urlPath}`),
       urlPath,
+      server: fakeViteServer(),
     },
     out,
   };
 }
 
+/**
+ * Stand-in for the Vite dev server the route uses to load project source.
+ *
+ * The route asks for entity modules with `server.ssrLoadModule('/src/...')`
+ * instead of a raw file:// `import()`, because Node's ESM resolver cannot
+ * resolve the extensionless relative specifiers our source uses. Here we map
+ * those same paths onto ordinary test-time imports, so the tests exercise the
+ * real modules without needing a running dev server.
+ */
+function fakeViteServer(): { ssrLoadModule: (id: string) => Promise<unknown> } {
+  return {
+    ssrLoadModule: (id: string) => {
+      const rel = id.replace('/src/systems/entities3d/', '').replace(/\.ts$/, '');
+      switch (rel) {
+        case 'parts/index':
+          return import('../../../../src/systems/entities3d/parts');
+        case 'registry':
+          return import('../../../../src/systems/entities3d/registry');
+        case 'textPlan/planSchema':
+          return import('../../../../src/systems/entities3d/textPlan/planSchema');
+        case 'textPlan/planSize':
+          return import('../../../../src/systems/entities3d/textPlan/planSize');
+        default:
+          throw new Error(`fakeViteServer: unexpected ssrLoadModule("${id}")`);
+      }
+    },
+  };
+}
+
 const dragonJson = JSON.stringify(PLAN_FIXTURES.dragon);
+
+// ============================================================================
+// Static Configuration Dependency Guard
+// ============================================================================
+// Vite loads the route module while it reads vite.config.ts. This guard permits erased
+// type imports but rejects emitted static imports into the 3D entity system, which would
+// make configuration startup depend on actively edited game modules again.
+// ============================================================================
+
+describe('creature plan route configuration boundary', () => {
+  it('defers every runtime 3D entity dependency until a generation request', () => {
+    // Vitest serves test modules through its own URL scheme, so resolve from the repository
+    // root just as the devhub plugin itself resolves its checked-in data directories.
+    const routeSource = readFileSync(
+      path.resolve(process.cwd(), 'scripts/vite-plugins/devhub/creaturePlanRoutes.ts'),
+      'utf8',
+    );
+    const staticImports = [...routeSource.matchAll(/\bimport\s+(?!type\b)(?:[\s\S]*?\sfrom\s*)?['"]([^'"]+)['"]/g)]
+      .map((match) => match[1]);
+
+    // The runtime filenames and the deferred loader must remain present so this test proves
+    // deferral, not deletion of the shared validation and sizing behavior.
+    //
+    // 2026-08-13: the loader changed from `import(/* @vite-ignore */ <file:// url>)` to
+    // `server.ssrLoadModule('/src/...')`. The raw import could not work — our entity source
+    // uses extensionless relative specifiers (`import … from '../registry'`) that Node's ESM
+    // resolver cannot resolve, so generation died on the first transitive hop. ssrLoadModule
+    // resolves like the app does. The INVARIANT this test guards is unchanged and is asserted
+    // last: no static import may pull the entity graph into vite.config.ts's dependency list.
+    expect(routeSource).toContain("entitySrcPath('textPlan/planSchema.ts')");
+    expect(routeSource).toContain("entitySrcPath('textPlan/planSize.ts')");
+    expect(routeSource).toContain('server.ssrLoadModule(entitySrcPath(');
+    expect(staticImports.filter((specifier) => specifier.includes('/src/systems/entities3d/'))).toEqual([]);
+  });
+});
+
+// ============================================================================
+// Route Behavior
+// ============================================================================
+// These cases preserve generation, retry, storage, approval, revision, listing, and error
+// behavior while the entity-system dependencies move behind the request boundary.
+// ============================================================================
 
 describe('creature plan routes', () => {
   it('ignores unrelated paths', async () => {

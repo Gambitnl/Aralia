@@ -4,7 +4,7 @@ import { createMockCombatCharacter } from '../../utils/core';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatLogEntry, CombatState } from '../../types/combat';
 import type { SummoningEffect } from '../../types/spells';
-import phantomSteed from '../../../public/data/spells/level-3/phantom-steed.json';
+import phantomSteed from '@/data/spells/level-3/phantom-steed.json';
 
 /**
  * This file proves the live Phantom Steed packet creates a mount with its lifecycle data.
@@ -32,7 +32,7 @@ describe('SummoningCommand live Phantom Steed mount bridge', () => {
 
     // Use live spell data so stale bucket wording or synthetic fixtures cannot
     // hide missing runtime metadata on the spawned mount.
-    const summonEffect = phantomSteed.effects.find(effect => effect.type === 'SUMMONING') as SummoningEffect | undefined;
+    const summonEffect = phantomSteed.effects.find(effect => effect.type === 'SUMMONING') as unknown as SummoningEffect | undefined;
     const context = {
       spellId: phantomSteed.id,
       spellName: phantomSteed.name,
@@ -40,7 +40,7 @@ describe('SummoningCommand live Phantom Steed mount bridge', () => {
       caster,
       targets: [],
       gameState: {}
-    } as CommandContext;
+    } as unknown as CommandContext;
     const state = createCombatState([caster]);
 
     expect(summonEffect).toBeDefined();

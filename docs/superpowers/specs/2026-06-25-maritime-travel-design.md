@@ -1,4 +1,4 @@
-# Maritime Travel — Harbors, Ferries & Owned Ships
+# Maritime Travel - Harbors, Ferries & Owned Ships
 
 **Date:** 2026-06-25
 **Status:** Design approved (routing core = Approach A; all 6 subsystems in v1)
@@ -10,17 +10,17 @@ The world-map travel system can plan a fastest route over the owned FMG atlas, b
 it is **single-mobility per trip**: a land transport's `passable` predicate admits
 *only* land cells, a water transport *only* sea cells, and air both
 (`systems/worldforge/travel/atlasTravelGraph.ts`). A journey therefore cannot cross
-land → sea → land, so **islands (and any landmass separated by water) are
+land -> sea -> land, so **islands (and any landmass separated by water) are
 unreachable**. There is no concept of boarding a vessel, a harbor, a ferry, or an
 owned ship.
 
 FMG already generates the maritime substrate we need:
 
-- **Ports** — `pack.burgs[i].port` holds the water-feature id a burg harbors on. A
+- **Ports** - `pack.burgs[i].port` holds the water-feature id a burg harbors on. A
   burg becomes a port when it sits on a "safe harbor" cell (`cells.harbor === 1`, i.e.
   exactly one adjacent water cell) or is a capital on any harbor (`burgs-generator.ts`
   `shift()`). `cells.haven[cell]` is the adjacent water cell a port opens onto.
-- **Sea routes** — `routes-generator.ts` `generateSeaRoutes()` connects ports on the
+- **Sea routes** - `routes-generator.ts` `generateSeaRoutes()` connects ports on the
   same water feature, stored in `pack.routes` with `group: "searoutes"`.
 
 What's missing is (a) a routing model that crosses water at harbors, (b) the
@@ -31,23 +31,23 @@ have a harbor.
 
 1. **Harbors-only embarkation.** You may only board/leave a vessel at a port. Walking
    a galley onto a random beach is out. (Carrying your own shrinkable/summonable craft
-   to launch from any coast is an explicitly **deferred future extension** — it needs
+   to launch from any coast is an explicitly **deferred future extension** - it needs
    an in-fiction justification like a dimensional pocket.)
 2. **Both ferries and owned ships.** Ferries-for-hire run along the generated sea
-   lanes (pay gold, follow port→port lanes). An owned ship can sail port→port on open
+   lanes (pay gold, follow port->port lanes). An owned ship can sail port->port on open
    water (free, flexible) **but only departs from the port where it is physically
    docked**.
 3. **Auto multi-modal routing.** Hovering a destination previews ONE fastest route
    that stitches land and sea legs automatically. No manual leg-picking.
-4. **Top-of-map default travel mode.** The land mode (foot/horse/…) and the sea
+4. **Top-of-map default travel mode.** The land mode (foot/horse/...) and the sea
    preference (ferry vs. your ship) are chosen at the top of the world map, as the
    trip default.
-5. **Routing core = Approach A** — a unified multi-modal graph with per-cell edge cost
+5. **Routing core = Approach A** - a unified multi-modal graph with per-cell edge cost
    and port transfer edges, planned by the existing Dijkstra.
 6. **Island reachability is guaranteed.** Every *significant* landmass gets at least a
    minimal harbor (a fishing village with a dock) so it can be reached.
 7. **Dock size matters.** A ship larger than a dock cannot berth, but can **anchor
-   offshore and land passengers via tenders** (sloops/rowboats) — a short extra leg.
+   offshore and land passengers via tenders** (sloops/rowboats) - a short extra leg.
 
 ## Architecture
 
@@ -75,7 +75,7 @@ top-of-map default: landMode + seaPreference (ferry | ship)
         depart ──► deduct fare (ferry) | relocate ship (owned) ──► encounter roll
 ```
 
-### 1. Routing core — unified multi-modal graph (Approach A)
+### 1. Routing core - unified multi-modal graph (Approach A)
 
 **Enabling refactor.** `systems/travel/routePlanning.ts` currently derives one
 `transportSpeedMph(transport)` for the whole trip and scales every edge by
@@ -98,18 +98,18 @@ interface TravelGraph {
 The Dijkstra in `planRoutesFrom` changes only in that it calls `graph.edgeCost(cur, nb)`
 instead of computing cost from a global speed. `transportSpeedMph` moves *into* the
 graph builders. Land-only graphs keep identical behavior (a thin `edgeCost` that
-reproduces today's `miles / (speed × terrainMod) × 60`), so existing land travel and
+reproduces today's `miles / (speed x terrainMod) x 60`), so existing land travel and
 its tests are unaffected.
 
 **`buildMultiModalAtlasGraph(atlas, opts)`** (new, in
 `systems/worldforge/travel/`) produces one graph over *all* atlas cells:
 
-- **Land cells** (`h ≥ 20`): passable; `edgeCost` at the player's land mode speed ×
-  terrain (roads/difficult/open) — the current land logic.
+- **Land cells** (`h ≥ 20`): passable; `edgeCost` at the player's land mode speed x
+  terrain (roads/difficult/open) - the current land logic.
 - **Sea cells** (`h < 20`): passable **iff** the trip has a sea capability (a ferry is
   available, or the owned ship's voyage is active); `edgeCost` at the relevant vessel
   speed. Ferry-lane cells (a set built from `searoutes`) get a speed bonus and lower
-  danger; off-lane open water is slower and more dangerous (owned-ship only — ferries
+  danger; off-lane open water is slower and more dangerous (owned-ship only - ferries
   never leave their lanes).
 - **Port transfer edges:** for each port burg, an edge linking its land cell to its
   `haven` water cell with a **boarding cost** (docking/loading time). Dock-size logic
@@ -123,19 +123,19 @@ polyline point as `land | sea | tender` by the cell it sits in, split into `segm
 and tally `landMiles`, `seaMiles`, `time`, `fare`, `danger`, and the embark/arrive
 port ids.
 
-### 2. Island reachability pass — `ensureIslandHarbors`
+### 2. Island reachability pass - `ensureIslandHarbors`
 
 A post-generation pass (runs once, in the atlas build pipeline) that guarantees
 connectivity:
 
 1. **Find landmasses.** Connected-components over land cells via `cells.c` neighbors
    (water cells break components). Each component = one landmass.
-2. **Significance filter.** A landmass needs a harbor only if it is "significant" —
+2. **Significance filter.** A landmass needs a harbor only if it is "significant" -
    threshold on land-cell count **or** it contains a burg, a hidden site, or other
    player-relevant content. Tiny uninhabited rocks are skipped (no dock spam).
 3. **Ensure a port.** If a significant landmass already has a port burg, done. Else:
    - If it has a non-port coastal burg, **promote** the best one (highest `harbor`
-     score / lowest `haven` count) to a port — a fishing village gains a dock.
+     score / lowest `haven` count) to a port - a fishing village gains a dock.
    - If it has *no* burg, **spawn a minimal fishing village** at its best harbor cell
      (a coastal cell with the safest harbor) and mark it a port.
 4. **Connect to the sea network.** Add the new/promoted port to the sea-route lane
@@ -148,14 +148,14 @@ seed.
 ### 3. Dock tiers + tender legs
 
 - **`dockSize`** on each port: `small | medium | large`, derived from burg
-  size/population (fishing village → small; town → medium; city/capital → large).
+  size/population (fishing village -> small; town -> medium; city/capital -> large).
 - **Ship draft/class:** extend `STANDARD_VEHICLES` water entries with a `dockClass`
   (`rowboat/keelboat` = small, `galley` = medium, `warship` = large), i.e. the minimum
   dock that can *berth* it.
 - **Berthing rule** at a destination port:
-  - `ship.dockClass ≤ port.dockSize` → **berth directly** (boarding cost = base dock
+  - `ship.dockClass ≤ port.dockSize` -> **berth directly** (boarding cost = base dock
     time).
-  - `ship.dockClass > port.dockSize` → **anchor offshore + tender leg:** the route
+  - `ship.dockClass > port.dockSize` -> **anchor offshore + tender leg:** the route
     inserts a short `tender` segment from an offshore anchor cell to the dock at
     rowboat/sloop speed, adding time and a small danger bump. Lets a galley deliver
     passengers to a small fishing dock.
@@ -164,13 +164,13 @@ seed.
 
 ### 4. Ferry fares
 
-- **Fare** = `baseRate × seaMiles × shipClassFactor`, computed over the ferry sea
+- **Fare** = `baseRate x seaMiles x shipClassFactor`, computed over the ferry sea
   segment. Shown in the readout pre-departure.
 - Ferries exist **only along generated sea lanes** between connected ports; if no lane
   reaches the destination's water feature, the ferry option is unavailable there (the
   player needs their own ship).
 - **Departing deducts the fare** from `gold`. The player's sea preference
-  (`ferry` | `ship`) selects the option — there is no silent cross-fallback between
+  (`ferry` | `ship`) selects the option - there is no silent cross-fallback between
   them. If the chosen option is unavailable for this trip (ferry: can't afford it or no
   lane reaches the destination; ship: not docked at the embark port), the route says so
   honestly ("can't afford passage" / "no lane to here" / "your ship isn't docked here")
@@ -182,13 +182,13 @@ seed.
   coastal water < open ocean (high). Distance from the nearest lane / coast scales it.
 - Sea segment danger feeds the **existing** `dangerRating` + encounter roll, extended
   so a voyage can roll a sea encounter (storm, pirates) per sea segment, not just land.
-- Owned-ship open-water routes (off-lane) carry more danger than ferry-lane travel —
+- Owned-ship open-water routes (off-lane) carry more danger than ferry-lane travel -
   the cost of flexibility.
 
 ### 6. Top-of-map default mode + segmented visualization
 
 - **Top control:** the existing transport control at the top of the world map becomes
-  the trip default — a land-mode selector plus a **sea-preference** toggle
+  the trip default - a land-mode selector plus a **sea-preference** toggle
   (`Ferry` / `Your ship`). Owned-ship is disabled (greyed, with reason) when no ship is
   docked at a usable embark port.
 - **Segmented route line** in `AtlasSvgView`:
@@ -203,7 +203,7 @@ seed.
 
 ## Data / state changes
 
-- **`GameState`** (update both factory functions per the project rule —
+- **`GameState`** (update both factory functions per the project rule -
   `utils/core/factories.ts` *and* `state/initialState.ts`):
   - `ownedShips: { id: string; vehicleId: string; dockedPortId: number }[]`
   - travel default already partly exists (selected transport); add `seaPreference:
@@ -217,35 +217,35 @@ seed.
 
 | Unit | Responsibility | Depends on |
 |------|----------------|------------|
-| `routePlanning.ts` (changed) | Dijkstra over `edgeCost`; `TravelGraph` now exposes per-edge cost | — |
+| `routePlanning.ts` (changed) | Dijkstra over `edgeCost`; `TravelGraph` now exposes per-edge cost | - |
 | `atlasTravelGraph.ts` (changed) | land graph re-expressed via `edgeCost` (behavior-preserving) | routePlanning, types/travel |
 | `multiModalAtlasGraph.ts` (new) | unified land+sea+transfer graph; ferry-lane set; owned-ship gate | atlas pack, routePlanning |
-| `ensureIslandHarbors.ts` (new) | connectivity pass: components → significance → ensure/promote/spawn port → link lane | fmg pack, burgs/routes |
+| `ensureIslandHarbors.ts` (new) | connectivity pass: components -> significance -> ensure/promote/spawn port -> link lane | fmg pack, burgs/routes |
 | `dockTiers.ts` (new) | dockSize derivation, berth-vs-tender decision, tender leg insertion | vehicles, atlas |
 | `seaDanger.ts` (new) | sea danger tables + lane/coast scaling | atlas |
 | `ferryFare.ts` (new) | fare calc + affordability | gold, route |
 | `travelReadout.ts` (changed) | composite multimodal summary | route |
 | `AtlasSvgView.tsx` (changed) | segmented line, harbor markers, sea readout | route model |
-| `MapPane.tsx` (changed) | top-of-map default (land mode + sea pref), feed graph, depart→fare/relocate/encounter | all above |
+| `MapPane.tsx` (changed) | top-of-map default (land mode + sea pref), feed graph, depart->fare/relocate/encounter | all above |
 
 ## Testing strategy
 
 Pure modules get unit tests (project pattern):
 
-- `ensureIslandHarbors`: a seed where an island has no burg → a fishing-village port is
-  spawned and reachable; an island with a non-port burg → promoted; a tiny rock →
-  skipped. Determinism (same seed → same ports).
-- `multiModalAtlasGraph` + `planRoutesFrom`: mainland→island yields a route whose
-  segments are land→sea→land through the expected ports; owned-ship route disabled when
+- `ensureIslandHarbors`: a seed where an island has no burg -> a fishing-village port is
+  spawned and reachable; an island with a non-port burg -> promoted; a tiny rock ->
+  skipped. Determinism (same seed -> same ports).
+- `multiModalAtlasGraph` + `planRoutesFrom`: mainland->island yields a route whose
+  segments are land->sea->land through the expected ports; owned-ship route disabled when
   ship docked elsewhere; ferry disabled when no lane reaches the feature.
-- `dockTiers`: galley→small dock inserts a tender leg; keelboat→small dock berths
+- `dockTiers`: galley->small dock inserts a tender leg; keelboat->small dock berths
   directly.
 - `ferryFare`: fare scales with sea miles + class; unaffordable disables ferry.
 - `seaDanger`: open ocean > coastal > lane; encounter roll fires on a sea segment.
 - `AtlasSvgView`: a multimodal route renders distinct land/sea/tender segments + harbor
   markers (testids), and the readout shows fare + sea miles.
 
-Visual-inspection rule: render a headless atlas with a known mainland→island route and
+Visual-inspection rule: render a headless atlas with a known mainland->island route and
 read the PNG to confirm the segmented line, harbor glyphs, and tender hop match the
 data.
 
@@ -261,25 +261,25 @@ data.
 
 ---
 
-## Iteration II — implementation reality + revised direction (2026-06-26)
+## Iteration II - implementation reality + revised direction (2026-06-26)
 
 ### What is already built (working tree, uncommitted, 28 tests green)
 
-A concurrent autonomous run implemented **subsystems 1–2** while this spec was being
+A concurrent autonomous run implemented **subsystems 1-2** while this spec was being
 designed. Present and tested, but **not committed**, and the reachability pass is **opt-in
 (default off)**:
 
-- `systems/travel/routePlanning.ts` — `edgeMinutes?(from,to)` per-edge cost hook (land
+- `systems/travel/routePlanning.ts` - `edgeMinutes?(from,to)` per-edge cost hook (land
   graphs unchanged).
-- `systems/worldforge/travel/multiModalAtlasGraph.ts` — unified land+sea+port-transfer
+- `systems/worldforge/travel/multiModalAtlasGraph.ts` - unified land+sea+port-transfer
   graph. **Vessels are lane-only** (`isFerryWater` restricts sea movement to `searoutes`
   cells); `kind:'ship'` currently behaves like `kind:'ferry'`.
-- `systems/travel/multiModalRoute.ts` + `formatMultiModalSummary` — segmenter + readout
+- `systems/travel/multiModalRoute.ts` + `formatMultiModalSummary` - segmenter + readout
   (mojibake in the readout string fixed 2026-06-26).
-- `systems/worldforge/fmg/ensureIslandHarbors.ts` — land-component BFS → significance
-  filter (`minLandCells` 8, or has-burg) → promote best coastal burg / spawn a Fishing
-  Village → link a sea route → report. Wired into `generateWorld.ts` behind
-  `options.ensureIslandHarbors` (**default `false` — not active in real games yet**).
+- `systems/worldforge/fmg/ensureIslandHarbors.ts` - land-component BFS -> significance
+  filter (`minLandCells` 8, or has-burg) -> promote best coastal burg / spawn a Fishing
+  Village -> link a sea route -> report. Wired into `generateWorld.ts` behind
+  `options.ensureIslandHarbors` (**default `false` - not active in real games yet**).
 
 ### Pre-existing naval system (the pivot)
 
@@ -294,47 +294,47 @@ Ships here are a separate model from `travel.ts` `STANDARD_VEHICLES` water vehic
 
 8. **Two-tier maritime travel.** **Ferries** = lightweight for-hire crossings on the map
    (gold + time only, no crew/supply sim) along lanes. **Owned ships** = the full naval
-   voyage sim — "set sail" from the map drives `NAVAL_START_VOYAGE`; weather/supplies/crew
+   voyage sim - "set sail" from the map drives `NAVAL_START_VOYAGE`; weather/supplies/crew
    apply. Casual travel stays simple; owning a ship unlocks depth.
 9. **Full open-water sailing for owned ships.** Owned ships route over **any** sea cell
    (Dijkstra), free to pioneer routes; **ferries remain lane-bound.** This finally
-   delivers decision #2's "sail anywhere port→port" — needs sea-cell passability for the
+   delivers decision #2's "sail anywhere port->port" - needs sea-cell passability for the
    `ship` capability + open-ocean danger tiers (lane < coastal < open ocean).
 10. **Bridge to the naval system, don't duplicate it.** The owned-ship transport IS the
     player's naval `Ship` (drop the parallel `ownedShips` shape from §"Data/state").
     Populate `naval.knownPorts` from FMG burg ports; a completed voyage docks the ship at
     the arrival port (its new embarkation point).
 
-### Re-scoped Plans 3–6
+### Re-scoped Plans 3-6
 
-- **Plan 3 — Owned-ship bridge.** Make `multiModalAtlasGraph`'s `kind:'ship'` passable
+- **Plan 3 - Owned-ship bridge.** Make `multiModalAtlasGraph`'s `kind:'ship'` passable
   over all sea cells (open-water) gated on the ship being docked at the embark port;
-  `knownPorts` ← FMG ports; map "set sail" → `NAVAL_START_VOYAGE`; voyage completion
+  `knownPorts` ← FMG ports; map "set sail" -> `NAVAL_START_VOYAGE`; voyage completion
   relocates the ship. Replaces the `ownedShips` array.
-- **Plan 4 — Dock tiers + tenders.** Unchanged in intent; applies to owned ships
-  (oversized ship at a small dock → offshore anchor + tender leg, a third `CellKind`).
-- **Plan 5 — Ferry tier + economy.** Lightweight ferry fare (gold × sea-miles × class) on
+- **Plan 4 - Dock tiers + tenders.** Unchanged in intent; applies to owned ships
+  (oversized ship at a small dock -> offshore anchor + tender leg, a third `CellKind`).
+- **Plan 5 - Ferry tier + economy.** Lightweight ferry fare (gold x sea-miles x class) on
   lanes; **then** the *living ferry economy* branch (named operators, schedules, fare
   tiers, reputation gates).
-- **Plan 6 — Sea danger, weather & piracy.** Open-ocean danger tiers feed the encounter
+- **Plan 6 - Sea danger, weather & piracy.** Open-ocean danger tiers feed the encounter
   roll; surface the naval sim's **weather/seasons** on the map (slow/close lanes); make
   **piracy** sea encounters playable choices (fight/board/flee/pay toll) rather than a
   silent roll.
 
 ### Branch vision (approved directions, later projects)
 
-- **Nautical fog-of-war** — sea lanes/islands start uncharted; revealed by sailing or by
+- **Nautical fog-of-war** - sea lanes/islands start uncharted; revealed by sailing or by
   buying rumors/charts at ports. Ties into the existing hidden-places discovery loop.
-- **Weather & seasons** — dynamic storms/seasons slow, endanger, or close lanes (reuse the
+- **Weather & seasons** - dynamic storms/seasons slow, endanger, or close lanes (reuse the
   naval weather model at map scale).
-- **Piracy as playable events** — pirate territories near certain lanes; real choices.
-- **Living ferry economy** — NPC operators with schedules, fare tiers, smuggler routes,
+- **Piracy as playable events** - pirate territories near certain lanes; real choices.
+- **Living ferry economy** - NPC operators with schedules, fare tiers, smuggler routes,
   reputation-gated service.
 
 ### Immediate status
 
-Mojibake fixed; 28/28 tests green. **Holding — no commits** (per 2026-06-26 decision; the
+Mojibake fixed; 28/28 tests green. **Holding - no commits** (per 2026-06-26 decision; the
 2am snapshot will capture the working tree). Reachability pass remains default-off pending
 the decision to enable it.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-06-25-maritime-travel-design.md","sha256WithoutMarker":"a6b8a825fe1a438c847c43fd15ff4fd57d9050a893641fc09ed263da7dfc5bc1","markedAtUtc":"2026-06-25T23:38:33.387Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-06-25-maritime-travel-design.md","sha256WithoutMarker":"cfc74fcbbf8a231b504a6e5e4ebad10dda86055a4ff774ada82ffc8c14459e32","markedAtUtc":"2026-08-09T20:14:15.542Z"} -->

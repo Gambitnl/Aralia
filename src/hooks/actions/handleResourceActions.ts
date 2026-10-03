@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/07/2026, 01:17:38
+ * Last Sync: 09/09/2026, 10:37:14
  * Dependents: components/ConversationPanel/ConversationPanel.tsx, hooks/actions/actionHandlers.ts
  * Imports: 11 files
  *
@@ -22,10 +22,10 @@ import React from 'react';
 import { GameState, HitPointDiceSpendMap, HitPointDicePool, RacialRestChoiceData, Spell, SpellSlots } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import { AddMessageFn, AddGeminiLogFn } from './actionHandlerTypes';
-import { handleGossipEvent, handleResidueChecks, handleLongRestWorldEvents } from './handleWorldEvents'; // Import the new world event handlers.
+import { handleGossipEvent, handleResidueChecks, handleLongRestWorldEvents, handleFactPropagationEvent, handleTownRoutineEvents } from './handleWorldEvents'; // Import the new world event handlers.
 import { checkPlanarRestRules } from '../../systems/planar/rest';
-import { buildHitPointDicePools, getAbilityModifierValue, getRacialSpellGrantForSpell } from '../../utils/characterUtils';
-import { rollDice } from '../../utils/combatUtils';
+import { buildHitPointDicePools, getAbilityModifierValue, getRacialSpellGrantForSpell } from '../../utils/character';
+import { rollDice } from '../../systems/dice/rollers';
 import { formatDuration, getGameDay } from '../../utils/core';
 import { CastSpellPayload } from '../../types/actions';
 import { spellService } from '../../services/SpellService';
@@ -246,6 +246,10 @@ export async function handleLongRest({
     // Step 4: Run the gossip simulation. It's crucial to run this *after* the memory decay,
     // using the newly updated state, so that NPCs are gossiping with their most current memories.
     const updatedGameStateForGossip = { ...gameState, npcMemory: newNpcMemoryState };
+    // Rules lane first (DIAL-002): deterministic same-faction / rumor-reached
+    // arrivals that came due today, so the flavour lane below can pick a speaker
+    // who has actually heard the news. Both run on the post-decay memory.
+    handleFactPropagationEvent(updatedGameStateForGossip, dispatch);
     await handleGossipEvent(updatedGameStateForGossip, addGeminiLog, dispatch);
     // --- END NEW ---
 
@@ -269,6 +273,13 @@ export async function handleLongRest({
 
     // Step 7: Advance the in-game clock.
     dispatch({ type: 'ADVANCE_TIME', payload: { seconds: 8 * 3600 } }); // 8 hours
+    // The town's occupant routines move with that clock: the party wakes into a
+    // different hour, so the townsfolk are somewhere else than when they lay down.
+    void handleTownRoutineEvents(
+        { ...gameState, gameTime: new Date(gameState.gameTime.getTime() + 8 * 3600 * 1000) },
+        dispatch,
+        { hoursAdvanced: 8 },
+    );
 
     // Long rest is the session boundary this codebase already exposes in play,
     // so this is where we open a new visible journal page. The reducer now
@@ -289,15 +300,20 @@ export async function handleLongRest({
 
 export function handleShortRest({ gameState, dispatch, addMessage, hitPointDiceSpend }: HandleShortRestProps): void {
     const restStartMs = gameState.gameTime.getTime();
-    const restStartDay = getGameDay(gameState.gameTime);
+    // A short rest belongs to the day on which its one-hour duration finishes.
+    // Work out that boundary without moving the clock here; ADVANCE_TIME remains
+    // the one authoritative action that changes the world's current time.
+    const restEndMs = restStartMs + SHORT_REST_DURATION_SECONDS * 1000;
+    const restEndDay = getGameDay(new Date(restEndMs));
     const restTracker = gameState.shortRestTracker ?? {
         restsTakenToday: 0,
-        lastRestDay: restStartDay,
+        lastRestDay: restEndDay,
         lastRestEndedAtMs: null,
     };
-    const restsTakenToday = restTracker.lastRestDay === restStartDay ? restTracker.restsTakenToday : 0;
+    const restsTakenToday = restTracker.lastRestDay === restEndDay ? restTracker.restsTakenToday : 0;
 
-    // Enforce party-level pacing: max rests per day and a cooldown between rests.
+    // Enforce the daily cap against the finish day. Keep cooldown measurement at
+    // the actual start instant so crossing midnight does not shorten the wait.
     if (restsTakenToday >= SHORT_REST_MAX_PER_DAY) {
         addMessage(`The party has already taken ${SHORT_REST_MAX_PER_DAY} short rests today.`, "system");
         return;
@@ -372,11 +388,11 @@ export function handleShortRest({ gameState, dispatch, addMessage, hitPointDiceS
         }
     });
 
-    // Update party-level rest tracking before the time advance moves us forward.
-    const restEndMs = restStartMs + SHORT_REST_DURATION_SECONDS * 1000;
+    // Record the completed rest against its finish day before the separate clock
+    // action advances the world through the same one-hour interval.
     const shortRestTracker = {
         restsTakenToday: restsTakenToday + 1,
-        lastRestDay: restStartDay,
+        lastRestDay: restEndDay,
         lastRestEndedAtMs: restEndMs,
     };
 

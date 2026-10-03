@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 27/02/2026, 09:34:18
- * Dependents: spatial/index.ts, targetingUtils.ts
+ * Last Sync: 13/08/2026, 15:36:01
+ * Dependents: commands/effects/TerrainCommand.ts, components/DesignPreview/steps/scenarioControls/areaEffectScenarioControls.ts, hooks/combat/useTargeting.ts, hooks/useAbilitySystem.ts, systems/spells/mechanics/areaDamageSpellCastResolution.ts, utils/spatial/index.ts
  * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
@@ -21,7 +21,7 @@
  */
 
 import { Position, AreaOfEffect, CombatCharacter } from '../../types/combat';
-import { AoEShape, AoEParams } from '../combat/aoeCalculations';
+import { AoEShape, AoEParams, cubeAxisToCompassDegrees, resolveCubeAxis } from '../combat/aoeCalculations';
 import { getAngleBetweenPositions, facingToDegrees as geometryFacingToDegrees } from './geometry';
 
 /**
@@ -63,12 +63,17 @@ const facingToDegrees = geometryFacingToDegrees;
  * @param aoe - The static Area of Effect definition from the Ability.
  * @param center - The target tile coordinates selected by the player.
  * @param caster - (Optional) The character casting the spell, required for origin-bound shapes.
+ *   A Cube needs it too (ruling Q4, 2026-09-22): the cube extends away from the caster.
+ * @param spellName - (Optional) The spell or ability name. Used only in the error that a cube
+ *   with no direction throws.
  * @returns The fully resolved AoEParams ready for tile calculation, or null if invalid.
+ * @throws Error for a Cube with no caster position away from the point, and no caster facing.
  */
 export const resolveAoEParams = (
     aoe: AreaOfEffect,
     center: Position,
-    caster?: CombatCharacter
+    caster?: CombatCharacter,
+    spellName?: string
 ): AoEParams | null => {
     const shape = mapShapeToStandard(aoe.shape);
     let direction = 0;
@@ -90,8 +95,10 @@ export const resolveAoEParams = (
                 direction = facingToDegrees(caster.facing);
             }
 
-            // For Lines, the click point defines the endpoint explicitly.
-            if (shape === 'Line') {
+            // A line confirmed on the caster's cell is self-origin geometry,
+            // so facing must project its canonical length. Only an actually
+            // different click owns an explicit endpoint.
+            if (shape === 'Line' && (center.x !== origin.x || center.y !== origin.y)) {
                 targetPoint = center;
             }
         } else {
@@ -102,6 +109,29 @@ export const resolveAoEParams = (
 
     // Ensure normalized direction 0-360
     if (direction < 0) direction += 360;
+
+    // Cube (ruling Q4, 2026-09-22, face anchor): the clicked point is the point
+    // of origin on the near face, and the cube extends away from the caster.
+    // The axis is resolved here ONCE and kept as `direction`, so a persistent
+    // zone made from these params (zoneLifecycle directionFromAoEParams) replays
+    // the same cube. resolveCubeAxis throws when no direction exists; there is
+    // no default direction.
+    if (shape === 'Cube') {
+        const anchor = {
+            casterPosition: caster?.position,
+            casterFacing: caster?.facing,
+            spellName,
+            casterName: caster?.name,
+        };
+        return {
+            shape,
+            origin,
+            size: aoe.size * 5,
+            direction: cubeAxisToCompassDegrees(resolveCubeAxis(origin, anchor)),
+            width: 5,
+            ...anchor,
+        };
+    }
 
     return {
         shape,

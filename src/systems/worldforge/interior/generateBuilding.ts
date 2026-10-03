@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 14/07/2026, 22:02:02
+ * Last Sync: 20/07/2026, 01:52:10
  * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/interior/generateInterior.ts
  * Imports: 15 files
  *
@@ -429,11 +429,12 @@ export function generateBuilding(input: GenerateBuildingInput): BlueprintPlan {
     result.styleResolved = styleResolved;
     result.style = input.style;
 
-    // Topmost HABITABLE floor: the highest storey (basements excluded). Its
-    // hearths raise chimneys; its windowless bedrooms become dormer candidates.
-    const topLevel = Math.max(...floors.map((f) => f.level));
-    const top = floors.find((f) => f.level === topLevel)!;
-    const hearths = top.furnishings
+    // Every habitable hearth raises a stack through the roof; basements stay
+    // excluded because the roof contract does not invent underground flues.
+    // The solver merges vertically aligned or adjacent sources into one stack.
+    const hearths = floors
+      .filter((floor) => floor.level >= 0)
+      .flatMap((floor) => floor.furnishings)
       .filter((fn) => fn.kind === 'hearth' || fn.kind === 'forge-hearth')
       .map((fn) => ({ x: fn.x, y: fn.y }));
 

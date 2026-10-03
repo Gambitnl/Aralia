@@ -9,6 +9,8 @@ import { PLAN_FIXTURES } from '../textPlan/fixtures';
 import { createGaitDriver, type LocomotionState } from '../three/gaits';
 import { ANCHORS, type BodySegment } from '../types';
 import { registerAllParts } from '../parts';
+import { generateEntityBlueprint } from '../generateEntityBlueprint';
+import { CreatureType } from '../../../types/creatures';
 
 registerAllParts();
 
@@ -111,21 +113,37 @@ describe('plan gait driver', () => {
     expect(Math.abs(fl.z - fr.z)).toBeGreaterThan(0.05);
   });
 
-  it('serpentine spine stays at ground height across phases', () => {
+  // round 2 (creature-anatomy): a serpentine creature REARS — the front third
+  // rises into a vertical S carrying the head high while the rear body stays
+  // grounded and undulates (replaces the round-1 "whole spine at ground
+  // height" pin, which enforced the fallen-leek posture the critic named).
+  it('serpentine spine rears: front high, rear grounded, taller at idle', () => {
     const compiled = compilePlan(PLAN_FIXTURES.threeHeadedSerpent);
+    const spec = compiled.planSpec!;
+    const groundCeil = spec.bodyRadM * 2.4;
     const driver = createGaitDriver('plan', compiled.frame, compiled.planSpec);
     for (const phase of [0, 0.25, 0.5, 0.75]) {
       driver.setPhase(phase);
       driver.update(phase * 3, 0, WALK);
       const c = collect(driver);
-      for (let i = 0; i < compiled.planSpec!.spine.segments; i++) {
+      const front = c.segs.get('spine.0')!;
+      expect(front, 'spine.0 missing').toBeTruthy();
+      expect(front.ay, 'front of spine rears well above the body tube').toBeGreaterThan(groundCeil);
+      for (let i = Math.ceil(spec.spine.segments * 0.5); i < spec.spine.segments; i++) {
         const s = c.segs.get(`spine.${i}`)!;
         expect(s, `spine.${i} missing`).toBeTruthy();
-        const maxR = compiled.planSpec!.bodyRadM * 2.4;
-        expect(s.ay, `spine.${i} grounded`).toBeLessThan(maxR);
-        expect(s.ay).toBeGreaterThan(0);
+        expect(s.by, `spine.${i} rear stays grounded`).toBeLessThan(groundCeil);
+        expect(s.by).toBeGreaterThan(0);
       }
     }
+    // speed-aware rise: the idle coil carries the head TALLER than the lunge
+    const idle = createGaitDriver('plan', compiled.frame, compiled.planSpec);
+    idle.update(0, 0, IDLE);
+    const idleFront = collect(idle).segs.get('spine.0')!;
+    driver.setPhase(0);
+    driver.update(0, 0, WALK);
+    const walkFront = collect(driver).segs.get('spine.0')!;
+    expect(idleFront.ay).toBeGreaterThan(walkFront.ay);
   });
 
   it('floating eye hovers — nothing dips near the ground', () => {
@@ -196,10 +214,26 @@ describe('plan gait driver', () => {
       ball: (id, _x, _y, _z, r) => balls.set(id, { r }),
       ring: (id) => rings.push(id),
     });
-    // hands: palm ball + finger segments at each arm tip
-    expect(balls.has('arm0L.palm'), 'left palm').toBe(true);
+    // hands: a palm BLOCK, two fingers and an opposed thumb at each arm tip.
+    // 2026-08-15 (Remy, live eyeball on a generated gnoll — "oddly
+    // proportioned and a strange 'ball' for a palm"): the palm used to be a
+    // sphere with three pencils in it, and a sphere has no front, no back and
+    // no knuckle line. `<chain>.palm` is now the block segment — still the
+    // skeleton's hand terminal, now carrying an orientation.
+    expect(segs.has('arm0L.palm'), 'left palm block').toBe(true);
+    expect(balls.has('arm0L.palm'), 'palm must no longer be a ball').toBe(false);
     expect(segs.has('arm0L.finger0'), 'left finger 0').toBe(true);
-    expect(segs.has('arm0R.finger2'), 'right finger 2').toBe(true);
+    expect(segs.has('arm0R.finger1'), 'right finger 1').toBe(true);
+    expect(segs.has('arm0R.thumb'), 'right opposed thumb').toBe(true);
+    // the palm widens from the wrist toward the knuckle line: a wedge, not a
+    // tube and not a ball
+    expect(segs.get('arm0L.palm')!.r1).toBeGreaterThan(segs.get('arm0L.palm')!.r0 * 1.2);
+    // and the arm now pinches at its interior joints, so the elbow and the
+    // wrist are silhouette events rather than seams
+    expect(segs.get('arm0L.0')!.r1, 'elbow must pinch below the upper-arm gauge')
+      .toBeLessThan(segs.get('arm0L.0')!.r0 * 0.9);
+    expect(segs.get('arm0L.2')!.r0, 'wrist must be the narrowest point on the arm')
+      .toBeLessThan(segs.get('arm0L.1')!.r0);
     // rings: one per INTERIOR joint (3 links → 2 interior joints per arm)
     expect(rings.filter((id) => id.startsWith('arm0L.ring'))).toHaveLength(2);
     // cilia: a ring of short lash segments around the eye socket
@@ -277,5 +311,138 @@ describe('plan gait driver', () => {
     driver.update(0.65, 1 / 60, WALK);
     const tip2 = collect(driver).segs.get('wing0L.2')!;
     expect(Math.abs(tip1.by - tip2.by)).toBeGreaterThan(0.02);
+  });
+});
+
+describe('junction blend collars (slice 1)', () => {
+  it('emits one collar per chain with blendM, at the chain root, with reach = blendM', () => {
+    const compiled = compilePlan(PLAN_FIXTURES.dragon);
+    const driver = createGaitDriver('plan', compiled.frame, compiled.planSpec);
+    driver.update(0.5, 1 / 60, WALK);
+    const collars = new Map<string, { x: number; y: number; z: number; limbR: number; reach: number }>();
+    const segs = new Map<string, BodySegment>();
+    driver.buildBody({
+      seg: (id, ax, ay, az, bx, by, bz, r0, r1) => segs.set(id, { id, ax, ay, az, bx, by, bz, r0, r1 }),
+      ball: () => {},
+      collar: (id, x, y, z, _ax, _ay, _az, limbR, reach) => collars.set(id, { x, y, z, limbR, reach }),
+    });
+    const spec = compiled.planSpec!;
+    for (const chain of spec.chains) {
+      const collar = collars.get(`${chain.id}.collar`);
+      // round 20 (creature-anatomy): hull-proud leg roots compile blendM 0 —
+      // the haunch ball IS the junction, so no collar is emitted for them.
+      if (chain.blendM <= 0.02) {
+        expect(collar, `${chain.id} collar (blendM ${chain.blendM})`).toBeUndefined();
+        continue;
+      }
+      expect(collar, `${chain.id} collar`).toBeTruthy();
+      expect(collar!.reach).toBeCloseTo(chain.blendM, 6);
+      expect(collar!.limbR).toBeCloseTo(chain.links[0].rM, 6);
+      // sits at the chain's root joint = the first emitted segment start
+      const rootSeg = segs.get(`${chain.id}.0`);
+      if (rootSeg) {
+        expect(collar!.x).toBeCloseTo(rootSeg.ax, 6);
+        expect(collar!.y).toBeCloseTo(rootSeg.ay, 6);
+        expect(collar!.z).toBeCloseTo(rootSeg.az, 6);
+      }
+    }
+  });
+
+  it('blend 0 emits no collar; sinks without collar() are untouched', () => {
+    const plan = JSON.parse(JSON.stringify(PLAN_FIXTURES.dragon));
+    plan.skin = { blend: 0 };
+    const compiled = compilePlan(plan);
+    const driver = createGaitDriver('plan', compiled.frame, compiled.planSpec);
+    driver.update(0.5, 1 / 60, WALK);
+    const collars: string[] = [];
+    driver.buildBody({
+      seg: () => {},
+      ball: () => {},
+      collar: (id) => collars.push(id),
+    });
+    expect(collars).toEqual([]);
+    // and a sink without collar() must not crash
+    driver.buildBody({ seg: () => {}, ball: () => {} });
+  });
+
+  /**
+   * 2026-08-15, Remy, live eyeball: "all bipedal creatures seem to have this
+   * weird 'lean forward'".
+   *
+   * `attachZ` maps a chain's attach fraction onto the body's LENGTH axis,
+   * which is +z on a horizontal body. An UPRIGHT body's length axis is Y — the
+   * spine runs hips to crown and leaves z to `spine.arch` — but the leg treads
+   * still took their rest position from `attachZ(attach)`. A leg attached at
+   * the hips planted its foot (0.5 − attach) × bodyLenM BEHIND the column: on
+   * plan 19f48ed2 the crown sat 0.74 m ahead of the feet over 2.60 m of
+   * height, a 16° tip, and the creature read as falling forward.
+   *
+   * The gate is the FOOT against the hip it hangs from, because that is the
+   * relationship the bug broke. `spine.arch` is deliberately left free to move
+   * the spine: an arch bows the back (sin(u·pi), zero at BOTH ends) and must
+   * never be mistaken for this.
+   */
+  it('an upright plan stands upright: feet plant under the hips, not behind them', () => {
+    const upright = (arch: number) =>
+      compilePlan({
+        name: 'Upright Walker',
+        frame: { heightFt: 8, bulk: 0.8, stance: 'upright' },
+        spine: { segments: 4, taper: 0.85, arch },
+        appendages: [
+          {
+            kind: 'leg', attach: 0.9, perSide: true, count: 1,
+            chain: [{ lenFt: 2.2, r: 0.16 }, { lenFt: 2.0, r: 0.12 }],
+          },
+        ],
+        heads: [{ sizeScale: 1.1, eyes: { count: 2, sizeScale: 1 } }],
+        palette: { bodyHex: '#7a6a44', accentHex: '#c8b070', eyeHex: '#e8d070' },
+      });
+
+    for (const arch of [0, 0.28, 0.6]) {
+      const compiled = upright(arch);
+      const spec = compiled.planSpec!;
+      const driver = createGaitDriver('plan', compiled.frame, spec);
+      driver.update(0.5, 1 / 60, IDLE);
+      const { segs } = collect(driver);
+      for (const side of ['L', 'R'] as const) {
+        const thigh = segs.get(`leg0${side}.0`);
+        const shin = segs.get(`leg0${side}.1`);
+        expect(thigh, `leg0${side} thigh missing`).toBeTruthy();
+        expect(shin, `leg0${side} shin missing`).toBeTruthy();
+        // hip = the thigh's root joint; foot = the shin's tip
+        const drift = Math.abs(shin!.bz - thigh!.az);
+        expect(
+          drift,
+          `arch ${arch}, leg0${side}: foot is ${drift.toFixed(3)} m off its hip in z — ` +
+            `body length ${spec.bodyLenM.toFixed(3)} m. A foot that lands a body-length ` +
+            'behind its hip is the lean-forward bug.',
+        ).toBeLessThan(spec.bodyRadM * 0.5);
+      }
+    }
+
+    // and the same gate across every GENERATED archetype that stands upright —
+    // this defect was never one creature's, it was every plan-driven biped's.
+    let uprightArchetypes = 0;
+    for (const type of Object.values(CreatureType)) {
+      const bp = generateEntityBlueprint({ kind: 'creature', creatureType: type, size: 'Large', seed: 'stance' });
+      const spec = bp.planSpec;
+      if (!spec || spec.stance !== 'upright') continue;
+      const legs = spec.chains.filter((c) => c.kind === 'leg');
+      if (!legs.length) continue;
+      uprightArchetypes++;
+      const driver = createGaitDriver('plan', bp.frame, spec);
+      driver.update(0.5, 1 / 60, IDLE);
+      const { segs } = collect(driver);
+      for (const leg of legs) {
+        const root = segs.get(`${leg.id}.0`);
+        const tip = segs.get(`${leg.id}.${leg.links.length - 1}`);
+        if (!root || !tip) continue;
+        expect(
+          Math.abs(tip.bz - root.az),
+          `${type} / ${leg.id}: foot planted off its hip in z`,
+        ).toBeLessThan(spec.bodyRadM * 0.5);
+      }
+    }
+    expect(uprightArchetypes, 'no upright archetypes swept — the gate would pass vacuously').toBeGreaterThan(0);
   });
 });

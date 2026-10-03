@@ -4,7 +4,7 @@
 
 **Goal:** Make the existing generated road network mechanically real (tiered travel speeds, graded biome speeds, tier-graded danger) and visually tiered (2D stroke language with forest fade, 3D tier ribbons with patchy faint paths), and make faint forest paths genuinely hard to follow (Survival DC ladder feeding the existing get-lost drift).
 
-**Spec:** `docs/superpowers/specs/2026-07-11-road-systems-design.md` — read it first.
+**Spec:** `docs/superpowers/specs/2026-07-11-road-systems-design.md` - read it first.
 
 **Architecture:** One new pure tunables module + one new pure classification module (`routeTerrain.ts`) become the single source of truth for tier/biome speed, danger, navigation DC, and visibility. Both travel graph builders consume it (killing their duplicated tables). The FMG routes generator splits its output into `highways`/`roads`/`trails`/`paths`/`searoutes` groups. 2D renderers share one stroke-style module with per-segment visibility fade. 3D carries `kind` through `regionPolylinesToGround` into the existing tier-tinted ribbon pipeline.
 
@@ -14,11 +14,11 @@
 
 - **NO manual git commits and NO branches/worktrees.** This repo auto-commits a daily snapshot; all work lands directly in `master`'s working tree. Where the standard task template says "Commit", instead: run the task's tests + `npx tsc --noEmit` and move on.
 - **Agora lock before editing:** before modifying any file, `export AGORA_AGENT_ID=claude-roads` and lock the files via the Agora daemon (`node tools/agora/client.mjs lock <paths...> --reason "roads task N"`, or curl POST /locks). Release when the task ends. A 409 conflict = hard stop on that file; coordinate, don't override.
-- **US-English plain-language comments** (GOV.UK style, US spelling), matching each file's existing comment density.
+- **US-English plain-language comments** (ASD-STE100 Simplified Technical English, US spelling), matching each file's existing comment density.
 - Tests: run per-file via `npx vitest run <path>`. Type check: `npx tsc --noEmit` (repo has NO `typecheck` script; the tsconfig excludes nothing relevant).
 - **SeededRandom convention:** `nextInt(min, max)` is MAX-EXCLUSIVE (d20 = `nextInt(1, 21)`).
 - Do not touch files currently locked by other Agora agents (check `curl -s http://localhost:4319/locks`).
-- ~346 empty test files + dev_hub.html build failure are known background noise — not yours to fix, not caused by you.
+- ~346 empty test files + dev_hub.html build failure are known background noise - not yours to fix, not caused by you.
 
 ---
 
@@ -126,13 +126,13 @@ describe('routeVisibility / navDC / navCause', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run src/systems/worldforge/travel/__tests__/routeTerrain.test.ts`
-Expected: FAIL — cannot resolve `../routeTerrain` / `../roadTunables`.
+Expected: FAIL - cannot resolve `../routeTerrain` / `../roadTunables`.
 
 - [ ] **Step 3: Write `roadTunables.ts`**
 
 ```ts
 /**
- * @file roadTunables.ts — every gameplay-feel constant for the road system.
+ * @file roadTunables.ts - every gameplay-feel constant for the road system.
  *
  * ALL numbers here are TUNABLE starting values (spec 2026-07-11-road-systems).
  * One module on purpose: Remy tunes travel feel here without hunting through
@@ -159,7 +159,7 @@ export const BIOME_SPEED_FACTOR: Record<string, number> = {
 };
 export const DEFAULT_BIOME_SPEED_FACTOR = 1.0;
 
-/** Wilderness danger baseline per biome (0..1) — moved verbatim from the twin
+/** Wilderness danger baseline per biome (0..1) - moved verbatim from the twin
  * tables in atlasTravelGraph.ts / multiModalAtlasGraph.ts so it lives once. */
 export const BIOME_DANGER: Record<string, number> = {
   'Hot desert': 0.5, 'Cold desert': 0.45, 'Tropical rainforest': 0.55, 'Temperate rainforest': 0.4,
@@ -221,13 +221,13 @@ export const PATH_3D_SKIP_POINTS = 3;
 
 ```ts
 /**
- * @file routeTerrain.ts — ONE classification core for land travel over routes.
+ * @file routeTerrain.ts - ONE classification core for land travel over routes.
  *
  * Single source of truth for: off-road biome speed, on-route tier speed,
  * danger, navigation DCs, and route visibility (fading forest paths). Both
  * travel graph builders (atlasTravelGraph, multiModalAtlasGraph) and the 2D/3D
  * renderers consume THIS module, so mechanics and looks cannot drift apart.
- * Pure: no React/DOM, no atlas types — callers pass biome names + tiers.
+ * Pure: no React/DOM, no atlas types - callers pass biome names + tiers.
  */
 import {
   BIOME_SPEED_FACTOR, DEFAULT_BIOME_SPEED_FACTOR,
@@ -243,12 +243,12 @@ export type RouteTier = 'highway' | 'road' | 'trail' | 'path';
 export type RouteVisibility = 'visible' | 'faint' | 'overgrown';
 
 const TIER_RANK: Record<RouteTier, number> = { highway: 3, road: 2, trail: 1, path: 0 };
-/** The better (faster, safer) of two tiers — cells where routes overlap keep the best. */
+/** The better (faster, safer) of two tiers - cells where routes overlap keep the best. */
 export function bestTier(a: RouteTier | undefined, b: RouteTier): RouteTier {
   return a && TIER_RANK[a] >= TIER_RANK[b] ? a : b;
 }
 
-/** Off-road biomes that were "difficult" before grading — kept for nav DCs. */
+/** Off-road biomes that were "difficult" before grading - kept for nav DCs. */
 const DIFFICULT_BIOMES = new Set<string>([
   'Hot desert', 'Cold desert', 'Tropical rainforest', 'Temperate rainforest',
   'Taiga', 'Tundra', 'Glacier', 'Wetland',
@@ -290,7 +290,7 @@ export function navDC(biomeName: string, tier: RouteTier | null): number {
   return DIFFICULT_BIOMES.has(biomeName) ? OFFROAD_NAV_DC_DIFFICULT : OFFROAD_NAV_DC_OPEN;
 }
 
-/** Why a cell can lose the party — drives the arrival message wording. */
+/** Why a cell can lose the party - drives the arrival message wording. */
 export function navCause(biomeName: string, tier: RouteTier | null): 'road' | 'wilds' | 'faint-path' {
   if (!tier) return 'wilds';
   return routeVisibility(biomeName, tier) === 'visible' ? 'road' : 'faint-path';
@@ -309,7 +309,7 @@ Expected: no NEW errors (pre-existing noise allowed; compare against a pre-chang
 
 ---
 
-### Task 2: Tier map from generated routes — fixes the dead road wiring
+### Task 2: Tier map from generated routes - fixes the dead road wiring
 
 **Files:**
 - Modify: `src/systems/worldforge/travel/routeTerrain.ts` (append)
@@ -317,7 +317,7 @@ Expected: no NEW errors (pre-existing noise allowed; compare against a pre-chang
 
 **Interfaces:**
 - Consumes: `RouteTier`, `bestTier` (Task 1).
-- Produces: `buildRouteCellTiers(pack: { routes?: Array<{ group?: string; cells?: number[]; points?: number[][] }> }): Map<number, RouteTier>` — cellId → best land tier. **This is the bug fix:** it reads `cells` AND falls back to `points[i][2]`, the defensive read `buildFerryLaneCells` already uses; generated routes only carry `points`, which is why the current `buildRoadCells` returns an empty set and roads are mechanically inert.
+- Produces: `buildRouteCellTiers(pack: { routes?: Array<{ group?: string; cells?: number[]; points?: number[][] }> }): Map<number, RouteTier>` - cellId -> best land tier. **This is the bug fix:** it reads `cells` AND falls back to `points[i][2]`, the defensive read `buildFerryLaneCells` already uses; generated routes only carry `points`, which is why the current `buildRoadCells` returns an empty set and roads are mechanically inert.
 
 - [ ] **Step 1: Write the failing test (append to routeTerrain.test.ts)**
 
@@ -359,21 +359,21 @@ describe('buildRouteCellTiers', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run src/systems/worldforge/travel/__tests__/routeTerrain.test.ts`
-Expected: FAIL — `buildRouteCellTiers` is not exported.
+Expected: FAIL - `buildRouteCellTiers` is not exported.
 
 - [ ] **Step 3: Implement (append to routeTerrain.ts)**
 
 ```ts
-/** Route group vocab (FMG plural) → land tier. Searoutes are not land terrain. */
+/** Route group vocab (FMG plural) -> land tier. Searoutes are not land terrain. */
 const GROUP_TO_TIER: Record<string, RouteTier> = {
   highways: 'highway', roads: 'road', trails: 'trail', paths: 'path',
 };
 
 /**
- * Cell → best land route tier across all generated routes. Defensive read:
+ * Cell -> best land route tier across all generated routes. Defensive read:
  * FMG-generated routes expose their path as `points` ([x, y, cellId] triples);
  * some tests and legacy producers carry `cells`. Reading only `cells` is the
- * bug that left the whole road network mechanically inert — read both.
+ * bug that left the whole road network mechanically inert - read both.
  */
 export function buildRouteCellTiers(
   pack: { routes?: Array<{ group?: string; cells?: number[]; points?: number[][] }> },
@@ -404,10 +404,10 @@ Expected: PASS.
 **Files:**
 - Modify: `src/systems/worldforge/travel/atlasTravelGraph.ts`
 - Modify: `src/systems/travel/routePlanning.ts` (TravelGraph interface + minutesOf)
-- Test: `src/systems/worldforge/travel/__tests__/atlasTravelGraph.test.ts` (extend; read it first — it has existing expectations that will shift)
+- Test: `src/systems/worldforge/travel/__tests__/atlasTravelGraph.test.ts` (extend; read it first - it has existing expectations that will shift)
 
 **Interfaces:**
-- Consumes: `buildRouteCellTiers`, `landSpeedFactor`, `landDanger`, `navDC`, `navCause`, `RouteTier` (Tasks 1–2).
+- Consumes: `buildRouteCellTiers`, `landSpeedFactor`, `landDanger`, `navDC`, `navCause`, `RouteTier` (Tasks 1-2).
 - Produces:
   - `TravelGraph.speedFactor?: (cell: number) => number` (optional member on the interface in `routePlanning.ts`; when present the planner uses it INSTEAD of `TERRAIN_TRAVEL_MODIFIERS[terrain(to)]`).
   - `buildNavInfoFn(atlas: FmgAtlasResult): (cell: number) => { dc: number; cause: 'road' | 'wilds' | 'faint-path' }` (exported from `atlasTravelGraph.ts`; Task 6 wires it into MapPane).
@@ -417,11 +417,11 @@ Expected: PASS.
 
 - [ ] **Step 1: Read the existing test file to learn its atlas fixture shape**
 
-Run: `npx vitest run src/systems/worldforge/travel/__tests__/atlasTravelGraph.test.ts` (baseline green), then Read it. It builds small fake atlas objects — reuse its fixture pattern for the new cases.
+Run: `npx vitest run src/systems/worldforge/travel/__tests__/atlasTravelGraph.test.ts` (baseline green), then Read it. It builds small fake atlas objects - reuse its fixture pattern for the new cases.
 
 - [ ] **Step 2: Write failing tests (extend atlasTravelGraph.test.ts)**
 
-Add cases (adapt fixture construction to the file's existing pattern — the shape is `{ pack: { cells: { c, p, h, biome }, routes }, biomesData: { name }, graphWidth }`):
+Add cases (adapt fixture construction to the file's existing pattern - the shape is `{ pack: { cells: { c, p, h, biome }, routes }, biomesData: { name }, graphWidth }`):
 
 ```ts
 describe('graded road mechanics (2026-07-11 road systems)', () => {
@@ -482,7 +482,7 @@ import {
 } from './routeTerrain';
 ```
 
-1. DELETE the local `DIFFICULT_BIOMES`, `BIOME_DANGER`, `DEFAULT_DANGER` constants (they move to roadTunables — Task 1 already holds the same values; keep `DIFFICULT_BIOMES` ONLY if `buildAtlasTerrainFn` still needs it — see 4c).
+1. DELETE the local `DIFFICULT_BIOMES`, `BIOME_DANGER`, `DEFAULT_DANGER` constants (they move to roadTunables - Task 1 already holds the same values; keep `DIFFICULT_BIOMES` ONLY if `buildAtlasTerrainFn` still needs it - see 4c).
 2. Replace `buildRoadCells`:
 
 ```ts
@@ -517,7 +517,7 @@ export function buildAtlasTerrainFn(
 }
 ```
 
-   (`AtlasTravelGraphOptions.roadCells` is now unused by this fn — keep the option field for compatibility but stop reading it here if that breaks a caller; grep `roadCells` first: `rg -n "roadCells" src`.)
+   (`AtlasTravelGraphOptions.roadCells` is now unused by this fn - keep the option field for compatibility but stop reading it here if that breaks a caller; grep `roadCells` first: `rg -n "roadCells" src`.)
 4. In `buildAtlasTravelGraph`, replace terrain/danger and add speedFactor:
 
 ```ts
@@ -540,7 +540,7 @@ export function buildAtlasTerrainFn(
   };
 ```
 
-   (Water/air keep today's behavior: `speedFactor` 1 and biome-baseline danger — matches the old `danger` which only halved on land roads.)
+   (Water/air keep today's behavior: `speedFactor` 1 and biome-baseline danger - matches the old `danger` which only halved on land roads.)
 5. Add `buildNavInfoFn` (consumed by Task 6):
 
 ```ts
@@ -562,11 +562,11 @@ export function buildNavInfoFn(
 - [ ] **Step 5: Run the file's tests; fix shifted expectations**
 
 Run: `npx vitest run src/systems/worldforge/travel/__tests__/atlasTravelGraph.test.ts`
-Expected: new cases PASS. Pre-existing cases may fail where they pinned the OLD binary behavior (e.g. forest = 'open' with no route, danger without tier scaling). Update those expectations to the graded values — each change must be explainable by "roads now work / biomes now graded", nothing else. Also run: `npx vitest run src/systems/travel` (routePlanning consumers) and fix analogous pins.
+Expected: new cases PASS. Pre-existing cases may fail where they pinned the OLD binary behavior (e.g. forest = 'open' with no route, danger without tier scaling). Update those expectations to the graded values - each change must be explainable by "roads now work / biomes now graded", nothing else. Also run: `npx vitest run src/systems/travel` (routePlanning consumers) and fix analogous pins.
 
 - [ ] **Step 6: Type check**
 
-Run: `npx tsc --noEmit` — no new errors.
+Run: `npx tsc --noEmit` - no new errors.
 
 ---
 
@@ -577,10 +577,10 @@ Run: `npx tsc --noEmit` — no new errors.
 - Test: `src/systems/worldforge/travel/__tests__/multiModalAtlasGraph.test.ts` (extend, same drill as Task 3)
 
 **Interfaces:**
-- Consumes: `buildRouteCellTiers`, `landSpeedFactor`, `landDanger` (Tasks 1–2).
-- Produces: behavior only — land legs of multimodal routes get identical grading to Task 3 (the two graphs must agree cell-for-cell).
+- Consumes: `buildRouteCellTiers`, `landSpeedFactor`, `landDanger` (Tasks 1-2).
+- Produces: behavior only - land legs of multimodal routes get identical grading to Task 3 (the two graphs must agree cell-for-cell).
 
-- [ ] **Step 1: Write failing test** — mirror Task 3's new cases against `buildMultiModalAtlasGraph` (land cell on a points-only road route → `edgeMinutes` reflects 1.25 factor; forest off-road land leg reflects 0.75). Use the file's existing fixtures. Run to see FAIL.
+- [ ] **Step 1: Write failing test** - mirror Task 3's new cases against `buildMultiModalAtlasGraph` (land cell on a points-only road route -> `edgeMinutes` reflects 1.25 factor; forest off-road land leg reflects 0.75). Use the file's existing fixtures. Run to see FAIL.
 
 - [ ] **Step 2: Implement**
 
@@ -598,7 +598,7 @@ Run: `npx tsc --noEmit` — no new errors.
   };
 ```
 
-   (same off-road inference Task 3 uses — `navDC` already encodes the 8 difficult biomes off-road; import `navDC` from `./routeTerrain`, no extra export needed).
+   (same off-road inference Task 3 uses - `navDC` already encodes the 8 difficult biomes off-road; import `navDC` from `./routeTerrain`, no extra export needed).
 4. `danger` (land branch): `const base = landDanger(biomeName(cell), tiers.get(cell) ?? null); return base;` (sea branches unchanged).
 5. `edgeMinutes` land branch:
 
@@ -611,30 +611,30 @@ Run: `npx tsc --noEmit` — no new errors.
       return (miles / Math.max(0.1, speed * modifier)) * 60;
 ```
 
-6. `buildFerryLaneCells` is already defensive — leave it.
+6. `buildFerryLaneCells` is already defensive - leave it.
 
 - [ ] **Step 3: Run tests**
 
 Run: `npx vitest run src/systems/worldforge/travel/__tests__/multiModalAtlasGraph.test.ts` and `npx vitest run src/systems/worldforge/travel`
 Expected: PASS after updating any pinned-to-old-binary expectations (same rule as Task 3: every shifted number must trace to grading/tier activation).
 
-- [ ] **Step 4: Type check** — `npx tsc --noEmit`, no new errors.
+- [ ] **Step 4: Type check** - `npx tsc --noEmit`, no new errors.
 
 ---
 
-### Task 5: Tiered generation — highways / road-vs-trail split (`routes-generator.ts` + artifact chain)
+### Task 5: Tiered generation - highways / road-vs-trail split (`routes-generator.ts` + artifact chain)
 
 **Files:**
 - Modify: `src/systems/worldforge/fmg/routes-generator.ts`
 - Modify: `src/systems/worldforge/artifacts.ts` (AtlasRoute.kind, RegionRoad.kind)
 - Modify: `src/systems/worldforge/adapter/atlasArtifact.ts` (mapRouteGroup)
-- Modify: `src/systems/worldforge/region/generateRegion.ts` (kind/width mapping — mechanical part only; 3D look lands in Task 9)
+- Modify: `src/systems/worldforge/region/generateRegion.ts` (kind/width mapping - mechanical part only; 3D look lands in Task 9)
 - Test: extend the existing FMG world test that asserts routes (find it: `rg -n "routes" src/systems/worldforge/fmg/__tests__ --glob "*.test.ts" -l`; the known one is `fmgWorld.test.ts` which reads `r.cells ?? r.points.map(p => p[2])`)
 
 **Interfaces:**
 - Consumes: `ROAD_BURG_MIN_POPULATION` from `roadTunables` (Task 1).
 - Produces:
-  - `Route.group: 'highways' | 'roads' | 'trails' | 'paths' | 'searoutes'` (paths group arrives here; its generator arrives Task 7 — the union includes it now so types settle once).
+  - `Route.group: 'highways' | 'roads' | 'trails' | 'paths' | 'searoutes'` (paths group arrives here; its generator arrives Task 7 - the union includes it now so types settle once).
   - `AtlasRoute.kind: 'highway' | 'road' | 'trail' | 'path' | 'searoute'`.
   - `RegionRoad.kind: 'highway' | 'road' | 'trail' | 'path'`.
 
@@ -669,7 +669,7 @@ it('is deterministic: same seed regenerates identical route groups + cells', () 
 });
 ```
 
-(Adapt fixture/regenerate names to the file's helpers. If generation there is expensive, reuse its existing single world const — determinism can compare two RoutesModule.generate() runs over structuredClone'd packs instead.)
+(Adapt fixture/regenerate names to the file's helpers. If generation there is expensive, reuse its existing single world const - determinism can compare two RoutesModule.generate() runs over structuredClone'd packs instead.)
 
 Run to see FAIL (`highways` group doesn't exist yet).
 
@@ -678,7 +678,7 @@ Run to see FAIL (`highways` group doesn't exist yet).
 In `routes-generator.ts`:
 
 1. Widen the union: `group: "highways" | "roads" | "trails" | "paths" | "searoutes"`.
-2. `generateMainRoads` is unchanged logic — but its output routes become group `highways` (see step 4).
+2. `generateMainRoads` is unchanged logic - but its output routes become group `highways` (see step 4).
 3. `generateTrails` splits per Urquhart edge by burg importance. Replace the method with:
 
 ```ts
@@ -744,7 +744,7 @@ In `routes-generator.ts`:
 5. Update the group-keyed helpers:
    - `hasRoad`: `return route.group === 'roads' || route.group === 'highways';`
    - `getConnectivityRate` map: `{ highways: 0.25, roads: 0.2, trails: 0.1, paths: 0.05, searoutes: 0.2, default: 0.1 }`.
-6. Grep for other `group ===` / `'roads'`-literal consumers of pack.routes and fix intent-preserving (`rg -n "'roads'|\"roads\"|'trails'|\"trails\"" src --glob "!**/__tests__/**"` — expected hits: atlasDraw.ts, atlasSvg.ts/AtlasLayers.tsx (Task 8 restyles them, but add `highways`→road-style and `paths`→trail-style fallbacks NOW so the map never drops routes between tasks), generateRegion.ts (step 3 below), atlasArtifact.ts (step 3), multiModalAtlasGraph `searoutes` (untouched), burg/markers generators if any (map `roads|highways` where the old intent was "on a main road")).
+6. Grep for other `group ===` / `'roads'`-literal consumers of pack.routes and fix intent-preserving (`rg -n "'roads'|\"roads\"|'trails'|\"trails\"" src --glob "!**/__tests__/**"` - expected hits: atlasDraw.ts, atlasSvg.ts/AtlasLayers.tsx (Task 8 restyles them, but add `highways`->road-style and `paths`->trail-style fallbacks NOW so the map never drops routes between tasks), generateRegion.ts (step 3 below), atlasArtifact.ts (step 3), multiModalAtlasGraph `searoutes` (untouched), burg/markers generators if any (map `roads|highways` where the old intent was "on a main road")).
 
 - [ ] **Step 3: Artifact chain**
 
@@ -761,7 +761,7 @@ function mapRouteGroup(group: RouteGroup): AtlasRoute['kind'] {
 }
 ```
 
-  (If `RouteGroup` is a named type import, widen it at its source — it must already reference the Route union.)
+  (If `RouteGroup` is a named type import, widen it at its source - it must already reference the Route union.)
 - `generateRegion.ts` (the `route.group === 'searoutes'` skip stays; the kind/width lines become):
 
 ```ts
@@ -776,7 +776,7 @@ function mapRouteGroup(group: RouteGroup): AtlasRoute['kind'] {
 
 - [ ] **Step 4: Run tests**
 
-Run the FMG world test file + `npx vitest run src/systems/worldforge` — new cases PASS; fix any group-literal pins in other worldforge tests the same intent-preserving way. `npx tsc --noEmit` — the compiler is the safety net that finds every remaining `'road' | 'trail' | 'searoute'` consumer; chase every new error to done.
+Run the FMG world test file + `npx vitest run src/systems/worldforge` - new cases PASS; fix any group-literal pins in other worldforge tests the same intent-preserving way. `npx tsc --noEmit` - the compiler is the safety net that finds every remaining `'road' | 'trail' | 'searoute'` consumer; chase every new error to done.
 
 ---
 
@@ -786,14 +786,14 @@ Run the FMG world test file + `npx vitest run src/systems/worldforge` — new ca
 - Modify: `src/systems/travel/TravelNavigation.ts` (dcOverride param)
 - Modify: `src/systems/travel/navDrift.ts` (nav-info fn, cause)
 - Modify: `src/components/MapPane.tsx` (two call sites swap in `buildNavInfoFn`)
-- Modify: `src/App.tsx` (drift announcement wording by cause — find it: `rg -n "driftDirection" src/App.tsx`)
+- Modify: `src/App.tsx` (drift announcement wording by cause - find it: `rg -n "driftDirection" src/App.tsx`)
 - Test: `rg -l "deriveNavDrift" src --glob "*.test.ts"` (extend the existing navDrift test file; if none exists create `src/systems/travel/__tests__/navDrift.test.ts`)
 
 **Interfaces:**
 - Consumes: `buildNavInfoFn` (Task 3).
 - Produces:
-  - `checkNavigation(survivalCheckResult, terrain, pace, hasMapOrCompass, intendedDirection, rng, dcOverride?: number)` — when `dcOverride` is a number it replaces the terrain-table DC (0 still auto-succeeds).
-  - `deriveNavDrift(navInfoOf: (cell: number) => { dc: number; cause: 'road' | 'wilds' | 'faint-path' }, routeCells, routePoints, survivalModifier, rng): NavDrift | undefined` — governing DC = max over route cells; `NavDrift` gains `cause: 'wilds' | 'faint-path'`.
+  - `checkNavigation(survivalCheckResult, terrain, pace, hasMapOrCompass, intendedDirection, rng, dcOverride?: number)` - when `dcOverride` is a number it replaces the terrain-table DC (0 still auto-succeeds).
+  - `deriveNavDrift(navInfoOf: (cell: number) => { dc: number; cause: 'road' | 'wilds' | 'faint-path' }, routeCells, routePoints, survivalModifier, rng): NavDrift | undefined` - governing DC = max over route cells; `NavDrift` gains `cause: 'wilds' | 'faint-path'`.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -815,7 +815,7 @@ describe('deriveNavDrift DC ladder (faint forest paths)', () => {
     const navInfo = (cell: number) =>
       cell === 2 ? { dc: 12 as const, cause: 'faint-path' as const } : { dc: 0 as const, cause: 'road' as const };
     // Find a seed that rolls low enough to fail DC 12 with +0 Survival:
-    // seed 3 → first nextInt(1,21) is deterministic; scan a few seeds in the test.
+    // seed 3 -> first nextInt(1,21) is deterministic; scan a few seeds in the test.
     let sawLost = false;
     for (let seed = 1; seed <= 40 && !sawLost; seed++) {
       const drift = deriveNavDrift(navInfo, [1, 2, 3], pts, 0, new SeededRandom(seed));
@@ -842,7 +842,7 @@ Run: FAIL (deriveNavDrift still takes a terrain fn; no `cause`).
 
 - [ ] **Step 2: Implement**
 
-`TravelNavigation.ts` — add the optional param and use it for the DC:
+`TravelNavigation.ts` - add the optional param and use it for the DC:
 
 ```ts
 export function checkNavigation(
@@ -854,14 +854,14 @@ export function checkNavigation(
   rng: SeededRandom = new SeededRandom(Math.random()),
   dcOverride?: number,
 ): NavigationResult {
-  // 1. Determine DC — the graded road system passes an explicit per-trip DC
+  // 1. Determine DC - the graded road system passes an explicit per-trip DC
   // (faint forest paths etc.); the terrain table remains the legacy default.
   const dc = dcOverride ?? TERRAIN_NAVIGATION_DCS[terrain];
 ```
 
-(rest of the function body unchanged — the `dc === 0` auto-success path now also covers override 0.)
+(rest of the function body unchanged - the `dc === 0` auto-success path now also covers override 0.)
 
-`navDrift.ts` — new signature + cause:
+`navDrift.ts` - new signature + cause:
 
 ```ts
 export interface NavDrift {
@@ -887,7 +887,7 @@ export function deriveNavDrift(
     const info = navInfoOf(c);
     if (info.dc > dc) { dc = info.dc; cause = info.cause; }
   }
-  if (dc <= 0) return undefined; // maintained the whole way — exempt, no roll
+  if (dc <= 0) return undefined; // maintained the whole way - exempt, no roll
   const start = routePoints[0];
   const end = routePoints[routePoints.length - 1];
   const direction = bearingToDirection(end[0] - start[0], end[1] - start[1]);
@@ -905,13 +905,13 @@ export function deriveNavDrift(
 
 (Update the doc comment above it: the road exemption now reads "any all-maintained route (highway/road, or visible trail) yields DC 0".)
 
-`MapPane.tsx` — both call sites (search `deriveNavDrift(`): replace the first argument `buildAtlasTerrainFn(worldforgeAtlas)` with `buildNavInfoFn(worldforgeAtlas)` and add `buildNavInfoFn` to the existing import from `atlasTravelGraph`. Check whether `buildAtlasTerrainFn` has remaining MapPane uses (provisioning ring) — keep its import if so.
+`MapPane.tsx` - both call sites (search `deriveNavDrift(`): replace the first argument `buildAtlasTerrainFn(worldforgeAtlas)` with `buildNavInfoFn(worldforgeAtlas)` and add `buildNavInfoFn` to the existing import from `atlasTravelGraph`. Check whether `buildAtlasTerrainFn` has remaining MapPane uses (provisioning ring) - keep its import if so.
 
-`App.tsx` — find the navDrift announcement (`rg -n "driftDirection|navDrift" src/App.tsx`) and word by cause (keep the existing message structure; exact insertion depends on what's there — the rule: `cause === 'faint-path'` prefixes "The path fades among the trees — you lose the trail", else keep the current lost-in-the-wilds wording; both keep drift direction + hours lost).
+`App.tsx` - find the navDrift announcement (`rg -n "driftDirection|navDrift" src/App.tsx`) and word by cause (keep the existing message structure; exact insertion depends on what's there - the rule: `cause === 'faint-path'` prefixes "The path fades among the trees - you lose the trail", else keep the current lost-in-the-wilds wording; both keep drift direction + hours lost).
 
 - [ ] **Step 3: Run tests**
 
-`npx vitest run src/systems/travel` — navDrift + TravelNavigation suites PASS (update any test pinning the old 4-arg deriveNavDrift signature). `npx tsc --noEmit` — chase every caller the compiler flags (there should be exactly the two MapPane call sites).
+`npx vitest run src/systems/travel` - navDrift + TravelNavigation suites PASS (update any test pinning the old 4-arg deriveNavDrift signature). `npx tsc --noEmit` - chase every caller the compiler flags (there should be exactly the two MapPane call sites).
 
 ---
 
@@ -922,8 +922,8 @@ export function deriveNavDrift(
 - Test: same FMG world test file as Task 5 (append)
 
 **Interfaces:**
-- Consumes: `PATH_SPUR_PERCENT`, `PATH_SPUR_MAX_DEPTH` (Task 1); `FOREST_BIOMES`/`DEEP_FOREST_BIOMES` names via biome ids 5–9.
-- Produces: `pack.routes` entries with `group: 'paths'` — faint foot-tracks from villages into nearby forest.
+- Consumes: `PATH_SPUR_PERCENT`, `PATH_SPUR_MAX_DEPTH` (Task 1); `FOREST_BIOMES`/`DEEP_FOREST_BIOMES` names via biome ids 5-9.
+- Produces: `pack.routes` entries with `group: 'paths'` - faint foot-tracks from villages into nearby forest.
 
 - [ ] **Step 1: Write the failing test (append to the FMG world test)**
 
@@ -943,7 +943,7 @@ it('generates village forest-spur paths that start at a burg and end in forest',
 });
 ```
 
-Run: FAIL (no `paths` group yet). NOTE: if the fixture world genuinely has no villages adjacent to forest, relax to a dedicated small crafted pack — but try the real world first; FMG defaults are forest-rich.
+Run: FAIL (no `paths` group yet). NOTE: if the fixture world genuinely has no villages adjacent to forest, relax to a dedicated small crafted pack - but try the real world first; FMG defaults are forest-rich.
 
 - [ ] **Step 2: Implement `generatePaths`**
 
@@ -1015,7 +1015,7 @@ Add to `RoutesModule` (uses only existing ctx fields; deterministic via integer 
   }
 ```
 
-Imports: add `PATH_SPUR_PERCENT, PATH_SPUR_MAX_DEPTH` to the Task-5 `roadTunables` import. In `createRoutesData`, after the trails emit: `const paths = this.generatePaths(connections);` then `emit(paths, 'paths');` (order: after trails, before searoutes — spurs must not steal trail corridors).
+Imports: add `PATH_SPUR_PERCENT, PATH_SPUR_MAX_DEPTH` to the Task-5 `roadTunables` import. In `createRoutesData`, after the trails emit: `const paths = this.generatePaths(connections);` then `emit(paths, 'paths');` (order: after trails, before searoutes - spurs must not steal trail corridors).
 
 - [ ] **Step 3: Run tests**
 
@@ -1023,7 +1023,7 @@ FMG world test file PASS (including Task 5's determinism case, which now covers 
 
 ---
 
-### Task 8: 2D visual language — shared stroke styles + forest fade (canvas + SVG)
+### Task 8: 2D visual language - shared stroke styles + forest fade (canvas + SVG)
 
 **Files:**
 - Create: `src/components/Worldforge/routeMapStyle.ts`
@@ -1033,7 +1033,7 @@ FMG world test file PASS (including Task 5's determinism case, which now covers 
 - Test: `src/components/Worldforge/__tests__/routeMapStyle.test.ts` (create; check the dir's existing test location convention first: `rg -l "buildRoutes" src --glob "*.test.ts"`)
 
 **Interfaces:**
-- Consumes: `routeVisibility` (Task 1) — via biome name per point cellId.
+- Consumes: `routeVisibility` (Task 1) - via biome name per point cellId.
 - Produces:
   - `ROUTE_STROKES: Record<'highway'|'road'|'trail'|'path'|'searoute', { stroke: string; width: number; dash?: string; casing?: { stroke: string; width: number } }>`
   - `VISIBILITY_OPACITY: Record<RouteVisibility, number>` = `{ visible: 1, faint: 0.35, overgrown: 0.2 }` with paths using base 0.55 when visible (see code).
@@ -1088,11 +1088,11 @@ Run: FAIL (module missing).
 
 ```ts
 /**
- * @file routeMapStyle.ts — ONE stroke language for routes on the 2D atlas.
+ * @file routeMapStyle.ts - ONE stroke language for routes on the 2D atlas.
  *
  * Both renderers (canvas atlasDraw + SVG AtlasLayers via buildRoutes) read this
  * table, so the map cannot show two different road languages. Visibility fade
- * comes from routeTerrain.routeVisibility — the same classification the travel
+ * comes from routeTerrain.routeVisibility - the same classification the travel
  * mechanics use, so "looks faint" and "is hard to follow" always agree.
  */
 import type { RouteVisibility } from '../../systems/worldforge/travel/routeTerrain';
@@ -1123,7 +1123,7 @@ export function routeOpacity(kind: string, visibility: RouteVisibility): number 
   return KIND_BASE_OPACITY[kind] ?? 1;
 }
 
-/** FMG plural group → atlas singular kind (render-side mirror of the adapter). */
+/** FMG plural group -> atlas singular kind (render-side mirror of the adapter). */
 export function groupToKind(group: string): keyof typeof ROUTE_STROKES {
   if (group === 'highways') return 'highway';
   if (group === 'roads') return 'road';
@@ -1159,7 +1159,7 @@ export function segmentRouteByVisibility(
 }
 ```
 
-WAIT — the segmentation above has a subtle off-by-one: the boundary point gets pushed into the old run AND starts the new run, which is exactly the sharing the test asserts (`segs[0].points.at(-1)` equals `segs[1].points[0]`). Verify against the test's expected arrays; adjust until the test passes EXACTLY as written (the test is the contract; the sketch is a starting point).
+WAIT - the segmentation above has a subtle off-by-one: the boundary point gets pushed into the old run AND starts the new run, which is exactly the sharing the test asserts (`segs[0].points.at(-1)` equals `segs[1].points[0]`). Verify against the test's expected arrays; adjust until the test passes EXACTLY as written (the test is the contract; the sketch is a starting point).
 
 - [ ] **Step 3: Wire the SVG side**
 
@@ -1181,7 +1181,7 @@ export function buildRoutes(atlas: FmgAtlasResult): AtlasSvgRoute[] {
     if (pts.length < 2) continue;
     const kind = groupToKind(r.group ?? 'roads');
     if (kind === 'searoute' || kind === 'highway' || kind === 'road') {
-      // Maintained (or sea) routes never fade — one segment, full polyline.
+      // Maintained (or sea) routes never fade - one segment, full polyline.
       const d = 'M' + pts.map((p) => `${+p[0].toFixed(1)},${+p[1].toFixed(1)}`).join('L');
       out.push({ d, group: r.group ?? 'roads', kind, opacity: routeOpacity(kind, 'visible') });
       continue;
@@ -1196,7 +1196,7 @@ export function buildRoutes(atlas: FmgAtlasResult): AtlasSvgRoute[] {
 }
 ```
 
-  Imports: `groupToKind, routeOpacity, segmentRouteByVisibility` from `../../components/Worldforge/routeMapStyle` — NO: `atlasSvg.ts` is already in `src/components/Worldforge/`, so `./routeMapStyle`; plus `routeVisibility` from `../../systems/worldforge/travel/routeTerrain`.
+  Imports: `groupToKind, routeOpacity, segmentRouteByVisibility` from `../../components/Worldforge/routeMapStyle` - NO: `atlasSvg.ts` is already in `src/components/Worldforge/`, so `./routeMapStyle`; plus `routeVisibility` from `../../systems/worldforge/travel/routeTerrain`.
 
 `AtlasLayers.tsx` routes block becomes:
 
@@ -1224,7 +1224,7 @@ export function buildRoutes(atlas: FmgAtlasResult): AtlasSvgRoute[] {
 Replace the routes block with the shared table + segmentation (same fade rules; canvas uses `ctx.globalAlpha`):
 
 ```ts
-    // 5.2 Routes — tier stroke language + forest fade, shared with the SVG
+    // 5.2 Routes - tier stroke language + forest fade, shared with the SVG
     // renderer via routeMapStyle (one language, two backends).
     if (pack.routes) {
       const biomeOf = (cellId: number): string =>
@@ -1269,23 +1269,23 @@ Replace the routes block with the shared table + segmentation (same fade rules; 
     }
 ```
 
-Check what `biomesData` is called inside `atlasDraw.ts` scope (`rg -n "biomesData" src/components/Worldforge/atlasDraw.ts`) — thread it from the atlas argument the way the file already accesses pack; adapt the two lookups to the file's local names. Import the four routeMapStyle symbols + `routeVisibility` + `RouteStroke` type.
+Check what `biomesData` is called inside `atlasDraw.ts` scope (`rg -n "biomesData" src/components/Worldforge/atlasDraw.ts`) - thread it from the atlas argument the way the file already accesses pack; adapt the two lookups to the file's local names. Import the four routeMapStyle symbols + `routeVisibility` + `RouteStroke` type.
 
 - [ ] **Step 5: Run tests + type check**
 
-`npx vitest run src/components/Worldforge/__tests__/routeMapStyle.test.ts` PASS. `rg -l "buildRoutes" src --glob "*.test.ts"` → run those files; update pinned expectations (AtlasSvgRoute gained fields; old group-only assertions still hold because `group` stayed). `npx tsc --noEmit`.
+`npx vitest run src/components/Worldforge/__tests__/routeMapStyle.test.ts` PASS. `rg -l "buildRoutes" src --glob "*.test.ts"` -> run those files; update pinned expectations (AtlasSvgRoute gained fields; old group-only assertions still hold because `group` stayed). `npx tsc --noEmit`.
 
 ---
 
-### Task 9: 3D — tier ribbons + patchy faint paths (`groundChunkLoader.ts`)
+### Task 9: 3D - tier ribbons + patchy faint paths (`groundChunkLoader.ts`)
 
 **Files:**
 - Modify: `src/systems/worldforge/bridge/groundChunkLoader.ts` (`regionPolylinesToGround` + the two call sites at the `world` assembly)
-- Test: find this file's test home first: `rg -l "regionPolylinesToGround|groundChunkLoader" src --glob "*.test.ts"`. If none tests this fn (likely — it's private), EXPORT it for testing (`export` keyword; the file already exports many helpers) and create `src/systems/worldforge/bridge/__tests__/regionRoadRibbons.test.ts`.
+- Test: find this file's test home first: `rg -l "regionPolylinesToGround|groundChunkLoader" src --glob "*.test.ts"`. If none tests this fn (likely - it's private), EXPORT it for testing (`export` keyword; the file already exports many helpers) and create `src/systems/worldforge/bridge/__tests__/regionRoadRibbons.test.ts`.
 
 **Interfaces:**
 - Consumes: `ROAD_3D_TIERS`, `PATH_3D_KEEP_POINTS`, `PATH_3D_SKIP_POINTS` (Task 1); `RegionRoad.kind` incl. `highway`/`path` (Task 5).
-- Produces: `regionPolylinesToGround(lines: Array<{ centerline: Array<[number, number]>; widthFt: number; kind?: 'highway' | 'road' | 'trail' | 'path' }>, local: LocalArtifact): GroundPolyline[]` — kind-aware colorHex + patchy path splitting. Rivers keep calling it WITHOUT kind (unchanged behavior).
+- Produces: `regionPolylinesToGround(lines: Array<{ centerline: Array<[number, number]>; widthFt: number; kind?: 'highway' | 'road' | 'trail' | 'path' }>, local: LocalArtifact): GroundPolyline[]` - kind-aware colorHex + patchy path splitting. Rivers keep calling it WITHOUT kind (unchanged behavior).
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1323,7 +1323,7 @@ describe('regionPolylinesToGround (tier ribbons)', () => {
     const totalPts = out.reduce((s, p) => s + p.points.length, 0);
     expect(totalPts).toBeLessThan(n);
     for (const p of out) expect(p.points.length).toBeGreaterThanOrEqual(2);
-    // Deterministic: same input → same patches.
+    // Deterministic: same input -> same patches.
     const again = regionPolylinesToGround([line(n, 'path')], local);
     expect(JSON.stringify(again)).toBe(JSON.stringify(out));
   });
@@ -1341,7 +1341,7 @@ Run: FAIL (`regionPolylinesToGround` not exported; no colorHex/patching).
 Replace the function (and export it):
 
 ```ts
-/** Region polylines (feet, world space) → ground meters, kept if any point
+/** Region polylines (feet, world space) -> ground meters, kept if any point
  * lands inside the artifact window (fine clipping happens per chunk). Route
  * polylines carry `kind`, which sets the tier tint (ROAD_3D_TIERS) and breaks
  * faint paths into a keep/skip patch cycle so they read as broken wear-lines.
@@ -1373,7 +1373,7 @@ export function regionPolylinesToGround(
     }));
     const colorHex = line.kind ? ROAD_3D_TIERS[line.kind].colorHex : undefined;
     if (line.kind === 'path') {
-      // Faint path: deterministic keep/skip cycle → broken wear-line patches.
+      // Faint path: deterministic keep/skip cycle -> broken wear-line patches.
       const cycle = PATH_3D_KEEP_POINTS + PATH_3D_SKIP_POINTS;
       for (let start = 0; start < pts.length; start += cycle) {
         push(pts.slice(start, start + PATH_3D_KEEP_POINTS), line.widthFt, colorHex);
@@ -1386,9 +1386,9 @@ export function regionPolylinesToGround(
 }
 ```
 
-Imports: `import { ROAD_3D_TIERS, PATH_3D_KEEP_POINTS, PATH_3D_SKIP_POINTS } from '../travel/roadTunables';` and `RegionRoad` type from `../artifacts` (check what the file already imports from artifacts and extend that import). Verify `GroundPolyline` already has optional `colorHex` (`rg -n "colorHex" src/systems/worldforge/bridge/groundChunkLoader.ts` — town streets already push it; if the type lacks it, add `colorHex?: string`).
+Imports: `import { ROAD_3D_TIERS, PATH_3D_KEEP_POINTS, PATH_3D_SKIP_POINTS } from '../travel/roadTunables';` and `RegionRoad` type from `../artifacts` (check what the file already imports from artifacts and extend that import). Verify `GroundPolyline` already has optional `colorHex` (`rg -n "colorHex" src/systems/worldforge/bridge/groundChunkLoader.ts` - town streets already push it; if the type lacks it, add `colorHex?: string`).
 
-Call sites: the `world` assembly (`rivers: region ? regionPolylinesToGround(region.rivers, local) : []` and `roads: [...regionPolylinesToGround(region.roads, local), ...]`) — `region.roads` items now naturally carry `kind` (RegionRoad), rivers don't; NO call-site change needed beyond types compiling.
+Call sites: the `world` assembly (`rivers: region ? regionPolylinesToGround(region.rivers, local) : []` and `roads: [...regionPolylinesToGround(region.roads, local), ...]`) - `region.roads` items now naturally carry `kind` (RegionRoad), rivers don't; NO call-site change needed beyond types compiling.
 
 - [ ] **Step 3: Run tests + type check**
 
@@ -1400,12 +1400,12 @@ Call sites: the `world` assembly (`rivers: region ? regionPolylinesToGround(regi
 
 **Files:**
 - Modify: `src/systems/travel/travelReadout.ts` (formatRouteSummary option)
-- Modify: `src/components/MapPane.tsx` + `src/components/Worldforge/AtlasSvgView.tsx` (call sites — find them: `rg -n "formatRouteSummary" src`)
+- Modify: `src/components/MapPane.tsx` + `src/components/Worldforge/AtlasSvgView.tsx` (call sites - find them: `rg -n "formatRouteSummary" src`)
 - Test: `rg -l "formatRouteSummary" src --glob "*.test.ts"` (extend, or create `src/systems/travel/__tests__/travelReadout.test.ts`)
 
 **Interfaces:**
 - Consumes: `buildNavInfoFn` (Task 3).
-- Produces: `formatRouteSummary(route, transportLabel = 'on foot', opts?: { faintPath?: boolean }): string` — appends `· follows a faint forest path` when set; and `routeHasFaintPath(navInfoOf, cells): boolean` exported from `navDrift.ts`.
+- Produces: `formatRouteSummary(route, transportLabel = 'on foot', opts?: { faintPath?: boolean }): string` - appends `· follows a faint forest path` when set; and `routeHasFaintPath(navInfoOf, cells): boolean` exported from `navDrift.ts`.
 
 - [ ] **Step 1: Failing test**
 
@@ -1447,7 +1447,7 @@ export function formatRouteSummary(
 `navDrift.ts` (append):
 
 ```ts
-/** True when any cell of the route is a faint/overgrown path — the readout
+/** True when any cell of the route is a faint/overgrown path - the readout
  * warns the player BEFORE they commit to a trip that can lose the trail. */
 export function routeHasFaintPath(
   navInfoOf: (cell: number) => { dc: number; cause: 'road' | 'wilds' | 'faint-path' },
@@ -1457,9 +1457,9 @@ export function routeHasFaintPath(
 }
 ```
 
-Call sites: wherever MapPane/AtlasSvgView call `formatRouteSummary(route, label)` for a LAND route with atlas in scope, pass `{ faintPath: routeHasFaintPath(buildNavInfoFn(worldforgeAtlas), route.cells) }` (memoize the navInfo fn once per atlas next to the existing travel memos: `const navInfoOf = useMemo(() => worldforgeAtlas ? buildNavInfoFn(worldforgeAtlas) : null, [worldforgeAtlas])`). Where the summary is built in `AtlasSvgView` without the atlas, thread the boolean in as a prop from MapPane — follow whichever direction the existing `formatRouteSummary` data already flows (read the call site; the summary string may already be built in MapPane and passed down).
+Call sites: wherever MapPane/AtlasSvgView call `formatRouteSummary(route, label)` for a LAND route with atlas in scope, pass `{ faintPath: routeHasFaintPath(buildNavInfoFn(worldforgeAtlas), route.cells) }` (memoize the navInfo fn once per atlas next to the existing travel memos: `const navInfoOf = useMemo(() => worldforgeAtlas ? buildNavInfoFn(worldforgeAtlas) : null, [worldforgeAtlas])`). Where the summary is built in `AtlasSvgView` without the atlas, thread the boolean in as a prop from MapPane - follow whichever direction the existing `formatRouteSummary` data already flows (read the call site; the summary string may already be built in MapPane and passed down).
 
-- [ ] **Step 3: Run tests + type check** — the extended test file PASSes; `npx tsc --noEmit` clean; `npx vitest run src/systems/travel`.
+- [ ] **Step 3: Run tests + type check** - the extended test file PASSes; `npx tsc --noEmit` clean; `npx vitest run src/systems/travel`.
 
 ---
 
@@ -1474,21 +1474,23 @@ npx vitest run src/systems/worldforge src/systems/travel src/components/Worldfor
 npx tsc --noEmit
 ```
 
-Every failure must be traceable to an intended behavior change (graded speeds, tier vocabulary) — fix tests intent-preserving; fix code where the test caught a real bug.
+Every failure must be traceable to an intended behavior change (graded speeds, tier vocabulary) - fix tests intent-preserving; fix code where the test caught a real bug.
 
-- [ ] **Step 2: 2D visual eyeball (MANDATORY — goldens alone insufficient)**
+- [ ] **Step 2: 2D visual eyeball (MANDATORY - goldens alone insufficient)**
 
-Start the dev server via the Browser pane (launch.json config), open the game's world map (Routes layer defaults ON), zoom a region with capitals + forest. Verify by eye: highways read as cased trunk lines, roads solid brown, trails dashed gray, paths dotted and dissolving where they enter forest. Screenshot → send to Remy.
+Start the dev server via the Browser pane (launch.json config), open the game's world map (Routes layer defaults ON), zoom a region with capitals + forest. Verify by eye: highways read as cased trunk lines, roads solid brown, trails dashed gray, paths dotted and dissolving where they enter forest. Screenshot -> send to Remy.
 
 - [ ] **Step 3: 3D visual eyeball**
 
-Use the shoot.mjs rig (`.agent/3d-visual-quality/` conventions; `window.__bm3dCam` hook is for battlemap — for the ground world use the established world3d capture recipe) OR in-browser: enter 3D near a burg with a road, verify rural ribbons show tier tints and any path shows as broken patches. Screenshot → send to Remy.
+Use the shoot.mjs rig (`.agent/3d-visual-quality/` conventions; `window.__bm3dCam` hook is for battlemap - for the ground world use the established world3d capture recipe) OR in-browser: enter 3D near a burg with a road, verify rural ribbons show tier tints and any path shows as broken patches. Screenshot -> send to Remy.
 
 - [ ] **Step 4: Travel-time sanity check in-game**
 
-In travel mode, hover a destination along a highway vs the same distance off-road; the readout must show the highway trip meaningfully faster (≈1.5× speed on-road vs graded biome off-road). Hover a route crossing a faint path → summary shows the warning line.
+In travel mode, hover a destination along a highway vs the same distance off-road; the readout must show the highway trip meaningfully faster (≈1.5x speed on-road vs graded biome off-road). Hover a route crossing a faint path -> summary shows the warning line.
 
 - [ ] **Step 5: Docs + tracker**
 
 - Update the spec's `## Open` with anything discovered.
-- Add the planmap topic (`public/planmap/topics.json` — Agora-lock it first; it is frequently locked by others): campaign `travel`, id `road-systems`, status `active`, link to the spec, features per slice.
+- Add the planmap topic (`public/planmap/topics.json` - Agora-lock it first; it is frequently locked by others): campaign `travel`, id `road-systems`, status `active`, link to the spec, features per slice.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-11-road-systems.md","sha256WithoutMarker":"0d83cbecb0c2411a026ff008c4f62d715f93e5523cfe4fc15690bd017e2d9913","markedAtUtc":"2026-08-09T20:22:07.620Z"} -->

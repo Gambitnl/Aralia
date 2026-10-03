@@ -15,8 +15,8 @@
 // @dependencies-end
 
 import { useCallback, useEffect, useState } from "react";
-import { fetchWithTimeout } from "../../../utils/networkUtils";
-import { logger } from "../../../utils/logger";
+import { fetchWithTimeout } from "../../../utils/context";
+import { logger } from "../../../utils/core";
 import { assetUrl } from "../../../config/env";
 import { SpellValidator } from "../../../systems/spells/validation/spellValidator";
 import { fetchSpellGateBootstrap } from "./spellGateBootstrap";
@@ -109,16 +109,13 @@ export const useSpellGateChecks = (
             const artifactEntry = gateArtifact?.spells?.[id];
 
             try {
-              // TODO #87(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-              // TODO #88(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
               const spell = await fetchWithTimeout<unknown>(assetUrl(entry.path), { timeoutMs: 15000 });
               fetchedSpell = spell;
 
               const parsed = SpellValidator.safeParse(spell);
               if (parsed.success) {
-                // DEBT: Cast to any to probe optional legacy property on generic Spell type.
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                isLegacySpell = (spell as any)?.legacy === true;
+                // Read optional legacy flag directly from validated Spell schema payload
+                isLegacySpell = parsed.data.legacy === true;
               } else {
                 schemaIssues = parsed.error.issues.map((issue) => {
                   const pathLabel = issue.path.length > 0 ? issue.path.join('.') : '(root)';

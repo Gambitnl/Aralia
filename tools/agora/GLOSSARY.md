@@ -259,3 +259,127 @@ Captured 2026-07-06 as plan-map node `combat-chronicles` (parked).
 everyone: NPCs gray, die and are succeeded, the player ages and can
 continue as an heir, and a dead character's deeds become world history.
 Captured 2026-07-06 as node `generational-time` (parked).
+
+**Far shells** — the two static backdrop terrain rings that replace the 3D
+ground mode's visible world edge (2026-07-21): a "region shell" built from
+the region heightfield (continues terrain to ~7.6 km, seam-blended to the
+streamed window) and a "horizon shell" from the atlas grid heightmap
+(distant ranges to ~20 km). Built once per window entry in
+src/systems/worldforge/bridge/farShells.ts; no streaming, no per-frame cost.
+
+**Clump field** — the noise field that decides where plants crowd and where
+the ground stays open (2026-08-03). Three octaves multiplied together, read
+in world feet so a thicket carries on across window borders. It replaced a
+single-octave on/off gate that only ran in dense forest. Lives in
+src/systems/worldforge/forests/clumpField.ts.
+
+**Dens** — how far inside a clump a plant stands: 0 at the ragged edge of a
+thicket, 1 well inside it. Stored on each placed feature. The 3D loader
+scales plants by it, so the biggest trees stand in the middle of a stand and
+the seedlings ring the outside.
+
+**Water notebook** — the world-scale water record (designed 2026-08-10, not
+yet built): far-away water is numbers, not simulation. Every lake and sea
+keeps one fullness number, every river keeps one flow-per-second number,
+and the whole notebook always sums to the same total. The formal name in
+code discussion is the "water graph"; the notebook is the plain word for it.
+
+**Doorstep** — the height of a lake's exit (formally the "sill"). A lake
+feeds its river only while its water stands higher than its doorstep.
+Water below the doorstep stops the river, and the riverbed downstream
+dries by itself — drought as bookkeeping, not simulation.
+
+**Reach** — one stretch of river between two points on the water notebook,
+carrying a single flow-per-second number. A river is a chain of reaches.
+
+**Sky bucket** — the notebook's closing entry (formally the "atmosphere
+term"): what the sun lifts out of seas and lakes, and what rain pays back
+to the mountains. It is printed like every other term, so the world's
+water identity stays exact — the same honesty rule as the sandbox's
+"unpictured" line.
+
+**Live window** — the area around the player where water is real, visible
+and simulated (sheet, curtains, droplets). The notebook feeds its edges:
+inflow walks in at the upstream reach's rate, and whatever leaves is
+written back out through the boundary ledger, so window and notebook can
+never disagree about a cubic meter.
+
+**Noise field** — a recipe that turns a position into a smooth random value:
+ask at the same spot, get the same answer, and nearby spots get nearby
+answers. It is how the world varies without storing the variation — the
+clump field decides where plants crowd with one, the ground grain speckles
+cut faces with one, and the curtain jitter roughens waterfalls with one.
+Layering several at different scales (octaves) gives detail that reads
+natural at every distance.
+
+## Part Lab (part-quality campaign)
+
+Terms from the Part Lab step (design.html?step=partlab) and
+src/systems/entities3d/three/partVariants.ts, 2026-08-21.
+
+**Part Lab** — the design-preview step that shows one full entity on a
+neutral studio stage and lets a reviewer swap each part slot between its
+candidate builds. It replaced the solo-part mode that sat on top of Entity
+Debug.
+
+**Part slot** — one body region the generator can build in more than one way.
+The slots are hand, head, and foot.
+
+**Part variant** — one candidate build for a slot, named by an id in the
+catalog (for example hand: lofted). The first variant in each slot is the
+shipping build.
+
+**Part choice** — one variant id per slot, passed to the assembler as
+options.parts. Only the skinned smooth biped accepts it; every other body
+throws.
+
+**Base mesh** — a licensed whole-body model the Part Lab can show in place of
+the procedural body, for a side-by-side read. Split per model into
+public/references/basemesh/ and listed in baseMeshCatalog.ts.
+
+## Idea Board navigation
+
+**Idea constellation** — the Idea Board's illustrated research view. It groups
+ideas by concept category or relevant project. A connection means research
+relevance; it does not mean adoption, a dependency, or project ownership.
+
+**Recorded relevance** — a project connection supported by an existing research
+assessment. **Suggested relevance** is a tentative connection awaiting a
+project-specific assessment. Both remain separate from implementation status.
+
+## Live river editor (river scene, 2026-09-29)
+
+Terms from `src/systems/world3d/river/riverLive.ts` and the domain doc
+`docs/architecture/domains/world3d-river-water.md`.
+
+**Live river** — the river scene in a browser: the flow solver runs without
+end in a worker, and the page draws the running water a few times a second.
+The captures still draw the steady field.
+
+**Design s** — the distance along an edited course line that keeps each
+segment's judged length. A moved control point stretches its segments in
+space but not in design s, so the pools and riffles downstream keep their
+places.
+
+**Bed patch** — the change that one edit makes to the ground, the rocks and
+the solver's bed, near the change only. The page applies it in place.
+
+**Carve band** — the part of the valley that an edit shapes again: the edited
+channel and the judged channel, each with 10 m of floodplain, and a 14 m blend
+back to the judged valley.
+
+**Path handle** — a blue handle on a control point of the course line. A drag
+moves the river's path.
+
+**Bank handle** — an amber handle on a bank at a control point. A drag widens
+or narrows the channel there.
+
+**Field frame** — the live solver's smoothed mean field (depth and velocity)
+since the last frame, sent to the flow mapper.
+
+**Flow mapper** — the second worker. It turns each field frame into the flow
+map, the water sheet and the textures that the page draws.
+
+**Top up** — fill the channel to its design water level at once. It replaces
+the water that a narrowed channel lost; the inflow alone needs about 20
+minutes of flow for that.

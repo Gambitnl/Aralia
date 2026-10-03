@@ -8,7 +8,7 @@ import { DamageCommand } from '../../effects/DamageCommand';
 import { HealingCommand } from '../../effects/HealingCommand';
 import { StatusConditionCommand } from '../../effects/StatusConditionCommand';
 import { CommandExecutor } from '../../base/CommandExecutor';
-import { createMockGameState } from '../../../utils/factories';
+import { createMockGameState } from '../../../utils/core';
 import { createMockCombatCharacter } from '../../../utils/core/factories';
 
 // Mock Spells

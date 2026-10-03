@@ -3,13 +3,12 @@
  *
  * Reachable at `?phase=spawnpreview`. This harness exists to make the "player
  * spawning on an ocean tile" bug reproducible and *visible* in isolation, decoupled
- * from live game state. Each reroll:
- *   1. generates a fresh legacy map (`generateMap`, the same call the game uses),
- *   2. applies the real spawn fix (`applyWfSpawnToMap`: unify biomes → resolve a
- *      land/burg spawn → relocate the player tile), then
- *   3. renders the marker through the EXACT MapPane pipeline — the player's
- *      `isPlayerCurrent` grid tile mapped back through the grid↔atlas bridge to a
- *      Voronoi cell, marker placed at that cell's site — over the real atlas.
+ * from live game state. Fully atlas-native (one-worldmap cleanup 2026-08-05 —
+ * no legacy map generation). Each reroll:
+ *   1. resolves the spawn cell (`applyWfSpawnToMap`, the same call the game uses),
+ *   2. audits it against the SAME canonical atlas MapPane renders
+ *      (`getBridgeAtlas(seed)`), then
+ *   3. places the marker at the resolved cell's site over that atlas.
  *
  * A readout panel reports the resolved spawn (seed, grid cell, burg, atlas cell,
  * height, biome) and a big PASS/FAIL: FAIL means the rendered marker sits on a
@@ -26,7 +25,8 @@ import { wfBiomeIndexToLegacyId } from '../../systems/worldforge/local/wfBiomeTo
 import { LOCATIONS, STARTING_LOCATION_ID } from '../../data/world/locations';
 import { BIOMES } from '../../data/biomes';
 import { generateWorldSeed } from '../../utils/random/generateWorldSeed';
-import type { MapData } from '../../types';
+// Grid retirement (agora-608b): the `MapData` import was dead here — spawn
+// auditing reads the Worldforge atlas cells directly, never a tile grid.
 
 const LAND_THRESHOLD = 20;
 

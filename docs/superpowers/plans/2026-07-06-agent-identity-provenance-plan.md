@@ -1,4 +1,4 @@
-# Agent identity and provenance — plan
+# Agent identity and provenance - plan
 
 **Date:** 2026-07-06 (re-scoped the same day, after the command-channel feature shipped)
 **Status:** specced. Partly built.
@@ -15,7 +15,7 @@ read. It bit us this session. When the agent `fable` changed `store.mjs`, findin
 meant grepping the raw journal, because the live roster had already dropped `fable`. Provenance
 should not live only in a log you have to search.
 
-## What already exists — do not rebuild it
+## What already exists - do not rebuild it
 
 fable shipped the role-gated command channel on 2026-07-06. It already covers part of this work.
 
@@ -47,7 +47,7 @@ already exists.
 **How to reach it.** Worked out from `type`. Reach a `claude-session` with `send_message`. Reach a
 `claude-subagent` with `SendMessage`. Reach a `codex` or `gemini` agent through its process or log.
 
-### Example — the master session describing itself
+### Example - the master session describing itself
 
 ```
 handle:      master.desktop
@@ -114,3 +114,5 @@ machines, and any anti-spoofing beyond the current token.
 2. Add `type`, `spawnedBy`, `campaign`, and `cwd` to the record, the server, and the client.
 3. Add `whois`, `lineage`, and `tree`. Extend `whoami`.
 4. Add `retireAgent` and its command.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-06-agent-identity-provenance-plan.md","sha256WithoutMarker":"7f7ab9157d4fff19b9b0e969f06150f10e85ee8dbbd7045bea447dfb82e7f73e","markedAtUtc":"2026-08-09T20:24:28.232Z"} -->

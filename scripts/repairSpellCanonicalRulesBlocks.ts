@@ -30,7 +30,7 @@ import { chromium } from 'playwright';
 // cautious correction pass than to a high-speed crawler.
 // ============================================================================
 
-const REPO_ROOT = 'F:/Repos/Aralia';
+const REPO_ROOT = '.';
 const AUDIT_JSON_PATH = path.join(REPO_ROOT, '.agent', 'roadmap-local', 'spell-validation', 'spell-canonical-rules-audit.json');
 const CORPUS_REPORT_PATH = path.join(REPO_ROOT, '.agent', 'roadmap-local', 'spell-validation', 'spell-corpus-dndbeyond-report.json');
 const MIN_DELAY_MS = 2200;

@@ -314,6 +314,17 @@ export const calculateArmorClass = (character: PlayerCharacter, activeEffects: A
     validEffects.push({ type: 'ac_bonus', value: racialACBonus });
   }
 
+  // 4. Magic AC bonuses from other equipped items (magic body armor's +N,
+  // Ring/Cloak of Protection). The shield's armorClassBonus is already counted
+  // in shieldBonus above, so shields are skipped here. Attunement gates every
+  // one of these bonuses.
+  Object.values(character.equippedItems).forEach(item => {
+    if (!item || !item.armorClassBonus) return;
+    if (item.type === 'armor' && item.armorCategory === 'Shield') return;
+    if (item.requiresAttunement && !item.isAttuned) return;
+    validEffects.push({ type: 'ac_bonus', value: item.armorClassBonus });
+  });
+
   const components: ACComponents = {
     baseAC,
     dexMod,

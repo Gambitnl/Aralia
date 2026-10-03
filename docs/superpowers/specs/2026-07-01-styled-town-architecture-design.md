@@ -1,4 +1,4 @@
-# Styled Procedural Town Architecture — Design
+# Styled Procedural Town Architecture - Design
 
 **Date:** 2026-07-01
 **Status:** Approved by Remy (brainstorm 2026-07-01)
@@ -16,19 +16,19 @@ The 3D ground renderer draws every town the same way regardless of who built it:
 - The town wall is an extruded ribbon (`wallGeometry.ts`) that opens only for
   river water-gates. The plan's **gatehouses** (`adapted.walls.gatehouses`,
   produced by `townEngine.buildWalls`) are never rendered and the wall is SOLID
-  where main streets enter — streets dead-end into stone.
+  where main streets enter - streets dead-end into stone.
 - Docks and bridges render as flat tinted deck slabs (`deckGeometry.ts`) with no
-  support posts, piers, or railings — floating planks.
+  support posts, piers, or railings - floating planks.
 
 ## Decisions (interview, 2026-07-01)
 
-1. **Scope:** all three — road gates, gatehouse structures, dock/bridge polish —
+1. **Scope:** all three - road gates, gatehouse structures, dock/bridge polish -
    PLUS architectural shape/look variety for ordinary buildings, all in this slice.
 2. **Buildings must not be single-form.** Multiple looks and shapes, varying by
    region and architecture style.
 3. **Approach: real modeled assets** (not renderer-only styling, not data-only
    color tables).
-4. **Asset source: procedural model builder** — code assembles multi-part models
+4. **Asset source: procedural model builder** - code assembles multi-part models
    parametrically. No external files, no AI backend dependency, deterministic,
    unlimited variants. (An AI-gen mesh provider is NOT part of this slice.)
 
@@ -40,7 +40,7 @@ New data module `src/systems/worldforge/town/architectureStyle.ts` (sibling of
 `buildingStyle.ts`, same shared-by-2D-and-3D contract).
 
 - Input: the burg's culture **type** from the FMG atlas
-  (`atlas.pack.cultures[burg.culture].type` — values: `Highland`, `Naval`,
+  (`atlas.pack.cultures[burg.culture].type` - values: `Highland`, `Naval`,
   `River`, `Lake`, `Nomadic`, `Hunting`, `Generic`; same lookup path
   `getBurgNamer` already uses, and per the no-fallback directive an unresolvable
   culture THROWS, it does not default).
@@ -50,12 +50,12 @@ New data module `src/systems/worldforge/town/architectureStyle.ts` (sibling of
   - `gatehouseForms`: subset of `twinTowers | tunnelBlock | singleTower`
   - `deckDetail`: post/piling style, railing on/off, arch rise for bridges
   - `wallMaterialTint` for the town rampart
-- Mapping (initial): Highland → stone/slate, Naval + Lake → weathered coastal
-  timber, River → half-timbered riverland, Hunting + Nomadic → rough log/hide,
-  Generic → temperate timber-frame. Table-driven so families are easy to add.
+- Mapping (initial): Highland -> stone/slate, Naval + Lake -> weathered coastal
+  timber, River -> half-timbered riverland, Hunting + Nomadic -> rough log/hide,
+  Generic -> temperate timber-frame. Table-driven so families are easy to add.
 - Determinism: family from culture type only; per-building variant from the
   existing centroid-hash pattern (`townPlanAdapter.centroidHash01`). Same world
-  seed + burg → identical town forever.
+  seed + burg -> identical town forever.
 
 ### 2. Procedural model builder
 
@@ -67,7 +67,7 @@ consumes.
 - **Buildings:** wall block(s) + roof mesh per form (gable = ridge prism, hip =
   pyramid, steep = tall gable, flat = parapet slab) + chimney + family accents
   (e.g. exposed-beam strips for half-timber via vertex-color banding). Storeys
-  and footprint continue to come from the canonical plan — massing stays
+  and footprint continue to come from the canonical plan - massing stays
   identical to 2D; only the shell gets shape.
 - **Caching:** models keyed by `(family, buildingKind, variant)`; a town reuses
   cached variants rather than building one mesh per plot.
@@ -94,7 +94,7 @@ town's style family, oriented along the local wall tangent, taller than
 - `singleTower`: one tower beside the gap
 
 Carried through the chunk data the same way walls/decks are (new
-`gatehouses` field on the ground payload → chunk bundle → mesh builder).
+`gatehouses` field on the ground payload -> chunk bundle -> mesh builder).
 
 ### 5. Dock & bridge upgrade
 
@@ -124,7 +124,7 @@ universal one.
   plot-ID binding regression test (`groundChunkLoader.test.ts`) untouched.
 - Visual (visual-inspection rule): re-run `townIdentityProof.mjs` (2D↔3D
   identity guardrail); 3D screenshots via the headless shoot rig of one
-  Highland, one coastal, one river town — three visibly distinct styles, open
+  Highland, one coastal, one river town - three visibly distinct styles, open
   gates with gatehouses, docks on posts, bridges with piers.
 
 ## Out of scope
@@ -136,7 +136,9 @@ universal one.
 
 ## Guardrails (inherited)
 
-- 2D↔3D town identity must hold — re-run and eyeball the identity proof.
+- 2D↔3D town identity must hold - re-run and eyeball the identity proof.
 - World3DWrapper and groundTowns stay on the same `canonicalArtifactTownForSite`.
 - Master only, no branches/worktrees. Leave work uncommitted (2am snapshots).
 - No fallback paths: unresolvable culture type is an error, not a default style.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-01-styled-town-architecture-design.md","sha256WithoutMarker":"2af1fe884ca1fa05b85876eff3300ce204f6dd88819a35bdfc151177dc2bc887","markedAtUtc":"2026-08-09T20:24:29.247Z"} -->

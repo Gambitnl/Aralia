@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 02/07/2026, 05:31:50
+ * Last Sync: 23/07/2026, 21:24:37
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/SpellArtifact3DMarker.tsx
  * Imports: 1 files
  *
@@ -85,12 +85,20 @@ export const buildSpellMapArtifactMarkers = (
 
   for (const helper of artifacts?.helpers ?? []) {
     if (!helper.active) continue;
+    const followedTarget = helper.remoteSensor?.targetId
+      ? casterById.get(helper.remoteSensor.targetId)
+      : undefined;
+    const helperPosition = followedTarget?.position ?? helper.position;
+    const sensorDescription = helper.remoteSensor
+      ? `, ${helper.remoteSensor.senses?.join(' and ') || 'remote senses'} sensor`
+      : '';
     markers.push({
       id: `helper-${helper.id}`,
       family: 'helper',
       label: normalizeLabel(helper.entityType || helper.kind, 'H'),
-      title: `${sourceName(helper.spellName, helper.spellId)} helper: ${helper.entityType}`,
-      position: helper.position
+      title: `${sourceName(helper.spellName, helper.spellId)} helper: ${helper.entityType}${sensorDescription}`,
+      position: helperPosition,
+      radiusFeet: helper.remoteSensor?.followDistanceFeet
     });
   }
 

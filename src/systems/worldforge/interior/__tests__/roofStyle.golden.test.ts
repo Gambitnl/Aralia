@@ -133,7 +133,9 @@ describe('style-identity holds for other roof-bearing types', () => {
       );
       const anchor = bones(plans[0]);
       for (const p of plans) expect(bones(p)).toBe(anchor);
-      expect(new Set(plans.map((p) => JSON.stringify(p.roof))).size).toBe(3);
+      // Keeps deliberately share flat defensive terraces across cultures.
+      // Climate still changes the cold eave; all three dresses stay distinct.
+      expect(new Set(plans.map((p) => JSON.stringify(p.roof))).size).toBe(type === 'keep' ? 2 : 3);
       expect(new Set(plans.map((p) => JSON.stringify(p.styleResolved))).size).toBe(3);
     });
   }

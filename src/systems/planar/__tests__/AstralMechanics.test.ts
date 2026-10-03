@@ -2,12 +2,16 @@
 import { describe, it, expect, vi } from 'vitest';
 import { AstralMechanics, PsychicWindResult } from '../AstralMechanics';
 import { GameState } from '../../../types/index';
-import * as combatUtils from '../../../utils/combatUtils';
-import { createMockGameState } from '../../../utils/factories';
+import * as rollers from '../../dice/rollers';
+import { createMockGameState } from '../../../utils/core';
 
-// Mock rollDice to control randomness
-vi.mock('../../../utils/combatUtils', () => ({
+// Mock the audited roller the system rolls through (agora-f821.4 moved it
+// off utils/combat), and keep the combat barrel stub the file also needs.
+vi.mock('../../dice/rollers', () => ({
   rollDice: vi.fn(),
+}));
+
+vi.mock('../../../utils/combat', () => ({
   createPlayerCombatCharacter: vi.fn(), // If needed by other imports
 }));
 
@@ -23,7 +27,7 @@ describe('AstralMechanics', () => {
   describe('checkForPsychicWind', () => {
     it('should return no encounter when roll is low', () => {
       // Mock d20 roll < 18
-      vi.mocked(combatUtils.rollDice).mockReturnValueOnce(10);
+      vi.mocked(rollers.rollDice).mockReturnValueOnce(10);
 
       const result = AstralMechanics.checkForPsychicWind();
       expect(result.encountered).toBe(false);
@@ -32,7 +36,7 @@ describe('AstralMechanics', () => {
 
     it('should trigger displacement on encounter roll 1-8', () => {
       // First roll 19 (Encounter triggered), Second roll 5 (Displacement)
-      vi.mocked(combatUtils.rollDice)
+      vi.mocked(rollers.rollDice)
         .mockReturnValueOnce(19) // Encounter check
         .mockReturnValueOnce(5); // Effect check
 
@@ -44,7 +48,7 @@ describe('AstralMechanics', () => {
 
     it('should trigger mental disorientation on encounter roll 9-12', () => {
       // First roll 19 (Encounter triggered), Second roll 10 (Disorientation)
-      vi.mocked(combatUtils.rollDice)
+      vi.mocked(rollers.rollDice)
         .mockReturnValueOnce(19)
         .mockReturnValueOnce(10);
 
@@ -56,7 +60,7 @@ describe('AstralMechanics', () => {
 
     it('should trigger damage on encounter roll 13-20', () => {
       // First roll 19 (Encounter triggered), Second roll 15 (Damage)
-      vi.mocked(combatUtils.rollDice)
+      vi.mocked(rollers.rollDice)
         .mockReturnValueOnce(19)
         .mockReturnValueOnce(15);
 

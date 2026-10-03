@@ -65,6 +65,8 @@ const LS_GROQ_KEY = 'aralia.ai.groqApiKey';
 const LS_GROQ_MODEL = 'aralia.ai.groqModel';
 const LS_GROQ_KEY_STORAGE = 'aralia.ai.groqKeyStorage';
 const LS_GROQ_PROXY_URL = 'aralia.ai.groqProxyUrl';
+/** Prefix for the per-category Ollama model choice (agora-d1c7.1). */
+const LS_OLLAMA_MODEL_PREFIX = 'aralia.ai.ollamaModel.';
 
 type WebStorageKind = 'local' | 'session';
 
@@ -246,4 +248,45 @@ export function getAiProviderSettings(): AiProviderSettings {
     groqProxyUrl: getGroqProxyUrl(),
     hasGroqKey: hasGroqApiKey(),
   };
+}
+
+// ---------------------------------------------------------------------------
+// Ollama model choice — ONE model per task category, no fallback chain
+// (agora-d1c7.1, 2026-09-13, Remy's no-fallback directive). The player picks a
+// model per category in the AI settings; when nothing is picked the category's
+// documented default applies. A missing model is an honest error at call time,
+// never a silent swap to another model.
+// ---------------------------------------------------------------------------
+
+import {
+  OLLAMA_CATEGORY_DEFAULT_MODEL,
+  OLLAMA_MODEL_CATEGORIES,
+  type OllamaModelCategory,
+} from '../../config/llmProviderConfig';
+
+export type { OllamaModelCategory };
+export { OLLAMA_MODEL_CATEGORIES };
+
+/** The player's chosen Ollama model for a category, or null when none is chosen. */
+export function getOllamaModelChoice(category: OllamaModelCategory): string | null {
+  const v = readItem(LS_OLLAMA_MODEL_PREFIX + category);
+  return v && v.trim() ? v.trim() : null;
+}
+
+/** Persist (or clear, with null/empty) the chosen Ollama model for a category. */
+export function setOllamaModelChoice(category: OllamaModelCategory, model: string | null): void {
+  if (!model || !model.trim()) removeItem(LS_OLLAMA_MODEL_PREFIX + category);
+  else writeItem(LS_OLLAMA_MODEL_PREFIX + category, model.trim());
+}
+
+/** The single model a category runs on: the player's choice, else the category default. */
+export function resolveOllamaModel(category: OllamaModelCategory): string {
+  return getOllamaModelChoice(category) ?? OLLAMA_CATEGORY_DEFAULT_MODEL[category];
+}
+
+/** Every category with its resolved model, for settings UIs. */
+export function getOllamaModelChoices(): Record<OllamaModelCategory, { chosen: string | null; resolved: string }> {
+  const out = {} as Record<OllamaModelCategory, { chosen: string | null; resolved: string }>;
+  for (const c of OLLAMA_MODEL_CATEGORIES) out[c] = { chosen: getOllamaModelChoice(c), resolved: resolveOllamaModel(c) };
+  return out;
 }

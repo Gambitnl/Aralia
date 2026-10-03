@@ -11,13 +11,98 @@
  * 3. Managing the dialogue session lifecycle.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 20/09/2026, 21:00:39
+ * Dependents: components/layout/GameModals.tsx, hooks/useConversation.ts
+ * Imports: 12 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { useCallback } from 'react';
 import { GameState, Action } from '../types';
+import type { NPC } from '../types/world';
 import { AppAction } from '../state/actionTypes';
-import { ProcessTopicResult } from '../services/dialogueService';
+import { ProcessTopicResult, buildNpcDialoguePromptContext } from '../services/dialogueService';
 import * as OllamaTextService from '../services/ollamaTextService';
 import { NPCS } from '../data/world/npcs';
 import { sanitizeAIPromptText } from '../utils/core/securityUtils';
+import { topicUnlockKey } from '../systems/facts/worldFactStore';
+import { applySpeechProfile, describeSpeechProfile } from '../systems/social/speechProfile';
+import { buildRumorDialogueContext } from '../systems/intrigue/RumorMillSystem';
+import { buildPropagatedFactDialogueContext } from '../systems/memory/factPropagation';
+import { getGameDay } from '../utils/core';
+
+/**
+ * Resolves a dialogue speaker from BOTH NPC tables (agora-f821.6, deepdive F7).
+ *
+ * `NPCS` is a hand-authored table of six entries. Every town resident and every
+ * opening-situation stranger lives in `gameState.generatedNpcs` instead, and the
+ * session-opening path (`handleNpcInteraction`) and the window
+ * (`GameModals.tsx`) already resolve both tables. This hook used to read only
+ * `NPCS`, so a generated NPC answered every topic with the literal string
+ * `"..."` and its disposition message read "NPC approves of your words."
+ *
+ * `RichNPC extends NPC`, so the widened lookup needs no new shape: generated
+ * NPCs carry `initialPersonalityPrompt` and `speechProfile` already.
+ */
+export const resolveDialogueNpc = (
+  gameState: GameState,
+  npcId: string
+): NPC | undefined => NPCS[npcId] ?? gameState.generatedNpcs?.[npcId];
+
+/**
+ * Prompt-ready lines for the things this NPC knows SECOND-HAND (agora-f821.12,
+ * deepdive findings F8/F9).
+ *
+ * Two of the three unwired dialogue-context builders live here:
+ *  - `buildRumorDialogueContext` — town gossip that has actually reached this
+ *    NPC, after the rumor mill's one-night delay. A stranger outside the town
+ *    has no entry in `reachedNpcs`, so they get nothing until the talk travels.
+ *  - `buildPropagatedFactDialogueContext` — `KnownFact`s that arrived through
+ *    `propagateFact` (source `gossip`), attributed to whoever passed them on.
+ *
+ * The third builder, `buildWitnessDialogueContext`, is NOT repeated here: it is
+ * already composed by `buildNpcDialoguePromptContext` in `dialogueService`, and
+ * what an NPC saw for themselves is first-hand evidence that must not be framed
+ * as hearsay.
+ *
+ * Exported because `useConversation` (the free-text chat lane) feeds the same
+ * lines to the same model through a different prompt builder. One composer, two
+ * lanes, so the lanes cannot drift apart.
+ */
+export const buildNpcHearsayLines = (
+  gameState: GameState,
+  npcId: string
+): string[] => {
+  const gameDay = getGameDay(gameState.gameTime);
+  const rumors = buildRumorDialogueContext(gameState.townRumors ?? [], npcId, gameDay);
+  const propagated = buildPropagatedFactDialogueContext(
+    gameState.npcMemory?.[npcId]?.knownFacts ?? [],
+    (sourceNpcId) => resolveDialogueNpc(gameState, sourceNpcId)?.name
+  );
+  return [...rumors, ...propagated];
+};
+
+/**
+ * Wraps {@link buildNpcHearsayLines} into one prompt fragment, or `''` when the
+ * NPC has heard nothing. The instruction is deliberately hedged: second-hand
+ * talk is the one knowledge source the NPC may be wrong about, and a model told
+ * otherwise will state a rumor as fact.
+ */
+export const describeNpcHearsay = (gameState: GameState, npcId: string): string => {
+  const lines = buildNpcHearsayLines(gameState, npcId);
+  if (lines.length === 0) return '';
+  return `You have also heard this second-hand, and it may be wrong: ${lines.join(' ')} Repeat it as talk you picked up, never as something you saw yourself.`;
+};
 
 export const useDialogueSystem = (
     gameState: GameState,
@@ -41,11 +126,26 @@ export const useDialogueSystem = (
         const session = gameState.activeDialogueSession;
         if (!session) return "...";
 
-        const npc = NPCS[session.npcId];
+        const npc = resolveDialogueNpc(gameState, session.npcId);
         if (!npc) return "...";
 
-        const systemPrompt = npc.initialPersonalityPrompt ?? '';
-        if (!systemPrompt) return "...";
+        // Speech fingerprinting (agora-9e0f): the profile hint steers the model, and
+        // the post-processor below enforces the same voice when the model ignores it.
+        const speechHint = describeSpeechProfile(npc.speechProfile);
+        // Knowledge profile (agora-13a9.4) + witness recall (agora-f58b), composed
+        // in one call by the dialogue service so the boundary ("what I will talk
+        // about") is read before the evidence ("what I saw you do"). Guarded topics
+        // are named but their authored secret text is withheld.
+        const memoryHint = buildNpcDialoguePromptContext(gameState, session.npcId, npc);
+        // Second-hand knowledge (agora-f821.12): rumors that reached this NPC and
+        // facts that arrived through propagateFact. Kept separate from the witness
+        // block above, because hearsay may be wrong and eyewitness memory may not.
+        const hearsayHint = describeNpcHearsay(gameState, session.npcId);
+        const basePrompt = npc.initialPersonalityPrompt ?? '';
+        if (!basePrompt) return "...";
+        const systemPrompt = [basePrompt, speechHint, memoryHint, hearsayHint]
+            .filter(Boolean)
+            .join(' ');
 
         try {
             const result = await OllamaTextService.generateNPCResponse(
@@ -57,18 +157,25 @@ export const useDialogueSystem = (
             );
 
             if (result.data?.text) {
+                // Post-process before it is stored, so history, TTS and the UI all see the
+                // same fingerprinted line rather than diverging copies.
+                const voiced = applySpeechProfile(result.data.text, npc.speechProfile);
                 dispatch({
                     type: 'SET_LAST_NPC_INTERACTION',
-                    payload: { npcId: npc.id, response: result.data.text }
+                    payload: { npcId: npc.id, response: voiced }
                 });
-                return result.data.text;
+                return voiced;
             }
         } catch (error) {
             console.error("Failed to generate dialogue response:", error);
             // Fallback response handled by UI or return generic
         }
         return "...";
-    }, [gameState.activeDialogueSession, gameState.devModelOverride, dispatch]);
+        // Depends on `gameState` as a whole rather than a field list: the prompt now
+        // reads generatedNpcs, npcMemory, townRumors and gameTime as well as the
+        // session, and a stale memory snapshot would make the NPC forget something
+        // it demonstrably just saw.
+    }, [gameState, dispatch]);
 
     /**
      * Handles the side effects of a topic selection.
@@ -112,7 +219,7 @@ export const useDialogueSystem = (
                 type: 'ADD_MESSAGE',
                 payload: {
                     id: Date.now(),
-                    text: `${NPCS[session.npcId]?.name || 'NPC'} ${direction} of your words.`,
+                    text: `${resolveDialogueNpc(gameState, session.npcId)?.name || 'NPC'} ${direction} of your words.`,
                     sender: 'system',
                     timestamp: new Date(currentGameTime) as unknown as Date
                 }
@@ -144,18 +251,26 @@ export const useDialogueSystem = (
             });
         }
 
-        // 4. Handle Topic Unlocks (Global Discovery)
+        // 4. Handle Topic Unlocks — durable cross-NPC propagation (DIAL-002/DIAL-004)
+        // Every unlock becomes a world-level fact: what THIS NPC told the player
+        // now durably unlocks the gated topic with EVERY NPC (dialogueService's
+        // `topic_known` prerequisite reads the same store), and it survives
+        // save/reload because the store serializes with GameState. Provenance
+        // (who told you, via which topic) rides along for audits and future
+        // region-scoped ripples.
         if (result.unlocks && result.unlocks.length > 0) {
-            result.unlocks.forEach(_topicId => {
-                // We use the Discovery Log to track "Unlocked Topics" globally if they are significant
-                // For now, we assume simple topic chaining is handled by the Session state (discussedTopicIds),
-                // but if a topic unlocks a GLOBAL fact or quest, we should log it.
-
-                // Example: If a topic unlocks a 'secret', we might want to log it.
-                // Current implementation mostly relies on the session state update in the reducer,
-                // but if we need persistent cross-NPC unlocks, we'd add a KnownFact here.
-
-                // TODO #324(Dialogist): Implement cross-NPC topic propagation via ADD_NPC_KNOWN_FACT or Discovery Log.
+            result.unlocks.forEach(unlockedTopicId => {
+                dispatch({
+                    type: 'LEARN_WORLD_FACT',
+                    payload: {
+                        fact: {
+                            key: topicUnlockKey(unlockedTopicId),
+                            sourceNpcId: session.npcId,
+                            sourceTopicId: topicId,
+                            learnedAt: currentGameTime,
+                        },
+                    },
+                });
             });
         }
 
@@ -165,7 +280,9 @@ export const useDialogueSystem = (
             // Currently not supported in the simple reducer, but could be added to NPC Memory.
         }
 
-    }, [gameState.activeDialogueSession, gameState.gameTime, dispatch]);
+        // `gameState` in full: the disposition message now names a generated NPC,
+        // which lives in `generatedNpcs`, not in the two fields listed before.
+    }, [gameState, dispatch]);
 
     /**
      * Surfaces the "Invite to party" dialogue affordance. Emits a `talk` action

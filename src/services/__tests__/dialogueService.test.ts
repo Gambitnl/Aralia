@@ -1,5 +1,6 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { ItemType } from '../../types';
 import {
   registerTopic,
   checkTopicPrerequisites,
@@ -7,15 +8,16 @@ import {
   getAvailableTopics,
   getDynamicRumorTopics,
   getTopic,
+  describeKnowledgeProfile,
   MAX_DYNAMIC_RUMOR_TOPICS
 } from '../dialogueService';
 import { ConversationTopic, DialogueSession, NPCKnowledgeProfile } from '../../types/dialogue';
 import { GameState, SuspicionLevel, Item, NPC, WorldRumor } from '../../types/index';
-import * as combatUtils from '../../utils/combatUtils';
+import * as diceRollers from '../../systems/dice/rollers';
 import * as timeUtils from '../../utils/core';
 
 // Mock rollDice
-vi.mock('../../utils/combatUtils', () => ({
+vi.mock('../../systems/dice/rollers', () => ({
   rollDice: vi.fn()
 }));
 
@@ -81,7 +83,7 @@ const createMockItem = (id: string, extraProps: Record<string, unknown> = {}): I
   id,
   name: id,
   description: 'test item',
-  type: 'treasure',
+  type: ItemType.Treasure,
   ...extraProps
 });
 
@@ -140,9 +142,7 @@ const mockGameState: GameState = {
 
 const mockSession: DialogueSession = {
   npcId: 'npc_1',
-  availableTopicIds: [],
-  discussedTopicIds: [],
-  sessionDispositionMod: 0
+  discussedTopicIds: []
 };
 
 // Helper to create an NPC with a specific knowledge profile
@@ -403,7 +403,7 @@ describe('Dialogue Service', () => {
     });
 
     it('should return success result when skill check passes', () => {
-      vi.mocked(combatUtils.rollDice).mockReturnValue(15); // Roll 15
+      vi.mocked(diceRollers.rollDice).mockReturnValue(15); // Roll 15
 
       const result = processTopicSelection('test_topic_persuade', mockGameState, mockSession, 0);
 
@@ -413,7 +413,7 @@ describe('Dialogue Service', () => {
     });
 
     it('should return failure result when skill check fails', () => {
-      vi.mocked(combatUtils.rollDice).mockReturnValue(5); // Roll 5 + 0 < 15
+      vi.mocked(diceRollers.rollDice).mockReturnValue(5); // Roll 5 + 0 < 15
 
       const result = processTopicSelection('test_topic_persuade', mockGameState, mockSession, 0);
 
@@ -424,7 +424,7 @@ describe('Dialogue Service', () => {
     });
 
     it('should account for skill modifier', () => {
-      vi.mocked(combatUtils.rollDice).mockReturnValue(10); // Roll 10
+      vi.mocked(diceRollers.rollDice).mockReturnValue(10); // Roll 10
       // 10 + 6 = 16 >= 15 (Success)
 
       const result = processTopicSelection('test_topic_persuade', mockGameState, mockSession, 6);
@@ -446,7 +446,7 @@ describe('Dialogue Service', () => {
           }
       });
 
-      vi.mocked(combatUtils.rollDice).mockReturnValue(10);
+      vi.mocked(diceRollers.rollDice).mockReturnValue(10);
 
       const result = processTopicSelection('test_topic_persuade', mockGameState, mockSession, 0, willingNPC);
       expect(result.status).toBe('success');
@@ -466,10 +466,47 @@ describe('Dialogue Service', () => {
           }
       });
 
-      vi.mocked(combatUtils.rollDice).mockReturnValue(18);
+      vi.mocked(diceRollers.rollDice).mockReturnValue(18);
 
       const result = processTopicSelection('test_topic_persuade', mockGameState, mockSession, 0, unwillingNPC);
       expect(result.status).toBe('failure');
+    });
+  });
+
+  describe('describeKnowledgeProfile (agora-13a9.4)', () => {
+    const profile: NPCKnowledgeProfile = {
+      baseOpenness: 65,
+      topicOverrides: {
+        open_topic: { known: true, customResponse: 'The bridge fell last winter.' },
+        guarded_topic: { known: true, willingnessModifier: -15, customResponse: 'The coin is buried by the well.' },
+        unheard_topic: { known: false },
+      },
+    };
+
+    it('returns an empty string when the NPC has no profile', () => {
+      expect(describeKnowledgeProfile(undefined)).toBe('');
+      expect(describeKnowledgeProfile(null)).toBe('');
+    });
+
+    it('serializes openness, open knowledge, guarded subjects and unknowns', () => {
+      const text = describeKnowledgeProfile(profile, []);
+
+      expect(text).toContain('openness to strangers is 65');
+      expect(text).toContain('The bridge fell last winter.');
+      expect(text).toContain('guard these subjects: guarded_topic');
+      expect(text).toContain('You know nothing about: unheard_topic');
+    });
+
+    it('never serializes the customResponse of a guarded topic', () => {
+      const text = describeKnowledgeProfile(profile, []);
+      expect(text).not.toContain('The coin is buried by the well.');
+    });
+
+    it('uses the topic label when the topic is registered', () => {
+      const text = describeKnowledgeProfile(profile, [
+        { id: 'open_topic', label: 'The Broken Bridge', category: 'lore', playerPrompt: 'Tell me.' } as ConversationTopic,
+      ]);
+      expect(text).toContain('The Broken Bridge: The bridge fell last winter.');
     });
   });
 });

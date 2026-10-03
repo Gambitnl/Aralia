@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 15/07/2026, 01:32:09
+ * Last Sync: 08/09/2026, 12:03:41
  * Dependents: devtools/buildingIdentityLab/BuildingIdentityLab.tsx
- * Imports: 9 files
+ * Imports: 10 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -31,6 +31,7 @@ import {
   type TownTypology,
 } from '@/systems/worldforge/town/townEngine';
 import { toArtifactPlan } from '@/systems/worldforge/town/townPlanAdapter';
+import { transformTownPlan } from '@/systems/worldforge/town/canonicalTown';
 
 /**
  * This pure model composes the production town, artifact, and blueprint pipelines
@@ -304,11 +305,14 @@ export function buildHarnessTown(options: BuildHarnessTownOptions): HarnessTownM
     ?? HARNESS_STYLES[0];
   const styleFamily = STYLE_FAMILIES[style.id];
   const townSeed = rootSeedPath(options.seed);
-  const enginePlan = generateTownPlan(FOOTPRINT, townSeed, {
+  // Enlarge existing parcels with the production coordinate transform, rather
+  // than rerolling a larger town with extra houses. Both lot axes double, roads
+  // stay aligned, and blueprints still use actual five-foot tactical cells.
+  const enginePlan = transformTownPlan(generateTownPlan(FOOTPRINT, townSeed, {
     population: options.population,
     water: options.withRiver ? [RIVER] : [],
     roads: options.withRiver ? [ROAD] : [],
-  });
+  }), 2, -CX, -CY);
   // What changed: Passed options.climate to toArtifactPlan.
   // Why: So the Building Lab's artifact plan matches the climate option chosen in the UI.
   // What was preserved: Options and seed logic.
@@ -387,4 +391,5 @@ export function buildHarnessTown(options: BuildHarnessTownOptions): HarnessTownM
 export function blueprintForHarnessPlot(model: HarnessTownModel, plotId: number): BlueprintPlan {
   const plot = model.artifactPlan.plots.find((candidate) => candidate.id === plotId);
   if (!plot) throw new Error(`Building Identity Lab has no plot ${plotId}`);
-  return buildProductionBlueprint(model.artifactPlan, model.seed, model.style, 
+  return buildProductionBlueprint(model.artifactPlan, model.seed, model.style, model.climate, plot);
+}

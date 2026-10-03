@@ -14,6 +14,7 @@
  * threads `gold` into the new game.
  */
 import { Item, EquipmentSlotType } from '../../types/index.js';
+import { ItemType } from '../../types';
 import { ALL_ITEMS } from '../../data/items/index.js';
 import { CLASS_STARTING_EQUIPMENT } from '../../data/classes/startingEquipment.js';
 import { BACKGROUNDS, Background } from '../../data/backgrounds.js';
@@ -52,7 +53,7 @@ function makeFlavorItem(id: string): Item {
     id,
     name,
     description: 'A personal effect from your past.',
-    type: 'treasure',
+    type: ItemType.Treasure,
     icon: '🎒',
     weight: 0.5,
   };

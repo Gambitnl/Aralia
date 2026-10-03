@@ -1,25 +1,59 @@
-import React, { useMemo, useState } from 'react';
-import { DialogueSession, ConversationTopic } from '../../types/dialogue';
-import { GameState, NPC, PlayerCharacter } from '../../types';
-import { getAvailableTopics, processTopicSelection, ProcessTopicResult } from '../../services/dialogueService';
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 10/08/2026, 13:30:38
+ * Dependents: components/layout/GameModals.tsx
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import type { DialogueSession, ConversationTopic } from '../../types/dialogue';
+import type { GameState, NPC, PlayerCharacter } from '../../types';
+import {
+    getAvailableTopics,
+    processTopicSelection,
+    type ProcessTopicResult,
+} from '../../services/dialogueService';
+import { loadDialogueGraph } from '../../systems/dialogue/dialogueGraphLoader';
+import {
+    advanceLinear,
+    getAvailableChoices,
+    getNode,
+} from '../../systems/dialogue/dialogueGraphRuntime';
+import type {
+    DialogueGraph,
+    DialogueGraphContext,
+    DialogueEffectOutcome,
+} from '../../systems/dialogue/dialogueGraphTypes';
 import { WindowFrame } from '../ui/WindowFrame';
+import { DialogueConversationView } from './DialogueConversationView';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 
 /**
- * This file renders the conversation window players use when talking to an NPC.
+ * This file controls the conversation window players use when talking to an NPC.
  *
- * The game opens it from GameModals after START_DIALOGUE_SESSION creates an
- * active dialogue session. It reads available topics from dialogueService,
- * sends selected topics back through reducer callbacks, and uses WindowFrame
- * for the draggable/resizable outer window.
+ * GameModals opens it after a dialogue session starts. This controller resolves
+ * available topics, skill checks, session updates, outcomes, and generated NPC
+ * replies, then passes the visible state into DialogueConversationView. Sharing
+ * that view with Design Preview keeps preview and production presentation equal.
+ *
+ * Called by: components/layout/GameModals.tsx
+ * Depends on: dialogueService, WindowFrame, and DialogueConversationView
  */
 
 // ============================================================================
 // Component Contract
 // ============================================================================
-// The parent owns the active session and reducer callbacks. This component owns
-// the immediate conversation layout, pending-response state, and topic buttons
-// that the player sees inside the shared WindowFrame shell.
+// The parent owns reducer state and lifecycle callbacks. This component owns
+// temporary response, pending, and result state for the open dialogue window.
 // ============================================================================
 interface DialogueInterfaceProps {
     isOpen: boolean;
@@ -32,13 +66,40 @@ interface DialogueInterfaceProps {
     onTopicOutcome?: (result: ProcessTopicResult, topicId: string) => void;
     onGenerateResponse: (prompt: string) => Promise<string>;
     /**
-     * Invokes the "Invite to party" flow for this NPC. Always rendered as a
-     * button when provided; the consent gate (downstream) declines ineligible
-     * NPCs with a reason rather than the button being hidden.
+     * Invokes the "Invite to party" flow for this NPC. The downstream consent
+     * gate explains ineligible cases instead of hiding the action in advance.
      */
     onInvite?: (npcId: string) => void;
+    /**
+     * Scripted-conversation mode (DIAL-001). Supply either an already-loaded
+     * `dialogueGraph` or a `dialogueGraphId` to fetch through the loader. When
+     * one is present this window plays the authored graph instead of the
+     * free-form topic pool; when neither is, nothing about the existing topic
+     * behavior changes.
+     */
+    dialogueGraph?: DialogueGraph;
+    dialogueGraphId?: string;
+    /**
+     * Initial gating context for graph conditions (quest statuses, inventory,
+     * time of day, flags). Disposition defaults to this NPC's stored value.
+     * Kept separate from `gameState` so a preview can drive a graph without a
+     * save, and so the graph system never binds to the game state shape.
+     */
+    graphContext?: DialogueGraphContext;
+    /**
+     * Receives the effects a graph node fired, resolved but NOT applied. The
+     * parent's reducer stays the only writer of items, quests, disposition,
+     * topic unlocks, and flags.
+     */
+    onGraphEffects?: (outcomes: DialogueEffectOutcome[]) => void;
 }
 
+// ============================================================================
+// Dialogue Controller
+// ============================================================================
+// Game decisions remain here rather than in the shared view. That separation
+// lets the Design Preview use identical presentation without mutating a save.
+// ============================================================================
 export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
     isOpen,
     session,
@@ -49,65 +110,207 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
     onUpdateSession,
     onTopicOutcome,
     onGenerateResponse,
-    onInvite
+    onInvite,
+    dialogueGraph,
+    dialogueGraphId,
+    graphContext,
+    onGraphEffects,
 }) => {
-    const [currentResponse, setCurrentResponse] = useState<string | null>(gameState.lastNpcResponse || `"${npc.name} greets you."`);
+    // Seed the visible reply from the most recent game response. Fresh sessions
+    // still receive a readable greeting before an AI reply has been generated.
+    const [currentResponse, setCurrentResponse] = useState<string | null>(
+        gameState.lastNpcResponse || `"${npc.name} greets you."`,
+    );
     const [isThinking, setIsThinking] = useState(false);
     const [lastTopicResult, setLastTopicResult] = useState<ProcessTopicResult | null>(null);
 
-    // Calculate available topics dynamically
+    // ------------------------------------------------------------------
+    // Scripted graph mode (DIAL-001)
+    // ------------------------------------------------------------------
+    // Graph playback lives beside the topic flow rather than replacing it.
+    // The two answer different needs: authored graphs give exact wording and
+    // deterministic branching, the topic pool gives open-ended, LLM-voiced
+    // conversation. A caller picks per conversation.
+    const [loadedGraph, setLoadedGraph] = useState<DialogueGraph | null>(null);
+    const [graphError, setGraphError] = useState<string | null>(null);
+    const activeGraph = dialogueGraph ?? loadedGraph;
+
+    // Fetch by id only when no graph object was handed in. Cancellation via the
+    // `cancelled` guard keeps a slow fetch from resolving into a closed window.
+    useEffect(() => {
+        if (dialogueGraph || !dialogueGraphId) return undefined;
+        let cancelled = false;
+        setGraphError(null);
+        loadDialogueGraph(dialogueGraphId)
+            .then((graph) => {
+                if (!cancelled) setLoadedGraph(graph);
+            })
+            .catch((error: unknown) => {
+                if (!cancelled) {
+                    setLoadedGraph(null);
+                    setGraphError(error instanceof Error ? error.message : String(error));
+                }
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [dialogueGraph, dialogueGraphId]);
+
+    // Disposition seeds the graph context so a `disposition` condition works
+    // against the same number the header shows, without the graph system having
+    // to know what `npcMemory` is.
+    const storedDisposition = gameState.npcMemory?.[npc.id]?.disposition ?? 0;
+    const [graphState, setGraphState] = useState<{
+        nodeId: string | null;
+        context: DialogueGraphContext;
+    }>({ nodeId: null, context: {} });
+
+    // Entering a graph (or switching to a different one) replays its opening
+    // linear run so the player sees the full authored lead-in at once.
+    useEffect(() => {
+        if (!activeGraph) {
+            setGraphState({ nodeId: null, context: {} });
+            return;
+        }
+        const startContext: DialogueGraphContext = {
+            disposition: storedDisposition,
+            ...graphContext,
+        };
+        const run = advanceLinear(activeGraph, activeGraph.startNodeId, startContext);
+        setGraphState({ nodeId: run.nodeId, context: run.context });
+        if (run.outcomes.length > 0) onGraphEffects?.(run.outcomes);
+        // `graphContext`/`onGraphEffects` are intentionally excluded: a parent
+        // re-creating either object each render must not restart the
+        // conversation from its first line.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeGraph, storedDisposition]);
+
+    const graphNode = useMemo(
+        () => (activeGraph && graphState.nodeId ? getNode(activeGraph, graphState.nodeId) : undefined),
+        [activeGraph, graphState.nodeId],
+    );
+
+    const graphChoices = useMemo(
+        () => getAvailableChoices(graphNode, graphState.context),
+        [graphNode, graphState.context],
+    );
+
+    // Graph choices are presented through the SAME view as topics so scripted
+    // and free-form conversation look identical to the player. Reusing
+    // `ConversationTopic` here avoids a second button component and a second
+    // visual standard; only the fields the view reads are populated.
+    const graphChoiceTopics = useMemo<ConversationTopic[]>(
+        () =>
+            graphChoices.map((choice, index) => ({
+                id: `graph-choice-${index}`,
+                label: choice.text,
+                category: 'personal',
+                playerPrompt: choice.text,
+            })),
+        [graphChoices],
+    );
+
+    const handleGraphChoice = useCallback(
+        (topic: ConversationTopic) => {
+            if (!activeGraph) return;
+            const index = Number(topic.id.replace('graph-choice-', ''));
+            const choice = graphChoices[index];
+            if (!choice) return;
+
+            const run = advanceLinear(activeGraph, choice.nextNodeId, graphState.context);
+            setGraphState({ nodeId: run.nodeId, context: run.context });
+            if (run.outcomes.length > 0) onGraphEffects?.(run.outcomes);
+        },
+        [activeGraph, graphChoices, graphState.context, onGraphEffects],
+    );
+
+    // Topic availability depends on current game state, NPC knowledge, and what
+    // this session already discussed. Recalculate only when those inputs change.
     const availableTopics = useMemo(() => {
         if (!session) return [];
         return getAvailableTopics(gameState, npc.id, session, npc);
     }, [gameState, npc, session]);
 
+    // Selecting a topic resolves its mechanics first, updates durable session
+    // state and outcomes, then asks the AI for the NPC's visible response.
     const handleTopicSelect = async (topic: ConversationTopic) => {
         if (!session) return;
 
         setIsThinking(true);
 
-        // 1. Process Logic (Skill checks, unlocks)
-        // Helper to find skill modifier
+        // Skill topics use the player's final ability score and add proficiency
+        // only when the character is trained in the governing skill.
         let skillMod = 0;
         if (topic.skillCheck) {
-            // Simplified: Use raw ability score or proficiency logic if available
-            // For now, assuming raw score modifier: (Score - 10) / 2
-            // TODO #79: Use real skill system accessor
-            const charismaScore =
-                playerCharacter.abilityScores?.Charisma ??
-                playerCharacter.finalAbilityScores?.Charisma ??
-                10;
-            skillMod = Math.floor((charismaScore - 10) / 2);
+            const checkSkill = topic.skillCheck.skill;
+            const abilityScore =
+                playerCharacter.finalAbilityScores?.[checkSkill.ability]
+                ?? playerCharacter.abilityScores?.[checkSkill.ability]
+                ?? 10;
+            const isProficient = playerCharacter.skills?.some(
+                (skill) => skill.id === checkSkill.id || skill.name === checkSkill.name,
+            ) ?? false;
+
+            skillMod = Math.floor((abilityScore - 10) / 2)
+                + (isProficient ? (playerCharacter.proficiencyBonus || 2) : 0);
         }
 
-        const result = processTopicSelection(topic.id, gameState, session, skillMod, npc);
+        // Dialogue service owns costs, checks, unlocks, and the prompt used for
+        // the NPC reply. The UI surfaces the result but does not duplicate rules.
+        //
+        // processTopicSelection throws on an id it cannot resolve. Unhandled,
+        // that throw escapes this async handler to the ErrorBoundary wrapping
+        // the mount in GameModals and tears the conversation down mid-sentence
+        // (agora-f821.27). A stale session or a graph-choice id reaching this
+        // handler is a lookup miss, not a reason to end the conversation, so it
+        // is reported inside the window and the session is left untouched: no
+        // discussedTopicIds append, no outcome, no AI call.
+        let result: ProcessTopicResult;
+        try {
+            result = processTopicSelection(topic.id, gameState, session, skillMod, npc);
+        } catch (error: unknown) {
+            const reason = error instanceof Error ? error.message : String(error);
+            setLastTopicResult(null);
+            setCurrentResponse(`(That subject leads nowhere: ${reason})`);
+            setIsThinking(false);
+            return;
+        }
         setLastTopicResult(result);
 
-        // 2. Update Session (add to discussed)
-        const newSession = {
+        // Mark the topic discussed immediately so repeated clicks cannot race a
+        // later persistence update from the parent reducer.
+        const newSession: DialogueSession = {
             ...session,
             discussedTopicIds: [...session.discussedTopicIds, topic.id],
-            availableTopicIds: session.availableTopicIds // This usually comes from re-running getAvailableTopics
         };
-        // We defer session update slightly because onTopicOutcome might dispatch the persistence action which updates both.
-        // However, standard flow suggests UI updates optimistically or waits.
-        // For now, we call onUpdateSession to keep local state in sync if the parent relies on it immediately.
         onUpdateSession(newSession);
 
-        // 3. Update Global State (Disposition, Unlocks) via callback
+        // The parent persists disposition, unlocks, costs, and other outcomes.
+        // Keeping this optional preserves dialogue-only consumers and tests.
         if (onTopicOutcome) {
             onTopicOutcome(result, topic.id);
         }
 
-        // 4. Generate AI Response
+        // Replace the pending state with the generated reply after every prior
+        // mechanical side effect has been recorded.
         const response = await onGenerateResponse(result.responsePrompt);
         setCurrentResponse(response);
         setIsThinking(false);
     };
 
+    // A closed or incomplete session should not mount a modal shell or reserve
+    // focus above the game world.
     if (!isOpen || !session) return null;
 
-    const disposition = gameState.npcMemory[npc.id]?.disposition || 0;
+    const disposition = graphState.context.disposition ?? storedDisposition;
+
+    // In graph mode the visible line is the authored node text (or the loader's
+    // error, which is surfaced rather than swallowed so a broken content file
+    // is obvious in play instead of showing an empty window).
+    const isGraphMode = Boolean(activeGraph) || Boolean(dialogueGraphId);
+    const graphResponse = graphError
+        ? `(Dialogue unavailable: ${graphError})`
+        : graphNode?.text ?? (activeGraph ? null : 'Loading...');
 
     return (
         <WindowFrame
@@ -116,102 +319,27 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
             storageKey={WINDOW_KEYS.DIALOGUE}
             initialMaximized={false}
             headerActions={
-                <span className="self-center text-gray-400 text-sm whitespace-nowrap">Disposition: {disposition}</span>
+                <span className="self-center whitespace-nowrap text-sm text-gray-400">
+                    Disposition: {disposition}
+                </span>
             }
         >
-            <div className="flex h-full min-h-0 flex-col overflow-hidden md:flex-row">
-                {/* NPC identity: on wide windows this sits beside the dialogue.
-                    On cramped windows it becomes a compact top band so the
-                    response and choices keep enough horizontal room to read. */}
-                <div className="flex max-h-[24%] shrink-0 flex-row items-center gap-3 overflow-y-auto border-b border-gray-700 bg-gray-900/40 p-3 md:max-h-none md:w-1/3 md:flex-col md:gap-0 md:border-b-0 md:border-r md:p-6">
-                    <div className="mb-0 flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-gray-600 bg-gray-800 md:mb-4 md:h-32 md:w-32">
-                        <span className="text-3xl">👤</span>
-                    </div>
-                    <p className="min-w-0 text-left text-xs italic text-gray-400 md:text-center md:text-sm">{npc.baseDescription}</p>
-                </div>
-
-                {/* Conversation body: the response, topics, and footer each get
-                    their own space so long text and long topic lists scroll
-                    without hiding the conversation exit. */}
-                <div className="flex min-h-0 flex-1 flex-col md:w-2/3">
-                    {/* NPC response — capped so a one-line greeting never dwarfs the choices. */}
-                    <div className="max-h-[30%] shrink-0 overflow-y-auto p-3 md:max-h-[40%] md:p-6">
-                        <div className="rounded-lg border border-gray-700 bg-gray-900/60 p-3 md:p-6">
-                            <p className="text-base leading-relaxed text-gray-200 md:text-lg">
-                                {isThinking ? (
-                                    <span className="animate-pulse text-gray-500">Thinking...</span>
-                                ) : (
-                                    currentResponse
-                                )}
-                            </p>
-                        </div>
-
-                        {/* Skill Check Result Feedback */}
-                        {lastTopicResult && lastTopicResult.status !== 'neutral' && (
-                            <div className={`mt-4 text-sm font-bold ${lastTopicResult.status === 'success' ? 'text-green-400' : 'text-red-400'}`}>
-                                [{lastTopicResult.status.toUpperCase()}]
-                                {lastTopicResult.dispositionChange ? ` Disposition ${lastTopicResult.dispositionChange > 0 ? '+' : ''}${lastTopicResult.dispositionChange}` : ''}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Topics — fill the remaining height, scroll only when truly long. */}
-                    <div className="flex-1 min-h-0 overflow-y-auto border-t border-gray-700 bg-gray-900/50 p-3 md:p-4">
-                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Topics</h3>
-                        <div className="grid grid-cols-1 gap-2">
-                            {availableTopics.map(topic => (
-                                <button
-                                    key={topic.id}
-                                    onClick={() => handleTopicSelect(topic)}
-                                    disabled={isThinking}
-                                    className="w-full rounded border border-gray-700 bg-gray-800 p-2.5 text-left transition-colors hover:border-amber-700/50 hover:bg-gray-700 disabled:opacity-50 group flex items-center justify-between md:p-3"
-                                >
-                                    <span className="text-gray-300 group-hover:text-amber-100 font-medium">
-                                        {topic.label}
-                                    </span>
-                                    {topic.skillCheck && (
-                                        <span className="text-xs px-2 py-1 rounded bg-gray-900 text-gray-500 border border-gray-700">
-                                            {typeof topic.skillCheck.skill === 'string'
-                                                ? topic.skillCheck.skill
-                                                : topic.skillCheck.skill.name}{' '}
-                                            (DC {topic.skillCheck.dc})
-                                        </span>
-                                    )}
-                                </button>
-                            ))}
-                            {onInvite && (
-                                <button
-                                    type="button"
-                                    data-testid="dialogue-invite-to-party"
-                                    onClick={() => onInvite(npc.id)}
-                                    disabled={isThinking}
-                                    className="w-full rounded border border-amber-800/40 bg-gray-800 p-2.5 text-left transition-colors hover:border-amber-600/60 hover:bg-amber-900/20 disabled:opacity-50 group flex items-center justify-between md:p-3"
-                                >
-                                    <span className="text-amber-200 group-hover:text-amber-100 font-medium">
-                                        Invite to party
-                                    </span>
-                                    <span className="text-lg" aria-hidden="true">🤝</span>
-                                </button>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* This footer stays outside the scrolling topic list so
-                        the player always has a visible way to leave dialogue,
-                        even when the topic list is long or the window is
-                        resized very small. */}
-                    <div className="shrink-0 border-t border-gray-700 bg-gray-950/70 p-3">
-                        <button
-                            type="button"
-                            data-testid="dialogue-end-conversation"
-                            onClick={onClose}
-                            className="w-full rounded border border-transparent p-3 text-left text-gray-400 transition-colors hover:border-red-900/30 hover:bg-red-900/20 hover:text-red-400"
-                        >
-                            End Conversation
-                        </button>
-                    </div>
-                </div>
-            </div>
+            {/* Production and Design Preview now share this complete visible
+                body. Only this controller can execute game and AI effects. */}
+            <DialogueConversationView
+                npcDescription={npc.baseDescription}
+                currentResponse={isGraphMode ? graphResponse : currentResponse}
+                isThinking={isGraphMode ? false : isThinking}
+                topicResult={isGraphMode ? null : lastTopicResult}
+                topics={isGraphMode ? graphChoiceTopics : availableTopics}
+                onTopicSelect={
+                    isGraphMode
+                        ? handleGraphChoice
+                        : (topic) => void handleTopicSelect(topic)
+                }
+                onInvite={onInvite ? () => onInvite(npc.id) : undefined}
+                onEndConversation={onClose}
+            />
         </WindowFrame>
     );
 };

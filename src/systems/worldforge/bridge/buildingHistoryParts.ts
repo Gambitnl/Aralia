@@ -24,6 +24,9 @@
  * windows, charred breach rims, and replacement roof strips. The shared roof
  * builder owns actual holes and ridge deformation; this module keeps the
  * remaining additive evidence tagged so tactical extraction can ignore it.
+ * Roof dressing is projected onto each plane's SOLVED height field, so repair
+ * courses and sag hollows ride the real pitch instead of one mean height
+ * (agora-8783).
  *
  * Called by: interiorParts.ts
  * Depends on: BlueprintPlan history targets and the shared SitePart contract
@@ -33,6 +36,7 @@ import type {
   BlueprintPlan,
   BuildingHistoryFeature,
   BuildingLiveHistoryFeature,
+  RoofPlane,
   WallRun,
 } from '../interior/blueprintTypes';
 import { blueprintSiteOrigin } from '../interior/blueprintTypes';
@@ -108,7 +112,19 @@ function wallSurfacePart(
   colorHex: string,
   depthM = WALL_SURFACE_DEPTH_M,
 ): SitePart {
-  const outwardFt = run.thicknessFt / 2 + depthM / FT / 2;
+  // BURIED-DRESSING FIX (town-look-slice1 follow-up, 2026-07-18): structural
+  // wall boxes grow OUTWARD from the run line by the FULL thickness (runBox in
+  // buildingModels.ts: center = line + n*thickness/2 — the line is the wall's
+  // INNER face, not its centerline). The former half-thickness offset therefore
+  // centered every sealed-door infill, wall patch, and char streak INSIDE the
+  // wall slab: the history receipts existed but no pixel ever showed. Matching
+  // materialPartOnRun (buildingMaterialParts.ts) and facadePartOnRun
+  // (interiorParts.ts), the full-thickness offset lands each part's inner face
+  // exactly on the wall's outer face, so deeper trim (sealed-door jambs and
+  // lintel pass depthM + 0.025) still reads proud of the flush infill panel.
+  // Offset only: sizes, colors, tags, feature targets, and the frozen
+  // historySignature receipts are unchanged.
+  const outwardFt = run.thicknessFt + depthM / FT / 2;
   const baseY = feature.floorLevel * storeyHeightM + baseFt * FT;
   const common = {
     h: heightFt * FT,
@@ -309,6 +325,110 @@ function constructionPhaseParts(
   ];
 }
 
+// ============================================================================
+// Sloped-Plane Projection (agora-8783)
+// ============================================================================
+// A SitePart is an axis-aligned box: roof dressing cannot tilt. Before this,
+// every re-roofing strip sat at the plane's MEAN rise and every sag cap sat on
+// the ridge line, so on a steep gable one repair patch floated clear of the
+// tiles along its low edge and sank into them along its high edge, and a
+// sagging ridge dipped only at the ridge while the roof skin beside it stayed
+// rigid. These helpers solve each plane's real height field and STEP the
+// dressing down it: short courses laid across the fall line, each seated on
+// the surface beneath its own downhill edge and tall enough to reach the
+// surface at its uphill edge, the way laid tile laps.
+//
+// Scope: the canonical roof mesh, roof forms, and roof variety are untouched
+// (keep-roof ruling agora-8a7f.21). This is additive dressing only.
+// ============================================================================
+
+/**
+ * One roof plane's height field, centered on its own plan centroid:
+ * z(x, y) = gradX * (x - cxFt) + gradY * (y - cyFt) + meanRiseFt, in feet
+ * above wall-top.
+ */
+interface RoofSlope {
+  gradX: number;
+  gradY: number;
+  cxFt: number;
+  cyFt: number;
+  meanRiseFt: number;
+}
+
+/**
+ * Least-squares fit of a plane's corner rises. Solver output is planar by
+ * construction, so this fit is exact; centering on the centroid drops the
+ * constant term out and leaves a 2x2 solve.
+ *
+ * Every plane the roof solver emits is seen face-on from above — even a hip
+ * end triangle tilts, and vertical closures go in `skirts`, not `planes`
+ * (probed across the sampled production buildings, 2026-09-20). A plane with
+ * no plan area therefore means the solver is broken, so this throws rather
+ * than flattening the dressing back onto a mean rise.
+ */
+function solveRoofSlope(plane: RoofPlane, planeIndex: number): RoofSlope {
+  const count = plane.pts.length;
+  const cxFt = plane.pts.reduce((sum, point) => sum + point[0], 0) / count;
+  const cyFt = plane.pts.reduce((sum, point) => sum + point[1], 0) / count;
+  const meanRiseFt = plane.pts.reduce((sum, point) => sum + point[2], 0) / count;
+  let sxx = 0;
+  let sxy = 0;
+  let syy = 0;
+  let sxz = 0;
+  let syz = 0;
+  for (const [x, y, z] of plane.pts) {
+    const px = x - cxFt;
+    const py = y - cyFt;
+    const pz = z - meanRiseFt;
+    sxx += px * px;
+    sxy += px * py;
+    syy += py * py;
+    sxz += px * pz;
+    syz += py * pz;
+  }
+  const det = sxx * syy - sxy * sxy;
+  if (Math.abs(det) <= 1e-9 * Math.max(sxx * syy, 1)) {
+    throw new Error(
+      `buildBuildingHistoryParts: roof plane ${planeIndex} has no plan area, `
+      + 'so it carries no height field to seat roof dressing on',
+    );
+  }
+  return {
+    gradX: (sxz * syy - syz * sxy) / det,
+    gradY: (syz * sxx - sxz * sxy) / det,
+    cxFt,
+    cyFt,
+    meanRiseFt,
+  };
+}
+
+/** Rise of the solved plane, in feet above wall-top, at one plan point. */
+function riseAt(slope: RoofSlope, xFt: number, yFt: number): number {
+  return slope.gradX * (xFt - slope.cxFt)
+    + slope.gradY * (yFt - slope.cyFt)
+    + slope.meanRiseFt;
+}
+
+/** Meters of wall below the roof: every at-or-above-grade storey. */
+function roofBaseM(blueprint: BlueprintPlan, storeyHeightM: number): number {
+  return blueprint.floors.filter((floor) => floor.level >= 0).length * storeyHeightM;
+}
+
+/** Clear of the solved roof skin without floating off it. */
+const ROOF_DRESSING_CLEARANCE_M = 0.025;
+/** Laid thickness of one replacement tile course. */
+const REPAIR_COURSE_THICKNESS_M = 0.08;
+/** Plan gap between courses, in feet, so the lap line stays readable. */
+const REPAIR_COURSE_GAP_FT = 0.05;
+/**
+ * Most rise one course may span before the patch is split again, in feet.
+ * About one tile lap: below this the stepped courses read as a continuous
+ * sloped patch at town-camera distance.
+ */
+const REPAIR_COURSE_RISE_FT = 0.35;
+const REPAIR_MIN_COURSES = 3;
+const REPAIR_MAX_COURSES = 9;
+
 function reRoofedParts(
   blueprint: BlueprintPlan,
   storeyHeightM: number,
@@ -321,45 +441,108 @@ function reRoofedParts(
     );
   }
 
+  const slope = solveRoofSlope(plane, feature.planeIndex);
   const xs = plane.pts.map(([x]) => x);
   const ys = plane.pts.map(([, y]) => y);
-  const zs = plane.pts.map(([, , z]) => z);
   const minX = Math.min(...xs);
   const maxX = Math.max(...xs);
   const minY = Math.min(...ys);
   const maxY = Math.max(...ys);
   const spanX = maxX - minX;
   const spanY = maxY - minY;
-  const wallTopM = blueprint.floors.filter((floor) => floor.level >= 0).length
-    * storeyHeightM;
-  const baseY = wallTopM + (zs.reduce((sum, z) => sum + z, 0) / zs.length) * FT;
-  const longAlongX = spanX >= spanY;
-  const patchLongFt = Math.max(2.4, (longAlongX ? spanX : spanY) * 0.48);
-  const patchShortFt = Math.max(
-    1.2,
-    Math.min(2.8, (longAlongX ? spanY : spanX) * 0.38),
-  );
+  const centerX = (minX + maxX) / 2;
+  const centerY = (minY + maxY) / 2;
+  const wallTopM = roofBaseM(blueprint, storeyHeightM);
 
-  // Three tile strips make the repair read as a material patch rather than a
-  // single floating slab. They remain shallow and sit only a few centimeters
-  // over the solved roof surface.
-  // DEBT: SitePart boxes cannot follow a sloped plane. A future roof-dressing
-  // mesh should project these tiles onto the plane instead of its mean height.
-  return [-1, 0, 1].map((section) => {
-    const sectionLongFt = patchLongFt / 3 - 0.08;
-    const offsetFt = section * patchLongFt / 3;
+  // Courses run ACROSS the fall line and stack UP it. The patch keeps its
+  // former proportions (long across the fall, short down it), so only the
+  // seating height moved, not how much roof one repair covers.
+  const fallAlongX = Math.abs(slope.gradX) >= Math.abs(slope.gradY);
+  const spanAcross = fallAlongX ? spanY : spanX;
+  const spanDown = fallAlongX ? spanX : spanY;
+  const courseLengthFt = Math.max(2.4, spanAcross * 0.48);
+  const patchDownFt = Math.max(1.2, Math.min(2.8, spanDown * 0.38));
+  const gradDown = fallAlongX ? slope.gradX : slope.gradY;
+
+  // Enough courses that no single one spans more than one tile lap of rise.
+  const courses = Math.min(
+    REPAIR_MAX_COURSES,
+    Math.max(
+      REPAIR_MIN_COURSES,
+      Math.ceil(Math.abs(gradDown) * patchDownFt / REPAIR_COURSE_RISE_FT),
+    ),
+  );
+  const stepFt = patchDownFt / courses;
+  // Moving this way along the fall axis loses height. Each course is seated
+  // on the solved surface under its own downhill edge.
+  const downhillSign = gradDown > 0 ? -1 : 1;
+  const courseRiseM = Math.abs(gradDown) * stepFt * FT;
+
+  return Array.from({ length: courses }, (_unused, index) => {
+    const offsetFt = (index - (courses - 1) / 2) * stepFt;
+    const lowEdgeFt = offsetFt + downhillSign * stepFt / 2;
+    const sampleX = fallAlongX ? centerX + lowEdgeFt : centerX;
+    const sampleY = fallAlongX ? centerY : centerY + lowEdgeFt;
     return taggedPart(feature, {
-      x: ((minX + maxX) / 2 - blueprint.widthFt / 2
-        + (longAlongX ? offsetFt : 0)) * FT,
-      z: ((minY + maxY) / 2 - blueprint.depthFt / 2
-        + (longAlongX ? 0 : offsetFt)) * FT,
-      w: (longAlongX ? sectionLongFt : patchShortFt) * FT,
-      d: (longAlongX ? patchShortFt : sectionLongFt) * FT,
-      h: 0.08,
-      baseY: baseY + 0.025,
+      x: (centerX + (fallAlongX ? offsetFt : 0) - blueprint.widthFt / 2) * FT,
+      z: (centerY + (fallAlongX ? 0 : offsetFt) - blueprint.depthFt / 2) * FT,
+      w: (fallAlongX ? stepFt - REPAIR_COURSE_GAP_FT : courseLengthFt) * FT,
+      d: (fallAlongX ? courseLengthFt : stepFt - REPAIR_COURSE_GAP_FT) * FT,
+      // Tall enough to meet the skin again at the uphill edge, so stepped
+      // courses stay continuous instead of leaving a sliver of bare roof.
+      h: REPAIR_COURSE_THICKNESS_M + courseRiseM,
+      baseY: wallTopM + riseAt(slope, sampleX, sampleY) * FT
+        + ROOF_DRESSING_CLEARANCE_M,
       colorHex: feature.colorHex,
     });
   });
+}
+
+/** Samples a sag is cut into along the ridge. */
+const SAG_RIDGE_SEGMENTS = 5;
+/** Courses each ridge sample drops down the planes beside it. */
+const SAG_PLANE_STEPS = 3;
+/** Fraction of a plane's fall run the dip reaches before the skin is flat. */
+const SAG_PLANE_REACH = 0.55;
+const SAG_CAP_THICKNESS_M = 0.12;
+const SAG_SKIRT_THICKNESS_M = 0.1;
+const SAG_MIN_BOX_M = 0.18;
+const RIDGE_TOUCH_FT = 1e-3;
+
+/**
+ * Deflected-beam profile along a ridge: zero at both bearing ends, full at
+ * mid-span. A rafter run sags as one continuous curve, so the former
+ * full/quarter/full step pattern read as three separate dropped blocks.
+ */
+function ridgeSagProfile(t: number): number {
+  return Math.sin(Math.PI * t);
+}
+
+type RoofRidge = NonNullable<BlueprintPlan['roof']>['ridges'][number];
+
+/** Planes whose skin this ridge carries: two of their corners sit on it. */
+function planesOnRidge(
+  blueprint: BlueprintPlan,
+  ridge: RoofRidge,
+): Array<{ plane: RoofPlane; index: number }> {
+  const dx = ridge.x2 - ridge.x1;
+  const dy = ridge.y2 - ridge.y1;
+  const lengthSq = dx * dx + dy * dy;
+  const onRidge = (point: readonly [number, number, number]): boolean => {
+    if (Math.abs(point[2] - ridge.zFt) > RIDGE_TOUCH_FT) return false;
+    if (lengthSq <= 0) {
+      return Math.abs(point[0] - ridge.x1) <= RIDGE_TOUCH_FT
+        && Math.abs(point[1] - ridge.y1) <= RIDGE_TOUCH_FT;
+    }
+    const t = ((point[0] - ridge.x1) * dx + (point[1] - ridge.y1) * dy) / lengthSq;
+    if (t < -RIDGE_TOUCH_FT || t > 1 + RIDGE_TOUCH_FT) return false;
+    const perpX = point[0] - (ridge.x1 + dx * t);
+    const perpY = point[1] - (ridge.y1 + dy * t);
+    return Math.hypot(perpX, perpY) <= RIDGE_TOUCH_FT;
+  };
+  return (blueprint.roof?.planes ?? [])
+    .map((plane, index) => ({ plane, index }))
+    .filter(({ plane }) => plane.pts.filter(onRidge).length >= 2);
 }
 
 function saggingRidgeParts(
@@ -374,30 +557,74 @@ function saggingRidgeParts(
     );
   }
 
-  const wallTopM = blueprint.floors.filter((floor) => floor.level >= 0).length
-    * storeyHeightM;
+  const wallTopM = roofBaseM(blueprint, storeyHeightM);
   const dx = ridge.x2 - ridge.x1;
   const dy = ridge.y2 - ridge.y1;
-
-  // DEBT: The cap communicates a dipped ridge, but the canonical roof planes
-  // remain rigid. True structural sag needs subdivided roof-plane geometry.
-  return [0, 1, 2].map((section) => {
-    const t0 = section / 3;
-    const t1 = (section + 1) / 3;
-    const centerT = (t0 + t1) / 2;
-    const deflectionScale = section === 1 ? 1 : 0.28;
-    const segmentXFt = Math.abs(dx) / 3;
-    const segmentYFt = Math.abs(dy) / 3;
-    return taggedPart(feature, {
-      x: (ridge.x1 + dx * centerT - blueprint.widthFt / 2) * FT,
-      z: (ridge.y1 + dy * centerT - blueprint.depthFt / 2) * FT,
-      w: Math.max(0.18, segmentXFt * FT),
-      d: Math.max(0.18, segmentYFt * FT),
-      h: 0.12,
-      baseY: wallTopM + (ridge.zFt - feature.deflectionFt * deflectionScale) * FT,
-      colorHex: feature.colorHex,
-    });
+  const ridgeLengthFt = Math.hypot(dx, dy);
+  const segmentFt = ridgeLengthFt / SAG_RIDGE_SEGMENTS;
+  const ridgeUx = ridgeLengthFt > 0 ? dx / ridgeLengthFt : 1;
+  const ridgeUy = ridgeLengthFt > 0 ? dy / ridgeLengthFt : 0;
+  const samples = Array.from({ length: SAG_RIDGE_SEGMENTS }, (_unused, index) => {
+    const t = (index + 0.5) / SAG_RIDGE_SEGMENTS;
+    return { t, xFt: ridge.x1 + dx * t, yFt: ridge.y1 + dy * t };
   });
+
+  // The ridge cap itself: one continuous dipped curve along the bearing run.
+  const parts: SitePart[] = samples.map((sample) => taggedPart(feature, {
+    x: (sample.xFt - blueprint.widthFt / 2) * FT,
+    z: (sample.yFt - blueprint.depthFt / 2) * FT,
+    w: Math.max(SAG_MIN_BOX_M, Math.abs(ridgeUx) * segmentFt * FT),
+    d: Math.max(SAG_MIN_BOX_M, Math.abs(ridgeUy) * segmentFt * FT),
+    h: SAG_CAP_THICKNESS_M,
+    baseY: wallTopM
+      + (ridge.zFt - feature.deflectionFt * ridgeSagProfile(sample.t)) * FT,
+    colorHex: feature.colorHex,
+  }));
+
+  // The skin this ridge carries dips WITH it. Every plane on the ridge takes
+  // a short run of sunken courses that follow its own fall line downhill and
+  // fade back to the solved surface before the eave, so the sag reads as a
+  // soft hollow in the roof instead of a dropped stick over a rigid plane.
+  for (const { plane, index } of planesOnRidge(blueprint, ridge)) {
+    const slope = solveRoofSlope(plane, index);
+    const gradLength = Math.hypot(slope.gradX, slope.gradY);
+    if (gradLength <= 0) continue; // a flat plane has no fall line to walk
+    const downX = -slope.gradX / gradLength;
+    const downY = -slope.gradY / gradLength;
+    const reachFt = Math.max(...plane.pts.map(([x, y]) =>
+      (x - ridge.x1) * downX + (y - ridge.y1) * downY));
+    if (reachFt <= 0) continue; // this ridge bounds the plane's DOWNHILL edge
+    const dipRunFt = reachFt * SAG_PLANE_REACH;
+    const stepFt = dipRunFt / SAG_PLANE_STEPS;
+
+    for (const sample of samples) {
+      const sagFt = feature.deflectionFt * ridgeSagProfile(sample.t);
+      for (let step = 0; step < SAG_PLANE_STEPS; step += 1) {
+        const distFt = stepFt * (step + 0.5);
+        // Cosine taper: full dip at the ridge, flat where the dip run ends.
+        const taper = 0.5 * (1 + Math.cos(Math.PI * (distFt / dipRunFt)));
+        const xFt = sample.xFt + downX * distFt;
+        const yFt = sample.yFt + downY * distFt;
+        parts.push(taggedPart(feature, {
+          x: (xFt - blueprint.widthFt / 2) * FT,
+          z: (yFt - blueprint.depthFt / 2) * FT,
+          w: Math.max(
+            SAG_MIN_BOX_M,
+            (Math.abs(ridgeUx) * segmentFt + Math.abs(downX) * stepFt) * FT,
+          ),
+          d: Math.max(
+            SAG_MIN_BOX_M,
+            (Math.abs(ridgeUy) * segmentFt + Math.abs(downY) * stepFt) * FT,
+          ),
+          h: SAG_SKIRT_THICKNESS_M,
+          baseY: wallTopM + (riseAt(slope, xFt, yFt) - sagFt * taper) * FT,
+          colorHex: feature.colorHex,
+        }));
+      }
+    }
+  }
+
+  return parts;
 }
 
 // ============================================================================
@@ -474,7 +701,12 @@ function boardedWindowParts(
   const { floor, run } = windowRun(blueprint, feature);
   const window = floor.windows[feature.windowIndex];
   const depthM = 0.09;
-  const outwardFt = run.thicknessFt / 2 + depthM / FT / 2;
+  // BURIED-DRESSING FIX (town-look-slice1 follow-up, 2026-07-18): same
+  // full-thickness outward offset as wallSurfacePart above — the run line is
+  // the wall's INNER face, so the former half-thickness offset nailed every
+  // abandonment board inside the structural slab. The stored boarded-window
+  // targets and board sizes are unchanged; only the projection moved.
+  const outwardFt = run.thicknessFt + depthM / FT / 2;
   const boardColor = blueprint.styleResolved?.trimColor ?? '#674a31';
 
   return [0, 1, 2].map((index) => {
@@ -513,27 +745,29 @@ function roofHoleParts(
       `buildBuildingHistoryParts: roof hole targets missing plane ${feature.planeIndex}`,
     );
   }
-  const wallTopM = blueprint.floors.filter((floor) => floor.level >= 0).length
-    * storeyHeightM;
-  const meanRiseFt = plane.pts.reduce((sum, point) => sum + point[2], 0)
-    / plane.pts.length;
+  const wallTopM = roofBaseM(blueprint, storeyHeightM);
+  const slope = solveRoofSlope(plane, feature.planeIndex);
 
   // The canonical roof mesh owns the actual opening. These four charred rim
   // bars retain semantic history metadata and make the damaged edge readable.
+  // Each bar is seated at the rise of ITS OWN side of the hole (agora-8783):
+  // on a pitched plane the uphill and downhill rims sit at different heights,
+  // so the former single mean-rise seat buried one bar and floated another.
   const diameterM = feature.radiusFt * FT * 2;
   const centerX = (feature.x - blueprint.widthFt / 2) * FT;
   const centerZ = (feature.y - blueprint.depthFt / 2) * FT;
-  const baseY = wallTopM + meanRiseFt * FT - 0.035;
   const parts: SitePart[] = [];
   for (const axis of ['x', 'z'] as const) {
     for (const side of [-1, 1] as const) {
+      const barXFt = feature.x + (axis === 'x' ? side * feature.radiusFt : 0);
+      const barYFt = feature.y + (axis === 'z' ? side * feature.radiusFt : 0);
       parts.push(taggedPart(feature, {
         x: centerX + (axis === 'x' ? side * diameterM / 2 : 0),
         z: centerZ + (axis === 'z' ? side * diameterM / 2 : 0),
         w: axis === 'x' ? 0.09 : diameterM + 0.09,
         d: axis === 'z' ? 0.09 : diameterM + 0.09,
         h: 0.07,
-        baseY: baseY + 0.02,
+        baseY: wallTopM + riseAt(slope, barXFt, barYFt) * FT - 0.015,
         colorHex: '#2b1d18',
       }));
     }

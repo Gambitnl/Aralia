@@ -1,7 +1,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { NavalCombatSystem } from '../NavalCombatSystem';
-import { createShip } from '../../../utils/navalUtils';
+import { createShip } from '../../../utils/naval';
 
 describe('NavalCombatSystem', () => {
     let system: NavalCombatSystem;

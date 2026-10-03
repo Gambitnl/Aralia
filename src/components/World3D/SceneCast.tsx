@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/07/2026, 00:33:34
+ * Last Sync: 30/08/2026, 21:43:14
  * Dependents: components/World3D/World3DDemo.tsx, components/World3D/World3DScene.tsx, components/World3D/World3DWrapper.tsx
- * Imports: 4 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -25,7 +25,8 @@
  * renders their actual race + class + equipped gear, rich NPCs render their
  * class and worn gear. A member without a recipe renders as an unarmed human
  * commoner — the same default the NPC generator itself uses for unspecified
- * folk (castMemberRecipe below is the one place that decides this).
+ * folk. The UI-neutral contract and fallback now live in systems/entities3d,
+ * keeping the entity engine independent from this renderer.
  *
  * Positions are scene-local: the streamed scene origin is centered on the spawn
  * `start`, so scene-space (0, surfaceY, 0) is the ground at the player's feet.
@@ -37,21 +38,20 @@ import type { ThreeEvent } from '@react-three/fiber';
 import { registerAllParts } from '@/systems/entities3d/parts';
 import { generateEntityBlueprint } from '@/systems/entities3d/generateEntityBlueprint';
 import { heightM } from '@/systems/entities3d/types';
-import type { EntityRecipe } from '@/systems/entities3d/types';
 import { Entity3D } from '@/systems/entities3d/three/Entity3D';
+import { gameBodyOptions } from '@/systems/entities3d/three/assembleEntity';
+import {
+  figureIsInteractive,
+  castMemberRecipe,
+  layoutCast,
+  type SceneCastMember,
+} from '@/systems/entities3d/sceneCastUtils';
 
 registerAllParts();
 
-export interface SceneCastMember {
-  id: string;
-  name: string;
-  /** The player's own figure (stands at the near edge). */
-  isPlayer?: boolean;
-  /** The stranger who speaks first — label carries the highlight. */
-  isSpeaker?: boolean;
-  /** Real identity when known (player sheet / rich NPC). */
-  recipe?: EntityRecipe;
-}
+// Preserve SceneCast's public type export for existing UI callers while the
+// source of truth lives in the engine-owned contract above.
+export type { SceneCastMember } from '@/systems/entities3d/sceneCastUtils';
 
 interface SceneCastProps {
   cast: SceneCastMember[];
@@ -63,54 +63,6 @@ interface SceneCastProps {
    * figures are inert (e.g. a non-interactive diorama / test render).
    */
   onSelectNpc?: (npcId: string) => void;
-}
-
-/**
- * Whether a cast figure is click-to-talk interactive: only NPC figures, and only
- * when a select handler is wired. The player's own figure is NEVER clickable —
- * you don't open a conversation with yourself. Pure so the contract is testable
- * without an R3F render.
- */
-export function figureIsInteractive(member: SceneCastMember, hasHandler: boolean): boolean {
-  return hasHandler && !member.isPlayer;
-}
-
-/**
- * The one place an unspecified cast member becomes a body: an unarmed human
- * commoner, deterministic per member id. Members with real identities carry
- * their own recipe.
- */
-export function castMemberRecipe(member: SceneCastMember): EntityRecipe {
-  if (member.recipe) return member.recipe;
-  return {
-    kind: 'humanoid',
-    raceId: 'human',
-    classId: 'fighter', // classId only tints accents; commoners carry no gear
-    seed: `cast:${member.id}`,
-    gearOverride: [],
-  };
-}
-
-/**
- * Lay the cast out as a small face-to-face cluster: the player at the near edge
- * (+Z, toward the camera) and the NPCs in a shallow arc opposite, facing back.
- */
-export function layoutCast(cast: SceneCastMember[]): Array<SceneCastMember & { pos: [number, number, number] }> {
-  const player = cast.find((c) => c.isPlayer);
-  const npcs = cast.filter((c) => !c.isPlayer);
-
-  const out: Array<SceneCastMember & { pos: [number, number, number] }> = [];
-  if (player) out.push({ ...player, pos: [0, 0, 2.2] });
-
-  // Arc the NPCs across the far side, centered, ~3 m from the player.
-  const n = npcs.length;
-  const spread = 1.4; // metres between adjacent NPCs
-  npcs.forEach((npc, i) => {
-    const x = (i - (n - 1) / 2) * spread;
-    const z = -1.0 - Math.abs(i - (n - 1) / 2) * 0.25; // gentle arc, ends pull back
-    out.push({ ...npc, pos: [x, 0, z] });
-  });
-  return out;
 }
 
 const Figure: React.FC<{
@@ -161,12 +113,14 @@ const Figure: React.FC<{
       {/* The generated body, idling in place (pointer events bubble up).
           Opening scenes can stage several figures at once, so their soft-body
           fields use a conversational-distance resolution and a gentle idle
-          refresh. Labels, clicks, gear, eyes, and facing remain full-frame. */}
+          refresh. Labels, clicks, gear, eyes, and facing remain full-frame.
+          Skinned by default (skeleton pivot flip 2026-08-18). */}
       <Entity3D
         blueprint={blueprint}
         walking={false}
         resolutionScale={0.6}
         fieldUpdateHz={6}
+        {...gameBodyOptions(blueprint)}
       />
       {/* Name label floating above the head. */}
       <Html center position={[0, labelY, 0]} distanceFactor={12}>

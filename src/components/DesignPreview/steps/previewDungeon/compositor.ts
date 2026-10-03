@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/08/2026, 01:53:47
+ * Dependents: components/DesignPreview/steps/PreviewDungeon.tsx
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file previewDungeon/compositor.ts
  * @description The sheet compositor for the dungeon design preview (extracted
@@ -119,6 +135,34 @@ export function renderSheet(plan: DungeonPlan, ov: Overlays): HTMLCanvasElement 
   const rotW = mapW * cos + mapH * sin;
   const rotH = mapW * sin + mapH * cos;
   const fit = Math.min(1, availW / rotW, availH / rotH);
+
+  // Dev layout probe for the page-fill (B5) metric — how much of the plate the
+  // plan art actually spans. Pure-data, never read by the drawing below; a capture
+  // scenario / probe reads window.__dungeonSheetLayout for the exact number instead
+  // of inferring it from pixels (the parchment texture defeats pixel thresholds).
+  // fillRatioPlate = plan footprint / full plate; a vision-gated resize pass changes
+  // cell/fit/safe and verifies against this same number.
+  const ghost = globalThis as unknown as { __dungeonSheetLayout?: Record<string, number | boolean> };
+  if (ghost) {
+    ghost.__dungeonSheetLayout = {
+      plateCssW: cssW,
+      plateCssH: cssH,
+      cell,
+      fit,
+      artBoxW: availW,
+      artBoxH: availH,
+      mapW,
+      mapH,
+      rotW,
+      rotH,
+      mapFootprintArea: mapW * mapH,
+      artBoxArea: availW * availH,
+      plateArea: cssW * cssH,
+      fillRatioPlate: (mapW * mapH) / (cssW * cssH),
+      fillRatioArtBox: (mapW * mapH) / (availW * availH),
+      boxB: useB,
+    };
+  }
 
   // The buffer we compose into (device pixels × supersample). Nothing about the
   // drawing below knows it is supersampled — the base transform hides it.

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 18/07/2026, 18:36:02
+ * Dependents: components/BattleMap/pixi/PixiBoardPrototype.tsx
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 // src/components/BattleMap/pixi/PixiBattleBoard.tsx
 /**
  * @file PixiBattleBoard.tsx
@@ -6,15 +22,33 @@
  * scene, WebGPU-first. Display only: no clicks, no targeting — the DOM board
  * remains the playable surface until the migration flips.
  */
+
+// ============================================================================
+// Imports
+// ============================================================================
+// Pixi owns the single rendered scene. Shared battle-map modules supply the
+// same terrain, fog, camera, and token decisions used by the existing board.
+// ============================================================================
 import React, { useEffect, useRef } from 'react';
 import { Application, Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
 import type { BattleMapData, CombatCharacter, LightLevel } from '../../../types/combat';
 import { TILE_SIZE_PX } from '../../../config/mapConfig';
 import { loadGroundTextures, paintGround } from '../groundPainter';
-import { buildFogAlphaGrid, FOG_TINT } from '../fogModel';
+import {
+  blurFogAlphaGrid,
+  buildFogAlphaGrid,
+  FOG_TINT,
+  FOG_TINT_WATER,
+} from '../fogModel';
 import { CameraView, fitView, groundResolutionFor, panBy, zoomAtCursor } from './cameraMath';
 import { buildTokenViewModel } from './tokenViewModel';
 
+// ============================================================================
+// Public Board Contract and Internal Token Shape
+// ============================================================================
+// Combat supplies only the mechanical map, visibility, and character state.
+// The renderer keeps its Pixi objects private so the default board is untouched.
+// ============================================================================
 export interface PixiBattleBoardProps {
   mapData: BattleMapData;
   characters: CombatCharacter[];
@@ -24,7 +58,10 @@ export interface PixiBattleBoardProps {
   selectedCharacterId: string | null;
 }
 
-const GLIDE_PER_S = 6; // token glide speed, tiles-ish per second (lerp factor)
+// New positions ease into place instead of snapping. Six blend steps per
+// second keeps ordinary movement readable without pretending to be final
+// walk-cycle animation; cinematic movement belongs to the later living board.
+const GLIDE_PER_S = 6;
 
 /** One rendered combatant: container with ring, label, HP arc. */
 interface TokenNode {
@@ -38,13 +75,44 @@ interface TokenNode {
   drawKey: string;
 }
 
+// ============================================================================
+// Prototype Renderer
+// ============================================================================
+// One long-lived Pixi scene paints the ground, synchronizes tokens and fog from
+// live combat props, and owns the prototype camera until the battlefield changes.
+// ============================================================================
 const PixiBattleBoard: React.FC<PixiBattleBoardProps> = ({
   mapData, characters, visibleTiles, getLightLevel, currentCharacterId, selectedCharacterId,
 }) => {
   const hostRef = useRef<HTMLDivElement>(null);
-  // Live prop mirror so the one long-lived Pixi effect reads fresh values.
-  const propsRef = useRef({ characters, visibleTiles, getLightLevel, currentCharacterId, selectedCharacterId });
-  propsRef.current = { characters, visibleTiles, getLightLevel, currentCharacterId, selectedCharacterId };
+
+  // Live prop mirror lets the one long-lived Pixi effect consume fresh combat
+  // state without rebuilding the renderer whenever a token or sight line moves.
+  const propsRef = useRef({
+    characters,
+    visibleTiles,
+    getLightLevel,
+    currentCharacterId,
+    selectedCharacterId,
+    fogRevision: 0,
+  });
+
+  // React prop changes are the cheap boundary for fog work. After each commit,
+  // changed visibility or light inputs advance a numeric revision; the Pixi
+  // ticker then compares only that number before considering the two-pass blur.
+  useEffect(() => {
+    const previous = propsRef.current;
+    const fogInputsChanged = previous.visibleTiles !== visibleTiles
+      || previous.getLightLevel !== getLightLevel;
+    propsRef.current = {
+      characters,
+      visibleTiles,
+      getLightLevel,
+      currentCharacterId,
+      selectedCharacterId,
+      fogRevision: previous.fogRevision + (fogInputsChanged ? 1 : 0),
+    };
+  }, [characters, currentCharacterId, getLightLevel, selectedCharacterId, visibleTiles]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -55,6 +123,8 @@ const PixiBattleBoard: React.FC<PixiBattleBoardProps> = ({
     let view: CameraView = { x: 0, y: 0, zoom: 1 };
     let groundRes = 0;
     let fogKey = '';
+    let renderedFogRevision = -1;
+    let fogRenderCount = 0;
 
     const W = mapData.dimensions.width;
     const H = mapData.dimensions.height;
@@ -93,14 +163,30 @@ const PixiBattleBoard: React.FC<PixiBattleBoardProps> = ({
       groundRes = res;
     };
 
-    const redrawFog = () => {
-      const { visibleTiles: vis, getLightLevel: light } = propsRef.current;
-      const grid = buildFogAlphaGrid(mapData, vis, light);
-      // Cheap change detection: skip identical fog states.
-      const key = grid.alphas.join(',');
-      if (key === fogKey) return;
-      fogKey = key;
-      // One pixel per tile; bilinear upscale on the GPU IS the feathering.
+    const redrawFogIfChanged = () => {
+      const {
+        visibleTiles: vis,
+        getLightLevel: light,
+        fogRevision,
+      } = propsRef.current;
+
+      // Animation frames normally stop here. Mark the revision before doing
+      // canvas work so an unavailable context cannot turn a failed draw into an
+      // expensive blur retry on every following ticker frame.
+      if (fogRevision === renderedFogRevision) return;
+      renderedFogRevision = fogRevision;
+
+      // Use the same two-pass penumbra as the DOM fog canvas. Later look work
+      // softened diagonal sight boundaries there; keeping the raw grid here
+      // would make the two renderers disagree at the D1 eyeball gate.
+      const grid = blurFogAlphaGrid(
+        buildFogAlphaGrid(mapData, vis, light),
+        2,
+      );
+      fogKey = grid.alphas.join(',');
+
+      // The shared two-pass blur creates the penumbra on the one-pixel-per-tile
+      // grid; linear GPU scaling then keeps that softened grid smooth at map size.
       const mini = document.createElement('canvas');
       mini.width = grid.width;
       mini.height = grid.height;
@@ -110,7 +196,13 @@ const PixiBattleBoard: React.FC<PixiBattleBoardProps> = ({
         for (let x = 0; x < grid.width; x++) {
           const a = grid.alphas[y * grid.width + x];
           if (a <= 0) continue;
-          mctx.fillStyle = `rgba(${FOG_TINT.r},${FOG_TINT.g},${FOG_TINT.b},${a})`;
+          // Water keeps its blue family under fog instead of turning muddy,
+          // matching the shared look decision already used by the DOM canvas.
+          const tint =
+            mapData.tiles.get(`${x}-${y}`)?.terrain === 'water'
+              ? FOG_TINT_WATER
+              : FOG_TINT;
+          mctx.fillStyle = `rgba(${tint.r},${tint.g},${tint.b},${a})`;
           mctx.fillRect(x, y, 1, 1);
         }
       }
@@ -121,6 +213,7 @@ const PixiBattleBoard: React.FC<PixiBattleBoardProps> = ({
       sprite.height = mapPxH;
       fogLayer.removeChildren().forEach((c) => c.destroy({ texture: true, textureSource: true }));
       fogLayer.addChild(sprite);
+      fogRenderCount += 1;
     };
 
     const syncTokens = () => {
@@ -206,13 +299,14 @@ const PixiBattleBoard: React.FC<PixiBattleBoardProps> = ({
       applyCamera();
       await rasterizeGround(groundResolutionFor(view.zoom, window.devicePixelRatio || 1, mapPxW, mapPxH));
       if (destroyed) return;
-      redrawFog();
+      redrawFogIfChanged();
       syncTokens();
 
-      // Ticker: token glide + prop-driven refreshes.
+      // The ticker animates tokens continuously, but fog only crosses its cheap
+      // numeric revision gate when React has supplied changed visibility inputs.
       app.ticker.add((tick) => {
         syncTokens();
-        redrawFog();
+        redrawFogIfChanged();
         const dt = Math.min(0.1, tick.deltaMS / 1000);
         tokens.forEach((node) => {
           node.root.x += (node.targetX - node.root.x) * Math.min(1, GLIDE_PER_S * dt);
@@ -269,6 +363,8 @@ const PixiBattleBoard: React.FC<PixiBattleBoardProps> = ({
           rendererType: app.renderer.name,
           tokens: [...tokens.entries()].map(([id, n]) => ({ id, x: n.root.x, y: n.root.y, visible: n.root.visible, alpha: n.root.alpha })),
           fogDarkTiles: fogKey === '' ? -1 : fogKey.split(',').filter((a) => Number(a) > 0).length,
+          fogRevision: renderedFogRevision,
+          fogRenderCount,
         }),
         // World-px centers of water tiles, so capture scripts can frame a
         // shoreline without knowing the map roll.
@@ -319,4 +415,9 @@ const PixiBattleBoard: React.FC<PixiBattleBoardProps> = ({
   );
 };
 
+// ============================================================================
+// Default Export
+// ============================================================================
+// CombatView lazy-loads this renderer only through the ?pixiboard=1 harness.
+// ============================================================================
 export default PixiBattleBoard;

@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { ItemType } from '../../../types';
 import { renderHook } from '@testing-library/react';
 import { useActionExecutor } from '../useActionExecutor';
 import { CombatCharacter, CombatAction, TurnState, Ability, Position } from '../../../types/combat';
 import type { ActiveSpellZone } from '../../../systems/spells/effects/triggerHandler';
 import type { SpellEffect } from '../../../types/spells';
+import { combatEvents, type AttackEvent } from '../../../systems/events/CombatEvents';
 import {
     mockEndTurn,
     mockCanAfford,
@@ -85,6 +87,7 @@ describe('useActionExecutor', () => {
             const { result } = renderHook(() => useActionExecutor({
                 ...defaultProps,
                 characters: [attacker, protectedCaster],
+                turnState: { ...mockTurnState, currentCharacterId: attacker.id },
                 reactiveTriggers: [{
                     id: 'armor-of-agathys-retaliation',
                     sourceEffect: armorRetaliation,
@@ -102,7 +105,17 @@ describe('useActionExecutor', () => {
                 targetCharacterIds: [protectedCaster.id],
                 targetPosition: protectedCaster.position,
                 cost: { type: 'action' },
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                // The attack roll belongs to the command layer, so the hit it
+                // rolled travels on the action. Without it the executor has no
+                // proof of a hit and would retaliate for nothing.
+                attackResults: [{
+                    targetId: protectedCaster.id,
+                    isHit: true,
+                    isCritical: false,
+                    attackType: 'weapon',
+                    weaponType: 'melee'
+                }]
             };
 
             const success = await result.current.executeAction(action);
@@ -112,13 +125,15 @@ describe('useActionExecutor', () => {
                 expect.objectContaining({ id: attacker.id }),
                 5,
                 'reactive effect',
-                'Cold'
+                'Cold',
+                expect.any(Number)
             );
             expect(mockHandleDamage).not.toHaveBeenCalledWith(
                 expect.objectContaining({ id: protectedCaster.id }),
                 expect.any(Number),
                 'reactive effect',
-                'Cold'
+                'Cold',
+                expect.any(Number)
             );
         } finally {
             randomSpy.mockRestore();
@@ -137,7 +152,7 @@ describe('useActionExecutor', () => {
             cost: { type: 'action' },
             targeting: 'single_enemy',
             range: 12,
-            weapon: { id: 'shortbow_item', name: 'Shortbow', description: 'A shortbow', type: 'weapon', properties: ['ranged'] },
+            weapon: { id: 'shortbow_item', name: 'Shortbow', description: 'A shortbow', type: ItemType.Weapon, properties: ['ranged'] },
             effects: [{ type: 'damage', value: 1, damageType: 'physical', dice: '1' }]
         };
         const archer: CombatCharacter = {
@@ -178,6 +193,7 @@ describe('useActionExecutor', () => {
         const { result } = renderHook(() => useActionExecutor({
             ...defaultProps,
             characters: [archer, protectedCaster],
+            turnState: { ...mockTurnState, currentCharacterId: archer.id },
             reactiveTriggers: [{
                 id: 'armor-of-agathys-melee-filter',
                 sourceEffect: meleeOnlyRetaliation,
@@ -224,7 +240,7 @@ describe('useActionExecutor', () => {
                 description: 'A ranged spell attack.',
                 attackType: 'ranged'
             } as NonNullable<Ability['spell']>,
-            effects: [{ type: 'damage', value: 1, damageType: 'cold', dice: '1' }]
+            effects: [{ type: 'damage', value: 1, damageType: 'ice', dice: '1' }]
         };
         const spellAttacker: CombatCharacter = {
             ...mockCharacter,
@@ -263,6 +279,7 @@ describe('useActionExecutor', () => {
         const { result } = renderHook(() => useActionExecutor({
             ...defaultProps,
             characters: [spellAttacker, protectedCaster],
+            turnState: { ...mockTurnState, currentCharacterId: spellAttacker.id },
             reactiveTriggers: [{
                 id: 'weapon-only-reactive-filter',
                 sourceEffect: weaponOnlyRetaliation,
@@ -352,6 +369,7 @@ describe('useActionExecutor', () => {
         const { result } = renderHook(() => useActionExecutor({
             ...defaultProps,
             characters: [attacker, protectedCaster],
+            turnState: { ...mockTurnState, currentCharacterId: attacker.id },
             reactiveTriggers: [{
                 id: 'armor-retaliation-with-unrelated-temp-hp',
                 sourceEffect: armorRetaliation,
@@ -443,6 +461,7 @@ describe('useActionExecutor', () => {
         const { result } = renderHook(() => useActionExecutor({
             ...defaultProps,
             characters: [attacker, protectedCaster],
+            turnState: { ...mockTurnState, currentCharacterId: attacker.id },
             reactiveTriggers: [{
                 id: 'armor-retaliation-on-missed-attack',
                 sourceEffect: armorRetaliation,
@@ -476,11 +495,11 @@ describe('useActionExecutor', () => {
         expect(mockAddDamageNumber).not.toHaveBeenCalled();
     });
 
-    it('should synthesize hit metadata before resolving legacy ability attack reactions', async () => {
-        // Older attack actions do not always arrive from the command system
-        // with attackResults already filled in. This case proves the executor
-        // still resolves a hit/miss fact before Armor-style reactions can fire,
-        // instead of treating any attack-shaped action as a confirmed hit.
+    it('should not resolve attack reactions for an action that carries no command roll', async () => {
+        // An attack-shaped action is not a hit. Nothing outside the command
+        // layer rolls a d20 to fill in attackResults any more (agora-f821.39),
+        // so an action that arrives without one proves nothing and Armor-style
+        // retaliation stays silent instead of answering a fabricated roll.
         const meleeAttack: Ability = {
             id: 'legacy_claw',
             name: 'Legacy Claw',
@@ -540,6 +559,7 @@ describe('useActionExecutor', () => {
             const { result } = renderHook(() => useActionExecutor({
                 ...defaultProps,
                 characters: [attacker, protectedCaster],
+                turnState: { ...mockTurnState, currentCharacterId: attacker.id },
                 reactiveTriggers: [{
                     id: 'armor-retaliation-legacy-miss',
                     sourceEffect: armorRetaliation,
@@ -569,7 +589,8 @@ describe('useActionExecutor', () => {
                 expect.objectContaining({ id: attacker.id }),
                 5,
                 'reactive effect',
-                'Cold'
+                'Cold',
+                expect.any(Number)
             );
         } finally {
             missRoll.mockRestore();
@@ -637,6 +658,7 @@ describe('useActionExecutor', () => {
         const { result } = renderHook(() => useActionExecutor({
             ...defaultProps,
             characters: [attacker, protectedCaster],
+            turnState: { ...mockTurnState, currentCharacterId: attacker.id },
             reactiveTriggers: [{
                 id: 'armor-retaliation-on-ranged-result',
                 sourceEffect: armorRetaliation,
@@ -670,5 +692,89 @@ describe('useActionExecutor', () => {
         expect(success).toBe(true);
         expect(mockHandleDamage).not.toHaveBeenCalled();
         expect(mockAddDamageNumber).not.toHaveBeenCalled();
+    });
+    it('emits exactly one unit_attack for a spell attack, carrying the command roll', async () => {
+        // The spell path suppresses its own attack events and replays the action
+        // with the rolls the commands made (agora-f821.39). Both halves are
+        // exercised here: the first pass must publish nothing, and the replay
+        // must publish one event whose isHit is the command's, not a guess.
+        const fireBolt: Ability = {
+            id: 'fire_bolt',
+            name: 'Fire Bolt',
+            description: 'A ranged spell attack.',
+            type: 'spell',
+            cost: { type: 'action' },
+            targeting: 'single_enemy',
+            range: 120,
+            effects: [{ type: 'damage', value: 1, damageType: 'fire', dice: '1d10' }],
+            spell: { attackType: 'ranged' } as unknown as Ability['spell']
+        };
+        const caster: CombatCharacter = {
+            ...mockCharacter,
+            id: 'spell_caster',
+            name: 'Spell Caster',
+            position: { x: 0, y: 0 },
+            abilities: [fireBolt]
+        };
+        const victim: CombatCharacter = {
+            ...mockCharacter,
+            id: 'spell_victim',
+            name: 'Spell Victim',
+            position: { x: 4, y: 0 },
+            abilities: []
+        };
+
+        mockConsumeAction.mockReturnValue(caster);
+        mockProcessTileEffects.mockImplementation((character: CombatCharacter) => character);
+
+        const attackEvents: { isHit?: boolean; attackType?: string }[] = [];
+        const listener = (event: AttackEvent) => {
+            attackEvents.push({ isHit: event.isHit, attackType: event.attackType });
+        };
+        combatEvents.on('unit_attack', listener);
+
+        try {
+            const { result } = renderHook(() => useActionExecutor({
+                ...defaultProps,
+                characters: [caster, victim],
+                turnState: { ...mockTurnState, currentCharacterId: caster.id },
+            }));
+
+            const castAction: CombatAction = {
+                id: 'fire-bolt-cast',
+                characterId: caster.id,
+                type: 'ability',
+                abilityId: fireBolt.id,
+                targetCharacterIds: [victim.id],
+                targetPosition: victim.position,
+                cost: { type: 'action' },
+                timestamp: Date.now(),
+                suppressAbilityEvents: true
+            };
+
+            expect(await result.current.executeAction(castAction)).toBe(true);
+            // Nothing is known yet, so nothing is announced.
+            expect(attackEvents).toHaveLength(0);
+
+            // The command layer rolled a miss. The replay carries that fact.
+            expect(await result.current.executeAction({
+                ...castAction,
+                id: 'fire-bolt-cast-reactive-results',
+                cost: { type: 'free' },
+                reactiveEventsOnly: true,
+                suppressAbilityEvents: false,
+                attackResults: [{
+                    targetId: victim.id,
+                    isHit: false,
+                    isCritical: false,
+                    attackType: 'spell',
+                    weaponType: 'ranged'
+                }]
+            })).toBe(true);
+
+            expect(attackEvents).toEqual([{ isHit: false, attackType: 'spell' }]);
+        } finally {
+            combatEvents.off('unit_attack', listener);
+        }
     });
 });

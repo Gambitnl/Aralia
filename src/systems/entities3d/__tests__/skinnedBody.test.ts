@@ -154,13 +154,18 @@ describe('assembleEntity bodyTech switch', () => {
     const one = new Vector3(1, 1, 1);
     const mapped = new Vector3();
 
-    // ball pieces: the segment node's position IS the joint (head, hands, feet)
+    // ball pieces: map the bind center through the live bone (the deltoid
+    // skins to the clavicle with an offset since the clavicle update; for
+    // every other ball the bind center IS the bone origin, so the mapped
+    // point equals the bone position and the check is unchanged)
     for (const ball of bind.restPose.balls) {
       const segNode = seg.group.getObjectByName(`seg:${ball.id}`)!;
       const bone = skin.group.getObjectByName(ball.bone)!;
+      const i = bind.index.get(ball.bone)!;
+      bindInverse.compose(bind.bindWorldPos[i], bind.bindWorldQuat[i], one).invert();
+      mapped.set(ball.center[0], ball.center[1], ball.center[2]).applyMatrix4(bindInverse).applyMatrix4(bone.matrixWorld);
       const a = new Vector3().setFromMatrixPosition(segNode.matrixWorld);
-      const b = new Vector3().setFromMatrixPosition(bone.matrixWorld);
-      expect(a.distanceTo(b), `${ball.id} joint drift`).toBeLessThan(1e-3);
+      expect(a.distanceTo(mapped), `${ball.id} joint drift`).toBeLessThan(1e-3);
     }
     // segment pieces: the node sits at the segment midpoint — map the bind
     // midpoint through the live bone and compare
@@ -174,22 +179,29 @@ describe('assembleEntity bodyTech switch', () => {
         .applyMatrix4(bindInverse)
         .applyMatrix4(bone.matrixWorld);
       const nodePos = new Vector3().setFromMatrixPosition(segNode.matrixWorld);
-      expect(mapped.distanceTo(nodePos), `${piece.id} midpoint drift`).toBeLessThan(1e-3);
+      // thenar2 rides the thumb root; the no-twist transport gives its
+      // off-axis midpoint a bounded few-mm drift (largest under a grip lock).
+      // hands campaign close (2026-08-21): the neutral relaxed thumb
+      // (skeletonBuilder bipedHandDigits) re-aims the thumb root and moves
+      // the bounded drift from ~4mm to ~6mm — still a buried thenar ring.
+      const tol = piece.id.includes('thenar') ? 8e-3 : 1e-3;
+      expect(mapped.distanceTo(nodePos), `${piece.id} midpoint drift`).toBeLessThan(tol);
     }
     seg.dispose();
     skin.dispose();
   });
 
-  it('fails honestly outside slice-1 scope: wireframe and non-biped gaits', () => {
-    expect(() => assembleEntity(bp(), { renderMode: 'wireframe', bodyTech: 'skinned' })).toThrow(/no wireframe path/);
-    const wolf = generateEntityBlueprint({
-      kind: 'creature',
-      creatureType: 'Beast',
-      size: 'Medium',
-      seed: 'skel-2',
-      cues: ['wolf'],
-    });
-    expect(wolf.gait).not.toBe('biped');
-    expect(() => assembleEntity(wolf, { renderMode: 'solid', bodyTech: 'skinned' })).toThrow(/biped/);
+  it('fails honestly outside scope: wireframe is decided out — skinned is solid shaded only', () => {
+    // Decision 2026-07-21: deforming (skinned) bodies render solid shaded;
+    // wireframe is a segment-body debug look and never reaches the skeleton.
+    expect(() => assembleEntity(bp(), { renderMode: 'wireframe', bodyTech: 'skinned' })).toThrow(/solid shaded only/);
+    // Slice 5 closed the last gap: biped (slice 1), plan (slice 4) and the five
+    // species gaits (slice 5) all have skeletons, so a non-plan quad now BUILDS
+    // one instead of throwing. The wireframe guard still binds it.
+    const quad = { ...bp(), gait: 'quad' as const, planSpec: undefined };
+    const handle = assembleEntity(quad, { renderMode: 'solid', bodyTech: 'skinned' });
+    expect(handle.group.getObjectByName('skinnedBody'), 'quad has no skinned body').toBeTruthy();
+    handle.dispose();
+    expect(() => assembleEntity(quad, { renderMode: 'wireframe', bodyTech: 'skinned' })).toThrow(/solid shaded only/);
   });
 });

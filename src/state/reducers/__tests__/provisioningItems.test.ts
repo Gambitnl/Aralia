@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { characterReducer } from '../characterReducer';
 import { GameState } from '../../../types';
 import { AppAction } from '../../actionTypes';
-import { createMockGameState } from '../../../utils/factories';
+import { createMockGameState } from '../../../utils/core';
 import { daysOfFood, daysOfWater } from '../../../systems/travel/provisioning';
 
 /**

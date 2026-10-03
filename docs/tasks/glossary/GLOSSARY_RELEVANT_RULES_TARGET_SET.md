@@ -88,26 +88,26 @@ placeholder. That backlog is executed. All 19 terms were re-verified on
 entry with substantive rule text (no "Canonical rule text has not been
 captured yet" placeholders remain; grep-verified):
 
-- `Cone` → `cone_area.json`
-- `Cube` → `cube_area.json`
-- `curse` → `curse.json`
-- `Cylinder` → `cylinder_area.json`
-- `Difficult Terrain` → `difficult_terrain.json` (real XPHB text; the old
+- `Cone` -> `cone_area.json`
+- `Cube` -> `cube_area.json`
+- `curse` -> `curse.json`
+- `Cylinder` -> `cylinder_area.json`
+- `Difficult Terrain` -> `difficult_terrain.json` (real XPHB text; the old
   placeholder path under `rules/spells/referenced/` no longer exists)
-- `Emanation` → `emanation_area.json`
-- `Friendly` → `friendly_attitude.json`
-- `Half Cover` → `half_cover.json`
-- `Heavily Obscured` → `heavily_obscured.json`
-- `Hostile` → `hostile_attitude.json`
-- `Indifferent` → `indifferent_attitude.json`
-- `Lightly Obscured` → `lightly_obscured.json`
-- `Line` → `line_area.json`
-- `Passive Perception` → `passive_perception.json`
-- `possessed` → `possessed.json` (plus parent `possession.json`)
-- `Shape-Shifting` → `shape_shifting.json`
-- `Stable` → `stable.json`
-- `Three-Quarters Cover` → `three_quarters_cover.json`
-- `Total Cover` → `total_cover.json`
+- `Emanation` -> `emanation_area.json`
+- `Friendly` -> `friendly_attitude.json`
+- `Half Cover` -> `half_cover.json`
+- `Heavily Obscured` -> `heavily_obscured.json`
+- `Hostile` -> `hostile_attitude.json`
+- `Indifferent` -> `indifferent_attitude.json`
+- `Lightly Obscured` -> `lightly_obscured.json`
+- `Line` -> `line_area.json`
+- `Passive Perception` -> `passive_perception.json`
+- `possessed` -> `possessed.json` (plus parent `possession.json`)
+- `Shape-Shifting` -> `shape_shifting.json`
+- `Stable` -> `stable.json`
+- `Three-Quarters Cover` -> `three_quarters_cover.json`
+- `Total Cover` -> `total_cover.json`
 
 No terms from that list remain genuinely missing. The AoE-shape entries now
 live as top-level `rules/` files; only `sphere_area.json` remains under
@@ -125,4 +125,4 @@ The glossary-rules coverage standard remains:
 4. Do not use the full `Rules Glossary` category size as proof of canonical rules
    coverage.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/glossary/GLOSSARY_RELEVANT_RULES_TARGET_SET.md","sha256WithoutMarker":"5ac0b8e98c290f4b24bfc97919f0af90ea18cfbabe469485952ae2559c1a12d7","markedAtUtc":"2026-06-25T22:29:38.307Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/glossary/GLOSSARY_RELEVANT_RULES_TARGET_SET.md","sha256WithoutMarker":"329f31fc7c0f1dc4f0d171dc52215e1e85185e209863878057b5f3789e4915e0","markedAtUtc":"2026-08-09T20:14:15.534Z"} -->

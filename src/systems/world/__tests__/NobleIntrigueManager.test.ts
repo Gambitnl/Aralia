@@ -1,7 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { generateNobleIntrigue } from '../NobleIntrigueManager';
-import { createMockGameState, createMockFaction } from '../../../utils/factories';
+import { createMockGameState, createMockFaction } from '../../../utils/core';
 import { SeededRandom } from '@/utils/random';
 
 // Mock SeededRandom to control outcomes

@@ -1,14 +1,14 @@
-# 3D Combat Map — BG3-Style Visual Overhaul
+# 3D Combat Map - BG3-Style Visual Overhaul
 
 **Date:** 2026-05-21
 **Branch:** `worktree-feature+3d-combat-map`
-**Status:** Implemented. This document is now a design rationale and reference — for the current state of the engine, generator, and rendering stack see [`docs/architecture/COMBAT_MAP_ENGINE.md`](../../architecture/COMBAT_MAP_ENGINE.md). Implementation lives under `src/components/BattleMap/` (BattleMap3D.tsx, terrain/, camera/, characters/, vfx/) and `src/services/battleMapGenerator.ts`.
+**Status:** Implemented. This document is now a design rationale and reference - for the current state of the engine, generator, and rendering stack see [`docs/architecture/COMBAT_MAP_ENGINE.md`](../../architecture/COMBAT_MAP_ENGINE.md). Implementation lives under `src/components/BattleMap/` (BattleMap3D.tsx, terrain/, camera/, characters/, vfx/) and `src/services/battleMapGenerator.ts`.
 
 ---
 
 ## Goal
 
-Port Aralia's tactical combat map from a 2D HTML/CSS grid to a fully 3D, Baldur's Gate 3-style rendering layer. The 3D map must feature continuous sculpted terrain, hero-grade character models with animations, full environment simulation (swaying vegetation, water, dynamic lighting, weather, particles), dramatic combat VFX (weapon trails, spell zones, cinematic attack camera), and a free-orbiting perspective camera — all while preserving every existing combat mechanic unchanged. The existing 2D map remains available via a player toggle. Target: 60fps on desktop gaming hardware (GTX 1060+).
+Port Aralia's tactical combat map from a 2D HTML/CSS grid to a fully 3D, Baldur's Gate 3-style rendering layer. The 3D map must feature continuous sculpted terrain, hero-grade character models with animations, full environment simulation (swaying vegetation, water, dynamic lighting, weather, particles), dramatic combat VFX (weapon trails, spell zones, cinematic attack camera), and a free-orbiting perspective camera - all while preserving every existing combat mechanic unchanged. The existing 2D map remains available via a player toggle. Target: 60fps on desktop gaming hardware (GTX 1060+).
 
 ---
 
@@ -17,10 +17,10 @@ Port Aralia's tactical combat map from a 2D HTML/CSS grid to a fully 3D, Baldur'
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
 | Camera | BG3-style tilted perspective, free 360° orbit | Maximizes 3D visual impact; matches reference material |
-| Character models | Hero-grade glTF via Grok → Pixal3D → Mixamo pipeline | Free, art-directed, BG3 visual bar |
-| Asset pipeline | Grok Imagine (concept art) → Pixal3D (image-to-3D) → Mixamo (rig + animate) | Fully free, custom look per character |
+| Character models | Hero-grade glTF via Grok -> Pixal3D -> Mixamo pipeline | Free, art-directed, BG3 visual bar |
+| Asset pipeline | Grok Imagine (concept art) -> Pixal3D (image-to-3D) -> Mixamo (rig + animate) | Fully free, custom look per character |
 | Landscape | Full environment sim (vegetation, water, lighting, weather, particles) | User-selected; defines the "alive" world feel |
-| Port strategy | Parallel toggle — 2D and 3D coexist | Shared hooks, two rendering frontends; low risk |
+| Port strategy | Parallel toggle - 2D and 3D coexist | Shared hooks, two rendering frontends; low risk |
 | Performance target | Desktop gaming PC, 60fps on GTX 1060+ | Unlocks full quality stack (SSAO, shadows, particles) |
 | Terrain approach | Continuous sculpted landscape, hidden grid | BG3 reference: grid invisible until movement mode |
 | Rendering engine | R3F + drei + custom GLSL shaders (Hybrid Approach C) | Best React integration; custom shaders for environment fidelity |
@@ -33,28 +33,28 @@ Port Aralia's tactical combat map from a 2D HTML/CSS grid to a fully 3D, Baldur'
 
 ```
 CombatView.tsx
-├── BattleMap.tsx        (existing 2D — HTML/CSS grid)
-├── BattleMap3D.tsx      (NEW — R3F <Canvas>)
-│   ├── TerrainSystem        → continuous heightfield mesh + splat textures
-│   ├── CharacterSystem      → glTF models + AnimationMixer
-│   ├── VFXSystem            → particles, trails, spell zones, decals
-│   ├── CameraController     → orbit controls + cinematic attack cam
-│   ├── GridOverlay          → shader-based, visible only in movement mode
-│   ├── TargetingVisuals     → ray lines, AoE projections, hit% labels
-│   └── UIOverlay            → Html components (HP bars, status, nameplates)
+├── BattleMap.tsx        (existing 2D - HTML/CSS grid)
+├── BattleMap3D.tsx      (NEW - R3F <Canvas>)
+│   ├── TerrainSystem        -> continuous heightfield mesh + splat textures
+│   ├── CharacterSystem      -> glTF models + AnimationMixer
+│   ├── VFXSystem            -> particles, trails, spell zones, decals
+│   ├── CameraController     -> orbit controls + cinematic attack cam
+│   ├── GridOverlay          -> shader-based, visible only in movement mode
+│   ├── TargetingVisuals     -> ray lines, AoE projections, hit% labels
+│   └── UIOverlay            -> Html components (HP bars, status, nameplates)
 └── Toggle switch            (2D ↔ 3D)
 
 Shared (UNCHANGED):
-├── useBattleMap         → selected character, action mode, valid moves
-├── useTurnManager       → turn state, action economy, turn order
-├── useAbilitySystem     → targeting mode, ability selection, AoE preview
-├── useGridMovement      → BFS reachability, A* pathfinding
-├── useCombatEngine      → spell zones, reactive triggers, damage calc
-├── useCombatVisuals     → damage number queue, animation events
-├── combat.ts types      → BattleMapTile, CombatCharacter, CombatAction
-├── battleMapGenerator   → procedural map generation (Perlin noise)
-├── pathfinding.ts       → A* with D&D 5e diagonal rules
-└── lineOfSight.ts       → Bresenham's algorithm
+├── useBattleMap         -> selected character, action mode, valid moves
+├── useTurnManager       -> turn state, action economy, turn order
+├── useAbilitySystem     -> targeting mode, ability selection, AoE preview
+├── useGridMovement      -> BFS reachability, A* pathfinding
+├── useCombatEngine      -> spell zones, reactive triggers, damage calc
+├── useCombatVisuals     -> damage number queue, animation events
+├── combat.ts types      -> BattleMapTile, CombatCharacter, CombatAction
+├── battleMapGenerator   -> procedural map generation (Perlin noise)
+├── pathfinding.ts       -> A* with D&D 5e diagonal rules
+└── lineOfSight.ts       -> Bresenham's algorithm
 ```
 
 ### Tech Stack
@@ -70,14 +70,14 @@ Shared (UNCHANGED):
 | Quaternius RPG pack | Character models (CC0, free) |
 | Mixamo | Animation library (idle, walk, attack, death, cast) |
 
-### Bridge: Hooks → 3D Scene
+### Bridge: Hooks -> 3D Scene
 
 The bridge between existing game logic and the 3D renderer is intentionally thin:
 
 | Hook output | 3D representation |
 |-------------|-------------------|
-| `handleTileClick(tileId)` | Raycaster hits terrain → reverse-map world position to grid coords → call handler |
-| `handleCharacterClick(charId)` | Raycaster hits character mesh → call handler |
+| `handleTileClick(tileId)` | Raycaster hits terrain -> reverse-map world position to grid coords -> call handler |
+| `handleCharacterClick(charId)` | Raycaster hits character mesh -> call handler |
 | `validMoves[]` | Green/blue highlight zones on terrain via grid overlay shader |
 | `activePath[]` | 3D path line/arrow rendered on terrain surface |
 | `selectedCharacterId` | Cyan selection decal ring projected on ground |
@@ -137,7 +137,7 @@ float wind = sin(time * windSpeed + worldPos.x * 0.5 + worldPos.z * 0.3) * windS
 displaced.x += wind * vertexHeight; // tops sway, roots stay
 ```
 
-Additional small plants (flowers, ferns) scattered via instanced mesh with LOD — full detail within camera radius, billboards beyond.
+Additional small plants (flowers, ferns) scattered via instanced mesh with LOD - full detail within camera radius, billboards beyond.
 
 ### Water System
 
@@ -163,8 +163,8 @@ A screen-space shader on the terrain that activates when `actionMode === 'move'`
 
 ### Model Pipeline
 
-1. **Source**: Quaternius RPG Character Pack (CC0) for initial implementation — 6 rigged fantasy characters
-2. **Animations**: Mixamo animation library — download as FBX, convert to glTF
+1. **Source**: Quaternius RPG Character Pack (CC0) for initial implementation - 6 rigged fantasy characters
+2. **Animations**: Mixamo animation library - download as FBX, convert to glTF
 3. **Required animation states**: idle, walk, run, attack_melee, attack_ranged, cast_spell, hit_react, death, dodge
 4. **Optimization**: `@gltf-transform` to compress textures (KTX2), draco-compress geometry, merge materials
 
@@ -237,10 +237,10 @@ const CHARACTER_MODELS: Record<string, string> = {
 
 Active spell effects (fire, ice, acid, etc.) render as ground-projected 3D effects:
 
-- **Emissive ground decal** — colored overlay on terrain within the zone radius
-- **Particle emitters** — flames/frost/bubbles rising from the zone
-- **Dynamic point light** — fire zones cast warm orange light, ice zones cast cool blue
-- **Per-frame animation** — fire flickers, ice pulses, acid bubbles
+- **Emissive ground decal** - colored overlay on terrain within the zone radius
+- **Particle emitters** - flames/frost/bubbles rising from the zone
+- **Dynamic point light** - fire zones cast warm orange light, ice zones cast cool blue
+- **Per-frame animation** - fire flickers, ice pulses, acid bubbles
 
 Generated from `useCombatEngine`'s `spellZones[]` array.
 
@@ -337,7 +337,7 @@ Existing React UI components stay as HTML overlaid on the 3D canvas. R3F's `<Htm
 | Ability palette / action bar | Bottom center | `AbilityPalette` (existing, restyled) |
 | Action economy bar | Near action bar | `ActionEconomyBar` (existing) |
 | Combat log | Bottom-left or collapsible | `CombatLog` (existing) |
-| Minimap | Top-right | `Minimap3D` (new — orthographic top-down render) |
+| Minimap | Top-right | `Minimap3D` (new - orthographic top-down render) |
 | 2D/3D toggle | Settings/corner | `RenderModeToggle` (new) |
 | End Turn button | Bottom-right | `EndTurnButton` (existing, restyled) |
 
@@ -349,24 +349,24 @@ Existing React UI components stay as HTML overlaid on the 3D canvas. R3F's `<Htm
 
 ```
 Scene Lights:
-├── DirectionalLight (sun/moon)    — shadows, primary illumination
-│     shadow map: 2048×2048, PCFSoft
-├── AmbientLight                   — fill (cool blue-teal tint)
-├── HemisphereLight                — sky/ground color gradient
-├── PointLight[] (per torch/fire)  — warm, attenuated, no shadows
-├── PointLight[] (per spell zone)  — dynamic, colored by effect type
-└── SpotLight (optional)           — dramatic accent on active character
+├── DirectionalLight (sun/moon)    - shadows, primary illumination
+│     shadow map: 2048x2048, PCFSoft
+├── AmbientLight                   - fill (cool blue-teal tint)
+├── HemisphereLight                - sky/ground color gradient
+├── PointLight[] (per torch/fire)  - warm, attenuated, no shadows
+├── PointLight[] (per spell zone)  - dynamic, colored by effect type
+└── SpotLight (optional)           - dramatic accent on active character
 ```
 
 ### Post-Processing Stack
 
 ```
 EffectComposer:
-├── SSAO              — deep corner shadows (BG3's moody interiors)
-├── Bloom             — magical glow on spells, emissive materials
-├── Vignette          — darkened edges for cinematic framing
-├── ToneMapping       — ACES Filmic (warm, cinematic color response)
-└── ChromaticAberration (subtle) — optional polish pass
+├── SSAO              - deep corner shadows (BG3's moody interiors)
+├── Bloom             - magical glow on spells, emissive materials
+├── Vignette          - darkened edges for cinematic framing
+├── ToneMapping       - ACES Filmic (warm, cinematic color response)
+└── ChromaticAberration (subtle) - optional polish pass
 ```
 
 ### Per-Biome Lighting Presets
@@ -383,14 +383,14 @@ EffectComposer:
 
 ## Development Process: Research-First Implementation
 
-**Every phase must begin with a research step.** Before writing code for any 3D system, the implementer must search for and study how game developers have solved the same problem. This is not optional — browser-based 3D game development has deep, non-obvious gotchas that only become apparent from others' experience.
+**Every phase must begin with a research step.** Before writing code for any 3D system, the implementer must search for and study how game developers have solved the same problem. This is not optional - browser-based 3D game development has deep, non-obvious gotchas that only become apparent from others' experience.
 
 ### Per-Phase Research Protocol
 
 1. **Search** for tutorials, blog posts, and open-source implementations of the specific technique (e.g., "three.js terrain splat map tutorial", "r3f weapon trail effect", "webgl grass shader wind")
-2. **Study** at least 2-3 reference implementations before writing code — note which approaches work at scale and which have known performance pitfalls
+2. **Study** at least 2-3 reference implementations before writing code - note which approaches work at scale and which have known performance pitfalls
 3. **Check Three.js examples** (`threejs.org/examples`) and the Three.js discourse forum for the canonical way to achieve the effect
-4. **Review ShaderToy** for shader techniques (grass sway, water, fire) — these are often the highest-quality references for GLSL approaches
+4. **Review ShaderToy** for shader techniques (grass sway, water, fire) - these are often the highest-quality references for GLSL approaches
 5. **Document** the chosen approach and why alternatives were rejected, in a brief comment block at the top of each new file
 
 ### Key Research Sources
@@ -410,10 +410,10 @@ EffectComposer:
 
 ### Anti-Patterns to Avoid
 
-- **Don't invent shader techniques from scratch** — someone has already solved it, probably better
-- **Don't skip the Three.js examples check** — many "custom" solutions are just worse versions of existing examples
-- **Don't cargo-cult Unity/Unreal tutorials** — the concepts transfer but the API calls don't; always adapt to Three.js/R3F idioms
-- **Don't optimize prematurely** — get it working visibly first, then profile, then optimize the actual bottleneck
+- **Don't invent shader techniques from scratch** - someone has already solved it, probably better
+- **Don't skip the Three.js examples check** - many "custom" solutions are just worse versions of existing examples
+- **Don't cargo-cult Unity/Unreal tutorials** - the concepts transfer but the API calls don't; always adapt to Three.js/R3F idioms
+- **Don't optimize prematurely** - get it working visibly first, then profile, then optimize the actual bottleneck
 
 ---
 
@@ -424,10 +424,10 @@ EffectComposer:
 
 - [ ] **Research**: Study R3F + drei setup patterns, MapControls configuration, postprocessing pipeline examples
 - [ ] Install R3F, drei, postprocessing packages
-- [ ] Create `BattleMap3D.tsx` — empty `<Canvas>` with basic lighting
+- [ ] Create `BattleMap3D.tsx` - empty `<Canvas>` with basic lighting
 - [ ] Add `MapControls` with BG3-style orbit constraints (15°-75° pitch, full 360° yaw)
-- [ ] Implement snap-to-character: click portrait → camera lerps to character; Tab cycles party; 1-4 hotkeys; double-click model → close-up
-- [ ] Wire toggle in `CombatView.tsx` — switch between `BattleMap` and `BattleMap3D`
+- [ ] Implement snap-to-character: click portrait -> camera lerps to character; Tab cycles party; 1-4 hotkeys; double-click model -> close-up
+- [ ] Wire toggle in `CombatView.tsx` - switch between `BattleMap` and `BattleMap3D`
 - [ ] Add ground plane placeholder (flat, single color)
 - [ ] Verify all existing hooks still work when 3D mode is active
 - [ ] Add postprocessing stack (SSAO + Bloom + Vignette) with quality presets
@@ -436,7 +436,7 @@ EffectComposer:
 **Goal: Procedural terrain mesh generated from BattleMapTile data**
 
 - [ ] **Research**: Study terrain splat map techniques (Three.js examples, ShaderToy), heightfield generation, PBR texture blending
-- [ ] Build `TerrainMeshGenerator` — heightfield from tile elevation data
+- [ ] Build `TerrainMeshGenerator` - heightfield from tile elevation data
 - [ ] Implement splat map generation from tile terrain types
 - [ ] Write terrain fragment shader (4-material blend with tiling PBR textures)
 - [ ] Source/create PBR texture sets for forest biome (first biome)
@@ -449,23 +449,23 @@ EffectComposer:
 **Goal: Characters rendered as 3D models with basic animations**
 
 - [ ] **Research**: Study Three.js SkinnedMesh, AnimationMixer, and glTF loading best practices
-- [ ] Set up Grok → Pixal3D → Mixamo asset pipeline (generate first character end-to-end)
+- [ ] Set up Grok -> Pixal3D -> Mixamo asset pipeline (generate first character end-to-end)
 - [ ] Generate initial character set: 6 player classes + 4-6 enemy types via pipeline
 - [ ] Optimize all models with gltf-transform (Draco geometry, KTX2 textures)
 - [ ] Download Mixamo animations (idle, walk, attack_melee, attack_ranged, cast_spell, hit_react, death, dodge)
-- [ ] Build `CharacterActor` component — model + AnimationMixer
-- [ ] Implement animation state machine (idle → walk → attack → etc.)
+- [ ] Build `CharacterActor` component - model + AnimationMixer
+- [ ] Implement animation state machine (idle -> walk -> attack -> etc.)
 - [ ] Map character class/race/creature to model files
-- [ ] Add selection decal (cyan ring for player, red for enemy — ground-projected)
+- [ ] Add selection decal (cyan ring for player, red for enemy - ground-projected)
 - [ ] Add active turn indicator (golden ring animation)
-- [ ] Implement character movement — lerp along `activePath` with walk animation
-- [ ] Wire raycaster click → `handleCharacterClick`
+- [ ] Implement character movement - lerp along `activePath` with walk animation
+- [ ] Wire raycaster click -> `handleCharacterClick`
 
 ### Phase 3: Combat Interaction (Week 8-9)
 **Goal: Full combat loop playable in 3D**
 
 - [ ] **Research**: Study R3F raycasting patterns, drei Html component positioning, BG3 UI/UX design breakdowns
-- [ ] Wire raycaster terrain click → grid coordinate → `handleTileClick`
+- [ ] Wire raycaster terrain click -> grid coordinate -> `handleTileClick`
 - [ ] Implement targeting visuals (ray line, AoE ground projection, hit% label)
 - [ ] Add `<Html>` nameplates (name, HP bar, status icons)
 - [ ] Add floating damage numbers (positioned above character, float up + fade)
@@ -475,7 +475,7 @@ EffectComposer:
 - [ ] Full combat round playable: move, attack, cast, end turn
 
 ### Phase 4: VFX (Week 10-12)
-**Goal: Combat feels dramatic and impactful (world-space drama, screen-space restraint — BG3 philosophy)**
+**Goal: Combat feels dramatic and impactful (world-space drama, screen-space restraint - BG3 philosophy)**
 
 - [ ] **Research**: Study weapon trail implementations (ribbon geometry), particle systems in R3F, decal projection techniques, Three.js cinematic camera examples
 - [ ] Weapon trail system (ribbon mesh on weapon bone, colored by damage type)
@@ -502,7 +502,7 @@ EffectComposer:
 **Goal: 60fps stable, visual polish, edge cases handled**
 
 - [ ] **Research**: Study Three.js performance profiling tools, InstancedMesh best practices, LOD strategies, texture compression formats (KTX2/Basis)
-- [ ] Performance profiling — ensure 60fps on GTX 1060
+- [ ] Performance profiling - ensure 60fps on GTX 1060
 - [ ] InstancedMesh for all repeated geometry (tiles, grass, props)
 - [ ] LOD system for distant objects
 - [ ] Texture compression (KTX2/Basis Universal)
@@ -519,20 +519,20 @@ EffectComposer:
 ### Character Models (glTF)
 - 6 base humanoid models (fighter, wizard, cleric, rogue, ranger, generic)
 - 4-6 enemy/monster models (goblin, skeleton, wolf, dragon, elemental, etc.)
-- Pipeline: Grok Imagine (concept art) → Pixal3D (image-to-3D, local/free) → Mixamo (auto-rig + animations)
+- Pipeline: Grok Imagine (concept art) -> Pixal3D (image-to-3D, local/free) -> Mixamo (auto-rig + animations)
 - Optimization: gltf-transform (Draco compress geometry, KTX2 compress textures)
 
 ### Animations (per character rig)
-- idle, walk, run, attack_melee (×2 variants), attack_ranged, cast_spell, hit_react, death, dodge
-- Source: Mixamo (free, FBX → glTF conversion)
+- idle, walk, run, attack_melee (x2 variants), attack_ranged, cast_spell, hit_react, death, dodge
+- Source: Mixamo (free, FBX -> glTF conversion)
 
 ### Terrain Textures (per biome, 4 PBR sets)
 - Albedo + Normal + ARM (AO/Roughness/Metalness) per material
-- Tiling: 1024×1024 or 2048×2048
+- Tiling: 1024x1024 or 2048x2048
 - Source: Polyhaven (CC0), AmbientCG (CC0), or custom-authored
 
 ### Decoration Props (glTF, per biome)
-- Tree (×3 variants), boulder (×2), stalagmite, pillar, cactus, mangrove
+- Tree (x3 variants), boulder (x2), stalagmite, pillar, cactus, mangrove
 - Bush, barrel, crate, torch sconce, rubble pile
 - Source: Quaternius nature pack (CC0), Kenney assets, Sketchfab
 
@@ -581,17 +581,17 @@ EffectComposer:
 - [@react-three/postprocessing](https://github.com/pmndrs/react-postprocessing)
 
 ### Asset Pipeline
-- [Grok Imagine Agent](https://grok.com/imagine/agent) — AI concept art generation
-- [Pixal3D (SIGGRAPH 2026)](https://github.com/TencentARC/Pixal3D) — pixel-aligned image-to-3D, outputs .glb directly
+- [Grok Imagine Agent](https://grok.com/imagine/agent) - AI concept art generation
+- [Pixal3D (SIGGRAPH 2026)](https://github.com/TencentARC/Pixal3D) - pixel-aligned image-to-3D, outputs .glb directly
 - [Pixal3D HuggingFace Demo](https://huggingface.co/spaces/TencentARC/Pixal3D)
-- [Mixamo Animation Library](https://www.mixamo.com/) — auto-rigging + animation packs
-- [Polyhaven](https://polyhaven.com/) / [AmbientCG](https://ambientcg.com/) — free CC0 PBR textures
+- [Mixamo Animation Library](https://www.mixamo.com/) - auto-rigging + animation packs
+- [Polyhaven](https://polyhaven.com/) / [AmbientCG](https://ambientcg.com/) - free CC0 PBR textures
 
 ### Game Dev Resources
-- [Three.js Examples](https://threejs.org/examples/) — canonical technique implementations
-- [Three.js Discourse](https://discourse.threejs.org/) — community problem-solving
-- [ShaderToy](https://www.shadertoy.com/) — GLSL shader reference
-- [Red Blob Games](https://www.redblobgames.com/) — grid and pathfinding visualization
+- [Three.js Examples](https://threejs.org/examples/) - canonical technique implementations
+- [Three.js Discourse](https://discourse.threejs.org/) - community problem-solving
+- [ShaderToy](https://www.shadertoy.com/) - GLSL shader reference
+- [Red Blob Games](https://www.redblobgames.com/) - grid and pathfinding visualization
 - [Three.js Terrain Splat Map Example](https://threejs.org/examples/#webgl_terrain_dynamic)
 - [von-grid: Square/Hex Grid for Three.js](https://github.com/vonWolfehaus/von-grid)
 - [t5c: 3D RPG with Babylon.js](https://github.com/orion3dgames/t5c)

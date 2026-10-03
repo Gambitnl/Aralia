@@ -1,11 +1,9 @@
-
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ReactiveEffectCommand } from '../ReactiveEffectCommand';
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../../utils/factories';
+import { ReactiveEffectCommand, type ReactiveEventEmitters } from '../ReactiveEffectCommand';
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../../utils/core';
 import { CombatCharacter, CombatState } from '../../../types/combat';
-import { movementEvents } from '../../../systems/combat/MovementEventEmitter';
+import { CombatEventEmitter } from '../../../systems/events/CombatEvents';
 import type { CommandContext } from '../../base/SpellCommand';
-import type { EffectCondition } from '../../../types/spells';
 
 /**
  * This file proves that reactive spell effects do more than register a future listener.
@@ -15,14 +13,20 @@ import type { EffectCondition } from '../../../types/spells';
  * the delegated-payload path where the later trigger replays normal effect commands against
  * the current combat state.
  *
+ * `on_target_move` and `on_target_attack` register NO event listener (agora-f821.45).
+ * They only write a row into `state.reactiveTriggers`, and the hook layer reads
+ * that array: `useActionExecutor.resolveOnTargetAttackReactiveEffects` for an
+ * attack and the movement-debuff pipeline for a move. The emitters those two
+ * branches used to listen on had no production caller and were deleted, so the
+ * tests that fired them went with them.
+ *
  * Called by: focused command-effect test runs.
- * Depends on: MovementEventEmitter for the trigger signal and the shared command context
- * shape from SpellCommand.ts.
+ * Depends on: a fresh combat emitter for an isolated cast signal, plus the shared
+ * command context shape from SpellCommand.ts.
  */
 
-// Mock logger
-// TODO #11: Consider mocking MovementEventEmitter/AttackEventEmitter and emitting events so we can verify triggers instead of relying solely on the logger call.
-vi.mock('../../utils/logger', () => ({
+// Keep command diagnostics quiet while the assertions focus on state changes.
+vi.mock('../../../utils/core/logger', () => ({
     logger: {
         info: vi.fn(),
         debug: vi.fn(),
@@ -31,10 +35,12 @@ vi.mock('../../utils/logger', () => ({
     },
 }));
 
-describe('ReactiveEffectCommand Security Check', () => {
+describe('ReactiveEffectCommand event listeners', () => {
     let mockState: CombatState;
     let caster: CombatCharacter;
     let target: CombatCharacter;
+    let combatEmitter: CombatEventEmitter;
+    let emitters: ReactiveEventEmitters;
 
     beforeEach(() => {
         caster = createMockCombatCharacter({ id: 'caster-1', name: 'Wizard' });
@@ -54,92 +60,112 @@ describe('ReactiveEffectCommand Security Check', () => {
             activeLightSources: []
         });
 
+        // Every test owns a fresh bus. This proves the constructor dependency
+        // works and prevents listeners surviving into another test process.
+        combatEmitter = new CombatEventEmitter();
+        emitters = {
+            combat: combatEmitter
+        };
+
         vi.clearAllMocks();
     });
 
-    it('should log execution via logger instead of console.log', async () => {
-        const alwaysCondition: EffectCondition = { type: 'always' };
-        const command = new ReactiveEffectCommand(
-            {
-                type: 'REACTIVE',
-                trigger: { type: 'on_target_move', movementType: 'leave_reach' },
-                condition: alwaysCondition
-            },
-            {
-                spellId: 'spell-1',
-                spellName: 'Opportunity Attack',
-                castAtLevel: 1,
-                caster: caster,
-                targets: [target],
-                gameState: createMockGameState(),
-            }
-        );
-
-        const newState = await command.execute(mockState);
-        expect(newState.reactiveTriggers).toHaveLength(1);
-
-        // We can't easily trigger the async event listener inside a unit test without mocking the EventEmitters
-        // deeply, but we can verify that the code *compiled* with the logger call.
-        // To verify the actual call, we'd need to emit the event.
+    const createDamageContext = (
+        getState: () => CombatState,
+        commitState: (nextState: CombatState) => void
+    ): CommandContext => ({
+        spellId: 'spell-1',
+        spellName: 'Reactive Spark',
+        castAtLevel: 1,
+        caster,
+        targets: [target],
+        gameState: createMockGameState(),
+        delegatedReactivePayload: {
+            // A 1d1 payload gives every listener a deterministic visible result.
+            effects: [{
+                type: 'DAMAGE',
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' },
+                damage: { dice: '1d1', type: 'Fire' }
+            }],
+            getState,
+            commitState
+        }
     });
 
-    it('executes delegated damage payloads through the command context when a movement trigger fires', async () => {
-        // Keep the later event callback connected to the same state object a React
-        // integration would own, so the test proves the trigger can commit real combat
-        // state instead of only writing to the logger.
+    it.each([
+        ['on_target_move'] as const,
+        ['on_target_attack'] as const,
+    ])('records a %s trigger on combat state instead of registering an emitter listener', (triggerType) => {
         let liveState = mockState;
-
-        const alwaysCondition: EffectCondition = { type: 'always' };
-        const context = {
-            spellId: 'spell-1',
-            spellName: 'Reactive Spark',
-            castAtLevel: 1,
-            caster: caster,
-            targets: [target],
-            gameState: createMockGameState(),
-            delegatedReactivePayload: {
-                // A 1d1 payload makes the proof deterministic without mocking dice.
-                effects: [{
-                    type: 'DAMAGE',
-                    trigger: { type: 'immediate' },
-                    condition: alwaysCondition,
-                    damage: { dice: '1d1', type: 'Fire' }
-                }],
-                getState: () => liveState,
-                commitState: (nextState: CombatState) => {
-                    liveState = nextState;
-                }
-            }
-        } satisfies CommandContext;
-
-        const command = new ReactiveEffectCommand(
-            {
-                type: 'REACTIVE',
-                trigger: { type: 'on_target_move', movementType: 'willing' },
-                condition: alwaysCondition
-            },
-            context
+        const context = createDamageContext(
+            () => liveState,
+            nextState => { liveState = nextState; }
         );
+        const command = new ReactiveEffectCommand({
+            type: 'REACTIVE',
+            trigger: { type: triggerType },
+            condition: { type: 'always' }
+        }, context, emitters);
 
-        // Executing the reactive command registers the future trigger but should not
-        // deal damage until the event bus reports the matching movement.
-        liveState = await command.execute(liveState);
+        try {
+            liveState = command.execute(liveState);
 
-        await movementEvents.emitMovement(
-            target.id,
-            target.position,
-            { x: target.position.x + 1, y: target.position.y },
-            'willing'
+            // The trigger row is the whole registration. It names the protected
+            // creature so the hook-side resolver can match it later.
+            const registered = liveState.reactiveTriggers
+                .filter(trigger => trigger.sourceEffect.trigger.type === triggerType);
+            expect(registered).toHaveLength(1);
+            expect(registered[0].targetId).toBe(target.id);
+            expect(registered[0].casterId).toBe(caster.id);
+            expect(registered[0].sourceSpellId).toBe('spell-1');
+
+            // Nothing was applied at registration time.
+            expect(liveState.characters.find(character => character.id === target.id)?.currentHP)
+                .toBe(target.currentHP);
+        } finally {
+            command.cleanup();
+        }
+    });
+
+    it('executes only when the protected creature casts a spell', async () => {
+        let liveState = mockState;
+        const context = createDamageContext(
+            () => liveState,
+            nextState => { liveState = nextState; }
         );
+        const command = new ReactiveEffectCommand({
+            type: 'REACTIVE',
+            trigger: { type: 'on_target_cast' },
+            condition: { type: 'always' }
+        }, context, emitters);
 
-        const damagedTarget = liveState.characters.find(character => character.id === target.id);
-        expect(damagedTarget?.currentHP).toBe(target.currentHP - 1);
-        expect(liveState.combatLog.some(entry =>
-            entry.type === 'damage' && entry.message.includes('Reactive Spark')
-        )).toBe(true);
+        try {
+            liveState = command.execute(liveState);
 
-        // Remove the registered listener so this test does not leak a trigger into
-        // later tests that share the process-level movement event singleton.
-        command.cleanup();
+            // A different caster must not trigger the protected creature's effect.
+            combatEmitter.emit({
+                type: 'unit_cast',
+                casterId: 'other-caster',
+                spellId: 'other-spell',
+                targets: [target.id]
+            });
+            expect(liveState.characters.find(character => character.id === target.id)?.currentHP).toBe(target.currentHP);
+
+            combatEmitter.emit({
+                type: 'unit_cast',
+                casterId: target.id,
+                spellId: 'triggering-spell',
+                targets: [caster.id]
+            });
+
+            // CombatEventEmitter dispatches synchronously but does not await an
+            // asynchronous listener, so wait for the delegated command to commit.
+            await vi.waitFor(() => {
+                expect(liveState.characters.find(character => character.id === target.id)?.currentHP).toBe(target.currentHP - 1);
+            });
+        } finally {
+            command.cleanup();
+        }
     });
 });

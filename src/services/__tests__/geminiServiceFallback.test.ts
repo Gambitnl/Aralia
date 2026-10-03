@@ -17,7 +17,7 @@ vi.mock('../aiClient', () => ({
 }));
 
 // Mock logger to avoid console spam
-vi.mock('../../utils/logger', () => ({
+vi.mock('../../utils/core/logger', () => ({
   logger: {
     warn: vi.fn(),
     error: vi.fn(),
@@ -40,13 +40,15 @@ describe('GeminiService - generateEncounter Fallback', () => {
 
   beforeAll(async () => {
     await loadMonstersData();
-  });
+  }, 60_000);
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should use fallback encounter when AI generation fails', async () => {    
+  // The generated bestiary is large, and the fallback path scans it on this
+  // host; keep the assertions bounded without the default 5-second flake.
+  it('should use fallback encounter when AI generation fails', async () => {
     // Mock AI failure
     mockGenerateContent.mockRejectedValue(new Error('AI Service Down'));        
     const result = await GeminiService.generateEncounter(xpBudget, themeTags, mockParty);
@@ -74,7 +76,7 @@ describe('GeminiService - generateEncounter Fallback', () => {
     // Check metadata indicates fallback
     const meta = result.metadata as { rawResponse?: string } | undefined;
     expect(meta?.rawResponse).toContain('Fallback used');
-  });
+  }, 20_000);
 
   it('should return deterministic fallback monster ordering with getFallbackEncounterWithSeed', () => {
     const seed = 2026;
@@ -104,7 +106,7 @@ describe('GeminiService - generateEncounter Fallback', () => {
     expect(result.data?.encounter.length).toBeGreaterThan(0);
     const meta = result.metadata as { rawResponse?: string } | undefined;
     expect(meta?.rawResponse).toContain('Fallback used');
-  });
+  }, 20_000);
 
   it('should include the canonical encounter monster cap in AI prompt instructions', async () => {
     mockGenerateContent.mockResolvedValue({

@@ -68,7 +68,7 @@ const buildReactionBubble = (message: GameMessage, companion: Companion): Reacti
   companionId: companion.id,
   companionName: companion.identity.name,
   text: parseReactionText(message.text),
-  // Legacy saves can still contain placeholder paths removed from canonical
+  // Legacy saves can still contain fallback portrait paths removed from canonical
   // companion data, so normalize at the final UI boundary as well.
   avatarUrl: usableCompanionAvatarUrl(companion.identity.avatarUrl),
   receivedAt: getMessageTimestamp(message),

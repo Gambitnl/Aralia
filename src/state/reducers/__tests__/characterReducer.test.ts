@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
+import { ItemType } from '../../../types';
 import { characterReducer } from '../characterReducer';
 import { GameState, AbilityScoreName, Class, Item } from '../../../types';
 import { AppAction } from '../../actionTypes';
-import { createMockPlayerCharacter } from '../../../utils/factories';
+import { createMockPlayerCharacter } from '../../../utils/core';
 import { DEEP_GNOME_DATA } from '../../../data/races/deep_gnome';
 import {
   applyRacialSpellGrantsByLevel,
@@ -127,7 +128,7 @@ describe('characterReducer', () => {
     it('should apply racial rest choices (e.g. Astral Knowledge) on long rest', () => {
         const character = createMockPlayerCharacter({
             id: 'long-rest-githyanki',
-            skills: [{ name: 'Athletics', proficiencyLevel: 'proficient' }],
+            skills: [{ name: 'Athletics', proficiencyLevel: 'proficient' } as any],
             weaponProficiencies: ['Shortsword']
         });
         const state = { ...initialState, party: [character] } as GameState;
@@ -400,7 +401,7 @@ describe('characterReducer', () => {
             id: 'health_potion',
             name: 'Health Potion',
             description: 'A basic healing potion.',
-            type: 'consumable',
+            type: ItemType.Consumable,
             effect: 'heal_5',
         };
 
@@ -437,14 +438,14 @@ describe('characterReducer', () => {
             id: 'steel_sword',
             name: 'Steel Sword',
             description: 'A reliable weapon.',
-            type: 'weapon',
+            type: ItemType.Weapon,
             slot: 'MainHand',
         };
         const driedMeat: Item = {
             id: 'dried_meat',
             name: 'Dried Meat',
             description: 'Food with no special effects.',
-            type: 'food_drink',
+            type: ItemType.FoodDrink,
         };
 
         const state = {
@@ -462,7 +463,7 @@ describe('characterReducer', () => {
         });
 
         expect(equipState.party?.[0].equippedItems.MainHand?.id).toBe('steel_sword');
-        expect(equipState.inventory.some(item => item.id === 'steel_sword')).toBe(false);
+        expect(equipState.inventory?.some(item => item.id === 'steel_sword')).toBe(false);
 
         const dropState = characterReducer({
             ...equipState,
@@ -473,8 +474,8 @@ describe('characterReducer', () => {
             payload: { itemId: 'dried_meat', characterId: 'equip-drop-char' },
         });
 
-        expect(dropState.inventory.some(item => item.id === 'dried_meat')).toBe(false);
-        expect(dropState.dynamicLocationItemIds.town_square).toContain('dried_meat');
+        expect(dropState.inventory?.some(item => item.id === 'dried_meat')).toBe(false);
+        expect(dropState.dynamicLocationItemIds?.town_square).toContain('dried_meat');
     });
 
     it('should consume spell material components when materialComponentItemIdToConsume is provided in CAST_SPELL', () => {
@@ -496,7 +497,8 @@ describe('characterReducer', () => {
         const diamondItem: Item = {
             id: 'diamond_300gp',
             name: 'Diamond (300 gp)',
-            type: 'spell_component',
+            description: 'A brilliant gem.',
+            type: ItemType.SpellComponent,
             costInGp: 300
         };
 
@@ -526,8 +528,8 @@ describe('characterReducer', () => {
         const character = createMockPlayerCharacter({
             id: 'junk-char',
         });
-        const item1: Item = { id: 'rusty_nail', name: 'Rusty Nail', type: 'junk', isJunk: false };
-        const item2: Item = { id: 'silver_chalice', name: 'Silver Chalice', type: 'valuable', isJunk: false };
+        const item1: Item = { id: 'rusty_nail', name: 'Rusty Nail', description: '', type: 'accessory' as any, isJunk: false };
+        const item2: Item = { id: 'silver_chalice', name: 'Silver Chalice', description: '', type: 'accessory' as any, isJunk: false };
         let state = {
             ...initialState,
             party: [character],
@@ -550,8 +552,7 @@ describe('characterReducer', () => {
         state = reduce(state, {
             type: 'SELL_ALL_JUNK',
             payload: {
-                items: [{ itemId: 'rusty_nail', value: 5 }],
-                totalGold: 5
+                items: [{ itemId: 'rusty_nail', value: 5 }]
             }
         });
         expect(state.inventory.some(item => item.id === 'rusty_nail')).toBe(false);
@@ -564,10 +565,10 @@ describe('characterReducer', () => {
             id: 'attune-char',
             equippedItems: {},
         });
-        const ring1: Item = { id: 'ring_1', name: 'Ring of Protection', type: 'ring', requiresAttunement: true };
-        const ring2: Item = { id: 'ring_2', name: 'Ring of Evasion', type: 'ring', requiresAttunement: true };
-        const ring3: Item = { id: 'ring_3', name: 'Ring of Regeneration', type: 'ring', requiresAttunement: true };
-        const ring4: Item = { id: 'ring_4', name: 'Ring of Power', type: 'ring', requiresAttunement: true };
+        const ring1: Item = { id: 'ring_1', name: 'Ring of Protection', description: 'Magic Ring', type: ItemType.Accessory, requiresAttunement: true };
+        const ring2: Item = { id: 'ring_2', name: 'Ring of Evasion', description: 'Magic Ring', type: ItemType.Accessory, requiresAttunement: true };
+        const ring3: Item = { id: 'ring_3', name: 'Ring of Regeneration', description: 'Magic Ring', type: ItemType.Accessory, requiresAttunement: true };
+        const ring4: Item = { id: 'ring_4', name: 'Ring of Power', description: 'Magic Ring', type: ItemType.Accessory, requiresAttunement: true };
 
         let state = {
             ...initialState,
@@ -607,7 +608,8 @@ describe('characterReducer', () => {
         const heavyArmor: Item = {
             id: 'plate_armor',
             name: 'Plate Armor',
-            type: 'armor',
+            description: '',
+            type: ItemType.Armor,
             slot: 'Torso',
             armorCategory: 'Heavy',
             strengthRequirement: 15,

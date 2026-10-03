@@ -23,7 +23,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import { PreviewMdLibrary } from './components/DesignPreview/steps/PreviewMdLibrary';
+import { PreviewMdLibrary } from './devtools/mdLibrary/PreviewMdLibrary';
+import { applyZIndexCssVariables } from './styles/zIndex';
+
+/* The game app defines the --z-index-* variables in App.tsx, which this page
+ * never mounts. Without them the `.prose th` rule in public/css/typography.css
+ * resolved to `z-index: auto`, so the sticky table headers in a rendered doc
+ * lost their stacking order (Remy 2026-08-28). */
+applyZIndexCssVariables();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

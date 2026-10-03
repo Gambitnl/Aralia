@@ -237,10 +237,10 @@
                 ],
     "arbitrationType":  "mechanical",
     "aiContext":  {
-                      "prompt":  "At the start of each creature\u0027s turn in the gas Sphere, resolve the Constitution save; on failure, apply Poisoned until the end of that current turn and prevent both actions and Bonus Actions while that Poisoned rider lasts.",
+                      "prompt":  "At the start of each creature's turn in the gas Sphere, resolve the Constitution save; on failure, apply Poisoned until the end of that current turn and prevent both actions and Bonus Actions while that Poisoned rider lasts.",
                       "playerInputRequired":  true
                   },
-    "description":  "You create a 20-foot-radius Sphere of yellow, nauseating gas centered on a point within range. The cloud is Heavily Obscured . The cloud lingers in the air for the duration or until a strong wind (such as the one created by Gust of Wind) disperses it. Each creature that starts its turn in the Sphere must succeed on a Constitution saving throw or have the Poisoned condition until the end of the current turn. While Poisoned in this way, the creature can\u0027t take an action or a Bonus Action.",
+    "description":  "You create a 20-foot-radius Sphere of yellow, nauseating gas centered on a point within range. The cloud is Heavily Obscured . The cloud lingers in the air for the duration or until a strong wind (such as the one created by Gust of Wind) disperses it. Each creature that starts its turn in the Sphere must succeed on a Constitution saving throw or have the Poisoned condition until the end of the current turn. While Poisoned in this way, the creature can't take an action or a Bonus Action.",
     "higherLevels":  "",
     "tags":  [
                  "concentration"

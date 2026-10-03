@@ -3,15 +3,35 @@
  * Service for managing dialogue topics, checking prerequisites, and handling conversation flow.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 20/09/2026, 21:00:39
+ * Dependents: components/Dialogue/DialogueConversationView.tsx, components/Dialogue/DialogueInterface.tsx, hooks/useConversation.ts, hooks/useDialogueSystem.ts, systems/puzzles/dialogueBridge.ts
+ * Imports: 8 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import {
   ConversationTopic,
   DialogueSession,
+  NPCKnowledgeProfile,
   TopicCost
 } from '../types/dialogue';
 import { GameState, QuestStatus, Item, NPC, WorldRumor } from '../types/index';
-import { rollDice } from '../utils/combatUtils';
+import { rollDice } from '../systems/dice/rollers';
 import { INITIAL_TOPICS } from '../data/dialogue/topics';
 import { getGameDay } from '../utils/core';
+import { hasWorldFact, topicUnlockKey } from '../systems/facts/worldFactStore';
+import { buildWitnessDialogueContext } from '../systems/social/npcWitnessMemory';
+import type { NpcMemory } from '../types/world';
 
 const TOPIC_REGISTRY: Record<string, ConversationTopic> = {};
 
@@ -52,9 +72,15 @@ export function checkTopicPrerequisites(
       }
 
       case 'topic_known': {
-        met = gameState.discoveryLog.some(entry =>
-           entry.flags.some(f => f.key === 'topic_unlocked' && f.value === prereq.targetId)
-        );
+        // Durable world-level fact store first (DIAL-002/DIAL-004): unlocks
+        // learned from ANY NPC gate topics with every other NPC and survive
+        // save/reload. Legacy discovery-log flags keep older saves working.
+        met =
+          (!!prereq.targetId &&
+            hasWorldFact(gameState.worldFacts, topicUnlockKey(prereq.targetId))) ||
+          gameState.discoveryLog.some(entry =>
+            entry.flags.some(f => f.key === 'topic_unlocked' && f.value === prereq.targetId)
+          );
         break;
       }
 
@@ -442,4 +468,127 @@ export function processTopicSelection(
   };
 }
 
-// TODO #416(Dialogist): Integrate with AI service to generate dynamic responses based on NPC Knowledge Profile.
+/**
+ * Serializes an NPC's knowledge profile into a prompt fragment for the AI
+ * dialogue path (`useDialogueSystem.generateResponse`), so the model answers
+ * with the same knowledge the deterministic topic path already enforces.
+ *
+ * Three buckets, by design:
+ *  - KNOWN AND OPEN   (`known: true`, willingnessModifier >= 0): the label and the
+ *    authored `customResponse` are both sent — this is what the NPC may say.
+ *  - KNOWN BUT GUARDED (`known: true`, willingnessModifier < 0): only the label is
+ *    sent, with an instruction to deflect. The `customResponse` is the secret and
+ *    is NEVER serialized, so the model cannot leak it.
+ *  - UNKNOWN          (`known: false`): only the label is sent, as something the
+ *    NPC has never heard of.
+ *
+ * Returns '' for a missing profile so the caller can concatenate unconditionally.
+ */
+export function describeKnowledgeProfile(
+  profile?: NPCKnowledgeProfile | null,
+  topics: ConversationTopic[] = INITIAL_TOPICS
+): string {
+  if (!profile) return '';
+
+  const labelFor = (topicId: string): string =>
+    topics.find((t) => t.id === topicId)?.label ?? topicId;
+
+  const open: string[] = [];
+  const guarded: string[] = [];
+  const unknown: string[] = [];
+
+  for (const [topicId, override] of Object.entries(profile.topicOverrides ?? {})) {
+    const label = labelFor(topicId);
+    if (!override.known) {
+      unknown.push(label);
+      continue;
+    }
+    if ((override.willingnessModifier ?? 0) < 0) {
+      // Guarded: the authored customResponse stays out of the prompt.
+      guarded.push(label);
+      continue;
+    }
+    open.push(override.customResponse ? `${label}: ${override.customResponse}` : label);
+  }
+
+  const parts: string[] = [
+    `Your openness to strangers is ${profile.baseOpenness} out of 100.`,
+  ];
+  if (open.length > 0) {
+    parts.push(`You know about and will freely discuss: ${open.join('; ')}.`);
+  }
+  if (guarded.length > 0) {
+    parts.push(
+      `You know about but guard these subjects: ${guarded.join('; ')}. Deflect if asked; never volunteer what you know.`
+    );
+  }
+  if (unknown.length > 0) {
+    parts.push(`You know nothing about: ${unknown.join('; ')}. Say so plainly if asked.`);
+  }
+
+  return parts.join(' ');
+}
+
+/**
+ * Upper bound on how many witness recall lines reach a prompt.
+ *
+ * Three is the same cap `buildWitnessDialogueContext` defaults to. More than
+ * that and the recall block starts to outweigh the NPC's own personality prompt,
+ * which is the thing that actually decides how the line sounds.
+ */
+export const MAX_WITNESS_RECALL_LINES = 3;
+
+/**
+ * Serializes what an NPC personally saw or heard the player do into a prompt
+ * fragment, the witness-memory twin of {@link describeKnowledgeProfile}
+ * (agora-f58b).
+ *
+ * `src/systems/social/npcWitnessMemory.ts` already records observations into
+ * `GameState.npcMemory` through the `RECORD_NPC_WITNESSED_ACT` reducer, and
+ * already renders them as first-person recall lines ("I saw you cut down 3
+ * guards.", "I heard you spared a surrendering foe."). What was missing was a
+ * dialogue-side reader. This is it: the strongest-belief lines, decayed to the
+ * current game day, wrapped in an instruction that forbids the model from
+ * inventing memories the NPC does not hold.
+ *
+ * Returns '' when the NPC remembers nothing, so the caller can concatenate
+ * unconditionally exactly as it does with the knowledge profile.
+ */
+export function describeWitnessRecall(
+  memory: NpcMemory | undefined | null,
+  gameDay: number,
+  max: number = MAX_WITNESS_RECALL_LINES
+): string {
+  if (!memory) return '';
+
+  const recall = buildWitnessDialogueContext(memory, gameDay, max);
+  if (recall.length === 0) return '';
+
+  return `You personally remember this about them: ${recall.join(' ')} Speak as someone who holds those memories, and never claim to remember anything else about them.`;
+}
+
+/**
+ * Composes every prompt fragment this service owns for one NPC in one call, in a
+ * fixed order: who they are willing to talk about, then what they have seen the
+ * player do.
+ *
+ * The order is deliberate. The knowledge profile sets the NPC's subject-matter
+ * boundaries; the witness recall is evidence about the player specifically. A
+ * model that reads the boundary first is less likely to answer a guarded topic
+ * just because the recall block made the player feel familiar.
+ *
+ * This is the seam the AI dialogue path (`useDialogueSystem.generateResponse`,
+ * outside this module) should call instead of assembling the fragments itself.
+ */
+export function buildNpcDialoguePromptContext(
+  gameState: GameState,
+  npcId: string,
+  npc?: NPC
+): string {
+  const knowledge = describeKnowledgeProfile(npc?.knowledgeProfile);
+  const recall = describeWitnessRecall(
+    gameState.npcMemory[npcId],
+    getGameDay(gameState.gameTime)
+  );
+  return [knowledge, recall].filter(Boolean).join(' ');
+}

@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 08/06/2026, 19:55:02
- * Dependents: data/adapters/5eTools/index.ts, data/adapters/runtimeMonsterRegistry.ts, hooks/data/useBestiary.ts, hooks/useGameActions.ts, services/geminiServiceFallback.ts, types/index.ts, utils/world/bestiaryEncounterGenerator.ts
+ * Last Sync: 20/09/2026, 21:00:39
+ * Dependents: data/adapters/5eTools/index.ts, data/adapters/runtimeMonsterRegistry.ts, data/monsters.ts, hooks/data/useBestiary.ts, services/geminiServiceFallback.ts, types/index.ts, utils/world/bestiaryEncounterGenerator.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -17,6 +17,7 @@
 import React from 'react';
 import { CombatCharacter, CharacterStats } from './combat.js';
 import { DamageType } from './spells.js';
+import type { MonsterSpellSlotPool } from '../data/adapters/5eTools/types.js';
 
 // -----------------------------------------------------------------------------
 // UI & Visuals
@@ -86,6 +87,20 @@ export interface GlossaryEntry {
     rarity?: string;
     tier?: string;
     reqAttune?: string;
+    /** Magic attack/damage bonus, e.g. "+1" (5eTools bonusWeapon). */
+    bonusWeapon?: string;
+    /** Magic AC bonus, e.g. "+1" (5eTools bonusAc). */
+    bonusAc?: string;
+    /** Ability scores this item sets to a fixed value (5eTools ability.static). Short keys: str/dex/con/int/wis/cha. */
+    abilitySet?: Record<string, number>;
+    /** Ability score increases this item grants while worn (5eTools ability additive form). */
+    abilityBonus?: Record<string, number>;
+    /** Maximum charges (5eTools charges). */
+    charges?: number;
+    /** When charges replenish, e.g. "dawn" (5eTools recharge). */
+    recharge?: string;
+    /** Dice or number of charges regained, plain text, e.g. "1d6 + 1". */
+    rechargeAmount?: string;
   };
 }
 
@@ -199,4 +214,12 @@ export interface MonsterData {
    * Merged with type-inferred immunities at spawn time.
    */
   conditionImmunities?: string[];
+  /**
+   * The per-level spell-slot pool of a slot-based (prepared) caster monster,
+   * parsed from the 5eTools spellcasting block by `parseMonsterSpellSlots`.
+   * Absent for at-will and N/Day-only casters, which spend no slots.
+   * `createEnemyFromMonster` turns this into `CombatCharacter.spellSlots`, and
+   * without it `canAffordActionCost` refuses every leveled monster spell.
+   */
+  spellSlots?: MonsterSpellSlotPool;
 }

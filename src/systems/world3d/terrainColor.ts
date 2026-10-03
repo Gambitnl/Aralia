@@ -14,6 +14,16 @@ const PALETTE: Record<string, RGB> = {
   grassland: [0.5, 0.66, 0.36],
   forest: [0.24, 0.44, 0.24],
   jungle: [0.18, 0.40, 0.20],
+  // Deciduous forest FLOOR — leaf litter, not canopy. `forest` above is the
+  // canopy-read green used when a whole cell is painted from above; standing
+  // under the trees you see litter, which is brown-olive, low value and
+  // desaturated. Measured need (2026-08-04): a forest window's ground came out
+  // of the adapter as `grassland` (0.50, 0.66, 0.36), and the golden-hour key
+  // light (#fff0d0 → #ff9c46) multiplied that pale, green-dominant tint into
+  // flat khaki — the forest read as a beach. Luma here is ~0.24 against
+  // grassland's ~0.53, so the floor is darker than open meadow by more than
+  // half and survives a warm sun as brown rather than sand.
+  forest_floor: [0.29, 0.25, 0.16],
   tundra: [0.72, 0.74, 0.70],
   wetland: [0.34, 0.46, 0.34],
   swamp: [0.30, 0.40, 0.28],

@@ -152,11 +152,27 @@ const DecalLayer: React.FC<{
     const w = window as unknown as { __bm3dDecalDebug?: Record<string, unknown> };
     w.__bm3dDecalDebug = w.__bm3dDecalDebug ?? {};
     const p = geometry?.getAttribute("position");
+    // Vertical spread across the whole patch. A decal sheet that ignored the
+    // terrain would report yMin === yMax (one flat plane); a conforming one
+    // spans the relief it covers, so this is the number a capture rig can cite
+    // for "hugs the slope" instead of only eyeballing the screenshot (G11).
+    let yMin: number | null = null;
+    let yMax: number | null = null;
+    if (p) {
+      for (let i = 0; i < p.count; i++) {
+        const y = p.getY(i);
+        if (yMin === null || y < yMin) yMin = y;
+        if (yMax === null || y > yMax) yMax = y;
+      }
+    }
     // Key by color+shape: the AoE fill shares the valid-target red.
     w.__bm3dDecalDebug[`${color}/${shape}`] = {
       tiles: tiles.size,
       verts: p ? p.count : 0,
       first: p ? { x: p.getX(0), y: p.getY(0), z: p.getZ(0) } : null,
+      yMin,
+      yMax,
+      ySpread: yMin !== null && yMax !== null ? yMax - yMin : null,
     };
   }, [geometry, tiles, color, shape]);
 

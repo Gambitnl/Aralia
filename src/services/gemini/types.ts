@@ -2,6 +2,11 @@
 import { Action, EconomyState, GoalUpdatePayload, GroundingChunk, Item, Monster } from "../../types";
 import { GenerationConfig, Tool } from "@google/genai";
 
+/**
+ * Diagnostic metadata attached to every Gemini result.
+ * `promptSent` and `rawResponse` pass through `redactUserText` before they are stored,
+ * so emails, long digit runs and <user>...</user> blocks are masked.
+ */
 export interface GeminiMetadata {
   promptSent: string;
   rawResponse: string;
@@ -15,7 +20,6 @@ export interface StandardizedResult<T> {
   metadata?: GeminiMetadata;
 }
 
-// TODO #427: Scrub or redact user-provided text before storing GeminiMetadata (Reason: prompts can carry PII and are currently logged verbatim; Expectation: keep telemetry safe while still diagnosing model issues).
 export interface GeminiTextData extends GeminiMetadata {
   text: string;
 }

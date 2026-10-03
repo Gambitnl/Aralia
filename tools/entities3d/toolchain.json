@@ -1,0 +1,97 @@
+{
+  "$comment": "Manifest of external tools the entity-pipeline scripts (tools/entities3d, tools/rigbench, tools/creatureGate) bind to on THIS machine. Read by tools/entities3d/doctor.mjs — `node tools/entities3d/doctor.mjs`. Keep in sync by hand when a script's tool resolution changes; doctor.mjs only verifies what is listed here, it does not discover new bindings. See tools/entities3d/capture/captureLib.mjs for the capture-rig conventions these paths exist to support.",
+  "repo": "Aralia",
+  "checks": [
+    {
+      "id": "blender",
+      "label": "Blender (rig job)",
+      "kind": "drive-probe-exe",
+      "envOverride": "BLENDER_EXE",
+      "probe": {
+        "drives": ["C", "D", "E", "F", "G"],
+        "vendorSuffix": "Program Files\\Blender Foundation",
+        "versionDirPattern": "^Blender \\d",
+        "exeName": "blender.exe"
+      },
+      "usedBy": [
+        "tools/entities3d/rigBaseMeshes.mjs",
+        "tools/rigbench/rigbench.mjs"
+      ],
+      "installHint": "Install Blender 4.2 LTS or newer (https://www.blender.org/download/lts/), or set BLENDER_EXE to the blender.exe path. Remy's install (2026-08-21) lives on F:; the probe checks C, D, E, F, G in order."
+    },
+    {
+      "id": "system-chrome",
+      "label": "System Chrome (headless capture)",
+      "kind": "binary-path",
+      "envOverride": "CAPTURE_CHROME",
+      "path": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+      "usedBy": [
+        "tools/entities3d/capture/captureLib.mjs",
+        "tools/rigbench/rigbench.mjs",
+        "tools/creatureGate/partSweep.mjs",
+        "tools/creatureGate/sweep.mjs"
+      ],
+      "installHint": "Install Google Chrome at the default location, or set CAPTURE_CHROME to chrome.exe. Playwright's bundled Chromium is NOT a substitute here: it renders black frames for these scenes (see captureLib.mjs convention 1)."
+    },
+    {
+      "id": "playwright",
+      "label": "Playwright (node module)",
+      "kind": "node-module",
+      "module": "playwright",
+      "usedBy": [
+        "tools/entities3d/capture/captureLib.mjs",
+        "tools/rigbench/rigbench.mjs",
+        "tools/creatureGate/partSweep.mjs",
+        "tools/creatureGate/sweep.mjs"
+      ],
+      "installHint": "npm install (playwright is a repo dependency; it drives system Chrome, see the system-chrome entry)."
+    },
+    {
+      "id": "python-maskmetrics",
+      "label": "Python + numpy/PIL/scipy (maskmetrics, silhouette diff)",
+      "kind": "python-modules",
+      "command": "python",
+      "modules": ["numpy", "PIL", "scipy.ndimage"],
+      "usedBy": [
+        "tools/creatureGate/partGate.mjs",
+        "tools/creatureGate/gate.mjs",
+        "tools/creatureGate/silhouetteDiff.py",
+        "vendor/anyCreature/harness/maskmetrics.py"
+      ],
+      "installHint": "Install Python 3 on PATH as `python`, then `pip install numpy pillow scipy`. maskmetrics.py needs all three; silhouetteDiff.py needs the stdlib only but is invoked with the same interpreter."
+    },
+    {
+      "id": "ffmpeg",
+      "label": "ffmpeg (wave-gif capture)",
+      "kind": "binary-path",
+      "envOverride": "CAPTURE_FFMPEG",
+      "path": "F:/Repos/VideoChunking/ffmpeg/bin/ffmpeg.exe",
+      "required": false,
+      "usedBy": ["tools/entities3d/capture/wave-gif.mjs"],
+      "installHint": "Install ffmpeg and set CAPTURE_FFMPEG, or install it at F:/Repos/VideoChunking/ffmpeg/bin/ffmpeg.exe. Optional: wave-gif.mjs degrades gracefully and still writes frames + a sheet when ffmpeg is missing, so this is reported but does not fail the doctor."
+    },
+    {
+      "id": "dev-server-main",
+      "label": "Main Vite dev server (port 3000)",
+      "kind": "http-port",
+      "url": "http://127.0.0.1:3000/Aralia/misc/design.html?step=partlab",
+      "required": false,
+      "usedBy": [
+        "tools/creatureGate/nightly.mjs",
+        "tools/creatureGate/partSweep.mjs",
+        "tools/creatureGate/sweep.mjs",
+        "tools/rigbench/rigbench.mjs"
+      ],
+      "installHint": "Start the main dev server: `npm run dev` (vite.config.ts default port 3000). Optional: only needed while actually running a capture; doctor reports reachability but does not fail on it."
+    },
+    {
+      "id": "dev-server-preview",
+      "label": "Shared design-preview Vite server (port 5174)",
+      "kind": "http-port",
+      "url": "http://127.0.0.1:5174/Aralia/misc/design.html",
+      "required": false,
+      "usedBy": ["tools/entities3d/capture/captureLib.mjs"],
+      "installHint": "captureLib.mjs DEFAULT_ORIGIN. Start a Vite dev server bound to 5174 (or override with CAPTURE_ORIGIN / CAPTURE_BASE). Optional: informational only, does not fail the doctor."
+    }
+  ]
+}

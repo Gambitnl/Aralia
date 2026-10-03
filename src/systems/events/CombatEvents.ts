@@ -239,8 +239,8 @@ export class CombatEventEmitter {
             .filter(event => !targetFilter || targetFilter.has(event.targetId))
             .map(event => ({
                 targetId: event.targetId,
-                isHit: event.isHit,
-                isCritical: event.isCrit,
+                isHit: Boolean(event.isHit),
+                isCritical: Boolean(event.isCrit),
                 attackType: event.attackType,
                 weaponType: event.weaponType,
                 rollResult: undefined,

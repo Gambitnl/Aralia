@@ -2,8 +2,8 @@
 import { describe, it, expect } from 'vitest';
 import { OpportunityAttackSystem } from '../OpportunityAttackSystem';
 import { CombatCharacter } from '../../../../types/combat';
-import { createMockCombatCharacter } from '../../../../utils/factories';
-import summonBeast from '../../../../../public/data/spells/level-2/summon-beast.json';
+import { createMockCombatCharacter } from '../../../../utils/core';
+import summonBeast from '@/data/spells/level-2/summon-beast.json';
 
 /**
  * This test file proves when movement should create an Opportunity Attack.

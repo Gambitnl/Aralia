@@ -1,0 +1,9 @@
+{
+  "piece": "town-3d",
+  "round": 1,
+  "winner": "reference",
+  "wowed": false,
+  "biggestGap": "There is no steep-ground proof in the game. The bedding fix is only shown on flat ground, because the reachable town window (Hafting) is flat forest and farmland. The 40-degree bank close-up is still OWED. Reach a town on real slope, or move the camera to a bank inside the streamed world, and re-shoot before calling prop bedding done.",
+  "notes": "Three views of the live game, not a bench: two zoomed panels and the three-panel town workbench (2D map, 3D minimap, real streamed 3D) for Hafting, a walled town of 2,306 in the Kingdom of Roglufland.\n\nWHAT LANDED: props now bed into the ground in the live game. This is the placement fix reaching a real surface, which is the step region-terrain has not taken.\n\nWHAT THE WIDE VIEW SHOWS: the real 3D panel is dominated by dense dark forest. The town itself is a band of warm rooftops compressed against the far edge of the frame, at a distance where no street, lot or dressing can be judged. The 2D map and the 3D minimap both show a legible street network and 253 buildings; the real 3D panel does not let you check whether that network survived the bake. The three views agree on plan and cannot be compared on surface.\n\nThe foreground vegetation is doing more visual work than the town. Tree canopies read well and have real value separation. Nothing in these three images lets a judge rate streets, lots, dressing or prop density, which is the piece's stated scope.\n\nOWED: a ground-level view from inside the street network, and a three-quarter view close enough to read lot edges.",
+  "at": "2026-08-12T18:00:00Z"
+}

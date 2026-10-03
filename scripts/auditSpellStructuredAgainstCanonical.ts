@@ -30,7 +30,7 @@ import { fileURLToPath } from 'node:url';
 // the audit can be rerun safely without scattering outputs around the repo.
 // ============================================================================
 
-const REPO_ROOT = 'F:/Repos/Aralia';
+const REPO_ROOT = '.';
 const SCRIPT_FILE = fileURLToPath(import.meta.url);
 const SPELL_REFERENCE_ROOT = path.join(REPO_ROOT, 'docs', 'spells', 'reference');
 const REPORT_JSON_PATH = path.join(REPO_ROOT, '.agent', 'roadmap-local', 'spell-validation', 'spell-structured-vs-canonical-report.json');

@@ -9,7 +9,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { DiscoveryEntry, DiscoveryType } from '../../../types';
-import { createMockGameState } from '../../../utils/factories';
+import { createMockGameState } from '../../../utils/core';
 import { AppAction } from '../../actionTypes';
 import { logReducer, MAX_DISCOVERY_LOG_ENTRIES } from '../logReducer';
 

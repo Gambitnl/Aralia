@@ -195,7 +195,7 @@ export const openCursorAccountLogin = async (
     }
     profileDir = getWebAccountProfileDir(accountId, homeDir);
     const opener = options.opener ?? ((dir) => getDefaultLoginOpener(dir, { homeDir }));
-    await opener(profileDir);
+    await opener(profileDir, { accountId, homeDir });
     return {
       ok: true,
       accountId,

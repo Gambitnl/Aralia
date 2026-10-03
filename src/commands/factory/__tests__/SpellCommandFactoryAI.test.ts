@@ -4,7 +4,7 @@ import { DamageEffect, Spell, SpellEffect, SpellSchool } from '@/types/spells';
 import { CombatCharacter } from '@/types/combat';
 import { DamageCommand } from '@/commands/effects/DamageCommand';
 import { NarrativeCommand } from '@/commands/effects/NarrativeCommand';
-import { createMockCombatCharacter, createMockGameState } from '@/utils/factories';
+import { createMockCombatCharacter, createMockGameState } from '@/utils/core';
 
 // Mock AISpellArbitrator
 const mockArbitrate = vi.fn();

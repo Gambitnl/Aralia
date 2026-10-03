@@ -4,7 +4,7 @@ import { TerrainCommand } from '../effects/TerrainCommand'
 import type { CommandContext } from '../base/SpellCommand'
 import type { CombatCharacter, CombatState, Position } from '@/types/combat'
 import type { MovementEffect, TerrainEffect } from '@/types/spells'
-import { createMockCombatCharacter, createMockGameState } from '../../utils/factories'
+import { createMockCombatCharacter, createMockGameState } from '../../utils/core'
 
 /**
  * This file checks movement-style spell commands.

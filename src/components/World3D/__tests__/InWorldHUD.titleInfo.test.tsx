@@ -17,7 +17,7 @@ const baseProps = {
   onOpenMap: () => {},
   onExitToMenu: () => {},
   chunkCount: 81,
-  fps: 26,
+  // No `fps` prop: the Debug HUD reads the shared 'world3d' perf session now.
   streamerStats: { chunksLoaded: 81, chunksUnloaded: 0, pendingRequests: 0 },
 };
 
@@ -76,5 +76,36 @@ describe('InWorldHUD title info disclosure', () => {
     expect(place).toHaveTextContent('Alderwatch');
     expect(place).toHaveTextContent('Ground / port / road-linked / river-linked / coastal');
     expect(place).toHaveTextContent('biome #6 / atlas-burg #31');
+  });
+
+  it('routes Locale map and developer inspectors through the Controls menu', () => {
+    const onToggleLocaleMap = vi.fn();
+    const onOpenAgentSim = vi.fn();
+    const onOpenTownHistory = vi.fn();
+    render(
+      <InWorldHUD
+        {...baseProps}
+        isDevModeEnabled
+        isGroundMode
+        isLocaleMapAvailable
+        isLocaleMapOpen={false}
+        onToggleLocaleMap={onToggleLocaleMap}
+        onOpenAgentSim={onOpenAgentSim}
+        onOpenTownHistory={onOpenTownHistory}
+      />,
+    );
+
+    const openControls = () => fireEvent.click(screen.getByRole('button', { name: /Controls/ }));
+    openControls();
+    fireEvent.click(screen.getByTestId('hud-toggle-locale-map'));
+    expect(onToggleLocaleMap).toHaveBeenCalledTimes(1);
+
+    openControls();
+    fireEvent.click(screen.getByTestId('hud-open-agent-sim'));
+    expect(onOpenAgentSim).toHaveBeenCalledTimes(1);
+
+    openControls();
+    fireEvent.click(screen.getByTestId('hud-open-town-history'));
+    expect(onOpenTownHistory).toHaveBeenCalledTimes(1);
   });
 });

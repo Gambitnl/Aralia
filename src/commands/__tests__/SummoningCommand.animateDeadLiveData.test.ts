@@ -3,11 +3,11 @@ import { SummoningCommand } from '../effects/SummoningCommand';
 import { AbilityCommandFactory } from '../factory/AbilityCommandFactory';
 import { UtilityCommand } from '../effects/UtilityCommand';
 import * as CommandedSummonRuntime from '../effects/CommandedSummonCommand';
-import { createMockCombatCharacter } from '../../utils/factories';
+import { createMockCombatCharacter } from '../../utils/core';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatLogEntry, CombatState } from '../../types/combat';
 import type { SummoningEffect, UtilityEffect } from '../../types/spells';
-import animateDead from '../../../public/data/spells/level-3/animate-dead.json';
+import animateDead from '@/data/spells/level-3/animate-dead.json';
 
 /**
  * This file proves the live Animate Dead spell packet creates a commandable undead actor.
@@ -21,7 +21,7 @@ import animateDead from '../../../public/data/spells/level-3/animate-dead.json';
  */
 
 describe('SummoningCommand live Animate Dead controlled-undead bridge', () => {
-  it('creates a controlled undead actor with a bonus-action command surface', () => {
+  it('creates a controlled undead actor with a bonus-action command surface', async () => {
     // The caster only needs enough combat shape to own the animated undead and
     // provide a spawn point for the summon command.
     const caster = createMockCombatCharacter({
@@ -43,7 +43,7 @@ describe('SummoningCommand live Animate Dead controlled-undead bridge', () => {
       targets: [],
       gameState: {},
       playerInput: 'Animate Skeleton from Bones'
-    } as CommandContext;
+    } as unknown as CommandContext;
     const state = {
       isActive: true,
       characters: [caster],
@@ -68,7 +68,7 @@ describe('SummoningCommand live Animate Dead controlled-undead bridge', () => {
 
     // Casting the live packet should materialize a controlled undead actor
     // rather than leaving the Skeleton/Zombie choice only in utility prose.
-    const summonedState = new SummoningCommand(summonEffect!, context).execute(state);
+    const summonedState = await new SummoningCommand(summonEffect!, context).execute(state);
     const undead = summonedState.characters.find(character =>
       character.isSummon &&
       character.summonMetadata?.spellId === animateDead.id &&
@@ -76,7 +76,7 @@ describe('SummoningCommand live Animate Dead controlled-undead bridge', () => {
     ) as CombatCharacter | undefined;
 
     expect(undead).toBeDefined();
-    expect(undead?.name).toContain('Skeleton');
+    expect(undead?.name).toBe('Skeleton 1');
     expect(undead?.summonMetadata).toEqual(expect.objectContaining({
       entityType: 'undead',
       formName: 'Skeleton',
@@ -89,12 +89,8 @@ describe('SummoningCommand live Animate Dead controlled-undead bridge', () => {
       durationRemaining: 24,
       control: expect.objectContaining({
         entityType: 'controlled_undead',
-        allegiance: 'caster_controlled',
-        obedience: 'obeys_bonus_action_commands_within_60_feet',
-        restrictions: expect.arrayContaining([
-          'control_duration_24_hours',
-          'recast_before_expiry_to_reassert_control'
-        ])
+        source: 'animate-dead',
+        restrictions: expect.arrayContaining(['control_duration_24_hours', 'recast_before_expiry_to_reassert_control'])
       })
     }));
 
@@ -105,12 +101,9 @@ describe('SummoningCommand live Animate Dead controlled-undead bridge', () => {
 
     expect(commandAbility).toBeDefined();
     expect(commandAbility?.cost.type).toBe('bonus');
-    expect(commandAbility?.effects).toEqual([
-      expect.objectContaining({
-        type: 'commanded_summon',
-        commandedSummonAction: 'issue_command'
-      })
-    ]);
+    // The actor's local command button uses tile range; the 60-foot owner
+    // communication rule is retained in its control metadata above.
+    expect(commandAbility?.range).toBe(1);
 
     const firstCommands = AbilityCommandFactory.createCommands(
       commandAbility!,
@@ -121,7 +114,7 @@ describe('SummoningCommand live Animate Dead controlled-undead bridge', () => {
 
     expect(firstCommands).toHaveLength(1);
 
-    const afterFirstCommand = firstCommands[0].execute(summonedState);
+    const afterFirstCommand = await firstCommands[0].execute(summonedState);
     const undeadAfterFirstCommand = afterFirstCommand.characters.find(character => character.id === undead?.id);
 
     expect(undeadAfterFirstCommand?.summonMetadata?.commandsUsedThisTurn).toBe(1);
@@ -132,7 +125,7 @@ describe('SummoningCommand live Animate Dead controlled-undead bridge', () => {
     )).toBe(true);
   });
 
-  it('locks expired control and renews the same undead on reassert without spawning a replacement', () => {
+  it('locks expired control and renews the same undead on reassert without spawning a replacement', async () => {
     const caster = createMockCombatCharacter({
       id: 'animate-dead-caster',
       name: 'Animate Dead Caster',
@@ -152,7 +145,7 @@ describe('SummoningCommand live Animate Dead controlled-undead bridge', () => {
       targets: [],
       gameState: {},
       playerInput: 'Animate Skeleton from Bones'
-    } as CommandContext;
+    } as unknown as CommandContext;
 
     const state = {
       isActive: true,
@@ -177,7 +170,7 @@ describe('SummoningCommand live Animate Dead controlled-undead bridge', () => {
     expect(summonEffect).toBeDefined();
     expect(utilityEffect).toBeDefined();
 
-    const summonedState = new SummoningCommand(summonEffect!, summonContext).execute(state);
+    const summonedState = await new SummoningCommand(summonEffect!, summonContext).execute(state);
     const undead = summonedState.characters.find(character =>
       character.isSummon &&
       character.summonMetadata?.spellId === animateDead.id &&
@@ -212,7 +205,7 @@ describe('SummoningCommand live Animate Dead controlled-undead bridge', () => {
       {} as never
     );
 
-    const afterExpiredCommand = expiredCommands[0].execute(expiredState);
+    const afterExpiredCommand = await expiredCommands[0].execute(expiredState);
     const expiredUndead = afterExpiredCommand.characters.find(character => character.id === undead?.id);
 
     expect(expiredUndead?.summonMetadata?.durationRemaining).toBe(0);
@@ -234,10 +227,10 @@ describe('SummoningCommand live Animate Dead controlled-undead bridge', () => {
       targets: [expiredUndead!],
       gameState: {},
       playerInput: 'Reassert Control'
-    } as CommandContext;
+    } as unknown as CommandContext;
 
     const reassertCommand = new UtilityCommand(utilityEffect!, reassertContext);
-    const afterReassert = reassertCommand.execute(afterExpiredCommand);
+    const afterReassert = await reassertCommand.execute(afterExpiredCommand);
     const renewedUndead = afterReassert.characters.find(character => character.id === undead?.id);
     const otherAnimateDeadSummons = afterReassert.characters.filter(character =>
       character.isSummon &&
@@ -256,7 +249,7 @@ describe('SummoningCommand live Animate Dead controlled-undead bridge', () => {
       {} as never
     );
 
-    const afterRenewedCommand = renewedCommands[0].execute(afterReassert);
+    const afterRenewedCommand = await renewedCommands[0].execute(afterReassert);
     const renewedCommandedUndead = afterRenewedCommand.characters.find(character => character.id === undead?.id);
 
     expect(renewedCommandedUndead?.summonMetadata?.commandsUsedThisTurn).toBe(1);
@@ -267,7 +260,7 @@ describe('SummoningCommand live Animate Dead controlled-undead bridge', () => {
     )).toBe(true);
   });
 
-  it('advances the 24-hour control window from elapsed world time before command locking and reassertion', () => {
+  it('advances the 24-hour control window from elapsed world time before command locking and reassertion', async () => {
     const caster = createMockCombatCharacter({
       id: 'animate-dead-caster',
       name: 'Animate Dead Caster',
@@ -287,7 +280,7 @@ describe('SummoningCommand live Animate Dead controlled-undead bridge', () => {
       targets: [],
       gameState: {},
       playerInput: 'Animate Skeleton from Bones'
-    } as CommandContext;
+    } as unknown as CommandContext;
 
     const state = {
       isActive: true,
@@ -313,7 +306,7 @@ describe('SummoningCommand live Animate Dead controlled-undead bridge', () => {
     expect(utilityEffect).toBeDefined();
     expect(CommandedSummonRuntime.advanceAnimateDeadControlWindows).toBeTypeOf('function');
 
-    const summonedState = new SummoningCommand(summonEffect!, summonContext).execute(state);
+    const summonedState = await new SummoningCommand(summonEffect!, summonContext).execute(state);
     const undead = summonedState.characters.find(character =>
       character.isSummon &&
       character.summonMetadata?.spellId === animateDead.id &&
@@ -356,7 +349,7 @@ describe('SummoningCommand live Animate Dead controlled-undead bridge', () => {
       [expiredUndead!],
       {} as never
     );
-    const afterExpiredCommand = expiredCommands[0].execute(afterOneMoreHour);
+    const afterExpiredCommand = await expiredCommands[0].execute(afterOneMoreHour);
 
     expect(afterExpiredCommand.characters.find(character => character.id === undead?.id)?.summonMetadata?.commandsUsedThisTurn).toBe(0);
     expect(afterExpiredCommand.combatLog.some(entry =>
@@ -372,8 +365,8 @@ describe('SummoningCommand live Animate Dead controlled-undead bridge', () => {
       targets: [expiredUndead!],
       gameState: {},
       playerInput: 'Reassert Control'
-    } as CommandContext;
-    const afterReassert = new UtilityCommand(utilityEffect!, reassertContext).execute(afterExpiredCommand);
+    } as unknown as CommandContext;
+    const afterReassert = await new UtilityCommand(utilityEffect!, reassertContext).execute(afterExpiredCommand);
     const renewedUndead = afterReassert.characters.find(character => character.id === undead?.id);
 
     expect(renewedUndead?.summonMetadata?.durationRemaining).toBe(24);

@@ -42,8 +42,6 @@ vi.mock('../services/saveLoadService', () => ({
     getSaveSlots: vi.fn(() => []),
     deleteSaveGame: vi.fn(),
 }));
-// TODO #174: Add test case where getSaveSlots returns actual save data to verify
-// Continue button text formatting and latestSlot sorting logic.
 
 // ============================================================================
 // Text Fixture Layer
@@ -51,7 +49,7 @@ vi.mock('../services/saveLoadService', () => ({
 // The menu uses translated labels, but the tests need stable English text so the
 // assertions do not depend on the full i18n pipeline.
 // ============================================================================
-vi.mock('../utils/i18n', () => ({
+vi.mock('../utils/core', () => ({
     t: (key: string) => {
         const translations: Record<string, string> = {
             'main_menu.title': 'Aralia RPG',
@@ -187,6 +185,15 @@ describe('MainMenu', () => {
         render(<MainMenu {...defaultProps} />);
         fireEvent.click(screen.getByText('Lore & Rules'));
         expect(defaultProps.onShowCompendium).toHaveBeenCalledTimes(1);
+    });
+
+    it('opens the Credits panel with the hand mesh credit line', () => {
+        // CC-BY 4.0 asks for a credit the player can see. The main menu is the
+        // shipped surface, so the Credits entry must stay on it.
+        render(<MainMenu {...defaultProps} />);
+        fireEvent.click(screen.getByRole('button', { name: /third-party asset credits/i }));
+        expect(screen.getByRole('dialog', { name: 'Credits' })).toBeInTheDocument();
+        expect(screen.getByText(/"Low Poly Hand" by ronildo\.facanha/)).toBeInTheDocument();
     });
 
     it('shows Continue button when a save exists', () => {

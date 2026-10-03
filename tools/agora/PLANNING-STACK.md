@@ -97,3 +97,70 @@ relabeled **"Inventory — presence, not progress"**. Fuller fix (suppress or
 freeze the counters entirely) is deferred — the generator pipeline
 (`devtools/roadmap/scripts/*`) has known failure modes and is not worth
 destabilizing for a label.
+
+## 6. Coverage — the check for what is MISSING
+
+Sections 1 to 5 keep the surfaces honest about what they hold. None of them
+asks the other question: **what should be here and is not?**
+
+That gap is real and it was found the hard way. On 2026-08-05 the repo had 24
+architecture domain docs and no doc for the streamed 3D world — the largest
+undocumented area in the codebase, at 154 files across `src/systems/world3d`
+and `src/components/World3D`. Nothing flagged it. A human noticed, months late.
+
+Absence is invisible by construction. A surface can only show what somebody
+put in it, so a missing entry looks exactly like an empty space.
+
+### The rule
+
+Every planning surface covers a **population**. Coverage is the diff between
+that population and what the surface holds.
+
+To be checkable, a surface must declare two things:
+
+1. What population it covers.
+2. How to enumerate that population from the repository.
+
+A surface that cannot answer both is not checkable, and that itself is worth
+knowing.
+
+| Surface | Population it covers | How to enumerate |
+|---|---|---|
+| Architecture domain docs | Substantial code areas | Directories under `src/systems` and `src/components` |
+| Plan map topics | Active work | Agora board tasks and `GAPS.md` rows |
+| Glossary (`CONTEXT.md`, `GLOSSARY.md`) | Coined terms in use | Terms that appear in docs and code comments |
+| ADRs | Hard-to-reverse decisions | Not enumerable today — see below |
+| Judgment surfaces | Systems needing a human eye | Not enumerable today — see below |
+
+### Rank, do not filter
+
+Report every gap, sorted by size. Do not hide entries behind a threshold.
+
+A filter makes a judgment the tool is not qualified to make. `src/components/ui`
+has 105 files and probably needs no domain doc. That is a call for a reader,
+made in a second, and it costs less than a rule that quietly hides the one
+entry that mattered.
+
+Ranking also degrades well. A noisy check that is read is worth more than a
+precise check that is not built.
+
+### Two surfaces that cannot be checked yet
+
+**ADRs.** There is no way to enumerate decisions that were made without a
+record. A decision leaves no trace when nobody writes it down. This may be
+permanently uncheckable, and saying so is better than pretending.
+
+**Judgment surfaces.** See `docs/adr/0001-judgment-surfaces-and-recorded-verdicts.md`.
+The population is "things needing a human eye", which nothing enumerates today.
+A first approximation: any system that produces visuals and has no verdict
+recorded against it.
+
+### Where it runs
+
+`sync-surfaces.mjs` already writes `health.json` with a `surfaces` block, and
+already measures staleness by file age. Coverage is the same shape of question
+and belongs beside it.
+
+Staleness asks whether a surface has gone quiet. Coverage asks whether it was
+ever there. Drift asks whether what it names still exists. All three are
+health, and the plan map is where health is read.

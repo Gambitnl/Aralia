@@ -18,7 +18,7 @@ export const WORLD3D_CONFIG = {
   CHUNK_WORLD_SIZE: 128,
   /** How many world meters one WorldData grid cell spans. Must be a multiple of CHUNK_WORLD_SIZE. */
   METERS_PER_CELL: 1024,
-  /** Vertices per chunk edge for the placeholder heightfield (Plan 3 refines per-LOD). */
+  /** Baseline vertices per chunk edge for the heightfield mesh (refined per-LOD below). */
   HEIGHTFIELD_RESOLUTION: 17,
   /**
    * Per-LOD-tier mesh resolution (vertices per chunk edge). Distant chunks use
@@ -48,6 +48,22 @@ export const WORLD3D_CONFIG = {
    * it always covers the worst-case seam without being needlessly deep.
    */
   SKIRT_MIN_DEPTH_M: 40,
+
+  /**
+   * The Y of the world's underside, in meters.
+   *
+   * The streamed world used to be a single triangle layer with a wall only at
+   * the streaming frontier and no bottom at all. Below grade it was void: a
+   * camera that dipped under the terrain looked straight through it. This plane
+   * is the world's floor, so the loaded region is a closed slab — terrain lid,
+   * frontier walls, floor — rather than a sheet.
+   *
+   * Terrain spans 0 to 1800 m (height 0..100 x 150 m x 12 exaggeration), so
+   * -120 clears the lowest ground everywhere with room to spare. A GLOBAL
+   * constant, not a per-chunk depth, is what makes the floor continuous: every
+   * chunk's wall reaches the same plane, so neighboring chunks leave no gap.
+   */
+  GROUND_FLOOR_Y: -120,
   /** WorldData height (0..100) maps linearly to [0, MAX_TERRAIN_HEIGHT_M] meters (before exaggeration). */
   MAX_TERRAIN_HEIGHT_M: 150,
   /**
@@ -92,6 +108,22 @@ export function heightToMeters(height: number): number {
     (height / 100) *
     WORLD3D_CONFIG.MAX_TERRAIN_HEIGHT_M *
     WORLD3D_CONFIG.VERTICAL_EXAGGERATION
+  );
+}
+
+/**
+ * Inverse of `heightToMeters`: world meters back into the 0..100 encoded grid.
+ *
+ * Exists so depths can be authored in meters and converted once. Writing them
+ * straight into the encoded grid silently multiplies them by
+ * MAX_TERRAIN_HEIGHT_M × VERTICAL_EXAGGERATION / 100 (×18 today), which turned
+ * a 4 m river bed into a 72 m canyon.
+ */
+export function metersToHeight(meters: number): number {
+  return (
+    (meters /
+      (WORLD3D_CONFIG.MAX_TERRAIN_HEIGHT_M * WORLD3D_CONFIG.VERTICAL_EXAGGERATION)) *
+    100
   );
 }
 

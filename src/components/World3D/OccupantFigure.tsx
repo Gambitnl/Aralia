@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/07/2026, 00:34:24
+ * Last Sync: 18/07/2026, 18:30:27
  * Dependents: components/World3D/InteriorOccupants.tsx
  * Imports: 5 files
  *
@@ -20,17 +20,19 @@
 // box + head box (v0) when the entity generator shipped (2026-07-11).
 //
 // This is the single figure renderer shared by the static roster path and the
-// live InteriorOccupants layer. Villagers are commoners: no gear. Interiors can
-// hold many figures across loaded chunks, so bodies rebuild their metaball
-// fields at a low rate and reduced resolution (anchored parts and eyes still
-// track every frame).
+// live InteriorOccupants layer. Villagers are commoners: no gear. They idle at
+// stations unless the parent supplies a live movement ref, which turns on the
+// generated walk gait while that parent changes position. Interiors can hold
+// many figures across loaded chunks, so bodies rebuild their metaball fields at
+// a low rate and reduced resolution (anchored parts and eyes still track every
+// frame).
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Vector3 } from 'three';
 import { registerAllParts } from '@/systems/entities3d/parts';
 import { generateEntityBlueprint } from '@/systems/entities3d/generateEntityBlueprint';
 import { recipeFromOccupant } from '@/systems/entities3d/recipeFromOccupant';
-import { assembleEntity } from '@/systems/entities3d/three/assembleEntity';
+import { assembleEntity, gameBodyOptions } from '@/systems/entities3d/three/assembleEntity';
 import type { LocomotionState } from '@/systems/entities3d/three/gaits';
 
 registerAllParts();
@@ -46,6 +48,12 @@ export interface OccupantFigureProps {
   position: [number, number, number];
   /** Facing yaw about +Y, radians. */
   rotationY?: number;
+  /**
+   * Optional live movement signal owned by the placement layer. A ref keeps
+   * the generated body's gait in sync with per-frame travel without asking
+   * React to rebuild the expensive figure on every clock tick.
+   */
+  motionRef?: React.MutableRefObject<{ moving: boolean }>;
 }
 
 /**
@@ -58,6 +66,7 @@ const OccupantFigure: React.FC<OccupantFigureProps> = ({
   race,
   position,
   rotationY = 0,
+  motionRef,
 }) => {
   const blueprint = useMemo(
     () => generateEntityBlueprint(recipeFromOccupant({ id: occupantId, ageBand, race })),
@@ -67,8 +76,9 @@ const OccupantFigure: React.FC<OccupantFigureProps> = ({
   // across the foreground. A half-resolution field refreshed three times per
   // second keeps breathing/idle silhouettes alive while the per-frame anchors,
   // eyes, and facing remain smooth. The parent also caps how many can exist.
+  // Skinned by default (skeleton pivot flip 2026-08-18).
   const handle = useMemo(
-    () => assembleEntity(blueprint, { resolutionScale: 0.5, fieldUpdateHz: 3 }),
+    () => assembleEntity(blueprint, { resolutionScale: 0.5, fieldUpdateHz: 3, ...gameBodyOptions(blueprint) }),
     [blueprint],
   );
   useEffect(() => {
@@ -81,6 +91,10 @@ const OccupantFigure: React.FC<OccupantFigureProps> = ({
     speed: 0,
   });
   useFrame((state, delta) => {
+    // The outer placement layer moves and turns the figure. Supplying a
+    // positive gait speed here makes the generated legs and body actually
+    // walk during that travel instead of sliding in the idle pose.
+    loco.current.speed = motionRef?.current.moving ? 1 : 0;
     handle.update(state.clock.elapsedTime, delta, loco.current);
   });
 

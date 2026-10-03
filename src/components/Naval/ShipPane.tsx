@@ -5,6 +5,8 @@ import { Anchor, Users, Package, Navigation } from 'lucide-react';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/Table';
+import Tooltip from '../ui/Tooltip';
+import { calculateFirepower, describeFirepower } from '../../utils/naval/firepower';
 
 interface ShipPaneProps {
   ship: Ship;
@@ -18,6 +20,7 @@ type ActiveTab = 'overview' | 'crew' | 'cargo' | 'voyage';
 export const ShipPane: React.FC<ShipPaneProps> = ({ ship, onClose, voyage, onAdvanceDay }) => {
   const hasVoyage = voyage != null;
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
+  const firepower = calculateFirepower(ship);
 
   // If the voyage clears (e.g. on arrival, 3C-4) while the Voyage tab is active,
   // fall back to a valid tab so the content area never goes blank.
@@ -69,11 +72,26 @@ export const ShipPane: React.FC<ShipPaneProps> = ({ ship, onClose, voyage, onAdv
               <div className="grid grid-cols-2 gap-4">
                 <StatCard label="Hull" value={`${ship.stats.hullPoints}/${ship.stats.maxHullPoints}`} subtext="Hit Points" colorClass="text-green-400" />
                 <StatCard label="Speed" value={ship.stats.speed.toString()} subtext="Knots" />
-                {/* TODO #94: Replace simple count (ship.weapons.length) with a calculated "Firepower" rating or Damage Per Second (DPS) metric.
-                    Currently just shows number of weapons, which gives little indication of actual combat effectiveness.
-                    Naval battle mechanics need to be looked up online to ensure that proper D&D mechanics are used.
-                    Find official rules where possible, and lean into addendum rules which are widely accepted by community where official rules don't cover the logic completely. */}
-                <StatCard label="Weapons" value={ship.weapons.length.toString()} subtext="Installed" />
+                {/* Firepower (agora-d1c7.10): the sum of every installed weapon's average
+                    damage per hit, the number the naval rules compare between ships.
+                    ShipWeapon has no rate of fire or crew, so a true DPS is not derivable;
+                    the tooltip lists each weapon behind the total. */}
+                <Tooltip
+                  content={
+                    firepower.lines.length
+                      ? describeFirepower(firepower).join(' · ')
+                      : 'No weapons installed.'
+                  }
+                >
+                  <div data-testid="ship-firepower" className="cursor-help">
+                    <StatCard
+                      label="Firepower"
+                      value={firepower.total % 1 === 0 ? firepower.total.toString() : firepower.total.toFixed(1)}
+                      subtext={`avg dmg/hit · ${ship.weapons.length} weapon${ship.weapons.length === 1 ? '' : 's'}`}
+                      colorClass="text-amber-300"
+                    />
+                  </div>
+                </Tooltip>
                 <StatCard label="Manuever" value={ship.stats.maneuverability.toString()} subtext="Rating" />
               </div>
 
@@ -131,10 +149,6 @@ export const ShipPane: React.FC<ShipPaneProps> = ({ ship, onClose, voyage, onAdv
                 </div>
                 <div>
                   <div className="text-xs text-gray-400 uppercase">Supplies</div>
-                  {/* TODO #95: Verify supply unit conversion logic.
-                      Currently displaying raw values as "days". Ensure that 1 unit of food/water strictly equates to 1 day of consumption for the current crew size to prevent player confusion.
-                      Naval battle mechanics need to be looked up online to ensure that proper D&D mechanics are used.
-                      Find official rules where possible, and lean into addendum rules which are widely accepted by community where official rules don't cover the logic completely. */}
                   <div className="text-sm text-gray-300">Food: {ship.cargo.supplies.food} days</div>
                   <div className="text-sm text-gray-300">Water: {ship.cargo.supplies.water} days</div>
                 </div>

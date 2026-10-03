@@ -20,8 +20,37 @@ import { TerrainEffect, EffectDuration, DamageType } from '@/types/spells'
 import { CombatState, Position, BattleMapTile, StatusEffect, EnvironmentalEffect, ActiveMoldEarthSurfaceMark } from '@/types/combat'
 import { calculateAffectedTiles, AoEParams } from '../../utils/combat/aoeCalculations'
 import { mapShapeToStandard } from '../../utils/spatial/targetingUtils'
-import { generateId } from '../../utils/idGenerator'
+import { generateId } from '../../utils/core'
 
+/**
+ * Movement cost of one tile of difficult ground, in movement units per tile.
+ *
+ * 5e states the rule as "each foot of movement costs 1 extra foot", which this
+ * grid expresses as a doubled per-tile cost. It is exported because the same
+ * number is currently re-derived by hand in the concentration-cleanup and
+ * turn-clock paths; giving it one named home here is the first step in
+ * removing those copies (see the `agora-f423` note on
+ * `createDifficultTerrainEffect`).
+ */
+export const DIFFICULT_TERRAIN_MOVEMENT_COST = 2
+
+/** Base terrain kinds that are already difficult ground before any spell lands. */
+const NATURALLY_DIFFICULT_TERRAIN = ['difficult', 'water', 'mud']
+
+/** Environmental effect kinds that impose the difficult-ground movement rule. */
+const DIFFICULT_MOVEMENT_EFFECT_TYPES = ['difficult_terrain', 'web']
+
+/**
+ * Applies terrain spell effects to battle-map tiles and records the result in the combat log.
+ *
+ * Map-present encounters are handled here because this command owns tile mutation. When no
+ * battle map exists, `useAbilitySystem` preserves the same terrain effects as an
+ * `ActiveSpellZone` through `createTerrainSpellZoneFromAoEParams`, keeping mapless terrain
+ * durable without creating a second persistence system inside this command.
+ *
+ * Called by: SpellCommandFactory and ReactiveEffectCommand.
+ * Depends on: shared area geometry, combat-map tile state, and spell effect definitions.
+ */
 export class TerrainCommand extends BaseEffectCommand {
     constructor(
         effect: TerrainEffect,
@@ -57,7 +86,6 @@ export class TerrainCommand extends BaseEffectCommand {
              newMapData.tiles = newTiles
              newState.mapData = newMapData
         }
-        // TODO #9: When map data is absent, persist a lightweight terrain zone so the effect survives beyond logging (e.g., for battle map-less encounters).
 
         // Handle structured manipulation logging if present
         if (this.hasIntentionalManipulation(effect)) {
@@ -69,7 +97,7 @@ export class TerrainCommand extends BaseEffectCommand {
             message: `${this.context.caster.name} creates ${effect.terrainType} terrain`,
             characterId: this.context.caster.id,
             data: {
-                terrainEffect: effect,
+                terrainEffect: effect as unknown as EnvironmentalEffect,
                 affectedPositions: affectedTiles
             }
         })
@@ -169,22 +197,59 @@ export class TerrainCommand extends BaseEffectCommand {
     private applyDifficultTerrain(tile: BattleMapTile, duration: EffectDuration | undefined) {
         // Always add the effect to allow stacking of different durations (e.g. 1 round vs 10 minutes)
         // The system can later clean up expired effects.
-        this.addEnvironmentalEffect(tile, {
-            id: `diff-terrain-${Date.now()}-${Math.random()}`,
+        this.addEnvironmentalEffect(tile, this.createDifficultTerrainEffect(duration))
+
+        this.recalculateMovementCost(tile)
+    }
+
+    /**
+     * Build the difficult-ground environmental effect written onto a tile.
+     *
+     * What changed (agora-f423): this replaces an inline stub whose status
+     * payload was an unnamed, undescribed `{ type: 'condition' }` placeholder
+     * with an identifiable record carrying its own name, description, icon, and
+     * source spell/caster. Anything reading a tile can now say what the debuff
+     * is and which spell put it there without re-deriving it from the
+     * environmental effect that wraps it.
+     *
+     * What was preserved: the environmental effect still reports
+     * `type: 'difficult_terrain'`, still stacks rather than replacing an
+     * existing entry, and still resolves its duration the same way, so the map
+     * visuals, concentration cleanup, and turn-clock expiry paths are
+     * unchanged.
+     *
+     * What remains deferred: the movement penalty itself stays a tile cost
+     * (`recalculateMovementCost`) rather than a `modifiers` entry on this
+     * status. Difficult ground doubles the cost of crossing a square; it does
+     * not reduce a creature's Speed, and the shared `StatusEffect.modifiers`
+     * shape can only express the latter. Giving that rule a first-class
+     * representation means widening a type this command does not own.
+     */
+    private createDifficultTerrainEffect(duration: EffectDuration | undefined): EnvironmentalEffect {
+        const resolvedDuration = duration ? this.resolveDuration(duration) : 10
+
+        return {
+            id: generateId(),
             type: 'difficult_terrain',
-            duration: duration ? this.resolveDuration(duration) : 10,
+            duration: resolvedDuration,
             effect: {
-                id: `diff-terrain-status-${Date.now()}`,
+                id: generateId(),
                 name: 'Difficult Terrain',
                 type: 'debuff',
-                duration: duration ? this.resolveDuration(duration) : 10,
-                effect: { type: 'condition' } // Placeholder
+                description: `Crossing this space costs ${DIFFICULT_TERRAIN_MOVEMENT_COST} movement per square instead of 1.`,
+                duration: resolvedDuration,
+                icon: 'difficult_terrain',
+                source: this.context.spellName,
+                sourceSpellId: this.context.spellId,
+                sourceCasterId: this.context.caster.id,
+                // The rule is a movement-cost change on the ground, not a stat
+                // change on a creature, so `condition` stays the honest member
+                // of this union. See the deferral note above.
+                effect: { type: 'condition' }
             },
             sourceSpellId: this.context.spellId,
             casterId: this.context.caster.id
-        })
-
-        this.recalculateMovementCost(tile)
+        }
     }
 
     private removeDifficultTerrain(tile: BattleMapTile, theme?: string) {
@@ -212,30 +277,20 @@ export class TerrainCommand extends BaseEffectCommand {
     }
 
     private recalculateMovementCost(tile: BattleMapTile) {
-        let baseCost = 1
+        // Naturally difficult ground already costs double before any spell lands.
+        const baseCost = NATURALLY_DIFFICULT_TERRAIN.includes(tile.terrain)
+            ? DIFFICULT_TERRAIN_MOVEMENT_COST
+            : 1
 
-        // Base terrain cost
-        if (tile.terrain === 'difficult') {
-            baseCost = 2
-        } else if (tile.terrain === 'water' || tile.terrain === 'mud') {
-            baseCost = 2
-        }
+        // Difficult ground does not stack with itself: several overlapping
+        // effects still only double the cost of crossing the square once.
+        const hasDifficultMovementEffect = (tile.environmentalEffects || []).some(
+            effect => DIFFICULT_MOVEMENT_EFFECT_TYPES.includes(effect.type)
+        )
 
-        // Apply effects
-        let cost = baseCost
-        if (tile.environmentalEffects) {
-            // Check for difficult terrain or web
-            const hasDifficultTerrain = tile.environmentalEffects.some(e => e.type === 'difficult_terrain')
-            const hasWeb = tile.environmentalEffects.some(e => e.type === 'web')
-
-            if (hasDifficultTerrain || hasWeb) {
-                // In 5e, difficult terrain adds +1 foot cost per foot (doubles cost).
-                // Usually effects don't stack multiplicatively, they just create difficult terrain.
-                cost = Math.max(cost, 2)
-            }
-        }
-
-        tile.movementCost = cost
+        tile.movementCost = hasDifficultMovementEffect
+            ? Math.max(baseCost, DIFFICULT_TERRAIN_MOVEMENT_COST)
+            : baseCost
     }
 
     private addEnvironmentalEffect(tile: BattleMapTile, effect: EnvironmentalEffect) {
@@ -376,7 +431,7 @@ export class TerrainCommand extends BaseEffectCommand {
             message,
             characterId: this.context.caster.id,
             data: {
-                terrainEffect: effect,
+                terrainEffect: effect as unknown as EnvironmentalEffect,
                 manipulation: manip,
                 affectedPositions: affectedTiles,
                 surfaceMark: nextState.activeMoldEarthSurfaceMarks?.at(-1)
@@ -408,7 +463,9 @@ export class TerrainCommand extends BaseEffectCommand {
     }
 
     private getCurrentTurn(state: CombatState): number {
-        return state.turnState?.currentTurn ?? state.round ?? 0
+        // `round` is a legacy fallback for old state shapes that predate
+        // turnState.currentTurn; narrow to the minimal shape instead of `any`.
+        return state.turnState?.currentTurn ?? (state as { round?: number }).round ?? 0
     }
 
     private resolveExpiryRound(duration: EffectDuration | undefined, currentTurn: number): number | undefined {
@@ -482,6 +539,16 @@ export class TerrainCommand extends BaseEffectCommand {
             if (shape === 'Line') {
                 params.targetPoint = target // Lines need the endpoint for proper lerp calculation
             }
+        }
+
+        // Cube (ruling Q4, 2026-09-22, face anchor): the cube extends away from
+        // the caster. getCubeAoE uses the caster tile, or the caster facing when
+        // the origin is the caster tile, and throws when it has neither.
+        if (shape === 'Cube') {
+            params.casterPosition = this.context.caster.position
+            params.casterFacing = this.context.caster.facing
+            params.casterName = this.context.caster.name
+            params.spellName = this.context.spellName
         }
 
         return params

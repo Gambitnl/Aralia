@@ -29,20 +29,33 @@ const MIN_ROOM_CELLS = 3;
  * intent); the merge-down pass in partition() enforces these caps.
  */
 const ROOM_CAP: Record<BuildingType, number> = {
-  cottage: 5,
+  // Fewer subdivisions leave room for beds, tables and a five-foot movement
+  // lane. These caps also apply inside negotiated town lots; they do not
+  // promise a minimum usable room area when the parcel itself is too small.
+  cottage: 4,
   shop: 6,
   workshop: 6,
-  tavern: 9,
+  tavern: 7,
   manor: 10,
-  townhouse: 6,
+  townhouse: 5,
   tenement: 10,
   farmstead: 6,
   smithy: 5,
-  inn: 10,
+  inn: 8,
   storehouse: 4,
   temple: 6,
   keep: 9,
   civic: 7,
+  // Named landmarks: halls stay open (few, large rooms), mills stay tiny.
+  library: 5,
+  guildhall: 8,
+  granary: 3,
+  windmill: 3,
+  lumbermill: 4,
+  school: 6,
+  shrine: 3,
+  barracks: 8,
+  bakery: 5,
 };
 
 /** Hard ceiling on room count for a building type (merge-down cap). */
@@ -183,7 +196,11 @@ export function partition(
   // maxLeafArea is computed from the UNRESERVED residual area — sizing it
   // from the total starved the residual of leaves once the main room was
   // carved out (buildings landed at 2-3 rooms instead of 3-10).
-  const targetRooms = Math.min(9, Math.max(4, Math.round(total / 12)));
+  // About 500 square feet per target room leaves furnishing and movement
+  // space before irregular edges/corridors subdivide it. The previous 300ft²
+  // budget converted the larger character-scale footprints back into a dense
+  // collection of small bedrooms instead of enlarging usable rooms.
+  const targetRooms = Math.min(9, Math.max(4, Math.round(total / 20)));
   const mainArea = main !== null ? main.w * main.h : 0;
   const residual = total - mainArea;
   const residualRooms = Math.max(2, targetRooms - (main !== null ? 1 : 0));

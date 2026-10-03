@@ -11,7 +11,11 @@ export const LOCATIONS: Record<string, Location> = {
   'clearing': {
     id: 'clearing',
     name: 'Forest Clearing',
-    baseDescription: 'You are in a sun-dappled clearing. Paths lead north, east, south, and a well-trodden one heads west towards Aralia Town Center.',
+    // Grid retirement (agora-db71.29): named exits no longer render as "Go <dir>"
+    // buttons -- overworld travel is the cell-native World Map. The description
+    // must therefore not promise paths the Actions pane cannot offer. The `exits`
+    // map below stays as authored adjacency data for gossip and future routing.
+    baseDescription: 'You are in a sun-dappled clearing. Tracks worn into the grass fade off through the trees, but finding where any of them go means reading the land as a whole: open the World Map (hotkey M) to choose where to travel.',
     exits: { 'North': 'forest_path', 'East': 'ancient_ruins_entrance', 'South': 'hidden_grove', 'West': 'aralia_town_center' },
     itemIds: ['old_map_fragment'],
     biomeId: 'plains',

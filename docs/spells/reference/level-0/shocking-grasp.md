@@ -56,7 +56,7 @@
 - **Attack Roll**: melee
 - **Damage Dice**: 1d8
 - **Damage Type**: Lightning
-- **Description**: Lightning springs from you to a creature that you try to touch. Make a melee spell attack against the target. On a hit, the target takes 1d8 Lightning damage, and it can't make Opportunity Attacks until the start of its next turn.
+- **Description**: Lightning springs from you to a creature that you try to touch. Make a melee spell attack against the target, with Advantage if the target is wearing metal armor. On a hit, the target takes 1d8 Lightning damage, and it can't make Opportunity Attacks until the start of its next turn.
 - **Higher Levels**: Cantrip Upgrade. The damage increases by 1d8 when you reach levels 5 (2d8), 11 (3d8), and 17 (4d8).
 - **Scaling Rule 1 Type**: character_level_tiers
 - **Scaling Rule 1 Applies To**: damage | Lightning damage | dice 1d8 | trigger immediate
@@ -78,7 +78,7 @@ Attack/Save: Melee
 Damage/Effect: Lightning
 
 Rules Text:
-Lightning springs from you to a creature that you try to touch. Make a melee spell attack against the target. On a hit, the target takes 1d8 Lightning damage, and it can't make Opportunity Attacks until the start of its next turn.
+Lightning springs from you to a creature that you try to touch. Make a melee spell attack against the target, with Advantage if the target is wearing metal armor. On a hit, the target takes 1d8 Lightning damage, and it can't make Opportunity Attacks until the start of its next turn.
 Cantrip Upgrade. The damage increases by 1d8 when you reach levels 5 (2d8), 11 (3d8), and 17 (4d8).
 
 Spell Tags:

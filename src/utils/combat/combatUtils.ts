@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
- *
- * Last Sync: 09/06/2026, 03:54:07
- * Dependents: components/BattleMap/characters/CharacterActor.tsx, components/DesignPreview/steps/PreviewCombatSandbox.tsx, services/DiceService.ts, state/reducers/characterReducer.ts, systems/spells/mechanics/DiceRoller.ts, utils/character/checkUtils.ts, utils/character/savingThrowUtils.ts, utils/combat/index.ts, utils/combat/mechanicsUtils.ts, utils/combatUtils.ts, utils/sandbox/quickCharacterGenerator.ts
- * Imports: 10 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * ARCHITECTURAL CONTEXT:
  * This file is the 'Combat engine God Object'. It handles everything 
@@ -27,32 +11,376 @@
  *
  * @file src/utils/combatUtils.ts
  */
-import { BattleMapData, CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect, AreaOfEffect, AbilityEffect } from '../../types/combat';
-import { PlayerCharacter, Item } from '../../types';
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 20/09/2026, 21:00:39
+ * Dependents: App.tsx, components/BattleMap/characters/characterActor/CharacterActor.tsx, components/DesignPreview/steps/classes/subclasses/artificer/AlchemistDemo.tsx, components/DesignPreview/steps/classes/subclasses/artificer/ArmorerDemo.tsx, components/DesignPreview/steps/classes/subclasses/barbarian/WildHeartDemo.tsx, components/DesignPreview/steps/classes/subclasses/fighter/ChampionDemo.tsx, components/DesignPreview/steps/classes/subclasses/monk/WarriorOfShadowDemo.tsx, components/DesignPreview/steps/classes/subclasses/monk/WarriorOfTheOpenHandDemo.tsx, components/DesignPreview/steps/classes/subclasses/paladin/OathOfVengeanceDemo.tsx, components/DesignPreview/steps/classes/subclasses/sorcerer/DraconicSorceryDemo.tsx, components/DesignPreview/steps/classes/subclasses/sorcerer/WildMagicSorceryDemo.tsx, components/DesignPreview/steps/classes/subclasses/warlock/ArchfeyPatronDemo.tsx, components/DesignPreview/steps/classes/subclasses/warlock/FiendPatronDemo.tsx, components/DesignPreview/steps/classes/subclasses/wizard/AbjurerDemo.tsx, components/DesignPreview/steps/classes/subclasses/wizard/EvokerDemo.tsx, components/DesignPreview/steps/raceDomain/leaves/abyssalTieflingRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/airGenasiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/astralElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/autumnEladrinRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/beastbornHumanRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/beasthideShifterRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/blackDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/blueDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/brassDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/bronzeDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/bugbearRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/centaurRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/chthonicTieflingRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/cloudGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/copperDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/draconbloodDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/drowHalfElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fairyRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fallenAasimarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/firbolgRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fireGenasiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fireGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/forestGnomeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/forgebornHumanRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/frostGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/giffRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/githyankiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/githzeraiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/goblinRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/goldDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/grayDwarfDuergarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/greenDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/guardianHumanRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/hadozeeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halfElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halfOrcRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halflingRaceLeaf.tsx, components/DesignPreview/steps/scenarioControls/conditionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/counterspellNestedReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reachCreatureSizeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/savingThrowsHalfDamageScenarioControls.ts, components/DesignPreview/steps/scenarioControls/tauntForcedTargetingScenarioControls.ts, components/DesignPreview/steps/scenarioControls/teleportationOccupiedSpacesScenarioControls.ts, components/DesignPreview/steps/spells/cureWoundsScenario.tsx, state/reducers/characterReducer.ts, systems/combat/fallingGroundImpactResolution.ts, systems/combat/reactions/companionProtectionReaction.ts, systems/spells/mechanics/DiceRoller.ts, systems/spells/mechanics/areaDamageSpellCastResolution.ts, systems/spells/mechanics/directDamageSpellCastResolution.ts, systems/spells/mechanics/reactiveDamageRetaliationResolution.ts, systems/spells/mechanics/teleportationResolution.ts, systems/spells/mechanics/witchBoltOngoingResolution.ts, utils/character/checkUtils.ts, utils/character/savingThrowUtils.ts, utils/combat/actionEconomyUtils.ts, utils/combat/aerialMovementUtils.ts, utils/combat/alchemistUtils.ts, utils/combat/armorerUtils.ts, utils/combat/battleMasterUtils.ts, utils/combat/beastMasterUtils.ts, utils/combat/circleOfTheLandUtils.ts, utils/combat/collegeOfLoreUtils.ts, utils/combat/collegeOfValorUtils.ts, utils/combat/combatAI.ts, utils/combat/grappleUtils.ts, utils/combat/hunterUtils.ts, utils/combat/index.ts, utils/combat/mechanicsUtils.ts, utils/combat/multiattackUtils.ts, utils/combat/shoveUtils.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spells/outOfCombatCasting.ts
+ * Imports: 17 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import { BattleMapData, CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect, AreaOfEffect, AbilityEffect, CombatArmorEquipmentState, CombatEquipmentState } from '../../types/combat';
+import { PlayerCharacter, Item, LimitedUses } from '../../types';
 import { Spell, DamageType } from '../../types/spells';
+import { getRacialDefenseBucketsFromTraitText, type RacialDefenseBuckets } from '../../data/races/racialTraits';
 import { createAbilityFromSpell } from '../character/spellAbilityFactory';
 import { isWeaponProficient } from '../character/weaponUtils';
 import { generateId } from '../core/idGenerator';
 import { getAbilityModifierValue } from '../character/statUtils';
 import { buildHitPointDicePools, resolveRacialResourceId } from '../character/characterUtils';
+import { getRacialMovementSpeedsForLevel } from '../character/progression';
 import { ResistanceCalculator } from './resistanceUtils';
+import { calculateExhaustionEffects, exhaustionLevelFromConditions } from './physicsUtils';
+import { HUNTER_PREY_FEATURE_ID } from './hunterUtils';
+import { PRIMAL_COMPANION_FEATURE_ID } from './beastMasterUtils';
+import { resolveStatusGlyph } from '../visuals/conditionPalette';
+import {
+  CUNNING_ACTION_FEATURE_ID,
+  FAST_HANDS_FEATURE_ID,
+  SECOND_STORY_WORK_FEATURE_ID,
+  cunningActionOptionsFor,
+} from './thiefUtils';
+import {
+  ASSASSINATE_FEATURE_ID,
+  ASSASSINS_TOOLS_FEATURE_ID,
+} from './assassinUtils';
+import {
+  ANY_DIFFICULT_TERRAIN_POLICY,
+  EARTH_WALK_TERRAIN_POLICY,
+  TIMBERWALK_TERRAIN_POLICY,
+  resolveTerrainMovementPolicyFromTraits,
+  type TerrainMovementPolicy,
+  type TerrainMovementPolicyId,
+} from './movementUtils';
 
 import { bresenhamLine } from '../spatial/lineOfSight';
 
-type DiceRandomSource = () => number;
+// ============================================================================
+// Preview-Only Combat Capability
+// ============================================================================
+// CombatCharacter remains the shared production contract. This small local
+// intersection carries an explicit runtime marker only for the disposable
+// Design Preview player, avoiding a broad combat-type change while keeping the
+// exception visible and impossible to trigger from a name or id heuristic.
+// ============================================================================
+
+export type DevPlaytestCombatant = CombatCharacter & {
+  devPlaytest?: {
+    unlimitedSpellSlots: boolean;
+  };
+};
+
+export function isUnlimitedSpellSlotCombatant(
+  character: CombatCharacter,
+): character is DevPlaytestCombatant & { devPlaytest: { unlimitedSpellSlots: true } } {
+  return (character as DevPlaytestCombatant).devPlaytest?.unlimitedSpellSlots === true;
+}
+
 
 // Re-export for consumers
 export { createAbilityFromSpell, generateId, ResistanceCalculator };
 
-// TODO #1312(Mechanist): Wire up physicsUtils (fall damage, jumping) into movement logic.
-// TODO #1313(Mechanist): Wire up `calculateExhaustionEffects` from `physicsUtils.ts` to `createPlayerCombatCharacter` (apply speed/d20 penalties).
+// ============================================================================
+// Combat equipment projection
+// ============================================================================
+// The inventory owns complete items. Combat receives only the torso armour and
+// shield facts that tactical rules can inspect without depending on container,
+// economy or inventory-management behavior.
+
+const projectArmorForCombat = (
+  item: Item | undefined,
+  slot: CombatArmorEquipmentState['slot']
+): CombatArmorEquipmentState | undefined => {
+  // A weapon in the off hand is not a shield. Likewise, a clothing item in the
+  // torso slot must not accidentally satisfy rules that require worn armour.
+  if (!item || (item.type !== 'armor' && item.armorCategory === undefined)) {
+    return undefined;
+  }
+
+  // Magic metadata is authoritative when present. Older and imported items
+  // often omit it, so the projection reports `unknown` instead of guessing
+  // from a name such as "+1 Shield" or from item rarity.
+  const magicStatus: CombatArmorEquipmentState['magicStatus'] =
+    item.magicProperties !== undefined || item.requiresAttunement === true
+      ? 'magical'
+      : 'unknown';
+
+  return {
+    itemId: item.id,
+    itemName: item.name,
+    slot,
+    category: item.armorCategory,
+    magicStatus,
+    properties: [...(item.properties ?? [])],
+    baseArmorClass: item.baseArmorClass,
+    armorClassBonus: item.armorClassBonus,
+    strengthRequirement: item.strengthRequirement,
+    stealthDisadvantage: item.stealthDisadvantage,
+  };
+};
+
+/**
+ * Builds the reusable tactical equipment view from a character's equipped items.
+ *
+ * Returning undefined for an empty projection keeps monsters, summons and old
+ * saves compatible while allowing future equip-in-combat flows to call the same
+ * function when they refresh a combatant.
+ */
+export function createCombatEquipmentState(
+  equippedItems: PlayerCharacter['equippedItems']
+): CombatEquipmentState | undefined {
+  const wornArmor = projectArmorForCombat(equippedItems.Torso, 'Torso');
+  const offHandArmor = projectArmorForCombat(equippedItems.OffHand, 'OffHand');
+  const shield = offHandArmor?.category === 'Shield' ? offHandArmor : undefined;
+
+  if (!wornArmor && !shield) {
+    return undefined;
+  }
+
+  return { wornArmor, shield };
+}
+
+// ============================================================================
+// Subclass rider ability ids
+// ============================================================================
+// The rider modules under `utils/combat/{hunter,beastMaster,thief,assassin}Utils`
+// own every rule, and each gates itself on a feature ability being present on
+// the combatant (`hasHuntersPrey`, `hasCunningAction`, `hasAssassinate`, ...).
+// Nothing granted those abilities, so no rider could ever fire in play.
+// `createPlayerCombatCharacter` now grants them from the persistent
+// `subclassId` and level, and the two ids below are the buttons the action
+// executor dispatches on.
+// ============================================================================
+
+/**
+ * Cunning Action buttons are `cunning_action:<option>`, one per option
+ * `cunningActionOptionsFor` reports for this character. The option id after the
+ * colon is exactly what `resolveCunningAction` takes as `actionType`.
+ */
+export const CUNNING_ACTION_ABILITY_PREFIX = 'cunning_action:';
+
+/** Bonus-action button that spends the ranger's Beast Master command. */
+export const PRIMAL_COMPANION_COMMAND_ABILITY_ID = 'primal_companion_command';
+
+// ============================================================================
+// Race-aware terrain movement policy (GG-257)
+// ============================================================================
+// `CombatCharacter.terrainPolicyId` records WHICH squares a trait waives the
+// difficult-terrain surcharge over. This is the one place that turns that id
+// back into the predicate `movementUtils` and `findPath` understand, so no
+// movement surface re-derives racial terrain rules for itself.
 //
-// IMPROVEMENT OPPORTUNITY: Missing physics integration creates inconsistency between combat and exploration mechanics.
-// Current implementation lacks:
-// 1. Fall damage calculation during forced movement/teleportation
-// 2. Exhaustion effect application that should modify combat stats
-// 3. Jumping mechanics that could affect positioning and opportunity attacks
-// Consider creating a unified physics adapter that bridges combat and exploration systems.
+// A combatant with no qualified id but the flat `ignoreDifficultTerrain` flag
+// still moves under the unqualified waiver. That is not a fallback: monsters,
+// summons and older saves never carried race prose, and the flat flag is their
+// only statement of the rule.
+// ============================================================================
+
+const TERRAIN_MOVEMENT_POLICIES: Record<TerrainMovementPolicyId, TerrainMovementPolicy> = {
+  'earth-walk': EARTH_WALK_TERRAIN_POLICY,
+  'timberwalk': TIMBERWALK_TERRAIN_POLICY,
+  'any-difficult-terrain': ANY_DIFFICULT_TERRAIN_POLICY,
+};
+
+/** The terrain movement policy this combatant moves under, or null when none applies. */
+export function resolveCombatantTerrainMovementPolicy(
+  character: Pick<CombatCharacter, 'terrainPolicyId' | 'ignoreDifficultTerrain' | 'modifiers'>,
+): TerrainMovementPolicy | null {
+  if (character.terrainPolicyId) {
+    return TERRAIN_MOVEMENT_POLICIES[character.terrainPolicyId];
+  }
+  if (character.modifiers?.ignoreDifficultTerrain || character.ignoreDifficultTerrain) {
+    return ANY_DIFFICULT_TERRAIN_POLICY;
+  }
+  return null;
+}
+
+// ============================================================================
+// Racial projection: trait-text damage defenses and limited-use resources
+// ============================================================================
+// The persistent character is the only place that knows a race's prose. Combat
+// needs two facts out of it: which damage types the race defends against, and
+// how many uses of each racial feature are left. Both used to be re-derived by
+// every Design Preview race leaf, which meant a race whose leaf nobody had
+// written reached combat with no defense at all.
+// ============================================================================
+
+/**
+ * Reads damage defenses out of a race's trait prose.
+ *
+ * WHAT THIS IS: a thin composition over `getRacialDefenseBucketsFromTraitText`,
+ * the parser that already turns trait prose into defense buckets for the
+ * racial trait library and for `applyRacialSpellGrantsByLevel`. It is reused
+ * rather than re-implemented so the combat bridge can never disagree with the
+ * character sheet about what a race resists — a second regex would have been a
+ * second reading of the same sentence.
+ *
+ * WHY THE IMPORT IS SAFE: `data/races/racialTraits` imports types only. It does
+ * not pull in the race data bundle, which is the reason this module stays away
+ * from `utils/character/stats`.
+ *
+ * WHAT IS PARSED: "resistance to necrotic damage" yields Necrotic; "resistance
+ * to necrotic damage and radiant damage" and "resistance to acid and poison
+ * damage" yield both types; damage-type names are returned title-cased, the
+ * same canonical spelling the persistent projection writes.
+ *
+ * WHAT IS NOT PARSED: prose that names no damage type. "Resistance to the
+ * damage type associated with your Draconic Ancestry" and "resistance to all
+ * damage" are dropped, because the real type lives in character data
+ * (`player.resistances`, `race.resistance`), not in the sentence.
+ *
+ * WHAT REMAINS UNCERTAIN: the underlying parser reads a clause, not a
+ * condition, so a trait granting a named resistance only under a condition
+ * would read as unconditional. No shipped race writes one; a race that does
+ * needs a structured trait field rather than a cleverer regex.
+ */
+export function parseRacialDamageDefensesFromTraits(
+  traits: readonly string[] | undefined
+): RacialDefenseBuckets {
+  const defenses: RacialDefenseBuckets = { resistances: [], immunities: [], vulnerabilities: [] };
+  if (!traits?.length) return defenses;
+
+  traits.forEach(trait => {
+    if (typeof trait !== 'string') return;
+
+    const parsed = getRacialDefenseBucketsFromTraitText(trait);
+    (Object.keys(defenses) as Array<keyof RacialDefenseBuckets>).forEach(bucket => {
+      defenses[bucket].push(...parsed[bucket]);
+    });
+  });
+
+  (Object.keys(defenses) as Array<keyof RacialDefenseBuckets>).forEach(bucket => {
+    defenses[bucket] = Array.from(new Set(defenses[bucket]));
+  });
+
+  return defenses;
+}
+
+/**
+ * Unions parsed trait defenses onto the defenses a character already carries.
+ *
+ * Case-insensitive, and the existing entry wins: a character whose data already
+ * says `necrotic` keeps that spelling instead of gaining a second `Necrotic`
+ * entry. Returns undefined when nothing on either side exists, so combatants
+ * with no defenses keep an absent field rather than an empty array.
+ */
+function mergeDamageDefenses(
+  existing: readonly string[] | undefined,
+  parsed: readonly string[]
+): DamageType[] | undefined {
+  if (!existing?.length && !parsed.length) return undefined;
+
+  const merged: string[] = [];
+  const seen = new Set<string>();
+
+  [...(existing ?? []), ...parsed].forEach(entry => {
+    const key = entry.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    merged.push(entry);
+  });
+
+  return merged;
+}
+
+/**
+ * Copies the persistent character's limited-use resources into combat.
+ *
+ * WHAT CHANGED (agora-0ad6): `createPlayerCombatCharacter` read
+ * `player.limitedUses` only to stamp `maxUses`/`usesRemaining` onto individual
+ * abilities, and never carried the record itself. A racial feature such as
+ * Healing Hands, Hidden Step or Breath Weapon therefore arrived in combat with
+ * no spendable resource, and each race leaf re-attached its own key by hand
+ * before it could run its scenario.
+ *
+ * WHY EVERY ENTRY, NOT ONLY RACIAL ONES: the record is keyed by resource id,
+ * and combat cannot tell a racial key from a class key without re-deriving race
+ * data it deliberately does not import. Carrying the whole record is the honest
+ * projection and makes class resources spendable through the same payer.
+ *
+ * WHAT IS PRESERVED: each entry is cloned, so spending a use in combat cannot
+ * write back into the persistent character. Returning undefined for a character
+ * with no resources keeps the field absent exactly as it was.
+ */
+function projectLimitedUsesForCombat(limitedUses: PlayerCharacter['limitedUses']): LimitedUses | undefined {
+  if (!limitedUses) return undefined;
+
+  const entries = Object.entries(limitedUses);
+  if (!entries.length) return undefined;
+
+  return Object.fromEntries(entries.map(([id, use]) => [id, { ...use }]));
+}
+
+/** The outcome of asking a combatant to pay one use of a limited resource. */
+export interface CombatLimitedUsePayment {
+  /** The combatant after the payment. Unchanged when `paid` is false. */
+  character: CombatCharacter;
+  paid: boolean;
+  /** Uses left after the payment, or null when the resource is not present. */
+  remaining: number | null;
+  reason?: 'resource_unavailable' | 'resource_exhausted';
+}
+
+/**
+ * Spends one use of a projected limited-use resource.
+ *
+ * This is the shared payer the race leaves each re-implemented: it never
+ * mutates the combatant, it refuses rather than going negative, and it reports
+ * why it refused so a caller can keep its action economy intact instead of
+ * paying an action for a feature that could not fire.
+ */
+export function spendCombatLimitedUse(
+  character: CombatCharacter,
+  resourceId: string
+): CombatLimitedUsePayment {
+  const resource = character.limitedUses?.[resourceId];
+  if (!resource) {
+    return { character, paid: false, remaining: null, reason: 'resource_unavailable' };
+  }
+
+  if (resource.current <= 0) {
+    return { character, paid: false, remaining: resource.current, reason: 'resource_exhausted' };
+  }
+
+  const remaining = resource.current - 1;
+
+  return {
+    character: {
+      ...character,
+      limitedUses: {
+        ...character.limitedUses,
+        [resourceId]: { ...resource, current: remaining },
+      },
+    },
+    paid: true,
+    remaining,
+  };
+}
+
+
+// PHYSICS INTEGRATION — status as of 2026-09-09 (was TODO #1312 / #1313).
+//
+// 1. Fall damage: WIRED. `calculateFallDamage` is called by
+//    systems/combat/fallingGroundImpactResolution.ts, which owns forced movement
+//    and teleport-into-a-drop outcomes. Nothing is missing here any more.
+// 2. Exhaustion: WIRED BELOW. `createPlayerCombatCharacter` now applies the
+//    exhaustion SPEED penalty from `calculateExhaustionEffects` when building
+//    combat stats. The d20 half of the 2024 rule (-2 per level on attacks, checks
+//    and saves) is still unapplied because CombatCharacter has no numeric d20
+//    modifier channel — `modifiers.advantage/disadvantage/bonuses` are text arrays
+//    matched by string. Tracked as GG-212.
+// 3. Jumping: PARTIAL. `calculateJumpDistance` is reachable only through the Thief
+//    subclass helper (utils/combat/thiefUtils.ts); useGridMovement has no jump
+//    movement mode. Tracked as GG-213.
 
 /**
  * Checks if a character can take a reaction.
@@ -175,194 +503,20 @@ export function calculateCover(origin: Position, target: Position, mapData: Batt
 }
 
 /**
- * Helper to roll a single group of dice (e.g., "2d8").
+ * RETIRED: the legacy roller family used to live here (agora-f821.4).
  *
- * @param count Number of dice to roll.
- * @param sides Number of sides per die.
- * @param minRoll Minimum value per die (default 1).
- * @returns Total rolled value.
+ * `rollDieGroup`, `rollDice`, `rollD20` and `rollDamage` each defaulted to
+ * `Math.random` and recorded nothing, so 143 of the game's rolls happened
+ * outside the D-G3 roll contract. Remy ruled on 2026-09-20 (combat sheet q1)
+ * that they retire rather than delegate. The one real implementation now lives
+ * in `src/systems/dice/rollers.ts`, over `DiceAuditLog`.
  *
- * @internal This is a helper for `rollDamage` and should not be used directly.
- *
- * CURRENT FUNCTIONALITY:
- * - Implements basic dice rolling with Math.random()
- * - Enforces minimum roll values (useful for feats like Elemental Adept)
- * - Simple loop-based implementation for reliability
- *
- * IMPROVEMENT OPPORTUNITIES:
- * 1. SECURITY: Client-side Math.random() is predictable and manipulable
- *    - Implement server-side validation for critical rolls
- *    - Add cryptographic randomness for important game events
- * 2. PERFORMANCE: Loop-based approach is inefficient for large dice pools
- *    - Consider batch processing for multiple dice of same type
- *    - Implement lookup tables for common dice combinations
- * 3. EXTENSIBILITY: Limited customization options
- *    - Add support for advantage/disadvantage mechanics
- *    - Implement roll history tracking for analytics
- * 4. TESTABILITY: Difficult to test due to random nature
- *    - Add deterministic mode for testing purposes
- *    - Implement seedable random number generator
+ * A forwarding re-export stood here until agora-f821.52 so that four call
+ * sites locked by another packet could keep compiling. All four now import
+ * from `systems/dice/rollers` directly, so nothing forwards from here and
+ * `rollerGuard.test.ts` runs with an empty allowlist. Do not add it back:
+ * import the roller from its one home so the roll lands in the audit log.
  */
-function rollDieGroup(
-  count: number,
-  sides: number,
-  minRoll: number = 1,
-  random: DiceRandomSource = Math.random
-): number {
-    // TODO #1314(FEATURES): Route dice rolls through a secure or server-validated RNG to prevent client-side manipulation.
-    // (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
-    let subTotal = 0;
-  for (let i = 0; i < count; i++) {
-    let roll = Math.floor(random() * sides) + 1;
-    if (roll < minRoll) roll = minRoll;
-    subTotal += roll;
-  }
-  return subTotal;
-}
-
-/**
- * Parses a dice notation string (e.g., '2d8', '3d6+5') and returns the rolled total.
- * Supports complex formulas like '1d8 + 1d6 + 2'.
- * @param diceString The dice notation to roll (e.g., '2d8+3')
- * @returns The total rolled value
- *
- * CURRENT FUNCTIONALITY:
- * - Handles standard dice notation (XdY+Z format)
- * - Supports complex formulas with multiple dice types
- * - Processes positive and negative modifiers
- * - Removes whitespace for consistent parsing
- *
- * IMPROVEMENT OPPORTUNITIES:
- * 1. ROBUSTNESS: Regex-based parsing can be fragile with malformed input
- *    - Add input validation and sanitization
- *    - Implement graceful error handling for invalid notation
- * 2. PERFORMANCE: Regex evaluation for each roll adds overhead
- *    - Consider compiled parsers for frequently used formulas
- *    - Cache parsed results for repeated identical rolls
- * 3. FEATURE GAP: Missing advanced D&D mechanics
- *    - No support for advantage/disadvantage
- *    - Cannot handle complex conditional dice (e.g., "reroll 1s")
- *    - Lacks integration with character-specific modifiers
- * 4. MAINTAINABILITY: Parsing logic mixed with rolling logic
- *    - Separate parsing from execution for better testability
- *    - Create dedicated dice expression AST for complex operations
- */
-export function rollDice(
-  diceString: string,
-  options: { rng?: DiceRandomSource } = {}
-): number {
-  return rollDamage(diceString, false, 1, options?.rng);
-}
-
-/**
- * Rolls a d20, optionally with advantage or disadvantage.
- */
-export function rollD20(
-  options: { advantage?: boolean; disadvantage?: boolean; rng?: DiceRandomSource } = {}
-): number {
-  const { advantage, disadvantage, rng = Math.random } = options;
-  const roll1 = Math.floor(rng() * 20) + 1;
-  if (!advantage && !disadvantage) return roll1;
-
-  if (advantage && !disadvantage) {
-    const roll2 = Math.floor(rng() * 20) + 1;
-    return Math.max(roll1, roll2);
-  }
-  if (disadvantage && !advantage) {
-    const roll2 = Math.floor(rng() * 20) + 1;
-    return Math.min(roll1, roll2);
-  }
-  return roll1;
-}
-
-/**
- * Rolls damage, optionally doubling the dice for a critical hit.
- *
- * Safety:
- * - Returns 0 for invalid/empty strings.
- * - Handles complex formulas like "1d8 + 1d6 + 2".
- * - Ignores spaces.
- *
- * @param diceString The dice notation (e.g., '2d6+3').
- * @param isCritical Whether this is a critical hit (doubles dice).
- * @param minRoll Optional minimum value for each die (e.g. for Elemental Adept).
- * @returns The total damage.
- *
- * CURRENT FUNCTIONALITY:
- * - Implements D&D 5e critical hit rules (double dice count, not multiply result)
- * - Supports complex damage formulas with multiple dice types
- * - Handles minimum roll values for specific game mechanics
- * - Uses global regex for parsing dice notation
- *
- * IMPROVEMENT OPPORTUNITIES:
- * 1. CORRECTNESS: Global regex state can cause issues in concurrent environments
- *    - Use local regex instances to avoid state sharing
- *    - Implement proper regex reset between parses
- * 2. PERFORMANCE: Regex re-evaluation for each damage roll
- *    - Pre-compile common damage formulas
- *    - Cache parsed expressions for frequently used weapons/spells
- * 3. EXTENSIBILITY: Limited damage type integration
- *    - No built-in support for damage type modifiers
- *    - Missing integration with resistance/vulnerability calculations
- * 4. DEBUGGING: Difficult to trace individual dice rolls
- *    - Add roll breakdown reporting for transparency
- *    - Implement detailed logging for critical game moments
- *
- * @example
- * rollDamage('2d6+3', false) // Returns 5-15
- * rollDamage('2d6', true)    // Returns 4-24 (4d6)
- */
-export function rollDamage(
-  diceString: string,
-  isCritical: boolean,
-  minRoll: number = 1,
-  random: DiceRandomSource = Math.random
-): number {
-  // RALPH: Damage Resolver.
-  // Uses a global regex to scan the formula for dice (XdY) and flat numbers (Z).
-  // Doubling dice for Critical Hits happens BEFORE the roll to ensure consistent 5e logic.
-  if (!diceString || diceString === '0') return 0;
-
-  // Remove spaces for easier parsing
-  const formula = diceString.replace(/\s+/g, '');
-
-  // Regex to match terms:
-  // Group 1: Optional sign ([+-]?)
-  // Group 2, 3: Dice notation (\d+)d(\d+)
-  // Group 4: Flat number (\d+)
-  const regex = /([+-]?)(?:(\d+)d(\d+)|(\d+))/g;
-
-  let total = 0;
-  let match;
-
-  while ((match = regex.exec(formula)) !== null) {
-    // Avoid infinite loops
-    if (match.index === regex.lastIndex) {
-      regex.lastIndex++;
-    }
-
-    const sign = match[1] === '-' ? -1 : 1;
-
-    if (match[2] && match[3]) {
-      // It's a dice roll: XdY
-      const numDice = parseInt(match[2], 10);
-      const dieSize = parseInt(match[3], 10);
-
-      // CRITICAL HIT LOGIC: Roll dice twice
-      // RALPH: 5e rule - double the NUMBER of dice rolled, not the total result.
-      const actualNumDice = isCritical ? numDice * 2 : numDice;
-
-      const subTotal = rollDieGroup(actualNumDice, dieSize, minRoll, random);
-      total += sign * subTotal;
-    } else if (match[4]) {
-      // It's a flat number
-      const val = parseInt(match[4], 10);
-      total += sign * val;
-    }
-  }
-
-  return total;
-}
 
 /**
  * Generates a human-readable message for a combat action.
@@ -489,6 +643,81 @@ export function getCharacterDistance(char1: CombatCharacter, char2: CombatCharac
   return minDist;
 }
 
+// ============================================================================
+// Creature Footprint Placement
+// ============================================================================
+// Movement previews, forced movement, and scenario controls all need the same
+// answer when a Large or larger creature tries to occupy a destination. This
+// helper checks every square in the canonical footprint against map bounds,
+// blocking terrain, and the complete footprints of other living combatants.
+// ============================================================================
+
+export interface CharacterPlacementValidation {
+  allowed: boolean;
+  occupiedTiles: Position[];
+  reason: string;
+  blockerId?: string;
+}
+
+export function validateCharacterPlacement(
+  character: CombatCharacter,
+  position: Position,
+  mapData: BattleMapData,
+  characters: CombatCharacter[] = [],
+): CharacterPlacementValidation {
+  // Reuse the normal top-left anchor contract to project the candidate's full
+  // footprint without changing the live combatant before legality is known.
+  const candidate = { ...character, position: { ...position } };
+  const occupiedTiles = getOccupiedTiles(candidate);
+
+  // A larger creature is out of bounds when even one of its occupied squares
+  // falls beyond the authored map, not only when its anchor leaves the board.
+  const missingTile = occupiedTiles.find(tile => !mapData.tiles.has(`${tile.x}-${tile.y}`));
+  if (missingTile) {
+    return {
+      allowed: false,
+      occupiedTiles,
+      reason: `${character.name}'s ${character.stats.size ?? 'Medium'} footprint leaves the battle map at ${missingTile.x},${missingTile.y}.`,
+    };
+  }
+
+  // Walls and other movement blockers reject the complete placement. The
+  // precise square is returned in the reason so logs can explain the boundary.
+  const blockedTile = occupiedTiles.find(tile => (
+    mapData.tiles.get(`${tile.x}-${tile.y}`)?.blocksMovement === true
+  ));
+  if (blockedTile) {
+    return {
+      allowed: false,
+      occupiedTiles,
+      reason: `${character.name}'s ${character.stats.size ?? 'Medium'} footprint is blocked at ${blockedTile.x},${blockedTile.y}.`,
+    };
+  }
+
+  // Compare full footprints rather than only top-left anchors. Downed actors
+  // follow the existing movement-executor convention and do not block a space.
+  const occupiedKeys = new Set(occupiedTiles.map(tile => `${tile.x}-${tile.y}`));
+  const blocker = characters.find(other => (
+    other.id !== character.id
+    && other.currentHP > 0
+    && getOccupiedTiles(other).some(tile => occupiedKeys.has(`${tile.x}-${tile.y}`))
+  ));
+  if (blocker) {
+    return {
+      allowed: false,
+      occupiedTiles,
+      reason: `${character.name}'s footprint overlaps ${blocker.name}.`,
+      blockerId: blocker.id,
+    };
+  }
+
+  return {
+    allowed: true,
+    occupiedTiles,
+    reason: `${character.name}'s complete footprint fits at ${position.x},${position.y}.`,
+  };
+}
+
 /**
  * Normalizes AoE information on an ability into a concrete AreaOfEffect object.
  * This keeps older abilities that only set areaOfEffect working while supporting
@@ -596,6 +825,34 @@ export function computeAoETiles(
 }
 
 /**
+ * Facts about a single damage instance that change which defenses apply.
+ *
+ * WHAT CHANGED (agora-5143): `calculateDamage` and `calculateDamageWithDefense`
+ * used to hard-code `undefined` for the resistance calculator's `isMagical`
+ * argument, so `nonMagicalResistances` and `nonMagicalImmunities` — which
+ * `ResistanceCalculator` only consults when `isMagical === false` — could never
+ * fire through these two entry points. A werewolf was as hard to hit with a
+ * club as with a silvered sword. WHY AN OPTIONS OBJECT: the magical/nonmagical
+ * fact is the first of several source-of-damage facts these functions will need
+ * (weapon material, spell origin), and a named field reads at the call site
+ * where a sixth bare boolean would not.
+ *
+ * WHAT IS PRESERVED: omitting `options`, or omitting `isMagical` inside it,
+ * leaves `isMagical` undefined exactly as before, so every existing caller keeps
+ * its current result. There is no inference: a caller that does not state
+ * whether the damage is magical gets the undefined behavior rather than a
+ * guess.
+ */
+export interface DamageResolutionOptions {
+  /**
+   * `false` engages the target's nonmagical-only defenses. `true` states the
+   * damage is magical and therefore bypasses them. Leave unset when the caller
+   * genuinely does not know.
+   */
+  isMagical?: boolean;
+}
+
+/**
  * Calculates final damage by applying 5e rules for Resistance, Vulnerability, and Immunity.
  *
  * Logic:
@@ -607,6 +864,8 @@ export function computeAoETiles(
  * @param caster The source of the damage (for future feat checks like Elemental Adept).
  * @param target The character receiving the damage.
  * @param damageType The type of damage (fire, cold, etc.).
+ * @param zoneContext Battlefield zones that may grant area-of-effect protections.
+ * @param options Magical/nonmagical facts about this damage instance.
  * @returns The final damage integer.
  */
 export function calculateDamage(
@@ -614,7 +873,8 @@ export function calculateDamage(
   caster: CombatCharacter | null,
   target: CombatCharacter,
   damageType?: string,
-  zoneContext?: Parameters<typeof ResistanceCalculator.applyResistances>[5]
+  zoneContext?: Parameters<typeof ResistanceCalculator.applyResistances>[5],
+  options?: DamageResolutionOptions
 ): number {
   if (!damageType || baseDamage <= 0) return Math.max(0, baseDamage);
 
@@ -623,9 +883,76 @@ export function calculateDamage(
     damageType as DamageType,
     target,
     caster,
-    undefined,
+    options?.isMagical,
     zoneContext
   );
+}
+
+/**
+ * Calculates final damage along with full defense breakdown (immunity, resistance,
+ * vulnerability, and structured metadata tags) applying 5e rules.
+ *
+ * @param baseDamage The base rolled damage.
+ * @param caster The source of the damage (for feat checks like Elemental Adept).
+ * @param target The character receiving the damage.
+ * @param damageType The type of damage (fire, cold, radiant, poison, etc.).
+ * @param zoneContext Battlefield zones that may grant area-of-effect protections.
+ * @param options Magical/nonmagical facts about this damage instance.
+ * @returns An object containing final damage, defense flags, and formatted metadata tags.
+ */
+export function calculateDamageWithDefense(
+  baseDamage: number,
+  caster: CombatCharacter | null,
+  target: CombatCharacter,
+  damageType?: string,
+  zoneContext?: Parameters<typeof ResistanceCalculator.applyResistances>[5],
+  options?: DamageResolutionOptions
+): {
+  baseDamage: number;
+  finalDamage: number;
+  damageType: string;
+  isImmune: boolean;
+  isResistant: boolean;
+  effectiveResistance: boolean;
+  ignoresResistance: boolean;
+  isVulnerable: boolean;
+  tags: string[];
+} {
+  if (!damageType || baseDamage <= 0) {
+    const raw = Math.max(0, baseDamage);
+    return {
+      baseDamage: raw,
+      finalDamage: raw,
+      damageType: damageType || 'untyped',
+      isImmune: false,
+      isResistant: false,
+      effectiveResistance: false,
+      ignoresResistance: false,
+      isVulnerable: false,
+      tags: [],
+    };
+  }
+
+  const breakdown = ResistanceCalculator.getDefenseBreakdown(
+    baseDamage,
+    damageType as DamageType,
+    target,
+    caster,
+    options?.isMagical,
+    zoneContext
+  );
+
+  return {
+    baseDamage: breakdown.baseDamage,
+    finalDamage: breakdown.finalDamage,
+    damageType,
+    isImmune: breakdown.isImmune,
+    isResistant: breakdown.hasResistance,
+    effectiveResistance: breakdown.effectiveResistance,
+    ignoresResistance: breakdown.ignoresResistance,
+    isVulnerable: breakdown.hasVulnerability,
+    tags: breakdown.tags,
+  };
 }
 
 /**
@@ -649,22 +976,72 @@ export function createDamageNumber(
 
 /**
  * Returns a consistent icon for a status effect so the UI can visualize buffs/debuffs.
- * If a custom icon is provided on the effect we prefer that, otherwise fallback emojis.
+ *
+ * The glyph table moved to `src/utils/visuals/conditionPalette.ts` (agora-f821.31):
+ * this function's switch had a byte-identical ASCII twin in `BattleMapOverlay.tsx`,
+ * and neither of them knew the condition NAMES, so every condition drew the same
+ * debuff skull. The shared resolver prefers an explicit icon, then the condition
+ * palette, then the kind-of-effect fallback.
  */
 export function getStatusEffectIcon(effect: StatusEffect): string {
-  if (effect.icon) return effect.icon;
-  switch (effect.type) {
-    case 'buff':
-      return '✨';
-    case 'debuff':
-      return '☠️';
-    case 'dot':
-      return '🔥';
-    case 'hot':
-      return '➕';
-    default:
-      return '◼️';
+  return resolveStatusGlyph(effect, 'emoji');
+}
+
+// ============================================================================
+// Tavern Brawler (agora-4325.2)
+// ============================================================================
+// The feat has three riders: proficiency with Improvised Weapons, an Unarmed
+// Strike that deals 1d4 + Strength, and a free 5-foot shove after a hit with
+// either. The predicates live here because this file already resolves weapon
+// proficiency and builds the Unarmed Strike ability; the combat-side damage
+// upgrade (AbilityCommandFactory) and the shove rider (shoveUtils) read them
+// so one definition of "has the feat" serves all three.
+// ============================================================================
+
+/** Feat id as stored on a character's `feats` array. */
+export const TAVERN_BRAWLER_FEAT_ID = 'tavern_brawler';
+
+/** Unarmed Strike damage die the feat grants, before the Strength modifier. */
+export const TAVERN_BRAWLER_UNARMED_DIE = '1d4';
+
+/** True when the character holds Tavern Brawler. */
+export function hasTavernBrawler(character: { feats?: string[] } | null | undefined): boolean {
+  return !!character?.feats?.includes(TAVERN_BRAWLER_FEAT_ID);
+}
+
+/**
+ * True when an item counts as an Improvised Weapon.
+ *
+ * 5e calls an object an improvised weapon when it is not a weapon but is used
+ * as one — a bar stool, a bottle, a frying pan. An item may also declare the
+ * category or property outright, which is how a purpose-built improvised
+ * weapon entry opts in.
+ */
+export function isImprovisedWeapon(item: Item | null | undefined): boolean {
+  if (!item) return false;
+  if (item.category?.toLowerCase().includes('improvised')) return true;
+  if (item.properties?.some(property => property.toLowerCase() === 'improvised')) return true;
+  return item.type !== 'weapon';
+}
+
+/**
+ * Unarmed Strike damage formula for a character.
+ *
+ * Without the feat this is the flat 1 + Strength modifier the 2024 rules give
+ * an Unarmed Strike. With Tavern Brawler it becomes 1d4 + Strength.
+ */
+export function getUnarmedStrikeDamageFormula(
+  character: { feats?: string[] },
+  strengthModifier: number
+): string {
+  const modifierPart = strengthModifier === 0
+    ? ''
+    : `${strengthModifier > 0 ? '+' : '-'}${Math.abs(strengthModifier)}`;
+
+  if (hasTavernBrawler(character)) {
+    return `${TAVERN_BRAWLER_UNARMED_DIE}${modifierPart}`;
   }
+  return String(Math.max(0, 1 + strengthModifier));
 }
 
 /**
@@ -715,6 +1092,30 @@ export function getStatusEffectIcon(effect: StatusEffect): string {
  * @returns A fully hydrated CombatCharacter ready for the BattleMap.
  */
 export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: Record<string, Spell> = {}): CombatCharacter {
+  // Exhaustion (2026-09-09, was TODO #1313). Exhaustion is carried on the persistent
+  // character as a condition string, so the level is parsed once here and turned into
+  // the 2024 speed penalty (-5 ft per level) by `calculateExhaustionEffects`. Applying
+  // it at this boundary means every downstream movement budget — action economy, grid
+  // movement, Dash — inherits the penalty without each one re-deriving it.
+  //
+  // Level 6 is death in the rules; `calculateExhaustionEffects` reports no speed
+  // penalty there, so we clamp to 5 rather than letting a dying character be the
+  // fastest on the map. Killing the character is deliberately NOT done here: this
+  // function only projects persistent state into combat, and death is a combat-state
+  // transition that belongs to the turn/HP systems.
+  //
+  // The d20 half of the rule is not applied — see the physics integration note above
+  // and GG-212. A rested character parses to level 0 and is untouched, so no existing
+  // caller changes behavior.
+  const exhaustionLevel = exhaustionLevelFromConditions(player.conditions);
+  const exhaustionSpeedPenalty = exhaustionLevel > 0
+    ? calculateExhaustionEffects(Math.min(exhaustionLevel, 5)).speedPenalty
+    : 0;
+
+  // Read the race's trait prose once. A race with no defense clause produces
+  // three empty lists, so a character that never had defenses is untouched.
+  const racialTraitDefenses = parseRacialDamageDefensesFromTraits(player.race?.traits);
+
   const stats: CharacterStats = {
     strength: player.finalAbilityScores.Strength,
     dexterity: player.finalAbilityScores.Dexterity,
@@ -727,10 +1128,26 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     // must NOT be included here — doing so double-counted Dex for players while
     // monsters (whose baseInitiative is the proficiency part only) were correct.
     baseInitiative: (player.initiativeBonus || 0) + (player.initiativeProficiency ? (player.proficiencyBonus || 2) : 0),
-    speed: player.speed,
+    // Speed after exhaustion. Floored at 0 so a heavily exhausted character is
+    // immobile rather than moving backwards.
+    speed: Math.max(0, player.speed - exhaustionSpeedPenalty),
     cr: 'N/A',
     senses: { darkvision: 0, blindsight: 0, tremorsense: 0, truesight: 0 },
   };
+
+  // Racial fly/swim/climb/burrow modes (agora-db71.30, GG-259). Read at the
+  // character's level through the same helper the character sheet uses, so a
+  // Dragonborn's Draconic Flight reaches combat at level 5 and stays off the
+  // actor before it. Without this fill the combat readers — aerialMovementUtils,
+  // actionEconomyUtils, useBattleMap, useGridMovement — saw `undefined` and no
+  // player ever flew, swam, climbed or burrowed at ANY level.
+  //
+  // The key is only written when the race grants a mode, so a character with no
+  // alternate movement is byte-for-byte what it was before.
+  const racialMovementSpeeds = getRacialMovementSpeedsForLevel(player);
+  if (Object.keys(racialMovementSpeeds).length > 0) {
+    stats.extraMovementSpeeds = racialMovementSpeeds;
+  }
 
   // 1. Basic Physical Abilities
   const abilities: Ability[] = [];
@@ -747,7 +1164,11 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     // Default to physical damage. Future expansion can parse damage types from item data.
     const damageType: AbilityEffect['damageType'] = 'physical';
 
-    const isProficient = isWeaponProficient(player, weapon);
+    // Tavern Brawler grants proficiency with Improvised Weapons, which
+    // isWeaponProficient cannot express: it rejects any item whose type is not
+    // 'weapon' before it looks at the character's proficiency list at all.
+    const isProficient = isWeaponProficient(player, weapon)
+      || (hasTavernBrawler(player) && isImprovisedWeapon(weapon));
 
     const ability: Ability = {
       id: `attack_${idSuffix}`,
@@ -799,7 +1220,16 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
       cost: { type: 'action' },
       targeting: 'single_enemy',
       range: 1,
-      effects: [{ type: 'damage', value: 1 + getAbilityModifierValue(stats.strength), damageType: 'bludgeoning' }],
+      // A dice formula rather than a flat value, because Tavern Brawler turns
+      // the strike into 1d4 + Strength. AbilityEffectMapper prefers `dice` over
+      // `value`, so the formula is the single magnitude the command layer reads.
+      effects: [{
+        type: 'damage',
+        value: 0,
+        dice: getUnarmedStrikeDamageFormula(player, getAbilityModifierValue(stats.strength)),
+        damageType: 'bludgeoning'
+      }],
+      attackType: 'unarmed',
       icon: '✊'
     });
   }
@@ -1046,10 +1476,16 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
   // 2. Convert Spells to Combat Abilities using the Factory
   // THIS IS THE WIRING POINT: We iterate the known spell IDs, find the JSON data, and convert it.
   if (player.spellbook) {
+    // Dev Player receives the entire selected class list for spell playtests.
+    // Every ordinary character continues to hydrate only its real spellbook.
+    const previewClassSpellIds = player.devPlaytest?.unlimitedSpellSlots
+      ? (player.class.spellcasting?.spellList ?? [])
+      : [];
     const spellsToCheck = [
       ...(player.spellbook.preparedSpells || []),
       ...(player.spellbook.cantrips || []),
-      ...(player.spellbook.knownSpells || []) // For known casters like Bards/Sorcerers
+      ...(player.spellbook.knownSpells || []), // For known casters like Bards/Sorcerers
+      ...previewClassSpellIds,
     ];
 
     const uniqueSpellIds = Array.from(new Set(spellsToCheck));
@@ -1070,7 +1506,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     });
   }
 
-  const combatChar: CombatCharacter = {
+  const combatChar: DevPlaytestCombatant = {
     id: player.id || `player_${player.name.toLowerCase().replace(' ', '_')}`,
     name: player.name,
     level: player.level || 1,
@@ -1088,6 +1524,10 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     maxHP: player.maxHp,
     armorClass: player.armorClass || 10,
     baseAC: player.armorClass || 10,
+    // Project armour once at the persistent-to-combat boundary. Damage and
+    // future equipment-sensitive rules can now inspect stable tactical facts
+    // without reaching back into the player's inventory object.
+    equipment: createCombatEquipmentState(player.equippedItems),
     // Champion fighters (Improved Critical, level 3) score critical hits on a 19
     // or 20; everyone else on a natural 20.
     critThreshold: (player.subclassId === 'champion' && (player.level || 1) >= 3) ? 19 : 20,
@@ -1104,16 +1544,32 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
       freeActions: 1,
     },
     spellbook: player.spellbook,
-    spellSlots: player.spellSlots,    savingThrowProficiencies: player.savingThrowProficiencies,
+    spellSlots: player.spellSlots,
+    // Racial and class feature resources now cross the bridge (agora-0ad6).
+    // Spend them with `spendCombatLimitedUse` so the persistent record is never
+    // mutated by a combat action.
+    limitedUses: projectLimitedUsesForCombat(player.limitedUses),
+    savingThrowProficiencies: player.savingThrowProficiencies,
+    // Keep the exception explicitly attached to this transient combatant. The
+    // action-economy gate reads it to bypass only slot accounting, never turns.
+    ...(player.devPlaytest ? { devPlaytest: { ...player.devPlaytest } } : {}),
     // WHAT CHANGED: Added feats array mapping.
     // WHY IT CHANGED: To support feat-based mechanics in the combat loop. 
     // By passing the feat IDs (e.g., ['great_weapon_master']) to the 
     // CombatCharacter, we allow the damage calculators and action 
     // handlers to apply bonus damage or special effects during a battle.
     feats: player.feats || [], // feat IDs (e.g. ['slasher', 'great_weapon_master'])
-    resistances: player.resistances ?? player.race?.resistance,
-    immunities: player.immunities,
-    vulnerabilities: player.vulnerabilities,
+    // Damage defenses stated in the race's trait prose are projected here
+    // (agora-ddb7) instead of being re-derived by each Design Preview race leaf.
+    // The character's own data is listed first and wins on a case-insensitive
+    // match, so an explicit `player.resistances` entry still decides the
+    // spelling and nothing a character already had can be displaced.
+    resistances: mergeDamageDefenses(
+      player.resistances ?? (player.race as { resistance?: string[] })?.resistance,
+      racialTraitDefenses.resistances
+    ),
+    immunities: mergeDamageDefenses(player.immunities, racialTraitDefenses.immunities),
+    vulnerabilities: mergeDamageDefenses(player.vulnerabilities, racialTraitDefenses.vulnerabilities),
     modifiers: player.modifiers ? {
       advantage: [...player.modifiers.advantage],
       disadvantage: [...player.modifiers.disadvantage],
@@ -1136,7 +1592,127 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     initiativeBonus: player.initiativeBonus,
     initiativeProficiency: player.initiativeProficiency,
     ignoreDifficultTerrain: player.ignoreDifficultTerrain,
+    // Level-3 subclass choices the rider modules read. They are plain data, so
+    // they cross the bridge here; the feature abilities that unlock the riders
+    // are granted in the subclass block below.
+    hunterPreyChoice: player.hunterPreyChoice,
+    primalBeastForm: player.primalBeastForm,
+    // Read the race's trait prose once for the QUALIFIED waiver (GG-257). The
+    // flat boolean above cannot say whether Earth Walk covers the water square
+    // the mover is about to enter; this id can.
+    terrainPolicyId: resolveTerrainMovementPolicyFromTraits(player.race?.traits)?.id,
   };
+
+  // --------------------------------------------------------------------------
+  // Subclass rider features (agora-db71.14)
+  // --------------------------------------------------------------------------
+  // Each rider module gates itself on one of these ability ids. Granting them
+  // here is the whole wiring: the rules stay in the rider modules, and the
+  // action executor reads the same ids back when it dispatches.
+  // --------------------------------------------------------------------------
+  const characterLevel = player.level || 1;
+
+  const addFeatureMarker = (id: string, name: string, description: string, icon: string): void => {
+    combatChar.abilities.push({
+      id,
+      name,
+      description,
+      type: 'utility',
+      cost: { type: 'free' },
+      targeting: 'self',
+      range: 0,
+      effects: [],
+      icon,
+    });
+  };
+
+  if (combatChar.class?.id === 'ranger' && player.subclassId === 'hunter' && characterLevel >= 3) {
+    addFeatureMarker(
+      HUNTER_PREY_FEATURE_ID,
+      "Hunter's Prey",
+      'Your chosen Hunter’s Prey option punishes the foes you strike.',
+      '🏹',
+    );
+  }
+
+  if (combatChar.class?.id === 'ranger' && player.subclassId === 'beast_master' && characterLevel >= 3) {
+    addFeatureMarker(
+      PRIMAL_COMPANION_FEATURE_ID,
+      'Primal Companion',
+      'A bonded beast fights alongside you and obeys your commands.',
+      '🐺',
+    );
+    combatChar.abilities.push({
+      id: PRIMAL_COMPANION_COMMAND_ABILITY_ID,
+      name: 'Command Companion',
+      description: 'Spend your bonus action to command your Primal Companion.',
+      type: 'utility',
+      cost: { type: 'bonus' },
+      targeting: 'single_ally',
+      range: 12,
+      effects: [],
+      icon: '🐾',
+    });
+  }
+
+  // Cunning Action is the base rogue level-2 feature; Fast Hands (Thief, level
+  // 3) widens the option list it produces. The options are read back out of the
+  // same catalog the resolver validates against, so a button can never name an
+  // option `resolveCunningAction` would refuse.
+  if (combatChar.class?.id === 'rogue' && characterLevel >= 2) {
+    addFeatureMarker(
+      CUNNING_ACTION_FEATURE_ID,
+      'Cunning Action',
+      'Dash, Disengage, or Hide as a bonus action.',
+      '🗡️',
+    );
+  }
+
+  if (combatChar.class?.id === 'rogue' && player.subclassId === 'thief' && characterLevel >= 3) {
+    addFeatureMarker(
+      FAST_HANDS_FEATURE_ID,
+      'Fast Hands',
+      'Your Cunning Action can also use an object, thieves’ tools, or Sleight of Hand.',
+      '🤲',
+    );
+    addFeatureMarker(
+      SECOND_STORY_WORK_FEATURE_ID,
+      'Second-Story Work',
+      'Climbing costs you no extra movement, and you jump farther.',
+      '🧗',
+    );
+  }
+
+  if (combatChar.class?.id === 'rogue' && player.subclassId === 'assassin' && characterLevel >= 3) {
+    addFeatureMarker(
+      ASSASSINATE_FEATURE_ID,
+      'Assassinate',
+      'Advantage against foes who have not acted; a hit on a surprised creature is a critical.',
+      '🥷',
+    );
+    addFeatureMarker(
+      ASSASSINS_TOOLS_FEATURE_ID,
+      'Assassin’s Tools',
+      'You are proficient with a disguise kit and a poisoner’s kit.',
+      '🧪',
+    );
+  }
+
+  // The Cunning Action buttons come last so the option list already reflects
+  // whether Fast Hands was granted above.
+  for (const option of cunningActionOptionsFor(combatChar)) {
+    combatChar.abilities.push({
+      id: `${CUNNING_ACTION_ABILITY_PREFIX}${option.id}`,
+      name: `Cunning Action: ${option.name}`,
+      description: option.description,
+      type: 'utility',
+      cost: { type: 'bonus' },
+      targeting: 'self',
+      range: 0,
+      effects: [],
+      icon: '⚡',
+    });
+  }
 
   // Danger Sense (barbarian level 2+): advantage on Dexterity saving throws. The
   // save resolver matches advantage modifiers by text, so this string grants the
@@ -1217,10 +1793,24 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     });
   }
 
-  // Basic Darkvision inference
-  // TODO #1316(Depthcrawler): Replace with robust feature mapping from Race traits
+  // Darkvision (2026-09-09, was TODO #1316: "replace with robust feature mapping from
+  // Race traits"). That robust mapping already existed — `calculateCharacterDarkvisionFromRace`
+  // in utils/character/stats.ts parses the race's `traits` strings for a Vision line and
+  // applies the superior-darkvision overrides, and `updateDerivedStats` stores its result
+  // on `player.darkvisionRange`. Combat now reads that derived value instead of matching
+  // substrings of the race's display NAME, so a renamed or homebrew race no longer silently
+  // loses darkvision, and combat can never disagree with the character sheet.
+  //
+  // combatUtils deliberately does not import stats.ts to recompute it: that module pulls in
+  // the whole race data bundle, which does not belong in the combat path.
+  //
+  // The old name heuristic is PRESERVED as a fallback for characters that never went through
+  // updateDerivedStats — test fixtures, older saves, and sandbox-generated combatants all
+  // arrive with darkvisionRange 0.
   if (combatChar.stats.senses) {
-      if (player.race.name.includes("Drow") || player.race.name.includes("Deep Gnome")) {
+      if (player.darkvisionRange > 0) {
+          combatChar.stats.senses.darkvision = player.darkvisionRange;
+      } else if (player.race.name.includes("Drow") || player.race.name.includes("Deep Gnome")) {
           combatChar.stats.senses.darkvision = 120;
       } else if (player.race.name.includes("Elf") || player.race.name.includes("Dwarf") || player.race.name.includes("Gnome") || player.race.name.includes("Tiefling")) {
           combatChar.stats.senses.darkvision = 60;

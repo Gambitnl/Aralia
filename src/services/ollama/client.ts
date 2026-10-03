@@ -21,6 +21,7 @@ import type {
 import { DEFAULT_OLLAMA_CONFIG } from '../../types/ollama';
 import { getTaskProfile } from './taskProfiles';
 import { resolveModelForTask, resetRouterCache } from './router';
+import { resolveOllamaModel } from '../ai/aiProviderSettings';
 import { emitOllamaLog } from './ollamaLogSink';
 import { generateId } from '../../utils/core/idGenerator';
 import { isGroqActive, routeGenerateForTask, routeChatForTask } from '../ai/textProviderRouter';
@@ -163,39 +164,22 @@ export class OllamaClient {
      * Finds a suitable model, preferring faster/smaller ones for banter.
      */
     async getModel(): Promise<string | null> {
+        // agora-d1c7.1: the generic model is the 'utility' category's ONE model
+        // (player choice or default). No preference walk, no first-installed
+        // last resort: a missing model is reported and null is returned.
         if (this.cachedModel) return this.cachedModel;
-        try {
-            const res = await fetch(`${this.config.apiBase}/tags`);
-            if (!res.ok) return null;
-
-            const data = await res.json() as { models: OllamaModel[] };
-
-            for (const p of this.config.preferredModels) {
-                const found = data.models.find(m => m.name.includes(p));
-                if (found) {
-                    this.cachedModel = found.name;
-                    return found.name;
-                }
-            }
-
-            // Fallback to first available if none of the preferred match
-            if (data.models.length > 0) {
-                this.cachedModel = data.models[0].name;
-                return this.cachedModel;
-            }
-
-            return null;
-        } catch {
+        const wanted = resolveOllamaModel('utility');
+        const installed = await this.listModels();
+        if (!installed) return null;
+        const found = installed.find(m => m.name === wanted || m.name.startsWith(wanted + ':') || m.name === wanted + ':latest');
+        if (!found) {
+            console.error(`Ollama model "${wanted}" (utility) is not installed. Pick an installed model in AI settings or run: ollama pull ${wanted}`);
             return null;
         }
+        this.cachedModel = found.name;
+        return found.name;
     }
 
-    /**
-     * Returns the full list of installed models, or null if the Ollama server
-     * is unreachable. Used by the router to score against task-specific
-     * preferred lists. Results are cached for MODEL_LIST_TTL_MS so back-to-back
-     * isAvailable + resolveModel calls only hit /tags once.
-     */
     async listModels(): Promise<OllamaModel[] | null> {
         const now = Date.now();
         if (

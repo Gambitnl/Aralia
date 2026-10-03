@@ -7,14 +7,24 @@
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "allowImportingTsExtensions": true,
-    "emitDeclarationOnly": true
+    "noEmit": true,
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
+    "types": [
+      "node",
+      "vitest/globals",
+      "react",
+      "react-dom",
+      "vite/client"
+    ]
   },
   "include": [
     "vite.config.ts",
-    "scripts/workflows/gemini/core/image-gen-mcp.ts",
-    "scripts/raceImageStatus.ts",
-    "scripts/spellFieldInventory.ts",
-    "scripts/validateSpellMarkdownParity.ts",
+    "scripts/**/*.ts",
+    "src/**/*",
     "devtools/roadmap/src/components/debug/roadmap/modules/roadmap-history-traceability.ts",
     "devtools/roadmap/scripts/roadmap-server-logic.ts",
     "devtools/roadmap/scripts/roadmap-engine/**/*.ts",

@@ -1,8 +1,9 @@
 import React from 'react';
+import { ItemType } from '../../../types';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ActionPane from '../index';
-import { Action, Item, Location, NPC, PlayerCharacter } from '../../../types';
+import { Action, Item, Location, NPC } from '../../../types';
 
 // Mock framer-motion to avoid animation issues and hoisting errors
 vi.mock('framer-motion', async (importOriginal) => {
@@ -45,7 +46,7 @@ vi.mock('framer-motion', async (importOriginal) => {
   };
 });
 
-vi.mock('../../../utils/permissions', () => ({
+vi.mock('../../../utils/core/permissions', () => ({
   canUseDevTools: () => true,
 }));
 
@@ -123,60 +124,13 @@ describe('ActionPane', () => {
   ];
 
   const itemsInLocation: Item[] = [
-    { id: 'item-1', name: 'Ancient Coin', description: '', type: 'treasure' },
+    { id: 'item-1', name: 'Ancient Coin', description: '', type: ItemType.Treasure },
   ];
-
-  const mockPartyMember: PlayerCharacter = {
-    id: 'party-1',
-    name: 'Test Hero',
-    level: 1,
-    proficiencyBonus: 2,
-    race: { id: 'human', name: 'Human', description: '', traits: [] },
-    class: {
-      id: 'fighter',
-      name: 'Fighter',
-      description: '',
-      hitDie: 10,
-      primaryAbility: ['Strength'],
-      savingThrowProficiencies: ['Strength'],
-      skillProficienciesAvailable: [],
-      numberOfSkillProficiencies: 0,
-      armorProficiencies: [],
-      weaponProficiencies: [],
-      features: [],
-    },
-    abilityScores: {
-      Strength: 10,
-      Dexterity: 10,
-      Constitution: 10,
-      Intelligence: 10,
-      Wisdom: 10,
-      Charisma: 10,
-    },
-    finalAbilityScores: {
-      Strength: 10,
-      Dexterity: 10,
-      Constitution: 10,
-      Intelligence: 10,
-      Wisdom: 10,
-      Charisma: 10,
-    },
-    skills: [],
-    hp: 8,
-    maxHp: 10,
-    armorClass: 10,
-    speed: 30,
-    darkvisionRange: 0,
-    transportMode: 'foot',
-    statusEffects: [],
-    equippedItems: {},
-  };
 
   const defaultProps = {
     currentLocation: baseLocation,
     npcsInLocation,
     itemsInLocation,
-    party: [mockPartyMember],
     onAction: vi.fn(),
     disabled: false,
     geminiGeneratedActions: null as Action[] | null,
@@ -383,7 +337,7 @@ describe('ActionPane', () => {
     openSystemMenu();
     Object.defineProperty(window, 'scrollX', { configurable: true, value: 0 });
     Object.defineProperty(window, 'scrollY', { configurable: true, value: 285 });
-    deferredRestore?.(0);
+    (deferredRestore as unknown as FrameRequestCallback)?.(0);
 
     expect(scrollTo).toHaveBeenCalledWith(0, 0);
 
@@ -429,15 +383,12 @@ describe('ActionPane', () => {
     expect(onAction).toHaveBeenLastCalledWith(expect.objectContaining({ type: 'toggle_dev_menu' }));
   });
 
-  it('opens the short-rest modal and emits SHORT_REST when confirmed', () => {
+  it('emits TOGGLE_SHORT_REST_MODAL when Short Rest is clicked', () => {
     const onAction = vi.fn();
     render(<ActionPane {...defaultProps} onAction={onAction} />);
 
     fireEvent.click(screen.getByText('Short Rest'));
-    expect(screen.getByRole('dialog', { name: 'Short Rest' })).toBeInTheDocument();
-
-    fireEvent.click(screen.getByText('Begin Rest'));
-    expect(onAction).toHaveBeenCalledWith(expect.objectContaining({ type: 'SHORT_REST' }));
+    expect(onAction).toHaveBeenCalledWith(expect.objectContaining({ type: 'TOGGLE_SHORT_REST_MODAL' }));
   });
 
   it('emits TOGGLE_LONG_REST_MODAL when Long Rest is clicked', () => {

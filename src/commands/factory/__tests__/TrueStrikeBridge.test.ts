@@ -2,10 +2,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { SpellCommandFactory } from '../SpellCommandFactory'
 import { WeaponAttackCommand } from '../AbilityCommandFactory'
 import { NarrativeCommand } from '../../effects/NarrativeCommand'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState, createMockItem } from '@/utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState, createMockItem } from '@/utils/core'
 import { ItemType } from '@/types/items'
 import type { SelectedSpellTarget } from '@/types/combat'
-import trueStrike from '../../../../public/data/spells/level-0/true-strike.json'
+import trueStrike from '@/data/spells/level-0/true-strike.json'
 
 /**
  * This file proves the smallest durable True Strike bridge.
@@ -71,7 +71,7 @@ const createTrueStrikeCaster = (overrides: Partial<ReturnType<typeof createMockC
         description: 'A straightforward weapon for a real combat snapshot.',
         category: 'Martial Weapon',
         damageDice: '1d8',
-        damageType: 'slashing',
+        damageType: 'Slashing',
         costInGp: 1,
         properties: []
       })
@@ -131,7 +131,7 @@ describe('True Strike bridge', () => {
     const selectedSpellTargets = createTrueStrikeSelectedTarget(target.id)
 
     const commands = await SpellCommandFactory.createCommands(
-      trueStrike,
+      trueStrike as any,
       caster,
       [caster, target],
       0,
@@ -188,7 +188,7 @@ describe('True Strike bridge', () => {
     const selectedSpellTargets = createTrueStrikeSelectedTarget(target.id)
 
     const commands = await SpellCommandFactory.createCommands(
-      trueStrike,
+      trueStrike as any,
       caster,
       [caster, target],
       0,
@@ -208,7 +208,7 @@ describe('True Strike bridge', () => {
       }
     }
 
-    expect(attackCommand.ability.effects[0].damageType).toBe('slashing')
+    expect(attackCommand.ability.effects[0].damageType).toBe('Slashing')
     expect(attackCommand.ability.effects[0].dice).toBe('1d8+5')
     expect(attackCommand.ability.effects[1].damageType).toBe('Radiant')
     expect(attackCommand.ability.effects[1].dice).toBe('3d6')
@@ -224,7 +224,7 @@ describe('True Strike bridge', () => {
           description: 'A weapon that intentionally fails the True Strike requirements.',
           category: 'Simple Weapon',
           damageDice: '1d4',
-          damageType: 'piercing',
+          damageType: 'Piercing',
           costInGp: 0
         })
       } as never
@@ -232,7 +232,7 @@ describe('True Strike bridge', () => {
     const target = createTrueStrikeTarget()
 
     const commands = await SpellCommandFactory.createCommands(
-      trueStrike,
+      trueStrike as any,
       caster,
       [caster, target],
       0,

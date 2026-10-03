@@ -103,4 +103,4 @@ Out of scope:
 - Verify `TRACKER.md` remains the highest-confidence signal of current task status.
 - Verify every new inquiry packet records purpose, evidence, integration points, and explicit next checks before implementation.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/investigations/NORTH_STAR.md","sha256WithoutMarker":"a9cdc70f200104fcd6b790a1d0d1d8c61a5a1aeeb571aca5693df60d809f557b","markedAtUtc":"2026-06-25T22:29:38.635Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/investigations/NORTH_STAR.md","sha256WithoutMarker":"10a664896aa0b65674458491b1bc4c8ba22cf8d94e0c198971a0131be0a3e159","markedAtUtc":"2026-08-09T20:14:15.834Z"} -->

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { DismissFamiliarToPocketCommand, RecallFamiliarFromPocketCommand } from '../effects/FamiliarPocketCommands'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../utils/core'
 
 /**
  * These tests protect the runtime commands that move Find Familiar-style

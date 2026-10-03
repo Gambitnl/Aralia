@@ -15,11 +15,14 @@
 // @dependencies-end
 
 import React, { useRef, useState, useEffect, useLayoutEffect, useCallback, useMemo } from 'react';
+import { COMBAT_DIFFICULTY_LABEL } from '../../config/combatConfig';
+import { DEFAULT_RULES_EDITION, RULES_EDITION_LABEL, type RulesEdition } from '../../config/rulesEdition';
+import { DEFAULT_ALLOW_SAVE_SCUM, SAVE_SCUM_LABEL } from '../../config/saveScum';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { Action } from '../../types';
-import { canUseDevTools } from '../../utils/permissions';
+import { canUseDevTools } from '../../utils/core';
 import { ENV } from '../../config/env';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useKeyboardNavigation } from '../../hooks/useKeyboardNavigation';
@@ -56,6 +59,8 @@ const menuItemColorFor = (action: Action): string => {
       return MENU_ITEM_DANGER; // destructive / exit — the only saturated hue
     case 'save_game':
     case 'toggle_auto_save':
+    case 'cycle_combat_difficulty':
+    case 'cycle_rules_edition':
       return MENU_ITEM_UTILITY; // persistence cluster
     case 'SET_DEV_MODE_ENABLED':
     case 'toggle_dev_menu':
@@ -72,6 +77,10 @@ interface SystemMenuProps {
   hasNewRateLimitError: boolean;
   isDevModeEnabled: boolean;
   autoSaveEnabled: boolean;
+  combatDifficulty?: 'easy' | 'normal' | 'hard';
+  rulesEdition?: RulesEdition;
+  /** Whether reloading a save rerolls the dice (agora-f821.63). */
+  allowSaveScum?: boolean;
 }
 
 export const SystemMenu: React.FC<SystemMenuProps> = ({
@@ -81,6 +90,9 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
   hasNewRateLimitError,
   isDevModeEnabled,
   autoSaveEnabled,
+  combatDifficulty = 'normal',
+  rulesEdition = DEFAULT_RULES_EDITION,
+  allowSaveScum = DEFAULT_ALLOW_SAVE_SCUM,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [menuAnchorStyle, setMenuAnchorStyle] = useState<{
@@ -230,11 +242,15 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
       { action: { type: 'TOGGLE_LOGBOOK', label: 'Dossiers' } },
       { action: { type: 'TOGGLE_GLOSSARY_VISIBILITY', label: 'Glossary' } },
       { action: { type: 'toggle_party_overlay', label: 'Party' } },
+      { action: { type: 'TOGGLE_COMMERCE_DESK', label: 'Commerce' } },
       { action: { type: 'TOGGLE_GAME_GUIDE', label: 'Game Guide' } },
 
       // Middle section: Persistence (Save/Quit).
       { action: { type: 'save_game', label: 'Save Game' } },
       { action: { type: 'toggle_auto_save', label: `Auto-save: ${autoSaveEnabled ? 'On' : 'Off'}` } },
+      { action: { type: 'cycle_combat_difficulty', label: `Difficulty: ${COMBAT_DIFFICULTY_LABEL[combatDifficulty]}` } },
+      { action: { type: 'cycle_rules_edition', label: `Rules: ${RULES_EDITION_LABEL[rulesEdition]}` } },
+      { action: { type: 'toggle_save_scum', label: `Save-scum: ${allowSaveScum ? SAVE_SCUM_LABEL.on : SAVE_SCUM_LABEL.off}` } },
       { action: { type: 'go_to_main_menu', label: 'Main Menu' } },
 
       // MENU2 — Hide the player-facing "Enable Dev Mode" item.
@@ -252,7 +268,7 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
         ? { action: { type: 'toggle_dev_menu', label: 'Dev Menu' }, hasNotification: hasNewRateLimitError }
         : null,
     ].filter(Boolean) as { action: Action; badgeCount?: number; hasNotification?: boolean }[],
-    [unreadDiscoveryCount, hasNewRateLimitError, isDevModeEnabled, autoSaveEnabled],
+    [unreadDiscoveryCount, hasNewRateLimitError, isDevModeEnabled, autoSaveEnabled, combatDifficulty, rulesEdition, allowSaveScum],
   );
 
   // Close menu when clicking outside
@@ -315,7 +331,7 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
             >
               {systemMenuActions.map(({ action, badgeCount, hasNotification }, idx) => (
                 <React.Fragment key={`${action.type}-${idx}`}>
-                  {idx === 6 && <div className="h-px bg-gray-600 my-1" aria-hidden="true"></div>}
+                  {idx === 7 && <div className="h-px bg-gray-600 my-1" aria-hidden="true"></div>}
                   <ActionButton
                     className={`!h-11 w-full !px-4 !py-2 text-left !text-base ${menuItemColorFor(action)}`}
                     action={action}

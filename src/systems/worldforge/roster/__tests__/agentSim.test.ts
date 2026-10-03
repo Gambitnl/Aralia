@@ -4,7 +4,7 @@
  * day-to-day variation (persisted needs change behaviour). Pure + deterministic.
  */
 import { describe, it, expect } from 'vitest';
-import { initAgentMinds, stepAgentSim, type AgentMind } from '../agentSim';
+import { initAgentMinds, stepAgentSim, simulateMindsTo, type AgentMind } from '../agentSim';
 import type { Occupant } from '../types';
 
 const worker = (id: number, over: Partial<Occupant> = {}): Occupant => ({
@@ -178,6 +178,57 @@ describe('day-to-day variation (persisted needs change behaviour)', () => {
       expect(v).toBeGreaterThanOrEqual(0);
       expect(v).toBeLessThanOrEqual(100);
     }
+  });
+
+  it.each([0, 3, 7.25, 12.5, 18, 23.9])(
+    'a whole-day replay to hour %s is deterministic (scrub-anywhere returns one answer)',
+    (hour) => {
+      const occ = [worker(1), worker(2, { workPlotId: undefined }), worker(3, { ageBand: 'child', workPlotId: undefined })];
+      const a = simulateMindsTo(occ, ctx, hour);
+      const b = simulateMindsTo(occ, ctx, hour);
+      expect(b).toEqual(a); // same (roster, context, hour) → identical minds
+      for (const m of a) for (const v of Object.values(m.needs)) {
+        expect(v).toBeGreaterThanOrEqual(0);
+        expect(v).toBeLessThanOrEqual(100);
+      }
+    },
+  );
+
+  it('a grid-aligned replay equals folding stepAgentSim by hand', () => {
+    const occ = [worker(1), worker(2, { workPlotId: undefined })];
+    // Fold whole-hour steps 1..3 manually with the same hour/dt the replay uses.
+    let manual = initAgentMinds(occ);
+    for (const h of [1, 2, 3]) manual = step(manual, occ, h, 1);
+    const replay = simulateMindsTo(occ, ctx, 3, { stepHours: 1 });
+    expect(replay).toEqual(manual);
+  });
+
+  it('returns fresh minds at the day anchor, and advances after it', () => {
+    const occ = [worker(1)];
+    const fresh = initAgentMinds(occ);
+    expect(simulateMindsTo(occ, ctx, 0)).toEqual(fresh); // no steps at the anchor
+    expect(simulateMindsTo(occ, ctx, 8)).not.toEqual(fresh); // a real day has passed
+  });
+
+  it('wraps the clock into a single day (25:00 == 1:00)', () => {
+    const occ = [worker(1), worker(2, { workPlotId: undefined })];
+    expect(simulateMindsTo(occ, ctx, 25)).toEqual(simulateMindsTo(occ, ctx, 1));
+  });
+
+  it('replays a custom 06:00 anchor forward across midnight to 03:00', () => {
+    const occ = [worker(1), worker(2, { workPlotId: undefined })];
+
+    // Twenty-one one-hour steps carry this anchored day from 06:00 through
+    // 23:00, midnight, and finally 03:00. This manual fold is the deterministic
+    // contract the scrub helper must reproduce for arbitrary day boundaries.
+    let manual = initAgentMinds(occ);
+    for (let elapsed = 1; elapsed <= 21; elapsed++) {
+      manual = step(manual, occ, (6 + elapsed) % 24, 1);
+    }
+
+    const replay = simulateMindsTo(occ, ctx, 3, { dayStart: 6, stepHours: 1 });
+    expect(replay).toEqual(manual);
+    expect(simulateMindsTo(occ, ctx, 3, { dayStart: 30, stepHours: 1 })).toEqual(replay);
   });
 
   it('over a full week no SURVIVAL need collapses (recovery keeps the town alive)', () => {

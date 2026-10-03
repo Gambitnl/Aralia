@@ -5,12 +5,40 @@
 import { describe, it, expect } from "vitest";
 import { SCENARIOS, validateScenarios, type VisScenario } from "../scenarios";
 
-const GROUPS = ["entities", "combat", "world", "interiors", "crowds"] as const;
+const GROUPS = ["entities", "combat", "world", "interiors", "crowds", "dungeons"] as const;
 
 describe("vistest scenario registry", () => {
   it("has scenarios and validateScenarios finds no problems", () => {
     expect(SCENARIOS.length).toBeGreaterThanOrEqual(8);
     expect(validateScenarios(SCENARIOS)).toEqual([]);
+  });
+
+  it("keeps the concrete 3D captures on the canonical Battle Map route and Select Biome surface", () => {
+    // These are the maintained equivalents of the campaign's party, enemy,
+    // and play-camera shots. Pinning the complete set prevents a future route
+    // migration from leaving one historical capture on a removed app phase.
+    const concreteBattleMapCaptures = [
+      "combat3d-party",
+      "combat3d-enemies",
+      "combat3d-play-camera",
+    ];
+
+    for (const id of concreteBattleMapCaptures) {
+      const scenario = SCENARIOS.find((candidate) => candidate.id === id);
+
+      expect(scenario?.url, `${id} must use the Design Preview Battle Map`).toBe(
+        "misc/design.html?step=battlemap",
+      );
+      expect(
+        scenario?.capture.some(
+          (step) =>
+            step.kind === "waitHook" &&
+            step.expr.includes("#biomeSelect") &&
+            step.expr.includes("3D View"),
+        ),
+        `${id} must wait for the Select Biome control and 3D renderer toggle`,
+      ).toBe(true);
+    }
   });
 
   it("keeps the authored hostile opening in the permanent visual harness", () => {
@@ -293,8 +321,11 @@ describe("vistest runner helpers", () => {
   });
 
   it("builds the copyable capture command", () => {
+    // The placeholder is deliberately honest: a copied command must make the
+    // operator choose source changed by this task instead of blessing a stable,
+    // unrelated file as generic freshness proof.
     expect(captureCommand(s)).toBe(
-      "npx tsx tools/vistest/shoot.ts --only demo-one",
+      'npx tsx tools/vistest/shoot.ts --fresh-module "<changed-source-module>" --only demo-one',
     );
   });
 

@@ -17,10 +17,15 @@ vi.mock('../submapUtils', () => ({
   getSubmapTileInfo: () => null
 }));
 
-// contextUtils imports from core/timeUtils, so mock that module path directly.
-vi.mock('../../core/timeUtils', () => ({
-  getTimeModifiers: () => ({ description: 'The stars are bright.' }), // Fallback description
+// contextUtils reads the clock via core/timeUtils and the season/time flavor
+// via the season contract (G3) — mock both paths it actually imports.
+vi.mock('../../core/timeUtils', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../core/timeUtils')>()),
   formatGameTime: () => '12:00 AM'
+}));
+
+vi.mock('../../../systems/time/seasonContract', () => ({
+  getTimeModifiers: () => ({ description: 'The stars are bright.' }) // Fallback description
 }));
 
 vi.mock('../../../data/backgrounds', () => ({

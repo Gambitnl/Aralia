@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 09/06/2026, 04:06:46
- * Dependents: commands/effects/DamageCommand.ts, utils/combat/combatUtils.ts, utils/combat/index.ts
- * Imports: 3 files
+ * Last Sync: 26/08/2026, 16:56:37
+ * Dependents: commands/effects/DamageCommand.ts, components/DesignPreview/steps/classes/subclasses/barbarian/WildHeartDemo.tsx, components/DesignPreview/steps/raceDomain/leaves/githyankiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/githzeraiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/grayDwarfDuergarRaceLeaf.tsx, components/DesignPreview/steps/scenarioControls/savingThrowsHalfDamageScenarioControls.ts, components/DesignPreview/steps/spells/fireBoltScenario.tsx, services/combatLogService.ts, systems/spells/mechanics/areaDamageSpellCastResolution.ts, systems/spells/mechanics/directDamageSpellCastResolution.ts, utils/combat/combatUtils.ts, utils/combat/index.ts, utils/combat/multiattackUtils.ts
+ * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -17,6 +17,7 @@
 import type { DamageType } from '@/types/spells';
 import type { CombatCharacter } from '@/types';
 import { isPositionInArea, type ActiveSpellZone } from '@/systems/spells/effects/triggerHandler';
+import { suppressesResistanceToDamageType } from '@/systems/spells/effects/onDamageSpellEffects';
 
 type ResistanceSpellZone = Pick<
   ActiveSpellZone,
@@ -57,6 +58,10 @@ export class ResistanceCalculator {
    *   fireElemental
    * )
    * // Returns 40 (vulnerable to cold)
+   *
+   * Source: docs/adr/0004-resistance-then-vulnerability-order.md - resistance
+   * and vulnerability apply in sequence (2024 rules: halve, then double), not
+   * the 2014 cancel rule.
    */
   static applyResistances(
     baseDamage: number,
@@ -66,56 +71,103 @@ export class ResistanceCalculator {
     isMagical?: boolean,
     zoneContext?: ResistanceZoneContext
   ): number {
-    let finalDamage = Math.max(0, baseDamage);
+    return this.getDefenseBreakdown(baseDamage, damageType, target, source, isMagical, zoneContext).finalDamage;
+  }
 
-    // 1. Immunity (Damage -> 0)
-    if (this.isImmune(target, damageType, isMagical, zoneContext)) {
-      return 0;
+  /**
+   * Calculates a full breakdown of defense interactions (immunity, resistance,
+   * vulnerability, feat bypasses) along with structured formatting tags.
+   */
+  static getDefenseBreakdown(
+    baseDamage: number,
+    damageType: DamageType,
+    target: CombatCharacter,
+    source?: CombatCharacter | null,
+    isMagical?: boolean,
+    zoneContext?: ResistanceZoneContext
+  ): {
+    baseDamage: number;
+    finalDamage: number;
+    damageType: DamageType;
+    isImmune: boolean;
+    hasResistance: boolean;
+    effectiveResistance: boolean;
+    ignoresResistance: boolean;
+    hasVulnerability: boolean;
+    tags: string[];
+  } {
+    const formattedType = damageType ? damageType.charAt(0).toUpperCase() + damageType.slice(1).toLowerCase() : 'Untyped';
+    const isImmune = this.isImmune(target, damageType, isMagical, zoneContext);
+    
+    if (isImmune) {
+      return {
+        baseDamage,
+        finalDamage: 0,
+        damageType,
+        isImmune: true,
+        hasResistance: false,
+        effectiveResistance: false,
+        ignoresResistance: false,
+        hasVulnerability: false,
+        tags: [`[Immune: ${formattedType}]`],
+      };
     }
 
-    // Determine effective resistance (accounting for feats like Elemental Adept)
     const hasResistance = this.isResistant(target, damageType, isMagical, zoneContext);
     const hasVulnerability = this.isVulnerable(target, damageType);
 
-    // Check for Elemental Adept feat on the source
-    // Feat ID is 'elemental_adept', structure is { selectedDamageType: string }
-    // We check both the new array-based structure (featChoices[]) and the legacy record-based structure if present.
     let elementalAdeptChoice: string | undefined;
-
     if (source?.featChoices) {
       if (Array.isArray(source.featChoices)) {
-         // New structure: Array of objects
-         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-         const feat = source.featChoices.find((f: any) => f.featId === 'elemental_adept');
-         elementalAdeptChoice = feat?.selection?.selectedDamageType;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const feat = source.featChoices.find((f: any) => f.featId === 'elemental_adept');
+        elementalAdeptChoice = feat?.selection?.selectedDamageType;
       } else {
-         // Legacy structure: Record<string, any>
-         const legacy = (source.featChoices as Record<string, any>)['elemental_adept'];
-         elementalAdeptChoice = legacy?.selectedDamageType;
+        const legacy = (source.featChoices as Record<string, any>)['elemental_adept'];
+        elementalAdeptChoice = legacy?.selectedDamageType;
       }
     }
 
-    const ignoresResistance = elementalAdeptChoice &&
-                              String(elementalAdeptChoice).toLowerCase() === damageType.toLowerCase();
+    const ignoresResistance = Boolean(
+      elementalAdeptChoice &&
+      String(elementalAdeptChoice).toLowerCase() === damageType.toLowerCase()
+    );
 
     const effectiveResistance = hasResistance && !ignoresResistance;
 
-    // 2. Interaction: Resistance and Vulnerability cancel each other out (XGtE p.77)
-    if (effectiveResistance && hasVulnerability) {
-      return finalDamage;
-    }
+    let finalDamage = Math.max(0, baseDamage);
+    const tags: string[] = [];
 
-    // 3. Resistance (Damage -> floor(Damage / 2))
+    // WHAT CHANGED (2026-09-09): the breakdown rewrite briefly collapsed
+    // "resistance AND vulnerability" into a single cancellation branch that
+    // returned baseDamage untouched. WHY IT CHANGED BACK: the project follows
+    // the 2024 order - ordinary modifiers first, Resistance second,
+    // Vulnerability third - and the two operations must stay sequenced, not
+    // cancelled. Odd damage is what exposes the difference: 25 resisted is
+    // floor(25 / 2) = 12, then doubled is 24, never 25. WHAT IS PRESERVED: both
+    // tags are still emitted when both apply, so the breakdown consumers
+    // (combat log badges, defense tooltips) still see the full interaction.
     if (effectiveResistance) {
       finalDamage = Math.floor(finalDamage / 2);
+      tags.push(`[Resisted: ${formattedType} (-50%)]`);
     }
 
-    // 4. Vulnerability (Damage -> Damage * 2)
     if (hasVulnerability) {
       finalDamage = finalDamage * 2;
+      tags.push(`[Vulnerable: ${formattedType} (+100%)]`);
     }
 
-    return finalDamage;
+    return {
+      baseDamage,
+      finalDamage,
+      damageType,
+      isImmune: false,
+      hasResistance,
+      effectiveResistance,
+      ignoresResistance,
+      hasVulnerability,
+      tags,
+    };
   }
 
   /**
@@ -128,7 +180,7 @@ export class ResistanceCalculator {
    * from Energy or temporary spell shielding) can grant temporary damage immunities,
    * which are registered under statusEffects[].modifiers.immunity and activeEffects[].mechanics.damageImmunity.
    */
-  private static isImmune(
+  static isImmune(
     character: CombatCharacter,
     damageType: DamageType,
     isMagical?: boolean,
@@ -161,13 +213,19 @@ export class ResistanceCalculator {
    * effects (like Warding or Resist Elements) can grant temporary damage resistances,
    * registered in statusEffects[].modifiers.resistance or activeEffects[].mechanics.damageResistance.
    */
-  private static isResistant(
+  static isResistant(
     character: CombatCharacter,
     damageType: DamageType,
     isMagical?: boolean,
     zoneContext?: ResistanceZoneContext
   ): boolean {
     const lowerType = damageType.toLowerCase();
+
+    // Elemental Bane-style effects remove resistance without touching immunity
+    // or vulnerability. Check the durable status before any resistance source
+    // so innate, temporary, nonmagical, and zone resistance all obey the spell.
+    if (suppressesResistanceToDamageType(character, damageType)) return false;
+
     if (character.resistances?.some(dt => dt.toLowerCase() === lowerType)) return true;
     if (isMagical === false && character.nonMagicalResistances?.some(dt => dt.toLowerCase() === lowerType)) return true;
     
@@ -189,7 +247,7 @@ export class ResistanceCalculator {
    * WHY IT CHANGED: Active status effects and active spell effects can impose temporary damage vulnerabilities
    * registered in statusEffects[].modifiers.vulnerability or activeEffects[].mechanics.damageVulnerability.
    */
-  private static isVulnerable(
+  static isVulnerable(
     character: CombatCharacter,
     damageType: DamageType
   ): boolean {

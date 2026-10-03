@@ -35,14 +35,37 @@ import { z } from 'zod';
 // using that chosen skill while the spell lasts.
 // ============================================================================
 
-export const AbilityCheckModifier = z.object({
-  appliesTo: z.enum(["ability_check"]),
+// The source corpus includes both normalized Guidance-style fields and richer
+// spell-specific labels such as chosen_ability, fixed_skills, and advantage.
+// Preserve those labels here so validation does not discard a real mechanic;
+// the shared check runtime narrows the values it can execute.
+const SourceBackedAbilityCheckLabel = z.string().trim().min(1);
+
+const StructuredAbilityCheckModifier = z.object({
+  appliesTo: SourceBackedAbilityCheckLabel,
   bonusDice: z.string().optional(),
-  flatModifier: z.number().optional(),
-  skillSelection: z.enum(["chosen_skill", "not_applicable"]),
-  skillChooser: z.enum(["caster"]).optional(),
-  skillPool: z.enum(["any_skill"]).optional(),
-  frequency: z.enum(["every_matching_check", "once"]),
-  durationScope: z.enum(["while_active", "next_check"]),
+  flatModifier: z.union([z.number(), SourceBackedAbilityCheckLabel]).optional(),
+  skillSelection: SourceBackedAbilityCheckLabel,
+  skillChooser: SourceBackedAbilityCheckLabel.optional(),
+  skillPool: z.union([
+    SourceBackedAbilityCheckLabel,
+    z.array(SourceBackedAbilityCheckLabel),
+  ]).optional(),
+  frequency: SourceBackedAbilityCheckLabel,
+  durationScope: SourceBackedAbilityCheckLabel,
   notes: z.string().optional(),
 });
+
+// Some authored spells use this field as a source-backed ability-check
+// metadata envelope rather than the executable status-rider shape above. Keep
+// those records intact while their dedicated runtime lanes are still pending;
+// an empty object is rejected so the field cannot become a silent junk bucket.
+const SourceBackedAbilityCheckMetadata = z.object({}).passthrough().refine(
+  value => Object.keys(value).length > 0,
+  { message: "ability-check metadata must contain at least one source-backed field" },
+);
+
+export const AbilityCheckModifier = z.union([
+  StructuredAbilityCheckModifier,
+  SourceBackedAbilityCheckMetadata,
+]);

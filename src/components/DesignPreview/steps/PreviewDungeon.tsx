@@ -52,6 +52,7 @@ import { DEFAULT_OVERLAYS, TYPE_COLOR, type Overlays } from './previewDungeon/th
 import { keyedRooms } from './previewDungeon/geometry';
 import { renderSheet, SHEET_CSS_W, SHEET_CSS_H } from './previewDungeon/compositor';
 import { Dungeon3DPreview } from '../../BattleMap/dungeon/Dungeon3DPreview';
+import { useUrlChoice } from './useUrlParam';
 
 // ── shared 2D / 3D inspection contract ───────────────────────────────────────
 // The dungeon is generated once and can be inspected through two presentations.
@@ -63,6 +64,7 @@ type DungeonViewMode = 'three-d' | 'parchment';
 interface DungeonPreviewWindow extends Window {
   render_game_to_text?: () => string;
   advanceTime?: (milliseconds: number) => Promise<void>;
+  __dungeonPreviewProbeOwner?: symbol;
   __dungeon3dReady?: boolean;
   __dungeon3dViewState?: {
     preset: string;
@@ -170,14 +172,16 @@ function initialSeed(): number {
 
 const THEME_OPTIONS: DungeonTheme[] = ['crypt', 'cavern', 'frost', 'sewer', 'fungal'];
 
-/** Optional `?dtheme=` pin makes cross-theme visual proof reproducible, just like dseed. */
-function initialTheme(): DungeonTheme {
-  const raw = new URLSearchParams(window.location.search).get('dtheme');
-  return THEME_OPTIONS.includes(raw as DungeonTheme) ? raw as DungeonTheme : 'crypt';
-}
+/**
+ * `?dtheme=` pins the theme, and now follows it too. Picking a theme rewrites
+ * the address, so a saved link and a capture always show the theme on screen.
+ */
 
 export const PreviewDungeon: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  // The shell may briefly overlap an outgoing and incoming preview during layout transitions.
+  // This token prevents an older instance's cleanup from deleting the newer live browser probe.
+  const probeOwnerRef = useRef(Symbol('dungeon-preview-probe'));
   // The supersampled sheet buffer: composed once per plan/overlay change, then
   // sampled by the viewport blit on every zoom/pan without re-drawing the sheet.
   const bufferRef = useRef<HTMLCanvasElement | null>(null);
@@ -189,7 +193,7 @@ export const PreviewDungeon: React.FC = () => {
   // Cursor feedback only (grab ↔ grabbing). Flips twice per drag, never per move.
   const [dragging, setDragging] = useState(false);
   const [seed, setSeed] = useState<number>(initialSeed);
-  const [theme, setTheme] = useState<DungeonTheme>(initialTheme);
+  const [theme, setTheme] = useUrlChoice<DungeonTheme>('dtheme', THEME_OPTIONS, 'crypt');
   const [roomCount, setRoomCount] = useState(42);
   const [loopChance, setLoopChance] = useState(0.25);
   const [decorDensity, setDecorDensity] = useState(0.6);
@@ -334,6 +338,8 @@ export const PreviewDungeon: React.FC = () => {
   // the current seed and that control changes update the actual dungeon plan.
   useEffect(() => {
     const previewWindow = window as DungeonPreviewWindow;
+    const owner = probeOwnerRef.current;
+    previewWindow.__dungeonPreviewProbeOwner = owner;
     previewWindow.render_game_to_text = () => JSON.stringify({
       coordinateSystem: 'origin is dungeon center; +x east, +z south; one scene unit is one 5 ft cell',
       mode: viewMode,
@@ -370,7 +376,12 @@ export const PreviewDungeon: React.FC = () => {
     }
 
     return () => {
-      delete previewWindow.render_game_to_text;
+      // Only the instance that currently owns the probe may remove it. Design Preview window
+      // transitions can otherwise let an already-unmounted copy erase the rendered copy's hook.
+      if (previewWindow.__dungeonPreviewProbeOwner === owner) {
+        delete previewWindow.render_game_to_text;
+        delete previewWindow.__dungeonPreviewProbeOwner;
+      }
     };
   }, [overlays, plan, viewMode]);
 

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 21/07/2026, 14:21:30
+ * Dependents: components/World3D/GroundProps.tsx, components/World3D/WebGPUProbeScene.tsx
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file logGeometry.ts — owned, seeded fallen-log geometry.
  *
@@ -54,8 +70,10 @@ export function createLogGeometry(seed: number, opts: LogOptions = {}): THREE.Bu
 
   // Root-end cap: a simple fan of the (already displaced) bottom ring.
   // Rebuild as non-indexed and append cap triangles manually.
-  const open = geo.toNonIndexed();
-  geo.dispose();
+  // CylinderGeometry can already be non-indexed in newer Three.js builds.
+  // Convert only when an index actually exists, preserving the same triangles.
+  const open = geo.index ? geo.toNonIndexed() : geo;
+  if (open !== geo) geo.dispose();
 
   const ringSegs = 9;
   const capVerts: number[] = [];

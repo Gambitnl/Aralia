@@ -22,6 +22,9 @@ const good: PropDefinition = {
   destructible: true,
   gen: 'PC',
   placementTags: ['market'],
+  isFixedToSurface: false,
+  weightPounds: 25,
+  isMagical: false,
 };
 
 describe('propSchema', () => {
@@ -57,5 +60,15 @@ describe('propSchema', () => {
       referee: { ...good.referee, blocksMovement: true, difficultTerrain: true },
     });
     expect(problems.some((p) => /blocksMovement and difficultTerrain/.test(p))).toBe(true);
+  });
+
+  it('rejects missing or invalid target facts', () => {
+    expect(
+      validatePropDefinition({ ...good, isFixedToSurface: undefined as never }).length,
+    ).toBeGreaterThan(0);
+    expect(validatePropDefinition({ ...good, weightPounds: 0 }).length).toBeGreaterThan(0);
+    expect(
+      validatePropDefinition({ ...good, isMagical: undefined as never }).length,
+    ).toBeGreaterThan(0);
   });
 });

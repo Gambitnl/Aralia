@@ -1,4 +1,4 @@
-# Doc Usage Scanner — Implementation Plan (Feature A, Plan 1 of 2)
+# Doc Usage Scanner - Implementation Plan (Feature A, Plan 1 of 2)
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -10,27 +10,27 @@
 
 ## Global Constraints
 
-- **No fallbacks (Remy's directive):** role comes ONLY from the Atlas `docRole` export. If the Atlas export is missing or a doc is unclassified, the scanner sets `diagnostics.atlasMissing = true` and the affected docs get `role: null` — it never guesses role from the path. No silent degradation.
+- **No fallbacks (Remy's directive):** role comes ONLY from the Atlas `docRole` export. If the Atlas export is missing or a doc is unclassified, the scanner sets `diagnostics.atlasMissing = true` and the affected docs get `role: null` - it never guesses role from the path. No silent degradation.
 - **False-negative safety:** directory-prefix consumption is inclusive; the "unused" set must err toward under-listing (never mark a consumed doc as unused).
 - **Do NOT `git commit`:** the repo auto-commits via a 2 a.m. snapshot. Leave work in the tree; each task ends at "tests green," not a commit.
 - **Paths:** every doc/reference path is repo-relative with forward slashes (`/`), matching `/api/docs/list`.
 - **Doc set + ignore list:** reuse the exact enumeration of `/api/docs/list` (recursive walk from `process.cwd()`, skipping `node_modules`, `.git`, `dist`, `public`, `.tmp`, `vendor`, `.gemini`, `.jules`, `.antigravitycli`, `.claude`, `.cursor`, `.codex`, `.symphony`, `artifacts`).
-- **Test command:** `npx vitest run <path>` (Vitest 4.x; `globals: true` — do not import `afterEach`/`describe`/`it` from vitest in setup files).
+- **Test command:** `npx vitest run <path>` (Vitest 4.x; `globals: true` - do not import `afterEach`/`describe`/`it` from vitest in setup files).
 - **Stale threshold:** `STALE_DAYS = 180`. **Empty threshold:** `wordCount < 20`.
 
 ---
 
 ## File Structure
 
-- `scripts/vite-plugins/docUsage/types.ts` — shared interfaces (Task 1).
-- `scripts/vite-plugins/docUsage/enumerateDocs.ts` — walk + per-doc facts (Task 1).
-- `scripts/vite-plugins/docUsage/scanReferences.ts` — code/data/build reference index (Task 2).
-- `scripts/vite-plugins/docUsage/gitRecency.ts` — last-content-commit ages (Task 3).
-- `scripts/vite-plugins/docUsage/atlasRoles.ts` — Atlas `docRole` map, loud on absence (Task 4).
-- `scripts/vite-plugins/docUsage/confidence.ts` — pure signal combiner (Task 5).
-- `scripts/vite-plugins/docUsage/buildDocUsage.ts` — orchestrator producing the payload (Task 6).
-- `scripts/vite-plugins/devHubApiManager.ts` — new `/api/docs/usage` route + cache (Task 7).
-- `scripts/vite-plugins/__tests__/docUsage.*.test.ts` — one test file per module.
+- `scripts/vite-plugins/docUsage/types.ts` - shared interfaces (Task 1).
+- `scripts/vite-plugins/docUsage/enumerateDocs.ts` - walk + per-doc facts (Task 1).
+- `scripts/vite-plugins/docUsage/scanReferences.ts` - code/data/build reference index (Task 2).
+- `scripts/vite-plugins/docUsage/gitRecency.ts` - last-content-commit ages (Task 3).
+- `scripts/vite-plugins/docUsage/atlasRoles.ts` - Atlas `docRole` map, loud on absence (Task 4).
+- `scripts/vite-plugins/docUsage/confidence.ts` - pure signal combiner (Task 5).
+- `scripts/vite-plugins/docUsage/buildDocUsage.ts` - orchestrator producing the payload (Task 6).
+- `scripts/vite-plugins/devHubApiManager.ts` - new `/api/docs/usage` route + cache (Task 7).
+- `scripts/vite-plugins/__tests__/docUsage.*.test.ts` - one test file per module.
 
 ---
 
@@ -140,7 +140,7 @@ describe('enumerateDocs', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run scripts/vite-plugins/__tests__/docUsage.enumerate.test.ts`
-Expected: FAIL — cannot find module `../docUsage/enumerateDocs`.
+Expected: FAIL - cannot find module `../docUsage/enumerateDocs`.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -162,7 +162,7 @@ function normalizeTarget(rawTarget: string, docRelDir: string): string | null {
   let t = rawTarget.trim().split('#')[0].replace(/\\/g, '/');
   if (!t) return null;
   if (!t.toLowerCase().endsWith('.md')) {
-    // wikilink [[slug]] with no extension — treat as <slug>.md
+    // wikilink [[slug]] with no extension - treat as <slug>.md
     if (/^[\w./-]+$/.test(t)) t = `${t}.md`; else return null;
   }
   if (t.startsWith('/')) return t.replace(/^\/+/, '');
@@ -214,7 +214,7 @@ export function enumerateDocs(rootDir: string): DocFacts[] {
         try {
           const content = fs.readFileSync(full, 'utf-8');
           out.push(extractFacts(relPath, content, fs.statSync(full).mtimeMs));
-        } catch { /* unreadable file — skip, matches list handler's tolerance */ }
+        } catch { /* unreadable file - skip, matches list handler's tolerance */ }
       }
     }
   };
@@ -238,7 +238,7 @@ Expected: PASS (1 test).
 
 **Interfaces:**
 - Consumes: `ReferenceIndex`, `RefKind` from `types.ts`.
-- Produces: `scanReferences(rootDir: string): ReferenceIndex`. Classifies each quoted `.md` token in code/data/build files as literal (exact path or basename), templated (→ literal dir prefix), data (found in `.json/.yaml`), or build (found in `vite.config.ts`/`.claude/launch.json`/`*.html`). App label = second path segment of the referencing file (or its top dir).
+- Produces: `scanReferences(rootDir: string): ReferenceIndex`. Classifies each quoted `.md` token in code/data/build files as literal (exact path or basename), templated (-> literal dir prefix), data (found in `.json/.yaml`), or build (found in `vite.config.ts`/`.claude/launch.json`/`*.html`). App label = second path segment of the referencing file (or its top dir).
 
 - [ ] **Step 1: Write the failing test**
 
@@ -280,7 +280,7 @@ describe('scanReferences', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run scripts/vite-plugins/__tests__/docUsage.scanRefs.test.ts`
-Expected: FAIL — cannot find module `../docUsage/scanReferences`.
+Expected: FAIL - cannot find module `../docUsage/scanReferences`.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -409,7 +409,7 @@ describe('computeAgeDays', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run scripts/vite-plugins/__tests__/docUsage.gitRecency.test.ts`
-Expected: FAIL — cannot find module.
+Expected: FAIL - cannot find module.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -453,7 +453,7 @@ Expected: PASS.
 - Test: `scripts/vite-plugins/__tests__/docUsage.atlasRoles.test.ts`
 
 **Interfaces:**
-- Produces: `loadAtlasRoles(exportPath: string): { roles: Map<string, string>; atlasMissing: boolean }`. Reads the reconciled Atlas knowledge-tree JSON (array `documents[]` with `relativePath` + `docRole`). If the file is absent/unreadable, returns `atlasMissing: true` and an empty map — the orchestrator then leaves `role: null` and surfaces the diagnostic. No path-based guessing.
+- Produces: `loadAtlasRoles(exportPath: string): { roles: Map<string, string>; atlasMissing: boolean }`. Reads the reconciled Atlas knowledge-tree JSON (array `documents[]` with `relativePath` + `docRole`). If the file is absent/unreadable, returns `atlasMissing: true` and an empty map - the orchestrator then leaves `role: null` and surfaces the diagnostic. No path-based guessing.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -486,7 +486,7 @@ describe('loadAtlasRoles', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run scripts/vite-plugins/__tests__/docUsage.atlasRoles.test.ts`
-Expected: FAIL — cannot find module.
+Expected: FAIL - cannot find module.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -532,7 +532,7 @@ Expected: PASS (2 tests).
   }
   export function combineConfidence(i: ConfidenceInput): Candidate;
   ```
-- Rules (from the spec): authoritative when `lifecycle` set or `inLedger`. `high` when empty (`wordCount < 20`) or `isDuplicate` or `supersededBy`. Candidate (`high`) when `!consumed && (inboundLinks === 0 || (gitAgeDays ?? 0) > 180)`. `!consumed` alone (with inbound links and fresh) → `isCandidate:false, confidence:'low'`, reason listed. Otherwise `none`.
+- Rules (from the spec): authoritative when `lifecycle` set or `inLedger`. `high` when empty (`wordCount < 20`) or `isDuplicate` or `supersededBy`. Candidate (`high`) when `!consumed && (inboundLinks === 0 || (gitAgeDays ?? 0) > 180)`. `!consumed` alone (with inbound links and fresh) -> `isCandidate:false, confidence:'low'`, reason listed. Otherwise `none`.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -571,7 +571,7 @@ describe('combineConfidence', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run scripts/vite-plugins/__tests__/docUsage.confidence.test.ts`
-Expected: FAIL — cannot find module.
+Expected: FAIL - cannot find module.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -619,7 +619,7 @@ Expected: PASS (5 tests).
 
 ---
 
-### Task 6: Orchestrator — `buildDocUsage`
+### Task 6: Orchestrator - `buildDocUsage`
 
 **Files:**
 - Create: `scripts/vite-plugins/docUsage/buildDocUsage.ts`
@@ -627,7 +627,7 @@ Expected: PASS (5 tests).
 
 **Interfaces:**
 - Consumes: `enumerateDocs`, `scanReferences`, `gitAgeDays`, `loadAtlasRoles`, `combineConfidence`, all `types.ts`.
-- Produces: `buildDocUsage(rootDir: string, opts?: { atlasPath?: string; ledgerPath?: string; now?: number }): DocUsagePayload`. Resolves consumption per doc (file → dir-prefix → data → build; basename only if unique across the doc set), inverts `outboundLinkTargets` into per-doc `inboundLinks`, groups duplicates by `contentHash`, reads the ledger membership set, joins Atlas roles, and runs the combiner.
+- Produces: `buildDocUsage(rootDir: string, opts?: { atlasPath?: string; ledgerPath?: string; now?: number }): DocUsagePayload`. Resolves consumption per doc (file -> dir-prefix -> data -> build; basename only if unique across the doc set), inverts `outboundLinkTargets` into per-doc `inboundLinks`, groups duplicates by `contentHash`, reads the ledger membership set, joins Atlas roles, and runs the combiner.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -681,7 +681,7 @@ describe('buildDocUsage', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run scripts/vite-plugins/__tests__/docUsage.build.test.ts`
-Expected: FAIL — cannot find module.
+Expected: FAIL - cannot find module.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -786,7 +786,7 @@ Expected: PASS (1 test).
 - [ ] **Step 5: Run the whole scanner suite**
 
 Run: `npx vitest run scripts/vite-plugins/__tests__/docUsage.`
-Expected: PASS — all six test files green.
+Expected: PASS - all six test files green.
 
 ---
 
@@ -797,7 +797,7 @@ Expected: PASS — all six test files green.
 
 **Interfaces:**
 - Consumes: `buildDocUsage` from `./docUsage/buildDocUsage`.
-- Produces: HTTP `GET /api/docs/usage` → `DocUsagePayload` (cached); `GET /api/docs/usage?refresh=1` recomputes.
+- Produces: HTTP `GET /api/docs/usage` -> `DocUsagePayload` (cached); `GET /api/docs/usage?refresh=1` recomputes.
 
 - [ ] **Step 1: Add the import and module-scope cache**
 
@@ -829,12 +829,12 @@ Immediately BEFORE the `if (urlPath === '/api/docs/list') {` block (devHubApiMan
       }
 ```
 
-- [ ] **Step 3: Manual verification — start devhub and hit the route**
+- [ ] **Step 3: Manual verification - start devhub and hit the route**
 
 Run (with a dev server on 3030 already up, or start `npm run dev:hub`):
 `curl -s "http://localhost:3030/api/docs/usage" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);console.log('docs:',j.docs.length,'| atlasMissing:',j.diagnostics.atlasMissing,'| candidates:',j.docs.filter(d=>d.candidate.isCandidate).length)})"`
 
-Expected: prints a doc count in the thousands, an `atlasMissing` boolean, and a candidate count. If `atlasMissing: true`, that is correct behavior until `npm run atlas -- reconcile` has produced `.agent/atlas/knowledge-tree.json` — the tool reports it rather than guessing roles.
+Expected: prints a doc count in the thousands, an `atlasMissing` boolean, and a candidate count. If `atlasMissing: true`, that is correct behavior until `npm run atlas -- reconcile` has produced `.agent/atlas/knowledge-tree.json` - the tool reports it rather than guessing roles.
 
 - [ ] **Step 4: Verify the cache + refresh**
 
@@ -846,19 +846,21 @@ Expected: the second (cached) call is markedly faster than the first; the `?refr
 ## Self-Review
 
 **Spec coverage (Feature A backend):**
-- Bundle 1 Consumption (literal/templated/data/build) → Task 2 + Task 6 `resolveConsumption`. ✓
-- Bundle 2 Linkage (inbound links; registry membership via markdown links in registry docs) → Task 1 `outboundLinkTargets` + Task 6 inbound inversion. ✓ (Registry docs' links are ordinary outbound links, so membership is captured without special-casing.)
-- Bundle 3 Recency + content (git age, empty, duplicate, superseded) → Task 3 + Task 1 (wordCount/supersededBy/hash) + Task 6 (dup groups). ✓
-- Bundle 4 Lifecycle + open-tasks (frontmatter status, `~.md`, ledger, open-task count) → Task 1 + Task 6 `loadLedger`. ✓
-- Confidence combiner (never single-signal; authoritative/high/low) → Task 5. ✓
-- Role from Atlas, no fallback, fail loud → Task 4 + `atlasMissing` diagnostic. ✓
-- Duplicate grouping → Task 6. ✓
-- Cached endpoint + refresh → Task 7. ✓
-- Diagnostics (ambiguous/unresolved/atlasMissing) → Task 2 + Task 6. ✓
+- Bundle 1 Consumption (literal/templated/data/build) -> Task 2 + Task 6 `resolveConsumption`. ✓
+- Bundle 2 Linkage (inbound links; registry membership via markdown links in registry docs) -> Task 1 `outboundLinkTargets` + Task 6 inbound inversion. ✓ (Registry docs' links are ordinary outbound links, so membership is captured without special-casing.)
+- Bundle 3 Recency + content (git age, empty, duplicate, superseded) -> Task 3 + Task 1 (wordCount/supersededBy/hash) + Task 6 (dup groups). ✓
+- Bundle 4 Lifecycle + open-tasks (frontmatter status, `~.md`, ledger, open-task count) -> Task 1 + Task 6 `loadLedger`. ✓
+- Confidence combiner (never single-signal; authoritative/high/low) -> Task 5. ✓
+- Role from Atlas, no fallback, fail loud -> Task 4 + `atlasMissing` diagnostic. ✓
+- Duplicate grouping -> Task 6. ✓
+- Cached endpoint + refresh -> Task 7. ✓
+- Diagnostics (ambiguous/unresolved/atlasMissing) -> Task 2 + Task 6. ✓
 
-**Placeholder scan:** none — every step ships real code and a runnable command.
+**Placeholder scan:** none - every step ships real code and a runnable command.
 
 **Type consistency:** `DocFacts`, `ReferenceIndex`, `Candidate`, `DocUsageEntry`, `DocUsagePayload`, `ConfidenceInput` are defined once (Tasks 1/5) and referenced with the same field names throughout Task 6. `combineConfidence` signature matches its call site. `resolveConsumption` returns `{ consumedBy, via }` consumed verbatim.
 
-## Out of scope (Plan 2 — the UI)
+## Out of scope (Plan 2 - the UI)
 Folder-tree view, per-doc badges, the used/unused/role/duplicate/confidence filters, headline counts, Rescan button, and diagnostics disclosure in `PreviewMdLibrary.tsx`. Consumes this plan's `/api/docs/usage` payload unchanged.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/plans/2026-07-04-doc-usage-scanner.md","sha256WithoutMarker":"af1b563d42700a465817b87d7d654cfdbbb174c08605ebf9b38b3912122bb7c4","markedAtUtc":"2026-08-09T20:22:07.608Z"} -->

@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 17/07/2026, 22:11:03
- * Dependents: components/CharacterCreator/CharacterCreator.tsx, components/CharacterCreator/FeatSelection.tsx, components/ConversationPanel/ConversationPanel.tsx, components/gameEntry/OpeningSituationGate.tsx, components/layout/GameModals.tsx, components/ui/GameGuideModal.tsx, components/ui/NotificationSystem.tsx, hooks/actions/actionHandlers.ts, hooks/actions/handleEncounter.ts, hooks/actions/handleGeminiCustom.ts, hooks/actions/handleItemInteraction.ts, hooks/actions/handleMerchantInteraction.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleObservation.ts, hooks/actions/handleOracle.ts, hooks/actions/handleResourceActions.ts, hooks/actions/handleSystemAndUi.ts, hooks/actions/handleWorldEvents.ts, hooks/useChronicleRumorsSync.ts, hooks/useCompanionBanter.ts, hooks/useConversation.ts, hooks/useDeEscalation.ts, hooks/useDialogueSystem.ts, hooks/useDungeonRumorsSync.ts, hooks/useGameActions.ts, hooks/useGameInitialization.ts, hooks/useHistorySync.ts, hooks/useKnownPortsSync.ts, hooks/useOllamaCheck.ts, hooks/useOllamaLogBridge.ts, hooks/useOpeningSituation.ts, hooks/useOverheardGossip.ts, hooks/useSeaEncounter.ts, hooks/useTownCrierAnnouncements.ts, hooks/useTownMerchantRegistration.ts, hooks/useTownSimRegistration.ts, hooks/useVoyageArrival.ts, state/GameContext.tsx, state/actions/crimeActions.ts, state/appState.ts, state/reducers/characterReducer.ts, state/reducers/companionReducer.ts, state/reducers/conversationReducer.ts, state/reducers/craftingReducer.ts, state/reducers/crimeReducer.ts, state/reducers/dialogueReducer.ts, state/reducers/economyReducer.ts, state/reducers/encounterReducer.ts, state/reducers/gameEntryReducer.ts, state/reducers/identityReducer.ts, state/reducers/journalReducer.ts, state/reducers/legacyReducer.ts, state/reducers/logReducer.ts, state/reducers/navalReducer.ts, state/reducers/npcReducer.ts, state/reducers/questReducer.ts, state/reducers/religionReducer.ts, state/reducers/ritualReducer.ts, state/reducers/townReducer.ts, state/reducers/uiReducer.ts, state/reducers/worldReducer.ts, systems/religion/CombatReligionAdapter.ts, systems/religion/TempleSystem.ts, systems/travel/applyProvision.ts, types/index.ts, utils/combat/battleEndActions.ts, utils/context/entityIntegrationUtils.ts
+ * Last Sync: 09/09/2026, 10:59:22
+ * Dependents: components/CharacterCreator/CharacterCreator.tsx, components/CharacterCreator/FeatSelection.tsx, components/ConversationPanel/ConversationPanel.tsx, components/gameEntry/OpeningSituationGate.tsx, components/layout/DebugModals.tsx, components/layout/GameModals.tsx, components/screens/CharacterCreatorScreen.tsx, components/ui/GameGuideModal.tsx, components/ui/NotificationSystem.tsx, hooks/actions/actionHandlers.ts, hooks/actions/handleEncounter.ts, hooks/actions/handleGeminiCustom.ts, hooks/actions/handleItemInteraction.ts, hooks/actions/handleMerchantInteraction.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleObservation.ts, hooks/actions/handleOracle.ts, hooks/actions/handleResourceActions.ts, hooks/actions/handleSystemAndUi.ts, hooks/actions/handleWorldEvents.ts, hooks/useChronicleRumorsSync.ts, hooks/useCompanionBanter.ts, hooks/useConversation.ts, hooks/useDialogueSystem.ts, hooks/useDungeonRumorsSync.ts, hooks/useGameActions.ts, hooks/useGameHotkeys.ts, hooks/useGameInitialization.ts, hooks/useHistorySync.ts, hooks/useKnownPortsSync.ts, hooks/useOllamaCheck.ts, hooks/useOllamaLogBridge.ts, hooks/useOpeningSituation.ts, hooks/useOverheardGossip.ts, hooks/useSeaEncounter.ts, hooks/useTownCrierAnnouncements.ts, hooks/useTownMerchantRegistration.ts, hooks/useTownSimRegistration.ts, hooks/useVoyageArrival.ts, state/GameContext.tsx, state/actions/crimeActions.ts, state/appState.ts, state/reducers/characterReducer.ts, state/reducers/companionReducer.ts, state/reducers/conversationReducer.ts, state/reducers/craftingReducer.ts, state/reducers/crimeReducer.ts, state/reducers/dialogueReducer.ts, state/reducers/economyReducer.ts, state/reducers/encounterReducer.ts, state/reducers/factReducer.ts, state/reducers/gameEntryReducer.ts, state/reducers/identityReducer.ts, state/reducers/journalReducer.ts, state/reducers/legacyReducer.ts, state/reducers/logReducer.ts, state/reducers/navalReducer.ts, state/reducers/npcReducer.ts, state/reducers/questReducer.ts, state/reducers/religionReducer.ts, state/reducers/ritualReducer.ts, state/reducers/townReducer.ts, state/reducers/uiReducer.ts, state/reducers/worldReducer.ts, systems/intent/runIntentFlow.ts, systems/intent/startThreatCombat.ts, systems/memory/actionMemoryMatrix.ts, systems/religion/CombatReligionAdapter.ts, systems/religion/TempleSystem.ts, systems/travel/applyProvision.ts, types/index.ts, utils/combat/battleEndActions.ts, utils/context/entityIntegrationUtils.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -35,7 +35,8 @@ import {
   GameMessage,
   PlayerCharacter,
   Item,
-  MapData,
+  // Grid retirement (agora-608b): the `MapData` import is gone — no action
+  // payload has carried the legacy tile grid since it left GameState.
   TempPartyMember,
   StartGameSuccessPayload,
   Action,
@@ -78,8 +79,19 @@ import type {
   CombatEnemySnapshotEntry,
   CombatPartySnapshotEntry,
 } from "../types/combat.js";
-// TODO #564(2026-01-03 pass 3 Codex-CLI): RitualEvent type not exported; using unknown stub until rituals schema is surfaced.
-type RitualEvent = unknown;
+/**
+ * A disturbance fed into INTERRUPT_RITUAL. Mirrors the arguments of
+ * `RitualManager.checkRitualInterrupt(ritual, type, value, conditionName)`.
+ */
+export interface RitualEvent {
+  type: "damage" | "movement" | "condition";
+  /** Magnitude of the disturbance (damage taken, feet moved). */
+  value?: number;
+  /** Condition name when type is "condition" (e.g. "Incapacitated"). */
+  conditionName?: string;
+  /** The affected combatant, when known. */
+  targetId?: string;
+}
 import {
   CreateAliasPayload,
   EquipDisguisePayload,
@@ -87,10 +99,13 @@ import {
   ApplyLeveragePayload,
 } from "./payloads/identityPayloads.js";
 import { DialogueSession } from "../types/dialogue.js";
+import type { RulesEdition } from "../config/rulesEdition.js";
 import { WorldHistoryEvent } from "../types/history.js";
 import { CrewRole, ShipType } from "../types/naval.js";
 import type { WorldDelta } from "../systems/worldforge/delta/types.js";
 import type { WorldforgeEncounterReceipt } from "../systems/combat/worldScenario/worldforgeEncounterReceipt.js";
+import type { DungeonIdentity } from "../systems/worldforge/dungeon/world/deriveIdentity.js";
+import type { DungeonProgressPatch } from "../systems/worldforge/dungeon/world/dungeonLifecycle.js";
 import type { AtlasGroundAddress } from "../systems/worldforge/leaf3d/atlasGroundDrilldown.js";
 import {
   CastSpellPayload,
@@ -113,6 +128,10 @@ export type CraftingCategory =
 export type AppAction =
   | { type: "SET_GAME_PHASE"; payload: GamePhase }
   | { type: "SET_AUTO_SAVE_ENABLED"; payload: boolean }
+  | { type: "SET_COMBAT_DIFFICULTY"; payload: "easy" | "normal" | "hard" }
+  | { type: "SET_RULES_EDITION"; payload: RulesEdition }
+  | { type: "SET_ALLOW_SAVE_SCUM"; payload: boolean }
+  | { type: "SET_DICE_SAVE_COUNTER"; payload: number }
   | { type: "ABANDON_RUN" }
   | {
       type: "START_NEW_GAME_SETUP";
@@ -191,6 +210,16 @@ export type AppAction =
   | { type: "RESET_NPC_INTERACTION_CONTEXT" }
   | { type: "ADVANCE_TIME"; payload: { seconds: number } }
   | { type: "TOWNSIM_REGISTER_BURG"; payload: { burgId: number } }
+  // One Unbroken Day: one action crosses the root reducer so the canonical
+  // town outcome and the player's knowledge of it are applied together.
+  | {
+      type: "RESOLVE_TOWN_SITUATION";
+      payload: {
+        burgId: number;
+        sourceEventId: number;
+        resolutionId: import("../systems/worldforge/townsim/townSituation.js").TownSituationResolutionId;
+      };
+    }
   | { type: "SET_DEV_MODE_ENABLED"; payload: boolean }
   | { type: "TOGGLE_DEV_MENU" }
   | { type: "TOGGLE_PARTY_EDITOR_MODAL" }
@@ -215,12 +244,31 @@ export type AppAction =
   | { type: "EQUIP_ITEM"; payload: EquipItemPayload }
   | { type: "UNEQUIP_ITEM"; payload: UnequipItemPayload }
   | { type: "USE_ITEM"; payload: UseItemPayload }
+  /**
+   * Result of one Healer's Kit Utilize action, already resolved by
+   * src/systems/healing/healersKit.ts. The handler rolls, the reducer applies:
+   * it decrements the kit's uses (discarding a spent kit), marks the target
+   * Stable, applies the Hit Die healing and writes back the spent dice pools.
+   */
+  | {
+      type: "APPLY_HEALERS_KIT";
+      payload: {
+        kitItemId: string;
+        kitUsesRemaining: number;
+        targetCharacterId: string;
+        stabilized: boolean;
+        healing: number;
+        hitPointDice?: HitPointDicePool[];
+      };
+    }
   | { type: "DROP_ITEM"; payload: DropItemPayload }
   | { type: "AUTO_EQUIP"; payload: { characterId: string } }
   // Merchant Actions
   | {
       type: "OPEN_MERCHANT";
       payload: {
+        /** Merchant NPC id, when this shop is backed by a generated NPC. */
+        merchantId?: string;
         merchantName: string;
         inventory: Item[];
         economy?: EconomyState;
@@ -243,6 +291,17 @@ export type AppAction =
   | { type: "ATTUNE_ITEM"; payload: { characterId: string; itemId: string } }
   | { type: "UNATTUNE_ITEM"; payload: { characterId: string; itemId: string } }
   | { type: "TOGGLE_ITEM_JUNK"; payload: { itemId: string } }
+  /**
+   * Persist an item's container assignment on the item itself (`Item.containerId`).
+   * `containerId` names the CONTAINER ITEM's id; `null` returns the item to the
+   * root backpack. Before this action the character sheet held the assignment in
+   * local component state only, so stowing an item was forgotten on unmount and
+   * never reached a save (agora-17eb).
+   */
+  | {
+      type: "MOVE_ITEM_TO_CONTAINER";
+      payload: { itemId: string; containerId: string | null };
+    }
   | {
       type: "SELL_ALL_JUNK";
       payload: { items: { itemId: string; value: number }[] };
@@ -284,6 +343,13 @@ export type AppAction =
       payload?: {
         rewards?: { gold: number; items: Item[]; xp: number };
         finalPartyState?: CombatPartySnapshotEntry[];
+        /**
+         * Every enemy token as combat left it. An entry at 0 HP is a combatant
+         * the party KILLED, which is how post-combat consequences tell a lethal
+         * fight from a beating — the town watch reaction reads it to charge
+         * murder instead of assault (agora-31fa).
+         */
+        finalEnemyState?: CombatEnemySnapshotEntry[];
       };
     }
   // Party Editor
@@ -377,6 +443,29 @@ export type AppAction =
       payload: { npcId: string; timestamp: number };
     }
   | { type: "BATCH_UPDATE_NPC_MEMORY"; payload: GameState["npcMemory"] }
+  // NPC Grudge & Bond System (src/systems/social/npcEmotionalMemory.ts).
+  // Emotional markers live alongside knownFacts/goals on the same NpcMemory entry,
+  // so they are recorded and pruned through the same npcReducer slice.
+  | {
+      type: "RECORD_NPC_EMOTIONAL_MARKER";
+      payload: {
+        npcId: string;
+        marker: import("../systems/social/npcEmotionalMemory").EmotionalMarker;
+      };
+    }
+  | { type: "PRUNE_NPC_EMOTIONAL_MARKERS"; payload: { gameDay: number } }
+  // NPC Reaction Memory (src/systems/social/npcWitnessMemory.ts).
+  // What an NPC saw or was told the player did. Recorded on the same NpcMemory
+  // entry as emotional markers, because the act and the feeling it caused have
+  // to survive together for a later encounter to read either one.
+  | {
+      type: "RECORD_NPC_WITNESSED_ACT";
+      payload: {
+        npcId: string;
+        act: import("../systems/social/npcWitnessMemory").WitnessedAct;
+      };
+    }
+  | { type: "PRUNE_NPC_WITNESSED_ACTS"; payload: { gameDay: number } }
   // Character Logbook Actions
   | { type: "TOGGLE_LOGBOOK" }
   | { type: "ADD_MET_NPC"; payload: { npcId: string } }
@@ -419,6 +508,13 @@ export type AppAction =
         | { entityType: "faction"; entity: Faction }
         | { entityType: "npc"; entity: NPC };
     }
+  // Links a (usually AI-created) NPC to a location's roster and seeds a neutral
+  // player relationship for it. worldReducer writes the location's npcIds;
+  // npcReducer seeds the NpcMemory entry. Both run for this action.
+  | {
+      type: "LINK_NPC_TO_LOCATION";
+      payload: { locationId: string; npcId: string };
+    }
   | { type: "ADD_WORLD_HISTORY_EVENT"; payload: { event: WorldHistoryEvent } }
   // Living-world chronicle → tavern-gossip bridge: substantial recent town news
   // becomes WorldRumors the TavernGossipSystem already surfaces. The reducer
@@ -458,6 +554,16 @@ export type AppAction =
   // Pillar 2, Task 8 (living ecology): mark a dungeon site cleared (deduped by
   // sitePath). Cleared sites stop feeding the danger overlay + raid pressure.
   | { type: "DUNGEON_CLEARED"; payload: { sitePath: string } }
+  // Dungeon lifecycle state is keyed by the canonical world-entrance receipt. Entry and retreat
+  // are wired today; progress and completion are ready for the future playable-interaction lane
+  // but require that lane to supply stable authored ids and an authoritative completion rule.
+  | { type: "DUNGEON_ENTERED"; payload: { identity: DungeonIdentity } }
+  | {
+      type: "DUNGEON_PROGRESS_RECORDED";
+      payload: { dungeonId: string; progress: DungeonProgressPatch };
+    }
+  | { type: "DUNGEON_RETREATED"; payload: { dungeonId: string } }
+  | { type: "DUNGEON_COMPLETED"; payload: { dungeonId: string } }
   // Gemini Intelligence Action
   | { type: "ANALYZE_SITUATION" }
   // Dynamic Actions
@@ -556,6 +662,7 @@ export type AppAction =
       payload: {
         templeId: string;
         deityId: string;
+        serviceId?: string;
         cost: number;
         effect: unknown;
       };
@@ -690,6 +797,29 @@ export type AppAction =
       payload: { topicId: string; npcId: string; date: number };
     }
   | { type: "END_DIALOGUE_SESSION" }
+  // World fact store (DIAL-002/DIAL-004): durable cross-NPC unlock knowledge.
+  // Dispatched by dialogue outcomes (and any future system granting the player
+  // world knowledge); handled by factReducer.
+  | {
+      type: "LEARN_WORLD_FACT";
+      payload: { fact: import("../types/facts.js").LearnWorldFactInput };
+    }
+  // Unlock-flag registry (DIAL-004). These are the boolean half of the SAME
+  // durable store LEARN_WORLD_FACT writes (GameState.worldFacts) — flags live
+  // under the reserved `unlock:` key namespace, so no second state slice and no
+  // save migration. Dispatched by dialogue `set_flag` effects (see
+  // `unlockActionsFromDialogueEffects`) and by any system granting a permanent
+  // unlock; handled by factReducer.
+  | {
+      type: "SET_UNLOCK_FLAG";
+      payload: { flag: string } & import("../systems/dialogue/unlockRegistry.js").SetUnlockFlagOptions;
+    }
+  // Clearing is scoped to the `unlock:` namespace only; ordinary world facts
+  // stay permanent. Used for timed/revocable access and debug resets.
+  | {
+      type: "CLEAR_UNLOCK_FLAG";
+      payload: { flag: string };
+    }
   // Ritual Actions
   | { type: "START_RITUAL"; payload: RitualState }
   // Ritual advancement now accepts seconds, minutes, or rounds so whichever
@@ -723,6 +853,12 @@ export type AppAction =
   | { type: "TOGGLE_NAVAL_DASHBOARD" }
   | { type: "TOGGLE_TRADE_ROUTE_DASHBOARD" }
   | { type: "TOGGLE_INVESTMENT_BOARD" }
+  | { type: "TOGGLE_COMMERCE_DESK" }
+  | { type: "TOGGLE_SALVAGE_MODAL" }
+  | { type: "TOGGLE_BANK_MODAL" }
+  | { type: "TOGGLE_REAL_ESTATE_MODAL" }
+  | { type: "TOGGLE_SHOP_MODAL" }
+  | { type: "TOGGLE_TRADE_ROUTE_MODAL" }
   // Economy & Investment Actions
   | {
       type: "INVEST_IN_CARAVAN";
@@ -922,3 +1058,53 @@ export type AppAction =
   | { type: "SET_ATLAS_GROUND_ADDRESS"; payload: AtlasGroundAddress | null }
   | { type: "SET_WORLD_VIEW_MODE"; payload: WorldViewMode }
   | { type: "SET_MAP_SURFACE"; payload: MapSurface };
+
+/**
+ * Crafting bench action contract (ui-features:G3).
+ *
+ * WHAT: derived views over `AppAction` naming the exact actions the alchemy
+ * bench is allowed to dispatch. `CraftingReducerAction` is the six crafting-owned
+ * actions handled by `craftingReducer`; `CraftingSideEffectAction` is the four
+ * inventory/economy/time actions that `generateCraftingActions` and
+ * `generateBatchCraftActions` emit for the bench to forward.
+ *
+ * WHY: those two generators return `{ type: string; payload: unknown }[]`, so
+ * `AlchemyBenchPanel` had to widen every element with a cast before dispatching.
+ * The cast silenced the union: a renamed payload field (`count` -> `quantity`)
+ * or a misspelled action type compiled clean and was then silently dropped by the
+ * reducer at runtime. Naming the subset here gives the panel, the generators and
+ * the contract test one declared shape to check against. The matching runtime
+ * guard lives in `src/state/craftingActionContract.ts` so this module stays
+ * type-only.
+ *
+ * PRESERVED: nothing is narrowed or removed from `AppAction`. These are derived
+ * views, so a future crafting action added to the union above only needs its type
+ * name listed here to join the contract.
+ */
+export type CraftingReducerAction = Extract<
+  AppAction,
+  {
+    type:
+      | "INIT_CRAFTING_STATE"
+      | "LEARN_RECIPE"
+      | "ADD_CRAFTING_XP"
+      | "UPDATE_CRAFTING_STATS"
+      | "UNLOCK_ACHIEVEMENT"
+      | "SET_CRAFTING_LOCATION";
+  }
+>;
+
+/**
+ * Non-crafting actions the crafting engines emit as part of a craft: material
+ * consumption, gold cost, elapsed time, and the produced item.
+ */
+export type CraftingSideEffectAction = Extract<
+  AppAction,
+  { type: "ADD_ITEM" | "REMOVE_ITEM" | "MODIFY_GOLD" | "ADVANCE_TIME" }
+>;
+
+/** Every action shape the alchemy bench may dispatch. */
+export type CraftingBenchAction =
+  | CraftingReducerAction
+  | CraftingSideEffectAction;
+

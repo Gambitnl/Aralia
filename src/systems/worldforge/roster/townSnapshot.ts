@@ -1,8 +1,26 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 24/08/2026, 09:21:17
+ * Dependents: components/Worldforge/TownAgentSnapshotView.tsx, systems/worldforge/bridge/groundAgentMotion.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file townSnapshot.ts
  * @description Bridges the occupant schedule (WHEN/what) to town space (WHERE):
  * given a town plan, its roster, and an hour, returns every occupant's activity
- * AND concrete position (the centroid of the plot the schedule puts them at).
+ * AND concrete position. Point-in-time snapshots use plot centroids, while
+ * motion snapshots use the street graph's canonical doors whenever available
+ * so starting a route, finishing it, and waiting at a building share one point.
  *
  * Still pure data — `hour` is a parameter, not a live clock — so a renderer,
  * debug overlay, or future needs/economy sim can ask "who is where, doing what,
@@ -13,7 +31,13 @@
 import type { TownPlan } from '../artifacts';
 import type { Occupant, TownRoster, TownPlot } from './types';
 import { occupantLocationAt, type ActivityKind } from './occupantSchedule';
-import { routeAlongStreets, positionAlongPath, type StreetGraph, type Point } from './agentPath';
+import {
+  frontDoorForPlot,
+  routeAlongStreets,
+  positionAlongPath,
+  type StreetGraph,
+  type Point,
+} from './agentPath';
 
 export interface AgentSnapshot {
   occupantId: number;
@@ -90,6 +114,43 @@ export interface MovingAgentSnapshot extends AgentSnapshot {
  */
 const COMMUTE_FRAC = 0.5;
 
+// A generated graph and its plot doors are immutable. Scheduled commuters ask
+// for the same directed plot-to-plot paths on every motion tick, so retain those
+// polylines with the graph that owns them. Callers only sample these arrays;
+// none mutate them, and WeakMap ownership lets retired towns be collected.
+const scheduledRoutesByGraph = new WeakMap<StreetGraph, Map<string, Point[]>>();
+
+function scheduledRoute(
+  graph: StreetGraph,
+  fromPlotId: number,
+  toPlotId: number,
+  from: Point,
+  to: Point,
+): Point[] {
+  let routes = scheduledRoutesByGraph.get(graph);
+  if (!routes) {
+    routes = new Map();
+    scheduledRoutesByGraph.set(graph, routes);
+  }
+
+  const key = `${fromPlotId}>${toPlotId}`;
+  const cached = routes.get(key);
+  if (cached) return cached;
+
+  const route = routeAlongStreets(graph, from, to);
+  routes.set(key, route);
+  return route;
+}
+
+/** Keep a known building endpoint at its door; legacy/no-street plans retain their centroid. */
+function settledPointForPlot(
+  graph: StreetGraph,
+  plotId: number,
+  centroid: Point,
+): Point {
+  return frontDoorForPlot(graph, plotId) ?? centroid;
+}
+
 /**
  * Like `townSnapshotAt`, but at a FRACTIONAL `clock` (hours, e.g. 7.5) and with
  * continuous positions: an agent whose scheduled plot just changed walks the
@@ -114,18 +175,24 @@ export function townMotionSnapshotAt(
   const out: MovingAgentSnapshot[] = [];
   for (const occ of roster.occupants as Occupant[]) {
     const cur = occupantLocationAt(occ, hr);
-    const dest = centroids.get(cur.plotId);
-    if (!dest) continue; // defensive: roster always references plan plots
+    const destCentroid = centroids.get(cur.plotId);
+    if (!destCentroid) continue; // defensive: roster always references plan plots
+    const dest = settledPointForPlot(graph, cur.plotId, destCentroid);
 
     const prev = occupantLocationAt(occ, hr - 1);
-    const from = prev.plotId !== cur.plotId ? centroids.get(prev.plotId) : undefined;
+    const fromCentroid = prev.plotId !== cur.plotId ? centroids.get(prev.plotId) : undefined;
+    const from = fromCentroid
+      ? settledPointForPlot(graph, prev.plotId, fromCentroid)
+      : undefined;
     if (from && frac < COMMUTE_FRAC) {
-      // Walking the streets from the previous plot to the new one.
-      const route = routeAlongStreets(graph, from as Point, dest as Point);
+      // Both route ends are already canonical doors. This prevents the first
+      // frame from popping centroid-to-door before the street walk begins.
+      const route = scheduledRoute(graph, prev.plotId, cur.plotId, from as Point, dest as Point);
       const [x, y] = positionAlongPath(route, frac / COMMUTE_FRAC);
       out.push({ occupantId: occ.id, name: occ.name, activity: cur.activity, plotId: cur.plotId, x, y, moving: true });
     } else {
-      // Settled at the scheduled plot's centroid.
+      // Remain at the route's destination door after arrival. Plans without a
+      // usable entrance preserve their historical centroid fallback.
       out.push({ occupantId: occ.id, name: occ.name, activity: cur.activity, plotId: cur.plotId, x: dest[0], y: dest[1], moving: false });
     }
   }

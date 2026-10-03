@@ -36,6 +36,7 @@ function makeContext(path: string): { ctx: Parameters<typeof handleCharsetRoutes
   const response: CapturedResponse = { data: undefined, status: 0 };
   return {
     ctx: {
+      server: {},
       req: {},
       res: {},
       json: (data: unknown, status = 200) => {

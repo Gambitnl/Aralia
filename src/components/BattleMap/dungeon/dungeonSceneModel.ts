@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 18/07/2026, 01:49:18
+ * Last Sync: 09/09/2026, 09:57:05
  * Dependents: components/BattleMap/dungeon/Dungeon3DPreview.tsx
  * Imports: 1 files
  *
@@ -34,6 +34,7 @@ import {
   type DungeonPlan,
   type DungeonRoom,
   type DungeonTheme,
+  type RoomPurpose,
   type RoomType,
 } from '../../../systems/worldforge/dungeon/types';
 
@@ -59,6 +60,11 @@ export interface DungeonSceneInstance {
   visualKind?: DungeonPropVisualKind;
   /** The id of the event that left this scar, if this is historical evidence. */
   eventRef?: number;
+  /** Source room metadata carried through for deterministic purpose-aware presentation. */
+  roomId?: number;
+  roomPurpose?: RoomPurpose;
+  /** True only for a non-interactive landmark derived from the room's declared purpose. */
+  purposeLandmark?: true;
 }
 
 export interface DungeonSceneDoor extends DungeonSceneInstance {
@@ -114,6 +120,21 @@ export interface DungeonSceneModel {
   floors: DungeonSceneInstance[];
   walls: DungeonSceneInstance[];
   wallCaps: DungeonSceneInstance[];
+  /** Half-ring doorway heads, kept separate because the renderer uses real curved geometry. */
+  arches: DungeonSceneInstance[];
+  /** Permanent structural pieces; unlike room props, architecture never follows the prop toggle. */
+  architectureBoxes: DungeonSceneInstance[];
+  architectureCylinders: DungeonSceneInstance[];
+  architectureCones: DungeonSceneInstance[];
+  architectureSpheres: DungeonSceneInstance[];
+  architectureOctahedrons: DungeonSceneInstance[];
+  /**
+   * Small unlit atmosphere motes: cavern spores, frost snow, crypt dust.
+   *
+   * They are a separate batch because they are the only theme geometry that must render
+   * emissively and ignore the scene lights. One extra instanced draw covers all three themes.
+   */
+  themeMotes: DungeonSceneInstance[];
   liquids: DungeonSceneInstance[];
   doors: DungeonSceneDoor[];
   lowProps: DungeonSceneInstance[];
@@ -130,7 +151,90 @@ export interface DungeonSceneModel {
   spawnHalos: DungeonSceneInstance[];
   lines: DungeonSceneLine[];
   markers: DungeonSceneMarker[];
-  lights: Array<{ x: number; y: number; z: number; color: string }>;
+  lights: Array<{
+    x: number;
+    y: number;
+    z: number;
+    color: string;
+    roomId?: number;
+    roomPurpose?: RoomPurpose;
+  }>;
+}
+
+/**
+ * Per-theme lighting recipe.
+ *
+ * WHY: before this table every theme rendered with the same hardcoded ambient/hemisphere/sun
+ * intensities and the same torch strength, so only the palette hues separated crypt from cavern
+ * from frost. Colour alone is not an atmosphere: a bioluminescent cavern has to be ambient-lit
+ * and dim-keyed, while a snowfield is high-ambient and low-torch. Intensities now travel with the
+ * palette so the renderer keeps zero theme knowledge.
+ *
+ * PRESERVED: the previous constants remain the crypt row, so crypt renders as it did apart from
+ * the shadow-caster cap described on shadowCasters.
+ */
+export interface DungeonThemeLighting {
+  /** Flat fill for the whole plan. High for glow-lit themes, low for torch-lit ones. */
+  ambientIntensity: number;
+  /** Sky/ground wrap that keeps unlit wall faces from crushing to pure black. */
+  hemisphereIntensity: number;
+  /** Soft directional key giving walls and props form. */
+  sunIntensity: number;
+  /** Point-light strength for each selected torch. */
+  torchIntensity: number;
+  /** Point-light falloff radius in scene cells (one cell = five feet). */
+  torchDistance: number;
+  /**
+   * How many of the selected torches also render a shadow cube map.
+   *
+   * WHY: every shadow-casting point light costs six full scene passes. With all ten torches
+   * casting, a 28-room crypt issued 5,267 draw calls and 13.6M triangles per frame. The nearest
+   * few torches carry effectively all of the perceived contact shadowing, so the rest stay
+   * shadowless. Lights themselves are unchanged; only the shadow pass is budgeted.
+   */
+  shadowCasters: number;
+  /** Multiplier on the footprint-derived exponential fog density. */
+  fogMultiplier: number;
+}
+
+/**
+ * Theme lighting table. Named per the art direction each theme is meant to communicate.
+ */
+export const DUNGEON_3D_LIGHTING: Record<DungeonTheme, DungeonThemeLighting> = {
+  // Dim amber torchlight: the torches are the scene, so ambient stays low and the pools stay hot.
+  crypt: {
+    ambientIntensity: 1.0, hemisphereIntensity: 1.25, sunIntensity: 1.2,
+    torchIntensity: 26, torchDistance: 12, shadowCasters: 3, fogMultiplier: 1.18,
+  },
+  // Bioluminescent blue-green glow: the rock itself emits, so ambient carries the room and the
+  // warm torches are secondary. A weaker key keeps the light feeling like it comes from below.
+  cavern: {
+    ambientIntensity: 1.85, hemisphereIntensity: 1.55, sunIntensity: 0.62,
+    // shadowCasters is 1 here, not 2: the cavern raises a rounded rock mass on every
+    // boundary wall cell, so it carries ~5x the per-pass triangle load of crypt or frost
+    // (4.97M vs 1.02M measured). It is also the theme whose light is ambient-dominant, so a
+    // dropped shadow map costs the least visually and buys the most frame time.
+    torchIntensity: 17, torchDistance: 10, shadowCasters: 1, fogMultiplier: 1.42,
+  },
+  // Cold blue-white: snow bounces light everywhere, so ambient and key are both high and the
+  // torches barely compete. Thinner fog keeps the long icy sightlines readable.
+  frost: {
+    ambientIntensity: 1.65, hemisphereIntensity: 1.7, sunIntensity: 1.75,
+    torchIntensity: 14, torchDistance: 9, shadowCasters: 3, fogMultiplier: 0.92,
+  },
+  // Sewer and fungal keep the historic crypt-shaped budget until they get their own art pass.
+  sewer: {
+    ambientIntensity: 1.05, hemisphereIntensity: 1.25, sunIntensity: 1.1,
+    torchIntensity: 24, torchDistance: 12, shadowCasters: 3, fogMultiplier: 1.24,
+  },
+  fungal: {
+    ambientIntensity: 1.6, hemisphereIntensity: 1.35, sunIntensity: 0.75,
+    torchIntensity: 20, torchDistance: 11, shadowCasters: 2, fogMultiplier: 1.3,
+  },
+};
+
+export function dungeonThemeLighting(theme: DungeonTheme): DungeonThemeLighting {
+  return DUNGEON_3D_LIGHTING[theme];
 }
 
 export interface DungeonSceneOptions {
@@ -148,9 +252,15 @@ export interface DungeonSceneOptions {
 
 export const DUNGEON_3D_PALETTES: Record<DungeonTheme, DungeonScenePalette> = {
   crypt: {
-    background: '#09080b', fog: '#17131b', floor: '#6a6261', corridor: '#4e474a',
-    wall: '#484043', wallCap: '#776a6d', accent: '#c49b5b', flame: '#ff9c45',
-    ambient: '#776f91', sun: '#ffd7a1',
+    // Warm sandstone floors against cool slate walls and corridors give the crypt a two-tone
+    // palette instead of a monotone tan. Ambient stays cold and blue so torch pools read warm.
+    // background/fog were lifted off near-black (was #08070c/#1a1526) with a cooler blue tint so
+    // far and unlit frame regions resolve to cool gloom instead of dead pure-black — measured
+    // pre-fix: p50 luma 2, 33% pure-black, darkness floor mean RGB 7/3/2 (warm). Fog still far too
+    // dark to wash out the warm torch pools (Rec.709 ~49). See scripts/visual/frame-stats.mjs.
+    background: '#0d1220', fog: '#26314d', floor: '#71665c', corridor: '#41434f',
+    wall: '#3f414e', wallCap: '#726f7e', accent: '#c9a05b', flame: '#ff9a3c',
+    ambient: '#5a6690', sun: '#ffca94',
   },
   cavern: {
     background: '#050a0b', fog: '#102126', floor: '#5f6c67', corridor: '#41514d',
@@ -173,6 +283,65 @@ export const DUNGEON_3D_PALETTES: Record<DungeonTheme, DungeonScenePalette> = {
     ambient: '#8b65a2', sun: '#f2c6ff',
   },
 };
+
+// ============================================================================
+// Room-purpose readability contract
+// ============================================================================
+// DungeonRoom.purpose remains the only role authority. This table does not create gameplay
+// state: it says which physical landmark family can communicate each declared job, which
+// already-generated prop best distinguishes it, and how strongly its existing torch should
+// compete for the scene's fixed ten-light budget.
+// ============================================================================
+
+export type RoomPurposeLandmark =
+  | 'threshold-steps'
+  | 'ritual-dais'
+  | 'burial-bays'
+  | 'secure-store'
+  | 'work-gantry'
+  | 'occupied-hall'
+  | 'service-bench'
+  | 'water-basin';
+
+export interface RoomPurposeReadability {
+  landmark: RoomPurposeLandmark | null;
+  definingProps: readonly DungeonPropVisualKind[];
+  lightPriority: 0 | 1 | 2 | 3;
+}
+
+export const ROOM_PURPOSE_READABILITY: Readonly<Record<RoomPurpose, RoomPurposeReadability>> = {
+  stair: { landmark: 'threshold-steps', definingProps: [], lightPriority: 2 },
+  antechamber: { landmark: null, definingProps: [], lightPriority: 0 },
+  chapel: { landmark: 'ritual-dais', definingProps: ['altar', 'pew'], lightPriority: 3 },
+  'burial-gallery': { landmark: 'burial-bays', definingProps: ['sarcophagus'], lightPriority: 2 },
+  ossuary: { landmark: 'burial-bays', definingProps: ['bone-niche'], lightPriority: 2 },
+  treasury: { landmark: 'secure-store', definingProps: ['chest'], lightPriority: 3 },
+  embalming: { landmark: 'ritual-dais', definingProps: ['stone-slab'], lightPriority: 2 },
+  adit: { landmark: 'threshold-steps', definingProps: [], lightPriority: 2 },
+  hoist: { landmark: 'work-gantry', definingProps: ['hoist-wheel'], lightPriority: 3 },
+  'tool-store': { landmark: 'secure-store', definingProps: ['tool-rack'], lightPriority: 2 },
+  barracks: { landmark: 'occupied-hall', definingProps: ['bunk'], lightPriority: 2 },
+  'vein-gallery': { landmark: 'work-gantry', definingProps: ['stalagmite'], lightPriority: 1 },
+  sump: { landmark: 'water-basin', definingProps: ['pool'], lightPriority: 1 },
+  gatehouse: { landmark: 'threshold-steps', definingProps: [], lightPriority: 3 },
+  'great-hall': { landmark: 'occupied-hall', definingProps: ['long-table', 'hearth'], lightPriority: 3 },
+  armory: { landmark: 'secure-store', definingProps: ['weapon-rack'], lightPriority: 2 },
+  granary: { landmark: 'secure-store', definingProps: ['grain-jar'], lightPriority: 1 },
+  kitchen: { landmark: 'service-bench', definingProps: ['hearth', 'long-table'], lightPriority: 2 },
+  cellar: { landmark: 'secure-store', definingProps: ['crates'], lightPriority: 1 },
+  'chapel-wing': { landmark: 'ritual-dais', definingProps: ['altar', 'pew'], lightPriority: 3 },
+  junction: { landmark: 'threshold-steps', definingProps: [], lightPriority: 1 },
+  cistern: { landmark: 'water-basin', definingProps: ['pool'], lightPriority: 2 },
+  'maintenance-walk': { landmark: null, definingProps: [], lightPriority: 0 },
+  'ladder-shaft': { landmark: 'threshold-steps', definingProps: [], lightPriority: 2 },
+  outfall: { landmark: 'water-basin', definingProps: ['pool'], lightPriority: 1 },
+  'passage-room': { landmark: null, definingProps: [], lightPriority: 0 },
+};
+
+/** Return the renderer-only treatment for one authoritative room purpose. */
+export function roomPurposeReadability(purpose: RoomPurpose): RoomPurposeReadability {
+  return ROOM_PURPOSE_READABILITY[purpose];
+}
 
 const ROOM_COLORS: Record<RoomType, string> = {
   entrance: '#5cc7ff',
@@ -290,6 +459,74 @@ function doorRotation(plan: DungeonPlan, x: number, y: number): number {
   return eastWest >= northSouth ? Math.PI / 2 : 0;
 }
 
+// ============================================================================
+// Planned architecture helpers
+// ============================================================================
+// The five-foot bitmap remains the collision and route authority. These helpers read that bitmap
+// to orient continuous-looking boundary pieces, so visual rotation and curves cannot move a floor,
+// close a doorway, or invent a second procedural plan alongside DungeonPlan.
+// ============================================================================
+
+interface WallBoundaryPlan {
+  rotation: number;
+  touchesFloor: boolean;
+}
+
+function isFloorCell(plan: DungeonPlan, x: number, y: number): boolean {
+  return x >= 0
+    && y >= 0
+    && x < plan.W
+    && y < plan.H
+    && plan.grid[y * plan.W + x] === CellKind.Floor;
+}
+
+function wallBoundaryPlan(plan: DungeonPlan, x: number, y: number): WallBoundaryPlan {
+  // Point from this wall cell toward neighbouring walkable space. The wall's long axis is the
+  // perpendicular tangent; corners therefore turn 45 degrees instead of forming square teeth.
+  const towardX = Number(isFloorCell(plan, x + 1, y)) - Number(isFloorCell(plan, x - 1, y));
+  const towardZ = Number(isFloorCell(plan, x, y + 1)) - Number(isFloorCell(plan, x, y - 1));
+  if (towardX !== 0 || towardZ !== 0) {
+    return {
+      rotation: Math.atan2(-towardZ, towardX),
+      touchesFloor: true,
+    };
+  }
+
+  // Ellipses and diamonds can touch a wall only at a diagonal. Use that diagonal to preserve the
+  // intended curved/chamfered room silhouette instead of falling back to an axis-aligned block.
+  const diagonalX = (
+    Number(isFloorCell(plan, x + 1, y + 1))
+    + Number(isFloorCell(plan, x + 1, y - 1))
+    - Number(isFloorCell(plan, x - 1, y + 1))
+    - Number(isFloorCell(plan, x - 1, y - 1))
+  );
+  const diagonalZ = (
+    Number(isFloorCell(plan, x + 1, y + 1))
+    + Number(isFloorCell(plan, x - 1, y + 1))
+    - Number(isFloorCell(plan, x + 1, y - 1))
+    - Number(isFloorCell(plan, x - 1, y - 1))
+  );
+  if (diagonalX !== 0 || diagonalZ !== 0) {
+    return {
+      rotation: Math.atan2(-diagonalZ, diagonalX),
+      touchesFloor: true,
+    };
+  }
+  return { rotation: 0, touchesFloor: false };
+}
+
+function localOffset(
+  position: { x: number; z: number },
+  rotation: number,
+  lateral: number,
+): { x: number; z: number } {
+  // Doorway piers sit to either side of the opening in the arch's own local X direction.
+  return {
+    x: position.x + Math.cos(rotation) * lateral,
+    z: position.z - Math.sin(rotation) * lateral,
+  };
+}
+
 function propShape(kind: string): 'low' | 'tall' | 'evidence' | 'flame' {
   if (/torch|candles|hearth/.test(kind)) return 'flame';
   if (/rack|niche|wheel|pillar/.test(kind)) return 'tall';
@@ -349,11 +586,41 @@ function propColor(
 
 function selectAccentLights(candidates: DungeonSceneInstance[], color: string): DungeonSceneModel['lights'] {
   if (candidates.length === 0) return [];
-  const selected: DungeonSceneInstance[] = [candidates[0]];
+  const limit = Math.min(10, candidates.length);
+  const selected: DungeonSceneInstance[] = [];
+  const litPurposeRooms = new Set<number>();
+
+  // First give one authored torch to the most player-relevant purpose rooms. This does not add
+  // lights or move torches; it spends the existing budget where a dais, cache, gate, or machine
+  // needs local contrast. Equal priorities resolve by stable room id and source order.
+  const purposeCandidates = candidates
+    .map((candidate, sourceIndex) => ({ candidate, sourceIndex }))
+    .filter(({ candidate }) => (
+      candidate.roomId !== undefined
+      && candidate.roomPurpose !== undefined
+      && roomPurposeReadability(candidate.roomPurpose).lightPriority > 0
+    ))
+    .sort((left, right) => {
+      const leftPriority = roomPurposeReadability(left.candidate.roomPurpose!).lightPriority;
+      const rightPriority = roomPurposeReadability(right.candidate.roomPurpose!).lightPriority;
+      return rightPriority - leftPriority
+        || left.candidate.roomId! - right.candidate.roomId!
+        || left.sourceIndex - right.sourceIndex;
+    });
+  for (const { candidate } of purposeCandidates) {
+    if (selected.length >= limit) break;
+    if (litPurposeRooms.has(candidate.roomId!)) continue;
+    selected.push(candidate);
+    litPurposeRooms.add(candidate.roomId!);
+  }
+
+  // A dungeon containing no mapped purpose light keeps the historic first-torch anchor before
+  // the distance pass, so sparse or future archetypes still receive a stable warm starting point.
+  if (selected.length === 0) selected.push(candidates[0]);
 
   // Farthest-point sampling spreads a strict ten-light budget through the level instead of
-  // spending every real light in one busy room. Remaining flames still glow via emissive color.
-  while (selected.length < Math.min(10, candidates.length)) {
+  // spending every remaining light in one busy room. Unselected flames still glow emissively.
+  while (selected.length < limit) {
     let best: DungeonSceneInstance | null = null;
     let bestDistance = -1;
     for (const candidate of candidates) {
@@ -367,7 +634,76 @@ function selectAccentLights(candidates: DungeonSceneInstance[], color: string): 
     if (!best) break;
     selected.push(best);
   }
-  return selected.map((light) => ({ x: light.x, y: light.y + 0.18, z: light.z, color }));
+  return selected.map((light) => ({
+    x: light.x,
+    y: light.y + 0.18,
+    z: light.z,
+    color,
+    roomId: light.roomId,
+    roomPurpose: light.roomPurpose,
+  }));
+}
+
+/** Damp-stone green used only to tint a deterministic subset of crypt wall instances. */
+const CRYPT_MOSS = '#4a6b3c';
+
+/**
+ * Per-theme atmosphere motes.
+ *
+ * Each theme gets a different suspended particulate: bioluminescent spores drifting in a
+ * cavern, snow falling through a frost hall, dust hanging in crypt torchlight. They are drawn
+ * from the already-built floor batch, so a mote can never appear inside rock, and their heights
+ * come from the same deterministic coordinate noise as the rest of the scene. Sewer and fungal
+ * return an empty field until they get their own art pass rather than borrowing a wrong one.
+ */
+function buildThemeMotes(
+  plan: DungeonPlan,
+  palette: DungeonScenePalette,
+  floors: DungeonSceneInstance[],
+): DungeonSceneInstance[] {
+  const recipe = plan.params.theme === 'cavern'
+    ? { stride: 11, size: 0.075, minY: 0.7, spanY: 2.1, color: palette.accent }
+    : plan.params.theme === 'frost'
+      ? { stride: 5, size: 0.055, minY: 0.35, spanY: 3.4, color: '#eaf6ff' }
+      : plan.params.theme === 'crypt'
+        ? { stride: 23, size: 0.045, minY: 0.5, spanY: 1.6, color: mixColor(palette.flame, palette.wallCap, 0.5) }
+        : null;
+  if (!recipe) return [];
+
+  const motes: DungeonSceneInstance[] = [];
+  for (let index = 0; index < floors.length; index += recipe.stride) {
+    const floor = floors[index];
+    const jitterX = coordinateNoise(plan.seed, index, 0, 1301);
+    const jitterZ = coordinateNoise(plan.seed, 0, index, 1409);
+    const lift = coordinateNoise(plan.seed, index, index, 1511);
+    motes.push({
+      x: floor.x + (jitterX - 0.5) * 0.9,
+      y: recipe.minY + lift * recipe.spanY,
+      z: floor.z + (jitterZ - 0.5) * 0.9,
+      sx: recipe.size, sy: recipe.size, sz: recipe.size,
+      rotation: 0,
+      color: recipe.color,
+      detail: true,
+    });
+  }
+  return motes;
+}
+
+/**
+ * The colour the selected accent lights actually cast.
+ *
+ * WHY: every theme used palette.flame, so a bioluminescent cavern and a snowbound frost hall
+ * both pooled the same warm orange and read as a crypt with different walls. The emissive flame
+ * geometry keeps its own colour — only the light the room receives is retinted, which is the
+ * physically sensible reading anyway: in a glowing cave or an ice hall the torch is not the only
+ * emitter, and the surrounding surface glow dominates what the floor actually receives.
+ */
+function accentLightColor(theme: DungeonTheme, palette: DungeonScenePalette): string {
+  // Crypt is genuinely torch-only, so it keeps the unmixed flame.
+  if (theme === 'cavern') return mixColor(palette.flame, palette.accent, 0.74);
+  if (theme === 'frost') return mixColor(palette.flame, palette.accent, 0.62);
+  if (theme === 'fungal') return mixColor(palette.flame, palette.accent, 0.55);
+  return palette.flame;
 }
 
 function sceneBounds(instances: DungeonSceneInstance[]): DungeonSceneBounds {
@@ -404,7 +740,7 @@ function sceneBounds(instances: DungeonSceneInstance[]): DungeonSceneBounds {
 
 export type DungeonPropVisualKind =
   | 'sarcophagus' | 'disturbed-lid' | 'pew' | 'bone-niche' | 'bones' | 'altar' | 'spore-shelf'
-  | 'stalagmite' | 'mushroom' | 'bunk' | 'tool-rack' | 'nest' | 'hoist-wheel'
+  | 'stone-slab' | 'stalagmite' | 'mushroom' | 'bunk' | 'tool-rack' | 'nest' | 'hoist-wheel'
   | 'iceshard' | 'long-table' | 'grain-jar' | 'weapon-rack' | 'hearth'
   | 'pool' | 'rubble' | 'torch' | 'candles' | 'chest' | 'crates' | 'pried-vault'
   | 'dropped-coins' | 'snapped-bar' | 'tunnel-mouth' | 'trap' | 'default';
@@ -420,6 +756,7 @@ export function classifyPropKind(kind: string): DungeonPropVisualKind {
   if (k === 'bone-niche') return 'bone-niche';
   if (k === 'bones' || k === 'bone-pile') return 'bones';
   if (k === 'altar') return 'altar';
+  if (k === 'stone-slab') return 'stone-slab';
   if (k === 'spore-shelf') return 'spore-shelf';
   if (k === 'stalagmite') return 'stalagmite';
   if (k === 'mushroom') return 'mushroom';
@@ -513,12 +850,16 @@ export function decomposeProp(
   const parts: DecomposedPart[] = [];
 
   const stoneColor = mixColor(palette.wall, palette.wallCap, 0.32);
-  const boneColor = mixColor(palette.wall, palette.wallCap, 0.58);
+  const boneColor = mixColor('#d8cdb3', palette.wallCap, 0.35);
   const woodColor = mixColor('#4d3828', palette.accent, 0.14);
-  const altarColor = mixColor('#5c5246', palette.accent, 0.52);
-  const chestColor = mixColor('#4d3828', palette.accent, 0.4);
+  // Shrine surfaces borrow a cool, faintly luminous stone so a chapel reads distinct from the
+  // warm wood and gold families even before a torch reaches it.
+  const altarColor = mixColor('#7c86a4', palette.accent, 0.22);
+  const chestColor = mixColor('#5a3f22', palette.accent, 0.3);
   const metalColor = '#4a4e52';
-  const goldColor = mixColor('#d8b33a', palette.accent, 0.5);
+  // Treasure metal is a brighter, warmer gold than the theme accent so caches pop as the eye's
+  // reward target instead of blending into the surrounding stone and wood.
+  const goldColor = mixColor('#f2ca55', palette.accent, 0.3);
 
   const finalScale = scale * (hasHistory ? 1.15 : 1.0);
   const evidenceColor = mixColor('#5d5750', palette.accent, hasHistory ? 0.75 : 0.38);
@@ -624,6 +965,23 @@ export function decomposeProp(
         lx: 0, ly: 0.39, lz: 0,
         sx: 0.66, sy: 0.08, sz: 0.44,
         color: altarColor,
+      });
+      break;
+    }
+    case 'stone-slab': {
+      // The generated embalming table is a long raised work surface, not anonymous rubble.
+      // Giving it a stone plinth and inset top lets that authored purpose survive tactical LOD.
+      parts.push({
+        shape: 'box',
+        lx: 0, ly: 0.22, lz: 0,
+        sx: 0.82, sy: 0.44, sz: 0.42,
+        color: stoneColor,
+      });
+      parts.push({
+        shape: 'box',
+        lx: 0, ly: 0.48, lz: 0,
+        sx: 0.9, sy: 0.08, sz: 0.48,
+        color: mixColor(stoneColor, palette.accent, 0.24),
       });
       break;
     }
@@ -1102,11 +1460,13 @@ export function decomposeProp(
       break;
     }
     case 'trap': {
+      // A hazard plate takes a warning red so a pit or dart trap is never mistaken for floor
+      // dressing. The tone is muted enough to stay in the crypt palette, not a neon marker.
       parts.push({
         shape: 'box',
-        lx: 0, ly: 0.01, lz: 0,
-        sx: 0.46, sy: 0.02, sz: 0.46,
-        color: mixColor(stoneColor, palette.accent, 0.3),
+        lx: 0, ly: 0.012, lz: 0,
+        sx: 0.48, sy: 0.03, sz: 0.48,
+        color: mixColor(stoneColor, '#b0392a', 0.62),
       });
       break;
     }
@@ -1128,6 +1488,133 @@ export function decomposeProp(
 }
 
 // ============================================================================
+// Purpose-derived physical landmarks
+// ============================================================================
+// These batched pieces are presentation attached to real DungeonRoom metadata. They never enter
+// DungeonPlan, consume RNG, or participate in collision. Their centre is snapped to the nearest
+// floor cell owned by the room so even chamfered and compound rooms keep the landmark on the map.
+// ============================================================================
+
+function roomPurposeAnchor(
+  plan: DungeonPlan,
+  room: DungeonRoom,
+  roomLookup: Int16Array,
+): { x: number; z: number } | null {
+  const desiredX = (room.x + room.w / 2) / plan.cellFt;
+  const desiredY = (room.y + room.h / 2) / plan.cellFt;
+  const x0 = Math.max(0, Math.floor(room.x / plan.cellFt));
+  const y0 = Math.max(0, Math.floor(room.y / plan.cellFt));
+  const x1 = Math.min(plan.W, Math.ceil((room.x + room.w) / plan.cellFt));
+  const y1 = Math.min(plan.H, Math.ceil((room.y + room.h) / plan.cellFt));
+  let closest: { x: number; y: number; distance: number } | null = null;
+
+  // The ownership lookup excludes corridors, preventing a landmark from migrating into the route
+  // simply because a narrow room's bounding-box centre falls on a doorway or chamfer.
+  for (let y = y0; y < y1; y += 1) {
+    for (let x = x0; x < x1; x += 1) {
+      if (roomLookup[y * plan.W + x] !== room.id) continue;
+      const distance = ((x + 0.5 - desiredX) ** 2) + ((y + 0.5 - desiredY) ** 2);
+      if (!closest || distance < closest.distance) closest = { x, y, distance };
+    }
+  }
+  return closest ? cellToScene(plan, closest.x, closest.y) : null;
+}
+
+function purposeLandmarkParts(
+  plan: DungeonPlan,
+  room: DungeonRoom,
+  roomLookup: Int16Array,
+  palette: DungeonScenePalette,
+): Array<{ shape: DecomposedPart['shape']; instance: DungeonSceneInstance }> {
+  const treatment = roomPurposeReadability(room.purpose);
+  const anchor = treatment.landmark ? roomPurposeAnchor(plan, room, roomLookup) : null;
+  if (!treatment.landmark || !anchor) return [];
+
+  const minimumRoomCells = Math.min(room.w, room.h) / plan.cellFt;
+  const scale = Math.max(1.15, Math.min(2.5, minimumRoomCells * 0.22));
+  const rotation = room.w >= room.h ? 0 : Math.PI / 2;
+  const stone = mixColor(palette.wall, palette.wallCap, 0.48);
+  const warm = mixColor('#5b4028', palette.accent, 0.32);
+  const metal = mixColor('#3f464c', palette.accent, 0.18);
+  const highlight = mixColor(palette.wallCap, palette.accent, 0.52);
+  const parts: DecomposedPart[] = [];
+
+  // Each family uses a different silhouette at the same bounded scale. The exact generated
+  // furniture still supplies purpose-specific detail; these anchors make the broad job readable
+  // before the tactical camera is close enough to distinguish a chest from a rack or coffin.
+  switch (treatment.landmark) {
+    case 'threshold-steps':
+      parts.push(
+        { shape: 'box', lx: 0, ly: 0.08, lz: 0.54, sx: 1.8, sy: 0.16, sz: 0.42, color: stone },
+        { shape: 'box', lx: 0, ly: 0.16, lz: 0, sx: 1.55, sy: 0.32, sz: 0.42, color: highlight },
+        { shape: 'box', lx: 0, ly: 0.24, lz: -0.54, sx: 1.3, sy: 0.48, sz: 0.42, color: stone },
+      );
+      break;
+    case 'ritual-dais':
+      parts.push(
+        { shape: 'cylinder', lx: 0, ly: 0.09, lz: 0, sx: 1.45, sy: 0.18, sz: 1.45, color: stone },
+        { shape: 'box', lx: 0, ly: 0.34, lz: 0, sx: 0.72, sy: 0.5, sz: 0.52, color: highlight },
+        { shape: 'octahedron', lx: 0, ly: 0.92, lz: 0, sx: 0.32, sy: 0.62, sz: 0.32, color: palette.accent },
+      );
+      break;
+    case 'burial-bays':
+      for (const lateral of [-0.58, 0.58]) {
+        parts.push(
+          { shape: 'box', lx: lateral, ly: 0.16, lz: 0, sx: 0.72, sy: 0.32, sz: 1.35, color: stone },
+          { shape: 'box', lx: lateral, ly: 0.36, lz: 0, sx: 0.78, sy: 0.08, sz: 1.42, color: highlight },
+        );
+      }
+      break;
+    case 'secure-store':
+      parts.push(
+        { shape: 'box', lx: 0, ly: 0.1, lz: 0, sx: 1.55, sy: 0.2, sz: 1.2, color: stone },
+        { shape: 'box', lx: 0, ly: 0.43, lz: 0, sx: 0.82, sy: 0.66, sz: 0.62, color: warm },
+        { shape: 'octahedron', lx: 0, ly: 0.84, lz: 0, sx: 0.22, sy: 0.28, sz: 0.18, color: palette.accent },
+      );
+      break;
+    case 'work-gantry':
+      parts.push(
+        { shape: 'box', lx: -0.62, ly: 0.65, lz: 0, sx: 0.18, sy: 1.3, sz: 0.28, color: warm },
+        { shape: 'box', lx: 0.62, ly: 0.65, lz: 0, sx: 0.18, sy: 1.3, sz: 0.28, color: warm },
+        { shape: 'box', lx: 0, ly: 1.25, lz: 0, sx: 1.42, sy: 0.18, sz: 0.28, color: metal },
+        { shape: 'cylinder', lx: 0, ly: 0.82, lz: 0, sx: 0.48, sy: 0.18, sz: 0.48, color: metal },
+      );
+      break;
+    case 'occupied-hall':
+      parts.push(
+        { shape: 'box', lx: 0, ly: 0.34, lz: 0, sx: 1.8, sy: 0.14, sz: 0.65, color: warm },
+        { shape: 'box', lx: 0, ly: 0.18, lz: -0.72, sx: 1.7, sy: 0.24, sz: 0.24, color: warm },
+        { shape: 'box', lx: 0, ly: 0.18, lz: 0.72, sx: 1.7, sy: 0.24, sz: 0.24, color: warm },
+      );
+      break;
+    case 'service-bench':
+      parts.push(
+        { shape: 'box', lx: 0, ly: 0.42, lz: 0, sx: 1.75, sy: 0.18, sz: 0.72, color: warm },
+        { shape: 'cylinder', lx: -0.62, ly: 0.32, lz: 0.65, sx: 0.42, sy: 0.64, sz: 0.42, color: warm },
+        { shape: 'cylinder', lx: 0.62, ly: 0.32, lz: 0.65, sx: 0.42, sy: 0.64, sz: 0.42, color: warm },
+      );
+      break;
+    case 'water-basin':
+      parts.push(
+        { shape: 'cylinder', lx: 0, ly: 0.06, lz: 0, sx: 1.75, sy: 0.12, sz: 1.75, color: stone },
+        { shape: 'cylinder', lx: 0, ly: 0.13, lz: 0, sx: 1.42, sy: 0.05, sz: 1.42, color: mixColor('#1b607f', palette.accent, 0.42) },
+        { shape: 'octahedron', lx: 0, ly: 0.46, lz: 0, sx: 0.24, sy: 0.66, sz: 0.24, color: palette.accent },
+      );
+      break;
+  }
+
+  return parts.map((part) => ({
+    shape: part.shape,
+    instance: {
+      ...toGlobalPart(part, anchor.x, anchor.z, rotation, scale, false),
+      roomId: room.id,
+      roomPurpose: room.purpose,
+      purposeLandmark: true,
+    },
+  }));
+}
+
+// ============================================================================
 // Scene construction
 // ============================================================================
 // The returned arrays are intentionally grouped by visual kind. The renderer turns each array
@@ -1141,7 +1628,14 @@ export function buildDungeonSceneModel(plan: DungeonPlan, options: DungeonSceneO
   const floors: DungeonSceneInstance[] = [];
   const walls: DungeonSceneInstance[] = [];
   const wallCaps: DungeonSceneInstance[] = [];
+  const arches: DungeonSceneInstance[] = [];
+  const architectureBoxes: DungeonSceneInstance[] = [];
+  const architectureCylinders: DungeonSceneInstance[] = [];
+  const architectureCones: DungeonSceneInstance[] = [];
+  const architectureSpheres: DungeonSceneInstance[] = [];
+  const architectureOctahedrons: DungeonSceneInstance[] = [];
   const liquids: DungeonSceneInstance[] = [];
+  const maximumBfs = Math.max(1, ...Array.from(plan.bfs).filter((distance) => distance >= 0));
 
   // Raise every walkable and wall cell from the shared bitmap. History overlays become a
   // separate shallow surface, allowing water, ice, bloom, and scorch to read in perspective.
@@ -1167,18 +1661,182 @@ export function buildDungeonSceneModel(plan: DungeonPlan, options: DungeonSceneO
         }
       } else if (cell === CellKind.Wall) {
         const noise = coordinateNoise(plan.seed, x, y, 211);
-        const height = 1.32 + noise * 0.42;
+        const mossNoise = coordinateNoise(plan.seed, x, y, 617);
+        const boundary = wallBoundaryPlan(plan, x, y);
+        const nearbyDepth = Math.max(
+          0,
+          isFloorCell(plan, x - 1, y) ? plan.bfs[y * plan.W + x - 1] : 0,
+          isFloorCell(plan, x + 1, y) ? plan.bfs[y * plan.W + x + 1] : 0,
+          isFloorCell(plan, x, y - 1) ? plan.bfs[(y - 1) * plan.W + x] : 0,
+          isFloorCell(plan, x, y + 1) ? plan.bfs[(y + 1) * plan.W + x] : 0,
+        ) / maximumBfs;
+        const themeHeight = plan.params.theme === 'cavern'
+          ? 1.18 + noise * 0.92
+          : plan.params.theme === 'frost'
+            ? 1.48 + noise * 0.88 + nearbyDepth * 0.34
+            : plan.params.theme === 'crypt'
+              ? 1.42 + noise * 0.48 + nearbyDepth * 0.24
+              : 1.32 + noise * 0.42;
+        const height = themeHeight;
+        const wallThickness = boundary.touchesFloor ? 0.58 : 0.86;
         walls.push({
-          // Neighboring wall blocks overlap by a hair so the boundary reads as one built mass
-          // instead of a row of disconnected voxel teeth. Lower walls reveal room interiors.
-          ...position, y: height / 2, sx: 1.015, sy: height, sz: 1.015, rotation: 0,
-          color: mixColor(palette.wall, palette.wallCap, noise * 0.32),
+          // Each five-foot blocking cell still contributes exactly one wall, but the visible mass
+          // follows the local boundary tangent. Long overlaps keep the outline continuous through
+          // 45-degree corners while the untouched grid remains the movement referee.
+          ...position,
+          y: height / 2,
+          sx: wallThickness,
+          sy: height,
+          sz: boundary.touchesFloor ? 1.2 : 0.9,
+          rotation: boundary.rotation,
+          // Crypt stone is damp: a deterministic band of exposed wall cells shifts toward moss
+          // green instead of the neutral wall/cap mix. Same instance, same batch, no extra cost.
+          color: plan.params.theme === 'crypt' && boundary.touchesFloor && mossNoise > 0.58
+            ? mixColor(mixColor(palette.wall, palette.wallCap, noise * 0.32), CRYPT_MOSS, (mossNoise - 0.58) * 0.72)
+            : mixColor(palette.wall, palette.wallCap, noise * 0.32),
         });
         wallCaps.push({
-          // A thin pale cap strengthens the plan silhouette and exposes theme color without
-          // changing collision, door placement, or the generator bitmap beneath it.
-          ...position, y: height + 0.035, sx: 1.035, sy: 0.07, sz: 1.035, rotation: 0,
+          // Caps inherit the same planned tangent, keeping rotated walls legible from the tactical
+          // camera without creating a second footprint or a misleading walkable ledge.
+          ...position,
+          y: height + 0.035,
+          sx: wallThickness + 0.055,
+          sy: 0.07,
+          sz: boundary.touchesFloor ? 1.24 : 0.94,
+          rotation: boundary.rotation,
           color: mixColor(palette.wallCap, palette.accent, noise * 0.12),
+        });
+
+        // Crypts use round load-bearing supports at a stable subset of exposed wall cells. Their
+        // stronger vertical rhythm replaces the former uniform low rim without dressing rooms by
+        // purpose, which remains the separate readability lane.
+        if (plan.params.theme === 'crypt' && boundary.touchesFloor && noise > 0.82) {
+          architectureCylinders.push({
+            ...position,
+            y: (height + 0.42) / 2,
+            sx: 0.34,
+            sy: height + 0.42,
+            sz: 0.34,
+            rotation: boundary.rotation,
+            color: mixColor(palette.wall, palette.wallCap, 0.58),
+          });
+        }
+
+        // Cavern walls gain deterministic overlapping rock masses. Non-uniform spheres create a
+        // genuinely curved silhouette while the slimmer oriented wall beneath prevents sightline
+        // cracks and continues to mirror one canonical blocking cell.
+        if (plan.params.theme === 'cavern' && boundary.touchesFloor) {
+          const secondary = coordinateNoise(plan.seed, x, y, 433);
+          architectureSpheres.push({
+            x: position.x + (secondary - 0.5) * 0.24,
+            y: height * (0.42 + secondary * 0.08),
+            z: position.z + (noise - 0.5) * 0.24,
+            sx: 0.76 + secondary * 0.34,
+            sy: height * (0.72 + noise * 0.22),
+            sz: 0.66 + noise * 0.42,
+            rotation: boundary.rotation + (secondary - 0.5) * 0.55,
+            color: mixColor(palette.wall, palette.wallCap, 0.18 + secondary * 0.32),
+          });
+        }
+
+        // Stalactites hang from the cavern roof over the floor cell each wall touches. An
+        // elongated octahedron is used rather than a cone because instance rotation here is
+        // yaw-only, so a downward cone is not expressible without an inverted scale (which would
+        // flip the winding and cull the whole spike). The bipyramid is symmetric and reads right.
+        if (plan.params.theme === 'cavern' && boundary.touchesFloor && noise > 0.34) {
+          const drop = 0.55 + noise * 1.25;
+          const overhang = localOffset(position, boundary.rotation, 0.62);
+          architectureOctahedrons.push({
+            ...overhang,
+            y: height + 0.55 - drop / 2,
+            sx: 0.2 + noise * 0.16,
+            sy: drop,
+            sz: 0.2 + noise * 0.16,
+            rotation: boundary.rotation,
+            color: mixColor(palette.wallCap, palette.accent, 0.2 + noise * 0.3),
+          });
+        }
+
+        // Frost boundaries grow upward into irregular ice fins. These are structural vertical
+        // forms rooted on real wall cells, not random floor decoration, so routes and identity stay
+        // exact while the fortress stops reading as one flat blue tray.
+        if (plan.params.theme === 'frost' && boundary.touchesFloor && noise > 0.46) {
+          const spireHeight = 0.75 + noise * 1.55;
+          architectureCones.push({
+            ...position,
+            y: height + spireHeight / 2 - 0.08,
+            sx: 0.34 + noise * 0.22,
+            sy: spireHeight,
+            sz: 0.34 + noise * 0.22,
+            rotation: boundary.rotation,
+            color: mixColor(palette.wallCap, palette.accent, 0.26 + noise * 0.34),
+          });
+
+          // A small crystal cluster at the fin's foot spills onto the adjacent floor cell. The
+          // octahedron batch already carries the slightly metallic material, so these read as the
+          // theme's ice highlight without a new material or draw call.
+          const spill = coordinateNoise(plan.seed, x, y, 733);
+          if (spill > 0.42) {
+            const foot = localOffset(position, boundary.rotation, 0.58);
+            architectureOctahedrons.push({
+              ...foot,
+              y: 0.16 + spill * 0.26,
+              sx: 0.24 + spill * 0.2,
+              sy: 0.34 + spill * 0.52,
+              sz: 0.24 + spill * 0.2,
+              rotation: boundary.rotation + spill * 1.4,
+              color: mixColor(palette.accent, palette.wallCap, 0.24 + spill * 0.28),
+            });
+          }
+        }
+      }
+    }
+  }
+
+  // Every authored doorway receives one reproducible arch whose yaw follows the same passage test
+  // as the existing door leaf. Slender piers sit outside the door centre, leaving the canonical
+  // floor cell, collision, and entrance-to-objective route open beneath the curved head.
+  if (plan.params.theme === 'crypt' || plan.params.theme === 'cavern' || plan.params.theme === 'frost') {
+    for (const door of plan.doors) {
+      const position = cellToScene(plan, door.cell.x, door.cell.y);
+      const rotation = doorRotation(plan, door.cell.x, door.cell.y);
+      const archColor = door.state === 'bricked'
+        ? '#713e34'
+        : mixColor(palette.wallCap, palette.accent, plan.params.theme === 'cavern' ? 0.34 : 0.22);
+      arches.push({
+        ...position,
+        y: 0.94,
+        sx: 1.36,
+        sy: plan.params.theme === 'frost' ? 2.75 : 2.5,
+        sz: plan.params.theme === 'cavern' ? 0.68 : 0.54,
+        rotation,
+        color: archColor,
+      });
+
+      for (const lateral of [-0.53, 0.53]) {
+        const pier = localOffset(position, rotation, lateral);
+        architectureBoxes.push({
+          ...pier,
+          y: 0.52,
+          sx: plan.params.theme === 'cavern' ? 0.24 : 0.18,
+          sy: 1.04,
+          sz: plan.params.theme === 'cavern' ? 0.34 : 0.24,
+          rotation,
+          color: archColor,
+        });
+      }
+
+      // Frost arch crowns terminate in a small faceted keystone, making their vertical axis read
+      // from the whole-plan camera without changing the opening underneath.
+      if (plan.params.theme === 'frost') {
+        architectureOctahedrons.push({
+          ...position,
+          y: 2.28,
+          sx: 0.28,
+          sy: 0.46,
+          sz: 0.22,
+          rotation,
+          color: mixColor(palette.wallCap, palette.accent, 0.58),
         });
       }
     }
@@ -1212,6 +1870,7 @@ export function buildDungeonSceneModel(plan: DungeonPlan, options: DungeonSceneO
   const propSpheres: DungeonSceneInstance[] = [];
   const propOctahedrons: DungeonSceneInstance[] = [];
   const propFlames: DungeonSceneInstance[] = [];
+  const promotedPurposeRooms = new Set<number>();
 
   // Props arrive in feet, so convert them back to scene cells only at this presentation seam.
   for (const prop of plan.props) {
@@ -1225,8 +1884,22 @@ export function buildDungeonSceneModel(plan: DungeonPlan, options: DungeonSceneO
       Math.round(prop.y / plan.cellFt),
       911,
     );
-    const detail = isTacticalDetail(prop.kind, shape, dimensions, hasHistoryReference, lodRoll);
     const visualKind = classifyPropKind(prop.kind);
+    const room = roomById.get(prop.roomId);
+    const treatment = room ? roomPurposeReadability(room.purpose) : null;
+    const definesPurpose = Boolean(
+      room
+      && treatment?.definingProps.includes(visualKind)
+      && !promotedPurposeRooms.has(room.id),
+    );
+    if (definesPurpose && room) promotedPurposeRooms.add(room.id);
+
+    // At least one generated, purpose-defining object per authored room survives tactical LOD.
+    // The full close view remains unchanged, and rooms without declared furniture use the
+    // presentation-only landmark family below rather than manufacturing a generator prop.
+    const detail = definesPurpose
+      ? false
+      : isTacticalDetail(prop.kind, shape, dimensions, hasHistoryReference, lodRoll);
     const instance: DungeonSceneInstance = {
       ...position,
       y: dimensions.y,
@@ -1238,6 +1911,8 @@ export function buildDungeonSceneModel(plan: DungeonPlan, options: DungeonSceneO
       color: propColor(prop.kind, shape, palette, hasHistoryReference),
       visualKind,
       eventRef: prop.eventRef,
+      roomId: room?.id,
+      roomPurpose: room?.purpose,
     };
     if (shape === 'flame') flames.push(instance);
     else if (shape === 'tall') tallProps.push(instance);
@@ -1256,6 +1931,21 @@ export function buildDungeonSceneModel(plan: DungeonPlan, options: DungeonSceneO
     );
 
     for (const part of decomposed) {
+      part.instance.roomId = room?.id;
+      part.instance.roomPurpose = room?.purpose;
+      if (part.shape === 'box') propBoxes.push(part.instance);
+      else if (part.shape === 'cylinder') propCylinders.push(part.instance);
+      else if (part.shape === 'cone') propCones.push(part.instance);
+      else if (part.shape === 'sphere') propSpheres.push(part.instance);
+      else if (part.shape === 'octahedron') propOctahedrons.push(part.instance);
+      else if (part.shape === 'flame') propFlames.push(part.instance);
+    }
+  }
+
+  // Add one batched physical motif per mapped purpose room. These pieces sit in the existing prop
+  // shape batches, remain visible at tactical range, and never become DungeonProp or collision.
+  for (const room of plan.rooms) {
+    for (const part of purposeLandmarkParts(plan, room, roomLookup, palette)) {
       if (part.shape === 'box') propBoxes.push(part.instance);
       else if (part.shape === 'cylinder') propCylinders.push(part.instance);
       else if (part.shape === 'cone') propCones.push(part.instance);
@@ -1314,6 +2004,7 @@ export function buildDungeonSceneModel(plan: DungeonPlan, options: DungeonSceneO
       label: 'Objective',
     },
   ];
+  const themeMotes = buildThemeMotes(plan, palette, floors);
   const bounds = sceneBounds([...floors, ...walls]);
 
   return {
@@ -1324,6 +2015,13 @@ export function buildDungeonSceneModel(plan: DungeonPlan, options: DungeonSceneO
     floors,
     walls,
     wallCaps,
+    arches,
+    architectureBoxes,
+    architectureCylinders,
+    architectureCones,
+    architectureSpheres,
+    architectureOctahedrons,
+    themeMotes,
     liquids,
     doors,
     lowProps,
@@ -1340,6 +2038,6 @@ export function buildDungeonSceneModel(plan: DungeonPlan, options: DungeonSceneO
     spawnHalos,
     lines,
     markers,
-    lights: selectAccentLights(flames, palette.flame),
+    lights: selectAccentLights(flames, accentLightColor(plan.params.theme, palette)),
   };
 }

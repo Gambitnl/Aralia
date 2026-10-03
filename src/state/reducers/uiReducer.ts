@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/06/2026, 01:55:55
+ * Last Sync: 17/08/2026, 14:11:40
  * Dependents: state/appState.ts
  * Imports: 4 files
  *
@@ -67,8 +67,8 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
       return { isMapVisible: !state.isMapVisible, isThreeDVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false } };
 
     case 'TOGGLE_MINIMAP_VISIBILITY': {
-      const nextVisibility = !(state as unknown as { isMinimapVisible?: boolean }).isMinimapVisible;
-      return { isMinimapVisible: nextVisibility } as Partial<GameState>;
+      const nextVisibility = !state.isMinimapVisible;
+      return { isMinimapVisible: nextVisibility };
     }
 
     case 'TOGGLE_THREE_D_VISIBILITY':
@@ -145,9 +145,13 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
 
     case 'TOGGLE_GLOSSARY_VISIBILITY': {
       const openingGlossary = !state.isGlossaryVisible;
+      // A requested entry travels with the opening action so selection and the
+      // conflicting-overlay reset happen atomically. Untargeted opens retain the
+      // normal default-entry behavior, while every close clears stale selection.
+      const requestedTermId = action.payload?.initialTermId;
       return {
         isGlossaryVisible: openingGlossary,
-        selectedGlossaryTermForModal: openingGlossary && action.payload?.initialTermId ? action.payload.initialTermId : undefined,
+        selectedGlossaryTermForModal: openingGlossary && requestedTermId ? requestedTermId : undefined,
         isMapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false,
         characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }
       };
@@ -249,6 +253,38 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
         isTradeRouteDashboardVisible: false, isEconomyLedgerVisible: false, isCourierPouchVisible: false
       };
 
+    case 'TOGGLE_COMMERCE_DESK':
+      return {
+        isCommerceDeskVisible: !state.isCommerceDeskVisible,
+        isMapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false,
+        characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGlossaryVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isGameGuideVisible: false, isThievesGuildVisible: false, isNavalDashboardVisible: false
+      };
+
+    case 'TOGGLE_SALVAGE_MODAL':
+      return {
+        isSalvageModalVisible: !state.isSalvageModalVisible,
+      };
+
+    case 'TOGGLE_BANK_MODAL':
+      return {
+        isBankModalVisible: !state.isBankModalVisible,
+      };
+
+    case 'TOGGLE_REAL_ESTATE_MODAL':
+      return {
+        isRealEstateModalVisible: !state.isRealEstateModalVisible,
+      };
+
+    case 'TOGGLE_SHOP_MODAL':
+      return {
+        isShopModalVisible: !state.isShopModalVisible,
+      };
+
+    case 'TOGGLE_TRADE_ROUTE_MODAL':
+      return {
+        isTradeRouteModalVisible: !state.isTradeRouteModalVisible,
+      };
+
     case 'TOGGLE_LOCKPICKING_MODAL':
       return {
         isLockpickingModalVisible: !state.isLockpickingModalVisible,
@@ -304,6 +340,9 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
       return {
         merchantModal: {
           isOpen: true,
+          // Preserved through the modal state so MerchantModal can price and
+          // haggle against the same NPC the handlers read (UI-3, 2026-09-09).
+          merchantId: action.payload.merchantId,
           merchantName: action.payload.merchantName,
           merchantInventory: action.payload.inventory,
           economy: (action.payload as { economy?: GameState['economy'] }).economy // Persist economy state
@@ -317,6 +356,7 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
       return {
         merchantModal: {
           isOpen: false,
+          merchantId: undefined,
           merchantName: '',
           merchantInventory: [],
           economy: undefined

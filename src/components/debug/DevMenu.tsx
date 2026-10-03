@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/03/2026, 23:48:00
- * Dependents: components/layout/GameModals.tsx
- * Imports: 7 files
+ * Last Sync: 09/09/2026, 10:58:40
+ * Dependents: components/layout/DebugModals.tsx
+ * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -35,12 +35,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN } from '../../config/geminiConfig';
 import { useGameState } from '../../state/GameContext';
-import { generateVillageTemple } from '../../utils/templeUtils';
+import { generateVillageTemple } from '../../utils/world';
 import { GamePhase, VillageActionContext, VillagePersonality } from '../../types';
 import { Z_INDEX } from '../../styles/zIndex';
 import { UI_ID } from '../../styles/uiIds';
 import StateViewer from './StateViewer';
 import { clearDebugLog, readDebugLog, type DebugLogEntry } from '../../utils/debugLog';
+import {
+  listStandardUnlockFlags,
+  listUnlockFlags,
+} from '../../systems/dialogue/unlockRegistry';
 
 // Badge colors for known Debug Log categories (unknown categories get gray).
 // The Debug Log records rare invisible engine actions — startup self-heal
@@ -109,6 +113,15 @@ const DevMenu: React.FC<DevMenuProps> = ({
     setDebugLog([]);
   };
   const { dispatch, state: _state } = useGameState();
+
+  // Unlock-flag registry rows (DIAL-004): the four standard flags always, plus
+  // any extra flag a dialogue graph set at runtime, de-duplicated by name.
+  const unlockFlagRows = React.useMemo(() => {
+    const standard = listStandardUnlockFlags(_state.worldFacts);
+    const known = new Set(standard.map((entry) => entry.flag));
+    const extra = listUnlockFlags(_state.worldFacts).filter((entry) => !known.has(entry.flag));
+    return [...standard, ...extra];
+  }, [_state.worldFacts]);
 
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
@@ -378,6 +391,58 @@ const DevMenu: React.FC<DevMenuProps> = ({
               <option key={model} value={model}>{model}</option>
             ))}
           </select>
+        </div>
+
+        {/* Unlock Flags (DIAL-004).
+            Every flag the player has permanently unlocked, read straight off
+            the durable world-fact store on GameState.worldFacts. The four
+            standard flags are always listed (so "not unlocked yet" is visible,
+            not just absent) and any additional flag an authored dialogue graph
+            set through `set_flag` is listed after them. Each row toggles its
+            flag through the real SET_UNLOCK_FLAG / CLEAR_UNLOCK_FLAG actions,
+            so this surface tests the reducer path rather than poking state. */}
+        <div className="mb-6 rounded-lg border border-gray-700 bg-gray-900/60 p-4" data-testid="unlock-flags">
+          <h3 className="text-sm uppercase tracking-wider text-gray-400 font-bold mb-2">
+            Unlock Flags
+          </h3>
+          <ul className="space-y-1 max-h-56 overflow-y-auto text-sm">
+            {unlockFlagRows.map((entry) => (
+              <li
+                key={entry.flag}
+                className="flex gap-2 items-baseline justify-between"
+                data-testid={`unlock-flag-${entry.flag}`}
+              >
+                <span className="flex gap-2 items-baseline min-w-0">
+                  <span
+                    className={`shrink-0 rounded px-1.5 py-0.5 text-xs font-semibold ${
+                      entry.isSet ? 'bg-emerald-900 text-emerald-200' : 'bg-gray-700 text-gray-400'
+                    }`}
+                  >
+                    {entry.isSet ? 'SET' : 'unset'}
+                  </span>
+                  <span className="text-gray-200 truncate">{entry.flag}</span>
+                  {entry.isSet && entry.value !== true && entry.value !== undefined && (
+                    <span className="text-sky-300 shrink-0">= {String(entry.value)}</span>
+                  )}
+                  {entry.isSet && entry.sourceNpcId && (
+                    <span className="text-gray-500 shrink-0">via {entry.sourceNpcId}</span>
+                  )}
+                </span>
+                <button
+                  onClick={() =>
+                    dispatch(
+                      entry.isSet
+                        ? { type: 'CLEAR_UNLOCK_FLAG', payload: { flag: entry.flag } }
+                        : { type: 'SET_UNLOCK_FLAG', payload: { flag: entry.flag, sourceTopicId: 'dev_menu' } },
+                    )
+                  }
+                  className="shrink-0 rounded px-2 py-0.5 text-xs font-semibold bg-slate-600 text-white hover:bg-slate-500"
+                >
+                  {entry.isSet ? 'Clear' : 'Set'}
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
 
         {/* State Viewer */}

@@ -6,8 +6,9 @@
  * POST /devhub/api/creature-plan/approve  { id }              → flip status to approved
  * GET  /devhub/api/creature-plans                             → { entries } newest first
  *
- * The brain is the Claude CLI (`claude -p --model claude-fable-5 --effort
- * medium --output-format json`). An invalid plan gets ONE retry with the named
+ * The brain is the Claude CLI (`claude -p --model <PLAN_MODEL> --effort medium
+ * --output-format json`; set ARALIA_CREATURE_PLAN_MODEL to override the
+ * default). An invalid plan gets ONE retry with the named
  * validation errors appended; still invalid → 422 with the list, verbatim, and
  * nothing is stored. The game never calls these routes: approved entries are
  * plain JSON under src/data/creatures3d/plans, importable at build time.
@@ -17,12 +18,30 @@ import { mkdirSync, promises as fsp } from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';
 import type { DevHubRouteContext } from './routeContext';
-import {
-  PLAN_LIMITS,
-  validateCreaturePlan,
-  type CreaturePlan,
-} from '../../../src/systems/entities3d/textPlan/planSchema';
-import { sizeCategoryForPlan } from '../../../src/systems/entities3d/textPlan/planSize';
+import type { CreaturePlan } from '../../../src/systems/entities3d/textPlan/planSchema';
+
+// These module descriptions preserve exact source types without loading either game module.
+// The route imports their runtime values only after a generation request reaches generatePlan,
+// so loading Vite's configuration cannot pull the 3D entity system into the config process.
+type PlanSchemaModule = typeof import('../../../src/systems/entities3d/textPlan/planSchema');
+type PlanSizeModule = typeof import('../../../src/systems/entities3d/textPlan/planSize');
+
+// Runtime entity modules use absolute, variable-held URLs for the same reason this route is
+// opaque to its manager: literal imports let Vite reconnect the route to its config graph.
+// The explicit filenames preserve Node-compatible resolution on every supported platform.
+// Loaded through Vite (`server.ssrLoadModule`), NOT a raw file:// import.
+//
+// A raw `import(pathToFileURL(...).href)` dies on the first transitive hop: our
+// source uses extensionless relative specifiers (`import … from '../registry'`)
+// and Node's ESM resolver cannot resolve those. Node 22.19's type stripping made
+// the `.ts` entry file itself load, which only moved the failure one level down
+// ("Cannot find module …/types imported from …/registry.ts"). Vite resolves them
+// the way the app does. This stays a RUNTIME call, so the entity graph is still
+// absent from vite.config.ts's config-dependency list and entity edits still do
+// not restart the dev server — the property this route was built to preserve.
+function entitySrcPath(relativeFile: string): string {
+  return `/src/systems/entities3d/${relativeFile}`;
+}
 
 export interface CreatureLibraryEntry {
   id: string;
@@ -36,6 +55,8 @@ export interface CreatureLibraryEntry {
   revisedFrom?: string;
   /** D&D size derived from the plan's dimensions (combat tile footprint). */
   sizeCategory?: string;
+  /** Public URL path of the optimized hero mesh, when one exists. */
+  heroGlb?: string;
 }
 
 /** Injectable for tests; the default shells out to the Claude CLI. */
@@ -66,6 +87,16 @@ function cleanCliEnv(): NodeJS.ProcessEnv {
   return env;
 }
 
+/**
+ * The planner model, overridable with ARALIA_CREATURE_PLAN_MODEL.
+ *
+ * This was hardcoded to `claude-fable-5` until 2026-08-13, when that model's
+ * quota ran out and every generation came back as a bare `exited 1`. The model
+ * is a quota-bound resource, so it must not be welded into the source: name it
+ * in the environment when the default is unavailable.
+ */
+const PLAN_MODEL = process.env.ARALIA_CREATURE_PLAN_MODEL || 'claude-opus-5';
+
 const defaultRunner: CliRunner = (prompt) =>
   new Promise((resolve, reject) => {
     // The prompt goes through STDIN: as an argv with shell:true (needed for the
@@ -73,7 +104,7 @@ const defaultRunner: CliRunner = (prompt) =>
     // cwd keeps the CLI from loading this repo's CLAUDE.md and following it.
     const child = spawn(
       'claude',
-      ['-p', '--model', 'claude-fable-5', '--effort', 'medium', '--output-format', 'json'],
+      ['-p', '--model', PLAN_MODEL, '--effort', 'medium', '--output-format', 'json'],
       { windowsHide: true, shell: process.platform === 'win32', cwd: tmpdir(), env: cleanCliEnv() },
     );
     let stdout = '';
@@ -123,18 +154,18 @@ function extractPlanJson(stdout: string): unknown {
   return JSON.parse(text.slice(start, end + 1)) as unknown;
 }
 
-async function knownPartIds(): Promise<ReadonlySet<string>> {
-  // Lazy import keeps this module light for the dev server's dynamic loader
+async function knownPartIds(server: any): Promise<ReadonlySet<string>> {
+  // Lazy load keeps this module light for the dev server's dynamic loader
   // (the part registry pulls in three.js).
   const [{ registerAllParts }, { allParts }] = await Promise.all([
-    import('../../../src/systems/entities3d/parts'),
-    import('../../../src/systems/entities3d/registry'),
+    server.ssrLoadModule(entitySrcPath('parts/index.ts')) as Promise<typeof import('../../../src/systems/entities3d/parts')>,
+    server.ssrLoadModule(entitySrcPath('registry.ts')) as Promise<typeof import('../../../src/systems/entities3d/registry')>,
   ]);
   registerAllParts();
   return new Set(allParts().map((p) => p.id));
 }
 
-function schemaPrompt(): string {
+function schemaPrompt(PLAN_LIMITS: PlanSchemaModule['PLAN_LIMITS']): string {
   return [
     'You design a creature body plan for a stylized 3D game. Output ONLY a JSON object — no prose, no code fences.',
     'The JSON shape (all lengths in feet):',
@@ -142,13 +173,14 @@ function schemaPrompt(): string {
     '  "name": string,                                  // 1–40 chars, display name',
     '  "frame": { "heightFt": number, "lengthFt"?: number, "bulk": number, "stance": "upright"|"horizontal"|"serpentine"|"floating" },',
     '  "spine": { "segments": int, "taper": number, "arch": number, "bulge"?: number },',
-    '  "appendages": [ { "kind": "leg"|"arm"|"tail"|"tentacle"|"neck"|"wing", "attach": number, "heightFrac"?: number, "perSide"?: boolean, "count": int, "chain": [ { "lenFt": number, "r": number } ], "tips"?: "hand", "jointRings"?: boolean } ],',
+    '  "appendages": [ { "kind": "leg"|"arm"|"tail"|"tentacle"|"neck"|"wing", "attach": number, "heightFrac"?: number, "perSide"?: boolean, "count": int, "chain": [ { "lenFt": number, "r": number } ], "tips"?: "hand", "jointRings"?: boolean, "blend"?: number } ],',
     '  "heads": [ { "neckIndex"?: int, "form"?: "serpent"|"beast"|"blunt"|"skull", "sizeScale": number, "eyes": { "count": int, "sizeScale": number, "pupil"?: "round"|"slit"|"goat" }, "snout"?: { "lengthScale": number, "droop": number }, "cilia"?: boolean } ],',
     '  "palette": { "bodyHex": "#rrggbb", "accentHex"?: "#rrggbb", "bellyHex"?: "#rrggbb", "eyeHex": "#rrggbb" },',
+    '  "skin"?: { "blend": number },',
     '  "garnish"?: [ { "partId": string, "params"?: { [k]: number } } ]',
     '}',
     `Hard ranges: heightFt ${PLAN_LIMITS.heightFt[0]}–${PLAN_LIMITS.heightFt[1]}; lengthFt ${PLAN_LIMITS.lengthFt[0]}–${PLAN_LIMITS.lengthFt[1]} (REQUIRED for horizontal/serpentine); bulk ${PLAN_LIMITS.bulk[0]}–${PLAN_LIMITS.bulk[1]}; spine.segments ${PLAN_LIMITS.spineSegments[0]}–${PLAN_LIMITS.spineSegments[1]}; spine.taper ${PLAN_LIMITS.spineTaper[0]}–${PLAN_LIMITS.spineTaper[1]}; spine.arch ${PLAN_LIMITS.spineArch[0]}–${PLAN_LIMITS.spineArch[1]}; spine.bulge ${PLAN_LIMITS.spineBulge[0]}–${PLAN_LIMITS.spineBulge[1]} (mid-body muscle swell; ~0.3 lean, ~0.7 brawny); at most ${PLAN_LIMITS.appendages[1]} appendages; attach ${PLAN_LIMITS.attach[0]}–${PLAN_LIMITS.attach[1]} (0=front, 1=rear); count ${PLAN_LIMITS.count[0]}–${PLAN_LIMITS.count[1]} per entry (per side when perSide); chain ${PLAN_LIMITS.chainLinks[0]}–${PLAN_LIMITS.chainLinks[1]} links; lenFt ${PLAN_LIMITS.linkLenFt[0]}–${PLAN_LIMITS.linkLenFt[1]}; r ${PLAN_LIMITS.linkR[0]}–${PLAN_LIMITS.linkR[1]} (fraction of body radius); heads ${PLAN_LIMITS.heads[0]}–${PLAN_LIMITS.heads[1]}; head sizeScale ${PLAN_LIMITS.headSizeScale[0]}–${PLAN_LIMITS.headSizeScale[1]}; eyes.count ${PLAN_LIMITS.eyeCount[0]}–${PLAN_LIMITS.eyeCount[1]}; eyes.sizeScale ${PLAN_LIMITS.eyeSizeScale[0]}–${PLAN_LIMITS.eyeSizeScale[1]}; snout lengthScale ${PLAN_LIMITS.snoutLengthScale[0]}–${PLAN_LIMITS.snoutLengthScale[1]}, droop ${PLAN_LIMITS.snoutDroop[0]}–${PLAN_LIMITS.snoutDroop[1]}; at most ${PLAN_LIMITS.garnish[1]} garnish entries.`,
-    'Rules: heads[].neckIndex must point at an appendage of kind "neck" or "torso" (omit it to sit the head on the spine front). Legs make it walk; no legs + serpentine = it slithers; floating hovers (compact floaters hang vertical: head up, tail down). kind "torso" is an upright sub-body rising from the spine — give arms/necks/wings "parent": <torso index> to root on it (centaurs, driders). spine.shape "box" makes rectangular slab bodies (cubes, chests, golems). palette.opacity < 1 = translucent body (ghosts, oozes). tips:"hand" puts a stylized palm+fingers at the appendage tip (not allowed on legs — they get feet). jointRings:true hovers glowing accent-colored energy rings at the limb joints. cilia:true rings the eye with twitching fleshy lashes. heads[].form gives a sculpted skull+jaw+teeth head (serpent=wedge, beast=broad muzzle, blunt=rounded, skull=bony) — use it for any creature with a real face. Use garnish only for parts you are told exist (crystalSpikes = jagged accent crystal shards on the back, params scale/jaggedness/count). Unknown fields are rejected.',
+    'Rules: heads[].neckIndex must point at an appendage of kind "neck" or "torso" (omit it to sit the head on the spine front). Legs make it walk; no legs + serpentine = it slithers; floating hovers (compact floaters hang vertical: head up, tail down). kind "torso" is an upright sub-body rising from the spine — give arms/necks/wings "parent": <torso index> to root on it (centaurs, driders). spine.shape "box" makes rectangular slab bodies (cubes, chests, golems). palette.opacity < 1 = translucent body (ghosts, oozes). tips:"hand" puts a stylized palm+fingers at the appendage tip (not allowed on legs — they get feet). jointRings:true hovers glowing accent-colored energy rings at the limb joints. cilia:true rings the eye with twitching fleshy lashes. heads[].form gives a sculpted skull+jaw+teeth head (serpent=wedge, beast=broad muzzle, blunt=rounded, skull=bony) — use it for any creature with a real face. Use garnish only for parts you are told exist (crystalSpikes = jagged accent crystal shards on the back, params scale/jaggedness/count). skin.blend 0–1 sets how much parts melt into the body where they meet: 0 bony/chitinous/mechanical (hard seams), ~0.35 lean muscle, ~0.5 fleshy, 1 amorphous/gelatinous (one dripping mass); per-appendage "blend" overrides it for mixed bodies (a slime with one skeletal arm). Omit both for natural per-kind defaults. Unknown fields are rejected.',
     'SIZE the creature for the battle grid (1 tile = 5 ft), using its LARGEST dimension: Tiny ≤2.5 ft (half tile), Small ≤4, Medium ≤6 (1 tile), Large ≤10 (2×2 tiles), Huge ≤15 (3×3), Gargantuan >15 (4×4). Match the size the creature should occupy in combat.',
   ].join('\n');
 }
@@ -175,6 +207,8 @@ async function readBody(req: DevHubRouteContext['req']): Promise<Record<string, 
   return JSON.parse(acc) as Record<string, unknown>;
 }
 
+const HERO_DIR = path.resolve(process.cwd(), 'public/creatures3d/hero');
+
 async function listEntries(): Promise<CreatureLibraryEntry[]> {
   const dir = libraryDir();
   let files: string[] = [];
@@ -184,7 +218,17 @@ async function listEntries(): Promise<CreatureLibraryEntry[]> {
     return []; // library dir not created yet — an empty library, not an error
   }
   const entries = await Promise.all(
-    files.map(async (f) => JSON.parse(await fsp.readFile(path.join(dir, f), 'utf8')) as CreatureLibraryEntry),
+    files.map(async (f) => {
+      const entry = JSON.parse(await fsp.readFile(path.join(dir, f), 'utf8')) as CreatureLibraryEntry;
+      // a finished hero mesh surfaces as a public URL path (vite serves public/)
+      try {
+        await fsp.access(path.join(HERO_DIR, entry.id, 'hero.glb'));
+        entry.heroGlb = `creatures3d/hero/${entry.id}/hero.glb`;
+      } catch {
+        // no hero yet — field stays absent
+      }
+      return entry;
+    }),
   );
   return entries.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 }
@@ -199,9 +243,20 @@ async function writeEntry(entry: CreatureLibraryEntry): Promise<void> {
 async function generatePlan(
   runner: CliRunner,
   userSection: string,
-): Promise<{ plan: CreaturePlan } | { errors: string[] }> {
-  const known = await knownPartIds();
-  const basePrompt = `${schemaPrompt()}\nKnown garnish partIds: ${[...known].sort().join(', ')}.\n\n${userSection}`;
+  server: any,
+): Promise<
+  | { plan: CreaturePlan; sizeCategory: ReturnType<PlanSizeModule['sizeCategoryForPlan']> }
+  | { errors: string[] }
+> {
+  // Load the schema, sizing rule, and part registry only for a request that will ask the
+  // creature planner to generate or revise a plan. Listing, approval, unrelated routes,
+  // and Vite configuration startup therefore stay independent of the 3D entity runtime.
+  const [{ PLAN_LIMITS, validateCreaturePlan }, { sizeCategoryForPlan }, known] = await Promise.all([
+    server.ssrLoadModule(entitySrcPath('textPlan/planSchema.ts')) as Promise<PlanSchemaModule>,
+    server.ssrLoadModule(entitySrcPath('textPlan/planSize.ts')) as Promise<PlanSizeModule>,
+    knownPartIds(server),
+  ]);
+  const basePrompt = `${schemaPrompt(PLAN_LIMITS)}\nKnown garnish partIds: ${[...known].sort().join(', ')}.\n\n${userSection}`;
   let lastErrors: string[] = [];
   for (let attempt = 0; attempt < 2; attempt++) {
     const prompt =
@@ -217,7 +272,11 @@ async function generatePlan(
       continue;
     }
     const errors = validateCreaturePlan(candidate, known);
-    if (errors.length === 0) return { plan: candidate as CreaturePlan };
+    if (errors.length === 0) {
+      // A validated plan can safely use the shared combat-sizing rule before it is stored.
+      const plan = candidate as CreaturePlan;
+      return { plan, sizeCategory: sizeCategoryForPlan(plan) };
+    }
     lastErrors = errors;
   }
   return { errors: lastErrors };
@@ -271,6 +330,7 @@ export async function handleCreaturePlanRoutes(
         const result = await generatePlan(
           runner,
           `Current plan:\n${JSON.stringify(parent.plan, null, 2)}\n\nRevision request: ${note}\nReturn the FULL revised plan.`,
+          ctx.server,
         );
         if ('errors' in result) {
           json({ errors: result.errors }, 422);
@@ -286,7 +346,7 @@ export async function handleCreaturePlanRoutes(
           status: 'generated',
           createdAt: new Date().toISOString(),
           revisedFrom: parent.id,
-          sizeCategory: sizeCategoryForPlan(result.plan),
+          sizeCategory: result.sizeCategory,
         };
         await writeEntry(entry);
         json({ entry });
@@ -303,7 +363,7 @@ export async function handleCreaturePlanRoutes(
         json({ entry: existing });
         return true;
       }
-      const result = await generatePlan(runner, `Creature description: ${text}`);
+      const result = await generatePlan(runner, `Creature description: ${text}`, ctx.server);
       if ('errors' in result) {
         json({ errors: result.errors }, 422);
         return true;
@@ -317,7 +377,7 @@ export async function handleCreaturePlanRoutes(
         plan: result.plan,
         status: 'generated',
         createdAt: new Date().toISOString(),
-        sizeCategory: sizeCategoryForPlan(result.plan),
+        sizeCategory: result.sizeCategory,
       };
       await writeEntry(entry);
       json({ entry });

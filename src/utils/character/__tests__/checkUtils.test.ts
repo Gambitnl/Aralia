@@ -1,10 +1,18 @@
+/**
+ * This file proves ability checks honor their real modifiers and roll controls.
+ *
+ * Spell riders, skill proficiency, advantage, and deterministic simulations all
+ * enter through rollAbilityCheck. These focused checks keep the shared resolver
+ * from widening a targeted modifier or bypassing the normal dice engine.
+ */
+
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { rollAbilityCheck } from '../checkUtils';
 import { CombatCharacter } from '../../../types/combat';
-import { rollDice } from '../../combat/combatUtils';
+import { rollDice } from '../../../systems/dice/rollers';
 import { rollSavingThrow } from '../savingThrowUtils';
 
-vi.mock('../../combat/combatUtils', () => ({
+vi.mock('../../../systems/dice/rollers', () => ({
   rollDice: vi.fn()
 }));
 
@@ -111,5 +119,58 @@ describe('rollAbilityCheck', () => {
     vi.mocked(rollDice).mockReturnValueOnce(11);
     const savingThrow = rollSavingThrow(guidedTarget, 'Wisdom', 10);
     expect(savingThrow.modifiersApplied).toBeUndefined();
+  });
+
+  it('applies source-backed fixed-skill advantage without widening the target', () => {
+    // Hunter's Mark-style source data uses a fixed skill list and a string
+    // advantage label rather than Guidance's numeric dice contract. The shared
+    // check path should honor the listed skills and ignore unrelated checks.
+    const markedTarget = {
+      ...createCombatant(),
+      statusEffects: [{
+        id: 'hunters-mark-check',
+        name: "Hunter's Mark",
+        type: 'debuff',
+        duration: 10,
+        source: "Hunter's Mark",
+        effect: { type: 'condition' },
+        abilityCheckModifier: {
+          appliesTo: 'Wisdom (Perception or Survival) checks to find the marked target',
+          bonusDice: '',
+          flatModifier: 'advantage',
+          skillSelection: 'fixed_skills',
+          skillChooser: 'spell',
+          skillPool: ['Perception', 'Survival'],
+          frequency: 'every_matching_check',
+          durationScope: 'while_mark_remains_on_target'
+        }
+      }]
+    } as unknown as CombatCharacter;
+
+    vi.mocked(rollDice).mockReturnValueOnce(2).mockReturnValueOnce(18);
+    const perceptionCheck = rollAbilityCheck(markedTarget, 'Wisdom', 'Perception');
+    expect(perceptionCheck.roll).toBe(18);
+    expect(rollDice).toHaveBeenCalledTimes(2);
+
+    vi.clearAllMocks();
+    vi.mocked(rollDice).mockReturnValueOnce(9);
+    const investigationCheck = rollAbilityCheck(markedTarget, 'Intelligence', 'Investigation');
+    expect(investigationCheck.roll).toBe(9);
+    expect(rollDice).toHaveBeenCalledTimes(1);
+  });
+
+  it('forwards an injected random stream through the shared d20 roller', () => {
+    const deterministicRng = vi.fn(() => 0.85);
+    vi.mocked(rollDice).mockReturnValue(18);
+
+    const result = rollAbilityCheck(
+      createCombatant(),
+      'Dexterity',
+      'Acrobatics',
+      { rng: deterministicRng },
+    );
+
+    expect(result.roll).toBe(18);
+    expect(rollDice).toHaveBeenCalledWith('1d20', { rng: deterministicRng });
   });
 });

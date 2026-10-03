@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
+import type { Mock } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import World3DMinimap from '../World3DMinimap';
 import type { WorldData } from '../../../services/worldSim/types';
@@ -53,5 +54,27 @@ describe('World3DMinimap (Plan 4 deferred UX)', () => {
       />,
     );
     expect(screen.getByTestId('world-3d-minimap')).toBeInTheDocument();
+  });
+
+  // GG-14 pattern test: with vitest-canvas-mock wired into src/test/setup.ts,
+  // getContext('2d') returns spyable vi.fn() methods instead of throwing
+  // jsdom's "Not implemented", so paint output itself is now assertable.
+  it('paints the biome grid to the canvas via real 2d-context draw calls', () => {
+    const { container } = render(
+      <World3DMinimap
+        worldData={makeMinimalWorldData()}
+        playerWorldPos={{ x: 128, y: 5, z: 64 }}
+      />,
+    );
+    const canvas = container.querySelector('canvas');
+    expect(canvas).not.toBeNull();
+
+    const ctx = canvas!.getContext('2d') as unknown as CanvasRenderingContext2D & {
+      clearRect: Mock;
+      fillRect: Mock;
+    };
+    // Paint = 1 clearRect + 1 background fillRect + 1 fillRect per grid cell (4x2 = 8).
+    expect(ctx.clearRect).toHaveBeenCalledTimes(1);
+    expect(ctx.fillRect).toHaveBeenCalledTimes(9);
   });
 });

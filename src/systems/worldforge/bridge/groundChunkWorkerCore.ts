@@ -31,10 +31,11 @@ export function handleGroundChunkRequest(ground: GroundWorld, req: GroundChunkRe
   const bundle = buildChunkBundle(sampleGroundChunk(ground, req.cx, req.cy, req.resolution));
   // Artifact features drive the scatter (determinism + no lattice banding); trees
   // and bushes are separate instanced layers.
-  const { trees, bushes } = buildGroundVegetation(ground, req.cx, req.cy);
+  const { trees, bushes, understory } = buildGroundVegetation(ground, req.cx, req.cy);
   return {
     ...bundle,
     vegetation: trees.positions.length > 0 ? trees : undefined,
     bushes: bushes.positions.length > 0 ? bushes : undefined,
+    understory: understory.count > 0 ? understory : undefined,
   };
 }

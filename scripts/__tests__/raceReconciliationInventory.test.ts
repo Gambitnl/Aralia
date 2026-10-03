@@ -207,7 +207,7 @@ describe('createRaceCrosswalkRecord', () => {
           speed: { walk: 30 },
           senses: { darkvision: 60 },
           traits: [{ name: 'Relentless Endurance', summary: 'entries: Relentless Endurance' }],
-        },
+        } as any,
       ],
     );
 

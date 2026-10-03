@@ -38,6 +38,7 @@ import type {
   BuildingEnsemble,
   BuildingType,
   FacadePattern,
+  FoundationTreatment,
   RoofCovering,
   StyleResolved,
   WallMaterial,
@@ -52,6 +53,15 @@ import {
 import { resolveBuildingWeathering } from './buildingWeathering';
 
 export type RoofForm = 'gable' | 'hip' | 'steep' | 'flat';
+
+// Keeps share their district identity but use defensive masonry and a roof
+// terrace. Resolve this in both receipt paths so the map and model agree.
+function keepConstruction(construction: BuildingConstruction): BuildingConstruction {
+  return { ...construction, kitId: 'keep-ashlar', wallMaterial: 'dressed-stone',
+    wallCourseFt: 1.15, roofCovering: 'slate', foundation: 'fieldstone',
+    ornamentKit: 'stone-quoins', shutters: 'none',
+    constructionSignature: `${construction.constructionSignature}:keep-ashlar` };
+}
 export type GatehouseForm = 'twinTowers' | 'tunnelBlock' | 'singleTower';
 
 export interface DeckDetail {
@@ -90,12 +100,15 @@ export const STYLE_FAMILIES: Record<StyleFamily['id'], StyleFamily> = {
   },
   coastalTimber: {
     id: 'coastalTimber',
-    wallPalette: ['#9a8a6e', '#a89478', '#8c7a5e', '#b3a184'],
-    roofPalette: ['#5e4a38', '#6d5540', '#514031'],
+    // Sunlit timber boards, charcoal roof tiles, and sea-blue trim keep a
+    // coastal district readable at a glance. Palette values change appearance
+    // only: the existing named hashes still choose the same stable indices.
+    wallPalette: ['#e0c792', '#d2ad6a', '#c09252', '#f0d9a8'],
+    roofPalette: ['#3a2f29', '#4d3c31', '#2f2723'],
     roofForms: ['gable', 'hip'],
     facadePatterns: ['vertical-bays', 'half-timber', 'plain'],
     gatehouseForms: ['singleTower', 'twinTowers'],
-    wallTint: '#93865f',
+    wallTint: '#1e6378',
     chimneys: true,
     deckDetail: { pilingSpacingM: 2.5, railing: true, archRiseM: 0.6 },
   },
@@ -300,9 +313,17 @@ export function finishPaletteForTier<T>(
 // unchanged, so temperate output is byte-identical and non-temperate buildings
 // whose picked kit is allowed keep their exact former result. A ban REMAPS the
 // already-picked kit to one specific allowed sibling — it never rerolls draws.
-// What remains deferred: foundation-specific bans (e.g. timber piles in arid
-// when covering and wall are both allowed) — add a bannedFoundations column to
-// this data table if the operator wants them.
+// What changed (2026-09-20, agora-70a2): the deferred foundation column is in.
+// A kit whose COVERING and WALL both survive a climate could still stand on a
+// foundation that climate destroys — the operator's named case is timber piles
+// in an arid town, where there is no saturated ground to keep buried timber
+// from drying, splitting, and powdering. bannedFoundations closes that third
+// axis and rides the SAME remap: a banned foundation swaps the whole kit to an
+// allowed sibling, never a reroll.
+// What was preserved: temperate still bans nothing, so its output stays
+// byte-identical. Only climates whose ban list the operator has actually named
+// carry entries — cold and marsh keep an EMPTY foundation ban list rather than
+// an invented one, and widen it when the operator names the case.
 // ============================================================================
 
 /**
@@ -315,6 +336,12 @@ export interface ClimateKitFitness {
   bannedCoverings: readonly RoofCovering[];
   /** Wall materials this climate destroys. */
   bannedWallMaterials: readonly WallMaterial[];
+  /**
+   * Ground treatments this climate destroys. Checked independently of covering
+   * and wall, so a kit that survives both can still be remapped for standing
+   * on the wrong footing.
+   */
+  bannedFoundations: readonly FoundationTreatment[];
   /**
    * Best-fit-first covering order used to choose the replacement kit when a
    * ban fires. A covering missing from the list ranks last; remaining ties are
@@ -329,7 +356,9 @@ export interface ClimateKitFitness {
  *
  * - temperate: bans nothing — the guaranteed byte-identical baseline.
  * - arid: reeds and living sod cannot exist in a desert; baked/mineral
- *   coverings (clay tile first) are the near fit.
+ *   coverings (clay tile first) are the near fit. Timber piles are banned too:
+ *   buried timber only survives where the ground stays wet, so a desert pile
+ *   dries and fails. This is the operator's named foundation case.
  * - cold: reed thatch rots under snow-melt soak; the preference lists the
  *   family's HEAVIEST covering first (stone slab, then turf/sod, slate, tile)
  *   per the snow-load rule.
@@ -340,21 +369,25 @@ export const CLIMATE_KIT_FITNESS: Readonly<Record<ClimateClass, ClimateKitFitnes
   temperate: {
     bannedCoverings: [],
     bannedWallMaterials: [],
+    bannedFoundations: [],
     coveringPreference: [],
   },
   arid: {
     bannedCoverings: ['reed-thatch', 'sod'],
     bannedWallMaterials: [],
+    bannedFoundations: ['timber-piles'],
     coveringPreference: ['clay-tile', 'stone-slab', 'slate', 'wood-shingle'],
   },
   cold: {
     bannedCoverings: ['reed-thatch'],
     bannedWallMaterials: [],
+    bannedFoundations: [],
     coveringPreference: ['stone-slab', 'sod', 'slate', 'clay-tile', 'wood-shingle'],
   },
   marsh: {
     bannedCoverings: [],
     bannedWallMaterials: ['wattle-daub'],
+    bannedFoundations: [],
     coveringPreference: ['reed-thatch', 'wood-shingle', 'sod', 'clay-tile', 'slate', 'stone-slab'],
   },
 };
@@ -375,7 +408,9 @@ const CLIMATE_SWAP_WEALTH_INDEX: Readonly<Record<BriefWealth, 0 | 1 | 2>> = {
  * remapped to the family's best-fit allowed sibling: swapping the complete kit
  * (not just the covering) keeps kitId/wall/covering/foundation receipts
  * self-consistent and also fixes companion absurdities the operator called out
- * (desert timber piles ride along with desert thatch). The replacement is a
+ * (desert timber piles ride along with desert thatch). A banned FOUNDATION fires
+ * the same remap on its own, so a kit whose covering and wall both pass can
+ * still be swapped off a footing the climate destroys. The replacement is a
  * pure function of (family, climate) — same inputs always remap to the same
  * kit, never a reroll. Shutters stay as resolved (they are a family-wide
  * district trait, not kit-bound) and constructionSignature keeps naming the
@@ -392,12 +427,14 @@ export function applyClimateKitFitness(
   const fitness = CLIMATE_KIT_FITNESS[climate];
   const coveringBanned = fitness.bannedCoverings.includes(construction.roofCovering);
   const wallBanned = fitness.bannedWallMaterials.includes(construction.wallMaterial);
-  if (!coveringBanned && !wallBanned) return construction;
+  const foundationBanned = fitness.bannedFoundations.includes(construction.foundation);
+  if (!coveringBanned && !wallBanned && !foundationBanned) return construction;
 
   const kits = constructionKitsForFamily(familyId);
   const allowed = kits.filter((kit) =>
     !fitness.bannedCoverings.includes(kit.roofCovering)
-    && !fitness.bannedWallMaterials.includes(kit.wallMaterial));
+    && !fitness.bannedWallMaterials.includes(kit.wallMaterial)
+    && !fitness.bannedFoundations.includes(kit.foundation));
   if (allowed.length === 0) {
     throw new Error(
       `applyClimateKitFitness: every ${familyId} construction kit is banned in a `
@@ -583,6 +620,7 @@ export function resolveArchitectureVariant(
   if (roofForm === 'flat' && buildingType === 'temple') {
     roofForm = family.roofForms.find((f) => f !== 'flat') ?? 'gable';
   }
+  if (buildingType === 'keep') roofForm = 'flat';
 
   // Silhouette changes stay within a narrow band. Detached/courtyard roofs gain
   // individual profile variation; connected rows repeat one block rhythm while
@@ -599,15 +637,15 @@ export function resolveArchitectureVariant(
   }));
 
   return {
-    wallColor,
-    roofColor,
+    wallColor: buildingType === 'keep' ? '#a6a091' : wallColor,
+    roofColor: buildingType === 'keep' ? '#626b70' : roofColor,
     roofForm,
-    facadePattern,
+    facadePattern: buildingType === 'keep' ? 'plain' : facadePattern,
     districtSignature: `${family.id}:${fnv1a(districtKey).toString(36)}`,
     buildingVariant: fnv1a(buildingKey).toString(36),
     pitchScale,
     eaveOffsetFt,
-    construction,
+    construction: buildingType === 'keep' ? keepConstruction(construction) : construction,
   };
 }
 
@@ -653,6 +691,7 @@ export function resolveStyle(input: ResolveStyleInput, path: SeedPath): StyleRes
   if (roofForm === 'flat' && input.buildingType === 'temple') {
     roofForm = fam.roofForms.find((f) => f !== 'flat') ?? 'gable';
   }
+  if (input.buildingType === 'keep') roofForm = 'flat';
 
   // Roof pitch starts from the approved form/climate rule. Identified buildings
   // then receive a small individual scale, which changes the skyline without
@@ -688,7 +727,7 @@ export function resolveStyle(input: ResolveStyleInput, path: SeedPath): StyleRes
   // climate-fitted); standalone previews receive a deterministic complete kit
   // from their stable path, passed through the same climate fitness rule so a
   // preview desert building cannot show a kit the game path would remap.
-  const construction = variant?.construction ?? applyClimateKitFitness(
+  const baseConstruction = variant?.construction ?? applyClimateKitFitness(
     fam.id,
     input.climate,
     input.wealth,
@@ -698,6 +737,8 @@ export function resolveStyle(input: ResolveStyleInput, path: SeedPath): StyleRes
       standaloneKey: path,
     }),
   );
+  const construction = input.buildingType === 'keep' && baseConstruction.kitId !== 'keep-ashlar'
+    ? keepConstruction(baseConstruction) : baseConstruction;
   // Weathering uses named hashes and the already-resolved material kit. It does
   // not consume the legacy style stream or alter any structural roof answer.
   const weathering = resolveBuildingWeathering({
@@ -711,9 +752,9 @@ export function resolveStyle(input: ResolveStyleInput, path: SeedPath): StyleRes
 
   return {
     familyId: fam.id,
-    wallColor,
-    roofColor,
-    trimColor: fam.wallTint, // deterministic derivation — no draw
+    wallColor: input.buildingType === 'keep' ? '#a6a091' : wallColor,
+    roofColor: input.buildingType === 'keep' ? '#626b70' : roofColor,
+    trimColor: input.buildingType === 'keep' ? '#8d887c' : fam.wallTint, // deterministic derivation — no draw
     roofForm,
     pitchRiseFt,
     eaveOverhangFt,
@@ -722,7 +763,7 @@ export function resolveStyle(input: ResolveStyleInput, path: SeedPath): StyleRes
     raisedPlinth: input.climate === 'marsh',
     districtSignature,
     buildingVariant,
-    facadePattern,
+    facadePattern: input.buildingType === 'keep' ? 'plain' : facadePattern,
     construction,
     weathering,
     motifs: motifResolution.motifs,

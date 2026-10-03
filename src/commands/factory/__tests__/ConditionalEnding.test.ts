@@ -3,7 +3,7 @@ import { SpellCommandFactory } from '../SpellCommandFactory'
 import { Spell, SpellEffect } from '@/types/spells'
 import { CombatCharacter } from '@/types/combat'
 import { GameState } from '@/types'
-import { createMockCombatCharacter, createMockGameState } from '@/utils/factories'
+import { createMockCombatCharacter, createMockGameState } from '@/utils/core'
 
 describe('SpellCommandFactory - Conditional Endings', () => {
   it('should pass conditionalEndings to the CommandContext when present on an effect', async () => {

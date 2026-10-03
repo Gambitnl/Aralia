@@ -1,0 +1,219 @@
+/**
+ * @file groundVolumeFromWorld.ts — the missing link.
+ *
+ * Everything built for volume ground so far ran on `benchHeightM`, a noise
+ * function written to measure memory. It is not Aralia's terrain. The fluid
+ * proof, the bubble measurement and the MPM port all simulate against invented
+ * ground, so none of them says anything about the world a player walks.
+ *
+ * Remy, 2026-08-07: "we need ground with a volume."
+ *
+ * This file fills a voxel volume from the LIVE GroundWorld — the same object
+ * the streamed 3D world meshes, with its real heights, its carved river beds
+ * and its town pads. From here on, a cut shows what the ground at that place is
+ * actually made of, and water runs down a hillside somebody can recognize.
+ *
+ * WHAT A VOLUME NEEDS THAT A HEIGHTFIELD DOES NOT
+ *
+ * A heightfield answers "how high is the ground here". A volume answers "is
+ * THIS POINT solid", which is a different question and the only one a fluid or
+ * a tunnel can use. Filling one from the other is therefore a widening: every
+ * column becomes solid from the bedrock up to its surface height, and the layer
+ * stack decides what each cell is made of by its depth below that surface.
+ *
+ * The widening is lossy in one direction only. A heightfield cannot describe an
+ * overhang, so a volume built from one has none — until something cuts it. That
+ * is the point: the volume can hold a tunnel the heightfield could never store.
+ */
+import { Material, VoxelVolume } from './voxelVolume';
+import { GroundBand, DEFAULT_STACK, substanceAtDepth } from './materials';
+
+/** Just enough of GroundWorld to fill from. Keeps this file off the bridge. */
+export interface GroundHeightSource {
+  /** Surface height in world meters at a world point. */
+  surfaceYAt(xM: number, zM: number): number;
+  /** Material name at a world point, from the biome grid. Optional. */
+  materialAt?(xM: number, zM: number): string | undefined;
+}
+
+export interface BubbleFill {
+  volume: VoxelVolume;
+  /** World position of cell (0,0,0), meters. */
+  originM: readonly [number, number, number];
+  cellM: number;
+  cellsPerEdge: number;
+  /** Vertical cell size, meters. Equal to `cellM` for a cube. */
+  cellHM: number;
+  /** Cells on Y. Equal to `cellsPerEdge` for a cube. */
+  cellsY: number;
+  fillMs: number;
+  /** Cells that hold matter. Reported so a caller can see the bubble is not empty. */
+  solidCells: number;
+}
+
+/**
+ * How tall the bubble is, and how finely it is cut vertically.
+ *
+ * WHY THIS IS OPTIONAL AND NOT A PAIR OF REQUIRED ARGUMENTS. Ground is wide and
+ * thin. A cube spends its whole cell budget on the two axes that carry the least
+ * information: at 240 m the cube is 240 m of sky and bedrock to hold about 40 m
+ * of actual relief, and the cost of the horizontal axes is SQUARED while the
+ * vertical axis costs a factor. Buying width therefore costs quadratically and
+ * buying height costs linearly, so a slab is the shape that makes a big land
+ * tile affordable at all — 360 m of width at 1 m cells is 46.7 M cells as a cube
+ * and 4.1 M as a 32 m slab, which is a QUARTER of what the 240 m cube already
+ * builds.
+ *
+ * Both fields default to the horizontal ones, so a caller that says nothing gets
+ * exactly the cube it always got.
+ */
+export interface BubbleVertical {
+  /** Vertical extent in meters. Defaults to `extentM` — a cube. */
+  heightM?: number;
+  /** Vertical cell size in meters. Defaults to `cellM` — cubic cells. */
+  cellHM?: number;
+}
+
+/**
+ * What a column is made of: one stack for the whole fill, or a stack chosen per
+ * column from where it stands.
+ *
+ * A single stack was the only option for nine critic rounds, and IMPL-1's first
+ * open call is what it cost — a disc of forest litter let into a snow-and-sand
+ * mountainside. A 64 m bubble is 42 artifact cells across and the biome grid is
+ * finer than that, so "which biome is this bubble in" has no single answer at
+ * the edge of a river or the foot of a scree slope. The union is one parameter
+ * rather than two because a column HAS one ground, and a caller that knows the
+ * same answer everywhere should not have to say so twice.
+ */
+export type ColumnStackSource =
+  | readonly GroundBand[]
+  | ((xM: number, zM: number) => readonly GroundBand[]);
+
+/* The string-to-material switch that used to live here is gone.
+ *
+ * It mapped layer names — 'litter', 'topsoil' — onto voxel values, and anything
+ * it did not recognize became bedrock. That silent default is what made a
+ * per-biome stack impossible: adding sand or peat produced granite and no
+ * error. A `GroundBand` now names its `Material` directly, so there is nothing
+ * left to translate and nothing left to guess wrong.
+ */
+
+/**
+ * How many cells a bubble of this size will have along one edge.
+ *
+ * Exported because the cost of a fill is this number CUBED, and a caller that
+ * offers the user a choice of sizes has to know the cost before it commits to
+ * one. Deriving it a second time in the caller is how a size picker ends up
+ * disagreeing with the thing it sizes.
+ *
+ * The multiple of 8 is the brick edge in `VoxelVolume`, which rejects anything
+ * else.
+ */
+export function bubbleCellsPerEdge(extentM: number, cellM: number): number {
+  return Math.round(extentM / cellM / 8) * 8;
+}
+
+/**
+ * How many cells TALL a bubble of this height will be.
+ *
+ * Separate from `bubbleCellsPerEdge` only so the caller reads what it means, and
+ * because the floor matters here in a way it does not horizontally: a height
+ * that rounds to zero bricks is a volume with no room for a surface, and
+ * `VoxelVolume` would take it. One brick is the smallest thing that can hold a
+ * boundary at all.
+ */
+export function bubbleCellsY(heightM: number, cellHM: number): number {
+  return Math.max(8, Math.round(heightM / cellHM / 8) * 8);
+}
+
+/**
+ * Fill a bubble of voxels from real world ground.
+ *
+ * `centerXM`/`centerZM` are world meters — where the player stands. The bubble
+ * is centered on that point horizontally, and vertically on the ground beneath
+ * it, so the surface sits mid-bubble where a walking player puts it rather than
+ * at the floor where an arbitrary origin would.
+ *
+ * Cost is dominated by the height sample, one per column. The measured fill for
+ * a 64 m bubble at 25 cm is a few hundred milliseconds, which is why the ADR
+ * requires this to run in a worker ahead of the player rather than on arrival.
+ */
+export function fillBubbleFromGround(
+  src: GroundHeightSource,
+  centerXM: number,
+  centerZM: number,
+  extentM: number,
+  cellM: number,
+  stackSource: ColumnStackSource = DEFAULT_STACK,
+  vertical: BubbleVertical = {},
+): BubbleFill {
+  const t0 = Date.now();
+  /* Resolved ONCE, not per cell. The inner loop runs cellsPerEdge cubed times —
+   * 16.7 million at the shipped size — and a `typeof` in there is a branch the
+   * fill cannot afford. */
+  const stackAt =
+    typeof stackSource === 'function' ? stackSource : (): readonly GroundBand[] => stackSource;
+  const cellsPerEdge = bubbleCellsPerEdge(extentM, cellM);
+  const cellHM = vertical.cellHM ?? cellM;
+  const cellsY = bubbleCellsY(vertical.heightM ?? extentM, cellHM);
+  const vol = new VoxelVolume(cellsPerEdge, cellsY);
+
+  const half = (cellsPerEdge * cellM) / 2;
+  const halfY = (cellsY * cellHM) / 2;
+  const originX = centerXM - half;
+  const originZ = centerZM - half;
+  // Vertical origin from the ground under the center, so the surface lands in
+  // the middle of the bubble. A fixed origin would bury the bubble in a valley
+  // and float it over a peak. It is the bubble's OWN half-height, not the
+  // horizontal one: a 240 m slab 32 m tall puts its surface 16 m up, not 120.
+  const centerGround = src.surfaceYAt(centerXM, centerZM);
+  const originY = centerGround - halfY;
+
+  let solidCells = 0;
+  for (let z = 0; z < cellsPerEdge; z++) {
+    const wz = originZ + z * cellM;
+    for (let x = 0; x < cellsPerEdge; x++) {
+      const wx = originX + x * cellM;
+      const surface = src.surfaceYAt(wx, wz);
+      const topCell = Math.floor((surface - originY) / cellHM);
+      if (topCell < 0) continue;
+      const yMax = Math.min(cellsY - 1, topCell);
+      // One stack lookup per COLUMN, not per cell — the answer cannot change
+      // going down, and asking 256 times per column would triple the fill.
+      const stack = stackAt(wx, wz);
+      for (let y = 0; y <= yMax; y++) {
+        const depth = surface - (originY + y * cellHM);
+        vol.set(x, y, z, substanceAtDepth(depth, stack).id);
+        solidCells++;
+      }
+    }
+  }
+  vol.compact();
+
+  return {
+    volume: vol,
+    originM: [originX, originY, originZ],
+    cellM,
+    cellHM,
+    cellsPerEdge,
+    cellsY,
+    fillMs: Date.now() - t0,
+    solidCells,
+  };
+}
+
+/**
+ * Adapt a GroundWorld into the height source above.
+ *
+ * Taken as a callback pair rather than the GroundWorld type so this module
+ * does not import the bridge. `groundChunkLoader` is one of the largest files
+ * in the repo and pulling it in would make every volume test load the town
+ * generator.
+ */
+export function groundSource(
+  surfaceYAt: (xM: number, zM: number) => number,
+  materialAt?: (xM: number, zM: number) => string | undefined,
+): GroundHeightSource {
+  return { surfaceYAt, materialAt };
+}

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/06/2026, 18:38:43
+ * Last Sync: 04/08/2026, 01:48:12
  * Dependents: commands/factory/AbilityCommandFactory.ts
  * Imports: 5 files
  *
@@ -18,7 +18,7 @@ import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { ActiveEffect, CombatCharacter, CombatState } from '../../types/combat'
 import type { UtilityEffect } from '../../types/spells'
-import { getDistance } from '../../utils/combatUtils'
+import { getDistance } from '../../utils/combat'
 
 /**
  * Activates Find Familiar-style shared senses as a structured caster effect.

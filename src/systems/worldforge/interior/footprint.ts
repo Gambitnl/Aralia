@@ -66,22 +66,39 @@ interface TypeConfig {
   tower: boolean;
 }
 
+// Each cell remains five feet: these are larger floorplans, not enlarged meshes.
+// A cottage needs living, cooking and sleeping space around character-sized
+// furniture; public houses need a gathering room as well as service/guest rooms.
+// Town-negotiated lot profiles and explicit clamps remain authoritative, so a
+// small existing parcel can still produce a smaller building than these defaults.
 const TYPE_CONFIG: Record<BuildingType, TypeConfig> = {
-  cottage:  { mainW: [4, 6],  mainH: [3, 5], wings: [0, 1], tower: false },
-  shop:     { mainW: [4, 6],  mainH: [4, 6], wings: [1, 1], tower: false },
-  workshop: { mainW: [5, 7],  mainH: [4, 6], wings: [1, 1], tower: false },
-  tavern:   { mainW: [6, 9],  mainH: [5, 7], wings: [1, 2], tower: false },
-  manor:    { mainW: [8, 12], mainH: [6, 9], wings: [0, 2], tower: true },
+  cottage:  { mainW: [6, 8],  mainH: [5, 7], wings: [0, 1], tower: false },
+  shop:     { mainW: [7, 9],  mainH: [6, 8], wings: [1, 1], tower: false },
+  workshop: { mainW: [8, 10], mainH: [6, 9], wings: [1, 1], tower: false },
+  tavern:   { mainW: [10, 13], mainH: [8, 11], wings: [1, 2], tower: false },
+  manor:    { mainW: [12, 16], mainH: [10, 13], wings: [0, 2], tower: true },
   // v2 additions
-  townhouse:  { mainW: [4, 5],  mainH: [5, 8], wings: [0, 1], tower: false }, // narrow, deep
-  tenement:   { mainW: [6, 9],  mainH: [6, 9], wings: [0, 1], tower: false },
-  farmstead:  { mainW: [5, 8],  mainH: [4, 6], wings: [1, 2], tower: false },
-  smithy:     { mainW: [5, 7],  mainH: [4, 6], wings: [1, 1], tower: false },
-  inn:        { mainW: [7, 10], mainH: [6, 8], wings: [1, 2], tower: false },
-  storehouse: { mainW: [6, 9],  mainH: [5, 8], wings: [0, 1], tower: false },
-  temple:     { mainW: [6, 8],  mainH: [8, 12], wings: [0, 2], tower: true },  // long nave axis
-  keep:       { mainW: [7, 10], mainH: [7, 10], wings: [0, 1], tower: true },
-  civic:      { mainW: [6, 9],  mainH: [5, 8], wings: [0, 1], tower: false },
+  townhouse:  { mainW: [5, 7],  mainH: [8, 11], wings: [0, 1], tower: false }, // narrow, deep
+  tenement:   { mainW: [10, 13], mainH: [10, 13], wings: [0, 1], tower: false },
+  farmstead:  { mainW: [8, 11], mainH: [6, 9], wings: [1, 2], tower: false },
+  smithy:     { mainW: [8, 10], mainH: [7, 9], wings: [1, 1], tower: false },
+  inn:        { mainW: [12, 15], mainH: [10, 13], wings: [1, 2], tower: false },
+  storehouse: { mainW: [10, 14], mainH: [8, 12], wings: [0, 1], tower: false },
+  temple:     { mainW: [10, 13], mainH: [14, 18], wings: [0, 2], tower: true },  // long nave axis
+  keep:       { mainW: [12, 16], mainH: [12, 16], wings: [0, 1], tower: true },
+  civic:      { mainW: [10, 13], mainH: [8, 12], wings: [0, 1], tower: false },
+  // Named landmarks. A guild hall carries a stair turret, a windmill IS a tower
+  // over a small round-ish base, and a barracks runs long so a drill yard front
+  // reads from the street.
+  library:    { mainW: [9, 12], mainH: [8, 11], wings: [0, 1], tower: false },
+  guildhall:  { mainW: [12, 15], mainH: [10, 13], wings: [1, 2], tower: true },
+  granary:    { mainW: [7, 9],  mainH: [9, 12], wings: [0, 1], tower: false },
+  windmill:   { mainW: [6, 7],  mainH: [6, 7],  wings: [0, 1], tower: true },
+  lumbermill: { mainW: [10, 13], mainH: [7, 10], wings: [1, 2], tower: false },
+  school:     { mainW: [9, 11], mainH: [7, 10], wings: [0, 1], tower: false },
+  shrine:     { mainW: [5, 7],  mainH: [6, 8],  wings: [0, 1], tower: false },
+  barracks:   { mainW: [12, 16], mainH: [8, 11], wings: [1, 2], tower: false },
+  bakery:     { mainW: [7, 9],  mainH: [7, 9],  wings: [1, 1], tower: false },
 };
 
 /** Inclusive-range draw (SeededRandom.nextInt is max-EXCLUSIVE). */

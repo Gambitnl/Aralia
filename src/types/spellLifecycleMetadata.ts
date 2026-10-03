@@ -39,9 +39,9 @@
 /** Cleanup that happens when a spell, effect, or item reaches its end. */
 export interface EffectEndCleanup {
   /** Event that causes the cleanup to run. */
-  trigger: "spell_ends" | "effect_ends" | "item_effect_ends" | "not_applicable";
+  trigger: string;
   /** What kind of spell-created or spell-owned state is removed. */
-  removes:
+  removes?:
     | "temporary_hit_points"
     | "spell_granted_flying_speed"
     | "extradimensional_space"
@@ -49,11 +49,11 @@ export interface EffectEndCleanup {
     | "spell_material_container"
     | "not_applicable";
   /** Which source's state is eligible for cleanup. */
-  source: "this_spell" | "this_effect" | "not_applicable";
+  source?: "this_spell" | "this_effect" | "not_applicable";
   /** Who or what loses the state when cleanup runs. */
-  scope: "target" | "caster" | "affected_creatures" | "contents" | "created_objects" | "spell_component" | "not_applicable";
+  scope?: "target" | "caster" | "affected_creatures" | "contents" | "created_objects" | "spell_component" | "not_applicable";
   /** Whether cleanup removes all matching state or only a named remainder. */
-  amount: "all_remaining" | "not_applicable";
+  amount?: "all_remaining" | "not_applicable";
   /** Immediate follow-up caused by cleanup, such as falling after flight ends. */
   consequence?: "fall_if_aloft" | "contents_drop_out" | "disintegrate" | "destroy" | "not_applicable";
   /** Where cleanup places moved contents when the prose gives a destination. */
@@ -62,6 +62,10 @@ export interface EffectEndCleanup {
   preventedBy?: "can_prevent_fall" | "not_applicable";
   /** Short note for review cases where source ownership matters. */
   notes?: string;
+  /** Source-facing result wording used by compact authored cleanup records. */
+  result?: string;
+  /** Source-facing note spelling used by compact authored cleanup records. */
+  note?: string;
 }
 
 // ============================================================================

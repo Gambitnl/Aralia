@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 17/07/2026, 22:34:52
- * Dependents: App.tsx
- * Imports: 53 files
+ * Last Sync: 26/08/2026, 13:54:08
+ * Dependents: components/screens/PlayingScreen.tsx
+ * Imports: 46 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -23,8 +23,12 @@
  * 2. Listens to camera position changes and dispatches SET_PLAYER_WORLD_POS
  * 3. Resolves terrain height (Y) from WorldData during position updates
  * 4. Throttles position dispatches to ~10Hz to avoid dispatch spam
- * 5. Renders InWorldHUD overlay (control panel, view-mode toggle, debug)
- * 6. Builds a worker-backed ChunkLoader for PLAYING (W3DUI-1) so mesh work stays off the main thread
+ * 5. Coordinates modular lifecycle sub-hooks:
+ *    - useWorld3DDiscovery: Proximity discovery of hidden sites and dungeon entrances
+ *    - useInteriorTransition: Transitions between exterior ground and dungeon interiors
+ *    - useInPlaceCombatTransition: Live battle map extraction, encounters, and fight-in-place
+ * 6. Renders InWorldHUD overlay (control panel, view-mode toggle, debug)
+ * 7. Builds a worker-backed ChunkLoader for PLAYING (W3DUI-1) so mesh work stays off the main thread
  *
  * Sandbox `World3DDemo` still uses an inline loader; only this PLAYING wrapper uses the worker path.
  */
@@ -51,18 +55,19 @@ if (urlParams.get('stubForgeAssets') === '1') {
 }
 
 import InWorldHUD from './InWorldHUD';
+import DungeonExpeditionOverlay from './DungeonExpeditionOverlay';
+import { Button } from '../ui/Button';
 import WorldGenLoadingScreen, { type WorldGenLoadingStage } from './WorldGenLoadingScreen';
 import type { DisposableWorldGenClient } from './createWorldGenClient';
 import LocaleMovePane from './LocaleMovePane';
-import { groundSurfaceYM } from './PlayerAvatar';
-import {
-  cameraMayWriteGroundPos,
-  hasArrivedAtIntent,
-  isIntentOnTile,
-  type ClickMoveIntent,
-} from './clickMoveAuthority';
+import { type ClickMoveIntent } from './clickMoveAuthority';
 import { localeFeetToGroundMeters } from '../../systems/worldforge/local/localePosition';
 import { requestMapCenterOnPlayer, requestMapDrillToPlayerTown } from '../Worldforge/mapFocusSignal';
+import {
+  OPEN_AGENT_SIM_EVENT,
+  OPEN_TOWN_HISTORY_EVENT,
+  requestDevOverlay,
+} from '../debug/devOverlayEvents';
 import { type DisposableChunkLoader } from './createWorkerChunkLoader';
 import { resolveGroundEntryCellId } from './entryCellIdentity';
 import { usePlayerWorldPos, useWorldViewMode } from '../../hooks/useWorldViewMode';
@@ -71,29 +76,7 @@ import { type SceneCastMember } from './SceneCast';
 import { scheduleClockFromGameTime } from '../../systems/worldforge/roster/gameClock';
 import { GamePhase } from '../../types/core';
 import type { PlayerWorldPosition } from '../../types';
-import type { BattleMapBiome, BattleMapData } from '../../types/combat';
-import {
-  prepareActiveGroundSettlementEncounter,
-  registerActiveGroundCombatProvider,
-  registerActiveGroundOpeningCombatProvider,
-  type ActiveGroundOpeningEncounterRequest,
-  type ActiveGroundSettlementEncounterRequest,
-} from '../../systems/combat/fightInPlace/activeGroundCombatSession';
-import { findStatePatrolWorldEvent } from '../../systems/combat/worldScenario/statePatrolWorldEvent';
-import type { OpeningThreatSceneReceipt } from '../../systems/combat/worldScenario/worldforgeEncounterReceipt';
 
-/**
- * HOSTILE-1 return-from-combat contract:
- * On encounter resolution, the player re-enters ground mode at the fight
- * tile + position. Persisted state:
- *   - `playerGroundPos` (GameState) — tile-scoped ground meters, set by
- *     SET_PLAYER_GROUND_POS immediately before combat starts.
- *   - `combatTriggered` ref — prevents exit cleanup from overwriting the
- *     saved continent position when the player enters combat.
- *   - `returningFromCombat` ref — signals that the ground-mode rebuild
- *     was triggered by a combat return, so the saved ground position is
- *     the authoritative spawn (not the continent-derived tile center).
- */
 import { WORLD3D_CONFIG, heightToMeters } from '../../systems/world3d/config';
 import { makeCellLocationId } from '../../utils/location/cellLocationId';
 import { POSITION_DISPATCH_INTERVAL_MS } from './transitionTiming';
@@ -102,7 +85,9 @@ import { POSITION_DISPATCH_INTERVAL_MS } from './transitionTiming';
 // initial chunk (and the unit-test module graph) never pays for them; the
 // same reason AtlasDemo is lazy. Only types may be imported statically.
 import type { WorldDelta } from '../../systems/worldforge/delta/types';
-import type { GroundWorld } from '../../systems/worldforge/bridge/groundChunkLoader';
+import type {
+  GroundWorld,
+} from '../../systems/worldforge/bridge/groundChunkLoader';
 import type { RegionArtifact } from '../../systems/worldforge/artifacts';
 import {
   artifactsForAtlasGroundDrilldown,
@@ -112,7 +97,6 @@ import {
 } from '../../systems/worldforge/leaf3d/atlasGroundDrilldown';
 import {
   atlasGroundSpawnForAddress,
-  atlasHiddenSiteForAddress,
 } from '../../systems/worldforge/leaf3d/atlasGroundContinuity';
 import type { BuildingEventLogsByBurg } from '../../systems/worldforge/interior/blueprintTypes';
 import {
@@ -120,8 +104,6 @@ import {
   cloneBuildingEventHistory,
 } from '../../systems/worldforge/interior/buildingEventHistory';
 import type { TownSimRegistry } from '../../systems/worldforge/townsim/townSimRegistry';
-import { dungeonNameForEntrance } from '../../systems/worldforge/bridge/dungeonEntrances';
-import { LOCATIONS } from '../../data/world/locations';
 import { getBurgNamer } from '../../systems/worldforge/bridge/legacySubmapBridge';
 import { generateTownRoster } from '../../systems/worldforge/roster/generateTownRoster';
 import { SeededRandom } from '../../utils/random/seededRandom';
@@ -130,6 +112,17 @@ import type { NPCGenerationConfig } from '../../services/npcGenerator';
 import { generateNpcBusiness, generateBusinessName } from '../../systems/economy/NpcBusinessManager';
 import type { BusinessType } from '../../types/business';
 import { getGameDay } from '../../utils/core';
+
+// Sub-hook imports
+import { useWorld3DDiscovery } from './hooks/useWorld3DDiscovery';
+import { useInteriorTransition } from './hooks/useInteriorTransition';
+import {
+  useInPlaceCombatTransition,
+  attachWorldforgeBattleMapProvenance,
+} from './hooks/useInPlaceCombatTransition';
+
+// Re-export provenance helper for backwards compatibility
+export { attachWorldforgeBattleMapProvenance };
 
 // PLAYING's 3D view enters the Worldforge ground world (walking scale,
 // interiors, occupants) at the party/clicked tile BY DEFAULT — the legacy
@@ -233,35 +226,6 @@ export function createAtlasReceiptGroundSession(
 /** Throttle interval in ms (~10Hz) — see transitionTiming.ts for perf budget. */
 const DISPATCH_INTERVAL_MS = POSITION_DISPATCH_INTERVAL_MS;
 
-/** FPS sampling window in ms. */
-const FPS_SAMPLE_MS = 1000;
-
-/**
- * Mark a terrain patch as a projection of the live world before combat owns it.
- * The painter uses this lineage to avoid inventing roads, shoreline props, and
- * set pieces that are absent from the source GroundWorld. The atlas cell is
- * optional because legacy grid-addressed sessions can still enter combat while
- * their canonical cell identity is being migrated.
- */
-function attachWorldforgeBattleMapProvenance(
-  mapData: BattleMapData,
-  worldSeed: number,
-  anchorCellId: number | undefined,
-  anchorX: number,
-  anchorZ: number,
-): BattleMapData {
-  return {
-    ...mapData,
-    provenance: {
-      kind: 'worldforge',
-      worldSeed,
-      anchorCellId,
-      anchorWorldMeters: { x: anchorX, z: anchorZ },
-      generationPath: ['World', 'Region', 'Local', 'Ground', 'Tactical patch'],
-    },
-  };
-}
-
 /**
  * Strip the living-town registry down to worker-safe building history only.
  * Sorted numeric keys make the serialized effect dependency stable when
@@ -325,6 +289,10 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
   // Toggling this value tears down the existing scene streamer and rebuilds it dynamically.
   const [isGroundMode, setIsGroundMode] = useState(() => wfParam('wf_legacy') !== '1');
 
+  // The click-to-move Locale map is available in ground mode but no longer
+  // occupies the scene by default. Controls owns its explicit visibility.
+  const [isLocaleMapOpen, setIsLocaleMapOpen] = useState(false);
+
   // Bumped by the HUD "Town Cell" button to pull the 3D camera up to an overhead
   // framing of the spawn town (stays in the scene — see World3DScene.frameTownCellNonce).
   const [frameTownCellNonce, setFrameTownCellNonce] = useState(0);
@@ -356,6 +324,67 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
     // when a ground session becomes active. Cell-native world, Stage 3.
     localeExtent: { cols: number; rows: number };
   } | null>(null);
+
+  // References to keep track of ground world details for combat transition and movement
+  const groundRef = useRef<GroundWorld | null>(null);
+  const extractPatchRef = useRef<typeof import('../../systems/worldforge/bridge/groundChunkLoader').extractLocalTerrainPatch | null>(null);
+  const groundOccupantsAtRef = useRef<typeof import('../../systems/worldforge/bridge/groundAgentMotion').allGroundAgentsAt | null>(null);
+  const combatTriggered = useRef(false);
+
+  // Latest ground meters the player stands on for combat handoffs and dungeon return
+  const lastGroundXZ = useRef<{ x: number; z: number }>({ x: 0, z: 0 });
+
+  // CLICK-MOVE AUTHORITY (camera↔click decoupling). `playerGroundPos` has two
+  // writers: the camera controller (reports its pan target ~10Hz) and a ground
+  // click. Without a referee, a pan right after a click overwrites the clicked
+  // destination and the avatar never reaches it. Chosen model: a ground click
+  // ARMS this intent; while it is armed the camera's position reports are IGNORED
+  // for the walk state. The latch releases when the avatar arrives at the intent.
+  const clickMoveIntent = useRef<ClickMoveIntent>(null);
+
+  // Mirror `playerGroundPos` into a ref so handleGroundPositionChange can read
+  // the authoritative avatar position WITHOUT `state.playerGroundPos` in its deps.
+  const playerGroundPosRef = useRef(state.playerGroundPos);
+  useEffect(() => {
+    playerGroundPosRef.current = state.playerGroundPos;
+  }, [state.playerGroundPos]);
+
+  // ========================================================================
+  // Domain Sub-Hooks Integration
+  // ========================================================================
+
+  // 1. Proximity discovery sub-hook: detects hidden locations & dungeon entrances
+  const { checkProximityDiscoveries } = useWorld3DDiscovery({
+    groundRef,
+    atlasGroundDrilldown,
+  });
+
+  // 2. Interior & dungeon transition sub-hook: manages dungeon entrance prompts & overlay
+  const {
+    nearbyDungeonEntrance,
+    activeDungeonEntry,
+    dungeonEntryError,
+    refreshNearbyDungeonEntrance,
+    handleEnterDungeon,
+    handleReturnFromDungeon,
+  } = useInteriorTransition({
+    groundRef,
+    wfGroundView,
+    playerGroundPosRef,
+    lastGroundXZ,
+    clickMoveIntent,
+  });
+
+  // 3. In-place combat transition sub-hook: handles state patrol, hostiles, and provider handoffs
+  const { checkCombatTriggers } = useInPlaceCombatTransition({
+    groundRef,
+    extractPatchRef,
+    groundOccupantsAtRef,
+    lastGroundXZ,
+    wfGroundView,
+    loader,
+    combatTriggered,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -416,8 +445,10 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
         const coords = entryCellId != null ? { x: entryCellId, y: 0 } : null;
         if (!(coords && wfSeed != null && entryCellId != null)) return;
 
+        // Game clock is an in-world UTC Date; read UTC hours so the initial
+        // lighting hour matches the HUD clock (never host-machine getHours()).
         const hour =
-          state.gameTime instanceof Date ? state.gameTime.getHours() : 12;
+          state.gameTime instanceof Date ? state.gameTime.getUTCHours() : 12;
         const deltas =
           (state as { worldforgeDeltas?: WorldDelta[] }).worldforgeDeltas ?? [];
 
@@ -480,8 +511,8 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
                   worldBiz.id = bizId;
                   worldBiz.name = bizName;
                   worldBiz.ownerId = npcId;
-                  (worldBiz as any).burgId = t.burgId;
-                  (worldBiz as any).plotId = p.id;
+                  worldBiz.burgId = t.burgId;
+                  worldBiz.plotId = p.id;
 
                   if (!state.generatedNpcs?.[npcId]) {
                     dispatch({ type: 'REGISTER_GENERATED_NPC', payload: { npc: richNpc } });
@@ -614,8 +645,8 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
             },
             onStageA: ({ ground, region }) => {
               if (cancelled) return;
-              // Store refs so handleGroundPositionChange / combat handoff can read
-              // the live world and the extraction helper.
+              // Store refs so position changes and combat handoffs can read
+              // the live world and extraction helpers.
               groundRef.current = ground;
               extractPatchRef.current = loaderMod.extractLocalTerrainPatch;
               groundOccupantsAtRef.current = agentMotionMod.allGroundAgentsAt;
@@ -719,28 +750,18 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
     state.entry3DAnchor,
     buildingEventLogJson,
     atlasGroundDrilldown,
+    setPosition,
+    state.atlasGroundPosition,
+    state.playerCell,
+    state.gameTime,
   ]);
 
-  // FPS tracking state.
-  const [fps, setFps] = useState(0);
-  const frameCount = useRef(0);
-  const lastFpsTime = useRef(performance.now());
-
-  useEffect(() => {
-    let animFrameId: number;
-    const tick = () => {
-      frameCount.current++;
-      const now = performance.now();
-      if (now - lastFpsTime.current >= FPS_SAMPLE_MS) {
-        setFps(Math.round((frameCount.current * 1000) / (now - lastFpsTime.current)));
-        frameCount.current = 0;
-        lastFpsTime.current = now;
-      }
-      animFrameId = requestAnimationFrame(tick);
-    };
-    animFrameId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(animFrameId);
-  }, []);
+  // FPS is NOT counted here any more (2026-09-29). This spot ran a second
+  // requestAnimationFrame loop and re-rendered the whole wrapper once a
+  // second, in every build, only to feed the dev-mode Debug HUD. The HUD now
+  // reads the shared 'world3d' performance session that World3DScene's
+  // PerfProbe feeds (src/devtools/perf), so the game shows the same number as
+  // the Alt+P panel and pays for no second loop.
 
   // Streamer stats tracking (basic: count loaded chunks via scene re-renders).
   const [chunkCount, setChunkCount] = useState(0);
@@ -770,765 +791,47 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
     }
     prevChunkCount.current = loaded;
   }, []);
+
   // Throttle state for position dispatches.
   const lastDispatchTime = useRef(0);
   const lastDispatchedPos = useRef<{ x: number; z: number }>({ x: NaN, z: NaN });
 
-  // Ground-mode dispatch (contract item 2): tile-scoped ground meters into
-  // playerGroundPos — a separate field from the continent playerWorldPos,
-  // so the legacy clamp/scale never sees walking-scale numbers.
-  const lastGroundDispatch = useRef(0);
-
-  // References to keep track of ground world details for combat transition
-  const groundRef = useRef<GroundWorld | null>(null);
-  const extractPatchRef = useRef<typeof import('../../systems/worldforge/bridge/groundChunkLoader').extractLocalTerrainPatch | null>(null);
-  const groundOccupantsAtRef = useRef<typeof import('../../systems/worldforge/bridge/groundAgentMotion').allGroundAgentsAt | null>(null);
-  const combatTriggered = useRef(false);
-  // State patrol scans run on a high-frequency movement callback. Remember each
-  // deterministic event attempted during this mounted ground session so a
-  // source gap or withheld provider result cannot spam the same request.
-  const statePatrolAttemptedRef = useRef<Set<string>>(new Set());
-  // SP4: ids of hidden places the player has already revealed this session.
-  const discoveredHiddenRef = useRef<Set<string>>(new Set());
-  // Pillar 2: ids of dungeon entrances already discovered this session. Consume-
-  // once so StrictMode's double-mount + re-entering a radius stay idempotent.
-  const discoveredDungeonRef = useRef<Set<string>>(new Set());
-  // Fight-in-place slice 1: the latest ground meters the player stands on, so a
-  // dev entry (window.__fipTestFight / ?fipfight) can start a test fight at the
-  // player's exact 3D location without walking into a hostile.
-  const lastGroundXZ = useRef<{ x: number; z: number }>({ x: 0, z: 0 });
-
-  // CLICK-MOVE AUTHORITY (camera↔click decoupling). `playerGroundPos` has two
-  // writers: the camera controller (reports its pan target ~10Hz) and a ground
-  // click. Without a referee, a pan right after a click overwrites the clicked
-  // destination and the avatar never reaches it. Chosen model: a ground click
-  // ARMS this intent; while it is armed the camera's position reports are IGNORED
-  // for the walk state (the camera is still free to orbit/look — it just can't
-  // hijack the walk target). The latch releases when the avatar arrives at the
-  // intent (see clickMoveAuthority.ts); a fresh click re-arms it. Tune the
-  // arrival radius via CLICK_MOVE_ARRIVE_EPSILON_M there.
-  const clickMoveIntent = useRef<ClickMoveIntent>(null);
-
-  // NIT fix: mirror `playerGroundPos` into a ref so handleGroundPositionChange
-  // can read the authoritative avatar position WITHOUT `state.playerGroundPos`
-  // in its deps — that field churns ~10Hz as the avatar glides, which would
-  // recreate the callback every frame. The ref keeps the callback identity
-  // stable while still seeing the freshest position.
-  const playerGroundPosRef = useRef(state.playerGroundPos);
-  useEffect(() => {
-    playerGroundPosRef.current = state.playerGroundPos;
-  }, [state.playerGroundPos]);
-
-  // ========================================================================
-  // Live GroundWorld Combat Provider
-  // ========================================================================
-  // NPC and world-event actions run outside this component, but only this
-  // component owns the generated GroundWorld, exact player meters, and worker
-  // loader. Publish a provider while ground mode is live so those actions can
-  // request a source-backed fight instead of creating a placeless guard arena.
-  // ========================================================================
-
-  useEffect(() => {
-    if (!wfGroundView || !loader) return undefined;
-
-    /**
-     * Extract the tactical crop once from the player's exact live meters. Both
-     * settlement confrontations and opening threats use this same authority so
-     * their terrain, occupants, props, structures, and provenance cannot drift.
-     */
-    const extractCurrentBattlefield = () => {
-      const ground = groundRef.current;
-      const extractPatch = extractPatchRef.current;
-      if (!ground || !extractPatch) {
-        return {
-          status: 'unavailable' as const,
-          detail: 'The GroundWorld is mounted but its tactical extractor is not ready.',
-        };
-      }
-
-      const { x, z } = lastGroundXZ.current;
-      const bx = Math.max(0, Math.min(ground.cols - 1, Math.round(x / 1.524)));
-      const by = Math.max(0, Math.min(ground.rows - 1, Math.round(z / 1.524)));
-      const groundBiome = (ground.biomeIds[by * ground.cols + bx] ?? '').toLowerCase();
-      const theme: BattleMapBiome = groundBiome.includes('desert')
-        ? 'desert'
-        : groundBiome.includes('swamp') || groundBiome.includes('wetland')
-          ? 'swamp'
-          : 'forest';
-      const worldSeed = state.worldSeed ?? 42;
-      const occupantClock = state.gameTime instanceof Date
-        ? scheduleClockFromGameTime(state.gameTime)
-        : 12;
-      const liveOccupants = groundOccupantsAtRef.current?.(ground, occupantClock);
-      const mapData = attachWorldforgeBattleMapProvenance(
-        extractPatch(ground, x, z, theme, worldSeed, liveOccupants
-          ? { occupants: liveOccupants }
-          : undefined),
-        worldSeed,
-        state.playerCell?.cellId,
-        x,
-        z,
-      );
-
-      return {
-        status: 'ready' as const,
-        ground,
-        x,
-        z,
-        worldSeed,
-        mapData,
-      };
-    };
-
-    /**
-     * Freeze the exact 3D position and live scene handoff before changing phase.
-     * This is shared by every provider so returning from combat always restores
-     * the same source location that authored the tactical crop.
-     */
-    const freezeCurrentGroundForCombat = async (
-      ground: GroundWorld,
-      x: number,
-      z: number,
-      worldSeed: number,
-    ) => {
-      combatTriggered.current = true;
-      dispatch({
-        type: 'SET_PLAYER_GROUND_POS',
-        payload: {
-          position: {
-            tileX: wfGroundView.tile.x,
-            tileY: wfGroundView.tile.y,
-            xM: x,
-            zM: z,
-          },
-        },
-      });
-      const { setFightInPlaceHandoff } = await import(
-        '../../systems/combat/fightInPlace/fightInPlaceHandoff'
-      );
-      setFightInPlaceHandoff({
-        ground,
-        loader,
-        sceneOrigin: { x: wfGroundView.start[0], z: wfGroundView.start[2] },
-        anchor: { playerXM: x, playerZM: z },
-        surfaceY: groundSurfaceYM(ground, x, z),
-        worldSeed,
-      });
-    };
-
-    const prepareSettlementEncounter = async (
-      request: ActiveGroundSettlementEncounterRequest,
-    ) => {
-      const current = extractCurrentBattlefield();
-      if (current.status !== 'ready') return current;
-      const { ground, x, z, worldSeed, mapData: extractedMap } = current;
-
-      // State confrontations select the matching generated-state standing.
-      // Watch confrontations still carry all current crime records, while the
-      // resolver deliberately ignores unrelated standings for that rule.
-      const playerStanding = request.trigger.kind === 'state-confrontation'
-        ? request.playerFactionStandings[request.trigger.factionId]
-        : undefined;
-      const { projectLiveSettlementEncounter } = await import(
-        '../../systems/combat/worldScenario/liveSettlementEncounter'
-      );
-      const projection = projectLiveSettlementEncounter(ground, extractedMap, { x, z }, {
-        trigger: request.trigger,
-        knownCrimes: request.knownCrimes,
-        playerStanding,
-      });
-      if (projection.status !== 'ready') {
-        return {
-          status: projection.status,
-          detail: projection.detail,
-        };
-      }
-      if (!projection.defendingForce) {
-        return {
-          status: 'source-gap' as const,
-          detail: 'The live settlement projection was ready but supplied no defending-force receipt.',
-        };
-      }
-
-      const { createWorldDefenderCombatants } = await import(
-        '../../systems/combat/worldScenario/worldEncounterCombatants'
-      );
-      const combatants = await createWorldDefenderCombatants(projection.defendingForce);
-      if (combatants.length === 0) {
-        return {
-          status: 'source-gap' as const,
-          detail: 'Hostility was authorized, but the source regiment produced no tactical actors.',
-        };
-      }
-
-      // Freeze only after source evidence and defending actors are complete.
-      await freezeCurrentGroundForCombat(ground, x, z, worldSeed);
-
-      return {
-        status: 'ready' as const,
-        detail: projection.detail,
-        payload: {
-          monsters: [],
-          combatants,
-          extractedBattleMap: projection.mapData,
-        },
-      };
-    };
-
-    /**
-     * Validate a hostile opening against this mounted world, then author its
-     * exact entity scene from the live referee crop. The model still owns only
-     * the roster; WorldForge owns every position, role, and ecological trace.
-     */
-    const prepareOpeningEncounter = async (
-      request: ActiveGroundOpeningEncounterRequest,
-    ) => {
-      const current = extractCurrentBattlefield();
-      if (current.status !== 'ready') return current;
-
-      const activeCellId = state.playerCell?.cellId;
-      if (
-        request.source.worldSeed !== current.worldSeed
-        || request.source.cellId !== activeCellId
-      ) {
-        return {
-          status: 'source-gap' as const,
-          detail: `Opening receipt ${request.source.receiptId} does not match the mounted world ${current.worldSeed}, cell ${activeCellId ?? 'unknown'}.`,
-        };
-      }
-
-      // When both sides retain a burg/site center, compare it as an additional
-      // identity check. Older saves may omit the center while still proving the
-      // seed/cell pair, so absence does not manufacture a mismatch.
-      const receiptCenter = request.source.centerPx;
-      const mountedCenter = state.entry3DAnchor?.cellId === activeCellId
-        ? state.entry3DAnchor.centerPx
-        : undefined;
-      if (
-        receiptCenter
-        && mountedCenter
-        && (receiptCenter[0] !== mountedCenter[0] || receiptCenter[1] !== mountedCenter[1])
-      ) {
-        return {
-          status: 'source-gap' as const,
-          detail: `Opening receipt ${request.source.receiptId} does not match the mounted WorldForge site center.`,
-        };
-      }
-
-      const { projectOpeningThreatBattlefield } = await import(
-        '../../systems/combat/worldScenario/openingThreatBattlefield'
-      );
-      // Repeated preparation of the same opening reuses its saved world-meter
-      // scene. The projector validates every body, trace, and activity site
-      // against the live crop before accepting it, so stale scenes fail closed.
-      const existingOpeningScene = [...(state.worldforgeEncounterReceipts ?? [])]
-        .reverse()
-        .find((receipt): receipt is OpeningThreatSceneReceipt => (
-          receipt.kind === 'opening-threat-scene'
-          && receipt.sourceOpeningReceiptId === request.source.receiptId
-        ));
-      const projection = projectOpeningThreatBattlefield(
-        current.mapData,
-        request.source,
-        request.enemies,
-        existingOpeningScene,
-      );
-      if (projection.status !== 'ready') return projection;
-
-      await freezeCurrentGroundForCombat(
-        current.ground,
-        current.x,
-        current.z,
-        current.worldSeed,
-      );
-      return projection;
-    };
-
-    const unregisterSettlement = registerActiveGroundCombatProvider(prepareSettlementEncounter);
-    const unregisterOpening = registerActiveGroundOpeningCombatProvider(prepareOpeningEncounter);
-    return () => {
-      unregisterOpening();
-      unregisterSettlement();
-    };
-  }, [
-    dispatch,
-    loader,
-    state.entry3DAnchor,
-    state.gameTime,
-    state.playerCell?.cellId,
-    state.worldSeed,
-    state.worldforgeEncounterReceipts,
-    wfGroundView,
-  ]);
-
+  /**
+   * Called on high-frequency movement ticks while exploring the 3D ground world.
+   * Coordinates proximity checks for doorway prompts, hidden locations, and hostile battles.
+   */
   const handleGroundPositionChange = useCallback(
     (x: number, z: number) => {
       const tile = wfGroundView?.tile;
       if (!tile) return;
 
-      // CLICK-MOVE AUTHORITY: if a click-move is in progress, the clicked
-      // destination is authoritative — a camera pan must NOT clobber the walk
-      // target. Consult the pure referee; when the avatar has arrived, the latch
-      // clears and the camera resumes writing. The avatar's real position (what
-      // PlayerAvatar glides toward) is read via a ref so arrival is measured
-      // against it, not the camera's look-at target `(x, z)`.
-      const intent = clickMoveIntent.current;
-      if (intent) {
-        // TILE-CROSSING GUARD: an intent armed on a prior tile can never be
-        // "arrived at" once the active tile differs (positions are tile-scoped),
-        // so the arrival latch would stick forever and kill camera-walk. Retire
-        // the stale intent on a crossing and let the camera resume writing.
-        if (!isIntentOnTile(intent, tile.x, tile.y)) {
-          clickMoveIntent.current = null;
-        } else {
-          const pgp = playerGroundPosRef.current;
-          const current =
-            pgp && pgp.tileX === tile.x && pgp.tileY === tile.y
-              ? { xM: pgp.xM, zM: pgp.zM }
-              : null;
-          if (hasArrivedAtIntent(intent, current)) {
-            // Arrived — release the latch so subsequent camera pans move again.
-            clickMoveIntent.current = null;
-          }
-          if (!cameraMayWriteGroundPos(intent, current)) {
-            // Camera yields the walk target this frame. Still keep the
-            // fight-in-place tracker pointed at the AUTHORITATIVE avatar position
-            // (the click target), not the roaming camera, so a test fight starts
-            // where the player actually is.
-            if (current) lastGroundXZ.current = { x: current.xM, z: current.zM };
-            return;
-          }
-        }
-      }
-
-      // Fight-in-place dev entry: always track the freshest ground position,
-      // even on throttled frames, so a test fight starts exactly where we stand.
+      // Track the camera focus in scene/world space
       lastGroundXZ.current = { x, z };
-      const now = Date.now();
-      if (now - lastGroundDispatch.current < DISPATCH_INTERVAL_MS) return;
-      lastGroundDispatch.current = now;
-      dispatch({
-        type: 'SET_PLAYER_GROUND_POS',
-        payload: { position: { tileX: tile.x, tileY: tile.y, xM: x, zM: z } },
-      });
 
-      // SP4 discovery: reveal any hidden place the player comes within range of
-      // (off-map sites placed by makeGroundWorld; revealed by 3D proximity).
-      // Persist to GameState so discoveries survive reload and pin on the atlas.
-      const gwForDiscovery = groundRef.current;
-      if (gwForDiscovery?.hiddenSites?.length) {
-        for (const hs of gwForDiscovery.hiddenSites) {
-          if (Math.hypot(x - hs.xM, z - hs.zM) <= hs.discoveryRadiusM) {
-            // The ground session IS this world tile's local surface, so every
-            // hidden site it contains belongs to `tile` — pinning to the player's
-            // current tile is correct at world-tile resolution (do NOT "fix" this
-            // to the player's meters). The site's position WITHIN the tile becomes
-            // a sub-tile offset (−0.5..0.5 from tile center) so the atlas pin sits
-            // where the place actually is, not just at the cell center.
-            const exX = gwForDiscovery.extentMetersX || 1;
-            const exZ = gwForDiscovery.extentMetersZ || 1;
-            const offsetX = Math.max(-0.5, Math.min(0.5, hs.xM / exX - 0.5));
-            const offsetY = Math.max(-0.5, Math.min(0.5, hs.zM / exZ - 0.5));
-            // Grid retirement: pin the discovery to the player's canonical atlas
-            // cell (the ground session IS this cell's local surface), not a 30×20
-            // grid tile. Need a cell to record it; skip if somehow unknown.
-            const siteCellId = state.playerCell?.cellId;
-            if (siteCellId == null) continue;
-            // Atlas discoveries carry the exact retained hierarchy and absolute
-            // feet. Classic sessions deliberately keep their established legacy
-            // payload because they have no Atlas-owned Local to cite.
-            const atlasAddress = atlasGroundDrilldown
-              ? atlasGroundAddressFromDrilldown(atlasGroundDrilldown)
-              : null;
-            const discovery = atlasAddress
-              ? atlasHiddenSiteForAddress({
-                  address: atlasAddress,
-                  sourceId: hs.id,
-                  sourceKind: 'hidden-site',
-                  name: hs.name,
-                  kind: hs.kind,
-                  xM: hs.xM,
-                  zM: hs.zM,
-                  offsetX,
-                  offsetY,
-                })
-              : { id: hs.id, cellId: siteCellId, name: hs.name, kind: hs.kind, offsetX, offsetY };
-            if (!discovery) continue;
-            if (
-              discoveredHiddenRef.current.has(discovery.id) ||
-              state.discoveredHiddenSites.some((known) => known.id === discovery.id)
-            ) {
-              continue;
-            }
-            discoveredHiddenRef.current.add(discovery.id);
-            dispatch({ type: 'REVEAL_HIDDEN_SITE', payload: discovery });
-            // Surface the discovery in the game log (SP4 in-game message).
-            dispatch({
-              type: 'ADD_MESSAGE',
-              payload: {
-                id: Date.now() + Math.floor(Math.random() * 1000),
-                text: `You discovered a hidden place: ${hs.name}.`,
-                sender: 'system',
-                timestamp: new Date(),
-              },
-            });
-          }
-        }
-      }
+      // Avatar position is authoritative for proximity checks (dungeons & discoveries)
+      const pgp = playerGroundPosRef.current;
+      const playerX = pgp && pgp.tileX === tile.x && pgp.tileY === tile.y ? pgp.xM : x;
+      const playerZ = pgp && pgp.tileX === tile.x && pgp.tileY === tile.y ? pgp.zM : z;
 
-      // Pillar 2 discovery: walking within range of a world-grown dungeon
-      // ENTRANCE names the dungeon and pins it (interior is Pillar 3 — no fake
-      // interiors). Reuses the hidden-site persistence (REVEAL_HIDDEN_SITE): the
-      // payload's id/cellId/name/kind/offset all fit a dungeon entrance, so the
-      // discovery survives reload and pins on the map pane exactly like a hidden
-      // place. Consume-once via `discoveredDungeonRef` so StrictMode's double
-      // mount and re-entering the radius stay idempotent.
-      if (gwForDiscovery?.dungeonEntrances?.length) {
-        for (const de of gwForDiscovery.dungeonEntrances) {
-          if (discoveredDungeonRef.current.has(de.id)) continue;
-          if (Math.hypot(x - de.xM, z - de.zM) <= de.discoveryRadiusM) {
-            discoveredDungeonRef.current.add(de.id);
-            // The dungeon's REAL derived name (from its Pillar-1 lore pass),
-            // generated once and cached per sitePath.
-            const seed = state.worldSeed ?? 42;
-            const name =
-              dungeonNameForEntrance(seed, de.sitePath) ?? 'an unknown dungeon';
-            // Pin at the ENTRANCE's own atlas cell (the site cell), not the
-            // player's streamed cell — identity anchors to the site (recon trap 2).
-            const exX = gwForDiscovery.extentMetersX || 1;
-            const exZ = gwForDiscovery.extentMetersZ || 1;
-            const offsetX = Math.max(-0.5, Math.min(0.5, de.xM / exX - 0.5));
-            const offsetY = Math.max(-0.5, Math.min(0.5, de.zM / exZ - 0.5));
-            dispatch({
-              type: 'REVEAL_HIDDEN_SITE',
-              payload: {
-                id: de.id,
-                cellId: de.cellId,
-                name,
-                kind: de.entranceKind,
-                offsetX,
-                offsetY,
-              },
-            });
-            dispatch({
-              type: 'ADD_MESSAGE',
-              payload: {
-                id: Date.now() + Math.floor(Math.random() * 1000),
-                text: `You found ${name} — the way down is dark.`,
-                sender: 'system',
-                timestamp: new Date(),
-              },
-            });
-          }
-        }
-      }
+      // 1. Refresh doorway prompt
+      refreshNearbyDungeonEntrance(playerX, playerZ);
 
-      // Combat handoff check: walking near a hostile creature in 3D ground mode
-      // triggers combat by extracting the local 40x30 (5ft) terrain patch.
-      if (combatTriggered.current) return;
-      const ground = groundRef.current;
-      const extractPatch = extractPatchRef.current;
+      // 2. SP4 / Pillar 2 location & dungeon discoveries
+      checkProximityDiscoveries(playerX, playerZ, x, z);
 
-      // A generated state's patrol can recognize the party only when the exact
-      // GroundWorld town, stationed regiment, player position, game day, and
-      // hostile standing agree. The pure referee also checks save-backed event
-      // receipts, so combat return cannot immediately replay this interception.
-      if (ground && state.gameTime instanceof Date) {
-        const statePatrolEvent = findStatePatrolWorldEvent(ground, {
-          worldSeed: state.worldSeed ?? 42,
-          gameDay: getGameDay(state.gameTime),
-          gameTimeMs: state.gameTime.getTime(),
-          playerGroundMeters: { x, z },
-          // Older saves and focused scene fixtures predate these world-event
-          // collections. Empty inputs preserve the referee's fail-closed
-          // behavior without preventing the 3D world from rendering.
-          playerFactionStandings: state.playerFactionStandings ?? {},
-          receipts: state.worldforgeEncounterReceipts ?? [],
-        });
-
-        if (statePatrolEvent && !statePatrolAttemptedRef.current.has(statePatrolEvent.id)) {
-          statePatrolAttemptedRef.current.add(statePatrolEvent.id);
-          // Reserve the combat handoff while source regiment actors load. This
-          // prevents a nearby creature encounter from racing the patrol request.
-          combatTriggered.current = true;
-
-          void (async () => {
-            try {
-              const prepared = await prepareActiveGroundSettlementEncounter({
-                trigger: statePatrolEvent.trigger,
-                knownCrimes: state.notoriety?.knownCrimes ?? [],
-                playerFactionStandings: state.playerFactionStandings ?? {},
-              });
-
-              if (prepared.status === 'unavailable') {
-                // Provider registration can lag the first camera position tick.
-                // Release both latches so a later movement frame can try again.
-                statePatrolAttemptedRef.current.delete(statePatrolEvent.id);
-                combatTriggered.current = false;
-                return;
-              }
-
-              if (prepared.status !== 'ready') {
-                combatTriggered.current = false;
-                if (prepared.status === 'source-gap') {
-                  dispatch({
-                    type: 'ADD_NOTIFICATION',
-                    payload: {
-                      type: 'warning',
-                      message: `State patrol source gap: ${prepared.detail}`,
-                    },
-                  });
-                }
-                return;
-              }
-
-              // Persist the event before changing phases. The receipt survives
-              // World3DWrapper unmounting and suppresses this same daily patrol
-              // when exploration remounts after battle.
-              dispatch({
-                type: 'RECORD_WORLDFORGE_ENCOUNTER',
-                payload: { receipt: statePatrolEvent.receipt },
-              });
-              dispatch({
-                type: 'ADD_MESSAGE',
-                payload: {
-                  id: statePatrolEvent.receipt.triggeredAtGameTimeMs,
-                  text: `${statePatrolEvent.defense.stateName}'s patrol recognizes the party near ${statePatrolEvent.defense.burgName} and moves to intercept.`,
-                  sender: 'system',
-                  timestamp: new Date(statePatrolEvent.receipt.triggeredAtGameTimeMs),
-                },
-              });
-
-              const { handleStartBattleMapEncounter } = await import('../../hooks/actions/handleEncounter');
-              await handleStartBattleMapEncounter(dispatch, prepared.payload);
-            } catch (error) {
-              combatTriggered.current = false;
-              dispatch({
-                type: 'ADD_NOTIFICATION',
-                payload: {
-                  type: 'error',
-                  message: `State patrol encounter failed: ${error instanceof Error ? error.message : String(error)}`,
-                },
-              });
-            }
-          })();
-          return;
-        }
-      }
-
-      if (ground && extractPatch) {
-        for (const h of ground.hostiles) {
-          const dist = Math.hypot(x - h.xM, z - h.zM);
-          // If the player walks within 4 meters of a hostile monster, trigger battle!
-          if (dist < 4.0) {
-            combatTriggered.current = true;
-
-            // HOSTILE-1: persist the fight position immediately so the
-            // return-from-combat path spawns the player at this exact spot.
-            // Without this, the throttled dispatch (~10Hz) might not have
-            // captured the final step before the hostile proximity check.
-            dispatch({
-              type: 'SET_PLAYER_GROUND_POS',
-              payload: {
-                position: {
-                  tileX: tile.x,
-                  tileY: tile.y,
-                  xM: x,
-                  zM: z,
-                },
-              },
-            });
-
-            // Run the async combat start wrapper
-            (async () => {
-              try {
-                // Dynamically import the encounter handler to keep startup bundle lightweight
-                const { handleStartBattleMapEncounter } = await import('../../hooks/actions/handleEncounter');
-
-                // Map ground hostile to a standard bestiary entry
-                const monster = {
-                  name: h.name,
-                  quantity: 1,
-                  cr: '1/4',
-                  description: 'Hostile creature from ground mode',
-                };
-
-                // PV4: Determine combat theme from dominant biome instead of hardcoding.
-                const getThemeFromBiome = (biome: string | undefined): BattleMapBiome => {
-                  if (!biome) return 'forest';
-                  const lowerBiome = biome.toLowerCase();
-                  if (lowerBiome.includes('desert')) return 'desert';
-                  if (lowerBiome.includes('swamp') || lowerBiome.includes('wetland')) return 'swamp';
-                  // Most other biomes map well to the forest theme for now.
-                  return 'forest';
-                };
-                
-                const bx = Math.max(0, Math.min(ground.cols - 1, Math.round(x / 1.524)));
-                const by = Math.max(0, Math.min(ground.rows - 1, Math.round(z / 1.524)));
-                const groundBiome = ground.biomeIds[by * ground.cols + bx];
-                const combatTheme = getThemeFromBiome(groundBiome);
-
-                // Extract the 40x30 terrain patch centered around the player's collision coordinate
-                const worldSeed = state.worldSeed ?? 42;
-                // Combat freezes the same resident facts the 3D scene is showing at
-                // this game-time instant. The 2D board therefore cannot silently
-                // fall back to roster home sites while visible residents are moving.
-                const occupantClock = state.gameTime instanceof Date
-                  ? scheduleClockFromGameTime(state.gameTime)
-                  : 12;
-                const liveOccupants = groundOccupantsAtRef.current?.(ground, occupantClock);
-                const extractedMap = attachWorldforgeBattleMapProvenance(
-                  extractPatch(ground, x, z, combatTheme, worldSeed, liveOccupants
-                    ? { occupants: liveOccupants }
-                    : undefined),
-                  worldSeed,
-                  state.playerCell?.cellId,
-                  x,
-                  z,
-                );
-
-                // Transition to combat mode using the extracted battle map
-                await handleStartBattleMapEncounter(dispatch, {
-                  monsters: [monster],
-                  extractedBattleMap: extractedMap,
-                });
-              } catch (err) {
-                // eslint-disable-next-line no-console
-                console.error('[combat handoff] failed to enter battle:', err);
-                combatTriggered.current = false;
-              }
-            })();
-            break;
-          }
-        }
-      }
+      // 3. State patrol & hostile creature proximity combat triggers
+      checkCombatTriggers(x, z, tile);
     },
     [
-      dispatch,
       wfGroundView?.tile,
-      state.worldSeed,
-      state.playerCell?.cellId,
-      state.gameTime,
-      state.playerFactionStandings,
-      state.notoriety?.knownCrimes,
-      state.worldforgeEncounterReceipts,
-      state.discoveredHiddenSites,
-      atlasGroundDrilldown,
+      refreshNearbyDungeonEntrance,
+      checkProximityDiscoveries,
+      checkCombatTriggers,
     ],
   );
 
-  // ==========================================================================
-  // Fight-in-place slice 1 — DEV ENTRY.
-  // Start a test fight at the player's exact 3D location, deriving the referee
-  // grid from the local terrain patch (props → cover/LoS/movement). Reuses the
-  // SAME extraction + encounter path as the hostile-proximity trigger, so the
-  // world-derived grid renders on the always-available 2D board (the easiest
-  // correctness surface). The context picker decides in-place vs arena; a live
-  // ground world routes in-place and derives the patch from the world.
-  //
-  // Cut line (documented in the spec status): full in-scene 3D combat rendering
-  // (actors/turn-HUD/tactical-orbit camera in the ground scene) and 3D ground
-  // picking are LATER slices. This slice delivers world-derived combat on the
-  // 2D board + the routing decision — no fake in-scene stubs.
-  //
-  // Trigger: window.__fipTestFight() from the console, or spawn with ?fipfight.
-  // ==========================================================================
-  const startFightInPlace = useCallback(async () => {
-    const ground = groundRef.current;
-    const extractPatch = extractPatchRef.current;
-    if (!ground || !extractPatch) {
-      // eslint-disable-next-line no-console
-      console.warn('[fip dev] no live ground world yet — enter 3D first');
-      return;
-    }
-    const { pickCombatSurface } = await import('../../systems/combat/fightInPlace/combatSurfacePicker');
-    const decision = pickCombatSurface({ worldLive: true });
-    // eslint-disable-next-line no-console
-    console.info(`[fip dev] surface=${decision.surface} deriveFromWorld=${decision.deriveFromWorld} — ${decision.reason}`);
-
-    const { x, z } = lastGroundXZ.current;
-    const bx = Math.max(0, Math.min(ground.cols - 1, Math.round(x / 1.524)));
-    const by = Math.max(0, Math.min(ground.rows - 1, Math.round(z / 1.524)));
-    const groundBiome = (ground.biomeIds[by * ground.cols + bx] ?? '').toLowerCase();
-    const theme: BattleMapBiome =
-      groundBiome.includes('desert') ? 'desert'
-        : (groundBiome.includes('swamp') || groundBiome.includes('wetland')) ? 'swamp'
-          : 'forest';
-
-    const worldSeed = state.worldSeed ?? 42;
-    // Freeze the live schedule at combat start; residents remain stable during
-    // the encounter even if the world clock advances behind the combat phase.
-    const occupantClock = state.gameTime instanceof Date
-      ? scheduleClockFromGameTime(state.gameTime)
-      : 12;
-    const liveOccupants = groundOccupantsAtRef.current?.(ground, occupantClock);
-    const extractedMap = decision.deriveFromWorld
-      ? attachWorldforgeBattleMapProvenance(
-        extractPatch(ground, x, z, theme, worldSeed, liveOccupants
-          ? { occupants: liveOccupants }
-          : undefined),
-        worldSeed,
-        state.playerCell?.cellId,
-        x,
-        z,
-      )
-      : undefined;
-
-    // Fight-in-place slice 2: hand the live world across the phase change so
-    // CombatView can render the fight IN this town (World3DScene + combat layer)
-    // instead of the teleport-to-diorama. The loader is a closure over the built
-    // world, so it survives World3DWrapper unmounting. Scene origin matches
-    // World3DScene's (the spawn/start point of the ground session).
-    if (decision.deriveFromWorld && loader && wfGroundView) {
-      const { setFightInPlaceHandoff } = await import('../../systems/combat/fightInPlace/fightInPlaceHandoff');
-      setFightInPlaceHandoff({
-        ground,
-        loader,
-        sceneOrigin: { x: wfGroundView.start[0], z: wfGroundView.start[2] },
-        anchor: { playerXM: x, playerZM: z },
-        surfaceY: groundSurfaceYM(ground, x, z),
-        worldSeed: state.worldSeed ?? 42,
-      });
-    }
-
-    // Persist the fight position so return-from-combat spawns us back here.
-    const tile = wfGroundView?.tile;
-    if (tile) {
-      dispatch({ type: 'SET_PLAYER_GROUND_POS', payload: { position: { tileX: tile.x, tileY: tile.y, xM: x, zM: z } } });
-    }
-
-    try {
-      const { handleStartBattleMapEncounter } = await import('../../hooks/actions/handleEncounter');
-      combatTriggered.current = true;
-      await handleStartBattleMapEncounter(dispatch, {
-        monsters: [{ name: 'Test Brigand', quantity: 1, cr: '1/4', description: 'Dev fight-in-place test combatant' }],
-        extractedBattleMap: extractedMap,
-      });
-      // eslint-disable-next-line no-console
-      console.info('[fip dev] encounter dispatched — phase should be COMBAT');
-    } catch (err) {
-      combatTriggered.current = false;
-      // eslint-disable-next-line no-console
-      console.error('[fip dev] failed to start fight:', err);
-    }
-  }, [dispatch, wfGroundView, state.worldSeed, state.playerCell?.cellId, state.gameTime, loader]);
-
-  useEffect(() => {
-    (window as unknown as { __fipTestFight?: () => void }).__fipTestFight = () => { void startFightInPlace(); };
-    // ?fipfight — auto-start a test fight shortly after the ground world loads,
-    // so a headless probe can capture the world-derived grid on the 2D board.
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('fipfight')) {
-      timer = setTimeout(() => { void startFightInPlace(); }, 2500);
-    }
-    return () => {
-      if (timer) clearTimeout(timer);
-      delete (window as unknown as { __fipTestFight?: () => void }).__fipTestFight;
-    };
-  }, [startFightInPlace]);
-
   /**
-   * Called by FreeRoamCameraController (via World3DScene) when the camera moves.
+   * Called by FreeRoamCameraController (via World3DScene) when the continent camera moves.
    * Receives world X/Z coordinates, resolves terrain height Y, and dispatches
    * SET_PLAYER_WORLD_POS (throttled to ~10Hz).
    */
@@ -1642,11 +945,6 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
   // walk dispatches — converting the clicked Locale feet → tile-local meters via
   // the bridge and stamping the active tile — so the reducer (which mirrors the
   // position into `playerCell.localeCoords` as feet) is the single sync point.
-  // No new action, no cell↔tile mapping. The 3D camera reads `playerGroundPos`
-  // as its spawn on (re)entry, so a 2D move is reflected in 3D; a 3D walk moves
-  // the 2D marker live. (Live in-session 3D camera teleport from a 2D click is
-  // Stage 3 polish / Stage 5 — deferred per the design doc.)
-  // GRID-RETIRE: BA-3 — producer of the continuous Locale-feet movement state.
   const handleLocaleMoveTo = useCallback(
     (feetX: number, feetY: number) => {
       const tile = wfGroundView?.tile;
@@ -1654,14 +952,14 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
       const { xM, zM } = localeFeetToGroundMeters({ x: feetX, y: feetY });
       // Arm click-move authority — a 2D Locale click is a discrete destination
       // too, so it must survive a subsequent camera pan just like a 3D click.
-      // Record the tile it was armed on so a tile crossing can retire it.
       clickMoveIntent.current = { xM, zM, tileX: tile.x, tileY: tile.y };
+      refreshNearbyDungeonEntrance(xM, zM);
       dispatch({
         type: 'SET_PLAYER_GROUND_POS',
         payload: { position: { tileX: tile.x, tileY: tile.y, xM, zM } },
       });
     },
-    [dispatch, wfGroundView?.tile],
+    [dispatch, refreshNearbyDungeonEntrance, wfGroundView?.tile],
   );
 
   // Interactive-3D locomotion: a click on open ground in the 3D world walks the
@@ -1674,16 +972,15 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
       const tile = wfGroundView?.tile;
       if (!tile) return;
       // ARM click-move authority: this destination is now authoritative and the
-      // camera's pan reports won't clobber it until the avatar arrives (or the
-      // next click re-arms). Record the tile it was armed on so a tile crossing
-      // can retire it. See clickMoveAuthority.ts / handleGroundPositionChange.
+      // camera's pan reports won't clobber it until the avatar arrives.
       clickMoveIntent.current = { xM, zM, tileX: tile.x, tileY: tile.y };
+      refreshNearbyDungeonEntrance(xM, zM);
       dispatch({
         type: 'SET_PLAYER_GROUND_POS',
         payload: { position: { tileX: tile.x, tileY: tile.y, xM, zM } },
       });
     },
-    [dispatch, wfGroundView?.tile],
+    [dispatch, refreshNearbyDungeonEntrance, wfGroundView?.tile],
   );
 
   return (
@@ -1701,6 +998,10 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
           // Ground mode only: townsfolk walk the streets on the game clock.
           groundWorld={wfGroundView ? groundRef.current : null}
           agentClock={state.gameTime instanceof Date ? scheduleClockFromGameTime(state.gameTime) : undefined}
+          // Night-sky port (2026-08-26): the sun/sky/fog model AND the
+          // physically-based night sky (NightSky -> TakramSkySystem) are both
+          // driven by the SAME fractional UTC hour the agent schedules use.
+          timeOfDayHours={state.gameTime instanceof Date ? scheduleClockFromGameTime(state.gameTime) : undefined}
           frameTownCellNonce={frameTownCellNonce}
           sceneCast={wfGroundView ? sceneCast : undefined}
           onSelectNpc={onTalkToNpc}
@@ -1772,7 +1073,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
           it renders the player marker from that state and writes back to it on
           click via the shared SET_PLAYER_GROUND_POS action. Additive — it sits
           beside the compass / drill views, replacing none of them. */}
-      {wfGroundView ? (
+      {wfGroundView && isLocaleMapOpen ? (
         <div style={{ position: 'absolute', left: 12, bottom: 12, zIndex: 20 }}>
           <LocaleMovePane
             localeExtent={wfGroundView.localeExtent}
@@ -1787,11 +1088,19 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
         worldData={null}
         worldGen={null}
         chunkCount={chunkCount}
-        fps={fps}
         playerPos={position}
         streamerStats={streamerStats}
         onOpenMap={() => setMode('atlas')}
         onExitToMenu={() => dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU })}
+        isLocaleMapAvailable={Boolean(wfGroundView)}
+        isLocaleMapOpen={isLocaleMapOpen}
+        onToggleLocaleMap={() => setIsLocaleMapOpen((open) => !open)}
+        onOpenAgentSim={isDevModeEnabled
+          ? () => requestDevOverlay(OPEN_AGENT_SIM_EVENT)
+          : undefined}
+        onOpenTownHistory={isDevModeEnabled
+          ? () => requestDevOverlay(OPEN_TOWN_HISTORY_EVENT)
+          : undefined}
         isGroundMode={isGroundMode}
         onToggleGroundMode={() => setIsGroundMode(prev => !prev)}
         // The PLAYING title is the same canonical focus and Atlas burg receipt
@@ -1830,6 +1139,65 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
           dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
         } : undefined}
       />
+
+      {/* Walking close to a discovered doorway exposes one explicit entry action. The prompt is
+          separate from discovery/pinning so finding a dungeon never forces the player inside. */}
+      {nearbyDungeonEntrance && !activeDungeonEntry ? (
+        <aside
+          data-testid="dungeon-entry-prompt"
+          style={{
+            position: 'absolute',
+            left: '50%',
+            bottom: '24px',
+            zIndex: 60,
+            width: 'min(520px, calc(100% - 32px))',
+            transform: 'translateX(-50%)',
+            padding: '14px 16px',
+            border: '1px solid rgba(251, 191, 36, 0.7)',
+            borderRadius: '12px',
+            background: 'rgba(12, 10, 8, 0.94)',
+            boxShadow: '0 12px 36px rgba(0, 0, 0, 0.55)',
+            color: '#f7ecd1',
+            textAlign: 'center',
+          }}
+        >
+          <div style={{ color: '#fbbf24', fontSize: '11px', fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+            Dungeon Entrance
+          </div>
+          <div style={{ margin: '4px 0 10px', fontSize: '13px', color: '#d6c7aa' }}>
+            {nearbyDungeonEntrance.id}
+          </div>
+          <Button
+            type="button"
+            onClick={handleEnterDungeon}
+            data-testid="enter-dungeon"
+            variant="action"
+            size="md"
+            style={{
+              border: '1px solid #fbbf24',
+              background: '#92400e',
+              color: '#fff7db',
+              fontWeight: 800,
+            }}
+          >
+            Enter Dungeon
+          </Button>
+          {dungeonEntryError ? (
+            <div role="alert" style={{ marginTop: '10px', color: '#fca5a5', fontSize: '12px' }}>
+              {dungeonEntryError}
+            </div>
+          ) : null}
+        </aside>
+      ) : null}
+
+      {/* The generated interior covers the world visually but does not unmount it. Returning closes
+          this layer and restores the saved tile-local position through the existing movement action. */}
+      {activeDungeonEntry ? (
+        <DungeonExpeditionOverlay
+          entry={activeDungeonEntry}
+          onReturn={handleReturnFromDungeon}
+        />
+      ) : null}
     </div>
   );
 };

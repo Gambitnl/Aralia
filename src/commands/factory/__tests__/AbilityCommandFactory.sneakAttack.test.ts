@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createMockCombatCharacter, WeaponAttackCommand } from './AbilityCommandFactory.testHelpers';
+import { WeaponAttackCommand, createMockCombatCharacter, createMockCombatState } from './AbilityCommandFactory.testHelpers';
 import type { Ability, GameState } from './AbilityCommandFactory.testHelpers';
 
 describe('WeaponAttackCommand: Sneak Attack (G9)', () => {
@@ -55,7 +55,7 @@ describe('WeaponAttackCommand: Sneak Attack (G9)', () => {
     });
 
     // We execute the attack. Since the rogue has Advantage modifier on attack rolls, it should trigger Sneak Attack.
-    const newState = await command.execute({ characters: [rogue, target], combatLog: [] } as any);
+    const newState = await command.execute(createMockCombatState({ characters: [rogue, target] }));
 
     // Verify Sneak Attack triggers and deals 2d6 piercing damage
     const sneakAttackLog = newState.combatLog.find(l => l.type === 'damage' && l.message.includes("Sneak Attack triggers"));
@@ -130,7 +130,7 @@ describe('WeaponAttackCommand: Sneak Attack (G9)', () => {
       gameState: { characters: [rogue, target, fighterAlly], combatLog: [] } as unknown as GameState
     });
 
-    const newState = await command.execute({ characters: [rogue, target, fighterAlly], combatLog: [] } as any);
+    const newState = await command.execute(createMockCombatState({ characters: [rogue, target, fighterAlly] }));
 
     // Verify Sneak Attack triggers due to adjacent ally
     const sneakAttackLog = newState.combatLog.find(l => l.type === 'damage' && l.message.includes("Sneak Attack triggers"));
@@ -186,7 +186,7 @@ describe('WeaponAttackCommand: Sneak Attack (G9)', () => {
       gameState: { characters: [rogue, target], combatLog: [] } as unknown as GameState
     });
 
-    const newState = await command.execute({ characters: [rogue, target], combatLog: [] } as any);
+    const newState = await command.execute(createMockCombatState({ characters: [rogue, target] }));
 
     // Verify Sneak Attack did NOT trigger
     const sneakAttackLog = newState.combatLog.find(l => l.type === 'damage' && l.message.includes("Sneak Attack triggers"));
@@ -233,7 +233,7 @@ describe('WeaponAttackCommand: Sneak Attack (G9)', () => {
       gameState: { characters: [rogue, target], combatLog: [] } as unknown as GameState
     });
 
-    const newState = await command.execute({ characters: [rogue, target], combatLog: [] } as any);
+    const newState = await command.execute(createMockCombatState({ characters: [rogue, target] }));
 
     // Verify Sneak Attack did NOT trigger
     const sneakAttackLog = newState.combatLog.find(l => l.type === 'damage' && l.message.includes("Sneak Attack triggers"));

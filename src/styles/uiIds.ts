@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 09/08/2026, 17:31:26
+ * Dependents: components/ActionPane/SystemMenu.tsx, components/ActionPane/index.tsx, components/BattleMap/AISpellInputModal.tsx, components/BattleMap/AbilityPalette.tsx, components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/CombatCharacterInspector.tsx, components/BattleMap/InitiativeTracker.tsx, components/BattleMap/PartyDisplay.tsx, components/CharacterCreator/CharacterCreator.tsx, components/CharacterCreator/Race/RaceDetailModal.tsx, components/CharacterSheet/CharacterSheetModal.tsx, components/CharacterSheet/LevelUpModal.tsx, components/CharacterSheet/Spellbook/SpellbookOverlay.tsx, components/Combat/CombatView.tsx, components/Combat/EncounterModal.tsx, components/Crafting/AlchemyBenchPanel.tsx, components/Crafting/RefiningEnchantingPanel.tsx, components/Crime/ThievesGuild/FenceInterface.tsx, components/Crime/ThievesGuild/ThievesGuildInterface.tsx, components/Dialogue/DialogueInterface.tsx, components/Economy/CommerceDesk.tsx, components/Economy/CourierPouch.tsx, components/Economy/InvestmentBoard.tsx, components/Economy/LedgerBook.tsx, components/Glossary/Glossary.tsx, components/Logbook/DiscoveryLogPane.tsx, components/Logbook/DossierPane.tsx, components/MapPane.tsx, components/Naval/ShipPane.tsx, components/Organization/OrganizationDashboard.tsx, components/Party/PartyEditorModal.tsx, components/Party/PartyOverlay.tsx, components/QuestLog/QuestLog.tsx, components/Religion/DivineFavorPanel.tsx, components/Religion/TempleModal.tsx, components/SaveLoad/LoadGameModal.tsx, components/SaveLoad/SaveSlotSelector.tsx, components/Town/Broadsheet.tsx, components/Town/NoticeBoard.tsx, components/Trade/MerchantModal.tsx, components/Trade/TradeRouteDashboard.tsx, components/WorldPane.tsx, components/debug/AgentSimDevOverlay.tsx, components/debug/DevMenu.tsx, components/debug/GeminiLogViewer.tsx, components/debug/NobleHouseList.tsx, components/debug/NpcInteractionTestModal.tsx, components/debug/TownHistoryDevOverlay.tsx, components/debug/UnifiedDebugLogViewer.tsx, components/dice/DiceOverlay.tsx, components/dice/DiceRollerModal.tsx, components/layout/GameLayout.tsx, components/layout/MainMenu.tsx, components/puzzles/LockpickingModal.tsx, components/puzzles/PuzzleRuntimeModal.tsx, components/ui/CollapsibleBanterPanel.tsx, components/ui/CompanionReaction.tsx, components/ui/ConfirmationModal.tsx, components/ui/GameGuideModal.tsx, components/ui/LoadingSpinner.tsx, components/ui/MissingChoiceModal.tsx, components/ui/NotificationSystem.tsx, components/ui/OllamaDependencyModal.tsx
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Centralized UI Element ID Registry
  *
@@ -90,6 +106,8 @@ export const UI_ID = {
   SAVE_SLOT_SELECTOR: 'save-slot-selector',
   /** Generic yes/no confirmation */
   CONFIRMATION_MODAL: 'confirmation-modal',
+  /** Third-party asset credits (main menu) */
+  CREDITS_MODAL: 'credits-modal',
 
   // ── Overlays & Widgets ────────────────────────────────────────────────
   /** Toast notification container */
@@ -145,6 +163,13 @@ export const WINDOW_KEYS = {
   LEDGER_BOOK: 'ledger-book-window',
   INVESTMENT_BOARD: 'investment-board-window',
   COURIER_POUCH: 'courier-pouch-window',
+  COMMERCE_DESK: 'commerce-desk-window',
+  REFINING_ENCHANTING: 'refining-enchanting-window',
+  SALVAGE: 'salvage-window',
+  BANK: 'bank-window',
+  REAL_ESTATE: 'real-estate-window',
+  SHOP: 'shop-window',
+  TRADE_ROUTE: 'trade-route-window',
   SPELLBOOK_OVERLAY: 'spellbook-window',
   LEVEL_UP: 'level-up-window',
   NOTICE_BOARD: 'notice-board-window',
@@ -158,6 +183,10 @@ export const WINDOW_KEYS = {
   LOAD_GAME: 'load-game-window',
   SAVE_SLOT: 'save-slot-window',
   AI_SPELL_INPUT: 'ai-spell-input-window',
+  // World 3D developer inspectors use independent keys so each tool remembers
+  // its own WindowFrame geometry instead of overwriting the other's layout.
+  AGENT_SIM: 'agent-sim-window',
+  TOWN_HISTORY: 'town-history-window',
 } as const;
 
 // =============================================================================

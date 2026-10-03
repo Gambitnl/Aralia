@@ -5,6 +5,8 @@
  * per concern, so adding draws to one concern never perturbs another:
  *   frame    — height/bulk jitter inside the species or size band
  *   palette  — skin and eye tone picks
+ *   anatomy  — per-individual creature proportion jitter, identity picks,
+ *              and garnish part variants (horns/ears); humanoids never draw
  * Gear and features are data joins (race profile + class kit), not draws.
  */
 import { ALL_RACES_DATA } from '../../data/races';
@@ -16,6 +18,7 @@ import { deriveFrame } from './types';
 import { profileForRace } from './raceMap';
 import { kitForClass } from './classKits';
 import { profileForCreature } from './creatureProfiles';
+import { bellyToneFor, CREATURE_PART_VARIANTS, PLAN_REPLACED_PARTS, planForCreature } from './creaturePlans';
 import { compilePlan } from './textPlan/compilePlan';
 
 function entityPath(seed: string): SeedPath {
@@ -64,14 +67,27 @@ export function generateEntityBlueprint(recipe: EntityRecipe): EntityBlueprint {
     } else if (recipe.ageBand === 'elder') {
       heightFt *= 0.96;
     }
+    // round 9 (humanoid-anatomy): race frame character — parametric
+    // multipliers on top of the shared derivation (speciesProfiles.frameMods).
+    const frame = deriveFrame(profile.gait, heightFt, bulk, headScale);
+    if (profile.frameMods) {
+      frame.shoulderWidthFt *= profile.frameMods.shoulder ?? 1;
+      frame.limbLengthFt *= profile.frameMods.limb ?? 1;
+      frame.armLengthFt *= profile.frameMods.arm ?? 1;
+    }
+    // round 18 (humanoid-anatomy): per-species idle posture (orc hunch)
+    if (profile.hunch) frame.hunch = profile.hunch;
     return {
       gait: profile.gait,
-      frame: deriveFrame(profile.gait, heightFt, bulk, headScale),
+      frame,
       palette: {
         skinHex: pick(paletteRng, profile.skinTones),
         eyeHex: pick(paletteRng, profile.eyeTones),
         accentHex: kit.accentHex,
         secondaryHex: kit.secondaryHex,
+        hairHex: profile.hairTones ? pick(paletteRng, profile.hairTones) : undefined,
+        leatherHex: kit.leatherHex,
+        metalHex: kit.metalHex,
       },
       parts: [...profile.features, ...(recipe.gearOverride ?? kit.gear)],
       label: `${race.name} ${cls.name}`,
@@ -81,6 +97,35 @@ export function generateEntityBlueprint(recipe: EntityRecipe): EntityBlueprint {
   const resolved = profileForCreature(recipe.creatureType, recipe.size, recipe.cues ?? []);
   const heightFt = resolved.frame.heightFt * uniform(frameRng, 0.92, 1.08);
   const bulk = resolved.frame.bulk * uniform(frameRng, 0.9, 1.1);
+  // Creature-quality pass: types with a plan template compile through the
+  // universal body language (swept bodies, sculpted heads, real tails). Types
+  // without one (Ooze, frog/bird cues) keep their legacy segment gaits. The
+  // anatomy stream gives each individual its own proportions and identity
+  // picks (two same-size dragons from different seeds are not clones).
+  const anatomyRng = rngFromPath(streamPath(base, 'anatomy'));
+  const template = planForCreature(recipe.creatureType, recipe.size, recipe.cues ?? [], heightFt, bulk, anatomyRng);
+  if (template) {
+    const skinHex = pick(paletteRng, resolved.skinTones);
+    const compiled = compilePlan({
+      ...template,
+      palette: {
+        bodyHex: skinHex,
+        accentHex: resolved.palette.accentHex,
+        bellyHex: bellyToneFor(skinHex),
+        eyeHex: resolved.palette.eyeHex,
+      },
+    });
+    return {
+      ...compiled,
+      parts: resolved.parts
+        .filter((p) => !PLAN_REPLACED_PARTS.has(p.partId))
+        .map((p) => {
+          const variants = CREATURE_PART_VARIANTS[p.partId];
+          return variants ? { ...p, partId: pick(anatomyRng, variants) } : p;
+        }),
+      label: `${recipe.size} ${recipe.creatureType}`,
+    };
+  }
   return {
     gait: resolved.gait,
     frame: deriveFrame(resolved.gait, heightFt, bulk, resolved.frame.headScale),

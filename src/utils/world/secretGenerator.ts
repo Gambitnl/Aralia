@@ -1,10 +1,18 @@
+/**
+ * Copyright (c) 2024 Aralia RPG
+ * Licensed under the MIT License
+ *
+ * @file src/utils/secretGenerator.ts
+ * Generates procedural secrets for NPCs and Factions.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:35:34
- * Dependents: secretGenerator.ts, world/index.ts
+ * Last Sync: 20/09/2026, 21:00:39
+ * Dependents: utils/world/index.ts
  * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
@@ -14,15 +22,6 @@
  */
 // @dependencies-end
 
-/**
- * Copyright (c) 2024 Aralia RPG
- * Licensed under the MIT License
- *
- * @file src/utils/secretGenerator.ts
- * Generates procedural secrets for NPCs and Factions.
- */
-
-import { v4 as uuidv4 } from 'uuid';
 import { Secret } from '../../types/identity';
 import { SeededRandom } from '../random/seededRandom';
 
@@ -105,8 +104,35 @@ const SECRET_TAGS: Record<string, Secret['tags'][number]> = {
 // Generator Logic
 // -----------------------------------------------------------------------------
 
+// -----------------------------------------------------------------------------
+// Deterministic secret ids (agora-7687)
+// -----------------------------------------------------------------------------
+//
+// WHAT CHANGED: 'seed' was optional. Without one, generateSecret seeded itself
+// from Math.random() and stamped the secret with a uuidv4, so the same world
+// re-generated different secrets with different ids on every load. With one, the
+// id was `sec_` plus one draw off the same stream that had already picked the
+// category and template, so two subjects sharing a seed collided on the id while
+// two secrets about the SAME subject were indistinguishable by id alone.
+//
+// The seed is now required, the uuid and Math.random paths are gone, and the id
+// is a hash over the secret's own identity (seed, subject, category, content).
+// The same world seed and subject therefore reproduce the same secret and the
+// same id across sessions, and different subjects cannot collide.
+//
+// WHAT IS PRESERVED: the Secret shape, the template tables, the category and
+// value roll order, and the 30% rumor chance are all unchanged.
+//
+// MIGRATION: `seed` is now required. The function had no callers in src/ at the
+// time of this change, so no call site needed updating; a new caller must pass
+// the world/run seed it wants the secret to be reproducible against.
+
 export interface SecretGenerationOptions {
-  seed?: number;
+  /**
+   * REQUIRED. The deterministic stream this secret is drawn from - normally the
+   * world seed mixed with whatever produced the subject.
+   */
+  seed: number;
   subjectId: string;
   subjectName?: string; // For formatting the text nicely
   category?: keyof typeof SECRET_TEMPLATES;
@@ -114,19 +140,25 @@ export interface SecretGenerationOptions {
   maxValue?: number;
 }
 
-// Deterministic UUID generator placeholder (since uuid v4 is random)
-// In a real scenario, we might want a seeded ID generator, but for now we'll accept random IDs
-// OR we can generate IDs based on seed if provided.
-function generateId(rng?: SeededRandom): string {
-    if (rng) {
-        // Poor man's deterministic ID
-        return `sec_${Math.floor(rng.next() * 1000000000)}`;
-    }
-    return uuidv4();
+/**
+ * FNV-1a over the secret's identifying parts, rendered base36.
+ *
+ * Deliberately NOT a draw off the generator's own stream: the id must depend on
+ * WHICH secret this is (subject, category, content), not on how many numbers the
+ * generator happened to consume before reaching it.
+ */
+function generateId(parts: (string | number)[]): string {
+  const text = parts.join('|');
+  let hash = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return 'sec_' + (hash >>> 0).toString(36).padStart(7, '0');
 }
 
 export function generateSecret(options: SecretGenerationOptions): Secret {
-  const rng = new SeededRandom(options.seed || Math.random() * 10000);
+  const rng = new SeededRandom(options.seed);
   const categories = Object.keys(SECRET_TEMPLATES) as (keyof typeof SECRET_TEMPLATES)[];
 
   const category = options.category || rng.pick(categories);
@@ -142,7 +174,7 @@ export function generateSecret(options: SecretGenerationOptions): Secret {
     : `The subject ${template}.`;
 
   return {
-    id: generateId(options.seed ? rng : undefined),
+    id: generateId([options.seed, options.subjectId, category, template]),
     subjectId: options.subjectId,
     content,
     verified,

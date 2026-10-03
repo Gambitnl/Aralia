@@ -3,8 +3,8 @@ import { UtilityCommand } from '../effects/UtilityCommand'
 import type { CommandContext } from '../base/SpellCommand'
 import type { CombatCharacter, CombatState, SelectedSpellTarget } from '../../types/combat'
 import type { UtilityEffect } from '../../types/spells'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
-import truePolymorph from '../../../public/data/spells/level-9/true-polymorph.json'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
+import truePolymorph from '@/data/spells/level-9/true-polymorph.json'
 
 /**
  * This proof keeps True Polymorph's object-into-creature mode from being only

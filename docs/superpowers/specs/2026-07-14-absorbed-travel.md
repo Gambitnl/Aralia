@@ -1,4 +1,4 @@
-# Travel System — Cell-Native Movement (Absorbed 2026-07-14)
+# Travel System ï¿½ Cell-Native Movement (Absorbed 2026-07-14)
 
 Preserved from `docs/projects/travel/` after absorption into planmap.
 
@@ -26,3 +26,4 @@ Tracked in planmap topic `maritime-remainder` (G1, G2).
 
 Full git history: `git log docs/projects/travel/GAPS.md`
 
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-travel.md","sha256WithoutMarker":"e43e87b9f5cd8e0475c08a818e46d4ddcb81dc08132913e4f34fb7cbf33840ec","markedAtUtc":"2026-08-09T20:24:30.596Z"} -->

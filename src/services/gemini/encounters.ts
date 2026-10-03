@@ -18,11 +18,11 @@ import { GenerationConfig } from "@google/genai";
 import { ai } from "../aiClient";
 import { getFallbackEncounter } from "../geminiServiceFallback";
 import { CLASSES_DATA } from "../../data/classes";
-import { sanitizeAIInput, cleanAIJSON, safeJSONParse, redactSensitiveData } from "../../utils/securityUtils";
-import { logger } from "../../utils/logger";
+import { sanitizeAIInput, cleanAIJSON, safeJSONParse, redactSensitiveData, redactUserText } from "../../utils/core";
+import { logger } from "../../utils/core";
 import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN, COMPLEX_MODEL, FAST_MODEL } from "../../config/geminiConfig";
 import { MonsterSchema, CustomActionSchema, SocialOutcomeSchema } from "../geminiSchemas";
-import { chooseModelForComplexity, generateText } from "./core";
+import { chooseModelForComplexity, generateText, calculateBackoffDelay, sleep, throttledGenerate } from "./core";
 import { ExtendedGenerationConfig, GeminiCustomActionData, GeminiEncounterData, GeminiMetadata, GeminiSocialCheckData, GeminiTextData, StandardizedResult } from "./types";
 import { Action, GoalStatus, GroundingChunk, Monster, NPCMemory, TempPartyMember, VillageActionContext } from "../../types";
 import { MAX_ENCOUNTER_MONSTER_COUNT } from "../../utils/world/encounterUtils";
@@ -85,7 +85,8 @@ export async function generateEncounter(
   - Provide ONLY the JSON array.`;
 
   const prompt = `Create a medium-difficulty D&D 5e encounter for a party of ${party.length} adventurers (${partyComposition}) with an XP budget of ${xpBudget}. Themes: ${themeTags.join(', ')}.`;
-  const fullPromptForLogging = `System Instruction: ${systemInstruction}\nUser Prompt: ${prompt}`;
+  // User-provided text can carry PII, so it is masked before it ever reaches GeminiMetadata.
+  const fullPromptForLogging = redactUserText(`System Instruction: ${systemInstruction}\nUser Prompt: ${prompt}`);
 
   if (!ai) {
     return {
@@ -101,17 +102,18 @@ export async function generateEncounter(
 
   let lastError: unknown = null;
   let rateLimitHitInChain = false;
+  let attemptNumber = 0; // Initialize attempt counter
 
   const adaptiveModel = chooseModelForComplexity(COMPLEX_MODEL, null);
   const initialModel = devModelOverride || adaptiveModel;
   const modelsToTry = [initialModel, ...GEMINI_TEXT_MODEL_FALLBACK_CHAIN.filter(m => m !== initialModel)];
 
-  // TODO #419: Unlike `generateText` in core.ts, this loop does NOT implement exponential backoff (sleep)
-  // between model fallback attempts. All models are tried in rapid succession, which may:
-  // 1. Trigger additional rate limits immediately.
-  // 2. Waste retries if the server is overloaded momentarily.
-  // Consider integrating the `calculateBackoffDelay` and `sleep` utilities from core.ts.
   for (const model of modelsToTry) {
+    if (attemptNumber > 0 && rateLimitHitInChain) {
+      const backoffDelay = calculateBackoffDelay(attemptNumber - 1);
+      logger.debug(`Waiting ${backoffDelay}ms before trying next model...`, { model, attemptNumber });
+      await sleep(backoffDelay);
+    }
     try {
       const useThinking = model.includes('gemini-2.5') || model.includes('gemini-3');
       const config: ExtendedGenerationConfig = {
@@ -123,7 +125,8 @@ export async function generateEncounter(
         config.thinkingConfig = { thinkingBudget: 32768 };
       }
 
-      const response = await ai.models.generateContent({
+      // Routed through the shared throttle so lastRequestTimestamp in core.ts stays accurate.
+      const response = await throttledGenerate({
         model: model,
         contents: prompt,
         config: config as unknown as GenerationConfig,
@@ -154,13 +157,14 @@ export async function generateEncounter(
           encounter,
           sources,
           promptSent: fullPromptForLogging,
-          rawResponse: JSON.stringify(response),
+          rawResponse: redactUserText(JSON.stringify(response)),
           rateLimitHit: rateLimitHitInChain,
         },
         error: null
       };
     } catch (error: unknown) {
       lastError = error;
+      attemptNumber++; // Increment attempt number here
 
       let errorString = "";
       if (typeof error === 'object' && error !== null) {

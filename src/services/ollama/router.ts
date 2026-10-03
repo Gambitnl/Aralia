@@ -16,6 +16,7 @@
 import type { OllamaModel, TaskType } from '../../types/ollama';
 import type { OllamaClient } from './client';
 import { getTaskProfile } from './taskProfiles';
+import { resolveOllamaModel } from '../ai/aiProviderSettings';
 
 // Cache: TaskType → resolved model name. Cleared via resetRouterCache().
 const taskModelCache = new Map<TaskType, string>();
@@ -35,15 +36,24 @@ function pickFirstAvailable(candidates: string[], installed: OllamaModel[]): str
 }
 
 /**
- * Resolve a TaskType to an installed model name.
+ * Resolve a TaskType to the ONE model its category runs on (agora-d1c7.1).
  *
- * Order:
- *   1. Profile's `preferredModels` (task-specific)
- *   2. Client's global `preferredModels` (config-wide fallback)
- *   3. First installed model (last-resort)
+ * The player's choice for the category (AI settings), else the category
+ * default. There is no walk over a preference list and no "first installed"
+ * last resort: if the resolved model is not installed the call throws
+ * OllamaModelNotInstalledError naming the model, so the failure is visible
+ * instead of silently answered by a different model.
  *
- * Returns `null` if the Ollama server is unreachable or has no models.
+ * Returns `null` only when the Ollama server is unreachable or lists no models.
  */
+export class OllamaModelNotInstalledError extends Error {
+    constructor(public readonly model: string, public readonly category: string, public readonly taskType: TaskType) {
+        super(`Ollama model "${model}" (chosen for ${category}, task ${taskType}) is not installed. ` +
+            `Pick an installed model in AI settings or run: ollama pull ${model}`);
+        this.name = 'OllamaModelNotInstalledError';
+    }
+}
+
 export async function resolveModelForTask(
     client: OllamaClient,
     taskType: TaskType
@@ -55,16 +65,12 @@ export async function resolveModelForTask(
     if (!installed || installed.length === 0) return null;
 
     const profile = getTaskProfile(taskType);
-    const globalFallback = client.getPreferredModels();
+    const wanted = resolveOllamaModel(profile.category);
+    const found = installed.find(m => m.name === wanted || m.name.startsWith(wanted + ':') || m.name === wanted + ':latest');
+    if (!found) throw new OllamaModelNotInstalledError(wanted, profile.category, taskType);
 
-    const resolved =
-        pickFirstAvailable(profile.preferredModels, installed) ??
-        pickFirstAvailable(globalFallback, installed) ??
-        installed[0]?.name ??
-        null;
-
-    if (resolved) taskModelCache.set(taskType, resolved);
-    return resolved;
+    taskModelCache.set(taskType, found.name);
+    return found.name;
 }
 
 /**

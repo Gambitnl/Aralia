@@ -3,8 +3,8 @@
  * Defines the dummy character data for development and testing purposes.
  */
 import { PlayerCharacter, AbilityScores, Skill, LimitedUses, SpellSlots, SpellbookData, Item } from '../../types';
-import { getAbilityModifierValue, calculateArmorClass, calculateFixedRacialBonuses } from '../../utils/statUtils';
-import { buildHitPointDicePools } from '../../utils/characterUtils';
+import { getAbilityModifierValue, calculateArmorClass, calculateFixedRacialBonuses } from '../../utils/character';
+import { buildHitPointDicePools } from '../../utils/character';
 import { FEATURES } from '../../config/features';
 
 import { ALL_RACES_DATA } from '../races/index.ts';
@@ -218,6 +218,9 @@ export function getDummyParty(): PlayerCharacter[] {
 	    const tempPlayer: PlayerCharacter = {
 	        id: 'player', // STANDARD PLAYER ID
 	        name: "Dev Player",
+	        // This capability is restricted to the disposable dev seed. Design
+	        // Preview replaces this player with a configurable playtest version.
+	        devPlaytest: { unlimitedSpellSlots: true },
 	        age: 30,
 	        level: 1, proficiencyBonus: 2, xp: 0,
 	        race: playerRace, class: playerClass,

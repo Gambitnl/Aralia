@@ -64,8 +64,15 @@ export const buildFogAlphaGrid = (
  * diagonal visibility boundary (a sightline breaking over a rising crest) is
  * a one-tile staircase — bilinear upscale feathers each step but cannot
  * remove the teeth. A 3×3 weighted blur (repeatable) melts the steps into
- * one continuous penumbra while staying within a tile of the referee's
- * truth: fully-lit and fully-hidden interiors keep their exact values.
+ * one continuous penumbra while staying close to the referee's truth:
+ * fully-lit and fully-hidden interiors keep their exact values.
+ *
+ * Honesty bound (2 passes, measured by fogModel.test.ts "blur honesty bound"):
+ * a fully-hidden cell's alpha (exact 0.55) is pulled by more than 0.05 only
+ * within 1 tile of a straight sight boundary, and within at most 2 tiles at a
+ * concave boundary corner (light wrapping the cell on two sides). Beyond 2
+ * tiles from any lit cell the fog is exactly the referee's value. Raising the
+ * pass count widens this bound — the test guards the <=2 promise.
  */
 export const blurFogAlphaGrid = (
   grid: FogAlphaGrid,

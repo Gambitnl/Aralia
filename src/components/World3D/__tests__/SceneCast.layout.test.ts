@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { layoutCast, figureIsInteractive, type SceneCastMember } from '../SceneCast';
+import { type SceneCastMember } from '../SceneCast';
+import { layoutCast, figureIsInteractive } from '../sceneCastUtils';
 
 /**
  * The SceneCast figures themselves are R3F meshes (not unit-testable in jsdom),

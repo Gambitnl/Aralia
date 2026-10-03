@@ -12,6 +12,19 @@ import {
   DUSK_END_HOUR,
 } from '../buildingOccupancy';
 
+/**
+ * This file proves the 3D building-occupancy bridge keeps every household
+ * member inside real blueprint rooms and produces one deterministic 24-hour
+ * lighting and station schedule.
+ *
+ * The production ground loader and the one-hour preview resolver both depend
+ * on these contracts. The reuse regression also checks that a blueprint already
+ * owned by the load packet produces the same schedule as standalone resolution.
+ *
+ * Called by: the focused Worldforge bridge test suite.
+ * Depends on: buildingOccupancy, blueprintForPlot, and household generation.
+ */
+
 /** A generous rectangular lot (feet), corners 0-1 = street frontage. */
 const footprint: InteriorPlotInput['footprint'] = [
   [0, 0], [40, 0], [40, 55], [0, 55],
@@ -136,6 +149,9 @@ describe('occupancyForPlot', () => {
   });
 
   it('litWindows implies occupancy AND the dusk band, across every hour', () => {
+    // WF-INTERIORS #7 was resolved (Remy, 2026-07-21) to KEEP window and hearth
+    // schedules separate: windows glow only in the dusk/night band when occupied,
+    // independent of the hearth's morning burn.
     const { plotPop, allPlots, plotInput } = populatedPlot(6);
     for (let hour = 0; hour < 24; hour++) {
       const occ = occupancyForPlot(plotPop, allPlots, plotInput, seedPath, town, hour)!;
@@ -182,10 +198,113 @@ describe('occupancyScheduleForPlot', () => {
     }
   });
 
+  test('reuses a precomputed blueprint without changing the full-day schedule', () => {
+    const f = makePopulatedHousePlotFixture();
+
+    // This is the production handoff: the world-load packet resolves one plan,
+    // then occupancy projects its schedule from that exact blueprint instance.
+    const blueprint = blueprintForPlot(f.plotInput, f.seedPath);
+    const precomputed = occupancyScheduleForPlot(
+      f.plotPop,
+      f.allPlots,
+      f.plotInput,
+      f.seedPath,
+      f.townSeed,
+      blueprint,
+    );
+
+    // The optional handoff remains byte-equivalent to the standalone helper so
+    // previews and isolated tests that omit a plan keep the old deterministic answer.
+    const standalone = occupancyScheduleForPlot(
+      f.plotPop,
+      f.allPlots,
+      f.plotInput,
+      f.seedPath,
+      f.townSeed,
+    );
+    expect(precomputed).toEqual(standalone);
+  });
+
   test('an unpopulated plot (no household) yields undefined', () => {
     const civic: TownPlotPopulation = { residential: false, buildingType: 'civic' };
     const plotInput: InteriorPlotInput = { id: 99, footprint, role: 'civic', storeys: 1 };
     expect(occupancyScheduleForPlot(civic, [civic], plotInput, rootSeedPath(7), rootSeedPath(7))).toBeUndefined();
+  });
+});
+
+describe('public-house visitors', () => {
+  const town = rootSeedPath(11);
+
+  /** A tavern run by the family living in the neighbouring home. */
+  function tavernFixture(): {
+    plotPop: TownPlotPopulation;
+    allPlots: TownPlotPopulation[];
+    plotInput: InteriorPlotInput;
+  } {
+    const home: TownPlotPopulation = {
+      buildingType: 'townhouse', residential: true, occupants: 4,
+      homeId: 'taverner-home', district: 'common',
+    };
+    const plotPop: TownPlotPopulation = {
+      buildingType: 'tavern', residential: false,
+      proprietorHomeId: 'taverner-home', district: 'common',
+    };
+    const plotInput: InteriorPlotInput = {
+      id: 501, footprint, role: 'house', storeys: 2, buildingType: 'tavern',
+    };
+    return { plotPop, allPlots: [home, plotPop], plotInput };
+  }
+
+  it('bakes patron day-schedules past the household indices, in real feet', () => {
+    const { plotPop, allPlots, plotInput } = tavernFixture();
+    const sched = occupancyScheduleForPlot(plotPop, allPlots, plotInput, town, town)!;
+    expect(sched).toBeDefined();
+
+    const visitors = sched.occupants.filter((o) => o.visitor);
+    expect(visitors.length).toBeGreaterThan(0);
+
+    const plan = blueprintForPlot(plotInput, town);
+    for (const v of visitors) {
+      // Indices continue PAST the family so no patron can be mistaken for,
+      // or collide with, a named household member.
+      expect(v.memberIndex).toBeGreaterThanOrEqual(sched.household.members.length);
+      expect(sched.household.members[v.memberIndex]).toBeUndefined();
+      expect(v.ageBand).toBe('adult');
+      expect(v.stationsByHour).toHaveLength(24);
+
+      const evening = v.stationsByHour[19];
+      expect(evening).not.toBeNull();
+      expect(evening!.activity).toBe('visiting');
+      // The patron stands inside a real room cell of the plan.
+      expect(roomCellSet(plan, evening!.level))
+        .toContain(`${Math.floor(evening!.xFt / 5)},${Math.floor(evening!.yFt / 5)}`);
+      // And is gone by the small hours.
+      expect(v.stationsByHour[3]).toBeNull();
+      expect(v.stationsByHour[12]).toBeNull();
+    }
+
+    // Render ids stay unique across family and patrons alike.
+    const indices = sched.occupants.map((o) => o.memberIndex);
+    expect(new Set(indices).size).toBe(indices.length);
+  });
+
+  it('lights the taproom windows while patrons are in, and is deterministic', () => {
+    const { plotPop, allPlots, plotInput } = tavernFixture();
+    const sched = occupancyScheduleForPlot(plotPop, allPlots, plotInput, town, town)!;
+    // A full taproom is never a dark building from the street.
+    expect(sched.litHours[19]).toBe(true);
+    expect(sched.litHours[3]).toBe(false);
+
+    const again = occupancyScheduleForPlot(plotPop, allPlots, plotInput, town, town)!;
+    expect(again).toEqual(sched);
+  });
+
+  it('leaves a private house with no visitors at all', () => {
+    const f = makePopulatedHousePlotFixture();
+    const sched = occupancyScheduleForPlot(
+      f.plotPop, f.allPlots, f.plotInput, f.seedPath, f.townSeed,
+    )!;
+    expect(sched.occupants.some((o) => o.visitor)).toBe(false);
   });
 });
 

@@ -1,0 +1,220 @@
+{
+  "generatedAt": "2026-08-03T19:08:48.759Z",
+  "tool": "tools/dungeon-profile/profile.mjs",
+  "mode": "gpu (machine GPU via ANGLE/D3D11)",
+  "base": "http://127.0.0.1:3000/Aralia/misc/design.html",
+  "webglBackend": {
+    "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 2070 SUPER (0x00001E84) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "vendor": "Google Inc. (NVIDIA)"
+  },
+  "note": "Numbers are from the machine that ran this harness. Re-run on the target device for device-specific verdicts. trueRenderCost is the budget-judged metric (vsync-independent); live p50/p95 is the display-refresh-bound cadence as the app actually runs.",
+  "budget": {
+    "rationale": "See tools/dungeon-profile/BUDGET.md",
+    "targetFps": 60,
+    "targetMs": 16.67,
+    "floorFps": 30,
+    "floorMs": 33.33
+  },
+  "scenario": {
+    "seed": 42,
+    "theme": "crypt",
+    "liveCaptureMs": 5000,
+    "benchIterations": 240
+  },
+  "summary": {
+    "worstCaseRenderMs": 3.97,
+    "worstCaseFps": 251.89,
+    "meetsFloor30fps": true,
+    "meetsTarget60fps": true
+  },
+  "variants": [
+    {
+      "id": "default-tactical",
+      "rooms": "default(42)",
+      "preset": "tactical",
+      "scene": {
+        "seed": 42,
+        "archetype": "mausoleum",
+        "theme": "crypt",
+        "rooms": 42,
+        "sizeCells": {
+          "width": 144,
+          "depth": 158
+        },
+        "props": 604,
+        "encounters": 101
+      },
+      "live": {
+        "frames": 301,
+        "p50Ms": 16.9,
+        "p95Ms": 18,
+        "p99Ms": 18.1,
+        "minMs": 15,
+        "maxMs": 18.1,
+        "meanMs": 16.67
+      },
+      "trueRenderCost": {
+        "msPerFrame": 3.77,
+        "fps": 265.37,
+        "iterations": 240
+      },
+      "drawCalls": 28,
+      "triangles": 154054,
+      "lines": 0,
+      "instancedMeshes": 23,
+      "totalInstances": 10832,
+      "plainMeshes": 5,
+      "lineSegmentObjects": 0,
+      "programs": 6,
+      "geometries": 28,
+      "textures": 11,
+      "verdict": {
+        "budgetFloorMs": 33.33,
+        "budgetTargetMs": 16.67,
+        "meetsFloor30fps": true,
+        "meetsTarget60fps": true
+      }
+    },
+    {
+      "id": "default-objective",
+      "rooms": "default(42)",
+      "preset": "objective",
+      "scene": {
+        "seed": 42,
+        "archetype": "mausoleum",
+        "theme": "crypt",
+        "rooms": 42,
+        "sizeCells": {
+          "width": 144,
+          "depth": 158
+        },
+        "props": 604,
+        "encounters": 101
+      },
+      "live": {
+        "frames": 300,
+        "p50Ms": 16.9,
+        "p95Ms": 18,
+        "p99Ms": 18.1,
+        "minMs": 15,
+        "maxMs": 18.4,
+        "meanMs": 16.67
+      },
+      "trueRenderCost": {
+        "msPerFrame": 3.68,
+        "fps": 271.49,
+        "iterations": 240
+      },
+      "drawCalls": 28,
+      "triangles": 191766,
+      "lines": 0,
+      "instancedMeshes": 25,
+      "totalInstances": 11448,
+      "plainMeshes": 5,
+      "lineSegmentObjects": 0,
+      "programs": 6,
+      "geometries": 30,
+      "textures": 11,
+      "verdict": {
+        "budgetFloorMs": 33.33,
+        "budgetTargetMs": 16.67,
+        "meetsFloor30fps": true,
+        "meetsTarget60fps": true
+      }
+    },
+    {
+      "id": "stress80-tactical",
+      "rooms": 80,
+      "preset": "tactical",
+      "scene": {
+        "seed": 42,
+        "archetype": "mausoleum",
+        "theme": "crypt",
+        "rooms": 80,
+        "sizeCells": {
+          "width": 144,
+          "depth": 294
+        },
+        "props": 1146,
+        "encounters": 207
+      },
+      "live": {
+        "frames": 300,
+        "p50Ms": 16.9,
+        "p95Ms": 18,
+        "p99Ms": 18.1,
+        "minMs": 14.9,
+        "maxMs": 18.2,
+        "meanMs": 16.66
+      },
+      "trueRenderCost": {
+        "msPerFrame": 3.97,
+        "fps": 251.73,
+        "iterations": 240
+      },
+      "drawCalls": 28,
+      "triangles": 289702,
+      "lines": 0,
+      "instancedMeshes": 23,
+      "totalInstances": 20529,
+      "plainMeshes": 5,
+      "lineSegmentObjects": 0,
+      "programs": 6,
+      "geometries": 28,
+      "textures": 11,
+      "verdict": {
+        "budgetFloorMs": 33.33,
+        "budgetTargetMs": 16.67,
+        "meetsFloor30fps": true,
+        "meetsTarget60fps": true
+      }
+    },
+    {
+      "id": "stress80-objective",
+      "rooms": 80,
+      "preset": "objective",
+      "scene": {
+        "seed": 42,
+        "archetype": "mausoleum",
+        "theme": "crypt",
+        "rooms": 80,
+        "sizeCells": {
+          "width": 144,
+          "depth": 294
+        },
+        "props": 1146,
+        "encounters": 207
+      },
+      "live": {
+        "frames": 301,
+        "p50Ms": 16.9,
+        "p95Ms": 18,
+        "p99Ms": 18.1,
+        "minMs": 1.9,
+        "maxMs": 37.5,
+        "meanMs": 16.66
+      },
+      "trueRenderCost": {
+        "msPerFrame": 3.84,
+        "fps": 260.33,
+        "iterations": 240
+      },
+      "drawCalls": 28,
+      "triangles": 364690,
+      "lines": 0,
+      "instancedMeshes": 25,
+      "totalInstances": 21690,
+      "plainMeshes": 5,
+      "lineSegmentObjects": 0,
+      "programs": 6,
+      "geometries": 30,
+      "textures": 11,
+      "verdict": {
+        "budgetFloorMs": 33.33,
+        "budgetTargetMs": 16.67,
+        "meetsFloor30fps": true,
+        "meetsTarget60fps": true
+      }
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 /**
  * @file program.ts — assign a purpose to every room on a floor.
  *
- * Task 4 of the Building Blueprint Pipeline. Detects corridors (a room whose
- * cells form a straight 1-cell-wide run of length >= 3), marks the largest
+ * Task 4 of the Building Blueprint Pipeline. Detects corridors (including bent
+ * five-foot runs that cannot contain a ten-foot-square room), marks the largest
  * non-corridor room as the main room with the building type's headline
  * purpose, then fills the remaining rooms from a per-type program: required
  * slots, optional slots decided by the RNG, then a filler purpose. Slots
@@ -40,6 +40,16 @@ export const HEADLINE: Record<BuildingType, RoomPurpose> = {
   temple: 'nave',
   keep: 'great-hall',
   civic: 'hall',
+  // Named landmarks (town/population.ts caps how many a town may hold).
+  library: 'study',
+  guildhall: 'great-hall',
+  granary: 'storage',
+  windmill: 'workshop',
+  lumbermill: 'workshop',
+  school: 'hall',
+  shrine: 'sanctuary',
+  barracks: 'guard-room',
+  bakery: 'shopfront',
 };
 
 /** One slot in a room program: min required, max allowed. */
@@ -174,21 +184,85 @@ const PROGRAMS: Record<BuildingType, RoomProgram> = {
     ],
     filler: 'private-room',
   },
+  // --- named landmarks ---
+  // Each one reuses the existing RoomPurpose vocabulary: a landmark is a
+  // recognizable ROOM MIX, not a new kind of room.
+  library: {
+    slots: [
+      { purpose: 'study', min: 1, max: 2 },
+      { purpose: 'storage', min: 0, max: 1 },
+    ],
+    filler: 'study',
+  },
+  guildhall: {
+    slots: [
+      { purpose: 'counting-room', min: 1, max: 1 },
+      { purpose: 'study', min: 0, max: 1 },
+      { purpose: 'kitchen', min: 0, max: 1 },
+      { purpose: 'storage', min: 0, max: 1 },
+    ],
+    filler: 'private-room',
+  },
+  granary: {
+    slots: [
+      { purpose: 'stockroom', min: 1, max: 1 },
+    ],
+    filler: 'storage',
+  },
+  windmill: {
+    slots: [
+      { purpose: 'storage', min: 1, max: 1 },
+    ],
+    filler: 'workshop',
+  },
+  lumbermill: {
+    slots: [
+      { purpose: 'stockroom', min: 1, max: 1 },
+      { purpose: 'storage', min: 0, max: 1 },
+    ],
+    filler: 'workshop',
+  },
+  school: {
+    slots: [
+      { purpose: 'study', min: 1, max: 2 },
+      { purpose: 'storage', min: 0, max: 1 },
+    ],
+    filler: 'study',
+  },
+  shrine: {
+    slots: [
+      { purpose: 'vestry', min: 0, max: 1 },
+    ],
+    filler: 'sanctuary',
+  },
+  barracks: {
+    slots: [
+      { purpose: 'armory', min: 1, max: 1 },
+      { purpose: 'kitchen', min: 1, max: 1 },
+      { purpose: 'storage', min: 0, max: 1 },
+    ],
+    filler: 'bedroom',
+  },
+  bakery: {
+    slots: [
+      { purpose: 'workshop', min: 1, max: 1 },
+      { purpose: 'pantry', min: 0, max: 1 },
+      { purpose: 'storage', min: 0, max: 1 },
+    ],
+    filler: 'bedroom',
+  },
 };
 
-/** True when the cells form a straight 1-cell-wide run of length >= 3. */
+/** A habitable room needs a 2x2-cell area for furniture beside circulation. */
 function isCorridorShape(cells: Cell[]): boolean {
   if (cells.length < 3) return false;
-  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-  for (const c of cells) {
-    minX = Math.min(minX, c.cx); maxX = Math.max(maxX, c.cx);
-    minY = Math.min(minY, c.cy); maxY = Math.max(maxY, c.cy);
-  }
-  const w = maxX - minX + 1;
-  const h = maxY - minY + 1;
-  if (w !== 1 && h !== 1) return false;
-  const len = Math.max(w, h);
-  return len >= 3 && cells.length === w * h; // straight, gapless run
+  // A bent five-foot strip has a wide bounding box but still cannot hold a
+  // bedroom. Inspect occupied cells, not bounding-box width, and retain the
+  // narrow area as useful circulation rather than calling it a guest room.
+  const occupied = new Set(cells.map(c => `${c.cx},${c.cy}`));
+  return !cells.some(c => occupied.has(`${c.cx + 1},${c.cy}`)
+    && occupied.has(`${c.cx},${c.cy + 1}`)
+    && occupied.has(`${c.cx + 1},${c.cy + 1}`));
 }
 
 function bboxFeet(cells: Cell[]): BlueprintRoom['bbox'] {
@@ -428,6 +502,27 @@ export function assignPurposes(
    *  cellar is waiting in the program, a kitchen spot that still has a free
    *  neighbor for it outranks one boxed in by main/corridors/outside. */
   const kitchenScore = (id: number, wantsNeighbor: boolean): number => {
+    // Keep cooking out of the only route to a guest wing. Count rooms that
+    // become unreachable from the public main room if the kitchen is closed;
+    // this circulation constraint takes precedence over pantry adjacency.
+    const reachable = new Set([mainId]);
+    const pending = [mainId];
+    while (pending.length > 0) {
+      const current = pending.pop()!;
+      for (const neighbor of adj.get(current)?.keys() ?? []) {
+        if (neighbor === id || reachable.has(neighbor)) continue;
+        reachable.add(neighbor);
+        pending.push(neighbor);
+      }
+    }
+    const cutOffRooms = ids.length - 1 - reachable.size;
+    // Detect a fifteen-foot cooking/work area rather than a ten-foot strip.
+    // A narrow room touching three or more neighbors is likely to be the
+    // central passage joining guest rooms to the common room.
+    const kitchenCells = cellsOf(id);
+    const occupied = new Set(kitchenCells.map(c => `${c.cx},${c.cy}`));
+    const hasWorkArea = kitchenCells.some(c =>
+      [0, 1, 2].every(dx => [0, 1, 2].every(dy => occupied.has(`${c.cx + dx},${c.cy + dy}`))));
     const base =
       sharedEdges(id, mainId) > 0 ? 2 // shares a wall with main
       : mainCorridors.some((c) => sharedEdges(id, c) > 0) ? 1 // via corridor
@@ -436,7 +531,12 @@ export function assignPurposes(
       wantsNeighbor &&
       rest.some((r) => r !== id && unassigned.has(r) && sharedEdges(id, r) > 0)
         ? 1 : 0;
-    return base * 2 + neighborBonus;
+    // Offset keeps every candidate score non-negative for the shared picker.
+    const adjacencyScore = base * 2 + neighborBonus;
+    if (type !== 'tavern' && type !== 'inn') return adjacencyScore;
+    const narrowHub = !hasWorkArea && (adj.get(id)?.size ?? 0) >= 3;
+    return (ids.length - cutOffRooms) * 1000
+      + (narrowHub ? 0 : 100) + adjacencyScore;
   };
 
   // Assignment order: pantry/cellar move directly after the kitchen so
@@ -506,6 +606,17 @@ export function assignPurposes(
     unassigned.delete(id);
   }
   for (const id of unassigned) purposeById.set(id, program.filler);
+
+  // A public house needs guest circulation, not bedrooms used as passageways.
+  // When several spare rooms would all become guest rooms, keep the most
+  // connected one as a public hall. Required service rooms and household
+  // bedroom assignments have already been consumed and are never replaced.
+  if ((type === 'tavern' || type === 'inn') && unassigned.size >= 2) {
+    const candidates = [...unassigned].sort((a, b) =>
+      (adj.get(b)?.size ?? 0) - (adj.get(a)?.size ?? 0) || bySize(a, b));
+    const hallId = candidates[0];
+    if ((adj.get(hallId)?.size ?? 0) >= 3) purposeById.set(hallId, 'hall');
+  }
 
   return ids.map((id) => {
     const isMain = id === mainId;

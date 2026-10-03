@@ -1,8 +1,20 @@
 import { describe, it, expect } from 'vitest';
 import { MovementCommand } from '../MovementCommand';
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories';
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core';
 import { MovementEffect, SpellEffect } from '@/types/spells';
 import { CommandContext } from '../../base/SpellCommand';
+
+/**
+ * This file proves the production movement command's combat contracts.
+ *
+ * It covers reaction-consuming movement instructions, routed walking effects,
+ * atomic physical push/pull, terrain landings, area-boundary hazards, and
+ * teleport destinations. CS09 uses these tests as the normal-runtime gate
+ * beneath its Tactical Sandbox controls.
+ *
+ * Called by: focused Vitest movement and Tactical Sandbox acceptance runs.
+ * Depends on: MovementCommand, the production trigger helpers, and combat factories.
+ */
 
 describe('MovementCommand - Reaction Usage', () => {
   it('consumes reaction if usesReaction is true', () => {
@@ -117,6 +129,207 @@ describe('MovementCommand - forced movement routing', () => {
 });
 
 // ----------------------------------------------------------------------------
+// Atomic Physical Push And Pull
+// ----------------------------------------------------------------------------
+// A physical displacement is one authored effect. Every square must be legal
+// before the target moves, and the target's voluntary movement allowance must
+// remain untouched whether the command succeeds or rejects.
+// ----------------------------------------------------------------------------
+
+function createLinearMap(width: number): import('@/types/combat').BattleMapData {
+  const tiles = new Map();
+
+  for (let x = 0; x < width; x += 1) {
+    tiles.set(`${x}-0`, {
+      id: `${x}-0`,
+      coordinates: { x, y: 0 },
+      terrain: 'floor',
+      elevation: 0,
+      movementCost: 5,
+      blocksMovement: false,
+      blocksLoS: false,
+      decoration: null,
+      effects: [],
+    });
+  }
+
+  return {
+    dimensions: { width, height: 1 },
+    tiles,
+    theme: 'dungeon',
+    seed: 9,
+  };
+}
+
+function executePhysicalMove(
+  movementType: 'push' | 'pull',
+  distance: number,
+  caster: ReturnType<typeof createMockCombatCharacter>,
+  target: ReturnType<typeof createMockCombatCharacter>,
+  state: ReturnType<typeof createMockCombatState>,
+) {
+  const effect: MovementEffect = {
+    type: 'MOVEMENT',
+    movementType,
+    distance,
+    duration: { type: 'instantaneous' },
+    trigger: { type: 'immediate', movementType: 'forced' },
+    condition: { type: 'always' },
+  };
+  const context: CommandContext = {
+    spellId: `atomic-${movementType}`,
+    spellName: `Atomic ${movementType}`,
+    castAtLevel: 1,
+    caster,
+    targets: [target],
+    gameState: createMockGameState(),
+  };
+
+  return new MovementCommand(effect, context).execute(state);
+}
+
+describe('MovementCommand - atomic physical forced movement', () => {
+  it('moves the full authored push distance without spending target movement', () => {
+    const caster = createMockCombatCharacter({ id: 'caster', position: { x: 0, y: 0 } });
+    const target = createMockCombatCharacter({ id: 'target', position: { x: 1, y: 0 } });
+    const movementBefore = target.actionEconomy.movement;
+    const state = createMockCombatState({
+      characters: [caster, target],
+      mapData: createLinearMap(6),
+      combatLog: [],
+    });
+
+    const result = executePhysicalMove('push', 10, caster, target, state);
+    const moved = result.characters.find(character => character.id === target.id)!;
+
+    expect(moved.position).toEqual({ x: 3, y: 0 });
+    expect(moved.actionEconomy.movement).toBe(movementBefore);
+    expect(result.combatLog.at(-1)?.message).toContain('pushed 10 feet');
+  });
+
+  it('rejects a blocked or occupied final square without a partial push or hazard effect', () => {
+    const caster = createMockCombatCharacter({ id: 'caster', position: { x: 0, y: 0 } });
+    const target = createMockCombatCharacter({ id: 'target', position: { x: 1, y: 0 }, currentHP: 20, maxHP: 20 });
+    const occupant = createMockCombatCharacter({ id: 'occupant', position: { x: 3, y: 0 } });
+    const mapData = createLinearMap(6);
+    const state = createMockCombatState({
+      characters: [caster, target, occupant],
+      mapData,
+      combatLog: [],
+      spellZones: [{
+        id: 'blocked-entry-zone',
+        spellId: 'blocked-entry-zone',
+        casterId: caster.id,
+        position: { x: 2, y: 0 },
+        areaOfEffect: { shape: 'cube', size: 5 }, direction: { x: 1, y: 0 },
+        effects: [{
+          type: 'DAMAGE',
+          damage: { dice: '1d1', type: 'Force' },
+          trigger: { type: 'on_enter_area', frequency: 'once_per_creature' },
+          condition: { type: 'always' },
+        } as SpellEffect],
+        triggeredThisTurn: new Set(),
+        triggeredEver: new Set(),
+      }],
+    });
+
+    const occupiedResult = executePhysicalMove('push', 10, caster, target, state);
+    expect(occupiedResult.characters.find(character => character.id === target.id)?.position).toEqual({ x: 1, y: 0 });
+    expect(occupiedResult.characters.find(character => character.id === target.id)?.currentHP).toBe(20);
+    expect(occupiedResult.combatLog.filter(entry => entry.type === 'damage')).toHaveLength(0);
+
+    const blockedTiles = new Map(mapData.tiles);
+    blockedTiles.set('3-0', { ...blockedTiles.get('3-0')!, terrain: 'wall', blocksMovement: true });
+    const blockedState = createMockCombatState({
+      characters: [caster, target],
+      mapData: { ...mapData, tiles: blockedTiles },
+      combatLog: [],
+    });
+    const blockedResult = executePhysicalMove('push', 10, caster, target, blockedState);
+    expect(blockedResult.characters.find(character => character.id === target.id)?.position).toEqual({ x: 1, y: 0 });
+  });
+
+  it('rejects immediately blocked pull, off-board push, and zero-length vectors atomically', () => {
+    // When an occupant is directly in front of the target, pull cannot take even a single step
+    const pullCaster = createMockCombatCharacter({ id: 'pull-caster', position: { x: 0, y: 0 } });
+    const pullTarget = createMockCombatCharacter({ id: 'pull-target', position: { x: 3, y: 0 } });
+    const pullOccupant = createMockCombatCharacter({ id: 'pull-occupant', position: { x: 2, y: 0 } });
+    const pullState = createMockCombatState({
+      characters: [pullCaster, pullTarget, pullOccupant],
+      mapData: createLinearMap(6),
+      combatLog: [],
+    });
+    expect(executePhysicalMove('pull', 10, pullCaster, pullTarget, pullState)
+      .characters.find(character => character.id === pullTarget.id)?.position).toEqual({ x: 3, y: 0 });
+
+    // When an occupant is further ahead, pull steps incrementally and stops before the obstruction
+    const partialOccupant = createMockCombatCharacter({ id: 'partial-occupant', position: { x: 1, y: 0 } });
+    const partialState = createMockCombatState({
+      characters: [pullCaster, pullTarget, partialOccupant],
+      mapData: createLinearMap(6),
+      combatLog: [],
+    });
+    expect(executePhysicalMove('pull', 10, pullCaster, pullTarget, partialState)
+      .characters.find(character => character.id === pullTarget.id)?.position).toEqual({ x: 2, y: 0 });
+
+    const edgeCaster = createMockCombatCharacter({ id: 'edge-caster', position: { x: 0, y: 0 } });
+    const edgeTarget = createMockCombatCharacter({ id: 'edge-target', position: { x: 2, y: 0 } });
+    const edgeState = createMockCombatState({
+      characters: [edgeCaster, edgeTarget],
+      mapData: createLinearMap(4),
+      combatLog: [],
+    });
+    expect(executePhysicalMove('push', 10, edgeCaster, edgeTarget, edgeState)
+      .characters.find(character => character.id === edgeTarget.id)?.position).toEqual({ x: 2, y: 0 });
+
+    const overlappingCaster = createMockCombatCharacter({ id: 'overlap-caster', position: { x: 1, y: 0 } });
+    const overlappingTarget = createMockCombatCharacter({ id: 'overlap-target', position: { x: 1, y: 0 } });
+    const invalidState = createMockCombatState({
+      characters: [overlappingCaster, overlappingTarget],
+      mapData: createLinearMap(4),
+      combatLog: [],
+    });
+    const invalidResult = executePhysicalMove('push', 5, overlappingCaster, overlappingTarget, invalidState);
+    expect(invalidResult.characters.find(character => character.id === overlappingTarget.id)?.position).toEqual({ x: 1, y: 0 });
+    expect(invalidResult.combatLog.at(-1)?.message).toContain('invalid vector');
+  });
+
+  it('fires authored entry and exit boundaries exactly once during one accepted push', () => {
+    const caster = createMockCombatCharacter({ id: 'caster', position: { x: 0, y: 0 } });
+    const target = createMockCombatCharacter({ id: 'target', position: { x: 1, y: 0 }, currentHP: 20, maxHP: 20 });
+    const boundaryEffect = (trigger: 'on_enter_area' | 'on_exit_area'): SpellEffect => ({
+      type: 'DAMAGE',
+      damage: { dice: '1d1', type: 'Force' },
+      trigger: { type: trigger, frequency: 'once_per_creature' },
+      condition: { type: 'always' },
+    } as SpellEffect);
+    const state = createMockCombatState({
+      characters: [caster, target],
+      mapData: createLinearMap(6),
+      combatLog: [],
+      spellZones: [
+        {
+          id: 'exit-zone', spellId: 'exit-zone', casterId: caster.id,
+          position: { x: 1, y: 0 }, areaOfEffect: { shape: 'cube', size: 5 }, direction: { x: 1, y: 0 },
+          effects: [boundaryEffect('on_exit_area')], triggeredThisTurn: new Set(), triggeredEver: new Set(),
+        },
+        {
+          id: 'entry-zone', spellId: 'entry-zone', casterId: caster.id,
+          position: { x: 3, y: 0 }, areaOfEffect: { shape: 'cube', size: 5 }, direction: { x: 1, y: 0 },
+          effects: [boundaryEffect('on_enter_area')], triggeredThisTurn: new Set(), triggeredEver: new Set(),
+        },
+      ],
+    });
+
+    const result = executePhysicalMove('push', 10, caster, target, state);
+    const boundaryLogs = result.combatLog.filter(entry => entry.type === 'damage');
+
+    expect(result.characters.find(character => character.id === target.id)?.currentHP).toBe(18);
+    expect(boundaryLogs.map(entry => entry.data?.trigger)).toEqual(['on_exit_area', 'on_enter_area']);
+  });
+});
+
+// ----------------------------------------------------------------------------
 // Terrain and Hazard Landing
 // ----------------------------------------------------------------------------
 // A live combat move should not stop at position changes. The landing tile can
@@ -200,7 +413,7 @@ describe('MovementCommand - spell-zone forced movement triggers', () => {
         spellId: 'spike-growth-style',
         casterId: 'zone-caster',
         position: { x: 8, y: 0 },
-        areaOfEffect: { shape: 'cube', size: 30 },
+        areaOfEffect: { shape: 'cube', size: 30 }, direction: { x: 1, y: 0 },
         effects: [zoneEffect],
         triggeredThisTurn: new Set(),
         triggeredEver: new Set()
@@ -258,7 +471,7 @@ describe('MovementCommand - spell-zone forced movement triggers', () => {
         spellId: 'healing-zone',
         casterId: 'zone-caster',
         position: { x: 8, y: 0 },
-        areaOfEffect: { shape: 'cube', size: 30 },
+        areaOfEffect: { shape: 'cube', size: 30 }, direction: { x: 1, y: 0 },
         effects: [zoneEffect],
         triggeredThisTurn: new Set(),
         triggeredEver: new Set()
@@ -315,7 +528,7 @@ describe('MovementCommand - spell-zone forced movement triggers', () => {
         spellId: 'status-zone',
         casterId: 'zone-caster',
         position: { x: 8, y: 0 },
-        areaOfEffect: { shape: 'cube', size: 30 },
+        areaOfEffect: { shape: 'cube', size: 30 }, direction: { x: 1, y: 0 },
         effects: [zoneEffect],
         triggeredThisTurn: new Set(),
         triggeredEver: new Set()

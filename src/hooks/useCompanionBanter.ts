@@ -76,6 +76,7 @@ import { AppAction } from '../state/actionTypes';
 import { OllamaService, BanterContext, extractDiscoveredFacts } from '../services/ollama';
 import { Companion } from '../types/companions';
 import { generateId } from '../utils/core/idGenerator';
+import { getDayPartLabel } from '../utils/core/timeUtils';
 
 // ============================================================================
 // Types
@@ -664,11 +665,11 @@ export const useCompanionBanter = (
     const locId = state.currentLocationId;
     const locName = state.dynamicLocations?.[locId]?.name || locId;
     const weather = getWeatherSummary(state.environment);
-    const hour = new Date(state.gameTime).getHours();
-    const timeOfDay = hour < 6 ? 'Night' : hour < 12 ? 'Morning' : hour < 18 ? 'Afternoon' : 'Evening';
-    // DEBT: Cast status to any to bridge case sensitivity mismatch between legacy and modern quest schemas.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const activeQuest = state.questLog.find(q => q.status === 'Active' || (q.status as any) === 'active');
+    // G5: day-part word from the character's local in-world clock (the HUD
+    // clock, UTC-rendered) — never host-machine getHours().
+    const timeOfDay = getDayPartLabel(new Date(state.gameTime));
+    // Case-insensitive status check bridges legacy ('active') and modern ('Active') quest log schemas safely.
+    const activeQuest = state.questLog.find(q => q.status === 'Active' || (typeof q.status === 'string' && q.status.toLowerCase() === 'active'));
     const playerName = state.party[0]?.name || 'the player';
 
     // For PLAYER_DIRECTED, attach NPC personality traits + real player gear to the context.

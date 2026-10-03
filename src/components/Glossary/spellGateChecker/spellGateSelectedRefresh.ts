@@ -28,7 +28,7 @@
 
 import { assetUrl } from "../../../config/env";
 import { SpellValidator } from "../../../systems/spells/validation/spellValidator";
-import { fetchWithTimeout } from "../../../utils/networkUtils";
+import { fetchWithTimeout } from "../../../utils/context";
 import type { LiveSpellGateRefreshResponse } from "./spellGateDataTypes";
 
 // ============================================================================
@@ -63,16 +63,19 @@ export async function refreshSelectedSpellGate(spellId: string) {
         return `${pathLabel}: ${issue.message}`;
       });
 
+  // Legacy status now comes off the validated Spell schema instead of an untyped
+  // cast on the raw payload (agora-a8a2). `legacy` is a required boolean in
+  // SpellValidator, so a successful parse is the only state where the answer is
+  // trustworthy; a payload that fails validation reports its schema issues rather
+  // than a legacy claim read out of a shape the schema just rejected. This
+  // matches how useSpellGateChecks reads the same bit on the bootstrap path.
+  const isLegacySpell = parsed.success ? parsed.data.legacy === true : false;
+
   return {
     response,
     assetPath,
     fetchedSpell,
     schemaIssues,
-    // DEBT: This still probes the legacy bit straight off the live spell JSON
-    // because the client already fetched that payload. If the refresh endpoint
-    // later becomes the sole source of truth, promote this onto the endpoint.
-    isLegacySpell: typeof fetchedSpell === "object"
-      && fetchedSpell !== null
-      && (fetchedSpell as { legacy?: unknown }).legacy === true,
+    isLegacySpell,
   };
 }

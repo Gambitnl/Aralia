@@ -20,10 +20,42 @@ task packet or temporary migration note.
 git-tracked location.** The repo auto-commits the entire working tree on a daily
 snapshot, so any image that is not gitignored gets pushed to GitHub. Write
 throwaway image/proof captures to **`.agent/scratch/`** (gitignored) and run
-`git check-ignore <path>` to confirm before writing proof anywhere new — `.agent/`
-is NOT wholesale-ignored, only specific subdirs are. Reusable tooling/scripts
+`git check-ignore <path>` to confirm before writing proof anywhere new. As of 2026-09-09
+`.gitignore:107` ignores `.agent/` WHOLE (verified with `git check-ignore -v`), so nothing under it
+reaches a clone; tracked homes for load-bearing artifacts are `tools/` and `docs/`. Reusable tooling/scripts
 belong in `scripts/` (tracked); only disposable artifacts go in scratch. A Stop
 hook warns when untracked, non-ignored image files are about to be committed.
+
+## Where knowledge goes
+
+Every kind of knowledge has ONE home. Pick by what the knowledge IS, not by
+what you were working on.
+
+| Knowledge | Home | Dated? |
+|---|---|---|
+| What a term means | `CONTEXT.md` | Never |
+| How a system works NOW | `docs/architecture/domains/<domain>.md` | Never |
+| A hard-to-reverse decision | `docs/adr/NNNN-name.md` | Always, by design |
+| What is planned, and its status | `public/planmap/topics.json` | Never |
+| Agent recall and gotchas | agent memory | Never |
+| Throwaway proof | `.agent/scratch/` | Free |
+
+**A new dated markdown file is only ever an ADR.** Everything else updates a
+living file. A Stop hook warns when a dated file appears outside `docs/adr/`.
+
+If no domain doc covers the system you learned about, create the domain doc.
+A domain doc is a living file, so it never becomes sprawl.
+
+Every domain doc carries a `Verified:` line naming the day it was last checked
+against the code. Update that line when you touch the doc. A living document
+with no verification date is a stale document that a reader trusts.
+
+**Why this rule exists.** An audit on 2026-08-05 found 1,276 markdown files
+under `docs/`, 162 of them dated, 129 written in July alone. That was not
+laziness. An agent needed somewhere to put a finding, saw six candidate homes,
+and had no rule saying which was right — so a new dated file was the only
+choice that could not be wrong. The system rewarded a new file over an update.
+See `docs/architecture/knowledge-stores-audit.md`.
 
 For Symphony/Jules work, preserve Aralia-facing intent and proof rather than
 raw process exhaust. Track task packets, prompts, acceptance criteria, package
@@ -34,7 +66,9 @@ churn, and `.symphony` / `.jules` runtime output ignored or external unless one
 concise excerpt is needed to explain a real Aralia package decision.
 
 Do not treat every Symphony planning or operator file as Aralia-facing just
-because it lives under `conductor/symphony/`. Files such as Symphony open-task
+because it lived under `conductor/symphony/`. (That folder was DELETED on
+2026-08-31 — see `docs/projects/CONDUCTOR_RETIRED.md`. The rule is kept
+because the same judgment applies to any orchestration-owned file.) Files such as Symphony open-task
 queues, dashboard backlog notes, local workflow receipts, draft inventories,
 and operator-process ledgers are local or Symphony-owned by default. Sync them
 to GitHub only when a short excerpt is copied into an Aralia task packet,
@@ -73,6 +107,12 @@ If `USER.local.md` contains both confirmed observations and open questions, opti
 
 ## Cold-Start Rules
 
+Scale orientation to the requested change. For a typo, documentation correction, or
+small fix in a known file, inspect that file and its relevant instructions or callers.
+Use the broader searches below when adding capability or when ownership, reuse, or
+unfinished intent is unclear. These are starting points, not a reading checklist;
+reuse context already established in the session.
+
 Before writing new code, assume the repo may already contain:
 
 1. a reusable component or scaffold
@@ -102,7 +142,8 @@ were dispatched with a coordination contract in your prompt, follow it. If you a
 agent with no contract, run the one-command orientation FIRST:
 
 ```bash
-AGORA_AGENT_ID=<your-unique-handle> node tools/agora/client.mjs onboard <your-unique-handle> --note "<what you are doing>"
+node tools/agora/client.mjs pets
+AGORA_AGENT_ID=<your-unique-handle> node tools/agora/client.mjs onboard <your-unique-handle> --pet <chosen-pet-slug> --session <your-codex-task-or-thread-id> --note "<what you are doing>"
 ```
 
 Set `AGORA_AGENT_ID` on EVERY client call (export it once in your session). It scopes your
@@ -114,6 +155,13 @@ It registers you and prints who else is working, which files are locked (do NOT 
 those), the ready task queue, and the full coordination rules (lock-before-edit; use the
 30-minute bounded, owner-aware heartbeat during long work; finish tasks with
 `task done <id> --result "<proof>"`; unlock, report workflow feedback, then `retire`).
+Presence is pet-gated: pick a valid identity from `client.mjs pets` and pass `--pet`; the
+daemon rejects missing or unknown pets before creating an agent record. Live pet ownership is
+unique. If your choice was claimed first, Agora reports and saves a free substitute; verify the
+actual assignment with `whoami` and ensure no other live roster row has that `pet.slug`.
+Codex identities and all orchestrator/master roles are also task/thread-gated: pass the exact
+current Codex task/thread id as `--session <id>`, then verify it with `whoami`. The daemon rejects
+missing required provenance before creating the Presence row.
 
 - Single-agent guide: `tools/agora/AGENT.md` · Full API: `tools/agora/PROTOCOL.md` · running campaigns: `tools/agora/ORCHESTRATOR.md`
 - Which AI agents may be dispatched (statuses/policy): `tools/agora/agents.json`
@@ -225,6 +273,24 @@ Broad cleanup is not neutral. If a change removes code, exports, imports, or arc
 
 If a lint/type/build fix appears to require broader refactor, do not silently expand scope. Keep the fix local or explicitly flag the broader work for review.
 
+## Completion And Decision Boundaries
+
+Carry the requested change through implementation, relevant verification, and repairs
+caused by that change. A first implementation is not completion when the request also
+requires running or inspecting it. Continue within the authorized scope without asking
+again for routine reversible local steps. Report any remaining blocker with evidence.
+
+Choose checks that can detect a failure in the changed behavior. Run affected local
+tests, fix regressions introduced by the change, and rerun affected checks without
+approval at each step when they use disposable fixtures and have no production access.
+Once those checks pass, broaden testing only for an unresolved risk or an explicit
+requirement. Documentation-only edits normally need link, instruction-consistency,
+and diff checks, not the application test suite or build.
+
+Existing approval boundaries still apply to destructive actions, external submissions,
+and long-running automation. Additional scope discovered during work belongs in the
+appropriate gap tracker unless it is necessary to complete the requested outcome.
+
 ## Interpretability
 
 The project owner does not rely on raw code reading as the primary review surface.
@@ -243,14 +309,17 @@ Do not use comments to hand-wave broad changes as "cleanup" if meaningful behavi
 
 For UI and UX work, rendered output is the source of truth.
 
+Open Design Preview at `/Aralia/misc/design.html?step=<step>`, replacing `<step>` with the step to verify.
+
 Do not mark a visual issue as fixed from source code, DOM state, or computed styles alone.
 Use Playwright screenshots or direct rendered inspection before claiming a visual fix is verified.
 
 For UI changes, a focused rendered browser check is part of the normal proof step and does
 not require a separate permission request. This includes opening or refreshing the relevant
 local page, interacting with the changed UI surface, and inspecting the rendered result needed
-to prove the requested visual behavior. Keep the check scoped to the changed UI. Broader test
-suites, unrelated validation passes, destructive actions, external submissions, or long-running
+to prove the requested visual behavior. Keep the check scoped to the changed UI.
+Use the completion rules above for affected local checks. Full-repository test suites,
+unrelated validation passes, destructive actions, external submissions, or long-running
 automation still require explicit operator request.
 
 If only structural checks were completed, say that explicitly instead of collapsing them into a visual verification claim.
@@ -288,14 +357,38 @@ task without treating documentation setup as task completion.
 2. **Paths**: Project root is `F:\Repos\Aralia`. Use backslashes for native commands and avoid `Users\Users` nesting mistakes.
 3. **Node Execution**: Setting `{ shell: true }` is mandatory when spawning Windows `.cmd` or `.ps1` wrappers via Node.js.
 4. **Git Tree Hygiene**: `F:\Repos\Aralia` is the primary tree and should normally stay on `master`. Extra local branches and registered worktrees are temporary exceptions, not a resting state; run `npm run git:hygiene` during push/worktree cleanup and report or remove drift before session close.
+5. **Line endings (WF-G80)**: many tracked files are CRLF, many are LF. Check with `git ls-files --eol <file>`. Multi-line edit anchors fail against CRLF files in some editing harnesses while single-line anchors succeed. On a CRLF file, use single-line anchors or a small script that rewrites the file, and never mix CRLF and LF endings in one file.
+6. **Patch scripts (WF-G109)**: an inline Bash heredoc on this host can drop backslash escapes, so a `\r\n` or `\b` in the script text reaches the target file as a raw control byte and still passes `node --check`. Write any patch or codegen script to a file with the Write tool, then run that file. Do not pipe multi-line scripts through a heredoc. Windows can briefly reject a write-open with `UNKNOWN` errno `-4094` or `EBUSY` while a dev server holds the file (WF-G235/WF-G301). For a path you own and have locked, use `await writeFileWithRetry(target, revisedText)` from `scripts/writeWithRetry.mjs`: it retries only those transient errors, at most 20 times with 300 ms between attempts, then throws the original error. Report a retry if the returned attempt count exceeds 1, and inspect the resulting file/diff. A helper script outside the repo must import the module by absolute file URL (for this checkout, `file:///F:/Repos/Aralia/scripts/writeWithRetry.mjs`); Node resolves packages from the script's directory, not the current working directory.
 
 ## Required Tooling
 
-1. **Testing**: Use `/test-ts` to execute unit tests (Vitest), type tests (TSD), or build-time checks (TSC).
-2. **Dependency Tracking**: When modifying exported signatures, `utils`, `hooks`, or `state` files, run:
-   `npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync <path>`
-3. **Push Policy**: Treat broad `npm run typecheck` and `npm run lint` output as visible debt unless the task is explicitly a strict cleanup/review pass. The pre-push policy in `scripts/git/pre-push-aralia.sh` keeps `npm run sync-check`, `npm run git:hygiene`, and intent-gate failures blocking, but ordinary pushes do not run the full type/lint backlog. Run `npm run quality:debt` for a summarized report, `ARALIA_PRE_PUSH_STRICT=1 git push` for strict local gating, and `npm run hooks:install` to install or refresh the local `.git/hooks/pre-push` delegator.
-4. **Session Hygiene**: Execute `/session-ritual` after major task verification to sync dependency headers and complete end-of-session maintenance.
+1. **Testing**: For unit tests (Vitest), type tests (TSD), or build-time checks (TSC), use `/test-ts` when available. Otherwise consult `public/agent-docs/workflows/test-ts.md` for the relevant test mode and use the matching command in `package.json`. Select checks using the completion rules above.
+2. **Scoped Typecheck**: `npm run typecheck:files -- <path> [<path>...]` is the
+   typecheck for ordinary task work. It extends the repository `tsconfig.json`, narrows
+   `include` to the given files plus their `.d.ts` twins, and prints only the
+   diagnostics inside those files, so it answers in seconds where a full
+   `tsc --noEmit -p tsconfig.json` takes ten to thirty minutes on a shared checkout.
+   Imported files are still fully type-checked; their pre-existing errors are counted
+   and suppressed rather than reported as yours. Reach for the full `npm run typecheck`
+   only when the task is an explicit repository-wide cleanup pass.
+3. **Dependency Tracking**: When exported signatures, `utils`, `hooks`, or `state` files change,
+   advisory headers are refreshed by **one orchestrator-run `--sync` pass per wave**, not by each
+   worker:
+   `npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync --only <path> [<path>...]`
+   - `--only` is mandatory in a shared checkout. It writes **only** the paths you name and never a
+     dependent, which another agent may hold locked; dependents are printed as stale for the next
+     pass instead. It preserves each target's dominant EOL (a CRLF file stays all-CRLF) and inserts
+     the header *after* an existing leading `@file` JSDoc rather than replacing it. Add `--dry-run`
+     to report without writing.
+   - Pass the wave's whole changed-file list in one invocation. The dependency graph is built once
+     for all of them (two files in ~21 s, against roughly three minutes per repeated single-file
+     run), and any file whose recorded header still matches is reported `unchanged` and left alone.
+   - Workers do not each run `--sync`. A worker that changed an exported signature says so in its
+     task result; the orchestrator collects the wave's paths and runs the single pass once the wave
+     lands. That is what keeps this step from conflicting with the Agora lock contract and with the
+     no-heavy-commands rule (WF-G115).
+4. **Push Policy**: Treat broad `npm run typecheck` and `npm run lint` output as visible debt unless the task is explicitly a strict cleanup/review pass. The pre-push policy in `scripts/git/pre-push-aralia.sh` keeps `npm run sync-check`, `npm run git:hygiene`, and intent-gate failures blocking, but ordinary pushes do not run the full type/lint backlog. Run `npm run quality:debt` for a summarized report, `ARALIA_PRE_PUSH_STRICT=1 git push` for strict local gating, and `npm run hooks:install` to install or refresh the local `.git/hooks/pre-push` delegator.
+5. **Session Hygiene**: After major code changes, use `/session-ritual` when available, or consult `public/agent-docs/workflows/session-ritual.md`. Apply maintenance relevant to this task's files; a small documentation or instruction edit does not require dependency-header sync or unrelated repository maintenance. Agora unlock and retirement still apply whenever you checked in.
 
 ## Practical Rule
 

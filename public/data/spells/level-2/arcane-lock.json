@@ -162,7 +162,7 @@
                                                                    ]
                                       },
                         "utilityType":  "control",
-                        "description":  "Magically locks the target object so it can\u0027t be unlocked by nonmagical means. Designated creatures can open and close it despite the lock, and an optional password spoken within 5 feet unlocks it for 1 minute.",
+                        "description":  "Magically locks the target object so it can't be unlocked by nonmagical means. Designated creatures can open and close it despite the lock, and an optional password spoken within 5 feet unlocks it for 1 minute.",
                         "scaling":  {
                                         "type":  "slot_level",
                                         "bonusPerLevel":  "",
@@ -233,7 +233,7 @@
                       "prompt":  "",
                       "playerInputRequired":  false
                   },
-    "description":  "You touch a closed door, window, gate, container, or hatch and magically lock it for the duration. This lock can\u0027t be unlocked by any nonmagical means. You and any creatures you designate when you cast the spell can open and close the object despite the lock. You can also set a password that, when spoken within 5 feet of the object, unlocks it for 1 minute.",
+    "description":  "You touch a closed door, window, gate, container, or hatch and magically lock it for the duration. This lock can't be unlocked by any nonmagical means. You and any creatures you designate when you cast the spell can open and close the object despite the lock. You can also set a password that, when spoken within 5 feet of the object, unlocks it for 1 minute.",
     "higherLevels":  "",
     "tags":  [
                  "abjuration",

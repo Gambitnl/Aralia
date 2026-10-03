@@ -121,7 +121,7 @@ describe('useVisibility', () => {
             truesight: 0
         };
         state.spellZones = [{
-            id: 'zone-darkness-proof',
+            id: 'darkness-zone-1',
             spellId: 'darkness',
             casterId: 'hero',
             position: { x: 5, y: 5 },
@@ -132,7 +132,7 @@ describe('useVisibility', () => {
             } as unknown as NonNullable<CombatState['spellZones']>[number]['effects'][number]],
             triggeredThisTurn: new Set(),
             triggeredEver: new Set()
-        }];
+        } as any];
 
         const { result } = renderHook(() => useVisibility({
             combatState: state,
@@ -144,5 +144,41 @@ describe('useVisibility', () => {
         expect(result.current.canSeeTile('5-5')).toBe(false);
         expect(result.current.getLightLevel('9-9')).toBe('bright');
         expect(result.current.visibleTiles.has('9-9')).toBe(true);
+    });
+});
+
+describe('useVisibility ambientLight (agora-a46a.3)', () => {
+    it('a board that says ambientLight darkness stays dark away from light even on a forest theme', () => {
+        const state = createMockState();
+        state.mapData!.theme = 'forest';
+        state.mapData!.ambientLight = 'darkness';
+        const { result } = renderHook(() => useVisibility({ combatState: state, viewerId: 'hero' }));
+        expect(result.current.lightLevels.get('5-5')).toBe('bright');
+        expect(result.current.lightLevels.get('9-9')).toBe('darkness');
+    });
+
+    it('a board that says ambientLight bright is fully lit even on a dungeon theme', () => {
+        const state = createMockState();
+        state.mapData!.theme = 'dungeon';
+        state.mapData!.ambientLight = 'bright';
+        state.activeLightSources = [];
+        const { result } = renderHook(() => useVisibility({ combatState: state, viewerId: 'hero' }));
+        expect(result.current.lightLevels.get('9-9')).toBe('bright');
+    });
+
+    it('a board that says ambientLight dim is dim away from light and bright inside it', () => {
+        const state = createMockState();
+        state.mapData!.theme = 'forest';
+        state.mapData!.ambientLight = 'dim';
+        const { result } = renderHook(() => useVisibility({ combatState: state, viewerId: 'hero' }));
+        expect(result.current.lightLevels.get('5-5')).toBe('bright');
+        expect(result.current.lightLevels.get('9-9')).toBe('dim');
+    });
+
+    it('a board without the field keeps the theme inference (dungeon -> darkness)', () => {
+        const state = createMockState();
+        delete state.mapData!.ambientLight;
+        const { result } = renderHook(() => useVisibility({ combatState: state, viewerId: 'hero' }));
+        expect(result.current.lightLevels.get('9-9')).toBe('darkness');
     });
 });

@@ -15,6 +15,7 @@ import { createAgoraServer } from './server.mjs';
 let app;
 let port;
 let tmpDir;
+const TEST_PET = 'gf-sd';
 
 before(async () => {
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-srv-id-'));
@@ -55,7 +56,7 @@ function request(method, pathname, { token, body } = {}) {
 
 test('register accepts and echoes the identity fields', async () => {
   const r = await request('POST', '/agents/register', {
-    body: { handle: 'orch.planmap', type: 'claude-subagent', spawnedBy: 'master.desktop', campaign: 'planmap-ui', cwd: 'F:/Repos/Aralia' },
+    body: { handle: 'orch.planmap', type: 'claude-subagent', spawnedBy: 'master.desktop', campaign: 'planmap-ui', cwd: 'F:/Repos/Aralia', petSlug: TEST_PET },
   });
   assert.equal(r.status, 201);
   assert.equal(r.json.type, 'claude-subagent');
@@ -63,18 +64,21 @@ test('register accepts and echoes the identity fields', async () => {
   assert.equal(r.json.campaign, 'planmap-ui');
   assert.equal(r.json.cwd, 'F:/Repos/Aralia');
   assert.equal(r.json.handleValid, true);
+  assert.equal(r.json.pet.slug, TEST_PET);
 });
 
 test('GET /agents surfaces the identity fields', async () => {
-  await request('POST', '/agents/register', { body: { handle: 'worker.srv', type: 'codex', campaign: 'c1' } });
+  await request('POST', '/agents/register', { body: { handle: 'worker.srv', type: 'codex', sessionId: 'thread-worker-srv', campaign: 'c1', petSlug: TEST_PET } });
   const r = await request('GET', '/agents');
   const a = r.json.agents.find((x) => x.handle === 'worker.srv');
   assert.equal(a.type, 'codex');
   assert.equal(a.campaign, 'c1');
+  assert.equal(a.sessionId, 'thread-worker-srv');
+  assert.equal(a.threadIdRequired, true);
 });
 
 test('POST /agents/retire drops the agent and frees its locks', async () => {
-  const reg = await request('POST', '/agents/register', { body: { handle: 'worker.retire-srv' } });
+  const reg = await request('POST', '/agents/register', { body: { handle: 'worker.retire-srv', petSlug: TEST_PET } });
   const token = reg.json.token;
   const lock = await request('POST', '/locks', { token, body: { paths: ['src/a.ts'], reason: 'edit' } });
   assert.equal(lock.status, 201);
@@ -92,4 +96,27 @@ test('POST /agents/retire drops the agent and frees its locks', async () => {
 test('POST /agents/retire without a token -> 401', async () => {
   const r = await request('POST', '/agents/retire', {});
   assert.equal(r.status, 401);
+});
+
+// WF-G61 follow-up (agora-9ff4): task creation shares the same `withAuth`
+// wrapper as every other write route (see the guard at server.mjs's
+// `withAuth`, applied to POST /tasks). This pins that guard directly at the
+// server layer — no token and an invalid token must both 401 and must not
+// create a task — instead of relying only on the client-level regression in
+// client.test.mjs's "task new directs missing and rejected identities..."
+// case, which never reaches the server without a stored identity.
+test('POST /tasks without a valid bearer token -> 401 and creates no task', async () => {
+  const before = await request('GET', '/tasks');
+  const beforeCount = before.json.tasks.length;
+
+  const missing = await request('POST', '/tasks', { body: { title: 'unauthenticated probe' } });
+  assert.equal(missing.status, 401);
+  assert.match(missing.json.error, /unauthorized/);
+
+  const invalid = await request('POST', '/tasks', { token: 'not-a-real-token', body: { title: 'invalid-token probe' } });
+  assert.equal(invalid.status, 401);
+  assert.match(invalid.json.error, /unauthorized/);
+
+  const after = await request('GET', '/tasks');
+  assert.equal(after.json.tasks.length, beforeCount);
 });

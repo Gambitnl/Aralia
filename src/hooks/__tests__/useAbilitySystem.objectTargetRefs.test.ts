@@ -1,3 +1,4 @@
+import { createMockCombatCharacter } from '@/utils/core/factories';
 import { renderHook, act, waitFor as _waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { materializeAfterHitReactionSpell, useAbilitySystem } from '../useAbilitySystem';
@@ -5,11 +6,11 @@ import { ActiveTruePolymorphTransformation, CombatCharacter, Ability, BattleMapD
 import { Spell } from '../../types/spells';
 import { Item } from '../../types';
 import type { ActiveSpellZone } from '../../systems/spells/effects';
-import * as savingThrowUtils from '../../utils/savingThrowUtils';
+import * as savingThrowUtils from '../../utils/character';
 import { combatEvents } from '../../systems/events/CombatEvents';
-import * as combatUtils from '../../utils/combatUtils';
-import shiningSmite from '../../../public/data/spells/level-2/shining-smite.json';
-import blindingSmite from '../../../public/data/spells/level-3/blinding-smite.json';
+import * as combatUtils from '../../utils/combat';
+import shiningSmite from '@/data/spells/level-2/shining-smite.json';
+import blindingSmite from '@/data/spells/level-3/blinding-smite.json';
 import { shieldSpell, attacker, defender, swordItem, basicAttack } from './useAbilitySystem.fixtures';
 
 /**
@@ -86,7 +87,20 @@ vi.mock('../../commands', () => ({
     CommandExecutor: { execute: vi.fn().mockReturnValue({ success: true, finalState: { characters: [], combatLog: [] } }) }
 }));
 
-vi.mock('../../utils/combatUtils', () => ({
+// agora-f821.4 retired the combatUtils roller family; the modules under
+// test roll through systems/dice/rollers now. One hoisted set of mocks
+// stands in for BOTH specifiers, so one vi.mocked(...) pins every die.
+const diceMocks = vi.hoisted(() => ({
+    rollDice: () => 15, // Always roll high for testing hits
+    rollDamage: () => 5
+}))
+
+vi.mock('../../systems/dice/rollers', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../systems/dice/rollers')>()
+  return { ...actual, ...diceMocks }
+})
+
+vi.mock('../../utils/combat', () => ({
     getDistance: vi.fn(() => 5),
     getCharacterDistance: vi.fn(() => 5),
     // useTargetValidator asks for every occupied tile so large tokens and
@@ -95,11 +109,10 @@ vi.mock('../../utils/combatUtils', () => ({
     getOccupiedTiles: (character: CombatCharacter) => [character.position],
     calculateDamage: () => 5,
     generateId: () => 'test-id',
-    rollDice: () => 15, // Always roll high for testing hits
-    rollDamage: () => 5
+    ...diceMocks,
 }));
 
-vi.mock('../../utils/savingThrowUtils', () => ({
+vi.mock('../../utils/character/savingThrowUtils', () => ({
     calculateSpellDC: () => 17,
     rollSavingThrow: vi.fn(() => ({ total: 18, success: true, modifiersApplied: [] }))
 }));
@@ -231,6 +244,7 @@ describe('useAbilitySystem - selected object target refs', () => {
     it('surfaces registered map object positions as valid spell targets', () => {
         vi.clearAllMocks();
         const caster = {
+            ...createMockCombatCharacter(),
             id: 'object-highlight-caster',
             name: 'Object Highlight Caster',
             team: 'player',

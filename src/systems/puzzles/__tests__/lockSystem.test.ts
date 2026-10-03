@@ -6,22 +6,22 @@
  * Tests for the Lock and Trap system.
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { attemptLockpick, attemptKeyUnlock, attemptBreak, detectTrap, disarmTrap } from '../lockSystem';
 import { Lock, Trap } from '../types';
 import { PlayerCharacter } from '../../../types/character';
 import { CharacterStats } from '../../../types/core'; // Added to type the stats helper explicitly.
 import { Item, ItemType } from '../../../types/items';
-import * as combatUtils from '../../../utils/combatUtils';
-import * as statUtils from '../../../utils/statUtils';
-import { createMockPlayerCharacter } from '../../../utils/factories';
+import * as diceRollers from '../../../systems/dice/rollers';
+import * as statUtils from '../../../utils/character';
+import { createMockPlayerCharacter } from '../../../utils/core';
 
 // Mock dependencies
-vi.mock('../../../utils/combatUtils', () => ({
+vi.mock('../../dice/rollers', () => ({
   rollDice: vi.fn(),
 }));
 
-vi.mock('../../../utils/statUtils', () => ({
+vi.mock('../../../utils/character/statUtils', () => ({
   getAbilityModifierValue: vi.fn(),
 }));
 
@@ -78,7 +78,7 @@ describe('Lock System', () => {
       vi.mocked(statUtils.getAbilityModifierValue).mockReturnValue(2);
 
       // Total bonus: +2 (Dex) +2 (Prof) = +4. Needs 11 to beat 15.
-      vi.mocked(combatUtils.rollDice).mockReturnValue(11);
+      vi.mocked(diceRollers.rollDice).mockReturnValue(11);
 
       const result = attemptLockpick(char, lock, [thievesTools]);
       expect(result.success).toBe(true);
@@ -102,7 +102,7 @@ describe('Lock System', () => {
 
       // Use the real D&D modifier formula in this test so the chosen score determines the outcome.
       vi.mocked(statUtils.getAbilityModifierValue).mockImplementation(score => Math.floor((score - 10) / 2));
-      vi.mocked(combatUtils.rollDice).mockReturnValue(10);
+      vi.mocked(diceRollers.rollDice).mockReturnValue(10);
 
       const result = attemptLockpick(char, modernLock, [thievesTools]);
 
@@ -122,7 +122,7 @@ describe('Lock System', () => {
 
       // This protects older puzzle fixtures while the rest of character data migrates.
       vi.mocked(statUtils.getAbilityModifierValue).mockImplementation(score => Math.floor((score - 10) / 2));
-      vi.mocked(combatUtils.rollDice).mockReturnValue(10);
+      vi.mocked(diceRollers.rollDice).mockReturnValue(10);
 
       const result = attemptLockpick(modernlessCharacter, legacyLock, [thievesTools]);
 
@@ -136,7 +136,7 @@ describe('Lock System', () => {
         stats: { ...createDummyCharacter().stats, dexterity: 10 }, // +0 Dex
       });
       vi.mocked(statUtils.getAbilityModifierValue).mockReturnValue(0);
-      vi.mocked(combatUtils.rollDice).mockReturnValue(10); // Total 10 vs DC 15
+      vi.mocked(diceRollers.rollDice).mockReturnValue(10); // Total 10 vs DC 15
 
       const result = attemptLockpick(char, lock, [thievesTools]);
       expect(result.success).toBe(false);
@@ -159,7 +159,7 @@ describe('Lock System', () => {
         // DC 15. Margin < -5 means margin <= -6. 15 - 6 = 9. So need roll of 9 or lower?
         // Wait, roll + mod - DC = margin.
         // 9 + 0 - 15 = -6. Correct.
-        vi.mocked(combatUtils.rollDice).mockReturnValue(9);
+        vi.mocked(diceRollers.rollDice).mockReturnValue(9);
 
         const result = attemptLockpick(char, trappedLock, [thievesTools]);
         expect(result.success).toBe(false);
@@ -181,7 +181,7 @@ describe('Lock System', () => {
         vi.mocked(statUtils.getAbilityModifierValue).mockReturnValue(0);
 
         // Roll 10 -> 10 - 15 = -5. Safe.
-        vi.mocked(combatUtils.rollDice).mockReturnValue(10);
+        vi.mocked(diceRollers.rollDice).mockReturnValue(10);
 
         const result = attemptLockpick(char, trappedLock, [thievesTools]);
         expect(result.success).toBe(false);
@@ -206,7 +206,7 @@ describe('Lock System', () => {
 
       // First prove the non-key route still opens through the existing thieves'-tools check.
       vi.mocked(statUtils.getAbilityModifierValue).mockReturnValue(2);
-      vi.mocked(combatUtils.rollDice).mockReturnValue(11);
+      vi.mocked(diceRollers.rollDice).mockReturnValue(11);
 
       const pickResult = attemptLockpick(char, keyedLock, [thievesTools]);
       expect(pickResult.success).toBe(true);
@@ -228,7 +228,7 @@ describe('Lock System', () => {
       const lock: Lock = { id: 'd1', dc: 10, breakDC: 15, isLocked: true, isBroken: false };
       const char = createDummyCharacter({ stats: { ...createDummyCharacter().stats, strength: 18 } }); // +4 Str
       vi.mocked(statUtils.getAbilityModifierValue).mockReturnValue(4);
-      vi.mocked(combatUtils.rollDice).mockReturnValue(11); // Total 15
+      vi.mocked(diceRollers.rollDice).mockReturnValue(11); // Total 15
 
       const result = attemptBreak(char, lock);
       expect(result.success).toBe(true);
@@ -239,7 +239,7 @@ describe('Lock System', () => {
         const lock: Lock = { id: 'd1', dc: 10, breakDC: 20, isLocked: true, isBroken: false };
         const char = createDummyCharacter({ stats: { ...createDummyCharacter().stats, strength: 10 } }); // +0 Str
         vi.mocked(statUtils.getAbilityModifierValue).mockReturnValue(0);
-        vi.mocked(combatUtils.rollDice).mockReturnValue(19); // Total 19
+        vi.mocked(diceRollers.rollDice).mockReturnValue(19); // Total 19
 
         const result = attemptBreak(char, lock);
         expect(result.success).toBe(false);
@@ -257,7 +257,7 @@ describe('Lock System', () => {
       it('detects trap with high perception', () => {
           const char = createDummyCharacter({ stats: { ...createDummyCharacter().stats, wisdom: 16 } }); // +3 Wis
           vi.mocked(statUtils.getAbilityModifierValue).mockReturnValue(3);
-          vi.mocked(combatUtils.rollDice).mockReturnValue(12); // 12 + 3 = 15
+          vi.mocked(diceRollers.rollDice).mockReturnValue(12); // 12 + 3 = 15
 
           const result = detectTrap(char, trap);
           expect(result.success).toBe(true);
@@ -281,11 +281,58 @@ describe('Lock System', () => {
     it('triggers trap on bad fail (margin < -5)', () => {
         const char = createDummyCharacter(); // +0
         vi.mocked(statUtils.getAbilityModifierValue).mockReturnValue(0);
-        vi.mocked(combatUtils.rollDice).mockReturnValue(9); // Total 9 vs 15 -> Margin -6
+        vi.mocked(diceRollers.rollDice).mockReturnValue(9); // Total 9 vs 15 -> Margin -6
 
         const result = disarmTrap(char, trap, [thievesTools]);
         expect(result.success).toBe(false);
         expect(result.triggeredTrap).toBe(true);
+    });
+  });
+  // agora-f821.1: the lockpicking modal shows the player a d20 and then hands
+  // that face to these resolvers. When a face is supplied no second d20 may be
+  // rolled, or the player watches one die and a different die decides.
+  describe('supplied d20 face', () => {
+    const lock: Lock = { id: 'l-supplied', dc: 15, breakDC: 20, isLocked: true, isBroken: false, isTrapped: false };
+    const trap: Trap = { id: 't-supplied', name: 'Needle', type: 'mechanical', detectionDC: 12, disarmDC: 14, isDetected: true, isDisarmed: false, isTriggered: false, effect: { type: 'damage', damage: '1d4' } } as unknown as Trap;
+
+    beforeEach(() => {
+      vi.mocked(diceRollers.rollDice).mockClear();
+      vi.mocked(diceRollers.rollDice).mockReturnValue(1);
+      vi.mocked(statUtils.getAbilityModifierValue).mockReturnValue(2);
+    });
+
+    it('resolves attemptLockpick from the supplied face and rolls nothing', () => {
+      const char = createDummyCharacter({ classes: [rogueClass], classLevels: { [rogueClass.id]: 1 } } as Partial<PlayerCharacter>);
+      const result = attemptLockpick(char, lock, [thievesTools], 18);
+      expect(diceRollers.rollDice).not.toHaveBeenCalled();
+      expect(result.margin).toBe(18 + 2 + (char.proficiencyBonus ?? 0) - lock.dc);
+    });
+
+    it('resolves attemptBreak from the supplied face and rolls nothing', () => {
+      const char = createDummyCharacter();
+      const result = attemptBreak(char, lock, 19);
+      expect(diceRollers.rollDice).not.toHaveBeenCalled();
+      expect(result.margin).toBe(19 + 2 - (lock.breakDC as number));
+    });
+
+    it('resolves disarmTrap from the supplied face and rolls nothing', () => {
+      const char = createDummyCharacter({ classes: [rogueClass], classLevels: { [rogueClass.id]: 1 } } as Partial<PlayerCharacter>);
+      const result = disarmTrap(char, trap, [thievesTools], 16);
+      expect(diceRollers.rollDice).not.toHaveBeenCalled();
+      expect(result.margin).toBe(16 + 2 + (char.proficiencyBonus ?? 0) - trap.disarmDC);
+    });
+
+    it('resolves detectTrap from the supplied face and rolls nothing', () => {
+      const char = createDummyCharacter();
+      const result = detectTrap(char, trap, 11);
+      expect(diceRollers.rollDice).not.toHaveBeenCalled();
+      expect(result.margin).toBe(11 + 2 - trap.detectionDC);
+    });
+
+    it('still rolls its own d20 when no face is supplied', () => {
+      const char = createDummyCharacter();
+      attemptBreak(char, lock);
+      expect(diceRollers.rollDice).toHaveBeenCalledWith('1d20');
     });
   });
 });

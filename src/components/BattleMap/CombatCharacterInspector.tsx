@@ -1,13 +1,57 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 12/08/2026, 21:44:54
+ * Dependents: components/BattleMap/InitiativeTracker.tsx, components/Combat/CombatView.tsx
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+/**
+ * This file renders the shared combatant information panel.
+ *
+ * Turn order, roster cards, Tactical Sandbox, BattleMapDemo, and production
+ * combat use this one panel to show current HP, Armor Class, ability scores,
+ * movement, defenses, conditions, ongoing effects, and available abilities.
+ * Keeping those facts on the live CombatCharacter prevents a separate bestiary
+ * copy from drifting away from the creature that is actually in the fight.
+ *
+ * Called by: InitiativeTracker and CombatView roster inspection.
+ * Depends on: WindowFrame plus the live combat-character contract.
+ */
+
 import React from 'react';
-import { CombatCharacter, ActionCostType, ActiveEffect } from '../../types/combat';
+import { CombatCharacter, ActionCostType, ActiveCondition, ActiveEffect } from '../../types/combat';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import { CharacterStats } from '../../types/core';
+import { GRAPPLED_CONDITION_NAME } from '../../utils/combat/grappleUtils';
+
+// ============================================================================
+// Inspector Contract
+// ============================================================================
+// Every caller supplies the live combatant and owns only the close request. The
+// panel reads all displayed facts directly from that combatant snapshot.
+// ============================================================================
 
 interface Props {
   character: CombatCharacter;
   onClose: () => void;
 }
+
+// ============================================================================
+// Player-Readable Formatting
+// ============================================================================
+// Shared labels and small cards translate combat data into the same compact
+// language for monsters and allies without changing the underlying mechanics.
+// ============================================================================
 
 const abilityMod = (score: number): string => {
   const mod = Math.floor((score - 10) / 2);
@@ -41,6 +85,28 @@ const STATUS_TYPE_CLS: Record<string, string> = {
   neutral: 'bg-gray-700/40 text-gray-300 border-gray-600/50',
 };
 
+// ============================================================================
+// Maintained-condition labels
+// ============================================================================
+// Most conditions in the inspector have a true clock. Grappled is different:
+// it lasts until a release rule fires, so showing its internal compatibility
+// value as "9r" falsely promises a timed expiry. Both runtime mirrors use this
+// one presentation rule so Monster Info and Combatant Info stay consistent.
+// ============================================================================
+
+function formatConditionDuration(name: string, duration: ActiveCondition['duration']): string {
+  if (name === GRAPPLED_CONDITION_NAME) return 'until escape/release';
+  if (duration.type === 'permanent') return '∞';
+  if (duration.type === 'rounds') return `${duration.value}r`;
+  if (duration.type === 'minutes') return `${duration.value}m`;
+  return '';
+}
+
+function formatStatusLabel(name: string, duration: number): string {
+  if (name === GRAPPLED_CONDITION_NAME) return `${name} · until escape/release`;
+  return `${name} ${duration}r`;
+}
+
 const Chip: React.FC<{ label: string; cls?: string }> = ({ label, cls = '' }) => (
   <span className={`px-2 py-0.5 rounded text-xs capitalize border ${cls}`}>{label}</span>
 );
@@ -52,6 +118,13 @@ const SectionHeader: React.FC<{ label: string }> = ({ label }) => (
 const Card: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className="p-3 bg-gray-700/50 rounded-md border border-gray-600/60">{children}</div>
 );
+
+// ============================================================================
+// Shared Information Panel
+// ============================================================================
+// Enemy panels use the requested Monster Info identity. Allies keep the same
+// facts under Combatant Info so roster inspection remains broadly useful.
+// ============================================================================
 
 export const CombatCharacterInspector: React.FC<Props> = ({ character, onClose }) => {
   const ac = character.armorClass ?? character.baseAC;
@@ -70,7 +143,7 @@ export const CombatCharacterInspector: React.FC<Props> = ({ character, onClose }
 
   return (
     <WindowFrame
-      title={character.name}
+      title={`${character.team === 'enemy' ? 'Monster Info' : 'Combatant Info'} · ${character.name}`}
       onClose={onClose}
       storageKey={WINDOW_KEYS.COMBAT_INSPECTOR}
       initialMaximized={false}
@@ -277,10 +350,9 @@ export const CombatCharacterInspector: React.FC<Props> = ({ character, onClose }
             <SectionHeader label="Conditions" />
             <div className="flex flex-wrap gap-1.5">
               {character.conditions.map((c) => {
-                const dur = c.duration.type === 'permanent' ? '∞'
-                  : c.duration.type === 'rounds'  ? `${c.duration.value}r`
-                  : c.duration.type === 'minutes' ? `${c.duration.value}m`
-                  : '';
+                // Maintained holds are labelled by their end rule; genuinely
+                // timed conditions keep the compact rounds/minutes notation.
+                const dur = formatConditionDuration(c.name, c.duration);
                 return (
                   <Chip
                     key={`${c.name}-${c.appliedTurn}`}
@@ -362,7 +434,7 @@ export const CombatCharacterInspector: React.FC<Props> = ({ character, onClose }
             <div className="space-y-2">
               {character.statusEffects.map(s => (
                 <div key={s.id} className="flex items-start gap-2">
-                  <Chip label={`${s.name} ${s.duration}r`} cls={STATUS_TYPE_CLS[s.type] ?? STATUS_TYPE_CLS.neutral} />
+                  <Chip label={formatStatusLabel(s.name, s.duration)} cls={STATUS_TYPE_CLS[s.type] ?? STATUS_TYPE_CLS.neutral} />
                   {s.description && <span className="text-gray-400 text-xs leading-relaxed">{s.description}</span>}
                 </div>
               ))}

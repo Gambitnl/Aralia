@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { characterReducer } from '../characterReducer';
 import { GameState } from '../../../types';
 import { AppAction } from '../../actionTypes';
-import { createMockGameState, createMockPlayerCharacter } from '../../../utils/factories';
+import { createMockGameState, createMockPlayerCharacter } from '../../../utils/core';
 
 // Mock ITEMS manually
 // We need a minimal GameState

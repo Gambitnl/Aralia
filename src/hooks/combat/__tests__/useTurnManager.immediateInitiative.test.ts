@@ -6,7 +6,7 @@ import { createMockCombatCharacter } from '../../../utils/core';
 import type { CombatCharacter, CombatLogEntry, CombatState } from '../../../types/combat';
 import type { CommandContext } from '../../../commands/base/SpellCommand';
 import type { SummoningEffect } from '../../../types/spells';
-import fingerOfDeath from '../../../../public/data/spells/level-7/finger-of-death.json';
+import fingerOfDeath from '@/data/spells/level-7/finger-of-death.json';
 
 /**
  * This test proves a live Finger of Death summon with immediate initiative
@@ -56,15 +56,15 @@ describe('useTurnManager immediate summon scheduling', () => {
         cr: '0'
       }
     });
-    const summonEffect = fingerOfDeath.effects.find(effect => effect.type === 'SUMMONING') as SummoningEffect;
-    const context = {
+    const summonEffect = (fingerOfDeath.effects.find(effect => effect.type === 'SUMMONING') as unknown) as SummoningEffect;
+    const context: any = {
       spellId: fingerOfDeath.id,
       spellName: fingerOfDeath.name,
       castAtLevel: 7,
       caster,
       targets: [],
       gameState: {}
-    } as CommandContext;
+    } as unknown as CommandContext;
     const initialState = {
       isActive: true,
       characters: [caster, ally],

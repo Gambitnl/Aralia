@@ -7,7 +7,13 @@ import {
   handleMerchantAction,
 } from '../handleMerchantInteraction';
 import { GameState } from '../../../types';
-import type { RichNPC } from '../../../types/world';
+import type { KnownFact, RichNPC } from '../../../types/world';
+import {
+  HAGGLE_COOLDOWN_MS,
+  buildHaggleFactText,
+  getPriceMultiplierFromHaggleFactText,
+  isHaggleFactText,
+} from '../../../utils/economy/haggleFact';
 import { generateNPC } from '../../../services/npcGenerator';
 
 describe('validateMerchantTransaction', () => {
@@ -226,5 +232,161 @@ describe('offerTavernHire', () => {
     expect(dispatch).not.toHaveBeenCalled();
     // In-fiction merchant-voice refusal is surfaced.
     expect(captured.some(m => m.includes("not for hire"))).toBe(true);
+  });
+});
+/**
+ * UI-3 haggle flow consistency (agora-a95f.3).
+ *
+ * These cover the end-to-end contract the merchant UI now relies on: a haggle
+ * writes a parseable `recent_haggle` fact, the cooldown reads that same fact
+ * back, and a later purchase is charged the multiplier the fact carries.
+ */
+describe('haggle flow', () => {
+  const NOW = 1_000_000;
+
+  const makeHaggleState = (knownFacts: KnownFact[] = [], gold = 100): GameState => ({
+    gameTime: new Date(NOW),
+    gold,
+    inventory: [],
+    currentLocationId: 'loc_town',
+    party: [{
+      id: 'pc1',
+      name: 'Ferth',
+      finalAbilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 16 },
+      proficiencyBonus: 2,
+      skills: [{ id: 'Persuasion', name: 'Persuasion' }],
+    }],
+    npcMemory: { merchant_1: { disposition: 0, goals: [], knownFacts } },
+    generatedNpcs: { merchant_1: { id: 'merchant_1', biography: { level: 1 } } },
+    notoriety: { localHeat: {} },
+    thievesGuild: { reputation: 0 },
+    worldBusinesses: {},
+  } as unknown as GameState);
+
+  const haggle = async (state: GameState, dispatch: ReturnType<typeof vi.fn>, messages: string[]) =>
+    handleMerchantAction({
+      action: { type: 'HAGGLE_ITEM', label: 'Haggle', payload: { merchantId: 'merchant_1', strategy: 'persuade', interactorId: 'pc1' } },
+      gameState: state,
+      dispatch,
+      addMessage: (m: string) => { messages.push(m); },
+      addGeminiLog: vi.fn(),
+      generalActionContext: '',
+    } as unknown as Parameters<typeof handleMerchantAction>[0]);
+
+  it('records a recent_haggle fact whose text the price reader can parse', async () => {
+    const roll = vi.spyOn(Math, 'random').mockReturnValue(0.99); // natural 20 → success
+    try {
+      const dispatch = vi.fn();
+      await haggle(makeHaggleState(), dispatch, []);
+
+      const factCall = dispatch.mock.calls.find(c => c[0].type === 'ADD_NPC_KNOWN_FACT')?.[0];
+      expect(factCall).toBeDefined();
+      expect(factCall.payload.npcId).toBe('merchant_1');
+      expect(isHaggleFactText(factCall.payload.fact.text)).toBe(true);
+      expect(getPriceMultiplierFromHaggleFactText(factCall.payload.fact.text)).toBe(0.9);
+      // Cooldown and price effect expire together.
+      expect(factCall.payload.fact.lifespan).toBe(HAGGLE_COOLDOWN_MS);
+      expect(factCall.payload.fact.timestamp).toBe(NOW);
+    } finally {
+      roll.mockRestore();
+    }
+  });
+
+  it('blocks a second haggle while the fact is still active', async () => {
+    const dispatch = vi.fn();
+    const messages: string[] = [];
+    const active: KnownFact = {
+      id: 'recent_haggle',
+      text: buildHaggleFactText(0.9, NOW - 1000),
+      source: 'direct',
+      isPublic: false,
+      timestamp: NOW - 1000,
+      strength: 1,
+      lifespan: HAGGLE_COOLDOWN_MS,
+    };
+
+    await haggle(makeHaggleState([active]), dispatch, messages);
+
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(messages.some(m => m.includes('already haggled'))).toBe(true);
+  });
+
+  it('allows a fresh haggle once the previous fact has expired', async () => {
+    const roll = vi.spyOn(Math, 'random').mockReturnValue(0.99);
+    try {
+      const dispatch = vi.fn();
+      const expired: KnownFact = {
+        id: 'recent_haggle',
+        text: buildHaggleFactText(0.9, NOW - HAGGLE_COOLDOWN_MS - 1),
+        source: 'direct',
+        isPublic: false,
+        timestamp: NOW - HAGGLE_COOLDOWN_MS - 1,
+        strength: 1,
+        lifespan: HAGGLE_COOLDOWN_MS,
+      };
+
+      await haggle(makeHaggleState([expired]), dispatch, []);
+
+      const factCall = dispatch.mock.calls.find(c => c[0].type === 'ADD_NPC_KNOWN_FACT')?.[0];
+      expect(factCall).toBeDefined();
+      // The new text differs from the expired one, so the reducer's text-based
+      // dedupe (GG-136) cannot silently swallow the second discount.
+      expect(factCall.payload.fact.text).not.toBe(expired.text);
+    } finally {
+      roll.mockRestore();
+    }
+  });
+
+  it('charges a buy at the multiplier stored on the active fact', async () => {
+    const dispatch = vi.fn();
+    const active: KnownFact = {
+      id: 'recent_haggle',
+      text: buildHaggleFactText(0.8, NOW - 1000),
+      source: 'direct',
+      isPublic: false,
+      timestamp: NOW - 1000,
+      strength: 1,
+      lifespan: HAGGLE_COOLDOWN_MS,
+    };
+    const messages: string[] = [];
+
+    await handleMerchantAction({
+      action: {
+        type: 'BUY_ITEM',
+        label: 'Buy',
+        payload: {
+          merchantId: 'merchant_1',
+          transaction: { buy: { item: { id: 'sword', name: 'Sword' }, cost: 10 } },
+        },
+      },
+      gameState: makeHaggleState([active]),
+      dispatch,
+      addMessage: (m: string) => { messages.push(m); },
+      addGeminiLog: vi.fn(),
+      generalActionContext: '',
+    } as unknown as Parameters<typeof handleMerchantAction>[0]);
+
+    const buy = dispatch.mock.calls.find(c => c[0].type === 'BUY_ITEM')?.[0];
+    expect(buy?.payload.cost).toBe(8); // 10 * 0.8
+    expect(messages.some(m => m.includes('8 gold') && m.includes('discounted'))).toBe(true);
+  });
+
+  it('charges full price when no merchantId reaches the handler', async () => {
+    const dispatch = vi.fn();
+
+    await handleMerchantAction({
+      action: {
+        type: 'BUY_ITEM',
+        label: 'Buy',
+        payload: { transaction: { buy: { item: { id: 'sword', name: 'Sword' }, cost: 10 } } },
+      },
+      gameState: makeHaggleState(),
+      dispatch,
+      addMessage: vi.fn(),
+      addGeminiLog: vi.fn(),
+      generalActionContext: '',
+    } as unknown as Parameters<typeof handleMerchantAction>[0]);
+
+    expect(dispatch.mock.calls.find(c => c[0].type === 'BUY_ITEM')?.[0].payload.cost).toBe(10);
   });
 });

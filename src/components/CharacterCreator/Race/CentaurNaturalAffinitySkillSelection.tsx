@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { Skill } from '../../../types';
 import { SKILLS_DATA } from '../../../data/skills';
+import { SkillIcon } from '../../../utils/skillIcons';
 
 interface CentaurNaturalAffinitySkillSelectionProps {
   onSkillSelect: (skillId: string) => void;
@@ -17,27 +18,22 @@ const NATURAL_AFFINITY_SKILL_CHOICES_IDS: string[] = ['animal_handling', 'medici
 const SKILL_INFO: Record<string, {
   color: string;
   tagline: string;
-  icon: string;
 }> = {
   animal_handling: {
     color: 'text-emerald-400',
     tagline: 'Empathy with the beasts of field and forest',
-    icon: '🐾',
   },
   medicine: {
     color: 'text-rose-400',
     tagline: 'Traditional healing and anatomical knowledge',
-    icon: '🩹',
   },
   nature: {
     color: 'text-green-400',
     tagline: 'Innate lore of plants, animals, and cycles',
-    icon: '🌿',
   },
   survival: {
     color: 'text-amber-500',
     tagline: 'Tracking and navigating the untamed wilds',
-    icon: '⛺',
   },
 };
 
@@ -75,9 +71,9 @@ const CentaurNaturalAffinitySkillSelection: React.FC<CentaurNaturalAffinitySkill
                 }`}
               aria-pressed={isSelected ? 'true' : 'false'}
             >
-              <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-3xl aspect-square ${isSelected ? 'bg-sky-400/20 shadow-inner shadow-sky-400/20' : 'bg-gray-700/50'
+              <div className={`w-14 h-14 rounded-xl flex items-center justify-center aspect-square ${isSelected ? 'bg-sky-400/20 shadow-inner shadow-sky-400/20' : 'bg-gray-700/50'
                 }`}>
-                {info?.icon || '📜'}
+                <SkillIcon name={skill.id} className={`w-8 h-8 ${info?.color || 'text-sky-300'}`} />
               </div>
               <div className="flex-grow">
                 <div className="flex items-center gap-2">

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 18/05/2026, 15:10:43
- * Dependents: components/CharacterSheet/Overview/InventoryList.tsx, utils/visualUtils.ts, utils/visuals/index.ts
- * Imports: 2 files
+ * Last Sync: 10/08/2026, 13:55:53
+ * Dependents: components/CharacterSheet/Overview/InventoryList.tsx, components/Trade/MerchantModal.tsx, utils/visuals/index.ts
+ * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -22,6 +22,7 @@
 
 import { NPC, Race, Item } from '../../types';
 import { NPCVisualSpec, VisualAsset, ItemVisualSpec } from '../../types/visuals';
+import { assetUrl } from '../../config/env';
 
 const GENERAL_ARMOR_ICON_PATH = 'assets/icons/general/armor/';
 const GENERAL_WEAPON_ICON_PATH = 'assets/icons/general/weapons/';
@@ -123,6 +124,21 @@ function normalizeItemIconPath(iconPath: string): string {
 }
 
 /**
+ * Converts a resolved item image into the URL that the browser should request.
+ *
+ * Item catalogs intentionally keep portable paths such as
+ * `assets/icons/general/armor/leather_cap.svg`. Pages mounted below a nested
+ * route cannot use those paths directly because the browser would resolve them
+ * relative to the current document. Keep external/data URLs untouched, while
+ * routing local assets through Vite's configured application base.
+ */
+export function resolveItemAssetSrc(src?: string): string | undefined {
+  if (!src) return undefined;
+  if (/^(?:[a-z][a-z\d+.-]*:|\/\/)/i.test(src)) return src;
+  return assetUrl(src);
+}
+
+/**
  * Resolves the visual representation for an NPC, handling fallbacks.
  *
  * @param npc - The NPC entity
@@ -217,11 +233,48 @@ export function resolveItemVisual(item: Item): VisualAsset {
     };
   }
 
-  // 5. Use legacy icon as fallback content (emoji/text) if not a path
-  // If no icon at all, default to box
+// Generic TW-D&D item type icons for items lacking custom handcrafted art.
+const TW_DND_TYPE_FALLBACK_MAP: Record<string, string> = {
+  potion: 'assets/icons/tw-dnd/entity/potion.svg',
+  consumable: 'assets/icons/tw-dnd/entity/potion.svg',
+  scroll: 'assets/icons/tw-dnd/entity/scroll.svg',
+  ring: 'assets/icons/tw-dnd/entity/ring.svg',
+  accessory: 'assets/icons/tw-dnd/entity/ring.svg',
+  wand: 'assets/icons/tw-dnd/entity/wand.svg',
+  rod: 'assets/icons/tw-dnd/entity/wand.svg',
+  staff: 'assets/icons/tw-dnd/weapon/staff.svg',
+  container: 'assets/icons/tw-dnd/entity/pack.svg',
+  pack: 'assets/icons/tw-dnd/entity/pack.svg',
+  book: 'assets/icons/tw-dnd/entity/book.svg',
+  spellbook: 'assets/icons/tw-dnd/entity/spellbook.svg',
+  tool: 'assets/icons/tw-dnd/entity/tool.svg',
+  ammunition: 'assets/icons/tw-dnd/weapon/arrow.svg',
+  ammo: 'assets/icons/tw-dnd/weapon/arrow.svg',
+  weapon: 'assets/icons/tw-dnd/entity/weapon.svg',
+  armor: 'assets/icons/tw-dnd/entity/armor.svg',
+  shield: 'assets/icons/tw-dnd/entity/armor.svg',
+  treasure: 'assets/icons/tw-dnd/entity/treasure.svg',
+  currency: 'assets/icons/tw-dnd/entity/treasure.svg',
+  gem: 'assets/icons/tw-dnd/entity/treasure.svg',
+  trinket: 'assets/icons/tw-dnd/entity/trinket.svg',
+  misc: 'assets/icons/tw-dnd/entity/item.svg',
+};
+
+  // 5. Fall back to curated TW-D&D entity type vector SVGs so every inventory
+  // item renders a crisp silhouette instead of an unstyled emoji box.
+  const itemTypeKey = (item.type || '').toLowerCase();
+  const fallbackSrc =
+    TW_DND_TYPE_FALLBACK_MAP[itemTypeKey] ||
+    (item.isContainer ? 'assets/icons/tw-dnd/entity/pack.svg' : undefined) ||
+    (item.slot === 'Ring1' || item.slot === 'Ring2' ? 'assets/icons/tw-dnd/entity/ring.svg' : undefined) ||
+    (item.slot === 'Neck' ? 'assets/icons/tw-dnd/entity/magic-item.svg' : undefined) ||
+    (item.slot === 'OffHand' ? 'assets/icons/tw-dnd/entity/armor.svg' : undefined) ||
+    'assets/icons/tw-dnd/entity/item.svg';
+
   return {
+    src: fallbackSrc,
     fallbackContent: item.icon || '📦',
-    primaryColor: '#9ca3af', // gray-400
+    primaryColor: getItemRarityColor(item.visual?.rarity),
     label: item.name
   };
 }

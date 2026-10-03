@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 05/04/2026, 00:55:31
+ * Last Sync: 04/08/2026, 01:58:43
  * Dependents: state/reducers/worldReducer.ts
  * Imports: 5 files
  *
@@ -27,7 +27,7 @@ import { GameState } from '../../types';
 import { AppAction } from '../actionTypes';
 import * as RitualManager from '../../systems/rituals/RitualManager';
 import { ROUND_DURATION_SECONDS } from '../../utils/core/spellTimeUtils';
-import { generateId } from '../../utils/combatUtils';
+import { generateId } from '../../utils/combat';
 
 // ============================================================================
 // Ritual Advancement Payload Translation

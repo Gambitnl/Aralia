@@ -30,3 +30,5 @@ Rechecked against the source and living project docs on 2026-07-15:
 Do not relaunch the original implementation plans from this file. Their
 completed work and deferred intent have already been classified in the living
 Combat project.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"src/systems/combat/Combat_Ralph.md","sha256WithoutMarker":"bcf36554395c27191851bb1557399204cc45bf65c8ecc28b07b6bec11f2e2b58","markedAtUtc":"2026-08-09T20:14:16.167Z"} -->

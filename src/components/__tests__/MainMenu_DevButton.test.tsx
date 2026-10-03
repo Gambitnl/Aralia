@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import MainMenu from '../layout/MainMenu';
-import * as Permissions from '../../utils/permissions';
+import * as Permissions from '../../utils/core';
 
 // Mock child components
 vi.mock('../SaveLoad', () => ({
@@ -29,8 +29,10 @@ vi.mock('../services/saveLoadService', () => ({
     hasSaveGame: vi.fn(() => false),
 }));
 
-// Mock i18n
-vi.mock('../../utils/i18n', () => ({
+// Mock i18n. Targets the direct file (utils/core/i18n), not the barrel: a
+// partial-factory barrel mock would hide canUseDevTools and the other exports
+// MainMenu + this test import from utils/core (see permissions mock below).
+vi.mock('../../utils/core/i18n', () => ({
     t: (key: string) => {
         const translations: Record<string, string> = {
             'main_menu.title': 'Aralia RPG',
@@ -51,7 +53,7 @@ vi.mock('../../utils/i18n', () => ({
 }));
 
 // Mock permissions
-vi.mock('../../utils/permissions', () => ({
+vi.mock('../../utils/core/permissions', () => ({
     canUseDevTools: vi.fn(),
 }));
 

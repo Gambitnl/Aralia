@@ -1,8 +1,10 @@
 
 import { describe, it, expect } from 'vitest';
-import { resolveNPCVisual, resolveItemVisual } from '../visualUtils';
+import { ItemType } from '../../../types';
+import { resolveNPCVisual, resolveItemAssetSrc, resolveItemVisual } from '../visualUtils';
 import { NPC, Item } from '../../../types';
 import { NPCVisualSpec } from '../../../types/visuals';
+import { ENV } from '../../../config/env';
 
 /**
  * This file checks the visual resolver that turns game records into image paths
@@ -118,7 +120,7 @@ describe('resolveItemVisual legacy weapon ids', () => {
         id: weaponId,
         name: weaponId,
         description: 'Older saved weapon record',
-        type: 'weapon',
+        type: ItemType.Weapon,
         icon: 'legacy-emoji',
       });
 
@@ -133,7 +135,7 @@ describe('resolveItemVisual', () => {
     id: 'test-item',
     name: 'Test Item',
     description: 'A test item',
-    type: 'weapon', // Using string literal as enum might not be available in test context easily without import
+    type: ItemType.Weapon, // Using string literal as enum might not be available in test context easily without import
   };
 
   it('resolves explicit visual spec path', () => {
@@ -169,7 +171,7 @@ describe('resolveItemVisual', () => {
       ...mockItemBase,
       id: 'potion_of_healing',
       name: 'Potion of Healing',
-      type: 'consumable',
+      type: ItemType.Consumable,
       icon: '/assets/icons/items/potion_of_healing.svg',
     };
 
@@ -186,7 +188,7 @@ describe('resolveItemVisual', () => {
     };
 
     const result = resolveItemVisual(item);
-    expect(result.src).toBeUndefined();
+    expect(result.src).toBe('assets/icons/tw-dnd/entity/weapon.svg');
     expect(result.fallbackContent).toBe('🪵');
     expect(result.primaryColor).toBe('#9ca3af');
   });
@@ -197,7 +199,23 @@ describe('resolveItemVisual', () => {
     };
 
     const result = resolveItemVisual(item);
-    expect(result.src).toBeUndefined();
+    expect(result.src).toBe('assets/icons/tw-dnd/entity/weapon.svg');
     expect(result.fallbackContent).toBe('📦');
+  });
+});
+
+describe('resolveItemAssetSrc', () => {
+  it('anchors portable item paths to the configured app base', () => {
+    expect(resolveItemAssetSrc('assets/icons/general/armor/leather_cap.svg'))
+      .toBe(`${ENV.BASE_URL}assets/icons/general/armor/leather_cap.svg`);
+  });
+
+  it('also anchors root-looking local paths while preserving external sources', () => {
+    expect(resolveItemAssetSrc('/assets/icons/items/potion_of_healing.svg'))
+      .toBe(`${ENV.BASE_URL}assets/icons/items/potion_of_healing.svg`);
+    expect(resolveItemAssetSrc('data:image/svg+xml;base64,PHN2Zy8+'))
+      .toBe('data:image/svg+xml;base64,PHN2Zy8+');
+    expect(resolveItemAssetSrc('https://cdn.example.test/item.svg'))
+      .toBe('https://cdn.example.test/item.svg');
   });
 });

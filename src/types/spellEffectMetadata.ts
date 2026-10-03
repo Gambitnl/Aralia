@@ -110,14 +110,27 @@ export interface ModeChoiceOption {
 
 /** Top-level mode menu for spells that ask the caster to choose one operation. */
 export interface ModeChoice {
-  /** Current menu shape: the caster chooses exactly one operation. */
-  type: "choose_one";
-  /** When the spell asks the caster to choose or change the operation. */
-  timing: "on_cast" | "on_cast_or_later_action";
-  /** Number of options in the canonical menu. */
+  /** Source-backed menu shape, including choose_multiple variants. */
+  type: string;
+  /** Source-backed timing label for cast-time or later-action choices. */
+  timing: string;
+  /**
+   * How many menu entries the caster commits to per resolution.
+   *
+   * Single-select menus (`choose_one`, `choose_one_per_target`) pick exactly
+   * one entry each time they resolve, so their `optionCount` records the menu
+   * size and must equal `options.length`. Multi-select menus
+   * (`choose_multiple`) pick several entries out of a larger menu, so their
+   * `optionCount` records the selection budget and stays at or below
+   * `options.length` - Commune with Nature chooses 3 of 5.
+   */
   optionCount: number;
+  /** Fewest entries a multi-select menu may commit to, when the source allows a range. */
+  minSelections?: number;
+  /** Most entries a multi-select menu may commit to, when the source allows a range. */
+  maxSelections?: number;
   /** Where the option payloads live so runtime/UI code can follow them. */
-  optionsSource: "modeChoice.options" | "effects" | "controlOptions" | "mixed" | "summon.formOptions" | "effects[0].summon.formOptions";
+  optionsSource: string;
   /** Active cap for non-instantaneous options, or a sentinel when none exists. */
   maxActiveNonInstantaneous?: number | "not_applicable";
   /** Whether the spell allows active non-instantaneous options to be dismissed. */
@@ -126,4 +139,64 @@ export interface ModeChoice {
   options: ModeChoiceOption[];
   /** Short review note for menu-wide details that are not fielded yet. */
   notes?: string;
+}
+
+//==============================================================================
+// Granted Action Metadata
+//==============================================================================
+// Some spells hand the caster, or a controlled entity, an extra action while
+// the spell runs: commanding an animated Undead, asking an otherworldly entity
+// a question, or moving a whirlwind. Those rows live on
+// `effects[].grantedActions` and use two authored spellings, so the canonical
+// cost vocabulary is declared here once and both spellings normalize onto it.
+//==============================================================================
+
+/** Canonical cost the action economy spends for one granted action. */
+export type SpellActionCost =
+  /** Costs the actor's Action, including the 2024 Magic action. */
+  | 'action'
+  /** Costs the actor's Bonus Action. */
+  | 'bonus_action'
+  /** Costs the actor's Reaction. */
+  | 'reaction'
+  /** Costs nothing: free commands, no-action orders, and narrative control. */
+  | 'free'
+  /** Not an action at all; it changes how another action resolves. */
+  | 'special';
+
+/**
+ * One extra action a spell grants while it is active.
+ *
+ * The canonical spelling is `type` / `action` / `frequency`. Older rows author
+ * the same three facts as `actionType` / `name` / `timing` or `cost`, so both
+ * spellings are declared here and `SpellIntegrityValidator` normalizes a row
+ * before it checks the row.
+ */
+export interface GrantedAction {
+  /** Source-backed action cost, mapped through the canonical action-cost table. */
+  type?: string;
+  /** Legacy spelling of `type`. */
+  actionType?: string;
+  /** Caster-facing label for the granted action. */
+  action?: string;
+  /** Legacy spelling of `action`. */
+  name?: string;
+  /** Cadence the granted action repeats on, such as `each_caster_turn`. */
+  frequency?: string;
+  /** Legacy cadence spelling used by turn- or phase-bound rows. */
+  timing?: string;
+  /** Legacy cadence spelling used by rows paid out of a limited pool. */
+  cost?: string;
+  /** Who takes the granted action when it is not the caster. */
+  actor?: string;
+  /** Range cap in feet under the canonical spelling. */
+  rangeLimit?: number;
+  /** Legacy range-cap spelling in feet. */
+  rangeFeet?: number;
+  /** Legacy range-cap spelling paired with `rangeUnit`. */
+  range?: number;
+  /** Short review note for facts that are not fielded yet. */
+  notes?: string;
+  /** Prose restatement kept by legacy rows. */
+  description?: string;
 }

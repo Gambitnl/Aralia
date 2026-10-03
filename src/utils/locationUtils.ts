@@ -1,4 +1,6 @@
-// Placeholder to fix build error
+// Legacy getLocation stub (tracked in Agora task agora-4f7e).
+// Originally introduced as a placeholder for legacy tile lookups. Unused across active systems;
+// preserved for API backwards compatibility pending formal audit or removal.
 export const getLocation = () => ({ x: 0, y: 0 });
 
 /**

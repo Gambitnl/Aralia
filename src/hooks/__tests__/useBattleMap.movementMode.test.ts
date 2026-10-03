@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { inferMovementModeForAction } from '../useBattleMap';
-import { createMockCombatCharacter } from '../../utils/factories';
+import { createMockCombatCharacter } from '../../utils/core';
 import type { CombatCharacter } from '../../types/combat';
-import summonBeast from '../../../public/data/spells/level-2/summon-beast.json';
+import summonBeast from '@/data/spells/level-2/summon-beast.json';
 
 /**
  * This file protects the movement-mode handoff created by the battle-map hook.
@@ -147,6 +147,34 @@ describe('inferMovementModeForAction', () => {
     // invent a movement mode for them. They continue through the existing
     // ordinary movement path.
     expect(inferMovementModeForAction(fighter)).toBeUndefined();
+  });
+
+  it('marks an ordinary airborne actor with live Fly Speed for the normal Move path', () => {
+    const flyer = createMockCombatCharacter({ id: 'ordinary-flyer', name: 'Ordinary Flyer' });
+    flyer.stats.extraMovementSpeeds = { fly: 40 };
+    flyer.aerialMovement = {
+      altitudeFeet: 15,
+      isFlying: true,
+      canHover: false,
+      source: 'stat block',
+    };
+
+    // Normal creatures do not need summon-only Flyby metadata. Their persisted
+    // airborne state selects the canonical aerial resolver for ordinary Move.
+    expect(inferMovementModeForAction(flyer)).toBe('fly');
+  });
+
+  it('keeps a grounded creature with an unused Fly Speed on ground movement', () => {
+    const grounded = createMockCombatCharacter({ id: 'grounded-flyer', name: 'Grounded Flyer' });
+    grounded.stats.extraMovementSpeeds = { fly: 40 };
+    grounded.aerialMovement = {
+      altitudeFeet: 0,
+      isFlying: false,
+      canHover: false,
+      source: 'stat block',
+    };
+
+    expect(inferMovementModeForAction(grounded)).toBeUndefined();
   });
 
   it('ignores movement-mode traits that keep normal opportunity exposure', () => {

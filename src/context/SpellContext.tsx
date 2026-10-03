@@ -18,7 +18,7 @@ import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { Spell } from '../types';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { ErrorOverlay } from '../components/ui/ErrorOverlay';
-import { fetchWithTimeout } from '../utils/networkUtils';
+import { fetchWithTimeout } from '../utils/context';
 import { assetUrl } from '../config/env';
 
 export type SpellDataRecord = Record<string, Spell>;

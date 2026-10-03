@@ -9,7 +9,7 @@ const mockSetItem = vi.fn();
 const mockTrySetItem = vi.fn();
 const mockRemoveItem = vi.fn();
 
-vi.mock('../../utils/storageUtils', () => ({
+vi.mock('../../utils/core/storageUtils', () => ({
   SafeStorage: {
     getItem: (key: string) => mockGetItem(key),
     setItem: (key: string, value: string) => mockSetItem(key, value),

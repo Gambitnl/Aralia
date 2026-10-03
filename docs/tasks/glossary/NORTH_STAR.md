@@ -117,4 +117,4 @@ hover behavior.
 4. Confirm term governance evidence against `docs/projects/PROJECT_TRACKER.md`
    and the two owning project folders above.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/glossary/NORTH_STAR.md","sha256WithoutMarker":"665d720175b8119901b91db209b4cedc02071f69bf710dd31446ced201dc1c84","markedAtUtc":"2026-06-25T22:29:38.302Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/glossary/NORTH_STAR.md","sha256WithoutMarker":"f43bf201b7537350330e2607a63883b0ad7923560cda42c38ab8c511e37192ea","markedAtUtc":"2026-08-09T20:14:15.529Z"} -->

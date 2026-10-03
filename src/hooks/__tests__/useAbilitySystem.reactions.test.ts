@@ -2,15 +2,29 @@ import { renderHook, act, waitFor as _waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { materializeAfterHitReactionSpell, useAbilitySystem } from '../useAbilitySystem';
 import { ActiveTruePolymorphTransformation, CombatCharacter, Ability, BattleMapData, LightSource, SelectedSpellTarget, SpellObjectAccessChange } from '../../types/combat';
-import { Spell } from '../../types/spells';
+import { Spell, SpellSchool } from '../../types/spells';
 import { Item } from '../../types';
 import type { ActiveSpellZone } from '../../systems/spells/effects';
-import * as savingThrowUtils from '../../utils/savingThrowUtils';
+import * as savingThrowUtils from '../../utils/character';
 import { combatEvents } from '../../systems/events/CombatEvents';
-import * as combatUtils from '../../utils/combatUtils';
-import shiningSmite from '../../../public/data/spells/level-2/shining-smite.json';
-import blindingSmite from '../../../public/data/spells/level-3/blinding-smite.json';
-import { shieldSpell, attacker, defender, swordItem, basicAttack } from './useAbilitySystem.fixtures';
+import * as combatUtils from '../../utils/combat';
+import shiningSmite from '@/data/spells/level-2/shining-smite.json';
+import blindingSmite from '@/data/spells/level-3/blinding-smite.json';
+import hellishRebuke from '@/data/spells/level-1/hellish-rebuke.json';
+import { createAbilityFromSpell } from '../../utils/character/spellAbilityFactory';
+import type { PlayerCharacter } from '../../types';
+import {
+    shieldSpell,
+    attacker,
+    defender,
+    swordItem,
+    basicAttack,
+    makeSpellSlots,
+    makeCommandExecutionResult,
+    makeAfterHitReactionSpell,
+    makeDamagingSpell,
+    makeSpellAbility
+} from './useAbilitySystem.fixtures';
 
 /**
  * This file checks the combat ability hook from the player's point of view.
@@ -86,7 +100,20 @@ vi.mock('../../commands', () => ({
     CommandExecutor: { execute: vi.fn().mockReturnValue({ success: true, finalState: { characters: [], combatLog: [] } }) }
 }));
 
-vi.mock('../../utils/combatUtils', () => ({
+// agora-f821.4 retired the combatUtils roller family; the modules under
+// test roll through systems/dice/rollers now. One hoisted set of mocks
+// stands in for BOTH specifiers, so one vi.mocked(...) pins every die.
+const diceMocks = vi.hoisted(() => ({
+    rollDice: () => 15, // Always roll high for testing hits
+    rollDamage: () => 5
+}))
+
+vi.mock('../../systems/dice/rollers', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../systems/dice/rollers')>()
+  return { ...actual, ...diceMocks }
+})
+
+vi.mock('../../utils/combat', () => ({
     getDistance: vi.fn(() => 5),
     getCharacterDistance: vi.fn(() => 5),
     // useTargetValidator asks for every occupied tile so large tokens and
@@ -95,13 +122,13 @@ vi.mock('../../utils/combatUtils', () => ({
     getOccupiedTiles: (character: CombatCharacter) => [character.position],
     calculateDamage: () => 5,
     generateId: () => 'test-id',
-    rollDice: () => 15, // Always roll high for testing hits
-    rollDamage: () => 5
+    ...diceMocks,
 }));
 
-vi.mock('../../utils/savingThrowUtils', () => ({
+vi.mock('../../utils/character/savingThrowUtils', () => ({
     calculateSpellDC: () => 17,
-    rollSavingThrow: vi.fn(() => ({ total: 18, success: true, modifiersApplied: [] }))
+    rollSavingThrow: vi.fn(() => ({ total: 18, success: true, modifiersApplied: [] })),
+    calculateSaveDamage: (damage: number, save: { success: boolean }) => save.success ? Math.floor(damage / 2) : damage
 }));
 
 beforeEach(() => {
@@ -197,6 +224,96 @@ describe('useAbilitySystem - Reactions', () => {
         expect(result.current.pendingReaction).toBeNull();
     });
 
+    it('discovers Hellish Rebuke from a normal command post-HP event and waits for an explicit choice', async () => {
+        const { AbilityCommandFactory, CommandExecutor } = await import('../../commands');
+        vi.mocked(AbilityCommandFactory.createCommands).mockReturnValueOnce([{} as any]);
+        const retaliator = {
+            ...defender,
+            currentHP: 12,
+            maxHP: 20,
+            level: 5,
+            spellcastingAbility: 'charisma',
+            spellSlots: {
+                level_1: { current: 1, max: 1 }, level_2: { current: 0, max: 0 },
+                level_3: { current: 0, max: 0 }, level_4: { current: 0, max: 0 },
+                level_5: { current: 0, max: 0 }, level_6: { current: 0, max: 0 },
+                level_7: { current: 0, max: 0 }, level_8: { current: 0, max: 0 },
+                level_9: { current: 0, max: 0 }
+            },
+        } as CombatCharacter;
+        retaliator.abilities = [createAbilityFromSpell(
+            hellishRebuke as unknown as Spell,
+            retaliator as unknown as PlayerCharacter
+        )];
+        const damagedRetaliator = { ...retaliator, currentHP: 4 };
+        const damageEvent = {
+            id: 'normal-damage-event-1', timestamp: 1, type: 'damage' as const,
+            message: 'Attacker damages Retaliator for 8 slashing damage',
+            characterId: retaliator.id, targetIds: [retaliator.id],
+            data: {
+                damageEventBoundary: 'post_hp' as const,
+                sourceCharacterId: attacker.id,
+                targetCharacterId: retaliator.id,
+                hitConfirmed: true,
+                rawDamage: 8,
+                finalDamage: 8,
+                damageType: 'Slashing',
+                hitPointsBefore: 12,
+                hitPointsAfter: 4,
+                temporaryHitPointsBefore: 0,
+                temporaryHitPointsAfter: 0,
+                targetDownedAfter: false,
+                targetIncapacitatedAfter: false,
+            }
+        };
+        vi.mocked(CommandExecutor.execute).mockResolvedValueOnce({
+            success: true,
+            finalState: {
+                characters: [attacker, damagedRetaliator],
+                combatLog: [damageEvent],
+                reactiveTriggers: [],
+                activeLightSources: []
+            }
+        } as any);
+
+        const onCharacterUpdate = vi.fn();
+        const onLogEntry = vi.fn();
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [attacker, retaliator], mapData: null,
+            onExecuteAction: vi.fn(() => true), onCharacterUpdate, onLogEntry,
+            onAbilityEffect: vi.fn()
+        }));
+
+        let executionPromise: Promise<void>;
+        act(() => {
+            executionPromise = result.current.executeAbility(
+                basicAttack, attacker, retaliator.position, [retaliator.id],
+                undefined, undefined,
+                { damageRng: () => 0.55, saveRng: () => 0.2 }
+            );
+        });
+
+        await _waitFor(() => expect(result.current.pendingReaction).toMatchObject({
+            attackerId: attacker.id,
+            targetId: retaliator.id,
+            triggerType: 'on_take_damage',
+            reactionSpells: [expect.objectContaining({ id: 'hellish-rebuke' })]
+        }));
+
+        act(() => result.current.pendingReaction?.onResolve('hellish-rebuke'));
+        await act(async () => executionPromise!);
+
+        expect(onCharacterUpdate).toHaveBeenCalledWith(expect.objectContaining({
+            id: retaliator.id,
+            currentHP: 4,
+            actionEconomy: expect.objectContaining({ reaction: expect.objectContaining({ used: true }) }),
+            spellSlots: expect.objectContaining({ level_1: expect.objectContaining({ current: 0 }) })
+        }));
+        expect(onLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+            message: expect.stringContaining('accepts Hellish Rebuke')
+        }));
+    });
+
     it('should execute command via AbilityCommandFactory', async () => {
          const { result } = renderHook(() => useAbilitySystem({
             characters: [attacker, defender],
@@ -208,7 +325,7 @@ describe('useAbilitySystem - Reactions', () => {
                 dimensions: { width: 10, height: 10 },
                 theme: 'dungeon',
                 seed: 1
-            } as BattleMapData,
+            } as unknown as BattleMapData,
             onExecuteAction: mockExecuteAction,
             onCharacterUpdate: mockCharacterUpdate,
             onLogEntry: mockLogEntry,
@@ -279,10 +396,10 @@ describe('useAbilitySystem - Reactions', () => {
         });
 
         expect(localExecuteAction).toHaveBeenCalledTimes(2);
-        expect(localExecuteAction.mock.calls[0][0]).toEqual(expect.objectContaining({
+        expect((localExecuteAction as any).mock.calls[0][0]).toEqual(expect.objectContaining({
             suppressAbilityEvents: true
         }));
-        expect(localExecuteAction.mock.calls[1][0]).toEqual(expect.objectContaining({
+        expect((localExecuteAction as any).mock.calls[1][0]).toEqual(expect.objectContaining({
             reactiveEventsOnly: true,
             attackResults: [{
                 targetId: defender.id,
@@ -299,61 +416,30 @@ describe('useAbilitySystem - Reactions', () => {
     it('prompts and materializes after-hit reaction spells from shared attack-result metadata', async () => {
         const { CommandExecutor, SpellCommandFactory } = await import('../../commands');
         combatEvents.clearForTest();
-        const smiteSpell: Spell = {
+        const smiteSpell = makeAfterHitReactionSpell({
             id: 'shining-smite-like',
             name: 'Shining Smite Like',
             level: 2,
-            school: 'Transmutation',
-            classes: ['Paladin'],
+            school: SpellSchool.Transmutation,
             description: 'A metadata-driven after-hit reaction smite.',
-            castingTime: { value: 1, unit: 'reaction' },
-            castingTrigger: {
-                type: 'after_attack_hit',
-                requiredCost: 'reaction',
-                targetBinding: 'triggering_attack_target',
-                attackFilter: {
-                    attackType: 'weapon',
-                    weaponType: 'melee'
-                }
-            },
-            range: { type: 'self' },
-            components: { verbal: true, somatic: false, material: false },
-            duration: { type: 'instantaneous', concentration: false },
-            targeting: { type: 'single', validTargets: ['enemies'] },
-            effects: [{
-                type: 'DAMAGE',
-                damage: { dice: '2d6', type: 'radiant' },
-                trigger: {
-                    type: 'on_attack_hit',
-                    frequency: 'once',
-                    consumption: 'first_hit',
-                    attackFilter: {
-                        attackType: 'weapon',
-                        weaponType: 'melee'
-                    }
-                },
-                condition: { type: 'always' }
-            }]
-        } as unknown as Spell;
+            castAttackFilter: { attackType: 'weapon', weaponType: 'melee' },
+            payload: { kind: 'damage', dice: '2d6', damageType: 'radiant' }
+        });
         const smitingAttacker: CombatCharacter = {
             ...attacker,
             id: 'smiting-attacker',
             name: 'Smiting Attacker',
             team: 'player',
-            abilities: [({
+            abilities: [makeSpellAbility({
                 id: 'shining-smite-like-ability',
                 name: 'Shining Smite Like',
-                type: 'spell',
                 spell: smiteSpell
-            } as unknown as Ability)],
+            })],
             actionEconomy: {
                 ...attacker.actionEconomy,
                 reaction: { used: false, remaining: 1 }
             },
-            spellSlots: {
-                level_2: { current: 1, max: 1 }
-            // TODO #342(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
-            } as unknown as CombatCharacter['spellSlots']
+            spellSlots: makeSpellSlots({ level_2: 1 })
         };
         const hitTarget: CombatCharacter = {
             ...defender,
@@ -370,7 +456,7 @@ describe('useAbilitySystem - Reactions', () => {
         // The first command execution represents the weapon attack. It emits
         // the resolved hit event that the shared after-hit reaction bridge
         // consumes after command execution completes.
-        vi.mocked(CommandExecutor.execute).mockImplementationOnce(() => {
+        vi.mocked(CommandExecutor.execute).mockImplementationOnce(async () => {
             combatEvents.emit({
                 type: 'unit_attack',
                 attackerId: smitingAttacker.id,
@@ -381,16 +467,7 @@ describe('useAbilitySystem - Reactions', () => {
                 weaponType: 'melee'
             });
 
-            return {
-                success: true,
-                finalState: {
-                    characters: [smitingAttacker, hitTarget],
-                    combatLog: [],
-                    reactiveTriggers: [],
-                    activeLightSources: []
-                }
-            // TODO #343(lint-intent): Replace this broad command-result cast once the command test fixtures expose a minimal CombatResult builder.
-            } as any;
+            return makeCommandExecutionResult({ characters: [smitingAttacker, hitTarget] });
         });
 
         const { result } = renderHook(() => useAbilitySystem({
@@ -452,62 +529,30 @@ describe('useAbilitySystem - Reactions', () => {
     it('does not prompt an after-hit reaction spell for nonmatching attack metadata', async () => {
         const { CommandExecutor, SpellCommandFactory } = await import('../../commands');
         combatEvents.clearForTest();
-        const meleeOnlySmite: Spell = {
+        const meleeOnlySmite = makeAfterHitReactionSpell({
             id: 'blinding-smite-like',
             name: 'Blinding Smite Like',
             level: 3,
-            school: 'Evocation',
-            classes: ['Paladin'],
+            school: SpellSchool.Evocation,
             description: 'A melee-only after-hit reaction smite used to prove nonmatching attacks stay quiet.',
-            castingTime: { value: 1, unit: 'reaction' },
-            castingTrigger: {
-                type: 'after_attack_hit',
-                requiredCost: 'reaction',
-                targetBinding: 'triggering_attack_target',
-                attackFilter: {
-                    attackType: 'weapon',
-                    weaponType: 'melee'
-                }
-            },
-            range: { type: 'self' },
-            components: { verbal: true, somatic: false, material: false },
-            duration: { type: 'instantaneous', concentration: false },
-            targeting: { type: 'single', validTargets: ['enemies'] },
-            effects: [{
-                type: 'STATUS_CONDITION',
-                conditionName: 'Blinded',
-                trigger: {
-                    type: 'on_attack_hit',
-                    frequency: 'once',
-                    consumption: 'first_hit',
-                    attackFilter: {
-                        attackType: 'weapon',
-                        weaponType: 'melee'
-                    }
-                },
-                condition: { type: 'always' }
-            }]
-        // TODO #344(lint-intent): Replace this cast once compact reaction-spell fixtures expose the full migrated spell union.
-        } as unknown as Spell;
+            castAttackFilter: { attackType: 'weapon', weaponType: 'melee' },
+            payload: { kind: 'status', conditionName: 'Blinded' }
+        });
         const smitingAttacker: CombatCharacter = {
             ...attacker,
             id: 'ranged-smite-attacker',
             name: 'Ranged Smite Attacker',
             team: 'player',
-            abilities: [{
+            abilities: [makeSpellAbility({
                 id: 'blinding-smite-like-ability',
                 name: 'Blinding Smite Like',
-                type: 'spell',
                 spell: meleeOnlySmite
-            } as unknown as Ability],
+            })],
             actionEconomy: {
                 ...attacker.actionEconomy,
                 reaction: { used: false, remaining: 1 }
             },
-            spellSlots: {
-                level_3: { current: 1, max: 1 }
-            // TODO #346(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
-            } as unknown as CombatCharacter['spellSlots']
+            spellSlots: makeSpellSlots({ level_3: 1 })
         };
         const hitTarget: CombatCharacter = {
             ...defender,
@@ -525,7 +570,7 @@ describe('useAbilitySystem - Reactions', () => {
         // close enough to look tempting, yet it must not wake a melee-only
         // smite because Shining/Blinding-style closure depends on strict
         // attack-filter matching rather than any-hit prompting.
-        vi.mocked(CommandExecutor.execute).mockImplementationOnce(() => {
+        vi.mocked(CommandExecutor.execute).mockImplementationOnce(async () => {
             combatEvents.emit({
                 type: 'unit_attack',
                 attackerId: smitingAttacker.id,
@@ -536,16 +581,7 @@ describe('useAbilitySystem - Reactions', () => {
                 weaponType: 'ranged'
             });
 
-            return {
-                success: true,
-                finalState: {
-                    characters: [smitingAttacker, hitTarget],
-                    combatLog: [],
-                    reactiveTriggers: [],
-                    activeLightSources: []
-                }
-            // TODO #347(lint-intent): Replace this broad command-result cast once the command test fixtures expose a minimal CombatResult builder.
-            } as any;
+            return makeCommandExecutionResult({ characters: [smitingAttacker, hitTarget] });
         });
 
         const { result } = renderHook(() => useAbilitySystem({
@@ -581,60 +617,32 @@ describe('useAbilitySystem - Reactions', () => {
     it('prompts an after-hit smite when legacy melee-weapon metadata meets a compact melee hit event', async () => {
         const { CommandExecutor } = await import('../../commands');
         combatEvents.clearForTest();
-        const legacyMeleeSmite: Spell = {
+        const legacyMeleeSmite = makeAfterHitReactionSpell({
             id: 'legacy-melee-smite-like',
             name: 'Legacy Melee Smite Like',
             level: 2,
-            school: 'Evocation',
-            classes: ['Paladin'],
+            school: SpellSchool.Evocation,
             description: 'A smite fixture that keeps the older melee_weapon attack filter label.',
-            castingTime: { value: 1, unit: 'reaction' },
-            castingTrigger: {
-                type: 'after_attack_hit',
-                requiredCost: 'reaction',
-                targetBinding: 'triggering_attack_target',
-                attackFilter: {
-                    attackType: 'weapon',
-                    weaponType: 'melee_weapon'
-                }
-            },
-            range: { type: 'self' },
-            components: { verbal: true, somatic: false, material: false },
-            duration: { type: 'instantaneous', concentration: false },
-            targeting: { type: 'single', validTargets: ['enemies'] },
-            effects: [{
-                type: 'DAMAGE',
-                damage: { dice: '2d6', type: 'radiant' },
-                trigger: {
-                    type: 'on_attack_hit',
-                    frequency: 'once',
-                    consumption: 'first_hit',
-                    attackFilter: {
-                        attackType: 'weapon',
-                        weaponType: 'melee_weapon'
-                    }
-                },
-                condition: { type: 'always' }
-            }]
-        } as unknown as Spell;
+            // The older `melee_weapon` label is the point of this case: the
+            // prompt bridge has to normalize migration-era metadata.
+            castAttackFilter: { attackType: 'weapon', weaponType: 'melee_weapon' },
+            payload: { kind: 'damage', dice: '2d6', damageType: 'radiant' }
+        });
         const smitingAttacker: CombatCharacter = {
             ...attacker,
             id: 'legacy-melee-smite-attacker',
             name: 'Legacy Melee Smite Attacker',
             team: 'player',
-            abilities: [{
+            abilities: [makeSpellAbility({
                 id: 'legacy-melee-smite-like-ability',
                 name: 'Legacy Melee Smite Like',
-                type: 'spell',
                 spell: legacyMeleeSmite
-            } as unknown as Ability],
+            })],
             actionEconomy: {
                 ...attacker.actionEconomy,
                 reaction: { used: false, remaining: 1 }
             },
-            spellSlots: {
-                level_2: { current: 1, max: 1 }
-            } as unknown as CombatCharacter['spellSlots']
+            spellSlots: makeSpellSlots({ level_2: 1 })
         };
         const hitTarget: CombatCharacter = {
             ...defender,
@@ -651,7 +659,7 @@ describe('useAbilitySystem - Reactions', () => {
         // deliberately uses the older `melee_weapon` label so this guard proves
         // the prompt bridge normalizes migration-era spell metadata instead of
         // silently dropping the after-hit option.
-        vi.mocked(CommandExecutor.execute).mockImplementationOnce(() => {
+        vi.mocked(CommandExecutor.execute).mockImplementationOnce(async () => {
             combatEvents.emit({
                 type: 'unit_attack',
                 attackerId: smitingAttacker.id,
@@ -662,16 +670,7 @@ describe('useAbilitySystem - Reactions', () => {
                 weaponType: 'melee'
             });
 
-            return {
-                success: true,
-                finalState: {
-                    characters: [smitingAttacker, hitTarget],
-                    combatLog: [],
-                    reactiveTriggers: [],
-                    activeLightSources: []
-                }
-            // TODO #351(lint-intent): Replace this broad command-result cast once the command test fixtures expose a minimal CombatResult builder.
-            } as any;
+            return makeCommandExecutionResult({ characters: [smitingAttacker, hitTarget] });
         });
 
         const { result } = renderHook(() => useAbilitySystem({
@@ -712,62 +711,35 @@ describe('useAbilitySystem - Reactions', () => {
     it('prompts an after-hit smite when the spell explicitly includes Unarmed Strike', async () => {
         const { CommandExecutor } = await import('../../commands');
         combatEvents.clearForTest();
-        const unarmedSmite: Spell = {
+        const unarmedSmite = makeAfterHitReactionSpell({
             id: 'shining-smite-unarmed-like',
             name: 'Shining Smite Unarmed Like',
             level: 2,
-            school: 'Transmutation',
-            classes: ['Paladin'],
+            school: SpellSchool.Transmutation,
             description: 'A smite fixture that allows weapon hits and Unarmed Strike hits.',
-            castingTime: { value: 1, unit: 'reaction' },
-            castingTrigger: {
-                type: 'after_attack_hit',
-                requiredCost: 'reaction',
-                targetBinding: 'triggering_attack_target',
-                attackFilter: {
-                    attackType: 'weapon',
-                    weaponType: 'any',
-                    includesUnarmedStrike: true
-                }
+            castAttackFilter: {
+                attackType: 'weapon',
+                weaponType: 'any',
+                includesUnarmedStrike: true
             },
-            range: { type: 'self' },
-            components: { verbal: true, somatic: false, material: false },
-            duration: { type: 'instantaneous', concentration: false },
-            targeting: { type: 'single', validTargets: ['enemies'] },
-            effects: [{
-                type: 'DAMAGE',
-                damage: { dice: '2d6', type: 'radiant' },
-                trigger: {
-                    type: 'on_attack_hit',
-                    frequency: 'once',
-                    consumption: 'first_hit',
-                    attackFilter: {
-                        attackType: 'weapon',
-                        weaponType: 'any'
-                    }
-                },
-                condition: { type: 'always' }
-            }]
-        // TODO #352(lint-intent): Replace this cast once compact reaction-spell fixtures expose the full migrated spell union.
-        } as unknown as Spell;
+            effectAttackFilter: { attackType: 'weapon', weaponType: 'any' },
+            payload: { kind: 'damage', dice: '2d6', damageType: 'radiant' }
+        });
         const smitingAttacker: CombatCharacter = {
             ...attacker,
             id: 'unarmed-smite-attacker',
             name: 'Unarmed Smite Attacker',
             team: 'player',
-            abilities: [{
+            abilities: [makeSpellAbility({
                 id: 'shining-smite-unarmed-like-ability',
                 name: 'Shining Smite Unarmed Like',
-                type: 'spell',
                 spell: unarmedSmite
-            } as unknown as Ability],
+            })],
             actionEconomy: {
                 ...attacker.actionEconomy,
                 reaction: { used: false, remaining: 1 }
             },
-            spellSlots: {
-                level_2: { current: 1, max: 1 }
-            } as unknown as CombatCharacter['spellSlots']
+            spellSlots: makeSpellSlots({ level_2: 1 })
         };
         const hitTarget: CombatCharacter = {
             ...defender,
@@ -782,7 +754,7 @@ describe('useAbilitySystem - Reactions', () => {
         // The attack event uses explicit unarmed metadata. The hook should not
         // rely on ordinary weapon matching here; it should honor the spell's
         // includesUnarmedStrike opt-in and offer the same after-hit prompt.
-        vi.mocked(CommandExecutor.execute).mockImplementationOnce(() => {
+        vi.mocked(CommandExecutor.execute).mockImplementationOnce(async () => {
             combatEvents.emit({
                 type: 'unit_attack',
                 attackerId: smitingAttacker.id,
@@ -793,16 +765,7 @@ describe('useAbilitySystem - Reactions', () => {
                 weaponType: 'unarmed'
             });
 
-            return {
-                success: true,
-                finalState: {
-                    characters: [smitingAttacker, hitTarget],
-                    combatLog: [],
-                    reactiveTriggers: [],
-                    activeLightSources: []
-                }
-            // TODO #355(lint-intent): Replace this broad command-result cast once the command test fixtures expose a minimal CombatResult builder.
-            } as any;
+            return makeCommandExecutionResult({ characters: [smitingAttacker, hitTarget] });
         });
 
         const { result } = renderHook(() => useAbilitySystem({
@@ -842,26 +805,15 @@ describe('useAbilitySystem - Reactions', () => {
 
     it('allows one bounded Counterspell response to a Counterspell before the original spell resolves', async () => {
         const { SpellCommandFactory } = await import('../../commands');
-        const originalSpell: Spell = {
+        const originalSpell = makeDamagingSpell({
             id: 'fireball-like',
             name: 'Fireball Like',
             level: 3,
-            school: 'Evocation',
-            classes: ['Wizard'],
+            school: SpellSchool.Evocation,
             description: 'A normal spell that can be interrupted.',
-            castingTime: { value: 1, unit: 'action' },
-            range: { type: 'ranged', distance: 150 },
-            components: { verbal: true, somatic: true, material: true },
-            duration: { type: 'instantaneous', concentration: false },
-            targeting: { type: 'area', validTargets: ['point'] },
-            effects: [{
-                type: 'DAMAGE',
-                damage: { dice: '8d6', type: 'fire' },
-                trigger: { type: 'immediate' },
-                condition: { type: 'always' }
-            }]
-        // TODO #356(lint-intent): Replace this cast once compact damaging-spell fixtures expose the full migrated spell union.
-        } as unknown as Spell;
+            dice: '8d6',
+            damageType: 'fire'
+        });
         const enemyCounterspell: Spell = {
             id: 'enemy-counterspell',
             name: 'Enemy Counterspell',
@@ -947,7 +899,7 @@ describe('useAbilitySystem - Reactions', () => {
             onAbilityEffect: vi.fn()
         }));
 
-        let executionPromise: Promise<void>;
+        let executionPromise: Promise<boolean | undefined | void>;
         await act(async () => {
             executionPromise = result.current.executeSpell(
                 originalSpell,
@@ -992,26 +944,15 @@ describe('useAbilitySystem - Reactions', () => {
 
     it('wastes the interrupted action while restoring only the interrupted spell slot on failed Counterspell', async () => {
         const { SpellCommandFactory } = await import('../../commands');
-        const originalSpell: Spell = {
+        const originalSpell = makeDamagingSpell({
             id: 'fireball-like',
             name: 'Fireball Like',
             level: 3,
-            school: 'Evocation',
-            classes: ['Wizard'],
+            school: SpellSchool.Evocation,
             description: 'A normal spell that should lose its action but keep its slot when interrupted.',
-            castingTime: { value: 1, unit: 'action' },
-            range: { type: 'ranged', distance: 150 },
-            components: { verbal: true, somatic: true, material: true },
-            duration: { type: 'instantaneous', concentration: false },
-            targeting: { type: 'area', validTargets: ['point'] },
-            effects: [{
-                type: 'DAMAGE',
-                damage: { dice: '8d6', type: 'fire' },
-                trigger: { type: 'immediate' },
-                condition: { type: 'always' }
-            }]
-        // TODO #362(lint-intent): Replace this cast once compact damaging-spell fixtures expose the full migrated spell union.
-        } as unknown as Spell;
+            dice: '8d6',
+            damageType: 'fire'
+        });
         const enemyCounterspell: Spell = {
             id: 'enemy-counterspell',
             name: 'Enemy Counterspell',
@@ -1047,30 +988,23 @@ describe('useAbilitySystem - Reactions', () => {
                 action: { used: false, remaining: 1 },
                 reaction: { used: false, remaining: 1 }
             },
-            spellSlots: {
-                level_3: { current: 1, max: 1 }
-            // TODO #364(lint-intent): Use the shared spell-slot fixture once one exists for focused hook tests.
-            } as unknown as CombatCharacter['spellSlots']
+            spellSlots: makeSpellSlots({ level_3: 1 })
         };
         const enemyReactor: CombatCharacter = {
             ...attacker,
             id: 'counterspell-reactor',
             name: 'Counterspell Reactor',
             team: 'enemy',
-            abilities: [{
+            abilities: [makeSpellAbility({
                 id: 'enemy-counterspell-ability',
                 name: 'Enemy Counterspell',
-                type: 'spell',
                 spell: enemyCounterspell
-            // TODO #365(lint-intent): Replace this broad ability cast once spellbook ability fixtures include reaction spells.
-            } as unknown as Ability],
+            })],
             actionEconomy: {
                 ...attacker.actionEconomy,
                 reaction: { used: false, remaining: 1 }
             },
-            spellSlots: {
-                level_3: { current: 1, max: 1 }
-            } as unknown as CombatCharacter['spellSlots']
+            spellSlots: makeSpellSlots({ level_3: 1 })
         };
         const fireballAbility: Ability = {
             id: 'fireball-like-ability',
@@ -1101,7 +1035,7 @@ describe('useAbilitySystem - Reactions', () => {
             onAbilityEffect: vi.fn()
         }));
 
-        let executionPromise: Promise<void>;
+        let executionPromise: Promise<boolean | undefined | void>;
         await act(async () => {
             executionPromise = result.current.executeAbility(
                 fireballAbility,
@@ -1241,7 +1175,7 @@ describe('useAbilitySystem - Reactions', () => {
             onAbilityEffect: vi.fn()
         }));
 
-        let executionPromise: Promise<void>;
+        let executionPromise: Promise<boolean | undefined | void>;
         await act(async () => {
             executionPromise = result.current.executeSpell(
                 originalSpell,
@@ -1999,7 +1933,7 @@ describe('useAbilitySystem - Reactions', () => {
             ...basicAttack,
             id: 'short-strike',
             name: 'Short Strike',
-            range: 1
+            range: 0
         };
         const localExecuteAction = vi.fn(() => true);
         const localLogEntry = vi.fn();
@@ -2015,8 +1949,8 @@ describe('useAbilitySystem - Reactions', () => {
 
         const { result } = renderHook(() => useAbilitySystem({
             characters: [attacker, defender],
-            // This two-tile map is enough for targeting validation. The mocked
-            // distance helper reports a larger distance, which lets the test
+            // This two-tile map is enough for targeting validation. The native
+            // adjacent-cell distance exceeds the zero-range attack, so this lets the test
             // focus on out-of-range feedback without depending on map geometry.
             mapData: validationMap,
             onExecuteAction: localExecuteAction,

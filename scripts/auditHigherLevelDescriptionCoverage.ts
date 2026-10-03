@@ -32,7 +32,7 @@ import path from 'node:path';
 // place so the audit can be rerun without hunting for the right spell reports.
 // ============================================================================
 
-const REPO_ROOT = 'F:/Repos/Aralia';
+const REPO_ROOT = '.';
 const SUBBUCKET_REPORT_PATH = path.join(REPO_ROOT, '.agent', 'roadmap-local', 'spell-validation', 'spell-description-subbucket-report.json');
 const STRUCTURED_VS_CANONICAL_REPORT_PATH = path.join(REPO_ROOT, '.agent', 'roadmap-local', 'spell-validation', 'spell-structured-vs-canonical-report.json');
 const SPELL_JSON_ROOT = path.join(REPO_ROOT, 'public', 'data', 'spells');

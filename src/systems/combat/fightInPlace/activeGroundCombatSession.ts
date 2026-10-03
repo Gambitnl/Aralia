@@ -126,14 +126,52 @@ export async function prepareActiveGroundSettlementEncounter(
 // social threat model to settlement-crime evidence or combatant projection.
 // ============================================================================
 
+/** Waiters parked until a GroundWorld publishes its opening projector. */
+const openingProviderWaiters = new Set<() => void>();
+
 /** Publish the opening projector owned by the currently mounted GroundWorld. */
 export function registerActiveGroundOpeningCombatProvider(
   provider: ActiveGroundOpeningCombatProvider,
 ): () => void {
   activeOpeningProvider = provider;
+  // Release anyone who asked for ground before the world finished mounting.
+  const waiters = [...openingProviderWaiters];
+  openingProviderWaiters.clear();
+  waiters.forEach((resolve) => resolve());
   return () => {
     if (activeOpeningProvider === provider) activeOpeningProvider = null;
   };
+}
+
+/** True while a GroundWorld can project an opening battlefield. */
+export function isActiveGroundOpeningProviderMounted(): boolean {
+  return activeOpeningProvider !== null;
+}
+
+/**
+ * Wait for a GroundWorld to publish its opening projector.
+ *
+ * A fight started from a 2D conversation has no mounted world, so it would
+ * launch mapless. The caller switches the view to 3D and then awaits here.
+ *
+ * @param timeoutMs - Give up after this long. The caller then proceeds without
+ *   a map, and CombatView shows its honest source-gap boundary. Waiting forever
+ *   would hang the fight on a world that may never mount.
+ * @returns true when a provider is available, false on timeout.
+ */
+export function awaitActiveGroundOpeningProvider(timeoutMs: number): Promise<boolean> {
+  if (activeOpeningProvider) return Promise.resolve(true);
+  return new Promise<boolean>((resolve) => {
+    const onReady = () => {
+      window.clearTimeout(timer);
+      resolve(true);
+    };
+    const timer = window.setTimeout(() => {
+      openingProviderWaiters.delete(onReady);
+      resolve(false);
+    }, timeoutMs);
+    openingProviderWaiters.add(onReady);
+  });
 }
 
 /** Ask the live GroundWorld to validate and project one hostile opening. */

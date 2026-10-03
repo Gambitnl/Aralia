@@ -199,7 +199,7 @@
                                                    {
                                                        "trigger":  "caster_or_ally_damages_target",
                                                        "scope":  "spell",
-                                                       "description":  "The spell ends if the caster or one of the caster\u0027s allies deals damage to the target."
+                                                       "description":  "The spell ends if the caster or one of the caster's allies deals damage to the target."
                                                    }
                                                ],
                         "tags":  [

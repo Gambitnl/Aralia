@@ -1,22 +1,22 @@
-# Build brief 3 — Weathering and age material
+# Build brief 3 - Weathering and age material
 
 ## Goal
 Make every building look aged and slightly different, so a town reads as lived-in rather than freshly built. Perfect, uniform surfaces read as fake. Wear and variance read as true.
 
 ## What to build
-A self-contained browser prototype. Stack: three.js (r170 or newer), WebGPU renderer, TSL (or GLSL) for the material. One small Vite project or single HTML file. No external art assets — all effects procedural. Orbit camera. A control panel.
+A self-contained browser prototype. Stack: three.js (r170 or newer), WebGPU renderer, TSL (or GLSL) for the material. One small Vite project or single HTML file. No external art assets - all effects procedural. Orbit camera. A control panel.
 
 Build one material (applied to wall and roof meshes) driven by two inputs: an `age` value from 0 (new) to 1 (ancient), and a per-building `seed`. The material layers these effects:
-1. **Palette variance** — each building's roof gets a slightly different shade, chosen from the seed, so no two roofs match.
-2. **Soot** — darkening near chimneys and roof tops.
-3. **Moss and grime** — procedural noise masks that collect in crevices, on north-facing walls, and in roof valleys.
-4. **Fade** — gentle desaturation and lightening as age rises.
-5. **Patchiness** — occasional mismatched patches, like a wing re-tiled in different stock.
+1. **Palette variance** - each building's roof gets a slightly different shade, chosen from the seed, so no two roofs match.
+2. **Soot** - darkening near chimneys and roof tops.
+3. **Moss and grime** - procedural noise masks that collect in crevices, on north-facing walls, and in roof valleys.
+4. **Fade** - gentle desaturation and lightening as age rises.
+5. **Patchiness** - occasional mismatched patches, like a wing re-tiled in different stock.
 
 Each effect's strength must be adjustable, and it must all scale sensibly with `age`.
 
 ## Two demo layouts
-- A row of the **same** building at ages new → aged → old → ancient, so the aging is obvious.
+- A row of the **same** building at ages new -> aged -> old -> ancient, so the aging is obvious.
 - A cluster of the **same** building type with different seeds, so you can confirm no two roofs match.
 
 ## Expose these controls

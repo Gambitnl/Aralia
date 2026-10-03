@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 27/07/2026, 22:30:18
+ * Dependents: components/BattleMap/characters/characterActor/CharacterActor.tsx, components/BattleMap/characters/characterActor/EntityModel.tsx, components/DesignPreview/steps/EntityDebugScene.tsx, components/DesignPreview/steps/EntityForgeScene.tsx, components/DesignPreview/steps/PreviewEntityDebug.tsx, components/DesignPreview/steps/PreviewEntityForge.tsx, components/World3D/PlayerAvatar.tsx, components/World3D/SceneCast.tsx, systems/entities3d/classKits.ts, systems/entities3d/creaturePlans.ts, systems/entities3d/creatureProfiles.ts, systems/entities3d/generateEntityBlueprint.ts, systems/entities3d/library/acceptedEntities.ts, systems/entities3d/parts/chainParts.ts, systems/entities3d/parts/gearArmor.ts, systems/entities3d/parts/gearWeapons.ts, systems/entities3d/parts/headParts.ts, systems/entities3d/parts/organicParts.ts, systems/entities3d/parts/wingParts.ts, systems/entities3d/raceMap.ts, systems/entities3d/recipeFromCharacter.ts, systems/entities3d/recipeFromCombatant.ts, systems/entities3d/recipeFromOccupant.ts, systems/entities3d/registry.ts, systems/entities3d/speciesProfiles.ts, systems/entities3d/textPlan/compilePlan.ts, systems/entities3d/textPlan/planSize.ts, systems/entities3d/three/Entity3D.tsx, systems/entities3d/three/assembleEntity.ts, systems/entities3d/three/crowdBake.ts, systems/entities3d/three/gaits.ts, systems/entities3d/three/segmentBody.ts, systems/entities3d/three/skeletonBuilder.ts, systems/entities3d/three/skinnedBody.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file types.ts — contracts for the procedural 3D entity generator.
  *
@@ -71,6 +87,9 @@ export interface Frame {
   armLengthFt: number;
   shoulderWidthFt: number;
   stanceWidthFt: number;
+  /** Idle posture: 0 (or absent) = upright … 1 = full forward hunch — the
+   * trapezius-dominant lean (orc). Biped driver + rest pose only. */
+  hunch?: number;
 }
 
 export interface Palette {
@@ -80,7 +99,24 @@ export interface Palette {
   /** Secondary accent (cloth lining, hat band). */
   secondaryHex: string;
   eyeHex: string;
+  /** Hair color (biped heads, beards, crests). Derived from species tones;
+   * falls back to skinHex when absent. */
+  hairHex?: string;
+  /** Leather / belt / strap color. Derived from class kit;
+   * falls back to a warm shade of accentHex when absent. */
+  leatherHex?: string;
+  /** Metallic surfaces (helmet ridges, weapon fittings, studs).
+   * Derived from class kit; falls back to a lighter accentHex when absent. */
+  metalHex?: string;
 }
+
+/** Material surface type hint — lets `PartMeshCtx.material()` choose
+ * the right shading treatment beyond flat toon color. */
+export type MaterialSurface =
+  | 'default'   // plain toon color
+  | 'metallic'  // brighter specular, tighter toon ramp response
+  | 'emissive'  // glows slightly (mana effects, runes)
+  | 'soft';     // subsurface-like warmth (skin, cloth)
 
 /** One resolved modular component on an entity. */
 export interface PartInstance {
@@ -126,9 +162,15 @@ export interface PlanSpec {
   bodyLenM: number;
   /** Base body radius; chain link radii are fractions of this. */
   bodyRadM: number;
-  spine: { segments: number; taper: number; arch: number; shape?: 'round' | 'box'; bulge?: number };
+  spine: { segments: number; taper: number; arch: number; shape?: 'round' | 'box'; bulge?: number; mass?: [number, number, number] };
   /** Body translucency (ghosts, oozes); eyes stay solid. */
   opacity?: number;
+  /** round 24 (creature-anatomy): whole-body material style ('rock' = the
+   * elemental boulder-plate build; see planSchema.CreaturePlan.surface). */
+  surface?: 'rock';
+  /** Creature-level junction softness (0–1) as authored; slice 2 (fused skin)
+   * reads it — slice 1 collars only need the per-chain blendM. */
+  skinBlend?: number;
   chains: Array<{
     /** Stable id: 'leg0L', 'tent2', 'neck1' … */
     id: string;
@@ -141,6 +183,9 @@ export interface PlanSpec {
     attach: number;
     heightFrac: number;
     links: Array<{ lenM: number; rM: number }>;
+    /** Junction collar reach in METERS at the chain root (0 = no collar).
+     * Resolved by compilePlan from blend × min(root radius, hull radius) × 2. */
+    blendM: number;
     /** Stride phase for legs (distributed); 0 for other kinds. */
     phaseOffset: number;
     /** 'hand' = stylized palm + fingers at the tip. */
@@ -210,8 +255,29 @@ export interface SegmentSink {
   box?(id: string, ax: number, ay: number, az: number, bx: number, by: number, bz: number, w: number, h: number): void;
   /** Continuous swept tube through control points (flat xyz triples) with a
    * radius profile (knots spread evenly along the curve) — smooth spines and
-   * chains. Optional: sinks without it receive per-segment seg() fallbacks. */
-  tube?(id: string, points: number[], radii: number[]): void;
+   * chains. Optional: sinks without it receive per-segment seg() fallbacks.
+   * `bands` (round 18, creature-anatomy) asks the renderer for scale-ring
+   * VALUE banding along the tube — `count` evenly spaced darkened rings at up
+   * to `strength` (0..1) darkening, frame-constant per id. Renderers without
+   * vertex tinting (crowd bake, collectors, skinned pose sink) ignore it. */
+  tube?(id: string, points: number[], radii: number[], bands?: { count: number; strength: number }): void;
+  /** Junction smoothing skirt at a chain root (junction blend, slice 1):
+   * a flared ring bridging the limb wall into the hull wall. root = the
+   * chain's root joint, (axX,axY,axZ) = unit vector down the root link,
+   * limbR = root link radius, reach = compiled blendM. Frame-updated like
+   * tube(); cosmetic only — never collision or anchor data. Sinks without
+   * it (crowd bake, collectors) skip collars entirely. */
+  collar?(id: string, rootX: number, rootY: number, rootZ: number,
+          axX: number, axY: number, axZ: number,
+          limbR: number, reach: number): void;
+  /** Continuous dorsal fin (creature-anatomy round 10): ONE thin lofted
+   * ribbon between a base polyline (rooted inside the body) and a top
+   * polyline (the serrated crest edge) — flat xyz triples, equal counts.
+   * widths = base thickness in meters per station, FRAME-CONSTANT per id
+   * like all sink radii; base/top follow the live spine every frame.
+   * Optional like tube(): sinks without it (crowd bake, collectors,
+   * wireframe) receive the driver's per-blade segment fallback. */
+  fin?(id: string, base: number[], top: number[], widths: number[]): void;
 }
 
 /** Minimal position — THREE.Vector3 satisfies this, keeping the data layer three-free. */
@@ -264,7 +330,10 @@ export interface PartMeshCtx {
   frame: Frame;
   palette: Palette;
   params: Record<string, number | string>;
-  material(colorHex: string): import('three').Material;
+  /** Create a toon-shaded material. The optional second arg selects a surface
+   * treatment: 'metallic' brightens and tightens, 'emissive' adds a glow,
+   * 'soft' warms the toon response (skin, cloth). Falls back to plain toon. */
+  material(colorHex: string, surface?: MaterialSurface): import('three').Material;
 }
 
 /** One modular component definition (body v2).

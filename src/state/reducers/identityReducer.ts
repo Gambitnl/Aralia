@@ -171,7 +171,7 @@ export function identityReducer(state: GameState, action: AppAction): Partial<Ga
             if (result.rewards?.gold && result.rewards.gold > 0) {
                 updates.party = state.party.map(p => ({
                     ...p,
-                    gold: (p.gold ?? 0) + result.rewards!.gold!
+                    gold: ((p as { gold?: number }).gold ?? 0) + result.rewards!.gold!
                 }));
             }
 

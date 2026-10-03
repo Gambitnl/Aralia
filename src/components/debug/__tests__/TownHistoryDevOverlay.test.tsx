@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { getGameDay } from '../../../utils/core';
 import { createMockGameState } from '../../../utils/core/factories';
 import { GameProvider } from '../../../state/GameContext';
@@ -8,12 +8,13 @@ import { buildTownSimStateForBurg } from '../../../systems/worldforge/townsim/to
 import { advanceTown } from '../../../systems/worldforge/townsim/townSimRegistry';
 import type { GameState } from '../../../types';
 import TownHistoryDevOverlay from '../TownHistoryDevOverlay';
+import { OPEN_TOWN_HISTORY_EVENT, requestDevOverlay } from '../devOverlayEvents';
 
 const SEED = 12345;
 const COLS = 96;
 const ROWS = 96;
 const firstTile = getTownTilesForGrid(SEED, COLS, ROWS)[0];
-const firstCellId = getBridgeAtlas(SEED).pack.burgs[firstTile.burgId]?.cell;
+const firstCellId = getBridgeAtlas(SEED).pack.burgs?.[firstTile.burgId]?.cell;
 
 // The deterministic fixture must expose the burg's canonical cell; otherwise
 // this test cannot honestly claim to place the player inside that tracked town.
@@ -29,15 +30,18 @@ function renderOverlay(state: GameState) {
   );
 }
 
-/** Open the collapsed launcher so the panel body is visible. */
+/** Reproduce the World 3D Controls menu request. */
 function openPanel() {
-  fireEvent.click(screen.getByRole('button', { name: /Town history/i }));
+  act(() => requestDevOverlay(OPEN_TOWN_HISTORY_EVENT));
 }
 
 describe('TownHistoryDevOverlay', () => {
-  it('keeps its launcher out of the lower-right World3D HUD lane', () => {
+  it('starts hidden, then opens in the shared WindowFrame', () => {
     renderOverlay(createMockGameState());
-    expect(screen.getByTestId('town-history-dev-overlay')).toHaveStyle({ right: '220px' });
+    expect(screen.queryByTestId('town-history-dev-overlay')).toBeNull();
+    openPanel();
+    expect(screen.getByRole('dialog', { name: 'Town history' })).toBeTruthy();
+    expect(screen.getByTestId('window-town-history-window')).toBeTruthy();
   });
 
   it('shows "Not in a tracked town" when the location resolves to no town', () => {

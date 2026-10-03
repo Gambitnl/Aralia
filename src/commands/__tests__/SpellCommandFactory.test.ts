@@ -14,7 +14,30 @@ import { RegisterRiderCommand } from '../effects/RegisterRiderCommand'
 import { DamageEffect, Spell, SpellSchool } from '@/types/spells'
 import type { CombatCharacter, SelectedSpellTarget } from '@/types/combat'
 import { combatEvents } from '@/systems/events/CombatEvents'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
+
+
+// agora-f821.4: this file pins Math.random to make a roll deterministic. Game rolls now
+// run on the audit log's own seed stream, so the pin only reaches them
+// through the roller's supported injected-source seam. Feeding
+// Math.random in as that source keeps every pin below meaning what it
+// meant before the migration.
+vi.mock('../../systems/dice/rollers', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../systems/dice/rollers')>()
+  return {
+    ...actual,
+    rollDice: (notation: string, options: { rng?: () => number } = {}) =>
+      actual.rollDice(notation, { ...options, rng: options.rng ?? Math.random }),
+    rollD20: (options: { rng?: () => number } = {}) =>
+      actual.rollD20({ ...options, rng: options.rng ?? Math.random }),
+    rollDamage: (
+      notation: string,
+      isCritical: boolean,
+      minRoll = 1,
+      rng?: () => number,
+    ) => actual.rollDamage(notation, isCritical, minRoll, rng ?? Math.random),
+  }
+})
 
 /**
  * This file protects command creation for structured spell effects.
@@ -385,7 +408,7 @@ describe('SpellCommandFactory', () => {
         targeting: { type: 'single', range: 60, validTargets: ['objects', 'point'] },
         effects: [{
           type: 'UTILITY',
-          utilityType: 'object_interaction',
+          utilityType: 'object_interaction' as any,
           description: 'Moves a loose object from a chosen point.',
           trigger: { type: 'immediate' },
           condition: { type: 'always' }
@@ -474,6 +497,50 @@ describe('SpellCommandFactory', () => {
       )
 
       expect(commands).toHaveLength(0)
+    })
+
+    it('defers generic composite area rows but preserves initial-cast rows', async () => {
+      const delayedSleet = createMockSpell('sleet-storm-composite', {
+        effects: [{
+          type: 'STATUS_CONDITION',
+          trigger: {
+            type: 'area_entry_or_turn_start',
+            areaTiming: ['enters_area_first_time_on_turn', 'starts_turn_in_area']
+          },
+          condition: { type: 'always' },
+          statusCondition: { name: 'Prone', duration: { type: 'rounds', value: 1 } }
+        }]
+      })
+      const initialEvard = createMockSpell('evards-initial-composite', {
+        effects: [{
+          type: 'DAMAGE',
+          trigger: {
+            type: 'area_entry_or_turn_end',
+            areaTiming: ['initial_area_creation', 'creature_enters_area', 'creature_ends_turn_in_area']
+          },
+          condition: { type: 'always' },
+          damage: { dice: '3d6', type: 'Bludgeoning' }
+        }]
+      })
+
+      const delayedCommands = await SpellCommandFactory.createCommands(
+        delayedSleet,
+        mockCaster,
+        [mockTarget],
+        1,
+        createMockGameState()
+      )
+      const initialCommands = await SpellCommandFactory.createCommands(
+        initialEvard,
+        mockCaster,
+        [mockTarget],
+        1,
+        createMockGameState()
+      )
+
+      expect(delayedCommands).toHaveLength(0)
+      expect(initialCommands).toHaveLength(1)
+      expect(initialCommands[0]).toBeInstanceOf(DamageCommand)
     })
 
     it('should not create immediate commands for bare scheduled triggers', async () => {

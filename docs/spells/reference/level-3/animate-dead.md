@@ -46,6 +46,9 @@
 - **Concentration**: false
 
 - **Effect Type**: SUMMON
+- **Utility Option 1 Name**: animate_skeleton
+- **Utility Option 2 Name**: animate_zombie
+- **Utility Option 3 Name**: reassert_control
 - **Utility Type**: other
 - **Save Stat**: not_applicable
 - **Save Outcome**: not_applicable

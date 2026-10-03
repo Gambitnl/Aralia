@@ -197,12 +197,12 @@
                                                {
                                                    "name":  "Restore ability score reduction",
                                                    "effect":  "restore_ability_score",
-                                                   "details":  "End one reduction to one of the target\u0027s ability scores."
+                                                   "details":  "End one reduction to one of the target's ability scores."
                                                },
                                                {
                                                    "name":  "Restore hit point maximum reduction",
                                                    "effect":  "restore_hit_point_maximum",
-                                                   "details":  "End one reduction to the target\u0027s Hit Point maximum."
+                                                   "details":  "End one reduction to the target's Hit Point maximum."
                                                }
                                            ],
                         "taunt":  {
@@ -308,7 +308,7 @@
                                     ],
                        "notes":  "Greater Restoration removes exactly one listed major affliction per casting."
                    },
-    "description":  "You touch a creature and magically remove one of the following effects from it:\n1 Exhaustion level\nThe Charmed or Petrified condition\nA curse, including the target\u0027s Attunement to a cursed magic item\nAny reduction to one of the target\u0027s ability scores\nAny reduction to the target\u0027s Hit Point maximum",
+    "description":  "You touch a creature and magically remove one of the following effects from it:\n1 Exhaustion level\nThe Charmed or Petrified condition\nA curse, including the target's Attunement to a cursed magic item\nAny reduction to one of the target's ability scores\nAny reduction to the target's Hit Point maximum",
     "higherLevels":  "",
     "tags":  [
                  "abjuration",

@@ -1,23 +1,68 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 17/08/2026, 14:22:00
+ * Dependents: data/adapters/5eTools/spellcastingAdapter.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { AbilityEffect, TargetingType } from '../../../types/combat';
-import { Spell, SpellEffect } from '../../../types/spells';
+import { AreaOfEffect, Spell, SpellEffect } from '../../../types/spells';
 import { diceAverage } from './shared';
 
+/** The four area footprints the combat engine can currently render. */
+export type CombatAreaShape = 'circle' | 'cone' | 'line' | 'square';
+
 /**
- * Maps a rich Spell object (from Aralia's spell database) into 
- * lightweight Ability properties used by the combat engine.
+ * The Ability-facing projection of a Spell produced by {@link mapSpellToAbilityProperties}.
+ * Named (rather than inlined) so callers and tests can reference the mapper's
+ * output contract directly.
  */
-export function mapSpellToAbilityProperties(spell: Spell): {
+export interface SpellAbilityProperties {
   effects: AbilityEffect[];
   targeting: TargetingType;
   range: number;
-  areaShape?: 'circle' | 'cone' | 'line' | 'square';
+  areaShape?: CombatAreaShape;
   areaSize?: number;
-} {
+  /** Creature-type constraints propagated from the spell's targeting filter. */
+  validCreatureTypes?: string[];
+}
+
+/**
+ * Typed mapping from spell geometry to the engine's area footprints.
+ * Wall, Hemisphere and Ring are deliberately absent: the engine has no
+ * primitive for them yet, so they leave areaShape undefined rather than being
+ * forced into a wrong footprint. Add them here once the engine can draw them.
+ */
+const AREA_SHAPE_BY_GEOMETRY: Partial<Record<AreaOfEffect['shape'], CombatAreaShape>> = {
+  Sphere: 'circle',
+  Circle: 'circle',
+  Cylinder: 'circle',
+  Emanation: 'circle',
+  Cone: 'cone',
+  Line: 'line',
+  Cube: 'square',
+  Square: 'square',
+};
+
+/**
+ * Maps a rich Spell object (from Aralia's spell database) into
+ * lightweight Ability properties used by the combat engine.
+ */
+export function mapSpellToAbilityProperties(spell: Spell): SpellAbilityProperties {
   const effects: AbilityEffect[] = spell.effects.map(mapSpellEffectToAbilityEffect).filter((e): e is AbilityEffect => e !== null);
   
   let targeting: TargetingType = 'single_enemy';
   let range = 1;
-  let areaShape: any;
+  let areaShape: CombatAreaShape | undefined;
   let areaSize: number | undefined;
 
   // Map targeting
@@ -35,24 +80,7 @@ export function mapSpellToAbilityProperties(spell: Spell): {
       range = Math.max(1, Math.floor(spell.targeting.range / 5));
       if (spell.targeting.areaOfEffect) {
         areaSize = Math.max(1, Math.floor(spell.targeting.areaOfEffect.size / 5));
-        switch (spell.targeting.areaOfEffect.shape) {
-          case 'Sphere':
-          case 'Circle':
-          case 'Cylinder':
-          case 'Emanation':
-            areaShape = 'circle';
-            break;
-          case 'Cone':
-            areaShape = 'cone';
-            break;
-          case 'Line':
-            areaShape = 'line';
-            break;
-          case 'Cube':
-          case 'Square':
-            areaShape = 'square';
-            break;
-        }
+        areaShape = AREA_SHAPE_BY_GEOMETRY[spell.targeting.areaOfEffect.shape];
       }
       break;
     case 'self':
@@ -121,7 +149,7 @@ function mapSpellEffectToAbilityEffect(effect: SpellEffect): AbilityEffect | nul
       return {
         type: 'damage',
         dice: effect.damage.dice,
-        damageType: mappedType as any,
+        damageType: mappedType as AbilityEffect['damageType'],
         value: Math.round(diceAverage(effect.damage.dice ?? '')),
       };
     }

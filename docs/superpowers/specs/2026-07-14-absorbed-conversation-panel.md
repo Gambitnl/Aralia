@@ -13,20 +13,20 @@ topic-based NPC dialogue (`DialogueInterface`). Companion talk uses
 
 ## File map
 
-- `src/components/ConversationPanel/ConversationPanel.tsx` — renders when
+- `src/components/ConversationPanel/ConversationPanel.tsx` - renders when
   `gameState.phase === GamePhase.PLAYING && gameState.activeConversation`;
   input/send/close lock to pending state and player turn
-- `src/hooks/useConversation.ts` — start/send/end flow and memory
+- `src/hooks/useConversation.ts` - start/send/end flow and memory
   summarization; `sendPlayerMessage` returns early when not player turn
-- `src/state/reducers/conversationReducer.ts` — `START_CONVERSATION`,
+- `src/state/reducers/conversationReducer.ts` - `START_CONVERSATION`,
   `ADD_CONVERSATION_MESSAGE` (flips `isPlayerTurn`),
   `SET_CONVERSATION_PENDING`, `END_CONVERSATION`
-- `src/hooks/actions/handleNpcInteraction.ts` — companion branch of `talk`
+- `src/hooks/actions/handleNpcInteraction.ts` - companion branch of `talk`
   dispatches `START_CONVERSATION` (ends any active topic dialogue first);
   NPC branch unchanged
-- `src/state/appState.ts` — clears `activeConversation` on `SET_GAME_PHASE`
+- `src/state/appState.ts` - clears `activeConversation` on `SET_GAME_PHASE`
   (menu/character creation), `MOVE_PLAYER`, and `LOAD_GAME_SUCCESS`
-- `src/state/initialState.ts` — `activeConversation: null` initialized
+- `src/state/initialState.ts` - `activeConversation: null` initialized
 - Separate lane (do not merge): `src/components/Dialogue/DialogueInterface.tsx`,
   `src/hooks/useDialogueSystem.ts`
 
@@ -40,5 +40,7 @@ topic-based NPC dialogue (`DialogueInterface`). Companion talk uses
 
 Companion banter (`src/hooks/useCompanionBanter.ts`) and interactive
 conversation can overlap without an exclusivity policy. The policy decision is
-OWNED by the code-modularization audit, gap `CMA-G12` — do not expand
+OWNED by the code-modularization audit, gap `CMA-G12` - do not expand
 Conversation Panel scope until that boundary note and sequencing policy exist.
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-conversation-panel.md","sha256WithoutMarker":"75a73c267881ff404e8d4ec4fcedb517182c7f168fc744fd4f7088ea90543ad3","markedAtUtc":"2026-08-09T20:24:29.262Z"} -->

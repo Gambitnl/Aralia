@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 17/07/2026, 22:34:15
+ * Last Sync: 30/08/2026, 01:51:16
  * Dependents: state/appState.ts
- * Imports: 27 files
+ * Imports: 29 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -34,12 +34,13 @@ import {
   buildTownSimStateForBurg,
   buildingEvolutionForBurg,
 } from "../../systems/worldforge/townsim/townSimRegistration";
+import { resolveTownSituation } from "../../systems/worldforge/townsim/townSituation";
 import { processWorldEvents } from "../../systems/world/WorldEventManager";
 import { UnderdarkMechanics } from "../../systems/underdark/UnderdarkMechanics";
 import { DEFAULT_WEATHER } from "../../systems/environment/EnvironmentSystem";
 import { updateWeather } from "../../systems/environment/WeatherSystem";
 import { ritualReducer } from "./ritualReducer";
-import { addHistoryEvent, createEmptyHistory } from "../../utils/historyUtils";
+import { addHistoryEvent, createEmptyHistory } from "../../utils/world";
 import {
   processAllStrongholds,
   strongholdSummariesToMessages,
@@ -54,6 +55,12 @@ import {
   atlasGroundPositionForAddress,
   normalizeDiscoveredHiddenSite,
 } from "@/systems/worldforge/leaf3d/atlasGroundContinuity";
+import {
+  completeDungeonExpedition,
+  enterDungeonExpedition,
+  recordDungeonProgress,
+  retreatDungeonExpedition,
+} from "@/systems/worldforge/dungeon/world/dungeonLifecycle";
 
 /** Distance-LOD radius in atlas GRAPH units: tracked towns within this of the
  *  player's cell tick daily; farther towns catch up on approach (identical
@@ -210,6 +217,64 @@ export function worldReducer(
       const cleared = state.clearedDungeons ?? [];
       if (cleared.includes(action.payload.sitePath)) return {};
       return { clearedDungeons: [...cleared, action.payload.sitePath] };
+    }
+
+    case "DUNGEON_ENTERED": {
+      // The live entry boundary has already resolved this receipt to a real world site. Persist the
+      // same receipt here and advance only visit metadata; completed or collected content survives.
+      const ledger = state.dungeonExpeditions ?? {};
+      const identity = action.payload.identity;
+      return {
+        dungeonExpeditions: {
+          ...ledger,
+          [identity.dungeonId]: enterDungeonExpedition(identity, ledger[identity.dungeonId]),
+        },
+      };
+    }
+
+    case "DUNGEON_PROGRESS_RECORDED": {
+      // No progress record may exist before canonical entry. This prevents future room systems from
+      // creating detached treasure, route, encounter, or objective state under an invented key.
+      const ledger = state.dungeonExpeditions ?? {};
+      const current = ledger[action.payload.dungeonId];
+      if (!current) return {};
+      return {
+        dungeonExpeditions: {
+          ...ledger,
+          [action.payload.dungeonId]: recordDungeonProgress(current, action.payload.progress),
+        },
+      };
+    }
+
+    case "DUNGEON_RETREATED": {
+      // Returning to the world closes the active visit but never clears durable dungeon progress.
+      const ledger = state.dungeonExpeditions ?? {};
+      const current = ledger[action.payload.dungeonId];
+      if (!current) return {};
+      return {
+        dungeonExpeditions: {
+          ...ledger,
+          [action.payload.dungeonId]: retreatDungeonExpedition(current),
+        },
+      };
+    }
+
+    case "DUNGEON_COMPLETED": {
+      // Completion requires a previously entered receipt. The same atomic transition also feeds
+      // the existing ecology contract, so a completed dungeon is genuinely cleared for danger,
+      // raid-pressure, and rumor consumers instead of creating two competing truths.
+      const ledger = state.dungeonExpeditions ?? {};
+      const current = ledger[action.payload.dungeonId];
+      if (!current) return {};
+      const cleared = state.clearedDungeons ?? [];
+      const sitePath = current.identity.seedPath;
+      return {
+        dungeonExpeditions: {
+          ...ledger,
+          [action.payload.dungeonId]: completeDungeonExpedition(current),
+        },
+        clearedDungeons: cleared.includes(sitePath) ? cleared : [...cleared, sitePath],
+      };
     }
 
     case "APPLY_WORLDFORGE_DELTA": {
@@ -403,6 +468,41 @@ export function worldReducer(
         currentDay,
       );
       return { townSim: { ...registry, [burgId]: townState } };
+    }
+
+    case "RESOLVE_TOWN_SITUATION": {
+      // The chronicle is the canonical write boundary. Gold and prosperity are
+      // returned by the same pure transaction, so an invalid or replayed action
+      // cannot charge the player without also recording the town outcome.
+      const registry = state.townSim ?? {};
+      const town = registry[action.payload.burgId];
+      if (!town) return {};
+
+      const result = resolveTownSituation(town, {
+        sourceEventId: action.payload.sourceEventId,
+        resolutionId: action.payload.resolutionId,
+        currentDay: getGameDay(state.gameTime),
+        currentGold: state.gold,
+        actorName: state.party[0]?.name?.trim() || "The adventurer",
+      });
+      if (result.status !== "resolved" || !result.outcome) return {};
+
+      return {
+        townSim: {
+          ...registry,
+          [action.payload.burgId]: result.town,
+        },
+        gold: result.gold,
+        messages: [
+          ...state.messages,
+          {
+            id: state.gameTime.getTime() + state.messages.length + 1,
+            text: result.outcome.summary,
+            sender: "system",
+            timestamp: new Date(state.gameTime),
+          },
+        ],
+      };
     }
 
     case "ADVANCE_TIME": {
@@ -771,6 +871,27 @@ export function worldReducer(
       delete newResidues[locationId];
       return {
         locationResidues: newResidues,
+      };
+    }
+
+    case "LINK_NPC_TO_LOCATION": {
+      // AI-created NPCs (Linker path) need a home: put the new id on the
+      // location's roster. Dynamic locations are edited in place; a static
+      // location gets a dynamicLocations override seeded from its authored
+      // shape, which is what `{...LOCATIONS, ...dynamicLocations}` consumers
+      // (e.g. fact propagation) already read.
+      const { locationId, npcId } = action.payload;
+      const existing = state.dynamicLocations?.[locationId] ?? LOCATIONS[locationId];
+      if (!existing) return {};
+      if (existing.npcIds?.includes(npcId)) return {};
+      return {
+        dynamicLocations: {
+          ...(state.dynamicLocations ?? {}),
+          [locationId]: {
+            ...existing,
+            npcIds: [...(existing.npcIds ?? []), npcId],
+          },
+        },
       };
     }
 

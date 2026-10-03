@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { UtilityCommand } from '../effects/UtilityCommand'
 import { UtilityEffect, SoundEmission, SensoryManifestation } from '@/types/spells'
 import { CommandContext } from '../base/SpellCommand'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
 
 /**
  * This test file proves that newly structured sound and sensory spell metadata

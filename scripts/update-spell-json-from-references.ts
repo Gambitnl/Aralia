@@ -416,7 +416,7 @@ const buildEffectsFromReference = (vars: ReferenceVars): ReferenceSpellEffect[] 
     if (saveType) {
       return {
         type: 'save' as const,
-        saveType,
+        saveType: saveType as any,
         saveEffect: (saveOutcome ?? 'none') as 'none' | 'half' | 'negates_condition',
       };
     }
@@ -873,7 +873,7 @@ const updateSpellFromReference = (spell: any, vars: ReferenceVars) => {
   if (status === 'complete') {
     spell.legacy = false;
     if (Array.isArray(spell.tags)) {
-      spell.tags = spell.tags.filter((tag): tag is string => typeof tag === 'string' && tag !== 'legacy');
+      spell.tags = (spell.tags as string[]).filter((tag: string) => tag !== 'legacy');
     }
   }
 

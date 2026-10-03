@@ -44,6 +44,12 @@
 - **Concentration**: false
 - **Effect Type**: UTILITY
 - **Utility Type**: creation
+- **Utility Option 1 Name**: Destroy Water
+- **Utility Option 1 Effect**: destroy_water
+- **Utility Option 1 Details**: Remove up to 10 gallons of water in an open container within range.
+- **Utility Option 2 Name**: Destroy Fog
+- **Utility Option 2 Effect**: destroy_fog
+- **Utility Option 2 Details**: Remove fog in a 30-foot Cube within range.
 - **Save Stat**: not_applicable
 - **Save Outcome**: not_applicable
 - **Save Cover Ignored**: not_applicable

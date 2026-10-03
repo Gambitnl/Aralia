@@ -169,7 +169,7 @@
                                         "bonusPerLevel":  "",
                                         "customFormula":  ""
                                     },
-                        "description":  "The next time the caster hits a creature with a melee weapon attack during the spell\u0027s duration, the attack deals an extra 4d6 Psychic damage.",
+                        "description":  "The next time the caster hits a creature with a melee weapon attack during the spell's duration, the attack deals an extra 4d6 Psychic damage.",
                         "conditionalEndings":  [
 
                                                ]
@@ -413,10 +413,10 @@
                 ],
     "arbitrationType":  "mechanical",
     "aiContext":  {
-                      "prompt":  "After the next melee weapon hit, apply the extra Psychic damage and resolve the target\u0027s Wisdom save; on failure, apply Disadvantage on attack rolls and ability checks plus no Reactions until the end of its next turn.",
+                      "prompt":  "After the next melee weapon hit, apply the extra Psychic damage and resolve the target's Wisdom save; on failure, apply Disadvantage on attack rolls and ability checks plus no Reactions until the end of its next turn.",
                       "playerInputRequired":  true
                   },
-    "description":  "The next time you hit a creature with a melee weapon attack during this spell\u0027s duration, your weapon pierces both body and mind, and the attack deals an extra 4d6 psychic damage to the target. The target must make a Wisdom saving throw. On a failed save, it has disadvantage on attack rolls and ability checks, and can\u0027t take reactions, until the end of its next turn.",
+    "description":  "The next time you hit a creature with a melee weapon attack during this spell's duration, your weapon pierces both body and mind, and the attack deals an extra 4d6 psychic damage to the target. The target must make a Wisdom saving throw. On a failed save, it has disadvantage on attack rolls and ability checks, and can't take reactions, until the end of its next turn.",
     "higherLevels":  "",
     "tags":  [
                  "legacy",

@@ -16,8 +16,8 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { FAST_MODEL, COMPLEX_MODEL } from "../../config/geminiConfig";
-import { logger } from "../../utils/logger";
-import { safeJSONParse, cleanAIJSON, redactSensitiveData } from "../../utils/securityUtils";
+import { logger } from "../../utils/core";
+import { safeJSONParse, cleanAIJSON, redactSensitiveData } from "../../utils/core";
 import { SeededRandom } from '@/utils/random';
 import { formatMemoryForAI } from "../../utils/world/memoryUtils";
 import { ITEMS } from "../../data/items";

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { sanitizeAIInput, detectSuspiciousInput } from './securityUtils';
+import { sanitizeAIInput, detectSuspiciousInput } from './core/securityUtils';
 
 describe('securityUtils', () => {
     describe('sanitizeAIInput', () => {

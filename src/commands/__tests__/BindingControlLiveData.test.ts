@@ -3,9 +3,9 @@ import { StatusConditionCommand } from '../effects/StatusConditionCommand';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatState } from '../../types/combat';
 import type { StatusConditionEffect } from '../../types/spells';
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../utils/factories';
-import geas from '../../../public/data/spells/level-5/geas.json';
-import planarBinding from '../../../public/data/spells/level-5/planar-binding.json';
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../utils/core';
+import geas from '@/data/spells/level-5/geas.json';
+import planarBinding from '@/data/spells/level-5/planar-binding.json';
 
 /**
  * Geas and Planar Binding control an existing target through a command or binding
@@ -14,17 +14,24 @@ import planarBinding from '../../../public/data/spells/level-5/planar-binding.js
  * work can read the runtime condition without reparsing spell JSON.
  */
 
-vi.mock('../../utils/savingThrowUtils', () => ({
-  calculateSpellDC: vi.fn(() => 16),
-  rollSavingThrow: vi.fn(() => ({
-    roll: 3,
-    modifier: 0,
-    total: 3,
-    dc: 16,
-    success: false,
-    modifiersApplied: []
-  }))
-}));
+vi.mock('../../utils/character/savingThrowUtils', async importOriginal => {
+  // Spread the real module: only the rolled save is stubbed. Anything
+  // else the commands call (resolveSaveOutcomeOverride) is pure and must
+  // keep its real behavior, or it arrives undefined (agora-f821.52).
+  const actual = await importOriginal<typeof import('../../utils/character/savingThrowUtils')>();
+  return {
+    ...actual,
+    calculateSpellDC: vi.fn(() => 16),
+    rollSavingThrow: vi.fn(() => ({
+      roll: 3,
+      modifier: 0,
+      total: 3,
+      dc: 16,
+      success: false,
+      modifiersApplied: []
+    }))
+  };
+});
 
 type BindingControlView = {
   bindingControl?: {

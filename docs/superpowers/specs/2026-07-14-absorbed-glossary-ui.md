@@ -22,11 +22,11 @@ links and initialize the modal.
 
 ## Primary file map
 
-- `src/components/Glossary/Glossary.tsx` — container modal, fetch lifecycle, open-to-term.
-- `GlossarySidebar.tsx`, `GlossaryEntryPanel.tsx`, `GlossaryEntryTemplate.tsx`, `GlossaryContentRenderer.tsx`, `FullEntryDisplay.tsx` — tree, panes, render + term links.
+- `src/components/Glossary/Glossary.tsx` - container modal, fetch lifecycle, open-to-term.
+- `GlossarySidebar.tsx`, `GlossaryEntryPanel.tsx`, `GlossaryEntryTemplate.tsx`, `GlossaryContentRenderer.tsx`, `FullEntryDisplay.tsx` - tree, panes, render + term links.
 - `hooks/useGlossarySearch.ts`, `hooks/useGlossaryModal.ts`, `hooks/useGlossaryKeyboardNav.ts`.
-- `spellGateChecker/*` — spell checks and issue summaries invoked from `Glossary.tsx`.
-- `glossaryRuleChapters.ts` — chapter wrappers for rule navigation.
+- `spellGateChecker/*` - spell checks and issue summaries invoked from `Glossary.tsx`.
+- `glossaryRuleChapters.ts` - chapter wrappers for rule navigation.
 - Data provider: `src/context/GlossaryContext.tsx` (reads `public/data/glossary_bundle.json`), `AppProviders.tsx`, `DataLoaderGate.tsx`, `GameModals.tsx`.
 
 ## Decision on record (D18, 2026-06-10, Remy)
@@ -46,3 +46,5 @@ An ingestion guard shipped 2026-06-19 (`scripts/ingestPhbGlossary.ts` + `scripts
 | G5 | Rendering/registry large-file cluster split needs visual/test proof boundaries (CMA-G11) | `SpellGateBucketSections.tsx`, `IconRegistry.tsx`, `SpellCardTemplate.tsx` |
 | G7 | `itemMetadata` built from `any` in ingest; optional typed builder/guard remains a follow-up | `scripts/ingestPhbGlossary.ts`, `src/types/ui.ts` |
 | G8 | Spell detail prose needs live glossary term linking in the spell-detail render path | `SpellDetailPane.tsx`; routed 2026-06-26 from `docs/tasks/spell-system-overhaul/1B-SPELL-MIGRATION-ROADMAP.md` |
+
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/superpowers/specs/2026-07-14-absorbed-glossary-ui.md","sha256WithoutMarker":"c986780609cae96aa180649b473844f03a2fd6225cdd9779fac958ace5132982","markedAtUtc":"2026-08-09T20:24:24.665Z"} -->

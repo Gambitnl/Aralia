@@ -1,7 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evaluateHazard, NATURAL_HAZARDS } from '../hazards';
-import { createMockCombatCharacter } from '../../../utils/factories';
+import { createMockCombatCharacter } from '../../../utils/core';
 
 describe('HazardSystem', () => {
   it('should correctly identify hazard triggers', () => {

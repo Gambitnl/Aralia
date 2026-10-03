@@ -25,7 +25,7 @@ import { z } from 'zod';
 // resolve correctly without suppression. Removing the directives 
 // restores full type checking for these imports within the script.
 import { SpellValidator } from '../src/systems/spells/validation/spellValidator';
-import { LegacySpellValidator } from '../src/systems/spells/validation/LegacySpellValidator';
+import { SpellIntegrityValidator } from '../src/systems/spells/validation/SpellIntegrityValidator';
 import type { Race } from '../src/types';
 import { checkFile, getCharsetTargetFiles } from './check-non-ascii.js';
 import { loadActiveRacesForValidation } from './load-race-data.js';
@@ -70,18 +70,18 @@ const validateSpells = (): void => {
       const spellContent = fs.readFileSync(spellFilePath, 'utf-8');
       const spellData = JSON.parse(spellContent);
       const parsedSpell = SpellValidator.parse(spellData);
-      const legacyIssues = LegacySpellValidator.validateSpell(parsedSpell);
-      const legacyErrors = legacyIssues.filter(issue => issue.severity === 'error');
-      const legacyWarnings = legacyIssues.filter(issue => issue.severity === 'warning');
+      const semanticIssues = SpellIntegrityValidator.validateSemantics(parsedSpell as any);
+      const semanticErrors = semanticIssues.filter(issue => issue.severity === 'error');
+      const semanticWarnings = semanticIssues.filter(issue => issue.severity === 'warning');
 
-      if (legacyErrors.length > 0) {
-        legacyErrors.forEach(issue => console.error(`[Data Validation] Legacy semantic issue in ${id}: ${issue.message}`));
+      if (semanticErrors.length > 0) {
+        semanticErrors.forEach(issue => console.error(`[Data Validation] Semantic issue in ${id}: ${issue.message}`));
         errorCount++;
       }
 
-      if (legacyWarnings.length > 0) {
-        legacyWarnings.forEach(issue =>
-          console.warn(`[Data Validation] Legacy semantic warning in ${id}: ${issue.message}`)
+      if (semanticWarnings.length > 0) {
+        semanticWarnings.forEach(issue =>
+          console.warn(`[Data Validation] Semantic warning in ${id}: ${issue.message}`)
         );
       }
     } catch (error: unknown) {

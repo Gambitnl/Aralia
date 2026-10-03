@@ -7,3 +7,6 @@ export { CreatureHarvestPanel } from './CreatureHarvestPanel';
 export { AlchemyBenchPanel } from './AlchemyBenchPanel';
 export { ExperimentPanel } from './ExperimentPanel';
 export { IngredientGlossaryPanel } from './IngredientGlossaryPanel';
+export { RefiningEnchantingPanel } from './RefiningEnchantingPanel';
+export { SalvageModal } from './SalvageModal';
+

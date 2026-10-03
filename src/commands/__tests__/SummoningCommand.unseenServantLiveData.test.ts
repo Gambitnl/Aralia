@@ -4,7 +4,7 @@ import { AbilityCommandFactory } from '../factory/AbilityCommandFactory';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatState } from '../../types/combat';
 import type { SummoningEffect } from '../../types/spells';
-import unseenServant from '../../../public/data/spells/level-1/unseen-servant.json';
+import unseenServant from '@/data/spells/level-1/unseen-servant.json';
 
 /**
  * This file proves the live Unseen Servant spell packet creates a commandable helper.
@@ -20,7 +20,7 @@ import unseenServant from '../../../public/data/spells/level-1/unseen-servant.js
  */
 
 describe('SummoningCommand live Unseen Servant command bridge', () => {
-  it('creates a commandable servant and enforces its once-per-turn command budget', () => {
+  it('creates a commandable servant and enforces its once-per-turn command budget', async () => {
     // The caster is intentionally small: the summon command only needs an owner,
     // a position, and combat identity to create the spell helper.
     const caster = {
@@ -33,8 +33,9 @@ describe('SummoningCommand live Unseen Servant command bridge', () => {
     } as unknown as CombatCharacter;
 
     // Use the live spell packet so this proof fails if future data loses the
-    // servant stat block, command cost, special action, or lifecycle metadata.
-    const summonEffect = unseenServant.effects.find(effect => effect.type === 'SUMMONING') as SummoningEffect;
+    // structured summon or duration fields.
+    const summonEffect = unseenServant.effects.find(effect => effect.type === 'SUMMONING') as unknown as SummoningEffect;
+    expect(summonEffect).toBeDefined();
     const context = {
       spellId: unseenServant.id,
       spellName: unseenServant.name,
@@ -42,7 +43,8 @@ describe('SummoningCommand live Unseen Servant command bridge', () => {
       caster,
       targets: [],
       gameState: {}
-    } as CommandContext;
+    } as unknown as CommandContext;
+
     const state = {
       characters: [caster],
       currentTurn: 1,
@@ -55,11 +57,11 @@ describe('SummoningCommand live Unseen Servant command bridge', () => {
         actionsThisTurn: []
       },
       combatLog: []
-    } as CombatState;
+    } as unknown as CombatState;
 
     // Casting the spell should materialize a real actor, not leave the servant
     // as prose-only metadata in the JSON packet.
-    const summonedState = new SummoningCommand(summonEffect, context).execute(state);
+    const summonedState = await new SummoningCommand(summonEffect, context).execute(state);
     const servant = summonedState.characters.find(character =>
       character.isSummon &&
       character.summonMetadata?.spellId === unseenServant.id &&
@@ -105,7 +107,7 @@ describe('SummoningCommand live Unseen Servant command bridge', () => {
 
     expect(firstCommands).toHaveLength(1);
 
-    const afterFirstCommand = firstCommands[0].execute(summonedState);
+    const afterFirstCommand = await firstCommands[0].execute(summonedState);
     const servantAfterFirstCommand = afterFirstCommand.characters.find(character => character.id === servant?.id);
 
     expect(servantAfterFirstCommand?.summonMetadata?.commandsUsedThisTurn).toBe(1);
@@ -125,7 +127,7 @@ describe('SummoningCommand live Unseen Servant command bridge', () => {
 
     expect(secondCommands).toHaveLength(1);
 
-    const afterSecondCommand = secondCommands[0].execute(afterFirstCommand);
+    const afterSecondCommand = await secondCommands[0].execute(afterFirstCommand);
     const servantAfterSecondCommand = afterSecondCommand.characters.find(character => character.id === servant?.id);
 
     expect(servantAfterSecondCommand?.summonMetadata?.commandsUsedThisTurn).toBe(1);

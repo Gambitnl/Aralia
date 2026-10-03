@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 17/07/2026, 21:36:10
- * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/DungeonEntrances.tsx, components/World3D/GroundAgents.tsx, components/World3D/GroundMovePlane.tsx, components/World3D/GroundProps.tsx, components/World3D/PlayerAvatar.tsx, components/World3D/WebGPUProbe.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DScene.tsx, components/World3D/World3DWrapper.tsx, components/World3D/canopyInterior.ts, components/World3D/combat/InPlaceCombatLayer.tsx, components/World3D/createGroundWorkerChunkLoader.ts, components/World3D/createWorldGenClient.ts, components/World3D/groundChunkWorker.ts, components/World3D/worldGenCore.ts, components/Worldforge/AgentSim3DPreview.tsx, components/Worldforge/WorldforgeGroundDrilldown.tsx, systems/combat/worldScenario/liveSettlementEncounter.ts, systems/combat/worldScenario/statePatrolWorldEvent.ts, systems/combat/worldScenario/travelAmbushBattlefield.ts, systems/combat/worldScenario/worldBattleScenario.ts, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkWorkerCore.ts, systems/worldforge/bridge/groundHostiles.ts, systems/worldforge/bridge/groundProps.ts, systems/worldforge/provenance/groundProvenance.ts
- * Imports: 48 files
+ * Last Sync: 04/08/2026, 02:05:11
+ * Dependents: components/Combat/InPlaceCombatScene.tsx, components/DesignPreview/steps/PreviewTown3D.tsx, components/World3D/DungeonEntrances.tsx, components/World3D/FarShells.tsx, components/World3D/GroundAgents.tsx, components/World3D/GroundMovePlane.tsx, components/World3D/GroundProps.tsx, components/World3D/PlayerAvatar.tsx, components/World3D/WebGPUProbe.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DScene.tsx, components/World3D/World3DWrapper.tsx, components/World3D/canopyInterior.ts, components/World3D/combat/InPlaceCombatLayer.tsx, components/World3D/createGroundWorkerChunkLoader.ts, components/World3D/createWorldGenClient.ts, components/World3D/dungeonEntryRuntime.ts, components/World3D/groundChunkWorker.ts, components/World3D/worldGenCore.ts, components/Worldforge/AgentSim3DPreview.tsx, components/Worldforge/WorldforgeGroundDrilldown.tsx, systems/combat/worldScenario/liveSettlementEncounter.ts, systems/combat/worldScenario/statePatrolWorldEvent.ts, systems/combat/worldScenario/travelAmbushBattlefield.ts, systems/combat/worldScenario/worldBattleScenario.ts, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkWorkerCore.ts, systems/worldforge/bridge/groundHostiles.ts, systems/worldforge/bridge/groundProps.ts, systems/worldforge/provenance/groundProvenance.ts
+ * Imports: 55 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -42,6 +42,7 @@ import { handleGroundChunkRequest } from "./groundChunkWorkerCore";
 import {
   WORLD3D_CONFIG,
   heightToMeters,
+  metersToHeight,
   resolutionForLod,
 } from "../../world3d/config";
 import { BATTLE_MAP_ELEVATION_METERS_PER_UNIT } from "../../../config/mapConfig";
@@ -73,11 +74,22 @@ import {
   canonicalArtifactTownForSiteFromAtlas,
 } from "../town/canonicalTown";
 import { occupancyScheduleForPlot } from "./buildingOccupancy";
-import type { TownPlotPopulation } from "../town/townEngine";
-import type { InteriorPlotInput } from "../interior/generateInterior";
+import {
+  householdMemberIdentity,
+  householdPopulationForPlot,
+  householdPopulationsForPlan,
+} from "../town/householdBrief";
+import {
+  blueprintForPlot,
+  type InteriorPlotInput,
+} from "../interior/generateInterior";
 import { buildingShellHeightM } from "../interior/generateBuilding";
 import { buildTownWaterBodies } from "../town/townWaterBodies";
+import { STREET_MIN_WIDTH_M } from "../town/streetRibbons";
 import type { AdaptedTownPlan } from "../town/townPlanAdapter";
+import { waterRunsFromLevels, waterLevelsByCell, rasterizeChannel } from "./waterRegions";
+import type { WaterRun } from "./waterRegions";
+import { deriveHydrology } from "./terrainHydrology";
 import type { TownPlan } from "../artifacts";
 import {
   buildInterior,
@@ -102,6 +114,7 @@ import {
   type ActivityKind,
 } from "../roster/occupantSchedule";
 import type { TownRoster, Occupant } from "../roster/types";
+import { buildStreetGraph, frontDoorForPlot } from "../roster/agentPath";
 import { generateBody } from "../body/generateBody";
 import type { BodyPlan } from "../body/types";
 import { childSeedPath, rootSeedPath } from "../seedPath";
@@ -147,11 +160,17 @@ import type {
 } from "@/types/combat";
 import { generateGroundHostiles } from "./groundHostiles";
 import {
-  buildGroundProps,
+  buildGroundPropsInstrumented,
+  groundPropsGateSummary,
   imprintPropOnTile,
   propFootprintRadiusM,
   PROPS_BY_ID,
 } from "./groundProps";
+import {
+  makeGroundWorldProbe,
+  runPropPlacementGate,
+  summarizeGate,
+} from "./propPlacementGate";
 import type { PropInstance } from "../props/propSchema";
 import type { EntranceKind } from "../dungeon/world/dungeonSites";
 import { dungeonEntrancesForWindow } from "./dungeonEntrances";
@@ -159,6 +178,8 @@ import { dungeonEntrancesForWindow } from "./dungeonEntrances";
 // a type-only binding (elided at build), so it is worker-safe here.
 import { BIOMES } from "../../../data/biomes";
 import { biomeIdForCell } from "../local/biomeForCell";
+import { wfBiomeIndexToName } from "../local/wfBiomeToLegacy";
+import { biomeGrowsTrees } from "../vegetation/treeEnvironment";
 import { forestKindForCell } from "../forests/forestKindForCell";
 import type { ForestKind } from "../forests/forestClusters";
 import {
@@ -166,7 +187,7 @@ import {
   type TerrainTerraceReceipt,
 } from "./terrainTerraces";
 import {
-  resolveSnowLine,
+  resolveSnowLineFt,
   latitudeAtGraphY,
   SNOW_LINE_H,
   SNOW_RGB,
@@ -176,9 +197,38 @@ import {
   settlementDefenseForBurg,
   type GroundSettlementDefense,
 } from "./settlementDefense";
+import { buildFarShells, type FarShells } from "./farShells";
+import { FEET_PER_FMG_PIXEL } from "../adapter/atlasArtifact";
+import {
+  buildTownKeepOut,
+  townClearance,
+  type TownKeepOut,
+} from "./townVegetationKeepOut";
+import { buildTownVegetation, type FeetPt, type TownParcel } from "./townVegetation";
+import {
+  UNDERSTORY_SPECIES,
+  type UnderstorySpecies,
+} from "../vegetation/understoryMeshSource";
+
+/** Feature kinds that render as understory rather than tree or bush. */
+const UNDERSTORY_KINDS: ReadonlySet<string> = new Set<string>(UNDERSTORY_SPECIES);
+
+/**
+ * One chunk's understory instances. Separate from VegetationScatter because
+ * every instance carries WHICH species it is: ferns, logs and saplings share a
+ * placement pass but not a mesh, and the renderer buckets by species.
+ */
+export interface UnderstoryScatter {
+  positions: Float32Array;
+  scales: Float32Array;
+  rotations: Float32Array;
+  colors: Float32Array;
+  species: UnderstorySpecies[];
+  count: number;
+}
 
 /** A polyline in ground world-meters with a uniform width (meters). */
-interface GroundPolyline {
+export interface GroundPolyline {
   points: Array<{ x: number; z: number }>;
   widthM: number;
   /** Source role retained so tactical crops can distinguish routes from streets. */
@@ -187,13 +237,55 @@ interface GroundPolyline {
   sourceId?: number;
   /** Optional tint (e.g. town-wall runs carry the style family's wallTint). */
   colorHex?: string;
+  /**
+   * River-only surface height at every centerline point, in world meters.
+   * This is computed once from the carved bed and shared by rendering and
+   * crossing placement; roads and walls intentionally leave it absent.
+   */
+  waterlineY?: number[];
 }
+
+// Ground rivers use a deliberately modest constant depth for this first real
+// surface slice. It places the water above the carved bed while keeping ford
+// crowns partly submerged; discharge-scaled depth remains a separate look call.
+export const GROUND_RIVER_CHANNEL_DEPTH_M = 0.5;
+
+// Water-biome cells are classified by their centers, while terrain triangles
+// extend beyond those centers. One cell of overdraw per bank closes that edge
+// without changing the physical river width used by crossings or the referee.
+const RIVER_SURFACE_BANK_OVERDRAW_M = GROUND_METERS_PER_CELL;
 
 /** A filled town water body (river channel / harbour apron), ground meters. */
 export interface GroundWaterBody {
   pointsM: Array<{ x: number; z: number }>;
-  /** Flat water-surface Y in world meters (set by the terrain-carve pass). */
+  /**
+   * What this body IS. The three kinds cannot share a height rule: the sea is
+   * flat at zero by definition, a lake is flat at its own elevation, and a
+   * river surface DESCENDS along its course — it stands above sea level
+   * everywhere but its mouth. One flat height for all three is what drew burg
+   * Hajdured's river 15 m below the ground it runs through.
+   */
+  kind: "sea" | "lake" | "river";
+  /**
+   * Reference water height in world meters (set by the terrain-carve pass).
+   * Flat for sea and lake. For a river this is its LOWEST point — the single
+   * number decks and crossings reference — while the surface itself comes from
+   * `centerlineM`.
+   */
   surfaceY: number;
+  /**
+   * Rivers only: the ordered centerline with a resolved height per point. Chunk
+   * clipping invents new polygon vertices, so a per-vertex height array cannot
+   * survive it; the renderer projects each surviving vertex onto this line and
+   * interpolates instead.
+   */
+  centerlineM?: Array<{ x: number; z: number; surfaceY: number }>;
+  /**
+   * Sea aprons only: the shoreline segment this apron extends from, in ground
+   * meters. The apron's outer corners reach far offshore and sample ground that
+   * says nothing about the waterline, so the height comes from here instead.
+   */
+  shoreEdgeM?: Array<{ x: number; z: number }>;
 }
 
 /** A dock pier / bridge span deck (convex quad), ground meters. */
@@ -233,6 +325,8 @@ export interface GroundCrossing {
   xM: number;
   zM: number;
   roadDirection: { x: number; z: number };
+  /** Unit river-flow heading in the same x/z frame as roadDirection. */
+  riverDirection: { x: number; z: number };
   spanM: number;
   widthM: number;
   roadRouteId: number;
@@ -275,6 +369,11 @@ export interface GroundFeature {
   kind: string;
   xM: number;
   zM: number;
+  /** Depth into a vegetation clump, 0 at a thicket's edge and 1 inside it.
+   * Carried through from LocalFeature so the 3D scatter can size plants by
+   * cohort position; absent for kinds that do not scatter through the clump
+   * field. */
+  dens?: number;
 }
 
 // ============================================================================
@@ -378,8 +477,26 @@ export interface GroundWorld {
   crossings?: GroundCrossing[];
   /** Town defensive wall rings (closed polylines), ground meters. */
   walls: GroundPolyline[];
+  /**
+   * Town footprints wilderness vegetation must not grow inside, ground meters.
+   * Optional because a world baked before this existed carries none, and the
+   * vegetation builder treats "absent" as "no towns to avoid" rather than
+   * failing. See bridge/townVegetationKeepOut.ts.
+   */
+  townKeepOuts?: TownKeepOut[];
   /** Town water bodies (rivers/harbour), filled flat surfaces, ground meters. */
   waterBodies: GroundWaterBody[];
+  /**
+   * Connected bodies of water taken from the biome grid, each with one flat
+   * level. This is where a VISIBLE water surface comes from; `waterBodies`
+   * above are the town's crude channel/apron quads, which shape the bed and
+   * position decks but are the wrong shape to draw — an in-game look showed
+   * them as 52 m wide slabs laid over the landscape.
+   *
+   * Optional because a world baked before this existed carries none, and the
+   * renderer treats "absent" as "no water sheets" rather than failing.
+   */
+  waterRuns?: WaterRun[];
   /** Town dock/bridge deck slabs, ground meters. */
   decks: GroundDeck[];
   /** Town road-gate placements (ground meters) for gatehouse meshes (styled-architecture slice). */
@@ -450,6 +567,9 @@ export interface GroundWorld {
     /** Stable plan origin for occupants in asymmetrically extended buildings. */
     interiorOriginXFt?: number;
     interiorOriginYFt?: number;
+    /** Canonical router door relative to the plot center, ground meters. */
+    frontDoorOffsetX?: number;
+    frontDoorOffsetZ?: number;
     name?: string;
     unlabeled?: boolean;
     labelRangeM?: number;
@@ -477,21 +597,168 @@ export interface GroundWorld {
    */
   canopy?: GroundCanopy | null;
   /**
+   * The FMG biome NAME this window's trees grow against (grown-tree wave), e.g.
+   * `'Taiga'`. Resolved ONCE from the anchor atlas cell, the same cell the
+   * canopy and snow line already come from.
+   *
+   * WHY THE ANCHOR CELL AND NOT `biomeIds`. The per-cell `biomeIds` grid is a
+   * MATERIAL map — grassland / forest_floor / wetland / mountain / desert. It
+   * cannot tell a taiga from a rainforest, because both are `grass` ground
+   * under the material vocabulary. A local window is far smaller than one FMG
+   * cell, so the anchor cell IS the window's biome; that is the same
+   * assumption the canopy resolve makes.
+   *
+   * Absent when no anchor cell was given (tests, legacy callers) and when the
+   * anchor biome grows no trees — Marine and Glacier, which are exactly the two
+   * profiles with `treeDensity: 0`, so a window with no tree biome also has no
+   * trees to grow.
+   */
+  treeBiome?: string;
+  /**
    * Encoded-height snow line for this window (Task 10 MOUNTAINS), resolved ONCE
    * from the anchor cell's latitude band (spec §5). Ground vertices at/above it
    * blend toward snow in `sampleGroundChunk`. Absent (tests/legacy/anchor-less
    * builds) → the sampler uses the temperate baseline SNOW_LINE_H.
    */
   snowLineH?: number;
+  /**
+   * Far-distance terrain shells (2026-07-21): coarse static region + atlas
+   * horizon ring meshes replacing the visible world edge. Present whenever the
+   * window was built with a region; when absent the sampler keeps the legacy
+   * edge-falloff drop + haze so old fixtures render unchanged.
+   */
+  farShells?: FarShells;
 }
 
 const FEET_TO_METERS = 0.3048;
+
+// A road segment can cross an entire local river between two widely spaced
+// Region vertices. Walking the segment at half-cell intervals guarantees that
+// every visibly wet cell gets a chance to break the ribbon, while a short
+// binary search places each new endpoint back at the wet/dry cell boundary.
+const ROAD_WET_CLIP_SAMPLE_M = GROUND_METERS_PER_CELL / 2;
+const ROAD_WET_CLIP_BOUNDARY_STEPS = 14;
+
+type GroundRibbonPoint = { x: number; z: number };
+
+/** Return the point a chosen fraction of the way along one straight run. */
+function groundRibbonPointAt(
+  start: GroundRibbonPoint,
+  end: GroundRibbonPoint,
+  t: number,
+): GroundRibbonPoint {
+  return {
+    x: start.x + (end.x - start.x) * t,
+    z: start.z + (end.z - start.z) * t,
+  };
+}
+
+/**
+ * Break one route into dry runs without adding a ribbon over wet cells.
+ *
+ * Source vertices remain intact. Only wet/dry transition points are inserted,
+ * so land approaches preserve their authored shape and the renderer does not
+ * inherit hundreds of temporary sampling points. A route with no wet sample
+ * returns as one unchanged run.
+ */
+function splitRibbonAroundWetCells(
+  points: GroundRibbonPoint[],
+  isWet: (point: GroundRibbonPoint) => boolean,
+): GroundRibbonPoint[][] {
+  if (points.length < 2) return [];
+
+  const runs: GroundRibbonPoint[][] = [];
+  let activeRun: GroundRibbonPoint[] = [];
+  const samePoint = (a: GroundRibbonPoint, b: GroundRibbonPoint): boolean =>
+    Math.hypot(a.x - b.x, a.z - b.z) <= 1e-6;
+  const append = (point: GroundRibbonPoint): void => {
+    const last = activeRun[activeRun.length - 1];
+    if (!last || !samePoint(last, point)) activeRun.push(point);
+  };
+  const finishRun = (): void => {
+    if (
+      activeRun.length >= 2 &&
+      !samePoint(activeRun[0], activeRun[activeRun.length - 1])
+    ) {
+      runs.push(activeRun);
+    }
+    activeRun = [];
+  };
+
+  // Find every wet/dry transition inside each authored segment. The midpoint
+  // of the resulting intervals decides whether that interval belongs to a
+  // land approach or to the crossing deck's gap.
+  for (let pointIndex = 1; pointIndex < points.length; pointIndex += 1) {
+    const start = points[pointIndex - 1];
+    const end = points[pointIndex];
+    const lengthM = Math.hypot(end.x - start.x, end.z - start.z);
+    const sampleCount = Math.max(
+      1,
+      Math.ceil(lengthM / ROAD_WET_CLIP_SAMPLE_M),
+    );
+    const boundaries = [0];
+    let previousT = 0;
+    let previousWet = isWet(start);
+
+    for (let sampleIndex = 1; sampleIndex <= sampleCount; sampleIndex += 1) {
+      const sampleT = sampleIndex / sampleCount;
+      const sampleWet = isWet(groundRibbonPointAt(start, end, sampleT));
+      if (sampleWet !== previousWet) {
+        let lowT = previousT;
+        let highT = sampleT;
+        const lowWet = previousWet;
+
+        // Refine the transition without changing which side owns the interval.
+        for (let step = 0; step < ROAD_WET_CLIP_BOUNDARY_STEPS; step += 1) {
+          const middleT = (lowT + highT) / 2;
+          if (isWet(groundRibbonPointAt(start, end, middleT)) === lowWet) {
+            lowT = middleT;
+          } else {
+            highT = middleT;
+          }
+        }
+        // Keep the emitted endpoint on the proven dry side. A mathematical
+        // midpoint can round into the wet cell and leave one final ribbon
+        // vertex over water even though the adjoining interval was removed.
+        boundaries.push(lowWet ? highT : lowT);
+      }
+      previousT = sampleT;
+      previousWet = sampleWet;
+    }
+    boundaries.push(1);
+
+    for (let intervalIndex = 1; intervalIndex < boundaries.length; intervalIndex += 1) {
+      const startT = boundaries[intervalIndex - 1];
+      const endT = boundaries[intervalIndex];
+      const middle = groundRibbonPointAt(start, end, (startT + endT) / 2);
+      if (isWet(middle)) {
+        finishRun();
+        continue;
+      }
+
+      const intervalStart = groundRibbonPointAt(start, end, startT);
+      const intervalEnd = groundRibbonPointAt(start, end, endT);
+      if (
+        activeRun.length > 0 &&
+        !samePoint(activeRun[activeRun.length - 1], intervalStart)
+      ) {
+        finishRun();
+      }
+      append(intervalStart);
+      append(intervalEnd);
+    }
+  }
+  finishRun();
+  return runs;
+}
 
 /** Region polylines (feet, world space) → ground meters, kept if any point
  * lands inside the artifact window (fine clipping happens per chunk). Route
  * polylines carry `kind`, which sets the tier tint (ROAD_3D_TIERS) and breaks
  * faint paths into a keep/skip patch cycle so they read as broken wear-lines.
- * Rivers pass no `kind` and behave exactly as before. */
+ * A supplied wet-crossing context removes only water-biome overlap inside an
+ * authoritative crossing span, leaving the ford/bridge deck to carry the wet
+ * gap. Rivers pass no `kind` and behave exactly as before. */
 export function regionPolylinesToGround(
   lines: Array<{
     centerline: Array<[number, number]>;
@@ -502,6 +769,12 @@ export function regionPolylinesToGround(
   }>,
   local: LocalArtifact,
   sourceKind?: GroundPolyline["sourceKind"],
+  wetClip?: Readonly<{
+    crossings: RegionCrossing[];
+    biomeIds: string[];
+    cols: number;
+    rows: number;
+  }>,
 ): GroundPolyline[] {
   const { bounds } = local;
   const out: GroundPolyline[] = [];
@@ -565,22 +838,253 @@ export function regionPolylinesToGround(
     }));
     const colorHex = line.kind ? ROAD_3D_TIERS[line.kind].colorHex : undefined;
     const sourceId = line.routeId ?? line.riverId;
-    if (line.kind === "path") {
-      // Faint path: deterministic keep/skip cycle → broken wear-line patches.
-      const cycle = PATH_3D_KEEP_POINTS + PATH_3D_SKIP_POINTS;
-      for (let start = 0; start < pts.length; start += cycle) {
-        push(
-          pts.slice(start, start + PATH_3D_KEEP_POINTS),
-          line.widthFt,
-          colorHex,
-          sourceId,
+
+    // Only receipts for this exact source route may open a wet gap. The span
+    // is projected once into local meters; unrelated water elsewhere along the
+    // route remains visible because no authored crossing deck exists there.
+    const routeCrossings =
+      wetClip && line.routeId != null
+        ? wetClip.crossings
+            .filter((crossing) => crossing.roadRouteId === line.routeId)
+            .map((crossing) => ({
+              x: (crossing.point[0] - bounds.x) * FEET_TO_METERS,
+              z: (crossing.point[1] - bounds.y) * FEET_TO_METERS,
+              direction: {
+                x: crossing.roadDirection[0],
+                z: crossing.roadDirection[1],
+              },
+              halfSpanM: (crossing.spanFt * FEET_TO_METERS) / 2,
+              halfWidthM:
+                Math.max(crossing.widthFt, line.widthFt) * FEET_TO_METERS * 0.5 +
+                GROUND_METERS_PER_CELL,
+            }))
+        : [];
+    const isWetCrossingPoint = (point: GroundRibbonPoint): boolean => {
+      if (!wetClip || routeCrossings.length === 0) return false;
+      const insideCrossing = routeCrossings.some((crossing) => {
+        const dx = point.x - crossing.x;
+        const dz = point.z - crossing.z;
+        const along = dx * crossing.direction.x + dz * crossing.direction.z;
+        const across = dx * -crossing.direction.z + dz * crossing.direction.x;
+        return (
+          Math.abs(along) <= crossing.halfSpanM &&
+          Math.abs(across) <= crossing.halfWidthM
         );
+      });
+      if (!insideCrossing) return false;
+
+      // Match the nearest-cell rule already used by the ford deck builder, so
+      // the road gap and the visible water tint cannot disagree at the banks.
+      const col = Math.max(
+        0,
+        Math.min(wetClip.cols - 1, Math.round(point.x / GROUND_METERS_PER_CELL)),
+      );
+      const row = Math.max(
+        0,
+        Math.min(wetClip.rows - 1, Math.round(point.z / GROUND_METERS_PER_CELL)),
+      );
+      const biome = wetClip.biomeIds[row * wetClip.cols + col];
+      return biome === "water" || biome === "ocean";
+    };
+    const landRuns =
+      routeCrossings.length > 0
+        ? splitRibbonAroundWetCells(pts, isWetCrossingPoint)
+        : [pts];
+
+    // Every surviving land run reuses the existing deterministic path patch
+    // emitter. A crossing therefore adds a gap without replacing the style
+    // rules that already make faint paths read as broken wear-lines.
+    for (const landRun of landRuns) {
+      if (line.kind === "path") {
+      // Faint path: deterministic keep/skip cycle → broken wear-line patches.
+        const cycle = PATH_3D_KEEP_POINTS + PATH_3D_SKIP_POINTS;
+        for (let start = 0; start < landRun.length; start += cycle) {
+          push(
+            landRun.slice(start, start + PATH_3D_KEEP_POINTS),
+            line.widthFt,
+            colorHex,
+            sourceId,
+          );
+        }
+      } else {
+        push(landRun, line.widthFt, colorHex, sourceId);
       }
-    } else {
-      push(pts, line.widthFt, colorHex, sourceId);
     }
   }
   return out;
+}
+
+// ============================================================================
+// Shared River Waterlines
+// ============================================================================
+// River surfaces, crossings, and future shoreline props must agree on one Y.
+// These helpers derive that truth from the final carved ground grid, then make
+// it queryable without storing functions on GroundWorld (which must remain safe
+// to send across the staged worker boundary).
+// ============================================================================
+
+/** Sample the rendered ground surface, including the window-edge falloff.
+ * `applyEdgeFalloff = false` mirrors a far-shell world (2026-07-21), where the
+ * sampler no longer drops terrain at the border — decks and waterlines must
+ * agree with whichever convention the terrain actually renders. */
+function groundSurfaceMetersAt(
+  heights: number[],
+  cols: number,
+  rows: number,
+  x: number,
+  z: number,
+  applyEdgeFalloff = true,
+): number {
+  const encoded = sampleEncodedHeight(heights, cols, rows, x, z);
+  const edgeT = applyEdgeFalloff
+    ? edgeFalloffT(
+        x,
+        z,
+        cols * GROUND_METERS_PER_CELL,
+        rows * GROUND_METERS_PER_CELL,
+      )
+    : 0;
+  return heightToMeters(Math.max(0, encoded - EDGE_DROP_H * edgeT));
+}
+
+/**
+ * Stamp each regional river with a surface sample for every centerline point.
+ * Adjacent uphill violations are pooled to their shared average (isotonic
+ * smoothing), giving the smallest deterministic correction that guarantees the
+ * resulting sequence never climbs while travelling downstream.
+ */
+export function computeGroundRiverWaterlines(
+  rivers: GroundPolyline[],
+  heights: number[],
+  cols: number,
+  rows: number,
+  applyEdgeFalloff = true,
+): GroundPolyline[] {
+  return rivers.map((river) => {
+    if (river.sourceKind !== "river" || river.points.length === 0) return river;
+
+    const rawWaterlineY = river.points.map(
+      (point) =>
+        groundSurfaceMetersAt(
+          heights, cols, rows, point.x, point.z, applyEdgeFalloff,
+        ) + GROUND_RIVER_CHANNEL_DEPTH_M,
+    );
+
+    // Rivers are authored source-to-mouth. Pool-adjacent-violators merges any
+    // downstream rise into one flat reach instead of inventing an uphill flow.
+    const blocks: Array<{
+      start: number;
+      end: number;
+      total: number;
+      count: number;
+    }> = [];
+    rawWaterlineY.forEach((height, index) => {
+      blocks.push({ start: index, end: index, total: height, count: 1 });
+      while (blocks.length >= 2) {
+        const downstream = blocks[blocks.length - 1];
+        const upstream = blocks[blocks.length - 2];
+        if (
+          upstream.total / upstream.count >=
+          downstream.total / downstream.count
+        )
+          break;
+        blocks.splice(blocks.length - 2, 2, {
+          start: upstream.start,
+          end: downstream.end,
+          total: upstream.total + downstream.total,
+          count: upstream.count + downstream.count,
+        });
+      }
+    });
+
+    const waterlineY = new Array<number>(rawWaterlineY.length);
+    for (const block of blocks) {
+      const pooledHeight = block.total / block.count;
+      for (let index = block.start; index <= block.end; index += 1) {
+        waterlineY[index] = pooledHeight;
+      }
+    }
+
+    return { ...river, waterlineY };
+  });
+}
+
+/** Find the nearest point on a segment and return its interpolation fraction. */
+function segmentProjection(
+  x: number,
+  z: number,
+  a: { x: number; z: number },
+  b: { x: number; z: number },
+): { distanceSq: number; t: number } {
+  const dx = b.x - a.x;
+  const dz = b.z - a.z;
+  const lengthSq = dx * dx + dz * dz;
+  const t =
+    lengthSq === 0
+      ? 0
+      : Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / lengthSq));
+  const nearestX = a.x + dx * t;
+  const nearestZ = a.z + dz * t;
+  return {
+    distanceSq: (x - nearestX) ** 2 + (z - nearestZ) ** 2,
+    t,
+  };
+}
+
+/** Resolve a river surface from already-stamped runs, if the point is wet. */
+function riverWaterlineForRuns(
+  rivers: GroundPolyline[],
+  x: number,
+  z: number,
+): number | undefined {
+  let nearestDistanceSq = Number.POSITIVE_INFINITY;
+  let nearestWaterline: number | undefined;
+
+  for (const river of rivers) {
+    if (
+      river.sourceKind !== "river" ||
+      !river.waterlineY ||
+      river.waterlineY.length !== river.points.length
+    ) {
+      continue;
+    }
+
+    const surfaceHalfWidth = river.widthM / 2 + RIVER_SURFACE_BANK_OVERDRAW_M;
+    for (let index = 1; index < river.points.length; index += 1) {
+      const projection = segmentProjection(
+        x,
+        z,
+        river.points[index - 1],
+        river.points[index],
+      );
+      if (
+        projection.distanceSq > surfaceHalfWidth * surfaceHalfWidth ||
+        projection.distanceSq >= nearestDistanceSq
+      ) {
+        continue;
+      }
+
+      const upstream = river.waterlineY[index - 1];
+      const downstream = river.waterlineY[index];
+      nearestDistanceSq = projection.distanceSq;
+      nearestWaterline = upstream + (downstream - upstream) * projection.t;
+    }
+  }
+
+  return nearestWaterline;
+}
+
+/**
+ * Query the exact surface rendered for a ground river at a world-meter point.
+ * Returning undefined outside every wet corridor lets land callers keep their
+ * terrain anchor and makes legacy GroundWorld fixtures degrade honestly.
+ */
+export function riverWaterlineAt(
+  ground: Pick<GroundWorld, "rivers">,
+  x: number,
+  z: number,
+): number | undefined {
+  return riverWaterlineForRuns(ground.rivers, x, z);
 }
 
 /** Project Region crossing receipts into the same ground-meter frame as runs. */
@@ -646,6 +1150,10 @@ export function regionCrossingsToGround(
         x: crossing.roadDirection[0],
         z: crossing.roadDirection[1],
       },
+      riverDirection: {
+        x: crossing.riverDirection[0],
+        z: crossing.riverDirection[1],
+      },
       spanM,
       widthM: crossing.widthFt * FEET_TO_METERS,
       roadRouteId: crossing.roadRouteId,
@@ -659,14 +1167,67 @@ export function regionCrossingsToGround(
   });
 }
 
-/** Build the physical 3D deck from the same Ground crossing receipt. */
+// Routes can share a corridor and therefore emit separate mechanics receipts
+// for what is visually one river crossing. Two referee cells are enough to
+// absorb harmless route-centerline drift without merging genuinely separate
+// crossings farther along the same river.
+const RENDER_CROSSING_GROUP_RADIUS_M = GROUND_METERS_PER_CELL * 2;
+
+/**
+ * Choose one visual representative for each same-river crossing cluster.
+ *
+ * GroundCrossing receipts remain untouched for movement and tactical facts;
+ * only the deck builder consumes this smaller list. The first receipt anchors
+ * each cluster so replacing it with a wider route cannot move the grouping
+ * boundary for later receipts. Equal widths keep their original order, while a
+ * strictly wider route supplies the visible ford or bridge treatment.
+ */
+function renderedCrossingRepresentatives(
+  crossings: GroundCrossing[],
+): GroundCrossing[] {
+  const groups: Array<{
+    anchor: GroundCrossing;
+    representative: GroundCrossing;
+  }> = [];
+
+  // Compare only crossings on the same source river and close enough to read
+  // as one shared corridor. Distinct crossings on that river keep their own
+  // deck treatment even when several routes elsewhere share another crossing.
+  for (const crossing of crossings) {
+    const group = groups.find(
+      ({ anchor }) =>
+        anchor.riverId === crossing.riverId &&
+        Math.hypot(anchor.xM - crossing.xM, anchor.zM - crossing.zM) <=
+          RENDER_CROSSING_GROUP_RADIUS_M,
+    );
+
+    // A new river/location pair starts a new visual treatment group.
+    if (!group) {
+      groups.push({ anchor: crossing, representative: crossing });
+      continue;
+    }
+
+    // The widest route owns the shared treatment so the rendered crossing
+    // never narrows below any movement receipt that travels through it.
+    if (crossing.widthM > group.representative.widthM) {
+      group.representative = crossing;
+    }
+  }
+
+  return groups.map(({ representative }) => representative);
+}
+
+/** Build physical 3D decks without collapsing the source mechanics receipts. */
 function regionalBridgeDecks(
   crossings: GroundCrossing[],
+  rivers: GroundPolyline[],
   heights: number[],
   cols: number,
   rows: number,
+  biomeIds: string[],
+  applyEdgeFalloff = true,
 ): GroundDeck[] {
-  return crossings.flatMap((crossing) => {
+  return renderedCrossingRepresentatives(crossings).flatMap((crossing) => {
     const along = crossing.roadDirection;
     const across = { x: -along.z, z: along.x };
     const halfSpan = crossing.spanM / 2;
@@ -678,25 +1239,38 @@ function regionalBridgeDecks(
     const corner = (alongSign: number, acrossSign: number) =>
       at(halfSpan * alongSign, halfWidth * acrossSign);
 
-    // Anchor every crossing to the CARVED RIVERBED terrain — in ground 3D the
-    // river's visible surface IS the water-tinted bed (the ribbon mesh sits
-    // 0.5 m under it). The town shore convention (carveTownWaterBasins) clamps
-    // at absolute zero, which buries an inland crossing meters under its
-    // river — a regional deck must never use it. A crossing can also sit
-    // partly OUTSIDE the heights grid (rivers hug window edges); rendered
-    // terrain out there is the edge falloff, so the sampler applies the same
-    // drop — a plain clamped sample reads BANK height and floats geometry in
-    // the air over the falloff plain.
-    const extentXM = cols * GROUND_METERS_PER_CELL;
-    const extentZM = rows * GROUND_METERS_PER_CELL;
-    const surfaceYAt = (x: number, z: number) => {
-      const enc = sampleEncodedHeight(heights, cols, rows, x, z);
-      const edgeT = edgeFalloffT(x, z, extentXM, extentZM);
-      return heightToMeters(Math.max(0, enc - EDGE_DROP_H * edgeT));
-    };
+    // Terrain still supplies dry landing heights, while the new shared river
+    // query supplies the visible wet surface. Both use the same edge-falloff
+    // convention, so crossings at the artifact boundary do not float.
+    const surfaceYAt = (x: number, z: number) =>
+      groundSurfaceMetersAt(heights, cols, rows, x, z, applyEdgeFalloff);
+    const waterlineYAt = (x: number, z: number) =>
+      riverWaterlineForRuns(rivers, x, z);
 
     if (crossing.kind === "ford") {
-      return fordCrossingDecks(crossing, at, halfSpan, surfaceYAt);
+      // Nearest-cell water lookup (mirrors sampleGroundChunk's biome pick):
+      // the VISIBLE wet zone is the water-biome tint, not any bed-depth rule,
+      // so the causeway must span exactly what reads as water on screen.
+      const isWaterAt = (x: number, z: number): boolean => {
+        const col = Math.max(
+          0,
+          Math.min(cols - 1, Math.round(x / GROUND_METERS_PER_CELL)),
+        );
+        const row = Math.max(
+          0,
+          Math.min(rows - 1, Math.round(z / GROUND_METERS_PER_CELL)),
+        );
+        const biome = biomeIds[row * cols + col];
+        return biome === "water" || biome === "ocean";
+      };
+      return fordCrossingDecks(
+        crossing,
+        at,
+        halfSpan,
+        surfaceYAt,
+        waterlineYAt,
+        isWaterAt,
+      );
     }
 
     // Bridge deck: the roadway must MEET the dry landings at both ends —
@@ -712,10 +1286,15 @@ function regionalBridgeDecks(
       spanCeilY = Math.max(spanCeilY, surfaceYAt(p.x, p.z));
     }
 
+    const crossingWaterlineY = waterlineYAt(crossing.xM, crossing.zM);
     return [
       {
         cornersM: [corner(-1, -1), corner(1, -1), corner(1, 1), corner(-1, 1)],
-        topY: spanCeilY + DECK_CLEARANCE_M,
+        // Dry landings normally win. The waterline is a safety floor for a
+        // steep/edge case so the bridge can never be buried by its own river.
+        topY:
+          Math.max(spanCeilY, crossingWaterlineY ?? Number.NEGATIVE_INFINITY) +
+          DECK_CLEARANCE_M,
         kind: "bridge",
         detail: {
           pilingSpacingM: 4,
@@ -729,15 +1308,10 @@ function regionalBridgeDecks(
 }
 
 // Ford look constants (3D twin of the 2D painter's submerged causeway): the
-// gravel bar's crown stands barely proud of the water so it reads as a shallow
-// shoal rather than a dry deck, and the stepping-stone line rides one side of
-// the bar the way the 2D painter puts walkers' stones upstream of cart traffic.
-// The ground-3D "water surface" is sloping water-tinted terrain, so a flat bar
-// hugging the bed (+0.04 was tried) drowns along most of its length and the
-// ford vanishes at tactical distance. 0.35 m over the deepest channel point
-// reads as a gravel bank at low water: clearly visible over the wet stretch,
-// submerging into any rising bed/bank — nothing like a dry deck.
-const FORD_BAR_PROUD_M = 0.35; // bar crown above the deepest in-window bed point
+// gravel bar sits 0.35 m over the channel floor, which leaves its crown 0.15 m
+// below the new 0.5 m water surface. Bed humps may lift individual strips into
+// view, producing a readable shallow shoal rather than a dry bridge deck.
+const FORD_BAR_PROUD_M = 0.35;
 const FORD_BAR_MIN_HALF_WIDTH_M = 1.6; // never thinner than a footpath bar
 const FORD_STONE_OFFSET_M = 0.9; // stone-line gap outside the bar edge
 const FORD_STONE_STEP_M = 1.1; // base center-to-center stone spacing
@@ -761,9 +1335,21 @@ const FORD_WET_MARGIN_M = 1.0;
 // Wet→dry sand for the causeway (a strip darkens as the bed rises toward its
 // crown) and the stone base gray, jittered per stone against the rivet-line
 // read. Dry sand matches deckGeometry's DECK_COLOR.ford fallback.
-const FORD_DRY_SAND_RGB: [number, number, number] = [0xb3 / 255, 0xa3 / 255, 0x7d / 255];
-const FORD_WET_SAND_RGB: [number, number, number] = [0x86 / 255, 0x77 / 255, 0x58 / 255];
-const FORD_STONE_RGB: [number, number, number] = [0x5c / 255, 0x55 / 255, 0x4a / 255];
+const FORD_DRY_SAND_RGB: [number, number, number] = [
+  0xb3 / 255,
+  0xa3 / 255,
+  0x7d / 255,
+];
+const FORD_WET_SAND_RGB: [number, number, number] = [
+  0x86 / 255,
+  0x77 / 255,
+  0x58 / 255,
+];
+const FORD_STONE_RGB: [number, number, number] = [
+  0x5c / 255,
+  0x55 / 255,
+  0x4a / 255,
+];
 
 /** Linear blend of two 0..1 RGB triples, with a brightness jitter, clamped. */
 function tintLerp(
@@ -788,13 +1374,15 @@ function tintLerp(
  * the layout deterministic per world seed.
  *
  * The causeway is a chain of short strips. Each strip stands a low step above
- * the DEEPEST bed point of the whole span (the crossing's shared waterline)
- * but also clears ITS OWN bed hump, so a rising bed lifts the causeway in
+ * the shared river waterline's implied channel floor, but also clears ITS OWN
+ * bed hump, so a rising bed lifts the causeway in
  * steps instead of knifing through one long flat slab. Strips and stones
- * exist only in the WET zone (bed within FORD_WET_MARGIN_M of the channel
- * floor) — the dry landing quarters of the span belong to the trail, not the
- * ford. Strip color runs wet→dry: a strip whose bed nearly reaches its crown
- * is awash and darkens toward wet sand.
+ * exist only in the WET zone — a spot is wet when its cell carries the water
+ * biome (the tint the player actually sees; bed-depth-only gating left holes
+ * over shallow-but-tinted stretches) or, for water-biome-free fixtures, when
+ * its bed sits within FORD_WET_MARGIN_M of the channel floor. Dry landings
+ * belong to the trail, not the ford. Strip color runs wet→dry: a strip whose
+ * bed nearly reaches its crown is awash and darkens toward wet sand.
  *
  * A single center-point bed sample is NOT enough for the waterline: a
  * crossing can sit at the window edge where the center column is bank-height
@@ -806,6 +1394,8 @@ function fordCrossingDecks(
   at: (alongM: number, acrossM: number) => { x: number; z: number },
   halfSpan: number,
   surfaceYAt: (x: number, z: number) => number,
+  waterlineYAt: (x: number, z: number) => number | undefined,
+  isWaterAt: (x: number, z: number) => boolean,
 ): GroundDeck[] {
   const seed = crossing.roadRouteId * 131071 + crossing.riverId * 8209;
   const barHalfWidth = Math.max(
@@ -813,8 +1403,8 @@ function fordCrossingDecks(
     FORD_BAR_MIN_HALF_WIDTH_M,
   );
 
-  // Deepest bed point along the landing-trimmed span (the wet channel —
-  // spanFt includes CROSSING_LANDING_FT of dry approach each end).
+  // Preserve the deepest-bed scan as a legacy fallback for fixtures/saves that
+  // predate waterlineY. Current worlds replace it with the shared river query.
   const landingTrimM = Math.min(halfSpan * 0.4, FORD_LANDING_M);
   let channelFloorY = Number.POSITIVE_INFINITY;
   const sampleHalf = halfSpan - landingTrimM;
@@ -822,6 +1412,10 @@ function fordCrossingDecks(
     const p = at((i / 8) * sampleHalf, 0);
     channelFloorY = Math.min(channelFloorY, surfaceYAt(p.x, p.z));
   }
+  const sharedWaterlineY =
+    waterlineYAt(crossing.xM, crossing.zM) ??
+    channelFloorY + GROUND_RIVER_CHANNEL_DEPTH_M;
+  const sharedChannelFloorY = sharedWaterlineY - GROUND_RIVER_CHANNEL_DEPTH_M;
 
   const decks: GroundDeck[] = [];
 
@@ -833,17 +1427,20 @@ function fordCrossingDecks(
     const a1 = a0 + stripLen;
     let bedMin = Number.POSITIVE_INFINITY;
     let bedMax = Number.NEGATIVE_INFINITY;
+    let touchesWater = false;
     for (const alongM of [a0, (a0 + a1) / 2, a1]) {
       const p = at(alongM, 0);
       const y = surfaceYAt(p.x, p.z);
       bedMin = Math.min(bedMin, y);
       bedMax = Math.max(bedMax, y);
+      if (isWaterAt(p.x, p.z)) touchesWater = true;
     }
     // Dry landing — the trail's job, not the causeway's.
-    if (bedMin > channelFloorY + FORD_WET_MARGIN_M) continue;
+    if (!touchesWater && bedMin > sharedChannelFloorY + FORD_WET_MARGIN_M)
+      continue;
 
     const topY = Math.max(
-      channelFloorY + FORD_BAR_PROUD_M,
+      sharedChannelFloorY + FORD_BAR_PROUD_M,
       bedMax + FORD_BAR_BED_CLEAR_M,
     );
     // 0 = full crown standing over deep water (dry sand), 1 = bed at the
@@ -883,8 +1480,7 @@ function fordCrossingDecks(
   let stoneIdx = 0;
   while (alongM < halfSpan - 0.6 && stoneIdx < FORD_STONE_MAX) {
     stoneIdx += 1;
-    const step =
-      FORD_STONE_STEP_M * (0.75 + fhash01(seed + stoneIdx, 7) * 0.8);
+    const step = FORD_STONE_STEP_M * (0.75 + fhash01(seed + stoneIdx, 7) * 0.8);
     if (fhash01(seed + stoneIdx, 6) >= 0.2) {
       const acrossM =
         side *
@@ -893,7 +1489,10 @@ function fordCrossingDecks(
           (fhash01(seed + stoneIdx, 9) - 0.5) * 1.2);
       const center = at(alongM, acrossM);
       const bedY = surfaceYAt(center.x, center.z);
-      if (bedY > channelFloorY + FORD_WET_MARGIN_M) {
+      if (
+        !isWaterAt(center.x, center.z) &&
+        bedY > sharedChannelFloorY + FORD_WET_MARGIN_M
+      ) {
         alongM += step;
         continue;
       }
@@ -909,7 +1508,14 @@ function fordCrossingDecks(
       });
       decks.push({
         cornersM,
-        topY: bedY + 0.35 + fhash01(seed + stoneIdx, 14) * 0.2,
+        // Stones clear both their own bed and the visible surface, so their
+        // tops remain legible while the lower body reads as submerged.
+        topY: Math.max(
+          bedY + 0.35 + fhash01(seed + stoneIdx, 14) * 0.2,
+          (waterlineYAt(center.x, center.z) ?? sharedWaterlineY) +
+            0.04 +
+            fhash01(seed + stoneIdx, 14) * 0.1,
+        ),
         kind: "fordStone",
         color: tintLerp(
           FORD_STONE_RGB,
@@ -1102,7 +1708,38 @@ export function computeGroundProps(
   region?: RegionArtifact,
   opts: MakeGroundWorldOptions = {},
 ): PropInstance[] {
-  return buildGroundProps(world, seed, region?.seedPath, opts.worldBusinesses);
+  const build = buildGroundPropsInstrumented(
+    world,
+    seed,
+    region?.seedPath,
+    opts.worldBusinesses,
+  );
+  // Instrumentation, not decoration. A surface gate that considered NOTHING is a
+  // gate that never read the ground, and this line is how that shows up in the
+  // running game instead of hiding behind props that all look level.
+  const summary = groundPropsGateSummary();
+  if (summary) console.info(summary);
+  // Same numbers, machine-readable, for the live browser proof. Set on both the
+  // window and the worker global, because a ground window builds in either.
+  (globalThis as unknown as { __araliaPropGate?: unknown }).__araliaPropGate = {
+    summary,
+    considered: build.gateStats.total.considered,
+    kept: build.gateStats.total.kept,
+    rejected: build.gateStats.total.rejected,
+    byReason: build.gateStats.total.byReason,
+    byPass: build.gateStats.byPass,
+    placementSurface: build.placementSurface,
+    placement: build.placement
+      ? {
+          seated: build.placement.report.passedCount,
+          total: build.placement.report.outcomes.length,
+          unfixed: build.placement.failureLines.length,
+          iterations: build.placement.report.totalIterations,
+          failureLines: build.placement.failureLines.slice(0, 20),
+        }
+      : null,
+  };
+  return build.props;
 }
 
 export function makeGroundWorld(
@@ -1111,7 +1748,15 @@ export function makeGroundWorld(
   region?: RegionArtifact,
   opts: MakeGroundWorldOptions = {},
 ): GroundWorld {
-  const wd = localArtifactToWorldData(local, seed);
+  // The anchor cell's biome decides whether this window's `grass` ground is
+  // open meadow or a forest FLOOR (leaf litter). Resolved here rather than in
+  // the adapter because only the bridge knows the atlas; without an anchor
+  // (tests, legacy paths) the adapter keeps its meadow-green default.
+  const wd = localArtifactToWorldData(
+    local,
+    seed,
+    opts.anchorCellId != null ? biomeIdForCell(seed, opts.anchorCellId) : undefined,
+  );
   const townContent = groundTowns(
     local,
     region,
@@ -1151,7 +1796,31 @@ export function makeGroundWorld(
     kind: f.kind,
     xM: (f.x - local.bounds.x) * FEET_TO_METERS,
     zM: (f.y - local.bounds.y) * FEET_TO_METERS,
+    dens: f.dens,
   }));
+
+  /* Town planting, appended after the wild features.
+   *
+   * Ids continue past the last wild feature rather than restarting, because
+   * `buildGroundVegetation` hashes the id to decide who survives the town
+   * margin, and two features sharing an id would be rolled as one plant.
+   *
+   * This runs even though the keep-out has just cleared the same ground, and
+   * that ordering is the whole design: the wilderness is removed because it
+   * grew there by accident, and the town's trees are put back because somebody
+   * planted them.
+   */
+  const maxWildId = features.reduce((m, f) => (f.id > m ? f.id : m), 0);
+  features.push(
+    ...buildTownVegetation(
+      townContent.townParcels,
+      local.bounds.x,
+      local.bounds.y,
+      FEET_TO_METERS,
+      seed,
+      maxWildId + 1,
+    ),
+  );
 
   const extentX = wd.gridSize.cols * GROUND_METERS_PER_CELL;
   const extentZ = wd.gridSize.rows * GROUND_METERS_PER_CELL;
@@ -1238,24 +1907,70 @@ export function makeGroundWorld(
         )
       : null;
 
-  // Snow line (Task 10 MOUNTAINS): resolved ONCE per window from the anchor
-  // cell's atlas latitude (spec §5's 3-band table), reusing the SAME per-seed
-  // atlas cache the canopy seam warmed. Without an anchor (tests/legacy) or a
-  // pack that carries no map coordinates, `resolveSnowLine(null)` yields the
-  // temperate baseline — behavior unchanged.
-  const snowLineH =
-    opts.anchorCellId != null
-      ? resolveSnowLine(anchorLatitudeDeg(seed, opts.anchorCellId))
-      : SNOW_LINE_H;
+  // The window's TREE BIOME (grown-tree wave): the anchor cell's FMG biome
+  // name, which is what `vegetation/treeEnvironment.ts` keys on. Same atlas
+  // cell and same per-seed atlas cache the canopy resolve just used.
+  //
+  // A biome that grows no tree (Marine, Glacier) is left undefined rather than
+  // substituted. Those are exactly the two profiles with `treeDensity: 0` in
+  // generateLocal, so such a window has no trees for it to answer for.
+  let treeBiome: string | undefined;
+  if (opts.anchorCellId != null) {
+    const atlas = getBridgeAtlas(seed);
+    const index = (atlas.pack.cells as unknown as { biome?: ArrayLike<number> })
+      .biome?.[opts.anchorCellId];
+    const name = wfBiomeIndexToName(index);
+    treeBiome = name != null && biomeGrowsTrees(name) ? name : undefined;
+  }
+
+  // Snow line (Task 10 MOUNTAINS, reworked 2026-07-21): resolved ONCE per
+  // window from the anchor cell's atlas latitude (spec §5's 3-band table) as
+  // ABSOLUTE local-elevation feet, then converted to this window's RELATIVE
+  // encoded units — the adapter re-bases heights so the window's lowest point
+  // sits at 0, and the old pack-h threshold compared against those re-based
+  // heights could never fire (a window needed ~990 m of internal relief).
+  // A window entirely below the snow line yields a threshold above 100 (no
+  // snow); a summit window yields a low threshold (caps). Without an anchor
+  // (tests/legacy) the old temperate pack-h baseline threads through unchanged.
+  // Window floor in absolute local-elevation feet — the adapter's re-basing
+  // datum. Shared by the snow-line conversion and the far shells.
+  let baseElevFt = Infinity;
+  {
+    const elev = local.terrain.elevationFt;
+    for (let i = 0; i < elev.length; i++) {
+      if (elev[i] < baseElevFt) baseElevFt = elev[i];
+    }
+  }
+  const anchorLat =
+    opts.anchorCellId != null ? anchorLatitudeDeg(seed, opts.anchorCellId) : null;
+  let snowLineH: number = SNOW_LINE_H;
+  if (opts.anchorCellId != null) {
+    const snowLineFt = resolveSnowLineFt(anchorLat);
+    const heightDomainM =
+      WORLD3D_CONFIG.MAX_TERRAIN_HEIGHT_M * WORLD3D_CONFIG.VERTICAL_EXAGGERATION;
+    snowLineH =
+      (((snowLineFt - baseElevFt) * FEET_TO_METERS) / heightDomainM) * 100;
+  }
 
   // Convert the two Region networks first, then bind their crossing receipts
   // to exact Ground run indexes. Regional bridge decks and tactical crossings
   // now descend from this one relationship instead of matching visual overlap.
-  const regionRivers = region
-    ? regionPolylinesToGround(region.rivers, local, "river")
-    : [];
+  // A region window gets far shells (built below), which retire the sampler's
+  // edge falloff — waterlines and decks must share that convention.
+  const regionRivers = computeGroundRiverWaterlines(
+    region ? regionPolylinesToGround(region.rivers, local, "river") : [],
+    wd.heights,
+    wd.gridSize.cols,
+    wd.gridSize.rows,
+    region == null,
+  );
   const regionRoads = region
-    ? regionPolylinesToGround(region.roads, local, "region-road")
+    ? regionPolylinesToGround(region.roads, local, "region-road", {
+        crossings: region.crossings ?? [],
+        biomeIds: wd.biomeIds,
+        cols: wd.gridSize.cols,
+        rows: wd.gridSize.rows,
+      })
     : [];
   const roads = [...regionRoads, ...townContent.planStreets];
   const crossings = region
@@ -1270,11 +1985,48 @@ export function makeGroundWorld(
     ...townContent.planDecks,
     ...regionalBridgeDecks(
       crossings,
+      regionRivers,
       wd.heights,
       wd.gridSize.cols,
       wd.gridSize.rows,
+      wd.biomeIds,
+      region == null,
     ),
   ];
+
+  // Far-distance shells (2026-07-21): the region ring + atlas horizon ring
+  // that replace the visible world edge. Built only when a region exists (the
+  // game entry paths always have one; minimal test fixtures keep the legacy
+  // edge-falloff look). The horizon needs the atlas's regular grid heightmap;
+  // a pack without one (crafted worlds) gets the region ring alone.
+  let farShells: FarShells | undefined;
+  if (region) {
+    const atlas = getBridgeAtlas(seed);
+    const grid = (atlas as unknown as {
+      grid?: { cellsX?: number; cellsY?: number; cells?: { h?: ArrayLike<number> } };
+    }).grid;
+    const horizonSource =
+      grid?.cells?.h != null && grid.cellsX && grid.cellsY
+        ? {
+            gridH: grid.cells.h,
+            cellsX: grid.cellsX,
+            cellsY: grid.cellsY,
+            graphWidth: atlas.graphWidth,
+            graphHeight: atlas.graphHeight,
+            feetPerPixel: FEET_PER_FMG_PIXEL,
+          }
+        : null;
+    farShells = buildFarShells(
+      region,
+      local,
+      baseElevFt,
+      anchorLat,
+      wd.heights,
+      wd.gridSize.cols,
+      wd.gridSize.rows,
+      horizonSource,
+    );
+  }
 
   const world: GroundWorld = {
     cols: wd.gridSize.cols,
@@ -1294,6 +2046,16 @@ export function makeGroundWorld(
     crossings,
     walls: townContent.planWalls,
     waterBodies: townContent.planWaterBodies,
+    waterRuns: waterRunsFromLevels(
+      resolveGroundWater(
+        wd.gridSize.cols,
+        wd.gridSize.rows,
+        wd.heights,
+        townContent.planWaterBodies,
+      ),
+      wd.gridSize.cols,
+      GROUND_METERS_PER_CELL,
+    ),
     decks,
     gatehouses: townContent.planGatehouses,
     towns: townContent.towns,
@@ -1302,9 +2064,12 @@ export function makeGroundWorld(
     rosters: townContent.rosters,
     occupants: townContent.occupants,
     townPlans: townContent.townPlans,
+    townKeepOuts: townContent.townKeepOuts,
     boundsFeet: { x: local.bounds.x, y: local.bounds.y },
     canopy,
+    treeBiome,
     snowLineH,
+    farShells,
   };
 
   // WAVE-1 props: deterministic dressing (market stalls, dock crates, wilderness
@@ -1435,8 +2200,13 @@ function flattenBuildingTerrainPads(
 }
 
 /** Encoded-height drops (0..100 domain) that shape town water + its banks. */
-const WATER_SURFACE_DROP_ENC = 1.5; // water surface sits this far below the shore
-const WATER_BED_DROP_ENC = 4; // carved bed sits this far below the shore
+// Water depths are authored in METERS. They used to be encoded-height units,
+// which the ×VERTICAL_EXAGGERATION conversion multiplied by 18: a "shallow"
+// 1.5-unit surface drop became 27 m and the 4-unit bed became a 72 m pit. Any
+// town standing lower than 27 m then clamped its water to absolute sea level,
+// which is what opened a 15 m chasm through burg Hajdured.
+const WATER_SURFACE_DROP_M = 1.5; // water surface sits this far below its shore
+const WATER_BED_DROP_M = 4; // carved bed sits this far below the water surface
 const DECK_CLEARANCE_M = 0.4; // deck top stands this far above the water
 
 /**
@@ -1515,6 +2285,9 @@ function carveTownWaterBasins(
   decks: GroundDeck[],
   buildings: GroundWorld["buildings"],
 ): void {
+  // NOTE: this pass shapes the BED and places decks. It deliberately does not
+  // decide where water is — the carved channel changes the terrain, and
+  // `deriveHydrology` then reads that terrain to work out what fills with water.
   const original = heights.slice();
   const centroidOf = (pts: Array<{ x: number; z: number }>) => ({
     x: pts.reduce((s, p) => s + p.x, 0) / (pts.length || 1),
@@ -1530,27 +2303,110 @@ function carveTownWaterBasins(
       protectedCells.add(idx);
   }
 
+  const surfaceDropEnc = metersToHeight(WATER_SURFACE_DROP_M);
+  const bedDropEnc = metersToHeight(WATER_BED_DROP_M);
+  // One centroid sample cannot describe a polygon that spans real relief — a
+  // harbour apron reaches 40% of the town's width. Take the lowest sample
+  // around the ring so the surface never floats above ground on the low side.
+  const lowestShoreEnc = (pts: Array<{ x: number; z: number }>): number => {
+    let lowest = sampleEncodedHeight(original, cols, rows, ...(() => {
+      const c = centroidOf(pts);
+      return [c.x, c.z] as const;
+    })());
+    for (const p of pts) {
+      lowest = Math.min(lowest, sampleEncodedHeight(original, cols, rows, p.x, p.z));
+    }
+    return lowest;
+  };
+
   for (const body of waterBodies) {
     if (body.pointsM.length < 3) continue;
-    const c = centroidOf(body.pointsM);
-    const shoreEnc = sampleEncodedHeight(original, cols, rows, c.x, c.z);
-    body.surfaceY = heightToMeters(
-      Math.max(0, shoreEnc - WATER_SURFACE_DROP_ENC),
-    );
-    const bedEnc = Math.max(0, shoreEnc - WATER_BED_DROP_ENC);
-    for (const idx of polygonCellIndices(cols, rows, body.pointsM)) {
-      if (protectedCells.has(idx)) continue; // buildings win — keep their level pad
+
+    if (body.kind === "sea") {
+      // NOT zero. "Sea level is zero" holds in the world frame, but these
+      // heights are the town artifact's LOCAL 0..100 grid, where one burg's
+      // shore sits at ~16 m — pinning the apron to zero buried it 16 m under its
+      // own beach (measured in-game: water quads at worldY 0 beneath terrain at
+      // 16.4). Take the waterline from the shore edge the apron extends from,
+      // never from its offshore corners, which sample ground far from the water.
+      const shore = body.shoreEdgeM?.length ? body.shoreEdgeM : body.pointsM;
+      let shoreEnc = Infinity;
+      for (const p of shore) {
+        shoreEnc = Math.min(shoreEnc, sampleEncodedHeight(original, cols, rows, p.x, p.z));
+      }
+      body.surfaceY = heightToMeters(Math.max(0, shoreEnc - surfaceDropEnc));
+    } else if (body.kind === "river" && body.centerlineM?.length) {
+      // A river descends. Resolve a height per centerline point from the land it
+      // runs through, then force the series non-increasing downstream so the
+      // surface can never flow uphill on an interpolation wobble.
+      let ceiling = Infinity;
+      for (const p of body.centerlineM) {
+        const shoreEnc = sampleEncodedHeight(original, cols, rows, p.x, p.z);
+        ceiling = Math.min(ceiling, Math.max(0, shoreEnc - surfaceDropEnc));
+        p.surfaceY = heightToMeters(ceiling);
+      }
+      body.surfaceY = body.centerlineM.reduce((lo, p) => Math.min(lo, p.surfaceY), Infinity);
+    } else {
+      // Lake: one flat surface, at its OWN elevation rather than sea level.
+      body.surfaceY = heightToMeters(
+        Math.max(0, lowestShoreEnc(body.pointsM) - surfaceDropEnc),
+      );
+    }
+
+    // Carve the bed under the body so the surface reads with a shoreline. The
+    // reference is the body's own resolved water height, not a re-sampled shore,
+    // so bed and surface can never disagree.
+    const bedEnc = Math.max(0, metersToHeight(body.surfaceY) - bedDropEnc);
+    const carveCell = (idx: number): void => {
+      if (protectedCells.has(idx)) return; // buildings win — keep their level pad
       heights[idx] = Math.min(heights[idx], bedEnc); // lower only — never raise land
+    };
+    for (const idx of polygonCellIndices(cols, rows, body.pointsM)) carveCell(idx);
+
+    // The channel ring is a plain left/right offset of the centerline with no
+    // END CAPS, so the first and last centerline points sit exactly ON the ring
+    // boundary and point-in-polygon leaves their cells uncarved — the river tail
+    // keeps a lip of land standing above its own surface.
+    //
+    // Stamping only the containing cell is not enough: height is read back with
+    // BILINEAR interpolation, so an uncarved neighbor drags the sampled surface
+    // above the water again. Carve the 3x3 block around each centerline cell to
+    // give the interpolation carved ground on every side.
+    if (body.centerlineM) {
+      for (const p of body.centerlineM) {
+        const cx = Math.floor(p.x / GROUND_METERS_PER_CELL);
+        const cy = Math.floor(p.z / GROUND_METERS_PER_CELL);
+        for (let dy = -1; dy <= 1; dy++) {
+          const yy = cy + dy;
+          if (yy < 0 || yy >= rows) continue;
+          for (let dx = -1; dx <= 1; dx++) {
+            const xx = cx + dx;
+            if (xx < 0 || xx >= cols) continue;
+            carveCell(yy * cols + xx);
+          }
+        }
+      }
     }
   }
 
+  // A deck spans water, so it must clear the water it spans rather than a shore
+  // sample that can disagree with the resolved water height.
   for (const deck of decks) {
     if (deck.cornersM.length < 3) continue;
     const c = centroidOf(deck.cornersM);
-    const shoreEnc = sampleEncodedHeight(original, cols, rows, c.x, c.z);
-    deck.topY =
-      heightToMeters(Math.max(0, shoreEnc - WATER_SURFACE_DROP_ENC)) +
-      DECK_CLEARANCE_M;
+    let nearest: { d2: number; y: number } | null = null;
+    for (const body of waterBodies) {
+      for (const p of body.pointsM) {
+        const d2 = (p.x - c.x) ** 2 + (p.z - c.z) ** 2;
+        if (!nearest || d2 < nearest.d2) nearest = { d2, y: body.surfaceY };
+      }
+    }
+    const waterY = nearest
+      ? nearest.y
+      : heightToMeters(
+          Math.max(0, sampleEncodedHeight(original, cols, rows, c.x, c.z) - surfaceDropEnc),
+        );
+    deck.topY = waterY + DECK_CLEARANCE_M;
   }
 }
 
@@ -1829,17 +2685,34 @@ export function canonicalTownWaterAndDecks(
     fp.reduce((s, p) => s + p[1], 0) / (fp.length || 1),
   ];
 
-  const wf = getCanonicalTownWaterFeatures(townAtlas, site.burgId);
+  const wf = getCanonicalTownWaterFeatures(townAtlas, site.burgId, worldSeed);
   const bodiesFt = buildTownWaterBodies({
     rivers: wf.rivers.map(toFeet),
     coast: wf.coast.map(toFeet),
     centroid,
-    channelHalfWidth: spanFt * 0.03,
+    // 3% of the town's span PER SIDE scales with the settlement, so a large
+    // burg got a 50 m river through its middle — the slabs Remy circled. A
+    // river's width has nothing to do with how big the town beside it is, so
+    // the share is capped at a river-sized channel.
+    channelHalfWidth: Math.min(spanFt * 0.03, TOWN_RIVER_MAX_HALF_WIDTH_FT),
     apronDepth: spanFt * 0.4,
   });
-  const waterBodies: GroundWaterBody[] = bodiesFt.map((poly) => ({
-    pointsM: poly.map(([fx, fy]) => toM(fx, fy)),
+  // Heights stay 0 here; carveTownWaterBasins resolves them from the shore.
+  const waterBodies: GroundWaterBody[] = bodiesFt.map((body) => ({
+    pointsM: body.points.map(([fx, fy]) => toM(fx, fy)),
+    kind: body.kind,
     surfaceY: 0,
+    ...(body.kind === "river" && body.centerline
+      ? {
+          centerlineM: body.centerline.map(([fx, fy]) => {
+            const m = toM(fx, fy);
+            return { x: m.x, z: m.z, surfaceY: 0 };
+          }),
+        }
+      : {}),
+    ...(body.shoreEdge
+      ? { shoreEdgeM: body.shoreEdge.map(([fx, fy]) => toM(fx, fy)) }
+      : {}),
   }));
 
   // The burg's architecture family (same resolution as canonicalArtifactTownForSite)
@@ -1889,6 +2762,8 @@ function groundTowns(
   rosters: TownRoster[];
   occupants: GroundOccupantSite[];
   townPlans: Array<{ burgId: number; plan: TownPlan }>;
+  townKeepOuts: TownKeepOut[];
+  townParcels: TownParcel[];
 } {
   const exX = local.bounds.width * FEET_TO_METERS;
   const exZ = local.bounds.height * FEET_TO_METERS;
@@ -1904,6 +2779,8 @@ function groundTowns(
   const rosters: TownRoster[] = [];
   const occupants: GroundOccupantSite[] = [];
   const townPlans: Array<{ burgId: number; plan: TownPlan }> = [];
+  const townKeepOuts: TownKeepOut[] = [];
+  const townParcels: TownParcel[] = [];
 
   for (const t of region?.townSites ?? []) {
     const xM =
@@ -1952,9 +2829,10 @@ function groundTowns(
           x: (fx - local.bounds.x) * FEET_TO_METERS,
           z: (fy - local.bounds.y) * FEET_TO_METERS,
         })),
-        // 2.5 m floor: thinner ribbons vanish against grass at walking
-        // scale (Remy shot-1 review) — a village lane reads at ~8 ft.
-        widthM: Math.max(2.5, s.widthFt * FEET_TO_METERS),
+        // Shared street-width floor (single source: streetRibbons.STREET_MIN_WIDTH_M):
+        // thinner ribbons vanish against grass at walking scale (Remy shot-1
+        // review) — a village lane reads at ~8 ft.
+        widthM: Math.max(STREET_MIN_WIDTH_M, s.widthFt * FEET_TO_METERS),
         sourceKind: "town-street",
         // Street tier tint (avenue/street/lane) → vertex-colored ribbon in 3D.
         colorHex: s.colorHex,
@@ -2017,13 +2895,86 @@ function groundTowns(
         });
       }
     }
+
+    /* The town's footprint, so wilderness plants stop growing through it.
+     *
+     * Built from the wall ring when there is one and from a hull of the plan's
+     * own plot corners and street vertices when there is not. Both are read
+     * here, at the one place the complete plan and the unsplit ring are in
+     * scope — `ground.walls` further down has already been broken into runs at
+     * the gates, and a ring with gaps in it cannot be tested for inside-ness.
+     */
+    const keepOut = buildTownKeepOut(
+      t.burgId,
+      adapted.walls.ring.length >= 3
+        ? adapted.walls.ring.map(([fx, fy]) => ({
+            x: (fx - local.bounds.x) * FEET_TO_METERS,
+            z: (fy - local.bounds.y) * FEET_TO_METERS,
+          }))
+        : null,
+      [
+        ...plan.plots.flatMap((p) =>
+          p.footprint.map(([fx, fy]) => ({
+            x: (fx - local.bounds.x) * FEET_TO_METERS,
+            z: (fy - local.bounds.y) * FEET_TO_METERS,
+          })),
+        ),
+        ...plan.streets.flatMap((s) =>
+          s.centerline.map(([fx, fy]) => ({
+            x: (fx - local.bounds.x) * FEET_TO_METERS,
+            z: (fy - local.bounds.y) * FEET_TO_METERS,
+          })),
+        ),
+      ],
+      TREE_TOWN_MARGIN_M,
+    );
+    if (keepOut) townKeepOuts.push(keepOut);
+
+    /* The town's own planting ground. Kinds carry the meaning — an orchard is
+     * rows of fruit trees, a paddock is grazed bare — so the parcels go through
+     * untouched and townVegetation.ts decides what stands on each. */
+    for (const parcel of adapted.openLand) {
+      if (parcel.polygon.length >= 3) {
+        townParcels.push({ polygon: parcel.polygon as FeetPt[], kind: parcel.kind });
+      }
+    }
+
     // Occupants live where the floor plans say they can (ROSTER-1), and
     // stand at work during business hours (time-of-day v0).
     // Culture-true names from the burg's culture (FMG Markov chains under a
     // scoped PRNG swap in getBurgNamer). No-fallback directive (2026-06-15):
     // getBurgNamer throws if the culture can't resolve — no syllable substitute.
     const nameFor = getBurgNamer(worldSeed, t.burgId);
-    const roster = generateTownRoster(plan, region!.seedPath, { nameFor });
+    // The roster and lazy household must share the canonical TOWN seed. The
+    // former region seed made roster servant names independent from the named
+    // people whose schedules and bodies were generated below.
+    const townSeed = canonicalTownSeedPath(worldSeed, t.burgId);
+    const roster = generateTownRoster(plan, townSeed, { nameFor });
+
+    // Sub-five-foot sliver plots are intentionally omitted from the ground
+    // building bake below because they cover no terrain tile. Remove only their
+    // newly named servants here so the roster cannot claim a servant whose home
+    // has no live body or nameplate surface. Existing generic roster residents
+    // retain their historical behavior outside this servant repair.
+    const renderablePlotIds = new Set(
+      plan.plots
+        .filter((plot) => {
+          if (gridCols <= 0 || gridRows <= 0) return true;
+          const cornersM = plot.footprint.map(([fx, fy]) => ({
+            x: (fx - local.bounds.x) * FEET_TO_METERS,
+            z: (fy - local.bounds.y) * FEET_TO_METERS,
+          }));
+          return (
+            buildingFootprintCells(gridCols, gridRows, cornersM).length > 0
+          );
+        })
+        .map((plot) => plot.id),
+    );
+    roster.occupants = roster.occupants.filter(
+      (occupant) =>
+        occupant.householdMemberId === undefined ||
+        renderablePlotIds.has(occupant.homePlotId),
+    );
 
     // Post-process the roster: map each shopkeeper/artisan to the business owner name
     for (const o of roster.occupants) {
@@ -2038,6 +2989,10 @@ function groundTowns(
           }
         }
         if (ownerNpc) {
+          // The save-state business owner remains authoritative for a worker's
+          // public name. The stable household key does not change, and the live
+          // body below reads this same roster row, so both layers adopt the name
+          // together instead of splitting owner identity from the interior.
           o.name = ownerNpc.name;
         } else {
           // Fallback deterministic name generation if not in state
@@ -2051,6 +3006,15 @@ function groundTowns(
         }
       }
     }
+
+    // Named household servants carry one stable bridge key. Index them once so
+    // the live-body bake can reuse the exact roster id and full name that later
+    // become the close-range marker/nameplate site.
+    const rosterByHouseholdMember = new Map(
+      roster.occupants
+        .filter((occupant) => occupant.householdMemberId !== undefined)
+        .map((occupant) => [occupant.householdMemberId!, occupant] as const),
+    );
 
     rosters.push(roster);
     const byPlot = new Map<
@@ -2084,10 +3048,10 @@ function groundTowns(
     // population-tagged plots briefForPlot resolves workplace/proprietor
     // cross-references against; unpopulated towns carry no `pop`, so it is empty
     // and every building generates briefless exactly as before.
-    const townSeed = canonicalTownSeedPath(worldSeed, t.burgId);
-    const pops = plan.plots
-      .map((pl) => pl.pop)
-      .filter((pop): pop is TownPlotPopulation => pop !== undefined);
+    const pops = householdPopulationsForPlan(plan);
+    // Build the same canonical door graph used by street movement once per town.
+    // Each building packet below carries its exact router endpoint into R3F.
+    const streetGraph = buildStreetGraph(plan);
 
     // Architecture style context (BGv2 Task 7): the burg-level half of every
     // plot's StyleContext, resolved ONCE per town. cultureType is the SAME FMG
@@ -2120,6 +3084,7 @@ function groundTowns(
       const cy = p.footprint.reduce((a, q) => a + q[1], 0) / p.footprint.length;
       const xM = (cx - local.bounds.x) * FEET_TO_METERS;
       const zM = (cy - local.bounds.y) * FEET_TO_METERS;
+      const frontDoor = frontDoorForPlot(streetGraph, p.id);
       const cornersM = p.footprint.map(([fx, fy]) => ({
         x: (fx - local.bounds.x) * FEET_TO_METERS,
         z: (fy - local.bounds.y) * FEET_TO_METERS,
@@ -2182,6 +3147,14 @@ function groundTowns(
           eventLog: opts.buildingEventLogs?.[t.burgId]?.[p.id],
         },
       );
+      // Carry this building's resolved architecture-first wealth beside its
+      // population record. The full set above lets a proprietor workplace use
+      // the owner's HOME wealth instead of its own cross-district stamp.
+      const plotPopulation = householdPopulationForPlot(p);
+      // Resolve the canonical plan exactly once at the building-load boundary.
+      // Occupancy and 3D projection below receive this same object, so neither
+      // consumer rebuilds household/style/history digest keys for a memo hit.
+      const blueprint = blueprintForPlot(plotInput, townSeed);
       // LIVING interiors — live clock: a populated building bakes its OWN
       // family's FULL 24-hour schedule (which hours the windows glow, the hearth
       // is lit, and where each member stands every hour) instead of a single
@@ -2191,8 +3164,15 @@ function groundTowns(
       // for, so the family in the house IS the family the house was built for.
       // Unpopulated plots (no `p.pop`) fall back to the roster figures (the
       // agent-sim commuters), byte-identical to before.
-      const schedule = p.pop
-        ? occupancyScheduleForPlot(p.pop, pops, plotInput, townSeed, townSeed)
+      const schedule = plotPopulation
+        ? occupancyScheduleForPlot(
+            plotPopulation,
+            pops,
+            plotInput,
+            townSeed,
+            townSeed,
+            blueprint,
+          )
         : undefined;
       // Per-member render packets: reuse the EXACT body pipeline the old inline
       // bake used, keyed on the same stable per-member seed so a family's bodies
@@ -2200,9 +3180,18 @@ function groundTowns(
       const occupantsRender: BuildingOccupantRender[] | undefined = schedule
         ? schedule.occupants.map((o) => {
             const member = schedule.household.members[o.memberIndex];
+            const householdMemberId = member
+              ? householdMemberIdentity(schedule.household, o.memberIndex)
+              : undefined;
+            const rosterMember = householdMemberId
+              ? rosterByHouseholdMember.get(householdMemberId)
+              : undefined;
             const occLike = {
-              id: p.id * 100 + o.memberIndex,
-              name: member?.name ?? o.name,
+              // Canonical named members reuse the roster id/name that feeds
+              // their marker nameplate; other family bodies retain the older
+              // deterministic plot/member identity until family unification.
+              id: rosterMember?.id ?? p.id * 100 + o.memberIndex,
+              name: rosterMember?.name ?? member?.name ?? o.name,
               // AgeBand-typed for generateBody: mirror the old inline bake
               // (member.ageBand, 'adult' when a member slot is missing).
               ageBand: member?.ageBand ?? "adult",
@@ -2210,7 +3199,10 @@ function groundTowns(
               occupation: o.occupation,
             };
             return {
+              burgId: t.burgId,
               id: occLike.id,
+              name: occLike.name,
+              ...(householdMemberId ? { householdMemberId } : {}),
               ageBand: o.ageBand,
               // Ancestry group — the entity renderer turns it into a real body
               ...(member?.race ? { race: member.race } : {}),
@@ -2221,6 +3213,21 @@ function groundTowns(
                 ),
               ),
               stationsByHour: o.stationsByHour,
+              // Joined roster members use the authored household schedule as
+              // the door-handoff clock: meals/chores/sleep stay inside, while
+              // work/out slots belong to the street simulation. This preserves
+              // the canonical 07:00 meal before the 08:00 departure instead of
+              // pulling the roster's earlier commute boundary into the house.
+              ...(rosterMember
+                ? {
+                    interiorOwnedByHour: o.stationsByHour.map(
+                      (station) =>
+                        station !== null &&
+                        station.activity !== "work" &&
+                        station.activity !== "out",
+                    ),
+                  }
+                : {}),
             };
           })
         : undefined;
@@ -2239,13 +3246,14 @@ function groundTowns(
             ),
           }));
       // Wall envelope (≤ plot footprint) AND seamless interior parts (L4) from
-      // ONE interior generation. The canonical TOWN seed is essential here:
+      // the SAME canonical blueprint already used for occupancy. The canonical
+      // TOWN seed is essential here:
       // plot ids restart at zero in every burg, so the former region seed made
       // plot 7 in two same-region towns generate the same bones. Town-scoped
       // seeds keep each burg's buildings distinct and also match the household
       // and occupancy paths above. The envelope still sizes roofs/floors so
-      // eaves do not float past the walls. (Was two generateInterior calls per
-      // plot — wasteful for large capitals.)
+      // eaves do not float past the walls. Supplying the plan prevents this
+      // second projection from rebuilding the generator's memo digest key.
       // Window/hearth parts are now tagged with lightRole and the renderer
       // decides emissive live from the schedule — buildInterior no longer paints
       // lit flags, so pass false/false.
@@ -2256,10 +3264,11 @@ function groundTowns(
         occFigures,
         false,
         false,
+        blueprint,
       );
       // Interior envelope in PLAN FEET (blueprint frame): the frame occupant
-      // stations resolve in. envelope.wallWidthM = plan.widthFt * FEET_TO_METERS,
-      // so dividing recovers the exact plan-feet frame.
+      // stations resolve in. envelope.wallWidthM equals blueprint.widthFt times
+      // FEET_TO_METERS, so dividing recovers the exact plan-feet frame.
       const interiorWidthFt = interior.envelope.wallWidthM / FEET_TO_METERS;
       const interiorDepthFt = interior.envelope.wallDepthM / FEET_TO_METERS;
       buildings.push({
@@ -2281,6 +3290,12 @@ function groundTowns(
         name: bizName,
         unlabeled: !isBiz,
         labelRangeM: 20,
+        ...(frontDoor
+          ? {
+              frontDoorOffsetX: (frontDoor[0] - cx) * FEET_TO_METERS,
+              frontDoorOffsetZ: (frontDoor[1] - cy) * FEET_TO_METERS,
+            }
+          : {}),
         parts: interior.parts,
         // Solved roof (BGv2 Task 5): undefined unless the blueprint resolved a
         // style — then the renderer draws it and skips the legacy roof prism.
@@ -2318,6 +3333,8 @@ function groundTowns(
     rosters,
     occupants,
     townPlans,
+    townKeepOuts,
+    townParcels,
   };
 }
 
@@ -2366,6 +3383,26 @@ function fhash01(id: number, salt: number): number {
 }
 
 /**
+ * How much a plant grows between a thicket's edge and its middle. 0.35 means a
+ * fully-enclosed individual is about a third larger than the same plant on the
+ * margin — enough to read as a size gradient across a stand without turning
+ * the clump centers into a separate species.
+ */
+const DENS_SCALE_LIFT = 0.35;
+
+/**
+ * How far past a town's edge the woods keep thinning, in meters.
+ *
+ * Trees get the wider skirt because a mature crown overhangs its trunk by
+ * several meters, so a tree standing exactly on the wall line still puts
+ * branches over the rampart. Bushes get a narrow one on purpose — scrub
+ * crowding the foot of a wall is right, and clearing it leaves the town
+ * sitting on a suspiciously mown apron.
+ */
+const TREE_TOWN_MARGIN_M = 14;
+const BUSH_TOWN_MARGIN_M = 5;
+
+/**
  * Ground-mode vegetation = the artifact's OWN tree/bush features inside the
  * chunk (chunk-local positions), replacing the generic per-vertex scatter —
  * which both honors the deterministic feature placement (delta-layer ids!)
@@ -2375,7 +3412,11 @@ export function buildGroundVegetation(
   ground: GroundWorld,
   cx: number,
   cy: number,
-): { trees: VegetationScatter; bushes: VegetationScatter } {
+): {
+  trees: VegetationScatter;
+  bushes: VegetationScatter;
+  understory: UnderstoryScatter;
+} {
   const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
   const minX = cx * S;
   const minZ = cy * S;
@@ -2387,13 +3428,43 @@ export function buildGroundVegetation(
   const bScl: number[] = [];
   const bRot: number[] = [];
   const bCol: number[] = [];
+  const uPos: number[] = [];
+  const uScl: number[] = [];
+  const uRot: number[] = [];
+  const uCol: number[] = [];
+  const uSpecies: UnderstorySpecies[] = [];
+
+  /* The window's tree biome, carried onto every tree instance (grown-tree
+   * wave). One code per instance, indexing a one-entry table: within a window
+   * the biome is constant, because a local window is smaller than the FMG cell
+   * that names it. The channel is per instance anyway so the renderer reads
+   * every scatter the same way, whichever loader built it.
+   *
+   * Undefined tree biome = no channel. The grown renderer then fails loudly on
+   * these trees instead of inventing a biome for them. */
+  const treeBiome = ground.treeBiome;
 
   // Species palettes (tree-variety dispatch, 2026-06-12): 3 green variants
   // per kind picked by id hash — deterministic, instanced-friendly.
+  //
+  // WARNING: this palette is the SAME three greens in every biome on the map.
+  // It is a tint, not a biome signal, and the old species classifier read it as
+  // one. See treeInstancePartition.ts.
   const TREE_PALETTE: Array<[number, number, number]> = [
     [0.12, 0.3, 0.17],
     [0.18, 0.42, 0.25],
     [0.24, 0.48, 0.23],
+  ];
+  /* Understory greens sit DARKER and yellower than the canopy's.
+   *
+   * A forest floor is lit by whatever the canopy leaked, so ground cover that
+   * matches the crowns above it reads as a mirror rather than as shade. The
+   * yellow shift is the leaf litter and dead frond showing through the live
+   * growth, which is most of what separates a floor from a hedge. */
+  const UNDERSTORY_PALETTE: Array<[number, number, number]> = [
+    [0.20, 0.30, 0.13],
+    [0.26, 0.38, 0.17],
+    [0.31, 0.35, 0.15],
   ];
   const BUSH_PALETTE: Array<[number, number, number]> = [
     [0.29, 0.42, 0.16],
@@ -2401,21 +3472,76 @@ export function buildGroundVegetation(
     [0.24, 0.55, 0.22],
   ];
 
+  const keepOuts = ground.townKeepOuts ?? [];
   for (const f of ground.features) {
-    if (f.kind !== "tree" && f.kind !== "bush") continue;
+    // `townTree`/`townBush` are the town's OWN planting (bridge/townVegetation.ts).
+    // They render as trees and bushes but skip the keep-out below, because that
+    // filter exists to delete plants the wilderness put inside a settlement by
+    // accident — which is the opposite of what these are.
+    const town = f.kind === "townTree" || f.kind === "townBush";
+    const isTree = f.kind === "tree" || f.kind === "townTree";
+    const under = UNDERSTORY_KINDS.has(f.kind);
+    if (!isTree && !under && f.kind !== "bush" && f.kind !== "townBush") continue;
     if (f.xM < minX || f.xM >= minX + S || f.zM < minZ || f.zM >= minZ + S)
       continue;
+
+    /* Towns clear their own ground.
+     *
+     * The wilderness scatter has never known towns exist — it refuses water,
+     * paving and rock and nothing else — so any candidate that landed on a
+     * town's grass was placed, and a live look at Hafting found trees standing
+     * among the roofs. Filtering here rather than in the scatter is deliberate:
+     * generateLocal runs before any town plan exists, and the feature ids it
+     * hands out are what the delta layer keys off, so removing features there
+     * would renumber a player's edits.
+     *
+     * The test is a survival ROLL against a hashed id, not a hard cut, so the
+     * woods feather toward the settlement rather than ending on a contour.
+     * Hashing the id keeps it deterministic and independent of chunk order.
+     */
+    if (keepOuts.length && !town) {
+      const margin = isTree ? TREE_TOWN_MARGIN_M : BUSH_TOWN_MARGIN_M;
+      const clear = townClearance(f.xM, f.zM, keepOuts, margin);
+      if (clear <= 0) continue;
+      if (clear < 1 && fhash01(f.id, 41) > clear) continue;
+    }
+
     const surfaceY = groundSurfaceY(ground, f.xM, f.zM);
     const rot = fhash01(f.id, 11) * Math.PI * 2;
-    if (f.kind === "tree") {
+    // Cohort sizing: a plant's scale rides its depth into the clump, so the
+    // biggest individuals stand mid-thicket and seedlings ring the margin.
+    // Without this every plant draws its size from the same distribution and a
+    // thicket is a crowd of identically-sized adults, which reads as planted.
+    // `dens` is absent on pre-clump-field artifacts and on any feature placed
+    // outside the vegetation streams, and 0 there keeps the old size band.
+    const dens = f.dens ?? 0;
+    if (under) {
+      /* Understory rides `dens` harder than the canopy does. A fern at the
+       * ragged edge of a thicket really is a seedling and one in the middle is
+       * waist high, and that spread is most of what stops a ground layer
+       * reading as a decal repeated across the floor. */
+      uPos.push(f.xM - minX, surfaceY, f.zM - minZ);
+      uScl.push((0.55 + fhash01(f.id, 7) * 0.5) * (1 + 0.8 * dens));
+      uRot.push(rot);
+      uSpecies.push(f.kind as UnderstorySpecies);
+      const uc = UNDERSTORY_PALETTE[Math.floor(fhash01(f.id, 23) * 3)];
+      uCol.push(uc[0], uc[1], uc[2]);
+    } else if (isTree) {
       tPos.push(f.xM - minX, surfaceY, f.zM - minZ);
-      tScl.push(0.7 + fhash01(f.id, 7) * 1.1);
+      /* A planted tree is a narrower size band than a wild one. An orchard of
+       * mixed saplings and giants is not an orchard, and the whole read of the
+       * rows depends on the trees matching each other. */
+      tScl.push(
+        town
+          ? (0.85 + fhash01(f.id, 7) * 0.35) * (1 + DENS_SCALE_LIFT * dens)
+          : (0.7 + fhash01(f.id, 7) * 1.1) * (1 + DENS_SCALE_LIFT * dens),
+      );
       tRot.push(rot);
       const tc = TREE_PALETTE[Math.floor(fhash01(f.id, 23) * 3)];
       tCol.push(tc[0], tc[1], tc[2]);
     } else {
       bPos.push(f.xM - minX, surfaceY, f.zM - minZ);
-      bScl.push(0.35 + fhash01(f.id, 7) * 0.25);
+      bScl.push((0.35 + fhash01(f.id, 7) * 0.25) * (1 + DENS_SCALE_LIFT * dens));
       bRot.push(rot);
       const bc = BUSH_PALETTE[Math.floor(fhash01(f.id, 23) * 3)];
       bCol.push(bc[0], bc[1], bc[2]);
@@ -2423,12 +3549,28 @@ export function buildGroundVegetation(
   }
 
   return {
+    understory: {
+      positions: new Float32Array(uPos),
+      scales: new Float32Array(uScl),
+      rotations: new Float32Array(uRot),
+      colors: new Float32Array(uCol),
+      species: uSpecies.slice(),
+      count: uScl.length,
+    },
     trees: {
       positions: new Float32Array(tPos),
       scales: new Float32Array(tScl),
       rotations: new Float32Array(tRot),
       colors: new Float32Array(tCol),
-      cacheKey: `ground-tree|${cx}|${cy}|${tPos.length}`,
+      ...(treeBiome
+        ? {
+            biomeCodes: new Uint8Array(tScl.length),
+            biomeTable: [treeBiome],
+          }
+        : {}),
+      // `gv2` marks the biome channel: a key minted before it existed means a
+      // payload without one, and must not be reused as if it had one.
+      cacheKey: `ground-tree|gv2|${treeBiome ?? "none"}|${cx}|${cy}|${tPos.length}`,
     },
     bushes: {
       positions: new Float32Array(bPos),
@@ -2451,6 +3593,24 @@ export function buildGroundVegetation(
  */
 const EDGE_FALL_M = 256;
 const EDGE_DROP_H = 14;
+
+/**
+ * Trodden town earth. Warm, desaturated, and clearly browner than any grass
+ * biome, so the pale street ribbons laid over it read as PAVING rather than as
+ * lighter grass. Deliberately NOT the street tint — ground and paving must
+ * separate, which is the same rule the 2D map and the 3D minimap follow.
+ */
+const TOWN_FLOOR_RGB: [number, number, number] = [0.42, 0.36, 0.27];
+
+/** How far past the town ring the bare ground fades back to wild biome. */
+const TOWN_FLOOR_FEATHER_M = 26;
+
+/**
+ * How completely the town overrides its biome. Below 1 so a town on moor,
+ * marsh or red desert keeps a trace of where it stands instead of every
+ * settlement in the world sharing one identical brown.
+ */
+const TOWN_FLOOR_STRENGTH = 0.88;
 
 function edgeFalloffT(
   worldX: number,
@@ -2527,6 +3687,9 @@ export function sampleGroundChunk(
   const h = (xx: number, yy: number) => H[yy * cols + xx] ?? 0;
 
   const HAZE_RGB: [number, number, number] = [0.64, 0.67, 0.64];
+  // The town's own rings, reused as the bare-ground mask (see the town-floor
+  // blend in pass 2). Empty for a window with no settlement in it.
+  const townFloors = ground.townKeepOuts ?? [];
   const extentX = cols * GROUND_METERS_PER_CELL;
   const extentZ = rows * GROUND_METERS_PER_CELL;
 
@@ -2562,8 +3725,12 @@ export function sampleGroundChunk(
       let height = top * (1 - fy) + bot * fy;
 
       // Out-of-window falloff (eased) — 0 inside the artifact, 1 at
-      // EDGE_FALL_M past its border.
-      const edgeT = edgeFalloffT(worldX, worldZ, extentX, extentZ);
+      // EDGE_FALL_M past its border. With far shells the world CONTINUES past
+      // the border (the region ring is seam-blended to these exact edge
+      // heights), so the drop is retired; legacy shell-less worlds keep it.
+      const edgeT = ground.farShells
+        ? 0
+        : edgeFalloffT(worldX, worldZ, extentX, extentZ);
       if (edgeT > 0) {
         height = Math.max(0, height - EDGE_DROP_H * edgeT);
       }
@@ -2591,11 +3758,48 @@ export function sampleGroundChunk(
       let [r, g, b] = biomeColor(outBiomes[idx], height, slope01);
 
       // Snow cap: blend toward SNOW_RGB above the (latitude-banded) snow line.
+      // Steep faces shed snow (2026-07-21): scale the blend down with slope so
+      // crags and cliff walls stay rock — a summit window above the line reads
+      // as snowfields broken by dark faces, not a featureless white blanket.
       if (height >= snowLineH) {
-        const t = Math.min(1, (height - snowLineH) / SNOW_BAND);
+        // slope01 is ~0.29 at 45° (SLOPE01_SCALE), so ×3.2 zeroes snow there:
+        // gentle fields stay white, 25°+ faces break through as rock.
+        const shed = Math.max(0, 1 - slope01 * 3.2);
+        const t = Math.min(1, (height - snowLineH) / SNOW_BAND) * shed;
         r += (SNOW_RGB[0] - r) * t;
         g += (SNOW_RGB[1] - g) * t;
         b += (SNOW_RGB[2] - b) * t;
+      }
+
+      // TOWN FLOOR (2026-08-24, Remy: "what's all that GREEN bleeding through").
+      //
+      // A town's ground was whatever biome it stood on — pasture. Measured on
+      // Hafting, 49.4% of the floor inside the built radius had NOTHING painted
+      // on it: street ribbons covered 30%, buildings 21%, and the rest rendered
+      // as bright meadow grass between the houses. That is not only wrong in
+      // itself; it is why the streets stopped reading. Every one of them was
+      // present in the bake (0 of 89 dropped), but a pale ribbon with vivid
+      // grass on both sides has nothing to separate it from its surroundings,
+      // so the network broke into disconnected strips.
+      //
+      // Feet wear ground bare. Inside the town the biome tint blends toward
+      // trodden earth, feathering out over TOWN_FLOOR_FEATHER_M so the town does
+      // not end on a hard contour. `townClearance` returns 0 inside the ring and
+      // ramps to 1 across the margin, so `1 - clearance` is the town mask — the
+      // same ring the vegetation keep-out already uses, so bare ground and
+      // cleared trees can never disagree about where the town is.
+      if (townFloors.length > 0) {
+        const tz2 = resolution === 1 ? 0 : j / (resolution - 1);
+        const tx2 = resolution === 1 ? 0 : i / (resolution - 1);
+        const wx = (cx + tx2) * S;
+        const wz = (cy + tz2) * S;
+        const townT = 1 - townClearance(wx, wz, townFloors, TOWN_FLOOR_FEATHER_M);
+        if (townT > 0) {
+          const t = townT * TOWN_FLOOR_STRENGTH;
+          r += (TOWN_FLOOR_RGB[0] - r) * t;
+          g += (TOWN_FLOOR_RGB[1] - g) * t;
+          b += (TOWN_FLOOR_RGB[2] - b) * t;
+        }
       }
 
       // Window edge → haze (atmospheric fade of the falling-away horizon).
@@ -2622,19 +3826,37 @@ export function sampleGroundChunk(
     rivers: ground.rivers.flatMap((r) => clipGroundPolylineToChunk(r, cx, cy)),
     roads: ground.roads.flatMap((r) => clipGroundPolylineToChunk(r, cx, cy)),
     walls: ground.walls.flatMap((w) => clipGroundPolylineToChunk(w, cx, cy)),
-    // Town water bodies → filled lake surfaces; dock/bridge decks → timber slabs.
-    // Both clipped to the chunk rectangle and emitted in pseudo-grid (meters/M).
-    lakes: ground.waterBodies.flatMap((b) => {
-      const clipped = clipPolygonToChunk(b.pointsM, cx, cy);
-      return clipped.length >= 3
-        ? [
-            {
-              points: clipped.map((p) => pseudoGrid(p.x, p.z)),
-              surfaceY: b.surfaceY,
-            },
-          ]
-        : [];
-    }),
+    // Water comes from two sources, because neither covers the other:
+    //   - the LAND (waterRuns): hollows that fill and streams that collect,
+    //     worked out by hydrology from the terrain itself;
+    //   - the TOWN PLAN (waterBodies): the river the 2D town plan draws, with
+    //     its bridges. Hydrology cannot invent that river — a town window is
+    //     small and flat, so flow never builds up — and dropping these quads
+    //     left burg Epicea with a river on its map and none in the world.
+    // The quads' width is now capped (TOWN_RIVER_MAX_HALF_WIDTH_FT); their old
+    // town-span share is what made the 52 m slabs.
+    lakes: [
+      ...waterRegionLakesForChunk(ground, cx, cy),
+      ...ground.waterBodies.flatMap((b) => {
+        const clipped = clipPolygonToChunk(b.pointsM, cx, cy);
+        if (clipped.length < 3) return [];
+        // The centerline is NOT clipped: a chunk can hold a slice of channel
+        // whose nearest centerline points lie in the neighbouring chunk, and
+        // dropping them would step the water height at every chunk seam.
+        const centerline = b.centerlineM?.map((p) => {
+          const g = pseudoGrid(p.x, p.z);
+          return { x: g.x, y: g.y, surfaceY: p.surfaceY };
+        });
+        return [
+          {
+            points: clipped.map((p) => pseudoGrid(p.x, p.z)),
+            surfaceY: b.surfaceY,
+            kind: b.kind,
+            ...(centerline?.length ? { centerline } : {}),
+          },
+        ];
+      }),
+    ],
     decks: ground.decks.flatMap((d) => {
       const clipped = clipPolygonToChunk(d.cornersM, cx, cy);
       // Carry the deck kind (TG5) and any per-deck tint through so the
@@ -2725,6 +3947,8 @@ export function sampleGroundChunk(
           interiorDepthFt: b.interiorDepthFt,
           interiorOriginXFt: b.interiorOriginXFt,
           interiorOriginYFt: b.interiorOriginYFt,
+          frontDoorOffsetX: b.frontDoorOffsetX,
+          frontDoorOffsetZ: b.frontDoorOffsetZ,
         })),
       // Mapped occupants (NPCs): these show where keepers or townsfolk are
       // standing inside their buildings during working/home hours. We guard this
@@ -2773,6 +3997,110 @@ export function sampleGroundChunk(
 function inChunk(xM: number, zM: number, cx: number, cy: number): boolean {
   const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
   return xM >= cx * S && xM < (cx + 1) * S && zM >= cy * S && zM < (cy + 1) * S;
+}
+
+/**
+ * The water sheets for one chunk, built from the ground world's wet cells.
+ *
+ * Each body's rows are merged into runs, clipped to the chunk rectangle, and
+ * emitted as flat quads at that body's single level — so one lake reads as one
+ * surface even where it crosses chunk boundaries.
+ */
+function waterRegionLakesForChunk(
+  ground: GroundWorld,
+  cx: number,
+  cy: number,
+): NonNullable<ChunkData["lakes"]> {
+  const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
+  const minX = cx * S;
+  const minZ = cy * S;
+  const maxX = minX + S;
+  const maxZ = minZ + S;
+  const out: NonNullable<ChunkData["lakes"]> = [];
+
+  for (const run of ground.waterRuns ?? []) {
+    // Clip to the chunk box. Runs are axis-aligned, so this is a clamp.
+    const x0 = Math.max(run.minX, minX);
+    const x1 = Math.min(run.maxX, maxX);
+    const z0 = Math.max(run.minZ, minZ);
+    const z1 = Math.min(run.maxZ, maxZ);
+    if (x1 <= x0 || z1 <= z0) continue;
+    out.push({
+      points: [
+        pseudoGrid(x0, z0),
+        pseudoGrid(x1, z0),
+        pseudoGrid(x1, z1),
+        pseudoGrid(x0, z1),
+      ],
+      surfaceY: heightToMeters(run.surfaceEnc),
+      kind: "lake",
+    });
+  }
+  return out;
+}
+
+/** How wide a town river runs, each side of its centerline. */
+const TOWN_RIVER_HALF_WIDTH_M = 3;
+
+/** Cap on a town river's half-width, in feet (~6 m, so a ~12 m river). */
+const TOWN_RIVER_MAX_HALF_WIDTH_FT = 20;
+
+/**
+ * Where the water is, and how high — the land and the map together.
+ *
+ * Two sources, because neither alone is right:
+ *   - The LAND decides standing water. Hollows fill to the height they would
+ *     spill at, so a lake's flat surface falls out of the terrain rather than
+ *     out of a rule, and flow accumulation finds streams where water collects.
+ *   - The MAP decides a town's river course. Flow accumulation cannot find it
+ *     inside a small, flat town window — switching to hydrology alone left burg
+ *     Hajdured with a few ponds and no river, which is not what its atlas says.
+ *     So the course is taken from the authored centerline.
+ *
+ * Height always comes from the land: a river cell sits just below the bank
+ * beside it, which descends with the valley. That is what keeps the surface out
+ * of the hillside — an earlier flat-level-per-body rule buried it under 13 m.
+ */
+function resolveGroundWater(
+  cols: number,
+  rows: number,
+  heights: number[],
+  waterBodies: GroundWaterBody[],
+): Map<number, number> {
+  const hydrology = deriveHydrology({ cols, rows, heights });
+  const water = new Map(hydrology.water);
+
+  // Authored river courses, rasterized from their centerlines.
+  const riverCells = new Set<number>();
+  for (const body of waterBodies) {
+    if (body.kind !== "river" || !body.centerlineM?.length) continue;
+    for (const idx of rasterizeChannel(
+      body.centerlineM,
+      TOWN_RIVER_HALF_WIDTH_M,
+      cols,
+      rows,
+      GROUND_METERS_PER_CELL,
+    )) {
+      riverCells.add(idx);
+    }
+  }
+
+  if (riverCells.size > 0) {
+    // Resolve their heights from the banks. A synthetic wet grid lets the same
+    // tested rule serve both sources.
+    const wetGrid = new Array<string>(cols * rows).fill("grassland");
+    for (const idx of riverCells) wetGrid[idx] = "water";
+    const levels = waterLevelsByCell({
+      cols,
+      rows,
+      biomeIds: wetGrid,
+      heights,
+      surfaceDropEnc: metersToHeight(WATER_SURFACE_DROP_M),
+    });
+    for (const [idx, level] of levels) water.set(idx, level);
+  }
+
+  return water;
 }
 
 function pseudoGrid(xM: number, zM: number): { x: number; y: number } {
@@ -2869,6 +4197,7 @@ function clipGroundPolylineToChunk(
 ): Array<{
   points: { x: number; y: number }[];
   width: number[];
+  waterlineY?: number[];
   colorHex?: string;
 }> {
   const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
@@ -2882,8 +4211,8 @@ function clipGroundPolylineToChunk(
 
   // Segment-walk clip: inside points pass through; boundary crossings add
   // intersection points (incl. both-endpoints-outside pass-throughs).
-  const out: Array<{ x: number; z: number }> = [];
-  const push = (p: { x: number; z: number }) => {
+  const out: Array<{ x: number; z: number; waterlineY?: number }> = [];
+  const push = (p: { x: number; z: number; waterlineY?: number }) => {
     const last = out[out.length - 1];
     if (!last || Math.abs(last.x - p.x) > 1e-6 || Math.abs(last.z - p.z) > 1e-6)
       out.push(p);
@@ -2922,17 +4251,40 @@ function clipGroundPolylineToChunk(
 
   for (let i = 0; i < line.points.length; i++) {
     const p = line.points[i];
-    if (inside(p)) push(p);
+    const pointWaterlineY = line.waterlineY?.[i];
+    if (inside(p)) push({ ...p, waterlineY: pointWaterlineY });
     if (i < line.points.length - 1) {
-      for (const h of edgeHits(p, line.points[i + 1])) push({ x: h.x, z: h.z });
+      for (const h of edgeHits(p, line.points[i + 1])) {
+        const nextWaterlineY = line.waterlineY?.[i + 1];
+        const waterlineY =
+          pointWaterlineY == null || nextWaterlineY == null
+            ? undefined
+            : pointWaterlineY + (nextWaterlineY - pointWaterlineY) * h.t;
+        push({ x: h.x, z: h.z, waterlineY });
+      }
     }
   }
 
   if (out.length < 2) return [];
+  const clippedWaterlineY =
+    line.waterlineY && out.every((point) => point.waterlineY != null)
+      ? out.map((point) => Number(point.waterlineY))
+      : undefined;
   return [
     {
       points: out.map((p) => ({ x: p.x / M, y: p.z / M })),
-      width: out.map(() => line.widthM / M),
+      // The render surface extends one classified cell past each bank so the
+      // water-biome terrain cannot peek out as a blue dry fringe. Physical
+      // crossing/referee widths remain unchanged on GroundWorld.
+      width: out.map(
+        () =>
+          (line.widthM +
+            (line.sourceKind === "river"
+              ? RIVER_SURFACE_BANK_OVERDRAW_M * 2
+              : 0)) /
+          M,
+      ),
+      ...(clippedWaterlineY ? { waterlineY: clippedWaterlineY } : {}),
       // Style-family tint (e.g. wall runs) rides through so wallGeometry can
       // vertex-color the extruded barrier per town.
       colorHex: line.colorHex,
@@ -3094,6 +4446,10 @@ function worldforgeCrossingAt(
         roadDirection: {
           x: crossing.roadDirection.x,
           y: crossing.roadDirection.z,
+        },
+        riverDirection: {
+          x: crossing.riverDirection.x,
+          y: crossing.riverDirection.z,
         },
         centerWorldMeters: { x: crossing.xM, z: crossing.zM },
         spanMeters: crossing.spanM,
@@ -3297,10 +4653,10 @@ function projectWorldforgeTargetableObjects(
     });
   }
 
-  // Catalog props supply identity, size, mundane status, and a physical
-  // footprint. The catalog does not yet distinguish a loose crate from a fixed
-  // fence or publish weight, so those fields remain absent instead of being
-  // invented; restrictive spells treat unknown facts conservatively.
+  // Catalog props now publish their full target-fact envelope straight from the
+  // definition: mobility (loose vs fixed), an authored weight, and a real
+  // magical flag. Movement/telekinesis spells can stop treating props as
+  // unknown-conservative and apply their pound limits honestly.
   for (const prop of ground.props) {
     const definition = PROPS_BY_ID.get(prop.defId);
     if (!definition) continue;
@@ -3328,7 +4684,9 @@ function projectWorldforgeTargetableObjects(
       position,
       size: PROP_OBJECT_SIZE[definition.sizeClass],
       isWornOrCarried: false,
-      isMagical: false,
+      isMagical: definition.isMagical,
+      isFixedToSurface: definition.isFixedToSurface,
+      weightPounds: definition.weightPounds,
       source: {
         kind: "worldforge-prop",
         sourceId,
@@ -3409,6 +4767,90 @@ function projectWorldforgeOccupants(
   return projected;
 }
 
+/**
+ * How far the water-surface fallback will look for a bank, in ground cells.
+ *
+ * Only used when a wet tile has no resolved run over it. Eight cells is ~12 m —
+ * wide enough to find the shore of a town river or a small pond from its middle,
+ * narrow enough that an open sea tile finds nothing and keeps its own reading
+ * instead of inventing a surface from a coastline hundreds of meters away.
+ */
+const WATER_SURFACE_BANK_SEARCH_CELLS = 8;
+
+/**
+ * The WATER SURFACE height in world meters at a point, or null when the point
+ * has no water over it.
+ *
+ * Why this exists: `groundSurfaceY` samples the terrain heightfield, which under
+ * water is the SEABED. A referee tile that reports the bed is telling the player
+ * a river bottom is the floor they are standing on — elevation deltas, cover
+ * math, and the 2D height readout all then describe a drained channel. Water
+ * tiles must report the sheet the player would swim on.
+ *
+ * Two sources, in the order they are trustworthy:
+ *   1. `ground.waterRuns` — the resolved per-body surface the renderer draws.
+ *      This is the SAME number the 3D water quad uses, so the referee grid and
+ *      the visible sheet agree by construction.
+ *   2. A bank-derived fallback, for a world baked before `waterRuns` existed (the
+ *      field is optional) or a wet cell the run pass did not cover. It mirrors
+ *      `findWaterRegions`' rule — a body sits `WATER_SURFACE_DROP_M` below the
+ *      LOWEST land around it — but reads only a bounded neighborhood instead of
+ *      flood-filling the whole grid per tile.
+ *
+ * Returns null rather than guessing when neither source answers; the caller then
+ * keeps the terrain reading, which is still the best fact available.
+ */
+function groundWaterSurfaceY(
+  ground: GroundWorld,
+  wxM: number,
+  wzM: number,
+): number | null {
+  for (const run of ground.waterRuns ?? []) {
+    if (
+      wxM >= run.minX &&
+      wxM < run.maxX &&
+      wzM >= run.minZ &&
+      wzM < run.maxZ
+    ) {
+      return heightToMeters(run.surfaceEnc);
+    }
+  }
+
+  // Bank fallback. Scan a bounded square of the biome grid for the lowest DRY
+  // cell; the spill point of the body is that bank minus the surface drop.
+  const { cols, rows, heights, biomeIds } = ground;
+  const cx = Math.round(wxM / GROUND_METERS_PER_CELL);
+  const cy = Math.round(wzM / GROUND_METERS_PER_CELL);
+  let lowestBankEnc = Number.POSITIVE_INFINITY;
+  for (
+    let dy = -WATER_SURFACE_BANK_SEARCH_CELLS;
+    dy <= WATER_SURFACE_BANK_SEARCH_CELLS;
+    dy++
+  ) {
+    const yy = cy + dy;
+    if (yy < 0 || yy >= rows) continue;
+    for (
+      let dx = -WATER_SURFACE_BANK_SEARCH_CELLS;
+      dx <= WATER_SURFACE_BANK_SEARCH_CELLS;
+      dx++
+    ) {
+      const xx = cx + dx;
+      if (xx < 0 || xx >= cols) continue;
+      const idx = yy * cols + xx;
+      const biome = biomeIds[idx];
+      if (biome === "water" || biome === "ocean") continue;
+      const enc = heights[idx];
+      if (typeof enc !== "number") continue;
+      if (enc < lowestBankEnc) lowestBankEnc = enc;
+    }
+  }
+  if (!Number.isFinite(lowestBankEnc)) return null;
+
+  return heightToMeters(
+    Math.max(0, lowestBankEnc - metersToHeight(WATER_SURFACE_DROP_M)),
+  );
+}
+
 /** Optional extraction facts beyond the referee patch dimensions. */
 export interface ExtractLocalTerrainPatchOptions {
   width?: number;
@@ -3441,6 +4883,55 @@ export function extractLocalTerrainPatch(
   const centerX = Math.floor(width / 2);
   const centerY = Math.floor(height / 2);
 
+  // ── Placement gate, BATTLEMAP profile ──────────────────────────────────────
+  // The battle map is the surface where a floating crate is a referee bug, not
+  // a cosmetic one: the player stands five feet from it. It therefore runs the
+  // STRICTEST profile — 1.5 in contact tolerance, 0.75 contact ratio — while
+  // the town and region profiles stay loose. The three never become uniform.
+  //
+  // `throwOnFailure` is wired and OFF, with a measured reason. Aralia renders
+  // ground at 12x vertical exaggeration (world3d/config VERTICAL_EXAGGERATION),
+  // so an ordinary town street reads as a 7 degree grade and wilderness relief
+  // steepens in proportion. The prop catalog's tilt caps are authored for REAL
+  // grades — a crate leans at most 3 degrees, a bush at most 12 — so a natural
+  // scatter prop on exaggerated relief cannot meet a 1.5 in bar however it is
+  // posed. Measured on seed 42: a town crop seats 184 of 194, a wilderness crop
+  // 79 of 118. Turning the throw on today aborts every wilderness encounter, so
+  // the failures are REPORTED loudly with their real numbers and the
+  // exaggeration-versus-tilt-cap conflict goes to the catalog owner. Nothing is
+  // hidden: the console line and `__araliaBattlemapGate` carry the full count.
+  //
+  // Ground co-deformation is off for the same evidence-led reason. Pads are
+  // legal on a battle map, but in a dense dockside cluster each pad un-seats its
+  // neighbors: measured 181 of 194 seated with pads, 184 of 194 without.
+  const cropMarginM = GROUND_METERS_PER_CELL * 2;
+  const cropMinX = playerX - (centerX + 2) * GROUND_METERS_PER_CELL - cropMarginM;
+  const cropMaxX = playerX + (width - centerX + 1) * GROUND_METERS_PER_CELL + cropMarginM;
+  const cropMinZ = playerZ - (centerY + 2) * GROUND_METERS_PER_CELL - cropMarginM;
+  const cropMaxZ = playerZ + (height - centerY + 1) * GROUND_METERS_PER_CELL + cropMarginM;
+  const cropProps = (ground.props ?? []).filter(
+    (p) =>
+      p.xM >= cropMinX && p.xM <= cropMaxX && p.zM >= cropMinZ && p.zM <= cropMaxZ,
+  );
+  const battleProbe = makeGroundWorldProbe(ground);
+  const battleGate = runPropPlacementGate(cropProps, battleProbe, {
+    surface: "battlemap",
+    groundMutable: false,
+    throwOnFailure: false,
+  });
+  const battlePads = battleGate.patchedSurface;
+  const battleGateLine = summarizeGate("battlemap", battleGate.result);
+  if (battleGate.result) {
+    console.info(battleGateLine);
+    (globalThis as unknown as { __araliaBattlemapGate?: unknown }).__araliaBattlemapGate = {
+      summary: battleGateLine,
+      seated: battleGate.result.report.passedCount,
+      total: battleGate.result.report.outcomes.length,
+      pads: battleGate.result.report.patches.length,
+      iterations: battleGate.result.report.totalIterations,
+    };
+  }
+
   for (let ty = 0; ty < height; ty++) {
     for (let tx = 0; tx < width; tx++) {
       const tileId = `${tx}-${ty}`;
@@ -3457,8 +4948,16 @@ export function extractLocalTerrainPatch(
       // BattleMap stores relief in renderer units, so divide by the shared
       // metres-per-unit constant. TerrainMesh and the 2D player readout both
       // import this contract instead of repeating a magic 0.3 value.
-      const realHeightM = groundSurfaceY(ground, wx, wz);
-      const elevation = realHeightM / BATTLE_MAP_ELEVATION_METERS_PER_UNIT;
+      // Ground pads the battle-map gate laid are baked in HERE, so the tile the
+      // referee reads is the same ground the corrected props stand on.
+      const padDeltaM = battlePads
+        ? battlePads.deltaAt(wx / FEET_TO_METERS, wz / FEET_TO_METERS) * FEET_TO_METERS
+        : 0;
+      const realHeightM = groundSurfaceY(ground, wx, wz) + padDeltaM;
+      // `elevation` is `let` because a WET tile corrects it below (step 2b) to
+      // the water surface. The dry reading is kept as the fallback and as the
+      // bed reference the correction never drops beneath.
+      let elevation = realHeightM / BATTLE_MAP_ELEVATION_METERS_PER_UNIT;
 
       // 2. Biome lookup: Sample the nearest biome from the GroundWorld grid.
       const bx = Math.max(
@@ -3481,6 +4980,26 @@ export function extractLocalTerrainPatch(
         terrain = "mud";
       } else if (groundBiome === "mountain" || groundBiome === "tundra") {
         terrain = "rock";
+      }
+
+      // 2b. WATER SURFACE correction. Step 1 sampled the heightfield, which under
+      // water is the SEABED — so a river tile used to report the channel bottom
+      // as the referee's floor height. A wet tile must carry the surface the
+      // player would swim on, the same sheet the 3D renderer draws.
+      //
+      // Kept as a MAX against the bed reading: a resolved surface should always
+      // stand above its bed, and if a stale or coarse source ever says otherwise
+      // the tile falls back to the terrain rather than reporting a floor that
+      // sits inside the ground. The dry branch is untouched, so land tiles keep
+      // exactly the elevation they had before this correction existed.
+      if (terrain === "water") {
+        const waterSurfaceM = groundWaterSurfaceY(ground, wx, wz);
+        if (waterSurfaceM !== null) {
+          elevation = Math.max(
+            elevation,
+            waterSurfaceM / BATTLE_MAP_ELEVATION_METERS_PER_UNIT,
+          );
+        }
       }
 
       // Roads are source-backed surfaces laid over the base material. Ordinary

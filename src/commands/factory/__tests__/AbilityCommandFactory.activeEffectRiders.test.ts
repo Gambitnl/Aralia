@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createMockCombatCharacter, WeaponAttackCommand } from './AbilityCommandFactory.testHelpers';
+import { WeaponAttackCommand, createMockCombatCharacter, createMockCombatState } from './AbilityCommandFactory.testHelpers';
 import type { Ability, GameState } from './AbilityCommandFactory.testHelpers';
 
 describe('Active Effect Riders (Bless/Bane)', () => {
@@ -57,7 +57,7 @@ describe('Active Effect Riders (Bless/Bane)', () => {
       gameState: { characters: [attacker, target], combatLog: [] } as unknown as GameState
     });
 
-    const newState = await command.execute({ characters: [attacker, target], combatLog: [] } as any);
+    const newState = await command.execute(createMockCombatState({ characters: [attacker, target] }));
 
     const logMessage = newState.combatLog[0].message;
     // The base modifier is 4, but with bless it should be > 4
@@ -119,7 +119,7 @@ describe('Active Effect Riders (Bless/Bane)', () => {
       gameState: { characters: [attacker, target], combatLog: [] } as unknown as GameState
     });
 
-    const newState = await command.execute({ characters: [attacker, target], combatLog: [] } as any);
+    const newState = await command.execute(createMockCombatState({ characters: [attacker, target] }));
 
     const logMessage = newState.combatLog[0].message;
     expect(logMessage).toMatch(/Mods: -\d+ \[Bane\]/);

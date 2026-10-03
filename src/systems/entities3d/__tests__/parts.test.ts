@@ -125,6 +125,11 @@ describe('entities3d part catalog', () => {
 
   it('every mesh part builds an Object3D containing at least one mesh', () => {
     for (const def of allParts().filter((p) => p.kind === 'mesh')) {
+      // round 11 (humanoid-anatomy): faceSculpt is the per-race face-param
+      // CARRIER (speciesProfiles features → assembleEntity → the humanoid
+      // face loft). It builds no geometry by design — the loft it
+      // parameterizes is the head itself, not an attached part.
+      if (def.id === 'faceSculpt') continue;
       const { object } = def.buildMesh!({
         frame: FRAME,
         palette: PALETTE,

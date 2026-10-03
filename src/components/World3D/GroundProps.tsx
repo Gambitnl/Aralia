@@ -36,6 +36,16 @@ const WOOD_DARK = '#6e5238';
 const WOOD_PALE = '#a58a63';
 const STONE = '#8d8d86';
 const ROCK = '#7d7a72';
+/**
+ * Moss-bearing stone. `mossy-rock-cluster` used to draw in the plain ROCK tone,
+ * so the only thing separating it from a bare boulder was its name. This is a
+ * green-GRAY, not a green: measured against the vegetation scatter's bush tone
+ * (sRGB 76,125,58 — saturation 0.37) this sits at saturation 0.10, so moss
+ * reads as a stain on stone rather than as foliage sitting on the ground.
+ * Rejected: tinting the whole boulder bucket, which would have turned every
+ * bare rock in every biome green to fix one def.
+ */
+const ROCK_MOSSY = '#747c66';
 const LEAF = '#4f7a3a';
 const HAY = '#c9a94e';
 const SACK = '#b3a07d';
@@ -50,6 +60,92 @@ interface Placed {
   rot: number;
   scale: number;
   variant: number;
+  /**
+   * SURFACE FIT, baked by the prop engine's stage-2 gate (propSchema
+   * `PropInstance.surface`). `tilt` is the lean toward the ground normal in
+   * radians and `tiltAxis` is the horizontal axis it turns about. Zero for a
+   * prop placed before a probe existed, which draws exactly as it used to.
+   */
+  tilt: number;
+  tiltAxis: [number, number];
+}
+
+/**
+ * Reusable scratch quaternions for the tilt composition. A tilted prop turns
+ * about a HORIZONTAL axis, applied OUTSIDE the yaw (premultiply) so the lean
+ * stays in world space and the prop leans downhill instead of sideways. Same
+ * order as vegetationInstanceMatrices.ts, which is the working example.
+ */
+function composeTiltedRotation(
+  out: THREE.Quaternion,
+  up: THREE.Vector3,
+  scratchAxis: THREE.Vector3,
+  scratchTilt: THREE.Quaternion,
+  it: Placed,
+): THREE.Quaternion {
+  out.setFromAxisAngle(up, it.rot);
+  if (it.tilt !== 0) {
+    scratchAxis.set(it.tiltAxis[0], 0, it.tiltAxis[1]);
+    if (scratchAxis.lengthSq() > 1e-12) {
+      scratchAxis.normalize();
+      // NEGATIVE angle. `fitToSurface` returns the axis `[-nz, nx]/|n_xz|`, and
+      // a right-hand turn about that axis by +tiltRad lifts the DOWNHILL edge —
+      // it leans the prop off the slope instead of onto it. See the sign note in
+      // bridge/propPlacementGate.ts; the placement gate scores the same lean.
+      scratchTilt.setFromAxisAngle(scratchAxis, -it.tilt);
+      out.premultiply(scratchTilt);
+    }
+  }
+  return out;
+}
+
+/**
+ * Per-def size multiplier for the reused rock and bush render forms.
+ *
+ * Every def routed through RENDER_VARIANT used to draw at its bucket's single
+ * `base`, so the catalog's own S/M/L `sizeClass` reached the screen nowhere: a
+ * measured forest window drew all 867 stone instances between 1.57 m and 2.33 m
+ * wide (median 2.02 m) whether they were a cairn, a scatter boulder or a crag,
+ * and all 7,057 bush-form instances between 1.57 m and 2.32 m wide whether they
+ * were a fern clump or a hedge run. One size for everything is what makes a
+ * window read as a diorama — a 2 m "fern" beside an 8 m tree has no scale.
+ *
+ * Multipliers are finer-grained than the catalog's three size classes on
+ * purpose (a menhir and a rubble pile are both M but are not the same object),
+ * and they are ordered to agree with it: every S def sits below 1, every L def
+ * above. A def absent here draws at its bucket's base.
+ */
+const FORM_SIZE_MUL: Record<string, number> = {
+  // Stone family (bucket base = the plain scatter boulder).
+  cairn: 0.75, 'stone-planter': 0.8, 'stone-bench': 0.9,
+  'mossy-rock-cluster': 1.05, 'rubble-pile': 1.1, 'standing-stone': 1.15,
+  'broken-wall': 1.4, 'boundary-wall': 1.5, 'dry-stone-wall': 1.5,
+  'gravel-bar': 1.6, 'toppled-column': 1.6, 'rock-outcrop': 2.4,
+  // Vegetation family (bucket base = the plain scatter bush).
+  'mushroom-ring': 0.5, 'fern-clump': 0.65, 'gorse-shrub': 0.85, topiary: 0.9,
+  'reed-bed': 1.1, 'bramble-patch': 1.2, deadfall: 1.2,
+  'ivy-mass': 1.4, 'hedge-run': 1.6,
+};
+
+/**
+ * Defs whose instances draw a long-tailed size spread instead of one nominal
+ * size. Loose stone is the case that needs it: a real scatter is mostly rubble
+ * you step over with the occasional one you walk around, and the placement
+ * engine's own `variation.scale` is a flat 0.85–1.15 for every prop in the
+ * game, which cannot produce that shape. Restricted to the two scatter stone
+ * defs — a menhir or a dry-stone wall is a built thing and has a size.
+ */
+const SIZE_TAIL_DEFS = new Set(['boulder', 'mossy-rock-cluster']);
+
+/**
+ * Cubed uniform in [0.6, 1.7]: median 0.74, ~10% above 1.15, ~1% above 1.6.
+ * Against the boulder base that puts the typical scatter rock at roughly knee
+ * height with rare ones at chest height, and nothing within reach of the 17 m
+ * trees measured in the same window.
+ */
+function sizeTail(x: number, z: number, variant: number): number {
+  const u = hash3(0x51ce, Math.round(x * 29), Math.round(z * 29), variant);
+  return 0.6 + 1.1 * u * u * u;
 }
 
 /**
@@ -106,20 +202,36 @@ function placeAll(
 ): Map<string, Placed[]> {
   const byDef = new Map<string, Placed[]>();
   for (const p of props) {
-    const y = groundSurfaceY(ground, p.xM, p.zM);
+    // The surface fit is authoritative when present: the gate read the ground
+    // at this exact point, sank the prop into the slope, and the placement loop
+    // then seated it. `groundYM` is already METERS (propSchema), so no unit
+    // conversion belongs here. Re-sampling the heightfield instead would undo
+    // both corrections and put the prop back on the surface it floats over.
+    const y = p.surface
+      ? p.surface.groundYM - p.surface.sinkM
+      : groundSurfaceY(ground, p.xM, p.zM);
     // Route the emitted def to its render form (expanded defs reuse a bespoke
     // form; see RENDER_VARIANT). Referee data is unaffected — that lives in the
     // catalog and is imprinted separately at combat extraction.
     const form = renderFormFor(p.defId);
-    let list = byDef.get(form);
-    if (!list) byDef.set(form, (list = []));
+    // Mossy stone is bucketed apart from bare stone because the two differ only
+    // by instance tint, and an InstancedMesh carries one base color per mesh.
+    const key = p.defId === 'mossy-rock-cluster' ? 'boulder-mossy' : form;
+    let list = byDef.get(key);
+    if (!list) byDef.set(key, (list = []));
+    const x = p.xM - origin.x;
+    const z = p.zM - origin.z;
+    let scale = p.variation.scale * (FORM_SIZE_MUL[p.defId] ?? 1);
+    if (SIZE_TAIL_DEFS.has(p.defId)) scale *= sizeTail(x, z, p.variation.variant);
     list.push({
-      x: p.xM - origin.x,
+      x,
       y,
-      z: p.zM - origin.z,
+      z,
       rot: p.rotationRad,
-      scale: p.variation.scale,
+      scale,
       variant: p.variation.variant,
+      tilt: p.surface?.tiltRad ?? 0,
+      tiltAxis: p.surface?.tiltAxis ?? [1, 0],
     });
   }
   return byDef;
@@ -144,6 +256,8 @@ interface InstancedFormProps {
   colorJitter?: number;
   /** Geometry carries a baked `color` attribute (owned town-prop generators). */
   vertexColors?: boolean;
+  /** Dense foliage uses ambient contact shading instead of a second depth pass. */
+  castShadow?: boolean;
 }
 
 /** Deterministic per-instance tone: hash the placement into an HSL wobble. */
@@ -161,7 +275,17 @@ function jitterColor(baseColor: THREE.Color, it: Placed, amount: number, out: TH
   return out;
 }
 
-const InstancedForm: React.FC<InstancedFormProps> = ({ items, geometry, color, base, yLift, flat, colorJitter, vertexColors }) => {
+const InstancedForm: React.FC<InstancedFormProps> = ({
+  items,
+  geometry,
+  color,
+  base,
+  yLift,
+  flat,
+  colorJitter,
+  vertexColors,
+  castShadow = true,
+}) => {
   const ref = useRef<THREE.InstancedMesh>(null);
   useLayoutEffect(() => {
     const mesh = ref.current;
@@ -169,14 +293,19 @@ const InstancedForm: React.FC<InstancedFormProps> = ({ items, geometry, color, b
     const m = new THREE.Matrix4();
     const q = new THREE.Quaternion();
     const up = new THREE.Vector3(0, 1, 0);
+    const tiltAxis = new THREE.Vector3();
+    const tiltQuat = new THREE.Quaternion();
     const s = new THREE.Vector3();
     const pos = new THREE.Vector3();
     const baseC = new THREE.Color(color);
     const c = new THREE.Color();
     items.forEach((it, i) => {
-      q.setFromAxisAngle(up, it.rot);
+      composeTiltedRotation(q, up, tiltAxis, tiltQuat, it);
       s.set(base[0] * it.scale, base[1] * it.scale, base[2] * it.scale);
-      pos.set(it.x, it.y + base[1] * it.scale * yLift, it.z);
+      // A leaning form raises its center by less than its upright height, so
+      // the lift follows cos(tilt) — the same correction the vegetation
+      // matrices apply. Without it a tilted rock lifts off its own slope.
+      pos.set(it.x, it.y + base[1] * it.scale * yLift * Math.cos(it.tilt), it.z);
       m.compose(pos, q, s);
       mesh.setMatrixAt(i, m);
       if (colorJitter) mesh.setColorAt(i, jitterColor(baseC, it, colorJitter, c));
@@ -187,7 +316,12 @@ const InstancedForm: React.FC<InstancedFormProps> = ({ items, geometry, color, b
   }, [items, base, yLift, color, colorJitter]);
   if (items.length === 0) return null;
   return (
-    <instancedMesh ref={ref} args={[geometry, undefined, items.length]} frustumCulled={false} castShadow>
+    <instancedMesh
+      ref={ref}
+      args={[geometry, undefined, items.length]}
+      frustumCulled={false}
+      castShadow={castShadow}
+    >
       <meshStandardMaterial
         color={colorJitter || vertexColors ? '#ffffff' : color}
         vertexColors={vertexColors ?? false}
@@ -200,150 +334,204 @@ const InstancedForm: React.FC<InstancedFormProps> = ({ items, geometry, color, b
 
 // ── Composed (multi-primitive) forms — low-count town props ─────────────────
 
-const flatMat = (color: string) => (
-  <meshStandardMaterial color={color} roughness={0.9} flatShading />
-);
-
-const MarketStall: React.FC<{ p: Placed }> = ({ p }) => {
-  const s = p.scale;
-  const awning = p.variant % 2 === 0 ? CANVAS : CANVAS_RED;
-  return (
-    <group position={[p.x, p.y, p.z]} rotation={[0, p.rot, 0]} scale={s}>
-      {/* 4 corner posts */}
-      {([[-1.1, -0.7], [1.1, -0.7], [-1.1, 0.7], [1.1, 0.7]] as const).map(([px, pz], i) => (
-        <mesh key={i} position={[px, 1.05, pz]} castShadow>
-          <cylinderGeometry args={[0.05, 0.06, 2.1, 6]} />
-          {flatMat(WOOD_DARK)}
-        </mesh>
-      ))}
-      {/* counter slab */}
-      <mesh position={[0, 0.85, 0]} castShadow>
-        <boxGeometry args={[2.4, 0.1, 1.5]} />
-        {flatMat(WOOD)}
-      </mesh>
-      {/* angled awning plane */}
-      <mesh position={[0, 2.25, 0.15]} rotation={[-0.35, 0, 0]} castShadow>
-        <boxGeometry args={[2.6, 0.05, 1.9]} />
-        {flatMat(awning)}
-      </mesh>
-    </group>
-  );
-};
-
-const Woodpile: React.FC<{ p: Placed }> = ({ p }) => (
-  <group position={[p.x, p.y, p.z]} rotation={[0, p.rot, 0]} scale={p.scale}>
-    {/* stacked log rows: 3 + 2 + 1 */}
-    {([[-0.3, 0.15], [0, 0.15], [0.3, 0.15], [-0.15, 0.42], [0.15, 0.42], [0, 0.68]] as const).map(([ox, oy], i) => (
-      <mesh key={i} position={[ox, oy, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-        <cylinderGeometry args={[0.14, 0.14, 1.4, 7]} />
-        {flatMat(i % 2 ? WOOD_DARK : WOOD)}
-      </mesh>
-    ))}
-  </group>
-);
-
-const FenceRun: React.FC<{ p: Placed }> = ({ p }) => {
-  // A ~6 m run: 4 posts + 2 rails, oriented by rotationRad.
-  const posts = [-3, -1, 1, 3];
-  return (
-    <group position={[p.x, p.y, p.z]} rotation={[0, p.rot, 0]} scale={p.scale}>
-      {posts.map((ox, i) => (
-        <mesh key={i} position={[ox, 0.55, 0]} castShadow>
-          <boxGeometry args={[0.12, 1.1, 0.12]} />
-          {flatMat(WOOD_DARK)}
-        </mesh>
-      ))}
-      <mesh position={[0, 0.85, 0]} castShadow>
-        <boxGeometry args={[6.4, 0.08, 0.08]} />
-        {flatMat(WOOD)}
-      </mesh>
-      <mesh position={[0, 0.45, 0]} castShadow>
-        <boxGeometry args={[6.4, 0.08, 0.08]} />
-        {flatMat(WOOD)}
-      </mesh>
-    </group>
-  );
-};
-
-const Well: React.FC<{ p: Placed }> = ({ p }) => (
-  <group position={[p.x, p.y, p.z]} rotation={[0, p.rot, 0]} scale={p.scale}>
-    {/* stone ring */}
-    <mesh position={[0, 0.45, 0]} castShadow>
-      <cylinderGeometry args={[0.8, 0.85, 0.9, 10]} />
-      {flatMat(STONE)}
-    </mesh>
-    {/* two roof posts */}
-    <mesh position={[-0.75, 1.3, 0]} castShadow>
-      <boxGeometry args={[0.1, 1.8, 0.1]} />
-      {flatMat(WOOD_DARK)}
-    </mesh>
-    <mesh position={[0.75, 1.3, 0]} castShadow>
-      <boxGeometry args={[0.1, 1.8, 0.1]} />
-      {flatMat(WOOD_DARK)}
-    </mesh>
-    {/* tiny gable roof (cone-as-prism look via rotated box pair) */}
-    <mesh position={[0, 2.35, 0]} rotation={[0, 0, Math.PI / 4]} castShadow>
-      <boxGeometry args={[1.5, 1.5, 1.6]} />
-      {flatMat(WOOD)}
-    </mesh>
-  </group>
-);
-
-const Trough: React.FC<{ p: Placed }> = ({ p }) => (
-  <group position={[p.x, p.y, p.z]} rotation={[0, p.rot, 0]} scale={p.scale}>
-    {/* open box: floor + 4 walls */}
-    <mesh position={[0, 0.06, 0]} castShadow>
-      <boxGeometry args={[1.8, 0.12, 0.7]} />
-      {flatMat(WOOD_DARK)}
-    </mesh>
-    <mesh position={[0, 0.3, -0.31]}><boxGeometry args={[1.8, 0.5, 0.08]} />{flatMat(WOOD)}</mesh>
-    <mesh position={[0, 0.3, 0.31]}><boxGeometry args={[1.8, 0.5, 0.08]} />{flatMat(WOOD)}</mesh>
-    <mesh position={[-0.86, 0.3, 0]}><boxGeometry args={[0.08, 0.5, 0.7]} />{flatMat(WOOD)}</mesh>
-    <mesh position={[0.86, 0.3, 0]}><boxGeometry args={[0.08, 0.5, 0.7]} />{flatMat(WOOD)}</mesh>
-    {/* water surface */}
-    <mesh position={[0, 0.4, 0]}>
-      <boxGeometry args={[1.62, 0.02, 0.52]} />
-      <meshStandardMaterial color="#4a7d96" roughness={0.3} />
-    </mesh>
-  </group>
-);
-
-const Cart: React.FC<{ p: Placed }> = ({ p }) => (
-  <group position={[p.x, p.y, p.z]} rotation={[0, p.rot, 0]} scale={p.scale}>
-    {/* bed */}
-    <mesh position={[0, 0.62, 0]} castShadow>
-      <boxGeometry args={[2.0, 0.12, 1.1]} />
-      {flatMat(WOOD)}
-    </mesh>
-    {/* side rails */}
-    <mesh position={[0, 0.85, -0.5]}><boxGeometry args={[2.0, 0.35, 0.06]} />{flatMat(WOOD_PALE)}</mesh>
-    <mesh position={[0, 0.85, 0.5]}><boxGeometry args={[2.0, 0.35, 0.06]} />{flatMat(WOOD_PALE)}</mesh>
-    {/* two wheels */}
-    <mesh position={[0, 0.45, -0.62]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-      <cylinderGeometry args={[0.45, 0.45, 0.08, 10]} />
-      {flatMat(WOOD_DARK)}
-    </mesh>
-    <mesh position={[0, 0.45, 0.62]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-      <cylinderGeometry args={[0.45, 0.45, 0.08, 10]} />
-      {flatMat(WOOD_DARK)}
-    </mesh>
-    {/* handles */}
-    <mesh position={[1.35, 0.75, 0]} rotation={[0, 0, -0.25]}>
-      <boxGeometry args={[0.9, 0.07, 0.07]} />
-      {flatMat(WOOD_DARK)}
-    </mesh>
-  </group>
-);
-
-const CrateStack: React.FC<{ p: Placed }> = ({ p }) => (
-  <group position={[p.x, p.y, p.z]} rotation={[0, p.rot, 0]} scale={p.scale}>
-    <mesh position={[-0.35, 0.35, 0]} castShadow><boxGeometry args={[0.7, 0.7, 0.7]} />{flatMat(WOOD)}</mesh>
-    <mesh position={[0.4, 0.3, 0.1]} rotation={[0, 0.3, 0]} castShadow><boxGeometry args={[0.6, 0.6, 0.6]} />{flatMat(WOOD_PALE)}</mesh>
-    <mesh position={[-0.1, 0.98, 0.05]} rotation={[0, -0.2, 0]} castShadow><boxGeometry args={[0.62, 0.62, 0.62]} />{flatMat(WOOD_DARK)}</mesh>
-  </group>
-);
-
 // ── Main component ───────────────────────────────────────────────────────────
+
+// ============================================================================
+// Batched composed props
+// ============================================================================
+// The original components above are the visual specification for each form.
+// The live renderer below reproduces those same primitive transforms in shared
+// InstancedMeshes, preventing a capital from allocating hundreds of duplicate
+// geometries and materials for fence posts, wheels, planks, and crates.
+// ============================================================================
+
+type ComposedGeometryKey = 'box' | 'stall-post' | 'woodpile-log' | 'well-ring' | 'cart-wheel';
+
+interface ComposedPrimitive {
+  geometry: ComposedGeometryKey;
+  color: string;
+  position: readonly [number, number, number];
+  rotation?: readonly [number, number, number];
+  scale?: readonly [number, number, number];
+  roughness?: number;
+  flat?: boolean;
+  castShadow?: boolean;
+}
+
+interface ComposedPrimitiveBatch {
+  key: string;
+  geometry: ComposedGeometryKey;
+  color: string;
+  roughness: number;
+  flat: boolean;
+  castShadow: boolean;
+  matrices: THREE.Matrix4[];
+}
+
+/** Reproduce one authored prop's exact visible primitive pieces. */
+function composedPrimitives(defId: string, p: Placed): ComposedPrimitive[] {
+  if (defId === 'market-stall') {
+    const posts = ([[-1.1, -0.7], [1.1, -0.7], [-1.1, 0.7], [1.1, 0.7]] as const)
+      .map(([x, z]): ComposedPrimitive => ({
+        geometry: 'stall-post', color: WOOD_DARK, position: [x, 1.05, z], castShadow: true,
+      }));
+    return [
+      ...posts,
+      { geometry: 'box', color: WOOD, position: [0, 0.85, 0], scale: [2.4, 0.1, 1.5], castShadow: true },
+      {
+        geometry: 'box',
+        color: p.variant % 2 === 0 ? CANVAS : CANVAS_RED,
+        position: [0, 2.25, 0.15],
+        rotation: [-0.35, 0, 0],
+        scale: [2.6, 0.05, 1.9],
+        castShadow: true,
+      },
+    ];
+  }
+
+  if (defId === 'woodpile') {
+    return ([[-0.3, 0.15], [0, 0.15], [0.3, 0.15], [-0.15, 0.42], [0.15, 0.42], [0, 0.68]] as const)
+      .map(([x, y], index) => ({
+        geometry: 'woodpile-log',
+        color: index % 2 ? WOOD_DARK : WOOD,
+        position: [x, y, 0],
+        rotation: [Math.PI / 2, 0, 0],
+        castShadow: true,
+      }));
+  }
+
+  if (defId === 'fence-run') {
+    return [
+      ...[-3, -1, 1, 3].map((x): ComposedPrimitive => ({
+        geometry: 'box', color: WOOD_DARK, position: [x, 0.55, 0], scale: [0.12, 1.1, 0.12], castShadow: true,
+      })),
+      { geometry: 'box', color: WOOD, position: [0, 0.85, 0], scale: [6.4, 0.08, 0.08], castShadow: true },
+      { geometry: 'box', color: WOOD, position: [0, 0.45, 0], scale: [6.4, 0.08, 0.08], castShadow: true },
+    ];
+  }
+
+  if (defId === 'well') {
+    return [
+      { geometry: 'well-ring', color: STONE, position: [0, 0.45, 0], castShadow: true },
+      { geometry: 'box', color: WOOD_DARK, position: [-0.75, 1.3, 0], scale: [0.1, 1.8, 0.1], castShadow: true },
+      { geometry: 'box', color: WOOD_DARK, position: [0.75, 1.3, 0], scale: [0.1, 1.8, 0.1], castShadow: true },
+      {
+        geometry: 'box', color: WOOD, position: [0, 2.35, 0], rotation: [0, 0, Math.PI / 4],
+        scale: [1.5, 1.5, 1.6], castShadow: true,
+      },
+    ];
+  }
+
+  if (defId === 'water-trough') {
+    return [
+      { geometry: 'box', color: WOOD_DARK, position: [0, 0.06, 0], scale: [1.8, 0.12, 0.7], castShadow: true },
+      { geometry: 'box', color: WOOD, position: [0, 0.3, -0.31], scale: [1.8, 0.5, 0.08] },
+      { geometry: 'box', color: WOOD, position: [0, 0.3, 0.31], scale: [1.8, 0.5, 0.08] },
+      { geometry: 'box', color: WOOD, position: [-0.86, 0.3, 0], scale: [0.08, 0.5, 0.7] },
+      { geometry: 'box', color: WOOD, position: [0.86, 0.3, 0], scale: [0.08, 0.5, 0.7] },
+      { geometry: 'box', color: '#4a7d96', position: [0, 0.4, 0], scale: [1.62, 0.02, 0.52], roughness: 0.3, flat: false },
+    ];
+  }
+
+  if (defId === 'cart') {
+    return [
+      { geometry: 'box', color: WOOD, position: [0, 0.62, 0], scale: [2, 0.12, 1.1], castShadow: true },
+      { geometry: 'box', color: WOOD_PALE, position: [0, 0.85, -0.5], scale: [2, 0.35, 0.06] },
+      { geometry: 'box', color: WOOD_PALE, position: [0, 0.85, 0.5], scale: [2, 0.35, 0.06] },
+      { geometry: 'cart-wheel', color: WOOD_DARK, position: [0, 0.45, -0.62], rotation: [Math.PI / 2, 0, 0], castShadow: true },
+      { geometry: 'cart-wheel', color: WOOD_DARK, position: [0, 0.45, 0.62], rotation: [Math.PI / 2, 0, 0], castShadow: true },
+      { geometry: 'box', color: WOOD_DARK, position: [1.35, 0.75, 0], rotation: [0, 0, -0.25], scale: [0.9, 0.07, 0.07] },
+    ];
+  }
+
+  if (defId === 'crate-stack') {
+    return [
+      { geometry: 'box', color: WOOD, position: [-0.35, 0.35, 0], scale: [0.7, 0.7, 0.7], castShadow: true },
+      { geometry: 'box', color: WOOD_PALE, position: [0.4, 0.3, 0.1], rotation: [0, 0.3, 0], scale: [0.6, 0.6, 0.6], castShadow: true },
+      { geometry: 'box', color: WOOD_DARK, position: [-0.1, 0.98, 0.05], rotation: [0, -0.2, 0], scale: [0.62, 0.62, 0.62], castShadow: true },
+    ];
+  }
+
+  return [];
+}
+
+const COMPOSED_PROP_IDS = [
+  'market-stall', 'woodpile', 'fence-run', 'well', 'water-trough', 'cart', 'crate-stack',
+] as const;
+
+/** Combine the prop transform with each primitive's local transform. */
+function buildComposedPrimitiveBatches(byDef: Map<string, Placed[]>): ComposedPrimitiveBatch[] {
+  const batches = new Map<string, ComposedPrimitiveBatch>();
+  const up = new THREE.Vector3(0, 1, 0);
+  const tiltAxis = new THREE.Vector3();
+  const tiltQuat = new THREE.Quaternion();
+  const parentPosition = new THREE.Vector3();
+  const parentRotation = new THREE.Quaternion();
+  const parentScale = new THREE.Vector3();
+  const localPosition = new THREE.Vector3();
+  const localRotation = new THREE.Quaternion();
+  const localScale = new THREE.Vector3();
+  const parentMatrix = new THREE.Matrix4();
+  const localMatrix = new THREE.Matrix4();
+
+  COMPOSED_PROP_IDS.forEach((defId) => {
+    (byDef.get(defId) ?? []).forEach((placed) => {
+      parentPosition.set(placed.x, placed.y, placed.z);
+      composeTiltedRotation(parentRotation, up, tiltAxis, tiltQuat, placed);
+      parentScale.setScalar(placed.scale);
+      parentMatrix.compose(parentPosition, parentRotation, parentScale);
+
+      composedPrimitives(defId, placed).forEach((primitive) => {
+        const roughness = primitive.roughness ?? 0.9;
+        const flat = primitive.flat ?? true;
+        const castShadow = primitive.castShadow ?? false;
+        const key = `${primitive.geometry}|${primitive.color}|${roughness}|${flat ? 1 : 0}|${castShadow ? 1 : 0}`;
+        let batch = batches.get(key);
+        if (!batch) {
+          batch = { key, geometry: primitive.geometry, color: primitive.color, roughness, flat, castShadow, matrices: [] };
+          batches.set(key, batch);
+        }
+
+        localPosition.fromArray(primitive.position);
+        localRotation.setFromEuler(new THREE.Euler(...(primitive.rotation ?? [0, 0, 0])));
+        localScale.fromArray(primitive.scale ?? [1, 1, 1]);
+        localMatrix.compose(localPosition, localRotation, localScale);
+        batch.matrices.push(new THREE.Matrix4().multiplyMatrices(parentMatrix, localMatrix));
+      });
+    });
+  });
+
+  return [...batches.values()];
+}
+
+const ComposedPrimitiveBatchMesh: React.FC<{
+  batch: ComposedPrimitiveBatch;
+  geometry: THREE.BufferGeometry;
+}> = ({ batch, geometry }) => {
+  const ref = useRef<THREE.InstancedMesh>(null);
+
+  useLayoutEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    batch.matrices.forEach((matrix, index) => mesh.setMatrixAt(index, matrix));
+    mesh.count = batch.matrices.length;
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.computeBoundingBox();
+    mesh.computeBoundingSphere();
+  }, [batch.matrices]);
+
+  if (batch.matrices.length === 0) return null;
+  return (
+    <instancedMesh
+      name={`ground-props:composed:${batch.key}`}
+      ref={ref}
+      args={[geometry, undefined, batch.matrices.length]}
+      castShadow={batch.castShadow}
+    >
+      <meshStandardMaterial color={batch.color} roughness={batch.roughness} flatShading={batch.flat} />
+    </instancedMesh>
+  );
+};
 
 interface GroundPropsProps {
   ground?: GroundWorld | null;
@@ -368,6 +556,16 @@ const GroundProps: React.FC<GroundPropsProps> = ({ ground, sceneOrigin }) => {
       bushes: [0, 1, 2].map((i) => createBushGeometry(i + 21)),
       boulders: [0, 1, 2, 3].map((i) => createRockGeometry(i + 7)),
       logs: [0, 1, 2].map((i) => createLogGeometry(i + 42)),
+      // Reused shapes for the batched multi-part forms. Boxes carry their
+      // dimensions in instance matrices; cylinders retain the exact authored
+      // taper and segment counts from the former per-prop JSX.
+      composed: {
+        box: new THREE.BoxGeometry(1, 1, 1),
+        'stall-post': new THREE.CylinderGeometry(0.05, 0.06, 2.1, 6),
+        'woodpile-log': new THREE.CylinderGeometry(0.14, 0.14, 1.4, 7),
+        'well-ring': new THREE.CylinderGeometry(0.8, 0.85, 0.9, 10),
+        'cart-wheel': new THREE.CylinderGeometry(0.45, 0.45, 0.08, 10),
+      } satisfies Record<ComposedGeometryKey, THREE.BufferGeometry>,
       // Owned TOWN prop generators (vertex-colored composed meshes):
       // gravestone/tomb/cross, lantern/sign/fingerpost, statue/milestone/
       // shrine, anvil/grindstone, scarecrow, brazier.
@@ -376,10 +574,19 @@ const GroundProps: React.FC<GroundPropsProps> = ({ ground, sceneOrigin }) => {
     [],
   );
 
+  // Transform work runs only when the canonical prop placement changes. Live
+  // frames reuse the resulting instance matrices without rebuilding anything.
+  const composedBatches = useMemo(
+    () => (byDef ? buildComposedPrimitiveBatches(byDef) : []),
+    [byDef],
+  );
+
   if (!byDef) return null;
   const get = (id: string) => byDef.get(id) ?? [];
   const bouldersByVariant: Placed[][] = [[], [], [], []];
   for (const b of get('boulder')) bouldersByVariant[b.variant % 4].push(b);
+  const mossyByVariant: Placed[][] = [[], [], [], []];
+  for (const b of get('boulder-mossy')) mossyByVariant[b.variant % 4].push(b);
   const bushesByVariant: Placed[][] = [[], [], []];
   for (const b of get('bush')) bushesByVariant[b.variant % 3].push(b);
   const logsByVariant: Placed[][] = [[], [], []];
@@ -392,14 +599,39 @@ const GroundProps: React.FC<GroundPropsProps> = ({ ground, sceneOrigin }) => {
       <InstancedForm items={get('barrel')} geometry={geoms.barrel} color={WOOD_DARK} base={[1, 0.95, 1]} yLift={0.5} />
       <InstancedForm items={get('sack')} geometry={geoms.sack} color={SACK} base={[0.9, 0.55, 0.9]} yLift={0.45} />
       <InstancedForm items={get('haystack')} geometry={geoms.hay} color={HAY} base={[2.4, 1.9, 2.4]} yLift={0.42} />
+      {/* Bucket bases are the size of the PLAIN scatter member of each family;
+          every other def in the family reaches its own size through
+          FORM_SIZE_MUL. Before this the bases were 1.5/1.7 wide, which sized
+          the whole family off its largest member. */}
+      {/* Thousands of small bushes already receive N8AO contact shading. Their
+          shadow silhouettes disappear into the forest floor at this scale,
+          while replaying their 240-triangle crowns consumed about 1.86 million
+          shadow-pass triangles in the measured town view. */}
       {bushesByVariant.map((items, i) => (
-        <InstancedForm key={`bush-${i}`} items={items} geometry={geoms.bushes[i]} color={LEAF} base={[1.5, 1.1, 1.5]} yLift={0.45} colorJitter={0.35} />
+        <InstancedForm
+          key={`bush-${i}`}
+          items={items}
+          geometry={geoms.bushes[i]}
+          color={LEAF}
+          base={[1.0, 0.85, 1.0]}
+          yLift={0.45}
+          colorJitter={0.35}
+          castShadow={false}
+        />
       ))}
       {logsByVariant.map((items, i) => (
         <InstancedForm key={`log-${i}`} items={items} geometry={geoms.logs[i]} color={WOOD_DARK} base={[1, 1, 1]} yLift={0} colorJitter={0.25} />
       ))}
+      {/* Jitter 0.18 -> 0.26: the measured spread across a forest window's 867
+          stone instances was sRGB value 0.43-0.53, which at distance collapses
+          to one flat gray. Stone wants value variation more than hue variation,
+          and ROCK's saturation is low enough (linear-HSL 0.11) that the wider
+          swing cannot make a rock read as colored. */}
       {bouldersByVariant.map((items, i) => (
-        <InstancedForm key={`rock-${i}`} items={items} geometry={geoms.boulders[i]} color={ROCK} base={[1.7, 1.3, 1.7]} yLift={0.3} colorJitter={0.18} />
+        <InstancedForm key={`rock-${i}`} items={items} geometry={geoms.boulders[i]} color={ROCK} base={[1.0, 0.95, 1.0]} yLift={0.3} colorJitter={0.26} />
+      ))}
+      {mossyByVariant.map((items, i) => (
+        <InstancedForm key={`mossrock-${i}`} items={items} geometry={geoms.boulders[i]} color={ROCK_MOSSY} base={[1.0, 0.95, 1.0]} yLift={0.3} colorJitter={0.26} />
       ))}
       {/* Owned town-prop forms: one instanced mesh per (def, variant). The
           geometries are ground-origin unit-frame with baked vertex colors,
@@ -421,14 +653,15 @@ const GroundProps: React.FC<GroundPropsProps> = ({ ground, sceneOrigin }) => {
           />
         ));
       })}
-      {/* Composed low-count forms */}
-      {get('market-stall').map((p, i) => <MarketStall key={i} p={p} />)}
-      {get('woodpile').map((p, i) => <Woodpile key={i} p={p} />)}
-      {get('fence-run').map((p, i) => <FenceRun key={i} p={p} />)}
-      {get('well').map((p, i) => <Well key={i} p={p} />)}
-      {get('water-trough').map((p, i) => <Trough key={i} p={p} />)}
-      {get('cart').map((p, i) => <Cart key={i} p={p} />)}
-      {get('crate-stack').map((p, i) => <CrateStack key={i} p={p} />)}
+      {/* Composed forms now preserve their individual shapes through instance
+          matrices while sharing one mesh per geometry/material/shadow tuple. */}
+      {composedBatches.map((batch) => (
+        <ComposedPrimitiveBatchMesh
+          key={batch.key}
+          batch={batch}
+          geometry={geoms.composed[batch.geometry]}
+        />
+      ))}
     </group>
   );
 };

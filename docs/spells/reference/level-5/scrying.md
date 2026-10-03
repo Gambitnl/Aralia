@@ -87,5 +87,4 @@ Spell Tags:
 Detection
 Available For:
 Capture Method: http
-Legacy Page: true
 -->

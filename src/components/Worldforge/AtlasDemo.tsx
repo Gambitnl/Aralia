@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 17/07/2026, 22:34:53
+ * Last Sync: 20/07/2026, 00:38:29
  * Dependents: App.tsx
- * Imports: 20 files
+ * Imports: 21 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -20,7 +20,7 @@
  *
  * It provides inputs for configuring world seed, heightmap template, and cell density,
  * triggers the procedural generation pipeline synchronously, and displays the map output
- * inside the interactive AtlasMapView viewport. It also supports descending (clicking)
+ * inside the canonical AtlasSvgView viewport. It also supports descending (clicking)
  * into a refined L1 local region view for any selected land cell.
  *
  * Called by: Dev sandbox, orchestrator proof rigs, or game setup screens.
@@ -28,7 +28,7 @@
  *   - generateAtlas.ts (L0 atlas generator)
  *   - generateRegion.ts (L1 region generator)
  *   - regionDraw.ts (pure L1 region renderer)
- *   - AtlasMapView.tsx (interactive L0 viewport)
+ *   - AtlasSvgView.tsx (canonical interactive L0 viewport)
  */
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
@@ -41,8 +41,8 @@ import { generateLocal } from "../../systems/worldforge/local/generateLocal";
 import { rootSeedPath } from "../../systems/worldforge/seedPath";
 import { FEET_PER_FMG_PIXEL } from "../../systems/worldforge/adapter/atlasArtifact";
 import type { LocalArtifact, RegionArtifact } from "../../systems/worldforge/artifacts";
-import type { AtlasOverlayMode, AtlasView } from "./atlasDraw";
-import AtlasMapView from "./AtlasMapView";
+import type { AtlasOverlayMode } from "./atlasDraw";
+import AtlasSvgView from "./AtlasSvgView";
 import RegionMapView from "./RegionMapView";
 import LocalMapView from "./LocalMapView";
 import WorldforgeGroundDrilldown from "./WorldforgeGroundDrilldown";
@@ -288,11 +288,6 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
   
   // Hover & selection notifications
   const [hintMessage, setHintMessage] = useState<string | null>(null);
-
-  // View state tracking & cooldown for scroll-to-descend
-  const lastAtlasViewRef = useRef<AtlasView | undefined>(undefined);
-  const [initialAtlasView, setInitialAtlasView] = useState<AtlasView | undefined>(undefined);
-  const [cooldownActive, setCooldownActive] = useState<boolean>(false);
 
   // Autofit viewport (Remy, 2026-06-11): the map canvas tracks the available
   // window space instead of a fixed 960×540. Measured via ResizeObserver on
@@ -598,22 +593,9 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
     setGroundDrilldown(null);
   };
 
-  // Ascend back to L0 world map
+  // Ascend back to the canonical L0 world map. The SVG renderer owns its own
+  // fit and pan state, so returning no longer revives the canvas-only zoom handoff.
   const handleAscend = () => {
-    // Restore previous view below the descend threshold (hysteresis) + cooldown.
-    // Clamp tracks DESCEND_SCALE (16 since the deep-zoom change) — the old 3.5
-    // clamp threw users back to near-fit zoom after every ascend.
-    if (lastAtlasViewRef.current) {
-      setInitialAtlasView({
-        ...lastAtlasViewRef.current,
-        scale: Math.min(15.5, lastAtlasViewRef.current.scale),
-      });
-    }
-    setCooldownActive(true);
-    setTimeout(() => {
-      setCooldownActive(false);
-    }, 500); // 500ms transition cooldown
-
     setViewMode("atlas");
     setSelectedCellId(null);
     setInspectCellId(null);
@@ -864,8 +846,22 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
               </div>
               )}
 
-              {/* Render Options Panel */}
-              <div className="bg-gray-900/85 backdrop-blur-md border border-gray-800 rounded-xl p-5 flex flex-col gap-4 shadow-xl">
+              {/* The canonical SVG map owns its visible layer preferences and
+                  persists them by world seed. Keep the former canvas switches
+                  outside the rendered and accessibility trees; the isolated
+                  reference code remains for now so this route retirement does
+                  not erase optional cartography ideas without a separate audit. */}
+              <div className="bg-gray-900/85 backdrop-blur-md border border-gray-800 rounded-xl p-4 text-xs leading-relaxed text-gray-300 shadow-xl">
+                <div className="flex items-center gap-2 font-semibold text-indigo-300">
+                  <Layers size={16} />
+                  CANONICAL MAP OPTIONS
+                </div>
+                <p className="mt-2 text-gray-400">
+                  Use the controls on the SVG map. Its seed-scoped preferences
+                  are shared with World Generation and the in-game MapPane.
+                </p>
+              </div>
+              <div className="hidden" aria-hidden="true">
                 <div className="flex items-center gap-2 border-b border-gray-800 pb-3">
                   <Layers size={16} className="text-indigo-400" />
                   <h2 className="text-sm font-bold tracking-wide text-gray-300">CARTOGRAPHY OPTIONS</h2>
@@ -1136,7 +1132,7 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
                 <HelpCircle size={12} className="mt-0.5 shrink-0 sm:mt-0" />
                 <span className="min-w-0">
                   {viewMode === "atlas"
-                    ? "Click any land cell to zoom-descend into region details"
+                    ? "Select a land cell, then use its details card to descend"
                     : viewMode === "region"
                     ? "Click anywhere to descend into the 5 ft local area; Esc ascends"
                     : viewMode === "local"
@@ -1154,9 +1150,9 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
             </div>
           )}
 
-          {/* Travel-mode toggle — floats top-center; mirrors the Azgaar world
-              map's Travel button. Forces the cell mesh on and enables the
-              cursor-following cell highlight. */}
+          {/* This retained hierarchy uses SVG travel emphasis only as an
+              inspection aid. Actual travel still belongs to MapPane, preserving
+              the established gameplay and provisioning contracts. */}
           {viewMode === "atlas" && atlas && (
             <button
               type="button"
@@ -1187,30 +1183,26 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
             </div>
           )}
 
-          {/* Main Visualizer Views — sized to the measured workspace */}
+          {/* L0 now uses the same SVG renderer as World Generation and MapPane.
+              Region, Local, and Ground remain the established artifact chain. */}
           <div className="w-full h-full flex items-center justify-center">
             {viewMode === "atlas" ? (
               atlas ? (
-                <AtlasMapView
+                <AtlasSvgView
                   atlas={atlas}
                   width={mapSize.width}
                   height={mapSize.height}
-                  showScaleBar={showScaleBar}
-                  showGraticule={showGraticule}
-                  showPolitical={overlayMode === "political"}
-                  overlayMode={overlayMode}
-                  showMarkers={showMarkers}
-                  showZones={showZones}
-                  showMilitary={showMilitary}
-                  showCells={showCells || travelMode}
-                  travelMode={travelMode}
-                  onCellClick={handleCellClick}
-                  onCellSelect={setInspectCellId}
-                  selectedCellId={inspectCellId}
-                  initialView={initialAtlasView}
-                  onViewChange={(v) => { lastAtlasViewRef.current = v; }}
-                  cooldownActive={cooldownActive}
-                  markers={demoMarkers}
+                  prefsScope={embeddedInGame && worldSeed != null ? worldSeed : seed}
+                  travelActive={travelMode}
+                  onPickCell={(info) => setInspectCellId(info.i)}
+                  markers={showMarkers ? demoMarkers.map((marker) => ({
+                    // Overlay positions are retained in absolute feet for the
+                    // deeper canvas tiers. SVG L0 consumes graph coordinates,
+                    // so adapt only at this renderer boundary.
+                    x: marker.x / FEET_PER_FMG_PIXEL,
+                    y: marker.y / FEET_PER_FMG_PIXEL,
+                    label: marker.label,
+                  })) : []}
                 />
               ) : (
                 <div className="flex flex-col items-center justify-center text-gray-500 gap-2">

@@ -17,8 +17,8 @@
 /**
  * @file MainMenu.tsx
  * This component renders the main menu screen for the Aralia RPG.
- * It provides options to start a new game, load a saved game (placeholder),
- * and view a game compendium (placeholder).
+ * It provides options to start a new game, load a saved game (via LoadGameModal),
+ * and view the game compendium (via Glossary).
  *
  * The 2026-03-25 change removes the standalone "Quick Start (Dev)" button from the
  * main menu and folds that action into the shared Dev Menu modal instead. This keeps
@@ -36,9 +36,14 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { LoadGameModal, SaveSlotSelector } from '../SaveLoad';
 import { deleteSaveGame, getSaveSlots, SaveSlotSummary } from '../../services/saveLoadService';
 import { VersionDisplay } from '../ui/VersionDisplay';
-import { canUseDevTools } from '../../utils/permissions';
-import { t } from '../../utils/i18n';
+import { CreditsModal } from '../ui/CreditsModal';
+import { canUseDevTools } from '../../utils/core';
+import { t } from '../../utils/core';
 import { UI_ID } from '../../styles/uiIds';
+
+import type { RulesEdition } from '../../config/rulesEdition';
+import { RULES_EDITION_LABEL } from '../../config/rulesEdition';
+import { SAVE_SCUM_LABEL } from '../../config/saveScum';
 
 interface MainMenuProps {
   onNewGame: () => void;
@@ -59,6 +64,13 @@ interface MainMenuProps {
   onOpenWorldGeneration?: () => void;
   isWorldGenerationLocked?: boolean;
   worldGenerationLockedReason?: string | null;
+  /** Which Player's Handbook the next campaign uses (agora-18ab). */
+  rulesEdition?: RulesEdition;
+  /** Whether reloading a save rerolls the dice (agora-f821.63). */
+  allowSaveScum?: boolean;
+  /** Switches the campaign between the 2014 and 2024 rules. */
+  onCycleRulesEdition?: () => void;
+  onToggleSaveScum?: () => void;
 }
 
 /**
@@ -135,9 +147,14 @@ const MainMenu: React.FC<MainMenuProps> = ({
   onOpenWorldGeneration,
   isWorldGenerationLocked = false,
   worldGenerationLockedReason = null,
+  rulesEdition,
+  allowSaveScum,
+  onCycleRulesEdition,
+  onToggleSaveScum,
 }) => {
   const [isLoadModalOpen, setIsLoadModalOpen] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [isCreditsOpen, setIsCreditsOpen] = useState(false);
   const [saveSlots, setSaveSlots] = useState<SaveSlotSummary[]>([]);
   const [pendingConfirm, setPendingConfirm] = useState<'abandon' | 'wipe' | null>(null);
   const pendingConfirmRef = useRef<HTMLDivElement | null>(null);
@@ -263,6 +280,40 @@ const MainMenu: React.FC<MainMenuProps> = ({
           >
             {t('main_menu.new_game')}
           </button>
+          {/* The rules edition decides things that happen during character
+              creation — the warlock's patron level, for one — so it has to be
+              settable here, before a new campaign starts, not only in the
+              in-game system menu. */}
+          {rulesEdition && onCycleRulesEdition && (
+            <button
+              onClick={onCycleRulesEdition}
+              className={BTN_SECONDARY}
+              aria-label={`Rules edition: ${RULES_EDITION_LABEL[rulesEdition]}. Click to switch edition.`}
+              title="Switch between the 2014 and 2024 Player's Handbook rules"
+            >
+              Rules: {RULES_EDITION_LABEL[rulesEdition]}
+              <span className="block text-xs text-gray-400 mt-1">
+                Click to switch edition
+              </span>
+            </button>
+          )}
+          {/* Save-scum sits beside the rules control because both are campaign
+              rules the player sets before the first roll is made, not in-run
+              conveniences. With it off, reloading a save replays the same
+              dice, so retrying one step cannot buy a better result. */}
+          {typeof allowSaveScum === 'boolean' && onToggleSaveScum && (
+            <button
+              onClick={onToggleSaveScum}
+              className={BTN_SECONDARY}
+              aria-label={`Save-scumming: ${allowSaveScum ? SAVE_SCUM_LABEL.on : SAVE_SCUM_LABEL.off}. Click to switch.`}
+              title="Off replays the same dice when you reload a save"
+            >
+              Save-scum: {allowSaveScum ? SAVE_SCUM_LABEL.on : SAVE_SCUM_LABEL.off}
+              <span className="block text-xs text-gray-400 mt-1">
+                {allowSaveScum ? 'Reloading rerolls the dice' : 'Reloading replays the same dice'}
+              </span>
+            </button>
+          )}
           {onOpenWorldGeneration && (
             <>
               <button
@@ -361,6 +412,15 @@ const MainMenu: React.FC<MainMenuProps> = ({
           >
             {t('main_menu.glossary')}
           </button>
+          {/* Third-party asset credits. CC-BY 4.0 asks for a credit the
+              player can see, so this entry stays on the shipped menu. */}
+          <button
+            onClick={() => setIsCreditsOpen(true)}
+            className={BTN_SECONDARY}
+            aria-label={t('main_menu.credits_aria')}
+          >
+            {t('main_menu.credits')}
+          </button>
         </div>
         {/* M4: removed the player-facing "Powered by Gemini" branding line — an
             engineering/vendor detail that should not leak into the shipped menu. */}
@@ -384,6 +444,8 @@ const MainMenu: React.FC<MainMenuProps> = ({
           onClose={() => setIsLoadModalOpen(false)}
         />
       )}
+
+      <CreditsModal isOpen={isCreditsOpen} onClose={() => setIsCreditsOpen(false)} />
 
       <VersionDisplay position="main-menu" />
     </main>

@@ -4,8 +4,8 @@ import { DamageCommand } from '../effects/DamageCommand'
 import { StatusConditionCommand } from '../effects/StatusConditionCommand'
 import type { CombatCharacter } from '@/types/combat'
 import type { DamageEffect, EffectDuration, Spell, StatusConditionEffect } from '@/types/spells'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
-import wrathOfNature from '../../../public/data/spells/level-5/wrath-of-nature.json'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/core'
+import wrathOfNature from '@/data/spells/level-5/wrath-of-nature.json'
 
 /**
  * Wrath of Nature animates environmental features in a controlled spell area.

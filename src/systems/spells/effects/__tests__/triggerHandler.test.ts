@@ -1,12 +1,15 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   createSpellZone,
   createSpellZoneFromAoEParams,
+  convertSpellEffectToProcessed,
   isPositionInArea,
   processAreaEndTurnTriggers,
+  processAreaStartTurnTriggers,
   processAreaEntryTriggers,
   processAreaExitTriggers,
   processAreaMoveWithinTriggers,
+  processAreaProximityTriggers,
   processMovementTriggers,
   resetZoneTurnTracking,
   type ActiveSpellZone,
@@ -16,6 +19,10 @@ import { AoECalculator } from '@/systems/spells/targeting/AoECalculator'
 import type { CombatCharacter, Position } from '@/types/combat'
 import type { SpellEffect } from '@/types/spells'
 import type { Class } from '@/types/character'
+import sleetStorm from '@/data/spells/level-3/sleet-storm.json'
+import spiritGuardians from '@/data/spells/level-3/spirit-guardians.json'
+import evardsBlackTentacles from '@/data/spells/level-4/evards-black-tentacles.json'
+import searingSmite from '@/data/spells/level-1/searing-smite.json'
 
 const baseStats = {
   strength: 10,
@@ -73,9 +80,47 @@ const makeZone = (effects: SpellEffect[]): ActiveSpellZone => ({
   casterId: 'caster',
   position: { x: 0, y: 0 },
   areaOfEffect: { shape: 'cube', size: 5 },
+  // A cube zone extends away from the caster (ruling Q4, 2026-09-22), thus it needs a direction.
+  direction: { x: 1, y: 0 },
   effects,
   triggeredThisTurn: new Set(),
   triggeredEver: new Set()
+})
+
+describe('scheduled recurring payload conversion', () => {
+  it('emits Searing Smite damage without reapplying its base Ignited condition', () => {
+    // Searing Smite stores recurring 1d6 Fire beside STATUS_CONDITION. Future
+    // turns need the damage packet, while the already-active condition remains
+    // the single duration/source record until its save cleanup is implemented.
+    const statusEffect = searingSmite.effects.find(effect => (
+      effect.type === 'STATUS_CONDITION'
+    )) as unknown as SpellEffect & {
+      recurringMechanics?: Array<{
+        timing: 'turn_start';
+        frequency: 'every_time';
+        damage: { dice: string; type: string };
+      }>;
+    };
+    const recurring = statusEffect.recurringMechanics?.[0];
+
+    expect(recurring).toBeDefined();
+    expect(convertSpellEffectToProcessed(statusEffect, {
+      spellId: searingSmite.id,
+      casterId: 'searing-caster',
+      saveDC: 15,
+    }, recurring)).toEqual([
+      expect.objectContaining({
+        type: 'damage',
+        dice: '1d6',
+        damageType: 'Fire',
+        sourceContext: {
+          spellId: searingSmite.id,
+          casterId: 'searing-caster',
+          saveDC: 15,
+        },
+      }),
+    ]);
+  });
 })
 
 describe('isPositionInArea', () => {
@@ -96,7 +141,7 @@ describe('isPositionInArea', () => {
     const center = { x: 0, y: 0 }
     const east = { x: 1, y: 0 }
     const cases = [
-      { area: { shape: 'cube', size: 10 }, direction: undefined, samples: [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 0 }] },
+      { area: { shape: 'cube', size: 10 }, direction: east, samples: [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 0 }, { x: -1, y: 0 }] },
       { area: { shape: 'sphere', size: 10 }, direction: undefined, samples: [{ x: 0, y: 0 }, { x: 2, y: 2 }, { x: 3, y: 0 }] },
       { area: { shape: 'cone', size: 15 }, direction: east, samples: [{ x: 2, y: 0 }, { x: -2, y: 0 }, { x: 1, y: 1 }] },
       { area: { shape: 'line', size: 15 }, direction: east, samples: [{ x: 1, y: 0 }, { x: 3, y: 0 }, { x: 0, y: 1 }] }
@@ -193,6 +238,117 @@ describe('createSpellZone', () => {
   })
 })
 
+describe('convertSpellEffectToProcessed', () => {
+  it('handles uppercase DAMAGE type correctly', () => {
+    const effect: SpellEffect = {
+      type: 'DAMAGE',
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' },
+      damage: { dice: '2d6', type: 'Fire' }
+    }
+
+    const result = convertSpellEffectToProcessed(effect)
+    expect(result).toHaveLength(1)
+    expect(result[0].type).toBe('damage')
+    expect(result[0].dice).toBe('2d6')
+    expect(result[0].damageType).toBe('Fire')
+  })
+
+  it('handles lowercase damage type correctly (casing normalization)', () => {
+    const effect: SpellEffect = {
+      type: 'damage' as any,
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' },
+      damage: { dice: '2d6', type: 'Fire' }
+    }
+
+    const result = convertSpellEffectToProcessed(effect)
+    expect(result).toHaveLength(1)
+    expect(result[0].type).toBe('damage')
+    expect(result[0].dice).toBe('2d6')
+    expect(result[0].damageType).toBe('Fire')
+  })
+
+  it('handles uppercase HEALING type correctly', () => {
+    const effect: SpellEffect = {
+      type: 'HEALING',
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' },
+      healing: { dice: '2d8' }
+    }
+
+    const result = convertSpellEffectToProcessed(effect)
+    expect(result).toHaveLength(1)
+    expect(result[0].type).toBe('heal')
+    expect(result[0].dice).toBe('2d8')
+  })
+
+  it('handles lowercase healing type correctly (casing normalization)', () => {
+    const effect: SpellEffect = {
+      type: 'healing' as any,
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' },
+      healing: { dice: '2d8' }
+    }
+
+    const result = convertSpellEffectToProcessed(effect)
+    expect(result).toHaveLength(1)
+    expect(result[0].type).toBe('heal')
+    expect(result[0].dice).toBe('2d8')
+  })
+
+  it('handles uppercase STATUS_CONDITION type correctly', () => {
+    const effect: SpellEffect = {
+      type: 'STATUS_CONDITION',
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' },
+      statusCondition: {
+        name: 'Charmed',
+        duration: { type: 'minutes', value: 10 }
+      }
+    }
+
+    const result = convertSpellEffectToProcessed(effect)
+    expect(result).toHaveLength(1)
+    expect(result[0].type).toBe('status_condition')
+    expect(result[0].statusName).toBe('Charmed')
+  })
+
+  it('handles lowercase status_condition type correctly (casing normalization)', () => {
+    const effect: SpellEffect = {
+      type: 'status_condition' as any,
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' },
+      statusCondition: {
+        name: 'Charmed',
+        duration: { type: 'minutes', value: 10 }
+      }
+    }
+
+    const result = convertSpellEffectToProcessed(effect)
+    expect(result).toHaveLength(1)
+    expect(result[0].type).toBe('status_condition')
+    expect(result[0].statusName).toBe('Charmed')
+  })
+
+  it('warns and returns empty array for unrecognized effect type', () => {
+    const effect: SpellEffect = {
+      type: 'UNKNOWN_TYPE' as any,
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' }
+    }
+
+    const consoleWarnSpy = vi.spyOn(console, 'warn')
+    const result = convertSpellEffectToProcessed(effect)
+
+    expect(result).toHaveLength(0)
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Unrecognized effect type')
+    )
+    consoleWarnSpy.mockRestore()
+  })
+})
+
 describe('processAreaEndTurnTriggers', () => {
   it('fires once per turn per creature when configured with first_per_turn', () => {
     const effect: SpellEffect = {
@@ -213,6 +369,154 @@ describe('processAreaEndTurnTriggers', () => {
     resetZoneTurnTracking([zone])
     const nextRound = processAreaEndTurnTriggers([zone], occupant, 2)
     expect(nextRound.length).toBe(1)
+  })
+
+  it('executes a source-backed singleton recurring turn-end damage record', () => {
+    const effect = {
+      type: 'DAMAGE',
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' },
+      recurringMechanics: {
+        timing: 'turn_end',
+        frequency: 'first_per_turn',
+        damage: { dice: '4d8', type: 'Radiant' }
+      }
+    } as unknown as SpellEffect
+    const zone = makeZone([effect])
+    const occupant = makeCharacter({ x: 0, y: 0 })
+
+    const result = processAreaEndTurnTriggers([zone], occupant, 1)
+
+    expect(result).toHaveLength(1)
+    expect(result[0].effects[0]).toMatchObject({
+      type: 'damage',
+      dice: '4d8',
+      damageType: 'Radiant'
+    })
+  })
+})
+
+describe('processAreaStartTurnTriggers', () => {
+  it('fires a source-backed recurring turn-start payload for an occupant', () => {
+    const effect = {
+      type: 'DAMAGE',
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' },
+      recurringMechanics: {
+        timing: 'turn_start',
+        frequency: 'first_per_turn',
+        damage: { dice: '2d6', type: 'Cold' }
+      }
+    } as unknown as SpellEffect
+    const zone = makeZone([effect])
+    const occupant = makeCharacter({ x: 0, y: 0 })
+
+    const result = processAreaStartTurnTriggers([zone], occupant, 1)
+
+    expect(result).toHaveLength(1)
+    expect(result[0].triggerType).toBe('on_start_turn_in_area')
+    expect(result[0].effects[0]).toMatchObject({
+      type: 'damage',
+      dice: '2d6',
+      damageType: 'Cold'
+    })
+  })
+
+  it('expands area_entry_or_turn_start into entry and start-turn events', () => {
+    const effect = {
+      type: 'STATUS_CONDITION',
+      trigger: { type: 'area_entry_or_turn_start', frequency: 'every_time' },
+      condition: { type: 'always' },
+      statusCondition: { name: 'Prone', duration: { type: 'rounds', value: 1 } }
+    } as unknown as SpellEffect
+    const zone = makeZone([effect])
+    const occupant = makeCharacter({ x: 0, y: 0 })
+
+    expect(processAreaEntryTriggers([zone], occupant, { x: 0, y: 0 }, { x: 2, y: 0 }, 1)[0].triggerType)
+      .toBe('on_enter_area')
+    expect(processAreaStartTurnTriggers([zone], occupant, 1)[0].triggerType)
+      .toBe('on_start_turn_in_area')
+  })
+})
+
+describe('composite area end-turn triggers', () => {
+  it('expands area_entry_or_turn_end and emanation_entry_or_turn_end', () => {
+    const effects = (['area_entry_or_turn_end', 'emanation_entry_or_turn_end'] as const).map(type => ({
+      type: 'DAMAGE',
+      trigger: { type, frequency: 'every_time' },
+      condition: { type: 'always' },
+      damage: { dice: '1d6', type: 'Radiant' }
+    })) as unknown as SpellEffect[]
+    const zone = makeZone(effects)
+    const occupant = makeCharacter({ x: 0, y: 0 })
+
+    expect(processAreaEntryTriggers([zone], occupant, { x: 0, y: 0 }, { x: 2, y: 0 }, 1)).toHaveLength(2)
+    expect(processAreaEndTurnTriggers([zone], occupant, 1)).toHaveLength(2)
+  })
+})
+
+describe('live composite area records', () => {
+  it('runs current Sleet Storm, Evard, and Spirit Guardians payloads through area events', () => {
+    const sleetEffect = (sleetStorm as unknown as { effects: SpellEffect[] }).effects[0]
+    const evardEffects = (evardsBlackTentacles as unknown as { effects: SpellEffect[] }).effects.slice(0, 2)
+    const spiritEffect = (spiritGuardians as unknown as { effects: SpellEffect[] }).effects[0]
+    const occupant = makeCharacter({ x: 0, y: 0 })
+
+    const sleetZone = makeZone([sleetEffect])
+    expect(processAreaEntryTriggers([sleetZone], occupant, { x: 0, y: 0 }, { x: 2, y: 0 }, 1)).toHaveLength(1)
+    expect(processAreaStartTurnTriggers([sleetZone], occupant, 1)).toHaveLength(1)
+
+    const evardZone = makeZone(evardEffects)
+    expect(processAreaEntryTriggers([evardZone], occupant, { x: 0, y: 0 }, { x: 2, y: 0 }, 1)).toHaveLength(2)
+    expect(processAreaEndTurnTriggers([evardZone], occupant, 1)).toHaveLength(2)
+
+    const spiritZone = makeZone([spiritEffect])
+    expect(processAreaEntryTriggers([spiritZone], occupant, { x: 0, y: 0 }, { x: 2, y: 0 }, 1)).toHaveLength(1)
+    expect(processAreaEndTurnTriggers([spiritZone], occupant, 1)).toHaveLength(1)
+  })
+})
+
+describe('processAreaProximityTriggers', () => {
+  it('bridges Conjure Animals-style recurring proximity damage on entry and end turn', () => {
+    const effect = {
+      type: 'SUMMONING',
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' },
+      recurringMechanics: {
+        timing: 'on_entity_proximity',
+        frequency: 'first_per_turn',
+        saveType: 'Dexterity',
+        saveEffect: 'half',
+        damage: { dice: '3d10', type: 'Slashing' }
+      }
+    } as unknown as SpellEffect
+    const zone = {
+      ...makeZone([effect]),
+      spellId: 'conjure-animals',
+      casterId: 'druid-caster',
+      saveDC: 15,
+      areaOfEffect: { shape: 'sphere', size: 10 }
+    }
+    const target = makeCharacter({ x: 2, y: 0 })
+
+    const entry = processAreaProximityTriggers([zone], target, { x: 2, y: 0 }, { x: 3, y: 0 })
+    expect(entry).toHaveLength(1)
+    expect(entry[0].triggerType).toBe('on_entity_proximity')
+    expect(entry[0].effects[0]).toMatchObject({
+      type: 'damage',
+      dice: '3d10',
+      damageType: 'Slashing',
+      requiresSave: true,
+      saveType: 'Dexterity',
+      saveEffect: 'half',
+      sourceContext: { spellId: 'conjure-animals', casterId: 'druid-caster', saveDC: 15 }
+    })
+
+    expect(processAreaProximityTriggers([zone], target, { x: 2, y: 0 }, { x: 1, y: 0 })).toHaveLength(0)
+
+    resetZoneTurnTracking([zone])
+    const endTurn = processAreaProximityTriggers([zone], target, { x: 2, y: 0 }, undefined, true)
+    expect(endTurn).toHaveLength(1)
   })
 })
 

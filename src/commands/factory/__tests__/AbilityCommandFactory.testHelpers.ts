@@ -8,7 +8,7 @@
  * family; this module re-exports the shared factory, command classes, combat
  * factories, and types so each sibling imports them from one place.
  */
-export { createMockCombatCharacter, createMockCombatState } from '../../../utils/factories';
+export { createMockCombatCharacter, createMockCombatState } from '../../../utils/core';
 export { AbilityCommandFactory, WeaponAttackCommand } from '../AbilityCommandFactory';
 export { SpellCommandFactory } from '../SpellCommandFactory';
 export { combatEvents } from '../../../systems/events/CombatEvents';

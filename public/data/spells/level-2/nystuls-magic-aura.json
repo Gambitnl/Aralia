@@ -1,6 +1,6 @@
 {
     "id":  "nystuls-magic-aura",
-    "name":  "Nystul\u0027s Magic Aura",
+    "name":  "Nystul's Magic Aura",
     "aliases":  [
 
                 ],
@@ -162,7 +162,7 @@
                                                                    ]
                                       },
                         "utilityType":  "other",
-                        "description":  "Mask (Creature). Choose a creature type other than the target\u0027s actual type; spells and magical effects treat the target as if it were a creature of the chosen type.",
+                        "description":  "Mask (Creature). Choose a creature type other than the target's actual type; spells and magical effects treat the target as if it were a creature of the chosen type.",
                         "scaling":  {
                                         "type":  "slot_level",
                                         "bonusPerLevel":  "",
@@ -397,7 +397,7 @@
                                    ],
                        "notes":  "The target type determines which effect applies: willing creatures use Mask, while unattended objects use False Aura."
                    },
-    "description":  "With a touch, you place an illusion on a willing creature or an object that isn\u0027t being worn or carried. A creature gains the Mask effect below, and an object gains the False Aura effect below. The effect lasts for the duration. If you cast the spell on the same target every day for 30 days, the illusion lasts until dispelled. Mask (Creature). Choose a creature type other than the target\u0027s actual type. Spells and other magical effects treat the target as if it were a creature of the chosen type. False Aura (Object). You change the way the target appears to spells and magical effects that detect magical auras, such as Detect Magic . You can make a nonmagical object appear magical, make a magic item appear nonmagical, or change the object\u0027s aura so that it appears to belong to a school of magic you choose.",
+    "description":  "With a touch, you place an illusion on a willing creature or an object that isn't being worn or carried. A creature gains the Mask effect below, and an object gains the False Aura effect below. The effect lasts for the duration. If you cast the spell on the same target every day for 30 days, the illusion lasts until dispelled. Mask (Creature). Choose a creature type other than the target's actual type. Spells and other magical effects treat the target as if it were a creature of the chosen type. False Aura (Object). You change the way the target appears to spells and magical effects that detect magical auras, such as Detect Magic . You can make a nonmagical object appear magical, make a magic item appear nonmagical, or change the object's aura so that it appears to belong to a school of magic you choose.",
     "higherLevels":  "",
     "durationProgression":  [
                                 {
@@ -410,7 +410,7 @@
                                     "requiresFullConcentration":  "not_applicable",
                                     "outcomeDuration":  "until_dispelled",
                                     "dispellable":  true,
-                                    "notes":  "Casting Nystul\u0027s Magic Aura on the same target every day for 30 days makes the illusion last until dispelled."
+                                    "notes":  "Casting Nystul's Magic Aura on the same target every day for 30 days makes the illusion last until dispelled."
                                 }
                             ],
     "tags":  [

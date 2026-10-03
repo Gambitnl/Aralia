@@ -93,7 +93,7 @@ Acceptance signal for this folder pass:
 - Voyage Management: the owned-ship lifecycle was built end-to-end 2026-06-30 (`src/components/Naval/ShipPane.tsx`, `navalReducer` wiring); remaining scope is the sea-encounter roll for ship voyages, a visual proof, and Plans 4-6 (see `docs/superpowers/plans/2026-06-30-maritime-travel-status.md` and G4 in `GAPS.md`).
 - URL sync currently has verified hook-level behavior; rendered transition assertions are still open.
 
-(The former Character Creator navigation-intent item is closed: G1 in `GAPS.md` was resolved 2026-06-25 — permissive sidebar navigation is the intentional design.)
+(The former Character Creator navigation-intent item is closed: G1 in `GAPS.md` was resolved 2026-06-25 - permissive sidebar navigation is the intentional design.)
 
 ## Next Checks
 
@@ -101,4 +101,4 @@ Acceptance signal for this folder pass:
 2. Keep evidence links and classification updates in `TRACKER.md` and `GAPS.md`.
 3. Route unresolved scope questions to the owning project tracker before implementation decisions expand this folder.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/feature-capabilities/NORTH_STAR.md","sha256WithoutMarker":"207924632a39ce580dc85165426c6dd24270083594065d865184b9c44b55ef5b","markedAtUtc":"2026-06-25T22:29:38.606Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/feature-capabilities/NORTH_STAR.md","sha256WithoutMarker":"214adb0c224a237ab27c16391f255e2545e8cc5cd06ca0aa4092cd9040a79d08","markedAtUtc":"2026-08-09T20:14:15.727Z"} -->

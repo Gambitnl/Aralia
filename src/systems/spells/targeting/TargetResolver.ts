@@ -16,9 +16,9 @@
 
 import type { SpellTargeting, TargetFilter, TargetConditionFilter, CombatCharacter, CombatState, Position } from '@/types'
 
-import { hasLineOfSight } from '../../../utils/lineOfSight'
+import { hasLineOfSight } from '../../../utils/spatial'
 import { TargetValidationUtils } from './TargetValidationUtils'
-import { canInteract, canSeeTarget } from '../../../utils/planarTargeting'
+import { canInteract, canSeeTarget } from '../../../utils/planar'
 import { TargetAllocator } from './TargetAllocator'
 import type { AllocationResult, AllocatorContext } from './TargetAllocator'
 
@@ -340,8 +340,17 @@ export class TargetResolver {
    * Calculate distance between two positions (Euclidean)
    */
   private static getDistance(pos1: Position, pos2: Position): number {
-    // TODO #1043(SPELL-OVERHAUL): Account for elevation, sub-grid coordinates, and target size with a dedicated distance model.
-    // TODO(SPELL-OVERHAUL): policy ownership is tracked in docs/tasks/spell-system-overhaul/TRACKER.md (SSO-LOS-POLICY-PARITY-001).
+    // DEFERRED (was TODO #1043(SPELL-OVERHAUL)). Re-verified 2026-09-09: elevation, sub-grid
+    // coordinates, and target size all still need a distance MODEL that does not exist -- `Position`
+    // is 2D and creature size is not carried on it -- so there is no helper in
+    // src/systems/spells/targeting or src/utils/spells to wire in. `SSO-LOS-POLICY-PARITY-001` in
+    // docs/tasks/spell-system-overhaul/TRACKER.md owns that policy.
+    // NEWLY RECORDED 2026-09-09 (GG-203 in docs/projects/GLOBAL_GAPS.md): separately from elevation,
+    // the Euclidean measure below disagrees with the 5e grid rule the rest of combat uses
+    // (`getChebyshevTileDistance` in the trigger module, `aoeCalculations.ts` for AoE). A target four
+    // tiles diagonally away is 20 ft to the AoE math and 28.3 ft here, so a 25-foot spell resolves
+    // differently on the two paths. Behavior is preserved here rather than changed mid-sweep because
+    // TargetResolver.test.ts encodes the Euclidean expectations.
     const dx = pos2.x - pos1.x
     const dy = pos2.y - pos1.y
     return Math.sqrt(dx * dx + dy * dy) * 5 // Convert tiles to feet

@@ -10,6 +10,39 @@
  */
 import type { Pt } from '../submap/submapEngine';
 
+/**
+ * What a water body IS. Height rules differ per kind and cannot be shared:
+ * the sea is flat at zero by definition, a lake is flat at its own elevation,
+ * and a river surface descends along its course. The old model had one flat
+ * height for all three, so a river could only ever be a pond — which is how a
+ * town 15 m above the sea ended up with its river drawn at sea level.
+ */
+export type TownWaterKind = 'sea' | 'river';
+
+/** A filled water polygon plus what it is and, for rivers, where it came from. */
+export interface TownWaterBody {
+  points: Pt[];
+  kind: TownWaterKind;
+  /**
+   * Rivers only: for each ring vertex, the index of the centerline point it was
+   * offset from. Height is resolved along the centerline (which is ordered
+   * downstream) and then read back onto the ring through this map.
+   */
+  sourceIndex?: number[];
+  /** Rivers only: the ordered centerline the channel was buffered from. */
+  centerline?: Pt[];
+  /**
+   * Sea aprons only: the two points of the shoreline this apron extends from.
+   *
+   * The apron reaches far out from land, so its outer corners sample ground that
+   * says nothing about where the water meets the shore. Height has to come from
+   * the shore edge itself. And it cannot simply be zero: a town's ground heights
+   * are a LOCAL frame — one burg's shore sits at ~16 m in it — so assuming an
+   * absolute sea level at zero buries the water under its own beach.
+   */
+  shoreEdge?: [Pt, Pt];
+}
+
 /** Buffer a polyline into a closed channel polygon, `halfWidth` to each side. */
 export function bufferPolylineToChannel(line: Pt[], halfWidth: number): Pt[] {
   if (line.length < 2) return [];
@@ -30,6 +63,25 @@ export function bufferPolylineToChannel(line: Pt[], halfWidth: number): Pt[] {
   }
   right.reverse();
   return [...left, ...right];
+}
+
+/**
+ * Same channel as `bufferPolylineToChannel`, plus the centerline index each ring
+ * vertex was offset from. The ring is built left side forward then right side
+ * reversed, so vertex i maps to centerline i for the left half and to
+ * (n-1-j) for the right half.
+ */
+export function bufferPolylineToChannelIndexed(
+  line: Pt[],
+  halfWidth: number,
+): { points: Pt[]; sourceIndex: number[] } {
+  const points = bufferPolylineToChannel(line, halfWidth);
+  if (points.length === 0) return { points, sourceIndex: [] };
+  const n = line.length;
+  const sourceIndex: number[] = [];
+  for (let i = 0; i < n; i++) sourceIndex.push(i);
+  for (let j = 0; j < n; j++) sourceIndex.push(n - 1 - j);
+  return { points, sourceIndex };
 }
 
 /**
@@ -78,18 +130,25 @@ export interface TownWaterBodyInput {
   apronTaper?: number;
 }
 
-/** Filled water-body polygons (one per river, one per coast segment). */
-export function buildTownWaterBodies(input: TownWaterBodyInput): Pt[][] {
-  const out: Pt[][] = [];
+/**
+ * Filled water bodies (one channel per river, one apron per coast segment),
+ * each tagged with what it is so the height pass can treat a river as a river.
+ */
+export function buildTownWaterBodies(input: TownWaterBodyInput): TownWaterBody[] {
+  const out: TownWaterBody[] = [];
   for (const r of input.rivers) {
-    const ch = bufferPolylineToChannel(r, input.channelHalfWidth);
-    if (ch.length >= 3) out.push(ch);
+    const { points, sourceIndex } = bufferPolylineToChannelIndexed(r, input.channelHalfWidth);
+    if (points.length >= 3) out.push({ points, kind: 'river', sourceIndex, centerline: r });
   }
   for (const edge of input.coast) {
     for (let i = 0; i < edge.length - 1; i++) {
       // Taper each seaward apron so the harbour follows the shore as a band of
       // overlapping trapezoids instead of one blocky rectangle (TG6).
-      out.push(edgeApronQuad(edge[i], edge[i + 1], input.centroid, input.apronDepth, input.apronTaper ?? 0.3));
+      out.push({
+        points: edgeApronQuad(edge[i], edge[i + 1], input.centroid, input.apronDepth, input.apronTaper ?? 0.3),
+        kind: 'sea',
+        shoreEdge: [edge[i], edge[i + 1]],
+      });
     }
   }
   return out;

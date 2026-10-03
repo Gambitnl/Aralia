@@ -11,7 +11,7 @@
  */
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { useTurnManager } from '../useTurnManager';
+import { advanceTurnEndConditionExpiry, useTurnManager } from '../useTurnManager';
 import { createMockCombatCharacter } from '../../../utils/core';
 import type { CombatCharacter, CombatLogEntry } from '../../../types/combat';
 
@@ -89,5 +89,65 @@ describe('useTurnManager mirrored condition expiry', () => {
       characterId: character.id,
       data: expect.objectContaining({ cleanup: 'mirrored_condition_expiry' })
     }));
+  });
+
+  it('expires an end-of-current-turn condition from both mirrors', () => {
+    const character = createMockCombatCharacter({
+      id: 'poisoned-target',
+      name: 'Poisoned Target',
+      statusEffects: [{
+        id: 'status-poisoned',
+        name: 'Poisoned',
+        type: 'debuff',
+        duration: 1,
+        effect: { type: 'condition' }
+      }],
+      conditions: [{
+        name: 'Poisoned',
+        duration: { type: 'until_end_of_current_turn', value: 0 },
+        appliedTurn: 1,
+        turnEndEventsRemaining: 1
+      }]
+    });
+
+    // Stinking Cloud's rider governs the whole current turn and then leaves
+    // both the visible status list and the structured rules list.
+    const result = advanceTurnEndConditionExpiry(character);
+
+    expect(result.expiredNames).toEqual(['Poisoned']);
+    expect(result.character.conditions).toHaveLength(0);
+    expect(result.character.statusEffects).toHaveLength(0);
+  });
+
+  it('waits for the next affected-creature turn end when one future turn remains', () => {
+    const character = createMockCombatCharacter({
+      id: 'blinded-target',
+      name: 'Blinded Target',
+      statusEffects: [{
+        id: 'status-blinded',
+        name: 'Blinded',
+        type: 'debuff',
+        duration: 1,
+        effect: { type: 'condition' }
+      }],
+      conditions: [{
+        name: 'Blinded',
+        duration: { type: 'turn_end', value: 1 },
+        appliedTurn: 1,
+        turnEndEventsRemaining: 2
+      }]
+    });
+
+    // Holy Aura's retaliation survives the attacker's current turn end, then
+    // expires from both mirrors when that attacker finishes its next turn.
+    const afterCurrentTurn = advanceTurnEndConditionExpiry(character);
+    expect(afterCurrentTurn.expiredNames).toEqual([]);
+    expect(afterCurrentTurn.character.conditions?.[0]?.turnEndEventsRemaining).toBe(1);
+    expect(afterCurrentTurn.character.statusEffects).toHaveLength(1);
+
+    const afterNextTurn = advanceTurnEndConditionExpiry(afterCurrentTurn.character);
+    expect(afterNextTurn.expiredNames).toEqual(['Blinded']);
+    expect(afterNextTurn.character.conditions).toHaveLength(0);
+    expect(afterNextTurn.character.statusEffects).toHaveLength(0);
   });
 });

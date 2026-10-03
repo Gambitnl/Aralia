@@ -80,8 +80,8 @@ const MAX_FIELDS_PER_PART = 20;
 // ============================================================================
 
 function classifyStructuredField(field: TemplateField): string {
-  const label = field.label ?? field.pattern ?? '';
-  const jsonPath = field.jsonPath ?? '';
+  const label = String(field.label ?? field.pattern ?? '');
+  const jsonPath = String(field.jsonPath ?? '');
   const combined = `${label} ${jsonPath}`;
 
   if (/^(Level|School|Ritual|Classes|Sub-Classes|Access Grants|Access Grant)/.test(label)) {

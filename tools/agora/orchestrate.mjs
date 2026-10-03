@@ -5,30 +5,41 @@
 //   node tools/agora/orchestrate.mjs <command> [args]
 //
 //   prompt   <plan.json> <packetId>     print the ready-to-dispatch agent prompt
+//   partition <plan.json>                compare task file refs with packet ownership
 //   seed     <plan.json>                register orchestrator + announce the wave on the board
-//   dispatch <plan.json> <packetId>     launch an EXTERNAL packet (codex|gemini) in the bg; claude => print prompt
+//   dispatch <plan.json> [packetId]     launch one packet as before, or run a bounded external CLI wave
 //   gate     <plan.json> [--exclude s]  run the integration typecheck, filter to the wave's files, baseline delta
 //   status                              board snapshot (agents / locks / tasks)
 //   feedback [--since N]                dump WORKFLOW: messages from the board
 //   help                                this message
 //
 // A PLAN is JSON:
-//   { "wave": "name", "baseUrl": "http://localhost:4319", "baseline": 220,
+//   { "wave": "name", "pet": "orchestrator-pet-slug", "baseUrl": "http://localhost:4319", "baseline": 220,
 //     "packets": [ { "id":"PK-x", "handle":"fixer-x", "agent":"claude|codex|gemini",
-//                    "scope":"one-line", "files":["src/a.ts"], "issues":["X1"],
+//                    "pet":"worker-pet-slug", "scope":"one-line", "files":["src/a.ts"], "issues":["X1"],
 //                    "guidance":"optional extra instructions" } ] }
 
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn, execFileSync } from 'node:child_process';
+import { globIterateSync, hasMagic } from 'glob';
 import { run as clientRun } from './client.mjs';
 import { OPEN_STATUSES, CLOSED_STATUSES, indexGaps } from './gapIndex.mjs';
+import { hasDispatchWiring, runMatrixCheck } from './syncAgents.mjs';
+import {
+  checkPlanOwnership,
+  formatPacketOwnershipReport,
+  handoffPromptBlock,
+  validateOwnershipDeclarations,
+} from './packetOwnership.mjs';
 
 const DEFAULT_URL = 'http://localhost:4319';
 const REPO = process.cwd();
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REGISTRY_FILE = path.join(MODULE_DIR, 'agents.json');
+const PET_MANIFEST_FILE = path.join(MODULE_DIR, 'dashboard', 'pets', 'pets.json');
+const DEFAULT_LOCAL_DISPATCH_MAX = 4;
 
 // ------------------------------------------------------------- agent registry
 // agents.json is the machine-readable Agent Matrix: which agents exist, their
@@ -36,12 +47,23 @@ const REGISTRY_FILE = path.join(MODULE_DIR, 'agents.json');
 // validatePlan enforces it so a deprecated / orchestrator-only / unwired agent
 // fails at PLAN time, not mid-campaign.
 let registryCache = null;
+let petSlugCache = null;
 export function loadRegistry(file = REGISTRY_FILE) {
   if (file === REGISTRY_FILE && registryCache) return registryCache;
   const reg = JSON.parse(fs.readFileSync(file, 'utf8'));
   if (!reg || typeof reg.agents !== 'object') throw new Error('agents.json: missing "agents" map');
   if (file === REGISTRY_FILE) registryCache = reg;
   return reg;
+}
+
+// Presence registration now requires a real pet identity. Validate plan slugs
+// against the same local manifest the daemon and dashboard use, so a typo fails
+// before an orchestrator seeds tasks or launches a worker.
+function loadPetSlugs() {
+  if (petSlugCache) return petSlugCache;
+  const manifest = JSON.parse(fs.readFileSync(PET_MANIFEST_FILE, 'utf8'));
+  petSlugCache = new Set((manifest.pets || []).map((pet) => pet.slug).filter(Boolean));
+  return petSlugCache;
 }
 
 /** Constraints whose expiresAt date has passed — they need re-verification, not trust. */
@@ -62,10 +84,141 @@ function assertDispatchableWorker(packetId, agentId, def) {
   if (def.status !== 'ready' && def.status !== 'quota_limited') {
     throw new Error(`packet ${packetId}: agent "${agentId}" is not supervision-ready (status: ${def.status}) — ${def.notes || ''}`);
   }
-  const d = def.dispatch || {};
-  if (d.type !== 'agent-tool' && !d.command) {
+  // AM-G1: three wiring shapes are launchable — the Agent tool, an external CLI
+  // command, and an HTTP API endpoint. syncAgents owns the predicate so the plan
+  // gate, the registry view and the dashboard diff can never disagree.
+  if (!hasDispatchWiring(def)) {
     throw new Error(`packet ${packetId}: agent "${agentId}" has no dispatch wiring (not wired into orchestrate.mjs yet) — ${def.notes || ''}`);
   }
+}
+
+// ---------------------------------------------------- dispatch concurrency
+// A concurrency ceiling is safety policy, so accept only positive whole numbers.
+// Rejecting malformed CLI or registry values here prevents even the first worker
+// from starting under an ambiguous or accidentally unbounded configuration.
+export function validateDispatchMax(value, source = 'dispatch concurrency cap') {
+  const parsed = typeof value === 'number' ? value : Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    throw new Error(`${source} must be a positive whole number (received ${JSON.stringify(value)})`);
+  }
+  return parsed;
+}
+
+// Choose one lane's ceiling without changing any other registry policy. An
+// explicit operator value wins, then the agent's own declared ceiling. Only a
+// lane explicitly marked as local receives the conservative default of four;
+// remote/non-local lanes keep their existing unbounded-by-this-tool behavior.
+export function resolveDispatchMax(agentId, packetCount, { registry = loadRegistry(), cliMax } = {}) {
+  const def = registry.agents && registry.agents[agentId];
+  if (!def) throw new Error(`cannot resolve dispatch cap for unknown agent "${agentId}"`);
+  const dispatch = def.dispatch || {};
+
+  if (cliMax !== undefined) return validateDispatchMax(cliMax, '--max');
+  if (dispatch.maxConcurrent !== undefined) {
+    return validateDispatchMax(dispatch.maxConcurrent, `agents.json ${agentId}.dispatch.maxConcurrent`);
+  }
+  if (dispatch.localEngine === true) return DEFAULT_LOCAL_DISPATCH_MAX;
+
+  // A non-local lane with no declared ceiling behaves as it did before WF-G42.
+  // The packet count is a finite scheduler width, not a new policy cap.
+  return Math.max(1, packetCount);
+}
+
+// Run each registry lane through a small worker pool. The injected runner makes
+// the queue independently testable without starting real model processes. Each
+// packet always receives one terminal record, including thrown and non-zero exits.
+export async function dispatchPacketWave(packets, {
+  registry = loadRegistry(),
+  cliMax,
+  runPacket,
+  onRecord = () => {},
+} = {}) {
+  if (!Array.isArray(packets) || packets.length === 0) throw new Error('dispatch wave requires at least one packet');
+  if (typeof runPacket !== 'function') throw new Error('dispatch wave requires a runPacket function');
+
+  // Group packets by agent so registry defaults remain lane-specific. Resolve
+  // every ceiling before launching anything: one invalid lane must reject the
+  // whole request before another lane can start.
+  const grouped = new Map();
+  packets.forEach((packet, index) => {
+    if (!packet || !packet.id || !packet.agent) throw new Error('every dispatch packet requires id and agent');
+    if (!registry.agents || !registry.agents[packet.agent]) {
+      throw new Error(`cannot dispatch packet ${packet.id}: unknown agent "${packet.agent}"`);
+    }
+    if (!grouped.has(packet.agent)) grouped.set(packet.agent, []);
+    grouped.get(packet.agent).push({ packet, index });
+  });
+  let lanes;
+  if (cliMax !== undefined) {
+    // An operator's explicit override is a total wave safety ceiling, including
+    // mixed-agent plans. A single shared queue prevents two local lanes from
+    // each consuming the full override and doubling pressure on one engine.
+    lanes = [{
+      agentId: 'explicit-wave-cap',
+      items: packets.map((packet, index) => ({ packet, index })),
+      maxConcurrent: validateDispatchMax(cliMax, '--max'),
+    }];
+  } else {
+    lanes = [...grouped.entries()].map(([agentId, items]) => ({
+      agentId,
+      items,
+      maxConcurrent: resolveDispatchMax(agentId, items.length, { registry }),
+    }));
+  }
+  const records = new Array(packets.length);
+
+  // Each lane advances through its queue only when a running slot completes.
+  // Separate lanes may progress together, while no lane exceeds its own cap.
+  await Promise.all(lanes.map(async (lane) => {
+    let nextItem = 0;
+    const consume = async () => {
+      for (;;) {
+        const item = lane.items[nextItem];
+        if (!item) return;
+        nextItem += 1;
+
+        let outcome;
+        let failure;
+        try {
+          outcome = (await runPacket(item.packet)) || {};
+        } catch (error) {
+          failure = error;
+          outcome = {};
+        }
+
+        // A thrown runner and a non-zero child exit are both failures. Preserve
+        // the packet identity and exit status so a dead worker cannot disappear
+        // behind a generic wave-level error.
+        const exitCode = failure
+          ? (Number.isInteger(failure.exitCode) ? failure.exitCode : null)
+          : (Number.isInteger(outcome.exitCode) ? outcome.exitCode : 0);
+        const failed = Boolean(failure) || exitCode !== 0;
+        const output = String(outcome.output || outcome.logFile || failure?.message || 'no worker output captured');
+        const result = String(outcome.result || (failed
+          ? `packet ${item.packet.id} failed with exit ${exitCode ?? 'unknown'}`
+          : `packet ${item.packet.id} completed with exit 0`));
+        const record = {
+          packetId: item.packet.id,
+          agent: item.packet.agent,
+          status: failed ? 'failed' : 'succeeded',
+          exitCode,
+          signal: outcome.signal || null,
+          output,
+          result,
+        };
+
+        records[item.index] = record;
+        await onRecord(record);
+      }
+    };
+
+    // Starting at most the lesser of queue length and selected ceiling makes
+    // excess jobs wait instead of competing for the same local engine.
+    const workerCount = Math.min(lane.maxConcurrent, lane.items.length);
+    await Promise.all(Array.from({ length: workerCount }, () => consume()));
+  }));
+
+  return records;
 }
 
 // ---------------------------------------------------------------- plan loading
@@ -78,9 +231,65 @@ function loadPlan(file) {
   return plan;
 }
 
+function validateOwnedFileGlob(packetId, declaredPath) {
+  const pattern = declaredPath.replace(/\\/g, '/');
+  if (!hasMagic(pattern, { magicalBraces: true })) return;
+  const normalized = path.posix.normalize(pattern);
+  if (path.isAbsolute(pattern) || normalized === '..' || normalized.startsWith('../')) {
+    throw new Error(`packet ${packetId}: owned-file glob "${declaredPath}" must stay inside the repository`);
+  }
+  try {
+    if (!globIterateSync(pattern, { cwd: REPO, nodir: true }).next().done) return;
+  } catch (error) {
+    throw new Error(`packet ${packetId}: owned-file glob "${declaredPath}" could not be checked: ${error.message}`);
+  }
+  throw new Error(`packet ${packetId}: owned-file glob "${declaredPath}" matches no files in the checkout (WF-G281); correct it before dispatch`);
+}
+
+// WF-G221: Vitest's shared exclude makes adjacent tests inside vendor trees
+// undiscoverable. Read the current config rather than assuming the exclusion
+// still exists after a later test-runner change.
+function vendorOnlyVerificationNote(pkt) {
+  if (!Array.isArray(pkt.files) || !pkt.files.length
+      || !pkt.files.every((file) => /(?:^|\/)vendor(?:\/|$)/i.test(String(file).replace(/\\/g, '/')))) return '';
+  let config;
+  try {
+    config = fs.readFileSync(path.join(REPO, 'vitest.config.ts'), 'utf8');
+  } catch (error) {
+    throw new Error(`packet ${pkt.id}: cannot check Vitest vendor exclusion (WF-G221): ${error.message}`);
+  }
+  const sharedExcludes = config.match(/const SHARED_EXCLUDE\s*=\s*\[([\s\S]*?)\]\s*;/)?.[1] || '';
+  if (!/['"]\*\*\/vendor\/\*\*['"]/.test(sharedExcludes)) return '';
+  return 'VENDOR-ONLY VERIFICATION (WF-G221): Vitest excludes **/vendor/**, so do not add an in-vendor unit test or claim one ran. Root typecheck can include pre-existing vendor errors; if Guidance names it, record the error-count baseline before edits and report the delta after edits, not an absolute clean claim. Run only checks named in Guidance.';
+}
+
+function checkedVendorVerificationNote(pkt) {
+  const note = vendorOnlyVerificationNote(pkt);
+  if (!note) return '';
+  const guidance = String(pkt.guidance || '');
+  if (/\b(?:add|extend|write|create)\b[^.\n]*\b(?:unit\s+)?tests?\b[^.\n]*\b(?:next to|adjacent to|beside|inside|under|in)\b/i.test(guidance)
+      || /\bvitest\b[^\n]*\bvendor\b/i.test(guidance)) {
+    throw new Error(`packet ${pkt.id}: WF-G221 vendor files are excluded by Vitest; remove the in-vendor test demand and name an available proof instead.`);
+  }
+  if (/\b(?:tsc|typecheck(?::files)?)\b[^.\n]{0,100}\bclean\b|\bclean\b[^.\n]{0,100}\b(?:tsc|typecheck)\b/i.test(guidance)) {
+    throw new Error(`packet ${pkt.id}: WF-G221 vendor files may have pre-existing root typecheck errors; require a baseline and delta rather than an absolute clean result.`);
+  }
+  return note;
+}
+
+export function packetVerificationNotes(plan) {
+  return (plan.packets || []).map((pkt) => {
+    const note = checkedVendorVerificationNote(pkt);
+    return note ? `${pkt.id}: ${note}` : '';
+  }).filter(Boolean);
+}
+
 export function validatePlan(plan, { registry, onWarn } = {}) {
   if (!plan || typeof plan !== 'object') throw new Error('plan must be an object');
   if (!Array.isArray(plan.packets) || plan.packets.length === 0) throw new Error('plan.packets must be a non-empty array');
+  const petSlugs = loadPetSlugs();
+  if (!plan.pet || typeof plan.pet !== 'string') throw new Error('plan.pet is required for the orchestrator presence identity');
+  if (!petSlugs.has(plan.pet)) throw new Error(`plan.pet "${plan.pet}" is not in dashboard/pets/pets.json`);
   const reg = registry || loadRegistry();
   const warn = onWarn || (() => {});
   const seenFiles = new Map(); // file -> packetId (disjointness check)
@@ -88,6 +297,8 @@ export function validatePlan(plan, { registry, onWarn } = {}) {
   for (const p of plan.packets) {
     if (!p.id || !p.handle || !p.scope) throw new Error(`packet missing id/handle/scope: ${JSON.stringify(p)}`);
     if (!Array.isArray(p.files) || p.files.length === 0) throw new Error(`packet ${p.id} has no files`);
+    if (!p.pet || typeof p.pet !== 'string') throw new Error(`packet ${p.id} is missing required pet identity`);
+    if (!petSlugs.has(p.pet)) throw new Error(`packet ${p.id}: pet "${p.pet}" is not in dashboard/pets/pets.json`);
     if (seenHandles.has(p.handle)) throw new Error(`duplicate handle "${p.handle}" (each agent needs a unique identity)`);
     seenHandles.add(p.handle);
     p.agent = p.agent || 'claude';
@@ -104,16 +315,32 @@ export function validatePlan(plan, { registry, onWarn } = {}) {
       }
     }
     for (const f of p.files) {
+      if (typeof f !== 'string' || !f.trim()) throw new Error(`packet ${p.id}: files must contain non-empty paths`);
+      validateOwnedFileGlob(p.id, f);
       if (seenFiles.has(f)) {
         throw new Error(`DISJOINTNESS VIOLATION: "${f}" is owned by both ${seenFiles.get(f)} and ${p.id}. Packets in one wave must not share files.`);
       }
       seenFiles.set(f, p.id);
     }
+    checkedVendorVerificationNote(p);
   }
+  validateOwnershipDeclarations(plan);
   return true;
 }
 
 const oneLine = (s) => String(s).replace(/\s+/g, ' ').trim().slice(0, 80);
+
+function packetTaskBody(pkt) {
+  const scope = String(pkt.scope).replace(/\s+/g, ' ').trim();
+  return `Packet ${pkt.id}: ${scope}. Owned files: ${pkt.files.join(', ')}. Acceptance: complete the packet scope within those files and record concrete verification or blockers in the result.`;
+}
+
+function shellDoubleQuoted(value, powershell) {
+  const raw = String(value);
+  return powershell
+    ? `"${raw.replace(/`/g, '``').replace(/\$/g, '`$').replace(/"/g, '`"')}"`
+    : `"${raw.replace(/\\/g, '\\\\').replace(/\$/g, '\\$').replace(/`/g, '\\`').replace(/"/g, '\\"')}"`;
+}
 
 // ---------------------------------------------------------------- board seeding
 /**
@@ -227,13 +454,70 @@ function campaignPathsForPlan(plan) {
   return [...new Set([...explicit, ...packetFiles])];
 }
 
+/**
+ * WF-G172: the identity seed must coordinate under.
+ *
+ * `seed` used to register `orchestrator-<wave>` unconditionally. An
+ * orchestrator that had ALREADY registered its own handle and set
+ * AGORA_AGENT_ID then owned two live presence rows for one session: presence,
+ * campaign ownership and the seeded tasks' creatorAgent split across them, and
+ * a later `unlock --mine` or `retire` under one handle left the other's claims
+ * and locks orphaned while the roster over-reported the fleet size.
+ *
+ * The rule: when AGORA_AGENT_ID names a LIVE agent on this board whose role is
+ * orchestrator or master, seed reuses it and registers nothing. It registers a
+ * fresh `orchestrator-<wave>` handle only when no such identity is set.
+ *
+ * Returns { handle, reuse } — `reuse` true means the caller must skip register.
+ */
+export async function resolveSeedIdentity(plan, { processEnv = process.env, baseUrl } = {}) {
+  const wanted = String(processEnv.AGORA_AGENT_ID || '').trim();
+  const fresh = { handle: `orchestrator-${plan.wave || 'unnamed'}`, reuse: false, reason: 'AGORA_AGENT_ID names no live orchestrator' };
+  if (!wanted) return { ...fresh, reason: 'AGORA_AGENT_ID is not set' };
+  let agents;
+  try {
+    const res = await fetch(`${baseUrl}/agents`);
+    if (!res.ok) return { ...fresh, reason: `board answered ${res.status} for /agents` };
+    agents = (await res.json()).agents || [];
+  } catch (e) {
+    return { ...fresh, reason: `board unreachable: ${e.message}` };
+  }
+  const live = agents.find((a) => a && a.handle === wanted && a.status !== 'gone' && a.status !== 'retired');
+  if (!live) return { ...fresh, reason: `no live agent named "${wanted}" on this board` };
+  if (live.role !== 'orchestrator' && live.role !== 'master') {
+    return { ...fresh, reason: `"${wanted}" is registered as ${live.role || 'worker'}, not orchestrator or master` };
+  }
+  return { handle: wanted, reuse: true, reason: `AGORA_AGENT_ID names live ${live.role} "${wanted}"` };
+}
+
 export async function seedPlan(plan, { env, planMapData } = {}) {
-  env = env || { ...process.env, AGORA_DIR: orchIdentityDir(plan) };
+  const ownership = await checkPlanOwnership(plan);
+  if (!ownership.ok) throw new Error(formatPacketOwnershipReport(ownership));
   const baseUrl = plan.baseUrl || DEFAULT_URL;
+  // WF-G172: decide the identity BEFORE the identity directory, because reusing
+  // a live orchestrator means reading ITS identity file, not a per-wave one.
+  const identity = env ? { handle: `orchestrator-${plan.wave || 'unnamed'}`, reuse: false, reason: 'caller supplied env' }
+    : await resolveSeedIdentity(plan, { baseUrl });
+  // WF-G344: seeding is itself a registration path. Give a new coordinator
+  // one stable key before its first client call, including when tests supply
+  // only AGORA_DIR. Reuse keeps the already-registered key unchanged.
+  env = env
+    ? { ...env, AGORA_AGENT_ID: env.AGORA_AGENT_ID || identity.handle }
+    : (identity.reuse
+      ? { ...process.env }
+      : { ...process.env, AGORA_DIR: orchIdentityDir(plan), AGORA_AGENT_ID: identity.handle });
   const planMapCampaign = planMapCampaignForPlan(plan, planMapData);
   validateRefsAgainstIndex(plan); // WF-G12: fail on ambiguous refs, warn on unknown
-  const reg = await clientRun(['register', `orchestrator-${plan.wave || 'unnamed'}`, '--note', `wave:${plan.wave || 'unnamed'} coordinator`], { env, baseUrl });
-  if (reg.code !== 0) throw new Error(`seed: orchestrator registration failed: ${(reg.lines || []).join(' / ')}`);
+  if (identity.reuse) {
+    console.log(`seed: coordinating as "${identity.handle}" (${identity.reason}) — no second orchestrator row registered (WF-G172)`);
+  } else {
+    const reg = await clientRun([
+      'register', identity.handle,
+      '--pet', plan.pet,
+      '--note', `wave:${plan.wave || 'unnamed'} coordinator`,
+    ], { env, baseUrl });
+    if (reg.code !== 0) throw new Error(`seed: orchestrator registration failed: ${(reg.lines || []).join(' / ')}`);
+  }
 
   const campaignId = campaignIdForPlan(plan, planMapCampaign);
   const campaignArgs = [
@@ -249,6 +533,38 @@ export async function seedPlan(plan, { env, planMapData } = {}) {
   const campaign = await clientRun(campaignArgs, { env, baseUrl });
   if (campaign.code !== 0) throw new Error(`seed: campaign claim failed: ${(campaign.lines || []).join(' / ')}`);
 
+  // ============================================================================
+  // Connected Campaign Deputies (WF-G152)
+  // ============================================================================
+  // When an umbrella sweep plan defines multiple work clusters that share files,
+  // each cluster is claimed as a deputy attached to the umbrella lead campaign.
+  // This avoids 409 lead collision errors while keeping distinct workstreams
+  // tracked under their own campaign records.
+  // ============================================================================
+  const leadCode = (campaign.campaign && campaign.campaign.id) || campaignId;
+  const deputies = (plan.campaign && Array.isArray(plan.campaign.deputies)) ? plan.campaign.deputies : [];
+  for (const dep of deputies) {
+    const depId = typeof dep === 'string' ? dep : (dep.id || dep.name);
+    if (!depId) continue;
+    const depScope = (typeof dep === 'object' && dep.scope) ? dep.scope : `deputy of ${campaignId}`;
+    const depWave = (typeof dep === 'object' && dep.wave) ? dep.wave : String(plan.wave || campaignId);
+    const depPaths = (typeof dep === 'object' && Array.isArray(dep.paths)) ? dep.paths : [];
+    const depGlobs = (typeof dep === 'object' && Array.isArray(dep.globs)) ? dep.globs : [];
+    const depArgs = [
+      'campaign', 'claim', depId,
+      '--role', 'deputy',
+      '--lead', leadCode,
+      '--scope', depScope,
+      '--wave', depWave,
+    ];
+    for (const p of depPaths) depArgs.push('--path', p);
+    for (const g of depGlobs) depArgs.push('--glob', g);
+    const depClaim = await clientRun(depArgs, { env, baseUrl });
+    if (depClaim.code !== 0) {
+      throw new Error(`seed: deputy campaign claim failed for ${depId}: ${(depClaim.lines || []).join(' / ')}`);
+    }
+  }
+
   const seeded = {};
   let remaining = [...plan.packets];
   while (remaining.length) {
@@ -258,8 +574,8 @@ export async function seedPlan(plan, { env, planMapData } = {}) {
     }
     for (const pkt of creatable) {
       const argv = ['task', 'new', `${pkt.id}: ${pkt.scope}`, '--id-only'];
-      if (pkt.files && pkt.files.length) argv.push('--body', `files: ${pkt.files.join(', ')}`);
-      argv.push('--campaign', campaignId, '--wave', String(plan.wave || campaignId));
+      if (pkt.files && pkt.files.length) argv.push('--body', packetTaskBody(pkt));
+      argv.push('--campaign', pkt.campaign || campaignId, '--wave', String(plan.wave || campaignId));
       if (typeof pkt.priority === 'number') argv.push('--priority', String(pkt.priority));
       for (const ref of packetRefs(pkt)) argv.push('--ref', ref);
       for (const a of pkt.after || []) argv.push('--dep', seeded[a]);
@@ -399,6 +715,7 @@ export function reconcileGaps(doneTasks, allGaps) {
     else if (byKey.get(bare) !== 'ambiguous' && byKey.get(bare).project !== g.project) byKey.set(bare, 'ambiguous');
   }
   const staleOpen = [];
+  const pendingRestart = [];
   const alreadyClosed = [];
   const unmatchedRefs = [];
   const ambiguousRefs = [];
@@ -409,63 +726,176 @@ export function reconcileGaps(doneTasks, allGaps) {
       const gap = byKey.get(String(ref).toLowerCase());
       if (gap === 'ambiguous') { ambiguousRefs.push(ref); continue; }
       if (!gap) { unmatchedRefs.push(ref); continue; }
-      if (OPEN_STATUSES.has(gap.status)) staleOpen.push({ ref, task: t, gap });
+      // WF-G259: a finished board task is only source-level evidence for a
+      // daemon repair. Reconcile --apply must not close it before restart and
+      // a separate live check.
+      if (gap.status === 'pending_restart') pendingRestart.push({ ref, task: t, gap });
+      else if (OPEN_STATUSES.has(gap.status)) staleOpen.push({ ref, task: t, gap });
       else if (CLOSED_STATUSES.has(gap.status)) alreadyClosed.push({ ref, task: t, gap });
       else unrecognizedStatus.push({ ref, task: t, gap }); // WF-G13: surface, don't swallow
     }
   }
-  return { staleOpen, alreadyClosed, unmatchedRefs, ambiguousRefs, unrecognizedStatus };
+  return { staleOpen, pendingRestart, alreadyClosed, unmatchedRefs, ambiguousRefs, unrecognizedStatus };
 }
 
 // ---------------------------------------------------------------- prompt build
+/**
+ * WF-G175: a packet prompt could contradict itself about which commands the
+ * worker may run, and nothing detected it.
+ *
+ * PK-IB-GAPS STEP 3 said "Do NOT run tsc/build/vitest/dev-server ... Self-review
+ * your edits", while the Guidance block of the SAME prompt said "Run
+ * node --test scripts/idea-board/validate.test.mjs ... and report the real
+ * result". The orchestrator had to send an out-of-band override to say which
+ * block won. Without it the worker either skips the proof its own packet asks
+ * for or breaks the stated gate rule, and either choice reads as worker error
+ * in the durable record.
+ *
+ * The repair has two halves:
+ *   1. STEP 3 is DERIVED from the Guidance, so the allowed and the forbidden
+ *      command lists live in ONE block and cannot disagree.
+ *   2. A packet may still name commands it explicitly forbids
+ *      (`pkt.forbidCommands`). A Guidance that names a command on that list is
+ *      a real contradiction, and prompt generation FAILS on it.
+ */
+const COMMAND_PATTERNS = [
+  { name: 'vitest', re: /\b(?:npx\s+)?vitest\b|\bnpm\s+(?:run\s+)?test\b/i },
+  { name: 'node --test', re: /\bnode\s+--test\b/i },
+  { name: 'tsc', re: /\b(?:npx\s+)?tsc\b|\bnpm\s+run\s+typecheck\b/i },
+  { name: 'build', re: /\bnpm\s+run\s+build\b|\bvite\s+build\b/i },
+  { name: 'dev-server', re: /\bnpm\s+run\s+dev\b|\bvite\s+dev\b|\bdev-server\b/i },
+];
+
+/** Every known command the Guidance text names, in the order they are listed. */
+export function commandsNamedInGuidance(guidance) {
+  const text = String(guidance || '');
+  return COMMAND_PATTERNS.filter(({ re }) => re.test(text)).map(({ name }) => name);
+}
+
+/**
+ * The exact command lines the Guidance asks the worker to run. These are quoted
+ * back in STEP 3 so the worker runs what the packet asked for and nothing else.
+ */
+export function commandLinesInGuidance(guidance) {
+  const out = [];
+  for (const raw of String(guidance || '').split(/\r?\n/)) {
+    const line = raw.trim().replace(/^[-*>\s]+/, '');
+    if (!line) continue;
+    if (!COMMAND_PATTERNS.some(({ re }) => re.test(line))) continue;
+    if (!/^(?:run\b|node\b|npx\b|npm\b)/i.test(line)) continue;
+    out.push(line.replace(/^run\s+/i, '').replace(/\s+and report.*$/i, '').trim());
+  }
+  return [...new Set(out)];
+}
+
+/**
+ * STEP 3's text for one packet: the single block that says what the worker may
+ * run and what it may not. It NEVER forbids a command the Guidance names.
+ */
+export function buildVerificationStep(pkt) {
+  const named = commandsNamedInGuidance(pkt.guidance);
+  const forbidden = Array.isArray(pkt.forbidCommands) ? pkt.forbidCommands : [];
+  const untrackedEolNote = 'git ls-files --eol prints no result for untracked files; use the EOL reading in the lock warning before multi-line edits. ';
+  const clash = named.filter((c) => forbidden.includes(c));
+  if (clash.length) {
+    throw new Error(
+      `packet ${pkt.id}: the Guidance names ${clash.join(', ')}, which this packet also lists in forbidCommands. ` +
+      'A prompt cannot both ask for a command and forbid it (WF-G175). Remove it from one of the two lists.',
+    );
+  }
+  if (!named.length) {
+    return 'STEP 3 — Run ONLY the test/build/typecheck/dev-server commands the Guidance names. '
+      + 'This Guidance names none of those verification commands, so run none of them. '
+      + 'Read-only git (status, diff, log, ls-files, show) is allowed for shared-checkout inspection. '
+      + untrackedEolNote
+      + 'The orchestrator runs the integration gate. Self-review your edits for correctness.';
+  }
+  const lines = commandLinesInGuidance(pkt.guidance);
+  const detail = lines.length ? lines.map((l) => `
+  ${l}`).join('') : `
+  (see the Guidance block above: ${named.join(', ')})`;
+  return `STEP 3 — Run ONLY the test/build/typecheck/dev-server commands the Guidance names, and report their real output:${detail}
+`
+    + `Do not run other verification commands${forbidden.length ? ` (this packet also forbids: ${forbidden.join(', ')})` : ''}. `
+    + 'Read-only git (status, diff, log, ls-files, show) is allowed for shared-checkout inspection. '
+    + untrackedEolNote
+    + 'The orchestrator runs the integration gate. Self-review the rest of your edits.';
+}
+
+/**
+ * agora-bf4d.6 / WF-G171: the campaign a worker must name when it creates its
+ * OWN task, because the orchestrator seeded none.
+ *
+ * POST /tasks refuses a task that states no campaign decision. The seeded
+ * path already passes --campaign; this branch did not, so a worker following
+ * its own packet prompt got a 400 before it could start.
+ */
+export function promptCampaignId(plan, pkt) {
+  return pkt.campaign
+    || (plan.campaign && plan.campaign.id)
+    || plan.campaignId
+    || String(plan.wave || 'unnamed');
+}
+
 export function buildPrompt(plan, pkt, { taskId } = {}) {
+  const vendorVerification = checkedVendorVerificationNote(pkt);
   const B = plan.baseUrl || DEFAULT_URL;
   const files = pkt.files.join(' ');
   const ownedList = pkt.files.map((f) => '`' + f + '`').join(', ');
   const external = pkt.agent === 'codex' || pkt.agent === 'gemini';
   const refs = packetRefs(pkt);
+  // WF-G344: registration chooses the identity file. Every command must set
+  // the same scope in its OWN shell call, including the first register call.
+  const scopedClient = external
+    ? `$env:AGORA_AGENT_ID='${pkt.handle}'; node tools/agora/client.mjs`
+    : `AGORA_AGENT_ID=${pkt.handle} node tools/agora/client.mjs`;
+  const taskTitle = shellDoubleQuoted(oneLine(pkt.scope), external);
+  const taskBody = shellDoubleQuoted(packetTaskBody(pkt), external);
+  const taskRef = taskId || 'TASK_ID_HERE';
+  const taskSetup = taskId
+    ? `  ${scopedClient} task claim "${taskRef}" --url "${B}"`
+    : `  ${scopedClient} task new ${taskTitle} --campaign ${promptCampaignId(plan, pkt)} --body ${taskBody} --id-only --url "${B}"
+  # Copy the returned task id and replace TASK_ID_HERE in claim and done below.
+  ${scopedClient} task claim "${taskRef}" --url "${B}"`;
 
   const hardRules = external
     ? `You are external fix-agent "${pkt.handle}" in a coordinated multi-agent fleet on the Aralia repo. You are ALREADY in the repo root (F:\\Repos\\Aralia). Other agents edit OTHER files in this SAME checkout right now.
-HARD RULES: No git commands (no commit/reset/checkout/branch). No worktrees. Do NOT run builds/tsc/tests. Separate shell calls do NOT share env vars on this PowerShell host — set AGORA_AGENT_ID inline on each call or chain with ';'.`
-    : `You are fix-agent **${pkt.handle}** in a coordinated multi-agent UX-fix fleet (Aralia, cwd F:\\Repos\\Aralia, Windows; Bash tool). ALL agents share ONE checkout — NO worktrees/branches/commits. Edit ONLY your owned files.`;
+HARD RULES: No state-changing git (commit, branch, worktree, checkout, reset, stash, clean). Read-only git (status, diff, log, ls-files, show) is allowed and expected for pre-existing diffs and line endings. No worktrees. Run tests/build/typecheck/dev-server only when Guidance and STEP 3 name them. Separate shell calls do NOT share env vars on this PowerShell host — set AGORA_AGENT_ID inline on each call or chain with ';'.`
+    : `You are fix-agent **${pkt.handle}** in a coordinated multi-agent UX-fix fleet (Aralia, cwd F:\\Repos\\Aralia, Windows; Bash tool). ALL agents share ONE checkout. No state-changing git (commit, branch, worktree, checkout, reset, stash, clean). Read-only git (status, diff, log, ls-files, show) is allowed and expected for pre-existing diffs and line endings. Edit ONLY your owned files.`;
 
   return `${hardRules}
 
 Packet **${pkt.id}** — ${pkt.scope}${refs.length ? ` (refs: ${refs.join(', ')})` : ''}.
 Owned files (edit ONLY these): ${ownedList}.
 ${pkt.guidance ? `\nGuidance:\n${pkt.guidance}\n` : ''}
-STEP 1 — Join Agora (run via shell; set AGORA_AGENT_ID each call — shell state does not persist).
-Your identity "${pkt.handle}" is ASSIGNED to you by the orchestrator and is unique across the fleet — always use it, never invent your own:
-  export AGORA_AGENT_ID=${pkt.handle}
-  B=${B}
-  node tools/agora/client.mjs register ${pkt.handle} --note "${oneLine(pkt.scope)}" --model ${pkt.model || pkt.agent} --url $B
-  #  (optional) add --session <your conversation/thread id> so peers can trace which session you are
-${taskId
-    ? `  TID=${taskId}
-  node tools/agora/client.mjs task claim "$TID" --url $B`
-    : `  TID=$(node tools/agora/client.mjs task new "${oneLine(pkt.scope)}" --id-only --url $B)
-  node tools/agora/client.mjs task claim "$TID" --url $B`}
-  node tools/agora/client.mjs lock ${files} --reason "${pkt.id}" --url $B
-  node tools/agora/client.mjs say "starting ${pkt.id}" --url $B
+${vendorVerification ? `\n${vendorVerification}\n` : ''}
+${handoffPromptBlock(pkt)}
+STEP 1 — Join Agora (each line is a self-contained shell call; do not rely on earlier exports or variables).
+Your identity "${pkt.handle}" is ASSIGNED to you by the orchestrator and is unique across the fleet — always use it, never invent your own. Keep the AGORA_AGENT_ID prefix on EVERY Agora command, starting with register:
+  # Replace the placeholder with this worker's exact harness task/thread id; Presence rejects omission.
+  ${scopedClient} register ${pkt.handle} --pet ${pkt.pet} --note "${oneLine(pkt.scope)}" --model ${pkt.model || pkt.agent} --session <your-task-or-thread-id> --url "${B}"
+${taskSetup}
+  ${scopedClient} lock ${files} --reason "${pkt.id}" --url "${B}"
+  ${scopedClient} say "starting ${pkt.id}" --url "${B}"
 If work will take >20 minutes, use a bounded heartbeat helper (30-minute default; renew only while active):
-  node tools/agora/client.mjs heartbeat --every 600 --for 30 --url $B &
+  ${scopedClient} heartbeat --daemonize --every 600 --for 30 --url "${B}"
   # If your harness exposes its PID, also pass --owner-pid <pid> (or set AGORA_OWNER_PID).
 FAILURE HANDLING:
 - task claim fails (409 = someone else claimed it): say "409 on task ${pkt.id} — standing down" and STOP; do not create a replacement task.
 - lock returns CONFLICT/409: do NOT edit that file; say "409 CONFLICT: <file> held by <holder>" and skip that file.
-- any call returns 401 mid-work: you were reaped (too long silent). Re-register with the SAME handle (add --allow-duplicate in case your old record lingers), then re-claim "$TID" and re-lock before continuing.
+- any call returns 401 mid-work: you were reaped (too long silent). Re-register with the SAME handle and pet (--pet ${pkt.pet}; add --allow-duplicate only if the old record lingers), then re-claim "${taskRef}" and re-lock before continuing. Keep the identity prefix on recovery calls too.
 
 STEP 2 — Fix the issue(s) in ONLY your owned (successfully-locked) files, matching surrounding style. If a fix needs a file you don't own, do NOT edit it — report it as a cross-file follow-up.
+SCRIPTS WITH BACKSLASHES (WF-G160): Never pipe scripts containing backslashes through a Bash heredoc or -e string (the harness silently strips backslashes, corrupting regexes and path separators). Write any script containing backslashes to a file with Write and execute that file.
 
-STEP 3 — Do NOT run tsc/build/vitest/dev-server (the orchestrator runs the integration gate). Self-review your edits for correctness.
+${buildVerificationStep(pkt)}
 
 STEP 4 — Wrap up + REQUIRED workflow feedback (BOTH the say broadcast — live coordination — AND task done --result — the durable record the orchestrator verifies — are required):
-  node tools/agora/client.mjs say "done ${pkt.id}: <one-line of what you changed>" --url $B
-  node tools/agora/client.mjs task done "$TID" --result "<files changed + concrete proof (e.g. 'a.tsx,b.ts; self-reviewed, matches M1 spec')>" --url $B
-  node tools/agora/client.mjs unlock --mine --url $B
-  node tools/agora/client.mjs say "WORKFLOW: <any friction with THIS coordination workflow itself, or 'none'>" --url $B
-  node tools/agora/client.mjs retire --note "completed ${pkt.id}" --url $B
+  ${scopedClient} say "done ${pkt.id}: <one-line of what you changed>" --url "${B}"
+  ${scopedClient} task done "${taskRef}" --result "<files changed + concrete proof (e.g. 'a.tsx,b.ts; self-reviewed, matches M1 spec')>" --url "${B}"
+  ${scopedClient} unlock --mine --url "${B}"
+  ${scopedClient} say "WORKFLOW: <any friction with THIS coordination workflow itself, or 'none'>" --url "${B}"
+  ${scopedClient} retire --note "completed ${pkt.id}" --url "${B}"
 ${external ? `\nFINALLY write a <=8-line report to .agent/scratch/orchestrate/${pkt.handle}.md: what you changed per file + your WORKFLOW feedback.` : ''}
 RETURN: per issue what you changed (file + concrete change), any cross-file follow-ups, any 409s, and your WORKFLOW feedback.`;
 }
@@ -569,7 +999,7 @@ async function cmdReconcile(plan, root = 'docs/projects', { apply = false } = {}
   const gaps = indexGaps({ root }).concat(root === 'tools/agora' ? [] : indexGaps({ root: 'tools/agora' }));
   const rec = reconcileGaps(tasks, gaps);
   console.log(`Reconcile (board done-tasks vs ${root} GAPS registries)${apply ? ' — APPLYING row updates' : ''}:`);
-  if (!rec.staleOpen.length) console.log('  ✅ no stale-open gaps — tracker matches the board.');
+  if (!rec.staleOpen.length && !rec.pendingRestart.length) console.log('  ✅ no stale-open gaps — tracker matches the board.');
   // --apply respects Agora locks: a registry file locked by another agent is skipped.
   let heldPaths = [];
   if (apply) {
@@ -593,6 +1023,10 @@ async function cmdReconcile(plan, root = 'docs/projects', { apply = false } = {}
       console.log(`      → update that GAPS.md row (status + evidence), or re-run with --apply.`);
     }
   }
+  for (const p of rec.pendingRestart) {
+    console.log(`  ⏳ ${p.ref} is repaired in source but pending daemon restart in ${p.gap.file}`);
+    console.log('      restart the daemon, verify the live behavior, then resolve the row manually; --apply will not close it.');
+  }
   if (rec.unrecognizedStatus && rec.unrecognizedStatus.length) {
     for (const u of rec.unrecognizedStatus) {
       console.log(`  ？ ${u.ref}: gap status "${u.gap.status}" is neither open nor closed vocabulary — inspect ${u.gap.file}`);
@@ -615,16 +1049,16 @@ function cmdAgents() {
   console.log(`Agent Matrix registry (tools/agora/agents.json, updated ${reg.updated || '?'}):\n`);
   for (const [id, def] of Object.entries(reg.agents)) {
     const roles = (def.roles || []).join('+') || 'none';
-    const dispatchable = (def.dispatch || {}).type === 'agent-tool' || (def.dispatch || {}).command;
+    const dispatchable = hasDispatchWiring(def);
     const flags = [];
     if (def.status === 'deprecated') flags.push('DO NOT DISPATCH');
     else if (!(def.roles || []).includes('worker')) flags.push('not a worker lane');
     else if (!dispatchable) flags.push('NOT WIRED for dispatch');
     const stale = staleConstraints(def, today);
     for (const c of stale) flags.push(`constraint EXPIRED ${c.expiresAt} — re-verify: ${c.note}`);
-    console.log(`${id.padEnd(10)} ${String(def.status).padEnd(14)} roles:${roles.padEnd(20)} ${def.label || ''}${flags.length ? `\n${' '.repeat(11)}⚠ ${flags.join('; ')}` : ''}`);
+    console.log(`${id.padEnd(26)} ${String(def.status).padEnd(14)} roles:${roles.padEnd(20)} ${def.label || ''}${flags.length ? `\n${' '.repeat(27)}⚠ ${flags.join('; ')}` : ''}`);
     for (const c of def.constraints || []) {
-      if (!stale.includes(c)) console.log(`${' '.repeat(11)}- ${c.note}${c.expiresAt ? ` (until ${c.expiresAt})` : ''}`);
+      if (!stale.includes(c)) console.log(`${' '.repeat(27)}- ${c.note}${c.expiresAt ? ` (until ${c.expiresAt})` : ''}`);
     }
   }
   console.log('\nWorker-dispatchable = role "worker" + status ready/quota_limited + dispatch wiring. validatePlan enforces this.');
@@ -653,6 +1087,19 @@ async function cmdDispatch(plan, packetId) {
   const logFile = path.join(dir, `${pkt.handle}.log`);
   fs.writeFileSync(promptFile, prompt);
 
+  // AM-G1: an API lane is a valid packet agent, but it has no process to spawn.
+  // Write the prompt and hand the operator the exact route. Do NOT pretend the
+  // packet was launched — a silent no-op would read as a success on the board.
+  const apiDispatch = loadRegistry().agents[pkt.agent].dispatch || {};
+  if (apiDispatch.type === 'api') {
+    console.log(`api packet "${pkt.id}" — agent "${pkt.agent}" is an HTTP lane, so no process is spawned.`);
+    console.log(`  endpoint:   ${apiDispatch.endpoint}${apiDispatch.path || ''}`);
+    console.log(`  model:      ${apiDispatch.model || '(choose one — see the lane constraints)'}`);
+    console.log(`  credential: ${apiDispatch.credential || '(none recorded)'}   — read it from the vault; never paste it into a file.`);
+    console.log(`  prompt:     ${promptFile}`);
+    return;
+  }
+
   const probe = probeAgent(pkt.agent);
   if (!probe.ok) {
     console.log(`⚠ ${pkt.agent} unavailable: ${probe.reason}`);
@@ -660,7 +1107,7 @@ async function cmdDispatch(plan, packetId) {
     return;
   }
 
-  const { cmd, args } = launchSpec(pkt.agent, prompt);
+  const { cmd, args } = launchSpec(pkt.agent, prompt, loadRegistry(), { promptFile });
   const logFd = fs.openSync(logFile, 'w');
   // WF-G1: external agents run no Claude hooks — prepend the git shim to their
   // PATH so destructive git funnels through the same guard.
@@ -675,6 +1122,105 @@ async function cmdDispatch(plan, packetId) {
 
 // WF-G5: quota probes and launch specs are REGISTRY-DRIVEN — a new agent needs
 // only agents.json entries (dispatch.command/args + quotaProbe), zero code here.
+//
+// Launch one external packet in the foreground of the wave scheduler. Unlike
+// the legacy one-packet path above, this promise settles only when the worker
+// exits, which is what frees a queue slot and creates a truthful terminal record.
+function runAttachedExternalPacket(plan, pkt, registry) {
+  const prompt = buildPrompt(plan, pkt, { taskId: loadSeededMap(plan)[pkt.id] });
+  const dir = path.resolve(REPO, '.agent/scratch/orchestrate');
+  fs.mkdirSync(dir, { recursive: true });
+  const promptFile = path.join(dir, `${pkt.handle}.prompt.txt`);
+  const logFile = path.join(dir, `${pkt.handle}.log`);
+  fs.writeFileSync(promptFile, prompt);
+
+  const { cmd, args } = launchSpec(pkt.agent, prompt, registry, { promptFile });
+  const logFd = fs.openSync(logFile, 'w');
+  const shimDir = path.join(MODULE_DIR, 'git-shim');
+  const env = { ...process.env, PATH: `${shimDir}${path.delimiter}${process.env.PATH || ''}` };
+
+  return new Promise((resolve, reject) => {
+    let child;
+    let settled = false;
+
+    // Close the shared log descriptor exactly once whether process creation
+    // fails or the worker exits normally. This keeps long waves from leaking
+    // one Windows file handle per packet.
+    const finish = (callback) => {
+      if (settled) return;
+      settled = true;
+      fs.closeSync(logFd);
+      callback();
+    };
+
+    try {
+      child = spawn(cmd, args, { cwd: REPO, stdio: ['ignore', logFd, logFd], env });
+    } catch (error) {
+      finish(() => reject(error));
+      return;
+    }
+
+    console.log(`started ${pkt.agent} packet "${pkt.id}" (pid ${child.pid}); queued slots open only after exit.`);
+    child.once('error', (error) => finish(() => reject(error)));
+    child.once('close', (code, signal) => finish(() => resolve({
+      exitCode: Number.isInteger(code) ? code : (signal ? 1 : 0),
+      signal,
+      output: logFile,
+      result: `pid ${child.pid} exited ${Number.isInteger(code) ? code : `on signal ${signal || 'unknown'}`}`,
+      promptFile,
+      logFile,
+    })));
+  });
+}
+
+// Dispatch every CLI packet in a plan through the bounded scheduler. Agent-tool
+// packets keep their established manual prompt flow, while CLI packets gain a
+// terminal record and visible failure status instead of disappearing detached.
+async function cmdDispatchWave(plan, { cliMax } = {}) {
+  const reg = loadRegistry();
+  const cliPackets = plan.packets.filter((packet) => {
+    const dispatch = reg.agents[packet.agent]?.dispatch || {};
+    return dispatch.type !== 'agent-tool' && Boolean(dispatch.command);
+  });
+  const manualPackets = plan.packets.filter((packet) => !cliPackets.includes(packet));
+
+  // Preserve the existing manual Claude behavior in mixed plans. These packets
+  // are not fake terminal successes: the operator still receives the prompt and
+  // must dispatch them through the Agent tool as before.
+  for (const packet of manualPackets) await cmdDispatch(plan, packet.id);
+  if (cliPackets.length === 0) return [];
+
+  // Cache each lane's synchronous quota probe so a queued wave checks once, not
+  // once per packet. A dry lane returns explicit failed records without spawning.
+  const probes = new Map();
+  const records = await dispatchPacketWave(cliPackets, {
+    registry: reg,
+    cliMax,
+    runPacket: async (packet) => {
+      if (!probes.has(packet.agent)) probes.set(packet.agent, probeAgent(packet.agent, reg));
+      const probe = probes.get(packet.agent);
+      if (!probe.ok) {
+        return {
+          exitCode: 1,
+          output: `quota probe rejected ${packet.agent}: ${probe.reason}`,
+          result: `packet ${packet.id} was not launched because ${packet.agent} is unavailable`,
+        };
+      }
+      return runAttachedExternalPacket(plan, packet, reg);
+    },
+    onRecord: (record) => {
+      const marker = record.status === 'succeeded' ? 'completed' : 'FAILED';
+      console.log(`${marker} packet "${record.packetId}" status=${record.status} exit=${record.exitCode ?? 'unknown'} output=${record.output}`);
+    },
+  });
+
+  const failed = records.filter((record) => record.status === 'failed');
+  console.log(`wave dispatch terminal: ${records.length - failed.length} succeeded / ${failed.length} failed / ${records.length} total.`);
+  return records;
+}
+
+// Probe and command details below continue to come only from agents.json. The
+// scheduler never removes or substitutes registry status, role, or constraints.
 export function probeAgent(agent, registry = loadRegistry()) {
   const def = registry.agents[agent];
   const probe = def && def.quotaProbe;
@@ -697,10 +1243,22 @@ export function probeAgent(agent, registry = loadRegistry()) {
   }
 }
 
-export function launchSpec(agent, prompt, registry = loadRegistry()) {
+export function launchSpec(agent, prompt, registry = loadRegistry(), { promptFile } = {}) {
   const def = registry.agents[agent];
   const d = def && def.dispatch;
-  if (d && d.command) return { cmd: d.command, args: [...(d.args || []), prompt] };
+  if (d && d.type === 'api') {
+    throw new Error(`agent "${agent}" is an API lane (${d.endpoint}) — it has no CLI launch spec; call the endpoint instead`);
+  }
+  if (d && d.command) {
+    // AM-G1: several onboarded lanes read the prompt from a FILE instead of a
+    // trailing argument. Such a lane declares promptMode "file" and puts the
+    // {promptFile} placeholder in its args, so no prompt text is appended.
+    if (d.promptMode === 'file') {
+      if (!promptFile) throw new Error(`agent "${agent}" needs a prompt file (dispatch.promptMode is "file") but none was written`);
+      return { cmd: d.command, args: (d.args || []).map((a) => (a === '{promptFile}' ? promptFile : a)) };
+    }
+    return { cmd: d.command, args: [...(d.args || []), prompt] };
+  }
   throw new Error(`no launch spec for ${agent} (agents.json dispatch.command missing)`);
 }
 
@@ -748,9 +1306,11 @@ function cmdGate(plan, exclude, only) {
 // ---------------------------------------------------------------- cli
 const HELP = `Agora Orchestrator — drive a multi-agent campaign wave.
   node tools/agora/orchestrate.mjs agents                    print the Agent Matrix registry (statuses, policy, expired constraints)
+  node tools/agora/orchestrate.mjs agents --matrix           diff the registry against the dashboard offerings ledger (exit 1 on any disagreement)
   node tools/agora/orchestrate.mjs prompt   <plan.json> <packetId>
+  node tools/agora/orchestrate.mjs partition <plan.json>                       read-only file-ownership report for claimed tasks
   node tools/agora/orchestrate.mjs seed     <plan.json>
-  node tools/agora/orchestrate.mjs dispatch <plan.json> <packetId>
+  node tools/agora/orchestrate.mjs dispatch <plan.json> [packetId] [--max <positive-integer>]   one packet, or a bounded external CLI wave
   node tools/agora/orchestrate.mjs gate     <plan.json> [--exclude <regex>] [--only <id,id>]   (--only = gate ONE wave's packets)
   node tools/agora/orchestrate.mjs watch    <plan.json> [--interval s] [--timeout min]   block until every seeded task is done/blocked
   node tools/agora/orchestrate.mjs report   <plan.json>                                  wave retrospective (timings, reaps, results)
@@ -764,21 +1324,54 @@ function getFlag(argv, name) {
   return i >= 0 ? argv[i + 1] : undefined;
 }
 
+// Distinguish an omitted override from a missing/invalid value. This check runs
+// before dispatch chooses either the legacy one-packet path or the wave path, so
+// a malformed ceiling can never be ignored while a worker is launched.
+function getDispatchMaxFlag(argv) {
+  if (!argv.includes('--max')) return undefined;
+  const value = getFlag(argv, '--max');
+  if (value === undefined || String(value).startsWith('--')) {
+    throw new Error('--max requires a positive whole number');
+  }
+  return validateDispatchMax(value, '--max');
+}
+
 async function main() {
   const [cmd, planArg, packetArg] = process.argv.slice(2);
   if (!cmd || cmd === 'help') { console.log(HELP); return; }
-  if (cmd === 'agents') { cmdAgents(); return; }
+  if (cmd === 'agents') {
+    // --matrix diffs this registry against the dashboard offerings ledger (AM-G1).
+    if (process.argv.includes('--matrix')) { process.exitCode = await runMatrixCheck(); return; }
+    cmdAgents();
+    return;
+  }
   if (cmd === 'prompt') {
     const plan = loadPlan(planArg);
+    const ownership = await checkPlanOwnership(plan);
+    if (!ownership.ok) throw new Error(formatPacketOwnershipReport(ownership));
     const pkt = requirePacket(plan, packetArg);
     console.log(buildPrompt(plan, pkt, { taskId: loadSeededMap(plan)[pkt.id] }));
     return;
   }
   const plan = loadPlan(planArg);
+  if (cmd === 'partition') {
+    const ownership = await checkPlanOwnership(plan);
+    console.log(formatPacketOwnershipReport(ownership));
+    for (const note of packetVerificationNotes(plan)) console.log(note);
+    process.exitCode = ownership.ok ? 0 : 1;
+    return;
+  }
   if (cmd === 'seed') return void (await cmdSeed(plan));
   if (cmd === 'status') return void (await cmdStatus(plan));
   if (cmd === 'feedback') return void (await cmdFeedback(plan, Number(getFlag(process.argv, '--since') || 0)));
-  if (cmd === 'dispatch') return void (await cmdDispatch(plan, packetArg));
+  if (cmd === 'dispatch') {
+    const cliMax = getDispatchMaxFlag(process.argv);
+    const ownership = await checkPlanOwnership(plan);
+    if (!ownership.ok) throw new Error(formatPacketOwnershipReport(ownership));
+    const requestedPacket = packetArg && !packetArg.startsWith('--') ? packetArg : undefined;
+    if (requestedPacket) return void (await cmdDispatch(plan, requestedPacket));
+    return void (await cmdDispatchWave(plan, { cliMax }));
+  }
   if (cmd === 'watch') {
     process.exitCode = await cmdWatch(plan, {
       intervalSec: Number(getFlag(process.argv, '--interval')) || 20,

@@ -16,6 +16,9 @@
     "type": "Wondrous Item",
     "rarity": "Rare",
     "reqAttune": "Required",
-    "weight": 1
+    "weight": 1,
+    "abilitySet": {
+      "con": 19
+    }
   }
 }

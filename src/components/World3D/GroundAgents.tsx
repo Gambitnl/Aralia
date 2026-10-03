@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/08/2026, 15:06:59
+ * Dependents: components/World3D/World3DScene.tsx, components/Worldforge/AgentSim3DPreview.tsx
+ * Imports: 13 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file GroundAgents.tsx
  * @description Instanced townsfolk that walk the streets in WF ground mode — the
@@ -22,14 +38,28 @@ import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { SceneOrigin } from '@/systems/world3d/sceneOrigin';
+import type { LoadedChunk } from '@/systems/world3d/types';
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
-import { groundAgentScenePositions } from '@/systems/worldforge/bridge/groundAgentMotion';
+import {
+  groundAgentScenePositions,
+  type GroundAgentSceneNode,
+} from '@/systems/worldforge/bridge/groundAgentMotion';
+import type { TownRoster } from '@/systems/worldforge/roster/types';
 import { worldToScene } from '@/systems/world3d/sceneOrigin';
 import { WORLD3D_CONFIG } from '@/systems/world3d/config';
 import { registerAllParts } from '@/systems/entities3d/parts';
-import { crowdArchetypeForGroup, CROWD_WALK_PHASES } from '@/systems/entities3d/three/crowdBake';
+import { CROWD_WALK_PHASES } from '@/systems/entities3d/three/crowdBake';
+import { crowdArchetypeForGroup } from '@/systems/entities3d/recipeFromOccupant';
 import { toonGradient, ENTITY_RENDER_MODE } from '@/systems/entities3d/three/toon';
 import { crowdInstancePlan, CROWD_GROUPS, type HeadingMemory } from './crowdInstancePlan';
+import {
+  collectResidentHandoffIndex,
+  residentIdentityKey,
+  residentRenderKey,
+  residentRenderOwnerAtClock,
+  type ResidentHandoffRecord,
+} from './InteriorOccupants';
+import { streetOwnedAgentNodes } from './streetOwnedAgents';
 
 registerAllParts();
 
@@ -42,6 +72,8 @@ const DEFAULT_CLOCK = 7.5;
 
 interface GroundAgentsProps {
   ground?: GroundWorld | null;
+  /** Loaded interior packets that can currently own joined resident bodies. */
+  loaded: LoadedChunk[];
   /** Fractional hour (live game clock). Overridden by window.__wfAgentClock. */
   clock?: number;
   sceneOrigin: SceneOrigin;
@@ -49,11 +81,19 @@ interface GroundAgentsProps {
   figureScale?: number;
 }
 
-const GroundAgents: React.FC<GroundAgentsProps> = ({ ground, clock, sceneOrigin, figureScale = 1 }) => {
+const GroundAgents: React.FC<GroundAgentsProps> = ({ ground, loaded, clock, sceneOrigin, figureScale = 1 }) => {
   const sinceWrite = useRef(RECOMPUTE_INTERVAL_S); // write on first frame
   const timeRef = useRef(0);
   const headings = useRef<HeadingMemory>(new Map());
+  const lastOwnershipHour = useRef<number | null>(null);
   const hasAgents = !!(ground && ground.townPlans && ground.townPlans.length);
+  const loadedKey = loaded.map((chunk) => `${chunk.cx}|${chunk.cy}`).join(',');
+  const handoffs = useMemo(
+    () => collectResidentHandoffIndex(loaded),
+    // Chunk membership is the stable ownership-packet boundary.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [loadedKey],
+  );
 
   // One material + the per-group baked keyframes (bakes once per session,
   // cached module-side). ~12 groups × 7 keyframes of ~small geometry.
@@ -85,11 +125,19 @@ const GroundAgents: React.FC<GroundAgentsProps> = ({ ground, clock, sceneOrigin,
     timeRef.current += delta;
     if (!hasAgents || !buckets) return;
     sinceWrite.current += delta;
-    if (sinceWrite.current < RECOMPUTE_INTERVAL_S) return;
-    sinceWrite.current = 0;
     const override = (window as unknown as { __wfAgentClock?: number }).__wfAgentClock;
     const c = override ?? clock ?? DEFAULT_CLOCK;
-    const nodes = groundAgentScenePositions(ground!, c, undefined);
+    const ownershipHour = ((Math.floor(c) % 24) + 24) % 24;
+    const ownershipChanged = lastOwnershipHour.current !== ownershipHour;
+    if (sinceWrite.current < RECOMPUTE_INTERVAL_S && !ownershipChanged) return;
+    sinceWrite.current = 0;
+    lastOwnershipHour.current = ownershipHour;
+    const nodes = streetOwnedAgentNodes(
+      groundAgentScenePositions(ground!, c, undefined),
+      ground!.rosters,
+      handoffs,
+      c,
+    );
     const plan = crowdInstancePlan(nodes, timeRef.current, headings.current);
 
     const counts = new Map<string, number>();

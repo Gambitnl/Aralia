@@ -37,6 +37,17 @@ const agentUsageProbe = () => ({
   },
 });
 
+// Same lazy pattern for the pane catalog's Recapture route: editing the route
+// must not restart the dev server, because a restart would kill the headless
+// capture the route had just started.
+const catalogRecapture = () => ({
+  name: 'catalog-recapture-lazy',
+  async configureServer(server: unknown) {
+    const mod = await import('./scripts/vite-plugins/catalogRecapture');
+    return (mod.catalogRecapture() as { configureServer: (s: unknown) => void }).configureServer(server);
+  },
+});
+
 // Same lazy pattern: agent-session tiles plugin stays out of the config watch
 // list so editing it doesn't restart the server and kill live agent PTYs.
 const agentSessionManager = () => ({
@@ -75,7 +86,6 @@ import { lessonsManager } from './scripts/vite-plugins/lessonsManager';
 import { spellIconPicksManager } from './scripts/vite-plugins/spellIconPicksManager';
 
 import {
-  conductorManager,
   scanManager,
   gitStatusManager,
   scriptRegistryManager,
@@ -85,6 +95,20 @@ import {
 } from './scripts/vite-plugins/miscManagers';
 
 import { formatProxyTarget } from './scripts/vite-plugins/utils';
+import {
+  isVerificationNoWatchServer,
+  selectMainAppWatchOptions,
+  VERIFICATION_NO_WATCH_PORT,
+} from './scripts/vite-plugins/verificationServerMode';
+
+/**
+ * This file configures every Aralia Vite build and local development-server mode.
+ *
+ * It connects the game and its specialist preview pages to React, local development
+ * APIs, dependency optimization, proxy routes, and build entry points. Named modes
+ * reuse this shared configuration while narrowing only the behavior they explicitly
+ * own, such as the verification server's filesystem watcher.
+ */
 
 /**
  * Helper to add diagnostic hints to Vite proxy errors.
@@ -100,28 +124,72 @@ function addProxyDiagnostics(
   config: ProxyOptions,
   hint: string
 ): ProxyOptions {
+  // GG-15: while the target is down, every heartbeat/probe request used to log
+  // a full ECONNREFUSED stack (from Vite's own proxy error logger), drowning
+  // real errors in dev/Playwright logs. Strategy:
+  // 1. First refusal logs ONE diagnostic block, then marks the target down.
+  // 2. While down, `bypass` answers with the soft 502 JSON directly, so later
+  //    requests never reach http-proxy and Vite logs nothing for them.
+  // 3. Vite registers its error logger AFTER configure(), so this handler runs
+  //    first; clearing err.stack keeps even that first Vite line stack-free.
+  // 4. A successful proxied response re-arms logging for the next outage.
+  let targetDown = false;
+
+  const softRefusalJson = () =>
+    JSON.stringify({
+      error: 'LOCAL_SERVICE_UNAVAILABLE',
+      message: `Proxy target ${formatProxyTarget(config.target)} refused connection. ${hint}`,
+    });
+
+  // Node delivers localhost refusals as AggregateError [ECONNREFUSED] whose
+  // message is empty; the code lives on err.code or nested err.errors.
+  const isRefusal = (err: Error & { code?: string; errors?: Array<{ code?: string }> }) =>
+    err.code === 'ECONNREFUSED' ||
+    err.message.includes('ECONNREFUSED') ||
+    (Array.isArray(err.errors) && err.errors.some((e) => e.code === 'ECONNREFUSED'));
+
   return {
     ...config,
+    bypass: (req, res) => {
+      if (!targetDown) return undefined;
+      if (res && typeof res.writeHead === 'function' && !res.headersSent) {
+        res.writeHead(502, { 'Content-Type': 'application/json' });
+        res.end(softRefusalJson());
+      }
+      // Returning any string short-circuits the proxy attempt; since the
+      // response is already ended, Vite's middleware returns immediately.
+      return req.url ?? '/';
+    },
     configure: (proxy, _options) => {
-      proxy.on('error', (err, req: IncomingMessage, res: ServerResponse) => {
+      proxy.on('error', (err: Error, req: IncomingMessage, res: any) => {
         const target = formatProxyTarget(config.target);
-        if (err.message.includes('ECONNREFUSED')) {
-          console.error(`\n[proxy] ${route} -> ${target} connection refused.`);
-          console.error(`[proxy] Hint: ${hint}\n`);
+        if (isRefusal(err)) {
+          err.stack = '';
+          if (!targetDown) {
+            targetDown = true;
+            console.error(`\n[proxy] ${route} -> ${target} connection refused.`);
+            console.error(`[proxy] Hint: ${hint}`);
+            console.error(`[proxy] Further ${route} failures suppressed until the target recovers.\n`);
+          }
         }
 
         // Let the startup dependency check fail softly. This keeps the browser
         // console from reporting an internal server error for an optional local
         // service, while the client still sees "no models available" and opens
-        // the existing Ollama dependency modal.
-        if (route === '/api/ollama' && req.url === '/tags' && !res.headersSent) {
-          res.statusCode = 200;
-          res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify({ models: [] }));
-          return;
+        // the setup modal as expected.
+        if (res && typeof res.writeHead === 'function' && !res.headersSent) {
+          res.writeHead(502, { 'Content-Type': 'application/json' });
+          res.end(softRefusalJson());
         }
       });
-    }
+
+      proxy.on('proxyRes', () => {
+        if (targetDown) {
+          targetDown = false;
+          console.info(`[proxy] ${route} recovered; refusal logging re-armed.`);
+        }
+      });
+    },
   };
 }
 
@@ -153,6 +221,7 @@ export default defineConfig(async ({ mode, command }) => {
   const isRoadmapMode = mode === 'roadmap';
   const isHubMode = mode === 'hub';
   const isPlanmapMode = mode === 'planmap';
+  const isVerificationNoWatchDev = isVerificationNoWatchServer({ command, mode });
 
   const isRoadmapOnlyDev = isDevServer && isRoadmapMode;
   const isHubOnlyDev = isDevServer && isHubMode;
@@ -190,7 +259,6 @@ export default defineConfig(async ({ mode, command }) => {
     roadmapManager(),
     roadmapLauncherManager(),
     devHubLauncherManager(),
-    conductorManager(),
     scanManager(),
     gitStatusManager(),
     devHubApiManager(),
@@ -209,6 +277,7 @@ export default defineConfig(async ({ mode, command }) => {
     lessonsManager(),
     spellIconPicksManager(),
     agentSessionManager(),
+    catalogRecapture(),
     groqProxyManager()
   ];
   const roadmapOnlyPlugins = [react(), roadmapManager()];
@@ -217,7 +286,6 @@ export default defineConfig(async ({ mode, command }) => {
     visualizerManager(),
     roadmapLauncherManager(),
     devHubLauncherManager(),
-    conductorManager(),
     scanManager(),
     gitStatusManager(),
     devHubApiManager(),
@@ -268,6 +336,12 @@ export default defineConfig(async ({ mode, command }) => {
       console.info('[dev] Mode: planmap-only (static plan-map, no app HMR).');
       console.info(`[dev] Planmap server port: ${PLANMAP_DEV_PORT}`);
       console.info('[dev] Open: /Aralia/planmap/index.html (root redirects here)');
+    } else if (isVerificationNoWatchDev) {
+      // Render verification uses the complete main app and normal dependency optimizer.
+      // Only filesystem watching is absent, so the initial watcher crawl cannot delay
+      // the document and `/@vite/client` responses required by screenshot tooling.
+      console.info('[dev] Mode: verification-only (main app without filesystem watching or HMR updates).');
+      console.info(`[dev] Verification server port: ${VERIFICATION_NO_WATCH_PORT}`);
     } else {
       console.info('[dev] Mode: main-app (roadmap APIs and roadmap watch paths are disabled).');
       console.info('[dev] Proxy routes:');
@@ -281,12 +355,15 @@ export default defineConfig(async ({ mode, command }) => {
   if (isRoadmapOnlyDev) port = ROADMAP_DEV_PORT;
   if (isHubOnlyDev) port = DEVHUB_DEV_PORT;
   if (isPlanmapOnlyDev) port = PLANMAP_DEV_PORT;
+  if (isVerificationNoWatchDev) port = VERIFICATION_NO_WATCH_PORT;
 
   return {
     base: '/Aralia/',
     server: {
       port,
-      strictPort: isRoadmapOnlyDev || isHubOnlyDev || isPlanmapOnlyDev,
+      // Specialist servers fail rather than drifting onto another lane's port.
+      // In particular, verification must never fall back to shared port 3000.
+      strictPort: isRoadmapOnlyDev || isHubOnlyDev || isPlanmapOnlyDev || isVerificationNoWatchDev,
       host: '0.0.0.0',
       // The planmap server is static — don't warm the React entry (no react
       // plugin in that mode, so transforming index.tsx would just error).
@@ -294,9 +371,10 @@ export default defineConfig(async ({ mode, command }) => {
       ...(isRoadmapOnlyDev || isPlanmapOnlyDev
         ? {}
         : {
-            watch: {
-              ignored: mainDevRoadmapWatchIgnored
-            },
+            watch: selectMainAppWatchOptions(
+              { command, mode },
+              { ignored: mainDevRoadmapWatchIgnored },
+            ),
             proxy: {
               '/api/ollama': addProxyDiagnostics(
                 '/api/ollama',
@@ -333,8 +411,23 @@ export default defineConfig(async ({ mode, command }) => {
     // `import.meta.env.VITE_GEMINI_API_KEY` (set locally via .env for dev); the public
     // build ships no key and simply gates AI features off. See src/config/env.ts getApiKey().
     resolve: {
+      // Preserve symlinks so junctioned directories under src/ (e.g. src/data/spells -> public/data/spells)
+      // are treated as module paths in src/ and not canonicalized into public/.
+      // Without this, importing '@/data/spells/*.json' resolves to the realpath in public/ and triggers Vite's
+      // "Assets in public directory cannot be imported from JavaScript" warning spam during dev and build.
+      preserveSymlinks: true,
       dedupe: ['three', '@react-three/fiber', '@react-three/drei'],
       alias: {
+      // THE SPELL CORPUS HAS ONE HOME: public/data/spells.
+      // `src/data/spells` used to be a symbolic link to it, made by hand on
+      // 12 August, created by no script and repaired by none. 135 test files
+      // import single spell JSON through `@/data/spells/...`, so the link was
+      // load-bearing while being invisible to git, which tracked 483 duplicate
+      // blobs on both sides. This alias does the same job in the build config,
+      // where it is checked in, reviewable, and identical on every machine.
+      // It MUST stay above the plain '@' entry: Vite takes the first prefix
+      // that matches.
+      '@/data/spells': path.resolve(__dirname, 'public/data/spells'),
         '@': path.resolve(__dirname, 'src'),
       }
     },
@@ -344,6 +437,62 @@ export default defineConfig(async ({ mode, command }) => {
         '@react-three/fiber',
         '@react-three/drei',
         '@react-three/postprocessing',
+        /* THE WEBGPU PAIR, PRE-BUNDLED ON PURPOSE.
+         *
+         * Every WebGPU surface we own — the droplets and legacy-grid water on
+         * `?step=water`, the volume sandbox, the WebGPU battle map — reaches
+         * `three/webgpu` and `three/tsl` through a `lazy(() => import(...))`
+         * and NOTHING reaches them any earlier. Vite's cold-start dep scan
+         * therefore finished without them, and the first click that armed one
+         * of those scenes made the dev server DISCOVER two new dependencies,
+         * re-bundle, and broadcast `{"type":"full-reload","path":"*"}`.
+         *
+         * What that looks like from a chair: you click Droplets, the page goes
+         * blank, the console is empty, and it stays blank — because the reload
+         * lands while esbuild is still writing the new bundle, so the module
+         * requests stall and React never mounts. No error is thrown anywhere,
+         * so no error boundary can catch it and nothing is logged to find.
+         * `?step=water` died this way under Remy on 2026-08-11, and the
+         * "mid-carve page loss" the volume page's `vite:beforeFullReload`
+         * tripwire was built to chase (ADR 0002, round 9) is the same event.
+         *
+         * Naming them here makes them part of the FIRST optimize pass, so
+         * there is nothing left to discover and no reason to reload. */
+        'three/webgpu',
+        'three/tsl',
+        /* THE ENTITY-GENERATOR EXAMPLES, same reasoning as the WebGPU pair.
+         *
+         * `entities3d` reaches three deep `three/examples` modules, and every
+         * one of them sits behind a lazy path the cold-start scan never walks:
+         * GLTFLoader and SkeletonUtils load only when a clip plays (the entity
+         * debugger's `?clip=1`), BufferGeometryUtils only when crowd baking
+         * runs. The first request down any of those paths made the dev server
+         * DISCOVER a new dependency and re-bundle mid-session.
+         *
+         * From a chair that looks like `504 (Outdated Optimize Dep)` and a
+         * server that is LISTENING but answers nothing — during the entity
+         * quality campaign it ate hours across several agents and left the
+         * capture rig timing out against a wedged port. Naming them here puts
+         * them in the FIRST optimize pass so there is nothing to discover. */
+        'three/examples/jsm/loaders/GLTFLoader.js',
+        'three/examples/jsm/utils/SkeletonUtils.js',
+        'three/examples/jsm/utils/BufferGeometryUtils.js',
+        /* THE IMG2THREEJS REFERENCE MODEL, third instance of the same failure.
+         *
+         * `src/systems/entities3d/vendor/img2threejs/createEarthGolemModel.ts` is the
+         * vendored earth golem shown by the entity debugger's Elemental subtype
+         * dropdown (`?step=entitydebug&mode=creature&type=Elemental&subtype=img2threejs`).
+         * It is reached ONLY through a `lazy(() => import(...))` behind that dropdown,
+         * so the cold-start scan never walks it — and it imports six three/examples
+         * modules nothing else in the app touches. Picking the golem from the dropdown
+         * would otherwise be the request that makes the dev server discover six new
+         * dependencies at once and re-bundle mid-session. */
+        'three/examples/jsm/environments/RoomEnvironment.js',
+        'three/examples/jsm/postprocessing/EffectComposer.js',
+        'three/examples/jsm/postprocessing/RenderPass.js',
+        'three/examples/jsm/postprocessing/BokehPass.js',
+        'three/examples/jsm/postprocessing/UnrealBloomPass.js',
+        'three/examples/jsm/controls/OrbitControls.js',
       ],
       // three's TSL BloomNode example imports `PostProcessingUtils`, which the
       // installed three build does not export, so esbuild can't pre-bundle it and
@@ -396,7 +545,7 @@ export default defineConfig(async ({ mode, command }) => {
             : {})
         },
         output: {
-          manualChunks(id) {
+          manualChunks(id: string) {
             // Isolate Vite's __vitePreload helper into its own ~1KB chunk.
             // Otherwise Rollup parks it inside whichever vendor chunk it likes
             // (here: vendor-react-three, which statically pulls vendor-three).

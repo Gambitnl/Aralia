@@ -45,6 +45,7 @@ test('validateHandle rejects opaque, single-segment, empty and malformed handles
 test('registerAgent carries identity + provenance fields', () => {
   const store = S.createStore({ dir: tmpDir(), now: makeClock() });
   const a = store.registerAgent({
+    petSlug: 'gf-sd',
     handle: 'orch.planmap',
     type: 'claude-subagent',
     role: 'worker',
@@ -62,7 +63,7 @@ test('registerAgent carries identity + provenance fields', () => {
 
 test('registerAgent defaults identity fields to empty strings', () => {
   const store = S.createStore({ dir: tmpDir(), now: makeClock() });
-  const a = store.registerAgent({ handle: 'worker.x' });
+  const a = store.registerAgent({ petSlug: 'gf-sd', handle: 'worker.x' });
   assert.equal(a.type, '');
   assert.equal(a.spawnedBy, '');
   assert.equal(a.campaign, '');
@@ -73,13 +74,13 @@ test('registerAgent defaults identity fields to empty strings', () => {
 
 test('registerAgent stamps handleValid from the grammar', () => {
   const store = S.createStore({ dir: tmpDir(), now: makeClock() });
-  assert.equal(store.registerAgent({ handle: 'orch.planmap' }).handleValid, true);
-  assert.equal(store.registerAgent({ handle: 'agent-16d417' }).handleValid, false);
+  assert.equal(store.registerAgent({ petSlug: 'gf-sd', handle: 'orch.planmap' }).handleValid, true);
+  assert.equal(store.registerAgent({ petSlug: 'gf-sd', handle: 'agent-16d417' }).handleValid, false);
 });
 
 test('listAgents surfaces the identity fields', () => {
   const store = S.createStore({ dir: tmpDir(), now: makeClock() });
-  store.registerAgent({ handle: 'orch.x', role: 'orchestrator', type: 'codex' });
+  store.registerAgent({ petSlug: 'gf-sd', handle: 'orch.x', role: 'orchestrator', type: 'codex', sessionId: 'thread-orch-x' });
   const found = store.listAgents().find((x) => x.handle === 'orch.x');
   assert.equal(found.role, 'orchestrator');
   assert.equal(found.type, 'codex');
@@ -89,7 +90,7 @@ test('listAgents surfaces the identity fields', () => {
 
 test('retireAgent releases locks, reopens in-flight tasks with a clean "retired" marker, and drops the agent', () => {
   const store = S.createStore({ dir: tmpDir(), now: makeClock() });
-  const a = store.registerAgent({ handle: 'worker.retire', role: 'worker' });
+  const a = store.registerAgent({ petSlug: 'gf-sd', handle: 'worker.retire', role: 'worker' });
 
   assert.equal(store.acquireLock({ agentId: a.id, paths: ['src/x.ts'], reason: 'edit' }).ok, true);
   assert.equal(store.reserveFiles({ agentId: a.id, paths: ['src/next.ts'], reason: 'later' }).ok, true);
@@ -112,7 +113,7 @@ test('retireAgent releases locks, reopens in-flight tasks with a clean "retired"
 
 test('retireAgent records an optional final note on the reopened task', () => {
   const store = S.createStore({ dir: tmpDir(), now: makeClock() });
-  const a = store.registerAgent({ handle: 'worker.note', role: 'worker' });
+  const a = store.registerAgent({ petSlug: 'gf-sd', handle: 'worker.note', role: 'worker' });
   const task = store.createTask({ agentId: a.id, title: 'do y' });
   store.claimTask({ taskId: task.id, agentId: a.id });
 

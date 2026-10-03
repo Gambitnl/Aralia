@@ -63,8 +63,10 @@ describe('ResistanceCalculator', () => {
     expect(damage).toBe(20) // 10 * 2
   })
 
-  it('should apply both resistance and vulnerability (cancel out effectively)', () => {
-    // XGtE Rule: They cancel out, damage is unchanged.
+  it('should apply resistance before vulnerability when both match', () => {
+    // The 2024 order is modifiers, Resistance, then Vulnerability. Even damage
+    // returns to its starting value, while odd damage exposes the required
+    // round-down before doubling instead of being treated as cancellation.
     const mockCharacter = {
         resistances: ['Fire'],
         vulnerabilities: ['Fire'],
@@ -75,9 +77,20 @@ describe('ResistanceCalculator', () => {
     const damageEven = ResistanceCalculator.applyResistances(10, 'Fire', mockCharacter)
     expect(damageEven).toBe(10)
 
-    // Test with odd number (previously failed: floor(25/2)*2 = 24)
+    // Odd damage proves the operations are sequenced rather than cancelled.
     const damageOdd = ResistanceCalculator.applyResistances(25, 'Fire', mockCharacter)
-    expect(damageOdd).toBe(25)
+    expect(damageOdd).toBe(24)
+  })
+
+  it('counts duplicate resistance and vulnerability traits only once', () => {
+    const mockCharacter = {
+      resistances: ['Fire', 'fire', 'Fire'],
+      vulnerabilities: ['Cold', 'cold'],
+      immunities: []
+    } as unknown as CombatCharacter
+
+    expect(ResistanceCalculator.applyResistances(9, 'Fire', mockCharacter)).toBe(4)
+    expect(ResistanceCalculator.applyResistances(9, 'Cold', mockCharacter)).toBe(18)
   })
 
   it('should apply immunity (zero damage) regardless of others', () => {

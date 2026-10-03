@@ -17,6 +17,35 @@ const identityEnv = (agentId) => {
   return { AGORA_DIR: dir };
 };
 
+// PM-G1: client.mjs writes the identity keyed by daemon URL, not flat.
+const keyedIdentityEnv = (agentId, agentKey, base = 'http://localhost:4319') => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-id-'));
+  const name = agentKey ? `client-identity.${agentKey}.json` : 'client-identity.json';
+  fs.writeFileSync(path.join(dir, name), JSON.stringify({ [base]: { agentId, handle: agentKey || 'me', token: 't' } }));
+  return { AGORA_DIR: dir, ...(agentKey ? { AGORA_AGENT_ID: agentKey } : {}) };
+};
+
+test('PM-G1: lock held by my URL-keyed identity (the shape client.mjs writes) is writable', async () => {
+  const r = await checkAgoraLock('public/planmap/topics.json', {
+    fetchImpl: fetchWith([lock({ agentId: 'agent-me' })]), env: keyedIdentityEnv('agent-me', 'orch-x'),
+  });
+  assert.equal(r.ok, true);
+  assert.equal(r.reason, 'held-by-me');
+});
+
+test('PM-G1: URL-keyed identity is read from the AGORA_URL entry when several daemons are stored', async () => {
+  const env = keyedIdentityEnv('agent-me', 'orch-y', 'http://localhost:9999');
+  const file = path.join(env.AGORA_DIR, 'client-identity.orch-y.json');
+  const all = JSON.parse(fs.readFileSync(file, 'utf8'));
+  all['http://localhost:4319'] = { agentId: 'agent-other-daemon', handle: 'x', token: 't' };
+  fs.writeFileSync(file, JSON.stringify(all));
+  const r = await checkAgoraLock('public/planmap/topics.json', {
+    fetchImpl: fetchWith([lock({ agentId: 'agent-me' })]), env: { ...env, AGORA_URL: 'http://localhost:9999' },
+  });
+  assert.equal(r.ok, true);
+  assert.equal(r.reason, 'held-by-me');
+});
+
 test('unlocked file is writable', async () => {
   const r = await checkAgoraLock('public/planmap/topics.json', { fetchImpl: fetchWith([]), env: {} });
   assert.deepEqual(r, { ok: true, reason: 'unlocked' });

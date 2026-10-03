@@ -1,18 +1,43 @@
+/**
+ * This suite verifies DamageCommand through concrete combat-state transitions.
+ *
+ * Cover cases deliberately reuse the production map calculation and saving
+ * throw utility. The tests mock only random dice totals, never cover grade,
+ * modifier ownership, HP changes, resistance, or combat-log construction.
+ */
+
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { DamageCommand } from '../DamageCommand'
-import { CombatState, CombatCharacter } from '../../../types/combat'
-import { SpellEffect } from '../../../types/spells'
+import { CombatState, CombatCharacter, BattleMapTile, BattleMapDecoration } from '../../../types/combat'
+import { SpellEffect, DamageEffect } from '../../../types/spells'
 import { StateTag } from '../../../types/elemental'
 import { CommandContext } from '../../base/SpellCommand'
-import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../../utils/factories'
-import * as combatUtils from '../../../utils/combat/combatUtils'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../../utils/core'
+import * as diceRollers from '../../../systems/dice/rollers'
+import blight from '@/data/spells/level-4/blight.json'
+
+// agora-f821.4 retired the combatUtils roller family. Modules this command
+// reaches (savingThrowUtils, the spell resolvers) roll through
+// systems/dice/rollers now, so one hoisted pair of mocks stands in for BOTH
+// specifiers and a single vi.mocked(...) call still pins every die here.
+const diceMocks = vi.hoisted(() => ({
+    rollDice: vi.fn(),
+    rollDamage: vi.fn(),
+}))
 
 vi.mock('../../../utils/combat/combatUtils', async (importOriginal) => {
     const actual = await importOriginal<typeof import('../../../utils/combat/combatUtils')>()
     return {
         ...actual,
-        rollDice: vi.fn(),
-        rollDamage: vi.fn(),
+        ...diceMocks,
+    }
+})
+
+vi.mock('../../../systems/dice/rollers', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('../../../systems/dice/rollers')>()
+    return {
+        ...actual,
+        ...diceMocks,
     }
 })
 
@@ -59,8 +84,8 @@ describe('DamageCommand', () => {
     let mockContext: CommandContext;
 
     beforeEach(() => {
-        vi.mocked(combatUtils.rollDice).mockImplementation(defaultRollDice)
-        vi.mocked(combatUtils.rollDamage).mockImplementation(defaultRollDamage)
+        vi.mocked(diceRollers.rollDice).mockImplementation(defaultRollDice)
+        vi.mocked(diceRollers.rollDamage).mockImplementation(defaultRollDamage)
 
         mockCaster = createMockCombatCharacter({
             id: 'caster-1',
@@ -160,6 +185,83 @@ describe('DamageCommand', () => {
         const logEntry = newState.combatLog.find(l => l.type === 'damage');
 
         expect(logEntry?.message).toMatch(/Hero (batters|crushes|bludgeons|pummels) Goblin/);
+    });
+
+    // ========================================================================
+    // Heavy Armor Master equipment gate
+    // ========================================================================
+    // These cases prove that the feat reads the projected torso armour rather
+    // than granting its reduction to every character who owns the feat.
+    describe('Heavy Armor Master', () => {
+        const executeArmorMasterHit = async (
+            armorCategory: 'Light' | 'Medium' | 'Heavy' | undefined,
+            isMagical = false,
+            hasFeat = true
+        ): Promise<number | undefined> => {
+            const target = createMockCombatCharacter({
+                ...mockTarget,
+                level: 5,
+                currentHP: 20,
+                maxHP: 20,
+                feats: hasFeat ? ['heavy_armor_master'] : [],
+                equipment: armorCategory
+                    ? {
+                        wornArmor: {
+                            itemId: `${armorCategory.toLowerCase()}-armor`,
+                            itemName: `${armorCategory} Armor`,
+                            slot: 'Torso',
+                            category: armorCategory,
+                            magicStatus: 'unknown',
+                            properties: []
+                        }
+                    }
+                    : undefined
+            });
+            const state = createMockCombatState({
+                characters: [mockCaster, target],
+                combatLog: []
+            });
+            const effect: SpellEffect = {
+                type: 'DAMAGE',
+                damage: { dice: '1d10', type: 'Slashing' },
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            };
+            const command = new DamageCommand(effect, {
+                ...mockContext,
+                spellId: 'longsword-hit',
+                spellName: 'Longsword',
+                targets: [target],
+                weaponProperties: ['Versatile'],
+                isMagical
+            });
+
+            const result = await command.execute(state);
+            return result.characters.find(character => character.id === target.id)?.currentHP;
+        };
+
+        it.each([
+            ['Heavy', 13],
+            ['Medium', 10],
+            ['Light', 10],
+            [undefined, 10]
+        ] as const)(
+            'applies the correct reduction for %s armour',
+            async (armorCategory, expectedHitPoints) => {
+                // The mocked 1d10 deals 10 damage. A level-5 heavy-armour
+                // wearer reduces it by proficiency bonus 3 and ends on 13 HP.
+                // Every other armour state takes the full hit and ends on 10 HP.
+                expect(await executeArmorMasterHit(armorCategory)).toBe(expectedHitPoints);
+            }
+        );
+
+        it('does not reduce magical weapon damage through heavy armour', async () => {
+            expect(await executeArmorMasterHit('Heavy', true)).toBe(10);
+        });
+
+        it('does not reduce damage when the heavy-armour wearer lacks the feat', async () => {
+            expect(await executeArmorMasterHit('Heavy', false, false)).toBe(10);
+        });
     });
 
     describe('Hit-point-state damage branches (Toll the Dead)', () => {
@@ -452,6 +554,146 @@ describe('DamageCommand', () => {
         });
     });
 
+    // ======================================================================
+    // Conductivity propagation (agora-db71.11)
+    // ======================================================================
+    describe('Conductivity propagation', () => {
+        // The struck Goblin stands at (1,1). One grid square is 5 feet, which is
+        // exactly one hop, so (2,1) is reachable from the strike and (3,1) is
+        // reachable only by relaying through (2,1).
+        const buildSoakedPack = () => {
+            const struck: CombatCharacter = { ...mockTarget, stateTags: [StateTag.Wet] };
+            const soaked = createMockCombatCharacter({
+                id: 'soaked-1',
+                name: 'Soaked Kobold',
+                position: { x: 2, y: 1 },
+                currentHP: 20,
+                maxHP: 20,
+            });
+            soaked.stateTags = [StateTag.Wet];
+            const relayed = createMockCombatCharacter({
+                id: 'relayed-1',
+                name: 'Far Soaked Kobold',
+                position: { x: 3, y: 1 },
+                currentHP: 20,
+                maxHP: 20,
+            });
+            relayed.stateTags = [StateTag.Wet];
+            const dry = createMockCombatCharacter({
+                id: 'dry-1',
+                name: 'Dry Kobold',
+                position: { x: 2, y: 2 },
+                currentHP: 20,
+                maxHP: 20,
+            });
+            dry.stateTags = [];
+            return { struck, soaked, relayed, dry };
+        };
+
+        const lightning: SpellEffect = {
+            type: "DAMAGE",
+            damage: { dice: '1d6', type: 'Lightning' },
+            trigger: { type: 'immediate' },
+            condition: { type: 'always' }
+        };
+
+        it('conducts lightning from the struck creature to a soaked neighbour', async () => {
+            const { struck, soaked, relayed, dry } = buildSoakedPack();
+            const state: CombatState = {
+                ...mockState,
+                characters: [mockCaster, struck, soaked, relayed, dry]
+            };
+
+            const command = new DamageCommand(lightning, mockContext);
+            const newState = await command.execute(state);
+
+            // 1d6 rolls 6 here, so the first hop takes half of 6, rounded down.
+            const hit = newState.characters.find(c => c.id === 'soaked-1');
+            expect(hit?.currentHP).toBe(17);
+            expect(hit?.stateTags).toContain(StateTag.Electrified);
+        });
+
+        it('relays through a soaked creature to one the strike could not reach', async () => {
+            const { struck, soaked, relayed, dry } = buildSoakedPack();
+            const state: CombatState = {
+                ...mockState,
+                characters: [mockCaster, struck, soaked, relayed, dry]
+            };
+
+            const command = new DamageCommand(lightning, mockContext);
+            const newState = await command.execute(state);
+
+            // Two squares from the strike: only the second hop reaches it, for a
+            // quarter of 6, rounded down.
+            const far = newState.characters.find(c => c.id === 'relayed-1');
+            expect(far?.currentHP).toBe(19);
+        });
+
+        it('does not conduct to a dry creature standing just as close', async () => {
+            const { struck, soaked, relayed, dry } = buildSoakedPack();
+            const state: CombatState = {
+                ...mockState,
+                characters: [mockCaster, struck, soaked, relayed, dry]
+            };
+
+            const command = new DamageCommand(lightning, mockContext);
+            const newState = await command.execute(state);
+
+            const untouched = newState.characters.find(c => c.id === 'dry-1');
+            expect(untouched?.currentHP).toBe(20);
+            expect(untouched?.stateTags ?? []).not.toContain(StateTag.Electrified);
+        });
+
+        it('never bills the struck creature a second time', async () => {
+            const { struck, soaked, relayed, dry } = buildSoakedPack();
+            const state: CombatState = {
+                ...mockState,
+                characters: [mockCaster, struck, soaked, relayed, dry]
+            };
+
+            const command = new DamageCommand(lightning, mockContext);
+            const newState = await command.execute(state);
+
+            // 10 HP less the direct 6. A conducted hit on top would show 8 or less.
+            const directlyHit = newState.characters.find(c => c.id === mockTarget.id);
+            expect(directlyHit?.currentHP).toBe(4);
+        });
+
+        it('logs each conducted hit', async () => {
+            const { struck, soaked, relayed, dry } = buildSoakedPack();
+            const state: CombatState = {
+                ...mockState,
+                characters: [mockCaster, struck, soaked, relayed, dry]
+            };
+
+            const command = new DamageCommand(lightning, mockContext);
+            const newState = await command.execute(state);
+
+            const conducted = newState.combatLog.filter(l => l.message.includes('The charge conducts to'));
+            expect(conducted).toHaveLength(2);
+        });
+
+        it('does not conduct a damage type no rule names as a charge', async () => {
+            const { struck, soaked, relayed, dry } = buildSoakedPack();
+            const state: CombatState = {
+                ...mockState,
+                characters: [mockCaster, struck, soaked, relayed, dry]
+            };
+            const fire: SpellEffect = {
+                type: "DAMAGE",
+                damage: { dice: '1d6', type: 'Fire' },
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            };
+
+            const command = new DamageCommand(fire, mockContext);
+            const newState = await command.execute(state);
+
+            expect(newState.characters.find(c => c.id === 'soaked-1')?.currentHP).toBe(20);
+            expect(newState.combatLog.filter(l => l.message.includes('The charge conducts to'))).toHaveLength(0);
+        });
+    });
+
     it('applies and consumes save penalties during saving throws', async () => {
         const effect: SpellEffect = {
             type: "DAMAGE",
@@ -497,7 +739,10 @@ describe('DamageCommand', () => {
         expect(nextSaveRider).toBeUndefined();
     });
 
-    it('applies cover as a flat modifier to Dexterity saving throws', async () => {
+    it.each([
+        { decoration: 'tree', expectedBonus: 2, coverLabel: 'Half Cover' },
+        { decoration: 'pillar', expectedBonus: 5, coverLabel: 'Three-Quarters Cover' },
+    ])('applies $coverLabel as +$expectedBonus to Dexterity saving throws', async ({ decoration, expectedBonus }) => {
         const effect: SpellEffect = {
             type: "DAMAGE",
             damage: { dice: '2d6', type: 'Fire' },
@@ -523,9 +768,11 @@ describe('DamageCommand', () => {
                 dimensions: { width: 3, height: 1 },
                 theme: 'forest',
                 seed: 1,
-                tiles: new Map([
+                tiles: new Map<string, BattleMapTile>([
                     ['0-0', { id: '0-0', coordinates: { x: 0, y: 0 }, terrain: 'grass', elevation: 0, movementCost: 1, blocksLoS: false, blocksMovement: false, decoration: null, effects: [] }],
-                    ['1-0', { id: '1-0', coordinates: { x: 1, y: 0 }, terrain: 'grass', elevation: 0, movementCost: 1, blocksLoS: false, blocksMovement: false, decoration: 'tree', effects: [], providesCover: true }],
+                    // Cover grade comes from the same production decoration
+                    // distinction used by attack AC: tree +2, pillar +5.
+                    ['1-0', { id: '1-0', coordinates: { x: 1, y: 0 }, terrain: 'grass', elevation: 0, movementCost: 1, blocksLoS: false, blocksMovement: decoration === 'pillar', decoration: decoration as BattleMapDecoration, effects: [], providesCover: true }],
                     ['2-0', { id: '2-0', coordinates: { x: 2, y: 0 }, terrain: 'grass', elevation: 0, movementCost: 1, blocksLoS: false, blocksMovement: false, decoration: null, effects: [] }]
                 ])
             }
@@ -543,7 +790,7 @@ describe('DamageCommand', () => {
         // weapon attacks already use. This makes ordinary cover meaningful for
         // saves, while cover-bypass spells such as Sacred Flame can opt out.
         const saveLog = newState.combatLog.find(l => l.message.includes('Dexterity save'));
-        expect(saveLog?.message).toContain('[Cover]');
+        expect(saveLog?.message).toContain(`+${expectedBonus} [Cover]`);
     });
 
     it('honors cover-bypass save metadata for Dexterity saving throws', async () => {
@@ -576,7 +823,7 @@ describe('DamageCommand', () => {
                 dimensions: { width: 3, height: 1 },
                 theme: 'forest',
                 seed: 1,
-                tiles: new Map([
+                tiles: new Map<string, BattleMapTile>([
                     ['0-0', { id: '0-0', coordinates: { x: 0, y: 0 }, terrain: 'grass', elevation: 0, movementCost: 1, blocksLoS: false, blocksMovement: false, decoration: null, effects: [] }],
                     ['1-0', { id: '1-0', coordinates: { x: 1, y: 0 }, terrain: 'grass', elevation: 0, movementCost: 1, blocksLoS: false, blocksMovement: false, decoration: 'tree', effects: [], providesCover: true }],
                     ['2-0', { id: '2-0', coordinates: { x: 2, y: 0 }, terrain: 'grass', elevation: 0, movementCost: 1, blocksLoS: false, blocksMovement: false, decoration: null, effects: [] }]
@@ -646,14 +893,14 @@ describe('DamageCommand', () => {
             combatLog: []
         });
 
-        vi.mocked(combatUtils.rollDice).mockImplementation((dice: string) => {
+        vi.mocked(diceRollers.rollDice).mockImplementation((dice: string) => {
             if (dice === '1d20') {
                 return 20;
             }
 
             return defaultRollDice(dice);
         });
-        vi.mocked(combatUtils.rollDamage).mockReturnValue(defaultRollDamage(damageDice));
+        vi.mocked(diceRollers.rollDamage).mockReturnValue(defaultRollDamage(damageDice));
 
         const successCommand = new DamageCommand(effect, {
             ...spellContext,
@@ -673,14 +920,14 @@ describe('DamageCommand', () => {
             combatLog: []
         });
 
-        vi.mocked(combatUtils.rollDice).mockImplementation((dice: string) => {
+        vi.mocked(diceRollers.rollDice).mockImplementation((dice: string) => {
             if (dice === '1d20') {
                 return 1;
             }
 
             return defaultRollDice(dice);
         });
-        vi.mocked(combatUtils.rollDamage).mockReturnValue(defaultRollDamage(damageDice));
+        vi.mocked(diceRollers.rollDamage).mockReturnValue(defaultRollDamage(damageDice));
 
         const failureCommand = new DamageCommand(effect, {
             ...spellContext,
@@ -690,5 +937,76 @@ describe('DamageCommand', () => {
         const failedTarget = failureResult.characters.find(c => c.id === failureTarget.id);
 
         expect(failedTarget?.currentHP).toBe(failureTarget.currentHP - failedDamage);
+    });
+
+    it('applies live Blight auto-failure to plant targets without rolling', async () => {
+        const effect = (blight as unknown as { effects: DamageEffect[] }).effects[0];
+        const plantTarget = createMockCombatCharacter({
+            ...mockTarget,
+            creatureTypes: ['Plant'],
+            currentHP: 100,
+            maxHP: 100
+        });
+        const state = createMockCombatState({
+            characters: [mockCaster, plantTarget],
+            combatLog: []
+        });
+        vi.mocked(diceRollers.rollDice).mockClear();
+
+        const result = await new DamageCommand(effect, {
+            ...mockContext,
+            spellId: 'blight',
+            spellName: 'Blight',
+            targets: [plantTarget]
+        }).execute(state);
+
+        // The source override means the plant fails the save, so the damage
+        // command keeps its normal full-damage path and skips the d20 roll.
+        expect(vi.mocked(diceRollers.rollDice).mock.calls.some(([dice]) => dice === '1d20')).toBe(false);
+        expect(result.characters.find(character => character.id === plantTarget.id)?.currentHP).toBeLessThan(100);
+        expect(result.combatLog.some(entry => entry.message.includes('source-backed outcome override'))).toBe(true);
+    });
+
+    // Stable external hit IDs protect retained and replayed transactions at
+    // the command boundary. Invalid supplied IDs reject before dice or state,
+    // while a valid repeated ID preserves the first HP/resource receipt.
+    it('treats a blank supplied damage event id as an atomic no-op', async () => {
+        const effect: SpellEffect = {
+            type: 'DAMAGE',
+            damage: { dice: '10d1', type: 'Fire' },
+            trigger: { type: 'immediate' },
+            condition: { type: 'always' }
+        };
+        const invalidContext = {
+            ...mockContext,
+            damageEventId: '   '
+        };
+        const result = await new DamageCommand(effect, invalidContext).execute(mockState);
+
+        expect(result).toBe(mockState);
+        expect(result.characters.find(character => character.id === mockTarget.id)?.currentHP)
+            .toBe(mockTarget.currentHP);
+        expect(result.combatLog).toHaveLength(mockState.combatLog.length);
+    });
+
+    it('applies a supplied damage event id once and rejects its replay atomically', async () => {
+        const effect: SpellEffect = {
+            type: 'DAMAGE',
+            damage: { dice: '10d1', type: 'Fire' },
+            trigger: { type: 'immediate' },
+            condition: { type: 'always' }
+        };
+        const replayContext = {
+            ...mockContext,
+            damageEventId: 'cs06-command-event-001'
+        };
+        const first = await new DamageCommand(effect, replayContext).execute(mockState);
+        const replay = await new DamageCommand(effect, replayContext).execute(first);
+        const firstTarget = first.characters.find(character => character.id === mockTarget.id);
+        const replayTarget = replay.characters.find(character => character.id === mockTarget.id);
+
+        expect(firstTarget?.currentHP).toBeLessThan(mockTarget.currentHP);
+        expect(replayTarget?.currentHP).toBe(firstTarget?.currentHP);
+        expect(replay.combatLog).toEqual(first.combatLog);
     });
 });

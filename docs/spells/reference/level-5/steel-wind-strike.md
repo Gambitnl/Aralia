@@ -95,6 +95,5 @@ Ranger
 Wizard
 
 Capture Method: http
-Legacy Page: true
 -->
 

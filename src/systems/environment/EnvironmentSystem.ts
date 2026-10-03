@@ -97,13 +97,10 @@ export function getWeatherModifiers(
 
   // 1. Precipitation Effects on Fire/Cold/Lightning
   if (spell.effects.some(e => e.type === 'DAMAGE')) {
-     const damageEffects = spell.effects.filter(e => e.type === 'DAMAGE');
-     const damageEntries = spell.effects.filter((effect): effect is { type: 'DAMAGE'; damage: { type: string } } => (
-       effect.type === 'DAMAGE'
-     ));
-     const hasFire = damageEntries.some(effect => effect.damage.type === 'Fire');
-     const hasCold = damageEntries.some(effect => effect.damage.type === 'Cold');
-     const hasLightning = damageEntries.some(effect => effect.damage.type === 'Lightning');
+     const damageEntries = (spell.effects.filter(e => e.type === 'DAMAGE') as any[]).map(e => e.damage);
+     const hasFire = damageEntries.some(damage => damage?.type === 'Fire' || damage?.damageType === 'Fire');
+     const hasCold = damageEntries.some(damage => damage?.type === 'Cold' || damage?.damageType === 'Cold');
+     const hasLightning = damageEntries.some(damage => damage?.type === 'Lightning' || damage?.damageType === 'Lightning');
 
      if (hasFire && (weather.precipitation === 'heavy_rain' || weather.precipitation === 'storm')) {
        modifiers.push({

@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 19/06/2026, 00:46:26
- * Dependents: commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DefensiveCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, commands/index.ts, utils/core/factories.ts
+ * Last Sync: 17/08/2026, 14:09:44
+ * Dependents: commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/effects/CommandedSummonCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DefensiveCommand.ts, commands/effects/ElementalBaneCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/GraspingVineCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/SummonDismissCommand.ts, commands/effects/SummonReturnHomeCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, commands/index.ts, components/DesignPreview/steps/raceDomain/leaves/halfOrcRaceLeaf.tsx, components/DesignPreview/steps/scenarioControls/tauntForcedTargetingScenarioControls.ts, systems/spells/socialServiceResolution.ts, utils/combat/shoveUtils.ts, utils/core/factories.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -18,7 +18,7 @@
  * ARCHITECTURAL CONTEXT:
  * This file defines the 'Game Command Pattern'. It is the foundation 
  * for the combat execution layer, allowing effects (damage, status, etc.) 
- * to be treated as discrete objects that can be queued, logged, or undone.
+ * to be treated as discrete objects that can be queued and logged.
  *
  * Recent updates focus on 'Martial/Magical Distinction'. The addition 
  * of `weaponProperties` to the `CommandContext` allows commands to 
@@ -29,7 +29,7 @@
  * @file src/commands/base/SpellCommand.ts
  */
 
-import { CombatState, CombatCharacter, SelectedSpellTarget } from '@/types/combat'
+import { CombatState, CombatCharacter, Position, SelectedSpellTarget } from '@/types/combat'
 import { GameState } from '@/types'
 import { EffectDuration, SpellAttackType, MagicSchool, ConditionalEnding, SpellEffect } from '@/types/spells'
 import { Plane } from '@/types/planes'
@@ -49,12 +49,6 @@ export interface SpellCommand {
    * @returns New combat state with effects applied.
    */
   execute(state: CombatState): CombatState | Promise<CombatState>
-
-  /**
-   * Optional: Undo the command (for turn rewind feature).
-   * @returns Combat state before command was executed.
-   */
-  undo?(state: CombatState): CombatState
 
   /**
    * Human-readable description for combat log and debugging.
@@ -158,14 +152,20 @@ export interface CommandContext {
    * commands can inspect this envelope without pretending objects are creatures.
    */
   selectedSpellTargets?: SelectedSpellTarget[]
+  /** Origin used by spell-created objects whose effects do not emanate from the caster. */
+  effectOriginPosition?: Position
   /**
    * Optional player choice captured by the spell UI before command execution.
    * Mode-choice and Command-style spells use this to preserve the selected menu
    * label while still keeping every possible option available in spell data.
    */
   playerInput?: string
-  /** Reference to global game state (for environmental checks, etc.) */
-  gameState: GameState
+  /**
+   * Reference to global game state (for environmental checks, etc.).
+   * Optional: callers that only have the combat map (e.g. the combat engine's
+   * teleport fallback) omit it, and no command currently reads this field.
+   */
+  gameState?: GameState
   /** Duration of the effect (if applicable) */
   effectDuration?: EffectDuration
   /** Type of attack roll (melee/ranged) if applicable */
@@ -174,6 +174,27 @@ export interface CommandContext {
   conditionalEndings?: ConditionalEnding[]
   /** Tracks if this execution is a critical hit (5e: doubles damage dice) */
   isCritical?: boolean
+  /**
+   * Optional attack-roll source for deterministic simulations and focused
+   * tests. Ordinary combat omits it and keeps using the normal random source.
+   */
+  attackRollRng?: () => number
+  /**
+   * Optional damage-roll source threaded through every damage command in this
+   * transaction. It never changes the game's default randomness when absent.
+   */
+  damageRng?: () => number
+  /**
+   * Optional die source for pre-damage reactions such as Interception. Keeping
+   * it separate from damageRng lets deterministic proof pin both rolls without
+   * changing ordinary combat randomness.
+   */
+  reactionRng?: () => number
+  /**
+   * Stable id for one delivered damage hit. Retained/replayed callers reuse it;
+   * ordinary commands fall back to their own stable command id plus target id.
+   */
+  damageEventId?: string
   /**
    * Optional damage multiplier applied after the damage dice are rolled and
    * before resistance, immunity, damage prevention, temporary HP, and
@@ -206,6 +227,16 @@ export interface CommandContext {
    * listener/logging behavior instead of guessing at a payload.
    */
   delegatedReactivePayload?: DelegatedReactivePayload
+  /**
+   * Ids of creatures the CALLER knows to be Surprised for this attack.
+   *
+   * There is no surprise system in the engine yet (GG-258), so surprise cannot
+   * be derived from combat state. Assassinate needs the fact, so the controller
+   * that knows an ambush happened states it here. An absent list means the
+   * caller reported no surprise, which the rider reads as "not surprised"; it
+   * is never guessed from initiative, stealth, or turn order.
+   */
+  surprisedTargetIds?: string[]
   /** Request a manual reaction from the user via UI */
   requestReaction?: (attackerId: string, targetId: string, triggerType: 'on_hit' | 'on_take_damage', options: any[]) => Promise<string | null>
 }

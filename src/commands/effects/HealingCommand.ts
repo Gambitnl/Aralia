@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/05/2026, 17:10:59
- * Dependents: commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
- * Imports: 4 files
+ * Last Sync: 11/08/2026, 21:37:38
+ * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -17,8 +17,11 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CombatState } from '@/types/combat'
 import { isHealingEffect } from '../../types/spells'
-import { rollDamage as rollFormula } from '../../utils/combatUtils'
-import { applyHealingAndRestore } from '../../utils/combat/deathSaveUtils'
+import { rollDamage as rollFormula } from '../../systems/dice/rollers';
+import {
+  applyHealingAndRestore,
+  applyTemporaryHitPoints,
+} from '../../utils/combat/deathSaveUtils'
 
 /**
  * Command to apply healing to targets.
@@ -32,10 +35,19 @@ export class HealingCommand extends BaseEffectCommand {
     }
 
     let currentState = state
+    const targets = this.getTargets(currentState)
+    const poolShare = this.effect.healing.pool !== undefined && targets.length > 0
+      ? Math.ceil(this.effect.healing.pool / targets.length)
+      : undefined
 
-    for (const target of this.getTargets(currentState)) {
+    for (const target of targets) {
       // 1. Roll healing
-      const healingRoll = this.rollHealing(this.effect.healing.dice)
+      const healingRoll = this.rollHealing(
+        this.effect.healing.dice,
+        this.effect.healing.amount,
+        poolShare,
+        target.maxHP,
+      )
 
       // 2. Calculate new HP (capped at maxHP) or Temp HP
       if (this.effect.healing?.isTemporaryHp) {
@@ -46,8 +58,13 @@ export class HealingCommand extends BaseEffectCommand {
         const currentTemp = target.tempHP || 0
 
         if (healingRoll > currentTemp) {
+          // Temporary HP follows the shared replacement helper used by damage,
+          // defensive spells, and the Tactical Sandbox. A healing-shaped grant
+          // without a spell-owned retaliation source also clears stale ownership.
+          const updatedTarget = applyTemporaryHitPoints(target, healingRoll)
           currentState = this.updateCharacter(currentState, target.id, {
-            tempHP: healingRoll
+            tempHP: updatedTarget.tempHP,
+            temporaryHitPointSource: updatedTarget.temporaryHitPointSource
           })
 
           currentState = this.addLogEntry(currentState, {
@@ -94,7 +111,8 @@ export class HealingCommand extends BaseEffectCommand {
 
   get description(): string {
     if (isHealingEffect(this.effect)) {
-      return `Heals ${this.effect.healing.dice} HP`
+      const healing = this.effect.healing
+      return `Heals ${healing.dice ?? healing.amount ?? healing.pool ?? 0} HP`
     }
     return 'Heals HP'
   }
@@ -109,7 +127,15 @@ export class HealingCommand extends BaseEffectCommand {
    * @param diceString The dice notation string.
    * @returns The total calculated healing.
    */
-  private rollHealing(diceString: string): number {
-    return rollFormula(diceString, false)
+  private rollHealing(
+    diceString: string | undefined,
+    amount: string | undefined,
+    poolShare: number | undefined,
+    maxHp: number,
+  ): number {
+    if (diceString) return rollFormula(diceString, false)
+    if (poolShare !== undefined) return poolShare
+    if (amount === 'all_hit_points') return Math.max(0, maxHp)
+    return 0
   }
 }

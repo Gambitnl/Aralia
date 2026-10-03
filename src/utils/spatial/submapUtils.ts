@@ -4,7 +4,7 @@
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
  * Last Sync: 27/02/2026, 09:34:15
- * Dependents: ThreeDModal.tsx, contextUtils.ts, spatial/index.ts, submapUtils.ts
+ * Dependents: contextUtils.ts, spatial/index.ts, submapUtils.ts
  * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
@@ -24,7 +24,7 @@ import { SeededFeatureConfig, PathDetails } from '../../types';
 import { BIOMES } from '../../constants';
 import { biomeVisualsConfig, defaultBiomeVisuals } from '../../config/submapVisualsConfig';
 import { CellularAutomataGenerator } from '../../services/cellularAutomataService';
-import { simpleHash as generalHash } from '../hashUtils';
+import { simpleHash as generalHash } from '../core/hashUtils';
 
 // --- Hashing ---
 /**

@@ -1,0 +1,97 @@
+{
+  "id": "merchant-haggling",
+  "startNodeId": "greeting",
+  "nodes": {
+    "greeting": {
+      "id": "greeting",
+      "speaker": "npc",
+      "text": "Careful with your elbows. Half of this stall came over the pass on a mule that did not want to.",
+      "next": "offer"
+    },
+    "offer": {
+      "id": "offer",
+      "speaker": "npc",
+      "text": "The ring? Riverglass, cut inland. Sixty silver, and I am robbing myself.",
+      "choices": [
+        { "text": "Sixty, then.", "nextNodeId": "buy_full" },
+        {
+          "text": "Forty. We both know what riverglass goes for.",
+          "nextNodeId": "haggle_soft",
+          "condition": { "type": "disposition", "params": { "min": 10 } }
+        },
+        {
+          "text": "Twenty, and I don't mention where the mule came from.",
+          "nextNodeId": "haggle_hard",
+          "condition": { "type": "disposition", "params": { "min": 40 } }
+        },
+        {
+          "text": "You held one back for me last market day.",
+          "nextNodeId": "reserved_stock",
+          "condition": { "type": "unlock_flag", "params": { "flag": "merchant_reserved_stock" } }
+        },
+        { "text": "Another time.", "nextNodeId": "leave" }
+      ]
+    },
+    "haggle_soft": {
+      "id": "haggle_soft",
+      "speaker": "npc",
+      "text": "Forty-five. I have a daughter and she eats like two.",
+      "choices": [
+        { "text": "Forty-five is fair.", "nextNodeId": "buy_discount" },
+        { "text": "Then I'll leave it on the cloth.", "nextNodeId": "leave" }
+      ]
+    },
+    "haggle_hard": {
+      "id": "haggle_hard",
+      "speaker": "npc",
+      "text": "...Thirty. And you will say nothing about mules, ever, to anyone.",
+      "choices": [
+        { "text": "Thirty. Nothing about mules.", "nextNodeId": "buy_steep_discount" },
+        { "text": "On reflection, I'll pay the sixty.", "nextNodeId": "buy_full" }
+      ]
+    },
+    "reserved_stock": {
+      "id": "reserved_stock",
+      "speaker": "npc",
+      "text": "So I did. Under the cloth, and do not make a face — it is better than the one on the table.",
+      "effects": [
+        { "type": "grant_item", "params": { "itemId": "item_riverglass_ring_fine", "quantity": 1 } },
+        { "type": "update_disposition", "params": { "delta": 5 } }
+      ]
+    },
+    "buy_full": {
+      "id": "buy_full",
+      "speaker": "npc",
+      "text": "A person who does not argue. I will remember you kindly.",
+      "effects": [
+        { "type": "grant_item", "params": { "itemId": "item_riverglass_ring", "quantity": 1 } },
+        { "type": "update_disposition", "params": { "delta": 8 } },
+        { "type": "set_flag", "params": { "flag": "merchant_reserved_stock", "value": true } }
+      ]
+    },
+    "buy_discount": {
+      "id": "buy_discount",
+      "speaker": "npc",
+      "text": "Forty-five. Take it before I count again.",
+      "effects": [
+        { "type": "grant_item", "params": { "itemId": "item_riverglass_ring", "quantity": 1 } },
+        { "type": "update_disposition", "params": { "delta": 2 } }
+      ]
+    },
+    "buy_steep_discount": {
+      "id": "buy_steep_discount",
+      "speaker": "npc",
+      "text": "Thirty. Go on. Go.",
+      "effects": [
+        { "type": "grant_item", "params": { "itemId": "item_riverglass_ring", "quantity": 1 } },
+        { "type": "update_disposition", "params": { "delta": -6 } },
+        { "type": "set_flag", "params": { "flag": "merchant_knows_you_press" } }
+      ]
+    },
+    "leave": {
+      "id": "leave",
+      "speaker": "npc",
+      "text": "It will be here. Or it will not."
+    }
+  }
+}

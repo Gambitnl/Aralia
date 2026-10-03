@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 26/08/2026, 10:38:07
+ * Dependents: commands/factory/SpellCommandFactory.ts, hooks/useAbilitySystem.ts
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * This file turns True Strike's structured attack augment into a real weapon attack.
  *
@@ -19,14 +35,12 @@
 // ability the existing weapon attack command can execute.
 // ============================================================================
 
-import { Ability, CombatCharacter, SelectedSpellTarget } from '@/types/combat'
+import { Ability, AbilityEffect, CombatCharacter, SelectedSpellTarget } from '@/types/combat'
 import { Item } from '@/types/items'
 import { Spell, UtilityEffect } from '@/types/spells'
 import { calculateProficiencyBonus } from '@/utils/character/savingThrowUtils'
 import { getAbilityModifierValue } from '@/utils/character/statUtils'
 import { isWeaponProficient } from '@/utils/character/weaponUtils'
-
-type EquippedItemSnapshot = Partial<Record<'MainHand' | 'OffHand', Item>>
 
 export interface TrueStrikeWeaponValidation {
   valid: boolean
@@ -59,11 +73,14 @@ export const hasTrueStrikeImmediateAttackAugment = (spell: Spell): boolean => {
 }
 
 // Read the cast weapon from the current combatant snapshot if the live object
-// already carries equipment. The combat character type does not yet expose this
-// field, but the runtime character objects used by the combat hook often do.
+// already carries equipment. WHAT CHANGED (agora-d649): `equippedItems` is now a
+// declared `CombatEquippedItems` field on CombatCharacter, so the ad-hoc
+// intersection cast that used to re-describe the shape here is gone and the
+// compiler checks the slot name. WHAT IS PRESERVED: the read is still optional
+// and still returns undefined when no snapshot travelled with the combatant,
+// which is what validateTrueStrikeWeaponSnapshot rejects the cast on.
 export const resolveTrueStrikeWeaponSnapshot = (caster: CombatCharacter): Item | undefined => {
-  const equippedItems = (caster as CombatCharacter & { equippedItems?: EquippedItemSnapshot }).equippedItems
-  return equippedItems?.MainHand
+  return caster.equippedItems?.MainHand
 }
 
 // Pick the selected creature target that is not the caster. True Strike still
@@ -189,6 +206,37 @@ const resolveTrueStrikeCantripScalingDice = (casterLevel: number): string | unde
   return undefined
 }
 
+const CANONICAL_DAMAGE_TYPES: Record<string, string> = {
+  acid: 'Acid',
+  bludgeoning: 'Bludgeoning',
+  cold: 'Cold',
+  fire: 'Fire',
+  force: 'Force',
+  lightning: 'Lightning',
+  necrotic: 'Necrotic',
+  piercing: 'Piercing',
+  poison: 'Poison',
+  psychic: 'Psychic',
+  radiant: 'Radiant',
+  slashing: 'Slashing',
+  thunder: 'Thunder',
+  physical: 'Slashing'
+}
+
+// Convert any casing or legacy physical damage type to the standard D&D title-case name.
+const standardizeDamageType = (damageType?: string): string => {
+  if (!damageType) {
+    return 'Slashing'
+  }
+
+  const normalized = damageType.trim().toLowerCase()
+  if (!normalized) {
+    return 'Slashing'
+  }
+
+  return CANONICAL_DAMAGE_TYPES[normalized] ?? (damageType.charAt(0).toUpperCase() + damageType.slice(1))
+}
+
 const resolveTrueStrikeDamageType = (
   weaponSnapshot: Item,
   chosenDamageType: 'Radiant' | string
@@ -197,7 +245,7 @@ const resolveTrueStrikeDamageType = (
     return 'Radiant'
   }
 
-  return weaponSnapshot.damageType || 'physical'
+  return standardizeDamageType(weaponSnapshot.damageType)
 }
 
 export const buildTrueStrikeAttack = (
@@ -228,14 +276,21 @@ export const buildTrueStrikeAttack = (
         type: 'damage',
         value: 0,
         dice: baseDamageDice,
-        damageType: baseDamageType
+        damageType: baseDamageType as AbilityEffect['damageType']
       },
       ...(scalingDice
         ? [{
             type: 'damage' as const,
             value: 0,
             dice: scalingDice,
-            damageType: 'Radiant'
+            // Title case, matching the standardized base damage type above. The
+            // in-flight damage-type standardization pass converted the weapon
+            // packet but left this cantrip-scaling packet lowercase, which is
+            // what TrueStrikeBridge/CantripAttackBridges were failing on.
+            // Cast for the same reason the base packet above casts: the
+            // standardized title-case name is not in the legacy lowercase
+            // AbilityEffect union yet.
+            damageType: 'Radiant' as AbilityEffect['damageType']
           }]
         : [])
     ],
@@ -286,7 +341,7 @@ export const resolveTrueStrikeDamageChoice = (spell: Spell, playerInput?: string
     return 'Radiant'
   }
 
-  return chosenOption.type === 'weapon_normal' ? 'weapon_normal' : chosenOption.type
+  return chosenOption.type === 'weapon_normal' ? 'weapon_normal' : standardizeDamageType(chosenOption.type)
 }
 
 // Build the attack's grid reach from the weapon's own properties so ranged and

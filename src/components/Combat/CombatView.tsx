@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 16/07/2026, 08:57:11
+ * Last Sync: 04/08/2026, 01:53:16
  * Dependents: components/Combat/index.ts
  * Imports: 46 files
  *
@@ -33,6 +33,7 @@ import React, {
   useEffect,
   useCallback,
   useContext,
+  useMemo,
   useRef,
   lazy,
   Suspense,
@@ -79,10 +80,13 @@ import { Z_INDEX } from "../../styles/zIndex";
 import { UI_ID, WINDOW_KEYS } from "../../styles/uiIds";
 import { WindowFrame } from "../ui/WindowFrame";
 import { useCombatAI } from "../../hooks/combat/useCombatAI";
+import { AIConfigProvider } from "../../context/AIConfigContext";
 import InitiativeTracker from "../BattleMap/InitiativeTracker";
 import AbilityPalette from "../BattleMap/AbilityPalette";
 import CombatLog from "../BattleMap/CombatLog";
 import ActionEconomyBar from "../BattleMap/ActionEconomyBar";
+import { CombatCommandToolbar } from "../BattleMap/CombatCommandToolbar";
+import { selectQuickAttack } from "../BattleMap/quickAttack";
 import PartyDisplay from "../BattleMap/PartyDisplay";
 import { CombatIntentPreview } from "../BattleMap/CombatIntentPreview";
 import {
@@ -92,6 +96,7 @@ import {
   COMBAT_BTN_INDIGO,
   COMBAT_BTN_RED,
 } from "../BattleMap/combatUiTheme";
+import { ConfirmationModal } from "../ui/ConfirmationModal";
 import CharacterSheetModal from "../CharacterSheet/CharacterSheetModal";
 import { CombatCharacterInspector } from "../BattleMap/CombatCharacterInspector";
 import CombatRailControls from "../BattleMap/CombatRailControls";
@@ -108,9 +113,9 @@ import {
   createCombatRailGridStyle,
   useCombatRailLayout,
 } from "../../hooks/useCombatRailLayout";
-import { canUseDevTools } from "../../utils/permissions";
-import { logger } from "../../utils/logger";
-import { createPlayerCombatCharacter } from "../../utils/combatUtils";
+import { canUseDevTools } from "../../utils/core";
+import { logger } from "../../utils/core";
+import { createPlayerCombatCharacter } from "../../utils/combat";
 import SpellContext from "../../context/SpellContext";
 import { motion } from "framer-motion";
 import { useGameState } from "../../state/GameContext";
@@ -584,8 +589,7 @@ const CombatView: React.FC<CombatViewProps> = ({
     onRoundElapsed,
     autoCharacters, // Pass auto characters to turn manager if needed, but easier to modify turnManager props to accept "isAuto" check
     onMapUpdate: setMapData,
-    // TODO #57: Feature: Bind difficulty to user settings or campaign state instead of hardcoding 'normal'.
-    difficulty: "normal",
+    difficulty: state.combatDifficulty ?? "normal",
     requestReaction: useCallback(
       (
         attackerId: string,
@@ -818,6 +822,55 @@ const CombatView: React.FC<CombatViewProps> = ({
   // undefined value while the turn order is still being prepared.
   const currentCharacter = turnManager.getCurrentCharacter() ?? null;
 
+  // --- Edge-of-map escape (9B) ---------------------------------------------
+  // Fleeing is now a real exit from a fight. The referee lives in the turn
+  // manager (which owns the map, the economy, and the removal path); this view
+  // only asks whether the option exists, and confirms the decision with the
+  // player before it resolves, since leaving combat is not undoable.
+  // The `typeof` guard is for harnesses that stub `useTurnManager` with a
+  // partial object: a missing camera/escape helper must not take the whole
+  // battle screen down with it. A real turn manager always supplies both.
+  const escapeVerdict = currentCharacter && typeof turnManager.canEscapeFromCombat === "function"
+    ? turnManager.canEscapeFromCombat(currentCharacter.id)
+    : null;
+  const canEscapeNow = Boolean(
+    escapeVerdict?.available &&
+      currentCharacter &&
+      currentCharacter.team === "player" &&
+      turnManager.isCharacterTurn(currentCharacter.id),
+  );
+  const [escapeConfirmOpen, setEscapeConfirmOpen] = useState(false);
+  const escapingCharacterName = currentCharacter?.name ?? "";
+  const confirmEscape = useCallback(() => {
+    setEscapeConfirmOpen(false);
+    if (!currentCharacter) return;
+    turnManager.escapeFromCombat?.(currentCharacter.id);
+  }, [currentCharacter, turnManager]);
+
+  // The Move / Attack commands moved from the battle map into the ACTIONS panel
+  // (Remy 2026-08-16). The panel and the map are siblings, so the mode is owned
+  // HERE and handed to the map as a controlled value. Two copies would let the
+  // buttons and the board disagree about what a click means.
+  const [actionMode, setActionMode] = useState<"move" | "ability" | null>(null);
+  const controlledActionMode = useMemo(
+    () => ({ value: actionMode, onChange: setActionMode }),
+    [actionMode],
+  );
+
+  // The shortcut must represent a REAL ready direct attack, not the first entry
+  // in an arbitrary ability array: it skips spells, movement, cooldowns, spent
+  // uses, and attacks the character cannot afford this turn.
+  const quickAttack = currentCharacter
+    ? selectQuickAttack(currentCharacter.abilities, (cost) =>
+        turnManager.canAffordAction(currentCharacter, cost),
+      )
+    : null;
+  const quickAttackIsArmed = Boolean(
+    abilitySystem.targetingMode &&
+      quickAttack &&
+      abilitySystem.selectedAbility?.id === quickAttack.id,
+  );
+
   // Objective at a glance: the win condition should not require scrolling the
   // enemy roster below the fold.
   const enemiesRemaining = characters.filter(
@@ -842,7 +895,7 @@ const CombatView: React.FC<CombatViewProps> = ({
   }, []);
 
   useCombatAI({
-    difficulty: "normal",
+    difficulty: state.combatDifficulty ?? "normal",
     // AI receives no actors while the encounter is withheld. This prevents an
     // unsupported production caller from advancing combat behind the gap UI.
     characters: mapData ? characters : [],
@@ -1085,6 +1138,8 @@ const CombatView: React.FC<CombatViewProps> = ({
                 spellMapArtifacts={spellMapArtifacts}
                 assetOverlayVisible={assetOverlayVisible}
                 cameraFocusRequest={cameraFocusRequest}
+                activeRitual={state.activeRitual ?? null}
+                controlledActionMode={controlledActionMode}
                 combatState={{
                   turnManager: turnManager,
                   turnState: turnManager.turnState,
@@ -1140,6 +1195,19 @@ const CombatView: React.FC<CombatViewProps> = ({
         >
           <span>⚔</span> End Turn
         </button>
+        {/* Edge-of-map escape (9B). Rendered only when the referee says this
+            actor is at the battlefield rim with a full movement action, so the
+            button appearing IS the cue that an exit is within reach. */}
+        {canEscapeNow && (
+          <button
+            data-testid="combat-escape-button"
+            onClick={() => setEscapeConfirmOpen(true)}
+            title={escapeVerdict?.reason}
+            className={`${COMBAT_BTN_BASE} ${COMBAT_BTN_RED}`}
+          >
+            <span>🏃</span> Escape
+          </button>
+        )}
         <button
           onClick={() =>
             setRenderMode(
@@ -1178,20 +1246,21 @@ const CombatView: React.FC<CombatViewProps> = ({
           onResetLayout={resetRailLayout}
           layoutIsDefault={railLayoutIsDefault}
         />
-        {/* TODO #58: Wrap debug buttons with process.env.NODE_ENV check to hide in production builds. */}
-        <button
-          onClick={() => {
-            if (
-              window.confirm(
-                "End the battle now? Remaining enemies will be discarded.",
+        {process.env.NODE_ENV !== 'production' && (
+          <button
+            onClick={() => {
+              if (
+                window.confirm(
+                  "End the battle now? Remaining enemies will be discarded.",
+                )
               )
-            )
-              forceOutcome("victory");
-          }}
-          className={`${COMBAT_BTN_BASE} ${COMBAT_BTN_RED} ml-auto`}
-        >
-          End Battle
-        </button>
+                forceOutcome("victory");
+            }}
+            className={`${COMBAT_BTN_BASE} ${COMBAT_BTN_RED} ml-auto`}
+          >
+            End Battle
+          </button>
+        )}
       </div>
 
       {/* First-fight coach line: the busiest screen in the game answers
@@ -1272,6 +1341,9 @@ const CombatView: React.FC<CombatViewProps> = ({
               )}
               onEndTurn={turnManager.endTurn}
               onRestoreCommands={() => setCommandRailVisible(true)}
+              canEscape={canEscapeNow}
+              escapeReason={escapeVerdict?.reason}
+              onEscape={() => setEscapeConfirmOpen(true)}
             />
           )}
           <div
@@ -1407,6 +1479,7 @@ const CombatView: React.FC<CombatViewProps> = ({
                     spellMapArtifacts={spellMapArtifacts}
                     assetOverlayVisible={assetOverlayVisible}
                     cameraFocusRequest={cameraFocusRequest}
+                activeRitual={state.activeRitual ?? null}
                     combatState={{
                       turnManager: turnManager,
                       turnState: turnManager.turnState,
@@ -1469,6 +1542,35 @@ const CombatView: React.FC<CombatViewProps> = ({
               <ActionEconomyBar
                 character={currentCharacter}
                 onExecuteAction={turnManager.executeAction}
+                commandToolbar={
+                  currentCharacter.team === "player" &&
+                  turnManager.isCharacterTurn(currentCharacter.id) ? (
+                    <CombatCommandToolbar
+                      actionMode={actionMode}
+                      quickAttack={quickAttack}
+                      quickAttackIsArmed={quickAttackIsArmed}
+                      onMove={() => {
+                        // Returning to movement must drop any half-armed attack,
+                        // or a later enemy click still resolves as an ability
+                        // target instead of a move.
+                        abilitySystem.cancelTargeting();
+                        setActionMode("move");
+                      }}
+                      onAttack={() => {
+                        // Pressing an armed shortcut again cancels it, matching
+                        // the ability palette so both command origins agree.
+                        if (quickAttackIsArmed) {
+                          abilitySystem.cancelTargeting();
+                          setActionMode("move");
+                          return;
+                        }
+                        if (!currentCharacter || !quickAttack) return;
+                        setActionMode("ability");
+                        abilitySystem.startTargeting(quickAttack, currentCharacter);
+                      }}
+                    />
+                  ) : null
+                }
               />
             </>
           )}
@@ -1502,12 +1604,39 @@ const CombatView: React.FC<CombatViewProps> = ({
           />
         </div>
       </div>
+
+      {/* Escape confirmation (9B). Leaving a fight cannot be undone, so the
+          decision is confirmed rather than resolved on a single click. */}
+      <ConfirmationModal
+        isOpen={escapeConfirmOpen}
+        onClose={() => setEscapeConfirmOpen(false)}
+        onConfirm={confirmEscape}
+        title="Flee the battlefield?"
+        confirmLabel="Escape"
+        cancelLabel="Stay and fight"
+      >
+        <p>
+          {escapingCharacterName} is at the edge of the battlefield and can escape
+          this encounter. It costs their full movement action for the turn, and
+          they leave the fight for good.
+        </p>
+      </ConfirmationModal>
     </div>
   );
 };
+
+// CombatView itself calls useCombatAI, so the AI pacing provider has to sit
+// above it rather than inside its JSX. This wrapper is the combat root: it
+// gives every hook in the combat tree one AIConfig to read, and is where a
+// future user setting or per-monster personality table gets threaded in.
+const CombatRoot: React.FC<CombatViewProps> = (props) => (
+  <AIConfigProvider>
+    <CombatView {...props} />
+  </AIConfigProvider>
+);
 
 // Wrap CombatView with React.memo to prevent unnecessary re-renders
 // CombatView is performance-critical because it handles complex combat state and renders
 // multiple actors, their stats, and action buttons. By memoizing it, we ensure it only
 // re-renders when combat-related props change, not when unrelated game state updates.
-export default React.memo(CombatView);
+export default React.memo(CombatRoot);

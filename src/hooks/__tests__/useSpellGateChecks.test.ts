@@ -12,7 +12,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useSpellGateChecks } from '../useSpellGateChecks';
-import currentMagicMissileJson from '../../../public/data/spells/level-1/magic-missile.json';
+import currentMagicMissileJson from '@/data/spells/level-1/magic-missile.json';
 
 // The hook owns result merging, while spellGateBootstrap owns optional local
 // artifact loading. Mock that boundary directly so clean CI and local machines
@@ -137,16 +137,16 @@ vi.mock('../../../../.agent/roadmap-local/spell-validation/spell-structured-vs-j
 // module mock factories above ordinary declarations, and the restored tests
 // must not depend on factory-evaluation timing to receive their live JSON.
 const mockFetch = vi.hoisted(() => vi.fn());
-vi.mock('../../utils/networkUtils', () => ({
+vi.mock('../../utils/context/networkUtils', () => ({
   fetchWithTimeout: (url: string) => mockFetch(url),
 }));
-vi.mock('../../../components/Glossary/spellGateChecker/../../../utils/networkUtils', () => ({
+vi.mock('../../../components/Glossary/spellGateChecker/../../../utils/context/networkUtils', () => ({
   fetchWithTimeout: (url: string) => mockFetch(url),
 }));
-vi.mock('../../utils/logger', () => ({
+vi.mock('../../utils/core/logger', () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn() },
 }));
-vi.mock('../../../components/Glossary/spellGateChecker/../../../utils/logger', () => ({
+vi.mock('../../../components/Glossary/spellGateChecker/../../../utils/core/logger', () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn() },
 }));
 

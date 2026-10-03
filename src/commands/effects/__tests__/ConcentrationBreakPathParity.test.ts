@@ -7,12 +7,23 @@ import {
     createMockCombatState,
     createMockGameState,
     createMockPlayerCharacter
-} from '@/utils/factories';
+} from '@/utils/core';
 import { createMockSpell } from '@/utils/core/factories';
 import type { CombatCharacter, LightSource } from '@/types/combat';
 import type { DamageEffect } from '@/types/spells';
 import type { PlayerCharacter } from '@/types';
 import type { ScheduledSpellEffect } from '@/systems/spells/effects';
+
+// Both paths roll the concentration save through this one function, and neither
+// exposes a die seam for it, so the outcome is pinned here. Everything else in
+// the module keeps its real implementation.
+vi.mock('@/utils/character', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/utils/character')>();
+    return {
+        ...actual,
+        checkConcentration: vi.fn(() => ({ success: false, dc: 10, roll: 7 })),
+    };
+});
 
 // These fixtures deliberately build the same concentration setup through the
 // hook path and the command path so future cleanup changes cannot drift apart.
@@ -78,7 +89,11 @@ const makeLinkedAlly = (): CombatCharacter => createMockCombatCharacter({
             name: 'Blessed',
             duration: { type: 'rounds', value: 3 },
             appliedTurn: 1,
-            source: LINKED_CONDITION_SOURCE
+            source: LINKED_CONDITION_SOURCE,
+            // Production concentration cleanup is owner-scoped. The mirrored
+            // condition therefore carries the same caster provenance as the
+            // linked status above instead of relying on a spell-name match.
+            sourceCasterId: 'caster'
         },
         {
             name: 'Courageous',
@@ -137,6 +152,10 @@ const buildBaseLightSources = (): LightSource[] => [
 
 const getLatestById = (updates: CombatCharacter[], characterId: string): CombatCharacter | undefined => {
     return [...updates].reverse().find(update => update.id === characterId);
+};
+
+const extractFailedSaveMessage = (messages: string[]): string | undefined => {
+    return messages.find(message => message.includes('fails concentration save'));
 };
 
 const extractLossMessage = (messages: string[]): string | undefined => {
@@ -303,5 +322,125 @@ describe('Concentration break parity between hook and command paths', () => {
         );
 
         assertEquivalentConcentrationCleanup(hookOutcome, commandOutcome);
+    });
+
+    it('rolls the concentration save and applies the same cleanup above 0 HP', async () => {
+        // Before agora-f821.43 the hook path had no concentration code at all,
+        // so a caster who stayed on their feet kept concentrating through every
+        // opportunity attack, spell zone tick and environment effect the hooks
+        // delivered. Both paths now roll the save and, on a failure, end the
+        // spell through BreakConcentrationCommand.
+        const caster = makeConcentratingCaster(20);
+        const ally = makeLinkedAlly();
+        const unrelatedAlly = makeUnrelatedAlly();
+
+        const onCharacterUpdate = vi.fn();
+        const onLogEntry = vi.fn();
+
+        const { result: hookResult } = renderHook(() => useTurnManager({
+            characters: [caster, ally, unrelatedAlly],
+            mapData: null,
+            onCharacterUpdate,
+            onLogEntry
+        }));
+
+        const scheduledEffect: ScheduledSpellEffect = {
+            id: 'scheduled-standing-damage',
+            spellId: SPELL_ID,
+            casterId: caster.id,
+            targetId: caster.id,
+            timing: 'turn_start',
+            createdAtRound: 1,
+            effects: [{
+                type: 'DAMAGE',
+                damage: { dice: '1d1', type: 'Force' },
+                trigger: {
+                    type: 'turn_start',
+                    frequency: 'once',
+                    consumption: 'unlimited',
+                    movementType: 'any'
+                },
+                condition: { type: 'hit' }
+            } as DamageEffect]
+        };
+
+        act(() => {
+            hookResult.current.setActiveLightSources(buildBaseLightSources());
+            hookResult.current.addScheduledSpellEffect(scheduledEffect);
+            hookResult.current.initializeCombat([caster, ally, unrelatedAlly]);
+        });
+
+        act(() => {
+            hookResult.current.skipToCharacter(caster.id);
+        });
+
+        const hookUpdates = onCharacterUpdate.mock.calls.map(call => call[0] as CombatCharacter);
+        const hookCaster = getLatestById(hookUpdates, caster.id);
+        const hookAlly = getLatestById(hookUpdates, ally.id);
+        const hookMessages = onLogEntry.mock.calls.map(call => call[0].message as string);
+
+        // The caster is still standing: this is a rolled save, not an automatic
+        // loss, so it must not produce the unconscious message.
+        expect(hookCaster?.currentHP).toBeGreaterThan(0);
+        expect(extractLossMessage(hookMessages)).toBeUndefined();
+        expect(extractFailedSaveMessage(hookMessages)).toBeDefined();
+        expect(hookCaster?.concentratingOn).toBeUndefined();
+        expect(hookAlly?.statusEffects.some(effect => effect.id === LINKED_STATUS_ID)).toBe(false);
+        expect(hookAlly?.conditions?.some(condition => condition.source === LINKED_CONDITION_SOURCE)).toBe(false);
+        expect(hookAlly?.statusEffects.some(effect => effect.id === UNRELATED_STATUS_ID)).toBe(true);
+        expect(hookResult.current.activeLightSources.map(light => light.id)).toEqual([UNRELATED_LIGHT_ID]);
+
+        const commandCaster = createMockCombatCharacter({
+            id: 'command-caster',
+            name: 'Command Caster',
+            team: 'enemy',
+            currentHP: 15,
+            maxHP: 15
+        });
+        const commandTarget = makeConcentratingCaster(20);
+        commandTarget.team = 'player';
+        const commandAlly = makeLinkedAlly();
+        const commandUnrelatedAlly = makeUnrelatedAlly();
+        const commandState = createMockCombatState({
+            characters: [commandCaster, commandTarget, commandAlly, commandUnrelatedAlly],
+            activeLightSources: buildBaseLightSources(),
+            combatLog: [],
+            turnState: { ...createMockCombatState().turnState, currentTurn: 0 }
+        });
+        const command = new DamageCommand({
+            type: 'DAMAGE',
+            damage: { dice: '1d1', type: 'Force' },
+            trigger: { type: 'immediate', frequency: 'every_time', consumption: 'unlimited', movementType: 'any' },
+            condition: { type: 'hit' }
+        } as DamageEffect, {
+            spellId: createMockSpell({ id: SPELL_ID, name: SPELL_NAME }).id,
+            spellName: SPELL_NAME,
+            castAtLevel: 2,
+            caster: commandCaster,
+            targets: [commandTarget],
+            gameState: createMockGameState({
+                party: [
+                    createMockPlayerCharacter({ id: caster.id, name: 'Caster' }),
+                    createMockPlayerCharacter({ id: commandAlly.id, name: 'Ally' })
+                ] as PlayerCharacter[]
+            })
+        });
+
+        const commandResult = await command.execute(commandState);
+        const commandMessages = commandResult.combatLog.map(entry => entry.message);
+        const resolvedTarget = commandResult.characters.find(stateChar => stateChar.id === commandTarget.id);
+        const resolvedAlly = commandResult.characters.find(stateChar => stateChar.id === commandAlly.id);
+
+        expect(resolvedTarget?.currentHP).toBeGreaterThan(0);
+        expect(extractLossMessage(commandMessages)).toBeUndefined();
+        expect(extractFailedSaveMessage(commandMessages)).toBeDefined();
+        expect(resolvedTarget?.concentratingOn).toBeUndefined();
+        expect(resolvedAlly?.statusEffects.some(effect => effect.id === LINKED_STATUS_ID)).toBe(false);
+        expect(resolvedAlly?.conditions?.some(condition => condition.source === LINKED_CONDITION_SOURCE)).toBe(false);
+        expect(resolvedAlly?.statusEffects.some(effect => effect.id === UNRELATED_STATUS_ID)).toBe(true);
+        expect((commandResult.activeLightSources ?? []).map(light => light.id)).toEqual([UNRELATED_LIGHT_ID]);
+
+        // The two paths report the failure in the same words.
+        expect(extractFailedSaveMessage(hookMessages)).toEqual(extractFailedSaveMessage(commandMessages));
     });
 });

@@ -20,7 +20,7 @@
  * that may result from AI generation or legacy saves.
  */
 import { PlayerCharacter, MissingChoice } from '../../types';
-import { RACE_DATA_BUNDLE } from '../../data/races/index';
+import { DRAGONBORN_ANCESTRIES_DATA } from '../../data/races/dragonborn';
 import { getRacialSpellCastingAbilityChoicesForRace, getRacialChoiceRequirementsForRace } from '../../data/races';
 import { RELEVANT_SPELLCASTING_ABILITIES } from '../../data/dndData';
 import { SKILLS_DATA } from '../../data/skills';
@@ -45,7 +45,7 @@ export const validateCharacterChoices = (character: PlayerCharacter): MissingCho
         const skillOptions = Object.entries(SKILLS_DATA).map(([id, skill]) => ({
           id,
           label: skill.name,
-          description: skill.description?.trim() || 'No skill description is currently available.'
+          description: (skill as { description?: string }).description?.trim() || 'No skill description is currently available.'
         }));
 
         missingChoices.push({
@@ -89,7 +89,7 @@ export const validateCharacterChoices = (character: PlayerCharacter): MissingCho
       label: 'Draconic Ancestry',
       description: 'You must choose a Draconic Ancestry, which determines your damage resistance and breath weapon type.',
       type: 'race',
-      options: Object.values(RACE_DATA_BUNDLE.dragonbornAncestries).map(a => ({
+      options: Object.values(DRAGONBORN_ANCESTRIES_DATA).map(a => ({
         id: a.type,
         label: `${a.type} Dragon`,
         description: `Damage: ${a.damageType}`

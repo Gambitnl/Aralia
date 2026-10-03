@@ -74,7 +74,7 @@ This section stores the raw canonical spell content in an HTML comment so the st
 Name: Leomund's Tiny Hut
 Level: 3rd
 Casting Time: 1 Minute Ritual
-Range/Area: Self (10 ft. Sphere)
+Range/Area: Self (10 ft. Emanation)
 Components: V, S, M *
 Duration: 8 Hours
 School: Evocation

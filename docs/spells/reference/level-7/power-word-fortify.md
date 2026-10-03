@@ -61,7 +61,7 @@
 - **Damage Dice**: 120
 - **Damage Type**: Healing
 - **Utility Type**: other
-- **Description**: Distribute 120 Temporary Hit Points among up to six creatures within 60 feet, dividing the pool in any way you choose. A creature gains nothing if it already has Temporary Hit Points.
+- **Description**: Choose up to six creatures within range that can be affected by this spell. A pool of 120 Temporary Hit Points is divided as you choose among the chosen creatures. A creature is unaffected by this spell if it already has Temporary Hit Points or if it has 0 Hit Points.
 - **Higher Levels**: not_applicable
 
 ## Canonical D&D Beyond Snapshot
@@ -80,7 +80,7 @@ Attack/Save: None
 Damage/Effect: Healing
 
 Rules Text:
-Choose up to six creatures within range. A pool of 120 Temporary Hit Points is divided as you choose among the chosen creatures. A creature is unaffected by this spell if it already has Temporary Hit Points or if it has 0 Hit Points.
+Choose up to six creatures within range that can be affected by this spell. A pool of 120 Temporary Hit Points is divided as you choose among the chosen creatures. A creature is unaffected by this spell if it already has Temporary Hit Points or if it has 0 Hit Points.
 
 Spell Tags:
 Temporary Hit Points

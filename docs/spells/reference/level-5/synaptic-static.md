@@ -95,5 +95,4 @@ Warlock
 Wizard
 
 Capture Method: http
-Legacy Page: true
 -->

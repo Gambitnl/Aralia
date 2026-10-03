@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SpellCommandFactory } from '../SpellCommandFactory';
-import { createMockCombatCharacter, createMockGameState } from '@/utils/factories';
+import { createMockCombatCharacter, createMockGameState } from '@/utils/core';
 import { SpellSchool, type Spell, type UtilityEffect } from '@/types/spells';
 
 /**

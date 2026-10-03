@@ -174,6 +174,9 @@ function createMockContext2D() {
     fillRect(x: number, y: number, w: number, h: number) {
       calls.push({ name: "fillRect", args: [x, y, w, h] });
     },
+    drawImage(image: CanvasImageSource, x: number, y: number) {
+      calls.push({ name: "drawImage", args: [image, x, y] });
+    },
     rect(x: number, y: number, w: number, h: number) {
       calls.push({ name: "rect", args: [x, y, w, h] });
     },
@@ -222,16 +225,22 @@ describe("drawAtlas", () => {
 
   it("should draw layers in correct order (water background, land cells, coastline)", () => {
     const ctx = createMockContext2D();
+    const terrainCtx = createMockContext2D();
+    const getContext = vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(terrainCtx as any);
     const view = { offsetX: 10, offsetY: 20, scale: 2 };
-    drawAtlas(ctx, mockAtlas, view);
+    try {
+      drawAtlas(ctx, mockAtlas, view);
 
-    // Verify background gradient creation
-    const gradCall = ctx.calls.find(c => c.name === "createRadialGradient");
-    expect(gradCall).toBeDefined();
-
-    // Verify land cells are filled
-    const fills = ctx.calls.filter(c => c.name === "fill");
-    expect(fills.length).toBeGreaterThanOrEqual(1);
+      // Terrain is painted offscreen, then blitted before crisp coastline ink.
+      expect(terrainCtx.calls.some(c => c.name === "createRadialGradient")).toBe(true);
+      expect(terrainCtx.calls.some(c => c.name === "fill")).toBe(true);
+      const blitIdx = ctx.calls.findIndex(c => c.name === "drawImage");
+      const coastIdx = ctx.calls.findIndex(c => c.name === "set_strokeStyle" && c.args[0] === "#1a3d66");
+      expect(blitIdx).toBeGreaterThanOrEqual(0);
+      expect(coastIdx).toBeGreaterThan(blitIdx);
+    } finally {
+      getContext.mockRestore();
+    }
   });
 
   it("should draw coastline stroke between land and water cells", () => {
@@ -274,6 +283,8 @@ describe("drawAtlas", () => {
 
   it("should tint land cells with the selected culture overlay color", () => {
     const ctx = createMockContext2D();
+    const terrainCtx = createMockContext2D();
+    const getContext = vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(terrainCtx as any);
     const cultureAtlas: FmgAtlasResult = {
       ...mockAtlas,
       pack: {
@@ -290,10 +301,14 @@ describe("drawAtlas", () => {
       },
     };
 
-    drawAtlas(ctx, cultureAtlas, { offsetX: 0, offsetY: 0, scale: 1, overlayMode: "culture" });
+    try {
+      drawAtlas(ctx, cultureAtlas, { offsetX: 0, offsetY: 0, scale: 1, overlayMode: "culture" });
 
-    const cultureTint = ctx.calls.find((c) => c.name === "set_fillStyle" && c.args[0] === "rgb(143,37,47)");
-    expect(cultureTint).toBeDefined();
+      const cultureTint = terrainCtx.calls.find((c) => c.name === "set_fillStyle" && c.args[0] === "rgb(143,37,47)");
+      expect(cultureTint).toBeDefined();
+    } finally {
+      getContext.mockRestore();
+    }
   });
 });
 
@@ -402,12 +417,9 @@ describe("drawAtlas forest glyph stamping", () => {
     const idxOf = (pred: (c: { name: string; args: any[] }) => boolean) => ctx.calls.findIndex(pred);
     const translateIdx = idxOf((c) => c.name === "translate");
     const coastIdx = idxOf((c) => c.name === "set_strokeStyle" && c.args[0] === "#1a3d66");
-    const lastTerrainFillIdx = ctx.calls
-      .map((c, i) => ({ c, i }))
-      .filter(({ c }) => c.name === "fill" && !(c.args[0] instanceof FakePath2D))
-      .map(({ i }) => i)
-      .pop()!;
-    expect(translateIdx).toBeGreaterThan(lastTerrainFillIdx);
+    const terrainBlitIdx = idxOf((c) => c.name === "drawImage");
+    expect(terrainBlitIdx).toBeGreaterThanOrEqual(0);
+    expect(translateIdx).toBeGreaterThan(terrainBlitIdx);
     expect(translateIdx).toBeLessThan(coastIdx);
   });
 

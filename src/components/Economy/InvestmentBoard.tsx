@@ -10,7 +10,7 @@ import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import { getAvailableLenders } from '../../systems/economy/LoanSystem';
 import { TradeRoute, LoanOffer } from '../../types/economy';
-import { formatGpAsCoins } from '../../utils/coinPurseUtils';
+import { formatGpAsCoins } from '../../utils/character';
 
 interface InvestmentBoardProps {
     isOpen: boolean;

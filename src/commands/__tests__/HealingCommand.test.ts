@@ -4,7 +4,39 @@ import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatState, Position } from '@/types/combat';
 import type { HealingEffect } from '@/types/spells';
 import type { Class, GameState } from '@/types';
-import { createMockGameState, createMockPlayerCharacter } from '../../utils/factories';
+import { createMockGameState, createMockPlayerCharacter } from '../../utils/core';
+
+// agora-f821.4: this file pins Math.random to make a roll deterministic. Game rolls now
+// run on the audit log's own seed stream, so the pin only reaches them
+// through the roller's supported injected-source seam. Feeding
+// Math.random in as that source keeps every pin below meaning what it
+// meant before the migration.
+vi.mock('../../systems/dice/rollers', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../systems/dice/rollers')>()
+  return {
+    ...actual,
+    rollDice: (notation: string, options: { rng?: () => number } = {}) =>
+      actual.rollDice(notation, { ...options, rng: options.rng ?? Math.random }),
+    rollD20: (options: { rng?: () => number } = {}) =>
+      actual.rollD20({ ...options, rng: options.rng ?? Math.random }),
+    rollDamage: (
+      notation: string,
+      isCritical: boolean,
+      minRoll = 1,
+      rng?: () => number,
+    ) => actual.rollDamage(notation, isCritical, minRoll, rng ?? Math.random),
+  }
+})
+
+
+/**
+ * This file proves HealingCommand applies both ordinary and temporary healing.
+ *
+ * It feeds deterministic dice into the real command, then checks maximum-HP
+ * capping, combat-log output, shared temporary-HP replacement, and stale source
+ * cleanup. That protects the production spell path used beside the Tactical
+ * Sandbox's pure HP-helper proof.
+ */
 
 const baseStats = {
   strength: 10,
@@ -117,5 +149,39 @@ describe('HealingCommand', () => {
     const updated = result.characters.find(c => c.id === 'target');
     expect(updated?.currentHP).toBe(10); // 5 + 5 healing, but capped at maxHP 10
     expect(result.combatLog.some(entry => entry.type === 'heal')).toBe(true);
+  });
+
+  it('routes a temporary-HP healing effect through the shared replacement rule', async () => {
+    const caster = makeCharacter('caster', { x: 0, y: 0 });
+    const target = {
+      ...makeCharacter('target', { x: 1, y: 0 }),
+      tempHP: 5,
+      temporaryHitPointSource: {
+        spellId: 'armor-of-agathys',
+        spellName: 'Armor of Agathys',
+        casterId: 'target',
+      },
+    };
+    const state = makeState([caster, target]);
+    const effect: HealingEffect = {
+      type: 'HEALING',
+      healing: { dice: '1d8', isTemporaryHp: true },
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' },
+    };
+
+    // A fixed roll of 6 replaces the existing pool of 5. Because this generic
+    // healing effect does not own a retaliation spell, stale ownership clears.
+    vi.spyOn(Math, 'random').mockReturnValue(0.7);
+    const result = await new HealingCommand(
+      effect,
+      makeContext(caster, [target]),
+    ).execute(state);
+    vi.restoreAllMocks();
+
+    const updated = result.characters.find(character => character.id === target.id);
+    expect(updated?.tempHP).toBe(6);
+    expect(updated?.temporaryHitPointSource).toBeUndefined();
+    expect(result.combatLog.at(-1)?.message).toContain('replacing 5');
   });
 });

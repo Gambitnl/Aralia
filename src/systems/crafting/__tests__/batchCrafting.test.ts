@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { ItemType } from '../../../types';
 import type { Item } from '../../../types';
 import type { CraftingRecipe } from '../alchemyRecipes';
 import { checkRecipeCraftability } from '../craftingEngine';
@@ -10,7 +11,7 @@ const stackedInventory: Item[] = [
     name: 'Rowan Berry',
     description: 'A single stacked inventory row used to prove quantity-aware counting.',
     quantity: 5,
-    type: 'reagent'
+    type: ItemType.Reagent
   }
 ];
 

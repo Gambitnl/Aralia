@@ -68,7 +68,7 @@
 - **Repeat Save Type**: Intelligence
 - **Repeat Save Success Ends**: true
 - **Repeat Save Use Original DC**: true
-- **Description**: One visible creature within 150 feet takes 10d12 Psychic damage and makes an Intelligence save. On a failed save, it is Stunned until the end of your next turn, then repeats the save at the end of each of its turns to end the effect.
+- **Description**: You attempt to befuddle a creature that you can see within range. The target makes an Intelligence saving throw, taking 10d12 Psychic damage on a failed save or half as much damage on a successful one. On a failed save, the target also has the Stunned condition for 1 minute. The Stunned target repeats the save at the end of each of its turns, ending the effect on itself on a success. Alternatively, casting Greater Restoration, Heal, or Wish on the target ends the effect.
 - **Higher Levels**: not_applicable
 
 ## Canonical D&D Beyond Snapshot

@@ -1,10 +1,18 @@
+/**
+ * Copyright (c) 2024 Aralia RPG
+ * Licensed under the MIT License
+ *
+ * @file src/systems/puzzles/types.ts
+ * Defines types for Locks, Traps, Puzzles, and Pressure Plates.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 27/06/2026, 02:11:49
- * Dependents: components/puzzles/LockpickingModal.tsx, components/puzzles/PuzzleRuntimeModal.tsx, systems/puzzles/arcaneGlyphSystem.ts, systems/puzzles/lockSystem.ts, systems/puzzles/mechanism.ts, systems/puzzles/pressurePlateSystem.ts, systems/puzzles/puzzleRuntime.ts, systems/puzzles/puzzleSystem.ts, systems/puzzles/secretDoorSystem.ts, systems/puzzles/skillChallengeSystem.ts
+ * Last Sync: 09/09/2026, 15:02:05
+ * Dependents: components/puzzles/LockpickingModal.tsx, components/puzzles/PuzzleRuntimeModal.tsx, systems/puzzles/arcaneGlyphSystem.ts, systems/puzzles/battleMapBridge.ts, systems/puzzles/dialogueBridge.ts, systems/puzzles/lockSystem.ts, systems/puzzles/mechanism.ts, systems/puzzles/pressurePlateSystem.ts, systems/puzzles/puzzleRuntime.ts, systems/puzzles/puzzleSystem.ts, systems/puzzles/secretDoorSystem.ts, systems/puzzles/skillChallengeSystem.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -14,13 +22,6 @@
  */
 // @dependencies-end
 
-/**
- * Copyright (c) 2024 Aralia RPG
- * Licensed under the MIT License
- *
- * @file src/systems/puzzles/types.ts
- * Defines types for Locks, Traps, Puzzles, and Pressure Plates.
- */
 import { AbilityScoreName } from '../../types/core.js';
 
 export type DamageType =
@@ -46,11 +47,20 @@ export interface TrapEffect {
   saveDC?: number;
   saveType?: AbilityScoreName;
   /**
-   * Legacy discriminator carried by earlier trap implementations (e.g., teleport/condition/restrain).
-   * TODO #924(lint-preserve): Replace this loose string with a refined union once trap effects are standardized.
+   * Discriminator for the trap's payload. Read by arcaneGlyphSystem.identifyGlyph
+   * to map a ward onto a school of magic. Optional because most fixtures describe
+   * themselves through `damage`/`condition` alone. Mirrors the union on
+   * TrapEffect in src/types/mechanics.ts, which is the same vocabulary.
    */
-  type?: string;
+  type?: TrapEffectKind;
 }
+
+/**
+ * The payload kinds a trap can deliver. Kept identical to the `type` union on
+ * TrapEffect in src/types/mechanics.ts so the two trap models stay speakable
+ * in one vocabulary.
+ */
+export type TrapEffectKind = 'damage' | 'condition' | 'alarm' | 'restrain' | 'teleport';
 
 export type TriggerCondition = 'touch' | 'proximity' | 'interaction' | 'timer' | 'magic' | 'glyph';
 
@@ -63,6 +73,13 @@ export interface Trap {
   detectionDC: number;  // Perception/Investigation (Mech) or Arcana (Magic)
   disarmDC: number;  // Thieves' tools (Mech) or Arcana (Magic)
   triggerCondition: TriggerCondition;
+  /**
+   * Spell level a magical ward was created at, used by the Dispel Magic path in
+   * arcaneGlyphSystem to decide whether the ward ends automatically. Optional
+   * because existing glyph fixtures predate the Spell System wiring (#894); when
+   * absent the level is derived from `disarmDC` instead.
+   */
+  spellLevel?: number;
   effect: TrapEffect;
   resetable: boolean;
   isDisarmed: boolean;

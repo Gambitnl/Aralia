@@ -35,21 +35,30 @@ import { z } from 'zod';
 // hit-point ending trigger because it is a fragile invisible force.
 // ============================================================================
 
-export const ControlledEntity = z.object({
-  entityType: z.enum(["spectral_hand", "unseen_servant"]),
-  count: z.number(),
-  appearsAt: z.enum(["chosen_point"]),
-  durationScope: z.enum(["spell_duration"]),
-  controlActionType: z.enum(["magic_action", "action", "bonus_action"]),
-  initialUseOnCast: z.boolean(),
-  laterControlTiming: z.enum(["later_turns"]),
-  movementDistance: z.number(),
-  movementUnit: z.enum(["feet"]),
-  maxDistanceFromCaster: z.number(),
-  canAttack: z.boolean(),
-  canActivateMagicItems: z.boolean(),
-  carryCapacityPounds: z.union([z.number(), z.literal("not_applicable")]),
-  allowedInteractions: z.array(z.string()),
-  endingTriggers: z.array(z.enum(["caster_recasts", "beyond_max_distance", "drops_to_0_hp"])),
+// Controlled-entity rows range from executable Mage Hand packets to richer
+// environment/emanation metadata. Keep source labels and optional fields
+// lossless while the runtime adapters narrow only the fields they own.
+const SourceBackedControlledEntityLabel = z.string().trim().min(1);
+const StructuredControlledEntity = z.object({
+  entityType: SourceBackedControlledEntityLabel.optional(),
+  count: z.number().optional(),
+  appearsAt: SourceBackedControlledEntityLabel.optional(),
+  durationScope: SourceBackedControlledEntityLabel.optional(),
+  controlActionType: SourceBackedControlledEntityLabel.optional(),
+  initialUseOnCast: z.boolean().optional(),
+  laterControlTiming: SourceBackedControlledEntityLabel.optional(),
+  movementDistance: z.number().optional(),
+  movementUnit: SourceBackedControlledEntityLabel.optional(),
+  maxDistanceFromCaster: z.number().optional(),
+  canAttack: z.boolean().optional(),
+  canActivateMagicItems: z.boolean().optional(),
+  carryCapacityPounds: z.union([z.number(), SourceBackedControlledEntityLabel]).optional(),
+  allowedInteractions: z.array(SourceBackedControlledEntityLabel).optional(),
+  endingTriggers: z.array(SourceBackedControlledEntityLabel).optional(),
   notes: z.string().optional(),
-});
+}).passthrough().refine(
+  value => Object.keys(value).length > 0,
+  { message: "controlled-entity metadata must contain at least one source-backed field" },
+);
+
+export const ControlledEntity = StructuredControlledEntity;

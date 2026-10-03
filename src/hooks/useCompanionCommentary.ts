@@ -39,6 +39,7 @@ import { getWeatherSummary } from '../types/environment';
 import { isPlayerFocused } from '../utils/world/sceneUtils';
 import { Companion, ReactionTriggerType, CompanionReactionRule } from '../types/companions';
 import { OllamaService, BanterContext } from '../services/ollama';
+import { getDayPartLabel } from '../utils/core/timeUtils';
 
 // Cooldown tracking: companionId -> triggerType -> timestamp
 type CooldownMap = Record<string, Record<string, number>>;
@@ -165,7 +166,9 @@ export const useCompanionCommentary = (
       const context: BanterContext = {
         locationName: locName,
         weather: getWeatherSummary(gameState.environment),
-        timeOfDay: new Date(gameState.gameTime).getHours() < 12 ? 'Morning' : 'Afternoon',
+        // G5: full day-part vocabulary from the local in-world clock (was a
+        // host-timezone Morning/Afternoon coin flip).
+        timeOfDay: getDayPartLabel(new Date(gameState.gameTime)),
         currentTask: activeQuest?.title,
       };
 

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { mockCaster, mockContext, mockState, UtilityCommand } from './UtilityCommand.testHelpers'
 import type { Spell, UtilityEffect, SelectedSpellTarget, CommandContext, CombatState } from './UtilityCommand.testHelpers'
-import minorIllusionJson from '../../../public/data/spells/level-0/minor-illusion.json'
+import minorIllusionJson from '@/data/spells/level-0/minor-illusion.json'
 
 describe('UtilityCommand', () => {
     const minorIllusionEffect = (minorIllusionJson as Spell).effects[0] as UtilityEffect
@@ -19,7 +19,7 @@ describe('UtilityCommand', () => {
             spellName: 'Minor Illusion',
             targets: [],
             selectedSpellTargets: [illusionPoint],
-            effectDuration: { type: 'minutes', value: 1, concentration: false }
+            effectDuration: { type: 'minutes', value: 1, concentration: false } as any
         }
 
         const runMinorIllusion = (playerInput: string, state: CombatState = mockState) => {

@@ -24,6 +24,9 @@
   "itemMetadata": {
     "type": "Ring",
     "rarity": "Very rare",
-    "reqAttune": "Required"
+    "reqAttune": "Required",
+    "charges": 6,
+    "recharge": "dawn",
+    "rechargeAmount": "1d6"
   }
 }

@@ -45,6 +45,10 @@
 - **Concentration**: false
 
 - **Effect Type**: UTILITY
+- **Utility Option 1 Name**: Healing potion supply
+- **Utility Option 1 Effect**: The cauldron contains Potions of Healing equal to the caster's spellcasting ability modifier (minimum 1).
+- **Utility Option 2 Name**: Higher-level brews
+- **Utility Option 2 Effect**: When cast with a higher-level slot, the cauldron can instead produce stronger healing potions: Greater at level 7, Superior at level 8, and Supreme at level 9.
 - **Save Stat**: not_applicable
 - **Save Outcome**: not_applicable
 - **Save Cover Ignored**: not_applicable
@@ -86,8 +90,8 @@
 - **Control Option 1 Effect**: The cauldron contains Potions of Healing equal to the caster's spellcasting ability modifier, minimum 1.
 - **Control Option 2 Name**: Higher-level brews
 - **Control Option 2 Effect**: When cast with a higher-level slot, the cauldron instead produces Potions of Greater Healing at level 7, Superior Healing at level 8, and Supreme Healing at level 9.
-- **Description**: You conjure a bubbling cauldron on the ground within 5 feet of you. The cauldron lasts for 10 minutes and contains Potions of Healing equal to your spellcasting ability modifier, minimum 1. A creature within 5 feet can use a Bonus Action to retrieve one potion, and any unused potions vanish when the spell ends.
-- **Higher Levels**: Using a Higher-Level Spell Slot. The potions become Potions of Greater Healing with a level 7 slot, Potions of Superior Healing with a level 8 slot, and Potions of Supreme Healing with a level 9 slot.
+- **Description**: You conjure a sturdy iron cauldron, which appears in an unoccupied space on the ground within 5 feet of you and remains for the duration. The cauldron's contents are tied to the level of the spell slot expended. The cauldron contains a number of Potions of Healing equal to your spellcasting ability modifier (minimum of one potion). A creature can take a Bonus Action to retrieve a potion from the cauldron if the creature is within 5 feet of it. When the spell ends, the cauldron and any undrunk potions in it disappear.
+- **Higher Levels**: Using a Higher-Level Spell Slot. The healing potions in the cauldron become more potent: they are Potions of Greater Healing with a level 7 slot, Potions of Superior Healing with a level 8 slot, and Potions of Supreme Healing with a level 9 slot.
 - **Scaling Rule 1 Type**: slot_level
 - **Scaling Rule 1 Applies To**: creation | potion tier
 - **Scaling Rule 1 Notes**: The cauldron's potions improve with the slot level: Potion of Healing at level 6, Potion of Greater Healing at level 7, Potion of Superior Healing at level 8, and Potion of Supreme Healing at level 9.

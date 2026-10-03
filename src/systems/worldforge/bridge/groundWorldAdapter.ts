@@ -64,7 +64,9 @@ const FEET_TO_METERS = 0.3048;
  *   - floor → floor     (interior boards; was plains)
  * Restoring the full forest/jungle/tundra/swamp palette breadth needs the
  * anchor biomeId threaded down from generateLocal/makeGroundWorld into this
- * adapter (the artifact doesn't carry it today) — tracked as a follow-up.
+ * adapter (the artifact doesn't carry it today) — the FOREST half of that
+ * follow-up is now done via `anchorBiomeId` below; jungle/tundra/swamp still
+ * ride the plain material tint.
  */
 const MATERIAL_BIOME: Record<TerrainMaterial, string> = {
   grass: "grassland",
@@ -81,12 +83,38 @@ const MATERIAL_BIOME: Record<TerrainMaterial, string> = {
 };
 
 /**
+ * Legacy anchor biome ids whose `grass` ground is a forest FLOOR, not meadow.
+ *
+ * A local window is far smaller than one FMG cell, so the window's anchor cell
+ * biome governs the whole window — the same assumption the canopy resolve in
+ * makeGroundWorld already makes. Inside these woods every `grass` cell is
+ * standing under a canopy, so it gets leaf litter rather than open-field green.
+ *
+ * Forests only, deliberately. Jungles (`jungle_*`) have their own floor
+ * character (wet, deep green, near-black in shade) and taiga already arrives as
+ * `dirt`; guessing tints for those without measuring them in-frame would be the
+ * global-darkening mistake this fix exists to avoid.
+ */
+const FOREST_FLOOR_ANCHORS: ReadonlySet<string> = new Set([
+  "forest_temperate",
+  "forest_ancient",
+  "forest_boreal",
+  "forest_haunted",
+  "forest_fey",
+]);
+
+/**
  * Express a LocalArtifact as WorldData for the world3d pipeline.
  * Deterministic and allocation-light: one pass over the 360k cells.
+ *
+ * @param anchorBiomeId legacy biome id of the window's anchor atlas cell (see
+ *   `biomeIdForCell`). Only consulted to decide whether `grass` is meadow or
+ *   forest floor; omitting it keeps the pre-forest-floor behavior exactly.
  */
 export function localArtifactToWorldData(
   local: LocalArtifact,
   seed: number,
+  anchorBiomeId?: string,
 ): WorldData {
   const { widthCells, heightCells, elevationFt, materialIndex, materials } = local.terrain;
 
@@ -106,8 +134,12 @@ export function localArtifactToWorldData(
   // out-of-range material index surfaces honestly instead of silently
   // collapsing to "plains" — a corrupt artifact must fail loudly, not render
   // a fake meadow over the real terrain.
+  const grassBiome =
+    anchorBiomeId != null && FOREST_FLOOR_ANCHORS.has(anchorBiomeId)
+      ? "forest_floor"
+      : MATERIAL_BIOME.grass;
   const biomeNameByIndex = materials.map((m) => {
-    const biome = MATERIAL_BIOME[m];
+    const biome = m === "grass" ? grassBiome : MATERIAL_BIOME[m];
     if (biome === undefined) {
       throw new Error(
         `[groundWorldAdapter] material '${m}' has no biome mapping`,

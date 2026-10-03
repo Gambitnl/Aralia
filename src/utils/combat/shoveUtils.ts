@@ -1,0 +1,529 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 13/08/2026, 03:23:29
+ * Dependents: components/DesignPreview/steps/scenarioControls/shoveProneScenarioControls.ts, utils/combat/index.ts
+ * Imports: 10 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+/**
+ * This file resolves the creature Shove option of an Unarmed Strike.
+ *
+ * It checks reach and relative size, rolls the target's real Strength or
+ * Dexterity saving throw, then delegates a push to MovementCommand or applies
+ * Prone through the paired runtime-condition helper. Tactical Sandbox is the
+ * first caller, while normal combat actions can reuse the same result instead
+ * of growing a second shove rules path.
+ *
+ * Called by: shove-backed combat actions and the Shove & Knock Prone sandbox.
+ * Depends on: shared save, forced-movement, size, and status mechanics.
+ */
+
+import { MovementCommand } from '../../commands/effects/MovementCommand';
+import type { CommandContext } from '../../commands/base/SpellCommand';
+import type {
+  ActiveCondition,
+  CombatCharacter,
+  CombatState,
+  StatusEffect,
+} from '../../types/combat';
+import type { GameState } from '../../types';
+import type { MovementEffect, SavingThrowAbility } from '../../types/spells';
+import {
+  calculateProficiencyBonus,
+  rollSavingThrow,
+  type SavingThrowResult,
+} from '../character/savingThrowUtils';
+import { getAbilityModifierValue } from '../character/statUtils';
+import {
+  getCharacterDistance,
+  TAVERN_BRAWLER_FEAT_ID,
+} from './combatUtils';
+import { canAffordActionCost, consumeActionCost } from './actionEconomyUtils';
+import { applyRuntimeStatusCondition } from './statusConditionUtils';
+
+// ============================================================================
+// Shove Rule Contract
+// ============================================================================
+// A normal shove reaches one adjacent creature, accepts the target's Strength
+// or Dexterity save, and can affect a creature at most one size larger. The two
+// result choices share the same eligibility and save gate.
+// ============================================================================
+
+export const SHOVE_DISTANCE_FEET = 5;
+export const SHOVE_REACH_TILES = 1;
+
+export type ShoveChoice = 'push' | 'prone';
+
+export type ShoveResolutionReason =
+  | 'resolved_push'
+  | 'resolved_prone'
+  | 'save_succeeded'
+  | 'blocked_destination'
+  | 'target_too_large'
+  | 'out_of_reach'
+  | 'not_turn_owner'
+  | 'attack_unavailable'
+  | 'actor_missing';
+
+export interface ShoveResolutionRequest {
+  state: CombatState;
+  gameState: GameState;
+  shoverId: string;
+  targetId: string;
+  choice: ShoveChoice;
+  saveAbility: Extract<SavingThrowAbility, 'Strength' | 'Dexterity'>;
+  /** Deterministic simulations can provide a stream without bypassing save math. */
+  rng?: () => number;
+  /**
+   * Whether this shove spends one of the shover's Attack-action attacks.
+   * Defaults to true. Tavern Brawler's post-hit shove is free, so it passes
+   * false and skips both the availability gate and the spend.
+   */
+  costsAttack?: boolean;
+}
+
+export interface ShoveResolution {
+  state: CombatState;
+  attempted: boolean;
+  attackSpent: boolean;
+  attacksRemaining?: number;
+  shoveSucceeded: boolean;
+  reason: ShoveResolutionReason;
+  saveDc?: number;
+  save?: SavingThrowResult;
+  message: string;
+}
+
+type CreatureSize = NonNullable<CombatCharacter['stats']['size']>;
+
+const SIZE_ORDER: CreatureSize[] = [
+  'Tiny',
+  'Small',
+  'Medium',
+  'Large',
+  'Huge',
+  'Gargantuan',
+];
+
+// ============================================================================
+// Eligibility And Difficulty
+// ============================================================================
+// Size defaults to Medium because legacy combatants without a stored size
+// already occupy one ordinary tile. The same CharacterStats size labels used
+// by occupied-footprint math provide the ordered rule categories here.
+// ============================================================================
+
+function readCreatureSize(character: CombatCharacter): CreatureSize {
+  return character.stats.size ?? 'Medium';
+}
+
+export function calculateShoveSaveDc(shover: CombatCharacter): number {
+  const strengthModifier = getAbilityModifierValue(shover.stats.strength);
+  return 8 + calculateProficiencyBonus(shover.level || 1) + strengthModifier;
+}
+
+export function isTargetSizeEligibleForShove(
+  shover: CombatCharacter,
+  target: CombatCharacter,
+): boolean {
+  const shoverSize = readCreatureSize(shover);
+  const targetSize = readCreatureSize(target);
+
+  return SIZE_ORDER.indexOf(targetSize) <= SIZE_ORDER.indexOf(shoverSize) + 1;
+}
+
+// ============================================================================
+// Canonical Push And Prone Effects
+// ============================================================================
+// Push uses MovementCommand so map bounds, wall tiles, occupied destinations,
+// landing terrain, and forced-movement logs keep one authority. Prone is written
+// to both condition mirrors so attack math and 2D/3D badges agree immediately.
+// ============================================================================
+
+function createShoveMovementEffect(): MovementEffect {
+  return {
+    type: 'MOVEMENT',
+    movementType: 'push',
+    distance: SHOVE_DISTANCE_FEET,
+    duration: { type: 'instantaneous' },
+    forcedMovement: {
+      direction: 'away_from_caster',
+      maxDistance: `${SHOVE_DISTANCE_FEET} ft`,
+      usesReaction: false,
+    },
+    trigger: { type: 'immediate' },
+    condition: { type: 'always' },
+  };
+}
+
+function applyCanonicalPush(
+  state: CombatState,
+  gameState: GameState,
+  shover: CombatCharacter,
+  target: CombatCharacter,
+): CombatState {
+  const context: CommandContext = {
+    spellId: 'unarmed-strike-shove',
+    spellName: 'Unarmed Strike: Shove',
+    castAtLevel: 0,
+    caster: shover,
+    targets: [target],
+    gameState,
+  };
+
+  return new MovementCommand(createShoveMovementEffect(), context).execute(state);
+}
+
+function createProneStatus(shover: CombatCharacter, target: CombatCharacter): StatusEffect {
+  return {
+    id: `shove-prone-${shover.id}-${target.id}`,
+    name: 'Prone',
+    type: 'debuff',
+    description: 'Crawl or spend half Speed to stand; nearby attacks have Advantage.',
+    // Prone describes posture rather than a timed spell. The explicit marker
+    // keeps it through turn advancement until Stand Up removes both mirrors.
+    duration: 0,
+    persistsUntilRemoved: true,
+    source: 'Unarmed Strike: Shove',
+    sourceCasterId: shover.id,
+    effect: { type: 'condition' },
+  };
+}
+
+function createProneCondition(shover: CombatCharacter): ActiveCondition {
+  return {
+    name: 'Prone',
+    duration: { type: 'permanent' },
+    appliedTurn: 0,
+    source: 'Unarmed Strike: Shove',
+    sourceCasterId: shover.id,
+  };
+}
+
+// ============================================================================
+// Attack-Action Ownership And Spending
+// ============================================================================
+// Shove replaces one attack made through the Attack action. Aralia's current
+// action ledger carries a finite `remaining` count; this resolver consumes one
+// unit and marks the action used. All eligibility checks happen before this
+// transition so an invalid or off-turn request cannot roll or spend anything.
+// ============================================================================
+
+function spendOneShoveAttack(character: CombatCharacter): CombatCharacter | null {
+  const attackCost = { type: 'action' as const };
+  const attacksRemaining = character.actionEconomy.action.remaining;
+
+  if (attacksRemaining <= 0 || !canAffordActionCost(character, attackCost)) {
+    return null;
+  }
+
+  const spent = consumeActionCost(character, attackCost);
+  return {
+    ...spent,
+    actionEconomy: {
+      ...spent.actionEconomy,
+      action: {
+        used: true,
+        remaining: Math.max(0, attacksRemaining - 1),
+      },
+    },
+  };
+}
+
+function hasShoveAttackAvailable(character: CombatCharacter): boolean {
+  return character.actionEconomy.action.remaining > 0
+    && canAffordActionCost(character, { type: 'action' });
+}
+
+function replaceCharacter(
+  state: CombatState,
+  replacement: CombatCharacter,
+): CombatState {
+  return {
+    ...state,
+    characters: state.characters.map(character => (
+      character.id === replacement.id ? replacement : character
+    )),
+  };
+}
+
+function applyCanonicalProne(
+  state: CombatState,
+  shover: CombatCharacter,
+  target: CombatCharacter,
+): CombatState {
+  const proneTarget = applyRuntimeStatusCondition(
+    target,
+    createProneStatus(shover, target),
+    createProneCondition(shover),
+  ).character;
+
+  return {
+    ...state,
+    characters: state.characters.map(character => (
+      character.id === target.id ? proneTarget : character
+    )),
+  };
+}
+
+// ============================================================================
+// Complete Shove Resolution
+// ============================================================================
+// Validation failures stop before a save. A successful save leaves the board
+// unchanged. A failed save applies exactly the player's chosen physical result
+// and returns a readable reason for the combat log.
+// ============================================================================
+
+export function resolveShoveAttempt(
+  request: ShoveResolutionRequest,
+): ShoveResolution {
+  const shover = request.state.characters.find(character => character.id === request.shoverId);
+  const target = request.state.characters.find(character => character.id === request.targetId);
+
+  if (!shover || !target) {
+    return {
+      state: request.state,
+      attempted: false,
+      attackSpent: false,
+      shoveSucceeded: false,
+      reason: 'actor_missing',
+      message: 'Shove could not begin because the shover or target is missing.',
+    };
+  }
+
+  if (request.state.turnState.currentCharacterId !== shover.id) {
+    return {
+      state: request.state,
+      attempted: false,
+      attackSpent: false,
+      attacksRemaining: shover.actionEconomy.action.remaining,
+      shoveSucceeded: false,
+      reason: 'not_turn_owner',
+      message: `Shove rejected before the roll: it is not ${shover.name}'s turn; no attack was spent and nothing changed.`,
+    };
+  }
+
+
+  const costsAttack = request.costsAttack !== false;
+
+  if (costsAttack && !hasShoveAttackAvailable(shover)) {
+    return {
+      state: request.state,
+      attempted: false,
+      attackSpent: false,
+      attacksRemaining: shover.actionEconomy.action.remaining,
+      shoveSucceeded: false,
+      reason: 'attack_unavailable',
+      message: `Shove rejected before the roll: ${shover.name} has no Attack-action attack remaining; no effect or additional cost was applied.`,
+    };
+  }
+
+  if (getCharacterDistance(shover, target) > SHOVE_REACH_TILES) {
+    return {
+      state: request.state,
+      attempted: false,
+      attackSpent: false,
+      attacksRemaining: shover.actionEconomy.action.remaining,
+      shoveSucceeded: false,
+      reason: 'out_of_reach',
+      message: `Shove ineligible: ${target.name} is outside ${shover.name}'s 5-foot reach.`,
+    };
+  }
+
+  if (!isTargetSizeEligibleForShove(shover, target)) {
+    return {
+      state: request.state,
+      attempted: false,
+      attackSpent: false,
+      attacksRemaining: shover.actionEconomy.action.remaining,
+      shoveSucceeded: false,
+      reason: 'target_too_large',
+      message: `Shove ineligible: ${target.name} is ${readCreatureSize(target)}, more than one size larger than the ${readCreatureSize(shover)} shover.`,
+    };
+  }
+
+
+  // Availability was checked before spatial eligibility so exhausted repeats
+  // are rejected consistently even if the first shove moved its target away.
+  const spentShover = costsAttack ? spendOneShoveAttack(shover) : shover;
+  if (!spentShover) {
+    return {
+      state: request.state,
+      attempted: false,
+      attackSpent: false,
+      attacksRemaining: shover.actionEconomy.action.remaining,
+      shoveSucceeded: false,
+      reason: 'attack_unavailable',
+      message: `Shove rejected before the roll: ${shover.name} has no Attack-action attack remaining; no effect or additional cost was applied.`,
+    };
+  }
+
+  // Paying the attack before the contested save makes both success and failure
+  // consume exactly one attempt. Effects below operate on this committed state.
+  const committedState = replaceCharacter(request.state, spentShover);
+  const attacksRemaining = spentShover.actionEconomy.action.remaining;
+  const attackSummary = costsAttack
+    ? `Attack spent; ${attacksRemaining} remaining`
+    : `Free shove; ${attacksRemaining} attack(s) remaining`;
+
+  const saveDc = calculateShoveSaveDc(shover);
+  const save = rollSavingThrow(
+    target,
+    request.saveAbility,
+    saveDc,
+    undefined,
+    { tags: ['shove', 'unarmed-strike'] },
+    undefined,
+    { rng: request.rng },
+  );
+  const saveSummary = `${request.saveAbility} save d20 ${save.roll}, total ${save.total} vs DC ${saveDc}`;
+
+  if (save.success) {
+    return {
+      state: committedState,
+      attempted: true,
+      attackSpent: costsAttack,
+      attacksRemaining,
+      shoveSucceeded: false,
+      reason: 'save_succeeded',
+      saveDc,
+      save,
+      message: `Shove failed (${attackSummary}): ${target.name} succeeded on its ${saveSummary}; position and conditions are unchanged.`,
+    };
+  }
+
+  if (request.choice === 'prone') {
+    return {
+      state: applyCanonicalProne(committedState, spentShover, target),
+      attempted: true,
+      attackSpent: costsAttack,
+      attacksRemaining,
+      shoveSucceeded: true,
+      reason: 'resolved_prone',
+      saveDc,
+      save,
+      message: `Shove succeeded (${attackSummary}): ${target.name} failed its ${saveSummary} and gained Prone until it Stands Up.`,
+    };
+  }
+
+  const pushedState = applyCanonicalPush(committedState, request.gameState, spentShover, target);
+  const pushedTarget = pushedState.characters.find(character => character.id === target.id) ?? target;
+  const moved = pushedTarget.position.x !== target.position.x || pushedTarget.position.y !== target.position.y;
+
+  if (!moved) {
+    return {
+      state: pushedState,
+      attempted: true,
+      attackSpent: costsAttack,
+      attacksRemaining,
+      shoveSucceeded: false,
+      reason: 'blocked_destination',
+      saveDc,
+      save,
+      message: `Shove blocked (${attackSummary}): ${target.name} failed its ${saveSummary}, but the 5-foot destination is blocked; the target remains at ${target.position.x},${target.position.y}.`,
+    };
+  }
+
+  return {
+    state: pushedState,
+    attempted: true,
+    attackSpent: costsAttack,
+    attacksRemaining,
+    shoveSucceeded: true,
+    reason: 'resolved_push',
+    saveDc,
+    save,
+    message: `Shove succeeded (${attackSummary}): ${target.name} failed its ${saveSummary} and was pushed 5 feet to ${pushedTarget.position.x},${pushedTarget.position.y}.`,
+  };
+}
+
+
+// ============================================================================
+// Tavern Brawler Free Shove Rider (agora-4325.2)
+// ============================================================================
+// The feat lets a character shove a creature 5 feet after hitting it with an
+// Unarmed Strike or an Improvised Weapon. It is an OFFER, not an automatic
+// shove: the attack resolver publishes it and the executor (or the player)
+// decides whether to take it. Taking it calls resolveShoveAttempt with
+// costsAttack:false, so the shove is free but still faces the normal save,
+// reach, and size gates.
+// ============================================================================
+
+/** Attack families that arm the Tavern Brawler shove. */
+export type TavernBrawlerAttackKind = 'unarmed' | 'improvised';
+
+export interface TavernBrawlerShoveOffer {
+  /** Feat that produced the offer, so a log consumer can name the source. */
+  source: 'tavern_brawler';
+  shoverId: string;
+  targetId: string;
+  /** Which hit armed the offer. */
+  attackKind: TavernBrawlerAttackKind;
+  /** The offer only ever pushes; Tavern Brawler does not grant a free prone. */
+  choice: Extract<ShoveChoice, 'push'>;
+  distanceFeet: number;
+  /** The shove is free, so nothing is deducted if the player declines. */
+  costsAttack: false;
+}
+
+/**
+ * Builds the post-hit shove offer, or returns null when the feat does not
+ * apply. Eligibility that can still change before the player answers (the
+ * save, a blocked destination) is left to resolveTavernBrawlerShove; only the
+ * facts fixed at the moment of the hit are checked here.
+ */
+export function buildTavernBrawlerShoveOffer(args: {
+  shover: CombatCharacter;
+  target: CombatCharacter;
+  attackKind: TavernBrawlerAttackKind | null;
+  isHit: boolean;
+}): TavernBrawlerShoveOffer | null {
+  const { shover, target, attackKind, isHit } = args;
+
+  if (!isHit || !attackKind) return null;
+  if (!shover.feats?.includes(TAVERN_BRAWLER_FEAT_ID)) return null;
+  if (!isTargetSizeEligibleForShove(shover, target)) return null;
+  if (getCharacterDistance(shover, target) > SHOVE_REACH_TILES) return null;
+
+  return {
+    source: 'tavern_brawler',
+    shoverId: shover.id,
+    targetId: target.id,
+    attackKind,
+    choice: 'push',
+    distanceFeet: SHOVE_DISTANCE_FEET,
+    costsAttack: false,
+  };
+}
+
+/**
+ * Resolves an offer the player accepted. Same rules path as a normal shove,
+ * except the attack is not spent and the result is always a 5-foot push.
+ */
+export function resolveTavernBrawlerShove(args: {
+  offer: TavernBrawlerShoveOffer;
+  state: CombatState;
+  gameState: GameState;
+  saveAbility: Extract<SavingThrowAbility, 'Strength' | 'Dexterity'>;
+  rng?: () => number;
+}): ShoveResolution {
+  return resolveShoveAttempt({
+    state: args.state,
+    gameState: args.gameState,
+    shoverId: args.offer.shoverId,
+    targetId: args.offer.targetId,
+    choice: args.offer.choice,
+    saveAbility: args.saveAbility,
+    rng: args.rng,
+    costsAttack: false,
+  });
+}

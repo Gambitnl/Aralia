@@ -70,10 +70,21 @@ function parseAttrs(raw: string): Record<string, string> {
   return attrs;
 }
 
+/** Strip HTML comments iteratively so no nested comment sequences remain. */
+function stripHtmlComments(raw: string): string {
+  let prev = '';
+  let curr = raw;
+  while (curr !== prev) {
+    prev = curr;
+    curr = curr.replace(/<!--[\s\S]*?-->/g, '');
+  }
+  return curr;
+}
+
 /** Parse an HTML fragment into a forest. Unrecognized/mismatched tags are tolerated. */
 function parseHTML(htmlRaw: string): HNode[] {
   // Drop HTML comments outright — they carry no renderable content.
-  const html = htmlRaw.replace(/<!--[\s\S]*?-->/g, '');
+  const html = stripHtmlComments(htmlRaw);
   const root: HNode = { type: 'element', tag: '#root', attrs: {}, children: [] };
   const stack: HNode[] = [root];
   const tagRe = /<(\/?)([a-zA-Z][a-zA-Z0-9]*)((?:[^<>"']|"[^"]*"|'[^']*')*?)(\/?)>/g;
@@ -112,15 +123,17 @@ function parseHTML(htmlRaw: string): HNode[] {
 // ---------------------------------------------------------------------------
 
 function decodeEntities(s: string): string {
+  // Decode specific HTML entity characters first, and decode the ampersand (&amp;) LAST.
+  // Doing &amp; last prevents double-unescaping (e.g. '&amp;lt;' turning into '<' instead of '&lt;').
   return s
     .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&mdash;/g, '—')
-    .replace(/&ndash;/g, '–');
+    .replace(/&ndash;/g, '–')
+    .replace(/&amp;/g, '&');
 }
 
 const TERM_LINK_CLASS = /glossary-term-link-from-markdown/;
@@ -232,11 +245,12 @@ function escapeCellPipes(s: string): string {
   let last = 0;
   let m: RegExpExecArray | null;
   while ((m = linkRe.exec(s)) !== null) {
-    parts.push(s.slice(last, m.index).replace(/\|/g, '\\|'));
+    // Backslashes must be escaped before pipe characters to prevent incomplete sanitization.
+    parts.push(s.slice(last, m.index).replace(/\\/g, '\\\\').replace(/\|/g, '\\|'));
     parts.push(m[0]); // keep shorthand verbatim
     last = linkRe.lastIndex;
   }
-  parts.push(s.slice(last).replace(/\|/g, '\\|'));
+  parts.push(s.slice(last).replace(/\\/g, '\\\\').replace(/\|/g, '\\|'));
   return parts.join('');
 }
 
@@ -454,8 +468,8 @@ function hasHtml(md: string): boolean {
 }
 
 function convertMarkdown(mdRaw: string): string {
-  // HTML comments carry no renderable content and compile as raw-html; strip them.
-  const md = mdRaw.replace(/<!--[\s\S]*?-->/g, '');
+  // HTML comments carry no renderable content and compile as raw-html; strip them iteratively.
+  const md = stripHtmlComments(mdRaw);
   if (!hasHtml(md)) {
     // No HTML, but may still carry corrupted/unresolvable [[..]] shorthand.
     const repaired = repairExistingLinks(md);

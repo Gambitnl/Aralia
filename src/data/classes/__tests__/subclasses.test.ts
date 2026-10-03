@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { SUBCLASSES, subclassesForClass, findSubclass } from '../subclasses';
 import { classFeaturesForLevel } from '../classFeatureProgression';
 import { CLASSES_DATA } from '../index';
-import { performLevelUp } from '../../../utils/characterUtils';
+import { performLevelUp } from '../../../utils/character';
 import { createMockPlayerCharacter } from '../../../utils/core/factories';
 
 const CORE_CLASSES = ['fighter', 'barbarian', 'bard', 'cleric', 'druid', 'ranger', 'rogue', 'paladin', 'monk', 'sorcerer', 'warlock', 'wizard'];

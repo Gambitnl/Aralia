@@ -12,6 +12,7 @@ import {
   buildRegiments,
   oceanDepthDistance,
   buildRiverRibbon,
+  buildRivers,
   buildBurgs,
   buildStateBorders,
   buildLabels,
@@ -32,6 +33,13 @@ import {
   RANGE_LABEL_MIN_ZOOM,
   RANGE_MIN_CELLS,
 } from '../../../systems/worldforge/mountains/mountainTunables';
+import { getBridgeAtlas } from '../../../systems/worldforge/bridge/legacySubmapBridge';
+
+/**
+ * These tests protect the pure canonical SVG model used by AtlasSvgView.
+ * GG-40 extends that contract with exact burg ids and marker-aware label
+ * collision checks; no test here changes generated geography or cell lookup.
+ */
 
 // Minimal stub shaped like FmgAtlasResult (only fields the helpers read).
 const stub = {
@@ -67,7 +75,9 @@ describe('buildAtlasSvgModel', () => {
     expect(model.height).toBe(100);
     const land = model.layers.find((l) => l.id === 'land');
     expect(land!.regions).toHaveLength(1);             // only cell 1 is land (h>=20)
-    expect(land!.regions![0].fill).toBe('rgb(22,172,55)');
+    // The canonical SVG applies the restrained merged-region slope treatment;
+    // keep the exact color deterministic so visual tuning cannot drift silently.
+    expect(land!.regions![0].fill).toBe('rgb(20,171,53)');
     expect(land!.regions![0].d.startsWith('M')).toBe(true);
     expect(land!.regions![0].d.endsWith('Z')).toBe(true);
     expect(land!.polygons).toHaveLength(0);            // merged, not per-cell
@@ -277,8 +287,8 @@ describe('buildBurgs', () => {
     } as any;
     const b = buildBurgs(a);
     expect(b).toHaveLength(2);          // i:1 (capital) + i:3 (town); i:0 placeholder + i:2 removed dropped
-    expect(b[0]).toEqual({ x: 10, y: 20, capital: true, tier: 'capital' });
-    expect(b[1]).toEqual({ x: 7, y: 8, capital: false, tier: 'village' }); // no population → village
+    expect(b[0]).toEqual({ id: 1, x: 10, y: 20, capital: true, tier: 'capital' });
+    expect(b[1]).toEqual({ id: 3, x: 7, y: 8, capital: false, tier: 'village' }); // no population → village
   });
 
   it('tiers non-capital burgs by population percentile (city / town / village)', () => {
@@ -291,6 +301,19 @@ describe('buildBurgs', () => {
     expect(tierOf(6)).toBe('town');     // mid band
     expect(tierOf(1)).toBe('village');  // lowest population
   });
+
+  it('keeps all 888 seed-1337 burg ids and exact cells deterministic', () => {
+    const atlas = getBridgeAtlas(1337);
+    const first = buildBurgs(atlas);
+    const second = buildBurgs(atlas);
+    expect(first).toHaveLength(888);
+    expect(new Set(first.map((burg) => burg.id)).size).toBe(888);
+    expect(second).toEqual(first);
+    for (const burg of first) {
+      expect(burg.cell).toBe(atlas.pack.burgs?.[burg.id]?.cell);
+      expect(burg.name).toBe(atlas.pack.burgs?.[burg.id]?.name);
+    }
+  }, 30_000);
 });
 
 describe('buildStateBorders', () => {
@@ -545,6 +568,18 @@ describe('declutterLabels', () => {
       declutterLabels(crowdedStateLabels, { k: 1, x: 0, y: 0 }, { maxLabels: 2 }).map((l) => l.text),
     ).toHaveLength(2);
   });
+  it('keeps labels off settlement obstacles while allowing a town its own name', () => {
+    const state = [{ x: 50, y: 50, text: 'Realm', kind: 'state' as const }];
+    const town = [{ x: 50, y: 50, text: 'Town', kind: 'town' as const }];
+    const obstacle = { x: 40, y: 40, w: 20, h: 20, anchorX: 50, anchorY: 50 };
+    const placedState = declutterLabels(state, { k: 1, x: 0, y: 0 }, { obstacles: [obstacle] });
+    expect(placedState).toHaveLength(1);
+    expect(placedState[0].sy).not.toBe(50);
+    expect(declutterLabels(town, { k: 1, x: 0, y: 0 }, {
+      townMinScale: 1,
+      obstacles: [obstacle],
+    })).toHaveLength(1);
+  });
   it('carries a per-label fontSize onto the placed label; absent falls back to the kind default', () => {
     const sized = declutterLabels(
       [{ x: 0, y: 0, text: 'Elderwood', kind: 'forest' as const, fontSize: 15 }],
@@ -559,8 +594,8 @@ describe('declutterLabels', () => {
   });
   it('sizes the collision box from the per-label fontSize (big fonts claim more room)', () => {
     // Two 8-char forest labels whose screen anchors sit 50px apart (k=2).
-    // At the 9px kind default each box spans ±(8*9*0.55/2 + pad) ≈ ±21.8px —
-    // clear of each other — but at 16px it spans ±37.2px and they collide,
+    // At the 9px kind default each box spans about ±(8*9*0.62/2 + pad),
+    // clear of each other, but at 16px it grows enough that they collide,
     // so the second label must drop.
     const pair = (fontSize?: number) => [
       { x: 0, y: 0, text: 'Wildwood', kind: 'forest' as const, ...(fontSize ? { fontSize } : {}) },
@@ -590,5 +625,70 @@ describe('findCellAtPoint + cellTraits', () => {
     expect(t.biome).toBe('Forest');
     expect(t.state).toBe('Kingdom of Realm');
     expect(t.burg).toEqual({ name: 'Townston', capital: true });
+  });
+});
+
+describe('buildRivers — rivers stop at open water', () => {
+  /**
+   * A river whose cell sequence crosses a lake used to render as one unbroken
+   * ribbon painted straight over the lake fill, so the map showed a river line
+   * running through open water (Remy, 2026-07-29). FMG routes rivers THROUGH
+   * lake cells to carry them downstream, so the data is right; the drawing was
+   * wrong. A river must reach the bank and stop, then resume at the outflow.
+   */
+  const lakeAtlas = () => {
+    // Ten cells in a row; cells 4 and 5 are the lake.
+    const p: Array<[number, number]> = [];
+    const h: number[] = [];
+    for (let i = 0; i < 10; i++) {
+      p.push([10 + i * 10, 50]);
+      h.push(i === 4 || i === 5 ? 10 : 40); // < 20 is water
+    }
+    return {
+      pack: {
+        cells: { p, h },
+        rivers: [{ i: 1, cells: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], discharge: 100 }],
+      },
+    } as never;
+  };
+
+  it('breaks the ribbon into one run per stretch of land', () => {
+    const rivers = buildRivers(lakeAtlas());
+    // Two runs: upstream of the lake, and downstream of it.
+    expect(rivers).toHaveLength(2);
+  });
+
+  it('never spans the lake with a single ribbon', () => {
+    const rivers = buildRivers(lakeAtlas());
+    const spanOf = (d: string): { min: number; max: number } => {
+      const xs = [...d.matchAll(/(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/g)].map((m) => Number(m[1]));
+      return { min: Math.min(...xs), max: Math.max(...xs) };
+    };
+    // Land runs are x<=40 and x>=60. No ONE ribbon may reach from the upstream
+    // bank to the downstream bank — that is exactly the line drawn over the lake.
+    for (const r of rivers) {
+      const s = spanOf(r.d);
+      expect(s.min < 45 && s.max > 65).toBe(false);
+    }
+  });
+
+  it('still reaches the bank so the river is not left short of the shore', () => {
+    const rivers = buildRivers(lakeAtlas());
+    const xs: number[] = [];
+    for (const r of rivers) {
+      for (const m of r.d.matchAll(/(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/g)) {
+        xs.push(Number(m[1]));
+      }
+    }
+    // The upstream run must run past the last land center (x=40) to the water.
+    expect(Math.max(...xs.filter((x) => x < 55))).toBeGreaterThan(40);
+  });
+
+  it('leaves an all-land river as a single unbroken ribbon', () => {
+    const p: Array<[number, number]> = [];
+    const h: number[] = [];
+    for (let i = 0; i < 6; i++) { p.push([10 + i * 10, 50]); h.push(40); }
+    const dry = { pack: { cells: { p, h }, rivers: [{ i: 1, cells: [0, 1, 2, 3, 4, 5], discharge: 50 }] } } as never;
+    expect(buildRivers(dry)).toHaveLength(1);
   });
 });

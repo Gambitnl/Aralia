@@ -23,14 +23,21 @@ import type {
   Spell,
 } from '../../types';
 import { CLASSES_DATA, WEAPONS_DATA } from '../../constants';
+import { subclassesForClass } from '../../data/classes/subclasses';
+import {
+  DEFAULT_RULES_EDITION,
+  getSubclassLevel,
+  type RulesEdition,
+} from '../../config/rulesEdition';
+import { SeededRandom } from '../../utils/random/seededRandom';
 import { ACTIVE_RACES } from '../../data/races';
 import { getRacialSpellCastingAbilityChoiceForRace } from '../../data/races';
 import { BACKGROUNDS } from '../../data/backgrounds';
 import { RACE_NAMES } from '../../data/names/raceNames';
 import { FEATS_DATA } from '../../data/feats/featsData';
 import { SKILLS_DATA } from '../../data/skills';
-import { evaluateFeatPrerequisites, getAbilityModifierValue } from '../../utils/characterUtils';
-import { filterSpellsForRequirement } from '../../utils/spellFilterUtils';
+import { evaluateFeatPrerequisites, getAbilityModifierValue } from '../../utils/character';
+import { filterSpellsForRequirement } from '../../utils/character';
 import type { RacialChoiceData } from './Race/RaceDetailPane';
 import {
   buildSkillsForSubmit,
@@ -58,6 +65,18 @@ export type RandomNumberGenerator = () => number;
 export interface RandomizeCreationInput {
   allSpells: Record<string, Spell>;
   rng?: RandomNumberGenerator;
+  /**
+   * The campaign's rules edition, read by the caller via `getRulesEdition`. It
+   * decides whether a class picks its subclass here at level 1 (2014 cleric,
+   * sorcerer and warlock) or waits for level 3. Defaults to the 2024 PHB, which
+   * is what `getRulesEdition` resolves an edition-less save to.
+   */
+  rulesEdition?: RulesEdition;
+  /**
+   * Seed for the default generator. Omitted, the plan varies per click; given,
+   * the same seed replays the same character. Ignored when `rng` is supplied.
+   */
+  seed?: number;
 }
 
 export interface RandomizedCreationPlan {
@@ -82,6 +101,16 @@ export function seededRng(seed: number): RandomNumberGenerator {
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
+}
+
+/**
+ * The default generator for the Auto-Fill button. It is the project's
+ * `SeededRandom`, never `Math.random`, so any plan the button produces can be
+ * replayed by handing the same seed back to `randomizeCreation`.
+ */
+export function seededRandomRng(seed: number): RandomNumberGenerator {
+  const generator = new SeededRandom(seed);
+  return () => generator.next();
 }
 
 function pickOne<T>(items: readonly T[], rng: RandomNumberGenerator, label: string): T {
@@ -325,10 +354,30 @@ function availableSpells(spellIds: readonly string[], allSpells: Record<string, 
     .filter((spell): spell is Spell => !!spell && spell.level === level);
 }
 
+/**
+ * The subclass the wizard asks for at level 1, or `undefined` when the edition
+ * defers the choice. `getSubclassLevel` is the only judge of the level, so this
+ * helper never hard-codes a class list: under the 2014 PHB cleric, sorcerer and
+ * warlock answer 1 and every other class answers 3.
+ */
+function randomLevelOneSubclassId(
+  classId: string,
+  rulesEdition: RulesEdition,
+  rng: RandomNumberGenerator,
+): string | undefined {
+  if (getSubclassLevel(classId, rulesEdition) !== 1) return undefined;
+
+  const options = subclassesForClass(classId);
+  if (options.length === 0) return undefined;
+
+  return pickOne(options, rng, `${classId} subclass`).id;
+}
+
 function randomSpellFeatures(
   state: CharacterCreationState,
   allSpells: Record<string, Spell>,
   rng: RandomNumberGenerator,
+  rulesEdition: RulesEdition,
 ): CharacterCreatorAction | null {
   const charClass = state.selectedClass;
   if (!charClass) return null;
@@ -352,6 +401,7 @@ function randomSpellFeatures(
         order,
         cantrips: pickMany(cantrips, cantripCount, rng, 'Cleric cantrips'),
         spellsL1: pickMany(levelOneSpells, spellcasting.knownSpellsL1, rng, 'Cleric level 1 spells'),
+        domainId: randomLevelOneSubclassId('cleric', rulesEdition, rng),
       },
     };
   }
@@ -397,9 +447,21 @@ function randomSpellFeatures(
   };
 
   if (charClass.id === 'wizard') return { type: 'SELECT_WIZARD_FEATURES', payload };
-  if (charClass.id === 'sorcerer') return { type: 'SELECT_SORCERER_FEATURES', payload };
   if (charClass.id === 'bard') return { type: 'SELECT_BARD_FEATURES', payload };
-  if (charClass.id === 'warlock') return { type: 'SELECT_WARLOCK_FEATURES', payload };
+
+  if (charClass.id === 'sorcerer') {
+    return {
+      type: 'SELECT_SORCERER_FEATURES',
+      payload: { ...payload, originId: randomLevelOneSubclassId('sorcerer', rulesEdition, rng) },
+    };
+  }
+
+  if (charClass.id === 'warlock') {
+    return {
+      type: 'SELECT_WARLOCK_FEATURES',
+      payload: { ...payload, patronId: randomLevelOneSubclassId('warlock', rulesEdition, rng) },
+    };
+  }
 
   return null;
 }
@@ -514,7 +576,8 @@ function randomEligibleFeat(state: CharacterCreationState, rng: RandomNumberGene
 // ============================================================================
 
 export function randomizeCreation(input: RandomizeCreationInput): RandomizedCreationPlan {
-  const rng = input.rng ?? Math.random;
+  const rng = input.rng ?? seededRandomRng(input.seed ?? Date.now());
+  const rulesEdition = input.rulesEdition ?? DEFAULT_RULES_EDITION;
   const actions: CharacterCreatorAction[] = [{ type: 'RESET_CREATOR' }];
   let state = characterCreatorReducer(initialCharacterCreatorState, actions[0]);
 
@@ -552,7 +615,7 @@ export function randomizeCreation(input: RandomizeCreationInput): RandomizedCrea
 
   dispatch({ type: 'SELECT_SKILLS', payload: randomSkills(state, rng) });
 
-  const featureAction = randomSpellFeatures(state, input.allSpells, rng);
+  const featureAction = randomSpellFeatures(state, input.allSpells, rng, rulesEdition);
   if (featureAction) dispatch(featureAction);
 
   if (state.step === CreationStep.ClassFeatures) {

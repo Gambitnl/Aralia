@@ -81,6 +81,14 @@ describe('ShipPane', () => {
     expect(screen.getByText('Knots')).toBeInTheDocument(); // Speed unit
   });
 
+  it('shows a Firepower rating (sum of average damage per hit) instead of a raw weapon count (agora-d1c7.10)', () => {
+    render(<ShipPane ship={mockShip} onClose={() => {}} />);
+    expect(screen.getByText('Firepower')).toBeInTheDocument();
+    const card = screen.getByTestId('ship-firepower');
+    expect(card.textContent).toMatch(new RegExp(`${mockShip.weapons.length} weapon`));
+    expect(screen.queryByText('Installed')).not.toBeInTheDocument();
+  });
+
   it('switches tabs to crew list', () => {
     render(<ShipPane ship={mockShip} onClose={() => {}} />);
 

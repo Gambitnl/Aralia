@@ -74,6 +74,10 @@ export const SUBCLASSES: Record<string, Subclass[]> = {
     { id: 'evocation', classId: 'wizard', name: 'Evoker (School of Evocation)', description: 'A wizard who sculpts raw elemental destruction.', features: [f('sculpt_spells', 'Sculpt Spells', 'Carve safe zones in your evocation spells so allies escape their effects.')] },
     { id: 'abjuration', classId: 'wizard', name: 'Abjurer (School of Abjuration)', description: 'A wizard specialized in protective and warding magic.', features: [f('arcane_ward', 'Arcane Ward', 'Casting abjuration spells creates a magical ward that absorbs damage for you.')] },
   ],
+  artificer: [
+    { id: 'alchemist', classId: 'artificer', name: 'Alchemist', description: 'An artificer expert in combining exotic reagents to produce potent elixirs.', features: [f('experimental_elixir', 'Experimental Elixir', 'Whenever you finish a long rest, produce an experimental elixir in a flask.')] },
+    { id: 'armorer', classId: 'artificer', name: 'Armorer', description: 'An artificer who modifies armor to function like a second skin and heavy weapon.', features: [f('arcane_armor', 'Arcane Armor', 'Turn heavy armor into a conduit for your magic, modifying it for combat.')] },
+  ],
 };
 
 /** All subclass options for a class (empty if the class has none defined). */

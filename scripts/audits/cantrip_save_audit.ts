@@ -31,7 +31,6 @@ function auditCantripSaves() {
 
                   // Check each effect
                   if (spell.effects) {
-                    // @ts-expect-error -- tsx resolves local TS entrypoints at runtime; keep explicit extension for CLI use.
                     spell.effects.forEach((effect: import('../../src/types/spells.js').SpellEffect, index: number) => {
                       // Check condition.saveEffect
             

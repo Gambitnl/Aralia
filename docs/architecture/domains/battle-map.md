@@ -1,5 +1,7 @@
 # Battle Map
 
+Verified: unknown - predates the verification rule (see AGENTS.md)
+
 ## Purpose
 
 The Battle Map domain covers the tactical grid-rendering layer used during combat, including tiles, tokens, overlays, initiative-adjacent UI, targeting presentation, and battle-map generation helpers.
@@ -38,7 +40,7 @@ BattleMap3D.tsx composes the following pieces, all driven by the shared hook out
 - characters/: CharacterActor (glTF SkinnedMesh + AnimationMixer per CombatCharacter)
 - vfx/: VFXSystem (spell zones, weapon trails, damage numbers, AoE preview), LivingWorld (ambient particles)
 
-This subtree is a rendering layer only. Adding rules to it is a domain violation — rules belong in the shared hooks.
+This subtree is a rendering layer only. Adding rules to it is a domain violation - rules belong in the shared hooks.
 
 ## Historical Drift Corrected
 

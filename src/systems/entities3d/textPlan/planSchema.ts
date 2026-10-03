@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 27/07/2026, 22:31:36
+ * Dependents: components/DesignPreview/steps/PreviewEntityDebug.tsx, components/DesignPreview/steps/PreviewEntityForge.tsx, systems/entities3d/creaturePlans.ts, systems/entities3d/library/acceptedEntities.ts, systems/entities3d/textPlan/compilePlan.ts, systems/entities3d/textPlan/fixtures.ts, systems/entities3d/textPlan/heroImagePrompt.ts, systems/entities3d/textPlan/planSize.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file planSchema.ts — the body-plan language for text-to-creature.
  *
@@ -39,6 +55,10 @@ export interface PlanAppendage {
   tips?: 'hand';
   /** Floating accent-colored energy rings hovering at each interior joint. */
   jointRings?: boolean;
+  /** 0–1 junction softness override for THIS appendage: how much its root
+   * melts into the body (0 hard clip, 1 full melt). Falls back to skin.blend,
+   * then to the per-kind default. */
+  blend?: number;
 }
 
 export interface PlanHead {
@@ -46,9 +66,14 @@ export interface PlanHead {
   neckIndex?: number;
   /** Sculpted head form (platonic-solid skull + jaw + teeth); omitted = plain ball. */
   form?: 'serpent' | 'beast' | 'blunt' | 'skull';
-  /** 0.4–2 of the frame-derived head radius. */
+  /** 0.4–3 of the frame-derived head radius (3: trunk-thick serpent maws). */
   sizeScale: number;
   eyes: { count: number; sizeScale: number; pupil?: 'round' | 'slit' | 'goat' };
+  /** Cone snout on BALL heads. On FORMED heads (which carry their own
+   * sculpted muzzle) the cone is skipped and `droop` instead scales the
+   * resting jaw gape (factor 1 + droop: -0.6 nearly closes the hinge, 0
+   * keeps the form's default, +0.8 gapes wider) — per-head mouth character
+   * for multi-head creatures. */
   snout?: { lengthScale: number; droop: number };
   /** Ring of twitching fleshy lashes around each eye instead of lids. */
   cilia?: boolean;
@@ -65,12 +90,29 @@ export interface CreaturePlan {
     stance: 'upright' | 'horizontal' | 'serpentine' | 'floating';
   };
   /** shape 'box' renders the body as rectangular slabs (cubes, chests, golems);
-   * bulge 0–1 swells the mid-body (muscle mass). */
-  spine: { segments: number; taper: number; arch: number; shape?: 'round' | 'box'; bulge?: number };
+   * bulge 0–1 swells the mid-body (muscle mass).
+   * mass [chest, waist, hips] (each 0.5–1.6 of bodyRadM) replaces the
+   * single-sine bulge with a three-lobe profile — predators get a deep chest,
+   * tucked waist, and strong hips instead of a sausage. With mass set, taper
+   * is the REAR-TIP fraction of the hips lobe (0.3 = near-pointed tail,
+   * 1 = blunt rump) and the front rounds off at 0.6 × chest. Omit mass for
+   * the historical taper+bulge tube. */
+  spine: { segments: number; taper: number; arch: number; shape?: 'round' | 'box'; bulge?: number; mass?: [number, number, number] };
   appendages: PlanAppendage[];
   heads: PlanHead[];
+  /** round 24 (creature-anatomy): whole-body material style. 'rock' builds
+   * the body FROM the element (the elemental design language): overlapping
+   * boulder plates over torso and limbs, dark recessed joints between them,
+   * unlit crack-glow accents, moss on crown and shoulders, oversized
+   * claw-mass hands, and sunken glow eyes under a brow plate. Omit for the
+   * historical smooth-skin body. */
+  surface?: 'rock';
   /** opacity < 1 = translucent body (ghosts, oozes); eyes stay solid. */
   palette: { bodyHex: string; accentHex?: string; bellyHex?: string; eyeHex: string; opacity?: number };
+  /** Creature-level junction softness default: how much parts melt together
+   * where they meet (0 bony/mechanical, 1 amorphous). Per-appendage `blend`
+   * overrides it; omitted = per-kind defaults. */
+  skin?: { blend: number };
   garnish?: Array<{ partId: string; params?: Record<string, number> }>;
 }
 
@@ -84,6 +126,7 @@ export const PLAN_LIMITS = {
   spineTaper: [0.3, 1],
   spineArch: [-0.5, 0.5],
   spineBulge: [0, 1],
+  spineMass: [0.5, 1.6],
   appendages: [0, 12],
   attach: [0, 1],
   heightFrac: [0, 1],
@@ -93,12 +136,21 @@ export const PLAN_LIMITS = {
   linkR: [0.02, 1],
   heads: [1, 12],
   opacity: [0.2, 1],
-  headSizeScale: [0.4, 2],
+  // round 3 (creature-anatomy): ceiling 2 → 3. A Valheim-class serpent head
+  // must reach ~1x body radius; at the old cap the sculpted maw rendered at
+  // pea scale (socket r 0.177 m on a 0.3 m trunk) and read as a closed bill.
+  // round 22 (creature-anatomy): ceiling 3 → 4, raised DELIBERATELY — the
+  // round-21 verdict read "pinheads on a garden hose": the serpent's heads
+  // sat at the old cap while its trunk stayed thicker than the heads. The
+  // Valheim inversion (head WIDER than the neck and trunk that carry it)
+  // needs headroom above the trunk radius, not another trunk slim alone.
+  headSizeScale: [0.4, 4],
   eyeCount: [0, 8],
   eyeSizeScale: [0.4, 2],
   snoutLengthScale: [0.3, 2.5],
   snoutDroop: [-0.6, 0.8],
   garnish: [0, 8],
+  blend: [0, 1],
 } as const;
 
 /** Default attachment height on the body, per appendage kind. */
@@ -110,6 +162,19 @@ export const PLAN_DEFAULT_HEIGHT_FRAC: Record<PlanAppendage['kind'], number> = {
   neck: 0.9,
   wing: 0.8,
   torso: 0.85,
+};
+
+/** Default junction softness per appendage kind (0 hard clip – 1 full melt),
+ * used when neither the appendage nor skin.blend says otherwise: fleshy
+ * kinds flow into the body, wings stay near-crisp. */
+export const PLAN_DEFAULT_BLEND: Record<PlanAppendage['kind'], number> = {
+  leg: 0.35,
+  arm: 0.35,
+  tail: 0.4,
+  tentacle: 0.5,
+  neck: 0.5,
+  wing: 0.15,
+  torso: 0.35,
 };
 
 const APPENDAGE_KINDS = new Set(['leg', 'arm', 'tail', 'tentacle', 'neck', 'wing', 'torso']);
@@ -153,7 +218,22 @@ function checkHex(errs: Errs, v: unknown, path: string): void {
 export function validateCreaturePlan(input: unknown, knownPartIds: ReadonlySet<string>): string[] {
   const errs: Errs = [];
   if (!isObj(input)) return ['plan is not an object'];
-  checkKeys(errs, input, ['name', 'frame', 'spine', 'appendages', 'heads', 'palette', 'garnish'], '');
+  checkKeys(errs, input, ['name', 'frame', 'spine', 'appendages', 'heads', 'palette', 'skin', 'garnish', 'surface'], '');
+
+  // surface (whole-body material style)
+  if (input.surface !== undefined && input.surface !== 'rock') {
+    errs.push(`surface must be 'rock' when present`);
+  }
+
+  // skin (junction softness default)
+  if (input.skin !== undefined) {
+    if (!isObj(input.skin)) {
+      errs.push('skin must be an object');
+    } else {
+      checkKeys(errs, input.skin, ['blend'], 'skin');
+      checkRange(errs, input.skin.blend, PLAN_LIMITS.blend, 'skin.blend');
+    }
+  }
 
   // name
   if (typeof input.name !== 'string' || input.name.length < PLAN_LIMITS.nameChars[0] || input.name.length > PLAN_LIMITS.nameChars[1]) {
@@ -181,13 +261,20 @@ export function validateCreaturePlan(input: unknown, knownPartIds: ReadonlySet<s
     errs.push('spine must be an object');
   } else {
     const s = input.spine;
-    checkKeys(errs, s, ['segments', 'taper', 'arch', 'shape', 'bulge'], 'spine');
+    checkKeys(errs, s, ['segments', 'taper', 'arch', 'shape', 'bulge', 'mass'], 'spine');
     if (checkRange(errs, s.segments, PLAN_LIMITS.spineSegments, 'spine.segments') && !Number.isInteger(s.segments)) {
       errs.push('spine.segments must be an integer');
     }
     checkRange(errs, s.taper, PLAN_LIMITS.spineTaper, 'spine.taper');
     checkRange(errs, s.arch, PLAN_LIMITS.spineArch, 'spine.arch');
     if (s.bulge !== undefined) checkRange(errs, s.bulge, PLAN_LIMITS.spineBulge, 'spine.bulge');
+    if (s.mass !== undefined) {
+      if (!Array.isArray(s.mass) || s.mass.length !== 3) {
+        errs.push('spine.mass must be [chest, waist, hips]');
+      } else {
+        s.mass.forEach((m: number, i: number) => checkRange(errs, m, PLAN_LIMITS.spineMass, `spine.mass[${i}]`));
+      }
+    }
     if (s.shape !== undefined && s.shape !== 'round' && s.shape !== 'box') {
       errs.push(`spine.shape must be 'round' or 'box'`);
     }
@@ -206,7 +293,8 @@ export function validateCreaturePlan(input: unknown, knownPartIds: ReadonlySet<s
       errs.push(`${path} must be an object`);
       return;
     }
-    checkKeys(errs, a, ['kind', 'attach', 'heightFrac', 'perSide', 'count', 'chain', 'tips', 'jointRings', 'parent'], path);
+    checkKeys(errs, a, ['kind', 'attach', 'heightFrac', 'perSide', 'count', 'chain', 'tips', 'jointRings', 'parent', 'blend'], path);
+    if (a.blend !== undefined) checkRange(errs, a.blend, PLAN_LIMITS.blend, `${path}.blend`);
     if (typeof a.kind !== 'string' || !APPENDAGE_KINDS.has(a.kind)) {
       errs.push(`${path}.kind must be one of leg|arm|tail|tentacle|neck|wing|torso`);
     }

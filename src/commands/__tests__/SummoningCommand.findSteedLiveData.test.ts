@@ -3,7 +3,7 @@ import type { CommandContext } from '../base/SpellCommand';
 import { AbilityCommandFactory } from '../factory/AbilityCommandFactory';
 import type { CombatCharacter, CombatState } from '../../types/combat';
 import type { SummoningEffect } from '../../types/spells';
-import findSteed from '../../../public/data/spells/level-2/find-steed.json';
+import findSteed from '@/data/spells/level-2/find-steed.json';
 
 /**
  * This file proves live Find Steed data reaches a generic dismissal command.

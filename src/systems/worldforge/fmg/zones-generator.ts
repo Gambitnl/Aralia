@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/07/2026, 18:43:21
+ * Dependents: systems/worldforge/fmg/generateWorld.ts
+ * Imports: 11 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file zones-generator.ts — ported from Azgaar's Fantasy-Map-Generator
  * (MIT). Upstream: .tmp/azgaar-src/src/modules/zones-generator.ts. See
@@ -20,16 +36,23 @@
  * UPSTREAM QUIRKS PRESERVED: several `if (!startCell) return;` guards treat
  * cell id 0 as "not found" (falsy) — a real candidate cell 0 is skipped;
  * addEruption rewrites the volcano marker's note legend in place.
+ *
+ * TYPE REMEDIATION (GG-46, no behavior change): the per-method `as any`
+ * pack accesses were replaced by one documented CivStagePack assertion at
+ * the constructor; ra() draws that can come up empty keep an explicit
+ * `| undefined` widening instead of `as any`.
  */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { max, mean } from "./d3Shim";
 import { FlatQueue } from "./utils/flatqueue";
 import { getAdjective } from "./utils/languageUtils";
 import { P, gauss, ra, rand, rw } from "./utils/probabilityUtils";
-import type { Pack } from "./features";
+import type { CivStagePack, Pack } from "./features";
 import type { NamesGenerator } from "./names-generator";
 import type { RoutesModule } from "./routes-generator";
 import type { MapNote } from "./military-generator";
+import type { State } from "./states-generator";
+import type { Religion } from "./religions-generator";
+import type { Burg } from "./burgs-generator";
 
 export interface Zone {
   i: number;
@@ -55,13 +78,17 @@ export interface ZonesContext {
 
 export class ZonesModule {
   private config: Record<string, ZoneConfig>;
-  private pack: Pack;
+  private pack: CivStagePack;
   private Names: NamesGenerator;
   private Routes: RoutesModule;
   private notes: MapNote[];
 
   constructor(context: ZonesContext) {
-    this.pack = context.pack;
+    // Stage-35 boundary assertion: every optional Pack field this module
+    // reads (cells.state/religion/…, states, religions, burgs, markers) is
+    // populated by the earlier pipeline stages. Single documented cast
+    // instead of per-field `as any`.
+    this.pack = context.pack as CivStagePack;
     this.Names = context.Names;
     this.Routes = context.Routes;
     this.notes = context.notes;
@@ -82,7 +109,7 @@ export class ZonesModule {
   }
 
   generate(globalModifier = 1): void {
-    const pack = this.pack as any;
+    const pack = this.pack;
     const usedCells = new Uint8Array(pack.cells.i.length);
     pack.zones = [];
 
@@ -94,23 +121,23 @@ export class ZonesModule {
   }
 
   private addInvasion(usedCells: Uint8Array) {
-    const pack = this.pack as any;
+    const pack = this.pack;
     const { cells, states } = pack;
 
     const ongoingConflicts = states
-      .filter((s: any) => s.i && !s.removed && s.campaigns)
-      .flatMap((s: any) => s.campaigns!)
-      .filter((c: any) => !c.end);
+      .filter(s => s.i && !s.removed && s.campaigns)
+      .flatMap(s => s.campaigns!)
+      .filter(c => !c.end);
     if (!ongoingConflicts.length) return;
-    const { defender, attacker } = ra(ongoingConflicts) as any;
+    const { defender, attacker } = ra(ongoingConflicts);
 
-    const borderCells = (cells.i as any).filter((cellId: number) => {
+    const borderCells = cells.i.filter((cellId: number) => {
       if (usedCells[cellId]) return false;
       if (cells.state[cellId] !== defender) return false;
       return cells.c[cellId].some((c: number) => cells.state[c] === attacker);
     });
 
-    const startCell = ra(borderCells as any) as number | undefined;
+    const startCell = ra(borderCells) as number | undefined;
     if (startCell === undefined) return;
 
     const invasionCells: number[] = [];
@@ -146,7 +173,7 @@ export class ZonesModule {
       Raid: 1,
       Skirmishes: 1,
     });
-    const name = `${getAdjective(states[attacker].name)} ${subtype}`;
+    const name = `${getAdjective(states[attacker!].name)} ${subtype}`;
 
     pack.zones.push({
       i: pack.zones.length,
@@ -158,22 +185,22 @@ export class ZonesModule {
   }
 
   private addRebels(usedCells: Uint8Array) {
-    const pack = this.pack as any;
+    const pack = this.pack;
     const { cells, states } = pack;
 
     const state = ra(
-      states.filter((s: any) => s.i && !s.removed && s.neighbors?.some(Boolean)),
-    ) as any;
+      states.filter(s => s.i && !s.removed && s.neighbors?.some(Boolean)),
+    ) as State | undefined;
     if (!state) return;
 
     const neibStateId = ra(
-      state.neighbors!.filter((n: number) => n && !states[n].removed),
+      state.neighbors!.filter(n => n && !states[n].removed),
     ) as number | undefined;
     if (!neibStateId) return;
 
     const cellsArray: number[] = [];
     const queue: number[] = [];
-    const borderCellId = (cells.i as any).find(
+    const borderCellId = cells.i.find(
       (i: number) =>
         cells.state[i] === state.i &&
         cells.c[i].some((c: number) => cells.state[c] === neibStateId),
@@ -225,23 +252,23 @@ export class ZonesModule {
   }
 
   private addProselytism(usedCells: Uint8Array) {
-    const pack = this.pack as any;
+    const pack = this.pack;
     const { cells, religions } = pack;
 
     const organizedReligions = religions.filter(
-      (r: any) => r.i && !r.removed && r.type === "Organized",
+      r => r.i && !r.removed && r.type === "Organized",
     );
-    const religion = ra(organizedReligions) as any;
+    const religion = ra(organizedReligions) as Religion | undefined;
     if (!religion) return;
 
-    const targetBorderCells = (cells.i as any).filter(
+    const targetBorderCells = cells.i.filter(
       (i: number) =>
         cells.h[i] >= 20 &&
         cells.pop[i] &&
         cells.religion[i] !== religion.i &&
         cells.c[i].some((c: number) => cells.religion[c] === religion.i),
     );
-    const startCell = ra(targetBorderCells as any) as number | undefined;
+    const startCell = ra(targetBorderCells) as number | undefined;
     if (!startCell) return;
 
     const targetReligionId = cells.religion[startCell];
@@ -274,14 +301,14 @@ export class ZonesModule {
   }
 
   private addCrusade(usedCells: Uint8Array) {
-    const pack = this.pack as any;
+    const pack = this.pack;
     const { cells, religions } = pack;
 
-    const heresies = religions.filter((r: any) => !r.removed && r.type === "Heresy");
+    const heresies = religions.filter(r => !r.removed && r.type === "Heresy");
     if (!heresies.length) return;
 
-    const heresy = ra(heresies) as any;
-    const crusadeCells = (cells.i as any).filter(
+    const heresy = ra(heresies);
+    const crusadeCells = cells.i.filter(
       (i: number) => !usedCells[i] && cells.religion[i] === heresy.i,
     );
     if (!crusadeCells.length) return;
@@ -294,18 +321,18 @@ export class ZonesModule {
       i: pack.zones.length,
       name,
       type: "Crusade",
-      cells: Array.from(crusadeCells as ArrayLike<number>),
+      cells: Array.from(crusadeCells),
       color: "url(#hatch6)",
     });
   }
 
   private addDisease(usedCells: Uint8Array) {
-    const pack = this.pack as any;
+    const pack = this.pack;
     const { cells, burgs } = pack;
 
     const burg = ra(
-      burgs.filter((b: any) => !usedCells[b.cell] && b.i && !b.removed),
-    ) as any;
+      burgs.filter(b => !usedCells[b.cell] && b.i && !b.removed),
+    ) as Burg | undefined;
     if (!burg) return;
 
     const cellsArray: number[] = [];
@@ -391,12 +418,12 @@ export class ZonesModule {
   }
 
   private addDisaster(usedCells: Uint8Array) {
-    const pack = this.pack as any;
+    const pack = this.pack;
     const { cells, burgs } = pack;
 
     const burg = ra(
-      burgs.filter((b: any) => !usedCells[b.cell] && b.i && !b.removed),
-    ) as any;
+      burgs.filter(b => !usedCells[b.cell] && b.i && !b.removed),
+    ) as Burg | undefined;
     if (!burg) return;
     usedCells[burg.cell] = 1;
 
@@ -445,10 +472,10 @@ export class ZonesModule {
   }
 
   private addEruption(usedCells: Uint8Array) {
-    const pack = this.pack as any;
+    const pack = this.pack;
     const { cells, markers } = pack;
 
-    const volcanoe = (markers as any[]).find(
+    const volcanoe = markers.find(
       (m) => m.type === "volcanoes" && !usedCells[m.cell],
     );
     if (!volcanoe) return;
@@ -487,15 +514,15 @@ export class ZonesModule {
   }
 
   private addAvalanche(usedCells: Uint8Array) {
-    const pack = this.pack as any;
+    const pack = this.pack;
     const { cells } = pack;
 
-    const routeCells = (cells.i as any).filter(
+    const routeCells = cells.i.filter(
       (i: number) => !usedCells[i] && this.Routes.isConnected(i) && cells.h[i] >= 70,
     );
     if (!routeCells.length) return;
 
-    const startCell = ra(routeCells as any) as number;
+    const startCell = ra(routeCells);
     usedCells[startCell] = 1;
 
     const cellsArray: number[] = [];
@@ -525,15 +552,15 @@ export class ZonesModule {
   }
 
   private addFault(usedCells: Uint8Array) {
-    const pack = this.pack as any;
+    const pack = this.pack;
     const cells = pack.cells;
 
-    const elevatedCells = (cells.i as any).filter(
+    const elevatedCells = cells.i.filter(
       (i: number) => !usedCells[i] && cells.h[i] > 50 && cells.h[i] < 70,
     );
     if (!elevatedCells.length) return;
 
-    const startCell = ra(elevatedCells as any) as number;
+    const startCell = ra(elevatedCells);
     usedCells[startCell] = 1;
 
     const cellsArray: number[] = [];
@@ -563,15 +590,15 @@ export class ZonesModule {
   }
 
   private addFlood(usedCells: Uint8Array) {
-    const pack = this.pack as any;
+    const pack = this.pack;
     const cells = pack.cells;
 
-    const fl = Array.from(cells.fl as ArrayLike<number>).filter(Boolean) as number[];
+    const fl = Array.from(cells.fl).filter(Boolean);
     const meanFlux = mean(fl) ?? 0;
-    const maxFlux = (max(fl) as number | undefined) ?? 0;
+    const maxFlux = max(fl) ?? 0;
     const fluxThreshold = (maxFlux - meanFlux) / 2 + meanFlux;
 
-    const bigRiverCells = (cells.i as any).filter(
+    const bigRiverCells = cells.i.filter(
       (i: number) =>
         !usedCells[i] &&
         cells.h[i] < 50 &&
@@ -581,7 +608,7 @@ export class ZonesModule {
     );
     if (!bigRiverCells.length) return;
 
-    const startCell = ra(bigRiverCells as any) as number;
+    const startCell = ra(bigRiverCells);
     usedCells[startCell] = 1;
 
     const riverId = cells.r[startCell];
@@ -619,10 +646,10 @@ export class ZonesModule {
   }
 
   private addTsunami(usedCells: Uint8Array) {
-    const pack = this.pack as any;
+    const pack = this.pack;
     const { cells, features } = pack;
 
-    const coastalCells = (cells.i as any).filter(
+    const coastalCells = cells.i.filter(
       (i: number) =>
         !usedCells[i] &&
         cells.t[i] === -1 &&
@@ -630,7 +657,7 @@ export class ZonesModule {
     );
     if (!coastalCells.length) return;
 
-    const startCell = ra(coastalCells as any) as number;
+    const startCell = ra(coastalCells);
     usedCells[startCell] = 1;
 
     const cellsArray: number[] = [];

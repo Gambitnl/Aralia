@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 17/07/2026, 22:33:44
+ * Last Sync: 17/08/2026, 14:09:05
  * Dependents: App.tsx, components/MapPane.tsx, components/World3D/entryCellIdentity.ts, components/Worldforge/AtlasDemo.tsx, state/appState.ts, state/reducers/craftingReducer.ts, systems/adventureLog/adventureLog.ts, systems/adventureLog/oraclePrompt.ts, systems/party/recruitConsent.ts, systems/worldforge/local/gridAtlasBridge.ts, types/index.ts, types/travelMeta.ts, utils/world/sceneUtils.ts
  * Imports: None
  *
@@ -15,6 +15,7 @@
 // @dependencies-end
 
 import { GamePhase } from './core.js';
+import type { RulesEdition } from '../config/rulesEdition.js';
 import { Item } from './items.js';
 import { PlayerCharacter, TempPartyMember } from './character.js';
 import { Faction, PlayerFactionStanding } from './factions.js';
@@ -24,7 +25,9 @@ import { Fence, GuildMembership, HeistPlan, Crime, Bounty } from './crime/index.
 import { UnderdarkState } from './underdark.js';
 import { EconomyState } from './economy.js';
 import { Action, BattlefieldSourceGapReason, GroundingChunk } from './actions.js';
-import { GameMessage, MapData, NpcMemory, DiscoveryResidue, Location, WorldRumor, NPC, RichNPC } from './world.js';
+// Grid retirement (agora-608b): `MapData` is no longer imported here — it left
+// GameState on 2026-06-30 and the type is now save-migration-only.
+import { GameMessage, NpcMemory, DiscoveryResidue, Location, WorldRumor, NPC, RichNPC } from './world.js';
 import { Quest } from './quests.js';
 import { RitualState } from './rituals.js';
 import { WorldHistory } from './history.js';
@@ -35,6 +38,7 @@ import { CraftingState } from './crafting.js';
 import { JournalState } from './journal.js';
 import type { WorldDelta } from '../systems/worldforge/delta/types.js';
 import type { WorldforgeEncounterReceipt } from '../systems/combat/worldScenario/worldforgeEncounterReceipt.js';
+import type { DungeonExpeditionLedger } from '../systems/worldforge/dungeon/world/dungeonLifecycle.js';
 import type { AtlasGroundAddress } from '../systems/worldforge/leaf3d/atlasGroundDrilldown.js';
 import type {
   AtlasGroundDiscoveryProvenance,
@@ -42,6 +46,14 @@ import type {
 } from '../systems/worldforge/leaf3d/atlasGroundContinuity.js';
 import type { Notification } from './ui.js';
 import { PlayerIdentityState } from './identity.js';
+
+/**
+ * This file defines the complete plain-data shape of a running Aralia game.
+ *
+ * Reducers write these records, UI and simulation systems read them, and the save service stores
+ * them. Optional fields identify additive migrations for older saves; durable systems should still
+ * initialize their current defaults in initialState.ts and the shared test factory.
+ */
 
 // -----------------------------------------------------------------------------
 // Notoriety State
@@ -272,6 +284,26 @@ export interface GameState {
   previousPhase?: GamePhase;
   /** User preference. If true, the game will auto-save to the autosave slot periodically. */
   autoSaveEnabled?: boolean;
+  /** Player-chosen combat difficulty; persisted like autoSaveEnabled (agora-a46a.1). */
+  combatDifficulty?: 'easy' | 'normal' | 'hard';
+  /**
+   * Which Player's Handbook this campaign is played under (agora-18ab).
+   * Persisted with the save. Read it through `getRulesEdition` in
+   * `src/config/rulesEdition.ts`, never directly, so old saves default once.
+   */
+  rulesEdition?: RulesEdition;
+  /**
+   * Whether a reload is allowed to reroll the dice (agora-f821.63).
+   * Persisted with the save. Read it through `getAllowSaveScum` in
+   * `src/config/saveScum.ts`, never directly, so old saves default once.
+   */
+  allowSaveScum?: boolean;
+  /**
+   * Advances on every save. With `allowSaveScum` off it is mixed with
+   * `worldSeed` to seed this campaign's dice stream at load, so the same save
+   * replays the same dice. Read it through `getDiceSaveCounter`.
+   */
+  diceSaveCounter?: number;
   party: PlayerCharacter[];
   tempParty: TempPartyMember[] | null;
   inventory: Item[];
@@ -296,6 +328,8 @@ export interface GameState {
   /** Center point used by minimap consumers after map data changes. */
   minimapFocus?: { x: number; y: number };
   isMapVisible: boolean;
+  /** Legacy minimap-visibility toggle retained for older save compatibility. */
+  isMinimapVisible?: boolean;
   isThreeDVisible?: boolean;
   isPartyOverlayVisible: boolean;
   /** Whether the long rest modal is currently visible to prompt racial choices. */
@@ -362,12 +396,30 @@ export interface GameState {
 
   npcMemory: Record<string, NpcMemory>;
 
+  /**
+   * Durable, world-level fact store (DIAL-002/DIAL-004): unlock-facts the
+   * player has learned that must ripple across NPCs and regions and survive
+   * save/reload. Distinct from per-NPC `KnownFact` (what NPCs know about the
+   * player) and from the player-facing `DiscoveryLog` (journal presentation).
+   * Optional so pre-fact-store saves load unchanged; readers and the reducer
+   * heal a missing store via `normalizeWorldFactStore`.
+   */
+  worldFacts?: import('./facts.js').WorldFactStore;
+
   locationResidues: Record<string, DiscoveryResidue | null>;
 
   metNpcIds: string[];
 
   merchantModal: {
     isOpen: boolean;
+    /**
+     * Id of the merchant NPC this shop belongs to (the building id used as the
+     * generated merchant's id). Carried on the modal state so the merchant UI
+     * can address the same NPC the action handlers do — haggle cooldown, the
+     * `recent_haggle` memory fact, and the negotiated price all key off it.
+     * Optional: ad-hoc merchants opened without a backing NPC have none.
+     */
+    merchantId?: string;
     merchantName: string;
     merchantInventory: Item[];
     economy?: EconomyState;
@@ -383,6 +435,18 @@ export interface GameState {
   notoriety: NotorietyState;
 
   activeRumors: WorldRumor[];
+
+  /**
+   * Town gossip about the player's own deeds, spreading person-to-person through
+   * a town's social web (src/systems/intrigue/RumorMillSystem.ts). Distinct from
+   * `activeRumors`, which is faction/world news with no notion of who has heard
+   * it. Written by townReducer from live deed actions (COMPLETE_QUEST,
+   * COMMIT_CRIME) and advanced one day per ADVANCE_TIME.
+   *
+   * Optional: saves written before the rumor mill carry no array, and a game
+   * that has never produced a notable deed has nothing to store.
+   */
+  townRumors?: import('../systems/intrigue/RumorMillSystem').TownRumor[];
 
   worldHistory: WorldHistory;
 
@@ -460,6 +524,18 @@ export interface GameState {
   isInvestmentBoardVisible: boolean;
   isEconomyLedgerVisible: boolean;
   isCourierPouchVisible: boolean;
+  /** Commerce Desk — the dedicated non-debug home for businesses, trade, ventures, and courier intel. */
+  isCommerceDeskVisible: boolean;
+  /** Salvage Modal — equipment breakdown workshop interface. */
+  isSalvageModalVisible?: boolean;
+  /** Dedicated Bank Modal — loan agreements and capital investments. */
+  isBankModalVisible?: boolean;
+  /** Dedicated Real Estate Modal — properties, shop leases, and holdings. */
+  isRealEstateModalVisible?: boolean;
+  /** Dedicated Shop Modal — merchant trading and inventory purchasing. */
+  isShopModalVisible?: boolean;
+  /** Dedicated Trade Route Modal — caravans and route logistics. */
+  isTradeRouteModalVisible?: boolean;
 
   activeRitual?: RitualState | null;
 
@@ -562,6 +638,13 @@ export interface GameState {
   // SP4 discovery: hidden off-map places the player has revealed by 3D proximity,
   // with the tile where found. Persisted so discoveries survive reload + pin on the atlas.
   discoveredHiddenSites: DiscoveredHiddenSite[];
+
+  /**
+   * Durable dungeon expedition state keyed by the canonical dungeon id from its world entrance.
+   * Optional only so saves written before the lifecycle schema can load and migrate to an empty
+   * ledger. Entry, retreat, progress, completion, and revisit all update this one receipt owner.
+   */
+  dungeonExpeditions?: DungeonExpeditionLedger;
 
   // Pillar 2, Task 8 (living ecology): frozen site paths of dungeons the party
   // has CLEARED. Default empty (every site starts uncleared). Persisted so a

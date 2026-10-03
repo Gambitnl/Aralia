@@ -19,7 +19,7 @@ import React from 'react';
 import type { ThreeEvent } from '@react-three/fiber';
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
 import { worldToScene, type SceneOrigin } from '@/systems/world3d/sceneOrigin';
-import { groundSurfaceYM } from './PlayerAvatar';
+import { groundSurfaceYM } from './terrain/groundSurfaceYM';
 import { sceneHitToTileMeters } from './groundClickMove';
 
 interface GroundMovePlaneProps {

@@ -1,0 +1,37 @@
+{
+ "pass": false,
+ "checks": [
+  {
+   "name": "root-at-origin",
+   "pass": true,
+   "detail": "root at [0.0000, 0.0000, 0.0000]"
+  },
+  {
+   "name": "joints-inside-mesh",
+   "pass": true,
+   "detail": "all 74 joints within 0.09 of the mesh"
+  },
+  {
+   "name": "symmetry",
+   "pass": false,
+   "detail": "thumb_02_l~0.031 thumb_03_l~0.035 thumb_04_leaf_l~0.035"
+  },
+  {
+   "name": "bone-lengths",
+   "pass": true,
+   "detail": "all ranged bones inside anatomical bounds"
+  },
+  {
+   "name": "weights-normalized",
+   "pass": true,
+   "detail": "0 orphans, 0 bad sums of 3078 verts"
+  },
+  {
+   "name": "torso-ownership",
+   "pass": true,
+   "detail": "every torso band owned by an allowed bone"
+  }
+ ],
+ "family": "pack",
+ "headless": false
+}

@@ -95,6 +95,13 @@ export const processDailyRoutes = (state: GameState, daysPassed: number, rng: Se
     const dailyRisk = route.riskLevel * 0.1;
     const blockChance = 1 - Math.pow(1 - dailyRisk, daysPassed);
 
+    // Disruption Chance Calculation (GG-83). `disrupted` is the partial-impact
+    // state between `active` and `blockaded`: consumers already read it as a
+    // 50% reliability hit vs 90% for `blockaded`. It is more common than a
+    // full blockade (15% of risk level per day) and can recover or escalate.
+    const dailyDisrupt = route.riskLevel * 0.15;
+    const disruptChance = 1 - Math.pow(1 - dailyDisrupt, daysPassed);
+
     // Boom Chance Calculation
     // (Profitability * 0.05) per day
     const dailyBoom = route.profitability * 0.05;
@@ -114,6 +121,14 @@ export const processDailyRoutes = (state: GameState, daysPassed: number, rng: Se
           id: Date.now() + Math.floor(rng.next() * 10000), // Ensure unique numeric ID
           text: `Trade News: ${route.name} has been blocked by hazards! ${route.goods.join(', ')} prices may rise.`,
           sender: 'system',
+          timestamp: timestampDate          });
+      } else if (roll < blockChance + disruptChance) {
+        newStatus = 'disrupted';
+        statusChanged = true;
+        logs.push({
+          id: Date.now() + Math.floor(rng.next() * 10000),
+          text: `Trade News: ${route.name} has been disrupted by hazards! ${route.goods.join(', ')} deliveries are delayed.`,
+          sender: 'system',
           timestamp: timestampDate
         });
       } else if (roll > 1.0 - boomChance) {
@@ -125,6 +140,26 @@ export const processDailyRoutes = (state: GameState, daysPassed: number, rng: Se
             sender: 'system',
             timestamp: timestampDate
           });
+      }
+    } else if (routeStatus === 'disrupted') {
+      if (roll < blockChance) {
+        newStatus = 'blockaded';
+        statusChanged = true;
+        logs.push({
+          id: Date.now() + Math.floor(rng.next() * 10000),
+          text: `Trade News: ${route.name} has worsened from disrupted to blockaded!`,
+          sender: 'system',
+          timestamp: timestampDate
+        });
+      } else if (roll < recoveryChance) {
+        newStatus = 'active';
+        statusChanged = true;
+        logs.push({
+          id: Date.now() + Math.floor(rng.next() * 10000),
+          text: `Trade News: ${route.name} is flowing again after disruption.`,
+          sender: 'system',
+          timestamp: timestampDate
+        });
       }
     } else if (routeStatus === 'blockaded') {
       if (roll < recoveryChance) {

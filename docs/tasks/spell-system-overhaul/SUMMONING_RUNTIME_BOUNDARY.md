@@ -1,4 +1,4 @@
-﻿# Summoning Runtime Boundary
+# Summoning Runtime Boundary
 
 Status: active boundary note, created 2026-06-01 for `SSO-SUMMONING-RUNTIME-PARITY-001`; implemented/open tables refreshed 2026-07-01 against the current tree.
 
@@ -29,11 +29,11 @@ This note prevents future agents from treating every summon-related file as the 
 - `useSummons` helper-created summons now store the same identity fields, but the hook is retained for helper tests rather than production spell casting.
 - Recasting a familiar through `SummoningCommand` removes the existing familiar from the same caster/spell before creating the replacement.
 - Damage that drops an `isSummon` actor to 0 HP removes it from combat state and logs disappearance.
-- `src/commands/effects/CommandedSummonCommand.ts` — generic "command your summon" orders execute through the same combat-log/command pipeline as other spell actions (routed via `AbilityCommandFactory`).
-- `src/commands/effects/SummonDismissCommand.ts` — `dismissAction`/`dismissable` metadata is now an executable dismiss action for non-familiar summons (e.g. Find Steed), separate from the familiar pocket flow.
-- `src/commands/effects/SummonReturnHomeCommand.ts` — planar/service summons (no-agreement or service-complete) can be returned home through the command pipeline.
-- `src/types/spellControlledEntity.ts` — typed runtime shape for controllable utility entities (Mage Hand-style persistent helpers with movement/manipulation limits), referenced from `src/types/spells.ts`.
-- Familiar dismissal/pocket (`FamiliarPocketCommands.ts`), shared senses (`FamiliarSharedSensesCommand.ts` + `visibilityObserverPolicy.ts` observer delegation in both map modes), and touch-spell delivery (targeting bridge + reaction spend + 2D/3D delivery cue) all have implemented runtime paths — see the dated foothold sections below.
+- `src/commands/effects/CommandedSummonCommand.ts` - generic "command your summon" orders execute through the same combat-log/command pipeline as other spell actions (routed via `AbilityCommandFactory`).
+- `src/commands/effects/SummonDismissCommand.ts` - `dismissAction`/`dismissable` metadata is now an executable dismiss action for non-familiar summons (e.g. Find Steed), separate from the familiar pocket flow.
+- `src/commands/effects/SummonReturnHomeCommand.ts` - planar/service summons (no-agreement or service-complete) can be returned home through the command pipeline.
+- `src/types/spellControlledEntity.ts` - typed runtime shape for controllable utility entities (Mage Hand-style persistent helpers with movement/manipulation limits), referenced from `src/types/spells.ts`.
+- Familiar dismissal/pocket (`FamiliarPocketCommands.ts`), shared senses (`FamiliarSharedSensesCommand.ts` + `visibilityObserverPolicy.ts` observer delegation in both map modes), and touch-spell delivery (targeting bridge + reaction spend + 2D/3D delivery cue) all have implemented runtime paths - see the dated foothold sections below.
 - Extensive live-data test coverage exists under `src/commands/__tests__/SummoningCommand.*LiveData.test.ts` (~35 spells: Find Familiar, Conjure Fey/Animals/Elemental, Animate Dead, Spiritual Weapon, True Polymorph, Planar Ally, etc.), plus binding/domination-control live-data tests; some of these are uncommitted concurrent work as of 2026-07-01.
 
 ## What remains open (refreshed 2026-07-01)
@@ -149,4 +149,4 @@ Until one of those paths is implemented and proved, keep `SSO-SUMMONING-RUNTIME-
 - `useAbilitySystem` now imports the existing helper files directly, and those helper files now use corrected relative imports for their current location.
 - This repair is recorded as `SSO-ABILITY-SYSTEM-HELPER-PATH-001` until a focused TypeScript/build proof is allowed.
 
-<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/SUMMONING_RUNTIME_BOUNDARY.md","sha256WithoutMarker":"eb26d53de2550ca95681b929c922f6c7efc96b7351b36d67a235f49b280cd0d2","markedAtUtc":"2026-06-25T22:29:38.593Z"} -->
+<!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"docs/tasks/spell-system-overhaul/SUMMONING_RUNTIME_BOUNDARY.md","sha256WithoutMarker":"159e35ffe5431ac5cc5662b97308a005b076801ed9537f055366d5588ab55bed","markedAtUtc":"2026-08-09T20:14:15.721Z"} -->

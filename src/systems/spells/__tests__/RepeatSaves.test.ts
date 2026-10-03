@@ -3,16 +3,16 @@ import type { Mock } from 'vitest';
 import { useTurnManager } from '../../../hooks/combat/useTurnManager';
 import { renderHook, act } from '@testing-library/react';
 import { CombatCharacter, StatusEffect } from '../../../types/combat';
-import { rollSavingThrow } from '../../../utils/savingThrowUtils';
-import { createMockCombatCharacter } from '../../../utils/factories';
+import { rollSavingThrow } from '../../../utils/character';
+import { createMockCombatCharacter } from '../../../utils/core';
 
 // Mock dependencies
-vi.mock('../../../utils/savingThrowUtils', () => ({
+vi.mock('../../../utils/character/savingThrowUtils', () => ({
     rollSavingThrow: vi.fn(),
     calculateSpellDC: vi.fn(() => 15) // Default DC
 }));
 
-vi.mock('../../../utils/combatUtils', () => ({
+vi.mock('../../../utils/combat', () => ({
     createDamageNumber: vi.fn(() => ({ id: 'dmg-1', duration: 1000 })),
     generateId: vi.fn(() => 'id_123'),
     getActionMessage: vi.fn(),

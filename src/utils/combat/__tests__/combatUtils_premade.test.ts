@@ -3,7 +3,7 @@ import path from 'path';
 
 import { describe, it, expect, vi } from 'vitest';
 import { createPlayerCombatCharacter } from '../combatUtils';
-import { createMockGameState, createMockPlayerCharacter } from '../../factories';
+import { createMockGameState, createMockPlayerCharacter } from '../../core/factories';
 
 /**
  * This file proves that premade character data survives the conversion into

@@ -9,7 +9,8 @@ import { AppAction } from '../../state/actionTypes';
 import * as GeminiService from '../../services/geminiService';
 import { AddMessageFn, AddGeminiLogFn } from './actionHandlerTypes';
 import { calculatePrice } from '../../utils/economy/economyUtils';
-import { generateNPC, NPCGenerationConfig } from '../../services/npcGenerator';
+import { generateNPC, NPCGenerationConfig, TownProfile } from '../../services/npcGenerator';
+import { resolveTownForLocation } from '../../systems/worldforge/townsim/chronicleForLocation';
 import { generateNpcBusiness, businessTypeForMerchantType } from '../../systems/economy/NpcBusinessManager';
 import { SeededRandom } from '@/utils/random';
 import { getGameDay } from '../../utils/core';
@@ -20,6 +21,34 @@ import { priceStockItem, backfillBusinessStock } from '../../data/economy/busine
 import { ALL_ITEMS } from '../../data/items';
 import type { Item } from '../../types';
 import type { WorldBusiness } from '../../types/business';
+import type { EconomyState } from '../../types/economy';
+import { CrimeType } from '../../types/crime';
+import {
+  HAGGLE_COOLDOWN_MS,
+  activeHagglePriceMultiplier,
+  buildHaggleFactText,
+  findActiveHaggleFact,
+  roundToCopper,
+} from '../../utils/economy/haggleFact';
+
+/**
+ * Typed stand-in used when a game state reaches the merchant flow without an
+ * economy slice (older saves and lean test fixtures). Previously this was an
+ * inline `{ activeEvents: [] }` widened with a cast, which hid the fact that the inventory
+ * generator expects a complete EconomyState. The shape mirrors the economy
+ * block in `initialState.ts` minus the seeded trade routes, so the fallback
+ * stays neutral rather than inventing world data.
+ */
+const FALLBACK_ECONOMY_STATE: EconomyState = {
+  marketEvents: [],
+  tradeRoutes: [],
+  globalInflation: 0,
+  regionalWealth: {},
+  marketFactors: { scarcity: [], surplus: [] },
+  buyMultiplier: 1.0,
+  sellMultiplier: 0.5,
+  activeEvents: [],
+};
 
 /**
  * Resolve the WorldBusiness backing a merchant NPC, if any. The merchant NPC's
@@ -100,8 +129,10 @@ function clampNumber(value: number, min: number, max: number): number {
 
 /**
  * Tavern/inn merchant types are the surface where a patron can be hired into the
- * party. Merchant types arrive in several shapes — `shop_tavern` (VillageScene),
- * the display name `Tavern`, or a raw worldforge building type (`tavern`, `inn`).
+ * party. Merchant types arrive in several shapes — `shop_tavern`, which
+ * `merchantTypeForBusiness` (components/ActionPane/useActionGeneration.ts) emits
+ * for a worldforge `tavern` business — the display name `Tavern`, or a raw
+ * worldforge building type (`tavern`, `inn`).
  * We match case-insensitively on the substring so all of those route to the hire
  * affordance without enumerating every producer's naming convention.
  */
@@ -159,10 +190,6 @@ export function offerTavernHire(
   addMessage(verdict.reason, 'system');
 }
 
-function roundToCopper(gpValue: number): number {
-  return Math.round(gpValue * 100) / 100;
-}
-
 function getMerchantLevel(gameState: GameState, merchantId: string | undefined): number {
   if (!merchantId) return 1;
   const generatedNpc = gameState.generatedNpcs?.[merchantId];
@@ -178,23 +205,6 @@ function getLocalHeatPenalty(gameState: GameState): number {
 function getReputationBonus(gameState: GameState): number {
   const rep = gameState.thievesGuild?.reputation ?? 0;
   return Math.floor(rep / 50);
-}
-
-function findActiveRecentHaggleFact(memory: GameState['npcMemory'][string] | undefined, nowMs: number) {
-  if (!memory) return undefined;
-  return memory.knownFacts.find(fact => {
-    if (!fact?.text?.includes('recent_haggle')) return false;
-    const expiresAt = (fact.timestamp || 0) + (fact.lifespan || 0);
-    return expiresAt > nowMs;
-  });
-}
-
-function getPriceMultiplierFromHaggleFactText(text: string | undefined): number | undefined {
-  if (!text) return undefined;
-  const match = text.match(/priceMultiplier=([0-9]+(?:\.[0-9]+)?)/);
-  if (!match?.[1]) return undefined;
-  const parsed = Number(match[1]);
-  return Number.isFinite(parsed) ? parsed : undefined;
 }
 
 /**
@@ -229,6 +239,32 @@ export function validateMerchantTransaction(
     }
   }
   return { valid: true };
+}
+
+/**
+ * The town facts merchant generation reads, taken from the living-world sim
+ * state for the town the player is standing in: `wealth` is the town's
+ * prosperity meter, `raceWeights` the head count per race among its LIVING
+ * villagers (the dead are retained for genealogy and must not vote on who keeps
+ * the shop). Returns undefined outside a tracked town.
+ */
+export function merchantTownProfile(gameState: GameState): TownProfile | undefined {
+  const town = resolveTownForLocation({
+    currentLocationId: gameState.currentLocationId,
+    worldSeed: gameState.worldSeed,
+    cellId: gameState.playerCell?.cellId,
+    townSim: gameState.townSim ?? {},
+    gameTime: gameState.gameTime,
+  });
+  if (!town) return undefined;
+
+  const raceWeights: Record<string, number> = {};
+  for (const villager of Object.values(town.villagers)) {
+    if (villager.diedDay !== undefined) continue;
+    raceWeights[villager.race] = (raceWeights[villager.race] ?? 0) + 1;
+  }
+
+  return { wealth: town.prosperity ?? 50, raceWeights, burgId: town.burgId };
 }
 
 interface HandleMerchantInteractionProps {
@@ -270,11 +306,20 @@ export async function handleOpenDynamicMerchant({
 
     if (!npc) {
       // Generate new Merchant NPC
+      // The merchant is a person from THIS town, not a generic level-1 human:
+      // race is drawn from the town roster's race mix and level from the town's
+      // prosperity meter (see npcGenerator.townRaceId / levelForTownWealth).
+      // `town` is undefined outside a tracked town, and the generator then keeps
+      // its own defaults — a real "no town data here" case, not a swallowed one.
+      const town = merchantTownProfile(gameState);
       const config: NPCGenerationConfig = {
         id: resolvedBuildingId, // Use building ID as NPC ID for simple 1-to-1 mapping
         role: 'merchant',
         occupation: merchantType.replace('shop_', '').replace('_', ' '), // e.g. shop_blacksmith -> blacksmith
-        // TODO #254: In future, derive race/level from Town data (wealth/biome)
+        town,
+        biomeId: villageContext?.biomeId,
+        cultureId: villageContext?.culturalSignature,
+        worldSeed: gameState.worldSeed,
       };
 
       npc = generateNPC(config);
@@ -348,6 +393,11 @@ export async function handleOpenDynamicMerchant({
       dispatch({
         type: 'OPEN_MERCHANT',
         payload: {
+          // The generated merchant NPC uses the building id as its id, and the
+          // haggle/price handlers key npcMemory off that same id. Passing it to
+          // the modal is what makes the UI's Haggle buttons and price display
+          // address a real merchant instead of an anonymous shop.
+          merchantId: resolvedBuildingId,
           merchantName,
           inventory: stockInventory,
           economy: gameState.economy,
@@ -369,7 +419,7 @@ export async function handleOpenDynamicMerchant({
   const inventoryResult = await GeminiService.generateMerchantInventory(
     merchantType,
     contextForPrompt?.integrationTagline || generalActionContext,
-    gameState.economy || { activeEvents: [] } as any,
+    gameState.economy || FALLBACK_ECONOMY_STATE,
     gameState.devModelOverride ?? null,
     resolvedSeedKey
   );
@@ -406,6 +456,7 @@ export async function handleOpenDynamicMerchant({
     dispatch({
       type: 'OPEN_MERCHANT',
       payload: {
+        merchantId: resolvedBuildingId, // see the stock path above
         merchantName: merchantName,
         inventory: inventory,
         economy: gameState.economy // Prioritize global world state
@@ -455,7 +506,7 @@ export async function handleMerchantAction({
     const merchantMemory = merchantId ? gameState.npcMemory?.[merchantId] : undefined;
 
     if (merchantId && merchantMemory) {
-      const recentHaggle = findActiveRecentHaggleFact(merchantMemory, nowMs);
+      const recentHaggle = findActiveHaggleFact(merchantMemory, nowMs);
       if (recentHaggle) {
         addMessage("You've already haggled with this merchant recently. Give it some time.", 'system');
         return;
@@ -488,7 +539,11 @@ export async function handleMerchantAction({
       dispatch({
         type: 'COMMIT_CRIME',
         payload: {
-          type: 'intimidation' as any,
+          // CrimeType.Intimidation was added alongside this change; the string
+          // literal previously had to be cast because the enum had no member
+          // for merchant coercion. Behavior is preserved: the recorded crime
+          // value changes from 'intimidation' to 'Intimidation'.
+          type: CrimeType.Intimidation,
           locationId: gameState.currentLocationId,
           severity: 20,
           witnessed: true,
@@ -515,12 +570,15 @@ export async function handleMerchantAction({
           npcId: merchantId,
           fact: {
             id: 'recent_haggle', // Keep it stable for easy lookup or use UUID if multiple allowed
-            text: `recent_haggle priceMultiplier=${calculatedPriceMultiplier}`,
+            // Text format is owned by utils/economy/haggleFact so the merchant UI
+            // can read back the same multiplier it will actually be charged.
+            text: buildHaggleFactText(calculatedPriceMultiplier, nowMs),
             source: 'direct',
             isPublic: false,
             timestamp: nowMs,
             strength: 1,
-            lifespan: 86400000, // 24 hours
+            // Cooldown and price effect share one lifespan — see HAGGLE_COOLDOWN_MS.
+            lifespan: HAGGLE_COOLDOWN_MS, // 24 game hours
           },
         },
       });
@@ -560,12 +618,13 @@ export async function handleMerchantAction({
     const nowMs = gameState.gameTime.getTime();
     const merchantId = payload.merchantId;
     const merchantMemory = merchantId ? gameState.npcMemory?.[merchantId] : undefined;
-    const recentHaggle = findActiveRecentHaggleFact(merchantMemory, nowMs);
-    const haggleMultiplier = getPriceMultiplierFromHaggleFactText(recentHaggle?.text);
+    // Same helper the merchant UI uses to render the price, so the number on
+    // the button and the number charged here cannot drift apart.
+    const haggleMultiplier = activeHagglePriceMultiplier(merchantMemory, nowMs);
 
     const activePriceMultiplier = typeof payload.priceMultiplier === 'number'
       ? payload.priceMultiplier
-      : (haggleMultiplier ?? 1);
+      : haggleMultiplier;
     const finalCost = roundToCopper(cost * activePriceMultiplier);
     const validation = validateMerchantTransaction('buy', { item, cost: finalCost }, gameState);
     if (validation.valid) {

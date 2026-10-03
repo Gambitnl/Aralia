@@ -8,7 +8,7 @@ import { getSphere } from './sphere'
  *
  * @param center - Center position
  * @param radius - Radius in feet
- * @param height - Height in feet (currently unused)
+ * @param height - Height in feet. Unused until combat-elevation lands (see the note in the body).
  * @returns Array of tile positions in cylinder
  */
 export function getCylinder(
@@ -19,7 +19,10 @@ export function getCylinder(
 ): Position[] {
   // In 2D grid combat, cylinder = sphere
   // Height is ignored (all combat on same plane)
-  // TODO #1035(SPELL-OVERHAUL): Implement height checks once elevation is modeled.
-  // TODO(SPELL-OVERHAUL): Policy and ownership are tracked in docs/tasks/spell-system-overhaul/TRACKER.md (SSO-GEOMETRY-CYLINDER-HEIGHT-001).
+  // RESOLVED 2026-09-13 (ruling, TODO Sweep Rulings sheet Q3, Remy: "implement elevation").
+  // The cylinder keeps its circle footprint on the grid until tiles and combatants carry
+  // elevation. The height test (0 <= z - originZ <= height) lands with the plan-map topic
+  // combat-elevation, not as a stand-alone Position.z field. Tracker row
+  // SSO-GEOMETRY-CYLINDER-HEIGHT-001 records the same dependency.
   return getSphere(center, radius)
 }
