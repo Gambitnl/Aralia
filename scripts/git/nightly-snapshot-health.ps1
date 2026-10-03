@@ -6,7 +6,7 @@ $ErrorActionPreference = 'Stop'
 $config = Get-Content -LiteralPath $ConfigPath -Raw | ConvertFrom-Json
 $task = Get-ScheduledTask -TaskName 'Aralia Daily Git Commit'
 $info = $task | Get-ScheduledTaskInfo
-$output = & $config.nodePath (Join-Path $config.repoPath 'scripts\git\nightly-snapshot.mjs') --config $ConfigPath --health --task-state $task.State --task-result $info.LastTaskResult
+$output = & $config.nodePath (Join-Path $config.repoPath 'scripts\git\nightly-snapshot.mjs') --config $ConfigPath --health --task-state $task.State --task-result $info.LastTaskResult --task-last-run ($info.LastRunTime.ToUniversalTime().ToString('o'))
 if ($LASTEXITCODE -ne 0 -and -not $output) { throw 'Snapshot health check failed without a receipt.' }
 $health = ($output -join "`n") | ConvertFrom-Json
 if ($health.reasons.Count -gt 0) {

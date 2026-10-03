@@ -99,6 +99,13 @@ test('a fresh no-change review suppresses an old snapshot warning', () => {
     lastReceipt: { status: 'success', mode: 'review', at: '2026-10-03T00:00:00Z' }, now: Date.parse('2026-10-03T01:00:00Z') }), []);
 });
 
+test('health clears an old scheduler failure only after a newer successful check', () => {
+  assert.deepEqual(healthReasons({ lastRunResult: 1, taskLastRun: '2026-10-03T00:00:00Z',
+    lastReceipt: { status: 'success', at: '2026-10-03T01:00:00Z' }, now: Date.parse('2026-10-03T02:00:00Z') }), []);
+  assert.equal(healthReasons({ lastRunResult: 1, taskLastRun: '2026-10-03T01:00:00Z',
+    lastReceipt: { status: 'success', at: '2026-10-03T00:00:00Z' }, now: Date.parse('2026-10-03T02:00:00Z') }).length, 1);
+});
+
 test('a stale process lock is recovered without changing HEAD', async t => {
   const f = fixture(t);
   fs.writeFileSync(path.join(f.config.stateDir, 'run.lock'), '2147483647');

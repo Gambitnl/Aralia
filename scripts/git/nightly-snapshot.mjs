@@ -43,10 +43,11 @@ export function assessChanges(numstat, sizes, limits = {}) {
   return { reasons, deletedFiles, deletedLines, binaryBytes, largeBinaries };
 }
 
-export function healthReasons({ taskState, lastRunResult, snapshotTime, ahead = 0, lastReceipt, now = Date.now() }) {
+export function healthReasons({ taskState, lastRunResult, taskLastRun, snapshotTime, ahead = 0, lastReceipt, now = Date.now() }) {
   const reasons = [];
   if (taskState === 'Disabled') reasons.push('Daily snapshot task is disabled.');
-  if (lastRunResult && ![267008, 267009, 267011].includes(Number(lastRunResult))) reasons.push(`Task Scheduler last result: ${lastRunResult}.`);
+  const repairedAfterTask = lastReceipt?.status === 'success' && taskLastRun && Date.parse(lastReceipt.at) > Date.parse(taskLastRun);
+  if (!repairedAfterTask && lastRunResult && ![267008, 267009, 267011].includes(Number(lastRunResult))) reasons.push(`Task Scheduler last result: ${lastRunResult}.`);
   const checked = lastReceipt?.status === 'success' && lastReceipt.at ? lastReceipt.at : snapshotTime;
   if (!checked) reasons.push('No successful save or review check could be verified.');
   else if (!Number.isFinite(Date.parse(checked)) || now - Date.parse(checked) > 36 * 3600000) reasons.push('No successful save or review check in the last 36 hours.');
@@ -192,14 +193,14 @@ export function makeRunner(config) {
       fs.closeSync(lock); fs.rmSync(lockPath, { force: true });
     }
   }
-  function health({ taskState, lastRunResult } = {}) {
+  function health({ taskState, lastRunResult, taskLastRun } = {}) {
     let snapshotTime, ahead, remoteError;
     try {
       ({ ahead } = remoteState());
       snapshotTime = git(['log', '-1', '--format=%cI', '--grep=^auto: daily snapshot', 'origin/master']).trim();
     } catch (error) { remoteError = error.message; }
     const lastReceipt = readJson(receiptPath);
-    const reasons = healthReasons({ taskState, lastRunResult, snapshotTime, ahead: lastReceipt?.mode === 'review' ? 0 : ahead, lastReceipt });
+    const reasons = healthReasons({ taskState, lastRunResult, taskLastRun, snapshotTime, ahead: lastReceipt?.mode === 'review' ? 0 : ahead, lastReceipt });
     if (config.backupEnabled) {
       const backup = readJson(path.join(state, 'private-backup.json'));
       if (!backup) reasons.push('Private backup has no completed receipt.');
@@ -247,7 +248,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
       console.log('Approved the reviewed tree only; any change invalidates this approval.');
     } else {
       const runner = makeRunner(config);
-      const result = args.includes('--health') ? runner.health({ taskState: args[args.indexOf('--task-state') + 1], lastRunResult: Number(args[args.indexOf('--task-result') + 1]) })
+      const result = args.includes('--health') ? runner.health({ taskState: args[args.indexOf('--task-state') + 1], lastRunResult: Number(args[args.indexOf('--task-result') + 1]), taskLastRun: args.includes('--task-last-run') ? args[args.indexOf('--task-last-run') + 1] : undefined })
         : await runner.run({ dryRun: args.includes('--dry-run'), reviewCommitted: args.includes('--review-committed'), publishReviewed: args.includes('--publish-reviewed') ? args[args.indexOf('--publish-reviewed') + 1] : undefined });
       console.log(JSON.stringify(result, null, 2));
       if (args.includes('--health') && result.reasons.length) process.exitCode = 1;
