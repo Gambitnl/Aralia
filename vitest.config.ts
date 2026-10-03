@@ -103,6 +103,10 @@ const SLOW_SUITE_GLOBS = [
     'src/components/DesignPreview/steps/__tests__/landTerrainJob.test.ts',
     'src/components/DesignPreview/steps/__tests__/PreviewCombatScenarios*.test.tsx',
     'src/systems/worldforge/interior/__tests__/footprint.test.ts',
+    // Linux CI measured these deterministic generation sweeps at 6-30 seconds.
+    // Their assertions remain unchanged; they use the same bounded 60-second lane.
+    'src/systems/worldforge/region/__tests__/generateRegion.test.ts',
+    'src/systems/world3d/__tests__/buildingSceneModel.test.ts',
     'src/systems/worldforge/bridge/__tests__/**/*.{test,spec}.?(c|m)[jt]s?(x)',
     'src/systems/worldforge/local/__tests__/**/*.{test,spec}.?(c|m)[jt]s?(x)',
     'src/components/BattleMap/__tests__/**/*.{test,spec}.?(c|m)[jt]s?(x)',
