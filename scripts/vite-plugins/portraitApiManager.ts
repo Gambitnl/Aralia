@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs';
+import { pathToFileURL } from 'node:url';
 import { PORTRAIT_OUTPUT_DIR, readBody, sanitizePromptText } from './utils';
 
 // Portrait generation stays behind this local Vite endpoint so the browser UI
@@ -62,8 +63,11 @@ export const portraitApiManager = () => ({
         }
 
         try {
-          // Dynamic import because this might depend on things only available when generating
-          const { doctorGeminiCDP } = await import('../../scripts/workflows/gemini/core/image-gen-mcp');
+          // The operator's browser bridge is optional and deliberately stays local.
+          // Resolve it only for this endpoint; a clean application clone can build
+          // and typecheck without publishing the bridge or its machine setup.
+          const bridgeUrl = pathToFileURL(path.resolve(process.cwd(), 'scripts/workflows/gemini/core/image-gen-mcp.ts')).href;
+          const { doctorGeminiCDP } = await import(/* @vite-ignore */ bridgeUrl);
           const result = await doctorGeminiCDP({
             cdpUrl: process.env.IMAGE_GEN_CDP_URL || 'http://localhost:9222',
             attemptConsent: true,

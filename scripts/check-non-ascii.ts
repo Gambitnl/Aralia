@@ -171,7 +171,9 @@ function findEscapedUnicodeIssues(filePath: string, lineText: string, lineIdx: n
 // ============================================================================
 
 export function checkFile(filePath: string): Issue[] {
-    const isStrict = filePath.endsWith('.json') || filePath.includes('docs/spells/reference');
+    // Native Windows paths and Linux clone paths must enforce the same data gate.
+    const normalizedPath = filePath.replace(/\\/g, '/');
+    const isStrict = normalizedPath.endsWith('.json') || normalizedPath.includes('docs/spells/reference');
     const content = fs.readFileSync(filePath, 'utf-8');
     const lines = content.split('\n');
     const issues: Issue[] = [];

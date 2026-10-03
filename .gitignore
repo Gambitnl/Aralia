@@ -390,7 +390,9 @@ public/preview-catalog/
 
 # Untracked 2026-08-29 (Remy's call): 86.1 MB of agent-dashboard art and
 # generated test output. The files stay on disk; git just stops carrying them.
-tools/agora/dashboard/pets/
+# Pet artwork stays local; the small identity catalog is required by Agora in clones.
+tools/agora/dashboard/pets/*
+!tools/agora/dashboard/pets/pets.json
 test-reports/
 # One hero-pipeline run's output, 17.5 MB (Remy's call, 2026-08-31). The files
 # stay on disk; the plan that names it is status "generated", not "approved",
@@ -415,3 +417,8 @@ misc/dev_hub/*
 !misc/dev_hub/codebase-visualizer/
 misc/dev_hub/codebase-visualizer/node_modules/
 !src/components/DesignPreview/steps/PreviewTown3D.tsx
+# Dependencies of tracked preview sources and their executable contract tests.
+!src/components/DesignPreview/steps/useUrlParam.ts
+!src/components/DesignPreview/steps/Town3DScene.tsx
+!src/components/DesignPreview/steps/townMesh.ts
+!src/components/DesignPreview/steps/PreviewCombatScenarioLights.ts

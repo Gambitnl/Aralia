@@ -32,7 +32,7 @@ import {
 } from '../state/characterCreatorState';
 import type { CharacterCreationState } from '../state/characterCreatorState';
 
-const motionComponent = (tag: keyof JSX.IntrinsicElements) => {
+const motionComponent = (tag: keyof React.JSX.IntrinsicElements) => {
   return ({
     children,
     layout,
@@ -53,7 +53,7 @@ const motionComponent = (tag: keyof JSX.IntrinsicElements) => {
 
 vi.mock('framer-motion', () => ({
   motion: new Proxy({}, {
-    get: (_target, key) => motionComponent(key as keyof JSX.IntrinsicElements),
+    get: (_target, key) => motionComponent(key as keyof React.JSX.IntrinsicElements),
   }),
   AnimatePresence: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
 }));

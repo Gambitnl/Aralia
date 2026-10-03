@@ -26,6 +26,19 @@ import {
 
 const TEMP_FILES: string[] = [];
 
+it('enforces strict spell-reference checks with either platform path separator', () => {
+    const reader = vi.spyOn(fs, 'readFileSync').mockReturnValue('Corrupt character: \u00e2');
+    try {
+        for (const file of ['docs/spells/reference/example.md', 'docs\\spells\\reference\\example.md']) {
+            expect(checkFile(file)).toEqual(expect.arrayContaining([
+                expect.objectContaining({ severity: 'strict', char: '\u00e2' }),
+            ]));
+        }
+    } finally {
+        reader.mockRestore();
+    }
+});
+
 // ============================================================================
 // Temporary File Helpers
 // ============================================================================

@@ -46,4 +46,8 @@ Crossing tests preserve source-authored obstructions and the existing honest gap
 
 World goldens were refreshed against previously accepted larger floorplans and keep roof policy. Determinism, cross-style geometry, replay, and canonical source receipts remain asserted. The button audit manifest now records 17 reviewed existing paths and removes three resolved paths; its new-debt guard remains active. Button migration belongs to GG-378 in the [global gap tracker](../../projects/GLOBAL_GAPS.md), not to a CI assertion exemption.
 
-GitHub branch enforcement and final same-SHA CI/deployment receipts are pending verification in this working repair.
+Master requires the GitHub Actions CI Required check and an up-to-date base. Force pushes and branch deletion are disabled. Owner administrators retain the reviewed direct-push sync path; Pages still requires the complete gate for those pushes. The branch-protection API was verified on 2026-10-04.
+
+The [repair workflow dry run](https://github.com/Gambitnl/Aralia/actions/runs/37160628752) passed and skipped a closed historical PR without creating a Jules session. The first Linux run exposed clone-only dependencies: the small pet identity catalog and tracked preview modules' helpers were still ignored. Their source now joins history while artwork remains ignored, and the optional local portrait browser bridge resolves only when its endpoint is called. React fixtures use React.JSX, strict charset policy normalizes Windows paths, and the exact corrupt or nonconforming data findings were repaired without changing rule content.
+
+Final same-SHA CI and deployment receipts remain pending verification.
