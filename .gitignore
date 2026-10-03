@@ -422,3 +422,5 @@ misc/dev_hub/codebase-visualizer/node_modules/
 !src/components/DesignPreview/steps/Town3DScene.tsx
 !src/components/DesignPreview/steps/townMesh.ts
 !src/components/DesignPreview/steps/PreviewCombatScenarioLights.ts
+# The retired-canvas boundary is audited against this explicit comparison source.
+!src/components/DesignPreview/steps/PreviewWorldforge.tsx

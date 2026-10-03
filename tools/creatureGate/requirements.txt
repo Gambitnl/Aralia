@@ -1,0 +1,2 @@
+# Silhouette comparison reads disposable PNG captures through Pillow.
+Pillow==12.3.0

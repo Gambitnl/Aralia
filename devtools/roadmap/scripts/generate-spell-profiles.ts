@@ -53,12 +53,14 @@ export function buildSpellProfile(raw: any): SpellCanonicalProfile {
   };
 }
 
-function readAllSpellFiles(): any[] {
+// Acceptance checks read the same canonical corpus as the generator instead of
+// depending on a developer's ignored, possibly stale generated profile cache.
+export function readAllSpellFiles(): any[] {
   const spells: any[] = [];
   for (let level = 0; level <= 9; level++) {
     const dir = path.join(SPELLS_DIR, `level-${level}`);
     if (!fs.existsSync(dir)) continue;
-    const files = fs.readdirSync(dir).filter((f) => f.endsWith('.json'));
+    const files = fs.readdirSync(dir).filter((f) => f.endsWith('.json')).sort();
     for (const file of files) {
       const filePath = path.join(dir, file);
       let raw: any;

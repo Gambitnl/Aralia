@@ -1,20 +1,14 @@
 // devtools/roadmap/src/spell-branch/acceptance.test.ts
 import { describe, it, expect, beforeAll } from 'vitest';
-import * as fs from 'fs';
-import * as path from 'path';
+import { buildSpellProfile, readAllSpellFiles } from '../../scripts/generate-spell-profiles';
 import { computeAxisEngine } from './axis-engine';
 import type { SpellCanonicalProfile } from './types';
-
-// Load the real generated profiles as the fixture
-const PROFILES_PATH = path.join(
-  __dirname,
-  '../../../../.agent/roadmap/spell-profiles.json'
-);
 
 let PROFILES: SpellCanonicalProfile[] = [];
 
 beforeAll(() => {
-  PROFILES = JSON.parse(fs.readFileSync(PROFILES_PATH, 'utf-8'));
+  // Keep every acceptance assertion tied to today's tracked spell corpus.
+  PROFILES = readAllSpellFiles().map(buildSpellProfile);
 });
 
 // === WITNESS SPELLS ===
