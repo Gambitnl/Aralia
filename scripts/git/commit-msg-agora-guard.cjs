@@ -35,8 +35,8 @@
  * Preserved from the first version:
  *   - ARALIA_SNAPSHOT_FORCE=1 overrides (operator escape hatch): the hook
  *     allows, and the hold-back step holds nothing back.
- *   - Daemon down = advisory system offline: warn and proceed, so solo use
- *     never blocks (same philosophy as tools/agora/lockGuard.mjs).
+ *   - Ordinary owner commits keep the advisory daemon-down policy. The nightly
+ *     runner sets ARALIA_SNAPSHOT_REQUIRE_AGORA=1 and refuses to run without it.
  *
  * What a lock covers: the daemon's own lockOverlap() from tools/agora/store.mjs,
  * so the snapshot and the daemon agree. One addition, in the safe direction: a
@@ -105,7 +105,10 @@ async function liveLocks() {
 
 /** Staged paths. --no-renames lists both sides of a move, so a lock on either side holds it. */
 function stagedPaths() {
-  return git(['diff', '--cached', '--name-only', '--no-renames', '-z']).split('\0').filter(Boolean);
+  // Reviewed publication checks outgoing commits against the fetched remote,
+  // since an index equal to HEAD has no ordinary staged changes to inspect.
+  const base = process.env.ARALIA_SNAPSHOT_COMPARE_BASE;
+  return git(['diff', '--cached', '--name-only', '--no-renames', '-z', ...(base ? [base] : [])]).split('\0').filter(Boolean);
 }
 
 /** The subset of `paths` that a live lock covers. */
@@ -139,6 +142,7 @@ async function holdBackLocked(listFile) {
   }
   const locks = await liveLocks();
   if (locks === null) {
+    if (process.env.ARALIA_SNAPSHOT_REQUIRE_AGORA === '1') throw new Error('Agora is unavailable; refusing an unattended snapshot.');
     console.log(`${TAG} daemon unreachable - advisory system offline, holding nothing back`);
     return 0;
   }
@@ -196,6 +200,7 @@ async function hook(msgFile) {
   }
   const locks = await liveLocks();
   if (locks === null) {
+    if (process.env.ARALIA_SNAPSHOT_REQUIRE_AGORA === '1') throw new Error('Agora is unavailable; refusing an unattended snapshot.');
     console.log(`${TAG} daemon unreachable - advisory system offline, allowing snapshot`);
     return 0;
   }

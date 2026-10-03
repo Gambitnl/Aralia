@@ -160,7 +160,14 @@ const jsonFiles = [...changedFiles]
 
 for (const file of jsonFiles) {
   try {
-    JSON.parse(fs.readFileSync(file, 'utf8'));
+    const content = fs.readFileSync(file, 'utf8');
+    if (/^tsconfig(?:\.[^.]+)?\.json$/.test(path.basename(file))) {
+      // TypeScript accepts comments and trailing commas in its configuration.
+      // Use its own parser so a valid config cannot block a recovery-tool push.
+      const ts = require('typescript');
+      const parsed = ts.parseConfigFileTextToJson(file, content);
+      if (parsed.error) throw new Error(ts.flattenDiagnosticMessageText(parsed.error.messageText, ' '));
+    } else JSON.parse(content);
   } catch (error) {
     failures.push(`Invalid JSON in ${path.relative(repoRoot, file)}: ${error.message}`);
   }

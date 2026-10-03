@@ -1,51 +1,79 @@
 # Nightly Git Save
 
-Verified: 2026-09-28 (read against `scripts/git/commit-msg-agora-guard.cjs`, `C:\Users\Gambit\.claude\scripts\aralia-daily-commit.ps1`, `.git/hooks/commit-msg`, `scripts/git/pre-push-aralia.sh` and the Windows task; the guard modes were proved 16/16 in a throwaway repo, `.agent/scratch/gg310-snapshot-fix/harness/run.cjs`)
+Verified: 2026-10-03
 
 ## Purpose
 
-The nightly save commits the whole working tree of `F:\Repos\Aralia` and pushes it to GitHub. It is the only copy of the work that is not on this disk. The commits read `auto: daily snapshot <date>`.
+Keep recoverable copies of unfinished work without publishing it automatically. Nightly recovery writes an encrypted, deduplicated backup on G: and a separate private GitHub source copy. The public Aralia repository receives a review receipt; its master branch is published only through an explicit reviewed-commit command.
 
-The GitHub repository `Gambitnl/Aralia` is **public**. A push also starts the public Pages deploy (`.github/workflows/deploy.yml`).
+The repository Gambitnl/Aralia is public. A push to master triggers its Pages deployment. Recovery and deployment have different acceptance boundaries.
 
-## The parts
+## Parts and ownership
 
-| Part | Where | Tracked in git |
-|---|---|---|
-| The Windows task `\Aralia Daily Git Commit` | Task Scheduler, daily 02:00, runs only while Remy is logged on | no |
-| The script the task runs | `C:\Users\Gambit\.claude\scripts\aralia-daily-commit.ps1` | no |
-| The guard | `scripts/git/commit-msg-agora-guard.cjs` | yes |
-| The hook that calls the guard | `.git/hooks/commit-msg` (installed by `npm run hooks:install` and by `npm install`) | no |
-| The push checks | `scripts/git/pre-push-aralia.sh`, called by `.git/hooks/pre-push` | yes |
-| The run log | `.agent\scratch\daily-snapshot.log` (ignored) | no |
+| Part | Location |
+| --- | --- |
+| Daily Windows task | Aralia Daily Git Commit, 02:00 local time |
+| Small external delegate | C:\Users\Gambit\.claude\scripts\aralia-daily-commit.ps1 |
+| Tracked launcher | scripts/git/nightly-launcher.ps1 |
+| Review runner | scripts/git/nightly-snapshot.mjs |
+| Coordination guard | scripts/git/commit-msg-agora-guard.cjs |
+| Encrypted backup | scripts/git/private-backup.ps1 |
+| Private source copy | scripts/git/private-backup.mjs |
+| Storage policy and restore proof | scripts/git/backup-policy.mjs, scripts/git/verify-backup.mjs |
+| Local configuration and tools | G:\Users\Gambit\.codex\tools\nightly-save |
+| Receipts and disposable logs | .agent/scratch/nightly-save, .agent/scratch/daily-snapshot.log |
 
-Only Remy switches the Windows task on or off. Agents never change it.
+The installer preserves login and battery preferences. The task catches up after missed starts, does not wake the computer, has a two-hour limit, and retries failed runs twice at 15-minute intervals. It ignores overlapping instances. Each launcher step has two retries with ten-second spacing and a timeout: three minutes for review, fifteen for encrypted backup, and ten for private GitHub. Failures in one step do not skip later steps. Logs rotate at 10 MiB, retaining four prior transcripts.
 
-## How one night runs
+## Public review and deliberate publication
 
-1. The script writes a plan-map drift receipt to `.agent\scratch\planmap-drift.txt`.
-2. A clean tree stops the run: nothing to save.
-3. The script copies the git index to a temp file.
-4. `git add -A` stages the whole tree.
-5. `guard --hold-back-locked <list>` asks the Agora daemon (`http://localhost:4319`) for live locks. It resets each staged path under a lock back to HEAD in the index. The file on disk does not change. It writes the held paths to `<list>`.
-6. If nothing stays staged, the script restores the index and stops.
-7. `git commit` runs the commit-msg hook. The guard checks the staged paths again and refuses the commit if a lock now covers one. That closes the gap where an agent locks a file after step 5. On a refusal the script restores the index.
-8. `guard --restore-held <index copy> <list>` puts back each held path's own staging from before the run, so a `git mv` or `git rm --cached` on a locked file survives.
-9. `git push` runs the three push checks: sync-check, git hygiene, and the intent gate.
+The runner checks master, the expected origin, and unresolved conflicts. It fetches origin/master and refuses automatic reconciliation when local master is behind.
 
-Every line of output goes to the run log. Native output passes through `2>&1 | ForEach-Object { "$_" }`, because Windows PowerShell 5.1 leaves native output out of a transcript.
+All staging happens in a temporary index. The real staging index, working files, and master remain unchanged. The runner holds back Agora-locked paths and scans the candidate with pinned Gitleaks rules outside the checkout. Unavailable Agora or a missing scanner fails closed. Ordinary owner commits retain the existing hook policy. Edits made without locks cannot be recognized as in-progress work.
 
-## What a lock covers
+The receipt groups changed paths and flags 100 deleted files, 20,000 removed lines, a 10 MiB binary, or 50 MiB total binary additions. These are review signals; they do not block private recovery. Unchanged checks create no commits and do not publish.
 
-The guard uses the daemon's own `lockOverlap()` from `tools/agora/store.mjs`, so the save and the daemon agree. One addition: a plain path token also covers every path under it, in case it names a folder. Locks that name another repo (`repo` field) are ignored.
+To publish, first make a deliberate scoped commit through the ordinary human/agent workflow. Review the committed tree:
 
-## Overrides and failure modes
+```text
+node scripts/git/nightly-snapshot.mjs --config <local-config> --review-committed
+```
 
-- `ARALIA_SNAPSHOT_FORCE=1` saves everything: the hold-back step holds nothing back and the hook allows the commit.
-- The daemon down means the advisory system is off: nothing is held back.
-- A guard error stops the save. It never lets the save through.
-- The git hygiene push check fails while an extra worktree is registered. The push then fails and the commit stays local. `ARALIA_GIT_HYGIENE_ALLOWED_WORKTREES=<path>` names a temporary exception.
-- An agent that edits a file WITHOUT a lock is not protected. Lock-before-edit is the only defense.
+Inspect change-review.json and then explicitly publish its exact fingerprint:
+
+```text
+node scripts/git/nightly-snapshot.mjs --config <local-config> --publish-reviewed <fingerprint>
+```
+
+That command publishes existing commits only. It checks the fingerprint, scans outgoing history, checks locks again, runs the installed push checks, and verifies the remote head. Any changed remote base or committed tree invalidates the fingerprint. No force push or automatic merge is used. A failed push leaves the existing local commits available for a reviewed retry.
+
+## Encrypted recovery and storage
+
+Restic preserves source, ignored assets and tools, scratch media, Claude memory/skills/scripts, Codex capsules/memory/skills, and local backup configuration. Dependencies, Git metadata, build/cache output, browser profiles, backup receipts/logs, and password files are excluded. Unchanged backups skip creating another snapshot.
+
+The local configuration sets a combined encrypted/private-copy budget of 30 GiB, a private-copy budget of 3 GiB, and a drive free-space reserve of 20 GiB. Checks before and after writes prevent continued unattended growth when a threshold is reached. These are pause thresholds rather than filesystem quotas: one changed backup or Git pack can cross a threshold before the post-write check detects it. Protected recovery versions are never sacrificed to meet the byte budget.
+
+Weekly retention keeps the latest four snapshots plus seven daily, four weekly, and three monthly versions, grouped by host and source paths and restricted to aralia-full. Integrity checks run before and after retention. Repacking is limited to 1 GiB per maintenance operation. The initial four snapshots are protected during this rollout. Use private-backup.ps1 -Maintenance for an explicit maintenance pass.
+
+Each successful backup restores the tracked review runner from the encrypted snapshot into memory and compares its exact hash with the source checked before backup. A probe changed during the backup causes a retry rather than a false recovery claim. Restic integrity checking also remains available through private-backup.ps1 -Verify. This proves file recovery, not application-wide consistency during concurrent editing.
+
+The password is protected with Windows DPAPI. The recovery key at D:\Backups\Aralia-Recovery\restic-recovery-key.txt is required after moving to another Windows installation. Never commit or print it.
+
+## Private GitHub source recovery
+
+The separate copy under G:\Backups\Aralia\aralia-private-source targets Gambitnl/aralia-private-source-backup. Every run checks repository identity and private visibility. It copies eligible text under 5 MiB and excludes credentials, browser profiles, dependencies, runtime backup state, and binary media. Scanner-flagged lines are redacted in the copy only and scanned again. REDACTIONS.json records affected paths and lines; originals remain in the encrypted backup where exclusions permit them.
+
+Only changed source content creates commits. Weekly Git compaction preserves reachable history. Source and encrypted backups are never pruned through Git cleanup. The cloud step runs even if encrypted backup or public review fails. Local process locks prevent overlapping cloud copies and recover only demonstrably dead owners.
+
+## Health reporting
+
+Aralia Snapshot Health checks hourly; Claude SessionStart checks too. Health tracks the latest successful review or no-change check, rather than the age of a snapshot commit. It reports genuine failed/stale runs, disabled scheduling, storage thresholds, backup failures, and stale cloud receipts. It verifies public state and the private GitHub head against the recovery receipt. Public changes awaiting review are reported as pending information and do not make a successful recovery run a failure. Notifications repeat only when the problem changes or after a day.
+
+```text
+powershell -NoLogo -File scripts/git/install-nightly-snapshot.ps1
+```
+
+The installer needs the existing external tools/configuration and preserves the Windows task's identity and daily trigger. Recovery of the entire machine requires those encrypted files and the separate recovery key.
 
 ## History
 
@@ -53,3 +81,6 @@ The guard uses the daemon's own `lockOverlap()` from `tools/agora/store.mjs`, so
 - 2026-08-27 to 08-30: every save was refused; the old script still returned success.
 - 2026-08-30T22:11Z: Codex session `01a0542f-b437-7803-89b5-167d85dfca03` disabled the task.
 - 2026-09-28: the hold-back guard replaced the whole-save refusal (GG-310, Remy's sheet "Nightly Git Save - Your Calls" q1). The 14 character-atelier `.glb` models left git on the same day.
+- 2026-10-02: the owner authorized reliability, secret scanning, change review, catch-up, and private backup fixes.
+
+- 2026-10-03: the owner authorized separation of recovery/publication, storage limits, retention, strict coordination, isolated staging, bounded retries, and health corrections.
