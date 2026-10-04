@@ -54,6 +54,8 @@ The [full required CI and Pages publication](https://github.com/Gambitnl/Aralia/
 
 GitHub reported 13,698 passing application tests and 664 passing Linux tooling tests. One Windows-only launcher case was skipped on Linux; 669 Windows tooling tests passed locally. CodeQL passed on the same source commit.
 
+The next [Dependabot batch, PR 1152](https://github.com/Gambitnl/Aralia/pull/1152), exposed a separate dependency incompatibility: Vitest 5.0.3 cannot satisfy coverage-v8 4.1.10's exact Vitest peer requirement. Its npm ci failure was correctly blocked. The [automatic repair run](https://github.com/Gambitnl/Aralia/actions/runs/37163758384) successfully created the attributable Jules session sessions/15816269456300844149. That receipt proves live request acceptance, not completed repair. GG-380 tracks review of that existing session and a compatible, fully checked dependency batch; no peer-validation bypass or automatic merge is authorized.
+
 All six investigated CI/CD gaps, GG-372 through GG-377, are resolved. Existing lint warnings remain visible; GG-378 and GG-379 retain the separate button migration and crossing-connectivity work.
 
 Session maintenance refreshed the changed application dependency headers in one named-file wave. The header tool does not support the optional server seam in .mjs and excludes the profile generator script. Targeted MemPalace mining covered scripts/ci, where this CLI recognizes the type declaration and skips .mjs sources; a full-repository mine was not run.
