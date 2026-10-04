@@ -50,6 +50,12 @@ Master requires the GitHub Actions CI Required check and an up-to-date base. For
 
 The [repair workflow dry run](https://github.com/Gambitnl/Aralia/actions/runs/37160628752) passed and skipped a closed historical PR without creating a Jules session. The first Linux run exposed clone-only dependencies: the small pet identity catalog and tracked preview modules' helpers were still ignored. Their source now joins history while artwork remains ignored, and the optional local portrait browser bridge resolves only when its endpoint is called. React fixtures use React.JSX, strict charset policy normalizes Windows paths, and the exact corrupt or nonconforming data findings were repaired without changing rule content.
 
-Final same-SHA CI and deployment receipts remain pending verification.
+The [full required CI and Pages publication](https://github.com/Gambitnl/Aralia/actions/runs/37162733343) passed for source commit 0ebd341a2e8fc073e0f2323f9e744388aad7487d. All seven mandatory lanes and CI Required succeeded, and Pages published the artifact built by that run. [Dependency PR 1150](https://github.com/Gambitnl/Aralia/pull/1150) was closed after refresh proved it had zero changed files and exactly the same tree as master. The tracked lockfile already has body-parser 2.3.0; no dependency change was discarded.
+
+GitHub reported 13,698 passing application tests and 664 passing Linux tooling tests. One Windows-only launcher case was skipped on Linux; 669 Windows tooling tests passed locally. CodeQL passed on the same source commit.
+
+All six investigated CI/CD gaps, GG-372 through GG-377, are resolved. Existing lint warnings remain visible; GG-378 and GG-379 retain the separate button migration and crossing-connectivity work.
+
+Session maintenance refreshed the changed application dependency headers in one named-file wave. The header tool does not support the optional server seam in .mjs and excludes the profile generator script. Targeted MemPalace mining covered scripts/ci, where this CLI recognizes the type declaration and skips .mjs sources; a full-repository mine was not run.
 
 The [failed full Linux run](https://github.com/Gambitnl/Aralia/actions/runs/37161344067) verified the negative publication path: Application Tests failed, CI Required failed, and Publish Checked Build was skipped. Its remaining findings were clone inputs. CI now supplies Python and pinned Pillow for the native silhouette comparator; spell acceptance reads the generator's canonical corpus directly instead of an ignored cache; the explicit retired-canvas comparison source is tracked for its boundary audit. Those affected checks pass locally. CodeQL also passed for that source commit.
