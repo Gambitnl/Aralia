@@ -13,6 +13,7 @@ function fixture(t, options = {}) {
   const remote = path.join(dir, 'remote.git'), repo = path.join(dir, 'repo');
   const git = args => command('git', ['-C', repo, ...args]);
   command('git', ['init', '--bare', remote]);
+  command('git', ['-C', remote, 'config', 'core.hooksPath', 'hooks']);
   command('git', ['init', '-b', 'master', repo]);
   git(['config', 'user.name', 'Backup Test']); git(['config', 'user.email', 'backup-test@example.invalid']);
   fs.mkdirSync(path.join(repo, 'scripts/git'), { recursive: true });
