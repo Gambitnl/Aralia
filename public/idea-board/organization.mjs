@@ -60,6 +60,11 @@ export const concepts = {
   // review only; the record's conclusion is "revisit after a named blocker", so
   // no Aralia scope is asserted beyond the plan-map initiatives listed below.
   'IB-0014': { title: 'Mesh refinement', category: 'motion', image: 'mesh', connections: [studio('assets', 'The assessment places a refined hero master in Entity Studio review with the TRELLIS.2 master as the baseline.', 'IB-0014'), generator('Sharper generated creatures may be relevant; the separate project has not been assessed against this source.')] },
+  // IB-0015 (2026-10-27): two-camera AI video motion capture for rigged
+  // non-humanoid creatures (AnyMove). Recorded relevance is Entity Studio rig
+  // and motion review; the plan-map initiatives below carry the suggested
+  // Aralia links, chiefly the rigged creature bestiary under cc0-clip-animation.
+  'IB-0015': { title: 'Creature mocap', category: 'motion', image: 'motion', connections: [studio('motion', 'The assessment places captured creature clips in Entity Studio rig and motion review, beside the rigged creature bestiary plan.', 'IB-0015'), generator('Creature animation from AI video may be relevant; the separate project has not been assessed against this source.')] },
 };
 
 export function conceptFor(record) {
@@ -88,6 +93,7 @@ export function configurePlanmap(plan) {
     'IB-0010': ['entity-generator-3d', 'entity-studio-carveout'],
     'IB-0011': ['rig-bench', 'entity-generator-carveout'],
     'IB-0014': ['entity-generator-3d', 'entity-studio-carveout'],
+    'IB-0015': ['cc0-clip-animation', 'rig-bench', 'entity-generator-3d'],
   };
   for (const [id, concept] of Object.entries(concepts)) {
     for (const link of concept.connections) if (link.project === 'aralia' && previous[link.scope]) link.scope = previous[link.scope];

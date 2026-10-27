@@ -4,7 +4,7 @@ gap_schema: project_gap_registry
 project: Idea Board
 slug: idea-board
 status: active
-status_note: "Fourteen records after IB-0014 (Hi3D v1.0 mesh refinement, 2026-10-27, assessed from its GitHub repository because the cloud session cannot open x.com). Three gaps opened the same day: IB-G5 holds six supplied X posts the cloud session could not read, IB-G6 records ten corrupted record lexicons, IB-G7 records that the project's runbook and north star are gitignored. IB-G1 to IB-G3 stay resolved from 2026-09-20."
+status_note: "Fifteen records after IB-0014 (Hi3D v1.0 mesh refinement) and IB-0015 (AnyMove two-camera AI video creature mocap), both 2026-10-27 and both assessed from their GitHub repositories because the cloud session cannot open x.com. Three gaps opened the same day: IB-G5 holds six supplied X posts the cloud session could not read, IB-G6 records ten corrupted record lexicons, IB-G7 records that the project's runbook and north star are gitignored. IB-G1 to IB-G3 stay resolved from 2026-09-20."
 registry_mode: canonical
 last_updated: 2026-10-27
 gap_count: 7

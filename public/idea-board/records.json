@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "boardTitle": "Aralia Idea Board",
-  "generatedAt": "2026-10-27T20:23:03Z",
+  "generatedAt": "2026-10-27T20:37:30Z",
   "localProject": {
     "name": "Aralia",
     "committedBaseline": {
@@ -9,9 +9,9 @@
       "committedAt": "2026-10-04T02:17:29+02:00"
     },
     "workspaceInspection": {
-      "inspectedAt": "2026-10-27T20:23:03Z",
-      "dirty": false,
-      "note": "Clean cloud clone of branch ccr-2da4fbce-xouf23 at the committed baseline; earlier assessments were made against the shared Windows checkout and keep their own baselines."
+      "inspectedAt": "2026-10-27T20:37:30Z",
+      "dirty": true,
+      "note": "Cloud clone of branch ccr-2da4fbce-xouf23 at the committed baseline plus the uncommitted IB-0015 board edits and a plan-map status note; no source code differed. Earlier assessments were made against the shared Windows checkout and keep their own baselines."
     }
   },
   "records": [
@@ -6300,6 +6300,334 @@
         {
           "term": "Hero master",
           "meaning": "Aralia’s high-detail textured GLB produced by TRELLIS.2 before optimize.mjs reduces it to the runtime budget."
+        }
+      ]
+    },
+    {
+      "id": "IB-0015",
+      "title": "Two-camera AI video motion capture for rigged non-humanoid creatures",
+      "summary": "AnyMove (patch-gg/anymove, Apache-2.0, v0.1.0) animates any rigged creature from one AI video: a video model films the creature from a front and a side orthographic camera in one frame, a DINOv2 joint reader trained on that one creature finds every joint in both views, shared heights pin each joint in 3D, and a forward-kinematics fit exports a rigged, animated GLB. The authors report wolf, dragon, giant spider and fire demon captures with reader errors of 3 to 9 px and a 0.94 cm exam on the wolf. It needs Blender 5.x, Python 3.11, a 24 GB CUDA GPU to train a reader, and a fal account for MiniMax H3 Max clips at about USD 0.26 each. Eight-legged walking and lying down do not fit yet.",
+      "problem": "Give Aralia’s non-humanoid creatures real clips (idle, attack, rear, roar, wing beat) without hand animation, for a bestiary of rigged species that today can only come from Mesh2Motion’s fixed packs, while procedural gaits keep owning locomotion.",
+      "tags": [
+        "motion capture",
+        "AI video",
+        "DINOv2",
+        "joint reader",
+        "two-camera",
+        "MiniMax H3 Max",
+        "fal",
+        "Blender",
+        "creature bestiary",
+        "non-humanoid rig",
+        "Claude Code plugin"
+      ],
+      "kind": "complete implementation",
+      "relatedIdeaIds": [
+        "IB-0009",
+        "IB-0007",
+        "IB-0013",
+        "IB-0008"
+      ],
+      "sources": [
+        {
+          "id": "SRC-0073",
+          "title": "AnyMove repository",
+          "url": "https://github.com/patch-gg/anymove",
+          "type": "GitHub repository",
+          "role": "primary",
+          "publishedAt": "unavailable: the shallow clone holds only the latest commit (2026-10-27T01:49:38-07:00); the first publication date was not inspected",
+          "latestRevisionInspected": "2026-10-27",
+          "licence": "Apache-2.0 for the code (LICENSE); the Patch name and marks are excluded; MiniMax H3 open weights and the wolf LoRA fall under the MiniMax H3 community licence; hosted use on fal falls under fal’s terms; DINOv2 is Apache-2.0.",
+          "provenance": "Shallow clone of the public repository on 2026-10-27 from a cloud session at commit 7a82a0a8fadffddd5c24fabf0697d9b6c814ce6e (“README GIF opens on every creature”). README.md, LICENSE, requirements.txt, .env.example, .claude-plugin/plugin.json and marketplace.json, docs/PIPELINE.md, tools/examples.txt, tools/fetch_examples.sh, the six skills/*/SKILL.md files, and the module docstrings of mocap/*.py and blender/*.py were read. Nothing was run, no mesh, reader, clip or LoRA was downloaded, and no fal request was made. The supplied link was this repository; the method video it credits was not opened.",
+          "archiveUrl": "",
+          "claims": [
+            "The README states that one AI clip per move costs about USD 0.26 on fal and is read and fitted in under a minute, and that the two-camera method is @CanItCode’s with the MiniMax H3 LoRA step from @Graalitoo.",
+            "The results table reports held-out reader errors (front / side) of 6.9 / 3.8 px for the wolf, 6.2 / 5.5 for the dragon, 2.9 / 3.6 for the spider and 8.4 / 9.4 for the demon, with view agreement from 0.73 to 1.00 per move and a wolf exam of 0.94 cm mean 3D joint error.",
+            "The limits section states that eight-legged walking does not fit (agreement 0.36 to 0.49), lying down fails, skeletons are placed by hand, plain H3 swapped limb colours on 2 of 5 wolf clips, and the LoRA’s training data is AI-derived."
+          ],
+          "demonstrates": [
+            "A complete, scripted pipeline from mesh to animated GLB with a results table, a quality gate (paw agreement, reprojection error) and an exam that scores a synthetic motion in centimetres; the figures are the authors’ own, one seed per move, and were not reproduced.",
+            "The repository ships as a Claude Code plugin with six Agent Skills (anymove, -rig, -film, -reader, -capture, -lora) so an agent can run each stage with its checks."
+          ],
+          "implementationContains": [
+            "mocap/ (model.py: DINOv2 ViT-B/14 with registers plus a heatmap head; train.py; detect.py; solve.py; exam.py; generate.py with fal endpoints for H3, H3 Max, H3 Max Turbo, Seedance 2.5 and FLUX 3 Max; lora.py; mirror.py; showcase.py; layout.py), blender/ (prep_mesh, build_rig, render_dataset, render_ref, apply_motion with GLB export, fur bones), tools/ shell and Python wrappers, four example creature definitions (rig.json, creature.json, rig_info.json), prompts, and one example detection file (examples/dragon_roar/det.npz, 252 KB)."
+          ]
+        },
+        {
+          "id": "SRC-0074",
+          "title": "AnyMove pipeline contract (docs/PIPELINE.md)",
+          "url": "https://github.com/patch-gg/anymove/blob/7a82a0a8fadffddd5c24fabf0697d9b6c814ce6e/docs/PIPELINE.md",
+          "type": "technical documentation",
+          "role": "supporting",
+          "publishedAt": "unavailable: the shallow clone does not carry the file’s history",
+          "latestRevisionInspected": "2026-10-27",
+          "licence": "Apache-2.0 with the repository.",
+          "provenance": "Read from the local clone at the pinned commit on 2026-10-27, together with mocap/layout.py and blender/common.py, which it says mirror the same contract.",
+          "archiveUrl": "",
+          "claims": [
+            "Every stage shares one 1280 x 720 layout: a front orthographic view on the left and a side orthographic view on the right, both at the same scale and sharing the vertical axis, so a joint at height z sits on the same pixel row in both halves; x comes from the front view, y from the side view and z from both.",
+            "The wolf default is 420 + 860 px with 1.9 m of height in frame and the ground at row 630; creature.json overrides the layout, the limb paint groups and the feet used for the agreement check."
+          ],
+          "demonstrates": [
+            "A file-by-file table of what each stage reads and writes (ref.png, prompts, videos, dataset renders with true joints, reader.pt, det.npz, motion.json, animation.glb)."
+          ],
+          "implementationContains": [
+            "No code; the contract that layout.py and common.py implement."
+          ]
+        },
+        {
+          "id": "SRC-0075",
+          "title": "AnyMove examples-v1 release",
+          "url": "https://github.com/patch-gg/anymove/releases/tag/examples-v1",
+          "type": "GitHub release",
+          "role": "release evidence",
+          "publishedAt": "unavailable: the release page answered 403 through the session proxy and was not opened",
+          "latestRevisionInspected": "unavailable: not opened; its manifest was read from tools/examples.txt in the clone",
+          "licence": "Meshes, readers and clips with the repository’s Apache-2.0 per the manifest; the wolf LoRA under the MiniMax H3 community licence per the manifest and README.",
+          "provenance": "Not opened. tools/examples.txt in the clone lists each asset with its SHA-256 and size, and tools/fetch_examples.sh downloads and checks them; both were read on 2026-10-27.",
+          "archiveUrl": "",
+          "claims": [
+            "Per the manifest the release holds four Tripo H3.1 meshes (10.7 to 15.4 MB), four trained readers of about 355 MB each, one H3 Max clip and reference frame per creature (3.4 to 4.8 MB), and a 131 MB wolf two-camera LoRA."
+          ],
+          "demonstrates": [
+            "Nothing was inspected on the page itself; the manifest shows that a capture can be tried from a released reader and clip without a fal key."
+          ],
+          "implementationContains": [
+            "Binary assets only, per the manifest."
+          ]
+        }
+      ],
+      "revisions": [
+        {
+          "id": "IB-0015-R001",
+          "previousRevisionId": "",
+          "assessedAt": "2026-10-27T20:37:30Z",
+          "sourceProvidedAt": "2026-10-27",
+          "status": "promising",
+          "confidence": "medium",
+          "changeSummary": "Initial assessment from the repository at a pinned commit, the day the owner supplied it. The pipeline is complete, documented and permissively licensed, and its output unit (a self-contained rigged, animated GLB) is the unit the approved bestiary plan consumes, so it is promising as a third source of bestiary species. Nothing was run; the figures are the authors’ own.",
+          "projectBaseline": {
+            "commit": "b35ea0ff84591e5f4f1d69c4ecc5d7bf918566fc",
+            "committedAt": "2026-10-04T02:17:29+02:00",
+            "inspectedAt": "2026-10-27T20:37:30Z",
+            "dirty": true,
+            "dirtyNote": "Cloud clone of branch ccr-2da4fbce-xouf23 at the commit named, carrying the uncommitted IB-0015 board edits and a status note on the bestiary plan-map feature; no source code differed from the baseline."
+          },
+          "facts": [
+            "The repository at commit 7a82a0a (2026-10-27) is Apache-2.0 code with the Patch marks excluded; plugin.json names version 0.1.0. The README credits the two-camera method to @CanItCode (a YouTube video) and the MiniMax H3 LoRA step to @Graalitoo (an X post); neither was opened.",
+            "Pipeline per README, PIPELINE.md and the skills: a textured mesh (Tripo H3.1 on fal at USD 0.40, or any GLB) is scaled to real size facing -Y; joints are placed by hand in rig.json over grid views; Blender builds the armature with automatic weights and paints each limb its own colour; one reference image holds a front and a side orthographic view sharing the vertical axis; that image plus a strict prompt go to MiniMax H3 Max image-to-video on fal (768P, 5 s, about USD 0.26; H3, H3 Max Turbo, Seedance 2.5 and FLUX 3 Max are also wired); the reader finds joints in both views; shared heights triangulate them; a forward-kinematics fit in torch with Euler joint limits exports a GLB at 24 fps through Blender.",
+            "The joint reader is facebook/dinov2-with-registers-base (ViT-B/14, Apache-2.0) plus an upsampling heatmap head at 448 px input and 128 px heatmaps, trained per creature on about 2,200 Blender-rendered random poses inside the joint limits with known joints (half near rest, random motion blur, lights and turns): about 25 min of rendering on one RTX 4090 and 17 to 20 min of training at about 12 GB.",
+            "Capture per the anymove-capture skill: the clip is aligned to the reference frame by an ECC affine fit, split into views and read (about 10 s for 5 s of video); paw agreement is the per-foot correlation of height between the two views; the fit starts from an analytic IK pose and anneals a robust loss from 40 px to 6 px, under a minute per clip and 20 s on a CPU for the dragon’s roar; outputs are det.npz, overlay.mp4, motion.json, render/animation.glb and showcase.mp4.",
+            "Results per README: wolf 1.6 m, 30 bones, 36 joints, trot agreement 0.94, exam 0.94 cm mean 3D joint error; dragon 3 m, 42 bones, 50 joints with wings, take off 1.00, roar 0.93, swipe 0.85, walk 0.81; giant spider 2.4 m span, 28 bones, 40 joints, eight legs, rear up 0.99, bite 0.96, pounce 0.89; fire demon 3.6 m, 38 bones, 46 joints, wing beat 0.99, slam 0.84, roar 0.73. Every clip is H3 Max with one seed per move, which the README calls a first read, not a benchmark.",
+            "Limits stated by the authors: eight-legged walking does not fit (the views disagree about which legs are up, 0.36 to 0.49); lying down fails because training poses stay inside the joint limits; skeletons are hand-placed (UniRig is named as a possible automation); plain MiniMax H3 swapped limb colours on 2 of 5 wolf clips and 0 of 5 with the LoRA; Seedance 2.5 played the views out of step; the LoRA’s training clips are re-renders of motions solved from AI clips; the ground term knows only wolf and dragon paw names; fur and cloth need spring or tracked bones.",
+            "Requirements per README, requirements.txt and the skills: Python 3.11, torch 2.11.0 cu128, transformers 5.20.2, numpy 2.4.6, opencv-python-headless 5.0, pillow, requests; Blender 5.x on PATH or BLENDER=; an NVIDIA CUDA GPU with 24 GB to train a reader at batch 20, a few GB to read, and a CPU is enough to fit; FAL_KEY for new clips and for LoRA training, which runs on fal (about USD 12 for 1,200 steps). The example release holds four meshes, four 355 MB readers, one clip and reference per creature and a 131 MB wolf LoRA, with SHA-256 hashes in tools/examples.txt.",
+            "Aralia at the baseline animates creatures with procedural gait drivers (MultiLegDriver for quadrupeds and hexapods, hopper, flyer, float) over speciesSkeleton bone hierarchies whose bone names are the driver’s emission ids; humanoid clips play through humanoidRetarget, clipStore and skinnedClipPlayer as rotation-only in-place clips while gaits own locomotion and facing; the approved 2026-07-24 CC0 clip animation spec plans a rigged creature bestiary (path A) that bundles Mesh2Motion’s rigged creature GLBs with their own CC0 clip packs (dragon 5 clips, spider 10, snake 8) under public/creatures3d/bestiary/<species>/ behind a bestiaryByName source, excludes retargeting between creature rigs, and defers procedural creatures wearing clips; the plan-map feature is specced, not built.",
+            "Aralia already drives Blender headlessly for Rig Bench (intake, ortho renders, landmark solve, gate, contact sheet; findBlender picks the newest installed Blender without a version pin), produces textured creature masters with TRELLIS.2, and has a GCP recipe that rents a 24 GB L4 per hero job. No fal credential exists in the project’s documented credential store.",
+            "Nothing was run during this assessment; no mesh, reader, clip, LoRA or fal request entered Aralia."
+          ],
+          "inferences": [
+            "AnyMove is a third path for the bestiary: author a new rigged, animated species GLB from any mesh, a TRELLIS.2 hero master included, with moves chosen by prompt, where Mesh2Motion offers fixed packs for fixed species. Its output is a self-contained rigged GLB, the unit path A consumes, so it needs none of the cross-rig retargeting the spec excludes.",
+            "Most hard dependencies already exist in Aralia’s toolchain (headless Blender, a 24 GB GPU recipe, image-to-3D masters, Entity Studio review). The genuinely new ones are a fal account with spend, Blender 5.x specifically, a Python 3.11 environment, and hand-placing joints per creature.",
+            "The stated weak spots (eight-legged walking, lying down, drift) overlap little with what a bestiary spawn needs first (idle, attack, rear, roar, wing beat), except death and lie-down, which failed on the wolf and would need another source.",
+            "Prompting moves on the spot matches Aralia’s rule that gaits own locomotion; the root path in motion.json can be dropped the way humanoidRetarget drops root translation.",
+            "Medium confidence: code, docs and skills read at a pinned commit against a known project baseline; results are the authors’ own with one seed per move; nothing was run."
+          ],
+          "unknowns": [
+            "Whether Blender 5.x is installed on the Windows host and whether Rig Bench’s Blender scripts keep working beside it.",
+            "fal account availability, fal’s terms for commercial use of H3 Max output, and the real spend for one creature (mesh, two clips, GPU time).",
+            "Whether a TRELLIS.2 hero master, which can carry fused or noisy geometry, rigs cleanly with automatic weights and reads well after limb paint.",
+            "How an AnyMove GLB (its own armature, 24 fps keyframes) loads through three.js and the planned bestiary EntityHandle path, and whether clip root motion must be stripped.",
+            "Reader and fit quality on Aralia’s own creature proportions versus the four published examples.",
+            "What the credited method video and LoRA post add beyond the README."
+          ],
+          "recommendations": [
+            "Keep this as research until path A of the bestiary exists or an owner chooses to pilot this path on one creature.",
+            "Pilot subject: one quadruped (a hero master or the procedural beast export used in the canid experiments), two big gestures such as rear and bite, no walking and no eight-legged subject first.",
+            "Train the reader on the existing GCP L4 recipe unless a 24 GB local GPU exists; cap fal spend and keep the repository’s fal_log.jsonl as the receipt.",
+            "Treat the GLB as a bestiary candidate under Entity Studio review; it never replaces procedural gaits, Mesh2Motion packs or accepted entities."
+          ],
+          "technique": {
+            "requiredInput": [
+              "A textured creature mesh as GLB, its real size and facing, a hand-placed joint list with bone parents and joint limits (rig.json), limb paint groups and prompt words (creature.json), one action sentence per move, and a fal key for new clips."
+            ],
+            "processingSteps": [
+              "Prep the mesh in Blender; build and skin the armature and paint limbs; render the two-view reference frame; generate a 5 s two-camera clip with MiniMax H3 Max on fal; render about 2,200 random poses with true joints and fine-tune the DINOv2 reader; align, split and read the clip; triangulate joints from shared heights; fit forward kinematics under joint limits to both views; apply the motion in Blender and export a GLB plus renders and a showcase video."
+            ],
+            "producedOutput": [
+              "A rigged, animated GLB at 24 fps with the creature’s own armature, plus det.npz, motion.json (root path, rotation, Euler angles per bone, joints in metres), overlay and showcase videos, and quality numbers (paw agreement, reprojection error)."
+            ],
+            "dependencies": [
+              "Python 3.11 with torch 2.11.0 cu128, transformers 5.20.2, numpy, opencv-python-headless, pillow and requests; Blender 5.x; facebook/dinov2-with-registers-base downloaded on first use; fal endpoints for the video models and the optional LoRA trainer."
+            ],
+            "runtimeRequirements": [
+              "An NVIDIA CUDA GPU with about 24 GB to train a reader (about 12 GB at batch 20) and a few GB to read; the fit runs on CPU; Blender for rendering and export; network access to fal and Hugging Face."
+            ],
+            "manualWork": [
+              "Place every joint on grid views, choose framing, write one prompt per move, judge clips before capture (split screen kept, colours kept, views in step), judge fits (agreement, overlay), and add spring or tracked bones for fur or cloth."
+            ],
+            "componentTypes": [
+              "A hosted learned video generator, a learned joint reader fine-tuned per creature, deterministic Blender rendering and rigging, a gradient-based forward-kinematics solver, and Agent Skills that script the stages and checks."
+            ],
+            "externalRequirements": [
+              "A fal account with credit for MiniMax H3 Max (about USD 0.26 per clip) and optionally the LoRA trainer; Hugging Face downloads; a GPU host."
+            ],
+            "licenceConstraints": [
+              "Code Apache-2.0; DINOv2 Apache-2.0; MiniMax H3 open weights and any LoRA on them under the MiniMax H3 community licence; hosted H3 Max output under fal’s terms, which the README says to check before shipping; Tripo meshes under Tripo’s terms; the Patch marks are not licensed."
+            ],
+            "knownLimitations": [
+              "Eight-legged walking and lying-down poses do not fit; skeletons are hand-placed; video models can swap limb colours or desynchronise the views; one seed per move in the published results; the ground term is wolf- and dragon-shaped; fur and cloth need extra bones."
+            ],
+            "doesNotSolve": [
+              "Mesh generation itself, automatic rigging, locomotion, blending between clips, combat timing, death and lying poses, loading the GLB into Aralia’s entity contract, or any licensing decision."
+            ]
+          },
+          "comparisons": [
+            {
+              "dimension": "Where creature clips come from",
+              "externalApproach": "Any move for any rigged creature is authored by prompting a video model and capturing the result; new moves cost about USD 0.26 and a minute each once the creature’s reader exists.",
+              "projectApproach": "Creatures move by procedural gait drivers today; the approved bestiary plan would bundle Mesh2Motion’s fixed rigged species with their fixed CC0 clip packs (dragon 5 clips, spider 10), and path B (procedural creatures wearing clips) is deferred.",
+              "meaningfulDifference": "AnyMove makes the species and its move set open-ended, while Mesh2Motion fixes both; neither animates Aralia’s procedural bodies.",
+              "practicalConsequence": "A hero creature with no Mesh2Motion counterpart could still enter the bestiary with its own moves; a Mesh2Motion species with a thin pack would need an AnyMove rig of its own, since clips are not retargeted across rigs.",
+              "evidence": "README results and costs at commit 7a82a0a; docs/superpowers/specs/2026-07-24-cc0-clip-animation-design.md (asset inventory, path A, out of scope) at baseline b35ea0ff; src/systems/entities3d/three/gaits/multiLegDriver.ts.",
+              "uncertainty": "No AnyMove capture of an Aralia creature exists, so quality on the project’s own meshes is unmeasured."
+            },
+            {
+              "dimension": "Rig authority and skeleton naming",
+              "externalApproach": "Each creature carries its own hand-placed armature in rig.json; the exported GLB binds that armature and its clip together.",
+              "projectApproach": "speciesSkeleton names bones after driver emission ids and the pose sink throws on unknown ids; humanoid clips are retargeted onto the 17-bone biped; the bestiary plan accepts foreign rigs as self-contained GLBs behind an EntityHandle.",
+              "meaningfulDifference": "An AnyMove asset is a foreign-rig bestiary unit, not a clip for an existing Aralia skeleton.",
+              "practicalConsequence": "It fits the path-A loading contract and never the species pose sink; no bone-name mapping to speciesSkeleton should be attempted.",
+              "evidence": "blender/build_rig.py and apply_motion.py docstrings; src/systems/entities3d/three/speciesSkeleton.ts header; spec section “Rigged creature bestiary (priority 2, path A)”.",
+              "uncertainty": "The bestiary loader is specced, not built, so the exact handle contract an AnyMove GLB must satisfy does not exist yet."
+            },
+            {
+              "dimension": "Tooling and vendor footprint",
+              "externalApproach": "Blender 5.x, Python 3.11, a 24 GB CUDA GPU for training, Hugging Face downloads and a fal account; costs on fal per clip, per mesh and per LoRA run.",
+              "projectApproach": "Rig Bench drives whatever Blender is installed with no version pin; the hero pipeline rents a 24 GB L4 on GCP per job and uses Hugging Face with a stored token; no fal credential is recorded.",
+              "meaningfulDifference": "The GPU and Blender habits exist; fal is a new paid vendor and Blender 5.x a specific version demand.",
+              "practicalConsequence": "A trial needs a fal account decision and a Blender version check before any creature work starts.",
+              "evidence": "README quick start and requirements.txt; tools/rigbench/rigbench.mjs findBlender; tools/creatureHero/gcp/gcp-convert.sh.",
+              "uncertainty": "The host’s installed Blender version and local GPU memory were not inspected from the cloud session."
+            }
+          ],
+          "fit": {
+            "couldHelp": [
+              "Author bestiary species from Aralia’s own hero masters with prompt-chosen moves: idle, attack, rear, roar, wing beat.",
+              "Fill move gaps for creatures Mesh2Motion does not cover, and give Entity Studio a measurable clip pipeline with its own quality gates.",
+              "Reuse the method’s two-view, known-joint training trick for Rig Bench’s landmark placement on non-humanoids later."
+            ],
+            "wouldNotHelp": [
+              "Procedural creatures (path B), locomotion, clip blending, combat timing, death or lying poses, humanoid clips that Mesh2Motion already covers, or automatic rigging."
+            ],
+            "complements": [
+              "The specced rigged creature bestiary (path A) and its bestiaryByName source; Entity Studio Entity Debug and Hero Lab review; the hero pipeline’s TRELLIS.2 masters; Rig Bench’s Blender habits; IB-0009 and IB-0007 as the other motion-generation records."
+            ],
+            "mustNotReplace": [
+              "Procedural gait drivers and speciesSkeleton, the Mesh2Motion packs, humanoidRetarget and skinnedClipPlayer, accepted entities, or any licensing decision."
+            ],
+            "architecturalBoundary": [
+              "AnyMove runs in its own checkout and Python environment outside Aralia, reads a copy of one mesh, and returns one GLB plus receipts; Aralia only ever consumes the GLB as a bestiary candidate.",
+              "The reader, clips, LoRA and fal credential never enter the repository, the runtime or the build; the GLB enters only after Entity Studio review."
+            ],
+            "dependenciesIntroduced": [
+              "None while the record remains unexecuted.",
+              "A trial adds a separate AnyMove environment (Python 3.11, torch cu128, Blender 5.x), a fal account and key, and GPU time on the GCP L4 or a local card."
+            ],
+            "blockers": [
+              "No fal account, spend ceiling or credential owner exists for this project.",
+              "Blender 5.x on the host and its coexistence with Rig Bench are unverified.",
+              "The bestiary loader (path A) that would consume the GLB is specced, not built.",
+              "No owner has chosen a pilot creature and its two moves."
+            ],
+            "risks": [
+              "Hero masters with fused geometry may skin badly and read poorly, wasting clips and GPU time.",
+              "Video-model drift (swapped limbs, desynchronised views) can make a creature’s clips unusable without the LoRA, which costs about USD 12 and needs 15 to 20 good captures first.",
+              "A LoRA on MiniMax H3 and hosted H3 Max output carry licence terms the project has not reviewed.",
+              "The method rewards hand-placed, well-separated limbs; stylised creatures with capes, flames or long hair hide joints."
+            ],
+            "ownership": [
+              "Entity Studio and bestiary owners choose the pilot creature, moves and review gates.",
+              "The project owner decides the fal account and spend ceiling.",
+              "Licensing owners review MiniMax H3 and fal terms before any GLB is retained."
+            ],
+            "migrationRollback": [
+              "A trial writes only to an external AnyMove checkout and a scratch directory; the candidate GLB and receipts land under .agent/scratch for review.",
+              "Reject by deleting the checkout, the scratch directory and the fal key; nothing in src/, public/ or the hero store changes."
+            ],
+            "conclusion": "Test as an optional sidecar"
+          },
+          "experiment": {
+            "question": "Can AnyMove turn one Aralia quadruped mesh into a rigged GLB with two big-gesture clips whose view agreement is at least 0.8, within a fixed budget, and does that GLB load and play in three.js without touching the species pose sink?",
+            "exactInput": "One quadruped mesh chosen by the owner (a hero master.glb or the procedural beast export from scripts/idea-board/experiments/export-canid-candidate-clip.mjs converted to GLB), its real length, a rig.json placed on AnyMove’s grid views, two prompts (rear up and bite, each starting and ending in the rest pose, on the spot), MiniMax H3 Max at 768P and 5 s, one seed each.",
+            "pinnedRevisions": [
+              "patch-gg/anymove at commit 7a82a0a8fadffddd5c24fabf0697d9b6c814ce6e",
+              "facebook/dinov2-with-registers-base revision recorded at download time",
+              "Aralia at b35ea0ff84591e5f4f1d69c4ecc5d7bf918566fc",
+              "Blender version, GPU model, driver, CUDA and torch versions recorded from the host or VM before the run"
+            ],
+            "expectedOutput": "runs/<creature>/clips/<move>/render/animation.glb for both moves, det.npz, motion.json, overlay and showcase videos, the dataset sample sheet, the reader’s held-out error, paw agreement per clip, fal_log.jsonl, timings and spend, and a three.js load receipt with a turntable capture, all under .agent/scratch.",
+            "projectBaseline": "b35ea0ff84591e5f4f1d69c4ecc5d7bf918566fc; cloud clone inspected 2026-10-27T20:37:30Z with only Idea Board and plan-map note edits uncommitted",
+            "measurements": [
+              "Reader held-out error in px per view; paw agreement and reprojection error per clip; fit time; GPU memory peak during training.",
+              "fal spend and request count; wall-clock per stage; number of clips discarded for swapped colours or broken split screen.",
+              "Three.js load: the GLB plays its clip on its own armature at 24 fps with no bone-name coupling to speciesSkeleton; rendered turntable judged against the AI clip and the showcase video."
+            ],
+            "limit": "One creature, two moves, at most four generated clips, at most USD 10 on fal, at most three hours of GPU time, no LoRA training, no change to src/, public/ or the hero store, no retention of the GLB outside scratch until reviewed.",
+            "acceptanceCriteria": [
+              "The reader’s held-out error is under 10 px per view and both moves reach paw agreement of at least 0.8.",
+              "The GLB loads in three.js and plays its clip on its own armature with no edits to Aralia code.",
+              "Reviewers judge both moves readable as the intended gesture on the turntable and the showcase video.",
+              "Spend and time stay inside the limits and every fal request is in fal_log.jsonl."
+            ],
+            "rejectionCriteria": [
+              "Blender 5.x cannot be installed beside the host’s Rig Bench Blender, or no 24 GB GPU is available.",
+              "The reader exceeds 15 px per view, or three of four clips drift (swapped limbs or desynchronised views).",
+              "Both moves stay under 0.7 agreement, or the GLB fails to load or plays a visibly wrong pose.",
+              "Spend, time or scope exceeds the limits."
+            ],
+            "isolationBoundary": "A separate AnyMove checkout and venv on the host or on a GPU VM; the mesh is a copy; the fal key lives in that checkout’s ignored .env only; outputs return as files under .agent/scratch; Aralia is read, never written.",
+            "cleanup": "Delete the VM if one was used, remove the AnyMove venv, runs/ and the .env key, keep only the receipts and captures under .agent/scratch, confirm src/, public/ and the hero store unchanged, and append a dated result revision here only if the experiment is actually run.",
+            "result": "",
+            "resultAt": ""
+          }
+        }
+      ],
+      "lexicon": [
+        {
+          "term": "Two-camera frame",
+          "meaning": "One image holding a front orthographic view on the left and a side orthographic view on the right at the same scale, sharing the vertical axis so a joint sits on the same pixel row in both."
+        },
+        {
+          "term": "Joint reader",
+          "meaning": "A DINOv2 backbone with a heatmap head, fine-tuned on one creature’s rendered random poses, that finds every named joint in a view."
+        },
+        {
+          "term": "Limb paint",
+          "meaning": "Each limb coloured differently on the mesh so the video model and the reader never swap left and right."
+        },
+        {
+          "term": "Reference frame",
+          "meaning": "The rendered two-camera image of the painted creature at rest that the video model animates from."
+        },
+        {
+          "term": "Paw agreement",
+          "meaning": "The correlation of a foot’s height between the two views over a clip; 1 means the views show the same footfalls."
+        },
+        {
+          "term": "Reprojection error",
+          "meaning": "How far the fitted rig’s joints land from the read joints when projected back into each view, in pixels."
+        },
+        {
+          "term": "Two-camera LoRA",
+          "meaning": "A small adapter trained on MiniMax H3 so generated clips keep the split screen, the limb colours and both views in step."
+        },
+        {
+          "term": "The exam",
+          "meaning": "A made-up motion with known joints rendered in the same studio, read back and scored per joint in centimetres."
+        },
+        {
+          "term": "Bestiary path A",
+          "meaning": "Aralia’s approved plan to spawn named monsters as self-contained rigged, animated GLBs beside the procedural generator."
         }
       ]
     }

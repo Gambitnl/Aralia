@@ -7092,7 +7092,7 @@
       "sub": "real mocap clips on skinned bodies; humanoid retarget + rigged creature bestiary",
       "campaign": "rendering",
       "status": "active",
-      "updated": "2026-09-09",
+      "updated": "2026-10-27",
       "status_note": "Spec approved 2026-07-24 (Remy: full 87-clip pack; humanoids first, then path A rigged bestiary). Un-defers the skeleton-pivot clip slice using CC0 glTF packs instead of Mixamo/FBX. Source: github.com/Mesh2Motion/mesh2motion-app (MIT code, CC0 assets, CMU mocap).",
       "deps": [
         {
@@ -7115,7 +7115,8 @@
         },
         {
           "title": "Rigged creature bestiary (spider, dragon, snake, fox, horse)",
-          "status": "specced"
+          "status": "specced",
+          "status_note": "2026-10-27: Idea Board IB-0015 assesses AnyMove (patch-gg/anymove, Apache-2.0): two-camera AI video mocap that outputs a rigged, animated GLB for any creature, spider and dragon included. Conclusion: test as an optional sidecar; nothing adopted, no fal account or Blender 5 verified."
         },
         {
           "title": "Game wiring (combat/dialogue clips + bestiary monsters)",
