@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "boardTitle": "Aralia Idea Board",
-  "generatedAt": "2026-10-27T20:48:39Z",
+  "generatedAt": "2026-10-27T21:56:59Z",
   "localProject": {
     "name": "Aralia",
     "committedBaseline": {
@@ -9,9 +9,9 @@
       "committedAt": "2026-10-04T02:17:29+02:00"
     },
     "workspaceInspection": {
-      "inspectedAt": "2026-10-27T20:48:39Z",
+      "inspectedAt": "2026-10-27T21:56:59Z",
       "dirty": true,
-      "note": "Cloud clone of branch ccr-2da4fbce-xouf23 at the committed baseline plus the uncommitted IB-0016 board edits; no source code differed. Earlier assessments were made against the shared Windows checkout and keep their own baselines."
+      "note": "Cloud clone of branch ccr-2da4fbce-xouf23 at the committed baseline plus the uncommitted IB-0017 board edits; no source code differed. Earlier assessments were made against the shared Windows checkout and keep their own baselines."
     }
   },
   "records": [
@@ -6971,6 +6971,277 @@
         {
           "term": "KTX2",
           "meaning": "A container for GPU-compressed textures that stay compressed in video memory; supercompressed variants decode on load."
+        }
+      ]
+    },
+    {
+      "id": "IB-0017",
+      "title": "Consumer GeForce tensor-rate unlock for local AI compute",
+      "summary": "GeForce cards from the 20 series on run FP16 and BF16 tensor-core matrix math with FP32 accumulation at half the rate of the professional cards built on the same chips; the halved path is the one that training, LoRA fine-tuning, diffusion models and long-prompt prefill spend their time in, while token-by-token decoding is bandwidth-bound and barely changes. Zagitta’s gpu-unlock (GPL-2.0, version 1.1.0) is a Linux kernel module that, before the NVIDIA driver binds a card, writes the speed selectors and resets the card so a GA102 to GA106 part (and, per its recipe list, an RTX 4090) issues those instructions at full rate; the author’s 3090 Ti measurements show BF16 rising from 87.5 to 157.4 TFLOPS and TF32 nearly doubling. Aralia’s dev machine is an 8 GB RTX 2070 SUPER on Windows and its heavy AI jobs rent a data-center L4, so nothing in the project would speed up today; the record exists so the next local GPU purchase is made with this in mind.",
+      "problem": "Aralia’s AI sidecars (creature readers, image-to-3D, mesh refinement, LoRA training) are the workloads that live on the halved tensor path, and the project rents cloud GPUs partly because the local card cannot carry them; a local consumer card that ran at professional rate would change what stays local.",
+      "tags": [
+        "NVIDIA",
+        "tensor cores",
+        "FP32 accumulate",
+        "BF16",
+        "kernel module",
+        "GPU segmentation",
+        "local AI compute",
+        "fine-tuning",
+        "diffusion",
+        "prefill"
+      ],
+      "kind": "complete implementation",
+      "relatedIdeaIds": [
+        "IB-0015",
+        "IB-0014",
+        "IB-0008"
+      ],
+      "sources": [
+        {
+          "id": "SRC-0080",
+          "title": "gpu-unlock repository (1.1.0)",
+          "url": "https://github.com/Zagitta/gpu-unlock",
+          "type": "GitHub repository",
+          "role": "primary",
+          "publishedAt": "unavailable: the shallow clone holds only the latest commit (2026-10-26T20:17:54+01:00, “Various fixes”); the first release date was not inspected",
+          "latestRevisionInspected": "2026-10-27",
+          "licence": "GPL-2.0-only for the kernel module and packaging (README); the generated firmware buffer derives from a pinned CMP reference and NVIDIA firmware remains under NVIDIA’s own terms (README, firmware/NOTICE.md, licenses/).",
+          "provenance": "Shallow clone of the public repository on 2026-10-27 from a cloud session at commit 6081407b312aa3139a2bed62bdda354f4ffddc1d. README.md, VERSION, AGENTS.md and the directory layout (kernel, firmware, packaging, debian, tests, docs, licenses) were read; the kernel source was only grepped for device families. Nothing was built, installed or run, and no NVIDIA input was downloaded.",
+          "archiveUrl": "",
+          "claims": [
+            "The README states that the module doubles the instruction issuing speed of FP and BF16 FMA into FP32 operations on GA102, GA103, GA104 and GA106 cards by writing the speed selectors (SS0 0x88888888 for the full BF16 rate and the 4-bit SS1 0x8) and performing a function-level reset before the unmodified NVIDIA driver binds the card, so no VBIOS flash or patched driver is needed.",
+            "The README’s table for a 3090 Ti dense 8192³ GEMM at 450 W with FP32 accumulation lists FP16 87.46 to 118.39 TFLOPS, BF16 87.50 to 157.41 TFLOPS and TF32 42.58 to 82.61 TFLOPS, citing the repository’s issue 1.",
+            "The README’s boot section lists the supported recipes as GA100, GA102, GA103, GA104, GA106 or RTX 4090; its FAQ says Turing and Ada support exists in forks to be integrated, points Windows users at a separate impacifist/Windows-GPU-UNLOCK port, and says harm is very unlikely because standard throttling and power management stay intact.",
+            "The unlock is opt-in through the kernel command line (gpu_unlock.targets=all or PCI addresses), is applied from the initramfs before the nvidia module, clears when the card loses power, and is re-applied on resume from suspend."
+          ],
+          "demonstrates": [
+            "A packaged, distribution-aware install path (Arch, Debian and Ubuntu, Fedora and RHEL) with initramfs integration and a suspend notifier, which makes the mechanism reproducible by others rather than a one-off hack.",
+            "The author’s own measurements on one card; no independent benchmark was inspected."
+          ],
+          "implementationContains": [
+            "A kernel module under kernel/, firmware generation inputs and a NOTICE under firmware/, Makefile-driven packaging for three package formats, Debian packaging, tests, docs, and a licenses directory."
+          ]
+        },
+        {
+          "id": "SRC-0081",
+          "title": "gpu-unlock issue 1: 3090 Ti GEMM measurements",
+          "url": "https://github.com/Zagitta/gpu-unlock/issues/1",
+          "type": "verification record",
+          "role": "supporting",
+          "publishedAt": "unavailable: the issue page answered 403 through the session proxy and was not opened",
+          "latestRevisionInspected": "unavailable: not opened; the README reproduces its table",
+          "licence": "Not applicable; a measurement thread.",
+          "provenance": "Not opened. The README at the pinned commit links this issue as the source of its before-and-after table and the text supplied by the project owner quotes the same BF16 figures.",
+          "archiveUrl": "",
+          "claims": [
+            "Per the README’s citation, the issue holds five-sample medians of a dense 8192³ GEMM on a 3090 Ti at 450 W with FP32 accumulation."
+          ],
+          "demonstrates": [
+            "Nothing was inspected on the page itself."
+          ],
+          "implementationContains": [
+            "No implementation; a benchmark thread."
+          ]
+        },
+        {
+          "id": "SRC-0082",
+          "title": "Windows-GPU-UNLOCK port named by the README",
+          "url": "https://github.com/impacifist/Windows-GPU-UNLOCK",
+          "type": "dependency repository",
+          "role": "supporting family evidence",
+          "publishedAt": "unavailable: not opened",
+          "latestRevisionInspected": "unavailable: not opened; known only from the gpu-unlock README FAQ",
+          "licence": "unavailable: not opened",
+          "provenance": "Not opened. The gpu-unlock README answers “What about Windows?” by naming this port with a your-mileage-may-vary caveat; web coverage on 2026-10-25 reported a Windows unlock on an RTX 4080 raising BF16 GEMM throughput by about 78 percent with no change to token decoding. Neither the port nor the coverage was inspected beyond search summaries.",
+          "archiveUrl": "",
+          "claims": [
+            "Per the gpu-unlock README, a Windows port of the technique exists and is maintained separately."
+          ],
+          "demonstrates": [
+            "Nothing was inspected on the page itself."
+          ],
+          "implementationContains": [
+            "Unknown; not opened."
+          ]
+        }
+      ],
+      "revisions": [
+        {
+          "id": "IB-0017-R001",
+          "previousRevisionId": "",
+          "assessedAt": "2026-10-27T21:56:59Z",
+          "sourceProvidedAt": "2026-10-27",
+          "status": "worth watching",
+          "confidence": "medium",
+          "changeSummary": "Initial assessment from the gpu-unlock repository at a pinned commit. The project owner supplied a translated explainer of the GeForce tensor-rate throttle and this unlock in chat without naming its origin post; the explainer’s figures match the README. Recorded as a hardware-purchase and local-compute consideration, not as something to apply: Aralia’s only local GPU is an unsupported 8 GB Turing card on Windows and its rented L4 already runs at professional rate.",
+          "projectBaseline": {
+            "commit": "b35ea0ff84591e5f4f1d69c4ecc5d7bf918566fc",
+            "committedAt": "2026-10-04T02:17:29+02:00",
+            "inspectedAt": "2026-10-27T21:56:59Z",
+            "dirty": true,
+            "dirtyNote": "Cloud clone of branch ccr-2da4fbce-xouf23 at the commit named, carrying the uncommitted IB-0017 board edits; no source code differed from the baseline."
+          },
+          "facts": [
+            "gpu-unlock at commit 6081407 (2026-10-26) is version 1.1.0, a GPL-2.0-only Linux kernel module with Arch, Debian and RPM packaging; it combines the cmpunlocker V67/PLM technique with the pre-driver timing of an earlier UEFI approach, writes speed selectors SS0 0x88888888 and SS1 0x8, performs a function-level reset, and then lets the unmodified NVIDIA driver bind the card.",
+            "The README states the effect as doubling the instruction issue rate of FP16 and BF16 FMA into FP32 on GA102, GA103, GA104 and GA106 cards; its boot section lists GA100 and the RTX 4090 among supported recipes; the FAQ says Turing and Ada support exists in forks pending integration and names impacifist/Windows-GPU-UNLOCK as a separate Windows port.",
+            "The README’s 3090 Ti table (dense 8192³ GEMM at 450 W, FP32 accumulation, five-sample medians, citing issue 1) reads FP16 87.46 to 118.39 TFLOPS, BF16 87.50 to 157.41 TFLOPS, TF32 42.58 to 82.61 TFLOPS. The text the owner supplied quotes 87.5 to 157.4 for BF16 and “TF32 basically doubles”, which matches.",
+            "The unlock is opt-in by kernel command line, runs from the initramfs before the nvidia module, is not persistent (a card that loses power returns to the throttled state), is re-applied on resume from suspend, and skips any card a driver has already bound; the generated firmware buffer derives from a pinned CMP reference and NVIDIA firmware stays under NVIDIA’s terms per the README and firmware/NOTICE.md.",
+            "The README’s FAQ states that harm is very unlikely because the module only removes a handicap that differentiates consumer from professional cards and standard throttling and power management remain intact; it does not discuss NVIDIA’s licence terms or warranty, and web coverage from the preceding week describes long-term stability as lightly tested.",
+            "The supplied explainer, consistent with web coverage and with a public X post by KBlueleaf found by search, states that the halved path (FP16 and BF16 matrix multiply with FP32 accumulate, and FP8 on the 40 and 50 series) is where training, LoRA fine-tuning, text-to-image and text-to-video diffusion and long-prompt prefill spend their compute, that token-by-token decoding is bandwidth-bound and barely moves, that a 40-series unlock was shown on AD103 on Windows, and that the 50 series reads the selector through fuses so the same trick does not apply; the 50-series FP4 path is described as not halved. The 70 percent prefill figure for an RTX 6000 PRO against a 5090 comes only from the explainer and was not corroborated.",
+            "Aralia’s dev machine is an RTX 2070 SUPER (TU104, 8 GB, Windows host), per the river and ocean domain docs; its heavy AI jobs run on a rented GCP spot L4 (AD104, a data-center part) through tools/creatureHero/gcp; the AnyMove reader (IB-0015) needs about 12 GB and a 24 GB card, Hi3D v1.0 (IB-0014) was validated only on a 96 GB card, and TRELLIS.2 masters are made on the L4 or a hosted Space.",
+            "The game itself renders through three.js on WebGPU and WebGL and uses no tensor-core FP32-accumulate path; the throttle and the unlock concern only the AI sidecars the board assesses.",
+            "Nothing was built, installed or run during this assessment; no card was modified and no file from the repository entered Aralia."
+          ],
+          "inferences": [
+            "Today the unlock changes nothing for Aralia: the local card is both unsupported by 1.1.0 (Turing) and too small (8 GB) for the sidecars, and the rented L4 is already a full-rate part.",
+            "It changes the purchase calculus: a used 3090 or 3090 Ti (24 GB, GA102) on a Linux boot would carry the AnyMove reader and TRELLIS-class jobs locally at close to A6000 matrix rate, which is the point at which the GCP L4 habit stops paying.",
+            "The Windows host is the second blocker: the kernel module is Linux-only, and WSL2 cannot load a module that touches the physical GPU because the NVIDIA driver runs on the Windows side; the separate Windows port is the only route without dual-booting, and it was not inspected.",
+            "Modifying driver-time GPU behaviour is an owner decision that touches NVIDIA’s terms and the card’s warranty, whatever the author says about physical risk; the board records the option and does not endorse it.",
+            "Medium confidence: README and layout read at a pinned commit; measurements are the author’s on one card; the supplied explainer’s origin is unknown and its one uncorroborated figure is flagged."
+          ],
+          "unknowns": [
+            "Which of the five unread supplied X posts, if any, the owner’s explainer came from.",
+            "NVIDIA’s licence and warranty position on the unlock, and whether a driver update could detect or undo it.",
+            "The state of the Turing and Ada forks and of the Windows port, none of which were inspected.",
+            "Real wall-clock gains on Aralia’s actual sidecar jobs (reader training, image-to-3D, mesh refinement) rather than on a GEMM benchmark.",
+            "Whether the owner intends to buy a local 24 GB card at all."
+          ],
+          "recommendations": [
+            "Record only; do not apply any unlock to the dev machine, which is unsupported and on Windows.",
+            "If a local 24 GB card is ever bought for the sidecars, prefer a GA102 part with a Linux boot and reassess this record first, including the licence and warranty question as an owner decision.",
+            "Keep the sidecar records (IB-0014, IB-0015) honest about GPU requirements in TFLOPS terms as well as VRAM, since the throttle halves throughput on consumer cards."
+          ],
+          "technique": {
+            "requiredInput": [
+              "A supported NVIDIA GPU (GA100, GA102, GA103, GA104, GA106 or RTX 4090 per the README), a Linux distribution with kernel headers and an initramfs, the pinned NVIDIA driver archive fetched at build time to extract firmware, and an explicit kernel command line opt-in."
+            ],
+            "processingSteps": [
+              "At boot from the initramfs, before the nvidia module binds a card: clear stray bus mastering, run the unlock firmware sequence, write the speed selectors, perform a function-level reset, then let the stock driver bind; repeat on resume from suspend."
+            ],
+            "producedOutput": [
+              "A card whose FP16 and BF16 tensor instructions with FP32 accumulation issue at the professional rate until the next power loss; kernel log lines reporting each card’s result."
+            ],
+            "dependencies": [
+              "Linux kernel build tooling, the NVIDIA driver archive as a build input, the packaging tools of the distribution, and the module’s generated firmware buffer."
+            ],
+            "runtimeRequirements": [
+              "A Linux boot with the module in the initramfs ahead of the nvidia module; not applicable under Windows or WSL2."
+            ],
+            "manualWork": [
+              "Install the package, add the kernel parameter, regenerate boot images, verify with the kernel log and lspci, and decide the licence and warranty question."
+            ],
+            "componentTypes": [
+              "A kernel module, firmware sequencing derived from a reference unlocker, PCI function-level reset, initramfs hooks and a suspend notifier."
+            ],
+            "externalRequirements": [
+              "Network access at build time for the NVIDIA inputs; nothing at runtime."
+            ],
+            "licenceConstraints": [
+              "GPL-2.0-only for the module and packaging; the generated buffer derives from a pinned CMP reference and NVIDIA firmware remains under NVIDIA’s terms; NVIDIA’s driver licence and the card’s warranty are not addressed by the project."
+            ],
+            "knownLimitations": [
+              "Linux only; Ampere plus the 4090 in 1.1.0; not persistent across power loss; lightly tested long-term stability per coverage; one OEM 3080 Ti 20 GB reportedly completed the unlock with BF16 still at half rate; the 50 series reads the selector through fuses."
+            ],
+            "doesNotSolve": [
+              "VRAM capacity, token decoding speed, game frame time, any workload outside the tensor-core FP32-accumulate path, or the licence and warranty question."
+            ]
+          },
+          "comparisons": [
+            {
+              "dimension": "Where Aralia’s AI compute runs",
+              "externalApproach": "Unlock a local consumer Ampere or Ada card on a Linux boot so it runs matrix math at professional rate.",
+              "projectApproach": "An 8 GB RTX 2070 SUPER on Windows for the editor and the game; a rented GCP spot L4 (a data-center part at full rate) for TRELLIS.2 masters and, prospectively, the AnyMove reader.",
+              "meaningfulDifference": "The project has no supported card and its heavy jobs already run on unthrottled silicon.",
+              "practicalConsequence": "No current Aralia job speeds up; the record matters only if a local 24 GB consumer card is bought.",
+              "evidence": "README supported recipes at commit 6081407; docs/architecture/domains/world3d-river-water.md and world3d-ocean.md naming the RTX 2070 SUPER; tools/creatureHero/gcp/gcp-convert.sh at baseline b35ea0ff.",
+              "uncertainty": "The Turing forks and the Windows port were not inspected, so the 2070 SUPER’s eligibility under them is unknown; 8 GB would still rule out the sidecars."
+            },
+            {
+              "dimension": "Which workloads the halved path touches",
+              "externalApproach": "Training, LoRA fine-tuning, diffusion image and video generation, and long-prompt prefill are on the halved path; decoding is bandwidth-bound.",
+              "projectApproach": "The sidecars the board assesses are exactly those workloads (reader training in IB-0015, mesh refinement in IB-0014, image-to-3D in IB-0008), while the game’s own rendering uses no tensor-core FP32-accumulate path.",
+              "meaningfulDifference": "The throttle costs Aralia nothing in the game and up to half the matrix throughput in its offline AI tools.",
+              "practicalConsequence": "GPU requirements in sidecar records should be read in throughput as well as VRAM; a consumer card’s TFLOPS figure for these jobs is the halved one.",
+              "evidence": "The supplied explainer and the KBlueleaf post summary; IB-0014 and IB-0015 requirement facts; src/components/World3D rendering stack at baseline b35ea0ff.",
+              "uncertainty": "No Aralia sidecar job has been timed on a throttled and an unthrottled card."
+            },
+            {
+              "dimension": "Risk and terms",
+              "externalApproach": "A GPL-2.0 module that is opt-in, non-persistent and leaves power management intact; the author judges physical harm very unlikely; coverage notes untested long-term stability and the warranty question.",
+              "projectApproach": "Aralia has no policy on modifying driver-time behaviour of hardware; its credential and tooling rules cover software boundaries, not GPU configuration.",
+              "meaningfulDifference": "The decision is a hardware and licence judgement outside the project’s existing rules.",
+              "practicalConsequence": "An owner call before any use, recorded in this registry if made.",
+              "evidence": "README FAQ and licence paragraph at commit 6081407; AGENTS.md and the Idea Board production-isolation contract at baseline b35ea0ff.",
+              "uncertainty": "NVIDIA’s licence position and any driver-side detection are unknown."
+            }
+          ],
+          "fit": {
+            "couldHelp": [
+              "Make a future local 24 GB consumer card (3090, 3090 Ti, 4090) carry the AnyMove reader, TRELLIS-class generation and small fine-tunes at close to professional rate, cutting cloud GPU rental.",
+              "Inform the GPU requirement lines in sidecar records."
+            ],
+            "wouldNotHelp": [
+              "The current dev machine, the game’s frame time, VRAM limits, token decoding, or any job that already runs on the rented L4."
+            ],
+            "complements": [
+              "The creature hero GCP recipe as the thing it could replace for some jobs; IB-0014, IB-0015 and IB-0008 as the sidecars whose throughput it would change."
+            ],
+            "mustNotReplace": [
+              "The rented L4 path for jobs that need more than a consumer card’s VRAM, or any Aralia runtime or build step; nothing here touches the game."
+            ],
+            "architecturalBoundary": [
+              "A host-level, opt-in boot configuration on a Linux machine the owner controls; never part of Aralia’s repository, scripts, CI or runtime.",
+              "Any job that benefits still goes through the existing sidecar boundaries (candidate lanes, receipts, review)."
+            ],
+            "dependenciesIntroduced": [
+              "None; nothing enters the repository."
+            ],
+            "blockers": [
+              "No supported local card: the RTX 2070 SUPER is Turing and 8 GB.",
+              "The dev machine runs Windows; the module is Linux-only and the Windows port is uninspected.",
+              "No owner decision on NVIDIA’s terms and the warranty."
+            ],
+            "risks": [
+              "Warranty or licence exposure on a modified card, whatever the physical risk.",
+              "A driver update could change the firmware inputs the module depends on.",
+              "Treating a GEMM benchmark gain as a job-level gain without timing the real sidecar."
+            ],
+            "ownership": [
+              "The project owner decides any hardware purchase and any unlock; no agent applies it."
+            ],
+            "migrationRollback": [
+              "Nothing to roll back in Aralia; on a host, removing the kernel parameter or the package returns the card to its stock state at the next boot."
+            ],
+            "conclusion": "Revisit after a named blocker is resolved"
+          },
+          "experiment": null
+        }
+      ],
+      "lexicon": [
+        {
+          "term": "FP32 accumulate",
+          "meaning": "Multiplying half-precision numbers but summing the products in 32-bit floats; the mode training and diffusion use for accuracy, and the one GeForce cards run at half rate."
+        },
+        {
+          "term": "Instruction issue rate",
+          "meaning": "How many tensor-core instructions of a kind the hardware accepts per clock; the throttle halves it for the FP32-accumulate path without changing the cores."
+        },
+        {
+          "term": "Speed selector",
+          "meaning": "A register the card’s firmware sets at start-up that picks the issue rate; the unlock writes the full-rate value before the driver loads."
+        },
+        {
+          "term": "Function-level reset",
+          "meaning": "A PCI reset of one device that restarts it without rebooting the machine; the unlock uses it after writing the selectors."
+        },
+        {
+          "term": "Prefill",
+          "meaning": "The step where a language model reads the whole prompt at once; compute-bound and on the halved path, unlike the bandwidth-bound decode of one token at a time."
+        },
+        {
+          "term": "Professional rate",
+          "meaning": "The full tensor throughput of RTX A-series, RTX PRO and data-center cards built on the same chips as the consumer parts."
         }
       ]
     }
