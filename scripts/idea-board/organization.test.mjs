@@ -65,10 +65,11 @@ test('scope filters do not leak other projects and preserve multi-project releva
   assert.ok(allAralia.every((group) => group.projectId === 'aralia'));
   // Unique records reachable under Aralia. 11 through IB-0013; IB-0014 (mesh
   // refinement) and IB-0015 (creature mocap) reach Aralia only through their
-  // suggested plan-map initiative links, and IB-0016 (open-world terrain) is a
-  // recorded world connection; all three are 2026-10-27. This is the
+  // suggested plan-map initiative links, IB-0016 (open-world terrain) is a
+  // recorded world connection, and IB-0018 (voiced NPCs) is a recorded
+  // ui/dialogue connection; all four are 2026-10-27. This is the
   // multi-project relevance this test preserves.
-  assert.equal(new Set(allAralia.flatMap((group) => group.records.map((record) => record.id))).size, 14);
+  assert.equal(new Set(allAralia.flatMap((group) => group.records.map((record) => record.id))).size, 15);
 });
 
 test('Planmap categories and initiatives include standalone projects and multi-category research', () => {

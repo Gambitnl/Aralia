@@ -4,7 +4,7 @@ gap_schema: project_gap_registry
 project: Idea Board
 slug: idea-board
 status: active
-status_note: "Seventeen records after IB-0014 (Hi3D v1.0 mesh refinement), IB-0015 (AnyMove two-camera AI video creature mocap), IB-0016 (RedGPU GPU-driven open-world terrain reference) and IB-0017 (GeForce tensor-rate unlock as a local-compute consideration), all 2026-10-27 and all assessed from their GitHub repositories because the cloud session cannot open x.com. Three gaps opened the same day: IB-G5 holds six supplied X posts the cloud session could not read, IB-G6 records ten corrupted record lexicons, IB-G7 records that the project's runbook and north star are gitignored. IB-G1 to IB-G3 stay resolved from 2026-09-20."
+status_note: "Eighteen records after IB-0014 (Hi3D v1.0 mesh refinement), IB-0015 (AnyMove two-camera AI video creature mocap), IB-0016 (RedGPU GPU-driven open-world terrain reference), IB-0017 (GeForce tensor-rate unlock as a local-compute consideration) and IB-0018 (PersonaPlex full-duplex speech-to-speech NPC persona model), all 2026-10-27 and all assessed from their GitHub repositories because the cloud session cannot open x.com. Three gaps opened the same day: IB-G5 holds six supplied X posts the cloud session could not read, IB-G6 records ten corrupted record lexicons, IB-G7 records that the project's runbook and north star are gitignored. IB-G1 to IB-G3 stay resolved from 2026-09-20."
 registry_mode: canonical
 last_updated: 2026-10-27
 gap_count: 7

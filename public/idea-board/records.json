@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "boardTitle": "Aralia Idea Board",
-  "generatedAt": "2026-10-27T21:56:59Z",
+  "generatedAt": "2026-10-27T22:04:12Z",
   "localProject": {
     "name": "Aralia",
     "committedBaseline": {
@@ -9,9 +9,9 @@
       "committedAt": "2026-10-04T02:17:29+02:00"
     },
     "workspaceInspection": {
-      "inspectedAt": "2026-10-27T21:56:59Z",
+      "inspectedAt": "2026-10-27T22:04:12Z",
       "dirty": true,
-      "note": "Cloud clone of branch ccr-2da4fbce-xouf23 at the committed baseline plus the uncommitted IB-0017 board edits; no source code differed. Earlier assessments were made against the shared Windows checkout and keep their own baselines."
+      "note": "Cloud clone of branch ccr-2da4fbce-xouf23 at the committed baseline plus the uncommitted IB-0018 board edits; no source code differed. Earlier assessments were made against the shared Windows checkout and keep their own baselines."
     }
   },
   "records": [
@@ -7242,6 +7242,319 @@
         {
           "term": "Professional rate",
           "meaning": "The full tensor throughput of RTX A-series, RTX PRO and data-center cards built on the same chips as the consumer parts."
+        }
+      ]
+    },
+    {
+      "id": "IB-0018",
+      "title": "Full-duplex speech-to-speech NPC personas from a text role prompt",
+      "summary": "PersonaPlex (NVIDIA, code MIT, weights under the NVIDIA Open Model License) is a 7B real-time speech-to-speech model built on Kyutai’s Moshi that listens and talks at the same time, so it pauses, interrupts and backchannels like a person, and takes its persona from a text role prompt plus one of 18 packaged voices. It ships a Python WebSocket server, a React web client with an Opus decoder, and an offline evaluator. Aralia voices NPCs today by chaining a text model (Ollama or Groq) with Gemini text-to-speech and playing 24 kHz PCM, the rate PersonaPlex speaks at; its NPC knowledge profiles already have the shape of the model’s customer-service “Information:” prompts. The model needs a CUDA GPU with room for 7B bfloat16 weights, is English-trained, and would be a presentation layer: game effects would still come from the transcript through the intent reader.",
+      "problem": "Let a player talk to an Aralia NPC with their voice and hear it answer in character without the turn-by-turn lag of recognise, think, then synthesise, while the game’s dialogue state, skill checks and combat triggers keep working from what was said.",
+      "tags": [
+        "speech-to-speech",
+        "full duplex",
+        "NPC voice",
+        "persona prompt",
+        "voice conditioning",
+        "Moshi",
+        "WebSocket",
+        "Opus",
+        "conversation",
+        "intent reader"
+      ],
+      "kind": "complete implementation",
+      "relatedIdeaIds": [
+        "IB-0012"
+      ],
+      "sources": [
+        {
+          "id": "SRC-0083",
+          "title": "PersonaPlex repository",
+          "url": "https://github.com/NVIDIA/personaplex",
+          "type": "GitHub repository",
+          "role": "primary",
+          "publishedAt": "unavailable: the shallow clone holds only the latest commit (2026-03-02T08:07:09-08:00, “Update README.md”); the paper it cites is dated February 2026",
+          "latestRevisionInspected": "2026-10-27",
+          "licence": "MIT for the code (LICENSE-MIT; moshi/ also carries LICENSE.moshi and LICENSE.audiocraft for the upstream parts); the README states the weights are under the NVIDIA Open Model License, which was not read.",
+          "provenance": "Shallow clone of the public repository on 2026-10-27 from a cloud session at commit 3428dfd95309a7f3c84fd93259ded0f810d1ff91. README.md, LICENSE-MIT, Dockerfile, docker-compose.yaml, moshi/pyproject.toml, the argument lists of moshi/server.py and moshi/offline.py, the loader’s dtype and repository constants, the client’s package.json, README, protocol types and the Conversation page’s URL construction were read. Nothing was installed or run, no weights were downloaded, and the model licence was not accepted.",
+          "archiveUrl": "",
+          "claims": [
+            "The README describes a real-time, full-duplex speech-to-speech conversational model with persona control through text role prompts and audio voice conditioning, based on the Moshi architecture and weights, trained on synthetic conversations (a fixed assistant role and varied customer-service roles) and on real conversations from the Fisher English Corpus with LLM-labelled prompts.",
+            "The server is started with python -m moshi.server --ssl, serves a web UI on port 8998, and accepts --cpu-offload (with the accelerate package) when GPU memory is insufficient; Blackwell GPUs need a CUDA 13 torch install per the README.",
+            "Eighteen packaged voices are listed (NATF0 to NATF3, NATM0 to NATM3, VARF0 to VARF4, VARM0 to VARM4); the client appends text_prompt and voice_prompt as query parameters on the /api/chat WebSocket URL, and the server resolves the voice to a file in its voice-prompt directory.",
+            "The README’s prompting guide shows customer-service roles that carry facts after an “Information:” marker, casual roles that start “You enjoy having a good conversation.”, and an astronaut prompt offered as an out-of-distribution example the model handles plausibly.",
+            "The loader defaults to bfloat16 and reads model.safetensors plus a Mimi tokenizer checkpoint from nvidia/personaplex-7b-v1; pyproject pins torch at 2.2 to below 2.5 and needs the Opus development library."
+          ],
+          "demonstrates": [
+            "A complete serving stack rather than a checkpoint: a Dockerfile on the CUDA 12.4.1 runtime image with GPU reservation, a React 18 and Vite client with an Opus WebAssembly decoder and a typed WebSocket protocol (handshake, audio, text, control, metadata, error, ping), and an offline script that turns an input wav and a role prompt into an output wav and a text JSON.",
+            "The authors’ own description of turn-taking quality; no latency figure is given in the README and none was measured here."
+          ],
+          "implementationContains": [
+            "moshi/ (server, offline evaluator, models including the LM with text and voice prompt handling, loaders), client/ (the Kyutai-derived web client under MIT), assets/test (two input wavs and a service prompt), Dockerfile and compose file."
+          ]
+        },
+        {
+          "id": "SRC-0084",
+          "title": "personaplex-7b-v1 weights on Hugging Face",
+          "url": "https://huggingface.co/nvidia/personaplex-7b-v1",
+          "type": "licence and provenance notice",
+          "role": "licence evidence",
+          "publishedAt": "unavailable: the page was not opened",
+          "latestRevisionInspected": "unavailable: huggingface.co is not reachable from the assessing session and the repository is gated behind licence acceptance",
+          "licence": "NVIDIA Open Model License per the README; its terms were not read.",
+          "provenance": "Not opened. The README links this repository as the weights and says the licence must be accepted on Hugging Face before the server can download them with an HF_TOKEN; a web search summary confirms the gate and the licence name.",
+          "archiveUrl": "",
+          "claims": [
+            "Per the README, the weights (model.safetensors and the Mimi tokenizer checkpoint) live here under the NVIDIA Open Model License and require acceptance and a token."
+          ],
+          "demonstrates": [
+            "Nothing was inspected on the page itself."
+          ],
+          "implementationContains": [
+            "Model weights only, per the README."
+          ]
+        },
+        {
+          "id": "SRC-0085",
+          "title": "PersonaPlex paper (arXiv 2602.06053)",
+          "url": "https://arxiv.org/abs/2602.06053",
+          "type": "research paper",
+          "role": "supporting",
+          "publishedAt": "unavailable: the README gives only the year 2026 and the arXiv identifier 2602.06053 places the preprint in February 2026; the exact date was not inspected",
+          "latestRevisionInspected": "unavailable: arxiv.org is not reachable from the assessing session",
+          "licence": "Not applicable; a preprint.",
+          "provenance": "Not opened. The README cites it as “PersonaPlex: Voice and Role Control for Full Duplex Conversational Speech Models” by Roy, Raiman, Lee, Ene, Kirby, Kim, Kim and Catanzaro, 2026, and names FullDuplexBench categories (user interruption, pause handling, backchannel, smooth turn taking) that the prompts target.",
+          "archiveUrl": "",
+          "claims": [
+            "Per the README’s citation and the search summary, the paper describes training on a large synthetic dataset of paired prompts and conversations generated with open models and TTS, plus the Fisher corpus, and evaluates on FullDuplexBench."
+          ],
+          "demonstrates": [
+            "Nothing was inspected on the page itself."
+          ],
+          "implementationContains": [
+            "No implementation; the method description."
+          ]
+        }
+      ],
+      "revisions": [
+        {
+          "id": "IB-0018-R001",
+          "previousRevisionId": "",
+          "assessedAt": "2026-10-27T22:04:12Z",
+          "sourceProvidedAt": "2026-10-27",
+          "status": "promising",
+          "confidence": "medium",
+          "changeSummary": "Initial assessment from the repository at a pinned commit, the day the owner supplied it. The serving stack is complete and the persona mechanism maps cleanly onto Aralia’s NPC knowledge profiles and speech profiles, and the game already plays 24 kHz PCM for NPC speech, so a bounded sidecar trial is cheap to define. The model’s GPU footprint, English-only training, and the fact that it is a presentation layer rather than a game-logic model are the limits.",
+          "projectBaseline": {
+            "commit": "b35ea0ff84591e5f4f1d69c4ecc5d7bf918566fc",
+            "committedAt": "2026-10-04T02:17:29+02:00",
+            "inspectedAt": "2026-10-27T22:04:12Z",
+            "dirty": true,
+            "dirtyNote": "Cloud clone of branch ccr-2da4fbce-xouf23 at the commit named, carrying the uncommitted IB-0018 board edits; no source code differed from the baseline."
+          },
+          "facts": [
+            "PersonaPlex at commit 3428dfd (2026-03-02) is MIT-licensed code around a 7B speech-to-speech model whose weights sit on Hugging Face under the NVIDIA Open Model License behind a licence gate; the paper is arXiv 2602.06053 (February 2026) from NVIDIA ADLR.",
+            "The model is full duplex: it updates its state as the user speaks and streams audio and text back at once, so it can pause, interrupt and backchannel; persona comes from a text role prompt and a voice embedding chosen from 18 packaged voices, passed per session as text_prompt and voice_prompt query parameters on the /api/chat WebSocket.",
+            "Training covered a fixed assistant role, varied customer-service roles whose prompts carry facts after an “Information:” marker, and real English conversations from the Fisher corpus; the README encourages out-of-distribution prompts and ships an astronaut-in-a-reactor-meltdown example as proof the Helium backbone generalises.",
+            "Serving needs a CUDA GPU (the loader defaults to bfloat16, so the 7B weights alone are on the order of 14 GB before activations; the README gives no figure and offers --cpu-offload), Python 3.10 or newer, torch 2.2 to below 2.5, the Opus development library, and an HF_TOKEN; a Dockerfile on the CUDA 12.4.1 runtime image and a compose file with a GPU reservation are included, and Blackwell GPUs need a CUDA 13 torch build.",
+            "The React 18 and Vite client (MIT, derived from Kyutai’s moshi-client) captures microphone audio, sends and receives Opus over the WebSocket with a WebAssembly decoder worker, shows the streamed text, and exposes sampling parameters; an offline script evaluates a wav file against a role prompt and writes the agent’s audio and text.",
+            "Aralia at the baseline voices NPCs by chaining a text model with Gemini text-to-speech: ttsService.synthesizeSpeech (default voice Kore) is called from handleNpcInteraction and handleOracle, and useAudio.playPcmAudio plays 24 kHz, 16-bit, mono PCM through a Web Audio context; the chain needs a Gemini API key.",
+            "Aralia’s NPC text pipeline is Ollama locally or Groq through textProviderRouter with no fallback; geminiService and the Ollama banter service prompt the model to answer in the NPC’s voice in one or two sentences; each NPC carries a SpeechProfile (a per-NPC text voice signature with culture lexicons), a personality archetype from role and biome, quirks, and a knowledge profile that the dialogue topic (DIAL) work already feeds into the AI dialogue prompt.",
+            "Aralia’s game logic reads conversation text: the universal intent reader classifies every line as talk, skill, flee, attack or ambiguous and can turn a peaceful scene violent; topic-based dialogue graphs carry prerequisites, costs, skill checks and unlocks; the conversation panel gates player turns and pending responses; the ai-arbiter topic’s “NPC embodiment (think as the NPC)” feature is specced, not built.",
+            "The dev machine is an RTX 2070 SUPER with 8 GB, which cannot hold 7B bfloat16 weights; the project already rents a 24 GB GCP L4 per hero job and runs a local Ollama; the game is a browser application served by Vite.",
+            "Nothing was installed or run during this assessment; no weights, licence acceptance, audio or token entered Aralia."
+          ],
+          "inferences": [
+            "PersonaPlex would replace the recognise-think-synthesise chain for live conversation with one model, and the persona prompt can be composed from what Aralia already has: the archetype and speech profile for manner, the knowledge profile as the “Information:” block, and a packaged voice chosen per NPC.",
+            "It is a presentation layer, not a game-logic model: its streamed text is a transcript of what the NPC said, so skill checks, unlocks and combat triggers would still come from feeding that transcript (and the player’s) through the intent reader and dialogue state, and scripted topic graphs would have to be expressed as prompt facts rather than enforced.",
+            "The serving footprint rules out the dev machine’s GPU and any player machine; a trial runs the server on the rented L4 or a similar card and the browser talks to it, which the shipped client already shows is a WebSocket plus Opus problem Aralia’s React app can absorb.",
+            "English-only training and customer-service-shaped roles are the quality risk for fantasy NPCs; the README’s own out-of-distribution example is the reason to test rather than assume.",
+            "Medium confidence: code, README and client read at a pinned commit; no audio was heard; the model licence and paper were not read."
+          ],
+          "unknowns": [
+            "The terms of the NVIDIA Open Model License for a shipped game and for hosting the model for players.",
+            "Actual GPU memory and end-to-end latency on a 24 GB card, and whether --cpu-offload is usable at conversational latency.",
+            "How well a fantasy NPC role prompt holds persona and facts over a ten-minute conversation, and how the model handles player lines that the intent reader would class as skill or attack.",
+            "Whether the Opus WebSocket transport and microphone capture fit inside Aralia’s conversation panel without a separate page.",
+            "Languages beyond English, and the 18 voices’ fit to Aralia’s cultures and species."
+          ],
+          "recommendations": [
+            "Treat as a sidecar trial, not a replacement for the text dialogue pipeline, which keeps owning game effects.",
+            "Compose one NPC’s role prompt from the archetype, speech profile and knowledge profile the game already produces, pick one natural voice, and talk to it through the stock client on a rented 24 GB GPU before touching any Aralia code.",
+            "Record the transcript stream and run it through resolvePlayerIntent offline to see whether the existing reader could govern a spoken scene.",
+            "Read the model licence before any demo leaves the dev machine."
+          ],
+          "technique": {
+            "requiredInput": [
+              "A text role prompt, a voice embedding name from the packaged set, live microphone audio from the player over a WebSocket, and sampling parameters; for offline evaluation, a wav file and a prompt."
+            ],
+            "processingSteps": [
+              "The Mimi codec tokenises incoming audio; the Moshi-derived language model (Helium backbone) conditions on the role prompt tokens and the voice prompt embedding and streams joint audio and text tokens while listening; the server encodes the audio as Opus frames and sends text alongside; the client decodes and plays while still sending the user’s audio."
+            ],
+            "producedOutput": [
+              "A continuous spoken response with backchannels and interruptions, plus the streamed text of what the agent says; offline, an output wav of the same length as the input and a JSON transcript."
+            ],
+            "dependencies": [
+              "The moshi-personaplex package (torch, aiohttp, sphn, sentencepiece, sounddevice, safetensors, huggingface-hub, einops), the Opus development library, the gated weights, and for the client Node, React 18, Vite and the Opus decoder worker."
+            ],
+            "runtimeRequirements": [
+              "A CUDA GPU able to hold the 7B bfloat16 model plus the Mimi codec, or CPU offload at some latency cost; a server process on port 8998 with TLS for microphone access; a browser with microphone permission."
+            ],
+            "manualWork": [
+              "Accept the model licence, obtain a token, write and tune role prompts, choose voices, host the server, and judge conversations by ear."
+            ],
+            "componentTypes": [
+              "A learned speech-to-speech transformer, a neural audio codec, a WebSocket streaming server, an Opus-based browser client, and an offline evaluation harness."
+            ],
+            "externalRequirements": [
+              "Hugging Face access for the weights, a GPU host, and acceptance of the NVIDIA Open Model License."
+            ],
+            "licenceConstraints": [
+              "Code MIT; upstream Moshi and AudioCraft licences retained under moshi/; weights under the NVIDIA Open Model License, unread, which must be reviewed for hosting and distribution before any use beyond a private trial."
+            ],
+            "knownLimitations": [
+              "English-trained; roles trained as assistant and customer service with facts; 7B weights need a sizeable GPU; no stated latency; persona drift and fact hallucination over long conversations are unmeasured; no game-state awareness."
+            ],
+            "doesNotSolve": [
+              "Dialogue state, skill checks, quest unlocks, combat triggers, NPC memory, non-English speech, player-side hardware, or the licence question."
+            ]
+          },
+          "comparisons": [
+            {
+              "dimension": "How an NPC speaks",
+              "externalApproach": "One full-duplex model listens and speaks at once from a role prompt and a voice embedding, with interruptions and backchannels, streaming audio and text over a WebSocket.",
+              "projectApproach": "A text model (Ollama or Groq) writes one or two sentences in the NPC’s voice after the player’s typed line, Gemini TTS synthesises it, and useAudio plays 24 kHz PCM; the player types rather than speaks.",
+              "meaningfulDifference": "PersonaPlex is a live conversation; Aralia’s chain is a voiced reply to a typed turn.",
+              "practicalConsequence": "The trial is about feel (latency, interruption, persona) rather than a feature the game lacks outright; the PCM playback path and the 24 kHz rate are already in place.",
+              "evidence": "README and client Conversation.tsx at commit 3428dfd; src/services/ttsService.ts, src/hooks/useAudio.ts and src/hooks/actions/handleNpcInteraction.ts at baseline b35ea0ff.",
+              "uncertainty": "No conversation was heard; latency and persona adherence are unmeasured."
+            },
+            {
+              "dimension": "Where the persona comes from",
+              "externalApproach": "A free-text role prompt (manner, name, facts after “Information:”) and one of 18 voices, set per session.",
+              "projectApproach": "A structured archetype from role and biome, a SpeechProfile with culture lexicons applied to text, quirks, and a knowledge profile injected into the AI dialogue prompt (DIAL work).",
+              "meaningfulDifference": "Aralia already generates the ingredients of a role prompt as data; PersonaPlex expects them as prose.",
+              "practicalConsequence": "A small prompt composer turns existing NPC data into a role prompt; the speech profile’s text post-processing would no longer apply, since the model speaks directly.",
+              "evidence": "README prompting guide; src/systems/npcPersonality/archetypeTable.ts, src/types/dialogue.ts SpeechProfile, and the dialogue topic’s “Knowledge profile in the AI dialogue prompt” feature at baseline b35ea0ff.",
+              "uncertainty": "How much culture flavour survives when the lexicon post-processing is bypassed."
+            },
+            {
+              "dimension": "Who owns game effects",
+              "externalApproach": "None; the model produces speech and its transcript with no notion of skill checks, unlocks or combat.",
+              "projectApproach": "The universal intent reader classifies every conversation line, the dialogue graph enforces prerequisites and unlocks, and the conversation panel gates turns.",
+              "meaningfulDifference": "Aralia’s conversation is a game system; PersonaPlex’s is a performance.",
+              "practicalConsequence": "Any integration feeds both transcripts through the intent reader and keeps the dialogue state authoritative; scripted topics become prompt facts, which the dialogue owners must accept or scope out.",
+              "evidence": "Client protocol types (text messages) at commit 3428dfd; the universal-intent-reader, dialogue and conversation-panel plan-map topics at baseline b35ea0ff.",
+              "uncertainty": "Whether the reader’s DC proposals and combat triggers behave sensibly on spoken, interruptible turns."
+            }
+          ],
+          "fit": {
+            "couldHelp": [
+              "A spoken, interruptible conversation with a single NPC as a feel prototype for the embodied-DM direction.",
+              "A prompt composer that proves Aralia’s NPC data can drive a persona model, reusable for any future speech model.",
+              "A measured answer to whether transcript-driven intent reading can govern a spoken scene."
+            ],
+            "wouldNotHelp": [
+              "Player machines without a server GPU, non-English play, scripted dialogue enforcement, NPC memory, or anything outside live conversation."
+            ],
+            "complements": [
+              "The dialogue, conversation-panel and ai-arbiter topics; the universal intent reader; the existing useAudio PCM path; the NPC personality, speech profile and knowledge profile systems; IB-0012 as the other agent-application record."
+            ],
+            "mustNotReplace": [
+              "The text dialogue pipeline and its game effects, the dialogue graph, the intent reader, the Ollama and Groq providers, or NPC memory."
+            ],
+            "architecturalBoundary": [
+              "A separate server process on a GPU host the owner controls; Aralia’s only contact is a WebSocket client that sends microphone audio and receives Opus audio and text; the text goes through the same intent and dialogue systems as typed lines.",
+              "No weights, token or licence acceptance live in the repository; the trial starts with the stock client, not an Aralia integration."
+            ],
+            "dependenciesIntroduced": [
+              "None while unexecuted.",
+              "A trial adds a PersonaPlex server environment on a rented GPU and, if it goes further, an Opus decoder worker and WebSocket client code in the React app."
+            ],
+            "blockers": [
+              "The NVIDIA Open Model License has not been read.",
+              "No GPU in the project can host the model except a rented card.",
+              "No dialogue owner has decided how spoken turns relate to the topic graph and the intent reader."
+            ],
+            "risks": [
+              "Persona and fact drift in long fantasy conversations from a model trained on assistant and customer-service roles.",
+              "Microphone audio leaving the player’s machine for a server, with privacy and consent implications.",
+              "A hosted GPU per concurrent conversation is a cost that does not scale to many players.",
+              "English-only play."
+            ],
+            "ownership": [
+              "Dialogue and living-world owners choose the NPC, the prompt composition and the judgement criteria.",
+              "The project owner decides licence acceptance and GPU spend."
+            ],
+            "migrationRollback": [
+              "A trial lives on a rented host and in a scratch prompt file; stopping the server and deleting the host leaves Aralia untouched.",
+              "A later integration sits behind a provider switch beside Ollama and Groq and can be removed by deleting that branch."
+            ],
+            "conclusion": "Test as an optional sidecar"
+          },
+          "experiment": {
+            "question": "Can one Aralia NPC, with a role prompt composed from its archetype, speech profile and knowledge profile, hold a ten-minute spoken conversation in character on PersonaPlex with latency and interruption that feel natural, and does its transcript let the existing intent reader classify the player’s lines sensibly?",
+            "exactInput": "One existing NPC chosen by the dialogue owner, a role prompt written by hand from that NPC’s archetype, speech profile and knowledge profile in the customer-service “Information:” shape, one natural voice (NATM or NATF), the stock server and client on a rented 24 GB GPU, seed fixed, default sampling, and a scripted list of twelve player lines covering talk, a skill attempt, an insult and an attack.",
+            "pinnedRevisions": [
+              "NVIDIA/personaplex at commit 3428dfd95309a7f3c84fd93259ded0f810d1ff91",
+              "nvidia/personaplex-7b-v1 weights revision recorded at download time",
+              "Aralia at b35ea0ff84591e5f4f1d69c4ecc5d7bf918566fc",
+              "GPU model, driver, CUDA and torch versions recorded from the host before the run"
+            ],
+            "expectedOutput": "A recording of the conversation, the streamed transcript, measured first-audio latency per turn, a count of persona breaks and fact errors against the prompt, the intent reader’s classification of each scripted player line run offline from the transcript, and a short verdict, all under .agent/scratch.",
+            "projectBaseline": "b35ea0ff84591e5f4f1d69c4ecc5d7bf918566fc; cloud clone inspected 2026-10-27T22:04:12Z with only Idea Board edits uncommitted",
+            "measurements": [
+              "First-audio latency per turn and the number of successful interruptions.",
+              "Persona breaks, fact errors and out-of-world references in ten minutes.",
+              "Intent reader agreement with the scripted intent of each player line.",
+              "GPU memory and server wall-clock."
+            ],
+            "limit": "One NPC, one voice, one session of at most ten minutes, at most two hours of rented GPU, the stock client only, no Aralia code change, no player audio beyond the owner’s own.",
+            "acceptanceCriteria": [
+              "The model stays in the NPC’s role and uses the knowledge-profile facts correctly for most of the session, with no more than two fact errors.",
+              "Interruptions and backchannels work and first-audio latency feels conversational to the owner.",
+              "The intent reader classifies at least ten of the twelve scripted lines as intended from the transcript."
+            ],
+            "rejectionCriteria": [
+              "The model drops the fantasy role or answers as a generic assistant repeatedly.",
+              "Latency or memory makes the session unusable on a 24 GB card.",
+              "The licence forbids the intended use, or the intent reader misreads most spoken lines."
+            ],
+            "isolationBoundary": "A rented GPU host running the stock PersonaPlex server and client; the role prompt is a scratch file; Aralia is read only for the NPC data and the offline intent-reader run.",
+            "cleanup": "Delete the host and its weights cache, keep the recording, transcript and measurements under .agent/scratch, and append a dated result revision here only if the experiment is actually run.",
+            "result": "",
+            "resultAt": ""
+          }
+        }
+      ],
+      "lexicon": [
+        {
+          "term": "Full duplex",
+          "meaning": "Listening and speaking at the same time in one model, so it can pause, interrupt and acknowledge while the other person talks."
+        },
+        {
+          "term": "Backchannel",
+          "meaning": "A short acknowledgement such as “uh-huh” given while the other person is still speaking."
+        },
+        {
+          "term": "Role prompt",
+          "meaning": "The text that sets the agent’s identity, manner and facts for a session; PersonaPlex’s customer-service prompts carry facts after “Information:”."
+        },
+        {
+          "term": "Voice conditioning",
+          "meaning": "Choosing the agent’s voice by a packaged audio embedding rather than by text."
+        },
+        {
+          "term": "Mimi",
+          "meaning": "The neural audio codec that turns speech into tokens the language model consumes and produces, at 24 kHz."
+        },
+        {
+          "term": "Knowledge profile",
+          "meaning": "Aralia’s per-NPC set of facts injected into the AI dialogue prompt; the natural source of a role prompt’s facts."
+        },
+        {
+          "term": "Intent reader",
+          "meaning": "Aralia’s classifier that reads every conversation line as talk, skill, flee, attack or ambiguous and triggers game effects."
         }
       ]
     }

@@ -11,6 +11,9 @@ export const categories = [
   { id: 'world', name: 'World & environments', description: 'Water, terrain, and living landscapes' },
   { id: 'effects', name: 'Combat effects', description: 'Readable abilities and visual timing' },
   { id: 'authoring', name: 'Authoring & review', description: 'Staging, inspection, and creative tools' },
+  // Added 2026-10-27 with IB-0018: none of the five categories above held NPC
+  // dialogue, voice or intent research, and the board now has a record there.
+  { id: 'conversation', name: 'Characters & conversation', description: 'NPC dialogue, voice, and intent' },
 ];
 
 export const projects = [
@@ -69,6 +72,10 @@ export const concepts = {
   // GPU-driven terrain, grass and foliage on WebGPU. A world record; the
   // plan-map initiatives below carry the suggested rendering and perf links.
   'IB-0016': { title: 'Open-world terrain', category: 'world', image: 'terrain', connections: [aralia('world', 'GPU-driven grass, foliage impostors, HZB culling and splat terrain complement the streamed ground world and its WebGPU migration.', 'IB-0016')] },
+  // IB-0018 (2026-10-27): full-duplex speech-to-speech NPC conversation with a
+  // text persona prompt (PersonaPlex). The portrait illustration stands in for a
+  // talking character; the recorded link is the topic-based dialogue initiative.
+  'IB-0018': { title: 'Voiced NPCs', category: 'conversation', image: 'portrait', connections: [connection('aralia', 'ui/dialogue', 'recorded', 'The assessment names topic-based NPC dialogue, the conversation panel and the embodied-DM arbiter as the surfaces a spoken persona would sit behind.', 'IB-0018: current assessment, fit.complements and fit.couldHelp')] },
 };
 
 export function conceptFor(record) {
@@ -99,6 +106,7 @@ export function configurePlanmap(plan) {
     'IB-0014': ['entity-generator-3d', 'entity-studio-carveout'],
     'IB-0015': ['cc0-clip-animation', 'rig-bench', 'entity-generator-3d'],
     'IB-0016': ['webgpu-migration', 'forests', 'ground3d-water-surface', 'perf-toolkit-3d'],
+    'IB-0018': ['ai-arbiter', 'conversation-panel', 'universal-intent-reader', 'npc-personality-system'],
   };
   for (const [id, concept] of Object.entries(concepts)) {
     for (const link of concept.connections) if (link.project === 'aralia' && previous[link.scope]) link.scope = previous[link.scope];
