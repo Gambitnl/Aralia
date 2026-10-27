@@ -65,6 +65,10 @@ export const concepts = {
   // and motion review; the plan-map initiatives below carry the suggested
   // Aralia links, chiefly the rigged creature bestiary under cc0-clip-animation.
   'IB-0015': { title: 'Creature mocap', category: 'motion', image: 'motion', connections: [studio('motion', 'The assessment places captured creature clips in Entity Studio rig and motion review, beside the rigged creature bestiary plan.', 'IB-0015'), generator('Creature animation from AI video may be relevant; the separate project has not been assessed against this source.')] },
+  // IB-0016 (2026-10-27): RedGPU 4.4.0-Alpha as a technique reference for
+  // GPU-driven terrain, grass and foliage on WebGPU. A world record; the
+  // plan-map initiatives below carry the suggested rendering and perf links.
+  'IB-0016': { title: 'Open-world terrain', category: 'world', image: 'terrain', connections: [aralia('world', 'GPU-driven grass, foliage impostors, HZB culling and splat terrain complement the streamed ground world and its WebGPU migration.', 'IB-0016')] },
 };
 
 export function conceptFor(record) {
@@ -94,6 +98,7 @@ export function configurePlanmap(plan) {
     'IB-0011': ['rig-bench', 'entity-generator-carveout'],
     'IB-0014': ['entity-generator-3d', 'entity-studio-carveout'],
     'IB-0015': ['cc0-clip-animation', 'rig-bench', 'entity-generator-3d'],
+    'IB-0016': ['webgpu-migration', 'forests', 'ground3d-water-surface', 'perf-toolkit-3d'],
   };
   for (const [id, concept] of Object.entries(concepts)) {
     for (const link of concept.connections) if (link.project === 'aralia' && previous[link.scope]) link.scope = previous[link.scope];

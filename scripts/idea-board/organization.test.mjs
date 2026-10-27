@@ -53,7 +53,8 @@ test('category grouping partitions records exactly once while project grouping p
 
 test('scope filters do not leak other projects and preserve multi-project relevance', () => {
   const world = data.records.filter((record) => matchesProject(record, 'aralia/world'));
-  assert.deepEqual(world.map((record) => record.id).sort(), ['IB-0001', 'IB-0002', 'IB-0003', 'IB-0004']);
+  // IB-0016 (open-world terrain reference, 2026-10-27) joined the world scope.
+  assert.deepEqual(world.map((record) => record.id).sort(), ['IB-0001', 'IB-0002', 'IB-0003', 'IB-0004', 'IB-0016']);
   const motion = data.records.find((record) => record.id === 'IB-0007');
   assert.ok(matchesProject(motion, 'entity-studio/motion'));
   assert.ok(matchesProject(motion, 'aralia/character/character-creator'));
@@ -63,10 +64,11 @@ test('scope filters do not leak other projects and preserve multi-project releva
   assert.ok(allAralia.length >= 6);
   assert.ok(allAralia.every((group) => group.projectId === 'aralia'));
   // Unique records reachable under Aralia. 11 through IB-0013; IB-0014 (mesh
-  // refinement) and IB-0015 (creature mocap), both 2026-10-27, reach Aralia only
-  // through their suggested plan-map initiative links, which is the
+  // refinement) and IB-0015 (creature mocap) reach Aralia only through their
+  // suggested plan-map initiative links, and IB-0016 (open-world terrain) is a
+  // recorded world connection; all three are 2026-10-27. This is the
   // multi-project relevance this test preserves.
-  assert.equal(new Set(allAralia.flatMap((group) => group.records.map((record) => record.id))).size, 13);
+  assert.equal(new Set(allAralia.flatMap((group) => group.records.map((record) => record.id))).size, 14);
 });
 
 test('Planmap categories and initiatives include standalone projects and multi-category research', () => {

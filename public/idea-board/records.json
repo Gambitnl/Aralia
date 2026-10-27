@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "boardTitle": "Aralia Idea Board",
-  "generatedAt": "2026-10-27T20:37:30Z",
+  "generatedAt": "2026-10-27T20:48:39Z",
   "localProject": {
     "name": "Aralia",
     "committedBaseline": {
@@ -9,9 +9,9 @@
       "committedAt": "2026-10-04T02:17:29+02:00"
     },
     "workspaceInspection": {
-      "inspectedAt": "2026-10-27T20:37:30Z",
+      "inspectedAt": "2026-10-27T20:48:39Z",
       "dirty": true,
-      "note": "Cloud clone of branch ccr-2da4fbce-xouf23 at the committed baseline plus the uncommitted IB-0015 board edits and a plan-map status note; no source code differed. Earlier assessments were made against the shared Windows checkout and keep their own baselines."
+      "note": "Cloud clone of branch ccr-2da4fbce-xouf23 at the committed baseline plus the uncommitted IB-0016 board edits; no source code differed. Earlier assessments were made against the shared Windows checkout and keep their own baselines."
     }
   },
   "records": [
@@ -6628,6 +6628,349 @@
         {
           "term": "Bestiary path A",
           "meaning": "Aralia’s approved plan to spawn named monsters as self-contained rigged, animated GLBs beside the procedural generator."
+        }
+      ]
+    },
+    {
+      "id": "IB-0016",
+      "title": "GPU-driven open-world terrain, grass and foliage engine on WebGPU",
+      "summary": "RedGPU 4.4.0-Alpha (redcamel/RedGPU, MIT) is a complete WebGPU-only JavaScript engine whose October 2026 alpha adds a Landscape system: tile-streamed 16-bit heightmaps, continuous LOD morphing, GPU frustum and HZB occlusion culling, multi-layer splatting with stochastic tiling, compute-baked grass and foliage drawn through render bundles and indirect draws, octahedral impostors, a scene-wide wind manager, a lake surface with character ripples, and KTX2 textures. Aralia already renders on three.js’s WebGPU path, so the engine itself is not adoptable; its value is as a readable reference for the GPU-driven techniques that answer Aralia’s CPU-bound draw cost and its canopy, ground and water gaps.",
+      "problem": "Render a large walkable world with dense grass, forests and water on WebGPU without the CPU paying per draw, which is the exact cost that makes Aralia’s river scene slower on WebGPU than on WebGL (GG-362) and keeps forest canopy and ground detail short of the BG3 parity targets.",
+      "tags": [
+        "WebGPU",
+        "terrain streaming",
+        "GPU-driven rendering",
+        "indirect draw",
+        "render bundle",
+        "HZB occlusion",
+        "grass",
+        "foliage impostors",
+        "splat terrain",
+        "KTX2",
+        "lake water",
+        "wind"
+      ],
+      "kind": "complete implementation",
+      "relatedIdeaIds": [
+        "IB-0001",
+        "IB-0003",
+        "IB-0004"
+      ],
+      "sources": [
+        {
+          "id": "SRC-0076",
+          "title": "RedGPU repository at 4.4.0-Alpha",
+          "url": "https://github.com/redcamel/RedGPU",
+          "type": "GitHub repository",
+          "role": "primary",
+          "publishedAt": "unavailable: the shallow clone holds only the latest commit (2026-10-26T05:43:01Z); the LICENCE names 2019 as the project’s first year",
+          "latestRevisionInspected": "2026-10-27",
+          "licence": "MIT (LICENCE.md, Copyright 2019~ Redcamel). Example terrain tiles are fetched from the author’s separate testAsset site and carry no stated licence.",
+          "provenance": "Shallow clone of the public repository on 2026-10-27 from a cloud session at commit 95aaf9a9ecb3c5ccfcfc824ccad1a6489392cf68 (“chore: update build, inspector and examples”), with blobs over 512 KB left out. README.md, LICENCE.md, package.json, the src/ tree (543 TypeScript files, about 97,900 lines), the bilingual JSDoc headers of Landscape.ts, GrassManager.ts, GrassRenderer.ts, GrassCuller.ts, GrassInstanceBaker.ts, FoliageManager.ts, bakeFoliageImpostor.ts, WindManager.ts, Lake.ts, LakeInteractionManager.ts and BitmapTexture.ts, and the landscapeAndWater example were read. Nothing was built or run.",
+          "archiveUrl": "",
+          "claims": [
+            "Landscape.ts describes itself as the core class that integrates tile streaming, GPU-driven frustum and HZB occlusion culling, continuous LOD morphing, multi-layer splatting, and the foliage and grass ecosystems for a terrain of a given world size.",
+            "GrassManager and GrassRenderer describe large-scale grass scattering with camera-centred GPU instance baking in a compute shader, GPU frustum and distance culling, and rendering through GPURenderBundle and indirect draw calls in the main and shadow passes.",
+            "FoliageManager describes foliage type registration, sub-cell streaming, GPU culling and a depth prepass; bakeFoliageImpostor bakes base colour, world-space normal and packed ORM atlases for octahedral impostors.",
+            "Lake.ts describes a water surface mesh with real-time vertex waves and object interaction ripples; LakeInteractionManager collects meshes intersecting the surface and derives submersion strength, speed and footstep impulses.",
+            "BitmapTexture loads PNG, JPG, WebP, SVG and KTX2 compressed textures; package.json lists ktx-parse and fzstd among the build dependencies and names the version 4.4.0-Alpha under MIT."
+          ],
+          "demonstrates": [
+            "A whole engine, not a library: its own renderer, materials, glTF loader, IBL and skybox, shadows, post effects, tone mapping, picking, antialiasing, camera controllers, and physics through a rapier dependency, with Korean and English JSDoc throughout.",
+            "Seven landscape examples (basicTerrain, tileStreaming, multiLayerSplatting, proceduralGrass, foliageAndImpostors, landscapeAndWater, openWorldIntegration) that import the built dist/index.js and stream a 16 x 16 grid of 512 px 16-bit PNG tiles from the author’s hosting."
+          ],
+          "implementationContains": [
+            "src/landscape (core renderer, spatial tiles and GPU culler, shader library with stochastic tiling, weight-map sampler, scatter base classes, grass and foliage subsystems), src/wind/WindManager.ts, src/water/Lake.ts with lakeCore, src/utils/texture/textureParser/createGPUTextureFromKTX2.ts, and a rollup build to dist/ of about 7.8 MB; the package is not published on npm (registry lookup returned 404 on 2026-10-27)."
+          ]
+        },
+        {
+          "id": "SRC-0077",
+          "title": "RedGPU Landscape core class",
+          "url": "https://github.com/redcamel/RedGPU/blob/95aaf9a9ecb3c5ccfcfc824ccad1a6489392cf68/src/landscape/Landscape.ts",
+          "type": "implementation repository",
+          "role": "supporting",
+          "publishedAt": "unavailable: the shallow clone does not carry the file’s history",
+          "latestRevisionInspected": "2026-10-27",
+          "licence": "MIT with the repository.",
+          "provenance": "Read from the local clone at the pinned commit on 2026-10-27: the class JSDoc, the constructor options and the accessor documentation (1,322 lines in total; the shader and streaming bodies were skimmed, not studied).",
+          "archiveUrl": "",
+          "claims": [
+            "A Landscape takes a world size (default 2,000, the example uses 4,000 with heightScale 300 and tileLoadingRadius 1,250), a global heightmap URL and a tile URL resolver, and exposes a shared LOD grid geometry, a tile instance buffer with indirect draw buffers, a debugger manager with wireframe and LOD colouring, and the foliage, grass and material managers.",
+            "LOD debug colours cover eight levels (0 to 7) and the base tile grid presets are 16, 32 or 64 quads per side."
+          ],
+          "demonstrates": [
+            "The API shape a port would have to match in spirit: one terrain object that owns streaming, culling and both vegetation ecosystems."
+          ],
+          "implementationContains": [
+            "The Landscape class, its options interface and its managers wiring."
+          ]
+        },
+        {
+          "id": "SRC-0078",
+          "title": "RedGPU V4.4.0-Alpha release",
+          "url": "https://github.com/redcamel/RedGPU/releases/tag/V4.4.0-Alpha",
+          "type": "GitHub release",
+          "role": "release evidence",
+          "publishedAt": "2026-10-26",
+          "latestRevisionInspected": "unavailable: the release page answered 403 through the session proxy and was not opened",
+          "licence": "MIT with the repository.",
+          "provenance": "Not opened. A web search summary of the Korean release notes, dated 2026-10-26, lists Landscape, Foliage and Grass, Water.Lake, WindManager and KTX2 support for BitmapTexture as the new systems; the clone’s package.json version and src modules corroborate that list.",
+          "archiveUrl": "",
+          "claims": [
+            "Per the search summary, the release targets large open-world scenes and merges trunk and leaf wind into one calculation, folds wind speed and wave speed into one flowRateScale parameter for the water, and makes the foliage grid sizes internal constants."
+          ],
+          "demonstrates": [
+            "Nothing was inspected on the page itself."
+          ],
+          "implementationContains": [
+            "Release notes only, per the summary."
+          ]
+        },
+        {
+          "id": "SRC-0079",
+          "title": "Supplied redcamel15 X post",
+          "url": "https://x.com/redcamel15/status/2114606572165046472",
+          "type": "social discovery post",
+          "role": "discovery",
+          "publishedAt": "unavailable: the post was not opened; its id falls in the 2026-10-26 range of neighbouring posts",
+          "latestRevisionInspected": "unavailable: the session’s network policy denies x.com and its mirrors, and a direct fetch was refused by the session’s permission guard",
+          "licence": "unavailable: the post was not read",
+          "provenance": "Supplied by the project owner in chat on 2026-10-27 and listed as unread in gap IB-G5 before this record. A web search index snapshot of the account’s profile shows a pinned post dated 2026-10-26 announcing RedGPU V4.4.0-Alpha as a major WebGPU update bringing large-scale open-world rendering to the browser, naming terrain, foliage and grass, interactive water, global wind and KTX2 textures. Whether that pinned post is this status id is unconfirmed; no claim in this record rests on the post.",
+          "archiveUrl": "",
+          "claims": [
+            "The indexed pinned post from the same account on 2026-10-26 announces the release; the supplied post itself was not read."
+          ],
+          "demonstrates": [
+            "Nothing beyond the indexed profile snippet was inspected."
+          ],
+          "implementationContains": [
+            "No implementation; the post links the release."
+          ]
+        }
+      ],
+      "revisions": [
+        {
+          "id": "IB-0016-R001",
+          "previousRevisionId": "",
+          "assessedAt": "2026-10-27T20:48:39Z",
+          "sourceProvidedAt": "2026-10-27",
+          "status": "worth watching",
+          "confidence": "medium",
+          "changeSummary": "Initial assessment from the repository at a pinned commit, the day after its alpha release; the supplied X post stayed unread. Recorded as a technique reference, not an engine candidate: Aralia is committed to three.js’s WebGPU path, and RedGPU’s GPU-driven grass, foliage, culling and splatting are the parts that speak to open Aralia gaps.",
+          "projectBaseline": {
+            "commit": "b35ea0ff84591e5f4f1d69c4ecc5d7bf918566fc",
+            "committedAt": "2026-10-04T02:17:29+02:00",
+            "inspectedAt": "2026-10-27T20:48:39Z",
+            "dirty": true,
+            "dirtyNote": "Cloud clone of branch ccr-2da4fbce-xouf23 at the commit named, carrying the uncommitted IB-0016 board edits; no source code differed from the baseline."
+          },
+          "facts": [
+            "RedGPU at commit 95aaf9a (2026-10-26) is an MIT-licensed, WebGPU-only JavaScript engine (package redgpu, version 4.4.0-Alpha) of 543 TypeScript files and about 97,900 lines, built with rollup to a dist/ of about 7.8 MB; it is not published on npm, and its JSDoc is written in Korean and English side by side.",
+            "Its Landscape class integrates tile streaming of a global heightmap plus 16-bit PNG height tiles chosen by a URL resolver and a loading radius, GPU-driven frustum and HZB occlusion culling of tiles, continuous LOD morphing over eight levels, multi-layer weight-map splatting with stochastic tiling in the shader library, and the foliage and grass managers; the example builds a 4,000 unit terrain with heightScale 300 and a 1,250 unit tile radius from a 16 x 16 grid of 512 px tiles.",
+            "Grass is baked onto the terrain by a compute shader in 16 m cells around the camera, culled by a compute frustum and distance pass, and drawn through GPURenderBundle plus indirect draws in the main and shadow passes, with per-type mega buffers holding near and far draw slots.",
+            "Foliage (3D meshes) is registered per type, streamed in 100 m sub-cells from a 100 m procedural seed grid, GPU-culled, drawn with a depth prepass, and baked into octahedral impostors (base colour, world normal and packed ORM atlases) for distance.",
+            "A scene-wide WindManager holds direction, speed and strength; a Lake class renders a wave surface with vertex waves, and its interaction manager turns meshes crossing the surface into submersion and footstep ripples; BitmapTexture accepts KTX2 compressed textures through ktx-parse and fzstd.",
+            "Per a web search summary of the Korean release notes (the page itself was not opened), V4.4.0-Alpha was released on 2026-10-26 and is the release that introduces these systems; a pinned post on the author’s X profile the same day announces it, and the supplied post id is in that date range but was not read.",
+            "Aralia at the baseline renders on three.js 0.172 with React Three Fiber 9, with WebGPURenderer and TSL in use across the ocean, river and probe scenes; the webgpu-migration plan-map topic has the ground probe, material parity and entity materials done, the battle-map migration active, and the default flip parked, and it names MIT TSL lifts (trees, grass, wind, clouds, sky, GI) from fable5-world-demo as the reason to build on the new renderer.",
+            "Aralia’s ground world builds chunk meshes per LOD tier from worldforge data with border skirts and a five-by-five chunk window around the player, colours terrain by biome rather than splat textures, scatters vegetation deterministically from vertex hashes on the CPU (vegetationScatter.ts) into instanced grass, understory and ez-tree fields, and uses no KTX2 textures.",
+            "GG-362 records that the river on WebGPU is CPU-bound: the same 337 to 437 draws a frame as WebGL, at about 27 µs of CPU per draw against 12 on WebGL, so whole frames run 7.5 to 21.9 ms against 7.2 to 16.6 ms; GG-341 records five water systems that never meet; the forests topic records trees reading faceted and flat-shaded up close with the canopy unjudged.",
+            "Nothing was built or run during this assessment; no file from RedGPU entered Aralia."
+          ],
+          "inferences": [
+            "Adopting RedGPU is off the table: it is a second engine with its own renderer and scene graph, in alpha, not on npm, and Aralia’s migration is already half-way across three’s WebGPU path with TSL lifts planned. Two WebGPU engines cannot share one scene.",
+            "The techniques are the value. Compute-baked instances, compute culling, render bundles and indirect draws remove exactly the per-draw CPU cost that GG-362 measures, and three 0.172’s WebGPU backend exposes compute through TSL and has indirect-draw and render-bundle support whose maturity in that release is unverified.",
+            "Octahedral impostors and GPU-culled foliage sub-cells are the most direct answer to the forests topic’s faceted trees and unjudged canopy; splatting with stochastic tiling speaks to the BG3 parity ground surface; the lake’s footstep ripples speak to the ground water surface; KTX2 speaks to texture memory once the beautification catalogs grow.",
+            "Because the engine is bilingual, example-rich and MIT, it is a cheaper read than most papers for these techniques, but at about 98,000 lines it is a time sink unless the read is scoped to one subsystem at a time.",
+            "Medium confidence: module headers, the main class and one example read at a pinned commit; no render measured; the release notes and post known only through a search summary."
+          ],
+          "unknowns": [
+            "Whether three 0.172’s WebGPU backend supports indirect draws and render bundles well enough for a grass port, or whether that needs a three upgrade.",
+            "Measured frame cost of RedGPU’s grass and tile streaming at a blade count and resolution comparable to Aralia’s world window.",
+            "How RedGPU’s heightmap-tile terrain source would map onto Aralia’s procedurally generated ground, which has no height tiles.",
+            "The licence of the example terrain tiles on the author’s hosting, and how stable the alpha API is between releases.",
+            "What the supplied post and the release page say beyond the indexed summaries."
+          ],
+          "recommendations": [
+            "Keep this as a reference record; do not import RedGPU or run it inside Aralia.",
+            "When the GG-362 draw-cost work is picked up, read src/landscape/grass (baker, culler, renderer) first and write the TSL equivalent behind a flag in the WebGPU probe scene.",
+            "When the forests canopy is judged, read bakeFoliageImpostor.ts and the foliage sub-cell streaming as the impostor reference.",
+            "Cross-link this record from GG-362 so the next agent on that gap finds the reference without searching."
+          ],
+          "technique": {
+            "requiredInput": [
+              "A global heightmap and 16-bit height tiles reachable by URL, weight maps per splat layer, grass and foliage source meshes with textures, lake dimensions, and wind parameters; all inside a RedGPU context, scene and view."
+            ],
+            "processingSteps": [
+              "Stream height tiles by radius; cull tiles on the GPU by frustum and a hierarchical depth buffer; morph LOD continuously; blend splat layers with stochastic tiling; bake grass instances in compute around the camera and foliage per sub-cell from a seed grid; cull both in compute; draw through render bundles and indirect draws; bake distant foliage to octahedral impostors; animate grass, leaves and the lake from one wind manager; load textures as KTX2 where provided."
+            ],
+            "producedOutput": [
+              "A rendered open-world frame on WebGPU with terrain, grass, foliage, impostors and a lake, plus draw-call and instance counters on the managers and a debugger for wireframe and LOD colouring."
+            ],
+            "dependencies": [
+              "RedGPU’s own engine (renderer, materials, loaders, IBL, shadows, post effects); gl-matrix; ktx-parse and fzstd for KTX2; rapier for physics examples."
+            ],
+            "runtimeRequirements": [
+              "A WebGPU-capable browser; no WebGL fallback; terrain tiles served over HTTP."
+            ],
+            "manualWork": [
+              "Author heightmaps, tiles and weight maps; choose grass and foliage meshes and textures; tune LOD, radii and wind; host assets."
+            ],
+            "componentTypes": [
+              "Deterministic GPU compute baking and culling, a hierarchical-Z occlusion pass, render bundles with indirect draws, geomorphing LOD meshes, splat materials, impostor baking, a vertex-wave water surface, and a compressed-texture loader."
+            ],
+            "externalRequirements": [
+              "None beyond a browser and asset hosting; the engine is MIT and self-contained."
+            ],
+            "licenceConstraints": [
+              "MIT for the engine (attribution and licence notice if code is lifted); the example terrain tiles on the author’s hosting carry no stated licence and must not be copied into Aralia."
+            ],
+            "knownLimitations": [
+              "Alpha release with API changes between pull requests; WebGPU only; a whole engine rather than composable modules; documentation partly Korean; not on npm; the terrain source is height tiles, not procedural ground."
+            ],
+            "doesNotSolve": [
+              "Anything inside three.js: it offers no three materials, no TSL nodes and no R3F components; it does not animate characters, run gameplay, or replace Aralia’s FFT ocean or river solver."
+            ]
+          },
+          "comparisons": [
+            {
+              "dimension": "Draw submission and culling",
+              "externalApproach": "Instances are baked and culled in compute shaders and drawn through render bundles with indirect draws, so the CPU issues a handful of commands per frame regardless of blade or tile count.",
+              "projectApproach": "Vegetation instances are generated on the CPU per chunk and drawn as three.js instanced meshes culled per object; on three 0.172’s WebGPU path each of the river’s 337 to 437 draws costs about 27 µs of CPU against 12 on WebGL (GG-362).",
+              "meaningfulDifference": "RedGPU moves the per-draw work to the GPU; Aralia pays it on the CPU per draw, and more so on WebGPU than on WebGL.",
+              "practicalConsequence": "The technique class in RedGPU’s grass path is the remedy GG-362 needs; porting it means TSL compute for baking and culling plus indirect draws in three’s backend.",
+              "evidence": "GrassInstanceBaker.ts, GrassCuller.ts and GrassRenderer.ts headers at commit 95aaf9a; docs/projects/GLOBAL_GAPS.md GG-362; src/systems/world3d/vegetationScatter.ts at baseline b35ea0ff.",
+              "uncertainty": "Three 0.172’s indirect-draw and render-bundle support was not tested; RedGPU’s own frame cost was not measured."
+            },
+            {
+              "dimension": "Terrain representation",
+              "externalApproach": "One Landscape of a fixed world size fed by a global heightmap and streamed 16-bit height tiles, with continuous LOD morphing over eight levels, HZB occlusion and multi-layer splatting with stochastic tiling.",
+              "projectApproach": "Chunk meshes built per LOD tier from procedurally generated worldforge ground data with border skirts, a five-by-five chunk window, and biome colouring from terrainColor.ts rather than splat textures.",
+              "meaningfulDifference": "RedGPU’s ground is an authored heightmap world with textured splat layers; Aralia’s is generated on the fly and coloured, not textured.",
+              "practicalConsequence": "Splatting and geomorphing are portable ideas for the BG3 parity ground surface; the tile-streaming source model is not, because Aralia has no height tiles to stream.",
+              "evidence": "Landscape.ts header and landscapeAndWater example; src/systems/world3d/chunkGeometry.ts and src/systems/worldforge/bridge/groundChunkLoader.ts headers; the bg3-parity and forests plan-map topics.",
+              "uncertainty": "The visual gain of textured splatting over Aralia’s biome colouring at critique distance is unmeasured."
+            },
+            {
+              "dimension": "Engine boundary",
+              "externalApproach": "A complete alternative engine: renderer, scene graph, materials, loaders, post effects and physics, in an alpha that is not on npm.",
+              "projectApproach": "three.js 0.172 with React Three Fiber and drei, a WebGPU migration half complete, and planned MIT TSL lifts from fable5-world-demo for trees, grass, wind, clouds, sky and GI.",
+              "meaningfulDifference": "RedGPU would replace the stack; the fable5 lifts extend it.",
+              "practicalConsequence": "The only viable unit of reuse is a technique read and a TSL re-implementation; the engine stays outside Aralia.",
+              "evidence": "src/ tree and package.json at commit 95aaf9a; package.json three, @react-three/fiber and @react-three/drei at baseline b35ea0ff; the webgpu-migration topic’s dependency note.",
+              "uncertainty": "How much of the grass and foliage path depends on RedGPU-internal buffer and pipeline registries that have no three equivalent."
+            }
+          ],
+          "fit": {
+            "couldHelp": [
+              "A readable reference for compute-baked, compute-culled grass drawn with render bundles and indirect draws, the remedy class for GG-362.",
+              "Octahedral impostor baking and sub-cell foliage streaming for the forests canopy and distant trees.",
+              "HZB occlusion culling, splat layers with stochastic tiling, lake footstep ripples and KTX2 loading as scoped reads when the matching Aralia work item comes up."
+            ],
+            "wouldNotHelp": [
+              "Replacing three.js, any 2D or combat surface, the FFT ocean or the river solver, character animation, or gameplay."
+            ],
+            "complements": [
+              "The webgpu-migration topic and its planned TSL lifts, the forests topic, ground3d-water-surface, perf-toolkit-3d, bg3-parity ground surface, and IB-0001, IB-0003 and IB-0004 as the other world-rendering records."
+            ],
+            "mustNotReplace": [
+              "The three.js and React Three Fiber stack, the chunk pipeline and worldforge ground source, the FFT ocean, the river reach, or accepted materials."
+            ],
+            "architecturalBoundary": [
+              "RedGPU is read, never imported: any port is a TSL re-implementation inside Aralia’s WebGPU path, behind a flag in the probe scene first, with MIT attribution if code is lifted.",
+              "No RedGPU asset, tile or texture enters Aralia; the example tiles are the author’s and unlicensed."
+            ],
+            "dependenciesIntroduced": [
+              "None; a port adds nothing beyond three."
+            ],
+            "blockers": [
+              "Three 0.172’s indirect-draw and render-bundle maturity is unverified for a grass port.",
+              "No owner has chosen the first technique to port or the measurement that would justify it.",
+              "Alpha API churn makes any line-level reference stale quickly."
+            ],
+            "risks": [
+              "A 98,000-line engine is a time sink unless the read stays scoped to one subsystem.",
+              "A port of the grass path may need three internals that 0.172 lacks, forcing a three upgrade mid-migration.",
+              "Copying the authored-heightmap mental model could pull the ground away from its procedural source."
+            ],
+            "ownership": [
+              "Rendering and performance owners choose the first technique and the measurement.",
+              "The forests and bg3-parity owners judge any visual port."
+            ],
+            "migrationRollback": [
+              "Nothing to roll back while the record is a reference; a port lives behind a flag in the probe scene and is removed by deleting that branch."
+            ],
+            "conclusion": "Watch for future maturity"
+          },
+          "experiment": {
+            "question": "At a comparable blade count and resolution, how much CPU and GPU frame time does RedGPU’s compute-baked, indirect-drawn grass cost against Aralia’s CPU-scattered instanced grass on three 0.172’s WebGPU path, and does three 0.172 expose the compute, indirect-draw and render-bundle surfaces a port would need?",
+            "exactInput": "RedGPU’s proceduralGrass and tileStreaming examples served from the pinned clone in Chrome with WebGPU, and Aralia’s World3D ground window with grass enabled on the WebGPU probe scene, both at 1600 x 900 with vsync off, three fixed camera poses each, blade counts matched by reading RedGPU’s GrassManager active-instance counter and Aralia’s perf census.",
+            "pinnedRevisions": [
+              "redcamel/RedGPU at commit 95aaf9a9ecb3c5ccfcfc824ccad1a6489392cf68",
+              "Aralia at b35ea0ff84591e5f4f1d69c4ecc5d7bf918566fc",
+              "Chrome version, GPU model and driver recorded before the run",
+              "three 0.172 WebGPU backend source for IndirectStorageBufferAttribute, RenderBundle and compute node support, with the file paths noted"
+            ],
+            "expectedOutput": "A table of CPU and GPU frame time, draw calls and instance counts per pose for both sides, a short list of the three 0.172 APIs a grass port would use and whether each exists, and captures of both scenes, all under .agent/scratch.",
+            "projectBaseline": "b35ea0ff84591e5f4f1d69c4ecc5d7bf918566fc; cloud clone inspected 2026-10-27T20:48:39Z with only Idea Board edits uncommitted",
+            "measurements": [
+              "CPU and GPU frame time per pose from each page’s own perf panel and Chrome’s tracing.",
+              "Draw calls and active instances per pose.",
+              "Presence and version notes for three 0.172’s compute, indirect-draw and render-bundle support."
+            ],
+            "limit": "Two hours, no money, no code change in Aralia, no RedGPU code copied, no asset downloaded beyond what the examples fetch into the browser cache.",
+            "acceptanceCriteria": [
+              "Both scenes render and report numbers at matched blade counts within 20 percent.",
+              "RedGPU’s CPU time per frame is lower than Aralia’s by a margin that would close most of the GG-362 gap at the river’s draw counts.",
+              "Three 0.172 exposes compute, indirect draws and render bundles, or the missing one is named with the release that adds it."
+            ],
+            "rejectionCriteria": [
+              "The RedGPU examples fail to run because the external tile host is unreachable or WebGPU is unavailable.",
+              "Blade counts cannot be matched within 20 percent.",
+              "RedGPU shows no CPU advantage at matched counts, or three lacks indirect draws with no planned release."
+            ],
+            "isolationBoundary": "The pinned RedGPU clone served from a scratch directory on a local static server; Aralia’s existing probe scene unchanged; results written only under .agent/scratch.",
+            "cleanup": "Remove the scratch server and clone, keep the table and captures under .agent/scratch, and append a dated result revision here only if the experiment is actually run.",
+            "result": "",
+            "resultAt": ""
+          }
+        }
+      ],
+      "lexicon": [
+        {
+          "term": "GPU-driven rendering",
+          "meaning": "Deciding what to draw on the GPU itself, with compute shaders writing instance lists and draw arguments, so the CPU issues few commands."
+        },
+        {
+          "term": "Indirect draw",
+          "meaning": "A draw call whose vertex and instance counts are read from a GPU buffer, so a compute pass can fill them without a CPU round trip."
+        },
+        {
+          "term": "Render bundle",
+          "meaning": "A pre-recorded sequence of WebGPU draw commands replayed each frame at almost no CPU cost."
+        },
+        {
+          "term": "HZB occlusion culling",
+          "meaning": "Rejecting objects hidden behind others by testing their bounds against a hierarchical depth buffer from the previous frame."
+        },
+        {
+          "term": "Continuous LOD morphing",
+          "meaning": "Blending terrain vertices between two detail levels by distance so the mesh never pops when a tile changes level; also called geomorphing."
+        },
+        {
+          "term": "Splat layer",
+          "meaning": "One terrain texture set blended in by a weight map channel; several layers make the ground’s surface."
+        },
+        {
+          "term": "Stochastic tiling",
+          "meaning": "Sampling a repeating texture at randomised offsets per region so the repeat pattern stops being visible."
+        },
+        {
+          "term": "Octahedral impostor",
+          "meaning": "A distant tree drawn as a card whose texture atlas holds views from many directions, picked by the viewing angle."
+        },
+        {
+          "term": "KTX2",
+          "meaning": "A container for GPU-compressed textures that stay compressed in video memory; supercompressed variants decode on load."
         }
       ]
     }
