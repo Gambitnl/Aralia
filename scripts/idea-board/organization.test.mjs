@@ -62,7 +62,10 @@ test('scope filters do not leak other projects and preserve multi-project releva
   const allAralia = groupRecords(data.records, 'project', 'aralia');
   assert.ok(allAralia.length >= 6);
   assert.ok(allAralia.every((group) => group.projectId === 'aralia'));
-  assert.equal(new Set(allAralia.flatMap((group) => group.records.map((record) => record.id))).size, 11);
+  // Unique records reachable under Aralia. 11 through IB-0013; IB-0014 (mesh
+  // refinement, 2026-10-27) reaches Aralia only through its suggested plan-map
+  // initiative links, which is the multi-project relevance this test preserves.
+  assert.equal(new Set(allAralia.flatMap((group) => group.records.map((record) => record.id))).size, 12);
 });
 
 test('Planmap categories and initiatives include standalone projects and multi-category research', () => {

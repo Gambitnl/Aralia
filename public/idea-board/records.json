@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
   "boardTitle": "Aralia Idea Board",
-  "generatedAt": "2026-09-23T10:16:06+02:00",
+  "generatedAt": "2026-10-27T20:23:03Z",
   "localProject": {
     "name": "Aralia",
     "committedBaseline": {
-      "commit": "dff21bbc292bc508a686979180373c3bbfa86953",
-      "committedAt": "2026-08-26T02:00:03+02:00"
+      "commit": "b35ea0ff84591e5f4f1d69c4ecc5d7bf918566fc",
+      "committedAt": "2026-10-04T02:17:29+02:00"
     },
     "workspaceInspection": {
-      "inspectedAt": "2026-09-23T10:16:06+02:00",
-      "dirty": true,
-      "note": "The shared workspace contained 2492 tracked and untracked entries during the latest assessment. The committed baseline is not the complete local project state."
+      "inspectedAt": "2026-10-27T20:23:03Z",
+      "dirty": false,
+      "note": "Clean cloud clone of branch ccr-2da4fbce-xouf23 at the committed baseline; earlier assessments were made against the shared Windows checkout and keep their own baselines."
     }
   },
   "records": [
@@ -5970,6 +5970,336 @@
             "result": "",
             "resultAt": ""
           }
+        }
+      ]
+    },
+    {
+      "id": "IB-0014",
+      "title": "Image-conditioned sparse mesh refinement for generated assets",
+      "summary": "An open inference release (Hi3D v1.0, built on Sparc3D) that takes a coarse mesh plus one reference image of the same object and refines the geometry through up to three sparse passes with 512, 1024 and 1536 cubed extraction grids. The code and eight weight files are public under the Hi3D Open License Agreement 1.0: commercial use is permitted, products that embed the model must carry a badge and apply for a separate licence above a scale threshold, while standalone output meshes carry no such obligation. It is geometry only, Linux and CUDA only, and validated solely on a 96 GB GPU, so it does not fit the hero pipeline’s 24 GB L4 job today.",
+      "problem": "Sharpen the soft geometry that image-to-3D generators leave on Aralia’s hero creatures and props (today TRELLIS.2 masters) without hand sculpting, while keeping every generator a detached candidate stage that never touches runtime assets.",
+      "tags": [
+        "mesh refinement",
+        "image to 3D",
+        "Sparc3D",
+        "Hi3D",
+        "sparse voxel",
+        "TRELLIS",
+        "hero pipeline",
+        "Entity Studio",
+        "GPU inference"
+      ],
+      "kind": "complete implementation",
+      "relatedIdeaIds": [
+        "IB-0008"
+      ],
+      "sources": [
+        {
+          "id": "SRC-0069",
+          "title": "Hi3D v1.0 inference repository",
+          "url": "https://github.com/hi3d-official/Hi3Dv1.0",
+          "type": "GitHub repository",
+          "role": "primary",
+          "publishedAt": "2026-10-23",
+          "latestRevisionInspected": "2026-10-27",
+          "licence": "Hi3D Open License Agreement Version 1.0 for the Hi3D-owned portions and the eight weight files listed in its Schedule 2; retained Apache-2.0 and MIT terms for the Sparc3D, TRELLIS, Pointcept, O-CNN and FlexiCubes portions per NOTICE and THIRD_PARTY_LICENSES.md.",
+          "provenance": "Shallow clone of the public repository made on 2026-10-27 from a cloud session at commit 13657ad09afaa92e350b461a1cd66399e44a59c4 (committed 2026-10-24T00:02:17+08:00). README.md, LICENSE, NOTICE, AUTHORS, pyproject.toml, docker/Dockerfile, the demo/refine_mesh.py argument list, and the memory sections of docs/installation.md and docs/pipeline.md were read. No weights were downloaded, no Python environment was built, and nothing was run.",
+          "archiveUrl": "",
+          "claims": [
+            "The README states a release date of 2026-10-23 and describes refinement of a coarse mesh into high-resolution geometry conditioned on one reference image, built on the Sparc3D representation.",
+            "The README reports training on about two million curated 3D assets and refinement up to an effective sparse extraction grid of 1536 cubed; the repository itself cannot reproduce the comparison tables because training code and the evaluation harness are not included.",
+            "docs/installation.md and docs/pipeline.md state that the 1536 cubed ladder was validated only on a 96 GB NVIDIA H20 and that peak memory and feasibility on smaller cards have not been established."
+          ],
+          "demonstrates": [
+            "A documented Python API (Sparc3DPipeline.from_pretrained, called with an image, a trimesh mesh, resolution, steps and seed) and a command-line demo that refines an existing coarse mesh with no Hunyuan dependency.",
+            "Comparison figures in assets/ show shaded and normal renderings against eight other methods; they are the authors’ own selections and were not reproduced."
+          ],
+          "implementationContains": [
+            "The sparc3d Python package (models, nn, ops, pipelines, schedulers, sparcubes, structures, utils), three demo scripts, a CUDA 12.4 Dockerfile with pinned constraints, and three documentation pages plus a technical report PDF."
+          ]
+        },
+        {
+          "id": "SRC-0070",
+          "title": "Hi3D Open License Agreement Version 1.0",
+          "url": "https://github.com/hi3d-official/Hi3Dv1.0/blob/13657ad09afaa92e350b461a1cd66399e44a59c4/LICENSE",
+          "type": "licensing documentation",
+          "role": "licence evidence",
+          "publishedAt": "2026-10-22",
+          "latestRevisionInspected": "2026-10-27",
+          "licence": "The document is the licence text itself; licensor OCEANO HK HOLDING LIMITED.",
+          "provenance": "Read from the local clone at the pinned commit on 2026-10-27. Sections 1 (definitions), 2.1 (commercial use), 3 (patent), 4 (distribution), 5 (scale threshold), 7 (branding), 8 (trademarks and notices) and 9 (outputs) were read in full; Schedule 1 and Schedule 2 were skimmed.",
+          "archiveUrl": "",
+          "claims": [
+            "Section 2.1: commercial use is permitted subject to Sections 5, 6, 7 and 8, with no revenue threshold separate from Section 5.",
+            "Section 5: a Related Product or Service above 200,000 monthly active users or USD 1,000,000 monthly revenue must apply for a separate written licence within 60 days.",
+            "Section 7: any entity integrating the Hi3D Materials into a Commercial Product or Service must display “Powered by Hi3D 1.0” with reasonable prominence.",
+            "Section 9: the licensor claims no ownership of outputs, and an output that contains no Hi3D Materials or Model Derivative may be reproduced, edited, sold and distributed without the badge, the NOTICE file, or a scale-based licence."
+          ],
+          "demonstrates": [
+            "A bespoke licence rather than a standard open-source text; its conditions attach to tools that embed the model, not to meshes the model produces."
+          ],
+          "implementationContains": [
+            "No implementation; the licence text, an Acceptable Use Policy schedule, and a Licensed Asset Schedule naming the eight weight files."
+          ]
+        },
+        {
+          "id": "SRC-0071",
+          "title": "Supplied Hi3D X article announcing the open-source release",
+          "url": "https://x.com/Hi3D_AI/status/2113456796715319591",
+          "type": "X Article and demonstration",
+          "role": "discovery",
+          "publishedAt": "2026-10-23",
+          "latestRevisionInspected": "unavailable: the cloud session’s network policy denied x.com and four mirror hosts, so the article body was never opened",
+          "licence": "unavailable: the article was not read",
+          "provenance": "Supplied by the project owner in chat on 2026-10-27. Not opened: the session proxy answered 403 to CONNECT for x.com, api.fxtwitter.com, fxtwitter.com, publish.twitter.com and cdn.syndication.twimg.com. A web search index entry lists the address as an X article titled “Hi3D V1.0 Is Now Open Source. Keep Creating.” dated 2026-10-23. Nothing else about its content is known, and no claim in this record rests on it.",
+          "archiveUrl": "",
+          "claims": [
+            "The indexed title announces that Hi3D V1.0 is open source."
+          ],
+          "demonstrates": [
+            "Nothing beyond the title was inspected."
+          ],
+          "implementationContains": [
+            "No implementation; the article links the release."
+          ]
+        },
+        {
+          "id": "SRC-0072",
+          "title": "Hi3D v1.0 model artifacts on Hugging Face",
+          "url": "https://huggingface.co/hi3d-official/Hi3Dv1.0",
+          "type": "release",
+          "role": "release evidence",
+          "publishedAt": "unavailable: the page was not opened",
+          "latestRevisionInspected": "unavailable: huggingface.co was not reachable from the assessing session",
+          "licence": "Per the README, the eight artifact files are Hi3D Materials under the Agreement; the model card itself was not read.",
+          "provenance": "Address taken from README.md at the pinned commit; not opened. The README lists the eight runtime files the repository holds and says the loader consumes JSON and safetensors only.",
+          "archiveUrl": "",
+          "claims": [
+            "The README states that the weights are model_index.json, a scheduler config, a VAE config and safetensors, and transformer_512 and transformer_1024 configs and safetensors."
+          ],
+          "demonstrates": [
+            "Nothing was inspected on the page itself."
+          ],
+          "implementationContains": [
+            "Eight weight and configuration files per the README; the DINOv2-large and CLIP ViT-L/14 encoders are separate downloads."
+          ]
+        }
+      ],
+      "revisions": [
+        {
+          "id": "IB-0014-R001",
+          "previousRevisionId": "",
+          "assessedAt": "2026-10-27T20:23:03Z",
+          "sourceProvidedAt": "2026-10-27",
+          "status": "worth watching",
+          "confidence": "medium",
+          "changeSummary": "Initial assessment from the public repository at a pinned commit; the supplied X article itself was not readable from the assessing session. The release is real, documented, and permissive for output meshes, but its GPU floor and geometry-only output keep it out of the current hero pipeline until a smaller-card feasibility result and a texture-restoration step exist.",
+          "projectBaseline": {
+            "commit": "b35ea0ff84591e5f4f1d69c4ecc5d7bf918566fc",
+            "committedAt": "2026-10-04T02:17:29+02:00",
+            "inspectedAt": "2026-10-27T20:23:03Z",
+            "dirty": false,
+            "dirtyNote": "Clean cloud clone of branch ccr-2da4fbce-xouf23 at the commit named; no uncommitted work existed before this record was written."
+          },
+          "facts": [
+            "The README, read at commit 13657ad (2026-10-24), gives the release date as 2026-10-23 and describes Hi3D v1.0 as refinement of a coarse mesh into high-resolution geometry conditioned on one reference image of the same object, built on the Sparc3D representation and refinement architecture.",
+            "Three refinement passes are documented: nominal structural grids of 64, 128 and 192 cubed with sparse extraction grids of 512, 1024 and 1536 cubed; a 512 request runs one pass, 1024 two, and 1536 all three, each with 25 scheduler updates by default.",
+            "The documented Python API is Sparc3DPipeline.from_pretrained(“hi3d-official/Hi3Dv1.0”), called with a PIL image, a trimesh mesh, a resolution in {512, 1024, 1536}, a step count and a seed; it returns a geometry-only trimesh.Trimesh. demo/refine_mesh.py exposes the same with --sequential-cpu-offload, --remove-background and offline flags.",
+            "Output is geometry only: no textures, materials or vertex colours, and the mesh is recentred and normalised to unit maximum radius, so input scale and world coordinates are not preserved.",
+            "Requirements are Linux, Python 3.10 only, an NVIDIA GPU of compute capability 8.0 or newer, a CUDA toolkit in the 12.0 to 12.5 range, flash-attn 2.7.4.post1 with no fallback attention path, spconv-cu120 2.3.6 and Triton kernels; there is no CPU inference path. The measured stack was Python 3.10.12, PyTorch 2.5.0+cu124 and a 96 GB NVIDIA H20, and both docs/installation.md and docs/pipeline.md say the 1536 ladder was validated only on that GPU with no minimum VRAM established.",
+            "Weights are eight files on Hugging Face (model_index.json, a scheduler config, a VAE config and safetensors, transformer_512 and transformer_1024 configs and safetensors); the conditioning encoders facebook/dinov2-large and openai/clip-vit-large-patch14 are downloaded separately on first use. The loader reads JSON and safetensors only and does not unpickle checkpoints.",
+            "The repository holds inference code only; training code, the evaluation harness, benchmark splits and comparison meshes are not included. GPU sparse convolution and attention are stated to be not bitwise deterministic, so seeds do not act as mesh hashes.",
+            "The LICENSE is the Hi3D Open License Agreement Version 1.0 dated 2026-10-22 from OCEANO HK HOLDING LIMITED. It grants a royalty-free licence to use, modify, distribute and sell the Hi3D Materials; commercial use is permitted; a product that integrates the Materials must display “Powered by Hi3D 1.0” (Section 7); a Related Product above 200,000 monthly active users or USD 1,000,000 monthly revenue must apply for a separate licence within 60 days (Section 5); and Section 9 says outputs containing no Hi3D Materials carry none of the branding, NOTICE or scale obligations. Third-party portions keep their Apache-2.0 and MIT terms per NOTICE.",
+            "An optional demo adapter (demo/coarse_stage.py) calls Tencent Hunyuan3D-2 mini as a coarse generator; the README states Hunyuan is neither a dependency of the core library nor relicensed by Hi3D, and demo/refine_mesh.py has no Hunyuan import.",
+            "Aralia at the baseline makes hero creature masters with Microsoft TRELLIS.2: tools/creatureHero/convert.py and gcp/gcp-convert.sh run it on a self-owned GCP spot g2-standard-8 with one 24 GB NVIDIA L4 (about EUR 0.25 to 0.40 per hour, 15 to 25 minutes a run) and export a textured master.glb at a 100,000-face target with 1024-pixel textures; tools/creatureHero/optimize.mjs then reduces it to the 30,000-triangle runtime budget.",
+            "No weights were downloaded, no environment was built, and nothing was run during this assessment; no file from the release entered Aralia."
+          ],
+          "inferences": [
+            "The natural slot in Aralia is a second stage between the TRELLIS.2 master export and optimize.mjs: refine the master’s geometry against the same reference.png, then re-project or re-bake the TRELLIS.2 textures, because the refiner discards them.",
+            "The hero job’s 24 GB L4 is a quarter of the only validated GPU, and the release establishes no minimum VRAM, so the existing GCP recipe cannot be assumed to host even the 512 pass; feasibility must be measured rather than inferred from the offload flag.",
+            "Licensing is favourable for Aralia’s consumption pattern: a refined mesh shipped in the game is a standalone output, so the game owes no badge; only a tool or service that embeds the model, such as a hosted Entity Studio refiner, would.",
+            "Medium confidence reflects primary documentation read at a pinned commit against a known project baseline, with no run, no output inspected, and the supplied post unread."
+          ],
+          "unknowns": [
+            "Peak GPU memory of the 512 and 1024 passes on a 24 GB L4 or a 40 to 48 GB card, with and without sequential CPU offload.",
+            "Whether a TRELLIS.2 master is a suitable coarse input, since the README warns that severe structural errors persist and hidden geometry is a plausible completion.",
+            "How to restore scale and textures after refinement, because the output is renormalised and untextured; whether TRELLIS.2 UVs survive any re-projection.",
+            "Wall-clock time and cost for one creature at each resolution, and how often adaptive voxelisation downgrades the support grid or a run raises on an unreachable resolution.",
+            "What the supplied X article says beyond its indexed title, and whether the Hugging Face model card adds conditions not present in the repository."
+          ],
+          "recommendations": [
+            "Keep this as a watch record; do not add Hi3D to the hero job until a smaller-card feasibility result exists.",
+            "If tested, run the official demo/refine_mesh.py on one existing hero master and its reference.png on a rented GPU of at least 80 GB first, to separate “does it help” from “does it fit the L4”.",
+            "Treat the refined mesh as a candidate under Entity Studio review with the TRELLIS.2 master as the baseline; keep optimize.mjs as the only path to runtime assets.",
+            "Keep the licence facts (outputs free, integrations badged, scale threshold) in this record rather than in code, since Aralia would only ever consume outputs."
+          ],
+          "technique": {
+            "requiredInput": [
+              "One reference image of the object (PNG; alpha retained for framing, background removal optional) and one coarse mesh of the same object loadable by trimesh, plus a resolution, a step count and a seed."
+            ],
+            "processingSteps": [
+              "Image features from DINOv2-large and CLIP condition sparse flow on coordinates derived from the coarse geometry; each pass samples sparse latents, decodes them with a self-pruning sparse VAE, extracts a mesh, and revoxelises it as the support for the next pass."
+            ],
+            "producedOutput": [
+              "A geometry-only trimesh.Trimesh recentred to unit maximum radius, exported by the caller (the demo writes GLB), plus the achieved resolution."
+            ],
+            "dependencies": [
+              "The sparc3d package from the repository, torch 2.5.0+cu124, torchvision 0.20.0, transformers 4.46 to below 5, spconv-cu120 2.3.6, flash-attn 2.7.4.post1, triton 3.1 or newer, accelerate, trimesh and pyfqmr; the eight weight files; DINOv2-large and CLIP ViT-L/14 from Hugging Face."
+            ],
+            "runtimeRequirements": [
+              "Linux, Python 3.10, CUDA toolkit 12.0 to 12.5, an NVIDIA GPU of compute capability 8.0 or newer with no stated minimum VRAM (only a 96 GB H20 is validated), batch size one, optional sequential CPU offload."
+            ],
+            "manualWork": [
+              "Produce the coarse mesh and a matching reference, choose resolution and seed, restore scale and textures afterwards, and inspect every view of the result."
+            ],
+            "componentTypes": [
+              "Learned sparse-latent diffusion refinement, learned image encoders, deterministic sparse voxelisation and FlexiCubes-style mesh extraction kernels, and a Python command-line demo."
+            ],
+            "externalRequirements": [
+              "Hugging Face downloads of the weights and both encoders, a CUDA Linux host, and acceptance of the Hi3D Open License Agreement 1.0."
+            ],
+            "licenceConstraints": [
+              "Hi3D Open License Agreement 1.0 on the Hi3D portions and weights: commercial use allowed; “Powered by Hi3D 1.0” required on any product or service that embeds the Materials; a separate licence required above 200,000 monthly active users or USD 1,000,000 monthly revenue; the Acceptable Use Policy passes downstream.",
+              "Standalone outputs carry none of those obligations (Section 9).",
+              "Apache-2.0 and MIT terms are retained for the Sparc3D, TRELLIS, Pointcept, O-CNN and FlexiCubes portions; Hunyuan3D-2 mini, DINOv2 and CLIP keep their own terms."
+            ],
+            "knownLimitations": [
+              "Geometry only, scale not preserved, no CPU path, no fallback attention, non-deterministic on GPU, coarse structural errors persist, hidden surfaces are completions, and a run that cannot reach the requested resolution raises instead of degrading."
+            ],
+            "doesNotSolve": [
+              "Coarse generation itself, texturing, materials, rigging, animation, collision, LODs, canonical scale, runtime budgets, or review and promotion into accepted Aralia assets."
+            ]
+          },
+          "comparisons": [
+            {
+              "dimension": "Where geometry detail comes from",
+              "externalApproach": "A second learned stage refines an existing coarse mesh up to a 1536 cubed sparse extraction grid, conditioned on the reference image.",
+              "projectApproach": "The hero pipeline takes TRELLIS.2’s single-stage output as the master and spends its effort on reduction to a 30,000-triangle runtime mesh in optimize.mjs; procedural entities are built from parts in src/systems/entities3d with no learned refinement.",
+              "meaningfulDifference": "Hi3D adds detail after generation, while Aralia only ever removes detail after generation.",
+              "practicalConsequence": "Any gain would land in the master.glb, not the runtime asset, so it matters only where the master is viewed closely or re-reduced with a better silhouette.",
+              "evidence": "Hi3D README and docs/pipeline.md at commit 13657ad; tools/creatureHero/convert.mjs, optimize.mjs and gcp/gcp-convert.sh at baseline b35ea0ff.",
+              "uncertainty": "No Hi3D output has been compared with a TRELLIS.2 master, so the visible gain on Aralia’s creatures is unmeasured."
+            },
+            {
+              "dimension": "GPU and hosting floor",
+              "externalApproach": "Validated only on a 96 GB H20; no minimum VRAM established; Linux, CUDA 12.0 to 12.5, Python 3.10, flash-attn with no fallback.",
+              "projectApproach": "A spot g2-standard-8 with one 24 GB L4 in europe-west4, created and deleted per run by gcp-convert.sh, with prebuilt TRELLIS.2 wheels on Python 3.12.",
+              "meaningfulDifference": "Hi3D needs four times the validated memory of the existing job and a different Python and CUDA stack.",
+              "practicalConsequence": "Hi3D cannot be dropped into the current VM recipe; a trial needs a larger machine type and its own bootstrap.",
+              "evidence": "docs/installation.md lines 20 to 25 and 42 at commit 13657ad; the gcp-convert.sh header and accelerator flag; the remote-bootstrap.sh Python 3.12 setup.",
+              "uncertainty": "Smaller-card feasibility is explicitly unestablished by the authors, in either direction."
+            },
+            {
+              "dimension": "Licence exposure",
+              "externalApproach": "A bespoke Hi3D Open License Agreement 1.0 with branding, scale and acceptable-use conditions on integrations and none on standalone outputs.",
+              "projectApproach": "Hero masters come from Microsoft TRELLIS.2 under its own terms, and Aralia ships only derived runtime meshes.",
+              "meaningfulDifference": "Hi3D’s conditions attach to tools that embed the model, not to meshes; Aralia’s consumption pattern is mesh only.",
+              "practicalConsequence": "A refined creature in the game needs no badge; a hosted refiner inside Entity Studio would.",
+              "evidence": "LICENSE Sections 2.1, 5, 7 and 9 at commit 13657ad.",
+              "uncertainty": "The Hugging Face model card was not read and could add terms; no legal review of the Agreement has happened."
+            }
+          ],
+          "fit": {
+            "couldHelp": [
+              "Sharpen hero masters’ local geometry (scales, teeth, armour edges) that TRELLIS.2 leaves soft, before reduction.",
+              "Give Entity Studio a bounded refinement experiment with a clear baseline, the existing master.glb."
+            ],
+            "wouldNotHelp": [
+              "Procedural part-built entities, texturing, rigging, gaits, runtime budgets, or anything the game renders directly."
+            ],
+            "complements": [
+              "tools/creatureHero stage 2 (the TRELLIS.2 master export) and optimize.mjs; Entity Studio’s Hero Lab review; IB-0008’s candidate-lane boundary."
+            ],
+            "mustNotReplace": [
+              "TRELLIS.2 as the coarse generator, optimize.mjs as the runtime reducer, Entity Studio review, or any accepted asset."
+            ],
+            "architecturalBoundary": [
+              "A separate, disposable GPU job that reads one master.glb and one reference.png and writes one refined.glb plus a run receipt; no runtime, repository or save authority.",
+              "Texture restoration is a project-owned step after refinement, never a reason to keep Hi3D in the runtime path."
+            ],
+            "dependenciesIntroduced": [
+              "None while the record remains unexecuted.",
+              "A trial adds a second VM recipe (Python 3.10, CUDA 12.4, a flash-attn source build) and two more Hugging Face downloads."
+            ],
+            "blockers": [
+              "No measured feasibility on any GPU under 96 GB.",
+              "No texture and scale restoration step exists for a refined mesh.",
+              "The supplied X article and the Hugging Face model card were not read."
+            ],
+            "risks": [
+              "A larger GPU VM costs several times the L4 job per run.",
+              "Refinement may embed coarse errors more confidently rather than fix them.",
+              "Non-deterministic GPU kernels make before-and-after comparison a geometric, not bitwise, exercise."
+            ],
+            "ownership": [
+              "Entity Studio and hero pipeline owners choose the test creature and judge the result.",
+              "The project owner decides any spend on a larger GPU.",
+              "Licensing stays with the owners if a hosted refiner is ever considered."
+            ],
+            "migrationRollback": [
+              "A trial lives in a scratch VM and a scratch directory; the master.glb and the hero library are never overwritten.",
+              "Delete the VM and the refined candidate if rejected; nothing in src/, public/creatures3d or the hero store changes."
+            ],
+            "conclusion": "Revisit after a named blocker is resolved"
+          },
+          "experiment": {
+            "question": "Does Hi3D v1.0 at 1024 produce a visibly sharper, structurally faithful refinement of one existing TRELLIS.2 hero master, and what GPU memory does that pass need?",
+            "exactInput": "One existing hero entry’s reference.png and master.glb from public/creatures3d/hero, chosen by the owner; resolution 1024, 25 steps, seed 0, no background removal, run with demo/refine_mesh.py.",
+            "pinnedRevisions": [
+              "hi3d-official/Hi3Dv1.0 at commit 13657ad09afaa92e350b461a1cd66399e44a59c4",
+              "Hugging Face weights revision recorded at download time",
+              "Aralia at b35ea0ff84591e5f4f1d69c4ecc5d7bf918566fc",
+              "GPU model, driver, CUDA and torch versions recorded from the VM before the run"
+            ],
+            "expectedOutput": "One refined.glb, peak GPU memory and wall-clock per pass from the progress callback and nvidia-smi, turntable captures of the master and refined meshes under one camera, and a short receipt under .agent/scratch.",
+            "projectBaseline": "b35ea0ff84591e5f4f1d69c4ecc5d7bf918566fc; clean cloud clone inspected 2026-10-27T20:23:03Z",
+            "measurements": [
+              "Peak VRAM, wall-clock and cost per pass.",
+              "Triangle count, non-manifold edges, inverted faces and bounding box of the master versus the refined mesh.",
+              "Side-by-side turntable review at matched camera and lighting."
+            ],
+            "limit": "One creature, one resolution, one seed, at most one rented GPU VM for at most two hours, deleted afterwards; no change to src/, public/creatures3d or the hero store.",
+            "acceptanceCriteria": [
+              "The 1024 pass completes on a GPU the owner is willing to rent again, with peak VRAM recorded.",
+              "Reviewers see sharper local detail with no new structural error on the turntable.",
+              "A documented path exists to put the TRELLIS.2 textures back on the refined mesh."
+            ],
+            "rejectionCriteria": [
+              "Out of memory on every GPU under 96 GB that was tried.",
+              "Refinement introduces or amplifies structural errors.",
+              "No practical texture or scale restoration."
+            ],
+            "isolationBoundary": "A fresh VM and a scratch directory only; inputs are copies; outputs return as one GLB and a receipt; no credentials beyond a Hugging Face read token if one proves necessary.",
+            "cleanup": "Delete the VM, remove the scratch directory, keep only the receipt and captures under .agent/scratch, and append a dated result revision here only if the experiment is actually run.",
+            "result": "",
+            "resultAt": ""
+          }
+        }
+      ],
+      "lexicon": [
+        {
+          "term": "Coarse mesh",
+          "meaning": "A first-pass 3D shape with the right overall structure but soft or missing surface detail; the refiner’s input."
+        },
+        {
+          "term": "Sparse extraction grid",
+          "meaning": "The nominal voxel resolution (512, 1024 or 1536 cubed) at which the surface is extracted; only occupied cells are stored, so it is not a dense tensor."
+        },
+        {
+          "term": "Self-pruning sparse VAE",
+          "meaning": "The decoder that turns sparse latents into surface voxels and discards cells that carry no surface."
+        },
+        {
+          "term": "Sequential CPU offload",
+          "meaning": "Keeping model weights on the CPU and streaming them to the GPU as needed to lower GPU residency; it does not remove decoded-feature memory."
+        },
+        {
+          "term": "Standalone output",
+          "meaning": "In the Hi3D licence, a generated mesh that contains no Hi3D code or weights; it carries none of the branding or scale obligations."
+        },
+        {
+          "term": "Hero master",
+          "meaning": "Aralia’s high-detail textured GLB produced by TRELLIS.2 before optimize.mjs reduces it to the runtime budget."
         }
       ]
     }

@@ -55,6 +55,11 @@ export const concepts = {
   'IB-0009': { title: 'Video-to-motion', category: 'motion', image: 'motion', connections: [studio('motion', 'Recovered motion could supply review candidates, without replacing canonical rigs.', 'IB-0009'), aralia('characters', 'The assessment names Character Atelier rigs and existing animation validation.', 'IB-0009'), generator('Reconstructed performance could be a reference, but no need or integration has been established.')] },
   'IB-0010': { title: 'Portrait rendering', category: 'appearance', image: 'portrait', connections: [aralia('characters', 'The assessment identifies Character Atelier head parts and a possible close-up portrait use case.', 'IB-0010'), connection('entity-studio', 'assets', 'suggested', 'Hair and facial detail may inform Part Lab, but the source is not a drop-in entity material.', 'IB-0010: fit.couldHelp; docs/architecture/domains/entity-studio.md: Part Lab'), generator('Appearance research may be useful; the separate project has not been assessed against this source.'), ledger('Portrait research may help the creator offer distinct character and species imagery; no art pipeline is adopted by this link.', 'Crimson Ledger app/standard-builder.tsx: portrait control; IB-0010: portrait-rendering assessment')] },
   'IB-0011': { title: 'Runtime cloth', category: 'motion', image: 'mesh', connections: [aralia('characters', 'The assessment names Character Atelier garments on skinned bodies as the only place a runtime garment pass would apply.', 'IB-0011'), connection('entity-studio', 'motion', 'suggested', 'A garment pass over posed entities may inform rig review; no Entity Studio assessment exists.', 'IB-0011: fit.couldHelp; docs/architecture/domains/entity-studio.md: Entity Debug'), connection('dd-generator', 'characters', 'suggested', 'The measured port lives in the Wildkin repository; whether that is the saved D&D Character Generator project is unconfirmed.', 'IB-0011: unknowns')] },
+  // IB-0014 (2026-10-27): a coarse-to-fine mesh refiner that would sit between the
+  // TRELLIS.2 hero master and optimize.mjs. Recorded for Entity Studio asset
+  // review only; the record's conclusion is "revisit after a named blocker", so
+  // no Aralia scope is asserted beyond the plan-map initiatives listed below.
+  'IB-0014': { title: 'Mesh refinement', category: 'motion', image: 'mesh', connections: [studio('assets', 'The assessment places a refined hero master in Entity Studio review with the TRELLIS.2 master as the baseline.', 'IB-0014'), generator('Sharper generated creatures may be relevant; the separate project has not been assessed against this source.')] },
 };
 
 export function conceptFor(record) {
@@ -82,6 +87,7 @@ export function configurePlanmap(plan) {
     'IB-0009': ['rig-bench', 'entity-studio-carveout'],
     'IB-0010': ['entity-generator-3d', 'entity-studio-carveout'],
     'IB-0011': ['rig-bench', 'entity-generator-carveout'],
+    'IB-0014': ['entity-generator-3d', 'entity-studio-carveout'],
   };
   for (const [id, concept] of Object.entries(concepts)) {
     for (const link of concept.connections) if (link.project === 'aralia' && previous[link.scope]) link.scope = previous[link.scope];
