@@ -135,7 +135,7 @@ import type { FmgAtlasResult } from '../fmg/generateAtlas';
 import type { FmgWorldResult } from '../fmg/generateWorld';
 import type { Burg } from '../fmg/burgs-generator';
 import type { Route } from '../fmg/routes-generator';
-import { smoothRegionRiverCenterline } from './riverCenterlineSmoothing';
+import { roadCourseFt } from './roadCourse';
 import { generateRiverCourse } from './riverCourse';
 import { riverWidthFt } from './riverWidth';
 import { makeAtlasNaturalHeight } from './regionTerrainField';
@@ -932,15 +932,14 @@ function generateCivData(
     // window (WF-G4): like rivers, route segments can cross the whole window
     // with both endpoints outside at canonical scale. Smoothing happens
     // before clipping so the clipped ends land exactly on the window edge.
-    const rawCenterline: Array<[Feet, Feet]> = route.points.map((point) => [
-      point[0] * feetPerPixel,
-      point[1] * feetPerPixel,
-    ]);
-    if (rawCenterline.length < 2) continue;
+    if (route.points.length < 2) continue;
 
     // Chaikin smooth (3 iterations for gentle curves). Roads keep using the
     // same region helper so all curved L1 polylines share one curve profile.
-    const centerline = clipPolylineToBounds(smoothRegionRiverCenterline(rawCenterline), bounds);
+    // GG-541 (2026-10-31): smoothed between towns but PINNED at each burg the
+    // route serves, so the road runs through its towns instead of cutting the
+    // corner past them. Shared with the town generator (townRoadCourse).
+    const centerline = clipPolylineToBounds(roadCourseFt(route.points, feetPerPixel, cellBurg), bounds);
     if (centerline.length < 2) continue;
 
     // Width by kind: highway 44ft paved trunk, road 40ft trade route,

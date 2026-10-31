@@ -1,6 +1,6 @@
 # Town Map
 
-Verified: 2026-09-23 (Agora task `agora-e840.7`). This pass deleted the six
+Verified: 2026-10-31 (town roads meet the world roads, GG-541). Earlier, 2026-09-23 (Agora task `agora-e840.7`). This pass deleted the six
 orphaned RealmSmith generator files and moved their names under "Retired Names".
 The 2026-09-20 pass (Agora task `agora-f821.32`) checked every path
 named as current against the worktree with a file check, removed the five deleted
@@ -203,6 +203,25 @@ replacement covers pan or navigation today, because the Worldforge view does
 not present those controls.
 - src/services/__tests__/strongholdService.test.ts
 - src/components/Trade/__tests__/MerchantModal.test.tsx
+
+## Town roads meet the world roads
+
+Verified 2026-10-31 (GG-541). One function, `region/roadCourse.ts`
+(`roadCourseFt`), gives each world road its course. It smooths the route
+between towns and keeps every route point in a burg's cell exactly, so a road
+runs through each town it serves. The region tier draws that course, and the
+town generator takes the same course at true scale (`town/townRoadCourse.ts`,
+the inverse of the town placement, as `townRiverCourse` does for the river).
+The town's approach road is therefore the wilderness road.
+
+Before this, the region tier smoothed the whole route, which cut the corner at
+each town, and the town took every route through its cell shrunk about 30x by
+the cell affine (`cellRoadPolylines`, now unused but kept). Town roads ended in
+grass. At Tineroe (world 1793371993547) the trail passed 403 m from the town.
+A census of 8 towns in that world after the fix: the world road passes 0 m from
+7 town centers and 4.6 m from one, and every town street end that touches no
+other street lies on a world road, except one inner lane near a market.
+
 
 ## Open Follow-Through Questions
 

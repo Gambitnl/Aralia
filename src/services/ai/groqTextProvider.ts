@@ -205,6 +205,11 @@ async function postChatCompletion(
   if (params.temperature !== undefined) body.temperature = params.temperature;
   if (params.numPredict !== undefined) body.max_tokens = params.numPredict;
   if (params.topP !== undefined) body.top_p = params.topP;
+  // GPT-OSS models reason before they answer, and the reasoning tokens count
+  // against max_tokens: with the game's short budgets a "medium" default could
+  // spend them all and return an empty reply. Low effort keeps the answer
+  // (2026-10-30, after Groq retired llama-3.3-70b-versatile for this tier).
+  if (ctx.model.startsWith('openai/gpt-oss')) body.reasoning_effort = 'low';
   const responseFormat = toResponseFormat(format);
   if (responseFormat) body.response_format = responseFormat;
 
@@ -256,7 +261,7 @@ export async function groqGenerateForTask(
   options: { taskType: TaskType; prompt: string; format?: ResponseFormat; overrides?: ModelParams }
 ): Promise<
   | { ok: true; data: OllamaGenerateResponse; model: string }
-  | { ok: false; error: string; model?: string }
+  | { ok: false; error: string; model?: string; statusCode?: number }
 > {
   const profile = getTaskProfile(options.taskType);
   const merged: ModelParams = { ...profile.params, ...(options.overrides ?? {}) };
@@ -267,7 +272,8 @@ export async function groqGenerateForTask(
     options.format ?? profile.format
   );
   if (!result.ok) {
-    return { ok: false, error: result.error, model: ctx.model };
+    // statusCode lets the router see a rate limit (429) and try the next pool model.
+    return { ok: false, error: result.error, model: ctx.model, statusCode: result.statusCode };
   }
   return { ok: true, data: adaptToGenerateResponse(result.json), model: ctx.model };
 }

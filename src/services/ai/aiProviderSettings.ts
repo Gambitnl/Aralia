@@ -37,8 +37,24 @@ export type AiTextProvider = 'ollama' | 'groq';
  */
 export type GroqKeyStorage = 'local' | 'session' | 'proxy';
 
-/** Default Groq model — a fast, capable OpenAI-compatible chat model. */
-export const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
+/**
+ * Default Groq model — a fast, capable OpenAI-compatible chat model.
+ *
+ * 2026-10-30: was `llama-3.3-70b-versatile`. Groq shut it down for the
+ * Free/Developer tiers on 2026-08-16 (Groq's deprecations page; the model list
+ * now shows it as Enterprise only), so every call returned "404: the model
+ * does not exist or you do not have access to it" and the opening gate showed
+ * "The opening can't be written yet". GPT OSS 120B is the production model
+ * Groq lists as its replacement. GPT OSS is a reasoning model;
+ * `groqTextProvider` asks it for low reasoning effort so its hidden reasoning
+ * does not use up the reply's token budget.
+ *
+ * 2026-10-31: on the free plan every text model has the same limits, so the
+ * smaller GPT OSS 20B saved nothing and the default went back to the best
+ * writer. The router moves to the next model of `GROQ_MODEL_POOL` when this
+ * one hits its rate limit (`groqModelPool.ts`).
+ */
+export const DEFAULT_GROQ_MODEL = 'openai/gpt-oss-120b';
 
 /** Default provider — local Ollama, matching the pre-Groq behavior. */
 export const DEFAULT_AI_TEXT_PROVIDER: AiTextProvider = 'ollama';

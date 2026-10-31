@@ -38,6 +38,7 @@ import { Button } from './Button';
 import { Checkbox, Input } from './Input';
 import { GeminiFallbackSettings } from './GeminiFallbackSettings';
 import { OllamaModelPicker } from './OllamaModelPicker';
+import { GroqModelPoolStatus } from './GroqModelPoolStatus';
 import { Z_INDEX } from '../../styles/zIndex';
 import { UI_ID } from '../../styles/uiIds';
 import {
@@ -791,6 +792,9 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
                           AI text is currently set to Groq cloud.
                         </p>
                       )}
+                      {/* The model pool (2026-10-31): which model answered last and
+                          which ones are at their free rate limit. */}
+                      {currentProvider === 'groq' && <GroqModelPoolStatus />}
                     </div>
 
                     {/* Reusable premium Checkbox primitive for tracking user preference */}

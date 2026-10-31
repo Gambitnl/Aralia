@@ -16,6 +16,12 @@
  *
  * NO-FALLBACK: with `groq` selected, a Groq failure is returned honestly; this
  * router never falls back to Ollama on error.
+ *
+ * MODEL POOL (2026-10-31, Remy: "as many requests as possible"): each free-plan
+ * Groq model has its own rate limits, so a rate-limit refusal (429) moves the
+ * call to the next model of `GROQ_MODEL_POOL`. Only a 429 does this; any other
+ * error is returned as it is. Every attempt is logged with its model, and the
+ * model that answered is recorded for the AI settings pane.
  */
 
 import type {
@@ -36,6 +42,56 @@ import {
 } from './aiProviderSettings';
 import { groqGenerateForTask, groqChatForTask } from './groqTextProvider';
 import type { GroqCallContext } from './groqTextProvider';
+import {
+  GROQ_DEFAULT_REST_MS,
+  getGroqPoolStatus,
+  groqModelOrder,
+  isGroqModelResting,
+  markGroqModelAnswered,
+  markGroqModelResting,
+  parseGroqRetryAfterMs,
+} from './groqModelPool';
+
+/**
+ * Start of the error when every pool model is at its rate limit. It is a plain
+ * sentence because screens such as the opening gate show the error text as is.
+ */
+export const GROQ_ALL_MODELS_LIMITED = 'Every Groq model is at its free rate limit.';
+
+/**
+ * Run one Groq call through the model pool. Tries each model that is not
+ * resting, in pool order. A 429 rests that model and moves on; success or any
+ * other error ends the loop. When every model rests, returns an error that
+ * names the soonest free time.
+ */
+async function callThroughPool<T extends { ok: true; model: string }>(
+  base: GroqCallContext,
+  logError: (model: string, error: string) => void,
+  call: (ctx: GroqCallContext) => Promise<T | { ok: false; error: string; model?: string; statusCode?: number }>,
+): Promise<T | { ok: false; error: string; model?: string; statusCode?: number }> {
+  for (const model of groqModelOrder(base.model)) {
+    if (isGroqModelResting(model)) continue;
+    const result = await call({ ...base, model });
+    if (result.ok) {
+      markGroqModelAnswered(model);
+      return result;
+    }
+    if (result.statusCode !== 429) return result;
+    // Rate limit: log this attempt, rest the model, try the next one.
+    logError(model, result.error);
+    markGroqModelResting(model, parseGroqRetryAfterMs(result.error) ?? GROQ_DEFAULT_REST_MS);
+  }
+  const until = Object.values(getGroqPoolStatus().restingUntil);
+  const soonest = until.length > 0 ? new Date(Math.min(...until)) : null;
+  return {
+    ok: false,
+    error:
+      GROQ_ALL_MODELS_LIMITED +
+      (soonest ? ` The first one is free again at ${soonest.toLocaleTimeString()}.` : ''),
+    model: base.model,
+    statusCode: 429,
+  };
+}
 
 /** True when the active provider is Groq (drives whether the client delegates). */
 export function isGroqActive(): boolean {
@@ -92,7 +148,11 @@ export async function routeGenerateForTask(options: {
     return { ok: false, error: missing, model };
   }
 
-  const result = await groqGenerateForTask(ctx, options);
+  const result = await callThroughPool(
+    ctx,
+    (m, error) => emitOllamaLog({ id: logId, phase: 'error', taskType: options.taskType, model: m, error }),
+    (c) => groqGenerateForTask(c, options),
+  );
   if (!result.ok) {
     emitOllamaLog({ id: logId, phase: 'error', taskType: options.taskType, model: result.model ?? model, error: result.error });
     return result;
@@ -126,7 +186,11 @@ export async function routeChatForTask(options: {
     return { ok: false, error: missing, model };
   }
 
-  const result = await groqChatForTask(ctx, options);
+  const result = await callThroughPool(
+    ctx,
+    (m, error) => emitOllamaLog({ id: logId, phase: 'error', taskType: options.taskType, model: m, error }),
+    (c) => groqChatForTask(c, options),
+  );
   if (!result.ok) {
     emitOllamaLog({ id: logId, phase: 'error', taskType: options.taskType, model: result.model ?? model, error: result.error });
     return result;

@@ -150,6 +150,21 @@ describe('groqGenerateForTask / groqChatForTask (network)', () => {
     expect(headers['Content-Type']).toBe('application/json');
   });
 
+  it('asks a GPT-OSS model for low reasoning effort, and no other model', async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => SAMPLE_COMPLETION } as Response);
+    await groqGenerateForTask(
+      { apiKey: '', model: 'openai/gpt-oss-120b', keyStorage: 'proxy', proxyUrl: 'http://localhost:8787/v1' },
+      { taskType: 'npc_dialogue', prompt: 'x' }
+    );
+    await groqGenerateForTask(
+      { apiKey: '', model: 'some/other-model', keyStorage: 'proxy', proxyUrl: 'http://localhost:8787/v1' },
+      { taskType: 'npc_dialogue', prompt: 'x' }
+    );
+    const bodyOf = (call: number) => JSON.parse((fetchMock.mock.calls[call][1] as RequestInit).body as string);
+    expect(bodyOf(0).reasoning_effort).toBe('low');
+    expect(bodyOf(1).reasoning_effort).toBeUndefined();
+  });
+
   it('proxy mode: trailing slashes on the proxy URL are normalized', async () => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => SAMPLE_COMPLETION } as Response);
     await groqGenerateForTask(

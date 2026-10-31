@@ -43,7 +43,7 @@ describe('textProviderRouter via OllamaClient', () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data.response).toBe('cloud reply');
-      expect(result.model).toBe('llama-3.3-70b-versatile');
+      expect(result.model).toBe('openai/gpt-oss-120b');
     }
     // The one call must be to Groq, not to the Ollama /api endpoints.
     const url = fetchMock.mock.calls[0][0] as string;

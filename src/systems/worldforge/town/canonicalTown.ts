@@ -40,7 +40,8 @@ import { townSpanFtForPeople, POPULATION_RATE, CANON_TOWN_SPAN } from './townSca
 import { polygonBounds, type Pt } from '../submap/submapEngine';
 import type { FmgWorldResult } from '../fmg/generateWorld';
 import { rootSeedPath, childSeedPath, streamPath } from '../seedPath';
-import { burgCellPolygon, cellWaterFeatures, cellRoadPolylines } from './cellFeatures';
+import { burgCellPolygon, cellWaterFeatures } from './cellFeatures';
+import { townRoadCourseCanon } from './townRoadCourse';
 import { townRiverCourseCanon } from './townRiverCourse';
 import type { RegionTownSite } from '../artifacts';
 import { toArtifactPlan, type AdaptedTownPlan } from './townPlanAdapter';
@@ -161,7 +162,10 @@ export function getCanonicalTownPlan(
   const course = townRiverCourseCanon(atlas, worldSeed, burgId);
   // Docks belong on BOTH: a harbour dock sits on the coast, a wharf on the river.
   const water = [...course.lines, ...coast];
-  const roads = cellRoadPolylines(atlas, burgId).map(toCanonLine);
+  // Roads at TRUE scale (GG-541, 2026-10-31): the same pinned course the region
+  // tier draws, so the town's approach road IS the wilderness road. The cell
+  // affine shrank every route ~30x and left town roads ending in grass.
+  const roads = townRoadCourseCanon(atlas, burgId);
   const plan = generateTownPlan(footprint, canonicalTownSeedPath(worldSeed, burgId), {
     population,
     water,

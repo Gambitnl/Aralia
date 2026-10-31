@@ -3774,6 +3774,22 @@
       "link": "docs/superpowers/specs/2026-07-06-groq-inference-toggle-design.md",
       "features": [
         {
+          "title": "Groq model pool: on a rate-limit refusal (429) the router moves to the next free-plan model (gpt-oss-120b, gpt-oss-20b, qwen3.8-27b), each with its own daily limit; the AI settings pane shows which model answered last and which rest until when",
+          "status": "done",
+          "note": "Remy 2026-10-31: \"as many requests as possible\". Free plan limits are the same for every model (30/min, 1,000/day, 200K tokens/day), so three models give about three times the day. Only a 429 moves on; other errors return as they are. Verified live: a real call answered from gpt-oss-120b and the pane marked it; 6 pool tests.",
+          "history": {
+            "built": "2026-10-31"
+          }
+        },
+        {
+          "title": "Default Groq model moved to openai/gpt-oss-120b: Groq retired llama-3.3-70b-versatile for Free/Developer on 2026-08-16, so every call returned 404 and the opening gate said \"The opening can't be written yet\". GPT-OSS calls ask for low reasoning effort so hidden reasoning does not use up the reply budget",
+          "status": "done",
+          "note": "Verified 2026-10-30 with a live call through groqGenerateForTask on the saved key; 43 AI tests pass. tools/agora/agents.json still names the retired model for one worker.",
+          "history": {
+            "built": "2026-10-30"
+          }
+        },
+        {
           "title": "Key-handling the user picks: persistent localStorage / session-only / local-proxy (key never in the browser) — none in the bundle. Local-proxy path is now ALWAYS-ON in dev: the Vite dev server itself proxies /__groq/v1 (scripts/vite-plugins/groqProxyManager.ts), reading the key from Windows Credential Manager (AgentMatrix/Groq/GROQ_API_KEY) — same-origin, no separate process, no CORS, nothing to start by hand. Default proxy URL is now /__groq/v1; verified keyLoaded + proxy-ok live. Standalone tools/groq-proxy (npm run groq-proxy, :8787) still serves the same shape for non-Vite use",
           "status": "done"
         },
@@ -4911,6 +4927,14 @@
       "link": "docs/superpowers/specs/2026-07-11-road-systems-design.md",
       "open": 8,
       "features": [
+        {
+          "title": "Town roads meet the world roads: one road course (roadCourseFt) smoothed between towns and pinned at each burg, used by the region tier and, at true scale, by the town generator (GG-541)",
+          "status": "done",
+          "note": "Remy 2026-10-31: \"why don't the roads connect to other roads?\" ... \"it's supposed to be procedural\". Generator rule for every town; Tineroe trail 403 m -> 0 m from center; 8-town census. Live 3D eyeball pending.",
+          "history": {
+            "built": "2026-10-31"
+          }
+        },
         {
           "title": "Mechanics foundation: dead-wiring fix, graded biome speeds, tier speed/danger",
           "status": "done"
