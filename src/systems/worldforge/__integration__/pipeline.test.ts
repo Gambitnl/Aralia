@@ -501,8 +501,15 @@ describe('worldforge pipeline integration', () => {
       // GG-539): the river carve also lowers a valley to the river's grade
       // along its full course (`region/riverValley.ts`). The region heightfield
       // moves; the local material and the cell count do not.
+      // Re-frozen 2026-11-02 (agora-257c, GG-536 on top of GG-539): the
+      // river's grade along its full course also falls at least at the atlas
+      // grade, capped at twice the flood depth under the ground
+      // (`riverGradeFt` fall and drift), so the valley carve moves again.
+      // Checked: with that fall switched off the hash is GG-539's 2017107986,
+      // so GG-536 alone moves it; GG-540 records a flood ratio and moves no
+      // height. The local material and the cell count do not change.
       atlasCellCount: 6005,
-      regionHeightfieldHash: 2017107986,
+      regionHeightfieldHash: 3767726292,
       localMaterialHash: 3812605997,
     });
   }, 60_000); // world gen now includes Military/Markers/Zones (stages 33-35)
