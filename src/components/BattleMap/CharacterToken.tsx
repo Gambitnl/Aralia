@@ -840,7 +840,9 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(
         aria-label={`Select ${character.name}`}
       >
         <Tooltip
-          content={`${character.name} (Armor Class: ${character.class.id === "fighter" ? 18 : 12}, Hit Points: ${character.currentHP}/${character.maxHP})`}
+          // Show the actor defense used by attacks, rather than guessing from class.
+          // Situational cover is resolved per attack and is not part of this base value.
+          content={`${character.name} (Armor Class: ${character.armorClass || 10}, Hit Points: ${character.currentHP}/${character.maxHP})`}
         >
           {openingBodySource ? (
             <OpeningThreatBody

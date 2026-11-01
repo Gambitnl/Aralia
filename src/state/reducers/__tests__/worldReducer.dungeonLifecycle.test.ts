@@ -24,6 +24,31 @@ import { canonicalDungeonId } from '../../../systems/worldforge/dungeon/world/de
 // ============================================================================
 
 describe('worldReducer dungeon lifecycle', () => {
+  it('consumes only the saved combat landing and preserves newer source injuries while walking resumes', () => {
+    const seedPath = 'wf:42/cell:751/dungeon:reducer-proof';
+    const identity = {dungeonId:canonicalDungeonId(seedPath),seedPath};
+    let state = createMockGameState();
+    state = {...state,...worldReducer(state,{type:'DUNGEON_ENTERED',payload:{identity}})};
+    const encounterId = `encounter.v1:${identity.dungeonId}:room:1:cell:1,1`;
+    const landing = {depth:0,playerCell:{x:2,y:3},entranceKind:'ruin-door' as const,
+      returnContext:{worldSeed:42,cellId:751,tileX:1,tileY:2,xM:3,zM:4}};
+    // The complete source battle receipt is exercised by combat tests; this test isolates consumption.
+    state.dungeonCombatReturn = {rootIdentity:identity,...landing,encounterId,enemyHP:31} as NonNullable<typeof state.dungeonCombatReturn>;
+    state = {...state,...worldReducer(state,{type:'DUNGEON_PROGRESS_RECORDED',payload:{dungeonId:identity.dungeonId,
+      progress:{encounterHitPoints:{[encounterId]:23}}}})};
+    state = {...state,...worldReducer(state,{type:'DUNGEON_PROGRESS_RECORDED',payload:{dungeonId:identity.dungeonId,
+      progress:{activeVisit:{...landing,playerCell:{x:3,y:3}}}}})};
+    expect(state.dungeonCombatReturn).not.toBeNull();
+    state = {...state,...worldReducer(state,{type:'DUNGEON_PROGRESS_RECORDED',payload:{dungeonId:identity.dungeonId,
+      progress:{activeVisit:landing}}})};
+    expect(state.dungeonCombatReturn).toBeNull();
+    expect(state.dungeonExpeditions![identity.dungeonId].progress.encounterHitPoints?.[encounterId]).toBe(23);
+    const moved = {...landing,playerCell:{x:3,y:3}};
+    state = {...state,...worldReducer(state,{type:'DUNGEON_PROGRESS_RECORDED',payload:{dungeonId:identity.dungeonId,
+      progress:{activeVisit:moved}}})};
+    expect(state.dungeonExpeditions![identity.dungeonId].progress.activeVisit).toEqual(moved);
+    expect(state.dungeonExpeditions![identity.dungeonId].visitCount).toBe(1);
+  });
   it('keeps one canonical receipt through progress, retreat, completion, and revisit', () => {
     const seedPath = 'wf:42/cell:751/dungeon:reducer-proof';
     const identity = { dungeonId: canonicalDungeonId(seedPath), seedPath };

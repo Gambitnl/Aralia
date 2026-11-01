@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 24/08/2026, 09:21:17
- * Dependents: components/Worldforge/TownAgentSnapshotView.tsx, systems/worldforge/bridge/groundAgentMotion.ts
- * Imports: 4 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file townSnapshot.ts
  * @description Bridges the occupant schedule (WHEN/what) to town space (WHERE):
@@ -28,6 +12,22 @@
  * placement pass consumes; it owns no rendering and no time source.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 29/10/2026, 02:07:12
+ * Dependents: components/World3D/residentDoorUse.ts, components/Worldforge/TownAgentSnapshotView.tsx, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/residentDoorRoutes.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { TownPlan } from '../artifacts';
 import type { Occupant, TownRoster, TownPlot } from './types';
 import { occupantLocationAt, type ActivityKind } from './occupantSchedule';
@@ -35,6 +35,7 @@ import {
   frontDoorForPlot,
   routeAlongStreets,
   positionAlongPath,
+  pathLength,
   type StreetGraph,
   type Point,
 } from './agentPath';
@@ -106,13 +107,37 @@ export interface MovingAgentSnapshot extends AgentSnapshot {
   moving: boolean;
 }
 
-/**
- * Fraction of an hour an agent spends walking the streets after their scheduled
- * plot changes (a plot flip at the hour boundary = a commute). For the first
- * `COMMUTE_FRAC` of that hour they interpolate along the street route from the
- * previous plot to the new one; afterward they're settled at the destination.
- */
+/** Legacy preview-only commute window. Named household people instead use
+ * measured route length at the shared walking speed. The same duration feeds
+ * the street position and the room body's arrival gate. */
 const COMMUTE_FRAC = 0.5;
+export const TOWN_WALK_METERS_PER_SECOND = 1.2;
+
+/** Latest change to the current destination, including travel across hours. */
+export function recentCommute(occupant: Occupant, hour: number) {
+  const current = occupantLocationAt(occupant, hour);
+  for (let elapsed = 0; elapsed < 24; elapsed++) {
+    const previous = occupantLocationAt(occupant, hour - elapsed - 1);
+    if (previous.plotId !== current.plotId) return { from: previous.plotId, to: current.plotId, elapsed };
+  }
+  return undefined;
+}
+
+function routeHours(graph: StreetGraph, occupant: Occupant, fromId: number, toId: number): number {
+  // Source household people walk the real route at the indoor body's speed.
+  // Legacy preview people retain their established timing until unified.
+  if (!occupant.householdMemberId) return COMMUTE_FRAC;
+  const from = frontDoorForPlot(graph, fromId), to = frontDoorForPlot(graph, toId);
+  if (!from || !to) return COMMUTE_FRAC;
+  return pathLength(scheduledRoute(graph, fromId, toId, from, to)) * 0.3048 / TOWN_WALK_METERS_PER_SECOND / 3600;
+}
+
+/** Time still owed outside from the start of this hour. A room cannot claim
+ * the resident until this measured door-to-door street leg has arrived. */
+export function commuteArrivalDelayAtHour(graph: StreetGraph, occupant: Occupant, hour: number): number {
+  const leg = recentCommute(occupant, hour);
+  return leg ? Math.max(0, routeHours(graph, occupant, leg.from, leg.to) - leg.elapsed) : 0;
+}
 
 // A generated graph and its plot doors are immutable. Scheduled commuters ask
 // for the same directed plot-to-plot paths on every motion tick, so retain those
@@ -179,16 +204,18 @@ export function townMotionSnapshotAt(
     if (!destCentroid) continue; // defensive: roster always references plan plots
     const dest = settledPointForPlot(graph, cur.plotId, destCentroid);
 
-    const prev = occupantLocationAt(occ, hr - 1);
-    const fromCentroid = prev.plotId !== cur.plotId ? centroids.get(prev.plotId) : undefined;
+    const leg = recentCommute(occ, hr);
+    const fromCentroid = leg ? centroids.get(leg.from) : undefined;
     const from = fromCentroid
-      ? settledPointForPlot(graph, prev.plotId, fromCentroid)
+      ? settledPointForPlot(graph, leg!.from, fromCentroid)
       : undefined;
-    if (from && frac < COMMUTE_FRAC) {
+    const duration = leg ? routeHours(graph, occ, leg.from, leg.to) : 0;
+    const elapsed = (leg?.elapsed ?? 0) + frac;
+    if (from && duration > 0 && elapsed < duration) {
       // Both route ends are already canonical doors. This prevents the first
       // frame from popping centroid-to-door before the street walk begins.
-      const route = scheduledRoute(graph, prev.plotId, cur.plotId, from as Point, dest as Point);
-      const [x, y] = positionAlongPath(route, frac / COMMUTE_FRAC);
+      const route = scheduledRoute(graph, leg!.from, cur.plotId, from as Point, dest as Point);
+      const [x, y] = positionAlongPath(route, elapsed / duration);
       out.push({ occupantId: occ.id, name: occ.name, activity: cur.activity, plotId: cur.plotId, x, y, moving: true });
     } else {
       // Remain at the route's destination door after arrival. Plans without a

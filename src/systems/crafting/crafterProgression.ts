@@ -80,7 +80,13 @@ export function createCrafterProgression(toolProficiencies: string[] = []): Craf
 
     // Add starting recipes based on tool proficiencies
     for (const tool of toolProficiencies) {
-        const normalizedTool = tool.toLowerCase().replace(/[''\s]/g, '_');
+        // C14: the game spells tools "Alchemist's Supplies" and "Poisoner's Kit". The old
+        // pattern turned the apostrophe AND the space into '_' ('alchemist__supplies'),
+        // so no proficiency matched. The table keys differ too (alchemist_supplies drops
+        // the possessive s, poisoners_kit keeps it), so try both spellings.
+        const lowered = tool.toLowerCase().trim().replace(/\s+/g, '_');
+        const normalizedTool = [lowered.replace(/['\u2019]/g, ''), lowered.replace(/['\u2019]s(?=_|$)/g, '')]
+            .find((key) => key in STARTING_RECIPES) ?? lowered;
         const startingRecipes = STARTING_RECIPES[normalizedTool] || [];
         startingRecipes.forEach(r => knownRecipes.add(r));
     }
@@ -272,7 +278,8 @@ export function deserializeProgression(data: unknown): CrafterProgression {
     return {
         level: raw.level || 1,
         xp: raw.xp || 0,
-        xpToNextLevel: raw.xpToNextLevel || LEVEL_XP_THRESHOLDS[1],
+        // C14: ?? not ||, because a max-level crafter saves xpToNextLevel 0, which is real.
+        xpToNextLevel: raw.xpToNextLevel ?? LEVEL_XP_THRESHOLDS[1],
         bonusModifier: raw.bonusModifier || 0,
         knownRecipes: new Set(raw.knownRecipes || []),
         toolProficiencies: new Set(raw.toolProficiencies || []),

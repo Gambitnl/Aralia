@@ -10,6 +10,22 @@
  * Depends on: production visibility, skill, placement, dice, and economy helpers.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/10/2026, 07:53:58
+ * Dependents: commands/factory/AbilityCommandFactory.ts, components/DesignPreview/steps/scenarioControls/stealthHiddenScenarioControls.ts, systems/combat/rangedAttackPressure.ts
+ * Imports: 10 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type {
   BattleMapData,
   CombatCharacter,
@@ -18,6 +34,7 @@ import type {
   StatusEffect,
 } from '../../types/combat';
 import { calculateTotalSkillModifier } from '../../utils/character/skillModifierUtils';
+import { hasArmorStealthDisadvantage } from '../../utils/character/checkUtils';
 import { calculatePassiveScore } from '../../utils/character/statUtils';
 import {
   canAffordActionCost,
@@ -163,7 +180,7 @@ function skillModifier(
   });
 }
 
-function observerVisibility(
+export function observerVisibility(
   observer: CombatCharacter,
   target: CombatCharacter,
   mapData: BattleMapData,
@@ -233,7 +250,21 @@ export function resolveHideAttempt(input: HideAttemptInput): StealthResolutionRe
     return { character: input.hider, outcome: 'rejected', reason: 'Hide rejected: Action is unavailable.' };
   }
 
-  const roll = rollD20({ rng: input.rng });
+  const hasAdvantage = input.hider.modifiers?.advantage?.some(
+    adv => adv.toLowerCase().includes('stealth') || adv.toLowerCase().includes('ability check')
+  ) ?? false;
+  const hasDisadvantage = hasArmorStealthDisadvantage(input.hider)
+    || (input.hider.modifiers?.disadvantage?.some(
+      dis => dis.toLowerCase().includes('stealth') || dis.toLowerCase().includes('ability check')
+    ) ?? false);
+
+  const rollD20Value = (): number => rollD20({ rng: input.rng });
+  let roll = rollD20Value();
+  if (hasDisadvantage && !hasAdvantage) {
+    roll = Math.min(roll, rollD20Value());
+  } else if (hasAdvantage && !hasDisadvantage) {
+    roll = Math.max(roll, rollD20Value());
+  }
   const total = roll + skillModifier(input.hider, input.hider.stats.dexterity, 'stealth');
   const otherStatuses = input.hider.statusEffects.filter(
     status => !isOwnedHiddenStatus(status, input.ownerId),

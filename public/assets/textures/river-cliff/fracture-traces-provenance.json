@@ -1,0 +1,21 @@
+{
+  "source": "https://polyhaven.com/a/rock_face_01",
+  "author": "Dario Barresi",
+  "license": "CC0-1.0",
+  "sourceGeometrySha256": "873eac0319333e92bc96ddeedf8ebf69dc3c68ff1dfe32d8c14ddc165cdb20ac",
+  "derived": "src/components/World3D/water/riverCliffFractureTraces.json",
+  "method": "Weld native scan UV duplicates by position; retain interior edges with >=22degree dihedral and visible face; trace by directional continuity, simplify at6.5cm; select18 distinct strongest paths. These finite paths guide subordinate fractures inside renderer mountain planes; not Yosemite survey geometry.",
+  "nativeTriangles": 20174,
+  "sharpEdges": 14173,
+  "traces": 18,
+  "rendererReliefMapping": {
+    "source": "src/components/World3D/water/riverCliffScanRelief.json",
+    "nativeProjectedSizeMeters": [4.95, 3.56],
+    "dominantFootprintMeters": [10.8, 7.1],
+    "depthScale": 1.15,
+    "method": "Three overlapping measured relief projections at distinct oblique orientations and footprints, with bounded coordinate bends; a broader scan projection shapes continuous buttresses. Polygon partitions retain connected triangulation only: their former plane offsets, whole-face recesses and artificial crack steps do not alter visible positions. Near-fall interior sampling is 0.45m lateral and roughly 0.33m vertical; outer lateral sampling is 0.9m. Physical scan features are not inflated across the full 70-meter mountain.",
+    "limitation": "Projected relief remains single-valued and cannot preserve all original scan overhangs. This reconstructed cliff is not a survey or lithology identification.",
+    "referenceInformedStructure": "Unequal finite kinked vertical joints with varying widths and depths, short intersecting oblique ledges and subdued connected shoulders follow the visible fracture hierarchy of the supplied Yosemite reference. These inferred dimensions are not measured from Yosemite or the CC0 scan. Explicit inner and outer joint rails preserve connected topology; the old polygon partition still has no influence on surface height.",
+    "crestSupport": "Distant dry rock supports the existing forward-projecting crest instead of retreating roughly 20m behind it. The near-fall recess, shared crest boundary and numerical terrain remain unchanged."
+  }
+}

@@ -1,6 +1,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { evaluateCombatTurn, evaluateSummonAbility } from '../combatAI';
+import { calculatePathMovementCost } from '../movementUtils';
 import {
   createMockCombatCharacter
 } from '../../core/factories';
@@ -141,6 +142,103 @@ describe('combatAI', () => {
 
     expect(result.type).toBe('move');
     expect(result.targetPosition).not.toEqual(enemy.position);
+  });
+
+  it.each([1, 5])('budgets AI ground paths in feet when normal tiles store %s', tileCost => {
+    const map = createSimpleMap(9, 1);
+    map.tiles.forEach(tile => { tile.movementCost = tileCost; });
+    const base = createMockCombatCharacter({ id: 'walker', team: 'enemy',
+      position: { x: 0, y: 0 }, abilities: [{ ...basicAttack, range: 1 }] });
+    const walker = { ...base, actionEconomy: { ...base.actionEconomy,
+      movement: { total: 10, used: 0 } } };
+    const target = createMockCombatCharacter({ id: 'distant', team: 'player', position: { x: 8, y: 0 } });
+    const action = evaluateCombatTurn(walker, [walker, target], map);
+    expect(action.type).toBe('move');
+    expect(action.targetPosition).toEqual({ x: 2, y: 0 });
+    expect(action.cost.movementCost).toBe(10);
+    expect(action.cost.movementCost).toBe(calculatePathMovementCost(
+      action.movementPath!.map(position => map.tiles.get(`${position.x}-${position.y}`)!),
+    ));
+    expect(walker.actionEconomy.movement.used).toBe(0);
+  });
+
+  it('cannot buy a five-foot step with four remaining feet', () => {
+    const map = createSimpleMap(9, 1);
+    const base = createMockCombatCharacter({ id: 'walker', team: 'enemy',
+      position: { x: 0, y: 0 }, abilities: [{ ...basicAttack, range: 1 }] });
+    const walker = { ...base, actionEconomy: { ...base.actionEconomy,
+      movement: { total: 10, used: 6 } } };
+    const target = createMockCombatCharacter({ id: 'distant', team: 'player', position: { x: 8, y: 0 } });
+    expect(evaluateCombatTurn(walker, [walker, target], map).type).toBe('end_turn');
+  });
+
+  // GG-495 (2026-11-01): ranged and thrown attacks carry a long range. With no
+  // target in normal range and no move that brings one into it, the AI throws
+  // at long range; when a normal-range shot exists, Disadvantage makes the
+  // long-range option score lower, so the AI takes the normal-range shot.
+  describe('long range (GG-495)', () => {
+    const thrownSpear: Ability = {
+      id: 'attack_main_thrown', name: 'Throw Spear', description: 'Throw Spear.', type: 'attack',
+      cost: { type: 'action' }, targeting: 'single_enemy', range: 4, longRange: 12,
+      effects: [{ type: 'damage', value: 6, damageType: 'piercing', dice: '1d6' }],
+    } as Ability;
+    const rooted = (position: { x: number; y: number }) => {
+      const base = createMockCombatCharacter({ id: 'thrower', team: 'enemy', position, abilities: [thrownSpear] });
+      return { ...base, actionEconomy: { ...base.actionEconomy, movement: { total: 30, used: 30 } } };
+    };
+
+    it('throws at long range when it cannot move and no target is in normal range', () => {
+      const map = createSimpleMap(12, 1);
+      const thrower = rooted({ x: 0, y: 0 });
+      const target = createMockCombatCharacter({ id: 'far', team: 'player', position: { x: 8, y: 0 } });
+      const action = evaluateCombatTurn(thrower, [thrower, target], map);
+      expect(action.type).toBe('ability');
+      expect(action.abilityId).toBe('attack_main_thrown');
+      expect(action.targetCharacterIds).toContain('far');
+    });
+
+    it('prefers a normal-range target over an equal long-range one', () => {
+      const map = createSimpleMap(12, 3);
+      const thrower = rooted({ x: 0, y: 1 });
+      const far = createMockCombatCharacter({ id: 'far', team: 'player', position: { x: 8, y: 1 } });
+      const near = createMockCombatCharacter({ id: 'near', team: 'player', position: { x: 3, y: 1 } });
+      const action = evaluateCombatTurn(thrower, [thrower, far, near], map);
+      expect(action.type).toBe('ability');
+      expect(action.targetCharacterIds).toEqual(['near']);
+    });
+
+    it('still ignores a target beyond the long range', () => {
+      const map = createSimpleMap(16, 1);
+      const thrower = rooted({ x: 0, y: 0 });
+      const target = createMockCombatCharacter({ id: 'too-far', team: 'player', position: { x: 14, y: 0 } });
+      expect(evaluateCombatTurn(thrower, [thrower, target], map).type).toBe('end_turn');
+    });
+  });
+
+  it('prices a diagonal route with the shared 5-10-5 ruler', () => {
+    const map = createSimpleMap(5, 5);
+    const base = createMockCombatCharacter({ id: 'walker', team: 'enemy',
+      position: { x: 0, y: 0 }, abilities: [{ ...basicAttack, range: 1 }] });
+    const walker = { ...base, actionEconomy: { ...base.actionEconomy,
+      movement: { total: 15, used: 0 } } };
+    const target = createMockCombatCharacter({ id: 'distant', team: 'player', position: { x: 4, y: 4 } });
+    const action = evaluateCombatTurn(walker, [walker, target], map);
+    expect(action.type).toBe('move');
+    expect(action.targetPosition).toEqual({ x: 2, y: 2 });
+    expect(action.cost.movementCost).toBe(15);
+  });
+
+  it.each(['rock', 'water'] as const)('uses Earth Walk only over its eligible %s surface', terrain => {
+    const map = createSimpleMap(9, 1);
+    map.tiles.forEach(tile => { tile.movementCost = 2; tile.terrain = terrain; });
+    const base = createMockCombatCharacter({ id: 'walker', team: 'enemy', terrainPolicyId: 'earth-walk',
+      position: { x: 0, y: 0 }, abilities: [{ ...basicAttack, range: 1 }] });
+    const walker = { ...base, actionEconomy: { ...base.actionEconomy,
+      movement: { total: 15, used: 0 } } };
+    const target = createMockCombatCharacter({ id: 'distant', team: 'player', position: { x: 8, y: 0 } });
+    const action = evaluateCombatTurn(walker, [walker, target], map);
+    expect(action.targetPosition).toEqual({ x: terrain === 'rock' ? 3 : 1, y: 0 });
+    expect(action.cost.movementCost).toBe(terrain === 'rock' ? 15 : 10);
   });
 
   it('should not target a creature inside a summoned demon blood circle', () => {

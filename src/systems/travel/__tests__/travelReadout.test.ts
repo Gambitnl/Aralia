@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   formatTravelTime,
+  formatForcedMarchWarning,
   formatDistance,
   dangerRating,
   formatRouteSummary,
@@ -19,6 +20,12 @@ import type { GameState } from '../../../types/state';
 import type { AppAction } from '../../../state/actionTypes';
 
 describe('formatTravelTime', () => {
+  it('warns about the real forced-march saves before departure', () => {
+    expect(formatForcedMarchWarning(480)).toBeNull();
+    expect(formatForcedMarchWarning(510)).toBeNull();
+    expect(formatForcedMarchWarning(540)).toContain('DC 11 Constitution');
+    expect(formatForcedMarchWarning(15*60)).toContain('DC 17 Constitution');
+  });
   it('formats minutes / hours / days', () => {
     expect(formatTravelTime(15)).toBe('15 min');
     expect(formatTravelTime(60)).toBe('1h');

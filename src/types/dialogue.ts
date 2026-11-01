@@ -1,10 +1,16 @@
+/**
+ * @file src/types/dialogue.ts
+ * Defines the types for the structured dialogue and conversation system.
+ * This system allows for topic-based conversations, knowledge tracking, and social skill checks.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 09/09/2026, 09:05:07
- * Dependents: components/DesignPreview/steps/PreviewDialogue.tsx, components/Dialogue/DialogueConversationView.tsx, components/Dialogue/DialogueInterface.tsx, data/dialogue/topics.ts, services/dialogueService.ts, state/reducers/dialogueReducer.ts, types/index.ts
+ * Last Sync: 28/10/2026, 21:15:44
+ * Dependents: components/DesignPreview/steps/PreviewDialogue.tsx, components/Dialogue/DialogueConversationView.tsx, components/Dialogue/DialogueInterface.tsx, data/dialogue/topics.ts, services/dialogueService.ts, state/reducers/dialogueReducer.ts, systems/puzzles/dialogueBridge.ts, types/index.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -13,12 +19,6 @@
  * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 // @dependencies-end
-
-/**
- * @file src/types/dialogue.ts
- * Defines the types for the structured dialogue and conversation system.
- * This system allows for topic-based conversations, knowledge tracking, and social skill checks.
- */
 
 import { Skill } from './core.js';
 
@@ -72,6 +72,8 @@ export interface ConversationTopic {
   id: string;
   /** Display name of the topic (e.g., "Ask about the ruins") */
   label: string;
+  /** Player-known context shown with the choice; never a hidden AI instruction. */
+  description?: string;
   category: TopicCategory;
   /** Text prompt to send to the AI or display as player dialogue */
   playerPrompt: string;
@@ -111,6 +113,9 @@ export interface DialogueSession {
   npcId: string;
   /** Topics already discussed in this session */
   discussedTopicIds: string[];
+  /** Direct contact before this conversation opened. Optional for older saves
+   * and callers that already supply an authored or newly generated opening. */
+  contactStatus?: 'first-meeting' | 'returning';
 }
 
 /*

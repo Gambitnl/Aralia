@@ -14,6 +14,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import {fileURLToPath} from 'node:url';
+import {taskReferenceFreshness} from './taskFreshness.mjs';
 
 import {
   registrationThreadRequirement,
@@ -1183,6 +1185,7 @@ export function createStore({
       }
     }
     emit('agent.drop', { agentId, retired: true });
+    syncReservationNotices();
     return { ok: true, agentId };
   }
 
@@ -1217,6 +1220,7 @@ export function createStore({
       }
     }
     emit('agent.drop', { agentId, heartbeatLeaseExpired: true, lastMeaningfulAt, expiresAt });
+    syncReservationNotices();
     return {
       ok: false,
       error: 'heartbeat-only lease expired; re-register after confirming the agent is still active',
@@ -1240,7 +1244,8 @@ export function createStore({
       return expireHeartbeatLease(agent, t, lastMeaningfulAt, expiresAt);
     }
     emit('agent.touch', { agentId, lastSeen: t, lastHeartbeatAt: t, kind: 'heartbeat' });
-    return { ok: true, expiresAt, remainingMs: expiresAt - t };
+    syncReservationNotices();
+    return { ok: true, expiresAt, remainingMs: expiresAt - t, waiters: waitingForAgent(agentId) };
   }
 
   function computeStatus(agent, t) {
@@ -1373,6 +1378,7 @@ export function createStore({
 
     const reservationConflict = reservationConflictFor(agentId, requestTokens);
     if (reservationConflict) {
+      syncReservationNotices();
       return {
         ok: false,
         conflict: { type: 'reservation', ...reservationConflict },
@@ -1427,6 +1433,7 @@ export function createStore({
     };
     emit('lock.acquire', { lock });
     fulfillHeadReservations(agentId, requestTokens);
+    syncReservationNotices();
     return { ok: true, lock: { ...lock }, warnings };
   }
 
@@ -1442,8 +1449,10 @@ export function createStore({
         return { ok: false, error: 'holder is online — force release refused' };
       }
     }
+    const waiters = waitersForLock(lock);
     emit('lock.release', { lockId, agentId, forced: lock.agentId !== agentId || undefined });
-    return { ok: true };
+    syncReservationNotices();
+    return { ok: true, waiters: waiters.map(waiter => ({ ...waiter, ready: reservationReady(waiter) })) };
   }
 
   function renewLock({ lockId, agentId, ttlMs } = {}) {
@@ -1462,7 +1471,8 @@ export function createStore({
     const expiresAt = now() + ttl;
     lock.expiresAt = expiresAt;
     emit('lock.renew', { lockId, agentId, expiresAt });
-    return { ok: true, lock: { ...state.locks.get(lockId) } };
+    syncReservationNotices();
+    return { ok: true, lock: { ...state.locks.get(lockId) }, waiters: waitersForLock(lock) };
   }
 
   // WF-G116: a heartbeat-renewed lock told a waiter nothing about whether the
@@ -1517,6 +1527,47 @@ export function createStore({
     return { ...reservation, position: position || 1 };
   }
 
+  // WF-G297: use the same canonical overlap and FIFO rules as real lock claims.
+  // A notice only means the reservation can now be attempted, not that a lock
+  // was granted. Multi-file reservations wait until their entire domain is free.
+  function reservationReady(reservation) {
+    const owner = state.agents.get(reservation.agentId);
+    if (!owner || computeStatus(owner, now()) !== 'online') return false;
+    const tokens = reservationTokens(reservation);
+    const head = activeReservationsFor(tokens)[0];
+    return head?.id === reservation.id
+      && !activeLocks().some(lock => lock.agentId !== reservation.agentId && lockOverlap(tokens, lock, workspaceRoot));
+  }
+
+  function waitersForLock(lock) {
+    return activeReservationsFor(lockTokens(lock))
+      .filter(reservation => reservation.agentId !== lock.agentId)
+      .map(reservation => ({ ...withReservationPosition(reservation),
+        handle: state.agents.get(reservation.agentId)?.handle || reservation.agentId,
+        ready: reservationReady(reservation) }));
+  }
+
+  function waitingForAgent(agentId) {
+    const unique = new Map();
+    for (const lock of activeLocks().filter(lock => lock.agentId === agentId)) {
+      for (const waiter of waitersForLock(lock)) unique.set(waiter.id, waiter);
+    }
+    return [...unique.values()];
+  }
+
+  function syncReservationNotices() {
+    for (const reservation of state.reservations.values()) {
+      const ready = reservationReady(reservation);
+      if (ready === Boolean(reservation.readyNotified)) continue;
+      if (!ready) emit('reservation.notice', { reservationId: reservation.id, ready: false });
+      else postMessage({ agentId: 'system', to: reservation.agentId,
+        // Commit delivery and its de-duplication marker in one message event.
+        // A crash cannot retain "already notified" without retaining the message.
+        reservationNotice: { reservationId: reservation.id, ready: true },
+        body: `FILE QUEUE: reservation ${reservation.id} is first and available to attempt: ${reservationTokens(reservation).join(', ')}. Acquire the real lock before editing; availability can change. Reason: ${reservation.reason || '(none)'}` });
+    }
+  }
+
   function reservationConflictFor(agentId, requestTokens) {
     const t = now();
     for (;;) {
@@ -1561,11 +1612,16 @@ export function createStore({
     const removed = (lock.paths || []).length + (lock.globs || []).length - keepPaths.length - keepGlobs.length;
     if (!removed) return { ok: false, error: 'none of those tokens are on this lock' };
     if (!keepPaths.length && !keepGlobs.length) {
-      emit('lock.release', { lockId, agentId });
-      return { ok: true, released: true, lock: null };
+      const released = releaseLock({ lockId, agentId });
+      return { ...released, released: true, lock: null };
     }
+    const waiters = waitersForLock({ ...lock,
+      paths: (lock.paths || []).filter(p => dropPaths.has(p)),
+      globs: (lock.globs || []).filter(g => dropGlobs.has(g)) });
     emit('lock.shrink', { lockId, agentId, paths: keepPaths, globs: keepGlobs, removed });
-    return { ok: true, released: false, lock: { ...state.locks.get(lockId) } };
+    syncReservationNotices();
+    return { ok: true, released: false, lock: { ...state.locks.get(lockId) },
+      waiters: waiters.map(waiter => ({ ...waiter, ready: reservationReady(waiter) })) };
   }
 
   function fulfillHeadReservations(agentId, requestTokens) {
@@ -1585,6 +1641,12 @@ export function createStore({
       return { ok: false, error: 'no paths or globs specified' };
     }
 
+    // A repeated queue request keeps the existing place instead of adding a
+    // second self-blocking reservation. It does not rewrite the original reason.
+    const key = (ps, gs) => JSON.stringify([[...ps].sort(), [...gs].sort()]);
+    const existing = [...state.reservations.values()].find(item => item.agentId === agentId
+      && key(item.paths, item.globs) === key(normalizedPaths, normalizedGlobs));
+    if (existing) return { ok: true, reservation: withReservationPosition(existing), reused: true };
     const reservation = {
       id: genId(),
       paths: normalizedPaths,
@@ -1595,6 +1657,11 @@ export function createStore({
       queueSeq: state.reservationSeq + 1,
     };
     emit('reservation.create', { reservation });
+    const holders = new Set(activeLocks().filter(lock => lock.agentId !== agentId
+      && lockOverlap(requestTokens, lock, workspaceRoot)).map(lock => lock.agentId));
+    for (const holder of holders) postMessage({ agentId: 'system', to: holder,
+      body: `FILE QUEUE: ${state.agents.get(agentId)?.handle || agentId} is waiting at #${withReservationPosition(reservation).position} for ${requestTokens.join(', ')}. Reason: ${reservation.reason || '(none)'}. Reservation ${reservation.id}; coordinate release, never edit without a lock.` });
+    syncReservationNotices();
     return { ok: true, reservation: withReservationPosition(reservation) };
   }
 
@@ -1614,6 +1681,7 @@ export function createStore({
       }
     }
     emit('reservation.release', { reservationId: reservation.id, agentId, forced: reservation.agentId !== agentId || undefined });
+    syncReservationNotices();
     return { ok: true };
   }
 
@@ -3078,6 +3146,9 @@ export function createStore({
     // WF-G86: `from` names the prior state, `reason` the why. Legacy entries
     // lack both; every reader treats them as optional.
     const entry = { at: ts, by: agentId, action: 'state', from: t.state, state: newState };
+    // A later author can replace refs. Keep the completion's declared file set
+    // with its durable event, so sibling warnings do not silently change scope.
+    if (newState === 'done') entry.refs = [...(t.refs || [])];
     if (why) entry.reason = why;
     if (hasNewResult) entry.result = result;
     if (resolvedDisposition !== undefined) entry.resultDisposition = resolvedDisposition;
@@ -3216,6 +3287,9 @@ export function createStore({
       throw new Error('unknown campaign: ' + normalizedCampaignId);
     }
     let source = [...state.tasks.values()];
+    // WF-G285: derive from the whole board BEFORE campaign/state/ready filters.
+    // No authored counts, state, readiness or journal rows are changed by a read.
+    const freshness = taskReferenceFreshness(source, {repoRoot:fileURLToPath(new URL('../../', import.meta.url))});
     if (ready) source = source.filter(isTaskReady).sort(readyOrder);
     const normalizedCategory = category == null ? '' : normalizeCategoryInput(category);
     const out = [];
@@ -3231,6 +3305,7 @@ export function createStore({
       if (filterState && t.state !== filterState) continue;
       if (normalizedCampaignId && t.campaignId !== normalizedCampaignId) continue;
       row.ready = isTaskReady(t);
+      row.referenceFreshness = freshness.get(t.id);
       // The type travels with each edge, so a reader can tell a gate from a
       // recorded relationship without looking the type up elsewhere.
       row.depStates = (t.deps || []).map((d) => {
@@ -3256,7 +3331,7 @@ export function createStore({
   // ===========================================================================
   // Messaging
   // ===========================================================================
-  function postMessage({ agentId, to, body, channel } = {}) {
+  function postMessage({ agentId, to, body, channel, reservationNotice } = {}) {
     // The command channel is a control-plane feed: only orchestrators, the
     // master, and the human may post there. Workers get a refusal, not a
     // silent drop, so a misconfigured agent learns immediately.
@@ -3277,7 +3352,7 @@ export function createStore({
       channel: channel === 'command' ? 'command' : 'main',
       createdAt: ts,
     };
-    emit('message.post', { message });
+    emit('message.post', { message, ...(reservationNotice ? { reservationNotice } : {}) });
     return { ok: true, message: { ...message } };
   }
 
@@ -3320,9 +3395,17 @@ export function createStore({
   function archiveDoneTasks({ olderThanDays = 14 } = {}) {
     const t = now();
     const cutoff = t - olderThanDays * 86400000;
+    // WF-G285: tidying must not delete the evidence that makes an unfinished
+    // sibling's count warning visible. Retain those sources until its review
+    // is recorded or it finishes; uncertain metadata conservatively retains all.
+    const freshness = taskReferenceFreshness([...state.tasks.values()], {repoRoot:fileURLToPath(new URL('../../', import.meta.url))});
+    const retainAll = [...freshness.values()].some(view => view.status === 'unavailable');
+    const retainIds = new Set([...freshness.values()].filter(view => view.status === 'unverified')
+      .flatMap(view => view.completions.map(event => event.taskId)));
     let archived = 0;
     for (const task of [...state.tasks.values()]) {
       if (task.state !== 'done') continue;
+      if (retainAll || retainIds.has(task.id)) continue;
       // Triage-only means the first worker declined the substantive review. It
       // must stay live beyond the normal tidy horizon so another reviewer can
       // claim it and replace this disposition with evidence-backed completion.
@@ -3483,6 +3566,9 @@ export function createStore({
       };
       emit('task.release', { taskId: task.id, ts: t, entry, orphaned: true });
     }
+    // Notify only after the whole sweep has removed dead/stale reservations,
+    // rather than announcing a queue head that this sweep will immediately drop.
+    syncReservationNotices();
   }
 
   function close() {

@@ -1,0 +1,11 @@
+const r=require('./tools/agora/gapIndex.mjs');
+const doc=require('fs').readFileSync('docs/projects/GLOBAL_GAPS.md','utf8');
+const lines=doc.split('\n');
+const idx=lines.findIndex(l=>l.trim().startsWith('| GG-267 |'));
+console.log('line', idx+1, ':', lines[idx]);
+console.log('split len:', lines[idx].split('|').length);
+const parsed=r.parseGapsMarkdown(doc);
+const row=parsed.find(x=>x.id==='GG-267');
+console.log('parsed owner:', JSON.stringify(row?.owner));
+console.log('parsed nextAction:', JSON.stringify(row?.nextAction?.slice(0,120)));
+console.log('parsed evidence:', JSON.stringify(row?.evidence?.slice(0,120)));

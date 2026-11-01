@@ -65,3 +65,6 @@ export const TEAM_COLORS: Record<'player' | 'enemy' | 'neutral', ActorTeamColors
     groundGlow: 0xffcc00,
   },
 };
+
+/** How loud an actor's markers are: the arena's full chrome, or the quiet town set (see CharacterActor's `chrome`). */
+export type ActorChrome = 'arena' | 'town';

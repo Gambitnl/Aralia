@@ -83,8 +83,7 @@ export const useFocusTrap = <T extends HTMLElement>(
         restoreFocus();
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
+  }, [isOpen, restoreFocus]); // restoreFocus is a useCallback on a stable ref (C9)
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

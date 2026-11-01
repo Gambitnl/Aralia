@@ -10,7 +10,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { generateDungeon } from '../../generateDungeon';
-import { CellKind, type Cell } from '../../types';
+import { CellKind, type Cell, type DungeonPlan } from '../../types';
 import { canonicalDungeonId, type DungeonIdentity } from '../dungeonIdentity';
 import {
   dungeonEntrancePlayerCell,
@@ -44,6 +44,38 @@ const PLAN = generateDungeon({
     loopChance: 0.22,
     decorDensity: 0.55,
   },
+});
+
+describe('source torchlight discovery',()=>{
+  const room=():DungeonPlan=>({...PLAN,W:9,H:9,cellFt:5,grid:new Uint8Array(81).fill(CellKind.Floor),doors:[],
+    props:[{...PLAN.props[0],kind:'torch' as const,x:17.5,y:17.5}]});
+  it('uses explicitly carried bright light without revealing through a closed door',()=>{
+    const plan={...room(),props:[]};
+    expect(revealedDungeonCellKeys(plan,{x:1,y:3},20)).toContain('5,3');
+    expect(revealedDungeonCellKeys(plan,{x:1,y:3},20)).not.toContain('6,3');
+    plan.doors=[{...PLAN.doors[0],cell:{x:3,y:3},state:'door'}];
+    expect(revealedDungeonCellKeys(plan,{x:1,y:3},20)).not.toContain('5,3');
+    expect(revealedDungeonCellKeys(plan,{x:1,y:3},0)).toEqual(['1,3','1,2','2,3','1,4','0,3']);
+  });
+  it('remembers lit visible floor while retaining range and darkness limits',()=>{
+    const plan=room();
+    expect(revealedDungeonCellKeys(plan,{x:3,y:3})).toContain('6,3');
+    expect(revealedDungeonCellKeys(plan,{x:3,y:3})).not.toContain('8,3');
+    expect(revealedDungeonCellKeys({...plan,props:[]},{x:3,y:3})).toEqual(['3,3','3,2','4,3','3,4','2,3']);
+  });
+  it('does not ink lit floor through walls, closed leaves or sealed diagonal corners',()=>{
+    const plan=room();
+    plan.props[0].x=27.5;
+    expect(revealedDungeonCellKeys(plan,{x:1,y:3})).toContain('5,3');
+    plan.grid[3*9+3]=CellKind.Wall;
+    expect(revealedDungeonCellKeys(plan,{x:1,y:3})).not.toContain('5,3');
+    const doorPlan=room();
+    doorPlan.doors=[{...PLAN.doors[0],cell:{x:3,y:3},state:'door'}];
+    expect(revealedDungeonCellKeys(doorPlan,{x:1,y:3})).not.toContain('5,3');
+    const corner=room();
+    corner.grid[1*9+2]=CellKind.Wall;corner.grid[2*9+1]=CellKind.Wall;
+    expect(revealedDungeonCellKeys(corner,{x:1,y:1})).not.toContain('2,2');
+  });
 });
 
 // ============================================================================

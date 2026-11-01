@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 26/08/2026, 13:55:29
- * Dependents: components/screens/index.ts
- * Imports: 2 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file renders the game's title and main menu screen.
  *
@@ -25,6 +9,22 @@
  * Called by: App.tsx (when GamePhase is MAIN_MENU)
  * Depends on: MainMenu.tsx for the menu layout, ErrorBoundary for crash containment
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 10:33:23
+ * Dependents: components/screens/index.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 // ============================================================================
 // Imports
@@ -46,6 +46,8 @@ export interface MainMenuScreenProps {
   onNewGame: () => void;
   // Triggered when the player selects a save slot to load
   onLoadGame: (slotId?: string) => void;
+  // Only supplied when a living run can be saved from the title menu.
+  onSaveGame?: (slotId: string, displayName?: string, isAutoSave?: boolean) => void | Promise<void>;
   // Triggered when opening the compendium / rules glossary
   onShowCompendium: () => void;
   // Whether any stored save game exists on disk or in browser storage
@@ -89,6 +91,7 @@ export interface MainMenuScreenProps {
 export const MainMenuScreen: React.FC<MainMenuScreenProps> = ({
   onNewGame,
   onLoadGame,
+  onSaveGame,
   onShowCompendium,
   hasSaveGame,
   latestSaveTimestamp = null,
@@ -114,6 +117,7 @@ export const MainMenuScreen: React.FC<MainMenuScreenProps> = ({
       <MainMenu
         onNewGame={onNewGame}
         onLoadGame={onLoadGame}
+        onSaveGame={onSaveGame}
         onShowCompendium={onShowCompendium}
         hasSaveGame={hasSaveGame}
         latestSaveTimestamp={latestSaveTimestamp}

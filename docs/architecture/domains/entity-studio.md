@@ -1,6 +1,6 @@
 # Entity Studio
 
-Verified: 2026-08-29
+Verified: 2026-10-31 for explicit empty player gear below; 2026-10-24 for the React entry/implementation boundary; preview and carve-out inventory retains its 2026-10-22 scope.
 
 ## Purpose
 
@@ -20,8 +20,8 @@ Entity Studio is exposed inside Aralia's local developer toolset via four primar
 - **URL Route:** `design.html?step=entityforge`
 - **Purpose:** Allows developers to customize race, class, size, and seed configurations to preview walking models and mixed lineups. It provides an eyeball surface for skeleton pivot A/B comparisons (segmented vs. skinned body meshes). It also serves as the interface for text-to-creature plan generation.
 - **Direct & Transitive Local Dependencies:**
-  - `@/data/races` (`src/data/races.ts`)
-  - `@/data/classes` (`src/data/classes.ts`)
+  - `@/data/races` (`src/data/races/index.ts`)
+  - `@/data/classes` (`src/data/classes/index.ts`)
   - `@/types/creatures` (`src/types/creatures.ts`)
   - `@/systems/entities3d/types` (`src/systems/entities3d/types.ts`)
   - `@/systems/entities3d/textPlan/planSchema` (`src/systems/entities3d/textPlan/planSchema.ts`)
@@ -36,7 +36,7 @@ Entity Studio is exposed inside Aralia's local developer toolset via four primar
     - `@/systems/entities3d/three/Entity3D` (`src/systems/entities3d/three/Entity3D.tsx`)
     - `@/systems/entities3d/three/toon` (`src/systems/entities3d/three/toon.ts`)
     - `@/components/BattleMap/characters/characterActor/entityOverlays` (`src/components/BattleMap/characters/characterActor/entityOverlays.ts`)
-    - `@/components/BattleMap/characters/characterActor/models` (`src/components/BattleMap/characters/characterActor/models.ts`)
+    - `@/components/BattleMap/characters/characterActor/models` (`src/components/BattleMap/characters/characterActor/models.tsx`)
     - `@/devtools/perf` (`src/devtools/perf/index.ts`)
 - **Dev Service Endpoints consumed:**
   - `POST /devhub/api/creature-plan` (Triggers text-to-creature plan generation)
@@ -49,8 +49,8 @@ Entity Studio is exposed inside Aralia's local developer toolset via four primar
 - **URL Route:** `design.html?step=entitydebug`
 - **Purpose:** Comprehensive instrumentation workspace. Supports anchor overlays (15 anchors), gait freezing, phase scrubbing, speed adjustment, turntable rotation, camera presets, and live performance metrics (FPS, draw calls, triangles, and rebuild costs). Shows the rendering "Hall of Shame" field guide panel.
 - **Direct & Transitive Local Dependencies:**
-  - `@/data/races` (`src/data/races.ts`)
-  - `@/data/classes` (`src/data/classes.ts`)
+  - `@/data/races` (`src/data/races/index.ts`)
+  - `@/data/classes` (`src/data/classes/index.ts`)
   - `@/types/creatures` (`src/types/creatures.ts`)
   - `@/systems/entities3d/parts` (`src/systems/entities3d/parts/index.ts`)
   - `@/systems/entities3d/registry` (`src/systems/entities3d/registry.ts`)
@@ -59,7 +59,7 @@ Entity Studio is exposed inside Aralia's local developer toolset via four primar
   - `@/systems/entities3d/textPlan/fixtures` (`src/systems/entities3d/textPlan/fixtures.ts`)
   - `./entityDebugFocus` (`src/components/DesignPreview/steps/entityDebugFocus.ts`)
   - `../../../../docs/rendering-hall-of-shame.md?raw` (Vite raw asset import)
-  - `../../ui/WindowFrame` (`src/components/DesignPreview/ui/WindowFrame.tsx`)
+  - `../../ui/WindowFrame` (`src/components/ui/WindowFrame.tsx`)
   - `./EntityDebugScene` (Lazy loaded: `src/components/DesignPreview/steps/EntityDebugScene.tsx`)
     - `@/systems/entities3d/three/speciesSkeleton` (`src/systems/entities3d/three/speciesSkeleton.ts`)
     - `@/systems/entities3d/three/assembleEntity` (`src/systems/entities3d/three/assembleEntity.ts`)
@@ -78,8 +78,8 @@ Entity Studio is exposed inside Aralia's local developer toolset via four primar
 - **URL Route:** `design.html?step=partlab`
 - **Purpose:** A clean stage focusing purely on modular part quality (hands, heads, feet). Permits swapping slots between candidates, toggling joint bone overlays, rendering base meshes, playing CC0 humanoid clips, and direct editing of skeleton joint locations (with live re-rigging triggers).
 - **Direct & Transitive Local Dependencies:**
-  - `@/data/races` (`src/data/races.ts`)
-  - `@/data/classes` (`src/data/classes.ts`)
+  - `@/data/races` (`src/data/races/index.ts`)
+  - `@/data/classes` (`src/data/classes/index.ts`)
   - `@/systems/entities3d/parts` (`src/systems/entities3d/parts/index.ts`)
   - `@/systems/entities3d/types` (`src/systems/entities3d/types.ts`)
   - `@/systems/entities3d/three/partVariants` (`src/systems/entities3d/three/partVariants.ts`)
@@ -271,7 +271,7 @@ A key constraint of the Entity Studio architecture is that **no gameplay modules
 - **Mesh Viewport:** `src/components/BattleMap/characters/characterActor/EntityModel.tsx`
 - **Adapter:** `src/systems/entities3d/recipeFromCombatant.ts`
   - Adapts `CombatCharacter` model values (names, tags, creatureTypes, size) to an `EntityRecipe`.
-  - Directly queries `src/systems/entities3d/library/acceptedEntities` to check if a hand-approved creature layout wins priority over generic procedurals.
+  - Directly queries `src/systems/entities3d/library/acceptedEntities.ts` to check if a hand-approved creature layout wins priority over generic procedurals.
 
 ### 2. World3D Player/Occupant Rendering
 - **Player Avatar:** `src/components/World3D/PlayerAvatar.tsx` (Renders the controlled player character using biped rigs).
@@ -321,3 +321,17 @@ During sequential carve-out tasks (T2-T5), the files and directories must be cla
 1. **Host Blender LTS Environment Variable Requirement:** The background rigging script (`rigBaseMeshes.mjs`) automatically scans default C:-G: program folders. However, custom non-standard developer environments must manually set `BLENDER_EXE`. Standalone bootstrap scripts should verify and report Blender status during setup.
 2. **Hosted Hugging Face Space Liveness:** The `convert.py`/`convert.mjs` tools connect to the public `microsoft/TRELLIS.2` Space. Standalone setups rely on remote service liveness and free API quota availability.
 3. **Vite Dynamic Import Watcher restarts:** Unpacking code from Design Preview into a standalone repository must ensure the Vite dev server's file watcher doesn't cause recursive restarts when editing plans (previously resolved by WF-G63).
+
+## React entry and component ownership
+
+The React Three Fiber implementation lives in `src/components/entities3d/Entity3D.tsx`. Its props, handle lifecycle, animation clock and rendering body are preserved. `src/react/index.ts` and `src/react/Entity3D.tsx` remain the stable React package entry and facade for the planned `@entity/react` export. The legacy `src/systems/entities3d/three/Entity3D.tsx` shim still resolves through that facade, so existing game and ignored DesignPreview callers keep their import contract.
+
+This preserves WP-REACT: React and R3F lifecycle code remain outside the framework-independent engine implementation. C7 corrects the review suggestion that the wrapper could simply move back into the engine. Future standalone copies must include the component implementation as well as the facade; copying `src/react` alone is insufficient.
+
+The relocated implementation has identical comment-free isolated TypeScript output. Scoped typecheck passes for the component, package entry and compatibility shim. No props or visual behavior changed, and no new rendered verification or standalone-package build is claimed.
+
+## Empty player equipment is an explicit render choice
+
+Verified: 2026-10-31. recipeFromCharacter always passes gearFromEquippedItems as gearOverride, including an empty list. A real player's missing or empty equipment and slots without visual mappings therefore do not fall back to the generic class kit. Before this change, normally stowing the final visible item could restore a class staff, changing both the rendered figure and its measured doorway clearance. The shared blueprint generator already distinguishes an empty override from an omitted one; it needs no change.
+
+The player adapter preserves race, class, seed, body frame and palette. Normal inventory/equipment actions remain authoritative. Raw entity recipes and recipeFromRichNpc's existing legacy no-gear class-kit behavior remain available. This does not qualify every gear mapping, NPC packet or clearance case. Four new regressions and the existing race/class, NPC and compatibility checks total twenty-six cases. Native normal stow, full reload, actual held staff measurements and doorway traversal are recorded in [the gameplay receipt](../../projects/gameplay-flow/TRACKER.md#stowed-gear-clears-a-real-inn-doorway).

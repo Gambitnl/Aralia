@@ -8,6 +8,10 @@ import { useKnownPortsSync } from '../useKnownPortsSync';
 // tiny deterministic pack that knownPortsFromPack can run against.
 // ---------------------------------------------------------------------------
 vi.mock('../../systems/worldforge/bridge/legacySubmapBridge', () => ({
+  // GG-575: the hook reads the atlas through useOffThreadBridgeAtlas, which
+  // checks the bridge cache first. An empty cache and no Worker (jsdom) send it
+  // to getBridgeAtlas at once, as before.
+  peekBridgeAtlas: vi.fn(() => undefined),
   getBridgeAtlas: vi.fn((worldSeed: number) => ({
     pack: {
       burgs: [
@@ -127,5 +131,30 @@ describe('useKnownPortsSync', () => {
 
     // Still only one dispatch — the effect is keyed on `worldSeed` and fires once.
     expect(dispatch).toHaveBeenCalledTimes(1);
+  });
+
+  // -------------------------------------------------------------------------
+  // 7. C9 (agora-9ed9.9) regression: START_GAME_SUCCESS and LOAD_GAME_SUCCESS
+  //    reset naval.knownPorts to [] but keep the SAME seed. The old seed-only
+  //    key never re-ran, so the list stayed empty for the whole session.
+  // -------------------------------------------------------------------------
+  it('re-dispatches when knownPorts is emptied again under the same seed', () => {
+    let ports: string[] = [];
+    const { rerender } = renderHook(() => useKnownPortsSync(42, ports, dispatch));
+    expect(dispatch).toHaveBeenCalledTimes(1);
+
+    // The reducer applies NAVAL_SET_KNOWN_PORTS: the list is now populated.
+    ports = ['1', '3'];
+    rerender();
+    expect(dispatch).toHaveBeenCalledTimes(1);
+
+    // START_GAME_SUCCESS spreads initialGameState: same seed, empty list.
+    ports = [];
+    rerender();
+    expect(dispatch).toHaveBeenCalledTimes(2);
+    expect(dispatch).toHaveBeenLastCalledWith({
+      type: 'NAVAL_SET_KNOWN_PORTS',
+      payload: { ports: ['1', '3'] },
+    });
   });
 });

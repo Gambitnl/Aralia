@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
- *
- * Last Sync: 24/08/2026, 09:20:42
- * Dependents: components/World3D/GroundAgents.tsx, components/World3D/World3DWrapper.tsx, components/World3D/agentInstanceMatrices.ts, components/World3D/crowdInstancePlan.ts, components/World3D/streetOwnedAgents.ts, systems/combat/worldScenario/worldBattleScenario.ts
- * Imports: 7 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file groundAgentMotion.ts — agent motion in the 3D GROUND-METERS frame.
  *
@@ -28,6 +12,23 @@
  * Pure + deterministic. The R3F scene consumes this per-frame (or per clock tick);
  * it owns no rendering and no time source.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 29/10/2026, 01:49:01
+ * Dependents: components/World3D/GroundAgents.tsx, components/World3D/InteriorOccupants.tsx, components/World3D/World3DWrapper.tsx, components/World3D/agentInstanceMatrices.ts, components/World3D/crowdInstancePlan.ts, components/World3D/streetOwnedAgents.ts, systems/combat/worldScenario/worldBattleScenario.ts, systems/worldforge/travel/localGroundJourney.ts
+ * Imports: 7 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { townMotionSnapshotAt } from '../roster/townSnapshot';
 import { buildStreetGraph, type StreetGraph } from '../roster/agentPath';
 import type { TownPlan } from '../artifacts';
@@ -107,10 +108,10 @@ export function allGroundAgentsAt(ground: GroundWorld, clock: number): GroundAge
   if (!ground.townPlans || !ground.boundsFeet) return [];
   const bounds = ground.boundsFeet;
   const out: GroundAgentMotion[] = [];
-  for (const { burgId, plan } of ground.townPlans) {
+  for (const { burgId, plan, streetGraph } of ground.townPlans) {
     const roster = ground.rosters.find((r) => r.burgId === burgId);
     if (!roster) continue;
-    out.push(...groundTownAgentsAt(burgId, plan, roster, bounds, clock, streetGraphForPlan(plan)));
+    out.push(...groundTownAgentsAt(burgId, plan, roster, bounds, clock, streetGraph ?? streetGraphForPlan(plan)));
   }
   return out;
 }

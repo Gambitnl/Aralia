@@ -368,6 +368,24 @@ function hasVisibleCourses(construction: BuildingConstruction): boolean {
     && construction.wallMaterial !== 'wattle-daub';
 }
 
+/** Course relief belongs to the wall material, rather than painted joinery.
+ * Texture maps now carry the fine courses. Keep a small physical lip for boards
+ * and mortar; the old universal 9 cm projection looked like applied timber bars.
+ * Logs keep a deeper joint. Window splits, row rhythm and structural trim remain.
+ */
+function courseReliefM(material: BuildingConstruction['wallMaterial']): number {
+  if (material === 'round-log' || material === 'hewn-log') return 0.06;
+  if (material === 'weatherboard' || material === 'tarred-board') return 0.015;
+  return 0.004;
+}
+
+/** Restrained material seams leave shutters and load-bearing trim prominent. */
+function courseTone(wallHex: string): string {
+  const value = parseInt(wallHex.slice(1), 16);
+  const channel = (shift: number) => Math.round(((value >> shift) & 255) * 0.85).toString(16).padStart(2, '0');
+  return '#' + channel(16) + channel(8) + channel(0);
+}
+
 function wallCourseParts(
   blueprint: BlueprintPlan,
   construction: BuildingConstruction,
@@ -421,6 +439,7 @@ function wallCourseParts(
             baseYFt,
             courseHeightFt,
             colorHex,
+            courseReliefM(construction.wallMaterial) / FT,
           ));
         }
       }
@@ -894,9 +913,9 @@ export function buildBuildingMaterialParts(
   if (!style) return [];
   const storeyHeightFt = storeyHeightM / FT;
   const construction = style.construction;
-  // Wall-mounted dressing renders in the contrast-derived trim tone rather than
-  // the raw family tint, which sat within a few luma points of the wall color
-  // and made every course/shutter/foundation invisible (town-look-slice1).
+  // Joinery, shutters and foundations keep their contrast-derived trim tone.
+  // Fine wall courses use the wall material tone and shallow relief instead;
+  // their older high-contrast bars competed with the authored surface texture.
   // Roof-edge dressing keeps style.roofColor — it must read as the covering.
   const wallDressingTone = dressingContrastTone(style.trimColor, style.wallColor);
 
@@ -906,7 +925,7 @@ export function buildBuildingMaterialParts(
       blueprint,
       construction,
       storeyHeightFt,
-      wallDressingTone,
+      courseTone(style.wallColor),
     ),
     ...mullionParts(
       blueprint,

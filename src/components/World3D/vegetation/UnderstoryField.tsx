@@ -10,9 +10,27 @@
  * Positions arrive in world/scene space, so this sits at the scene root rather
  * than inside a per-chunk group.
  */
-import React, { useEffect, useMemo, useRef } from 'react';
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 14:59:47
+ * Dependents: components/World3D/World3DScene.tsx, components/World3D/vegetation/understoryBatchCache.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import React, { useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import type { TreeGeometryData } from '@/systems/worldforge/vegetation/treeMeshGenerator';
+import { createUnderstoryBatchCache } from './understoryBatchCache';
 import {
   generateUnderstoryVariantSet,
   UNDERSTORY_SIZE_M,
@@ -205,7 +223,14 @@ const UnderstoryBatchMesh: React.FC<{ batch: Batch }> = ({ batch }) => {
   const geometry = getGeometry(batch.species, batch.variant);
   const count = batch.rotation.length;
 
-  useEffect(() => {
+  // A LAYOUT effect, not a passive one (ADR 0009, 2026-10-26; the same fix as
+  // GrassLayer and VegetationTreeField). A passive effect can run after the
+  // browser paints, so the renderer can draw the mesh once before `setColorAt`
+  // has created `instanceColor`. WebGL recompiles on `needsUpdate` and
+  // recovers; the WebGPU node graph is fixed at its first build, and the
+  // bushes stayed white at the river window. Same values, same order; only
+  // earlier.
+  useLayoutEffect(() => {
     const mesh = ref.current;
     if (!mesh) return;
     const matrix = new THREE.Matrix4();
@@ -354,7 +379,11 @@ function buildBatches(chunks: readonly UnderstoryChunkInput[]): Batch[] {
 export const UnderstoryField: React.FC<{ chunks: readonly UnderstoryChunkInput[] }> = ({
   chunks,
 }) => {
-  const batches = useMemo(() => buildBatches(chunks), [chunks]);
+  // Walking can recreate the chunk wrappers without changing a single plant.
+  // Keep those batches and their GPU uploads; actual data edits still use the
+  // unchanged builder, including edits made to an existing typed array.
+  const reuseBatches = useMemo(() => createUnderstoryBatchCache(buildBatches), []);
+  const batches = reuseBatches(chunks);
   return (
     <>
       {batches.map((b) => (

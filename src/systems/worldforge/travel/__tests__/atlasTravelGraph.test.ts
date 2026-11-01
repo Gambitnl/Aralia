@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildAtlasTravelGraph, buildRoadCells, buildNavInfoFn, atlasMilesPerUnit, transportMobility, nearestLandCell } from '../atlasTravelGraph';
+import { FEET_PER_FMG_PIXEL } from '../../adapter/atlasArtifact';
 import { planFastestRoute } from '../../../travel/routePlanning';
 import { STANDARD_VEHICLES } from '../../../../types/travel';
 import { FOREST_NAV_DC_BUMP } from '../../forests/forestTunables';
@@ -26,8 +27,13 @@ describe('buildRoadCells', () => {
 });
 
 describe('atlasMilesPerUnit', () => {
-  it('falls back to a continent-sized scale when no distanceScale', () => {
-    expect(atlasMilesPerUnit(atlas)).toBeCloseTo(3, 6); // 3000 / 1000
+  // GG-519: the fallback was 3000 / graphWidth (3.125 mi/px at width 960),
+  // which made every route about 1.68x longer than the world's own frozen
+  // scale (3 km per pixel) that the atlas scale bar uses.
+  it('falls back to the world\'s frozen pixel scale when no distanceScale', () => {
+    const milesPerPixel = FEET_PER_FMG_PIXEL / 5280;
+    expect(atlasMilesPerUnit(atlas)).toBeCloseTo(milesPerPixel, 6); // about 1.864
+    expect(atlasMilesPerUnit({ ...atlas, graphWidth: 960 })).toBeCloseTo(milesPerPixel, 6);
   });
   it('uses distanceScale (km→mi) when present', () => {
     expect(atlasMilesPerUnit({ ...atlas, distanceScale: 2 } as any)).toBeCloseTo(2 * 0.621371, 6);

@@ -14,6 +14,14 @@ import * as THREE from 'three';
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
 import type { FarShellGrid } from '@/systems/worldforge/bridge/farShells';
 import type { SceneOrigin } from '@/systems/world3d/sceneOrigin';
+import { isWebGpuWorldEnabled } from './webgpuWorldFlag';
+import { getGroundDetailTexture, getGroundNormalTexture } from './terrain/groundDetailTexture';
+import { useTerrainSurfaceNoiseNodeMaterial } from './gpu/terrainSurfaceNoiseNode';
+
+const WEBGPU_WORLD = isWebGpuWorldEnabled();
+/** The streamed ground's detail tile and normal strength (World3DScene TerrainPiece). */
+const GROUND_TEXTURE_METERS_PER_TILE = 3;
+const GROUND_NORMAL_SCALE = new THREE.Vector2(0.6, 0.6);
 
 function buildShellGeometry(
   grid: FarShellGrid,
@@ -63,17 +71,41 @@ function buildShellGeometry(
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colors), 3));
+  // World-x/z UVs, as the streamed ground has them (its detail map lines up across the seam).
+  const uv = new Float32Array(cols * rows * 2);
+  for (let k = 0; k < cols * rows; k++) {
+    uv[k * 2] = (positions[k * 3] + origin.x) / GROUND_TEXTURE_METERS_PER_TILE;
+    uv[k * 2 + 1] = (positions[k * 3 + 2] + origin.z) / GROUND_TEXTURE_METERS_PER_TILE;
+  }
+  geometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
   // `w` is the USED index count; the buffer was sized for a full grid.
   geometry.setIndex(new THREE.BufferAttribute(indices.subarray(0, w), 1));
   geometry.computeVertexNormals();
   return geometry;
 }
 
-const ShellMesh: React.FC<{ grid: FarShellGrid; origin: SceneOrigin }> = ({
+const ShellMesh: React.FC<{ grid: FarShellGrid; origin: SceneOrigin; groundLook?: boolean }> = ({
   grid,
   origin,
+  groundLook = false,
 }) => {
   const geometry = useMemo(() => buildShellGeometry(grid, origin), [grid, origin]);
+  // THE SHELL LOOKS LIKE THE GROUND (2026-10-27, agora-257c). The region
+  // shell drew flat-shaded with a plain material, so every 61 m quad was a
+  // visible facet and the shell read lighter than the streamed ground beside
+  // it (no detail map, no surface noise): a hard straight edge at the loaded
+  // area. On WebGPU it now uses the streamed ground's own material, and both
+  // shells shade smoothly (the ground has since 2026-07-30). The horizon shell
+  // (500 m samples to 20 km) keeps the plain material: a 3 m detail map there
+  // would only shimmer.
+  const groundDetail = useMemo(() => getGroundDetailTexture(), []);
+  const groundNormal = useMemo(() => getGroundNormalTexture(), []);
+  const gpuMaterial = useTerrainSurfaceNoiseNodeMaterial(WEBGPU_WORLD && groundLook, {
+    map: groundDetail,
+    normalMap: groundNormal,
+    normalScale: GROUND_NORMAL_SCALE,
+    roughness: 0.95,
+  });
   React.useEffect(() => () => geometry.dispose(), [geometry]);
   return (
     <mesh
@@ -92,7 +124,7 @@ const ShellMesh: React.FC<{ grid: FarShellGrid; origin: SceneOrigin }> = ({
       raycast={() => null}
       frustumCulled={false}
     >
-      <meshStandardMaterial vertexColors flatShading roughness={1} />
+      {gpuMaterial ? <primitive object={gpuMaterial} attach="material" /> : <meshStandardMaterial vertexColors roughness={1} />}
     </mesh>
   );
 };
@@ -106,7 +138,7 @@ export const FarShells: React.FC<{
   if (!shells) return null;
   return (
     <>
-      <ShellMesh grid={shells.region} origin={sceneOrigin} />
+      <ShellMesh grid={shells.region} origin={sceneOrigin} groundLook />
       {shells.horizon && <ShellMesh grid={shells.horizon} origin={sceneOrigin} />}
     </>
   );

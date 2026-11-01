@@ -12,6 +12,7 @@
  * What changed: C2 — added civilization tests (town sites + roads).
  * Preserved: existing worldforge/fmg test suites untouched.
  */
+import { elevationCurveSlopeFt } from '../../local/generateLocal';
 import { describe, it, expect, beforeAll } from 'vitest';
 import { generateFmgAtlas } from '../../fmg/generateAtlas';
 import { generateFmgWorld } from '../../fmg/generateWorld';
@@ -32,6 +33,9 @@ describe('deriveRegionCrossings', () => {
     riverId: 7,
     centerline: [[50, 0], [50, 100]] as Array<[number, number]>,
     widthFt: 50,
+    // One water (2026-10-30): the crossing reads the width where it crosses.
+    widthFtAt: [50, 50],
+    slopeAt: [0.001, 0.001],
   };
 
   it('authors a route-aligned bridge receipt for a major road crossing', () => {
@@ -625,7 +629,10 @@ function makeBentRiverAtlas(withRiver: boolean): FmgAtlasResult {
     grid: {} as FmgAtlasResult['grid'],
     pack: {
       cells: {
-        h: Uint8Array.from([70, 70, 70, 70, 70]),
+        // One water (2026-10-30): the river's cells fall downstream and carry a
+        // water count, so the carve has a width, a fall and a depth to cut.
+        h: Uint8Array.from([70, 70, 68, 66, 70]),
+        fl: Uint16Array.from([0, 400, 600, 800, 0]),
         c: [
           [1, 2, 3, 4],
           [0, 2],
@@ -637,7 +644,7 @@ function makeBentRiverAtlas(withRiver: boolean): FmgAtlasResult {
         r: Uint16Array.from(withRiver ? [1, 1, 1, 0, 0] : [0, 0, 0, 0, 0]),
       },
       rivers: withRiver
-        ? [{ i: 1, cells: [1, 2, 3], discharge: 25, width: 0, source: 1, mouth: 3 }]
+        ? [{ i: 1, cells: [1, 2, 3], discharge: 800, width: 0, source: 1, mouth: 3 }]
         : [],
     },
   } as unknown as FmgAtlasResult;
@@ -656,7 +663,10 @@ function collectLoweredSamples(
   const { width, resolutionFt } = carved.heightfield;
   for (let i = 0; i < carved.heightfield.samples.length; i++) {
     const drop = baseline.heightfield.samples[i] - carved.heightfield.samples[i];
-    if (drop <= 0.005) continue;
+    // 2026-10-27: the carve is now 6-20 ft, not a fixed 0.04 n, so a lowered
+    // sample is one that dropped by 2 ft (feet through the elevation curve's
+    // slope: high country has more feet per unit n).
+    if (drop * elevationCurveSlopeFt(baseline.heightfield.samples[i]) <= 2) continue;
     const row = Math.floor(i / width);
     const col = i % width;
     lowered.push([
@@ -665,6 +675,39 @@ function collectLoweredSamples(
     ]);
   }
   return lowered;
+}
+
+/** The trough of the carved ground: in each row and each column of samples
+ * that the river line crosses, the lowest of its lowered samples. (A row that
+ * misses the river, past its source or mouth, finds its lowest valley ground
+ * at the point nearest the river, which is not on the line.) */
+function collectLoweredTroughSamples(
+  carved: RegionArtifact,
+  baseline: RegionArtifact,
+  line: Array<[number, number]>,
+): Array<[number, number]> {
+  const { width, resolutionFt, samples } = carved.heightfield;
+  const spans = (v: number, axis: 0 | 1) =>
+    line.some((p, k) => k > 0 && Math.min(p[axis], line[k - 1][axis]) <= v && v <= Math.max(p[axis], line[k - 1][axis]));
+  const rowLow = new Map<number, number>();
+  const colLow = new Map<number, number>();
+  for (const [x, y] of collectLoweredSamples(carved, baseline)) {
+    const col = Math.round((x - carved.bounds.x) / resolutionFt);
+    const row = Math.round((y - carved.bounds.y) / resolutionFt);
+    const i = row * width + col;
+    if (spans(y, 1)) {
+      const r = rowLow.get(row);
+      if (r === undefined || samples[i] < samples[r]) rowLow.set(row, i);
+    }
+    if (spans(x, 0)) {
+      const c = colLow.get(col);
+      if (c === undefined || samples[i] < samples[c]) colLow.set(col, i);
+    }
+  }
+  return [...new Set([...rowLow.values(), ...colLow.values()])].map((i) => [
+    carved.bounds.x + (i % width) * resolutionFt,
+    carved.bounds.y + Math.floor(i / width) * resolutionFt,
+  ]);
 }
 
 /**
@@ -957,13 +1000,21 @@ describe('generateRegion — WF-G5 river carve follows the stored course', () =>
     const river = carved.rivers[0];
     expect(river).toBeDefined();
 
-    const carvedSamples = collectLoweredSamples(carved, baseline);
+    // TOWNS BUILD DOWN TO THE RIVER (2026-11-01): the carve now also lowers a
+    // valley beside the channel (a floodplain, then a 1 in 8 side), so a
+    // lowered sample is no longer always a channel sample. The channel is the
+    // TROUGH of the carved ground: a lowered sample lower than both of its
+    // neighbors along a row or a column. Valley sides rise away from the
+    // river and form no trough.
+    const carvedSamples = collectLoweredTroughSamples(carved, baseline, river.centerline);
     expect(carvedSamples.length).toBeGreaterThan(10);
 
-    // Every lowered sample sits within the channel's own half-width of the
-    // published centerline. That is the carve-equals-draw contract stated
-    // directly, rather than inferred from a reconstructed line.
-    const halfWidth = river.widthFt / 2;
+    // Every trough sample sits within the carve's reach of the published
+    // centerline. That is the carve-equals-draw contract stated directly,
+    // rather than inferred from a reconstructed line. The reach is the
+    // channel's half-width, but at least 0.75 of a sample spacing
+    // (2026-10-27: a narrow river carves a continuous trench, not pits).
+    const halfWidth = Math.max(river.widthFt / 2, opts.resolutionFt * 0.75);
     expect(meanDistanceToLine(carvedSamples, river.centerline)).toBeLessThan(halfWidth);
 
     // And it is genuinely closer to the published line than to the old

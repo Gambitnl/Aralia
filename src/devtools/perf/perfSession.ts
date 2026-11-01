@@ -17,9 +17,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 29/09/2026, 19:05:34
+ * Last Sync: 18/10/2026, 14:31:23
  * Dependents: devtools/buildingIdentityLab/BuildingSceneDiagnostics.tsx, devtools/perf/PerfOverlay.tsx, devtools/perf/index.ts, devtools/perf/perfRegistry.ts, devtools/perf/rendererProbe.ts
- * Imports: 5 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -35,11 +35,13 @@ import {
   analyzeVsync,
   memoryTrend,
   readWork,
+  summarizePerformance,
   type MemorySample,
   type MemoryTrend,
   type VsyncReading,
 } from './diagnose';
 import type { SceneInventory } from './sceneInventory';
+import { FrameAttribution, type FrameAttributionReading, type WorkSource, type BrowserFrameTiming } from './frameAttribution';
 
 export type GraphicsApi = 'webgl' | 'webgpu' | 'unknown';
 
@@ -138,10 +140,35 @@ export interface SceneDiagnostics {
   families: SceneFamilyDiagnostics[];
 }
 
+/** Timed operations outside rendering; never added to overlapping render/GPU clocks. */
+export interface OperationReading {
+  name: string; samples: number; meanMs: number; p95Ms: number; worstMs: number;
+  totalMs: number; callsPerSecond: number; ageMs: number;
+}
+
+/** Worst visible intervals remain inspectable after the rolling FPS recovers.
+ * Overlapping operations are context, not independent costs to add together. */
+interface SevereBrowserReport {
+  startMs: number; durationMs: number; parts: { name: string; ms: number }[];
+}
+export interface SevereFrameReading {
+  frame: number; atMs: number; frameMs: number; cpuMs: number | null;
+  parts: { name: string; ms: number }[];
+  operations: { name: string; ms: number; overlapMs: number }[];
+  browserFrames: (SevereBrowserReport & { overlapMs: number })[];
+  notes?: string[];
+  /** Named scene work in this exact callback; nested inside CPU, not additive. */
+  spans?: { name: string; ms: number }[];
+}
+
 export interface PerfSnapshot {
   id: string;
   label: string;
   api: GraphicsApi;
+  operations?: OperationReading[];
+  /** A single matched interval window; GPU work overlaps it. */
+  attribution?: FrameAttributionReading | null;
+  severeFrames?: SevereFrameReading[];
   frame: FrameReading;
   /** GPU time per frame, where the browser exposes a GPU clock. */
   gpu: GpuReading;
@@ -305,6 +332,9 @@ interface Recording {
   worstCounters: RendererCounters;
 }
 
+/** A badge reads the same clock without building the detailed diagnostic report. */
+export type PerfFrameSnapshot = Pick<PerfSnapshot, 'id' | 'label' | 'api' | 'frame' | 'live'>;
+
 export class PerfSession {
   readonly frames = new FrameStats();
   readonly spans = new SpanTimer();
@@ -314,6 +344,8 @@ export class PerfSession {
   /** Counts every frame, so a late GPU result can name the frame it measured. */
   private frameIndex = 0;
   private pendingCpuMs: number | null = null;
+  private suspended = false;
+  private discardedGpuThrough = -1;
   private gpuUnavailable: GpuTimerUnavailable | null = null;
 
   private counters: RendererCounters = { ...ZERO_COUNTERS };
@@ -324,6 +356,11 @@ export class PerfSession {
   private recording: Recording | null = null;
   private sceneDiagnostics: SceneDiagnostics | null = null;
   private readonly stats = new Map<string, string>();
+  private readonly operations = new Map<string, { at: number; ms: number }[]>();
+  private readonly severeFrames: SevereFrameReading[] = [];
+  private readonly severeBrowserReports: SevereBrowserReport[] = [];
+  private browserResetBefore = 0;
+  private readonly attribution = new FrameAttribution();
 
   // ── Diagnosis state (2026-09-29) ──────────────────────────────────────────
   private readonly passStats = new Map<
@@ -342,6 +379,7 @@ export class PerfSession {
   private pendingParts: { name: string; ms: number }[] = [];
   private pendingNotes: string[] = [];
   private spanFrameMs = 0;
+  private readonly frameSpans = new Map<string, number>();
 
   /** See `SessionOrigin`. The renderer probe sets this to `auto`. */
   origin: SessionOrigin = 'named';
@@ -367,9 +405,22 @@ export class PerfSession {
    * own clock so a caller cannot report a delta measured against the wrong
    * baseline, which is the usual way a home-made fps counter goes wrong.
    */
-  frame(nowMs = performance.now()): StallRecord | null {
+  frame(nowMs = performance.now(), hidden = typeof document !== 'undefined' && document.hidden): StallRecord | null {
+    // Hidden-tab callbacks and the first resumed interval are scheduling gaps,
+    // not evidence about the visible scene. Keep them out of the diagnosis.
+    if (hidden) {
+      this.suspended = true;
+      this.resetFrames();
+      return null;
+    }
+    if (this.suspended) {
+      this.resetFrames();
+      this.suspended = false;
+    }
     const previous = this.lastFrameAt;
     this.lastFrameAt = nowMs;
+    const spans = [...this.frameSpans].map(([name, ms]) => ({ name, ms }));
+    this.frameSpans.clear();
     const parts = this.pendingParts;
     const notes = this.pendingNotes;
     this.pendingParts = [];
@@ -377,12 +428,16 @@ export class PerfSession {
     if (previous === 0) return null; // the first frame has nothing to measure against
 
     const delta = nowMs - previous;
-    if (delta > IMPLAUSIBLE_FRAME_MS) {
-      this.frames.clear();
-      return null;
+    const unclassifiedGap = delta > IMPLAUSIBLE_FRAME_MS;
+    // A visible one-second gap can be a real freeze. Retain its evidence even
+    // when it is too ambiguous for rolling FPS (sleep/debugger suspension can
+    // look identical). Explicit hidden/resumed intervals were excluded above.
+    if (unclassifiedGap) notes.push('Gap over one second: possible suspension or page stall; excluded from rolling FPS.');
+    else {
+      this.attribution.recordFrame(previous, nowMs);
+      this.frames.push(delta);
+      if (this.recording) this.recording.frames.push(delta);
     }
-    this.frames.push(delta);
-    if (this.recording) this.recording.frames.push(delta);
 
     /* Judge the frame that just ENDED, with everything known about it.
      *
@@ -391,6 +446,28 @@ export class PerfSession {
      * same finished frame. Sampled a step earlier or later they would describe
      * two different ones, and the log would blame the wrong frame's work. */
     this.frameIndex++;
+    // Relative stall detection cannot identify a scene that starts at 3 FPS.
+    // Retain the five worst visible intervals of at least 100 ms independently
+    // of its baseline. Hidden/resumed intervals were excluded above. This is
+    // bounded evidence capture, not a profiler running extra scene work.
+    if (delta >= 100 && (this.severeFrames.length < 5 || delta > this.severeFrames[this.severeFrames.length - 1].frameMs)) {
+      const operations: SevereFrameReading['operations'] = [];
+      for (const [name, samples] of this.operations) for (const sample of samples) {
+        const overlapMs = Math.min(nowMs, sample.at) - Math.max(previous, sample.at - sample.ms);
+        if (overlapMs > 0) operations.push({ name, ms: sample.ms, overlapMs });
+      }
+      this.severeFrames.push({ frame: this.frameIndex, atMs: nowMs, frameMs: delta,
+        cpuMs: this.pendingCpuMs, spans: spans.sort((a,b)=>b.ms-a.ms).slice(0,8), parts: parts.map(p => ({ ...p })).sort((a,b)=>b.ms-a.ms).slice(0,5),
+        operations: operations.sort((a,b)=>b.overlapMs-a.overlapMs).slice(0,5), browserFrames: [], notes: notes.slice(0,8) });
+      for (const report of this.severeBrowserReports) this.attachSevereBrowserReport(report);
+      this.severeFrames.sort((a,b)=>b.frameMs-a.frameMs);
+      this.severeFrames.length = Math.min(5, this.severeFrames.length);
+    }
+    if (unclassifiedGap) {
+      this.resetFrames();
+      this.lastFrameAt = nowMs;
+      return null;
+    }
     const rec = this.stallLog.observe(
       {
         frame: this.frameIndex,
@@ -454,6 +531,7 @@ export class PerfSession {
 
   /** File one frame's GPU time, split by pass. Also feeds the frame's GPU total. */
   recordPassGpu(result: FramePassGpu): void {
+    if (this.suspended || result.frame <= this.discardedGpuThrough) return;
     const keys = this.framePassKeys.get(result.frame);
     if (keys) {
       for (const [index, ms] of result.passes) {
@@ -479,6 +557,32 @@ export class PerfSession {
     return this.stallLog.records().filter((r) => r.startMs < endMs && r.atMs > startMs);
   }
 
+  /** Browser reports can arrive before or after the next scene frame. Keep a
+   * small pending window and attach by actual overlap, even when sustained
+   * poor FPS never triggers the relative stall detector. These are page-wide
+   * reports, not exclusive costs belonging to this canvas or interval. */
+  recordSevereBrowserFrame(startMs: number, durationMs: number, parts: { name: string; ms: number }[]): void {
+    if (!Number.isFinite(startMs) || !Number.isFinite(durationMs) || durationMs <= 0
+      || startMs + durationMs <= this.browserResetBefore) return;
+    const report = { startMs, durationMs, parts: parts.filter(p => Number.isFinite(p.ms) && p.ms >= 0)
+      .map(p => ({ ...p })).sort((a,b)=>b.ms-a.ms).slice(0,8) };
+    this.attachSevereBrowserReport(report);
+    if (this.suspended || this.severeBrowserReports.some(r => r.startMs === startMs && r.durationMs === durationMs)) return;
+    this.severeBrowserReports.push(report);
+    while (this.severeBrowserReports.length > 16) this.severeBrowserReports.shift();
+  }
+
+  private attachSevereBrowserReport(report: SevereBrowserReport): void {
+    for (const rec of this.severeFrames) {
+      const overlapMs = Math.min(rec.atMs, report.startMs + report.durationMs)
+        - Math.max(rec.atMs - rec.frameMs, report.startMs);
+      if (overlapMs <= 0 || rec.browserFrames.some(r => r.startMs === report.startMs && r.durationMs === report.durationMs)) continue;
+      rec.browserFrames.push({ ...report, overlapMs });
+      rec.browserFrames.sort((a,b)=>b.overlapMs-a.overlapMs);
+      rec.browserFrames.length = Math.min(5, rec.browserFrames.length);
+    }
+  }
+
   /** Hand browser-measured parts to one slow frame (see `StallLog.attachBrowserParts`). */
   attachBrowserParts(rec: StallRecord, parts: { name: string; ms: number }[]): boolean {
     return this.stallLog.attachBrowserParts(rec, parts);
@@ -494,8 +598,50 @@ export class PerfSession {
     return this.frameIndex + 1;
   }
 
+  /** Exact callback windows let delayed page reports explain the remaining time. */
+  recordRenderWindow(start: number, end: number): void {
+    if (!this.suspended) this.attribution.recordCallback(start, end);
+  }
+  setBrowserCoverage(mode: FrameAttributionReading['browserCoverage']): void {
+    this.attribution.browserCoverage = mode;
+  }
+  recordPageWork(name: string, start: number, end: number, source: WorkSource): void {
+    if (!this.suspended && !(typeof document !== 'undefined' && document.hidden)) this.attribution.recordWork(name,start,end,source);
+  }
+  recordBrowserWork(entry: BrowserFrameTiming): void {
+    if (!this.suspended && !(typeof document !== 'undefined' && document.hidden)) this.attribution.recordBrowserFrame(entry);
+  }
+
+  /** Worker replies can block input between frames. Keep their actual elapsed
+   * cost separate from the render callback, with a bounded two-second window. */
+  recordOperation(name: string, ms: number, at = performance.now()): void {
+    if (this.suspended || !Number.isFinite(ms) || ms < 0 || !Number.isFinite(at)) return;
+    // Worker execution is concurrent. Only main-thread handlers can occupy
+    // the page timeline; their aggregate and phases will be unioned, not added.
+    if (!name.startsWith('worker:')) this.recordPageWork(name,at-ms,at,'operation');
+    const samples = this.operations.get(name) ?? [];
+    samples.push({at,ms});
+    while (samples.length > 240 || (samples.length && at-samples[0].at > 2000)) samples.shift();
+    this.operations.set(name,samples);
+  }
+
+  private readOperations(now: number): OperationReading[] {
+    const readings: OperationReading[] = [];
+    for (const [name, ring] of this.operations) {
+      const recent=ring.filter(s=>now-s.at<=2000 && now>=s.at);
+      if (!recent.length) continue;
+      const values=recent.map(s=>s.ms).sort((a,b)=>a-b), totalMs=values.reduce((a,b)=>a+b,0);
+      readings.push({name,samples:values.length,meanMs:totalMs/values.length,p95Ms:values[Math.min(values.length-1,Math.floor(values.length*.95))],worstMs:values[values.length-1],totalMs,callsPerSecond:values.length/2,ageMs:now-recent[recent.length-1].at});
+    }
+    return readings.sort((a,b)=>b.totalMs-a.totalMs);
+  }
+
   /** Attribute a piece of per-frame work by name. */
   span(name: string, ms: number): void {
+    if (this.suspended || !Number.isFinite(ms) || ms < 0) return;
+    // Keep the exact frame separate from rolling averages: a one-off rebuild
+    // must remain identifiable after FPS recovers. Clear it at every frame.
+    this.frameSpans.set(name, (this.frameSpans.get(name) ?? 0) + ms);
     this.spans.record(name, ms);
     this.spanFrameMs += ms;
   }
@@ -519,6 +665,9 @@ export class PerfSession {
    */
   recordGpu(results: GpuResult[]): void {
     for (const r of results) {
+      // GPU clocks arrive late. A reset must not let an old query refill the
+      // fresh window with a pre-suspension frame.
+      if (this.suspended || r.frame <= this.discardedGpuThrough) continue;
       // The baseline is read BEFORE this result joins it, or a spike would be
       // compared against a window it had already inflated.
       const base = this.gpu.read();
@@ -531,12 +680,12 @@ export class PerfSession {
   /**
    * Record the CPU work of one frame: everything the page did to build it.
    *
-   * Frame time minus this is time the page spent WAITING — almost always for
-   * the display's vertical blank. Without it a scene locked at 60 fps with 2 ms
-   * of GPU work reads as "CPU bound", when the truth is that it is idle and has
-   * headroom to spare.
+   * This is elapsed callback time. Renderer submission may include waiting
+   * for the GPU. Time outside the callback may include browser scheduling;
+   * neither interval by itself proves CPU saturation or display waiting.
    */
   recordCpuFrame(ms: number): void {
+    if (this.suspended) return;
     this.cpu.push(ms);
     // Held for the next `frame` call, which is where the whole frame is judged.
     this.pendingCpuMs = ms;
@@ -674,6 +823,7 @@ export class PerfSession {
    * frames it is explaining.
    */
   resetFrames(): void {
+    this.attribution.clear(this.lastFrameAt);
     this.frames.clear();
     this.gpu.clear();
     this.cpu.clear();
@@ -682,10 +832,28 @@ export class PerfSession {
     // The per-pass and per-part windows describe the same frames; clear them too.
     this.passStats.clear();
     this.partMeans.clear();
+    this.operations.clear();
+    this.framePassKeys.clear();
+    this.discardedGpuThrough = this.currentFrame;
+    this.vsyncIntervalMs = null;
+    this.pendingCpuMs = null;
+    this.pendingParts = [];
+    this.pendingNotes = [];
+    this.frameSpans.clear();
+    this.spanFrameMs = 0;
+  }
+
+  /** Background time has no visible throughput; restart evidence on resume. */
+  suspend(): void {
+    this.suspended = true;
+    this.resetFrames();
   }
 
   /** Throw away everything, including span attribution. */
   reset(): void {
+    this.browserResetBefore = this.lastFrameAt;
+    this.severeFrames.length = 0;
+    this.severeBrowserReports.length = 0;
     this.resetFrames();
     this.spans.clear();
   }
@@ -712,12 +880,24 @@ export class PerfSession {
     return this.recording !== null;
   }
 
+  /**
+   * Small FPS labels need only this shared frame window. Avoid allocating pass,
+   * upload, stall and memory reports each time a badge refreshes. The full
+   * panel still reads those diagnostics through snapshot.
+   */
+  frameReading(nowMs = performance.now()): PerfFrameSnapshot {
+    return {
+      id: this.id, label: this.label, api: this.api, frame: this.frames.read(),
+      live: !(typeof document !== 'undefined' && document.hidden) && this.lastFrameAt > 0 && nowMs - this.lastFrameAt < LIVE_TIMEOUT_MS,
+    };
+  }
+
   snapshot(nowMs = performance.now()): PerfSnapshot {
     return {
-      id: this.id,
-      label: this.label,
-      api: this.api,
-      frame: this.frames.read(),
+      ...this.frameReading(nowMs),
+      operations: this.readOperations(nowMs),
+      attribution: this.attribution.read(nowMs),
+      severeFrames: this.severeFrames.map(r => ({ ...r, spans: r.spans?.map(p=>({...p})), notes: r.notes?.slice(), parts: r.parts.map(p=>({...p})), operations: r.operations.map(p=>({...p})), browserFrames: r.browserFrames.map(b=>({...b,parts:b.parts.map(p=>({...p}))})) })),
       gpu: this.readGpu(),
       cpuMs: this.cpu.read().samples > 0 ? this.cpu.read().meanMs : null,
       stalls: this.frames.stalls(),
@@ -726,7 +906,6 @@ export class PerfSession {
       surface: this.surface,
       heapMB: this.heapMB,
       spans: this.spans.entries(),
-      live: this.lastFrameAt > 0 && nowMs - this.lastFrameAt < LIVE_TIMEOUT_MS,
       recordingSec: this.recording ? (nowMs - this.recording.startedAt) / 1000 : null,
       stallLog: this.stallLog.records(),
       scene: this.sceneDiagnostics,
@@ -805,12 +984,18 @@ export class PerfSession {
   /** A plain-text summary of the live window, for pasting into a report. */
   report(): string {
     const s = this.snapshot();
+    const diagnosis = summarizePerformance(s, 1000 / 60);
     const lines = [
+      diagnosis.headline,
+      diagnosis.evidence,
+      diagnosis.next,
+      ...diagnosis.costly,
+      '  windows: frame last 1 s; CPU/GPU last 120 samples; pass CPU last 60 samples',
       `${s.label} [${s.api}${s.origin === 'auto' ? ', found by the renderer probe' : ''}] — live window`,
       `  fps      ${s.frame.fps.toFixed(1)} over ${s.frame.samples} frames`,
       `  frame    ${s.frame.meanMs.toFixed(1)} ms mean · ${s.frame.p95Ms.toFixed(1)} p95 · ${s.frame.worstMs.toFixed(1)} worst`,
       `  gpu      ${describeGpu(s.gpu, classifyBottleneck(s.gpu.meanMs, s.cpuMs, s.frame.meanMs))}`,
-      `  cpu      ${s.cpuMs === null ? 'not measured' : `${s.cpuMs.toFixed(2)} ms of work per frame`}`,
+      `  cpu      ${s.cpuMs === null ? 'not measured' : `${s.cpuMs.toFixed(2)} ms elapsed callback per frame (submission and possible GPU waiting)`}`,
       `  stalls   ${s.stalls} frames over ${STALL_MS.toFixed(0)} ms`,
       `  draws    ${s.counters.drawCalls} calls · ${s.counters.triangles.toLocaleString()} triangles${
         s.counters.lines > 0 ? ` · ${s.counters.lines.toLocaleString()} lines` : ''
@@ -932,6 +1117,26 @@ export function describeDiagnosis(s: PerfSnapshot): string[] {
   }
   if (s.cpuParts.length > 0) {
     out.push(`  cpu      ${s.cpuParts.slice(0, 6).map((p) => `${p.name} ${p.ms.toFixed(2)}`).join(' · ')}`);
+  }
+  if (s.attribution) {
+    const a=s.attribution;
+    out.push('  matched  '+a.frames+' intervals; '+a.meanFrameMs.toFixed(1)+' ms/frame; callback '+a.callbackMs.toFixed(1)
+      +'; outside script '+a.outsideScriptMs.toFixed(1)+'; browser rendering '+a.browserRenderingMs.toFixed(1)+'; unexplained '+a.unknownMs.toFixed(1));
+    for (const row of a.sources.slice(0,8)) out.push('    '+row.source+': '+row.name+' '+row.ms.toFixed(1)+' ms/frame exclusive');
+    out.push('    browser coverage: '+a.browserCoverage+'; GPU overlaps; unobserved time is not proven idle.');
+  }
+  for (const rec of s.severeFrames ?? []) {
+    out.push('  severe   ' + rec.frameMs.toFixed(1) + ' ms interval at page ' + (rec.atMs/1000).toFixed(1)
+      + ' s; CPU callback ' + (rec.cpuMs === null ? 'unavailable' : rec.cpuMs.toFixed(1)+' ms') + '; interval GPU attribution unavailable');
+    for (const note of rec.notes ?? []) out.push('    detail: ' + note);
+    for (const p of rec.spans ?? []) out.push('    scene work inside CPU: ' + p.name + ' ' + p.ms.toFixed(1) + ' ms');
+    for (const p of rec.parts) out.push('    measured: ' + p.name + ' ' + p.ms.toFixed(1) + ' ms');
+    for (const p of rec.operations) out.push('    overlap: ' + p.name + ' ' + p.ms.toFixed(1) + ' ms/call; ' + p.overlapMs.toFixed(1) + ' ms in interval');
+    for (const browser of rec.browserFrames) {
+      out.push('    browser report: ' + browser.durationMs.toFixed(1) + ' ms page frame; ' + browser.overlapMs.toFixed(1) + ' ms overlaps interval');
+      for (const p of browser.parts) out.push('      browser measured: ' + p.name + ' ' + p.ms.toFixed(1) + ' ms/report');
+    }
+    out.push('    Browser reports are page-wide and may span multiple intervals. Nested measurements overlap; other time remains unexplained.');
   }
   const c = s.costs.lastTenSeconds;
   out.push(
@@ -1058,7 +1263,7 @@ export function classifyBottleneck(
 
   if (cpuShare === null) {
     // Without the CPU side, only a GPU that dominates can be claimed.
-    if (gpuShare >= 0.7) return { kind: 'gpu', gpuShare, cpuShare, label: `GPU bound · ${pct(gpuShare)}` };
+    if (gpuShare >= 0.7) return { kind: 'gpu', gpuShare, cpuShare, label: `GPU duration dominates (heuristic) · ${pct(gpuShare)}` };
     return { kind: 'unknown', gpuShare, cpuShare, label: `gpu ${pct(gpuShare)} of the frame` };
   }
 
@@ -1067,14 +1272,14 @@ export function classifyBottleneck(
       kind: 'headroom',
       gpuShare,
       cpuShare,
-      label: `headroom · gpu ${pct(gpuShare)} · cpu ${pct(cpuShare)}`,
+      label: `unexplained frame time (not spare capacity) · gpu ${pct(gpuShare)} · cpu ${pct(cpuShare)}`,
     };
   }
   if (gpuMeanMs >= (cpuMs as number) * 1.5) {
     return { kind: 'gpu', gpuShare, cpuShare, label: `GPU bound · ${pct(gpuShare)} of the frame` };
   }
   if ((cpuMs as number) >= gpuMeanMs * 1.5) {
-    return { kind: 'cpu', gpuShare, cpuShare, label: `CPU bound · ${pct(cpuShare)} of the frame` };
+    return { kind: 'cpu', gpuShare, cpuShare, label: `CPU elapsed dominates (heuristic) · ${pct(cpuShare)} of the frame` };
   }
   return { kind: 'mixed', gpuShare, cpuShare, label: `mixed · gpu ${pct(gpuShare)} · cpu ${pct(cpuShare)}` };
 }
@@ -1088,7 +1293,7 @@ const GPU_UNAVAILABLE_TEXT: Record<GpuTimerUnavailable, string> = {
    * builds, then keeps resolving those same two stamps. A number read from
    * `renderer.info.*.timestamp` is therefore constant forever (found on the
    * ocean viewer, 2026-09-25). Showing it would be worse than showing nothing. */
-  webgpu: 'no GPU clock (WebGPU: three r172 timestamps record only the first pass, so a per-frame GPU time would be false)',
+  webgpu: 'no GPU clock (WebGPU timestamp-query unavailable or owned by another timer; r172 info timestamps are not used)',
   'no-context': 'no GPU clock (no renderer context)',
   disabled: 'GPU timing turned off for this surface',
 };

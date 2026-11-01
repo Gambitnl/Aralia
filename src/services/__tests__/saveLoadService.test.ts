@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as SaveLoadService from '../saveLoadService';
 import * as IDBStorage from '../indexedDBStorageService';
+import { setIndexedDbAvailable } from '../saveLoad/saveLoadHelpers';
 import { GameState, GamePhase, DiscoveryEntry, DiscoveryType } from '../../types';
 
 import { migrateMapDataToWorldDataV2 } from '@/state/migrations/worldDataMigration';
@@ -31,10 +32,9 @@ import { DUNGEON_SURFACE_LEVEL_ID } from '../../systems/worldforge/dungeon/world
 // ---------------------------------------------------------------------------
 // IndexedDB is mocked with an in-memory store so the localStorage -> IndexedDB
 // migration flow (initializeStorage / MIGRATION_FLAG_KEY) can be exercised in
-// jsdom, which ships no real IndexedDB. The existing tests never trigger this
-// path — `idbAvailable` stays false until `initializeStorage()` runs, and only
-// the G5 "migration flow" describe below calls it — so they are unaffected by
-// this mock.
+// jsdom, which ships no real IndexedDB. Ordinary cases explicitly select the
+// completed unavailable-backend fallback; the migration cases initialize the
+// mocked primary store. Cold startup/readiness is covered separately.
 // ---------------------------------------------------------------------------
 vi.mock('../indexedDBStorageService', () => {
     const store = new Map<string, string>();
@@ -175,6 +175,7 @@ describe('SaveLoadService', () => {
         localStorage.clear();
         sessionStorage.clear();
         vi.clearAllMocks();
+        setIndexedDbAvailable(false);
         // Reset internal cache by refreshing
         SaveLoadService.refreshSaveSlotIndex();
     });
@@ -585,6 +586,20 @@ describe('SaveLoadService', () => {
             expect(result.data?.isDiscoveryLogVisible).toBe(false);
         });
 
+        it('preserves a finished defeat while keeping the earlier manual recovery save unchanged', async () => {
+            await SaveLoadService.saveGame(mockGameState);
+            const earlierManual = localStorage.getItem('aralia_rpg_default_save');
+            const defeated: GameState = { ...mockGameState, phase: GamePhase.GAME_OVER,
+                party: mockGameState.party.map(member => ({ ...member, hp: 0, maxHp: 10 })), gold: 22 };
+            await SaveLoadService.saveGame(defeated, 'defeat_record_fixture');
+            const result = await SaveLoadService.loadGame('defeat_record_fixture');
+            expect(result.success).toBe(true);
+            expect(result.data?.phase).toBe(GamePhase.GAME_OVER);
+            expect(result.data?.party[0].hp).toBe(0);
+            expect(result.data?.gold).toBe(22);
+            expect(localStorage.getItem('aralia_rpg_default_save')).toBe(earlierManual);
+        });
+
         it('heals a save written mid-combat back to PLAYING and announces the pre-combat checkpoint', async () => {
             const combatState = { ...mockGameState, phase: GamePhase.COMBAT };
             await SaveLoadService.saveGame(combatState as GameState, 'combat_checkpoint_slot');
@@ -811,6 +826,7 @@ describe('SaveLoadService', () => {
     // heals to a best-effort list instead.
     // ------------------------------------------------------------------------
     describe('slot metadata anomalies (G5)', () => {
+        beforeEach(() => { setIndexedDbAvailable(false); });
         it('recovers to an empty slot list when the persisted slot index is malformed JSON', () => {
             localStorage.setItem(SLOT_INDEX_KEY, '{ not valid json');
 

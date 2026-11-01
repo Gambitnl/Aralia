@@ -225,4 +225,121 @@ describe('townReducer — town rumor mill (agora-049c)', () => {
     const result = townReducer(makeState(), { type: 'CLOSE_TEMPLE' } as AppAction);
     expect(result.templeModal).toEqual({ isOpen: false, temple: null });
   });
+
+  describe('quest completion gossip and duplicate prevention (GG-463)', () => {
+    it('turns a quest completed via UPDATE_QUEST_OBJECTIVE into town talk', () => {
+      const state = makeState({
+        questLog: [
+          {
+            id: 'q_auto',
+            title: 'clear the cellar',
+            description: '',
+            status: 'active',
+            objectives: [
+              { id: 'obj_1', description: 'kill rats', isCompleted: false },
+              { id: 'obj_2', description: 'speak to barkeep', isCompleted: true },
+            ],
+          },
+        ] as unknown as GameState['questLog'],
+      });
+
+      const action = {
+        type: 'UPDATE_QUEST_OBJECTIVE',
+        payload: { questId: 'q_auto', objectiveId: 'obj_1', isCompleted: true },
+      } as AppAction;
+
+      const result = townReducer(state, action);
+      expect(result.townRumors).toHaveLength(1);
+      const rumor = result.townRumors![0];
+      expect(rumor.id).toBe('rumor_quest_q_auto');
+      expect(rumor.kind).toBe('quest_completed');
+      expect(rumor.text).toContain('clear the cellar');
+    });
+
+    it('produces no talk when an objective update leaves remaining incomplete objectives', () => {
+      const state = makeState({
+        questLog: [
+          {
+            id: 'q_partial',
+            title: 'find the lost ring',
+            description: '',
+            status: 'active',
+            objectives: [
+              { id: 'obj_1', description: 'search well', isCompleted: false },
+              { id: 'obj_2', description: 'return ring', isCompleted: false },
+            ],
+          },
+        ] as unknown as GameState['questLog'],
+      });
+
+      const action = {
+        type: 'UPDATE_QUEST_OBJECTIVE',
+        payload: { questId: 'q_partial', objectiveId: 'obj_1', isCompleted: true },
+      } as AppAction;
+
+      const result = townReducer(state, action);
+      expect(result).toEqual({});
+    });
+
+    it('does not add a duplicate deed when COMPLETE_QUEST is repeated or quest was already completed', () => {
+      const completedState = makeState({
+        questLog: [
+          {
+            id: 'q_done',
+            title: 'defend the bridge',
+            description: '',
+            status: 'Completed',
+            objectives: [{ id: 'obj_1', description: 'hold line', isCompleted: true }],
+          },
+        ] as unknown as GameState['questLog'],
+      });
+
+      const completeAction = {
+        type: 'COMPLETE_QUEST',
+        payload: { questId: 'q_done' },
+      } as AppAction;
+
+      const result = townReducer(completedState, completeAction);
+      expect(result).toEqual({});
+
+      // Also if a rumor with rumor_quest_q_done already exists in townRumors:
+      const stateWithExistingRumor = makeState({
+        questLog: [
+          {
+            id: 'q_done',
+            title: 'defend the bridge',
+            description: '',
+            status: 'active',
+            objectives: [{ id: 'obj_1', description: 'hold line', isCompleted: true }],
+          },
+        ] as unknown as GameState['questLog'],
+        townRumors: [
+          {
+            id: 'rumor_quest_q_done',
+            kind: 'quest_completed',
+            text: 'They say the stranger defended the bridge.',
+            sourceNpc: 'villager_7_1',
+            spreadDay: 0,
+            reachedNpcs: ['villager_7_1'],
+            tone: 'positive',
+            virality: 1,
+            weight: 1,
+            lastSpreadDay: 0,
+            subject: 'the stranger',
+            locationId: 'village-center',
+          },
+        ],
+      });
+
+      const duplicateResult = townReducer(stateWithExistingRumor, completeAction);
+      expect(duplicateResult).toEqual({});
+
+      const updateAction = {
+        type: 'UPDATE_QUEST_OBJECTIVE',
+        payload: { questId: 'q_done', objectiveId: 'obj_1', isCompleted: true },
+      } as AppAction;
+      const updateDuplicateResult = townReducer(stateWithExistingRumor, updateAction);
+      expect(updateDuplicateResult).toEqual({});
+    });
+  });
 });

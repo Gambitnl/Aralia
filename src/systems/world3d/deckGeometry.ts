@@ -6,6 +6,23 @@
  * a short vertical skirt around the rim so the slab reads with thickness from
  * the side. Mirrors wallGeometry's chunk-local segment walk.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 22:08:38
+ * Dependents: components/World3D/groundBuildingMotion.ts, systems/world3d/chunkBundle.ts, systems/worldforge/bridge/groundWaterSurfaceQuery.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { ChunkData, ChunkGeometryArrays } from './types';
 import { gridPointToLocal } from './coords';
 import { WORLD3D_CONFIG, heightToMeters } from './config';
@@ -45,7 +62,7 @@ const DECK_COLOR: Record<'dock' | 'bridge' | 'ford' | 'fordStone', [number, numb
 };
 
 /** Deck meshes carry per-vertex colors so DeckPiece renders with `vertexColors`. */
-type DeckMesh = ChunkGeometryArrays & { colors: Float32Array };
+type DeckMesh = ChunkGeometryArrays & { colors: Float32Array; slabTopIndices?: Uint32Array };
 
 const EMPTY: DeckMesh = {
   positions: new Float32Array(0),
@@ -54,7 +71,65 @@ const EMPTY: DeckMesh = {
   colors: new Float32Array(0),
 };
 
+type ClippedDeckVertex = { p: number[]; n: number[]; c: number[] };
+
+/** Cut the finished bridge at the chunk boundary. Interpolating its existing
+ * faces preserves one arch, rail layout and slab underside through the seam;
+ * it creates no artificial end wall or abutment at that boundary. */
+function appendClippedBridge(mesh: DeckMesh, positions: number[], indices: number[], normals: number[], colors: number[], slabTops?: number[]): void {
+  const size = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
+  const slabFaces = new Set<string>();
+  const tops = mesh.slabTopIndices ?? [];
+  for (let i = 0; i < tops.length; i += 3) slabFaces.add([tops[i], tops[i + 1], tops[i + 2]].join(','));
+  const vertex = (index: number): ClippedDeckVertex => ({
+    p: Array.from(mesh.positions.slice(index * 3, index * 3 + 3)),
+    n: Array.from(mesh.normals.slice(index * 3, index * 3 + 3)),
+    c: Array.from(mesh.colors.slice(index * 3, index * 3 + 3)),
+  });
+  for (let t = 0; t < mesh.indices.length; t += 3) {
+    const face = Array.from(mesh.indices.slice(t, t + 3));
+    let polygon = face.map(vertex);
+    for (const [axis, bound, sign] of [[0, 0, 1], [0, size, -1], [2, 0, 1], [2, size, -1]]) {
+      const clipped: ClippedDeckVertex[] = [];
+      for (let i = 0; i < polygon.length; i++) {
+        const a = polygon[i], b = polygon[(i + 1) % polygon.length];
+        const da = (a.p[axis] - bound) * sign, db = (b.p[axis] - bound) * sign;
+        if (da >= 0) clipped.push(a);
+        if ((da >= 0) !== (db >= 0)) {
+          const share = da / (da - db);
+          const blend = (key: 'p' | 'n' | 'c') => a[key].map((v, k) => v + (b[key][k] - v) * share);
+          const cut = { p: blend('p'), n: blend('n'), c: blend('c') };
+          cut.p[axis] = bound;
+          clipped.push(cut);
+        }
+      }
+      polygon = clipped;
+      if (polygon.length < 3) break;
+    }
+    for (let i = 1; i + 1 < polygon.length; i++) {
+      const triangle = [polygon[0], polygon[i], polygon[i + 1]];
+      const a = triangle[0].p, b = triangle[1].p, c = triangle[2].p;
+      const u = b.map((v, k) => v - a[k]), v = c.map((value, k) => value - a[k]);
+      if (Math.hypot(u[1]*v[2]-u[2]*v[1], u[2]*v[0]-u[0]*v[2], u[0]*v[1]-u[1]*v[0]) < 1e-10) continue;
+      const base = positions.length / 3;
+      for (const point of triangle) { positions.push(...point.p); normals.push(...point.n); colors.push(...point.c); }
+      indices.push(base, base + 1, base + 2);
+      if (slabFaces.has(face.join(','))) slabTops?.push(base, base + 1, base + 2);
+    }
+  }
+}
+
 export function buildDeckMesh(data: ChunkData): DeckMesh {
+  const slabTops: number[] = [];
+  const mesh = buildDeckGeometry(data, slabTops);
+  // Worker structured-cloning retains this additive receipt alongside the
+  // unchanged draw arrays. Walking must query the mounted mesh, not guess LOD.
+  return { ...mesh, slabTopIndices: new Uint32Array(slabTops) };
+}
+
+// The optional receipt names only slab-top triangles. The renderer's arrays
+// stay unchanged; walking can close the authored 0.45 m slab underneath them.
+function buildDeckGeometry(data: ChunkData, slabTops?: number[]): DeckMesh {
   const decks = (data.decks ?? []).filter((d) => d.points.length >= 3);
   if (decks.length === 0) return EMPTY;
 
@@ -84,6 +159,14 @@ export function buildDeckMesh(data: ChunkData): DeckMesh {
   };
 
   for (const deck of decks) {
+    if (deck.kind === 'bridge' && deck.sourcePoints?.length === 4) {
+      // A short clipped quad can be wider than it is long, and a five-corner
+      // clip loses the old quad-only arch. Build from the original span first.
+      // Existing callers without that packet retain their prior geometry.
+      const complete = buildDeckMesh({ ...data, decks: [{ ...deck, points: deck.sourcePoints, sourcePoints: undefined }] });
+      appendClippedBridge(complete, positions, indices, normals, colors, slabTops);
+      continue;
+    }
     const top = deck.topY;
     const bot = deck.topY - DECK_THICK_M;
     // Per-deck tint (ford wet/dry strips, stone jitter) wins over the kind color.
@@ -140,6 +223,7 @@ export function buildDeckMesh(data: ChunkData): DeckMesh {
       for (let i = 1; i < n - 1; i++) {
         if (area2 > 0) indices.push(topBase, topBase + i, topBase + i + 1);
         else indices.push(topBase, topBase + i + 1, topBase + i);
+        slabTops?.push(...indices.slice(-3));
       }
 
       // Skirt — one vertical quad per rim edge, wound with the authored
@@ -195,6 +279,7 @@ export function buildDeckMesh(data: ChunkData): DeckMesh {
           const stripUp = (b0.z - a0.z) * (b1.x - a0.x) - (b0.x - a0.x) * (b1.z - a0.z) > 0;
           if (stripUp) indices.push(base, base + 1, base + 3, base + 3, base + 2, base);
           else indices.push(base + 3, base + 1, base, base, base + 2, base + 3);
+          slabTops?.push(...indices.slice(-6));
           // Per-slice side skirts along both long edges. The bottom edge
           // follows the arch at constant slab thickness — dropping to the flat
           // underside instead builds a bare wall up to archRiseM + thickness
@@ -332,4 +417,135 @@ export function buildDeckMesh(data: ChunkData): DeckMesh {
     normals: new Float32Array(normals),
     colors: new Float32Array(colors),
   };
+}
+
+type DeckVertex = [number, number, number];
+type DeckTriangle = {
+  a: DeckVertex; b: DeckVertex; c: DeckVertex;
+  minX: number; maxX: number; minY: number; maxY: number; minZ: number; maxZ: number;
+  up: number;
+};
+
+export interface DeckSupportQuery {
+  /** False for a legacy mesh with no slab receipt. Callers can refuse physical
+   * admission until a fresh production chunk supplies complete clearance. */
+  hasSlabUndersides: boolean;
+  /** All actual upward faces under this chunk-local point, low to high.
+   * Includes rail/abutment tops. The walker must select a reachable height;
+   * taking the highest face would teleport somebody standing below a bridge. */
+  surfaceHeightsAt(xM: number, zM: number): number[];
+  /** Standing-body box against slab, rails, posts and abutments. Exact face
+   * contact is permitted; penetration blocks. Invalid poses fail closed. */
+  intersectsBody(point: { xM: number; zM: number; yM: number }, halfWidth?: number, height?: number): boolean;
+}
+
+/** Query the same clipped ChunkData that renders the deck, once per retained
+ * chunk. It deliberately does not reconstruct an arch from GroundDeck.topY:
+ * new packets clip the original span's eight planar arch strips; legacy
+ * packets keep their existing geometry until a normal rebuild.
+ * This supplies geometry only, never a spawn, lift or saved-height migration. */
+export function createDeckSupportQuery(data: ChunkData): DeckSupportQuery {
+  return createDeckSupportQueryFromMesh(buildDeckMesh(data));
+}
+
+/** Mounted worker mesh adapter. Coordinates are relative to that chunk's NW
+ * origin. Keep this query with the mesh's lifetime and replace it with the mesh;
+ * it never regenerates terrain, estimates a resolution or mutates draw buffers. */
+export function createDeckSupportQueryFromMesh(mesh: Pick<ChunkGeometryArrays, 'positions' | 'indices'> & { slabTopIndices?: Uint32Array }): DeckSupportQuery {
+  const slabTops = mesh.slabTopIndices ?? new Uint32Array(0);
+  const triangles: DeckTriangle[] = [];
+  const vertex = (i: number, drop = 0): DeckVertex => [
+    mesh.positions[i * 3], mesh.positions[i * 3 + 1] - drop, mesh.positions[i * 3 + 2],
+  ];
+  const add = (a: DeckVertex, b: DeckVertex, c: DeckVertex) => {
+    if (![...a, ...b, ...c].every(Number.isFinite)) return;
+    triangles.push({ a, b, c,
+      minX: Math.min(a[0], b[0], c[0]), maxX: Math.max(a[0], b[0], c[0]),
+      minY: Math.min(a[1], b[1], c[1]), maxY: Math.max(a[1], b[1], c[1]),
+      minZ: Math.min(a[2], b[2], c[2]), maxZ: Math.max(a[2], b[2], c[2]),
+      up: (b[2] - a[2]) * (c[0] - a[0]) - (b[0] - a[0]) * (c[2] - a[2]),
+    });
+  };
+  for (let i = 0; i < mesh.indices.length; i += 3) {
+    add(vertex(mesh.indices[i]), vertex(mesh.indices[i + 1]), vertex(mesh.indices[i + 2]));
+  }
+  // The visible skirts already author this thickness. Close their underside
+  // for clearance: a head must not enter the slab just because its bottom is
+  // not rendered. Reverse winding keeps the underside out of walking support.
+  for (let i = 0; i < slabTops.length; i += 3) {
+    add(vertex(slabTops[i + 2], DECK_THICK_M), vertex(slabTops[i + 1], DECK_THICK_M), vertex(slabTops[i], DECK_THICK_M));
+  }
+
+  // Short walking steps reuse a small spatial index rather than scanning all
+  // town pilings. Unusually wide triangles use a bounded fallback list.
+  const size = 8;
+  const bins = new Map<string, DeckTriangle[]>();
+  const wide: DeckTriangle[] = [];
+  for (const t of triangles) {
+    const x0 = Math.floor(t.minX / size), x1 = Math.floor(t.maxX / size);
+    const z0 = Math.floor(t.minZ / size), z1 = Math.floor(t.maxZ / size);
+    if ((x1 - x0 + 1) * (z1 - z0 + 1) > 4096) { wide.push(t); continue; }
+    for (let x = x0; x <= x1; x++) for (let z = z0; z <= z1; z++) {
+      const key = `${x}|${z}`;
+      const bin = bins.get(key);
+      if (bin) bin.push(t); else bins.set(key, [t]);
+    }
+  }
+  const candidates = (x0: number, x1: number, z0: number, z1: number): Set<DeckTriangle> => {
+    if ((Math.floor(x1 / size) - Math.floor(x0 / size) + 1) * (Math.floor(z1 / size) - Math.floor(z0 / size) + 1) > 4096
+      || [x0, x1, z0, z1].some(v => Math.abs(v / size) > Number.MAX_SAFE_INTEGER)) return new Set(triangles);
+    const result = new Set(wide);
+    for (let x = Math.floor(x0 / size); x <= Math.floor(x1 / size); x++) {
+      for (let z = Math.floor(z0 / size); z <= Math.floor(z1 / size); z++) {
+        for (const t of bins.get(`${x}|${z}`) ?? []) result.add(t);
+      }
+    }
+    return result;
+  };
+  return {
+    hasSlabUndersides: mesh.slabTopIndices != null,
+    surfaceHeightsAt(xM, zM) {
+      if (!Number.isFinite(xM) || !Number.isFinite(zM)) return [];
+      const hits: number[] = [];
+      for (const t of candidates(xM, xM, zM, zM)) {
+        if (t.up <= 1e-10 || xM < t.minX - 1e-7 || xM > t.maxX + 1e-7 || zM < t.minZ - 1e-7 || zM > t.maxZ + 1e-7) continue;
+        const [a, b, c] = [t.a, t.b, t.c];
+        const bx = b[0] - a[0], bz = b[2] - a[2], cx = c[0] - a[0], cz = c[2] - a[2];
+        const px = xM - a[0], pz = zM - a[2], det = bx * cz - bz * cx;
+        const u = (px * cz - pz * cx) / det, v = (bx * pz - bz * px) / det;
+        if (u >= -1e-7 && v >= -1e-7 && u + v <= 1 + 1e-7) hits.push(a[1] + u * (b[1] - a[1]) + v * (c[1] - a[1]));
+      }
+      return hits.sort((a, b) => a - b).filter((y, i, values) => i === 0 || y - values[i - 1] > 1e-5);
+    },
+    intersectsBody(point, halfWidth = 0.3, height = 1.9) {
+      const { xM, zM, yM } = point;
+      if (![xM, zM, yM, halfWidth, height].every(Number.isFinite) || halfWidth <= 0 || height <= 0.0002) return true;
+      const center: DeckVertex = [xM, yM + height / 2, zM];
+      const half: DeckVertex = [halfWidth, height / 2 - 0.0001, halfWidth];
+      for (const t of candidates(xM - halfWidth, xM + halfWidth, zM - halfWidth, zM + halfWidth)) {
+        if (t.maxX <= xM - halfWidth || t.minX >= xM + halfWidth || t.maxZ <= zM - halfWidth || t.minZ >= zM + halfWidth
+          || t.maxY <= center[1] - half[1] || t.minY >= center[1] + half[1]) continue;
+        if (deckTriangleIntersectsBox(t, center, half)) return true;
+      }
+      return false;
+    },
+  };
+}
+
+/** Triangle/box separating-axis test: box axes, triangle normal and nine
+ * edge/axis crosses. A rail's bounding rectangle alone must not block the
+ * empty space beside a rotated bridge. */
+function deckTriangleIntersectsBox(t: DeckTriangle, center: DeckVertex, half: DeckVertex): boolean {
+  const points = [t.a, t.b, t.c].map(p => p.map((v, i) => v - center[i]) as DeckVertex);
+  const edges = points.map((p, i) => points[(i + 1) % 3].map((v, axis) => v - p[axis]) as DeckVertex);
+  const cross = (a: DeckVertex, b: DeckVertex): DeckVertex => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+  const axes: DeckVertex[] = [[1, 0, 0], [0, 1, 0], [0, 0, 1], cross(edges[0], edges[1])];
+  for (const edge of edges) axes.push(cross(edge, [1, 0, 0]), cross(edge, [0, 1, 0]), cross(edge, [0, 0, 1]));
+  for (const axis of axes) {
+    if (axis.every(v => Math.abs(v) < 1e-12)) continue;
+    const projections = points.map(p => p[0] * axis[0] + p[1] * axis[1] + p[2] * axis[2]);
+    const radius = half[0] * Math.abs(axis[0]) + half[1] * Math.abs(axis[1]) + half[2] * Math.abs(axis[2]);
+    if (Math.max(...projections) <= -radius + 1e-10 || Math.min(...projections) >= radius - 1e-10) return false;
+  }
+  return true;
 }

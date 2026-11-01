@@ -9,7 +9,8 @@
  * only the texture upload. The physics is `oceanBeachMath.ts`, unchanged.
  *
  * THE PROTOCOL (all messages are plain data):
- *   in  { type: 'init', cascades, n, seed, match? }   match: the match look's swash (round 16)
+ *   in  { type: 'init', cascades, n, seed, match? }   match: the match look's swash
+ *        (true: round 20's derived swash; 'r16': round 16's fitted set)
  *   out { type: 'ready', modes, keptShare, dt, grid, items, foamTile }
  *   in  { type: 'advance', id, t, budget }   bring the beach to time t,
  *        taking at most `budget` fixed steps now (Infinity for a pinned clock)
@@ -20,17 +21,42 @@
  * capture that pins t = 42.0 gets the same beach however the worker got
  * there.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 10/10/2026, 06:42:07
+ * Dependents: systems/world3d/ocean/oceanBeach.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /// <reference lib="webworker" />
 import type { CascadeParams } from './oceanConfig';
-import { BEACH_LACE_WEIGHTS, BEACH_MATCH_SWASH, buildSwashFoamTile, createBeachSim, debrisPoses, packBeachState, type BeachSim } from './oceanBeachMath';
+import type { SeabedParams } from './oceanSeabedMath';
+import { BEACH_LACE_WEIGHTS, BEACH_MATCH_SWASH, BEACH_MATCH_SWASH_R16, buildSwashFoamTile, createBeachSim, debrisPoses, packBeachState, type BeachSim, type SwashGridSpec } from './oceanBeachMath';
 // Round 7: the wake's lace image and its coverage table (read-only imports;
 // the beach draws its foam with the wake's round-11 lace method; round 8 mixes
 // the channels with its own weights, BEACH_LACE_WEIGHTS).
 import { wakeLaceCdfTable, wakeLaceImage } from './oceanWakeMath';
 
 let sim: BeachSim | null = null;
+let seaSlope = false;
 
-interface InitMsg { type: 'init'; cascades: CascadeParams[]; n: number; seed: number; match?: boolean }
+interface InitMsg {
+  type: 'init'; cascades: CascadeParams[]; n: number; seed: number; match?: boolean | 'r16';
+  /** River mouth round 1: another floor, grid and the mouth grid's walls (all absent: the cay's beach). */
+  params?: SeabedParams; grid?: SwashGridSpec; wall?: Uint8Array;
+  /** River mouth round 1c: also pack the sea side's slope (`BeachPack.e`) for the sea's one surface. */
+  seaSlope?: boolean;
+}
 interface AdvanceMsg { type: 'advance'; id: number; t: number; budget: number }
 
 const ctx = self as unknown as DedicatedWorkerGlobalScope;
@@ -39,8 +65,17 @@ ctx.onmessage = (e: MessageEvent<InitMsg | AdvanceMsg>) => {
   const m = e.data;
   try {
     if (m.type === 'init') {
-      // Round 16: the match look's swash (BEACH_MATCH_SWASH) when the page asks for it.
-      sim = createBeachSim({ cascades: m.cascades, n: m.n, seed: m.seed, ...(m.match ? { match: BEACH_MATCH_SWASH } : {}) });
+      // Round 16: the match look's swash when the page asks for it. Round 20:
+      // the derived swash (BEACH_MATCH_SWASH); 'r16' asks for round 16's
+      // fitted set (BEACH_MATCH_SWASH_R16), an A/B switch.
+      const matchSwash = m.match === 'r16' ? BEACH_MATCH_SWASH_R16 : m.match ? BEACH_MATCH_SWASH : undefined;
+      sim = createBeachSim({
+        cascades: m.cascades, n: m.n, seed: m.seed, ...(matchSwash ? { match: matchSwash } : {}),
+        ...(m.params ? { params: m.params } : {}),
+        ...(m.grid ? { grid: m.grid } : {}),
+        ...(m.wall ? { wall: m.wall } : {}),
+      });
+      seaSlope = m.seaSlope === true;
       const foamTile = buildSwashFoamTile(m.seed);
       const wakeLace = wakeLaceImage(512);
       const wakeLaceCdf = new Float32Array(wakeLaceCdfTable(wakeLace, 512, undefined, undefined, BEACH_LACE_WEIGHTS));
@@ -62,7 +97,7 @@ ctx.onmessage = (e: MessageEvent<InitMsg | AdvanceMsg>) => {
       const t0 = performance.now();
       const r = sim.clock.advanceTo(m.t, m.budget);
       const ms = performance.now() - t0;
-      const pack = packBeachState(sim.field);
+      const pack = packBeachState(sim.field, undefined, seaSlope);
       const f = sim.field;
       ctx.postMessage({
         type: 'state',
@@ -72,6 +107,7 @@ ctx.onmessage = (e: MessageEvent<InitMsg | AdvanceMsg>) => {
         a: pack.a,
         b: pack.b,
         d: pack.d,
+        ...(pack.e ? { e: pack.e } : {}),
         debris: sim.debris.data.slice(),
         poses: debrisPoses(sim),
         ledger: { ...f.ledger },
@@ -82,7 +118,7 @@ ctx.onmessage = (e: MessageEvent<InitMsg | AdvanceMsg>) => {
           sheetM3: f.sheetVolume(),
           soakedM3: f.soakedVolume(),
         },
-      }, [pack.a.buffer, pack.b.buffer, pack.d.buffer]);
+      }, pack.e ? [pack.a.buffer, pack.b.buffer, pack.d.buffer, pack.e.buffer] : [pack.a.buffer, pack.b.buffer, pack.d.buffer]);
     }
   } catch (err) {
     ctx.postMessage({ type: 'error', message: String(err instanceof Error ? err.stack ?? err.message : err) });

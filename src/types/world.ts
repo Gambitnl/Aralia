@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 09/09/2026, 10:30:30
- * Dependents: components/CharacterSheet/Family/FamilyTreeTab.tsx, components/World3D/DebugHUD.tsx, components/World3D/InWorldHUD.tsx, hooks/actions/handleEncounter.ts, hooks/actions/handleMerchantInteraction.ts, hooks/actions/handleNpcInteraction.ts, services/strongholdService.ts, state/migrations/npcMemoryMigration.ts, state/migrations/worldDataMigration.ts, systems/entities3d/recipeFromCharacter.ts, systems/gameEntry/deEscalationToCombat.ts, systems/gameEntry/situationNpcToRichNpc.ts, systems/intrigue/RumorMillSystem.ts, systems/memory/actionMemoryMatrix.ts, systems/memory/factPropagation.ts, systems/npc/backgroundBrief.ts, systems/party/authoredCompanionToRichNpc.ts, systems/party/npcToPartyMember.ts, systems/party/recruitConsent.ts, systems/planar/PlanarService.ts, systems/social/npcEmotionalMemory.ts, systems/social/npcWitnessMemory.ts, systems/spells/ai/AISpellArbitrator.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/townsim/npcsForCell.ts, systems/worldforge/townsim/registerBurgMerchants.ts, types/index.ts, types/memory.ts, utils/world/chronicleNewsToRumors.ts, utils/world/dungeonRumorsToWorldRumors.ts, utils/world/memoryUtils.ts
+ * Last Sync: 29/10/2026, 22:44:02
+ * Dependents: components/CharacterSheet/Family/FamilyTreeTab.tsx, components/World3D/DebugHUD.tsx, components/World3D/InWorldHUD.tsx, components/World3D/groundResidentInteraction.ts, hooks/actions/handleEncounter.ts, hooks/actions/handleMerchantInteraction.ts, hooks/actions/handleNpcInteraction.ts, hooks/useDialogueSystem.ts, services/dialogueService.ts, services/strongholdService.ts, state/migrations/npcMemoryMigration.ts, state/migrations/worldDataMigration.ts, systems/companions/companionWorldActivities.ts, systems/entities3d/recipeFromCharacter.ts, systems/gameEntry/deEscalationToCombat.ts, systems/gameEntry/situationNpcToRichNpc.ts, systems/intrigue/RumorMillSystem.ts, systems/memory/actionMemoryMatrix.ts, systems/memory/factPropagation.ts, systems/npc/backgroundBrief.ts, systems/party/authoredCompanionToRichNpc.ts, systems/party/npcToPartyMember.ts, systems/party/recruitConsent.ts, systems/party/restoreAuthoredCompanionBuild.ts, systems/planar/PlanarService.ts, systems/social/npcDialogueMemory.ts, systems/social/npcEmotionalMemory.ts, systems/social/npcInstitutionStatements.ts, systems/social/npcPersonalStatements.ts, systems/social/npcWitnessMemory.ts, systems/spells/ai/AISpellArbitrator.ts, systems/travel/npcLocalDirections.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/townsim/householdNpc.ts, systems/worldforge/townsim/npcsForCell.ts, systems/worldforge/townsim/registerBurgMerchants.ts, types/index.ts, types/memory.ts, utils/combat/combatAI.ts, utils/economy/haggleFact.ts, utils/world/chronicleNewsToRumors.ts, utils/world/dungeonRumorsToWorldRumors.ts, utils/world/memoryUtils.ts
  * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
@@ -47,6 +47,8 @@ export interface FamilyMember {
   relation: 'parent' | 'spouse' | 'child' | 'sibling' | 'grandparent' | 'grandchild';
   age: number;
   isAlive: boolean;
+  /** Preserve source uncertainty and future births instead of calling both deceased. */
+  lifeStatus?: 'alive' | 'deceased' | 'not-born' | 'unresolved' | 'untracked';
   occupation?: string;
 }
 
@@ -57,6 +59,8 @@ export interface FamilyMember {
 export interface RichNPC extends NPC {
   biography: {
     age: number;
+    /** Canonical generated race. Older saves may lack it; do not infer from prose. */
+    raceId?: string;
     backgroundId: string;
     classId: string;
     level: number;
@@ -211,6 +215,9 @@ export interface NpcMemory {
   lastInteractionTimestamp?: number;
   /** Chronological rich interaction records merged in from the retired richer memory model. */
   interactions?: Interaction[];
+  /** Most recently delivered recorded answer. Repeating a statement updates
+   * this reference while its original words and first delivery date stay intact. */
+  lastSpokenDialogue?: {interactionId:string; deliveredAt:number};
   /** Overall attitude toward the player, -100 (hostile) .. 100 (devoted). Optional; defaults to 0. */
   attitude?: number;
   /** Topics already discussed, keyed by topic id -> game-day timestamp, to avoid repetition. */
@@ -237,6 +244,8 @@ export interface NPC {
   baseDescription: string;
   initialPersonalityPrompt: string;
   role: 'merchant' | 'quest_giver' | 'guard' | 'civilian' | 'unique';
+  /** Household work, separate from mechanical role/class and legacy shop type. */
+  occupation?: string;
   faction?: string;
   dialoguePromptSeed?: string;
   voice?: TTSVoiceOption;

@@ -17,7 +17,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
-import { collectInteriorLighting } from '../InteriorLights';
+import { collectInteriorLighting, interiorFillAnchor, type ShellBounds } from '../InteriorLights';
 import { chunkOriginWorld } from '@/systems/world3d/coords';
 import { worldToScene, type SceneOrigin } from '@/systems/world3d/sceneOrigin';
 import type { LoadedChunk } from '@/systems/world3d/types';
@@ -84,6 +84,33 @@ function makeChunk(cx: number, cy: number, site: OracleSite, parts: unknown[]): 
     },
   } as unknown as LoadedChunk;
 }
+
+describe('interior fill follows the reached room', () => {
+  const shell:ShellBounds={cx:0,cz:0,rotationY:0,halfW:5,halfD:5,baseY:0,topY:4};
+  it('keeps the one presentation fill beside the reached body while the camera orbits in the same building',()=>{
+    const camera=new THREE.Vector3(0,2,-4),body=new THREE.Vector3(0,1.5,0);
+    expect(interiorFillAnchor(camera,body,[shell])).toBe(body);
+  });
+  it('retains camera anchoring when there is no mounted body',()=>{
+    const camera=new THREE.Vector3(0,2,-4);
+    expect(interiorFillAnchor(camera,null,[shell])).toBe(camera);
+  });
+  it('does not move the fill to a body in another building',()=>{
+    const camera=new THREE.Vector3(0,2,0),body=new THREE.Vector3(20,1.5,0);
+    expect(interiorFillAnchor(camera,body,[shell,{...shell,cx:20}])).toBe(camera);
+  });
+  it('preserves the camera-inside and under-roof gate even when the body is indoors',()=>{
+    const body=new THREE.Vector3(0,1.5,0);
+    expect(interiorFillAnchor(new THREE.Vector3(6,2,0),body,[shell])).toBeNull();
+    expect(interiorFillAnchor(new THREE.Vector3(0,6,0),body,[shell])).toBeNull();
+  });
+  it('uses the rotated source shell rather than its wider world-aligned box',()=>{
+    const rotated={...shell,rotationY:Math.PI/4,halfW:4,halfD:1};
+    const camera=new THREE.Vector3(2,2,-2),body=new THREE.Vector3(0,1.5,0);
+    expect(interiorFillAnchor(camera,body,[rotated])).toBe(body);
+    expect(interiorFillAnchor(camera,new THREE.Vector3(2,1.5,2),[rotated])).toBe(camera);
+  });
+});
 
 describe('collectInteriorLighting hearth projection', () => {
   const origin: SceneOrigin = { x: 12.5, z: -7.25 };

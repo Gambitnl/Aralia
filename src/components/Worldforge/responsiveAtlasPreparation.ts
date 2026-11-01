@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 19/07/2026, 22:08:44
- * Dependents: components/MapPane.tsx
- * Imports: 4 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file prepares the canonical atlas and its pure SVG model without making
  * React render perform either expensive calculation.
@@ -22,8 +6,27 @@
  * responsiveAtlasWorker.ts. Tests and non-worker environments use the same
  * synchronous core. The result is installed into the established bridge cache,
  * so travel, exact-cell entry, 3D, politics, and preferences continue to read
- * one canonical atlas object.
+ * one canonical atlas object. Worker cleanup uses the shared one-shot owner;
+ * failed preparations are evicted so reopening the map can retry.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 25/10/2026, 13:12:07
+ * Dependents: components/MapPane.tsx
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import { runWorkerTask } from '../../workers/workerClient';
 import {
   installPreparedBridgeAtlas,
 } from '../../systems/worldforge/bridge/legacySubmapBridge';
@@ -93,45 +96,40 @@ export function prepareResponsiveAtlas(
     return resolved;
   }
 
-  const pending = new Promise<ResponsiveAtlasPrepared>((resolve, reject) => {
-    const worker = workerFactory();
-    let atlasPart: Pick<ResponsiveAtlasPrepared, 'atlas' | 'transferProperties'> | null = null;
-    let modelPart: Pick<ResponsiveAtlasPrepared, 'model'> | null = null;
+  let atlasPart: Pick<ResponsiveAtlasPrepared, 'atlas' | 'transferProperties'> | null = null;
+  let modelPart: Pick<ResponsiveAtlasPrepared, 'model'> | null = null;
 
-    // Finish exactly once and release the worker after either outcome.
-    const stopWithError = (message: string) => {
-      worker.terminate();
-      preparedCache.delete(key);
-      reject(new Error(message));
-    };
-
-    worker.onerror = (event) => {
-      stopWithError(event.message || 'Atlas preparation worker failed.');
-    };
-    worker.onmessage = (event: MessageEvent<ResponsiveAtlasResponse>) => {
-      if (event.data.type === 'error') {
-        stopWithError(event.data.message);
+  // The shared one-shot owner releases the worker on either outcome. Keep both
+  // replies together, then install into the same canonical cache after release.
+  const pending = runWorkerTask<ResponsiveAtlasRequest, ResponsiveAtlasResponse, ResponsiveAtlasPrepared>({
+    factory: workerFactory,
+    request,
+    formatError: (event) => {
+      const message = event && typeof event === 'object' && 'message' in event ? event.message : '';
+      return typeof message === 'string' && message ? message : 'Atlas preparation worker failed.';
+    },
+    handle: (message, settle) => {
+      if (message.type === 'error') {
+        settle.reject(new Error(message.message));
         return;
       }
-      if (event.data.type === 'atlas') {
-        atlasPart = event.data;
-      } else {
-        modelPart = event.data;
-      }
+      if (message.type === 'atlas') atlasPart = message;
+      else modelPart = message;
       if (!atlasPart || !modelPart) return;
-
-      worker.terminate();
-      resolve({
-        atlas: installPreparedBridgeAtlas(
-          request.seed,
-          atlasPart.atlas,
-          atlasPart.transferProperties,
-        ),
+      settle.resolve({
+        atlas: atlasPart.atlas,
         model: modelPart.model,
         transferProperties: atlasPart.transferProperties,
       });
-    };
-    worker.postMessage(request);
+    },
+  }).then((prepared) => ({
+    ...prepared,
+    atlas: installPreparedBridgeAtlas(request.seed, prepared.atlas, prepared.transferProperties),
+  })).catch((error: unknown) => {
+    // A failed attempt must not poison reopening this world. An older failure
+    // must also leave a replacement promise alone if the test cache was cleared.
+    if (preparedCache.get(key) === pending) preparedCache.delete(key);
+    throw error;
   });
 
   preparedCache.set(key, pending);

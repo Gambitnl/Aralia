@@ -20,6 +20,9 @@ import type {
   BlueprintPlan, BuildingEnsemble, BuildingType, HouseholdBrief, MemberSlot, StyleContext,
 } from '../blueprintTypes';
 import { mergeWallRuns } from '../walls';
+import { townBuildingVisit } from '@/components/Worldforge/townBuildingVisit';
+import { stairDoorCells } from '../stairLayout';
+import { furnishingFootprint } from '../householdFurnish';
 
 // Mirrors vocabulary.test.ts's ALL_TYPES. Redeclared locally rather than
 // imported — the codebase keeps test fixtures test-local (vocabulary.test.ts
@@ -53,6 +56,32 @@ describe('buildingShellHeightM', () => {
 });
 
 describe('generateBuilding', () => {
+  it('keeps the Grangengen library fallback shaft clear of its fixed street entrance and every floor door', () => {
+    // This is the actual library reached during play, not a room preset. Its
+    // former shaft at (1,0) put the tall side of a flight behind the entry.
+    // This played library belongs to the retained revision-1 town. Revision 2
+    // has a windmill at plot 56; both recipes remain exact before/after this work.
+    const {plan, workplaceOnly} = townBuildingVisit(1793432134128, 40, 56, undefined, undefined, 1);
+    expect(workplaceOnly).toBe(true);
+    const entry = plan.floors.find(f => f.level === 0)!.doors.find(d => d.isEntry)!;
+    expect({x:entry.x,y:entry.y,axis:entry.axis}).toEqual({x:7.5,y:0,axis:'x'});
+    expect(plan.stairs).toHaveLength(2);
+    for (const stair of plan.stairs) {
+      const shaft = {cx:Math.floor(stair.x / 5),cy:Math.floor(stair.y / 5)};
+      for (const floor of plan.floors) {
+        expect(floor.rooms.some(r => r.cells.some(c => c.cx === shaft.cx && c.cy === shaft.cy))).toBe(true);
+        expect(floor.doors.flatMap(stairDoorCells)).not.toContainEqual(shaft);
+        expect(floor.furnishings.map(furnishingFootprint).every(item => !(item.left < (shaft.cx+1)*5 && item.right > shaft.cx*5
+          && item.top < (shaft.cy+1)*5 && item.bottom > shaft.cy*5))).toBe(true);
+      }
+    }
+    expect(plan.floors.map(f=>[f.level,f.rooms.map(r=>[r.id,r.purpose,r.area])])).toEqual([
+      [-1,[[0,'cellar',4],[1,'storage',4],[2,'cellar',4],[3,'storage',6]]],
+      [0,[[0,'study',8],[1,'study',4],[2,'study',6]]],
+      [1,[[0,'study',4],[1,'study',4],[2,'study',4],[3,'study',6]]],
+    ]);
+  });
+
   it('is byte-identical for the same input', () => {
     expect(JSON.stringify(gen())).toBe(JSON.stringify(gen()));
   });

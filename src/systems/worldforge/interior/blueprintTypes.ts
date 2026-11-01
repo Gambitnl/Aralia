@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 04/10/2026, 00:42:29
- * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, components/World3D/World3DWrapper.tsx, components/World3D/worldGenCore.ts, components/Worldforge/TownPlanView.tsx, devtools/buildingIdentityLab/PreviewBuilding3D.tsx, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/world3d/buildingModels.ts, systems/world3d/buildingSceneModel.ts, systems/world3d/types.ts, systems/worldforge/bridge/buildingEnsembleParts.ts, systems/worldforge/bridge/buildingHistoryParts.ts, systems/worldforge/bridge/buildingMaterialParts.ts, systems/worldforge/bridge/buildingMotifParts.ts, systems/worldforge/bridge/buildingOccupancy.ts, systems/worldforge/bridge/buildingPartyWalls.ts, systems/worldforge/bridge/buildingWeatheringParts.ts, systems/worldforge/bridge/forgeMaterials.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/interiorParts.ts, systems/worldforge/bridge/terrainTerraces.ts, systems/worldforge/interior/briefProgram.ts, systems/worldforge/interior/buildingEventHistory.ts, systems/worldforge/interior/buildingExtensions.ts, systems/worldforge/interior/buildingHistory.ts, systems/worldforge/interior/doors.ts, systems/worldforge/interior/footprint.ts, systems/worldforge/interior/furnish.ts, systems/worldforge/interior/generateBuilding.ts, systems/worldforge/interior/generateInterior.ts, systems/worldforge/interior/manifests.ts, systems/worldforge/interior/occupancy.ts, systems/worldforge/interior/partition.ts, systems/worldforge/interior/program.ts, systems/worldforge/interior/renderBlueprintSvg.ts, systems/worldforge/interior/roofPlan.ts, systems/worldforge/interior/tradeRooms.ts, systems/worldforge/interior/walls.ts, systems/worldforge/roster/generateTownRoster.ts, systems/worldforge/town/architectureStyle.ts, systems/worldforge/town/buildingAge.ts, systems/worldforge/town/buildingEnsembles.ts, systems/worldforge/town/buildingMaterials.ts, systems/worldforge/town/buildingMotifs.ts, systems/worldforge/town/buildingPlotInput.ts, systems/worldforge/town/buildingWeathering.ts, systems/worldforge/town/detachedParcels.ts, systems/worldforge/town/household.ts, systems/worldforge/town/householdBrief.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/townSim.ts, systems/worldforge/townsim/townSimRegistration.ts, systems/worldforge/townsim/types.ts
+ * Last Sync: 01/11/2026, 15:55:53
+ * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, components/MapPane.tsx, components/World3D/NearbyFurnishing.tsx, components/World3D/World3DWrapper.tsx, components/World3D/groundDoorInteraction.ts, components/World3D/groundFurnishingInteraction.ts, components/World3D/groundResidentInteraction.ts, components/World3D/hooks/useWorld3DDiscovery.ts, components/World3D/publicBuildingDiscovery.ts, components/World3D/worldGenCore.ts, components/Worldforge/TownBuildingInspector.tsx, components/Worldforge/TownPlanView.tsx, components/Worldforge/townBuildingVisit.ts, devtools/buildingIdentityLab/PreviewBuilding3D.tsx, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/world3d/buildingModels.ts, systems/world3d/buildingSceneModel.ts, systems/world3d/types.ts, systems/worldforge/bridge/buildingEnsembleParts.ts, systems/worldforge/bridge/buildingHistoryParts.ts, systems/worldforge/bridge/buildingMaterialParts.ts, systems/worldforge/bridge/buildingMotifParts.ts, systems/worldforge/bridge/buildingOccupancy.ts, systems/worldforge/bridge/buildingPartyWalls.ts, systems/worldforge/bridge/buildingWeatheringParts.ts, systems/worldforge/bridge/forgeMaterials.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundProps.ts, systems/worldforge/bridge/institutionOccupancy.ts, systems/worldforge/bridge/interiorParts.ts, systems/worldforge/bridge/terrainTerraces.ts, systems/worldforge/interior/activityPositions.ts, systems/worldforge/interior/briefProgram.ts, systems/worldforge/interior/buildingEventHistory.ts, systems/worldforge/interior/buildingExtensions.ts, systems/worldforge/interior/buildingHistory.ts, systems/worldforge/interior/buildingLayoutRepair.ts, systems/worldforge/interior/buildingSource.ts, systems/worldforge/interior/doors.ts, systems/worldforge/interior/footprint.ts, systems/worldforge/interior/furnish.ts, systems/worldforge/interior/generateBuilding.ts, systems/worldforge/interior/generateInterior.ts, systems/worldforge/interior/guestCirculation.ts, systems/worldforge/interior/householdFurnish.ts, systems/worldforge/interior/householdLayoutReferences.ts, systems/worldforge/interior/householdLayoutRevision.ts, systems/worldforge/interior/householdLivingPlan.ts, systems/worldforge/interior/manifests.ts, systems/worldforge/interior/occupancy.ts, systems/worldforge/interior/partition.ts, systems/worldforge/interior/program.ts, systems/worldforge/interior/renderBlueprintSvg.ts, systems/worldforge/interior/roofPlan.ts, systems/worldforge/interior/ruralFamilyLayout.ts, systems/worldforge/interior/stairHousehold.ts, systems/worldforge/interior/stairLayout.ts, systems/worldforge/interior/tradeRooms.ts, systems/worldforge/interior/walls.ts, systems/worldforge/roster/generateTownRoster.ts, systems/worldforge/town/architectureStyle.ts, systems/worldforge/town/buildingAge.ts, systems/worldforge/town/buildingEnsembles.ts, systems/worldforge/town/buildingMaterials.ts, systems/worldforge/town/buildingMotifs.ts, systems/worldforge/town/buildingPlotInput.ts, systems/worldforge/town/buildingWeathering.ts, systems/worldforge/town/detachedParcels.ts, systems/worldforge/town/historicalTownLayout.ts, systems/worldforge/town/household.ts, systems/worldforge/town/householdBrief.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/townBusinessIdentity.ts, systems/worldforge/townsim/townSim.ts, systems/worldforge/townsim/townSimRegistration.ts, systems/worldforge/townsim/types.ts
  * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
@@ -167,6 +167,10 @@ export interface HouseholdBrief {
   trade: string;
   /** True when the family runs THIS building (smithy, shop, inn, tavern). */
   worksAtHome: boolean;
+  /** False for a separate workplace: keep its owner's identity and trade,
+   * but allocate no family sleeping places here. Omitted briefs retain the
+   * original residential behavior used by existing homes and previews. */
+  residential?: boolean;
   wealth: BriefWealth;
 }
 
@@ -683,6 +687,9 @@ export interface BlueprintRoom {
   /** The MemberSlot tags this room was programmed for, comma-joined
    *  (e.g. 'child:0,child:1'). Undefined until the programmer wires it. */
   forSlot?: string;
+  /** Optional explicit meal-room assignment using the same stable member tags.
+   * Old plans omit it and retain their shared-table routine. */
+  mealForSlot?: string;
 }
 
 /** A door on a wall line. axis 'x' = horizontal wall (crosses a y boundary),
@@ -692,6 +699,10 @@ export interface BlueprintDoor {
   x: Feet; y: Feet;
   axis: 'x' | 'y';
   isEntry: boolean;
+  /** Optional recorded clear opening inside its five-foot wall cell. Omitted
+   * doors retain their historical three-foot geometry; a new plan or explicit
+   * layout revision can provide wider passage without changing other saves. */
+  clearWidthFt?: Feet;
   /** Unit cell delta pointing from the door ACROSS the edge INTO the room the
    *  door opens into (perpendicular to the wall: axis 'x' ⇒ nx=0, ny=±1;
    *  axis 'y' ⇒ ny=0, nx=±1). This is the swing contract — renderers draw the
@@ -700,6 +711,15 @@ export interface BlueprintDoor {
   /** Room id the door opens into (the larger room, ties → lower id; entry
    *  doors open inward, so swingInto === b). Always one of a/b. */
   swingInto: number;
+}
+
+/** Shared opening measurement for masonry, leaves and physical projection.
+ * Reject an impossible cell opening instead of drawing a leaf across a wall. */
+export function doorClearWidthFt(door: Pick<BlueprintDoor, 'clearWidthFt'>): number {
+  const width = door.clearWidthFt ?? 3;
+  if (!Number.isFinite(width) || width <= 0 || width > 5)
+    throw new Error('A blueprint door clear width must fit its five-foot wall cell.');
+  return width;
 }
 
 export interface BlueprintWindow { x: Feet; y: Feet; axis: 'x' | 'y'; }
@@ -747,7 +767,27 @@ export interface BlueprintFloor {
   wallRuns: WallRun[];
 }
 
-export interface BlueprintStair { fromLevel: number; x: Feet; y: Feet; }
+/** A return stair uses two parallel flights and a shared intermediate landing.
+ * The origin and orthogonal unit vectors map local (run, across) feet into the
+ * existing plan. The two floor landings sit outside the shaft at run < 0. */
+export interface ReturnStairLayout {
+  kind: 'return';
+  origin: { x: Feet; y: Feet };
+  runDir: { dx: number; dy: number };
+  acrossDir: { dx: number; dy: number };
+  shaftCells: Cell[];
+  landingCells: Cell[];
+  flightWidthFt: Feet;
+  flightRunFt: Feet;
+  landingDepthFt: Feet;
+  risesPerFlight: number;
+}
+
+export interface BlueprintStair {
+  fromLevel: number; x: Feet; y: Feet;
+  /** Absent in older plans, whose compact stair is still explicitly legacy. */
+  layout?: ReturnStairLayout;
+}
 
 export interface BlueprintPlan {
   buildingId: number;
@@ -762,6 +802,9 @@ export interface BlueprintPlan {
   siteOriginFt?: { x: Feet; y: Feet };
   floors: BlueprintFloor[]; // ordered basement..ground..upper; ground has level 0
   stairs: BlueprintStair[];
+  /** Opt-in source profile. Omitted saved plans retain their existing open
+   * interior passages; adoption must qualify new leaves and actor continuity. */
+  doorLeafProfile?: 'private-room-leaves-v1';
   /** Echo of the input household brief (undefined for bare v1 calls). */
   household?: HouseholdBrief;
   /** Block/row/courtyard instruction authored by the canonical town composer. */

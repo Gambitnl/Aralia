@@ -80,6 +80,8 @@ interface CollapsibleBanterPanelProps {
      * discarded just because the player opened a logbook or glossary window.
      */
     suppressCollapsedTab?: boolean;
+    /** Keep the collapsed chat launcher clear of native Atlas destination cards. */
+    avoidAtlasControls?: boolean;
 }
 export declare const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps>;
 export {};

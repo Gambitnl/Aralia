@@ -115,8 +115,10 @@ async function resolveAttack(input: {
   targetPosition: Position;
   lights?: LightSource[];
   blocker?: Position;
+  attackerStatuses?: CombatCharacter['statusEffects'];
 }): Promise<{ state: CombatState; visibility: string; attackMessage: string }> {
   const observer = createObserver(input.senses);
+  observer.statusEffects = input.attackerStatuses ?? [];
   const target = createTarget(input.targetPosition);
   const mapData = createCaveMap(input.blocker);
   const activeLightSources = input.lights ?? [];
@@ -167,6 +169,7 @@ describe('AbilityCommandFactory production visibility', () => {
 
     expect(receipt.visibility).toBe(expectedVisibility);
     expect(receipt.attackMessage.includes('with Disadvantage')).toBe(expectsDisadvantage);
+    expect(receipt.attackMessage.includes('Target unseen to attacker')).toBe(expectsDisadvantage);
   });
 
   it('lets real target light remove darkness Disadvantage for normal vision', async () => {
@@ -188,6 +191,7 @@ describe('AbilityCommandFactory production visibility', () => {
 
     expect(receipt.visibility).toBe('visible');
     expect(receipt.attackMessage).not.toContain('with Disadvantage');
+    expect(receipt.attackMessage).not.toContain('Target unseen to attacker');
   });
 
   it('does not let Blindsight see through a production sight blocker', async () => {
@@ -199,5 +203,19 @@ describe('AbilityCommandFactory production visibility', () => {
 
     expect(receipt.visibility).toBe('hidden');
     expect(receipt.attackMessage).toContain('with Disadvantage');
+    expect(receipt.attackMessage).toContain('Target unseen to attacker');
+  });
+
+  it('keeps the real visibility reason when Advantage cancels its Disadvantage', async () => {
+    const receipt = await resolveAttack({
+      senses: normalSenses,
+      targetPosition: { x: 14, y: 5 },
+      attackerStatuses: [{ id: 'aim', name: 'Aim', type: 'buff', duration: 1,
+        effect: { type: 'condition' }, modifiers: { advantage: ['attack'] } }],
+    });
+    expect(receipt.visibility).toBe('hidden');
+    expect(receipt.attackMessage).toContain('Advantage and Disadvantage cancel out');
+    expect(receipt.attackMessage).toContain('Target unseen to attacker');
+    expect(receipt.attackMessage).not.toContain('with Disadvantage');
   });
 });

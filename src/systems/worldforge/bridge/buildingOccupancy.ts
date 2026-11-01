@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 09/09/2026, 11:37:24
- * Dependents: systems/world3d/buildingSceneModel.ts, systems/world3d/types.ts, systems/worldforge/bridge/groundChunkLoader.ts
- * Imports: 8 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file buildingOccupancy.ts — the living overlay, resolved for the 3D scene.
  *
@@ -38,14 +22,36 @@
  * visitor branch, but their `memberIndex` continues past the household so they
  * can never be mistaken for a named family member or joined to the roster.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 01/11/2026, 18:13:13
+ * Dependents: components/World3D/residentInteriorMotion.ts, systems/world3d/buildingSceneModel.ts, systems/world3d/types.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/institutionOccupancy.ts
+ * Imports: 12 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { SeedPath } from '../seedPath';
 import type { Feet } from '../units';
 import { blueprintForPlot, type InteriorPlotInput } from '../interior/generateInterior';
 import type { BlueprintPlan } from '../interior/blueprintTypes';
-import { computeOccupancy, type OccupantStation } from '../interior/occupancy';
-import { householdForPlot } from '../town/householdBrief';
+import { computeOccupancy, type OccupantStation, type RoomClaim } from '../interior/occupancy';
+import { readObservedBuildingSource, buildingPlanSignature } from '../interior/buildingSource';
+import {privateRoomDoorSpecs,PRIVATE_PURPOSES} from '../interior/doors';
+import {blueprintSiteOrigin} from '../interior/blueprintTypes';
+import {siteDoorId} from './sitePartTransform';
+import { householdForPlot, householdMemberIdentity } from '../town/householdBrief';
 import type { Household } from '../town/household';
 import type { TownPlotPopulation } from '../town/townEngine';
+import {publicHouseWorkRoleForOwner} from '../roster/workHours';
 
 /** One member standing at their station this hour, in PLAN FEET. */
 export interface OccupancyStationPoint {
@@ -81,6 +87,42 @@ export interface StationFeetPoint {
   /** Floor level the member stands on (0 = ground, 1+ = upper, -1 = basement). */
   level: number;
   activity: OccupancyStationPoint['activity'];
+  /** Source room identity is carried only by the opt-in private-leaf profile. */
+  roomId?:number;
+}
+
+/** Resident-only permission over an actual sleeping-room claim. This is not
+ * a player grant; transient use still requires a live body at the opening. */
+export interface ResidentPrivateDoorAccess {
+  profile:'private-room-leaves-v1';memberId:string;
+  doors:Array<{id:string;level:number;roomId:number;approachCells:Array<{cx:number;cy:number}>}>;
+  /** Source-only resident circulation. Missing older candidate packets refuse
+   * physical route following; they never infer access from an open door. */
+  routeRooms?:Array<{level:number;roomId:number;cells:Array<{cx:number;cy:number}>}>;
+  routeStairs?:Array<{fromLevel:number;cells:Array<{cx:number;cy:number}>}>;
+}
+
+/** Match the slot identity, never a display name or a borrowed bed index.
+ * Visitor rows never call this helper; absent profiles preserve legacy packets. */
+export function residentPrivateDoorAccess(plan:BlueprintPlan,household:Household,claims:readonly RoomClaim[],memberIndex:number):ResidentPrivateDoorAccess|undefined{
+  if(plan.doorLeafProfile===undefined)return;
+  const specs=privateRoomDoorSpecs(plan),memberId=householdMemberIdentity(household,memberIndex);
+  const tag=memberId.slice(household.homeId.length+1),owned=claims.filter(claim=>claim.slotTag===tag);
+  if(owned.length>1)throw new Error('A resident private door needs one original room claim.');
+  const origin=blueprintSiteOrigin(plan);
+  const doors=specs.filter(spec=>owned.some(claim=>claim.level===spec.level&&claim.roomId===spec.roomId)).map(spec=>({
+    id:siteDoorId(spec.level,spec.index,spec.door.axis,(spec.door.x-origin.x)*.3048,(spec.door.y-origin.y)*.3048),level:spec.level,roomId:spec.roomId,
+    // Full source rooms allow a hinge-side stance; a two-cell portal guess can
+    // exclude the only place a measured body can stand clear of a wide leaf.
+    approachCells:plan.floors.find(floor=>floor.level===spec.level)!.rooms.filter(room=>room.id===spec.door.a||room.id===spec.door.b)
+      .flatMap(room=>room.cells.map(cell=>({...cell})))}));
+  // Shared household rooms plus this exact sleeping claim are the admitted
+  // region. Other bedrooms/guest rooms stay private even when a leaf is open.
+  const routeRooms=plan.floors.flatMap(floor=>floor.rooms.filter(room=>!PRIVATE_PURPOSES.includes(room.purpose)
+    ||owned.some(claim=>claim.level===floor.level&&claim.roomId===room.id))
+    .map(room=>({level:floor.level,roomId:room.id,cells:room.cells.map(cell=>({...cell}))})));
+  const routeStairs=plan.stairs.map(stair=>({fromLevel:stair.fromLevel,cells:[...stair.layout?.shaftCells??[],...stair.layout?.landingCells??[]].map(cell=>({...cell}))}));
+  return {profile:'private-room-leaves-v1',memberId,doors,routeRooms,routeStairs};
 }
 
 /** One household member's whole day: their station every hour, or null when out. */
@@ -101,6 +143,7 @@ export interface OccupantDaySchedule {
   visitor?: boolean;
   /** stationsByHour[h] = the member's station at hour h, or null when OUT. */
   stationsByHour: (StationFeetPoint | null)[];
+  privateDoorAccess?:ResidentPrivateDoorAccess;
 }
 
 /** The full-day occupancy schedule for one populated plot — the bake-once record
@@ -163,6 +206,8 @@ function stationToFeet(
   if (st.where !== 'home' || st.level === undefined) return null;
   const floor = plan.floors.find((f) => f.level === st.level);
   if (!floor) return null;
+  const roomIdentity=plan.doorLeafProfile&&st.roomId!==undefined?{roomId:st.roomId}:{};
+  if (st.standingPosition) return {...st.standingPosition, level: st.level, activity: st.activity,...roomIdentity};
 
   let x: Feet;
   let y: Feet;
@@ -184,7 +229,7 @@ function stationToFeet(
     x = (room.anchor.cx + 0.5) * 5;
     y = (room.anchor.cy + 0.5) * 5;
   }
-  return { xFt: x, yFt: y, level: st.level, activity: st.activity };
+  return { xFt: x, yFt: y, level: st.level, activity: st.activity,...roomIdentity };
 }
 
 /**
@@ -226,7 +271,11 @@ export function occupancyScheduleForPlot(
   townSeed: SeedPath,
   precomputedBlueprint?: BlueprintPlan,
 ): PlotOccupancySchedule | undefined {
-  const resolved = householdForPlot(plotPop, allPlots, townSeed);
+  const retained = plotInput.retainedSource ? readObservedBuildingSource(plotInput.retainedSource, plotInput.id,
+    plotInput.eventLog as import('../interior/blueprintTypes').BuildingEventHistory | undefined, seedPath) : undefined;
+  const resolved = retained ? (retained.household ? {household: retained.household,
+    worksAtHome: retained.plan.household?.worksAtHome ?? false} : undefined)
+    : householdForPlot(plotPop, allPlots, townSeed);
   if (!resolved) return undefined;
   const { household, worksAtHome } = resolved;
 
@@ -234,8 +283,20 @@ export function occupancyScheduleForPlot(
   // projections fan out. Standalone callers still resolve here, preserving the
   // public helper's old convenience without making the world-load path rebuild
   // household/style/history digests for a plan it already owns.
-  const plan = precomputedBlueprint ?? blueprintForPlot(plotInput, seedPath);
-  const occ = computeOccupancy(plan, household, { worksAtHome });
+  const plan = precomputedBlueprint ?? retained?.plan ?? blueprintForPlot(plotInput, seedPath);
+  if (retained && buildingPlanSignature(plan) !== buildingPlanSignature(retained.plan)) {
+    throw new Error('Occupancy and retained belongings must use the same building source.');
+  }
+  // Both the real home and the separate counter read the same owner/workplace
+  // join. A room called an inn cannot manufacture a night worker or family.
+  const workplace = plotPop.residential
+    ? allPlots.find(plot => plot.homeId === plotPop.workplaceId) : plotPop;
+  const publicHouseWorkRole = publicHouseWorkRoleForOwner(workplace, household.homeId);
+  const occ = computeOccupancy(plan, household, {
+    worksAtHome,
+    workplaceOnly: retained?.workplaceOnly ?? !plotPop.residential,
+    publicHouseWorkRole,
+  });
 
   const litHours: boolean[] = [];
   const hearthHours: boolean[] = [];
@@ -275,12 +336,14 @@ export function occupancyScheduleForPlot(
     // A member never home all day contributes no figure. This is an empty set,
     // not a fallback.
     if (stations.every((s) => s === null)) return;
+    const privateDoorAccess=residentPrivateDoorAccess(plan,household,occ.claims,memberIndex);
     occupants.push({
       memberIndex,
       name: member.name.split(' ')[0] ?? `#${memberIndex}`,
       ageBand: member.ageBand ?? 'adult',
       occupation: occupationForMember(member),
       stationsByHour: stations,
+      ...(privateDoorAccess?{privateDoorAccess}:{}),
     });
   });
 

@@ -73,6 +73,26 @@ describe('createWorldGenClient', () => {
     expect(stageBGround!.props).toEqual(cannedProps());
   });
 
+  it('carries the versioned first source with Stage B while ignoring a superseded source', () => {
+    const fw = new FakeWorker(), client = createWorldGenClient(() => fw as unknown as Worker);
+    let result: GroundWorld | undefined;
+    client.generate(req, { onStageA: () => {}, onStageB: () => {} });
+    const oldId = fw.sent[0].id;
+    const propSources = {};
+    client.generate({ ...req, propGenerationRevision: 2, propSources }, {
+      onStageA: () => {}, onStageB: value => { result = value; },
+    });
+    expect(fw.sent[1].req).toMatchObject({ propGenerationRevision: 2, propSources });
+    const id = fw.sent[1].id, ground = cannedGround();
+    fw.emit({ type: 'stageA', id, ground, local: {}, region: {} });
+    const source = { key: 'exact-window-source', props: cannedProps() } as GroundWorld['propSource'];
+    fw.emit({ type: 'stageB', id: oldId, props: [], propSource: { key: 'stale' } });
+    expect(ground.propSource).toBeUndefined();
+    fw.emit({ type: 'stageB', id, props: cannedProps(), propSource: source });
+    expect(result).toBe(ground); expect(result!.propSource).toBe(source);
+    client.dispose();
+  });
+
   it('ignores responses from a superseded request (only the latest id is live)', () => {
     const fw = new FakeWorker();
     const client = createWorldGenClient(() => fw as unknown as Worker);
@@ -174,5 +194,41 @@ describe('createWorldGenClient', () => {
 
     await expect(completed).rejects.toThrow('World generation worker failed');
     expect(fw.terminated).toBe(true);
+  });
+
+  it('sends a mesh hand-off port only when the caller asks (GG-573)', async () => {
+    class TransferWorker extends FakeWorker {
+      transfers: unknown[][] = [];
+      postMessage(msg: { type: string; id: number; req?: unknown }, transfer?: unknown[]) {
+        super.postMessage(msg);
+        this.transfers.push(transfer ?? []);
+      }
+    }
+    const plain = new TransferWorker();
+    const plainClient = createWorldGenClient(() => plain as unknown as Worker);
+    let plainA: { meshGroundPort?: MessagePort } | null = null;
+    plainClient.generate(req, { onStageA: (r) => { plainA = r; }, onStageB: () => {} });
+    expect('meshPort' in plain.sent[0]).toBe(false);
+    plain.emit({ type: 'stageA', id: plain.sent[0].id, ground: cannedGround(), local: {}, region: {} });
+    expect(plainA!.meshGroundPort).toBeUndefined();
+    plainClient.dispose();
+
+    const fw = new TransferWorker();
+    const client = createWorldGenClient(() => fw as unknown as Worker);
+    let stageA: { meshGroundPort?: MessagePort } | null = null;
+    client.generate(req, { handOffGround: true, onStageA: (r) => { stageA = r; }, onStageB: () => {} });
+    const sent = fw.sent[0] as { id: number; meshPort?: MessagePort };
+    expect(sent.meshPort).toBeInstanceOf(MessagePort);
+    expect(fw.transfers[0]).toEqual([sent.meshPort]);
+    fw.emit({ type: 'stageA', id: sent.id, ground: cannedGround(), local: {}, region: {} });
+    const port = stageA!.meshGroundPort!;
+    expect(port).toBeInstanceOf(MessagePort);
+    // What the worker posts into its end reaches the consumer's end.
+    const received = new Promise((resolve) => { port.onmessage = (e) => resolve(e.data); });
+    sent.meshPort!.postMessage({ type: 'init', ground: 'g' });
+    await expect(received).resolves.toEqual({ type: 'init', ground: 'g' });
+    port.close();
+    sent.meshPort!.close();
+    client.dispose();
   });
 });

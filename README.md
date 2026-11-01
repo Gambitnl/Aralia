@@ -133,16 +133,41 @@ The project follows a component-based architecture with a clear separation of co
 
 ## 5. Available Scripts
 
+The repository has over 100 npm scripts. These are the ones most work needs. Run `npm run` with no name to list them all; related scripts share a prefix (`spells:*`, `roadmap:*`, `backlog:*`, `validate:*`, `test:*`).
+
+### Run and build
+
 | Command | Description |
 |---------|-------------|
 | `npm run dev` | Start the Vite development server |
-| `npm run build` | Build for production |
+| `npm run build` | Build the data, then build for production |
 | `npm run preview` | Preview the production build locally |
-| `npm run validate` | Validate game data files (spells, items, etc.) against schemas |
-| `npm run test` | Run unit tests with Vitest |
-| `npm run test:types` | Run type definition tests |
-| `npm run typecheck` | Run TypeScript type checking without emitting |
-| `npm run lint` | Run ESLint on source and script files |
+| `npm run agora` | Start the Agora coordination daemon (port 4319) |
+
+### Check
+
+| Command | Description |
+|---------|-------------|
+| `npm run test` | Run the Vitest unit tests (add a path to run a subset) |
+| `npm run test:node` | Run the Node tooling tests |
+| `npm run test:types` | Run the type-level tests (tsd) |
+| `npm run typecheck:files -- <path>...` | Type-check only the named files, in seconds; the default for task work |
+| `npm run typecheck:combat` | Type-check one domain; also `:character`, `:services`, `:world`, `:scripts`, `:node` |
+| `npm run typecheck` | Full TypeScript check (10 to 30 minutes on a busy checkout) |
+| `npm run lint` | Run ESLint on `src`, `scripts` and `tests` |
+| `npm run validate` | Validate game data (spells, class lists, charset) against schemas |
+| `npm run spells:check` | Check the spell pipeline without writing files |
+| `npm run verify` | Typecheck, lint, quality scan and build in one run |
+
+### Repository health
+
+| Command | Description |
+|---------|-------------|
+| `npm run sync-check` | The blocking pre-push sync check |
+| `npm run git:hygiene` | Report stray branches and worktrees |
+| `npm run quality:debt` | Summarize the type and lint debt |
+| `npm run hooks:install` | Install or refresh the local pre-push hook |
+| `npm run projects:audit` | Audit the living project docs |
 
 ## 6. Key Development Practices
 

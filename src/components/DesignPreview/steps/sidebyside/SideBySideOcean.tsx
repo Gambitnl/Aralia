@@ -26,6 +26,23 @@
  *
  * A capture script drives it all through `window.__OCEAN__`, exactly as before.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 10/10/2026, 04:22:12
+ * Dependents: components/DesignPreview/steps/PreviewWater.tsx
+ * Imports: 13 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import * as THREE from 'three/webgpu';
@@ -35,6 +52,7 @@ import { createOceanSky, createOceanSkyMesh } from '@/systems/world3d/ocean/ocea
 import { oceanSeaState } from '@/systems/world3d/ocean/oceanSeaStates';
 import { rainSlopeVariance } from '@/systems/world3d/ocean/oceanRainMath';
 import { OCEAN_FFT_N } from '@/systems/world3d/ocean/oceanConfig';
+import { oceanRequiredLimits } from '@/systems/world3d/ocean/oceanDeviceLimits';
 import { checkOceanCapability } from '@/systems/world3d/ocean/oceanCapability';
 import { oceanFeetFromMeters } from '@/systems/world3d/ocean/oceanUnits';
 import { buildCascadeSpectrum } from '@/systems/world3d/ocean/oceanSpectrum';
@@ -524,7 +542,12 @@ export const SideBySideOcean: React.FC = () => {
       // The timestamp queries stay on (performance pass, iteration 7): off,
       // they saved 1.5-3% of frame time, under the pass's 5% bar, and three
       // piece probes (seabed, foam, wake) read them.
-      renderer = new THREE.WebGPURenderer({ antialias: true, trackTimestamp: true });
+      // THE DEVICE'S LIMITS (build-time round 1, GG-388): the surface with foam,
+      // rocks and the river mouth reads 21 textures in one stage, over the
+      // default 16; the adapter's own limit is asked for (oceanDeviceLimits.ts).
+      const requiredLimits = await oceanRequiredLimits();
+      if (disposed) return;
+      renderer = new THREE.WebGPURenderer({ antialias: true, trackTimestamp: true, requiredLimits });
       renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
       // Water is high dynamic range: a sun glint is genuinely hundreds of times
       // brighter than the water beside it. Without a tone map those values clip

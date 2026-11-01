@@ -5,15 +5,30 @@
  * Extracted from PlayerAvatar.tsx to decouple non-React component exports
  * from TSX files, ensuring React Fast Refresh hot-reloading works properly in Vite.
  */
-import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
-import { GROUND_METERS_PER_CELL } from '@/systems/worldforge/bridge/groundWorldAdapter';
-import { heightToMeters } from '@/systems/world3d/config';
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 28/10/2026, 11:27:04
+ * Dependents: components/World3D/GroundMovePlane.tsx, components/World3D/combat/InPlaceCombatLayer.tsx, components/World3D/groundBuildingMotion.ts, components/World3D/hooks/useInPlaceCombatTransition.ts, components/World3D/playerCameraFrame.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import { groundSurfaceY, type GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
 
 /**
  * Sample the ground-world surface height (meters) at tile-local meters.
  */
 export function groundSurfaceYM(ground: GroundWorld, xM: number, zM: number): number {
-  const gx = Math.max(0, Math.min(ground.cols - 1, Math.round(xM / GROUND_METERS_PER_CELL)));
-  const gy = Math.max(0, Math.min(ground.rows - 1, Math.round(zM / GROUND_METERS_PER_CELL)));
-  return heightToMeters(ground.heights[gy * ground.cols + gx] ?? 0);
+  // Walking and building placement share the existing continuous terrain query.
+  // Nearest-cell sampling invented steps at cell midpoints and buried saved feet.
+  return groundSurfaceY(ground, xM, zM);
 }

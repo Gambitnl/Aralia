@@ -8,9 +8,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 20/09/2026, 21:00:39
- * Dependents: components/DesignPreview/steps/raceDomain/leaves/deepGnomeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/draconbloodDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/drowRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/forgebornHumanRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/giffRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/guardianHumanRaceLeaf.tsx, systems/crafting/batchCrafting.ts, systems/crafting/craftingEngine.ts, systems/crafting/craftingService.ts, systems/puzzles/arcaneGlyphSystem.ts, systems/puzzles/mechanism.ts, systems/spells/mechanics/dispelMagicResolution.ts, utils/character/index.ts, utils/combat/grappleUtils.ts
- * Imports: 7 files
+ * Last Sync: 31/10/2026, 06:47:53
+ * Dependents: components/DesignPreview/steps/raceDomain/leaves/deepGnomeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/draconbloodDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/drowRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/forgebornHumanRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/giffRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/guardianHumanRaceLeaf.tsx, systems/crafting/batchCrafting.ts, systems/crafting/craftingEngine.ts, systems/crafting/craftingService.ts, systems/perception/stealthResolution.ts, systems/puzzles/arcaneGlyphSystem.ts, systems/puzzles/mechanism.ts, systems/spells/mechanics/dispelMagicResolution.ts, utils/character/index.ts, utils/combat/grappleUtils.ts
+ * Imports: 8 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -19,12 +19,13 @@
  */
 // @dependencies-end
 
+import { getExhaustionD20Penalty } from '../combat/physicsUtils';
 import { PlayerCharacter } from '../../types/character';
 import { CombatCharacter, StatusEffect } from '../../types/combat';
 import { rollDice } from '../../systems/dice/rollers';
 import { getAbilityModifierValue } from './statUtils';
 import { calculateProficiencyBonus } from './savingThrowUtils';
-import { calculateExpertiseBonus, hasExpertiseInSkill } from './skillModifierUtils';
+import { calculateExpertiseBonus, hasExpertiseInSkill, hasJackOfAllTrades } from './skillModifierUtils';
 import { AbilityScoreName } from '../../types/core';
 
 /**
@@ -180,6 +181,31 @@ function collectStructuredAbilityCheckModifiers(
 /**
  * Rolls an ability check or skill check for a character (Player or Combatant).
  */
+/**
+ * Checks whether a character (PlayerCharacter or CombatCharacter) is wearing armor
+ * or shield that imposes disadvantage on Dexterity (Stealth) checks.
+ */
+export function hasArmorStealthDisadvantage(character: PlayerCharacter | CombatCharacter): boolean {
+    if (!character) return false;
+
+    // PlayerCharacter equipped items
+    if ('equippedItems' in character && character.equippedItems) {
+        for (const item of Object.values(character.equippedItems)) {
+            if (item && item.stealthDisadvantage === true) {
+                return true;
+            }
+        }
+    }
+
+    // CombatCharacter equipment projection
+    if ('equipment' in character && character.equipment) {
+        if (character.equipment.wornArmor?.stealthDisadvantage === true) return true;
+        if (character.equipment.shield?.stealthDisadvantage === true) return true;
+    }
+
+    return false;
+}
+
 export function rollAbilityCheck(
     character: PlayerCharacter | CombatCharacter,
     ability: AbilityScoreName,
@@ -209,6 +235,11 @@ export function rollAbilityCheck(
             hasDisadvantage = true;
         }
     });
+
+    // Armor and shield stealth disadvantage (GG-503)
+    if (skill?.toLowerCase() === 'stealth' && hasArmorStealthDisadvantage(character)) {
+        hasDisadvantage = true;
+    }
 
     // Route deterministic callers through the same dice parser as ordinary
     // play. Production callers omit rng and keep the normal random stream.
@@ -249,6 +280,7 @@ export function rollAbilityCheck(
     let mod = getAbilityModifierValue(score);
     const proficiencyBonus = calculateProficiencyBonus(level);
     let expertiseBonusApplied = 0;
+    let jackBonusApplied = 0;
     if (isProficient) {
         mod += proficiencyBonus;
         // Expertise doubles the proficiency bonus on a chosen skill. Only a
@@ -259,6 +291,11 @@ export function rollAbilityCheck(
             proficiencyBonus
         });
         mod += expertiseBonusApplied;
+    } else if (hasJackOfAllTrades(character)) {
+        // Jack of All Trades (Bard level 2+): add half proficiency bonus (rounded down)
+        // to any ability check that doesn't already include proficiency bonus.
+        jackBonusApplied = Math.floor(proficiencyBonus / 2);
+        mod += jackBonusApplied;
     }
 
     // Add external modifier (e.g. from crafting progression or location)
@@ -268,8 +305,18 @@ export function rollAbilityCheck(
 
     // Track modifiers for logging
     const modifiersApplied: { source: string; value: number }[] = [];
+    // Keep the raw face and source bonuses intact; exhaustion changes this
+    // test's total once and leaves an explicit receipt beside other riders.
+    const exhaustionPenalty = getExhaustionD20Penalty(character);
+    if (exhaustionPenalty > 0) {
+        mod -= exhaustionPenalty;
+        modifiersApplied.push({ source: 'Exhaustion', value: -exhaustionPenalty });
+    }
     if (expertiseBonusApplied > 0) {
         modifiersApplied.push({ source: 'Expertise', value: expertiseBonusApplied });
+    }
+    if (jackBonusApplied > 0) {
+        modifiersApplied.push({ source: 'Jack of All Trades', value: jackBonusApplied });
     }
 
     // Racial Intuition / Bonuses
@@ -333,6 +380,10 @@ export function getCheckAdvantageSources(
         if (modifier.disadvantage === true && !disadvantage.includes(modifier.source)) {
             disadvantage.push(modifier.source);
         }
+    }
+
+    if (skill?.toLowerCase() === 'stealth' && hasArmorStealthDisadvantage(character) && !disadvantage.includes('Armor')) {
+        disadvantage.push('Armor');
     }
 
     return { advantage, disadvantage };

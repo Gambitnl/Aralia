@@ -5,8 +5,8 @@
     "experimentalSpecifierResolution": "node"
   },
   "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext"
+    "module": "ESNext",
+    "moduleResolution": "bundler"
   },
   "include": [
     "scripts/**/*.ts"

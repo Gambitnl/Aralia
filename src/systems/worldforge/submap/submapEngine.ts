@@ -15,6 +15,23 @@
  * Spec: docs/projects/worldforge/SPEC.md §11 (2026-06-22) item 2 — Azgaar L0 → WF
  * L1+; the engine consumes a parent context, never generates a competing world.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 28/10/2026, 01:27:19
+ * Dependents: components/DesignPreview/steps/Town3DScene.tsx, components/DesignPreview/steps/townMesh.ts, components/MapPane.tsx, components/World3D/World3DDemo.tsx, components/Worldforge/NeighbourhoodSvgView.tsx, components/Worldforge/SubmapSvgView.tsx, components/Worldforge/TownPlanView.tsx, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/discovery/hiddenPlaces.ts, systems/worldforge/leaf3d/coordAnchor.ts, systems/worldforge/leaf3d/leafHandoff.ts, systems/worldforge/submap/l0Adapter.ts, systems/worldforge/submap/neighbourhood.ts, systems/worldforge/town/architectureDistricts.ts, systems/worldforge/town/architectureStyle.ts, systems/worldforge/town/buildingAge.ts, systems/worldforge/town/canonicalTown.ts, systems/worldforge/town/cellFeatures.ts, systems/worldforge/town/courtyardSpaces.ts, systems/worldforge/town/demoTownPlan.ts, systems/worldforge/town/population.ts, systems/worldforge/town/townDiagnostics.ts, systems/worldforge/town/townEngine.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/town/townRiverCourse.ts, systems/worldforge/town/townStreetNetwork.ts, systems/worldforge/town/townWaterBodies.ts, systems/worldforge/town/voronoiTownAdapter.ts, systems/worldforge/travel/submapTravelGraph.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import Delaunator from 'delaunator';
 import { childSeedPath, rngFromPath, streamPath, type SeedPath } from '../seedPath';
 import { Voronoi } from '../fmg/voronoi';
@@ -94,6 +111,29 @@ export interface GenerateSubmapSitesOptions {
   count?: number;
   /** Rejection-sampling attempt cap multiplier (default 20). */
   maxAttemptsPerPoint?: number;
+  /**
+   * Sites placed exactly, after the feature sites and before the scatter
+   * (the town's main street, GG-567). They carry no feature identity.
+   */
+  forcedSites?: Pt[];
+  /** A scattered point this returns true for is rejected (GG-567). */
+  exclude?: (p: Pt) => boolean;
+  /**
+   * Place the scatter on a jittered grid instead of at random (GG-563 block
+   * shapes). `angle` turns the grid (radians), `aspect` is the cell's length
+   * over its depth, `jitter` the share of a cell each site may move.
+   */
+  lattice?: {
+    angle: number;
+    aspect: number;
+    jitter: number;
+    /**
+     * The older core (GG-577): within `radius` of `center` the grid keeps
+     * only every other row and column, so its blocks are twice as wide and
+     * can hold a shared court.
+     */
+    coarse?: { center: Pt; radius: number };
+  };
 }
 
 export interface SubmapSites {
@@ -122,17 +162,51 @@ export function generateSubmapSites(
     sites.push([f.x, f.y]);
   }
 
+  // 1b. Forced plain sites (exact positions, no feature identity).
+  for (const p of opts.forcedSites ?? []) sites.push([p[0], p[1]]);
+
   // 2. Seeded scatter inside the polygon (rejection sampling within bbox).
-  const target = count + featureSites.length;
+  const target = count + sites.length;
   const maxAttempts = (opts.maxAttemptsPerPoint ?? 20) * count;
   const rng = rngFromPath(streamPath(ctx.seedPath, 'submap-sites'));
   const b = polygonBounds(ctx.polygon);
+
+  // 2b. LATTICE (GG-563 block shapes): sites on a jittered grid turned to
+  // `angle`, about `count` of them, so the cells come out as near-rectangular
+  // blocks instead of six-sided ones. Same stream, same exclusion.
+  if (opts.lattice && count > 0) {
+    const { angle, aspect, jitter } = opts.lattice;
+    const cell = Math.sqrt(Math.abs(signedArea(ctx.polygon)) / count);
+    const along = cell * Math.sqrt(aspect), across = cell / Math.sqrt(aspect);
+    const ca = Math.cos(angle), sa = Math.sin(angle);
+    const cx = (b.minX + b.maxX) / 2, cy = (b.minY + b.maxY) / 2;
+    const reach = Math.hypot(b.maxX - b.minX, b.maxY - b.minY) / 2;
+    const nu = Math.ceil(reach / along), nv = Math.ceil(reach / across);
+    // Rows sit half a row off the center, so a line through it (the main
+    // street) runs between two rows of sites, not through one.
+    for (let j = -nv; j <= nv; j++) {
+      for (let i = -nu; i <= nu; i++) {
+        const u = (i + (rng.next() - 0.5) * jitter) * along;
+        const v = (j + 0.5 + (rng.next() - 0.5) * jitter) * across;
+        const x = cx + u * ca - v * sa, y = cy + u * sa + v * ca;
+        // The draws above come first, so a skipped site never shifts the stream.
+        const co = opts.lattice.coarse;
+        if (co && (i % 2 !== 0 || j % 2 !== 0) && Math.hypot(x - co.center[0], y - co.center[1]) < co.radius) continue;
+        if (!pointInPolygon([x, y], ctx.polygon)) continue;
+        if (opts.exclude && opts.exclude([x, y])) continue;
+        sites.push([+x.toFixed(3), +y.toFixed(3)]);
+      }
+    }
+    return { sites, featureSites };
+  }
   let attempts = 0;
   while (sites.length < target && attempts < maxAttempts) {
     attempts++;
     const x = b.minX + rng.next() * (b.maxX - b.minX);
     const y = b.minY + rng.next() * (b.maxY - b.minY);
-    if (pointInPolygon([x, y], ctx.polygon)) sites.push([+x.toFixed(3), +y.toFixed(3)]);
+    if (!pointInPolygon([x, y], ctx.polygon)) continue;
+    if (opts.exclude && opts.exclude([x, y])) continue;
+    sites.push([+x.toFixed(3), +y.toFixed(3)]);
   }
 
   return { sites, featureSites };
@@ -461,6 +535,23 @@ export function generateSubmap(
   opts: GenerateSubmapSitesOptions = {},
 ): SubmapModel {
   const { sites, featureSites } = generateSubmapSites(ctx, opts);
+  // Atlas vertices are quantized, so even a Voronoi parent can acquire a
+  // shallow inward corner. Keep that exact boundary: using it as a convex
+  // clipping window can erase the town sitting beside the inward corner.
+  // The new Voronoi cells are convex windows, so reverse the clipping roles
+  // for these parents. Existing convex parents retain their original output.
+  let parentIsConvex = true;
+  const winding = signedArea(ctx.polygon) < 0 ? -1 : 1;
+  for (let i = 0; i < ctx.polygon.length; i++) {
+    const a = ctx.polygon[i];
+    const b = ctx.polygon[(i + 1) % ctx.polygon.length];
+    const c = ctx.polygon[(i + 2) % ctx.polygon.length];
+    const turn = (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]);
+    if (turn * winding < -1e-9) {
+      parentIsConvex = false;
+      break;
+    }
+  }
   const b = polygonBounds(ctx.polygon);
   const pad = Math.max(b.maxX - b.minX, b.maxY - b.minY) || 1;
   const midX = (b.minX + b.maxX) / 2;
@@ -489,7 +580,9 @@ export function generateSubmap(
     if (raw.length < 3) continue;
     // Clip the cell exactly to the parent polygon (SP1 T2b) — outer cells stop
     // at the boundary so the submap is precisely the parent cell's shape.
-    const polygon = clipPolygon(raw, ctx.polygon);
+    const polygon = parentIsConvex
+      ? clipPolygon(raw, ctx.polygon)
+      : clipPolygon(ctx.polygon, raw);
     if (polygon.length < 3) continue;
     // The clipped polygon is in hand here, so the blend gets real geometry:
     // where this sub-cell sits relative to each adjacent parent cell.

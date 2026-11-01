@@ -27,6 +27,7 @@ function lifecycleEvents(count: number): BuildingEvent[] {
 function stateFor(burgId: number, plotId: number, history: BuildingEventHistory): TownSimState {
   return {
     burgId,
+    layoutRevision: 2,
     villagers: {},
     chronicle: { burgId, events: [], nextEventId: 1 },
     buildingEvents: { [plotId]: history },
@@ -93,5 +94,38 @@ describe('compactTownBuildingHistories', () => {
     const advanced = advanceTown(source, WORLD_SEED, 25);
 
     expect(isBuildingHistoryJournal(advanced.buildingEvents![plan.plots[0].id])).toBe(true);
+  }, 20_000);
+});
+
+
+describe('history source admission', () => {
+  it('keeps the complete original prefix while an old save layout is unresolved', () => {
+    // Deliberately invalid burg: refusing to fold must happen before asking
+    // today's atlas for replacement geometry. No event or metadata is lost.
+    const source = { ...stateFor(-1, 42, lifecycleEvents(48)), layoutRevision: undefined };
+    const before = JSON.stringify(source);
+    expect(compactTownBuildingHistories(source, WORLD_SEED)).toBe(source);
+    expect(JSON.stringify(source)).toBe(before);
+    expect(buildingHistoryEventCount(source.buildingEvents![42])).toBe(48);
+  });
+
+  it('folds against an explicitly selected earlier canonical layout', () => {
+    const burgId = getTownTilesForGrid(WORLD_SEED, 96, 96)[0]!.burgId;
+    const atlas = getBridgeAtlas(WORLD_SEED);
+    const { plan } = toArtifactPlan(getCanonicalTownPlan(atlas, WORLD_SEED, burgId, 1), burgId);
+    const plot = plan.plots[0];
+    const history = lifecycleEvents(48);
+    const source = { ...stateFor(burgId, plot.id, history), layoutRevision: 1 as const };
+    const folded = compactTownBuildingHistories(source, WORLD_SEED);
+    expect(folded.layoutRevision).toBe(1);
+    expect(isBuildingHistoryJournal(folded.buildingEvents![plot.id])).toBe(true);
+    const burg = atlas.pack.burgs![burgId] as {cell:number};
+    const seed = canonicalTownSeedPath(WORLD_SEED, burgId);
+    const blueprint = blueprintForPlot(buildingPlotInput(plan, plot, seed, {
+      cultureType:getBurgCultureType(WORLD_SEED,burgId),
+      climate:climateForBiomeId(atlas.pack.cells.biome![burg.cell]),
+    }), seed);
+    expect(applyHistory(blueprint, folded.buildingEvents![plot.id]).liveHistory)
+      .toEqual(applyHistory(blueprint, history).liveHistory);
   }, 20_000);
 });

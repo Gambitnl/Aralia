@@ -27,7 +27,7 @@
  * delivers a few hundred slabs, and a re-render each would cost more than the
  * meshing did.
  */
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
@@ -54,10 +54,20 @@ import {
 import { AO_REACH_CELLS } from '@/systems/worldforge/terrain/surfaceNets';
 import {
   createVolumeBubbleClient,
+  volumeBubbleGround,
   type BubbleVolume,
   type BubblePreCut,
 } from './createVolumeBubbleClient';
 import { makeSubstanceGroundMaterial, wrapShift } from './terrain/substanceGroundMaterial';
+import { makeSubstanceGroundNodeMaterial } from './gpu/substanceGroundNode';
+import { isWebGpuWorldEnabled } from './webgpuWorldFlag';
+
+/**
+ * ADR 0009 step 4: under `?gpu=1` the bubble draws with the TSL twin of the
+ * substance material (the GLSL onBeforeCompile is ignored on WebGPU and the
+ * ground drew flat white). Both twins take `aimMaterial` the same way.
+ */
+const WEBGPU_WORLD = isWebGpuWorldEnabled();
 
 /**
  * THE TINT A RE-MESH DRAWS WITH.
@@ -164,6 +174,17 @@ export interface VolumeGroundBubbleProps {
   onVolume?: (v: BubbleVolume) => void;
   /** Called when a build finishes, with what it cost. For the perf report. */
   onStats?: (s: BubbleBuildStats) => void;
+  /**
+   * Build the volume but draw nothing until a carve changes it (2026-10-28,
+   * agora-257c). Over the streamed skin the bubble is a lid about 30 cm up, the
+   * same height as the road ribbons (ROAD_LIFT_M 0.3): the two fought for
+   * every pixel, so the streets inside the 64 m circle jittered as the camera
+   * moved or vanished, and the lid drew its own stepped gravel over the town.
+   * Nothing digs the live world yet, so the drawn lid showed only those faults.
+   * The volume still builds and is handed out (`onVolume`). Off where the bubble
+   * is the only ground (the LAND pane turns the skin off).
+   */
+  hideUntilCarved?: boolean;
 }
 
 export interface BubbleBuildStats {
@@ -196,9 +217,10 @@ interface LiveBubble {
   slabs: DrawnSlab[];
   /**
    * The material for THIS bubble's ground. One per stack key, reused across
-   * rebuilds — see `materialFor`.
+   * rebuilds — see `materialFor`. A MeshStandardMaterial on WebGL, its node
+   * twin on WebGPU; both carry the `userData.shader.uniforms` aimMaterial writes.
    */
-  material: THREE.MeshStandardMaterial;
+  material: THREE.Material;
 }
 
 function geometryFromSlab(slab: BubbleSlab, shiftM: readonly [number, number, number]): THREE.BufferGeometry {
@@ -237,7 +259,7 @@ function geometryFromSlab(slab: BubbleSlab, shiftM: readonly [number, number, nu
  * `needsUpdate` is only the first-compile path.
  */
 function aimMaterial(
-  m: THREE.MeshStandardMaterial,
+  m: THREE.Material,
   shiftM: readonly [number, number, number],
   cellM: number,
   originM: readonly [number, number, number],
@@ -260,7 +282,7 @@ function aimMaterial(
 }
 
 const VolumeGroundBubble: React.FC<VolumeGroundBubbleProps> = ({
-  ground,
+  ground: fullGround,
   sceneOrigin,
   playerGroundPos,
   extentM = BUBBLE_EXTENT_M,
@@ -268,8 +290,20 @@ const VolumeGroundBubble: React.FC<VolumeGroundBubbleProps> = ({
   heightM,
   onVolume,
   onStats,
+  hideUntilCarved = false,
 }) => {
+  // GG-574 (2026-11-02): the bubble's lifetime keys on the fields its worker
+  // reads, not on the GroundWorld object. Stage B hands over a new object
+  // (`{ ...ground }`) with the same fields and new props; it used to dispose
+  // this worker and post the whole world again (0.4 s each in the World3D demo).
+  const ground = useMemo(
+    () => (fullGround ? volumeBubbleGround(fullGround) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [fullGround?.cols, fullGround?.rows, fullGround?.heights, fullGround?.biomeIds, fullGround?.snowLineH, fullGround?.townKeepOuts],
+  );
   const [bubble, setBubble] = useState<LiveBubble | null>(null);
+  /** True once a carve changed the volume: the bubble then draws (see the prop). */
+  const [carved, setCarved] = useState(false);
   const { camera, gl, scene } = useThree();
   const statsRef = useRef<BubbleBuildStats | null>(null);
   const clientRef = useRef<ReturnType<typeof createVolumeBubbleClient> | null>(null);
@@ -286,7 +320,7 @@ const VolumeGroundBubble: React.FC<VolumeGroundBubbleProps> = ({
    * time would recompile a 500-line fragment shader mid-stride. Keyed by the
    * stack name the worker reports.
    */
-  const materialsRef = useRef(new Map<string, THREE.MeshStandardMaterial>());
+  const materialsRef = useRef(new Map<string, THREE.Material>());
 
   /* THE SLUMP, in flight, and the slabs it has dirtied.
    *
@@ -507,7 +541,9 @@ const VolumeGroundBubble: React.FC<VolumeGroundBubbleProps> = ({
          * rather than into forest subsoil. */
         let mat = materialsRef.current.get(v.stackKey);
         if (!mat) {
-          mat = makeSubstanceGroundMaterial(v.stack);
+          mat = WEBGPU_WORLD
+            ? makeSubstanceGroundNodeMaterial(v.stack)
+            : makeSubstanceGroundMaterial(v.stack);
           materialsRef.current.set(v.stackKey, mat);
         }
         aimMaterial(mat, shiftM, v.cellM, v.originM);
@@ -743,6 +779,7 @@ const VolumeGroundBubble: React.FC<VolumeGroundBubbleProps> = ({
           v.stack,
         );
         if (r.changed === 0) return { changed: 0, remeshed: 0, added: 0, ms: 0 };
+        setCarved(true);
 
         const datum = depthDatumFor(v.originalTopY, v.originM, v.cellM, v.cellsPerEdge);
         /* Resolved against the SLAB PLAN, not against what is being drawn: the
@@ -956,6 +993,7 @@ const VolumeGroundBubble: React.FC<VolumeGroundBubbleProps> = ({
   }, [bubble, camera, gl, scene, sceneOrigin, slumpTick]);
 
   if (!bubble || bubble.slabs.length === 0) return null;
+  if (hideUntilCarved && !carved) return null;
 
   return (
     <group

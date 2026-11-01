@@ -16,7 +16,7 @@
 
 import React from 'react';
 import { assetUrl } from '../config/env';
-import { GlossaryIconName } from '../components/Glossary/IconRegistry';
+import type { GlossaryIconName } from '../types/glossaryIconName';
 
 /**
  * This file provides the canonical class icon mapping and rendering for character classes.

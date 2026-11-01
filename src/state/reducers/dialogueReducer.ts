@@ -3,6 +3,22 @@
  * Reducer for managing the active dialogue session state.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 21:15:45
+ * Dependents: state/appState.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { GameState } from '../../types';
 import { AppAction } from '../actionTypes';
 import { DialogueSession } from '../../types/dialogue';
@@ -10,10 +26,12 @@ import { DialogueSession } from '../../types/dialogue';
 export function dialogueReducer(state: GameState, action: AppAction): Partial<GameState> {
     switch (action.type) {
         case 'START_DIALOGUE_SESSION': {
-            const { npcId } = action.payload;
+            const { npcId, contactStatus } = action.payload;
             const session: DialogueSession = {
                 npcId,
-                discussedTopicIds: []
+                discussedTopicIds: [],
+                // Preserve the pre-contact decision through topic updates and saves.
+                ...(contactStatus ? { contactStatus } : {})
             };
 
             return {

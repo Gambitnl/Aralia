@@ -8,8 +8,8 @@
  * plain conversation path.
  */
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ConversationPanel } from '../ConversationPanel';
 import type { GameState } from '../../../types';
 
@@ -83,6 +83,62 @@ function makePeacefulState(): GameState {
     },
   });
 }
+
+describe('ConversationPanel unavailable intent reader', () => {
+  afterEach(() => vi.useRealTimers());
+
+  it('returns the unsent words and ignores an attack arriving after the deadline', async () => {
+    vi.useFakeTimers();
+    vi.clearAllMocks();
+    let finish!: (intent: { kind: string }) => void;
+    resolvePlayerIntent.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+    render(<ConversationPanel gameState={makePeacefulState()} dispatch={vi.fn()} />);
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: 'Where is your temple?' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(screen.getByText('Reading your intent…')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /End conversation/i })).toBeEnabled();
+    await act(async () => { await vi.advanceTimersByTimeAsync(15000); });
+    expect(input).toHaveValue('Where is your temple?');
+    expect(input).toBeEnabled();
+    expect(screen.getByTestId('intent-error')).toHaveTextContent('Try again, or end the conversation.');
+    await act(async () => { finish({ kind: 'attack' }); });
+    expect(runIntentFlow).not.toHaveBeenCalled();
+    expect(sendPlayerMessage).not.toHaveBeenCalled();
+  });
+
+  it('does not apply a classification after the conversation panel closes', async () => {
+    vi.clearAllMocks();
+    let finish!: (intent: { kind: string }) => void;
+    resolvePlayerIntent.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+    const view = render(<ConversationPanel gameState={makePeacefulState()} dispatch={vi.fn()} />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Where is your temple?' } });
+    fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Enter' });
+    view.unmount();
+    await act(async () => { finish({ kind: 'attack' }); });
+    expect(runIntentFlow).not.toHaveBeenCalled();
+    expect(sendPlayerMessage).not.toHaveBeenCalled();
+  });
+
+  it('unlocks a replacement conversation without applying the former reader result', async () => {
+    vi.clearAllMocks();
+    let finish!: (intent: { kind: string }) => void;
+    resolvePlayerIntent.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+    const first = makePeacefulState();
+    first.activeConversation!.id = 'first-conversation';
+    const view = render(<ConversationPanel gameState={first} dispatch={vi.fn()} />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Where is your temple?' } });
+    fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Enter' });
+    const next = makePeacefulState();
+    next.activeConversation!.id = 'next-conversation';
+    view.rerender(<ConversationPanel gameState={next} dispatch={vi.fn()} />);
+    expect(screen.getByRole('textbox')).toBeEnabled();
+    expect(screen.queryByText('Reading your intent…')).not.toBeInTheDocument();
+    await act(async () => { finish({ kind: 'attack' }); });
+    expect(runIntentFlow).not.toHaveBeenCalled();
+    expect(sendPlayerMessage).not.toHaveBeenCalled();
+  });
+});
 
 describe('ConversationPanel suggested-reply chips', () => {
   // jsdom has no scrollIntoView; the panel calls it on message updates.

@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
- *
- * Last Sync: 09/09/2026, 11:37:56
- * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, devtools/buildingIdentityLab/BuildingIdentityLab.tsx, devtools/buildingIdentityLab/PreviewBuilding3D.tsx, systems/world3d/buildingSceneModel.ts, systems/worldforge/bridge/buildingOccupancy.ts, systems/worldforge/bridge/interiorParts.ts, systems/worldforge/interior/renderBlueprintSvg.ts
- * Imports: 3 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file occupancy.ts — the living overlay's first layer: who lives where, and
  * where each family member stands hour by hour.
@@ -35,15 +19,34 @@
  *     trade room's workstation, everyone else `out`); children alternate
  *     chores/out by day; servants serve meals and do daytime household chores
  *     AT a real service workstation (kitchen/pantry/stockroom) when the plan
- *     has one; evenings 19–21 hearthside; the rest home idle.
+ *     has one; evenings 19–21 hearthside; the rest home idle. Source-qualified
+ *     inn/tavern proprietors instead work noon through 22:59 and sleep at 23;
+ *     their relatives retain their own ordinary routines.
  *   - VISITORS: a public house (a plan with a `common-room`, i.e. the tavern
  *     and inn headline) also seats evening patrons in that room. They are a
  *     parallel table, not household members — see {@link BuildingVisitor}.
  *   - FLAGS: abandoned (zero members) and the 24-hour hearth-lit schedule.
  *
- * Determinism: identical (plan, household) always yields identical occupancy —
+ * Determinism: identical (plan, household, work options) yields identical occupancy —
  * every pick is a stable scan in furnishing/room order.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 01/11/2026, 01:28:58
+ * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, components/Worldforge/townBuildingVisit.ts, devtools/buildingIdentityLab/BuildingIdentityLab.tsx, devtools/buildingIdentityLab/PreviewBuilding3D.tsx, systems/world3d/buildingSceneModel.ts, systems/worldforge/bridge/buildingOccupancy.ts, systems/worldforge/bridge/institutionOccupancy.ts, systems/worldforge/bridge/interiorParts.ts, systems/worldforge/interior/activityPositions.ts, systems/worldforge/interior/householdLayoutReferences.ts, systems/worldforge/interior/renderBlueprintSvg.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type {
   BlueprintFloor,
   BlueprintFurnishing,
@@ -52,6 +55,8 @@ import type {
 } from './blueprintTypes';
 import type { Household } from '../town/household';
 import { memberTag } from '../town/householdBrief';
+import { placeActivityStations } from './activityPositions';
+import {workHoursForRole,type PublicHouseWorkRole} from '../roster/workHours';
 
 export interface RoomClaim {
   slotTag: string;
@@ -71,6 +76,10 @@ export interface OccupantStation {
   roomId?: number;
   /** Index into plan.floors[levelIdx].furnishings when standing at a piece. */
   furnishingIndex?: number;
+  /** Clear standing position beside the activity target, shared by 2D and 3D. */
+  standingPosition?: {xFt: number; yFt: number};
+  /** Explicit unsupported legacy capacity; never hide a person to conceal it. */
+  standingIssue?: 'no-clear-space';
   activity: 'sleeping' | 'meal' | 'work' | 'hearthside' | 'chores' | 'out' | 'visiting';
 }
 
@@ -577,13 +586,26 @@ const outStation = (memberIndex: number, hour: number): OccupantStation => ({
 export function computeOccupancy(
   plan: BlueprintPlan,
   household: Household,
-  opts: { worksAtHome: boolean },
+  opts: { worksAtHome: boolean; workplaceOnly?: boolean; publicHouseWorkRole?: PublicHouseWorkRole },
 ): BuildingOccupancy {
   const members = household.members;
   const tagMap = tagToMember(household);
   const { claims, roomByMember, levelByMember } = resolveClaims(plan, household, tagMap);
 
   const meal = findMealStation(plan);
+  // A recorded room program may distinguish family and service meals. Only
+  // explicit stable tags opt in; existing homes keep the original table.
+  const meals = members.map((_, i) => {
+    const tag = [...tagMap].find(([, index]) => index === i)?.[0];
+    const choices = plan.floors.flatMap(floor => floor.rooms.flatMap(room => {
+      if (!tag || !room.mealForSlot?.split(',').includes(tag)) return [];
+      const furnishingIndex = furnishingIndexInRoom(floor, room.id, TABLE_KINDS);
+      if (furnishingIndex < 0) throw new Error('A recorded meal room needs a real table.');
+      return [{level: floor.level, roomId: room.id, furnishingIndex}];
+    }));
+    if (choices.length > 1) throw new Error('A resident cannot have conflicting meal rooms.');
+    return choices[0] ?? meal;
+  });
   const hearth = findHearthStation(plan);
   const trade = findTradeStation(plan);
   // Servants work at a real piece when the house has one. Falling back to the
@@ -596,13 +618,19 @@ export function computeOccupancy(
   const cookIndex = findCookIndex(household);
   const { floor: mainFloor, room: mainRoom } = findMain(plan);
 
-  // The bed a member sleeps at: their claimed room's first bed, else no piece.
+  // Each resident takes a distinct bed in their claimed room, in stable member
+  // order. A true capacity shortage leaves the furnishing unset instead of
+  // stacking several people onto the first bed and hiding the missing places.
   const bedStationForMember = (i: number): { level: number; roomId: number; furnishingIndex?: number } => {
     const level = levelByMember[i] ?? mainFloor.level;
     const roomId = roomByMember[i] ?? mainRoom.id;
     const floor = plan.floors.find((f) => f.level === level) ?? mainFloor;
-    const fi = furnishingIndexInRoom(floor, roomId, BED_KINDS);
-    return { level, roomId, furnishingIndex: fi >= 0 ? fi : undefined };
+    const ordinal = members.slice(0, i).filter((_, prior) =>
+      (levelByMember[prior] ?? mainFloor.level) === level &&
+      (roomByMember[prior] ?? mainRoom.id) === roomId).length;
+    const fi = floor.furnishings.flatMap((furnishing, index) =>
+      furnishing.roomId === roomId && BED_KINDS.has(furnishing.kind) ? [index] : [])[ordinal];
+    return { level, roomId, furnishingIndex: fi };
   };
 
   const stationsByHour: OccupantStation[][] = [];
@@ -612,7 +640,23 @@ export function computeOccupancy(
       const m = members[i];
       const isChild = m.ageBand === 'child';
       const isServant = m.role === 'servant';
-      const worksTrade = opts.worksAtHome && (m.role === 'head' || m.role === 'spouse');
+      const retired = /^retired\b/i.test(m.occupation ?? '');
+      const worksTrade = opts.worksAtHome && !isChild && !retired &&
+        (m.role === 'head' || m.role === 'spouse');
+      const publicHouseKeeper = !!opts.publicHouseWorkRole && m.role === 'head' && !isChild && !retired;
+      const workHours = workHoursForRole(publicHouseKeeper ? opts.publicHouseWorkRole : undefined);
+      const onDuty = hour >= workHours.start && hour < workHours.end;
+
+      // A proprietor's family identifies ownership, not a second residence.
+      // A separate business admits only its active owner during the work band;
+      // family meals, children, servants and beds stay at their real home.
+      // Additional staff need an explicit employment link before appearing here.
+      if (opts.workplaceOnly) {
+        row.push(m.role === 'head' && worksTrade && onDuty
+          ? homeStation(i, hour, 'work', trade ?? { level: mainFloor.level, roomId: mainRoom.id })
+          : outStation(i, hour));
+        continue;
+      }
 
       // The cook rises an hour early to work the kitchen. Placed BEFORE the
       // sleep band so it only ever replaces a sleeping station — never a work
@@ -621,18 +665,34 @@ export function computeOccupancy(
         row.push(homeStation(i, hour, 'chores', kitchen));
         continue;
       }
-      // Sleep 22:00–06:59 at the claimed room's bed.
-      if (hour >= 22 || hour < 7) {
+      // Evening proprietors sleep later. Everyone keeps the same claimed bed;
+      // the existing early-cook exception above remains unchanged.
+      if (hour >= workHours.sleep || hour < 7) {
         row.push(homeStation(i, hour, 'sleeping', bedStationForMember(i)));
         continue;
       }
-      // Meals at 07 and 18 at the shared table.
+      // The same active keeper cannot be behind the bar and at home for supper.
+      // A separate workplace gets the head alone; family and private beds stay
+      // at home. These hours match the street roster's qualified work role.
+      if (publicHouseKeeper && onDuty) {
+        row.push(worksTrade
+          ? homeStation(i, hour, 'work', trade ?? {level: mainFloor.level, roomId: mainRoom.id})
+          : outStation(i, hour));
+        continue;
+      }
+      // Meals at 07 and 18 at the shared table for those who are home.
       if (hour === 7 || hour === 18) {
-        row.push(homeStation(i, hour, 'meal', meal));
+        row.push(homeStation(i, hour, 'meal', meals[i]));
         continue;
       }
       // Work band 08:00–17:59.
       if (hour >= 8 && hour <= 17) {
+        // Before opening, the evening keeper has real home time rather than
+        // inheriting a second day shift from the generic household routine.
+        if (publicHouseKeeper) {
+          row.push(homeStation(i, hour, 'chores', service ?? {level: mainFloor.level, roomId: mainRoom.id}));
+          continue;
+        }
         // Live-in servants remain visible doing household work in the shared
         // meal-room area; street-agent routing must not send them to a fake job.
         if (isServant) {
@@ -647,6 +707,10 @@ export function computeOccupancy(
           } else {
             row.push(outStation(i, hour));
           }
+          continue;
+        }
+        if (retired) {
+          row.push(homeStation(i, hour, 'chores', { level: mainFloor.level, roomId: mainRoom.id }));
           continue;
         }
         if (worksTrade && trade) {
@@ -680,9 +744,12 @@ export function computeOccupancy(
   // finished plan but can never change a member's station or the hearth flags
   // above — a visiting crowd must not silently re-time a household's day.
   const { visitors, visitorStationsByHour } = computeVisitors(plan, household);
+  for (let hour = 0; hour < 24; hour++) {
+    placeActivityStations(plan, [...stationsByHour[hour], ...visitorStationsByHour[hour]], members);
+  }
 
   return {
-    claims,
+    claims: opts.workplaceOnly ? [] : claims,
     stationsByHour,
     visitors,
     visitorStationsByHour,

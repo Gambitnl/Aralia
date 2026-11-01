@@ -7,6 +7,7 @@ import { Item } from '../../../types';
 import { Spell, SpellSchool } from '../../../types/spells';
 import { createMockPlayerCharacter, createMockSpell } from '../../core/factories';
 import { DRAGONBORN_DATA } from '../../../data/races/dragonborn';
+import type { CanonicalDamageType } from '../../../types/spellDamageMetadata';
 
 // Mocks
 const mockAllSpells: Record<string, Spell> = {
@@ -66,6 +67,17 @@ describe('combatUtils: createPlayerCombatCharacter', () => {
     // baseInitiative is the NON-Dex part (no bonuses/proficiency here → 0).
     // Dex is added by rollInitiative; baking it in here double-counted it.
     expect(combatChar.stats.baseInitiative).toBe(0);
+  });
+
+  it('adds Jack of All Trades (floor(PB/2)) to baseInitiative for a level-2 Bard without initiative proficiency', () => {
+    const bardPlayer = createMockPlayerCharacter({
+      class: { id: 'bard', name: 'Bard', hitDie: 8, features: [] } as any,
+      level: 2,
+      proficiencyBonus: 2,
+      initiativeBonus: 0,
+    });
+    const combatChar = createPlayerCombatCharacter(bardPlayer);
+    expect(combatChar.stats.baseInitiative).toBe(1);
   });
 
   it('projects torso armour and a shield into reusable combat equipment state', () => {
@@ -227,6 +239,20 @@ describe('combatUtils: createPlayerCombatCharacter', () => {
     expect(attack?.name).toBe('Longsword');
     expect(attack?.cost.type).toBe('action');
   });
+
+  it.each<CanonicalDamageType>(['Slashing', 'Piercing', 'Bludgeoning', 'Cold'])(
+    'preserves equipped %s damage through normal and thrown abilities', damageType => {
+      const weapon: Item = { id: 'dagger', name: 'Source Dagger', type: ItemType.Weapon, category: 'Simple Melee',
+        description: 'Source weapon.', properties: ['Light', 'Thrown'], damageDice: '1d4', damageType };
+      const player = createMockPlayerCharacter({ equippedItems: { MainHand: weapon } });
+      const combatant = createPlayerCombatCharacter(player);
+      const attacks = combatant.abilities.filter(ability => ability.id.startsWith('attack_'));
+      expect(attacks).toHaveLength(2);
+      expect(attacks.every(ability => ability.effects[0].damageType === damageType.toLowerCase())).toBe(true);
+      expect(attacks.every(ability => ability.weapon === weapon)).toBe(true);
+      expect(weapon.damageType).toBe(damageType);
+    },
+  );
 
   it('should generate offhand attack with bonus action cost', () => {
     const dagger: Item = {

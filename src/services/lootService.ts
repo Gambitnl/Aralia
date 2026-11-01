@@ -32,13 +32,16 @@ export function generateLoot(monsters: Monster[]): LootResult {
       // 1. Gold generation based on CR
       let baseGold = 0;
       try {
-        if (monster.cr === '1/4' || monster.cr === '1/8') {
+        const crStr = (monster.cr ?? '').toString().trim();
+        if (crStr === '1/4' || crStr === '1/8' || crStr === '0.25' || crStr === '0.125') {
           baseGold = 1;
-        } else if (monster.cr === '1/2') {
+        } else if (crStr === '1/2' || crStr === '0.5') {
           baseGold = 5;
+        } else if (crStr === '0' || crStr === '0.0') {
+          baseGold = 0;
         } else {
           // Parse integer, fallback to 0 if invalid (e.g. "Unknown" or "-")
-          const parsedCr = parseInt(monster.cr, 10);
+          const parsedCr = parseInt(crStr, 10);
           baseGold = isNaN(parsedCr) ? 0 : parsedCr * 10;
         }
       } catch {
@@ -48,7 +51,8 @@ export function generateLoot(monsters: Monster[]): LootResult {
       
       // Random variance +/- 50%
       const variance = (Math.random() * 1.0) + 0.5;
-      totalGold += Math.floor(baseGold * variance);
+      const goldDrop = baseGold > 0 ? Math.max(1, Math.floor(baseGold * variance)) : 0;
+      totalGold += goldDrop;
 
       // 2. Item Drops
       // 15% chance for an item per monster

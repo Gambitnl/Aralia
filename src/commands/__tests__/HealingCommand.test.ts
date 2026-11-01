@@ -184,4 +184,101 @@ describe('HealingCommand', () => {
     expect(updated?.temporaryHitPointSource).toBeUndefined();
     expect(result.combatLog.at(-1)?.message).toContain('replacing 5');
   });
+
+  describe('Pool-based healing (Mass Heal / GG-452)', () => {
+    it('divides pool cleanly among wounded targets without exceeding pool limit', async () => {
+      const caster = makeCharacter('caster', { x: 0, y: 0 });
+      // 3 targets missing 300 HP each (maxHP 500, currentHP 200)
+      const t1 = { ...makeCharacter('t1', { x: 1, y: 0 }), maxHP: 500, currentHP: 200 };
+      const t2 = { ...makeCharacter('t2', { x: 2, y: 0 }), maxHP: 500, currentHP: 200 };
+      const t3 = { ...makeCharacter('t3', { x: 3, y: 0 }), maxHP: 500, currentHP: 200 };
+      const state = makeState([caster, t1, t2, t3]);
+
+      // Pool of 700: 700 / 3 = 233 base with 1 remainder -> 234, 233, 233 (total 700)
+      const effect: HealingEffect = {
+        type: 'HEALING',
+        healing: { pool: 700 },
+        trigger: { type: 'immediate' },
+        condition: { type: 'always' },
+      };
+
+      const result = await new HealingCommand(
+        effect,
+        makeContext(caster, [t1, t2, t3]),
+      ).execute(state);
+
+      const resT1 = result.characters.find(c => c.id === 't1')!;
+      const resT2 = result.characters.find(c => c.id === 't2')!;
+      const resT3 = result.characters.find(c => c.id === 't3')!;
+
+      const heal1 = resT1.currentHP - t1.currentHP;
+      const heal2 = resT2.currentHP - t2.currentHP;
+      const heal3 = resT3.currentHP - t3.currentHP;
+
+      expect(heal1 + heal2 + heal3).toBe(700);
+      expect(heal1).toBe(234);
+      expect(heal2).toBe(233);
+      expect(heal3).toBe(233);
+    });
+
+    it('redistributes unused pool share when a target is capped at missing HP or full HP', async () => {
+      const caster = makeCharacter('caster', { x: 0, y: 0 });
+      // t1 is full HP (missing 0)
+      // t2 needs only 50 HP (maxHP 100, currentHP 50)
+      // t3 needs 500 HP (maxHP 500, currentHP 0)
+      const t1 = { ...makeCharacter('t1', { x: 1, y: 0 }), maxHP: 100, currentHP: 100 };
+      const t2 = { ...makeCharacter('t2', { x: 2, y: 0 }), maxHP: 100, currentHP: 50 };
+      const t3 = { ...makeCharacter('t3', { x: 3, y: 0 }), maxHP: 500, currentHP: 0 };
+      const state = makeState([caster, t1, t2, t3]);
+
+      const effect: HealingEffect = {
+        type: 'HEALING',
+        healing: { pool: 300 },
+        trigger: { type: 'immediate' },
+        condition: { type: 'always' },
+      };
+
+      const result = await new HealingCommand(
+        effect,
+        makeContext(caster, [t1, t2, t3]),
+      ).execute(state);
+
+      const resT1 = result.characters.find(c => c.id === 't1')!;
+      const resT2 = result.characters.find(c => c.id === 't2')!;
+      const resT3 = result.characters.find(c => c.id === 't3')!;
+
+      // t1 receives 0
+      expect(resT1.currentHP).toBe(100);
+      // t2 caps at missing 50 (currentHP -> 100)
+      expect(resT2.currentHP).toBe(100);
+      // t3 receives remaining 250 (currentHP -> 250)
+      expect(resT3.currentHP).toBe(250);
+
+      const totalHealed = (resT1.currentHP - t1.currentHP) +
+                          (resT2.currentHP - t2.currentHP) +
+                          (resT3.currentHP - t3.currentHP);
+      expect(totalHealed).toBe(300);
+    });
+
+    it('handles no eligible wounded targets safely with zero heal applied', async () => {
+      const caster = makeCharacter('caster', { x: 0, y: 0 });
+      const t1 = { ...makeCharacter('t1', { x: 1, y: 0 }), maxHP: 100, currentHP: 100 };
+      const state = makeState([caster, t1]);
+
+      const effect: HealingEffect = {
+        type: 'HEALING',
+        healing: { pool: 700 },
+        trigger: { type: 'immediate' },
+        condition: { type: 'always' },
+      };
+
+      const result = await new HealingCommand(
+        effect,
+        makeContext(caster, [t1]),
+      ).execute(state);
+
+      const resT1 = result.characters.find(c => c.id === 't1')!;
+      expect(resT1.currentHP).toBe(100);
+    });
+  });
 });

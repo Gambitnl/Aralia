@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { generateSkeleton, generateSoul, generateCompanion } from '../CompanionGenerator';
 import { PlayerCharacter } from '../../types';
 import * as characterGenerator from '../characterGenerator';
@@ -19,6 +19,11 @@ const mockSoul = {
     reactionStyle: 'cynical' as const
 };
 
+// agora-727a: lets the production-logging tests force a raw payload on the
+// parse-failure path without re-mocking the module (soulCache is module-level,
+// so each logging test also uses its own race-class cache key).
+let overrideResponsePayload: string | null = null;
+
 vi.mock('../ollama/client', () => {
     return {
         OllamaClient: class MockOllamaClient {
@@ -29,6 +34,9 @@ vi.mock('../ollama/client', () => {
                 return Promise.resolve(true);
             }
             generate() {
+                if (overrideResponsePayload !== null) {
+                    return Promise.resolve({ ok: true, data: { response: overrideResponsePayload } });
+                }
                 // Simulate the JSON being embedded in the response string
                 return Promise.resolve({ ok: true, data: { response: `\`\`\`json\n${JSON.stringify(mockSoul)}\n\`\`\`` } });
             }
@@ -101,6 +109,61 @@ describe('CompanionGenerator', () => {
             expect(companion?.id).toBe('skel-1');
             expect(companion?.race.id).toBe('human');
             expect(companion?.class.id).toBe('fighter');
+        });
+    });
+
+    // agora-727a: production must never log the raw companion model response
+    // (user-specific generated text). The full dump is DEV-gated; these tests
+    // stub import.meta.env.DEV=false and prove no log call carries response
+    // content on either the success or the parse-failure path, while concise
+    // attempt diagnostics still fire.
+    describe('production response logging (agora-727a)', () => {
+        let logSpy: ReturnType<typeof vi.spyOn>;
+        let errorSpy: ReturnType<typeof vi.spyOn>;
+        let alertSpy: ReturnType<typeof vi.spyOn>;
+
+        beforeEach(() => {
+            vi.stubEnv('DEV', false);
+            logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+            errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+            alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            vi.unstubAllEnvs();
+            overrideResponsePayload = null;
+            logSpy.mockRestore();
+            errorSpy.mockRestore();
+            alertSpy.mockRestore();
+        });
+
+        const loggedLines = () =>
+            [...logSpy.mock.calls, ...errorSpy.mock.calls].map(call => call.map((arg: unknown) => String(arg)).join(' '));
+
+        it('does not log raw response content on a successful generation', async () => {
+            // Distinct cache key so the module-level soulCache cannot short-circuit the call.
+            const skeleton = { race: { name: 'Dwarf', id: 'dwarf' }, class: { name: 'Cleric', id: 'cleric' } } as PlayerCharacter;
+            const soul = await generateSoul(skeleton);
+            expect(soul).toEqual(mockSoul); // behavior preserved
+            const allLogged = loggedLines();
+            expect(allLogged.some(line => line.includes('Raw Output'))).toBe(false);
+            expect(allLogged.some(line => line.includes(mockSoul.physicalDescription))).toBe(false);
+            expect(allLogged.some(line => line.includes(mockSoul.name))).toBe(false);
+            // Concise attempt diagnostic is still emitted, bounded and content-free.
+            expect(allLogged.some(line => /Attempt 1 received response \(\d+ chars\)/.test(line))).toBe(true);
+        });
+
+        it('does not log raw response content when parsing fails on every attempt', async () => {
+            overrideResponsePayload = 'SECRET-SOUL-DUMP not json at all';
+            const skeleton = { race: { name: 'Tiefling', id: 'tiefling' }, class: { name: 'Wizard', id: 'wizard' } } as PlayerCharacter;
+            const soul = await generateSoul(skeleton);
+            expect(soul).toBeNull();
+            const allLogged = loggedLines();
+            expect(allLogged.some(line => line.includes('SECRET-SOUL-DUMP'))).toBe(false);
+            expect(allLogged.some(line => line.includes('Raw Output'))).toBe(false);
+            // Retry behavior preserved: three attempts, each with concise diagnostics only.
+            expect(alertSpy.mock.calls.length).toBe(3);
+            expect(allLogged.filter(line => /JSON Parsing Failed/.test(line)).length).toBe(3);
         });
     });
 });

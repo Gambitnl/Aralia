@@ -28,6 +28,23 @@
  *  • Thickness for a hollow prop (crate, barrel) is WALL thickness, not solid span
  *    (strawman assumption confirmed) — keeps spell penetration honest.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 01/11/2026, 03:34:51
+ * Dependents: components/World3D/GroundProps.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DWrapper.tsx, components/World3D/groundPropGeometry.ts, components/World3D/groundPropSupport.ts, components/World3D/worldGenCore.ts, state/reducers/townReducer.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundProps.ts, systems/worldforge/bridge/propPlacementGate.ts, systems/worldforge/props/catalog.ts, systems/worldforge/props/exteriorPropRepair.ts, systems/worldforge/props/exteriorPropRevision.ts, systems/worldforge/props/generators/propRenderRecipeV1.ts, systems/worldforge/props/generators/woodpileGeometry.ts, systems/worldforge/props/placementEngine.ts, systems/worldforge/props/propGenerationSource.ts, systems/worldforge/props/propLandUse.ts, systems/worldforge/props/prospectivePropPlacement.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { MaterialType } from '../../../types/materials';
 
 /** 5-ft combat cell in ground meters. Footprints & clustering use this. */
@@ -130,7 +147,27 @@ export interface PropDefinition {
  * All fields are seed-derived so the same seed path reproduces byte-identical
  * instances forever.
  */
+/** The source this object serves. It is placement provenance, never a grant of
+ * ownership, container access or permission to use household possessions. */
+export type PropAffiliation =
+  | { kind: 'building'; id: string }
+  | { kind: 'dock'; id: string }
+  | { kind: 'court' | 'market'; id: string; xM: number; zM: number; radiusM: number };
+
 export interface PropInstance {
+  /** Present only on explicitly versioned fresh sources. */
+  affiliation?: PropAffiliation;
+  /** New campaign sources pin the existing art and its actual effective scale.
+   * Missing fields retain legacy camera-origin variation without migration. */
+  renderRecipe?: 'props-v1';
+  renderScale?: number;
+  /** Conservative model-derived broad phase; exact triangles decide contact. */
+  renderRadiusM?: number;
+  /** An admitted move retains the original tactical address. Generation leaves
+   * this absent; it is not an ownership grant or permission to move a prop. */
+  retainedSourceId?: string;
+  /** Accepted moved props retain their visual recipe when default art evolves. */
+  retainedRenderRecipe?: 'woodpile-v1';
   /** References `PropDefinition.id`. */
   defId: string;
   /** Ground-meter position (matches GroundFeature xM/zM). */
@@ -163,6 +200,23 @@ export interface PropInstance {
     /** Ground elevation under the instance, METERS, as the probe read it. */
     groundYM: number;
   };
+}
+
+/** One address across rendered, tactical and retained moved-prop readers.
+ * Legacy generated props keep their exact existing coordinate-based address.
+ * A future admitted repair must validate this address against its original
+ * source receipt; the helper only rejects malformed or cross-definition IDs. */
+export function propSourceId(prop: PropInstance): string {
+  if (prop.retainedSourceId !== undefined) {
+    const parts = prop.retainedSourceId.split(':');
+    if (parts.length !== 5 || parts[0] !== 'prop' || parts[1] !== prop.defId
+      || !parts.slice(2).every(value => /^-?\d+$/.test(value) && Number.isSafeInteger(Number(value)))) {
+      throw new Error('Invalid retained prop source identity');
+    }
+    return prop.retainedSourceId;
+  }
+  return ['prop', prop.defId, Math.round(prop.xM * 100), Math.round(prop.zM * 100),
+    Math.round(prop.rotationRad * 1000)].join(':');
 }
 
 /** Derived BattleMapTile boolean — a prop provides cover iff its rung > none. */

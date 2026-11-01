@@ -9,6 +9,7 @@ import {
   applyRacialSpellGrantsByLevel,
   resolveRacialSpellLimitedUseId,
 } from '../../../utils/character/characterUtils';
+import { canEquipItem } from '../../../utils/character';
 
 describe('characterReducer', () => {
     // Mock initial state
@@ -177,7 +178,12 @@ describe('characterReducer', () => {
             } 
         };
 
-        const finalState = characterReducer(newState as GameState, secondAction);
+        const stateAfter16h = {
+            ...state,
+            ...newState,
+            gameTime: new Date(new Date((newState as any).lastLongRestAt || state.gameTime).getTime() + 16 * 3600 * 1000),
+        };
+        const finalState = characterReducer(stateAfter16h as GameState, secondAction);
         const finalChar = finalState.party?.[0];
 
         // Should have removed Arcana and Longsword, added History and Thieves' Tools
@@ -388,6 +394,260 @@ describe('characterReducer', () => {
         const updated = newState.party?.[0];
 
         expect(updated?.heroicInspiration).toBe(true);
+    });
+
+    describe('LONG_REST Hit Dice and Temporary HP (GG-450, GG-451 / agora-9234)', () => {
+        it('clears temporary HP on LONG_REST', () => {
+            const char = createMockPlayerCharacter({
+                id: 'temp-hp-char',
+                hp: 10,
+                maxHp: 20,
+                tempHP: 15,
+            });
+            const state = { ...initialState, party: [char], rulesEdition: '2024' } as GameState;
+            const nextState = characterReducer(state, { type: 'LONG_REST', payload: {} });
+
+            expect(nextState.party?.[0].tempHP).toBe(0);
+        });
+
+        it('restores all spent Hit Dice in 2024 rules edition', () => {
+            const fighter = createMockPlayerCharacter({
+                id: 'fighter-2024',
+                level: 6,
+                class: { id: 'fighter', name: 'Fighter', hitDie: 10 } as any,
+                hitPointDice: [{ die: 10, current: 0, max: 6 }],
+            });
+            const state = { ...initialState, party: [fighter], rulesEdition: '2024' } as GameState;
+            const nextState = characterReducer(state, { type: 'LONG_REST', payload: {} });
+
+            expect(nextState.party?.[0].hitPointDice).toEqual([
+                { die: 10, current: 6, max: 6 },
+            ]);
+        });
+
+        it('restores half of total Hit Dice (minimum 1) in 2014 rules edition for even total dice', () => {
+            // Level 6 fighter: 6 total dice -> floor(6/2) = 3 regained
+            const fighter = createMockPlayerCharacter({
+                id: 'fighter-2014',
+                level: 6,
+                class: { id: 'fighter', name: 'Fighter', hitDie: 10 } as any,
+                hitPointDice: [{ die: 10, current: 0, max: 6 }],
+            });
+            const state = { ...initialState, party: [fighter], rulesEdition: '2014' } as GameState;
+            const nextState = characterReducer(state, { type: 'LONG_REST', payload: {} });
+
+            expect(nextState.party?.[0].hitPointDice).toEqual([
+                { die: 10, current: 3, max: 6 },
+            ]);
+        });
+
+        it('restores half of total Hit Dice (rounded down) in 2014 rules edition for odd total dice', () => {
+            // Level 5 character: 5 total dice -> floor(5/2) = 2 regained
+            const ranger = createMockPlayerCharacter({
+                id: 'ranger-2014',
+                level: 5,
+                class: { id: 'ranger', name: 'Ranger', hitDie: 10 } as any,
+                hitPointDice: [{ die: 10, current: 0, max: 5 }],
+            });
+            const state = { ...initialState, party: [ranger], rulesEdition: '2014' } as GameState;
+            const nextState = characterReducer(state, { type: 'LONG_REST', payload: {} });
+
+            expect(nextState.party?.[0].hitPointDice).toEqual([
+                { die: 10, current: 2, max: 5 },
+            ]);
+        });
+
+        it('restores at least 1 Hit Die for a level 1 character in 2014 rules edition', () => {
+            // Level 1 character: 1 total die -> max(1, floor(1/2)) = 1 regained
+            const wizard = createMockPlayerCharacter({
+                id: 'wizard-2014',
+                level: 1,
+                class: { id: 'wizard', name: 'Wizard', hitDie: 6 } as any,
+                classLevels: { wizard: 1 },
+                hitPointDice: [{ die: 6, current: 0, max: 1 }],
+            });
+            const state = { ...initialState, party: [wizard], rulesEdition: '2014' } as GameState;
+            const nextState = characterReducer(state, { type: 'LONG_REST', payload: {} });
+
+            expect(nextState.party?.[0].hitPointDice).toEqual([
+                { die: 6, current: 1, max: 1 },
+            ]);
+        });
+
+        it('does not restore more Hit Dice than were actually spent in 2014 rules edition', () => {
+            // Level 6 fighter who only spent 1 die (5/6 remaining) -> regains at most 1 to reach 6/6
+            const fighter = createMockPlayerCharacter({
+                id: 'fighter-2014-slight',
+                level: 6,
+                class: { id: 'fighter', name: 'Fighter', hitDie: 10 } as any,
+                hitPointDice: [{ die: 10, current: 5, max: 6 }],
+            });
+            const state = { ...initialState, party: [fighter], rulesEdition: '2014' } as GameState;
+            const nextState = characterReducer(state, { type: 'LONG_REST', payload: {} });
+
+            expect(nextState.party?.[0].hitPointDice).toEqual([
+                { die: 10, current: 6, max: 6 },
+            ]);
+        });
+
+        it('restores largest Hit Dice first for multiclass characters in 2014 rules edition', () => {
+            // Multiclass Fighter 3 / Wizard 3: total 6 dice (3d10 and 3d6).
+            // Regains floor(6/2) = 3 dice total.
+            // When all dice are spent (0/3 d10, 0/3 d6), the 3 regained dice should go to d10 first.
+            const multiclass = createMockPlayerCharacter({
+                id: 'multiclass-2014',
+                level: 6,
+                class: { id: 'fighter', name: 'Fighter', hitDie: 10 } as any,
+                classLevels: { fighter: 3, wizard: 3 },
+                hitPointDice: [
+                    { die: 10, current: 0, max: 3 },
+                    { die: 6, current: 0, max: 3 },
+                ],
+            });
+            const state = { ...initialState, party: [multiclass], rulesEdition: '2014' } as GameState;
+            const nextState = characterReducer(state, { type: 'LONG_REST', payload: {} });
+
+            expect(nextState.party?.[0].hitPointDice).toEqual([
+                { die: 6, current: 0, max: 3 },
+                { die: 10, current: 3, max: 3 },
+            ]);
+        });
+
+        it('leaves denied party members unchanged during LONG_REST', () => {
+            const allowed = createMockPlayerCharacter({
+                id: 'allowed-char',
+                level: 4,
+                class: { id: 'fighter', name: 'Fighter', hitDie: 10 } as any,
+                hitPointDice: [{ die: 10, current: 0, max: 4 }],
+                tempHP: 10,
+            });
+            const denied = createMockPlayerCharacter({
+                id: 'denied-char',
+                level: 4,
+                class: { id: 'fighter', name: 'Fighter', hitDie: 10 } as any,
+                hitPointDice: [{ die: 10, current: 0, max: 4 }],
+                tempHP: 10,
+            });
+            const state = { ...initialState, party: [allowed, denied], rulesEdition: '2024' } as GameState;
+            const nextState = characterReducer(state, {
+                type: 'LONG_REST',
+                payload: { deniedCharacterIds: ['denied-char'] },
+            });
+
+            const nextAllowed = nextState.party?.find(c => c.id === 'allowed-char');
+            const nextDenied = nextState.party?.find(c => c.id === 'denied-char');
+
+            expect(nextAllowed?.tempHP).toBe(0);
+            expect(nextAllowed?.hitPointDice).toEqual([{ die: 10, current: 4, max: 4 }]);
+
+            // Denied member stays exactly as they were
+            expect(nextDenied?.tempHP).toBe(10);
+            expect(nextDenied?.hitPointDice).toEqual([{ die: 10, current: 0, max: 4 }]);
+        });
+
+        it('restores Warlock Pact Magic slots on SHORT_REST for single-class warlock', () => {
+            // Level 3 Warlock has two 2nd-level pact magic slots
+            const warlock = createMockPlayerCharacter({
+                id: 'warlock-char',
+                level: 3,
+                class: { id: 'warlock', name: 'Warlock', hitDie: 8 } as any,
+                classLevels: { warlock: 3 },
+                spellSlots: {
+                    level_1: { current: 0, max: 0 },
+                    level_2: { current: 0, max: 2 },
+                    level_3: { current: 0, max: 0 },
+                    level_4: { current: 0, max: 0 },
+                    level_5: { current: 0, max: 0 },
+                    level_6: { current: 0, max: 0 },
+                    level_7: { current: 0, max: 0 },
+                    level_8: { current: 0, max: 0 },
+                    level_9: { current: 0, max: 0 },
+                },
+            });
+            const state = { ...initialState, party: [warlock] } as GameState;
+            const nextState = characterReducer(state, { type: 'SHORT_REST', payload: {} });
+
+            expect(nextState.party?.[0].spellSlots?.level_2.current).toBe(2);
+        });
+
+        it('does not restore non-warlock spell slots on SHORT_REST', () => {
+            // Level 3 Wizard has four 1st-level and two 2nd-level slots
+            const wizard = createMockPlayerCharacter({
+                id: 'wizard-char',
+                level: 3,
+                class: { id: 'wizard', name: 'Wizard', hitDie: 6 } as any,
+                classLevels: { wizard: 3 },
+                spellSlots: {
+                    level_1: { current: 1, max: 4 },
+                    level_2: { current: 0, max: 2 },
+                    level_3: { current: 0, max: 0 },
+                    level_4: { current: 0, max: 0 },
+                    level_5: { current: 0, max: 0 },
+                    level_6: { current: 0, max: 0 },
+                    level_7: { current: 0, max: 0 },
+                    level_8: { current: 0, max: 0 },
+                    level_9: { current: 0, max: 0 },
+                },
+            });
+            const state = { ...initialState, party: [wizard] } as GameState;
+            const nextState = characterReducer(state, { type: 'SHORT_REST', payload: {} });
+
+            expect(nextState.party?.[0].spellSlots?.level_1.current).toBe(1);
+            expect(nextState.party?.[0].spellSlots?.level_2.current).toBe(0);
+        });
+
+        it('restores only Warlock Pact Magic slots for multiclass Warlock/Wizard on SHORT_REST', () => {
+            // Multiclass Wizard 3 / Warlock 2 (Warlock level 2 has two 1st-level pact slots)
+            // Wizard 3 has four 1st-level slots. In multiclass, 1st level slots has total max 4.
+            // If 1st level slots are depleted (0/4), on short rest the 2 pact slots recharge (up to 2/4),
+            // while 2nd level wizard slots (0/2) remain at 0/2.
+            const multiclass = createMockPlayerCharacter({
+                id: 'multi-warlock-wizard',
+                level: 5,
+                class: { id: 'wizard', name: 'Wizard', hitDie: 6 } as any,
+                classLevels: { wizard: 3, warlock: 2 },
+                spellSlots: {
+                    level_1: { current: 0, max: 4 },
+                    level_2: { current: 0, max: 2 },
+                    level_3: { current: 0, max: 0 },
+                    level_4: { current: 0, max: 0 },
+                    level_5: { current: 0, max: 0 },
+                    level_6: { current: 0, max: 0 },
+                    level_7: { current: 0, max: 0 },
+                    level_8: { current: 0, max: 0 },
+                    level_9: { current: 0, max: 0 },
+                },
+            });
+            const state = { ...initialState, party: [multiclass] } as GameState;
+            const nextState = characterReducer(state, { type: 'SHORT_REST', payload: {} });
+
+            expect(nextState.party?.[0].spellSlots?.level_1.current).toBe(2);
+            expect(nextState.party?.[0].spellSlots?.level_2.current).toBe(0);
+        });
+
+        it('fully restores all spell slots on LONG_REST for both Warlocks and other casters', () => {
+            const warlock = createMockPlayerCharacter({
+                id: 'warlock-lr',
+                level: 3,
+                class: { id: 'warlock', name: 'Warlock', hitDie: 8 } as any,
+                classLevels: { warlock: 3 },
+                spellSlots: {
+                    level_1: { current: 0, max: 0 },
+                    level_2: { current: 0, max: 2 },
+                    level_3: { current: 0, max: 0 },
+                    level_4: { current: 0, max: 0 },
+                    level_5: { current: 0, max: 0 },
+                    level_6: { current: 0, max: 0 },
+                    level_7: { current: 0, max: 0 },
+                    level_8: { current: 0, max: 0 },
+                    level_9: { current: 0, max: 0 },
+                },
+            });
+            const state = { ...initialState, party: [warlock] } as GameState;
+            const nextState = characterReducer(state, { type: 'LONG_REST', payload: {} });
+
+            expect(nextState.party?.[0].spellSlots?.level_2.current).toBe(2);
+        });
     });
 
     it('should handle USE_ITEM by applying a healing effect and removing the item from inventory', () => {
@@ -633,4 +893,407 @@ describe('characterReducer', () => {
         // Speed should be reduced from 30ft to 20ft
         expect(char?.speed).toBe(20);
     });
+    describe('LONG_REST 0 HP revival and 16-hour cooldown guard (GG-449 / agora-c665)', () => {
+        it('keeps characters at 0 HP at 0 HP with no resource recovery on LONG_REST', () => {
+            const downedChar = createMockPlayerCharacter({
+                id: 'downed-hero',
+                name: 'Downed Hero',
+                level: 2,
+                class: { id: 'cleric', name: 'Cleric', hitDie: 8 } as any,
+                hp: 0,
+                maxHp: 20,
+                hitPointDice: [{ die: 8, current: 0, max: 2 }],
+                spellSlots: {
+                    level_1: { current: 0, max: 2 },
+                } as any,
+            });
+            const healthyChar = createMockPlayerCharacter({
+                id: 'healthy-hero',
+                name: 'Healthy Hero',
+                level: 2,
+                class: { id: 'cleric', name: 'Cleric', hitDie: 8 } as any,
+                hp: 5,
+                maxHp: 20,
+                hitPointDice: [{ die: 8, current: 0, max: 2 }],
+                spellSlots: {
+                    level_1: { current: 0, max: 2 },
+                } as any,
+            });
+
+            const state = {
+                ...initialState,
+                party: [downedChar, healthyChar],
+                rulesEdition: '2024',
+            } as GameState;
+
+            const nextState = characterReducer(state, { type: 'LONG_REST', payload: {} });
+
+            const updatedDowned = nextState.party?.find(p => p.id === 'downed-hero');
+            const updatedHealthy = nextState.party?.find(p => p.id === 'healthy-hero');
+
+            // Downed character must stay at 0 HP and regain no slots or hit dice
+            expect(updatedDowned?.hp).toBe(0);
+            expect(updatedDowned?.hitPointDice?.[0].current).toBe(0);
+            expect(updatedDowned?.spellSlots?.level_1.current).toBe(0);
+
+            // Healthy character recovers fully
+            expect(updatedHealthy?.hp).toBe(20);
+            expect(updatedHealthy?.hitPointDice?.[0].current).toBe(2);
+            expect(updatedHealthy?.spellSlots?.level_1.current).toBe(2);
+        });
+
+        it('refuses a second LONG_REST within 16 game hours', () => {
+            const injuredChar = createMockPlayerCharacter({
+                id: 'injured-hero',
+                name: 'Injured Hero',
+                hp: 5,
+                maxHp: 20,
+            });
+            const t0 = new Date('2026-06-01T08:00:00Z');
+            const state = {
+                ...initialState,
+                gameTime: t0,
+                party: [injuredChar],
+                rulesEdition: '2024',
+            } as GameState;
+
+            // The first rest starts at T0 and records completion eight hours later.
+            const firstRestEnd = new Date(t0.getTime() + 8 * 3600 * 1000);
+            const afterFirstRest = characterReducer(state, { type: 'LONG_REST', payload: {} });
+            expect(afterFirstRest.party?.[0].hp).toBe(20);
+            expect(afterFirstRest.lastLongRestAt).toBe(firstRestEnd.toISOString());
+
+            // Injure character again
+            const injuredAgain = {
+                ...afterFirstRest,
+                party: [{ ...afterFirstRest.party![0], hp: 3 }],
+                // Eight hours after completion is still within the cooldown.
+                gameTime: new Date(firstRestEnd.getTime() + 8 * 3600 * 1000),
+            } as GameState;
+
+            // Attempt second rest within 8 hours -> refused (returns unchanged state, hp stays 3)
+            const refusedRest = characterReducer(injuredAgain, { type: 'LONG_REST', payload: {} });
+            expect(refusedRest.party?.[0].hp).toBe(3);
+
+            // Sixteen hours after completion permits another rest to begin.
+            const readyForRest = {
+                ...injuredAgain,
+                gameTime: new Date(firstRestEnd.getTime() + 16 * 3600 * 1000),
+            } as GameState;
+
+            // Attempt rest after 16 hours -> succeeds (hp restored to 20)
+            const allowedRest = characterReducer(readyForRest, { type: 'LONG_REST', payload: {} });
+            expect(allowedRest.party?.[0].hp).toBe(20);
+            expect(allowedRest.lastLongRestAt).toBe(new Date(readyForRest.gameTime.getTime() + 8 * 3600 * 1000).toISOString());
+        });
+    });
+
+    describe('GG-502: Two-handed weapon and shield mutual exclusivity', () => {
+        const greatsword: Item = {
+            id: 'greatsword_test',
+            name: 'Greatsword',
+            description: 'A large, two-handed sword.',
+            type: ItemType.Weapon,
+            slot: 'MainHand',
+            damageDice: '2d6',
+            properties: ['Heavy', 'Two-Handed'],
+        };
+
+        const longsword: Item = {
+            id: 'longsword_test',
+            name: 'Longsword',
+            description: 'A versatile blade.',
+            type: ItemType.Weapon,
+            slot: 'MainHand',
+            damageDice: '1d8',
+            properties: ['Versatile'],
+        };
+
+        const dagger: Item = {
+            id: 'dagger_test',
+            name: 'Dagger',
+            description: 'A light dagger.',
+            type: ItemType.Weapon,
+            slot: 'MainHand',
+            damageDice: '1d4',
+            properties: ['Light'],
+        };
+
+        const shield: Item = {
+            id: 'shield_test',
+            name: 'Shield',
+            description: 'A wooden shield.',
+            type: ItemType.Armor,
+            slot: 'OffHand',
+            armorCategory: 'Shield',
+            baseArmorClass: 2,
+        };
+
+        it('equipping a greatsword unequips the shield and moves it back to inventory', () => {
+            const char = createMockPlayerCharacter({
+                id: 'fighter-1',
+                equippedItems: {
+                    MainHand: longsword,
+                    OffHand: shield,
+                },
+            });
+
+            const state = {
+                ...initialState,
+                party: [char],
+                inventory: [greatsword],
+                characterSheetModal: { isOpen: false, character: null },
+            } as GameState;
+
+            const nextState = characterReducer(state, {
+                type: 'EQUIP_ITEM',
+                payload: { itemId: 'greatsword_test', characterId: 'fighter-1' },
+            });
+
+            const updatedChar = nextState.party?.[0];
+            // MainHand has greatsword
+            expect(updatedChar?.equippedItems.MainHand?.id).toBe('greatsword_test');
+            // OffHand shield was unequipped
+            expect(updatedChar?.equippedItems.OffHand).toBeUndefined();
+            // Both the old longsword and the unequipped shield are now in inventory
+            expect(nextState.inventory?.some(i => i.id === 'longsword_test')).toBe(true);
+            expect(nextState.inventory?.some(i => i.id === 'shield_test')).toBe(true);
+            expect(nextState.inventory?.some(i => i.id === 'greatsword_test')).toBe(false);
+        });
+
+        it('equipping a shield while wielding a greatsword is refused', () => {
+            const char = createMockPlayerCharacter({
+                id: 'fighter-1',
+                equippedItems: {
+                    MainHand: greatsword,
+                },
+            });
+
+            const state = {
+                ...initialState,
+                party: [char],
+                inventory: [shield],
+                characterSheetModal: { isOpen: false, character: null },
+            } as GameState;
+
+            const nextState = characterReducer(state, {
+                type: 'EQUIP_ITEM',
+                payload: { itemId: 'shield_test', characterId: 'fighter-1' },
+            });
+
+            // State returned is empty object (reducer refused action)
+            expect(nextState.party).toBeUndefined();
+        });
+
+        it('equipping a one-handed weapon while wielding a greatsword replaces the greatsword in MainHand', () => {
+            const char = createMockPlayerCharacter({
+                id: 'fighter-1',
+                equippedItems: {
+                    MainHand: greatsword,
+                },
+            });
+
+            const state = {
+                ...initialState,
+                party: [char],
+                inventory: [dagger],
+                characterSheetModal: { isOpen: false, character: null },
+            } as GameState;
+
+            const nextState = characterReducer(state, {
+                type: 'EQUIP_ITEM',
+                payload: { itemId: 'dagger_test', characterId: 'fighter-1' },
+            });
+
+            const updatedChar = nextState.party?.[0];
+            expect(updatedChar?.equippedItems.MainHand?.id).toBe('dagger_test');
+            expect(updatedChar?.equippedItems.OffHand).toBeUndefined();
+            expect(nextState.inventory?.some(i => i.id === 'greatsword_test')).toBe(true);
+        });
+
+        it('canEquipItem reports failure when attempting to equip a shield while wielding a two-handed weapon', () => {
+            const char = createMockPlayerCharacter({
+                id: 'fighter-1',
+                equippedItems: {
+                    MainHand: greatsword,
+                },
+            });
+
+            const check = canEquipItem(char, shield);
+            expect(check.can).toBe(false);
+            expect(check.reason).toContain('wielding a two-handed weapon');
+        });
+
+        it('AUTO_EQUIP with a two-handed weapon does not equip a shield in OffHand', () => {
+            const char = createMockPlayerCharacter({
+                id: 'fighter-1',
+                class: {
+                    id: 'fighter',
+                    name: 'Fighter',
+                    armorProficiencies: ['shields', 'heavy', 'medium', 'light'],
+                    weaponProficiencies: ['simple', 'martial'],
+                } as unknown as Class,
+                equippedItems: {},
+            });
+
+            const state = {
+                ...initialState,
+                party: [char],
+                inventory: [greatsword, shield],
+                characterSheetModal: { isOpen: false, character: null },
+            } as GameState;
+
+            const nextState = characterReducer(state, {
+                type: 'AUTO_EQUIP',
+                payload: { characterId: 'fighter-1' },
+            });
+
+            const updatedChar = nextState.party?.[0];
+            expect(updatedChar?.equippedItems.MainHand?.id).toBe('greatsword_test');
+            expect(updatedChar?.equippedItems.OffHand).toBeUndefined();
+            expect(nextState.inventory?.some(i => i.id === 'shield_test')).toBe(true);
+        });
+    });
+
+    describe('GG-501: Attunement scoping and limit enforcement across party/inventory', () => {
+        const cloakOfProtection: Item = {
+            id: 'cloak_of_protection_1',
+            name: 'Cloak of Protection',
+            description: 'A magical cloak.',
+            type: ItemType.Accessory,
+            slot: 'Cloak',
+            armorClassBonus: 1,
+            requiresAttunement: true,
+        };
+
+        const ring1: Item = {
+            id: 'attuned_ring_1',
+            name: 'Ring of Warmth',
+            description: 'A magical ring.',
+            type: ItemType.Accessory,
+            slot: 'Ring1',
+            requiresAttunement: true,
+        };
+
+        const ring2: Item = {
+            id: 'attuned_ring_2',
+            name: 'Ring of Swimming',
+            description: 'A magical ring.',
+            type: ItemType.Accessory,
+            slot: 'Ring2',
+            requiresAttunement: true,
+        };
+
+        const extraRing: Item = {
+            id: 'attuned_ring_3',
+            name: 'Ring of Jumping',
+            description: 'A magical ring.',
+            type: ItemType.Accessory,
+            slot: 'Ring1',
+            requiresAttunement: true,
+        };
+
+        it('denies AC bonus to character B wearing cloak attuned to character A, and enforces 3-item limit across party', () => {
+            const charA = createMockPlayerCharacter({
+                id: 'char-a',
+                name: 'Hero A',
+                abilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+                finalAbilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+                armorClass: 10,
+                equippedItems: {},
+            });
+
+            const charB = createMockPlayerCharacter({
+                id: 'char-b',
+                name: 'Hero B',
+                abilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+                finalAbilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+                armorClass: 10,
+                equippedItems: {},
+            });
+
+            // 1. Initial state: charA attunes cloakOfProtection in inventory
+            let state: GameState = {
+                party: [charA, charB],
+                inventory: [cloakOfProtection, ring1, ring2, extraRing],
+                characterSheetModal: { isOpen: false, character: null },
+            } as unknown as GameState;
+
+            // Character A attunes cloak
+            state = { ...state, ...characterReducer(state, {
+                type: 'ATTUNE_ITEM',
+                payload: { characterId: 'char-a', itemId: 'cloak_of_protection_1' },
+            }) } as GameState;
+
+            expect(state.inventory.find(i => i.id === 'cloak_of_protection_1')?.isAttuned).toBe(true);
+            expect(state.inventory.find(i => i.id === 'cloak_of_protection_1')?.attunedCharacterId).toBe('char-a');
+
+            // 2. Character B equips the cloak attuned to Character A
+            state = { ...state, ...characterReducer(state, {
+                type: 'EQUIP_ITEM',
+                payload: { characterId: 'char-b', itemId: 'cloak_of_protection_1' },
+            }) } as GameState;
+
+            const updatedB = state.party.find(p => p.id === 'char-b')!;
+            expect(updatedB.equippedItems.Cloak?.id).toBe('cloak_of_protection_1');
+            expect(updatedB.equippedItems.Cloak?.attunedCharacterId).toBe('char-a');
+            // GG-501 acceptance: Character B gets NO AC bonus from A's attuned cloak (AC stays 10, not 11)
+            expect(updatedB.armorClass).toBe(10);
+
+            // 3. Character A attunes 2 more rings (now holds 3 attuned items: cloak on B, ring1, ring2)
+            state = { ...state, ...characterReducer(state, {
+                type: 'ATTUNE_ITEM',
+                payload: { characterId: 'char-a', itemId: 'attuned_ring_1' },
+            }) } as GameState;
+            state = { ...state, ...characterReducer(state, {
+                type: 'ATTUNE_ITEM',
+                payload: { characterId: 'char-a', itemId: 'attuned_ring_2' },
+            }) } as GameState;
+
+            // Character A attempts to attune a 4th item (extraRing) -> must be refused!
+            const overLimitState = characterReducer(state, {
+                type: 'ATTUNE_ITEM',
+                payload: { characterId: 'char-a', itemId: 'attuned_ring_3' },
+            });
+            // Refused: returns {}
+            expect(overLimitState.party).toBeUndefined();
+
+            // 4. Character B re-attunes the cloak (transferring attunement to B)
+            state = { ...state, ...characterReducer(state, {
+                type: 'ATTUNE_ITEM',
+                payload: { characterId: 'char-b', itemId: 'cloak_of_protection_1' },
+            }) } as GameState;
+
+            const reattunedB = state.party.find(p => p.id === 'char-b')!;
+            expect(reattunedB.equippedItems.Cloak?.attunedCharacterId).toBe('char-b');
+            // Character B is now attuned to the cloak -> gains +1 AC (AC 11)
+            expect(reattunedB.armorClass).toBe(11);
+
+            // 5. Character A now has only 2 attuned items, so Character A can now attune extraRing!
+            const allowedAState = characterReducer(state, {
+                type: 'ATTUNE_ITEM',
+                payload: { characterId: 'char-a', itemId: 'attuned_ring_3' },
+            });
+            expect(allowedAState.party).toBeDefined();
+            expect(allowedAState.inventory?.find(i => i.id === 'attuned_ring_3')?.isAttuned).toBe(true);
+            expect(allowedAState.inventory?.find(i => i.id === 'attuned_ring_3')?.attunedCharacterId).toBe('char-a');
+        });
+    });
+
+});
+
+describe('currency is not junk or fenced merchandise', () => {
+  it('retains a legacy junk coin and sells unrelated junk normally', () => {
+    const coin={id:'gold_piece',quantity:8,isJunk:true,sourceId:'cache9'} as Item;
+    const junk={id:'broken_cup',isJunk:true} as Item;
+    const state={gold:0.77,inventory:[coin,junk]} as GameState;
+    const after=characterReducer(state,{type:'SELL_ALL_JUNK',payload:{items:[{itemId:coin.id,value:0.1},{itemId:junk.id,value:0.2}]}});
+    expect(after.gold).toBe(0.97);
+    expect(after.inventory).toEqual([coin]);
+    expect(after.inventory![0]).toBe(coin);
+  });
+  it('rejects a stale currency fence request without changing its source or money', () => {
+    const state={gold:0.77,inventory:[{id:'electrum_piece',quantity:8,sourceId:'cache9'}]} as GameState;
+    expect(characterReducer(state,{type:'SELL_FENCED_ITEM',payload:{itemId:'electrum_piece',value:0.1,locationId:'town',heatGenerated:1}})).toEqual({});
+  });
 });

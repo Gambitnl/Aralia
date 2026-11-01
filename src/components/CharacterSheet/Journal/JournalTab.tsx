@@ -7,9 +7,26 @@
  * then this file passes quest state into QuestLogSidebar and journal entries
  * into JournalSpread so the player can read both without leaving the sheet.
  */
-import React, { useState, useMemo } from 'react';
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/10/2026, 15:20:52
+ * Dependents: components/CharacterSheet/Journal/index.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import React, { useState } from 'react';
 import { Quest } from '../../../types';
-import { JournalEntry, JournalState, createInitialJournalState } from '../../../types/journal';
+import { JournalState, createInitialJournalState } from '../../../types/journal';
 import { QuestLogSidebar } from './QuestLogSidebar';
 import { JournalSpread } from './JournalSpread';
 import './JournalTab.css';
@@ -23,45 +40,6 @@ import './JournalTab.css';
 interface JournalTabProps {
     quests: Quest[];
     journal?: JournalState;
-}
-
-/**
- * Creates a starter journal entry when the save has no real journal pages yet.
- *
- * This preserves the journal feature as a visible in-progress system instead of
- * showing a blank panel to the player.
- */
-function createMockEntry(): JournalEntry {
-    return {
-        id: 'mock-entry-1',
-        sessionNumber: 1,
-        gameDate: 'The 14th of Kythorn',
-        gameYear: 'Year 1492 DR',
-        pageNumber: 1,
-        narrativeText: `The adventure begins! Our party has gathered at the crossroads, each member carrying their own secrets and ambitions.
-
-The air was thick with anticipation as we set out into the unknown. What trials await us? Only time will tell.
-
-For now, we rest and prepare for what lies ahead.`,
-        sketchNotes: 'Remember to stock up on supplies before heading into the wilderness.',
-        recap: {
-            sessionNumber: 1,
-            keyEvents: [
-                { id: 'event-1', description: 'Party formed at the crossroads', isCompleted: true },
-                { id: 'event-2', description: 'Gathered initial supplies', isCompleted: true },
-                { id: 'event-3', description: 'What lies beyond the forest edge?', isCompleted: false, isQuestion: true },
-            ],
-            loot: [],
-            currentObjectives: [
-                { id: 'obj-1', description: 'Explore the surrounding area', priority: 'primary' },
-                { id: 'obj-2', description: 'Find shelter before nightfall', priority: 'secondary' },
-            ],
-            notes: '',
-        },
-        autoLoggedEvents: [],
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-    };
 }
 
 // ============================================================================
@@ -84,14 +62,9 @@ export const JournalTab: React.FC<JournalTabProps> = ({
     // state object so later logic can read the same shape every time.
     const journalState = journal ?? createInitialJournalState();
 
-    // Keep the journal readable before the first real entry is written by
-    // showing a starter page that explains the campaign's beginning.
-    const entries = useMemo(() => {
-        if (journalState.entries.length > 0) {
-            return journalState.entries;
-        }
-        return [createMockEntry()];
-    }, [journalState.entries]);
+    // An empty saved journal has no campaign account to display. Reuse the
+    // spread's empty state; authored pages and quest records keep their identity.
+    const entries = journalState.entries;
 
     const currentEntry = entries[currentEntryIndex] || null;
 

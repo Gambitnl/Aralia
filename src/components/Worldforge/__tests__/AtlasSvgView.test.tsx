@@ -1,9 +1,15 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, fireEvent } from '@testing-library/react';
+import { render, fireEvent, act } from '@testing-library/react';
 import AtlasSvgView, { labelBudgetForViewport } from '../AtlasSvgView';
 import { requestMapCenterOnPlayer, consumeMapCenterOnPlayer } from '../mapFocusSignal';
 import type { MultiModalRoute } from '../../../systems/travel/multiModalRoute';
+import type { RoutePlan } from '../../../systems/travel/routePlanning';
 import type { AtlasSvgModel } from '../atlasSvg';
+import type { ComponentProps } from 'react';
+
+// Parent tests cover projection state without requiring a GPU in jsdom.
+// The real globe is exercised separately in the rendered browser checks.
+vi.mock('../AtlasGlobeView', () => ({ default: () => <div data-testid="globe-fixture">Globe</div> }));
 
 /**
  * These tests exercise the interactive canonical SVG atlas as a player sees it.
@@ -26,6 +32,121 @@ const stub = {
 } as any;
 
 describe('AtlasSvgView', () => {
+  function renderPublicPoi(keepMenuOpen = false) {
+    const pick = vi.fn();
+    const plan = vi.fn<(cell: number) => RoutePlan | null>(() => ({ cells: [0, 1], points: [[2, 2], [7, 7]], miles: 2, minutes: 60, danger: 0.2 }));
+    const world = { ...stub, notes: [{ id: 'marker7', name: 'The Ash Camp' }],
+      pack: { ...stub.pack, markers: [{ i: 7, cell: 1, type: 'brigands' }] } } as any;
+    const result = render(<AtlasSvgView atlas={world} width={600} height={400} travelActive onPickCell={pick} planRoute={plan} />);
+    fireEvent.click(result.getByTestId('atlas-layers-toggle'));
+    fireEvent.click(result.getByRole('checkbox', { name: 'Markers' }));
+    if (!keepMenuOpen) fireEvent.click(result.getByTestId('atlas-layers-toggle'));
+    return { ...result, pick, plan };
+  }
+
+  it('inspects an authored public POI before explicitly choosing travel to its approximate source area', () => {
+    const view = renderPublicPoi();
+    fireEvent.click(view.getByRole('button', { name: 'Inspect The Ash Camp' }));
+    expect(view.getByTestId('atlas-poi-card')).toHaveTextContent('brigands');
+    expect(view.getByTestId('atlas-poi-card')).toHaveTextContent('Approximate map area');
+    expect(view.pick).not.toHaveBeenCalled();
+    const svg = view.getByTestId('atlas-svg-view');
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({ left: 0, top: 0, width: 600, height: 400 } as DOMRect);
+    fireEvent.pointerMove(svg, { clientX: 1, clientY: 1, pointerType: 'mouse' });
+    expect(view.plan).toHaveBeenLastCalledWith(1);
+    fireEvent.click(view.getByRole('button', { name: 'Travel to this area' }));
+    expect(view.pick).toHaveBeenCalledOnce();
+    expect(view.pick.mock.calls[0][0].i).toBe(1);
+  });
+
+  it.each(['Enter', ' '])('keyboard %s inspects a POI without bubbling into travel', key => {
+    const view = renderPublicPoi();
+    fireEvent.keyDown(view.getByRole('button', { name: 'Inspect The Ash Camp' }), { key });
+    expect(view.getByTestId('atlas-poi-card')).toHaveTextContent('The Ash Camp');
+    expect(view.pick).not.toHaveBeenCalled();
+    fireEvent.keyDown(view.getByTestId('atlas-svg-view'), { key: 'Escape' });
+    expect(view.queryByTestId('atlas-poi-card')).toBeNull();
+  });
+
+  it('inspects a POI when pointer capture delivers the completed click to the map root', () => {
+    const view = renderPublicPoi();
+    const svg = view.getByTestId('atlas-svg-view');
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({ left: 0, top: 0, width: 600, height: 400 } as DOMRect);
+    fireEvent.pointerDown(svg, { clientX: 128, clientY: 28, pointerId: 7, pointerType: 'mouse', button: 0 });
+    fireEvent.pointerUp(svg, { clientX: 128, clientY: 28, pointerId: 7, pointerType: 'mouse', button: 0 });
+    fireEvent.click(svg, { clientX: 128, clientY: 28, button: 0 });
+    expect(view.getByTestId('atlas-poi-card')).toHaveTextContent('The Ash Camp');
+    expect(view.pick).not.toHaveBeenCalled();
+  });
+
+  it('keeps an unreachable POI inspectable while disabling the unavailable area trip', () => {
+    const view = renderPublicPoi();
+    view.plan.mockReturnValue(null);
+    fireEvent.click(view.getByRole('button', { name: 'Inspect The Ash Camp' }));
+    expect(view.getByTestId('atlas-poi-card')).toHaveTextContent('No route to here');
+    const travel = view.getByRole('button', { name: 'Travel to this area' });
+    expect(travel).toBeDisabled();
+    fireEvent.click(travel);
+    expect(view.pick).not.toHaveBeenCalled();
+  });
+
+  it('does not leave a POI card or hit target when the public marker layer is hidden', () => {
+    const view = renderPublicPoi(true);
+    fireEvent.click(view.getByRole('button', { name: 'Inspect The Ash Camp' }));
+    fireEvent.click(view.getByRole('checkbox', { name: 'Markers' }));
+    expect(view.queryByTestId('atlas-poi-card')).toBeNull();
+    expect(view.queryByRole('button', { name: 'Inspect The Ash Camp' })).toBeNull();
+    expect(view.pick).not.toHaveBeenCalled();
+  });
+
+  it('views a learned cell in travel mode without picking or discovering it', () => {
+    const pick=vi.fn();
+    const {getByTestId,rerender}=render(<AtlasSvgView atlas={stub} width={600} height={400} onPickCell={pick} travelActive />);
+    const before=getByTestId('atlas-svg-view').innerHTML;
+    rerender(<AtlasSvgView atlas={stub} width={600} height={400} onPickCell={pick} travelActive areaFocus={{cellId:1,token:1}} />);
+    expect(getByTestId('atlas-svg-view').innerHTML).not.toBe(before);
+    expect(pick).not.toHaveBeenCalled();
+    expect(getByTestId('atlas-svg-view').querySelector('[data-testid="atlas-discovery-pin"]')).toBeNull();
+  });
+  it('switches to globe and back without losing flat-map zoom or picking a cell', async () => {
+    const pick = vi.fn();
+    const { getByRole, getByTestId, findByTestId } = render(<AtlasSvgView atlas={stub} onPickCell={pick} />);
+    fireEvent.click(getByRole('button', { name: /^Zoom in$/ }));
+    const svg = getByTestId('atlas-svg-view');
+    const before = svg.innerHTML;
+    fireEvent.click(getByRole('button', { name: /^Globe$/ }));
+    await findByTestId('globe-fixture');
+    expect(svg).not.toBeVisible();
+    expect(getByRole('button', { name: /^Globe$/ })).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(getByRole('button', { name: /^Map$/ }));
+    expect(svg).toBeVisible();
+    expect(svg.innerHTML).toBe(before);
+    expect(pick).not.toHaveBeenCalled();
+  });
+  it('moves terrain, labels and player pins together before the drag is released', () => {
+    const model: AtlasSvgModel = {
+      width: 100, height: 100,
+      layers: [{ id: 'ocean', polygons: [] }, { id: 'land', polygons: [], regions: [] }],
+      labels: [{ x: 50, y: 50, text: 'Test kingdom', kind: 'state' }], burgs: [],
+    };
+    const { getByTestId, container } = render(<AtlasSvgView atlas={stub} preparedModel={model} width={600} height={400} marker={{ x: 25, y: 25 }} />);
+    const svg = getByTestId('atlas-svg-view');
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({ left: 0, top: 0, width: 600, height: 400 } as DOMRect);
+    const label = getByTestId('atlas-map-label');
+    const initialX = Number(label.getAttribute('x'));
+    const initialY = Number(label.getAttribute('y'));
+    let frame: FrameRequestCallback | undefined;
+    const raf = vi.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => { frame = callback; return 123; });
+    try {
+      fireEvent.pointerDown(svg, { clientX: 200, clientY: 200, pointerId: 1, button: 0 });
+      fireEvent.pointerMove(svg, { clientX: 240, clientY: 220, pointerId: 1 });
+      act(() => frame?.(16));
+      expect(Number(label.getAttribute('x'))).toBe(initialX + 40);
+      expect(Number(label.getAttribute('y'))).toBe(initialY + 20);
+      expect(getByTestId('atlas-player-marker').getAttribute('transform')).toBe('translate(240,120)');
+      expect(Array.from(container.querySelectorAll('g')).some(g => g.getAttribute('transform') === 'translate(140,20) scale(4)')).toBe(true);
+    } finally { raf.mockRestore(); }
+  });
   it('renders an <svg> with one merged land-region path (T2: no per-cell polygons)', () => {
     const { container } = render(<AtlasSvgView atlas={stub} width={300} height={300} />);
     expect(container.querySelector('svg')).toBeTruthy();
@@ -180,6 +301,57 @@ describe('AtlasSvgView', () => {
     return null;
   };
 
+  it('zooms with visible controls and keyboard, then restores fit without changing layers', () => {
+    const { container, getByRole, getByTestId } = render(<AtlasSvgView atlas={stub} width={300} height={300} />);
+    const initial = readScale(container)!;
+    fireEvent.click(getByRole('button', { name: /^Zoom in$/ }));
+    expect(readScale(container)).toBeCloseTo(initial * 1.25);
+    fireEvent.keyDown(getByTestId('atlas-svg-view'), { key: '-' });
+    expect(readScale(container)).toBeCloseTo(initial);
+    fireEvent.keyDown(getByTestId('atlas-svg-view'), { key: '+' });
+    fireEvent.keyDown(getByTestId('atlas-svg-view'), { key: 'Home' });
+    expect(readScale(container)).toBeCloseTo(initial);
+    fireEvent.click(getByRole('button', { name: /^Zoom in$/ }));
+    const prefs = localStorage.getItem('aralia.atlas.layerPrefs.v1:global');
+    expect(prefs).not.toBeNull();
+    fireEvent.click(getByRole('button', { name: /^Fit world$/ }));
+    expect(readScale(container)).toBeCloseTo(initial);
+    expect(localStorage.getItem('aralia.atlas.layerPrefs.v1:global')).toBe(prefs);
+  });
+
+  it('pans in SVG units, ignores other pointers, and leaves click jitter still', () => {
+    const { container, getByTestId } = render(<AtlasSvgView atlas={stub} width={300} height={300} />);
+    const svg = getByTestId('atlas-svg-view');
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({ left: 0, top: 0, width: 150, height: 150 } as DOMRect);
+    const world = () => Array.from(container.querySelectorAll('g')).find(g => g.getAttribute('transform')?.includes('scale('))!;
+    const initial = world().getAttribute('transform');
+    fireEvent.pointerDown(svg, { clientX: 50, clientY: 50, pointerId: 1, button: 0 });
+    fireEvent.pointerMove(svg, { clientX: 52, clientY: 51, pointerId: 1 });
+    expect(world().getAttribute('transform')).toBe(initial);
+    fireEvent.pointerDown(svg, { clientX: 80, clientY: 80, pointerId: 2, button: 0 });
+    fireEvent.pointerUp(svg, { pointerId: 2 });
+    fireEvent.pointerMove(svg, { clientX: 70, clientY: 60, pointerId: 1 });
+    expect(svg).toHaveStyle({ cursor: 'grabbing' });
+    fireEvent.pointerUp(svg, { pointerId: 1 });
+    expect(world().getAttribute('transform')).toBe('translate(40,20) scale(3)');
+    expect(svg).toHaveStyle({ cursor: 'grab' });
+  });
+
+  it('canceled gestures cannot pick a destination and the next click still works', () => {
+    const pick = vi.fn();
+    const { getByTestId } = render(<AtlasSvgView atlas={stub} width={300} height={300} onPickCell={pick} />);
+    const svg = getByTestId('atlas-svg-view');
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({ left: 0, top: 0, width: 300, height: 300 } as DOMRect);
+    fireEvent.pointerDown(svg, { clientX: 21, clientY: 21, pointerId: 1, button: 0 });
+    fireEvent.pointerCancel(svg, { pointerId: 1 });
+    fireEvent.click(svg, { clientX: 21, clientY: 21 });
+    expect(pick).not.toHaveBeenCalled();
+    fireEvent.pointerDown(svg, { clientX: 21, clientY: 21, pointerId: 1, button: 0 });
+    fireEvent.pointerUp(svg, { pointerId: 1 });
+    fireEvent.click(svg, { clientX: 21, clientY: 21 });
+    expect(pick).toHaveBeenCalledTimes(1);
+  });
+
   it('preserves the user zoom across a viewport-size change (Travel/Explore toggle no longer resets it)', () => {
     const { container, rerender } = render(<AtlasSvgView atlas={stub} width={300} height={300} />);
     const svg = container.querySelector('[data-testid="atlas-svg-view"]')!;
@@ -331,6 +503,33 @@ describe('AtlasSvgView', () => {
       Object.defineProperty(window, 'innerWidth', { configurable: true, value: originalInnerWidth });
       Object.defineProperty(window, 'visualViewport', { configurable: true, value: originalVisualViewport });
     }
+  });
+
+  it('previews and commits the same coastal town cell, even when its glyph is nearer another cell', () => {
+    const atlas = {
+      graphWidth:100, graphHeight:100,
+      biomesData:{color:['#000','#11aa33'],name:['Ocean','Grassland']},
+      pack:{vertices:{p:[[40,40],[60,40],[60,60],[40,60]]},
+        cells:{h:[50,50],v:[[0,1,2,3],[0,1,2,3]],biome:[1,1],p:[[50,50],[58,50]],burg:[0,1]},
+        burgs:[null,{i:1,name:'Coastal Town',x:50,y:50,cell:1,population:20}]},
+    } as unknown as ComponentProps<typeof AtlasSvgView>['atlas'];
+    const route = vi.fn((cell:number)=>({cells:[0,cell],points:[[50,50],[58,50]] as Array<[number,number]>,miles:8,minutes:cell===1?120:60,danger:0.2}));
+    const multi = vi.fn(()=>null);
+    const pick=vi.fn();
+    const {getByTestId,getByRole,queryByTestId}=render(<AtlasSvgView atlas={atlas} width={220} height={160} travelActive planRoute={route} planMultiModalRoute={multi} onPickCell={pick}/>);
+    const svg=getByTestId('atlas-svg-view');
+    vi.spyOn(svg,'getBoundingClientRect').mockReturnValue({left:0,top:0,width:220,height:160} as DOMRect);
+    fireEvent.pointerMove(svg,{clientX:110,clientY:80});
+    expect(getByTestId('atlas-travel-readout')).toHaveTextContent('To Coastal Town');
+    expect(getByTestId('atlas-travel-readout')).toHaveTextContent('2h');
+    expect(queryByTestId('atlas-legend')).toBeNull();
+    expect(multi).toHaveBeenLastCalledWith(1);
+    fireEvent.click(svg,{clientX:110,clientY:80});
+    fireEvent.pointerMove(svg,{clientX:20,clientY:20});
+    expect(getByTestId('atlas-travel-readout')).toHaveTextContent('To Coastal Town');
+    expect(route).toHaveBeenLastCalledWith(1);
+    fireEvent.click(getByRole('button',{name:'Travel here →'}));
+    expect(pick).toHaveBeenCalledWith(expect.objectContaining({i:1}));
   });
 
   it('opens clicked town details as a mobile overlay above the map help area', () => {

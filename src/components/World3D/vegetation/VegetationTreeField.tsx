@@ -28,7 +28,7 @@
  * Positions arrive in world/scene space from `buildTreeBatches`, so this
  * component sits at the scene root rather than inside a per-chunk group.
  */
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import type {
   TreeGeometryData,
@@ -36,6 +36,8 @@ import type {
 } from '@/systems/worldforge/vegetation/treeMeshGenerator';
 import { generateEzTreeVariantSet } from '@/systems/worldforge/vegetation/ezTreeMeshSource';
 import { grownTreeGeometry } from '@/systems/worldforge/vegetation/grownTreeVariants';
+import { isWebGpuWorldEnabled } from '../webgpuWorldFlag';
+import { makeTreeTintNodeMaterial } from '../gpu/treeTintNode';
 import {
   buildGrownTreeBatches,
   buildTreeBatches,
@@ -177,6 +179,17 @@ TREE_MATERIAL.onBeforeCompile = (shader) => {
 /** Changing onBeforeCompile after a program exists needs an explicit rebuild. */
 TREE_MATERIAL.customProgramCacheKey = () => 'aralia-tree-foliage-tint-v1';
 
+/**
+ * ADR 0009 step 4: the material the batches draw with. Under WebGPU the
+ * color_vertex replacement above is ignored and three multiplies the foliage
+ * tint into the bark (green-black trunks), so the TSL twin from
+ * `gpu/treeTintNode.ts` applies the same split; the WebGL material is
+ * unchanged for `?gpu=0`.
+ */
+const TREE_DRAW_MATERIAL: THREE.Material = isWebGpuWorldEnabled()
+  ? makeTreeTintNodeMaterial(BARK_TINT_BLEND)
+  : TREE_MATERIAL;
+
 /** The instance fields both batch shapes share — everything except the axis
  * that picks the geometry (species on the preset path, biome on the grown one). */
 type InstancedBatch = Omit<TreeBatch, 'species'>;
@@ -188,7 +201,11 @@ const TreeBatchMesh: React.FC<{
 }> = ({ batch, geometry, name }) => {
   const ref = useRef<THREE.InstancedMesh>(null);
 
-  useEffect(() => {
+  // A LAYOUT effect (ADR 0009 step 4, 2026-10-26): the WebGPU node graph is
+  // fixed at the mesh's first build, so `instanceColor` must exist before the
+  // first frame can draw the batch; a passive effect can run after that frame.
+  // Same values as before, only earlier. See GrassLayer for the measurement.
+  useLayoutEffect(() => {
     const mesh = ref.current;
     if (!mesh) return;
     const matrix = new THREE.Matrix4();
@@ -222,14 +239,14 @@ const TreeBatchMesh: React.FC<{
     // around the origin and pops the whole field in and out.
     mesh.computeBoundingSphere();
     // Recompile so the shader picks up USE_INSTANCING_COLOR.
-    TREE_MATERIAL.needsUpdate = true;
+    TREE_DRAW_MATERIAL.needsUpdate = true;
   }, [batch]);
 
   return (
     <instancedMesh
       name={name}
       ref={ref}
-      args={[geometry, TREE_MATERIAL, batch.count]}
+      args={[geometry, TREE_DRAW_MATERIAL, batch.count]}
       castShadow={batch.castShadow}
     />
   );
@@ -250,7 +267,6 @@ export const VegetationTreeField: React.FC<{ inputs: readonly TreeBatchInput[] }
   const signature = inputs
     .map((i) => `${i.scatter.cacheKey}@${i.offset.join(',')}${i.castShadow ? '+s' : ''}`)
     .join('|');
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const presetBatches = useMemo(
     () => (PRESET_TREES ? buildTreeBatches(inputs) : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps

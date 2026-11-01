@@ -34,7 +34,9 @@ import type { FmgAtlasResult } from '../../../systems/worldforge/fmg/generateAtl
 
 export interface AtlasSvgPolygon { points: string; fill: string }
 export interface AtlasSvgRegion { d: string; fill: string }
-export interface AtlasSvgMarker { x: number; y: number; type?: string }
+/** Already-public map glyphs retain authored identity and their approximate cell.
+ * This is not a discovered entrance or an exact ground destination. */
+export interface AtlasSvgMarker { x: number; y: number; type?: string; cell?: number; name?: string }
 
 /** FMG height at or above which a cell is land. */
 export const LAND_THRESHOLD = 20;

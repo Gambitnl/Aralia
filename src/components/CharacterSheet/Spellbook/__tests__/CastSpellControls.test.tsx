@@ -5,8 +5,15 @@
  */
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent,waitFor } from '@testing-library/react';
+import {characterReducer} from '../../../../state/reducers/characterReducer';
+import {GameProvider} from '../../../../state/GameContext';
+import {createMockGameState} from '../../../../utils/core/factories';
+import {GamePhase} from '../../../../types';
+import {ALL_ITEMS} from '../../../../data/items';
+import waterSpell from '../../../../../public/data/spells/level-1/create-or-destroy-water.json';
 import CastSpellControls from '../CastSpellControls';
+import shieldData from '@/data/spells/level-1/shield.json';
 import type { PlayerCharacter, Spell } from '../../../../types';
 
 const cureWounds = {
@@ -78,6 +85,57 @@ const ally = {
 } as unknown as PlayerCharacter;
 
 describe('CastSpellControls', () => {
+    it('follows the filled unit receipt when a cast separates one vessel from a stack',async()=>{
+        const character=makeCharacter({spellbook:{cantrips:[],knownSpells:['create-or-destroy-water'],preparedSpells:['create-or-destroy-water']}});
+        const vessel={...ALL_ITEMS.waterskin,quantity:3},onAction=vi.fn();
+        const state=createMockGameState({phase:GamePhase.PLAYING,party:[character],inventory:[vessel]});
+        const ui=(s:typeof state)=><GameProvider state={s} dispatch={vi.fn()}><CastSpellControls spell={waterSpell as Spell} character={s.party[0]} isReadyToCast onAction={onAction}/></GameProvider>;
+        const view=render(ui(state));fireEvent.change(screen.getByLabelText('Open vessel'),{target:{value:'0'}});
+        const create=screen.getByRole('button',{name:'Create water in selected vessel'});expect(create).toBeEnabled();fireEvent.click(create);
+        const patch=characterReducer(state,{type:'CAST_SPELL',payload:onAction.mock.calls[0][0].payload});
+        view.rerender(ui({...state,...patch}));
+        await waitFor(()=>expect(screen.getByText(/Contains 0.50 gallons/)).toBeVisible());
+        expect(screen.getByLabelText('Open vessel')).toHaveValue('1');expect(create).toBeDisabled();
+    });
+    it('adopts its actual cast receipt and does not describe the spent slot as unspent',async()=>{
+        const character=makeCharacter({spellbook:{cantrips:[],knownSpells:['create-or-destroy-water'],preparedSpells:['create-or-destroy-water']}});
+        const vessel={...ALL_ITEMS.waterskin,quantity:1},onAction=vi.fn();
+        const state=createMockGameState({phase:GamePhase.PLAYING,party:[character],inventory:[vessel]});
+        const ui=(s:typeof state)=><GameProvider state={s} dispatch={vi.fn()}><CastSpellControls spell={waterSpell as Spell} character={s.party[0]} isReadyToCast onAction={onAction}/></GameProvider>;
+        const view=render(ui(state));fireEvent.change(screen.getByLabelText('Open vessel'),{target:{value:'0'}});
+        fireEvent.click(screen.getByRole('button',{name:'Create water in selected vessel'}));
+        const patch=characterReducer(state,{type:'CAST_SPELL',payload:onAction.mock.calls[0][0].payload});
+        view.rerender(ui({...state,...patch}));
+        await waitFor(()=>expect(screen.getByText(/Contains 0.50 gallons/)).toBeVisible());
+        expect(screen.getByRole('button',{name:'Create water in selected vessel'})).toBeDisabled();
+        expect(screen.queryByText(/No spell slot was spent/)).not.toBeInTheDocument();
+        expect(patch.party?.[0].spellSlots?.level_1.current).toBe(1);
+    });
+    it('requires a vessel choice for water, quotes only its capacity, and refuses silently replaced stock',()=>{
+        const character=makeCharacter({spellbook:{cantrips:[],knownSpells:['create-or-destroy-water'],preparedSpells:['create-or-destroy-water']}});
+        const vessel={...ALL_ITEMS.waterskin,quantity:1},onAction=vi.fn();
+        const state=createMockGameState({phase:GamePhase.PLAYING,party:[character],inventory:[vessel]});
+        const ui=(s:typeof state)=><GameProvider state={s} dispatch={vi.fn()}><CastSpellControls spell={waterSpell as Spell} character={character} isReadyToCast onAction={onAction}/></GameProvider>;
+        const view=render(ui(state));
+        const create=screen.getByRole('button',{name:'Create water in selected vessel'});
+        expect(create).toBeDisabled();expect(onAction).not.toHaveBeenCalled();
+        fireEvent.change(screen.getByLabelText('Open vessel'),{target:{value:'0'}});
+        expect(create).toBeEnabled();expect(screen.getByText(/Create 0.50 gallons/)).toBeVisible();
+        fireEvent.click(create);
+        expect(onAction).toHaveBeenCalledTimes(1);
+        expect(onAction.mock.calls[0][0].payload.outOfCombat.water).toMatchObject({mode:'create',inventoryIndex:0,sourceItem:vessel});
+        view.rerender(ui({...state,inventory:[{...vessel}]}));
+        expect(create).toBeDisabled();expect(screen.getByText(/That vessel changed/)).toBeVisible();
+    });
+    it('explains the missing Shield reaction trigger without offering a slot-spending cast', () => {
+        const onAction = vi.fn();
+        render(<CastSpellControls spell={shieldData as Spell} character={makeCharacter()}
+            isReadyToCast onAction={onAction} />);
+        expect(screen.queryByTestId('cast-spell-button')).not.toBeInTheDocument();
+        expect(screen.getByTestId('cast-spell-controls')).toHaveTextContent('Reaction spell — use it when its trigger occurs.');
+        expect(onAction).not.toHaveBeenCalled();
+    });
+
     it('casting a targeted spell opens the party picker, and picking dispatches CAST_SPELL', () => {
         const onAction = vi.fn();
         const caster = makeCharacter();

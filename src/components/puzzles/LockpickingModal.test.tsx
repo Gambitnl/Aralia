@@ -30,7 +30,7 @@ const visualRollMock = vi.fn(async () => ({
   total: pinnedFace,
 }));
 
-vi.mock('../../contexts/DiceContext', () => ({
+vi.mock('../../context/DiceContext', () => ({
   useDice: () => ({
     visualRoll: visualRollMock,
     hideOverlay: vi.fn(),

@@ -186,3 +186,12 @@ describe('canonical dungeon gameplay', () => {
     ).not.toBe(encounter.eventId);
   });
 });
+
+it('filters encounter choices by current visible cells rather than remembered or unreachable threats', () => {
+  const first = findNextDungeonEncounterInteraction(PLAN, IDENTITY, [], dungeonEntrancePlayerCell(PLAN));
+  expect(first).not.toBeNull();
+  expect(findNextDungeonEncounterInteraction(PLAN, IDENTITY, [], dungeonEntrancePlayerCell(PLAN), [])).toBeNull();
+  const spawn = PLAN.spawns.find(s => dungeonEncounterEventId(IDENTITY, s.roomId, dungeonSpawnCell(PLAN,s)) === first!.eventId)!;
+  const cell = dungeonSpawnCell(PLAN, spawn);
+  expect(findNextDungeonEncounterInteraction(PLAN, IDENTITY, [], dungeonEntrancePlayerCell(PLAN), [cell.x + ',' + cell.y])?.eventId).toBe(first!.eventId);
+});

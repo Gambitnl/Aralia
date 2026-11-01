@@ -31,6 +31,7 @@ import {
   Item,
   ArmorCategory,
   ArmorProficiencyLevel,
+  EquipmentSlotType,
 } from '../../types';
 import {
   calculateArmorClass,
@@ -104,13 +105,35 @@ export const getCharacterMaxArmorProficiency = (character: PlayerCharacter): Arm
 // ============================================================================
 
 /**
+ * Checks whether an item is a two-handed weapon based on its properties.
+ *
+ * @param {Item | null | undefined} item - The item to check.
+ * @returns {boolean} True if the item is a weapon with the Two-Handed property.
+ */
+export const isTwoHandedWeapon = (item?: Item | null): boolean => {
+  if (!item || item.type !== 'weapon') return false;
+  return item.properties?.some(p => p.toLowerCase() === 'two-handed') ?? false;
+};
+
+/**
  * Checks if a character can equip a given item based on proficiencies and requirements.
  *
  * @param {PlayerCharacter} character - The character attempting to equip the item.
  * @param {Item} item - The item to be equipped.
+ * @param {EquipmentSlotType | null} [targetSlot] - Optional target slot being evaluated.
  * @returns {{can: boolean, reason?: string}} An object indicating if the item can be equipped and why not if applicable.
  */
-export const canEquipItem = (character: PlayerCharacter, item: Item): { can: boolean; reason?: string } => {
+export const canEquipItem = (
+  character: PlayerCharacter,
+  item: Item,
+  targetSlot?: EquipmentSlotType | null
+): { can: boolean; reason?: string } => {
+  // GG-502: Two-handed weapon conflict: cannot equip a shield or off-hand item while wielding a two-handed weapon
+  const isOffHandTarget = targetSlot === 'OffHand' || item.armorCategory === 'Shield' || item.slot === 'OffHand';
+  if (isOffHandTarget && isTwoHandedWeapon(character.equippedItems?.MainHand)) {
+    return { can: false, reason: 'Cannot equip a shield or off-hand item while wielding a two-handed weapon.' };
+  }
+
   // Check general requirements first (min level, class restrictions, minimum ability scores)
   if (item.requirements) {
     const { requirements } = item;

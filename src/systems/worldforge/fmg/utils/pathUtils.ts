@@ -78,7 +78,7 @@ export const connectVertices = ({
  * Restores the path from exit to start using the 'from' mapping.
  * (upstream pathUtils restorePath — verbatim)
  */
-const restorePath = (exit: number, start: number, from: number[]) => {
+const restorePath = (exit: number, start: number, from: ArrayLike<number>) => {
   const pathCells = [];
 
   let current = exit;
@@ -215,8 +215,21 @@ export const findPath = (
 ): number[] | null => {
   if (isExit(start)) return null;
 
-  const from: number[] = [];
-  const cost: number[] = [];
+  // GG-556 (2026-11-01): upstream uses `from = []` and `cost = []` and writes
+  // them at scattered cell ids, which turns both into slow dictionary arrays
+  // on every route search. Shared typed buffers hold the same values; a cell
+  // counts as "has a cost" only when its stamp is this call's stamp, which is
+  // the same as upstream's `cost[next]` not being undefined. restorePath only
+  // follows `from` entries that this call wrote. A nested call (a cost or exit
+  // callback that runs findPath) gets fresh buffers, so it cannot clobber ours.
+  const cellCount = packedGraph.cells.c.length;
+  const shared = !pathBuffersInUse;
+  const buffers = shared ? sharedPathBuffers(cellCount) : newPathBuffers(cellCount);
+  const { from, cost, seen } = buffers;
+  const stamp = nextPathStamp(buffers);
+  // If a callback throws, the flag stays set and later calls use fresh
+  // buffers: slower, never wrong.
+  if (shared) pathBuffersInUse = true;
   const queue = new FlatQueue<number>();
   queue.push(start, 0);
 
@@ -227,6 +240,7 @@ export const findPath = (
     for (const next of packedGraph.cells.c[current]) {
       if (isExit(next)) {
         from[next] = current;
+        if (shared) pathBuffersInUse = false;
         return restorePath(next, start, from);
       }
 
@@ -234,14 +248,44 @@ export const findPath = (
       if (nextCost === Infinity) continue; // impassable cell
       const totalCost = currentCost + nextCost;
 
-      if (totalCost >= cost[next]) continue; // has cheaper path
+      if (seen[next] === stamp && totalCost >= cost[next]) continue; // has cheaper path
       from[next] = current;
       cost[next] = totalCost;
+      seen[next] = stamp;
       queue.push(next, totalCost);
     }
   }
 
+  if (shared) pathBuffersInUse = false;
   return null;
 };
+
+/** Typed scratch buffers for findPath; `seen[i] === stamp` marks a cost set by the current call. */
+interface PathBuffers {
+  from: Int32Array;
+  cost: Float64Array;
+  seen: Uint32Array;
+  stamp: number;
+}
+
+let pathBuffers: PathBuffers | null = null;
+let pathBuffersInUse = false;
+
+function newPathBuffers(cellCount: number): PathBuffers {
+  return { from: new Int32Array(cellCount), cost: new Float64Array(cellCount), seen: new Uint32Array(cellCount), stamp: 0 };
+}
+
+function sharedPathBuffers(cellCount: number): PathBuffers {
+  if (!pathBuffers || pathBuffers.seen.length < cellCount) pathBuffers = newPathBuffers(cellCount);
+  return pathBuffers;
+}
+
+function nextPathStamp(buffers: PathBuffers): number {
+  if (buffers.stamp === 0xffffffff) {
+    buffers.seen.fill(0); // stamp wrapped: clear old marks so no entry looks current
+    buffers.stamp = 0;
+  }
+  return ++buffers.stamp;
+}
 
 /* eslint-enable @typescript-eslint/no-explicit-any */

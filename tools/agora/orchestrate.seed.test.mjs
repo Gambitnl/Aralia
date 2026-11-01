@@ -56,6 +56,20 @@ test('validatePlan rejects an `after` reference to a packet not in the plan', ()
   assert.throws(() => validatePlan(bad), /after.*PK-nope/i);
 });
 
+test('WF-G208/WF-G213: seedPlan refuses invalid verification before any board mutation', async () => {
+  const snapshot = () => ({ agents: app.store.listAgents(), tasks: app.store.listTasks(), campaigns: app.store.listCampaigns() });
+  const before = snapshot();
+  for (const amendment of [
+    { guidance: 'Run npx tsc --noEmit -p tsconfig.json | grep t.ts' },
+    { visualProof: { url: 'https://example.com/preview', acceptance: 'UI proof' } },
+  ]) {
+    const plan = makePlan();
+    Object.assign(plan.packets[0], amendment);
+    await assert.rejects(() => seedPlan(plan, { env }), /WF-G208|visualProof needs/);
+    assert.deepEqual(snapshot(), before, 'contract refusal never registers or seeds anything');
+  }
+});
+
 test('seedPlan creates one board task per packet with priority/refs/deps wired', async () => {
   const plan = makePlan();
   validatePlan(plan);
@@ -153,7 +167,8 @@ test('buildPrompt with a seeded taskId has the worker CLAIM it (no task new)', (
   const plan = makePlan();
   const p = buildPrompt(plan, plan.packets[0], { taskId: 'seeded-task-123' });
   assert.match(p, /task claim "seeded-task-123"/);
-  assert.doesNotMatch(p, /task new/);
+  assert.doesNotMatch(p.split('STEP 2')[0], /task new/, 'seeded initial task is not duplicated');
+  assert.match(p, /task new "Ownership review/, 'a discovered scope gap can get its own conditional record');
   // Wrap-up contract unchanged: done-with-result + unlock + WORKFLOW.
   assert.match(p, /task done "seeded-task-123" --result/);
   // WF-G160: prompt warns against piping scripts with backslashes through heredocs

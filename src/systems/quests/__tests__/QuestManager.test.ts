@@ -160,4 +160,43 @@ describe('QuestManager', () => {
 
      expect(updatedActive?.status).toBe(QuestStatus.Active);
   });
+
+  it('does not repeat log_only notices on subsequent days (GG-466)', () => {
+    const initialState = createMockGameState();
+
+    // Day 101 (1 day past deadline 100)
+    initialState.gameTime = new Date(Date.UTC(351, 0, 101));
+
+    const activeQuest: Quest = {
+      id: 'q_log_once',
+      title: 'Festival Preparation',
+      description: 'Prepare festival fireworks.',
+      status: QuestStatus.Active,
+      objectives: [],
+      dateStarted: 90,
+      deadline: 100,
+      deadlineConsequence: {
+        action: 'log_only',
+        message: 'The festival has begun without full supplies.'
+      }
+    };
+
+    initialState.questLog = [activeQuest];
+
+    // First check (day 101): logs once and marks deadlineNotified: true
+    const day101Result = checkQuestDeadlines(initialState);
+    expect(day101Result.logs).toHaveLength(1);
+    expect(day101Result.logs[0].text).toContain('The festival has begun without full supplies.');
+    expect(day101Result.state.questLog[0]?.status).toBe(QuestStatus.Active);
+    expect(day101Result.state.questLog[0]?.deadlineNotified).toBe(true);
+
+    // Second check (day 102 - two days past deadline): should produce 0 logs and no changes
+    const day102State = {
+      ...day101Result.state,
+      gameTime: new Date(Date.UTC(351, 0, 102))
+    };
+    const day102Result = checkQuestDeadlines(day102State);
+    expect(day102Result.logs).toHaveLength(0);
+    expect(day102Result.state.questLog[0]?.status).toBe(QuestStatus.Active);
+  });
 });

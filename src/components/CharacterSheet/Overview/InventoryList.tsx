@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 10/08/2026, 14:00:38
- * Dependents: components/CharacterSheet/Overview/index.ts
- * Imports: 6 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file InventoryList.tsx
  * This component displays a list of inventory items with their details and actions.
@@ -25,15 +9,40 @@
  * guard by removing unnecessary type assertions, improving type safety
  * and code readability.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 09:00:18
+ * Dependents: components/CharacterSheet/Overview/index.ts
+ * Imports: 16 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useMemo, useState } from 'react';
+import { getPartyFundsGp } from '../../../systems/economy/partyFunds';
+import { gpToCoins, isCurrencyItemId } from '../../../utils/character/coinPurseUtils';
+import { useOptionalGameState } from '../../../state/GameContext';
+import { PartyMealConfirmation } from './PartyMealConfirmation';
+import { AdventuringPackReview } from './AdventuringPackReview';
+import { getFoodExpirationState } from '../../../utils/items/foodFreshness';
+import { inventoryWeight } from '../../../systems/travel/provisionEncumbrance';
 import { ChevronRight, ChevronDown, FilterX, AlertTriangle } from 'lucide-react';
 import { PlayerCharacter, Item, Action, ItemContainer, InventoryEntry, EquipmentSlotType, ItemType } from '../../../types';
-import { canEquipItem, calculatePotentialAcChange } from '../../../utils/character';
+import { canEquipItem, calculatePotentialAcChange, isTwoHandedWeapon, getCharacterEncumbrance } from '../../../utils/character';
 import { ENV } from '../../../config/env';
 import { resolveItemAssetSrc, resolveItemVisual } from '../../../utils/visuals/visualUtils';
 import { slotAcceptsItem, slotRejectionReason } from './EquipmentMannequin';
 import Tooltip from '../../ui/Tooltip';
 import { ItemComparisonPanel } from './ItemComparisonPanel';
+import {activeCarriedTorches, torchUseError} from '../../../systems/underdark/carriedItemLight';
 import { CoinBadge } from '../../ui/CoinPurseDisplay';
 
 /**
@@ -110,8 +119,9 @@ const resolveEquipTargetSlot = (
   character: PlayerCharacter,
   item: InventoryEntry
 ): EquipmentSlotType | null => {
-  const isOneHandedWeapon = item.type === 'weapon' && !item.properties?.includes('Two-Handed');
+  const isOneHandedWeapon = item.type === 'weapon' && !isTwoHandedWeapon(item);
   if (isOneHandedWeapon) {
+    if (isTwoHandedWeapon(character.equippedItems?.MainHand)) return 'MainHand';
     if (!character.equippedItems?.MainHand) return 'MainHand';
     if (!character.equippedItems?.OffHand) return 'OffHand';
     return 'MainHand'; // both hands full: the reducer swaps out the main hand
@@ -210,8 +220,10 @@ const ITEM_TYPE_FILTERS: { id: ItemTypeFilter; label: string; icon: string; type
   { id: 'weapons', label: 'Weapons', icon: 'swords', types: ['weapon'] },
   { id: 'consumables', label: 'Consumables', icon: 'local_drink', types: ['consumable', 'potion', 'food_drink', 'scroll'] },
   { id: 'tools', label: 'Tools', icon: 'construction', types: ['tool', 'light_source'] },
-  { id: 'accessories', label: 'Accessories', icon: 'diamond', types: ['accessory', 'clothing'] },
-  { id: 'other', label: 'Other', icon: 'category', types: ['note', 'book', 'map', 'key', 'spell_component', 'crafting_material', 'treasure', 'reagent', 'ammunition', 'trap', 'service'] },
+  // GG-576: spellcasting foci are worn or held like accessories; mounts,
+  // vehicles and livestock have no other group yet.
+  { id: 'accessories', label: 'Accessories', icon: 'diamond', types: ['accessory', 'clothing', 'spellcasting_focus'] },
+  { id: 'other', label: 'Other', icon: 'category', types: ['note', 'book', 'map', 'key', 'spell_component', 'crafting_material', 'treasure', 'reagent', 'ammunition', 'trap', 'service', 'mount', 'vehicle', 'livestock'] },
 ];
 
 // ============================================================================
@@ -224,49 +236,6 @@ const ITEM_TYPE_FILTERS: { id: ItemTypeFilter; label: string; icon: string; type
 // acquisition or save-load path.
 // ============================================================================
 
-const SHELF_LIFE_UNIT_MS: Record<string, number> = {
-  minute: 60 * 1000,
-  hour: 60 * 60 * 1000,
-  day: 24 * 60 * 60 * 1000,
-  week: 7 * 24 * 60 * 60 * 1000,
-  month: 30 * 24 * 60 * 60 * 1000,
-  year: 365 * 24 * 60 * 60 * 1000,
-};
-
-const parseShelfLifeToMs = (shelfLife?: string): number | null => {
-  if (!shelfLife) return null;
-
-  // Shelf life is authored as phrases like "3 days" or "1 week".
-  // The first supported number+unit pair is enough for the current item data.
-  const match = shelfLife.trim().toLowerCase().match(/(\d+(?:\.\d+)?)\s*(minute|minutes|hour|hours|day|days|week|weeks|month|months|year|years)\b/);
-  if (!match) return null;
-
-  const amount = Number(match[1]);
-  const normalizedUnit = match[2].replace(/s$/, '');
-  const unitMs = SHELF_LIFE_UNIT_MS[normalizedUnit];
-
-  // If authored data drifts into an unsupported unit, keep the food usable
-  // and visible instead of silently declaring it expired.
-  if (!Number.isFinite(amount) || !unitMs) return null;
-
-  return amount * unitMs;
-};
-
-const getFoodExpirationState = (item: Item, now = Date.now()): { isExpired: boolean; label: string } => {
-  if (!item.perishable) return { isExpired: false, label: '' };
-
-  const shelfLifeMs = parseShelfLifeToMs(item.shelfLife);
-  if (typeof item.acquiredAt !== 'number' || !shelfLifeMs) {
-    return { isExpired: false, label: `Expires: ${item.shelfLife || 'Unknown'}` };
-  }
-
-  const expiresAt = item.acquiredAt + shelfLifeMs;
-  if (now >= expiresAt) {
-    return { isExpired: true, label: `Expired: ${item.shelfLife || 'Unknown'} shelf life elapsed` };
-  }
-
-  return { isExpired: false, label: `Expires: ${item.shelfLife || 'Unknown'}` };
-};
 // ============================================================================
 // Main Inventory List Component
 // ============================================================================
@@ -275,14 +244,39 @@ const getFoodExpirationState = (item: Item, now = Date.now()): { isExpired: bool
 // ============================================================================
 
 const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, character, onAction, filterBySlot, onClearFilter }) => {
+  const gameContext = useOptionalGameState();
+  const [mealIndex, setMealIndex] = useState<number | null>(null);
+  const [torchFeedback, setTorchFeedback] = useState<string | null>(null);
   /**
-   * The weight computation still sums the raw inventory to keep parity
-   * with the existing encumbrance rules while the nested UI only affects
-   * presentation.
+   * Count every carried unit with the existing provision-weight helper.
+   * Flat inventory entries count once; nesting only changes presentation.
+   * Carrying ownership, equipped gear and movement rules remain separate.
    */
   const totalInventoryWeight = useMemo(() => {
-    return inventory.reduce((total, item) => total + (item.weight || 0), 0).toFixed(2);
-  }, [inventory]);
+    // Ignition moves a torch into its fuel record, not out of the carried load.
+    const burningItems = gameContext ? activeCarriedTorches(gameContext.state).map(source => source.sourceItem!) : [];
+    return inventoryWeight([...inventory, ...burningItems]).toFixed(2);
+  }, [inventory, gameContext?.state.underdark.activeLightSources, gameContext?.state.gameTime, gameContext?.state.party]);
+
+  /**
+   * agora-bf91 (GG-459/GG-6): surface the 5e variant-encumbrance tier on the
+   * backpack header. We reuse the tested carrying-capacity helper rather than a
+   * second capacity formula, so size, Strength, and Powerful Build all resolve
+   * exactly as the travel speed gate (encumbranceSpeedFactor) already treats
+   * them. The numeric weight is derived from the single sum above, not re-added.
+   */
+  const encumbrance = useMemo(
+    () => getCharacterEncumbrance(character, Number(totalInventoryWeight)),
+    [character, totalInventoryWeight],
+  );
+  const encumbranceTone =
+    encumbrance.level === 'heavy' ? 'text-red-400'
+      : encumbrance.level === 'medium' ? 'text-amber-400'
+        : encumbrance.level === 'light' ? 'text-sky-400'
+          : 'text-gray-400';
+  const encumbranceLabel =
+    encumbrance.level === 'none' ? 'Unencumbered'
+      : `${encumbrance.level[0].toUpperCase()}${encumbrance.level.slice(1)} encumbered`;
 
   // Find all equipped items that require attunement
   const equippedAttunementItems = useMemo(() => {
@@ -294,7 +288,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
   // Compute total number of attuned magic items
   const totalAttunedCount = useMemo(() => {
     const equippedAttuned = Object.values(character.equippedItems).filter(
-      item => item && item.requiresAttunement && item.isAttuned
+      item => item && item.requiresAttunement && item.isAttuned && item.attunedCharacterId === character.id
     ).length;
     const inventoryAttuned = inventory.filter(
       item => item && item.requiresAttunement && item.isAttuned && item.attunedCharacterId === character.id
@@ -302,41 +296,14 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
     return equippedAttuned + inventoryAttuned;
   }, [character.equippedItems, character.id, inventory]);
 
-  // Calculate unified currency breakdown
-  // Combines the "liquid" gold variable (which handles fractional GP from sales) 
-  // with physical coin items found in inventory.
+  // Count stacked currency at face value, using the same total as checkout.
+  // Electrum contributes five silver; no earned coin is credited twice on load.
   const currency = useMemo(() => {
-    const counts = {
-      PP: inventory.filter(i => i.id === 'platinum_piece').length,
-      GP: inventory.filter(i => i.id === 'gold_piece').length,
-      SP: inventory.filter(i => i.id === 'silver_piece').length,
-      CP: inventory.filter(i => i.id === 'copper_piece').length,
-    };
-
-    // Breakdown abstract gold variable
-    // integer part -> GP
-    // 1st decimal -> SP
-    // 2nd decimal -> CP
-    const abstractGP = Math.floor(gold);
-    const remainderAfterGP = gold - abstractGP;
-    const abstractSP = Math.floor(remainderAfterGP * 10);
-    const remainderAfterSP = remainderAfterGP - (abstractSP / 10);
-    // Use round to avoid floating point precision errors (e.g. 0.0099999)
-    const abstractCP = Math.round(remainderAfterSP * 100);
-
-    return {
-      PP: counts.PP,
-      GP: counts.GP + abstractGP,
-      SP: counts.SP + abstractSP,
-      CP: counts.CP + abstractCP
-    };
+    const coins = gpToCoins(getPartyFundsGp({ gold, inventory }));
+    return { PP: coins.pp, GP: coins.gp, SP: coins.sp, CP: coins.cp };
   }, [inventory, gold]);
 
-  // Filter out physical coins from the main list to avoid clutter, since they are shown in the header
-  const nonCoinInventory = useMemo(() => {
-    const coinIds = ['platinum_piece', 'gold_piece', 'silver_piece', 'copper_piece'];
-    return inventory.filter(item => !coinIds.includes(item.id));
-  }, [inventory]);
+  const nonCoinInventory = useMemo(() => inventory.filter(item => !isCurrencyItemId(item.id)), [inventory]);
 
   // State for item type filtering
   const [activeTypeFilter, setActiveTypeFilter] = useState<ItemTypeFilter>('all');
@@ -426,17 +393,38 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
    * assignment itself now lives on `Item.containerId` in game state rather than
    * in local component state (agora-17eb).
    */
+  const allInventoryInstances = useMemo(() => nonCoinInventory.map(item => {
+    const sourceIndex = inventory.indexOf(item);
+    return { ...item, sourceIndex, instanceId: `${item.id}-${sourceIndex}` };
+  }), [nonCoinInventory, inventory]);
+
   const inventoryInstances = useMemo(() => {
-    return typeFilteredInventory.map((item, index) => ({ ...item, instanceId: `${item.id}-${index}` }));
-  }, [typeFilteredInventory]);
+    // A food filter may hide tools, but it must retain the bag containing the
+    // visible food. Ancestors are display context, not extra matching supplies.
+    const visible = new Set(typeFilteredInventory);
+    const containers = new Map(nonCoinInventory.filter(isContainerItem).map(item => [item.id, item]));
+    for (const item of typeFilteredInventory) {
+      let parentId = item.containerId;
+      const visited = new Set<string>();
+      while (parentId && !visited.has(parentId)) {
+        visited.add(parentId);
+        const parent = containers.get(parentId);
+        if (!parent) break;
+        visible.add(parent);
+        parentId = parent.containerId;
+      }
+    }
+    return allInventoryInstances.filter(item => visible.has(inventory[item.sourceIndex]));
+  }, [typeFilteredInventory, nonCoinInventory, allInventoryInstances, inventory]);
 
   const [collapsedContainers, setCollapsedContainers] = useState<Record<string, boolean>>({});
   // agora-d1c7.13: the item under the pointer, compared against what its slot holds.
   const [compareItem, setCompareItem] = useState<Item | null>(null);
 
-  const containerEntries = useMemo(() => inventoryInstances.filter(isContainerItem), [inventoryInstances]);
+  // Available carried destinations do not disappear when their item type is filtered out.
+  const containerEntries = useMemo(() => allInventoryInstances.filter(isContainerItem), [allInventoryInstances]);
 
-  type ContainerBucket = { containerItem?: InventoryEntry & { instanceId: string }; children: (InventoryEntry & { instanceId: string })[] };
+  type ContainerBucket = { containerItem?: InventoryEntry & { instanceId: string }; children: (InventoryEntry & { instanceId: string; sourceIndex: number })[] };
 
   const containerBuckets = useMemo(() => {
     const buckets = new Map<string, ContainerBucket>();
@@ -470,11 +458,10 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
     if (visited.has(containerId)) return 0;
     visited.add(containerId);
 
-    const bucket = containerBuckets.get(containerId);
-    if (!bucket) return 0;
-
-    return bucket.children.reduce((total, entry) => {
-      const childWeight = (entry.weight || 0) + (isContainerItem(entry) ? calculateContainedWeight(entry.id, visited) : 0);
+    // Capacity describes the actual load, including contents hidden by a filter.
+    const contents = allInventoryInstances.filter(entry => entry.containerId === containerId);
+    return contents.reduce((total, entry) => {
+      const childWeight = inventoryWeight([entry]) + (isContainerItem(entry) ? calculateContainedWeight(entry.id, visited) : 0);
       return total + childWeight;
     }, 0);
   };
@@ -483,11 +470,12 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
    * Stow `itemId` in a container, or return it to the root backpack. The root
    * bucket is a display-only heading, not an item, so it is sent as `null`.
    */
-  const handleMoveToContainer = (item: InventoryEntry, containerId: string) => {
+  const handleMoveToContainer = (item: InventoryEntry & { sourceIndex: number }, containerId: string) => {
     onAction({
       type: 'MOVE_ITEM_TO_CONTAINER',
       label: `Stow ${item.name}`,
-      payload: { itemId: item.id, containerId: containerId === ROOT_CONTAINER_ID ? null : containerId },
+      payload: { itemId: item.id, containerId: containerId === ROOT_CONTAINER_ID ? null : containerId,
+        inventoryIndex: item.sourceIndex, sourceItem: inventory[item.sourceIndex] },
     });
   };
 
@@ -501,6 +489,9 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
     const availableCapacitySlots = containerItem?.capacitySlots;
     const availableCapacityWeight = containerItem?.capacityWeight;
     const usedWeight = calculateContainedWeight(bucketId);
+    // Ritual components stay bundled inside this kit. Extra-item counts must
+    // not imply that opening the pack erased those contents.
+    const retainedRitualKit = containerItem?.unpackedFrom?.sourceItem.id === 'priests_pack';
 
     return (
       <div className={`${depth === 0 ? '' : 'mt-2'} bg-gray-800/70 rounded border border-gray-700/60 p-3`}>
@@ -517,7 +508,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
             ) : null}
             <div className="flex flex-col">
               <span className="text-sm font-semibold text-amber-200">{containerName}</span>
-              <span className="text-[10px] text-gray-400">{bucket.children.length} item(s)</span>
+              <span className="text-[10px] text-gray-400">{bucket.children.length} {retainedRitualKit ? 'additional item(s)' : 'item(s)'}</span>
             </div>
           </div>
           <div className="flex gap-2 text-[10px] text-gray-400">
@@ -528,11 +519,13 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
             )}
             {availableCapacityWeight !== undefined && (
               <span className={usedWeight > availableCapacityWeight ? 'text-red-300' : ''}>
-                Weight: {usedWeight.toFixed(2)} / {availableCapacityWeight}
+                {retainedRitualKit ? 'Additional load' : 'Weight'}: {usedWeight.toFixed(2)} / {availableCapacityWeight}
               </span>
             )}
           </div>
         </div>
+
+        {retainedRitualKit && !isCollapsed && <p className="mt-2 text-sm text-slate-200">{containerItem.description}</p>}
 
         {!isCollapsed && (
           <ul className="mt-2 space-y-1.5">
@@ -568,7 +561,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                   ? { can: false, reason: isEquippableType ? 'No equipment slot defined for this item.' : undefined }
                   : slotRuleReason
                     ? { can: false, reason: slotRuleReason }
-                    : canEquipItem(character, child);
+                    : canEquipItem(character, child, equipTargetSlot);
 
               const isFood = child.type === 'food_drink';
               const foodExpiration = getFoodExpirationState(child);
@@ -596,11 +589,22 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
               // item keeps one SVG while moving between backpack and mannequin.
               const childIconSrc = resolveItemAssetSrc(childVisual.src);
               const childFallbackIcon = childVisual.fallbackContent;
+              const hasReadableReceipt = child.type === ItemType.Service && !child.readableContent && Boolean(child.description?.trim());
+              // Show the same ignition refusal the action handler enforces, before a player commits.
+              // Keep the source index: a partly burned torch must not resolve to a fresh stack.
+              const torchError = child.id === 'torch' && gameContext
+                ? torchUseError(gameContext.state, {itemId: child.id, characterId: character.id!, inventoryIndex: child.sourceIndex})
+                : null;
+              // Container controls must not squeeze names. The pane-width query
+              // below puts them beside the name only when there is actual room.
+              const hasContainerControls = containerEntries.length > 0;
+              const torchErrorId = torchError ? 'torch-eligibility-' + child.sourceIndex : undefined;
+              const useVerb = child.id === 'torch' ? 'Light' : child.id === 'water-day' ? 'Drink' : isFood ? 'Eat' : 'Use';
 
               return (
                 <React.Fragment key={key}>
-                  <li className={`flex flex-col gap-2 rounded-md border p-2 transition-colors sm:flex-row sm:items-center sm:justify-between ${rowStyle}`}>
-                    <div className="flex min-w-0 items-center gap-2">
+                  <li className={`flex flex-col gap-2 rounded-md border p-2 transition-colors sm:flex-row sm:items-center sm:justify-between ${rowStyle} ${hasContainerControls || hasReadableReceipt || ['explorers_pack','priests_pack'].includes(child.id) ? 'sm:flex-wrap' : ''}`}>
+                    <div className={`flex min-w-0 items-center gap-2 ${hasContainerControls ? 'inventory-container-identity w-full' : ''}`}>
                       {(childIconSrc || childFallbackIcon) && (
                         <span className="w-6 h-6 text-xl text-center flex items-center justify-center flex-shrink-0 filter drop-shadow-sm">
                           {childIconSrc ? (
@@ -624,7 +628,9 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                           onMouseLeave={() => setCompareItem(null)}
                         >
                           <div className="flex items-center gap-1">
-                            <span className="font-medium text-amber-200 text-sm cursor-help truncate" title={child.name}>{child.name}</span>
+                            <span className={`font-medium text-amber-200 text-sm cursor-help ${hasContainerControls ? 'min-w-0 whitespace-normal break-words' : 'truncate'}`} title={child.name}>{child.name}</span>
+                            {/* A day-sized portion is not the size of the whole stack. */}
+                            {(child.quantity ?? 1) > 1 && <span className="shrink-0 text-xs text-slate-200" aria-label={`${child.quantity} units`}>×{child.quantity}</span>}
                             {/* AC Upgrade Indicator */}
                             {acChange > 0 && (
                               <Tooltip content={`Equipping this would increase your AC by ${acChange}`}>
@@ -657,6 +663,8 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                               </span>
                             )}
                           </div>
+                          {child.id === 'torch' && <span className="text-xs text-amber-200">Unlit · {Math.ceil(child.lightFuelMinutes ?? 60)} min fuel · 20 ft bright + 20 ft dim</span>}
+                          {torchError && <span id={torchErrorId} className="text-xs text-amber-100">{torchError}</span>}
                           {child.perishable && (
                             <span className={`text-[10px] ${isExpired ? 'text-red-300 font-semibold' : 'text-orange-300'}`}>
                               {foodExpiration.label}
@@ -665,7 +673,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                         </div>
                       </Tooltip>
                     </div>
-                    <div className="flex flex-wrap items-center justify-end gap-2">
+                    <div className={`flex flex-wrap items-center justify-end gap-2 ${hasContainerControls ? 'inventory-container-actions w-full' : ''}`}>
                       {containerEntries.length > 0 && (
                         <select
                           className="min-h-11 rounded border border-gray-600 bg-gray-800 px-2 py-1 text-xs text-gray-200"
@@ -683,12 +691,21 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                       )}
                       {(child.type === 'consumable' || isFood) && (
                         /* Normalize consumable/use actions to the uppercase reducer contract used everywhere else. */
-                        <button onClick={() => onAction({ type: 'USE_ITEM', label: isFood ? `Eat ${child.name}` : `Use ${child.name}`, payload: { itemId: child.id, characterId: character.id! } })}
-                          disabled={isExpired}
+                        <button onClick={() => {
+                          if (child.id === 'torch' && gameContext) {
+                            const error = torchUseError(gameContext.state, {itemId: child.id, characterId: character.id!, inventoryIndex: child.sourceIndex});
+                            setTorchFeedback(error);
+                            if (error) return;
+                          }
+                          if (child.id === 'rations' || child.id === 'water-day') setMealIndex(child.sourceIndex);
+                          else onAction({ type: 'USE_ITEM', label: `${useVerb} ${child.name}`, payload: { itemId: child.id, characterId: character.id!, inventoryIndex: child.sourceIndex } });
+                        }}
+                          disabled={isExpired || Boolean(torchError)}
+                          aria-describedby={torchErrorId}
                           className="min-h-11 rounded bg-green-700 px-3 py-2 text-xs text-white shadow-sm transition-colors hover:bg-green-600 disabled:bg-gray-600"
-                          aria-label={isFood ? `Eat ${child.name}` : `Use ${child.name}`}
+                          aria-label={`${useVerb} ${child.name}`}
                         >
-                          {isFood ? 'Eat' : 'Use'}
+                          {useVerb}
                         </button>
                       )}
                       {child.readableContent && (
@@ -702,7 +719,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                       )}
                       {isEquippableType && (
                         <Tooltip content={canBeEquipped ? (cantEquipReason ? `Equip ${child.name}\n⚠️ ${cantEquipReason}` : `Equip ${child.name}`) : (cantEquipReason || "Cannot equip")}>
-                          <button onClick={() => onAction({ type: 'EQUIP_ITEM', label: `Equip ${child.name}`, payload: { itemId: child.id, characterId: character.id! } })}
+                          <button onClick={() => onAction({ type: 'EQUIP_ITEM', label: `Equip ${child.name}`, payload: { itemId: child.id, characterId: character.id!, inventoryIndex: child.sourceIndex, inventoryItem: inventory[child.sourceIndex] } })}
                             disabled={!canBeEquipped}
                             className="min-h-11 rounded bg-sky-700 px-3 py-2 text-xs text-white shadow-sm transition-colors hover:bg-sky-600 disabled:cursor-not-allowed disabled:bg-gray-600"
                             aria-label={`Equip ${child.name}`}
@@ -728,6 +745,23 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                         Drop
                       </button>
                     </div>
+                    {/* Both authored bundles use the same guarded review. Custom
+                        contents remain sealed by the transaction's catalog check. */}
+                    {['explorers_pack','priests_pack'].includes(child.id) && (
+                      <AdventuringPackReview item={inventory[child.sourceIndex]} inventoryIndex={child.sourceIndex}
+                        characterId={character.id!} onAction={onAction} />
+                    )}
+                    {hasReadableReceipt && (
+                      // Paid accounts already belong to the player. Reading the
+                      // saved words stays local and never purchases or consumes
+                      // them. Frozen broadsheets retain their existing reader.
+                      <details className="w-full basis-full rounded-md border border-sky-900/60 bg-slate-950/50 px-3 py-2">
+                        <summary aria-label={`Read ${child.name}`} className="cursor-pointer py-1 text-sm font-semibold text-sky-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400">
+                          Read {child.name}
+                        </summary>
+                        <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-slate-200">{child.description}</p>
+                      </details>
+                    )}
                   </li>
                   {childIsContainer && (
                     <div className="mt-2 ml-4">
@@ -744,11 +778,29 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
   };
 
   return (
-    <div className="flex flex-col h-full font-quattrocento">
+    <div className="flex flex-col h-full font-quattrocento" style={{containerType:'inline-size',containerName:'carried-inventory'}}>
+      {/* The sheet is resizable and has three panes. Use this pane's actual
+          room, so narrow names remain readable without doubling wide rows.
+          Full-width receipts and pack reviews still wrap onto their own line. */}
+      <style>{`
+        @container carried-inventory (min-width: 640px) {
+          .inventory-container-identity { width: auto; flex: 1 1 0%; min-width: 8rem; }
+          .inventory-container-actions { width: auto; flex: 0 0 auto; max-width: calc(100% - 9rem); }
+        }
+      `}</style>
 
       {/* Currency Header */}
       {/* Renders the character's available currency across platinum, gold, silver, and copper denominations. */}
       <div className="mb-3 bg-gray-900/60 p-3 rounded-lg border border-gray-700">
+        {torchFeedback && <p role="status" className="mb-3 rounded border border-amber-500/40 bg-amber-950/40 p-2 text-sm text-amber-100">{torchFeedback}</p>}
+        {gameContext && activeCarriedTorches(gameContext.state).filter(source => source.bearerId === character.id).map(source => (
+          <div key={source.id} className="mb-3 flex items-center justify-between gap-2 text-sm text-amber-200">
+            <span>Burning torch · {Math.ceil(source.durationRemaining)} min fuel</span>
+            <button type="button" className="rounded border border-amber-600 px-2 py-1" onClick={() => onAction({
+              type: 'USE_ITEM', label: 'Extinguish torch', payload: {itemId: 'torch', characterId: character.id!, light: {action: 'extinguish', sourceId: source.id}}
+            })}>Extinguish torch</button>
+          </div>
+        ))}
         <h4 className="text-xs font-semibold font-cinzel text-amber-500 mb-2 uppercase tracking-widest border-b border-gray-700 pb-1">Coin Pouch</h4>
         <div className="flex justify-start items-center gap-3 flex-wrap">
           <CoinBadge type="pp" amount={currency.PP} />
@@ -784,7 +836,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                   <span className="text-[10px] text-gray-400 capitalize">{slot.replace(/([A-Z])/g, ' $1').trim()} slot</span>
                 </div>
                 <div>
-                  {item.isAttuned ? (
+                  {item.isAttuned && item.attunedCharacterId === character.id ? (
                     <button
                       onClick={() => onAction({
                         type: 'UNATTUNE_ITEM',
@@ -794,6 +846,19 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                       className="min-h-11 rounded bg-purple-750 px-3 py-2 text-[10px] font-medium text-white shadow-sm transition-colors hover:bg-purple-650"
                     >
                       Attuned
+                    </button>
+                  ) : item.isAttuned && item.attunedCharacterId ? (
+                    <button
+                      onClick={() => onAction({
+                        type: 'ATTUNE_ITEM',
+                        label: `Attune ${item.name}`,
+                        payload: { characterId: character.id!, itemId: item.id }
+                      })}
+                      disabled={totalAttunedCount >= 3}
+                      className="min-h-11 rounded bg-amber-800 px-3 py-2 text-[10px] font-medium text-amber-200 shadow-sm transition-all hover:bg-amber-700 hover:text-white disabled:bg-gray-800 disabled:text-gray-500 disabled:opacity-50"
+                      title="Currently attuned to another party member. Click to attune to this character."
+                    >
+                      Re-attune
                     </button>
                   ) : (
                     <button
@@ -836,10 +901,16 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
 
       {/* Weight & List Header */}
       {/* Displays the inventory weight summary and standard item list section header. */}
-      <div className="flex justify-between items-center mb-2 px-1">
+      <div className="flex flex-wrap justify-between items-center gap-x-2 gap-y-1 mb-2 px-1">
         <h3 className="font-semibold font-cinzel text-sky-400 text-sm">Backpack</h3>
-        <span className="text-xs text-gray-400">Weight: {totalInventoryWeight} lbs</span>
+        <span className="max-w-full shrink-0 text-xs text-gray-400" data-testid="inventory-encumbrance">
+          Weight: {totalInventoryWeight} / {encumbrance.carrying.carryingCapacity.toFixed(0)} lbs
+          <span className={`ml-2 font-semibold ${encumbranceTone}`}>{encumbranceLabel}</span>
+        </span>
       </div>
+
+      {mealIndex !== null && <PartyMealConfirmation key={mealIndex} inventory={inventory}
+        party={gameContext?.state.party ?? [character]} selectedIndex={mealIndex} onAction={onAction} onCancel={() => setMealIndex(null)} />}
 
       {/* Type Filter Buttons */}
       <div className="mb-3 flex flex-wrap gap-1">

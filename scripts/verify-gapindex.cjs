@@ -1,0 +1,20 @@
+const { execSync } = require('child_process');
+const out = execSync('node "../../tools/agora/gapIndex.mjs" --open-only', { cwd: __dirname, encoding: 'utf8' });
+const lines = out.split('\n');
+const summaryLine = lines.find(l => /^(\d+) gap\(s\) across (\d+) project\(s\) under docs\/projects \(open only\):\s*$/.test(l));
+console.log('gapIndex summary line:', summaryLine || 'NOT FOUND');
+const openTotal = lines.find(l => /^\s+(\d+) open \/ (\d+) total\s+global/m.test(l));
+console.log('global open/total:', openTotal ? openTotal.trim() : 'NOT FOUND');
+const spellsLine = lines.find(l => /^\s+(\d+) open \/ (\d+) total\s+spells/m.test(l));
+console.log('spells open/total:', spellsLine ? spellsLine.trim() : 'NOT FOUND');
+const ibLine = lines.find(l => /^\s+(\d+) open \/ (\d+) total\s+idea-board/m.test(l));
+console.log('idea-board open/total:', ibLine ? ibLine.trim() : 'NOT FOUND');
+const errs = lines.filter(l => l.startsWith('gapIndex:'));
+console.log('gapIndex stderr lines:', errs.length);
+errs.slice(0, 5).forEach(e => console.log('  ', e));
+// gaps array at end: count distinct gap ids
+const jsonStart = out.indexOf('[');
+const jsonText = jsonStart !== -1 ? out.slice(jsonStart) : '';
+const ids = new Set();
+jsonText.replace(/GG-\d+/g, (m) => ids.add(m));
+console.log('distinct GG- ids in JSON tail:', ids.size);

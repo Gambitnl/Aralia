@@ -36,6 +36,32 @@ export interface HydrologyInput {
   riverThreshold?: number;
   /** How far a lake's surface sits below its spill point, encoded units. */
   lakeDropEnc?: number;
+  /**
+   * The least depth (filled minus ground, encoded units) that makes a cell
+   * standing water (2026-10-27). Shallower hollows stay land: without it,
+   * every pit a few millimetres deep in noisy ground became a lake. Default 0
+   * keeps the old rule for callers that do not set it.
+   */
+  lakeMinDepthEnc?: number;
+  /**
+   * Cells that drain away like the grid edge (2026-10-27): 1 = an outlet,
+   * seeded at its own height. A basin that drains into an outlet does not
+   * fill. The ground loader passes the authored river's cells, so the
+   * region's carved river trench (a chain of pits) drains along the river
+   * instead of filling into flat lakes over the valley floor.
+   */
+  outlets?: Uint8Array;
+  /**
+   * Water balance for standing water (2026-10-27): a basin holds a lasting
+   * pond only when its catchment (every cell that drains into it, its own
+   * cells included) is at least this many times its area. Below that,
+   * evaporation and seepage take the rain it collects. A noisy grassland had a
+   * pond in every pit 0.5 m deep, the town square included. Default 0 keeps
+   * the old rule (every deep-enough hollow fills). Either one ratio, or one
+   * per cell (a basin then uses the mean over its cells): ground with its
+   * water table at the surface needs far less catchment than dry ground.
+   */
+  lakeCatchmentRatio?: number | ArrayLike<number>;
 }
 
 export interface HydrologyResult {
@@ -121,7 +147,7 @@ export function fillDepressions(input: HydrologyInput): number[] {
     const col = idx % cols;
     const row = (idx - col) / cols;
     const onEdge = col === 0 || row === 0 || col === cols - 1 || row === rows - 1;
-    if (onEdge) {
+    if (onEdge || input.outlets?.[idx] === 1) {
       filled[idx] = heights[idx];
       seen[idx] = 1;
       heap.push(idx, heights[idx]);
@@ -173,6 +199,57 @@ export function flowAccumulation(
 }
 
 /**
+ * Cells of basins too small a catchment keeps wet (1 = dry), by water balance.
+ *
+ * A basin is a connected patch of cells that filling raised. Its catchment is
+ * read on the UNFILLED ground, where every cell runs downhill to a low point:
+ * a cell that drains toward the basin ends at a low point inside it, so the
+ * catchment is the flow gathered at the basin's own low points. (On the filled
+ * surface the rim stands level with the pond and never drains into it.) The
+ * basin stays a pond when its catchment is at least `lakeCatchmentRatio`
+ * times its cell count.
+ */
+function dryBasinCells(
+  input: HydrologyInput,
+  filled: readonly number[],
+): Uint8Array {
+  const { cols, rows, heights } = input;
+  const total = cols * rows;
+  const dry = new Uint8Array(total);
+  const given = input.lakeCatchmentRatio ?? 0;
+  if (typeof given === "number" && given <= 0) return dry;
+  const ratioAt = (idx: number): number => (typeof given === "number" ? given : given[idx]);
+  const accumulation = flowAccumulation(heights, cols, rows);
+  const isLowPoint = (idx: number): boolean =>
+    neighboursOf(idx, cols, rows).every((n) => heights[n] >= heights[idx]);
+  const seen = new Uint8Array(total);
+  const stack: number[] = [];
+  const basin: number[] = [];
+  for (let start = 0; start < total; start++) {
+    if (seen[start] || filled[start] - heights[start] <= 1e-9) continue;
+    seen[start] = 1;
+    stack.push(start);
+    basin.length = 0;
+    let catchment = 0;
+    let ratioSum = 0;
+    while (stack.length > 0) {
+      const idx = stack.pop()!;
+      basin.push(idx);
+      ratioSum += ratioAt(idx);
+      if (isLowPoint(idx)) catchment += accumulation[idx];
+      for (const n of neighboursOf(idx, cols, rows)) {
+        if (seen[n] || filled[n] - heights[n] <= 1e-9) continue;
+        seen[n] = 1;
+        stack.push(n);
+      }
+    }
+    // Mean ratio over the basin, times its area: catchment < ratioSum.
+    if (catchment < ratioSum) for (const idx of basin) dry[idx] = 1;
+  }
+  return dry;
+}
+
+/**
  * Where water sits, and how high, taken from the terrain alone.
  *
  * A cell is LAKE when filling raised it — standing water, its surface the
@@ -184,15 +261,17 @@ export function deriveHydrology(input: HydrologyInput): HydrologyResult {
   const { cols, rows, heights } = input;
   const riverThreshold = input.riverThreshold ?? DEFAULT_RIVER_THRESHOLD;
   const lakeDrop = input.lakeDropEnc ?? DEFAULT_LAKE_DROP;
+  const lakeMinDepth = Math.max(1e-9, input.lakeMinDepthEnc ?? 0);
 
   const filled = fillDepressions(input);
   const accumulation = flowAccumulation(filled, cols, rows);
   const water = new Map<number, number>();
   const lakeCells = new Set<number>();
+  const dry = dryBasinCells(input, filled);
 
   for (let idx = 0; idx < cols * rows; idx++) {
     const raised = filled[idx] - heights[idx];
-    if (raised > 1e-9) {
+    if (raised > lakeMinDepth && !dry[idx]) {
       // Standing water: the surface is the spill height for the whole basin.
       water.set(idx, Math.max(0, filled[idx] - lakeDrop));
       lakeCells.add(idx);

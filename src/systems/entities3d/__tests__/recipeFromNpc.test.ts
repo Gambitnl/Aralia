@@ -33,6 +33,19 @@ const npc = (over: Partial<RichNPC> & { id: string }): RichNPC =>
 describe('recipeFromRichNpc', () => {
   beforeAll(() => registerAllParts());
 
+  it('keeps a retained species through serialized NPC and legacy authored shells', () => {
+    const old = npc({id:'kaelen_thorne'});
+    const typed = {...old,biography:{...old.biography,raceId:'tiefling'}};
+    const retained = recipeFromRichNpc(JSON.parse(JSON.stringify(typed)));
+    const legacy = recipeFromRichNpc(old,'Tiefling');
+    expect(retained).toEqual(legacy);
+    expect(retained).toMatchObject({kind:'humanoid',raceId:'tiefling'});
+    const blueprint = generateEntityBlueprint(retained);
+    expect(blueprint.parts.some(part=>/horn/i.test(part.partId))).toBe(true);
+    expect(blueprint.parts.some(part=>/tail/i.test(part.partId))).toBe(true);
+    expect(old.biography.raceId).toBeUndefined();
+  });
+
   it('maps the biography class and equipped gear', () => {
     const r = recipeFromRichNpc(
       npc({

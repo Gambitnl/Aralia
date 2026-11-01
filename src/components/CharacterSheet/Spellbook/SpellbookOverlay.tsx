@@ -3,6 +3,23 @@
  * A component for displaying a character's spellbook as a full-screen overlay.
  * Features a 2-column master-detail layout with spell list and inline glossary display.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 12:07:32
+ * Dependents: components/CharacterSheet/Spellbook/index.ts
+ * Imports: 12 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { PlayerCharacter, Spell, Action } from '../../../types';
 import SpellContext from '../../../context/SpellContext';
@@ -14,6 +31,7 @@ import { FullEntryDisplay } from '../../Glossary/FullEntryDisplay';
 import { findGlossaryEntryAndPath } from '../../../utils/visuals';
 import SpellSlotDisplay from './SpellSlotDisplay';
 import CastSpellControls from './CastSpellControls';
+import SpellDetailPane from './SpellDetailPane';
 import { getPreparedSpellsAffectingLimit, isRacialSpellLockedForPreparation, getMaxPreparedSpells } from '../../../utils/character/characterUtils';
 
 // Casters that pick spells permanently (no daily preparation step).
@@ -112,8 +130,11 @@ const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, 
   const selectedSpellEntry = useMemo(() => {
     if (!selectedSpellId || !glossaryEntries) return null;
     const { entry } = findGlossaryEntryAndPath(selectedSpellId, glossaryEntries);
+    // Preserve explicit rule browsing, but never replace a selected spell with
+    // same-named equipment such as Shield. Its own spell record remains usable.
+    if (allSpellsData?.[selectedSpellId] && entry && !entry.hasSpellJson && entry.category.toLowerCase() !== 'spells') return null;
     return entry;
-  }, [selectedSpellId, glossaryEntries]);
+  }, [selectedSpellId, glossaryEntries, allSpellsData]);
 
   // Full spell record (with effects) for the out-of-combat cast controls.
   const selectedSpell = useMemo(() => {
@@ -306,6 +327,8 @@ const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, 
                   entry={selectedSpellEntry}
                   onNavigate={(termId) => setSelectedSpellId(termId)}
                 />
+              ) : selectedSpell ? (
+                <SpellDetailPane spell={selectedSpell} />
               ) : selectedSpellId ? (
                 <div className="flex flex-col items-center justify-center h-full text-slate-400">
                   <span className="material-symbols-outlined text-4xl mb-2">search_off</span>

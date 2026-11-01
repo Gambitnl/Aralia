@@ -67,3 +67,9 @@ describe('CombatIntentPreview', () => {
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
 });
+
+it('explains nearby ranged pressure and cancellation without revealing an enemy identity',()=>{
+ render(<CombatIntentPreview ability={fireBolt} casterName="Mara" rangedPressure onCancel={()=>{}} />);
+ expect(screen.getByRole('status')).toHaveTextContent('Disadvantage because a nearby enemy can see you');
+ expect(screen.getByRole('status')).toHaveTextContent('Advantage from another source cancels it');
+});

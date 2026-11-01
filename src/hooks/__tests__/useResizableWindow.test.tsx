@@ -10,7 +10,7 @@
  * Depends on: React, React Testing Library, Vitest, and browser localStorage
  */
 import React, { useRef } from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useResizableWindow } from '../useResizableWindow';
 
@@ -116,6 +116,31 @@ describe('useResizableWindow', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+  });
+
+  it('preserves a restored pane while its browser viewport has no area', () => {
+    localStorage.setItem('hidden-pane', JSON.stringify({ width: 900, height: 650 }));
+    render(<WindowProbe storageKey="hidden-pane" />);
+    const probe = screen.getByTestId('window-probe');
+    act(() => setViewport(0, 0));
+    expect(probe).toHaveAttribute('data-width', '900');
+    expect(probe).toHaveAttribute('data-height', '650');
+    expect(localStorage.getItem('hidden-pane')).toBe(JSON.stringify({ width: 900, height: 650 }));
+  });
+
+  it('opens a hidden maximized pane at a usable size and fits on visibility return', () => {
+    setViewport(0, 0);
+    render(<WindowProbe storageKey="hidden-start" />);
+    const probe = screen.getByTestId('window-probe');
+    expect(Number(probe.dataset.width)).toBeGreaterThanOrEqual(600);
+    expect(Number(probe.dataset.height)).toBeGreaterThanOrEqual(400);
+    // Embedded tabs can return without a window resize event.
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1280 });
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 768 });
+    act(() => document.dispatchEvent(new Event('visibilitychange')));
+    expect(probe).toHaveAttribute('data-width', '1240');
+    expect(probe).toHaveAttribute('data-height', '728');
+    expect(probe).toHaveAttribute('data-is-maximized', 'true');
   });
 
   it('shrinks maximized windows to the available viewport width on narrow screens', async () => {

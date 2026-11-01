@@ -5,6 +5,23 @@
  * archetype, which walk-cycle keyframe, facing which way, at what size. Kept
  * out of the component so the logic is unit-testable without R3F.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 01:49:01
+ * Dependents: components/World3D/GroundAgents.tsx
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { SeededRandom } from '@/utils/random/seededRandom';
 import type { GroundAgentSceneNode } from '@/systems/worldforge/bridge/groundAgentMotion';
 import { CROWD_WALK_PHASES } from '@/systems/entities3d/three/crowdBake';
@@ -59,6 +76,7 @@ export function crowdInstancePlan(
   nodes: GroundAgentSceneNode[],
   timeS: number,
   headings: HeadingMemory,
+  sourceAncestries?: ReadonlyMap<string, string>,
 ): CrowdInstance[] {
   return nodes.map((n) => {
     const prev = headings.get(n.occupantId);
@@ -75,6 +93,8 @@ export function crowdInstancePlan(
           CROWD_WALK_PHASES)
       : 0;
     const scale = 0.92 + new SeededRandom(n.occupantId * 449 + 3).next() * 0.16;
-    return { node: n, group: groupForOccupant(n.occupantId), phaseIdx, yaw, scale };
+    // Unknown legacy crowds retain the seeded mix. Known residents keep the
+    // ancestry of their source body even when distance reduces visual detail.
+    return { node: n, group: sourceAncestries?.get(`${n.burgId}:${n.occupantId}`) ?? groupForOccupant(n.occupantId), phaseIdx, yaw, scale };
   });
 }

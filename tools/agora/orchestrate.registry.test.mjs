@@ -5,7 +5,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { validatePlan, loadRegistry, staleConstraints, launchSpec } from './orchestrate.mjs';
-import { diffMatrix, hasDispatchWiring, isWorkerDispatchable } from './syncAgents.mjs';
+import { diffMatrix, hasDispatchWiring, isWorkerDispatchable, loadOfferings, runMatrixCheck } from './syncAgents.mjs';
 
 function planWith(agent) {
   return {
@@ -87,7 +87,39 @@ test('registry: cline is a wired worker lane and validatePlan accepts it', () =>
   assert.ok(def.roles.includes('worker'));
   assert.equal(def.status, 'ready');
   assert.equal(def.dispatch.command, 'cline');
+  assert.equal(def.dispatch.maxConcurrent, 1);
+  assert.equal(def.dispatch.maxFiles, 1);
+  assert.equal(def.dispatch.externalTimeoutMs, 720000);
+  assert.equal(def.dispatch.emptyLogTimeoutMs, 300000);
   assert.equal(validatePlan(planWith('cline')), true);
+});
+
+test('WF-G226: validatePlan rejects a cline packet that owns more than 1 file', () => {
+  const multiFilePlan = {
+    wave: 'w',
+    pet: 'gf-sd',
+    packets: [{ id: 'PK-1', handle: 'h-1', pet: 'dream-girl', agent: 'cline', scope: 's', files: ['src/a.ts', 'src/b.ts'] }],
+  };
+  assert.throws(() => validatePlan(multiFilePlan), /allows at most 1 file\(s\) per packet.*WF-G226/);
+});
+
+test('WF-G182: loadOfferings file fallback merges seeded codex and gemini defaults and runMatrixCheck passes', async () => {
+  const loaded = await loadOfferings({
+    url: '',
+    fetchImpl: null,
+  });
+  assert.equal(loaded.live, false);
+  assert.ok(loaded.mtimeIso, 'reports ledger file mtimeIso on fallback');
+  assert.ok(loaded.offerings.some((o) => o.id === 'codex'), 'includes seeded codex offering');
+  assert.ok(loaded.offerings.some((o) => o.id === 'gemini'), 'includes seeded gemini offering');
+
+  const logs = [];
+  const exitCode = await runMatrixCheck({
+    loader: async () => loaded,
+    log: (line) => logs.push(line),
+  });
+  assert.equal(exitCode, 0);
+  assert.ok(logs.some((line) => line.includes('FILE FALLBACK, mtime') && line.includes('not a source of truth')));
 });
 
 test('registry: freebuff is present but rejected — it is TUI-only, with no headless prompt path', () => {

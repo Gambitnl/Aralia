@@ -195,20 +195,23 @@ describe('opportunity attacks run through WeaponAttackCommand', () => {
     });
 
     it('applies the G14 high-ground rule to a melee opportunity attack', async () => {
-        // One elevation unit is 0.3 m, so six units clear the five-foot band the
-        // rule needs. The responder presses downhill and rolls with Advantage.
+        // A five-foot ledge plus one horizontal square needs a ten-foot
+        // reach weapon. Preserve the high-ground assertion using a legal
+        // departure, rather than letting a five-foot dagger cross that gap.
         const walker = mover('downhill-walker');
-        const guard = responder();
+        const guard = responder({ abilities: [REACH_SPEAR] });
         mockConsumeAction.mockReturnValue(walker);
 
         const { result } = renderHook(() => useActionExecutor({
             ...defaultProps,
             characters: [walker, guard],
             turnState: turnFor(walker.id),
-            mapData: mapWith({ '0-0': { elevation: 6 } }),
+            mapData: mapWith({ '0-0': { elevation: 5 } }),
         }));
 
-        await result.current.executeAction(leaveReach(walker.id, guard.id, 15));
+        const departure = leaveReach(walker.id, guard.id, 15);
+        departure.opportunityAttackDecisions![guard.id].abilityId = REACH_SPEAR.id;
+        await result.current.executeAction(departure);
 
         expect(messages().some(message => message.includes('with Advantage'))).toBe(true);
     });
@@ -272,8 +275,9 @@ describe('opportunity attacks run through WeaponAttackCommand', () => {
         await result.current.executeAction(leaveReach(walker.id, champion.id, 19));
 
         expect(messages().some(message => message.includes('CRITICAL HIT!'))).toBe(true);
-        // A critical doubles the die count, and both pinned dice show 4.
-        expect(lastPublished(walker.id)?.currentHP).toBe(32);
+        // A critical doubles the die count, and both pinned dice show 4; the
+        // responder's Strength modifier +3 adds once (GG-496: weapon hits add the ability modifier): 8 + 3 = 11.
+        expect(lastPublished(walker.id)?.currentHP).toBe(29);
     });
 
     it('leaves a non-Champion opportunity attack uncritical on the same roll', async () => {
@@ -291,6 +295,7 @@ describe('opportunity attacks run through WeaponAttackCommand', () => {
         await result.current.executeAction(leaveReach(walker.id, guard.id, 19));
 
         expect(messages().some(message => message.includes('CRITICAL HIT!'))).toBe(false);
-        expect(lastPublished(walker.id)?.currentHP).toBe(36);
+        // Pinned die 4 + Strength modifier 3 (GG-496: weapon hits add the ability modifier).
+        expect(lastPublished(walker.id)?.currentHP).toBe(33);
     });
 });

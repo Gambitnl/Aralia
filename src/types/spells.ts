@@ -23,9 +23,11 @@
  * 2026-02-27 09:24:00: [Preservationist] Added '@ts-ignore' to the 
  * 'SpellVisualSpec' import to suppress script-specific resolution 
  * warnings.
+ * 2026-10-24: [C8, agora-9ed9.8] Removed that '@ts-ignore'. The warning came
+ * from tsconfig.scripts.json using NodeNext resolution; that config now uses
+ * the bundler resolution tsx actually runs with, so the import resolves cleanly.
  */
 
-// @ts-ignore
 import type { SpellVisualSpec } from './visuals';
 import type { SpellAttackType, SpellRarity, SpellSchool } from './spellCoreMetadata';
 import type { RitualBacklash, RitualRequirement } from './rituals';

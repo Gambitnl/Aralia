@@ -5,6 +5,9 @@ import { createMockGameState } from '../../utils/core/factories';
 import type { PlayerCharacter } from '../../types/character';
 import type { AtlasGroundAddress } from '../../systems/worldforge/leaf3d/atlasGroundDrilldown';
 import { atlasGroundPositionForAddress } from '../../systems/worldforge/leaf3d/atlasGroundContinuity';
+import { buildOutOfCombatStatusEffect } from '../../utils/spells/outOfCombatCasting';
+import bladeWardData from '../../../public/data/spells/level-0/blade-ward.json';
+import type { Spell } from '../../types';
 
 /**
  * WS2 — Fights that stick: combat runs on transient CombatCharacter copies, so
@@ -34,6 +37,18 @@ const stateWithParty = (party: PlayerCharacter[]) =>
   createMockGameState({ phase: GamePhase.COMBAT, party });
 
 describe('END_BATTLE combat attrition persistence', () => {
+  it('keeps broken prepared concentration ended without removing another caster or custom status', () => {
+    const spell = bladeWardData as unknown as Spell;
+    const ward = buildOutOfCombatStatusEffect(spell, 'pc1', new Date(), 0)!;
+    const other = buildOutOfCombatStatusEffect(spell, 'pc2', new Date(), 0)!;
+    const custom = { ...ward, id: 'custom', source: 'Unrelated' };
+    const next = appReducer(stateWithParty([partyMember({ statusEffects: [ward, other, custom] })]), {
+      type: 'END_BATTLE', payload: { finalPartyState: [{ id: 'pc1', currentHP: 5,
+        endedPreparedConcentrationIds: [ward.id, custom.id] }] },
+    });
+    expect(next.party[0].statusEffects).toEqual([other, custom]);
+    expect(next.party[0].hp).toBe(5);
+  });
   it('persists post-combat HP back to the party member', () => {
     const next = appReducer(stateWithParty([partyMember()]), {
       type: 'END_BATTLE',
@@ -85,6 +100,36 @@ describe('END_BATTLE combat attrition persistence', () => {
       payload: { rewards: { gold: 0, items: [], xp: 0 }, finalPartyState: [{ id: 'pc1', currentHP: 999 }] },
     });
     expect(next.party[0].hp).toBe(12);
+  });
+
+  it('persists damaged HP and spent resources on flee without rewards (GG-467)', () => {
+    // When fleeing or retreating without victory rewards, finalPartyState must still
+    // stick to the persistent characters instead of magically restoring pre-fight health.
+    const next = appReducer(stateWithParty([partyMember({ hp: 12, maxHp: 12 })]), {
+      type: 'END_BATTLE',
+      payload: {
+        finalPartyState: [{
+          id: 'pc1',
+          currentHP: 4,
+          spellSlots: { level_1: { current: 1, max: 2 } } as unknown as PlayerCharacter['spellSlots'],
+        }],
+      },
+    });
+    expect(next.party[0].hp).toBe(4);
+    expect((next.party[0].spellSlots as Record<string, { current: number }>).level_1.current).toBe(1);
+    expect(next.phase).toBe(GamePhase.PLAYING);
+  });
+
+  it('preserves downed 0 HP on flee without rewards (GG-467)', () => {
+    // Unlike victory where downed survivors are stabilized to 1 HP post-battle,
+    // a retreat leaves unconscious characters at 0 HP.
+    const next = appReducer(stateWithParty([partyMember({ hp: 12, maxHp: 12 })]), {
+      type: 'END_BATTLE',
+      payload: {
+        finalPartyState: [{ id: 'pc1', currentHP: 0 }],
+      },
+    });
+    expect(next.party[0].hp).toBe(0);
   });
 
   it('returns to PLAYING with the same Atlas hierarchy and exact ground meters', () => {

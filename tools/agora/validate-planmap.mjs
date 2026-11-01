@@ -58,6 +58,87 @@ function checkHistory(where, h) {
 }
 
 const TIERS = new Set(['strategic', 'component']);
+const ADOPTIONS = new Set(['not_adopted', 'partial', 'adopted']);
+// Repo root can be overridden in tests via --repo <dir> so reachability fixtures are isolated.
+const repoFlagIdx = process.argv.indexOf('--repo');
+const effectiveRepo = repoFlagIdx >= 0 && process.argv[repoFlagIdx + 1]
+  ? path.resolve(process.argv[repoFlagIdx + 1])
+  : repo;
+
+/**
+ * Walk `src/` under `rootDir` and collect all non-test `.ts`/`.tsx` production files.
+ * Cached lazily so normal validation pays zero file-walk cost unless a topic or feature
+ * declares `reachableSymbols` (WF-G188).
+ */
+let cachedProdFiles = null;
+function getProductionSourceFiles(rootDir) {
+  if (cachedProdFiles && cachedProdFiles.rootDir === rootDir) return cachedProdFiles.files;
+  const srcRoot = path.join(rootDir, 'src');
+  const files = [];
+  if (fs.existsSync(srcRoot)) {
+    const stack = [srcRoot];
+    while (stack.length > 0) {
+      const dir = stack.pop();
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name);
+        const rel = path.relative(rootDir, full).replace(/\\/g, '/');
+        if (entry.isDirectory()) {
+          if (entry.name === '__tests__' || entry.name === 'node_modules') continue;
+          stack.push(full);
+        } else if (
+          /\.(ts|tsx)$/.test(entry.name) &&
+          !entry.name.endsWith('.d.ts') &&
+          !/\.(test|spec)\.(ts|tsx)$/.test(entry.name)
+        ) {
+          files.push({ rel, full, text: fs.readFileSync(full, 'utf8') });
+        }
+      }
+    }
+  }
+  cachedProdFiles = { rootDir, files };
+  return files;
+}
+
+/**
+ * WF-G188: Verify that `symbol` (defined in `definedIn`) is referenced by at least one
+ * non-test production file in `src/` that is itself imported by another production file
+ * (or is an entry/hook/component surface).
+ */
+function checkReachableSymbols(where, status, reachableSymbols) {
+  if (reachableSymbols === undefined) return;
+  if (!Array.isArray(reachableSymbols)) {
+    warn(`${where}: "reachableSymbols" must be an array`);
+    return;
+  }
+  for (const item of reachableSymbols) {
+    if (!item || typeof item !== 'object' || typeof item.symbol !== 'string' || !item.symbol.trim() || typeof item.definedIn !== 'string' || !item.definedIn.trim()) {
+      warn(`${where}: each "reachableSymbols" item requires non-empty { symbol, definedIn }`);
+      continue;
+    }
+    if (status !== 'done') continue;
+    const prodFiles = getProductionSourceFiles(effectiveRepo);
+    const symRe = new RegExp(`\\b${item.symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`);
+    const normDef = item.definedIn.replace(/\\/g, '/');
+    const callers = prodFiles.filter((f) => f.rel !== normDef && symRe.test(f.text));
+    if (callers.length === 0) {
+      warn(`${where}: status is "done" but symbol "${item.symbol}" (${normDef}) has no non-test production caller in src/ (WF-G188)`);
+      continue;
+    }
+    // Check that at least one caller is not a dead/unreferenced service module.
+    const hasLiveCaller = callers.some((caller) => {
+      // Entry points, components, hooks, state reducers, and town canonical builders are live surfaces;
+      // otherwise check if the caller's module stem is referenced by another production file.
+      const baseNoExt = path.basename(caller.rel).replace(/\.(ts|tsx)$/, '');
+      const callerRe = new RegExp(`\\b${baseNoExt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`);
+      return prodFiles.some((other) => other.rel !== caller.rel && callerRe.test(other.text));
+    });
+    if (!hasLiveCaller) {
+      warn(
+        `${where}: status is "done" but symbol "${item.symbol}" (${normDef}) is only called by unreachable production module(s): ${callers.map((c) => c.rel).join(', ')} (WF-G188)`
+      );
+    }
+  }
+}
 
 for (const t of topics) {
   const where = `topic "${t.id ?? t.title ?? '?'}"`;
@@ -66,6 +147,11 @@ for (const t of topics) {
   if (t.updated !== undefined && !DATE_RE.test(t.updated)) warn(`${where}: "updated" must be YYYY-MM-DD`);
   if (t.tier !== undefined && !TIERS.has(t.tier)) warn(`${where}: "tier" must be strategic|component`);
   if (t.status_note !== undefined && typeof t.status_note !== 'string') warn(`${where}: "status_note" must be a string`);
+  if (t.adoption !== undefined && !ADOPTIONS.has(t.adoption)) warn(`${where}: "adoption" must be not_adopted|partial|adopted`);
+  if (t.status === 'done' && (t.adoption === 'not_adopted' || t.adoption === 'partial')) {
+    warn(`${where}: status cannot be "done" while adoption is "${t.adoption}" (WF-G176 / WF-G186)`);
+  }
+  checkReachableSymbols(where, t.status, t.reachableSymbols);
   // Verification stamp (GG-121 / WF-G117): the day this entry was last checked
   // against the code. planmap-add --verified writes it; hand edits land here too.
   if (t.verified !== undefined && !DATE_RE.test(t.verified)) warn(`${where}: "verified" must be YYYY-MM-DD`);
@@ -96,6 +182,11 @@ for (const t of topics) {
     if (!STATUSES.has(f.status)) warn(`${where} / "${f.title}": invalid status "${f.status}"`);
     if (f.status === 'superseded' && !f.killed) warn(`${where} / "${f.title}": superseded but no "killed" reason`);
     if (f.status_note !== undefined && typeof f.status_note !== 'string') warn(`${where} / "${f.title}": "status_note" must be a string`);
+    if (f.adoption !== undefined && !ADOPTIONS.has(f.adoption)) warn(`${where} / "${f.title}": "adoption" must be not_adopted|partial|adopted`);
+    if (f.status === 'done' && (f.adoption === 'not_adopted' || f.adoption === 'partial')) {
+      warn(`${where} / "${f.title}": status cannot be "done" while adoption is "${f.adoption}" (WF-G176 / WF-G186)`);
+    }
+    checkReachableSymbols(`${where} / "${f.title}"`, f.status, f.reachableSymbols);
     if (f.verified !== undefined && !DATE_RE.test(f.verified)) warn(`${where} / "${f.title}": "verified" must be YYYY-MM-DD`);
     if (f.decision !== undefined && typeof f.decision !== 'boolean') warn(`${where} / "${f.title}": "decision" must be boolean (true = waiting on a human call)`);
     if (f.open != null && (!Number.isInteger(f.open) || f.open < 0)) warn(`${where} / "${f.title}": "open" must be an integer >= 0 (got ${JSON.stringify(f.open)})`);

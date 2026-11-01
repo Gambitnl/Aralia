@@ -45,9 +45,13 @@ export class Voronoi {
       if (p < this.pointsN && !this.cells.c[p]) {
         const edges = this.edgesAroundPoint(e);
         this.cells.v[p] = edges.map((e) => this.triangleOfEdge(e)); // cell: adjacent vertex
-        this.cells.c[p] = edges
-          .map((e) => this.delaunay.triangles[e])
-          .filter((c) => c < this.pointsN); // cell: adjacent valid cells
+        // cell: adjacent valid cells (one loop in place of upstream map + filter; GG-556)
+        const adjacent: number[] = [];
+        for (const edge of edges) {
+          const c = this.delaunay.triangles[edge];
+          if (c < this.pointsN) adjacent.push(c);
+        }
+        this.cells.c[p] = adjacent;
         this.cells.b[p] = edges.length > this.cells.c[p].length ? 1 : 0; // cell: is border
       }
 
@@ -65,10 +69,15 @@ export class Voronoi {
    * @param {number} t The index of the triangle
    * @returns {[number, number, number]} The IDs of the points comprising the given triangle.
    */
+  // GG-556 (2026-11-01): pointsOfTriangle, trianglesAdjacentToTriangle and
+  // triangleCenter read the triangle's three half-edges (3t, 3t + 1, 3t + 2)
+  // by index. Upstream built an edgesOfTriangle array and mapped it on each
+  // call; that was three short-lived arrays per triangle. The values, their
+  // order and the returned arrays are the same.
   private pointsOfTriangle(triangleIndex: number): [number, number, number] {
-    return this.edgesOfTriangle(triangleIndex).map(
-      (edge) => this.delaunay.triangles[edge],
-    ) as [number, number, number];
+    const triangles = this.delaunay.triangles;
+    const e = 3 * triangleIndex;
+    return [triangles[e], triangles[e + 1], triangles[e + 2]];
   }
 
   /**
@@ -77,12 +86,13 @@ export class Voronoi {
    * @returns {number[]} The indices of the triangles that share half-edges with this triangle.
    */
   private trianglesAdjacentToTriangle(triangleIndex: number): number[] {
-    const triangles = [];
-    for (const edge of this.edgesOfTriangle(triangleIndex)) {
-      const opposite = this.delaunay.halfedges[edge];
-      triangles.push(this.triangleOfEdge(opposite));
-    }
-    return triangles;
+    const halfedges = this.delaunay.halfedges;
+    const e = 3 * triangleIndex;
+    return [
+      this.triangleOfEdge(halfedges[e]),
+      this.triangleOfEdge(halfedges[e + 1]),
+      this.triangleOfEdge(halfedges[e + 2]),
+    ];
   }
 
   /**
@@ -107,10 +117,13 @@ export class Voronoi {
    * @returns {[number, number]} The coordinates of the triangle's circumcenter.
    */
   private triangleCenter(triangleIndex: number): Point {
-    const vertices = this.pointsOfTriangle(triangleIndex).map(
-      (p) => this.points[p],
+    const triangles = this.delaunay.triangles;
+    const e = 3 * triangleIndex;
+    return this.circumcenter(
+      this.points[triangles[e]],
+      this.points[triangles[e + 1]],
+      this.points[triangles[e + 2]],
     );
-    return this.circumcenter(vertices[0], vertices[1], vertices[2]);
   }
 
   /**

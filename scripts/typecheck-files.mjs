@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { spawnSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 
 /**
  * This file type-checks a named set of files instead of the whole repository.
@@ -58,6 +59,7 @@ function slashPath(value) {
 function parseArgs(argv) {
     const files = [];
     let project = DEFAULT_PROJECT;
+    let domain = null;
     let keep = false;
     let help = false;
 
@@ -65,6 +67,11 @@ function parseArgs(argv) {
         const arg = argv[index];
         if (arg === '--help' || arg === '-h') {
             help = true;
+        } else if (arg === '--domain') {
+            index += 1;
+            domain = argv[index];
+        } else if (arg.startsWith('--domain=')) {
+            domain = arg.slice('--domain='.length);
         } else if (arg === '--keep') {
             keep = true;
         } else if (arg === '--project' || arg === '-p') {
@@ -79,7 +86,30 @@ function parseArgs(argv) {
         }
     }
 
-    return { files, project, keep, help };
+    return { files, project, domain, keep, help };
+}
+
+// ============================================================================
+// Domain mode
+// ============================================================================
+// H5 (agora-9d53.5): the repository carries per-domain configs (tsconfig.combat.json
+// and others) that nothing ran, because a plain `tsc -p` on them still compiles
+// every import and reports the whole repository's debt. `--domain <tsconfig>` reads
+// that config's own `include`/`files` through TypeScript's parser, so the domain's
+// file list stays defined in ONE place, and then runs the normal scoped check with
+// the domain config as the base. Declaration files are left to the twin logic.
+// ============================================================================
+function domainFiles(configRel) {
+    const ts = createRequire(import.meta.url)(path.join(REPO_ROOT, 'node_modules', 'typescript'));
+    const configPath = path.resolve(REPO_ROOT, configRel);
+    const read = ts.readConfigFile(configPath, ts.sys.readFile);
+    if (read.error) {
+        throw new Error(`Cannot read ${configRel}: ${ts.flattenDiagnosticMessageText(read.error.messageText, '\n')}`);
+    }
+    const parsed = ts.parseJsonConfigFileContent(read.config, ts.sys, path.dirname(configPath));
+    return parsed.fileNames
+        .filter((file) => !/\.d\.[cm]?ts$/.test(file))
+        .map((file) => slashPath(path.relative(REPO_ROOT, file)));
 }
 
 const USAGE = `Usage: npm run typecheck:files -- <path> [<path>...]
@@ -89,7 +119,9 @@ the diagnostics that land inside them. Exits non-zero when any are found.
 
 Options:
   --project, -p <tsconfig>  Base config to extend (default: tsconfig.json)
-  --keep                    Keep the generated temp tsconfig for inspection
+  --domain <tsconfig>       Check every source file a domain config includes,
+                            with that config as the base (npm run typecheck:combat)
+  --keep                   Keep the generated temp tsconfig for inspection
   --help, -h                Show this message
 `;
 
@@ -166,6 +198,9 @@ function writeTempProject(projectPath, targets) {
         compilerOptions: {
             skipLibCheck: true,
             noEmit: true,
+            // H5: a composite base (tsconfig.node.json) demands that every imported
+            // file be listed (TS6307). A scoped check never builds, so turn it off.
+            composite: false,
         },
         // WF-G114 follow-on (2026-09-09): narrowing `include` to the targets also
         // dropped the ambient declarations the full project relies on, so every
@@ -244,6 +279,19 @@ function main() {
     } catch (error) {
         process.stderr.write(`${error.message}\n\n${USAGE}`);
         return 2;
+    }
+
+    if (parsed.domain && !parsed.help) {
+        if (!fs.existsSync(path.resolve(REPO_ROOT, parsed.domain))) {
+            process.stderr.write(`Domain tsconfig not found: ${parsed.domain}\n`);
+            return 2;
+        }
+        parsed.files.push(...domainFiles(parsed.domain));
+        parsed.project = parsed.domain;
+        if (parsed.files.length === 0) {
+            process.stderr.write(`Domain ${parsed.domain} matches no source files.\n`);
+            return 2;
+        }
     }
 
     if (parsed.help || parsed.files.length === 0) {

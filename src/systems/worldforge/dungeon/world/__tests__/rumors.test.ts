@@ -14,7 +14,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { getBridgeAtlas } from '../../../bridge/legacySubmapBridge';
 import { FEET_PER_FMG_PIXEL } from '../../../adapter/atlasArtifact';
 import { enumerateDungeonSites, type DungeonSite } from '../dungeonSites';
-import { generateDungeonForSite } from '../deriveIdentity';
+import { dungeonIdentityForSite, generateDungeonForIdentity, generateDungeonForSite } from '../deriveIdentity';
 import {
   rumorsForBurg,
   MAX_HOOK_RADIUS_FT,
@@ -195,4 +195,31 @@ describe('rumorsForBurg — Pillar 2 Task 7', () => {
     const b = rumorsForBurg(SEED, burgId, [site.sitePath]);
     expect(JSON.stringify(a)).toEqual(JSON.stringify(b));
   });
+});
+
+describe('timestamp world rumor identity', () => {
+  it('names the same frozen dungeon that the player actually enters', () => {
+    const seed = 1793146029630;
+    const site = enumerateDungeonSites(seed).find(s => s.sitePath === 'wf:2144667198/burg:675/dungeon:sewer')!;
+    expect(site).toBeDefined();
+    const plan = generateDungeonForIdentity(dungeonIdentityForSite(site), seed);
+    const offered = rumorsForBurg(seed, 675).filter(r => r.sitePath === site.sitePath);
+    expect(offered.length).toBeGreaterThan(0);
+    for (const rumor of offered) {
+      expect(rumor.dungeonName).toBe(plan.name);
+      expect(plan.rumorHooks.some(h => h.eventRef === rumor.eventRef && h.text === rumor.text)).toBe(true);
+    }
+  }, 60000);
+
+  it('does not reuse a full world result for a different atlas with the same uint32 root', () => {
+    const seed = 1793146029630;
+    rumorsForBurg(seed, 675);
+    const read = () => {
+      try { return { rumors: rumorsForBurg(seed >>> 0, 675) }; }
+      catch (error) { return { error: String(error) }; }
+    };
+    const primed = read();
+    clearRumorCaches();
+    expect(primed).toEqual(read());
+  }, 60000);
 });

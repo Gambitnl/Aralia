@@ -50,12 +50,14 @@ const LoadGameModal: React.FC<LoadGameModalProps> = ({ slots, onClose, onLoadSlo
 
   const renderSlotCard = (slot: SaveSlotSummary) => (
     <div key={slot.slotId} className="border border-gray-700 rounded-lg p-4 bg-gray-800 flex flex-col shadow-sm">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold text-amber-200">{slot.slotName}</h3>
+      {/* Long Chronicle names wrap within the available desktop window width.
+          Keep Load and Delete distinct, with the same existing save handlers. */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <h3 className="break-words text-lg font-semibold text-amber-200">{slot.slotName}</h3>
           <p className="text-xs text-gray-400">Saved {new Date(slot.lastSaved).toLocaleString()}</p>
         </div>
-        <div className="space-x-2">
+        <div className="flex shrink-0 gap-2">
           <button
             onClick={() => onLoadSlot(slot.slotId)}
             className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-semibold"

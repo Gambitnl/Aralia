@@ -86,6 +86,34 @@ describe('TavernGossipSystem — already-heard filtering (agora-5454)', () => {
   });
 });
 
+describe('TavernGossipSystem — local adventure inquiry', () => {
+  it('offers a real local dungeon hook separately from household news', () => {
+    const state = createMockGameState();
+    const day = getGameDay(state.gameTime);
+    const local = {...worldRumor('dungeon-local-0', 'Robbers dug a way into the undercity.'),
+      locationId: state.currentLocationId, expiration: day + 30};
+    state.activeRumors = [worldRumor('news', 'The miller married.'), local];
+    const offers = TavernGossipSystem.getAvailableRumors(state, 'The Howling Shield');
+    const inquiry = offers.find(offer => offer.title === 'Ask about local ruins and dangers');
+    expect(inquiry).toMatchObject({id: 'gossip_dungeon-local-0', content: local.text, payload: local});
+    expect(offers.find(offer => offer.title === 'Ask about local news')?.content).toBe('The miller married.');
+    state.inventory = [receipt(inquiry!.id)];
+    expect(TavernGossipSystem.getAvailableRumors(state, 'The Howling Shield')
+      .some(offer => offer.id === inquiry!.id)).toBe(false);
+  });
+
+  it('does not sell an expired or other-town dungeon legend', () => {
+    const state = createMockGameState();
+    const day = getGameDay(state.gameTime);
+    state.activeRumors = [
+      {...worldRumor('dungeon-away', 'Distant crypt.'), locationId: 'another-town', expiration: day + 30},
+      {...worldRumor('dungeon-old', 'Old crypt.'), locationId: state.currentLocationId, expiration: day - 1},
+    ];
+    expect(TavernGossipSystem.getAvailableRumors(state, 'The Howling Shield')
+      .some(offer => offer.id.startsWith('gossip_dungeon-'))).toBe(false);
+  });
+});
+
 describe('TavernGossipSystem — town talk over the bar (agora-049c)', () => {
   function townRumor(state: ReturnType<typeof createMockGameState>, overrides: Partial<TownRumor> = {}): TownRumor {
     return {

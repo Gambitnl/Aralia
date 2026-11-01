@@ -21,7 +21,7 @@ import type React from 'react';
 import type { AppAction } from '../../state/actionTypes';
 import type { SituationThreat } from '../gameEntry/types';
 import { threatToMonsters } from '../gameEntry/deEscalationToCombat';
-import { handleStartBattleMapEncounter } from '../../hooks/actions/handleEncounter';
+import { handleStartBattleMapEncounter } from '../combat/startBattleMapEncounter';
 import {
     awaitActiveGroundOpeningProvider,
     isActiveGroundOpeningProviderMounted,

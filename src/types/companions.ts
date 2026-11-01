@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
- *
- * Last Sync: 09/08/2026, 22:42:25
- * Dependents: components/CharacterSheet/CharacterSheetModal.tsx, components/CharacterSheet/Details/CharacterDetailsTab.tsx, components/DesignPreview/steps/PreviewComponents.tsx, components/Party/RelationshipsPane.tsx, components/ui/CollapsibleBanterPanel.tsx, components/ui/CompanionCard.tsx, components/ui/CompanionReaction.tsx, data/banter.ts, data/companions.ts, hooks/useCompanionBanter.ts, hooks/useCompanionCommentary.ts, services/BanterDisplayService.ts, services/ollama/banter.ts, services/ollama/facts.ts, services/ollama/index.ts, systems/companions/BanterManager.ts, systems/companions/CompanionReactionSystem.ts, systems/companions/RelationshipManager.ts, systems/party/authoredCompanionToRichNpc.ts, systems/party/npcToPartyMember.ts, systems/party/recruitConsent.ts, systems/party/recruitTypes.ts, types/index.ts, utils/character/companionFactories.ts
- * Imports: None
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -22,7 +6,24 @@
  * Defines the core types for the Companion and Relationship systems.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 29/10/2026, 13:56:06
+ * Dependents: components/CharacterSheet/CharacterSheetModal.tsx, components/CharacterSheet/Details/CharacterDetailsTab.tsx, components/ConversationPanel/CompanionGoalWorkChoices.tsx, components/ConversationPanel/CompanionTravelChoices.tsx, components/DesignPreview/steps/PreviewComponents.tsx, components/Party/RelationshipsPane.tsx, components/ui/CollapsibleBanterPanel.tsx, components/ui/CompanionCard.tsx, components/ui/CompanionReaction.tsx, data/banter.ts, data/companions.ts, hooks/actions/handleNpcInteraction.ts, hooks/useCompanionBanter.ts, hooks/useCompanionCommentary.ts, services/BanterDisplayService.ts, services/ollama/banter.ts, services/ollama/facts.ts, services/ollama/index.ts, state/reducers/companionGoalDestinationReducer.ts, state/reducers/companionGoalWorkReducer.ts, state/reducers/companionPreparationReducer.ts, state/reducers/companionRumorReducer.ts, state/reducers/companionTravelReducer.ts, systems/companions/BanterManager.ts, systems/companions/CompanionReactionSystem.ts, systems/companions/RelationshipManager.ts, systems/companions/companionJourney.ts, systems/companions/companionPreparations.ts, systems/companions/companionRumors.ts, systems/companions/companionWhereabouts.ts, systems/companions/companionWorldActivities.ts, systems/party/authoredCompanionCapabilities.ts, systems/party/authoredCompanionToRichNpc.ts, systems/party/npcToPartyMember.ts, systems/party/recruitConsent.ts, systems/party/recruitTypes.ts, systems/party/restoreAuthoredCompanionBuild.ts, types/index.ts, utils/character/companionFactories.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 // Core types for companion logic
+import type { Item } from './items';
 // 11 relationship levels with 100-point steps from -500 to +500
 export type RelationshipLevel =
   | 'hated'       // -500 to -401
@@ -54,6 +55,17 @@ export interface CompanionGoal {
   isSecret: boolean;
   status: 'active' | 'completed' | 'failed' | 'abandoned';
   progress: number; // 0-100
+  /** A public destination actually shared; never a visit, promise or consent. */
+  disclosedDestination?: CompanionGoalDestination;
+}
+
+/** Retains the exact source-world place and first disclosure date. */
+export interface CompanionGoalDestination {
+  worldSeed: number; sourceId: string; sitePath: string; cellId: number;
+  name: string; nearbyBurgId: number; nearbyBurgName: string; sharedAt: number;
+}
+export interface CompanionGoalDestinationSelection {
+  companionId: string; goalId: string; worldSeed: number; sitePath: string;
 }
 
 export interface ApprovalEvent {
@@ -103,7 +115,16 @@ export interface CompanionQuestline {
     objectives: string[];
     isCompleted: boolean;
   }>;
+  /** Where this chapter was offered. Saves retain its world rather than
+   * silently attaching an old promise to a new world with the same NPC id. */
+  origin?: { worldSeed: number; locationId: string };
 }
+
+/** Fixed, authored conversation choices; free text still uses the intent reader. */
+export type CompanionPreparationChoice = 'ask' | 'promise' | 'decline' | 'deliver' | 'withdraw' | 'recall';
+
+/** A public work offer remains separate from a recruitment invitation. */
+export type CompanionGoalWorkChoice = 'ask' | 'accept' | 'decline' | 'withdraw' | 'report' | 'recall';
 
 export interface NPCIdentity {
   id: string;
@@ -210,6 +231,19 @@ export interface CompanionMemory {
   tags: string[];
   timestamp: number;
   importance: number; // 1-10, for filtering relevance
+  /** What the player reported, kept apart from first-hand events and promises. */
+  hearsay?: {
+    sourceId: string; itemId: string; subject: string; account: string;
+    sharedById: string; sharedByName: string; sharedInWorldSeed: number;
+  };
+}
+
+export interface CompanionRumorSelection {
+  companionId: string;
+  inventoryIndex: number;
+  itemId: string;
+  sourceId: string;
+  description: string;
 }
 
 /**
@@ -224,6 +258,29 @@ export interface DiscoveredFact {
   source: 'banter' | 'quest' | 'conversation';
 }
 
+/** A public purpose and stable source place, retained separately from current
+ * physical whereabouts so recruitment or dismissal cannot erase that life. */
+export interface CompanionPublicActivity {
+  version: 1; sourceId: string; worldSeed: number; companionId: string;
+  kind: 'restoration-preparations' | 'seeking-independent-work';
+  burgId: number; burgName: string; cellId: number; locationId: string;
+  summary: string; goalId?: string; sitePath?: string;
+}
+
+/** Consent to a source-bound expedition, retained with the person's memories.
+ * A proposed agreement is not membership or unrestricted loyalty. */
+export interface CompanionTravelAgreement {
+  worldSeed:number; sourceId:string; goalId:string; sitePath:string;
+  destinationName:string; terms:string[]; offeredAt:number;
+  response:'offered'|'accepted'|'declined'; respondedAt?:number;
+  /** A later, mutual decision about this source site's entrance floor. It
+   * survives refusal and reload without granting unrestricted following. */
+  exploration?: { response:'offered'|'accepted'|'declined'|'withdrawn';
+    discussedAt:number; respondedAt?:number; terms:string[]; concerns:string[] };
+
+}
+export type CompanionTravelChoice = 'discuss_work'|'invite'|'propose_goal'|'accept_terms'|'decline_terms'|'recall_terms'|'recall_journey'|'discuss_entry'|'accept_entry_terms'|'decline_entry_terms'|'recall_entry_terms';
+
 export interface Companion {
   id: string;
   identity: NPCIdentity;
@@ -233,6 +290,34 @@ export interface Companion {
   loyalty: number; // 0-100, determines chance of leaving/betrayal
   approvalHistory: ApprovalEvent[];
   memories: CompanionMemory[]; // Memory system for conversation recall
+  /** Belongings held by this person, including while separated from the party.
+   * A handover removes the same goods from the player's inventory atomically. */
+  inventory?: Item[];
+  publicActivity?: CompanionPublicActivity;
+  travelAgreement?: CompanionTravelAgreement;
+  /** Actual world placement survives replacing the temporary encounter list.
+   * Position is captured from the real cast, never inferred from the player. */
+  whereabouts?: {
+    worldSeed: number;
+    locationId: string;
+    observedAt: number;
+    source: 'encounter' | 'dismissed' | 'deserted' | 'world-activity' | 'party';
+    position?: { xM: number; yM: number; zM: number };
+  };
+  /** Unresolved accepted footsteps survive saves; a destination is not a path. */
+  following?: { worldSeed: number; locationId: string; trail: Array<{ xM: number; yM: number; zM: number }> };
+  /** Original observed departure remains distinct from the moving party feet. */
+  journeyDeparture?: Companion['whereabouts'];
+  /** A committed shared journey proves why someone can arrive in another
+   * locale. The destination still needs its own clear physical placement. */
+  journey?: {
+    id: string; worldSeed: number;
+    from: { locationId: string; cellId: number; position: { xM: number; yM: number; zM: number } };
+    to: { locationId: string; cellId: number };
+    intendedCellId: number; routeCells: number[];
+    departedAt: number; arrivalAt: number;
+    status: 'awaiting-arrival' | 'arrived';
+  };
   discoveredFacts: DiscoveredFact[]; // Facts learned about this character through interaction
   questline?: CompanionQuestline;
 

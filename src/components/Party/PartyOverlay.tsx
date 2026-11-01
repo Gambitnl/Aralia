@@ -10,6 +10,22 @@
  * - Combat-aware rest gating so the overlay cannot open rest flows mid-fight
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 21:41:24
+ * Dependents: components/layout/GameModals.tsx
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React from 'react';
 import { PlayerCharacter, MissingChoice, ShortRestTracker, Companion } from '../../types';
 import { WindowFrame } from '../ui/WindowFrame';
@@ -48,8 +64,10 @@ interface PartyOverlayProps {
     onShortRest?: () => void;
     /** Current short rest tracking state */
     shortRestTracker?: ShortRestTracker;
-    /** Whether active enemies are present in the current combat state */
+    /** Whether the party is currently taking combat turns */
     isCombatActive?: boolean;
+    /** Environmental or pending-encounter reason that blocks either rest. */
+    restUnavailableReason?: string | null;
     /**
      * Optional dismiss handler threaded down to PartyPane and each member card.
      * The card omits the control for the party leader (`player` id), so the
@@ -144,6 +162,7 @@ const PartyOverlay: React.FC<PartyOverlayProps> = ({
     onShortRest,
     shortRestTracker,
     isCombatActive = false,
+    restUnavailableReason,
     onDismissMember
 }) => {
     // Don't render anything if not open
@@ -152,14 +171,18 @@ const PartyOverlay: React.FC<PartyOverlayProps> = ({
     // Calculate remaining short rests
     const shortRestsTaken = shortRestTracker?.restsTakenToday ?? 0;
     const shortRestsRemaining = MAX_SHORT_RESTS_PER_DAY - shortRestsTaken;
-    const isRestBlockedByCombat = isCombatActive;
-    const combatRestWarning = "Resting is unavailable during active combat.";
-    const canShortRest = shortRestsRemaining > 0 && !isRestBlockedByCombat;
-    const longRestTooltip = isRestBlockedByCombat
-        ? combatRestWarning
+    // A prepared enemy is not an active turn. Keep rest refusal and explain its
+    // actual cause (combat, expedition, terrain, or an unresolved encounter).
+    const restWarning = isCombatActive
+        ? "Resting is unavailable during active combat."
+        : (restUnavailableReason ?? '');
+    const isRestBlocked = Boolean(restWarning);
+    const canShortRest = shortRestsRemaining > 0 && !isRestBlocked;
+    const longRestTooltip = isRestBlocked
+        ? restWarning
         : "Take a long rest to fully recover HP, spell slots, and abilities (8 hours)";
-    const shortRestTooltip = isRestBlockedByCombat
-        ? combatRestWarning
+    const shortRestTooltip = isRestBlocked
+        ? restWarning
         : canShortRest
             ? `Take a short rest to spend Hit Dice and recover some abilities (1 hour). ${shortRestsRemaining} remaining today.`
             : "No short rests remaining today. Take a long rest to reset.";
@@ -187,10 +210,10 @@ const PartyOverlay: React.FC<PartyOverlayProps> = ({
                 {/* Footer with rest actions */}
                 <div className="shrink-0 border-t border-gray-700 bg-gray-800/50 p-3">
                     <div className="flex flex-col items-center justify-center gap-2">
-                        {/* Combat warning keeps the disabled rest state understandable without requiring hover. */}
-                        {isRestBlockedByCombat && (
+                        {/* The visible reason also explains disabled controls without hover. */}
+                        {isRestBlocked && (
                             <p className="text-xs text-amber-200" role="status">
-                                {combatRestWarning}
+                                {restWarning}
                             </p>
                         )}
 
@@ -202,7 +225,7 @@ const PartyOverlay: React.FC<PartyOverlayProps> = ({
                                     iconName="moon"
                                     label="Long Rest"
                                     onClick={onLongRest}
-                                    disabled={isRestBlockedByCombat}
+                                    disabled={isRestBlocked}
                                     tooltip={longRestTooltip}
                                 />
                             )}

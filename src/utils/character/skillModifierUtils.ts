@@ -33,6 +33,10 @@
 
 import { calculateProficiencyBonus } from './savingThrowUtils';
 import { getAbilityModifierValue } from './statUtils';
+import type { PlayerCharacter } from '../../types/character';
+import type { AbilityScoreName } from '../../types/core';
+import { SKILLS_DATA } from '../../data/skills';
+import { classFeaturesForLevel } from '../../data/classes/classFeatureProgression';
 
 /**
  * Key that a feature's `FeatChoice` entry uses to record the skills it granted
@@ -103,20 +107,114 @@ export function calculateExpertiseBonus(params: {
   return hasProficiency && hasExpertise ? proficiencyBonus : 0;
 }
 
+/**
+ * Detects whether a character has the Bard feature Jack of All Trades:
+ * "Starting at 2nd level, you can add half your proficiency bonus, rounded down,
+ * to any ability check you make that doesn't already include your proficiency bonus."
+ */
+export function hasJackOfAllTrades(character: unknown): boolean {
+  if (!character || typeof character !== 'object') return false;
+  const c = character as Record<string, any>;
+  const level = (typeof c.level === 'number' && c.level > 0) ? c.level : 1;
+
+  // 1. Direct class check for Bard at level 2+
+  const classId = typeof c.class === 'string' ? c.class : c.class?.id;
+  if (typeof classId === 'string' && classId.toLowerCase() === 'bard' && level >= 2) {
+    return true;
+  }
+
+  // 2. Class features progression check
+  if (c.class && typeof c.class === 'object') {
+    try {
+      const features = classFeaturesForLevel(c.class, level, c.subclassId);
+      if (features.some(f => f.id === 'jack_of_all_trades')) {
+        return true;
+      }
+    } catch {
+      // In case of incomplete test mocks, ignore error
+    }
+  }
+
+  // 3. Fallback: direct feature lists or traits or modifiers
+  if (Array.isArray(c.features) && c.features.some((f: any) => f?.id === 'jack_of_all_trades' || f === 'jack_of_all_trades')) {
+    return true;
+  }
+  if (c.modifiers?.traits?.includes('jack_of_all_trades')) {
+    return true;
+  }
+  if (Array.isArray(c.traits) && c.traits.includes('jack_of_all_trades')) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Calculates the Jack of All Trades bonus: half proficiency bonus rounded down,
+ * applied only when the check does NOT already include proficiency bonus.
+ */
+export function calculateJackOfAllTradesBonus(params: {
+  hasProficiency: boolean;
+  hasJackOfAllTrades: boolean;
+  proficiencyBonus: number;
+}): number {
+  const { hasProficiency, hasJackOfAllTrades, proficiencyBonus } = params;
+  return !hasProficiency && hasJackOfAllTrades ? Math.floor(proficiencyBonus / 2) : 0;
+}
+
 export function calculateTotalSkillModifier(params: {
   abilityScore: number;
   hasProficiency: boolean;
   level: number;
   /** Doubles the proficiency bonus. Ignored when the character is not proficient. */
   hasExpertise?: boolean;
+  /** Adds half proficiency bonus (rounded down) if not proficient. */
+  hasJackOfAllTrades?: boolean;
 }): number {
-  const { abilityScore, hasProficiency, level, hasExpertise = false } = params;
+  const { abilityScore, hasProficiency, level, hasExpertise = false, hasJackOfAllTrades = false } = params;
   const abilityMod = getAbilityModifierValue(abilityScore);
-  const proficiencyBonus = hasProficiency ? calculateProficiencyBonus(level) : 0;
+  const proficiencyBonus = calculateProficiencyBonus(level);
+  const profBonusApplied = hasProficiency ? proficiencyBonus : 0;
   const expertiseBonus = calculateExpertiseBonus({
     hasProficiency,
     hasExpertise,
-    proficiencyBonus: calculateProficiencyBonus(level)
+    proficiencyBonus,
   });
-  return abilityMod + proficiencyBonus + expertiseBonus;
+  const jackBonus = calculateJackOfAllTradesBonus({
+    hasProficiency,
+    hasJackOfAllTrades,
+    proficiencyBonus,
+  });
+  return abilityMod + profBonusApplied + expertiseBonus + jackBonus;
+}
+
+/**
+ * Resolves the total skill check modifier for a PlayerCharacter on a specific skill,
+ * including base ability modifier, proficiency, expertise, and Jack of All Trades.
+ */
+export function getCharacterSkillModifier(
+  character: PlayerCharacter,
+  skillIdOrName: string,
+  abilityOverride?: AbilityScoreName,
+): number {
+  const normalized = normalizeSkillId(skillIdOrName);
+  const skill = SKILLS_DATA[normalized] || Object.values(SKILLS_DATA).find(
+    s => normalizeSkillId(s.name) === normalized || normalizeSkillId(s.id) === normalized
+  );
+  const ability = abilityOverride ?? (skill?.ability || 'Dexterity');
+  const abilityScore = character.finalAbilityScores?.[ability] ?? character.abilityScores?.[ability] ?? 10;
+  const isProficient = (character.skills ?? []).some(
+    s => normalizeSkillId(s.id) === normalized || normalizeSkillId(s.name) === normalized
+  );
+  const hasExpertise = hasExpertiseInSkill(character, normalized);
+  const hasJack = hasJackOfAllTrades(character);
+  const level = character.level ?? 1;
+
+  return calculateTotalSkillModifier({
+    abilityScore,
+    hasProficiency: isProficient,
+    level,
+    hasExpertise,
+    hasJackOfAllTrades: hasJack,
+  });
 }

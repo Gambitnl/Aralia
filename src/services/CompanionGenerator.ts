@@ -192,7 +192,15 @@ export async function generateSoul(skeleton: PlayerCharacter): Promise<Companion
         });
 
     if (result.ok) {
-      console.log(`[CompanionGenerator] Attempt ${i + 1} Raw Output:`, result.data.response);
+      // agora-727a: the raw model response is user-specific generated text and must
+      // not reach production logs. Keep the full dump behind the tree-shakeable
+      // import.meta.env.DEV gate (same idiom as SaveSlotSelector's axe-core guard);
+      // production keeps concise attempt diagnostics with bounded metadata only.
+      if (import.meta.env.DEV) {
+        console.log(`[CompanionGenerator] Attempt ${i + 1} Raw Output:`, result.data.response);
+      } else {
+        console.log(`[CompanionGenerator] Attempt ${i + 1} received response (${result.data.response.length} chars)`);
+      }
       const parsed = parseJsonRobustly<CompanionSoul>(result.data.response);
 
       if (!parsed) {

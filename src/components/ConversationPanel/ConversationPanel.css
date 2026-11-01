@@ -5,14 +5,17 @@
 
 .conversation-panel {
     position: fixed;
-    bottom: 12px;
-    right: 12px;
-    /* Keep the desktop 400px conversation width, but cap it to the visible
-       window so smaller desktop panes do not clip replies off the left edge. */
-    width: min(400px, calc(100vw - 24px));
-    max-height: min(500px, calc(100vh - 24px));
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    /* The game is played on desktop. A broad lower conversation surface keeps
+       the speakers visible above it and gives speech and choices separate space. */
+    width: min(1440px, calc(100vw - 64px));
+    height: min(600px, 55vh);
+    max-height: calc(100vh - 120px);
     box-sizing: border-box;
-    background: linear-gradient(135deg, rgba(30, 30, 40, 0.95), rgba(20, 20, 30, 0.98));
+    /* Keep world and HUD text from showing through an active conversation. */
+    background: linear-gradient(135deg, rgb(30, 30, 40), rgb(20, 20, 30));
     border: 1px solid rgba(255, 215, 0, 0.3);
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
@@ -35,7 +38,7 @@
 .conversation-title {
     color: #ffd700;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 1rem;
 }
 
 .conversation-close-btn {
@@ -65,6 +68,26 @@
     cursor: not-allowed;
 }
 
+.conversation-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.8fr) minmax(300px, 1fr);
+    flex: 1;
+    min-height: 0;
+}
+
+.conversation-choices {
+    min-width: 0;
+    overflow-y: auto;
+    padding: 20px;
+    border-left: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.conversation-choices:empty { display: none; }
+.conversation-body:has(.conversation-choices:empty) { grid-template-columns: minmax(0, 1fr); }
+.conversation-choices > section { margin-bottom: 12px; }
+.conversation-choices p { font-size: 15px; line-height: 1.5; }
+.conversation-choices button { font-size: 14px; line-height: 1.5; }
+
 .conversation-messages {
     flex: 1;
     overflow-y: auto;
@@ -72,7 +95,8 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    max-height: 350px;
+    min-height: 0;
+    max-height: none;
 }
 
 /* Opening-scene establishing illustration (situation conversations only). */
@@ -138,7 +162,7 @@
 }
 
 .message-speaker {
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     font-weight: 600;
     color: rgba(255, 215, 0, 0.8);
 }
@@ -149,8 +173,8 @@
 
 .message-text {
     color: rgba(255, 255, 255, 0.9);
-    font-size: 0.9rem;
-    line-height: 1.4;
+    font-size: 1rem;
+    line-height: 1.6;
 }
 
 .conversation-input-container {

@@ -8,7 +8,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { ChunkLoader } from '../../../systems/world3d/types';
 import type { LocalArtifact, RegionArtifact } from '../../../systems/worldforge/artifacts';
-import type { GroundWorld } from '../../../systems/worldforge/bridge/groundChunkLoader';
+import {groundSurfaceY, type GroundWorld} from '../../../systems/worldforge/bridge/groundChunkLoader';
+import {heightToMeters} from '../../../systems/world3d/config';
 import { buildAtlasGroundDrilldown } from '../../../systems/worldforge/leaf3d/atlasGroundDrilldown';
 import {
   createAtlasReceiptGroundSession,
@@ -27,19 +28,20 @@ describe('World3DWrapper Atlas receipt projection', () => {
     const local = {
       seedPath: '91/region:23/local:100,200',
       bounds: { x: 100, y: 200, width: 3000, height: 3000 },
-      features: [{ id: 8, kind: 'poi', x: 200, y: 300, data: { name: 'Stone Gate' } }],
+      features: [{ id: 8, kind: 'poi', x: 201, y: 300, data: { name: 'Stone Gate' } }],
     } as unknown as LocalArtifact;
     const receipt = buildAtlasGroundDrilldown({
       worldSeed: 91,
       atlasCellId: 23,
       region,
       local,
-      focus: { kind: 'site', id: 8, label: 'Stone Gate', xFt: 200, yFt: 300 },
+      focus: { kind: 'site', id: 8, label: 'Stone Gate', xFt: 201, yFt: 300 },
     });
     const ground = {
-      cols: 2,
-      rows: 2,
-      heights: [0, 0, 0, 0],
+      cols: 64,
+      rows: 64,
+      // A fractional focus on sloped terrain catches the old rounded-cell step.
+      heights: Float32Array.from({length:64*64},(_,i)=>20+(i%64)*.1+Math.floor(i/64)*.1),
       extentMetersX: 914.4,
       extentMetersZ: 914.4,
     } as unknown as GroundWorld;
@@ -68,7 +70,9 @@ describe('World3DWrapper Atlas receipt projection', () => {
     expect(factoryMock.mock.calls[0]?.[0]).toBe(local);
     expect(factoryMock.mock.calls[0]?.[2]).toBe(region);
     expect(session.ground).toBe(ground);
-    expect(session.start).toEqual([30.48, 0, 30.48]);
+    expect(session.start).toEqual([30.7848, 0, 30.48]);
+    expect(session.surfaceY).toBe(groundSurfaceY(ground,30.7848,30.48));
+    expect(session.surfaceY).not.toBe(heightToMeters(ground.heights[20*64+20]));
   });
 
   it('exposes retained-Local business owners through the existing talk/dialogue ids', () => {

@@ -22,9 +22,34 @@
  * the palette is gated by `useCombatValidation` (the prerequisite referee the
  * executor itself runs), target legality comes from `useTargetValidator` (the
  * same range / line-of-sight / target-type referee the 2D board asks), and the
- * committed action is built by `buildAbilityCombatAction` — the 2D board's own
- * constructor — then handed to the turn manager unchanged.
+ * cast itself goes through `onExecuteAbility`, which CombatView wires to the 2D
+ * board's own `abilitySystem.executeAbility`.
+ *
+ * 2026-10-29 (GG-533): until then an in-scene cast was only handed to the turn
+ * manager (`buildAbilityCombatAction` -> `executeAction`). That spends the
+ * action and logs "casts X", but the spell's commands run only in
+ * `executeAbility` (it commits the action, then resolves the spell, and asks
+ * for a mode such as Mold Earth's "Excavation"). So every spell cast in the
+ * 3D fight view spent the action and did nothing. Now both boards cast through
+ * the one path.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 18:48:07
+ * Dependents: components/Combat/CombatView.tsx
+ * Imports: 15 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import World3DScene from '../World3D/World3DScene';
 import InPlaceCombatLayer, { type InPlaceToken } from '../World3D/combat/InPlaceCombatLayer';
@@ -32,7 +57,8 @@ import type { CameraFrameRequest } from '../World3D/FreeRoamCameraController';
 import type { Ability, CombatCharacter, BattleMapData, CombatAction, Position } from '../../types/combat';
 import type { GroundWorld } from '../../systems/worldforge/bridge/groundChunkLoader';
 import type { ChunkLoader } from '../../systems/world3d/types';
-import { getFightInPlaceHandoff } from '../../systems/combat/fightInPlace/fightInPlaceHandoff';
+import { createGroundWorkerChunkLoader } from '../World3D/createGroundWorkerChunkLoader';
+import { getFightInPlaceHandoff, type FightInPlaceHandoff } from '../../systems/combat/fightInPlace/fightInPlaceHandoff';
 import {
   patchTileToWorldMeters,
   validateInSceneMove,
@@ -41,9 +67,9 @@ import {
   type PatchTile,
 } from '../../systems/combat/fightInPlace/inSceneMovement';
 import { worldToScene } from '../../systems/world3d/sceneOrigin';
+import { surfaceCombatWorldPoint } from '../../systems/combat/worldScenario/surfaceHostileContinuity';
 import { getOccupiedTiles } from '../../utils/combat';
 import { canAffordActionCost } from '../../utils/combat/actionEconomyUtils';
-import { buildAbilityCombatAction } from '../../hooks/actionUtils';
 import { useCombatValidation } from '../../hooks/combat/useCombatValidation';
 import { useTargetValidator } from '../../hooks/combat/useTargetValidator';
 
@@ -63,8 +89,27 @@ export interface InPlaceCombatSceneProps {
    * same executor the 2D board uses.
    */
   onCommitMove: (action: CombatAction) => void;
+  /**
+   * Cast an armed ability at a validated target: CombatView passes the 2D
+   * board's own `abilitySystem.executeAbility`, which commits the action and
+   * resolves the spell (mode prompts included).
+   */
+  onExecuteAbility: (ability: Ability, caster: CombatCharacter, targetPosition: Position, targetCharacterIds: string[]) => unknown;
   /** Show an on-screen note when a click is rejected (out of range / blocked). */
   onNotify?: (message: string) => void;
+  /**
+   * The world handoff CombatView read when the fight mounted (2026-10-29).
+   * CombatView clears the module store on unmount, and in development that
+   * cleanup also runs right after mount, so the scene must not read the store
+   * itself. Absent: the scene reads the store (older callers).
+   */
+  handoff?: FightInPlaceHandoff | null;
+  /**
+   * The game clock as a fractional hour (2026-10-30). It drives the sun, sky
+   * and fog and the townsfolk schedules, as in exploration, so the fight
+   * keeps the light of the hour it started in. Absent: the scene's default.
+   */
+  worldClockHours?: number;
 }
 
 // ============================================================================
@@ -151,9 +196,9 @@ export function getArmedAbilityRangeFeet(ability: Ability): number {
  * handed-off heightfield). For the slice we accept the handed-off ground and a
  * lightweight loader so the scene is populated.
  */
-function useHandoffScene() {
+function useHandoffScene(given?: FightInPlaceHandoff | null) {
   return useMemo(() => {
-    const handoff = getFightInPlaceHandoff();
+    const handoff = given === undefined ? getFightInPlaceHandoff() : given;
     if (!handoff) return null;
     const ground = handoff.ground as GroundWorld;
     return {
@@ -172,9 +217,29 @@ const InPlaceCombatScene: React.FC<InPlaceCombatSceneProps> = ({
   mapData,
   currentCharacterId,
   onCommitMove,
+  onExecuteAbility,
   onNotify,
+  handoff,
+  worldClockHours,
 }) => {
-  const scene = useHandoffScene();
+  const scene = useHandoffScene(handoff);
+  // THE FIGHT'S OWN CHUNK LOADER (2026-10-30). The handoff carries
+  // exploration's loader, but exploration unmounts at the phase swap and its
+  // cleanup disposes that loader (createGroundWorkerChunkLoader), and a
+  // disposed loader never answers a load. So the fight drew no terrain,
+  // buildings or trees: only the horizon shell and the props. The fight now
+  // builds its own worker loader from the same ground world (with every ground
+  // edit cut so far) and disposes it when the fight ends.
+  const [ownLoader, setOwnLoader] = useState<ChunkLoader | null>(null);
+  useEffect(() => {
+    if (!scene) return undefined;
+    const loader = createGroundWorkerChunkLoader(scene.ground);
+    setOwnLoader(() => loader);
+    return () => {
+      loader.dispose();
+      setOwnLoader(null);
+    };
+  }, [scene]);
   // One-shot camera framing on mount (frame the fight). Bumped once.
   const [frameNonce] = useState(1);
   // The ability a ground click will aim. null = a click is a move.
@@ -213,7 +278,7 @@ const InPlaceCombatScene: React.FC<InPlaceCombatSceneProps> = ({
     return characters
       .filter((c) => c.currentHP > 0)
       .map((c) => {
-        const w = patchTileToWorldMeters(mapData, scene.anchor, c.position.x, c.position.y);
+        const w = surfaceCombatWorldPoint(mapData, c.id, c.position) ?? patchTileToWorldMeters(mapData, scene.anchor, c.position.x, c.position.y);
         const team: InPlaceToken['team'] =
           c.team === 'player' ? 'player' : c.team === 'enemy' ? 'enemy' : 'neutral';
         return {
@@ -223,6 +288,8 @@ const InPlaceCombatScene: React.FC<InPlaceCombatSceneProps> = ({
           zM: w.zM,
           team,
           isActive: c.id === currentCharacterId,
+          // The token draws the combatant's generated body (2026-10-30).
+          character: c,
         };
       });
   }, [scene, mapData, characters, currentCharacterId]);
@@ -231,7 +298,7 @@ const InPlaceCombatScene: React.FC<InPlaceCombatSceneProps> = ({
   // ability's reach; otherwise it shows the movement still left this turn.
   const reachable = useMemo(() => {
     if (!scene || !mapData || !active || active.team !== 'player') return null;
-    const w = patchTileToWorldMeters(mapData, scene.anchor, active.position.x, active.position.y);
+    const w = surfaceCombatWorldPoint(mapData, active.id, active.position) ?? patchTileToWorldMeters(mapData, scene.anchor, active.position.x, active.position.y);
     if (armedAbility) {
       const rangeFeet = getArmedAbilityRangeFeet(armedAbility);
       if (rangeFeet <= 0) return null;
@@ -261,18 +328,18 @@ const InPlaceCombatScene: React.FC<InPlaceCombatSceneProps> = ({
         return;
       }
 
-      // The 2D board's own constructor. Creature ids come from the clicked
-      // token; a ground-point ability (an area template, a point teleport)
-      // commits with the position alone, exactly as the board does.
-      onCommitMove(buildAbilityCombatAction(
+      // The 2D board's own cast. Creature ids come from the clicked token; a
+      // ground-point ability (an area template, a point teleport) casts with
+      // the position alone, exactly as the board does.
+      void onExecuteAbility(
         ability,
         active,
         targetPosition,
         pick.target ? [pick.target.id] : [],
-      ));
+      );
       setArmedAbilityId(null);
     },
-    [scene, mapData, active, characters, getTargetValidation, onCommitMove, onNotify],
+    [scene, mapData, active, characters, getTargetValidation, onExecuteAbility, onNotify],
   );
 
   // A ground click with nothing armed → movement referee → commit or reject.
@@ -371,12 +438,14 @@ const InPlaceCombatScene: React.FC<InPlaceCombatSceneProps> = ({
 
   // Camera frame request — center on the active actor (or the anchor) on mount.
   const cameraFrameRequest = useMemo<CameraFrameRequest | null>(() => {
-    if (!scene) return null;
+    // C9: hooks run before the `!scene || !mapData` early return below, so guard
+    // mapData here too instead of asserting it non-null.
+    if (!scene || !mapData) return null;
     const focusXM = active
-      ? patchTileToWorldMeters(mapData!, scene.anchor, active.position.x, active.position.y).xM
+      ? (surfaceCombatWorldPoint(mapData, active.id, active.position) ?? patchTileToWorldMeters(mapData, scene.anchor, active.position.x, active.position.y)).xM
       : scene.anchor.playerXM;
     const focusZM = active
-      ? patchTileToWorldMeters(mapData!, scene.anchor, active.position.x, active.position.y).zM
+      ? (surfaceCombatWorldPoint(mapData, active.id, active.position) ?? patchTileToWorldMeters(mapData, scene.anchor, active.position.x, active.position.y)).zM
       : scene.anchor.playerZM;
     const s = worldToScene(focusXM, focusZM, scene.sceneOrigin);
     return { nonce: frameNonce, target: [s.x, scene.surfaceY, s.z], height: 45 };
@@ -392,9 +461,9 @@ const InPlaceCombatScene: React.FC<InPlaceCombatSceneProps> = ({
     );
   }
 
-  // World3DScene re-streams the SAME terrain via the handed-off ground loader
-  // (a closure over the built world — see fightInPlaceHandoff), so the camera
-  // stays on the town the player was walking.
+  // World3DScene re-streams the SAME terrain from the handed-off ground world
+  // through the fight's own loader (above), so the camera stays on the town
+  // the player was walking.
   const start: readonly [number, number, number] = [
     scene.anchor.playerXM,
     scene.surfaceY,
@@ -403,8 +472,11 @@ const InPlaceCombatScene: React.FC<InPlaceCombatSceneProps> = ({
 
   return (
     <div className="relative h-full w-full" data-testid="fip-in-place-scene">
+      {ownLoader ? (
       <World3DScene
-        loader={scene.loader}
+        loader={ownLoader}
+        timeOfDayHours={worldClockHours}
+        agentClock={worldClockHours}
         start={start}
         startSurfaceY={scene.surfaceY}
         viewProfile="ground"
@@ -420,9 +492,16 @@ const InPlaceCombatScene: React.FC<InPlaceCombatSceneProps> = ({
             anchorXM={scene.anchor.playerXM}
             anchorZM={scene.anchor.playerZM}
             onGroundPick={handleGroundPick}
+            characters={characters}
+            activeCharacterId={currentCharacterId}
           />
         }
       />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center text-gray-400 text-sm italic">
+          Loading the world around the fight…
+        </div>
+      )}
       <div className="pointer-events-none absolute left-2 top-2 rounded bg-black/50 px-2 py-1 text-xs text-sky-200">
         {armedAbility
           ? `Aiming ${armedAbility.name} · click a target · Esc to cancel`

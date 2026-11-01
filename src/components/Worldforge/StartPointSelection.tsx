@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 21/07/2026, 14:16:43
- * Dependents: App.tsx, components/DesignPreview/steps/PreviewStartSelect.tsx
- * Imports: 5 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file StartPointSelection.tsx — "where will your journey begin?" step.
  *
@@ -28,15 +12,36 @@
  * The atlas (left) gives geographic context with a marker on the selected town;
  * clicking the map snaps to the nearest town. The panel (right) lets the player
  * narrow by region and pick a specific town, then confirm.
+ * The optional People with plans view reads the normal new-world activity
+ * planner. It reveals public purposes and real towns without moving a person,
+ * recording a meeting or promising recruitment.
  *
  * `window.__startSelect` exposes `towns()`, `select(burgIndex)`, `selected()`,
  * and `confirm()` for headless verification.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/10/2026, 08:33:40
+ * Dependents: components/DesignPreview/steps/PreviewStartSelect.tsx, components/screens/AppPhaseContent.tsx
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AtlasSvgView from './AtlasSvgView';
+import type {CompanionStartingLead} from '../../systems/companions/companionWorldActivitySource';
 import type { CellTraits } from './atlasSvg';
 import type { FmgWorldResult } from '../../systems/worldforge/fmg/generateWorld';
-import { getBridgeAtlas } from '../../systems/worldforge/bridge/legacySubmapBridge';
+import { useOffThreadBridgeAtlas } from './useOffThreadBridgeAtlas';
 import { listSelectableTowns, groupTownsByState, type SelectableTown } from '../../systems/worldforge/local/startTowns';
 
 export interface StartPointSelectionProps {
@@ -88,20 +93,65 @@ function nearestTown(
   return best;
 }
 
-const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, onConfirm, onBack, characterName }) => {
+/**
+ * The loader. It gets the canonical world from the atlas worker, then mounts the
+ * chooser with it (GG-555, 2026-11-01). The chooser builds every town list and
+ * its first selection from the world, so it mounts only once the world exists.
+ */
+const StartPointSelection: React.FC<StartPointSelectionProps> = (props) => {
   // WM1: the start-selection world MUST be the SAME world the player plays in.
   // `getBridgeAtlas(worldSeed)` is the single canonical world — the same atlas the
   // in-game MapPane, town tiles, spawn resolver, and 3D bake all consume (seed
   // string "aralia-<seed>" + the fixed 960×540/10k/continents options). Using the
   // bare `generateFmgWorld(String(seed))` here produced a DIFFERENT world, so the
   // town the player picked did not exist in the world they spawned into.
-  const world = useMemo(() => getBridgeAtlas(worldSeed), [worldSeed]);
+  // useOffThreadBridgeAtlas returns that same cached atlas. It only moves the
+  // ~4.5 s first build off the main thread, so the page does not freeze.
+  const { atlas, error } = useOffThreadBridgeAtlas(props.worldSeed);
+  if (!atlas) {
+    return (
+      <div
+        data-testid="start-select-preparing"
+        role="status"
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%',
+          minHeight: '100dvh', background: '#0b1220', color: error ? '#fca5a5' : '#cbd5e1',
+          fontFamily: 'system-ui, sans-serif', fontSize: 15,
+        }}
+      >
+        {error ? `The world did not build: ${error}` : 'Preparing the world…'}
+      </div>
+    );
+  }
+  return <StartPointChooser {...props} world={atlas} />;
+};
+
+const StartPointChooser: React.FC<StartPointSelectionProps & { world: FmgWorldResult }> = ({ worldSeed, onConfirm, onBack, characterName, world }) => {
   const towns = useMemo(() => listSelectableTowns(world), [world]);
   const regions = useMemo(() => groupTownsByState(towns), [towns]);
 
   const [regionFilter, setRegionFilter] = useState<string>(ALL_REGIONS);
   const [search, setSearch] = useState<string>('');
   const [townPage, setTownPage] = useState(0);
+  const [showPublicPlans, setShowPublicPlans] = useState(false);
+  const [publicPlans, setPublicPlans] = useState<{seed:number;status:'loading'|'ready'|'error';leads:CompanionStartingLead[]} | null>(null);
+  // Read the initializer's existing public plans only when requested. This is
+  // a new-game preview, never an NPC placement or an old-save migration.
+  useEffect(() => {
+    if (!showPublicPlans) return;
+    let current = true;
+    setPublicPlans({seed:worldSeed,status:'loading',leads:[]});
+    import('../../systems/companions/companionWorldActivitySource').then(module => {
+      const leads = module.companionStartingLeadsForNewWorld(worldSeed);
+      if (current) setPublicPlans({seed:worldSeed,status:'ready',leads});
+    }).catch(() => {
+      if (current) setPublicPlans({seed:worldSeed,status:'error',leads:[]});
+    });
+    return () => { current = false; };
+  }, [showPublicPlans, worldSeed]);
+  const publicLeads = useMemo(() => publicPlans?.seed === worldSeed && publicPlans.status === 'ready'
+    ? publicPlans.leads.filter(lead => towns.some(town => town.burgIndex === lead.burgId && town.atlasCellId === lead.cellId))
+    : [], [publicPlans, worldSeed, towns]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(() => towns[0]?.burgIndex ?? null);
   const [isCompactLayout, setIsCompactLayout] = useState<boolean>(() =>
     typeof window !== 'undefined' ? window.innerWidth < COMPACT_LAYOUT_MAX_WIDTH : false,
@@ -132,14 +182,15 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
   // dropdown and a free-text name search (either town or region name).
   const visibleTowns = useMemo(() => {
     const q = search.trim().toLowerCase();
-    let list = towns;
+    let list = showPublicPlans ? towns.filter(town => publicLeads.some(lead => lead.burgId === town.burgIndex)) : towns;
     if (regionFilter !== ALL_REGIONS) {
       const idx = Number(regionFilter);
       list = list.filter((t) => t.stateIndex === idx);
     }
-    if (q) list = list.filter((t) => t.name.toLowerCase().includes(q) || t.stateName.toLowerCase().includes(q));
+    if (q) list = list.filter((t) => t.name.toLowerCase().includes(q) || t.stateName.toLowerCase().includes(q)
+      || (showPublicPlans && publicLeads.some(lead => lead.burgId === t.burgIndex && lead.name.toLowerCase().includes(q))));
     return list;
-  }, [towns, regionFilter, search]);
+  }, [towns, regionFilter, search, showPublicPlans, publicLeads]);
 
   const selectTown = useCallback((town: SelectableTown | null) => {
     if (town) setSelectedIndex(town.burgIndex);
@@ -233,6 +284,7 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
   const surpriseMe = useCallback(() => {
     if (towns.length === 0) return;
     const pick = towns[Math.floor(Math.random() * towns.length)];
+    setShowPublicPlans(false);
     setSearch('');
     setRegionFilter(ALL_REGIONS);
     setTownPage(Math.floor(towns.findIndex((town) => town.burgIndex === pick.burgIndex) / MAX_VISIBLE_TOWNS));
@@ -242,6 +294,7 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
   const handlePickCell = useCallback((info: CellTraits) => {
     const town = nearestTown(world, towns, info.i);
     if (town) {
+      setShowPublicPlans(false);
       // Map picking is an explicit change of context. Clear both filters and
       // open the exact catalogue page so the picked town is also the visible,
       // confirmable listbox option.
@@ -309,8 +362,12 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
       onPickCell={handlePickCell}
       prefsScope={worldSeed}
     />
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- markerKey stands in for marker, so a new marker object each render does not rebuild the heavy SVG (C9).
   ), [world, markerKey, mapSize.width, mapSize.height, handlePickCell, pulseToken, worldSeed]);
+
+  // Back and Surprise me must not squeeze a desktop town confirmation into
+  // several lines. Keep secondary controls together and give Begin a full row.
+  const fullWidthConfirm = isCompactLayout || Boolean(onBack);
 
   const rootStyle: React.CSSProperties = {
     display: 'flex',
@@ -393,12 +450,26 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
           </p>
         </div>
 
+        <div role="group" aria-label="Starting town view" style={{display:'flex',gap:8,flexShrink:0}}>
+          <button type="button" aria-pressed={!showPublicPlans} onClick={() => {setShowPublicPlans(false);setSearch('');setRegionFilter(ALL_REGIONS);setTownPage(0);}}
+            style={{minHeight:40,padding:'6px 10px',border:'1px solid #334155',borderRadius:6,background:!showPublicPlans?'#1d4ed8':'#0f172a',color:'#f1f5f9'}}>All towns</button>
+          <button type="button" aria-pressed={showPublicPlans} onClick={() => {setSearch('');setRegionFilter(ALL_REGIONS);setTownPage(0);setShowPublicPlans(true);}}
+            style={{minHeight:40,padding:'6px 10px',border:'1px solid #334155',borderRadius:6,background:showPublicPlans?'#1d4ed8':'#0f172a',color:'#f1f5f9'}}>People with plans</button>
+        </div>
+        {showPublicPlans && <div style={{fontSize:12,color:'#cbd5e1',flexShrink:0}}>
+          {publicPlans?.seed !== worldSeed || publicPlans.status === 'loading'
+            ? <p role="status" style={{margin:0}}>Finding public activities…</p>
+            : publicPlans.status === 'error'
+              ? <p role="alert" style={{margin:0}}>Public activities are unavailable. You can still choose All towns.</p>
+              : <p style={{margin:0}}>{publicLeads.length ? 'Meet people pursuing their own plans. Joining your group is their choice.' : 'No public activities are available in these towns.'}</p>}
+        </div>}
+
         {/* Name search */}
         <label
           htmlFor="start-town-search"
           style={{ fontSize: 12, color: '#94a3b8', display: 'flex', flexDirection: 'column', gap: 4 }}
         >
-          Search towns or regions
+          {showPublicPlans ? 'Search towns, regions or people' : 'Search towns or regions'}
           <input
             id="start-town-search"
             data-testid="start-search"
@@ -503,7 +574,12 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
                 }}
               >
                 <span style={{ display: 'flex', gap: 7, alignItems: 'center', minWidth: 0 }}>
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
+                  <span style={{minWidth:0}}>
+                    <span style={{display:'block',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.name}</span>
+                    {showPublicPlans && <span style={{display:'block',fontSize:12,color:isSel?'#dbeafe':'#a5b4fc'}}>
+                      {publicLeads.filter(lead => lead.burgId === t.burgIndex).map(lead => lead.name).join(', ')}
+                    </span>}
+                  </span>
                   {/* S3: tier icons were tiny — larger, colored glyphs read at a glance. */}
                   {t.isCapital && <span title="Capital" aria-hidden style={{ fontSize: 16, lineHeight: 1, color: isSel ? '#fde68a' : '#fbbf24' }}>★</span>}
                   {t.isPort && <span title="Port" aria-hidden style={{ fontSize: 16, lineHeight: 1, color: isSel ? '#bae6fd' : '#7dd3fc' }}>⚓</span>}
@@ -579,13 +655,21 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
           </div>
         )}
 
+        {showPublicPlans && activeTown && publicLeads.filter(lead => lead.burgId === activeTown.burgIndex).map(lead => (
+          <div key={lead.companionId} style={{order:isCompactLayout?3:undefined,flexShrink:0,padding:'8px 10px',borderLeft:'2px solid #a5b4fc',fontSize:12}}>
+            <strong>{lead.name}</strong>
+            <p style={{margin:'4px 0',color:'#cbd5e1'}}>{lead.summary}</p>
+            <span style={{color:'#94a3b8'}}>Look for them around the public square and nearby streets.</span>
+          </div>
+        ))}
+
         {/* Actions */}
         <div
           data-testid="start-action-bar"
           style={{
-            display: isCompactLayout ? 'grid' : 'flex',
+            display: fullWidthConfirm ? 'grid' : 'flex',
             gap: 8,
-            gridTemplateColumns: isCompactLayout ? (onBack ? 'minmax(0, 1fr) minmax(0, 1fr)' : '1fr') : undefined,
+            gridTemplateColumns: fullWidthConfirm ? (onBack ? 'minmax(0, 1fr) minmax(0, 1fr)' : '1fr') : undefined,
             // On phone-width layouts, place the real "begin here" decision
             // above the long town list so it stays visible without covering
             // town rows. Desktop keeps the natural bottom-of-panel order.
@@ -620,7 +704,7 @@ const StartPointSelection: React.FC<StartPointSelectionProps> = ({ worldSeed, on
               flex: 1, minHeight: 44, padding: isCompactLayout ? '8px 10px' : '10px 14px', borderRadius: 6, border: 'none', fontWeight: 700,
               background: activeTown ? '#16a34a' : '#1e293b', color: activeTown ? 'white' : '#64748b',
               cursor: activeTown ? 'pointer' : 'not-allowed',
-              gridColumn: isCompactLayout ? '1 / -1' : undefined,
+              gridColumn: fullWidthConfirm ? '1 / -1' : undefined,
               gridRow: isCompactLayout ? 1 : undefined,
               minWidth: 0,
             }}

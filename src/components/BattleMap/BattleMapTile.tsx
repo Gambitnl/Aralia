@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 16/07/2026, 12:43:06
- * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/index.ts
- * Imports: 2 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file BattleMapTile.tsx
  * A memoized component for rendering a single tile on the battle map.
@@ -24,6 +8,23 @@
  * terrain. BattleMap.tsx feeds this component live tile data after commands
  * mutate the map.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/10/2026, 08:21:02
+ * Dependents: components/BattleMap/index.ts, components/BattleMap/layers/BattleMapTileLayer.tsx
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React from "react";
 import {
   BattleMapTile as BattleMapTileData,
@@ -37,6 +38,11 @@ interface BattleMapTileProps {
   isValidMove: boolean;
   isInPath: boolean;
   isTargetable: boolean;
+  /**
+   * GG-495: a targetable tile past normal range but within long range, where
+   * a ranged or thrown attack rolls with Disadvantage.
+   */
+  isLongRangeTarget?: boolean;
   isAoePreview: boolean;
   isTeleportDestinationPreview: boolean;
   isObjectMoveDestination?: boolean;
@@ -45,7 +51,7 @@ interface BattleMapTileProps {
    *  single readable outline instead of a shapeless wash. */
   moveEdges?: { top: boolean; right: boolean; bottom: boolean; left: boolean };
   /** Reachable tile that sits in a living enemy's melee reach — moving here
-   *  provokes, so it gets a red hatch inside the move region. */
+   *  can provoke when leaving that reach; entering alone does not provoke. */
   isThreatened?: boolean;
   isVisible?: boolean;
   lightLevel?: LightLevel;
@@ -177,6 +183,7 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(
     isValidMove,
     isInPath,
     isTargetable,
+    isLongRangeTarget = false,
     isAoePreview,
     isTeleportDestinationPreview,
     isObjectMoveDestination = false,
@@ -258,6 +265,13 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(
     } else if (isAoePreview) {
       overlayClass = "bg-orange-500/55";
       overlayKind = "area";
+    } else if (isTargetable && isLongRangeTarget) {
+      // GG-495: the long-range band keeps the attack color but at a lower
+      // fill with diagonal hatching, so a player sees where the roll has
+      // Disadvantage. The legend names it "Long Range (Disadvantage)".
+      overlayClass =
+        "bg-rose-500/[0.14] bg-[repeating-linear-gradient(135deg,rgba(244,63,94,0.32)_0px,rgba(244,63,94,0.32)_2px,transparent_2px,transparent_7px)]";
+      overlayKind = "target-long-range";
     } else if (isTargetable) {
       overlayClass = "bg-rose-500/40";
       overlayKind = "target";
@@ -303,7 +317,7 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(
         role="button"
         tabIndex={isInteractive ? 0 : -1}
         aria-disabled={!isInteractive}
-        aria-label={`Tile ${tile.terrain} at ${tile.coordinates.x}, ${tile.coordinates.y}${coverVisual ? `, ${coverVisual.description}` : ""}, ${elevationPresentation.primaryText}`}
+        aria-label={`Tile ${tile.terrain} at ${tile.coordinates.x}, ${tile.coordinates.y}${coverVisual ? `, ${coverVisual.description}` : ""}, ${elevationPresentation.primaryText}${isThreatened ? ", enemy melee reach; leaving may provoke an opportunity attack" : ""}`}
         data-elevation-relation={elevationPresentation.relation}
         data-relative-elevation-feet={
           elevationPresentation.relativeFeet ?? undefined
@@ -326,7 +340,7 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(
               ? "pointer"
               : "default",
         }}
-        title={`(${tile.coordinates.x}, ${tile.coordinates.y}) - ${tile.terrain}${coverVisual ? ` - ${coverVisual.description}` : ""} - ${elevationPresentation.primaryText} - ${elevationPresentation.secondaryText} - ${isVisible ? lightLevel : "hidden"} - Effects: ${environmentalSummary}`}
+        title={`(${tile.coordinates.x}, ${tile.coordinates.y}) - ${tile.terrain}${coverVisual ? ` - ${coverVisual.description}` : ""} - ${elevationPresentation.primaryText} - ${elevationPresentation.secondaryText} - ${isVisible ? lightLevel : "hidden"} - Effects: ${environmentalSummary}${isThreatened ? " - Enemy melee reach: leaving may provoke an opportunity attack" : ""}`}
       >
         {/* Faint terrain tint over the painted ground, for type legibility and to
           give the move/attack overlays a base. */}
@@ -346,7 +360,7 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(
           {elevationPresentation.badgeText}
         </div>
         {/* Red hatch on reachable tiles inside enemy melee reach: "you can go
-          here, but it provokes" — the danger half of the movement read. */}
+          here; leaving this reach can provoke" — entering alone is safe. */}
         {isThreatened && (
           <div
             data-testid="threat-hatch"

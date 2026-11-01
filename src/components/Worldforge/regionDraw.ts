@@ -334,28 +334,30 @@ export function drawRegion(
   ctx.lineJoin = "round";
 
   for (const river of rivers || []) {
-    const { centerline, widthFt } = river;
+    const { centerline, widthFtAt } = river;
     if (centerline.length < 2) continue;
 
     // The artifact's centerline IS the carved course (2026-07-29 region rivers
     // pass). Smoothing here would draw a different river than the terrain holds.
     const drawCenterline = centerline;
-    const w = Math.max(1.5, widthFt * scale);
-    const trace = () => {
-      ctx.beginPath();
-      ctx.moveTo(tx(drawCenterline[0][0]), ty(drawCenterline[0][1]));
+    // One water (2026-10-30): each segment at the river's own width there, so
+    // the map shows a river widening downstream at each tributary. Round caps
+    // join the segments.
+    const widthAt = (i: number) => Math.max(1.5, widthFtAt[i] * scale);
+    const trace = (factor: number) => {
       for (let i = 1; i < drawCenterline.length; i++) {
+        ctx.lineWidth = widthAt(i - 1) * factor;
+        ctx.beginPath();
+        ctx.moveTo(tx(drawCenterline[i - 1][0]), ty(drawCenterline[i - 1][1]));
         ctx.lineTo(tx(drawCenterline[i][0]), ty(drawCenterline[i][1]));
+        ctx.stroke();
       }
-      ctx.stroke();
     };
 
     ctx.strokeStyle = "#1a3d66"; // casing (atlas water outline tone)
-    ctx.lineWidth = w * 1.5;
-    trace();
+    trace(1.5);
     ctx.strokeStyle = "#3d6fa8"; // fill (atlas river tone)
-    ctx.lineWidth = w;
-    trace();
+    trace(1);
   }
 
   // --------------------------------------------------------------------------

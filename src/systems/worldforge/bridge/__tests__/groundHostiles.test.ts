@@ -10,6 +10,7 @@
  * - Zone context utility returns correct boolean.
  */
 import { describe, expect, it } from 'vitest';
+import { createHash } from 'node:crypto';
 import type { RegionMarker, RegionZone } from '../../artifacts';
 import { generateGroundHostiles, hasHostileZoneContext, DUNGEON_ENTRANCE_MARKER_TYPES } from '../groundHostiles';
 
@@ -27,6 +28,42 @@ function makeMarker(type: string, x: number, y: number): RegionMarker {
 // ============================================================================
 // Tests
 // ============================================================================
+
+
+describe('source group provenance',()=>{
+  it('keeps source groups stable when unrelated peaceful records precede them',()=>{
+    const marker=makeMarker('brigands',200,200),zone={type:'Invasion',name:'Source invasion'};
+    const original=generateGroundHostiles([marker],[zone],1,0,0,500,500);
+    const inserted=generateGroundHostiles([makeMarker('statues',100,100),marker],[{type:'Festival',name:'Quiet event'},zone],1,0,0,500,500);
+    expect(inserted).toEqual(original);
+  });
+
+  it('preserves prior IDs, counts, names, geometry and unchanged profiles across sixteen seeded scenarios',()=>{
+    const markers=[makeMarker('brigands',200,200),makeMarker('brigands',350,350)];
+    const zones=[{type:'Invasion',name:'Source invasion'},{type:'Rebels',name:'Source rebels'}];
+    const outputs=Array.from({length:16},(_,i)=>generateGroundHostiles(markers,zones,i+1,0,0,500,500)
+      .map(({sourceGroup,...original})=>original.name==='Highwayman' ? {...original,monsterId:'Bandit'} : original));
+    // The original oracle predates the owner-approved CR3 profile binding.
+    // Normalize only that explicit Highwayman reference for this historical
+    // roster/geometry check. The real-catalog Highwayman contract separately
+    // requires Warrior Veteran; every other field and profile stays protected.
+    expect(createHash('sha256').update(JSON.stringify(outputs)).digest('hex')).toBe('9b1d4541d9a1706cb24060fc2542289cf066c03df59b88ba36f301770585836a');
+  });
+
+  it('keeps every marker pack member attached to its exact source cohort',()=>{
+    const markers=[makeMarker('brigands',200,200),makeMarker('brigands',350,350)];
+    const hostiles=generateGroundHostiles(markers,undefined,1,0,0,500,500);
+    expect(new Set(hostiles.map(h=>h.sourceGroup?.key)).size).toBe(2);
+    for(const h of hostiles){
+      expect(h.sourceGroup?.kind).toBe('marker');
+      expect(h.sourceGroup?.memberIds).toEqual(hostiles.filter(o=>o.sourceGroup?.key===h.sourceGroup?.key).map(o=>o.id));
+    }
+  });
+  it('does not turn independently scattered zone bodies into a distant formation',()=>{
+    const h=generateGroundHostiles(undefined,[{type:'Invasion',name:'Source invasion'}],1,0,0,500,500);
+    for(const body of h)expect(body.sourceGroup).toMatchObject({kind:'zone',memberIds:[body.id]});
+  });
+});
 
 describe('generateGroundHostiles', () => {
   it('returns empty array when markers is undefined', () => {

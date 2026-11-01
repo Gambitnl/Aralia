@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 30/08/2026, 02:32:20
- * Dependents: components/Town/NoticeBoard.tsx, state/reducers/factReducer.ts, state/reducers/worldReducer.ts
- * Imports: 2 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file townSituation.ts — The first World Echo Engine transaction.
  *
@@ -24,8 +8,25 @@
  * reducer and remains deterministic across save/reload or action replay.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 11:00:04
+ * Dependents: components/Town/NoticeBoard.tsx, state/reducers/factReducer.ts, state/reducers/worldReducer.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { LifeEvent, LifeEventKind, TownSimState } from './types';
 import { selectTownNews } from './townNews';
+import { roundToCopper } from '../../../utils/economy/haggleFact';
 
 /** Public developments that invite player agency rather than private gossip. */
 const ACTIONABLE_KINDS = new Set<LifeEventKind>([
@@ -208,7 +209,9 @@ export function resolveTownSituation(
     return { status: 'not_found', town, gold: input.currentGold };
   }
 
-  const nextGold = input.currentGold + resolution.goldDelta;
+  // Town earnings share the merchant wallet. Keep whole-copper precision so
+  // a displayed exact-price balance remains enough for the next purchase.
+  const nextGold = roundToCopper(input.currentGold + resolution.goldDelta);
   if (nextGold < 0) {
     return {
       status: 'insufficient_gold',

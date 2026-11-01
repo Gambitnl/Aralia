@@ -29,7 +29,8 @@ import { CLASSES_DATA } from '../../data/classes';
 import { ALL_RACES_DATA } from '../../data/races';
 import { createPlayerCombatCharacter } from '../combat/combatUtils';
 import { SKILLS_DATA } from '../../data/skills';
-import { getAbilityModifierValue } from '../character/statUtils';
+import { calculateArmorClass, getAbilityModifierValue } from '../character/statUtils';
+import { buildStartingLoadout } from '../../systems/character/buildStartingLoadout';
 import { buildHitPointDicePools, calculateCharacterSpeedFromRace } from '../character/characterUtils';
 import { calculateCharacterDarkvisionFromRace } from '../character/stats';
 
@@ -160,14 +161,16 @@ export function createQuickCharacter(config: QuickCharacterConfig): PlayerCharac
     );
 
     const conMod = getAbilityModifierValue(final.Constitution);
-    const dexMod = getAbilityModifierValue(final.Dexterity);
     const maxHp = calculateMaxHp(config.level, charClass.hitDie, conMod);
     const proficiencyBonus = 2 + Math.floor((config.level - 1) / 4);
 
-    // Basic armor class (10 + Dex, or class feature if applicable)
-    const baseAc = charClass.id === 'monk' || charClass.id === 'barbarian'
-        ? 10 + dexMod + getAbilityModifierValue(charClass.id === 'monk' ? final.Wisdom : final.Constitution)
-        : 10 + dexMod;
+    // GG-559 (2026-11-01): quick characters used to carry no equipment at all, so
+    // every one fought with Unarmed Strike and had AC 10 + Dex (a level-2 fighter
+    // "Orc Reaver" in the World Battle Lab had no sword and no armor). They now get
+    // their class's level-one package from the same builder the character creator
+    // and worldBattleLabParty.ts use. There is deliberately no second loadout path.
+    // Callers that need a bare character clear `equippedItems` themselves.
+    const startingLoadout = buildStartingLoadout({ classId: charClass.id });
 
     const skills = generateSkills(charClass, final);
 
@@ -197,7 +200,8 @@ export function createQuickCharacter(config: QuickCharacterConfig): PlayerCharac
         maxHp,
         // Hit Dice pools are computed after assembly to include class levels.
         hitPointDice: undefined,
-        armorClass: baseAc,
+        // Placeholder: the real value is computed below from the equipped kit.
+        armorClass: 10,
         // Speed comes from the race's own `Speed:` trait through the shared
         // derivation used by the full character creator, so every selectable
         // race (Centaur 40 ft, Frost Giant Goliath 35 ft, Wood Elf 35 ft) is
@@ -210,7 +214,7 @@ export function createQuickCharacter(config: QuickCharacterConfig): PlayerCharac
         transportMode: 'foot',
         spellcastingAbility,
         statusEffects: [],
-        equippedItems: {},
+        equippedItems: startingLoadout.equippedItems,
         spellbook: charClass.spellcasting ? {
             cantrips: charClass.spellcasting.spellList?.slice(0, charClass.spellcasting.knownCantrips) || [],
             knownSpells: charClass.spellcasting.spellList?.slice(charClass.spellcasting.knownCantrips, charClass.spellcasting.knownCantrips + (charClass.spellcasting.knownSpellsL1 || 0)) || [],
@@ -218,6 +222,10 @@ export function createQuickCharacter(config: QuickCharacterConfig): PlayerCharac
         } : undefined,
     };
     character.hitPointDice = buildHitPointDicePools(character, { classLevels });
+    // Armor class comes from the shared calculator, so worn armor, a shield and
+    // Barbarian or Monk Unarmored Defense follow the same rules as the character
+    // sheet. This replaces the old hand-written "10 + Dex (+ Con or Wis)" rule.
+    character.armorClass = calculateArmorClass(character, character.activeEffects);
 
     return character;
 }

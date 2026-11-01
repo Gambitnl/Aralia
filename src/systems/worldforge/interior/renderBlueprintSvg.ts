@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 14/07/2026, 15:47:14
- * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx
- * Imports: 3 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file renderBlueprintSvg.ts
  * @description Pure 2D module-map blueprint renderer over a BlueprintPlan.
@@ -27,7 +11,7 @@
  *
  * Sheet furniture (round-1 critique fixes folded in):
  *  - walls drawn from `wallRuns` at true `thicknessFt`, straddling the line
- *  - doors: 3 ft leaves (data-door-ft, never a full 5 ft cell) with a swing
+ *  - doors: recorded-width leaves (legacy 3 ft) (data-door-ft, never a full 5 ft cell) with a swing
  *    arc driven by `openDir`/`swingInto`, plus jambs in the 5 ft opening
  *  - windows as glazing ticks (data-window) across the outer wall band
  *  - floor lighting clamped: the radial gradient's radius covers the far
@@ -40,6 +24,22 @@
  *  - exterior apron tint around the footprint, doorstep + entry arrow
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/10/2026, 22:20:26
+ * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, components/Worldforge/TownBuildingInspector.tsx, devtools/buildingIdentityLab/BuildingIdentityLab.tsx
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type {
   BlueprintDoor,
   BlueprintFloor,
@@ -49,7 +49,8 @@ import type {
   RoofPlan,
   RoomPurpose,
 } from './blueprintTypes';
-import { EXTERIOR, cellKey } from './blueprintTypes';
+import { EXTERIOR, cellKey, doorClearWidthFt } from './blueprintTypes';
+import { FURNITURE } from './furnitureCatalog';
 import { type BuildingOccupancy, HEARTH_KINDS } from './occupancy';
 import type { ContainerManifest } from './manifests';
 
@@ -77,7 +78,6 @@ const LBL = '#f4e8ca';
 const LBL_S = '#463019';
 const INK = '#4b3a22';
 
-const DOOR_FT = 3; // door leaf, feet — never a full 5 ft cell
 
 /** Warm per-purpose floor tint, blended at low opacity over the plank floor. */
 const PURPOSE_TINT: Partial<Record<RoomPurpose, string>> = {
@@ -134,6 +134,8 @@ const floorName = (level: number): string =>
   level < 0 ? 'Basement' : level === 0 ? 'Ground floor' : `Floor ${level}`;
 
 export interface RenderBlueprintOptions {
+  /** Player views use resident names; blueprint tools keep their slot labels. */
+  claimLabels?: 'slot' | 'name';
   /** Shown in the title block when provided (the plan itself carries no seed). */
   seed?: number | string;
   /**
@@ -316,38 +318,41 @@ export function renderBlueprintSvg(
     const d = dFt * PXPF;
     const cx = fX(f.x);
     const cy = fY(f.y);
-    const t = f.rotation ? ` transform="rotate(${f.rotation} ${cx} ${cy})"` : '';
+    // Blueprint +Y maps to world +Z. SVG's screen rotation has the opposite
+    // sign to the 3D model's positive Y turn, including a bed's head end.
+    const t = f.rotation ? ` transform="rotate(${-f.rotation} ${cx} ${cy})"` : '';
     return `<rect x="${r2(cx - w / 2)}" y="${r2(cy - d / 2)}" width="${r2(w)}" height="${r2(d)}" rx="1.5" fill="${FUR}" fill-opacity="${solid ? 0.85 : 1}" stroke="${FUR_S}" stroke-width="1"${t}/>`;
   };
   const circ = (f: BlueprintFurnishing, rFt: number): string =>
     `<circle cx="${fX(f.x)}" cy="${fY(f.y)}" r="${r2(rFt * PXPF)}" fill="none" stroke="${FUR_S}" stroke-width="1.1"/>`;
   // rotate transform shared by silhouette overlays (about the furnishing center)
   const rot = (f: BlueprintFurnishing): string =>
-    f.rotation ? ` transform="rotate(${f.rotation} ${fX(f.x)} ${fY(f.y)})"` : '';
+    f.rotation ? ` transform="rotate(${-f.rotation} ${fX(f.x)} ${fY(f.y)})"` : '';
   /** Build one furnishing's glyph body (silhouette). */
   const glyphBody = (f: BlueprintFurnishing): string => {
     const cx = fX(f.x);
     const cy = fY(f.y);
+    // Silhouettes use the same meter catalog as collision and 3D furnishing.
+    // Preserve a generic glyph for unfinished kinds without inventing a size.
+    const spec=FURNITURE[f.kind],wFt=spec?spec.w/.3048:2.4,dFt=spec?spec.d/.3048:2.4;
     switch (f.kind) {
-      case 'table': return box(f, 4.5, 3.5, false);
+      case 'table': return box(f, wFt, dFt, false);
       case 'hearth':
       case 'forge-hearth': {
         // rect with 2–3 diagonal hatch lines (the fire bed)
-        let g = box(f, 4.5, 2, true);
-        const hw = 4.5 * PXPF;
-        const hh = 2 * PXPF;
+        let g = box(f, wFt, dFt, true);
+        const hw = wFt * PXPF;
+        const hh = dFt * PXPF;
         const t = rot(f);
         for (let i = 1; i <= 3; i++) {
           const fx = -hw / 2 + (i * hw) / 4;
-          g += `<line x1="${r2(cx + fx)}" y1="${r2(cy + hh / 2)}" x2="${r2(cx + fx + hh)}" y2="${r2(cy - hh / 2)}" stroke="${FUR_S}" stroke-width="0.8"${t} data-glyph="hearth-hatch"/>`;
+          g += `<line x1="${r2(cx + fx)}" y1="${r2(cy + hh / 2)}" x2="${r2(cx + fx + Math.min(hh, hw / 2 - fx))}" y2="${r2(cy - hh / 2)}" stroke="${FUR_S}" stroke-width="0.8"${t} data-glyph="hearth-hatch"/>`;
         }
         return g;
       }
       case 'counter':
       case 'shelf': {
         // thin rect with a long-edge tick (the working face)
-        const wFt = f.kind === 'counter' ? 4.5 : 4.5;
-        const dFt = f.kind === 'counter' ? 2 : 1.4;
         let g = box(f, wFt, dFt, true);
         const hw = wFt * PXPF;
         const hd = dFt * PXPF;
@@ -357,44 +362,44 @@ export function renderBlueprintSvg(
       }
       case 'barrel': {
         // circle with an inner ring (the hoop)
-        let g = circ(f, 1.4);
-        g += `<circle cx="${r2(cx)}" cy="${r2(cy)}" r="${r2(0.8 * 1.4 * PXPF)}" fill="none" stroke="${FUR_S}" stroke-width="0.8" data-glyph="barrel-ring"/>`;
+        let g = circ(f, wFt/2);
+        g += `<circle cx="${r2(cx)}" cy="${r2(cy)}" r="${r2(0.8 * wFt/2 * PXPF)}" fill="none" stroke="${FUR_S}" stroke-width="0.8" data-glyph="barrel-ring"/>`;
         return g;
       }
-      case 'crate': return box(f, 2.4, 2.4, true);
+      case 'crate': return box(f, wFt, dFt, true);
       case 'chest': {
         // rect with a lid line across the front
-        let g = box(f, 3, 1.8, true);
-        const hw = 3 * PXPF;
+        let g = box(f, wFt, dFt, true);
+        const hw = wFt * PXPF;
         const t = rot(f);
         g += `<line x1="${r2(cx - hw / 2)}" y1="${r2(cy)}" x2="${r2(cx + hw / 2)}" y2="${r2(cy)}" stroke="${FUR_S}" stroke-width="1"${t} data-glyph="chest-lid"/>`;
         return g;
       }
       case 'workbench': {
         // rect with a corner dot
-        let g = box(f, 4.5, 2, false);
-        const hw = 4.5 * PXPF;
-        const hd = 2 * PXPF;
+        let g = box(f, wFt, dFt, false);
+        const hw = wFt * PXPF;
+        const hd = dFt * PXPF;
         const t = rot(f);
         g += `<circle cx="${r2(cx - hw / 2 + 2.5)}" cy="${r2(cy - hd / 2 + 2.5)}" r="1.4" fill="${FUR_S}"${t} data-glyph="workbench-dot"/>`;
         return g;
       }
       case 'bed': {
         // rect with a pillow band line at one end
-        let g = box(f, 4.5, 3, false);
+        let g = box(f, wFt, dFt, false);
         const t = rot(f);
-        g += `<rect x="${r2(cx - 2.25 * PXPF)}" y="${r2(cy - 1.5 * PXPF)}" width="${r2(4.5 * PXPF)}" height="${r2(0.9 * PXPF)}" rx="1" fill="${FUR}" fill-opacity="0.85" stroke="${FUR_S}" stroke-width="1"${t}/>`;
-        g += `<line x1="${r2(cx - 2.25 * PXPF)}" y1="${r2(cy - 0.6 * PXPF)}" x2="${r2(cx + 2.25 * PXPF)}" y2="${r2(cy - 0.6 * PXPF)}" stroke="${FUR_S}" stroke-width="0.9"${t} data-glyph="bed-pillow"/>`;
+        g += `<rect x="${r2(cx - wFt / 2 * PXPF)}" y="${r2(cy - dFt / 2 * PXPF)}" width="${r2(wFt * PXPF)}" height="${r2(dFt * .22 * PXPF)}" rx="1" fill="${FUR}" fill-opacity="0.85" stroke="${FUR_S}" stroke-width="1"${t}/>`;
+        g += `<line x1="${r2(cx - wFt / 2 * PXPF)}" y1="${r2(cy - dFt * .28 * PXPF)}" x2="${r2(cx + wFt / 2 * PXPF)}" y2="${r2(cy - dFt * .28 * PXPF)}" stroke="${FUR_S}" stroke-width="0.9"${t} data-glyph="bed-pillow"/>`;
         return g;
       }
-      case 'bench': return box(f, 4, 1.1, true);
-      case 'chair': return box(f, 1.5, 1.5, false);
-      case 'desk': return box(f, 4, 2, false);
-      case 'altar': return box(f, 4, 2.4, false) + `<line x1="${r2(cx)}" y1="${r2(cy - 0.8 * PXPF)}" x2="${r2(cx)}" y2="${r2(cy + 0.8 * PXPF)}" stroke="${FUR_S}" stroke-width="1"/>`;
-      case 'weapon-rack': return box(f, 4, 1, true);
-      case 'loom': return box(f, 4, 3, false);
-      case 'anvil': return box(f, 2, 1.5, true);
-      default: return box(f, 2.4, 2.4, true);
+      case 'bench': return box(f, wFt, dFt, true);
+      case 'chair': return box(f, wFt, dFt, false);
+      case 'desk': return box(f, wFt, dFt, false);
+      case 'altar': return box(f, wFt, dFt, false) + `<line x1="${r2(cx)}" y1="${r2(cy - 0.8 * PXPF)}" x2="${r2(cx)}" y2="${r2(cy + 0.8 * PXPF)}" stroke="${FUR_S}" stroke-width="1"/>`;
+      case 'weapon-rack': return box(f, wFt, dFt, true);
+      case 'loom': return box(f, wFt, dFt, false);
+      case 'anvil': return box(f, wFt, dFt, true);
+      default: return box(f, wFt, dFt, true);
     }
   };
   let fur = '';
@@ -421,10 +426,11 @@ export function renderBlueprintSvg(
   }
   s += walls;
 
-  // ---- doors: jambs in the 5 ft opening + 3 ft leaf with a spatial swing ------
-  const jambFt = (5 - DOOR_FT) / 2;
+  // ---- doors: jambs in the 5 ft opening + recorded-width leaf with a spatial swing ------
   let doorsSvg = '';
   for (const d of floor.doors) {
+    // Keep the map leaf, jambs and swing consistent with the physical doorway.
+    const DOOR_FT = doorClearWidthFt(d), jambFt = (5 - DOOR_FT) / 2;
     const t = (d.a === EXTERIOR || d.b === EXTERIOR ? outerFt : innerFt) * PXPF;
     const fill = d.a === EXTERIOR || d.b === EXTERIOR ? WALL_O : WALL_I;
     const j = jambFt * PXPF;
@@ -434,7 +440,7 @@ export function renderBlueprintSvg(
       // vertical wall: opening spans y-2.5..y+2.5 ft; jambs top+bottom
       doorsSvg += `<rect x="${r2(px - t / 2)}" y="${r2(py - 2.5 * PXPF)}" width="${r2(t)}" height="${r2(j)}" fill="${fill}" stroke="${WALL_EDGE}" stroke-width="0.4"/>`;
       doorsSvg += `<rect x="${r2(px - t / 2)}" y="${r2(py + 2.5 * PXPF - j)}" width="${r2(t)}" height="${r2(j)}" fill="${fill}" stroke="${WALL_EDGE}" stroke-width="0.4"/>`;
-      // hinge at top of the 3 ft leaf; swings into openDir (A2 contract)
+      // hinge at top of the recorded leaf; swings into openDir (A2 contract)
       const hy = py - (DOOR_FT / 2) * PXPF;
       const cy = py + (DOOR_FT / 2) * PXPF;
       const tipX = px + d.openDir.nx * DOOR_FT * PXPF;
@@ -520,6 +526,20 @@ export function renderBlueprintSvg(
   // ---- stairs (shown on the level they rise from and the one they reach) ------
   for (const st of plan.stairs) {
     if (st.fromLevel !== level && st.fromLevel + 1 !== level) continue;
+    if (st.layout) {
+      const l = st.layout, scale = PXPF;
+      s += `<g data-stair="return" transform="matrix(${l.runDir.dx * scale} ${l.runDir.dy * scale} ${l.acrossDir.dx * scale} ${l.acrossDir.dy * scale} ${fX(l.origin.x)} ${fY(l.origin.y)})" fill="#c79a68" stroke="${FUR_S}" stroke-width="0.15">`;
+      for (const v of [2.5, 7.5]) {
+        s += `<rect x="0" y="${v - l.flightWidthFt / 2}" width="${l.flightRunFt}" height="${l.flightWidthFt}"/>`;
+        for (let i = 1; i < l.risesPerFlight - 1; i++) {
+          const u = i * l.flightRunFt / (l.risesPerFlight - 1);
+          s += `<path d="M ${u} ${v - l.flightWidthFt / 2} V ${v + l.flightWidthFt / 2}"/>`;
+        }
+      }
+      s += `<rect x="${l.flightRunFt}" y="${2.5 - l.flightWidthFt / 2}" width="${l.landingDepthFt}" height="${5 + l.flightWidthFt}"/>`;
+      s += `<path d="M 1 2.5 H ${l.flightRunFt + l.landingDepthFt / 2} V 7.5 H 1 m 1 -0.7 L 1 7.5 l 1 0.7" fill="none" stroke-width="0.22"/></g>`;
+      continue;
+    }
     const scx = fX(st.x);
     const scy = fY(st.y);
     const sw = 3.6 * PXPF;
@@ -591,7 +611,7 @@ export function renderBlueprintSvg(
     for (const c of occupancy.claims) {
       if (c.level !== level) continue;
       const list = claimsByRoom.get(c.roomId) ?? [];
-      list.push(c.slotTag);
+      list.push(options?.claimLabels === 'name' ? c.memberName.split(' ')[0] : c.slotTag);
       claimsByRoom.set(c.roomId, list);
     }
     for (const [roomId, tags] of claimsByRoom) {
@@ -620,7 +640,10 @@ export function renderBlueprintSvg(
       const f = st.furnishingIndex !== undefined ? floor.furnishings[st.furnishingIndex] : undefined;
       let px: number;
       let py: number;
-      if (f) {
+      if (st.standingPosition) {
+        px = fX(st.standingPosition.xFt);
+        py = fY(st.standingPosition.yFt);
+      } else if (f) {
         px = fX(f.x);
         py = fY(f.y);
       } else {

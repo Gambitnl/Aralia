@@ -1,8 +1,24 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 00:28:48
+ * Dependents: components/layout/GameModals.tsx
+ * Imports: 8 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useMemo } from 'react';
 import { useGameState } from '../../state/GameContext';
 import { getGameDay } from '../../utils/core';
 import { resolveTownForLocation } from '../../systems/worldforge/townsim/chronicleForLocation';
-import { selectTownNews, type NewsProminence } from '../../systems/worldforge/townsim/townNews';
+import { selectTownNews, townNewsContext, type NewsProminence } from '../../systems/worldforge/townsim/townNews';
 import {
   deriveTownSituation,
   TOWN_SITUATION_RESOLUTIONS,
@@ -47,6 +63,7 @@ const NoticeBoard: React.FC = () => {
   const town = useMemo(
     () =>
       resolveTownForLocation({
+        ground: state,
         // GRID-RETIRE: BA-2 — prefer the canonical cell over the coarse grid coord.
         cellId: state.playerCell?.cellId ?? null,
         currentLocationId: state.currentLocationId,
@@ -54,7 +71,7 @@ const NoticeBoard: React.FC = () => {
         townSim: state.townSim,
         gameTime: state.gameTime,
       }),
-    [state.playerCell?.cellId, state.currentLocationId, state.worldSeed, state.townSim, state.gameTime],
+    [state.playerCell?.cellId, state.currentLocationId, state.worldSeed, state.townSim, state.gameTime, state.playerGroundPos, state.atlasGroundAddress, state.entry3DAnchor],
   );
 
   const news = useMemo(
@@ -68,6 +85,13 @@ const NoticeBoard: React.FC = () => {
     () => (town ? deriveTownSituation(town, day) : null),
     [town, day],
   );
+
+  // The response panel and the list describe the same dated source. Historical
+  // participants are not projected into nearby actors or an unoffered quest.
+  const situationNews = town && situation
+    ? selectTownNews(town,day,{minProminence:'notice'}).find(item => item.id === situation.sourceEventId)
+    : undefined;
+  const situationContext = town && situationNews ? townNewsContext(town,situationNews,day) : undefined;
 
   const resolveSituation = (resolution: TownSituationResolution) => {
     if (!situation || situation.resolved || state.gold + resolution.goldDelta < 0) return;
@@ -93,7 +117,7 @@ const NoticeBoard: React.FC = () => {
       <div data-testid="notice-board" className="flex flex-col h-full bg-gray-900 text-amber-100 font-serif">
         {/* Subtitle banner (was a header subtitle). */}
         <p className="shrink-0 text-center text-sm text-gray-400 px-6 py-2 border-b border-amber-800/40">
-          {town ? `Recent word about town · day ${day}` : 'Recent word about town'}
+          {town ? `Town news and records · day ${day}` : 'Recent word about town'}
         </p>
 
         <div className="flex-1 min-h-0 overflow-y-auto p-6">
@@ -112,6 +136,14 @@ const NoticeBoard: React.FC = () => {
               <p data-testid="town-situation-source" className="mt-2 leading-relaxed text-gray-200">
                 {situation.sourceText}
               </p>
+              {situationContext && (
+                <p data-testid="town-situation-context" className="mt-2 text-sm text-gray-400">
+                  {situationContext.ageLabel}
+                  {situationContext.people.length > 0 && (
+                    <span className="block mt-1">People in the record: {situationContext.people.map(person => person.name).join(', ')}</span>
+                  )}
+                </p>
+              )}
 
               {situation.resolved ? (
                 <div
@@ -173,6 +205,7 @@ const NoticeBoard: React.FC = () => {
             <ul data-testid="notice-board-news" className="space-y-3">
               {news.map((item) => {
                 const badge = PROMINENCE_BADGE[item.prominence];
+                const context = townNewsContext(town!,item,day);
                 return (
                   <li
                     key={item.id}
@@ -184,7 +217,13 @@ const NoticeBoard: React.FC = () => {
                     >
                       {badge.label}
                     </span>
-                    <span className="text-amber-100 leading-snug">{item.text}</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="mb-1 text-xs text-gray-400">{context.ageLabel}</p>
+                      <p className="text-amber-100 leading-snug">{item.text}</p>
+                      {context.people.length > 0 && (
+                        <p className="mt-1 text-sm text-gray-400">People in the record: {context.people.map(person => person.name).join(', ')}</p>
+                      )}
+                    </div>
                   </li>
                 );
               })}

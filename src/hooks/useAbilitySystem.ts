@@ -15,10 +15,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 09/09/2026, 14:28:33
- * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/BattleMap/hooks/useBattleMapPointer.ts, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarioFramework.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/classes/ClassBattlefieldDemo.tsx, components/DesignPreview/steps/scenarioControls/counterspellNestedReactionsScenarioControls.ts, hooks/useBattleMap.ts
+ * Last Sync: 31/10/2026, 10:26:56
+ * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/BattleMap/hooks/useBattleMapDerivedState.ts, components/BattleMap/hooks/useBattleMapPointer.ts, components/BattleMap/layers/BattleMapMarkerLayer.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarioFramework.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/DesignPreview/steps/classes/ClassBattlefieldDemo.tsx, components/DesignPreview/steps/scenarioControls/counterspellNestedReactionsScenarioControls.ts, hooks/useBattleMap.ts
  * Imports: 13 files
  *
  * MULTI-AGENT SAFETY:
@@ -118,7 +118,7 @@ export type {
 export interface UseAbilitySystemProps {
   characters: CombatCharacter[];
   mapData: BattleMapData | null;
-  onExecuteAction: (action: CombatAction) => boolean | Promise<boolean>;
+  onExecuteAction: (action: CombatAction, onCharacterCommitted?: (character: CombatCharacter) => void) => boolean | Promise<boolean>;
   onCharacterUpdate: (character: CombatCharacter) => void;
   /** Replaces the visible combat roster when command results add or remove actors. */
   onCharactersReplace?: (characters: CombatCharacter[]) => void;

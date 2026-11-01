@@ -14,6 +14,23 @@
  * in every peaceful opening, free text produced prose and nothing else: no
  * check could be attempted, nothing could fail, and no fight could ever start.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 07:13:28
+ * Dependents: components/ConversationPanel/index.ts
+ * Imports: 23 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { GameState } from '../../types';
 import { AppAction } from '../../state/actionTypes';
@@ -42,6 +59,11 @@ import { handleCastSpell } from '../../hooks/actions/handleResourceActions';
 import { generateId } from '../../utils/core/idGenerator';
 import { SkillClarificationPane } from '../gameEntry/SkillClarificationPane';
 import './ConversationPanel.css';
+import { CompanionPreparationChoices } from './CompanionPreparationChoices';
+import { CompanionRumorChoices } from './CompanionRumorChoices';
+import { CompanionGoalDestinationChoices } from './CompanionGoalDestinationChoices';
+import { CompanionGoalWorkChoices } from './CompanionGoalWorkChoices';
+import { CompanionTravelChoices } from './CompanionTravelChoices';
 
 interface ConversationPanelProps {
     gameState: GameState;
@@ -55,10 +77,27 @@ interface PendingAttempt {
     text: string;
 }
 
+/** A missing intent reply must not consume the player's words or invent an action.
+ * The provider may finish later; only the bounded result below can reach gameplay. */
+async function readIntentWithinDeadline(read: Promise<PlayerIntent>): Promise<PlayerIntent> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+        return await Promise.race([
+            read,
+            new Promise<never>((_, reject) => {
+                timer = setTimeout(() => reject(new Error('Your words could not be interpreted in time. Try again, or end the conversation.')), 15000);
+            }),
+        ]);
+    } finally {
+        if (timer !== undefined) clearTimeout(timer);
+    }
+}
+
 export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState, dispatch }) => {
     const { sendPlayerMessage, endConversation, isInteractionLocked } = useConversation(gameState, dispatch);
 
     const conversation = gameState.activeConversation;
+    const intentRequest = useRef(0);
     const isPlayerTurn = conversation?.isPlayerTurn ?? false;
     const [inputText, setInputText] = useState('');
     const [showMentionMenu, setShowMentionMenu] = useState(false);
@@ -72,6 +111,12 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
     const [intentError, setIntentError] = useState<string | null>(null);
     /** True while the reader judges the line. The input locks so one line cannot be sent twice. */
     const [isReadingIntent, setIsReadingIntent] = useState(false);
+    // Each conversation owns its reader lock. Replacing the speaker releases
+    // the old lock and invalidates any classification still on its way back.
+    useEffect(() => {
+        setIsReadingIntent(false);
+        return () => { intentRequest.current += 1; };
+    }, [conversation?.id]);
     const [pendingClarification, setPendingClarification] = useState<
         { candidateSkills: string[]; text: string } | null
     >(null);
@@ -304,7 +349,8 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
 
     // Scroll to bottom when new messages arrive
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        // Keep the new words visible; follow-up cards must not scroll the reply away.
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }, [conversation?.messages]);
 
     // Handle input change - detect @mention
@@ -363,8 +409,10 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
         }
 
         setIsReadingIntent(true);
+        const request = ++intentRequest.current;
         try {
-            const intent = await resolvePlayerIntent(text, scene, skillInfos);
+            const intent = await readIntentWithinDeadline(resolvePlayerIntent(text, scene, skillInfos));
+            if (request !== intentRequest.current) return;
 
             if (intent.kind === 'talk') {
                 await sendPlayerMessage(text);
@@ -380,11 +428,13 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
             }
             await rollWithBuffOffer({ intent, text });
         } catch (e) {
+            if (request !== intentRequest.current) return;
+            setInputText(text);
             setIntentError(
                 e instanceof Error ? e.message : 'Could not read your intent — try rephrasing.',
             );
         } finally {
-            setIsReadingIntent(false);
+            if (request === intentRequest.current) setIsReadingIntent(false);
         }
     }, [
         isInteractionLocked, isReadingIntent, conversation, isPlayerTurn, pc, scene, skillInfos,
@@ -441,6 +491,8 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
                 </div>
             )}
 
+            {/* Desktop dialogue keeps speech and deliberate choices visible together. */}
+            <div className="conversation-body">
             <div className="conversation-messages">
                 {conversation.kind === 'situation' && gameState.gameEntry?.sceneImage
                     && gameState.gameEntry.sceneImage.status !== 'idle' && (() => {
@@ -464,7 +516,7 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
                     );
                 })()}
 
-                {conversation.messages.map(msg => {
+                {conversation.messages.map((msg, index) => {
                     const isPlayer = msg.speakerId === 'player';
                     const speakerName = isPlayer
                         ? 'You'
@@ -475,6 +527,7 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
                     return (
                         <div
                             key={msg.id}
+                            ref={index === conversation.messages.length - 1 ? messagesEndRef : undefined}
                             className={`conversation-message ${isPlayer ? 'player' : 'companion'}`}
                         >
                             {speakerName && <span className="message-speaker">{speakerName}:</span>}
@@ -482,6 +535,8 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
                         </div>
                     );
                 })}
+
+
 
                 {isReadingIntent && (
                     <div data-testid="reading-intent" className="conversation-message companion pending">
@@ -495,7 +550,15 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
                     </div>
                 )}
 
-                <div ref={messagesEndRef} />
+            </div>
+
+            <aside className="conversation-choices" aria-label="Conversation choices">
+                <CompanionPreparationChoices state={gameState} dispatch={dispatch} disabled={inputLocked} />
+                <CompanionRumorChoices state={gameState} dispatch={dispatch} disabled={inputLocked} />
+                <CompanionGoalDestinationChoices state={gameState} dispatch={dispatch} disabled={inputLocked} />
+                <CompanionGoalWorkChoices state={gameState} dispatch={dispatch} disabled={inputLocked} />
+                <CompanionTravelChoices state={gameState} dispatch={dispatch} disabled={inputLocked} />
+            </aside>
             </div>
 
             {/* Suggested replies live OUTSIDE the input row: the input container

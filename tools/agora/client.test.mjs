@@ -15,8 +15,400 @@ import path from 'node:path';
 
 import { createAgoraServer } from './server.mjs';
 import { run } from './client.mjs';
+// Candidate implementations run only against private servers, never live
+// coordination. Published-entry fixtures separately verify fleet delivery.
+import { run as runCandidate } from './client-runtime.mjs';
 import { createStore } from './store.mjs';
 import { execFileSync } from 'node:child_process';
+import { createServer } from 'node:http';
+import { buildPrompt } from './orchestrate.mjs';
+
+// WF-G260: the recoverable baseline must be current dirty bytes, not Git HEAD.
+// All corruption and restoration in this test stay in a disposable repository.
+test('WF-G260: a granted file lock records current bytes and restores only its reviewed target',async()=>{
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),'agora-lock-baseline-'));
+  const app=createAgoraServer({dir:path.join(root,'state'),seatRosterPath:null});
+  const current=Buffer.from('dirty peer work\r\nkept at grant\r\n'),bad=Buffer.from('corrupt edit'),sibling='unchanged sibling';
+  try{
+    execFileSync('git',['init','-q',root]);fs.writeFileSync(path.join(root,'.gitignore'),'.agent/\n');
+    fs.writeFileSync(path.join(root,'owned.txt'),current);fs.writeFileSync(path.join(root,'sibling.txt'),sibling);
+    await new Promise(resolve=>app.listen(0,resolve));
+    const options={baseUrl:'http://127.0.0.1:'+app.server.address().port,repoRoot:root,env:{AGORA_DIR:path.join(root,'.agent/identity'),AGORA_AGENT_ID:'restore-fixture'}};
+    assert.equal((await runCandidate(['register','restore-fixture','--pet','dream-girl'],options)).code,0);
+    const granted=await runCandidate(['lock','owned.txt','--reason','Disposable recovery proof'],options);assert.equal(granted.code,0);
+    assert.ok(granted.snapshot,'successful lock must capture its current file baseline');
+    fs.writeFileSync(path.join(root,'owned.txt'),bad);
+    const review=await runCandidate(['lock','--restore','owned.txt'],options);assert.equal(review.code,1,'inspection alone cannot overwrite');
+    assert.deepEqual(fs.readFileSync(path.join(root,'owned.txt')),bad);
+    assert.match(review.lines.join('\n'),/expect-current/);
+    const hash=(await import('node:crypto')).createHash('sha256').update(bad).digest('hex');
+    const restored=await runCandidate(['lock','--restore','owned.txt','--expect-current',hash],options);assert.equal(restored.code,0,restored.lines.join('\n'));
+    assert.deepEqual(fs.readFileSync(path.join(root,'owned.txt')),current);assert.equal(fs.readFileSync(path.join(root,'sibling.txt'),'utf8'),sibling);
+    assert.equal(app.store.listLocks().length,1,'restore alone retains the lock');
+  }finally{await app.close();assert.equal(path.dirname(root),path.resolve(os.tmpdir()));assert.match(path.basename(root),/^agora-lock-baseline-/);fs.rmSync(root,{recursive:true,force:true});}
+});
+
+for(const misplaced of ['restore','lock-id'])test('WF-G260: misplaced --'+misplaced+' cannot become release-all',async()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'agora-recovery-flags-')),app=createAgoraServer({dir:path.join(dir,'state'),seatRosterPath:null});
+  try{
+    await new Promise(resolve=>app.listen(0,resolve));const options={baseUrl:'http://127.0.0.1:'+app.server.address().port,env:{AGORA_DIR:path.join(dir,'identity'),AGORA_AGENT_ID:'misplaced-fixture'}};
+    assert.equal((await runCandidate(['register','misplaced-fixture','--pet','dream-girl'],options)).code,0);
+    const owner=app.store.listAgents().find(agent=>agent.handle==='misplaced-fixture');assert.ok(owner);
+    const locks=['owned.txt','sibling.txt'].map(file=>app.store.acquireLock({agentId:owner.id,paths:[file]}).lock);
+    const lockState=()=>JSON.stringify(app.store.listLocks().map(({holderIdleMs,...lock})=>lock));const before=lockState();
+    const reply=await runCandidate(['unlock','--'+misplaced,misplaced==='restore'?'owned.txt':locks[0].id],options);
+    assert.equal(reply.code,1,reply.lines.join('\n'));assert.equal(lockState(),before);
+  }finally{await app.close();assert.equal(path.dirname(dir),fs.realpathSync(os.tmpdir()));assert.match(path.basename(dir),/^agora-recovery-flags-/);fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+for(const alias of ['absolute','case','recursive-glob','question-glob'])test('WF-G260: fresh peer overlap '+alias+' refuses recovery before any write',async()=>{
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),'agora-peer-recovery-')),app=createAgoraServer({dir:path.join(root,'state'),seatRosterPath:null});
+  try{
+    execFileSync('git',['init','-q',root]);fs.writeFileSync(path.join(root,'.gitignore'),'.agent/\n');fs.writeFileSync(path.join(root,'owned.txt'),'grant-time peer bytes');
+    await new Promise(resolve=>app.listen(0,resolve));const options={baseUrl:'http://127.0.0.1:'+app.server.address().port,repoRoot:root,env:{AGORA_DIR:path.join(root,'.agent/identity'),AGORA_AGENT_ID:'peer-guard-fixture'}};
+    const registered=await runCandidate(['register','peer-guard-fixture','--pet','dream-girl'],options);assert.equal(registered.code,0);const granted=await runCandidate(['lock','owned.txt'],options);assert.equal(granted.code,0);
+    const peer={id:'foreign',agentId:'peer',paths:[],globs:[]};
+    if(alias==='absolute')peer.paths=[path.join(root,'owned.txt')];
+    if(alias==='case')peer.paths=[process.platform==='win32'?'OWNED.TXT':'owned.txt'];
+    if(alias==='recursive-glob')peer.globs=['**/owned.txt'];
+    if(alias==='question-glob')peer.globs=['owne?.txt'];
+    // A conflicting fresh board observation is modeled without granting an
+    // impossible second lock through the real daemon's acquisition invariant.
+    const locks=[...app.store.listLocks(),peer],calls=[];app.server.removeAllListeners('request');
+    app.server.on('request',(req,res)=>{calls.push(req.method);res.setHeader('Content-Type','application/json');res.end(JSON.stringify(req.url==='/agents/me'?{agent:{id:registered.identity.agentId}}:{locks}));});
+    const bad=Buffer.from('fixture bad edit');fs.writeFileSync(path.join(root,'owned.txt'),bad);const expected=(await import('node:crypto')).createHash('sha256').update(bad).digest('hex');
+    const result=await runCandidate(['lock','--restore','owned.txt','--expect-current',expected],options);
+    assert.equal(result.code,1,result.lines.join('\n'));assert.deepEqual(fs.readFileSync(path.join(root,'owned.txt')),bad);assert.ok(calls.every(method=>method==='GET'));
+  }finally{await app.close();assert.equal(path.dirname(root),fs.realpathSync(os.tmpdir()));assert.match(path.basename(root),/^agora-peer-recovery-/);fs.rmSync(root,{recursive:true,force:true});}
+});
+
+test('WF-G285: legacy daemon show/list/lint warn from full cross-campaign completion board without writes', async () => {
+  const tasks=[{id:'count-target',title:'Count sweep',body:'Review work.',state:'open',ready:true,createdAt:10,refs:['tools/agora/store.mjs'],history:[],campaignId:'target-campaign'},
+    {id:'count-source',title:'Sibling handler fix',body:'Private proof',state:'open',createdAt:1,refs:['tools/agora/store.mjs'],history:[{action:'state',state:'done',at:20},{action:'state',state:'open',at:30}],campaignId:'other-campaign'}];
+  const before=JSON.stringify(tasks),methods=[];
+  const server=createServer((req,res)=>{methods.push([req.method,req.url]); res.setHeader('Content-Type','application/json');
+    res.end(JSON.stringify(req.url==='/agents'?{agents:[]}:req.url==='/tasks?ready=1'?{tasks:[tasks[0]]}:{tasks}));});
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  try {
+    const options={baseUrl:'http://127.0.0.1:'+server.address().port,env:{}};
+    for(const args of [['task','show','count-target'],['tasks','--ready'],['tasks','--state','open'],['task','lint','count-target']]) {
+      const reply=await runCandidate([...args,'--token','private-fixture'],options); assert.match(reply.lines.join('\n'),/COUNTS UNVERIFIED.*count-source/);
+      if(args.includes('lint')){assert.equal(reply.code,1);assert.equal(reply.lint.referenceFreshness.status,'unverified');}
+      else assert.equal(reply.code,0);
+    }
+    assert.equal(JSON.stringify(tasks),before); assert.ok(methods.every(x=>x[0]==='GET'));
+    assert.ok(methods.some(x=>x[1]==='/tasks?ready=1')); assert.ok(methods.filter(x=>x[1]==='/tasks').length>=4);
+  } finally {await new Promise(resolve=>server.close(resolve));}
+});
+
+test('WF-G284: intake preserves instructions and refuses invalid baselines before task creation', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-baseline-intake-'));
+  const app = createAgoraServer({ dir: path.join(dir, 'state'), seatRosterPath: null });
+  try {
+    await new Promise(resolve => app.listen(0, resolve));
+    const owner = app.store.registerAgent({ handle: 'baseline-owner', petSlug: 'dream-girl' });
+    const { captureTestBaseline } = await import('./testBaseline.mjs');
+    const root = path.resolve('tools/agora/../..'), start = Date.now() - 1000;
+    const report = { startTime: start, success: false, numPendingTestSuites: 0, numTotalTests: 1, numFailedTests: 1, numPassedTests: 0,
+      testResults: [{ name: path.join(root, 'tools/agora/client.test.mjs'), endTime: start + 10, status: 'failed', message: '', assertionResults: [{ fullName: 'known failing case', status: 'failed', failureMessages: ['existing diagnostic'] }] }] };
+    const receipt = captureTestBaseline(report, { repoRoot: root, command: 'node --test tools/agora/client.test.mjs' });
+    const file = path.join(dir, 'baseline.json'); fs.writeFileSync(file, JSON.stringify(receipt));
+    const call = args => runCandidate(['task', 'new', 'Baseline intake', '--standalone', '--reason', 'Private fixture', '--token', owner.token, ...args], { baseUrl: 'http://127.0.0.1:' + app.server.address().port, env: {} });
+    const created = await call(['--body', 'Original work instructions.', '--test-baseline', file]); assert.equal(created.code, 0);
+    assert.ok(created.task.body.startsWith('Original work instructions.\n\nTEST BASELINE')); assert.match(created.task.body, /known failing case/);
+    assert.equal(created.task.creatorAgent.id, owner.id);
+    for (const args of [['--test-baseline', file], ['--body', 'Work', '--test-baseline'], ['--body', 'Work', '--test-baseline', path.join(dir, 'missing.json')]]) {
+      const refused = await call(args); assert.equal(refused.code, 1); assert.match(refused.lines.join('\n'), /No task was created/);
+    }
+    receipt.capturedAt -= 3 * 60 * 60 * 1000; fs.writeFileSync(file, JSON.stringify(receipt));
+    assert.equal((await call(['--body', 'Work', '--test-baseline', file])).code, 1); assert.equal(app.store.listTasks().length, 1);
+  } finally { await app.close(); assert.equal(path.dirname(dir), path.resolve(os.tmpdir())); fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+// History fixtures prove presentation only. No task is edited by inspection.
+test('WF-G352: named edit fields retain historical provenance and scalar transitions', async () => {
+  const task = { id: 'history-fixture', title: 'Latest title', state: 'claimed', body: 'Latest brief', refs: ['latest-ref'], priority: 2,
+    history: [
+      { at: 1, by: 'writer', action: 'edit', fields: ['title', 'body', 'refs'], from: { title: 'Original title', body: 'Original brief', refs: ['original-ref'] } },
+      { at: 2, by: 'writer', action: 'edit', fields: ['title'], from: { title: 'Intermediate title' } },
+      { at: 3, by: 'writer', action: 'edit', fields: ['priority', 'design', 'flag'], from: { priority: 0, design: null, flag: false }, to: { priority: 1, design: 'Recorded design', flag: true } },
+      { at: 4, by: 'writer', action: 'campaign', from: 'standalone', to: 'fixture-campaign' },
+      { at: 5, by: 'writer', action: 'state', from: 'open', state: 'claimed' },
+    ] };
+  const before = JSON.stringify(task), methods = [];
+  const server = createServer((req, res) => { methods.push(req.method); res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(req.url === '/agents' ? { agents: [] } : req.url === '/tasks' ? { tasks: [task] } : { task })); });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  try {
+    const result = await runCandidate(['task', 'show', task.id, '--token', 'fixture'], { baseUrl: 'http://127.0.0.1:' + server.address().port, env: {} });
+    assert.equal(result.code, 0); const text = result.lines.join('\n').split('history (last 5):')[1];
+    assert.match(text, /edit fields: title, body, refs/);
+    assert.match(text, /title: previous="Original title"; edit-time new=not recorded/);
+    assert.match(text, /current="Latest title" \(current snapshot, not edit-time\)/);
+    assert.match(text, /title: previous="Intermediate title"/); assert.doesNotMatch(text, /edit-time new="Latest title"/);
+    assert.match(text, /refs: previous=\["original-ref"\]/);
+    assert.match(text, /priority: previous=0; edit-time new=1/);
+    assert.match(text, /design: previous=null; edit-time new="Recorded design"/);
+    assert.match(text, /flag: previous=false; edit-time new=true/);
+    assert.match(text, /campaign from standalone -> fixture-campaign/); assert.match(text, /state from open -> claimed/);
+    assert.doesNotMatch(text, /\[object Object\]/); assert.equal(JSON.stringify(task), before); assert.deepEqual(result.task, task);
+    assert.ok(methods.length); assert.ok(methods.every(method => method === 'GET'));
+  } finally { await new Promise(resolve => server.close(resolve)); }
+});
+
+test('WF-G352: history previews bound long values and preserve legacy structured entries', async () => {
+  const from = { body: 'old\n\x1b[31m\u202e' + 'x'.repeat(50000), refs: [{ ref: 'a'.repeat(50000) }] };
+  const fields = ['body', 'refs', ...Array.from({ length: 10 }, (_, index) => 'legacy-' + index)];
+  const task = { id: 'bounded-history', title: 'Bounded history', state: 'open', body: 'Current brief', refs: [], history: [
+    { at: 1, action: 'edit', fields, from, reason: 'r'.repeat(50000) },
+    { at: 2, action: 'legacy', from: { prior: false }, to: [{ next: 0 }] },
+    { at: 3, action: 'legacy-null', from: null, to: false },
+    { at: 4, action: 'legacy-zero', from: 0, to: 0 },
+    { at: 5, action: 'legacy-target-null', from: false, to: null },
+  ] };
+  const before = JSON.stringify(task);
+  const server = createServer((req, res) => { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(req.url === '/agents' ? { agents: [] } : req.url === '/tasks' ? { tasks: [task] } : { task })); });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  try {
+    const result = await runCandidate(['task', 'show', task.id, '--token', 'fixture'], { baseUrl: 'http://127.0.0.1:' + server.address().port, env: {} });
+    assert.equal(result.code, 0); const history = result.lines.join('\n').split('history (last 5):')[1];
+    assert.ok(history.length < 5000); assert.match(history, /\[truncated\]/); assert.match(history, /4 additional edited field\(s\) not shown/);
+    assert.match(history, /legacy from \{"prior":false\} -> \[\{"next":0\}\]/);
+    assert.match(history, /legacy-null from null -> false/); assert.match(history, /legacy-zero from 0 -> 0/);
+    assert.match(history, /legacy-target-null from false -> null/);
+    assert.ok(!history.includes('\x1b') && !history.includes('\u202e')); assert.doesNotMatch(history, /\[object Object\]/);
+    assert.equal(JSON.stringify(task), before); assert.deepEqual(result.task, task);
+  } finally { await new Promise(resolve => server.close(resolve)); }
+});
+
+test('WF-G297: queued CLI conflicts, holder heartbeat/unlock and waiter inbox form one real HTTP flow', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-queue-cli-'));
+  const fixture = createAgoraServer({ dir: path.join(dir, 'state'), seatRosterPath: null });
+  try {
+    await new Promise(resolve => fixture.listen(0, resolve));
+    const url = 'http://127.0.0.1:' + fixture.server.address().port;
+    const call = (handle, argv) => runCandidate(argv, { baseUrl: url,
+      env: { AGORA_DIR: path.join(dir, 'identity'), AGORA_AGENT_ID: handle } });
+    for (const [handle, pet] of [['queue-holder', 'gf-sd'], ['queue-first', 'dream-girl'], ['queue-second', 'cyberman']]) {
+      assert.equal((await call(handle, ['register', handle, '--pet', pet])).code, 0);
+    }
+    const file = 'src/__queue_cli_probe__.ts';
+    const held = await call('queue-holder', ['lock', file, 'src/__queue_cli_kept__.ts']);
+    assert.equal(held.code, 0);
+    const queued = await call('queue-first', ['lock', '--queue', file, '--reason', 'fixture repair']);
+    assert.equal(queued.code, 1, 'a queued conflict is still a failed lock');
+    assert.match(queued.lines.join('\n'), /Reservation queued:.*#1/);
+    assert.match(queued.lines.join('\n'), /Queueing is not edit permission/);
+    await call('queue-second', ['lock', file, '--queue', '--reason', 'follow-up repair']);
+    const again = await call('queue-first', ['lock', file, '--queue']);
+    assert.equal(again.code, 1);
+    assert.match(again.lines.join('\n'), /Existing reservation retained/);
+    assert.equal(fixture.store.listReservations().length, 2);
+    assert.equal(fixture.store.listLocks().length, 1, 'no hidden grant in a queued conflict');
+    const heartbeat = await call('queue-holder', ['heartbeat', '--count', '1']);
+    assert.equal(heartbeat.code, 0);
+    assert.match(heartbeat.lines.join('\n'), /FILE QUEUE: #1 queue-first.*fixture repair/);
+    assert.match(heartbeat.lines.join('\n'), /FILE QUEUE: #2 queue-second.*follow-up repair/);
+    const unlock = await call('queue-holder', ['unlock', file]);
+    assert.equal(unlock.code, 0);
+    assert.match(unlock.lines.join('\n'), /queue-first.*available to attempt, not locked/);
+    assert.deepEqual(fixture.store.listLocks()[0].paths, ['src/__queue_cli_kept__.ts']);
+    const inbox = await call('queue-first', ['inbox']);
+    assert.match(inbox.lines.join('\n'), /FILE QUEUE.*available to attempt/);
+    const first = await call('queue-first', ['lock', file]);
+    assert.equal(first.code, 0);
+    const finalRelease = await call('queue-first', ['unlock', first.lock.id]);
+    assert.match(finalRelease.lines.join('\n'), /queue-second.*available to attempt, not locked/);
+    const second = await call('queue-second', ['lock', file]);
+    assert.equal(second.code, 0);
+    assert.equal(fixture.store.listReservations().length, 0);
+    // Partial mode queues only the reported conflict and retains its explicit
+    // ACQUIRED targets; queue admission cannot change the incomplete exit code.
+    const partial = await call('queue-first', ['lock', file, 'src/__queue_cli_free__.ts', '--partial', '--queue']);
+    assert.equal(partial.code, 1);
+    assert.equal(partial.locks.length, 1);
+    assert.deepEqual(partial.locks[0].paths, ['src/__queue_cli_free__.ts']);
+    assert.deepEqual(fixture.store.listReservations()[0].paths, [file]);
+    const atomic = await call('queue-holder', ['lock', file, 'src/__queue_cli_atomic__.ts', '--queue']);
+    assert.equal(atomic.code, 1);
+    assert.equal(fixture.store.listLocks().some(l => l.paths.includes('src/__queue_cli_atomic__.ts')), false);
+    assert.equal(fixture.store.listReservations().some(r => r.paths.includes('src/__queue_cli_atomic__.ts')), false);
+  } finally {
+    await fixture.close();
+    assert.equal(path.dirname(dir), path.resolve(os.tmpdir()));
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('WF-G297: queue failures never retry mutations and old daemons do not claim live notification delivery', async () => {
+  for (const mode of ['unknown-reservation', 'failed-lock', 'legacy-daemon']) {
+    let locks = 0;
+    let reservations = 0;
+    const fixture = createServer((req, res) => {
+      res.setHeader('content-type', 'application/json');
+      if (req.url === '/locks') {
+        locks++;
+        res.writeHead(mode === 'failed-lock' ? 500 : 409);
+        res.end(JSON.stringify(mode === 'failed-lock' ? { error: 'lock unavailable' }
+          : { conflict: { path: 'src/uncertain-queue.ts', heldBy: 'fixture-holder' } }));
+      } else if (req.url === '/reservations') {
+        reservations++;
+        if (mode === 'unknown-reservation') res.destroy(); // mutation accepted, response lost
+        else { res.writeHead(201); res.end(JSON.stringify({ reservation: { id: 'legacy-queue', position: 1, paths: ['src/uncertain-queue.ts'] } })); }
+      } else res.end(JSON.stringify({ agents: [] }));
+    });
+    await new Promise(resolve => fixture.listen(0, '127.0.0.1', resolve));
+    try {
+      const result = await runCandidate(['lock', '--queue', 'src/uncertain-queue.ts', '--token', 'fixture'],
+        { baseUrl: 'http://127.0.0.1:' + fixture.address().port, env: {} });
+      assert.equal(result.code, 1);
+      assert.equal(locks, 1);
+      assert.equal(reservations, mode === 'failed-lock' ? 0 : 1);
+      if (mode === 'unknown-reservation') assert.match(result.stderrLines.join('\n'), /queue outcome is unknown.*Inspect reservations before repeating/);
+      if (mode === 'legacy-daemon') assert.match(result.stderrLines.join('\n'), /does not advertise file notifications/);
+    } finally { await new Promise(resolve => fixture.close(resolve)); }
+  }
+});
+
+test('WF-G251/WF-G252: generated overflow creates a blocked linked review without changing legacy parent membership or file access', async () => {
+  const fixtureDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-overflow-contract-'));
+  const fixture = createAgoraServer({ dir: path.join(fixtureDir, 'state'), seatRosterPath: null });
+  try {
+    await new Promise(resolve => fixture.listen(0, resolve));
+    const baseUrl = 'http://127.0.0.1:' + fixture.server.address().port;
+    const worker = fixture.store.registerAgent({ handle: 'overflow-worker', petSlug: 'dream-girl', sessionId: 'overflow-worker-session' });
+    const lead = fixture.store.registerAgent({ handle: 'overflow-lead', role: 'orchestrator', petSlug: 'gf-sd', sessionId: 'overflow-lead-session' });
+    const parent = fixture.store.createTask({ agentId: worker.id, title: 'Legacy repair fixture', body: 'DO: tools/agora/AGENT.md' });
+    const membership = { campaignId: parent.campaignId, membership: parent.membership, decision: structuredClone(parent.campaignDecision) };
+    const campaign = fixture.store.claimCampaign({ agentId: lead.id, campaignId: 'overflow-fixture',
+      paths: ['tools/agora/AGENT.md'], scope: 'Disposable ownership contract fixture' });
+    assert.equal(campaign.ok, true);
+    const packet = { id: 'PK-overflow', handle: worker.handle, pet: 'dream-girl', agent: 'codex',
+      scope: 'Parent owns only AGENT.md', files: ['tools/agora/AGENT.md'] };
+    const prompt = buildPrompt({ wave: 'overflow-fixture', baseUrl, campaign: { id: 'overflow-fixture' } }, packet, { taskId: parent.id });
+    const options = { env: { AGORA_DIR: path.join(fixtureDir, 'identity'), AGORA_AGENT_ID: worker.handle }, baseUrl };
+    const call = args => run([...args, '--token', worker.token], options);
+    const shown = await call(['task', 'show', parent.id]);
+    assert.match(shown.lines.join('\n'), /NONE RECORDED/);
+    assert.match(shown.lines.join('\n'), /workers should ask one/);
+    assert.equal((await call(['task', 'claim', parent.id])).code, 0);
+    const fill = line => line.replace(/<[^>]+>/g, match => ({
+      '<extra file>': 'tools/agora/PROTOCOL.md', '<extra repo-relative file>': 'tools/agora/PROTOCOL.md',
+      '<change and evidence>': 'Add verified API contract after parent ownership review', '<holder or none>': 'none',
+      '<proof>': 'Protocol review and focused tests', '<slice>': 'owned-file proof complete',
+      '<acceptance proof>': 'cross-file protocol acceptance',
+    })[match] || match);
+    const argsFor = (marker, replacements = {}) => {
+      let line = fill(prompt.split('\n').find(item => item.includes(marker)));
+      for (const [from, to] of Object.entries(replacements)) line = line.replaceAll(from, to);
+      const command = line.slice(line.indexOf('client.mjs') + 'client.mjs'.length);
+      return [...command.matchAll(/"([^"]*)"|([^\s]+)/g)].map(match => match[1] ?? match[2]);
+    };
+    const created = await call(argsFor('task new "Ownership review'));
+    assert.equal(created.code, 0, created.lines.join('\n'));
+    const followup = created.task;
+    assert.equal(followup.campaignId, campaign.campaign.id);
+    assert.equal(followup.creatorAgent.id, worker.id);
+    assert.equal(followup.creatorAgent.sessionId, 'overflow-worker-session');
+    assert.deepEqual(followup.deps, [{ id: parent.id, type: 'discovered-from' }]);
+    assert.ok(fixture.store.listTasks({ ready: true }).some(task => task.id === followup.id), 'origin is not a completion gate');
+    const blockedReview = await call(argsFor('task state "FOLLOWUP_TASK_ID_HERE"', { FOLLOWUP_TASK_ID_HERE: followup.id }));
+    assert.equal(blockedReview.code, 0, blockedReview.lines.join('\n'));
+    const blockedParent = await call(argsFor('task state "' + parent.id + '"', { FOLLOWUP_TASK_ID_HERE: followup.id }));
+    assert.equal(blockedParent.code, 0, blockedParent.lines.join('\n'));
+    const tasks = fixture.store.listTasks();
+    const finalParent = tasks.find(task => task.id === parent.id);
+    assert.equal(finalParent.state, 'blocked');
+    assert.equal(tasks.find(task => task.id === followup.id).state, 'blocked');
+    assert.deepEqual({ campaignId: finalParent.campaignId, membership: finalParent.membership, decision: finalParent.campaignDecision }, membership);
+    assert.deepEqual(fixture.store.listLocks(), [], 'proposal never grants the extra file or mutates locks');
+    const parentProof = await call(['task', 'show', parent.id]);
+    assert.ok(parentProof.lines.some(line => line.includes('blocked reason:') && line.includes(followup.id)));
+  } finally {
+    await fixture.close();
+    assert.ok(path.resolve(fixtureDir).startsWith(path.resolve(os.tmpdir()) + path.sep));
+    fs.rmSync(fixtureDir, { recursive: true, force: true });
+  }
+});
+
+test('WF-G187/WF-G215/WF-G216: generated filing and immediate update preserve complete feedback', async () => {
+  const fixtureDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-generated-feedback-'));
+  const repoRoot = path.join(fixtureDir, 'repo');
+  const registry = path.join(repoRoot, 'tools', 'agora', 'WORKFLOW_GAPS.md');
+  fs.mkdirSync(path.dirname(registry), { recursive: true });
+  // Intake writes only this disposable registry, never the shared live board.
+  fs.writeFileSync(registry, [
+    '---', 'schema_version: 1', 'id_prefix: WF-G', 'next_free_id: WF-G1', '---', '', '## Registry', '',
+    '| Gap ID | Status | Severity | Classification | Surface | Registered by | Suggested agent | Registrant ID | Task/thread | Date | Gap | Evidence | Why it matters | Next action | Next proof | Notes |',
+    '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|', '',
+  ].join('\n'));
+  const fixture = createAgoraServer({ dir: path.join(fixtureDir, 'state'), gapsRepoRoot: repoRoot, seatRosterPath: null });
+  try {
+    await new Promise(resolve => fixture.listen(0, resolve));
+    const baseUrl = 'http://127.0.0.1:' + fixture.server.address().port;
+    const owner = fixture.store.registerAgent({ handle: 'feedback-fixture', petSlug: 'dream-girl', sessionId: 'feedback-session' });
+    const task = fixture.store.createTask({ agentId: owner.id, title: 'Generated feedback fixture',
+      standalone: true, standaloneReason: 'Disposable command acceptance fixture' });
+    const packet = { id: 'PK-feedback', handle: owner.handle, pet: 'dream-girl', agent: 'codex',
+      scope: 'Feedback fixture only', files: ['tools/agora/AGENT.md'] };
+    const prompt = buildPrompt({ wave: 'feedback-fixture', baseUrl }, packet, { taskId: task.id });
+    const replacements = {
+      '<workflow defect>': 'Generated fixture packet feedback needs a complete contract',
+      '<observed evidence>': 'Disposable generated command fixture', '<impact>': 'Avoid first-send refusals',
+      '<repair>': 'Use the reviewed packet template', '<next proof>': 'Generated feedback accepted once',
+      '<repair component>': 'agora-packet-template', '<lane>': 'codex',
+    };
+    const command = prompt.split('\n').find(line => line.includes(' gap add '));
+    const filled = command.replace(/<[^>]+>/g, match => replacements[match] || match);
+    // The generated command uses only quoted values and plain flags. Test its
+    // exact argument recipe through the real CLI, without invoking a shell.
+    const argv = [...filled.slice(filled.indexOf(' gap add ') + 1).matchAll(/"([^"]*)"|([^\s]+)/g)]
+      .map(match => match[1] ?? match[2]);
+    assert.ok(argv.every(arg => !arg.includes('<')), 'no template values reach intake');
+    const options = { env: { AGORA_DIR: path.join(fixtureDir, 'identity'), AGORA_AGENT_ID: owner.handle }, baseUrl };
+    const result = await run([...argv, '--token', owner.token], options);
+    assert.equal(result.code, 0, [...result.lines, ...(result.stderrLines || [])].join('\n'));
+    assert.doesNotMatch([...result.lines, ...(result.stderrLines || [])].join('\n'), /WARNING: no --proof/);
+    // No delay or manual retry: this is the exact append-then-repair sequence
+    // that used to return a Windows file-open error on the second request.
+    const updated = await run(['gap', 'update', result.gap.id, '--project', 'workflow', '--note',
+      'Immediate generated-command update accepted', '--token', owner.token], options);
+    assert.equal(updated.code, 0, updated.lines.join('\n'));
+    // Reproduce the specific transient open errno without depending on a real
+    // editor/scanner race. Only this private registry's next write is affected.
+    const originalWrite = fs.writeFileSync;
+    let registryWrites = 0;
+    fs.writeFileSync = function (file, ...args) {
+      if (path.resolve(String(file)) === path.resolve(registry) && ++registryWrites === 1) {
+        const error = new Error('Injected transient registry open failure');
+        error.code = 'UNKNOWN';
+        throw error;
+      }
+      return originalWrite.call(this, file, ...args);
+    };
+    try {
+      const retried = await run(['gap', 'update', result.gap.id, '--project', 'workflow', '--note',
+        'Transient update recovered once', '--token', owner.token], options);
+      assert.equal(retried.code, 0, retried.lines.join('\n'));
+      assert.equal(registryWrites, 2, 'the same update retries its file write, not its HTTP mutation');
+    } finally { fs.writeFileSync = originalWrite; }
+    const stored = fs.readFileSync(registry, 'utf8');
+    assert.equal((stored.match(/\| WF-G1 \|/g) || []).length, 1);
+    for (const value of [owner.handle, owner.id, 'feedback-session', task.id, 'agora-packet-template',
+      'Avoid first-send refusals', 'Generated feedback accepted once', 'codex',
+      'Immediate generated-command update accepted', 'Transient update recovered once']) assert.ok(stored.includes(value), value);
+    const invalidArgs = [...argv];
+    invalidArgs[invalidArgs.indexOf('--surface') + 1] = task.id;
+    const invalid = await run([...invalidArgs, '--token', owner.token], options);
+    assert.equal(invalid.code, 1);
+    assert.match(invalid.lines.join('\n'), /detected-during/);
+    assert.equal(fs.readFileSync(registry, 'utf8'), stored, 'task-shaped Surface refusal never writes a second row');
+  } finally {
+    await fixture.close();
+    assert.ok(path.resolve(fixtureDir).startsWith(path.resolve(os.tmpdir()) + path.sep));
+    fs.rmSync(fixtureDir, { recursive: true, force: true });
+  }
+});
 
 let app;
 let serverDir;
@@ -51,6 +443,67 @@ after(async () => {
 function cli(argv, extra = {}) {
   return run(argv, { env, baseUrl, ...extra });
 }
+
+test('WF-G268: successful claims warn about body paths outside the actual claimant locks', async () => {
+  const fixtureDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-claim-coverage-'));
+  const isolated = createAgoraServer({ dir: fixtureDir });
+  try {
+    await new Promise(resolve => isolated.listen(0, resolve));
+    const owner = isolated.store.registerAgent({ handle: 'claim-coverage', petSlug: 'dream-girl' });
+    const rival = isolated.store.registerAgent({ handle: 'claim-rival', petSlug: 'cyberman' });
+    isolated.store.acquireLock({ agentId: owner.id, paths: ['src/wfg-held.ts', 'src/wfg-dir'] });
+    isolated.store.acquireLock({ agentId: owner.id, globs: ['src/wfg-glob/**'] });
+    isolated.store.acquireLock({ agentId: rival.id, paths: ['src/wfg-rival.ts'] });
+    const makeTask = body => isolated.store.createTask({ agentId: owner.id, title: 'Claim coverage fixture',
+      body, standalone: true, standaloneReason: 'Disposable test fixture', refs: ['src/wfg-held.ts'] });
+    const task = makeTask([
+      'DO: src/wfg-held.ts src/wfg-dir/inside.ts src/wfg-glob/nested/inside.ts',
+      'DO: src/wfg-missing.ts:20 src/wfg-rival.ts',
+      'REFERENCE-ONLY: docs/evidence.md',
+      'EXPECTED-ABSENT: src/wfg-absent.ts',
+    ].join('\n'));
+    const options = { env, baseUrl: 'http://127.0.0.1:' + isolated.server.address().port };
+    const claim = await run(['task', 'claim', task.id, '--token', owner.token], options);
+    assert.equal(claim.code, 0);
+    assert.equal(claim.task.claimedBy, owner.id);
+    assert.equal(claim.stderrLines.length, 2);
+    assert.match(claim.stderrLines.join('\n'), /wfg-missing\.ts \(body\)/);
+    assert.match(claim.stderrLines.join('\n'), /wfg-rival\.ts/);
+    assert.doesNotMatch(claim.stderrLines.join('\n'), /wfg-held|wfg-dir|wfg-glob|evidence|wfg-absent/);
+    const nextTask = makeTask('DO: src/wfg-next.ts');
+    const next = await run(['task', 'next', '--id-only', '--token', owner.token], options);
+    assert.equal(next.code, 0);
+    assert.deepEqual(next.lines, [nextTask.id], 'warnings never contaminate the bare task ID');
+    assert.match(next.stderrLines.join('\n'), /wfg-next\.ts/);
+    assert.equal(isolated.store.listTasks().filter(item => item.claimedBy === owner.id).length, 2);
+  } finally {
+    await isolated.close();
+    const target = path.resolve(fixtureDir);
+    assert.ok(target.startsWith(path.resolve(os.tmpdir()) + path.sep));
+    fs.rmSync(target, { recursive: true, force: true });
+  }
+});
+
+test('WF-G268: an unavailable advisory lock list cannot undo or repeat a successful claim', async () => {
+  let mutations = 0;
+  const task = { id: 'agora-claim-fixture', claimedBy: 'fixture-owner', state: 'claimed', body: 'DO: src/wfg-target.ts' };
+  const server = createServer((request, response) => {
+    response.setHeader('Content-Type', 'application/json');
+    if (request.method === 'POST') { mutations++; response.end(JSON.stringify({ task })); }
+    else if (request.url === '/locks') { response.statusCode = 503; response.end('{"error":"fixture unavailable"}'); }
+    else response.end(JSON.stringify({ tasks: [task] }));
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  try {
+    const claim = await run(['task', 'claim', task.id, '--token', 'fixture-token'],
+      { env, baseUrl: 'http://127.0.0.1:' + server.address().port });
+    assert.equal(claim.code, 0);
+    assert.equal(mutations, 1);
+    assert.match(claim.stderrLines.join('\n'), /claim succeeded.*could not be checked.*do not repeat/);
+  } finally {
+    await new Promise(resolve => server.close(resolve));
+  }
+});
 
 test('happy path: register -> lock -> locks -> task -> say -> inbox', async () => {
   // --- register ---
@@ -911,9 +1364,121 @@ test('task state/done accept a unique short-id prefix, ignore case, and refuse a
   assert.equal(done.task.state, 'done');
 });
 
+// WF-G212 fixtures compare complete text, not presumed sweep authorship. Git
+// commits and every file write stay inside these disposable temporary repos.
+function trackingTextFixture(t, files) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-tracking-text-'));
+  t.after(() => { assert.equal(path.dirname(root), path.resolve(os.tmpdir())); fs.rmSync(root, { recursive: true, force: true }); });
+  const git = (...args) => execFileSync('git', ['-c', 'core.fsmonitor=false', ...args], { cwd: root, stdio: 'ignore' });
+  git('init', '-q'); git('config', 'user.email', 'fixture@example.test'); git('config', 'user.name', 'Disposable fixture');
+  const put = (name, bytes) => { fs.mkdirSync(path.dirname(path.join(root, name)), { recursive: true }); fs.writeFileSync(path.join(root, name), bytes); };
+  for (const [name, bytes] of Object.entries(files)) put(name, bytes);
+  git('add', '.'); git('commit', '-qm', 'fixture baseline');
+  return { root, git, put };
+}
+
+test('WF-G212: lock advice identifies only added tracking text and states its evidence limits', async t => {
+  const { dirtyInWorktree } = await import('./client-runtime.mjs');
+  const base = '/**\n * Some unfinished intent.\n */\nexport const value = 1;\n';
+  const f = trackingTextFixture(t, { 'tracked.ts': base });
+  const changed = base.replace(' */', ' * (tracked in Agora task agora-3098).\n */') + '// tracked in Agora task agora-4fa0.62\n';
+  f.put('tracked.ts', changed);
+  const before = fs.readFileSync(path.join(f.root, 'tracked.ts'));
+  const hint = dirtyInWorktree(['tracked.ts'], f.root, { lockGranted: true })[0];
+  assert.match(hint, /added sweep-format tracking-marker text only versus HEAD after line-ending normalization/);
+  assert.match(hint, /2 line\(s\), task citation\(s\) agora-3098, agora-4fa0\.62/);
+  assert.match(hint, /granted this lock without a conflicting active lock, but Git cannot identify who made the change/);
+  assert.match(hint, /Text comparison does not prove unchanged behavior/);
+  assert.doesNotMatch(hint, /sibling's in-flight work|run git diff/);
+  assert.deepEqual(fs.readFileSync(path.join(f.root, 'tracked.ts')), before);
+  f.put('tracked.ts', changed.replace(/\n/g, '\r\n'));
+  assert.match(dirtyInWorktree(['tracked.ts'], f.root)[0], /normalization.*EOL: CRLF/);
+  f.git('add', 'tracked.ts');
+  assert.match(dirtyInWorktree(['tracked.ts'], f.root)[0], /tracking-marker text only/, 'staged additions are compared with HEAD, not hidden by the index');
+});
+
+test('WF-G212: non-marker changes, missing baselines and unreadable evidence retain ordinary advice', async t => {
+  const { dirtyInWorktree } = await import('./client-runtime.mjs');
+  const base = 'export const value = 1;\n';
+  const marker = '// (tracked in Agora task agora-3098).\n';
+  const f = trackingTextFixture(t, { 'tracked.ts': base, 'existing-marker.ts': marker + base });
+  for (const changed of [marker + 'export const value = 2;\n', marker + ' export const value = 1;\n',
+    '// (tracked in Agora task agora-3098). extra\n' + base, 'export const value = 1; // (tracked in Agora task agora-3098).\n',
+    '// (tracked in Agora task not-an-id).\n' + base, marker + base.replace(/\n/g, '\r'),
+    Buffer.from(marker + base + '\0'), Buffer.concat([Buffer.from(marker + base), Buffer.from([255])]),
+    marker.repeat(65) + base, marker + base + 'x'.repeat(2 * 1024 * 1024)]) {
+    f.put('tracked.ts', changed);
+    const hints = dirtyInWorktree(['tracked.ts'], f.root);
+    assert.ok(hints.length, 'dirty evidence stays visible');
+    assert.ok(hints.every(hint => !/tracking-marker text only/.test(hint)), hints.join('\n'));
+    assert.match(hints.join('\n'), /preserve any existing changes/);
+  }
+  f.put('existing-marker.ts', marker.replace('3098', '9999') + base);
+  assert.doesNotMatch(dirtyInWorktree(['existing-marker.ts'], f.root)[0], /tracking-marker text only/, 'changed existing metadata is not an addition');
+  f.put('existing-marker.ts', base);
+  assert.doesNotMatch(dirtyInWorktree(['existing-marker.ts'], f.root)[0], /tracking-marker text only/, 'removed metadata is not an addition');
+  f.put('new.ts', marker + base);
+  const untracked = dirtyInWorktree(['new.ts'], f.root)[0];
+  assert.match(untracked, /is untracked before your lock/); assert.match(untracked, /git diff shows NOTHING/);
+  assert.doesNotMatch(untracked, /tracking-marker text only|run git diff/);
+  f.git('add', 'new.ts');
+  assert.doesNotMatch(dirtyInWorktree(['new.ts'], f.root)[0], /tracking-marker text only/, 'new staged file has no HEAD baseline');
+  fs.unlinkSync(path.join(f.root, 'tracked.ts'));
+  assert.match(dirtyInWorktree(['tracked.ts'], f.root).join('\n'), /Check why it was removed/);
+});
+
+test('WF-G212: physical escape, symbolic targets and read failures keep preservation advice', async t => {
+  const { dirtyInWorktree } = await import('./client-runtime.mjs');
+  const base = 'export const value = 1;\n';
+  const f = trackingTextFixture(t, { 'tracked.ts': base });
+  f.put('tracked.ts', '// tracked in Agora task agora-3098\n' + base);
+  const target = path.join(f.root, 'tracked.ts'), before = fs.readFileSync(target);
+  for (const scenario of ['physical-escape', 'symbolic-target', 'read-failure']) {
+    const name = scenario === 'physical-escape' ? 'realpathSync' : scenario === 'symbolic-target' ? 'lstatSync' : 'openSync';
+    const original = fs[name];
+    let reached = false;
+    t.mock.method(fs, name, function (file, ...args) {
+      if (file === target) {
+        reached = true;
+        if (scenario === 'physical-escape') return path.join(f.root, '..', 'outside.ts');
+        if (scenario === 'symbolic-target') return { isSymbolicLink: () => true };
+        throw Object.assign(new Error('fixture read unavailable'), { code: 'EACCES' });
+      }
+      return original.call(this, file, ...args);
+    });
+    try {
+      const hints = dirtyInWorktree(['tracked.ts'], f.root);
+      assert.ok(reached, scenario); assert.match(hints.join('\n'), /preserve any existing changes/);
+      assert.doesNotMatch(hints.join('\n'), /tracking-marker text only/);
+    } finally { t.mock.restoreAll(); }
+    assert.deepEqual(fs.readFileSync(target), before);
+  }
+});
+
+test('WF-G212: marker-like string text and concurrent replacement never imply semantic safety', async t => {
+  const { dirtyInWorktree } = await import('./client-runtime.mjs');
+  const base = 'export const note = `\nbase\n`;\n';
+  const f = trackingTextFixture(t, { 'template.ts': base });
+  const changed = base.replace('base\n', '// tracked in Agora task agora-3098\nbase\n');
+  f.put('template.ts', changed);
+  const hint = dirtyInWorktree(['template.ts'], f.root)[0];
+  assert.match(hint, /tracking-marker text only/); assert.match(hint, /does not prove unchanged behavior/);
+  // Replace after the bounded read but before the last path check. No stale
+  // snapshot may receive the annotation-only label over the new dirty bytes.
+  const original = fs.lstatSync;
+  let calls = 0;
+  t.mock.method(fs, 'lstatSync', function (target, ...args) {
+    if (target === path.join(f.root, 'template.ts') && ++calls === 2) f.put('template.ts', changed + 'export const other = 2;\n');
+    return original.call(this, target, ...args);
+  });
+  try { assert.doesNotMatch(dirtyInWorktree(['template.ts'], f.root)[0], /tracking-marker text only/); }
+  finally { t.mock.restoreAll(); }
+  assert.equal(calls, 2);
+});
+
 // WF-G129 (2026-09-09): a free lock on a dirty file must say so.
 test('WF-G129: dirtyInWorktree names files that already differ from HEAD and stays silent on clean ones', async () => {
-  const { dirtyInWorktree } = await import('./client.mjs');
+  const { dirtyInWorktree } = await import('./client-runtime.mjs');
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-dirty-'));
   try {
     const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
@@ -962,13 +1527,10 @@ test('WF-G129: dirtyInWorktree names files that already differ from HEAD and sta
     assert.match(deleted.find((h) => /deleted before your lock/.test(h)), /Check why it was removed before recreating it/i);
     assert.deepEqual(dirtyInWorktree(['clean.ts'], root), []);
     assert.deepEqual(dirtyInWorktree([], root), []);
-    // WF-G183: a path that is not there is judged by git HISTORY, not by mere
-    // absence. A warning that fires on every new-file lock trains agents to
-    // ignore it, and that is exactly when the real stale-path case is ignored.
-    //
-    // 1. A brand-new path under a directory that EXISTS is a correct lock for a
-    //    file this task creates: it says nothing at all.
-    assert.deepEqual(dirtyInWorktree(['brand-new.ts'], root), []);
+    // WF-G279 supersedes WF-G183's history-only guess: creation is quiet only
+    // when declared. Old-path history cannot be hidden by that declaration.
+    assert.match(dirtyInWorktree(['brand-new.ts'], root)[0], /does not exist.*WF-G279/);
+    assert.deepEqual(dirtyInWorktree(['brand-new.ts'], root, { creates: ['brand-new.ts'] }), []);
     // WF-G279: a typo can look like a new file under an existing directory.
     // If the same filename already exists elsewhere, the lock must name the
     // real candidate instead of silently granting a false sense of ownership.
@@ -979,7 +1541,11 @@ test('WF-G129: dirtyInWorktree names files that already differ from HEAD and sta
     const misplaced = dirtyInWorktree(['src/hooks/combat/useBattleMap.ts'], root);
     assert.equal(misplaced.length, 1, misplaced.join('\n'));
     assert.match(misplaced[0], /src\/hooks\/combat\/useBattleMap\.ts.*does not exist.*src\/hooks\/useBattleMap\.ts/);
-    assert.deepEqual(dirtyInWorktree(['src/hooks/combat/newModule.ts'], root), []);
+    assert.match(dirtyInWorktree(['src/hooks/combat/newModule.ts'], root)[0], /does not exist.*WF-G279/);
+    assert.deepEqual(dirtyInWorktree(['src/hooks/combat/newModule.ts'], root,
+      { creates: ['src/hooks/combat/newModule.ts'] }), []);
+    assert.deepEqual(dirtyInWorktree(['src/hooks/combat/useBattleMap.ts'], root,
+      { creates: ['src/hooks/combat/useBattleMap.ts'] }), [], 'explicit intent allows same-named new files');
     // 2. A path whose parent directory does not exist either is worth naming.
     const ghost = dirtyInWorktree(['moved/away.test.ts'], root);
     assert.equal(ghost.length, 1);
@@ -991,6 +1557,8 @@ test('WF-G129: dirtyInWorktree names files that already differ from HEAD and sta
     const stale = dirtyInWorktree(['clean.ts'], root);
     assert.equal(stale.length, 1, stale.join(String.fromCharCode(10)));
     assert.match(stale[0], /RENAMED to renamed\.ts/);
+    assert.match(dirtyInWorktree(['clean.ts'], root, { creates: ['clean.ts'] })[0], /RENAMED to renamed\.ts/);
+    assert.match(dirtyInWorktree(['renamed.ts'], root, { creates: ['renamed.ts'] })[0], /already exists despite --creates/);
     // WF-G144: a path into a SIBLING checkout is checked there, not here.
     const sib = path.join(path.dirname(root), path.basename(root) + '-sibling');
     fs.mkdirSync(sib, { recursive: true });
@@ -1009,9 +1577,10 @@ test('WF-G129: dirtyInWorktree names files that already differ from HEAD and sta
       sgit('commit', '-q', '-m', 'base');
       fs.writeFileSync(path.join(sib, 'README.md'), 'hi\n');
       const viaSibling = dirtyInWorktree([`${sibName}/README.md`, `${sibName}/missing.md`], root);
-      // WF-G183: missing.md is a path that checkout has never held, under a
-      // directory that exists, so it is a correct new-file lock and says nothing.
-      assert.equal(viaSibling.filter((h) => /does not exist/.test(h)).length, 0, viaSibling.join('\n'));
+      // Sibling missing paths need the same explicit creation intent.
+      assert.equal(viaSibling.filter((h) => /does not exist/.test(h)).length, 1, viaSibling.join('\n'));
+      assert.deepEqual(dirtyInWorktree([`${sibName}/missing.md`], root,
+        { creates: [`${sibName}/missing.md`] }), []);
       // The sibling checkout is still the one that gets read, not this one.
       assert.match(viaSibling.find((h) => /untracked/.test(h)), /README\.md \[.*-sibling\]/);
       // A path the SIBLING has held and then lost is still named there.
@@ -1131,3 +1700,140 @@ test('WF-G338: numbered pet briefs register with an available catalog identity',
     fs.rmSync(privateClientDir, { recursive: true, force: true });
   }
 });
+
+// Verify that open tasks with typed dependency objects (`{ id, type }`) format
+// the dependency task ID prefix in `tasks` and `tasks --group-by-category`
+// listings instead of coercing the object to `[object ` (WF-G354).
+test('WF-G354: tasks listing formats typed dependency objects by id prefix instead of [object', async () => {
+  const reg = await cli(['register', 'worker.dep-format', '--session', 'sess-dep-fmt-1']);
+  assert.equal(reg.code, 0, reg.lines.join('\n'));
+
+  const upstream = await cli(['task', 'new', 'Upstream prerequisite task']);
+  assert.equal(upstream.code, 0, upstream.lines.join('\n'));
+  const upstreamId = upstream.task.id;
+  const expectedPrefix = upstreamId.slice(0, 8);
+
+  const downstream = await cli([
+    'task',
+    'new',
+    'Downstream task with typed dep',
+    '--category',
+    'tooling',
+    '--dep',
+    `${upstreamId}:blocks`,
+  ]);
+  assert.equal(downstream.code, 0, downstream.lines.join('\n'));
+
+  const flatList = await cli(['tasks', '--state', 'open']);
+  assert.equal(flatList.code, 0);
+  const flatText = flatList.lines.join('\n');
+  assert.doesNotMatch(flatText, /\[object /);
+  assert.match(flatText, new RegExp(`\\(deps: ${expectedPrefix}\\)`));
+
+  const groupedList = await cli(['tasks', '--state', 'open', '--group-by-category']);
+  assert.equal(groupedList.code, 0);
+  const groupedText = groupedList.lines.join('\n');
+  assert.doesNotMatch(groupedText, /\[object /);
+  assert.match(groupedText, new RegExp(`\\(deps: ${expectedPrefix}\\)`));
+});
+
+// WF-G290: a partly-applied ruling must record covered scope, uncovered scope,
+// and the follow-up question without either losing landed work or closing done.
+test('WF-G290: task state partial / --partial records covered scope, uncovered scope, and follow-up question', async () => {
+  const reg = await cli(['register', 'worker.partial-ruling', '--session', 'sess-partial-1']);
+  assert.equal(reg.code, 0, reg.lines.join('\n'));
+
+  const created = await cli([
+    'task',
+    'new',
+    'Repair Enchantment Gap spells with creature-type gate',
+    '--standalone',
+    '--reason',
+    'WF-G290 regression fixture',
+    '--body',
+    'Apply creature-type gate ruling across the 20 Enchantment Gap spell files.',
+  ]);
+  assert.equal(created.code, 0, created.lines.join('\n'));
+  const taskId = created.task.id;
+
+  // Missing covered/uncovered scope is refused before mutating state.
+  const missingScope = await runCandidate(['task', 'state', taskId, 'partial'], { env, baseUrl });
+  assert.equal(missingScope.code, 1);
+  assert.match(missingScope.lines.join('\n'), /task state partial needs both what landed/);
+
+  const partial = await runCandidate([
+    'task',
+    'state',
+    taskId,
+    'partial',
+    '--covered',
+    '17 enchantment spells gated + fire-bolt upcast fixed',
+    '--uncovered',
+    'hex, power-word-heal, and antipathy-sympathy have no creature-type restriction in 2024 text',
+    '--question',
+    'Should hex, power-word-heal, and antipathy-sympathy be exempt from the creature-type gate?',
+  ], { env, baseUrl });
+  assert.equal(partial.code, 0, partial.lines.join('\n'));
+  assert.equal(partial.task.state, 'blocked');
+  assert.match(partial.lines.join('\n'), /-> \[blocked \(partial\)\]/);
+  assert.match(partial.task.result, /PARTIAL RULING LANDED: 17 enchantment spells gated/);
+  assert.match(partial.task.result, /UNCOVERED SCOPE: hex, power-word-heal/);
+  assert.match(partial.task.result, /FOLLOW-UP QUESTION: Should hex/);
+
+  const shown = await runCandidate(['task', 'show', taskId], { env, baseUrl });
+  assert.equal(shown.code, 0);
+  const shownText = shown.lines.join('\n');
+  assert.match(shownText, /blocked reason: \[PARTIAL RULING\] covered: 17 enchantment spells gated/);
+  assert.match(shownText, /ruling status: PARTIAL/);
+});
+
+// WF-G227, WF-G271, WF-G309: lock response reports modified date, live/recent
+// holder status vs long-standing drift, and inherited scoped typecheck status.
+test('WF-G227/WF-G271/WF-G309: dirtyInWorktree reports modified date, holder/drift status, and scoped typecheck errors at lock time', async () => {
+  const { dirtyInWorktree } = await import('./client-runtime.mjs');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-wfg227-309-'));
+  try {
+    const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    git('init', '-q');
+    git('config', 'user.email', 't@t');
+    git('config', 'user.name', 't');
+    fs.mkdirSync(path.join(root, 'src'), { recursive: true });
+    fs.writeFileSync(path.join(root, 'src', 'architectureStyle.ts'), 'export const kit = "valid";\n');
+    git('add', '.');
+    git('commit', '-q', '-m', 'snapshot');
+
+    fs.writeFileSync(path.join(root, 'src', 'architectureStyle.ts'), 'export const kit: number = "keep-ashlar";\n');
+    const oldDate = new Date('2026-08-26T12:00:00Z');
+    fs.utimesSync(path.join(root, 'src', 'architectureStyle.ts'), oldDate, oldDate);
+
+    // 1. Long-standing drift with no live holder (WF-G227 / WF-G271) + inherited tsc errors (WF-G309)
+    const driftWarnings = dirtyInWorktree(['src/architectureStyle.ts'], root, {
+      lockGranted: true,
+      checkTypes: true,
+      typecheckRunner: () =>
+        'src/architectureStyle.ts(60,5): error TS2322: Type \'"keep-ashlar"\' is not assignable to type \'ConstructionKitId\'.\n' +
+        'src/architectureStyle.ts(740,5): error TS2367: This comparison appears to be unintentional.\n',
+    });
+    assert.equal(driftWarnings.length, 1);
+    assert.match(driftWarnings[0], /modified 2026-08-26, no live holder; long-standing working-tree drift/);
+    assert.match(driftWarnings[0], /Scoped typecheck at lock time \(WF-G309\): 2 inherited error\(s\)/);
+    assert.match(driftWarnings[0], /L60: error TS2322/);
+
+    // 2. Recently touched by a named registered agent (WF-G271)
+    const contendedWarnings = dirtyInWorktree(['src/architectureStyle.ts'], root, {
+      lockGranted: true,
+      recentHolders: {
+        'src/architectureStyle.ts': 'no live holder, recently touched by w5-worldforge (agora-70a1)',
+      },
+      checkTypes: true,
+      typecheckRunner: () => '',
+    });
+    assert.equal(contendedWarnings.length, 1);
+    assert.match(contendedWarnings[0], /recently touched by w5-worldforge \(agora-70a1\)/);
+    assert.match(contendedWarnings[0], /Scoped typecheck at lock time \(WF-G309\): 0 inherited error\(s\) \(tsc clean at lock time\)/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+

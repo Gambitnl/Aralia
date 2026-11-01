@@ -39,6 +39,12 @@ describe('layoutCast', () => {
     expect(placed).toHaveLength(1);
     expect(placed[0].pos[0]).toBeCloseTo(0);
   });
+
+  it('keeps an explicit position when another person enters or leaves the arc', () => {
+    const retained: SceneCastMember = { ...k, position: [28, 6.2, -13] };
+    expect(layoutCast([retained])[0].pos).toEqual([28, 6.2, -13]);
+    expect(layoutCast([player, m, retained, t]).find(member => member.id === k.id)!.pos).toEqual([28, 6.2, -13]);
+  });
 });
 
 /**

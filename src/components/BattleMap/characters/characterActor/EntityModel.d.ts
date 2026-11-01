@@ -10,6 +10,7 @@
 import React from 'react';
 import type { Object3D } from 'three';
 import type { EntityBlueprint } from '@/systems/entities3d/types';
+import type { BodyTech } from '@/systems/entities3d/three/assembleEntity';
 import type { AnimationState } from './models';
 import { type ControlPose } from '../../controlOptionPose';
 interface EntityModelProps {
@@ -24,6 +25,8 @@ interface EntityModelProps {
      * caller can rebuild materials the backend cannot draw (WebGPU node swap).
      * Must be referentially stable. */
     adaptMaterials?: (root: Object3D) => void;
+    /** Omitted preserves the existing actor body defaults. */
+    bodyTech?: BodyTech;
 }
 export declare const EntityModel: React.FC<EntityModelProps>;
 export {};

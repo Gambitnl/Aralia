@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 21/07/2026, 01:48:10
- * Dependents: components/World3D/DungeonExpeditionOverlay.tsx
- * Imports: 3 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file renders the player's remembered dungeon as a parchment sheet.
  *
@@ -27,8 +11,25 @@
  * Depends on: the shared DungeonPlan map model and the normal Aralia Button primitive.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 12:40:13
+ * Dependents: components/World3D/DungeonExpeditionOverlay.tsx
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useMemo, useState } from 'react';
-import type { DungeonPlan } from '../../systems/worldforge/dungeon/types';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
+import type { Cell, DungeonPlan } from '../../systems/worldforge/dungeon/types';
 import {
   buildDungeonParchmentSheet,
   type DungeonMapAnnotation,
@@ -48,6 +49,8 @@ export interface DungeonParchmentPage {
   plan: DungeonPlan;
   discoveredCellKeys: readonly string[];
   annotations: readonly DungeonMapAnnotation[];
+  /** Only the active level carries a party marker; no hidden floor is revealed. */
+  playerCell?: Cell;
 }
 
 interface DungeonParchmentMapProps {
@@ -82,6 +85,7 @@ const DungeonParchmentMap: React.FC<DungeonParchmentMapProps> = ({
   initialLevelId,
   onClose,
 }) => {
+  const focusRef = useFocusTrap<HTMLElement>(true, onClose);
   const [levelId, setLevelId] = useState(initialLevelId);
   const page = pages.find((candidate) => candidate.levelId === levelId) ?? pages[0];
   if (!page) throw new Error('Dungeon parchment requires at least one reached level page.');
@@ -91,8 +95,11 @@ const DungeonParchmentMap: React.FC<DungeonParchmentMapProps> = ({
     [page],
   );
 
+  const knownPlayer = page.playerCell && sheet.exploredCells.some(cell => cell.x === page.playerCell!.x && cell.y === page.playerCell!.y) ? page.playerCell : null;
+
   return (
     <article
+      ref={focusRef}
       role="dialog"
       aria-modal="true"
       aria-label={`Parchment map of ${page.plan.name}`}
@@ -114,7 +121,9 @@ const DungeonParchmentMap: React.FC<DungeonParchmentMapProps> = ({
         borderRadius: '16px',
         boxShadow: '0 24px 70px rgba(0, 0, 0, 0.72), inset 0 0 70px rgba(91, 51, 20, 0.24)',
         color: '#3f2917',
-        background:
+        // Conceal expedition labels beneath the translucent paper texture.
+        backgroundColor: '#d8ae63',
+        backgroundImage:
           'radial-gradient(circle at 44% 34%, rgba(255,248,205,0.96), rgba(216,174,99,0.97) 65%, rgba(151,99,45,0.98)), repeating-linear-gradient(6deg, rgba(91,51,20,0.05) 0 1px, transparent 1px 5px)',
       }}
     >
@@ -231,6 +240,11 @@ const DungeonParchmentMap: React.FC<DungeonParchmentMapProps> = ({
               </g>
             ))}
           </g>
+          {knownPlayer && <g role="img" aria-label="Current party position" data-testid="dungeon-map-party" transform={`translate(${knownPlayer.x + 0.5} ${knownPlayer.y + 0.5})`}>
+            <title>Current party position</title>
+            <circle r={0.34} fill="#1e40af" stroke="#fff8d5" strokeWidth={0.14} />
+            <circle r={0.1} fill="#fff8d5" />
+          </g>}
         </svg>
       </div>
 
@@ -242,6 +256,7 @@ const DungeonParchmentMap: React.FC<DungeonParchmentMapProps> = ({
           {' · '}
           <span data-testid="dungeon-map-landmark-count">{sheet.visibleLandmarks.length} landmarks remembered</span>
         </div>
+        {knownPlayer && <span className="text-xs font-bold text-blue-900">● Current party position</span>}
         <div aria-label="Remembered landmarks" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
           {sheet.visibleLandmarks.map((landmark) => (
             <span

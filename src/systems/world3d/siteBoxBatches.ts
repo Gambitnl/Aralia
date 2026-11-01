@@ -38,6 +38,8 @@ import { isSitePartRenderable } from '../worldforge/bridge/sitePartTransform';
 type StreamedSite = LoadedChunk['bundle']['sites'][number];
 
 export interface SiteBoxBatchInstance {
+  /** Direction already includes this site's depth-axis convention. */
+  beam?: { dx: number; dy: number; dz: number; thickness: number };
   /** Stable lookup back to the building and original part index. */
   sourceId: string;
   /** Chunk-local centre after applying the building's authored yaw. */
@@ -152,6 +154,7 @@ export function buildSiteBoxBatches(
           width: part.w,
           height: part.h,
           depth: part.d,
+          ...(part.beam ? { beam: { ...part.beam, dz: part.beam.dz * zDirection } } : {}),
         });
       });
       continue;

@@ -104,3 +104,39 @@ describe('DiscoveryLogPane', () => {
     expect(within(listPane).queryByText('Page 2 of 2')).not.toBeInTheDocument();
   });
 });
+
+describe('discovery accounts use the played game date',()=>{
+  const show=(entry:DiscoveryEntry)=>render(<DiscoveryLogPane isOpen entries={[entry]} unreadCount={0} onClose={vi.fn()} onMarkRead={vi.fn()} onMarkAllRead={vi.fn()} npcMemory={{}} allNpcs={{}}/>);
+  it('attributes a library account without exposing stored engine provenance as prose',()=>{
+    const entry=createDiscoveryEntry(94,{id:'library-account:v1:1793432134128:40:56:works:502:abc',type:DiscoveryType.LORE_DISCOVERY,title:'Library account: Menina waterworks',content:'Ask locally in Menina.',source:{type:'LOCATION',id:'world:1793432134128:burg:40:library:56',name:'Grangengen library'},flags:[{key:'knowledgeKind',value:'library-account'},{key:'sourceWorldSeed',value:1793432134128},{key:'accountSitePath',value:'wf:2430771696/burg:502/dungeon:sewer'}]});
+    const before=JSON.stringify(entry);show(entry);
+    expect(screen.getByText('Read at:')).toBeVisible();
+    expect(screen.getByText('Grangengen library',{exact:false})).toBeVisible();
+    expect(screen.queryByText(/sourceWorldSeed|accountSitePath|knowledgeKind|ID: world:/)).toBeNull();
+    expect(screen.getByText('Ask locally in Menina.')).toBeVisible();
+    expect(JSON.stringify(entry)).toBe(before);
+  });
+  it('shows the heard year351 time in list and detail after a saved account round trip',()=>{
+    const entry=createDiscoveryEntry(91,{timestamp:Date.UTC(2026,9,29,10,14,52),gameTime:'0351-01-03T16:15:19.000Z',title:'Directions from Hilda Fairbourne'});
+    show(JSON.parse(JSON.stringify(entry)));
+    expect(screen.getByTestId('discovery-log-entry-list').textContent).toContain('1/3/351');
+    expect(screen.getByText(/4:15:19 PM/)).toBeVisible();
+    expect(screen.queryByText('10/29/2026',{exact:false})).not.toBeInTheDocument();
+    expect(screen.queryByText(/0351-01-03T/)).not.toBeInTheDocument();
+  });
+  it('shows a retained clock-only notice honestly without inventing a world date from the host receipt',()=>{
+    const entry=createDiscoveryEntry(93,{timestamp:Date.UTC(2026,9,29,18,39,15),gameTime:'03:39 AM',title:'Town Routine'});
+    const before=JSON.stringify(entry);show(JSON.parse(before));
+    expect(screen.getByTestId('discovery-log-entry-list').textContent).toContain('Date not recorded');
+    expect(screen.getByText('In-game time (date not recorded):')).toBeVisible();
+    expect(screen.getByText('03:39 AM')).toBeVisible();
+    expect(screen.queryByText(/2026/)).not.toBeInTheDocument();
+    expect(JSON.stringify(entry)).toBe(before);
+  });
+  it('keeps older accounts readable when no valid game clock was stored',()=>{
+    show(createDiscoveryEntry(92,{timestamp:Date.UTC(2001,1,3,4,5,6),gameTime:'not-a-date'}));
+    expect(screen.getByTestId('discovery-log-entry-list').textContent).toContain('2/3/2001');
+    expect(screen.getByText(/4:05:06 AM/)).toBeVisible();
+    expect(screen.queryByText(/not-a-date/)).not.toBeInTheDocument();
+  });
+});

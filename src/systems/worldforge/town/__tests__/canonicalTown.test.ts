@@ -97,6 +97,9 @@ function makeAtlasWithWaterAndRoads(): any {
         // true scale — the atlas's own statement of which river this burg sits
         // on, rather than a re-derivation from cell membership.
         r: { 0: 7, 50: 7, 51: 7 },
+        // The atlas water count along the river (one water, 2026-10-30): the
+        // town reads the river's width at the town from it.
+        fl: { 0: 4, 50: 4, 51: 4 },
       },
       vertices: { p: [[60, 60], [140, 60], [140, 140], [60, 140]] },
       // River flows 50 → cell 0 → 51, a vertical line through the town centre.

@@ -1,6 +1,6 @@
 # Character Creator
 
-Verified: 2026-09-06 - creator entry points and the isolated Character Atelier preview; historical test claims below were not rerun.
+Verified: 2026-10-25 - subclass timing by rules edition (code, tests, and the live 2014 druid step). 2026-09-06 - creator entry points and the isolated Character Atelier preview; historical test claims below were not rerun.
 
 ## Purpose
 
@@ -67,7 +67,25 @@ This pass verified that the character-creator domain already has:
 - persisted in-progress creator state
 - portrait-generation handling inside the creator flow
 
+## Subclass Timing By Rules Edition
+
+The campaign's rules edition decides when a class picks its subclass. `getSubclassLevel(classId, edition)` in `src/config/rulesEdition.ts` is the only judge. Under the 2024 PHB every class picks at level 3. Under the 2014 PHB the levels are:
+
+- level 1: cleric (Divine Domain), sorcerer (Sorcerous Origin), warlock (Patron)
+- level 2: druid (Druid Circle), wizard (Arcane Tradition)
+- level 3: every other class
+
+The creator always builds a level 1 character. `choosesSubclassInCreator` is true when the subclass level is 2 or lower, so the creator asks for these 2014 picks in the class-feature step. Level 1 picks have their own section in each class step. The druid and wizard steps show a "Level 2 Step" section (`Class/SubclassChoiceSection.tsx`), from Remy's ruling in Agora 8335, which answered question 8009 (tasks agora-f821.58 and agora-f821.59).
+
+Every pick lands on `selectedSubclassId`, then `character.subclassId`. The review screen names it, with "(level 2)" for the druid and wizard. Auto-Fill (Random) makes the same picks through `randomCreatorSubclassId`.
+
+`LevelUpModal` offers the subclass at `getSubclassLevel` when the character has none. This catches an older save, or a campaign switched to 2014 after creation.
+
+Known gap GG-440: subclass features still start at level 3 in both editions (`subclasses.ts` default `levelAvailable = 3`). A 2014 subclass picked at level 1 or 2 grants nothing until level 3. The 2024-only Druid Primal Order also still shows under 2014.
+
 ## Verified Test Surface
+
+Subclass timing (2026-10-25): `__tests__/levelTwoSubclass.test.tsx`, `__tests__/levelOneSubclass.test.tsx`, `Class/__tests__/DruidFeatureSelection.test.tsx`, `Class/__tests__/WizardFeatureSelection.test.tsx`, and `__tests__/NameAndReview.test.tsx`. The 2014 druid step was also checked by eye in the live creator.
 
 Verified tests in this pass:
 - src/components/CharacterCreator/__tests__/CharacterCreator.test.tsx

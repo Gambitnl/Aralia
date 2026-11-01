@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 17/07/2026, 22:08:08
- * Dependents: App.tsx, components/World3D/World3DWrapper.tsx, components/Worldforge/AtlasDemo.tsx, components/Worldforge/LocalMapView.tsx, components/Worldforge/WorldforgeGroundDrilldown.tsx, services/saveLoadService.ts, state/appState.ts, systems/worldforge/leaf3d/atlasGroundRestore.ts
+ * Last Sync: 29/10/2026, 03:47:39
+ * Dependents: components/World3D/InWorldHUD.tsx, components/World3D/World3DWrapper.tsx, components/World3D/hooks/useWorld3DDiscovery.ts, components/Worldforge/AtlasDemo.tsx, components/Worldforge/LocalMapView.tsx, components/Worldforge/WorldforgeGroundDrilldown.tsx, components/screens/PlayingScreen.tsx, hooks/app/useAppAtlasEntry.ts, hooks/app/useAppAtlasRuntime.ts, services/saveLoad/saveLoadCore.ts, state/appState.ts, systems/worldforge/leaf3d/atlasGroundContinuity.ts, systems/worldforge/leaf3d/atlasGroundRestore.ts, systems/worldforge/travel/localGroundJourney.ts
  * Imports: 1 files
  *
  * MULTI-AGENT SAFETY:
@@ -220,7 +220,7 @@ export function normalizeAtlasGroundAddress(input: unknown): AtlasGroundAddress 
 // ============================================================================
 // Towns and sites come from Local data rather than UI guesses. Wilderness is
 // offered only when the artifact has no more specific named ground destination.
-export function groundFocusesForLocal(local: LocalArtifact): GroundFocus[] {
+export function restorableGroundFocusesForLocal(local: LocalArtifact): GroundFocus[] {
   const focuses: GroundFocus[] = [];
   if (local.townPlan) {
     const points = local.townPlan.plots.flatMap((plot) => plot.footprint);
@@ -229,13 +229,49 @@ export function groundFocusesForLocal(local: LocalArtifact): GroundFocus[] {
     // The L2 plan carries the Atlas burg's canonical identity. Older authored
     // plans keep the stable numeric fallback here, but current generation never
     // asks Ground to rediscover or rename the settlement.
-    focuses.push({
+    const townFocus: GroundFocus = {
       kind: 'town',
       id: local.townPlan.identity?.sourceId ?? local.townPlan.burgId,
       label: local.townPlan.identity?.name ?? `Town ${local.townPlan.burgId}`,
       xFt,
       yFt,
-    });
+    };
+    focuses.push(townFocus);
+    const gatePoints = new Set<string>();
+    for (const [index, [x, y]] of (local.townPlan.gates ?? []).entries()) {
+      const key = x + ',' + y;
+      if (!Number.isFinite(x) || !Number.isFinite(y) || gatePoints.has(key)
+        || x < local.bounds.x || x > local.bounds.x + local.bounds.width
+        || y < local.bounds.y || y > local.bounds.y + local.bounds.height) continue;
+      gatePoints.add(key);
+      focuses.push({ ...townFocus, label: townFocus.label + ' — Gate ' + (index + 1), xFt: x, yFt: y });
+    }
+
+    // Historical saves used street extremes, which can lie on a city wall.
+    // Retain their exact source addresses for restoration only, so the player's
+    // earned body position and consequences survive the corrected entry menu.
+    const endpoints = (local.townPlan.streets ?? []).flatMap(street =>
+      street.centerline.length ? [street.centerline[0], street.centerline[street.centerline.length - 1]] : [],
+    ).filter(([x, y]) => Number.isFinite(x) && Number.isFinite(y)
+      && x >= local.bounds.x && x <= local.bounds.x + local.bounds.width
+      && y >= local.bounds.y && y <= local.bounds.y + local.bounds.height);
+    const seen = new Set([`${xFt},${yFt}`]);
+    const directions = [
+      { name: 'western', axis: 0, sign: 1 },
+      { name: 'northern', axis: 1, sign: 1 },
+      { name: 'eastern', axis: 0, sign: -1 },
+      { name: 'southern', axis: 1, sign: -1 },
+    ] as const;
+    for (const { name, axis, sign } of directions) {
+      const other = axis === 0 ? 1 : 0;
+      const center = other === 0 ? xFt : yFt;
+      const point = [...endpoints].sort((a, b) => sign * (a[axis] - b[axis])
+        || Math.abs(a[other] - center) - Math.abs(b[other] - center)
+        || a[0] - b[0] || a[1] - b[1])[0];
+      if (!point || seen.has(`${point[0]},${point[1]}`)) continue;
+      seen.add(`${point[0]},${point[1]}`);
+      focuses.push({ ...townFocus, label: `${townFocus.label} — ${name} road approach`, xFt: point[0], yFt: point[1] });
+    }
   }
   for (const feature of local.features) {
     if (feature.kind !== 'poi') continue;
@@ -260,6 +296,15 @@ export function groundFocusesForLocal(local: LocalArtifact): GroundFocus[] {
   return focuses;
 }
 
+/** Current entrances use authored passages; historical road endpoints remain restorable. */
+export function groundFocusesForLocal(local: LocalArtifact): GroundFocus[] {
+  const all = restorableGroundFocusesForLocal(local);
+  const townLabel = local.townPlan?.identity?.name ?? ('Town ' + local.townPlan?.burgId);
+  const legacyLabels = new Set(['western', 'northern', 'eastern', 'southern']
+    .map(direction => townLabel + ' — ' + direction + ' road approach'));
+  return all.filter(focus => focus.kind !== 'town' || !legacyLabels.has(focus.label));
+}
+
 // ============================================================================
 // Atlas-owned handoff construction
 // ============================================================================
@@ -273,7 +318,8 @@ export function buildAtlasGroundDrilldown(input: {
   focus: GroundFocus;
 }): AtlasGroundDrilldown {
   const { worldSeed, atlasCellId, region, local, focus } = input;
-  if (!groundFocusesForLocal(local).some((candidate) => candidate.kind === focus.kind && candidate.id === focus.id)) {
+  if (!restorableGroundFocusesForLocal(local).some((candidate) => candidate.kind === focus.kind && candidate.id === focus.id
+    && candidate.label === focus.label && candidate.xFt === focus.xFt && candidate.yFt === focus.yFt)) {
     throw new Error(`Ground focus ${focus.kind}:${String(focus.id)} does not belong to local artifact ${local.seedPath}`);
   }
   return {
@@ -317,7 +363,7 @@ export function artifactsForAtlasGroundDrilldown(
     returnTarget.atlasCellId === drilldown.atlasCellId &&
     returnTarget.regionSeedPath === drilldown.regionSeedPath &&
     returnTarget.localSeedPath === drilldown.localSeedPath;
-  const focusMatches = groundFocusesForLocal(local).some(
+  const focusMatches = restorableGroundFocusesForLocal(local).some(
     (candidate) =>
       candidate.kind === drilldown.focus.kind &&
       candidate.id === drilldown.focus.id &&

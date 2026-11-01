@@ -430,3 +430,19 @@ describe('storeysForRole', () => {
     expect(storeysForRole('house', poly)).toBeLessThanOrEqual(2);
   });
 });
+
+
+
+describe('opt-in original prop parcels',()=>{
+  it('keeps default artifacts exact and retains the original lot rather than the inset building',()=>{
+    const source=makeEnginePlan(),before=JSON.stringify(source);
+    const legacy=toArtifactPlan(source,7),fresh=toArtifactPlan(source,7,undefined,undefined,{retainPropParcels:true});
+    const {propParcels,...unchanged}=fresh;
+    expect(unchanged).toEqual(legacy);expect(Object.hasOwn(legacy,'propParcels')).toBe(false);
+    expect(propParcels!.map(p=>p.plotId)).toEqual(fresh.plan.plots.map(p=>p.id));
+    expect(propParcels![0].polygon).toEqual(source.wards[0].plots[0].polygon);
+    expect(propParcels![0].polygon).not.toEqual(fresh.plan.plots[0].footprint);
+    propParcels![0].polygon[0][0]++;
+    expect(JSON.stringify(source)).toBe(before);
+  });
+});

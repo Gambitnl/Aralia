@@ -75,3 +75,9 @@ describe('PartyMemberCard conditions (PRV6)', () => {
         expect(screen.queryByTestId('condition-chips')).not.toBeInTheDocument();
     });
 });
+
+it('shows exhausted walking speed beside the condition instead of the unmodified base speed', () => {
+  renderCard(['exhaustion']);
+  expect(screen.getByText('25ft')).toBeInTheDocument();
+  expect(screen.queryByText('30ft')).not.toBeInTheDocument();
+});

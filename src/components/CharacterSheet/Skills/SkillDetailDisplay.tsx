@@ -11,7 +11,7 @@ import React, { useEffect, useRef } from 'react';
 import { PlayerCharacter, Skill as SkillType } from '../../../types';
 import { SKILLS_DATA } from '../../../data/skills';
 import { getAbilityModifierValue } from '../../../utils/character';
-import { calculateExpertiseBonus, getExpertiseSkillIds } from '../../../utils/character/skillModifierUtils';
+import { calculateExpertiseBonus, getExpertiseSkillIds, hasJackOfAllTrades, calculateJackOfAllTradesBonus } from '../../../utils/character/skillModifierUtils';
 import { SkillIcon } from '../../../utils/skillIcons';
 import { ProficiencyIcon } from '../../../utils/proficiencyIcons';
 import { Z_INDEX } from '../../../styles/zIndex';
@@ -39,6 +39,7 @@ const SkillDetailDisplay: React.FC<SkillDetailDisplayProps> = ({ isOpen, onClose
   // proficiency bonus and `calculateExpertiseBonus` over `featChoices` (PK-20).
   const profBonus = character.proficiencyBonus || DEFAULT_PROFICIENCY_BONUS;
   const expertiseSkillIds = getExpertiseSkillIds(character);
+  const hasJack = hasJackOfAllTrades(character);
   const modalContentRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -129,16 +130,26 @@ const SkillDetailDisplay: React.FC<SkillDetailDisplayProps> = ({ isOpen, onClose
                   hasExpertise: expertiseSkillIds.includes(skill.id),
                   proficiencyBonus: profBonus,
                 });
-                const totalBonus = abilityModifier + proficiencyBonusApplied + expertiseBonus;
+                const jackBonus = calculateJackOfAllTradesBonus({
+                  hasProficiency: isProficient,
+                  hasJackOfAllTrades: hasJack,
+                  proficiencyBonus: profBonus,
+                });
+                const totalBonus = abilityModifier + proficiencyBonusApplied + expertiseBonus + jackBonus;
 
                 let advantageNotes = '-';
                 let advantageTooltip = '';
 
+                if (jackBonus > 0) {
+                  advantageNotes = `Jack of All Trades (+${jackBonus})`;
+                  advantageTooltip = `Jack of All Trades adds half proficiency bonus (+${jackBonus}).`;
+                }
+
                 if (skill.id === 'stealth' && character.race.id === 'deep_gnome') {
                   const svirfneblinCamouflageTrait = character.race.traits.find(trait => trait.toLowerCase().includes('svirfneblin camouflage'));
                   if (svirfneblinCamouflageTrait) {
-                    advantageNotes = 'Svirfneblin Camouflage';
-                    advantageTooltip = 'Advantage on Dexterity (Stealth) checks due to Svirfneblin Camouflage.';
+                    advantageNotes = advantageNotes === '-' ? 'Svirfneblin Camouflage' : `${advantageNotes}, Svirfneblin Camouflage`;
+                    advantageTooltip = `${advantageTooltip} Advantage on Dexterity (Stealth) checks due to Svirfneblin Camouflage.`.trim();
                   }
                 }
 

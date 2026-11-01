@@ -34,10 +34,15 @@ import PreviewBuilding3D from './PreviewBuilding3D';
 import {
   blueprintForHarnessPlot,
   buildHarnessTown,
+  buildSelectedPlotHistoryReceipt,
+  filterHarnessPlotsByAge,
+  HARNESS_AGE_FILTERS,
   HARNESS_CLIMATES,
   HARNESS_STYLES,
   HARNESS_TOWNS,
+  resolveHarnessSelectedPlot,
   type BuildingFactField,
+  type HarnessAgeFilter,
   type HarnessPlot,
   type HarnessStyleId,
 } from './buildingIdentityLabModel';
@@ -100,6 +105,28 @@ function initialHour(): number {
   return Number.isInteger(value) && value >= 0 && value <= 23 ? value : 12;
 }
 
+/**
+ * Restore an explicit plot id from `?plot=<id>` so visual verification can jump
+ * directly to a building with roof-history backstory without DOM walking (WF-G308).
+ */
+function initialPlotId(): number {
+  const raw = new URLSearchParams(window.location.search).get('plot');
+  if (raw === null || raw.trim() === '') return 0;
+  const value = Number(raw);
+  return Number.isInteger(value) && value >= 0 ? value : 0;
+}
+
+/**
+ * Restore an optional age-band filter from `?age=<all|new|aged|old|ancient>`
+ * so visual captures can filter specimens by construction age (WF-G308).
+ */
+function initialAgeFilter(): HarnessAgeFilter {
+  const raw = new URLSearchParams(window.location.search).get('age');
+  return HARNESS_AGE_FILTERS.includes(raw as HarnessAgeFilter)
+    ? raw as HarnessAgeFilter
+    : 'all';
+}
+
 /** Advance through a deterministic seed sequence so rerolls are reproducible. */
 function nextSeed(seed: number): number {
   return Math.abs((Math.imul(seed, 1103515245) + 12345) | 0) || 137;
@@ -121,8 +148,8 @@ const FACT_LABELS: Record<BuildingFactField, string> = {
 };
 
 /** Prefer the population-authored building type over the adapter's broad role. */
-function plotLabel(plot: HarnessPlot): string {
-  return plot.pop?.buildingType ?? plot.role;
+function plotLabel(plot: HarnessPlot | undefined): string {
+  return plot?.pop?.buildingType ?? plot?.role ?? 'unknown';
 }
 
 /** Draw a custom SVG silhouette representing the building's roof form, massing, and storeys. */
@@ -247,8 +274,9 @@ const BuildingIdentityLab: React.FC = () => {
   const [climate, setClimate] = useState<ClimateClass>(initialClimate);
   const [withRiver, setWithRiver] = useState(initialRiver);
   const [hour, setHour] = useState(initialHour);
+  const [ageFilter, setAgeFilter] = useState<HarnessAgeFilter>(initialAgeFilter);
   const [generationRevision, setGenerationRevision] = useState(0);
-  const [selectedPlotId, setSelectedPlotId] = useState(0);
+  const [selectedPlotId, setSelectedPlotId] = useState(initialPlotId);
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
   const [floorLevel, setFloorLevel] = useState(0);
 
@@ -291,8 +319,12 @@ const BuildingIdentityLab: React.FC = () => {
     withRiver: activeOptions.withRiver,
   }), [activeOptions]);
 
-  const selectedPlot = model.artifactPlan.plots.find((plot) => plot.id === selectedPlotId)
-    ?? model.artifactPlan.plots[0];
+  // Resolve the selected plot honoring both `?plot=<id>` and `?age=<band>` (WF-G308).
+  const selectedPlot = resolveHarnessSelectedPlot(model, {
+    plotId: selectedPlotId,
+    ageFilter,
+    districtKey: selectedDistrict,
+  });
   const blueprint = useMemo(
     () => blueprintForHarnessPlot(model, selectedPlot?.id ?? 0),
     [model, selectedPlot?.id],
@@ -338,8 +370,16 @@ const BuildingIdentityLab: React.FC = () => {
     url.searchParams.set('population', String(population));
     url.searchParams.set('river', withRiver ? 'on' : 'off');
     url.searchParams.set('hour', String(hour));
+    if (selectedPlot) {
+      url.searchParams.set('plot', String(selectedPlot.id));
+    }
+    if (ageFilter !== 'all') {
+      url.searchParams.set('age', ageFilter);
+    } else {
+      url.searchParams.delete('age');
+    }
     window.history.replaceState(null, '', url);
-  }, [seed, styleId, climate, population, withRiver, hour]);
+  }, [seed, styleId, climate, population, withRiver, hour, selectedPlot, ageFilter]);
 
   const blueprintSvg = useMemo(
     () => renderBlueprintSvg(blueprint, floorLevel, {
@@ -352,8 +392,10 @@ const BuildingIdentityLab: React.FC = () => {
   );
   const style = blueprint.styleResolved;
   const selectedDistrictKey = selectedDistrict ?? selectedPlot?.architecture?.districtKey;
-  const comparisonPlots = model.artifactPlan.plots
+  const districtPlots = model.artifactPlan.plots
     .filter((plot) => plot.architecture?.districtKey === selectedDistrictKey);
+  const ageFilteredDistrictPlots = filterHarnessPlotsByAge(districtPlots, ageFilter);
+  const comparisonPlots = ageFilteredDistrictPlots.length > 0 ? ageFilteredDistrictPlots : districtPlots;
   const coherentDistricts = model.districts.filter((district) => district.coherent).length;
   // What changed (2026-07-18): the pass badge now counts VERIFIED districts —
   // signature equality PLUS agreement between sampled production blueprints
@@ -366,10 +408,17 @@ const BuildingIdentityLab: React.FC = () => {
   const uniqueVariants = new Set(model.artifactPlan.plots
     .map((plot) => plot.architecture?.buildingVariant)
     .filter(Boolean)).size;
+  const historyReceipt = useMemo(
+    () => buildSelectedPlotHistoryReceipt(selectedPlot, blueprint),
+    [selectedPlot, blueprint],
+  );
 
   // Expose a concise receipt to browser automation and manual console debugging.
   // verifiedDistricts + factMismatches let automation assert the badge's REAL
   // claim (blueprint cross-check), not just the signature count it used to show.
+  // WF-G308: Also publish selectedPlotAgeBand, selectedPlotWear,
+  // selectedBackstoryWear, and selectedBackstoryFeatures so visual proof scripts
+  // can assert that the framed building carries the expected roof-history wear.
   useEffect(() => {
     window.__buildingIdentityLab = {
       seed,
@@ -384,9 +433,11 @@ const BuildingIdentityLab: React.FC = () => {
       selectedDistrictKey,
       styleFamily: style?.familyId ?? null,
       hour,
+      ageFilter,
       occupied: occupancy !== undefined,
+      ...historyReceipt,
     };
-  }, [coherentDistricts, verifiedDistricts, hour, model, occupancy, seed, selectedDistrictKey, selectedPlot, style, uniqueVariants]);
+  }, [ageFilter, coherentDistricts, verifiedDistricts, historyReceipt, hour, model, occupancy, seed, selectedDistrictKey, selectedPlot, style, uniqueVariants]);
 
   return (
     <main className="bil-shell">
@@ -436,6 +487,26 @@ const BuildingIdentityLab: React.FC = () => {
           <span>Climate</span>
           <select id="bil-control-climate" name="climate" value={climate} onChange={(event) => setClimate(event.target.value as ClimateClass)}>
             {HARNESS_CLIMATES.map((option) => <option key={option} value={option}>{option}</option>)}
+          </select>
+        </label>
+        <label htmlFor="bil-control-age">
+          <span>Age filter</span>
+          <select
+            id="bil-control-age"
+            name="age"
+            value={ageFilter}
+            onChange={(event) => {
+              const nextAge = event.target.value as HarnessAgeFilter;
+              setAgeFilter(nextAge);
+              const nextPlot = resolveHarnessSelectedPlot(model, {
+                plotId: selectedPlot?.id ?? null,
+                ageFilter: nextAge,
+                districtKey: selectedDistrictKey,
+              });
+              if (nextPlot) setSelectedPlotId(nextPlot.id);
+            }}
+          >
+            {HARNESS_AGE_FILTERS.map((option) => <option key={option} value={option}>{option}</option>)}
           </select>
         </label>
         <label className="bil-toggle" htmlFor="bil-control-waterfront">
@@ -602,6 +673,7 @@ const BuildingIdentityLab: React.FC = () => {
             <div><dt>Covering</dt><dd>{style?.construction.roofCovering}</dd></div>
             <div><dt>Foundation</dt><dd>{style?.construction.foundation}</dd></div>
             <div><dt>Age / wear</dt><dd>{style?.weathering?.ageBand} / {style?.weathering?.wallPatina}</dd></div>
+            <div><dt>Backstory wear</dt><dd>{historyReceipt.selectedBackstoryWear.join(', ') || 'none'}</dd></div>
             <div><dt>Motifs</dt><dd>{style?.motifs.join(', ') || 'none'}</dd></div>
             <div><dt>Ensemble</dt><dd>{selectedPlot?.ensemble?.kind ?? 'standalone'}</dd></div>
             <div><dt>Lot / parcel</dt><dd>{selectedPlot?.ensemble?.lotProfile ?? selectedPlot?.ensemble?.parcelProfile ?? 'legacy'}</dd></div>

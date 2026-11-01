@@ -1,11 +1,17 @@
+/**
+ * @file src/state/appState.ts
+ * Defines the state structure, initial state, actions, and the root reducer for the application.
+ * The root reducer orchestrates calls to smaller "slice" reducers for better modularity.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/09/2026, 09:36:00
+ * Last Sync: 31/10/2026, 19:01:52
  * Dependents: App.tsx, components/DesignPreview/steps/PreviewEconCraft.tsx, components/DesignPreview/steps/PreviewEquipment.tsx
- * Imports: 51 files
+ * Imports: 61 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,15 +20,14 @@
  */
 // @dependencies-end
 
-/**
- * @file src/state/appState.ts
- * Defines the state structure, initial state, actions, and the root reducer for the application.
- * The root reducer orchestrates calls to smaller "slice" reducers for better modularity.
- */
 import { GameState, GamePhase, PlayerCharacter, SuspicionLevel, UnderdarkState, Companion, CompanionReactionRule, Relationship } from '../types';
 import { CompanionSoul } from '../types/companion';
+import { retainCompanionWhereabouts, companionsAtDestination } from '../systems/companions/companionWhereabouts';
+import { prepareCompanionJourney } from '../systems/companions/companionJourney';
+import { restoreAuthoredCompanionBuild } from '../systems/party/restoreAuthoredCompanionBuild';
 import type { DivineFavor, NavalState } from '../types';
 import { AppAction } from './actionTypes';
+import { isPreparedConcentrationStatus } from '../utils/spells/outOfCombatCasting';
 import { DEFAULT_WEATHER } from '../systems/environment/EnvironmentSystem';
 import { STARTING_LOCATION_ID, LOCATIONS } from '../data/world/locations';
 import { NPCS } from '../data/world/npcs';
@@ -59,8 +64,10 @@ import {
 // Import slice reducers
 import { uiReducer } from './reducers/uiReducer';
 import { religionReducer } from './reducers/religionReducer';
-import { characterReducer } from './reducers/characterReducer';
+import { characterReducer, instantiateItem } from './reducers/characterReducer';
 import { worldReducer } from './reducers/worldReducer';
+import {resolveDungeonBattle} from '../systems/worldforge/dungeon/world/dungeonCombatResolution';
+import {reconcileSurfaceHostileOutcome} from '../systems/combat/worldScenario/surfaceHostileContinuity';
 import { ritualReducer } from './reducers/ritualReducer';
 import { logReducer } from './reducers/logReducer';
 import { encounterReducer } from './reducers/encounterReducer';
@@ -144,6 +151,59 @@ function derivePlayerCell(
 // Orchestrates the "Big Bang" of state updates.
 // 1. Cross-Cutting Concerns: Handles actions that affect multiple systems (e.g. SET_GAME_PHASE, START_BATTLE).
 // 2. Delegation: Forwards single-domain actions to specialized slice reducers.
+/**
+ * Slice reducers for single-domain actions, applied in this order by the
+ * default branch of appReducer (RALPH pipeline pattern). Each result is
+ * spread over the accumulated state, so when several slices react to one
+ * action their changes combine instead of the last one overwriting the rest.
+ * Adding a slice is one line here (C6, agora-9ed9.6).
+ */
+export interface SliceStep {
+    /** Stable name, used by tests and diagnostics. */
+    name: string;
+    reduce: (state: GameState, action: AppAction) => Partial<GameState>;
+    /** Return true to skip this slice for an action another owner handles. */
+    skip?: (action: AppAction) => boolean;
+}
+
+export const SLICE_PIPELINE: readonly SliceStep[] = [
+    // Core UI & Systems
+    { name: 'ui', reduce: uiReducer },
+    { name: 'religion', reduce: religionReducer },
+    { name: 'character', reduce: characterReducer },
+    { name: 'world', reduce: worldReducer },
+    // Rituals (2026-09-13, agora-f4ab.4): START_RITUAL, ADVANCE_RITUAL,
+    // INTERRUPT_RITUAL and COMPLETE_RITUAL were silent no-ops in
+    // production because ritualReducer only ran inside worldReducer for
+    // ADVANCE_TIME. It now runs here for every other action; ADVANCE_TIME
+    // stays with worldReducer so progress is not advanced twice.
+    { name: 'ritual', reduce: ritualReducer, skip: (action) => action.type === 'ADVANCE_TIME' },
+    { name: 'log', reduce: logReducer },
+
+    // Specific Domain Systems
+    { name: 'encounter', reduce: encounterReducer },
+    { name: 'npc', reduce: npcReducer },
+    // Durable world-level fact store (DIAL-002/DIAL-004)
+    { name: 'fact', reduce: factReducer },
+    { name: 'quest', reduce: questReducer },
+    { name: 'town', reduce: townReducer },
+    { name: 'crime', reduce: crimeReducer },
+    { name: 'companion', reduce: companionReducer },
+    { name: 'identity', reduce: identityReducer },
+    { name: 'dialogue', reduce: dialogueReducer },
+    { name: 'crafting', reduce: craftingReducer },
+    { name: 'conversation', reduce: conversationReducer },
+    { name: 'journal', reduce: journalReducer },
+    { name: 'legacy', reduce: legacyReducer },
+    { name: 'economy', reduce: economyReducer },
+    { name: 'gameEntry', reduce: gameEntryReducer },
+    // Naval (ships, crew, voyages). navalReducer returns a full GameState,
+    // so it runs last and its result is spread over the accumulated state.
+    // Without this line every NAVAL_* action (voyage start/advance/clear,
+    // known-ports sync, fleet acquisition) was a silent no-op in production.
+    { name: 'naval', reduce: navalReducer },
+];
+
 export function appReducer(state: GameState, action: AppAction): GameState {
     // 1. Handle actions with cross-cutting concerns first
     switch (action.type) {
@@ -173,6 +233,10 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             return { ...state, worldSeed: action.payload, naval: { ...state.naval, knownPorts: [] } };
         }
         case 'SET_GAME_PHASE': {
+            // A rejected surface outcome must not be bypassed by the next
+            // terminal action in the same battle-end packet.
+            if (action.payload === GamePhase.GAME_OVER && state.battlefieldSourceGap?.code === 'surface-outcome-source-mismatch'
+                && state.extractedBattleMap?.encounterContext?.kind === 'surface-contact') return state;
             let additionalUpdates: Partial<GameState> = {
                 loadingMessage: null,
                 previousPhase: state.phase !== action.payload ? state.phase : state.previousPhase, // Track previous phase
@@ -187,7 +251,11 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     characterSheetModal: { isOpen: false, character: null },
                     lastInteractedNpcId: null,
                     lastNpcResponse: null,
-                    currentLocationActiveDynamicNpcIds: null,
+                    // The title menu hides the meeting; it does not end it. Named
+                    // Chronicles save this retained run from that menu. Only a
+                    // new character starts without the current encounter.
+                    currentLocationActiveDynamicNpcIds: action.payload === GamePhase.CHARACTER_CREATION
+                        ? null : state.currentLocationActiveDynamicNpcIds,
                     isDevMenuVisible: false,
                     isGeminiLogViewerVisible: false,
                     isDiscoveryLogVisible: false,
@@ -512,17 +580,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
         case 'START_GAME_SUCCESS': {
             const { startingInventory, ...restOfPayload } = action.payload;
             const worldHistory = action.payload.worldHistory ?? createEmptyHistory();
-            // Seed gold from the character's creation loadout (class package +
-            // background coin); fall back to 10 only for dev/skip flows that never
-            // ran the loadout builder. Legacy coin items still convert on top.
-            let startingGold = restOfPayload.character.startingGold ?? 10;
-            const filteredInventory = startingInventory.filter(item => {
-                if (item.id === 'shiny_coin') {
-                    startingGold += 1;
-                    return false;
-                }
-                return true;
-            });
+            // Creation grants the purse once. Carried catalog coins keep their
+            // quantities and source history until an actual payment spends them.
+            const startingGold = restOfPayload.character.startingGold ?? 10;
 
             return {
                 ...initialGameState,
@@ -541,7 +601,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     const { startingGold: _startingGold, ...characterForParty } = restOfPayload.character;
                     return [{ ...characterForParty, equippedItems: characterForParty.equippedItems || {} }];
                 })(),
-                inventory: filteredInventory,
+                inventory: startingInventory,
                 gold: startingGold,
                 // The opening-situation conversation (triggered by the
                 // BEGIN_OPENING_SITUATION dispatched right after this) is the entry
@@ -627,15 +687,11 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 gameTimeFromLoad.getTime(),
             );
 
-            // Migrate old shiny_coin items to gold property
-            let migratedGold = loadedState.gold !== undefined ? loadedState.gold : 0;
-            let migratedInventory = loadedState.inventory || [];
-            if (migratedInventory.some(item => item.id.startsWith('shiny_coin'))) {
-                const coinCount = migratedInventory.filter(item => item.id.startsWith('shiny_coin')).length;
-                migratedGold += coinCount;
-                migratedInventory = migratedInventory.filter(item => !item.id.startsWith('shiny_coin'));
-                logger.info('Migrated shiny_coin items to gold', { coinCount, totalGold: migratedGold });
-            }
+            // Loading resumes earned objects; it is not a sale or coin exchange.
+            // Exact catalog currency is valued by partyFunds when actually spent.
+            // Never erase similarly named treasures or collapse a stack to one GP.
+            const migratedGold = loadedState.gold ?? 0;
+            const migratedInventory = loadedState.inventory ?? [];
 
             // Load factions from state, falling back to getAllFactions if missing (legacy save support)
             const loadedFactions = loadedState.factions || getAllFactions(loadedState.worldSeed || Date.now());
@@ -646,9 +702,23 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             // Wave 2 save migration: old saves simply have no native-Atlas
             // address, while malformed/newer address versions are discarded.
             // Semantic generator drift is checked by App before 3D can mount.
-            const loadedAtlasGroundAddress = normalizeAtlasGroundAddress(
+            const normalizedLoadedAddress = normalizeAtlasGroundAddress(
                 loadedState.atlasGroundAddress,
             );
+            // A completed journey owns its destination cell. Older saves could
+            // retain the departed Local and one late footfall from that scene.
+            // Discard only those foreign render coordinates; never replay travel
+            // or restore its money, supplies, time, people or consequences.
+            const loadedAtlasGroundAddress = normalizedLoadedAddress &&
+                loadedState.playerCell &&
+                normalizedLoadedAddress.atlasCellId !== loadedState.playerCell.cellId
+                ? null : normalizedLoadedAddress;
+            const foreignLoadedGround = loadedState.playerCell &&
+                parseCellLocationId(loadedState.currentLocationId) === loadedState.playerCell.cellId &&
+                loadedState.playerGroundPos && (
+                    loadedState.playerGroundPos.tileX !== loadedState.playerCell.cellId ||
+                    loadedState.playerGroundPos.tileY !== 0
+                );
             const rejectedAtlasGroundAddress =
                 loadedState.atlasGroundAddress != null && loadedAtlasGroundAddress === null;
             // Current meters are usable only when every lineage field matches the
@@ -687,21 +757,46 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             // value — so there is no 30×20 grid to clamp a resumed position into.
             const validatedPlayerWorldPos = completePlayerWorldPos;
 
+            // Resume the people saved at this exact location. Rebuilding only
+            // the static roster erased opening companions after a full reload.
+            // This restores saved presence, never places a known person at a
+            // new destination; travel still owns its normal location update.
+            const configuredNpcIds = LOCATIONS[loadedState.currentLocationId]?.dynamicNpcConfig?.possibleNpcIds ?? [];
+            const loadedLocalNpcIds = Array.from(new Set(
+                Array.isArray(loadedState.currentLocationActiveDynamicNpcIds)
+                    ? loadedState.currentLocationActiveDynamicNpcIds.filter(id => typeof id === 'string'
+                        && Boolean(loadedState.generatedNpcs?.[id] || NPCS[id] || configuredNpcIds.includes(id)))
+                    : determineActiveDynamicNpcsForLocation(loadedState.currentLocationId, LOCATIONS) ?? [],
+            )).filter(id => !partyFromLoad.some(member => member.id === id)
+                && loadedState.companions?.[id]?.inParty !== true);
+
             return {
                 ...loadedState,
-                phase: GamePhase.LOAD_TRANSITION,
+                // A defeat Chronicle is an aftermath, never a zero-HP exploration resume.
+                phase: loadedState.phase === GamePhase.GAME_OVER ? GamePhase.GAME_OVER : GamePhase.LOAD_TRANSITION,
                 // Preserve 3D view state from save (with validation).
                 worldViewMode: loadedWorldViewMode,
                 mapSurface: loadedMapSurface,
                 playerWorldPos: validatedPlayerWorldPos,
                 atlasGroundAddress: loadedAtlasGroundAddress,
                 atlasGroundPosition: loadedAtlasGroundPosition,
+                ...(foreignLoadedGround ? {
+                    playerGroundPos: null,
+                    playerCell: { ...loadedState.playerCell!, localeCoords: null },
+                } : {}),
                 // Streamed 3D and legacy ThreeDModal must not both be active after load (W3DUI-22).
                 isThreeDVisible:
                     loadedWorldViewMode === '3d' ? false : (loadedState.isThreeDVisible ?? false),
                 // Keep preference from the current session (user-level), not the save slot payload.
                 autoSaveEnabled: state.autoSaveEnabled ?? loadedState.autoSaveEnabled ?? true,
                 isLoading: false, loadingMessage: null, isImageLoading: false, error: null,
+                // A save retains the paid night, never a stale quote or an
+                // unconfirmed physical-bed admission from a previous UI frame.
+                lodgingReservations: Array.isArray(loadedState.lodgingReservations) ? loadedState.lodgingReservations : [],
+                lodgingOffer: null,
+                lodgingRestAdmission: null,
+                isLongRestModalVisible: false,
+                isShortRestModalVisible: false,
                 // Player-facing overlays (map/submap/journal) resume as saved
                 // (resume-journey task 4); strict-boolean check heals legacy
                 // saves. Dev/debug surfaces stay forced closed.
@@ -719,11 +814,16 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 isDiceRollerVisible: loadedState.isDiceRollerVisible ?? false,
                 visualDiceEnabled: loadedState.visualDiceEnabled ?? true,
                 geminiGeneratedActions: null,
-                party: partyFromLoad.map(p => ({ ...(p as PlayerCharacter), equippedItems: (p as PlayerCharacter).equippedItems || {} })),
+                // Restore only the recognized legacy authored-recruit scaffold.
+                // Earned HP/resources and every non-placeholder build survive.
+                party: partyFromLoad.map(p => restoreAuthoredCompanionBuild(
+                    { ...(p as PlayerCharacter), equippedItems: (p as PlayerCharacter).equippedItems || {} },
+                    loadedState.companions?.[p.id], loadedState.generatedNpcs?.[p.id], loadedState,
+                )),
                 npcMemory: migratedNpcMemory,
                 inventory: migratedInventory,
                 gold: migratedGold,
-                currentLocationActiveDynamicNpcIds: determineActiveDynamicNpcsForLocation(loadedState.currentLocationId, LOCATIONS),
+                currentLocationActiveDynamicNpcIds: loadedLocalNpcIds.length > 0 ? loadedLocalNpcIds : null,
                 characterSheetModal: loadedState.characterSheetModal || { isOpen: false, character: null },
                 gameTime: gameTimeFromLoad,
                 geminiInteractionLog: loadedState.geminiInteractionLog || [],
@@ -772,6 +872,15 @@ export function appReducer(state: GameState, action: AppAction): GameState {
         }
 
         case 'MOVE_PLAYER': {
+            // Leaving a cell does not erase the people who remained behind.
+            // Only the actual outgoing encounter can establish this placement.
+            const shared = prepareCompanionJourney({ ...state, companions: retainCompanionWhereabouts(state) }, action.payload);
+            if (shared.error) return { ...state, messages: [...state.messages, {
+                id: Date.now(), text: shared.error, sender: 'system', timestamp: new Date(state.gameTime),
+            }] };
+            const companions = shared.companions;
+            const destinationNpcIds = companionsAtDestination(state, companions,
+                action.payload.newLocationId, action.payload.activeDynamicNpcIds);
             // Cell-native arrival. A Travel-mode atlas pick carries the EXACT
             // destination cell + anchor; arrival lands that cell intact, RESETS
             // Locale feet, and stamps the anchor so a later Enter-3D frames the
@@ -792,7 +901,11 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             return {
                 ...state,
                 currentLocationId: action.payload.newLocationId,
-                ...appendAdventureLogEntry(state, {
+                // The move commits before ADVANCE_TIME. Only the journal uses
+                // the explicit reached time; clock/resource behavior stays owned
+                // by the existing subsequent travel actions. Legacy moves use now.
+                ...appendAdventureLogEntry(action.payload.arrivalGameTime && Number.isFinite(Date.parse(action.payload.arrivalGameTime))
+                    ? { ...state, gameTime: new Date(action.payload.arrivalGameTime) } : state, {
                     kind: 'travel',
                     summary: `Traveled to ${arrivalPlaceName}.`,
                     placeIds: [action.payload.newLocationId],
@@ -805,11 +918,15 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 // ground scene spawn at coordinates from the previous locale.
                 playerGroundPos: dest ? null : state.playerGroundPos,
                 atlasGroundPosition: dest ? null : state.atlasGroundPosition,
+                // The old Local must leave with its feet. Keeping its address
+                // lets the outgoing scene revive inside the destination cell.
+                atlasGroundAddress: dest ? null : state.atlasGroundAddress,
                 // Moving invalidates a start-selection / click entry anchor so a later 3D
                 // entry doesn't snap back to the old town; an atlas-travel arrival
                 // instead stamps the destination's anchor so Enter-3D frames that town.
                 entry3DAnchor: dest ? dest.anchor : null,
-                currentLocationActiveDynamicNpcIds: action.payload.activeDynamicNpcIds,
+                companions,
+                currentLocationActiveDynamicNpcIds: destinationNpcIds,
                 geminiGeneratedActions: null,
                 lastInteractedNpcId: null,
                 lastNpcResponse: null,
@@ -915,14 +1032,46 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 extractedBattleMap: encounterPayload.extractedBattleMap ?? null,
                 isEncounterModalVisible: false,
                 isLongRestModalVisible: false,
+                lodgingOffer: null,
+                lodgingRestAdmission: null,
                 isMapVisible: false, isDiscoveryLogVisible: false, isGlossaryVisible: false, merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] }
             };
         }
 
         case 'END_BATTLE': {
+            // Reconcile actual source actors while the exact map still exists,
+            // before rewards or teardown can conceal a missing source outcome.
+            const surfaceOutcome = reconcileSurfaceHostileOutcome(state, action.payload?.finalEnemyState,
+                action.payload?.finalPartyState, action.payload?.outcomeReview?.result ?? (action.payload?.rewards ? 'victory' : 'ended'), Boolean(action.payload?.rewards));
+            if (surfaceOutcome.status === 'duplicate') return state;
+            if (surfaceOutcome.status === 'source-gap') return {...state, battlefieldSourceGap: {
+                code: 'surface-outcome-source-mismatch', encounterLabel: 'Surface encounter',
+                locationLabel: state.currentLocationId, missingSourceFacts: [surfaceOutcome.detail], detail: surfaceOutcome.detail,
+            }};
+            const dungeonResolution = resolveDungeonBattle(state, action);
+            if (dungeonResolution === null) return state;
             const rewards = action.payload?.rewards;
+            const review = action.payload?.outcomeReview;
+            const dungeon = state.extractedBattleMap?.dungeonEncounter;
+            // Copy public facts while the exact source context still exists.
+            // Later fights and mutable tactical actors cannot rewrite this review.
+            const lastCombatOutcome = review ? {
+                ...review,
+                party: review.party.map(member => ({...member,
+                    ...(member.deathSaves ? {deathSaves: {...member.deathSaves}} : {})})),
+                enemies: review.enemies.map(enemy => ({...enemy})),
+                events: review.events.slice(-8).map(event => ({...event})),
+                worldSeed: state.worldSeed ?? 0,
+                currentLocationId: state.currentLocationId,
+                gameTime: new Date(state.gameTime).toISOString(),
+                ...(dungeon ? {dungeon: {identity: {...dungeon.rootIdentity}, encounterId: dungeon.encounterId, depth: dungeon.depth}} : {}),
+            } : undefined;
             let newState = {
                 ...state,
+                ...dungeonResolution,
+                ...surfaceOutcome.patch,
+                // An older caller cannot borrow the preceding battle's review.
+                lastCombatOutcome,
                 phase: GamePhase.PLAYING,
                 currentEnemies: null,
                 battlefieldSourceGap: null,
@@ -930,31 +1079,46 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 extractedBattleMap: null,
             };
 
-            if (rewards && typeof rewards.xp === 'number') {
-                // Persist post-combat attrition, THEN award XP/level-ups so any HP
-                // gained on level-up stacks on the damaged total (performLevelUp adds
-                // an HP delta to current hp, it does not heal to full).
-                const finalById = new Map(
-                    (action.payload?.finalPartyState ?? []).map(s => [s.id, s] as const)
-                );
-                const updatedParty = state.party.map((member) => {
-                    const snapshot = finalById.get(member.id);
-                    let afterCombat = member;
-                    if (snapshot) {
-                        const maxHp = member.maxHp ?? member.hp ?? snapshot.currentHP;
-                        // A member who ended a WON battle at 0 HP is stabilized — they
-                        // come to after the fight — so floor at 1 rather than leaving
-                        // them unconscious in the overworld with no handler.
-                        const persistedHp = Math.max(1, Math.min(snapshot.currentHP, maxHp));
-                        afterCombat = {
-                            ...member,
-                            hp: persistedHp,
-                            spellSlots: snapshot.spellSlots ?? member.spellSlots,
-                            limitedUses: snapshot.limitedUses ?? member.limitedUses,
-                        };
-                    }
-                    return applyXpAndHandleLevelUps(afterCombat, rewards.xp / state.party.length);
-                });
+            const isVictory = Boolean(rewards && typeof rewards.xp === 'number');
+
+            // Persist post-combat attrition (HP, spell slots, limited uses) for EVERY
+            // battle outcome, including fleeing and retreats without rewards (GG-467).
+            // Level-ups and XP are awarded subsequently if victory rewards were earned.
+            const finalById = new Map(
+                (action.payload?.finalPartyState ?? []).map(s => [s.id, s] as const)
+            );
+            const updatedParty = state.party.map((member) => {
+                const snapshot = finalById.get(member.id);
+                let afterCombat = member;
+                if (snapshot) {
+                    const maxHp = member.maxHp ?? member.hp ?? snapshot.currentHP;
+                    // A member who ended a WON battle at 0 HP is stabilized — they
+                    // come to after the fight — so floor at 1 rather than leaving
+                    // them unconscious in the overworld with no handler.
+                    // On flee or non-victory, keep their exact HP down to 0.
+                    const minHp = isVictory ? 1 : 0;
+                    const persistedHp = Math.max(minHp, Math.min(snapshot.currentHP, maxHp));
+                    afterCombat = {
+                        ...member,
+                        hp: persistedHp,
+                        spellSlots: snapshot.spellSlots ?? member.spellSlots,
+                        limitedUses: snapshot.limitedUses ?? member.limitedUses,
+                        // A broken prepared ward stays ended after returning to exploration.
+                        // Remove only exact generated IDs reported by this holder's snapshot.
+                        statusEffects: snapshot.endedPreparedConcentrationIds?.length
+                            ? member.statusEffects?.filter(effect => !isPreparedConcentrationStatus(effect)
+                                || !snapshot.endedPreparedConcentrationIds!.includes(effect.id))
+                            : member.statusEffects,
+                    };
+                }
+                if (isVictory && rewards) {
+                    const rulesEdition = getRulesEdition(state);
+                    return applyXpAndHandleLevelUps(afterCombat, rewards.xp / state.party.length, undefined, rulesEdition);
+                }
+                return afterCombat;
+            });
+
+            if (isVictory && rewards) {
 
                 // Capture celebratory messages for characters who leveled up.
                 const levelUpMessages: GameState['messages'] = updatedParty
@@ -1008,7 +1172,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     ...newState,
                     party: updatedParty,
                     gold: newState.gold + (rewards.gold || 0),
-                    inventory: [...newState.inventory, ...rewardItems],
+                    // Instantiate reward items with independent ids and acquiredAt stamps (GG-460)
+                    inventory: [...newState.inventory, ...rewardItems.map(item => instantiateItem(item))],
                     messages: [
                         ...newState.messages,
                         victoryMessage,
@@ -1029,6 +1194,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 };
                 newState = {
                     ...newState,
+                    party: updatedParty,
                     messages: [...newState.messages, endMessage],
                 };
             }
@@ -1041,7 +1207,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             const situation = state.gameEntry?.situation;
             const openingWasHostile =
                 !!situation?.threat?.hostile && state.gameEntry?.status === 'in-situation';
-            if (openingWasHostile && situation) {
+            // Explicit losses and retreats do not declare the source NPCs beaten.
+            // Legacy END_BATTLE callers without an outcome retain their existing path.
+            if (openingWasHostile && situation && review?.result !== 'defeat' && review?.result !== 'flee') {
                 const alreadyDefeated = new Set(newState.defeatedNpcIds ?? []);
                 for (const npc of situation.npcs) alreadyDefeated.add(npc.id);
                 newState = {
@@ -1213,46 +1381,13 @@ export function appReducer(state: GameState, action: AppAction): GameState {
         // This ensures that if multiple reducers react to the same action, their changes are combined
         // rather than overwritten by the last spread operator.
         default: {
+            // C6 (agora-9ed9.6): the pipeline is the SLICE_PIPELINE table above;
+            // same order, same spread-merge, same ritual skip as the old lines.
             let nextState = { ...state };
-
-            // Core UI & Systems
-            nextState = { ...nextState, ...uiReducer(nextState, action) };
-            nextState = { ...nextState, ...religionReducer(nextState, action) };
-            nextState = { ...nextState, ...characterReducer(nextState, action) };
-            nextState = { ...nextState, ...worldReducer(nextState, action) };
-            // Rituals (2026-09-13, agora-f4ab.4): START_RITUAL, ADVANCE_RITUAL,
-            // INTERRUPT_RITUAL and COMPLETE_RITUAL were silent no-ops in
-            // production because ritualReducer only ran inside worldReducer for
-            // ADVANCE_TIME. It now runs here for every other action; ADVANCE_TIME
-            // stays with worldReducer so progress is not advanced twice.
-            if (action.type !== 'ADVANCE_TIME') {
-                nextState = { ...nextState, ...ritualReducer(nextState, action) };
+            for (const slice of SLICE_PIPELINE) {
+                if (slice.skip?.(action)) continue;
+                nextState = { ...nextState, ...slice.reduce(nextState, action) };
             }
-            nextState = { ...nextState, ...logReducer(nextState, action) };
-
-            // Specific Domain Systems
-            nextState = { ...nextState, ...encounterReducer(nextState, action) };
-            nextState = { ...nextState, ...npcReducer(nextState, action) };
-            // Durable world-level fact store (DIAL-002/DIAL-004)
-            nextState = { ...nextState, ...factReducer(nextState, action) };
-            nextState = { ...nextState, ...questReducer(nextState, action) };
-            nextState = { ...nextState, ...townReducer(nextState, action) };
-            nextState = { ...nextState, ...crimeReducer(nextState, action) };
-            nextState = { ...nextState, ...companionReducer(nextState, action) };
-            nextState = { ...nextState, ...identityReducer(nextState, action) };
-            nextState = { ...nextState, ...dialogueReducer(nextState, action) };
-            nextState = { ...nextState, ...craftingReducer(nextState, action) };
-            nextState = { ...nextState, ...conversationReducer(nextState, action) };
-            nextState = { ...nextState, ...journalReducer(nextState, action) };
-            nextState = { ...nextState, ...legacyReducer(nextState, action) };
-            nextState = { ...nextState, ...economyReducer(nextState, action) };
-            nextState = { ...nextState, ...gameEntryReducer(nextState, action) };
-            // Naval (ships, crew, voyages). navalReducer returns a full GameState,
-            // so it runs last and its result is spread over the accumulated state.
-            // Without this line every NAVAL_* action (voyage start/advance/clear,
-            // known-ports sync, fleet acquisition) was a silent no-op in production.
-            nextState = { ...nextState, ...navalReducer(nextState, action) };
-
             return nextState;
         }
     }

@@ -12,10 +12,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 20/09/2026, 21:00:39
- * Dependents: components/DesignPreview/steps/PreviewBattleMapScenarioLab.tsx, hooks/actions/handleEncounter.ts, systems/combat/worldScenario/worldEncounterCombatants.ts
+ * Last Sync: 29/10/2026, 16:58:11
+ * Dependents: components/DesignPreview/steps/PreviewBattleMapScenarioLab.tsx, hooks/combat/useCombatOutcome.ts, systems/combat/startBattleMapEncounter.ts, systems/combat/worldScenario/worldEncounterCombatants.ts, systems/worldforge/dungeon/world/dungeonCombat.ts
  * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
@@ -152,6 +152,33 @@ export function parseChallengeRating(cr: string | undefined): number | undefined
   }
   const value = parseFloat(text);
   return Number.isFinite(value) ? value : undefined;
+}
+
+/**
+ * Formats a challenge rating into its canonical string representation.
+ * Preserves fractional strings ('1/8', '1/4', '1/2') and whole numbers ('0', '1', etc.),
+ * and converts numeric decimals (0.125 -> '1/8', 0.25 -> '1/4', 0.5 -> '1/2') back to fractions.
+ */
+export function formatChallengeRating(cr: string | number | undefined | null): string {
+  if (cr === undefined || cr === null || cr === '') return '0';
+  if (typeof cr === 'string') {
+    const trimmed = cr.trim();
+    if (trimmed === '1/8' || trimmed === '1/4' || trimmed === '1/2' || trimmed === '0') {
+      return trimmed;
+    }
+    const parsed = parseFloat(trimmed);
+    if (!Number.isFinite(parsed)) return trimmed;
+    cr = parsed;
+  }
+  if (Math.abs(cr - 0.125) < 0.001) return '1/8';
+  if (Math.abs(cr - 0.25) < 0.001) return '1/4';
+  if (Math.abs(cr - 0.5) < 0.001) return '1/2';
+  if (cr === 0) return '0';
+  if (cr >= 1) return Math.round(cr).toString();
+  if (cr > 0 && cr < 0.2) return '1/8';
+  if (cr >= 0.2 && cr < 0.35) return '1/4';
+  if (cr >= 0.35 && cr < 1) return '1/2';
+  return Math.round(cr).toString();
 }
 
 /**
@@ -417,7 +444,9 @@ function buildMonsterSpellSlots(pool: MonsterSpellSlotPool): SpellSlots {
 // ============================================================================
 
 export function createEnemyFromMonster(monster: Monster, index: number): CombatCharacter {
-  const monsterData = getMonster(monster.name);
+  // A source-world display alias must not select another creature's stats.
+  // Keep legacy name-only requests, while honoring an explicit catalog key.
+  const monsterData = getMonster(monster.id ?? monster.name);
 
   if (!monsterData) {
     const profile = buildFallbackMonsterProfile(monster.name, monster.cr);
@@ -429,7 +458,8 @@ export function createEnemyFromMonster(monster: Monster, index: number): CombatC
     return {
       id: `enemy_${fallbackId}_${index}`,
       name: `${monster.name} ${index + 1}`,
-      level: profile.cr || 1,
+      level: profile.cr ?? 1,
+      cr: formatChallengeRating(fallbackStats.cr ?? profile.cr),
       class: CLASSES_DATA['fighter'],
       position: { x: 0, y: 0 },
       stats: fallbackStats,
@@ -461,12 +491,15 @@ export function createEnemyFromMonster(monster: Monster, index: number): CombatC
   const conditionImmunities = Array.from(new Set([...typeInferred, ...explicit]));
 
   // Convert challenge rating into the numeric level-like field combat UI expects.
-  const level = parseChallengeRating(monsterData.baseStats.cr) ?? 1;
+  // Preserve 0 for CR 0 creatures (like rats) rather than defaulting to level 1.
+  const numericCr = parseChallengeRating(monsterData.baseStats.cr);
+  const level = numericCr ?? 1;
 
   return {
     id: `enemy_${monsterData.id}_${index}`,
-    name: `${monsterData.name} ${index + 1}`,
-    level: level || 1,
+    name: `${monster.id ? monster.name : monsterData.name} ${index + 1}`,
+    level: level,
+    cr: formatChallengeRating(monsterData.baseStats.cr ?? level),
     class: CLASSES_DATA['fighter'],
     position: { x: 0, y: 0 },
     stats: monsterData.baseStats,

@@ -4,18 +4,24 @@
 // or starting any real external model process.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnSync, execFile } from 'node:child_process';
+import { spawnSync, execFile, execFileSync } from 'node:child_process';
 import { promisify } from 'node:util';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { createRequire } from 'node:module';
 import { createAgoraServer } from './server.mjs';
+import { captureUnchangedUnionContext } from './unionConsumerOwnership.mjs';
 import {
   validatePlan,
   buildPrompt,
   packetVerificationNotes,
   dispatchPacketWave,
   resolveDispatchMax,
+  loadRegistry,
+  promptCampaignId,
+  withSeededTasks,
 } from './orchestrate.mjs';
 
 const plan = {
@@ -37,6 +43,470 @@ function validPlan() {
   p.packets[1].agent = 'claude';
   return p;
 }
+
+test('WF283: packet member declarations refuse unavailable source and retain worker checks in both variants', () => {
+  for (const packet of plan.packets) {
+    assert.match(buildPrompt(plan, packet), /SOURCE MEMBERS \(WF-G283\).*Re-read task show and task lint/);
+    assert.throws(() => buildPrompt(plan, { ...packet, sourceMembers: [{}] }), /WF-G283/);
+    assert.throws(() => buildPrompt(plan, { ...packet, sourceMembers: Array(33).fill({}) }), /at most32/);
+    assert.throws(() => buildPrompt(plan, { ...packet, sourceMembers: [{ file: 'src/no-such-wf283-source.ts', symbol: 'Cultural', kind: 'string-union', quote: 'type Cultural = "shrine";', members: ['shrine'] }] }), /WF-G283/);
+  }
+});
+
+test('WF283: quoted command and count members never authorize verification or create measurement obligations', () => {
+  const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+  const dir = fs.mkdtempSync(path.join(repo, '.agent/scratch/wf283-reference-'));
+  try {
+    const file = path.relative(repo, path.join(dir, 'labels.ts')).replaceAll('\\', '/');
+    const quote = 'export type Label = "npm run build" | "npm run typecheck" | "20 files" | "30 files";';
+    fs.writeFileSync(path.join(repo, file), quote);
+    const claim = { file, symbol: 'Label', kind: 'string-union', quote, members: ['npm run build', 'npm run typecheck', '20 files', '30 files'] };
+    for (const prefix of ['SOURCE-MEMBERS: ', 'REFERENCE-ONLY: SOURCE-MEMBERS: ']) {
+      const guidance = prefix + JSON.stringify(claim);
+      const packet = { ...validPlan().packets[0], files: ['tools/agora/taskLint.mjs'], refs: [], issues: [], guidance, forbidCommands: ['build', 'tsc'] };
+      assert.equal(validatePlan({ ...validPlan(), packets: [packet] }), true);
+      const prompt = buildPrompt(plan, packet); assert.match(prompt, /This Guidance names none of those verification commands/);
+      assert.ok(prompt.includes('REFERENCE-ONLY: SOURCE-MEMBERS: ' + JSON.stringify(claim)));
+      assert.equal(prompt.includes('\nGuidance:\n' + guidance), false, 'retain quoted records in the reference section, not operational guidance');
+    }
+  } finally { assert.equal(path.dirname(dir), path.join(repo, '.agent/scratch')); assert.match(path.basename(dir), /^wf283-reference-/); fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('WF283: incorrect packet members refuse native seed before mutations; verified records persist in tasks and all prompts', async () => {
+  const { seedPlan } = await import('./orchestrate.mjs');
+  const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+  const sourceDir = fs.mkdtempSync(path.join(repo, '.agent/scratch/wf283-seed-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-member-seed-'));
+  const app = createAgoraServer({ dir: path.join(root, 'server'), seatRosterPath: null });
+  try {
+    const file = path.relative(repo, path.join(sourceDir, 'member.ts')).replaceAll('\\', '/');
+    const quote = 'export enum Phase { Ready = "idle", Busy = 2 }'; fs.writeFileSync(path.join(repo, file), quote);
+    const claim = { file, symbol: 'Phase', kind: 'enum', quote, members: ['Ready', 'gatehouse'] };
+    const packet = { ...validPlan().packets[0], files: ['tools/agora/taskLint.mjs'], refs: [], issues: [], scope: 'Check source member premise', sourceMembers: [claim] };
+    await new Promise(resolve => app.listen(0, resolve));
+    const candidate = { ...validPlan(), wave: 'member-fixture', baseUrl: 'http://127.0.0.1:' + app.server.address().port, packets: [packet] };
+    const snapshot = () => ({ agents: app.store.listAgents(), campaigns: app.store.listCampaigns(), tasks: app.store.listTasks(), locks: app.store.listLocks() });
+    const before = snapshot(); assert.throws(() => validatePlan(candidate), /WF-G283.*member mismatch/);
+    assert.throws(() => buildPrompt(candidate, packet), /WF-G283.*member mismatch/);
+    await assert.rejects(() => seedPlan(candidate, { env: { AGORA_DIR: path.join(root, 'identity') } }), /WF-G283/);
+    assert.deepEqual(snapshot(), before);
+    claim.members = ['Ready', 'Busy']; assert.equal(validatePlan(candidate), true);
+    for (const agent of ['claude', 'codex', 'gemini']) for (const taskId of [undefined, 'agora-f283']) {
+      const prompt = buildPrompt(candidate, { ...packet, agent }, { taskId });
+      assert.ok(prompt.includes('REFERENCE-ONLY: SOURCE-MEMBERS: ' + JSON.stringify(claim)));
+      assert.match(prompt, /Re-read task show and task lint/);
+    }
+    // Scope metadata must survive once as a reference, never flattened into title or prose.
+    packet.scope += '\nREFERENCE-ONLY: SOURCE-MEMBERS: ' + JSON.stringify(claim); delete packet.sourceMembers;
+    const seeded = await seedPlan(candidate, { env: { AGORA_DIR: path.join(root, 'identity') } });
+    const task = app.store.listTasks().find(item => item.id === seeded[packet.id]);
+    assert.ok(task.body.includes('REFERENCE-ONLY: SOURCE-MEMBERS: ' + JSON.stringify(claim)));
+    assert.match(task.body, /SOURCE MEMBERS \(WF-G283\)/); assert.equal(task.state, 'open'); assert.deepEqual(app.store.listLocks(), []);
+    assert.equal(task.title, packet.id + ': Check source member premise');
+    assert.equal(task.body.split('\n').filter(line => line.startsWith('REFERENCE-ONLY: SOURCE-MEMBERS:')).length, 1);
+    const { inspectSourceMembers, extractTaskOwnershipPaths } = await import('./taskLint.mjs');
+    assert.equal(inspectSourceMembers(task).issues.length, 0);
+    assert.ok(!extractTaskOwnershipPaths(task).some(item => item.ref === file));
+    const { checkPlanOwnership, checkPacketLaunchLocks } = await import('./packetOwnership.mjs');
+    const mapped = withSeededTasks(candidate, seeded);
+    assert.deepEqual(mapped.packets[0].taskIds, [task.id]); assert.equal(packet.taskIds, undefined);
+    assert.throws(() => withSeededTasks(candidate, []), /seed map/);
+    assert.throws(() => withSeededTasks(candidate, { wrongPacket: task.id }), /seed map/);
+    const badBody = 'SOURCE-MEMBERS: ' + JSON.stringify({ ...claim, members: ['Ready', 'gatehouse'] });
+    app.store.editTask({ taskId: task.id, agentId: task.createdBy, fields: { body: badBody }, reason: 'Private regression fixture for a later stale member list.' });
+    const beforeRefusal = snapshot();
+    const partition = await checkPlanOwnership(mapped); assert.equal(partition.ok, false); assert.match(partition.errors.join('\n'), /WF-G283.*|member mismatch/);
+    const launch = await checkPacketLaunchLocks(candidate, packet, { taskId: task.id });
+    assert.equal(launch.ok, false); assert.equal(launch.checkedTasks, 1); assert.match(launch.errors.join('\n'), /member mismatch.*WF-G283/);
+    const planFile = path.join(sourceDir, 'plan.json'); fs.writeFileSync(planFile, JSON.stringify(candidate));
+    const seedPath = path.join(repo, '.agent/scratch/orchestrate', 'seed-member-fixture.json');
+    assert.equal(fs.existsSync(seedPath), false, 'never overwrite an existing wave seed map');
+    fs.writeFileSync(seedPath, JSON.stringify(seeded));
+    try {
+      for (const command of ['partition', 'prompt', 'dispatch']) {
+        const result = await promisify(execFile)(process.execPath, ['tools/agora/orchestrate.mjs', command, planFile, ...(command === 'partition' ? [] : [packet.id])], { cwd: repo, timeout: 30000 }).then(value => ({ ...value, code: 0 }), error => ({ ...error, code: error.code }));
+        assert.equal(result.code, 1, result.stdout + result.stderr); assert.match(result.stdout + result.stderr, /WF-G283/);
+      }
+      assert.deepEqual(snapshot(), beforeRefusal, 'all native refusals precede registration, seed, prompt output or worker launch');
+    } finally { assert.equal(path.dirname(seedPath), path.join(repo, '.agent/scratch/orchestrate')); fs.unlinkSync(seedPath); }
+  } finally {
+    await app.close(); assert.equal(path.dirname(sourceDir), path.join(repo, '.agent/scratch')); assert.match(path.basename(sourceDir), /^wf283-seed-/); fs.rmSync(sourceDir, { recursive: true, force: true });
+    assert.equal(path.dirname(root), fs.realpathSync(os.tmpdir())); assert.match(path.basename(root), /^agora-member-seed-/); fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('WF-G330: pure prompts distinguish supplied observations from unknown lock state in both variants', () => {
+  const snapshot = { source: 'supplied', observedAt: null, locks: [{
+    id: 'fixture-lock', agentId: 'peer', paths: ['docs/peer.md'], globs: ['src/peer/**'],
+    expiresAt: Date.parse('2026-10-09T18:00:00Z'), reason: 'fixture only',
+  }] };
+  for (const packet of plan.packets) {
+    assert.match(buildPrompt(plan, packet), /LOCK OBSERVATION.*none supplied.*NOT evidence/);
+    const prompt = buildPrompt(plan, packet, { lockSnapshot: snapshot });
+    assert.match(prompt, /LOCK OBSERVATION.*supplied, observed unknown/);
+    assert.match(prompt, /fixture-lock.*peer.*docs\/peer\.md.*src\/peer\/\*\*.*2026-10-09T18:00:00\.000Z/);
+    assert.doesNotMatch(prompt, /LOCK OBSERVATION.*live daemon/);
+  }
+});
+
+// Explicit unchanged context for pre-existing metadata-only fixtures, not a
+// production baseline refresher or evidence that an intended type edit is safe.
+function unchangedFixtureUnions(files) {
+  return [...new Set(fs.globSync(files))].map(file => file.replaceAll('\\','/')).filter(file => file.startsWith('src/') && /\.[jt]sx?$/.test(file) && !/\.d\.ts$/.test(file))
+    .map(file => captureUnchangedUnionContext(file, 'Metadata-only regression fixture: finite union contracts deliberately remain unchanged; isolate the existing gate.')).filter(Boolean);
+}
+
+test('WF237: core audits and durable action delivery policy survive seeded and unseeded prompt variants', () => {
+  const core={...validPlan().packets[0],issues:[],files:['src/state/actionTypes.ts'],refs:['src/state/actionTypes.ts']};
+  assert.throws(()=>validatePlan({...validPlan(),packets:[core]}),/WF-G237/);assert.throws(()=>buildPrompt(plan,core),/WF-G237/);
+  core.actionWiringReview={reason:'Read-only source-comment fixture: dispatch, action members and payload fields remain unchanged.',sources:[{file:core.files[0],quote:'export type AppAction ='}]};
+  core.unionReviews=unchangedFixtureUnions(core.files);
+  assert.equal(validatePlan({...validPlan(),packets:[core]}),true);
+  for(const agent of ['claude','codex','gemini'])for(const taskId of [undefined,'fixture-task']){
+    const prompt=buildPrompt(plan,{...core,agent},{taskId});assert.match(prompt,/ACTION DELIVERY \(WF-G237\)/);assert.match(prompt,/ACTION-WIRING-UNCHANGED:/);assert.match(prompt,/grant no files, locks or commands/);
+  }
+});
+
+test('WF282: exact unchanged context and self-check persist in all prompt variants', () => {
+  const packet={...validPlan().packets[0],files:['src/systems/worldforge/town/population.ts'],issues:[]};
+  assert.throws(()=>buildPrompt(plan,packet),/unreviewed owned finite union/);
+  packet.unionReviews=unchangedFixtureUnions(packet.files);
+  for(const agent of ['claude','codex','gemini'])for(const taskId of [undefined,'fixture-task']){
+    const prompt=buildPrompt(plan,{...packet,agent},{taskId});assert.match(prompt,/REFERENCE-ONLY: UNION-REVIEW:/);assert.match(prompt,/UNION CONSUMERS \(WF-G282\)/);assert.match(prompt,/grant no files, locks or commands/);
+  }
+  packet.unionReviews[0].hash='0'.repeat(64);assert.throws(()=>buildPrompt(plan,packet),/stale unchanged/);
+});
+
+test('private scratch rules keep worker identities distinct, contained and dependency-aware', () => {
+  const directory = prompt => /Private scratch directory: `([^`]+)`/.exec(prompt)?.[1];
+  const first = buildPrompt(plan, plan.packets[0]);
+  const second = buildPrompt(plan, plan.packets[1]);
+  assert.equal(directory(first), '.agent/scratch/orchestrate/demo/fix-a/');
+  assert.equal(directory(second), '.agent/scratch/orchestrate/demo/fix-b/');
+  assert.notEqual(directory(first), directory(second));
+  const unusual = directory(buildPrompt({ ...plan, wave: '../escape/one' },
+    { ...plan.packets[0], handle: '../escape/two' }));
+  assert.ok(unusual.startsWith('.agent/scratch/orchestrate/'));
+  assert.equal(unusual.split('/').length, 6, 'encoded names remain two path segments');
+  assert.equal(unusual.includes('../'), false);
+  for (const prompt of [first, second]) {
+    assert.match(prompt, /git check-ignore -v/);
+    assert.match(prompt, /Node resolves packages from the script location, NOT the shell's cwd/);
+    assert.match(prompt, /absolute file URL/);
+    assert.match(prompt, /AGENT\.md#private-scratch-and-capture-helpers/);
+    assert.match(prompt, /does not authorize.*starting a dev server/);
+  }
+  assert.ok(fs.readFileSync(new URL('./AGENT.md', import.meta.url), 'utf8')
+    .includes('### Private Scratch And Capture Helpers'), 'the stable guide anchor exists');
+});
+
+test('in-repo scratch imports Playwright; external scratch imports its absolute entry regardless of cwd', () => {
+  const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+  const scratchRoot = path.join(repoRoot, '.agent', 'scratch');
+  fs.mkdirSync(scratchRoot, { recursive: true });
+  const internal = fs.mkdtempSync(path.join(scratchRoot, 'agora-scratch-resolution-'));
+  const external = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-scratch-resolution-'));
+  try {
+    const probe = path.join(internal, 'import-check.mjs');
+    const ignored = spawnSync('git', ['-c', 'core.fsmonitor=false', 'check-ignore', '-q', probe], { cwd: repoRoot });
+    assert.equal(ignored.status, 0, 'verify the private scratch path is ignored before writing');
+    const check = "console.log(typeof chromium.launch);";
+    fs.writeFileSync(probe, "import { chromium } from 'playwright';\n" + check);
+    assert.equal(execFileSync(process.execPath, [probe], { cwd: os.tmpdir(), encoding: 'utf8' }).trim(), 'function');
+    const externalProbe = path.join(external, 'import-check.mjs');
+    const esmEntry = path.join(path.dirname(createRequire(import.meta.url).resolve('playwright')), 'index.mjs');
+    assert.ok(fs.existsSync(esmEntry), 'verify the documented ESM entry, not the CommonJS entry');
+    const playwrightEntry = pathToFileURL(esmEntry).href;
+    fs.writeFileSync(externalProbe, `import { chromium } from ${JSON.stringify(playwrightEntry)};\n${check}`);
+    assert.equal(execFileSync(process.execPath, [externalProbe], { cwd: repoRoot, encoding: 'utf8' }).trim(), 'function');
+  } finally {
+    // These unique fixture directories are the only paths this test removes.
+    assert.ok(path.resolve(internal).startsWith(path.resolve(scratchRoot) + path.sep));
+    assert.ok(path.resolve(external).startsWith(path.resolve(os.tmpdir()) + path.sep));
+    fs.rmSync(internal, { recursive: true, force: true });
+    fs.rmSync(external, { recursive: true, force: true });
+  }
+});
+
+test('WF307: packet review changes refuse before seed and worker policy requires durable preservation', async () => {
+  const { captureSourceReview } = await import('./taskLint.mjs');
+  const review = captureSourceReview({ id: 'fixture-review', file: 'tools/agora/taskLint.mjs', start: 'export function inspectSymbolChecks(', end: '/** Resolve literal evidence against current bytes;', symbols: ['inspectSymbolChecks'], reason: 'Current read-only fixture block.' });
+  const packet = { ...validPlan().packets[0], issues: [], refs: ['tools/agora/taskLint.mjs'], files: ['tools/agora/taskLint.mjs'], sourceReviews: [{ ...review, sha256: '0'.repeat(64) }] };
+  assert.throws(() => validatePlan({ ...validPlan(), packets: [packet] }), /WF-G307/); assert.throws(() => buildPrompt(plan, packet), /WF-G307/);
+  packet.sourceReviews = [review]; assert.equal(validatePlan({ ...validPlan(), packets: [packet] }), true);
+  for (const agent of ['claude', 'codex', 'gemini']) for (const taskId of [undefined, 'fixture-task']) {
+    const prompt = buildPrompt(plan, { ...packet, agent }, { taskId });
+    assert.match(prompt, /SIBLING PRESERVATION \(WF-G307\)/); assert.match(prompt, /not.*semantic/i); assert.match(prompt, /SOURCE-REVIEW:/);
+  }
+  for (const name of ['AGENT.md', 'ORCHESTRATOR.md', 'PROTOCOL.md']) assert.match(fs.readFileSync(new URL('./' + name, import.meta.url), 'utf8'), /WF-G307/);
+});
+
+test('WF272: stale packet claims refuse before board mutation, corrected declarations persist into task briefs', async () => {
+  const declaration = { file: 'tools/agora/taskLint.mjs', symbol: 'NonexistentWf272CallSite', expect: 'present' };
+  const packet = { ...validPlan().packets[0], issues: [], refs: ['tools/agora/taskLint.mjs'], files: ['tools/agora/taskLint.mjs'], scope: 'Review exact symbol premise', symbolChecks: [declaration] };
+  const { seedPlan } = await import('./orchestrate.mjs');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-symbol-seed-'));
+  const app = createAgoraServer({ dir: path.join(root, 'server'), seatRosterPath: null });
+  try {
+    await new Promise(resolve => app.listen(0, resolve));
+    const candidate = { ...validPlan(), wave: 'symbol-check-fixture', baseUrl: 'http://127.0.0.1:' + app.server.address().port, packets: [packet] };
+    const snapshot = () => ({ agents: app.store.listAgents(), campaigns: app.store.listCampaigns(), tasks: app.store.listTasks(), locks: app.store.listLocks() });
+    const before = snapshot(); assert.throws(() => validatePlan(candidate), /WF-G272/);
+    assert.throws(() => buildPrompt(candidate, packet), /WF-G272/);
+    await assert.rejects(() => seedPlan(candidate, { env: { AGORA_DIR: path.join(root, 'identity') } }), /WF-G272/); assert.deepEqual(snapshot(), before);
+    declaration.expect = 'absent'; assert.equal(validatePlan(candidate), true);
+    for (const bad of ['not-array', Array(65).fill(declaration)]) assert.throws(() => validatePlan({ ...candidate, packets: [{ ...packet, symbolChecks: bad }] }), /WF-G272/);
+    assert.throws(() => buildPrompt(candidate, { ...packet, guidance: 'SYMBOL-CHECK-UNVERIFIED: ' + JSON.stringify({ file: declaration.file, symbol: 'unknown', reason: 'VERIFY source' }) }), /WF-G272/);
+    const seeded = await seedPlan(candidate, { env: { AGORA_DIR: path.join(root, 'identity') } });
+    const task = app.store.listTasks().find(item => item.id === seeded[packet.id]);
+    assert.ok(task.body.includes('SYMBOL-CHECK: ' + JSON.stringify(declaration)));
+    assert.match(task.body, /FILE\/SYMBOL PREMISES \(WF-G272\)/); assert.equal(task.state, 'open'); assert.deepEqual(app.store.listLocks(), []);
+  } finally { await app.close(); assert.equal(path.dirname(root), fs.realpathSync(os.tmpdir())); fs.rmSync(root, { recursive: true, force: true }); }
+});
+
+test('WF272: all prompt variants and guides require exact-file rechecks rather than fabricated call sites', () => {
+  for (const agent of ['claude', 'codex', 'gemini']) for (const taskId of [undefined, 'agora-fixture.1']) {
+    const prompt = buildPrompt(plan, { ...plan.packets[0], agent }, { taskId });
+    assert.match(prompt, /FILE\/SYMBOL PREMISES \(WF-G272\)/); assert.match(prompt, /every named file\/symbol pair/);
+    assert.match(prompt, /global.*hit.*not.*file proof/); assert.match(prompt, /do not fabricate call sites/);
+    assert.match(prompt, /literal.*not semantic/); assert.match(prompt, /already-present field/);
+  }
+  for (const name of ['ORCHESTRATOR.md', 'AGENT.md', 'PROTOCOL.md']) {
+    const text = fs.readFileSync(new URL('./' + name, import.meta.url), 'utf8');
+    assert.match(text, /WF-G272/); assert.match(text, /SYMBOL-CHECK-UNVERIFIED/);
+  }
+});
+
+test('WF291: seeded and unseeded worker variants require the whole-document audit before Verified metadata', () => {
+  for (const agent of ['claude', 'codex', 'gemini']) for (const taskId of [undefined, 'agora-fixture.1']) {
+    const packet = { ...plan.packets[0], agent, scope: 'Correct the renderer claim at docs/architecture/domains/town-map.md:107-134',
+      files: ['docs/architecture/domains/town-map.md'], guidance: 'Preserve the cited historical motivation; do not launch or run application tests.' };
+    const prompt = buildPrompt(plan, packet, { taskId });
+    assert.match(prompt, /DOCUMENTATION AUDIT \(WF-G291\):/);
+    assert.match(prompt, /read each repaired document end to end/);
+    assert.match(prompt, /Historical line ranges are motivating citations, not exhaustive acceptance/);
+    assert.match(prompt, /every repository path presented as current/);
+    assert.match(prompt, /every absence claim anywhere in the document/);
+    assert.match(prompt, /Historical, retired and planned references need separate classification/);
+    assert.match(prompt, /before changing Verified:/);
+    assert.match(prompt, /File existence is not proof of wiring, test execution or rendered behavior/);
+    assert.match(prompt, /This audit does not grant extra files or commands/);
+    assert.ok(prompt.includes(packet.scope)); assert.ok(prompt.includes(packet.guidance));
+  }
+});
+
+test('WF291: durable seeded briefs retain whole-document acceptance beyond the motivating line range', async () => {
+  const { seedPlan } = await import('./orchestrate.mjs');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-doc-audit-seed-'));
+  const app = createAgoraServer({ dir: path.join(root, 'store'), seatRosterPath: null });
+  try {
+    await new Promise(resolve => app.listen(0, resolve));
+    // Drop the inherited menu issue and explicitly author the documentation ref.
+    const packet = { ...validPlan().packets[0], issues: [], refs: ['docs/architecture/domains/town-map.md'], scope: 'Correct town-map documentation at lines 107-134 and 151-161', files: ['docs/architecture/domains/town-map.md'] };
+    const candidate = { ...validPlan(), wave: 'doc-audit-fixture', baseUrl: 'http://127.0.0.1:' + app.server.address().port, packets: [packet] };
+    const seeded = await seedPlan(candidate, { env: { AGORA_DIR: path.join(root, 'identity') } });
+    const task = app.store.listTasks().find(item => item.id === seeded[packet.id]);
+    assert.ok(task.body.includes(packet.scope)); assert.match(task.body, /DOCUMENTATION AUDIT \(WF-G291\):/);
+    assert.match(task.body, /every absence claim anywhere in the document/);
+    assert.match(task.body, /including sections outside the cited ranges/);
+    // Human prose can capitalize sentences; enforce the policy, not case style.
+    assert.match(task.body, /unresolved claims block the corresponding acceptance and verification-date claim/i);
+    assert.match(task.body, /partial verification by section/); assert.match(task.body, /parent authorization and your own locks/);
+    assert.equal(task.state, 'open'); assert.deepEqual(task.refs, packet.files); assert.deepEqual(app.store.listLocks(), []);
+    assert.doesNotMatch(task.body, /npm run typecheck|npm run test|start a dev server/);
+  } finally { await app.close(); assert.equal(path.dirname(root), fs.realpathSync(os.tmpdir())); fs.rmSync(root, { recursive: true, force: true }); }
+});
+
+test('WF291: worker and author guides distinguish whole-document audit from behavior and wider ownership', () => {
+  for (const name of ['AGENT.md', 'ORCHESTRATOR.md', 'PROTOCOL.md']) {
+    const text = fs.readFileSync(new URL('./' + name, import.meta.url), 'utf8');
+    assert.match(text, /WF-G291/); assert.match(text, /whole-document/i); assert.match(text, /absence claim/);
+    assert.match(text, /Verified:/); assert.match(text, /partial verification/);
+  }
+});
+
+test('WF325: contradictory deduplication packets fail before seed and corrected contracts persist on the board', async () => {
+  const packet = { ...validPlan().packets[0], scope: 'One status-icon function, not two', files: ['tools/agora/shared-fixture.mjs'],
+    dedupAcceptance: { canonical: 'shared table', canonicalCount: 1, obsolete: 'legacy switches', obsoleteCount: 1,
+      consumers: ['combatUtils', 'BattleMapOverlay'], verification: 'Both consumers delegate and preserve status fallback.' } };
+  assert.throws(() => validatePlan({ ...validPlan(), packets: [packet] }), /WF-G325/);
+  assert.throws(() => buildPrompt(plan, packet), /WF-G325/);
+  const { seedPlan } = await import('./orchestrate.mjs');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-dedup-seed-'));
+  const app = createAgoraServer({ dir: path.join(root, 'store') });
+  try {
+    await new Promise(resolve => app.listen(0, resolve));
+    const candidate = { ...validPlan(), wave: 'dedup-contract-fixture', baseUrl: 'http://127.0.0.1:' + app.server.address().port, packets: [packet] };
+    const env = { AGORA_DIR: path.join(root, 'identity') };
+    const snapshot = () => ({ agents: app.store.listAgents(), campaigns: app.store.listCampaigns(), tasks: app.store.listTasks(), locks: app.store.listLocks() });
+    const before = snapshot(); await assert.rejects(() => seedPlan(candidate, { env }), /WF-G325/); assert.deepEqual(snapshot(), before);
+    packet.dedupAcceptance.obsoleteCount = 0;
+    assert.equal(validatePlan(candidate), true);
+    const seeded = await seedPlan(candidate, { env });
+    const task = app.store.listTasks().find(item => item.id === seeded[packet.id]);
+    assert.ok(task.body.includes('DEDUP-ACCEPTANCE: ' + JSON.stringify(packet.dedupAcceptance)));
+    assert.match(task.body, /DEDUP-GOAL:/);
+    assert.match(buildPrompt(candidate, packet, { taskId: task.id }), /DEDUPLICATION.*WF-G325/);
+    assert.equal(task.state, 'open'); assert.deepEqual(app.store.listLocks(), []);
+  } finally { await app.close(); assert.equal(path.dirname(root), fs.realpathSync(os.tmpdir())); fs.rmSync(root, { recursive: true, force: true }); }
+});
+
+test('WF-G343: count-dependent packets fail before seed unless measurement commands are declared and authorized', async () => {
+  const packet = { ...validPlan().packets[0], scope: 'Repair 20 Enchantment Gap rows' };
+  assert.throws(() => validatePlan({ ...validPlan(), packets: [packet] }), /WF-G343.*COUNT-SOURCE/);
+  const command = 'node --import tsx tools/agora/countSpellGaps.mjs';
+  packet.countSources = [command];
+  assert.throws(() => validatePlan({ ...validPlan(), packets: [packet] }), /Guidance.*measurement/);
+  packet.guidance = 'Read-only measurement before editing: ' + command;
+  assert.equal(validatePlan({ ...validPlan(), packets: [packet] }), true);
+  const inline = { ...packet, countSources: [], guidance: 'COUNT-SOURCE: ' + command };
+  assert.ok(buildPrompt(plan, inline).includes('COUNT-SOURCE: ' + command), 'inline guidance sources are retained even with an empty array');
+  const prompt = buildPrompt(plan, packet);
+  assert.ok(prompt.includes('COUNT-SOURCE: ' + command), 'source survives generated task body');
+  assert.match(prompt, /WF-G343.*before acting on.*count/);
+  assert.match(prompt, /timestamp.*command.*current count.*result/);
+  assert.match(prompt, /not execute.*automatically.*do not widen/);
+  for (const countSources of ['not-an-array', [''], ['echo 20'], ['node one.mjs\nnode two.mjs']]) {
+    assert.throws(() => validatePlan({ ...validPlan(), packets: [{ ...packet, countSources }] }), /countSources|COUNT-SOURCE/);
+  }
+  assert.throws(() => validatePlan({ ...validPlan(), packets: [{ ...packet,
+    guidance: 'Do not run ' + command }] }), /Guidance.*measurement/);
+  const forbidden = { ...packet, countSources: ['npm run build'], guidance: 'Run npm run build', forbidCommands: ['build'] };
+  assert.throws(() => validatePlan({ ...validPlan(), packets: [forbidden] }), /forbid|CONFLICT/);
+  for (const pkt of plan.packets) assert.match(buildPrompt(plan, pkt), /COUNT PREMISES.*WF-G343/);
+
+  // The command must survive on the board, not merely in a transient prompt.
+  // A refused premise must leave presence, campaigns and tasks untouched.
+  const { seedPlan } = await import('./orchestrate.mjs');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-count-seed-'));
+  const app = createAgoraServer({ dir: path.join(root, 'store') });
+  try {
+    await new Promise(resolve => app.listen(0, resolve));
+    const baseUrl = `http://127.0.0.1:${app.server.address().port}`;
+    const env = { AGORA_DIR: path.join(root, 'identity') };
+    const candidate = { ...validPlan(), baseUrl, wave: 'count-source-proof',
+      packets: [{ ...packet, issues: [], refs: [] }] };
+    const snapshot = () => ({ agents: app.store.listAgents(), campaigns: app.store.listCampaigns(), tasks: app.store.listTasks() });
+    const before = snapshot();
+    await assert.rejects(() => seedPlan({ ...candidate, packets: [{ ...candidate.packets[0], countSources: [], guidance: '' }] }, { env }), /WF-G343/);
+    assert.deepEqual(snapshot(), before);
+    const seeded = await seedPlan(candidate, { env });
+    const stored = app.store.listTasks().find(task => task.id === seeded[packet.id]);
+    assert.ok(stored.body.includes('\nCOUNT-SOURCE: ' + command));
+    assert.ok(buildPrompt(candidate, candidate.packets[0], { taskId: stored.id }).includes('task show'));
+  } finally {
+    await app.close();
+    assert.equal(path.dirname(root), path.resolve(os.tmpdir()));
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('WF-G333: implementation seed and generated prompts fail unresolved discovery before any mutation', async () => {
+  const { seedPlan } = await import('./orchestrate.mjs');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-discovery-seed-'));
+  const app = createAgoraServer({ dir: path.join(root, 'store') });
+  try {
+    await new Promise(resolve => app.listen(0, resolve));
+    const baseUrl = `http://127.0.0.1:${app.server.address().port}`;
+    const candidate = { ...validPlan(), baseUrl, packets: [validPlan().packets[0]] };
+    const packet = candidate.packets[0];
+    const before = { agents: app.store.listAgents(), tasks: app.store.listTasks(), campaigns: app.store.listCampaigns() };
+    for (const amend of [{ files: ['discover: the settings UI component'] },
+      { scope: 'DISCOVER: the production settings surface' }, { guidance: 'DISCOVERY-REQUIRED: pick the UI location' }]) {
+      const pending = { ...packet, ...amend };
+      assert.throws(() => validatePlan({ ...candidate, packets: [pending] }), /WF-G333/);
+      assert.throws(() => buildPrompt(candidate, pending), /WF-G333/);
+      await assert.rejects(() => seedPlan({ ...candidate, packets: [pending] }, { env: { AGORA_DIR: path.join(root, 'identity') } }), /WF-G333/);
+      assert.deepEqual({ agents: app.store.listAgents(), tasks: app.store.listTasks(), campaigns: app.store.listCampaigns() }, before);
+    }
+    packet.files = ['tools/agora/deliberate-new.mjs'];
+    packet.scope = 'Implement in the parent-selected new source path';
+    assert.equal(validatePlan(candidate), true);
+    assert.match(buildPrompt(candidate, packet), /DISCOVERY.*WF-G333.*orchestrator.*before.*edit/i);
+    for (const pkt of plan.packets) assert.match(buildPrompt(plan, pkt), /WF-G333/);
+  } finally {
+    await app.close();
+    assert.equal(path.dirname(root), path.resolve(os.tmpdir()));
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('WF327: data from-values survive seed/prompt; stale and literal already-present targets refuse before mutations', async () => {
+  const { seedPlan } = await import('./orchestrate.mjs');
+  const scratch = path.resolve('.agent/scratch'); fs.mkdirSync(scratch, { recursive: true });
+  const root = fs.mkdtempSync(path.join(scratch, 'agora-data-seed-'));
+  const file = path.relative(process.cwd(), path.join(root, 'input.json')).replace(/\\/g, '/');
+  assert.equal(spawnSync('git', ['-c', 'core.fsmonitor=false', 'check-ignore', '-q', file]).status, 0);
+  fs.writeFileSync(path.join(root, 'input.json'), JSON.stringify({ value: ['original'] }));
+  const app = createAgoraServer({ dir: path.join(root, 'store') });
+  try {
+    await new Promise(resolve => app.listen(0, resolve));
+    const p = { ...validPlan(), baseUrl: `http://127.0.0.1:${app.server.address().port}`, wave: 'data-premise-seed',
+      packets: [{ ...validPlan().packets[0], scope: 'Review a data value before editing', files: [file], issues: [],
+        dataEdits: [{ file, field: ['value'], from: ['original'], to: ['revised'] }],
+        dataValues: [{ file, field:['value'],value:['revised'],origin:{kind:'new',reason:'Private baseline regression intentionally proposes a revised fixture value, not corpus canon.'}}] }] };
+    const env = { AGORA_DIR: path.join(root, 'identity') };
+    const snapshot = () => ({ agents: app.store.listAgents(), tasks: app.store.listTasks(), campaigns: app.store.listCampaigns() });
+    const before = snapshot();
+    for (const edit of [{ ...p.packets[0].dataEdits[0], from: ['stale'] }, { ...p.packets[0].dataEdits[0], to: ['original'] }]) {
+      const invalid = { ...p, packets: [{ ...p.packets[0], dataEdits: [edit] }] };
+      assert.throws(() => validatePlan(invalid), /WF-G327/);
+      assert.throws(() => buildPrompt(invalid, invalid.packets[0]), /WF-G327/);
+      await assert.rejects(() => seedPlan(invalid, { env }), /WF-G327/);
+      assert.deepEqual(snapshot(), before);
+    }
+    delete p.packets[0].dataEdits[0].from;
+    const warnings = []; assert.equal(validatePlan(p, { onWarn: message => warnings.push(message) }), true);
+    assert.ok(warnings.some(message => /VERIFY BEFORE EDITING/.test(message)));
+    for (const agent of ['claude', 'codex']) {
+      const prompt = buildPrompt(p, { ...p.packets[0], agent });
+      assert.match(prompt, /DATA EDIT PREMISES \(WF-G327\)/);
+      assert.match(prompt, /VERIFY BEFORE EDITING/);
+      assert.match(prompt, /normalizer.*semantically equivalent/);
+      assert.match(prompt, /does not grant files or commands/);
+    }
+    const seeded = await seedPlan(p, { env });
+    let stored = app.store.listTasks().find(t => t.id === seeded[p.packets[0].id]);
+    const prefix = 'REFERENCE-ONLY: DATA-EDIT: ';
+    const pending = JSON.parse(stored.body.split('\n').find(line => line.startsWith(prefix)).slice(prefix.length));
+    assert.equal(pending.verification, 'VERIFY BEFORE EDITING'); assert.equal(Object.hasOwn(pending, 'from'), false);
+    p.packets[0].dataEdits[0].from = ['original'];
+    for (const agent of ['claude', 'codex']) {
+      for (const taskId of [undefined, stored.id]) {
+        const prompt = buildPrompt(p, { ...p.packets[0], agent }, { taskId });
+        assert.match(prompt, /DATA EDIT DECLARATIONS \(WF-G327\)/);
+        assert.match(prompt, /"from":\["original"\]/);
+      }
+    }
+    const recorded = { ...p, wave: 'data-premise-recorded' };
+    // Two disjoint private campaigns exercise both durable declaration states
+    // without bypassing the real overlapping-campaign safety check.
+    const recordedFile = path.relative(process.cwd(), path.join(root, 'recorded.json')).replace(/\\/g, '/');
+    fs.writeFileSync(path.join(root, 'recorded.json'), JSON.stringify({ value: ['original'] }));
+    recorded.packets = [{ ...p.packets[0], files: [recordedFile],
+      dataValues: [{file:recordedFile,field:['value'],value:['src/unowned-fiction.ts'],origin:{kind:'new',reason:'Private fixture deliberately tests path-like value serialization without an edit grant.'}}],
+      dataEdits: [{ ...p.packets[0].dataEdits[0], file: recordedFile, to: ['src/unowned-fiction.ts'] }] }];
+    const recordedIds = await seedPlan(recorded, { env });
+    stored = app.store.listTasks().find(t => t.id === recordedIds[p.packets[0].id]);
+    const declaration = JSON.parse(stored.body.split('\n').find(line => line.startsWith(prefix)).slice(prefix.length));
+    assert.deepEqual(declaration.from, ['original']); assert.equal(declaration.verification, 'RECHECK BEFORE EDITING');
+    const { extractTaskOwnershipPaths } = await import('./taskLint.mjs');
+    assert.equal(extractTaskOwnershipPaths(stored).some(item => item.ref === 'src/unowned-fiction.ts'), false,
+      'path-like JSON values are reference data, not new edit obligations');
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(root, 'input.json'))), { value: ['original'] });
+  } finally {
+    await app.close(); assert.equal(path.dirname(root), scratch); fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('WF327: worker and author docs require current raw values and semantic review, not automatic data churn', () => {
+  const worker = fs.readFileSync(new URL('./AGENT.md', import.meta.url), 'utf8');
+  const author = fs.readFileSync(new URL('./ORCHESTRATOR.md', import.meta.url), 'utf8');
+  assert.match(worker, /Data edit premises \(WF-G327\)/);
+  assert.match(author, /dataEdits/); assert.match(author, /VERIFY BEFORE EDITING/);
+  assert.match(author, /Semantic equivalence is not inferred/);
+  assert.match(author, /sameFilterValues/);
+});
 
 test('validatePlan accepts a disjoint plan', () => {
   assert.equal(validatePlan(validPlan()), true);
@@ -90,6 +560,7 @@ test('WF-G281: prompt CLI refuses an empty owned glob before handing out a packe
     assert.doesNotMatch(bad.stdout, /Owned files \(edit ONLY these\)/);
 
     packetPlan.packets[0].files = ['src/systems/worldforge/props/**'];
+    packetPlan.packets[0].unionReviews=unchangedFixtureUnions(packetPlan.packets[0].files);
     const good = await run(packetPlan);
     assert.equal(good.status, 0, good.stderr);
     assert.match(good.stdout, /Owned files \(edit ONLY these\): `src\/systems\/worldforge\/props\/\*\*`/);
@@ -160,6 +631,95 @@ test('buildPrompt STEP 3 never forbids a command the Guidance asks for (WF-G175)
   assert.match(prompt, /node --test scripts\/idea-board\/validate\.test\.mjs/);
   // The old blanket denial must be gone: it is what contradicted the Guidance.
   assert.doesNotMatch(prompt, /Do NOT run tsc\/build\/vitest/);
+});
+
+test('WF-G208: ordinary full compiles fail before seeding; scoped typechecks and explicit repo verification remain distinct', () => {
+  for (const guidance of [
+    'Run npx tsc --noEmit -p tsconfig.json | grep a.tsx',
+    'Run npm run typecheck',
+    'Run npm.cmd run typecheck',
+  ]) {
+    const packet = { ...plan.packets[0], guidance };
+    assert.throws(() => buildPrompt(plan, packet), /WF-G208.*typecheck:files/);
+    assert.throws(() => validatePlan({ ...validPlan(), packets: [packet] }), /WF-G208/);
+    assert.throws(() => buildPrompt(plan, { ...packet, verificationScope: 'repository' }), /verificationReason/);
+    const explicit = buildPrompt(plan, { ...packet, verificationScope: 'repository',
+      verificationReason: 'Operator requested the repository-wide cleanup gate.' });
+    assert.match(explicit, /Repository-wide verification only.*does not widen edit ownership/);
+    assert.ok(explicit.includes(guidance.slice(4)), 'never silently replace the authorized command');
+  }
+  for (const command of ['npm run typecheck:files -- src/a.tsx', 'npm.cmd run typecheck:files -- src/a.tsx']) {
+    assert.ok(buildPrompt(plan, { ...plan.packets[0], guidance: 'Run ' + command }).includes(command));
+  }
+  assert.doesNotThrow(() => buildPrompt(plan, { ...plan.packets[0],
+    guidance: 'Run npm.cmd run typecheck:files -- src/a.tsx\nNever run a full tsc.' }));
+  assert.throws(() => buildPrompt(plan, { ...plan.packets[0],
+    guidance: 'Never run unrelated checks; Run npm.cmd run typecheck' }), /WF-G208/);
+});
+
+test('WF-G213: rendered proof attaches to the declared local surface without dev-server permission', () => {
+  const packet = { ...plan.packets[0], forbidCommands: ['dev-server'],
+    visualProof: { url: 'http://127.0.0.1:4319/dashboard/decisions.html', acceptance: 'The reference disclosure stays open after refresh.' } };
+  assert.equal(validatePlan({ ...validPlan(), packets: [packet] }), true);
+  const prompt = buildPrompt(plan, packet);
+  assert.match(prompt, /attach to the already-running server at http:\/\/127\.0\.0\.1:4319\/dashboard\/decisions\.html/);
+  assert.match(prompt, /The reference disclosure stays open after refresh/);
+  assert.match(prompt, /Do not start, restart or stop a dev server/);
+  assert.match(prompt, /fresh filename.*confirm it is ignored.*inspect the rendered image/);
+  assert.match(prompt, /verification is blocked.*instead of task done/);
+  assert.match(buildPrompt(plan, plan.packets[0]), /No visualProof URL is declared.*blocked, not done/);
+  for (const url of ['https://example.com/page', 'javascript:alert(1)', 'http://user:secret@localhost:4319/', 'http://localhost@evil.example/']) {
+    const invalid = { ...packet, visualProof: { ...packet.visualProof, url } };
+    assert.throws(() => validatePlan({ ...validPlan(), packets: [invalid] }), /visualProof needs/);
+  }
+  assert.throws(() => buildPrompt(plan, { ...packet, visualProof: { url: packet.visualProof.url } }), /acceptance text/);
+});
+
+test('WF-G215/WF-G216: feedback carries complete routing fields and separates surface from task provenance', () => {
+  for (const packet of plan.packets) {
+    const prompt = buildPrompt(plan, packet, { taskId: 'agora-feed.1' });
+    const search = prompt.split('\n').find(line => line.includes(' gap search '));
+    const add = prompt.split('\n').find(line => line.includes(' gap add '));
+    assert.ok(search && add && prompt.indexOf(search) < prompt.indexOf(add));
+    for (const flag of ['--project', '--gap', '--evidence', '--why', '--next', '--proof', '--surface', '--detected-during', '--suggested-agent']) {
+      assert.ok(add.includes(flag + ' '), 'missing feedback flag ' + flag);
+    }
+    assert.ok(add.includes('--detected-during "agora-feed.1"'));
+    assert.ok(add.includes('--notes "Detected during task agora-feed.1"'));
+    assert.ok(add.includes('--surface "<repair component>"'));
+    assert.match(prompt, /--surface names a component, never a board task id/);
+    const laneLine = prompt.split('\n').find(line => line.includes('Accepted --suggested-agent keys'));
+    for (const key of [...Object.keys(loadRegistry().agents), 'human-operator']) assert.ok(laneLine.includes(key));
+    assert.match(prompt, /do not file a template stub/);
+  }
+});
+
+test('WF-G251/WF-G252/WF-G241: workers do not backfill membership or acquire overflow scope themselves', () => {
+  for (const packet of plan.packets) {
+    const prompt = buildPrompt({ ...plan, campaign: { id: 'assigned-campaign' } }, packet, { taskId: 'agora-parent.1' });
+    assert.match(prompt, /task show "agora-parent\.1"/);
+    assert.match(prompt, /Do not run task campaign or backfill legacy membership yourself/);
+    assert.match(prompt, /deliberate standalone with a reason, and NONE RECORDED are different/);
+    const followup = prompt.split('\n').find(line => line.includes(' task new "Ownership review'));
+    assert.ok(followup.includes('--campaign "assigned-campaign"'));
+    assert.ok(followup.includes('--dep "agora-parent.1:discovered-from"'));
+    assert.ok(followup.includes('--ref "<extra repo-relative file>"'));
+    assert.match(prompt, /A free lock is NOT authorization/);
+    assert.match(prompt, /task state "agora-parent\.1" blocked.*missing/);
+    assert.match(prompt, /ask its owner.*rather than overwriting its state/);
+    assert.match(prompt, /EDIT CAPABILITY.*CRLF multi-line anchor failure is not an instruction to rewrite.*Bash/);
+    assert.match(prompt, /UNKNOWN\/-4094 write race is not proof of sandbox denial/);
+    assert.doesNotMatch(prompt, /lock <extra|or a script rewrite/);
+  }
+});
+
+test('WF-G251: follow-up campaign uses the same roadmap namespace as seed', () => {
+  const roadmap = { ...plan, wave: 'arbitrary-wave', packets: [{ ...plan.packets[0],
+    refs: ['planmap:co-orchestration-pipeline'] }] };
+  assert.equal(promptCampaignId(roadmap, roadmap.packets[0]), 'planmap:tooling:co-orchestration-pipeline');
+  assert.match(buildPrompt(roadmap, roadmap.packets[0]), /--campaign "planmap:tooling:co-orchestration-pipeline"/);
+  assert.equal(promptCampaignId({ ...roadmap, campaignId: 'explicit' }, roadmap.packets[0]), 'explicit');
+  assert.equal(promptCampaignId(roadmap, { ...roadmap.packets[0], campaign: 'deputy' }), 'deputy');
 });
 
 test('WF-G221: a vendor-only packet does not demand undiscoverable tests or a clean root typecheck', () => {

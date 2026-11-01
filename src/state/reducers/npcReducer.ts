@@ -1,11 +1,16 @@
+/**
+ * @file src/state/reducers/npcReducer.ts
+ * A slice reducer that handles NPC memory state changes.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/09/2026, 10:36:36
+ * Last Sync: 28/10/2026, 18:08:13
  * Dependents: state/appState.ts
- * Imports: 8 files
+ * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,10 +19,6 @@
  */
 // @dependencies-end
 
-/**
- * @file src/state/reducers/npcReducer.ts
- * A slice reducer that handles NPC memory state changes.
- */
 import { GameState } from '../../types';
 import { AppAction } from '../actionTypes';
 import { recordEmotionalMarker, pruneEmotionalMarkers } from '../../systems/social/npcEmotionalMemory';
@@ -53,8 +54,8 @@ export function npcReducer(state: GameState, action: AppAction): Partial<GameSta
   switch (action.type) {
     case 'UPDATE_NPC_DISPOSITION': {
       const { npcId, amount } = action.payload;
-      const currentMemory = state.npcMemory[npcId];
-      if (!currentMemory) return {};
+      // GG-165: seed empty memory if NPC has no memory record yet so disposition change persists
+      const currentMemory = state.npcMemory[npcId] ?? createEmptyMemory();
 
       const newDisposition = Math.max(-100, Math.min(100, currentMemory.disposition + amount));
 
@@ -71,11 +72,25 @@ export function npcReducer(state: GameState, action: AppAction): Partial<GameSta
 
     case 'ADD_NPC_KNOWN_FACT': {
       const { npcId, fact } = action.payload; // fact is now a KnownFact object
-      const currentMemory = state.npcMemory[npcId];
-      if (!currentMemory) return {};
+      // GG-165: seed empty memory if NPC has no memory record yet so learned facts persist
+      const currentMemory = state.npcMemory[npcId] ?? createEmptyMemory();
 
-      // Avoid adding duplicate facts by checking the text content
-      if (currentMemory.knownFacts.some(existingFact => existingFact.text === fact.text)) {
+      // A report of someone else's meeting cannot swallow this person's
+      // actual contact just because both records use the same words. Preserve
+      // that attributed report and one direct confirmation; ordinary fact
+      // deduplication keeps its existing behavior.
+      const directMeeting = fact.factKey === 'player_met_npc' && fact.source === 'direct';
+      const duplicate = currentMemory.knownFacts.find(existing => existing.text === fact.text
+        && (!directMeeting || existing.source === 'direct'));
+      if (duplicate) {
+        if (directMeeting && !duplicate.factKey) {
+          // An older direct record already owns its date and id. Add only the
+          // missing semantic key, without rewriting or broadcasting history.
+          return { npcMemory: { ...state.npcMemory, [npcId]: { ...currentMemory,
+            knownFacts: currentMemory.knownFacts.map(existing => existing === duplicate
+              ? { ...existing, factKey: fact.factKey } : existing),
+          } } };
+        }
         return {};
       }
 
@@ -98,6 +113,7 @@ export function npcReducer(state: GameState, action: AppAction): Partial<GameSta
         const arrivals = duePropagatedFacts(
           propagateFact(fact, {
             originNpcId: npcId,
+            originName: state.generatedNpcs?.[npcId]?.name ?? state.dynamicNPCs?.[npcId]?.name ?? NPCS[npcId]?.name,
             npcs: rosterFromState(state),
             learnedOnDay: currentDay,
           }),

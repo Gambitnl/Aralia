@@ -172,4 +172,60 @@ describe('WizardFeatureSelection', () => {
     // focuses on spell selection and submit gating.
     expect(onBack).not.toHaveBeenCalled();
   }, 15000);
+
+  // agora-f821.59 (Remy, Agora 8335): under the 2014 rules the creator holds a
+  // level 2 step for the Arcane Tradition; under 2024 the tradition waits.
+  const traditions = [
+    { id: 'evocation', name: 'School of Evocation', description: 'Sculpt destructive magic.' },
+    { id: 'abjuration', name: 'School of Abjuration', description: 'Ward and protect.' },
+  ];
+
+  const pickSpells = () => {
+    fireEvent.click(screen.getByRole('checkbox', { name: /Fire Bolt/i }));
+    fireEvent.click(screen.getByRole('checkbox', { name: /Mage Hand/i }));
+    fireEvent.click(screen.getByRole('checkbox', { name: /Magic Missile/i }));
+  };
+
+  it('2024: shows no tradition step and sends no tradition', () => {
+    const onWizardFeaturesSelect = vi.fn();
+    render(
+      <WizardFeatureSelection
+        spellcastingInfo={wizardSpellcastingInfo}
+        traditions={traditions}
+        rulesEdition="2024"
+        allSpells={spellbook}
+        onWizardFeaturesSelect={onWizardFeaturesSelect}
+        onBack={vi.fn()}
+      />,
+    );
+    expect(screen.queryByText(/Level 2 Step/)).not.toBeInTheDocument();
+    expect(screen.getByText('You choose an Arcane Tradition at level 3.')).toBeInTheDocument();
+    pickSpells();
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm Spells' }));
+    expect(onWizardFeaturesSelect.mock.calls[0][2]).toBeUndefined();
+  }, 15000);
+
+  it('2014: the level 2 step blocks confirm until a tradition is chosen, then sends it', () => {
+    const onWizardFeaturesSelect = vi.fn();
+    render(
+      <WizardFeatureSelection
+        spellcastingInfo={wizardSpellcastingInfo}
+        traditions={traditions}
+        rulesEdition="2014"
+        allSpells={spellbook}
+        onWizardFeaturesSelect={onWizardFeaturesSelect}
+        onBack={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole('heading', { name: 'Level 2 Step: Choose Your Arcane Tradition' })).toBeInTheDocument();
+    pickSpells();
+    const confirm = screen.getByRole('button', { name: 'Confirm Spells' });
+    expect(confirm).toBeDisabled();
+
+    fireEvent.click(screen.getByRole('button', { name: /School of Abjuration/ }));
+    expect(screen.getByRole('button', { name: /School of Abjuration/ })).toHaveAttribute('aria-pressed', 'true');
+    expect(confirm).toBeEnabled();
+    fireEvent.click(confirm);
+    expect(onWizardFeaturesSelect.mock.calls[0][2]).toBe('abjuration');
+  }, 15000);
 });

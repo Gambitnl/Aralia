@@ -1,8 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { defineConfig, loadEnv } from 'vite';
-import type { ProxyOptions } from 'vite';
-import type { IncomingMessage, ServerResponse } from 'http';
+import type { ServerResponse } from 'http';
 import react from '@vitejs/plugin-react';
 
 import {
@@ -94,7 +93,7 @@ import {
   traitApprovalManager
 } from './scripts/vite-plugins/miscManagers';
 
-import { formatProxyTarget } from './scripts/vite-plugins/utils';
+import { addProxyDiagnostics } from './scripts/vite-plugins/localServiceProxy';
 import {
   isVerificationNoWatchServer,
   selectMainAppWatchOptions,
@@ -110,88 +109,6 @@ import {
  * own, such as the verification server's filesystem watcher.
  */
 
-/**
- * Helper to add diagnostic hints to Vite proxy errors.
- *
- * The main game treats Ollama as an optional local dependency at startup. When
- * the startup heartbeat asks for `/api/ollama/tags` and Ollama is not running,
- * the proxy should answer with an empty model list instead of a browser-visible
- * 500. Generation and chat requests still fail loudly so real AI work does not
- * look successful when the local service is offline.
- */
-function addProxyDiagnostics(
-  route: string,
-  config: ProxyOptions,
-  hint: string
-): ProxyOptions {
-  // GG-15: while the target is down, every heartbeat/probe request used to log
-  // a full ECONNREFUSED stack (from Vite's own proxy error logger), drowning
-  // real errors in dev/Playwright logs. Strategy:
-  // 1. First refusal logs ONE diagnostic block, then marks the target down.
-  // 2. While down, `bypass` answers with the soft 502 JSON directly, so later
-  //    requests never reach http-proxy and Vite logs nothing for them.
-  // 3. Vite registers its error logger AFTER configure(), so this handler runs
-  //    first; clearing err.stack keeps even that first Vite line stack-free.
-  // 4. A successful proxied response re-arms logging for the next outage.
-  let targetDown = false;
-
-  const softRefusalJson = () =>
-    JSON.stringify({
-      error: 'LOCAL_SERVICE_UNAVAILABLE',
-      message: `Proxy target ${formatProxyTarget(config.target)} refused connection. ${hint}`,
-    });
-
-  // Node delivers localhost refusals as AggregateError [ECONNREFUSED] whose
-  // message is empty; the code lives on err.code or nested err.errors.
-  const isRefusal = (err: Error & { code?: string; errors?: Array<{ code?: string }> }) =>
-    err.code === 'ECONNREFUSED' ||
-    err.message.includes('ECONNREFUSED') ||
-    (Array.isArray(err.errors) && err.errors.some((e) => e.code === 'ECONNREFUSED'));
-
-  return {
-    ...config,
-    bypass: (req, res) => {
-      if (!targetDown) return undefined;
-      if (res && typeof res.writeHead === 'function' && !res.headersSent) {
-        res.writeHead(502, { 'Content-Type': 'application/json' });
-        res.end(softRefusalJson());
-      }
-      // Returning any string short-circuits the proxy attempt; since the
-      // response is already ended, Vite's middleware returns immediately.
-      return req.url ?? '/';
-    },
-    configure: (proxy, _options) => {
-      proxy.on('error', (err: Error, req: IncomingMessage, res: any) => {
-        const target = formatProxyTarget(config.target);
-        if (isRefusal(err)) {
-          err.stack = '';
-          if (!targetDown) {
-            targetDown = true;
-            console.error(`\n[proxy] ${route} -> ${target} connection refused.`);
-            console.error(`[proxy] Hint: ${hint}`);
-            console.error(`[proxy] Further ${route} failures suppressed until the target recovers.\n`);
-          }
-        }
-
-        // Let the startup dependency check fail softly. This keeps the browser
-        // console from reporting an internal server error for an optional local
-        // service, while the client still sees "no models available" and opens
-        // the setup modal as expected.
-        if (res && typeof res.writeHead === 'function' && !res.headersSent) {
-          res.writeHead(502, { 'Content-Type': 'application/json' });
-          res.end(softRefusalJson());
-        }
-      });
-
-      proxy.on('proxyRes', () => {
-        if (targetDown) {
-          targetDown = false;
-          console.info(`[proxy] ${route} recovered; refusal logging re-armed.`);
-        }
-      });
-    },
-  };
-}
 
 const PLANMAP_DEV_PORT = 5183;
 
@@ -244,6 +161,13 @@ export default defineConfig(async ({ mode, command }) => {
     // handles. Ignore the whole transient tree (supersets the roadmap globs
     // below) plus the vendored .tmp source. Source under src/ is unaffected.
     '**/.agent/**',
+    // Gemini's local Chrome profile contains thousands of browser cache files.
+    // Watching it can stall document requests after Vite reports ready. It is
+    // browser runtime state, so exclude it while retaining source hot reload.
+    '**/.chrome-gemini-profile/**',
+    // Generated project-map HTML is a separate static review surface. Its
+    // routine refresh must not reload Design Preview and erase live water.
+    '**/.project-map/**',
     '**/.tmp/**',
     '**/.agent/roadmap/**',
     '**/.agent/roadmap-local/**',
@@ -605,6 +529,16 @@ export default defineConfig(async ({ mode, command }) => {
               // checks above so those keep their own chunks.
               if (id.includes('/three/') || id.includes('three-stdlib') || id.includes('/three-')) {
                 return 'vendor-three';
+              }
+              // C13 (agora-9ed9.13): drei's own helpers that import three.js but
+              // carry no "three" in their package name. Left in vendor-others,
+              // @monogrid/gainmap-js made that EAGER chunk statically import
+              // vendor-three, which dragged three.js, postprocessing and
+              // @react-three onto the main page's first load (vendor-others also
+              // holds motion-dom, which the menu really uses). They belong with
+              // the drei code that uses them.
+              if (/node_modules[\\/](@monogrid[\\/]gainmap-js|troika-|webgl-sdf-generator|bidi-js|meshline|camera-controls|stats-gl|stats\.js|detect-gpu|tunnel-rat|@mediapipe|hls\.js|maath|potpack|@use-gesture)/.test(id)) {
+                return 'vendor-react-three';
               }
               return 'vendor-others';
             }

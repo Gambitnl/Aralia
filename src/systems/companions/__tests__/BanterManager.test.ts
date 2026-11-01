@@ -42,8 +42,8 @@ describe('BanterManager', () => {
     mockGameState = {
       currentLocationId: 'forest',
       companions: {
-        comp1: { id: 'comp1' } as Companion,
-        comp2: { id: 'comp2' } as Companion
+        comp1: { id: 'comp1', inParty: true } as Companion,
+        comp2: { id: 'comp2', inParty: true } as Companion
       }
     } as unknown as GameState;
   });
@@ -62,6 +62,16 @@ describe('BanterManager', () => {
 
     const banter = BanterManager.selectBanter(badState);
     expect(banter).toBeNull();
+  });
+
+  it.each([false, undefined])('does not make an absent companion speak (inParty=%s)', inParty => {
+    const remembered = { ...mockGameState.companions.comp2, inParty };
+    const state = {
+      ...mockGameState,
+      companions: { ...mockGameState.companions, comp2: remembered },
+    };
+    expect(BanterManager.selectBanter(state)).toBeNull();
+    expect(state.companions.comp2).toBe(remembered);
   });
 
   it('should fail if location does not match', () => {

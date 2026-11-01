@@ -25,14 +25,7 @@ vi.mock('@/systems/dice/rollers', async (importOriginal) => {
   return { ...actual, ...diceMocks }
 })
 
-vi.mock('@/utils/combat', async () => {
-  const actual = await vi.importActual<typeof import('@/utils/combat')>('@/utils/combat')
-
-  return {
-    ...actual,
-    ...diceMocks,
-}
-})
+// Keep combat utilities real; dice controls target systems/dice/rollers only.
 
 const createCaster = (): CombatCharacter =>
   createMockCombatCharacter({

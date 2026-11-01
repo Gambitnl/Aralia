@@ -89,7 +89,7 @@ vi.mock('../../commands', () => ({
 
 // agora-f821.4 retired the combatUtils roller family; the modules under
 // test roll through systems/dice/rollers now. One hoisted set of mocks
-// stands in for BOTH specifiers, so one vi.mocked(...) pins every die.
+// pins dice only at their real systems/dice/rollers module.
 const diceMocks = vi.hoisted(() => ({
     rollDice: () => 15, // Always roll high for testing hits
     rollDamage: () => 5
@@ -109,13 +109,17 @@ vi.mock('../../utils/combat', () => ({
     getOccupiedTiles: (character: CombatCharacter) => [character.position],
     calculateDamage: () => 5,
     generateId: () => 'test-id',
-    ...diceMocks,
 }));
 
-vi.mock('../../utils/character/savingThrowUtils', () => ({
-    calculateSpellDC: () => 17,
-    rollSavingThrow: vi.fn(() => ({ total: 18, success: true, modifiersApplied: [] }))
-}));
+vi.mock('../../utils/character/savingThrowUtils', async importOriginal => {
+    // Retain real save helpers; only the intentional test controls are stubbed.
+    const actual = await importOriginal<typeof import('../../utils/character/savingThrowUtils')>();
+    return {
+        ...actual,
+        calculateSpellDC: () => 17,
+        rollSavingThrow: vi.fn(() => ({ total: 18, success: true, modifiersApplied: [] }))
+    };
+});
 
 beforeEach(() => {
     // Hook tests share mocked command factories and utility modules. Clearing

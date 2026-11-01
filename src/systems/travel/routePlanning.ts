@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
- *
- * Last Sync: 25/06/2026, 17:00:05
- * Dependents: components/MapPane.tsx, components/Worldforge/AtlasSvgView.tsx, components/Worldforge/SubmapSvgView.tsx, systems/travel/travelEncounter.ts, systems/travel/travelReadout.ts, systems/worldforge/travel/atlasTravelGraph.ts, systems/worldforge/travel/submapTravelGraph.ts
- * Imports: 1 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file routePlanning.ts — fastest-route pathfinding + travel-cost model.
  *
@@ -23,12 +7,29 @@
  * speed factor ÷ the chosen transport's speed — the graph's graded `speedFactor`
  * when it has one, else coarse terrain via `TERRAIN_TRAVEL_MODIFIERS`, times an
  * optional per-edge `climbFactor` (relief slows ascents; and a graph's
- * `edgeMinutes` overrides all of it). The planner returns the fastest route,
+ * `edgeMinutes` overrides all of it). By default the planner returns the fastest route,
  * its total time/distance, and an aggregate danger rating — everything the map
  * UI needs to draw the path line, preview travel time, and roll for encounters.
  *
  * Pure: no React/DOM. Reuses `src/types/travel.ts` (terrain modifiers, vehicles).
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 28/10/2026, 11:28:09
+ * Dependents: components/MapPane.tsx, components/Worldforge/AtlasSvgView.tsx, components/Worldforge/SubmapSvgView.tsx, systems/travel/multiModalRoute.ts, systems/travel/travelEncounter.ts, systems/travel/travelEncounterMonsters.ts, systems/travel/travelReadout.ts, systems/worldforge/travel/atlasTravelGraph.ts, systems/worldforge/travel/localGroundJourney.ts, systems/worldforge/travel/multiModalAtlasGraph.ts, systems/worldforge/travel/submapTravelGraph.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import {
   TERRAIN_TRAVEL_MODIFIERS,
   type TravelTerrain,
@@ -85,7 +86,15 @@ export interface RoutePlan {
   danger: number;
 }
 
+export type RoutePreference = 'fastest' | 'cautious';
+
+// Cautious planning values time in dangerous ground more heavily. This is a
+// route-selection preference, never extra hours charged to the journey clock.
+const CAUTIOUS_DANGER_WEIGHT = 4;
+
 export interface RoutePlanOptions {
+  /** Favor travel time alone, or trade some time for less exposure to danger. */
+  preference?: RoutePreference;
   /** Graph-unit → mile scale for the tier (so time is in real units). */
   milesPerUnit: number;
   /** Effective transport speed in miles/hour (see transportSpeedMph). */
@@ -163,10 +172,10 @@ class MinHeap {
  */
 export interface RouteField {
   start: number;
-  /** Minutes from `start` to each reached cell. */
+  /** Actual minutes along the selected profile's route; cautious paths may take longer. */
   dist: Map<number, number>;
   prev: Map<number, number>;
-  /** Reconstruct the fastest route to `goal`, or null if it is unreachable/impassable. */
+  /** Reconstruct the selected route to `goal`, or null if it is unreachable/impassable. */
   to(goal: number): RoutePlan | null;
 }
 
@@ -184,7 +193,12 @@ export function planRoutesFrom(graph: TravelGraph, start: number, opts: RoutePla
     return (miles / (speed * Math.max(0.05, factor))) * 60 * timeCost;
   };
 
+  // Keep the route-choice score separate from actual elapsed minutes. Supplies,
+  // stop-short positions and arrival time must use real travel time even when
+  // the player deliberately prefers a longer route through safer terrain.
+  const dangerWeight = opts.preference === 'cautious' ? CAUTIOUS_DANGER_WEIGHT : 0;
   const best = new Map<number, number>([[start, 0]]);
+  const scores = new Map<number, number>([[start, 0]]);
   const prev = new Map<number, number>();
   const heap = new MinHeap();
   heap.push(start, 0);
@@ -193,12 +207,17 @@ export function planRoutesFrom(graph: TravelGraph, start: number, opts: RoutePla
     const cur = heap.pop();
     if (settled.has(cur)) continue;
     settled.add(cur);
-    const curCost = best.get(cur)!;
+    const curCost = scores.get(cur)!;
+    const curMinutes = best.get(cur)!;
     for (const nb of graph.neighbors(cur)) {
       if (!graph.passable(nb)) continue;
-      const nc = curCost + minutesOf(cur, nb);
-      if (nc < (best.get(nb) ?? Infinity)) {
-        best.set(nb, nc);
+      const minutes = minutesOf(cur, nb);
+      const rawDanger = graph.danger?.(nb) ?? 0;
+      const danger = Number.isFinite(rawDanger) ? Math.max(0, Math.min(1, rawDanger)) : 0;
+      const nc = curCost + minutes * (1 + dangerWeight * danger);
+      if (nc < (scores.get(nb) ?? Infinity)) {
+        scores.set(nb, nc);
+        best.set(nb, curMinutes + minutes);
         prev.set(nb, cur);
         heap.push(nb, nc);
       }

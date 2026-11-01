@@ -30,6 +30,7 @@
 import * as THREE from 'three/webgpu';
 import type { OceanSurface } from '@/systems/world3d/ocean/oceanSurface';
 import { createOceanWake, type OceanWakeReader } from '@/systems/world3d/ocean/oceanWake';
+import { oceanFoamSources, oceanFoamWindowSource } from '@/systems/world3d/ocean/oceanFoam';
 import { createWakeBoat } from '@/systems/world3d/ocean/oceanWakeBoat';
 import {
   measureWakeHalfAngleDeg,
@@ -106,6 +107,24 @@ export default async function mount(ctx: OceanExtraContext): Promise<OceanExtra>
     overcast: ctx.sky.uOvercast, sunDir: ctx.sky.sunDir, field: ctx.field, look: parseWakeLook(lookSpec),
   });
   surface.setWake(wake.reader);
+  // ONE FOAM FIELD (foam round 10, GG-291, GG-341): the wake's cover, buffer
+  // A's z, is a source of the sea's foam store, so the wake's white water
+  // drifts, merges with the whitecaps' foam and ages in the one field, and
+  // its trail lasts past the wake's window. In a pinned warm-up the store
+  // steps the wake to each step's own time (`restep`). `?wakefoam=field`
+  // turns the wake's own lace off, so the white water is drawn only by the
+  // foam read; without it the wake's lace stays, as judged.
+  const removeFoamSource = oceanFoamSources(ctx.field).add(oceanFoamWindowSource({
+    name: 'wake',
+    buffer: wake.outA,
+    channel: 2,
+    nu: wake.grid.nu,
+    nv: wake.grid.nv,
+    texelM: wake.grid.texelM,
+    window: () => wake.last.window,
+    restep: (r, tS) => wake.step(r, tS),
+  }));
+  if (new URLSearchParams(window.location.search).get('wakefoam') === 'field') wake.tune.foamGain.value = 0;
   const boat = createWakeBoat(ctx.field, wake.hull, {
     sunDir: ctx.sky.sunDir, overcast: ctx.sky.uOvercast, wakeHeight: wake.heightAt,
   });
@@ -494,6 +513,7 @@ export default async function mount(ctx: OceanExtraContext): Promise<OceanExtra>
     },
     dispose() {
       surface.setWake?.(null);
+      removeFoamSource();
       ctx.scene.remove(boat.group);
       boat.dispose();
       wake.dispose();

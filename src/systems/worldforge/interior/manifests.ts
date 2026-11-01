@@ -129,12 +129,21 @@ export function containerManifests(
       if (!CONTAINER_KINDS.has(fu.kind)) return;
       const purpose = purposeByRoom.get(fu.roomId) ?? 'storage';
       const rng = rngFromPath(streamPath(path, `manifest:${floor.level}:${furnishingIndex}`));
+      const entries = rollEntries(rng, purpose, fu.kind, brief);
+      // Library studies keep their old owned supplies and add real volumes.
+      // A separate stream preserves every prior quantity and neighboring
+      // container. These are ordinary books, not a claim about their subject,
+      // accuracy, public access or any undiscovered dungeon's history.
+      if (plan.type === 'library' && purpose === 'study' && fu.kind === 'shelf') {
+        const books = rngFromPath(streamPath(path, `library-books:${floor.level}:${furnishingIndex}`));
+        entries.push({itemId:'book',qty:6 + books.nextInt(0,7)});
+      }
       out.push({
         level: floor.level,
         furnishingIndex,
         kind: fu.kind,
         ownerHomeId: brief.homeId,
-        entries: rollEntries(rng, purpose, fu.kind, brief),
+        entries,
       });
     });
   }

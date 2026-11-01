@@ -67,6 +67,16 @@ describe('handleTownRoutineEvents', () => {
     expect(ROSTER.occupants.some(o => o.id === occupantFlag.value)).toBe(true);
   });
 
+  it('retains the complete year351 observation date across an overnight schedule change', async () => {
+    const state=stateAt(3,42);state.gameTime=new Date('0351-01-04T03:39:16.000Z');
+    const changes=await handleTownRoutineEvents(state,dispatchFn(),{hoursAdvanced:8,resolveRoster:()=>ROSTER});
+    expect(changes.length).toBeGreaterThan(0);
+    for(const [action]of dispatch.mock.calls){
+      expect(action.payload.gameTime).toBe('0351-01-04T03:39:16.000Z');
+      expect(action.payload.source.id).toBe('burg_7');
+    }
+    expect(state.gameTime.toISOString()).toBe('0351-01-04T03:39:16.000Z');
+  });
   it('emits nothing when the player is not standing in a burg', async () => {
     const changes = await handleTownRoutineEvents(stateAt(12, null), dispatchFn(), {
       hoursAdvanced: 8,
@@ -89,11 +99,94 @@ describe('handleTownRoutineEvents', () => {
     expect(dispatch).not.toHaveBeenCalled();
   });
 
+  // GG-515: the log read left.getHours() / arrived.getHours(), the host's
+  // timezone, while the game clock is UTC (gameClock.ts, timeUtils.ts). On a
+  // UTC-5 host a 06:30 -> 07:30 game advance was read as 01 -> 02 and the
+  // morning work starts were lost.
+  it('reads the game clock in UTC whatever the host timezone', async () => {
+    const savedTz = process.env.TZ;
+    process.env.TZ = 'America/New_York';
+    try {
+      const state = stateAt(12, 42);
+      (state as { gameTime: Date }).gameTime = new Date(Date.UTC(2024, 0, 1, 7, 30, 0));
+      const changes = await handleTownRoutineEvents(state, dispatchFn(), {
+        hoursAdvanced: 1,
+        resolveRoster: () => ROSTER,
+      });
+      expect(changes).toEqual(townRoutineChanges(ROSTER, 6, 7));
+    } finally {
+      if (savedTz === undefined) delete process.env.TZ;
+      else process.env.TZ = savedTz;
+    }
+  });
+
   it('townRoutineChanges is pure, deterministic and capped', () => {
     const a = townRoutineChanges(ROSTER, 4, 12);
     const b = townRoutineChanges(ROSTER, 4, 12);
     expect(a).toEqual(b);
     expect(townRoutineChanges(ROSTER, 4, 12, 1).length).toBe(1);
     expect(townRoutineChanges(ROSTER, 12, 12)).toEqual([]);
+  });
+});
+
+
+describe('saved town routine source and life continuity', () => {
+  function savedState(){
+    const state=stateAt(12,42);
+    state.gameTime=new Date('0351-01-04T12:00:00.000Z');
+    state.townSim={7:{burgId:7,layoutRevision:1,villagers:{},chronicle:{burgId:7,events:[],nextEventId:1},lastSimDay:3,nextVillagerId:9}};
+    return state;
+  }
+  it('asks for the saved revision and publishes its original people and workplaces', async () => {
+    const state=savedState(),dispatch=vi.fn();
+    const resolve=vi.fn((_seed:number,_burg:number,revision?:number)=>revision===1?ROSTER:{...ROSTER,occupants:[]});
+    const before=JSON.stringify({state,ROSTER});
+    const changes=await handleTownRoutineEvents(state,dispatch,{hoursAdvanced:8,resolveRoster:resolve});
+    expect(resolve).toHaveBeenCalledWith(1234,7,1);
+    expect(changes.some(change=>change.name==='Hedda Barrow'&&change.to.plotId===11)).toBe(true);
+    expect(JSON.stringify({state,ROSTER})).toBe(before);
+  });
+  it('keeps the earlier callback shape for an unregistered town without assigning a revision', async () => {
+    const state=stateAt(12,42),resolve=vi.fn(()=>ROSTER);
+    await handleTownRoutineEvents(state,vi.fn(),{hoursAdvanced:8,resolveRoster:resolve});
+    expect(resolve).toHaveBeenCalledWith(1234,7);
+    expect(state.townSim).toBeUndefined();
+  });
+  it('defers reports for an existing unversioned town without inventing journal memories',async()=>{
+    const state=savedState();delete state.townSim![7].layoutRevision;
+    const resolve=vi.fn(()=>ROSTER),dispatch=vi.fn(),before=JSON.stringify(state);
+    expect(await handleTownRoutineEvents(state,dispatch,{hoursAdvanced:8,resolveRoster:resolve})).toEqual([]);
+    expect(resolve).not.toHaveBeenCalled();
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(JSON.stringify(state)).toBe(before);
+  });
+  it.each(['deceased','not-born'] as const)('does not report a %s resident, and applies the cap after life checks',async status=>{
+    const state=savedState();
+    const {getGameDay}=await import('../../../utils/core');
+    const day=getGameDay(state.gameTime);
+    state.townSim![7].villagers[1]={occupantId:1,name:'Hedda Barrow',homePlotId:3,race:'Human',
+      bornDay:status==='not-born'?day+1:day-10000,...(status==='deceased'?{diedDay:day-1}:{}),
+      parentIds:[],childIds:[],wealth:50};
+    const before=JSON.stringify({state,ROSTER}),dispatch=vi.fn();
+    const changes=await handleTownRoutineEvents(state,dispatch,{hoursAdvanced:8,resolveRoster:()=>ROSTER,max:1});
+    expect(changes).toHaveLength(1);
+    expect(changes[0].name).toBe('Orin Fell');
+    expect(JSON.stringify(dispatch.mock.calls)).not.toContain('Hedda Barrow');
+    expect(JSON.stringify({state,ROSTER})).toBe(before);
+  });
+  it('does not attach a reused numeric slot death to an unrelated resident',async()=>{
+    const state=savedState();
+    state.townSim![7].villagers[1]={occupantId:1,name:'Different old resident',homePlotId:99,race:'Human',
+      bornDay:-10000,diedDay:-1,parentIds:[],childIds:[],wealth:50};
+    const changes=await handleTownRoutineEvents(state,vi.fn(),{hoursAdvanced:8,resolveRoster:()=>ROSTER});
+    expect(changes.some(change=>change.name==='Hedda Barrow')).toBe(true);
+  });
+  it('preserves uncertainty for two legacy residents sharing the same home and name',async()=>{
+    const state=savedState();
+    state.townSim![7].villagers[1]={occupantId:1,name:'Hedda Barrow',homePlotId:3,race:'Human',
+      bornDay:-10000,diedDay:-1,parentIds:[],childIds:[],wealth:50};
+    const roster={...ROSTER,occupants:[ROSTER.occupants[0],{...ROSTER.occupants[0],id:9}]};
+    const changes=await handleTownRoutineEvents(state,vi.fn(),{hoursAdvanced:8,resolveRoster:()=>roster,max:4});
+    expect(changes.map(change=>change.occupantId)).toEqual([1,9]);
   });
 });

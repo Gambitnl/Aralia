@@ -14,6 +14,22 @@
  * @file src/types/ollama.ts
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 28/10/2026, 22:00:50
+ * Dependents: services/ai/groqTextProvider.ts, services/ai/textProviderRouter.ts, services/ollama/banter.ts, services/ollama/client.ts, services/ollama/conversation.ts, services/ollama/facts.ts, services/ollama/index.ts, services/ollama/reaction.ts, services/ollama/router.ts, services/ollama/taskProfiles.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import {
     OLLAMA_API_BASE,
     OLLAMA_TIMEOUT_MS,
@@ -70,6 +86,8 @@ export interface ModelParams {
     repeatPenalty?: number;
     /** Context window size. Default 4096; do not raise above what your VRAM allows. */
     numCtx?: number;
+    /** Explicit GPU layer count. Zero selects CPU; omission keeps the model default. */
+    numGpu?: number;
     /** Maximum tokens to generate (Ollama: `num_predict`). */
     numPredict?: number;
     /** Ollama `keep_alive`: how long the model stays resident after a request.

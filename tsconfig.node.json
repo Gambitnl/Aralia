@@ -23,8 +23,6 @@
   },
   "include": [
     "vite.config.ts",
-    "scripts/**/*.ts",
-    "src/**/*",
     "devtools/roadmap/src/components/debug/roadmap/modules/roadmap-history-traceability.ts",
     "devtools/roadmap/scripts/roadmap-server-logic.ts",
     "devtools/roadmap/scripts/roadmap-engine/**/*.ts",

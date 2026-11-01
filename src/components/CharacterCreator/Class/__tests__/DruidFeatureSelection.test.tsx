@@ -165,4 +165,63 @@ describe('DruidFeatureSelection', () => {
     // Cantrip quota: 3 for Magician
     expect(screen.getByText('0 / 3')).toBeInTheDocument();
   });
+
+  // agora-f821.58 (Remy, Agora 8335): under the 2014 rules the creator holds a
+  // level 2 step for the Druid Circle; under 2024 the circle waits for level 3.
+  const circles = [
+    { id: 'circle_of_the_land', name: 'Circle of the Land', description: 'Terrain magic.' },
+    { id: 'circle_of_the_moon', name: 'Circle of the Moon', description: 'Battle shapes.' },
+  ];
+
+  const pickWardenAndSpells = () => {
+    fireEvent.click(screen.getByText('Warden'));
+    fireEvent.click(screen.getByRole('checkbox', { name: /Druidcraft/i }));
+    fireEvent.click(screen.getByRole('checkbox', { name: /Produce Flame/i }));
+    fireEvent.click(screen.getByRole('checkbox', { name: /Entangle/i }));
+    fireEvent.click(screen.getByRole('checkbox', { name: /Cure Wounds/i }));
+  };
+
+  it('2024: shows no circle step and sends no circle', () => {
+    const onDruidFeaturesSelect = vi.fn();
+    render(
+      <DruidFeatureSelection
+        primalOrders={mockPrimalOrders}
+        circles={circles}
+        rulesEdition="2024"
+        spellcastingInfo={mockSpellcastingInfo}
+        allSpells={mockSpells}
+        onDruidFeaturesSelect={onDruidFeaturesSelect}
+        onBack={vi.fn()}
+      />,
+    );
+    expect(screen.queryByText(/Level 2 Step/)).not.toBeInTheDocument();
+    expect(screen.getByText('You choose a Druid Circle at level 3.')).toBeInTheDocument();
+    pickWardenAndSpells();
+    fireEvent.click(screen.getByRole('button', { name: /Confirm Choices/i }));
+    expect(onDruidFeaturesSelect.mock.calls[0][3]).toBeUndefined();
+  });
+
+  it('2014: the level 2 step blocks confirm until a circle is chosen, then sends it', () => {
+    const onDruidFeaturesSelect = vi.fn();
+    render(
+      <DruidFeatureSelection
+        primalOrders={mockPrimalOrders}
+        circles={circles}
+        rulesEdition="2014"
+        spellcastingInfo={mockSpellcastingInfo}
+        allSpells={mockSpells}
+        onDruidFeaturesSelect={onDruidFeaturesSelect}
+        onBack={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole('heading', { name: 'Level 2 Step: Choose Your Druid Circle' })).toBeInTheDocument();
+    pickWardenAndSpells();
+    const confirm = screen.getByRole('button', { name: /Confirm Choices/i });
+    expect(confirm).toBeDisabled();
+
+    fireEvent.click(screen.getByRole('button', { name: /Circle of the Moon/ }));
+    expect(confirm).toBeEnabled();
+    fireEvent.click(confirm);
+    expect(onDruidFeaturesSelect.mock.calls[0][3]).toBe('circle_of_the_moon');
+  });
 });

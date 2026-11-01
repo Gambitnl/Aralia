@@ -309,6 +309,29 @@ const results = projectDirs.map((slug) => {
   };
 });
 
+// ============================================================================
+// PROJECT_TRACKER.md Dead-Link Check (agora-3b09.1)
+// ============================================================================
+// The tracker is the drop-in map cold-start agents follow; dead North Star
+// links send them to dead ends. Read-only census of relative markdown links
+// under docs/projects/. Dated specs retired into git history by the 2026-09
+// consolidation must be re-pointed or marked retired, not silently dead.
+// ============================================================================
+
+const trackerPath = path.join(projectsRoot, 'PROJECT_TRACKER.md');
+const trackerDeadLinks = [];
+{
+  const linkRe = /\[([^\]]*)\]\(([^)]+)\)/g;
+  const trackerText = stripBom(readText(trackerPath));
+  let match;
+  while ((match = linkRe.exec(trackerText)) !== null) {
+    const href = match[2].trim();
+    if (/^https?:/i.test(href) || href.startsWith('#')) continue;
+    const abs = path.resolve(projectsRoot, href.replace(/%20/g, ' '));
+    if (!fs.existsSync(abs)) trackerDeadLinks.push(href);
+  }
+}
+
 const summary = {
   generated_at: new Date().toISOString(),
   project_count: results.length,
@@ -321,6 +344,8 @@ const summary = {
   prompt_outdated: results.filter((result) => result.missing_prompt_needles.length || result.missing_prompt_frontmatter.length).length,
   dirty_machine_dates: results.filter((result) => result.dirty_date_fields.length || result.dirty_prompt_date_fields.length || result.dirty_gap_date_fields.length).length,
   projects: results,
+  project_tracker_dead_links: trackerDeadLinks.length,
+  project_tracker_dead_link_targets: [...new Set(trackerDeadLinks)],
 };
 
 console.log(JSON.stringify(summary, null, 2));

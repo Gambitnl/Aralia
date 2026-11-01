@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 09/09/2026, 09:57:05
- * Dependents: components/BattleMap/dungeon/Dungeon3DPreview.tsx
- * Imports: 1 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file turns a pure dungeon plan into lightweight placement data for the 3D preview.
  *
@@ -27,11 +11,28 @@
  * Depends on: the public DungeonPlan contract only; it imports no rendering library.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 16:00:19
+ * Dependents: components/BattleMap/dungeon/Dungeon3DPreview.tsx, components/BattleMap/dungeon/dungeonPlayerCamera.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import {
   CellKind,
   OverlayKind,
   type DoorState,
   type DungeonPlan,
+  type DungeonProp,
   type DungeonRoom,
   type DungeonTheme,
   type RoomPurpose,
@@ -135,7 +136,10 @@ export interface DungeonSceneModel {
    * emissively and ignore the scene lights. One extra instanced draw covers all three themes.
    */
   themeMotes: DungeonSceneInstance[];
+  /** Only authored water receives the translucent fluid treatment. */
   liquids: DungeonSceneInstance[];
+  /** Opaque ice, fungal growth and scorch retain their authored floor footprint. */
+  solidSurfaces: DungeonSceneInstance[];
   doors: DungeonSceneDoor[];
   lowProps: DungeonSceneInstance[];
   tallProps: DungeonSceneInstance[];
@@ -238,6 +242,13 @@ export function dungeonThemeLighting(theme: DungeonTheme): DungeonThemeLighting 
 }
 
 export interface DungeonSceneOptions {
+  /** Derived source caches are additive; existing geometry and source prop indices stay fixed. */
+  cacheProps?: readonly DungeonProp[];
+  /** Gameplay supplies observed trap indices. Omission keeps the full design-preview plan. */
+  visibleTrapIndices?: readonly number[];
+  openedChestIndices?: readonly number[];
+  /** Collected loose source props disappear from presentation, never from the source plan. */
+  hiddenPropIndices?: readonly number[];
   showRoomTypes: boolean;
   showDifficulty: boolean;
   showCritical: boolean;
@@ -295,6 +306,8 @@ export const DUNGEON_3D_PALETTES: Record<DungeonTheme, DungeonScenePalette> = {
 
 export type RoomPurposeLandmark =
   | 'threshold-steps'
+  | 'junction-crossing'
+  | 'shaft-grate'
   | 'ritual-dais'
   | 'burial-bays'
   | 'secure-store'
@@ -330,10 +343,10 @@ export const ROOM_PURPOSE_READABILITY: Readonly<Record<RoomPurpose, RoomPurposeR
   kitchen: { landmark: 'service-bench', definingProps: ['hearth', 'long-table'], lightPriority: 2 },
   cellar: { landmark: 'secure-store', definingProps: ['crates'], lightPriority: 1 },
   'chapel-wing': { landmark: 'ritual-dais', definingProps: ['altar', 'pew'], lightPriority: 3 },
-  junction: { landmark: 'threshold-steps', definingProps: [], lightPriority: 1 },
+  junction: { landmark: 'junction-crossing', definingProps: [], lightPriority: 1 },
   cistern: { landmark: 'water-basin', definingProps: ['pool'], lightPriority: 2 },
   'maintenance-walk': { landmark: null, definingProps: [], lightPriority: 0 },
-  'ladder-shaft': { landmark: 'threshold-steps', definingProps: [], lightPriority: 2 },
+  'ladder-shaft': { landmark: 'shaft-grate', definingProps: [], lightPriority: 2 },
   outfall: { landmark: 'water-basin', definingProps: ['pool'], lightPriority: 1 },
   'passage-room': { landmark: null, definingProps: [], lightPriority: 0 },
 };
@@ -357,7 +370,7 @@ const OVERLAY_COLORS: Record<OverlayKind, string> = {
   [OverlayKind.Water]: '#2e7899',
   [OverlayKind.Rubble]: '#766a5e',
   [OverlayKind.Ice]: '#8bcbe8',
-  [OverlayKind.Bloom]: '#9b56af',
+  [OverlayKind.Bloom]: '#655660',
   [OverlayKind.Scorch]: '#3b2420',
 };
 
@@ -644,6 +657,20 @@ function selectAccentLights(candidates: DungeonSceneInstance[], color: string): 
   }));
 }
 
+/** Spend the same light budget on actual nearby fixtures while the party explores.
+ * The overview keeps its purpose-based lighting. A distant treasury must not take
+ * the only point light away from the authored torch beside the current party. */
+export function dungeonPlayerAccentLights(
+  model: DungeonSceneModel, player: {x:number; z:number},
+): DungeonSceneModel['lights'] {
+  const color = model.lights[0]?.color ?? model.palette.flame;
+  return model.flames.map((flame,index) => ({flame,index,
+    distance:(flame.x-player.x)**2+(flame.z-player.z)**2}))
+    .sort((a,b)=>a.distance-b.distance || a.index-b.index).slice(0,10)
+    .map(({flame})=>({x:flame.x,y:flame.y+0.18,z:flame.z,color,
+      roomId:flame.roomId,roomPurpose:flame.roomPurpose}));
+}
+
 /** Damp-stone green used only to tint a deterministic subset of crypt wall instances. */
 const CRYPT_MOSS = '#4a6b3c';
 
@@ -845,6 +872,7 @@ export function decomposeProp(
   hasHistory: boolean,
   palette: DungeonScenePalette,
   detail: boolean,
+  opened = false,
 ): Array<{ shape: string; instance: DungeonSceneInstance }> {
   const visualKind = classifyPropKind(kind);
   const parts: DecomposedPart[] = [];
@@ -1250,41 +1278,48 @@ export function decomposeProp(
       break;
     }
     case 'pool': {
-      parts.push({
-        shape: 'box',
-        lx: 0, ly: 0.03, lz: 0,
-        sx: 0.72, sy: 0.06, sz: 0.72,
-        color: stoneColor,
-      });
-      parts.push({
-        shape: 'box',
-        lx: 0, ly: 0.045, lz: 0,
-        sx: 0.62, sy: 0.04, sz: 0.62,
-        color: mixColor('#1a5a78', palette.accent, 0.4),
-      });
+      // The reached source pool looked like a solid green plate at the desktop
+      // camera. A low stone rim, inset water and broken reflected streaks make
+      // its material readable within the same authored footprint and batches.
+      // This does not establish drinking safety, change depth/collision or add loot.
+      const water = mixColor('#24566d', palette.accent, 0.08);
+      const reflection = mixColor('#8aa9af', water, 0.35);
+      parts.push(
+        {shape:'box',lx:0,ly:0.015,lz:0,sx:0.72,sy:0.03,sz:0.72,color:stoneColor},
+        {shape:'box',lx:0,ly:0.039,lz:0,sx:0.6,sy:0.008,sz:0.6,color:water},
+      );
+      for (const edge of [-0.335, 0.335]) {
+        parts.push(
+          {shape:'box',lx:edge,ly:0.047,lz:0,sx:0.05,sy:0.064,sz:0.72,color:stoneColor},
+          {shape:'box',lx:0,ly:0.047,lz:edge,sx:0.62,sy:0.064,sz:0.05,color:stoneColor},
+        );
+      }
+      // Small, discontinuous highlights suggest a water surface without a new
+      // transparent material or a raised volume that could obscure the party.
+      parts.push(
+        {shape:'box',lx:-0.08,ly:0.044,lz:-0.13,sx:0.25,sy:0.002,sz:0.012,color:reflection},
+        {shape:'box',lx:0.12,ly:0.044,lz:0.09,sx:0.18,sy:0.002,sz:0.012,color:reflection},
+        {shape:'box',lx:-0.14,ly:0.044,lz:0.13,sx:0.09,sy:0.002,sz:0.009,color:reflection},
+      );
       break;
     }
     case 'rubble': {
-      parts.push({
-        shape: 'box',
-        lx: 0, ly: 0.09, lz: 0,
-        sx: 0.22, sy: 0.18, sz: 0.22,
-        color: stoneColor,
-      });
-      parts.push({
-        shape: 'box',
-        lx: -0.1, ly: 0.06, lz: 0.08,
-        sx: 0.15, sy: 0.12, sz: 0.15,
-        rotOffset: 0.3,
-        color: stoneColor,
-      });
-      parts.push({
-        shape: 'octahedron',
-        lx: 0.08, ly: 0.05, lz: -0.06,
-        sx: 0.12, sy: 0.1, sz: 0.12,
-        rotOffset: -0.4,
-        color: stoneColor,
-      });
+      // A reached Alrio pile read as one green cube at the gameplay camera.
+      // Broken block proportions and angular fragments make the same source
+      // object legible. Keep its original anchor and a cell-sized local envelope;
+      // authored scale/rotation and the existing instanced batches still apply.
+      // This adds no barrier, loot or historical cause.
+      const brokenFace = mixColor(stoneColor, '#a69a86', 0.34);
+      const wornFace = mixColor(stoneColor, '#6c6a61', 0.27);
+      parts.push(
+        {shape:'box',lx:0,ly:0.075,lz:0,sx:0.34,sy:0.15,sz:0.18,rotOffset:0.28,color:brokenFace},
+        {shape:'box',lx:-0.18,ly:0.055,lz:0.1,sx:0.22,sy:0.11,sz:0.11,rotOffset:-0.55,color:stoneColor},
+        {shape:'box',lx:0.12,ly:0.03,lz:-0.18,sx:0.2,sy:0.06,sz:0.12,rotOffset:0.18,color:wornFace},
+        {shape:'octahedron',lx:0.18,ly:0.07,lz:0.09,sx:0.17,sy:0.14,sz:0.15,rotOffset:0.4,color:brokenFace},
+        {shape:'octahedron',lx:-0.16,ly:0.055,lz:-0.15,sx:0.16,sy:0.11,sz:0.13,rotOffset:-0.2,color:stoneColor},
+        {shape:'octahedron',lx:0.03,ly:0.045,lz:0.2,sx:0.14,sy:0.09,sz:0.12,color:wornFace},
+        {shape:'octahedron',lx:-0.24,ly:0.035,lz:-0.02,sx:0.1,sy:0.07,sz:0.11,rotOffset:0.8,color:brokenFace},
+      );
       break;
     }
     case 'torch': {
@@ -1336,7 +1371,12 @@ export function decomposeProp(
       break;
     }
     case 'chest': {
-      parts.push({
+      if(opened) {
+        parts.push({shape:'box',lx:0,ly:0.025,lz:0,sx:0.46,sy:0.05,sz:0.32,color:chestColor});
+        for(const lz of [-0.145,0.145]) parts.push({shape:'box',lx:0,ly:0.14,lz,sx:0.46,sy:0.23,sz:0.03,color:chestColor});
+        for(const lx of [-0.215,0.215]) parts.push({shape:'box',lx,ly:0.14,lz:0,sx:0.03,sy:0.23,sz:0.26,color:chestColor});
+        parts.push({shape:'box',lx:0,ly:0.055,lz:0,sx:0.39,sy:0.012,sz:0.25,color:'#21190f'});
+      } else parts.push({
         shape: 'box',
         lx: 0, ly: 0.12, lz: 0,
         sx: 0.46, sy: 0.24, sz: 0.32,
@@ -1344,8 +1384,8 @@ export function decomposeProp(
       });
       parts.push({
         shape: 'box',
-        lx: 0, ly: 0.28, lz: 0,
-        sx: 0.46, sy: 0.08, sz: 0.32,
+        lx: 0, ly: opened ? 0.39 : 0.28, lz: opened ? 0.18 : 0,
+        sx: 0.46, sy: opened ? 0.32 : 0.08, sz: opened ? 0.05 : 0.32,
         color: mixColor(chestColor, '#ffffff', 0.08),
       });
       parts.push({
@@ -1543,6 +1583,37 @@ function purposeLandmarkParts(
   // furniture still supplies purpose-specific detail; these anchors make the broad job readable
   // before the tactical camera is close enough to distinguish a chest from a rack or coffin.
   switch (treatment.landmark) {
+    case 'junction-crossing':
+      // A junction claims intersecting routes, not a change in elevation. Keep
+      // its readable paving below the feet: these presentation-only parts have
+      // no collision owner and must never bury a party crossing the source floor.
+      parts.push(
+        { shape: 'box', lx: 0, ly: 0.002, lz: 0, sx: 1.8, sy: 0.004, sz: 0.15, color: stone },
+        { shape: 'box', lx: 0, ly: 0.002, lz: 0, sx: 0.15, sy: 0.004, sz: 1.8, color: stone },
+        { shape: 'cylinder', lx: 0, ly: 0.002, lz: 0, sx: 0.36, sy: 0.004, sz: 0.36, color: mixColor(stone, palette.floor, 0.4) },
+      );
+      break;
+    case 'shaft-grate': {
+      // This is a covered shaft threshold on the source's flat, walkable cell,
+      // not stairs with an invented height. Keep its ironwork below the party
+      // footing; the existing entrance/level controls still own traversal.
+      // Unlike a room-sized landmark, the hatch stays a fixed, human-sized span.
+      const unit = 1 / scale;
+      const iron = mixColor('#252b2b', metal, 0.35);
+      for (const side of [-0.44, 0.44]) {
+        parts.push(
+          {shape: 'box', lx: side * unit, ly: 0.001 * unit, lz: 0,
+            sx: 0.06 * unit, sy: 0.002 * unit, sz: 0.94 * unit, color: iron},
+          {shape: 'box', lx: 0, ly: 0.001 * unit, lz: side * unit,
+            sx: 0.94 * unit, sy: 0.002 * unit, sz: 0.06 * unit, color: iron},
+        );
+      }
+      for (const bar of [-0.3, -0.15, 0, 0.15, 0.3]) {
+        parts.push({shape: 'box', lx: bar * unit, ly: 0.001 * unit, lz: 0,
+          sx: 0.035 * unit, sy: 0.002 * unit, sz: 0.82 * unit, color: metal});
+      }
+      break;
+    }
     case 'threshold-steps':
       parts.push(
         { shape: 'box', lx: 0, ly: 0.08, lz: 0.54, sx: 1.8, sy: 0.16, sz: 0.42, color: stone },
@@ -1635,6 +1706,7 @@ export function buildDungeonSceneModel(plan: DungeonPlan, options: DungeonSceneO
   const architectureSpheres: DungeonSceneInstance[] = [];
   const architectureOctahedrons: DungeonSceneInstance[] = [];
   const liquids: DungeonSceneInstance[] = [];
+  const solidSurfaces: DungeonSceneInstance[] = [];
   const maximumBfs = Math.max(1, ...Array.from(plan.bfs).filter((distance) => distance >= 0));
 
   // Raise every walkable and wall cell from the shared bitmap. History overlays become a
@@ -1654,7 +1726,9 @@ export function buildDungeonSceneModel(plan: DungeonPlan, options: DungeonSceneO
         });
         const overlay = plan.overlay[index] as OverlayKind;
         if (overlay !== OverlayKind.None && overlay !== OverlayKind.Rubble) {
-          liquids.push({
+          // History kind selects material, never a new hazard, light or collectible.
+          const surfaces = overlay === OverlayKind.Water ? liquids : solidSurfaces;
+          surfaces.push({
             ...position, y: 0.018, sx: 0.96, sy: 0.035, sz: 0.96, rotation: 0,
             color: OVERLAY_COLORS[overlay],
           });
@@ -1873,7 +1947,13 @@ export function buildDungeonSceneModel(plan: DungeonPlan, options: DungeonSceneO
   const promotedPurposeRooms = new Set<number>();
 
   // Props arrive in feet, so convert them back to scene cells only at this presentation seam.
-  for (const prop of plan.props) {
+  // Traps are a separate source array. Their feet coordinates pass through the
+  // same adapter; appending them preserves every existing prop/cache index.
+  const trapProps:DungeonProp[]=plan.traps.flatMap((trap,index)=>
+    options.visibleTrapIndices && !options.visibleTrapIndices.includes(index) ? [] :
+      [{...trap,rot:0,scale:1}]);
+  for (const [propIndex, prop] of [...plan.props,...(options.cacheProps??[]),...trapProps].entries()) {
+    if (options.hiddenPropIndices?.includes(propIndex)) continue;
     const position = cellToScene(plan, prop.x / plan.cellFt, prop.y / plan.cellFt);
     const dimensions = propDimensions(prop.kind, Math.max(0.65, prop.scale));
     const shape = propShape(prop.kind);
@@ -1897,7 +1977,7 @@ export function buildDungeonSceneModel(plan: DungeonPlan, options: DungeonSceneO
     // At least one generated, purpose-defining object per authored room survives tactical LOD.
     // The full close view remains unchanged, and rooms without declared furniture use the
     // presentation-only landmark family below rather than manufacturing a generator prop.
-    const detail = definesPurpose
+    const detail = definesPurpose || visualKind === 'trap'
       ? false
       : isTacticalDetail(prop.kind, shape, dimensions, hasHistoryReference, lodRoll);
     const instance: DungeonSceneInstance = {
@@ -1928,6 +2008,7 @@ export function buildDungeonSceneModel(plan: DungeonPlan, options: DungeonSceneO
       hasHistoryReference,
       palette,
       detail,
+      options.openedChestIndices?.includes(propIndex) ?? false,
     );
 
     for (const part of decomposed) {
@@ -2023,6 +2104,7 @@ export function buildDungeonSceneModel(plan: DungeonPlan, options: DungeonSceneO
     architectureOctahedrons,
     themeMotes,
     liquids,
+    solidSurfaces,
     doors,
     lowProps,
     tallProps,

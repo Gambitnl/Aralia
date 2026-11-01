@@ -1,10 +1,28 @@
-import React, { useMemo } from 'react';
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/10/2026, 12:25:08
+ * Dependents: components/layout/GameModals.tsx
+ * Imports: 8 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import React, { useMemo, useState } from 'react';
 import { useGameState } from '../../state/GameContext';
 import { getGameDay } from '../../utils/core';
 import { resolveTownForLocation } from '../../systems/worldforge/townsim/chronicleForLocation';
 import { selectTownNews, type TownNewsItem } from '../../systems/worldforge/townsim/townNews';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
+import LibraryCollectionReader from './LibraryCollectionReader';
+import { Button } from '../ui/Button';
 
 /**
  * Player-facing TOWN BROADSHEET. Opened in two modes:
@@ -29,6 +47,7 @@ interface BroadsheetSnapshot {
 
 const Broadsheet: React.FC = () => {
   const { state, dispatch } = useGameState();
+  const [readingCollection, setReadingCollection] = useState(false);
 
   // Parse a frozen keepsake snapshot if one is being read. Guarded so malformed
   // content can never throw — it simply falls back to the live computation.
@@ -55,6 +74,7 @@ const Broadsheet: React.FC = () => {
       snapshot
         ? undefined
         : resolveTownForLocation({
+        ground: state,
             // GRID-RETIRE: BA-2 — prefer the canonical cell over the coarse grid coord.
             cellId: state.playerCell?.cellId ?? null,
             currentLocationId: state.currentLocationId,
@@ -62,13 +82,19 @@ const Broadsheet: React.FC = () => {
             townSim: state.townSim,
             gameTime: state.gameTime,
           }),
-    [snapshot, state.playerCell?.cellId, state.currentLocationId, state.worldSeed, state.townSim, state.gameTime],
+    [snapshot, state.playerCell?.cellId, state.currentLocationId, state.worldSeed, state.townSim, state.gameTime, state.playerGroundPos, state.atlasGroundAddress, state.entry3DAnchor],
   );
 
   // The town's display name: the snapshot's frozen name when reading a keepsake,
   // else the live dynamic-location name (if registered), else a generic paper.
-  const townName = snapshot ? snapshot.townName : state.dynamicLocations?.[state.currentLocationId]?.name;
-  const paperName = townName ? `THE ${townName.toUpperCase()} CHRONICLE` : 'TOWN CHRONICLE';
+  // A desk's reading copy belongs to its admitted town. Stale place context
+  // cannot rename another town or a frozen book carried by the player.
+  const readingPlace = !snapshot && town && state.broadsheetReadingPlace?.burgId === town.burgId
+    ? state.broadsheetReadingPlace : undefined;
+  const townName = snapshot ? snapshot.townName : readingPlace?.townName ?? state.dynamicLocations?.[state.currentLocationId]?.name;
+  const paperName = readingCollection && readingPlace?.library
+    ? `${townName?.toUpperCase()} LIBRARY`
+    : townName ? `THE ${townName.toUpperCase()} CHRONICLE` : 'TOWN CHRONICLE';
 
   // The single most-recent headline runs as the lead story.
   const lead = useMemo(
@@ -122,11 +148,15 @@ const Broadsheet: React.FC = () => {
         <header className="shrink-0 text-center border-y-4 border-double border-stone-800 py-3 mb-5">
           <h2 className="text-4xl font-black tracking-tight uppercase">{paperName}</h2>
           <p className="text-xs uppercase tracking-[0.3em] text-stone-600 mt-1">
-            Day {day} &middot; Price: one copper
+            Day {day} &middot; {readingPlace ? 'Library reading copy' : 'Price: one copper'}
           </p>
         </header>
 
-        {!hasNews ? (
+        {readingPlace?.library && <nav aria-label="Library reading" className="mb-5 flex gap-3">
+          <Button variant="secondary" size="sm" aria-pressed={!readingCollection} onClick={()=>setReadingCollection(false)}>Town chronicle</Button>
+          <Button variant="secondary" size="sm" aria-pressed={readingCollection} onClick={()=>setReadingCollection(true)}>Regional collection</Button>
+        </nav>}
+        {readingCollection && readingPlace?.library ? <LibraryCollectionReader /> : !hasNews ? (
           <p data-testid="broadsheet-empty" className="text-stone-600 italic text-center py-10">
             The broadsheet is blank &mdash; no news to report.
           </p>

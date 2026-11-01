@@ -15,6 +15,8 @@ import {
   generateDungeonForSite,
   scaleRoomCount,
   scalePartyLevel,
+  resolveDungeonIdentity,
+  generateDungeonForIdentity,
 } from '../deriveIdentity';
 import { generateDungeon } from '../../generateDungeon';
 import { rootSeedPath, childSeedPath } from '../../../seedPath';
@@ -22,6 +24,29 @@ import { rootSeedPath, childSeedPath } from '../../../seedPath';
 const SEED = 12345;
 const atlas = getBridgeAtlas(SEED);
 const sites = enumerateDungeonSites(SEED);
+
+it('resolves the original timestamp-world attachment cold without changing its frozen generation seed', () => {
+  const savedSeed = 1793176550524;
+  // Assert against this runtime's authoritative atlas. Browser/Node marker
+  // parity is a separate gap; a Node fixture must not relocate the played POI.
+  const marker = getBridgeAtlas(savedSeed).markers.find(marker => marker.i === 54)!;
+  const seedPath = `wf:2175188092/cell:${marker.cell}/dungeon:m54`;
+  // Prime the other atlas first, matching cold reload discovery order.
+  enumerateDungeonSites(savedSeed >>> 0);
+  const result = resolveDungeonIdentity({ dungeonId: `wf-dungeon-${seedPath}`, seedPath }, savedSeed);
+  expect(result.site.sitePath).toBe(seedPath);
+  expect(result.site.cellId).toBe(marker.cell);
+  // Existing interior generation already consumes this normalized root.
+  // Correct the attachment lookup without migrating the source dungeon plan.
+  expect(result.worldSeed).toBe(savedSeed >>> 0);
+  const originalWarmPath = generateDungeonForSite(savedSeed >>> 0, result.site);
+  const restored = generateDungeonForIdentity({ dungeonId: `wf-dungeon-${seedPath}`, seedPath }, savedSeed);
+  // Generation duration is telemetry; every identity, geometry, spawn and
+  // history field must remain equal to the previously working warm lane.
+  expect({ ...restored, stats: { ...restored.stats, genMs: 0 } }).toEqual({
+    ...originalWarmPath, stats: { ...originalWarmPath.stats, genMs: 0 },
+  });
+});
 
 interface BurgLike { i?: number; cell?: number; removed?: boolean; name?: string }
 const burgs = (atlas.pack.burgs ?? []) as BurgLike[];

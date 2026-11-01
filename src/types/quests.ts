@@ -5,8 +5,26 @@
  * This module defines the structure for branching, multi-stage quests with
  * diverse objective types, prerequisites, and failure conditions.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 28/10/2026, 22:39:44
+ * Dependents: components/ConversationPanel/CompanionGoalWorkChoices.tsx, state/reducers/companionGoalWorkReducer.ts, state/reducers/companionPreparationReducer.ts, state/reducers/townReducer.ts, systems/adventureLog/oraclePrompt.ts, systems/companions/companionGoalWork.ts, types/index.ts, utils/context/contextUtils.ts, utils/core/factories.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { Item as _Item } from './items.js';
 import type { NPC as _NPC } from './world.js';
+import type { CompanionGoalDestination } from './companions.js';
 
 /**
  * The high-level category of a quest, used for UI filtering and prioritization.
@@ -212,6 +230,7 @@ export interface Quest {
   title: string;
   description: string;
   giverId?: string;
+  giverName?: string;
   status: QuestStatus;
   objectives: QuestObjectiveProgress[];
   rewards?: QuestRewards;
@@ -219,6 +238,8 @@ export interface Quest {
   regionHint?: string;
   /** Optional time-based failure trigger. */
   deadline?: number;
+  /** Whether a missed deadline notice has already been logged. */
+  deadlineNotified?: boolean;
   /**
    * Optional consequence when a deadline is missed.
    */
@@ -228,6 +249,10 @@ export interface Quest {
   };
   /** Notes appended as the quest progresses (legacy free-form log). */
   notes?: string;
+  /** Offering work creates no active obligation. */
+  dateOffered?: number;
+  dateAbandoned?: number;
+  companionWork?: { companionId: string; goalId: string; destination: CompanionGoalDestination; response: 'pending' | 'declined'; reportDiscoveryId?: string };
   dateStarted?: number;
   dateCompleted?: number;
 }

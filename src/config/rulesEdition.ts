@@ -58,12 +58,29 @@ export const SUBCLASS_LEVEL_2024 = 3;
 
 /**
  * The level at which `classId` chooses its subclass under `edition`.
- * Warlock is the only class wired to this helper today; the remaining 2014
- * exceptions have their own board tasks.
+ * Callers: the cleric, sorcerer, warlock, druid and wizard creator steps, the
+ * creator randomizer, and the LevelUpModal subclass milestone.
  */
 export function getSubclassLevel(classId: string, edition: RulesEdition): number {
   if (edition === '2014') {
     return SUBCLASS_LEVEL_2014[classId] ?? SUBCLASS_LEVEL_2024;
   }
   return SUBCLASS_LEVEL_2024;
+}
+
+/**
+ * The highest subclass level that the character creator asks about. The
+ * creator builds a level 1 character, but Remy ruled (Agora 8335, answer to
+ * question 8009) that a 2014 druid or wizard picks its level 2 subclass in a
+ * creator "level 2 step" instead of at the first level-up.
+ */
+export const CREATOR_SUBCLASS_MAX_LEVEL = 2;
+
+/**
+ * True when the creator asks this class for its subclass under `edition`:
+ * the level 1 choices (2014 cleric, sorcerer, warlock) and the level 2 step
+ * (2014 druid, wizard). Under 2024 every class waits for level 3.
+ */
+export function choosesSubclassInCreator(classId: string, edition: RulesEdition): boolean {
+  return getSubclassLevel(classId, edition) <= CREATOR_SUBCLASS_MAX_LEVEL;
 }

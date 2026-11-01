@@ -56,6 +56,15 @@ function getAllFiles(dirPath: string, arrayOfFiles: string[] = []): string[] {
   return arrayOfFiles;
 }
 
+/**
+ * True when `word` occurs in `text` as a whole word, not inside another word.
+ * GG-543: a substring test read "Adventuring Gear" as a ring, so all 92
+ * Adventuring Gear items (Book, Torch, Rope...) became Ring accessories.
+ */
+export function hasWord(text: string, word: string): boolean {
+  return new RegExp(`\\b${word}\\b`, 'i').test(text);
+}
+
 // Simple heuristic for icons
 export function getIconForType(type: string): string {
   const t = type.toLowerCase();
@@ -67,7 +76,8 @@ export function getIconForType(type: string): string {
   if (t.includes('shield')) return 'shield';
   if (t.includes('armor') || t.includes('mail') || t.includes('plate') || t.includes('leather')) return 'shield';
   if (t.includes('potion')) return 'flask_mdi';
-  if (t.includes('ring')) return 'ring';
+  // Whole word only: "adventuring" contains "ring" (GG-543).
+  if (hasWord(t, 'ring')) return 'ring';
   if (t.includes('staff')) return 'magic_staff';
   if (t.includes('wand')) return 'magic';
   if (t.includes('rod')) return 'magic_staff';
@@ -139,6 +149,94 @@ export function inferAccessorySlot(name: string): string | undefined {
 }
 
 /**
+ * GG-576: the game item type for each mundane 5eTools type. The key is the
+ * WHOLE 5eTools type, compared exactly. Each value is an existing ItemType;
+ * Adventuring Gear follows the hand-authored gear in adventuringGear.ts,
+ * which types general gear (Backpack, Rope, Tinderbox) as tool.
+ *
+ * Treasure (Gemstone), Treasure (Art Object) and Trade Bar are not here: they
+ * stay treasure, which is right for valuables.
+ *
+ * Mount, Vehicle and Spellcasting Focus use the types that Remy ruled on
+ * 2026-11-02 (GG-576). The types carry data only; no riding or driving rules.
+ */
+const ITEM_TYPE_BY_SOURCE_TYPE: Record<string, string> = {
+  'Adventuring Gear': 'tool',
+  'Ammunition': 'ammunition',
+  "Artisan's Tools": 'tool',
+  'Tool': 'tool',
+  'Gaming Set': 'tool',
+  'Instrument': 'tool',
+  'Food and Drink': 'food_drink',
+  'Scroll': 'scroll',
+  'Explosive': 'consumable',
+  'Tack and Harness': 'tool',
+  'Trade Good': 'crafting_material',
+  'Mount': 'mount',
+  'Vehicle (Land)': 'vehicle',
+  'Vehicle (Water)': 'vehicle',
+  'Vehicle (Air)': 'vehicle',
+  'Spellcasting Focus': 'spellcasting_focus',
+};
+
+/**
+ * GG-576: single items whose 5eTools type is too broad. "Adventuring Gear"
+ * holds books, lights, clothes, poisons and food, and the glossary source
+ * names no finer kind, so the item id is the only signal. Each value uses
+ * an existing ItemType and, for clothes, the Torso slot that the hand-authored
+ * Common Clothes use.
+ */
+const ITEM_TYPE_BY_ID: Record<string, { type: string; slot?: string }> = {
+  // Adventuring Gear
+  book: { type: 'book' },
+  map: { type: 'map' },
+  torch: { type: 'light_source' },
+  candle: { type: 'light_source' },
+  lamp: { type: 'light_source' },
+  bullseye_lantern: { type: 'light_source' },
+  hooded_lantern: { type: 'light_source' },
+  fine_clothes: { type: 'clothing', slot: 'Torso' },
+  traveler_s_clothes: { type: 'clothing', slot: 'Torso' },
+  costume: { type: 'clothing', slot: 'Torso' },
+  robe: { type: 'clothing', slot: 'Torso' },
+  rations: { type: 'food_drink' },
+  acid: { type: 'consumable' },
+  alchemist_s_fire: { type: 'consumable' },
+  antitoxin: { type: 'consumable' },
+  holy_water: { type: 'consumable' },
+  oil: { type: 'consumable' },
+  hunting_trap: { type: 'trap' },
+  caltrops: { type: 'trap' },
+  ball_bearings: { type: 'trap' },
+  trinket: { type: 'treasure' },
+  basic_poison: { type: 'poison_toxin' },
+  assassin_s_blood: { type: 'poison_toxin' },
+  burnt_othur_fumes: { type: 'poison_toxin' },
+  carrion_crawler_mucus: { type: 'poison_toxin' },
+  essence_of_ether: { type: 'poison_toxin' },
+  lolth_s_sting: { type: 'poison_toxin' },
+  malice: { type: 'poison_toxin' },
+  midnight_tears: { type: 'poison_toxin' },
+  oil_of_taggit: { type: 'poison_toxin' },
+  pale_tincture: { type: 'poison_toxin' },
+  purple_worm_poison: { type: 'poison_toxin' },
+  serpent_venom: { type: 'poison_toxin' },
+  torpor: { type: 'poison_toxin' },
+  truth_serum: { type: 'poison_toxin' },
+  wyvern_poison: { type: 'poison_toxin' },
+  // Tack and Harness
+  feed_per_day: { type: 'food_drink' },
+  stabling_per_day: { type: 'service' },
+  // Trade Good livestock (Remy ruling 2026-11-02, GG-576).
+  chicken: { type: 'livestock' },
+  cow: { type: 'livestock' },
+  goat: { type: 'livestock' },
+  ox: { type: 'livestock' },
+  pig: { type: 'livestock' },
+  sheep: { type: 'livestock' },
+};
+
+/**
  * Convert a single glossary entry into a simplified registry item.
  *
  * This is the mechanical conversion seam (type / slot / damage / value /
@@ -161,30 +259,47 @@ export function convertEntryToItem(data: any): { id: string; item: Record<string
 
   const t = (meta.type || '').toLowerCase();
 
-  // Determine Type and Slot
-  if (t.includes('weapon')) {
+  // Determine Type and Slot. Each test matches a whole word of the 5eTools
+  // type ("Melee Weapon", "Heavy Armor", "Ring", "Wondrous Item"), never a
+  // substring (GG-543). Types that match no word stay treasure with no slot.
+  if (hasWord(t, 'weapon')) {
     itemType = 'weapon';
     slot = 'MainHand';
-  } else if (t.includes('armor')) {
+  } else if (hasWord(t, 'armor')) {
     itemType = 'armor';
     slot = 'Torso';
-    if (t.includes('light')) armorCategory = 'Light';
-    else if (t.includes('medium')) armorCategory = 'Medium';
-    else if (t.includes('heavy')) armorCategory = 'Heavy';
-  } else if (t.includes('shield')) {
+    if (hasWord(t, 'light')) armorCategory = 'Light';
+    else if (hasWord(t, 'medium')) armorCategory = 'Medium';
+    else if (hasWord(t, 'heavy')) armorCategory = 'Heavy';
+  } else if (hasWord(t, 'shield')) {
     itemType = 'armor';
     slot = 'OffHand';
     armorCategory = 'Shield';
-  } else if (t.includes('ring')) {
+  } else if (hasWord(t, 'ring')) {
     itemType = 'accessory';
     slot = 'Ring';
-  } else if (t.includes('potion')) {
+  } else if (hasWord(t, 'potion')) {
     itemType = 'consumable';
-  } else if (t.includes('staff') || t.includes('wand') || t.includes('rod')) {
+  } else if (hasWord(t, 'staff') || hasWord(t, 'wand') || hasWord(t, 'rod')) {
     itemType = 'weapon'; // Or accessory depending on mechanics, we default to weapon for staffs
     slot = 'MainHand';
-  } else if (t.includes('wondrous') || t.includes('accessory')) {
+  } else if (hasWord(t, 'wondrous') || hasWord(t, 'accessory')) {
     itemType = 'accessory';
+  } else if (ITEM_TYPE_BY_ID[id]) {
+    // GG-576: an item whose 5eTools type is too broad (see the table).
+    itemType = ITEM_TYPE_BY_ID[id].type;
+    slot = ITEM_TYPE_BY_ID[id].slot;
+  } else if (ITEM_TYPE_BY_SOURCE_TYPE[meta.type]) {
+    // GG-576: a mundane 5eTools type with a game item type.
+    itemType = ITEM_TYPE_BY_SOURCE_TYPE[meta.type];
+  }
+
+  // GG-576 (Remy ruling 2026-11-02): a worn focus (Hat of Wizardry, Nature's
+  // Mantle, Amulet) keeps its body slot, found from its name the same way as
+  // a wondrous accessory. A held focus (Orb, Crystal, Wand) goes in MainHand,
+  // the slot that held weapons use.
+  if (itemType === 'spellcasting_focus') {
+    slot = inferAccessorySlot(name) ?? 'MainHand';
   }
 
   // Wondrous accessories need a wear slot or EQUIP_ITEM cannot place them,

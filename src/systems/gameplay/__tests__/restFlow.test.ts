@@ -332,6 +332,25 @@ describe('Gameplay Flow - Short Rest Cycle', () => {
 // ============================================================================
 
 describe('Gameplay Flow - Long Rest Cycle', () => {
+  it.each([
+    { label: 'empty', party: [] },
+    { label: 'incapacitated', party: [createMockPlayerCharacter({ id: 'downed', hp: 0 })] },
+  ])(
+    'refuses an $label party without changing the world or consuming supplies',
+    async ({ party }) => {
+      const dispatch = vi.fn();
+      const addMessage = vi.fn();
+      await handleLongRest({
+        gameState: { ...createMockGameState(), party },
+        dispatch,
+        addMessage,
+        addGeminiLog: vi.fn(),
+      });
+      expect(dispatch).not.toHaveBeenCalled();
+      expect(addMessage).toHaveBeenCalledTimes(1);
+    },
+  );
+
   it('restores full HP, all hit dice, and all spell slots for resting party members', () => {
     const wizard = createWoundedWizard('wizard-1');
     const state: GameState = {

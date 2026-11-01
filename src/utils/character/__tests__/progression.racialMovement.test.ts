@@ -85,6 +85,56 @@ describe('getRacialMovementSpeedsForLevel (agora-431e)', () => {
 
     expect(getRacialMovementSpeedsForLevel(character, 20)).toEqual({});
   });
+
+  // Unlisted inline race objects (custom races, NPCs, or save fixtures whose
+  // race.id is not in ALL_RACES_DATA) fall back to parsing character.race.traits
+  // through buildRacialTraitLibrary so trait-prose movement modes are preserved
+  // alongside their level windows (WF-G277).
+  it('resolves trait-prose movement speeds for an unlisted inline race ID (WF-G277)', () => {
+    const character = createMockPlayerCharacter({
+      level: 1,
+      race: {
+        id: 'custom_cliff_strider',
+        name: 'Cliff Strider',
+        description: 'An inline custom race not registered in ALL_RACES_DATA.',
+        traits: [
+          'Speed: 30 feet',
+          'Stone Grip: You have a climbing speed equal to your walking speed.',
+          'Gossamer Wings (Level 5): Starting at 5th level, you have a flying speed equal to your walking speed.',
+        ],
+      },
+    });
+
+    // At level 1, the ungated climbing trait is active while the level-5 flight trait is withheld.
+    expect(getRacialMovementSpeedsForLevel(character, 1)).toEqual({ climb: 30 });
+    expect(getRacialMovementUnlocksForLevel(character, 1)).toEqual([
+      expect.objectContaining({
+        mode: 'climb',
+        speedFeet: 30,
+        minLevel: 1,
+        traitName: 'Stone Grip',
+      }),
+    ]);
+
+    // At level 5, the level-gated flight trait unlocks alongside climbing.
+    expect(getRacialMovementSpeedsForLevel(character, 5)).toEqual({ climb: 30, fly: 30 });
+    expect(getRacialMovementUnlocksForLevel(character, 5)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          mode: 'climb',
+          speedFeet: 30,
+          minLevel: 1,
+          traitName: 'Stone Grip',
+        }),
+        expect.objectContaining({
+          mode: 'fly',
+          speedFeet: 30,
+          minLevel: 5,
+          traitName: 'Gossamer Wings (Level 5)',
+        }),
+      ]),
+    );
+  });
 });
 
 describe('Draconic Flight as a Long Rest resource (agora-431e)', () => {

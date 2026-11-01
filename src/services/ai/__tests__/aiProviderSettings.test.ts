@@ -7,6 +7,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   getAiTextProvider,
+  getOllamaComputeMode,
+  setOllamaComputeMode,
   setAiTextProvider,
   getGroqApiKey,
   setGroqApiKey,
@@ -24,6 +26,20 @@ import {
 } from '../aiProviderSettings';
 
 describe('aiProviderSettings', () => {
+  it('keeps local processing automatic unless the player explicitly chooses CPU',()=>{
+    expect(getOllamaComputeMode('dialogue')).toBe('auto');
+    localStorage.setItem('aralia.ai.ollamaCompute.dialogue','invalid');
+    expect(getOllamaComputeMode('dialogue')).toBe('auto');
+  });
+  it('retains CPU choice per job without changing the provider or another job',()=>{
+    setOllamaComputeMode('dialogue','cpu');
+    expect(getOllamaComputeMode('dialogue')).toBe('cpu');
+    expect(getOllamaComputeMode('utility')).toBe('auto');
+    expect(getAiTextProvider()).toBe('ollama');
+    setOllamaComputeMode('dialogue','auto');
+    expect(getOllamaComputeMode('dialogue')).toBe('auto');
+    expect(localStorage.getItem('aralia.ai.ollamaCompute.dialogue')).toBeNull();
+  });
   beforeEach(() => {
     window.localStorage.clear();
     window.sessionStorage.clear();

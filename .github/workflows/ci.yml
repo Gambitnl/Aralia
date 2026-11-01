@@ -30,12 +30,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: '22'
-          cache: npm
-      - run: npm install -g npm@11
-      - run: npm ci
+      - uses: ./.github/actions/setup-node-env
       - run: npm run typecheck
   build:
     name: Build
@@ -43,14 +38,13 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: '22'
-          cache: npm
-      - run: npm install -g npm@11
-      - run: npm ci
+      - uses: ./.github/actions/setup-node-env
       # No API key enters this public build. spells:check precedes regeneration.
       - run: npm run build
+      # C13: fail when the page's first-load JS (entry + modulepreloads, gzip)
+      # passes scripts/quality/bundle-budget.json, e.g. when three.js turns eager.
+      - name: Enforce first-load JS budget
+        run: node scripts/quality/bundle-budget.mjs dist
       - uses: actions/upload-pages-artifact@v5
         if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
         with:
@@ -61,12 +55,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: '22'
-          cache: npm
-      - run: npm install -g npm@11
-      - run: npm ci
+      - uses: ./.github/actions/setup-node-env
       - run: npm run lint
   validate:
     name: Data Validation
@@ -74,12 +63,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: '22'
-          cache: npm
-      - run: npm install -g npm@11
-      - run: npm ci
+      - uses: ./.github/actions/setup-node-env
       - run: npm run spells:check
       # Separate from lint so both failures remain visible in the same run.
       - run: npm run validate
@@ -89,12 +73,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: '22'
-          cache: npm
-      - run: npm install -g npm@11
-      - run: npm ci
+      - uses: ./.github/actions/setup-node-env
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
@@ -116,12 +95,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: '22'
-          cache: npm
-      - run: npm install -g npm@11
-      - run: npm ci
+      - uses: ./.github/actions/setup-node-env
       - name: Install Chromium for private dashboard fixtures
         run: npx playwright install --with-deps chromium
       - name: Install pinned scanner for recovery fixtures
@@ -136,27 +110,26 @@ jobs:
           echo "TEST_GITLEAKS_CONFIG=$RUNNER_TEMP/gitleaks-default.toml" >> "$GITHUB_ENV"
       - run: npm run test:node
   quality-scan:
-    name: Quality Scan (advisory)
+    name: Quality Scan and Debt Ratchet
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: '22'
-          cache: npm
-      - run: npm install -g npm@11
-      - run: npm ci
+      - uses: ./.github/actions/setup-node-env
+      # New production debt blocks CI; the broad backlog remains advisory.
+      - name: Enforce production debt baseline
+        run: node scripts/quality/debt-summary.cjs --ratchet
       - run: npm --silent run scan -- --json > quality-scan.json
+        continue-on-error: true
       - uses: actions/upload-artifact@v7
+        continue-on-error: true
         with:
           name: quality-scan-json
           path: quality-scan.json
   required:
     name: CI Required
     if: always()
-    needs: [policy, typecheck, build, lint, validate, test, node-tests]
+    needs: [policy, typecheck, build, lint, validate, test, node-tests, quality-scan]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

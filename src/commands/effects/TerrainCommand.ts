@@ -21,6 +21,7 @@ import { CombatState, Position, BattleMapTile, StatusEffect, EnvironmentalEffect
 import { calculateAffectedTiles, AoEParams } from '../../utils/combat/aoeCalculations'
 import { mapShapeToStandard } from '../../utils/spatial/targetingUtils'
 import { generateId } from '../../utils/core'
+import { feetToElevationUnits } from '../../utils/combat/elevationUnits'
 
 /**
  * Movement cost of one tile of difficult ground, in movement units per tile.
@@ -124,18 +125,24 @@ export class TerrainCommand extends BaseEffectCommand {
                     break
                 case 'excavate':
                     {
-                        // Assume 1 unit of elevation = 5 feet.
-                        // If depth is specified, use it, otherwise default to 1 unit (5ft)
+                        // The spell's depth is in feet (5 ft when the data gives
+                        // none); a tile's elevation is in the shared 0.3 m unit
+                        // (BATTLE_MAP_ELEVATION_METERS_PER_UNIT). GG-533
+                        // (2026-10-29): this assumed 1 unit = 5 ft, so Mold
+                        // Earth's 5 ft pit lowered a world tile by about 1 ft.
+                        // The world's ground now digs the full depth
+                        // (spellGroundEdits.ts), and the referee must agree.
                         const depth = effect.manipulation.volume?.depth ?? 5
-                        tile.elevation -= Math.max(1, Math.floor(depth / 5))
+                        tile.elevation -= feetToElevationUnits(depth)
                     }
                     break
                 case 'fill':
                     {
-                        // Assume filling adds elevation.
-                        // If no volume specified, default to 1 unit.
+                        // Filling raises the tile by the volume's size in feet
+                        // (5 ft when the data gives none), in the shared
+                        // elevation unit, as excavate lowers it (GG-533).
                         const height = effect.manipulation.volume?.size ?? 5
-                        tile.elevation += Math.max(1, Math.floor(height / 5))
+                        tile.elevation += feetToElevationUnits(height)
                     }
                     break
                 case 'cosmetic':

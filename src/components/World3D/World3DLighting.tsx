@@ -34,13 +34,21 @@
  * - Distance fog tinted to the sky horizon so far terrain dissolves instead of
  *   ending on a flat page-background band.
  *
- * WebGL + WebGPU safe: standard three lights/materials only, no TSL.
+ * Lights and fog are standard three objects on both renderers. The gradient
+ * sky dome is a GLSL `ShaderMaterial` on WebGL; under `?gpu=1` (ADR 0009 step
+ * 3) it mounts the TSL twin from `gpu/worldGpuSky.ts`, same math, same uniforms.
  */
 
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { GROUND_FOG_FAR, GROUND_FOG_NEAR, type CanopyInterior } from './canopyInterior';
+import { isWebGpuWorldEnabled } from './webgpuWorldFlag';
+import { makeGradientSkyNodeMaterial, type GradientSkyNodes } from './gpu/worldGpuSky';
+import { setWaterSkyColors } from './water/waterSkyState';
+
+/** ADR 0009: the renderer this page draws with, read once per page load. */
+const WEBGPU_WORLD = isWebGpuWorldEnabled();
 
 export interface SunState {
   /** Unit-ish sun direction (points FROM origin TOWARD the sun). */
@@ -89,6 +97,11 @@ export function trueSunVector(
   return target
     .set(Math.sin(azimuth) * cosE, Math.sin(elevation), Math.cos(azimuth) * cosE)
     .normalize();
+}
+
+/** A ramp from `a` (t = 0) through `mid` (t = 0.5) to `b` (t = 1), linear in each half (see the pink band note in sunFromTime). */
+function warmRamp(a: number, mid: number, b: number, t: number): THREE.Color {
+  return t <= 0.5 ? new THREE.Color(a).lerp(new THREE.Color(mid), t * 2) : new THREE.Color(mid).lerp(new THREE.Color(b), t * 2 - 1);
 }
 
 /**
@@ -157,12 +170,18 @@ export function sunFromTime(hours: number): SunState {
   // of a flat grey-white edge. Rides `skyWarmth`, not the key's cubed ramp, so
   // golden hour still lands firmly in warm territory rather than a muddy
   // blue/amber midpoint.
-  const fogColor = new THREE.Color(0x5f7ea8).lerp(new THREE.Color(0xcf7f34), skyWarmth);
+  // THE PINK BAND (2026-10-27, agora-257c): a straight blue-to-amber mix in
+  // linear color passes through rose (at the 18.2 h default: fog about
+  // rgb 161,126,130, horizon 200,182,183), which Remy saw as a pink band over
+  // the green plain. The ramps now pass through a warm haze at the midpoint, so
+  // the hue goes blue -> pale gold -> amber and never through magenta. The end
+  // colors (noon and true dusk) are unchanged.
+  const fogColor = warmRamp(0x5f7ea8, 0xb3a07a, 0xcf7f34, skyWarmth);
   // Gradient-sky colours. The zenith deepens toward indigo as the sun drops;
   // the horizon band warms toward amber and is kept close to the fog tint so
   // the sky dome and the far terrain haze read as one continuous atmosphere.
   const skyZenith = new THREE.Color(0x2f6fc8).lerp(new THREE.Color(0x1e2d58), skyWarmth);
-  const skyHorizon = new THREE.Color(0x9fc4e8).lerp(new THREE.Color(0xeca457), skyWarmth);
+  const skyHorizon = warmRamp(0x9fc4e8, 0xe6d6b0, 0xeca457, skyWarmth);
 
   // Night overlay (night-sky port): everything cools toward moonlit navy as
   // `nightStrength` rises. At nightStrength = 0 every value here is exactly
@@ -278,7 +297,14 @@ const GradientSky: React.FC<{
   sunDir: [number, number, number];
 }> = ({ zenith, horizon, sunColor, sunDir }) => {
   const meshRef = useRef<THREE.Mesh>(null);
-  const material = useMemo(() => {
+  // ADR 0009 step 3: under WebGPU a ShaderMaterial draws nothing, so the dome
+  // is the TSL twin. The WebGL ShaderMaterial below is untouched otherwise.
+  const skyNodes = useMemo<GradientSkyNodes | null>(
+    () => (WEBGPU_WORLD ? makeGradientSkyNodeMaterial() : null),
+    [],
+  );
+  const material = useMemo<THREE.Material>(() => {
+    if (skyNodes) return skyNodes.material;
     const mat = new THREE.ShaderMaterial({
       side: THREE.BackSide,
       depthWrite: false,
@@ -319,15 +345,24 @@ const GradientSky: React.FC<{
     });
     mat.toneMapped = false;
     return mat;
-  }, []);
+  }, [skyNodes]);
 
-  // Push the latest colours into the shader uniforms.
+  // Push the latest colours into the shader uniforms (both paths take the
+  // same four values).
   useEffect(() => {
-    (material.uniforms.uZenith.value as THREE.Color).setHex(zenith);
-    (material.uniforms.uHorizon.value as THREE.Color).setHex(horizon);
-    (material.uniforms.uSunColor.value as THREE.Color).setHex(sunColor);
-    (material.uniforms.uSunDir.value as THREE.Vector3).set(sunDir[0], sunDir[1], sunDir[2]);
-  }, [material, zenith, horizon, sunColor, sunDir]);
+    if (skyNodes) {
+      skyNodes.zenith.value.setHex(zenith);
+      skyNodes.horizon.value.setHex(horizon);
+      skyNodes.sunColor.value.setHex(sunColor);
+      skyNodes.sunDir.value.set(sunDir[0], sunDir[1], sunDir[2]);
+      return;
+    }
+    const uniforms = (material as THREE.ShaderMaterial).uniforms;
+    (uniforms.uZenith.value as THREE.Color).setHex(zenith);
+    (uniforms.uHorizon.value as THREE.Color).setHex(horizon);
+    (uniforms.uSunColor.value as THREE.Color).setHex(sunColor);
+    (uniforms.uSunDir.value as THREE.Vector3).set(sunDir[0], sunDir[1], sunDir[2]);
+  }, [material, skyNodes, zenith, horizon, sunColor, sunDir]);
 
   // Follow the camera so the horizon stays at eye level as the player moves.
   useFrame(({ camera }) => {
@@ -361,6 +396,8 @@ const World3DLighting: React.FC<{
   shadowReferenceY = 0,
 }) => {
   const sun = useMemo(() => sunFromTime(timeOfDayHours), [timeOfDayHours]);
+  // The world water reflects this sky (gpu/waterSurfaceNode.ts reads it).
+  useEffect(() => setWaterSkyColors(sun.skyZenith, sun.skyHorizon), [sun.skyZenith, sun.skyHorizon]);
   const lightRef = useRef<THREE.DirectionalLight>(null);
   const farLightRef = useRef<THREE.DirectionalLight>(null);
   const castShadows = viewProfile === 'ground';
@@ -386,7 +423,15 @@ const World3DLighting: React.FC<{
     // preserving total brightness while skipping its expensive second caster
     // pass. The Town Cell aerial camera crosses the threshold and restores the
     // far map automatically.
-    if (farLightRef.current && farLightRef.current.castShadow !== useFarShadow) {
+    // ADR 0009 (2026-10-26): on WebGPU this toggle is left alone. three r172
+    // cannot add a shadow map to a light that is already drawing: the first
+    // frame after `castShadow` flips logs `Bindings._update: binding should be
+    // available: NodeSampledTexture ... DepthTexture` and `Destroyed texture
+    // used in a submit`, and the renderer stops producing new frames (seen
+    // every time the probe camera rose past 90 m). The far cascade therefore
+    // stays off under `?gpu=1` until step 5 rebuilds the shadow setup; recorded
+    // as a gap in docs/architecture/domains/world3d-river-water.md.
+    if (!WEBGPU_WORLD && farLightRef.current && farLightRef.current.castShadow !== useFarShadow) {
       farLightRef.current.castShadow = useFarShadow;
       farLightRef.current.shadow.needsUpdate = useFarShadow;
     }

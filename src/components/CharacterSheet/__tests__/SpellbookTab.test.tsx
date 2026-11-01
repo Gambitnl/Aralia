@@ -128,11 +128,11 @@ describe('SpellbookTab', () => {
 
     // Since spell-1 is prepared, it should have an Unprep button available on hover
     // Because visibility is hover based, it still exists in the dom
-    const unprepButton = screen.getByRole('button', { name: 'Unprep' });
+    const unprepButton = screen.getByRole('button', { name: 'Plan removal' });
     expect(unprepButton).toBeInTheDocument();
 
     // Spell-2 is unprepared
-    const prepButton = screen.getByRole('button', { name: 'Prep' });
+    const prepButton = screen.getByRole('button', { name: 'Plan prepare' });
     expect(prepButton).toBeInTheDocument();
     expect(screen.getByText('Unprepared')).toBeInTheDocument();
   });
@@ -150,7 +150,8 @@ describe('SpellbookTab', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Lvl 1' }));
 
     // Bards are known casters, so their maxPrepared is null and no Prep/Unprep buttons show
-    expect(screen.queryAllByRole('button', { name: 'Prep' }).length).toBe(0);
-    expect(screen.queryAllByRole('button', { name: 'Unprep' }).length).toBe(0);
+    expect(screen.queryAllByRole('button', { name: 'Plan prepare' }).length).toBe(0);
+    expect(screen.getByText(/spell selections change when you gain a class level/)).toBeInTheDocument();
+    expect(screen.queryAllByRole('button', { name: 'Plan removal' }).length).toBe(0);
   });
 });

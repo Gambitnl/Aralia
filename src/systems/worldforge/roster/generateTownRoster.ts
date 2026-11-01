@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 18/07/2026, 20:24:31
- * Dependents: components/World3D/World3DWrapper.tsx, components/Worldforge/AgentSim3DPreview.tsx, components/Worldforge/AgentSimPreview.tsx, components/Worldforge/LivingWorldPreview.tsx, components/debug/AgentSimDevOverlay.tsx, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/townsim/townSimRegistration.ts
- * Imports: 6 files
+ * Last Sync: 01/11/2026, 13:07:47
+ * Dependents: components/Worldforge/AgentSim3DPreview.tsx, components/Worldforge/AgentSimPreview.tsx, components/Worldforge/LivingWorldPreview.tsx, components/debug/AgentSimDevOverlay.tsx, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Imports: 8 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -15,6 +15,8 @@
 // @dependencies-end
 
 import type { TownPlan } from "../artifacts";
+import {appendRuralHouseholds} from './ruralHouseholds';
+import {publicHouseWorkRoleForOwner} from './workHours';
 import { blueprintForPlot } from "../interior/generateInterior";
 import type { BlueprintPlan, RoomPurpose } from "../interior/blueprintTypes";
 import {
@@ -85,6 +87,7 @@ interface WorkerNeed {
 interface NamedHouseholdIdentity {
   name: string;
   householdMemberId: string;
+  retired?: boolean;
 }
 
 // ============================================================================
@@ -149,6 +152,7 @@ export function generateTownRoster(
           namedMember && namedHousehold
             ? {
                 name: namedMember.name,
+                retired: /^retired\b/i.test(namedMember.occupation ?? ''),
                 householdMemberId: householdMemberIdentity(
                   namedHousehold.household,
                   memberIndex,
@@ -172,7 +176,22 @@ export function generateTownRoster(
     }))
     .sort((a, b) => a.plot.id - b.plot.id);
 
+  // The economy already knows which family owns each workplace. Reserve those
+  // heads before proximity fills unowned jobs, or an early nearby smithy can
+  // steal the keeper of a later shop and split work from the household's trade.
   for (const need of workerNeeds) {
+    const homeId = need.plot.pop?.proprietorHomeId;
+    const owner = homeId && occupants.find(o => o.householdMemberId === `${homeId}:head` && o.workPlotId === undefined);
+    if (owner) {
+      owner.workPlotId = need.plot.id; owner.occupation = need.occupation;
+      // Only the already joined proprietor gets evening hospitality hours.
+      // Nearby fallback workers keep their own existing day-shift behavior.
+      const role = publicHouseWorkRoleForOwner(need.plot.pop, homeId);
+      if (role) owner.publicHouseWorkRole = role;
+    }
+  }
+  for (const need of workerNeeds) {
+    if (occupants.some(o => o.workPlotId === need.plot.id)) continue;
     const worker =
       findNearestAvailableAdult(occupants, need, houses) ??
       createOverflowWorker(
@@ -248,7 +267,9 @@ export function generateTownRoster(
 
   return {
     burgId: plan.burgId,
-    occupants,
+    // Append only after urban capacity, jobs and servants are finalized. Farm
+    // sources cannot consume those RNG streams or recruit an existing worker.
+    occupants:appendRuralHouseholds(plan,seedPath,occupants),
   };
 }
 
@@ -417,6 +438,9 @@ function createOccupant(
   // key. Ordinary roster residents retain their byte-compatible shape.
   if (namedHousehold) {
     occupant.householdMemberId = namedHousehold.householdMemberId;
+    // Retain the owner's existing job link/NPC id for stock and memory joins.
+    // Retirement changes daily attendance, not ownership or identity.
+    if (namedHousehold.retired) occupant.retired = true;
   }
 
   if (workPlotId !== undefined) {

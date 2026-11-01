@@ -22,6 +22,53 @@ const baseProps = {
 };
 
 describe('InWorldHUD title info disclosure', () => {
+  it('shows a read-only camera compass in ground mode and hides unavailable bearings', () => {
+    const {rerender} = render(<InWorldHUD {...baseProps} isDevModeEnabled={false} isGroundMode cameraBearingDegrees={90} />);
+    const compass = screen.getByTestId('hud-compass');
+    expect(compass).toHaveTextContent('View E · 90°');
+    expect(compass).toHaveStyle({pointerEvents:'auto'});
+    expect(screen.getByTestId('hud-compass-north')).toHaveStyle({transform:'rotate(-90deg)'});
+    rerender(<InWorldHUD {...baseProps} isDevModeEnabled={false} isGroundMode cameraBearingDegrees={0} />);
+    expect(screen.getByTestId('hud-compass')).toHaveTextContent('View N · 0°');
+    rerender(<InWorldHUD {...baseProps} isDevModeEnabled={false} isGroundMode cameraBearingDegrees={null} />);
+    expect(screen.queryByTestId('hud-compass')).toBeNull();
+    rerender(<InWorldHUD {...baseProps} isDevModeEnabled={false} cameraBearingDegrees={90} />);
+    expect(screen.queryByTestId('hud-compass')).toBeNull();
+  });
+
+  it.each([false, true])('identifies the retained Gate focus as an entry anchor in dev mode %s', isDevModeEnabled => {
+    const focus = { kind: 'town' as const, id: 253, label: 'Putivl — Gate 1', xFt: 1200, yFt: 2400 };
+    const { rerender } = render(<InWorldHUD {...baseProps} isDevModeEnabled={isDevModeEnabled} isGroundMode groundFocus={focus} />);
+    // A normal walking update changes the body, not the retained Local focus.
+    // The heading must not pretend that the party is still at the named gate.
+    expect(screen.getByTestId('hud-ground-place')).toHaveTextContent('Entry: Putivl — Gate 1');
+    rerender(<InWorldHUD {...baseProps} isDevModeEnabled={isDevModeEnabled} isGroundMode groundFocus={focus} playerPos={{ x: 428, y: 14, z: 514 }} />);
+    expect(screen.getByTestId('hud-ground-place')).toHaveTextContent('Entry: Putivl — Gate 1');
+    expect(focus.label).toBe('Putivl — Gate 1');
+  });
+
+  it('opens the native world map instead of a missing continent view and retains legacy scale toggling', () => {
+    const onOpenCellMap = vi.fn(), onToggleGroundMode = vi.fn();
+    const {rerender} = render(<InWorldHUD {...baseProps} isDevModeEnabled={false} isGroundMode onOpenCellMap={onOpenCellMap} onToggleGroundMode={onToggleGroundMode} />);
+    fireEvent.click(screen.getByRole('button',{name:'World Map'}));
+    expect(onOpenCellMap).toHaveBeenCalledOnce();
+    expect(onToggleGroundMode).not.toHaveBeenCalled();
+    rerender(<InWorldHUD {...baseProps} isDevModeEnabled={false} isGroundMode onToggleGroundMode={onToggleGroundMode} />);
+    fireEvent.click(screen.getByRole('button',{name:'Ascend to Continent'}));
+    expect(onToggleGroundMode).toHaveBeenCalledOnce();
+  });
+  it('opens the existing rest flow on foot without switching map modes', () => {
+    const onShortRest = vi.fn(), onLongRest = vi.fn(), onOpenMap = vi.fn();
+    const {rerender} = render(<InWorldHUD {...baseProps} isDevModeEnabled={false} isGroundMode onShortRest={onShortRest} onLongRest={onLongRest} onOpenMap={onOpenMap} />);
+    fireEvent.click(screen.getByRole('button', {name: 'Short Rest'}));
+    expect(onShortRest).toHaveBeenCalledOnce();
+    fireEvent.click(screen.getByRole('button', {name: 'Long Rest'}));
+    expect(onLongRest).toHaveBeenCalledOnce();
+    expect(onOpenMap).not.toHaveBeenCalled();
+    rerender(<InWorldHUD {...baseProps} isDevModeEnabled={false} onShortRest={onShortRest} />);
+    expect(screen.queryByRole('button', {name: 'Short Rest'})).toBeNull();
+    expect(screen.queryByRole('button', {name: 'Long Rest'})).toBeNull();
+  });
   it('renders a plain label (no button, no debug readout) when dev mode is off', () => {
     render(<InWorldHUD {...baseProps} isDevModeEnabled={false} />);
     expect(screen.getByText('3D World View')).toBeInTheDocument();

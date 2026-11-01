@@ -30,6 +30,10 @@ const handlerMock = vi.hoisted(() => vi.fn());
 const buildActionHandlersMock = vi.hoisted(() => vi.fn(() => ({
   look_around: handlerMock,
   toggle_map: handlerMock,
+  USE_ITEM: handlerMock,
+  HAGGLE_ITEM: handlerMock,
+  EQUIP_ITEM: handlerMock,
+  UNEQUIP_ITEM: handlerMock,
 })));
 
 vi.mock('../actions/actionHandlers', () => ({
@@ -156,6 +160,25 @@ describe('useGameActions loading lifecycle', () => {
     });
   });
 
+  it.each(['USE_ITEM', 'HAGGLE_ITEM'] as const)('releases controls after %s settles', async (type) => {
+    // Both handlers finish at the shared action boundary. Neither owns a
+    // second spinner lifecycle or needs an AI response to release controls.
+    handlerMock.mockReturnValueOnce(undefined);
+    const harness = renderActionHarness();
+    await act(async () => {
+      await harness.result.current.processAction({
+        type, payload: type === 'USE_ITEM'
+          ? { characterId: 'meal-actor', itemId: 'rations' }
+          : { merchantId: 'source-keeper', strategy: 'persuade' },
+      } as Action);
+    });
+    expect(handlerMock).toHaveBeenCalledTimes(1);
+    expect(harness.getVisibleState()).toMatchObject({ isLoading: false, loadingMessage: null });
+    expect(harness.dispatchedActions.at(-1)).toEqual({
+      type: 'SET_LOADING', payload: { isLoading: false },
+    });
+  });
+
   it('records a handler failure and releases the loading gate', async () => {
     // The hook deliberately reports action failures for developers. Silence that expected
     // diagnostic here while retaining an assertion that the reporting path ran.
@@ -187,6 +210,46 @@ describe('useGameActions loading lifecycle', () => {
       '[useGameActions] Error in look_around:',
       expect.any(Error),
     );
+  });
+
+  it('reports action setup failure and releases controls before a handler can run', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const failure = new Error('Action registry is unavailable');
+    buildActionHandlersMock.mockImplementationOnce(() => { throw failure; });
+    const harness = renderActionHarness();
+    // Registry setup must recover without applying equipment or waiting for a watchdog.
+    await act(async () => {
+      await harness.result.current.processAction({
+        type: 'EQUIP_ITEM', payload: {characterId: 'preparing-bard', itemId: 'club'},
+      });
+    });
+    expect(handlerMock).not.toHaveBeenCalled();
+    expect(harness.dispatchedActions.some(action => action.type === 'EQUIP_ITEM')).toBe(false);
+    expect(harness.getVisibleState()).toMatchObject({
+      error: failure.message, isLoading: false, loadingMessage: null,
+    });
+    expect(consoleErrorSpy).toHaveBeenCalledWith('[useGameActions] Error in EQUIP_ITEM:', failure);
+  });
+
+  it.each(['EQUIP_ITEM', 'UNEQUIP_ITEM'] as const)('releases preparation controls immediately after %s', async (type) => {
+    const harness = renderActionHarness();
+    // Equipment handlers only dispatch their synchronous reducer update. The
+    // common action boundary must finish the spinner without the watchdog.
+    handlerMock.mockImplementationOnce((action: Action) => {
+      if (action.type === 'EQUIP_ITEM' || action.type === 'UNEQUIP_ITEM') {
+        harness.dispatch({type, payload: action.payload} as AppAction);
+      }
+    });
+    await act(async () => {
+      await harness.result.current.processAction({
+        type,
+        payload: type === 'EQUIP_ITEM'
+          ? {characterId: 'preparing-bard', itemId: 'club'}
+          : {characterId: 'preparing-bard', slot: 'OffHand'},
+      } as Action);
+    });
+    expect(handlerMock).toHaveBeenCalledTimes(1);
+    expect(harness.getVisibleState()).toMatchObject({isLoading: false, loadingMessage: null});
   });
 
   it('keeps synchronous interface toggles spinner-free while still clearing stale errors', async () => {

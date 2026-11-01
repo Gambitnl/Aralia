@@ -11,12 +11,14 @@
  */
 import React from 'react';
 import type { PlayerCharacter } from '../../types';
+import type { AppAction } from '../../state/actionTypes';
 import type { Puzzle } from '../../systems/puzzles/types';
 interface PuzzleRuntimeModalProps {
     isOpen: boolean;
     onClose: () => void;
     puzzle: Puzzle;
     character: PlayerCharacter;
+    dispatch?: React.Dispatch<AppAction>;
 }
 export declare const PuzzleRuntimeModal: React.FC<PuzzleRuntimeModalProps>;
 export default PuzzleRuntimeModal;

@@ -11,6 +11,23 @@
  * All geometries are unit-frame (ground contact at y = 0) and carry a baked
  * `color` attribute — render with `vertexColors` and yLift 0.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 01:55:53
+ * Dependents: components/World3D/GroundProps.tsx, components/World3D/WebGPUProbeScene.tsx
+ * Imports: 7 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type * as THREE from 'three';
 import { createGravestoneGeometry } from './gravestoneGeometry';
 import { createPostGeometry } from './postGeometry';
@@ -18,6 +35,7 @@ import { createStatueGeometry } from './statueGeometry';
 import { createAnvilGeometry } from './anvilGeometry';
 import { createScarecrowGeometry } from './scarecrowGeometry';
 import { createBrazierGeometry } from './brazierGeometry';
+import { createCaveOverhangGeometry, createUnlitFirepitGeometry } from './hiddenSiteGeometry';
 
 export interface TownPropForm {
   /** Cached geometry variants; instance `variant % length` selects one. */
@@ -39,6 +57,9 @@ export function buildTownPropForms(): Record<string, TownPropForm> {
     anvil: { geometries: [101].map((s) => createAnvilGeometry(s, 'anvil')) },
     grindstone: { geometries: [111, 112].map((s) => createAnvilGeometry(s, 'grindstone')) },
     scarecrow: { geometries: [121, 122, 123].map((s) => createScarecrowGeometry(s)) },
+    // Discovery cues reuse this cached/batched form owner; they imply no fire or entry.
+    'cave-mouth': { geometries: [141, 142].map(createCaveOverhangGeometry) },
+    firepit: { geometries: [151, 152].map(createUnlitFirepitGeometry) },
     brazier: { geometries: [131, 132, 133].map((s) => createBrazierGeometry(s)) },
   };
 }
@@ -48,5 +69,5 @@ export const TOWN_PROP_FORM_IDS = [
   'gravestone', 'tomb', 'stone-cross',
   'lantern-post', 'tavern-sign', 'fingerpost',
   'statue', 'milestone', 'wayside-shrine',
-  'anvil', 'grindstone', 'scarecrow', 'brazier',
+  'anvil', 'grindstone', 'scarecrow', 'brazier', 'cave-mouth', 'firepit',
 ] as const;

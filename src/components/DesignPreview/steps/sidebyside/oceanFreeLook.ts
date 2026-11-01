@@ -27,9 +27,9 @@
  *   Shift                four times faster
  *   wheel                a step forward or back along the view
  *
- * The speed follows the height above the water (a camera at 138 m flies
- * faster than one at 2 m), so one speed works for the deck view and the
- * view from high above.
+ * By default speed scales with absolute world Y, rather than object distance.
+ * The river's camera panel can select fixed speed and disable the slow-frame
+ * travel cap; the shared controller exposes the actual scaling in its reading.
  *
  * WHAT IS KEPT: THE CAPTURES DO NOT CHANGE
  *
@@ -44,13 +44,35 @@
  * Keys act only while the canvas has focus (a pointer press gives it focus),
  * so typing elsewhere on the page never moves the camera.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 20/10/2026, 01:34:06
+ * Dependents: components/DesignPreview/steps/sidebyside/SideBySideOcean.tsx, components/DesignPreview/steps/water/RiverScene.tsx, components/World3D/water/RiverDropMenu.tsx
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import * as THREE from 'three/webgpu';
 
+/** Camera-only controls. Defaults retain the existing ocean/river movement. */
+export interface FreeLookOptions { heightSpeed: boolean; fixedSpeedMps: number; limitFrameStep: boolean }
+export interface FreeLookReading { speedMps: number; cameraY: number; frameTimeScale: number; frameMs: number; moving: boolean }
 export interface FreeLook {
   /** Apply held keys for one frame of `dtS` seconds. No input: no change. */
   update(dtS: number): void;
   /** Read yaw and pitch back from the camera after a script set its pose. */
   syncFromCamera(): void;
+  configure(options: Partial<FreeLookOptions>): void;
+  reading(): FreeLookReading;
   dispose(): void;
 }
 
@@ -70,6 +92,8 @@ const PAN_SECONDS_PER_PX = 0.012;
 const FLY_KEYS = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'KeyE', 'ShiftLeft', 'ShiftRight']);
 
 export function attachFreeLook(camera: THREE.PerspectiveCamera, dom: HTMLElement): FreeLook {
+  const options: FreeLookOptions = { heightSpeed: true, fixedSpeedMps: 30, limitFrameStep: true };
+  let frameS = 0, usedFrameS = 0, moving = false;
   let yaw = 0;
   let pitch = 0;
   const held = new Set<string>();
@@ -90,7 +114,7 @@ export function attachFreeLook(camera: THREE.PerspectiveCamera, dom: HTMLElement
     camera.quaternion.setFromEuler(euler);
   };
   const speed = () => {
-    const s = Math.max(SPEED_MIN_MS, Math.abs(camera.position.y) * SPEED_PER_M_OF_HEIGHT);
+    const s = options.heightSpeed ? Math.max(SPEED_MIN_MS, Math.abs(camera.position.y) * SPEED_PER_M_OF_HEIGHT) : options.fixedSpeedMps;
     return held.has('ShiftLeft') || held.has('ShiftRight') ? s * SHIFT_GAIN : s;
   };
 
@@ -174,6 +198,9 @@ export function attachFreeLook(camera: THREE.PerspectiveCamera, dom: HTMLElement
 
   return {
     update(dtS: number) {
+      frameS = Number.isFinite(dtS) ? Math.max(0, dtS) : 0;
+      usedFrameS = options.limitFrameStep ? Math.min(frameS, 0.1) : frameS;
+      moving = false;
       if (held.size === 0) return;
       camera.getWorldDirection(fwd);
       right.crossVectors(fwd, camera.up).normalize();
@@ -185,12 +212,20 @@ export function attachFreeLook(camera: THREE.PerspectiveCamera, dom: HTMLElement
       if (held.has('KeyE')) move.y += 1;
       if (held.has('KeyQ')) move.y -= 1;
       if (move.lengthSq() === 0) return;
-      // A frame that took long (a tab in the background) must not throw the
-      // camera across the sea.
-      const dt = Math.min(dtS, 0.1);
-      camera.position.addScaledVector(move.normalize(), speed() * dt);
+      // The default cap limits travel after a slow frame. Inspection controls
+      // can opt into elapsed-time travel instead.
+      // The optional cap prevents a stalled frame causing a large jump. The
+      // reading exposes its real-time reduction so it is not mistaken for drag.
+      moving = true;
+      camera.position.addScaledVector(move.normalize(), speed() * usedFrameS);
     },
     syncFromCamera,
+    configure(next) {
+      if (next.heightSpeed !== undefined) options.heightSpeed = next.heightSpeed;
+      if (next.limitFrameStep !== undefined) options.limitFrameStep = next.limitFrameStep;
+      if (next.fixedSpeedMps !== undefined && Number.isFinite(next.fixedSpeedMps)) options.fixedSpeedMps = Math.max(0.1, Math.min(5000, next.fixedSpeedMps));
+    },
+    reading: () => ({ speedMps: speed(), cameraY: camera.position.y, frameTimeScale: frameS > 0 ? usedFrameS / frameS : 1, frameMs: frameS * 1000, moving }),
     dispose() {
       dom.removeEventListener('pointerdown', onDown);
       dom.removeEventListener('pointermove', onMove);

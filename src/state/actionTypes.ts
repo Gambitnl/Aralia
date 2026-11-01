@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
- *
- * Last Sync: 09/09/2026, 10:59:22
- * Dependents: components/CharacterCreator/CharacterCreator.tsx, components/CharacterCreator/FeatSelection.tsx, components/ConversationPanel/ConversationPanel.tsx, components/gameEntry/OpeningSituationGate.tsx, components/layout/DebugModals.tsx, components/layout/GameModals.tsx, components/screens/CharacterCreatorScreen.tsx, components/ui/GameGuideModal.tsx, components/ui/NotificationSystem.tsx, hooks/actions/actionHandlers.ts, hooks/actions/handleEncounter.ts, hooks/actions/handleGeminiCustom.ts, hooks/actions/handleItemInteraction.ts, hooks/actions/handleMerchantInteraction.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleObservation.ts, hooks/actions/handleOracle.ts, hooks/actions/handleResourceActions.ts, hooks/actions/handleSystemAndUi.ts, hooks/actions/handleWorldEvents.ts, hooks/useChronicleRumorsSync.ts, hooks/useCompanionBanter.ts, hooks/useConversation.ts, hooks/useDialogueSystem.ts, hooks/useDungeonRumorsSync.ts, hooks/useGameActions.ts, hooks/useGameHotkeys.ts, hooks/useGameInitialization.ts, hooks/useHistorySync.ts, hooks/useKnownPortsSync.ts, hooks/useOllamaCheck.ts, hooks/useOllamaLogBridge.ts, hooks/useOpeningSituation.ts, hooks/useOverheardGossip.ts, hooks/useSeaEncounter.ts, hooks/useTownCrierAnnouncements.ts, hooks/useTownMerchantRegistration.ts, hooks/useTownSimRegistration.ts, hooks/useVoyageArrival.ts, state/GameContext.tsx, state/actions/crimeActions.ts, state/appState.ts, state/reducers/characterReducer.ts, state/reducers/companionReducer.ts, state/reducers/conversationReducer.ts, state/reducers/craftingReducer.ts, state/reducers/crimeReducer.ts, state/reducers/dialogueReducer.ts, state/reducers/economyReducer.ts, state/reducers/encounterReducer.ts, state/reducers/factReducer.ts, state/reducers/gameEntryReducer.ts, state/reducers/identityReducer.ts, state/reducers/journalReducer.ts, state/reducers/legacyReducer.ts, state/reducers/logReducer.ts, state/reducers/navalReducer.ts, state/reducers/npcReducer.ts, state/reducers/questReducer.ts, state/reducers/religionReducer.ts, state/reducers/ritualReducer.ts, state/reducers/townReducer.ts, state/reducers/uiReducer.ts, state/reducers/worldReducer.ts, systems/intent/runIntentFlow.ts, systems/intent/startThreatCombat.ts, systems/memory/actionMemoryMatrix.ts, systems/religion/CombatReligionAdapter.ts, systems/religion/TempleSystem.ts, systems/travel/applyProvision.ts, types/index.ts, utils/combat/battleEndActions.ts, utils/context/entityIntegrationUtils.ts
- * Imports: None
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * ARCHITECTURAL CONTEXT:
  * This file is the 'Action Registry'—the central definition of every
@@ -29,6 +13,25 @@
  *
  * @file src/state/actionTypes.ts
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 31/10/2026, 14:54:56
+ * Dependents: components/CharacterCreator/CharacterCreator.tsx, components/CharacterCreator/FeatSelection.tsx, components/Combat/useSpellGroundEdits.ts, components/ConversationPanel/CompanionGoalDestinationChoices.tsx, components/ConversationPanel/CompanionGoalWorkChoices.tsx, components/ConversationPanel/CompanionPreparationChoices.tsx, components/ConversationPanel/CompanionRumorChoices.tsx, components/ConversationPanel/CompanionTravelChoices.tsx, components/ConversationPanel/ConversationPanel.tsx, components/gameEntry/OpeningSituationGate.tsx, components/layout/AppShell.tsx, components/layout/DebugModals.tsx, components/layout/GameModals.tsx, components/puzzles/PuzzleRuntimeModal.tsx, components/screens/AppPhaseContent.tsx, components/screens/CharacterCreatorScreen.tsx, components/ui/GameGuideModal.tsx, components/ui/NotificationSystem.tsx, hooks/actions/actionHandlers.ts, hooks/actions/handleEncounter.ts, hooks/actions/handleGeminiCustom.ts, hooks/actions/handleItemInteraction.ts, hooks/actions/handleLodging.ts, hooks/actions/handleMerchantInteraction.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleObservation.ts, hooks/actions/handleOracle.ts, hooks/actions/handleResourceActions.ts, hooks/actions/handleSystemAndUi.ts, hooks/actions/handleWorldEvents.ts, hooks/app/useAppAmbientDialogue.ts, hooks/app/useAppAtlasEntry.ts, hooks/app/useAppAtlasRuntime.ts, hooks/app/useAppCharacterEntry.ts, hooks/app/useAppDeveloperCombatFixtures.ts, hooks/app/useAppDeveloperMenu.ts, hooks/app/useAppDeveloperProbe.ts, hooks/app/useAppLoadingWatchdog.ts, hooks/app/useAppPhaseClock.ts, hooks/app/useAppPreferences.ts, hooks/app/useAppTravelActions.ts, hooks/app/useAppWorldGeneration.ts, hooks/useChronicleRumorsSync.ts, hooks/useCompanionBanter.ts, hooks/useConversation.ts, hooks/useDialogueSystem.ts, hooks/useDungeonRumorsSync.ts, hooks/useGameActions.ts, hooks/useGameHotkeys.ts, hooks/useGameInitialization.ts, hooks/useHistorySync.ts, hooks/useKnownPortsSync.ts, hooks/useOllamaCheck.ts, hooks/useOllamaLogBridge.ts, hooks/useOpeningSituation.ts, hooks/useOverheardGossip.ts, hooks/useSeaEncounter.ts, hooks/useTownCrierAnnouncements.ts, hooks/useTownMerchantRegistration.ts, hooks/useTownSimRegistration.ts, hooks/useVoyageArrival.ts, state/GameContext.tsx, state/actions/crimeActions.ts, state/appState.ts, state/craftingActionContract.ts, state/reducers/characterReducer.ts, state/reducers/companionReducer.ts, state/reducers/conversationReducer.ts, state/reducers/craftingReducer.ts, state/reducers/crimeReducer.ts, state/reducers/dialogueReducer.ts, state/reducers/economyReducer.ts, state/reducers/encounterReducer.ts, state/reducers/factReducer.ts, state/reducers/gameEntryReducer.ts, state/reducers/identityReducer.ts, state/reducers/journalReducer.ts, state/reducers/legacyReducer.ts, state/reducers/logReducer.ts, state/reducers/merchantTransactions.ts, state/reducers/navalReducer.ts, state/reducers/npcReducer.ts, state/reducers/questReducer.ts, state/reducers/religionReducer.ts, state/reducers/ritualReducer.ts, state/reducers/townReducer.ts, state/reducers/uiReducer.ts, state/reducers/worldReducer.ts, systems/combat/startBattleMapEncounter.ts, systems/crafting/batchCrafting.ts, systems/crafting/craftingEngine.ts, systems/intent/runIntentFlow.ts, systems/intent/startThreatCombat.ts, systems/memory/actionMemoryMatrix.ts, systems/religion/CombatReligionAdapter.ts, systems/religion/TempleSystem.ts, systems/travel/applyProvision.ts, systems/worldforge/dungeon/world/dungeonCombatResolution.ts, types/index.ts, utils/combat/battleEndActions.ts, utils/context/entityIntegrationUtils.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import type { ObservedBuildingSource } from '../systems/worldforge/interior/buildingSource';
+import type { LodgingOffer, LodgingRestAdmission } from '../types/rest';
 import {
   GameState,
   GamePhase,
@@ -169,6 +172,9 @@ export type AppAction =
         newLocationId: string;
         activeDynamicNpcIds: string[] | null;
         destinationCell?: { cellId: number; anchor: Entry3DAnchor };
+        /** Actual reached time for the journal; ADVANCE_TIME still owns clock changes. */
+        arrivalGameTime?: string;
+        sharedJourney?: { seconds: number; route: import('../types/travelMeta').TravelRouteLineage };
       };
     }
   | {
@@ -205,11 +211,17 @@ export type AppAction =
   | { type: "CLOSE_CHARACTER_SHEET" }
   | {
       type: "SET_LAST_NPC_INTERACTION";
-      payload: { npcId: string | null; response: string | null };
+      payload: { npcId: string | null; response: string | null; dialogue?: import("../types/memory").NpcDialoguePublication };
     }
   | { type: "RESET_NPC_INTERACTION_CONTEXT" }
   | { type: "ADVANCE_TIME"; payload: { seconds: number } }
   | { type: "TOWNSIM_REGISTER_BURG"; payload: { burgId: number } }
+  | { type: "RETAIN_OBSERVED_BUILDING_SOURCE"; payload: ObservedBuildingSource }
+  | { type: "ADMIT_BUILDING_LAYOUT_REPAIR"; payload: {burgId: number; plotId: number; sourceSignature: string} }
+  | { type: "ADMIT_GUEST_CIRCULATION_REPAIR"; payload: {burgId: number; plotId: number; sourceSignature: string; mountedSignature: string} }
+  | { type: "ADMIT_HOUSEHOLD_LAYOUT_REVISION"; payload: {burgId: number; plotId: number; sourceSignature: string; mountedSignature: string} }
+  | { type: "ADMIT_EXTERIOR_PROP_REVISION"; payload: { receipt: import("../systems/worldforge/props/exteriorPropRevision").ExteriorPropRevision; ground: import("../systems/worldforge/bridge/groundChunkLoader").GroundWorld } }
+  | { type: "SET_TOWN_BUILDING_DOOR"; payload: { burgId: number; plotId: number; doorId: string; open: boolean } }
   // One Unbroken Day: one action crosses the root reducer so the canonical
   // town outcome and the player's knowledge of it are applied together.
   | {
@@ -271,12 +283,13 @@ export type AppAction =
         merchantId?: string;
         merchantName: string;
         inventory: Item[];
+        initialTab?: 'gossip';
         economy?: EconomyState;
       };
     }
   | { type: "CLOSE_MERCHANT" }
   | { type: "BUY_ITEM"; payload: { item: Item; cost: number } }
-  | { type: "SELL_ITEM"; payload: { itemId: string; value: number } }
+  | { type: "SELL_ITEM"; payload: { itemId: string; value: number; inventoryIndex?: number; inventoryItem?: Item } }
   // Fence sales are not ordinary merchant sales. They still remove an item and
   // pay gold, but they also create a small crime-system heat footprint.
   | {
@@ -300,7 +313,7 @@ export type AppAction =
    */
   | {
       type: "MOVE_ITEM_TO_CONTAINER";
-      payload: { itemId: string; containerId: string | null };
+      payload: { itemId: string; containerId: string | null; inventoryIndex?: number; sourceItem?: Item };
     }
   | {
       type: "SELL_ALL_JUNK";
@@ -341,6 +354,10 @@ export type AppAction =
   | {
       type: "END_BATTLE";
       payload?: {
+        /** Freeze the accepted public review before the tactical screen is removed. */
+        outcomeReview?: import("../types/combatOutcome").CombatOutcomeReview;
+        /** Validated source key prevents replayed dungeon victories awarding loot twice. */
+        dungeonEncounterId?: string;
         rewards?: { gold: number; items: Item[]; xp: number };
         finalPartyState?: CombatPartySnapshotEntry[];
         /**
@@ -396,11 +413,12 @@ export type AppAction =
     }
   | {
       type: "TOGGLE_PREPARED_SPELL";
-      payload: { characterId: string; spellId: string };
+      payload: { characterId: string; spellId: string; spellLevels?: Record<string, number>; resetPlan?: boolean };
     }
   | {
       type: "LONG_REST";
       payload?: {
+        lodgingRestAdmission?: LodgingRestAdmission;
         deniedCharacterIds?: string[];
         racialRestChoices?: Record<
           string,
@@ -409,6 +427,9 @@ export type AppAction =
       };
     }
   | { type: "TOGGLE_LONG_REST_MODAL" }
+  | { type: "SHOW_LODGING_OFFER"; payload: { offer: LodgingOffer; error?: string } | null }
+  | { type: "RESERVE_LODGING"; payload: LodgingOffer }
+  | { type: "OPEN_LODGING_REST"; payload: LodgingRestAdmission }
   | { type: "TOGGLE_SHORT_REST_MODAL" }
   // Short rest updates can include healing, Hit Dice pool adjustments, and party-level rest tracking.
   | {
@@ -563,6 +584,8 @@ export type AppAction =
       payload: { dungeonId: string; progress: DungeonProgressPatch };
     }
   | { type: "DUNGEON_RETREATED"; payload: { dungeonId: string } }
+  /** Source-object reach and inventory settlement are validated together by the world owner. */
+  | { type: "DUNGEON_OBJECT_INTERACTED"; payload: { dungeonId: string; objectId: string; intent: 'examine' | 'collect' | 'light_torch'; inventoryIndex?: number } }
   | { type: "DUNGEON_COMPLETED"; payload: { dungeonId: string } }
   // Gemini Intelligence Action
   | { type: "ANALYZE_SITUATION" }
@@ -589,6 +612,8 @@ export type AppAction =
       };
     }
   // Quest Actions
+  | { type: "OFFER_QUEST"; payload: Quest }
+  | { type: "ABANDON_QUEST"; payload: { questId: string; reason: string } }
   | { type: "ACCEPT_QUEST"; payload: Quest }
   | {
       type: "UPDATE_QUEST_OBJECTIVE";
@@ -598,7 +623,18 @@ export type AppAction =
   // Travel-provisioning conditions (e.g. 'starving', 'fatigued') applied party-wide
   | { type: "SET_PARTY_CONDITION"; payload: { condition: string } }
   | { type: "CLEAR_PARTY_CONDITION"; payload: { condition: string } }
+  // Individual character conditions (e.g. forced march 'exhaustion' on failed Constitution save)
+  | { type: "SET_CHARACTER_CONDITION"; payload: { characterId: string; condition: string } }
+  | { type: "CLEAR_CHARACTER_CONDITION"; payload: { characterId: string; condition: string } }
+  // GG-471: Track elapsed travel minutes toward the next whole-day ration deduction
+  | { type: "SET_TRAVEL_MINUTES_REMAINDER"; payload: { minutes: number } }
   // Companion Actions
+  | { type: "RECORD_COMPANION_POSITION"; payload: { companionId: string; worldSeed: number; locationId: string; position: { xM: number; yM: number; zM: number }; trail?: Array<{ xM: number; yM: number; zM: number }> } }
+  | { type: "COMPANION_GOAL_WORK_CHOICE"; payload: { companionId: string; choice: import("../types/companions.js").CompanionGoalWorkChoice } }
+  | { type: "DISCUSS_COMPANION_DESTINATION"; payload: import("../types/companions.js").CompanionGoalDestinationSelection }
+  | { type: "DISCUSS_COMPANION_RUMOR"; payload: import("../types/companions.js").CompanionRumorSelection }
+  | { type: "COMPANION_TRAVEL_CHOICE"; payload: { companionId: string; choice: import("../types/companions.js").CompanionTravelChoice } }
+  | { type: "COMPANION_PREPARATION_CHOICE"; payload: { companionId: string; choice: import("../types/companions.js").CompanionPreparationChoice } }
   | {
       type: "UPDATE_COMPANION_APPROVAL";
       payload: {
@@ -643,6 +679,8 @@ export type AppAction =
       payload: { banterId: string; timestamp: number };
     }
   // Party Recruitment Actions
+  | { type: "RECORD_COMPANION_ARRIVALS"; payload: { worldSeed: number; locationId: string; arrivals: Array<{ companionId: string; journeyId: string; position: { xM: number; yM: number; zM: number } }> } }
+  | { type: "SPEND_TRAVEL_PROVISIONS"; payload: { rations: number; water: number } }
   | { type: "RECRUIT_COMPANION"; payload: RecruitPayload }
   | { type: "DISMISS_PARTY_MEMBER"; payload: { memberId: string } }
   // Notification Actions
@@ -677,7 +715,7 @@ export type AppAction =
   // Town notice board visibility (living-world news modal)
   | { type: "SET_NOTICE_BOARD_VISIBLE"; payload: boolean }
   // Town broadsheet visibility (living-world newspaper modal)
-  | { type: "SET_BROADSHEET_VISIBLE"; payload: boolean }
+  | { type: "SET_BROADSHEET_VISIBLE"; payload: boolean; readingPlace?: GameState["broadsheetReadingPlace"] }
   // Notoriety Actions
   | {
       type: "COMMIT_CRIME";
@@ -790,7 +828,7 @@ export type AppAction =
       };
     }
   // Dialogue Actions
-  | { type: "START_DIALOGUE_SESSION"; payload: { npcId: string } }
+  | { type: "START_DIALOGUE_SESSION"; payload: { npcId: string; contactStatus?: 'first-meeting' | 'returning' } }
   | { type: "UPDATE_DIALOGUE_SESSION"; payload: { session: DialogueSession } }
   | {
       type: "DISCUSS_TOPIC";
@@ -1003,6 +1041,10 @@ export type AppAction =
   | { type: "SCENE_IMAGE_REQUEST_SUCCESS"; payload: { url: string } }
   | { type: "SCENE_IMAGE_REQUEST_ERROR"; payload: { error: string } }
   | {
+      type: "INITIALIZE_COMPANION_WORLD_PRESENCE";
+      payload: { activities: import("../types/companions.js").CompanionPublicActivity[]; npcs: import("../types/world.js").RichNPC[] };
+    }
+  | {
       type: "PLACE_SITUATION_NPCS";
       payload: { npcs: import("../types/world.js").RichNPC[] };
     }
@@ -1022,6 +1064,9 @@ export type AppAction =
   // Puzzle Runtime Modal Actions
   | { type: "OPEN_PUZZLE_RUNTIME"; payload: Puzzle }
   | { type: "CLOSE_PUZZLE_RUNTIME" }
+  // Advances the active puzzle immutably through the reducer pipeline instead
+  // of mutating state.activePuzzle in place inside PuzzleRuntimeModal (WF-G231).
+  | { type: "PUZZLE_ATTEMPT"; payload: { puzzleId: string; input: string } }
   // Dice Roller Actions
   | { type: "TOGGLE_DICE_ROLLER" }
   | { type: "SET_VISUAL_DICE_ENABLED"; payload: boolean }

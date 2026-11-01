@@ -19,8 +19,10 @@ import { guideUrl, lexiconUrl, parseIdeaRoute, promptsUrl, recordUrl, revisionUr
 import {
   checkSourceReachability,
   collectCheckableUrls,
+  formatReachabilityReport,
   parseCliOptions,
   validateIdeaBoard,
+  probeIdeaSourceRewrites,
 } from './validate.mjs';
 
 // ============================================================================
@@ -100,6 +102,45 @@ function completeFixture() {
 
 test('a complete dated assessment satisfies every evidence category', () => {
   assert.deepEqual(validateIdeaBoard(completeFixture()), []);
+});
+
+// Proposed rewrites use the same complete research validator as committed data.
+// All mutations here are disposable fixture clones, never real board updates.
+test('WF295: source rewrite probe uses global normalized primary uniqueness and names both owners', () => {
+  const data=completeFixture(),source=data.records[0].sources[0];
+  data.records[0].sources.push({...structuredClone(source),id:'SRC-0002',url:'https://example.com/destination'});
+  const before=structuredClone(data);
+  const report=probeIdeaSourceRewrites(data,[{recordId:'IB-0001',sourceId:'SRC-0001',from:source.url,to:'https://EXAMPLE.com/destination/#section',reason:'Parent reviewed the redirected primary source.'}]);
+  assert.equal(report.ok,false);assert.equal(report.requiresRuling,true);
+  assert.deepEqual(report.collisions[0].owners.map(owner=>owner.sourceId),['SRC-0001','SRC-0002']);
+  assert.match(report.proposedErrors.join('\n'),/url duplicates/);assert.deepEqual(data,before);
+});
+
+test('WF295: excluded URLs cannot become duplicate active primaries; a reason never overrides a ruling',()=>{
+  const data=completeFixture();data.excludedSources=[{id:'EXC-0001',title:'Excluded supplied link',url:'https://example.com/excluded',providedAt:'2026-08-31',excludedAt:'2026-08-31',reason:'Human chose to preserve the supplied URL outside the active board.'}];
+  const report=probeIdeaSourceRewrites(data,[{recordId:'IB-0001',sourceId:'SRC-0001',from:data.records[0].sources[0].url,to:data.excludedSources[0].url,reason:'Approved by a parent does not bypass uniqueness.'}]);
+  assert.equal(report.ok,false);assert.ok(report.collisions[0].owners.some(owner=>owner.excluded&&owner.sourceId==='EXC-0001'));
+});
+
+test('WF295: complete safe batches preserve every field; unsafe batches are never partially accepted',()=>{
+  const data=completeFixture(),source=data.records[0].sources[0];
+  data.records[0].sources.push({...structuredClone(source),id:'SRC-0002',url:'https://example.com/other'});
+  const rewrite=(sourceId,from,to)=>({recordId:'IB-0001',sourceId,from,to,reason:'Reviewed complete batch of source address changes.'});
+  const safe=[rewrite('SRC-0001',source.url,'https://example.com/new'),rewrite('SRC-0002','https://example.com/other','https://example.com/new?version=2')];
+  assert.equal(probeIdeaSourceRewrites(data,safe).ok,true,'query is significant in the owning normalizer');
+  assert.equal(probeIdeaSourceRewrites(data,[safe[0],{...safe[1],to:safe[0].to}]).ok,false);
+  assert.equal(probeIdeaSourceRewrites(data,[rewrite('SRC-0001',source.url,'https://example.com/other'),rewrite('SRC-0002','https://example.com/other',source.url)]).ok,true,'complete atomic swap validates its final state, not a partial edit');
+});
+
+test('WF295: stale, normalized no-op, unknown, duplicate and unsupported rewrites fail closed',()=>{
+  const data=completeFixture(),from=data.records[0].sources[0].url;
+  const rewrite={recordId:'IB-0001',sourceId:'SRC-0001',from,to:'https://example.com/new',reason:'Parent reviewed the specific primary address change.'};
+  for(const batch of [[],[rewrite,rewrite],[{...rewrite,from:'https://example.com/stale'}],[{...rewrite,to:from+'/#anchor'}],[{...rewrite,sourceId:'SRC-9999'}],[{...rewrite,to:'file:///tmp/data'}],[{...rewrite,reason:'TODO'}],[{...rewrite,approved:true}]])assert.equal(probeIdeaSourceRewrites(data,batch).ok,false);
+  const invalid=structuredClone(data);invalid.records[0].summary='';
+  const report=probeIdeaSourceRewrites(invalid,[rewrite]);assert.equal(report.ok,false);assert.ok(report.baselineErrors.length);assert.ok(report.proposedErrors.length);
+  assert.equal(probeIdeaSourceRewrites({records:{}},[rewrite]).ok,false,'malformed baseline is not acceptance');
+  const malformed=structuredClone(data);malformed.records[0].sources={};
+  assert.equal(probeIdeaSourceRewrites(malformed,[rewrite]).ok,false,'malformed source arrays return a refusal report');
 });
 
 test('stable record identities and source URLs cannot be duplicated', () => {
@@ -208,6 +249,19 @@ function reachabilityFixture() {
   };
 }
 
+// WF294: obtain the stable source and containing record together, even after sorting.
+test('WF294: reach entries retain the address owning record and source IDs',()=>{
+  const data=reachabilityFixture();data.records[0].id='IB-0008';
+  data.records[0].sources.forEach((source,index)=>source.id='SRC-'+String(42+index).padStart(4,'0'));
+  data.excludedSources[0].id='EXC-0001';
+  data.records.unshift({id:'IB-0001',sources:[{id:'SRC-0001',url:'https://example.com/unrelated'}]});
+  const entry=collectCheckableUrls(data).find(item=>item.url==='https://example.com/available');
+  assert.equal(entry.recordId,'IB-0008');assert.equal(entry.sourceId,'SRC-0042');assert.equal(entry.addressField,'url');
+  const archive=collectCheckableUrls(data).find(item=>item.url.includes('web.archive.org'));
+  assert.equal(archive.recordId,'IB-0008');assert.equal(archive.sourceId,'SRC-0042');assert.equal(archive.addressField,'archiveUrl');
+  const excluded=collectCheckableUrls(data).at(-1);assert.equal(excluded.recordId,null);assert.equal(excluded.sourceId,'EXC-0001');
+});
+
 function mockFetch(calls) {
   return async (url, init) => {
     calls.push({ url, method: init?.method, redirect: init?.redirect });
@@ -219,6 +273,15 @@ function mockFetch(calls) {
     return { status: 200, redirected: false, url };
   };
 }
+
+test('WF294: formatted advisory receipts carry stable source ownership without fetching exclusions',async()=>{
+  const data=reachabilityFixture(),calls=[];data.records[0].id='IB-0008';data.records[0].sources.forEach((source,index)=>source.id='SRC-'+String(42+index).padStart(4,'0'));data.excludedSources[0].id='EXC-0001';
+  const report=await checkSourceReachability(data,{fetch:mockFetch(calls),now:'2026-10-10T00:00:00Z'}),text=formatReachabilityReport(report);
+  assert.match(text,/IDENTITY IB-0008 \/ SRC-0042 url https:\/\/example.com\/available/);
+  assert.match(text,/IDENTITY IB-0008 \/ SRC-0042 archiveUrl/);
+  assert.match(text,/IDENTITY \(no active record\) \/ EXC-0001/);
+  assert.ok(!calls.some(call=>call.url.endsWith('excluded-moved')));assert.match(text,/advisory/);
+});
 
 test('every recorded address, including archive and excluded links, is named in the receipt', () => {
   const entries = collectCheckableUrls(reachabilityFixture());

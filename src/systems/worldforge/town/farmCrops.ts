@@ -24,6 +24,23 @@
  * must not import the town engine or the population model, because both of
  * those already import far too much, and the crop is a leaf fact.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ *
+ * Last Sync: 01/11/2026, 04:56:53
+ * Dependents: None (Orphan)
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { SeedPath } from '../seedPath';
 import { childSeedPath, rngFromPath, streamPath } from '../seedPath';
 
@@ -50,6 +67,8 @@ const CROP_WEIGHTS: ReadonlyArray<readonly [FarmCrop, number]> = [
 
 /** The minimum a farmstead needs to be given a crop. */
 export interface CropFarmstead {
+  /** Source index into farm-only parcels. Legacy sources omit this field. */
+  farmParcelIndex?: number;
   id: string;
   x: number;
   y: number;
@@ -76,6 +95,13 @@ export function cropForFarmstead(seedPath: SeedPath, farmsteadId: string): FarmC
     if (roll <= 0) return crop;
   }
   return CROP_WEIGHTS[CROP_WEIGHTS.length - 1][0];
+}
+
+/** One shared field has one crop, stable when neighboring households change. */
+export function cropForFarmParcel(seedPath: SeedPath, farmParcelIndex: number): FarmCrop {
+  if (!Number.isInteger(farmParcelIndex) || farmParcelIndex < 0)
+    throw new Error('A farm crop requires a valid source parcel index.');
+  return cropForFarmstead(seedPath, 'parcel:' + farmParcelIndex);
 }
 
 /** Centroid of a parcel polygon (area-weighted; degenerate rings fall to the mean). */
@@ -111,13 +137,11 @@ export interface FarmCropAssignment {
 }
 
 /**
- * Give every farmstead its crop and carry that crop onto the farm parcel the
- * farmstead works — the nearest `farm` parcel by centroid distance.
- *
- * Farmsteads claim in id order, and a parcel keeps the FIRST crop claimed on
- * it, so two farmhouses sharing one field do not fight over what is growing in
- * it. Nothing here is random beyond `cropForFarmstead`, so the whole assignment
- * is stable for one seed path.
+ * Explicit rural sources join the generation-time farm parcel ordinal and
+ * share that field's stable crop. Distance cannot change a family's field.
+ * Legacy sources retain their original per-house crop and nearest-centroid
+ * projection, with the first claim supplying the coarse field display.
+ * These are growing/use facts; neither branch grants legal ownership.
  */
 export function assignFarmCrops(
   seedPath: SeedPath,
@@ -127,6 +151,9 @@ export function assignFarmCrops(
   const cropByFarmstead = new Map<string, FarmCrop>();
   const cropByParcel = new Map<number, FarmCrop>();
 
+  // Keep the source ordinal even for malformed fields. Skipping a damaged
+  // field must not shift every later household onto a different parcel.
+  const farmSources = parcels.map((parcel,index)=>({parcel,index})).filter(({parcel})=>parcel.kind==='farm');
   const farmCentroids: Array<{ index: number; c: Pt }> = [];
   parcels.forEach((p, index) => {
     if (p.kind !== 'farm' || p.polygon.length < 3) return;
@@ -135,6 +162,19 @@ export function assignFarmCrops(
 
   const ordered = [...farmsteads].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   for (const farm of ordered) {
+    // Explicit source joins outrank distance. A moved marker cannot acquire a
+    // neighbor's field, and families sharing one field agree on its crop.
+    // An invalid saved join refuses; only legacy sources use the old proxy.
+    if (farm.farmParcelIndex !== undefined) {
+      const source = farmSources[farm.farmParcelIndex];
+      if (!Number.isInteger(farm.farmParcelIndex) || !source || source.parcel.polygon.length < 3
+        || source.parcel.polygon.some(point=>!point.every(Number.isFinite)))
+        throw new Error('A farmstead refers to an unavailable source parcel.');
+      const crop = cropForFarmParcel(seedPath, farm.farmParcelIndex);
+      cropByFarmstead.set(farm.id, crop);
+      cropByParcel.set(source.index, crop);
+      continue;
+    }
     const crop = cropForFarmstead(seedPath, farm.id);
     cropByFarmstead.set(farm.id, crop);
     let best = -1;

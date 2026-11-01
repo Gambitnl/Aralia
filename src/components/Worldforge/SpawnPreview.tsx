@@ -20,6 +20,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AtlasSvgView from './AtlasSvgView';
 import { getBridgeAtlas } from '../../systems/worldforge/bridge/legacySubmapBridge';
+import { useOffThreadBridgeAtlas } from './useOffThreadBridgeAtlas';
 import { applyWfSpawnToMap } from '../../systems/worldforge/local/resolveSpawn';
 import { wfBiomeIndexToLegacyId } from '../../systems/worldforge/local/wfBiomeToLegacy';
 import { LOCATIONS, STARTING_LOCATION_ID } from '../../data/world/locations';
@@ -84,7 +85,12 @@ const SpawnPreview: React.FC = () => {
   const [seedInput, setSeedInput] = useState<string>(String(seed));
   const [batch, setBatch] = useState<{ total: number; failures: SpawnAudit[] } | null>(null);
 
-  const { atlas, audit } = useMemo(() => resolveAndAudit(seed), [seed]);
+  // GG-555 (2026-11-01): the atlas worker builds the world first, so a reroll
+  // does not freeze the page for ~4.5 s. resolveAndAudit then reads that same
+  // cached atlas, so the audit is unchanged.
+  const { atlas: readyAtlas, error: atlasError } = useOffThreadBridgeAtlas(seed);
+  const resolved = useMemo(() => (readyAtlas ? resolveAndAudit(seed) : null), [readyAtlas, seed]);
+  const mapShown = resolved != null;
 
   // Size the atlas to fill the map column (AtlasSvgView takes explicit px).
   const mapRef = useRef<HTMLDivElement>(null);
@@ -98,7 +104,8 @@ const SpawnPreview: React.FC = () => {
     ro.observe(el);
     setMapSize({ width: el.clientWidth, height: el.clientHeight });
     return () => ro.disconnect();
-  }, []);
+    // The map div mounts only once the world is ready, so measure again then.
+  }, [mapShown]);
 
   const reroll = useCallback((next?: number) => {
     const s = Number.isFinite(next) && (next ?? 0) > 0 ? Math.floor(next as number) : generateWorldSeed();
@@ -107,6 +114,8 @@ const SpawnPreview: React.FC = () => {
     return s;
   }, []);
 
+  // The batch audit stays on the main thread on purpose (GG-555): it is a
+  // headless proof hook that builds N new worlds in a row and returns at once.
   const runAudit = useCallback((n: number) => {
     const failures: SpawnAudit[] = [];
     for (let i = 0; i < n; i++) {
@@ -121,10 +130,23 @@ const SpawnPreview: React.FC = () => {
 
   // Headless hook for proof scripts / preview_eval.
   useEffect(() => {
-    (window as unknown as Record<string, unknown>).__spawnPreview = { reroll, audit: runAudit, current: () => audit };
+    (window as unknown as Record<string, unknown>).__spawnPreview = { reroll, audit: runAudit, current: () => resolved?.audit ?? null };
     return () => { delete (window as unknown as Record<string, unknown>).__spawnPreview; };
-  }, [reroll, runAudit, audit]);
+  }, [reroll, runAudit, resolved]);
 
+  if (!resolved) {
+    return (
+      <div
+        data-testid="spawn-preview-preparing"
+        role="status"
+        className="flex h-[100dvh] w-screen items-center justify-center"
+        style={{ background: '#0b1220', color: atlasError ? '#fca5a5' : '#cbd5e1', fontFamily: 'system-ui, sans-serif' }}
+      >
+        {atlasError ? `The world did not build: ${atlasError}` : `Preparing world ${seed}…`}
+      </div>
+    );
+  }
+  const { atlas, audit } = resolved;
   const pass = audit.land && audit.passableBiome;
 
   return (

@@ -19,7 +19,7 @@
  * Handles encounter-related actions like 'GENERATE_ENCOUNTER'.
  */
 import React from 'react';
-import { GameState, ShowEncounterModalPayload, StartBattleMapEncounterPayload, Item, TempPartyMember } from '../../types';
+import { GameState, ShowEncounterModalPayload, Item, TempPartyMember } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import * as GeminiService from '../../services/geminiService';
 import { calculateEncounterParameters, processAndValidateEncounter } from '../../utils/world';
@@ -104,63 +104,10 @@ export function handleHideEncounterModal(dispatch: React.Dispatch<AppAction>): v
     dispatch({ type: 'HIDE_ENCOUNTER_MODAL' });
 }
 
-export async function handleStartBattleMapEncounter(dispatch: React.Dispatch<AppAction>, payload: StartBattleMapEncounterPayload): Promise<void> {
-    // A declared source gap is an inert production state, not a partially built
-    // encounter. Reject contradictory payloads here so no caller can smuggle a
-    // generic roster or unrelated terrain behind the fail-closed UI.
-    if (payload.sourceGap) {
-        const hasPreparedActors = payload.monsters.length > 0
-            || (payload.combatants?.length ?? 0) > 0
-            || (payload.combatantWorldSources?.length ?? 0) > 0;
-        if (hasPreparedActors || payload.extractedBattleMap) {
-            throw new Error(
-                `Battlefield source gap "${payload.sourceGap.code}" cannot include monsters, combatants, source identities, or extracted terrain.`,
-            );
-        }
-
-        dispatch({
-            type: 'START_BATTLE_MAP_ENCOUNTER',
-            payload: {
-                startBattleMapEncounterData: {
-                    ...payload,
-                    monsters: [],
-                    combatants: [],
-                },
-            },
-        });
-        return;
-    }
-
-    // A source-world encounter may already provide regiment-derived actors with
-    // stable WorldForge identities. Preserve those prepared combatants instead
-    // of rebuilding them as generic bestiary monsters. Callers without a map
-    // may still prepare their actors here, but CombatView deliberately withholds
-    // play until that encounter class supplies a real WorldForge projection.
-    const preparedCombatants = payload.combatants ?? await (async () => {
-        const { createEnemyFromMonster } = await import('../../utils/combat/createEnemyFromMonster');
-        return payload.monsters.flatMap((monster) =>
-            Array.from({ length: monster.quantity }, (_, i) => createEnemyFromMonster(monster, i))
-        );
-    })();
-    // Scene receipts and bestiary construction intentionally live on opposite
-    // sides of this bridge. Join them by stable flattened order, and fail
-    // closed when a caller claims source identities for a different roster.
-    if (
-        payload.combatantWorldSources
-        && payload.combatantWorldSources.length !== preparedCombatants.length
-    ) {
-        throw new Error(
-            `WorldForge supplied ${payload.combatantWorldSources.length} combatant sources for ${preparedCombatants.length} prepared actors.`,
-        );
-    }
-    const combatants = preparedCombatants.map((combatant, index) => ({
-        ...combatant,
-        ...(payload.combatantWorldSources?.[index]
-            ? { worldSource: payload.combatantWorldSources[index] }
-            : {}),
-    }));
-    dispatch({ type: 'START_BATTLE_MAP_ENCOUNTER', payload: { startBattleMapEncounterData: { ...payload, combatants } } });
-}
+// C11 (agora-9ed9.11): the launcher moved to systems/combat so systems code
+// (startThreatCombat) can start a battle without importing hooks. Existing
+// callers and test mocks keep this import path through the re-export.
+export { handleStartBattleMapEncounter } from '../../systems/combat/startBattleMapEncounter';
 
 /**
  * Optional rescue context for {@link handleEndBattle}.

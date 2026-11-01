@@ -1,11 +1,18 @@
+/**
+ * @file CharacterSheetModal.tsx
+ * This component displays a modal with detailed character information,
+ * including stats, skills, spells, an equipment mannequin, and inventory with actions.
+ * Now wrapped in WindowFrame for resizing/dragging capabilities.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 18/07/2026, 11:28:30
+ * Last Sync: 28/10/2026, 13:51:52
  * Dependents: components/BattleMap/BattleMapDemo.tsx, components/CharacterSheet/index.ts, components/Combat/CombatView.tsx, components/layout/GameModals.tsx
- * Imports: 14 files
+ * Imports: 15 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,12 +21,6 @@
  */
 // @dependencies-end
 
-/**
- * @file CharacterSheetModal.tsx
- * This component displays a modal with detailed character information,
- * including stats, skills, spells, an equipment mannequin, and inventory with actions.
- * Now wrapped in WindowFrame for resizing/dragging capabilities.
- */
 import React, { useEffect, useState } from 'react';
 import { PlayerCharacter, Item, EquipmentSlotType, Action, Quest, LevelUpChoices } from '../../types';
 import { JournalState } from '../../types/journal';
@@ -56,6 +57,8 @@ import { CraftingTab } from './Crafting';
 import { JournalTab } from './Journal';
 import LevelUpModal from './LevelUpModal';
 
+import type { RulesEdition } from '../../config/rulesEdition';
+
 interface CharacterSheetModalProps {
   isOpen: boolean;
   character: PlayerCharacter | null;
@@ -69,6 +72,7 @@ interface CharacterSheetModalProps {
   journal?: JournalState;
   /** Full party, used by the spellbook's out-of-combat cast target picker. */
   party?: PlayerCharacter[];
+  rulesEdition?: RulesEdition;
 }
 
 type SheetTab = 'overview' | 'skills' | 'details' | 'family' | 'spellbook' | 'crafting' | 'journal';
@@ -85,6 +89,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
   quests = [],
   journal,
   party,
+  rulesEdition,
 }) => {
   const [activeTab, setActiveTab] = useState<SheetTab>('overview');
   const [filterBySlot, setFilterBySlot] = useState<EquipmentSlotType | null>(null);
@@ -284,6 +289,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
               character={character}
               onAction={onAction}
               party={party}
+              rulesEdition={rulesEdition}
               onNavigateToGlossary={onNavigateToGlossary}
             />
           )}

@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
- *
- * Last Sync: 30/08/2026, 01:47:22
- * Dependents: components/Town/Broadsheet.tsx, components/Town/NoticeBoard.tsx, components/debug/TownHistoryDevOverlay.tsx, hooks/actions/actionHandlers.ts, hooks/useChronicleRumorsSync.ts, hooks/useOverheardGossip.ts, hooks/useTownCrierAnnouncements.ts, utils/world/chronicleNewsToRumors.ts
- * Imports: 2 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file townNews.ts — the shared "news" layer that every diegetic surface reads.
  *
@@ -26,6 +10,23 @@
  * Pure. The event summaries are already plain-English (written by the sim), so
  * this layer only classifies, filters by recency, and orders them.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 29/10/2026, 00:41:47
+ * Dependents: components/Town/Broadsheet.tsx, components/Town/NoticeBoard.tsx, components/debug/TownHistoryDevOverlay.tsx, hooks/actions/actionHandlers.ts, hooks/useChronicleRumorsSync.ts, hooks/useOverheardGossip.ts, hooks/useTownCrierAnnouncements.ts, systems/worldforge/townsim/townSituation.ts, utils/world/chronicleNewsToRumors.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { DAYS_PER_YEAR } from './constants';
 import type { LifeEvent, LifeEventKind, TownSimState } from './types';
 
@@ -130,18 +131,18 @@ export function pickCrierHeadline(
 
 /** Framings for overheard chatter; chosen deterministically by event id so the
  * same item always reads the same way but successive gossip varies its voice. */
-const GOSSIP_FRAMINGS: ReadonlyArray<(t: string) => string> = [
-  (t) => `You overhear townsfolk gossiping: "${t}"`,
-  (t) => `A passerby mutters: "${t}"`,
-  (t) => `Two locals are chattering: "${t}"`,
-  (t) => `Someone nearby is saying: "${t}"`,
-  (t) => `Word on the street: "${t}"`,
+const GOSSIP_FRAMINGS: ReadonlyArray<(t: string, when: string) => string> = [
+  (t, when) => `You overhear townsfolk gossiping${when}: "${t}"`,
+  (t, when) => `A passerby mutters${when}: "${t}"`,
+  (t, when) => `Two locals are chattering${when}: "${t}"`,
+  (t, when) => `Someone nearby is saying${when}: "${t}"`,
+  (t, when) => `Word on the street${when}: "${t}"`,
 ];
 
-/** Frame a gossip news item as an overheard line, varied deterministically by id. */
-export function frameOverheardGossip(item: TownNewsItem): string {
+/** Preserve each voice and old callers; live hearing can add the source age. */
+export function frameOverheardGossip(item: TownNewsItem, ageLabel?: string): string {
   const frame = GOSSIP_FRAMINGS[Math.abs(item.id) % GOSSIP_FRAMINGS.length];
-  return frame(item.text);
+  return frame(item.text, ageLabel ? ' ('+ageLabel+')' : '');
 }
 
 /**
@@ -170,4 +171,31 @@ export function pickOverheardGossip(
   );
   const fresh = gossip.find((g) => !recentlyHeardIds?.has(g.id));
   return fresh ?? null;
+}
+
+
+/** Show when news happened and who its original record involves. This is history,
+ * not a claim that those people are alive, nearby, or asking the player for help.
+ * Missing/ambiguous records stay anonymous; prose and today's household cannot
+ * establish who participated in an older event. */
+export function townNewsContext(town: TownSimState, item: TownNewsItem, currentDay: number): {
+  ageLabel: string;
+  people: {id: number; name: string}[];
+} {
+  const age = currentDay - item.day;
+  const ageLabel = !Number.isInteger(age) || age < 0 ? 'Date unavailable'
+    : age === 0 ? 'Today' : age === 1 ? 'Yesterday' : `${age} days ago`;
+  const matches = town.chronicle.events.filter(event => event.id === item.id);
+  const source = matches.length === 1 ? matches[0] : undefined;
+  if (!source || source.day !== item.day || source.kind !== item.kind || source.summary !== item.text) {
+    return {ageLabel, people: []};
+  }
+  const people = [...new Set([source.subjectId,...source.relatedIds])].flatMap(id => {
+    const person = town.villagers[id];
+    if (!Number.isInteger(id) || id <= 0 || !person || person.occupantId !== id
+      || !person.name?.trim() || !Number.isFinite(person.bornDay) || person.bornDay > source.day
+      || person.diedDay !== undefined && person.diedDay < source.day) return [];
+    return [{id,name:person.name.trim()}];
+  });
+  return {ageLabel,people};
 }

@@ -111,7 +111,7 @@ export const CRAFTED_ITEMS: Record<string, Item> = {
     cost: '50',
     weight: 0.25,
     rarity: ItemRarity.Common,
-    effect: healEffect(7, '2d4+2'),
+    effect: healEffect(0, '2d4+2'),
   },
   antitoxin: {
     id: 'antitoxin',
@@ -218,7 +218,7 @@ export const CRAFTED_ITEMS: Record<string, Item> = {
     cost: '200',
     weight: 0.5,
     rarity: ItemRarity.Uncommon,
-    effect: healEffect(14, '4d4+4'),
+    effect: healEffect(0, '4d4+4'),
   },
   serpent_venom_poison: {
     id: 'serpent_venom_poison',
@@ -364,7 +364,7 @@ export const CRAFTED_ITEMS: Record<string, Item> = {
     cost: '1000',
     weight: 0.5,
     rarity: ItemRarity.Rare,
-    effect: healEffect(28, '8d4+8'),
+    effect: healEffect(0, '8d4+8'),
   },
   drow_poison: {
     id: 'drow_poison',
@@ -465,7 +465,7 @@ export const CRAFTED_ITEMS: Record<string, Item> = {
     cost: '5000',
     weight: 0.5,
     rarity: ItemRarity.VeryRare,
-    effect: healEffect(45, '10d4+20'),
+    effect: healEffect(0, '10d4+20'),
   },
   purple_worm_poison_vial: {
     id: 'purple_worm_poison_vial',

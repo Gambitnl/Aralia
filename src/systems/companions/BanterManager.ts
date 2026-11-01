@@ -9,6 +9,7 @@
 import { GameState } from '../../types';
 import { BanterDefinition, RelationshipLevel } from '../../types/companions';
 import { BANTER_DEFINITIONS } from '../../data/banter';
+import { isInParty } from '../party/recruitTypes';
 
 const LEVEL_WEIGHTS: Record<RelationshipLevel, number> = {
   enemy: -2,
@@ -47,7 +48,12 @@ export class BanterManager {
       // 2. Check Participants
       // Ensure all participants are in the party
       // RALPH: Essential validation - can't banter if the characters aren't there.
-      const allPresent = banter.participants.every(id => gameState.companions && gameState.companions[id]);
+      // A remembered person can be elsewhere after refusal or dismissal. Only
+      // traveling companions can take part in this party conversation.
+      const allPresent = banter.participants.every(id => {
+        const companion = gameState.companions?.[id];
+        return companion && isInParty(companion);
+      });
       if (!allPresent) return false;
 
       // 3. Check Location

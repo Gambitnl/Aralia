@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 27/02/2026, 09:30:44
- * Dependents: character/index.ts, coinPurseUtils.ts
- * Imports: None
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -27,6 +11,22 @@
  * - 1 SP (Silver) = 0.1 GP
  * - 1 CP (Copper) = 0.01 GP
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 28/10/2026, 19:49:57
+ * Dependents: components/CharacterSheet/Overview/InventoryList.tsx, components/Crime/ThievesGuild/FenceInterface.tsx, components/Trade/MerchantModal.tsx, hooks/actions/handleMerchantInteraction.ts, state/reducers/characterReducer.ts, state/reducers/crimeReducer.ts, state/reducers/merchantTransactions.ts, systems/economy/partyFunds.ts, utils/character/index.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 export interface CoinBreakdown {
     pp: number;  // Platinum pieces
@@ -146,3 +146,20 @@ export const COIN_COLORS = {
     sp: 'text-gray-300',
     cp: 'text-orange-600',
 } as const;
+
+/** Catalog currency has a fixed face value, independent of shop demand.
+ * Electrum is represented as five silver pieces by the existing purse display.
+ * Exact IDs keep similarly named treasures and custom objects as ordinary items. */
+export const CURRENCY_COPPER_VALUES = {
+    platinum_piece: 1000,
+    gold_piece: 100,
+    // The exploration catalog describes this exact item as a one-GP gold coin.
+    shiny_coin: 100,
+    electrum_piece: 50,
+    silver_piece: 10,
+    copper_piece: 1,
+} as const;
+
+export function isCurrencyItemId(id: string): id is keyof typeof CURRENCY_COPPER_VALUES {
+    return Object.prototype.hasOwnProperty.call(CURRENCY_COPPER_VALUES, id);
+}

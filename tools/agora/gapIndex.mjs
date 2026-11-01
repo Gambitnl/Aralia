@@ -187,8 +187,9 @@ export function mapColumns(headerCells) {
 
 export function splitRow(line) {
   // | a | b | c |  ->  ['a','b','c']  (leading/trailing pipes optional)
+  // Handles escaped pipes (\|) so regexes, code snippets, or commands inside cells don't split columns.
   const trimmed = line.trim().replace(/^\|/, '').replace(/\|$/, '');
-  return trimmed.split('|').map((c) => c.trim());
+  return trimmed.split(/(?<!\\)\|/).map((c) => c.replace(/\\\|/g, '|').trim());
 }
 
 export function isDividerRow(cells) {
@@ -208,18 +209,45 @@ export function parseGapsMarkdown(md) {
  * cell count and no new header), and it reports each bridge as a warning so
  * the CLI can fail loudly instead of trusting a split table.
  *
- * Returns { rows, warnings }. `warnings` is an array of strings naming the
- * 1-based line where the table resumed after a gap.
+ * agora-3b09.2: Supports documents with multiple markdown tables and prose
+ * notes interspersed (such as GLOBAL_GAPS.md), while excluding archived
+ * sections (## Resolved (archive) / ## Legacy) so completed historical logs
+ * do not leak into active index queries. Headerless continuation tables
+ * matching the prior column count are parsed, and any malformed or unmapped
+ * gap rows are recorded as parse failures rather than silently dropped.
+ *
+ * Returns { rows, warnings, parseFailures }. `warnings` is an array of strings
+ * naming lines where tables bridged. `parseFailures` records unmapped rows.
  */
 export function parseGapsMarkdownWithWarnings(md) {
   const lines = String(md).split(/\r?\n/);
   const rows = [];
   const warnings = [];
+  const parseFailures = [];
   let cols = null;
   let colCount = 0;
   let inTable = false;
+  let inArchiveSection = false;
+  let lastValidCols = null;
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+
+    // Archive / legacy sections (like in WORKFLOW_GAPS.md) are not machine-indexed
+    if (/^##\s+(?:resolved|legacy|archive)/i.test(line)) {
+      inArchiveSection = true;
+      inTable = false;
+      cols = null;
+      continue;
+    }
+    if (/^##\s+/.test(line)) {
+      inArchiveSection = false;
+      inTable = false;
+      cols = null;
+      continue;
+    }
+    if (inArchiveSection) continue;
+
     const isRow = /^\s*\|/.test(line) && line.includes('|');
     if (!isRow) {
       if (inTable && cols) {
@@ -239,22 +267,47 @@ export function parseGapsMarkdownWithWarnings(md) {
             continue;
           }
         }
-        break; // registry table ended — ignore later tables
+        inTable = false;
+        cols = null;
       }
-      inTable = false;
       continue;
     }
+
     const cells = splitRow(line);
     if (!cols) {
-      // Looking for the header row of THE registry table.
+      // Looking for the header row of a registry table.
       const candidate = mapColumns(cells);
       if (candidate.id !== undefined && candidate.status !== undefined) {
         cols = candidate;
         colCount = cells.length;
+        lastValidCols = { ...candidate, colCount };
         inTable = true;
+        continue;
       }
-      continue;
+
+      // Check for headerless continuation tables matching the active column count
+      const firstCell = (cells[0] || '').trim();
+      const secondCell = (cells[1] || '').trim().toLowerCase();
+      const looksLikeGapId = /^[A-Z]{2,}(?:-[A-Za-z0-9_-]+|\b)/.test(firstCell);
+      const isKnownStatus = OPEN_STATUSES.has(secondCell) || CLOSED_STATUSES.has(secondCell);
+
+      if (lastValidCols && cells.length === lastValidCols.colCount && looksLikeGapId && isKnownStatus) {
+        cols = lastValidCols;
+        colCount = lastValidCols.colCount;
+        inTable = true;
+      } else {
+        if (looksLikeGapId && (isKnownStatus || cells.length > 2)) {
+          parseFailures.push({
+            line: i + 1,
+            raw: line.trim(),
+            id: firstCell,
+            reason: `unmapped gap row (columns: ${cells.length}, expected: ${lastValidCols ? lastValidCols.colCount : 'header'})`,
+          });
+        }
+        continue;
+      }
     }
+
     if (isDividerRow(cells)) continue;
     const get = (key) => (cols[key] !== undefined ? cells[cols[key]] || '' : '');
     const id = get('id');
@@ -275,7 +328,7 @@ export function parseGapsMarkdownWithWarnings(md) {
       nextAction: get('nextAction'),
     });
   }
-  return { rows, warnings };
+  return { rows, warnings, parseFailures };
 }
 
 function walkGapsFiles(root) {
@@ -292,15 +345,15 @@ function walkGapsFiles(root) {
     for (const e of entries) {
       const p = path.join(dir, e.name);
       if (e.isDirectory()) stack.push(p);
-      // WORKFLOW_GAPS.md (tools/agora) uses the same row schema — index it too.
-      else if (e.isFile() && (e.name === 'GAPS.md' || e.name === 'WORKFLOW_GAPS.md')) out.push(p);
+      // WORKFLOW_GAPS.md (tools/agora) and GLOBAL_GAPS.md (docs/projects) use the same row schema — index them too.
+      else if (e.isFile() && (e.name === 'GAPS.md' || e.name === 'WORKFLOW_GAPS.md' || e.name === 'GLOBAL_GAPS.md')) out.push(p);
     }
   }
   return out.sort();
 }
 
 /** Index every GAPS.md under root. Returns flat rows tagged with project + file. */
-export function indexGaps({ root, openOnly = false, onError, onWarning } = {}) {
+export function indexGaps({ root, openOnly = false, onError, onWarning, onParseFailure } = {}) {
   const absRoot = path.isAbsolute(root) ? root : path.resolve(REPO_ROOT, root);
   const gaps = [];
   for (const file of walkGapsFiles(absRoot)) {
@@ -311,6 +364,7 @@ export function indexGaps({ root, openOnly = false, onError, onWarning } = {}) {
       // WF-G84: a bridged blank line is a registry defect. Surface it; the
       // caller decides whether that fails the run.
       if (onWarning) for (const w of parsed.warnings) onWarning(file, w);
+      if (onParseFailure) for (const f of (parsed.parseFailures || [])) onParseFailure(file, f);
     } catch (e) {
       if (onError) onError(file, e);
       continue;
@@ -318,8 +372,11 @@ export function indexGaps({ root, openOnly = false, onError, onWarning } = {}) {
     // WORKFLOW_GAPS.md is THE workflow registry — its project is 'workflow',
     // matching the documented `--ref workflow:WF-G<n>` convention (a root-level
     // file would otherwise get the meaningless project '.').
+    // GLOBAL_GAPS.md is the repo-wide cross-project tracker — its project is 'global'.
     const project = path.basename(file) === 'WORKFLOW_GAPS.md'
       ? 'workflow'
+      : path.basename(file) === 'GLOBAL_GAPS.md'
+      ? 'global'
       : path.relative(absRoot, path.dirname(file)).split(path.sep).join('/') || '.';
     for (const r of rows) {
       if (openOnly && !OPEN_STATUSES.has(r.status)) continue;
@@ -379,13 +436,21 @@ if (isMainModule()) {
   const openOnly = argv.includes('--open-only');
   const summary = argv.includes('--summary');
   let splitTables = 0;
+  let totalParseFailures = 0;
   const gaps = indexGaps({
     root,
     openOnly,
     onError: (file, e) => console.error(`gapIndex: failed to parse ${file}: ${e.message}`),
-    // WF-G84: the rows are still returned (bridged), but the run fails so the
-    // blank line gets removed instead of quietly halving the registry again.
-    onWarning: (file, w) => { splitTables++; console.error(`gapIndex: SPLIT REGISTRY TABLE in ${file}: ${w} — remove the blank line(s)`); },
+    // WF-G84: a blank line inside the workflow registry is a defect that must fail the CLI.
+    // In project and global registries, warnings are surfaced without aborting intake.
+    onWarning: (file, w) => {
+      if (path.basename(file) === 'WORKFLOW_GAPS.md') splitTables++;
+      console.error(`gapIndex: SPLIT REGISTRY TABLE in ${file}: ${w} — remove the blank line(s)`);
+    },
+    onParseFailure: (file, f) => {
+      totalParseFailures++;
+      console.error(`gapIndex: PARSE FAILURE in ${file}:${f.line}: ${f.id} - ${f.reason}`);
+    },
   });
   if (splitTables) process.exitCode = 1;
 
@@ -431,6 +496,9 @@ if (isMainModule()) {
     console.log(`${gaps.length} gap(s) across ${byProject.size} project(s) under ${root}${openOnly ? ' (open only)' : ''}:\n`);
     for (const [project, s] of [...byProject.entries()].sort((a, b) => b[1].open - a[1].open)) {
       console.log(`  ${String(s.open).padStart(4)} open / ${String(s.total).padStart(4)} total  ${project}`);
+    }
+    if (totalParseFailures > 0) {
+      console.log(`\n  (${totalParseFailures} unmapped / malformed row(s) failed to parse — see stderr above)`);
     }
   } else {
     console.log(JSON.stringify(gaps, null, 2));

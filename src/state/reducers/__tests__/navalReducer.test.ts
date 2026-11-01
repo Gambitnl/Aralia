@@ -384,4 +384,48 @@ describe('navalReducer', () => {
       expect(a.gold).toBe(b.gold);
     }
   });
+
+  describe('voyage distance arrival and crew wage deduction (GG-468, GG-469)', () => {
+    it('a 500-mile voyage on a starter Sloop docks after day 5, not day 3 (GG-468)', () => {
+      let state = navalReducer(createMockGameState({ worldSeed: 12345 }), { type: 'NAVAL_INITIALIZE_FLEET' });
+      // Sloop speed 60 -> 108 miles/day in calm wind
+      // Under the old bug (distanceTraveled >= distanceToDestination), day 3 (324 >= 176) arrived 2 days early!
+      state = navalReducer(state, {
+        type: 'NAVAL_START_VOYAGE',
+        payload: { destinationId: '42', distance: 500, danger: 0 },
+      });
+
+      // Days 1 to 4 should remain Sailing
+      for (let day = 1; day <= 4; day++) {
+        state = navalReducer(state, { type: 'NAVAL_ADVANCE_VOYAGE' });
+        expect(state.naval.currentVoyage?.daysAtSea).toBe(day);
+        expect(state.naval.currentVoyage?.status).toBe('Sailing');
+      }
+
+      // Day 5 docks at destination (reaches 0 remaining distance)
+      state = navalReducer(state, { type: 'NAVAL_ADVANCE_VOYAGE' });
+      expect(state.naval.currentVoyage?.daysAtSea).toBe(5);
+      expect(state.naval.currentVoyage?.status).toBe('Docked');
+      const activeShip = state.naval.playerShips.find(s => s.id === state.naval.activeShipId);
+      expect(activeShip?.dockedPortBurgId).toBe(42);
+    });
+
+    it('advancing a voyage deducts daily crew wages from player gold (GG-469)', () => {
+      let state = navalReducer(createMockGameState({ worldSeed: 12345 }), { type: 'NAVAL_INITIALIZE_FLEET' });
+      state.gold = 500;
+      // Recruit a Sailor (dailyWage = 2)
+      state = navalReducer(state, { type: 'NAVAL_RECRUIT_CREW', payload: { role: 'Sailor' } });
+      const crew = state.naval.playerShips[0].crew.members;
+      const totalDailyWage = crew.reduce((sum, m) => sum + m.dailyWage, 0);
+      expect(totalDailyWage).toBeGreaterThan(0);
+
+      state = navalReducer(state, {
+        type: 'NAVAL_START_VOYAGE',
+        payload: { destinationId: '10', distance: 100, danger: 0 },
+      });
+
+      state = navalReducer(state, { type: 'NAVAL_ADVANCE_VOYAGE' });
+      expect(state.gold).toBe(500 - totalDailyWage);
+    });
+  });
 });

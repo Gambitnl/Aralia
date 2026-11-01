@@ -83,10 +83,30 @@
  *   Animation Frame report only above 50 ms.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 18/10/2026, 14:31:23
+ * Dependents: components/DesignPreview/steps/EarthGolemImg2ThreeScene.tsx, components/World3D/water/riverPerformanceHeatmap.ts, devtools/perf/PerfOverlayHost.tsx, devtools/perf/PerfProbe.tsx, devtools/perf/index.ts, devtools/perf/staple.ts, devtools/perf/viewCoverage.ts
+ * Imports: 9 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { acquirePerfSession, releasePerfSession, uniquePerfSessionId } from './perfRegistry';
 import { PassGpuTimer } from './gpuTimer';
+import { WebGpuPassTimer, type PassClock } from './webGpuTimer';
 import { takeInventory, trianglesOf, type CameraLike, type InventoryInput } from './sceneInventory';
 import { browserParts, type LoafLike } from './diagnose';
+import { installMessageWorkProbe } from './pageWorkProbe';
+import { recordPerfOverhead } from './perfOverhead';
+import { isPerfMeasurementEnabled, subscribePerfMeasurement } from './perfControl';
 import {
   ZERO_COSTS,
   formatBytes,
@@ -214,7 +234,7 @@ interface Track {
   claim: Claim | null;
   session: PerfSession | null;
   sessionId: string | null;
-  timer: PassGpuTimer | null;
+  timer: PassClock | null;
   stack: OpenCall[];
   /** The key of the frame in progress, or null before the first call. */
   frameKey: number | null;
@@ -243,6 +263,8 @@ interface Track {
   betweenInner: number;
   sinceLastInner: number;
   costs: FrameCosts;
+  slowBufferWrites: { ms: number; note: string }[];
+  nextSlowBufferWrites: { ms: number; note: string }[];
   /** Costs that happened in the NEXT frame's callback before its first call. */
   nextCosts: FrameCosts;
   nextPreInner: number;
@@ -312,8 +334,10 @@ function idOf(o: object): number {
  * `requestAnimationFrame` calls this; tests call it directly.
  */
 function runAsAnimationFrame(time: number, callback: (time: number) => void): void {
+  if (!isPerfMeasurementEnabled()) { callback(time); return; }
   lastRafTime = time;
   rafCallbackStart = performance.now();
+  const callbackStarted = rafCallbackStart;
   lastRafAt = rafCallbackStart;
   rafDepth++;
   try {
@@ -322,14 +346,20 @@ function runAsAnimationFrame(time: number, callback: (time: number) => void): vo
     rafDepth--;
     // The script after the last draw is part of the frame's CPU work. Only
     // the callback's end says where that work stopped.
+    const callbackEnded = performance.now();
     if (touchedInCallback.size) {
-      const end = performance.now();
+      const end = callbackEnded;
       for (const t of touchedInCallback) {
         t.callbackEnd = end;
         t.callbackEndKey = t.frameKey;
+        t.session?.recordRenderWindow(callbackStarted,end);
       }
       touchedInCallback.clear();
     }
+    // Other page animation callbacks can delay this canvas even below Chrome's
+    // long-frame threshold. The matched timeline removes this canvas's own
+    // callbacks, so these observations never add rendering a second time.
+    for (const t of measured) t.session?.recordPageWork('Animation callback: '+(callback.name || 'unnamed'),callbackStarted,callbackEnded,'animation');
   }
 }
 
@@ -394,6 +424,7 @@ function trackFor(renderer: RendererLike): Track {
       betweenInner: 0,
       sinceLastInner: 0,
       costs: { ...ZERO_COSTS },
+      slowBufferWrites: [], nextSlowBufferWrites: [],
       nextCosts: { ...ZERO_COSTS },
       nextPreInner: 0,
       disposed: false,
@@ -489,7 +520,7 @@ function finishFrame(t: Track): void {
   for (const p of t.passes) parts.push({ name: `draw: ${p.name}`, ms: p.cpuMs });
 
   // ── Causes with no time ──
-  const notes: string[] = [];
+  const notes: string[] = t.slowBufferWrites.map(x => x.note);
   const costs = { ...t.costs };
   if (programs !== null && t.lastPrograms !== null && programs > t.lastPrograms) {
     costs.programsAdded = programs - t.lastPrograms;
@@ -530,6 +561,8 @@ function startFrame(t: Track, key: number, now: number): void {
   t.betweenInner = 0;
   t.sinceLastInner = 0;
   t.costs = t.nextCosts;
+  t.slowBufferWrites = t.nextSlowBufferWrites;
+  t.nextSlowBufferWrites = [];
   t.preInner = t.nextPreInner;
   t.nextCosts = { ...ZERO_COSTS };
   t.nextPreInner = 0;
@@ -736,6 +769,9 @@ function afterCall(t: Track): void {
   if (!call) return;
   const end = performance.now();
   const wall = end - call.start;
+  // An async renderer may resume after the animation callback has returned.
+  // Count its actual synchronous submission, not the await gap between calls.
+  if (t.stack.length === 0) t.session?.recordRenderWindow(call.start,end);
   const post = readTally(t.renderer, scratch);
   const add = (after: number, before: number) =>
     call.resetInside || after < before ? after : after - before;
@@ -840,6 +876,16 @@ function bytesOf(args: unknown[]): number {
   return 0;
 }
 
+/** WebGPU offsets and sizes count typed-array elements, but bytes for buffers/DataView. */
+function bufferWriteBytes(args: unknown[]): number {
+  const data = args[2];
+  if (!(data instanceof ArrayBuffer) && !ArrayBuffer.isView(data)) return 0;
+  const unit = ArrayBuffer.isView(data) && 'BYTES_PER_ELEMENT' in data ? Number(data.BYTES_PER_ELEMENT) : 1;
+  const offset = Number(args[3] ?? 0) * unit;
+  const bytes = args[4] === undefined ? data.byteLength - offset : Number(args[4]) * unit;
+  return Number.isFinite(bytes) && bytes >= 0 ? bytes : 0;
+}
+
 /** Bytes of an RGBA8 copy of a WebGPU extent, `[w, h]` or `{ width, height }`. */
 function extentBytes(size: unknown): number {
   if (Array.isArray(size)) return (Number(size[0]) || 0) * (Number(size[1]) || 1) * 4;
@@ -847,16 +893,21 @@ function extentBytes(size: unknown): number {
   return s && typeof s.width === 'number' ? s.width * (s.height ?? 1) * 4 : 0;
 }
 
-function wrapTimed(owner: Record<string, unknown>, name: string, onCost: (ms: number, args: unknown[]) => void): void {
+function wrapTimed(owner: Record<string, unknown>, name: string, onCost: (ms: number, args: unknown[], result?: unknown) => void): void {
   const original = owner[name] as Wrappable | undefined;
   if (typeof original !== 'function' || original[WRAPPED]) return;
   const wrapped: Wrappable = function (this: unknown, ...args: unknown[]) {
+    if (!isPerfMeasurementEnabled()) return original.apply(this, args);
     const t0 = performance.now();
+    let result: unknown;
     try {
-      return original.apply(this, args);
+      result = original.apply(this, args);
+      return result;
     } finally {
       try {
-        onCost(performance.now() - t0, args);
+        const elapsed = performance.now() - t0;
+        const started = performance.now();
+        try { onCost(elapsed, args, result); } finally { recordPerfOverhead('graphics bookkeeping', performance.now() - started); }
       } catch {
         /* never let the probe break an upload */
       }
@@ -908,9 +959,26 @@ function wrapGraphicsApi(t: Track): void {
   const device = r.backend?.device;
   if (!device || typeof device !== 'object') return; // not ready yet; try again on the next call
   t.apiWrapped = true;
+  // Weak keys keep disposed buffers collectible. Record only the three slowest
+  // writes per frame; do not retain arrays or collect stacks on ordinary uploads.
+  const allocated = new WeakMap<object, number>();
+  wrapTimed(device, 'createBuffer', (_ms, _args, result) => {
+    if (result && typeof result === 'object') allocated.set(result, performance.now());
+  });
   const queue = device.queue;
   if (queue && typeof queue === 'object') {
-    wrapTimed(queue, 'writeBuffer', (ms, a) => recordCost(t, 'buffer', ms, bytesOf(a.slice(2, 3))));
+    wrapTimed(queue, 'writeBuffer', (ms, a) => {
+      const bytes = bufferWriteBytes(a);
+      recordCost(t, 'buffer', ms, bytes);
+      if (internalDepth > 0 || ms < 4 || !a[0] || typeof a[0] !== 'object') return;
+      const buffer = a[0] as { label?: string; size?: number };
+      const born = allocated.get(buffer);
+      const age = born === undefined ? 'allocation age unknown' : 'allocated ' + Math.max(0, performance.now() - ms - born).toFixed(0) + ' ms before write';
+      const label = typeof buffer.label === 'string' && buffer.label.trim() ? buffer.label.trim().slice(0, 96) : 'unnamed';
+      const note = 'Slow buffer write #' + idOf(buffer) + ' (' + label + '): ' + ms.toFixed(1) + ' ms, ' + bytes + ' bytes of ' + (buffer.size ?? 'unknown') + ', ' + age + '. Included in buffer upload; elapsed API time does not identify GPU execution or the stall mechanism.';
+      const list = rafDepth > 0 && t.frameKey !== lastRafTime ? t.nextSlowBufferWrites : t.slowBufferWrites;
+      list.push({ms, note}); list.sort((x,y)=>y.ms-x.ms); list.length=Math.min(3,list.length);
+    });
     wrapTimed(queue, 'writeTexture', (ms, a) => recordCost(t, 'texture', ms, bytesOf(a.slice(1, 2))));
     wrapTimed(queue, 'copyExternalImageToTexture', (ms, a) => recordCost(t, 'texture', ms, extentBytes(a[2])));
   }
@@ -931,6 +999,12 @@ function ownWindowFor(t: Track, start: number, end: number): [number, number] | 
 
 function attachReport(t: Track, s: PerfSession, e: LoafLike): void {
   const end = e.startTime + e.duration;
+  s.recordBrowserWork(e);
+  // Sustained severe intervals need attribution even without a relative stall.
+  // Include the scene callback here and name it honestly; these page-wide
+  // reports are displayed separately rather than added to the CPU breakdown.
+  s.recordSevereBrowserFrame(e.startTime, e.duration, browserParts(e, null).map(p => ({ ...p,
+    name: p.name === 'another animation-frame callback' ? 'animation-frame callback (includes scene rendering)' : p.name })));
   for (const rec of s.stallsOverlapping(e.startTime, end)) {
     s.attachBrowserParts(rec, browserParts(e, ownWindowFor(t, e.startTime, end)));
   }
@@ -942,22 +1016,38 @@ function attachBufferedBrowserReports(t: Track, s: PerfSession, rec: { startMs: 
   }
 }
 
+let longFrameObserver: PerformanceObserver | null = null;
+let browserCoverage: 'long-animation-frame' | 'longtask' | 'unavailable' = 'unavailable';
+
 function observeLongFrames(): void {
+  if (!isPerfMeasurementEnabled() || longFrameObserver) return;
   if (typeof PerformanceObserver === 'undefined') return;
-  if (!PerformanceObserver.supportedEntryTypes?.includes('long-animation-frame')) return;
+  const supported=PerformanceObserver.supportedEntryTypes ?? [];
+  const entryType=supported.includes('long-animation-frame')?'long-animation-frame':supported.includes('longtask')?'longtask':null;
+  if (!entryType) return;
   try {
     const obs = new PerformanceObserver((list) => {
+      if (!isPerfMeasurementEnabled()) return;
       const now = performance.now();
       for (const entry of list.getEntries()) {
         const e = entry as unknown as LoafLike;
+        if (entryType === 'longtask') {
+          for (const t of measured) t.session?.recordPageWork('Long main-thread task (source unavailable)',e.startTime,e.startTime+e.duration,'task');
+          continue;
+        }
         loafBuffer.push(e);
         for (const t of measured) if (t.session) attachReport(t, t.session, e);
       }
       while (loafBuffer.length && now - (loafBuffer[0].startTime + loafBuffer[0].duration) > LOAF_KEEP_MS) loafBuffer.shift();
     });
-    obs.observe({ type: 'long-animation-frame', buffered: false });
+    obs.observe({ type: entryType, buffered: false });
+    longFrameObserver = obs;
+    browserCoverage = entryType;
+    for (const t of measured) t.session?.setBrowserCoverage(browserCoverage);
   } catch {
-    /* an older browser: the remainder keeps its honest name */
+    browserCoverage = 'unavailable';
+    for (const t of measured) t.session?.setBrowserCoverage(browserCoverage);
+    /* an older browser or denied observer: the remainder keeps its honest name */
   }
 }
 
@@ -1000,11 +1090,15 @@ function inventoryInputs(t: Track, now: number): InventoryInput[] {
 function maybeRunInventory(t: Track, now: number): void {
   if (now < t.inventoryDue || !t.session) return;
   t.inventoryDue = now + INVENTORY_MS;
+  const scheduledSession = t.session;
   const run = () => {
+    if (!isPerfMeasurementEnabled() || t.session !== scheduledSession) return;
     const s = t.session;
     if (!s) return;
     try {
-      s.setInventory(takeInventory(inventoryInputs(t, performance.now())));
+      const started = performance.now();
+      try { s.setInventory(takeInventory(inventoryInputs(t, started))); }
+      finally { recordPerfOverhead('inventory', performance.now() - started); }
     } catch {
       /* a scene mid-rebuild; the next walk will read it */
     }
@@ -1051,6 +1145,7 @@ function autoLabel(canvas: HTMLCanvasElement): string {
 function attach(t: Track, id: string, label: string, origin: 'named' | 'auto', gpuTiming: boolean): void {
   const s = acquirePerfSession(id, label);
   s.origin = origin;
+  s.setBrowserCoverage(browserCoverage);
   s.element = t.renderer.domElement ?? null;
   t.session = s;
   t.sessionId = id;
@@ -1062,8 +1157,10 @@ function attach(t: Track, id: string, label: string, origin: 'named' | 'auto', g
     return;
   }
   const attempt = PassGpuTimer.forRenderer(t.renderer);
-  t.timer = attempt.timer;
-  s.setGpuUnavailable(attempt.reason);
+  // WebGPU's own pass stamps cover repeated physical passes; r172's built-in
+  // renderer.info timestamp does not. Keep WebGL's existing query path intact.
+  t.timer = attempt.timer ?? (apiOf(t.renderer) === 'webgpu' ? WebGpuPassTimer.forRenderer(t.renderer) : null);
+  s.setGpuUnavailable(t.timer ? null : attempt.reason);
 }
 
 function ensureSession(t: Track): void {
@@ -1118,6 +1215,18 @@ function startSweep(): void {
   }, SWEEP_MS);
 }
 
+// A comparison bypass releases timing state and GPU queries, not scene state.
+// Re-enabling attaches fresh sessions on the next native draw. Existing wrappers
+// remain installed with a cheap conditional so measurements can resume safely.
+subscribePerfMeasurement(() => {
+  if (isPerfMeasurementEnabled()) { if (installed) observeLongFrames(); return; }
+  longFrameObserver?.disconnect(); longFrameObserver = null; browserCoverage = 'unavailable';
+  for (const t of [...measured]) detach(t);
+  if (sweepTimer !== null) { clearInterval(sweepTimer); sweepTimer = null; }
+  loafBuffer.length = 0;
+  touchedInCallback.clear();
+});
+
 // ── Wrapping ─────────────────────────────────────────────────────────────────
 
 const KIND_OF: Record<string, PassKind> = {
@@ -1144,9 +1253,11 @@ function wrapMethod(owner: Record<string, unknown>, name: string, mode: 'call' |
   } else {
     const kind = KIND_OF[name] ?? 'render';
     wrapped = function (this: RendererLike, ...args: unknown[]) {
+      if (!isPerfMeasurementEnabled()) return original.apply(this, args);
       /* The probe must never be the reason a frame fails to draw. Its own
        * bookkeeping is fenced off, and the original call always runs. */
       let t: Track | null = null;
+      const probeStarted = performance.now();
       try {
         if (internalDepth === 0) {
           const candidate = trackFor(this);
@@ -1165,14 +1276,18 @@ function wrapMethod(owner: Record<string, unknown>, name: string, mode: 'call' |
       } catch {
         t = null;
       }
+      const probeBeforeMs = performance.now() - probeStarted;
       if (!t) return original.apply(this, args);
       try {
         return original.apply(this, args);
       } finally {
+        const probeAfterStart = performance.now();
         try {
           afterCall(t);
         } catch {
           /* a counter read failed; the frame still drew */
+        } finally {
+          recordPerfOverhead('probe', probeBeforeMs + performance.now() - probeAfterStart);
         }
       }
     };
@@ -1193,6 +1308,7 @@ function wrapShadowMap(r: RendererLike): void {
   const original = sm.render as Wrappable | undefined;
   if (typeof original !== 'function' || original[WRAPPED]) return;
   const wrapped: Wrappable = function (this: unknown, ...args: unknown[]) {
+    if (!isPerfMeasurementEnabled()) return original.apply(this, args);
     let t: Track | null = null;
     try {
       const m = r.shadowMap!;
@@ -1320,6 +1436,9 @@ export function installPerfAutoProbe(): void {
   listenForWebGlRenderers();
   watchWebGpuContexts();
   wrapAnimationFrames();
+  installMessageWorkProbe((name,start,end)=>{
+    for (const t of measured) t.session?.recordPageWork(name,start,end,'event');
+  },isPerfMeasurementEnabled);
   observeLongFrames();
   // For a capture rig: the browser's long-frame reports the probe holds.
   const api = (window as unknown as { __araliaPerf?: Record<string, unknown> }).__araliaPerf;
@@ -1438,3 +1557,18 @@ export const rendererProbeInternals = {
     touchedInCallback.clear();
   },
 };
+
+/** Reuse the renderer's actual GPU clock for bounded offscreen comparisons.
+ * The comparison's draws and queries stay outside ordinary FPS samples.
+ * No supported clock means unknown, with no CPU-time substitute.
+ */
+export async function captureRendererGpu(renderer: unknown,
+  draw: (section: (id: number, render: () => void) => void) => void): Promise<Map<number, number> | null> {
+  if (!renderer || typeof renderer !== 'object') return null;
+  const existing = tracks.get(renderer)?.timer;
+  const borrowed = existing instanceof WebGpuPassTimer ? existing : null;
+  const timer = borrowed ?? WebGpuPassTimer.forRenderer(renderer);
+  if (!timer) return null;
+  try { return await timer.capture(section => withoutProbe(() => draw(section))); }
+  finally { if (!borrowed) timer.dispose(); }
+}

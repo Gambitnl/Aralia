@@ -11,6 +11,8 @@ import { fileURLToPath } from 'node:url';
 
 import {
   parseGapsMarkdown,
+  parseGapsMarkdownWithWarnings,
+  splitRow,
   indexGaps,
   OPEN_STATUSES,
   validateWorkflowGapRows,
@@ -240,3 +242,58 @@ test('WF-G84: a blank line inside the registry table bridges the rows and warns'
   assert.equal(clean.warnings.length, 0);
   assert.equal(clean.rows.length, 3);
 });
+
+test('agora-3b09.2: splitRow handles escaped pipes within table cells', () => {
+  const line = '| GG-101 | open | high | notes with \\| escaped pipe | fix it |';
+  const cells = splitRow(line);
+  assert.equal(cells.length, 5);
+  assert.equal(cells[3], 'notes with | escaped pipe');
+});
+
+test('agora-3b09.2: parseGapsMarkdownWithWarnings parses multi-table docs and reports parse failures', () => {
+  const multiMd = [
+    '# Global Tracker',
+    '',
+    '| Gap ID | Status | Severity | Gap |',
+    '|---|---|---|---|',
+    '| GG-1 | open | high | first gap |',
+    '| GG-2 | resolved | low | second gap |',
+    '',
+    'Some prose commentary or intermediate notes.',
+    '',
+    '| Gap ID | Status | Severity | Gap |',
+    '|---|---|---|---|',
+    '| GG-3 | blocked | critical | third gap across table split |',
+    '',
+    '## Unrelated non-gap table',
+    '| Name | Rank |',
+    '|---|---|',
+    '| Alice | Captain |',
+    '',
+    '## Physical Object Sub-registry',
+    '| GG-UNMAPPED-ROW | done | only-three-cells |',
+    '',
+    '| GG-4 | open | medium | continuation row without header |',
+  ].join('\n');
+
+  const res = parseGapsMarkdownWithWarnings(multiMd);
+  assert.deepEqual(res.rows.map((r) => r.id), ['GG-1', 'GG-2', 'GG-3', 'GG-4']);
+  assert.equal(res.parseFailures.length, 1);
+  assert.equal(res.parseFailures[0].id, 'GG-UNMAPPED-ROW');
+  assert.match(res.parseFailures[0].reason, /unmapped gap row/);
+});
+
+test('agora-3b09.2: indexGaps discovers GLOBAL_GAPS.md and tags project as global', () => {
+  const root = tmpTree();
+  fs.writeFileSync(
+    path.join(root, 'GLOBAL_GAPS.md'),
+    '| Gap ID | Status | Severity | Gap |\n|---|---|---|---|\n| GG-999 | open | high | global intake test |\n',
+  );
+  const all = indexGaps({ root });
+  const globalGap = all.find((g) => g.id === 'GG-999');
+  assert.ok(globalGap, 'GLOBAL_GAPS.md is discovered');
+  assert.equal(globalGap.project, 'global');
+  assert.equal(globalGap.status, 'open');
+  fs.rmSync(root, { recursive: true, force: true });
+});
+

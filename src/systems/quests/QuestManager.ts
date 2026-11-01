@@ -42,8 +42,8 @@ export const checkQuestDeadlines = (state: GameState): QuestUpdateResult => {
   const journalEvents: Array<ReturnType<typeof createQuestJournalEvent>> = [];
 
   const updatedQuestLog = state.questLog.map((quest) => {
-    // Only check active quests that have deadlines
-    if (quest.status !== QuestStatus.Active || !quest.deadline) {
+    // Only check active quests that have deadlines and have not already notified
+    if (quest.status !== QuestStatus.Active || !quest.deadline || quest.deadlineNotified) {
       return quest;
     }
 
@@ -74,20 +74,21 @@ export const checkQuestDeadlines = (state: GameState): QuestUpdateResult => {
       // Apply consequence
       switch (consequence.action) {
         case 'fail_quest':
-          return { ...quest, status: QuestStatus.Failed };
+          return { ...quest, status: QuestStatus.Failed, deadlineNotified: true };
         case 'fail_with_note':
           return {
             ...quest,
             status: QuestStatus.Failed,
+            deadlineNotified: true,
             // Preserve the legacy note trail, but include the deadline message so
             // the quest log can show why this failure happened without re-reading
             // the system log.
             notes: (quest.notes ? quest.notes + "\n" : "") + `Failed: Deadline missed.\n${consequence.message}`
           };
         case 'log_only':
-          return quest; // Do nothing to status
+          return { ...quest, deadlineNotified: true };
         default:
-          return { ...quest, status: QuestStatus.Failed };
+          return { ...quest, status: QuestStatus.Failed, deadlineNotified: true };
       }
     }
 

@@ -39,6 +39,39 @@ import type { BiomesData } from "./biomes";
 import type { Burg } from "./burgs-generator";
 import type { Point } from "./voronoi";
 
+/**
+ * The set of cell links that routes already use (upstream: a
+ * `Map<string, boolean>` keyed `${a}-${b}`, only ever set to true).
+ *
+ * GG-556 (2026-11-01): the cost functions test this set for every edge that
+ * findPath relaxes, so upstream built a new string key for each test. This
+ * set stores a pair of non-negative integer cell ids as one number
+ * (a * 2^24 + b). Any other pair keeps upstream's exact string key, so every
+ * `has` gives the same answer as upstream's `Map.has`. The set never leaves
+ * Routes.generate.
+ */
+export class RouteEdgeSet {
+  private numeric = new Set<number>();
+  private text = new Set<string>();
+
+  add(a: number, b: number): void {
+    if (isCellId(a) && isCellId(b)) this.numeric.add(a * EDGE_KEY_BASE + b);
+    else this.text.add(`${a}-${b}`);
+  }
+
+  has(a: number, b: number): boolean {
+    if (isCellId(a) && isCellId(b)) return this.numeric.has(a * EDGE_KEY_BASE + b);
+    return this.text.has(`${a}-${b}`);
+  }
+}
+
+const EDGE_KEY_BASE = 2 ** 24;
+// An integer id below 2^24 writes as the same decimal text for 0 and -0, so
+// the number key and upstream's string key agree on every such pair.
+function isCellId(v: number): boolean {
+  return Number.isInteger(v) && v >= 0 && v < EDGE_KEY_BASE;
+}
+
 const ROUTES_SHARP_ANGLE = 135;
 const ROUTES_VERY_SHARP_ANGLE = 115;
 
@@ -188,7 +221,7 @@ export class RoutesModule {
     connections,
   }: {
     isWater: boolean;
-    connections: Map<string, boolean>;
+    connections: RouteEdgeSet;
   }) {
     const pack = this.pack;
     const { grid, biomesData } = this.ctx;
@@ -203,7 +236,7 @@ export class RoutesModule {
       const distanceCost = distanceSquared(cells.p[current], cells.p[next]);
       const habitabilityModifier = 1 + Math.max(100 - habitability, 0) / 1000; // [1, 1.1];
       const heightModifier = 1 + Math.max(cells.h[next] - 25, 25) / 25; // [1, 3];
-      const connectionModifier = connections.has(`${current}-${next}`)
+      const connectionModifier = connections.has(current, next)
         ? 0.5
         : 1;
       const burgModifier = cells.burg[next] ? 1 : 3;
@@ -225,7 +258,7 @@ export class RoutesModule {
       const distanceCost = distanceSquared(cells.p[current], cells.p[next]);
       const typeModifier =
         ROUTE_TYPE_MODIFIERS[cells.t[next]] || ROUTE_TYPE_MODIFIERS.default;
-      const connectionModifier = connections.has(`${current}-${next}`)
+      const connectionModifier = connections.has(current, next)
         ? 0.5
         : 1;
 
@@ -237,7 +270,7 @@ export class RoutesModule {
 
   private getRouteSegments(
     pathCells: number[],
-    connections: Map<string, boolean>,
+    connections: RouteEdgeSet,
   ) {
     const segments = [];
     let segment = [];
@@ -246,8 +279,8 @@ export class RoutesModule {
       const cellId = pathCells[i];
       const nextCellId = pathCells[i + 1];
       const isConnected =
-        connections.has(`${cellId}-${nextCellId}`) ||
-        connections.has(`${nextCellId}-${cellId}`);
+        connections.has(cellId, nextCellId) ||
+        connections.has(nextCellId, cellId);
 
       if (isConnected) {
         if (segment.length) {
@@ -274,7 +307,7 @@ export class RoutesModule {
     exit,
   }: {
     isWater: boolean;
-    connections: Map<string, boolean>;
+    connections: RouteEdgeSet;
     start: number;
     exit: number;
   }) {
@@ -290,7 +323,7 @@ export class RoutesModule {
     return segments;
   }
 
-  private generateMainRoads(connections: Map<string, boolean>) {
+  private generateMainRoads(connections: RouteEdgeSet) {
     const { capitalsByFeature } = this.sortBurgsByFeature(this.pack.burgs);
     const mainRoads: Route[] = [];
 
@@ -319,14 +352,14 @@ export class RoutesModule {
 
   private addConnections(
     segment: number[],
-    connections: Map<string, boolean>,
+    connections: RouteEdgeSet,
   ) {
     for (let i = 0; i < segment.length; i++) {
       const cellId = segment[i];
       const nextCellId = segment[i + 1];
       if (nextCellId) {
-        connections.set(`${cellId}-${nextCellId}`, true);
-        connections.set(`${nextCellId}-${cellId}`, true);
+        connections.add(cellId, nextCellId);
+        connections.add(nextCellId, cellId);
       }
     }
   }
@@ -337,7 +370,7 @@ export class RoutesModule {
       ((burg.population as number | undefined) ?? 0) >= ROAD_BURG_MIN_POPULATION;
   }
 
-  private generateTrails(connections: Map<string, boolean>) {
+  private generateTrails(connections: RouteEdgeSet) {
     const { burgsByFeature } = this.sortBurgsByFeature(this.pack.burgs);
     const townRoads: Route[] = [];
     const villageTrails: Route[] = [];
@@ -382,7 +415,7 @@ export class RoutesModule {
    * spur selection hashes the burg id; the target is the first forest cell found
    * by BFS, walked PATH_SPUR_MAX_DEPTH cells deeper along forest neighbors.
    */
-  private generatePaths(connections: Map<string, boolean>) {
+  private generatePaths(connections: RouteEdgeSet) {
     const cells = this.pack.cells;
     const FOREST_IDS = new Set([5, 6, 7, 8, 9]);
     const isForest = (c: number): boolean => FOREST_IDS.has(cells.biome?.[c] ?? 0);
@@ -434,7 +467,7 @@ export class RoutesModule {
     return paths;
   }
 
-  private generateSeaRoutes(connections: Map<string, boolean>) {
+  private generateSeaRoutes(connections: RouteEdgeSet) {
     const { portsByFeature } = this.sortBurgsByFeature(this.pack.burgs);
     const seaRoutes: Route[] = [];
 
@@ -543,7 +576,7 @@ export class RoutesModule {
     return routesMerged > 1 ? this.mergeRoutes(routes) : routes;
   }
 
-  private createRoutesData(routes: Route[], connections: Map<string, boolean>) {
+  private createRoutesData(routes: Route[], connections: RouteEdgeSet) {
     // Order matters: main roads claim their corridors (via addConnections)
     // BEFORE trails generate, so trails never re-path an existing trunk. The
     // tier split below changes only grouping/labeling, not this order.
@@ -574,7 +607,7 @@ export class RoutesModule {
 
   generate(lockedRoutes: Route[] = []) {
     const pack = this.pack;
-    const connections = new Map<string, boolean>();
+    const connections = new RouteEdgeSet();
     lockedRoutes.forEach((route: Route) => {
       this.addConnections(
         route.points.map((p) => p[2]),

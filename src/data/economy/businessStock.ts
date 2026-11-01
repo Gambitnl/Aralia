@@ -17,10 +17,26 @@
  * framework — we reuse the item-side economy math already in economyUtils.ts.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 29/10/2026, 15:34:09
+ * Dependents: components/Trade/MerchantModal.tsx, hooks/actions/handleMerchantInteraction.ts, state/reducers/merchantTransactions.ts, systems/economy/NpcBusinessManager.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { BusinessType, BusinessStockEntry } from '../../types/business';
 import { Item } from '../../types';
 import { SeededRandom } from '@/utils/random';
-import { calculatePrice } from '../../utils/economy/economyUtils';
+import { calculatePrice, type PriceContext } from '../../utils/economy/economyUtils';
 import { EconomyState } from '../../types/economy';
 
 /**
@@ -92,6 +108,9 @@ const STOCK_POOLS: Record<BusinessType, StockPoolEntry[]> = {
     q('soft_boots', 2, 6),
     q('club', 2, 5),
     q('sling', 2, 6),
+    // Portable light needs an ignition source. Append this finite optional line
+    // so earlier stock rolls stay exact; existing saved shelves are not refilled.
+    q('tinderbox', 2, 6),
   ],
   tavern: [
     // A tavern sells food, drink, and a night's lodging. Represented with the
@@ -194,12 +213,18 @@ export const generateBusinessStock = (
 
   const entries: BusinessStockEntry[] = [];
   for (const line of pool) {
+    // Business identity, owner profiles and prices use the caller's next draw.
+    // Adding this product must not change those established source fields.
+    // Its own stable shelf roll derives from the already-drawn opening stock.
+    const stockRng = line.itemId === 'tinderbox'
+      ? new SeededRandom(hashString(`${businessType}:tinderbox:${JSON.stringify(entries)}`))
+      : rng;
     // Carry roughly 75% of the pool lines; a shop rarely stocks its entire range
     // at once, but staples (the first two lines) are always present.
     const alwaysCarry = entries.length < 2;
-    if (!alwaysCarry && rng.next() < 0.25) continue;
+    if (!alwaysCarry && stockRng.next() < 0.25) continue;
 
-    const quantity = rng.nextInt(line.qtyMin, line.qtyMax + 1); // nextInt max-exclusive
+    const quantity = stockRng.nextInt(line.qtyMin, line.qtyMax + 1); // nextInt max-exclusive
     if (quantity <= 0) continue;
     entries.push(
       line.priceOverride !== undefined
@@ -226,11 +251,13 @@ export const priceStockItem = (
   economy: EconomyState | undefined,
   regionId?: string,
   priceOverride?: number,
+  context?: PriceContext,
 ): number => {
   if (typeof priceOverride === 'number' && priceOverride >= 0) {
     return Math.ceil(priceOverride * 100) / 100;
   }
-  const base = calculatePrice(item, economy, 'buy', regionId).finalPrice;
+  // Standing remains meaningful while market and shop markup apply once.
+  const base = calculatePrice(item, economy, 'buy', regionId, context).finalPrice;
   const scaled = base * (priceMultiplier > 0 ? priceMultiplier : 1);
   return Math.ceil(scaled * 100) / 100;
 };

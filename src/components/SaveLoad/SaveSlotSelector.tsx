@@ -1,4 +1,20 @@
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 10:33:23
+ * Dependents: components/SaveLoad/index.ts
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { AUTO_SAVE_SLOT_KEY, SaveSlotSummary, getSlotStorageKey } from '../../services/saveLoadService';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
 import { WindowFrame } from '../ui/WindowFrame';
@@ -7,7 +23,7 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 interface SaveSlotSelectorProps {
   slots: SaveSlotSummary[];
-  onSaveSlot: (slotId: string, displayName?: string, isAutoSave?: boolean) => void;
+  onSaveSlot: (slotId: string, displayName?: string, isAutoSave?: boolean) => void | Promise<void>;
   onClose: () => void;
   allowAutoSave?: boolean;
   isSavingDisabled?: boolean;
@@ -25,17 +41,22 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
   onSaveSlot,
   onClose,
   allowAutoSave = false,
-  isSavingDisabled = false,
+  isSavingDisabled: savingUnavailable = false,
 }) => {
   const [newSlotName, setNewSlotName] = useState('');
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
+  const saving = useRef(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const isSavingDisabled = savingUnavailable || isSaving;
+  const close = useCallback(() => { if (!saving.current) onClose(); }, [onClose]);
   // WindowFrame marks this surface aria-modal but does not itself trap focus or
   // wire Escape, so keyboard-only players could Tab out of the dialog and had no
   // key to dismiss it. useFocusTrap keeps Tab/Shift+Tab cycling within the save
   // content, moves initial focus inside on open, restores it on close, and
   // routes Escape to onClose. The component is only mounted while open, so the
   // trap is always active (isOpen=true) for its lifetime.
-  const rootRef = useFocusTrap<HTMLDivElement>(true, onClose);
+  const rootRef = useFocusTrap<HTMLDivElement>(true, close);
   const [pendingOverwrite, setPendingOverwrite] = useState<{
     slotId: string;
     displayName?: string;
@@ -58,15 +79,29 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
 
   const finalizeSave = useCallback(
     (slotId: string, displayName?: string, isAutoSave?: boolean) => {
+      if (saving.current) return;
       // Always send the normalized storage key forward so the invoked save flow
       // writes to the exact slot we vetted for overwrite conflicts. This avoids
       // any mismatch between UI validation and service resolution (e.g., when
       // callers pass human-readable names that need prefixing).
       const resolvedSlotId = getSlotStorageKey(slotId, isAutoSave);
       const trimmedDisplayName = displayName?.trim();
-      onSaveSlot(resolvedSlotId, trimmedDisplayName || undefined, isAutoSave);
-      setPendingOverwrite(null);
-      onClose();
+      // Keep the named entry and dialog until storage confirms the write. A
+      // failed write must be visible and retryable, not look like a saved run.
+      saving.current = true;
+      setIsSaving(true);
+      setSaveError(null);
+      const complete = () => { setPendingOverwrite(null); onClose(); };
+      const release = () => { saving.current = false; setIsSaving(false); };
+      const fail = (cause: unknown) => {
+        setPendingOverwrite(null);
+        setSaveError(cause instanceof Error ? cause.message : 'The journey could not be saved.');
+      };
+      try {
+        const result = onSaveSlot(resolvedSlotId, trimmedDisplayName || undefined, isAutoSave);
+        if (result) void result.then(complete, fail).finally(release);
+        else { complete(); release(); }
+      } catch (cause) { fail(cause); release(); }
     },
     [onClose, onSaveSlot],
   );
@@ -128,17 +163,19 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
   return (
     <WindowFrame
       title="Chronicle Journey"
-      onClose={onClose}
+      onClose={close}
       storageKey={WINDOW_KEYS.SAVE_SLOT}
       initialMaximized={false}
     >
       <div ref={rootRef} className="flex flex-col h-full text-gray-100">
         <div className="shrink-0 px-6 pt-6 pb-3">
           <p className="text-sm text-gray-400">Preserve your current state in the archives.</p>
+          {isSaving && <p role="status" className="mt-2 text-sm text-sky-200">Saving the journey…</p>}
+          {saveError && <p role="alert" className="mt-2 text-sm text-red-300">{saveError}</p>}
         </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-6">
-        {isSavingDisabled && (
+        {savingUnavailable && (
           <div className="bg-red-900/40 border border-red-700 text-red-200 px-4 py-3 rounded-lg mb-4">
             The ink is dry. You cannot chronicle your journey at this moment.
           </div>
@@ -221,7 +258,7 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
             )}
           </div>
           <button
-            onClick={onClose}
+            onClick={close}
             className="px-4 py-2 rounded-lg font-semibold bg-gray-700 hover:bg-gray-600 text-gray-100 border border-gray-600"
           >
             Cancel

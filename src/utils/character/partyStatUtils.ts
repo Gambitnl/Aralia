@@ -1,11 +1,18 @@
+/**
+ * @file partyStatUtils.ts
+ * Utility functions for calculating derived combat stats for party member display.
+ * These functions compute values like spell save DC, attack bonuses, and initiative
+ * that are derived from a character's base stats, equipment, and class features.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:30:57
- * Dependents: PartyMemberCard.tsx
- * Imports: 2 files
+ * Last Sync: 29/10/2026, 12:21:46
+ * Dependents: components/CharacterSheet/Overview/CharacterOverview.tsx, components/Party/PartyPane/PartyMemberCard.tsx, components/World3D/groundLocomotion.ts
+ * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,15 +21,12 @@
  */
 // @dependencies-end
 
-/**
- * @file partyStatUtils.ts
- * Utility functions for calculating derived combat stats for party member display.
- * These functions compute values like spell save DC, attack bonuses, and initiative
- * that are derived from a character's base stats, equipment, and class features.
- */
-
 import { PlayerCharacter, AbilityScoreName } from '../../types/index.js';
-import { getAbilityModifierValue, getAbilityModifierString } from './statUtils.js';
+import { sumMovementSpeedEffects } from './movementSpeedEffects';
+import { exhaustionLevelFromConditions, calculateExhaustionEffects, getExhaustionD20Penalty } from '../combat/physicsUtils';
+import { getAbilityModifierValue } from './statUtils.js';
+import { isWeaponProficient, hasTavernBrawler, isImprovisedWeapon } from './weaponUtils';
+import { isRangedWeapon, isThrownMeleeWeapon, hasWeaponProperty } from '../combat/weaponRange';
 
 // -----------------------------------------------------------------------------
 // Types for attack bonus display
@@ -122,12 +126,13 @@ function calculateSpellAttackBonus(character: PlayerCharacter): AttackBonus | nu
     const abilityScore = character.finalAbilityScores[abilityName] ?? 10;
     const abilityMod = getAbilityModifierValue(abilityScore);
 
-    const bonus = profBonus + abilityMod;
+    const bonus = profBonus + abilityMod - getExhaustionD20Penalty(character);
 
     return {
         type: 'spell',
         bonus,
-        bonusString: getAbilityModifierString(bonus + 10), // Trick to get +/- format
+        // This is already a modifier total, not an ability score.
+        bonusString: bonus >= 0 ? `+${bonus}` : `${bonus}`,
         source: 'Spell Attack',
         iconName: 'magic_staff'
     };
@@ -143,7 +148,7 @@ function calculateSpellAttackBonus(character: PlayerCharacter): AttackBonus | nu
  * @param character - The player character
  * @returns AttackBonus object for melee attacks
  */
-function calculateMeleeAttackBonus(character: PlayerCharacter): AttackBonus {
+function calculateMeleeAttackBonus(character: PlayerCharacter): AttackBonus | null {
     const profBonus = character.proficiencyBonus ?? 2;
 
     // Get both STR and DEX modifiers
@@ -152,7 +157,9 @@ function calculateMeleeAttackBonus(character: PlayerCharacter): AttackBonus {
 
     // Check for equipped melee weapon to determine if finesse applies
     const mainHandWeapon = character.equippedItems.MainHand;
-    const isFinesse = mainHandWeapon?.properties?.includes('Finesse') ?? false;
+    // A bow's existing combat ability is ranged; do not invent a melee option.
+    if (isRangedWeapon(mainHandWeapon)) return null;
+    const isFinesse = hasWeaponProperty(mainHandWeapon, 'finesse');
 
     // Use the better modifier if finesse is available, otherwise use STR
     // For monks, rogues, etc. who typically use finesse, DEX will often be higher
@@ -167,7 +174,11 @@ function calculateMeleeAttackBonus(character: PlayerCharacter): AttackBonus {
     // Check for magic weapon bonus
     const weaponMagicBonus = mainHandWeapon?.magicProperties?.magicalBonus ?? 0;
 
-    const totalBonus = profBonus + abilityMod + weaponMagicBonus;
+    // Equipment stays usable without training, but only trained attacks gain PB.
+    // Unarmed strikes and the existing Tavern Brawler exception keep their benefits.
+    const proficient = !mainHandWeapon || isWeaponProficient(character, mainHandWeapon)
+        || (hasTavernBrawler(character) && isImprovisedWeapon(mainHandWeapon));
+    const totalBonus = (proficient ? profBonus : 0) + abilityMod + weaponMagicBonus - getExhaustionD20Penalty(character);
 
     // Determine the source name for display
     const sourceName = mainHandWeapon?.name ?? 'Unarmed';
@@ -183,44 +194,31 @@ function calculateMeleeAttackBonus(character: PlayerCharacter): AttackBonus {
 
 /**
  * Calculates the ranged attack bonus for a character.
- * Uses DEX modifier (standard for most ranged weapons).
+ * Uses DEX for ranged weapons and STR/better finesse modifier for thrown melee weapons.
  *
- * Formula: Proficiency Bonus + DEX Modifier + Weapon Magic Bonus
+ * Formula: Trained Proficiency Bonus + Attack Ability Modifier + Weapon Magic Bonus
  *
  * @param character - The player character
  * @returns AttackBonus object for ranged attacks
  */
-function calculateRangedAttackBonus(character: PlayerCharacter): AttackBonus {
-    const profBonus = character.proficiencyBonus ?? 2;
+function calculateRangedAttackBonus(character: PlayerCharacter): AttackBonus | null {
+    const weapon = character.equippedItems.MainHand;
+    // The card reports the equipped combat option, not an imaginary trained bow.
+    // Thrown melee weapons retain Strength, or the better finesse modifier.
+    if (!weapon || (!isRangedWeapon(weapon) && !isThrownMeleeWeapon(weapon))) return null;
     const dexMod = getAbilityModifierValue(character.finalAbilityScores.Dexterity ?? 10);
-
-    // Check for equipped ranged weapon
-    // Note: In D&D 5e, ranged weapons can be in MainHand or characters might have
-    // a dedicated ranged weapon. For simplicity, we calculate based on stats.
-    const mainHandWeapon = character.equippedItems.MainHand;
-
-    // Check if it's actually a ranged weapon by looking at properties
-    const isRangedWeapon = mainHandWeapon?.properties?.some(p =>
-        p.toLowerCase().includes('range') ||
-        p.toLowerCase().includes('ammunition') ||
-        p.toLowerCase().includes('thrown')
-    ) ?? false;
-
-    // Get magic bonus if the equipped weapon is ranged
-    const weaponMagicBonus = isRangedWeapon
-        ? (mainHandWeapon?.magicProperties?.magicalBonus ?? 0)
-        : 0;
-
-    const totalBonus = profBonus + dexMod + weaponMagicBonus;
-
-    // Determine source name
-    const sourceName = isRangedWeapon ? (mainHandWeapon?.name ?? 'Ranged') : 'Ranged';
-
+    const strMod = getAbilityModifierValue(character.finalAbilityScores.Strength ?? 10);
+    const abilityMod = isRangedWeapon(weapon) ? dexMod
+        : hasWeaponProperty(weapon, 'finesse') ? Math.max(strMod, dexMod) : strMod;
+    const proficient = isWeaponProficient(character, weapon)
+        || (hasTavernBrawler(character) && isImprovisedWeapon(weapon));
+    const totalBonus = (proficient ? (character.proficiencyBonus ?? 2) : 0)
+        + abilityMod + (weapon.magicProperties?.magicalBonus ?? 0) - getExhaustionD20Penalty(character);
     return {
         type: 'ranged',
         bonus: totalBonus,
         bonusString: totalBonus >= 0 ? `+${totalBonus}` : `${totalBonus}`,
-        source: sourceName,
+        source: weapon.name,
         iconName: 'bow_arrow'
     };
 }
@@ -258,15 +256,12 @@ export function calculateAttackBonuses(character: PlayerCharacter): CharacterAtt
  * @returns The initiative modifier as a number
  */
 export function calculateInitiativeModifier(character: PlayerCharacter): number {
-    // If the character has a stored initiative bonus, use that
-    // (it may include feat bonuses like Alert)
-    if (character.initiativeBonus !== undefined) {
-        return character.initiativeBonus;
-    }
-
-    // Otherwise, calculate from DEX
-    const dexMod = getAbilityModifierValue(character.finalAbilityScores.Dexterity ?? 10);
-    return dexMod;
+    const dexMod = getAbilityModifierValue(character.finalAbilityScores?.Dexterity ?? 10);
+    const pb = character.initiativeProficiency
+        ? (character.proficiencyBonus ?? (2 + Math.floor(Math.max(0, (character.level ?? 1) - 1) / 4)))
+        : 0;
+    const flatBonus = character.initiativeBonus ?? 0;
+    return dexMod + pb + flatBonus - getExhaustionD20Penalty(character);
 }
 
 /**
@@ -284,14 +279,30 @@ export function formatInitiativeModifier(modifier: number): string {
 // -----------------------------------------------------------------------------
 
 /**
- * Gets the movement speed for a character, considering transport mode.
+ * Gets the walking allowance shown when planning combat.
  *
  * @param character - The player character
  * @returns Movement speed in feet
  */
+/** The same flat status riders used by combat, before exhaustion applies. */
+export function getMovementSpeedBeforeExhaustion(character: PlayerCharacter): number {
+    // World-paced spell records have an explicit lifetime. Untagged combat
+    // turn riders retain their existing owner rather than becoming permanent
+    // exploration modifiers when a battle ends.
+    const timed = (character.statusEffects ?? []).filter(effect => effect.duration > 0 && effect.worldTime
+        && Number.isFinite(effect.worldTime.appliedAtMs) && Number.isFinite(effect.worldTime.expiresAtMs)
+        && effect.worldTime.expiresAtMs > effect.worldTime.appliedAtMs);
+    return Math.max(0, (character.speed ?? 30) + sumMovementSpeedEffects(timed));
+}
+
 export function getMovementSpeed(character: PlayerCharacter): number {
-    // Base speed from race/class (usually 30ft for most races)
-    return character.speed ?? 30;
+    // Match the existing persistent-to-combat projection. Keep the saved speed
+    // intact: armor/equipment changes already update that base value elsewhere.
+    // Like combat entry, cap exhaustion at five here; death remains a separate
+    // lifecycle transition, not something a stat display may apply.
+    const level = exhaustionLevelFromConditions(character.conditions);
+    const penalty = calculateExhaustionEffects(Math.min(level, 5)).speedPenalty;
+    return Math.max(0, getMovementSpeedBeforeExhaustion(character) - penalty);
 }
 
 // -----------------------------------------------------------------------------

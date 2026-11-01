@@ -36,9 +36,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/09/2026, 14:48:40
+ * Last Sync: 31/10/2026, 08:21:02
  * Dependents: components/BattleMap/BattleMap.tsx
- * Imports: 10 files
+ * Imports: 12 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -47,6 +47,8 @@
  */
 // @dependencies-end
 
+import { OpportunityAttackSystem } from '../../../systems/combat/reactions/OpportunityAttackSystem';
+import { getOccupiedTiles } from '../../../utils/combat/combatUtils';
 import { useMemo } from "react";
 import type {
   BattleMapData,
@@ -405,7 +407,7 @@ export function useBattleMapDerivedState({
   // ============================================================================
   // Tactical Target, Movement, and Threat Sets
   // ============================================================================
-  const { aoeSet, validTargetSet, teleportDestinationSet } = useTargetSelection(
+  const { aoeSet, validTargetSet, longRangeTargetSet, teleportDestinationSet } = useTargetSelection(
     {
       selectedAbility: abilitySystem.selectedAbility,
       targetingMode: abilitySystem.targetingMode,
@@ -424,19 +426,29 @@ export function useBattleMapDerivedState({
     return set;
   }, [activePath]);
 
-  // Threat range coordinates surrounding active hostile enemies
+  // Red hatching marks ready enemy reach, not a claim that entering it
+  // provokes. Use the same source relief, footprints and reaction gates as
+  // actual voluntary departures instead of a flat 3x3 enemy square.
   const threatCoordSet = useMemo(() => {
     const set = new Set<string>();
-    characters.forEach((ch) => {
-      if (ch.team !== "enemy" || ch.currentHP <= 0) return;
-      for (let dx = -1; dx <= 1; dx++) {
-        for (let dy = -1; dy <= 1; dy++) {
-          set.add(`${ch.position.x + dx},${ch.position.y + dy}`);
+    if (!mapData || !currentCharacter) return set;
+    const system = new OpportunityAttackSystem();
+    for (const enemy of characters) {
+      if (enemy.team === currentCharacter.team || enemy.currentHP <= 0) continue;
+      const footprint = getOccupiedTiles(enemy);
+      const reach = Math.max(...system.getThreatenedReaches(enemy));
+      const xs = footprint.map(position => position.x), ys = footprint.map(position => position.y);
+      for (let x = Math.min(...xs) - reach; x <= Math.max(...xs) + reach; x++) {
+        for (let y = Math.min(...ys) - reach; y <= Math.max(...ys) + reach; y++) {
+          if (!mapData.tiles.has(`${x}-${y}`)) continue;
+          if (system.getThreatenedReachAtPosition(enemy, currentCharacter, {x,y}, mapData, {
+            movementKind: 'voluntary', movementMode: currentCharacter.aerialMovement?.isFlying ? 'fly' : 'walk'
+          }) !== null) set.add(`${x},${y}`);
         }
       }
-    });
+    }
     return set;
-  }, [characters]);
+  }, [characters, mapData, currentCharacter]);
 
   // Coordinate set of reachable moves for boundary perimeter strokes
   const validMoveCoordSet = useMemo(() => {
@@ -474,6 +486,7 @@ export function useBattleMapDerivedState({
     // Tactical coordinate sets.
     aoeSet,
     validTargetSet,
+    longRangeTargetSet,
     teleportDestinationSet,
     activePathSet,
     threatCoordSet,

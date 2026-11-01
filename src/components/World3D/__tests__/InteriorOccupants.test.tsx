@@ -11,7 +11,7 @@
  * from mounting an unbounded number of marching-cubes residents in dense towns.
  */
 import React from "react";
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { useFrame } from "@react-three/fiber";
 import type {
@@ -24,8 +24,13 @@ import {
   applyInteriorOccupantMotion,
   applyInteriorResidentFrame,
   collectResidentHandoffIndex,
-  INTERIOR_WALK_FRACTION,
+  collectInteriorOccupants,
+  createResidentStreetSampler,
+  residentAncestryIndex,
+  residentLocationAtClock,
+  INTERIOR_WALK_METERS_PER_SECOND,
   InteriorOccupantNameplate,
+  InteriorOccupantActor,
   MAX_LIVE_INTERIOR_BODIES,
   occupantDoorScenePosition,
   occupantMotionAtClock,
@@ -34,7 +39,9 @@ import {
   residentRenderOwnerAtClock,
   selectInteriorBodyKeys,
 } from "../InteriorOccupants";
+import { GroundFurnishingContext } from "../GroundFurnishingContext";
 import { streetOwnedAgentNodes } from "../streetOwnedAgents";
+import * as groundMotion from '@/systems/worldforge/bridge/groundAgentMotion';
 import {
   InteriorHourProvider,
   useInteriorClockRef,
@@ -58,7 +65,113 @@ vi.mock("@react-three/drei", () => ({
   Html: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
+
+vi.mock("../OccupantFigure", () => ({ default: () => null }));
+
+describe("resident body pointer selection", () => {
+  function hoverFixture(selectable = true, street = false) {
+    const select = vi.fn(), behindHover = vi.fn();
+    const figure = {
+      key: '675:b34:head', siteId: 'wf-plot-675-35',
+      occ: {id: 81, name: 'Fenna Hartham', householdMemberId: 'b34:head', ageBand: 'adult', body: {}, stationsByHour: Array(24).fill(null)},
+      frame: {widthFt: 30, depthFt: 30},
+      placement: {gx: 0, gz: 0, rotationY: 0, doorZSign: -1}, surfaceY: 0,
+      doorPosition: {x: 0, y: 0, z: 0},
+    } as React.ComponentProps<typeof InteriorOccupantActor>['figure'];
+    document.body.style.cursor = 'auto';
+    const rendered = render(<div onPointerOver={behindHover}>
+      <GroundFurnishingContext.Provider value={{origin: {x: 0, z: 0}, onResident: selectable ? select : undefined}}>
+        <InteriorOccupantActor figure={figure} clockRef={{current: 15}} streetMotion={street ? () => null : undefined} />
+      </GroundFurnishingContext.Provider>
+    </div>);
+    return {...rendered, body: rendered.container.querySelector('group')!, select, behindHover};
+  }
+
+  it('blocks a furnishing hover behind the same resident that consumes the primary click', () => {
+    const f = hoverFixture();
+    fireEvent.pointerOver(f.body);
+    expect(f.behindHover).not.toHaveBeenCalled();
+    expect(f.select).not.toHaveBeenCalled();
+    expect(document.body.style.cursor).toBe('pointer');
+    fireEvent.pointerOut(f.body);
+    expect(document.body.style.cursor).toBe('auto');
+  });
+
+  it('cleans up its active body cursor when that resident unmounts', () => {
+    const f = hoverFixture();
+    fireEvent.pointerOver(f.body);expect(document.body.style.cursor).toBe('pointer');f.unmount();
+    expect(document.body.style.cursor).toBe('auto');
+  });
+
+  it('leaves hover available when the resident has no interaction callback', () => {
+    const f = hoverFixture(false);
+    fireEvent.pointerOver(f.body);
+    expect(f.behindHover).toHaveBeenCalledOnce();
+    expect(document.body.style.cursor).toBe('auto');
+    expect(f.select).not.toHaveBeenCalled();
+  });
+
+  it('does not consume hover for an unadmitted street resident', () => {
+    const f = hoverFixture(true, true);
+    fireEvent.pointerOver(f.body);
+    expect(f.behindHover).toHaveBeenCalledOnce();
+    expect(document.body.style.cursor).toBe('auto');
+    expect(f.select).not.toHaveBeenCalled();
+  });
+
+  it('leaves camera buttons free while primary selection still consumes its pointer', () => {
+    const select = vi.fn(), camera = vi.fn();
+    const figure = {
+      key: '675:b151:head', siteId: 'wf-plot-675-156',
+      occ: {id: 999, name: 'Roban Westsmith', householdMemberId: 'b151:head', ageBand: 'adult', body: {}, stationsByHour: Array(24).fill(null)},
+      frame: {widthFt: 30, depthFt: 30},
+      placement: {gx: 0, gz: 0, rotationY: 0, doorZSign: -1}, surfaceY: 0,
+      doorPosition: {x: 0, y: 0, z: 0},
+    } as React.ComponentProps<typeof InteriorOccupantActor>['figure'];
+    const {container} = render(<div onPointerDown={camera}>
+      <GroundFurnishingContext.Provider value={{origin: {x: 0, z: 0}, onResident: select}}>
+        <InteriorOccupantActor figure={figure} clockRef={{current: 15}} />
+      </GroundFurnishingContext.Provider>
+    </div>);
+    const body = container.querySelector('group')!;
+    for (const button of [2, 1]) fireEvent(body, new MouseEvent('pointerdown', {bubbles: true, button}));
+    expect(select).not.toHaveBeenCalled();
+    expect(camera).toHaveBeenCalledTimes(2);
+    fireEvent(body, new MouseEvent('pointerdown', {bubbles: true, button: 0}));
+    expect(select).toHaveBeenCalledOnce();
+    expect(camera).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe("InteriorOccupantNameplate", () => {
+  it('offers a real selection and removes absent residents from pointer and keyboard use', () => {
+    const occupant = {id: 999, name: 'Bryn Hartdown', body: {}, stationsByHour: []} as unknown as BuildingOccupantRender;
+    const select = vi.fn(), groundPick = vi.fn(); let visible = true;
+    render(<div onPointerDown={groundPick}><InteriorOccupantNameplate occupant={occupant} onSelect={select} readVisible={() => visible} /></div>);
+    const label = screen.getByTestId('interior-occupant-name-999');
+    act(() => frameSubscriptions.at(-1)!.callback());
+    expect(label).not.toHaveAttribute('hidden');
+    fireEvent.pointerDown(label);
+    expect(groundPick).not.toHaveBeenCalled();
+    fireEvent.click(label); expect(select).toHaveBeenCalledOnce();
+    visible = false;
+    act(() => frameSubscriptions.at(-1)!.callback());
+    expect(label).toHaveAttribute('hidden');
+  });
+  it('keeps a street name visible without offering an unadmitted building conversation', () => {
+    const occupant={id:4,name:'Mara Ashford',ageBand:'adult',body:{} as never,stationsByHour:[]} satisfies BuildingOccupantRender;
+    const select=vi.fn();let selectable=false;
+    render(<InteriorOccupantNameplate occupant={occupant} onSelect={select} readVisible={()=>true} readSelectable={()=>selectable}/>);
+    const label=screen.getByTestId('interior-occupant-name-4');
+    act(()=>frameSubscriptions.at(-1)!.callback());
+    expect(label).not.toHaveAttribute('hidden');
+    expect(label).toBeDisabled();
+    expect(label).toHaveAccessibleName('Mara Ashford');
+    fireEvent.click(label);expect(select).not.toHaveBeenCalled();
+    selectable=true;act(()=>frameSubscriptions.at(-1)!.callback());
+    expect(label).toBeEnabled();expect(label).toHaveAccessibleName('Meet Mara Ashford');
+  });
+
   it("visibly binds the baked full name and household identity to one body id", () => {
     const occupant = {
       id: 27,
@@ -217,7 +330,7 @@ describe("occupantMotionAtClock", () => {
     )!;
     const halfway = occupantMotionAtClock(
       movingOccupant(),
-      8 + INTERIOR_WALK_FRACTION / 2,
+      8 + (10 * .3048 / INTERIOR_WALK_METERS_PER_SECOND / 3600) / 2,
       frame,
       placement,
       0,
@@ -232,10 +345,10 @@ describe("occupantMotionAtClock", () => {
     expect(halfway.rotationY).toBeCloseTo(Math.PI / 2, 6);
   });
 
-  it("settles at the current station after the half-hour travel window", () => {
+  it("settles at the current station within seconds rather than spending half an hour crossing the room", () => {
     const settled = occupantMotionAtClock(
       movingOccupant(),
-      8 + INTERIOR_WALK_FRACTION,
+      8 + 10 / 3600,
       frame,
       placement,
       0,
@@ -273,10 +386,13 @@ describe("occupantMotionAtClock", () => {
       activity: "hearthside",
     };
     const door = occupantDoorScenePosition(frame, placement, 0);
-    const leaving = occupantMotionAtClock(occ, 7.75, frame, placement, 0, door)!;
+    const start = occupantScenePosition(occ, 7, frame, placement, 0)!;
+    const seconds = Math.hypot(door.x - start.x, door.y - start.y, door.z - start.z) / INTERIOR_WALK_METERS_PER_SECOND;
+    const leaving = occupantMotionAtClock(occ, 8 - seconds / 7200, frame, placement, 0, door)!;
     const entering = occupantMotionAtClock(occ, 9, frame, placement, 0, door)!;
 
     expect(leaving.position.z).toBeCloseTo(door.z / 2, 6);
+    expect(occupantMotionAtClock(occ, 7.75, frame, placement, 0, door)!.position).toEqual(start);
     expect(leaving.moving).toBe(true);
     expect(entering.position).toEqual(door);
     expect(entering.moving).toBe(true);
@@ -327,6 +443,55 @@ describe("resident handoff ownership", () => {
       },
     ] as LoadedChunk[]);
 
+  it.each([
+    {level:0, base:4.4448900108667075, floorBase:0},
+    {level:0, base:3.157248, floorBase:0},
+    {level:1, base:4.4448900108667075, floorBase:3.048},
+    {level:-1, base:4.4448900108667075, floorBase:-3.048},
+  ])('supports level $level on its source slab rather than the building datum ($base)', ({level,base,floorBase})=>{
+    const occ=joinedOccupant();occ.stationsByHour[7]!.level=level;
+    const before=structuredClone(occ),loaded=loadedWith([occ]),site=loaded[0].bundle.sites[0];
+    Object.assign(site,{surfaceY:base,interiorWidthFt:20,interiorDepthFt:30,rotationY:.7,doorZSign:1});
+    site.parts=[-3.048,0,3.048].map(baseY=>({x:0,z:0,w:8,d:10,h:.12192,baseY,colorHex:'#9a8a72',walkSurface:'floor' as const}));
+    // A tall cupboard and an overhead floor must not become this person's floor.
+    site.parts.push({x:0,z:0,w:8,d:10,h:2,baseY:0,colorHex:'#654321'});
+    const f=collectInteriorOccupants(loaded,{x:0,z:0})[0];
+    const legacy=occupantScenePosition(occ,7,{widthFt:20,depthFt:30},f.placement,base)!;
+    const position=occupantScenePosition(f.occ,7,f.frame,f.placement,f.surfaceY)!;
+    expect(position.y).toBeCloseTo(base+floorBase+.12192,10);
+    expect({x:position.x,z:position.z}).toEqual({x:legacy.x,z:legacy.z});
+    expect(f.key).toBe('314:home-10:head');expect(f.occ).toBe(occ);expect(occ).toEqual(before);
+    expect(occupantMotionAtClock(f.occ,7.5,f.frame,f.placement,f.surfaceY)?.position).toEqual(position);
+  });
+
+  it('samples the joined source person on the street without substituting a model or mutating inputs', () => {
+    const occupant={...joinedOccupant(),race:'Human'},loaded=loadedWith([occupant]);
+    const roster:TownRoster={burgId:314,occupants:[{id:4,name:occupant.name,householdMemberId:occupant.householdMemberId,
+      ageBand:'adult',occupation:'resident',homePlotId:10}]};
+    const ground={rosters:[roster]} as Parameters<typeof createResidentStreetSampler>[0];
+    const before=JSON.stringify({loaded,roster});
+    const spy=vi.spyOn(groundMotion,'groundAgentScenePositions').mockImplementation((_ground,clock)=>[{
+      burgId:314,occupantId:4,name:occupant.name,xM:10+(clock-8)*3600*1.2,zM:20,moving:true,
+      activity:'home',gridX:0,gridY:0,surfaceY:3.5,
+    }]);
+    try {
+      const sample=createResidentStreetSampler(ground,loaded,{x:5,z:7});
+      const moving=sample('314:home-10:head',8)!;
+      expect(moving.position).toEqual({x:5,y:3.5,z:13});
+      expect(moving.rotationY).toBeCloseTo(Math.PI/2,10);
+      expect(moving.moving).toBe(true);
+      expect(sample('314:home-10:head',8)).toBe(moving);
+      expect(spy).toHaveBeenCalledTimes(2); // current route and heading look-ahead, shared by all actors
+      expect(sample('315:home-10:head',8)).toBeNull();
+      const ancestry=residentAncestryIndex([roster],collectResidentHandoffIndex(loaded));
+      expect([...ancestry]).toEqual([['314:4','Human']]);
+      expect(JSON.stringify({loaded,roster})).toBe(before);
+      const wrong={...roster,occupants:[{...roster.occupants[0],householdMemberId:'another-person'}]};
+      expect(createResidentStreetSampler({rosters:[wrong]} as typeof ground,loaded,{x:0,z:0})('314:home-10:head',8)).toBeNull();
+      expect(residentAncestryIndex([{...roster,occupants:[{...roster.occupants[0],name:'Successor'}]}],collectResidentHandoffIndex(loaded)).size).toBe(0);
+    } finally {spy.mockRestore();}
+  });
+
   it("conserves population while ownership crosses the hour boundary", () => {
     const occupant = joinedOccupant();
     const handoffs = collectResidentHandoffIndex(loadedWith([occupant]));
@@ -370,6 +535,9 @@ describe("resident handoff ownership", () => {
     const outStreet = streetOwnedAgentNodes(nodes, [roster], handoffs, 8);
     expect(atHomeStreet.map((node) => node.occupantId)).toEqual([5]);
     expect(outStreet.map((node) => node.occupantId)).toEqual([4, 5]);
+    const personalStreet = streetOwnedAgentNodes(nodes, [roster], handoffs, 8,
+      new Set([`${314}:${occupant.householdMemberId}`]));
+    expect(personalStreet.map(node => node.occupantId)).toEqual([5]);
     expect(atHomeStreet.length + 1).toBe(roster.occupants.length);
     expect(outStreet.length + 0).toBe(roster.occupants.length);
   });
@@ -419,6 +587,34 @@ describe("resident handoff ownership", () => {
     expect(observedOwner).toBe("street");
     delete (window as typeof window & { __wfAgentClock?: number })
       .__wfAgentClock;
+  });
+
+  it('retains home and work on one person, with the street owning the measured commute', () => {
+    const home = joinedOccupant();
+    const workStations: BuildingOccupantRender['stationsByHour'] = Array(24).fill(null);
+    workStations[8] = {xFt: 10, yFt: 15, level: 0, activity: 'work'};
+    const work = {...home, stationsByHour: workStations, interiorOwnedByHour: workStations.map(Boolean),
+      interiorArrivalDelayByHour: Array.from({length:24}, (_, hour) => hour === 8 ? .1 : 0)};
+    const loaded = loadedWith([home]);
+    const homeSite = loaded[0].bundle.sites[0];
+    homeSite.id = 'wf-plot-314-91';
+    loaded[0].bundle.sites.unshift({...homeSite, id:'wf-plot-314-1', localX:30, occupants:[work]});
+    const figures = collectInteriorOccupants(loaded, {x:0,z:0});
+    expect(figures).toHaveLength(1);
+    expect(figures[0].locations).toHaveLength(2);
+    expect(residentLocationAtClock(figures[0], 7)?.siteId).toBe('wf-plot-314-91');
+    expect(residentLocationAtClock(figures[0], 8.05)).toBeNull();
+    expect(residentLocationAtClock(figures[0], 8.11)?.siteId).toBe('wf-plot-314-1');
+    const index = collectResidentHandoffIndex(loaded);
+    const roster: TownRoster = {burgId:314, occupants:[{id:4,name:home.name,householdMemberId:home.householdMemberId,
+      ageBand:'adult',homePlotId:91,workPlotId:1,occupation:'shopkeeper'}]};
+    const node: GroundAgentSceneNode = {burgId:314,occupantId:4,name:home.name,xM:0,zM:0,
+      gridX:0,gridY:0,surfaceY:0,moving:true,activity:'working'};
+    expect(streetOwnedAgentNodes([node],[roster],index,7)).toHaveLength(0);
+    expect(streetOwnedAgentNodes([node],[roster],index,8.05)).toHaveLength(1);
+    expect(streetOwnedAgentNodes([node],[roster],index,8.11)).toHaveLength(0);
+    expect(occupantMotionAtClock(work,8.05,{widthFt:40,depthFt:40},{gx:0,gz:0,rotationY:0,doorZSign:-1},0)).toBeNull();
+    expect(figures[0].key).toBe('314:home-10:head');
   });
 
   it("suppresses duplicate packets for the same stable household member", () => {
@@ -533,6 +729,14 @@ describe("resident handoff ownership", () => {
 });
 
 describe("selectInteriorBodyKeys", () => {
+  it('keeps a real traveller identifiable without increasing the shared body budget', () => {
+    const selected=selectInteriorBodyKeys([
+      {key:'idle-prior',x:8,y:0,z:0,interiorOwned:true},
+      {key:'walking-person',x:2,y:0,z:0,interiorOwned:true,moving:true},
+    ],{x:0,y:0,z:0},new Set(['idle-prior']),1);
+    expect([...selected]).toEqual(['walking-person']);
+  });
+
   it("keeps only the nearest bounded set in a dense town block", () => {
     // Twenty residents all fit inside the close-detail radius. Only the ten
     // nearest may receive live generated bodies; the rest remain simulated.
@@ -595,7 +799,7 @@ describe("selectInteriorBodyKeys", () => {
     expect([...selected]).toEqual(["home-far-1", "home-far-2"]);
   });
 
-  it("preserves the eligible mounted cohort before admitting new HOME actors", () => {
+  it("admits a reached HOME actor before distant retained neighbors", () => {
     const previous = new Set(["prior-home", "prior-out"]);
     const selected = selectInteriorBodyKeys(
       [
@@ -608,8 +812,30 @@ describe("selectInteriorBodyKeys", () => {
       2,
     );
 
-    // Both prior groups remain inside the wider exit radius, so lifecycle
-    // continuity wins until one actually leaves hysteresis eligibility.
-    expect([...selected]).toEqual(["prior-home", "prior-out"]);
+    // Retention keeps a small distance margin, not permanent ownership of a
+    // slot. The reached host and visible neighbor beat an absent placeholder.
+    expect([...selected]).toEqual(["new-home", "prior-home"]);
   });
+});
+
+
+describe('contact with the current street-owned resident body',()=>{
+ const source=()=>({key:'675:b54:spouse',siteId:'wf-plot-675-54',occ:{id:141,name:'Faelan Ironsmith',householdMemberId:'b54:spouse',ageBand:'elder',body:{},stationsByHour:Array(24).fill(null)},frame:{widthFt:30,depthFt:20},placement:{gx:20,gz:30,rotationY:.2,doorZSign:-1},surfaceY:2,doorPosition:{x:21,y:2,z:29}} as React.ComponentProps<typeof InteriorOccupantActor>['figure']);
+ it('enables the native name chip and reads the actual nearby body rather than a route destination',()=>{
+  const figure=source(),select=vi.fn(),clock={current:13},street=vi.fn(()=>({position:{x:7,y:2,z:8},rotationY:0,moving:true}));
+  const {container}=render(<GroundFurnishingContext.Provider value={{origin:{x:100,z:200},onResident:select}}><InteriorOccupantActor figure={figure} clockRef={clock} streetMotion={street}/></GroundFurnishingContext.Provider>);
+  const group=container.querySelector('group')!;Object.assign(group,{visible:true,position:{x:7,y:2,z:8}});
+  act(()=>frameSubscriptions.at(-1)!.callback());const label=screen.getByRole('button',{name:'Meet Faelan Ironsmith'});expect(label).toBeEnabled();fireEvent.click(label);
+  const read=select.mock.calls[0][0];expect(read()).toMatchObject({siteId:'wf-plot-675-54',memberId:'b54:spouse',streetOwned:true,pose:{xM:107,yM:2,zM:208},transform:{groupX:120,groupZ:230,surfaceY:2}});
+  Object.assign(group,{position:{x:9,y:2,z:10}});expect(read().pose).toEqual({xM:109,yM:2,zM:210});
+  street.mockReturnValue(null as never);expect(read()).toBeNull();act(()=>frameSubscriptions.at(-1)!.callback());expect(label).toBeDisabled();
+ });
+ it('consumes primary body selection only for a currently admitted street body',()=>{
+  const figure=source(),select=vi.fn(),camera=vi.fn(),street=vi.fn(()=>({position:{x:7,y:2,z:8},rotationY:0,moving:true}));
+  const {container}=render(<div onPointerDown={camera}><GroundFurnishingContext.Provider value={{origin:{x:0,z:0},onResident:select}}><InteriorOccupantActor figure={figure} clockRef={{current:13}} streetMotion={street}/></GroundFurnishingContext.Provider></div>);
+  const group=container.querySelector('group')!;Object.assign(group,{visible:true,position:{x:7,y:2,z:8}});
+  fireEvent(group,new MouseEvent('pointerdown',{bubbles:true,button:2}));expect(select).not.toHaveBeenCalled();
+  fireEvent(group,new MouseEvent('pointerdown',{bubbles:true,button:0}));expect(select).toHaveBeenCalledOnce();
+  street.mockReturnValue(null as never);fireEvent(group,new MouseEvent('pointerdown',{bubbles:true,button:0}));expect(select).toHaveBeenCalledOnce();expect(camera).toHaveBeenCalledTimes(2);
+ });
 });

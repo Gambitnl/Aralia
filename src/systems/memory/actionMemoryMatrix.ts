@@ -46,6 +46,22 @@
  * Applying a second, flat delta here would double-count it.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 18:08:13
+ * Dependents: hooks/actions/handleMerchantInteraction.ts, hooks/actions/handleNpcInteraction.ts, hooks/useConversation.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { KnownFact, NpcMemory } from '../../types/world';
 import type { AppAction } from '../../state/actionTypes';
 import { learnFact } from '../../utils/world/memoryUtils';
@@ -756,3 +772,10 @@ export const actionContextFromGameState = (
   ...context,
   timestamp: state.gameTime.getTime(),
 });
+
+/** Heard news of another person's meeting is not a personal acquaintance.
+ * Legacy contacts with no direct fact receive confirmation on their next real
+ * conversation; a dated direct record is then kept on subsequent visits. */
+export function hasDirectPlayerMeeting(facts: readonly KnownFact[] | undefined): boolean {
+  return facts?.some(fact => fact.factKey === 'player_met_npc' && fact.source === 'direct') ?? false;
+}

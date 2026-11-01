@@ -1,7 +1,9 @@
 
 import { describe, it, expect } from 'vitest';
 import { npcReducer } from '../npcReducer';
-import { GameState } from '../../../types';
+import { GameState, type KnownFact } from '../../../types';
+import { createMockGameState } from '../../../utils/core/factories';
+import { createEmptyMemory } from '../../../utils/world/memoryUtils';
 import { AppAction } from '../../actionTypes';
 
 describe('npcReducer', () => {
@@ -168,4 +170,62 @@ const initialState: Partial<GameState> = {
         // Session should remain null
         expect(newState.activeDialogueSession).toBeNull();
     });
+
+    it('seeds empty memory and persists fact when ADD_NPC_KNOWN_FACT targets an unseeded NPC (GG-165)', () => {
+        const state: Partial<GameState> = { npcMemory: {} };
+        const action: AppAction = {
+            type: 'ADD_NPC_KNOWN_FACT',
+            payload: {
+                npcId: 'new_merchant',
+                fact: {
+                    id: 'fact-1',
+                    text: 'Haggled prices down',
+                    source: 'direct',
+                    isPublic: false,
+                    timestamp: 1000,
+                    strength: 1,
+                    lifespan: 1000,
+                },
+            },
+        };
+        const newState = npcReducer(state as GameState, action);
+        expect(newState.npcMemory?.new_merchant).toBeDefined();
+        expect(newState.npcMemory?.new_merchant.knownFacts).toHaveLength(1);
+        expect(newState.npcMemory?.new_merchant.knownFacts[0].id).toBe('fact-1');
+    });
+
+    it('seeds empty memory and persists disposition when UPDATE_NPC_DISPOSITION targets an unseeded NPC (GG-165)', () => {
+        const state: Partial<GameState> = { npcMemory: {} };
+        const action: AppAction = {
+            type: 'UPDATE_NPC_DISPOSITION',
+            payload: {
+                npcId: 'new_merchant',
+                amount: 5,
+            },
+        };
+        const newState = npcReducer(state as GameState, action);
+        expect(newState.npcMemory?.new_merchant).toBeDefined();
+        expect(newState.npcMemory?.new_merchant.disposition).toBe(5);
+    });
+});
+
+describe('direct meeting provenance',()=>{
+  const now=new Date('0351-01-01T18:16:00Z');
+  const gossip:KnownFact={id:'prior-report',text:'Met Mara Tanner.',source:'gossip',sourceNpcId:'elara_vance',isPublic:true,timestamp:1,strength:2,lifespan:999,factKey:'player_met_npc'};
+  const direct:KnownFact={id:'direct-contact',text:gossip.text,source:'direct',isPublic:true,timestamp:now.getTime(),strength:3,lifespan:999,factKey:'player_met_npc'};
+  const stateWith=(fact:KnownFact)=>createMockGameState({gameTime:now,currentLocationId:'cell_3052',currentLocationActiveDynamicNpcIds:['kaelen_thorne'],npcMemory:{kaelen_thorne:{...createEmptyMemory(),disposition:40,knownFacts:[fact]}}});
+  it('retains attributed hearsay and stores the same words as an actual direct confirmation once',()=>{
+    const state=stateWith(gossip),result=npcReducer(state,{type:'ADD_NPC_KNOWN_FACT',payload:{npcId:'kaelen_thorne',fact:direct}});
+    expect(result.npcMemory?.kaelen_thorne.knownFacts).toEqual([gossip,direct]);
+    expect(result.npcMemory?.kaelen_thorne.disposition).toBe(40);
+    const updated={...state,...result};
+    expect(npcReducer(updated,{type:'ADD_NPC_KNOWN_FACT',payload:{npcId:'kaelen_thorne',fact:{...direct,timestamp:now.getTime()+1000}}})).toEqual({});
+    expect(state.npcMemory.kaelen_thorne.knownFacts).toEqual([gossip]);
+  });
+  it('adds a missing semantic key to an existing direct record while preserving its original id and date',()=>{
+    const original={...direct,id:'old-direct',factKey:undefined,timestamp:now.getTime()-60000};
+    const result=npcReducer(stateWith(original),{type:'ADD_NPC_KNOWN_FACT',payload:{npcId:'kaelen_thorne',fact:direct}});
+    expect(result.npcMemory?.kaelen_thorne.knownFacts).toEqual([{...original,factKey:'player_met_npc'}]);
+    expect(original.factKey).toBeUndefined();
+  });
 });

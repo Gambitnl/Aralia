@@ -58,6 +58,7 @@ const makeState = (overrides: Partial<GameState> = {}): GameState =>
             discussedTopicIds: [],
         },
         gameTime: DAY_FOUR,
+        worldSeed: 42,
         generatedNpcs: { burg_resident_12: generatedNpc() },
         npcMemory: {},
         townRumors: [],
@@ -83,16 +84,11 @@ describe('useDialogueSystem - generated NPCs reach the model (agora-f821.6)', ()
         expect(reply).toContain('remember you');
     });
 
-    it('still answers "..." when neither table holds the speaker', async () => {
+    it('reports a missing speaker instead of inventing an ellipsis reply', async () => {
         const state = makeState({ generatedNpcs: {} } as Partial<GameState>);
         const { result } = renderHook(() => useDialogueSystem(state, vi.fn()));
 
-        let reply = '';
-        await act(async () => {
-            reply = await result.current.generateResponse('Hello?');
-        });
-
-        expect(reply).toBe('...');
+        await expect(result.current.generateResponse('Hello?')).rejects.toThrow('speaker is unavailable');
         expect(ollama.generateNPCResponse).not.toHaveBeenCalled();
     });
 
@@ -251,4 +247,33 @@ describe('useDialogueSystem - memory reaches the prompt (agora-f821.12 / agora-d
         expect(prompt).not.toContain('You personally remember');
         expect(prompt).not.toContain('second-hand');
     });
+});
+
+
+describe('generated reply wording',()=>{
+ it('publishes an actually delivered generated exchange with its player question',async()=>{
+  const dispatch=vi.fn(),{result}=renderHook(()=>useDialogueSystem(makeState(),dispatch));
+  await act(async()=>{await result.current.generateResponse('What do you know about this account?')});
+  expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({type:'SET_LAST_NPC_INTERACTION',payload:expect.objectContaining({dialogue:expect.objectContaining({topicId:'generated_exchange',source:expect.objectContaining({kind:'generated-exchange',playerPrompt:'What do you know about this account?'})})})}));
+ });
+ it('uses current age and family in the model prompt instead of the founding household biography',async()=>{
+  const npc={...generatedNpc(),occupation:'keeps the household',initialPersonalityPrompt:'Maren Holt, age 78. Old relative is my spouse.',worldforgeHousehold:{memberId:'b54:spouse',burgId:675}} as unknown as RichNPC;
+  const day=4,state=makeState({generatedNpcs:{[npc.id]:npc},townSim:{675:{villagers:{141:{occupantId:141,name:npc.name,householdMemberId:'b54:spouse',homePlotId:54,bornDay:day-86*365,role:'priest',spouseId:140},140:{occupantId:140,name:'Sten Holt',homePlotId:54,bornDay:day-81*365,spouseId:141}}}} as unknown as GameState['townSim']});
+  const {result}=renderHook(()=>useDialogueSystem(state,vi.fn()));
+  await act(async()=>{await result.current.generateResponse('Hello again.')});
+  const prompt=ollama.generateNPCResponse.mock.calls.at(-1)![2];
+  expect(prompt).toContain('age 86');expect(prompt).toContain('Sten Holt');expect(prompt).toContain('priest');
+  expect(prompt).not.toContain('age 78');expect(prompt).not.toContain('Old relative');
+ });
+ it('keeps the generated names and negation intact while retaining voice guidance',async()=>{
+  const npc=generatedNpc();npc.speechProfile={id:'rural-casual-scholarly-arcane',label:'arcane casual',vocabularyLevel:'scholarly',formality:'casual',dialectTag:'rural',verbalTics:['as it were','curious'],sentenceLength:'medium',cultureFamily:'arcane'};
+  const line='Menaikon town has no spare rooms. I am not making promises.';
+  ollama.generateNPCResponse.mockResolvedValueOnce({success:true,data:{text:line},metadata:{}});
+  const dispatch=vi.fn();const {result}=renderHook(()=>useDialogueSystem(makeState({generatedNpcs:{burg_resident_12:npc}}),dispatch));
+  let answer='';await act(async()=>{answer=await result.current.generateResponse('Any rooms?')});
+  expect(answer).toBe(line);
+  expect(dispatch).toHaveBeenCalledWith({type:'SET_LAST_NPC_INTERACTION',payload:expect.objectContaining({npcId:npc.id,response:line,dialogue:expect.objectContaining({topicId:'generated_exchange'})})});
+  const last=ollama.generateNPCResponse.mock.calls.at(-1)!;
+  expect(last[2]).toContain('rural');expect(last[2]).toContain('scholarly');
+ });
 });

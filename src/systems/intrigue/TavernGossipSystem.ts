@@ -6,6 +6,22 @@
  * Manages the generation and purchase of rumors and secrets in taverns.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/10/2026, 16:22:54
+ * Dependents: components/Town/Intrigue/RumorMill.tsx
+ * Imports: 9 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { GameState, WorldRumor } from '../../types';
 import { ItemType } from '../../types';
 import { Secret } from '../../types/identity';
@@ -13,6 +29,9 @@ import { SecretGenerator } from './SecretGenerator';
 import { getGameDay } from '../../utils/core';
 import { SeededRandom } from '@/utils/random';
 import { isRumorStale, townRumorToWorldRumor } from './RumorMillSystem';
+import { burgIdForLocation } from '../worldforge/townsim/chronicleForLocation';
+import { townNewsContext } from '../worldforge/townsim/townNews';
+import { companionActivityRumors } from '../companions/companionWorldActivities';
 
 export interface PurchaseableRumor {
     id: string;
@@ -23,6 +42,8 @@ export interface PurchaseableRumor {
     payload?: WorldRumor | Secret; // The data object to add to state
     /** Quest a 'lead' points at. Buying the lead accepts this quest. */
     questId?: string;
+    /** Verified public subject and event age, safe to show before buying details. */
+    context?: { subject: string; ageLabel: string };
 }
 
 /** The PurchaseableRumor id a WorldRumor is offered under. */
@@ -47,6 +68,27 @@ function heardOfferIds(state: GameState): Set<string> {
     return heard;
 }
 
+/** Check the retained local chronicle before dating or categorizing an account.
+ * An id prefix alone cannot certify changed words, dates or another town's news.
+ * This adds display context only; it never changes a rumor or an owned receipt. */
+export function chronicleRumorContext(state: GameState, rumor: WorldRumor): PurchaseableRumor['context'] {
+    if (!rumor.id.startsWith('chronicle-') || rumor.locationId !== state.currentLocationId
+        || !state.townSim || !Object.keys(state.townSim).length || !Number.isFinite(state.worldSeed)
+        || !(state.gameTime instanceof Date) || !Number.isFinite(state.gameTime.getTime())) return undefined;
+    const burgId = burgIdForLocation({ground:state, worldSeed:state.worldSeed, cellId:state.playerCell?.cellId});
+    const town = burgId === undefined ? undefined : state.townSim[burgId];
+    const matches = town?.chronicle?.events.filter(event => rumor.id === 'chronicle-'+state.currentLocationId+'-'+event.id) ?? [];
+    const event = matches.length === 1 ? matches[0] : undefined;
+    const day = getGameDay(state.gameTime);
+    if (!town || !event || event.summary !== rumor.text || event.day !== rumor.timestamp
+        || !Number.isInteger(event.day) || !Number.isInteger(day) || event.day > day) return undefined;
+    const family = ['marriage','birth','death','courtship','came_of_age','inheritance'];
+    const subject = family.includes(event.kind) ? 'Family news'
+        : event.kind === 'economy' ? 'Trade news' : 'Town news';
+    const {ageLabel} = townNewsContext(town,{id:event.id,day:event.day,kind:event.kind,text:event.summary,prominence:'notice'},day);
+    return {subject,ageLabel};
+}
+
 export class TavernGossipSystem {
 
     /**
@@ -64,7 +106,11 @@ export class TavernGossipSystem {
         // The pool is faction/world news (activeRumors) plus the town's own talk
         // about the player's deeds, which the rumor mill has spread far enough
         // that a barkeep could plausibly have picked it up (agora-049c).
-        const activeRumors = state.activeRumors || [];
+        // Location-bound news is offered where it is active. Unlocated world
+        // news remains available; saved news from a previous town is not local.
+        const activeRumors = (state.activeRumors || [])
+            .filter(rumor => !rumor.locationId || rumor.locationId === state.currentLocationId)
+            .filter(rumor => rumor.expiration >= day);
         const townTalk = (state.townRumors ?? [])
             // Talk belongs to the town it happened in.
             .filter((rumor) => rumor.locationId === state.currentLocationId)
@@ -81,13 +127,22 @@ export class TavernGossipSystem {
             (rumor) => !heard.has(gossipOfferId(rumor.id)),
         );
 
-        if (unknownRumors.length > 0) {
-            const picked = rng.pick(unknownRumors);
+        // Dungeon legends have their own inquiry below. Ordinary news must not
+        // bury a real nearby adventure behind repeated blind gossip purchases.
+        const localLegends = unknownRumors.filter(rumor => rumor.id.startsWith('dungeon-'));
+        const news = unknownRumors.filter(rumor => !rumor.id.startsWith('dungeon-'));
+        if (news.length > 0) {
+            const picked = rng.pick(news);
+            const context = chronicleRumorContext(state, picked);
             rumors.push({
                 id: gossipOfferId(picked.id),
                 type: 'rumor',
                 cost: 2 + Math.floor(rng.next() * 5), // 2-6 gp
-                title: "Hear the latest gossip",
+                // Historical town accounts remain available, with their age and
+                // subject visible before payment. Their private details stay hidden.
+                title: context ? context.subject+' · '+context.ageLabel
+                    : picked.id.startsWith('chronicle-') ? 'Town account · date unverified' : 'Ask about local news',
+                ...(context ? {context} : {}),
                 content: picked.text,
                 payload: picked
             });
@@ -124,20 +179,36 @@ export class TavernGossipSystem {
             }
         }
 
-        // 3. Adventure Lead (Hook)
-        // 20% chance
-        if (rng.next() < 0.2) {
-             rumors.push({
-                id: `lead_${day}`,
-                type: 'lead',
-                cost: 10 + Math.floor(rng.next() * 10),
-                title: "Ask about work or trouble",
-                content: "I heard there's an old ruin to the north that's been glowing at night.",
-                payload: undefined,
-                questId: 'explore_ruins'
+        // The old random offer sold a northward ruin without a source, then
+        // accepted the separate eastern legacy quest. Keep that authored quest
+        // and its real item hooks; sell only the sourced accounts below here.
+        // Consume the old chance/price rolls so existing local account choices
+        // and posted prices do not change just because this offer is withdrawn.
+        if (rng.next() < 0.2) rng.next();
+
+        // The sync supplies only hooks within the source dungeon's own earshot.
+        // Sell that exact hook and retain its source ID on the normal receipt;
+        // no fabricated location, quest or undiscovered map marker is added.
+        if (localLegends.length > 0) {
+            const picked = rng.pick(localLegends);
+            rumors.push({
+                id: gossipOfferId(picked.id),
+                type: 'rumor',
+                cost: 2 + Math.floor(rng.next() * 5),
+                title: 'Ask about local ruins and dangers',
+                content: picked.text,
+                payload: picked,
             });
         }
 
+        // Public work supplies a concrete local lead through the ordinary paid
+        // receipt. It grants neither a meeting nor a personal quest acceptance.
+        for(const rumor of companionActivityRumors(state,day)){
+            if(!heard.has(gossipOfferId(rumor.id)))rumors.push({
+                id:gossipOfferId(rumor.id),type:'rumor',cost:2,
+                title:'Ask about a local adventurer',content:rumor.text,payload:rumor,
+            });
+        }
         return rumors;
     }
 }

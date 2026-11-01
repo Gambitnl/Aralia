@@ -307,4 +307,37 @@ describe('useHistorySync', () => {
         expect(replaceStateMock).toHaveBeenCalledWith({ phase: GamePhase.MAIN_MENU }, '', '/?phase=main_menu');
         expect(pushStateMock).not.toHaveBeenCalled();
     });
+    it('preserves the terminal record while Strict Mode repeats the cold menu effect', () => {
+        mockLocation.search = '?phase=game_over&defeat=aralia_rpg_slot_defeat_record';
+        gameState = {...gameState, phase: GamePhase.MAIN_MENU, party: []};
+        const {rerender} = renderHook(({state}) => useHistorySync(state, dispatch), {
+            initialProps: {state: gameState}, reactStrictMode: true,
+        });
+        expect(dispatch).toHaveBeenCalledWith({type: 'SET_GAME_PHASE', payload: GamePhase.GAME_OVER});
+        expect(pushStateMock).not.toHaveBeenCalled();
+        expect(replaceStateMock).not.toHaveBeenCalled();
+        rerender({state: {...gameState, phase: GamePhase.GAME_OVER}});
+        expect(pushStateMock).not.toHaveBeenCalled();
+        expect(replaceStateMock).not.toHaveBeenCalled();
+    });
+
+    it('keeps a specific defeat attached while terminal state rehydrates', () => {
+        mockLocation.search = '?phase=game_over&defeat=aralia_rpg_slot_defeat_record';
+        gameState = {...gameState, phase: GamePhase.GAME_OVER, party: []};
+        const {rerender} = renderHook(({state}) => useHistorySync(state, dispatch), {initialProps: {state: gameState}});
+        pushStateMock.mockClear(); replaceStateMock.mockClear();
+        rerender({state: {...gameState, party: [{id: 'fallen', hp: 0} as any]}});
+        expect(pushStateMock).not.toHaveBeenCalled();
+        expect(replaceStateMock).not.toHaveBeenCalled();
+    });
+
+    it('removes the defeat link when leaving the aftermath for another journey', () => {
+        mockLocation.search = '?phase=game_over&defeat=aralia_rpg_slot_defeat_record';
+        gameState = {...gameState, phase: GamePhase.GAME_OVER};
+        const {rerender} = renderHook(({state}) => useHistorySync(state, dispatch), {initialProps: {state: gameState}});
+        pushStateMock.mockClear(); replaceStateMock.mockClear();
+        rerender({state: {...gameState, phase: GamePhase.MAIN_MENU}});
+        expect(pushStateMock).toHaveBeenCalledWith({phase: GamePhase.MAIN_MENU}, '', '/?phase=main_menu');
+    });
+
 });

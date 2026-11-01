@@ -425,6 +425,10 @@ export function applyDeltas<TArtifact extends AnyWorldforgeArtifact>(
       continue;
     }
 
+    // A ground-shape edit changes the ground's heights, not the artifact: the
+    // ground world replays it after generation (groundRecord.ts, GG-533).
+    if (delta.operation.kind === 'shape-ground') continue;
+
     if (delta.operation.kind === 'remove-feature') {
       const featureId = delta.operation.featureId;
       nextArtifact.features = nextArtifact.features.filter(

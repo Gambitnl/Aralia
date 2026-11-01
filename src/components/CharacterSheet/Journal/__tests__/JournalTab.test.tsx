@@ -44,9 +44,8 @@ vi.mock('../JournalSpread', () => ({
 // ============================================================================
 // Journal Tab Contract Tests
 // ============================================================================
-// These checks guard the player-facing sheet behavior: empty journals still show
-// a readable starter page, real journal entries are forwarded, and the responsive
-// panes remain present for CSS to stack at phone width.
+// These checks guard the player-facing sheet behavior: empty journals stay honest without invented pages, real journal entries are forwarded, and the responsive
+// panes remain present in narrow desktop windows.
 // ============================================================================
 describe('JournalTab', () => {
   // A small active quest proves the quest sidebar receives live quest data
@@ -61,18 +60,26 @@ describe('JournalTab', () => {
     },
   ];
 
-  it('renders a fallback journal entry when the journal payload is omitted', () => {
+  it('keeps an omitted journal empty instead of inventing campaign history', () => {
     render(<JournalTab quests={quests} />);
 
     expect(screen.getByTestId('quest-log-sidebar')).toHaveAttribute('data-quest-count', '1');
-    expect(screen.getByTestId('journal-spread')).toHaveAttribute('data-entry-id', 'mock-entry-1');
-    expect(screen.getByTestId('journal-spread')).toHaveAttribute('data-entry-session', '1');
-    expect(screen.getByTestId('journal-spread')).toHaveAttribute('data-entry-page', '1');
+    expect(screen.getByTestId('journal-spread')).toHaveAttribute('data-entry-id', 'none');
+    expect(screen.getByTestId('journal-spread')).toHaveAttribute('data-entry-session', 'none');
+    expect(screen.getByTestId('journal-spread')).toHaveAttribute('data-entry-page', 'none');
+  });
+
+  it('keeps an explicitly empty saved journal empty without changing its pending events', () => {
+    const journal: JournalState = { entries: [], currentSessionNumber: 3, currentPageNumber: 5, pendingEvents: [] };
+    const before = JSON.stringify(journal);
+    render(<JournalTab quests={[]} journal={journal} />);
+    expect(screen.getByTestId('journal-spread')).toHaveAttribute('data-entry-id', 'none');
+    expect(JSON.stringify(journal)).toBe(before);
   });
 
   it('forwards a provided journal entry to the spread', () => {
     // This save-backed entry proves the tab prefers real journal state over the
-    // starter page once the campaign has recorded an actual journal page.
+    // empty state once the campaign has recorded an actual journal page.
     const journalEntry: JournalEntry = {
       id: 'journal-entry-7',
       sessionNumber: 7,

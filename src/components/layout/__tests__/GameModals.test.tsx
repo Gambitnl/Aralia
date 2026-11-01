@@ -8,10 +8,13 @@
 
 import React from 'react';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { createMockGameState, createMockPlayerCharacter, createMockCombatCharacter } from '../../../utils/core/factories';
 import { characterReducer } from '../../../state/reducers/characterReducer';
 import type { Companion, GameState, Location, TempPartyMember } from '../../../types';
+import { GamePhase } from '../../../types';
+import { enterDungeonExpedition, recordDungeonProgress } from '../../../systems/worldforge/dungeon/world/dungeonLifecycle';
+import { canonicalDungeonId } from '../../../systems/worldforge/dungeon/world/dungeonIdentity';
 import type { ComponentType } from 'react';
 
 let boardGameState: GameState;
@@ -73,8 +76,8 @@ vi.mock('../../CharacterSheet/CharacterSheetModal', () => ({
 }));
 vi.mock('../../debug/DevMenu', () => ({ default: () => <div data-testid="dev-menu" /> }));
 vi.mock('../../Party/PartyOverlay', () => ({
-    default: ({ isCombatActive }: { isCombatActive?: boolean }) => (
-        <div data-testid="party-overlay" data-combat-active={String(Boolean(isCombatActive))} />
+    default: ({ isCombatActive, restUnavailableReason }: { isCombatActive?: boolean; restUnavailableReason?: string | null }) => (
+        <div data-testid="party-overlay" data-combat-active={String(Boolean(isCombatActive))} data-rest-reason={restUnavailableReason ?? ''} />
     ),
 }));
 vi.mock('../../debug/GeminiLogViewer', () => ({ default: () => <div data-testid="gemini-log-viewer" /> }));
@@ -94,7 +97,7 @@ let GameModals: ComponentType<React.ComponentProps<typeof import('../GameModals'
 beforeAll(async () => {
     const module = await import('../GameModals');
     GameModals = module.default;
-});
+}, 60_000); // Lazy modal imports share the busy checkout's transform budget.
 
 const basePlayer = createMockPlayerCharacter({ name: 'Ada' });
 
@@ -222,6 +225,7 @@ describe('GameModals focus-trap coverage', () => {
 
     it('passes active combat state into the Party Overlay rest gate', async () => {
         const modalState = withOpenModal({
+            phase: GamePhase.COMBAT,
             isPartyOverlayVisible: true,
             currentEnemies: [createMockCombatCharacter({ id: 'enemy-1', name: 'Training Dummy' })],
         });
@@ -481,18 +485,41 @@ describe('GameModals focus-trap coverage', () => {
         });
     });
 
+    it('explains the authored Astral ban before disabling long-rest commitment', async () => {
+        const onAction = vi.fn();
+        createProps(withOpenModal({isLongRestModalVisible:true, party:[basePlayer], lastLongRestAt:null,
+          currentLocationId:'planar-rest-site', dynamicLocations:{'planar-rest-site':{
+            ...baseLocation, id:'planar-rest-site', planeId:'astral',
+          }}}), {onAction});
+        expect(await screen.findByText('Long rests are not possible in The Astral Plane.', undefined, {timeout:10000})).toBeInTheDocument();
+        const confirm = screen.getByRole('button',{name:'Confirm Long Rest'});
+        expect(confirm).toBeDisabled();
+        fireEvent.click(confirm);
+        expect(onAction).not.toHaveBeenCalled();
+    });
+
+    it('discloses the Shadowfell partial-recovery risk before an ordinary commitment', async () => {
+        createProps(withOpenModal({isLongRestModalVisible:true, party:[basePlayer], lastLongRestAt:null,
+          currentLocationId:'planar-rest-site', dynamicLocations:{'planar-rest-site':{
+            ...baseLocation, id:'planar-rest-site', planeId:'shadowfell',
+          }}}));
+        expect(await screen.findByText(/DC 15 Wisdom saving throw with disadvantage/, undefined, {timeout:10000})).toHaveTextContent('no rest benefits');
+        expect(screen.getByText(/DC 15 Wisdom saving throw with disadvantage/)).toHaveTextContent('time and provisions');
+        await waitFor(()=>expect(screen.getByRole('button',{name:'Confirm Long Rest'})).toBeEnabled());
+    });
+
     it('renders LongRestModal when isLongRestModalVisible is true', async () => {
         // Use the real lazy child here. A file-global mock could be invalidated
         // by another suite's module reset, which made this wiring proof depend
         // on aggregate execution order instead of the rendered dialog contract.
-        createProps(withOpenModal({ isLongRestModalVisible: true }));
-        expect(await screen.findByRole('dialog', { name: 'Long Rest' })).toBeInTheDocument();
+        createProps(withOpenModal({ isLongRestModalVisible: true, party: [basePlayer], lastLongRestAt: null }));
+        expect(await screen.findByRole('dialog', { name: 'Long Rest' }, {timeout: 10000})).toBeInTheDocument();
     });
 
     it('routes confirmed long rests through onAction instead of reducing them directly', async () => {
         const dispatch = vi.fn();
         const onAction = vi.fn();
-        createProps(withOpenModal({ isLongRestModalVisible: true }), { dispatch, onAction });
+        createProps(withOpenModal({ isLongRestModalVisible: true, party: [basePlayer], lastLongRestAt: null }), { dispatch, onAction });
 
         fireEvent.click(await screen.findByRole('button', { name: 'Confirm Long Rest' }));
 
@@ -503,8 +530,18 @@ describe('GameModals focus-trap coverage', () => {
         });
         // The modal owns its one close toggle; GameModals must not send a
         // second toggle or bypass the action handler with a reducer dispatch.
-        expect(dispatch).toHaveBeenCalledWith({ type: 'TOGGLE_LONG_REST_MODAL' });
+        await waitFor(() => expect(dispatch).toHaveBeenCalledWith({ type: 'TOGGLE_LONG_REST_MODAL' }));
         expect(dispatch).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'LONG_REST' }));
+    });
+
+    it('closes a confirmed short rest once instead of toggling it back open', async () => {
+        const dispatch = vi.fn(), onAction = vi.fn();
+        createProps(withOpenModal({isShortRestModalVisible: true}), {dispatch, onAction});
+        const begin = await screen.findByRole('button', {name: 'Begin Rest'});
+        await waitFor(() => expect(begin).toBeEnabled());
+        fireEvent.click(begin);
+        expect(onAction).toHaveBeenCalledWith(expect.objectContaining({type: 'SHORT_REST'}));
+        await waitFor(() => expect(dispatch.mock.calls.filter(([action]) => action.type === 'TOGGLE_SHORT_REST_MODAL')).toHaveLength(1));
     });
 
     it('renders RestModal when isShortRestModalVisible is true', async () => {
@@ -536,5 +573,31 @@ describe('GameModals focus-trap coverage', () => {
         expect(duplicateKeyWarning).toBeUndefined();
 
         errorSpy.mockRestore();
+    });
+});
+
+describe('Party Roster distinguishes planning from active combat', () => {
+    it('keeps a prepared encounter blocked without reporting a turn in progress', async () => {
+        createProps(withOpenModal({isPartyOverlayVisible: true, phase: GamePhase.PLAYING,
+            playerGroundPos: null,
+            currentEnemies: [createMockCombatCharacter({id: 'source-ghoul'})]}));
+        const roster = await screen.findByTestId('party-overlay');
+        expect(roster).toHaveAttribute('data-combat-active', 'false');
+        await waitFor(() => expect(roster).toHaveAttribute('data-rest-reason', 'Resolve or leave the pending encounter before resting.'));
+    });
+    it('shows the existing expedition restriction instead of calling exploration combat', async () => {
+        const worldSeed = 2175188092;
+        const cellId = 4682;
+        const seedPath = 'wf:' + worldSeed + '/cell:' + cellId + '/dungeon:m54';
+        const identity = {seedPath, dungeonId: canonicalDungeonId(seedPath)};
+        const visit = recordDungeonProgress(enterDungeonExpedition(identity), {activeVisit: {
+            depth: 0, playerCell: {x: 75, y: 68}, entranceKind: 'ruin-door',
+            returnContext: {worldSeed, cellId, tileX: 0, tileY: 0, xM: 10, yM: 0, zM: 10}}});
+        createProps(withOpenModal({isPartyOverlayVisible: true, phase: GamePhase.PLAYING, worldSeed,
+            playerCell: {cellId, localeCoords: null}, dungeonExpeditions: {[identity.dungeonId]: visit},
+            currentEnemies: [createMockCombatCharacter({id: 'source-ghoul'})]}));
+        const roster = await screen.findByTestId('party-overlay');
+        expect(roster).toHaveAttribute('data-combat-active', 'false');
+        await waitFor(() => expect(roster.getAttribute('data-rest-reason')).toContain('inside this expedition'));
     });
 });

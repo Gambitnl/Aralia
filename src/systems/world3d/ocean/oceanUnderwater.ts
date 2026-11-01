@@ -64,6 +64,23 @@
  * measures it. The underside's fragment is the largest part: four normal
  * reads per cascade, three Fresnel terms, one sky and three path lights.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 10/10/2026, 06:42:06
+ * Dependents: components/DesignPreview/steps/sidebyside/oceanExtras/underwater.ts
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import * as THREE from 'three/webgpu';
 import {
   Discard,
@@ -1343,13 +1360,27 @@ export function createOceanUnderwater(opts: OceanUnderwaterOptions): OceanUnderw
   /* --- the displaced surface (vertex), shared by the underside --------- */
 
   const worldFlat = vec2(positionLocal.x, positionLocal.z).add(uCenter);
+  /* THE ONE SURFACE'S DISPLACEMENT (river mouth round 1c,
+   * `OceanSurface.vertexDisplacement`): every reader's share and lift, so
+   * the underside is the top's own other side. Until round 1c it displaced by
+   * the plain FFT bands: where a reader held the top lower (the river's depth
+   * hold, the bathymetry's gain, the rocks' lee), the underside's wave backs
+   * stood over the top and drew this piece's navy as slabs on the sea and a
+   * band along the shore (the lead's seam 3). With no reader that moves the
+   * vertex the surface returns null and the underside keeps its own exact
+   * read of the plain bands (the judged underwater view stays to the pixel:
+   * the surface's own read goes through the filtered atlases, and moved that
+   * view's every pixel by up to 140 levels). The underside rebuilds when a
+   * reader changes the vertex (`onDisplacementChange`); the Fn reads the
+   * surface's state when the material builds. */
   let dispAcc: TslNode | null = null;
   for (let ci = 0; ci < cascades.length; ci += 1) {
     const d = sampleCascade(disp, worldFlat, ci, cascades[ci].patchM)
       .xyz.mul(cascadeLod(worldFlat, cascades[ci].dispLod));
     dispAcc = dispAcc === null ? d : dispAcc.add(d);
   }
-  const sumDisp = (dispAcc as TslNode).toVar();
+  const plainDisp = dispAcc as TslNode;
+  const sumDisp = Fn(() => surface.vertexDisplacement() ?? plainDisp)().toVar();
   // UNDERSIDE_CURVE (round 4): the surface's own curve drop about the camera,
   // with the same expression, so the two meshes meet (see the constant).
   const surfaceCurve = (surface.tune as Record<string, TslNode>).curve;
@@ -1606,6 +1637,7 @@ export function createOceanUnderwater(opts: OceanUnderwaterOptions): OceanUnderw
   underMat.fog = false;
 
   const under = new THREE.Mesh(surface.mesh.geometry, underMat);
+  const offDisplacement = surface.onDisplacementChange(() => { underMat.needsUpdate = true; });
   under.name = 'oceanUnderside';
   under.frustumCulled = false;
   group.add(under);
@@ -1908,6 +1940,7 @@ export function createOceanUnderwater(opts: OceanUnderwaterOptions): OceanUnderw
     dispose() {
       surface.mesh.visible = surfaceVisibleAtMount;
       group.removeFromParent();
+      offDisplacement();
       underMat.dispose();
       domeGeom.dispose();
       domeMat.dispose();

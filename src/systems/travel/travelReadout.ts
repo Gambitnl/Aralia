@@ -1,11 +1,19 @@
+/**
+ * @file travelReadout.ts — player-facing formatting for a planned route.
+ *
+ * Turns a `RoutePlan` (minutes/miles/danger) into the strings the travel-mode UI
+ * shows so the player can decide before committing: how long the trip takes, how
+ * far it is, and how dangerous it is. Pure: no React/DOM.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 25/06/2026, 17:11:03
+ * Last Sync: 28/10/2026, 11:28:09
  * Dependents: components/MapPane.tsx, components/Worldforge/AtlasSvgView.tsx, components/Worldforge/SubmapSvgView.tsx
- * Imports: 2 files
+ * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,14 +22,8 @@
  */
 // @dependencies-end
 
-/**
- * @file travelReadout.ts — player-facing formatting for a planned route.
- *
- * Turns a `RoutePlan` (minutes/miles/danger) into the strings the travel-mode UI
- * shows so the player can decide before committing: how long the trip takes, how
- * far it is, and how dangerous it is. Pure: no React/DOM.
- */
 import type { RoutePlan } from './routePlanning';
+import { calculateForcedMarchStatus } from './TravelCalculations';
 import type { MultiModalRoute } from './multiModalRoute';
 import type { ProvisionStatus, ProvisionResource } from './provisioning';
 
@@ -35,6 +37,14 @@ export function formatTravelTime(minutes: number): string {
   const days = Math.floor(totalHours / 24);
   const hours = totalHours % 24;
   return hours ? `${days}d ${hours}h` : `${days}d`;
+}
+
+/** Warn before departure using the same exhaustion rule the trip commits. */
+export function formatForcedMarchWarning(minutes: number): string | null {
+  if (!Number.isFinite(minutes) || minutes <= 0) return null;
+  const status = calculateForcedMarchStatus(minutes / 60);
+  if (!status.isForcedMarch || status.constitutionSaveDC <= 0) return null;
+  return `Exhaustion risk: DC ${status.constitutionSaveDC} Constitution saves. A failed save slows later travel.`;
 }
 
 /** Human distance: "0.4 mi", "19 mi". */

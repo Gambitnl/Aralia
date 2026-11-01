@@ -119,13 +119,13 @@ export interface CharacterCreationState {
 export type ClassFeatureFinalSelectionAction =
   | { type: 'SELECT_FIGHTER_FEATURES'; payload: FightingStyle }
   | { type: 'SELECT_CLERIC_FEATURES'; payload: { order: 'Protector' | 'Thaumaturge', cantrips: Spell[]; spellsL1: Spell[]; domainId?: string } }
-  | { type: 'SELECT_WIZARD_FEATURES'; payload: { cantrips: Spell[]; spellsL1: Spell[] } }
+  | { type: 'SELECT_WIZARD_FEATURES'; payload: { cantrips: Spell[]; spellsL1: Spell[]; traditionId?: string } }
   | { type: 'SELECT_ARTIFICER_FEATURES'; payload: { cantrips: Spell[]; spellsL1: Spell[] } }
   | { type: 'SELECT_SORCERER_FEATURES'; payload: { cantrips: Spell[]; spellsL1: Spell[]; originId?: string } }
   | { type: 'SELECT_RANGER_FEATURES'; payload: { spellsL1: Spell[] } }
   | { type: 'SELECT_PALADIN_FEATURES'; payload: { spellsL1: Spell[] } }
   | { type: 'SELECT_BARD_FEATURES'; payload: { cantrips: Spell[]; spellsL1: Spell[] } }
-  | { type: 'SELECT_DRUID_FEATURES'; payload: { order: 'Magician' | 'Warden', cantrips: Spell[]; spellsL1: Spell[] } }
+  | { type: 'SELECT_DRUID_FEATURES'; payload: { order: 'Magician' | 'Warden', cantrips: Spell[]; spellsL1: Spell[]; circleId?: string } }
   | { type: 'SELECT_WARLOCK_FEATURES'; payload: { cantrips: Spell[]; spellsL1: Spell[]; patronId?: string } };
 
 export type CharacterCreatorAction =
@@ -373,10 +373,14 @@ function handleClassFeatureFinalSelectionAction(state: CharacterCreationState, a
         selectedSubclassId: action.payload.domainId ?? null,
       });
     case 'SELECT_DRUID_FEATURES':
+      // Under the 2014 rules the Druid Circle is picked here, in the creator's
+      // level 2 step (Remy, Agora 8335; agora-f821.58). Under 2024 the component
+      // sends none and the LevelUpModal asks at level 3.
       return applyFeaturesAndAdvance({
         selectedDruidOrder: action.payload.order,
         selectedCantrips: action.payload.cantrips,
         selectedSpellsL1: action.payload.spellsL1,
+        selectedSubclassId: action.payload.circleId ?? null,
       });
     case 'SELECT_WARLOCK_FEATURES':
       // Under the 2014 rules the patron is picked here at level 1; under 2024
@@ -400,6 +404,14 @@ function handleClassFeatureFinalSelectionAction(state: CharacterCreationState, a
         selectedSubclassId: action.payload.originId ?? null,
       });
     case 'SELECT_WIZARD_FEATURES':
+      // Under the 2014 rules the Arcane Tradition is picked here, in the
+      // creator's level 2 step (Remy, Agora 8335; agora-f821.59). Under 2024
+      // the component sends none and the LevelUpModal asks at level 3.
+      return applyFeaturesAndAdvance({
+        selectedCantrips: action.payload.cantrips,
+        selectedSpellsL1: action.payload.spellsL1,
+        selectedSubclassId: action.payload.traditionId ?? null,
+      });
     case 'SELECT_ARTIFICER_FEATURES':
     case 'SELECT_BARD_FEATURES':
       return applyFeaturesAndAdvance({

@@ -13,6 +13,23 @@
  * are chosen as the adult living nearest the institution (preferring an actual
  * on-plot worker when one exists, i.e. for markets).
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 29/10/2026, 06:27:06
+ * Dependents: components/Worldforge/LivingWorldPreview.tsx, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/roster/institutionWorkplaces.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { SeededRandom } from '../../../utils/random/seededRandom';
 import type { TownPlan } from '../artifacts';
 import type { Occupant, TownRoster } from '../roster/types';
@@ -49,6 +66,21 @@ function dist(a: Pt, b: Pt): number {
   return Math.hypot(a[0] - b[0], a[1] - b[1]);
 }
 
+
+/** The same source institution used when the office was first assigned.
+ * Succession changes its holder, not the temple's location. No person is
+ * chosen here, and roles without a singular source building stay unresolved. */
+export function institutionPlotForRole(plan: TownPlan, role: InstitutionRole): TownPlan['plots'][number] | undefined {
+  const plotRole = SINGULAR_INSTITUTIONS.find(([, institution]) => institution === role)?.[0];
+  if (!plotRole || !plan.plots.length) return undefined;
+  const centers = plan.plots.map(plot => plotCentroid(plot.footprint));
+  const centre: Pt = [centers.reduce((sum, p) => sum + p[0], 0) / centers.length,
+    centers.reduce((sum, p) => sum + p[1], 0) / centers.length];
+  return plan.plots.filter(plot => plot.role === plotRole)
+    .map(plot => ({plot, distance: dist(plotCentroid(plot.footprint), centre)}))
+    .sort((a, b) => a.distance - b.distance || a.plot.id - b.plot.id)[0]?.plot;
+}
+
 /** Auto-scaled wildcard count: ~1 per 120 people, clamped to [1, 3]. */
 function defaultWildcardCount(population: number): number {
   return Math.max(1, Math.min(3, Math.round(population / 120)));
@@ -73,26 +105,9 @@ export function assignKeyNpcs(
   for (const p of plan.plots) homeCentroid.set(p.id, plotCentroid(p.footprint));
   const homeOf = (o: Occupant): Pt => homeCentroid.get(o.homePlotId) ?? [0, 0];
 
-  // Town centre = mean of all plot centroids (for "most central institution").
-  const centre: Pt = (() => {
-    let sx = 0;
-    let sy = 0;
-    for (const c of homeCentroid.values()) {
-      sx += c[0];
-      sy += c[1];
-    }
-    const n = homeCentroid.size || 1;
-    return [sx / n, sy / n];
-  })();
-
-  for (const [role, institution] of SINGULAR_INSTITUTIONS) {
-    const plots = plan.plots.filter((p) => p.role === role);
-    if (plots.length === 0) continue;
-
-    // Most central plot of this role.
-    const plot = plots
-      .map((p) => ({ p, d: dist(plotCentroid(p.footprint), centre) }))
-      .sort((a, b) => a.d - b.d || a.p.id - b.p.id)[0].p;
+  for (const [, institution] of SINGULAR_INSTITUTIONS) {
+    const plot = institutionPlotForRole(plan, institution);
+    if (!plot) continue;
     const pc = plotCentroid(plot.footprint);
 
     // Prefer an unassigned adult who actually works this plot, else nearest home.

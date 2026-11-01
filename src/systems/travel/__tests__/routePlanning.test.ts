@@ -45,6 +45,33 @@ describe('transportSpeedMph', () => {
 });
 
 describe('planFastestRoute', () => {
+  it('lets cautious routing trade actual travel time for less danger without inflating time or supplies', () => {
+    const graph=lineGraph({danger:{1:0.8,3:0.1}});
+    const options={milesPerUnit:0.1,speedMph:3};
+    const fastest=planRoutesFrom(graph,0,options).to(2)!;
+    const cautiousField=planRoutesFrom(graph,0,{...options,preference:'cautious'});
+    const cautious=cautiousField.to(2)!;
+    expect(fastest.cells).toEqual([0,1,2]);
+    expect(cautious.cells).toEqual([0,3,2]);
+    expect(cautious.danger).toBeLessThan(fastest.danger);
+    expect(cautious.minutes).toBeCloseTo(40*Math.SQRT2,8);
+    expect(cautiousField.dist.get(2)).toBe(cautious.minutes);
+    expect(cautious.cumulativeMinutes?.at(-1)).toBe(cautious.minutes);
+    expect(routeHaltIndex(cautious,30)).toBe(1);
+    expect(planRoutesFrom(graph,0,{...options,preference:'fastest'}).to(2)).toEqual(fastest);
+  });
+
+  it('keeps graph-owned times and season costs real under cautious selection', () => {
+    const graph=lineGraph({danger:{1:0.8,3:0.1}});
+    graph.edgeMinutes=(from,to)=>from===1||to===1?5:8;
+    const field=planRoutesFrom(graph,0,{milesPerUnit:0.1,speedMph:3,timeCostMultiplier:1.5,preference:'cautious'});
+    const route=field.to(2)!;
+    expect(route.cells).toEqual([0,3,2]);
+    expect(route.minutes).toBe(24);
+    expect(route.cumulativeMinutes).toEqual([0,12,24]);
+    expect(field.dist.get(2)).toBe(24);
+  });
+
   it('routes straight through open terrain and computes miles + minutes', () => {
     const g = lineGraph({});
     // milesPerUnit 0.1 → each 10-unit edge = 1 mile. 2 edges = 2 miles at 3mph = 40 min.

@@ -56,6 +56,23 @@
  * assign into an atomic buffer view — WGSL forbids `=` on atomic<i32> and
  * the whole pipeline dies at shader compile. Clear through atomicStore.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 12/10/2026, 15:07:28
+ * Dependents: components/DesignPreview/steps/FlipScene3D.tsx, systems/worldforge/terrain/flipContactAccounting.ts, systems/worldforge/terrain/flipConvexContact.ts, systems/worldforge/terrain/flipFiniteSource.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import {
   Fn,
   If,
@@ -77,10 +94,12 @@ import {
   uniform,
 
   vec3,
+  vec4,
 } from 'three/tsl';
 import { StorageBufferAttribute, Vector3 } from 'three/webgpu';
 import type { ComputeNode } from 'three/webgpu';
 import { SPAN_SKY } from './spanField';
+import { bindFlipConvexContact, type FlipConvexContact } from './flipConvexContact';
 
 // TSL node handles are structurally loose and three's TS types lag the
 // runtime. One permissive alias, contained to this file, beats a cast at
@@ -246,7 +265,31 @@ export interface SpanGround {
   slots: number;
 }
 
-export function buildFlipKernels(bufs: FlipBuffers, ground: SpanGround): FlipKernels {
+/**
+ * Optional finite-source masses are measured in the vendor's particle-mass units.
+ * Zero means unadmitted: that slot contributes neither mass, stress nor motion.
+ * Omitting the buffer preserves the original demo's unit-mass particles.
+ *
+ * Optional observations are per completed step, never an inferred physical loss.
+ * Open computational faces require the caller to stop/transfer particles before
+ * the stencil reaches an edge. They are not a downstream receiver by themselves.
+ */
+export interface FlipKernelOptions {
+  viscosity?: number;
+  openDomain?: boolean;
+  /** Opt-in closed convex rock; replaces BOTH span-contact stages, no springs. */
+  convexContact?: FlipConvexContact;
+  contact?: {
+    /** Per grid node: net terrain/domain impulse xyz and kinetic change; solver units. */
+    grid: StorageBufferAttribute;
+    /** Per particle: impulse xyz, kinetic change, after grid interpolation. */
+    particle: StorageBufferAttribute;
+    /** Per particle: net position correction xyz and gravitational potential change. */
+    position: StorageBufferAttribute;
+  };
+}
+
+export function buildFlipKernels(bufs: FlipBuffers, ground: SpanGround, particleMass?: StorageBufferAttribute, options: FlipKernelOptions = {}): FlipKernels {
   const { n, dx, origin, count } = bufs.params;
   const nodes = n ** 3;
   const spanN = ground.n;
@@ -274,6 +317,28 @@ export function buildFlipKernels(bufs: FlipBuffers, ground: SpanGround): FlipKer
 
   const N = int(n);
   const dtU = uniform(MPM_DT);
+  if (options.convexContact && (!options.openDomain || options.convexContact.params.count !== count
+      || options.convexContact.params.dx !== dx || options.convexContact.params.n !== n
+      || options.convexContact.params.origin.some((x, a) => x !== origin[a]))) throw Error('Convex contact needs its matching open domain');
+  const convexContact = options.convexContact ? bindFlipConvexContact(options.convexContact) : null;
+  const viscosity = options.viscosity ?? MPM_VISCOSITY;
+  if (!Number.isFinite(viscosity) || viscosity < 0) throw Error('Invalid particle-water viscosity');
+  if (options.contact && [options.contact.grid.count !== nodes, options.contact.particle.count !== count,
+      options.contact.position.count !== count, ...Object.values(options.contact).map(b => b.itemSize !== 4)].some(Boolean)) {
+    throw Error('Contact observation buffer shape mismatch');
+  }
+  const gridContact = options.contact ? storage(options.contact.grid, 'vec4', nodes) : null;
+  const particleContact = options.contact ? storage(options.contact.particle, 'vec4', count) : null;
+  const positionContact = options.contact ? storage(options.contact.position, 'vec4', count) : null;
+  const masses = particleMass ? storage(particleMass, 'float', count).toReadOnly() : null;
+  const particlePass = (body: (p: TSLNode, mass: TSLNode) => void) => Fn(() => {
+    const p = int(instanceIndex);
+    if (masses) {
+      If(masses.element(p).greaterThan(float(0)), () => body(p, masses.element(p)));
+    } else {
+      body(p, float(1));
+    }
+  })().compute(count);
 
   const encode = (v: TSLNode) => v.mul(float(FP)).round().toInt();
   const decode = (v: TSLNode) => float(v).div(float(FP));
@@ -478,8 +543,7 @@ export function buildFlipKernels(bufs: FlipBuffers, ground: SpanGround): FlipKer
     }
   };
 
-  const p2g1 = Fn(() => {
-    const p = int(instanceIndex);
+  const p2g1 = particlePass((p, mass) => {
     const xp = pos.element(p).toVar();
     const vp = vel.element(p).toVar();
     const C0 = c0.element(p).toVar();
@@ -489,16 +553,15 @@ export function buildFlipKernels(bufs: FlipBuffers, ground: SpanGround): FlipKer
     stencil(xp, (wi, ni, dist) => {
       // Q = C * dist, with C stored as columns.
       const Q = C0.mul(dist.x).add(C1.mul(dist.y)).add(C2.mul(dist.z));
-      const mom = vp.add(Q).mul(wi);
-      atomicAdd(gMass.element(ni), encode(wi));
+      const mom = vp.add(Q).mul(wi).mul(mass);
+      atomicAdd(gMass.element(ni), encode(wi.mul(mass)));
       atomicAdd(gMomX.element(ni), encode(mom.x));
       atomicAdd(gMomY.element(ni), encode(mom.y));
       atomicAdd(gMomZ.element(ni), encode(mom.z));
     });
-  })().compute(count);
+  });
 
-  const p2g2 = Fn(() => {
-    const p = int(instanceIndex);
+  const p2g2 = particlePass((p, mass) => {
     const xp = pos.element(p).toVar();
     const C0 = c0.element(p).toVar();
     const C1 = c1.element(p).toVar();
@@ -509,7 +572,7 @@ export function buildFlipKernels(bufs: FlipBuffers, ground: SpanGround): FlipKer
       density.addAssign(decode(gMassR.element(ni)).mul(wi));
     });
 
-    const volume = float(1).div(density.max(float(1e-6)));
+    const volume = mass.div(density.max(float(1e-6)));
     // Tait EOS, exponent 5, no tension — webgpu-ocean's exact form.
     const pressure = float(MPM_STIFFNESS)
       .mul(density.div(float(MPM_REST_DENSITY)).pow(5).sub(float(1)))
@@ -522,13 +585,13 @@ export function buildFlipKernels(bufs: FlipBuffers, ground: SpanGround): FlipKer
       // stress * dist, with stress = -p*I + visc*(C + Ct).
       const Cd = C0.mul(dist.x).add(C1.mul(dist.y)).add(C2.mul(dist.z));
       const CtD = vec3(C0.dot(dist), C1.dot(dist), C2.dot(dist));
-      const stressD = dist.mul(pressure.negate()).add(Cd.add(CtD).mul(float(MPM_VISCOSITY)));
+      const stressD = dist.mul(pressure.negate()).add(Cd.add(CtD).mul(float(viscosity)));
       const mom = stressD.mul(scale).mul(wi);
       atomicAdd(gMomX.element(ni), encode(mom.x));
       atomicAdd(gMomY.element(ni), encode(mom.y));
       atomicAdd(gMomZ.element(ni), encode(mom.z));
     });
-  })().compute(count);
+  });
 
   // Plain read-write views for the grid update: it runs as its own dispatch
   // after every atomicAdd has landed, so atomicity is unnecessary — and
@@ -541,6 +604,7 @@ export function buildFlipKernels(bufs: FlipBuffers, ground: SpanGround): FlipKer
 
   const gridUpdate = Fn(() => {
     const i = int(instanceIndex);
+    if (gridContact) gridContact.element(i).assign(vec4(0));
     const m = decode(gMassU.element(i)).toVar();
     If(m.greaterThan(float(0)), () => {
       const v = vec3(
@@ -557,127 +621,146 @@ export function buildFlipKernels(bufs: FlipBuffers, ground: SpanGround): FlipKer
       const iz = i.div(N).sub(i.div(N).div(N).mul(N));
       const iy = i.div(N.mul(N));
 
+      // Snapshot after gravity so contact does not get credited with gravity's work.
+      const beforeContact = gridContact ? v.toVar() : null;
       // Box walls: zero the component within two nodes of a face.
       // GOTCHA (r172, cost a full debugging session): every If body MUST be a
       // block-bodied arrow. An expression arrow returns the assign node, TSL
       // emits `return <expr>;` inside the void compute entry, the WGSL fails
       // to compile, and the ONLY symptom is a silent no-op kernel plus an
       // uncapturederror on the device — never a JS exception.
-      If(ix.lessThan(int(2)).or(ix.greaterThan(N.sub(int(3)))), () => {
-        v.x.assign(float(0));
-      });
-      If(iy.greaterThan(N.sub(int(3))), () => {
-        v.y.assign(v.y.min(float(0)));
-      });
-      If(iz.lessThan(int(2)).or(iz.greaterThan(N.sub(int(3)))), () => {
-        v.z.assign(float(0));
-      });
+      if (!options.openDomain) {
+          If(ix.lessThan(int(2)).or(ix.greaterThan(N.sub(int(3)))), () => {
+            v.x.assign(float(0));
+          });
+          If(iy.greaterThan(N.sub(int(3))), () => {
+            v.y.assign(v.y.min(float(0)));
+          });
+          If(iz.lessThan(int(2)).or(iz.greaterThan(N.sub(int(3)))), () => {
+            v.z.assign(float(0));
+          });
+        }
 
-      /* THE SPAN TEST — the node against the volume.
-       *
-       * One resolve gives both boundaries of the span this node sits in. The
-       * node is SOLID if it is under the floor or over the ceiling, and free
-       * otherwise; a node inside a bored tunnel is free, which is the whole
-       * point of the change. Free-slip against the TANGENT PLANE either way —
-       * remove only the into-surface normal component, keep the tangential
-       * part untouched. On flat ground the normal is (0,1,0) and the floor
-       * branch reduces exactly to the vendor's `vy = max(vy, 0)`.
-       *
-       * Round 1's tangential friction (x0.6 per substep) killed all waves in
-       * 2-4 s; round 2's vertical-only clamp on SLOPED ground let water slide
-       * uphill forever (gravity's along-slope component vanished) — the
-       * geyser. History: see terrainNormalAt above.
-       *
-       * The floor branch wins when the two overlap. They can only overlap in a
-       * span thinner than two nodes, or in the blended face of a tunnel wall,
-       * and in both places the wall is the surface worth resolving against. */
-      const nodeFloor = floorAt(float(ix), float(iy), float(iz)).toVar();
-      If(float(iy).lessThan(nodeFloor.add(float(1))), () => {
-        const nrm = terrainNormalAt(float(ix), float(iy), float(iz)).toVar();
-        const vn = v.dot(nrm).toVar();
-        If(vn.lessThan(float(0)), () => {
-          v.subAssign(nrm.mul(vn));
-        });
-      }).Else(() => {
-        If(float(iy).greaterThan(ceilAt(float(ix), float(iy), float(iz)).sub(float(1))), () => {
-          const nrm = ceilingNormalAt(float(ix), float(iy), float(iz)).toVar();
+        /* THE SPAN TEST — the node against the volume.
+         *
+         * One resolve gives both boundaries of the span this node sits in. The
+         * node is SOLID if it is under the floor or over the ceiling, and free
+         * otherwise; a node inside a bored tunnel is free, which is the whole
+         * point of the change. Free-slip against the TANGENT PLANE either way —
+         * remove only the into-surface normal component, keep the tangential
+         * part untouched. On flat ground the normal is (0,1,0) and the floor
+         * branch reduces exactly to the vendor's `vy = max(vy, 0)`.
+         *
+         * Round 1's tangential friction (x0.6 per substep) killed all waves in
+         * 2-4 s; round 2's vertical-only clamp on SLOPED ground let water slide
+         * uphill forever (gravity's along-slope component vanished) — the
+         * geyser. History: see terrainNormalAt above.
+         *
+         * The floor branch wins when the two overlap. They can only overlap in a
+         * span thinner than two nodes, or in the blended face of a tunnel wall,
+         * and in both places the wall is the surface worth resolving against. */
+        if (convexContact) {
+          convexContact.grid(vec3(float(ix).add(.5), float(iy).add(.5), float(iz).add(.5)), v);
+        } else {
+        const nodeFloor = floorAt(float(ix), float(iy), float(iz)).toVar();
+        If(float(iy).lessThan(nodeFloor.add(float(1))), () => {
+          const nrm = terrainNormalAt(float(ix), float(iy), float(iz)).toVar();
           const vn = v.dot(nrm).toVar();
           If(vn.lessThan(float(0)), () => {
             v.subAssign(nrm.mul(vn));
           });
+        }).Else(() => {
+          If(float(iy).greaterThan(ceilAt(float(ix), float(iy), float(iz)).sub(float(1))), () => {
+            const nrm = ceilingNormalAt(float(ix), float(iy), float(iz)).toVar();
+            const vn = v.dot(nrm).toVar();
+            If(vn.lessThan(float(0)), () => {
+              v.subAssign(nrm.mul(vn));
+            });
+          });
         });
+
+        }
+        if (gridContact && beforeContact) {
+          gridContact.element(i).assign(vec4(v.sub(beforeContact).mul(m),
+            v.dot(v).sub(beforeContact.dot(beforeContact)).mul(m).mul(0.5)));
+        }
+        gMomXU.element(i).assign(encode(v.x));
+        gMomYU.element(i).assign(encode(v.y));
+        gMomZU.element(i).assign(encode(v.z));
+      });
+    })().compute(nodes);
+
+    const foam = storage(bufs.foam, 'float', count);
+    /** Foam decay per substep: exp(-substep-real-seconds / tau). */
+    // Follow the actual timestep when the receiving-water caller substeps.
+    const foamDecay = dtU.mul(-simSecondsPerUnit(dx) / FOAM_TAU_S).exp();
+
+    const g2p = particlePass((p, mass) => {
+      const xp = pos.element(p).toVar();
+      const vOld = vel.element(p).toVar();
+
+      const vNew = vec3(0, 0, 0).toVar();
+      const b0 = vec3(0, 0, 0).toVar();
+      const b1 = vec3(0, 0, 0).toVar();
+      const b2 = vec3(0, 0, 0).toVar();
+      // Local density, for the ROUND 6 free-surface foam gate below.
+      const dens = float(0).toVar();
+      stencil(xp, (wi, ni, dist) => {
+        const wv = vec3(
+          decode(gMomXR.element(ni)),
+          decode(gMomYR.element(ni)),
+          decode(gMomZR.element(ni)),
+        ).mul(wi);
+        vNew.addAssign(wv);
+        b0.addAssign(wv.mul(dist.x));
+        b1.addAssign(wv.mul(dist.y));
+        b2.addAssign(wv.mul(dist.z));
+        dens.addAssign(decode(gMassR.element(ni)).mul(wi));
       });
 
-      gMomXU.element(i).assign(encode(v.x));
-      gMomYU.element(i).assign(encode(v.y));
-      gMomZU.element(i).assign(encode(v.z));
-    });
-  })().compute(nodes);
+      c0.element(p).assign(b0.mul(float(4)));
+      c1.element(p).assign(b1.mul(float(4)));
+      c2.element(p).assign(b2.mul(float(4)));
 
-  const foam = storage(bufs.foam, 'float', count);
-  /** Foam decay per substep: exp(-substep-real-seconds / tau). */
-  const foamDecay = Math.exp(-(MPM_DT * simSecondsPerUnit(dx)) / FOAM_TAU_S);
+      const xNew = xp.add(vNew.mul(float(dtU))).toVar();
+      const beforeParticleContact = particleContact ? vNew.toVar() : null;
+      const beforePositionContact = positionContact ? xNew.toVar() : null;
+      if (!options.openDomain) xNew.assign(
+        xNew.clamp(vec3(1, 1, 1), vec3(n - 2, n - 2, n - 2)),
+      );
 
-  const g2p = Fn(() => {
-    const p = int(instanceIndex);
-    const xp = pos.element(p).toVar();
-    const vOld = vel.element(p).toVar();
-
-    const vNew = vec3(0, 0, 0).toVar();
-    const b0 = vec3(0, 0, 0).toVar();
-    const b1 = vec3(0, 0, 0).toVar();
-    const b2 = vec3(0, 0, 0).toVar();
-    // Local density, for the ROUND 6 free-surface foam gate below.
-    const dens = float(0).toVar();
-    stencil(xp, (wi, ni, dist) => {
-      const wv = vec3(
-        decode(gMomXR.element(ni)),
-        decode(gMomYR.element(ni)),
-        decode(gMomZR.element(ni)),
-      ).mul(wi);
-      vNew.addAssign(wv);
-      b0.addAssign(wv.mul(dist.x));
-      b1.addAssign(wv.mul(dist.y));
-      b2.addAssign(wv.mul(dist.z));
-      dens.addAssign(decode(gMassR.element(ni)).mul(wi));
-    });
-
-    c0.element(p).assign(b0.mul(float(4)));
-    c1.element(p).assign(b1.mul(float(4)));
-    c2.element(p).assign(b2.mul(float(4)));
-
-    const xNew = xp.add(vNew.mul(float(dtU))).toVar();
-    xNew.assign(
-      xNew.clamp(vec3(1, 1, 1), vec3(n - 2, n - 2, n - 2)),
-    );
-
-    // Soft predictive walls — webgpu-ocean's exact scheme.
-    const xAhead = xNew.add(vNew.mul(float(dtU)).mul(float(3))).toVar();
-    const wallMin = float(3);
-    const wallMax = float(n - 4);
-    const K = float(0.3);
-    // Block bodies required — see the If GOTCHA in gridUpdate above.
-    If(xAhead.x.lessThan(wallMin), () => {
-      vNew.x.addAssign(wallMin.sub(xAhead.x).mul(K));
-    });
-    If(xAhead.x.greaterThan(wallMax), () => {
-      vNew.x.addAssign(wallMax.sub(xAhead.x).mul(K));
-    });
-    If(xAhead.y.greaterThan(wallMax), () => {
-      vNew.y.addAssign(wallMax.sub(xAhead.y).mul(K));
-    });
-    If(xAhead.z.lessThan(wallMin), () => {
-      vNew.z.addAssign(wallMin.sub(xAhead.z).mul(K));
-    });
-    If(xAhead.z.greaterThan(wallMax), () => {
-      vNew.z.addAssign(wallMax.sub(xAhead.z).mul(K));
-    });
+      // Soft predictive walls — webgpu-ocean's exact scheme.
+      const xAhead = xNew.add(vNew.mul(float(dtU)).mul(float(3))).toVar();
+      const wallMin = float(3);
+      const wallMax = float(n - 4);
+      const K = float(0.3);
+      // Block bodies required — see the If GOTCHA in gridUpdate above.
+      if (!options.openDomain) {
+      If(xAhead.x.lessThan(wallMin), () => {
+        vNew.x.addAssign(wallMin.sub(xAhead.x).mul(K));
+      });
+      If(xAhead.x.greaterThan(wallMax), () => {
+        vNew.x.addAssign(wallMax.sub(xAhead.x).mul(K));
+      });
+      If(xAhead.y.greaterThan(wallMax), () => {
+        vNew.y.addAssign(wallMax.sub(xAhead.y).mul(K));
+      });
+      If(xAhead.z.lessThan(wallMin), () => {
+        vNew.z.addAssign(wallMin.sub(xAhead.z).mul(K));
+      });
+      If(xAhead.z.greaterThan(wallMax), () => {
+        vNew.z.addAssign(wallMax.sub(xAhead.z).mul(K));
+      });
+    }
 
     // The terrain floor. The soft predictive push acts along the terrain
     // NORMAL (the vendor's spring style, but slope-aware): penetration is
     // measured vertically, converted to normal distance by n.y, and the
     // separation impulse points out of the surface — no vertical boost while
     // horizontal speed survives, which was round 2's energy pump on slopes.
+    if (convexContact) {
+      convexContact.particle(p, xp, vNew, float(dtU), xNew);
+    } else {
     const ground = floorAt(xNew.x, xNew.y, xNew.z).toVar();
     const roof = ceilAt(xNew.x, xNew.y, xNew.z).toVar();
     const nrm = terrainNormalAt(xNew.x, xNew.y, xNew.z).toVar();
@@ -764,6 +847,16 @@ export function buildFlipKernels(bufs: FlipBuffers, ground: SpanGround): FlipKer
       });
     });
 
+    }
+    if (particleContact && beforeParticleContact) {
+      particleContact.element(p).assign(vec4(vNew.sub(beforeParticleContact).mul(mass),
+        vNew.dot(vNew).sub(beforeParticleContact.dot(beforeParticleContact)).mul(mass).mul(0.5)));
+    }
+    if (positionContact && beforePositionContact) {
+      const correction = xNew.sub(beforePositionContact);
+      positionContact.element(p).assign(vec4(correction, correction.y.mul(mass).mul(MPM_GRAVITY)));
+    }
+
     // Foam: a decaying memory of CURRENT agitation. Sources: |divergence| of
     // the interpolated velocity field (trace of the new C — compression at
     // impacts, expansion in spray) and the substep velocity change (impacts,
@@ -807,7 +900,7 @@ export function buildFlipKernels(bufs: FlipBuffers, ground: SpanGround): FlipKer
 
     pos.element(p).assign(xNew);
     vel.element(p).assign(vNew);
-  })().compute(count);
+  });
 
   return { clearGrid, p2g1, p2g2, gridUpdate, g2p, uniforms: { dt: dtU } };
 }

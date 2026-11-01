@@ -110,6 +110,23 @@ function outwardSeatM(
 // ============================================================================
 
 describe('buildBuildingHistoryParts wall evidence', () => {
+  it('retains a patch on enclosed masonry while refusing missing walls and other internal facade evidence', () => {
+    const {blueprint, runIndex, run} = sampledBuilding();
+    run.kind = 'inner';
+    const lo = run.axis === 'x' ? run.x1 : run.y1;
+    const hi = run.axis === 'x' ? run.x2 : run.y2;
+    blueprint.backstory = {ageBand: 'ancient', phases: blueprint.masses.map(() => 0),
+      wear: ['patched-wall'], historySignature: 'retained-masonry-patch',
+      features: [{kind: 'patched-wall', floorLevel: 0, wallRunIndex: runIndex,
+        alongFt: (lo + hi) / 2, widthFt: 3, baseFt: .4, heightFt: 6, colorHex: '#7c6f5d'}]};
+    const parts = buildBuildingHistoryParts(blueprint, 3);
+    expect(parts).toHaveLength(3);
+    for (const part of parts) expect(outwardSeatM(blueprint, run, part)).toBeCloseTo(0);
+    blueprint.backstory.features[0] = {...blueprint.backstory.features[0], kind: 'sealed-door'} as typeof blueprint.backstory.features[0];
+    expect(() => buildBuildingHistoryParts(blueprint, 3)).toThrow('missing outer wall');
+    blueprint.backstory.features[0] = {...blueprint.backstory.features[0], kind: 'patched-wall', wallRunIndex: 999} as typeof blueprint.backstory.features[0];
+    expect(() => buildBuildingHistoryParts(blueprint, 3)).toThrow('missing outer wall');
+  });
   it.each([
     ['sealed-door', 4],
     ['patched-wall', 3],

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 17/08/2026, 14:09:05
- * Dependents: App.tsx, components/MapPane.tsx, components/World3D/entryCellIdentity.ts, components/Worldforge/AtlasDemo.tsx, state/appState.ts, state/reducers/craftingReducer.ts, systems/adventureLog/adventureLog.ts, systems/adventureLog/oraclePrompt.ts, systems/party/recruitConsent.ts, systems/worldforge/local/gridAtlasBridge.ts, types/index.ts, types/travelMeta.ts, utils/world/sceneUtils.ts
- * Imports: None
+ * Last Sync: 31/10/2026, 16:05:33
+ * Dependents: components/ConversationPanel/CompanionGoalDestinationChoices.tsx, components/ConversationPanel/CompanionGoalWorkChoices.tsx, components/ConversationPanel/CompanionPreparationChoices.tsx, components/ConversationPanel/CompanionRumorChoices.tsx, components/ConversationPanel/CompanionTravelChoices.tsx, components/MapPane.tsx, components/World3D/GuestBedRestAction.tsx, components/World3D/entryCellIdentity.ts, components/World3D/initialTownEntry.ts, components/World3D/partyJourneyArrival.ts, components/World3D/publicBuildingDiscovery.ts, components/Worldforge/AtlasDemo.tsx, components/layout/AppShell.tsx, components/screens/AppPhaseContent.tsx, components/screens/GameOverScreen.tsx, components/screens/PlayingScreen.tsx, components/ui/LongRestModal.tsx, hooks/actions/handleLodging.ts, hooks/app/useAppAmbientDialogue.ts, hooks/app/useAppAtlasEntry.ts, hooks/app/useAppAtlasRuntime.ts, hooks/app/useAppCharacterEntry.ts, hooks/app/useAppDeveloperCombatFixtures.ts, hooks/app/useAppDeveloperMenu.ts, hooks/app/useAppDeveloperProbe.ts, hooks/app/useAppLoadingWatchdog.ts, hooks/app/useAppLocationView.ts, hooks/app/useAppPhaseClock.ts, hooks/app/useAppPreferences.ts, hooks/app/useAppTravelActions.ts, hooks/app/useAppWorldGeneration.ts, hooks/useBusinessAttendance.ts, services/combatDefeatService.ts, state/appState.ts, state/reducers/companionGoalDestinationReducer.ts, state/reducers/companionGoalWorkReducer.ts, state/reducers/companionPreparationReducer.ts, state/reducers/companionRumorReducer.ts, state/reducers/companionTravelReducer.ts, state/reducers/craftingReducer.ts, systems/adventureLog/adventureLog.ts, systems/adventureLog/oraclePrompt.ts, systems/combat/worldScenario/surfaceHostileContinuity.ts, systems/companions/companionGoalDestinations.ts, systems/companions/companionGoalWork.ts, systems/companions/companionJourney.ts, systems/companions/companionJourneyReadiness.ts, systems/companions/companionPreparations.ts, systems/companions/companionRumors.ts, systems/companions/companionSiteRisk.ts, systems/companions/companionWhereabouts.ts, systems/companions/companionWorldActivities.ts, systems/economy/businessAttendance.ts, systems/gameplay/lodging.ts, systems/gameplay/restMeals.ts, systems/party/recruitConsent.ts, systems/social/npcDialogueMemory.ts, systems/social/npcInstitutionStatements.ts, systems/social/npcPersonalStatements.ts, systems/travel/learnedLibraryDestinations.ts, systems/travel/npcLocalDirections.ts, systems/travel/partyMeal.ts, systems/travel/partyProvisions.ts, systems/travel/prepareTravelBattlefield.ts, systems/worldforge/dungeon/world/dungeonCombatResolution.ts, systems/worldforge/dungeon/world/dungeonObjectResolution.ts, systems/worldforge/interior/libraryCollection.ts, systems/worldforge/local/gridAtlasBridge.ts, systems/worldforge/town/townMapPosition.ts, systems/worldforge/townsim/chronicleForLocation.ts, systems/worldforge/travel/localGroundJourney.ts, types/index.ts, types/rest.ts, types/travelMeta.ts, utils/world/sceneUtils.ts
+ * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -15,6 +15,7 @@
 // @dependencies-end
 
 import { GamePhase } from './core.js';
+import type {DungeonCombatContext} from './dungeonCombat';
 import type { RulesEdition } from '../config/rulesEdition.js';
 import { Item } from './items.js';
 import { PlayerCharacter, TempPartyMember } from './character.js';
@@ -45,6 +46,7 @@ import type {
   AtlasGroundPosition,
 } from '../systems/worldforge/leaf3d/atlasGroundContinuity.js';
 import type { Notification } from './ui.js';
+import type { LodgingOffer, LodgingReservation, LodgingRestAdmission } from './rest';
 import { PlayerIdentityState } from './identity.js';
 
 /**
@@ -212,6 +214,8 @@ export interface PlayerGroundPosition {
   tileY: number;
   xM: number;
   zM: number;
+  /** Actual supported foot height; older saves resolve their ground surface. */
+  yM?: number;
 }
 
 /**
@@ -366,6 +370,8 @@ export interface GameState {
   encounterError: string | null;
 
   currentEnemies: import('./combat.js').CombatCharacter[] | null;
+  /** Accepted public outcome; saved separately from deliberate recovery checkpoints on defeat. */
+  lastCombatOutcome?: import('./combatOutcome').PersistedCombatOutcome;
   /** Exact reason an unsupported production encounter was withheld. */
   battlefieldSourceGap?: BattlefieldSourceGapReason | null;
   /**
@@ -422,6 +428,8 @@ export interface GameState {
     merchantId?: string;
     merchantName: string;
     merchantInventory: Item[];
+    /** A tavern information inquiry starts on its existing paid rumor offers. */
+    initialTab?: 'gossip';
     economy?: EconomyState;
   };
 
@@ -471,6 +479,14 @@ export interface GameState {
    * broadsheet" action). Cleared on open-live and on close.
    */
   broadsheetSnapshot?: string;
+  /** Presentation of an admitted public library copy; cleared on close, ordinary
+   * live reading, or reading an owned book. This grants no item or permission. */
+  broadsheetReadingPlace?: {burgId: number; townName: string; library?: {
+    /** Present only after the physical staffed-desk owner admits this session.
+     * Old reading copies retain news; they do not gain a collection grant. */
+    worldSeed: number; plotId: number; level: number; index: number;
+    position: PlayerGroundPosition; historySignature: string;
+  }};
   notifications: Notification[];
 
   factions: Record<string, Faction>;
@@ -579,6 +595,15 @@ export interface GameState {
 
   // Party-level short rest pacing and daily tracking.
   shortRestTracker: ShortRestTracker;
+  /** ISO timestamp of when the last long rest was completed (16-hour cooldown guard). */
+  lastLongRestAt?: string | null;
+    /** Paid permission for existing guest beds; old saves have no reservations. */
+    lodgingReservations?: LodgingReservation[];
+    /** Transient quote and reached-bed admission, cleared when loading a save. */
+    lodgingOffer?: { offer: LodgingOffer; error?: string } | null;
+    lodgingRestAdmission?: LodgingRestAdmission | null;
+  /** Elapsed travel minutes accumulated toward the next whole-day ration/water deduction (GG-471). */
+  travelMinutesRemainder?: number;
 
   // 3D World Transition (world-3d-ui)
   /** Current view mode within PLAYING phase. Defaults to 'atlas'. */
@@ -645,6 +670,8 @@ export interface GameState {
    * ledger. Entry, retreat, progress, completion, and revisit all update this one receipt owner.
    */
   dungeonExpeditions?: DungeonExpeditionLedger;
+  /** Combat return checkpoint; the expedition ledger remains the progress owner. */
+  dungeonCombatReturn?: DungeonCombatContext | null;
 
   // Pillar 2, Task 8 (living ecology): frozen site paths of dungeons the party
   // has CLEARED. Default empty (every site starts uncleared). Persisted so a

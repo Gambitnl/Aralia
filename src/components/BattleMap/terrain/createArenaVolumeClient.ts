@@ -16,13 +16,32 @@
  * `workerFactory` is injectable so a test can drive this with a synchronous
  * fake instead of a real Worker.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 25/10/2026, 12:37:12
+ * Dependents: components/BattleMap/terrain/VolumeArenaGround.tsx, components/BattleMap/terrain/VolumeArenaWater.tsx
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { VoxelVolume } from '@/systems/worldforge/terrain/voxelVolume';
+import { createWorkerClient } from '@/workers/workerClient';
 import {
   arenaBiomeStack,
   transfersOfArenaTiles,
   type ArenaTiles,
 } from './arenaVolume';
 import type {
+  ArenaBuildRequest,
   ArenaDoneMessage,
   ArenaFillMessage,
   ArenaSlabMessage,
@@ -75,15 +94,13 @@ export interface ArenaVolumeClient {
 export function createArenaVolumeClient(
   workerFactory: WorkerFactory = defaultWorkerFactory,
 ): ArenaVolumeClient {
-  let worker: Worker | null = null;
   let disposed = false;
   let nextId = 1;
   const inFlight = new Map<number, ArenaBuildCallbacks>();
 
-  const spawn = (): void => {
-    const w = workerFactory();
-    w.onmessage = (ev: MessageEvent<ArenaWorkerMessage>) => {
-      const m = ev.data;
+  const client = createWorkerClient<ArenaBuildRequest, ArenaWorkerMessage>({
+    factory: workerFactory,
+    onMessage: (m) => {
       const cb = inFlight.get(m.id);
       if (!cb) return;
       if (m.kind === 'fill') {
@@ -109,15 +126,10 @@ export function createArenaVolumeClient(
         inFlight.delete(d.id);
         cb.onDone({ meshMs: d.meshMs, slabs: d.slabs });
       }
-    };
-    w.onerror = () => {
-      /* A worker that died takes its build with it. The next build respawns
-       * rather than posting into a corpse — the ground-chunk loader's
-       * self-healing pattern, which has already saved one live session. */
-      if (worker === w) worker = null;
-    };
-    worker = w;
-  };
+    },
+    // The shared lifecycle terminates a failed worker; the next build starts a
+    // replacement. Completed volumes stay owned by the caller as before.
+  });
 
   const build = (
     tiles: ArenaTiles,
@@ -125,10 +137,10 @@ export function createArenaVolumeClient(
     opts: { cells?: number; cellM?: number; cellHM?: number } = {},
   ): void => {
     if (disposed) return;
-    if (!worker) spawn();
+    client.start();
     const id = nextId++;
     inFlight.set(id, cb);
-    worker!.postMessage(
+    client.post(
       { kind: 'build', id, tiles, cells: opts.cells, cellM: opts.cellM, cellHM: opts.cellHM },
       transfersOfArenaTiles(tiles),
     );
@@ -138,14 +150,13 @@ export function createArenaVolumeClient(
     disposed = true;
     inFlight.clear();
     try {
-      worker?.terminate();
+      client.dispose();
     } catch {
       /* already gone */
     }
-    worker = null;
   };
 
-  spawn();
+  // The shared client preserves the original eager warm-up.
 
   return { build, dispose };
 }

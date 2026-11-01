@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 30/08/2026, 21:43:14
- * Dependents: components/World3D/World3DDemo.tsx, components/World3D/World3DScene.tsx, components/World3D/World3DWrapper.tsx
- * Imports: 6 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file src/components/World3D/SceneCast.tsx
  *
@@ -32,14 +16,38 @@
  * `start`, so scene-space (0, surfaceY, 0) is the ground at the player's feet.
  * The cast is arranged around that point so the ground camera frames the group.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 18:46:33
+ * Dependents: components/World3D/World3DDemo.tsx, components/World3D/World3DScene.tsx, components/World3D/World3DWrapper.tsx
+ * Imports: 10 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useMemo } from 'react';
 import { Html } from '@react-three/drei';
-import type { ThreeEvent } from '@react-three/fiber';
+import { SceneCastNameplate } from './SceneCastNameplate';
+import { createCastLabelProjectors, type CastLabelProjector } from './sceneCastLabelLayout';
+import { useThree, type ThreeEvent } from '@react-three/fiber';
 import { registerAllParts } from '@/systems/entities3d/parts';
 import { generateEntityBlueprint } from '@/systems/entities3d/generateEntityBlueprint';
 import { heightM } from '@/systems/entities3d/types';
 import { Entity3D } from '@/systems/entities3d/three/Entity3D';
 import { gameBodyOptions } from '@/systems/entities3d/three/assembleEntity';
+import { isWebGpuWorldEnabled } from './webgpuWorldFlag';
+import { adaptWorldEntityForWebGpu } from './worldEntityGpu';
+
+/** ADR 0009 step 2: the WebGPU world rebuilds the GLSL toon materials. */
+const ADAPT_MATERIALS = isWebGpuWorldEnabled() ? adaptWorldEntityForWebGpu : undefined;
 import {
   figureIsInteractive,
   castMemberRecipe,
@@ -67,10 +75,11 @@ interface SceneCastProps {
 
 const Figure: React.FC<{
   member: SceneCastMember & { pos: [number, number, number] };
+  calculateLabelPosition: CastLabelProjector;
   surfaceY: number;
   onSelectNpc?: (npcId: string) => void;
-}> = ({ member, surfaceY, onSelectNpc }) => {
-  const [x, , z] = member.pos;
+}> = ({ member, surfaceY, onSelectNpc, calculateLabelPosition }) => {
+  const [x, y, z] = member.pos;
   // Face the cluster centre so the group reads as "in conversation".
   const facing = Math.atan2(-x, -z);
 
@@ -84,6 +93,8 @@ const Figure: React.FC<{
   const interactive = figureIsInteractive(member, typeof onSelectNpc === 'function');
   const handlePointerDown = interactive
     ? (e: ThreeEvent<PointerEvent>) => {
+        // Camera gestures may start on a body too. Only a primary click is speech.
+        if (e.button !== 0) return;
         // Stop the event reaching MapControls so a talk-click never also pans
         // the camera.
         e.stopPropagation();
@@ -102,9 +113,11 @@ const Figure: React.FC<{
       }
     : undefined;
 
+  // Explicit positions retain each person's own footing across scene origins.
   return (
     <group
-      position={[x, surfaceY, z]}
+      name={`scene-cast:${member.id}`}
+      position={[x, member.position ? y : surfaceY, z]}
       rotation={[0, facing, 0]}
       onPointerDown={handlePointerDown}
       onPointerOver={handlePointerOver}
@@ -116,6 +129,7 @@ const Figure: React.FC<{
           refresh. Labels, clicks, gear, eyes, and facing remain full-frame.
           Skinned by default (skeleton pivot flip 2026-08-18). */}
       <Entity3D
+        adaptMaterials={ADAPT_MATERIALS}
         blueprint={blueprint}
         walking={false}
         resolutionScale={0.6}
@@ -123,25 +137,15 @@ const Figure: React.FC<{
         {...gameBodyOptions(blueprint)}
       />
       {/* Name label floating above the head. */}
-      <Html center position={[0, labelY, 0]} distanceFactor={12}>
-        <div
-          data-testid={`scene-cast-label-${member.id}`}
-          data-player={member.isPlayer ? 'true' : 'false'}
-          style={{
-            pointerEvents: 'none',
-            userSelect: 'none',
-            whiteSpace: 'nowrap',
-            color: 'white',
-            fontSize: '12px',
-            fontFamily: 'Outfit, sans-serif',
-            padding: '2px 7px',
-            borderRadius: '4px',
-            background: member.isPlayer ? 'rgba(37, 99, 235, 0.82)' : 'rgba(9, 19, 28, 0.82)',
-            border: '1px solid rgba(148, 163, 184, 0.5)',
-          }}
-        >
-          {member.isPlayer ? `${member.name} (you)` : interactive ? `💬 ${member.name}` : member.name}
-        </div>
+      {/* Match the player nameplate: readable labels must not grow over faces
+          when a normal close camera orbit brings the group nearer. */}
+      <Html center position={[0, labelY, 0]} calculatePosition={calculateLabelPosition} style={{ pointerEvents: 'none' }}>
+        <SceneCastNameplate
+          id={member.id}
+          name={member.name}
+          isPlayer={member.isPlayer}
+          onTalk={interactive ? () => onSelectNpc!(member.id) : undefined}
+        />
       </Html>
     </group>
   );
@@ -152,12 +156,25 @@ const Figure: React.FC<{
  * case once the opening is over and the player wanders off).
  */
 const SceneCast: React.FC<SceneCastProps> = ({ cast, surfaceY = 0, onSelectNpc }) => {
+  const canvas = useThree(state => state.gl.domElement);
   const placed = useMemo(() => layoutCast(cast), [cast]);
+  const labelProjector = useMemo(() => createCastLabelProjectors(placed.map(member => member.id), () => {
+    // Read only this canvas's existing player captions. Moving a badge must not
+    // hide the authoritative footing/water warning or move anyone's body.
+    const origin = canvas.getBoundingClientRect();
+    // Drei's captions are siblings of the inner canvas wrapper. Prefer the
+    // world's explicit layer; the R3F root also covers isolated scene previews.
+    const captionRoot = canvas.closest('[data-testid="world3d-scene-layer"]') ?? canvas.parentElement?.parentElement;
+    return Array.from(captionRoot?.querySelectorAll('[data-testid="player-avatar-label"], [data-testid="ground-footing-unavailable"], [data-testid="ground-water-notice"]') ?? []).map(node => {
+      const rect = node.getBoundingClientRect();
+      return {x:rect.left-origin.left,y:rect.top-origin.top,width:rect.width,height:rect.height};
+    });
+  }), [placed, canvas]);
   if (placed.length === 0) return null;
   return (
     <group data-testid="scene-cast">
       {placed.map((m) => (
-        <Figure key={m.id} member={m} surfaceY={surfaceY} onSelectNpc={onSelectNpc} />
+        <Figure key={m.id} member={m} surfaceY={surfaceY} onSelectNpc={onSelectNpc} calculateLabelPosition={labelProjector(m.id)} />
       ))}
     </group>
   );

@@ -262,3 +262,22 @@ describe('day-to-day variation (persisted needs change behaviour)', () => {
     }
   });
 });
+
+
+describe('institution duty in the needs-driven behavior consumer', () => {
+  const person: Occupant={id:145,name:'Faelan Ironsmith',ageBand:'elder',householdMemberId:'b54:spouse',homePlotId:54,occupation:'resident',civicWorkplace:{role:'priest',plotId:168}};
+  const mind=():AgentMind=>({occupantId:145,needs:{energy:90,satiety:90,social:90,wealth:40},activity:'home',targetPlotId:54,socialized:false});
+  it('works at the same qualified institution without becoming a shopkeeper', () => {
+    const out=step([mind()],[person],14,.1);
+    expect(out[0]).toMatchObject({activity:'work',targetPlotId:168});
+    expect(person.workPlotId).toBeUndefined();
+  });
+  it('retains meals/overnight needs and does not work a retired or child holder', () => {
+    expect(step([mind()],[person],7,.1)[0].activity).not.toBe('work');
+    expect(step([mind()],[person],18,.1)[0].activity).not.toBe('work');
+    for(const p of [{...person,retired:true},{...person,ageBand:'child' as const}])
+      expect(step([mind()],[p],14,.1)[0].activity).not.toBe('work');
+    expect(step([{...mind(),needs:{energy:5,satiety:90,social:90,wealth:40}}],[person],14,.1)[0])
+      .toMatchObject({activity:'sleep',targetPlotId:54});
+  });
+});

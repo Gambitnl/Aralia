@@ -34,7 +34,6 @@ const LAND_LAYER_CHIPS: ReadonlyArray<[keyof World3DLayerVisibility, string]> = 
 ];
 import { scaleProfile, typologyForPopulation, type TownTypology } from '@/systems/worldforge/town/townEngine';
 import {
-  getBridgeAtlas,
   getBurgCultureType,
   getWorldforgeLocalForCell,
 } from '@/systems/worldforge/bridge/legacySubmapBridge';
@@ -54,6 +53,7 @@ import { heightToMeters } from '@/systems/world3d/config';
 import { styleFamilyForCultureType } from '@/systems/worldforge/town/architectureStyle';
 import { resolveBuildingAgeBand } from '@/systems/worldforge/town/buildingAge';
 import type { FmgWorldResult } from '@/systems/worldforge/fmg/generateWorld';
+import { prepareResponsiveAtlas } from '@/components/Worldforge/responsiveAtlasPreparation';
 
 // R3F scene is heavy — lazy-load so the preview shell stays snappy.
 const Town3DScene = lazy(() => import('./Town3DScene'));
@@ -86,8 +86,45 @@ const TOWN_LAYERS: TownLayer[] = ['ground', 'streets', 'buildings', 'walls', 'ci
  * labelled "water" must never give.
  */
 
-/** One fixed world so the harness is deterministic (215 rivers, 813 burgs). */
+/**
+ * The default world, so the harness opens deterministic (215 rivers, 813
+ * burgs). Since 2026-11-02 (Remy: "how can I roll a different town map?") the
+ * seed box, `Random` and `?seed=` can load another world; with no `?seed=` the
+ * page still opens on this one.
+ */
 const WORLD_SEED = 903674813;
+
+/** Largest seed the seed box accepts (a positive 32-bit integer). */
+const MAX_WORLD_SEED = 2147483647;
+
+/** A whole number from 1 to MAX_WORLD_SEED, or null for anything else. */
+function parseWorldSeed(text: string | null): number | null {
+  const trimmed = text?.trim() ?? '';
+  if (!/^\d+$/.test(trimmed)) return null;
+  const seed = Number(trimmed);
+  return seed >= 1 && seed <= MAX_WORLD_SEED ? seed : null;
+}
+
+/** One query parameter of the page address, or null. */
+function readAddressParam(name: string): string | null {
+  if (typeof window === 'undefined') return null;
+  return new URLSearchParams(window.location.search).get(name);
+}
+
+/**
+ * Write the shown town into the page address, so a reload or a shared link
+ * opens the same world, band and burg. `replaceState` keeps `step=town3d` and
+ * every other parameter, and adds no history entry per click.
+ */
+function writeAddressParams(values: Record<string, string | null>): void {
+  if (typeof window === 'undefined') return;
+  const url = new URL(window.location.href);
+  for (const [name, value] of Object.entries(values)) {
+    if (value === null) url.searchParams.delete(name);
+    else url.searchParams.set(name, value);
+  }
+  if (url.href !== window.location.href) window.history.replaceState(window.history.state, '', url);
+}
 
 interface TypologyBand {
   label: string;
@@ -120,11 +157,29 @@ function pickBurgForBand(
   /** Optional gate: keep only burgs this returns a water kind for. */
   waterKind?: (t: SelectableTown) => WaterKind,
 ): SelectableTown | null {
-  const inBand = towns
+  const inBand = townsInBand(towns, band, waterKind);
+  return inBand.length ? inBand[Math.floor(inBand.length / 2)] : null;
+}
+
+/**
+ * Every burg in a band, in a stable order: population, then burg index. The
+ * band's median pick and the Next/Previous buttons share this one list, so
+ * "Next" from the default town steps to its neighbor in the same order.
+ */
+function townsInBand(
+  towns: SelectableTown[],
+  band: TypologyBand,
+  waterKind?: (t: SelectableTown) => WaterKind,
+): SelectableTown[] {
+  return towns
     .filter((t) => t.population >= band.minPop && t.population < band.maxPop)
     .filter((t) => !waterKind || waterKind(t) !== null)
     .sort((a, b) => a.population - b.population || a.burgIndex - b.burgIndex);
-  return inBand.length ? inBand[Math.floor(inBand.length / 2)] : null;
+}
+
+/** The band a population belongs to, or -1. */
+function bandIndexForPopulation(population: number): number {
+  return TYPOLOGY_BANDS.findIndex((b) => population >= b.minPop && population < b.maxPop);
 }
 
 /** What water a burg's own cell carries. `null` means dry. */
@@ -285,7 +340,7 @@ interface RealWorldScene {
  * Baked real-3D worlds, keyed by burg. Baking costs ~3 s (region + local +
  * ground), so it happens once per burg and survives layout toggles.
  */
-const groundCache = new Map<number, RealWorldScene>();
+const groundCache = new Map<string, RealWorldScene>();
 
 /**
  * Bake the streamed ground world around a burg and frame the camera on the town.
@@ -294,14 +349,17 @@ const groundCache = new Map<number, RealWorldScene>();
  * misses the town envelope, and `region.townSites` comes back empty — every town
  * feature then silently vanishes from the 3D world.
  */
-function bakeRealWorld(atlas: FmgWorldResult, burg: SelectableTown): RealWorldScene {
-  const cached = groundCache.get(burg.burgIndex);
+function bakeRealWorld(atlas: FmgWorldResult, burg: SelectableTown, worldSeed: number): RealWorldScene {
+  // Keyed by world AND burg: burg indexes repeat in every world, so a burg-only
+  // key would show the last world's ground for a burg in a new one.
+  const cacheKey = `${worldSeed}:${burg.burgIndex}`;
+  const cached = groundCache.get(cacheKey);
   if (cached) return cached;
 
   const packBurg = (atlas.pack.burgs as unknown as Array<{ x: number; y: number }>)[burg.burgIndex];
   if (!packBurg) throw new Error(`No pack burg at index ${burg.burgIndex}`);
 
-  const { local, region } = getWorldforgeLocalForCell(WORLD_SEED, burg.atlasCellId, {
+  const { local, region } = getWorldforgeLocalForCell(worldSeed, burg.atlasCellId, {
     centerPx: [packBurg.x, packBurg.y],
   });
   // ANCHOR CELL (required, not optional). Without it the window resolves no
@@ -310,7 +368,7 @@ function bakeRealWorld(atlas: FmgWorldResult, burg: SelectableTown): RealWorldSc
   // rendered black. The live game path (worldGenCore) always passes its entry
   // cell; this harness did not. The anchor also gives the window its correct
   // ground tint, canopy and snow line, so passing it fixes more than the crash.
-  const ground = makeGroundWorld(local, WORLD_SEED, region, { anchorCellId: burg.atlasCellId });
+  const ground = makeGroundWorld(local, worldSeed, region, { anchorCellId: burg.atlasCellId });
   const loader = buildGroundLoaderFromWorld(ground);
 
   // Frame the burg itself: the ground world reports every town it contains with
@@ -414,7 +472,12 @@ function bakeRealWorld(atlas: FmgWorldResult, burg: SelectableTown): RealWorldSc
     landCellM,
     landHeightM: TOWN_LAND_HEIGHT_M,
   };
-  groundCache.set(burg.burgIndex, scene);
+  // Keep one world's bakes at most: each rolled world would otherwise hold its
+  // baked ground scenes for the whole session.
+  for (const key of groundCache.keys()) {
+    if (!key.startsWith(`${worldSeed}:`)) groundCache.delete(key);
+  }
+  groundCache.set(cacheKey, scene);
   return scene;
 }
 
@@ -431,22 +494,70 @@ export const PreviewTown3D: React.FC = () => {
     ground: true, streets: true, buildings: true, walls: true, civic: true, water: true,
   });
 
-  // The atlas bake is ~1.5 s, so it runs off the first paint. Everything below
+  // The atlas bake runs in the game map's atlas worker (Remy, 2026-11-01: a
+  // Chrome trace showed generateFmgWorld blocking the page for 4.5 s). The
+  // worker runs the same getBridgeAtlas build and installs the result into the
+  // same per-seed bridge cache, so every later getBridgeAtlas(worldSeed) call
+  // on this page returns that one atlas, with no second build. Everything below
   // waits on it rather than inventing a stand-in world.
-  const [atlas, setAtlas] = useState<FmgWorldResult | null>(null);
-  const [atlasError, setAtlasError] = useState<string | null>(null);
+  //
+  // THE WORLD SEED (2026-11-02). `?seed=` picks the world; none means
+  // WORLD_SEED. A malformed `?seed=` is reported, not swapped for the default:
+  // the page then forges nothing until a valid seed is loaded. A new seed
+  // forges in the same atlas worker, and the panes show "Forging world…"
+  // until it arrives.
+  const [addressSeedText] = useState(() => readAddressParam('seed'));
+  const [worldSeed, setWorldSeed] = useState<number | null>(() =>
+    addressSeedText === null ? WORLD_SEED : parseWorldSeed(addressSeedText),
+  );
+  const [seedText, setSeedText] = useState(() => addressSeedText ?? String(WORLD_SEED));
+  const [seedTextError, setSeedTextError] = useState<string | null>(null);
+  // The atlas is stored WITH its seed. In the render where the seed changes,
+  // the old world must not count as loaded: otherwise that one render builds
+  // the old world's town plan under the new seed and writes the old burg into
+  // the address next to the new seed.
+  const [loaded, setLoaded] = useState<{ seed: number; atlas: FmgWorldResult } | null>(null);
+  const [atlasFailure, setAtlasFailure] = useState<{ seed: number; message: string } | null>(null);
+  const atlas = loaded && loaded.seed === worldSeed ? loaded.atlas : null;
+  const atlasError = atlasFailure && atlasFailure.seed === worldSeed ? atlasFailure.message : null;
   useEffect(() => {
+    if (worldSeed === null) return;
     let alive = true;
-    const t = window.setTimeout(() => {
-      try {
-        const built = getBridgeAtlas(WORLD_SEED);
-        if (alive) setAtlas(built);
-      } catch (err) {
-        if (alive) setAtlasError(err instanceof Error ? err.message : String(err));
-      }
-    }, 0);
-    return () => { alive = false; window.clearTimeout(t); };
-  }, []);
+    prepareResponsiveAtlas({ seed: worldSeed })
+      .then((prepared) => { if (alive) setLoaded({ seed: worldSeed, atlas: prepared.atlas }); })
+      .catch((err: unknown) => {
+        if (alive) setAtlasFailure({ seed: worldSeed, message: err instanceof Error ? err.message : String(err) });
+      });
+    return () => { alive = false; };
+  }, [worldSeed]);
+
+  /** Load a world from the seed box text, or say why the text is not a seed. */
+  const loadSeed = (text: string) => {
+    const seed = parseWorldSeed(text);
+    if (seed === null) {
+      setSeedTextError(`"${text}" is not a whole number from 1 to ${MAX_WORLD_SEED.toLocaleString()}`);
+      return;
+    }
+    setSeedTextError(null);
+    setSeedText(String(seed));
+    if (seed === worldSeed) return;
+    // A new world has its own burgs: drop the chosen burg and the last bake.
+    setBurgChoice(null);
+    setRealScene(null);
+    setRealError(null);
+    setWorldSeed(seed);
+  };
+
+  /*
+   * THE CHOSEN BURG. Null = the band's median burg (the shipped behavior).
+   * Next/Previous and `?burg=` set it. A `?burg=` that names no town in this
+   * world is reported in a notice, and no town is shown until a band or Next
+   * picks a real one.
+   */
+  const [burgChoice, setBurgChoice] = useState<number | null>(() => {
+    const raw = readAddressParam('burg');
+    return raw !== null && /^\d+$/.test(raw) ? Number(raw) : null;
+  });
 
   /* THE WATER GATE. Off, the bands pick on population alone — which is how
    * this harness shipped, and how all five of its burgs came out dry. World
@@ -460,12 +571,33 @@ export const PreviewTown3D: React.FC = () => {
 
   const waterKind = useMemo(() => (atlas ? makeWaterKind(atlas) : null), [atlas]);
 
+  const towns = useMemo(() => (atlas ? listSelectableTowns(atlas) : null), [atlas]);
+
   const picks = useMemo(() => {
-    if (!atlas) return null;
-    const towns = listSelectableTowns(atlas);
+    if (!towns) return null;
     const gate = waterOnly && waterKind ? waterKind : undefined;
     return TYPOLOGY_BANDS.map((band) => pickBurgForBand(towns, band, gate));
-  }, [atlas, waterOnly, waterKind]);
+  }, [towns, waterOnly, waterKind]);
+
+  /** Every band's burgs in the stable Next/Previous order (the same order as the median pick). */
+  const bandTowns = useMemo(() => {
+    if (!towns) return null;
+    const gate = waterOnly && waterKind ? waterKind : undefined;
+    return TYPOLOGY_BANDS.map((band) => townsInBand(towns, band, gate));
+  }, [towns, waterOnly, waterKind]);
+
+  const chosenTown = useMemo(
+    () => (burgChoice !== null && towns ? towns.find((t) => t.burgIndex === burgChoice) ?? null : null),
+    [burgChoice, towns],
+  );
+  const chosenMissing = burgChoice !== null && towns !== null && chosenTown === null;
+
+  // A chosen burg (from Next/Previous or `?burg=`) selects its own band.
+  useEffect(() => {
+    if (!chosenTown) return;
+    const idx = bandIndexForPopulation(chosenTown.population);
+    if (idx >= 0) setBandIdx(idx);
+  }, [chosenTown]);
 
   /** How many burgs in the world carry water at all — printed, not guessed. */
   const waterCount = useMemo(() => {
@@ -474,24 +606,51 @@ export const PreviewTown3D: React.FC = () => {
   }, [atlas, waterKind]);
 
   const band = TYPOLOGY_BANDS[bandIdx];
-  const burg = picks ? picks[bandIdx] : null;
+  const burg = burgChoice !== null ? chosenTown : picks ? picks[bandIdx] : null;
   const burgWater = burg && waterKind ? waterKind(burg) : null;
 
+  // Where the shown burg sits in its band's list (-1: outside the water gate).
+  const bandList = bandTowns ? bandTowns[bandIdx] : null;
+  const bandPos = bandList && burg ? bandList.findIndex((t) => t.burgIndex === burg.burgIndex) : -1;
+  /** Step to the next (+1) or previous (-1) burg of the band, wrapping at the ends. */
+  const stepBurg = (dir: 1 | -1) => {
+    if (!bandList || bandList.length === 0) return;
+    const n = bandList.length;
+    const next = bandPos < 0 ? (dir === 1 ? 0 : n - 1) : (bandPos + dir + n) % n;
+    setBurgChoice(bandList[next].burgIndex);
+  };
+
+  // Keep the address in step with what the page shows. The burg is written
+  // only once the world has loaded, so a reload during the forge keeps it; a
+  // `?burg=` that names no town stays in the address with its notice.
+  useEffect(() => {
+    if (worldSeed === null) return;
+    const values: Record<string, string | null> = {
+      seed: worldSeed === WORLD_SEED ? null : String(worldSeed),
+      water: waterOnly ? '1' : null,
+    };
+    if (towns && !chosenMissing) values.burg = burg ? String(burg.burgIndex) : null;
+    // A new world is forging and no burg is chosen: the old world's burg must
+    // not stay in the address, or a reload now would open the wrong town.
+    else if (!towns && burgChoice === null) values.burg = null;
+    writeAddressParams(values);
+  }, [worldSeed, waterOnly, towns, burg, chosenMissing, burgChoice]);
+
   const plan = useMemo(
-    () => (atlas && burg ? getCanonicalTownPlan(atlas, WORLD_SEED, burg.burgIndex) : null),
-    [atlas, burg],
+    () => (atlas && burg && worldSeed !== null ? getCanonicalTownPlan(atlas, worldSeed, burg.burgIndex) : null),
+    [atlas, burg, worldSeed],
   );
   const water = useMemo(
-    () => (atlas && burg ? getCanonicalTownWaterFeatures(atlas, burg.burgIndex, WORLD_SEED) : null),
-    [atlas, burg],
+    () => (atlas && burg && worldSeed !== null ? getCanonicalTownWaterFeatures(atlas, burg.burgIndex, worldSeed) : null),
+    [atlas, burg, worldSeed],
   );
   const seedPath = useMemo(
-    () => (burg ? canonicalTownSeedPath(WORLD_SEED, burg.burgIndex) : null),
-    [burg],
+    () => (burg && worldSeed !== null ? canonicalTownSeedPath(worldSeed, burg.burgIndex) : null),
+    [burg, worldSeed],
   );
   const styleFamily = useMemo(
-    () => (burg ? styleFamilyForCultureType(getBurgCultureType(WORLD_SEED, burg.burgIndex)) : undefined),
-    [burg],
+    () => (burg && worldSeed !== null ? styleFamilyForCultureType(getBurgCultureType(worldSeed, burg.burgIndex)) : undefined),
+    [burg, worldSeed],
   );
 
   // Real streamed 3D: baked lazily, once per burg, only while its panel is up.
@@ -501,19 +660,21 @@ export const PreviewTown3D: React.FC = () => {
   // never started: isolate LAND and the pane sits on "Forging world…"
   // forever, with `baking` false because nothing ever began.
   const wantsRealWorld = views.has('world') || views.has('land');
-  const [realScene, setRealScene] = useState<{ burgIndex: number; scene: RealWorldScene } | null>(null);
+  // `key` is `${worldSeed}:${burgIndex}`: burg indexes repeat across worlds.
+  const [realScene, setRealScene] = useState<{ key: string; scene: RealWorldScene } | null>(null);
   const [realError, setRealError] = useState<string | null>(null);
   const [baking, setBaking] = useState(false);
+  const realKey = burg && worldSeed !== null ? `${worldSeed}:${burg.burgIndex}` : null;
   useEffect(() => {
-    if (!atlas || !burg || !wantsRealWorld) return;
-    if (realScene?.burgIndex === burg.burgIndex) return;
+    if (!atlas || !burg || !wantsRealWorld || worldSeed === null || realKey === null) return;
+    if (realScene?.key === realKey) return;
     let alive = true;
     setBaking(true);
     setRealError(null);
     const t = window.setTimeout(() => {
       try {
-        const scene = bakeRealWorld(atlas, burg);
-        if (alive) setRealScene({ burgIndex: burg.burgIndex, scene });
+        const scene = bakeRealWorld(atlas, burg, worldSeed);
+        if (alive) setRealScene({ key: realKey, scene });
       } catch (err) {
         if (alive) setRealError(err instanceof Error ? err.message : String(err));
       } finally {
@@ -521,7 +682,7 @@ export const PreviewTown3D: React.FC = () => {
       }
     }, 0);
     return () => { alive = false; window.clearTimeout(t); };
-  }, [atlas, burg, wantsRealWorld, realScene]);
+  }, [atlas, burg, wantsRealWorld, realScene, worldSeed, realKey]);
 
   // Optional overhead framing for the real 3D panel — World3DScene's own "Town
   // Cell" lift, on demand. The panel OPENS at walking height (that is the point
@@ -621,7 +782,7 @@ export const PreviewTown3D: React.FC = () => {
           {burg && <span className="ml-2 text-amber-300">{burg.name}</span>}
         </h2>
         <p className="text-xs text-slate-400">
-          Every panel shows the SAME real settlement from world {WORLD_SEED}: the 2D town map, the
+          Every panel shows the SAME real settlement from world {worldSeed ?? '—'}: the 2D town map, the
           schematic 3D minimap, the real streamed 3D world the player walks, and the LAND view — the
           same baked town on the volume ground, with no terrain sheets at all. The 2D map and the
           minimap share one canonical plan per (atlas, burg); both 3D panels bake that same burg
@@ -637,8 +798,8 @@ export const PreviewTown3D: React.FC = () => {
             <button
               key={b.label}
               type="button"
-              title={missing ? `World ${WORLD_SEED} has no burg in the ${b.typology} band` : pick?.name}
-              onClick={() => setBandIdx(i)}
+              title={missing ? `World ${worldSeed ?? '—'} has no burg in the ${b.typology} band` : pick?.name}
+              onClick={() => { setBandIdx(i); setBurgChoice(null); }}
               className={`px-3 py-1 rounded text-sm border ${
                 i === bandIdx
                   ? missing
@@ -666,7 +827,7 @@ export const PreviewTown3D: React.FC = () => {
         <button
           type="button"
           aria-pressed={waterOnly}
-          onClick={() => setWaterOnly((v) => !v)}
+          onClick={() => { setWaterOnly((v) => !v); setBurgChoice(null); }}
           title={
             waterCount == null
               ? 'Restrict every band to burgs whose own cell carries a river or a coast'
@@ -697,6 +858,66 @@ export const PreviewTown3D: React.FC = () => {
         ))}
       </div>
 
+      {/* ROLL A TOWN (Remy 2026-11-02: "how can I roll a different town map?").
+          Previous/Next step through the band's burgs in the median pick's own
+          order; the seed box and Random load another world in the atlas
+          worker. Both write `?seed=` and `?burg=`, so a link shows this town. */}
+      <div className="flex flex-wrap items-center gap-2" data-testid="town-roll">
+        <button type="button" onClick={() => stepBurg(-1)} disabled={!bandList || bandList.length === 0}
+          title={`Previous ${band.typology} in this world`}
+          className="px-3 py-1 rounded text-sm border bg-gray-700 text-gray-100 border-gray-600 hover:bg-gray-600 disabled:opacity-40">
+          ◀ Previous
+        </button>
+        <span className="text-sm text-slate-200 tabular-nums" data-testid="town-roll-position">
+          {burg ? <b className="text-amber-200">{burg.name}</b> : <span className="text-slate-400">—</span>}
+          {bandList && (
+            <span className="ml-1.5 text-[11px] text-slate-400">
+              {bandPos >= 0 ? `${bandPos + 1} / ${bandList.length}` : `— / ${bandList.length}`} {band.typology}
+              {burg && bandPos < 0 && waterOnly ? ' (outside the water filter)' : ''}
+            </span>
+          )}
+        </span>
+        <button type="button" onClick={() => stepBurg(1)} disabled={!bandList || bandList.length === 0}
+          title={`Next ${band.typology} in this world`}
+          className="px-3 py-1 rounded text-sm border bg-gray-700 text-gray-100 border-gray-600 hover:bg-gray-600 disabled:opacity-40">
+          Next ▶
+        </button>
+        <span className="mx-1 w-px self-stretch bg-gray-600" />
+        <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); loadSeed(seedText); }}>
+          <label className="text-sm text-slate-300" htmlFor="town-world-seed">World seed</label>
+          <input id="town-world-seed" type="text" inputMode="numeric" value={seedText}
+            onChange={(e) => { setSeedText(e.target.value); setSeedTextError(null); }}
+            className="w-32 px-2 py-1 rounded text-sm border bg-gray-800 text-gray-100 border-gray-600 tabular-nums" />
+          <button type="submit" title="Forge the world in the box (Enter)"
+            className="px-3 py-1 rounded text-sm border bg-gray-700 text-gray-100 border-gray-600 hover:bg-gray-600">
+            Load
+          </button>
+          <button type="button" title="Forge a world from a random seed"
+            onClick={() => loadSeed(String(Math.floor(Math.random() * 999_999_999) + 1))}
+            className="px-3 py-1 rounded text-sm border bg-gray-700 text-gray-100 border-gray-600 hover:bg-gray-600">
+            Random
+          </button>
+        </form>
+        {worldSeed !== null && !atlas && !atlasError && (
+          <span className="text-sm text-slate-400" data-testid="town-roll-forging">Forging world {worldSeed}…</span>
+        )}
+        {seedTextError && <span className="text-sm text-amber-300">{seedTextError}</span>}
+      </div>
+
+      {worldSeed === null && (
+        <div className="rounded border border-amber-500 bg-amber-950/50 px-3 py-2 text-sm text-amber-200">
+          The page address has seed={addressSeedText}, which is not a whole number from 1 to{' '}
+          {MAX_WORLD_SEED.toLocaleString()}. No world is forged. Type a seed and press Load, or press Random.
+        </div>
+      )}
+
+      {chosenMissing && (
+        <div className="rounded border border-amber-500 bg-amber-950/50 px-3 py-2 text-sm text-amber-200">
+          World {worldSeed} has no town with burg index {burgChoice} (from the page address). Pick a band, or
+          press Previous or Next.
+        </div>
+      )}
+
       {/* 3D-minimap layer visibility — hide categories to inspect what's underneath
           (e.g. hide Buildings to trace the streets and river). Minimap only. */}
       {views.has('3d') && (
@@ -721,13 +942,13 @@ export const PreviewTown3D: React.FC = () => {
 
       {atlasError && (
         <div className="rounded border border-red-500 bg-red-950/60 px-3 py-2 text-sm text-red-200">
-          World {WORLD_SEED} failed to forge: {atlasError}
+          World {worldSeed ?? '—'} failed to forge: {atlasError}
         </div>
       )}
 
-      {picks && !burg && (
+      {picks && !burg && !chosenMissing && (
         <div className="rounded border border-amber-500 bg-amber-950/50 px-3 py-2 text-sm text-amber-200">
-          No burg in world {WORLD_SEED} falls in the <b>{band.typology}</b> band
+          No burg in world {worldSeed ?? '—'} falls in the <b>{band.typology}</b> band
           ({band.minPop.toLocaleString()}–{band.maxPop === Infinity ? '∞' : band.maxPop.toLocaleString()} people)
           {waterOnly ? ' AND carries water on its own cell' : ''}.
           {waterOnly
@@ -784,7 +1005,7 @@ export const PreviewTown3D: React.FC = () => {
                 width={size2d.width}
                 height={size2d.height}
                 seedPath={seedPath}
-                prefsScope={WORLD_SEED}
+                prefsScope={worldSeed ?? WORLD_SEED}
                 styleFamily={styleFamily}
                 settlementKey={burg ? `burg:${burg.burgIndex}` : undefined}
                 water={water.rivers}
@@ -794,7 +1015,7 @@ export const PreviewTown3D: React.FC = () => {
             </div>
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">
-              {atlasError ? 'World failed to forge' : picks && !burg ? `No ${band.typology} in world ${WORLD_SEED}` : 'Forging world…'}
+              {atlasError ? 'World failed to forge' : chosenMissing ? `No town #${burgChoice} in world ${worldSeed}` : picks && !burg ? `No ${band.typology} in world ${worldSeed ?? '—'}` : worldSeed === null ? 'No world: the address seed is not valid' : 'Forging world…'}
             </div>
           )}
           <span className="absolute top-1.5 left-2 text-[11px] text-slate-300 bg-black/50 px-1.5 py-0.5 rounded pointer-events-none">
@@ -806,11 +1027,11 @@ export const PreviewTown3D: React.FC = () => {
         <div className={paneClass('3d')}>
           {plan && water ? (
             <Suspense fallback={<div className="absolute inset-0 flex items-center justify-center text-slate-400">Loading 3D…</div>}>
-              <Town3DScene key={`mini:${burg?.burgIndex}`} plan={plan} water={water.rivers} show={show} />
+              <Town3DScene key={`mini:${realKey}`} plan={plan} water={water.rivers} show={show} />
             </Suspense>
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">
-              {atlasError ? 'World failed to forge' : picks && !burg ? `No ${band.typology} in world ${WORLD_SEED}` : 'Forging world…'}
+              {atlasError ? 'World failed to forge' : chosenMissing ? `No town #${burgChoice} in world ${worldSeed}` : picks && !burg ? `No ${band.typology} in world ${worldSeed ?? '—'}` : worldSeed === null ? 'No world: the address seed is not valid' : 'Forging world…'}
             </div>
           )}
           <span className="absolute top-1.5 left-2 text-[11px] text-slate-300 bg-black/50 px-1.5 py-0.5 rounded pointer-events-none">
@@ -824,11 +1045,11 @@ export const PreviewTown3D: React.FC = () => {
             <div className="absolute inset-0 flex items-center justify-center px-4 text-center text-sm text-red-300">
               Real 3D bake failed for {burg?.name}: {realError}
             </div>
-          ) : realScene && burg && realScene.burgIndex === burg.burgIndex ? (
+          ) : realScene && burg && realScene.key === realKey ? (
             <>
             <div className="absolute inset-0">
               <World3DScene
-                key={`world:${burg.burgIndex}`}
+                key={`world:${realKey}`}
                 loader={realScene.scene.loader}
                 start={realScene.scene.start}
                 startSurfaceY={realScene.scene.startSurfaceY}
@@ -868,8 +1089,10 @@ export const PreviewTown3D: React.FC = () => {
             <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">
               {baking
                 ? `Baking the real 3D world around ${burg?.name ?? 'the burg'}…`
-                : picks && !burg
-                  ? `No ${band.typology} in world ${WORLD_SEED}`
+                : chosenMissing
+                  ? `No town #${burgChoice} in world ${worldSeed}`
+                  : picks && !burg
+                  ? `No ${band.typology} in world ${worldSeed ?? '—'}`
                   : 'Forging world…'}
             </div>
           )}
@@ -887,11 +1110,11 @@ export const PreviewTown3D: React.FC = () => {
             <div className="absolute inset-0 flex items-center justify-center px-4 text-center text-sm text-red-300">
               Real 3D bake failed for {burg?.name}: {realError}
             </div>
-          ) : realScene && burg && realScene.burgIndex === burg.burgIndex ? (
+          ) : realScene && burg && realScene.key === realKey ? (
             <>
             <div className="absolute inset-0">
               <World3DScene
-                key={`land:${burg.burgIndex}`}
+                key={`land:${realKey}`}
                 loader={realScene.scene.loader}
                 start={realScene.scene.landStart}
                 startSurfaceY={realScene.scene.landStartSurfaceY}
@@ -983,8 +1206,10 @@ export const PreviewTown3D: React.FC = () => {
             <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">
               {baking
                 ? `Baking the real 3D world around ${burg?.name ?? 'the burg'}…`
-                : picks && !burg
-                  ? `No ${band.typology} in world ${WORLD_SEED}`
+                : chosenMissing
+                  ? `No town #${burgChoice} in world ${worldSeed}`
+                  : picks && !burg
+                  ? `No ${band.typology} in world ${worldSeed ?? '—'}`
                   : 'Forging world…'}
             </div>
           )}

@@ -1,5 +1,5 @@
 # Save source, ignored tools, assets, agent records, and scratch media on G:.
-# Restic keeps encrypted, deduplicated versions; retention keeps recent daily, weekly, monthly and the last four versions.
+# Restic keeps encrypted, deduplicated versions. Retention is paused for this repair.
 # The password is protected by Windows DPAPI for the current Windows account.
 # Keep a separate recovery copy of the password before relying on whole-PC recovery.
 param([string]$ConfigPath = 'G:\Users\Gambit\.codex\tools\nightly-save\config.json', [switch]$Initialize, [switch]$Verify, [switch]$LocalOnly, [switch]$Maintenance)
@@ -39,37 +39,15 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'Private backup initialization failed.' }
     }
     if ($Maintenance) {
-        # Check the repository before expiring any versions. Grouping preserves
-        # unrelated hosts and source sets; keep-last protects the initial recovery copies.
+        # Retention is paused during recovery repair, so maintenance checks integrity.
+        # This preserves existing backups without deciding a permanent retention policy.
         & $config.resticPath -r $config.resticRepo check
-        if ($LASTEXITCODE -ne 0) { throw 'Integrity check failed; no retention was applied.' }
-        $retentionArgs = @('-r', $config.resticRepo, 'forget', '--tag', 'aralia-full', '--group-by', 'host,paths', '--keep-last', '4', '--keep-daily', '7', '--keep-weekly', '4', '--keep-monthly', '3')
-        & $config.resticPath @retentionArgs --dry-run
-        if ($LASTEXITCODE -ne 0) { throw 'Retention preview failed.' }
-        & $config.resticPath @retentionArgs --prune --max-repack-size 1G
-        if ($LASTEXITCODE -ne 0) { throw 'Retention/prune failed.' }
-        & $config.resticPath -r $config.resticRepo check
-        if ($LASTEXITCODE -ne 0) { throw 'Integrity check after retention failed.' }
-        @{ at = [datetime]::UtcNow.ToString('o'); status = 'success' } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $config.stateDir 'retention.json')
+        if ($LASTEXITCODE -ne 0) { throw 'Private backup integrity check failed; history was preserved.' }
     } elseif ($Verify) {
         & $config.resticPath -r $config.resticRepo check
         if ($LASTEXITCODE -ne 0) { throw 'Private backup integrity check failed.' }
     } else {
-        # Maintenance and budget checks happen before creating a new snapshot.
-        $retentionPath = Join-Path $config.stateDir 'retention.json'
-        $retention = $null
-        if (Test-Path -LiteralPath $retentionPath) { $retention = Get-Content -LiteralPath $retentionPath -Raw | ConvertFrom-Json }
-        if (-not $retention -or ([datetime]::UtcNow - [datetime]$retention.at).TotalDays -ge 7) {
-            # The same process owns the backup mutex; maintenance is inline below,
-            # so a separate helper cannot overlap pruning and backup.
-            & $config.resticPath -r $config.resticRepo check
-            if ($LASTEXITCODE -ne 0) { throw 'Integrity check failed; backup history was preserved.' }
-            & $config.resticPath -r $config.resticRepo forget --tag aralia-full --group-by host,paths --keep-last 4 --keep-daily 7 --keep-weekly 4 --keep-monthly 3 --prune --max-repack-size 1G
-            if ($LASTEXITCODE -ne 0) { throw 'Retention failed.' }
-            & $config.resticPath -r $config.resticRepo check
-            if ($LASTEXITCODE -ne 0) { throw 'Integrity check after retention failed.' }
-            @{ at = [datetime]::UtcNow.ToString('o'); status = 'success' } | ConvertTo-Json | Set-Content -LiteralPath $retentionPath
-        }
+        # Retention is paused for this repair. Capacity checks still bound new writes.
         & $config.nodePath (Join-Path $config.repoPath 'scripts\git\backup-policy.mjs') $ConfigPath
         if ($LASTEXITCODE -ne 0) { throw 'Recovery storage limit reached; existing versions were preserved.' }
         $backupArgs = @('-r', $config.resticRepo, 'backup', '--json', '--skip-if-unchanged', '--tag', 'aralia-full', '--exclude-file', $config.excludePath)

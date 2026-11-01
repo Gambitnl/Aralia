@@ -26,7 +26,7 @@ import { CLASSES_DATA, WEAPONS_DATA } from '../../constants';
 import { subclassesForClass } from '../../data/classes/subclasses';
 import {
   DEFAULT_RULES_EDITION,
-  getSubclassLevel,
+  choosesSubclassInCreator,
   type RulesEdition,
 } from '../../config/rulesEdition';
 import { SeededRandom } from '../../utils/random/seededRandom';
@@ -355,17 +355,18 @@ function availableSpells(spellIds: readonly string[], allSpells: Record<string, 
 }
 
 /**
- * The subclass the wizard asks for at level 1, or `undefined` when the edition
- * defers the choice. `getSubclassLevel` is the only judge of the level, so this
- * helper never hard-codes a class list: under the 2014 PHB cleric, sorcerer and
- * warlock answer 1 and every other class answers 3.
+ * The subclass the creator asks for, or `undefined` when the edition defers
+ * the choice past creation. `choosesSubclassInCreator` is the only judge, so
+ * this helper never hard-codes a class list: under the 2014 PHB cleric,
+ * sorcerer and warlock choose at level 1, druid and wizard in the level 2 step
+ * (Remy, Agora 8335), and every other class waits for level 3.
  */
-function randomLevelOneSubclassId(
+function randomCreatorSubclassId(
   classId: string,
   rulesEdition: RulesEdition,
   rng: RandomNumberGenerator,
 ): string | undefined {
-  if (getSubclassLevel(classId, rulesEdition) !== 1) return undefined;
+  if (!choosesSubclassInCreator(classId, rulesEdition)) return undefined;
 
   const options = subclassesForClass(classId);
   if (options.length === 0) return undefined;
@@ -401,7 +402,7 @@ function randomSpellFeatures(
         order,
         cantrips: pickMany(cantrips, cantripCount, rng, 'Cleric cantrips'),
         spellsL1: pickMany(levelOneSpells, spellcasting.knownSpellsL1, rng, 'Cleric level 1 spells'),
-        domainId: randomLevelOneSubclassId('cleric', rulesEdition, rng),
+        domainId: randomCreatorSubclassId('cleric', rulesEdition, rng),
       },
     };
   }
@@ -418,6 +419,7 @@ function randomSpellFeatures(
         order,
         cantrips: pickMany(cantrips, cantripCount, rng, 'Druid cantrips'),
         spellsL1: speakWithAnimals ? [...selectedLevelOne, speakWithAnimals] : selectedLevelOne,
+        circleId: randomCreatorSubclassId('druid', rulesEdition, rng),
       },
     };
   }
@@ -446,20 +448,22 @@ function randomSpellFeatures(
     spellsL1: pickMany(levelOneSpells, spellcasting.knownSpellsL1, rng, `${charClass.name} level 1 spells`),
   };
 
-  if (charClass.id === 'wizard') return { type: 'SELECT_WIZARD_FEATURES', payload };
+  if (charClass.id === 'wizard') {
+    return { type: 'SELECT_WIZARD_FEATURES', payload: { ...payload, traditionId: randomCreatorSubclassId('wizard', rulesEdition, rng) } };
+  }
   if (charClass.id === 'bard') return { type: 'SELECT_BARD_FEATURES', payload };
 
   if (charClass.id === 'sorcerer') {
     return {
       type: 'SELECT_SORCERER_FEATURES',
-      payload: { ...payload, originId: randomLevelOneSubclassId('sorcerer', rulesEdition, rng) },
+      payload: { ...payload, originId: randomCreatorSubclassId('sorcerer', rulesEdition, rng) },
     };
   }
 
   if (charClass.id === 'warlock') {
     return {
       type: 'SELECT_WARLOCK_FEATURES',
-      payload: { ...payload, patronId: randomLevelOneSubclassId('warlock', rulesEdition, rng) },
+      payload: { ...payload, patronId: randomCreatorSubclassId('warlock', rulesEdition, rng) },
     };
   }
 

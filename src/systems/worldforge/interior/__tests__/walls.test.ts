@@ -20,6 +20,13 @@ const CELL_FT = 5;
 const TYPES: BuildingType[] = ['cottage', 'shop', 'tavern', 'workshop', 'manor'];
 const SEEDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
+it('keeps an old thick wall distinct from an adjoining thin interior partition', () => {
+  const wall = {x: 15, axis: 'y' as const, kind: 'inner' as const, nx: 1, ny: 0, roomA: 2, roomB: 4};
+  const runs = mergeWallRuns([{...wall, y: 12.5, thicknessFt: .5},
+    {...wall, y: 17.5, thicknessFt: 1.5}, {...wall, y: 22.5, thicknessFt: 1.5}]);
+  expect(runs.map(r => [r.y1, r.y2, r.thicknessFt])).toEqual([[10, 15, .5], [15, 25, 1.5]]);
+});
+
 /** Interior (roomA-side) cell of a wall edge, derived from its geometry alone. */
 const interiorCell = (w: { x: number; y: number; axis: 'x' | 'y'; nx: number; ny: number }) => {
   if (w.axis === 'y') {

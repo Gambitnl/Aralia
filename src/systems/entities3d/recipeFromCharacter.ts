@@ -5,6 +5,23 @@
  * (or a rich NPC) renders with the gear they actually wear instead of the
  * generic class kit. Slots without a visual mapping are simply not shown.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 31/10/2026, 09:55:22
+ * Dependents: components/BattleMap/dungeon/DungeonPartyFigure.tsx, components/World3D/PlayerAvatar.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx, components/World3D/initialTownEntry.ts, components/World3D/partyJourneyArrival.ts, systems/companions/companionWhereabouts.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { PlayerCharacter } from '../../types/character';
 import type { RichNPC } from '../../types/world';
 import type { Item } from '../../types/items';
@@ -70,18 +87,20 @@ export function recipeFromCharacter(pc: PlayerCharacter, seed?: string): EntityR
     raceId: pc.race.id,
     classId: pc.class.id,
     seed: seed ?? `pc:${pc.id ?? pc.name}`,
-    ...(gear.length > 0 ? { gearOverride: gear } : {}),
+    // Empty hands are a real equipment choice. Omitting this override would
+    // restore the class kit, so a stowed staff could still block a low doorway.
+    gearOverride: gear,
   };
 }
 
-/** Build the recipe for a generated rich NPC. The NPC generator does not
- * persist a race id (and itself defaults unspecified NPCs to human), so the
- * recipe mirrors that; class and worn gear come from the NPC's real data. */
-export function recipeFromRichNpc(npc: RichNPC): EntityRecipe {
+/** Keep a known person's species across world and party representations.
+ * Authored identity supplies the missing race in legacy companion shells;
+ * unspecified older NPCs retain their existing human fallback. */
+export function recipeFromRichNpc(npc: RichNPC, authoredRaceId?: string): EntityRecipe {
   const gear = gearFromEquippedItems(npc.equippedItems);
   return {
     kind: 'humanoid',
-    raceId: 'human',
+    raceId: (authoredRaceId || npc.biography.raceId || 'human').trim().toLowerCase().replace(/\s+/g, '_'),
     classId: npc.biography.classId,
     seed: `npc:${npc.id}`,
     ...(gear.length > 0 ? { gearOverride: gear } : {}),

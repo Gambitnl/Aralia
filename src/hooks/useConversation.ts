@@ -1,11 +1,24 @@
+/**
+ * ARCHITECTURAL CONTEXT:
+ * This hook manages active, player-initiated conversations with companions.
+ * Unlike the ambient 'useCompanionBanter' which is NPC-to-NPC or NPC-addressed,
+ * this hook handles the interactive dialog panel where players can send
+ * specific messages, @mention NPCs, and receive AI-generated responses.
+ *
+ * It persists conversation history into NPC memory and triggers approval
+ * changes based on sentiment analysis of the exchange.
+ *
+ * Called by: ConversationPanel.tsx
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 04:34:00
+ * Last Sync: 28/10/2026, 12:51:04
  * Dependents: components/ConversationPanel/ConversationPanel.tsx
- * Imports: 6 files
+ * Imports: 12 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -13,19 +26,6 @@
  * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 // @dependencies-end
-
-/**
- * ARCHITECTURAL CONTEXT:
- * This hook manages active, player-initiated conversations with companions.
- * Unlike the ambient 'useCompanionBanter' which is NPC-to-NPC or NPC-addressed,
- * this hook handles the interactive dialog panel where players can send 
- * specific messages, @mention NPCs, and receive AI-generated responses.
- *
- * It persists conversation history into NPC memory and triggers approval 
- * changes based on sentiment analysis of the exchange.
- *
- * Called by: ConversationPanel.tsx
- */
 
 /**
  * Copyright (c) 2024 Aralia RPG
@@ -359,15 +359,18 @@ export function useConversation(
 
         // Only spend a summarization model call when there's somewhere to put the
         // result (a companion or a known stranger) AND enough was said to summarize.
+        // Authored promises and handovers already persist their own exact events.
+        // Summarizing them again could duplicate trust or replace facts with guesses.
+        const summaryMessages = conversation.messages.filter(message => !message.memoryHandled);
         const shouldSummarize =
-            conversation.messages.length >= 3 && (companionIds.length > 0 || strangerIds.length > 0);
+            summaryMessages.length >= 3 && (companionIds.length > 0 || strangerIds.length > 0);
 
         if (shouldSummarize) {
             dispatch({ type: 'SET_CONVERSATION_PENDING', payload: true });
 
             const participants = getParticipantData(conversation.participants);
             const context = buildContext();
-            const history = conversation.messages.map(m => ({
+            const history = summaryMessages.map(m => ({
                 speakerId: m.speakerId,
                 text: m.text,
             }));

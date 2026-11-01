@@ -93,7 +93,7 @@ const ironOre: Item = {
     quantity: 3,
 };
 
-const renderModal = () => {
+const renderModal = (station?: {name: string; checkAccess: (minutes: number) => string | null}) => {
     const dispatch = vi.fn();
     useGameStateMock.mockReturnValue({
         state: {
@@ -103,7 +103,7 @@ const renderModal = () => {
         },
         dispatch,
     });
-    const view = render(<SalvageModal onClose={vi.fn()} />);
+    const view = render(<SalvageModal onClose={vi.fn()} station={station} />);
     return { dispatch, view };
 };
 
@@ -231,4 +231,67 @@ describe('SalvageModal', () => {
         );
         expect(screen.getByText(/Longsword \(Partial Salvage\)/)).toBeTruthy();
     });
+});
+
+// Physical benches have source permission and produce materials; the earlier
+// tests deliberately preserve the historical standalone salvage conversion.
+describe('source-bound salvage workbench', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        rollSkillMock.mockReturnValue(13);
+        vi.spyOn(Math, 'random').mockReturnValue(0);
+    });
+    afterEach(() => vi.restoreAllMocks());
+
+    it('shows the real station and refuses off-duty use without spending anything', () => {
+        const {dispatch} = renderModal({name:"Lys Greenford's workbench", checkAccess: () => 'The keeper is off duty.'});
+        expect(screen.getByTestId('salvage-station-context')).toHaveTextContent("Lys Greenford's workbench");
+        expect(screen.getByRole('button', {name:/Dismantle/})).toBeDisabled();
+        expect(screen.getByRole('status')).toHaveTextContent('off duty');
+        expect(dispatch).not.toHaveBeenCalled();
+        expect(rollSkillMock).not.toHaveBeenCalled();
+    });
+
+    it('rechecks source permission at the actual dismantle click', () => {
+        let denial: string | null = null;
+        const {dispatch} = renderModal({name:'Public workbench', checkAccess: () => denial});
+        denial = 'Return to this room before using the bench.';
+        fireEvent.click(screen.getByRole('button', {name:/Dismantle/}));
+        expect(dispatch).not.toHaveBeenCalled();
+        expect(rollSkillMock).not.toHaveBeenCalled();
+        expect(screen.getByRole('status')).toHaveTextContent('Return to this room');
+    });
+
+    it('consumes only owned equipment, returns material IDs and advances the existing job time without minting coins', () => {
+        const access = vi.fn(() => null);
+        const {dispatch} = renderModal({name:'Public workbench', checkAccess: access});
+        fireEvent.click(screen.getByRole('button', {name:/Dismantle/}));
+        expect(access).toHaveBeenCalledWith(20);
+        expect(dispatch).toHaveBeenCalledWith({type:'REMOVE_ITEM', payload:{itemId:longsword.id, count:1}});
+        expect(dispatch).toHaveBeenCalledWith({type:'GIVE_ITEM', payload:{item:expect.objectContaining({id:'iron_scrap',quantity:1})}});
+        expect(dispatch).toHaveBeenCalledWith({type:'GIVE_ITEM', payload:{item:expect.objectContaining({id:'leather_strip',quantity:1})}});
+        expect(dispatch).toHaveBeenCalledWith({type:'ADVANCE_TIME', payload:{seconds:20*60}});
+        expect(dispatch).not.toHaveBeenCalledWith(expect.objectContaining({type:'MODIFY_GOLD'}));
+        expect(screen.getByText('Estimated scrap value')).toBeInTheDocument();
+    });
+});
+
+describe('physical salvage material identity', () => {
+    it('keeps earned catalog quantities recognizable after the real gain reducer', async () => {
+        vi.clearAllMocks();
+        rollSkillMock.mockReturnValue(13);
+        vi.spyOn(Math, 'random').mockReturnValue(0);
+        const {dispatch} = renderModal({name:'Public workbench',checkAccess:()=>null});
+        fireEvent.click(screen.getByRole('button',{name:/Dismantle/}));
+        const {characterReducer} = await import('../../../state/reducers/characterReducer');
+        const {checkMaterials} = await import('../../../systems/crafting/craftingService');
+        let state = {inventory:[]} as unknown as import('../../../types/state').GameState;
+        for (const [action] of dispatch.mock.calls) {
+            if (action.type === 'GIVE_ITEM') state = {...state,...characterReducer(state,action)};
+        }
+        expect(state.inventory.map(item=>item.id)).toEqual(['iron_scrap','leather_strip']);
+        expect(checkMaterials(state.inventory,[{itemId:'iron_scrap',quantity:1,consumed:true},
+            {itemId:'leather_strip',quantity:1,consumed:true}]).hasMaterials).toBe(true);
+        vi.restoreAllMocks();
+    },60000);
 });

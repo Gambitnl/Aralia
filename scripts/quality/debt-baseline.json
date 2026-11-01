@@ -1,0 +1,1334 @@
+{
+  "schemaVersion": 1,
+  "policy": "staged-production-src-v1",
+  "files": {
+    "src/commands/base/SpellCommand.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/commands/factory/AbilityCommandFactory.ts": {
+      "anyType": 3,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/commands/factory/SpellCommandFactory.ts": {
+      "anyType": 2,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/BattleMap/BattleMap3DGpuScene.tsx": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 6,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/BattleMap/BattleMapHUD.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/BattleMap/BattleMapOverlays.tsx": {
+      "anyType": 7,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/BattleMap/CombatIntentPreview.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/BattleMap/CombatRailControls.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 3,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/BattleMap/CombatRailResizeHandle.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/BattleMap/CompactTurnStrip.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 4,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/BattleMap/GridlessAoEOutline.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/BattleMap/camera/CameraController.tsx": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/BattleMap/characters/characterActor/CharacterActor.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 2,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/BattleMap/characters/useFresnelRim.ts": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/BattleMap/gpu/gridOverlayNodes.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/BattleMap/gpu/terrainColorNode.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/BattleMap/terrain/EzTreeLayer.tsx": {
+      "anyType": 1,
+      "anyAssertion": 1,
+      "eslintDisable": 1,
+      "tsIgnore": 1,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/BattleMap/terrain/GrassLayer.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/BattleMap/terrain/TerrainMesh.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/BattleMap/terrain/VolumeArenaGround.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 2,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/BattleMap/terrain/VolumeArenaWater.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/CharacterSheet/Overview/DynamicMannequinSlotIcon.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 2,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/Combat/CombatView.tsx": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/Combat/InPlaceCombatScene.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/Crime/ThievesGuild/ThievesGuildInterface.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/DesignPreview/steps/PreviewTown3D.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/DesignPreview/steps/sidebyside/SideBySideOcean.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 2,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/DesignPreview/steps/sidebyside/oceanExtras/buoys.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/Dialogue/DialogueInterface.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/Glossary/FullEntryDisplay.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/Glossary/Glossary.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 2,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/Glossary/SingleGlossaryEntryModal.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/Logbook/DiscoveryLogPane.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/Logbook/DossierPane.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/Party/PartyEditorModal.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/Town/Intrigue/RumorMill.tsx": {
+      "anyType": 1,
+      "anyAssertion": 1,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/World3D/FreeRoamCameraController.tsx": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/World3D/GroundAgents.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/World3D/InteriorLights.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/World3D/InteriorOccupants.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/World3D/VolumeGroundBubble.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 2,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/World3D/WebGPUProbeScene.tsx": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 5,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/World3D/World3DDemo.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/World3D/World3DScene.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 2,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/World3D/hooks/useInPlaceCombatTransition.ts": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 6,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/World3D/vegetation/VegetationTreeField.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 3,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/World3D/water/riverBankMaterial.ts": {
+      "anyType": 8,
+      "anyAssertion": 0,
+      "eslintDisable": 4,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/World3D/water/riverReachScene.ts": {
+      "anyType": 2,
+      "anyAssertion": 0,
+      "eslintDisable": 2,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/World3D/water/riverVegetation.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 1,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/World3D/water/riverWaterMaterial.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/Worldforge/AtlasSvgView.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/Worldforge/StartPointSelection.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/Worldforge/atlasSvg/cells.ts": {
+      "anyType": 2,
+      "anyAssertion": 2,
+      "eslintDisable": 2,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/Worldforge/atlasSvg/labelsAndGlyphs.ts": {
+      "anyType": 10,
+      "anyAssertion": 5,
+      "eslintDisable": 5,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/Worldforge/atlasSvg/political.ts": {
+      "anyType": 6,
+      "anyAssertion": 3,
+      "eslintDisable": 4,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/Worldforge/atlasSvg/water.ts": {
+      "anyType": 3,
+      "anyAssertion": 2,
+      "eslintDisable": 2,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/Worldforge/useDrillLayers.ts": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/debug/NpcInteractionTestModal.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/demo/CombatMessagingDemo.tsx": {
+      "anyType": 2,
+      "anyAssertion": 1,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/layout/MainMenu.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/screens/BattleScreen.tsx": {
+      "anyType": 4,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/screens/PlayingScreen.tsx": {
+      "anyType": 2,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/ui/BanterAttentionBanner.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/ui/ErrorBoundary.d.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/ui/LongRestModal.tsx": {
+      "anyType": 3,
+      "anyAssertion": 1,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/ui/OllamaDependencyModal.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/ui/Tooltip.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/config/env.ts": {
+      "anyType": 2,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/data/adapters/5eTools/actionsAdapter.ts": {
+      "anyType": 3,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/data/adapters/5eTools/legendaryAdapter.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/data/adapters/5eTools/reactionsAdapter.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/data/adapters/5eTools/shared.ts": {
+      "anyType": 10,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/data/items/generatedGlossaryItems.ts": {
+      "anyType": 1,
+      "anyAssertion": 1,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/data/races/index.ts": {
+      "anyType": 2,
+      "anyAssertion": 1,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/data/races/racialTraits.ts": {
+      "anyType": 3,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/hooks/ability/targetSelection.ts": {
+      "anyType": 2,
+      "anyAssertion": 1,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/hooks/ability/useAbilityExecution.ts": {
+      "anyType": 7,
+      "anyAssertion": 6,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/hooks/actions/handleGeminiCustom.ts": {
+      "anyType": 2,
+      "anyAssertion": 2,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/hooks/actions/handleMerchantInteraction.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/hooks/actions/handleNpcInteraction.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/hooks/actions/handleOracle.ts": {
+      "anyType": 1,
+      "anyAssertion": 1,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/hooks/combat/turnManager/useTurnLifecycle.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/hooks/combat/useCombatAI.ts": {
+      "anyType": 2,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/hooks/combat/useTargeting.ts": {
+      "anyType": 3,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/hooks/data/useSpellRegistry.ts": {
+      "anyType": 2,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/hooks/useChronicleRumorsSync.ts": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/hooks/useCompanionCommentary.ts": {
+      "anyType": 1,
+      "anyAssertion": 1,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/hooks/useConversation.ts": {
+      "anyType": 1,
+      "anyAssertion": 1,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/hooks/useDiceBox.ts": {
+      "anyType": 7,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/hooks/useDungeonRumorsSync.ts": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/hooks/useFocusTrap.ts": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/hooks/useKnownPortsSync.ts": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/hooks/useOpeningSituation.ts": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/hooks/useSeaEncounter.ts": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/hooks/useTownMerchantRegistration.ts": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/hooks/useVoyageArrival.ts": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/services/DiceService.ts": {
+      "anyType": 4,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/services/PortraitService.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/services/ai/groqTextProvider.ts": {
+      "anyType": 3,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/services/aiClient.ts": {
+      "anyType": 2,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/services/gemini/encounters.ts": {
+      "anyType": 1,
+      "anyAssertion": 1,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/services/gemini/items.ts": {
+      "anyType": 2,
+      "anyAssertion": 2,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/services/ollama/client.ts": {
+      "anyType": 4,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/services/ollama/jsonParser.ts": {
+      "anyType": 2,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/services/ollamaTextService.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/combat/SavePenaltySystem.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/combat/tauntConstraint.ts": {
+      "anyType": 1,
+      "anyAssertion": 1,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/entities3d/three/gpu/toonNodes.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/environment/EnvironmentSystem.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/spells/effects/trigger/types.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/spells/validation/schemas/spellPrimitives.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/travel/TravelCalculations.ts": {
+      "anyType": 2,
+      "anyAssertion": 2,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/world3d/ocean/oceanBathymetry.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/world3d/ocean/oceanBeach.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/world3d/ocean/oceanBuoyancyProbe.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/world3d/ocean/oceanCompute.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/world3d/ocean/oceanField.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/world3d/ocean/oceanFoam.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/world3d/ocean/oceanNormalMip.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/world3d/ocean/oceanRain.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/world3d/ocean/oceanReflector.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/world3d/ocean/oceanRocks.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/world3d/ocean/oceanSampler.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/world3d/ocean/oceanSeabed.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/world3d/ocean/oceanSkip.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/world3d/ocean/oceanSky.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/world3d/ocean/oceanSplash.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/world3d/ocean/oceanSpray.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/world3d/ocean/oceanSurface.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/world3d/ocean/oceanUnderwater.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/world3d/ocean/oceanWake.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/world3d/ocean/oceanWakeBoat.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/worldforge/bridge/legacySubmapBridge.ts": {
+      "anyType": 1,
+      "anyAssertion": 1,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/worldforge/fmg/burgs-generator.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/worldforge/fmg/coa-generator.ts": {
+      "anyType": 44,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/worldforge/fmg/provinces-generator.ts": {
+      "anyType": 3,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/worldforge/fmg/religions-generator.ts": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 2,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/worldforge/fmg/routes-generator.ts": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/worldforge/fmg/states-generator.ts": {
+      "anyType": 4,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/worldforge/fmg/utils/graphUtils.ts": {
+      "anyType": 6,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/worldforge/fmg/utils/pathUtils.ts": {
+      "anyType": 5,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/worldforge/fmg/utils/quadtree.ts": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 2,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/worldforge/submap/l0Adapter.ts": {
+      "anyType": 2,
+      "anyAssertion": 2,
+      "eslintDisable": 2,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/worldforge/terrain/flipCompute.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/worldforge/town/cellFeatures.ts": {
+      "anyType": 5,
+      "anyAssertion": 3,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/systems/worldforge/vegetation/ezTreeMeshSource.ts": {
+      "anyType": 6,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 1,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/types/character.ts": {
+      "anyType": 3,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/types/combat.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/types/combatMessages.ts": {
+      "anyType": 7,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/types/index.ts": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 39,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/types/spells.ts": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 1,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/types/state.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/types/three-jsx.d.ts": {
+      "anyType": 24,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/types/three.d.ts": {
+      "anyType": 7,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/types/vendor-bestiary.d.ts": {
+      "anyType": 2,
+      "anyAssertion": 0,
+      "eslintDisable": 2,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/types/ws.d.ts": {
+      "anyType": 9,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/url-directory-entry.ts": {
+      "anyType": 7,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/utils/character/statUtils.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/utils/character/stats.ts": {
+      "anyType": 2,
+      "anyAssertion": 2,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/utils/combat/combatUtils.ts": {
+      "anyType": 2,
+      "anyAssertion": 2,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/utils/combat/resistanceUtils.ts": {
+      "anyType": 2,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/utils/context/contextUtils.ts": {
+      "anyType": 6,
+      "anyAssertion": 4,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/utils/core/factories.ts": {
+      "anyType": 2,
+      "anyAssertion": 2,
+      "eslintDisable": 2,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/utils/core/textCleaners.ts": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/utils/sandbox/quickCharacterGenerator.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/utils/world/bestiaryEncounterGenerator.ts": {
+      "anyType": 1,
+      "anyAssertion": 1,
+      "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    }
+  }
+}

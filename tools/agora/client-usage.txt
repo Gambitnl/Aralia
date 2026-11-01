@@ -2,6 +2,12 @@ Agora client — drive the peer-agent coordination daemon.
 
 Usage: node tools/agora/client.mjs <command> [args] [--flags]
 
+This stable entry uses a published release, never in-progress client source.
+Tooling owners edit client-runtime.mjs, test, then publish with:
+  node tools/agora/client-release.mjs publish
+  node tools/agora/client-release.mjs status
+Do not bypass the entry or repeat a failed mutation automatically.
+
 Global flags:
   --url <baseUrl>        daemon base URL (default http://localhost:4319, or AGORA_URL)
   --token <token>        bearer token override (default: stored identity)
@@ -42,11 +48,29 @@ Commands:
   agents                                  list agents (status, handle, note, last-seen)
   agents --retire-stale <agentId|handle>  orchestrator-safe pet recovery for a stale idle presence
 
-  lock <path...> [--glob g...] [--reason "..."] [--ttl <minutes>]
-                                          atomic advisory lock; a 409 acquires NOTHING
+  lock <path...> [--glob g...] [--reason "..."] [--ttl <minutes>] [--check-types]
+                                          atomic advisory lock; a 409 acquires NOTHING;
+                                          --check-types records inherited scoped tsc status on dirty TS files (WF-G309)
+  lock <new-path...> --creates <new-path> [--creates <another-new-path>]
+                                          declare intentional exact new files; undeclared missing targets warn
+                                          does not add targets, suppress history warnings, or permit overwrites
   lock <path...> [--glob g...] --partial  acquire each target separately; report each result
                                           incomplete batches exit 1 but retain acquired locks
+  lock --queue <path...> [--reason "..."] reserve the reported conflict after a 409; exits 1
+                                          no other target is acquired or queued by an atomic failure
+                                          works with --partial; queueing never grants edit permission
   lock --renew <lockId> [--ttl <minutes>] renew one lock you hold
+  lock --restore <exact-file> [--lock-id <id>]
+                                          inspect current and captured byte digests; writes nothing
+  lock --restore <exact-file> --expect-current <sha256> [--lock-id <id>]
+                                          reviewed recovery while the same live owner holds the lock;
+                                          retains current bytes and keeps the lock; never uses Git HEAD
+  unlock --revert <exact-file> --expect-current <sha256> [--lock-id <id>]
+                                          verified recovery, then release only that exact lock target
+                                          a refusal or failed write retains the lock; no automatic retry
+                                          newer published client required; legacy recovery is refused
+                                          capture is earliest post-grant, not a physical exclusive lock;
+                                          review later peer edits before acknowledging any current digest
   unlock <lockId|path>                    release a lock you hold (by id OR file path)
   unlock --mine                           release ALL locks you hold
   unlock <lockId> --force                 release a STALE/GONE holder's lock (refused if online)
@@ -106,7 +130,9 @@ Commands:
                                           RUN ORDER: infer-membership, migrate-deps, migrate-ids.
                                           The rename must run LAST, or it cannot follow an edge
                                           and every edge keeps a stale id (WF-G104)
-  task new <title> (--campaign <id> | --standalone --reason "...") [--body "..." | --body-file <path>] [--dep <taskId>[:<type>]...] [--priority N] [--ref <reference>...] [--deliverable <output-path>] [--category <name>] [--wave <name>]
+  task new <title> (--campaign <id> | --standalone --reason "...") [--body "..." | --body-file <path>] [--test-baseline <receipt.json>] [--dep <taskId>[:<type>]...] [--priority N] [--ref <reference>...] [--deliverable <output-path>] [--category <name>] [--wave <name>]
+    --test-baseline attaches fresh pre-edit Vitest JSON failure evidence (WF-G284); requires a separate task body.
+    Capture/compare with node tools/agora/testBaseline.mjs; inherited failures stay red, not silently excluded.
                                           WF-G171: name a campaign, or say --standalone and WHY.
                                           --campaign defaults to the lead campaign you own (WF-G85),
                                           which also counts as the decision;
@@ -134,7 +160,9 @@ Commands:
                                           field; --file reads UTF-8 without trimming (WF-G304)
   task state <taskId> <state> [--result "..." | --result-file <path>] [--reason "..." | --reason-file <path>]
                                           set state and preserve evidence;
-                                          blocked needs --reason; the history entry records from/reason (WF-G86)
+                                          blocked needs --reason; the history entry records from/reason (WF-G86);
+                                          partial (or --partial --covered "..." --uncovered "..." [--question "..."])
+                                          records landed scope + unapplied scope without losing work (WF-G290)
   task start <taskId> [--result "..." | --result-file <path>]
                                           alias for state <taskId> in_progress
   task checkpoint <taskId> --did "..." --next "..." [--files a,b | --files a --files b]
@@ -199,6 +227,10 @@ Commands:
   say --to <agentId|handle> <body>        direct message
   say --channel command <body>            post on the command channel (orchestrator/master/human
                                           roles only — register with --role <r> to qualify)
+  say --need <decision|info|none> --ref <task-or-campaign-id> "<plain English>"
+                                          agent-to-human (A2H) message for the dashboard's
+                                          "To Remy" feed; refuses a bad need, an unknown ref
+                                          or empty text; goes to the live human unless --to
   inbox [--since <seq>] [--mine] [--channel main|command|all]
                                           read messages (default channel: main; prints max seq
                                           for next --since)

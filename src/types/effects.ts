@@ -5,6 +5,22 @@
  * This structure prevents logic duplication and `any` types in domain-specific interfaces.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 31/10/2026, 19:01:52
+ * Dependents: systems/gameEntry/preRollBuffOffer.ts, systems/gameEntry/runDeEscalationCheck.ts, types/index.ts, utils/spells/outOfCombatCasting.ts, utils/spells/preparedCombatEffects.ts, utils/spells/worldTimedEffects.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { AbilityScoreName, CharacterStats } from './core.js';
 import { DamageType, ConditionName, SavingThrowAbility, TargetConditionFilter } from './spells.js';
 
@@ -101,6 +117,13 @@ export interface StatusEffect {
   name: string;
   type: 'buff' | 'debuff' | 'dot' | 'hot'; // damage/heal over time
   duration: number; // in turns
+  /** Explicit world-clock lifetime for downtime spells. Numeric game dates
+   * survive native JSON loads without becoming wall-clock timestamps. */
+  worldTime?: { appliedAtMs: number; expiresAtMs: number };
+  /** Actual prepared cast identity and slot level; combat must not recast or guess them. */
+  sourceSpellId?: string;
+  sourceCastLevel?: number;
+  requiresConcentration?: boolean;
   effect: {
     type: 'stat_modifier' | 'damage_per_turn' | 'heal_per_turn' | 'skip_turn' | 'condition';
     value?: number;

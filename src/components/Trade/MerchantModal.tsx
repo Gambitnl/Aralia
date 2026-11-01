@@ -1,11 +1,18 @@
+/**
+ * @file MerchantModal.tsx
+ * A modal interface for trading items with a merchant.
+ * Supports buying items with gold and selling items for half value (or dynamic value).
+ * Now includes Tavern Gossip support!
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 17/08/2026, 14:21:21
+ * Last Sync: 28/10/2026, 19:49:57
  * Dependents: components/DesignPreview/steps/PreviewTrade.tsx, components/Trade/index.ts, components/layout/GameModals.tsx
- * Imports: 11 files
+ * Imports: 18 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,13 +21,9 @@
  */
 // @dependencies-end
 
-/**
- * @file MerchantModal.tsx
- * A modal interface for trading items with a merchant.
- * Supports buying items with gold and selling items for half value (or dynamic value).
- * Now includes Tavern Gossip support!
- */
 import React, { useMemo, useState } from 'react';
+import { getPartyFundsGp } from '../../systems/economy/partyFunds';
+import { isCurrencyItemId } from '../../utils/character/coinPurseUtils';
 import { Item, Action, EconomyState, MarketEvent } from '../../types';
 import Tooltip from '../Tooltip';
 import { useGameState } from '../../state/GameContext';
@@ -32,7 +35,11 @@ import { RumorMill } from '../Town/Intrigue/RumorMill';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import { resolveItemVisual } from '../../utils/visuals/visualUtils';
 import { assetUrl } from '../../config/env';
-import { activeHagglePriceMultiplier, roundToCopper } from '../../utils/economy/haggleFact';
+import { ALL_ITEMS } from '../../data/items';
+import { priceStockItem } from '../../data/economy/businessStock';
+import { BUSINESS_TEMPLATES } from '../../data/economy/businessTemplates';
+import { useBusinessAttendance } from '../../hooks/useBusinessAttendance';
+import { activeHagglePriceMultiplier, findActiveHaggleFact, roundToCopper } from '../../utils/economy/haggleFact';
 
 /**
  * Renders an item's glyph: an <img> when the item has a real icon asset
@@ -120,6 +127,8 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
     const { state } = useGameState();
     // Use prop economy if provided (for tests), otherwise fall back to global state economy
     const economy = propEconomy || state.economy;
+    // The sheet and checkout share the face value of liquid and carried coins.
+    const availableFunds = getPartyFundsGp({ gold: playerGold, inventory: playerInventory });
 
     // The merchant NPC behind this shop. OPEN_MERCHANT now carries the id so the
     // UI can address the same NPC the merchant action handlers do. Without it
@@ -142,6 +151,18 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
         return activeHagglePriceMultiplier(state.npcMemory?.[merchantId], nowMs);
     }, [merchantId, state.gameTime, state.npcMemory]);
 
+    // A failed negotiation also spends the keeper's daily willingness. Show
+    // the saved source fact so an unchanged price does not look like a no-op.
+    const activeHaggleFact = useMemo(() => merchantId && state.gameTime instanceof Date
+        ? findActiveHaggleFact(state.npcMemory?.[merchantId], state.gameTime.getTime()) : undefined,
+    [merchantId, state.gameTime, state.npcMemory]);
+    const haggleHoursRemaining = activeHaggleFact && state.gameTime instanceof Date
+        ? Math.max(1, Math.ceil((activeHaggleFact.timestamp + (activeHaggleFact.lifespan ?? 0) - state.gameTime.getTime()) / 3_600_000)) : 0;
+    const haggleResultText = haggleMultiplier < 1
+        ? 'Negotiated discount: ' + Math.round((1 - haggleMultiplier) * 100) + '%.'
+        : haggleMultiplier > 1 ? 'The keeper raised prices by ' + Math.round((haggleMultiplier - 1) * 100) + '%.'
+            : 'The keeper is holding to their current prices.';
+
     /** Base price after economy/faction modifiers, then the negotiated multiplier. */
     const hagglePrice = (basePrice: number): number => roundToCopper(basePrice * haggleMultiplier);
 
@@ -151,15 +172,39 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
         standings: state.playerFactionStandings
     }), [state.factions, state.playerFactionStandings]);
 
-    // Determine if this is a tavern-like establishment
-    const isTavern = merchantName.toLowerCase().includes('tavern') || merchantName.toLowerCase().includes('inn');
-    const [activeTab, setActiveTab] = useState<Tab>('trade');
+    // The registered business owns its services: a tavern need not say "inn"
+    // in its name. Older ad-hoc merchants retain their name-based entry only
+    // when no canonical business can settle the question.
+    const businessId = merchantId ? state.generatedNpcs?.[merchantId]?.businessId : undefined;
+    const business = (businessId ? state.worldBusinesses?.[businessId] : undefined)
+        ?? (merchantId ? Object.values(state.worldBusinesses ?? {}).find(b => b.ownerId === merchantId) : undefined);
+    const displayedBusinesses = useMemo(() => business ? [business] : [], [business]);
+    const attendance = useBusinessAttendance(state, displayedBusinesses);
+    const shopAttendance = business ? attendance[business.id] : undefined;
+    const isTavern = business ? business.businessType === 'tavern'
+        : /tavern|inn/i.test(merchantName);
+    // Only a real tavern can honor the conversation's information inquiry.
+    // Ordinary shop openings continue to start with their actual goods.
+    const [activeTab, setActiveTab] = useState<Tab>(() =>
+        isTavern && state.merchantModal?.initialTab === 'gossip' ? 'gossip' : 'trade');
 
+    // Registered shelves already include the shop's markup and local market.
+    // Quote from their catalog line once; applying market modifiers to the
+    // stamped shelf price again would make displayed and charged prices drift.
+    const buyQuote = (item: Item) => {
+        const line = business?.stock?.find(stock => stock.itemId === item.id);
+        if (!line || !ALL_ITEMS[item.id]) return calculatePrice(item, economy, 'buy', regionId, priceContext);
+        const finalPrice = priceStockItem(ALL_ITEMS[item.id], business!.priceMultiplier, economy, regionId, line.priceOverride, priceContext);
+        return { finalPrice, isModified: false, multiplier: 1 };
+    };
+
+    const purchasableItems = merchantInventory.filter(item => !isCurrencyItemId(item.id));
     const sellableItems = useMemo(() => {
         // Allow selling anything that can be priced.
         // We prefer `costInGp` because it is already normalized (and avoids parsing),
         // but we also accept `cost` strings for legacy items and AI-generated loot.
-        return playerInventory.filter(i => (typeof i.costInGp === 'number' && i.costInGp > 0) || Boolean(i.cost));
+        return playerInventory.filter(i => !isCurrencyItemId(i.id) && !(i.type === 'service' && i.id.startsWith('rumor_'))
+            && ((typeof i.costInGp === 'number' && i.costInGp > 0) || Boolean(i.cost)));
     }, [playerInventory]);
 
     const junkItems = useMemo(() => {
@@ -174,12 +219,13 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
     }, [junkItems, economy, regionId, priceContext]);
 
     const handleBuy = (item: Item) => {
-        const { finalPrice } = calculatePrice(item, economy, 'buy', regionId, priceContext);
+        if (shopAttendance && !shopAttendance.open) return;
+        const { finalPrice } = buyQuote(item);
         // Affordability is judged against the price the player actually pays.
         // `cost` stays the pre-haggle price: the handler re-reads the merchant's
         // memory and applies the multiplier itself, so a stale client-side number
         // can never become the charged number.
-        if (finalPrice > 0 && playerGold >= hagglePrice(finalPrice)) {
+        if (finalPrice > 0 && availableFunds >= hagglePrice(finalPrice)) {
             // handleMerchantAction expects the transaction-wrapped shape; a flat
             // { item, cost } was silently ignored (payload.transaction was undefined),
             // which is why every Buy click did nothing.
@@ -188,9 +234,10 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
     };
 
     const handleSell = (item: Item) => {
+        if (shopAttendance && !shopAttendance.open) return;
         const { finalPrice } = calculatePrice(item, economy, 'sell', regionId, priceContext);
         if (finalPrice > 0) {
-            onAction({ type: 'SELL_ITEM', label: `Sell ${item.name}`, payload: { merchantId, transaction: { sell: { itemId: item.id, value: finalPrice } } } });
+            onAction({ type: 'SELL_ITEM', label: `Sell ${item.name}`, payload: { merchantId, transaction: { sell: { itemId: item.id, value: finalPrice, inventoryIndex: playerInventory.indexOf(item), inventoryItem: item } } } });
         }
     };
 
@@ -199,6 +246,8 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
     // the party's spokesperson (the leader) against the merchant's DC. We pass
     // the leader as interactorId; the handler falls back to party[0] anyway.
     const handleHaggle = (strategy: HaggleStrategy) => {
+        if (activeHaggleFact || state.isLoading) return;
+        if (shopAttendance && !shopAttendance.open) return;
         onAction({
             type: 'HAGGLE_ITEM',
             label: `Haggle (${strategy})`,
@@ -243,14 +292,20 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
             headerActions={headerTabs}
         >
             <div className="flex flex-col h-full">
+                {business && <p className="shrink-0 border-b border-gray-700 px-4 py-2 text-sm text-sky-200">{BUSINESS_TEMPLATES[business.businessType].name}{shopAttendance && ` · ${shopAttendance.open ? 'Open' : 'Closed'} · ${shopAttendance.hours}`}</p>}
+                {shopAttendance && !shopAttendance.open && <p role="status" className="px-4 py-2 text-amber-200">{shopAttendance.reason}</p>}
                 {/* Market conditions banner (was a header subtitle). */}
                 {(marketEvents.length > 0 || marketFlavor) && (
-                    <div className="shrink-0 px-4 py-2 border-b border-gray-700 bg-gray-900/40 text-sm text-gray-400 flex flex-col gap-1">
+                    <details className="shrink-0 border-b border-gray-700 bg-gray-900/40 px-4 py-2 text-sm text-gray-400">
+                        <summary className="min-h-11 cursor-pointer py-2 text-amber-200">Market conditions ({marketEvents.length} updates)</summary>
+                        {/* Long route reports must not displace the goods or paid note. */}
+                        <div className="max-h-32 overflow-y-auto scrollable-content space-y-1">
                         {marketEvents.map((marketEvent) => (
                             <div key={marketEvent.id} className="text-amber-200">📢 {marketEvent.name}: {marketEvent.description}</div>
                         ))}
                         {marketFlavor && <span className="italic text-gray-300">{marketFlavor}</span>}
-                    </div>
+                        </div>
+                    </details>
                 )}
 
                 {/* Main Content */}
@@ -264,7 +319,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                         <div className="w-full p-6">
                            <RumorMill
                                 merchantName={merchantName}
-                                playerGold={playerGold}
+                                playerGold={availableFunds}
                                 playerInventory={playerInventory}
                                 onAction={onAction}
                            />
@@ -280,13 +335,18 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                     social strategy; a successful roll discounts subsequent purchases. */}
                                 <div className="mb-3 flex flex-col gap-1.5 rounded-lg border border-gray-600/50 bg-gray-900/30 p-2">
                                     <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Haggle</span>
+                                    <p className="text-xs text-gray-300">Negotiating affects the keeper's opinion of you, even if prices stay unchanged.</p>
+                                    {activeHaggleFact && <p role="status" className="text-sm text-amber-200">
+                                        {haggleResultText} Another negotiation in about {haggleHoursRemaining} {haggleHoursRemaining === 1 ? 'hour' : 'hours'}.
+                                    </p>}
                                     <div className="flex flex-wrap gap-1.5">
                                         {HAGGLE_STRATEGIES.map(({ strategy, label, hint }) => (
                                             <Tooltip key={strategy} content={hint}>
                                                 <button
                                                     onClick={() => handleHaggle(strategy)}
+                                                    disabled={Boolean(activeHaggleFact || state.isLoading || (shopAttendance && !shopAttendance.open))}
                                                     aria-label={`Haggle using ${label}`}
-                                                    className="min-h-11 flex-1 justify-center px-3 py-1.5 rounded text-sm font-bold transition-colors flex items-center gap-1 bg-indigo-600 hover:bg-indigo-500 text-white"
+                                                    className="min-h-11 flex-1 justify-center px-3 py-1.5 rounded text-sm font-bold transition-colors flex items-center gap-1 bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-40 disabled:cursor-not-allowed"
                                                 >
                                                     {label}
                                                 </button>
@@ -295,12 +355,14 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                     </div>
                                 </div>
                                 <div className="space-y-2 pr-1 md:flex-grow md:overflow-y-auto md:scrollable-content md:pr-2">
-                                    {merchantInventory.map((item, idx) => {
-                                        const { finalPrice: basePrice, isModified, multiplier } = calculatePrice(item, economy, 'buy', regionId, priceContext);
+                                    {purchasableItems.map((item, idx) => {
+                                        const { finalPrice: basePrice, isModified, multiplier } = buyQuote(item);
                                         // Shown price includes the negotiated haggle multiplier, so the
                                         // button and the charge agree.
                                         const finalPrice = hagglePrice(basePrice);
-                                        const canAfford = playerGold >= finalPrice;
+                                        const canAfford = availableFunds >= finalPrice && (!shopAttendance || shopAttendance.open);
+                                        // Explain the blocked choice using the same purse and quote as Buy.
+                                        const needsMoreFunds = availableFunds < finalPrice;
                                         return (
                                             <div key={`${item.id}-${idx}`} className="bg-gray-700 p-3 rounded-lg flex flex-col items-stretch gap-3 shadow-sm sm:flex-row sm:justify-between sm:items-center">
                                                 <div className="flex items-center gap-3">
@@ -308,7 +370,8 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                                     <Tooltip content={`${item.description}\nType: ${item.type}`}>
                                                         <div>
                                                             <p className="font-semibold text-gray-200">{item.name}</p>
-                                                            <p className="text-xs text-gray-400">{item.type} • {item.weight} lbs</p>
+                                                            <p className="text-xs text-gray-400">{item.type.replaceAll('_', ' ')} • {item.weight} lbs each</p>
+                                                            <p className="text-xs text-sky-200">{item.quantity ?? 1} in stock • Buy one</p>
                                                         </div>
                                                     </Tooltip>
                                                 </div>
@@ -317,12 +380,18 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                                         onClick={() => handleBuy(item)}
                                                         disabled={!canAfford}
                                                         aria-label={`Buy ${item.name} for ${formatGpAsCoins(finalPrice)}`}
+                                                        aria-describedby={needsMoreFunds ? `merchant-funds-shortfall-${idx}` : undefined}
                                                         className={`min-h-11 justify-center px-3 py-1.5 rounded text-sm font-bold transition-colors flex items-center gap-1
                                             ${canAfford ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-gray-600 text-gray-400 cursor-not-allowed'}
                                         `}
                                                     >
                                                         <span>{formatGpAsCoins(finalPrice)}</span>
                                                     </button>
+                                                    {needsMoreFunds && (
+                                                        <p id={`merchant-funds-shortfall-${idx}`} className="text-xs text-amber-200">
+                                                            Need {formatGpAsCoins(finalPrice - availableFunds)} more
+                                                        </p>
+                                                    )}
                                                     {isModified && (
                                                         <span className={`text-[10px] font-bold ${multiplier > 1 ? 'text-red-400' : 'text-green-400'}`}>
                                                             {multiplier > 1 ? '▲ High Demand' : '▼ Low Price'}
@@ -337,7 +406,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                             </div>
                                         );
                                     })}
-                                    {merchantInventory.length === 0 && <p className="text-gray-400 italic text-center mt-10">Sold out.</p>}
+                                    {purchasableItems.length === 0 && <p className="text-gray-400 italic text-center mt-10">Sold out.</p>}
                                 </div>
                             </div>
 
@@ -348,6 +417,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                     {junkItems.length > 0 && (
                                         <button
                                             onClick={() => {
+                                                if (shopAttendance && !shopAttendance.open) return;
                                                 const itemsPayload = junkItems.map(item => {
                                                     const { finalPrice } = calculatePrice(item, economy, 'sell', regionId, priceContext);
                                                     return { itemId: item.id, value: finalPrice };
@@ -367,14 +437,14 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                 <div className="space-y-2 pr-1 md:flex-grow md:overflow-y-auto md:scrollable-content md:pr-2">
                                     {sellableItems.map((item, idx) => {
                                         const { finalPrice, isModified, multiplier } = calculatePrice(item, economy, 'sell', regionId, priceContext);
-                                        const canSell = finalPrice > 0;
+                                        const canSell = finalPrice > 0 && (!shopAttendance || shopAttendance.open);
                                         return (
                                             <div key={`${item.id}-${idx}`} className="bg-gray-700/50 p-3 rounded-lg flex flex-col items-stretch gap-3 border border-gray-600/50 sm:flex-row sm:justify-between sm:items-center">
                                                 <div className="flex items-center gap-3">
                                                     <ItemGlyph item={item} />
                                                     <div>
                                                         <p className="font-semibold text-gray-300">{item.name}</p>
-                                                        <p className="text-xs text-gray-400">Value: {formatGpAsCoins(finalPrice)}</p>
+                                                        <p className="text-xs text-gray-400">{item.quantity ?? 1} owned • Sell one for {formatGpAsCoins(finalPrice)}</p>
                                                     </div>
                                                 </div>
                                                 <div className="flex flex-col items-stretch gap-1 sm:items-end">
@@ -404,11 +474,11 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                     )}
                 </div>
 
-                {/* Footer */}
-                <div className="shrink-0 p-4 border-t border-gray-700 bg-gray-900 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
+                {/* Keep the phone exit above the frame’s 44 px bottom resize target. */}
+                <div className="shrink-0 p-4 pb-12 border-t border-gray-700 bg-gray-900 flex flex-col gap-3 sm:pb-4 sm:flex-row sm:justify-between sm:items-center">
                     <div className="flex items-center gap-2">
                         <span className="text-sm text-gray-400 mr-1">Your Coin Purse:</span>
-                        <CoinPurseDisplay goldValue={playerGold} />
+                        <CoinPurseDisplay goldValue={availableFunds} />
                     </div>
                     <button
                         onClick={onClose}

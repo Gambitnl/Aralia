@@ -2,12 +2,22 @@
  * @file World3DNameplates.test.tsx
  * Verifies the distance and LOD gates for in-3D site labels.
  */
-import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, render, screen } from '@testing-library/react';
+import { Group, Scene } from 'three';
 import type { PlayerWorldPosition } from '../../../types';
 import type { LoadedChunk } from '@/systems/world3d/types';
 import type { SceneOrigin } from '@/systems/world3d/sceneOrigin';
 import World3DNameplates, { makeNameplates } from '../World3DNameplates';
+
+// Drive the component's normal frame subscription without a WebGL context.
+let labelScene: Scene;
+let labelFrame: ((state: unknown, delta: number) => void) | undefined;
+beforeEach(() => { labelScene = new Scene(); labelFrame = undefined; });
+vi.mock('@react-three/fiber', () => ({
+  useThree: (select: (state: {scene: Scene}) => unknown) => select({scene: labelScene}),
+  useFrame: (callback: typeof labelFrame) => { labelFrame = callback; },
+}));
 
 vi.mock('@react-three/drei', () => ({
   Html: ({ children, style, 'data-kind': kind, 'data-testid': testId }: any) => (
@@ -59,6 +69,31 @@ const sceneOrigin: SceneOrigin = { x: 0, z: 0 };
 const playerPos: PlayerWorldPosition = { x: 64, y: 0, z: 64 };
 
 describe('World3DNameplates', () => {
+  it('leaves a loaded resident to the live body label, including OUT hours and another chunk', () => {
+    const marker = makeSiteData({id: 'wf-occ-675-84', kind: 'landmark', name: 'Fenna Hartham · working', markerOnly: true, localX: 64, localZ: 64});
+    const packet = {id: 84, burgId: 675, householdMemberId: 'b34:head', name: 'Fenna Hartham', ageBand: 'adult', body: {} as never, stationsByHour: Array(24).fill(null)};
+    const loaded = [makeChunk(0, 0, 'full', [marker]), makeChunk(1, 0, 'mid', [makeSiteData({unlabeled: true, occupants: [packet]})])];
+    const before = JSON.stringify(loaded);
+    expect(makeNameplates(loaded, sceneOrigin, playerPos, {allowedLods: ['full', 'mid'], maxWorldDistance: 400, maxVisible: 12})).toEqual([]);
+    expect(JSON.stringify(loaded)).toBe(before);
+  });
+
+  it('retains fallback markers without matching settlement provenance and never matches display names', () => {
+    const markers = [
+      makeSiteData({id: 'wf-occ-676-84', kind: 'landmark', name: 'Fenna Hartham · working', markerOnly: true, localX: 64, localZ: 64}),
+      makeSiteData({id: 'wf-occ-675-85', kind: 'landmark', name: 'Fenna Hartham · asleep', markerOnly: true, localX: 65, localZ: 64}),
+      makeSiteData({id: 'wf-occ-675-84', kind: 'landmark', name: 'Unproven legacy roster', markerOnly: true, localX: 66, localZ: 64}),
+    ];
+    const legacy = {id: 84, name: 'Fenna Hartham', ageBand: 'adult', body: {} as never, stationsByHour: Array(24).fill(null)};
+    const config = {allowedLods: ['full', 'mid'] as LoadedChunk['lod'][], maxWorldDistance: 400, maxVisible: 12};
+    const unowned = makeChunk(0, 0, 'full', [...markers, makeSiteData({unlabeled: true, occupants: [legacy]})]);
+    expect(makeNameplates([unowned], sceneOrigin, playerPos, config).map(l => l.text)).toEqual(markers.map(m => m.name));
+    const owned = makeChunk(0, 0, 'full', [...markers, makeSiteData({unlabeled: true, occupants: [{...legacy, burgId: 675}]})]);
+    expect(makeNameplates([owned], sceneOrigin, playerPos, config).map(l => l.text)).toEqual(markers.slice(0, 2).map(m => m.name));
+    const markerOnly = makeChunk(0, 0, 'full', markers);
+    expect(makeNameplates([markerOnly], sceneOrigin, playerPos, config).map(l => l.text)).toEqual(markers.map(m => m.name));
+  });
+
   it('shows labels only for supported LOD tiers', () => {
     const loaded: LoadedChunk[] = [
       makeChunk(0, 0, 'full', [makeSiteData({ id: 'full-town', kind: 'town', localX: 96, localZ: 64 })]),
@@ -229,5 +264,88 @@ describe('World3DNameplates', () => {
     expect(mid?.opacity).toBe(1);
     expect(edge?.opacity).toBeLessThan(0.2);
     expect(edge?.opacity).toBeGreaterThan(0);
+  });
+});
+
+describe('named public frontage at walking distance', () => {
+  const config = {allowedLods: ['full', 'mid'] as LoadedChunk['lod'][], maxWorldDistance: 400, maxVisible: 12};
+
+  it('keeps the booked business readable beside its real entrance, below the tall roof', () => {
+    const loaded = [makeChunk(0, 0, 'full', [makeSiteData({
+      name: 'The Laughing Boar', localX: 70, localZ: 64, surfaceY: 20,
+      boxHeight: 25, frontDoorOffsetX: 2, frontDoorOffsetZ: 1, labelRangeM: 20,
+    })])];
+    const before = JSON.stringify(loaded);
+    const labels = makeNameplates(loaded, sceneOrigin, playerPos, config);
+    expect(labels.find(label => label.text === 'The Laughing Boar')?.position).toEqual([72, 22.4, 65]);
+    expect(JSON.stringify(loaded)).toBe(before);
+  });
+
+  it('uses entrance reach for the walking-distance gate rather than the building center', () => {
+    const loaded = [makeChunk(0, 0, 'full', [
+      makeSiteData({id: 'near-entry', name: 'Near Entry Inn', localX: 90, localZ: 64,
+        radius: 40, boxHeight: 20, frontDoorOffsetX: -12, frontDoorOffsetZ: 0, labelRangeM: 20}),
+      makeSiteData({id: 'far-entry', name: 'Far Entry Inn', localX: 70, localZ: 64,
+        radius: 40, boxHeight: 20, frontDoorOffsetX: 30, frontDoorOffsetZ: 0, labelRangeM: 20}),
+    ])];
+    expect(makeNameplates(loaded, sceneOrigin, playerPos, config).map(label => label.text)).toEqual(['Near Entry Inn']);
+  });
+
+  it('keeps the existing near gate for private or unverified entrances', () => {
+    const loaded = [makeChunk(0, 0, 'full', [
+      makeSiteData({id: 'private-home', localX: 70, localZ: 64, boxHeight: 20,
+        frontDoorOffsetX: 2, frontDoorOffsetZ: 1}),
+      makeSiteData({id: 'legacy-name', name: 'Older Building', localX: 70, localZ: 64, boxHeight: 20}),
+      makeSiteData({id: 'invalid-entry', name: 'Invalid Entry', localX: 70, localZ: 64, boxHeight: 20,
+        frontDoorOffsetX: NaN, frontDoorOffsetZ: 0}),
+    ])];
+    expect(makeNameplates(loaded, sceneOrigin, playerPos, config)).toEqual([]);
+  });
+});
+
+
+describe('roaming ground labels follow the actual body', () => {
+  const origin = {x: 150, z: 150};
+  const loaded = [makeChunk(1, 1, 'full', [
+    makeSiteData({id: 'old-shop', name: 'Old shop', localX: 22, localZ: 22,
+      boxHeight: 4, frontDoorOffsetX: 0, frontDoorOffsetZ: 0, labelRangeM: 20}),
+    makeSiteData({id: 'new-hall', name: 'New hall', localX: 82, localZ: 22,
+      boxHeight: 4, frontDoorOffsetX: 0, frontDoorOffsetZ: 0, labelRangeM: 20}),
+  ])];
+  const frame = () => act(() => labelFrame?.({}, .3));
+  function body(x: number) {
+    const player = new Group(); player.name = 'world3d:player';
+    player.position.set(x, 2, 0); labelScene.add(player); return player;
+  }
+
+  it('withdraws the old business and reveals the reached one while the floating origin stays fixed', () => {
+    const player = body(0), source = JSON.stringify(loaded);
+    render(<World3DNameplates loaded={loaded} sceneOrigin={origin} />);
+    frame();
+    expect(screen.getByText('Old shop')).toBeInTheDocument();
+    expect(screen.queryByText('New hall')).not.toBeInTheDocument();
+    player.position.x = 60; frame();
+    expect(screen.queryByText('Old shop')).not.toBeInTheDocument();
+    expect(screen.getByText('New hall')).toBeInTheDocument();
+    expect(origin).toEqual({x: 150, z: 150});
+    expect(player.position.toArray()).toEqual([60, 2, 0]);
+    expect(JSON.stringify(loaded)).toBe(source);
+  });
+
+  it('reacquires a replaced body instead of retaining its old range anchor', () => {
+    const removed = body(60);
+    render(<World3DNameplates loaded={loaded} sceneOrigin={origin} />);
+    frame(); expect(screen.getByText('New hall')).toBeInTheDocument();
+    removed.removeFromParent(); body(0); frame();
+    expect(screen.getByText('Old shop')).toBeInTheDocument();
+    expect(screen.queryByText('New hall')).not.toBeInTheDocument();
+  });
+
+  it('preserves the explicit continent anchor even when a body exists', () => {
+    body(60);
+    render(<World3DNameplates loaded={loaded} sceneOrigin={origin} playerWorldPos={{x: 150, y: 0, z: 150}} />);
+    frame();
+    expect(screen.getByText('Old shop')).toBeInTheDocument();
+    expect(screen.queryByText('New hall')).not.toBeInTheDocument();
   });
 });

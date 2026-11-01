@@ -13,6 +13,23 @@
  * full named roster (lazy); typed dwellings, with commercial/civic excluded from
  * the housing math.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 01/11/2026, 04:56:53
+ * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, components/DesignPreview/steps/townMesh.ts, systems/worldforge/town/buildingStyle.ts, systems/worldforge/town/courtyardSpaces.ts, systems/worldforge/town/cultureStructures.ts, systems/worldforge/town/household.ts, systems/worldforge/town/townEngine.ts, systems/worldforge/town/townLayoutV1.ts, systems/worldforge/town/townPlanAdapter.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { rngFromPath, streamPath, type SeedPath } from '../seedPath';
 import type { BuildingPlot, TownOutskirt, TownScaleProfile } from './townEngine';
 import type { Pt } from '../submap/submapEngine';
@@ -181,6 +198,10 @@ function wantedLandmark(dist: number, h: number): BuildingType | null {
 
 /** A rural dwelling in the outskirts (carries rural population). */
 export interface Farmstead {
+  /** Index into the generation-time farm-only parcel list; absent on legacy sources. */
+  farmParcelIndex?: number;
+  /** People represented by this capped map marker, distinct from its one household. */
+  representedPopulation?: number;
   id: string;
   x: number;
   y: number;
@@ -416,6 +437,8 @@ export function assignWorkplaces(plots: BuildingPlot[]): number {
 }
 
 export interface AssignPopulationInput {
+  /** Explicit new source: representative rural markers hold one plausible household. */
+  ruralHouseholdSources?: boolean;
   /** All building plots, already finalized (carry .buildingType/.occupants after this). */
   plots: BuildingPlot[];
   /** Farm outskirt parcels — seat rural farmsteads. */
@@ -478,6 +501,9 @@ export function assignTownPopulation(input: AssignPopulationInput): TownPopulati
   const farmsteads: Farmstead[] = [];
   if (ruralPop > 0 && farmParcels.length > 0) {
     const rng = rngFromPath(streamPath(seedPath, 'rural'));
+    // Separate draws preserve farm locations and all urban family/work identities.
+    const familyRng = input.ruralHouseholdSources
+      ? rngFromPath(streamPath(seedPath, 'rural-household-occupancy')) : undefined;
     const trueRural = Math.max(1, Math.round(ruralPop / 5));
     const nFarms = Math.min(trueRural, Math.max(farmParcels.length, 1) * 4, 64); // legibility cap
     const per = Math.floor(ruralPop / nFarms);
@@ -491,7 +517,16 @@ export function assignTownPopulation(input: AssignPopulationInput): TownPopulati
       const first = i < farmParcels.length;
       const x = first ? c[0] : c[0] + (rng.next() - 0.5) * r * 2;
       const y = first ? c[1] : c[1] + (rng.next() - 0.5) * r * 2;
-      farmsteads.push({ id: `f${i}`, x, y, occupants: Math.max(1, per + (rem-- > 0 ? 1 : 0)) });
+      const representedPopulation = Math.max(1, per + (rem-- > 0 ? 1 : 0));
+      // Legacy markers retain their exact population-sized families. The explicit
+      // candidate distinguishes one visible family from the broader rural stock
+      // the marker represents; it never removes people from town accounting.
+      const occupants = familyRng
+        ? Math.min(representedPopulation, Math.max(1, Math.round(CAPACITY.farmstead * (0.55 + familyRng.next() * 0.6))))
+        : representedPopulation;
+      farmsteads.push({ id: `f${i}`, x, y, occupants,
+        ...(input.ruralHouseholdSources ? {farmParcelIndex:i % farmParcels.length, representedPopulation} : {}),
+      });
     }
     byType.farmstead = (byType.farmstead ?? 0) + farmsteads.length;
   }

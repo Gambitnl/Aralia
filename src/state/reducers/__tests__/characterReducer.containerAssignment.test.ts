@@ -110,3 +110,31 @@ describe('characterReducer MOVE_ITEM_TO_CONTAINER (agora-17eb)', () => {
     expect(next.inventory?.find(i => i.id === TORCH.id)?.containerId).toBe(basket.id);
   });
 });
+
+
+describe('source-specific stowing', () => {
+  it('moves only the selected same-ID supply stack and retains both source records', () => {
+    const older: Item = { ...TORCH, id: 'rations', quantity: 5, acquiredAt: 100 };
+    const newer: Item = { ...TORCH, id: 'rations', quantity: 10, acquiredAt: 200 };
+    const state = stateWith([POUCH, older, newer]);
+    const next = characterReducer(state, { type: 'MOVE_ITEM_TO_CONTAINER', payload: {
+      itemId: newer.id, containerId: POUCH.id, inventoryIndex: 2, sourceItem: newer,
+    } });
+    expect(next.inventory?.[1]).toBe(older);
+    expect(next.inventory?.[2]).toEqual({ ...newer, containerId: POUCH.id });
+    expect(Object.keys(next)).toEqual(['inventory']);
+    expect(state.inventory[2]).toBe(newer);
+  });
+
+  it('refuses a stale row after the selected stack changes at the same index', () => {
+    const selected: Item = { ...TORCH, quantity: 10 };
+    const changed: Item = { ...selected, quantity: 9 };
+    expect(characterReducer(stateWith([POUCH, changed]), { type: 'MOVE_ITEM_TO_CONTAINER',
+      payload: { itemId: selected.id, containerId: POUCH.id, inventoryIndex: 1, sourceItem: selected },
+    })).toEqual({});
+  });
+
+  it('refuses an ambiguous legacy ID rather than moving every source stack', () => {
+    expect(characterReducer(stateWith([POUCH, TORCH, { ...TORCH, acquiredAt: 200 }]), move(TORCH.id, POUCH.id))).toEqual({});
+  });
+});

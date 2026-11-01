@@ -1,10 +1,16 @@
+/**
+ * @file src/utils/targetingUtils.ts
+ * Utility module for handling targeting geometry, shape mapping, and coordinate calculations.
+ * Extracts pure logic from useAbilitySystem hooks to keep components focused.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 13/08/2026, 15:36:01
- * Dependents: commands/effects/TerrainCommand.ts, components/DesignPreview/steps/scenarioControls/areaEffectScenarioControls.ts, hooks/combat/useTargeting.ts, hooks/useAbilitySystem.ts, systems/spells/mechanics/areaDamageSpellCastResolution.ts, utils/spatial/index.ts
+ * Last Sync: 24/10/2026, 22:14:42
+ * Dependents: commands/effects/TerrainCommand.ts, components/BattleMap/GridlessAoEOutline.tsx, components/DesignPreview/steps/scenarioControls/areaEffectScenarioControls.ts, hooks/ability/targetSelection.ts, hooks/ability/useAbilityExecution.ts, hooks/actionUtils.ts, hooks/combat/useTargeting.ts, systems/combat/abilityEffectPlanning.ts, systems/combat/abilityTargetResolution.ts, systems/spells/mechanics/areaDamageSpellCastResolution.ts, utils/spatial/index.ts
  * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
@@ -13,12 +19,6 @@
  * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 // @dependencies-end
-
-/**
- * @file src/utils/targetingUtils.ts
- * Utility module for handling targeting geometry, shape mapping, and coordinate calculations.
- * Extracts pure logic from useAbilitySystem hooks to keep components focused.
- */
 
 import { Position, AreaOfEffect, CombatCharacter } from '../../types/combat';
 import { AoEShape, AoEParams, cubeAxisToCompassDegrees, resolveCubeAxis } from '../combat/aoeCalculations';
@@ -70,7 +70,10 @@ const facingToDegrees = geometryFacingToDegrees;
  * @throws Error for a Cube with no caster position away from the point, and no caster facing.
  */
 export const resolveAoEParams = (
-    aoe: AreaOfEffect,
+    // Geometry reads only the size and maps every authored shape string.
+    // Spell metadata has more shape labels than ability buttons; preserve
+    // that existing mapping/fallback without casting the spell to an ability.
+    aoe: Pick<AreaOfEffect, 'size'> & { shape: string },
     center: Position,
     caster?: CombatCharacter,
     spellName?: string
@@ -142,3 +145,12 @@ export const resolveAoEParams = (
         width: 5 // Default line width
     };
 };
+
+// Spell registration and older action adapters share this same area summary.
+export const getZoneAreaFromAoEParams = (
+  areaOfEffect: { shape: string },
+  aoeParams: AoEParams
+): { shape: string; size: number } => ({
+  shape: areaOfEffect.shape,
+  size: aoeParams.size
+});

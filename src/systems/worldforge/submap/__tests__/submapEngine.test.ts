@@ -69,6 +69,32 @@ describe('generateSubmapSites', () => {
 });
 
 describe('generateSubmap (iter-2: Voronoi cells)', () => {
+  it.each([false, true])('keeps a town beside a concave atlas boundary without changing geography (reversed: %s)', (reversed) => {
+    // Sypege's real neighborhood boundary: quantized atlas vertices leave an
+    // inward corner. Convex clipping against it used to discard the burg cell.
+    const boundary: Array<[number, number]> = [[205, 258], [85, 578], [5, 538], [5, 218], [85, 178], [165, 178], [245, 218]];
+    const polygon = reversed ? [...boundary].reverse() : boundary;
+    const before = structuredClone(polygon);
+    const model = generateSubmap({
+      polygon,
+      seedPath: rootSeedPath(42),
+      features: [{ kind: 'burg', x: 47, y: 552, id: 10, name: 'Sypege' }],
+    }, { count: 160 });
+
+    expect(model.burgCellIndex).toBeGreaterThanOrEqual(0);
+    const town = model.cells[model.burgCellIndex!];
+    expect(town.feature).toMatchObject({ id: 10, name: 'Sypege', x: 47, y: 552 });
+    expect(pointInPolygon([47, 552], town.polygon)).toBe(true);
+    expect(model.boundary).toEqual(before);
+    expect(polygon).toEqual(before);
+    // No convex hull or shifted town: each vertex remains on/inside the
+    // original boundary (the tiny inset avoids boundary-ray ambiguity).
+    for (const p of town.polygon) {
+      const inset: [number, number] = [p[0] + (47 - p[0]) * 1e-7, p[1] + (552 - p[1]) * 1e-7];
+      expect(pointInPolygon(inset, polygon)).toBe(true);
+    }
+  });
+
   it('produces a bounded Voronoi cell per site; the burg owns the cell containing its point', () => {
     const r = generateSubmap(
       {

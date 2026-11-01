@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 14/07/2026, 20:28:55
- * Dependents: systems/worldforge/bridge/groundProps.ts
- * Imports: 3 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file placementEngine.ts — seeded, deterministic prop placement (DATA layer).
  *
@@ -59,7 +43,8 @@
  *                        find a tavern plot.
  *  • 'wealthy-quarter' — no wealth/quarter signal on plots.
  *  • 'gate'            — context has no walls polylines / gatehouses array.
- *  • 'ruin'            — no hiddenSites in the context.
+ * Hidden sites now anchor ruin dressing and source-kind physical cues. The
+ * original ruin/scatter streams remain intact; new cues use their own stream.
  *  • 'riverbank'       — no rivers polylines in the context.
  *  • 'defile'          — no slope/heightfield signal to detect a choke.
  *  • 'warehouse','cellar','mill','pasture','village','roadside' — tag-only
@@ -68,10 +53,27 @@
  * so expanded defs emitted here are data-only until the wiring packet switches
  * the bridge to PROPS_BY_ID (rendering of new forms is out of this slice).
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 01:55:53
+ * Dependents: systems/worldforge/bridge/groundProps.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { SeedPath } from '../seedPath';
 import { childSeedPath, rngFromPath, streamPath } from '../seedPath';
 import type { SeededRandom } from '../../../utils/random/seededRandom';
-import { CELL_METERS, type PropInstance } from './propSchema';
+import { CELL_METERS, type PropInstance, type PropAffiliation } from './propSchema';
 import { surfaceGateFor } from './catalog';
 import {
   FEET_PER_METER,
@@ -144,10 +146,23 @@ export interface CtxCourtyard {
   courtyardSignature: string;
 }
 
-/** A hidden/discovery site (SP4) — a `ruin` kind seeds ruin dressing. */
+/**
+ * One set-piece feature of a civic building's grounds (GG-569), projected into
+ * ground meters. The town plan places it; the prop layer only dresses it.
+ */
+export interface CtxCivicFeature {
+  /** Stable anchor id; the dressing seed path hangs off it. */
+  id: string;
+  /** 'grave' gets a headstone; 'pool' gets reeds round its edge. */
+  kind: 'grave' | 'pool';
+  /** The feature outline, meters, in the plan's winding. */
+  pointsM: Array<{ x: number; z: number }>;
+}
+
+/** A canonical discovery source; dressing never changes its identity or discovery radius. */
 export interface CtxHiddenSite {
   id: string;
-  /** 'ruin' | 'cave' | 'shrine' | 'camp' | 'grove' | 'wreck' — only 'ruin' dresses. */
+  /** 'ruin' | 'cave' | 'shrine' | 'camp' | 'grove' | 'wreck'. */
   kind: string;
   xM: number;
   zM: number;
@@ -179,6 +194,10 @@ export interface CtxGatehouse {
  * empty; the engine only emits props for anchors that are present.
  */
 export interface PropPlacementContext {
+  /** Opt-in new-source metadata; it never consumes RNG or changes old output. */
+  retainPropAffiliations?: boolean;
+  /** Fresh dock stock uses the rendered deck surface, not the seabed slope. */
+  surfaceForProp?: (prop: PropInstance) => SurfaceProbe | undefined;
   /** Ground extent, meters (used to sanity-bound scatter). */
   extentMetersX: number;
   extentMetersZ: number;
@@ -193,6 +212,8 @@ export interface PropPlacementContext {
   plazas: CtxPlaza[];
   /** Explicit residential courts authored by the canonical town engine. */
   courtyards?: CtxCourtyard[];
+  /** Graves and sacred pools of civic grounds, placed by the town plan (GG-569). */
+  civicFeatures?: CtxCivicFeature[];
   /**
    * Optional per-cell heights (0..100 encoded, row-major cols×rows) — the slope
    * signal for the `defile` context (a steep choke gets ambush cover). Absent =
@@ -207,7 +228,7 @@ export interface PropPlacementContext {
   deadEnds?: CtxDeadEnd[];
   /** River centerlines crossing the window — the `riverbank` context. */
   rivers?: CtxPolyline[];
-  /** Hidden/discovery sites — a 'ruin' kind seeds the `ruin` context. */
+  /** Discovery sources anchor physical cues; ruin dressing keeps its existing stream. */
   hiddenSites?: CtxHiddenSite[];
   /**
    * STAGE 2 (surface-gate wave): the ground under the window, as a point
@@ -249,7 +270,7 @@ export const RENDERABLE_DEF_IDS: ReadonlySet<string> = new Set<string>([
   'gravestone', 'tomb', 'stone-cross', 'boundary-wall', 'milestone', 'wayside-shrine',
   'stone-planter', 'stone-bench', 'statue', 'cairn', 'standing-stone', 'rock-outcrop',
   'mossy-rock-cluster', 'broken-wall', 'rubble-pile', 'toppled-column', 'brazier',
-  'fingerpost', 'dry-stone-wall', 'grindstone',
+  'fingerpost', 'dry-stone-wall', 'grindstone', 'cave-mouth', 'firepit',
   // Log / trunk / beam forms → fallen-log variants.
   'tree-stump', 'driftwood-pile', 'log-bridge', 'roof-beam-charred', 'dead-snag',
   'jetty-post', 'plough',
@@ -560,9 +581,17 @@ function pickWeighted(rng: SeededRandom, entries: Array<[string, number]>): stri
 
 // ── Town placement ──────────────────────────────────────────────────────────
 
+/** Tag at the emission site, where the serving building/court is known. A
+ * nearest-building lookup later would invent a relationship that never existed. */
+function tagAffiliation(ctx: PropPlacementContext, out: PropInstance[], start: number, affiliation: PropAffiliation): void {
+  if (!ctx.retainPropAffiliations) return;
+  for (let index=start;index<out.length;index++) out[index].affiliation={...affiliation};
+}
+
 function placeMarket(basePath: SeedPath, ctx: PropPlacementContext): PropInstance[] {
   const out: PropInstance[] = [];
   for (const plaza of ctx.plazas) {
+    const start=out.length;
     const path = childSeedPath(streamPath(basePath, 'market'), `plaza:${plaza.id}`);
     const rng = rngFromPath(path);
     // BG3 cheat sheet: ~1 stall per ~4 m of plaza edge (perimeter = 2πr).
@@ -597,6 +626,7 @@ function placeMarket(basePath: SeedPath, ctx: PropPlacementContext): PropInstanc
         );
       }
     }
+    tagAffiliation(ctx,out,start,{kind:'market',id:plaza.id,xM:plaza.xM,zM:plaza.zM,radiusM:plaza.radiusM});
   }
   return out;
 }
@@ -609,6 +639,7 @@ function placeMarket(basePath: SeedPath, ctx: PropPlacementContext): PropInstanc
 function placeCourtyards(basePath: SeedPath, ctx: PropPlacementContext): PropInstance[] {
   const out: PropInstance[] = [];
   for (const court of ctx.courtyards ?? []) {
+    const start=out.length;
     const rng = rngFromPath(childSeedPath(
       streamPath(basePath, 'courtyards'),
       `${court.id}:${court.courtyardSignature}`,
@@ -643,6 +674,71 @@ function placeCourtyards(basePath: SeedPath, ctx: PropPlacementContext): PropIns
       for (let i = 0; i < 4; i++) add('stone-planter', 0.52, i * Math.PI / 2);
       add('stone-bench', 0.18, Math.PI / 4);
     }
+    tagAffiliation(ctx,out,start,{kind:'court',id:court.id,xM:court.xM,zM:court.zM,radiusM:court.radiusM});
+  }
+  return out;
+}
+
+/** Meters of pool edge between reed beds. */
+const CIVIC_POOL_REED_SPACING_M = 2.5;
+
+/**
+ * Dress the civic set pieces the town plan already placed (GG-569). A grave
+ * gets one headstone at its head end, turned along the grave. A sacred pool
+ * gets reed beds along its edge, with gaps. The plan owns where each feature
+ * is; this pass only chooses the stone or reed variation, so no feature moves.
+ */
+function placeCivicGrounds(basePath: SeedPath, ctx: PropPlacementContext): PropInstance[] {
+  const out: PropInstance[] = [];
+  const stream = streamPath(basePath, 'civic-grounds');
+  for (const f of ctx.civicFeatures ?? []) {
+    const pts = f.pointsM;
+    if (pts.length < 3) continue;
+    const rng = rngFromPath(childSeedPath(stream, f.id));
+    if (f.kind === 'grave') {
+      // The grave is a long rectangle. Its long axis runs from the midpoint
+      // of one short edge to the other; the stone stands at the first end.
+      let a = 0;
+      for (let i = 1; i < pts.length; i++) {
+        const e = (k: number) => Math.hypot(pts[(k + 1) % pts.length].x - pts[k].x, pts[(k + 1) % pts.length].z - pts[k].z);
+        if (e(i) < e(a)) a = i;
+      }
+      const p0 = pts[a], p1 = pts[(a + 1) % pts.length];
+      const head = { x: (p0.x + p1.x) / 2, z: (p0.z + p1.z) / 2 };
+      let cx = 0, cz = 0;
+      for (const p of pts) { cx += p.x; cz += p.z; }
+      cx /= pts.length; cz /= pts.length;
+      const axis = Math.atan2(cz - head.z, cx - head.x);
+      // Stand the stone a quarter of the way in from the head edge.
+      out.push(...emit({
+        defId: 'gravestone',
+        xM: clamp(head.x + (cx - head.x) * 0.25, 0, ctx.extentMetersX),
+        zM: clamp(head.z + (cz - head.z) * 0.25, 0, ctx.extentMetersZ),
+        rotationRad: axis + Math.PI / 2 + uniform(rng, -0.06, 0.06),
+        variation: makeVariation(rng),
+      }));
+    } else {
+      // Walk the closed edge; one sample every CIVIC_POOL_REED_SPACING_M.
+      let next = CIVIC_POOL_REED_SPACING_M * uniform(rng, 0.2, 0.8);
+      let walked = 0;
+      for (let i = 0; i < pts.length; i++) {
+        const a = pts[i], b = pts[(i + 1) % pts.length];
+        const len = Math.hypot(b.x - a.x, b.z - a.z);
+        while (next < walked + len) {
+          const t = (next - walked) / len;
+          next += CIVIC_POOL_REED_SPACING_M;
+          if (rng.next() < 0.3) continue; // reeds grow in clumps, with gaps
+          out.push(...emit({
+            defId: 'reed-bed',
+            xM: clamp(a.x + (b.x - a.x) * t, 0, ctx.extentMetersX),
+            zM: clamp(a.z + (b.z - a.z) * t, 0, ctx.extentMetersZ),
+            rotationRad: uniform(rng, 0, Math.PI * 2),
+            variation: makeVariation(rng),
+          }));
+        }
+        walked += len;
+      }
+    }
   }
   return out;
 }
@@ -661,6 +757,7 @@ function placeDocks(basePath: SeedPath, ctx: PropPlacementContext): PropInstance
     }
   }
   for (const lp of loadingPoints) {
+    const start=out.length;
     const rng = rngFromPath(childSeedPath(stream, lp.id));
     // BG3: 4–8 crates/barrels pooled per loading point.
     const crates = rng.nextInt(2, 6); // 2–5
@@ -675,6 +772,8 @@ function placeDocks(basePath: SeedPath, ctx: PropPlacementContext): PropInstance
     for (let j = 0; j < dressing; j++) {
       out.push(...cluster(rng, ctx, pickWeighted(rng, DOCK_DRESSING), lp.xM, lp.zM, CELL_METERS * 2.5, 1));
     }
+    tagAffiliation(ctx,out,start,lp.id.startsWith('bldg:')
+      ? {kind:'building',id:lp.id.slice(5)} : {kind:'dock',id:lp.id});
   }
   return out;
 }
@@ -683,6 +782,7 @@ function placeBuildingSideProps(basePath: SeedPath, ctx: PropPlacementContext): 
   const out: PropInstance[] = [];
   const stream = streamPath(basePath, 'buildings');
   for (const b of ctx.buildings) {
+    const start=out.length;
     const rng = rngFromPath(childSeedPath(stream, `bldg:${b.id}`));
     const R = CELL_METERS * 1.5;
     if (b.role === 'smithy') {
@@ -747,6 +847,7 @@ function placeBuildingSideProps(basePath: SeedPath, ctx: PropPlacementContext): 
         out.push(...placeOrnament(rng, ctx, pickWeighted(rng, WEALTHY_DRESSING), b));
       }
     }
+    tagAffiliation(ctx,out,start,{kind:'building',id:b.id});
   }
   return out;
 }
@@ -908,8 +1009,8 @@ function placeDeadEnds(basePath: SeedPath, ctx: PropPlacementContext): PropInsta
 
 /**
  * Ruin dressing — rubble, broken walls, toppled columns, bramble around each
- * 'ruin' hidden site. Only the 'ruin' hidden-place kind seeds this; caves /
- * shrines / camps are left to their own systems.
+ * 'ruin' hidden site. Its original stream is preserved; other source kinds
+ * receive separate physical cues below, without discovery side effects.
  */
 function placeRuins(basePath: SeedPath, ctx: PropPlacementContext): PropInstance[] {
   const ruins = (ctx.hiddenSites ?? []).filter((h) => h.kind === 'ruin');
@@ -921,6 +1022,37 @@ function placeRuins(basePath: SeedPath, ctx: PropPlacementContext): PropInstance
     const count = rng.nextInt(6, 13); // 6–12 scattered ruin pieces
     for (let j = 0; j < count; j++) {
       out.push(...cluster(rng, ctx, pickWeighted(rng, RUIN_DRESSING), site.xM, site.zM, CELL_METERS * 4, 1));
+    }
+  }
+  return out;
+}
+
+/**
+ * Give existing non-ruin sources a physical read at their actual coordinates.
+ * No sign reveals a hidden name and no account is dispatched here. Discovery
+ * still requires the accepted body to reach the source's original radius.
+ * Separate per-source streams leave all existing scatter and ruin pieces exact.
+ */
+function placeDiscoverySiteCues(basePath: SeedPath, ctx: PropPlacementContext): PropInstance[] {
+  const out: PropInstance[] = [];
+  for (const site of ctx.hiddenSites ?? []) {
+    if (!Number.isFinite(site.xM) || !Number.isFinite(site.zM) ||
+        site.xM < 0 || site.zM < 0 || site.xM > ctx.extentMetersX || site.zM > ctx.extentMetersZ) continue;
+    const rng = rngFromPath(childSeedPath(streamPath(basePath, 'discovery-cues'), site.id));
+    if (site.kind === 'cave') {
+      out.push(...cluster(rng, ctx, 'cave-mouth', site.xM, site.zM, 0, 1));
+    } else if (site.kind === 'shrine') {
+      out.push(...cluster(rng, ctx, 'wayside-shrine', site.xM, site.zM, 0, 1));
+    } else if (site.kind === 'camp') {
+      out.push(...cluster(rng, ctx, 'firepit', site.xM, site.zM, 0, 1));
+      out.push(...cluster(rng, ctx, 'fallen-log', site.xM + 2, site.zM, 0.4, 1));
+    } else if (site.kind === 'grove') {
+      // A natural cluster, without inventing a built shrine or inhabitants.
+      out.push(...cluster(rng, ctx, 'mossy-rock-cluster', site.xM, site.zM, 4, 3));
+      out.push(...cluster(rng, ctx, 'fern-clump', site.xM, site.zM, 3, 5));
+    } else if (site.kind === 'wreck') {
+      // Weathered timbers do not invent a fire, intact ship, cargo or reward.
+      out.push(...cluster(rng, ctx, 'driftwood-pile', site.xM, site.zM, 3, 4));
     }
   }
   return out;
@@ -1236,13 +1368,16 @@ export interface PropPlacementStats {
 function gatePass(
   probe: SurfaceProbe | undefined,
   candidates: PropInstance[],
+  surfaceForProp?: PropPlacementContext['surfaceForProp'],
 ): { kept: PropInstance[]; stats: SurfaceGateStats } {
   const tally = makeSurfaceGateTally();
-  if (!probe) return { kept: candidates, stats: tally.stats() };
+  if (!probe && !surfaceForProp) return { kept: candidates, stats: tally.stats() };
   const kept: PropInstance[] = [];
   for (const inst of candidates) {
     const gate = surfaceGateFor(inst.defId);
-    const sample = probe.sampleAt(inst.xM * FEET_PER_METER, inst.zM * FEET_PER_METER);
+    const surface=surfaceForProp?.(inst)??probe;
+    if (!surface) { kept.push(inst); continue; }
+    const sample = surface.sampleAt(inst.xM * FEET_PER_METER, inst.zM * FEET_PER_METER);
     const reason = rejectReasonFor(sample, gate, positionRoll(inst.xM, inst.zM));
     tally.note(reason);
     if (reason !== null) continue;
@@ -1311,12 +1446,15 @@ export function placePropsInstrumented(
     ['riverbanks', placeRiverbanks(seedPath, ctx)],
     ['defiles', placeDefiles(seedPath, ctx)],
     ['wilderness', placeWilderness(seedPath, ctx)],
+    ['discovery-cues', placeDiscoverySiteCues(seedPath, ctx)],
+    // GG-569: last, on its own seed stream, so no earlier pass changes.
+    ['civic-grounds', placeCivicGrounds(seedPath, ctx)],
   ];
 
   const byPass: Record<string, SurfaceGateStats> = {};
   const instances: PropInstance[] = [];
   for (const [name, candidates] of passes) {
-    const { kept, stats } = gatePass(ctx.surface, candidates);
+    const { kept, stats } = gatePass(ctx.surface, candidates, ctx.surfaceForProp);
     byPass[name] = stats;
     // Final safety net: never surface a non-renderable def (invisible referee
     // blocker). cluster()/emit() already guard; this makes the invariant total.

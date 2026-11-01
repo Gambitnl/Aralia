@@ -11,7 +11,7 @@
 import React from 'react';
 import { GlossaryProvider } from '../../context/GlossaryContext';
 import { SpellProvider } from '../../context/SpellContext';
-import { DiceProvider } from '../../contexts/DiceContext';
+import { DiceProvider } from '../../context/DiceContext';
 
 interface AppProvidersProps {
     /** The child components that will have access to the providers. */

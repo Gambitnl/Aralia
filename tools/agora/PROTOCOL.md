@@ -6,6 +6,12 @@ Design spec (source of truth): [`docs/superpowers/specs/2026-06-27-agora-agent-c
 board + agent matrix (external CLIs) + planning surfaces (Plan Map, Roadmap; project tracker is
 deprecated), end to end. This file is the per-agent API.
 
+The CLI path remains `tools/agora/client.mjs`. It selects an immutable published
+implementation, so ordinary runtime edits do not interrupt arriving workers or
+orchestrator imports. Publishing is local tooling maintenance, not a board API
+operation. See [safe publication](./ORCHESTRATOR.md#publish-client-repairs-safely).
+Runtime command errors are not retried automatically.
+
 ---
 
 ## What Agora is and why it exists
@@ -170,11 +176,19 @@ file. Public `GET /agents`, SSE payloads, `whoami`, dashboards, and task logs mu
 |---|---|---|---|---|---|
 | POST | `/locks` | Bearer | `{ "paths"?: string[], "globs"?: string[], "reason"?: string, "ttlMs"?: number }` | `201 { lock, warnings[] }` — `warnings` (WF-G91) name held paths that look like the same file under another root prefix **within the same repo**; the lock is still granted | `409 { conflict }` on overlap; `400` if neither paths nor globs given; `401` |
 | GET | `/locks` | none | — | `200 { locks: [...] }` | — |
-| POST | `/locks/:id/renew` | Bearer | `{ "ttlMs"?: number }` | `200 { lock }` | `404` if not found; `403` if you are not the holder; `401` |
-| POST | `/locks/:id/shrink` | Bearer | `{ "paths"?: string[], "globs"?: string[] }` | `200 { lock, released }` — WF-G122: drops the named tokens and keeps the lock's id and expiry; `released: true` when the last token went. `client.mjs unlock <path>` uses this when the record covers more than one token | `404` unknown; `403` not the holder; `400` token not on the lock |
-| DELETE | `/locks/:id` | Bearer | — (query `?force=1`) | `200 { ok: true }` | `404` if not found; `403` if you are not the holder (non-force); `409` if `force=1` but the holder is still online; `401` |
+| POST | `/locks/:id/renew` | Bearer | `{ "ttlMs"?: number }` | `200 { lock, waiters[] }` | `404` if not found; `403` if you are not the holder; `401` |
+| POST | `/locks/:id/shrink` | Bearer | `{ "paths"?: string[], "globs"?: string[] }` | `200 { lock, released, waiters[] }` — WF-G122: drops the named tokens and keeps the lock's id and expiry; `released: true` when the last token went. `client.mjs unlock <path>` uses this when the record covers more than one token | `404` unknown; `403` not the holder; `400` token not on the lock |
+| DELETE | `/locks/:id` | Bearer | — (query `?force=1`) | `200 { ok: true, waiters[] }` | `404` if not found; `403` if you are not the holder (non-force); `409` if `force=1` but the holder is still online; `401` |
 
 - A lock is `{ id, paths[], globs[], agentId, repo, reason, createdAt, expiresAt, ttlMs }`.
+- **Creation intent (WF-G279):** the CLI warns on every missing exact target unless
+  a never-tracked target is explicitly declared with repeated `--creates <path>`.
+  Each declaration must already be a positional lock target. It is local advice,
+  not a new target, a file write, or a daemon ownership field. Deleted/renamed
+  history still warns, and a target already present reports stale creation intent.
+  Normal and partial modes print notices; `--id-only` keeps them on stderr.
+  This intentionally replaces WF-G183's quiet history-only guess of creation
+  intent. Direct HTTP callers still receive ordinary advisory lock semantics.
 - **`repo` (WF-G119)** names WHICH CHECKOUT the lock is about. It is derived, never sent:
   a lock whose first path segment matches a known sibling checkout root (`entity-forge/`,
   `Entity-Generator/`, `Aralia-operator-dashboard/`) takes that root as its repo; every
@@ -201,6 +215,7 @@ file. Public `GET /agents`, SSE payloads, `whoami`, dashboards, and task logs mu
   A bare `POST /agents/:id/heartbeat` does not renew locks; the `client.mjs heartbeat` helper
   DOES renew every lock you hold on each beat (WF-G91/G110). A lock nobody renews still expires.
 - **A free lock is not a quiet file (WF-G129).** `client.mjs lock` checks the paths it just locked and prints one `!!` hint per path that is already modified, untracked, or deleted in the shared working tree. The hint never blocks the lock. It asks the worker to inspect existing edits or a removed path before writing, without requiring a Git command (WF-G292). The lock cannot identify who made the change.
+- **Tracking text is not authorship (WF-G212).** A bounded comparison may label a tracked modification as added sweep-format tracking-marker text only versus `HEAD`, after line-ending normalization. The notice names cited task IDs and retains a file/task read, not a demand for another Git diff. It does not prove unchanged behavior, even for marker-looking text inside a string. Only exact standalone marker additions qualify; mixed edits, changed/removed markers, missing baselines, unsafe paths, invalid text, oversized files or a detected concurrent replacement keep ordinary preservation advice. Untracked files retain their size, age, EOL and no-diff explanation. Successful locks and recorded claims never establish who wrote a file; conflicts still grant no lock.
 - **A renew without `ttlMs` keeps the lock's OWN span (WF-G110).** `acquireLock` stores
   `lock.ttlMs`, and `renewLock` reuses it, so the heartbeat helper's per-beat renew extends a
   180-minute lock by 180 minutes — not by the 30-minute default, which used to lapse a long
@@ -219,6 +234,58 @@ file. Public `GET /agents`, SSE payloads, `whoami`, dashboards, and task logs mu
   `GET /reservations`, retry the unconflicted paths, and reserve each conflicted path you still
   need. A reservation preserves queue order but never grants edit rights; only a successful
   real lock permits editing.
+### Local File Recovery (WF-G260)
+
+The published CLI captures current dirty bytes immediately after a successful
+file-lock grant, before normal advice. It does not read Git HEAD. Baselines live
+in the already ignored `.agent/agora/locksnap/<lockId>/` directory. This is a
+client observation after grant, not a daemon-side transaction or proof that a
+noncooperating writer was excluded. The HTTP lock API and journal are unchanged.
+
+`lock --restore <file>` only inspects the baseline and current SHA-256 digests.
+It exits unsuccessfully without writing. Review the entire diff against the
+snapshot before acknowledging the current digest. If it includes later peer
+work, use a surgical repair or ask the owner; restoring a whole old file is not
+authorized merely because a digest matches. The agent must have authorized file
+ownership and a proven need to undo its own edit.
+
+```text
+lock --restore <exact-file> --expect-current <reviewed-current-sha256> [--lock-id <id>]
+unlock --revert <exact-file> --expect-current <reviewed-current-sha256> [--lock-id <id>]
+```
+
+Both commands authenticate the saved agent, read current live locks twice and
+require the same exact file scope with at least ten seconds of lease headroom.
+Ambiguous own locks require an explicit lock ID. Canonical absolute/case aliases,
+directories and supported peer globs are checked conservatively for overlap.
+Restore verifies a bearer-sealed manifest and captured bytes, rereads the target
+through a checked file handle, and retains its current bytes before writing.
+The final bytes must match the captured digest. `lock --restore` keeps ownership;
+`unlock --revert` releases only the recovered exact token after verified success,
+shrinking a multi-target lock rather than releasing sibling scopes.
+
+A refusal does not release the lock. A failed or interrupted write can be partial:
+keep ownership, inspect the retained backup and coordinate before any retry. A
+verified restore followed by an unlock failure is reported separately. No failed
+board mutation or recovery is automatically rerun. Missing, expired, foreign,
+tampered, replayed or removed baselines are not replaced with a Git baseline.
+
+Limits: 128 exact existing regular single-link file paths, 8 MiB per file and
+32 MiB per grant. Unsupported or missing targets remain explicitly unavailable;
+glob/directory locks do not recursively snapshot a tree. Newly created or deleted
+files are not recreated or deleted by recovery. Git internals and Agora runtime
+files, symlinks/junctions, hardlinks and outside-checkout paths are refused.
+Capture failures leave successful locks held and tell the caller not to repeat
+acquisition. Renewals and repeated captures never replace the first baseline.
+
+Use a fresh stable-entry invocation of the tested published client. Older complete
+releases remain usable for ordinary commands, but recovery flags are refused
+before delegation. Already-loaded older entry modules cannot gain that guard by
+changing the pointer; do not pass recovery flags to them. No daemon restart is
+needed. HMAC checks detect snapshot tampering under the token contract, not an OS
+security boundary against processes able to read this user's identity files.
+Never put snapshot bytes, identity tokens or temporary recovery proof in Git.
+
 - **Overlap rules** (see `globToRegExp`/`tokensOverlap` in `store.mjs`): repository-relative and
   equivalent absolute paths are canonicalised before comparison; exact path == path;
   a glob (`*`, `**`, `?`) matched against a path; two **equal** globs. `**` crosses `/`;
@@ -268,7 +335,7 @@ while you wait.
 
 | Method | Path | Auth | Body | Success | Errors |
 |---|---|---|---|---|---|
-| POST | `/reservations` | Bearer | `{ "paths"?: string[], "globs"?: string[], "reason"?: string }` | `201 { reservation }` | `400` if neither paths nor globs given; `401` |
+| POST | `/reservations` | Bearer | `{ "paths"?: string[], "globs"?: string[], "reason"?: string }` | `201 { reservation, reused, notifications: true }` | `400` if neither paths nor globs given; `401` |
 | GET | `/reservations` | none | — | `200 { reservations: [...] }` | — |
 | DELETE | `/reservations/:id` | Bearer | query `?force=1` optional | `200 { ok: true }` | `404` if not found; `403` if you are not the reserver; `409` if force targets an online reserver; `401` |
 
@@ -277,6 +344,24 @@ while you wait.
   waiting list after fulfilled/released reservations are removed.
 - Reservations are a visible waiting room, not edit permission. An agent may edit only after
   it successfully acquires a lock.
+- **Notification delivery (WF-G297).** Creating a reservation sends a token-free
+  direct `FILE QUEUE` message from `system` to each overlapping lock holder.
+  `/agents/heartbeat`, lock renew, unlock and shrink responses also include `waiters`:
+  reservation records with `handle`, current `position` and advisory `ready`.
+  Unlock/shrink lists waiters on the tokens actually released, not unrelated targets.
+  Only the live FIFO head receives an availability message, and only when every
+  target in its reserved domain is free of other owners' active locks. The message
+  and its `readyNotified` marker are journaled together as one `message.post` event;
+  replay does not resend it. A subsequent held interval resets the marker through
+  `reservation.notice`, allowing a later availability message. Expiry, retirement,
+  reaping, heartbeat-lease cleanup and head release use the same calculation.
+  These notifications do not alter FIFO, stale cleanup or edit permission.
+  Duplicate canonical reservations from one agent reuse the existing record,
+  position and reason. `notifications: true` advertises loaded daemon support;
+  absence means the queue exists but this delivery repair is not yet advertised.
+  The client reports that distinction instead of claiming a source repair is live.
+  `lock --queue` queues the one reported conflict after a 409, never its unconflicted
+  siblings; it still exits 1. It never retries an unknown mutation outcome.
 - Queue order is FIFO across overlapping path/glob tokens. If agent B tries to lock a file
   while agent A is first in the overlapping reservation queue, `POST /locks` returns
   `409 { conflict: { type: "reservation", path, reservation } }`.
@@ -403,6 +488,46 @@ A session is a day; a seat is a person. A campaign belongs to a SEAT, so it keep
 
 ### Task board
 
+#### Shared-file completion freshness (WF-G285)
+
+Task GET/list rows include the computed `referenceFreshness` view. It is derived
+from the whole live board before state, campaign, category or ready filtering.
+It does not change task state, claims, dependencies, readiness, bodies or counts.
+Completion history stores declared `refs` at the transition to `done`. Older
+events use refs reconstructed from later edit history; unavailable provenance
+stays unavailable. Source reopening does not erase a completion receipt.
+
+- `unverified`: an unfinished brief shares exact file refs with later completed work.
+- `review_recorded`: exact current receipts have authored `COUNT-REVIEW` notes.
+- `not_flagged`: no overlap found in this snapshot; this does not verify counts.
+- `unavailable`: missing/incomplete provenance or an exhausted bound; do not infer freshness.
+- `not_applicable`: the target is not in an unfinished state.
+
+`completions` contains `taskId`, `title`, `at` (timestamp in milliseconds),
+`historyIndex` and the full `sharedRefs` set. Accepted reviews add `reviewedAt`.
+Use `task edit <id> --reason 'COUNT-REVIEW: <JSON>'` without field changes to add
+an existing authenticated task-history note. JSON has exactly `taskId`,
+`sourceTask`, `completedAt`, `historyIndex`, `refs` and `proof`. Copy identity,
+time/index and every shared ref from the receipt; proof records the actual
+authorized read-only measurement and outcome. Review time cannot precede the
+completion. A new completion is a new receipt. Proof is never executed or
+certified by Agora. See [the worker self-check](./AGENT.md#recheck-shared-file-counts-before-work-wf-g285).
+
+Bounds: 5,000 tasks, 128 refs per row/event, 2,048 characters per ref, 10,000
+history entries per task, 200,000 aggregate metadata entries, 100,000 shared-file
+comparisons and 64 receipts per task. Reviews: 32 notes per task, 32,768 characters
+per note, 128 distinct refs and 12-8,192 characters of non-placeholder proof.
+Overflow never reports clean. Exact contained file refs normalize slash style,
+line/range suffixes and fragments; Windows identities are case-insensitive.
+No filesystem probing, basename matching, foreign-root aliases, semantic impact
+analysis or directory/glob expansion occurs. Sources needed by an unreviewed
+warning cannot be archived; uncertain evidence conservatively retains sources.
+Already-archived history remains outside the view. The immutable native CLI
+backfills an older daemon using GET-only full-board reads without a restart.
+`task lint` with board context reports warnings as findings, not an intake or
+claim veto. Pure lint without board context makes no overlap-freshness claim.
+
+
 | Method | Path | Auth | Body | Success | Errors |
 |---|---|---|---|---|---|
 | POST | `/tasks` | Bearer | `{ "title": string, "body"?: string, "deps"?: (taskId \| { id, type })[], "priority"?: number, "refs"?: string[], "deliverable"?: string, "campaignId"?, "standalone"?: boolean, "standaloneReason"?: string, "wave"? }` — **WF-G171: send `campaignId`, or send `standalone: true` with `standaloneReason`.** `campaignId` omitted: defaults to the ONE active campaign the caller owns, if exactly one (WF-G85), and that default is the decision. **WF-G293: in required intake mode, also supply a non-empty body or at least one non-empty ref.** | `201 { task }` (state `open`) | `400` if `title` missing/not a string, a dep id is unknown, a dep **type** is unknown, campaignId is unknown, the campaign decision is missing (WF-G171), both body and refs are empty (WF-G293), or `deliverable` is not a non-empty single-line path (WF-G179); `401` |
@@ -448,6 +573,249 @@ wrong order. See WF-G104.
   a synonym of `?campaignId=`, matching `claim-next`. An **unknown campaign id is a `400`, never a
   silent full-board response** — before WF-G88 the parameter was ignored, so a typo returned every
   task and looked like a successful filter.
+- **Action delivery ownership (WF-G237).** Packet `actionWiring` declares UI
+  routes (`stateType`, `reducer`, `uiType`, `metadata`, `handler`, `emitter`) or
+  payload routes (`stateType`, `reducer`, `builder`, `caller`). Each role names
+  an exact source, unique current quote and boolean `change`. Required changes
+  join existing partition ownership/handoff checks, never an implicit grant.
+  Read-only roles need a concrete unchanged-contract reason. Planned new sources
+  use explicit `newFile: true` and creation reason instead of an existing quote;
+  stale existence or external parents refuse. Core reducer/AppAction packets
+  must cover each owned core source with affected routes or a justified current
+  `actionWiringReview` containing unique source anchors. Changed routes and the
+  unchanged review are mutually exclusive. Existing routes inspect bounded
+  TypeScript syntax, not complete runtime control/data flow. Planned relations,
+  unsupported structures and sibling delivery cannot become integration proof.
+  Reference-only `ACTION-WIRING:` / `ACTION-WIRING-UNCHANGED:` records persist in
+  seeded task bodies and prompts; recorded task routes must match their plan.
+  Packet gates refuse before writes/launch, while task lint excludes quoted
+  metadata from implicit identifiers/files and is not the route verifier.
+  Limits:16 routes,8192 bytes total declarations,64 contained sources2MiB each,
+  unique quotes4-4096 bytes,32 field identifiers and200000 AST nodes per
+  traversal. The parent covers every affected action, meaningful read-only
+  assessment, blocking dependencies and actual integration proof. No automatic
+  English inference, locks, commands, game execution or ownership expansion.
+- **Changed union consumers (WF-G282).** Packet `unionChanges` records exact
+  source/symbol/current quote and ordered members, a real added/removed delta,
+  stable id, reason and explicit parent `otherUsesReview`. Only the actual source
+  owner declares a member delta, and wave unchanged reviews cannot contradict it.
+  `consumerEdits` can
+  add reviewed exact paths, never implicit ownership. Every owned existing
+  top-level finite string union needs a change or current `unionReviews` record
+  (per-symbol members or grouped symbols with exact decoded-source SHA-256).
+  The current source-symbol inventory includes ignored files and tests. Direct
+  exhaustive Record keys and complete literal typed vocabularies join existing
+  file ownership, actual sibling handoff, companion and declaration gates.
+  Sparse Records, value-position unions, subsets and other references are
+  separate review observations. Reference-only `UNION-CHANGE:` / `UNION-REVIEW:`
+  JSON survives briefs/prompts; task declarations must match their dispatch plan.
+  Missing, stale, conflicting, unsupported and incomplete observations refuse
+  before writes/launch. No implicit scope, lock, command or integration grant.
+  Inventory is bounded to 8192 sources, 128 MiB total, 16 MiB per inventory file,
+  32 million syntax visits, 16 alias links and 4096 observations. Packet records
+  are bounded to 16 / 8192 bytes; anchors retain ordinary 2 MiB source limits.
+  Concurrent rewrites refuse. This is source inspection without emit or app
+  diagnostics, not complete semantic/runtime proof. See the orchestrator's
+  [union contract](./ORCHESTRATOR.md#own-changed-union-consumers-wf-g282).
+- **Separate visual acceptance (WF-G266).** `orchestrate.mjs split-visual` creates
+  two ordinary campaign tasks, then appends reference-only `VISUAL-HANDOFF` and
+  `VISUAL-REVIEW` JSON. The review has a blocking dependency on the exact build
+  task, named reviewer UUID/handle, rendered acceptance, running loopback URL and
+  explicit tuning refs. Build-only acceptance stays separate. Strict split input:
+  `id`, `packetId`, `buildAcceptance`, `reviewer: {agentId, handle}`,
+  `visualProof: {url, acceptance}`, `tuningFiles`. The live scoped coordinator
+  uses an unassigned valid packet and current online named reviewer. Dry review
+  is read-only; explicit resume reuses exact tasks/links without replacing notes.
+  Partial/uncertain creation stops with a receipt, no automatic retry. Returned
+  assigned packet and both tracking IDs preserve pending review after build done;
+  partition and queued launch reread matching records and blocking order. This
+  adds no store schema/state/route, direct-HTTP completion guard or automatic
+  rendered certification. Review needs its own packet, allowed verification,
+  authorized locks and actual rendered proof. No implicit files/commands/restarts.
+  The split preserves every resolved `after` prerequisite on the build. Returned
+  `reviewPacket` fragments require matching `visualReview` metadata and route only
+  to the named existing identity/session; automatic new-worker dispatch is refused.
+  Watch/report distinguish blocked or missing visual acceptance from completion,
+  including durable review links omitted from older tracking maps.
+  Durable `buildPrerequisites` and `deliveryRefs` bind preserved ordering and
+  reviewer completion routing. Plan Map and gap reconciliation recognize build-only
+  receipts as progress, not delivery. Existing upgrade-only status semantics and
+  parent acceptance review remain unchanged; historical mistakes are not reset.
+- **Audit scope delivery (WF-G246).** The coordinator's `orchestrate.mjs scope-notice`
+  uses the existing campaign task sweep and atomic body append, not a new store
+  or daemon route. Its strict JSON fields are `id`, `fromTask`, `oldScope`,
+  `scope`, `observedAt`, and `audit: {file, quote}`. Stable IDs are at most 64
+  characters, scope text at most 4096 characters, real UTC observations within
+  24 hours (at most 60 seconds future clock tolerance). Existing source-citation
+  containment, UTF-8, size and unique-quote bounds apply. The exact source task
+  must belong to the campaign and reference the audit file. Matching unfinished
+  briefs receive `AUDIT SCOPE CORRECTION` with a current source citation and
+  text digest. Done matches are reported only; completion during delivery can
+  leave applied history and stops success broadcast with a partial-review receipt.
+  Original bodies, concurrent notes,
+  history, claimants, deps, refs and permissions remain intact. Dry review is
+  read-only; source drift, conflicting IDs and uncertain responses stop with
+  receipts and no automatic retry. Source/linkage checks around each append and
+  target rereads reduce races, not a transaction or semantic audit certification.
+  Parent scope reconciliation and worker self-check remain mandatory. No new
+  file/command grants, workers, task reopening or product acceptance result.
+- **Source-block preservation (WF-G307).** `SOURCE-REVIEW:` task-body JSON has
+  only `id`, exact relative `file`, distinct unique literal `start`/`end`,
+  `symbols`, `reason`, `sha256`, `observedAt`, and optional `supersedes`.
+  Ids are unique stable keys of at most 64 characters. `supersedes` must name
+  the latest prior id for the identical file/boundary pair, with a nondecreasing
+  observation timestamp; original receipts remain intact. UTC timestamps must
+  be real and nonfuture. At most 32 declarations of 8192 bytes, 512 bytes per
+  boundary, one to 64 distinct ASCII identifiers of at most 128 characters,
+  and 2048 bytes for the nonplaceholder preservation assessment. The source
+  reader limits contained regular UTF-8 text to 2 MiB and uniquely bounded
+  blocks to 64 KiB. SHA-256 covers decoded block text including the boundaries
+  and line endings. Lint and preflight reread current blocks; failures never
+  prove absence. Literal matches are not a semantic parser or complete inventory.
+  Exact-path line-range replacement directives require an anchored receipt;
+  other English instructions still need author review. Packet `sourceReviews`
+  persist in seeded briefs. The live coordinator's `orchestrate.mjs source-review`
+  command captures current digest/time and uses existing atomic task-body append;
+  it preserves sibling text, supports read-only dry review, rejects conflicting
+  ids and exposes uncertain outcomes without retry. It never reopens/closes
+  tasks, dispatches workers, grants files/commands or migrates the store.
+- **Exact-file symbol premises (WF-G272).** Task-body `SYMBOL-CHECK:` JSON has
+  only `file`, `symbol`, and `expect` (`present` or `absent`). `file` is an exact
+  slash-separated relative repository path, not a basename; `symbol` is one
+  ASCII identifier of at most 128 characters. `SYMBOL-CHECK-UNVERIFIED:` uses
+  only `file`, `symbol`, and a nonempty `reason` (at most 2048 bytes), remains
+  author-visible VERIFY data and blocks preflight. At most 64 declarations and
+  8192 bytes per JSON object; duplicate pairs and overflow remain unresolved.
+  Each source is a contained regular UTF-8 text file of at most 2 MiB. Reads or
+  decoding failures never establish absence. Matching is case-sensitive whole
+  literal identifiers; at most 16 matching lines are reported. Comments and
+  strings can match; this is not semantic proof or an inference of every English
+  claim. Authors must declare every named pair and workers inspect its meaning.
+  Lint is advisory and read-only; packet validation and claimed-task preflight
+  refuse unresolved declarations before dispatch. Packet `symbolChecks` arrays
+  and inline guidance checks persist into task briefs. No ownership grant,
+  command execution, game-source rewrite or store migration occurs.
+- **Quoted source members (WF-G283).** `SOURCE-MEMBERS:` task-body JSON accepts
+  only `file`, `symbol`, `kind`, `quote`, `members`. `file` is an exact relative
+  TypeScript path; `symbol` is one ASCII identifier of at most 128 characters.
+  `kind` is `string-union` (direct finite string literal values) or `enum`
+  (member names, never evaluated values). The complete unique current top-level
+  declaration must match `quote`; list equality is unordered and case-sensitive.
+  Extras, omissions, duplicates, wrong kinds, generic/referenced/nested unions,
+  merged declarations, syntax errors, stale/ambiguous quotes and missing or
+  unavailable source remain unresolved. Sources are contained regular UTF-8
+  files of at most 2 MiB; CRLF/LF are normalized for matching. At most 32 records,
+  32768 bytes per record, 8192 bytes per quote and 128 distinct literal member
+  strings of at most 1024 bytes without controls. `SOURCE-MEMBERS-UNVERIFIED:`
+  accepts only `file`, `symbol`, `reason` (nonempty, at most 2048 bytes) and
+  remains unresolved. Optional `REFERENCE-ONLY:` is accepted. Packet
+  `sourceMembers` arrays and inline guidance persist in briefs/prompts; packet
+  and claimed-task preflight refuse unresolved records. Native lint returns
+  failure but never mutates/refuses task intake or grants ownership. Obvious
+  inline prose lists warn; authors still own arbitrary-English claim coverage.
+  This uses the existing TypeScript parser without typecheck, emit, evaluation,
+  source edits, automatic evidence refresh or store migration. Matching members
+  are not behavioral acceptance or a substitute for WF-G282 consumer ownership.
+  Seed-map IDs participate in live preflight; queued launch rechecks the selected
+  task's current records. Missing/ambiguous tasks or unreadable data refuse.
+  Scope metadata is serialized once as reference-only, not title/edit prose.
+  Quoted member values do not authorize commands or create count/vendor demands.
+- **Documentation repairs (WF-G291).** Generated prompts and seeded briefs carry
+  a conditional whole-document audit policy. Historical line ranges are motivating
+  citations, not exhaustive acceptance. Check current repository paths and every
+  absence claim, reconcile contradictory sections and classify historical,
+  retired and planned references separately. Before changing `Verified:`, record
+  scoped evidence and unchecked scope; label partial verification by section.
+  Unresolved claims block the corresponding acceptance and verification-date
+  claim. This is ordinary task-body guidance, not a semantic validator, proof of
+  behavior, automatic command execution, store migration or ownership grant.
+- **Runtime limitation premises (WF-G264).** `RUNTIME-LIMITATION:` body JSON
+  requires `claim`, relative `file`, entry identifier `entry`, and `state`.
+  `unverified` requires only a concrete `reason`; the task/packet title must
+  begin Investigate, Probe, Verify, Audit or Test (optional packet-ID prefix),
+  with no active implementation recipe. `cited_failure` requires `receipt`,
+  `testFile`, exact `testName`, `sourceSha256`, `testSha256` and `observation`,
+  without `reason`. The receipt uses the existing complete Vitest baseline
+  format: current checkout, internally consistent report/hash/summary, within
+  two hours. Only the named failed assertion qualifies; passing/skipped cases
+  and suite/import failures do not. SHA256 covers UTF-8 source text returned by
+  the bounded citation reader, not an authentication signature. Entry presence
+  is literal, not a call-graph or semantic relevance check. Relative evidence
+  reads must physically stay inside the checkout, at most 2 MiB each.
+  Limits: 32 records, 16 KiB per JSON, 2,048 bytes per text field; no unknown
+  fields, duplicate claims or placeholders. Packets use `runtimeLimitations`
+  or inline records. Exact declarations persist once in durable briefs and
+  both prompt variants; current selected task records must match at partition
+  and queued launch. Source/receipt freshness is rechecked at each gate.
+  Native `task new` refuses recognized unsupported runtime assertions before
+  POST; existing tasks remain readable/editable and lint reports defects.
+  Detection is conservative, not complete natural-language understanding.
+  Direct HTTP callers are not gated by this client-only change. No command
+  from a record runs automatically; no ownership, authenticated or semantic
+  proof is inferred. Ordinary body metadata needs no daemon restart.
+- **Value comparison premises (WF-G276).** `VALUE-EQUIVALENCE:` body JSON has
+  only `claim`, `left`, `right`, `state`, `probe`, `evidence`, `observedAt` and
+  `reason`. Concrete claim and distinct sides are required. `reported_equal`
+  requires a named proving probe, comparison evidence and ISO UTC observation
+  within 24 hours (at most five minutes of future clock skew), with no reason.
+  `unverified` requires a reason, permits an optional proposed probe and forbids
+  equality evidence/timestamp. Limits: 32 records, 16 KiB per JSON, 2,048 bytes
+  per text field; no placeholders, controls, extra keys or duplicate claims.
+  Recognized unqualified active assertions require reconciliation even beside
+  good metadata; historical claims remain `SNAPSHOT:`. Packets accept arrays in
+  `valueEquivalence`; inline scope/guidance records also survive seeding and both
+  prompt variants without becoming title, ownership or command obligations.
+  Current task records must match packet records, including queued seeded IDs.
+  Unverified state permits investigation only; deletion needs current authorized
+  comparison proof and parent reconciliation. Reported equality is an author
+  receipt, not semantic certification, complete prose detection, source-change
+  tracking or executed verification. No probe runs automatically. Ordinary body
+  metadata needs no store migration or daemon restart.
+- **Deduplication acceptance (WF-G325).** Task bodies accept `DEDUP-GOAL:` and
+  `DEDUP-ACCEPTANCE:` JSON. Its only fields are `canonical`, `canonicalCount`,
+  `obsolete`, `obsoleteCount`, `consumers` and `verification`. Numeric counts must
+  be 1 and 0 respectively. Labels and verification must be nonempty bounded text;
+  consumers must be distinct. Limits are 16 declarations, 16 KiB per contract,
+  2,048 bytes per text field and 64 consumers. Packets may supply the same object
+  as `dedupAcceptance`. Lint and preflight refuse contradictions, including old
+  active unlabeled count criteria. Historical text may be preserved as `SNAPSHOT:`
+  after owner reconciliation. This is bounded intent validation, not semantic
+  equivalence, executed verification or an ownership grant. No store migration is
+  required; contracts remain ordinary task-body metadata.
+- **Title ownership (WF-G256).** Packet preflight includes exact title paths alongside
+  refs and body. `TITLE-TARGET:` body JSON has only `label`, `file`, `quote`: an exact
+  current title excerpt, relative source file and unique current source quote. Up to
+  64 declarations, 8192 bytes each, 256-byte labels and 2048-byte quotes are checked
+  through the bounded citation reader. Invalid, missing, ambiguous or escaped source
+  evidence blocks partition/seed/dispatch. Declared targets need packet ownership or
+  validated named sibling handoffs, not implicit permission. Bare title filenames
+  must be qualified or explicitly mapped with matching label and basename. Quote
+  text is not task instructions. This is body metadata, not a task-schema migration;
+  plain-English completeness and runtime acceptance remain author/owner review.
+- **Known-red test baselines (WF-G284).** CLI `task new --test-baseline <receipt.json>`
+  requires a separate work body and appends fresh Vitest evidence before its
+  single task mutation. Capture/compare use `tools/agora/testBaseline.mjs`.
+  Reports/receipts are bounded to2MiB, must name the same checkout, have consistent
+  totals/distinct identities, and be at most two hours old. Body evidence over
+  256KiB refuses creation rather than truncating diagnostics. Invalid/stale
+  evidence creates no task. The helper ships in the complete immutable client
+  graph. This optional flag changes no task schema or direct-API compatibility.
+  The body records a command claim, timestamps, hash, failing files/identities
+  and diagnostics. Comparison keeps inherited failures visible, rejects scope
+  mismatch, and flags changed/new failures and missing/skipped coverage. It exits
+  nonzero unless acceptance is fully green. Neither tool executes tests or changes
+  task records. Receipts report evidence, not cryptographic execution attestation.
+- **Task history previews (WF-G352).** CLI `task show` lists named edit fields,
+  stored previous values, and any structured edit-time `to` values. Existing
+  edit entries usually store `fields` and `from`, not new values. Missing facts
+  display as `not recorded`; a separately labeled current snapshot is never
+  presented as that historical edit's result. Legacy state/campaign transitions
+  keep their scalar display. History previews the last five entries, at most
+  eight edited fields and 160 characters per value/reason (48 per field name,
+  80 per actor), with explicit truncation and escaped terminal controls.
+  These are display limits only: GET task records and the client's structured
+  `task` return retain all history/values exactly. No migration, reopening or
+  mutation is needed to read older history.
 - `state` ∈ `open | claimed | in_progress | blocked | done`.
 - **`creatorAgent` is mandatory on new tasks.** It is a token-free snapshot of the registered
   creator `{ id, handle, note, model, sessionId }`, stamped when the task is created so the
@@ -658,31 +1026,75 @@ results and gap rows quote task ids. After the move, `task show` and
 
 ### Dormant orchestrator wake bridge
 
-`watchdog.mjs` turns durable command-feed messages into one bounded orchestrator turn. A target
-must first be registered in the machine-local `.agent/agora/watchdog-targets.json` through
-`watchdog.mjs register-target`; technical thread UUIDs never belong in tracked `agents.json`.
+**Status: native Codex app wake qualified on 2026-10-24.** Two consecutive peer-requested
+turns completed through the existing app owner without human input, another executor, or
+duplicate launches. Codex and Claude independently passed all 40 strict native receipt
+checks. The watchdog has 30 focused checks; the unchanged verifier has 20. The durable
+receipt excerpt is in [the system review](../../docs/architecture/agora-system-review.md#native-two-resume-qualification-passed).
+This qualifies the measured same-thread path. A permanent adaptive polling schedule is
+still open as task agora-437d.11; human messages arriving during an in-flight delivery
+remain a separate review in WF-G361.
 
-For `codex-session-turn-once`, delivery has two separate stages:
+The `codex-app-queue` adapter serves a chat owned by the running Codex app. Register its exact thread UUID
+in the machine-local `.agent/agora/watchdog-targets.json` with `watchdog.mjs register-target`.
+Technical thread UUIDs and process bindings never belong in tracked `agents.json`.
 
-1. The watchdog selects the Codex executable matching the saved session's `cli_version`, pins
-   the model from its last successful turn, and runs `codex exec resume` once.
-2. After exit code 0, the watchdog asks the operating system to open the documented
-   `codex://threads/<thread-uuid>` route. This launches or focuses the desktop app on the same
-   saved task. A surface failure is audited but does not erase the successfully delivered turn.
+The adapter resolves the queue client from the running desktop app owner's executable. No
+owner, or an ambiguous owner, means wake unavailable. It runs the supported
+`codex queue --thread <thread-uuid> --message <prompt>` client once. The existing app owner
+consumes that input and runs the turn. The client does not execute `codex exec resume`.
 
-The deep link is navigation, not execution. Opening it manually is safe when the task is idle:
+A queue client exiting with code 0 proves only that input was stored. The watchdog records a
+`queued` audit and retains the in-flight request. It uses the peer sequence markers in the
+actual input and the transcript's `task_started.payload.turn_attribution.turn_trigger` value
+`queue` to identify the matching app turn. A correlated `CALLSIGN AWAKE` acknowledges delivery;
+the real `task_complete` produces `app-turn-completed` and re-arms dormancy. Queue-client exit
+does not re-arm it. The model does not need to post another `DORMANT` after each measured turn.
+
+An unresolved enqueue is held for review rather than automatically sent again when an ordinary
+pending timeout expires. A composer turn or unrelated queued input does not prove delivery.
+Keep enqueue, acknowledgment and completed-turn evidence separate.
+
+`codex-session-turn-once` and `codex-cli-resume` are separate CLI executor paths. They are not a
+native wake path for an app-owned thread. The desktop test on October 22 failed with an active
+writer conflict; an idle transcript did not release the app's ownership. Preserve these paths
+for suitable CLI sessions, and use the queue adapter for the existing app owner.
+
+The documented `codex://threads/<thread-uuid>` route focuses a saved chat; it does not send
+input. `/app` hands an active interactive CLI session to the app. Neither action is native wake
+delivery proof.
+
+
+**Run the service (WF-G358).** Start one bounded service that watches only the target under test:
 
 ```powershell
-Start-Process 'codex://threads/<thread-uuid>'
+node tools/agora/watchdog.mjs run --handles <agora-handle> --for <minutes>
 ```
 
-`/app` is different: it is typed inside an active Codex TUI and hands that current session to the
-desktop app. It is useful for a human handoff but cannot service an unattended Agora wake. Never
-start a desktop turn while the one-shot CLI child is still active on the same thread.
+- `--handles <comma,list>` selects targets by handle. An unknown handle exits with an error before
+  any state write. Other registered targets, and their cursors and pending wakes, stay untouched.
+- `--for <minutes>` bounds the service lifetime. A child that already started may finish.
+- Only one live service runs at a time. `run` holds `.agent/agora/watchdog-service.lock` (override
+  with `--service-lock <path>`), which records its pid and a unique token. A second service refuses
+  while the holder lives. A lock with an unreadable record or no valid pid also refuses. A lock
+  whose process is gone is never replaced automatically: confirm that no other watchdog runs, then
+  rerun with `--reclaim-stale <token>`, using the token from the refusal. The lock is released only
+  by its own pid and token. `--dry-run` takes no lock and launches nothing.
+- Adapters with `requiresIdleTranscript: true` launch only after the saved transcript becomes
+  idle. An active turn or unreadable lifecycle keeps the wake pending and launches nothing.
+- Each native launch records `sessionId`, `launchId`, the previous completed turn, and the
+  existing owner's PID, app PID and executable. The enqueue and app completion audits retain
+  that binding. An unrelated or changed owner cannot qualify the original wake. Completion
+  records read the clock after observing the saved completion and rechecking the owner;
+  a polling-pass start time can predate a completion discovered later in that pass (WF-G360).
+- CLI one-shot adapters whose `stop` capability is `child-process-exits-after-one-turn` retain
+  their own child-exit re-arm behavior. It must not be applied to the queue client.
 
-Wake proof is durable and visible: the delivery cursor advances only after `CALLSIGN AWAKE` or a
-clean child exit, and the follow-up `WAKE-AUDIT` includes `surface=desktop-thread-opened`,
-`desktop-surface-error`, or `desktop-surface-unavailable` when a completion action was requested.
+Use `wakeQualification.mjs --proof <ignored-handoff.json>` for qualification. Native proof
+selects `deliveryMode: "native-queue"` and binds the original owner. It requires two distinct
+peer requests, exact nonces and target ACKs, two completed queue-triggered app turns, matching
+enqueue and app completion audits, and no human or duplicate turn inside the measured window.
+The initial mechanism probe is separate from that two-round adapter qualification.
 
 ### Visual-proof server freshness and recovery
 

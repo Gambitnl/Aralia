@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
- *
- * Last Sync: 18/07/2026, 18:54:58
- * Dependents: components/Worldforge/AgentSimPreview.tsx, components/Worldforge/TownAgentSnapshotView.tsx, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/roster/townSnapshot.ts
- * Imports: 1 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file agentPath.ts
  * @description Builds believable walking routes between town buildings.
@@ -30,6 +14,22 @@
  * The calculations are pure and order-stable. The same plan and endpoints
  * therefore produce the same route, including when two routes have equal cost.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 29/10/2026, 01:49:01
+ * Dependents: components/Worldforge/AgentSimPreview.tsx, components/Worldforge/TownAgentSnapshotView.tsx, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/residentDoorRoutes.ts, systems/worldforge/roster/townSnapshot.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import type { TownPlan } from '../artifacts';
 
@@ -185,8 +185,12 @@ function compactPath(points: Point[]): Point[] {
 // derived against the completed network so every door uses the same street facts.
 // ============================================================================
 
-/** Build an undirected street graph and one street-facing entrance per plot. */
-export function buildStreetGraph(plan: TownPlan): StreetGraph {
+/** Build the existing street network. Ground callers may supply fitted door
+ * centers; ordinary plan/preview callers retain their wall-midpoint entrances. */
+export function buildStreetGraph(
+  plan: TownPlan,
+  physicalDoors?: ReadonlyMap<number, Point>,
+): StreetGraph {
   const nodes: Point[] = [];
   const adj: StreetGraph['adj'] = [];
   const segments: StreetSegment[] = [];
@@ -243,7 +247,14 @@ export function buildStreetGraph(plan: TownPlan): StreetGraph {
 
     let bestDoor: Point | undefined;
     let bestStreet: GraphProjection | undefined;
-    for (let cornerIndex = 0; cornerIndex < plot.footprint.length; cornerIndex++) {
+    const fitted = physicalDoors?.get(plot.id);
+    if (fitted && fitted.every(Number.isFinite)) {
+      bestDoor = [...fitted];
+      bestStreet = nearestStreetProjection(graph, bestDoor);
+    }
+    // A missing/invalid fitted door is unknown, not permission to invent one.
+    // Keep the established plan-only behavior for those legacy plots.
+    for (let cornerIndex = 0; !fitted?.every(Number.isFinite) && cornerIndex < plot.footprint.length; cornerIndex++) {
       const start = plot.footprint[cornerIndex];
       const end = plot.footprint[(cornerIndex + 1) % plot.footprint.length];
       const door: Point = [(start[0] + end[0]) / 2, (start[1] + end[1]) / 2];

@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 27/03/2026, 23:48:00
- * Dependents: App.tsx
- * Imports: 6 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file MainMenu.tsx
  * This component renders the main menu screen for the Aralia RPG.
@@ -32,6 +16,23 @@
  * the existing destructive-action safeguards without making cramped players hunt
  * for Confirm and Cancel below the fold.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 10:33:23
+ * Dependents: components/screens/MainMenuScreen.tsx
+ * Imports: 8 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { LoadGameModal, SaveSlotSelector } from '../SaveLoad';
 import { deleteSaveGame, getSaveSlots, SaveSlotSummary } from '../../services/saveLoadService';
@@ -58,7 +59,7 @@ interface MainMenuProps {
   onAbandonRun?: () => void;
   // Callback to trigger the developer menu from the main menu phase
   onOpenDevMenu?: () => void;
-  onSaveGame?: (slotId: string, displayName?: string, isAutoSave?: boolean) => void;
+  onSaveGame?: (slotId: string, displayName?: string, isAutoSave?: boolean) => void | Promise<void>;
   onGoBack?: () => void; // New prop for back navigation
   canGoBack?: boolean; // Whether there's a previous screen to go back to
   onOpenWorldGeneration?: () => void;
@@ -160,10 +161,11 @@ const MainMenu: React.FC<MainMenuProps> = ({
   const pendingConfirmRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    // Load slot metadata up front so the menu can render previews and continue targets.
+    // Storage availability resolves after the first title render. Re-read when
+    // the parent learns about a save, so Continue targets its actual slot.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSaveSlots(getSaveSlots());
-  }, []);
+  }, [hasSaveGame, latestSaveTimestamp]);
 
   useEffect(() => {
     if (!pendingConfirm || !pendingConfirmRef.current) return;
@@ -232,7 +234,9 @@ const MainMenu: React.FC<MainMenuProps> = ({
       console.warn('Save requested but onSaveGame handler was not provided.');
       return;
     }
-    onSaveGame(slotId, displayName || slotId, isAutoSave);
+    const saved = onSaveGame(slotId, displayName || slotId, isAutoSave);
+    // Refresh after storage commits, so the newly written Chronicle is shown.
+    if (saved) return saved.then(refreshSlots);
     refreshSlots();
   };
 

@@ -46,6 +46,9 @@ const mockRegion: RegionArtifact = {
         [4500, 5500],
       ],
       widthFt: 100,
+      // One water (2026-10-30): the river's width and fall at each point.
+      widthFtAt: [100, 100],
+      slopeAt: [0.001, 0.001],
     },
   ],
   roads: [],

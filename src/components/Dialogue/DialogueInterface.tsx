@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 10/08/2026, 13:30:38
+ * Last Sync: 29/10/2026, 01:18:45
  * Dependents: components/layout/GameModals.tsx
- * Imports: 6 files
+ * Imports: 13 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,9 +14,9 @@
  */
 // @dependencies-end
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { DialogueSession, ConversationTopic } from '../../types/dialogue';
-import type { GameState, NPC, PlayerCharacter } from '../../types';
+import type { GameState, NPC, PlayerCharacter, RichNPC } from '../../types';
 import {
     getAvailableTopics,
     processTopicSelection,
@@ -36,6 +36,10 @@ import type {
 import { WindowFrame } from '../ui/WindowFrame';
 import { DialogueConversationView } from './DialogueConversationView';
 import { WINDOW_KEYS } from '../../styles/uiIds';
+import { getCharacterSkillModifier } from '../../utils/character/skillModifierUtils';
+import { canOfferPartyInvitation } from '../../systems/party/recruitConsent';
+import { householdNpcDescription } from '../../systems/worldforge/townsim/householdNpc';
+import { getGameDay } from '../../utils/core';
 
 /**
  * This file controls the conversation window players use when talking to an NPC.
@@ -64,10 +68,11 @@ interface DialogueInterfaceProps {
     onClose: () => void;
     onUpdateSession: (newSession: DialogueSession) => void;
     onTopicOutcome?: (result: ProcessTopicResult, topicId: string) => void;
-    onGenerateResponse: (prompt: string) => Promise<string>;
+    onGenerateResponse: (prompt: string, signal?: AbortSignal) => Promise<string>;
     /**
      * Invokes the "Invite to party" flow for this NPC. The downstream consent
-     * gate explains ineligible cases instead of hiding the action in advance.
+     * gate still resolves trust and consent. Ordinary household residents need an
+     * established companion opportunity before an invitation is offered.
      */
     onInvite?: (npcId: string) => void;
     /**
@@ -100,6 +105,15 @@ interface DialogueInterfaceProps {
 // Game decisions remain here rather than in the shared view. That separation
 // lets the Design Preview use identical presentation without mutating a save.
 // ============================================================================
+// Normal direct Talk snapshots familiarity before writing the meeting fact.
+// Its opening is a brief narration, never an invented model response. Callers
+// with an authored/generated opening retain their existing same-speaker line.
+const getOpeningResponse = (gameState: GameState, npc: NPC, session: DialogueSession | null): string => {
+    if (session?.contactStatus === 'returning') return `${npc.name} recognizes you from your earlier conversation.`;
+    if (session?.contactStatus === 'first-meeting') return `${npc.name} turns to speak with you.`;
+    return (gameState.lastInteractedNpcId === npc.id && gameState.lastNpcResponse) || `"${npc.name} greets you."`;
+};
+
 export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
     isOpen,
     session,
@@ -116,13 +130,71 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
     graphContext,
     onGraphEffects,
 }) => {
-    // Seed the visible reply from the most recent game response. Fresh sessions
-    // still receive a readable greeting before an AI reply has been generated.
+    // Start direct Talk with its own greeting; old answers remain in history.
+    // Authored/generated openings retain the existing same-speaker response.
     const [currentResponse, setCurrentResponse] = useState<string | null>(
-        gameState.lastNpcResponse || `"${npc.name} greets you."`,
+        getOpeningResponse(gameState, npc, session),
     );
     const [isThinking, setIsThinking] = useState(false);
     const [lastTopicResult, setLastTopicResult] = useState<ProcessTopicResult | null>(null);
+    const [replyError, setReplyError] = useState<string | null>(null);
+    const [speechDraft, setSpeechDraft] = useState('');
+    // Retry remembers only the requested speech. Free speech never replays a
+    // paid/rolled topic and cannot award the effects of an authored choice.
+    const [lastReplyRequest, setLastReplyRequest] = useState<{prompt:string; kind:'topic'|'speech'} | null>(null);
+    const replySerial = useRef(0);
+    const replyRequest = useRef<{ id: number; controller: AbortController } | null>(null);
+    const invalidateReply = useCallback(() => {
+        replyRequest.current?.controller.abort();
+        replyRequest.current = null;
+        replySerial.current++;
+    }, []);
+
+    useEffect(() => {
+        invalidateReply();
+        setIsThinking(false);
+        setReplyError(null);
+        setLastTopicResult(null);
+        setSpeechDraft('');
+        setLastReplyRequest(null);
+        setCurrentResponse(getOpeningResponse(gameState, npc, session));
+        return invalidateReply;
+        // Topic/clock updates keep the current reply. A new speaker or reopened
+        // window starts a fresh lifetime and cannot inherit another NPC's line.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen, session?.npcId, invalidateReply]);
+
+    const endConversation = () => {
+        invalidateReply();
+        setIsThinking(false);
+        onClose();
+    };
+
+    const requestReply = async (prompt: string, kind:'topic'|'speech' = 'topic'): Promise<boolean> => {
+        if (replyRequest.current) return false;
+        const controller = new AbortController(), id = ++replySerial.current;
+        replyRequest.current = { id, controller };
+        setReplyError(null);
+        setIsThinking(true);
+        setLastReplyRequest({prompt,kind});
+        try {
+            const response = await onGenerateResponse(prompt, controller.signal);
+            if (replyRequest.current?.id !== id || controller.signal.aborted) return false;
+            if (!response.trim()) throw new Error('Empty reply');
+            setCurrentResponse(response);
+            if (kind==='speech') setSpeechDraft(current => current.trim()===prompt ? '' : current);
+            return true;
+        } catch {
+            if (replyRequest.current?.id !== id || controller.signal.aborted) return false;
+            setReplyError(kind==='speech' ? 'The reply failed. Your words are kept; you can retry or ask something else.' : 'The reply failed. Your choice and its effects are kept.');
+            return false;
+        } finally {
+            if (replyRequest.current?.id === id) {
+                replyRequest.current = null;
+                setIsThinking(false);
+            }
+        }
+    };
 
     // ------------------------------------------------------------------
     // Scripted graph mode (DIAL-001)
@@ -234,25 +306,18 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
     // Selecting a topic resolves its mechanics first, updates durable session
     // state and outcomes, then asks the AI for the NPC's visible response.
     const handleTopicSelect = async (topic: ConversationTopic) => {
-        if (!session) return;
+        if (!session || replyRequest.current) return;
 
+        setReplyError(null);
         setIsThinking(true);
+        setLastReplyRequest(null);
 
-        // Skill topics use the player's final ability score and add proficiency
-        // only when the character is trained in the governing skill.
+        // Skill topics use the player's full skill check modifier (including proficiency,
+        // expertise, and Jack of All Trades).
         let skillMod = 0;
         if (topic.skillCheck) {
             const checkSkill = topic.skillCheck.skill;
-            const abilityScore =
-                playerCharacter.finalAbilityScores?.[checkSkill.ability]
-                ?? playerCharacter.abilityScores?.[checkSkill.ability]
-                ?? 10;
-            const isProficient = playerCharacter.skills?.some(
-                (skill) => skill.id === checkSkill.id || skill.name === checkSkill.name,
-            ) ?? false;
-
-            skillMod = Math.floor((abilityScore - 10) / 2)
-                + (isProficient ? (playerCharacter.proficiencyBonus || 2) : 0);
+            skillMod = getCharacterSkillModifier(playerCharacter, checkSkill.id || checkSkill.name, checkSkill.ability);
         }
 
         // Dialogue service owns costs, checks, unlocks, and the prompt used for
@@ -267,7 +332,11 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
         // discussedTopicIds append, no outcome, no AI call.
         let result: ProcessTopicResult;
         try {
-            result = processTopicSelection(topic.id, gameState, session, skillMod, npc);
+            // The service may mark its input discussed. Give it a copy so the
+            // controller records one choice without mutating React state twice.
+            result = processTopicSelection(topic.id, gameState, {
+                ...session, discussedTopicIds: [...session.discussedTopicIds],
+            }, skillMod, npc);
         } catch (error: unknown) {
             const reason = error instanceof Error ? error.message : String(error);
             setLastTopicResult(null);
@@ -275,14 +344,41 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
             setIsThinking(false);
             return;
         }
-        setLastTopicResult(result);
-
         // Mark the topic discussed immediately so repeated clicks cannot race a
         // later persistence update from the parent reducer.
         const newSession: DialogueSession = {
             ...session,
             discussedTopicIds: [...session.discussedTopicIds, topic.id],
         };
+        if (result.openMerchant) {
+            setLastTopicResult(null);
+            try {
+                if (!onTopicOutcome) throw new Error('Trading is unavailable in this view.');
+                onTopicOutcome(result, topic.id);
+                onUpdateSession(newSession);
+                endConversation();
+            } catch (error) {
+                const reason = error instanceof Error ? error.message : String(error);
+                setReplyError(`The shop could not be opened. ${reason}`);
+                setIsThinking(false);
+            }
+            return; // Real stock is opened by the action, never an AI reply.
+        }
+        if (result.directReply) {
+            try {
+                if (!onTopicOutcome) throw new Error('Personal answers are unavailable in this view.');
+                onTopicOutcome(result, topic.id);
+                onUpdateSession(newSession);
+                setCurrentResponse(result.directReply.text);
+                setLastTopicResult(null);
+            } catch (error) {
+                const reason = error instanceof Error ? error.message : String(error);
+                setReplyError(reason);
+            }
+            setIsThinking(false);
+            return; // This selected factual answer never needs a model or a retry.
+        }
+        setLastTopicResult(result);
         onUpdateSession(newSession);
 
         // The parent persists disposition, unlocks, costs, and other outcomes.
@@ -293,9 +389,7 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
 
         // Replace the pending state with the generated reply after every prior
         // mechanical side effect has been recorded.
-        const response = await onGenerateResponse(result.responsePrompt);
-        setCurrentResponse(response);
-        setIsThinking(false);
+        await requestReply(result.responsePrompt);
     };
 
     // A closed or incomplete session should not mount a modal shell or reserve
@@ -315,7 +409,7 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
     return (
         <WindowFrame
             title={npc.name}
-            onClose={onClose}
+            onClose={endConversation}
             storageKey={WINDOW_KEYS.DIALOGUE}
             initialMaximized={false}
             headerActions={
@@ -327,7 +421,9 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
             {/* Production and Design Preview now share this complete visible
                 body. Only this controller can execute game and AI effects. */}
             <DialogueConversationView
-                npcDescription={npc.baseDescription}
+                npcDescription={!isGraphMode && gameState.gameTime instanceof Date && Number.isFinite(gameState.gameTime.getTime())
+                    ? householdNpcDescription(npc as RichNPC,gameState.townSim,getGameDay(gameState.gameTime)) ?? npc.baseDescription
+                    : npc.baseDescription}
                 currentResponse={isGraphMode ? graphResponse : currentResponse}
                 isThinking={isGraphMode ? false : isThinking}
                 topicResult={isGraphMode ? null : lastTopicResult}
@@ -337,8 +433,20 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
                         ? handleGraphChoice
                         : (topic) => void handleTopicSelect(topic)
                 }
-                onInvite={onInvite ? () => onInvite(npc.id) : undefined}
-                onEndConversation={onClose}
+                onInvite={onInvite && canOfferPartyInvitation(npc, gameState) ? () => onInvite(npc.id) : undefined}
+                replyError={isGraphMode ? null : replyError}
+                speechDraft={speechDraft}
+                onSpeechDraftChange={setSpeechDraft}
+                onSpeak={!isGraphMode ? () => {
+                    const words=speechDraft.trim();
+                    if (!words || words.length>1200 || replyRequest.current || !session) return;
+                    setLastTopicResult(null);
+                    // Same generation callback publishes the actual heard words
+                    // with the sanitized player question into existing memory.
+                    void requestReply(words,'speech');
+                } : undefined}
+                onRetryResponse={!isGraphMode && lastReplyRequest ? () => void requestReply(lastReplyRequest.prompt,lastReplyRequest.kind) : undefined}
+                onEndConversation={endConversation}
             />
         </WindowFrame>
     );

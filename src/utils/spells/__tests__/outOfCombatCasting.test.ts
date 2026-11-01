@@ -4,6 +4,8 @@
  */
 import { describe, it, expect } from 'vitest';
 import type { PlayerCharacter, Spell } from '../../../types';
+import longstriderData from '../../../../public/data/spells/level-1/longstrider.json';
+import shieldData from '../../../../public/data/spells/level-1/shield.json';
 import {
     applyPostCastToCharacter,
     buildOutOfCombatStatusEffect,
@@ -184,6 +186,15 @@ const makeCharacter = (overrides: Partial<PlayerCharacter> = {}): PlayerCharacte
 // ---------------------------------------------------------------------------
 
 describe('isSpellCastableOutOfCombat', () => {
+    it.each(['authored reaction', 'combat reaction metadata'] as const)('requires an actual trigger for %s despite benign defensive effects', variant => {
+        const spell = variant === 'authored reaction' ? shieldData as Spell :
+            {...shieldData, castingTime:{value:1, unit:'action', combatCost:{type:'reaction'}}} as Spell;
+        expect(isSpellCastableOutOfCombat(spell)).toBe(false);
+        expect(getOutOfCombatCastability(makeCharacter(),spell)).toEqual({
+            allowed:false,castLevel:null,reason:'Reaction spell — use it when its trigger occurs.',
+        });
+    });
+
     it('allows healing spells (Cure Wounds)', () => {
         expect(isSpellCastableOutOfCombat(cureWounds)).toBe(true);
     });
@@ -385,5 +396,23 @@ describe('applyPostCastToCharacter', () => {
         expect(updated.spellSlots?.level_1).toEqual({ current: 2, max: 3 });
         expect(updated.statusEffects).toHaveLength(1);
         expect(updated.statusEffects[0].source).toBe('Guidance');
+    });
+});
+
+
+describe('Longstrider preparation from the actual spell record', () => {
+    it('keeps the authored utility record and gives the paid cast a real speed rider and fixed hour', () => {
+        const spell=longstriderData as unknown as Spell;
+        const time=new Date('0351-01-01T09:04:10Z');
+        const before=structuredClone(spell);
+        const effect=buildOutOfCombatStatusEffect(spell,'eldrin',time);
+        expect(effect).toMatchObject({effect:{type:'stat_modifier',stat:'speed',value:10},duration:600,
+            worldTime:{appliedAtMs:time.getTime(),expiresAtMs:time.getTime()+3600000}});
+        expect(spell).toEqual(before);
+    });
+
+    it('does not turn an until-dispelled effect into a guessed timed expiry', () => {
+        const spell=makeSpell({id:'permanent-ward',effects:[{type:'UTILITY',condition:{type:'always'}}],duration:{type:'until_dispelled'}});
+        expect(buildOutOfCombatStatusEffect(spell,'eldrin',new Date('0351-01-01T09:04:10Z'))?.worldTime).toBeUndefined();
     });
 });

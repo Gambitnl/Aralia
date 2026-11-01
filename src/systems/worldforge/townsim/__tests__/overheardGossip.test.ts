@@ -119,4 +119,9 @@ describe('frameOverheardGossip', () => {
     const framings = new Set([0, 1, 2, 3, 4].map((id) => frameOverheardGossip(item(id))));
     expect(framings.size).toBeGreaterThan(1);
   });
+
+  it.each([0, 1, 2, 3, 4])('dates voice %s while preserving the existing undated API', (id) => {
+    expect(frameOverheardGossip(item(id), '56 days ago')).toContain('(56 days ago): "Ada was born."');
+    expect(frameOverheardGossip(item(id))).not.toContain('days ago');
+  });
 });

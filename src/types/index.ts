@@ -8,6 +8,10 @@
  * 2026-02-27 09:24:00: [Preservationist] Added '@ts-ignore' to relative 
  * imports to suppress script-specific resolution warnings while 
  * maintaining main application health.
+ * 2026-10-24: [C8, agora-9ed9.8] Removed all 39 '@ts-ignore' lines (the review counted 40; one match was this log's own text). They
+ * hid every type error on these re-exports. The warning they silenced came
+ * from tsconfig.scripts.json (NodeNext resolution wants explicit extensions
+ * on relative imports); the app config (bundler resolution) never needed them.
   */
 
 // @dependencies-start
@@ -26,86 +30,47 @@
  */
 // @dependencies-end
 
- // @ts-ignore
  import type { CombatCharacter, CharacterStats, Position, CombatState } from './combat';
  
- // @ts-ignore
  export * from './world';
- // @ts-ignore
  export * from './actions';
- // @ts-ignore
  export * from './state';
- // @ts-ignore
  export * from './ui';
- // @ts-ignore
  export * from './core';
- // @ts-ignore
  export * from './items';
- // @ts-ignore
  export * from './character';
- // @ts-ignore
  export * from './spells';
- // @ts-ignore
  export * from './conditions';
- // @ts-ignore
  export * from './creatures';
- // @ts-ignore
  export * from './religion';
- // @ts-ignore
  export * from './factions';
- // @ts-ignore
  export * from './companions';
- // @ts-ignore
  export * from './memory';
- // @ts-ignore
  export * from './planes';
- // @ts-ignore
  export * from './crime';
- // @ts-ignore
  export * from './dialogue';
- // @ts-ignore
  export * from './underdark';
- // @ts-ignore
  export * from './history';
- // @ts-ignore
  export * from './economy'; // Export new economy types
- // @ts-ignore
  export * from './languages'; // New taxonomy export
- // @ts-ignore
  export * from './effects'; // Export universal effect types
- // @ts-ignore
  export * from './rituals';
- // @ts-ignore
  export * from './village';
- // @ts-ignore
  export * from './elemental';
- // @ts-ignore
  export * from './stronghold';
- // @ts-ignore
  export * from './loot'; // Export LootTable types
- // @ts-ignore
  export * from './identity'; // Export Identity/Secret types
- // @ts-ignore
  export * from './quests'; // Export new robust Quest types
- // @ts-ignore
  export * from './prophecy'; // Export Prophecy types
- // @ts-ignore
  export * from './naval'; // Export Naval types
- // @ts-ignore
  export * from './navalCombat'; // Export Naval Combat types
- // @ts-ignore
  export * from './crafting'; // Export Crafting system types
- // @ts-ignore
  export * from './conversation'; // Export Interactive Conversation types
- // @ts-ignore
  export * from './environment'; // Export WeatherState and related environment types
- // @ts-ignore
  export * from './dungeon';
-// @ts-ignore
  export * from './journal'; // Export Journal system types
  
  export type { CombatCharacter, CharacterStats, Position, CombatState };
- // @ts-ignore
  export type { AppAction } from '../state/actionTypes';
  
 export * from './materials';

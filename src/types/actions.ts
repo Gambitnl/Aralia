@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 17/08/2026, 16:22:38
- * Dependents: components/Combat/BattlefieldSourceGap.tsx, hooks/actions/actionHandlers.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleResourceActions.ts, systems/combat/fightInPlace/activeGroundCombatSession.ts, systems/combat/fightInPlace/authoredTownWatchSourceGap.ts, systems/combat/unsupportedBattlefieldSources.ts, types/index.ts
- * Imports: None
+ * Last Sync: 28/10/2026, 13:17:07
+ * Dependents: components/Combat/BattlefieldSourceGap.tsx, hooks/actions/actionHandlers.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleResourceActions.ts, systems/combat/fightInPlace/activeGroundCombatSession.ts, systems/combat/fightInPlace/authoredTownWatchSourceGap.ts, systems/combat/unsupportedBattlefieldSources.ts, systems/travel/partyMeal.ts, systems/worldforge/dungeon/world/dungeonCombat.ts, types/index.ts
+ * Imports: 1 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -15,6 +15,7 @@
 // @dependencies-end
 
 import { EquipmentSlotType, Item } from './items.js';
+import type { LodgingOffer } from './rest';
 import { Monster, Location, VillageActionContext, DiscoveryResidue, GoalStatus, GossipUpdatePayload } from './world.js';
 import { Quest } from './quests.js';
 import { TempPartyMember, PlayerCharacter, HitPointDiceSpendMap, LevelUpChoices } from './character.js';
@@ -51,7 +52,10 @@ export interface CastSpellPayload {
    * The CAST_SPELL handler then applies the spell's out-of-combat effects
    * (healing, buffs) to the named party member after deducting the slot.
    */
-  outOfCombat?: { targetCharacterId: string };
+  outOfCombat?: { targetCharacterId: string;
+    /** Explicit contained-water choice, tied to the exact reviewed owned item. */
+    water?: {mode:'create'|'destroy';inventoryIndex:number;sourceItem:Item;castId:string};
+  };
 }
 
 export type ActionType =
@@ -102,6 +106,8 @@ export type ActionType =
   | 'CAST_SPELL'
   | 'USE_LIMITED_ABILITY'
   | 'LONG_REST'
+  | 'REQUEST_LODGING'
+  | 'BOOK_LODGING'
   | 'TOGGLE_LONG_REST_MODAL'
   | 'TOGGLE_SHORT_REST_MODAL'
   | 'SHORT_REST'
@@ -121,6 +127,7 @@ export type ActionType =
   | 'USE_TEMPLE_SERVICE' // New
   | 'OPEN_LOCKPICKING_MODAL'
   | 'OPEN_PUZZLE_RUNTIME'
+  | 'PUZZLE_ATTEMPT'
   | 'HARVEST_RESOURCE' // New
   | 'SEARCH_AREA' // Wilderness forage on procedural coord_ tiles
   | 'BARTER_ITEMS' // New
@@ -171,6 +178,8 @@ export interface ActionMetadata {
 export const ACTION_METADATA: Partial<Record<ActionType, ActionMetadata>> = {
   toggle_map: { isUiToggle: true },
   TOGGLE_LONG_REST_MODAL: { isUiToggle: true },
+  REQUEST_LODGING: { managesLoading: true },
+  BOOK_LODGING: { managesLoading: true },
   TOGGLE_SHORT_REST_MODAL: { isUiToggle: true },
   toggle_three_d: { isUiToggle: true },
   toggle_auto_save: { isUiToggle: true },
@@ -203,6 +212,7 @@ export const ACTION_METADATA: Partial<Record<ActionType, ActionMetadata>> = {
   SET_DEV_MODE_ENABLED: { isUiToggle: true },
   OPEN_LOCKPICKING_MODAL: { isUiToggle: true },
   OPEN_PUZZLE_RUNTIME: { isUiToggle: true },
+  PUZZLE_ATTEMPT: { isUiToggle: true },
   UPDATE_QUEST_OBJECTIVE: { isUiToggle: true },
   UPDATE_NPC_GOAL_STATUS: { isUiToggle: true },
   UPDATE_CHARACTER_CHOICE: { isUiToggle: true },
@@ -216,13 +226,16 @@ export const ACTION_METADATA: Partial<Record<ActionType, ActionMetadata>> = {
   GENERATE_ENCOUNTER: { managesLoading: true },
   OPEN_MERCHANT: { managesLoading: true },
   OPEN_DYNAMIC_MERCHANT: { managesLoading: true },
-  EQUIP_ITEM: { managesLoading: true },
-  UNEQUIP_ITEM: { managesLoading: true },
+  // Synchronous equipment reducers leave loading cleanup to the shared action boundary.
+  EQUIP_ITEM: { managesLoading: false },
+  UNEQUIP_ITEM: { managesLoading: false },
   DROP_ITEM: { managesLoading: true },
-  USE_ITEM: { managesLoading: true },
+  // Item settlement is synchronous; the common action boundary releases the controls.
+  USE_ITEM: { managesLoading: false },
   HARVEST_RESOURCE: { managesLoading: true },
   BARTER_ITEMS: { managesLoading: true },
-  HAGGLE_ITEM: { managesLoading: true },
+  // Negotiation awaits attendance but owns no separate spinner lifecycle.
+  HAGGLE_ITEM: { managesLoading: false },
 };
 
 export interface MerchantActionPayload {
@@ -233,7 +246,7 @@ export interface MerchantActionPayload {
 
   transaction?: {
     buy?: { item: Item; cost: number; quantity?: number };
-    sell?: { itemId: string; value: number; quantity?: number };
+    sell?: { itemId: string; value: number; quantity?: number; inventoryIndex?: number; inventoryItem?: Item };
     barter?: { offeredItemIds: string[]; requestedItemIds: string[]; goldOffset: number };
   };
 }
@@ -241,6 +254,10 @@ export interface MerchantActionPayload {
 export interface EquipItemPayload {
   itemId: string;
   characterId: string;
+  /** The clicked owned source; legacy ID-only callers keep their existing selection. */
+  inventoryIndex?: number;
+  /** Reject a stale row after another action has replaced or shifted its source. */
+  inventoryItem?: Item;
 }
 export interface UnequipItemPayload {
   slot: EquipmentSlotType;
@@ -249,6 +266,13 @@ export interface UnequipItemPayload {
 export interface UseItemPayload {
   itemId: string;
   characterId: string;
+  inventoryIndex?: number;
+  light?: { action: 'extinguish'; sourceId: string };
+  /** Explicit one-bundle opening; the raw source reference rejects stale or
+   * repeated clicks even when another identical sealed unit remains. */
+  unpack?: { sourceItem: Item; openingId: string };
+  /** Explicitly confirmed coupled meal; references reject stale selected sources. */
+  meal?: { rationIndex: number; rationItem: Item; waterIndex: number; waterItem: Item; partyIds: string[] };
 }
 /**
  * Utilize action with a Healer's Kit. The user spends one of the kit's ten
@@ -437,10 +461,12 @@ export type Action =
   | { type: 'CAST_SPELL'; payload: CastSpellPayload; label?: string }
   | { type: 'USE_LIMITED_ABILITY'; payload: { characterId: string; abilityId: string }; label?: string }
   | { type: 'LONG_REST'; payload?: never; label?: string }
+  | { type: 'REQUEST_LODGING'; payload: { businessId: string }; label?: string }
+  | { type: 'BOOK_LODGING'; payload: { offer: LodgingOffer }; label?: string }
   | { type: 'TOGGLE_LONG_REST_MODAL'; payload?: never; label?: string }
   | { type: 'TOGGLE_SHORT_REST_MODAL'; payload?: never; label?: string }
   | { type: 'SHORT_REST'; payload?: { hitPointDiceSpend?: HitPointDiceSpendMap }; label?: string }
-  | { type: 'TOGGLE_PREPARED_SPELL'; payload: { characterId: string; spellId: string }; label?: string }
+  | { type: 'TOGGLE_PREPARED_SPELL'; payload: { characterId: string; spellId: string; resetPlan?: boolean }; label?: string }
   | { type: 'UPDATE_NPC_GOAL_STATUS'; payload: { npcId: string; goalId: string; status: GoalStatus }; label?: string }
   | { type: 'PROCESS_GOSSIP_UPDATES'; payload: GossipUpdatePayload; label?: string }
   | { type: 'ADD_LOCATION_RESIDUE'; payload: AddLocationResiduePayload; label?: string }
@@ -452,12 +478,13 @@ export type Action =
   | { type: 'SELL_ITEM'; payload: MerchantActionPayload; label?: string }
   | { type: 'BARTER_ITEMS'; payload: MerchantActionPayload; label?: string }
   | { type: 'HAGGLE_ITEM'; payload: MerchantActionPayload; label?: string }
-  | { type: 'OPEN_DYNAMIC_MERCHANT'; payload: { merchantType: string; villageContext?: VillageActionContext; buildingId?: string; seedKey?: string; hire?: boolean }; label?: string }
+  | { type: 'OPEN_DYNAMIC_MERCHANT'; payload: { merchantType: string; villageContext?: VillageActionContext; buildingId?: string; seedKey?: string; hire?: boolean; initialTab?: 'gossip' }; label?: string }
   | { type: 'OPEN_TEMPLE'; payload: { villageContext: VillageActionContext }; label?: string }
   | { type: 'CLOSE_TEMPLE'; payload?: never; label?: string }
   | { type: 'USE_TEMPLE_SERVICE'; payload: { templeId: string; deityId: string; serviceId?: string; cost: number; effect: unknown }; label?: string }
   | { type: 'OPEN_LOCKPICKING_MODAL'; payload: Lock; label?: string }
   | { type: 'OPEN_PUZZLE_RUNTIME'; payload: Puzzle; label?: string }
+  | { type: 'PUZZLE_ATTEMPT'; payload: { puzzleId: string; input: string }; label?: string }
   | { type: 'HARVEST_RESOURCE'; payload: { harvestContext?: string; skillCheck?: { skill: string; dc: number } }; label?: string }
   | { type: 'SEARCH_AREA'; payload?: never; label?: string }
   | { type: 'ANALYZE_SITUATION'; payload?: never; label?: string }
@@ -497,7 +524,7 @@ export type Action =
    * own id, which ADD_ITEM makes unique per instance, so the assignment
    * survives a save/load instead of living only in the sheet's local state.
    */
-  | { type: 'MOVE_ITEM_TO_CONTAINER'; payload: { itemId: string; containerId: string | null }; label?: string }
+  | { type: 'MOVE_ITEM_TO_CONTAINER'; payload: { itemId: string; containerId: string | null; inventoryIndex?: number; sourceItem?: Item }; label?: string }
   | { type: 'SELL_ALL_JUNK'; payload: { items: { itemId: string; value: number }[] }; label?: string }
   | { type: 'TOGGLE_THIEVES_GUILD'; payload?: never; label?: string }
   // Discriminated on `entityType` so a handler can hand this payload straight to

@@ -147,6 +147,34 @@ export interface RacialTraitLibrary {
   allTraitSummaries: RacialTraitSummary[];
 }
 
+const RACIAL_SPELL_ALIASES: Record<string, string> = {
+  'gust': 'elementalism',
+  'enlarge': 'enlarge-reduce',
+  'pass': 'pass-without-trace',
+  'create': 'create-or-destroy-water',
+  'detect-poison': 'detect-poison-and-disease',
+  'purify-food': 'purify-food-and-drink',
+  'unseen': 'unseen-servant',
+};
+
+const KNOWN_MULTI_WORD_SPELL_PATTERNS: [RegExp, string][] = [
+  [/\bPurify Food and Drink\b/gi, '__purify_food_and_drink__'],
+  [/\bDetect Poison and Disease\b/gi, '__detect_poison_and_disease__'],
+  [/\bCreate or Destroy Water\b/gi, '__create_or_destroy_water__'],
+  [/\bPass without Trace\b/gi, '__pass_without_trace__'],
+  [/\bProtection from Evil and Good\b/gi, '__protection_from_evil_and_good__'],
+  [/\bEnlarge\/Reduce\b/gi, '__enlarge_reduce__'],
+  [/\bBlindness\/Deafness\b/gi, '__blindness_deafness__'],
+];
+
+const protectMultiWordSpellNames = (raw: string): string => {
+  let result = raw;
+  for (const [pattern, replacement] of KNOWN_MULTI_WORD_SPELL_PATTERNS) {
+    result = result.replace(pattern, replacement);
+  }
+  return result;
+};
+
 const ABILITY_NAME_LOOKUP: Record<string, AbilityScoreName> = {
   wisdom: 'Wisdom',
   intelligence: 'Intelligence',
@@ -162,6 +190,8 @@ const INVALID_RACIAL_SPELL_TOKENS = new Set([
   'these',
   'those',
   'that',
+  'this',
+  'drink',
   'either',
   'either/or',
   'any',
@@ -617,14 +647,15 @@ const normalizeSpellToken = (rawName: string): string => {
     .replace(/\[\[(?:[^|\]]+\|)?([^\]]+)\]\]/g, '$1')
     .replace(/\*\*|\*/g, '')
     .replace(/[’']/g, '')
-    .replace(/[\u2013\u2014]/g, '-');
-  return withLinks
+    .replace(/[\/_\u2013\u2014]/g, '-');
+  const token = withLinks
     .trim()
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
     .replace(/(^-|-$)/g, '');
+  return RACIAL_SPELL_ALIASES[token] ?? token;
 };
 
 const parseChoicePromptAbilities = (trait: string): AbilityScoreName[] => {
@@ -711,7 +742,7 @@ const parseSpellLevelFromPhrase = (text: string): number => {
   return levelMatch ? parseInt(levelMatch[1], 10) : 1;
 };
 
-const splitSpellNames = (raw: string): string[] => raw
+const splitSpellNames = (raw: string): string[] => protectMultiWordSpellNames(raw)
   .split(/\s*(?:,|;|\band\b|\bor\b)\s*/i)
   .map((name) => normalizeSpellToken(name))
   .map((name) => name.trim())
@@ -731,7 +762,7 @@ const extractSpellGrantsFromTraitText = (
     grants.push(grant);
   };
 
-  const leveledMatches = [...traitDescription.matchAll(/starting at (\d+)(?:st|nd|rd|th)? level(?: and for higher levels)?[,;:]?\s*you can (?:also )?cast (?:the )?([a-z0-9_' -]+?) spell/gi)];
+  const leveledMatches = [...traitDescription.matchAll(/starting at (\d+)(?:st|nd|rd|th)? level(?: and for higher levels)?[,;:]?\s*you can (?:also )?cast (?:the )?([a-z0-9_' \/-]+?) spell/gi)];
   leveledMatches.forEach((match) => {
     const rawLevel = match[1];
     const rawSpells = match[2];
@@ -808,7 +839,7 @@ const extractSpellGrantsFromTraitText = (
 
   // "spell" in "cast them using any spell slots you have" belongs to the slot
   // permission, not to a spell name; the lookahead keeps the scan off it.
-  const anyCastMatches = [...traitDescription.matchAll(/cast (?:the )?([a-z0-9_' -]+?) spell\b(?!\s*slots?\b)/gi)];
+  const anyCastMatches = [...traitDescription.matchAll(/cast (?:the )?([a-z0-9_' \/-]+?) spell\b(?!\s*slots?\b)/gi)];
   anyCastMatches.forEach((match) => {
     const rawSpells = splitSpellNames(match[1]);
     const matchContext = traitDescription.slice(0, (match.index ?? 0) + match[0].length);
@@ -839,7 +870,7 @@ const extractSpellGrantsFromTraitText = (
   // rest." Read only the sentence the phrase sits in, so the level and the rest
   // budget come from that clause rather than an earlier one.
   const namedCastMatches = [...traitDescription.matchAll(
-    /\bcast\s+(?:the\s+)?([A-Z][A-Za-z']*(?:\s+(?:of|with|the|and|in)\s+[A-Z][A-Za-z']*|\s+[A-Z][A-Za-z']*){0,3})/g
+    /\bcast\s+(?:the\s+)?([A-Z][A-Za-z'\/]*(?:\s+(?:of|with|without|or|the|and|in|from|to)\s+[A-Z][A-Za-z'\/]*|\s+[A-Z][A-Za-z'\/]*){0,8})/g
   )];
   namedCastMatches.forEach((match) => {
     const sentence = sliceSentenceAt(traitDescription, match.index ?? 0);

@@ -5,22 +5,35 @@
  *
  * Mirrors chunkWorkerCore.ts (the continent path). Decoupling the mesh algorithm
  * from the worker environment keeps it fully unit-testable on Node/Vitest, and
- * gives one source of truth: `buildGroundLoaderFromWorld` and the worker both
- * call this, so the worker mesh always equals the main-thread mesh.
+ * gives one source of truth: the inline loader and this worker-compatible API
+ * call groundChunkMesh with the same existing samplers. No worker request,
+ * cache, fallback or mesh field changes as the dependency cycle is removed.
  *
  * See docs/superpowers/specs/2026-07-07-offthread-ground-chunk-meshing-design.md.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 24/10/2026, 20:25:19
+ * Dependents: components/World3D/groundChunkWorker.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { ChunkMeshBundle } from '../../world3d/types';
-import { buildChunkBundle } from '../../world3d/chunkBundle';
+import { buildGroundChunkMesh } from './groundChunkMesh';
+import type { GroundChunkRequest } from './groundChunkMesh';
+export type { GroundChunkRequest } from './groundChunkMesh';
 import { sampleGroundChunk, buildGroundVegetation } from './groundChunkLoader';
 import type { GroundWorld } from './groundChunkLoader';
-
-export interface GroundChunkRequest {
-  cx: number;
-  cy: number;
-  /** Mesh resolution, already resolved from the LOD tier by the caller. */
-  resolution: number;
-}
 
 /**
  * Mesh one ground chunk: sample the terrain surface, assemble the mesh bundle,
@@ -28,14 +41,5 @@ export interface GroundChunkRequest {
  * are omitted (undefined), exactly as the inline loader does.
  */
 export function handleGroundChunkRequest(ground: GroundWorld, req: GroundChunkRequest): ChunkMeshBundle {
-  const bundle = buildChunkBundle(sampleGroundChunk(ground, req.cx, req.cy, req.resolution));
-  // Artifact features drive the scatter (determinism + no lattice banding); trees
-  // and bushes are separate instanced layers.
-  const { trees, bushes, understory } = buildGroundVegetation(ground, req.cx, req.cy);
-  return {
-    ...bundle,
-    vegetation: trees.positions.length > 0 ? trees : undefined,
-    bushes: bushes.positions.length > 0 ? bushes : undefined,
-    understory: understory.count > 0 ? understory : undefined,
-  };
+  return buildGroundChunkMesh(ground, req, { sampleGroundChunk, buildGroundVegetation });
 }

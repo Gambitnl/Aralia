@@ -139,6 +139,59 @@ describe('ensureIslandHarbors', () => {
     expect(pack.cells.burg![3]).toBe(2);
   });
 
+  // GG-520 (audit 2026-10-25): the new route used to be one straight hop to the
+  // LOWEST-numbered lane cell anywhere on the sea (water cells tie on harbor and
+  // population), so real routes ran 600-2,000 km across land and the ferry
+  // planner, which steps only between adjacent cells, could not use them.
+  it('routes a new harbor through adjacent water cells to the nearest lane', () => {
+    // Island cell 0 docks at water cell 3. Lane cell 5 is two water steps away;
+    // lane cell 2 has the lowest id but is four steps away.
+    const pack: IslandHarborPack = {
+      cells: {
+        i: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        c: [[3], [2], [1, 8], [0, 4, 6], [3, 5], [4], [3, 7], [6, 8], [7, 2]],
+        h: [35, 35, 5, 5, 5, 5, 5, 5, 5],
+        p: [[0, 0], [9, 9], [8, 8], [1, 0], [2, 0], [3, 0], [1, 1], [2, 2], [3, 3]],
+        haven: [3, 2, 0, 0, 0, 0, 0, 0, 0],
+        harbor: [1, 1, 0, 0, 0, 0, 0, 0, 0],
+        f: [1, 3, 2, 2, 2, 2, 2, 2, 2],
+        burg: new Uint16Array(9),
+        culture: new Uint16Array(9),
+        state: new Uint16Array(9),
+        pop: new Float32Array(9),
+        routes: {},
+      },
+      features: [
+        0,
+        { i: 1, type: 'island', land: true, cells: 1 },
+        { i: 2, type: 'ocean', land: false, cells: 7 },
+        { i: 3, type: 'island', land: true, cells: 1 },
+      ],
+      burgs: [
+        0,
+        { i: 1, cell: 1, x: 9, y: 9, state: 0, culture: 0, name: 'Mainport', feature: 3, capital: 0, port: 2 },
+      ],
+      routes: [
+        { i: 0, group: 'searoutes', feature: 2, points: [[8, 8, 2]], cells: [2] },
+        { i: 1, group: 'searoutes', feature: 2, points: [[3, 0, 5]], cells: [5] },
+      ],
+    };
+    pack.cells.burg![1] = 1;
+
+    const report = ensureIslandHarbors(pack, { minLandCells: 1 });
+
+    expect(report.spawnedBurgIds).toHaveLength(1);
+    const added = pack.routes![pack.routes!.length - 1];
+    expect(added.cells).toEqual([3, 4, 5]);
+    expect(added.points.map((point) => point[2])).toEqual([3, 4, 5]);
+    // Every step joins neighbors, and every step is water.
+    for (let i = 0; i < added.cells!.length - 1; i++) {
+      expect(pack.cells.c[added.cells![i]]).toContain(added.cells![i + 1]);
+    }
+    expect(added.cells!.every((cell) => pack.cells.h[cell] < 20)).toBe(true);
+    expect(pack.cells.routes?.[4]?.[5]).toBe(added.i);
+  });
+
   it('skips tiny uninhabited rocks', () => {
     const pack = makePack();
 

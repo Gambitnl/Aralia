@@ -29,6 +29,8 @@
  */
 import React from 'react';
 import type { Cell, DungeonPlan } from '../../../systems/worldforge/dungeon/types';
+import type {PlayerCharacter} from '../../../types/character';
+import type {CarriedTorchChoice} from './CarriedTorchIgnition';
 import type { DungeonIdentity } from '../../../systems/worldforge/dungeon/world/dungeonIdentity';
 export type DungeonCameraPreset = 'tactical' | 'entrance' | 'objective';
 export interface Dungeon3DOverlays {
@@ -48,6 +50,11 @@ export interface Dungeon3DObjectiveTarget {
 }
 export interface Dungeon3DGameplay {
     identity: DungeonIdentity;
+    /** Actual lead identity/gear, with rendering ownership only. */
+    playerCharacter?: PlayerCharacter;
+    /** Presentation choices only; the canonical object action validates the selected source. */
+    carriedTorchChoices?: readonly CarriedTorchChoice[];
+    getTorchUseError?: (inventoryIndex:number,sourceObjectId:string)=>string|null;
     claimedTreasureIds: readonly string[];
     onClaimTreasure: (eventId: string) => void;
     /** Encounters already cleared on this level, as persisted by the canonical lifecycle ledger. */

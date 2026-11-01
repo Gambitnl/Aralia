@@ -53,7 +53,7 @@ vi.mock('../../../hooks/useWorldViewMode', () => ({
 vi.mock('../../../state/GameContext', () => ({
   useGameState: () => ({
     dispatch: vi.fn(),
-    state: { isDevModeEnabled: false },
+    state: { isDevModeEnabled: false, gameTime: new Date('0351-01-05T12:00:00Z') },
   }),
 }));
 

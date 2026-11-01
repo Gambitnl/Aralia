@@ -8,8 +8,8 @@ import type { GameState, NPC, PlayerCharacter } from '../../../types';
 /**
  * Guards the "Invite to party" affordance in the dialogue UI.
  *
- * The button must ALWAYS render when `onInvite` is wired (the consent gate
- * declines ineligible NPCs downstream — the button is not hidden), and clicking
+ * For an established authored/legacy opportunity, the button renders when
+ * `onInvite` is wired (trust remains a downstream consent decision), and clicking
  * it must call back with the NPC id so the hook can dispatch talk+recruitOffer.
  *
  * dialogueService is mocked so topic computation stays deterministic and the

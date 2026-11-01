@@ -1,11 +1,17 @@
+/**
+ * @file src/state/initialState.ts
+ * Defines the initial state for the application.
+ * Unified source of truth for the starting GameState.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 19/07/2026, 08:31:00
- * Dependents: App.tsx, state/appState.ts
- * Imports: 15 files
+ * Last Sync: 28/10/2026, 12:04:05
+ * Dependents: App.tsx, components/DesignPreview/steps/PreviewEquipment.tsx, components/DesignPreview/steps/PreviewTrade.tsx, components/DesignPreview/steps/scenarioControls/shoveProneScenarioControls.ts, state/appState.ts
+ * Imports: 18 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -13,12 +19,6 @@
  * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 // @dependencies-end
-
-/**
- * @file src/state/initialState.ts
- * Defines the initial state for the application.
- * Unified source of truth for the starting GameState.
- */
 
 import { GameState, GamePhase, SuspicionLevel, UnderdarkState } from '../types';
 import { DEFAULT_RULES_EDITION } from '../config/rulesEdition';
@@ -126,6 +126,11 @@ export const initialGameState: GameState = {
         lastRestDay: getGameDay(initialGameTime),
         lastRestEndedAtMs: null,
     },
+    lastLongRestAt: null,
+    lodgingReservations: [],
+    lodgingOffer: null,
+    lodgingRestAdmission: null,
+    travelMinutesRemainder: 0,
 
     // Dev Mode specific state
     isDevMenuVisible: false,

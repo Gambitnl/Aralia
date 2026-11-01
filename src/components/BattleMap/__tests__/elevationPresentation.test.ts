@@ -3,6 +3,8 @@
  * WorldForge relief consumed by the 3D terrain renderer.
  */
 import { describe, expect, it } from "vitest";
+import { feetToElevationUnits } from "../../../utils/combat/elevationUnits";
+import { getBattleMapTileAltitudeFeet } from "../../../utils/spatial/elevationGeometry";
 import {
   describeBattleMapElevation,
   describeBattleMapTerrain,
@@ -12,6 +14,24 @@ import {
 } from "../elevationPresentation";
 
 describe("battle-map elevation presentation", () => {
+  it("uses canonical rounded altitudes across a fractional map-floor boundary", () => {
+    // Model the native 65ft/66ft mismatch without claiming these invented
+    // fractional samples are an exact dump of the source encounter terrain.
+    const actor = feetToElevationUnits(65.4);
+    const tile = feetToElevationUnits(65.6);
+    const floor = feetToElevationUnits(49.3);
+    const expectedDelta = getBattleMapTileAltitudeFeet({ elevation: tile }) -
+      getBattleMapTileAltitudeFeet({ elevation: actor });
+    expect(expectedDelta).toBe(1);
+    expect(describeBattleMapElevation(tile, actor, "Mara", floor)).toMatchObject({
+      relation: "higher", relativeFeet: expectedDelta,
+      localReliefFeet: 17, referenceLocalReliefFeet: 16,
+      primaryText: "1 ft higher than Mara",
+    });
+    expect(describeBattleMapElevation(actor, tile, "Mara", floor)).toMatchObject({
+      relation: "lower", relativeFeet: -expectedDelta,
+    });
+  });
   it("recovers feet from the 0.3-metre renderer encoding", () => {
     expect(elevationUnitsToFeet(10)).toBeCloseTo(9.8425, 3);
   });
@@ -66,13 +86,15 @@ describe("battle-map elevation presentation", () => {
     ]);
 
     expect(baseline).toBe(22);
+    // Canonical altitudes round independently: encoded 22 -> 22ft and 34 -> 33ft.
+    // Subtracting the map floor first previously displayed a different 12ft delta.
     expect(describeBattleMapElevation(22, 34, "Dev", baseline)).toMatchObject({
       localReliefFeet: 0,
-      relativeFeet: -12,
+      relativeFeet: -11,
       secondaryText: "0 ft above this map's lowest ground (0 ft)",
     });
     expect(describeBattleMapElevation(33, 34, "Dev", baseline)).toMatchObject({
-      localReliefFeet: 11,
+      localReliefFeet: 10,
       relativeFeet: -1,
       relativeText: "1 ft lower",
     });

@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 16/07/2026, 14:52:20
- * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMapTile.tsx, components/BattleMap/groundPainter/paintPipeline.ts
- * Imports: 1 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file elevationPresentation.ts
  * Converts encoded battle-map relief into player-readable tactical language.
@@ -23,9 +7,25 @@
  * to a player, so this module owns rounded feet, relative labels, and contour
  * bands without changing the underlying terrain or combat mechanics.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 31/10/2026, 10:31:41
+ * Dependents: components/BattleMap/BattleMapHUD.tsx, components/BattleMap/BattleMapTile.tsx, components/BattleMap/characters/characterActor/CharacterActor.tsx, components/BattleMap/groundPainter/paintPipeline.ts, components/BattleMap/hooks/useBattleMapDerivedState.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import {
   BATTLE_MAP_CONTOUR_INTERVAL_FEET,
-  BATTLE_MAP_ELEVATION_METERS_PER_UNIT,
 } from "../../config/mapConfig";
 import type {
   BattleMapCrossing,
@@ -33,7 +33,13 @@ import type {
   BattleMapTerrain,
 } from "../../types/combat";
 
-const FEET_PER_METER = 3.280839895;
+// C11 (agora-9ed9.11): the feet conversion moved to utils/combat/elevationUnits
+// so combat utils can use it without importing a component module. It stays
+// exported from here for the existing UI callers.
+import { elevationUnitsToFeet } from "../../utils/combat/elevationUnits";
+import { getBattleMapTileAltitudeFeet } from "../../utils/spatial/elevationGeometry";
+
+export { elevationUnitsToFeet } from "../../utils/combat/elevationUnits";
 
 export type ElevationRelation = "higher" | "lower" | "level";
 
@@ -49,12 +55,6 @@ export interface BattleMapElevationPresentation {
   relativeText: string | null;
   primaryText: string;
   secondaryText: string;
-}
-
-/** Recover true relief feet from the battle map's renderer-oriented encoding. */
-export function elevationUnitsToFeet(elevation: number): number {
-  if (!Number.isFinite(elevation)) return 0;
-  return elevation * BATTLE_MAP_ELEVATION_METERS_PER_UNIT * FEET_PER_METER;
 }
 
 /** Return the five-foot contour band containing an encoded elevation value. */
@@ -95,15 +95,16 @@ export function describeBattleMapElevation(
   referenceLabel = "active creature",
   mapBaselineElevation = 0,
 ): BattleMapElevationPresentation {
-  // Treat the lowest sampled tile as zero. This produces a map-local height,
-  // not sea-level altitude, and makes the second number directly comparable
-  // anywhere inside the current tactical crop.
+  // Round source altitudes on the combat ruler before subtracting the map floor.
+  // Rounding after that subtraction can label a one-foot range difference Level.
+  // The same rounded floor keeps both displayed heights and their delta consistent.
   const safeBaseline = Number.isFinite(mapBaselineElevation)
     ? mapBaselineElevation
     : 0;
+  const baselineFeet = getBattleMapTileAltitudeFeet({ elevation: safeBaseline });
   const localReliefFeet = Math.max(
     0,
-    Math.round(elevationUnitsToFeet(elevation - safeBaseline)),
+    getBattleMapTileAltitudeFeet({ elevation }) - baselineFeet,
   );
   if (referenceElevation == null || !Number.isFinite(referenceElevation)) {
     return {
@@ -123,7 +124,7 @@ export function describeBattleMapElevation(
   // player never has to reverse-engineer the relative difference.
   const referenceLocalReliefFeet = Math.max(
     0,
-    Math.round(elevationUnitsToFeet(referenceElevation - safeBaseline)),
+    getBattleMapTileAltitudeFeet({ elevation: referenceElevation }) - baselineFeet,
   );
   // Derive the comparison from the two displayed whole-foot values. Rounding
   // each raw sample independently and then displaying a separately rounded

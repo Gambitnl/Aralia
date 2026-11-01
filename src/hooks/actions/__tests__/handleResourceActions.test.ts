@@ -15,7 +15,8 @@ import type { AppAction } from '../../../state/actionTypes';
 import { createInitialJournalState } from '../../../types/journal';
 import type { AddMessageFn } from '../../actions/actionHandlerTypes';
 
-vi.mock('../../../systems/planar/rest', () => ({
+vi.mock('../../../systems/planar/rest', async () => ({
+  ...await vi.importActual<typeof import('../../../systems/planar/rest')>('../../../systems/planar/rest'),
   checkPlanarRestRules: vi.fn(() => ({ messages: [], deniedCharacterIds: [] })),
 }));
 
@@ -30,6 +31,21 @@ vi.mock('../handleWorldEvents', () => ({
   // same reason the gossip lane is (it would build a canonical town roster).
   handleTownRoutineEvents: vi.fn().mockResolvedValue([]),
 }));
+
+describe('authored planar rest eligibility', () => {
+  it('refuses an Astral long rest before any overnight mutation', async () => {
+    const dispatch = vi.fn(), addMessage = vi.fn();
+    const state = createMockGameState({
+      party: [createMockPlayerCharacter({id: 'planar-traveler', hp: 5})],
+      currentLocationId: 'astral-rest-site', lastLongRestAt: null,
+      dynamicLocations: {'astral-rest-site': {id:'astral-rest-site', name:'Astral Rest Site',
+        baseDescription:'An existing planar rule fixture.', exits:{}, biomeId:'astral', planeId:'astral'}},
+    });
+    await handleLongRest({gameState:state, dispatch, addMessage, addGeminiLog:vi.fn()});
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(addMessage).toHaveBeenCalledWith('Long rests are not possible in The Astral Plane.', 'system');
+  });
+});
 
 describe('handleShortRest', () => {
   let mockDispatch: ReturnType<typeof vi.fn>;
@@ -196,5 +212,53 @@ describe('handleShortRest', () => {
     expect(addJournalAction?.[0].payload).toMatchObject({
       narrativeText: expect.stringContaining('long rest'),
     });
+  });
+  it('blocks a long rest if less than 16 hours have elapsed since the previous long rest (GG-449)', async () => {
+    const gameTime = new Date('2026-06-01T12:00:00Z');
+    const state = {
+      ...baseState,
+      gameTime,
+      lastLongRestAt: new Date(gameTime.getTime() - 8 * 3600 * 1000).toISOString(), // 8 hours ago (< 16h cooldown)
+    };
+
+    await handleLongRest({
+      gameState: state,
+      dispatch: mockDispatch as any,
+      addMessage: mockAddMessage as any,
+      addGeminiLog: vi.fn() as any,
+    });
+
+    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(mockAddMessage).toHaveBeenCalledWith(
+      expect.stringContaining('must wait at least 8 hours before taking another long rest'),
+      'system',
+    );
+  });
+
+  it('notifies when a party member at 0 HP cannot benefit from a long rest (GG-449)', async () => {
+    const gameTime = new Date('2026-06-01T12:00:00Z');
+    const state = {
+      ...baseState,
+      gameTime,
+      party: [
+        createMockPlayerCharacter({ id: 'p1', name: 'Downed Hero', hp: 0, maxHp: 15 }),
+        createMockPlayerCharacter({ id: 'p2', name: 'Healthy Hero', hp: 10, maxHp: 15 }),
+      ],
+    };
+
+    await handleLongRest({
+      gameState: state,
+      dispatch: mockDispatch as any,
+      addMessage: mockAddMessage as any,
+      addGeminiLog: vi.fn() as any,
+    });
+
+    expect(mockAddMessage).toHaveBeenCalledWith(
+      expect.stringContaining('Downed Hero is at 0 HP and gains no benefit from the long rest'),
+      'system',
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'LONG_REST' }),
+    );
   });
 });

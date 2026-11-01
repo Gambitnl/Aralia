@@ -151,3 +151,25 @@ describe('useTurnManager mirrored condition expiry', () => {
     expect(afterNextTurn.character.statusEffects).toHaveLength(0);
   });
 });
+
+it('advances a Guiding Bolt caster clock once per actual caster turn end',async()=>{
+ const caster=createMockCombatCharacter({id:'clock-caster',name:'Cleric',team:'player',stats:{baseInitiative:30}});
+ const target=createMockCombatCharacter({id:'clock-target',name:'Target',team:'enemy',stats:{baseInitiative:-30},activeEffects:[{
+  id:'guiding-clock',spellId:'guiding-bolt',casterId:caster.id,sourceName:'Guiding Bolt',type:'buff',startTime:0,
+  duration:{type:'caster_turn_end',value:2},mechanics:{attackRollDirection:'incoming',attackRollModifier:'advantage',attackRollKind:'any',attackRollConsumption:'next_attack'}
+ }]});
+ let roster=[caster,target];const logs:CombatLogEntry[]=[];
+ const onCharacterUpdate=(character:CombatCharacter)=>{roster=roster.map(c=>c.id===character.id?character:c);};
+ const {result,rerender}=renderHook(({characters})=>useTurnManager({characters,mapData:null,onCharacterUpdate,onLogEntry:entry=>logs.push(entry)}),{initialProps:{characters:roster}});
+ act(()=>result.current.initializeCombat(roster));rerender({characters:roster});
+ expect(result.current.turnState.currentCharacterId).toBe(caster.id);
+ await act(async()=>{await Promise.all([result.current.endTurn(),result.current.endTurn()]);});rerender({characters:roster});
+ expect(roster.find(c=>c.id===target.id)?.activeEffects?.[0].duration.value).toBe(1);
+ expect(result.current.turnState.currentCharacterId).toBe(target.id);
+ await act(async()=>{await result.current.endTurn();});rerender({characters:roster});
+ expect(roster.find(c=>c.id===target.id)?.activeEffects?.[0].duration.value).toBe(1);
+ expect(result.current.turnState.currentCharacterId).toBe(caster.id);
+ await act(async()=>{await result.current.endTurn();});rerender({characters:roster});
+ expect(roster.find(c=>c.id===target.id)?.activeEffects).toHaveLength(0);
+ expect(logs.filter(e=>e.data?.cleanup==='caster_turn_end_attack_rider')).toHaveLength(1);
+});

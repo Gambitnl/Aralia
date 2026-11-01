@@ -114,4 +114,25 @@ describe('Broadsheet', () => {
     // Malformed snapshot → no crash, falls back to the live (here empty) path.
     expect(screen.getByTestId('broadsheet-empty').textContent).toMatch(/no news to report/i);
   });
+  it('names a reached library reading copy without a retail price', () => {
+    const base=createMockGameState(),day=getGameDay(base.gameTime);
+    const town=buildTownSimStateForBurg(SEED,firstTile.burgId,day);
+    renderBroadsheet({...base,worldSeed:SEED,playerCell:{cellId:firstTileBurgCell,localeCoords:null},
+      townSim:{[firstTile.burgId]:town},isBroadsheetVisible:true,
+      broadsheetReadingPlace:{burgId:firstTile.burgId,townName:'Source Library Town'}});
+    expect(screen.getByTestId('broadsheet')).toHaveTextContent('SOURCE LIBRARY TOWN CHRONICLE');
+    expect(screen.getByTestId('broadsheet')).toHaveTextContent('Library reading copy');
+    expect(screen.getByTestId('broadsheet')).not.toHaveTextContent('Price: one copper');
+  });
+  it('rejects a stale library name from another source town', () => {
+    const base=createMockGameState(),day=getGameDay(base.gameTime);
+    const town=buildTownSimStateForBurg(SEED,firstTile.burgId,day);
+    renderBroadsheet({...base,worldSeed:SEED,playerCell:{cellId:firstTileBurgCell,localeCoords:null},
+      townSim:{[firstTile.burgId]:town},isBroadsheetVisible:true,
+      broadsheetReadingPlace:{burgId:firstTile.burgId+1,townName:'Wrong Town'}});
+    expect(screen.getByTestId('broadsheet')).not.toHaveTextContent('WRONG TOWN');
+    expect(screen.getByTestId('broadsheet')).not.toHaveTextContent('Library reading copy');
+    expect(screen.getByTestId('broadsheet')).toHaveTextContent('Price: one copper');
+  });
+
 });

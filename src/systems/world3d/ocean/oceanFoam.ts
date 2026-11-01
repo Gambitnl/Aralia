@@ -145,184 +145,40 @@
  * in oceanSpray.ts), not on this foam. The ring of foam around a floating
  * body (the surface's contact foam) is not fed into F, so it does not
  * leave a trail. `coverageAt` reads F alone, not G.
+ *
+ * C5 SOURCE OWNERSHIP: oceanFoamControls creates the original shared controls;
+ * oceanFoamReader holds the surface read. This factory retains the field,
+ * baking, texture allocation, compute steps and disposal in their original order.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 25/10/2026, 04:08:32
+ * Dependents: components/DesignPreview/steps/sidebyside/oceanExtras/foam.ts, components/DesignPreview/steps/sidebyside/oceanExtras/mouth.ts, components/DesignPreview/steps/sidebyside/oceanExtras/rocks.ts, components/DesignPreview/steps/sidebyside/oceanExtras/wake.ts, systems/world3d/ocean/oceanMouth.ts, systems/world3d/ocean/oceanRocks.ts, systems/world3d/ocean/oceanSurface.ts
+ * Imports: 9 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import { createFoamControls } from './oceanFoamControls';
+import { createFoamReader } from './oceanFoamReader';
+import type { TslNode, OceanFoamReader } from './oceanFoamReaderTypes';
+export type { OceanFoamReader } from './oceanFoamReaderTypes';
 import * as THREE from 'three/webgpu';
-import {
-  Fn,
-  If,
-  Loop,
-  dFdx,
-  dFdy,
-  exp2,
-  bitAnd,
-  clamp,
-  cos,
-  float,
-  floor,
-  hash,
-  instanceIndex,
-  int,
-  max,
-  min,
-  mix,
-  select,
-  shiftRight,
-  sin,
-  smoothstep,
-  sqrt,
-  storage,
-  uniform,
-  uniformArray,
-  uvec2,
-  uint,
-  texture,
-  textureStore,
-  vec2,
-  vec3,
-  vec4,
-} from 'three/tsl';
+import { Fn, If, Loop, exp, exp2, bitAnd, clamp, cos, float, floor, hash, instanceIndex, int, max, min, mix, select, shiftRight, sin, smoothstep, sqrt, storage, uniform, uniformArray, uvec2, uint, texture, textureStore, vec2, vec3, vec4 } from 'three/tsl';
 import type { OceanField } from './oceanField';
 import { createOceanSampler } from './oceanSampler';
 import { oceanBathymetryFor } from './oceanBathymetry';
-import { OCEAN_SUN_DIR, oceanSkyRadiance } from './oceanSky';
-import {
-  FOAM_DEFICIT_HI,
-  FOAM_DEFICIT_LO,
-  FOAM_DT_S,
-  FOAM_LACE,
-  FOAM_LACE_RAW_MAX,
-  FOAM_CELL_JITTER,
-  FOAM_SALT_CELL,
-  FOAM_LACE_TILE_N,
-  foamTileCell,
-  foamTileStrand,
-  foamTileFiber,
-  foamTileCurl,
-  foamTileWisp,
-  foamTileDot,
-  foamTileWispFine,
-  FOAM_LACE_WISP_FINE,
-  FOAM_SALT_WISP_FINE,
-  foamTileHair,
-  foamTileHairFine,
-  FOAM_LACE_HAIR,
-  FOAM_LACE_HAIR_FINE,
-  FOAM_SALT_HAIR,
-  FOAM_SALT_HAIR_FINE,
-  FOAM_LACE_YOUNG_HAIR,
-  FOAM_LACE_OLD_HAIR,
-  FOAM_LACE_FRINGE_HAIR,
-  FOAM_CELLS_ALONG_M,
-  FOAM_CELLS_ACROSS_M,
-  FOAM_CELLS_S_COUNT,
-  FOAM_CELLS_L_COUNT,
-  FOAM_SALT_CELLS,
-  FOAM_LACE_STREAK,
-  FOAM_SALT_STREAK,
-  FOAM_LACE_YOUNG_CELLS,
-  FOAM_LACE_OLD_CELLS,
-  FOAM_LACE_FRINGE_CELLS,
-  foamTileCellS,
-  foamTileCellL,
-  foamTileStreak,
-  FOAM_AGE_TAU_S,
-  FOAM_AGE_B0,
-  FOAM_AGE_B1,
-  FOAM_TEAR_ACROSS_M,
-  FOAM_TEAR_ALONG_M,
-  FOAM_TEAR_SALT,
-  FOAM_DOT_COUNT,
-  FOAM_DOT_DENSITY,
-  FOAM_DOT_RADIUS,
-  FOAM_SALT_DOT,
-  FOAM_LACE_FRINGE,
-  FOAM_LACE_YOUNG_FINE,
-  FOAM_LACE_OLD_FINE,
-  FOAM_LACE_CURL,
-  FOAM_SALT_CURL,
-  FOAM_LACE_WISP,
-  FOAM_SALT_WISP,
-  FOAM_LACE_YOUNG_ABOVE,
-  FOAM_LACE_OLD_ABOVE,
-  smoothstep01,
-  FOAM_CURL_PX_HI,
-  FOAM_CURL_PX_LO,
-  FOAM_FIBERS_PER_CELL,
-  FOAM_SALT_FIBER,
-  FOAM_LACE_OLD,
-  FOAM_LACE_YOUNG,
-  FOAM_LACE_CDF_KNOTS,
-  FOAM_LOTTERY_GAIN,
-  FOAM_BREAKER_LIFE_VAR,
-  FOAM_DEPOSIT_POW,
-  FOAM_BREAKER_TURN_M,
-  FOAM_BREAKER_TURN_RAD,
-  FOAM_BREAKER_TURN_SALT,
-  FOAM_BREAKER_CURVE_M,
-  FOAM_BREAKER_CURVE_RAD,
-  FOAM_BREAKER_CURVE_SALT,
-  FOAM_SEG_ACROSS_M,
-  FOAM_SEG_ALONG_M,
-  FOAM_SEG_DEPTH,
-  FOAM_SEG_HI,
-  FOAM_SEG_LO,
-  FOAM_SEG_SALT,
-  FOAM_DIFFUSION_M2S,
-  FOAM_DIFFUSION_K_MAX,
-  FOAM_FOLD_LAY,
-  FOAM_LAY_HI,
-  FOAM_LAY_LO,
-  FOAM_LAY_TAU_S,
-  FOAM_LAY_TEX,
-  FOAM_SEED_HI,
-  FOAM_SEED_LO,
-  FOAM_SEED_TEX,
-  FOAM_LOTTERY_M,
-  FOAM_LOTTERY_SALT,
-  FOAM_SALT_STRAND,
-  type FoamLaceWeights,
-  FOAM_SALT_CLUMP,
-  FOAM_SALT_WARP,
-  FOAM_VEIL_SHARE,
-  FOAM_LEVELS,
-  FOAM_MAX,
-  FOAM_PRODUCTION_PER_S,
-  FOAM_SWELL_MODULATION,
-  FOAM_TAU_S,
-  FOAM_WARMUP_S,
-  FOAM_BREAKER_TAU_S,
-  FOAM_RESIDUAL_TAU_S,
-  FOAM_RESIDUAL_YIELD,
-  FOAM_BREAKER_GATE_HI,
-  FOAM_BREAKER_GATE_LO,
-  foamBreakerVelocity,
-  foamCrestSpeedMs,
-  foamPropagationDir,
-  FOAM_GROUP_ACROSS_M,
-  FOAM_GROUP_ALONG_M,
-  FOAM_GROUP_GAIN,
-  FOAM_GROUP_SALT,
-  foamDriftVelocity,
-  foamLaceCdfTable,
-  pcgHash01,
-  foamLaceLayerMeans,
-  foamSwellIndex,
-  foamWindSea,
-  foamWindowCenter,
-  foamStreakCoverage,
-  FOAM_SALT_WINDROW,
-  FOAM_WINDROW_DEPTH,
-  FOAM_WINDROW_SPACING_M,
-  FOAM_WINDROW_STRETCH,
-  foamWindowFor,
-  planFoamStep,
-  type FoamLevel,
-  type FoamWindow,
-} from './oceanFoamMath';
-
-/** A TSL node expression. See `oceanSurface.ts` for why this is `any`. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type TslNode = any;
+import { OCEAN_SUN_DIR, clearSkyIrradianceCpu, oceanSkyDeckLight, oceanSkyRadiance } from './oceanSky';
+import { FLOOR_LIGHT } from './oceanSeabedMath';
+import { FOAM_DT_S, FOAM_LACE, FOAM_LACE_RAW_MAX, FOAM_CELL_JITTER, FOAM_SALT_CELL, FOAM_LACE_TILE_N, foamTileCell, foamTileFiber, foamTileCurl, foamTileWisp, foamTileDot, foamTileWispFine, FOAM_LACE_WISP_FINE, FOAM_SALT_WISP_FINE, foamTileHair, foamTileHairFine, FOAM_LACE_HAIR, FOAM_LACE_HAIR_FINE, FOAM_SALT_HAIR, FOAM_SALT_HAIR_FINE, FOAM_LACE_YOUNG_HAIR, FOAM_LACE_OLD_HAIR, FOAM_LACE_FRINGE_HAIR, FOAM_CELLS_ALONG_M, FOAM_CELLS_ACROSS_M, FOAM_CELLS_S_COUNT, FOAM_CELLS_L_COUNT, FOAM_SALT_CELLS, FOAM_LACE_STREAK, FOAM_SALT_STREAK, FOAM_LACE_YOUNG_CELLS, FOAM_LACE_OLD_CELLS, FOAM_LACE_FRINGE_CELLS, foamTileCellS, foamTileCellL, foamTileStreak, FOAM_DOT_COUNT, FOAM_DOT_DENSITY, FOAM_DOT_RADIUS, FOAM_SALT_DOT, FOAM_LACE_FRINGE, FOAM_LACE_YOUNG_FINE, FOAM_LACE_OLD_FINE, FOAM_LACE_CURL, FOAM_SALT_CURL, FOAM_LACE_WISP, FOAM_SALT_WISP, FOAM_LACE_YOUNG_ABOVE, FOAM_LACE_OLD_ABOVE, smoothstep01, FOAM_FIBERS_PER_CELL, FOAM_SALT_FIBER, FOAM_LACE_OLD, FOAM_LACE_YOUNG, FOAM_LACE_CDF_KNOTS, FOAM_BREAKER_TURN_M, FOAM_BREAKER_TURN_SALT, FOAM_BREAKER_CURVE_M, FOAM_BREAKER_CURVE_SALT, FOAM_SEG_SALT, FOAM_DIFFUSION_K_MAX, FOAM_LOTTERY_M, FOAM_LOTTERY_SALT, FOAM_SALT_STRAND, type FoamLaceWeights, FOAM_SALT_CLUMP, FOAM_SALT_WARP, FOAM_LEVELS, FOAM_WARMUP_S, foamBreakerVelocity, foamCrestSpeedMs, foamPropagationDir, FOAM_GROUP_ACROSS_M, FOAM_GROUP_ALONG_M, FOAM_GROUP_SALT, foamDriftVelocity, foamLaceCdfTable, pcgHash01, foamLaceLayerMeans, foamSwellIndex, foamWindSea, foamWindowCenter, foamStreakCoverage, foamWindowFor, planFoamStep, FOAM_ROLLER_BETA, FOAM_DOME_RINGS, FOAM_DOME_AZ, FOAM_DOME_SUN_CUT, type FoamLevel, type FoamWindow } from './oceanFoamMath';
 
 /**
  * FOAM UNDER THE DECK IS LIT BY THE DECK (GG-280). The surface's foam color
@@ -349,30 +205,24 @@ const FOAM_WARP_SALT = 0x2b71;
 /** The surface's foam color with no sun, scene-linear luminance: 0.7 x (0.86, 0.90, 0.92). */
 const SURFACE_FOAM_NO_SUN = 0.7 * (0.2126 * 0.86 + 0.7152 * 0.90 + 0.0722 * 0.92);
 
+/** The clear sky's irradiance on a flat surface, luminance, the sky's units (round 11, the deck's sun). */
+const CLEAR_E_LUM = (() => {
+  const e = clearSkyIrradianceCpu();
+  return 0.2126 * e[0] + 0.7152 * e[1] + 0.0722 * e[2];
+})();
+
+/**
+ * Whether the sky's stratus deck is set on this sky (round 11): the deck's
+ * lights are uniform nodes then, and constant 1 nodes when no deck is
+ * registered (`oceanSkyDeckLight`), so a scene with no deck builds the same
+ * graph it did.
+ */
+function deckIsSet(dl: { airGain: TslNode }): boolean {
+  return (dl.airGain as { isUniformNode?: boolean }).isUniformNode === true;
+}
+
 /** Slots for foam laid down from outside the sea: a wake, a hull. */
 export const FOAM_STAMP_SLOTS = 16;
-
-/** The surface's side of the foam: one call at one fragment. */
-export interface OceanFoamReader {
-  shade(p: {
-    /** The fragment's grid coordinate, meters (the surface's `vSample`). */
-    sample: TslNode;
-    /** The surface's footprint-faded summed fold deficit there, 1 - jac. */
-    deficit: TslNode;
-    /** The long and short axis of the pixel's footprint on the water, meters. */
-    longM: TslNode;
-    shortM: TslNode;
-  }): { alpha: TslNode; bright: TslNode };
-  /**
-   * The lasting foam's coverage at a grid coordinate, 0 to 1: the store's F
-   * (fine level where it holds the water, else coarse) through the same
-   * coverage ramp the surface draws, with no lace and no footprint. Legal in
-   * a compute kernel (no screen derivatives): for the spray, whose roots can
-   * hold on foam that lasts (GG-279), and for any piece that must know where
-   * the water is white.
-   */
-  coverageAt(sample: TslNode): TslNode;
-}
 
 /**
  * A SOURCE OF FOAM (round 10, GG-291, GG-341: the sea's ONE foam field).
@@ -400,7 +250,46 @@ export interface OceanFoamReader {
 export interface OceanFoamSource {
   readonly name: string;
   at(x: TslNode, tS: TslNode): TslNode;
+  /**
+   * Rocks round 13 (THE FOAM MOVES WITH THE WATER UNDER IT): optional, the water's velocity (vec2, m/s,
+   * label space) at grid point x and sea time tS beside the field's drift, 0 outside the piece's area.
+   * The step carries the store's foam with it (a semi-Lagrangian step where |u| > 1 mm/s).
+   */
+  velocityAt?(x: TslNode, tS: TslNode): TslNode;
+  /**
+   * THE SOURCE'S ACTIVE BREAKER (foam round 11). Optional, TSL like `at`, at
+   * the same grid point and step time; see `OceanFoamBreaker`. A source that
+   * makes waves break where the sea's own whitecap law does not hold (a
+   * depth-limited surf zone) gives its rollers here, and where it owns the
+   * breaking they are the store's breaker channel B: they draw the head, lay
+   * the foam and set the age clock as the sea's own breakers do. Absent on
+   * every source: the step kernel is round 10's node for node.
+   */
+  breakerAt?(x: TslNode, tS: TslNode): OceanFoamBreaker;
   beforeStep?(renderer: THREE.WebGPURenderer, tS: number, restep: boolean): void;
+}
+
+/**
+ * A source's breaker at a point (foam round 11), every field a TSL node:
+ * - `cover`: the share of the texel under an active roller now, 0 to 1 (the
+ *   crest's face where its group breaks);
+ * - `breaking`: the share of the water whose waves break now, 0 to 1,
+ *   whatever the phase (the group's envelope over the breaking height);
+ * - `own`: the share of the breaking the source owns, 0 to 1 (where the
+ *   sea's whitecap law gives way to the source's: the mouth's k h from 1 to pi);
+ * - `velocity`: vec2, the crest's own velocity over the ground in the grid
+ *   frame, m/s (on a bar the shallow speed sqrt(g (h + H)) along the crest's
+ *   heading, `foamRollerCrestSpeedMs`).
+ * The step: B = max(cover, (1 - breaking) B_up e^(-dt beta g / |v|)) where
+ * the source owns the breaking, B_up read one step upstream along `velocity`
+ * (`foamSourceBreakerLaw`, `foamRollerCoverTauS`); F at least B there
+ * (`foamRollerFoamFloor`: F 1 hides the water).
+ */
+export interface OceanFoamBreaker {
+  readonly cover: TslNode;
+  readonly breaking: TslNode;
+  readonly own: TslNode;
+  readonly velocity: TslNode;
 }
 
 /** The sources registered on one sea, and a count that changes with them. */
@@ -666,6 +555,14 @@ export interface OceanFoam {
     invalidate(): void;
     /** The foam step alone (both levels, no sea), saturating, ms per step. */
     benchStep(renderer: THREE.WebGPURenderer, iters?: number): Promise<number>;
+    /**
+     * Round 11: the deck kernel's cells read back: the storm deck's radiance
+     * (GG-280); under a stratus deck (law 2) the dome's irradiance over pi,
+     * the sun's unscattered irradiance on a face square to it over pi, and
+     * the deck's state (1 on); all 0 with no deck. `flatGain` is the foam's
+     * light factor at a flat facet (`foamDeckFoamGain`).
+     */
+    deckLight(renderer: THREE.WebGPURenderer): Promise<{ deck: number; domeLight: number; sunLight: number; on: number; flatGain: number }>;
   };
   dispose(): void;
 }
@@ -701,446 +598,8 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
   // change.
   const samplerR = createOceanSampler(bufs, uniform(new THREE.Vector2(0, 0)), { filtered: true });
 
-  const tune = {
-    modulation: uniform(FOAM_SWELL_MODULATION),
-    // Weights of the fold deficits: the wind sea's own, and every shorter
-    // foam cascade's (the ripple). Both 1 sums them as the surface does.
-    wWind: uniform(1),
-    wShort: uniform(1),
-    // The wind sea's own fold (times the swell gain) a fold must ride on to
-    // start a breaker: see FOAM_BREAKER_GATE_LO.
-    gateLo: uniform(FOAM_BREAKER_GATE_LO),
-    gateHi: uniform(FOAM_BREAKER_GATE_HI),
-    // Round 10: 0.4 (FOAM_GROUP_GAIN 0.3 is round 9's): the whitecaps
-    // gather in the wave groups' maxima with open sea between them (sweep
-    // c4 to c9; at 0.8 the eye-level near water flooded with flecks).
-    groupGain: uniform(0.4),
-    // 1: a steep wind-sea crest starts a breaker on its own; 0: only where a fold rides it.
-    gateAlone: uniform(1),
-    // Coverage from F: c = smoothstep(cov0, cov1, F). 0.4 (round 4, second
-    // pass): at 0.15 every texel the store held over 0.15 drew as the same
-    // dense lace, so the drawn foam covered 4.1% of the high view's pixels
-    // over 100 sRGB against the reference's 1.7% ("one flat gray"); at 0.4
-    // it is 3.2% and a trail thins along its length as F decays (0.5 lost
-    // the fringes). At 0.1 the thin halo round old patches drew a net of
-    // lines over the near water at eye level.
-    cov0: uniform(0.4),
-    cov1: uniform(1),
-    // The residual's coverage ramp and its ceiling: see FOAM_RESIDUAL_TAU_S.
-    res0: uniform(0.12),
-    res1: uniform(0.6),
-    resMax: uniform(0.1),
-    // THE ROUND-4 LOOK (see `shade`). The meter-scale modulation of the
-    // coverage: `mid` by the clump (a patch thicker and thinner), `holes` by
-    // the coarse network in old foam. mid 0.9 (second pass): at 0.6 a patch
-    // was one density from its core to its edge; the reference's patches
-    // have a dense center band and loose edges.
-    mid: uniform(0.9),
-    holes: uniform(0.7),
-    // How much the lace's soft edge widens at full coverage.
-    coreSoft: uniform(0.08),
-    // The head: B from coreB0 to coreB1 draws it at up to coreBW, where the
-    // foam under it has reached headF0 to headF1.
-    coreB0: uniform(0.1),
-    coreB1: uniform(0.8),
-    coreBW: uniform(1),
-    headF0: uniform(0.2),
-    headF1: uniform(1.0),
-    // B from foldGate0 to foldGate1 lets the fold here draw, near the camera.
-    foldGate0: uniform(0.02),
-    foldGate1: uniform(0.25),
-    // Where the lace is lost (`farU`): the coverage ramp runs to covFar1;
-    // the strands at farScale times their size tear the foam by farTear;
-    // the coverage is farCov of itself, and farTrough of that off a crest.
-    // farCov 1.2 and farTrough 0.4: at 0.6 and 0.55 the far whitecaps of the
-    // eye-level view were faint grey smears, "no foam on the crests".
-    covFar1: uniform(1.9),
-    farScale: uniform(8),
-    farTear: uniform(0.8),
-    farCov: uniform(1.2),
-    farTrough: uniform(0.4),
-    // The light on foam in a trough, against a crest's 1.06.
-    troughLight: uniform(0.78),
-    // Step side: the breaker lottery's gain (FOAM_LOTTERY_GAIN), and the
-    // share of a fold that lays foam where it is (0: only the breaker lays),
-    // on its own ramp `layLo` to `layHi` (FOAM_FOLD_LAY, FOAM_LAY_LO/HI).
-    lottery: uniform(FOAM_LOTTERY_GAIN),
-    layLo: uniform(FOAM_LAY_LO),
-    layHi: uniform(FOAM_LAY_HI),
-    // How much the breaker's deposit follows the fold under it
-    // (FOAM_LAY_TEX): 0 lays the whole gate blob, 1 lays only where the
-    // crest folds under the breaker.
-    layTex: uniform(FOAM_LAY_TEX),
-    // How much the breaker's seed follows the fold's crackle
-    // (FOAM_SEED_TEX): 0 seeds the smooth gate blob.
-    seedTex: uniform(FOAM_SEED_TEX),
-    seedLo: uniform(FOAM_SEED_LO),
-    seedHi: uniform(FOAM_SEED_HI),
-    // The fold-laid field G's decay a step (FOAM_LAY_TAU_S).
-    layDecay: uniform(Math.exp(-FOAM_DT_S / FOAM_LAY_TAU_S)),
-    // Read side: G's coverage ramp, its cap, and how much its thinness
-    // ages it (holes, the old lace, less light). The cap 0.6 (0.7 in the
-    // sweeps q4 to q10): the reference's masses from above are mid-gray
-    // (the 90th percentile of the judged crop 46 sRGB); at 0.7 ours were
-    // denser (52), at 0.6 46 to 49 (q11).
-    // Round 8: the ramp's top 1.5 (1.2 in round 6, 0.8 from above in
-    // round 7) and the cap 0.9 at every angle: a narrow ramp saturated the
-    // whole mass to one coverage (the "flat stencil" of the round-7
-    // verdict); the wide one grades each mass from a dense core where G
-    // is fresh to a sparse edge where it has faded.
-    layCov0: uniform(0.25),
-    layCov1: uniform(1.5),
-    layCap: uniform(0.9),
-    layAge: uniform(1),
-    // The veil's share of the draw where G carries the body: the
-    // reference's masses are a soft fibrous veil, and the threshold lace
-    // alone drew G as crackle (sweep q4). 0.65 (round 6); 0.8 was no
-    // softer to the eye (q11 D3), and at veilShare (0.25) the masses were
-    // crackle.
-    // 0.35 since round 8 (0.65 in round 6): through the wisp-led fine
-    // texture a lower veil share keeps the masses fibrous, not a haze.
-    // 0.45 in round 9 (r9h V): through the hair the masses are streaky
-    // threads, and a little more veil gives them the reference's soft
-    // body between the threads.
-    layVeil: uniform(0.45),
-    // THE CURL GRAIN (round 6, FOAM_LACE_CURL): 1 draws the curls where
-    // the aligned fibers are narrower than curlPxLo to curlPxHi pixels;
-    // 0 draws the aligned fibers everywhere (round 4).
-    curl: uniform(1),
-    curlPxLo: uniform(FOAM_CURL_PX_LO),
-    curlPxHi: uniform(FOAM_CURL_PX_HI),
-    // Read side: the head's breaking front drawn on the lay ramp, gated by
-    // the breaker as the fold is, at this weight over the fold on the
-    // breaker's ramp (0: round 4, the peak of the fold only). 1 (round 6):
-    // a crackled crest line at the head of each patch from above (0.33%
-    // of the judged pixels, q12), nothing at eye level (0.002%).
-    headLay: uniform(1),
-    // THE VIEW FROM ABOVE (round 7, keyed on `uAbove`, the view's pitch):
-    // the head's disc draws at headAbove of its coverage (1: round 6),
-    // the crest line under the breaker at headLine of full coverage
-    // (0: round 6, the line at the fold's `instW`), and the lace takes
-    // the wisps (FOAM_LACE_WISP) at wisp 1 (0: round 6).
-    // ROUND 8 (GG-311): the pitch-keyed paths ship at their off values;
-    // round 7's values were headAbove 0.5, headLine 0.7, wisp 1,
-    // gCapAbove 0.2, gCov1Above -0.4, gVeilAbove -0.3, bodyAbove 0.5,
-    // dustAbove 0.4 (foam/finalCaptures8.sh sets them for the off-state
-    // check, which reproduces foamR7 to the pixel).
-    headAbove: uniform(1),
-    headLine: uniform(0),
-    wisp: uniform(0),
-    // The wisps take the fringe: their table blends in where the trail's
-    // coverage is under wispC0 to wispC1.
-    wispC0: uniform(0.45),
-    wispC1: uniform(0.85),
-    // G CARRIES THE VIEW FROM ABOVE (round 7, deltas from round 6, each
-    // 0 for round 6 exactly): G's cap, its ramp top and its veil share
-    // from above; how much of the breaker trails' body is taken away
-    // from above; and the crest crackle with no breaker under it, at this
-    // coverage from above (the dusting).
-    // Judged values (round 7, sweep r7e E2): the crop from above then has
-    // 1.67% of its pixels 70 sRGB over the water's median against the
-    // reference's 1.71%, and p99 116 against 111 (foam/lumstats.py).
-    // headLine 0.7 and dustAbove 0.4: at 1 and 0.5 the crest lines drew
-    // as solid white blobs on the lace (r7d E against r7e E2 at 2x).
-    gCapAbove: uniform(0),
-    gCov1Above: uniform(0),
-    gVeilAbove: uniform(0),
-    bodyAbove: uniform(0),
-    dustAbove: uniform(0),
-    // ROUND 8, AT EVERY ANGLE (GG-311: no pitch key), each 0 for round 7
-    // exactly: the crest line under a breaker at lineCov of full coverage;
-    // every crest folding on the lay ramp at dust of full coverage with no
-    // breaker under it (the small breaks); the head's disc shaped by the
-    // fold under it (headShape); the light on thin foam at 1 - tailDim
-    // where the trail's coverage is 0.15, full at tailC1; the fringe's
-    // threshold texture (bubbles and wisps, FOAM_LACE_FRINGE) where the
-    // trail's coverage is under fringeC0 to fringeC1; and the wisps keyed
-    // on the aligned fibers' width on screen instead of the pitch.
-    // Shipped (round 8, sweeps r8a to r8d): lineCov 0.7 and dust 0.5 (at
-    // 0.9 and 1.0 the cores drew as solid white chunks, coverage past
-    // 0.85 being solid by design); headShape 0.6; tailDim 0 (it cost the
-    // eye-level near flecks; the coverage gradient sparses the tails);
-    // fringe 1 where a bubble is under 2.5 px.
-    lineCov: uniform(0.7),
-    dust: uniform(0.5),
-    headShape: uniform(0.6),
-    tailDim: uniform(0),
-    tailC1: uniform(0.9),
-    fringe: uniform(1),
-    fringeC0: uniform(0.3),
-    fringeC1: uniform(0.7),
-    // The fringe draws where a bubble's radius is under fringePx pixels
-    // on screen, off over twice that: from above (1 px) the scatter, on
-    // the near water at eye level (5 to 15 px) the lace's own fibers, as
-    // round 7 drew them.
-    fringePx: uniform(2.5),
-    wispRes: uniform(0),
-    // THE FINE REGIME (round 8, FOAM_LACE_YOUNG_FINE): where the aligned
-    // fibers are under 3 px wide, the wisps carry the grain and the
-    // anti-aliasing is sized to their width. 0: round 7.
-    fine: uniform(1),
-    // ROUND 9: THE HAIR AND THE AGE CLOCK, each 0 for round 8 exactly.
-    // `hair` 1: in the fine regime the threshold texture is the hair
-    // tables (FOAM_LACE_HAIR, its own tile, one fetch) in place of round
-    // 8's fine tables, whose 2 m wisp lattice drew "one large cellular
-    // lace at one scale" from above; `hairFringe` 1: the fringe's texture
-    // is the hair alone (FOAM_LACE_FRINGE_HAIR) where the hair is fetched,
-    // in place of the bubbles, "a uniform speckle stipple".
-    hair: uniform(1),
-    hairFringe: uniform(1),
-    // `ageClock` 1: the store keeps the freshness A (FOAM_AGE_TAU_S), set
-    // where the breaker is (ageB0 to ageB1 of B) and decaying in place;
-    // the read grades by freshA = smoothstep(ageA0, ageA1, A): the light
-    // of the trail's body falls to 1 - ageLight where A is 0 (the cores
-    // keep theirs), its coverage to 1 - ageCov of itself, and its lace
-    // takes the old table by ageTex. Step side: ageClock, ageDecay, ageB0,
-    // ageB1 rebuild the store.
-    // Shipped (round 9, sweeps r9c to r9i): freshA from A 0.05 to 0.7;
-    // the light to 0.65 where old (0.5 left the old windrows too dim
-    // against the reference's soft scatter, r9h against r9i W2); the
-    // coverage to 0.6; the old lace in full.
-    ageClock: uniform(1),
-    ageDecay: uniform(Math.exp(-FOAM_DT_S / FOAM_AGE_TAU_S)),
-    ageB0: uniform(FOAM_AGE_B0),
-    ageB1: uniform(FOAM_AGE_B1),
-    ageA0: uniform(0.05),
-    ageA1: uniform(0.7),
-    // Round 10: 0.5 (0.35 in round 9), with `freshBright` 0.4: old foam
-    // dimmer and fresh foam brighter, the verdicts' "one flat mid-gray".
-    ageLight: uniform(0.5),
-    ageCov: uniform(0.4),
-    ageTex: uniform(1),
-    // THE HEAD TAKES THE CREST'S MASS (round 9, `headG`): the breaker B is
-    // the wind sea's smooth gate blob, 15 to 30 m across on the storm, and
-    // the head drawn at coverage 1 over the whole blob was the "oval" of
-    // every verdict from above (round 7 halved it from above by the pitch
-    // key). The fold-laid G under the head has the crest's own crackled
-    // shape, so the head keeps 1 - headG of itself where G is under
-    // headG0 and all of itself where G is over headG1. 0: round 8.
-    // Shipped 0.8 (r9b to r9i): on its own it moved little, since the
-    // saturated trail body under the head draws anyway, but the head's
-    // rim now follows the crest's mass where the body is torn.
-    headG: uniform(0.8),
-    headG0: uniform(0.15),
-    headG1: uniform(0.6),
-    // OLD FOAM IS TORN INTO WINDROWS (round 9, FOAM_TEAR_ACROSS_M,
-    // `foamTearNoise`): the body's coverage loses up to rowTear of itself
-    // between the streaks where the freshness is gone; the streaks are
-    // where the tear noise is over tearHi, the gaps under tearLo. 0: round 8.
-    // Shipped 0.9: with the halo (below) the old trails from above are
-    // three or four long thin windrows each (sweeps r9f to r9i), the
-    // "long thin windrows" of the round-8 verdict; at 0.7 the gaps were
-    // faint.
-    rowTear: uniform(0.9),
-    tearLo: uniform(-0.3),
-    tearHi: uniform(0.3),
-    // THE BODY AND THE HEAD AT EVERY ANGLE (round 9): the trail's body
-    // (F through its ramp) at bodyScale of its coverage and the head's
-    // disc at headScale, at every angle. Round 7 halved both from above
-    // by the pitch key (GG-311) and the ovals went; a read-side scale
-    // keeps F, so the eye-level near flecks (F 0.5 to 1, under the ramp's
-    // top) stay, lacier. 1 and 1: round 8.
-    bodyScale: uniform(1),
-    headScale: uniform(1),
-    // The age effects act on the whole body after G joins it (1), so G's
-    // backfill under a trail is aged too; G's own density is its clock
-    // (fresh over ageG1, old under ageG0). 0: F's body alone (round 9's
-    // first form).
-    ageOnBody: uniform(0),
-    ageG0: uniform(0.3),
-    ageG1: uniform(1.2),
-    // THE HALO (round 9): F under the body ramp's foot (cov0 0.4), the
-    // spread's skirt round a trail and every trail older than 11 s, drew
-    // nothing, so a patch's outline was the 1 to 2 m band where F
-    // crosses 0.4 (the "oval") and the sea between the patches was bare;
-    // the reference's masses feather over 5 to 15 m of falling filament
-    // density and its water is strewn with sparse old wisps. The halo
-    // draws F from halo0 to halo1 at up to `halo` coverage, the larger of
-    // it and the body's ramp, so F over 0.5 (the eye-level near flecks)
-    // keeps its coverage; through the hair fringe the halo is loose
-    // hairs, and the age clock dims and tears the old ones. 0: round 8.
-    // Shipped 0.5 (r9f to r9i): at 0.4 the old windrows from above were
-    // faint scratches beside the reference's soft scatter; at every
-    // trail (haloOld 0) 0.4 flooded the eye-level near water with lace
-    // (over median+50: 1.35% to 4.6%, sweep r9f), the round-4 "net of
-    // lines", because the near water lies under FRESH trails' skirts.
-    halo: uniform(0.5),
-    halo0: uniform(0.1),
-    halo1: uniform(0.5),
-    // How much of the halo belongs to OLD foam only: at 1 the halo is
-    // (1 - freshness) of itself, so a fresh trail keeps its compact
-    // outline (fresh foam is thick and compact; it spreads as it dies)
-    // and only the dying trails feather and streak. 0: every trail.
-    // Shipped 0.75: a fresh raft keeps a quarter of the halo, a few loose
-    // hairs round its edge, and the eye-level near water is unchanged
-    // (r9i W1 against V: over median+15, 8.12% against 7.90%).
-    haloOld: uniform(0.75),
-    // The hair regime's anti-aliasing is sized to hairAA of the long
-    // hair's width: under 1 the threshold's soft edge widens and the felt
-    // is softer, as the reference's filaments are. Shipped 0.6 (r9h S
-    // against F at 2x: the threads lose their hard edge).
-    hairAA: uniform(0.6),
-    // ROUND 10, each 0 for round 9 exactly (uniform branches).
-    // `cells` 1: where the hair is read (the aligned fibers under 3 px wide
-    // on screen) the threshold texture is the bubble cells and the streaks
-    // (FOAM_LACE_YOUNG_CELLS, FOAM_LACE_OLD_CELLS, FOAM_LACE_FRINGE_CELLS,
-    // the fourth tile) in place of the hair, and the anti-aliasing is sized
-    // to `cellAAm` meters.
-    cells: uniform(1),
-    cellAAm: uniform(0.18),
-    // `warp` m: the store is read at a point moved along the wind by value
-    // noise `warpLenA` m along and `warpLenB` m across (and `warpX` m across
-    // the wind on a coarser noise), so a patch's outline is combed into
-    // strands of its own foam along the wind and its sides are irregular,
-    // in world space; the interior, where F is high all round, keeps its
-    // coverage. 0: round 9.
-    // Shipped (sweeps c1 to c9): 1.5 m along on noise 14 m by 2.5 m and 2 m
-    // across; at 4 m on 8 m by 1.2 m the ends were spiky flames.
-    warp: uniform(1.5),
-    warpX: uniform(2),
-    warpLenA: uniform(14),
-    warpLenB: uniform(2.5),
-    // `freshBright`: the body's light times 1 + freshBright x the
-    // freshness A, so a fresh raft is brighter than an old one by the
-    // foam's own age (the round-9 light fell only for old foam). 0: round 9.
-    freshBright: uniform(0.4),
-    // THE SKIRT (round 10, `skirt`): the reference's masses feather over 5
-    // to 15 m into a see-through veil; ours stopped at the lace threshold's
-    // edge, "hard, thresholded-noise edges". The coarse level's F (2 m
-    // texels, the spread's own blur) from skirt0 to skirt1 draws a veil of
-    // up to `skirt` alpha, grained by the lace (`skirtGrain`), the larger
-    // of it and the drawn lace. 0: round 9.
-    // Shipped (sweeps c3 to c9): 0.45 from F 0.03 to 0.7, grained in full.
-    skirt: uniform(0.45),
-    skirt0: uniform(0.03),
-    skirt1: uniform(0.7),
-    skirtGrain: uniform(1),
-    // How much of the skirt belongs to OLD foam only (the freshness A):
-    // at 1 a fresh raft has none, so the near water at eye level, which lies
-    // under fresh trails, keeps round 9's crisp flecks.
-    // Shipped 0.5: a fresh raft keeps half its skirt.
-    skirtOld: uniform(0.5),
-    // The bubble's radius on screen, px, over which the skirt fades out.
-    // Shipped 1.5 (off by 3 px): at 2.5 the skirt drew a speckled net
-    // over the eye-level water 20 to 40 m out (sweep c7).
-    skirtPx: uniform(1.5),
-    breakerTurn: uniform(FOAM_BREAKER_TURN_RAD),
-    // THE CREST SEGMENT (round 7, FOAM_SEG_*): the gate's argument is cut
-    // by up to segDepth where the segment field (fine across the wind at
-    // segAcross m, coarse along it at segAlong m, in the breakers' frame)
-    // is under segLo, uncut over segHi. 0 leaves the store as round 6.
-    segDepth: uniform(FOAM_SEG_DEPTH),
-    segLo: uniform(FOAM_SEG_LO),
-    segHi: uniform(FOAM_SEG_HI),
-    segAcross: uniform(FOAM_SEG_ACROSS_M),
-    segAlong: uniform(FOAM_SEG_ALONG_M),
-    // THE CURVE (round 7, FOAM_BREAKER_CURVE_RAD): the heading's term read
-    // in label space, so a trail bends along its run. 0: round 6.
-    curve: uniform(FOAM_BREAKER_CURVE_RAD),
-    // Each breaker's own life, as a power of two on the lottery noise
-    // (FOAM_BREAKER_LIFE_VAR): 0 gives every breaker the same life.
-    lifeVar: uniform(FOAM_BREAKER_LIFE_VAR),
-    // The deposit's power on the breaker's strength (FOAM_DEPOSIT_POW).
-    depositPow: uniform(FOAM_DEPOSIT_POW),
-    inPlace: uniform(FOAM_FOLD_LAY),
-    // The veil's share of the drawn foam: FOAM_VEIL_SHARE.
-    veilShare: uniform(FOAM_VEIL_SHARE),
-    // AT A GRAZING VIEW A WHITECAP IS A VEIL (round 4, second pass). Seen
-    // from eye level a breaking crest is a churning mass of bubbles, not a
-    // lace lying flat, and the reference draws its mid-distance whitecaps
-    // as soft streaky white on the crest face; ours drew a crisp lace
-    // lozenge there, "stickers lying on the sea" (a round-3 judge). Where
-    // the footprint is grazeLo to grazeHi times longer than wide, the veil
-    // takes veilGraze of the draw. From above the ratio is near 1 (72
-    // degrees down: 1.05), on the near water at eye level under 2, at the
-    // mid distance about 6.
-    veilGraze: uniform(0.75),
-    grazeLo: uniform(2.5),
-    grazeHi: uniform(5),
-    // The most coverage a pixel reaches. The reference's densest foam keeps
-    // dark specks; at 1 the lace goes solid (`foamLaceAlpha` at c = 1).
-    cScale: uniform(0.85),
-    // THE HEAD IS SOLID (round 4, second pass): at coreFull 1 the head's
-    // coverage runs past cScale to 1, so the breaking front is a near-opaque
-    // white with the clump's few specks, and coreBright lifts its light over
-    // the trail's. Both round-3 judges asked for "a near-opaque white core
-    // at the breaking front" that thins downwind.
-    coreFull: uniform(1),
-    coreBright: uniform(1.2),
-    deficitLo: uniform(FOAM_DEFICIT_LO),
-    deficitHi: uniform(FOAM_DEFICIT_HI),
-    decay: uniform(Math.exp(-FOAM_DT_S / FOAM_TAU_S)),
-    breakerDecay: uniform(Math.exp(-FOAM_DT_S / FOAM_BREAKER_TAU_S)),
-    residualDecay: uniform(Math.exp(-FOAM_DT_S / FOAM_RESIDUAL_TAU_S)),
-    residualYield: uniform(FOAM_RESIDUAL_YIELD),
-    diffusion: uniform(FOAM_DIFFUSION_M2S),
-    prodPerStep: uniform(FOAM_PRODUCTION_PER_S * FOAM_DT_S),
-    fMax: uniform(FOAM_MAX),
-    // Read side.
-    deckRatio: uniform(FOAM_DECK_RATIO),
-    // Weight of the active fold drawn at the pixel's own resolution, over
-    // the store. At 1 the fold drew solid single-pixel flecks (the
-    // 'confetti' of GG-280); the store carries the crest a step later.
-    instW: uniform(0.5),
-    instFar: uniform(0.6),
-    // The Beaufort streaks between whitecaps: at 1 they hatched the whole
-    // dark water from above, where the reference shows sparse specks. 0.4
-    // (round 4, and round 6 again; round 5 tried 0.25 and its judge from
-    // above then found "the sea between the patches is dead flat with zero
-    // residual foam or wind streaks").
-    streakW: uniform(0.4),
-    // The windrow lines: their half-width on the |noise| ridge, and how much
-    // more foam a line holds than the mean.
-    rowWidth: uniform(0.25),
-    rowBoost: uniform(1.5),
-    // 1 draws the surface's old fold-only ramp and skips the whole read:
-    // the perf probe's A/B (see `shade`).
-    bypass: uniform(0),
-    instWiden: uniform(0.15),
-    // THE ROUND-5 CONTROLS (see `shade`), ALL OFF SINCE ROUND 6: thin foam
-    // ages (`ageThin`), is torn into islands and holes by the clump channel
-    // at `tearScale` times its size (`tear` of the coverage; dense foam
-    // `tearDense` as much), the core's rim crumbles on the crackle net
-    // (`headTear`), and a fold with no breaker under it draws `foldFree`.
-    // Round 5 shipped them at 1, 0.3, 1, 0.3, 0.5, 0.6 and 0.6, and lost
-    // both judged views; round 6 restored round 4 (all 0) as its base and
-    // works on the source instead (`foldLay`). The paths stay for a probe.
-    ageThin: uniform(0),
-    tailOld: uniform(0.3),
-    tear: uniform(0),
-    tearDense: uniform(0.3),
-    tearScale: uniform(0.5),
-    headTear: uniform(0),
-    foldFree: uniform(0),
-    // Whether the core (the head and the fold here) takes the clump's
-    // `mid` and the net's `holes` with the trail (1, round 4) or stays a
-    // whole mass outside them (0, round 5: "copy-like teardrop blobs").
-    coreMod: uniform(1),
-    // The brightness of old thin foam against fresh (1), and of the
-    // texture's holes against its fibers. 0.7 and 0.8 (round 4): at 0.55
-    // and 0.72 the old fibers were a dull grey beside the reference's white
-    // specks; the fade from fresh to old stays.
-    brightThin: uniform(0.7),
-    texBright: uniform(0.8),
-    // Half-width of the lace's soft edge, on the uniform texture value:
-    // the reference's filaments are crisp at 0.15 m a pixel and soft enough
-    // not to alias. 0.3 drew a smooth veil; 0.1 a hard stencil.
-    edge: uniform(0.08),
-    // How much the edge widens per pixel footprint in dot widths: the
-    // anti-aliasing. 0.3 smoothed the lace to a veil at 0.15 m a pixel,
-    // where the reference sparkles.
-    aa: uniform(0.1),
-    // 0 shipped; the others draw one term as the alpha, see `shade`.
-    debug: uniform(0),
-    // THE REEF (rocks round 2, folded in by foam round 10): the
-    // depth-limited breaking share's weight, read only where the sea has a
-    // shelf (oceanBathymetry.ts). 0.4 by the rocks builder's measure: at 1
-    // the whole shelf 14 m in front of the daylight camera drew as solid
-    // blotches of white, where the references (sl_002 to sl_004, k2) show
-    // white water at the rock and its flanks and streaks beyond
-    // (rocks/reefProbe.mjs, gains 1, 0.4 and 0.15).
-    reefGain: uniform(0.4),
-  };
+  // Field and reader keep sharing the original live control objects.
+  const tune = createFoamControls(FOAM_DECK_RATIO);
 
   // THE REEF (rocks round 2): the sea's one depth description.
   const bathy = oceanBathymetryFor(bufs);
@@ -1349,7 +808,37 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
       const held = (tx: TslNode, tz: TslNode): TslNode => tx.greaterThanEqual(px).and(tx.lessThan(px.add(int(n))))
         .and(tz.greaterThanEqual(pz)).and(tz.lessThan(pz.add(int(n)))).and(fresh.not());
       const cellOf = (tx: TslNode, tz: TslNode): TslNode => bitAnd(tz, int(n - 1)).mul(int(n)).add(bitAnd(tx, int(n - 1)));
-      const own = select(held(wx, wz), cur.element(i), vec4(0, 0, 0, 0)).toVar();
+      // Rocks round 13: THE FOAM MOVES WITH THE WATER UNDER IT. With no source that knows the water's
+      // velocity (compile time) this is the texel's own value, as before.
+      let flowVel: TslNode = null;
+      {
+        const xv = vec2(float(wx).add(0.5), float(wz).add(0.5)).mul(float(level.texelM)).add(uDrift.mul(uStepT));
+        for (const src of srcs) {
+          if (!src.velocityAt) continue;
+          const v = src.velocityAt(xv, uStepT);
+          flowVel = flowVel === null ? v : flowVel.add(v);
+        }
+      }
+      const ownHere = select(held(wx, wz), cur.element(i), vec4(0, 0, 0, 0));
+      let flowMoving: TslNode = null; let flowFx: TslNode = null; let flowFz: TslNode = null; let flowIx: TslNode = null; let flowIz: TslNode = null;
+      let ownRead: TslNode = ownHere;
+      if (flowVel !== null) {
+        const fv = flowVel.toVar();
+        const ax = float(wx).sub(fv.x.mul(FOAM_DT_S / level.texelM));
+        const az = float(wz).sub(fv.y.mul(FOAM_DT_S / level.texelM));
+        const fx0 = floor(ax); const fz0 = floor(az);
+        flowFx = ax.sub(fx0); flowFz = az.sub(fz0);
+        flowIx = int(fx0); flowIz = int(fz0);
+        const at4 = (tx: TslNode, tz: TslNode): TslNode => select(held(tx, tz), cur.element(cellOf(tx, tz)), vec4(0, 0, 0, 0));
+        const bil = mix(
+          mix(at4(flowIx, flowIz), at4(flowIx.add(int(1)), flowIz), flowFx),
+          mix(at4(flowIx, flowIz.add(int(1))), at4(flowIx.add(int(1)), flowIz.add(int(1))), flowFx),
+          flowFz,
+        );
+        flowMoving = fv.length().greaterThan(float(1e-3));
+        ownRead = select(flowMoving, bil, ownHere);
+      }
+      const own = ownRead.toVar();
       // THE SPREAD (FOAM_DIFFUSION_M2S, `foamDiffusionK`): F and R diffuse
       // over the four neighbors; a neighbor outside the held window counts
       // as this texel, so no foam flows across the window's edge.
@@ -1439,6 +928,25 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
         srcS = srcS === null ? v.x : max(srcS, v.x);
         srcA = srcA === null ? v.y : max(srcA, v.y);
       }
+      // THE SOURCES' BREAKERS (round 11, law 1; `OceanFoamBreaker`). Compile
+      // time: with no source that gives one, no node, and the kernel below is
+      // round 10's. Several: the largest cover, breaking and ownership, and
+      // the velocity of the source that owns the most.
+      let rCov: TslNode = null;
+      let rBrk: TslNode = null;
+      let rOwn: TslNode = null;
+      let rVel: TslNode = null;
+      for (const src of srcs) {
+        if (src.breakerAt === undefined) continue;
+        const r = src.breakerAt(xc, uStepT);
+        const o = clamp(r.own, float(0), float(1)).toVar();
+        if (rOwn === null) {
+          rCov = r.cover; rBrk = r.breaking; rOwn = o; rVel = r.velocity;
+        } else {
+          rVel = select(o.greaterThan(rOwn), r.velocity, rVel);
+          rCov = max(rCov, r.cover); rBrk = max(rBrk, r.breaking); rOwn = max(rOwn, o);
+        }
+      }
       // `foamBreakerStep` and `foamStep`: the breaker keeps the stronger of
       // its own decayed self and the fold under it, and lays foam down.
       // THE BREAKER'S OWN LIFE (round 5, `foamBreakerLifeDecay`): its decay
@@ -1453,7 +961,45 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
         tune.breakerDecay.pow(exp2(tune.lifeVar.mul(lot).negate())),
         tune.breakerDecay,
       );
-      const bNew = max(bOld.mul(bDecayHere), s.y);
+      // The sea's own breaker law (`foamBreakerStep`).
+      const bSea = max(bOld.mul(bDecayHere), s.y);
+      let bNew: TslNode = bSea;
+      let fFloor: TslNode = null;
+      if (rOwn !== null) {
+        // ROUND 11, A SOURCE LAYS AN ACTIVE BREAKER (law 1). Where the source
+        // owns the breaking, B is its roller (`foamSourceBreakerLaw`): while
+        // the waves break, the roller's cover on the crest's face, tied to
+        // the crest's own phase, so it does not trail behind its crest; where
+        // they no longer break (the crest has left the bar) the roller runs
+        // on with its crest at the crest's OWN speed, read one step upstream
+        // along the source's velocity (on the bar the shallow speed
+        // sqrt(g (h + H)), not the deep peak's speed the sea's B uses), and
+        // dies by its own dissipation, e^(-dt beta g / c)
+        // (`foamRollerCoverTauS`: 3.4 s on the bar, not FOAM_BREAKER_TAU_S).
+        const vel = vec2(rVel).toVar();
+        const cMs = max(vel.length(), float(0.3));
+        const sUx = float(wx).sub(vel.x.sub(uDrift.x).mul(FOAM_DT_S / level.texelM));
+        const sUz = float(wz).sub(vel.y.sub(uDrift.y).mul(FOAM_DT_S / level.texelM));
+        const sbx = floor(sUx);
+        const sbz = floor(sUz);
+        const sfx = sUx.sub(sbx);
+        const sfz = sUz.sub(sbz);
+        const six = int(sbx);
+        const siz = int(sbz);
+        const bUpSrc = mix(
+          mix(bAt(six, siz), bAt(six.add(int(1)), siz), sfx),
+          mix(bAt(six, siz.add(int(1))), bAt(six.add(int(1)), siz.add(int(1))), sfx),
+          sfz,
+        );
+        const decR = exp(float(-FOAM_DT_S * FOAM_ROLLER_BETA * 9.81).div(cMs));
+        const brk = clamp(rBrk, float(0), float(1));
+        const bSrc = max(rCov, float(1).sub(brk).mul(bUpSrc).mul(decR)).toVar();
+        const ownK = rOwn.mul(tune.srcBreaker).toVar();
+        bNew = mix(bSea, bSrc, ownK);
+        // THE ROLLER IS AERATED WATER (`foamRollerFoamFloor`): the foam
+        // under it hides the water from birth (F 1, the store's unit).
+        fFloor = bSrc.mul(ownK).mul(tune.rollerFoam);
+      }
       const fKept = fOld.mul(tune.decay);
       // FOAM IS LAID BY THE BREAKER (round 4), which runs with its crest, so
       // every patch is a trail; AND BY THE FOLD IN PLACE (round 6, `lay` on
@@ -1475,7 +1021,8 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
       // FOAM_LAY_TEX): at layTex 0 the product is bPow itself (x 1).
       const bLay = bPow.mul(float(1).sub(tune.layTex).add(tune.layTex.mul(lay)));
       const layHere = srcS === null ? max(bLay, stampV) : max(max(bLay, stampV), srcS);
-      const fNew = min(fKept.add(tune.prodPerStep.mul(layHere)), tune.fMax);
+      const fLaid = min(fKept.add(tune.prodPerStep.mul(layHere)), tune.fMax);
+      const fNew = fFloor === null ? fLaid : max(fLaid, fFloor);
       // THE FOLD-LAID FOAM G (round 6, `foamLayStep`): its own fade, laid
       // where the crest folds at `inPlace` of the rate, no transport.
       const gOld = own.w;
@@ -1491,7 +1038,17 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
       // display's z was 0 before, so the off state is unchanged.
       const aNew = float(0).toVar();
       If(tune.ageClock.greaterThan(float(0)), () => {
-        const aOld = select(held(wx, wz), curA.element(i), float(0));
+        let aOld: TslNode = select(held(wx, wz), curA.element(i), float(0));
+        // Rocks round 13: the age clock is carried with the foam (THE FOAM MOVES WITH THE WATER UNDER IT).
+        if (flowMoving !== null) {
+          const atA = (tx: TslNode, tz: TslNode): TslNode => select(held(tx, tz), curA.element(cellOf(tx, tz)), float(0));
+          const bilA = mix(
+            mix(atA(flowIx, flowIz), atA(flowIx.add(int(1)), flowIz), flowFx),
+            mix(atA(flowIx, flowIz.add(int(1))), atA(flowIx.add(int(1)), flowIz.add(int(1))), flowFx),
+            flowFz,
+          );
+          aOld = select(flowMoving, bilA, aOld);
+        }
         const aB = max(aOld.mul(tune.ageDecay), smoothstep(tune.ageB0, tune.ageB1, bNew));
         aNew.assign(srcA === null ? aB : max(aB, srcA));
         nxtA.element(i).assign(aNew);
@@ -1521,9 +1078,13 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
   // A read-only storage buffer, filled at construction and never written
   // again. A float texture would need the float32-filterable feature, and a
   // texture sample inside the lace's branch would need uniform control flow.
-  const deckAttr = new THREE.StorageBufferAttribute(new Float32Array(1), 1);
-  const deckRW = storage(deckAttr, 'float', 1);
-  const deckRO = storage(deckAttr, 'float', 1).toReadOnly();
+  // Four cells (round 11): the storm deck's radiance (GG-280); under a
+  // stratus deck (law 2) the dome's irradiance over pi, the sun's
+  // unscattered irradiance on a face square to it over pi, and 1 while the
+  // deck is on (0 taken off at run time).
+  const deckAttr = new THREE.StorageBufferAttribute(new Float32Array(4), 1);
+  const deckRW = storage(deckAttr, 'float', 4);
+  const deckRO = storage(deckAttr, 'float', 4).toReadOnly();
   // Five tables, one after the other: the young lace's, the old lace's,
   // the young lace's with the curl grain (round 6), and the young and old
   // laces from above, with the curls and the wisps (round 7).
@@ -1560,51 +1121,6 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
   const streakMean = cellsMeans.streak ?? 0;
   const cdfAttr = new THREE.StorageBufferAttribute(cdfAll, 1);
   const cdfRO = storage(cdfAttr, 'float', cdfAll.length).toReadOnly();
-
-  /* --- the read -------------------------------------------------------- */
-
-  /** Bilinear read of one level at a foam-frame point, and its window weight. */
-  /**
-   * The display texture of a level at a foam-frame point: (F, R, gain,
-   * wind-sea fold) filtered, and the window weight `w`. Sampled at level 0:
-   * the texture has no mips, and the read fades the fine level out before
-   * its texels are much finer than the pixel.
-   */
-  const sampleDisplay = (lv: LevelGpu, y: TslNode): { t: TslNode; uv: TslNode; w: TslNode } => {
-    const n = lv.level.n;
-    const q = y.div(float(lv.level.texelM));
-    const uv = q.div(float(n)).toVar();
-    const t = texture(lv.dispTex, uv).level(float(0));
-    const lo = q.sub(float(0.5)).sub(vec2(lv.uOrigin.x, lv.uOrigin.y));
-    const edge = min(min(lo.x, lo.y), min(float(n - 2).sub(lo.x), float(n - 2).sub(lo.y)));
-    return { t, uv, w: smoothstep(float(0), float(24), edge) };
-  };
-
-  /** `f` is the vec2 (F, R) there times `w`, the window weight. */
-  const readLevel = (lv: LevelGpu, y: TslNode): { f: TslNode; w: TslNode } => {
-    const n = lv.level.n;
-    const q = y.div(float(lv.level.texelM)).sub(float(0.5));
-    const b = floor(q);
-    const fr = q.sub(b);
-    const ix = int(b.x);
-    const iz = int(b.y);
-    const m = int(n - 1);
-    const at = (xi: TslNode, zi: TslNode) => {
-      const v4 = lv.ro.element(bitAnd(zi, m).mul(int(n)).add(bitAnd(xi, m)));
-      return vec2(v4.x, v4.z);
-    };
-    const v = mix(
-      mix(at(ix, iz), at(ix.add(int(1)), iz), fr.x),
-      mix(at(ix, iz.add(int(1))), at(ix.add(int(1)), iz.add(int(1))), fr.x),
-      fr.y,
-    );
-    // Texels from the window's nearest edge; the level fades out over the
-    // outer 24 texels, and is 0 outside, where its cells hold other water.
-    const lo = q.sub(vec2(lv.uOrigin.x, lv.uOrigin.y));
-    const edge = min(min(lo.x, lo.y), min(float(n - 2).sub(lo.x), float(n - 2).sub(lo.y)));
-    const w = smoothstep(float(0), float(24), edge);
-    return { f: v.mul(w), w };
-  };
 
   // The lace in the wind's frame.
   const wA = vec2(windDir.x, windDir.y);
@@ -1966,620 +1482,8 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
     return mix(cdfRO.element(ik), cdfRO.element(ik.add(int(1))), tk);
   };
 
-  const reader: OceanFoamReader = {
-    coverageAt(sample) {
-      const y = sample.sub(uDrift.mul(uReadT));
-      const r0 = readLevel(levels[0], y);
-      const r1 = readLevel(levels[1], y);
-      const f = mix(r1.f.x, r0.f.x.div(max(r0.w, float(1e-4))), r0.w);
-      return smoothstep(tune.cov0, tune.cov1, f).mul(tune.cScale);
-    },
-    shade({ sample, deficit, longM, shortM }) {
-      // THE PERF PROBE'S BYPASS: `bypass` over 0.5 draws the surface's old
-      // fold-only ramp and skips every read below, so one page can time the
-      // frame with and without the foam read (a uniform branch; the GPU
-      // skips it whole).
-      const alphaV = float(0).toVar();
-      const brightV = float(1).toVar();
-      If(tune.bypass.lessThan(float(0.5)), () => {
-      // The fragment in the drifting foam frame.
-      const y = sample.sub(uDrift.mul(uReadT)).toVar();
-      const yA = y.dot(wA).toVar();
-      const yB = y.dot(wB).toVar();
-
-      // THE STORE: (F, R, B, gain), the fine level where it holds this water
-      // and the pixel is not much coarser than its texel, else the coarse.
-      // THE STORE'S READ POINT (round 10, `warp`): moved along the wind by
-      // streaky value noise, so the outline is combed into strands. At
-      // warp 0 it is y exactly.
-      const yS = y.toVar();
-      If(tune.warp.greaterThan(float(0)).or(tune.warpX.greaterThan(float(0))), () => {
-        const n1 = valueNoise(yA.div(tune.warpLenA), yB.div(tune.warpLenB), FOAM_WARP_SALT);
-        const n2 = valueNoise(yA.div(tune.warpLenA.mul(0.45)).add(3.7), yB.div(tune.warpLenB.mul(0.5)).add(1.3), FOAM_WARP_SALT + 1);
-        const n3 = valueNoise(yA.div(tune.warpLenA.mul(1.5)).add(7.1), yB.div(tune.warpLenB.mul(4)).add(5.9), FOAM_WARP_SALT + 2);
-        yS.addAssign(wA.mul(n1.add(n2.mul(0.5)).mul(tune.warp)).add(wB.mul(n3.mul(tune.warpX))));
-      });
-      const d0 = sampleDisplay(levels[0], yS);
-      const d1 = sampleDisplay(levels[1], yS);
-      const t0 = FOAM_LEVELS[0].texelM;
-      const fineW = d0.w.mul(float(1).sub(smoothstep(float(t0 * 2), float(t0 * 6), longM))).toVar();
-      const both = mix(d1.t.xy.mul(d1.w), d0.t.xy, fineW).toVar();
-      const fAmt = both.x;
-      // The fold-laid foam G here (round 6), the same level blend. The
-      // two fetches run only while the fold lays (`inPlace` over 0): a
-      // uniform branch, as the read's `bypass` is, so the share at 0 costs
-      // nothing and an ablation can time G's fetches alone.
-      const gAmt = float(0).toVar();
-      // THE FRESHNESS A (round 9, `ageClock`): the same fetch's z, the
-      // level blend G's. 0 where the clock is off.
-      const aAmt = float(0).toVar();
-      If(tune.inPlace.greaterThan(float(0)), () => {
-        const g1 = texture(levels[1].dispTex2, d1.uv).level(float(0));
-        const g0 = texture(levels[0].dispTex2, d0.uv).level(float(0));
-        gAmt.assign(mix(g1.x.mul(d1.w), g0.x, fineW));
-        If(tune.ageClock.greaterThan(float(0)), () => {
-          aAmt.assign(mix(g1.z.mul(d1.w), g0.z, fineW));
-        });
-      });
-      // How fresh the foam here is, 0 old to 1 laid by a breaker within
-      // the last moments (`foamAgeStep`): the read's world-space clock.
-      const freshA = smoothstep(tune.ageA0, tune.ageA1, aAmt).toVar();
-      // The whole body's freshness (`ageOnBody`): the breaker's clock or
-      // G's own density, whichever says fresher.
-      const freshW = max(freshA, smoothstep(tune.ageG0, tune.ageG1, gAmt)).toVar();
-      const held = max(d0.w, d1.w);
-      const gainHere = mix(float(1), mix(d1.t.w, d0.t.w, d0.w), held);
-      const breakerHere = mix(float(0), mix(d1.t.z, d0.t.z, d0.w), held).toVar();
-      // AGE, 0 fresh to 1 old: the share of the foam here that is residual,
-      // the part F has already lost (`foamResidualStep`). Under a passing
-      // breaker F grows and R is small; behind it F drains into R.
-      const age = both.y.div(fAmt.add(both.y).add(0.03)).toVar();
-
-      // THE WINDROWS (FOAM_WINDROW_SPACING_M): old foam is swept by the
-      // Langmuir cells into lines along the wind; the residual and the
-      // streaks between whitecaps gather there.
-      const rows = valueNoise(yA.div(FOAM_WINDROW_SPACING_M * FOAM_WINDROW_STRETCH), yB.div(FOAM_WINDROW_SPACING_M), FOAM_SALT_WINDROW).abs();
-      const rowsK = float(1).sub(smoothstep(float(0), tune.rowWidth, rows));
-      const rowsGain = mix(float(1 - FOAM_WINDROW_DEPTH), float(1).add(tune.rowBoost), rowsK);
-
-      // THE THREE KINDS OF FOAM (round 4). Both round-3 judges asked for
-      // foam "born on the crests as a bright core" that "ages downwind into
-      // stretched, fraying lace".
-      //   core:  the crest breaking now, where the surface folds and the
-      //          store holds an active breaker. Near-opaque and bright.
-      //   trail: what the breaker laid down behind it (F), a lace whose
-      //          texture ages from fine to holes and strands.
-      //   old:   the residual on the windrows and the Beaufort streaks
-      //          between whitecaps, thin strands only.
-      const far = smoothstep(float(0.5), float(4), longM).toVar();
-      // THE WAVE HERE, from the wind sea and the swell: the height over Hs
-      // (`crest`, 0 in a trough to 1 on a crest) and the slope, for where a
-      // whitecap sits and how its foam is lit.
-      const hW = samplerR.sampleCascade(samplerR.disp, sample, windIdx, windSea.patchM).y;
-      const nW = samplerR.sampleCascade(samplerR.norm, sample, windIdx, windSea.patchM);
-      let hSum: TslNode = hW;
-      let slope: TslNode = vec2(nW.x, nW.y).div(max(nW.z, float(0.3)));
-      if (swellIdx !== null) {
-        hSum = hSum.add(samplerR.sampleCascade(samplerR.disp, sample, swellIdx, cascades[swellIdx].patchM).y);
-        const nS = samplerR.sampleCascade(samplerR.norm, sample, swellIdx, cascades[swellIdx].patchM);
-        slope = slope.add(vec2(nS.x, nS.y).div(max(nS.z, float(0.3))));
-      }
-      const crest = smoothstep(float(-0.4), float(0.7), hSum.div(float(hsM))).toVar();
-      const upness = float(1).div(sqrt(float(1).add(slope.dot(slope))));
-      const g = gainHere;
-      // THE FAR CREST IS A MEAN: its ramp widens with the footprint.
-      const iLo = tune.deficitLo.sub(far.mul(tune.instWiden));
-      const iHi = tune.deficitHi.add(far.mul(tune.instWiden));
-      // Near the camera a fold of the ripple alone is micro-breaking, the
-      // 'confetti' of GG-280: the core draws only where the store holds an
-      // active breaker, which the wind sea's own fold starts. Far out, where
-      // the ripple is gone, the gate opens.
-      // `foldGate0` to `foldGate1` of B: at 0.02 to 0.25 (round 3) every
-      // ripple crest inside a breaker's patch drew, a white scribble over
-      // the near water at eye level.
-      // `foldFree` (round 5): a fold with no breaker under it still draws a
-      // little, the dusting of single bits the reference strews over its
-      // crests; the mass of the fold still needs the breaker.
-      const gateHere = mix(max(smoothstep(tune.foldGate0, tune.foldGate1, breakerHere), tune.foldFree), float(1), far);
-      // THE CORE is the crest folding here now: the surface's own fold at
-      // this pixel's resolution, the breaking front. It joins the lace's
-      // coverage at up to `instW`, so the front is the densest, brightest
-      // fibers of its patch and frays the way the patch does. Drawn as a
-      // separate opaque layer (round 4, first try) it pasted flat grey chips
-      // with hard rims onto the fibers.
-      // THE FRONT ON THE LAY RAMP (round 6, `headLay`): the crest folding
-      // under the breaker along its whole line, not only its peak, so a
-      // head carries a crest line and a dense breaking edge. max(x, 0) at
-      // headLay 0: round 4 exactly.
-      const lLo = tune.layLo.sub(far.mul(tune.instWiden));
-      const lHi = tune.layHi.add(far.mul(tune.instWiden));
-      const coreLay = smoothstep(lLo, lHi, deficit.mul(g)).mul(gateHere).mul(tune.headLay);
-      const coreFold = max(smoothstep(iLo, iHi, deficit.mul(g)).mul(gateHere), coreLay);
-      const instW = mix(tune.instW, tune.instW.mul(tune.instFar), far);
-      // Near the camera the wind sea's texel (its patch over the grid, 0.38 m
-      // in the storm) spans many pixels, and a threshold on its bilinear fold
-      // drew triangles and diamonds on the near water at eye level. The fold
-      // fades where the pixel is under a quarter of that texel.
-      const windTexelM = windSea.patchM / bufs.n;
-      const magK = smoothstep(float(windTexelM * 0.1), float(windTexelM * 0.25), shortM);
-      const cFold = coreFold.mul(instW).mul(magK).toVar();
-      // THE CREST LINE FROM ABOVE (round 7, `headLine`): the fold on the
-      // lay ramp under the breaker at up to headLine of full coverage in a
-      // view from above, over the fold's `instW` share. Uniform branch.
-      If(tune.headLine.greaterThan(float(0)).and(uAbove.greaterThan(float(0))), () => {
-        cFold.assign(max(cFold, coreLay.mul(tune.headLine).mul(uAbove).mul(magK)));
-      });
-      // THE DUSTING (round 7, `dustAbove`): from above, every crest
-      // folding on the lay ramp draws, breaker or none, at dustAbove of
-      // full coverage: the crest lines of every fold and the single bits
-      // the reference strews over its water. (Near the camera at eye
-      // level the same fold is the confetti of GG-280, so it stays gated
-      // there.) Uniform branch.
-      If(tune.dustAbove.greaterThan(float(0)).and(uAbove.greaterThan(float(0))), () => {
-        cFold.assign(max(cFold, smoothstep(lLo, lHi, deficit.mul(g)).mul(tune.dustAbove).mul(uAbove).mul(magK)));
-      });
-      // ROUND 8, AT EVERY ANGLE: the crest line under a breaker at
-      // `lineCov` (the verdict's "bright, crisp break line along a
-      // crest"), and every crest folding on the lay ramp at `dust` with
-      // no breaker under it (the small crest breaks between the big
-      // patches; `magK` keeps GG-280's confetti off the near water).
-      If(tune.lineCov.greaterThan(float(0)), () => {
-        cFold.assign(max(cFold, coreLay.mul(tune.lineCov).mul(magK)));
-      });
-      If(tune.dust.greaterThan(float(0)), () => {
-        cFold.assign(max(cFold, smoothstep(lLo, lHi, deficit.mul(g)).mul(tune.dust).mul(magK)));
-      });
-      // THE HEAD: the whitecap the store's breaker marks around that front.
-      // B spans the breaking crest's width and runs with it. The head is
-      // drawn by the same lace as its trail, at high coverage, so it is
-      // dense white with dark specks and its edge frays into the trail as B
-      // falls off. Drawn as a separate opaque layer (round 4, first try) it
-      // was a smooth white blob on the lace: the "sprite decal" of round 3.
-      // Far out (farT) the head fades to the trail alone: there B's patch
-      // drew a flat white oval, "patches of snow or stickers lying on the
-      // sea" (a round-3 judge), where the trail and the fold here draw a
-      // soft veil with a broken bright crest.
-      const farT = smoothstep(float(1.5), float(8), longM).toVar();
-      // (Read from the coarse level's B instead, round 4, the head's rim was
-      // no softer from above, and the 2 m texels drew bilinear diamonds on
-      // the near water at eye level.) The head needs foam under it (F from `headF0` to `headF1`): a
-      // breaker just born is a fold and nothing more, and its B alone drew a
-      // round patch the size of its gate.
-      const cHead = smoothstep(tune.coreB0, tune.coreB1, breakerHere).mul(tune.coreBW).mul(float(1).sub(farT))
-        .mul(smoothstep(tune.headF0, tune.headF1, fAmt)).toVar();
-      // THE HEAD FROM ABOVE (round 7, `headAbove`): the disc at headAbove
-      // of its coverage in a view from above (`uAbove`), so the crest line
-      // shows through it (round 4's disc was the smooth oval's head from
-      // above; at eye level it is the churning mass the judges praised).
-      // Uniform branch: at headAbove 1 or from eye level, round 6 exactly.
-      If(tune.headAbove.lessThan(float(1)).and(uAbove.greaterThan(float(0))), () => {
-        cHead.mulAssign(mix(float(1), tune.headAbove, uAbove));
-      });
-      // THE HEAD TAKES THE CREST'S SHAPE (round 8, `headShape`): the disc
-      // keeps 1 - headShape of itself where the crest is not folding
-      // under it now, all of itself where it is, so a head is the fold's
-      // line with a softer disc around it, at every angle.
-      If(tune.headShape.greaterThan(float(0)), () => {
-        cHead.mulAssign(mix(float(1).sub(tune.headShape), float(1), smoothstep(lLo, lHi, deficit.mul(g))));
-      });
-      // THE HEAD TAKES THE CREST'S MASS (round 9, `headG`): the disc keeps
-      // 1 - headG of itself where the fold-laid G is low. Uniform branch.
-      If(tune.headG.greaterThan(float(0)), () => {
-        cHead.mulAssign(mix(float(1).sub(tune.headG), float(1), smoothstep(tune.headG0, tune.headG1, gAmt)));
-      });
-      If(tune.headScale.lessThan(float(1)), () => {
-        cHead.mulAssign(tune.headScale);
-      });
-      // Far out the ramp runs to `covFar1`, so a far trail thins all along
-      // its length from the head instead of lying flat white for most of it.
-      const cov1 = mix(tune.cov1, tune.covFar1, farT);
-      // THE TRAIL'S BODY is the store's F through the coverage ramp; the
-      // CORE is the head and the fold here. Kept apart (round 5): the body
-      // is aged and torn, the core stays a whole mass.
-      // THE FOLD-LAID FOAM (round 6) joins the body: G through its own ramp
-      // and cap, so a crest's fold lies as a mass of the crest's own shape
-      // at every size, and thins in place as G fades. At G 0: round 4.
-      // G FROM ABOVE (round 7): its cap, ramp top and veil share take
-      // their deltas in a view from above; the trails' body gives up
-      // `bodyAbove` of itself there. Each a uniform branch on its delta.
-      const layCapH = tune.layCap.toVar();
-      const layCov1H = tune.layCov1.toVar();
-      const layVeilH = tune.layVeil.toVar();
-      If(uAbove.greaterThan(float(0)), () => {
-        If(tune.gCapAbove.abs().greaterThan(float(0)), () => { layCapH.addAssign(tune.gCapAbove.mul(uAbove)); });
-        If(tune.gCov1Above.abs().greaterThan(float(0)), () => { layCov1H.addAssign(tune.gCov1Above.mul(uAbove)); });
-        If(tune.gVeilAbove.abs().greaterThan(float(0)), () => { layVeilH.addAssign(tune.gVeilAbove.mul(uAbove)); });
-      });
-      const cLay = smoothstep(tune.layCov0, layCov1H, gAmt).mul(layCapH).toVar();
-      const cBodyF = smoothstep(tune.cov0, cov1, fAmt).toVar();
-      If(tune.bodyAbove.greaterThan(float(0)).and(uAbove.greaterThan(float(0))), () => {
-        cBodyF.mulAssign(float(1).sub(tune.bodyAbove.mul(uAbove)));
-      });
-      // THE TRAIL THINS WITH ITS AGE (round 9, `ageCov`): the body's
-      // coverage falls to 1 - ageCov of itself where the freshness is
-      // gone, in world space, so a trail is a dense head and a tail that
-      // thins to loose hairs over its run; the head (cHead, the breaker
-      // here) and G (its own clock) are untouched. Uniform branch.
-      If(tune.bodyScale.lessThan(float(1)), () => {
-        cBodyF.mulAssign(tune.bodyScale);
-      });
-      // THE HALO (round 9, `halo`): thin F draws as sparse hairs. Uniform branch.
-      If(tune.halo.greaterThan(float(0)), () => {
-        const fr = select(tune.ageOnBody.greaterThan(float(0.5)), freshW, freshA);
-        const haloK = tune.halo.mul(mix(float(1), float(1).sub(fr), tune.haloOld));
-        cBodyF.assign(max(cBodyF, smoothstep(tune.halo0, tune.halo1, fAmt).mul(haloK)));
-      });
-      // The age's factor on the coverage (`ageCov`) and the windrow tear
-      // (`rowTear`), on F's body alone (ageOnBody 0, by the breaker's
-      // clock) or on the whole body after G joins it (1, by freshW).
-      const ageK = float(1).toVar();
-      If(tune.ageClock.greaterThan(float(0)).and(tune.ageCov.greaterThan(float(0))), () => {
-        const fr = select(tune.ageOnBody.greaterThan(float(0.5)), freshW, freshA);
-        ageK.mulAssign(mix(float(1).sub(tune.ageCov), float(1), fr));
-      });
-      // OLD FOAM IS TORN INTO WINDROWS (round 9, `rowTear`): where the
-      // freshness is gone the body keeps its coverage on the streaks of
-      // the tear noise (along the wind) and loses up to rowTear of it
-      // between them, so an old oval is three or four windrows and a
-      // fresh trail is whole. Uniform branch.
-      If(tune.ageClock.greaterThan(float(0)).and(tune.rowTear.greaterThan(float(0))), () => {
-        const fr = select(tune.ageOnBody.greaterThan(float(0.5)), freshW, freshA);
-        const tearN = valueNoise(yA.div(FOAM_TEAR_ALONG_M).add(2.7), yB.div(FOAM_TEAR_ACROSS_M).add(9.1), FOAM_TEAR_SALT);
-        const onRow = smoothstep(tune.tearLo, tune.tearHi, tearN);
-        ageK.mulAssign(float(1).sub(tune.rowTear.mul(float(1).sub(fr)).mul(float(1).sub(onRow))));
-      });
-      If(tune.ageOnBody.lessThan(float(0.5)), () => {
-        cBodyF.mulAssign(ageK);
-      });
-      const cBody = max(cBodyF, cLay).toVar();
-      If(tune.ageOnBody.greaterThan(float(0.5)), () => {
-        cBody.mulAssign(ageK);
-      });
-      const cCore = max(cHead, cFold).toVar();
-      const cTrail = max(cBody, cCore).toVar();
-      const cRes = smoothstep(tune.res0, tune.res1, both.y.mul(rowsGain)).mul(tune.resMax);
-      const cStreak = float(streakLevel).mul(rowsGain).mul(tune.streakW);
-      const cOld = max(cRes, cStreak).toVar();
-      // AGE BY DENSITY (round 5). The residual's share does not clock a
-      // trail: R and F fade at near the same rate, so their ratio is one
-      // value along the whole trail (debug 4 drew every trail uniformly
-      // fresh) and the round-4 tails never aged. Thin foam IS old foam:
-      // where F has fallen toward cov0 the lace ages toward the old
-      // texture, its holes and the tear, by `ageThin`; the core stays fresh.
-      const thin = float(1).sub(smoothstep(tune.cov0, cov1, fAmt)).mul(float(1).sub(cCore)).mul(tune.ageThin).toVar();
-      // G AGES BY ITS DENSITY (round 6): G fades in place from the moment
-      // its crest folded, so a thin G is an old one; where G carries the
-      // body, its thinness opens the holes and takes the old lace by
-      // `layAge`. The share of G in the body keeps F's own clock elsewhere.
-      const gShare = cLay.div(cBodyF.add(cLay).add(1e-3));
-      const ageG = float(1).sub(smoothstep(tune.layCov0, tune.layCov1, gAmt)).mul(float(1).sub(cCore)).mul(tune.layAge).mul(gShare).toVar();
-      // The lace's mix: a thin tail takes `tailOld` of the old lace (all of
-      // it, in the first round-5 pass, drew the old strands as parallel
-      // scratches from above); its holes and the tear take all of `thin`.
-      const ageL = mix(max(max(age, thin.mul(tune.tailOld)), ageG), float(1), cOld.div(cTrail.add(cOld).add(1e-3))).toVar();
-      // THE LACE AGES WITH THE CLOCK (round 9, `ageTex`): where the
-      // freshness is gone the trail takes the old lace (the strands, a
-      // tail combed along the wind) by ageTex; the core stays young.
-      If(tune.ageClock.greaterThan(float(0)).and(tune.ageTex.greaterThan(float(0))), () => {
-        const fr = select(tune.ageOnBody.greaterThan(float(0.5)), freshW, freshA);
-        ageL.assign(max(ageL, float(1).sub(fr).mul(tune.ageTex).mul(float(1).sub(cCore))));
-      });
-      const ageH = max(ageL, thin).toVar();
-
-      // THE FOOTPRINT, per axis in the wind's frame: a layer whose cells are
-      // under about two pixels on either axis goes to its mean.
-      const gx = dFdx(y);
-      const gy = dFdy(y);
-      const ea = max(gx.dot(wA).abs(), gy.dot(wA).abs()).add(1e-5);
-      const eb = max(gx.dot(wB).abs(), gy.dot(wB).abs()).add(1e-5);
-      const cellsPx = (alongM: number, acrossM: number): TslNode => min(float(alongM).div(ea), float(acrossM).div(eb));
-      const L = FOAM_LACE;
-      const rCell1 = smoothstep(float(1.5), float(4), cellsPx(L.cell1AcrossM * L.cell1Stretch, L.cell1AcrossM)).toVar();
-      // The fibers hold while a mean fiber is at least 0.4 of a pixel wide
-      // on both axes (at the reference's 0.14 m a pixel from above it is
-      // one); thinner, they would alias into sparkle.
-      const fiberW = 2 * L.fiberHalfWCells * L.fiberCellM;
-      // (A fade by the footprint's shape, for grazing views, was tried in
-      // round 4 and dropped: a derivative is constant over a triangle, and on
-      // the near water at eye level, where a triangle spans a hundred
-      // pixels, the fade drew the mesh's facets.)
-      const rFiber = smoothstep(float(0.4), float(1), cellsPx(fiberW, fiberW)).toVar();
-      // Where the aligned fibers take over from the curls (round 6): at
-      // least curlPxLo to curlPxHi pixels wide.
-      const rAligned = smoothstep(tune.curlPxLo, tune.curlPxHi, cellsPx(fiberW, fiberW)).toVar();
-      // The wisps (round 7) hold while a wisp is 0.4 of a pixel wide.
-      const wispW = 2 * FOAM_LACE_WISP.fiberHalfWCells * FOAM_LACE_WISP.fiberCellM;
-      const rWisp = smoothstep(float(0.4), float(1), cellsPx(wispW, wispW)).toVar();
-      // The bubbles (round 8) hold while a bubble's radius is 0.4 px.
-      const dotM = (FOAM_DOT_RADIUS * FOAM_LACE.fiberCellM * FOAM_LACE.fiberCount) / FOAM_DOT_COUNT;
-      const rDot = smoothstep(float(0.4), float(1), cellsPx(dotM, dotM)).toVar();
-      // The hair (round 9) holds while a long hair is 0.4 px wide.
-      const hairWm = 2 * FOAM_LACE_HAIR.fiberHalfWCells * FOAM_LACE_HAIR.fiberCellM;
-      const rHair = smoothstep(float(0.4), float(1), cellsPx(hairWm, hairWm)).toVar();
-      // The clump's finer octave is half its cell.
-      const rClump = smoothstep(float(1.5), float(4), cellsPx(L.clumpAcrossM * L.clumpStretch * 0.5, L.clumpAcrossM * 0.5)).toVar();
-      const rStrand = smoothstep(float(1.2), float(3), cellsPx(L.strandAcrossM * L.strandStretch, L.strandAcrossM)).toVar();
-
-      // THE LACE: the young and the old lace, each made uniform by its own
-      // measured CDF, blended by age.
-      // The bubble cells and the streaks (round 10): each goes to its mean
-      // under about a pixel and a half of cell, or 0.4 px of streak width.
-      const rCellS = smoothstep(float(1.0), float(2.5), cellsPx(FOAM_CELLS_ALONG_M / FOAM_CELLS_S_COUNT, FOAM_CELLS_ACROSS_M / FOAM_CELLS_S_COUNT)).toVar();
-      const rCellL = smoothstep(float(1.0), float(2.5), cellsPx(FOAM_CELLS_ALONG_M / FOAM_CELLS_L_COUNT, FOAM_CELLS_ACROSS_M / FOAM_CELLS_L_COUNT)).toVar();
-      const streakWm = 2 * FOAM_LACE_STREAK.fiberHalfWCells * (FOAM_CELLS_ACROSS_M / FOAM_LACE_STREAK.fiberCount);
-      const rStreak = smoothstep(float(0.4), float(1), cellsPx(streakWm, streakWm)).toVar();
-      const lay = laceLayers(yA, yB, rCell1, rFiber, rClump, rStrand, rAligned, rWisp, rDot, rHair, { s: rCellS, l: rCellL, k: rStreak });
-      // The young lace's table: the curl table where the curls draw (read
-      // only inside the branch on `curl`), and from above (`uAbove`) the
-      // table with the wisps (round 7), inside a branch on `wisp`.
-      const rawY = mixLace(lay, FOAM_LACE_YOUNG).toVar();
-      const texY = cdfRead(rawY, 0).toVar();
-      const texO = cdfRead(mixLace(lay, FOAM_LACE_OLD), 1).toVar();
-      // The fringe's weight (round 8): where the trail's coverage is under
-      // fringeC0 to fringeC1, the threshold texture blends to the bubbles
-      // and wisps (FOAM_LACE_FRINGE) after the tables below.
-      const fringeW = float(0).toVar();
-      If(tune.fringe.greaterThan(float(0)), () => {
-        const small = float(1).sub(smoothstep(tune.fringePx, tune.fringePx.mul(2), cellsPx(dotM, dotM)));
-        fringeW.assign(tune.fringe.mul(float(1).sub(smoothstep(tune.fringeC0, tune.fringeC1, cTrail))).mul(rDot).mul(small));
-      });
-      If(tune.curl.greaterThan(float(0.5)).and(rAligned.lessThan(float(1))), () => {
-        const tC = cdfRead(rawY, 2).toVar();
-        If(tune.wisp.greaterThan(float(0.5)).and(uAbove.greaterThan(float(0))), () => {
-          // The fringe: where the trail's coverage is under wispC0..C1.
-          const fringe = uAbove.mul(float(1).sub(smoothstep(tune.wispC0, tune.wispC1, cTrail)));
-          tC.assign(mix(tC, cdfRead(mixLace(lay, FOAM_LACE_YOUNG_ABOVE), 3), fringe));
-          texO.assign(mix(texO, cdfRead(mixLace(lay, FOAM_LACE_OLD_ABOVE), 4), fringe.mul(float(1).sub(rAligned))));
-        });
-        // THE WISPS BY RESOLUTION (round 8, `wispRes`, GG-311): the same
-        // tables where the aligned fibers are under 3 px wide on screen
-        // (1 - rAligned, where the curls draw), at every angle.
-        If(tune.wispRes.greaterThan(float(0.5)), () => {
-          const fringeR = float(1).sub(rAligned).mul(float(1).sub(smoothstep(tune.wispC0, tune.wispC1, cTrail)));
-          tC.assign(mix(tC, cdfRead(mixLace(lay, FOAM_LACE_YOUNG_ABOVE), 3), fringeR));
-          texO.assign(mix(texO, cdfRead(mixLace(lay, FOAM_LACE_OLD_ABOVE), 4), fringeR));
-        });
-        // THE FINE REGIME (round 8, `fine`): the whole patch, not only the
-        // fringe, takes the wisp-led tables where the aligned fibers are
-        // under 3 px wide, at every angle. With the hair on (round 9) the
-        // hair tables take its place and these reads are skipped.
-        If(tune.fine.greaterThan(float(0)).and(tune.hair.lessThan(float(0.5))), () => {
-          const fineK = tune.fine.mul(float(1).sub(rAligned));
-          tC.assign(mix(tC, cdfRead(mixLace(lay, FOAM_LACE_YOUNG_FINE), 6), fineK));
-          texO.assign(mix(texO, cdfRead(mixLace(lay, FOAM_LACE_OLD_FINE), 7), fineK));
-        });
-        // THE HAIR (round 9, `hair`): where the aligned fibers are under
-        // 3 px wide, the hair tables, at every angle.
-        If(tune.hair.greaterThan(float(0)), () => {
-          const hairK = tune.hair.mul(float(1).sub(rAligned));
-          tC.assign(mix(tC, cdfRead(mixLace(lay, FOAM_LACE_YOUNG_HAIR), 8), hairK));
-          texO.assign(mix(texO, cdfRead(mixLace(lay, FOAM_LACE_OLD_HAIR), 9), hairK));
-        });
-        // THE BUBBLE CELLS (round 10, `cells`): where the aligned fibers are
-        // under 3 px wide and the large cells resolve, the cell tables, at
-        // every angle.
-        If(tune.cells.greaterThan(float(0)), () => {
-          const cellK = tune.cells.mul(float(1).sub(rAligned)).mul(rCellL);
-          tC.assign(mix(tC, cdfRead(mixLace(lay, FOAM_LACE_YOUNG_CELLS), 11), cellK));
-          texO.assign(mix(texO, cdfRead(mixLace(lay, FOAM_LACE_OLD_CELLS), 12), cellK));
-        });
-        texY.assign(mix(tC, texY, rAligned));
-      });
-      If(tune.fringe.greaterThan(float(0)), () => {
-        const tF = cdfRead(mixLace(lay, FOAM_LACE_FRINGE), 5).toVar();
-        // The fringe as hair (round 9, `hairFringe`) where the hair is
-        // fetched (the aligned fibers under 3 px); where they are wider
-        // the bubbles stay, as round 8 drew them.
-        If(tune.hairFringe.greaterThan(float(0)), () => {
-          tF.assign(mix(tF, cdfRead(mixLace(lay, FOAM_LACE_FRINGE_HAIR), 10), tune.hairFringe.mul(float(1).sub(rAligned)).mul(rHair)));
-        });
-        // The fringe as streaks and large cells (round 10, `cells`).
-        If(tune.cells.greaterThan(float(0)), () => {
-          tF.assign(mix(tF, cdfRead(mixLace(lay, FOAM_LACE_FRINGE_CELLS), 13), tune.cells.mul(float(1).sub(rAligned)).mul(rCellL)));
-        });
-        texY.assign(mix(texY, tF, fringeW));
-        texO.assign(mix(texO, tF, fringeW));
-      });
-      const tex = mix(texY, texO, ageL).toVar();
-      const resolvedY = rCell1.mul(FOAM_LACE_YOUNG.cell1).add(rFiber.mul(FOAM_LACE_YOUNG.fiber)).add(rClump.mul(FOAM_LACE_YOUNG.clump));
-      const resolvedO = rCell1.mul(FOAM_LACE_OLD.cell1).add(rFiber.mul(FOAM_LACE_OLD.fiber)).add(rStrand.mul(FOAM_LACE_OLD.strand))
-        .add(rClump.mul(FOAM_LACE_OLD.clump));
-      const resolved = mix(resolvedY, resolvedO, ageL).toVar();
-
-      // THE METER SCALE ACTS ON THE COVERAGE, not on the threshold (round 4,
-      // FOAM_LACE): the clump makes a patch thicker and thinner (`mid`), and
-      // the coarse network opens holes in old foam (`holes`), soft-edged. A
-      // threshold on them drew the net and the blobs the judges named. The
-      // streaks old foam is torn into are its threshold texture, the long
-      // fibers (FOAM_LACE_OLD).
-      const midK = float(1).add(tune.mid.mul(lay.clump.sub(layerMeans.clump).mul(2)));
-      const holeK = float(1).sub(tune.holes.mul(ageH).mul(smoothstep(float(0.45), float(0.85), lay.cell1)));
-      // THE TEAR (round 5). Thin foam is torn into islands and holes: where
-      // the clump channel at `tearScale` times its size (1.2 m across, 3 m
-      // along at 0.5) is over its mean, the coverage falls by up to `tear`
-      // of itself, so the tail of a trail breaks into islands and ends in
-      // loose bits. Dense foam is torn `tearDense` as much. Where the clump
-      // is finer than the pixel the tear is off, so the far veils keep
-      // their mean. The round-4 edges "faded by an even blur instead of
-      // breaking into strands and islands" (the verdict from above). Tried
-      // first here and dropped: the strand channel (it tore the tails into
-      // parallel scratches), and a tear that also doubled the coverage
-      // between its holes, to hold the mean (a bit drawn at double
-      // coverage was a flat hard-edged chunk, where a wisp is fibrous).
-      const tearRaw = texture(laceTile, vec2(
-        yA.div(tune.tearScale.mul(L.clumpAcrossM * L.clumpStretch * L.clumpCount)), yB.div(tune.tearScale.mul(L.clumpAcrossM * L.clumpCount)),
-      )).level(float(0)).z;
-      const rTear = smoothstep(float(1.5), float(4), min(
-        tune.tearScale.mul(L.clumpAcrossM * L.clumpStretch * 0.5).div(ea), tune.tearScale.mul(L.clumpAcrossM * 0.5).div(eb),
-      ));
-      const clumpy = smoothstep(float(layerMeans.clump), float(layerMeans.clump + 0.25), mix(float(layerMeans.clump), tearRaw, rTear));
-      const tearK = max(float(1).sub(tune.tear.mul(mix(tune.tearDense, float(1), thin)).mul(clumpy)), float(0));
-      // THE CORE'S RIM CRUMBLES (round 5): the head's B is a smooth blob
-      // (bilinear, advected), and drawn whole it was "the same feathered
-      // oval stamp". The crackle net moves the rim's coverage by up to
-      // `headTear` either way, so the mass has an irregular, crest-shaped
-      // outline; its center (cHead near 1) stays solid.
-      const headK = max(float(1).add(tune.headTear.mul(float(1).sub(cHead.mul(cHead)))
-        .mul(float(0.5).sub(smoothstep(float(0.35), float(0.85), lay.cell1))).mul(2)), float(0));
-      // THE CORE UNDER THE MODULATION (round 6): with `coreMod` 1 the core
-      // takes the clump's `mid` and the net's `holes` as the trail does,
-      // in the same order of operations, which is round 4's draw
-      // (max(trail, core, old) x mid x holes); at 0 it is round 5's whole
-      // mass. select, not mix: mix(1, k, 1) is not k to the ulp.
-      const midK0 = max(midK, float(0)).toVar();
-      const coreOn = tune.coreMod.greaterThan(float(0.5));
-      const cCoreMod = cCore.mul(headK).mul(select(coreOn, midK0, float(1))).mul(select(coreOn, holeK, float(1)));
-      const cLace = max(max(cBody.mul(tearK), cOld).mul(midK0).mul(holeK), cCoreMod).toVar();
-
-      // FAR FOAM IS TORN AND THINNER. Past a few meters of footprint the
-      // fine layers are gone, and a far whitecap drew as a flat white oval
-      // ("patches of snow or stickers lying on the sea"). The strands at
-      // eight times their size tear it into streaks along the wind, and the
-      // coverage falls to `farCov` of itself.
-      // The strands at `farScale` times their size (a uniform, so a probe
-      // can sweep it).
-      const farStrandRaw = texture(laceTile, vec2(
-        yA.div(tune.farScale.mul(L.strandAcrossM * L.strandStretch * L.strandCount)), yB.div(tune.farScale.mul(L.strandAcrossM * L.strandCount)),
-      )).level(float(0)).w;
-      // The far strands fade to their mean where they are finer than the
-      // pixel: read at level 0 they aliased into horizontal hatching.
-      const rFar = smoothstep(float(1.2), float(3), min(
-        tune.farScale.mul(L.strandAcrossM * L.strandStretch).div(ea), tune.farScale.mul(L.strandAcrossM).div(eb),
-      ));
-      const farStrand = float(1).sub(smoothstep(float(0.15), float(0.6), mix(float(layerMeans.strand), farStrandRaw, rFar)));
-      // The far treatment starts where the lace is lost, not only past a
-      // footprint of meters: at 60 to 150 m from the eye-level camera the
-      // footprint is under 2 m, the lace had gone to its mean, and a whitecap
-      // drew as a flat white lozenge. `farU` is the larger of the two.
-      const farU = max(farT, float(1).sub(resolved)).toVar();
-      const farK = mix(float(1), tune.farCov.mul(mix(float(1), farStrand.mul(1.4).min(float(1)), tune.farTear)), farU).toVar();
-
-      // Far out a whitecap is seen on the crest that carries it: the far
-      // coverage falls to `farTrough` of itself off the crest, so a far
-      // patch takes the shape of its wave, not of the store's oval.
-      const crestK = mix(float(1), mix(tune.farTrough, float(1), smoothstep(float(0.3), float(0.9), crest)), farU);
-      // The head runs past cScale to full coverage (`coreFull`).
-      const cCap = mix(tune.cScale, float(1), cHead.mul(tune.coreFull));
-      const c = cLace.mul(cCap).mul(farK).mul(crestK).toVar();
-
-      // `foamDrawnAlpha`: a threshold lace with a little veil, and where the
-      // lace is unresolved its mean (`foamDrawnMeanAlpha`, closed form).
-      // The lace's soft edge: wider in dense foam, so a core is a soft
-      // continuous white with specks, and crisp in thin foam, so a fringe
-      // frays into distinct fibers (laceProto7b.py).
-      // The anti-aliasing term is sized to the wisp's width in the fine
-      // regime (round 8, `fine`): at 0.15 m a pixel the 0.14 m fiber's
-      // term softened the threshold to a gray mean where the wisps, 0.36 m
-      // wide, are crisp at 2 px.
-      const aaW = float(fiberW).toVar();
-      If(tune.fine.greaterThan(float(0)), () => {
-        aaW.assign(mix(float(fiberW), float(wispW), tune.fine.mul(float(1).sub(rAligned))));
-      });
-      // Sized to the long hair's width where the hair carries the texture (round 9).
-      If(tune.hair.greaterThan(float(0)), () => {
-        aaW.assign(mix(float(fiberW), float(hairWm).mul(tune.hairAA), tune.hair.mul(float(1).sub(rAligned))));
-      });
-      // Sized to `cellAAm` where the cells carry the texture (round 10).
-      If(tune.cells.greaterThan(float(0)), () => {
-        aaW.assign(mix(aaW, tune.cellAAm, tune.cells.mul(float(1).sub(rAligned))));
-      });
-      const w = tune.edge.add(tune.coreSoft.mul(c)).add(shortM.div(aaW).mul(tune.aa)).min(float(0.5)).toVar();
-      const thr = c.mul(w.mul(2).add(1)).sub(w);
-      const laceSharp = clamp(thr.sub(tex).div(w.mul(2)).add(0.5), float(0), float(1));
-      const veilSharp = clamp(c.mul(float(1).sub(tex).pow(1.5).mul(1.4).add(0.15)), float(0), float(1));
-      const grazeK = smoothstep(tune.grazeLo, tune.grazeHi, longM.div(max(shortM, float(1e-4))));
-      // Where G carries the body the veil takes `layVeil` (round 6).
-      const share = mix(mix(tune.veilShare, layVeilH, gShare), tune.veilGraze, grazeK).mul(smoothstep(float(0.08), float(0.5), c)).toVar();
-      const drawnSharp = mix(laceSharp, veilSharp, share);
-      const mLo = thr.sub(w).clamp(float(0), float(1));
-      const mHi = thr.add(w).clamp(float(0), float(1));
-      const hiEdge = thr.add(w);
-      const laceMean = mLo.add(hiEdge.sub(mLo).pow(2).sub(hiEdge.sub(mHi).pow(2)).div(w.mul(4)));
-      const veilMean = c.mul(0.15 + 1.4 / 2.5).min(float(1));
-      const drawnLace = mix(mix(laceMean, veilMean, share), drawnSharp, resolved).toVar();
-
-      const drawn = drawnLace.toVar();
-      // THE SKIRT (round 10): a veil from the coarse store round every
-      // patch, in world space. Uniform branch.
-      If(tune.skirt.greaterThan(float(0)), () => {
-        const fSk = d1.t.x.mul(d1.w);
-        // The grain: the SMALL bubble cells' walls and the streaks (the
-        // fourth tile, 0.45 m cells, 3 px from above), so the veil is a fine
-        // scatter of bubbles combed along the wind, not a haze; the lace's
-        // own texture drew the 1.8 m cells as a large net (sweep c6).
-        const grainRaw = max(float(1).sub(smoothstep(float(0.05), float(0.5), lay.cellS)),
-          float(1).sub(smoothstep(float(0.1), float(0.7), lay.streak)).mul(0.8));
-        const grainK = mix(float(1), grainRaw, tune.skirtGrain);
-        // THE SKIRT IS THE UNRESOLVED BUBBLES: where a bubble is over
-        // skirtPx pixels on screen (the near water at eye level, 5 to 15 px)
-        // the lace draws them itself and the veil would be a milky haze over
-        // resolved water (sweep c5), so it fades out, as the fringe does
-        // (`fringePx`): a key on a texture's size on screen, the same foam.
-        const skSmall = float(1).sub(smoothstep(tune.skirtPx, tune.skirtPx.mul(2), cellsPx(dotM, dotM)));
-        const skK = tune.skirt.mul(mix(float(1), float(1).sub(freshA), tune.skirtOld)).mul(skSmall);
-        drawn.assign(max(drawn, smoothstep(tune.skirt0, tune.skirt1, fSk).mul(skK).mul(grainK).mul(farK)));
-      });
-
-      // Debug: 1 coverage, 2 the lace value, 3 the breaker B, 4 the age,
-      // 5 the crest, 6 the fold here (ungated), 7 F over its cap, 8 the
-      // fold here on the lay ramp (what the store lays in place), 9 G
-      // over its cap, 10 the freshness A (round 9).
-      const dbg = tune.debug;
-      const alpha = select(dbg.greaterThan(float(9.5)), aAmt,
-        select(dbg.greaterThan(float(8.5)), gAmt.div(tune.fMax),
-        select(dbg.greaterThan(float(7.5)), smoothstep(tune.layLo, tune.layHi, deficit.mul(g)),
-        select(dbg.greaterThan(float(6.5)), fAmt.div(tune.fMax),
-        select(dbg.greaterThan(float(5.5)), smoothstep(iLo, iHi, deficit.mul(g)),
-        select(dbg.greaterThan(float(4.5)), crest,
-        select(dbg.greaterThan(float(3.5)), ageL,
-        select(dbg.greaterThan(float(2.5)), breakerHere,
-          select(dbg.greaterThan(float(1.5)), tex,
-            select(dbg.greaterThan(float(0.5)), c, drawn))))))))));
-
-      // THE LIGHT ON FOAM. Fresh foam is white and old foam grey: a core
-      // and a young trail return the most, the drained old lace the least.
-      // Foam on a crest faces the bright deck and is lit more than foam in a
-      // trough, and a face tilted away from the zenith less: a judge found
-      // "the white inside each patch is flat and does not respond to light
-      // or wave tilt". Read from the wind sea and the swell here (height
-      // over Hs, and the slope).
-      // The front and the head are the freshest foam: white, and not
-      // darkened by the grain.
-      const coreShare = max(cFold, cHead).toVar();
-      const fresh = max(coreShare, float(1).sub(ageL)).toVar();
-      const shape = mix(tune.troughLight, float(1.06), crest).mul(mix(float(0.8), float(1.03), smoothstep(float(0.86), float(0.995), upness)));
-      const grain = mix(tune.texBright, float(1), float(1).sub(mix(float(0.5), tex, resolved)));
-      const deck = deckRO.element(int(0));
-      const deckLight = deck.mul(tune.deckRatio).div(SURFACE_FOAM_NO_SUN);
-      const bright = mix(tune.brightThin, float(1), fresh).mul(mix(grain, tune.coreBright, coreShare)).mul(shape)
-        .mul(mix(float(1), deckLight, uOvercast)).toVar();
-      // BRIGHT CORES, DIM TAILS (round 8, `tailDim`): the light falls with
-      // the trail's coverage, to 1 - tailDim at 0.15 and full at tailC1,
-      // at every angle; the cores (coverage 1) keep their light.
-      If(tune.tailDim.greaterThan(float(0)), () => {
-        bright.mulAssign(mix(float(1).sub(tune.tailDim), float(1), smoothstep(float(0.15), tune.tailC1, cTrail)));
-      });
-      // BRIGHT FRESH, DIM OLD (round 9, `ageLight`): the light falls to
-      // 1 - ageLight where the freshness A is gone, by the foam's own age
-      // in world space, not by its coverage (round 8's `tailDim`, which
-      // dimmed the thin fresh flecks at eye level); the cores keep theirs.
-      If(tune.ageClock.greaterThan(float(0)).and(tune.ageLight.greaterThan(float(0))), () => {
-        const fr = select(tune.ageOnBody.greaterThan(float(0.5)), freshW, freshA);
-        bright.mulAssign(mix(mix(float(1).sub(tune.ageLight), float(1), fr), float(1), coreShare));
-      });
-      // FRESH IS BRIGHTER (round 10, `freshBright`): by the freshness A,
-      // in world space. Uniform branch.
-      If(tune.freshBright.greaterThan(float(0)), () => {
-        bright.mulAssign(float(1).add(tune.freshBright.mul(freshA)));
-      });
-      alphaV.assign(alpha);
-      brightV.assign(bright);
-      }).Else(() => {
-        alphaV.assign(smoothstep(float(0.6), float(0.38), float(1).sub(deficit)));
-      });
-      return { alpha: alphaV, bright: brightV };
-    },
-  };
+  // Display-only helpers move with the reader after texture allocation; compute stays above.
+  const reader = createFoamReader({ uDrift, uReadT, levels, tune, wA, wB, valueNoise, samplerR, windIdx, windSea, swellIdx, cascades, hsM, bufs, uAbove, streakLevel, laceLayers, mixLace, cdfRead, layerMeans, laceTile, deckRO, uOvercast, uSun, FOAM_WARP_SALT, SURFACE_FOAM_NO_SUN, deckIsSet });
 
   /* --- stepping -------------------------------------------------------- */
 
@@ -2591,6 +1495,39 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
     deckRW.element(int(0)).assign(
       oceanSkyRadiance(vec3(0, 0.5, 0.866), uSun, 0, uOvercast).dot(vec3(0.2126, 0.7152, 0.0722)),
     );
+    // ROUND 11 (law 2): under a stratus deck, the dome's irradiance and the
+    // foam's light factor (`foamDomeIrradianceCpu`, `foamDeckFoamGain`).
+    // Built only where the sky's deck is set when this kernel is built.
+    const dl = oceanSkyDeckLight(uOvercast);
+    if (deckIsSet(dl)) {
+      const nDome = FOAM_DOME_RINGS * FOAM_DOME_AZ;
+      const eSum = float(0).toVar();
+      Loop({ start: int(0), end: int(nDome), type: 'int', condition: '<' }, ({ i }: { i: TslNode }) => {
+        const r = i.div(int(FOAM_DOME_AZ));
+        const a = i.sub(r.mul(int(FOAM_DOME_AZ)));
+        const u = float(r).add(0.5).div(FOAM_DOME_RINGS);
+        const sinT = sqrt(u);
+        const cosT = sqrt(float(1).sub(u));
+        const phi = float(a).add(0.5).add(float(bitAnd(r, int(1))).mul(0.5)).mul((2 * Math.PI) / FOAM_DOME_AZ);
+        const dir = vec3(sinT.mul(cos(phi)), cosT, sinT.mul(sin(phi)));
+        const w = select(dir.dot(uSun).greaterThan(float(FOAM_DOME_SUN_CUT)), float(0), float(1));
+        eSum.addAssign(oceanSkyRadiance(dir, uSun, 0, uOvercast).dot(vec3(0.2126, 0.7152, 0.0722)).mul(w));
+      });
+      const eDome = eSum.mul(Math.PI / nDome);
+      // The sun on a flat surface in the sky's units, as the deck model
+      // takes it (oceanSky.ts `setDeck`): the clear sky's irradiance times
+      // the place's sun-to-sky ratio (FLOOR_LIGHT, the floor's and the
+      // beach's light: sunE mu0 / skyE).
+      // The sun's irradiance on a face square to it is E_sunH / mu0, times
+      // its unscattered share under the deck.
+      const eSunN = float(CLEAR_E_LUM * FLOOR_LIGHT.sunE / FLOOR_LIGHT.skyE).mul(dl.sunDirect);
+      // The deck taken off at run time (`setDeck(null)`) puts its three
+      // lights back to exactly 1: the foam's light is then the read's own.
+      const off = dl.sunDirect.equal(float(1)).and(dl.skyGain.equal(float(1))).and(dl.airGain.equal(float(1)));
+      deckRW.element(int(1)).assign(eDome.div(Math.PI));
+      deckRW.element(int(2)).assign(select(uSun.y.greaterThan(float(0)), eSunN.div(Math.PI), float(0)));
+      deckRW.element(int(3)).assign(select(off, float(0), float(1)));
+    }
   })().compute(1);
   const foamNodes: unknown[] = [deckKernel, ...levels.flatMap((l) => [l.kernel, l.copy])];
   // The sources (round 10): the set this store's kernels were built with.
@@ -2695,6 +1632,14 @@ export function createOceanFoam(field: OceanField, opts: OceanFoamOptions = {}):
         laceMaxErr = Math.max(laceMaxErr, Math.abs(raw[16 * i + 14] - foamTileStreak(s0, t0)));
       }
       return { hashMaxErr, laceMaxErr, count };
+    },
+    async deckLight(renderer) {
+      const rd = renderer as unknown as { getArrayBufferAsync(a: unknown): Promise<ArrayBuffer> };
+      const d = new Float32Array(await rd.getArrayBufferAsync(deckAttr));
+      const mu0 = Math.max(uSun.value.y, 0);
+      const sd = (oceanSkyDeckLight(uOvercast).sunDirect as { value?: number }).value ?? 1;
+      const flatGain = d[3] > 0.5 ? (d[1] + d[2] * mu0) / (0.7 + 0.3 * mu0 * sd) : 1;
+      return { deck: d[0], domeLight: d[1], sunLight: d[2], on: d[3], flatGain };
     },
     async benchStep(renderer, iters = 200) {
       const fence = async () => {

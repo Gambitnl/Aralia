@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:29:03
- * Dependents: None (Orphan)
- * Imports: 4 files
+ * Last Sync: 28/10/2026, 19:15:01
+ * Dependents: systems/underdark/carriedItemLight.ts
+ * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -17,6 +17,9 @@
 import { UnderdarkState, LightSource, LightSourceType } from '../types/underdark';
 import { FaerzressSystem } from '../systems/underdark/FaerzressSystem';
 import { generateId } from '../utils/core/idGenerator';
+
+/** Shared rules for an ordinary owned torch, in feet and game minutes. */
+export const STANDARD_TORCH_LIGHT = {brightRadius: 20, dimRadius: 20, durationMinutes: 60} as const;
 
 /**
  * Calculates the current light level based on depth and active light sources.

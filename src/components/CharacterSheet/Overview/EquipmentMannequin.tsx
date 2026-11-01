@@ -1,11 +1,17 @@
+/**
+ * @file EquipmentMannequin.tsx
+ * This component displays a visual representation of character equipment slots.
+ * It uses a "Paper Doll" layout with a background silhouette to provide context to the slots.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 26/08/2026, 16:41:52
- * Dependents: components/CharacterSheet/Overview/index.ts
- * Imports: 17 files
+ * Last Sync: 31/10/2026, 12:14:17
+ * Dependents: components/CharacterSheet/Overview/InventoryList.tsx, components/CharacterSheet/Overview/index.ts
+ * Imports: 18 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -13,12 +19,6 @@
  * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 // @dependencies-end
-
-/**
- * @file EquipmentMannequin.tsx
- * This component displays a visual representation of character equipment slots.
- * It uses a "Paper Doll" layout with a background silhouette to provide context to the slots.
- */
 
 /**
  * This file displays a visual paper-doll grid representing equipped item slots.
@@ -40,6 +40,7 @@
 // details of the 13 slots mapped to the paper doll silhouette grid.
 // ============================================================================
 import React from 'react';
+import { getDuelingDamageBonus } from '../../../utils/combat/fightingStyleDamage';
 import { AlertTriangle } from 'lucide-react';
 import { PlayerCharacter, EquipmentSlotType, Item, ArmorCategory } from '../../../types';
 import Tooltip from '../../ui/Tooltip';
@@ -60,7 +61,7 @@ import HandsIcon from '../../../assets/icons/HandsIcon';
 
 // Import the new dynamic icon component
 import DynamicMannequinSlotIcon from './DynamicMannequinSlotIcon';
-import { isWeaponProficient, isWeaponMartial } from '../../../utils/character';
+import { isWeaponProficient, isWeaponMartial, isTwoHandedWeapon } from '../../../utils/character';
 import { getCharacterMaxArmorProficiency, getArmorCategoryHierarchy, getAbilityModifierValue } from '../../../utils/character';
 import { resolveItemAssetSrc, resolveItemVisual } from '../../../utils/visuals';
 
@@ -139,7 +140,12 @@ export const SHIELD_SLOTS: readonly EquipmentSlotType[] =
  * police accessory placement, which has no settled rule yet.
  */
 export const slotAcceptsItem = (slot: EquipmentSlotType, item: Item): boolean => {
-  if (item.type === 'weapon') return WEAPON_SLOTS.includes(slot);
+  if (item.type === 'weapon') {
+    if (isTwoHandedWeapon(item)) {
+      return slot === 'MainHand';
+    }
+    return WEAPON_SLOTS.includes(slot);
+  }
   if (item.type === 'armor') {
     // A shield is armor by type but is strapped, not worn: it belongs in the
     // off hand rather than in any of the body-armor slots.
@@ -158,7 +164,12 @@ export const slotAcceptsItem = (slot: EquipmentSlotType, item: Item): boolean =>
 export const slotRejectionReason = (slot: EquipmentSlotType, item: Item): string | undefined => {
   if (slotAcceptsItem(slot, item)) return undefined;
   const label = equipmentSlots.find(s => s.id === slot)?.label ?? slot;
-  if (item.type === 'weapon') return `Weapons cannot be equipped in the ${label} slot.`;
+  if (item.type === 'weapon') {
+    if (isTwoHandedWeapon(item) && slot === 'OffHand') {
+      return 'Two-handed weapons cannot be equipped in the off-hand.';
+    }
+    return `Weapons cannot be equipped in the ${label} slot.`;
+  }
   if (item.armorCategory === 'Shield') return `A shield cannot be equipped in the ${label} slot.`;
   return `Armor cannot be equipped in the ${label} slot.`;
 };
@@ -326,6 +337,8 @@ const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSl
                     abilityMod = Math.max(strMod, dexMod);
                   }
 
+                  // Match the same owned-style and held-weapon rule as combat.
+                  abilityMod += getDuelingDamageBonus(character, equippedItem);
                   const bonusString = abilityMod !== 0 ? ` ${abilityMod > 0 ? '+' : '−'} ${Math.abs(abilityMod)}` : '';
                   damageDisplay = `${equippedItem.damageDice}${bonusString}`;
                 }

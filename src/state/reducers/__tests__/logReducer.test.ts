@@ -13,6 +13,20 @@ import { createMockGameState } from '../../../utils/core';
 import { AppAction } from '../../actionTypes';
 import { logReducer, MAX_DISCOVERY_LOG_ENTRIES } from '../logReducer';
 
+describe('frozen library account memory', () => {
+  it('keeps the first reading date and read flag without another adventure log entry', () => {
+    const old = createDiscoveryEntry('library-account:v1:1793432134128:40:56:works:502:abc', {
+      type: DiscoveryType.LORE_DISCOVERY, content: 'The register lists Menina waterworks.', isRead: true,
+      source: {type:'LOCATION',id:'world:1793432134128:burg:40:library:56'},
+      flags:[{key:'knowledgeKind',value:'library-account'}],
+    });
+    const state = createMockGameState({discoveryLog:[old],unreadDiscoveryCount:0});
+    expect(logReducer(state,{type:'ADD_DISCOVERY_ENTRY',payload:{...old,gameTime:'0351-01-09T09:00:00.000Z',isRead:false}})).toEqual({});
+    const changed = logReducer(state,{type:'ADD_DISCOVERY_ENTRY',payload:{...old,id:old.id+':new-edition',content:'A revised account.'}});
+    expect(changed.discoveryLog).toHaveLength(2);
+  });
+});
+
 // ============================================================================
 // Discovery Entry Fixtures
 // ============================================================================
@@ -280,5 +294,46 @@ describe('logReducer', () => {
     const stamped = nextState.messages?.[nextState.messages.length - 1];
     expect(new Date(stamped!.timestamp).getTime()).toBe(inGameTime.getTime());
     expect(new Date(stamped!.timestamp).getTime()).not.toBe(wallClock.getTime());
+  });
+});
+
+
+describe('temple dedication lore', () => {
+  const reading = () => createDiscoveryEntry('temple-dedication:77:675:168:faith9:priest141', {
+    type: DiscoveryType.LORE_DISCOVERY,
+    gameTime: '0351-01-05T23:56:00.000Z',
+    title: 'Temple dedication: Elladan Pantheon',
+    content: 'The temple names the Elladan Pantheon and lists Faelan as priest.',
+    source: {type:'LOCATION',id:'world:77:cell:4337:building:wf-plot-675-168',name:'Temple in Menaikon'},
+    flags: [{key:'knowledgeKind',value:'temple-dedication'}],
+  });
+  it('retains the first reading and original date when the same dedication is read again', () => {
+    const old=reading(), state=createMockGameState({discoveryLog:[old],unreadDiscoveryCount:1});
+    const before=JSON.stringify(state.discoveryLog);
+    expect(logReducer(state,{type:'ADD_DISCOVERY_ENTRY',payload:{...old,gameTime:'0351-01-06T08:00:00.000Z'}})).toEqual({});
+    expect(JSON.stringify(state.discoveryLog)).toBe(before);
+  });
+  it('keeps a later clergy reading alongside the unchanged earlier account', () => {
+    const old=reading(), state=createMockGameState({discoveryLog:[old],unreadDiscoveryCount:1});
+    const next=logReducer(state,{type:'ADD_DISCOVERY_ENTRY',payload:{...old,id:old.id+':successor',content:'The temple now lists Nia as priest.'}});
+    expect(next.discoveryLog).toHaveLength(2);
+    expect(next.discoveryLog![1]).toEqual(old);
+  });
+  it('does not merge the same faith across different worlds or buildings', () => {
+    const old=reading(), state=createMockGameState({discoveryLog:[old],unreadDiscoveryCount:1});
+    for(const id of ['world:78:cell:4337:building:wf-plot-675-168','world:77:cell:4337:building:wf-plot-675-49']) {
+      const next=logReducer(state,{type:'ADD_DISCOVERY_ENTRY',payload:{...old,source:{...old.source,id}}});
+      expect(next.discoveryLog).toHaveLength(2);
+    }
+  });
+  it('leaves ordinary repeated lore append-only', () => {
+    const old=reading();old.flags=[];
+    const state=createMockGameState({discoveryLog:[old],unreadDiscoveryCount:1});
+    expect(logReducer(state,{type:'ADD_DISCOVERY_ENTRY',payload:old}).discoveryLog).toHaveLength(2);
+  });
+  it('does not suppress another lore writer that lacks the dedicated reading identity', () => {
+    const old=reading();old.id='legacy-lore';
+    const state=createMockGameState({discoveryLog:[old],unreadDiscoveryCount:1});
+    expect(logReducer(state,{type:'ADD_DISCOVERY_ENTRY',payload:old}).discoveryLog).toHaveLength(2);
   });
 });

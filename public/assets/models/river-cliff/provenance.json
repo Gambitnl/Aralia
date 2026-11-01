@@ -1,0 +1,32 @@
+{
+  "asset": "Rock Face 01",
+  "source": "https://polyhaven.com/a/rock_face_01",
+  "sourceFiles": "https://api.polyhaven.com/files/rock_face_01",
+  "author": "Dario Barresi",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "originalTriangles": 20174,
+  "runtime": "Three unequal transformed original meshes, own UV/material maps; open outline embedded behind retained exact terrain junction. Scale and placement are synthetic, not a Yosemite survey.",
+  "assets": [
+    {
+      "file": "rock_face_01.bin",
+      "bytes": 476436,
+      "md5": "06caed23e725af568b64f8cbee210c1c"
+    },
+    {
+      "file": "textures/rock_face_01_diff_1k.jpg",
+      "bytes": 853749,
+      "md5": "98ee9f024a6383d7e6cab44ed41e1f15"
+    },
+    {
+      "file": "textures/rock_face_01_nor_gl_1k.jpg",
+      "bytes": 1023400,
+      "md5": "46e01f5c3b8ac4463aeef2b4c61d1cd4"
+    },
+    {
+      "file": "textures/rock_face_01_arm_1k.jpg",
+      "bytes": 693610,
+      "md5": "5799e7f5546350576b87bf67c34fb49f"
+    }
+  ]
+}

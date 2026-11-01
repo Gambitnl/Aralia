@@ -11,7 +11,7 @@
  *
  * Routine model (a conventional medieval day, deterministic per person):
  *   - SLEEP overnight at home (wake/sleep times jittered ±a couple hours by id).
- *   - WORKERS (have a workPlotId) commute out and WORK their trade by day; age
+ *   - WORKERS (a trade or qualified civic workplace) commute out and WORK by day; age
  *     shortens an elder's shift and a child never works.
  *   - Non-workers are HOME, with a midday OUT block (market/errands/play).
  * Location is always a concrete plot id (home or work) so consumers can place
@@ -21,7 +21,24 @@
  * occupant, same hour → identical block, no RNG/seed-path plumbing needed.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 01/11/2026, 01:28:58
+ * Dependents: components/Worldforge/TownAgentSnapshotView.tsx, hooks/actions/handleWorldEvents.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/institutionOccupancy.ts, systems/worldforge/roster/agentSim.ts, systems/worldforge/roster/townSnapshot.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { Occupant } from './types';
+import {workHoursForRole} from './workHours';
 
 export type ActivityKind = 'sleeping' | 'home' | 'working' | 'out';
 
@@ -35,6 +52,12 @@ export interface ScheduleBlock {
 }
 
 const HOURS_PER_DAY = 24;
+
+/** An explicit trade keeps its existing destination and business identity.
+ * A qualified civic duty supplies a destination only when there is no trade. */
+export function occupantWorkPlotId(occupant: Occupant): number | undefined {
+  return occupant.workPlotId ?? occupant.civicWorkplace?.plotId;
+}
 
 /** Small stable hash of an id → a non-negative integer (no RNG dependency). */
 function idHash(id: number): number {
@@ -55,13 +78,25 @@ interface DayShape {
 /** The occupant's per-day timing, derived deterministically from id + age band. */
 function dayShape(occupant: Occupant): DayShape {
   const h = idHash(occupant.id);
+  // GG-514: h is unsigned (>>> 0); shift it with >>> too. A signed >> turned
+  // ids with the top bit set negative, so about 46% of townspeople got hours
+  // outside these windows (work ending at 16, sleep from 18).
   const wake = 5 + (h % 3); // 5–7
-  const sleep = 20 + ((h >> 3) % 3); // 20–22
-  const isWorker = occupant.workPlotId !== undefined && occupant.ageBand !== 'child';
+  const sleep = 20 + ((h >>> 3) % 3); // 20–22
+  const isWorker = occupantWorkPlotId(occupant) !== undefined && occupant.ageBand !== 'child' && !occupant.retired;
+  // Named households share these boundaries with the interior schedule.
+  // A qualified active public-house head serves the evening patrons instead
+  // of appearing at home while their inn is occupied. Retirement and children
+  // still prevent work; neither the family nor the business is reassigned.
+  if (occupant.householdMemberId) {
+    const role = isWorker && occupant.householdMemberId.endsWith(':head') ? occupant.publicHouseWorkRole : undefined;
+    const hours = workHoursForRole(role);
+    return { wake: 7, sleep: hours.sleep, workStart: hours.start, workEnd: hours.end, worksToday: isWorker };
+  }
   // Elders keep a shorter, gentler shift; adults a full day.
-  const baseStart = 7 + ((h >> 5) % 2); // 7–8
+  const baseStart = 7 + ((h >>> 5) % 2); // 7–8
   const workStart = occupant.ageBand === 'elder' ? baseStart + 1 : baseStart;
-  const baseEnd = 17 + ((h >> 7) % 2); // 17–18
+  const baseEnd = 17 + ((h >>> 7) % 2); // 17–18
   const workEnd = occupant.ageBand === 'elder' ? baseEnd - 2 : baseEnd;
   return { wake, sleep, workStart, workEnd, worksToday: isWorker };
 }
@@ -77,7 +112,7 @@ function wrapHour(hour: number): number {
 export function occupantLocationAt(occupant: Occupant, hour: number): ScheduleBlock {
   const hr = wrapHour(hour);
   const home = occupant.homePlotId;
-  const work = occupant.workPlotId ?? home;
+  const work = occupantWorkPlotId(occupant) ?? home;
   const { wake, sleep, workStart, workEnd, worksToday } = dayShape(occupant);
 
   // Overnight (after sleep, before wake) — asleep at home.

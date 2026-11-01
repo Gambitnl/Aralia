@@ -1,11 +1,17 @@
+/**
+ * @file SkillsTab.tsx
+ * Tab version of skill details display for the character sheet.
+ * Shows all skills with modifiers, proficiency, and bonuses in a table.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 05/07/2026, 07:53:48
+ * Last Sync: 31/10/2026, 06:47:53
  * Dependents: components/CharacterSheet/Skills/index.ts
- * Imports: 5 files
+ * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,16 +20,12 @@
  */
 // @dependencies-end
 
-/**
- * @file SkillsTab.tsx
- * Tab version of skill details display for the character sheet.
- * Shows all skills with modifiers, proficiency, and bonuses in a table.
- */
+import { getExhaustionD20Penalty } from '../../../utils/combat/physicsUtils';
 import React from 'react';
 import { PlayerCharacter, Skill as SkillType } from '../../../types';
 import { SKILLS_DATA } from '../../../data/skills';
 import { getAbilityModifierValue, getCheckAdvantageSources } from '../../../utils/character';
-import { calculateExpertiseBonus, getExpertiseSkillIds } from '../../../utils/character/skillModifierUtils';
+import { calculateExpertiseBonus, getExpertiseSkillIds, hasJackOfAllTrades, calculateJackOfAllTradesBonus } from '../../../utils/character/skillModifierUtils';
 import { SkillIcon } from '../../../utils/skillIcons';
 import { ProficiencyIcon } from '../../../utils/proficiencyIcons';
 import Tooltip from '../../ui/Tooltip';
@@ -37,13 +39,15 @@ interface SkillsTabProps {
 const SkillsTab: React.FC<SkillsTabProps> = ({ character, onNavigateToGlossary }) => {
     const allGameSkills: SkillType[] = Object.values(SKILLS_DATA);
     const profBonus = character.proficiencyBonus || 2;
+    const exhaustionPenalty = getExhaustionD20Penalty(character);
 
-    const tableHeaderClass = "px-3 py-2.5 text-left text-xs font-medium text-sky-300 uppercase tracking-wider border-b-2 border-gray-600";
-    const tableCellClass = "px-3 py-2.5 text-sm text-gray-200 whitespace-nowrap";
+    const tableHeaderClass = "px-3 py-3 text-left text-sm font-medium text-sky-300 uppercase tracking-wider border-b-2 border-gray-600";
+    const tableCellClass = "px-3 py-3 text-base text-gray-200 whitespace-nowrap";
     const alternatingRowClass = "even:bg-gray-700/50 odd:bg-gray-700/20 hover:bg-sky-700/30 transition-colors";
     // Expertise doubles the proficiency bonus on the skills the character chose it
     // for. The picks are read once per render and shared by every row.
     const expertiseSkillIds = getExpertiseSkillIds(character);
+    const hasJack = hasJackOfAllTrades(character);
     const skillRows = allGameSkills.map(skill => {
         const baseAbilityScore = character.finalAbilityScores[skill.ability];
         const abilityModifier = getAbilityModifierValue(baseAbilityScore);
@@ -55,10 +59,26 @@ const SkillsTab: React.FC<SkillsTabProps> = ({ character, onNavigateToGlossary }
             hasExpertise,
             proficiencyBonus: profBonus,
         });
-        const totalBonus = abilityModifier + proficiencyBonusApplied + expertiseBonus;
+        const jackBonus = calculateJackOfAllTradesBonus({
+            hasProficiency: isProficient,
+            hasJackOfAllTrades: hasJack,
+            proficiencyBonus: profBonus,
+        });
+        const totalBonus = abilityModifier + proficiencyBonusApplied + expertiseBonus + jackBonus - exhaustionPenalty;
 
         const notes: string[] = [];
         const tooltipParts: string[] = [];
+        // Display the same final D20 modifier as the check resolver, retaining
+        // the separate base/proficiency columns and existing advantage notes.
+        if (exhaustionPenalty > 0) {
+            notes.push(`Exhaustion (-${exhaustionPenalty})`);
+            tooltipParts.push(`Exhaustion subtracts ${exhaustionPenalty} from this D20 test.`);
+        }
+
+        if (jackBonus > 0) {
+            notes.push(`Jack of All Trades (+${jackBonus})`);
+            tooltipParts.push(`Jack of All Trades adds half proficiency bonus (+${jackBonus}).`);
+        }
 
         // Check for race-specific advantages
         if (skill.id === 'stealth' && character.race.id === 'deep_gnome') {
@@ -100,7 +120,7 @@ const SkillsTab: React.FC<SkillsTabProps> = ({ character, onNavigateToGlossary }
 
     return (
         <div className="h-full overflow-y-auto scrollable-content">
-            <div className="max-w-4xl mx-auto">
+            <div className="w-full p-4">
                 <h3 className="text-xl font-cinzel text-amber-400 mb-4">Skill Statistics</h3>
 
                 {/* Phone-width sheets need every skill column visible without
@@ -161,8 +181,13 @@ const SkillsTab: React.FC<SkillsTabProps> = ({ character, onNavigateToGlossary }
                     ))}
                 </div>
 
-                <div data-testid="skills-table-scroll" className="max-[520px]:hidden overflow-x-auto">
-                    <table className="min-w-[44rem] divide-y divide-gray-600 border border-gray-600 rounded-lg">
+                {/* Use the actual sheet width: two readable nine-skill tables
+                    fit a wide desktop, while resized sheets keep a single
+                    column. Both groups reuse the same computed rows and rules. */}
+                <div data-testid="skills-table-scroll" className="max-[520px]:hidden overflow-x-auto grid gap-6 items-start" style={{gridTemplateColumns:'repeat(auto-fit, minmax(min(100%, 44rem), 1fr))'}}>
+                    {[skillRows.slice(0, Math.ceil(skillRows.length / 2)), skillRows.slice(Math.ceil(skillRows.length / 2))].map((rows, index) => (
+                    <div key={index} className="min-w-0 overflow-x-auto">
+                    <table className="w-full min-w-[44rem] divide-y divide-gray-600 border border-gray-600 rounded-lg">
                         <thead className="bg-gray-700 sticky top-0 z-[var(--z-index-content-overlay-low)]">
                             <tr>
                                 <th scope="col" className={tableHeaderClass}>Skill</th>
@@ -182,7 +207,7 @@ const SkillsTab: React.FC<SkillsTabProps> = ({ character, onNavigateToGlossary }
                             </tr>
                         </thead>
                         <tbody className="bg-gray-800 divide-y divide-gray-700">
-                            {skillRows.map(({ skill, abilityModifier, isProficient, expertiseBonus, totalBonus, advantageNotes, advantageTooltip }) => (
+                            {rows.map(({ skill, abilityModifier, isProficient, expertiseBonus, totalBonus, advantageNotes, advantageTooltip }) => (
                                 <tr key={skill.id} className={alternatingRowClass}>
                                     <td className={`${tableCellClass} font-medium text-amber-200`}>
                                         <Tooltip content={skill.description ?? skill.name}>
@@ -236,6 +261,8 @@ const SkillsTab: React.FC<SkillsTabProps> = ({ character, onNavigateToGlossary }
                             ))}
                         </tbody>
                     </table>
+                    </div>
+                    ))}
                 </div>
             </div>
         </div>

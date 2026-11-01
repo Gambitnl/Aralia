@@ -90,6 +90,15 @@ const OCTAVES: Array<[metres: number, weight: number]> = [
 
 const WEIGHT_SUM = OCTAVES.reduce((s, [, w]) => s + w, 0);
 
+/**
+ * The tuning, read by the WebGPU node twin (`gpu/terrainSurfaceNoiseNode.ts`,
+ * ADR 0009 step 4) so the two paths share one table. Exports only; the GLSL
+ * below is unchanged.
+ */
+export const TERRAIN_NOISE_AMP = NOISE_AMP;
+export const TERRAIN_NOISE_OCTAVES: ReadonlyArray<readonly [metres: number, weight: number]> = OCTAVES;
+export const TERRAIN_NOISE_WEIGHT_SUM = WEIGHT_SUM;
+
 const NOISE_GLSL = /* glsl */ `
 // Hash without sin(): trigonometric hashes lose precision at the world
 // coordinates this runs at (thousands of metres) and band across the terrain.

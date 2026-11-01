@@ -41,6 +41,25 @@ import type { Point } from "./voronoi";
 import type { Pack, PackedGraphFeature } from "./features";
 import { Lakes } from "./lakes";
 
+/**
+ * d3Shim `min` over `value(id)` for each id, with no temporary array.
+ *
+ * GG-556 (2026-11-01): resolveDepressions called `min(ids.map(value))` for
+ * every land cell on every pass (up to 250 passes), so the array allocations
+ * and the GC they caused were most of world generation. This helper keeps the
+ * same visit order and the same comparison as d3Shim `min`, so ties, NaN,
+ * null and an empty list give exactly the same result. A byte-identity hash
+ * check (scripts/worldforge/fmgWorldHash.ts) proves the world is unchanged.
+ */
+function minOf(ids: ArrayLike<number>, value: (id: number) => number | null | undefined): number | undefined {
+  let result: number | undefined;
+  for (let k = 0; k < ids.length; k++) {
+    const v = value(ids[k]);
+    if (v != null && ((result as number) > v || (result === undefined && v >= v))) result = v;
+  }
+  return result;
+}
+
 export interface River {
   i: number; // river id
   source: number; // source cell index
@@ -382,11 +401,66 @@ class RiverModule {
     const checkLakeMaxIteration = maxIterations * 0.85;
     const elevateLakeMaxIteration = maxIterations * 0.75;
 
-    const height = (i: number) => features[cells.f![i]].height || h[i]; // height of lake or specific cell
+    // Upstream `height = (i) => features[cells.f[i]].height || h[i]` (height of
+    // lake or specific cell) is inlined in the land loop below (GG-556).
 
     const lakes = features.filter((feature) => feature.type === "lake");
+
+    // GG-556: `height` reads `.height` from feature objects of several shapes,
+    // which is slow in the land loop below. Only lake heights change, and only
+    // in the lake loop, so a typed copy refreshed after that loop gives the
+    // land loop the same values. A missing height reads as NaN, which is falsy
+    // like undefined, so `featureHeight[f] || h[c]` equals `height(c)`.
+    const cellFeature = cells.f!;
+    const featureHeight = new Float64Array(features.length);
+    const lakeIndexes: number[] = [];
+    const readFeatureHeight = (j: number) => {
+      const height = features[j] ? features[j].height : undefined; // features[0] is the 0 placeholder
+      featureHeight[j] = typeof height === "number" ? height : NaN;
+    };
+    for (let j = 0; j < features.length; j++) {
+      readFeatureHeight(j);
+      if (features[j] && features[j].type === "lake") lakeIndexes.push(j);
+    }
+
     const land = cells.i.filter((i: number) => h[i] >= 20 && !cells.b[i]); // exclude near-border cells
     land.sort((a: number, b: number) => h[a] - h[b]); // lowest cells go first
+
+    // GG-556: dirty-cell sweep. Upstream checks every land cell on every pass,
+    // but after the first passes only a few cells still change. A cell's
+    // check reads only its own height and its neighbors' heights. If none of
+    // those changed since its last check, and that check did not raise it,
+    // the check gives "skip" again. So a cell is checked only when it is
+    // dirty: on the first pass, after it was raised, or after an input
+    // changed. The sweep order is upstream's, so heights and the depression
+    // counts (which decide when the loop stops) are exactly the same.
+    const cellCount = cells.c.length;
+    const dirty = new Uint8Array(cellCount);
+    // dependents of cell c = the land cells that read c's height (CSR lists)
+    const depStart = new Int32Array(cellCount + 1);
+    for (const x of land) for (const c of cells.c[x]) depStart[c + 1]++;
+    for (let k = 0; k < cellCount; k++) depStart[k + 1] += depStart[k];
+    const depList = new Int32Array(depStart[cellCount]);
+    const depCursor = depStart.slice(0, cellCount);
+    for (const x of land) {
+      dirty[x] = 1;
+      for (const c of cells.c[x]) depList[depCursor[c]++] = x;
+    }
+    const markInputChanged = (cell: number) => {
+      dirty[cell] = 1;
+      for (let k = depStart[cell]; k < depStart[cell + 1]; k++) dirty[depList[k]] = 1;
+    };
+    // cells of each lake: a lake height change is an input change for them
+    const lakeOfFeature = new Int32Array(features.length).fill(-1);
+    lakeIndexes.forEach((j, k) => (lakeOfFeature[j] = k));
+    const lakeCells: number[][] = lakes.map(() => []);
+    for (let c = 0; c < cellCount; c++) {
+      const k = lakeOfFeature[cellFeature[c]];
+      if (k >= 0) lakeCells[k].push(c);
+    }
+    const markLakeChanged = (k: number) => {
+      for (const c of lakeCells[k]) markInputChanged(c);
+    };
 
     const progress: number[] = [];
     let depressions: number = Infinity;
@@ -410,36 +484,48 @@ class RiverModule {
       depressions = 0;
 
       if (iteration < checkLakeMaxIteration) {
-        for (const l of lakes) {
+        for (let k = 0; k < lakes.length; k++) {
+          const l = lakes[k];
           if (l.closed) continue;
-          const minHeight = min(
-            l.shoreline.map((s: number) => h[s]),
-          ) as number;
+          const minHeight = minOf(l.shoreline, (s) => h[s]) as number;
           if (minHeight >= 100 || l.height > minHeight) continue;
 
           if (iteration > elevateLakeMaxIteration) {
             l.shoreline.forEach((i: number) => {
               h[i] = cells.h[i];
+              markInputChanged(i);
             });
             l.height =
               (min(l.shoreline.map((s: number) => h[s])) as number) - 1;
             l.closed = true;
+            markLakeChanged(k);
             continue;
           }
 
           depressions++;
           l.height = (minHeight as number) + 0.2;
+          markLakeChanged(k);
         }
       }
 
+      for (const j of lakeIndexes) readFeatureHeight(j);
+
       for (const i of land) {
-        const minHeight = min(
-          cells.c[i].map((c: number) => height(c)),
-        ) as number;
-        if (minHeight >= 100 || h[i] > minHeight) continue;
+        if (!dirty[i]) continue; // inputs unchanged since a "skip" check: skip again
+        dirty[i] = 0;
+        // Inline d3Shim `min` over height(c) for the neighbors: same order, same comparison.
+        const neighbors = cells.c[i];
+        let minHeight: number | undefined;
+        for (let k = 0; k < neighbors.length; k++) {
+          const c = neighbors[k];
+          const v = featureHeight[cellFeature[c]] || h[c];
+          if (v != null && ((minHeight as number) > v || (minHeight === undefined && v >= v))) minHeight = v;
+        }
+        if ((minHeight as number) >= 100 || h[i] > (minHeight as number)) continue;
 
         depressions++;
-        h[i] = minHeight + 0.1;
+        h[i] = (minHeight as number) + 0.1;
+        markInputChanged(i);
       }
 
       prevDepressions !== null && progress.push(depressions - prevDepressions);

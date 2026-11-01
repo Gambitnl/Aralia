@@ -6,6 +6,22 @@
  * HTTP client for Ollama API communication.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 28/10/2026, 22:00:50
+ * Dependents: components/ui/OllamaModelPicker.tsx, services/CompanionGenerator.ts, services/ollama/banter.ts, services/ollama/conversation.ts, services/ollama/facts.ts, services/ollama/index.ts, services/ollama/reaction.ts, services/ollama/router.ts, services/ollamaTextService.ts, systems/gameEntry/generateOpeningSituation.ts, systems/gameEntry/resolveDeEscalationIntent.ts, systems/intent/resolvePlayerIntent.ts
+ * Imports: 7 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type {
     OllamaConfig,
     OllamaModel,
@@ -21,7 +37,7 @@ import type {
 import { DEFAULT_OLLAMA_CONFIG } from '../../types/ollama';
 import { getTaskProfile } from './taskProfiles';
 import { resolveModelForTask, resetRouterCache } from './router';
-import { resolveOllamaModel } from '../ai/aiProviderSettings';
+import { resolveOllamaModel, getOllamaComputeMode } from '../ai/aiProviderSettings';
 import { emitOllamaLog } from './ollamaLogSink';
 import { generateId } from '../../utils/core/idGenerator';
 import { isGroqActive, routeGenerateForTask, routeChatForTask } from '../ai/textProviderRouter';
@@ -238,6 +254,7 @@ export class OllamaClient {
         if (params.topP !== undefined) out.top_p = params.topP;
         if (params.repeatPenalty !== undefined) out.repeat_penalty = params.repeatPenalty;
         if (params.numCtx !== undefined) out.num_ctx = params.numCtx;
+        if (params.numGpu !== undefined) out.num_gpu = params.numGpu;
         return out;
     }
 
@@ -253,6 +270,7 @@ export class OllamaClient {
         topP?: number;
         repeatPenalty?: number;
         numCtx?: number;
+        numGpu?: number;
         keepAlive?: string | number;
     }): Promise<{ ok: true; data: OllamaGenerateResponse } | { ok: false; error: string }> {
         try {
@@ -261,7 +279,8 @@ export class OllamaClient {
                 numPredict: options.numPredict ?? 256,
                 topP: options.topP,
                 repeatPenalty: options.repeatPenalty,
-                numCtx: options.numCtx
+                numCtx: options.numCtx,
+                numGpu: options.numGpu
             });
 
             const body: Record<string, unknown> = {
@@ -302,6 +321,7 @@ export class OllamaClient {
         topP?: number;
         repeatPenalty?: number;
         numCtx?: number;
+        numGpu?: number;
         keepAlive?: string | number;
     }): Promise<{ ok: true; data: OllamaChatResponse } | { ok: false; error: string; statusCode?: number }> {
         try {
@@ -310,7 +330,8 @@ export class OllamaClient {
                 numPredict: options.numPredict ?? 256,
                 topP: options.topP,
                 repeatPenalty: options.repeatPenalty,
-                numCtx: options.numCtx
+                numCtx: options.numCtx,
+                numGpu: options.numGpu
             });
 
             const body: Record<string, unknown> = {
@@ -388,6 +409,9 @@ export class OllamaClient {
             topP: merged.topP,
             repeatPenalty: merged.repeatPenalty,
             numCtx: merged.numCtx,
+            // Respect the player's explicit local processing choice per request.
+            // Automatic adds no device override; cloud routing returned above.
+            numGpu: getOllamaComputeMode(profile.category) === 'cpu' ? 0 : merged.numGpu,
             keepAlive: merged.keepAlive ?? profile.keepAlive
         });
 
@@ -441,6 +465,9 @@ export class OllamaClient {
             topP: merged.topP,
             repeatPenalty: merged.repeatPenalty,
             numCtx: merged.numCtx,
+            // Respect the player's explicit local processing choice per request.
+            // Automatic adds no device override; cloud routing returned above.
+            numGpu: getOllamaComputeMode(profile.category) === 'cpu' ? 0 : merged.numGpu,
             keepAlive: merged.keepAlive ?? profile.keepAlive
         });
 

@@ -535,5 +535,60 @@ describe('statUtils', () => {
         char.equippedItems = { Ring1: ring } as any;
         expect(calculateArmorClass(char)).toBe(11);
       });
+
+      it('GG-501: denies AC bonus to character B when item is attuned to character A', () => {
+        const charA = createMockPlayerCharacter({
+          id: 'char-a',
+          finalAbilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+        });
+        const charB = createMockPlayerCharacter({
+          id: 'char-b',
+          finalAbilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+        });
+        const cloakOfProtection: Item = {
+          id: 'cloak-of-protection',
+          name: 'Cloak of Protection',
+          type: 'accessory',
+          slot: 'Cloak',
+          description: '',
+          weight: 0,
+          armorClassBonus: 1,
+          requiresAttunement: true,
+          isAttuned: true,
+          attunedCharacterId: 'char-a',
+        } as Item;
+
+        charA.equippedItems = { Cloak: cloakOfProtection } as any;
+        expect(calculateArmorClass(charA)).toBe(11);
+
+        charB.equippedItems = { Cloak: cloakOfProtection } as any;
+        expect(calculateArmorClass(charB)).toBe(10);
+      });
+
+      it('GG-501: denies stat overrides/bonuses to character B when item is attuned to character A', () => {
+        const charB = createMockPlayerCharacter({
+          id: 'char-b',
+          abilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+          finalAbilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+        });
+        const headband: Item = {
+          id: 'headband-of-intellect',
+          name: 'Headband of Intellect',
+          type: 'armor',
+          slot: 'Head',
+          description: '',
+          weight: 0,
+          statOverrides: { Intelligence: 19 },
+          requiresAttunement: true,
+          isAttuned: true,
+          attunedCharacterId: 'char-a',
+        } as Item;
+
+        const scoresB = calculateFinalAbilityScores(charB.abilityScores, charB.race, { Head: headband }, 'char-b');
+        expect(scoresB.Intelligence).toBe(10);
+
+        const scoresA = calculateFinalAbilityScores(charB.abilityScores, charB.race, { Head: headband }, 'char-a');
+        expect(scoresA.Intelligence).toBe(19);
+      });
     });
 });

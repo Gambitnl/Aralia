@@ -484,7 +484,7 @@ describe('tower exclusion and caps', () => {
 
 // ── Flat style ───────────────────────────────────────────────────────────────
 describe('flat style', () => {
-  it('yields no sloped planes and no dormers', () => {
+  it('yields one flat deck, no sloped planes and no dormers', () => {
     const masses: FootprintMass[] = [{ kind: 'main', x: 0, y: 0, w: 6, h: 4 }];
     const input = mkInput({
       masses,
@@ -492,7 +492,9 @@ describe('flat style', () => {
       style: baseStyle('flat'),
     });
     const plan = solveRoof(input);
-    expect(plan.planes.length).toBe(0);
+    // The deck at the wall top (2026-10-28): a keep is roofed, not an open box.
+    expect(plan.planes.length).toBe(1);
+    expect(plan.planes[0].pts.every((p) => p[2] === 0)).toBe(true);
     expect(plan.dormers.length).toBe(0);
     // One ridge record marks the parapet line at z 0.
     expect(plan.ridges.length).toBe(1);

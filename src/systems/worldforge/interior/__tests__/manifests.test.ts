@@ -5,6 +5,8 @@ import { briefFromHousehold } from '../../town/householdBrief';
 import { generateHousehold } from '../../town/household';
 import { containerManifests, CONTAINER_KINDS } from '../manifests';
 import { ALL_ITEMS } from '../../../../data/items/index';
+import { townBuildingVisit } from '@/components/Worldforge/townBuildingVisit';
+import { canonicalTownSeedPath } from '../../town/canonicalTown';
 
 function fixture(seed: number) {
   const town = rootSeedPath(seed);
@@ -45,6 +47,33 @@ function smithFixture(seed: number) {
 }
 
 describe('containerManifests', () => {
+  it('gives the reached library owned books while preserving every existing goods row and container identity', () => {
+    // GG-552 (2026-11-01): the town-look rules re-lay out every NEW town
+    // (Remy's ruling q2, layout revision 2). This reached library keeps the
+    // layout its save was made with, so it reads layout revision 1.
+    const {plan} = townBuildingVisit(1793432134128,40,56,undefined,undefined,1);
+    const path = childSeedPath(canonicalTownSeedPath(1793432134128,40),'interior:56');
+    const actual = containerManifests(plan,plan.household!,path);
+    const previous = containerManifests({...plan,type:'civic'},plan.household!,path);
+    let shelves = 0;
+    for (const [index,manifest] of actual.entries()) {
+      const floor = plan.floors.find(f=>f.level===manifest.level)!;
+      const piece = floor.furnishings[manifest.furnishingIndex];
+      const study = floor.rooms.find(r=>r.id===piece.roomId)?.purpose==='study';
+      expect({...manifest,entries:previous[index].entries}).toEqual(previous[index]);
+      if (piece.kind==='shelf' && study) {
+        shelves++;
+        expect(manifest.entries.slice(0,-1)).toEqual(previous[index].entries);
+        expect(manifest.entries.at(-1)?.itemId).toBe('book');
+        expect(manifest.entries.at(-1)?.qty).toBeGreaterThanOrEqual(6);
+        expect(manifest.entries.at(-1)?.qty).toBeLessThanOrEqual(12);
+        expect(ALL_ITEMS.book).toBeDefined();
+      } else expect(manifest).toEqual(previous[index]);
+    }
+    expect(shelves).toBeGreaterThan(0);
+    expect(actual).toEqual(containerManifests(plan,plan.household!,path));
+  });
+
   it('every container gets an owned manifest; every itemId resolves in ALL_ITEMS — 25 seeds', () => {
     for (let seed = 0; seed < 25; seed++) {
       const { plan, brief, path } = fixture(seed);

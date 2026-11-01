@@ -20,7 +20,7 @@
 
 import type { PlayerCharacter, HitPointDicePool } from '../../types/character';
 import type { Item } from '../../types/items';
-import { getAbilityModifierValue } from '../../utils/character';
+import { calculateProficiencyBonus } from '../../utils/character';
 
 /** Registry id of the Healer's Kit (src/data/items/generatedGlossaryItems.ts). */
 export const HEALERS_KIT_ITEM_ID = 'healer_s_kit';
@@ -103,9 +103,9 @@ function spendOneHitDie(
 
 export interface ResolveHealersKitArgs {
   /** The character taking the Utilize action. */
-  user: Pick<PlayerCharacter, 'name' | 'feats'>;
+  user: Pick<PlayerCharacter, 'name' | 'feats'> & { level?: number; proficiencyBonus?: number };
   /** The creature being stabilized or tended. */
-  target: Pick<PlayerCharacter, 'name' | 'hp' | 'maxHp' | 'finalAbilityScores' | 'hitPointDice'>;
+  target: Pick<PlayerCharacter, 'name' | 'hp' | 'maxHp' | 'hitPointDice'> & { finalAbilityScores?: PlayerCharacter['finalAbilityScores'] };
   /** The kit item from the inventory. */
   kit: Pick<Item, 'id' | 'usesRemaining'> | undefined;
   /** Injected randomness; defaults to Math.random. */
@@ -169,6 +169,21 @@ export function resolveHealersKitUse({
     };
   }
 
+  // With the feat, tending an ally who is already at full HP used to spend a kit
+  // use AND one of the ally's Hit Point Dice for 0 healing (C14, agora-9ed9.14).
+  // Refuse it with the existing failure code instead of wasting both resources.
+  if (!isDying && target.hp >= target.maxHp) {
+    return {
+      ok: false,
+      failure: 'target_dead_or_full',
+      kitUsesRemaining: usesBefore,
+      stabilized: false,
+      healing: 0,
+      rolls: [],
+      message: `${target.name} is already at full health, so tending would only waste a Hit Die.`,
+    };
+  }
+
   const kitUsesAfter = usesBefore - 1;
   const stabilized = isDying;
 
@@ -180,8 +195,9 @@ export function resolveHealersKitUse({
     const pools = target.hitPointDice || [];
     const spend = spendOneHitDie(pools, rng);
     if (spend) {
-      const conMod = getAbilityModifierValue(target.finalAbilityScores.Constitution);
-      const rolled = Math.max(1, spend.roll + conMod);
+      // GG-447: 2024 PHB Battle Medic: target regains Hit Points equal to the roll plus healer's Proficiency Bonus.
+      const pb = user.proficiencyBonus ?? calculateProficiencyBonus(user.level ?? 1);
+      const rolled = Math.max(1, spend.roll + pb);
       // A stabilized creature is still at 0 HP when the die is rolled, so the
       // headroom is measured from its current HP either way.
       const missing = Math.max(0, target.maxHp - target.hp);

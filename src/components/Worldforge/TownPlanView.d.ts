@@ -18,6 +18,8 @@ import { type ClimateClass, type StyleFamily } from '../../systems/worldforge/to
 import { type SeedPath } from '../../systems/worldforge/seedPath';
 import type { VillageIntegrationProfile } from '../../data/villagePersonalityProfiles';
 export interface TownPlanViewProps {
+    /** Current party feet in this canonical town frame; no inferred marker in previews. */
+    partyPosition?: Pt | null;
     plan: TownPlan;
     width?: number;
     height?: number;

@@ -15,6 +15,7 @@ import {
   getBridgeAtlas,
   getTownTilesForGrid,
   getWorldforgeLocalForLocation,
+  resolveWorldforgeLocationEntry,
 } from '../legacySubmapBridge';
 import { makeGroundWorld } from '../groundChunkLoader';
 import { listSelectableTowns } from '../../local/startTowns';
@@ -116,5 +117,28 @@ describe('burg-aware grid-tile entry', () => {
       if (!listed.has(`${t.x},${t.y}`)) missing.push(`burg ${burg.i} @ (${t.x},${t.y})`);
     }
     expect(missing).toEqual([]);
+  }, 60_000);
+
+  // GG-558 (2026-11-01): the World3D demo resolves its tile with
+  // resolveWorldforgeLocationEntry and sends that cell to the world-gen worker.
+  // The worker must open the same window that the tile entry opens.
+  it('resolveWorldforgeLocationEntry names the cell and town center of the tile entry', () => {
+    const seed = 42;
+    const world = getBridgeAtlas(seed);
+    const burg = (world.pack.burgs as Burg[]).find((b) => b?.i && !b.removed)!;
+    const town = tileOf(burg.x, burg.y);
+    const townEntry = resolveWorldforgeLocationEntry(seed, town.x, town.y, COLS, ROWS);
+    expect(townEntry.centerPx).toBeDefined();
+    expect(townEntry.cellId).toBe(getWorldforgeLocalForLocation(seed, town.x, town.y, COLS, ROWS).anchorCellId);
+
+    // A tile with no burg opens on its nearest land cell, with no town center.
+    const townTiles = new Set(getTownTilesForGrid(seed, COLS, ROWS).map((e) => `${e.x},${e.y}`));
+    let wild: { x: number; y: number } | null = null;
+    for (let y = 0; y < ROWS && !wild; y++) {
+      for (let x = 0; x < COLS && !wild; x++) if (!townTiles.has(`${x},${y}`)) wild = { x, y };
+    }
+    const wildEntry = resolveWorldforgeLocationEntry(seed, wild!.x, wild!.y, COLS, ROWS);
+    expect(wildEntry.centerPx).toBeUndefined();
+    expect(wildEntry.cellId).toBe(getWorldforgeLocalForLocation(seed, wild!.x, wild!.y, COLS, ROWS).anchorCellId);
   }, 60_000);
 });

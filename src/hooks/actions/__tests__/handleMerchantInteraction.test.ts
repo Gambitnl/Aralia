@@ -5,8 +5,10 @@ import {
   isTavernOrInnMerchant,
   offerTavernHire,
   handleMerchantAction,
+  ensureBusinessStock,
 } from '../handleMerchantInteraction';
 import { GameState } from '../../../types';
+import { companionReducer } from '../../../state/reducers/companionReducer';
 import type { KnownFact, RichNPC } from '../../../types/world';
 import {
   HAGGLE_COOLDOWN_MS,
@@ -24,6 +26,14 @@ describe('validateMerchantTransaction', () => {
       { id: 'item_2', name: 'Shield' }
     ]
   } as unknown as GameState;
+
+  it('admits the same combined funds as checkout and rejects currency merchandise', () => {
+    const state = {...mockGameState, gold:0.77, inventory:[{id:'gold_piece',quantity:8}]} as GameState;
+    expect(validateMerchantTransaction('buy',{item:{id:'torch'},cost:8.77},state).valid).toBe(true);
+    expect(validateMerchantTransaction('buy',{item:{id:'torch'},cost:8.78},state).valid).toBe(false);
+    expect(validateMerchantTransaction('sell',{itemId:'gold_piece',value:0.1},state).valid).toBe(false);
+    expect(validateMerchantTransaction('buy',{item:{id:'gold_piece'},cost:0.1},state).valid).toBe(false);
+  });
 
   describe('buy', () => {
     it('should return valid for sufficient gold', () => {
@@ -94,6 +104,22 @@ describe('handleMerchantAction buy', () => {
     currentLocationId: 'loc-1',
   }) as unknown as GameState;
 
+  it('refuses repurchase of information already retained on its receipt', async () => {
+    const item={id:'rumor_paid',sourceId:'gossip_paid',type:'service',name:'Rumor'};
+    const state={...baseState(),inventory:[item]};const dispatch=vi.fn(),addMessage=vi.fn();
+    await handleMerchantAction({gameState:state,dispatch,addMessage,
+      action:{type:'BUY_ITEM',payload:{transaction:{buy:{item,cost:6}}}}} as never);
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(addMessage).toHaveBeenCalledWith(expect.stringContaining('already own'),'system');
+  });
+  it('refuses resale of the paid account instead of erasing learned information', async () => {
+    const item={id:'rumor_paid',sourceId:'gossip_paid',type:'service',name:'Rumor'};
+    const state={...baseState(),inventory:[item]};const dispatch=vi.fn(),addMessage=vi.fn();
+    await handleMerchantAction({gameState:state,dispatch,addMessage,
+      action:{type:'SELL_ITEM',payload:{transaction:{sell:{itemId:item.id,value:0.01,inventoryIndex:0}}}}} as never);
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(addMessage).toHaveBeenCalledWith(expect.stringContaining('cannot be sold'),'system');
+  });
   it('dispatches BUY_ITEM for a SINGLE unit even when the shelf item is a stack', async () => {
     const dispatch = vi.fn();
     const addMessage = vi.fn();
@@ -123,6 +149,64 @@ describe('handleMerchantAction buy', () => {
     expect(dispatch.mock.calls.some(c => c[0].type === 'BUY_ITEM')).toBe(false);
     expect(addMessage).toHaveBeenCalled();
   });
+
+  it('preserves an explicitly depleted business instead of refilling it', () => {
+    const business = { id: 'shop', businessType: 'tavern', stock: [] } as never;
+    const dispatch = vi.fn();
+    expect(ensureBusinessStock(business, 42, dispatch)).toBe(business);
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('rejects a stale shelf request without charging or delivering an item', async () => {
+    const state = { ...baseState(), worldBusinesses: { shop: {
+      id: 'shop', ownerId: 'keeper', priceMultiplier: 1, stock: [{ itemId: 'rations', quantity: 0 }],
+    } } } as unknown as GameState;
+    const dispatch = vi.fn(); const addMessage = vi.fn();
+    await handleMerchantAction({ gameState: state, dispatch, addMessage, action: {
+      type: 'BUY_ITEM', payload: { merchantId: 'keeper', transaction: { buy: {
+        item: { id: 'rations', name: 'Rations', type: 'food_drink', quantity: 9 }, cost: 0.5,
+      } } },
+    } } as never);
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(addMessage).toHaveBeenCalledWith(expect.stringContaining('no longer in stock'), 'system');
+  });
+
+  it('retains a friendly faction price in the authoritative business charge', async () => {
+    const state = { ...baseState(), currentRegionId: 'region',
+      economy: { buyMultiplier: 1, sellMultiplier: 0.5, globalInflation: 0, regionalWealth: {}, activeEvents: [], marketFactors: { scarcity: [], surplus: [] } },
+      factions: { guild: { id: 'guild', controlledRegionIds: ['region'] } },
+      playerFactionStandings: { guild: { publicStanding: 100 } },
+      worldBusinesses: { shop: { id: 'shop', ownerId: 'keeper', priceMultiplier: 1.2, stock: [{ itemId: 'longsword', quantity: 1 }] } },
+    } as unknown as GameState;
+    const dispatch = vi.fn();
+    await handleMerchantAction({ gameState: state, dispatch, addMessage: vi.fn(), action: {
+      type: 'BUY_ITEM', payload: { merchantId: 'keeper', transaction: { buy: {
+        item: { id: 'longsword', type: 'weapon', quantity: 1 }, cost: 18,
+      } } },
+    } } as never);
+    expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({ type: 'BUY_ITEM', payload: expect.objectContaining({ cost: 15.3 }) }));
+  });
+
+  it('uses the business quote and retains catalog value and identity on a purchased unit', async () => {
+    const state = { ...baseState(), worldBusinesses: { shop: {
+      id: 'shop', ownerId: 'keeper', priceMultiplier: 0.96, stock: [{ itemId: 'rations', quantity: 9 }],
+    } } } as unknown as GameState;
+    const dispatch = vi.fn();
+    await handleMerchantAction({ gameState: state, dispatch, addMessage: vi.fn(), action: {
+      type: 'BUY_ITEM', payload: { merchantId: 'keeper', transaction: { buy: {
+        item: { id: 'rations', name: 'Wrong label', type: 'food_drink', quantity: 9, costInGp: 0.01 }, cost: 0.01,
+      } } },
+    } } as never);
+    expect(dispatch).toHaveBeenCalledWith({ type: 'BUY_ITEM', payload: {
+      item: expect.objectContaining({ id: 'rations', name: 'Rations (1 day)', quantity: 1, costInGp: 0.5 }), cost: 0.48,
+    } });
+  });
+});
+
+it.each([NaN, Infinity, -Infinity])('rejects non-finite currency %s', value => {
+  const state = { gold: 100, inventory: [{ id: 'rations' }] } as unknown as GameState;
+  expect(validateMerchantTransaction('buy', { item: { id: 'rations' }, cost: value }, state).valid).toBe(false);
+  expect(validateMerchantTransaction('sell', { itemId: 'rations', value }, state).valid).toBe(false);
 });
 
 // ============================================================================
@@ -178,6 +262,22 @@ describe('isTavernOrInnMerchant', () => {
 });
 
 describe('offerTavernHire', () => {
+  it('carries real paid NPC conversion into the atomic membership owner', () => {
+    const keeper=makeKeeper(80);
+    let state={...makeStateWithDisposition(keeper.id,80,0.77),party:[],messages:[],
+      gameTime:new Date('0351-01-01T08:00:00Z'),
+      inventory:[{id:'gold_piece',name:'Gold Piece',type:'treasure',quantity:35,sourceId:'earned-cache',containerId:'pouch'}],
+    } as unknown as GameState;
+    const originalCoin=state.inventory[0];
+    const dispatch=vi.fn(action=>{state={...state,...companionReducer(state,action)};});
+    offerTavernHire(keeper,state,dispatch,vi.fn());
+    expect(dispatch).toHaveBeenCalledTimes(1);
+    expect(state.gold).toBe(0.77);
+    expect(state.inventory).toEqual([{...originalCoin,quantity:5}]);
+    expect(state.party[0].id).toBe(keeper.id);
+    expect(state.companions[keeper.id].inParty).toBe(true);
+    expect(state.messages.some(m=>m.text.includes('pay 30 gold')&&m.text.includes(keeper.name))).toBe(true);
+  });
   it('recruits the keeper when consent passes (warm disposition)', () => {
     const keeper = makeKeeper(80);
     const state = makeStateWithDisposition(keeper.id, 80);
@@ -193,19 +293,19 @@ describe('offerTavernHire', () => {
     expect(recruit.payload.character.id).toBe(keeper.id);
     expect(recruit.payload.companion.id).toBe(keeper.id);
     expect(recruit.payload.character.id).toBe(recruit.payload.companion.id);
-    // Paid hire deducts gold (level-2 keeper → 30 gold).
-    const gold = dispatch.mock.calls.find(c => c[0].type === 'MODIFY_GOLD')?.[0];
-    expect(gold?.payload.amount).toBe(-30);
+    // The level-2 keeper's30GP payment travels with membership, not a second debit.
+    expect(recruit.payload.hireCostGp).toBe(30);
+    expect(dispatch.mock.calls.some(c => c[0].type === 'MODIFY_GOLD')).toBe(false);
   });
 
-  it('announces the join in-fiction on a successful hire', () => {
+  it('announces the paid offer without claiming the reducer has already accepted it', () => {
     const keeper = makeKeeper(80);
     const state = makeStateWithDisposition(keeper.id, 80);
     const captured: string[] = [];
 
     offerTavernHire(keeper, state, vi.fn(), (m: string) => captured.push(m));
 
-    expect(captured.some(m => m.includes(keeper.name) && m.includes('join your party'))).toBe(true);
+    expect(captured.some(m => m.includes(keeper.name) && m.includes('offer 30 gold'))).toBe(true);
   });
 
   it('declines a willing hire the player cannot afford, without recruiting', () => {
@@ -287,6 +387,28 @@ describe('haggle flow', () => {
       // Cooldown and price effect expire together.
       expect(factCall.payload.fact.lifespan).toBe(HAGGLE_COOLDOWN_MS);
       expect(factCall.payload.fact.timestamp).toBe(NOW);
+    } finally {
+      roll.mockRestore();
+    }
+  });
+
+  it('dispatches ADD_NPC_KNOWN_FACT and UPDATE_NPC_DISPOSITION even when merchant has no prior npcMemory entry (GG-165)', async () => {
+    const roll = vi.spyOn(Math, 'random').mockReturnValue(0.99); // Nat 20 -> success
+    try {
+      const stateWithoutMemory = makeHaggleState();
+      delete (stateWithoutMemory.npcMemory as Record<string, unknown>).merchant_1;
+
+      const dispatch = vi.fn();
+      await haggle(stateWithoutMemory, dispatch, []);
+
+      const factCall = dispatch.mock.calls.find(c => c[0].type === 'ADD_NPC_KNOWN_FACT')?.[0];
+      expect(factCall).toBeDefined();
+      expect(factCall.payload.npcId).toBe('merchant_1');
+      expect(isHaggleFactText(factCall.payload.fact.text)).toBe(true);
+
+      const dispCall = dispatch.mock.calls.find(c => c[0].type === 'UPDATE_NPC_DISPOSITION')?.[0];
+      expect(dispCall).toBeDefined();
+      expect(dispCall.payload.npcId).toBe('merchant_1');
     } finally {
       roll.mockRestore();
     }

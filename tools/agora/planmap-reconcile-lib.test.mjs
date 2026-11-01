@@ -62,3 +62,36 @@ test('idempotent: second run yields zero changes', () => {
   const second = reconcileBoardToPlanmap(data, tasks);
   assert.equal(second.changes.length, 0);
 });
+
+test('WF266: finished build-only work is active evidence, never feature delivery', () => {
+  const data = mkData();
+  const owner='11111111-1111-4111-8111-111111111111';
+  const record={buildTask:'agora-build',followUpTask:'agora-review',reviewer:{agentId:owner},deliveryRefs:['planmap:forests/named-forests'],buildPrerequisites:[],tuningFiles:[]};
+  const build = {id:'agora-build',campaignId:'demo',state:'done',refs:record.deliveryRefs,body:'REFERENCE-ONLY: VISUAL-HANDOFF: '+JSON.stringify(record)};
+  reconcileBoardToPlanmap(data, [build]);
+  assert.equal(data.topics[0].features[0].status, 'active');
+  assert.equal(data.topics[0].status, 'active');
+  const review = {id:'agora-review',campaignId:'demo',claimedBy:owner,state:'blocked',deps:[build.id],refs:build.refs,body:'VISUAL-REVIEW: '+JSON.stringify(record)};
+  reconcileBoardToPlanmap(data, [build,review]);
+  assert.equal(data.topics[0].features[0].status, 'active');
+  review.state='done';
+  reconcileBoardToPlanmap(data, [build,review]);
+  assert.equal(data.topics[0].features[0].status, 'done');
+});
+
+test('WF266: contradictory reviewer delivery refs cannot independently promote another feature',()=>{
+  const data=mkData();data.topics[0].features.push({title:'Other forests',status:'specced'});
+  const owner='11111111-1111-4111-8111-111111111111',ref='planmap:forests/named-forests';
+  const record={buildTask:'agora-build',followUpTask:'agora-review',reviewer:{agentId:owner},deliveryRefs:[ref],buildPrerequisites:[],tuningFiles:[]};
+  const build={id:record.buildTask,campaignId:'demo',state:'done',refs:[ref],body:'VISUAL-HANDOFF: '+JSON.stringify(record)};
+  const review={id:record.followUpTask,campaignId:'demo',state:'done',claimedBy:owner,deps:[build.id],refs:[ref,'planmap:forests/other-forests'],body:'VISUAL-REVIEW: '+JSON.stringify(record)};
+  reconcileBoardToPlanmap(data,[build,review]);
+  assert.equal(data.topics[0].features[0].status,'active');
+  assert.equal(data.topics[0].features[1].status,'specced');
+  review.refs=[ref];review.claimedBy='another-agent';
+  reconcileBoardToPlanmap(data,[build,review]);
+  assert.equal(data.topics[0].features[0].status,'active');
+  review.claimedBy=owner;
+  reconcileBoardToPlanmap(data,[build,review]);
+  assert.equal(data.topics[0].features[0].status,'done');
+});

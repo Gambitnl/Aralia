@@ -27,11 +27,23 @@
  */
 import { useMemo, useRef } from 'react';
 import { ENV } from '../../../config/env';
+import { isWebGpuWorldEnabled } from '../webgpuWorldFlag';
+import { makeMoonNodeMaterial, type MoonNodes } from '../gpu/worldGpuSky';
+
+/**
+ * ADR 0009 step 3 (2026-10-26): under `?gpu=1` the game world draws with
+ * WebGPURenderer. takram's `<Sky>` and `<Stars>` are WebGL GLSL libraries and
+ * `ShaderMaterial` draws nothing there, so this component mounts only the TSL
+ * moon on that path and leaves the gradient dome (World3DLighting) to show at
+ * night. Recorded as a gap in docs/architecture/domains/world3d-river-water.md.
+ */
+const WEBGPU_WORLD = isWebGpuWorldEnabled();
 import { useFrame } from '@react-three/fiber';
 import type { Vector3 } from 'three';
 import {
   AdditiveBlending,
   Color,
+  type Material,
   Matrix4,
   ShaderMaterial,
   SphereGeometry,
@@ -45,6 +57,8 @@ import {
 } from '@takram/three-atmosphere/r3f';
 import { CloudLayer, Clouds } from '@takram/three-clouds/r3f';
 import type { CloudsQualityPreset } from '@takram/three-clouds';
+import { cloudsSceneEdgeRef } from './cloudsSceneEdgeResolve';
+import { sharedAtmosphereTextures } from './sharedAtmosphereTextures';
 import { Ellipsoid, Geodetic } from '@takram/three-geospatial';
 import { EffectComposer, ToneMapping } from '@react-three/postprocessing';
 import { ToneMappingMode } from 'postprocessing';
@@ -138,8 +152,14 @@ const Moon = ({ sunDirection }: { sunDirection: Vector3 }) => {
   const meshRef = useRef<import('three').Mesh>(null);
 
   const geometry = useMemo(() => new SphereGeometry(600, 32, 32), []);
-  const material = useMemo(
+  // ADR 0009 step 3: the TSL twin under WebGPU; the GLSL material otherwise.
+  const moonNodes = useMemo<MoonNodes | null>(
+    () => (WEBGPU_WORLD ? makeMoonNodeMaterial() : null),
+    [],
+  );
+  const material = useMemo<Material>(
     () =>
+      moonNodes?.material ??
       new ShaderMaterial({
         uniforms: {
           uSunDir: { value: new ThreeVector3() },
@@ -176,7 +196,7 @@ const Moon = ({ sunDirection }: { sunDirection: Vector3 }) => {
         depthWrite: false,
         blending: AdditiveBlending,
       }),
-    []
+    [moonNodes]
   );
 
   useFrame(() => {
@@ -202,9 +222,15 @@ const Moon = ({ sunDirection }: { sunDirection: Vector3 }) => {
     // fade out as the sun climbs so it doesn't compete with daylight.
     const sunHeight = sunDirection.y;
     const opacity = 1.0 - smoothstep(sunHeight, -0.05, 0.25);
-    material.uniforms.uOpacity.value = opacity;
-    // Pass the actual sun direction for lighting the moon face.
-    material.uniforms.uSunDir.value.copy(sunDirection);
+    if (moonNodes) {
+      moonNodes.opacity.value = opacity;
+      moonNodes.sunDir.value.copy(sunDirection);
+    } else {
+      const { uniforms } = material as ShaderMaterial;
+      uniforms.uOpacity.value = opacity;
+      // Pass the actual sun direction for lighting the moon face.
+      uniforms.uSunDir.value.copy(sunDirection);
+    }
     mesh.visible = opacity > 0.01;
   });
 
@@ -248,6 +274,12 @@ const TakramSkySystem = ({
 
   if (!visible) return null;
 
+  // ADR 0009 step 3: WebGPU path. No <Atmosphere>, <Sky>, <Stars> or composer
+  // (WebGL-only libraries); the moon alone, as a TSL node material.
+  if (WEBGPU_WORLD) {
+    return moonEnabled ? <Moon sunDirection={sunDirection} /> : null;
+  }
+
   return (
     // correctAltitude={true} (default) is required even for a flat scene.
     // WGS84 equatorial radius (6378 km) > Bruneton bottomRadius (6360 km).
@@ -261,7 +293,8 @@ const TakramSkySystem = ({
     // Bruneton ground disc entirely.
     <Atmosphere
       ref={atmosphereRef}
-      textures={ATMOSPHERE_TEXTURES_URL}
+      // GG-574: one shared half-float load for every <Atmosphere> on the page.
+      textures={sharedAtmosphereTextures(ATMOSPHERE_TEXTURES_URL)}
       correctAltitude={correctAltitude}
       ground={ground}
     >
@@ -285,6 +318,12 @@ const TakramSkySystem = ({
             qualityPreset={qualityPreset}
             correctAltitude={correctAltitude}
             skipRendering={false}
+            // Same scene/sky edge rule as VolumetricClouds (2026-11-01): the
+            // rule covers the full-resolution TAA path only, so this setup
+            // leaves the library's quarter-resolution upscale path too.
+            // Without it, tree crowns show a white rim while the camera turns.
+            ref={cloudsSceneEdgeRef}
+            temporalUpscale={false}
             disableDefaultLayers={cloudAltitude !== 1}
             localWeatherTexture={CLOUD_LOCAL_WEATHER_URL}
             shapeTexture={CLOUD_SHAPE_URL}

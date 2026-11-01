@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 15/08/2026, 00:55:11
+ * Last Sync: 31/10/2026, 05:33:29
  * Dependents: components/CharacterSheet/Overview/index.ts
- * Imports: 6 files
+ * Imports: 10 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -17,8 +17,11 @@
 import React, { useState } from 'react';
 import { PlayerCharacter, AbilityScoreName } from '../../../types';
 import Tooltip from '../../ui/Tooltip';
-import { getAbilityModifierValue, getAbilityModifierString, getCharacterRaceDisplayString, buildHitPointDicePools, getRacialMovementSpeedsForLevel } from '../../../utils/character';
+import { getAbilityModifierValue, getAbilityModifierString, getCharacterRaceDisplayString, buildHitPointDicePools, getRacialMovementSpeedsForLevel, hasHeavyArmorSpeedPenalty } from '../../../utils/character';
 import { calculatePassiveScore } from '../../../utils/character';
+import { getMovementSpeed, getMovementSpeedBeforeExhaustion } from '../../../utils/character/partyStatUtils';
+import { exhaustionLevelFromConditions, getExhaustionD20Penalty } from '../../../utils/combat/physicsUtils';
+import { getCharacterSkillModifier } from '../../../utils/character/skillModifierUtils';
 import { AbilityScoreIcon } from '../../../utils/abilityIcons';
 import { FEATS_DATA } from '../../../data/feats/featsData';
 import { classFeaturesForLevel } from '../../../data/classes/classFeatureProgression';
@@ -198,17 +201,15 @@ const formatDefenseList = (values: string[]): string =>
 const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
     const proficiencies = useCharacterProficiencies(character);
     const profBonus = character.proficiencyBonus || 2;
+    const walkingSpeed = getMovementSpeed(character);
+    const speedBeforeExhaustion = getMovementSpeedBeforeExhaustion(character);
+    const exhaustionSpeedPenalty = speedBeforeExhaustion - walkingSpeed;
+    const exhaustionPenalty = getExhaustionD20Penalty(character);
 
-    // Determine if the character has a heavy armor speed penalty active.
-    // In D&D 5e, equipping heavy armor without the Strength requirement reduces speed by 10ft.
+    // Show the same armor tradeoff that equipping uses, including an explicit
+    // carried racial exemption. Exhaustion and timed speed effects stay separate.
     const torsoItem = character.equippedItems.Torso;
-    const hasSpeedPenalty = !!(
-        torsoItem &&
-        torsoItem.type === 'armor' &&
-        torsoItem.armorCategory === 'Heavy' &&
-        torsoItem.strengthRequirement &&
-        (character.finalAbilityScores?.Strength ?? 10) < torsoItem.strengthRequirement
-    );
+    const hasSpeedPenalty = hasHeavyArmorSpeedPenalty(character);
 
     // Alternate movement speeds (swim/climb/fly/burrow) granted by the race
     // (GG-7). Read at the character level (GG-259): a later-level racial mode
@@ -216,15 +217,15 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
     // level is reached, instead of being handed to a level-1 character.
     const movementSpeeds = getRacialMovementSpeedsForLevel(character);
 
-    // Passive scores
+    // Passive scores (including proficiency, expertise, and Jack of All Trades)
     const wisdomMod = getAbilityModifierValue(character.finalAbilityScores.Wisdom);
     const intelligenceMod = getAbilityModifierValue(character.finalAbilityScores.Intelligence);
-    const hasPerception = character.skills.some(s => s.id === 'perception');
-    const hasInsight = character.skills.some(s => s.id === 'insight');
-    const hasInvestigation = character.skills.some(s => s.id === 'investigation');
-    const passivePerception = calculatePassiveScore(wisdomMod, hasPerception ? profBonus : 0);
-    const passiveInsight = calculatePassiveScore(wisdomMod, hasInsight ? profBonus : 0);
-    const passiveInvestigation = calculatePassiveScore(intelligenceMod, hasInvestigation ? profBonus : 0);
+    const perceptionBonus = getCharacterSkillModifier(character, 'perception', 'Wisdom') - wisdomMod;
+    const insightBonus = getCharacterSkillModifier(character, 'insight', 'Wisdom') - wisdomMod;
+    const investigationBonus = getCharacterSkillModifier(character, 'investigation', 'Intelligence') - intelligenceMod;
+    const passivePerception = calculatePassiveScore(wisdomMod, perceptionBonus);
+    const passiveInsight = calculatePassiveScore(wisdomMod, insightBonus);
+    const passiveInvestigation = calculatePassiveScore(intelligenceMod, investigationBonus);
 
     // Dex mod for AC calculation
     const dexMod = getAbilityModifierValue(character.finalAbilityScores.Dexterity);
@@ -236,7 +237,7 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
     const spellcastingScore = spellcastingAbilityName ? (character.finalAbilityScores[spellcastingAbilityName] as number) : 0;
     const spellcastingModifier = getAbilityModifierValue(spellcastingScore);
     const spellSaveDc = 8 + profBonus + spellcastingModifier;
-    const spellAttackModifier = profBonus + spellcastingModifier;
+    const spellAttackModifier = profBonus + spellcastingModifier - exhaustionPenalty;
     const spellAttackModifierString = spellAttackModifier >= 0 ? `+${spellAttackModifier}` : `${spellAttackModifier}`;
 
     // Saving throw proficiencies (from class)
@@ -257,7 +258,17 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
     const genericBonuses = uniqueSorted(bonuses.filter(b => !b.includes('to ')));
     const skillBonuses = bonuses.filter(b => b.includes('to '));
 
-    const hasModifiers = advantage.length > 0 || disadvantage.length > 0 || bonuses.length > 0 ||
+    // Saved conditions are earned state, separate from racial modifier prose.
+    // Use the same exhaustion parser as walking/combat projection and keep the
+    // saved strings intact. The same shared penalty now feeds ordinary roll
+    // owners and these displayed bonuses; spell save DC is not a D20 test.
+    const exhaustionLevel = exhaustionLevelFromConditions(character.conditions);
+    const activeConditions = uniqueSorted((character.conditions ?? []).map(condition =>
+        exhaustionLevelFromConditions([condition]) > 0
+            ? `Exhaustion (level ${exhaustionLevel})`
+            : condition.replace(/_/g, ' ').replace(/^./, letter => letter.toUpperCase())
+    ));
+    const hasModifiers = activeConditions.length > 0 || advantage.length > 0 || disadvantage.length > 0 || bonuses.length > 0 ||
                          !!character.modifiers?.baseArmorClass || !!character.modifiers?.acBonus ||
                          !!character.modifiers?.reachBonus || !!character.modifiers?.powerfulBuild ||
                          !!character.modifiers?.unendingBreath || (character.modifiers?.languages?.length || 0) > 0 ||
@@ -278,7 +289,8 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                 <div className="flex justify-between items-start">
                     <div>
                         <p className="text-lg font-cinzel text-sky-300">{getCharacterRaceDisplayString(character)} {character.class.name}</p>
-                        <p className="text-xs text-gray-400">Age: {character.age} | Background: {character.background?.replace(/_/g, ' ') || 'None'}</p>
+                        {/* Recruited people retain biography in richNpcData; reading that existing record avoids a blank identity without changing their build. */}
+                        <p className="text-xs text-gray-400">Age: {character.age ?? character.richNpcData?.age ?? 'Unknown'} | Background: {(character.background ?? character.richNpcData?.backgroundId)?.replace(/_/g, ' ') || 'Unknown'}</p>
                     </div>
                     <div className="text-right">
                         <p className="text-xs text-gray-400">Level {character.level}</p>
@@ -307,14 +319,20 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                         {hasSpeedPenalty && torsoItem ? (
                             <Tooltip content={`Speed reduced by 10ft because Strength (${character.finalAbilityScores.Strength}) is lower than the requirement (${torsoItem.strengthRequirement}) for equipped heavy armor (${torsoItem.name}).`}>
                                 <p className="text-sm cursor-help border-b border-dotted border-red-400/50 flex items-center gap-1">
-                                    <span>Speed: <span className="font-semibold text-red-400">{character.speed}ft</span></span>
+                                    <span>Speed: <span className="font-semibold text-red-400">{walkingSpeed}ft</span></span>
                                     <span className="material-symbols-outlined text-red-400 text-sm flex items-center" style={{ fontSize: '16px' }}>warning</span>
                                     {character.isFlying ? <span className="text-sky-300 ml-1"> (Flying)</span> : ''}
                                 </p>
                             </Tooltip>
                         ) : (
-                            <p className="text-sm">Speed: <span className="font-semibold">{character.speed}ft</span>
+                            <p className="text-sm">Speed: <span className="font-semibold">{walkingSpeed}ft</span>
                                 {character.isFlying ? <span className="text-sky-300 ml-1"> (Flying)</span> : ''}
+                            </p>
+                        )}
+                        {/* Explain the same penalty the combat movement budget applies. */}
+                        {exhaustionSpeedPenalty > 0 && (
+                            <p className="text-sm text-amber-300 col-span-2">
+                                Exhaustion reduces walking speed by {exhaustionSpeedPenalty}ft ({speedBeforeExhaustion}ft before exhaustion).
                             </p>
                         )}
                         {Object.values(movementSpeeds).length > 0 && (
@@ -360,7 +378,7 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                             const abilityScore = character.finalAbilityScores[ability] as number;
                             const modifier = getAbilityModifierValue(abilityScore);
                             const isProficient = savingThrowProfs.includes(ability);
-                            const totalBonus = modifier + (isProficient ? profBonus : 0);
+                            const totalBonus = modifier + (isProficient ? profBonus : 0) - exhaustionPenalty;
                             const bonusStr = totalBonus >= 0 ? `+${totalBonus}` : `${totalBonus}`;
 
                             return (
@@ -388,7 +406,7 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                                 if (slots.max === 0) return null;
                                 return (
                                     <div key={level} className="text-center">
-                                        <p className="text-xs text-gray-400">Level {level}</p>
+                                        <p className="text-xs text-gray-400">Level {level.replace('level_', '')}</p>
                                         <p className="font-semibold text-purple-300">{slots.current} / {slots.max}</p>
                                     </div>
                                 );
@@ -417,7 +435,7 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                                     <p className="font-semibold text-blue-400">{spellSaveDc}</p>
                                 </div>
                             </Tooltip>
-                            <Tooltip content={`Spell Attack = Proficiency (+${profBonus}) + ${spellcastingAbilityName.substring(0, 3)} Mod (${spellcastingModifier >= 0 ? '+' : ''}${spellcastingModifier}) = ${spellAttackModifierString}`}>
+                            <Tooltip content={`Spell Attack = Proficiency (+${profBonus}) + ${spellcastingAbilityName.substring(0, 3)} Mod (${spellcastingModifier >= 0 ? '+' : ''}${spellcastingModifier})${exhaustionPenalty > 0 ? ` - Exhaustion (${exhaustionPenalty})` : ''} = ${spellAttackModifierString}`}>
                                 <div className="cursor-help">
                                     <p className="text-xs text-gray-400">Attack</p>
                                     <p className="font-semibold text-green-400">{spellAttackModifierString}</p>
@@ -464,8 +482,17 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                 )}
 
                 {hasModifiers && (
-                    <CollapsibleSection title="Conditions & Modifiers" icon="✨" defaultCollapsed={true}>
+                    <CollapsibleSection title="Conditions & Modifiers" icon="✨" defaultCollapsed={activeConditions.length === 0}>
                         <div className="grid grid-cols-1 gap-1 text-sm text-gray-300">
+                            {activeConditions.length > 0 && (
+                                <div className="mb-2 rounded border border-amber-500/40 bg-amber-950/30 p-2">
+                                    <p className="font-semibold text-amber-200">Active conditions</p>
+                                    {exhaustionPenalty > 0 && <p>Exhaustion subtracts {exhaustionPenalty} from D20 tests: attacks, checks and saves.</p>}
+                                    <ul className="mt-1 list-inside list-disc text-amber-100">
+                                        {activeConditions.map(condition => <li key={condition}>{condition}</li>)}
+                                    </ul>
+                                </div>
+                            )}
                             {advantage.length > 0 && <p>Advantage: <span className="font-semibold text-sky-300">{formatDefenseList(advantage)}</span></p>}
                             {disadvantage.length > 0 && <p>Disadvantage: <span className="font-semibold text-rose-300">{formatDefenseList(disadvantage)}</span></p>}
                             {genericBonuses.length > 0 && <p>Bonuses: <span className="font-semibold text-emerald-300">{formatDefenseList(genericBonuses)}</span></p>}

@@ -23,21 +23,58 @@ import type { ActiveRider } from '@/types/combat'
 describe('Concentration System', () => {
 
     describe('Utils', () => {
-        it('calculates correct DC', () => {
-            expect(calculateConcentrationDC(5)).toBe(10) // Minimum 10
-            expect(calculateConcentrationDC(19)).toBe(10) // 19/2 = 9.5 -> 10
-            expect(calculateConcentrationDC(20)).toBe(10) // 20/2 = 10
-            expect(calculateConcentrationDC(22)).toBe(11) // 22/2 = 11
+        it('calculates correct DC below 10 (floor to 10 for both 2014 and 2024)', () => {
+            // Damage 5 -> floor(5/2) = 2 -> min 10
+            expect(calculateConcentrationDC(5, '2024')).toBe(10)
+            expect(calculateConcentrationDC(5, '2014')).toBe(10)
+            // Damage 19 -> floor(19/2) = 9.5 -> min 10
+            expect(calculateConcentrationDC(19, '2024')).toBe(10)
+            expect(calculateConcentrationDC(19, '2014')).toBe(10)
+            // Default edition is 2024
+            expect(calculateConcentrationDC(5)).toBe(10)
+            expect(calculateConcentrationDC(20)).toBe(10)
+            expect(calculateConcentrationDC(22)).toBe(11)
         })
 
-        it('checks concentration success', () => {
+        it('calculates exact DC 30 boundary for both 2014 and 2024', () => {
+            // Damage 60 -> floor(60/2) = 30
+            expect(calculateConcentrationDC(60, '2024')).toBe(30)
+            expect(calculateConcentrationDC(60, '2014')).toBe(30)
+            // Damage 61 -> floor(61/2) = 30
+            expect(calculateConcentrationDC(61, '2024')).toBe(30)
+            expect(calculateConcentrationDC(61, '2014')).toBe(30)
+        })
+
+        it('caps DC at 30 under 2024 rules when damage produces DC above 30', () => {
+            // Damage 62 -> floor(62/2) = 31 -> capped at 30
+            expect(calculateConcentrationDC(62, '2024')).toBe(30)
+            // Damage 70 -> floor(70/2) = 35 -> capped at 30
+            expect(calculateConcentrationDC(70, '2024')).toBe(30)
+            // Damage 100 -> floor(100/2) = 50 -> capped at 30
+            expect(calculateConcentrationDC(100, '2024')).toBe(30)
+            // Default rules edition is 2024
+            expect(calculateConcentrationDC(70)).toBe(30)
+            expect(calculateConcentrationDC(100)).toBe(30)
+        })
+
+        it('does not cap DC under 2014 rules when damage produces DC above 30', () => {
+            // Damage 62 -> floor(62/2) = 31 (uncapped)
+            expect(calculateConcentrationDC(62, '2014')).toBe(31)
+            // Damage 70 -> floor(70/2) = 35 (uncapped)
+            expect(calculateConcentrationDC(70, '2014')).toBe(35)
+            // Damage 100 -> floor(100/2) = 50 (uncapped)
+            expect(calculateConcentrationDC(100, '2014')).toBe(50)
+        })
+
+        it('checks concentration success with edition-aware DC', () => {
             const mockTarget = createMockCombatCharacter();
             mockTarget.stats.constitution = 10;
 
-            const result = checkConcentration(mockTarget, 10);
-            expect(result.dc).toBe(10);
-            expect(result.roll).toBeGreaterThanOrEqual(1);
-            expect(result.roll).toBeLessThanOrEqual(21); // 20 + 0
+            const result2024 = checkConcentration(mockTarget, 70, '2024');
+            expect(result2024.dc).toBe(30);
+
+            const result2014 = checkConcentration(mockTarget, 70, '2014');
+            expect(result2014.dc).toBe(35);
         })
     })
 
@@ -209,6 +246,60 @@ describe('Concentration System', () => {
             expect(immuneResult.currentHP).toBe(60);
             expect(immuneResult.concentratingOn?.spellId).toBe('bless');
             expect(immune.combatLog.map(entry => entry.message).join(' ')).not.toMatch(/concentration.*DC/i);
+        })
+        it('applies 2024 DC 30 cap and 2014 uncapped DC on high damage in DamageCommand', async () => {
+            const attacker = createMockCombatCharacter({ id: 'attacker', name: 'Attacker' });
+            const makeTarget = () => createMockCombatCharacter({
+                id: 'target',
+                name: 'Target',
+                currentHP: 200,
+                maxHP: 200,
+                concentratingOn: {
+                    spellId: 'bless',
+                    spellName: 'Bless',
+                    spellLevel: 1,
+                    startedTurn: 1,
+                    effectIds: [],
+                    canDropAsFreeAction: true
+                }
+            });
+
+            const damageEffect: DamageEffect = {
+                type: 'DAMAGE',
+                damage: { dice: '70d1', type: 'Force' },
+                trigger: { type: 'immediate' },
+                condition: { type: 'hit' }
+            };
+
+            const target2024 = makeTarget();
+            const state2024 = await new DamageCommand(damageEffect, {
+                spellId: 'test-hit',
+                spellName: 'Test Hit',
+                castAtLevel: 1,
+                caster: attacker,
+                targets: [target2024],
+                gameState: createMockGameState({ rulesEdition: '2024' })
+            }).execute(createMockCombatState({
+                characters: [attacker, target2024],
+                combatLog: []
+            }));
+            const log2024 = state2024.combatLog.map(e => e.message).join(' ');
+            expect(log2024).toMatch(/concentration.*DC 30/i);
+
+            const target2014 = makeTarget();
+            const state2014 = await new DamageCommand(damageEffect, {
+                spellId: 'test-hit',
+                spellName: 'Test Hit',
+                castAtLevel: 1,
+                caster: attacker,
+                targets: [target2014],
+                gameState: createMockGameState({ rulesEdition: '2014' })
+            }).execute(createMockCombatState({
+                characters: [attacker, target2014],
+                combatLog: []
+            }));
+            const log2014 = state2014.combatLog.map(e => e.message).join(' ');
+            expect(log2014).toMatch(/concentration.*DC 35/i);
         })
     })
 

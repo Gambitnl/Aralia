@@ -3,10 +3,10 @@
  * Focused layout coverage for the active combat shell on cramped screens.
  */
 import React from 'react';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import SpellContext from '../../../context/SpellContext';
-import { Ability } from '../../../types/combat';
+import { Ability, CombatLogEntry } from '../../../types/combat';
 import CombatView from '../CombatView';
 
 const combatants = vi.hoisted(() => {
@@ -83,6 +83,7 @@ const gameContext = vi.hoisted(() => {
 });
 
 const combatAI = vi.hoisted(() => ({ useCombatAI: vi.fn() }));
+const resolvedLog = vi.hoisted(() => ({ entries: [] as CombatLogEntry[], emit: null as null | ((entry: CombatLogEntry) => void) }));
 
 const targetingAbility: Ability = {
   id: 'fire-bolt',
@@ -116,7 +117,11 @@ vi.mock('../../BattleMap/CombatCharacterInspector', () => ({ CombatCharacterInsp
 vi.mock('../../CharacterSheet/CharacterSheetModal', () => ({ default: () => <div data-testid="mock-character-sheet" /> }));
 vi.mock('../MaplessTerrainSummary', () => ({ default: () => <div data-testid="mock-mapless-summary" /> }));
 vi.mock('../ReactionPrompt', () => ({ ReactionPrompt: () => <div data-testid="mock-reaction-prompt" /> }));
-vi.mock('../../Crafting/CreatureHarvestPanel', () => ({ CreatureHarvestPanel: () => <div data-testid="mock-harvest-panel" /> }));
+vi.mock('../../Crafting/CreatureHarvestPanel', () => ({
+  CreatureHarvestPanel: ({ onClose }: { onClose: () => void }) => (
+    <div data-testid="mock-harvest-panel"><button onClick={onClose}>Close harvesting</button></div>
+  ),
+}));
 
 vi.mock('../../../state/GameContext', () => ({
   useGameState: () => ({
@@ -184,7 +189,9 @@ vi.mock('../../../hooks/combat/useTurnManager', () => ({
 }));
 
 vi.mock('../../../hooks/useAbilitySystem', () => ({
-  useAbilitySystem: () => ({
+  useAbilitySystem: (options: {onLogEntry?: (entry: CombatLogEntry) => void}) => {
+    resolvedLog.emit = options.onLogEntry ?? null;
+    return {
     targetingMode: abilityTargeting.targetingMode,
     selectedAbility: abilityTargeting.selectedAbility,
     startTargeting: vi.fn(),
@@ -192,11 +199,16 @@ vi.mock('../../../hooks/useAbilitySystem', () => ({
     executeAbility: vi.fn(),
     requestReaction: vi.fn(),
     pendingReaction: null,
-  }),
+  };
+  },
 }));
 
 vi.mock('../../../hooks/combat/useCombatLog', () => ({
-  useCombatLog: () => ({ logs: [], addLogEntry: vi.fn() }),
+  useCombatLog: () => {
+    const [logs, setLogs] = React.useState(resolvedLog.entries);
+    const addLogEntry = React.useCallback((entry: CombatLogEntry) => setLogs(previous => [...previous, entry]), []);
+    return {logs, addLogEntry};
+  },
 }));
 
 vi.mock('../../../hooks/combat/useCombatMessaging', () => ({
@@ -240,6 +252,9 @@ describe('CombatView responsive layout', () => {
     gameContext.battlefieldSourceGap = null;
     gameContext.dispatch.mockClear();
     combatAI.useCombatAI.mockClear();
+    resolvedLog.entries = [];
+    resolvedLog.emit = null;
+    combatants.player.currentHP = 10;
   });
 
   it('lets mobile combat rails expand in the page while desktop keeps bounded rail scrolling', () => {
@@ -511,9 +526,12 @@ describe('CombatView responsive layout', () => {
     }));
   });
 
-  it('keeps combat outcome modals fixed over the viewport', () => {
-    combatOutcome.battleState = 'victory';
+  it.each(['victory', 'defeat'] as const)('stops turn guidance and AI when the outcome is %s', (outcome) => {
+    combatOutcome.battleState = outcome;
     combatOutcome.rewards = { gold: 100, xp: 100, items: [] };
+    if (outcome === 'defeat') combatants.player.currentHP = 0;
+    const finalEvent: CombatLogEntry = { id: 'last-resolved-hit', timestamp: 1, type: 'action',
+      message: 'Ghoul attacks Dev Player. Rolled 15 + 4 = 19 vs AC 13. HIT!' };
 
     render(
       <SpellContext.Provider value={{} as any}>
@@ -526,6 +544,81 @@ describe('CombatView responsive layout', () => {
       </SpellContext.Provider>,
     );
 
+    act(() => resolvedLog.emit?.(finalEvent));
     expect(screen.getByTestId('combat-outcome-modal')).toHaveClass('fixed');
+    expect(screen.getByRole('dialog')).toHaveAttribute('aria-modal', 'true');
+    expect(screen.queryByText('Your turn')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('mock-action-economy')).not.toBeInTheDocument();
+    expect(combatAI.useCombatAI).toHaveBeenLastCalledWith(expect.objectContaining({ characters: [] }));
+    expect(screen.getByRole('button', { name: /End Turn/ })).toBeDisabled();
+    expect(within(screen.getByRole('dialog')).getByText(/Rolled 15 \+ 4 = 19 vs AC 13/)).toBeInTheDocument();
+    expect(within(screen.getByRole('dialog')).getByRole('list', { name: 'Party condition' }))
+      .toHaveTextContent(outcome === 'defeat' ? '0/10 HP — incapacitated' : '10/10 HP — conscious');
+
+    const dialogButtons = within(screen.getByRole('dialog')).getAllByRole('button');
+    expect(screen.getByRole('dialog')).toContainElement(document.activeElement as HTMLElement);
+    // The final event arrives after the dialog mounts. Its new summary is now
+    // first in tab order; inserting it must not steal the existing focus.
+    const first = within(screen.getByRole('dialog')).getByText('Final combat events');
+    first.focus();
+    const last = dialogButtons[dialogButtons.length - 1];
+    expect(first).toHaveFocus();
+    last.focus();
+    fireEvent.keyDown(last, { key: 'Tab' });
+    expect(first).toHaveFocus();
+    fireEvent.keyDown(first, { key: 'Tab', shiftKey: true });
+    expect(last).toHaveFocus();
+
+    const tacticalShortcut = vi.fn();
+    window.addEventListener('keydown', tacticalShortcut);
+    fireEvent.keyDown(first, { key: 'ArrowUp' });
+    window.removeEventListener('keydown', tacticalShortcut);
+    expect(tacticalShortcut).not.toHaveBeenCalled();
+  });
+
+  it('accepts only this attempt’s events and exact final actors, preserving older encounter history separately', () => {
+    resolvedLog.entries = [{ id: 'old-attempt', timestamp: 1, type: 'action', message: 'Earlier recovered attempt.' }];
+    combatOutcome.battleState = 'defeat';
+    combatants.player.currentHP = 0;
+    const ended = vi.fn();
+    render(<SpellContext.Provider value={{} as any}>
+      <CombatView party={[{ id: 'party-1', name: 'Dev Player' } as any]}
+        enemies={[combatants.enemy as any]} biome="forest" onBattleEnd={ended} />
+    </SpellContext.Provider>);
+    const finalEvent: CombatLogEntry = { id: 'new-attempt', timestamp: 2, type: 'damage', message: 'Goblin hits Dev Player for 10 damage.' };
+    act(() => resolvedLog.emit?.(finalEvent));
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).queryByText('Earlier recovered attempt.')).not.toBeInTheDocument();
+    expect(within(dialog).getByText(finalEvent.message)).toBeInTheDocument();
+    fireEvent.click(within(dialog).getByRole('button', {name: /^Return to Title$/}));
+    const review = ended.mock.calls[0][4];
+    expect(review.result).toBe('defeat');
+    expect(review.events).toEqual([finalEvent]);
+    expect(review.party[0]).toMatchObject({id: combatants.player.id, currentHP: 0, maxHP: 10});
+    expect(review.enemies[0]).toMatchObject({id: combatants.enemy.id, name: 'Goblin', currentHP: 10});
+  });
+
+  it('keeps focus in the frontmost dialog across harvest open and close', () => {
+    const originalName = combatants.enemy.name;
+    combatants.enemy.name = 'Giant Poisonous Snake';
+    combatOutcome.battleState = 'victory';
+    combatOutcome.rewards = { gold: 10, xp: 10, items: [] };
+    try {
+      render(<SpellContext.Provider value={{} as any}>
+        <CombatView party={[{ id: 'party-1', name: 'Dev Player' } as any]}
+          enemies={[combatants.enemy as any]} biome="forest" onBattleEnd={vi.fn()} />
+      </SpellContext.Provider>);
+      fireEvent.click(screen.getByRole('button', { name: /Harvest Creature Parts/ }));
+      const frontDialog = screen.getByRole('dialog', { name: 'Harvest defeated creature' });
+      const close = within(frontDialog).getByRole('button', { name: 'Close harvesting' });
+      expect(close).toHaveFocus();
+      fireEvent.keyDown(close, { key: 'Tab' });
+      expect(close).toHaveFocus();
+      fireEvent.click(close);
+      expect(screen.queryByRole('dialog', { name: 'Harvest defeated creature' })).not.toBeInTheDocument();
+      expect(screen.getByRole('dialog')).toContainElement(document.activeElement as HTMLElement);
+    } finally {
+      combatants.enemy.name = originalName;
+    }
   });
 });

@@ -36,6 +36,8 @@ export interface BattleMapTileLayerProps {
   visibleTiles: BattleMapTileData[];
   /** Tile ids the selected ability can legally target right now. */
   validTargetSet: Set<string>;
+  /** GG-495: valid target tiles where the attack has Disadvantage (long range). */
+  longRangeTargetSet?: ReadonlySet<string>;
   /** Tile ids inside the hovered ability's area of effect. */
   aoeSet: Set<string>;
   /** Tile ids offered as teleport destinations during assignment. */
@@ -68,6 +70,7 @@ export interface BattleMapTileLayerProps {
 export const BattleMapTileLayer: React.FC<BattleMapTileLayerProps> = ({
   visibleTiles,
   validTargetSet,
+  longRangeTargetSet,
   aoeSet,
   teleportDestinationSet,
   activePathSet,
@@ -87,6 +90,7 @@ export const BattleMapTileLayer: React.FC<BattleMapTileLayerProps> = ({
   <>
     {visibleTiles.map((tile) => {
       const isTargetable = validTargetSet.has(tile.id);
+      const isLongRangeTarget = isTargetable && Boolean(longRangeTargetSet?.has(tile.id));
       const isAoePreview = aoeSet.has(tile.id);
       const isTeleportDestinationPreview = teleportDestinationSet.has(tile.id);
       const isVisible = visibility.visibleTiles.has(tile.id);
@@ -117,6 +121,7 @@ export const BattleMapTileLayer: React.FC<BattleMapTileLayerProps> = ({
           isThreatened={isValidMove && threatCoordSet.has(`${tx},${ty}`)}
           isInPath={isInPath}
           isTargetable={isTargetable}
+          isLongRangeTarget={isLongRangeTarget}
           isAoePreview={isAoePreview}
           isTeleportDestinationPreview={isTeleportDestinationPreview}
           isObjectMoveDestination={isObjectMoveDestination}

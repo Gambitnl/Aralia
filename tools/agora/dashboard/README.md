@@ -1,5 +1,49 @@
 # Agora dashboard
 
+## To Remy feed
+
+The left column shows messages that agents address to the owner. An agent
+writes one with `client.mjs say --need decision|info|none --ref <task or
+campaign id> "plain English"`. Each item names its need, the work it is about,
+and its sender. The owner can reply from the item.
+
+A filter row sits above the feed (Remy, Agora 8318). The buttons are:
+
+- **All**
+- **Needs your decision**
+- **For your information**
+- **No action needed**
+
+Each button shows how many items it keeps, and the pressed button is the filter
+in force. **Unanswered only** hides items that the owner already replied to.
+An agent's follow-up does not count as an answer. The gold "need a decision"
+badge in the panel title sets the decision filter with one press. The browser
+remembers the choice in `localStorage` (keys `agora.a2hFilter` and
+`agora.a2hUnansweredOnly`).
+
+Data and filter logic: `dashboard/a2h-feed.mjs`. Focused checks:
+`node --test tools/agora/dashboard/a2h-feed.test.mjs`.
+
+## Pending decisions
+
+`/dashboard/decisions.html` is a read-only inbox of tasks explicitly waiting on
+the owner. The Board header links to it and shows the total human-request count.
+The Decisions tab counts choices; hands-on requests have a separate lane.
+
+New requests use `human-decision` or `human-action` as the task category. Existing
+blocked tasks with an explicit human blocker are also shown. Dependency-only
+waits are excluded, so a single ruling is not repeated for every dependent task.
+Task bodies, evidence, source links and downstream gates remain on the existing
+board. Records older than 14 days are flagged for a freshness check.
+
+The inbox does not answer, grant permission, close work, or infer answers from
+chat. Follow the original question-sheet link or record the ruling on the
+original task. An orchestrator must reconcile that answer with the blocker.
+The page polls every 30 seconds; failed reads retain the previous list with an
+out-of-date warning. Unfiled questions in prose documents are not indexed yet.
+
+Focused checks: `node --test tools/agora/dashboard/decision-inbox.test.mjs`.
+
 ## Pet pictures (local only)
 
 The `tools/agora/dashboard/pets/` folder is gitignored on purpose (see

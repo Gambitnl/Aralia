@@ -28,8 +28,13 @@ vi.mock('../../character/characterUtils', () => ({
   buildHitPointDicePools: () => []
 }));
 
-// We only need a partial implementation of weaponUtils for our mock testing
-vi.mock('../../character/weaponUtils', () => ({
+// Stub only proficiency. combatUtils also imports hasTavernBrawler and
+// isImprovisedWeapon from this module; the old mock returned only
+// isWeaponProficient, so every test here failed before reaching its
+// assertion ("No hasTavernBrawler export is defined on the mock").
+// Keeping the real exports prevents the next new import from doing the same.
+vi.mock('../../character/weaponUtils', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../character/weaponUtils')>()),
   isWeaponProficient: () => true
 }));
 

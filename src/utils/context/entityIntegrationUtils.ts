@@ -24,7 +24,7 @@ import type { Dispatch } from 'react';
 import { GameState, Location, Faction, NPC } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import { EntityResolverService } from '../../services/EntityResolverService';
-import { AddGeminiLogFn } from '../../hooks/actions/actionHandlerTypes';
+import type { AddGeminiLogFn } from '../../types/geminiLog';
 
 /**
  * Service Integration:

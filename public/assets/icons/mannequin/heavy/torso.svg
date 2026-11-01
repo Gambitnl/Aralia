@@ -1,0 +1,17 @@
+<svg width="128" height="128" viewBox="0 0 128 128" color="#94A3B8" fill="currentColor" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+<!-- Mannequin slot icon: Heavy-tier Torso slot on the character sheet paper doll (DynamicMannequinSlotIcon.tsx). Copied verbatim from public/assets/icons/general/armor/plate_armor.svg; art and license unchanged (game-icons, CC BY 3.0). -->
+<!--
+  ARCHITECTURAL CONTEXT:
+  This SVG represents 'Plate Armor' (Heavy Armor torso piece) in Aralia's item system.
+  It is styled as a full suit of articulated steel plate, featuring massive pauldrons,
+  a flanged gorget, a ridged breastplate, and layered hip faulds.
+
+  DESIGN CHOICES:
+  - Massive, sweeping pauldrons (shoulders flaring to X=118) to depict maximum heavy bulk.
+  - A prominent flanged gorget (neck collar) protecting the throat.
+  - Horizontal overlapping plate faulds at the waist (Y=82 to Y=112) with negative-space gaps.
+  - Symmetrical breastplate panels with a sharp central crease.
+  - currentColor inheritance is preserved for dynamic palette changes in-game.
+-->
+<path fill-rule="evenodd" clip-rule="evenodd" d="M 44 8 L 84 8 L 94 18 C 112 14 118 28 118 42 L 104 56 L 96 44 L 96 80 L 104 114 L 64 104 L 24 114 L 32 80 L 32 44 L 24 56 L 10 42 C 10 28 16 14 34 18 L 44 8 Z M 64 26 C 54 26 46 18 46 8 L 82 8 C 82 18 74 26 64 26 Z M 40 32 L 88 32 L 78 68 L 64 82 L 50 68 L 40 32 Z M 62 32 L 66 32 L 66 80 L 62 80 Z M 34 84 L 94 84 L 94 90 L 34 90 Z M 34 94 L 94 94 L 94 100 L 34 100 Z M 22 28 A 4 4 0 1 0 22 36 A 4 4 0 1 0 22 28 Z M 106 28 A 4 4 0 1 0 106 36 A 4 4 0 1 0 106 28 Z" />
+</svg>

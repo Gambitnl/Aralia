@@ -4,7 +4,7 @@
  * at those same doors, and activities continue to match the schedule.
  */
 import { describe, it, expect } from 'vitest';
-import { townSnapshotAt, activityTallyAt, townMotionSnapshotAt } from '../townSnapshot';
+import { townSnapshotAt, activityTallyAt, townMotionSnapshotAt, commuteArrivalDelayAtHour } from '../townSnapshot';
 import { occupantLocationAt } from '../occupantSchedule';
 import { buildStreetGraph, frontDoorForPlot } from '../agentPath';
 import type { TownPlan } from '../../artifacts';
@@ -225,5 +225,26 @@ describe('activityTallyAt', () => {
     const tally = activityTallyAt(plan, roster, 3);
     expect(tally.sleeping).toBe(2);
     expect(tally.working).toBe(0);
+  });
+});
+
+
+describe('source household commute timing', () => {
+  it('walks the real street distance and hands the body over only after arrival', () => {
+    const graph = buildStreetGraph(plan);
+    const person = {...roster.occupants[0], householdMemberId:'b10:head'};
+    const actual = {...roster, occupants:[person]};
+    const duration = commuteArrivalDelayAtHour(graph,person,8);
+    expect(duration).toBeCloseTo(100 * .3048 / 1.2 / 3600, 8);
+    const departure = townMotionSnapshotAt(plan,graph,actual,8)[0];
+    const midway = townMotionSnapshotAt(plan,graph,actual,8+duration/2)[0];
+    const arrived = townMotionSnapshotAt(plan,graph,actual,8+duration+1/3600)[0];
+    expect(departure).toMatchObject({x:5,y:0,moving:true});
+    expect(midway.moving).toBe(true);
+    expect(midway.x).toBeCloseTo(55,6);
+    expect(arrived).toMatchObject({x:105,y:0,moving:false});
+    expect(commuteArrivalDelayAtHour(graph,person,9)).toBe(0);
+    expect(commuteArrivalDelayAtHour(graph,person,18)).toBeCloseTo(duration,8);
+    expect(townMotionSnapshotAt(plan,graph,actual,18+duration+1/3600)[0]).toMatchObject({x:5,y:0,moving:false});
   });
 });

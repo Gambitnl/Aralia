@@ -30,7 +30,7 @@
 import type { SpellEffect, TerrainEffect, TargetFilter } from '../../../../types/spells';
 import type { CombatCharacter, Direction, Position } from '../../../../types/combat';
 import type { AoEParams } from '../../../../utils/combat/aoeCalculations';
-import { getRecurringMechanics } from '../../../../hooks/spellEffectUtils';
+import { getRecurringMechanics } from '../spellEffectRules';
 import type { RecurringMechanic } from '../../../../types/spellEffectTypes';
 import type { ActiveSpellZone, MovementTriggerDebuff, ScheduledSpellEffect } from './types';
 import { facingToVector } from '../../../../utils/spatial/geometry';

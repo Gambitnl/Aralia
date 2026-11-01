@@ -15,13 +15,32 @@
  *  2. CAMERA-INSIDE fill — one neutral light that fades in when the camera is
  *     inside a building shell (cheap footprint-bounds + under-roof test) so any
  *     interior is readable at ANY hour, even a dark unlit house at noon. Smooth
- *     0.3 s intensity lerp so there is no pop crossing the threshold.
+ *     0.3 s intensity lerp so there is no pop crossing the threshold. When the
+ *     camera and reached player share a shell, it stays above the player so
+ *     orbiting several meters away does not leave the furniture dark.
  *
  * DATA vs RENDER: which windows glow and where the hearths are flows through the
  * existing SitePart plumbing (emissiveHex tags, baked deterministically). This
  * component only does render-side, camera-relative SELECTION — legitimately not
  * deterministic data. No per-frame allocations in the selector loop.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 20:17:36
+ * Dependents: components/World3D/World3DScene.tsx
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -44,7 +63,11 @@ const HEARTH_DECAY = 2;
 
 /** Neutral camera-inside fill — readable interior at any hour. */
 const FILL_COLOR = new THREE.Color('#fff2e0');
-const FILL_TARGET_INTENSITY = 1.15;
+// The admitted fill sits 2.7 m above the reached body. At 1.15 its falloff
+// leaves faces and nearby furniture nearly black in the played inn. Give this
+// existing readability light enough power at that distance; hearth timing,
+// warm flame lights, shell admission and the one-fill budget stay separate.
+const FILL_TARGET_INTENSITY = 24;
 /** Seconds to fade the fill in/out (no pop crossing the shell threshold). */
 const FILL_FADE_S = 0.3;
 
@@ -74,6 +97,27 @@ export interface ShellBounds {
   /** Group base Y (ground surface) and shell top height above it. */
   baseY: number;
   topY: number;
+}
+
+function insideInteriorShell(point:THREE.Vector3,sh:ShellBounds):boolean {
+  if (!Number.isFinite(point.x) || !Number.isFinite(point.y) || !Number.isFinite(point.z)
+    || point.y<sh.baseY-.5 || point.y>sh.topY) return false;
+  const dx=point.x-sh.cx,dz=point.z-sh.cz,cos=Math.cos(-sh.rotationY),sin=Math.sin(-sh.rotationY);
+  return Math.abs(dx*cos+dz*sin)<=sh.halfW && Math.abs(-dx*sin+dz*cos)<=sh.halfD;
+}
+
+/** Keep the existing camera-inside gate. A reached body can anchor this one
+ * presentation light only when it shares that same source building shell;
+ * looking into a different house cannot move its fill to a remote player. */
+export function interiorFillAnchor(camera: THREE.Vector3, player: THREE.Vector3 | null,
+  shells: readonly ShellBounds[]): THREE.Vector3 | null {
+  let cameraInside=false;
+  for (const sh of shells) {
+    if (!insideInteriorShell(camera,sh)) continue;
+    cameraInside=true;
+    if (player && insideInteriorShell(player,sh)) return player;
+  }
+  return cameraInside?camera:null;
 }
 
 /**
@@ -159,6 +203,8 @@ const InteriorLights: React.FC<{
   const hearthRefs = useRef<Array<THREE.PointLight | null>>([]);
   const fillRef = useRef<THREE.PointLight>(null);
   const fillIntensity = useRef(0);
+  const fillBody = useRef<{scene:THREE.Scene|null; player:THREE.Object3D|null; retryAfter:number}>(
+    {scene:null,player:null,retryAfter:.25});
   // Preallocated scratch — no per-frame allocation in the selector loop.
   const scratch = useRef({
     // indices + squared distances of the current nearest candidates
@@ -167,7 +213,7 @@ const InteriorLights: React.FC<{
     local: new THREE.Vector3(),
   });
 
-  useFrame(({ camera }, delta) => {
+  useFrame(({ camera, scene }, delta) => {
     const cam = camera.position;
     const { pick, dist } = scratch.current;
 
@@ -211,24 +257,15 @@ const InteriorLights: React.FC<{
     }
 
     // ── Camera-inside fill: fade in when inside any shell ─────────────────────
-    let inside = false;
-    const local = scratch.current.local;
-    for (let sIdx = 0; sIdx < shells.length; sIdx++) {
-      const sh = shells[sIdx];
-      if (cam.y < sh.baseY - 0.5 || cam.y > sh.topY) continue;
-      // Camera into the shell's local (unrotated) frame.
-      const dx = cam.x - sh.cx;
-      const dz = cam.z - sh.cz;
-      const cos = Math.cos(-sh.rotationY);
-      const sin = Math.sin(-sh.rotationY);
-      const lx = dx * cos + dz * sin;
-      const lz = -dx * sin + dz * cos;
-      if (Math.abs(lx) <= sh.halfW && Math.abs(lz) <= sh.halfD) {
-        inside = true;
-        local.set(sh.cx, sh.topY - 1.0, sh.cz);
-        break;
-      }
-    }
+    // Reuse the actual mounted body, as ground nameplates do. Cache its identity
+    // and bound missing-body searches to four per second; no game pose is moved.
+    const body=fillBody.current;
+    if(body.scene!==scene){body.scene=scene;body.player=null;body.retryAfter=.25;}
+    body.retryAfter+=delta;
+    if(!body.player?.parent && body.retryAfter>=.25){body.player=scene.getObjectByName('world3d:player')??null;body.retryAfter=0;}
+    const player=body.player?.parent?body.player.getWorldPosition(scratch.current.local):null;
+    const anchor=interiorFillAnchor(cam,player,shells);
+    const inside=anchor!==null;
     const target = inside ? FILL_TARGET_INTENSITY : 0;
     // Exponential-ish lerp toward target over ~FILL_FADE_S.
     const t = Math.min(1, delta / FILL_FADE_S);
@@ -240,9 +277,13 @@ const InteriorLights: React.FC<{
       } else {
         fill.visible = true;
         fill.intensity = fillIntensity.current;
-        // Anchor the fill just under the camera so it lights the room the player
-        // stands in; follow the camera each frame.
-        fill.position.set(cam.x, cam.y + 0.5, cam.z);
+        // Keep the existing one-fill budget. Place the same-shell fill
+        // above the body: the first chest-height candidate lit the character
+        // harshly from below. Camera-only views retain their old source,
+        // including the fade after leaving the building.
+        const source=anchor??cam;
+        fill.position.copy(source);
+        fill.position.y += source === cam ? .5 : 2.7;
       }
     }
   });

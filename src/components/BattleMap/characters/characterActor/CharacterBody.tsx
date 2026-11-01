@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 09/09/2026, 10:09:35
- * Dependents: components/BattleMap/characters/characterActor/CharacterActor.tsx
- * Imports: 3 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file characters/characterActor/CharacterBody.tsx
  * The actor's generated 3D body: the scaled, facing-rotated group that hosts
@@ -30,10 +14,27 @@
  * Dependents: characterActor/CharacterActor.tsx
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 00:16:10
+ * Dependents: components/BattleMap/characters/characterActor/CharacterActor.tsx
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React from 'react';
 import * as THREE from 'three';
 import { EntityModel } from './EntityModel';
 import type { AnimationState } from './models';
+import { adaptWaterMaterials } from './creatureMaterials';
 import { MODEL_SCALE } from './actorTheme';
 
 export interface CharacterBodyProps {
@@ -44,6 +45,8 @@ export interface CharacterBodyProps {
   controlPose: Parameters<typeof EntityModel>[0]['controlPose'];
   /** Y rotation the body faces, in radians. */
   facingRotation: number;
+  /** Shared aquatic presentation; ordinary actors retain their original body and materials. */
+  proceduralWater?: boolean;
 }
 
 /**
@@ -54,13 +57,15 @@ export interface CharacterBodyProps {
  * carried by the team rings, ink outlines, and indicators.
  */
 export const CharacterBody = React.forwardRef<THREE.Group, CharacterBodyProps>(
-  ({ blueprint, animState, animTimeRef, controlPose, facingRotation }, ref) => (
+  ({ blueprint, animState, animTimeRef, controlPose, facingRotation, proceduralWater = false }, ref) => (
     <group ref={ref} scale={MODEL_SCALE} rotation={[0, facingRotation, 0]}>
       <EntityModel
         blueprint={blueprint}
         animState={animState}
         animTimeRef={animTimeRef}
         controlPose={controlPose}
+        bodyTech={proceduralWater ? 'segments' : undefined}
+        adaptMaterials={proceduralWater ? adaptWaterMaterials : undefined}
       />
     </group>
   )

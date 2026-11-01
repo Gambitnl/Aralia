@@ -1,11 +1,16 @@
+/**
+ * @file src/components/CharacterCreator/hooks/useCharacterAssembly.ts
+ * Custom hook for character assembly logic during creation.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 14/06/2026, 20:43:21
- * Dependents: components/CharacterCreator/CharacterCreator.tsx
- * Imports: 7 files
+ * Last Sync: 29/10/2026, 12:34:50
+ * Dependents: components/CharacterCreator/CharacterCreator.tsx, components/CharacterCreator/NameAndReview.tsx, systems/party/authoredCompanionCapabilities.ts
+ * Imports: 10 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,10 +19,6 @@
  */
 // @dependencies-end
 
-/**
- * @file src/components/CharacterCreator/hooks/useCharacterAssembly.ts
- * Custom hook for character assembly logic during creation.
- */
 import { useCallback } from 'react';
 import {
   PlayerCharacter,
@@ -29,6 +30,7 @@ import {
   SpellSlots,
   LimitedUses,
   Item,
+  Spell,
 } from '../../../types';
 import { RACES_DATA, TIEFLING_LEGACIES } from '../../../constants';
 import { SKILLS_DATA } from '../../../data/skills';
@@ -48,6 +50,14 @@ import {
 
 // --- Helper Functions for Character Assembly ---
 
+/** Assembly stores selected spell IDs; details stay in the canonical registry.
+ * Full creator Spell objects still fit this input, while authored people need
+ * not bundle public spell JSON simply to retain their selected IDs. */
+export type CharacterAssemblyState = Omit<CharacterCreationState, 'selectedCantrips' | 'selectedSpellsL1'> & {
+  selectedCantrips: Pick<Spell, 'id'>[];
+  selectedSpellsL1: Pick<Spell, 'id'>[];
+};
+
 type AgeSizeOverride = NonNullable<PlayerCharacter['ageSizeOverride']>;
 
 interface AgeCategory {
@@ -66,7 +76,7 @@ interface AgeData {
   };
 }
 
-export function assembleSelectedFeats(state: CharacterCreationState): string[] {
+export function assembleSelectedFeats(state: CharacterAssemblyState): string[] {
   const ids = [state.backgroundFeatId, state.racialFeatId].filter((id): id is string => !!id);
   // Defense-in-depth: a character can never legitimately hold the same feat twice.
   // The creation UI already prevents picking a feat in both the origin and racial
@@ -319,7 +329,7 @@ export const getAgeAdjustmentSummary = (raceId: string, age: number): AgeAdjustm
   return { band, statPenalty: category.statPenalty, sizeModifier: category.sizeModifier };
 };
 
-function validateAllSelectionsMade(state: CharacterCreationState): boolean {
+function validateAllSelectionsMade(state: CharacterAssemblyState): boolean {
   const {
     selectedRace, selectedClass, finalAbilityScores, baseAbilityScores,
     racialSelections, selectedFightingStyle, selectedDivineOrder,
@@ -357,7 +367,8 @@ function validateAllSelectionsMade(state: CharacterCreationState): boolean {
 function calculateCharacterMaxHp(charClass: CharClass, finalScores: AbilityScores, race: Race): number {
   const conMod = getAbilityModifierValue(finalScores.Constitution);
   let hp = charClass.hitDie + conMod;
-  if (race.id === 'dwarf' || race.id === 'duergar') {
+  // Dwarven Toughness: grants +1 HP per level. Check trait text or hill_dwarf race.
+  if (race.traits?.some(t => t.includes('Dwarven Toughness')) || race.id === 'hill_dwarf') {
     hp += 1;
   }
   return hp;
@@ -388,7 +399,7 @@ function calculateCharacterDarkvision(race: Race, lineageId?: string): number {
   return range;
 }
 
-function assembleCastingProperties(state: CharacterCreationState): {
+function assembleCastingProperties(state: CharacterAssemblyState): {
   spellbook?: SpellbookData;
   spellSlots?: SpellSlots;
   spellcastingAbility?: 'intelligence' | 'wisdom' | 'charisma';
@@ -495,7 +506,7 @@ function assembleCastingProperties(state: CharacterCreationState): {
 }
 
 
-function assembleFinalSkills(state: CharacterCreationState): Skill[] {
+function assembleFinalSkills(state: CharacterAssemblyState): Skill[] {
   const { selectedRace, selectedSkills, racialSelections, selectedBackground } = state;
   const BUGBEAR_AUTO_SKILL_ID = 'stealth';
   const finalSkillsList: Skill[] = [...selectedSkills];
@@ -534,7 +545,7 @@ function assembleFinalSkills(state: CharacterCreationState): Skill[] {
   return [...new Set(finalSkillsList.map(s => s.id))].map(id => finalSkillsList.find(s => s.id === id)!).filter(Boolean);
 }
 
-function assembleFinalTools(state: CharacterCreationState): string[] {
+function assembleFinalTools(state: CharacterAssemblyState): string[] {
   const { selectedRace, racialSelections } = state;
   const tools: string[] = [];
 
@@ -553,7 +564,7 @@ function assembleFinalTools(state: CharacterCreationState): string[] {
  * script) can assemble characters through the exact same pipeline the
  * creator's review step uses.
  */
-export function assemblePlayerCharacter(currentState: CharacterCreationState, currentName: string): PlayerCharacter | null {
+export function assemblePlayerCharacter(currentState: CharacterAssemblyState, currentName: string): PlayerCharacter | null {
     const { selectedRace, selectedClass, finalAbilityScores, baseAbilityScores, racialSelections } = currentState;
     if (!validateAllSelectionsMade(currentState) || !selectedRace || !selectedClass || !finalAbilityScores || !baseAbilityScores) {
       console.error("Missing critical data for review step. Cannot generate preview.", currentState);

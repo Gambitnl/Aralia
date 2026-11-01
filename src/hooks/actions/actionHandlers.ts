@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 12/07/2026, 01:17:38
+ * Last Sync: 28/10/2026, 12:04:05
  * Dependents: hooks/useGameActions.ts
- * Imports: 18 files
+ * Imports: 25 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -85,6 +85,9 @@ import { handleGeminiCustom } from './handleGeminiCustom';
 // Encounter handlers are implemented in src/hooks/actions/handleEncounter.ts.
 import { handleGenerateEncounter, handleTriggerAiEncounter, handleShowEncounterModal, handleHideEncounterModal, handleStartBattleMapEncounter, handleEndBattle } from './handleEncounter';
 // Resource and spell handlers are implemented in src/hooks/actions/handleResourceActions.ts.
+import { handleRequestLodging, handleBookLodging } from './handleLodging';
+import { restEnvironmentError } from '../../systems/gameplay/lodging';
+import type { LodgingOffer, LodgingRestAdmission } from '../../types/rest';
 import { handleCastSpell, handleUseLimitedAbility, handleTogglePreparedSpell, handleLongRest, handleShortRest } from './handleResourceActions';
 // Merchant handlers are implemented in src/hooks/actions/handleMerchantInteraction.ts.
 import { handleOpenDynamicMerchant, handleMerchantAction, validateMerchantTransaction } from './handleMerchantInteraction';
@@ -188,7 +191,7 @@ export function buildActionHandlers({
     },
     // Align item-use action names with reducer/action contracts used by character state.
     USE_ITEM: (action) => {
-      handleUseItem(dispatch, action.payload as UseItemPayload);
+      handleUseItem(dispatch, action.payload as UseItemPayload, {gameState, addMessage});
     },
     // Healer's Kit Utilize action: stabilize a dying ally and, for a character
     // with the Healer feat, let that ally spend one Hit Die (rerolling a 1).
@@ -206,9 +209,10 @@ export function buildActionHandlers({
       const payload = action.payload as { characterId: string; itemId: string };
       const char = gameState.party.find(c => c.id === payload.characterId);
       if (char) {
-        const equippedAttuned = Object.values(char.equippedItems).filter(i => i && i.requiresAttunement && i.isAttuned).length;
+        const equippedAttuned = Object.values(char.equippedItems).filter(i => i && i.requiresAttunement && i.isAttuned && i.attunedCharacterId === char.id).length;
         const invAttuned = gameState.inventory.filter(i => i && i.requiresAttunement && i.isAttuned && i.attunedCharacterId === char.id).length;
-        if (equippedAttuned + invAttuned >= 3) {
+        const otherEquipped = gameState.party.reduce((acc, m) => m.id === char.id ? acc : acc + Object.values(m.equippedItems).filter(i => i && i.requiresAttunement && i.isAttuned && i.attunedCharacterId === char.id).length, 0);
+        if (equippedAttuned + invAttuned + otherEquipped >= 3) {
           addMessage(`${char.name} is already attuned to the maximum of 3 items.`, 'system');
           return;
         }
@@ -282,14 +286,21 @@ export function buildActionHandlers({
     USE_LIMITED_ABILITY: (action) => {
       handleUseLimitedAbility(dispatch, action.payload as { characterId: string; abilityId: string });
     },
-    TOGGLE_PREPARED_SPELL: (action) => {
-      handleTogglePreparedSpell(dispatch, action.payload as { characterId: string; spellId: string; });
+    TOGGLE_PREPARED_SPELL: async (action) => {
+      await handleTogglePreparedSpell(dispatch, action.payload as { characterId: string; spellId: string; resetPlan?: boolean }, gameState, addMessage);
+    },
+    REQUEST_LODGING: async (action) => {
+      await handleRequestLodging({gameState, dispatch, addMessage}, (action.payload as {businessId: string}).businessId);
+    },
+    BOOK_LODGING: async (action) => {
+      await handleBookLodging({gameState, dispatch, addMessage}, (action.payload as {offer: LodgingOffer}).offer);
     },
     LONG_REST: async (action) => {
       // Preserve modal-authored racial choices while routing the rest through
       // the full gameplay handler instead of reducing it as a partial rest.
       const restPayload = action.payload as {
         racialRestChoices?: Record<string, Record<string, RacialRestChoiceData>>;
+        lodgingRestAdmission?: LodgingRestAdmission;
       } | undefined;
       await handleLongRest({
         gameState,
@@ -297,6 +308,7 @@ export function buildActionHandlers({
         addMessage,
         addGeminiLog,
         racialRestChoices: restPayload?.racialRestChoices,
+        lodgingRestAdmission: restPayload?.lodgingRestAdmission,
       });
     },
     // The HUD "Long Rest" button opens the confirm modal (GameModals renders it
@@ -308,12 +320,16 @@ export function buildActionHandlers({
     TOGGLE_SHORT_REST_MODAL: () => {
       dispatch({ type: 'TOGGLE_SHORT_REST_MODAL' });
     },
-    SHORT_REST: (action) => {
+    SHORT_REST: async (action) => {
+      const environmentError = await restEnvironmentError(gameState);
+      if (environmentError) {addMessage(environmentError, 'system'); return;}
       // The short-rest UI supplies a spend map keyed by character id, which we pass to the handler.
       const restPayload = action.payload as { hitPointDiceSpend?: HitPointDiceSpendMap } | undefined;
       handleShortRest({ gameState, dispatch, addMessage, hitPointDiceSpend: restPayload?.hitPointDiceSpend });
     },
-    wait: (action) => {
+    wait: async (action) => {
+      const environmentError = await restEnvironmentError(gameState);
+      if (environmentError) {addMessage(environmentError, 'system'); return;}
       const seconds = Number((action.payload as { seconds?: number } | undefined)?.seconds ?? 0);
       if (seconds > 0) {
         const durationString = formatDuration(seconds);
@@ -363,7 +379,7 @@ export function buildActionHandlers({
       const current = gameState.combatDifficulty ?? DEFAULT_COMBAT_DIFFICULTY;
       const next = nextCombatDifficulty(current);
       dispatch({ type: 'SET_COMBAT_DIFFICULTY', payload: next });
-      addMessage(`Combat difficulty set to ${COMBAT_DIFFICULTY_LABEL[next]}.`, 'system');
+      addMessage(`Enemy turn pace set to ${COMBAT_DIFFICULTY_LABEL[next]}. Combat rules and enemy decisions stay the same.`, 'system');
     },
     cycle_rules_edition: () => {
       const next = nextRulesEdition(getRulesEdition(gameState));
@@ -386,6 +402,9 @@ export function buildActionHandlers({
     },
     TOGGLE_DISCOVERY_LOG: () => {
       handleToggleDiscoveryLog(dispatch);
+    },
+    PUZZLE_ATTEMPT: (action) => {
+      dispatch(action as unknown as AppAction);
     },
     TOGGLE_LOGBOOK: () => {
       handleToggleLogbook(dispatch);
@@ -452,6 +471,7 @@ export function buildActionHandlers({
       // player can pocket and read later (even after leaving). Mirrors the
       // gating the in-town broadsheet/notice-board actions use.
       const town = resolveTownForLocation({
+    ground: gameState,
         // GRID-RETIRE: BA-2 — prefer the canonical cell.
         cellId: gameState.playerCell?.cellId ?? null,
         currentLocationId: gameState.currentLocationId,

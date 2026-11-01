@@ -1,11 +1,18 @@
+/**
+ * @file src/hooks/combat/useCombatAI.ts
+ *
+ * A specialized hook to manage the Artificial Intelligence state machine for combat.
+ * It handles the lifecycle of an AI turn: Thinking -> Evaluating -> Acting -> Waiting -> Repeating.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 05:49:10
+ * Last Sync: 28/10/2026, 14:49:42
  * Dependents: components/Combat/CombatView.tsx
- * Imports: 3 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -13,13 +20,6 @@
  * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 // @dependencies-end
-
-/**
- * @file src/hooks/combat/useCombatAI.ts
- * 
- * A specialized hook to manage the Artificial Intelligence state machine for combat.
- * It handles the lifecycle of an AI turn: Thinking -> Evaluating -> Acting -> Waiting -> Repeating.
- */
 
 import { useState, useEffect, useRef } from 'react';
 import { CombatCharacter, CombatAction, BattleMapData } from '../../types/combat';
@@ -45,6 +45,7 @@ interface UseCombatAIProps {
     characters: CombatCharacter[];
     /** The map data for pathfinding and positioning */
     mapData: BattleMapData | null;
+    activeLightSources?: import('../../types/combat').LightSource[];
     /** The ID of the character currently taking their turn */
     currentCharacterId: string | null;
     /** Callback to execute a chosen action */
@@ -70,6 +71,7 @@ export const useCombatAI = ({
     difficulty,
     characters,
     mapData,
+    activeLightSources,
     currentCharacterId,
     executeAction,
     executeAbility,
@@ -114,8 +116,8 @@ export const useCombatAI = ({
      */
     const turnOptionsFor = (character: CombatCharacter): CombatTurnOptions => {
         const memory = npcMemory?.[character.id];
-        if (!memory || !gameTime) return {};
-        return { stance: { memory, gameDay: getGameDay(gameTime) } };
+        if (!memory || !gameTime) return { activeLightSources };
+        return { activeLightSources, stance: { memory, gameDay: getGameDay(gameTime) } };
     };
 
     const thinkingDelayFor = (character: CombatCharacter): number => resolveThinkingDelayMs(
@@ -129,6 +131,11 @@ export const useCombatAI = ({
     // move/action sequence to resolve within the current turn.
     const [aiActionsPerformed, setAiActionsPerformed] = useState(0);
     const aiActionsPerformedRef = useRef(0);
+    // Paying a cost publishes a roster update before an awaited attack has
+    // finished. Claim the decision synchronously so that render cannot plan
+    // End Turn (or another attack) against the half-resolved action.
+    const actionInFlightRef = useRef(false);
+    const activeActorRef = useRef<string | null>(null);
 
     /**
      * Effect: Turn Start / AI Activation
@@ -142,9 +149,13 @@ export const useCombatAI = ({
         const character = characters.find(c => c.id === currentCharacterId);
         if (!character) return;
 
-        // Reset state for the new turn
-        aiActionsPerformedRef.current = 0;
-        setTimeout(() => setAiActionsPerformed(0), 0);
+        // Roster/resource changes are still the same turn. They must not
+        // replenish the bounded AI action budget.
+        if (activeActorRef.current !== currentCharacterId) {
+            activeActorRef.current = currentCharacterId;
+            aiActionsPerformedRef.current = 0;
+            setTimeout(() => setAiActionsPerformed(0), 0);
+        }
 
         const isAiControlled = character.team === 'enemy' || autoCharacters.has(character.id);
 
@@ -171,7 +182,7 @@ export const useCombatAI = ({
      * It evaluates the board, chooses an action, executes it, and then loops or ends.
      */
     useEffect(() => {
-        if (aiState !== 'thinking') return;
+        if (aiState !== 'thinking' || actionInFlightRef.current) return;
 
         // 1. Validate Context
         // We need the current character to perform any action plan.
@@ -194,7 +205,7 @@ export const useCombatAI = ({
         // Prevent infinite loops with a hard cap on actions per turn (e.g. Move + Action + Bonus)
         // Also requires mapData to be present for pathfinding.
         if (aiActionsPerformedRef.current >= MAX_AI_ACTIONS_PER_TURN || !mapData) {
-            setTimeout(() => setAiState('done'), 0);
+            setAiState('done');
             endTurn();
             return;
         }
@@ -203,8 +214,10 @@ export const useCombatAI = ({
         // We use an async function to allow for potential future async evaluations,
         // though evaluateCombatTurn is currently synchronous.
         const performTurnLogic = async () => {
+            actionInFlightRef.current = true;
+            try {
             // Lock the state to prevent re-entry while processing
-            setTimeout(() => setAiState('acting'), 0);
+            setAiState('acting');
 
             // 4. Evaluate Best Move
             // evaluateCombatTurn (in combatAI.ts) analyzes the board and returns the optimal CombatAction.
@@ -213,7 +226,7 @@ export const useCombatAI = ({
 
             if (action.type === 'end_turn') {
                 // AI decided it has nothing productive left to do
-                setTimeout(() => setAiState('done'), 0);
+                setAiState('done');
                 endTurn();
             } else if (action.type === 'ability' && action.abilityId) {
                 const ability = character.abilities.find(a => a.id === action.abilityId);
@@ -229,7 +242,7 @@ export const useCombatAI = ({
                     setTimeout(() => setAiState('thinking'), thinkingDelayFor(character));
                 } else {
                     console.warn(`AI Action failed: Ability ${action.abilityId} not found.`);
-                    setTimeout(() => setAiState('done'), 0);
+                    setAiState('done');
                     endTurn();
                 }
             } else {
@@ -253,9 +266,12 @@ export const useCombatAI = ({
                     // Action failed (e.g., resource exhaustion not caught by planner).
                     // Fallback to ending turn to prevent getting stuck in 'acting' state.
                     console.warn(`AI Action failed: ${action.type}. Ending turn.`);
-                    setTimeout(() => setAiState('done'), 0);
+                    setAiState('done');
                     endTurn();
                 }
+            }
+            } finally {
+                actionInFlightRef.current = false;
             }
         };
 
@@ -270,6 +286,7 @@ export const useCombatAI = ({
         aiState,
         characters,
         mapData,
+        activeLightSources,
         currentCharacterId,
         executeAction,
         executeAbility,

@@ -31,6 +31,15 @@ function makeKeeper(burgId: number, plotId: number) {
 }
 
 describe('townMerchantNpcsForCell — Packet A talk targets', () => {
+  it('keeps a dead proprietor in saved ownership without offering live contact or assigning a successor', () => {
+    const k=makeKeeper(firstTile.burgId,156);
+    Object.assign(k.npc,{name:'Roban Westsmith',worldforgeHousehold:{burgId:firstTile.burgId,memberId:'b151:head',signature:'old'}});
+    const input={worldSeed:SEED,cellId:firstBurgCell,generatedNpcs:{[k.npcId]:k.npc},worldBusinesses:{[k.bizId]:k.biz},
+      day:3,townLife:{[firstTile.burgId]:{villagers:{395:{occupantId:395,name:'Roban Westsmith',homePlotId:151,bornDay:-10000,diedDay:-253}}}}};
+    const before=JSON.stringify(input);
+    expect(townMerchantNpcsForCell(input)).toEqual([]);
+    expect(JSON.stringify(input)).toBe(before);
+  });
   it('returns the burg keeper when the player stands on that burg cell', () => {
     const k1 = makeKeeper(firstTile.burgId, 1);
     const k2 = makeKeeper(firstTile.burgId, 2);

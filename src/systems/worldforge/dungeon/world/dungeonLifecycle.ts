@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
- *
- * Last Sync: 21/07/2026, 01:46:37
- * Dependents: services/saveLoadService.ts, state/reducers/worldReducer.ts, systems/worldforge/dungeon/world/dungeonGameplay.ts, systems/worldforge/dungeon/world/dungeonLevels.ts
- * Imports: 1 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file defines the durable lifecycle of one canonical world-grown dungeon.
  *
@@ -24,17 +8,59 @@
  * explicit level keys, allowing the diegetic sheet to survive save/load and revisit without
  * duplicating dungeon geometry. Compact level visit receipts now preserve stable child identities,
  * parent links, and transition coordinates while the large generated plans remain regenerable.
- * Future combat and completion systems must still supply authoritative interaction identifiers.
+ * Accepted combat HP also lives here, so closing a visit cannot heal the same source creature.
+ * Combat and interaction owners still supply authoritative identities and outcomes. Monster
+ * ability charges and conditions are not covered by the health-only checkpoint.
  *
  * Called by: the world reducer, save migration, and focused dungeon lifecycle tests.
  * Depends on: the lightweight canonical receipt in dungeonIdentity.ts.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 28/10/2026, 14:53:31
+ * Dependents: services/saveLoad/saveLoadCore.ts, state/reducers/worldReducer.ts, systems/gameplay/lodging.ts, systems/worldforge/dungeon/world/dungeonCombatResolution.ts, systems/worldforge/dungeon/world/dungeonDoorActions.ts, systems/worldforge/dungeon/world/dungeonExplorationResume.ts, systems/worldforge/dungeon/world/dungeonGameplay.ts, systems/worldforge/dungeon/world/dungeonLevels.ts, systems/worldforge/dungeon/world/dungeonObjectResolution.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 // ============================================================================
 // Canonical Identity Dependency
 // ============================================================================
 // Lifecycle state validates the lightweight receipt and never imports atlas generation machinery.
 // ============================================================================
+
+import type { ActiveDungeonEntry } from '../../../../components/World3D/dungeonEntryRuntime';
+import type { Cell } from '../types';
+import type { DungeonObjectFinding } from './dungeonObjectActions';
+
+export interface DungeonExplorationPosition {
+  depth: number;
+  playerCell: Cell;
+  entranceKind: ActiveDungeonEntry['entranceKind'];
+  returnContext: ActiveDungeonEntry['returnContext'];
+}
+
+/** Shape validation is deliberately independent of atlas generation for save migration. */
+export function normalizeDungeonExplorationPosition(value: unknown): DungeonExplorationPosition | undefined {
+  if (!value || typeof value !== 'object') return undefined;
+  const p = value as DungeonExplorationPosition;
+  if (!Number.isInteger(p.depth) || p.depth < 0 || p.depth > 2 ||
+      !p.playerCell || !Number.isInteger(p.playerCell.x) || !Number.isInteger(p.playerCell.y) ||
+      !['ruin-door', 'cave-mouth', 'temple-stair', 'sewer-grate'].includes(p.entranceKind)) return undefined;
+  const r = p.returnContext;
+  if (!r || !['worldSeed', 'cellId', 'tileX', 'tileY', 'xM', 'zM'].every(key => Number.isFinite(r[key as keyof typeof r])) ||
+      (r.yM !== undefined && !Number.isFinite(r.yM))) return undefined;
+  return {depth:p.depth, playerCell:{...p.playerCell}, entranceKind:p.entranceKind, returnContext:{...r}};
+}
 
 import {
   canonicalDungeonId,
@@ -67,6 +93,12 @@ export interface DungeonLevelVisitReceipt {
 }
 
 export interface DungeonProgressState {
+  /** Examined or physically collected source props; collection is monotonic. */
+  objectFindings?: Record<string, DungeonObjectFinding>;
+  /** Current visit footing; cleared on retreat, independent of lasting discoveries. */
+  activeVisit?: DungeonExplorationPosition;
+  /** Last authoritative HP by source encounter; leaving a visit does not heal its creature. */
+  encounterHitPoints?: Record<string, number>;
   /** Stable encounter keys reported by future playable-room combat. */
   clearedEncounterIds: string[];
   /** Stable door, passage, or route keys reported by future interaction gameplay. */
@@ -100,6 +132,9 @@ export interface DungeonExpeditionRecord {
 export type DungeonExpeditionLedger = Record<string, DungeonExpeditionRecord>;
 
 export interface DungeonProgressPatch {
+  objectFindings?: Readonly<Record<string, DungeonObjectFinding>>;
+  activeVisit?: DungeonExplorationPosition;
+  encounterHitPoints?: Readonly<Record<string, number>>;
   clearedEncounterIds?: readonly string[];
   openedRouteIds?: readonly string[];
   claimedTreasureIds?: readonly string[];
@@ -140,6 +175,27 @@ function requireCanonicalIdentity(identity: DungeonIdentity): void {
 // Progress only grows in this first contract. Resetting or respawning content requires explicit
 // future design rules and therefore cannot happen accidentally through entry or save migration.
 // ============================================================================
+
+function normalizeObjectFindings(value:unknown, identity:DungeonIdentity):Record<string,DungeonObjectFinding> {
+  if(!value || typeof value!=='object' || Array.isArray(value)) return {};
+  const prefix=`object.v1:${identity.dungeonId}`;
+  return Object.fromEntries(Object.entries(value).filter(([id,finding])=>
+    id.startsWith(prefix) && (
+      (/^(?::(?:prop|cache):\d+|\/level:\d+:(?:prop|cache):\d+)$/.test(id.slice(prefix.length)) &&
+        (finding==='examined'||finding==='collected')) ||
+      // An examined floor hazard is knowledge, not a secured reward or a disarm.
+      (/^(?::trap:\d+|\/level:\d+:trap:\d+)$/.test(id.slice(prefix.length)) && finding==='examined') ||
+      // Surface inspection records observation only; it cannot become a collection claim.
+      (/^(?::surface:bloom:\d+|\/level:\d+:surface:bloom:\d+)$/.test(id.slice(prefix.length)) && finding==='examined'))));
+}
+
+function mergeObjectFindings(current:unknown,incoming:unknown,identity:DungeonIdentity):Record<string,DungeonObjectFinding> {
+  const result=normalizeObjectFindings(current,identity);
+  for(const [id,finding] of Object.entries(normalizeObjectFindings(incoming,identity))) {
+    if(result[id]!=='collected') result[id]=finding;
+  }
+  return result;
+}
 
 function normalizeStableIds(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
@@ -270,6 +326,18 @@ function normalizeLevelVisits(
   return normalized;
 }
 
+// Keep only finite whole HP belonging to this dungeon or one of its child pages.
+// Old saves can omit this optional field. It records health, not a clear or reward.
+function normalizeEncounterHitPoints(value: unknown, identity: DungeonIdentity): Record<string, number> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  return Object.fromEntries(Object.entries(value).filter(([id, hp]) =>
+    (id.startsWith(`encounter.v1:${identity.dungeonId}:room:`)
+      || id.startsWith(`encounter.v1:${identity.dungeonId}/`))
+    && /:room:\d+:cell:\d+,\d+$/.test(id)
+    && typeof hp === 'number' && Number.isSafeInteger(hp) && hp >= 0,
+  ));
+}
+
 function mergeLevelVisits(
   current: Readonly<Record<string, DungeonLevelVisitReceipt>>,
   incoming: unknown,
@@ -330,6 +398,10 @@ export function enterDungeonExpedition(
     hasRevisited: true,
     progress: {
       ...previous.progress,
+      activeVisit: undefined,
+      ...(previous.progress.encounterHitPoints === undefined ? {} : {
+        encounterHitPoints: normalizeEncounterHitPoints(previous.progress.encounterHitPoints, identity),
+      }),
       objectives: { ...previous.progress.objectives },
       exploredCellKeysByLevel: mergeExploredCellKeysByLevel(
         previous.progress.exploredCellKeysByLevel ?? {},
@@ -351,6 +423,20 @@ export function recordDungeonProgress(
   return {
     ...previous,
     progress: {
+      ...(previous.progress.objectFindings === undefined && patch.objectFindings === undefined ? {} : {
+        objectFindings:mergeObjectFindings(previous.progress.objectFindings,patch.objectFindings,previous.identity),
+      }),
+      ...(normalizeDungeonExplorationPosition(patch.activeVisit ?? previous.progress.activeVisit) ? {
+        activeVisit: normalizeDungeonExplorationPosition(patch.activeVisit ?? previous.progress.activeVisit),
+      } : {}),
+      // An accepted battle replaces only that source creature's last HP. Other
+      // encounters, clear credit and rewards keep their existing independent owners.
+      ...(previous.progress.encounterHitPoints === undefined && patch.encounterHitPoints === undefined ? {} : {
+        encounterHitPoints: normalizeEncounterHitPoints({
+          ...previous.progress.encounterHitPoints,
+          ...patch.encounterHitPoints,
+        }, previous.identity),
+      }),
       clearedEncounterIds: appendStableIds(
         previous.progress.clearedEncounterIds,
         patch.clearedEncounterIds,
@@ -382,6 +468,7 @@ export function retreatDungeonExpedition(
     visitPhase: 'retreated',
     progress: {
       ...previous.progress,
+      activeVisit: undefined,
       objectives: { ...previous.progress.objectives },
       exploredCellKeysByLevel: mergeExploredCellKeysByLevel(
         previous.progress.exploredCellKeysByLevel ?? {},
@@ -451,6 +538,15 @@ export function normalizeDungeonExpeditionLedger(value: unknown): DungeonExpedit
       visitCount,
       hasRevisited: visitCount > 1,
       progress: {
+        ...(rawProgress?.objectFindings === undefined ? {} : {
+          objectFindings:normalizeObjectFindings(rawProgress.objectFindings,candidate.identity),
+        }),
+        ...(candidate.visitPhase === 'active' && normalizeDungeonExplorationPosition(rawProgress?.activeVisit) ? {
+          activeVisit: normalizeDungeonExplorationPosition(rawProgress?.activeVisit),
+        } : {}),
+        ...(rawProgress?.encounterHitPoints === undefined ? {} : {
+          encounterHitPoints: normalizeEncounterHitPoints(rawProgress.encounterHitPoints, candidate.identity),
+        }),
         clearedEncounterIds: normalizeStableIds(rawProgress?.clearedEncounterIds),
         openedRouteIds: normalizeStableIds(rawProgress?.openedRouteIds),
         claimedTreasureIds: normalizeStableIds(rawProgress?.claimedTreasureIds),

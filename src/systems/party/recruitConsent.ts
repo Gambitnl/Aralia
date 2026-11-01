@@ -22,15 +22,38 @@
  *      0, default 50). A disposition at or above {@link DISPOSITION_JOIN_THRESHOLD}
  *      (warm / friendly) consents; below it declines.
  *
+ * A source-bound sharedGoal offer has its own limited consent: Elara must have
+ * received the real report and supplies, offered explicit expedition terms,
+ * and still be present when the player accepts. It grants neither general
+ * friendship nor unrestricted loyalty. Ordinary gates remain unchanged.
+ *
  * `opts.autoAccept` short-circuits both gates with an always-yes verdict — the
  * encounter-rescue trigger (P10) passes it for a grateful rescuee who has just
  * been saved and owes the party. The reason still reflects the rescue framing.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 29/10/2026, 07:13:28
+ * Dependents: components/Dialogue/DialogueInterface.tsx, hooks/actions/handleEncounter.ts, hooks/actions/handleMerchantInteraction.ts, hooks/actions/handleNpcInteraction.ts, state/reducers/companionTravelReducer.ts
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { GameState } from '@/types/state';
 import type { RichNPC, NPC } from '@/types/world';
 import type { Companion, RelationshipLevel } from '@/types/companions';
 import { RelationshipManager } from '@/systems/companions/RelationshipManager';
 import { isInParty } from './recruitTypes';
+import { companionJourneyReadiness } from '@/systems/companions/companionJourneyReadiness';
 
 /** Relationship key under which a companion stores its bond with the player. */
 const PLAYER_RELATIONSHIP_KEY = 'player';
@@ -85,6 +108,9 @@ export const LEVEL_WEIGHT: Record<RelationshipLevel, number> = {
 
 /** Options influencing the consent decision. */
 export interface RecruitOfferOptions {
+  /** A particular shared purpose needs an actual offered agreement and its
+   * earned source evidence. It never grants general friendship or auto-accept. */
+  sharedGoal?: {worldSeed:number;goalId:string;sitePath:string};
   /**
    * When true, bypass the disposition/relationship gates and always consent.
    * Used by the encounter-rescue trigger for a grateful rescuee (decision #3).
@@ -140,6 +166,19 @@ function readDisposition(npc: Pick<NPC, 'id'>, state: GameState): number {
   return state.npcMemory?.[npc.id]?.disposition ?? 0;
 }
 
+/** Household projection establishes a person's home and work, not an offer
+ * to become an adventurer. A companion record is the existing source for a
+ * developed opportunity; adding one keeps that resident's future story open.
+ * Untagged authored/legacy NPCs retain their established recruitment behavior. */
+export function canOfferPartyInvitation(
+  npc: Pick<NPC, 'id'>,
+  state: Pick<GameState, 'companions' | 'generatedNpcs'>,
+): boolean {
+  if (state.companions?.[npc.id]) return true;
+  const candidate = state.generatedNpcs?.[npc.id] ?? npc;
+  return !(candidate as { worldforgeHousehold?: unknown }).worldforgeHousehold;
+}
+
 /**
  * Decide whether `npc` will accept an invitation to join the party.
  *
@@ -147,13 +186,14 @@ function readDisposition(npc: Pick<NPC, 'id'>, state: GameState): number {
  *
  * Evaluation order:
  *   1. `opts.autoAccept` → always join (rescue short-circuit).
- *   2. Existing `Companion` record → gate on relationship LEVEL vs
+ *   2. Projected household residents need an established companion opportunity.
+ *   3. Existing `Companion` record → gate on relationship LEVEL vs
  *      {@link RELATIONSHIP_JOIN_THRESHOLD}. An active party member declines
  *      (already with you). A standing `friend`+ bond joins.
- *   3. No record → gate on disposition vs {@link DISPOSITION_JOIN_THRESHOLD}.
+ *   4. No record → gate on disposition vs {@link DISPOSITION_JOIN_THRESHOLD}.
  *
  * @param npc   The candidate NPC (RichNPC in practice; only `id`/`name` are read).
- * @param state Read-only game state (companions + npcMemory).
+ * @param state Read-only game state (companions, NPC provenance and npcMemory).
  * @param opts  Optional flags ({@link RecruitOfferOptions}).
  */
 export function evaluateRecruitOffer(
@@ -171,6 +211,12 @@ export function evaluateRecruitOffer(
     };
   }
 
+  // Warmth or a hire payment cannot turn an ordinary household resident into
+  // an adventurer. Explicit rescue consent above keeps its authored route.
+  if (!canOfferPartyInvitation(npc, state)) {
+    return { willJoin: false, reason: `${name} is not available to travel with your party.` };
+  }
+
   const companion = findCompanionRecord(npc, state);
 
   // 2. Already-met companion → relationship-level gate.
@@ -181,6 +227,17 @@ export function evaluateRecruitOffer(
         willJoin: false,
         reason: `${name} is already travelling with you.`,
       };
+    }
+
+    if(opts.sharedGoal){
+      const ready=companionJourneyReadiness(state,npc.id),agreement=companion.travelAgreement;
+      const offered=!!ready&&agreement?.response==='offered'&&agreement.worldSeed===state.worldSeed
+        &&agreement.worldSeed===opts.sharedGoal.worldSeed&&agreement.sourceId===ready.destination.sourceId
+        &&agreement.goalId===opts.sharedGoal.goalId&&agreement.goalId===ready.goalId
+        &&agreement.sitePath===opts.sharedGoal.sitePath&&agreement.sitePath===ready.destination.sitePath;
+      return offered
+        ?{willJoin:true,reason:`${name} agrees to travel with you to inspect the ${ready!.destination.name}, on the terms you discussed.`}
+        :{willJoin:false,reason:`${name} has not agreed to this expedition on those terms.`};
     }
 
     const relationship = companion.relationships?.[PLAYER_RELATIONSHIP_KEY];

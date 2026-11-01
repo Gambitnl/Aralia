@@ -56,6 +56,7 @@ export interface MarketEvent {
   affectedTags?: string[];
   // Legacy/alternate event payload source (e.g. generated templates) from source behavior.
   affectedCategories?: string[];
+  priceModifier?: number;
   // Legacy directional hint from world-event-driven sources.
   effect?: MarketEventImpactDirection;
 }

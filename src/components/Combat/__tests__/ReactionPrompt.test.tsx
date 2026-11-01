@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { ReactionPrompt } from '../ReactionPrompt';
-import { createMockSpell } from '../../../utils/core';
+import { createMockSpell, createMockCombatCharacter, createMockSpellSlots } from '../../../utils/core';
 import { Ability } from '../../../types/combat';
 
 /**
@@ -22,6 +22,49 @@ vi.mock('../../hooks/useFocusTrap', () => ({
 }));
 
 describe('ReactionPrompt', () => {
+    it('explains the real roll and whether defense prevents this hit before damage', () => {
+        render(<ReactionPrompt attackerName="Bandit" triggerType="on_hit" onResolve={vi.fn()}
+            reactionSpells={[{ ...createMockSpell({ id: 'shield', name: 'Shield', level: 1 }),
+                hitPreview: { attackTotal: 21, currentAC: 16, defendedAC: 21, isCritical: false, stopsAttack: false } }]} />);
+        expect(screen.getByText(/Damage is waiting for your decision/)).toBeInTheDocument();
+        expect(screen.getByText(/Attack 21 vs AC 16.*Shield raises AC to 21.*This attack still hits/)).toBeInTheDocument();
+    });
+    it('quotes the owned free cast instead of a spell slot', () => {
+        const reactor = createMockCombatCharacter({
+            feats: ['magic_initiate'],
+            spellSlots: createMockSpellSlots({ level_1: { current: 0, max: 2 } }),
+            limitedUses: { feat_magic_initiate_shield: { name: 'Magic Initiate: Cast shield', current: 1, max: 1, resetOn: 'long_rest' } },
+        });
+        render(<ReactionPrompt attackerName="Bandit" reactor={reactor}
+            reactionSpells={[createMockSpell({ id: 'shield', name: 'Shield', level: 1 })]}
+            triggerType="on_hit" onResolve={vi.fn()} />);
+        expect(screen.getByRole('button', { name: /Cast Shield.*1 Reaction \+ Magic Initiate free cast \(1\/1\)/ })).toBeEnabled();
+        expect(screen.queryByText(/level 1 slot/)).not.toBeInTheDocument();
+    });
+
+    it('quotes slot fallback after the feat use is exhausted', () => {
+        const reactor = createMockCombatCharacter({
+            feats: ['magic_initiate'],
+            spellSlots: createMockSpellSlots({ level_1: { current: 1, max: 2 } }),
+            limitedUses: { feat_magic_initiate_shield: { name: 'Magic Initiate: Cast shield', current: 0, max: 1, resetOn: 'long_rest' } },
+        });
+        render(<ReactionPrompt attackerName="Bandit" reactor={reactor}
+            reactionSpells={[createMockSpell({ id: 'shield', name: 'Shield', level: 1 })]}
+            triggerType="on_hit" onResolve={vi.fn()} />);
+        expect(screen.getByRole('button', { name: /Cast Shield.*1 Reaction \+ level 1 slot/ })).toBeEnabled();
+    });
+
+    it('disables a stale choice when neither reaction spell resource remains', () => {
+        const reactor = createMockCombatCharacter({ spellSlots: createMockSpellSlots({ level_1: { current: 0, max: 2 } }), feats: [] });
+        const resolve = vi.fn();
+        render(<ReactionPrompt attackerName="Bandit" reactor={reactor}
+            reactionSpells={[createMockSpell({ id: 'shield', name: 'Shield', level: 1 })]}
+            triggerType="on_hit" onResolve={resolve} />);
+        const choice = screen.getByRole('button', { name: /Cast Shield/ });
+        expect(choice).toBeDisabled();
+        fireEvent.click(choice);
+        expect(resolve).not.toHaveBeenCalled();
+    });
     const mockOnResolve = vi.fn();
     const mockSpells = [
         createMockSpell({ id: 'shield', name: 'Shield', description: '+5 AC' }),

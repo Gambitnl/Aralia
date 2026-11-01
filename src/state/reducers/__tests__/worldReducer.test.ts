@@ -1034,3 +1034,21 @@ describe("worldReducer", () => {
     });
   });
 });
+
+describe('canonical dungeon rumor text refresh', () => {
+  it('refreshes only matching dungeon projection text and preserves heard history', () => {
+    const old = { id: 'dungeon-town-site-2', type: 'event' as const, locationId: 'town', text: 'Erala: old hook', timestamp: 12, expiration: 42, spreadDistance: 3, virality: 1 };
+    const state = createMockGameState({ activeRumors: [old] });
+    const inventory = state.inventory;
+    const memory = state.npcMemory;
+    const patch = worldReducer(state, { type: 'ADD_RUMORS', payload: { rumors: [{ ...old, text: 'Alrio: old hook', timestamp: 20, expiration: 50 }] } });
+    expect(patch).toEqual({ activeRumors: [{ ...old, text: 'Alrio: old hook' }] });
+    expect(state.activeRumors).toEqual([old]);
+    expect(state.inventory).toBe(inventory);
+    expect(state.npcMemory).toBe(memory);
+    expect(worldReducer({ ...state, ...patch }, { type: 'ADD_RUMORS', payload: { rumors: [{ ...old, text: 'Alrio: old hook' }] } })).toEqual({});
+    expect(worldReducer(state, { type: 'ADD_RUMORS', payload: { rumors: [{ ...old, locationId: 'elsewhere', text: 'different' }] } })).toEqual({});
+    const ordinary = { ...old, id: 'chronicle-town-event' };
+    expect(worldReducer({ ...state, activeRumors: [ordinary] }, { type: 'ADD_RUMORS', payload: { rumors: [{ ...ordinary, text: 'different' }] } })).toEqual({});
+  });
+});

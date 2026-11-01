@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 16/08/2026, 12:17:27
- * Dependents: components/DesignPreview/steps/scenarioControls/multiattackRidersScenarioControls.ts
- * Imports: 9 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file resolves an authored Multiattack as one action containing separate attacks.
  *
@@ -23,11 +7,29 @@
  * attack rolls, damage dice, resistance or immunity, hit points, and attack riders.
  * It returns structured outcomes so a caller can render honest cues and combat logs.
  *
- * Called by: Tactical Sandbox Multiattack & Attack Riders controls.
+ * Called by: Tactical Sandbox Multiattack & Attack Riders controls;
+ * production AbilityCommandFactory and combatAI share the authored repeat-choice helpers.
  * Depends on: actionEconomyUtils, combatUtils, deathSaveUtils,
  * ResistanceCalculator, and AttackRiderSystem.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/10/2026, 06:47:53
+ * Dependents: commands/factory/AbilityCommandFactory.ts, components/DesignPreview/steps/scenarioControls/multiattackRidersScenarioControls.ts, utils/combat/combatAI.ts
+ * Imports: 11 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import { getExhaustionD20Penalty } from './physicsUtils';
 import type {
   Ability,
   AbilityCost,
@@ -41,8 +43,45 @@ import { AttackRiderSystem } from '../../systems/combat/AttackRiderSystem';
 import { getAbilityModifierValue } from '../character/statUtils';
 import { calculateProficiencyBonus } from '../character/savingThrowUtils';
 import { canAffordActionCost, consumeActionCost } from './actionEconomyUtils';
-import { resolveAttack } from './combatUtils';
+import { resolveAttack, getCharacterDistance } from './combatUtils';
 import { rollDamage, rollD20 } from '../../systems/dice/rollers';
+
+/** Only expand repeated attacks whose source explicitly permits these choices.
+ * Fixed sequences and optional substitutions retain their existing path until
+ * they have an authored planner; a list of IDs alone does not grant free choice.
+ * Shared by production AI scoring and command execution, not just the sandbox.
+ */
+export function repeatedMultiattackOptions(attacker: CombatCharacter, ability: Ability): Ability[] {
+  const count = ability.multiattackCount;
+  const ids = ability.subAttackIds ?? [];
+  if (!Number.isSafeInteger(count) || !count || count < 1 || ids.length === 0) return [];
+  const options = ids.flatMap(id => {
+    const leaf = attacker.abilities.find(candidate => candidate.id === id);
+    return leaf?.type === 'attack' && !leaf.multiattackCount ? [leaf] : [];
+  });
+  if (options.length !== ids.length) return [];
+  if (ids.length === 1) return options;
+  const countWord = ({2:'two',3:'three',4:'four',5:'five',6:'six'} as Record<number,string>)[count] ?? String(count);
+  const text = ability.description.toLowerCase().replace(/\s+/g, ' ').trim().replace(/[.!]$/, '');
+  const names = options.map(option => option.name.toLowerCase()).join(' or ');
+  return [countWord, String(count)].some(word => text.endsWith('makes ' + word + ' ' + names + ' attacks'))
+    ? options : [];
+}
+
+/** Prefer an authored close weapon when it reaches, otherwise use an authored
+ * ranged option. The AI may plan an approach using the longest option; commands
+ * require actual reach and recheck after every strike. No target is substituted.
+ */
+export function selectRepeatedAttack(
+  attacker: CombatCharacter, ability: Ability, target: CombatCharacter, requireReach = true,
+): Ability | undefined {
+  const options = repeatedMultiattackOptions(attacker, ability);
+  const distance = getCharacterDistance(attacker, target);
+  const legal = options.filter(option => distance <= option.range);
+  if (legal.length) return legal.reduce((best, option) => option.range < best.range ? option : best);
+  return requireReach ? undefined : options.reduce<Ability | undefined>((best, option) =>
+    !best || option.range > best.range ? option : best, undefined);
+}
 import { applyDamageAndCheckDowned } from './deathSaveUtils';
 import { ResistanceCalculator } from './resistanceUtils';
 
@@ -256,9 +295,12 @@ export function resolveMultiattackSequence(
     }
 
     const targetArmorClass = target.armorClass ?? target.baseAC ?? 10;
+    // Keep authored strike bonuses unchanged and apply the live condition
+    // once at resolution, including the existing sequence-dispatch path.
+    const attackBonus = strike.attackBonus - getExhaustionD20Penalty(liveAttacker);
     const attack = resolveAttack(
       strike.d20Roll,
-      strike.attackBonus,
+      attackBonus,
       targetArmorClass,
       liveAttacker.critThreshold ?? 20,
     );
@@ -348,7 +390,7 @@ export function resolveMultiattackSequence(
       targetId: strike.targetId,
       targetName: target.name,
       d20Roll: strike.d20Roll,
-      attackBonus: strike.attackBonus,
+      attackBonus,
       attackTotal: attack.total,
       targetArmorClass,
       isHit: attack.isHit,

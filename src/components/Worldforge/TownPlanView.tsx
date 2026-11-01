@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 24/08/2026, 00:56:03
+ * Last Sync: 29/10/2026, 01:45:09
  * Dependents: components/DesignPreview/steps/PreviewTown3D.tsx, components/MapPane.tsx, devtools/buildingIdentityLab/BuildingIdentityLab.tsx
- * Imports: 17 files
+ * Imports: 18 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -53,11 +53,14 @@ import {
   type StreetTierName,
 } from '../../systems/worldforge/town/streetRibbons';
 import type { TownStreet } from '../../systems/worldforge/town/townStreetNetwork';
+import type { CivicGroundsFeature, CivicSetPiece } from '../../systems/worldforge/town/civicGrounds';
 import type { VillageIntegrationProfile } from '../../data/villagePersonalityProfiles';
 import { useTownLayers, TOWN_LAYER_DEFS } from './useDrillLayers';
 import DrillLayerPanel from './DrillLayerPanel';
 
 export interface TownPlanViewProps {
+  /** Current party feet in this canonical town frame; no inferred marker in previews. */
+  partyPosition?: Pt | null;
   plan: TownPlan;
   width?: number;
   height?: number;
@@ -141,8 +144,23 @@ const OPEN_LAND_STROKE: Record<'yard' | 'garden' | 'orchard' | 'paddock' | 'ruin
   yard: '#8e7c54', garden: '#77894f', orchard: '#5f7440', paddock: '#849060', ruin: '#857960',
 };
 
+// Civic grounds (GG-566): the land round a temple, keep or citadel. The fill
+// says what the grounds hold, so a churchyard, a sacred grove and a bailey
+// read apart at a glance; the features draw on top of it.
+const GROUNDS_FILL: Record<CivicSetPiece, string> = {
+  churchyard: '#b9c79a', grove: '#93ad73', pool: '#c3d0a4', cloister: '#cdd3b0',
+  bailey: '#c8bd98', 'hall-yard': '#d6caa6', grounds: '#c5cfa5',
+};
+const FEATURE_FILL: Record<CivicGroundsFeature['kind'], string> = {
+  grave: '#8f8a7e', tree: '#4f6f37', pool: '#5d8fb3', 'cloister-walk': '#a99a78', garth: '#9fbb7c',
+  'curtain-wall': 'none', gatehouse: '#5a4a2a', yard: '#ddd0ac',
+};
+
 const poly = (pts: Pt[]): string => 'M' + pts.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join('L') + 'Z';
 const open = (pts: Pt[]): string => 'M' + pts.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join('L');
+
+/** A strip field's furrow direction in degrees, rounded to 15° (one pattern per step). */
+const furrowDeg = (angle: number): number => ((Math.round((angle * 180) / Math.PI / 15) * 15) % 180 + 180) % 180;
 
 const centroidOf = (pts: Pt[]): Pt => {
   let x = 0, y = 0;
@@ -528,6 +546,7 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
   climate = 'temperate',
   onSelectPlot,
   selectedPlotId,
+  partyPosition,
   artifactPlan,
   water,
   coast,
@@ -666,6 +685,14 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
     }
     return [...unique.values()];
   }, [architectureByPlot]);
+
+  // STRIP FIELDS (GG-551): each strip's furrows run along its own long side,
+  // so neighboring fields read as separate ploughed strips.
+  const furrowPatterns = useMemo(() => {
+    const degs = new Set<number>();
+    for (const o of plan.outskirts ?? []) if (o.kind === 'farm' && o.furrowAngle != null) degs.add(furrowDeg(o.furrowAngle));
+    return [...degs].sort((a, b) => a - b);
+  }, [plan]);
 
   const fit = useMemo(() => {
     const w = bounds.maxX - bounds.minX || 1;
@@ -815,46 +842,52 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
   const svgRef = useRef<SVGSVGElement>(null);
   const [hover, setHover] = useState<HoverInfo | null>(null);
 
-  // Find the corresponding artifact plot ID for a given engine building plot.
-  // We match plots by comparing footprint/polygon centroids to resolve their IDs.
-  const findPlotIdForBuildingPlot = (pl: BuildingPlot): number | undefined => {
-    const activeArtifactPlan = artifactPlan ?? (styleFamily ? toArtifactPlan(plan, 0, styleFamily).plan : null);
-    if (!activeArtifactPlan) return undefined;
-    const centroid = centroidOf(pl.polygon);
-    let closestPlot = null;
-    let minDistance = Infinity;
-    for (const ap of activeArtifactPlan.plots) {
-      const apCentroid = centroidOf(ap.footprint);
-      const dist = Math.hypot(apCentroid[0] - centroid[0], apCentroid[1] - centroid[1]);
-      if (dist < minDistance) {
-        minDistance = dist;
-        closestPlot = ap;
+  // The artifact plan the plot ids come from. Built ONCE per plan (2026-11-01).
+  // It used to be built inside findPlotIdForBuildingPlot, so every building on
+  // every render converted the whole plan again: about 2,000 x 2,000 plot
+  // conversions for the capital, and again on each hover re-render. A debugger
+  // pause put every sample of the 10+ minute Capital load inside that call.
+  const activeArtifactPlan = useMemo(
+    () => artifactPlan ?? (styleFamily ? toArtifactPlan(plan, 0, styleFamily).plan : null),
+    [artifactPlan, plan, styleFamily],
+  );
+
+  // Engine building plot -> artifact plot id, resolved once per plan. The match
+  // rule is unchanged: the artifact plot with the nearest footprint centroid
+  // (first one wins a tie), accepted only when it is closer than 50 units.
+  const plotIdByPlot = useMemo(() => {
+    const ids = new Map<BuildingPlot, number>();
+    if (!activeArtifactPlan) return ids;
+    const apCentroids = activeArtifactPlan.plots.map((ap) => centroidOf(ap.footprint));
+    for (const ward of plan.wards) {
+      for (const pl of ward.plots) {
+        const centroid = centroidOf(pl.polygon);
+        let closest = -1;
+        let minDistance = Infinity;
+        for (let i = 0; i < apCentroids.length; i++) {
+          const dist = Math.hypot(apCentroids[i][0] - centroid[0], apCentroids[i][1] - centroid[1]);
+          if (dist < minDistance) {
+            minDistance = dist;
+            closest = i;
+          }
+        }
+        if (closest >= 0 && minDistance < 50) ids.set(pl, activeArtifactPlan.plots[closest].id);
       }
     }
-    if (closestPlot && minDistance < 50) {
-      return closestPlot.id;
-    }
-    return undefined;
-  };
+    return ids;
+  }, [activeArtifactPlan, plan]);
 
-  // Find the original polygon of the selected plot so we can draw the selection outline on the map.
+  // Find the corresponding artifact plot ID for a given engine building plot.
+  const findPlotIdForBuildingPlot = (pl: BuildingPlot): number | undefined => plotIdByPlot.get(pl);
+
+  // A named selection must trace that artifact's own physical footprint.
+  // The old first-within-50 search could outline a neighbor (shop123 selected
+  // house34 during actual street play). Do not guess a nearby replacement or
+  // change the source plans; an absent source simply has no highlight.
   const selectedPoly = useMemo(() => {
     if (selectedPlotId === undefined) return null;
-    const activeArtifactPlan = artifactPlan ?? (styleFamily ? toArtifactPlan(plan, 0, styleFamily).plan : null);
-    if (!activeArtifactPlan) return null;
-    const ap = activeArtifactPlan.plots.find(p => p.id === selectedPlotId);
-    if (!ap) return null;
-    const apCentroid = centroidOf(ap.footprint);
-    for (const w of plan.wards) {
-      for (const pl of w.plots) {
-        const centroid = centroidOf(pl.polygon);
-        if (Math.hypot(apCentroid[0] - centroid[0], apCentroid[1] - centroid[1]) < 50) {
-          return pl.polygon;
-        }
-      }
-    }
-    return null;
-  }, [plan.wards, selectedPlotId, artifactPlan, styleFamily, plan]);
+    return activeArtifactPlan?.plots.find(p => p.id === selectedPlotId)?.footprint ?? null;
+  }, [selectedPlotId, activeArtifactPlan]);
 
   // Native non-passive wheel listener so preventDefault works (React's onWheel
   // prop is passive — preventDefault is a no-op there and warns). Zoom anchors on
@@ -1003,6 +1036,14 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
           <rect width="7" height="7" fill="#c7a567" />
           <line x1="0" y1="0" x2="0" y2="7" stroke="#a6843f" strokeWidth="1.5" />
         </pattern>
+        {/* One furrow pattern per strip direction (GG-551). The strip's long
+            side is `deg`; the pattern lines run along it. */}
+        {furrowPatterns.map((deg) => (
+          <pattern key={`farm-${deg}`} id={`town-farm-a${deg}`} width="5" height="5" patternUnits="userSpaceOnUse" patternTransform={`rotate(${deg + 90})`}>
+            <rect width="5" height="5" fill="#c7a567" />
+            <line x1="0" y1="0" x2="0" y2="5" stroke="#a6843f" strokeWidth="1.2" />
+          </pattern>
+        ))}
         {/* Intramural open-land textures: garden beds, orchard rows, rubble. */}
         <pattern id="town-garden" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(-20)">
           <rect width="5" height="5" fill="#93a967" />
@@ -1042,20 +1083,29 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
         {/* Outskirts: farmland near the town, pasture beyond, scrub at the rim —
             so the town isn't hardset to the cell's edge. */}
         {(plan.outskirts ?? []).map((o, i) => (
-          <path key={`out${i}`} d={poly(o.polygon)} fill={OUTSKIRT_FILL[o.kind]} stroke="#6f7a52" strokeWidth={0.3} vectorEffect="non-scaling-stroke" data-testid={`town-outskirt-${o.kind}`} />
+          <path key={`out${i}`} d={poly(o.polygon)} fill={o.kind === 'farm' && o.furrowAngle != null ? `url(#town-farm-a${furrowDeg(o.furrowAngle)})` : OUTSKIRT_FILL[o.kind]} stroke="#6f7a52" strokeWidth={0.3} vectorEffect="non-scaling-stroke" data-testid={`town-outskirt-${o.kind}`} />
         ))}
         {/* Organic built-up CORE in bare TOWN GROUND. It used to be filled in the
             street tone so the gaps between blocks would read as roads; the roads
             are now drawn (see `streetBands`), so this tone must sit BELOW them or
             the whole town reads as one continuous paved surface. Slightly duller
             and browner than the old #cdbf9c for exactly that reason. */}
-        <path d={poly(plan.core ?? plan.footprint)} fill="#bcae8b" stroke="#8a7a55" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+        {/* A lane village (GG-548) has no town ground: between its lanes the
+            land is common meadow, so its extent draws green, with no edge. */}
+        <path d={poly(plan.core ?? plan.footprint)}
+          fill={plan.form === 'lanes' ? '#93a965' : '#bcae8b'}
+          stroke={plan.form === 'lanes' ? 'none' : '#8a7a55'} strokeWidth={1} vectorEffect="non-scaling-stroke" />
         {/* Buildable blocks (ward insets) in parchment. Their edges are the street
             frontages: the generator inset each block by the half-width of the
             street on that side, so the gap between two blocks IS the ribbon
             painted over it. Fall back to the full ward if no block (older plans). */}
         {plan.wards.map((w, i) => (
-          <path key={`w${i}`} d={poly(w.block ?? w.polygon)} fill={w.civic === 'plaza' ? '#e7dcc0' : '#efe6d2'} stroke="#b7a77f" strokeWidth={0.4} vectorEffect="non-scaling-stroke"
+          // A lane village's row (GG-548) is a strip along its lane, not a
+          // town block: its houses and gardens sit on the meadow, so the row
+          // itself paints nothing. Its green still draws.
+          <path key={`w${i}`} d={poly(w.block ?? w.polygon)}
+            fill={plan.form === 'lanes' && w.civic !== 'plaza' ? 'none' : w.civic === 'plaza' ? '#e7dcc0' : '#efe6d2'}
+            stroke={plan.form === 'lanes' && w.civic !== 'plaza' ? 'none' : '#b7a77f'} strokeWidth={0.4} vectorEffect="non-scaling-stroke"
             data-architecture-district-key={w.architectureDistrict?.key}
             data-architecture-district-label={w.architectureDistrict?.label} />
         ))}
@@ -1067,6 +1117,22 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
           <path key={`ol${i}`} d={poly(o.polygon)} fill={OPEN_LAND_FILL[o.kind]}
             stroke={OPEN_LAND_STROKE[o.kind]} strokeWidth={0.5} vectorEffect="non-scaling-stroke"
             data-testid={`town-open-land-${o.kind}`} data-open-land-source={o.source} />
+        ))}
+        {/* CIVIC GROUNDS (GG-566): the grounds, forecourt and set piece round
+            each temple, keep and citadel. The approach is a street of the
+            network (role `passage`) and draws with the streets. */}
+        {layers.civic && (plan.civicGrounds ?? []).map((g, i) => (
+          <g key={`cg${i}`} data-testid={`town-civic-grounds-${g.setPiece}`}
+            data-civic-kind={g.civicKind} data-chosen-by={g.chosenBy}>
+            <path d={poly(g.grounds)} fill={GROUNDS_FILL[g.setPiece]} stroke="#6a7f4a" strokeWidth={0.6} vectorEffect="non-scaling-stroke" />
+            {g.forecourt.length >= 3 && <path d={poly(g.forecourt)} fill="#e3d6b4" stroke="none" />}
+            {g.features.map((f, k) => (
+              <path key={k} d={poly(f.polygon)} fill={FEATURE_FILL[f.kind]}
+                stroke={f.kind === 'curtain-wall' ? '#5a4a2a' : 'none'}
+                strokeWidth={f.kind === 'curtain-wall' ? 2.5 : 0} vectorEffect="non-scaling-stroke"
+                data-testid={`town-civic-feature-${f.kind}`} />
+            ))}
+          </g>
         ))}
         {/* Shared courts sit below roofs and above the block fill. Each glyph is
             backed by the same canonical receipt consumed by production props. */}
@@ -1225,6 +1291,16 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
           <path d={poly(hover.poly)} fill="#fff3" stroke="#ffe08a" strokeWidth={2.5}
             strokeLinejoin="round" vectorEffect="non-scaling-stroke" pointerEvents="none" data-testid="town-hover-highlight" />
         )}
+        {/* The dot shares the plan's pan/zoom transform; its glyph stays readable in screen pixels. */}
+        {partyPosition?.every(Number.isFinite) && <g role="img" aria-label="Your position"
+          data-testid="town-party-position" data-town-x={partyPosition[0]} data-town-y={partyPosition[1]}
+          transform={`translate(${partyPosition[0]},${partyPosition[1]})`} pointerEvents="none">
+          <title>Your position</title>
+          <circle r={6/view.k} fill="#1686e8" stroke="white" strokeWidth={2/view.k}/>
+          <circle r={2/view.k} fill="white"/>
+          <text x={10/view.k} y={-9/view.k} fontSize={12/view.k} fontWeight={700}
+            fill="#073d78" stroke="#fff7da" strokeWidth={3/view.k} paintOrder="stroke">You</text>
+        </g>}
       </g>
       {/* Inspector tooltip — screen space, constant size. */}
       {hover && (

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 18/07/2026, 18:30:27
+ * Last Sync: 29/10/2026, 10:34:23
  * Dependents: components/World3D/InteriorOccupants.tsx
- * Imports: 5 files
+ * Imports: 8 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -33,6 +33,9 @@ import { registerAllParts } from '@/systems/entities3d/parts';
 import { generateEntityBlueprint } from '@/systems/entities3d/generateEntityBlueprint';
 import { recipeFromOccupant } from '@/systems/entities3d/recipeFromOccupant';
 import { assembleEntity, gameBodyOptions } from '@/systems/entities3d/three/assembleEntity';
+import { standingBodyHeight, standingBodyFootprint, type StandingBodyFootprint } from './standingBodyHeight';
+import { isWebGpuWorldEnabled } from './webgpuWorldFlag';
+import { adaptWorldEntityForWebGpu } from './worldEntityGpu';
 import type { LocomotionState } from '@/systems/entities3d/three/gaits';
 
 registerAllParts();
@@ -54,6 +57,8 @@ export interface OccupantFigureProps {
    * React to rebuild the expensive figure on every clock tick.
    */
   motionRef?: React.MutableRefObject<{ moving: boolean }>;
+  /** Report the drawn body after posing, enlarging its envelope when needed. */
+  onBodySpace?: (body: {radiusM: number; heightM: number; footprint?: StandingBodyFootprint}) => void;
 }
 
 /**
@@ -66,7 +71,7 @@ const OccupantFigure: React.FC<OccupantFigureProps> = ({
   race,
   position,
   rotationY = 0,
-  motionRef,
+  motionRef, onBodySpace,
 }) => {
   const blueprint = useMemo(
     () => generateEntityBlueprint(recipeFromOccupant({ id: occupantId, ageBand, race })),
@@ -78,13 +83,19 @@ const OccupantFigure: React.FC<OccupantFigureProps> = ({
   // eyes, and facing remain smooth. The parent also caps how many can exist.
   // Skinned by default (skeleton pivot flip 2026-08-18).
   const handle = useMemo(
-    () => assembleEntity(blueprint, { resolutionScale: 0.5, fieldUpdateHz: 3, ...gameBodyOptions(blueprint) }),
+    () => {
+      const assembled = assembleEntity(blueprint, { resolutionScale: 0.5, fieldUpdateHz: 3, ...gameBodyOptions(blueprint) });
+      // ADR 0009 step 2: the WebGPU world rebuilds the GLSL toon materials.
+      if (isWebGpuWorldEnabled()) adaptWorldEntityForWebGpu(assembled.group);
+      return assembled;
+    },
     [blueprint],
   );
   useEffect(() => {
     handle.retain();
     return () => handle.release();
   }, [handle]);
+  const personalMeasurement=useRef({handle:null as typeof handle|null,radiusM:0,heightM:0,since:0,footprint:null as StandingBodyFootprint|null});
   const loco = useRef<LocomotionState>({
     position: new Vector3(),
     heading: new Vector3(0, 0, 1),
@@ -96,6 +107,20 @@ const OccupantFigure: React.FC<OccupantFigureProps> = ({
     // walk during that travel instead of sliding in the idle pose.
     loco.current.speed = motionRef?.current.moving ? 1 : 0;
     handle.update(state.clock.elapsedTime, delta, loco.current);
+    const measurement=personalMeasurement.current;
+    measurement.since+=Number.isFinite(delta)?Math.max(0,delta):0;
+    if(onBodySpace&&(measurement.handle!==handle||measurement.since>=.5)){
+      const fresh=measurement.handle!==handle;
+      const measured=standingBodyFootprint(handle.group,fresh),height=standingBodyHeight(handle.group);
+      if(measured&&height){
+        const old=fresh?null:measurement.footprint;
+        const footprint=old?{...measured,minXM:Math.min(old.minXM,measured.minXM),maxXM:Math.max(old.maxXM,measured.maxXM),minZM:Math.min(old.minZM,measured.minZM),maxZM:Math.max(old.maxZM,measured.maxZM)}:measured;
+        const radiusM=Math.max(fresh?0:measurement.radiusM,measured.radiusM),heightM=Math.max(fresh?0:measurement.heightM,height);
+        if(fresh||!old||radiusM>measurement.radiusM+1e-4||heightM>measurement.heightM+1e-4||footprint.minXM<old.minXM||footprint.maxXM>old.maxXM||footprint.minZM<old.minZM||footprint.maxZM>old.maxZM)onBodySpace({radiusM,heightM,footprint});
+        measurement.handle=handle;measurement.radiusM=radiusM;measurement.heightM=heightM;measurement.footprint=footprint;
+      }
+      measurement.since=0;
+    }
   });
 
   return (

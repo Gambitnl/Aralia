@@ -4,14 +4,30 @@
  *
  * @file src/services/ollama/router.ts
  *
- * Resolves a TaskType to an installed Ollama model, applying the task profile's
- * preferred-model list first, then falling back to the global
- * OllamaConfig.preferredModels chain, then to any installed model.
+ * Resolves each task to the player's selected installed model (or its category
+ * default). Changing the selection invalidates an old task-cache entry. Missing
+ * choices fail explicitly; this route does not substitute another model.
  *
  * Caches resolutions per TaskType to avoid hammering /tags on every call.
  *
  * Source spec: docs/ai/local-llm-model-routing.md
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 23:08:20
+ * Dependents: services/ollama/client.ts, services/ollama/index.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import type { OllamaModel, TaskType } from '../../types/ollama';
 import type { OllamaClient } from './client';
@@ -58,15 +74,18 @@ export async function resolveModelForTask(
     client: OllamaClient,
     taskType: TaskType
 ): Promise<string | null> {
+    const profile = getTaskProfile(taskType);
+    const wanted = resolveOllamaModel(profile.category);
+    const matchesChoice = (name: string) => name === wanted || name.startsWith(wanted + ':') || name === wanted + ':latest';
     const cached = taskModelCache.get(taskType);
-    if (cached) return cached;
+    // A settings change must take effect on the next request, including after a
+    // failed conversation. A cached old model is never a fallback for a new choice.
+    if (cached && matchesChoice(cached)) return cached;
+    taskModelCache.delete(taskType);
 
     const installed = await client.listModels();
     if (!installed || installed.length === 0) return null;
-
-    const profile = getTaskProfile(taskType);
-    const wanted = resolveOllamaModel(profile.category);
-    const found = installed.find(m => m.name === wanted || m.name.startsWith(wanted + ':') || m.name === wanted + ':latest');
+    const found = installed.find(m => matchesChoice(m.name));
     if (!found) throw new OllamaModelNotInstalledError(wanted, profile.category, taskType);
 
     taskModelCache.set(taskType, found.name);

@@ -256,6 +256,6 @@ export function useFresnelRim(
         mat.needsUpdate = true;
       }
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deps is the caller's rebuild key (for example [blueprint]); the body reads only refs and ref-held uniforms (C9).
   }, deps);
 }

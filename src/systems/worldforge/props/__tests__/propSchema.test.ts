@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   providesCover,
+  propSourceId,
   validatePropDefinition,
   CELL_METERS,
   type PropDefinition,
@@ -70,5 +71,19 @@ describe('propSchema', () => {
     expect(
       validatePropDefinition({ ...good, isMagical: undefined as never }).length,
     ).toBeGreaterThan(0);
+  });
+});
+
+describe('retained prop source identity', () => {
+  const prop = { defId: 'woodpile', xM: 472.358912923433, zM: 488.4628858281934, rotationRad: 5.610892274095856, variation: { scale: 1, variant: 3 } };
+  it('preserves the legacy generated address exactly', () => {
+    expect(propSourceId(prop)).toBe('prop:woodpile:47236:48846:5611');
+  });
+  it('preserves an original address through movement, turning and save serialization', () => {
+    const moved = JSON.parse(JSON.stringify({ ...prop, xM: 10, zM: 20, rotationRad: 0, retainedSourceId: propSourceId(prop) }));
+    expect(propSourceId(moved)).toBe(propSourceId(prop));
+  });
+  it.each(['', 'prop:crate:1:2:3', 'prop:woodpile:1:2', 'prop:woodpile:NaN:2:3', 'prop:woodpile:1:2:3:4'])('refuses malformed or cross-definition retained addresses %s', retainedSourceId => {
+    expect(() => propSourceId({ ...prop, retainedSourceId })).toThrow('Invalid retained prop source identity');
   });
 });

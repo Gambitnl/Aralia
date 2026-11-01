@@ -122,7 +122,17 @@ function getTopChromeOffset(): number {
     return offset;
 }
 
+function hasWorkspaceArea(): boolean {
+    return window.innerWidth > 0 && window.innerHeight > 0;
+}
+
 function getWorkspaceBounds(): WindowWorkspaceBounds {
+    // An embedded preview can mount before its browser pane has an area.
+    // Use a provisional size then; zero is suspension, not a tiny monitor.
+    if (!hasWorkspaceArea()) {
+        return { minLeft: WINDOW_MARGIN, minTop: WINDOW_MARGIN,
+            maxWidth: DEFAULT_SIZE.width, maxHeight: DEFAULT_SIZE.height };
+    }
     const topChromeOffset = getTopChromeOffset();
     const minTop = Math.max(WINDOW_MARGIN, topChromeOffset);
 
@@ -259,7 +269,7 @@ export function useResizableWindow(
 
     // Center on mount
     useEffect(() => {
-        if (position) return;
+        if (position || !hasWorkspaceArea()) return;
         const bounds = getWorkspaceBounds();
         const clampedSize = clampSizeToWorkspace(size, bounds, requestedMinimum);
         setSize(clampedSize);
@@ -269,6 +279,10 @@ export function useResizableWindow(
     // Respond to window/monitor resize when maximized
     useEffect(() => {
         const handleWindowResize = () => {
+            // Preserve the last usable pane while hidden. In particular, do
+            // not replace a restored desktop size with a 1px hidden viewport.
+            if (!hasWorkspaceArea()) return;
+            topChromeOffsetCache = null;
             const bounds = getWorkspaceBounds();
             if (isMaximized) {
                 const maximized = maximizeWindowInWorkspace(bounds);
@@ -283,7 +297,7 @@ export function useResizableWindow(
             setSize((currentSize) => {
                 const clampedSize = clampSizeToWorkspace(currentSize, bounds, requestedMinimum);
                 setPosition((currentPosition) => {
-                    if (!currentPosition) return currentPosition;
+                    if (!currentPosition) return centerWindowInWorkspace(clampedSize, bounds);
                     const clampedPosition = clampPositionToWorkspace(currentPosition, clampedSize, bounds);
                     return isSamePosition(currentPosition, clampedPosition) ? currentPosition : clampedPosition;
                 });
@@ -293,7 +307,13 @@ export function useResizableWindow(
 
         handleWindowResize();
         window.addEventListener('resize', handleWindowResize);
-        return () => window.removeEventListener('resize', handleWindowResize);
+        // Some embedded browsers expose their new area on visibility return
+        // without a resize event. Refit the pane without rebuilding its content.
+        document.addEventListener('visibilitychange', handleWindowResize);
+        return () => {
+            window.removeEventListener('resize', handleWindowResize);
+            document.removeEventListener('visibilitychange', handleWindowResize);
+        };
     }, [isMaximized, requestedMinimum.height, requestedMinimum.width]);
 
 

@@ -184,12 +184,14 @@ const RegionMapView: React.FC<RegionMapViewProps> = ({
   // Keyboard accessibility: Escape ascends
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onAscend();
-      }
+      // One Escape belongs to this Atlas tier, not the global gameplay menu.
+      // An open trade/dialog review keeps its own dismissal priority.
+      if (e.key !== "Escape" || e.defaultPrevented || document.querySelector('[aria-modal="true"]')) return;
+      e.preventDefault();
+      onAscend();
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown, true);
+    return () => window.removeEventListener("keydown", handleKeyDown, true);
   }, [onAscend]);
 
   // Mouse wheel scroll zoom with auto-ascent on floor threshold boundary

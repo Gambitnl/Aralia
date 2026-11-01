@@ -1,30 +1,28 @@
-// Agent Matrix registry sync check (AM-G1).
-//
-// tools/agora/agents.json is the machine-readable registry orchestrators trust.
-// The Agent Matrix dashboard keeps its own offerings ledger, and the two drifted
-// apart: the ledger marked 20 lanes worker-ready that agents.json did not list,
-// so validatePlan rejected every one of them. A hand-reconciled file drifts
-// again, so this module makes the disagreement machine-checkable.
-//
-// It reads the dashboard ledger (live HTTP first, read-only file second) and
-// diffs it against agents.json through each row's `matrixId`. The dashboard repo
-// is READ-ONLY from here — this module never writes to it.
-//
-//   node tools/agora/syncAgents.mjs            # print the diff, exit 1 on any error
-//   node tools/agora/orchestrate.mjs agents --matrix
-//
-// PROCEDURE when the diff reports an error:
-//   1. A worker-ready lane with no row → add a row: role worker, status
-//      ready/quota_limited, vendor, matrixId, and dispatch wiring. A CLI lane
-//      gets dispatch.command/args. An API lane gets dispatch.type "api" with the
-//      endpoint from the ledger. NEVER put a key or token in the file — record
-//      only the credential's vault name.
-//   2. A lane the ledger benched/blocked but agents.json still dispatches → bench
-//      it here too, or add `matrixOverride` with the reason it must not follow.
-//   3. Run the diff again. It must print zero errors.
+/**
+ * This file checks that Aralia's machine-readable agent registry (`tools/agora/agents.json`)
+ * stays synchronized with the Operator Dashboard's Agent Matrix offerings ledger.
+ *
+ * It exists so orchestrators never dispatch a lane the operator has benched or miss a lane
+ * the dashboard marked worker-ready. It queries the live dashboard API first and falls back
+ * to the read-only on-disk ledger file (merging the dashboard's seeded `codex` and `gemini`
+ * defaults that the dashboard strips on write, and reporting the file's modification time so
+ * drift is visible, WF-G182).
+ *
+ * Called by: `node tools/agora/syncAgents.mjs`, `node tools/agora/orchestrate.mjs agents --matrix`,
+ * and `tools/agora/orchestrate.registry.test.mjs`.
+ * Depends on: `tools/agora/agents.json` and the Operator Dashboard offerings endpoint/file.
+ */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+// ============================================================================
+// Constants & Seeded Dashboard Defaults
+// ============================================================================
+// Defines file paths, endpoint URLs, and the two seeded offerings (`codex` and
+// `gemini`) that `Aralia-operator-dashboard` strips from `agent-offerings.json`
+// whenever their readiness matches the seeded `benched` default (WF-G182).
+// ============================================================================
 
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 
@@ -37,6 +35,37 @@ export const LEDGER_FILE = path.resolve(
 
 /** The one ledger value that means "this lane may take worker packets". */
 export const WORKER_READY = 'worker-ready';
+
+/**
+ * Seeded offerings that the Operator Dashboard (`agentSessionManager.ts`) omits
+ * from `agent-offerings.json` on disk when they match their default `benched` state,
+ * but always includes in `GET /api/agent-offerings`. Merging these during offline
+ * file fallback prevents false "matches no dashboard offering" errors (WF-G182).
+ */
+export const SEEDED_DASHBOARD_OFFERINGS = Object.freeze([
+  {
+    id: 'codex',
+    dispatchEligibility: {
+      status: 'benched',
+      reason: 'Seeded dashboard default (benched for worker dispatch; omitted from on-disk ledger when unchanged)',
+    },
+  },
+  {
+    id: 'gemini',
+    dispatchEligibility: {
+      status: 'benched',
+      reason: 'Seeded dashboard default (benched/deprecated; omitted from on-disk ledger when unchanged)',
+    },
+  },
+]);
+
+// ============================================================================
+// Dispatch & Ledger Normalization Helpers
+// ============================================================================
+// Determines whether an `agents.json` entry is wired and dispatchable as a worker,
+// and normalizes both the live API response and the offline fallback file into a
+// uniform list of offerings.
+// ============================================================================
 
 /**
  * Dispatch wiring an orchestrator can actually launch. Three shapes count:
@@ -63,16 +92,29 @@ export function isWorkerDispatchable(def) {
 /**
  * The live endpoint returns { offerings: [...] } and the on-disk ledger is a
  * bare id-keyed object. Accept both shapes so an operator can diff offline.
+ * When `mergeSeededDefaults` is true (used for the on-disk file fallback),
+ * any seeded dashboard offering omitted by `writeOfferings()` is appended.
  */
-export function normalizeOfferings(raw) {
+export function normalizeOfferings(raw, { mergeSeededDefaults = false } = {}) {
   if (!raw || typeof raw !== 'object') throw new Error('agent-offerings: expected an object or an array');
   const list = Array.isArray(raw) ? raw : (Array.isArray(raw.offerings) ? raw.offerings : Object.values(raw));
-  return list.filter((o) => o && typeof o.id === 'string');
+  const normalized = list.filter((o) => o && typeof o.id === 'string');
+  if (!mergeSeededDefaults) return normalized;
+
+  const presentIds = new Set(normalized.map((o) => o.id));
+  const merged = [...normalized];
+  for (const seeded of SEEDED_DASHBOARD_OFFERINGS) {
+    if (!presentIds.has(seeded.id)) {
+      merged.push(seeded);
+    }
+  }
+  return merged;
 }
 
 /**
  * Prefer the live dashboard, fall back to the checked-in ledger. The fallback is
- * reported, never hidden: a stale file can hide a lane the operator just benched.
+ * reported with the file's mtime, never hidden: the file is a fallback, not a live
+ * source of truth (WF-G182).
  */
 export async function loadOfferings({
   url = LEDGER_URL,
@@ -86,7 +128,7 @@ export async function loadOfferings({
     try {
       const res = await fetchImpl(url, { signal: controller.signal });
       if (res && res.ok) {
-        return { offerings: normalizeOfferings(await res.json()), source: url, live: true };
+        return { offerings: normalizeOfferings(await res.json()), source: url, live: true, mtimeIso: null };
       }
     } catch {
       // fall through to the file — the reason is reported by `source` below
@@ -95,8 +137,20 @@ export async function loadOfferings({
     }
   }
   if (!fs.existsSync(file)) throw new Error(`agent-offerings: no live endpoint at ${url} and no ledger file at ${file}`);
-  return { offerings: normalizeOfferings(JSON.parse(fs.readFileSync(file, 'utf8'))), source: file, live: false };
+  const stat = fs.statSync(file);
+  const mtimeIso = stat.mtime.toISOString();
+  const offerings = normalizeOfferings(JSON.parse(fs.readFileSync(file, 'utf8')), {
+    mergeSeededDefaults: true,
+  });
+  return { offerings, source: file, live: false, mtimeIso };
 }
+
+// ============================================================================
+// Matrix Comparison & CLI Runner
+// ============================================================================
+// Compares every `agents.json` entry against the Operator Dashboard offerings
+// list and reports any un-overridden eligibility drift.
+// ============================================================================
 
 function eligibilityOf(offering) {
   const e = offering.dispatchEligibility;
@@ -169,12 +223,15 @@ export function diffMatrix(registry, offerings) {
 /** Print the diff. Returns the process exit code: 0 when no error row exists. */
 export async function runMatrixCheck({ registry, loader = loadOfferings, log = console.log } = {}) {
   const reg = registry || JSON.parse(fs.readFileSync(REGISTRY_FILE, 'utf8'));
-  const { offerings, source, live } = await loader();
+  const { offerings, source, live, mtimeIso } = await loader();
   const rows = diffMatrix(reg, offerings);
   const errors = rows.filter((r) => r.level === 'error');
   const overrides = rows.filter((r) => r.level === 'override');
 
-  log(`Agent Matrix sync check — ${offerings.length} dashboard offering(s) from ${source}${live ? ' (live)' : ' (FILE FALLBACK — the live endpoint did not answer; the file may be stale)'}`);
+  const sourceBanner = live
+    ? ' (live)'
+    : ` (FILE FALLBACK${mtimeIso ? `, mtime ${mtimeIso}` : ''} — the live endpoint did not answer; the file is a fallback, not a source of truth)`;
+  log(`Agent Matrix sync check — ${offerings.length} dashboard offering(s) from ${source}${sourceBanner}`);
   for (const row of errors) log(`  ✗ ${row.agent}: ${row.message}`);
   for (const row of overrides) log(`  ~ ${row.agent}: ${row.message}`);
   if (errors.length === 0) log(`  ✓ zero disagreements (${overrides.length} documented override(s)).`);

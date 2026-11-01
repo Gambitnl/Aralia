@@ -57,6 +57,16 @@ vi.mock('@react-three/drei', () => ({
   Sky: () => null,
 }));
 
+vi.mock('../PlayerAvatar', () => ({ default: () => <div data-testid="moving-player-body" /> }));
+vi.mock('../NightSky', () => ({ default: () => null }));
+vi.mock('../VolumetricClouds', () => ({ default: () => null }));
+vi.mock('@react-three/postprocessing', () => ({
+  EffectComposer: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  N8AO: () => null, ToneMapping: () => null, SMAA: () => null,
+}));
+vi.mock('../SceneCast', () => ({ default: ({ cast }: { cast: { id: string }[] }) =>
+  <div data-testid="staged-cast" data-members={cast.map(member => member.id).join(',')} /> }));
+
 // The scene owns mount/camera wiring; the streamer is replaced with a deterministic hook
 // result so this proof stays fast and non-flaky while the separate hook test covers lifecycle.
 vi.mock('../useChunkStreaming', () => ({
@@ -156,6 +166,14 @@ describe('World3DScene lifecycle proof', () => {
     mockUpdate.mockClear();
     mockOnChunkUpdate.mockClear();
     lastCanvasDomElement = null;
+  });
+
+  it('keeps one moving player body while an opening cast retains its NPCs', () => {
+    render(<World3DScene loader={makeLoader()} start={[512, 40, 256]} viewProfile="ground"
+      playerCharacter={{ id: 'player', name: 'Sana' } as import('@/types/character').PlayerCharacter}
+      sceneCast={[{ id: 'player', name: 'Sana', isPlayer: true }, { id: 'resident', name: 'Bryn' }]} />);
+    expect(screen.getAllByTestId('moving-player-body')).toHaveLength(1);
+    expect(screen.getByTestId('staged-cast')).toHaveAttribute('data-members', 'resident');
   });
 
   it('keeps the shell visible, wires the mount update, and renders loaded chunk content', async () => {

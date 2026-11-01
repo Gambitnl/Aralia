@@ -172,3 +172,59 @@ describe('deriveHydrology', () => {
     expect(a.filled).toEqual(b.filled);
   });
 });
+
+// 2026-10-27 (agora-257c): physical limits for terrain water.
+describe('deriveHydrology limits', () => {
+  // A 2-deep pit (rim 5, floor 3) and a 1-deep pit (rim 5, floor 4).
+  const g = grid([
+    '5555555',
+    '5355455',
+    '5555555',
+  ]);
+  it('keeps hollows shallower than lakeMinDepthEnc as land', () => {
+    const all = deriveHydrology({ ...g, riverThreshold: 1e9 });
+    expect([...all.lakeCells].sort((x, y) => x - y)).toEqual([8, 11]);
+    const deep = deriveHydrology({ ...g, riverThreshold: 1e9, lakeMinDepthEnc: 1.5 });
+    expect([...deep.lakeCells]).toEqual([8]);
+  });
+  it('does not fill a basin that drains into an outlet cell', () => {
+    const outlets = new Uint8Array(g.cols * g.rows);
+    outlets[8] = 1;
+    const h = deriveHydrology({ ...g, riverThreshold: 1e9, outlets });
+    expect(h.lakeCells.has(8)).toBe(false);
+    expect(h.lakeCells.has(11)).toBe(true);
+  });
+});
+
+// 2026-10-27 (agora-257c): water balance. A pond lasts only when its catchment
+// is at least lakeCatchmentRatio times its own area.
+describe('deriveHydrology water balance', () => {
+  it('leaves a pit dry when its own rim drains away from it', () => {
+    // The ring (4) drains out to the edge (0), not into the pit (3): catchment 1.
+    const g = grid(['00000', '04440', '04340', '04440', '00000']);
+    const pit = 2 * g.cols + 2;
+    expect(deriveHydrology({ ...g, riverThreshold: 1e9 }).lakeCells.has(pit)).toBe(true);
+    expect(deriveHydrology({ ...g, riverThreshold: 1e9, lakeCatchmentRatio: 2 }).lakeCells.has(pit)).toBe(false);
+  });
+  it('keeps a pond at the foot of a valley that drains into it', () => {
+    // A valley (row 1) runs down to a pit (col 8), over a sill (2) and out at the
+    // right edge (0). The valley and both walls drain into the pit: catchment ~27.
+    const g = grid(['999999999999', '987654320210', '999999999999']);
+    const pit = 1 * g.cols + 8;
+    const h = deriveHydrology({ ...g, riverThreshold: 1e9, lakeCatchmentRatio: 10 });
+    expect(h.lakeCells.has(pit)).toBe(true);
+    expect(h.water.get(pit)).toBe(2); // filled to the sill
+  });
+});
+
+describe('deriveHydrology water balance per cell', () => {
+  it('uses the mean of per-cell ratios over a basin', () => {
+    // The ring drains out, so the pit's catchment is 1 against its area 1.
+    const g = grid(['00000', '04440', '04340', '04440', '00000']);
+    const pit = 2 * g.cols + 2;
+    const wet = new Float32Array(g.cols * g.rows).fill(1);
+    const dry = new Float32Array(g.cols * g.rows).fill(2);
+    expect(deriveHydrology({ ...g, riverThreshold: 1e9, lakeCatchmentRatio: wet }).lakeCells.has(pit)).toBe(true);
+    expect(deriveHydrology({ ...g, riverThreshold: 1e9, lakeCatchmentRatio: dry }).lakeCells.has(pit)).toBe(false);
+  });
+});

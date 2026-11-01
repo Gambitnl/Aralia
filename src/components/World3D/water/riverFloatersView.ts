@@ -12,10 +12,28 @@
  * The floaters are OFF in captures (navigator.webdriver) unless a script
  * turns them on, so no judged frame changes; see `RiverReachView.floatersOn`.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 11/10/2026, 02:55:52
+ * Dependents: components/DesignPreview/steps/water/RiverScene.tsx, components/World3D/water/riverReachScene.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import * as THREE from 'three';
 import type { RiverReachData } from '@/systems/world3d/river/riverWorker';
 import { RiverFloaters, RIVER_FLOATERS, type DuckSpawn, type FloaterRock, type RiverFloatersState } from '@/systems/world3d/river/riverFloaters';
 import type { RiverSurfaceMirror } from './riverSurfaceMirror';
+import { mainBoulderShape } from '@/systems/world3d/river/riverReach';
 
 /** A camera pose (the same shape as RiverPose). */
 export interface FloaterPose { pos: [number, number, number]; look: [number, number, number]; fov: number }
@@ -235,18 +253,20 @@ function duckSpawnsFrom(data: RiverReachData): DuckSpawn[] {
   });
 }
 
-/** Rocks at the waterline: each boulder that stands out of the water, as a circle. */
-function waterlineRocks(data: RiverReachData, mirror: RiverSurfaceMirror): FloaterRock[] {
+/** Keep every in-channel rock, including initially submerged ones. As with
+ * dropped objects, the drawn granite triangles supply crest and full circle;
+ * live water and body draft decide whether it blocks on each simulation step. */
+export function waterlineRocks(data: RiverReachData, mirror: RiverSurfaceMirror): FloaterRock[] {
+  void mirror; // Preserve the existing caller signature; initial level no longer removes rocks.
   const out: FloaterRock[] = [];
-  const f = [0, 0, 0, 0];
   for (const b of data.boulders) {
     if (!b.inChannel) continue;
-    const level = mirror.flow(0, b.x, b.z, f)[3];
-    const top = b.y + b.ry;
-    if (top < level + 0.01) continue;
-    const u = Math.max(-1, Math.min(1, (level - b.y) / b.ry));
-    const r = 0.5 * (b.rx + b.rz) * Math.sqrt(Math.max(0, 1 - u * u));
-    if (r > 0.05) out.push({ x: b.x, z: b.z, r });
+    const shape = mainBoulderShape(b);
+    let r = 0;
+    for (let k = 0; k < shape.positions.length; k += 3) {
+      r = Math.max(r, Math.hypot(shape.positions[k] - b.x, shape.positions[k + 2] - b.z));
+    }
+    out.push({ x: b.x, z: b.z, r, topY: shape.bounds.maxY });
   }
   return out;
 }
@@ -266,10 +286,35 @@ export class RiverFloatersView {
     const { nx, nz, dx, x0, z0 } = data.grid;
     const rocks = waterlineRocks(data, mirror);
     this.rockCount = rocks.length;
+    const geo = { drake: mallard(true), hen: mallard(false) };
+    geo.drake.body.computeBoundingBox(); geo.hen.body.computeBoundingBox();
+    const duckBounds = geo.drake.body.boundingBox!.clone().union(geo.hen.body.boundingBox!);
+    const hullGeometry = paperBoatGeometry(); hullGeometry.computeBoundingBox();
+    // Rotate the actual mesh bounds with the same slope/pose used by ride.
+    // Their corners conservatively enclose the hull even when a wave tilts it.
+    // Head bob moves only the mallard's head, never this lower body bound.
+    const hullDraft = (kind: 'boat' | 'duck', x: number, z: number, heading: number, time: number): number => {
+      const e = kind === 'boat' ? 0.08 : 0.15, bounds = kind === 'boat' ? hullGeometry.boundingBox! : duckBounds;
+      const fx = Math.cos(heading), fz = Math.sin(heading);
+      const hf = (this.surf(x + fx * e, z + fz * e, time) - this.surf(x - fx * e, z - fz * e, time)) / (2 * e);
+      const hs = (this.surf(x - fz * e, z + fx * e, time) - this.surf(x + fz * e, z - fx * e, time)) / (2 * e);
+      // The y row of ride's XZY rotation, with zero rotation about y.
+      const a = -Math.atan(hs), c = Math.atan(hf);
+      const coefficients = [Math.cos(a) * Math.sin(c), Math.cos(a) * Math.cos(c), -Math.sin(a)];
+      const lower = coefficients[0] * (coefficients[0] >= 0 ? bounds.min.x : bounds.max.x)
+        + coefficients[1] * (coefficients[1] >= 0 ? bounds.min.y : bounds.max.y)
+        + coefficients[2] * (coefficients[2] >= 0 ? bounds.min.z : bounds.max.z);
+      return Math.max(0, (kind === 'boat' ? RIVER_FLOATERS.boatDraftM : 0) - lower);
+    };
     this.sim = new RiverFloaters({
       seed: data.seed,
-      water: mirror,
+      water: {
+        velocity: (x, z, out) => mirror.velocity(x, z, out),
+        depth: (x, z) => mirror.depth(x, z),
+        surface: (x, z, time) => this.surf(x, z, time),
+      },
       rocks,
+      hullDraft,
       boatSpawn: boatSpawnFrom(data, mirror),
       ducks: duckSpawnsFrom(data),
       domain: { x0: x0 + 2, z0: z0 + 2, x1: x0 + nx * dx - 2, z1: z0 + nz * dx - 2 },
@@ -280,11 +325,10 @@ export class RiverFloatersView {
     this.boat = new THREE.Group();
     this.boatTilt = new THREE.Group();
     this.boat.add(this.boatTilt);
-    const hull = new THREE.Mesh(paperBoatGeometry(), paper);
+    const hull = new THREE.Mesh(hullGeometry, paper);
     this.boatTilt.add(hull);
     this.group.add(this.boat);
     const feathers = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75 });
-    const geo = { drake: mallard(true), hen: mallard(false) };
     for (const d of this.sim.at(0).ducks) {
       const yaw = new THREE.Group();
       const tilt = new THREE.Group();
@@ -300,7 +344,7 @@ export class RiverFloatersView {
     for (const o of this.group.children) o.traverse((m) => { m.frustumCulled = false; });
   }
 
-  /** How many rocks stand in the floaters' way. */
+  /** Rocks available for live clearance checks, including submerged ones. */
   get rocks(): number {
     return this.rockCount;
   }

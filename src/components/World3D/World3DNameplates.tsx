@@ -20,9 +20,15 @@
  *
  * This helper renders a conservative, distance/LOD-gated set of labels over
  * World3D sites using React Three Drei Html overlays.
+ * Loaded residents keep their live body label; an older roster marker remains
+ * a fallback only when no matching resident packet owns that person's label.
+ * Ground-mode range follows the rendered walking body, not the frozen floating
+ * origin or a requested destination. Explicit continent anchors keep their path.
  */
 
 import React from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
+import { Vector3, type Object3D } from 'three';
 import { Html } from '@react-three/drei';
 import { chunkOriginWorld } from '@/systems/world3d/coords';
 import { WORLD3D_CONFIG } from '@/systems/world3d/config';
@@ -123,6 +129,21 @@ function makeNameplates(
   playerWorldPos: PlayerWorldPosition | null,
   config: NameplateConfig,
 ): SiteLabel[] {
+  // The loader's wf-occ marker is a bake-hour snapshot, while the resident
+  // layer follows the person's actual home/work/OUT ownership. Showing both
+  // suggests two people or leaves a stale "working" claim after they depart.
+  // Match the producer's settlement + roster id, never a shared display name.
+  // Keep fallback markers for older/unloaded packets without proven ownership.
+  const liveResidentMarkers = new Set<string>();
+  for (const chunk of loaded) {
+    for (const site of chunk.bundle.sites) {
+      for (const occupant of site.occupants ?? []) {
+        if (occupant.burgId !== undefined && Number.isFinite(occupant.burgId) && Number.isFinite(occupant.id)) {
+          liveResidentMarkers.add(`wf-occ-${occupant.burgId}-${occupant.id}`);
+        }
+      }
+    }
+  }
   const refX = playerWorldPos?.x ?? sceneOrigin.x;
   const refZ = playerWorldPos?.z ?? sceneOrigin.z;
   const maxDistanceSq = config.maxWorldDistance * config.maxWorldDistance;
@@ -138,9 +159,15 @@ function makeNameplates(
       // Sites can opt out of labeling (e.g. town-plan building plots, which
       // would otherwise flood the HUD with one chip per house).
       if (site.unlabeled) continue;
+      if (site.markerOnly && liveResidentMarkers.has(site.id)) continue;
+      // A named public building must remain identifiable at its doorway.
+      // Use the existing canonical frontage; private/legacy sites keep their
+      // roof/radius anchor and near-hide behavior, with no invented sign mesh.
+      const frontage = Boolean(site.name?.trim()) && typeof site.boxHeight === 'number'
+        && Number.isFinite(site.frontDoorOffsetX) && Number.isFinite(site.frontDoorOffsetZ);
       const worldPos = {
-        x: chunkOrigin.x + site.localX,
-        z: chunkOrigin.y + site.localZ,
+        x: chunkOrigin.x + site.localX + (frontage ? site.frontDoorOffsetX! : 0),
+        z: chunkOrigin.y + site.localZ + (frontage ? site.frontDoorOffsetZ! : 0),
       };
 
       const dx = worldPos.x - refX;
@@ -160,15 +187,15 @@ function makeNameplates(
       // and a plate this close would dominate the frame. Occupant markers and
       // hostiles are EXEMPT: those plates exist to be read at conversation range.
       const exempt = site.markerOnly === true || site.kind === 'monster';
-      if (!exempt && distanceSq < NAMEPLATE_MIN_DISTANCE_M * NAMEPLATE_MIN_DISTANCE_M) continue;
+      if (!exempt && !frontage && distanceSq < NAMEPLATE_MIN_DISTANCE_M * NAMEPLATE_MIN_DISTANCE_M) continue;
 
       const sceneX = worldPos.x - sceneOrigin.x;
       const sceneZ = worldPos.z - sceneOrigin.z;
       // Buildings report boxHeight in meters, so their label anchor can clear
       // the roof directly. Legacy radius-only sites keep the older center-cube
       // label height so continent markers do not move.
-      const labelY =
-        typeof site.boxHeight === 'number'
+      const labelY = frontage ? site.surfaceY + 2.4
+        : typeof site.boxHeight === 'number'
           ? site.surfaceY + site.boxHeight + ROOF_CLEAR
           : site.surfaceY + site.radius;
       // Fade out over the tail of the range so plates never pop in/out hard.
@@ -227,14 +254,48 @@ const World3DNameplates: React.FC<World3DNameplatesProps> = ({
   maxWorldDistance = NAMEPLATE_CONFIG.maxWorldDistance,
   maxVisible = NAMEPLATE_CONFIG.maxVisible,
 }) => {
+  const scene = useThree(state => state.scene);
+  const [bodyAnchor, setBodyAnchor] = React.useState<PlayerWorldPosition | null>(null);
+  const body = React.useRef<{scene: typeof scene; player: Object3D | null}>({scene, player: null});
+  const sampled = React.useRef<PlayerWorldPosition | null>(null);
+  const sampleAfter = React.useRef(.25);
+  const worldPoint = React.useMemo(() => new Vector3(), []);
+
+  // Ground mode deliberately has no continent position. The floating origin
+  // stays at entry, so using it for range left the old shop labeled over a
+  // school reached 120 meters away. Read the existing physical player root;
+  // a click's destination is intent, not arrival. Cache its identity, and look
+  // again after replacement. This changes presentation only, never movement,
+  // discoveries, resident ownership, names or the saved position.
+  useFrame((_state, delta) => {
+    if (playerWorldPos) return;
+    sampleAfter.current += delta;
+    if (sampleAfter.current < .25) return;
+    sampleAfter.current = 0;
+    const cache = body.current;
+    if (cache.scene !== scene) { cache.scene = scene; cache.player = null; }
+    if (!cache.player?.parent) cache.player = scene.getObjectByName('world3d:player') ?? null;
+    if (!cache.player) {
+      if (sampled.current) { sampled.current = null; setBodyAnchor(null); }
+      return;
+    }
+    const foot = cache.player.getWorldPosition(worldPoint);
+    const point = {x: foot.x + sceneOrigin.x, y: foot.y, z: foot.z + sceneOrigin.z};
+    const prior = sampled.current;
+    if (prior && Math.hypot(point.x - prior.x, point.z - prior.z) < .25) return;
+    sampled.current = point;
+    setBodyAnchor(point);
+  });
+  const rangeAnchor = playerWorldPos ?? bodyAnchor;
+
   const nameplates = React.useMemo(
     () =>
-      makeNameplates(loaded, sceneOrigin, playerWorldPos, {
+      makeNameplates(loaded, sceneOrigin, rangeAnchor, {
         ...NAMEPLATE_CONFIG,
         maxWorldDistance,
         maxVisible,
       }),
-    [loaded, playerWorldPos, sceneOrigin.x, sceneOrigin.z, maxWorldDistance, maxVisible],
+    [loaded, rangeAnchor, sceneOrigin.x, sceneOrigin.z, maxWorldDistance, maxVisible],
   );
 
   if (!nameplates.length) return null;

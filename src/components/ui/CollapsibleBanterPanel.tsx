@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 05/07/2026, 07:57:19
- * Dependents: App.tsx, components/DesignPreview/steps/PreviewComponents.tsx
- * Imports: 4 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * ARCHITECTURAL CONTEXT:
  * This component is the primary UI interface for the 'Banter System'.
@@ -30,6 +14,23 @@
  * @file src/components/ui/CollapsibleBanterPanel.tsx
  * @component-owner Narrative Team / Core UI
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 11:28:09
+ * Dependents: components/DesignPreview/steps/PreviewComponents.tsx, components/layout/AppShell.tsx
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WindowFrame } from './WindowFrame';
@@ -95,6 +96,8 @@ interface CollapsibleBanterPanelProps {
    * discarded just because the player opened a logbook or glossary window.
    */
   suppressCollapsedTab?: boolean;
+  /** Keep the collapsed chat launcher clear of native Atlas destination cards. */
+  avoidAtlasControls?: boolean;
 }
 
 type PanelMode = 'COLLAPSED' | 'EXPANDED' | 'FLOATING';
@@ -120,6 +123,7 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
   isBanterPaused = false,
   onToggleBanterPause,
   suppressCollapsedTab = false,
+  avoidAtlasControls = false,
 }) => {
   const [mode, setMode] = useState<PanelMode>('COLLAPSED');
   const [activeTab, setActiveTab] = useState<Tab>('LIVE');
@@ -529,7 +533,9 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
       // so a mid-screen fixed launcher can cover narrative prose. Keep the
       // compact icon on the bottom-right viewport edge, outside the log text
       // column and below the stacked action buttons.
-      className="fixed right-0 top-1/3 z-10 max-[480px]:bottom-2 max-[480px]:right-2 max-[480px]:top-auto"
+      // Native Atlas destination cards occupy the upper right. The lower
+      // edge keeps chat reachable while leaving their actual buttons clear.
+      className={`fixed z-10 ${avoidAtlasControls ? 'bottom-4 right-28' : 'right-0 top-1/3'} max-[480px]:bottom-2 max-[480px]:right-2 max-[480px]:top-auto`}
     >
       <button
         onClick={() => setMode('EXPANDED')}

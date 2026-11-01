@@ -13,12 +13,12 @@
  *  - a click maps screen px → Locale feet (inverse of the fit transform), clamps
  *    to the extent, and calls `onMoveTo(feetX, feetY)`.
  *
- * The container (World3DWrapper) wires `onMoveTo` to dispatch the SAME
- * `SET_PLAYER_GROUND_POS` action the 3D camera walk dispatches (converting feet →
- * meters via the bridge and stamping the active `tileX/tileY`). So both views
- * write one action; the reducer is the single sync point and the two views stay
- * consistent. This pane is PURELY presentational — it knows nothing about the
- * store, only feet and pixels.
+ * The container (World3DWrapper) forwards `onMoveTo` to the same walking intent
+ * as a 3D ground click. Actual admitted footfalls update the shared position;
+ * this map cannot place the body through a wall, steep slope or unsafe water.
+ * Pointer release preserves fractional screen coordinates because a rounded
+ * click can miss by several feet at this overview scale. The pane knows only
+ * feet and pixels, not terrain admission or the game store.
  *
  * It is ADDITIVE: it does NOT replace the compass, the drill views, or
  * `subMapCoordinates`. It introduces no cell↔tile mapping and never calls the
@@ -28,7 +28,7 @@
  * GRID-RETIRE: BA-3 — this pane is the 2D consumer/producer of the continuous
  * Locale-feet movement state that resolves the Stage-2 "submap sub-tile" band-aid.
  */
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import {
   LOCALE_CELL_FT,
   groundPosToLocaleFeet,
@@ -49,8 +49,8 @@ export interface LocaleMovePaneProps {
   groundPos: { xM: number; zM: number } | null;
   /**
    * Click-to-move: invoked with the clicked Locale position in feet (clamped to
-   * the extent). The container converts feet → meters and dispatches the shared
-   * SET_PLAYER_GROUND_POS action.
+   * the extent). The container converts feet → meters and requests an ordinary
+   * walk; actual reached feet, rather than this destination, are saved.
    */
   onMoveTo: (feetX: number, feetY: number) => void;
 }
@@ -78,14 +78,20 @@ const LocaleMovePane: React.FC<LocaleMovePaneProps> = ({ localeExtent, groundPos
   const offsetY = (PANE_PX_H - drawnH) / 2;
 
   const markerFeet = groundPos ? groundPosToLocaleFeet(groundPos) : null;
+  const pointerRelease = useRef<{ clientX: number; clientY: number } | null>(null);
 
   const handleClick = useCallback(
     (e: React.MouseEvent<SVGSVGElement>) => {
       const rect = e.currentTarget.getBoundingClientRect();
+      // Chromium's click rounds to whole CSS pixels, while pointerup retains
+      // fractions. Use that release once for its pointer click. Click-only
+      // callers keep the existing conversion and never inherit an old release.
+      const point = e.detail > 0 && pointerRelease.current ? pointerRelease.current : e;
+      pointerRelease.current = null;
       // The surface may be rendered at a different CSS size than its intrinsic
       // pixel box; normalise the click into intrinsic-px space first.
-      const pxX = ((e.clientX - rect.left) / rect.width) * PANE_PX_W;
-      const pxY = ((e.clientY - rect.top) / rect.height) * PANE_PX_H;
+      const pxX = ((point.clientX - rect.left) / rect.width) * PANE_PX_W;
+      const pxY = ((point.clientY - rect.top) / rect.height) * PANE_PX_H;
       // Inverse fit transform: px → Locale feet, then clamp to the extent.
       const rawFeet = {
         x: (pxX - offsetX) / fit,
@@ -129,6 +135,13 @@ const LocaleMovePane: React.FC<LocaleMovePaneProps> = ({ localeExtent, groundPos
         width={PANE_PX_W}
         height={PANE_PX_H}
         viewBox={`0 0 ${PANE_PX_W} ${PANE_PX_H}`}
+        onPointerDown={() => { pointerRelease.current = null; }}
+        onPointerUp={event => {
+          if (event.button === 0 && event.isPrimary !== false) {
+            pointerRelease.current = { clientX: event.clientX, clientY: event.clientY };
+          }
+        }}
+        onPointerCancel={() => { pointerRelease.current = null; }}
         onClick={handleClick}
         style={{ display: 'block', cursor: 'crosshair' }}
         role="img"

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 04/09/2026, 15:02:41
+ * Last Sync: 29/10/2026, 18:08:04
  * Dependents: components/World3D/World3DWrapper.tsx
- * Imports: 5 files
+ * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -15,6 +15,7 @@
 // @dependencies-end
 
 import { useCallback, useRef } from 'react';
+import { DiscoveryType } from '../../../types';
 import { useGameState } from '../../../state/GameContext';
 import type { GroundWorld } from '../../../systems/worldforge/bridge/groundChunkLoader';
 import {
@@ -23,9 +24,12 @@ import {
 } from '../../../systems/worldforge/leaf3d/atlasGroundDrilldown';
 import { atlasHiddenSiteForAddress } from '../../../systems/worldforge/leaf3d/atlasGroundContinuity';
 import { dungeonNameForEntrance } from '../../../systems/worldforge/bridge/dungeonEntrances';
+import { publicBuildingDiscovery } from '../publicBuildingDiscovery';
+import { townBuildingVisit, type TownBuildingVisit } from '../../Worldforge/townBuildingVisit';
+import type { BuildingEventHistory } from '../../../systems/worldforge/interior/blueprintTypes';
 
 /**
- * Hook for managing 3D world proximity discoveries (hidden locations and dungeon entrances).
+ * Records hidden-site proximity and physically supported public-room visits in the existing log.
  *
  * As the player walks through the 3D ground world, this hook checks if they come within
  * discovery range of any secret places or world dungeon doorways. When a discovery occurs,
@@ -61,6 +65,8 @@ export interface UseWorld3DDiscoveryResult {
     playerZ: number,
     cameraX: number,
     cameraZ: number,
+    /** Actual arrived body height. Missing height cannot record a public visit. */
+    playerY?: number,
   ) => void;
 }
 
@@ -77,12 +83,54 @@ export function useWorld3DDiscovery({
   // Track discovered IDs in the current session to ensure idempotency across renders and re-entry
   const discoveredHiddenRef = useRef<Set<string>>(new Set());
   const discoveredDungeonRef = useRef<Set<string>>(new Set());
+  const journaledRef = useRef<Set<string>>(new Set());
+  // Cache only blueprint computation, not discovery status. Saved log identities
+  // remain authoritative after reload; changed ground/history rebuild the plan.
+  const visitsRef = useRef(new Map<string, {ground: GroundWorld; history?: BuildingEventHistory; visit: TownBuildingVisit}>());
 
   // Proximity evaluation callback called on ground position change
   const checkProximityDiscoveries = useCallback(
-    (playerX: number, playerZ: number, cameraX: number, cameraZ: number) => {
+    (playerX: number, playerZ: number, _cameraX: number, _cameraZ: number, playerY?: number) => {
       const ground = groundRef.current;
       if (!ground) return;
+
+      if (Number.isFinite(playerY)) {
+        const account = publicBuildingDiscovery(ground, {xM: playerX, zM: playerZ, yM: playerY!}, state, (burgId, plotId) => {
+          const retained = state.townSim?.[burgId]?.buildingSources?.[plotId];
+          const key = `${state.worldSeed}:${burgId}:${plotId}:${state.townSim?.[burgId]?.layoutRevision ?? ''}:${retained?.planSignature ?? ''}:${retained?.furnishingRepair?.recipe ?? ''}:${retained?.circulationRepair?.planSignature ?? ''}:${retained?.householdRevision?.planSignature ?? ''}`;
+          const history = state.townSim?.[burgId]?.buildingEvents?.[plotId];
+          const cached = visitsRef.current.get(key);
+          if (cached?.ground === ground && cached.history === history) return cached.visit;
+          const visit = townBuildingVisit(state.worldSeed!, burgId, plotId, history, retained, state.townSim?.[burgId]?.layoutRevision);
+          visitsRef.current.set(key, {ground, history, visit});
+          return visit;
+        });
+        if (account && !journaledRef.current.has(account.source.id) && !state.discoveryLog.some(entry =>
+          entry.type === DiscoveryType.LOCATION_DISCOVERY && entry.flags.some(flag => flag.key === 'locationId' && flag.value === account.source.id))) {
+          journaledRef.current.add(account.source.id);
+          dispatch({type: 'ADD_DISCOVERY_ENTRY', payload: account});
+        }
+      }
+
+      // A map pin and its journal account describe one actual source. Older
+      // saves may already have the pin; revisiting can add the missing account
+      // once, without treating camera movement as exploration or granting loot.
+      const recordAccount = (id: string, cellId: number, name: string, kind: string) => {
+        const locationId = `world:${state.worldSeed}:cell:${cellId}:site:${id}`;
+        if (journaledRef.current.has(locationId) || state.discoveryLog.some(entry =>
+          entry.type === DiscoveryType.LOCATION_DISCOVERY && entry.flags.some(flag => flag.key === 'locationId' && flag.value === locationId))) return;
+        journaledRef.current.add(locationId);
+        dispatch({ type: 'ADD_DISCOVERY_ENTRY', payload: {
+          gameTime: state.gameTime.toISOString(),
+          type: DiscoveryType.LOCATION_DISCOVERY,
+          title: `Place Discovered: ${name}`,
+          content: `You found ${name} (${kind}) nearby. Its location is marked on your world map.`,
+          source: { type: 'LOCATION', id: locationId, name },
+          flags: [{ key: 'locationId', value: locationId, label: name }, { key: 'hiddenSiteId', value: id, label: kind }],
+          isQuestRelated: false,
+          associatedLocationId: `cell_${cellId}`,
+        }});
+      };
 
       // ========================================================================
       // 1. Hidden Site Proximity Check (SP4 Discovery)
@@ -130,6 +178,7 @@ export function useWorld3DDiscovery({
                 };
 
             if (!discovery) continue;
+            recordAccount(discovery.id, siteCellId, hs.name, hs.kind);
 
             // Skip if already discovered in this session or stored in persistent game state
             if (
@@ -163,14 +212,18 @@ export function useWorld3DDiscovery({
       // pin it to the map. Idempotent per session using discoveredDungeonRef.
       if (ground.dungeonEntrances && ground.dungeonEntrances.length > 0) {
         for (const de of ground.dungeonEntrances) {
-          if (discoveredDungeonRef.current.has(de.id)) continue;
+          // Discovery follows the arrived body; panning the camera cannot find a doorway.
 
-          const distanceToDungeon = Math.hypot(cameraX - de.xM, cameraZ - de.zM);
+          const distanceToDungeon = Math.hypot(playerX - de.xM, playerZ - de.zM);
           if (distanceToDungeon <= de.discoveryRadiusM) {
-            discoveredDungeonRef.current.add(de.id);
+
 
             const seed = state.worldSeed ?? 42;
             const name = dungeonNameForEntrance(seed, de.sitePath) ?? 'an unknown dungeon';
+            recordAccount(de.id, de.cellId, name, de.entranceKind);
+            if (discoveredDungeonRef.current.has(de.id) ||
+              state.discoveredHiddenSites.some(known => known.id === de.id)) continue;
+            discoveredDungeonRef.current.add(de.id);
 
             const exX = ground.extentMetersX || 1;
             const exZ = ground.extentMetersZ || 1;
@@ -207,8 +260,12 @@ export function useWorld3DDiscovery({
       dispatch,
       groundRef,
       state.discoveredHiddenSites,
+      state.discoveryLog,
+      state.gameTime,
       state.playerCell?.cellId,
       state.worldSeed,
+      state.worldBusinesses,
+      state.townSim,
     ],
   );
 

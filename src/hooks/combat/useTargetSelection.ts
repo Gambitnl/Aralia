@@ -16,6 +16,50 @@
 
 import { useMemo } from 'react';
 import { BattleMapData, CombatCharacter, Ability } from '../../types/combat';
+import { isAtLongRange, maxAttackRangeTiles } from '../../utils/combat/weaponRange';
+import { getCombatDistanceFeet, getCombatantToPositionDistanceFeet } from '../../utils/spatial/elevationGeometry';
+import { getOccupiedTiles } from '../../utils/combat';
+
+/**
+ * GG-495: the subset of valid target tiles where a ranged or thrown attack
+ * would roll with Disadvantage (past normal range, within long range).
+ *
+ * It uses the same distance measures as the rules: creature to creature when
+ * a creature stands on the tile (the attack roll in AbilityCommandFactory),
+ * creature to tile otherwise (useTargetValidator). The overlay therefore never
+ * shades a tile differently from how the attack resolves. Abilities without a
+ * long range return an empty set.
+ */
+export function computeLongRangeTargetSet(
+    ability: Ability,
+    caster: CombatCharacter,
+    validTargetSet: ReadonlySet<string>,
+    characters: readonly CombatCharacter[],
+    mapData: BattleMapData,
+): Set<string> {
+    const band = new Set<string>();
+    if (ability.longRange === undefined) return band;
+
+    // Map each occupied tile to the creature on it, so a token's tile uses the
+    // same footprint-aware distance the attack roll uses.
+    const occupantByTile = new Map<string, CombatCharacter>();
+    for (const character of characters) {
+        if (character.id === caster.id) continue;
+        for (const position of getOccupiedTiles(character)) {
+            occupantByTile.set(`${position.x}-${position.y}`, character);
+        }
+    }
+
+    for (const tileId of validTargetSet) {
+        const [x, y] = tileId.split('-').map(Number);
+        const occupant = occupantByTile.get(tileId);
+        const distanceFeet = occupant
+            ? getCombatDistanceFeet(caster, occupant, mapData)
+            : getCombatantToPositionDistanceFeet(caster, { x, y }, mapData);
+        if (isAtLongRange(ability, distanceFeet / 5)) band.add(tileId);
+    }
+    return band;
+}
 
 interface UseTargetSelectionProps {
     selectedAbility: Ability | null;
@@ -68,8 +112,10 @@ export function useTargetSelection({
     const validTargetSet = useMemo(() => {
         const set = new Set<string>();
         if (targetingMode && selectedAbility && currentCharacter && mapData) {
-            // Optimization: Only check tiles within range of caster
-            const range = selectedAbility.range;
+            // Optimization: Only check tiles within range of caster. GG-495: a
+            // ranged or thrown attack reaches its long range (with Disadvantage),
+            // so the box uses the long range when the ability has one.
+            const range = maxAttackRangeTiles(selectedAbility);
             const casterX = currentCharacter.position.x;
             const casterY = currentCharacter.position.y;
 
@@ -97,9 +143,17 @@ export function useTargetSelection({
         characters
     ]);
 
+    // 4. Long-range band (GG-495): valid tiles where the attack has Disadvantage.
+    const longRangeTargetSet = useMemo(() => (
+        selectedAbility && currentCharacter && mapData
+            ? computeLongRangeTargetSet(selectedAbility, currentCharacter, validTargetSet, characters, mapData)
+            : new Set<string>()
+    ), [selectedAbility, currentCharacter, validTargetSet, characters, mapData]);
+
     return {
         aoeSet,
         validTargetSet,
+        longRangeTargetSet,
         teleportDestinationSet
     };
 }

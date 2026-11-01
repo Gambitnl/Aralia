@@ -1,6 +1,6 @@
 # Nightly Git Save
 
-Verified: 2026-10-03
+Verified: 2026-10-24
 
 ## Purpose
 
@@ -51,9 +51,9 @@ That command publishes existing commits only. It checks the fingerprint, scans o
 
 Restic preserves source, ignored assets and tools, scratch media, Claude memory/skills/scripts, Codex capsules/memory/skills, and local backup configuration. Dependencies, Git metadata, build/cache output, browser profiles, backup receipts/logs, and password files are excluded. Unchanged backups skip creating another snapshot.
 
-The local configuration sets a combined encrypted/private-copy budget of 30 GiB, a private-copy budget of 3 GiB, and a drive free-space reserve of 20 GiB. Checks before and after writes prevent continued unattended growth when a threshold is reached. These are pause thresholds rather than filesystem quotas: one changed backup or Git pack can cross a threshold before the post-write check detects it. Protected recovery versions are never sacrificed to meet the byte budget.
+The local configuration sets a combined encrypted/private-copy budget of 100 GiB, a private-copy budget of 10 GiB, and a drive free-space reserve of 20 GiB. Checks before and after writes prevent continued unattended growth when a threshold is reached. These are pause thresholds rather than filesystem quotas: one changed backup or Git pack can cross a threshold before the post-write check detects it. Protected recovery versions are never sacrificed to meet the byte budget.
 
-Weekly retention keeps the latest four snapshots plus seven daily, four weekly, and three monthly versions, grouped by host and source paths and restricted to aralia-full. Integrity checks run before and after retention. Repacking is limited to 1 GiB per maintenance operation. The initial four snapshots are protected during this rollout. Use private-backup.ps1 -Maintenance for an explicit maintenance pass.
+Retention is paused for the recovery repair requested on October 24. Normal backups preserve existing snapshots; -Maintenance and -Verify check integrity only while this pause is in place. This pause is an implementation precaution for the repair, not an owner decision to retain every snapshot permanently. Long-term retention remains a separate policy choice. Capacity checks still bound new writes.
 
 Each successful backup restores the tracked review runner from the encrypted snapshot into memory and compares its exact hash with the source checked before backup. A probe changed during the backup causes a retry rather than a false recovery claim. Restic integrity checking also remains available through private-backup.ps1 -Verify. This proves file recovery, not application-wide consistency during concurrent editing.
 
@@ -84,3 +84,9 @@ The installer needs the existing external tools/configuration and preserves the 
 - 2026-10-02: the owner authorized reliability, secret scanning, change review, catch-up, and private backup fixes.
 
 - 2026-10-03: the owner authorized separation of recovery/publication, storage limits, retention, strict coordination, isolated staging, bounded retries, and health corrections.
+
+The October 24 diagnosis measured 32,422,600,790 bytes against the former 30 GiB combined cap, including 29,201,392,714 encrypted bytes and 3,221,208,076 private-copy bytes. The private copy was also within 17,396 bytes of its former 3 GiB cap. Both failure receipts came from the shared local capacity preflight before a GitHub push; G: had about 698 GB free. The owner requested repair without deleting existing backups.
+
+The October 24 recovery retry excludes two unreadable Windows device-named scratch paths (ocean-gauntlet/rocks/r7/nul and r10/nul) and four extracted Linux dependency trees: cascade-contract/interiso-source/runtime, cascade-contract/arith-deps/extracted, and openfoam-w05-reference/runtime/root and runtime/deps, all under .agent/scratch/waterfall-gauntlet except the two ocean paths. Windows Restic reported 16,953 read/type errors for these entries. Downloaded package archives outside the extracted trees, research outputs, original on-disk files, and existing snapshots are preserved. These extracted dependencies must be recreated from their packages on Linux rather than restored as Windows special files.
+
+Repair verification on October 24: encrypted snapshot 0de2e0cbb9d273499d377479a4d4fbf66efd0928d372dbe3974ea311607d8250 completed, the restored review-runner bytes matched their pre-backup SHA-256, and Restic check reported no errors across all 13 snapshots. All 11 pre-repair snapshot IDs remain present. The private GitHub head matched c4c58070ef3ce4f156b505ad0e4482d118558618; the previous head 1ef7d078b79f52d2f71b2e77478b158e312e6cb7 remains its ancestor. The private copy passed a fresh scan after copy-only redactions. Health reports zero reasons and the daily task is Ready. Six focused backup tests pass. The broader existing snapshot suite has five failures from fixture scanner configuration; it is not claimed passing. Detailed receipts remain ignored under .agent/scratch/nightly-save. The retention pause is a repair precaution, not a permanent owner policy.

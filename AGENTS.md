@@ -1,5 +1,47 @@
 # AGENTS.md
 
+## Project progress in Planmap
+
+Use **Planmap's Project progress view** as the normal entry point:
+`/Aralia/planmap/index.html?view=project-progress`
+
+Open the explicit index.html path on the current Aralia dev server. The earlier
+view=gameplay-flow query remains a compatibility alias. To focus one project,
+append &focus= followed by its existing section ID, such as
+travel-discovery-focus. The generic view must show all project panels.
+
+This view embeds the existing generated snapshot. It is a read-only projection,
+not another roadmap, task board or editable status store. Curated feature status
+stays in public/planmap/topics.json; live work and coordination stay in Agora;
+project intent, evidence and gaps stay in their owning canonical records. Follow
+tools/agora/PLANNING-STACK.md. Do not copy statuses into another database or add
+a reconciler for this display.
+
+For a project with .project-map/preferences.json, use the project-map subagent
+before a long autonomous run, after each milestone or material direction change,
+and before answering "where are we?". The first refresh is a foreground task;
+resolve a missing style choice with the user. Later refreshes may run in the
+background while independent work continues. Reuse the saved style and preserve
+existing dashboard rules, peer panels, source identities and history.
+
+Update canonical records with evidence before refreshing the projection. Check
+the suggested next action's dependencies and freshness before following it. If
+new evidence changes that action, record why and refresh. A stale snapshot never
+overrides the user's objective. Verify a worker or goal before calling it running.
+
+The parent owns product decisions, canonical task records, .gitignore,
+coordination, integration and rendered verification. The map subagent writes only
+.project-map/index.html and .project-map/preferences.json, apart from required
+coordination metadata. Keep .project-map/ ignored: these files are backing cache
+and saved presentation preferences, not a separate user-facing dashboard.
+Share the Planmap entry point, not a standalone .project-map URL or a new server.
+Do not enable unrelated memory or change other agents' model defaults.
+
+Verify the view inside Planmap, including the relevant project focus, a return
+to the roadmap and canonical record links. If the ignored cache is absent, show
+an honest unavailable state and source links; do not infer completion or invent
+progress. A missing cache in a clone does not erase the canonical project.
+
 ## Repo Intent
 
 Aralia is a web-based application/game with procedural systems and complex mechanics.
@@ -125,6 +167,12 @@ Before implementing, search for:
 2. shared UI primitives, frame patterns, button treatments, and styling conventions
 3. roadmap/tooling/docs that describe the feature area or an unfinished branch of it
 
+Git-aware search tools skip ignored source. Design Preview includes local-only,
+gitignored files, so an ordinary search cannot prove a symbol is absent or unused.
+For that surface, use `rg --no-ignore -g '!node_modules/**' "<symbol>" src/components/DesignPreview`
+and include any known related source directory. Keep the search scoped; do not scan
+dependencies or generated output just to include ignored application source.
+
 If a new conversation starts cold, do not invent a parallel system until you have checked for an existing one.
 
 Good starting surfaces:
@@ -221,7 +269,7 @@ To avoid scanning thousands of unrelated data and codebase files, **do not defau
    - Record skipped or partial mining honestly in the final session report.
 
 2. **Full-Repo Mining (Exception Only)**:
-   Run a full-repo mine (`mempalace mine F:\Repos\Aralia --wing aralia`) **only** under these conditions:
+   Run a full-repo mine (`mempalace mine "F:/Repos/Aralia" --wing aralia`) **only** under these conditions:
    - The task changed repo-wide conventions, patterns, or architecture.
    - Many disparate directories changed across the entire codebase.
    - The MemPalace index is suspected to be stale or corrupt. Do not automatically full-repo mine; report the symptom, run only documented repair/diagnostic steps if available, and ask the operator before any full-repo re-mine.
@@ -230,28 +278,30 @@ To avoid scanning thousands of unrelated data and codebase files, **do not defau
 #### MemPalace CLI Limitations & Workarounds
 
 > [!IMPORTANT]
-> **No Single-File/File-List Support**: The MemPalace CLI `mine` command expects a directory. Passing a single file (e.g., `mempalace mine F:\Repos\Aralia\AGENTS.md`) directly will result in `Files processed: 0`. Always target the **narrowest containing directory** instead.
+> **No Single-File/File-List Support**: The MemPalace CLI `mine` command expects a directory. Passing a single file (e.g., `mempalace mine "F:/Repos/Aralia/AGENTS.md"`) directly will result in `Files processed: 0`. Always target the **narrowest containing directory** instead.
 
 > [!IMPORTANT]
 > **Explicit Wing Specification Required**: When mining a subdirectory, do not rely on root config discovery. Always pass `--wing aralia` so drawers stay in the project wing.
+
+> **Shell-Safe Paths (WF-G349)**: Use quoted forward-slash paths in MemPalace commands. PowerShell and Git Bash both preserve this form; Bash can consume unquoted backslashes and silently pass the wrong directory. Check the processing and filing counts. A zero-file run is not proof that mining succeeded; verify the directory and report the result honestly.
 
 #### Concrete Examples
 
 - **For a Spell Phase task-documentation update (narrow subdirectory target)**:
   ```powershell
-  mempalace mine F:\Repos\Aralia\docs\tasks\spells --wing aralia
+  mempalace mine "F:/Repos/Aralia/docs/tasks/spells" --wing aralia
   ```
 - **For a single durable file in a subdirectory** (mine its narrowest parent directory with explicit wing to capture it):
   ```powershell
-  mempalace mine F:\Repos\Aralia\docs\tasks\spells --wing aralia
+  mempalace mine "F:/Repos/Aralia/docs/tasks/spells" --wing aralia
   ```
 - **For a source change in `src/`**:
   ```powershell
-  mempalace mine F:\Repos\Aralia\src\components\dashboard --wing aralia
+  mempalace mine "F:/Repos/Aralia/src/components/dashboard" --wing aralia
   ```
 - **For broad architectural changes (full-repo re-mine)**:
   ```powershell
-  mempalace mine F:\Repos\Aralia --wing aralia
+  mempalace mine "F:/Repos/Aralia" --wing aralia
   ```
 
 ### Palace location

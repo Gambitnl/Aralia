@@ -26,6 +26,7 @@
 import type { LocalFeature } from '../artifacts';
 import type { SeedPath } from '../seedPath';
 import type { Feet } from '../units';
+import type { GroundShape } from '../terrain/groundShapeProfile';
 
 // ---------------------------------------------------------------------------
 // Version constants
@@ -111,6 +112,21 @@ export type WorldDeltaOperation =
       depthFt?: Feet;
       /** Extra marker data for render/UI systems; interiors use the plot fields. */
       featureData?: JsonObject;
+    }
+  | {
+      /**
+       * A change to the SHAPE of the ground (agora-257c, 2026-10-29, GG-533):
+       * a hole, a trench or a wall, cut by a spell or a tool. The ground world
+       * replays it onto its height grid after generation (`groundRecord.ts`),
+       * so every reader of the ground (the drawn terrain, the volume ground,
+       * the river's bed) sees the same land. Coordinates are the ground
+       * world's meters (x east, z south from the window's corner), not feet:
+       * the edit lives on the ground grid, which is metric.
+       * The artifact replay (`applyDeltas`) leaves it alone: it changes no
+       * feature and no plot.
+       */
+      kind: 'shape-ground';
+      shape: GroundShape;
     };
 
 // ---------------------------------------------------------------------------

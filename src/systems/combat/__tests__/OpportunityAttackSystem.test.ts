@@ -426,3 +426,27 @@ describe('OpportunityAttackSystem and Reaction Rules', () => {
     ]);
   });
 });
+
+/** Native Bandit geometry: nearby grid squares can be six feet apart once
+ * source relief is included. A reaction must start inside actual reach. */
+describe('native sloping ground opportunity boundary',()=>{
+ function situation(heightDifference:number){
+  const mover=createMockCombatCharacter({id:'mara',team:'player',position:{x:20,y:15}});
+  const enemy=createMockCombatCharacter({id:'bandit',team:'enemy',position:{x:19,y:16},abilities:[{id:'scimitar',name:'Scimitar',description:'Source five-foot melee attack',type:'attack',targeting:'single_enemy',range:1,cost:{type:'action'},effects:[{type:'damage',dice:'1d6+1',damageType:'slashing'}]}]});
+  const tiles=new Map<string,BattleMapTile>();for(let x=18;x<=22;x++)for(let y=13;y<=18;y++)tiles.set(x+'-'+y,{id:x+'-'+y,coordinates:{x,y},terrain:'grass',elevation:x===19&&y===16?heightDifference:0,movementCost:1,blocksLoS:false,blocksMovement:false,decoration:null,effects:[]});
+  const map:BattleMapData={dimensions:{width:25,height:20},tiles,theme:'forest',seed:817390039};return {mover,enemy,map};
+ }
+ it('does not invent a Scimitar reaction when the source slope puts the departing square beyond five feet',()=>{
+  const s=situation(1);expect(new OpportunityAttackSystem().checkOpportunityAttacks(s.mover,{x:20,y:15},{x:20,y:14},[s.enemy],s.map)).toEqual([]);
+ });
+ it('retains the ordinary opportunity attack across the same flat five-foot boundary',()=>{
+  const s=situation(0);expect(new OpportunityAttackSystem().checkOpportunityAttacks(s.mover,{x:20,y:15},{x:20,y:14},[s.enemy],s.map)).toHaveLength(1);
+ });
+ it('gives the reach overlay the same slope, flat and spent-reaction answer',()=>{
+  const system=new OpportunityAttackSystem(),slope=situation(1),flat=situation(0);
+  expect(system.getThreatenedReachAtPosition(slope.enemy,slope.mover,{x:20,y:15},slope.map)).toBeNull();
+  expect(system.getThreatenedReachAtPosition(flat.enemy,flat.mover,{x:20,y:15},flat.map)).toBe(1);
+  flat.enemy.actionEconomy.reaction={used:true,remaining:0};expect(system.getThreatenedReachAtPosition(flat.enemy,flat.mover,{x:20,y:15},flat.map)).toBeNull();
+ });
+
+});

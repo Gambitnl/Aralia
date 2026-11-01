@@ -29,6 +29,9 @@ import { execFileSync } from 'node:child_process';
 import { createAgoraServer } from './server.mjs';
 import { createStore } from './store.mjs';
 import { run } from './client.mjs';
+// Candidate code is exercised only against disposable servers, never for
+// coordination. Publication tests separately prove the stable fleet entry.
+import { run as runCandidate } from './client-runtime.mjs';
 
 // ---------------------------------------------------------------------------
 // Test harness: a real server with a controllable clock
@@ -333,6 +336,81 @@ test('retrace explicitly surfaces staged changes and untracked new files in an i
   } finally {
     fs.rmSync(gitDir, { recursive: true, force: true });
   }
+});
+
+test('WF-G243: new locks cite durable recovery files, without claiming edit authorship', async () => {
+  const gitDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agora-lock-recovery-git-'));
+  try {
+    execFileSync('git', ['init', '--quiet'], { cwd: gitDir });
+    execFileSync('git', ['config', 'core.autocrlf', 'false'], { cwd: gitDir });
+    fs.mkdirSync(path.join(gitDir, 'src'));
+    fs.writeFileSync(path.join(gitDir, 'src', 'interrupted.ts'), 'partial work\n');
+    const registration = await cli(['register', 'lock-doomed'], 'lock-doomed');
+    assert.equal(registration.code, 0, registration.lines.join('\n'));
+    const identity = registration.identity;
+    const task = app.store.createTask({ agentId: identity.agentId, title: 'Interrupted source repair' });
+    app.store.claimTask({ taskId: task.id, agentId: identity.agentId });
+    const locked = await request('POST', '/locks', { token: identity.token,
+      body: { paths: ['src/interrupted.ts'], ttlMs: 1000 } });
+    assert.equal(locked.status, 201, locked.raw);
+    clock.advance(20000);
+    app.store.sweepExpired();
+    const recovered = app.store.listTasks().find(t => t.id === task.id);
+    assert.equal(recovered.state, 'open');
+    assert.deepEqual(recovered.retrace.filesHeld, [], 'the lock expired before the worker was reaped');
+    assert.ok(recovered.retrace.files.includes('src/interrupted.ts'));
+    await cli(['register', 'lock-reader'], 'lock-reader');
+    const call = args => runCandidate(args, { repoRoot: gitDir, baseUrl,
+      env: { AGORA_DIR: clientDir, AGORA_AGENT_ID: 'lock-reader' } });
+    const acquired = await call(['lock', 'src/interrupted.ts', '--id-only']);
+    assert.equal(acquired.code, 0, acquired.lines.join('\n'));
+    assert.deepEqual(acquired.lines, [acquired.lock.id], 'id-only stdout remains machine readable');
+    const warning = acquired.stderrLines.join('\n');
+    assert.match(warning, /WF-G243.*reaped from lock-doomed/);
+    assert.ok(warning.includes(`retrace ${task.id}`), 'use the exact id, not an ambiguous prefix');
+    assert.match(warning, /not authorship/);
+    assert.equal(app.store.listLocks().filter(l => l.agentId === acquired.lock.agentId).length, 1);
+    await call(['unlock', acquired.lock.id]);
+    const unrelated = await call(['lock', 'src/unrelated.ts']);
+    assert.equal(unrelated.code, 0);
+    assert.doesNotMatch(unrelated.lines.join('\n'), /WF-G243/);
+    await call(['unlock', unrelated.lock.id]);
+    const domain = await call(['lock', 'src/']);
+    assert.equal(domain.code, 0);
+    assert.match(domain.lines.join('\n'), /WF-G243.*src\/interrupted\.ts/);
+    await call(['unlock', domain.lock.id]);
+    const partial = await call(['lock', 'src/interrupted.ts', 'src/unrelated.ts', '--partial']);
+    assert.equal(partial.code, 0);
+    assert.equal(partial.lines.filter(line => line.includes('WF-G243')).length, 1);
+    await call(['unlock', '--mine']);
+    const current = app.store.listAgents().find(a => a.handle === 'lock-reader');
+    app.store.setTaskState({ taskId: task.id, agentId: current.id, state: 'done' });
+    const completed = await call(['lock', 'src/interrupted.ts']);
+    assert.equal(completed.code, 0);
+    assert.doesNotMatch(completed.lines.join('\n'), /WF-G243/, 'completed recovery does not generate stale warnings');
+    await call(['unlock', completed.lock.id]);
+  } finally { fs.rmSync(gitDir, { recursive: true, force: true }); }
+});
+
+test('WF-G243: recovery lookup failure does not reverse or retry a granted lock', async () => {
+  let acquisitions = 0;
+  const fixture = http.createServer((req, res) => {
+    res.setHeader('content-type', 'application/json');
+    if (req.method === 'POST' && req.url === '/locks') {
+      acquisitions += 1;
+      res.writeHead(201);
+      res.end(JSON.stringify({ lock: { id: 'fixture-lock', paths: ['src/recovery-fixture.ts'] } }));
+    } else { res.writeHead(503); res.end(JSON.stringify({ error: 'temporary task lookup failure' })); }
+  });
+  await new Promise(resolve => fixture.listen(0, '127.0.0.1', resolve));
+  try {
+    const result = await runCandidate(['lock', 'src/recovery-fixture.ts', '--token', 'fixture', '--id-only'],
+      { baseUrl: `http://127.0.0.1:${fixture.address().port}`, env: { AGORA_DIR: clientDir } });
+    assert.equal(result.code, 0);
+    assert.deepEqual(result.lines, ['fixture-lock']);
+    assert.match(result.stderrLines.join('\n'), /interrupted-work lookup failed.*do not repeat the successful lock/);
+    assert.equal(acquisitions, 1, 'a post-mutation read failure never repeats the mutation');
+  } finally { await new Promise(resolve => fixture.close(resolve)); }
 });
 
 test('retrace on a task that was never reaped says so instead of printing an empty report', async () => {

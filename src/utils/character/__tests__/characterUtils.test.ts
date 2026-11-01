@@ -737,6 +737,83 @@ describe('characterUtils', () => {
       expect(known.filter((s) => s === 'magic-missile')).toHaveLength(1);
       expect(known).toHaveLength(2);
     });
+    it('applies Dwarven Toughness +1 HP on every level-up for Hill Dwarf characters (GG-457)', () => {
+      const fighterClass = {
+        id: 'fighter',
+        name: 'Fighter',
+        hitDie: 10,
+        primaryAbility: ['Strength'],
+        savingThrowProficiencies: ['Strength', 'Constitution'],
+        skillProficienciesAvailable: [],
+        numberOfSkillProficiencies: 2,
+        armorProficiencies: [],
+        weaponProficiencies: [],
+        features: [],
+      } as any;
+
+      const hillDwarfRace = {
+        id: 'hill_dwarf',
+        name: 'Hill Dwarf',
+        traits: [
+          'Dwarven Toughness: Your hit point maximum increases by 1, and it increases by 1 every time you gain a level.',
+        ],
+      } as any;
+
+      const duergarRace = {
+        id: 'duergar',
+        name: 'Duergar',
+        traits: [
+          'Duergar Magic: Starting at 3rd level...',
+        ],
+      } as any;
+
+      const scores = {
+        Strength: 10, Dexterity: 10, Constitution: 10,
+        Intelligence: 10, Wisdom: 10, Charisma: 10,
+      };
+
+      // Level 1 Hill Dwarf: hitDie 10 + Con 0 + Dwarven Toughness 1 = 11 HP
+      const hillDwarf = createMockPlayerCharacter({
+        level: 1,
+        xp: 300,
+        class: fighterClass,
+        race: hillDwarfRace,
+        abilityScores: scores,
+        finalAbilityScores: scores,
+        hp: 11,
+        maxHp: 11,
+      });
+
+      // Level 1 -> 2: base HP gain = (10/2 + 1) + Con 0 + Dwarven Toughness 1 = 6 + 1 = 7 HP.
+      // Expected new maxHp: 11 + 7 = 18.
+      const leveled2 = performLevelUp(hillDwarf);
+      expect(leveled2.level).toBe(2);
+      expect(leveled2.maxHp).toBe(18);
+      expect(leveled2.hp).toBe(18);
+
+      // Level 2 -> 3: +7 HP -> 25.
+      leveled2.xp = 900;
+      const leveled3 = performLevelUp(leveled2);
+      expect(leveled3.level).toBe(3);
+      expect(leveled3.maxHp).toBe(25);
+
+      // Control: Duergar level 1: hitDie 10 + Con 0 = 10 HP (no Dwarven Toughness)
+      const duergar = createMockPlayerCharacter({
+        level: 1,
+        xp: 300,
+        class: fighterClass,
+        race: duergarRace,
+        abilityScores: scores,
+        finalAbilityScores: scores,
+        hp: 10,
+        maxHp: 10,
+      });
+
+      // Level 1 -> 2: base HP gain = 6 + 0 = 6 HP. Max HP: 10 + 6 = 16.
+      const duergarLeveled2 = performLevelUp(duergar);
+      expect(duergarLeveled2.level).toBe(2);
+      expect(duergarLeveled2.maxHp).toBe(16);
+    });
   });
 
   describe('buildHitPointDicePools', () => {

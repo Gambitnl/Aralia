@@ -43,6 +43,10 @@ vi.mock('framer-motion', () => ({
   AnimatePresence: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
 }));
 
+vi.mock('../../Town/Intrigue/RumorMill', () => ({
+  RumorMill: () => <div>Local gossip counter</div>,
+}));
+
 describe('MerchantModal', () => {
   const mockOnClose = vi.fn();
   const mockOnAction = vi.fn();
@@ -73,6 +77,35 @@ describe('MerchantModal', () => {
     onAction: mockOnAction,
   };
 
+  it('keeps a paid rumor receipt out of physical resale', () => {
+    render(<MerchantModal {...defaultProps} playerInventory={[{id:'rumor_paid',sourceId:'gossip_paid',name:'Rumor',
+      type:ItemType.Service,cost:'0',weight:0,description:'Retained knowledge'}]}/>);
+    expect(screen.queryByRole('button',{name:/Sell Rumor/})).not.toBeInTheDocument();
+    expect(screen.getByText('Your Inventory')).toBeInTheDocument();
+  });
+  it('uses carried coin quantities for affordability and the displayed purse', () => {
+    render(<MerchantModal {...defaultProps} playerGold={2} playerInventory={[{
+      id:'gold_piece', name:'Gold Piece', type:ItemType.Treasure, quantity:8,
+      costInGp:1, weight:0.02, description:'Earned money', isJunk:true,
+    }]}/>);
+    const buy = screen.getByRole('button', { name: /Buy Test Sword for/ });
+    expect(buy).toBeEnabled();
+    expect(screen.getByRole('img', { name:'1 Platinum pieces' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name:/Sell Gold Piece/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name:/Sell All Junk/ })).not.toBeInTheDocument();
+    fireEvent.click(buy);
+    expect(mockOnAction).toHaveBeenCalledWith(expect.objectContaining({type:'BUY_ITEM'}));
+  });
+
+  it('does not offer persisted currency stock as merchandise', () => {
+    render(<MerchantModal {...defaultProps} merchantInventory={[{
+      id:'electrum_piece', name:'Electrum Piece', type:ItemType.Treasure,
+      costInGp:0.5, weight:0.02, description:'Money',
+    }]}/>);
+    expect(screen.queryByRole('button', {name:/Buy Electrum/})).not.toBeInTheDocument();
+    expect(screen.getByText('Sold out.')).toBeInTheDocument();
+  });
+
   it('renders correctly when open', () => {
     render(<MerchantModal {...defaultProps} />);
 
@@ -81,6 +114,50 @@ describe('MerchantModal', () => {
     const windowEl = screen.getByTestId('window-merchant-window');
     expect(windowEl).toBeInTheDocument();
     expect(screen.getByText('Test Merchant')).toBeInTheDocument();
+  });
+
+  it('starts a paid-information inquiry on gossip and keeps ordinary shops on trade', () => {
+    mock.state={...mock.state,merchantModal:{merchantId:'keeper',initialTab:'gossip'},generatedNpcs:{keeper:{businessId:'shop'}},worldBusinesses:{shop:{ownerId:'keeper',businessType:'tavern'}}};
+    const view=render(<MerchantModal {...defaultProps} />);
+    expect(screen.getByText('Local gossip counter')).toBeInTheDocument();
+    view.unmount();mock.state={...mock.state,worldBusinesses:{shop:{ownerId:'keeper',businessType:'smithy'}}};
+    render(<MerchantModal {...defaultProps} />);
+    expect(screen.queryByText('Local gossip counter')).not.toBeInTheDocument();
+  });
+
+  it('opens gossip for a registered tavern whose name does not describe its type', () => {
+    mock.state = {...mock.state,
+      merchantModal: {merchantId: 'keeper'},
+      generatedNpcs: {keeper: {businessId: 'dragon'}},
+      worldBusinesses: {dragon: {ownerId: 'keeper', businessType: 'tavern'}},
+    };
+    render(<MerchantModal {...defaultProps} merchantName="The Howling Dragon" />);
+    fireEvent.click(screen.getByRole('button', {name: 'Rumors'}));
+    expect(screen.getByText('Local gossip counter')).toBeInTheDocument();
+  });
+
+  it('finds a saved proprietor business when the NPC has no business link', () => {
+    mock.state = {...mock.state,
+      merchantModal: {merchantId: 'keeper'},
+      worldBusinesses: {dragon: {ownerId: 'keeper', businessType: 'tavern'}},
+    };
+    render(<MerchantModal {...defaultProps} merchantName="The Howling Dragon" />);
+    expect(screen.getByRole('button', {name: 'Rumors'})).toBeInTheDocument();
+  });
+
+  it('uses the registered shop type even when its name contains inn', () => {
+    mock.state = {...mock.state,
+      merchantModal: {merchantId: 'keeper'},
+      generatedNpcs: {keeper: {businessId: 'smith'}},
+      worldBusinesses: {smith: {ownerId: 'keeper', businessType: 'smithy'}},
+    };
+    render(<MerchantModal {...defaultProps} merchantName="The Spinning Anvil" />);
+    expect(screen.queryByRole('button', {name: 'Rumors'})).not.toBeInTheDocument();
+  });
+
+  it('keeps the tavern entry for legacy merchants without a registered business', () => {
+    render(<MerchantModal {...defaultProps} merchantName="Old Road Inn" />);
+    expect(screen.getByRole('button', {name: 'Rumors'})).toBeInTheDocument();
   });
 
   it('does not render when closed', () => {
@@ -256,7 +333,9 @@ describe('MerchantModal', () => {
     };
 
     it('sends the merchantId with a haggle so the handler can record it', () => {
-      withActiveHaggle(1); // multiplier 1 → price display unchanged
+      withActiveHaggle(1);
+      // This case is a new attempt, so retain the keeper but remove prior negotiation.
+      (mock.state.npcMemory as { merchant_1: { knownFacts: unknown[] } }).merchant_1.knownFacts = [];
       render(<MerchantModal {...defaultProps} />);
 
       fireEvent.click(screen.getByLabelText('Haggle using Persuade'));
@@ -267,6 +346,22 @@ describe('MerchantModal', () => {
           payload: expect.objectContaining({ merchantId: 'merchant_1', strategy: 'persuade' }),
         })
       );
+    });
+
+    it('shows a saved unchanged-price negotiation and refuses repeat input until its cooldown expires', () => {
+      withActiveHaggle(1);
+      const view = render(<MerchantModal {...defaultProps} />);
+      expect(screen.getByRole('status')).toHaveTextContent('The keeper is holding to their current prices.');
+      expect(screen.getByRole('status')).toHaveTextContent('24 hours');
+      const persuade = screen.getByLabelText('Haggle using Persuade');
+      expect(persuade).toBeDisabled();
+      fireEvent.click(persuade);
+      expect(mockOnAction).not.toHaveBeenCalled();
+      // The recorded fact remains unchanged; ordinary world time makes it expire.
+      mock.state.gameTime = new Date(NOW + HAGGLE_COOLDOWN_MS);
+      view.rerender(<MerchantModal {...defaultProps} />);
+      expect(screen.getByLabelText('Haggle using Persuade')).toBeEnabled();
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
     });
 
     it('shows the discounted price on the Buy button after a successful haggle', () => {
@@ -315,4 +410,42 @@ describe('MerchantModal', () => {
       );
     });
   });
+  it('quotes a registered shelf once under scarcity and shows available units', () => {
+    mock.state = { ...mock.state, merchantModal: { merchantId: 'keeper' },
+      economy: { marketFactors: { surplus: [], scarcity: ['food_drink'] }, buyMultiplier: 1, sellMultiplier: 0.5, activeEvents: [] },
+      worldBusinesses: { shop: { ownerId: 'keeper', businessType: 'tavern', priceMultiplier: 1.2, stock: [{ itemId: 'rations', quantity: 9 }] } },
+    };
+    const stocked = { ...mockItem, id: 'rations', name: 'Rations', type: ItemType.FoodDrink, costInGp: 0.9, quantity: 9 };
+    render(<MerchantModal {...defaultProps} merchantInventory={[stocked]} />);
+    expect(screen.getByRole('button', { name: 'Buy Rations for 9 SP' })).toBeEnabled();
+    expect(screen.getByText('9 in stock • Buy one')).toBeInTheDocument();
+  });
+
+  it('identifies the selected duplicate row and states one-unit resale clearly', () => {
+    const original = { ...mockItem, quantity: 5, acquiredAt: 100 };
+    const purchased = { ...mockItem, quantity: 1, acquiredAt: 200 };
+    render(<MerchantModal {...defaultProps} playerInventory={[original, purchased]} />);
+    expect(screen.getByText('5 owned • Sell one for 5 GP')).toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole('button', {name: /Sell Test Sword/})[1]);
+    expect(mockOnAction).toHaveBeenCalledWith(expect.objectContaining({ payload: expect.objectContaining({
+      transaction: { sell: { itemId: mockItem.id, value: 5, inventoryIndex: 1, inventoryItem: purchased } },
+    }) }));
+  });
+
+  it('preserves faction savings in a registered quote and its purchase payload', () => {
+    mock.state = { ...mock.state, merchantModal: { merchantId: 'keeper' },
+      factions: { guild: { id: 'guild', controlledRegionIds: ['region'] } },
+      playerFactionStandings: { guild: { publicStanding: 100 } },
+      worldBusinesses: { shop: { ownerId: 'keeper', businessType: 'smithy', priceMultiplier: 1.2, stock: [{ itemId: 'longsword', quantity: 1 }] } },
+    };
+    const shelf = { ...mockItem, id: 'longsword', name: 'Longsword', costInGp: 18, quantity: 1 };
+    render(<MerchantModal {...defaultProps} regionId="region" merchantInventory={[shelf]} playerGold={15.3} />);
+    const buy = screen.getByRole('button', {name:'Buy Longsword for 1 PP, 5 GP, 3 SP'});
+    expect(buy).toBeEnabled();
+    fireEvent.click(buy);
+    expect(mockOnAction).toHaveBeenCalledWith(expect.objectContaining({ payload: expect.objectContaining({
+      transaction: { buy: { item: shelf, cost: 15.3 } },
+    }) }));
+  });
+
 });

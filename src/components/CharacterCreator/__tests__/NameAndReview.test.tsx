@@ -112,6 +112,22 @@ describe('NameAndReview level-1 subclass row', () => {
     expect(screen.getByText(findSubclass('sorcerer', 'draconic')!.name)).toBeInTheDocument();
   });
 
+  // agora-f821.58/.59: the 2014 level 2 step picks these in the creator, and
+  // the label says the features start at level 2.
+  it('shows the 2014 druid circle from the level 2 step', () => {
+    renderWithSubclass('druid', 'circle_of_the_moon');
+
+    expect(screen.getByText('Druid Circle (level 2):')).toBeInTheDocument();
+    expect(screen.getByText(findSubclass('druid', 'circle_of_the_moon')!.name)).toBeInTheDocument();
+  });
+
+  it('shows the 2014 wizard tradition from the level 2 step', () => {
+    renderWithSubclass('wizard', 'evocation');
+
+    expect(screen.getByText('Arcane Tradition (level 2):')).toBeInTheDocument();
+    expect(screen.getByText(findSubclass('wizard', 'evocation')!.name)).toBeInTheDocument();
+  });
+
   it('shows no subclass row under 2024 rules, where no subclass is picked at level 1', () => {
     renderWithSubclass('warlock', undefined);
 

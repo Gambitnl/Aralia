@@ -7,7 +7,7 @@ import { Location, WorldCellView, NPC } from '../../types';
 
 export type AddMessageFn = (text: string, sender?: 'system' | 'player' | 'npc') => void;
 export type PlayPcmAudioFn = (base64PcmData: string) => Promise<void>;
-export type AddGeminiLogFn = (functionName: string, prompt: string, response: string) => void;
+export type { AddGeminiLogFn } from '../../types/geminiLog';
 export type LogDiscoveryFn = (newLocation: Location) => void;
 /** Grid retirement (agora-608b): the tooltip formatter takes a cell-native
  * `WorldCellView` (carrying its atlas cellId), not a legacy grid `MapTile`. */

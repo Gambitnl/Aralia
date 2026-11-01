@@ -17,9 +17,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 20/09/2026, 21:00:39
- * Dependents: App.tsx, components/BattleMap/characters/characterActor/CharacterActor.tsx, components/DesignPreview/steps/classes/subclasses/artificer/AlchemistDemo.tsx, components/DesignPreview/steps/classes/subclasses/artificer/ArmorerDemo.tsx, components/DesignPreview/steps/classes/subclasses/barbarian/WildHeartDemo.tsx, components/DesignPreview/steps/classes/subclasses/fighter/ChampionDemo.tsx, components/DesignPreview/steps/classes/subclasses/monk/WarriorOfShadowDemo.tsx, components/DesignPreview/steps/classes/subclasses/monk/WarriorOfTheOpenHandDemo.tsx, components/DesignPreview/steps/classes/subclasses/paladin/OathOfVengeanceDemo.tsx, components/DesignPreview/steps/classes/subclasses/sorcerer/DraconicSorceryDemo.tsx, components/DesignPreview/steps/classes/subclasses/sorcerer/WildMagicSorceryDemo.tsx, components/DesignPreview/steps/classes/subclasses/warlock/ArchfeyPatronDemo.tsx, components/DesignPreview/steps/classes/subclasses/warlock/FiendPatronDemo.tsx, components/DesignPreview/steps/classes/subclasses/wizard/AbjurerDemo.tsx, components/DesignPreview/steps/classes/subclasses/wizard/EvokerDemo.tsx, components/DesignPreview/steps/raceDomain/leaves/abyssalTieflingRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/airGenasiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/astralElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/autumnEladrinRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/beastbornHumanRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/beasthideShifterRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/blackDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/blueDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/brassDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/bronzeDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/bugbearRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/centaurRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/chthonicTieflingRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/cloudGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/copperDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/draconbloodDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/drowHalfElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fairyRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fallenAasimarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/firbolgRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fireGenasiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fireGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/forestGnomeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/forgebornHumanRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/frostGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/giffRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/githyankiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/githzeraiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/goblinRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/goldDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/grayDwarfDuergarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/greenDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/guardianHumanRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/hadozeeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halfElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halfOrcRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halflingRaceLeaf.tsx, components/DesignPreview/steps/scenarioControls/conditionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/counterspellNestedReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reachCreatureSizeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/savingThrowsHalfDamageScenarioControls.ts, components/DesignPreview/steps/scenarioControls/tauntForcedTargetingScenarioControls.ts, components/DesignPreview/steps/scenarioControls/teleportationOccupiedSpacesScenarioControls.ts, components/DesignPreview/steps/spells/cureWoundsScenario.tsx, state/reducers/characterReducer.ts, systems/combat/fallingGroundImpactResolution.ts, systems/combat/reactions/companionProtectionReaction.ts, systems/spells/mechanics/DiceRoller.ts, systems/spells/mechanics/areaDamageSpellCastResolution.ts, systems/spells/mechanics/directDamageSpellCastResolution.ts, systems/spells/mechanics/reactiveDamageRetaliationResolution.ts, systems/spells/mechanics/teleportationResolution.ts, systems/spells/mechanics/witchBoltOngoingResolution.ts, utils/character/checkUtils.ts, utils/character/savingThrowUtils.ts, utils/combat/actionEconomyUtils.ts, utils/combat/aerialMovementUtils.ts, utils/combat/alchemistUtils.ts, utils/combat/armorerUtils.ts, utils/combat/battleMasterUtils.ts, utils/combat/beastMasterUtils.ts, utils/combat/circleOfTheLandUtils.ts, utils/combat/collegeOfLoreUtils.ts, utils/combat/collegeOfValorUtils.ts, utils/combat/combatAI.ts, utils/combat/grappleUtils.ts, utils/combat/hunterUtils.ts, utils/combat/index.ts, utils/combat/mechanicsUtils.ts, utils/combat/multiattackUtils.ts, utils/combat/shoveUtils.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spells/outOfCombatCasting.ts
- * Imports: 17 files
+ * Last Sync: 31/10/2026, 12:15:37
+ * Dependents: commands/effects/MovementCommand.ts, components/BattleMap/BattleMap3DGpuScene.tsx, components/BattleMap/characters/characterActor/CharacterActor.tsx, components/BattleMap/hooks/useBattleMapDerivedState.ts, components/DesignPreview/steps/classes/subclasses/artificer/AlchemistDemo.tsx, components/DesignPreview/steps/classes/subclasses/artificer/ArmorerDemo.tsx, components/DesignPreview/steps/classes/subclasses/barbarian/WildHeartDemo.tsx, components/DesignPreview/steps/classes/subclasses/fighter/ChampionDemo.tsx, components/DesignPreview/steps/classes/subclasses/monk/WarriorOfShadowDemo.tsx, components/DesignPreview/steps/classes/subclasses/monk/WarriorOfTheOpenHandDemo.tsx, components/DesignPreview/steps/classes/subclasses/paladin/OathOfVengeanceDemo.tsx, components/DesignPreview/steps/classes/subclasses/sorcerer/DraconicSorceryDemo.tsx, components/DesignPreview/steps/classes/subclasses/sorcerer/WildMagicSorceryDemo.tsx, components/DesignPreview/steps/classes/subclasses/warlock/ArchfeyPatronDemo.tsx, components/DesignPreview/steps/classes/subclasses/warlock/FiendPatronDemo.tsx, components/DesignPreview/steps/classes/subclasses/wizard/AbjurerDemo.tsx, components/DesignPreview/steps/classes/subclasses/wizard/EvokerDemo.tsx, components/DesignPreview/steps/raceDomain/leaves/abyssalTieflingRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/airGenasiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/astralElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/autumnEladrinRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/beastbornHumanRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/beasthideShifterRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/blackDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/blueDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/brassDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/bronzeDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/bugbearRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/centaurRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/chthonicTieflingRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/cloudGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/copperDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/draconbloodDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/drowHalfElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fairyRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fallenAasimarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/firbolgRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fireGenasiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fireGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/forestGnomeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/frostGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/giffRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/githyankiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/githzeraiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/goblinRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/goldDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/grayDwarfDuergarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/greenDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/hadozeeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halfElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halfOrcRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halflingRaceLeaf.tsx, components/DesignPreview/steps/scenarioControls/conditionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reachCreatureSizeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/tauntForcedTargetingScenarioControls.ts, components/DesignPreview/steps/scenarioControls/teleportationOccupiedSpacesScenarioControls.ts, systems/combat/fallingGroundImpactResolution.ts, systems/combat/rangedAttackPressure.ts, systems/combat/reactions/companionProtectionReaction.ts, systems/spells/mechanics/areaDamageSpellCastResolution.ts, systems/spells/mechanics/reactiveDamageRetaliationResolution.ts, systems/spells/mechanics/teleportationResolution.ts, systems/spells/mechanics/witchBoltOngoingResolution.ts, utils/combat/actionEconomyUtils.ts, utils/combat/aerialMovementUtils.ts, utils/combat/combatAI.ts, utils/combat/grappleUtils.ts, utils/combat/index.ts, utils/combat/multiattackUtils.ts, utils/combat/shoveUtils.ts, utils/sandbox/quickCharacterGenerator.ts
+ * Imports: 22 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -31,11 +31,13 @@
 import { BattleMapData, CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect, AreaOfEffect, AbilityEffect, CombatArmorEquipmentState, CombatEquipmentState } from '../../types/combat';
 import { PlayerCharacter, Item, LimitedUses } from '../../types';
 import { Spell, DamageType } from '../../types/spells';
+import { toCanonicalDamageType, type CanonicalDamageType } from '../../types/spellDamageMetadata';
 import { getRacialDefenseBucketsFromTraitText, type RacialDefenseBuckets } from '../../data/races/racialTraits';
 import { createAbilityFromSpell } from '../character/spellAbilityFactory';
-import { isWeaponProficient } from '../character/weaponUtils';
+import { isWeaponProficient, hasTavernBrawler, isImprovisedWeapon } from '../character/weaponUtils';
 import { generateId } from '../core/idGenerator';
 import { getAbilityModifierValue } from '../character/statUtils';
+import { hasJackOfAllTrades } from '../character/skillModifierUtils';
 import { buildHitPointDicePools, resolveRacialResourceId } from '../character/characterUtils';
 import { getRacialMovementSpeedsForLevel } from '../character/progression';
 import { ResistanceCalculator } from './resistanceUtils';
@@ -63,6 +65,7 @@ import {
 } from './movementUtils';
 
 import { bresenhamLine } from '../spatial/lineOfSight';
+import { isRangedWeapon, isThrownMeleeWeapon, weaponLongRangeTiles, weaponNormalRangeTiles, weaponReachTiles, THROWN_ATTACK_ID_SUFFIX } from './weaponRange';
 
 // ============================================================================
 // Preview-Only Combat Capability
@@ -373,11 +376,9 @@ export function spendCombatLimitedUse(
 //    systems/combat/fallingGroundImpactResolution.ts, which owns forced movement
 //    and teleport-into-a-drop outcomes. Nothing is missing here any more.
 // 2. Exhaustion: WIRED BELOW. `createPlayerCombatCharacter` now applies the
-//    exhaustion SPEED penalty from `calculateExhaustionEffects` when building
-//    combat stats. The d20 half of the 2024 rule (-2 per level on attacks, checks
-//    and saves) is still unapplied because CombatCharacter has no numeric d20
-//    modifier channel — `modifiers.advantage/disadvantage/bonuses` are text arrays
-//    matched by string. Tracked as GG-212.
+//    exhaustion speed penalty when building combat stats. GG-212 also carries
+//    one persistent exhaustion status into combat: ordinary roll owners derive
+//    its numeric D20 penalty from the shared rule, without parsing modifier prose.
 // 3. Jumping: PARTIAL. `calculateJumpDistance` is reachable only through the Thief
 //    subclass helper (utils/combat/thiefUtils.ts); useGridMovement has no jump
 //    movement mode. Tracked as GG-213.
@@ -998,31 +999,11 @@ export function getStatusEffectIcon(effect: StatusEffect): string {
 // so one definition of "has the feat" serves all three.
 // ============================================================================
 
-/** Feat id as stored on a character's `feats` array. */
-export const TAVERN_BRAWLER_FEAT_ID = 'tavern_brawler';
+// Predicates remain available at this import path for existing combat callers.
+export { TAVERN_BRAWLER_FEAT_ID, hasTavernBrawler, isImprovisedWeapon } from '../character/weaponUtils';
 
 /** Unarmed Strike damage die the feat grants, before the Strength modifier. */
 export const TAVERN_BRAWLER_UNARMED_DIE = '1d4';
-
-/** True when the character holds Tavern Brawler. */
-export function hasTavernBrawler(character: { feats?: string[] } | null | undefined): boolean {
-  return !!character?.feats?.includes(TAVERN_BRAWLER_FEAT_ID);
-}
-
-/**
- * True when an item counts as an Improvised Weapon.
- *
- * 5e calls an object an improvised weapon when it is not a weapon but is used
- * as one — a bar stool, a bottle, a frying pan. An item may also declare the
- * category or property outright, which is how a purpose-built improvised
- * weapon entry opts in.
- */
-export function isImprovisedWeapon(item: Item | null | undefined): boolean {
-  if (!item) return false;
-  if (item.category?.toLowerCase().includes('improvised')) return true;
-  if (item.properties?.some(property => property.toLowerCase() === 'improvised')) return true;
-  return item.type !== 'weapon';
-}
 
 /**
  * Unarmed Strike damage formula for a character.
@@ -1127,7 +1108,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     // optional proficiency). rollInitiative adds the Dex modifier on top, so Dex
     // must NOT be included here — doing so double-counted Dex for players while
     // monsters (whose baseInitiative is the proficiency part only) were correct.
-    baseInitiative: (player.initiativeBonus || 0) + (player.initiativeProficiency ? (player.proficiencyBonus || 2) : 0),
+    baseInitiative: (player.initiativeBonus || 0) + (player.initiativeProficiency ? (player.proficiencyBonus || 2) : (hasJackOfAllTrades(player) ? Math.floor((player.proficiencyBonus || 2) / 2) : 0)),
     // Speed after exhaustion. Floored at 0 so a heavily exhausted character is
     // immobile rather than moving backwards.
     speed: Math.max(0, player.speed - exhaustionSpeedPenalty),
@@ -1156,13 +1137,20 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
   const mainHand = player.equippedItems?.MainHand;
   const offHand = player.equippedItems?.OffHand;
 
+  // Preserve the equipped item's type through normal, thrown and class weapon
+  // attacks. Typed defenses and riders need that same source fact. Only old
+  // items without a recognized type keep the generic physical fallback.
+  const weaponDamageType = (weapon: Item): AbilityEffect['damageType'] => {
+    const canonical = toCanonicalDamageType(weapon.damageType);
+    return canonical ? canonical.toLowerCase() as Lowercase<CanonicalDamageType> : 'physical';
+  };
+
   /**
    * Creates a combat Ability from an equipped weapon item.
    * Handles damage type defaults, reach properties, and Weapon Mastery validation.
    */
-  const createWeaponAbility = (weapon: Item, idSuffix: string, isOffHand: boolean = false): Ability => {
-    // Default to physical damage. Future expansion can parse damage types from item data.
-    const damageType: AbilityEffect['damageType'] = 'physical';
+  const createWeaponAbility = (weapon: Item, idSuffix: string, isOffHand: boolean = false, thrown: boolean = false): Ability => {
+    const damageType = weaponDamageType(weapon);
 
     // Tavern Brawler grants proficiency with Improvised Weapons, which
     // isWeaponProficient cannot express: it rejects any item whose type is not
@@ -1171,24 +1159,30 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
       || (hasTavernBrawler(player) && isImprovisedWeapon(weapon));
 
     const ability: Ability = {
-      id: `attack_${idSuffix}`,
-      name: weapon.name,
-      description: `Attack with ${weapon.name}.`,
+      id: `attack_${idSuffix}${thrown ? THROWN_ATTACK_ID_SUFFIX : ''}`,
+      name: thrown ? `Throw ${weapon.name}` : weapon.name,
+      description: thrown ? `Throw ${weapon.name}.` : `Attack with ${weapon.name}.`,
       type: 'attack',
       cost: { type: isOffHand ? 'bonus' : 'action' },
       targeting: 'single_enemy',
+      // GG-495: item data says 'Reach' (capitalized) and carries no range field,
+      // so the old lowercase / 'range:N' checks gave every weapon 5 ft. A ranged
+      // weapon or a thrown attack uses its PHB normal range (weaponRange.ts);
+      // a melee attack uses its reach (10 ft for Reach, else 5 ft). A legacy
+      // 'range:N' property still wins when present.
       range: (() => {
-        let baseRange = 1;
-        if (weapon.properties?.some(p => p === 'reach')) baseRange = 2;
-        const rangeProp = weapon.properties?.find(p => p.startsWith('range:'));
-        if (rangeProp) {
-          const match = rangeProp.match(/range:(\d+)/);
-          if (match && match[1]) {
-            baseRange = Math.max(baseRange, Math.floor(parseInt(match[1]) / 5));
-          }
-        }
-        return baseRange;
+        const rangeProp = weapon.properties?.find(p => p.toLowerCase().startsWith('range:'));
+        const legacyMatch = rangeProp?.match(/range:(\d+)/i);
+        if (legacyMatch?.[1]) return Math.max(1, Math.floor(parseInt(legacyMatch[1], 10) / 5));
+        if (thrown || isRangedWeapon(weapon)) return weaponNormalRangeTiles(weapon) ?? weaponReachTiles(weapon);
+        return weaponReachTiles(weapon);
       })(),
+      // GG-495: a ranged weapon or a thrown attack also carries its PHB long
+      // range. Targets between the two ranges take the attack with Disadvantage
+      // (AbilityCommandFactory); a melee swing keeps no long range.
+      ...((thrown || isRangedWeapon(weapon)) && weaponLongRangeTiles(weapon) !== undefined
+        ? { longRange: weaponLongRangeTiles(weapon) }
+        : {}),
       effects: [{
         type: 'damage',
         value: 0, // Value 0 signals "roll weapon damage" to the system
@@ -1210,6 +1204,11 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
 
   if (mainHand) {
     abilities.push(createWeaponAbility(mainHand, 'main'));
+    // GG-495: a melee weapon with the Thrown property (dagger, handaxe,
+    // javelin, spear...) can also be thrown at its PHB range.
+    if (isThrownMeleeWeapon(mainHand)) {
+      abilities.push(createWeaponAbility(mainHand, 'main', false, true));
+    }
   } else {
     // Unarmed Strike
     abilities.push({
@@ -1329,9 +1328,9 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
       type: 'attack',
       cost: { type: 'bonus' },
       targeting: 'single_enemy',
-      range: (frenzyWeapon.properties?.some(p => p === 'reach')) ? 2 : 1,
+      range: weaponReachTiles(frenzyWeapon), // GG-495: 'Reach' is capitalized in item data
       effects: [
-        { type: 'damage', value: 0, dice: frenzyWeapon.damageDice || '1d8', damageType: 'physical' },
+        { type: 'damage', value: 0, dice: frenzyWeapon.damageDice || '1d8', damageType: weaponDamageType(frenzyWeapon) },
       ],
       weapon: frenzyWeapon,
       isProficient: isWeaponProficient(player, frenzyWeapon),
@@ -1446,9 +1445,9 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
       type: 'attack',
       cost: { type: 'action' },
       targeting: 'single_enemy',
-      range: (smiteWeapon.properties?.some(p => p === 'reach')) ? 2 : 1,
+      range: weaponReachTiles(smiteWeapon), // GG-495: 'Reach' is capitalized in item data
       effects: [
-        { type: 'damage', value: 0, dice: smiteWeapon.damageDice || '1d8', damageType: 'physical' },
+        { type: 'damage', value: 0, dice: smiteWeapon.damageDice || '1d8', damageType: weaponDamageType(smiteWeapon) },
         { type: 'damage', value: 0, dice: '2d8', damageType: 'radiant' },
       ],
       weapon: smiteWeapon,
@@ -1528,13 +1527,25 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     // future equipment-sensitive rules can now inspect stable tactical facts
     // without reaching back into the player's inventory object.
     equipment: createCombatEquipmentState(player.equippedItems),
+    // The selected style and actual hands must travel together. Separate copies
+    // let combat inspect or change equipment without changing the saved character.
+    selectedFightingStyle: player.selectedFightingStyle ? structuredClone(player.selectedFightingStyle) : undefined,
+    equippedItems: structuredClone(player.equippedItems),
     // Champion fighters (Improved Critical, level 3) score critical hits on a 19
     // or 20; everyone else on a natural 20.
     critThreshold: (player.subclassId === 'champion' && (player.level || 1) >= 3) ? 19 : 20,
     // Carry Hit Dice pools into combat so pool-based targeting can use them.
     hitPointDice: buildHitPointDicePools(player),
     initiative: 0,
-    statusEffects: [],
+    // Exhaustion belongs to the saved character, not a round countdown. Keep
+    // it inspectable by the existing status UI and all shared D20 roll owners.
+    // Walking speed above already includes its penalty; do not add it twice.
+    statusEffects: exhaustionLevel > 0 ? [{
+      id: `persistent-exhaustion-${player.id}`,
+      name: exhaustionLevel === 1 ? 'exhaustion' : `exhaustion_${exhaustionLevel}`,
+      type: 'debuff', duration: 0, persistsUntilRemoved: true, source: 'Exhaustion',
+      description: `Exhaustion level ${exhaustionLevel}: -${calculateExhaustionEffects(exhaustionLevel).d20Penalty} to D20 tests.`,
+    }] : [],
     actionEconomy: {
       action: { used: false, remaining: 1 },
       bonusAction: { used: false, remaining: 1 },

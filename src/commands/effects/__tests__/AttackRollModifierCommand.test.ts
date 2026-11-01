@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createMockCombatCharacter, createMockCombatState } from '../../../utils/core';
-import { AttackRollModifierCommand } from '../AttackRollModifierCommand';
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../../utils/core';
+import { AttackRollModifierCommand, advanceCasterTurnEndAttackRiders } from '../AttackRollModifierCommand';
 import { AttackRollModifierEffect } from '../../../types/spells';
 
 /**
@@ -314,4 +314,33 @@ vi.mock('../../../systems/dice/rollers', async importOriginal => {
       attachedToCharacterId: target.id
     });
   });
+});
+
+describe('source-owned next-attack caster clocks',()=>{
+ const makeEffect=():AttackRollModifierEffect=>({type:'ATTACK_ROLL_MODIFIER',
+  trigger:{type:'immediate',frequency:'every_time',consumption:'unlimited',attackFilter:{weaponType:'any',attackType:'any'},movementType:'any',sustainCost:{actionType:'action',optional:false}},
+  condition:{type:'always'},attackRollModifier:{modifier:'advantage',direction:'incoming',attackKind:'any',consumption:'next_attack',duration:{type:'caster_turn_end',value:2}}});
+ async function applyTwo(effect=makeEffect(),spellId='guiding-bolt'){
+  const a=createMockCombatCharacter({id:'caster-a'}),b=createMockCombatCharacter({id:'caster-b'}),target=createMockCombatCharacter({id:'clock-target'});
+  let state=createMockCombatState({characters:[a,b,target]});const original=JSON.stringify(state);
+  for(const caster of [a,b])state=await new AttackRollModifierCommand(effect,{spellId,spellName:spellId,castAtLevel:1,caster,targets:[target],gameState:createMockGameState()}).execute(state);
+  return {target:state.characters.find(c=>c.id===target.id)!,original,initial:createMockCombatState};
+ }
+ it('retains both incoming advantage source identities and distinct effect ids',async()=>{
+  const {target}=await applyTwo();expect(target.activeEffects).toHaveLength(2);
+  expect(new Set(target.activeEffects!.map(e=>e.id)).size).toBe(2);
+  expect(target.activeEffects!.map(e=>e.casterId)).toEqual(['caster-a','caster-b']);
+ });
+ it('ignores recipient turns and expires only the named caster after its second real end',async()=>{
+  const {target}=await applyTwo(),original=JSON.stringify(target);
+  expect(advanceCasterTurnEndAttackRiders(target,'clock-target').character).toBe(target);
+  const first=advanceCasterTurnEndAttackRiders(target,'caster-a');expect(first.expiredNames).toEqual([]);
+  expect(first.character.activeEffects?.find(e=>e.casterId==='caster-a')?.duration.value).toBe(1);
+  const second=advanceCasterTurnEndAttackRiders(first.character,'caster-a');expect(second.expiredNames).toEqual(['guiding-bolt']);
+  expect(second.character.activeEffects?.map(e=>e.casterId)).toEqual(['caster-b']);expect(JSON.stringify(target)).toBe(original);
+ });
+ it('retains the existing non-stacking numeric rider replacement policy',async()=>{
+  const effect=makeEffect();effect.attackRollModifier={modifier:'penalty',direction:'outgoing',attackKind:'any',consumption:'while_active',duration:{type:'minutes',value:1},dice:'1d4'};
+  const {target}=await applyTwo(effect,'bane');expect(target.activeEffects).toHaveLength(1);expect(target.activeEffects?.[0].casterId).toBe('caster-b');
+ });
 });

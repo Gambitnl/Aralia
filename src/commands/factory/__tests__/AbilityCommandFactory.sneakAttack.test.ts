@@ -51,7 +51,11 @@ describe('WeaponAttackCommand: Sneak Attack (G9)', () => {
       castAtLevel: 0,
       caster: rogue,
       targets: [target],
-      gameState: { characters: [rogue, target], combatLog: [] } as unknown as GameState
+      gameState: { characters: [rogue, target], combatLog: [] } as unknown as GameState,
+      // H8: a natural 1 always misses, whatever attackBonus says, so 1 run in 20
+      // skipped Sneak Attack. That failed the 2026-10-04 master CI run. A fixed
+      // d20 of 11 keeps the hit, and the Sneak Attack gate, deterministic.
+      attackRollRng: () => 0.5
     });
 
     // We execute the attack. Since the rogue has Advantage modifier on attack rolls, it should trigger Sneak Attack.
@@ -127,7 +131,9 @@ describe('WeaponAttackCommand: Sneak Attack (G9)', () => {
       castAtLevel: 0,
       caster: rogue,
       targets: [target],
-      gameState: { characters: [rogue, target, fighterAlly], combatLog: [] } as unknown as GameState
+      gameState: { characters: [rogue, target, fighterAlly], combatLog: [] } as unknown as GameState,
+      // H8: pin the d20 so a natural 1 cannot skip the Sneak Attack branch.
+      attackRollRng: () => 0.5
     });
 
     const newState = await command.execute(createMockCombatState({ characters: [rogue, target, fighterAlly] }));
@@ -183,7 +189,11 @@ describe('WeaponAttackCommand: Sneak Attack (G9)', () => {
       castAtLevel: 0,
       caster: rogue,
       targets: [target],
-      gameState: { characters: [rogue, target], combatLog: [] } as unknown as GameState
+      gameState: { characters: [rogue, target], combatLog: [] } as unknown as GameState,
+      // H8: a natural 1 always misses, whatever attackBonus says, so 1 run in 20
+      // skipped Sneak Attack. That failed the 2026-10-04 master CI run. A fixed
+      // d20 of 11 keeps the hit, and the Sneak Attack gate, deterministic.
+      attackRollRng: () => 0.5
     });
 
     const newState = await command.execute(createMockCombatState({ characters: [rogue, target] }));
@@ -230,7 +240,11 @@ describe('WeaponAttackCommand: Sneak Attack (G9)', () => {
       castAtLevel: 0,
       caster: rogue,
       targets: [target],
-      gameState: { characters: [rogue, target], combatLog: [] } as unknown as GameState
+      gameState: { characters: [rogue, target], combatLog: [] } as unknown as GameState,
+      // H8: a natural 1 always misses, whatever attackBonus says, so 1 run in 20
+      // skipped Sneak Attack. That failed the 2026-10-04 master CI run. A fixed
+      // d20 of 11 keeps the hit, and the Sneak Attack gate, deterministic.
+      attackRollRng: () => 0.5
     });
 
     const newState = await command.execute(createMockCombatState({ characters: [rogue, target] }));

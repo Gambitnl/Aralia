@@ -21,7 +21,7 @@
  *      burg cannot possibly reach it with ANY hook, so it is dropped WITHOUT
  *      generating its plan — a cheap `site.posFt` vs burg-position compare.
  *   2. EXACT per-hook radius on the shortlist. Only the shortlisted sites get
- *      their plan generated (once, cached via `generateDungeonForSite`), and each
+ *      their plan generated (once, cached via the canonical identity resolver), and each
  *      hook is kept only if the burg is within THAT hook's own `radiusFt`.
  *
  * So a call generates at most the plans of the sites within 12 miles of the burg,
@@ -35,11 +35,28 @@
  * output is sorted (sitePath, eventRef) for a stable, seed-stable list. Pure data
  * apart from the memoization caches. Zero THREE imports.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/10/2026, 06:11:52
+ * Dependents: components/Town/Intrigue/RumorMill.tsx, hooks/useDungeonRumorsSync.ts, utils/world/dungeonRumorsToWorldRumors.ts
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { SeedPath } from '../../seedPath';
 import { FEET_PER_FMG_PIXEL } from '../../adapter/atlasArtifact';
 import { getBridgeAtlas } from '../../bridge/legacySubmapBridge';
 import { enumerateDungeonSites, type DungeonSite } from './dungeonSites';
-import { generateDungeonForSite } from './deriveIdentity';
+import { dungeonIdentityForSite, generateDungeonForIdentity } from './deriveIdentity';
 import type { DungeonPlan, RumorHook } from '../types';
 
 /**
@@ -113,10 +130,12 @@ function requireBurgPosFt(worldSeed: number, burgId: number): { x: number; y: nu
 const planCache = new Map<string, DungeonPlan>();
 
 function planForSite(worldSeed: number, site: DungeonSite): DungeonPlan {
-  const key = `${worldSeed >>> 0}|${site.sitePath}`;
+  const key = `${worldSeed}|${site.sitePath}`;
   const cached = planCache.get(key);
   if (cached) return cached;
-  const plan = generateDungeonForSite(worldSeed, site);
+  // Resolve through the entry runtime: legacy interiors retain their frozen seed.
+  // The full world seed still owns atlas membership and these cache keys.
+  const plan = generateDungeonForIdentity(dungeonIdentityForSite(site), worldSeed);
   planCache.set(key, plan);
   return plan;
 }
@@ -156,7 +175,7 @@ export function rumorsForBurg(
   // key keeps the same set → same key regardless of iteration order.
   const cleared = clearedSet instanceof Set ? clearedSet : new Set(clearedSet ?? []);
   const clearedKey = [...cleared].sort().join(',');
-  const key = `${worldSeed >>> 0}|${burgId}|${clearedKey}`;
+  const key = `${worldSeed}|${burgId}|${clearedKey}`;
   const cached = burgRumorCache.get(key);
   if (cached) return cached.map((r) => ({ ...r }));
 

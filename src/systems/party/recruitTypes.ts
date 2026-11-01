@@ -14,6 +14,23 @@
  * `RecruitPayload` is imported by P3 (reducer), P4 (action types), P5 (consent),
  * P6/P8/P9 (triggers/UI) so the contract never drifts.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 28/10/2026, 20:15:42
+ * Dependents: hooks/actions/handleNpcInteraction.ts, hooks/useCompanionCommentary.ts, systems/companions/BanterManager.ts, systems/party/npcToPartyMember.ts, systems/party/recruitConsent.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { Companion } from '@/types/companions';
 import type { PlayerCharacter } from '@/types/character';
 
@@ -42,6 +59,9 @@ export interface RecruitPayload {
   companion: Companion;
   /** Trigger that produced this offer (for logging / flavour). */
   source: RecruitSource;
+  /** A willing tavern hire's posted cost, committed with membership by its reducer.
+   * Other recruitment sources retain their existing free-join behavior. */
+  hireCostGp?: number;
 }
 
 /**

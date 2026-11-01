@@ -27,6 +27,23 @@
  *
  * Mirrors the town-resolved, id-keyed idempotent pattern in useChronicleRumorsSync.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 00:29:58
+ * Dependents: components/layout/GameModals.tsx
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { useEffect, useMemo } from 'react';
 import type { Dispatch } from 'react';
 import { GameState } from '../types';
@@ -49,10 +66,11 @@ export function useDungeonRumorsSync(
   const burgId = useMemo(
     () =>
       burgIdForLocation({
+        ground: gameState,
         worldSeed: worldSeed ?? 0,
         cellId: gameState.playerCell?.cellId ?? null,
       }),
-    [worldSeed, gameState.playerCell?.cellId],
+    [worldSeed, gameState.playerCell?.cellId, gameState.playerGroundPos, gameState.atlasGroundAddress, gameState.entry3DAnchor],
   );
 
   // Pillar 2, Task 8: cleared dungeons speak past-tense rumors. Key the sync on a

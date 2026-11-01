@@ -11,6 +11,8 @@ import http from 'node:http';
 import { spawn, execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
+import ts from 'typescript';
+import { lintTask } from '../../tools/agora/taskLint.mjs';
 import {
   scanCodebase, fetchAgoraTasks, generateScaffoldCommand, compareReports,
   analyzeGitignoredImports, analyzeImageProofLeaks, parseOptions,
@@ -18,6 +20,127 @@ import {
 
 const cli = fileURLToPath(new URL('./sweep-stubs.mjs', import.meta.url));
 const board = (tasks=[]) => async url => ({ok:true,json:async()=>url.endsWith('/tasks')?{tasks}:{agents:[]}});
+
+// The historical failure pattern is reproduced only in temporary source. The
+// compiler proves why a base interface is insufficient, not Aralia acceptance.
+const unionTypeFixture = [
+  "interface EffectTrigger { type: 'enter'; frequency?: 'once'; }",
+  'interface BaseEffect { trigger: EffectTrigger; }',
+  "interface NormalEffect extends BaseEffect { kind: 'normal'; }",
+  "interface ReactiveEffect extends Omit<BaseEffect, 'trigger'> { kind: 'reactive'; trigger: { type: 'reaction' }; }",
+  'type SpellEffect = NormalEffect | ReactiveEffect;',
+  'declare const effect: SpellEffect;',
+  'export const gate = (effect.trigger as any).frequency;',
+].join('\n') + '\n';
+
+test('WF210: historical-equivalent removal advice is unverified even when quotes and task lint pass', async t => {
+  const root = fixture(t, { 'src/review.ts': unionTypeFixture });
+  const report = await scanCodebase({ repoRoot: root, srcDir: path.join(root, 'src'), asAny: true, fetchImpl: board() });
+  const finding = report.findings.find(item => item.type === 'AS_ANY_CAST'); assert.ok(finding);
+  assert.equal(finding.typeReview.status, 'unverified');
+  assert.equal(finding.trackingStatus, 'advisory'); assert.deepEqual(report.proposals, []);
+  const premise = 'BaseEffect.trigger is already typed as EffectTrigger (which declares type and frequency)';
+  const removal = 'Remove the any assertion mechanically; no narrowing is needed.';
+  const command = generateScaffoldCommand({ findings: [finding], refs: [finding.file], title: 'Investigate cast premise',
+    currentBehavior: premise, nextAction: removal, acceptanceCriteria: ['Remove the cast.'], typeReview: { status: 'verified' } }, { repoRoot: root });
+  assert.match(command, /TYPE-PREMISE-UNVERIFIED:/); assert.match(command, /every relevant union member/); assert.match(command, /narrowing helper/);
+  assert.ok(command.includes('UNVERIFIED proposed Current behavior to preserve: ' + premise));
+  assert.ok(command.includes('UNVERIFIED proposed Next action: ' + removal)); assert.ok(!command.includes('\nNext action: ' + removal));
+  const body = command.slice(command.indexOf("--body '") + 8, -1).replace(/''/g, "'");
+  assert.equal(lintTask({ body, refs: [finding.file] }, { repoRoot: root }).clean, true, 'path and quote lint is not assignability proof');
+  const compile = (name, text) => {
+    put(root, name, text); const program = ts.createProgram([path.join(root, name)], { strict: true, noEmit: true, types: [], skipLibCheck: true, target: ts.ScriptTarget.ES2022 });
+    return ts.getPreEmitDiagnostics(program);
+  };
+  const unsafe = compile('unsafe.ts', unionTypeFixture.replace('(effect.trigger as any).frequency', 'effect.trigger.frequency'));
+  assert.ok(unsafe.some(item => item.code === 2339 && ts.flattenDiagnosticMessageText(item.messageText, ' ').includes('frequency')));
+  const narrowed = compile('narrowed.ts', unionTypeFixture.replace('(effect.trigger as any).frequency', "'frequency' in effect.trigger ? effect.trigger.frequency : undefined"));
+  assert.deepEqual(narrowed, [], narrowed.map(item => ts.flattenDiagnosticMessageText(item.messageText, ' ')).join('\n'));
+  assert.equal(fs.readFileSync(path.join(root, 'src/review.ts'), 'utf8'), unionTypeFixture);
+});
+
+test('WF210: real scanner CLI exposes unverified type review and never mutates source or board', async t => {
+  const root = fixture(t, { 'src/review.ts': unionTypeFixture });
+  const methods = [], server = http.createServer((req, res) => {
+    methods.push(req.method); res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(req.url === '/tasks' ? { tasks: [] } : { agents: [] }));
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  const execute = args => new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [cli, '--root', root, '--dir', path.join(root, 'src'), '--as-any', '--agora-state', ...args], {
+      env: { ...process.env, AGORA_URL: 'http://127.0.0.1:' + server.address().port }, windowsHide: true,
+    });
+    let stdout = '', stderr = ''; const timer = setTimeout(() => { child.kill(); reject(new Error('type scaffold proof timed out')); }, 30000);
+    child.stdout.on('data', bytes => { stdout += bytes; }); child.stderr.on('data', bytes => { stderr += bytes; });
+    child.once('error', error => { clearTimeout(timer); reject(error); }); child.once('close', code => { clearTimeout(timer); resolve({ code, stdout, stderr }); });
+  });
+  try {
+    const reportRun = await execute(['--json']); assert.equal(reportRun.code, 0, reportRun.stderr); const report = JSON.parse(reportRun.stdout);
+    assert.equal(report.typeDebt[0].typeReview.status, 'unverified');
+    assert.equal(report.typeDebt[0].trackingStatus, 'advisory'); assert.deepEqual(report.proposals, []);
+    const scaffold = await execute(['--scaffold']); assert.equal(scaffold.code, 0, scaffold.stdout + scaffold.stderr);
+    assert.match(scaffold.stdout, /TYPE-PREMISE-UNVERIFIED:/); assert.match(scaffold.stdout, /before assigning cast removal/);
+    assert.match(scaffold.stdout, /Omit or redeclaration/); assert.match(scaffold.stdout, /focused compile\/type evidence/);
+    assert.equal(fs.readFileSync(path.join(root, 'src/review.ts'), 'utf8'), unionTypeFixture);
+    assert.ok(methods.length); assert.ok(methods.every(method => method === 'GET'));
+  } finally { await new Promise(resolve => server.close(resolve)); }
+});
+
+test('WF210: normal scanner suggestions keep their existing non-type wording', t => {
+  const root = fixture(t, { 'src/review.ts': '// TODO: inspect current intent\n' });
+  const text = generateScaffoldCommand({ type: 'TODO', findingId: 'ordinary', file: 'src/review.ts', line: 1, text: 'TODO: inspect current intent' }, { repoRoot: root });
+  assert.doesNotMatch(text, /TYPE-PREMISE-UNVERIFIED|UNVERIFIED proposed/); assert.match(text, /Next action: Review existing work and choose a disposition/);
+});
+
+test('WF211: regenerated scaffold retains its quote after tracking annotations shift the line', t => {
+  const source = 'export function guard(token) {\n  if (!known.has(token)) return false;\n}\n';
+  const root = fixture(t, { 'src/guard.ts': source });
+  const finding = { findingId: 'finding-citation', file: 'src/guard.ts', line: 2, type: 'CURRENT_SOURCE_PROOF', text: 'if (!known.has(token)) return false;' };
+  const before = generateScaffoldCommand(finding, { repoRoot: root }); assert.match(before, /SOURCE-CITATION:/);
+  put(root, finding.file, '// tracked in Agora task agora-fixture\n' + source);
+  const after = generateScaffoldCommand(finding, { repoRoot: root });
+  assert.match(after, /SOURCE-CITATION:/); assert.match(after, /"observedLine":3/);
+  assert.ok(after.includes(finding.text)); assert.ok(after.includes(finding.findingId));
+  assert.ok(!after.includes('SOURCE-CITATION-UNVERIFIED:'));
+});
+
+test('WF211: scaffold quote absence and ambiguity require review, never a guessed current line', t => {
+  const root = fixture(t, { 'src/guard.ts': '// TODO: inspect\n// TODO: inspect\n' });
+  const finding = { findingId: 'finding-review', file: 'src/guard.ts', line: 1, type: 'MARKER', text: 'TODO: inspect' };
+  const ambiguous = generateScaffoldCommand(finding, { repoRoot: root });
+  assert.match(ambiguous, /SOURCE-CITATION-UNVERIFIED:/); assert.match(ambiguous, /ambiguous/);
+  put(root, finding.file, 'export const current = true;');
+  const absent = generateScaffoldCommand(finding, { repoRoot: root });
+  assert.match(absent, /SOURCE-CITATION-UNVERIFIED:/); assert.match(absent, /missing/);
+  assert.match(absent, /A removed marker or absent scan finding is not proof of completion/);
+});
+
+test('WF211: real scaffold CLI uses its supplied root and preserves source and stable finding identity', async t => {
+  const root = fixture(t, { 'src/review.ts': '// TODO: inspect this local fixture\nexport const value = true;\n' });
+  const methods = [], server = http.createServer((req, res) => {
+    methods.push(req.method); res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(req.url === '/tasks' ? { tasks: [] } : { agents: [] }));
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  const execute = () => new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [cli, '--root', root, '--dir', path.join(root, 'src'), '--scaffold'], {
+      env: { ...process.env, AGORA_URL: 'http://127.0.0.1:' + server.address().port }, windowsHide: true,
+    });
+    let output = ''; const timer = setTimeout(() => { child.kill(); reject(new Error('scaffold proof timed out')); }, 30000);
+    child.stdout.on('data', data => { output += data; }); child.stderr.on('data', data => { output += data; });
+    child.once('error', error => { clearTimeout(timer); reject(error); });
+    child.once('close', code => { clearTimeout(timer); resolve({ code, output }); });
+  });
+  try {
+    const file = path.join(root, 'src/review.ts'), original = fs.readFileSync(file, 'utf8');
+    const first = await execute(); assert.equal(first.code, 0, first.output); assert.match(first.output, /SOURCE-CITATION:/);
+    const payload = text => JSON.parse(text.match(/^SOURCE-CITATION: (.+)$/m)[1]);
+    const before = payload(first.output); assert.equal(before.observedLine, 1); assert.equal(fs.readFileSync(file, 'utf8'), original);
+    const shifted = '// tracked in Agora task agora-fixture\n' + original; fs.writeFileSync(file, shifted);
+    const second = await execute(); assert.equal(second.code, 0, second.output); const after = payload(second.output);
+    assert.equal(after.observedLine, 2); assert.equal(after.quote, before.quote); assert.equal(after.findingId, before.findingId);
+    assert.equal(fs.readFileSync(file, 'utf8'), shifted); assert.ok(methods.length); assert.ok(methods.every(method => method === 'GET'));
+  } finally { await new Promise(resolve => server.close(resolve)); }
+});
 function fixture(t, files={}) {
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'aralia-sweep-'));
   t.after(()=>fs.rmSync(root,{recursive:true,force:true}));

@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
- *
- * Last Sync: 14/07/2026, 21:07:43
- * Dependents: components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DScene.tsx, systems/world3d/siteGeometry.ts, systems/worldforge/bridge/groundChunkLoader.ts
- * Imports: 1 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file sitePartTransform.ts — the single source for placing a site part.
  *
@@ -30,7 +14,65 @@
  * drift. `InteriorLights.test.ts` pins the scene projection against a real
  * THREE.Group to prove it still matches what SiteBuilding renders.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 01/11/2026, 17:09:18
+ * Dependents: components/World3D/BuildingDoor.tsx, components/World3D/FurnishingFocusMarker.tsx, components/World3D/InteriorOccupants.tsx, components/World3D/NearbyBuildingDoor.tsx, components/World3D/NearbyFurnishing.tsx, components/World3D/World3DScene.tsx, components/World3D/World3DWrapper.tsx, components/World3D/buildingExteriorGeometry.ts, components/World3D/doorBodyClearance.ts, components/World3D/groundBuildingMotion.ts, components/World3D/groundDoorInteraction.ts, components/World3D/groundFurnishingInteraction.ts, components/World3D/groundResidentInteraction.ts, components/World3D/initialTownEntry.ts, components/World3D/publicBuildingDiscovery.ts, components/World3D/residentDoorUse.ts, systems/world3d/siteBoxBatches.ts, systems/world3d/siteGeometry.ts, systems/worldforge/bridge/buildingEntryApproach.ts, systems/worldforge/bridge/buildingOccupancy.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/interiorParts.ts, systems/worldforge/bridge/residentDoorRoutes.ts, systems/worldforge/interior/guestCirculation.ts, systems/worldforge/interior/householdLayoutReferences.ts, systems/worldforge/props/exteriorPropRevision.ts, systems/worldforge/props/freshPropClearance.ts, systems/worldforge/town/prepareHistoricalTownLoad.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { SitePart } from './interiorParts';
+
+/** Geometry belongs to the saved identity, so a rebuilt, relocated entry never
+ * inherits another door's state just because its array index happens to match. */
+export function siteDoorId(level: number, index: number, axis: 'x' | 'y', x: number, z: number): string {
+  return `${level}:${index}:${axis}:${x.toFixed(4)}:${z.toFixed(4)}`;
+}
+
+export function siteDoorKey(siteId: string, part: Pick<SitePart, 'door'>): string {
+  return `${siteId}/${part.door?.id ?? ''}`;
+}
+
+/** Swing about the negative end of the canonical wall edge into openDir.
+ * The returned box is the exact open-leaf footprint used by movement. */
+export function doorPartForState(part: SitePart, open: boolean): SitePart {
+  if (!open || !part.door) return part;
+  return { ...part,
+    x: part.door.axis === 'x' ? part.x - part.w / 2 : part.x + part.door.swingX * part.d / 2,
+    z: part.door.axis === 'x' ? part.z + part.door.swingZ * part.w / 2 : part.z - part.d / 2,
+    w: part.d, d: part.w,
+  };
+}
+
+/** The render leaf keeps its original box dimensions, turned about its hinge.
+ * Its bounds equal doorPartForState's axis-aligned box in this site frame. */
+export function siteDoorLocalPose(part: SitePart, doorZSign: number, open: boolean) {
+  const offset = sitePartLocalOffset(doorPartForState(part, open), doorZSign);
+  const rotationY = !open || !part.door ? 0 : (part.door.axis === 'x' ? part.door.swingZ * doorZSign : -part.door.swingX * doorZSign) * Math.PI / 2;
+  return { offset, rotationY };
+}
+
+/** Intermediate hinge poses for clearance queries. The renderer's existing
+ * boolean endpoints stay exact; no animation or saved state changes here. */
+export function siteDoorLocalPoseAtFraction(part:SitePart,doorZSign:number,fraction:number){
+  if(!Number.isFinite(fraction)||fraction<0||fraction>1)throw new Error('Door swing fraction must be between zero and one.');
+  if(fraction===0||fraction===1||!part.door)return siteDoorLocalPose(part,doorZSign,fraction===1);
+  const angle=fraction*Math.PI/2,axisX=part.door.axis==='x',length=axisX?part.w:part.d;
+  const x=axisX?part.x-length/2+length/2*Math.cos(angle):part.x+part.door.swingX*length/2*Math.sin(angle);
+  const z=axisX?part.z+part.door.swingZ*length/2*Math.sin(angle):part.z-length/2+length/2*Math.cos(angle);
+  return {offset:{x,y:(part.baseY??0)+part.h/2,z:z*-doorZSign},
+    rotationY:(axisX?part.door.swingZ*doorZSign:-part.door.swingX*doorZSign)*angle};
+}
 
 /** The minimal part fields the transform reads. */
 type PartOffsetInput = Pick<SitePart, 'x' | 'z' | 'h' | 'baseY'>;

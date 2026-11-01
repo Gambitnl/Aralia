@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 26/08/2026, 13:56:58
- * Dependents: components/screens/index.ts
- * Imports: 11 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file renders the primary exploration and gameplay screen (Playing Screen).
  *
@@ -27,6 +11,22 @@
  * Called by: App.tsx (when GamePhase is PLAYING)
  * Depends on: GameLayout, TransitionController, World3DWrapper, WorldforgeAtlasDemo, ErrorBoundary
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 12:40:13
+ * Dependents: components/screens/index.ts
+ * Imports: 12 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 // ============================================================================
 // Imports
@@ -203,6 +203,7 @@ export const PlayingScreen: React.FC<PlayingScreenProps> = ({
           atlasContent={atlasContent}
           sceneContent={
             <World3DWrapper
+            onAction={onAction}
               entryPosition={entryPosition}
               atlasGroundDrilldown={activeAtlasGroundDrilldown}
               onTalkToNpc={

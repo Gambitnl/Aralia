@@ -1,24 +1,12 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 09/06/2026, 02:06:39
- * Dependents: state/appState.ts
- * Imports: 5 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file src/state/reducers/questReducer.ts
  * Reducer for managing quest state.
  *
  * Quest state machine (all transitions are idempotent and safe to re-run):
+ *  - Offers are Available without a start date; accepting creates an obligation.
+ *  - Withdrawn obligations stay in history and cannot progress or grant rewards.
+ *  - Companion entrance observations and personally delivered reports remain
+ *    separate; generic completion cannot invent the latter conversation.
  *  - Pending/unknown quests become Active when ACCEPT_QUEST is dispatched.
  *  - Active quests move to Completed automatically when every objective is
  *    marked complete, or explicitly via COMPLETE_QUEST.
@@ -27,12 +15,34 @@
  *  - Accepted, completed, and failed transitions also queue matching journal
  *    events so the quest log and the journal can stay in sync later.
  */
-import { GameState, QuestStatus, Quest } from '../../types';
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 22:50:00
+ * Dependents: state/appState.ts, state/reducers/companionGoalWorkReducer.ts, state/reducers/companionPreparationReducer.ts
+ * Imports: 11 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import { GameState, QuestStatus, Quest, GameMessage, WorldRumor } from '../../types';
 import { AppAction } from '../actionTypes';
 import { ITEMS } from '../../constants';
 import { generateId } from '../../utils/core/idGenerator';
 import { appendQuestJournalEvent, createQuestJournalEvent } from '../../systems/quests/questJournal';
 import { appendAdventureLogEntry } from '../../systems/adventureLog/adventureLog';
+import { instantiateItem } from './characterReducer';
+import { applyXpAndHandleLevelUps } from '../../utils/character';
+import { getRulesEdition } from '../../config/rulesEdition';
+import { FactionManager } from '../../systems/world/FactionManager';
+import { companionWorkAccount, verifiedCompanionWorkReport } from '../../systems/companions/companionGoalWork';
 
 type NotificationTuple = Pick<GameState, 'notifications'>;
 
@@ -43,7 +53,7 @@ type NotificationTuple = Pick<GameState, 'notifications'>;
 const hydrateQuestPayload = (quest: Quest): Quest => ({
   ...quest,
   status: quest.status ?? QuestStatus.Active,
-  dateStarted: quest.dateStarted ?? Date.now(),
+  dateStarted: quest.status === QuestStatus.Available ? undefined : quest.dateStarted ?? Date.now(),
   objectives: quest.objectives.map(obj => ({ ...obj })),
 });
 
@@ -84,22 +94,49 @@ const applyQuestCompletion = (
   let updatedParty = state.party;
   let updatedInventory = state.inventory;
   let updatedGold = state.gold;
+  let updatedStandings = state.playerFactionStandings;
+  const extraMessages: GameMessage[] = [];
+  const extraRumors: WorldRumor[] = [];
 
   if (completedQuest.rewards) {
-    const { gold, xp, items } = completedQuest.rewards;
+    const { gold, xp, items, reputation } = completedQuest.rewards;
     if (gold) {
       updatedGold = (state.gold || 0) + gold;
     }
     if (items?.length) {
       const rewardItems = items
         .map(id => ITEMS[id])
-        .filter(Boolean);
+        .filter(Boolean)
+        .map(item => instantiateItem(item));
       if (rewardItems.length) {
         updatedInventory = [...state.inventory, ...rewardItems];
       }
     }
     if (xp) {
-      updatedParty = state.party.map(member => ({ ...member, xp: (member.xp || 0) + xp }));
+      const rulesEdition = getRulesEdition(state);
+      updatedParty = state.party.map(member => applyXpAndHandleLevelUps(member, xp, undefined, rulesEdition));
+    }
+    if (reputation?.length) {
+      let stateForFaction = {
+        ...state,
+        playerFactionStandings: updatedStandings ?? {},
+      };
+      for (const rep of reputation) {
+        if (!rep.factionId || !rep.change) continue;
+        const result = FactionManager.applyReputationChange(
+          stateForFaction,
+          rep.factionId,
+          rep.change,
+          `Completed quest "${completedQuest.title}"`
+        );
+        updatedStandings = result.standings;
+        stateForFaction = {
+          ...stateForFaction,
+          playerFactionStandings: updatedStandings,
+        };
+        extraMessages.push(...result.logs);
+        extraRumors.push(...result.rumors);
+      }
     }
   }
 
@@ -117,6 +154,9 @@ const applyQuestCompletion = (
     gold: updatedGold,
     inventory: updatedInventory,
     party: updatedParty,
+    ...(updatedStandings !== state.playerFactionStandings ? { playerFactionStandings: updatedStandings } : {}),
+    ...(extraRumors.length ? { activeRumors: [...(state.activeRumors || []), ...extraRumors] } : {}),
+    ...(extraMessages.length ? { messages: [...(state.messages || []), ...extraMessages] } : {}),
     ...appendQuestJournalEvent(state, completionJournalEvent),
     ...appendAdventureLogEntry(state, {
       kind: isOpening ? 'opening' : 'quest',
@@ -129,11 +169,39 @@ const applyQuestCompletion = (
 
 export function questReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
+    case 'ADD_DISCOVERY_ENTRY': {
+      let changed = false;
+      const questLog = state.questLog.map(quest => {
+        if (quest.status !== QuestStatus.Active || !quest.companionWork || !companionWorkAccount(state, quest, action.payload)) return quest;
+        if (!quest.objectives.some(objective => objective.id === 'find_entrance' && !objective.isCompleted)) return quest;
+        changed = true;
+        // Finding the entrance completes the observation only. The companion
+        // learns it when the player actually returns and gives the report.
+        return { ...quest, objectives: quest.objectives.map(objective => objective.id === 'find_entrance' ? { ...objective, isCompleted: true } : objective) };
+      });
+      return changed ? { questLog } : {};
+    }
+    case 'OFFER_QUEST': {
+      const prior = state.questLog.find(quest => quest.id === action.payload.id);
+      if (prior && prior.status !== QuestStatus.Abandoned) return {};
+      const offered = hydrateQuestPayload({ ...action.payload, status: QuestStatus.Available,
+        dateOffered: state.gameTime.getTime(), dateStarted: undefined, dateAbandoned: undefined });
+      return {
+        questLog: prior ? state.questLog.map(quest => quest.id === offered.id ? offered : quest) : [...state.questLog, offered],
+        ...appendQuestJournalEvent(state, createQuestJournalEvent(state, { type: 'npc_conversation', quest: offered,
+          title: `Work Offered: ${offered.title}`, description: `This work is available. You have not promised to undertake it.` })),
+      };
+    }
     case 'ACCEPT_QUEST': {
-      const incomingQuest = hydrateQuestPayload(action.payload);
-      // Prevent duplicate quests by ID
-      if (state.questLog.some(q => q.id === incomingQuest.id)) {
-        return {};
+      const prior = state.questLog.find(quest => quest.id === action.payload.id);
+      if (prior && prior.status !== QuestStatus.Available) return {};
+      // A retained offer is authoritative. Accepting cannot replace its terms,
+      // source or rewards with a stale caller's copy of the same quest id.
+      const incomingQuest = hydrateQuestPayload(prior
+        ? { ...prior, status: QuestStatus.Active, dateStarted: state.gameTime.getTime() }
+        : { ...action.payload, status: QuestStatus.Active });
+      if (incomingQuest.companionWork && companionWorkAccount(state, incomingQuest)) {
+        incomingQuest.objectives = incomingQuest.objectives.map(objective => objective.id === 'find_entrance' ? { ...objective, isCompleted: true } : objective);
       }
 
       const acceptJournalEvent = createQuestJournalEvent(state, {
@@ -144,9 +212,21 @@ export function questReducer(state: GameState, action: AppAction): Partial<GameS
       });
 
       return {
-        questLog: [...state.questLog, incomingQuest],
+        questLog: prior ? state.questLog.map(quest => quest.id === incomingQuest.id ? incomingQuest : quest) : [...state.questLog, incomingQuest],
         ...appendQuestJournalEvent(state, acceptJournalEvent),
         ...pushNotification(state, `Quest Accepted: ${incomingQuest.title}`, 'info'),
+      };
+    }
+
+    case 'ABANDON_QUEST': {
+      const prior = state.questLog.find(quest => quest.id === action.payload.questId);
+      if (!prior || prior.status !== QuestStatus.Active) return {};
+      const abandoned = { ...prior, status: QuestStatus.Abandoned, dateAbandoned: state.gameTime.getTime(),
+        notes: [prior.notes, action.payload.reason].filter(Boolean).join('\n') };
+      return {
+        questLog: state.questLog.map(quest => quest.id === prior.id ? abandoned : quest),
+        ...appendQuestJournalEvent(state, createQuestJournalEvent(state, { type: 'quest_failed', quest: abandoned,
+          title: `Promise Withdrawn: ${prior.title}`, description: action.payload.reason })),
       };
     }
 
@@ -161,7 +241,12 @@ export function questReducer(state: GameState, action: AppAction): Partial<GameS
 
       if (objectiveIndex === -1) return {};
       if (quest.objectives[objectiveIndex].isCompleted === isCompleted) return {};
-      if (quest.status === QuestStatus.Failed) return {};
+      if (quest.status !== QuestStatus.Active) return {};
+      if (quest.companionWork) {
+        if (!isCompleted) return {};
+        if (objectiveId === 'find_entrance') { if (!companionWorkAccount(state, quest)) return {}; }
+        else if (objectiveId !== 'report_to_elara' || !verifiedCompanionWorkReport(state, quest)) return {};
+      }
 
       const updatedObjectives = [...quest.objectives];
       updatedObjectives[objectiveIndex] = {
@@ -176,7 +261,7 @@ export function questReducer(state: GameState, action: AppAction): Partial<GameS
 
       const allObjectivesDone = updatedObjectives.length > 0 && updatedObjectives.every(obj => obj.isCompleted);
 
-      if (allObjectivesDone && quest.status !== QuestStatus.Completed) {
+      if (allObjectivesDone && (!quest.companionWork || verifiedCompanionWorkReport(state, quest))) {
         // Promote to completion and award rewards.
         return applyQuestCompletion(state, questIndex, updatedQuest);
       }
@@ -196,7 +281,8 @@ export function questReducer(state: GameState, action: AppAction): Partial<GameS
       if (questIndex === -1) return {};
 
       const quest = state.questLog[questIndex];
-      if (quest.status === QuestStatus.Completed) return {};
+      if (quest.status !== QuestStatus.Active) return {};
+      if (quest.companionWork && !verifiedCompanionWorkReport(state, quest)) return {};
 
       return applyQuestCompletion(state, questIndex, quest);
     }

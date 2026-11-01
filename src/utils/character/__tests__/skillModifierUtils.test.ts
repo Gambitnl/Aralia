@@ -13,7 +13,10 @@ import {
   calculateTotalSkillModifier,
   getExpertiseSkillIds,
   hasExpertiseInSkill,
-  normalizeSkillId
+  normalizeSkillId,
+  hasJackOfAllTrades,
+  calculateJackOfAllTradesBonus,
+  getCharacterSkillModifier,
 } from '../skillModifierUtils';
 import { getCheckAdvantageSources, rollAbilityCheck } from '../checkUtils';
 import { PlayerCharacter } from '../../../types/character';
@@ -191,5 +194,80 @@ describe('divine blessing advantage', () => {
     vi.mocked(rollDice).mockReturnValue(10);
     expect(rollAbilityCheck(artisan, 'Strength', 'Athletics').total).toBe(10);
     expect(getCheckAdvantageSources(artisan, 'Strength', 'Athletics').advantage).toEqual([]);
+  });
+});
+
+describe('hasJackOfAllTrades', () => {
+  it('detects Jack of All Trades for a Bard of level 2 or higher', () => {
+    expect(hasJackOfAllTrades({ class: { id: 'bard' }, level: 2 })).toBe(true);
+    expect(hasJackOfAllTrades({ class: 'bard', level: 3 })).toBe(true);
+    expect(hasJackOfAllTrades({ class: { id: 'bard' }, level: 1 })).toBe(false);
+  });
+
+  it('returns false for other classes without the feature', () => {
+    expect(hasJackOfAllTrades({ class: { id: 'fighter' }, level: 5 })).toBe(false);
+    expect(hasJackOfAllTrades(null)).toBe(false);
+    expect(hasJackOfAllTrades({})).toBe(false);
+  });
+
+  it('detects Jack of All Trades when explicitly granted in features or modifiers', () => {
+    expect(hasJackOfAllTrades({ class: { id: 'fighter' }, level: 1, features: [{ id: 'jack_of_all_trades' }] })).toBe(true);
+    expect(hasJackOfAllTrades({ class: { id: 'fighter' }, level: 1, modifiers: { traits: ['jack_of_all_trades'] } })).toBe(true);
+  });
+});
+
+describe('calculateJackOfAllTradesBonus', () => {
+  it('adds half proficiency bonus rounded down only when not proficient', () => {
+    expect(calculateJackOfAllTradesBonus({ hasProficiency: false, hasJackOfAllTrades: true, proficiencyBonus: 2 })).toBe(1);
+    expect(calculateJackOfAllTradesBonus({ hasProficiency: false, hasJackOfAllTrades: true, proficiencyBonus: 3 })).toBe(1);
+    expect(calculateJackOfAllTradesBonus({ hasProficiency: false, hasJackOfAllTrades: true, proficiencyBonus: 4 })).toBe(2);
+    expect(calculateJackOfAllTradesBonus({ hasProficiency: false, hasJackOfAllTrades: true, proficiencyBonus: 5 })).toBe(2);
+    expect(calculateJackOfAllTradesBonus({ hasProficiency: false, hasJackOfAllTrades: true, proficiencyBonus: 6 })).toBe(3);
+  });
+
+  it('returns 0 when already proficient or when character lacks Jack of All Trades', () => {
+    expect(calculateJackOfAllTradesBonus({ hasProficiency: true, hasJackOfAllTrades: true, proficiencyBonus: 4 })).toBe(0);
+    expect(calculateJackOfAllTradesBonus({ hasProficiency: false, hasJackOfAllTrades: false, proficiencyBonus: 4 })).toBe(0);
+  });
+});
+
+describe('getCharacterSkillModifier', () => {
+  it('calculates untrained skill modifier without Jack of All Trades', () => {
+    const pc = createCharacter({
+      level: 1,
+      proficiencyBonus: 2,
+      class: { id: 'fighter' } as any,
+      finalAbilityScores: { Strength: 10, Dexterity: 14, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+      skills: [],
+    });
+    // Dex 14 mod is +2, not proficient, no jack: +2
+    expect(getCharacterSkillModifier(pc, 'stealth')).toBe(2);
+  });
+
+  it('adds Jack of All Trades to untrained skills for a level-2 Bard', () => {
+    const bard = createCharacter({
+      level: 2,
+      proficiencyBonus: 2,
+      class: { id: 'bard' } as any,
+      finalAbilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 16 },
+      skills: [{ id: 'performance', name: 'Performance', ability: 'Charisma' }],
+    });
+    // Dex 10 mod is +0, untrained Stealth gets floor(2/2) = +1 Jack bonus
+    expect(getCharacterSkillModifier(bard, 'stealth')).toBe(1);
+    // Cha 16 mod is +3, proficient Performance gets +2 prof bonus, no Jack bonus: +5
+    expect(getCharacterSkillModifier(bard, 'performance')).toBe(5);
+  });
+
+  it('includes Expertise when present', () => {
+    const bard = createCharacter({
+      level: 2,
+      proficiencyBonus: 2,
+      class: { id: 'bard' } as any,
+      finalAbilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 16 },
+      skills: [{ id: 'persuasion', name: 'Persuasion', ability: 'Charisma' }],
+      featChoices: { expertise: { selectedExpertiseSkills: ['Persuasion'] } },
+    });
+    // Cha 16 mod is +3, proficient +2, expertise +2: +7
+    expect(getCharacterSkillModifier(bard, 'persuasion')).toBe(7);
   });
 });

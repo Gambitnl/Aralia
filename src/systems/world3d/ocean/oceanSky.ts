@@ -79,11 +79,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 28/09/2026, 13:55:37
- * Dependents: components/DesignPreview/steps/sidebyside/SideBySideOcean.tsx, components/DesignPreview/steps/sidebyside/oceanExtras.ts, systems/world3d/ocean/index.ts, systems/world3d/ocean/oceanBeach.ts, systems/world3d/ocean/oceanFoam.ts, systems/world3d/ocean/oceanSpray.ts, systems/world3d/ocean/oceanSurface.ts, systems/world3d/ocean/oceanUnderwater.ts, systems/world3d/ocean/oceanWake.ts, systems/world3d/ocean/oceanWakeBoat.ts
- * Imports: None
+ * Last Sync: 12/10/2026, 05:45:34
+ * Dependents: components/DesignPreview/steps/sidebyside/SideBySideOcean.tsx, components/DesignPreview/steps/sidebyside/oceanExtras.ts, systems/world3d/ocean/index.ts, systems/world3d/ocean/oceanBeach.ts, systems/world3d/ocean/oceanFoam.ts, systems/world3d/ocean/oceanMouth.ts, systems/world3d/ocean/oceanRocks.ts, systems/world3d/ocean/oceanSeabed.ts, systems/world3d/ocean/oceanSkip.ts, systems/world3d/ocean/oceanSpray.ts, systems/world3d/ocean/oceanSurface.ts, systems/world3d/ocean/oceanUnderwater.ts, systems/world3d/ocean/oceanWake.ts, systems/world3d/ocean/oceanWakeBoat.ts
+ * Imports: 1 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -132,6 +132,10 @@ import {
   vec3,
   vec4,
 } from 'three/tsl';
+import {
+  DECK_G, DECK_TAU_MAX, DECK_TAU_PER_M, DECK_TEX_N, deckSceneLight, deckTauField,
+  type DeckGeometry, type DeckSceneLight, type V3 as DeckV3,
+} from './oceanSkyDeckMath';
 
 /**
  * A TSL node expression. See `oceanSurface.ts` for why this is `any`: three
@@ -405,6 +409,82 @@ export function oceanSkyLobeClouds(refl: THREE.Texture): THREE.Texture | undefin
   return LOBE_OF.get(refl);
 }
 
+/**
+ * THE STRATUS DECK (river mouth round 6, law 1; the laws are in
+ * oceanSkyDeckMath.ts). A third sky state between the fair cumulus sky and
+ * the storm deck: a layer of broken cloud of finite optical depth, its
+ * optical depth per patch in a tileable field (`deckTauField`) laid on a
+ * plane at the cumulus base (CLOUD_BASE_M: one condensation level for the
+ * sky), the field's cells the cumulus's own scale (CLOUD_SCALE_M), the air
+ * under it the cloud bake's air (CLOUD_AIR_M). `OceanSky.setDeck` turns it
+ * on; with no deck (`on` 0, the default of every scene) every branch is
+ * skipped on a uniform and every product below is by 1, so the other
+ * scenes' pixels do not change.
+ *
+ * The nodes are kept per sky, keyed on the sky's `uOvercast` node: every
+ * caller of `oceanSkyRadiance` (the background, the water, the beach, the
+ * foam) already passes that node, so the deck reaches each of them with no
+ * new argument.
+ */
+interface DeckNodes {
+  readonly on: TslNode;
+  readonly share: TslNode;
+  readonly tauMean: TslNode;
+  readonly sunDirect: TslNode;
+  readonly skyGain: TslNode;
+  readonly airGain: TslNode;
+  readonly clearE: TslNode;
+  readonly ratio: TslNode;
+  readonly offset: TslNode;
+  readonly airK: TslNode;
+  readonly texture: THREE.DataTexture;
+}
+const DECK_OF = new WeakMap<object, DeckNodes>();
+/** The deck field's tile on the ground: 8 cells of CLOUD_SCALE_M (deckTauField's first octave). */
+const DECK_TILE_M = 8 * 1500;
+
+/**
+ * The light under the sky's deck, as nodes, for every lit thing under it:
+ * `sunDirect` the sun's unscattered share, `skyGain` the diffuse light over
+ * the clear sky's, `airGain` the whole light over the clear day's (1, 1, 1
+ * with no deck, and for a node no `createOceanSky` made). A caller multiplies
+ * its sun term by `sunDirect` and its sky term by `skyGain`.
+ */
+export function oceanSkyDeckLight(overcast?: TslNode): { sunDirect: TslNode; skyGain: TslNode; airGain: TslNode } {
+  const d = overcast === undefined ? undefined : DECK_OF.get(overcast);
+  if (d === undefined) return { sunDirect: float(1), skyGain: float(1), airGain: float(1) };
+  return { sunDirect: d.sunDirect, skyGain: d.skyGain, airGain: d.airGain };
+}
+
+/** The deck's state a place sets (`OceanSky.setDeck`): the clip's measures (see SARCELLE_CONDITIONS). */
+export interface OceanSkyDeck {
+  /** The share of the sky the deck covers (the clip's cloud share). */
+  readonly cloudShare: number;
+  /** The mean optical depth of the deck's cloud (gamma distributed, Barker et al. 1996). */
+  readonly tauMean: number;
+  /** The gamma distribution's shape. */
+  readonly tauShape: number;
+  /**
+   * The floor's light (FLOOR_LIGHT in oceanSeabedMath.ts): only its ratio is
+   * used, the sun's horizontal irradiance over the clear sky's diffuse one,
+   * sunE mu0 / skyE (Iqbal 1983's measured clear-sky range).
+   */
+  readonly floorLight: { readonly sunE: number; readonly skyE: number };
+  /**
+   * The deck's base over the air's extinction length (the air between the
+   * eye and the deck: e^(-airK / up)); the clip's, by the fit.
+   */
+  readonly airK: number;
+  /**
+   * The place's direct sun is the field's MEAN unscattered share (the gaps'
+   * 1 and the cloud's e^(-tau / mu0)) and not the share along the sun's one
+   * ray: a clip that does not show the sun does not fix where it stands in
+   * the field, so the place takes the expected light. False: the share
+   * along the ray through the field as laid (the field at the origin).
+   */
+  readonly sunMean: boolean;
+}
+
 /** Bake texture coordinates of a direction. Below the horizon reads the horizon row. */
 function skyBakeUV(dir: TslNode): TslNode {
   const el = asin(clamp(dir.y, float(0), float(1)));
@@ -534,13 +614,22 @@ function skyBakeUV(dir: TslNode): TslNode {
  *
  * Past 19 degrees the blue deepens toward the zenith, as before.
  */
-const SKY_LOW = vec3(0.2361, 0.3396, 0.4993);
-const SKY_TOP = vec3(0.158, 0.259, 0.439);
-const SKY_ZENITH = vec3(0.085, 0.175, 0.400);
+// River mouth round 6: the colors as numbers as well (SKY_RGB), so the CPU
+// twin of the gradient (`oceanSkyGradientCpu`) reads the same values.
+const SKY_RGB = {
+  low: [0.2361, 0.3396, 0.4993],
+  top: [0.158, 0.259, 0.439],
+  zenith: [0.085, 0.175, 0.400],
+  glowR5: [0.3266, 0.4408, 0.3577],
+  foot: [0.234, 0.2572, 0.295],
+} as const;
+const SKY_LOW = vec3(...SKY_RGB.low);
+const SKY_TOP = vec3(...SKY_RGB.top);
+const SKY_ZENITH = vec3(...SKY_RGB.zenith);
 const SKY_BLUE_K = 0.12;
 const SKY_GLOW = vec3(0.3666, 0.444, 0.5404);
-const SKY_GLOW_R5 = vec3(0.3266, 0.4408, 0.3577);
-const SKY_FOOT = vec3(0.234, 0.2572, 0.295);
+const SKY_GLOW_R5 = vec3(...SKY_RGB.glowR5);
+const SKY_FOOT = vec3(...SKY_RGB.foot);
 const SKY_GLOW_K = 0.0829;
 const SKY_BAND_DIM = 0;
 const SKY_BAND_K = 0.0353;
@@ -645,6 +734,58 @@ function skyGradient(up: TslNode, sunUp?: TslNode): TslNode {
   // `skyFootTint` 0 this returns the dimmed color unchanged.
   return skyTwilight(mix(col, SKY_FOOT, band.mul(t.skyFootTint)), up, sunUp);
 }
+
+/**
+ * The clear-sky gradient on the CPU (river mouth round 6): `skyGradient` at
+ * the shipped tune (glow tint 1, foot tint 1, band dim 0) for a sun at or
+ * over 25 degrees (no twilight term), the stratus deck's sky behind its gaps
+ * and the source of its light (`clearSkyIrradianceCpu`). A test holds it to
+ * the shader's constants.
+ */
+export function oceanSkyGradientCpu(upIn: number): DeckV3 {
+  const up = Math.min(Math.max(upIn, 0), 1);
+  const ss = (a: number, b: number, x: number) => { const k = Math.min(Math.max((x - a) / (b - a), 0), 1); return k * k * (3 - 2 * k); };
+  const blue = Math.min((1 - Math.exp(-up / SKY_BLUE_K)) / (1 - Math.exp(-0.33 / SKY_BLUE_K)), 1);
+  const z = ss(0.33, 1, up);
+  const g = Math.exp(-up / SKY_GLOW_K);
+  const bu = up / SKY_BAND_K;
+  const band = Math.exp(-(bu * bu));
+  const bgu = up / (SKY_BAND_K * SKY_GREY_K_MUL);
+  const bandGrey = Math.exp(-(bgu * bgu));
+  const c = [0, 1, 2].map((k) => {
+    let v = SKY_RGB.low[k] + (SKY_RGB.top[k] - SKY_RGB.low[k]) * blue;
+    v += (SKY_RGB.zenith[k] - v) * z;
+    return v + (SKY_RGB.glowR5[k] - v) * g;
+  });
+  const grey = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  return [0, 1, 2].map((k) => {
+    const v = c[k] + (grey - c[k]) * bandGrey * SKY_BAND_GREY;
+    return v + (SKY_RGB.foot[k] - v) * band;
+  }) as unknown as DeckV3;
+}
+
+/**
+ * The clear sky's diffuse irradiance on a flat surface, RGB, in the sky's own
+ * units: the gradient's radiance integrated over the dome, cos(theta) dOmega
+ * (the sun's terms left out: they are the sun's light, not the sky's).
+ */
+export function clearSkyIrradianceCpu(steps = 2048): DeckV3 {
+  const e = [0, 0, 0];
+  const dEl = Math.PI / 2 / steps;
+  for (let i = 0; i < steps; i += 1) {
+    const el = (i + 0.5) * dEl;
+    const l = oceanSkyGradientCpu(Math.sin(el));
+    const w = Math.sin(el) * Math.cos(el) * 2 * Math.PI * dEl;
+    for (let k = 0; k < 3; k += 1) e[k] += l[k] * w;
+  }
+  return e as unknown as DeckV3;
+}
+
+/** The sun's color in the sky's sun terms (1, 0.95, 0.85), scaled to luminance 1: the deck's light's tint. */
+const DECK_SUN_TINT: DeckV3 = (() => {
+  const l = 0.2126 + 0.7152 * 0.95 + 0.0722 * 0.85;
+  return [1 / l, 0.95 / l, 0.85 / l] as const;
+})();
 
 /**
  * The billow volume, built on the CPU once: three octaves of inverted Worley
@@ -902,6 +1043,9 @@ export function oceanSkyRadiance(
       .add(skyGradient(max(up.sub(upSpread), float(0)), sunUp).mul(0.25))
       .add(skyGradient(min(up.add(upSpread), float(1)), sunUp).mul(0.25));
   }
+  // River mouth round 6: the clear gradient before any cloud, the stratus
+  // deck's sky behind its gaps.
+  const colClear = col;
   // The haze fraction the storm deck keys its horizon darkening on.
   const hazeAmt = exp(up.div(float(-0.22))).toVar();
 
@@ -933,6 +1077,88 @@ export function oceanSkyRadiance(
   // has dissolved into the murk by the horizon anyway. The rain piece asked
   // for this; it had been drawing a stand-in deck on its own dome while the
   // water below still reflected a sunny sky.
+  // THE STRATUS DECK (river mouth round 6; DECK_OF, oceanSkyDeckMath.ts).
+  // Where the sky's deck is on, the fair cumulus give way to the deck: per
+  // direction, the field's optical depth tau where the ray meets the deck's
+  // base (a read of the field texture, mipmapped, for the callers that read
+  // clouds; the deck's mean for the gradient-only callers: the haze, the far
+  // mean ray, the foam's deck light). The base's radiance is the
+  // delta-Eddington layer's scattered light in the Eddington field
+  // I0 (1 + 1.5 mu), plus the forward peak's Henyey-Greenstein lobe round the
+  // sun, plus the clear sky behind the layer through its forward share; the
+  // air between the eye and the base (CLOUD_AIR_M, the bake's) mixes it
+  // toward the clear sky's air light, which under the deck is lit by the
+  // deck's light (`airGain`). The sun's terms below take the unscattered
+  // share along the ray. With the deck off the branch is skipped on its
+  // uniform and the sun's share is 1.
+  const deck = overcast === undefined ? undefined : DECK_OF.get(overcast);
+  let deckSun: TslNode | null = null;
+  if (deck !== undefined) {
+    const colIn0 = col;
+    const useTex = clouds !== undefined && cloudOctaves > 0;
+    const deckOut = Fn(() => {
+      const outV = vec3(colIn0).toVar();
+      If(deck.on.greaterThan(float(0.5)), () => {
+        const g = DECK_G;
+        const mu0 = max(sunUp, float(0.05));
+        const upD = max(up, float(0.02));
+        const tint = vec3(...DECK_SUN_TINT);
+        const eSunH = dot(deck.clearE, vec3(0.2126, 0.7152, 0.0722)).mul(deck.ratio);
+        // A fresh cosine, not the function's `cosSun` var: a var first built inside this branch is declared in
+        // the branch, and the sun's terms after it then read an unset var (the fair sky lost its aureole).
+        const cosSunD = clamp(dot(dir, sunDir), float(0), float(1));
+        const hgD = float(1 + g * g).sub(cosSunD.mul(2 * g));
+        const hg = float((1 - g * g) / (4 * Math.PI)).div(pow(max(hgD, float(1e-6)), float(1.5)));
+        const cloudAt = (tau: TslNode): { l: TslNode; dirT: TslNode } => {
+          const s = tau.mul(0.75 * (1 - g));
+          const tp = tau.mul(1 - g * g);
+          const fwd = exp(tp.div(mu0).negate());
+          const dirT = exp(tau.div(mu0).negate());
+          const refl = s.add(float(0.5).sub(mu0.mul(0.75)).mul(float(1).sub(fwd))).div(s.add(1));
+          const tTot = clamp(float(1).sub(refl), float(0), float(1));
+          const tSky = float(1).div(s.add(1));
+          const tSkyF = exp(tp.mul(-1.5));
+          const ed = tint.mul(eSunH.mul(max(tTot.sub(fwd), float(0))))
+            .add(vec3(deck.clearE).mul(max(tSky.sub(tSkyF), float(0))));
+          const shape = up.mul(1.5).add(1).div(2 * Math.PI);
+          const lobe = tint.mul(eSunH.div(mu0).mul(max(fwd.sub(dirT), float(0))).mul(hg));
+          const behind = colClear.mul(exp(tp.div(upD).negate()));
+          // THE CELLS' WALLS (`deckCloudRadiance`): their share of the ray and their reflected light.
+          const tanE = upD.div(sqrt(max(float(1).sub(upD.mul(upD)), float(1e-6))));
+          const wallShare = float(1).sub(exp(tau.div(DECK_TAU_PER_M * CLOUD_SCALE_M).div(tanE).negate()));
+          const vH = normalize(vec2(dir.x, dir.z).add(vec2(0, 1e-6)));
+          const cosWall = max(vH.x.mul(sunDir.x).add(vH.y.mul(sunDir.z)).negate(), float(0));
+          const sW = DECK_TAU_PER_M * CLOUD_SCALE_M * 0.75 * (1 - g);
+          const muW = max(cosWall, float(0.05));
+          const fwdW = exp(float(-(1 - g * g) * DECK_TAU_PER_M * CLOUD_SCALE_M).div(muW));
+          const rSun = float(sW).add(float(0.5).sub(muW.mul(0.75)).mul(float(1).sub(fwdW))).div(1 + sW);
+          const rSky = sW / (1 + sW);
+          const wall = tint.mul(eSunH.div(mu0).mul(cosWall).mul(rSun)).add(vec3(deck.clearE).mul(0.5 * rSky)).div(Math.PI);
+          return { l: mix(ed.mul(shape).add(lobe).add(behind), wall, wallShare), dirT };
+        };
+        let lCloud: TslNode;
+        if (useTex) {
+          // THE FOOTPRINT AT THE HORIZON: under 0.02 the base point is held (upD), so the read's vertical
+          // derivative is 0 and the mip level falls to the texel's: a row of sharp vertical blocks on the
+          // horizon. The field's mean is what any read with a footprint of many cells returns, so from
+          // 0.05 down to 0.02 the read hands over to the mean deck (a key on the read's footprint only).
+          const uvD = vec2(dir.x, dir.z).div(upD).mul(CLOUD_BASE_M).add(deck.offset).div(DECK_TILE_M);
+          const c = cloudAt(texture(deck.texture, uvD).r.mul(DECK_TAU_MAX));
+          const meanK = smoothstep(float(0.02), float(0.05), up);
+          lCloud = mix(mix(colClear, cloudAt(deck.tauMean).l, deck.share), c.l, meanK);
+        } else {
+          lCloud = mix(colClear, cloudAt(deck.tauMean).l, deck.share);
+        }
+        const tAir = exp(deck.airK.div(upD).negate());
+        outV.assign(lCloud.mul(tAir).add(colClear.mul(deck.airGain).mul(float(1).sub(tAir))));
+      });
+      return outV;
+    })();
+    col = deckOut;
+    // The sun's terms take the place's direct share (the scene's light, `setDeck`): 1 with the deck off.
+    deckSun = deck.sunDirect;
+  }
+
   let sunVis: TslNode = float(1);
   if (overcast !== undefined) {
     // A dip of 0.015 in the middle elevations (a bell on the haze fraction,
@@ -993,6 +1219,7 @@ export function oceanSkyRadiance(
   const aureole = pow(cosSun, float(6)).mul(0.10);
   const glow = pow(cosSun, float(200)).mul(0.6);
   const disc = smoothstep(float(0.99990), float(0.99997), cosSun).mul(30);
+  if (deckSun !== null) sunVis = sunVis.mul(deckSun);
   col = col.add(vec3(1.0, 0.95, 0.85).mul(aureole.add(glow).add(disc)).mul(sunVis));
 
   return col;
@@ -1082,6 +1309,16 @@ export interface OceanSky {
    * sets one and calls `bake` again; nothing in the game sets them.
    */
   readonly cloudTune: Readonly<Record<string, { value: number }>>;
+  /**
+   * River mouth round 6: put the stratus deck over the sky (null takes it
+   * off: the sky every scene had). A place that is judged against a clip
+   * shot under a deck sets it from its record (SARCELLE_CONDITIONS); the
+   * sun stays the viewer's. It builds the deck's field on the CPU (about
+   * 0.1 s) and sets the deck's uniforms; no shader rebuild.
+   */
+  setDeck(deck: OceanSkyDeck | null): void;
+  /** The light under the deck in force (null: no deck). */
+  deckLight(): (DeckSceneLight & { readonly ratio: number; readonly clearE: DeckV3 }) | null;
 }
 
 /**
@@ -1154,6 +1391,40 @@ export function createOceanSky(
 
 
 
+
+  // River mouth round 6: THE STRATUS DECK's nodes and field texture (see
+  // DECK_OF). The texture is 8-bit tau over DECK_TAU_MAX, wrapped, with
+  // mipmaps: a far read takes the mean optical depth of its footprint.
+  const deckTex = new THREE.DataTexture(new Uint8Array(DECK_TEX_N * DECK_TEX_N), DECK_TEX_N, DECK_TEX_N, THREE.RedFormat, THREE.UnsignedByteType);
+  deckTex.wrapS = THREE.RepeatWrapping;
+  deckTex.wrapT = THREE.RepeatWrapping;
+  deckTex.magFilter = THREE.LinearFilter;
+  deckTex.minFilter = THREE.LinearMipmapLinearFilter;
+  deckTex.generateMipmaps = true;
+  deckTex.needsUpdate = true;
+  const deckNodes: DeckNodes = {
+    on: uniform(0),
+    share: uniform(0),
+    tauMean: uniform(0),
+    sunDirect: uniform(1),
+    skyGain: uniform(1),
+    airGain: uniform(1),
+    clearE: uniform(new THREE.Vector3(0, 0, 0)),
+    ratio: uniform(0),
+    offset: uniform(new THREE.Vector2(0, 0)),
+    airK: uniform(CLOUD_BASE_M / CLOUD_AIR_M),
+    texture: deckTex,
+  };
+  // THE REGISTRY HOLDS THE DECK ONLY WHILE ONE IS SET (setDeck), so a water shader built with no deck holds
+  // no deck nodes: a 0 px rule. The first build of this file registered the deck for every sky, and its one
+  // more texture took the open sea's surface fragment over 16 samplers; the shared-sampler pass then merged
+  // samplers and moved the open, wake and glitter views by up to 61 levels. The background is built here
+  // with the deck's nodes (its own few textures stay under the limit), and every water built after
+  // `setDeck` (the mouth's reader rebuilds the surface) takes them.
+  DECK_OF.set(uOvercast, deckNodes);
+  const backgroundNode = oceanSkyRadiance(normalWorld, uSun, 4, uOvercast, 0, cloudTexture);
+  DECK_OF.delete(uOvercast);
+  let deckState: (DeckSceneLight & { ratio: number; clearE: DeckV3 }) | null = null;
 
   // The billow volume, built once on the CPU. See `cloudPuffVolume`.
   const puffTex = new THREE.Data3DTexture(cloudPuffVolume(), CLOUD_PUFF_N, CLOUD_PUFF_N, CLOUD_PUFF_N);
@@ -1279,13 +1550,48 @@ export function createOceanSky(
 
   return {
     sunDir,
-    backgroundNode: oceanSkyRadiance(normalWorld, uSun, 4, uOvercast, 0, cloudTexture),
+    backgroundNode,
     uOvercast,
     cloudTexture,
     cloudReflTexture,
     cloudLobeTexture,
     cloudHazeTexture,
     cloudTune: cloudTune as unknown as Record<string, { value: number }>,
+    setDeck(deck: OceanSkyDeck | null) {
+      if (deck === null) {
+        DECK_OF.delete(uOvercast);
+        deckNodes.on.value = 0;
+        deckNodes.sunDirect.value = 1;
+        deckNodes.skyGain.value = 1;
+        deckNodes.airGain.value = 1;
+        deckState = null;
+        return;
+      }
+      DECK_OF.set(uOvercast, deckNodes);
+      const field = deckTauField(deck.cloudShare, deck.tauMean, deck.tauShape);
+      const bytes = deckTex.image.data as Uint8Array;
+      for (let i = 0; i < field.length; i += 1) bytes[i] = Math.round(Math.min(field[i] / DECK_TAU_MAX, 1) * 255);
+      deckTex.needsUpdate = true;
+      const geo: DeckGeometry = { baseM: CLOUD_BASE_M, tileM: DECK_TILE_M, offsetM: [0, 0] };
+      (deckNodes.offset.value as THREE.Vector2).set(geo.offsetM[0], geo.offsetM[1]);
+      const ratio = (deck.floorLight.sunE * Math.max(sunDir.y, 0)) / deck.floorLight.skyE;
+      const light0 = deckSceneLight(field, DECK_TEX_N, geo, [sunDir.x, sunDir.y, sunDir.z], ratio);
+      const light = deck.sunMean ? { ...light0, sunDirect: light0.sunDirectMean } : light0;
+      const clearE = clearSkyIrradianceCpu();
+      deckNodes.share.value = deck.cloudShare;
+      deckNodes.tauMean.value = deck.tauMean;
+      deckNodes.sunDirect.value = light.sunDirect;
+      deckNodes.skyGain.value = light.skyGain;
+      deckNodes.airGain.value = light.airGain;
+      (deckNodes.clearE.value as THREE.Vector3).set(clearE[0], clearE[1], clearE[2]);
+      deckNodes.ratio.value = ratio;
+      deckNodes.airK.value = deck.airK;
+      deckNodes.on.value = 1;
+      deckState = { ...light, ratio, clearE };
+    },
+    deckLight() {
+      return deckState;
+    },
     async bake(renderer: THREE.WebGPURenderer) {
       await renderer.computeAsync(bakeCoverage);
       for (let r = 0; r < OCEAN_SKY_BAKE_H; r += BAND_ROWS) {

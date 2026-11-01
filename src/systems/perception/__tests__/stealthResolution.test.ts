@@ -230,4 +230,52 @@ describe('stealth observation and movement', () => {
     expect(exposed.character.position).toEqual({ x: 8, y: 5 });
     expect(exposed.character.statusEffects).toEqual([UNRELATED_HIDDEN]);
   });
+
+  it('rolls Hide with disadvantage when wearing armor with stealthDisadvantage (GG-503)', () => {
+    const heavyHider = createMockCombatCharacter({
+      id: 'heavy-hider',
+      name: 'Heavy Hider',
+      level: 5,
+      team: 'enemy',
+      position: { x: 10, y: 5 },
+      statusEffects: [],
+      stats: { dexterity: 16, speed: 30 },
+      equipment: {
+        wornArmor: {
+          itemId: 'chain_mail',
+          itemName: 'Chain Mail',
+          slot: 'Torso',
+          category: 'Heavy',
+          magicStatus: 'nonmagical',
+          properties: [],
+          stealthDisadvantage: true,
+        },
+      },
+      modifiers: { skillProficiencies: ['stealth'] },
+    });
+
+    // Provide two rolls: first 0.9 (d20=19), second 0.2 (d20=5). Disadvantage takes 5.
+    let callCount = 0;
+    const rng = () => {
+      callCount += 1;
+      return callCount === 1 ? 0.9 : 0.2;
+    };
+
+    const observer = createObserver();
+    const result = resolveHideAttempt({
+      hider: heavyHider,
+      observer,
+      characters: [observer, heavyHider],
+      mapData: createMap(),
+      activeLightSources: [],
+      ownerId: OWNER_ID,
+      statusId: STATUS_ID,
+      eventId: 'hide-heavy',
+      rng,
+    });
+
+    expect(callCount).toBe(2);
+    expect(result.outcome).toBe('applied');
+    expect(result.roll).toBe(5);
+  });
 });

@@ -86,6 +86,97 @@ export const HARNESS_STYLES: HarnessStyleOption[] = [
 
 export const HARNESS_CLIMATES: ClimateClass[] = ['temperate', 'cold', 'arid', 'marsh'];
 
+/**
+ * Age-band filter values accepted by the Building Identity Lab URL (`?age=...`)
+ * and toolbar selector (WF-G308). `'all'` preserves the unfiltered view while
+ * the four production age bands let visual verification jump straight to an
+ * aged/old/ancient building that carries roof-history backstory wear.
+ */
+export const HARNESS_AGE_FILTERS = ['all', 'new', 'aged', 'old', 'ancient'] as const;
+export type HarnessAgeFilter = typeof HARNESS_AGE_FILTERS[number];
+
+/** Return the resolved age band stamped on an artifact plot receipt. */
+export function plotAgeBand(plot: HarnessPlot): Exclude<HarnessAgeFilter, 'all'> {
+  return plot.architecture?.ageBand ?? 'new';
+}
+
+/** Filter a plot list by age band when an explicit age filter is active. */
+export function filterHarnessPlotsByAge(
+  plots: readonly HarnessPlot[],
+  ageFilter: HarnessAgeFilter,
+): HarnessPlot[] {
+  if (ageFilter === 'all') return [...plots];
+  return plots.filter((plot) => plotAgeBand(plot) === ageFilter);
+}
+
+/**
+ * Resolve which plot the Building Identity Lab should frame given an optional
+ * requested `plotId`, an optional `ageFilter`, and an optional `districtKey`
+ * (WF-G308).
+ *
+ * Resolution priority:
+ * 1. If `plotId` matches a plot in the town AND (either `respectExplicitPlot`
+ *    is true or the plot satisfies `ageFilter`), return that exact plot.
+ * 2. Otherwise, pick the first plot matching `ageFilter` inside `districtKey`,
+ *    or across the entire town if the current district has none.
+ * 3. Fall back to the first plot in the town so the workbench is never empty.
+ */
+export function resolveHarnessSelectedPlot(
+  model: HarnessTownModel,
+  options: {
+    plotId?: number | null;
+    ageFilter?: HarnessAgeFilter;
+    districtKey?: string | null;
+    respectExplicitPlot?: boolean;
+  } = {},
+): HarnessPlot | undefined {
+  const plots = model.artifactPlan.plots;
+  if (plots.length === 0) return undefined;
+  const ageFilter = options.ageFilter ?? 'all';
+  const explicitMatch = typeof options.plotId === 'number'
+    ? plots.find((plot) => plot.id === options.plotId)
+    : undefined;
+
+  if (explicitMatch && (options.respectExplicitPlot || ageFilter === 'all' || plotAgeBand(explicitMatch) === ageFilter)) {
+    return explicitMatch;
+  }
+
+  const ageMatched = filterHarnessPlotsByAge(plots, ageFilter);
+  if (options.districtKey) {
+    const inDistrict = ageMatched.find((plot) => plot.architecture?.districtKey === options.districtKey);
+    if (inDistrict) return inDistrict;
+  }
+  return ageMatched[0] ?? explicitMatch ?? plots[0];
+}
+
+/**
+ * Build the structured backstory/wear receipt published on
+ * `window.__buildingIdentityLab` for browser automation and visual proof
+ * scripts (WF-G308).
+ */
+export function buildSelectedPlotHistoryReceipt(
+  plot: HarnessPlot | undefined,
+  blueprint: BlueprintPlan,
+): {
+  selectedPlotAgeBand: string | null;
+  selectedPlotWear: string[];
+  selectedBackstoryWear: string[];
+  selectedBackstoryFeatures: string[];
+} {
+  const ageBand = blueprint.backstory?.ageBand
+    ?? blueprint.styleResolved?.weathering?.ageBand
+    ?? plot?.architecture?.ageBand
+    ?? null;
+  const wear = [...(blueprint.backstory?.wear ?? [])];
+  const features = (blueprint.backstory?.features ?? []).map((feature) => feature.kind);
+  return {
+    selectedPlotAgeBand: ageBand,
+    selectedPlotWear: wear,
+    selectedBackstoryWear: wear,
+    selectedBackstoryFeatures: features,
+  };
+}
+
 // A fixed irregular footprint ensures every reroll changes authored decisions,
 // not the outer test geometry. Water and road lines exercise waterfront districts.
 const CX = 360;

@@ -11,6 +11,49 @@ import crypto from 'node:crypto';
 
 import { createStore } from './store.mjs';
 
+test('WF-G285: filtered board views retain completion overlap and journal replay without task mutation', () => {
+  const dir=tmpDir(), now=makeClock();
+  let store=createStore({dir,now});
+  try {
+    const owner=store.registerAgent({handle:'freshness-owner',petSlug:'dream-girl'});
+    const source=store.createTask({agentId:owner.id,title:'Complete sibling work',body:'Private fixture',refs:['src/shared.ts']});
+    now.advance(10);
+    const target=store.createTask({agentId:owner.id,title:'Unfinished count brief',body:'23 items remain.',refs:['src/shared.ts'],deps:[]});
+    now.advance(10);
+    assert.equal(store.setTaskState({agentId:owner.id,taskId:source.id,state:'done',result:'Private completion proof'}).ok,true);
+    const raw=fs.readFileSync(path.join(dir,'journal.jsonl'),'utf8'), seq=store.lastSeq;
+    const row=store.listTasks({state:'open'}).find(t=>t.id===target.id);
+    assert.equal(row.referenceFreshness.status,'unverified'); assert.equal(row.ready,true);
+    assert.equal(row.referenceFreshness.completions[0].taskId,source.id);
+    assert.deepEqual(store.listTasks().find(t=>t.id===source.id).history.at(-1).refs,['src/shared.ts']);
+    assert.equal(fs.readFileSync(path.join(dir,'journal.jsonl'),'utf8'),raw); assert.equal(store.lastSeq,seq);
+    assert.equal(store.setTaskState({agentId:owner.id,taskId:source.id,state:'open'}).ok,true);
+    assert.equal(store.editTask({agentId:owner.id,taskId:source.id,fields:{refs:['src/unrelated.ts']},reason:'Later refs'}).ok,true);
+    assert.equal(store.listTasks({ready:true}).find(t=>t.id===target.id).referenceFreshness.status,'unverified');
+    store.close(); store=createStore({dir,now});
+    assert.equal(store.listTasks({state:'open'}).find(t=>t.id===target.id).referenceFreshness.status,'unverified');
+    assert.equal(store.listTasks().find(t=>t.id===target.id).body,'23 items remain.');
+  } finally {store.close();rm(dir);}
+});
+
+test('WF-G285: archive retains unreviewed completion evidence and accepts exact reason-only reviews', () => {
+  const dir=tmpDir(),now=makeClock(),store=createStore({dir,now});
+  try{
+    const owner=store.registerAgent({handle:'archive-freshness-owner',petSlug:'dream-girl'});
+    const s=store.createTask({agentId:owner.id,title:'Sibling completion',body:'Private proof',refs:['src/shared.ts']});
+    const t=store.createTask({agentId:owner.id,title:'Count brief',body:'Original count brief',refs:['src/shared.ts']});
+    now.advance(10);store.setTaskState({agentId:owner.id,taskId:s.id,state:'done',result:'Private completion'});
+    now.advance(15*86400000);
+    assert.equal(store.archiveDoneTasks().archived,0);
+    const receipt=store.listTasks().find(x=>x.id===t.id).referenceFreshness.completions[0];
+    const review={taskId:t.id,sourceTask:s.id,completedAt:receipt.at,historyIndex:receipt.historyIndex,refs:receipt.sharedRefs,proof:'Private read-only measurement returned 14 remaining items.'};
+    assert.equal(store.editTask({agentId:owner.id,taskId:t.id,fields:{},reason:'COUNT-REVIEW: '+JSON.stringify(review)}).ok,true);
+    const checked=store.listTasks().find(x=>x.id===t.id);assert.equal(checked.referenceFreshness.status,'review_recorded');assert.equal(checked.body,'Original count brief');assert.equal(checked.ready,true);
+    assert.equal(store.archiveDoneTasks().archived,1);
+    assert.equal(store.listTasks().find(x=>x.id===t.id).body,'Original count brief');
+  }finally{store.close();rm(dir);}
+});
+
 // --- helpers ---------------------------------------------------------------
 
 // A tiny catalog makes ownership assertions deterministic without coupling

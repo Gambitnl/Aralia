@@ -48,6 +48,10 @@ const createOpenExplorationClockState = (overrides: Partial<PassiveGameClockStat
 // because it is a blocking decision surface rather than elapsed world action.
 // ============================================================================
 describe('shouldPassiveGameClockRun', () => {
+  it.each(['isRestModalOpen', 'isLodgingOfferOpen'] as const)('pauses while %s holds a commitment, then resumes when closed', flag => {
+    expect(shouldPassiveGameClockRun(createOpenExplorationClockState({[flag]: true}))).toBe(false);
+    expect(shouldPassiveGameClockRun(createOpenExplorationClockState({[flag]: false}))).toBe(true);
+  });
   it('allows passive ticking during unblocked exploration', () => {
     // In open exploration, the one-second timer can safely dispatch ADVANCE_TIME.
     expect(shouldPassiveGameClockRun(createOpenExplorationClockState())).toBe(true);

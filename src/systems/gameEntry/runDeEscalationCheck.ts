@@ -5,7 +5,7 @@
  * stays deterministic and unit-testable.
  */
 import type { PlayerCharacter, AbilityScoreName } from '../../types';
-import { calculateTotalSkillModifier } from '../../utils/character/skillModifierUtils';
+import { calculateTotalSkillModifier, getCharacterSkillModifier } from '../../utils/character/skillModifierUtils';
 // The character-side StatusEffect (types/effects.ts) — what PlayerCharacter
 // actually carries; it shares the check-rider fields with the combat type.
 import type { StatusEffect } from '../../types/effects';
@@ -34,15 +34,7 @@ export function computeSkillModifier(
   ability: AbilityScoreName,
   skillName: string,
 ): number {
-  const abilityScore = character.finalAbilityScores[ability];
-  const proficient = (character.skills ?? []).some(
-    (s) => s.name.toLowerCase() === skillName.toLowerCase(),
-  );
-  return calculateTotalSkillModifier({
-    abilityScore,
-    hasProficiency: proficient,
-    level: character.level ?? 1,
-  });
+  return getCharacterSkillModifier(character, skillName, ability);
 }
 
 export interface CheckBoost { source: string; bonusDice?: string; advantage: boolean; }

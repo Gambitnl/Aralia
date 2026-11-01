@@ -35,7 +35,7 @@ import { checkQuestDeadlines } from '../quests/QuestManager';
 import { SecretGenerator } from '../intrigue/SecretGenerator';
 import { WorldHistoryService } from '../../services/WorldHistoryService';
 import { addHistoryEvent, createEmptyHistory } from '../../utils/world/historyUtils';
-import { calculateMarketFactors } from '../../utils/economy/marketEvents';
+import { calculateMarketFactors, generateMarketEvents } from '../../utils/economy/marketEvents';
 import { BountyHunterSystem } from '../crime/BountyHunterSystem';
 import { updateRegionalWealth, updateGlobalInflation } from '../economy/RegionalEconomySystem';
 import { processFactionDailyEconomics } from './FactionEconomyManager';
@@ -430,7 +430,7 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
     };
 
     // Update Economy State
-    const currentActiveEvents = state.economy.activeEvents || [];
+    const currentActiveEvents = state.economy.marketEvents || state.economy.activeEvents || [];
     const newActiveEvents = [...currentActiveEvents, selection.event];
 
     // RALPH: Logic Unification.
@@ -439,6 +439,7 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
 
     const newEconomy: EconomyState = {
         ...state.economy,
+        marketEvents: newActiveEvents,
         activeEvents: newActiveEvents,
         marketFactors: {
             scarcity,
@@ -578,35 +579,36 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
         currentState = { ...currentState, activeRumors: [] };
     }
 
-    // Clean up expired market events
-    if (currentState.economy && currentState.economy.activeEvents) {
-        let eventsChanged = false;
-        const newActiveEvents = (currentState.economy.activeEvents || [])
-            .map(event => ({ ...event, duration: (event.duration ?? 0) - 1 } as MarketEvent))
-            .filter(event => event.duration > 0);
+    // Clean up expired market events and synchronize deterministic daily market events (GG-444 / agora-a047)
+    const currentEvents = currentState.economy.marketEvents || currentState.economy.activeEvents || [];
+    const routeEventPrefix = 'route_event_';
 
-        if (newActiveEvents.length !== currentState.economy.activeEvents.length) {
-            eventsChanged = true;
+    // A. Decrement duration and preserve ongoing manual/world events (not route events, not auto-generated)
+    const survivingManualEvents = currentEvents
+        .filter(event => !event.id.startsWith(routeEventPrefix) && !event.id.startsWith('evt_'))
+        .map(event => ({ ...event, duration: (event.duration ?? 0) - 1 } as MarketEvent))
+        .filter(event => event.duration > 0);
+
+    // B. Generate active deterministic template events for current game time
+    const gameTimeMs = new Date(currentState.gameTime).getTime();
+    const generatedEvents = generateMarketEvents(gameTimeMs);
+
+    // C. Combine manual and generated events before route processing
+    const combinedPreRouteEvents: MarketEvent[] = [...survivingManualEvents, ...generatedEvents];
+    const { scarcity: preScarcity, surplus: preSurplus } = calculateMarketFactors(combinedPreRouteEvents);
+
+    currentState = {
+        ...currentState,
+        economy: {
+            ...currentState.economy,
+            marketEvents: combinedPreRouteEvents,
+            activeEvents: combinedPreRouteEvents,
+            marketFactors: {
+                scarcity: preScarcity,
+                surplus: preSurplus
+            }
         }
-
-        if (eventsChanged) {
-            // RALPH: Logic Unification.
-            // Uses the centralized selector to ensure state factors match active events.
-            const { scarcity, surplus } = calculateMarketFactors(newActiveEvents);
-
-            currentState = {
-                ...currentState,
-                economy: {
-                    ...currentState.economy,
-                    activeEvents: newActiveEvents,
-                    marketFactors: {
-                        scarcity,
-                        surplus
-                    }
-                }
-            };
-        }
-    }
+    };
 
     // 2. Process Trade Routes (Regenerate Route Events)
     // This comes AFTER cleanup so previous day's events are gone, and new ones are added.

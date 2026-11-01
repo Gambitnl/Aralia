@@ -126,7 +126,7 @@ export function townRiverCourseCanon(
   burgId: number,
 ): TownRiverCourse {
   const pack = atlas.pack as unknown as {
-    cells: { p: Array<[number, number]>; r?: ArrayLike<number> };
+    cells: { p: Array<[number, number]>; r?: ArrayLike<number>; fl?: ArrayLike<number> };
     burgs?: Array<{ i?: number; x: number; y: number; cell: number; removed?: boolean; population?: number }>;
     rivers?: Array<{ i: number; cells: number[]; discharge: number }>;
   };
@@ -166,6 +166,26 @@ export function townRiverCourseCanon(
   const spanFt = townSpanFtForPeople((burg.population ?? 0) * POPULATION_RATE);
   const cxFt = burg.x * FEET_PER_FMG_PIXEL;
   const cyFt = burg.y * FEET_PER_FMG_PIXEL;
+
+  // ONE WATER (2026-10-30): the river's width AT THE TOWN, the same rule the
+  // region tier uses for each point (`riverChannel.ts`): the atlas water count
+  // of the anchor segment nearest the town. `widthFt` (the mouth's) still
+  // shapes the course, so the two tiers keep the identical course.
+  const fl = pack.cells.fl;
+  if (!fl) throw new Error(`[town] The atlas has no water count for river ${riverId}.`);
+  const anchorCells = river.cells.filter((c) => c >= 0 && pack.cells.p[c]);
+  let nearestSeg = 0;
+  let nearestD = Infinity;
+  for (let a = 0; a < anchors.length - 1; a++) {
+    const [ax, ay] = anchors[a];
+    const [bx, by] = anchors[a + 1];
+    const dx = bx - ax;
+    const dy = by - ay;
+    const t = Math.max(0, Math.min(1, ((cxFt - ax) * dx + (cyFt - ay) * dy) / (dx * dx + dy * dy || 1)));
+    const d = Math.hypot(ax + dx * t - cxFt, ay + dy * t - cyFt);
+    if (d < nearestD) { nearestD = d; nearestSeg = a; }
+  }
+  const widthHereFt = riverWidthFt(fl[anchorCells[nearestSeg]]);
   const k = CANON_TOWN_SPAN / spanFt;
   const canon: Pt[] = course.map(([x, y]) => [(x - cxFt) * k, (y - cyFt) * k]);
 
@@ -175,6 +195,6 @@ export function townRiverCourseCanon(
   const square: Pt[] = [[-half, -half], [half, -half], [half, half], [-half, half]];
   return {
     lines: clipPolylineToPolygon(canon, square).filter((seg) => seg.length >= 2),
-    widthCanon: widthFt * k,
+    widthCanon: widthHereFt * k,
   };
 }

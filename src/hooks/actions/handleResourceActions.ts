@@ -1,11 +1,16 @@
+/**
+ * @file src/hooks/actions/handleResourceActions.ts
+ * Handles resource management actions like spellcasting and ability usage.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/09/2026, 10:37:14
+ * Last Sync: 29/10/2026, 17:15:11
  * Dependents: components/ConversationPanel/ConversationPanel.tsx, hooks/actions/actionHandlers.ts
- * Imports: 11 files
+ * Imports: 18 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,24 +19,28 @@
  */
 // @dependencies-end
 
-/**
- * @file src/hooks/actions/handleResourceActions.ts
- * Handles resource management actions like spellcasting and ability usage.
- */
 import React from 'react';
 import { GameState, HitPointDiceSpendMap, HitPointDicePool, RacialRestChoiceData, Spell, SpellSlots } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import { AddMessageFn, AddGeminiLogFn } from './actionHandlerTypes';
 import { handleGossipEvent, handleResidueChecks, handleLongRestWorldEvents, handleFactPropagationEvent, handleTownRoutineEvents } from './handleWorldEvents'; // Import the new world event handlers.
-import { checkPlanarRestRules } from '../../systems/planar/rest';
+import { checkPlanarRestRules, getPlanarRestPreview } from '../../systems/planar/rest';
 import { buildHitPointDicePools, getAbilityModifierValue, getRacialSpellGrantForSpell } from '../../utils/character';
 import { rollDice } from '../../systems/dice/rollers';
-import { formatDuration, getGameDay } from '../../utils/core';
+import { formatDuration } from '../../utils/core';
+import { getShortRestTiming, SHORT_REST_DURATION_SECONDS } from '../../systems/gameplay/restTiming';
 import { CastSpellPayload } from '../../types/actions';
 import { spellService } from '../../services/SpellService';
+import {prepareContainedWaterCast,CONTAINED_WATER_SPELL_ID} from '../../systems/gameplay/containedWaterCasting';
+import { getRulesEdition } from '../../config/rulesEdition';
+import { preparationMinutes, togglePreparationPlan } from '../../systems/gameplay/spellPreparation';
+import type { LodgingRestAdmission } from '../../types/rest';
+import { guestBedsForVisit, lodgingRestError, propertyRestError, restEnvironmentError } from '../../systems/gameplay/lodging';
 import {
     applyPostCastToCharacter,
     buildOutOfCombatStatusEffect,
+    getOutOfCombatCastability,
+    isSpellCastableOutOfCombat,
     rollOutOfCombatHealing,
 } from '../../utils/spells/outOfCombatCasting';
 
@@ -42,15 +51,13 @@ interface HandleRestProps {
     addGeminiLog: AddGeminiLogFn;
     /** Choices collected by the modal must survive the gameplay pipeline. */
     racialRestChoices?: Record<string, Record<string, RacialRestChoiceData>>;
+    lodgingRestAdmission?: LodgingRestAdmission;
 }
 
 interface HandleShortRestProps extends Omit<HandleRestProps, 'addGeminiLog'> {
     hitPointDiceSpend?: HitPointDiceSpendMap;
 }
 
-const SHORT_REST_DURATION_SECONDS = 1 * 3600;
-const SHORT_REST_COOLDOWN_SECONDS = 2 * 3600;
-const SHORT_REST_MAX_PER_DAY = 3;
 
 // ============================================================================
 // Spellcasting Actions
@@ -67,6 +74,12 @@ export async function handleCastSpell(
 ): Promise<void> {
     // If there is no spell ID, dispatch immediately (e.g. legacy/direct spell casts).
     if (!payload.spellId) {
+        // A legacy combat action keeps its fallback. Downtime casting needs a
+        // verified spell identity before it may spend a slot or component.
+        if (payload.outOfCombat) {
+            addMessage('Choose a verified spell before casting outside combat.', 'system');
+            return;
+        }
         dispatch({ type: 'CAST_SPELL', payload });
         return;
     }
@@ -76,6 +89,13 @@ export async function handleCastSpell(
         const spell = await spellService.getSpellDetails(payload.spellId);
         if (!spell) {
             addMessage(`Unable to cast spell: details not found for ${payload.spellId}.`, "system");
+            return;
+        }
+
+        // Refuse an ineligible spell before announcing component use. The
+        // shared handler also guards direct callers before the resource debit.
+        if (payload.outOfCombat && !isSpellCastableOutOfCombat(spell)) {
+            handleOutOfCombatSpellbookCast(dispatch, payload, spell, gameState, addMessage);
             return;
         }
 
@@ -126,6 +146,12 @@ export async function handleCastSpell(
 
         dispatch({ type: 'CAST_SPELL', payload });
     } catch (error) {
+        // A failed lookup cannot establish a downtime spell's trigger or cost.
+        // Keep the existing fallback only for the separate combat/legacy path.
+        if (payload.outOfCombat) {
+            addMessage(`Unable to verify spell data for ${payload.spellId}; no spell slot was spent.`, 'system');
+            return;
+        }
         // Fallback to standard casting if the spell database lookup fails, to prevent soft-locks.
         dispatch({ type: 'CAST_SPELL', payload });
     }
@@ -148,8 +174,23 @@ export function handleOutOfCombatSpellbookCast(
     addMessage: AddMessageFn
 ): void {
     const caster = gameState.party.find(member => member.id === payload.characterId);
+    if (spell.id===CONTAINED_WATER_SPELL_ID) {
+        const result=prepareContainedWaterCast(gameState,payload);
+        if ('error' in result) {addMessage(result.error,'system');return;}
+        // The reducer rechecks the exact vessel and settles the slot and water
+        // atomically. Its resulting vessel is the success receipt, including
+        // for queued duplicate clicks; do not announce a speculative success.
+        dispatch({type:'CAST_SPELL',payload});
+        return;
+    }
     if (!caster) {
         addMessage(`Unable to cast ${spell.name}: caster not found in the party.`, "system");
+        return;
+    }
+    // UI visibility is not permission: direct spellbook actions must obey the
+    // same reaction/hostility rule before spending slots or applying effects.
+    if (!isSpellCastableOutOfCombat(spell)) {
+        addMessage(`Cannot cast ${spell.name} from the spellbook: ${getOutOfCombatCastability(caster, spell).reason}`, 'system');
         return;
     }
     const target = gameState.party.find(member => member.id === payload.outOfCombat!.targetCharacterId) ?? caster;
@@ -178,7 +219,7 @@ export function handleOutOfCombatSpellbookCast(
     }
 
     // Lasting buffs/utility (Mage Armor, Guidance, Detect Magic).
-    const statusEffect = buildOutOfCombatStatusEffect(spell, caster.id ?? payload.characterId);
+    const statusEffect = buildOutOfCombatStatusEffect(spell, caster.id ?? payload.characterId, gameState.gameTime, spell.level === 0 ? 0 : payload.spellLevel);
     if (statusEffect && target.id) {
         dispatch({ type: 'APPLY_CHARACTER_STATUS_EFFECT', payload: { characterId: target.id, statusEffect } });
     }
@@ -204,6 +245,7 @@ export function handleOutOfCombatSpellbookCast(
         const refreshed = applyPostCastToCharacter(caster, spell.level > 0 ? payload.spellLevel : 0, {
             selfHealing: isSelfCast ? healing : 0,
             statusEffect: isSelfCast ? statusEffect : null,
+            concentrationReplacement: statusEffect,
         });
         dispatch({ type: 'OPEN_CHARACTER_SHEET', payload: refreshed });
     }
@@ -213,8 +255,19 @@ export function handleUseLimitedAbility(dispatch: React.Dispatch<AppAction>, pay
     dispatch({ type: 'USE_LIMITED_ABILITY', payload });
 }
 
-export function handleTogglePreparedSpell(dispatch: React.Dispatch<AppAction>, payload: { characterId: string; spellId: string }): void {
-    dispatch({ type: 'TOGGLE_PREPARED_SPELL', payload });
+export async function handleTogglePreparedSpell(dispatch: React.Dispatch<AppAction>, payload: { characterId: string; spellId: string; resetPlan?: boolean }, gameState: GameState, addMessage: AddMessageFn): Promise<void> {
+    const character = gameState.party.find(member => member.id === payload.characterId);
+    if (!character) return;
+    if (payload.resetPlan) {
+        dispatch({type: 'TOGGLE_PREPARED_SPELL', payload});
+        return;
+    }
+    const manifest = await spellService.getAllSpellInfo();
+    if (!manifest) {addMessage('The spell list could not be verified. Your active spells and preparation plan are unchanged.', 'system'); return;}
+    const spellLevels = Object.fromEntries(Object.entries(manifest).map(([id, spell]) => [id, spell.level]));
+    const result = togglePreparationPlan(character, payload.spellId, spellLevels, getRulesEdition(gameState));
+    if (result.error) {addMessage(result.error, 'system'); return;}
+    dispatch({type: 'TOGGLE_PREPARED_SPELL', payload: {...payload, spellLevels}});
 }
 
 export async function handleLongRest({
@@ -223,7 +276,63 @@ export async function handleLongRest({
     addMessage,
     addGeminiLog,
     racialRestChoices,
+    lodgingRestAdmission,
 }: HandleRestProps): Promise<void> {
+    // An authored ban is eligibility, not a failed overnight attempt. Refuse
+    // before touching NPC memory, provisions, permission, journal or world time.
+    const planarError = getPlanarRestPreview(gameState, 'long').blockReason;
+    if (planarError) {addMessage(planarError, 'system'); return;}
+    if (lodgingRestAdmission) {
+        const error = lodgingRestError(gameState, lodgingRestAdmission);
+        if (error) { addMessage(error, 'system'); return; }
+        const stay = gameState.lodgingReservations!.find(candidate => candidate.id === lodgingRestAdmission.reservationId)!;
+        const { townBuildingVisit } = await import('../../components/Worldforge/townBuildingVisit');
+        const visit = townBuildingVisit(stay.worldSeed, stay.burgId, stay.plotId,
+            gameState.townSim?.[stay.burgId]?.buildingEvents?.[stay.plotId],
+            gameState.townSim?.[stay.burgId]?.buildingSources?.[stay.plotId], gameState.townSim?.[stay.burgId]?.layoutRevision);
+        if (!guestBedsForVisit(visit).some(bed => bed.level === lodgingRestAdmission.bed.level
+            && bed.index === lodgingRestAdmission.bed.index && bed.roomId === lodgingRestAdmission.bed.roomId)) {
+            addMessage('The reserved guest bed is no longer available. Speak to the keeper.', 'system');
+            return;
+        }
+    }
+    // Refusing a rest must leave the world, food and recovery counters alone.
+    // The modal explains this rule, but actions can also arrive from other UI.
+    if (gameState.party.length === 0) {
+        addMessage("There is no party available to take a long rest.", "system");
+        return;
+    }
+    // GG-449: Enforce 16-hour wait cooldown between Long Rests
+    const LONG_REST_COOLDOWN_SECONDS = 16 * 3600;
+    const restStartMs = gameState.gameTime.getTime();
+    if (gameState.lastLongRestAt) {
+        const lastRestMs = new Date(gameState.lastLongRestAt).getTime();
+        if (!isNaN(lastRestMs)) {
+            const secondsSinceLastRest = Math.floor((restStartMs - lastRestMs) / 1000);
+            if (secondsSinceLastRest < LONG_REST_COOLDOWN_SECONDS) {
+                const remainingSeconds = LONG_REST_COOLDOWN_SECONDS - secondsSinceLastRest;
+                addMessage(`The party must wait at least ${formatDuration(remainingSeconds)} before taking another long rest.`, "system");
+                return;
+            }
+        }
+    }
+
+    const downedMembers = gameState.party.filter(pc => pc.hp <= 0);
+    if (downedMembers.length === gameState.party.length && gameState.party.length > 0) {
+        addMessage("All party members are incapacitated (0 HP). A character must have at least 1 HP to benefit from a long rest.", "system");
+        return;
+    } else if (downedMembers.length > 0) {
+        const names = downedMembers.map(pc => pc.name).join(", ");
+        addMessage(`${names} is at 0 HP and gains no benefit from the long rest.`, "system");
+    }
+
+    const environmentError = await restEnvironmentError(gameState);
+    if (environmentError) {addMessage(environmentError, 'system'); return;}
+    if (!lodgingRestAdmission) {
+        const propertyError = await propertyRestError(gameState);
+        if (propertyError) {addMessage(propertyError, 'system'); return;}
+    }
+
     addMessage("The party begins to settle in for a long rest...", "system");
 
     // --- NEW: OVERNIGHT WORLD SIMULATION ---
@@ -260,6 +369,12 @@ export async function handleLongRest({
         restOutcome.messages.forEach(msg => addMessage(msg, "system"));
     }
 
+    // Members prepare in parallel after waking. Denied and incapacitated members
+    // retain their plans and cannot add study time or gain prepared spells.
+    const studyMinutes = Math.max(0, ...gameState.party
+        .filter(member => member.hp > 0 && !restOutcome.deniedCharacterIds.includes(member.id ?? ''))
+        .map(member => preparationMinutes(member, getRulesEdition(gameState))));
+    const elapsedSeconds = 8 * 3600 + studyMinutes * 60;
     // Step 6: Apply the mechanical benefits of the long rest to the player party.
     dispatch({
         type: 'LONG_REST',
@@ -268,18 +383,21 @@ export async function handleLongRest({
         payload: {
             deniedCharacterIds: restOutcome.deniedCharacterIds,
             racialRestChoices,
+            lodgingRestAdmission,
         }
     });
 
     // Step 7: Advance the in-game clock.
-    dispatch({ type: 'ADVANCE_TIME', payload: { seconds: 8 * 3600 } }); // 8 hours
+    dispatch({ type: 'ADVANCE_TIME', payload: { seconds: elapsedSeconds } });
     // The town's occupant routines move with that clock: the party wakes into a
     // different hour, so the townsfolk are somewhere else than when they lay down.
     void handleTownRoutineEvents(
-        { ...gameState, gameTime: new Date(gameState.gameTime.getTime() + 8 * 3600 * 1000) },
+        { ...gameState, gameTime: new Date(gameState.gameTime.getTime() + elapsedSeconds * 1000) },
         dispatch,
-        { hoursAdvanced: 8 },
+        { hoursAdvanced: elapsedSeconds / 3600 },
     );
+
+    if (studyMinutes > 0) addMessage('Prayer and study take ' + studyMinutes + ' additional minute(s) after the rest. The party remains at its current location.', 'system');
 
     // Long rest is the session boundary this codebase already exposes in play,
     // so this is where we open a new visible journal page. The reducer now
@@ -299,33 +417,12 @@ export async function handleLongRest({
 }
 
 export function handleShortRest({ gameState, dispatch, addMessage, hitPointDiceSpend }: HandleShortRestProps): void {
-    const restStartMs = gameState.gameTime.getTime();
-    // A short rest belongs to the day on which its one-hour duration finishes.
-    // Work out that boundary without moving the clock here; ADVANCE_TIME remains
-    // the one authoritative action that changes the world's current time.
-    const restEndMs = restStartMs + SHORT_REST_DURATION_SECONDS * 1000;
-    const restEndDay = getGameDay(new Date(restEndMs));
-    const restTracker = gameState.shortRestTracker ?? {
-        restsTakenToday: 0,
-        lastRestDay: restEndDay,
-        lastRestEndedAtMs: null,
-    };
-    const restsTakenToday = restTracker.lastRestDay === restEndDay ? restTracker.restsTakenToday : 0;
-
-    // Enforce the daily cap against the finish day. Keep cooldown measurement at
-    // the actual start instant so crossing midnight does not shorten the wait.
-    if (restsTakenToday >= SHORT_REST_MAX_PER_DAY) {
-        addMessage(`The party has already taken ${SHORT_REST_MAX_PER_DAY} short rests today.`, "system");
-        return;
-    }
-    if (restTracker.lastRestEndedAtMs !== null) {
-        const secondsSinceLastRest = Math.floor((restStartMs - restTracker.lastRestEndedAtMs) / 1000);
-        if (secondsSinceLastRest < SHORT_REST_COOLDOWN_SECONDS) {
-            const remainingSeconds = SHORT_REST_COOLDOWN_SECONDS - secondsSinceLastRest;
-            addMessage(`The party needs ${formatDuration(remainingSeconds)} before taking another short rest.`, "system");
-            return;
-        }
-    }
+    const planarError = getPlanarRestPreview(gameState, 'short').blockReason;
+    if (planarError) {addMessage(planarError, 'system'); return;}
+    // Recheck the same timing shown before commitment; stale UI cannot bypass it.
+    const timing = getShortRestTiming(gameState.gameTime, gameState.shortRestTracker);
+    if (timing.blockReason) {addMessage(timing.blockReason, 'system'); return;}
+    const { restEndMs, restEndDay, restsTakenToday } = timing;
 
     addMessage("The party takes a short rest, tending to their wounds.", "system");
 

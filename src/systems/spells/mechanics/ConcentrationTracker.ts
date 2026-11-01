@@ -16,7 +16,8 @@
 
 import type { Spell } from '@/types/spells'
 import type { CombatCharacter, CombatState, ConcentrationState } from '@/types/combat'
-import { rollSavingThrow } from '@/utils/character'
+import { checkConcentration } from '@/utils/character'
+import type { RulesEdition } from '@/config/rulesEdition'
 
 /**
  * Tracks concentration on spells
@@ -245,17 +246,10 @@ export class ConcentrationTracker {
    */
   static rollConcentrationSave(
     character: CombatCharacter,
-    damage: number
+    damage: number,
+    rulesEdition?: RulesEdition
   ): { success: boolean; dc: number; roll: number } {
-    const dc = Math.max(10, Math.floor(damage / 2))
-
-    // Delegate to centralized saving throw utility to ensure proficiency and bonuses are applied correctly
-    const result = rollSavingThrow(character, 'Constitution', dc)
-
-    return {
-      success: result.success,
-      dc,
-      roll: result.total
-    }
+    // Delegate to centralized checkConcentration to ensure consistent 2024 DC 30 capping, proficiency, and bonuses
+    return checkConcentration(character, damage, rulesEdition)
   }
 }

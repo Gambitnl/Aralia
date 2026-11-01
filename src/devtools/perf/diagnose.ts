@@ -2,11 +2,29 @@
  * @file diagnose.ts
  * Pure rules that turn the panel's numbers into a diagnosis.
  *
- * A gauge says "17.2 ms". A diagnosis says "17.2 ms is the display's 60 Hz
- * rhythm; the frame's real work is 11.3 ms on the GPU, so 5.4 ms (32%) is
- * still free". Remy asked for the second on 2026-09-29. Each rule here is a
- * plain function with no DOM and no three, so a test can pin it.
+ * Show measured contributors and missing coverage, not just an FPS gauge.
+ * Callback and page-work intervals share one clock; rolling CPU/GPU samples
+ * remain separate. Unobserved time is never assumed to be spare capacity.
+ * Each rule is independent of the DOM and three, so a test can pin it.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 18/10/2026, 14:31:23
+ * Dependents: devtools/perf/PerfOverlay.tsx, devtools/perf/index.ts, devtools/perf/perfSession.ts, devtools/perf/rendererProbe.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import type { FrameAttributionReading } from './frameAttribution';
 
 // ── 1. The vsync floor ────────────────────────────────────────────────────────
 
@@ -173,11 +191,68 @@ export function readWork(
     busiestMs: busiest.ms,
     busiestSide: busiest.side,
     serialMs: sides.length === 2 ? serial : null,
-    waitMs: vsync.locked ? Math.max(0, frameMeanMs - busiest.ms) : null,
+    // A pacing rhythm cannot distinguish display waiting from browser scheduling
+    // or GPU back-pressure. Keep the residual unavailable rather than name a cause.
+    waitMs: null,
     headroomMs: headroom,
     headroomShare: budgetMs > 0 ? headroom / budgetMs : null,
     budgetMs,
     gpuMeasured: gpuMs !== null,
+  };
+}
+
+/** Evidence for the summary, kept independent of renderer and browser APIs. */
+export interface PerformanceEvidence {
+  live: boolean;
+  frame: { samples: number; meanMs: number; p95Ms: number };
+  cpuMs: number | null;
+  gpu: { meanMs: number | null };
+  stalls: number;
+  passes: { name: string; depth: number; cpuMs: number; gpuMs: number | null }[];
+  operations?: { name: string; meanMs: number; p95Ms: number; samples: number; ageMs: number }[];
+  cpuParts?: { name: string; ms: number }[];
+  spans?: { name: string; ms: number }[];
+  attribution?: FrameAttributionReading | null;
+}
+
+/** Rank measured costs without treating submission time or triangle counts as GPU proof. */
+export function summarizePerformance(s: PerformanceEvidence, budgetMs: number): { headline: string; evidence: string; next: string; costly: string[]; pacingGap?: string; blockers?: string[]; reasons?: string[]; coverage?: string } {
+  const costly = s.passes.slice().sort((a, b) => b.cpuMs - a.cpuMs).slice(0, 3)
+    .map(p => `${p.name}: ${p.cpuMs.toFixed(2)} ms CPU${p.gpuMs === null ? '' : ` / ${p.gpuMs.toFixed(2)} ms GPU`}`);
+  if (!s.live) return { headline: 'Paused or stopped — last reading', evidence: 'Current throughput is unavailable.', next: 'Resume the surface in a visible tab before comparing.', costly };
+  if (s.frame.samples < 3) return { headline: 'Collecting evidence · low confidence', evidence: `${s.frame.samples} frame intervals; wait for at least 3.`, next: 'Keep the view and camera steady.', costly };
+  const cpu = s.cpuMs;
+  const gpu = s.gpu.meanMs;
+  const over = cpu !== null && cpu > budgetMs;
+  // Worker-prefixed readings time asynchronous execution, not the main-thread
+  // reply handler. Keep them visible separately without blaming input stalls.
+  const operations = (s.operations ?? []).filter(op => op.ageMs <= 2000 && op.samples > 0 && !op.name.startsWith('worker:')).sort((a,b)=>b.meanMs-a.meanMs);
+  const blocking = operations.find(op => op.meanMs > budgetMs);
+  // A reply handler can block the browser without being inside the render
+  // callback. Its measured cost must not disappear behind a "headroom" label.
+  const headline = blocking && blocking.meanMs > (cpu ?? 0) ? `${blocking.name} exceeds budget · measured` : over ? 'CPU callback exceeds budget · measured' : gpu !== null && gpu > budgetMs ? 'GPU passes exceed budget · measured' : s.frame.meanMs > budgetMs ? 'Slow frame pacing · cause unresolved' : 'Within frame budget · observed';
+  const gap = Math.max(0, s.frame.meanMs - Math.max(cpu ?? 0, gpu ?? 0));
+  const a=s.attribution;
+  const rows=a ? [{name:'Render callbacks and submissions',ms:a.callbackMs},...a.sources.map(row=>({name:row.name,ms:row.ms}))]
+    .filter(row=>row.ms>0.1).sort((x,y)=>y.ms-x.ms).slice(0,4) : [];
+  const reasons=rows.map((row,i)=>(i+1)+'. '+row.name+': '+row.ms.toFixed(1)+' ms/frame');
+  const coverage=a ? (a.browserCoverage==='long-animation-frame'
+    ? 'Browser coverage: long frames over 50 ms; named scripts over 5 ms. Message handlers, other animation callbacks and instrumented operations are also measured.'
+    : a.browserCoverage==='longtask' ? 'Browser coverage: long tasks over 50 ms; script source unavailable. Message handlers, other animation callbacks and instrumented operations are measured.'
+    : 'Browser script/rendering reports unavailable. Only render/message/animation callbacks and instrumented operations are covered.') : undefined;
+  return {
+    headline: a && a.unknownMs > budgetMs && a.unknownMs > Math.max(a.callbackMs,a.outsideScriptMs,a.browserRenderingMs)
+      ? 'Slow FPS · largest share still unexplained'
+      : a && a.sources[0]?.ms > a.callbackMs && a.sources[0].ms > budgetMs
+        ? 'Main cost outside render callback · measured' : headline,
+    reasons, coverage,
+    evidence: `${cpu === null ? 'CPU unavailable' : `CPU callback ${cpu.toFixed(1)} ms`}; ${gpu === null ? 'GPU duration unavailable' : `GPU passes ${gpu.toFixed(1)} ms`}. ${s.stalls}/${s.frame.samples} intervals >33.3 ms${s.stalls === s.frame.samples ? ' (sustained slow pacing, not isolated stalls)' : ''}.`,
+    next: blocking ? 'The named handler blocks input and rendering between frames. Optimize its work; do not add it to overlapping GPU/render clocks. Worker execution is separate.' : over ? 'Inspect top CPU passes and Causes. Renderer CPU includes submission and possible GPU waiting; use a browser trace to separate them.' : 'Inspect Causes and a browser trace for scheduling or main-thread work. Total worker utilization needs its own timer; triangle counts alone do not establish a bottleneck.',
+    pacingGap: a ? `Matched ${a.frames} intervals: ${a.meanFrameMs.toFixed(1)} ms/frame = callback ${a.callbackMs.toFixed(1)} + outside script ${a.outsideScriptMs.toFixed(1)} + browser rendering ${a.browserRenderingMs.toFixed(1)} + unexplained ${a.unknownMs.toFixed(1)} ms. GPU overlaps these times; unexplained is not proven idle.` : `Frame interval ${s.frame.meanMs.toFixed(1)} ms; gap beyond the longer measured render clock ≈ ${gap.toFixed(1)} ms. Different sampling windows: this is not measured idle time or spare capacity.`,
+    // Named spans explain work inside the callback even when each part is below
+    // budget. Together they can exhaust it; these are not independent totals.
+    blockers: [...(s.spans ?? []).filter(p => Number.isFinite(p.ms) && p.ms > 0.1).slice().sort((a,b) => b.ms-a.ms).slice(0,3).map(p => p.name + ': ' + p.ms.toFixed(1) + ' ms/frame inside CPU callback'), ...operations.slice(0,3).map(op=>`${op.name}: ${op.meanMs.toFixed(1)} ms/call · p95 ${op.p95Ms.toFixed(1)} · ${op.samples} calls in 2 s`), ...(s.cpuParts ?? []).filter(p=>p.ms>budgetMs).slice(0,2).map(p=>`${p.name}: ${p.ms.toFixed(1)} ms/rendered frame`)],
+    costly,
   };
 }
 

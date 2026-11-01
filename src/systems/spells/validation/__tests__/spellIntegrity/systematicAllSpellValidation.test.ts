@@ -1,4 +1,7 @@
 import { describe, it, expect } from 'vitest';
+import fs from 'fs';
+import path from 'path';
+import ts from 'typescript';
 import {
   RESTRICTED_FILTER_KEYS,
   SpellIntegrityValidator,
@@ -11,6 +14,116 @@ import tinyServant from '@/data/spells/level-3/tiny-servant.json';
 import { filterReviewedMonolithicClearance, getSpells } from './spellFixtures';
 
 // Split from SpellIntegrityValidator.test.ts — suite overview lives in ./spellFixtures.ts.
+
+// Read the overview itself, not a second hand-maintained rule list. Discover
+// real test registrations with the TypeScript parser so comments, quoted code,
+// formatting, and nested assertion callbacks cannot masquerade as live gates.
+function discoverAllLevelGates(source: string) {
+  const file = ts.createSourceFile('systematicAllSpellValidation.test.ts', source, ts.ScriptTarget.Latest, true);
+  const gates: { title: string; start: number; end: number }[] = [];
+  const contains = (node: ts.Node, predicate: (child: ts.Node) => boolean): boolean =>
+    predicate(node) || (ts.forEachChild(node, child => contains(child, predicate) || undefined) ?? false);
+  const registrationRoot = (node: ts.Expression): string | undefined => {
+    if (ts.isIdentifier(node)) return node.text;
+    if (ts.isPropertyAccessExpression(node) || ts.isCallExpression(node)) {
+      return registrationRoot(node.expression);
+    }
+    return undefined;
+  };
+
+  const visit = (node: ts.Node) => {
+    if (ts.isCallExpression(node) && ['it', 'test'].includes(registrationRoot(node.expression) ?? '')) {
+      const titleNode = node.arguments[0];
+      const title = titleNode && ts.isStringLiteralLike(titleNode) ? titleNode.text : undefined;
+      const callback = node.arguments.find(argument => ts.isArrowFunction(argument) || ts.isFunctionExpression(argument));
+      // A named-spell lookup is an example, not an all-level scan. Other uses
+      // of allSpells cover the corpus, including exemption orphan checks and
+      // loop-based gates whose titles do not use the words "hard-fails".
+      const scansCorpus = callback && contains(callback, child =>
+        ts.isIdentifier(child) && child.text === 'allSpells'
+        && !(ts.isPropertyAccessExpression(child.parent) && child.parent.name.text === 'find')
+      );
+      if (scansCorpus || title?.startsWith('hard-fails ')) {
+        if (!title) throw new Error('All-level gate needs a literal test title for the overview.');
+        if (!ts.isIdentifier(node.expression) || !callback) {
+          throw new Error(`All-level gate must be an active, unconditional test: ${title}`);
+        }
+        if (!contains(callback, child => ts.isCallExpression(child)
+          && ts.isIdentifier(child.expression) && child.expression.text === 'expect')) {
+          throw new Error(`All-level gate has no assertion: ${title}`);
+        }
+        gates.push({ title, start: node.getStart(file), end: node.end });
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(file);
+  return gates;
+}
+
+function assertAllLevelOverviewMatches(overview: string, source: string) {
+  const begin = ' * BEGIN ALL-LEVEL HARD GATES';
+  const end = ' * END ALL-LEVEL HARD GATES';
+  expect(overview.split(begin), 'Overview must have exactly one gate list.').toHaveLength(2);
+  expect(overview.split(end), 'Overview must have exactly one gate-list ending.').toHaveLength(2);
+  const section = overview.split(begin)[1].split(end)[0];
+  const entries = section.split(/\r?\n/).filter(line => line.trim());
+  const titles = entries.map(line => {
+    const entry = /^ \* - `([^`]+)`: (\S.*)$/.exec(line);
+    if (!entry) throw new Error(`Malformed all-level overview entry: ${line}`);
+    return entry[1];
+  });
+  const gates = discoverAllLevelGates(source).map(gate => gate.title);
+  expect(titles.length, 'An empty overview cannot certify corpus coverage.').toBeGreaterThan(0);
+  expect(new Set(titles).size, 'Overview entries must not be duplicated.').toBe(titles.length);
+  expect(new Set(gates).size, 'All-level test titles must not be duplicated.').toBe(gates.length);
+  expect(titles.sort(), 'Overview and active all-level gates differ; update both intentionally.').toEqual(gates.sort());
+}
+
+describe('All-level spell suite overview consistency', () => {
+  const overview = fs.readFileSync(path.join(__dirname, 'spellFixtures.ts'), 'utf-8');
+  const source = fs.readFileSync(path.join(__dirname, 'systematicAllSpellValidation.test.ts'), 'utf-8');
+  const gates = discoverAllLevelGates(source);
+
+  it('matches the overview to actual all-level hard gates', () => {
+    assertAllLevelOverviewMatches(overview, source);
+  });
+
+  // These edits exist only in memory. A passing negative control means the
+  // same guard that checks the real suite rejected an independently changed
+  // gate or overview; no spell data or existing assertion is weakened.
+  it('rejects an added gate missing from the overview even without a hard-fails title', () => {
+    const added = `${source}\nit('new corpus rule', () => { allSpells.forEach(spell => expect(spell).toBeDefined()); });`;
+    expect(() => assertAllLevelOverviewMatches(overview, added)).toThrow(/Overview and active all-level gates differ/);
+  });
+
+  it.each(gates)('rejects removal of the live gate: $title', gate => {
+    const removed = source.slice(0, gate.start) + source.slice(gate.end);
+    expect(() => assertAllLevelOverviewMatches(overview, removed)).toThrow(/Overview and active all-level gates differ/);
+  });
+
+  it.each(gates)('rejects the missing overview entry: $title', gate => {
+    const missing = overview.split(/\r?\n/).filter(line => !line.startsWith(` * - \`${gate.title}\`:`)).join('\n');
+    expect(() => assertAllLevelOverviewMatches(missing, source)).toThrow(/Overview and active all-level gates differ/);
+  });
+
+  it('rejects a documented gate that is skipped instead of enforcing its assertion', () => {
+    const gate = gates[0];
+    const skipped = source.slice(0, gate.start) + 'it.skip' + source.slice(gate.start + 2);
+    expect(() => assertAllLevelOverviewMatches(overview, skipped)).toThrow(/active, unconditional test/);
+  });
+
+  it('rejects duplicate overview entries instead of hiding them in a set', () => {
+    const duplicated = overview.replace(' * END ALL-LEVEL HARD GATES',
+      ` * - \`${gates[0].title}\`: Duplicate rule.\n * END ALL-LEVEL HARD GATES`);
+    expect(() => assertAllLevelOverviewMatches(duplicated, source)).toThrow(/Overview entries must not be duplicated/);
+  });
+
+  it('ignores commented-out and quoted test registrations', () => {
+    const decoys = `${source}\n// it('hard-fails comment decoy', () => {});\nconst decoy = "it('hard-fails string decoy', () => {})";`;
+    assertAllLevelOverviewMatches(overview, decoys);
+  });
+});
 
 describe('SpellIntegrityValidator', () => {
 

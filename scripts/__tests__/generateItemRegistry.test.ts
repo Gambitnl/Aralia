@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { describe, it, expect } from 'vitest';
 import { convertEntryToItem, inferAccessorySlot } from '../generateItemRegistry';
+import { ItemType } from '../../src/types/items';
 
 /**
  * Acceptance checks for the mechanical conversion seam in
@@ -87,10 +88,62 @@ describe('convertEntryToItem — type mapping', () => {
     expect(out!.item.slot).toBeUndefined();
   });
 
+  // GG-576: every real 5eTools type now has a mapping, so this fixture uses a
+  // type name that the source data does not contain.
   it('defaults an unrecognized type to treasure', () => {
-    const out = convertEntryToItem(entry({ type: 'Trade Good', rarity: 'None' }));
+    const out = convertEntryToItem(entry({ type: 'Unlisted Fixture Type', rarity: 'None' }));
     expect(out!.item.type).toBe('treasure');
     expect(out!.item.slot).toBeUndefined();
+  });
+
+  // GG-543: the type test once matched substrings, and "Adventuring Gear"
+  // contains "ring". All 92 Adventuring Gear items (Book, Torch, Rope...)
+  // came out as Ring accessories. A type word must match as a whole word.
+  it('does not read the "ring" inside "Adventuring Gear" as a Ring', () => {
+    const out = convertEntryToItem(entry(
+      { type: 'Adventuring Gear', rarity: 'None', cost: 25, weight: 5 },
+      { id: 'book', title: 'Book' },
+    ));
+    // GG-576 gives the Book its own item type; it still has no slot.
+    expect(out!.item.type).toBe('book');
+    expect(out!.item.slot).toBeUndefined();
+  });
+
+  // GG-576: mundane 5eTools types map to the game's existing item types.
+  it('maps general Adventuring Gear to tool, as the hand-authored gear does', () => {
+    const out = convertEntryToItem(entry({ type: 'Adventuring Gear', rarity: 'None' }, { id: 'rope', title: 'Rope' }));
+    expect(out!.item.type).toBe('tool');
+    expect(out!.item.slot).toBeUndefined();
+  });
+
+  it('maps clothes to clothing in the Torso slot', () => {
+    const out = convertEntryToItem(entry(
+      { type: 'Adventuring Gear', rarity: 'None' },
+      { id: 'traveler_s_clothes', title: "Traveler's Clothes" },
+    ));
+    expect(out!.item.type).toBe('clothing');
+    expect(out!.item.slot).toBe('Torso');
+  });
+
+  it('maps whole mundane source types to game item types', () => {
+    const typeOf = (type: string) => convertEntryToItem(entry({ type, rarity: 'None' }))!.item.type;
+    expect(typeOf('Ammunition')).toBe('ammunition');
+    expect(typeOf('Instrument')).toBe('tool');
+    expect(typeOf('Food and Drink')).toBe('food_drink');
+    expect(typeOf('Scroll')).toBe('scroll');
+    expect(typeOf('Trade Good')).toBe('crafting_material');
+    expect(typeOf('Mount')).toBe('mount');
+    expect(typeOf('Vehicle (Water)')).toBe('vehicle');
+  });
+
+  // GG-576 (Remy ruling 2026-11-02): worn foci keep a body slot, held foci go in MainHand.
+  it('gives a worn spellcasting focus its body slot and a held one MainHand', () => {
+    const focus = (id: string, title: string) =>
+      convertEntryToItem(entry({ type: 'Spellcasting Focus', rarity: 'None' }, { id, title }))!.item;
+    expect(focus('hat_of_wizardry', 'Hat of Wizardry')).toMatchObject({ type: 'spellcasting_focus', slot: 'Head' });
+    expect(focus('nature_s_mantle', "Nature's Mantle")).toMatchObject({ type: 'spellcasting_focus', slot: 'Cloak' });
+    expect(focus('amulet', 'Amulet')).toMatchObject({ type: 'spellcasting_focus', slot: 'Neck' });
+    expect(focus('orb', 'Orb')).toMatchObject({ type: 'spellcasting_focus', slot: 'MainHand' });
   });
 
   it('returns null for an entry without itemMetadata', () => {
@@ -320,12 +373,9 @@ describe('generated registry — acceptance (shape + duplicate ids)', () => {
   // stays accurate for both layouts without failing when one is absent.
   const SOURCE_DIRS = ['equipment', 'magic_items'].map((d) => path.join(ENTRIES_BASE, d));
 
-  const ALLOWED_TYPES = new Set([
-    'weapon', 'armor', 'accessory', 'clothing', 'consumable', 'potion',
-    'food_drink', 'poison_toxin', 'tool', 'light_source', 'ammunition',
-    'trap', 'note', 'book', 'map', 'scroll', 'key', 'spell_component',
-    'reagent', 'crafting_material', 'treasure',
-  ]);
+  // GG-576: read the game's own ItemType list. The hand-written copy that was
+  // here lacked 'service', which the Stabling item now uses.
+  const ALLOWED_TYPES = new Set<string>(Object.values(ItemType));
 
   function getAllJsonFiles(dirPath: string, out: string[] = []): string[] {
     if (!fs.existsSync(dirPath)) return out;

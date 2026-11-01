@@ -10,6 +10,9 @@ import { AppAction } from '../../actionTypes';
 import { BanterMoment, Companion } from '../../../types/companions';
 import type { PlayerCharacter } from '../../../types/character';
 import type { RecruitPayload } from '../../../systems/party/recruitTypes';
+import { generateNPC } from '../../../services/npcGenerator';
+import { COMPANIONS } from '../../../data/companions';
+import { promoteCompanionToMember } from '../../../systems/party/npcToPartyMember';
 
 describe('companionReducer', () => {
     const mockInitialState: GameState = {
@@ -123,6 +126,23 @@ describe('companionReducer — recruit / dismiss', () => {
         }) as unknown as GameState;
 
     describe('RECRUIT_COMPANION', () => {
+        it('retains the met authored NPC build at the common consent boundary without refreshing an active member', () => {
+            const person=structuredClone(COMPANIONS.elara_vance);
+            const npc=generateNPC({id:person.id,name:person.identity.name,role:'unique',classId:'cleric',level:1});
+            npc.stats.hp=3;
+            const payload=promoteCompanionToMember(person);
+            const state=baseState({companions:{[person.id]:person},generatedNpcs:{[person.id]:npc}});
+            const next=companionReducer(state,{type:'RECRUIT_COMPANION',payload});
+            expect(next.party![1].hp).toBe(3);
+            expect(next.party![1].finalAbilityScores).toEqual(npc.biography.abilityScores);
+            expect(next.party![1].equippedItems).toEqual(npc.equippedItems);
+            expect(next.companions![person.id]).toEqual({...person,inParty:true});
+            const injured={...next.party![1],hp:1,conditions:['exhaustion']};
+            const active={...state,...next,party:[state.party[0],injured]};
+            const repeated=companionReducer(active,{type:'RECRUIT_COMPANION',payload});
+            expect(repeated.party).toBe(active.party);
+            expect(repeated.party![1]).toBe(injured);
+        });
         it('appends to BOTH stores under one shared id (inParty:true)', () => {
             const next = companionReducer(baseState(), {
                 type: 'RECRUIT_COMPANION',
@@ -273,4 +293,27 @@ describe('companionReducer — romance hysteresis time advance', () => {
 
         expect(next).toEqual({});
     });
+});
+
+describe('atomic paid tavern currency', () => {
+  const payload=()=>({character:{id:'keeper',name:'Keeper',level:2},companion:{id:'keeper',identity:{name:'Keeper'},relationships:{}},source:'tavern',hireCostGp:30});
+  const fixture=()=>({gold:0.77,inventory:[{id:'gold_piece',quantity:35,sourceId:'cache9',acquiredAt:42,containerId:'pouch'}],party:[{id:'hero',name:'Hero'}],companions:{},messages:[],gameTime:new Date('0351-01-01T08:00:00Z')}) as unknown as GameState;
+  it('commits membership and face-value payment once, preserving unspent coin provenance', () => {
+    const before=fixture();const action={type:'RECRUIT_COMPANION',payload:payload()} as unknown as AppAction;
+    const after={...before,...companionReducer(before,action)};
+    expect(after.gold).toBe(0.77);
+    expect(after.inventory).toEqual([{...before.inventory[0],quantity:5}]);
+    expect(after.party.map(member=>member.id)).toEqual(['hero','keeper']);
+    expect(after.companions.keeper.inParty).toBe(true);
+    expect(companionReducer(after,action)).toEqual({});
+    expect(before.inventory[0].quantity).toBe(35);
+  });
+  it('rejects stale insufficient money without charging, joining or recording a false event', () => {
+    const before=fixture();before.inventory[0].quantity=29;
+    expect(companionReducer(before,{type:'RECRUIT_COMPANION',payload:payload()} as unknown as AppAction)).toEqual({});
+    expect(before.party).toHaveLength(1);expect(before.messages).toEqual([]);
+  });
+  it.each([NaN,Infinity,-1,0,15])('rejects invalid or changed paid quote %s', cost => {
+    expect(companionReducer(fixture(),{type:'RECRUIT_COMPANION',payload:{...payload(),hireCostGp:cost}} as unknown as AppAction)).toEqual({});
+  });
 });

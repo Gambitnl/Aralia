@@ -8,6 +8,10 @@ import { npcToPartyMember, promoteCompanionToMember } from '../../../systems/par
 import { handleStartBattleMapEncounter } from '../handleEncounter';
 import { CrimeType } from '../../../types/crime';
 import { registerActiveGroundCombatProvider } from '../../../systems/combat/fightInPlace/activeGroundCombatSession';
+import { COMPANIONS } from '../../../data/companions';
+import { createMockGameState } from '../../../utils/core/factories';
+import { OllamaService } from '../../../services/ollama';
+import { createEmptyMemory } from '../../../utils/world/memoryUtils';
 
 /**
  * This file protects NPC interaction behavior at the action-handler boundary.
@@ -109,6 +113,7 @@ vi.mock('../../../services/ttsService', () => ({
 // stays deterministic and makes no real model call.
 vi.mock('../../../services/ollama', () => ({
   OllamaService: {
+    isAvailable: vi.fn(async () => false),
     continueConversation: vi.fn(async () => ({ success: false, data: null, metadata: null })),
   },
 }));
@@ -159,6 +164,60 @@ describe('handleStartDialogue', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it.each(['npc_1', 'villager_generic'])('remembers a first meeting with an already registered NPC: %s', async (npcId) => {
+    await handleStartDialogue({
+      action: { type: 'talk', payload: { npcId } } as Action,
+      gameState: { ...mockGameState, generatedNpcs: { npc_1: generatedNpc } } as unknown as GameState,
+      dispatch: mockDispatch as unknown as Dispatch<AppAction>,
+      addMessage: mockAddMessage,
+      addGeminiLog: mockAddGeminiLog,
+      playPcmAudio: mockPlayPcmAudio,
+      playerContext: 'Test adventurer',
+      generalActionContext: 'Meeting a town resident',
+    });
+
+    expect(dispatchedPayload(mockDispatch, 'START_DIALOGUE_SESSION')).toEqual({ npcId, contactStatus: 'first-meeting' });
+    expect(dispatchedPayload(mockDispatch, 'ADD_MET_NPC')).toEqual({ npcId });
+    expect(dispatchedPayload(mockDispatch, 'ADD_NPC_KNOWN_FACT')).toMatchObject({
+      npcId, fact: { factKey: 'player_met_npc', timestamp: gameTime.getTime() },
+    });
+    expect(dispatchedTypes(mockDispatch).indexOf('ADD_NPC_KNOWN_FACT'))
+      .toBeLessThan(dispatchedTypes(mockDispatch).indexOf('START_DIALOGUE_SESSION'));
+    expect(dispatchedTypes(mockDispatch)).not.toContain('REGISTER_GENERATED_NPC');
+  });
+
+  it('refreshes a returning resident interaction without replacing their first meeting', async () => {
+    await handleStartDialogue({
+      action: { type: 'talk', payload: { npcId: 'npc_1' } } as Action,
+      gameState: { ...mockGameState, metNpcIds: ['npc_1'], generatedNpcs: { npc_1: generatedNpc }, npcMemory: { npc_1: { ...createEmptyMemory(), knownFacts: [{id:'retained-direct',text:'Met the adventurer.',source:'direct',isPublic:true,timestamp:gameTime.getTime()-60000,strength:3,lifespan:999,factKey:'player_met_npc'}] } } } as unknown as GameState,
+      dispatch: mockDispatch as unknown as Dispatch<AppAction>,
+      addMessage: mockAddMessage,
+      addGeminiLog: mockAddGeminiLog,
+      playPcmAudio: mockPlayPcmAudio,
+      playerContext: 'Test adventurer',
+      generalActionContext: 'Returning to a town resident',
+    });
+
+    expect(dispatchedTypes(mockDispatch)).not.toContain('ADD_NPC_KNOWN_FACT');
+    expect(dispatchedTypes(mockDispatch)).not.toContain('ADD_MET_NPC');
+    expect(dispatchedPayload(mockDispatch, 'UPDATE_NPC_INTERACTION_TIMESTAMP')).toEqual({
+      npcId: 'npc_1', timestamp: gameTime.getTime(),
+    });
+    expect(dispatchedPayload(mockDispatch, 'START_DIALOGUE_SESSION')).toEqual({ npcId: 'npc_1', contactStatus: 'returning' });
+  });
+
+  it('does not turn gossip or registry membership into a remembered conversation', async () => {
+    await handleStartDialogue({
+      action: { type: 'talk', payload: { npcId: 'npc_1' } } as Action,
+      gameState: { ...mockGameState, metNpcIds: ['npc_1'], generatedNpcs: { npc_1: generatedNpc }, npcMemory: { npc_1: { ...createEmptyMemory(), knownFacts: [{id:'gossip',text:'Heard about the adventurer.',source:'gossip',isPublic:true,timestamp:gameTime.getTime()-60000,strength:3,lifespan:999,factKey:'player_met_npc'}] } } } as unknown as GameState,
+      dispatch: mockDispatch as unknown as Dispatch<AppAction>, addMessage: mockAddMessage,
+      addGeminiLog: mockAddGeminiLog, playPcmAudio: mockPlayPcmAudio,
+      playerContext: 'Test adventurer', generalActionContext: 'First direct conversation',
+    });
+    expect(dispatchedPayload(mockDispatch, 'START_DIALOGUE_SESSION')).toEqual({ npcId:'npc_1', contactStatus:'first-meeting' });
+    expect(dispatchedTypes(mockDispatch)).toContain('ADD_NPC_KNOWN_FACT');
   });
 
   it('stamps interaction recency when first meeting a generated NPC', async () => {
@@ -505,6 +564,18 @@ describe('handleTalk recruit handoff', () => {
     expect(recruitPayload?.companion.id).toBe('kaelen');
   });
 
+  it('retains an authored companion refusal as an event without changing consent', async () => {
+    vi.mocked(evaluateRecruitOffer).mockReturnValue({willJoin:false,reason:'Elara needs to know you better.'});
+    await runTalk({type:'talk',targetId:'elara_vance',payload:{targetNpcId:'elara_vance',recruitOffer:{targetNpcId:'elara_vance'}}}, {
+      ...baseState, companions:{elara_vance:COMPANIONS.elara_vance}, metNpcIds:['elara_vance'],
+    });
+    expect(dispatchedPayload(mockDispatch as unknown as DispatchMock, 'ADD_COMPANION_MEMORY')).toMatchObject({
+      companionId:'elara_vance', memory:{type:'event',text:'Elara needs to know you better.',tags:['recruitment','refused'],timestamp:baseState.gameTime.getTime()},
+    });
+    expect(dispatchedTypes(mockDispatch as unknown as DispatchMock)).not.toContain('RECRUIT_COMPANION');
+    expect(dispatchedTypes(mockDispatch as unknown as DispatchMock)).not.toContain('UPDATE_COMPANION_APPROVAL');
+  });
+
   it('does not run the recruit pipeline when the talk action carries no recruit offer', async () => {
     const action = {
       type: 'talk',
@@ -521,6 +592,152 @@ describe('handleTalk recruit handoff', () => {
 // ============================================================================
 // Guard confrontation for a WANTED player (item 1)
 // ============================================================================
+describe('companion first meeting without a model', () => {
+  it('rejects remote public-activity talk and dialogue before any meeting or recruitment effects',async()=>{
+    const companion=structuredClone(COMPANIONS.elara_vance);
+    companion.publicActivity={version:1,sourceId:'companion-activity-v1:77:elara_vance',worldSeed:77,companionId:companion.id,
+      kind:'restoration-preparations',burgId:93,burgName:'Kytion',cellId:4413,locationId:'cell_4413',summary:'Preparing provisions.'};
+    companion.whereabouts={worldSeed:77,source:'world-activity',locationId:'cell_4413',observedAt:0,position:{xM:40,yM:5,zM:50}};
+    const gameState=createMockGameState({worldSeed:77,currentLocationId:'cell_4413',companions:{elara_vance:companion},
+      playerGroundPos:{tileX:4413,tileY:0,xM:10,yM:5,zM:50},metNpcIds:[]});
+    for(const handler of [handleTalk,handleStartDialogue]){
+      const dispatch=vi.fn<Dispatch<AppAction>>(),addMessage=vi.fn();
+      await handler({action:{type:'talk',label:'Talk',targetId:companion.id,payload:{npcId:companion.id,targetNpcId:companion.id,recruitOffer:{targetNpcId:companion.id,autoAccept:true}}} as Action,gameState,dispatch,
+        addMessage,addGeminiLog:vi.fn(),playPcmAudio:vi.fn(),playerContext:'Traveler',generalActionContext:'A distant nameplate'});
+      expect(dispatch).not.toHaveBeenCalled();expect(addMessage).toHaveBeenCalledWith(expect.stringContaining('Approach Elara Vance'),'system');
+      expect(evaluateRecruitOffer).not.toHaveBeenCalled();
+    }
+  });
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(OllamaService.isAvailable).mockResolvedValue(false);
+  });
+  const savedTime = new Date('2026-01-02T10:00:00Z');
+  async function meet(id: 'elara_vance' | 'kaelen_thorne', metNpcIds: string[] = [], memories = COMPANIONS[id].memories, questline = COMPANIONS[id].questline, facts: KnownFact[] = []) {
+    const dispatch = vi.fn<Dispatch<AppAction>>();
+    const companion = { ...COMPANIONS[id], memories, questline };
+    const state = createMockGameState({
+      gameTime: savedTime, companions: { [id]: companion }, metNpcIds,
+      npcMemory: { [id]: { ...createEmptyMemory(), knownFacts: facts } },
+      activeConversation: null, activeDialogueSession: null,
+    });
+    await handleTalk({
+      action: { type: 'talk', targetId: id, payload: { targetNpcId: id } },
+      gameState: state, dispatch, addMessage: vi.fn(), addGeminiLog: vi.fn(), playPcmAudio: vi.fn(),
+      playerContext: 'Mara Tanner', generalActionContext: 'A normal meeting in Serara',
+    });
+    return dispatch;
+  }
+
+  it('introduces Elara using public identity and ambition, records the meeting, and preserves consent', async () => {
+    const dispatch = await meet('elara_vance');
+    const payload = dispatchedPayload(dispatch, 'START_CONVERSATION') as { initialMessage: { text: string } };
+    expect(payload.initialMessage.text).toContain('Elara Vance');
+    expect(payload.initialMessage.text).toContain('cleric');
+    expect(payload.initialMessage.text).toContain('restore the desecrated Temple of the Morning');
+    expect(payload.initialMessage.text).not.toContain('paladin');
+    expect(dispatchedPayload(dispatch, 'ADD_NPC_KNOWN_FACT')).toMatchObject({
+      npcId: 'elara_vance', fact: { factKey: 'player_met_npc', timestamp: savedTime.getTime() },
+    });
+    expect(dispatchedPayload(dispatch, 'ADD_MET_NPC')).toEqual({npcId:'elara_vance'});
+    expect(dispatchedPayload(dispatch, 'ADD_DISCOVERED_FACT')).toMatchObject({
+      companionId: 'elara_vance', fact: {
+        id: 'elara_vance:public-goal:restore_temple', source: 'conversation',
+        fact: 'Restore the desecrated Temple of the Morning', discoveredAt: savedTime.getTime(),
+      },
+    });
+    expect(dispatchedTypes(dispatch)).not.toContain('RECRUIT_COMPANION');
+    expect(dispatchedTypes(dispatch)).not.toContain('UPDATE_COMPANION_APPROVAL');
+    expect(OllamaService.continueConversation).not.toHaveBeenCalled();
+  });
+
+  it('records direct confirmation when an existing met flag has only hearsay behind it', async () => {
+    const gossip:KnownFact={id:'earlier-hearsay',text:'Met Mara Tanner.',source:'gossip',sourceNpcId:'elara_vance',isPublic:true,timestamp:1,strength:2,lifespan:999,factKey:'player_met_npc'};
+    const dispatch=await meet('kaelen_thorne',['kaelen_thorne'],undefined,undefined,[gossip]);
+    expect(dispatchedPayload(dispatch,'ADD_NPC_KNOWN_FACT')).toMatchObject({npcId:'kaelen_thorne',fact:{source:'direct',factKey:'player_met_npc',timestamp:savedTime.getTime()}});
+    expect(dispatchedTypes(dispatch)).not.toContain('ADD_MET_NPC');
+    expect(dispatchedTypes(dispatch)).not.toContain('UPDATE_COMPANION_APPROVAL');
+  });
+
+  it('recognizes a returning person without replacing the first-meeting fact', async () => {
+    const dispatch = await meet('elara_vance', ['elara_vance'], undefined, undefined, [{id:'first-direct',text:'Met Mara Tanner.',source:'direct',isPublic:true,timestamp:savedTime.getTime()-60000,strength:3,lifespan:999,factKey:'player_met_npc'}]);
+    const payload = dispatchedPayload(dispatch, 'START_CONVERSATION') as { initialMessage: { text: string } };
+    expect(payload.initialMessage.text).toContain('recognizes you');
+    expect(dispatchedTypes(dispatch)).not.toContain('ADD_NPC_KNOWN_FACT');
+    expect(dispatchedTypes(dispatch)).not.toContain('ADD_MET_NPC');
+    expect(dispatchedPayload(dispatch, 'UPDATE_NPC_INTERACTION_TIMESTAMP')).toEqual({
+      npcId: 'elara_vance', timestamp: savedTime.getTime(),
+    });
+  });
+
+  it('recognizes a retained invitation without treating it as consent or a promise', async () => {
+    const dispatch = await meet('elara_vance', ['elara_vance'], [{
+      id:'prior-invitation',type:'event',text:'Elara declined.',tags:['recruitment','refused'],importance:7,timestamp:savedTime.getTime(),
+    }]);
+    const payload = dispatchedPayload(dispatch, 'START_CONVERSATION') as { initialMessage: { text: string } };
+    expect(payload.initialMessage.text).toContain('I remember your invitation to travel together.');
+    expect(dispatchedTypes(dispatch)).not.toContain('RECRUIT_COMPANION');
+  });
+
+  it('recalls an actual open preparations promise at a returning meeting', async () => {
+    const dispatch = await meet('elara_vance', ['elara_vance'], [{
+      id: 'promise', type: 'event', text: 'Mara promised supplies.', tags: ['elara_road_preparations', 'promise-open'], importance: 7, timestamp: savedTime.getTime(),
+    }], { id: 'elara_road_preparations', title: 'Road Preparations', currentStageId: 'collecting', stages: {} });
+    expect(dispatchedPayload(dispatch, 'START_CONVERSATION')).toMatchObject({
+      initialMessage: { text: expect.stringContaining('I am still counting on the road supplies you promised.') },
+    });
+  });
+
+  it('does not invent a promise from a chapter stage without its event memory', async () => {
+    const dispatch = await meet('elara_vance', ['elara_vance'], [], {
+      id: 'elara_road_preparations', title: 'Road Preparations', currentStageId: 'collecting', stages: {},
+    });
+    const payload = dispatchedPayload(dispatch, 'START_CONVERSATION') as { initialMessage: { text: string } };
+    expect(payload.initialMessage.text).not.toContain('supplies you promised');
+  });
+
+  it('does not reveal Kaelen’s secret debt or family search in a first introduction', async () => {
+    const dispatch = await meet('kaelen_thorne');
+    const payload = dispatchedPayload(dispatch, 'START_CONVERSATION') as { initialMessage: { text: string } };
+    expect(payload.initialMessage.text).toContain('Kaelen');
+    expect(payload.initialMessage.text).not.toMatch(/sister|debt|Zhentarim|Underdark/i);
+    expect(dispatchedTypes(dispatch)).not.toContain('ADD_DISCOVERED_FACT');
+  });
+
+  it('opens the authored greeting when model discovery never responds', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.mocked(OllamaService.isAvailable).mockImplementationOnce(() => new Promise(() => {}));
+      const pending = meet('elara_vance');
+      await vi.advanceTimersByTimeAsync(1500);
+      const dispatch = await pending;
+      expect(dispatchedPayload(dispatch, 'START_CONVERSATION')).toMatchObject({
+        initialMessage: { speakerId: 'elara_vance', text: expect.stringContaining('Temple of the Morning') },
+      });
+      expect(OllamaService.continueConversation).not.toHaveBeenCalled();
+    } finally { vi.useRealTimers(); }
+  });
+
+  it('ignores a model greeting that finishes after the authored introduction has opened', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.mocked(OllamaService.isAvailable).mockResolvedValueOnce(true);
+      let finish!: (result: Awaited<ReturnType<typeof OllamaService.continueConversation>>) => void;
+      vi.mocked(OllamaService.continueConversation).mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+      const pending = meet('elara_vance');
+      await vi.advanceTimersByTimeAsync(8000);
+      const dispatch = await pending;
+      const calls = dispatch.mock.calls.length;
+      finish({ success: true, data: { speakerId: 'elara_vance', text: 'Late greeting' } } as Awaited<ReturnType<typeof OllamaService.continueConversation>>);
+      await Promise.resolve();
+      expect(dispatch.mock.calls).toHaveLength(calls);
+      expect(dispatchedPayload(dispatch, 'START_CONVERSATION')).toMatchObject({
+        initialMessage: { text: expect.stringContaining('Temple of the Morning') },
+      });
+    } finally { vi.useRealTimers(); }
+  });
+});
+
 describe('handleTalk guard confrontation', () => {
   const gameTime = new Date(Date.UTC(2026, 6, 4, 10, 0, 0));
   const mockDispatch = vi.fn<(action: AppAction) => void>();
@@ -647,5 +864,17 @@ describe('handleTalk guard confrontation', () => {
     const elsewhere = { ...wantedCrime, locationId: 'far-city' };
     await runTalk(baseState({ notoriety: { globalHeat: 0, localHeat: {}, knownCrimes: [elsewhere], bounties: [] } }));
     expect(vi.mocked(handleStartBattleMapEncounter)).not.toHaveBeenCalled();
+  });
+});
+
+
+describe('generated resident Talk greeting snapshot', () => {
+  it.each([false,true])('keeps prior direct meeting=%s across contact recording', async returning => {
+    const knownFacts: KnownFact[] = returning ? [{id:'original',text:'Met Sana.',source:'direct',isPublic:true,timestamp:1,strength:3,lifespan:999,factKey:'player_met_npc'}] : [];
+    const state = createMockGameState({generatedNpcs:{npc_1:generatedNpc as unknown as GameState['generatedNpcs'][string]},companions:{},metNpcIds:returning?['npc_1']:[],npcMemory:{npc_1:{...createEmptyMemory(),knownFacts}}});
+    const dispatch = vi.fn<(action:AppAction)=>void>();
+    await handleTalk({action:{type:'talk',targetId:'npc_1',label:'Talk to resident'} as Action,gameState:state,dispatch,addMessage:vi.fn(),addGeminiLog:vi.fn(),playPcmAudio:vi.fn(async()=>undefined),playerContext:'Sana',generalActionContext:'Town Talk'});
+    expect(dispatchedPayload(dispatch,'START_DIALOGUE_SESSION')).toEqual({npcId:'npc_1',contactStatus:returning?'returning':'first-meeting'});
+    expect(dispatchedTypes(dispatch).filter(t=>t==='ADD_NPC_KNOWN_FACT')).toHaveLength(returning?0:1);
   });
 });

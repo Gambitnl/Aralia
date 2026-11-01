@@ -23,7 +23,7 @@ nobody overwrites anyone. Locks are advisory (honor-system) - cooperation is the
 - **Start it:** `npm run agora`
 - **Full API + worker etiquette:** [`tools/agora/PROTOCOL.md`](../../tools/agora/PROTOCOL.md)
 - **Running a multi-agent campaign (ORCHESTRATORS start here):** [`tools/agora/ORCHESTRATOR.md`](../../tools/agora/ORCHESTRATOR.md) - ties the board + agent matrix + this tracker together, end to end
-- **Design spec:** [`docs/superpowers/specs/2026-06-27-agora-agent-coordination-design.md`](superpowers/specs/2026-06-27-agora-agent-coordination-design.md)
+- **Design spec:** [`tools/agora/AGENT.md`](../../tools/agora/AGENT.md) - the 2026-06-27 dated design spec (docs/superpowers/specs) was retired into git history by the 2026-09 dated-docs consolidation (removed in 4448b9d97); PROTOCOL.md + AGENT.md are the living design record
 - **Etiquette loop:** **register** on arrival -> **lock** paths before editing (and check
   `/locks` before any risky `git reset`/`checkout`) -> **announce** (post a task / `say`) ->
   **release** locks + mark task done when finished. Heartbeat occasionally.
@@ -32,110 +32,111 @@ nobody overwrites anyone. Locks are advisory (honor-system) - cooperation is the
 
 | Project | North Star |
 |---|---|
-| Whole-Game Systems Audit and Gap Resolution | [F:/Repos/Aralia/docs/projects/game-systems-audit/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/game-systems-audit/NORTH_STAR.md) |
-| Combat System | [F:/Repos/Aralia/docs/projects/combat/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/combat/NORTH_STAR.md) |
-| Companions System | [F:/Repos/Aralia/docs/projects/companions/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/companions/NORTH_STAR.md) |
-| Crafting System | [F:/Repos/Aralia/docs/projects/crafting/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/crafting/NORTH_STAR.md) |
-| Creatures System | [F:/Repos/Aralia/docs/projects/creatures/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/creatures/NORTH_STAR.md) |
-| Crime System | [F:/Repos/Aralia/docs/projects/crime/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/crime/NORTH_STAR.md) |
-| Economy System | [F:/Repos/Aralia/docs/projects/economy/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/economy/NORTH_STAR.md) |
-| Environment System | [F:/Repos/Aralia/docs/projects/environment/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/environment/NORTH_STAR.md) |
-| Events System | [F:/Repos/Aralia/docs/projects/events/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/events/NORTH_STAR.md) |
-| History System | [F:/Repos/Aralia/docs/projects/history/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/history/NORTH_STAR.md) |
-| Intrigue System | [F:/Repos/Aralia/docs/projects/intrigue/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/intrigue/NORTH_STAR.md) |
-| Logic System | [F:/Repos/Aralia/docs/projects/logic/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/logic/NORTH_STAR.md) |
-| Memory System | [F:/Repos/Aralia/docs/projects/memory/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/memory/NORTH_STAR.md) |
-| Naval System | [F:/Repos/Aralia/docs/projects/naval/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/naval/NORTH_STAR.md) |
-| Physics System | [F:/Repos/Aralia/docs/projects/physics/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/physics/NORTH_STAR.md) |
-| Planar System | [F:/Repos/Aralia/docs/projects/planar/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/planar/NORTH_STAR.md) |
-| Puzzles System | [F:/Repos/Aralia/docs/projects/puzzles/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/puzzles/NORTH_STAR.md) |
-| Quests System | [F:/Repos/Aralia/docs/projects/quests/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/quests/NORTH_STAR.md) |
-| Religion System | [F:/Repos/Aralia/docs/projects/religion/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/religion/NORTH_STAR.md) |
-| Rituals System | [F:/Repos/Aralia/docs/projects/rituals/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/rituals/NORTH_STAR.md) |
-| Spells Parent | [F:/Repos/Aralia/docs/projects/spells/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/spells/NORTH_STAR.md) |
-| Time System | [F:/Repos/Aralia/docs/projects/time/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/time/NORTH_STAR.md) |
-| Travel System | [F:/Repos/Aralia/docs/projects/travel/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/travel/NORTH_STAR.md) |
-| Underdark System | [F:/Repos/Aralia/docs/projects/underdark/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/underdark/NORTH_STAR.md) |
-| Visibility System | [F:/Repos/Aralia/docs/projects/visibility/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/visibility/NORTH_STAR.md) |
-| World System | [F:/Repos/Aralia/docs/projects/world/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/world/NORTH_STAR.md) |
-| World 3D System | [F:/Repos/Aralia/docs/projects/world3d/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/world3d/NORTH_STAR.md) |
-| Action Pane | [F:/Repos/Aralia/docs/projects/action-pane/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/action-pane/NORTH_STAR.md) |
-| Battle Map | [F:/Repos/Aralia/docs/projects/battle-map/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/battle-map/NORTH_STAR.md) |
-| Character Creator | [F:/Repos/Aralia/docs/projects/character-creator/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/character-creator/NORTH_STAR.md) |
-| Character Sheet | [F:/Repos/Aralia/docs/projects/character-sheet/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/character-sheet/NORTH_STAR.md) |
-| Compass Pane | [F:/Repos/Aralia/docs/projects/compass-pane/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/compass-pane/NORTH_STAR.md) |
-| Conversation Panel | [F:/Repos/Aralia/docs/projects/conversation-panel/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/conversation-panel/NORTH_STAR.md) |
-| Crafting UI | [F:/Repos/Aralia/docs/projects/crafting-ui/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/crafting-ui/NORTH_STAR.md) |
-| Crime UI | [F:/Repos/Aralia/docs/projects/crime-ui/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/crime-ui/NORTH_STAR.md) |
-| Demo Area | [F:/Repos/Aralia/docs/projects/demo-area/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/demo-area/NORTH_STAR.md) |
-| Design Preview | [F:/Repos/Aralia/docs/projects/design-preview/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/design-preview/NORTH_STAR.md) |
-| Design Preview Scenarios | [F:/Repos/Aralia/docs/projects/design-preview-scenarios/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/design-preview-scenarios/NORTH_STAR.md) |
-| Design Preview Scenarios / Cover Mechanics | [F:/Repos/Aralia/docs/projects/design-preview-scenarios/subprojects/cover-mechanics/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/design-preview-scenarios/subprojects/cover-mechanics/NORTH_STAR.md) |
-| Design Preview Scenarios / Darkvision & Senses | [F:/Repos/Aralia/docs/projects/design-preview-scenarios/subprojects/darkvision-senses/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/design-preview-scenarios/subprojects/darkvision-senses/NORTH_STAR.md) |
-| Design Preview Scenarios / Difficult Terrain | [F:/Repos/Aralia/docs/projects/design-preview-scenarios/subprojects/difficult-terrain/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/design-preview-scenarios/subprojects/difficult-terrain/NORTH_STAR.md) |
-| Design Preview Scenarios / Spell Concentration | [F:/Repos/Aralia/docs/projects/design-preview-scenarios/subprojects/spell-concentration/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/design-preview-scenarios/subprojects/spell-concentration/NORTH_STAR.md) |
-| Design Preview Scenarios / Opportunity Attacks | [F:/Repos/Aralia/docs/projects/design-preview-scenarios/subprojects/opportunity-attacks/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/design-preview-scenarios/subprojects/opportunity-attacks/NORTH_STAR.md) |
-| Design Preview Scenarios / Resistance & Vulnerability | [F:/Repos/Aralia/docs/projects/design-preview-scenarios/subprojects/resistance-vulnerability/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/design-preview-scenarios/subprojects/resistance-vulnerability/NORTH_STAR.md) |
-| Dialogue | [F:/Repos/Aralia/docs/projects/dialogue/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/dialogue/NORTH_STAR.md) |
-| Dice | [F:/Repos/Aralia/docs/projects/dice/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/dice/NORTH_STAR.md) |
-| Economy UI | [F:/Repos/Aralia/docs/projects/economy-ui/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/economy-ui/NORTH_STAR.md) |
-| Encounter Generator | [F:/Repos/Aralia/docs/projects/encounter-generator/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/encounter-generator/NORTH_STAR.md) |
-| Glossary UI | [F:/Repos/Aralia/docs/projects/glossary-ui/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/glossary-ui/NORTH_STAR.md) |
-| Logbook | [F:/Repos/Aralia/docs/projects/logbook/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/logbook/NORTH_STAR.md) |
-| Naval UI | [F:/Repos/Aralia/docs/projects/naval-ui/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/naval-ui/NORTH_STAR.md) |
-| Organization | [F:/Repos/Aralia/docs/projects/organization/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/organization/NORTH_STAR.md) |
-| Party UI | [F:/Repos/Aralia/docs/projects/party-ui/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/party-ui/NORTH_STAR.md) |
-| Quest Log | [F:/Repos/Aralia/docs/projects/quest-log/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/quest-log/NORTH_STAR.md) |
-| SaveLoad | [F:/Repos/Aralia/docs/projects/saveload/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/saveload/NORTH_STAR.md) |
-| Submap and Tile-Grid Retirement | [F:/Repos/Aralia/docs/projects/submap/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/submap/NORTH_STAR.md) |
-| Trade UI | [F:/Repos/Aralia/docs/projects/trade-ui/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/trade-ui/NORTH_STAR.md) |
-| Town | [F:/Repos/Aralia/docs/projects/town/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/town/NORTH_STAR.md) |
-| ThreeD Modal | [F:/Repos/Aralia/docs/projects/three-d-modal/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/three-d-modal/NORTH_STAR.md) |
-| World 3D UI | [F:/Repos/Aralia/docs/projects/world-3d-ui/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/world-3d-ui/NORTH_STAR.md) |
-| Types UI | [F:/Repos/Aralia/docs/projects/types-ui/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/types-ui/NORTH_STAR.md) |
-| Layout | [F:/Repos/Aralia/docs/projects/layout/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/layout/NORTH_STAR.md) |
-| Providers | [F:/Repos/Aralia/docs/projects/providers/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/providers/NORTH_STAR.md) |
-| UI Primitives | [F:/Repos/Aralia/docs/projects/ui-primitives/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/ui-primitives/NORTH_STAR.md) |
-| Submap Generation | [F:/Repos/Aralia/docs/projects/submap-generation/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/submap-generation/NORTH_STAR.md) |
-| Command Base Runtime | [F:/Repos/Aralia/docs/projects/command-base-runtime/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/command-base-runtime/NORTH_STAR.md) |
-| Command Effects Runtime | [F:/Repos/Aralia/docs/projects/command-effects-runtime/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/command-effects-runtime/NORTH_STAR.md) |
-| Command Factory Runtime | [F:/Repos/Aralia/docs/projects/command-factory-runtime/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/command-factory-runtime/NORTH_STAR.md) |
-| Gemini Service | [F:/Repos/Aralia/docs/projects/gemini-service/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/gemini-service/NORTH_STAR.md) |
-| Ollama Service | [F:/Repos/Aralia/docs/projects/ollama-service/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/ollama-service/NORTH_STAR.md) |
-| RealmSmith Service | [F:/Repos/Aralia/docs/projects/realmsmith-service/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/realmsmith-service/NORTH_STAR.md) |
-| WorldSim Service | [F:/Repos/Aralia/docs/projects/worldsim-service/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/worldsim-service/NORTH_STAR.md) |
-| Scripts: archive | [F:/Repos/Aralia/docs/projects/scripts-archive/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/scripts-archive/NORTH_STAR.md) |
-| Scripts: audits | [F:/Repos/Aralia/docs/projects/scripts-audits/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/scripts-audits/NORTH_STAR.md) |
-| Scripts: git | [F:/Repos/Aralia/docs/projects/scripts-git/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/scripts-git/NORTH_STAR.md) |
-| Scripts: quality | [F:/Repos/Aralia/docs/projects/scripts-quality/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/scripts-quality/NORTH_STAR.md) |
-| Scripts: spell-runtime-template-audit | [F:/Repos/Aralia/docs/projects/scripts-spell-runtime-template-audit/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/scripts-spell-runtime-template-audit/NORTH_STAR.md) |
-| Scripts: tooling | [F:/Repos/Aralia/docs/projects/scripts-tooling/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/scripts-tooling/NORTH_STAR.md) |
-| Scripts: workflows | [F:/Repos/Aralia/docs/projects/scripts-workflows/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/scripts-workflows/NORTH_STAR.md) |
-| Script tests | [F:/Repos/Aralia/docs/projects/script-tests/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/script-tests/NORTH_STAR.md) |
-| Item Categorization | [F:/Repos/Aralia/docs/projects/item_categorization/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/item_categorization/NORTH_STAR.md) |
-| PHB 2024 Glossary Audit | [F:/Repos/Aralia/docs/projects/phb2024_glossary_audit/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/phb2024_glossary_audit/NORTH_STAR.md) |
-| Tiered Autosave | [F:/Repos/Aralia/docs/projects/tiered-autosave/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/tiered-autosave/NORTH_STAR.md) |
-| Town Description System | [F:/Repos/Aralia/docs/projects/town-description-system/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/town-description-system/NORTH_STAR.md) |
-| 3D Combat Map | [docs/superpowers/specs/2026-07-14-absorbed-3d-combat-map.md](../superpowers/specs/2026-07-14-absorbed-3d-combat-map.md) - absorbed into plan-map topic `combat-map-reskin` on 2026-07-15; the old `conductor/` path is gone, see [CONDUCTOR_RETIRED.md](CONDUCTOR_RETIRED.md) |
-| Action System Refactor | [F:/Repos/Aralia/docs/tasks/action-system-refactor/NORTH_STAR.md](F:/Repos/Aralia/docs/tasks/action-system-refactor/NORTH_STAR.md) |
-| Architecture Sweep | [F:/Repos/Aralia/docs/tasks/architecture/NORTH_STAR.md](F:/Repos/Aralia/docs/tasks/architecture/NORTH_STAR.md) |
-| Combat Messaging Enhancement | [F:/Repos/Aralia/docs/tasks/combat-messaging-enhancement/NORTH_STAR.md](F:/Repos/Aralia/docs/tasks/combat-messaging-enhancement/NORTH_STAR.md) |
-| Combat Scenario Tester | [F:/Repos/Aralia/docs/tasks/combat-scenario-tester/NORTH_STAR.md](F:/Repos/Aralia/docs/tasks/combat-scenario-tester/NORTH_STAR.md) |
-| Code Modularization Audit | [F:/Repos/Aralia/docs/projects/code-modularization-audit/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/code-modularization-audit/NORTH_STAR.md) |
-| Documentation Cleanup | [F:/Repos/Aralia/docs/projects/documentation-cleanup/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/documentation-cleanup/NORTH_STAR.md) |
-| Feature Capabilities | [F:/Repos/Aralia/docs/tasks/feature-capabilities/NORTH_STAR.md](F:/Repos/Aralia/docs/tasks/feature-capabilities/NORTH_STAR.md) |
-| Glossary | [F:/Repos/Aralia/docs/tasks/glossary/NORTH_STAR.md](F:/Repos/Aralia/docs/tasks/glossary/NORTH_STAR.md) |
-| Spells / Spell Completeness Audit subproject | [F:/Repos/Aralia/docs/projects/spells/subprojects/spell-completeness-audit/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/spells/subprojects/spell-completeness-audit/NORTH_STAR.md) |
-| Spells / Structured Spell Execution subproject | [F:/Repos/Aralia/docs/projects/spells/subprojects/structured-spell-execution/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/spells/subprojects/structured-spell-execution/NORTH_STAR.md) |
-| Testing Overhaul | [F:/Repos/Aralia/docs/tasks/testing-overhaul/NORTH_STAR.md](F:/Repos/Aralia/docs/tasks/testing-overhaul/NORTH_STAR.md) |
-| UI Features | [F:/Repos/Aralia/docs/tasks/ui-features/NORTH_STAR.md](F:/Repos/Aralia/docs/tasks/ui-features/NORTH_STAR.md) |
-| Weapon Proficiency System | [F:/Repos/Aralia/docs/tasks/weapon-proficiency-system/NORTH_STAR.md](F:/Repos/Aralia/docs/tasks/weapon-proficiency-system/NORTH_STAR.md) |
-| Investigation Task Cluster | [F:/Repos/Aralia/docs/tasks/investigations/NORTH_STAR.md](F:/Repos/Aralia/docs/tasks/investigations/NORTH_STAR.md) |
-| Item Icons | [F:/Repos/Aralia/docs/tasks/item-icons/NORTH_STAR.md](F:/Repos/Aralia/docs/tasks/item-icons/NORTH_STAR.md) |
-| Roadmap Maintenance | [F:/Repos/Aralia/docs/tasks/roadmap/NORTH_STAR.md](F:/Repos/Aralia/docs/tasks/roadmap/NORTH_STAR.md) |
-| Racial Mechanics / Race Hierarchy | [F:/Repos/Aralia/docs/projects/racial-mechanics/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/racial-mechanics/NORTH_STAR.md) |
-| Spells / Spell Phase Workstream merged reference | [F:/Repos/Aralia/docs/projects/spells/subprojects/structured-spell-execution/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/spells/subprojects/structured-spell-execution/NORTH_STAR.md) |
-| Worldforge (flagship) | [F:/Repos/Aralia/docs/superpowers/specs/2026-07-14-absorbed-worldforge.md](F:/Repos/Aralia/docs/superpowers/specs/2026-07-14-absorbed-worldforge.md) |
+| Gameplay Flow | [docs/projects/gameplay-flow/NORTH_STAR.md](gameplay-flow/NORTH_STAR.md) - active integrated play loop: interactive towns, resident lives and memory, story exploration, companions, 3D presentation, and logical UI |
+| Whole-Game Systems Audit and Gap Resolution | [docs/architecture/domains/test-quality.md](../architecture/domains/test-quality.md) - absorbed 2026-07-16; planmap topic `whole-game-systems-audit` |
+| Combat System | [docs/architecture/domains/combat.md](../architecture/domains/combat.md) - absorbed 2026-07-16 |
+| Companions System | [docs/architecture/domains/npcs-companions.md](../architecture/domains/npcs-companions.md) - absorbed 2026-07-16 |
+| Crafting System | [docs/architecture/domains/crafting-economy.md](../architecture/domains/crafting-economy.md) - absorbed 2026-07-16 |
+| Creatures System | [docs/architecture/domains/creature-taxonomy.md](../architecture/domains/creature-taxonomy.md) - absorbed 2026-07-16 |
+| Crime System | [docs/architecture/domains/intrigue-crime.md](../architecture/domains/intrigue-crime.md) - absorbed 2026-07-16 |
+| Economy System | [docs/architecture/domains/crafting-economy.md](../architecture/domains/crafting-economy.md) - absorbed 2026-07-16 |
+| Environment System | [docs/architecture/domains/environment-physics.md](../architecture/domains/environment-physics.md) - absorbed 2026-07-16 |
+| Events System | [docs/architecture/domains/time-world-events.md](../architecture/domains/time-world-events.md) - absorbed 2026-07-16 |
+| History System | planmap `parked (2026-07-15, no link) · W09 Simulation time and environment · tracker row stale vs planmap: planmap has a dedicated parked topic, not just absorption into time-world-events |
+| Intrigue System | [docs/architecture/domains/intrigue-crime.md](../architecture/domains/intrigue-crime.md) - absorbed 2026-07-16 |
+| Logic System | planmap `parked (2026-07-15, no link) · W-step unconfirmed (core/game-logic rules have no clean single-wave home; W05 character mechanics or W09 simulation both partial-fit) · parked pending W-step ruling |
+| Memory System | planmap `done (4/4 features, 2026-07-09 handover) · absorbed into npcs-companions.md · tracker 'partial' label stale: planmap says done |
+| Naval System | planmap `parked (2026-07-15, no link) · W08 Extended travel and realms (with Planar/Underdark) · tracker 'partial' label stale vs planmap parked |
+| Physics System | planmap `parked (2026-07-15, no link) · W09 Simulation time and environment (with Time) · tracker 'partial' label stale vs planmap parked |
+| Planar System | planmap `parked (2026-07-15, no link) · W08 Extended travel and realms (with Naval/Underdark) · tracker 'partial' label stale vs planmap parked |
+| Puzzles System | [docs/architecture/domains/puzzles-quests-rituals.md](../architecture/domains/puzzles-quests-rituals.md) - absorbed 2026-07-16 |
+| Quests System | [docs/architecture/domains/puzzles-quests-rituals.md](../architecture/domains/puzzles-quests-rituals.md) - absorbed 2026-07-16 |
+| Religion System | planmap `parked (2026-07-15, no link) · W07 Factions crime and faith (with Rituals) · parked pending build decision |
+| Rituals System | planmap `done (4/4 features: schema, manager fixture, executor routing, battle-map progress) · absorbed into puzzles-quests-rituals.md · tracker 'partial' label stale: planmap says done |
+| Spells Parent | [docs/projects/spells/NORTH_STAR.md](spells/NORTH_STAR.md) |
+| Time System | planmap `active (4/5 features done: G1 time contract, G3 seasons, G4 rest/day-boundary, G5 dialogue day-part; G2 day-boundary test done) · W09 Simulation time and environment · tracker 'partial' label stale vs planmap active |
+| Travel System | [docs/architecture/domains/overland-travel.md](../architecture/domains/overland-travel.md) - absorbed 2026-07-16 |
+| Underdark System | planmap `done (1/1: magical_darkness on UnderdarkBiome) · absorbed into naval-underdark.md · tracker 'partial' label stale: planmap says done |
+| Visibility System | planmap `done (1/1: ambientLight on BattleMapData) · absorbed into battle-map.md · tracker 'partial' label stale: planmap says done |
+| World System | [docs/architecture/domains/world-map.md](../architecture/domains/world-map.md) - absorbed 2026-07-16 |
+| World 3D System | [docs/architecture/domains/streamed-3d-world.md](../architecture/domains/streamed-3d-world.md) - absorbed 2026-07-16 |
+| Action Pane | [docs/architecture/domains/ui-modals.md](../architecture/domains/ui-modals.md) - absorbed 2026-07-16 |
+| Battle Map | [docs/architecture/domains/battle-map.md](../architecture/domains/battle-map.md) - absorbed 2026-07-16 |
+| Character Creator | [docs/architecture/domains/character-creator.md](../architecture/domains/character-creator.md) - absorbed 2026-07-16 |
+| Character Sheet | [docs/architecture/domains/character-sheet.md](../architecture/domains/character-sheet.md) - absorbed 2026-07-16 |
+| Compass Pane | [docs/architecture/domains/world-map.md](../architecture/domains/world-map.md) - absorbed 2026-07-16 |
+| Conversation Panel | [docs/architecture/domains/npcs-companions.md](../architecture/domains/npcs-companions.md) - absorbed 2026-07-16 |
+| Crafting UI | [docs/architecture/domains/crafting-economy.md](../architecture/domains/crafting-economy.md) - absorbed 2026-07-16 |
+| Crime UI | [docs/architecture/domains/intrigue-crime.md](../architecture/domains/intrigue-crime.md) - absorbed 2026-07-16 |
+| Demo Area | [docs/architecture/domains/design-preview-navigation.md](../architecture/domains/design-preview-navigation.md) - reference artifact |
+| Design Preview | [docs/architecture/domains/design-preview-navigation.md](../architecture/domains/design-preview-navigation.md) - absorbed 2026-07-16 |
+| Design Preview Scenarios | [docs/architecture/domains/design-preview-navigation.md](../architecture/domains/design-preview-navigation.md) - absorbed 2026-07-16 |
+| Design Preview Scenarios / Cover Mechanics | [docs/architecture/domains/battle-map.md](../architecture/domains/battle-map.md) - absorbed 2026-07-16 |
+| Design Preview Scenarios / Darkvision & Senses | [docs/architecture/domains/battle-map.md](../architecture/domains/battle-map.md) - absorbed 2026-07-16 |
+| Design Preview Scenarios / Difficult Terrain | [docs/architecture/domains/battle-map.md](../architecture/domains/battle-map.md) - absorbed 2026-07-16 |
+| Design Preview Scenarios / Spell Concentration | [docs/architecture/domains/spells.md](../architecture/domains/spells.md) - absorbed 2026-07-16 |
+| Design Preview Scenarios / Opportunity Attacks | [docs/architecture/domains/combat.md](../architecture/domains/combat.md) - absorbed 2026-07-16 |
+| Design Preview Scenarios / Resistance & Vulnerability | [docs/architecture/domains/combat.md](../architecture/domains/combat.md) - absorbed 2026-07-16 |
+| Dialogue | [docs/architecture/domains/npcs-companions.md](../architecture/domains/npcs-companions.md) - absorbed 2026-07-16 |
+| Dice | [docs/architecture/domains/core-systems.md](../architecture/domains/core-systems.md) - absorbed 2026-07-16; project folder at `docs/projects/dice` |
+| Economy UI | [docs/architecture/domains/crafting-economy.md](../architecture/domains/crafting-economy.md) - absorbed 2026-07-16 |
+| Encounter Generator | [docs/architecture/domains/creature-taxonomy.md](../architecture/domains/creature-taxonomy.md) - absorbed 2026-07-16 |
+| Glossary UI | [docs/architecture/domains/glossary.md](../architecture/domains/glossary.md) - absorbed 2026-07-16 |
+| Logbook | [docs/architecture/domains/puzzles-quests-rituals.md](../architecture/domains/puzzles-quests-rituals.md) - absorbed 2026-07-16 |
+| Naval UI | [docs/architecture/domains/naval-underdark.md](../architecture/domains/naval-underdark.md) - absorbed 2026-07-16 |
+| Organization | [docs/architecture/domains/core-systems.md](../architecture/domains/core-systems.md) - absorbed 2026-07-16 |
+| Party UI | [docs/architecture/domains/npcs-companions.md](../architecture/domains/npcs-companions.md) - absorbed 2026-07-16 |
+| Quest Log | [docs/architecture/domains/puzzles-quests-rituals.md](../architecture/domains/puzzles-quests-rituals.md) - absorbed 2026-07-16 |
+| SaveLoad | [docs/architecture/domains/data-pipelines.md](../architecture/domains/data-pipelines.md) - absorbed 2026-07-16 |
+| Submap and Tile-Grid Retirement | [docs/architecture/domains/submap.md](../architecture/domains/submap.md) - absorbed 2026-07-16; project folder at `docs/projects/submap` |
+| Trade UI | [docs/architecture/domains/items-trade-inventory.md](../architecture/domains/items-trade-inventory.md) - absorbed 2026-07-16 |
+| Town | [docs/architecture/domains/town-map.md](../architecture/domains/town-map.md) - absorbed 2026-07-16 |
+| ThreeD Modal | [docs/architecture/domains/streamed-3d-world.md](../architecture/domains/streamed-3d-world.md) - absorbed into World 3D UI 2026-06-10 (D5) |
+| World 3D UI | [docs/architecture/domains/streamed-3d-world.md](../architecture/domains/streamed-3d-world.md) - absorbed 2026-07-16 |
+| Types UI | [docs/architecture/domains/ui-modals.md](../architecture/domains/ui-modals.md) - absorbed 2026-07-16 |
+| Layout | [docs/architecture/domains/ui-modals.md](../architecture/domains/ui-modals.md) - absorbed 2026-07-16 |
+| Providers | [docs/architecture/domains/ui-modals.md](../architecture/domains/ui-modals.md) - absorbed 2026-07-16 |
+| UI Primitives | [docs/architecture/domains/ui-modals.md](../architecture/domains/ui-modals.md) - absorbed 2026-07-16 |
+| Submap Generation | [docs/architecture/domains/submap.md](../architecture/domains/submap.md) - absorbed 2026-07-16 |
+| Command Base Runtime | [docs/architecture/domains/commands.md](../architecture/domains/commands.md) - absorbed 2026-07-16 |
+| Command Effects Runtime | [docs/architecture/domains/commands.md](../architecture/domains/commands.md) - absorbed 2026-07-16 |
+| Command Factory Runtime | [docs/architecture/domains/commands.md](../architecture/domains/commands.md) - absorbed 2026-07-16 |
+| Gemini Service | [docs/architecture/domains/data-pipelines.md](../architecture/domains/data-pipelines.md) - absorbed 2026-07-16 |
+| Ollama Service | [docs/architecture/domains/data-pipelines.md](../architecture/domains/data-pipelines.md) - absorbed 2026-07-16 |
+| RealmSmith Service | [docs/architecture/domains/data-pipelines.md](../architecture/domains/data-pipelines.md) - absorbed 2026-07-16 |
+| WorldSim Service | [docs/architecture/domains/data-pipelines.md](../architecture/domains/data-pipelines.md) - absorbed 2026-07-16 |
+| Scripts: archive | [docs/architecture/domains/test-quality.md](../architecture/domains/test-quality.md) - absorbed 2026-07-16 |
+| Scripts: audits | [docs/architecture/domains/test-quality.md](../architecture/domains/test-quality.md) - absorbed 2026-07-16 |
+| Scripts: git | [docs/architecture/domains/developer-environment.md](../architecture/domains/developer-environment.md) - absorbed 2026-07-16 |
+| Scripts: quality | [docs/architecture/domains/test-quality.md](../architecture/domains/test-quality.md) - absorbed 2026-07-16 |
+| Scripts: spell-runtime-template-audit | [docs/architecture/domains/test-quality.md](../architecture/domains/test-quality.md) - absorbed 2026-07-16 |
+| Scripts: tooling | [docs/architecture/domains/developer-environment.md](../architecture/domains/developer-environment.md) - absorbed 2026-07-16 |
+| Scripts: workflows | [docs/architecture/domains/developer-environment.md](../architecture/domains/developer-environment.md) - absorbed 2026-07-16 |
+| Script tests | [docs/architecture/domains/test-quality.md](../architecture/domains/test-quality.md) - absorbed 2026-07-16 |
+| Item Categorization | [docs/architecture/domains/items-trade-inventory.md](../architecture/domains/items-trade-inventory.md) - absorbed 2026-07-16 |
+| PHB 2024 Glossary Audit | [docs/architecture/domains/glossary-data.md](../architecture/domains/glossary-data.md) - archived reference-only per D24 |
+| Tiered Autosave | [docs/architecture/domains/data-pipelines.md](../architecture/domains/data-pipelines.md) - absorbed 2026-07-16 |
+| Town Description System | [docs/architecture/domains/town-map.md](../architecture/domains/town-map.md) - absorbed 2026-07-16 |
+| 3D Combat Map | [docs/architecture/domains/battle-map.md](../architecture/domains/battle-map.md) - absorbed into plan-map topic `combat-map-reskin` on 2026-07-15; the dated absorbed-3d-combat-map spec was retired into git history by the 2026-09 dated-docs consolidation (removed in 4448b9d97); the old `conductor/` path is gone, see [CONDUCTOR_RETIRED.md](CONDUCTOR_RETIRED.md) |
+| Action System Refactor | [docs/tasks/action-system-refactor/NORTH_STAR.md](../tasks/action-system-refactor/NORTH_STAR.md) |
+| Architecture Sweep | [docs/archive/tasks/architecture/NORTH_STAR.md](../archive/tasks/architecture/NORTH_STAR.md) - archived task |
+| Combat Messaging Enhancement | [docs/tasks/combat-messaging-enhancement/NORTH_STAR.md](../tasks/combat-messaging-enhancement/NORTH_STAR.md) |
+| Combat Scenario Tester | [docs/tasks/combat-scenario-tester/NORTH_STAR.md](../tasks/combat-scenario-tester/NORTH_STAR.md) |
+| Code Modularization Audit | [docs/architecture/domains/technical-debt-scanner.md](../architecture/domains/technical-debt-scanner.md) - absorbed 2026-07-16 |
+| Documentation Cleanup | [docs/tasks/documentation-cleanup/NORTH_STAR.md](../tasks/documentation-cleanup/NORTH_STAR.md) |
+| Feature Capabilities | [docs/tasks/feature-capabilities/NORTH_STAR.md](../tasks/feature-capabilities/NORTH_STAR.md) |
+| Glossary | [docs/tasks/glossary/NORTH_STAR.md](../tasks/glossary/NORTH_STAR.md) |
+| Spells / Spell Completeness Audit subproject | [docs/projects/spells/subprojects/spell-completeness-audit/SPELL_COMPLETENESS_COVERAGE_SNAPSHOT.md](spells/subprojects/spell-completeness-audit/SPELL_COMPLETENESS_COVERAGE_SNAPSHOT.md) (parent: [spells/NORTH_STAR.md](spells/NORTH_STAR.md)) |
+| Spells / Structured Spell Execution subproject | [docs/tasks/spells/NORTH_STAR.md](../tasks/spells/NORTH_STAR.md) (parent: [spells/NORTH_STAR.md](spells/NORTH_STAR.md)) |
+| Testing Overhaul | [docs/tasks/testing-overhaul/NORTH_STAR.md](../tasks/testing-overhaul/NORTH_STAR.md) |
+| UI Features | [docs/tasks/ui-features/NORTH_STAR.md](../tasks/ui-features/NORTH_STAR.md) |
+| Weapon Proficiency System | [docs/tasks/weapon-proficiency-system/NORTH_STAR.md](../tasks/weapon-proficiency-system/NORTH_STAR.md) |
+| Investigation Task Cluster | [docs/tasks/investigations/NORTH_STAR.md](../tasks/investigations/NORTH_STAR.md) |
+| Item Icons | [docs/archive/tasks/item-icons/NORTH_STAR.md](../archive/tasks/item-icons/NORTH_STAR.md) - archived task |
+| Roadmap Maintenance | [docs/tasks/roadmap/NORTH_STAR.md](../tasks/roadmap/NORTH_STAR.md) |
+| Racial Mechanics / Race Hierarchy | [docs/architecture/domains/character-creator.md](../architecture/domains/character-creator.md) - absorbed 2026-07-16; parked planmap topic `racial-mechanics` |
+| Spells / Spell Phase Workstream merged reference | [docs/tasks/spells/NORTH_STAR.md](../tasks/spells/NORTH_STAR.md) |
+| Worldforge (flagship) | [docs/architecture/domains/region-terrain.md](../architecture/domains/region-terrain.md) - living home of the worldforge generation pipeline (`generateRegion`); companions: town-map.md + streamed-3d-world.md. The dated absorbed-worldforge spec was retired into git history by the 2026-09 dated-docs consolidation (removed in 4448b9d97; recover via `git show 4448b9d97^:docs/superpowers/specs/2026-07-14-absorbed-worldforge.md`) |
 
 ## North Star sanity check (2026-06-01)
 
@@ -176,7 +177,9 @@ duplicate project.
 
 All pending Required Review Briefs / `blocked_human_decision` items across
 `docs/projects/*` and `docs/tasks/*` were resolved by the owner on 2026-06-10;
-the master record is [DECISION_BLITZ_2026-06-10.md](DECISION_BLITZ_2026-06-10.md)
+the master record `DECISION_BLITZ_2026-06-10.md` was retired into git history by the
+2026-09 dated-docs consolidation (recover with
+`git show 4448b9d97^:docs/projects/DECISION_BLITZ_2026-06-10.md`)
 (decisions D1-D24 plus items converted to work). Guardrail and project rows
 below were refreshed accordingly - formerly review-blocked lanes now read as
 current. Several decisions follow the June 2026 campaign context recorded in
@@ -215,95 +218,95 @@ each row's Assignment rule cell is authoritative.
 | Project | Status | Confidence | Evidence | Gap signal | Living project protocol | Next step |
 |---|---|---|---|---|---|---|
 | Combat System (`combat`) | active | high | `src/systems/combat`, `src/components/Combat`, `src/utils/combat` | GAPS.md present; current behavior gaps resolved through G20/G23/G24/G25 and related rule slices; G30 decided 2026-06-10 - Code Modularization Audit owns the split plan, Combat contributes invariants/tests (D6) | implemented | contribute Combat invariants and tests for the `useAbilitySystem.ts`/`useCombatEngine.ts` split plan owned by Code Modularization Audit, before any code movement |
-| Companions System | active | high | `src/systems/companions` | GAPS.md present; G1 relationship-bound reaction filtering, G2 relationship scale alignment, G3 loyalty retention contract, G4 reaction queue/dedupe, G5 source/player-directed route contract, G7 shared ID-helper proof, G8 banter split contract, and G9 player-directed regression coverage resolved 2026-06-08; G6 decided 2026-06-10 - hysteresis romance exit (D10) | implemented | implement the G6 hysteresis romance-exit slice (romance survives temporary dips, exits after sustained low approval; threshold + duration specified in the slice) |
-| Crafting System | active | high | `src/systems/crafting`, `src/components/Crafting` | GAPS.md present; G1 dual-engine compatibility contract documented with broader regression proof in progress, G2 real crafter adapter, G3 material type/category fallback, G4 experiment damage routing, G7 alchemy drag/drop staging, G8 glossary missing-CR handling, G9 modularization split closed, G10 compatibility adapter proof expanded, G11 stacked reagent accounting resolved 2026-06-08, G12 batch/craftability quantity proof closed 2026-06-08, and G13 compatibility provenance follow-up completed 2026-06-08; G5 UX ownership review-blocked | implemented | next safe lane is G1 broader compatibility regression with explicit success/failure, full quality mapping, and unavailable-field coverage; keep G5 blocked until refining/enchanting placement is decided |
-| Creatures System | active | high | `src/systems/creatures`, `src/utils/world/encounterUtils.ts`, `src/services/geminiServiceFallback.ts` | GAPS.md present; G2 schema policy, G3 monster-count cap, and G1/CT-2 validator sharing resolved 2026-06-08; G4 decided 2026-06-10 - keep binary include/exclude targeting, hybrid semantics deferred (D11), docs-only closure | implemented | forward targeting work unblocked within the binary contract; keep CT-2 validated behavior unchanged |
-| Crime System | complete_for_current_gap_set | high | `src/systems/crime`, `src/components/Crime` | GAPS.md present; 0 open gaps after G1 expired-bounty cleanup, G2 fence outcome contract, G3 market utility ownership, G4 heat/severity boundary, G5 TODO/type-debt classification, and G6 suspect/report decision | implemented | run a fresh source-backed Crime gap scan before assigning more work |
-| Economy System | active | high | `src/systems/economy`, `src/components/Economy`, `src/components/Trade` | GAPS.md present; G2 booming route status model resolved 2026-06-08; G3 seed-route-region validation resolved 2026-06-08; G4 exchange/rule audit docs proof complete 2026-06-08; G5 market representation-fidelity check complete 2026-06-08; G1 typing contract cleanup complete 2026-06-08 | implemented | keep route-market event typing parity checks current as new market event sources are added |
-| Environment System | partial | high | `src/systems/environment` | GAPS.md present; G2 seeded replay, G3 terrain-rule ownership split, G4 weather-bridge typing, and G5 combat landing integration resolved 2026-06-09 | implemented | await the next Environment gap or a re-routed adjacent slice |
-| Events System | active | high | `src/systems/events` | GAPS.md present; G1 ordering, G2 replay snapshot/restore, G5 hit/crit fidelity, and G6 daily reducer merge proof resolved 2026-06-08; G3/G4 decided 2026-06-10 - keep split lanes, document the bridge with `combat_turn`/`world_day` markers (D8) | implemented | write the compatibility-envelope documentation slice with `combat_turn`/`world_day` marker docs; no shared scheduler this cycle |
-| History System | partial | high | `src/systems/history` | GAPS.md present | implemented | define retention and pruning policy |
-| Intrigue System | active | medium | `src/systems/intrigue` | GAPS.md present; I2 leverage-chain wiring completed 2026-06-15 (APPLY_LEVERAGE action, reducer, LeverageUI, tests) | implemented | resume I3: resolve rumor lead handling contract |
-| Logic System | partial | high | `src/systems/logic` | GAPS.md present | implemented | document canonical rule orchestration |
-| Memory System | partial | medium | `docs/projects/memory`, `src/systems/memory`, `src/utils/world/memoryUtils.ts` | GAPS.md present; G5 canonical formatter route resolved 2026-06-09; G4 social-check recency slice partially covered 2026-06-09; G1-G4 remain open | implemented | resume G4 action-to-memory coverage unless G1 schema normalization is needed first |
-| Naval System | partial | high | `src/systems/naval`, `src/components/Naval` | GAPS.md present | implemented | finalize voyage + encounter coupling |
-| Physics System | partial | high | `src/systems/physics` | GAPS.md present | implemented | verify collision and turn-timing assumptions |
-| Planar System | partial | high | `src/systems/planar` | GAPS.md present | implemented | define planar transition contracts |
-| Puzzles System | active | high | `src/systems/puzzles`, `src/components/puzzles` | GAPS.md present; PZ-002 hint helper resolved 2026-06-09; PZ-007 runtime surface closed 2026-06-27; PZ-003 key runtime contract closed 2026-06-27; PZ-004 runtime stat bridge closed 2026-06-27 | implemented; first puzzle hint caller wired; deterministic key matching available; runtime stat checks now prefer modern ability scores with legacy fallback | continue with PZ-005 map/BattleMap integration, PZ-006 skill challenge host ownership, or G6 puzzle registry discovery based on coordinator priority |
-| Quests System | partial | high | `src/systems/quests`, `src/components/QuestLog` | GAPS.md present | implemented | align quest schema with UI event model |
-| Religion System | partial | medium | `docs/projects/religion`, `src/systems/religion`, `src/components/Religion` | GAPS.md present; G1/G2/G3 resolved 2026-06-09; G4 decided 2026-06-10 - Rituals owns the backlash contract, Religion consumes the normalized result (D12); G5-G6 paused; schema wrapper refreshed 2026-06-09 | implemented | wait on Rituals backlash schema + consequence tests, then add Religion integration assertions |
-| Rituals System | partial | high | `src/systems/rituals` | GAPS.md present | implemented | define ritual cost/time/influence math |
-| Spells Parent | active | medium | `docs/projects/spells`, `docs/projects/spells/SUBPROJECTS.md`, `src/systems/spells` | 5 open / 9 total parent-visible spell gaps; child lanes own execution proof | implemented | choose the highest-impact child lane from SUBPROJECTS.md, then import only parent-visible routing or product gaps upward |
-| Time System | partial | high | `src/systems/time` | GAPS.md present | implemented | pin authoritative time semantics |
-| Travel System | active | high | `src/systems/travel`, `docs/projects/travel/` | 10 open gaps (G1-G10); cell-native travel integration gaps open | implemented | 2026-06-15 (Worker A): spike cell-native Voronoi-keyed travel/discovery model behind the existing grid (T4) |
-| Underdark System | partial | medium | `src/systems/underdark` | GAPS.md present | implemented | verify integration with geography + encounters |
-| Visibility System | partial | high | `src/systems/visibility` | GAPS.md present | implemented | confirm LOS/perception model assumptions |
-| World System | complete for World-owned scope | high | `src/systems/world`, `docs/projects/world`, `src/systems/world/WorldEventManager.ts`, `src/utils/world/worldGeographyAdapter.ts`, `src/hooks/actions/handleMovement.ts`, `src/hooks/actions/handleWorldEvents.ts`, `src/components/MapPane.tsx`, `src/state/__tests__/appState.worldGeographySnapshot.test.ts`, `src/state/__tests__/appState.worldStateShape.test.ts`, `src/state/reducers/worldReducer.ts`, `src/state/reducers/__tests__/worldReducer.test.ts`, `src/state/migrations/worldDataMigration.ts` | GAPS.md present; 0 open gaps after T2/T4/T5/T6/T7/T8/T9/T10/T11/T12/T13/T14/T15/T16/T17/T18; G1/G2/G3/G4/G5/G7/G9/G10 resolved and G6/G8/G11 routed 2026-06-18 | implemented | no active World-owned task remains; resume in WorldSim Service, Travel, Submap, or Global GG-29 owner lanes if following routed work |
-| World 3D System | active | high | `src/systems/world3d`, `src/components/World3D` | North Star + TRACKER + GAPS refreshed 2026-06-08; T6/T9/T14/T15/T16/T17/T18/T19 done; T7/W3D-G10 decided 2026-06-10 - requested LOD tier in the chunk-loader contract + skirt geometry for mixed-resolution seams (D4); T7 lane reopened | rendering works; W3D-G6/W3D-G9/W3D-G12/W3D-G19/W3D-G23/W3D-G24/W3D-G25/W3D-G26 remediated | implement the T7 LOD-in-loader-contract slice with skirt-geometry seam hiding |
+| Companions System | [docs/architecture/domains/npcs-companions.md](../architecture/domains/npcs-companions.md) - absorbed 2026-07-16 |
+| Crafting System | [docs/architecture/domains/crafting-economy.md](../architecture/domains/crafting-economy.md) - absorbed 2026-07-16 |
+| Creatures System | [docs/architecture/domains/creature-taxonomy.md](../architecture/domains/creature-taxonomy.md) - absorbed 2026-07-16 |
+| Crime System | [docs/architecture/domains/intrigue-crime.md](../architecture/domains/intrigue-crime.md) - absorbed 2026-07-16 |
+| Economy System | [docs/architecture/domains/crafting-economy.md](../architecture/domains/crafting-economy.md) - absorbed 2026-07-16 |
+| Environment System | [docs/architecture/domains/environment-physics.md](../architecture/domains/environment-physics.md) - absorbed 2026-07-16 |
+| Events System | [docs/architecture/domains/time-world-events.md](../architecture/domains/time-world-events.md) - absorbed 2026-07-16 |
+| History System | planmap `history` = parked (2026-07-15, no link) · W09 Simulation time and environment · tracker row stale vs planmap: planmap has a dedicated parked topic, not just absorption into time-world-events |
+| Intrigue System | [docs/architecture/domains/intrigue-crime.md](../architecture/domains/intrigue-crime.md) - absorbed 2026-07-16 |
+| Logic System | planmap `logic` = parked (2026-07-15, no link) · W-step unconfirmed (core/game-logic rules have no clean single-wave home; W05 character mechanics or W09 simulation both partial-fit) · parked pending W-step ruling |
+| Memory System | planmap `npc-memory-reconciliation` = done (4/4 features, 2026-07-09 handover) · absorbed into npcs-companions.md · tracker partial label stale: planmap says done |
+| Naval System | planmap `naval` = parked (2026-07-15, no link) · W08 Extended travel and realms (with Planar/Underdark) · tracker partial label stale vs planmap parked |
+| Physics System | planmap `physics` = parked (2026-07-15, no link) · W09 Simulation time and environment (with Time) · tracker partial label stale vs planmap parked |
+| Planar System | planmap `planar` = parked (2026-07-15, no link) · W08 Extended travel and realms (with Naval/Underdark) · tracker partial label stale vs planmap parked |
+| Puzzles System | [docs/architecture/domains/puzzles-quests-rituals.md](../architecture/domains/puzzles-quests-rituals.md) - absorbed 2026-07-16 |
+| Quests System | [docs/architecture/domains/puzzles-quests-rituals.md](../architecture/domains/puzzles-quests-rituals.md) - absorbed 2026-07-16 |
+| Religion System | planmap `religion` = parked (2026-07-15, no link) · W07 Factions crime and faith (with Rituals) · parked pending build decision |
+| Rituals System | planmap `rituals` = done (4/4 features: schema, manager fixture, executor routing, battle-map progress) · absorbed into puzzles-quests-rituals.md · tracker partial label stale: planmap says done |
+| Spells Parent | [docs/projects/spells/NORTH_STAR.md](spells/NORTH_STAR.md) |
+| Time System | planmap `generational-time` = active (4/5 features done: G1 time contract, G3 seasons, G4 rest/day-boundary, G5 dialogue day-part; G2 day-boundary test done) · W09 Simulation time and environment · tracker partial label stale vs planmap active |
+| Travel System | [docs/architecture/domains/overland-travel.md](../architecture/domains/overland-travel.md) - absorbed 2026-07-16 |
+| Underdark System | planmap `underdark` = done (1/1: magical_darkness on UnderdarkBiome) · absorbed into naval-underdark.md · tracker partial label stale: planmap says done |
+| Visibility System | planmap `visibility` = done (1/1: ambientLight on BattleMapData) · absorbed into battle-map.md · tracker partial label stale: planmap says done |
+| World System | [docs/architecture/domains/world-map.md](../architecture/domains/world-map.md) - absorbed 2026-07-16 |
+| World 3D System | [docs/architecture/domains/streamed-3d-world.md](../architecture/domains/streamed-3d-world.md) - absorbed 2026-07-16 |
 
 ## Feature/UI Projects (`src/components/*`)
 
 | Project | Status | Confidence | Evidence | Gap signal | Living project protocol | Next step |
 |---|---|---|---|---|---|---|
-| Action Pane | partial | medium | `src/components/ActionPane` | GAPS.md present | implemented | define action dispatch contract |
-| Battle Map | active | medium | `src/components/BattleMap` | GAPS.md present; G3 decided 2026-06-10 - keep the `useBattleMapGeneration.ts` filename, document the stateless utility contract (D17); G6 spawn scoring now assignable | implemented | document the utility contract per D17; G6 tactical spawn scoring is a bounded assignable slice |
-| Character Creator | active | high | `src/components/CharacterCreator` | 7 open gaps; G4, G7, G14, G15, G16, G17, and G20 resolved across 2026-06-24/25; G16 shared spell summary visuals are proven across class spell selection, Magic Initiate rows, and the Character Sheet spellbook list | implemented | pick the next unresolved Character Creator gap from TRACKER.md / GAPS.md |
-| Character Sheet | partial | high | `src/components/CharacterSheet` | GAPS.md present; G7 decided 2026-06-10 - durable `acquiredAt` acquisition-timestamp semantics on the item model (D16); implementation lane open | implemented | add `acquiredAt` to the item model, backfill/migrate inventory data, then implement food expiration from that source |
-| Compass Pane | active | medium | `src/components/CompassPane` | GAPS.md present; G1/G3/G4/G5/G6 resolved; 0 open project-owned gaps after context-toggle regression proof | implemented | run a fresh source-backed Compass Pane gap scan before assigning more forward work |
-| Conversation Panel | partial | medium | `src/components/ConversationPanel` | GAPS.md present | implemented | define dialogue state transitions |
-| Crafting UI | partial | medium | `src/components/Crafting` | GAPS.md present | implemented | reconcile with systems/crafting |
-| Crime UI | complete_for_current_gap_set | medium | `src/components/Crime` | 0 open gaps; G1 suspect/report routing, G2 fence transaction contract, G3 heist typing, G4 safehouse service source, and G5 modal lifecycle rules resolved | implemented | run a fresh source-backed Crime UI scan before assigning more work |
-| Demo Area | reference-only | low | `src/components/demo` | GAPS.md present; G1 decided 2026-06-10 - `CombatMessagingDemo.tsx` retained as a reference artifact (D19) | implemented | decision recorded; keep as reference, no re-home or removal |
-| Design Preview | in-progress | medium | `src/components/DesignPreview`; `docs/projects/design-preview-scenarios` | GAPS.md present; scenarios parent created 2026-06-22 | implemented | route Tactical Sandbox scenario work through `docs/projects/design-preview-scenarios/SUBPROJECTS.md` |
-| Design Preview Scenarios | active | medium | `docs/projects/design-preview-scenarios`; `src/components/DesignPreview/steps/PreviewCombatScenarios.tsx` | 1 open parent dashboard proof gap; 6 scenario child lanes tracked | implemented | visually verify the parent/subproject dashboard card rendering, then route scenario work through child packets |
-| Dialogue | partial | medium | `src/components/Dialogue` | GAPS.md present | implemented | define node-level script format |
-| Dice | partial | medium | `src/components/dice` | GAPS.md present | implemented | confirm deterministic RNG behavior |
-| Economy UI | active | medium | `docs/projects/economy-ui`, `src/components/Economy` | 0 open audited gaps; G1-G3 resolved and reducer visibility ownership documented 2026-06-09 | implemented | no open audited Economy UI gap remains; run a fresh source-backed gap scan before assigning another forward pass |
-| Encounter Generator | review-required | medium | `docs/projects/encounter-generator`, `src/components/Combat/EncounterModal.tsx`, `src/hooks/actions/handleEncounter.ts` | 1 open gap; G4 AI determinism boundary requires product decision before forward implementation | implemented | resolve G4 full-AI-replay vs local/fallback replay decision, then resume T3 only within seedability and difficulty contract scope |
-| Glossary UI | active | medium | `docs/projects/glossary-ui`, `src/components/Glossary` | G3 decided 2026-06-10 - item metadata stays glossary-local, display-only schema (D18); G7 enforcement gap recorded; rebuild path G1/G6 resolved | implemented | implement the G7 schema-guard lane under the glossary-local metadata decision |
-| Logbook | active | medium | `src/components/Logbook`, `docs/projects/logbook` | 0 open gaps; G1 retention, G2 pagination, G3 dedupe, G4 dossier ownership, G5 unread drift, and G6 quest update content cap resolved | implemented | run fresh source-backed Logbook gap scan before more work |
-| Naval UI | partial | medium | `src/components/Naval` | GAPS.md present | implemented | tie to naval system status events |
-| Organization | partial | medium | `src/components/Organization` | GAPS.md present | implemented | define grouping and permission model |
-| Party UI | partial | medium | `src/components/Party` | 0 open gaps; G4, G5, G6, G7, G9, G10, G11, and G12 are resolved | implemented | Run the next Party UI expansion sweep before selecting more work. |
-| Quest Log | active | medium | `src/components/QuestLog`, `src/systems/quests`, `src/hooks/actions/handleNpcInteraction.ts` | G3 decided 2026-06-10 - wire the quest-giver bridge in `handleNpcInteraction.ts` with tests (D14); quest/journal bridge, long-rest flush, and deadline-note surface resolved 2026-06-09 | implemented | implement the NPC quest handoff in `handleNpcInteraction.ts` with focused tests, defining a minimal quest-offer payload as it goes |
-| SaveLoad | partial | high | `src/components/SaveLoad` | GAPS.md present | implemented | define backward-compatible save schema |
-| Submap and Tile-Grid Retirement | active | high | `docs/projects/submap` | 11 open gaps; decoupling tile-grid world model, submap extraction, and cell-native travel seams. | implemented | Inventory every load-bearing consumer of MapData.tiles + the Submap panes and record a retirement order (T6). |
-| Trade UI | partial | medium | `src/components/Trade` | GAPS.md present | implemented | normalize pricing and offer format |
-| Town | partial | medium | `src/components/Town` | GAPS.md present | implemented | clarify city-state model coupling |
-| ThreeD Modal | merged-reference | medium | `src/components/ThreeDModal` | GAPS.md present; merged into World 3D UI 2026-06-10 (D5) | implemented | do not assign separately; route all 3D entrypoint work (modal launch, phase transition, close/focus policy) through World 3D UI |
-| World 3D UI | active | medium | `src/components/World3D`, `src/hooks/useHistorySync.ts` | North Star refreshed 2026-06-01 (re-scoped: 2D↔3D transition + in-3D HUD) | scope clarified | fix `?phase=world3d` entry bounce; author Plan 4 (transition + atlas marker sync) |
+| Action Pane | [docs/architecture/domains/ui-modals.md](../architecture/domains/ui-modals.md) - absorbed 2026-07-16 |
+| Battle Map | [docs/architecture/domains/battle-map.md](../architecture/domains/battle-map.md) - absorbed 2026-07-16 |
+| Character Creator | [docs/architecture/domains/character-creator.md](../architecture/domains/character-creator.md) - absorbed 2026-07-16 |
+| Character Sheet | [docs/architecture/domains/character-sheet.md](../architecture/domains/character-sheet.md) - absorbed 2026-07-16 |
+| Compass Pane | [docs/architecture/domains/world-map.md](../architecture/domains/world-map.md) - absorbed 2026-07-16 |
+| Conversation Panel | [docs/architecture/domains/npcs-companions.md](../architecture/domains/npcs-companions.md) - absorbed 2026-07-16 |
+| Crafting UI | [docs/architecture/domains/crafting-economy.md](../architecture/domains/crafting-economy.md) - absorbed 2026-07-16 |
+| Crime UI | [docs/architecture/domains/intrigue-crime.md](../architecture/domains/intrigue-crime.md) - absorbed 2026-07-16 |
+| Demo Area | [docs/architecture/domains/design-preview-navigation.md](../architecture/domains/design-preview-navigation.md) - reference artifact |
+| Design Preview | [docs/architecture/domains/design-preview-navigation.md](../architecture/domains/design-preview-navigation.md) - absorbed 2026-07-16 |
+| Design Preview Scenarios | [docs/architecture/domains/design-preview-navigation.md](../architecture/domains/design-preview-navigation.md) - absorbed 2026-07-16 |
+| Dialogue | [docs/architecture/domains/npcs-companions.md](../architecture/domains/npcs-companions.md) - absorbed 2026-07-16 |
+| Dice | [docs/architecture/domains/core-systems.md](../architecture/domains/core-systems.md) - absorbed 2026-07-16; project folder at `docs/projects/dice` |
+| Economy UI | [docs/architecture/domains/crafting-economy.md](../architecture/domains/crafting-economy.md) - absorbed 2026-07-16 |
+| Encounter Generator | [docs/architecture/domains/creature-taxonomy.md](../architecture/domains/creature-taxonomy.md) - absorbed 2026-07-16 |
+| Glossary UI | [docs/architecture/domains/glossary.md](../architecture/domains/glossary.md) - absorbed 2026-07-16 |
+| Logbook | [docs/architecture/domains/puzzles-quests-rituals.md](../architecture/domains/puzzles-quests-rituals.md) - absorbed 2026-07-16 |
+| Naval UI | [docs/architecture/domains/naval-underdark.md](../architecture/domains/naval-underdark.md) - absorbed 2026-07-16 |
+| Organization | [docs/architecture/domains/core-systems.md](../architecture/domains/core-systems.md) - absorbed 2026-07-16 |
+| Party UI | [docs/architecture/domains/npcs-companions.md](../architecture/domains/npcs-companions.md) - absorbed 2026-07-16 |
+| Quest Log | [docs/architecture/domains/puzzles-quests-rituals.md](../architecture/domains/puzzles-quests-rituals.md) - absorbed 2026-07-16 |
+| SaveLoad | [docs/architecture/domains/data-pipelines.md](../architecture/domains/data-pipelines.md) - absorbed 2026-07-16 |
+| Submap and Tile-Grid Retirement | [docs/architecture/domains/submap.md](../architecture/domains/submap.md) - absorbed 2026-07-16; project folder at `docs/projects/submap` |
+| Trade UI | [docs/architecture/domains/items-trade-inventory.md](../architecture/domains/items-trade-inventory.md) - absorbed 2026-07-16 |
+| Town | [docs/architecture/domains/town-map.md](../architecture/domains/town-map.md) - absorbed 2026-07-16 |
+| ThreeD Modal | [docs/architecture/domains/streamed-3d-world.md](../architecture/domains/streamed-3d-world.md) - absorbed into World 3D UI 2026-06-10 (D5) |
+| World 3D UI | [docs/architecture/domains/streamed-3d-world.md](../architecture/domains/streamed-3d-world.md) - absorbed 2026-07-16 |
 | types UI | partial | medium | `src/components/types` | GAPS.md present | implemented | document type registry and exports |
-| Layout | active | medium | `src/components/layout` | GAPS.md present; ConversationPanel boundary documented; G3/G4 decided 2026-06-10 - app-shell split approved with preservation tests, `isUIInteractive` stays a documented pass-through (D7) | implemented | execute the app-shell split slice with provider-order/`DataLoaderGate`/`GameProvider` preservation tests |
-| Providers | active | medium | `src/components/providers` | GAPS.md present; G5 decided 2026-06-10 - provider split approved with boundary preservation tests (D7) | implemented | execute the provider-split slice (provider composition out of `App.tsx`) with boundary preservation tests |
-| UI primitives | active | high | [NORTH_STAR.md](file:///F:/Repos/Aralia/docs/projects/ui-primitives/NORTH_STAR.md) | GAPS.md present; G5 validation feedback, G9 focus-trap manager coverage, G10/G11 modal ARIA labels, and G12 coin-display semantics done | implemented | no open audited UI primitive gap remains after G12; run a fresh source-backed gap scan before assigning another forward pass |
+| Layout | [docs/architecture/domains/ui-modals.md](../architecture/domains/ui-modals.md) - absorbed 2026-07-16 |
+| Providers | [docs/architecture/domains/ui-modals.md](../architecture/domains/ui-modals.md) - absorbed 2026-07-16 |
+| UI primitives | active | high | [docs/architecture/domains/ui-modals.md](../architecture/domains/ui-modals.md) | GAPS.md present; G5 validation feedback, G9 focus-trap manager coverage, G10/G11 modal ARIA labels, and G12 coin-display semantics done | implemented | no open audited UI primitive gap remains after G12; run a fresh source-backed gap scan before assigning another forward pass |
 
 ## Feature Domains and Runtime Support (`src/features`, `src/commands`, `src/workers`, `src/services`)
 
 | Project | Status | Confidence | Evidence | Gap signal | Living project protocol | Next step |
 |---|---|---|---|---|---|---|
-| Submap Generation | merged-reference | high | `src/hooks/useSubmapProceduralData.ts`, `src/components/Submap/SubmapPane.tsx`, `src/components/Minimap.tsx` | merged into Submap G4/G5; G1-G3 resolved | implemented | do not assign separately; route CA/WFC/path/seeded-feature/biome/town generation extraction through Submap G4 |
-| Command Base Runtime | partial | high | `src/commands/base` | GAPS.md present; `G4` resolved | implemented | add next contract-sensitive test checks when context helpers are refactored |
-| Command Effects Runtime | active | high | `src/commands/effects` | GAPS.md present; G1 decided 2026-06-10 - command context owns the delegated payload (D9); G2/G4 resolved | implemented | resume T2: expose the safe delegated-payload source-of-truth in the command context so reactive effects run through the normal pipeline |
-| Command Factory Runtime | partial | high | `src/commands/factory` | GAPS.md present | implemented | clarify registration and validation |
-| Gemini Service | experimental | medium | `src/services/gemini` | GAPS.md present | implemented | define cost/error fallback strategy |
-| Ollama Service | experimental | medium | `src/services/ollama` | GAPS.md present | implemented | define local/remote adapter abstraction |
-| RealmSmith Service | partial | medium | `src/services/realmsmith` | GAPS.md present | implemented | stabilize API contract + retry policy |
-| WorldSim Service | active | high | `src/services/worldSim`, `src/services/WorldHistoryService.ts` | North Star refreshed 2026-06-08; WSS-005 decided 2026-06-10 - Azgaar is canonical, feature hints flow into `WorldData`, proc-gen derives deterministically from Azgaar output (D1); WSS-006/WSS-007/WSS-008 remediated; T3 first-build history contract added | geometry done; story/history contract seeded and attached to bootstrap/save; feature-source divergence proven by fixed-seed test | implementation lane open: take WSS-005a as the first slice of the Azgaar-canonical feature-source pipeline |
+| Submap Generation | [docs/architecture/domains/submap.md](../architecture/domains/submap.md) - absorbed 2026-07-16 |
+| Command Base Runtime | [docs/architecture/domains/commands.md](../architecture/domains/commands.md) - absorbed 2026-07-16 |
+| Command Effects Runtime | [docs/architecture/domains/commands.md](../architecture/domains/commands.md) - absorbed 2026-07-16 |
+| Command Factory Runtime | [docs/architecture/domains/commands.md](../architecture/domains/commands.md) - absorbed 2026-07-16 |
+| Gemini Service | [docs/architecture/domains/data-pipelines.md](../architecture/domains/data-pipelines.md) - absorbed 2026-07-16 |
+| Ollama Service | [docs/architecture/domains/data-pipelines.md](../architecture/domains/data-pipelines.md) - absorbed 2026-07-16 |
+| RealmSmith Service | [docs/architecture/domains/data-pipelines.md](../architecture/domains/data-pipelines.md) - absorbed 2026-07-16 |
+| WorldSim Service | [docs/architecture/domains/data-pipelines.md](../architecture/domains/data-pipelines.md) - absorbed 2026-07-16 |
 
 ## Tools, Automation, and Infrastructure
 
 | Project | Status | Confidence | Evidence | Gap signal | Living project protocol | Next step |
 |---|---|---|---|---|---|---|
-| Scripts: archive | partial | medium | `scripts/archive` | GAPS.md present | implemented | evaluate reuse and cleanup |
-| Scripts: audits | active | medium | `scripts/audits` | GAPS.md present; S4 decided 2026-06-10 - audits stay optional/manual, no CI gates this cycle (D20) | implemented | forward iteration allowed under the manual policy; revisit CI gating when the audit suite stabilizes |
-| Scripts: git | partial | medium | `scripts/git` | GAPS.md present | implemented | align with CI pre-push and local policy |
-| Scripts: quality | active | high | `scripts/quality` | GAPS.md present; G1/G2 resolved 2026-06-08; checkpoint convention established | implemented | rerun `npm run quality:debt` only when quality scope, lint scope, or push policy changes |
-| Scripts: spell-runtime-template-audit | linked-support | high | `scripts/spellRuntimeTemplateAudit`; `docs/projects/scripts-spell-runtime-template-audit`; `docs/projects/spells/SUBPROJECTS.md` | GAPS.md present; linked support for Spells, not an owned child lane | implemented | keep audit/vocabulary work in this scripts project; import only product-runtime gaps into Spells |
-| Scripts: tooling | partial | medium | `scripts/tooling` | GAPS.md present | implemented | document supported workflows |
-| Scripts: workflows | partial | medium | `scripts/workflows` | GAPS.md present; 2 open docs gaps; WFG-001 reviewed | implemented | keep the command matrix and env-var defaults canonical in one project-owned reference |
+| Scripts: archive | [docs/architecture/domains/test-quality.md](../architecture/domains/test-quality.md) - absorbed 2026-07-16 |
+| Scripts: audits | [docs/architecture/domains/test-quality.md](../architecture/domains/test-quality.md) - absorbed 2026-07-16 |
+| Scripts: git | [docs/architecture/domains/developer-environment.md](../architecture/domains/developer-environment.md) - absorbed 2026-07-16 |
+| Scripts: quality | [docs/architecture/domains/test-quality.md](../architecture/domains/test-quality.md) - absorbed 2026-07-16 |
+| Scripts: spell-runtime-template-audit | [docs/architecture/domains/test-quality.md](../architecture/domains/test-quality.md) - absorbed 2026-07-16 |
+| Scripts: tooling | [docs/architecture/domains/developer-environment.md](../architecture/domains/developer-environment.md) - absorbed 2026-07-16 |
+| Scripts: workflows | [docs/architecture/domains/developer-environment.md](../architecture/domains/developer-environment.md) - absorbed 2026-07-16 |
 | Idea Board | active | high | `docs/projects/idea-board/NORTH_STAR.md`; `public/idea-board/` | IB-0001 through IB-0006 are verified; CozyClay is a distinct previsualization record blocked on its acknowledged Mixamo redistribution issue and Aralia legal/shot-boundary evidence; 2 open gaps cover live-link receipts and archive retention | implemented | intake the next supplied source; append reassessments only with new evidence; run recorded experiments only on explicit request and after named blockers clear |
-| Script tests | merged-reference | medium | `scripts/__tests__` | GAPS.md present; merged into Scripts: quality 2026-06-10 (D21) | implemented | do not assign separately; route script-test coverage through Scripts: quality |
-| Code Modularization Audit | active | high | `docs/projects/code-modularization-audit`; line-count scan across `src`, `scripts`, `devtools` | GAPS.md present; CMA-G1..CMA-G13 scored/routed into owning project gaps | implemented | wait for owner projects to accept specific split candidates, then create bounded split plans with preservation tests |
+| Script tests | [docs/architecture/domains/test-quality.md](../architecture/domains/test-quality.md) - absorbed 2026-07-16 |
+| Code Modularization Audit | [docs/architecture/domains/technical-debt-scanner.md](../architecture/domains/technical-debt-scanner.md) - absorbed 2026-07-16 |
 
 ## Merged Duplicate Tracker Block (2026-06-08)
 
@@ -317,40 +320,125 @@ future intent were removed.
 
 | Project | Status | Confidence | Evidence | Gap signal | Living project protocol | Next step |
 |---|---|---|---|---|---|---|
-| Worldforge (flagship) | active | high | `docs/superpowers/specs/2026-07-14-absorbed-worldforge.md`, `public/planmap/topics.json` (`shipped-cartography`) | Waves 1-4 preserve exact Atlas artifacts, fail-closed replay, gameplay/provenance continuity, artifact-owned town/site naming, and exact Local-to-Ground correspondence; 89 focused Wave 4 tests pass. The absorbed spec classifies canonical naming and integration correspondence closed, while true travel identity/flow, a durable units contract, agent-walking rendered proof, and shared roof lighting/occlusion remain open. | implemented | Use the absorbed specification as the cold-start authority; do not recreate the ignored `docs/projects/worldforge` folder. |
-| Item Categorization | partial | high | `docs/projects/item_categorization` | GAPS.md present | implemented | convert gaps into tracker stories |
-| PHB 2024 Glossary Audit | archived / reference-only | medium | `docs/projects/phb2024_glossary_audit` | GAPS.md present; archived reference-only 2026-06-10 (D24); remaining gaps routed to Item Categorization and Glossary maintenance | implemented | do not assign forward iteration; route remaining metadata gaps to the adjacent owners |
-| Tiered Autosave | partial | medium | `docs/projects/tiered-autosave` | GAPS.md present | implemented | finalize autosave tiers and migration plan |
-| Town Description System | active | medium | `docs/projects/town-description-system` | GAPS.md has 7 open rows; TASKS.md backlog retired into G6/G7 | implemented | settle metadata/persistence owner path, then implement one shared description-generation surface |
-| 3D Combat Map | active - HANDED OFF | high | `docs/projects/3d-combat-map/COLD_START_AGENT_PROMPT.md`, `docs/projects/3d-combat-map/HANDOFF.md` (split brief, 2026-06-11), `.agent/3d-visual-quality/TRACKER.md` | Split off from Worldforge 2026-06-11 per Remy for a separate agent. NC2/G3/G7 closed via `?dev_combat=1` CombatView pop-out proof; visual-quality GOAL has zero FAILs (~20 triaged PARTIALs, biggest cluster blocked on broken bloom/SSAO, gap #1); 3D targeting decals landed (G11 / side gap #29, PNG proof owed); generator elevation contrast routed as G12 / side gap #28 | implemented | NEXT AGENT: start from `docs/projects/3d-combat-map/COLD_START_AGENT_PROMPT.md` - run the G11 TargetingDecals saved-PNG proof, then G12 elevation contrast or bounded G9/G10 readability proof; do not touch worldforge files (boundary section in HANDOFF.md) |
-| Action System Refactor | in-progress | medium | `docs/tasks/action-system-refactor` | GAPS.md present; T2 metadata-driven contract done 2026-06-25 (doc-triage verified 2026-07-01) | implemented | make the G4-G6 owner decision (validator layer, schema-extension tags, action-outcome logging), then implement one slice |
-| Architecture Sweep | done / archived | medium | `docs/archive/tasks/architecture` | all gaps closed (AR-3 encoding cleanup verified landed, doc-triage 2026-07-01); triad archived | implemented | no further assignment; reopen only with a fresh source-backed finding |
-| Combat Messaging Enhancement | in-progress | medium | `docs/tasks/combat-messaging-enhancement` | GAPS.md present | implemented | specify event payloads + UI format |
-| Combat Scenario Tester | done / reference-only | high | `docs/tasks/combat-scenario-tester` | historical tracker present; no local `GAPS.md`; active scenario work routes through `docs/projects/design-preview-scenarios` | implemented | Do not assign iteration agents here unless reopened; keep as completed sandbox evidence |
-| Documentation Cleanup | done / reference-only | medium | `docs/projects/documentation-cleanup` | GAPS.md present; G1/G2/G4/G5 resolved; G3 closed complete-enough 2026-06-10 (D23) - duplicate-cleanup scope not widened, project complete | implemented | no further assignment; evidence preserved as reference |
-| Feature Capabilities | in-progress | medium | `docs/tasks/feature-capabilities` | GAPS.md present | implemented | list capability owners + acceptance |
-| Glossary | planned | medium | `docs/tasks/glossary` | GAPS.md present; terminology governance connected 2026-06-25 | implemented | inspect complex PHB rule-table rendering from G3 |
-| Spells / Spell Completeness Audit subproject | merged-reference | high | `docs/tasks/spell-completeness-audit`; `docs/projects/spells/subprojects/spell-completeness-audit` | routed under Spells parent | implemented | do not assign as a top-level project; route through `docs/projects/spells/subprojects/spell-completeness-audit/NORTH_STAR.md` |
-| Spells / Structured Spell Execution subproject | merged-reference | high | `docs/tasks/spell-system-overhaul`, `docs/tasks/spell-system-overhaul/gaps/LEVEL-1-GAPS.md`, `docs/projects/spells/subprojects/structured-spell-execution` | routed under Spells parent | implemented | do not assign as a top-level project; route execution slices through `docs/projects/spells/subprojects/structured-spell-execution/NORTH_STAR.md` |
-| Testing Overhaul | active | medium | `docs/tasks/testing-overhaul` | GAPS.md has stream gaps G4-G8; phase backlog files retired | implemented | execute one focused test slice from the stream matrix |
-| UI Features | in-progress | medium | `docs/tasks/ui-features` | GAPS.md present; Owner Map delivered 2026-06-25 (doc-triage verified 2026-07-01) | implemented | formalize salvage/backlog ownership drift (T3) and validate routing paths in each owned tracker (T4) |
-| Weapon Proficiency System | in-progress | high | `docs/tasks/weapon-proficiency-system` | GAPS.md present; progression math + warning UI + penalty gates all live in source with tests (doc-triage verified 2026-07-01); only G2 rendered proof remains | implemented | run the G2 rendered/visual verification pass of the proficiency warning, then close and archive the triad |
-| Investigation Task Cluster | idle | low | `docs/tasks/investigations` | GAPS.md present; Inquiry Packet Output Contract satisfies the old "clarify expected outputs" ask (doc-triage verified 2026-07-01) | implemented | dormant scaffold awaiting the next inquiry packet; no forward work queued |
-| Item Icons | complete | medium | `docs/tasks/item-icons` | GAPS.md complete; 810 SVG item assets generated; old batch backlog files retired | implemented | future art-direction passes may replace generated icons in place if needed |
-| Roadmap Maintenance | active | medium | `docs/projects/roadmap-maintenance` (canonical; `docs/tasks/roadmap` remains task-facing evidence) | GAPS.md present; task row merged into canonical project | implemented | route assignments through `docs/projects/roadmap-maintenance` only |
+| Worldforge (flagship) | active | high | [docs/architecture/domains/region-terrain.md](../architecture/domains/region-terrain.md) - absorbed-worldforge spec retired into git history (removed in 4448b9d97) | generation-pipeline gaps route via planmap worldforge topics | lives in domain docs, no project folder | route new gen-pipeline work through the domain docs + planmap |
 
-| Whole-Game Systems Audit and Gap Resolution | active | medium | `docs/projects/game-systems-audit`, `docs/projects/game-systems-audit/COVERAGE_INVENTORY.md` | 12 review waves; 84 living-project folders require current campaign evidence; confirmed issues synchronize to owner gaps and Planmap | implemented parent_with_subprojects | complete W01 onboarding/persistence review, then proceed in dependency order |
+### Project folders without a `NORTH_STAR.md` (tracker completeness note)
+
+The `Project -> North Star map` above points the project-target rows at existing
+reference folders under `docs/projects/` and `docs/tasks/`. Those folders exist on
+disk, but only the ones listed in the map already carry their own
+`NORTH_STAR.md`. The remaining folders are real project/issue surfaces that have no
+north star yet; they are kept here as an incomplete-intent inventory rather than
+treated as dead paths.
+
+Folders under `docs/projects/` with no `NORTH_STAR.md`:
+
+- `docs/projects/combat`
+- `docs/projects/effects`
+- `docs/projects/items`
+- `docs/projects/script-tests`
+- `docs/projects/scripts-audits`
+- `docs/projects/scripts-quality`
+- `docs/projects/scripts-spell-runtime-template-audit`
+
+Folders/tasks under `docs/tasks/` and `docs/archive/tasks/` with no `NORTH_STAR.md`:
+
+- `docs/tasks/spell-execution-audit`
+- `docs/tasks/spells/subprojects/spell-execution-audit`
+- `docs/archive/tasks/documentation-cleanup`
+- `docs/archive/tasks/spells`
+
+Reference-only or lone-evidence folders that exist but are not project north-star
+targets:
+
+- `docs/projects/demo-area/REFERENCES.md` (reference-only by decision; see the
+  tracker's Demo Area row)
+
+D1 verdict, rechecked 2026-10-25: the tracker's `absorbed 2026-07-16` project rows
+are not link rot. Every one of those ~100 rows points at a real, present domain doc
+under `docs/architecture/domains/`, and the domain docs resolve. The only
+"missing-folder" signal in this file is the stale-vs-planmap drift already recorded
+in `docs/architecture/domains/` (GG-37 routing) plus the `docs/projects/world3d/`
+and `docs/projects/design-preview/` folders that were deleted from git on
+2026-07-16 and never restored; those two are the only genuinely absent project
+folders named by the tracker, and they are covered by GG-37. No other tracker row
+points at a missing folder.
+| Item Categorization | [docs/architecture/domains/items-trade-inventory.md](../architecture/domains/items-trade-inventory.md) - absorbed 2026-07-16 |
+| PHB 2024 Glossary Audit | [docs/architecture/domains/glossary-data.md](../architecture/domains/glossary-data.md) - archived reference-only per D24 |
+| Tiered Autosave | [docs/architecture/domains/data-pipelines.md](../architecture/domains/data-pipelines.md) - absorbed 2026-07-16 |
+| Town Description System | [docs/architecture/domains/town-map.md](../architecture/domains/town-map.md) - absorbed 2026-07-16 |
+| 3D Combat Map | [docs/architecture/domains/battle-map.md](../architecture/domains/battle-map.md) - absorbed into plan-map topic `combat-map-reskin` on 2026-07-15; the dated absorbed-3d-combat-map spec was retired into git history by the 2026-09 dated-docs consolidation (removed in 4448b9d97); the old `conductor/` path is gone, see [CONDUCTOR_RETIRED.md](CONDUCTOR_RETIRED.md) |
+| Action System Refactor | [docs/tasks/action-system-refactor/NORTH_STAR.md](../tasks/action-system-refactor/NORTH_STAR.md) |
+| Architecture Sweep | [docs/archive/tasks/architecture/NORTH_STAR.md](../archive/tasks/architecture/NORTH_STAR.md) - archived task |
+| Combat Messaging Enhancement | [docs/tasks/combat-messaging-enhancement/NORTH_STAR.md](../tasks/combat-messaging-enhancement/NORTH_STAR.md) |
+| Combat Scenario Tester | [docs/tasks/combat-scenario-tester/NORTH_STAR.md](../tasks/combat-scenario-tester/NORTH_STAR.md) |
+| Documentation Cleanup | [docs/tasks/documentation-cleanup/NORTH_STAR.md](../tasks/documentation-cleanup/NORTH_STAR.md) |
+| Feature Capabilities | [docs/tasks/feature-capabilities/NORTH_STAR.md](../tasks/feature-capabilities/NORTH_STAR.md) |
+| Glossary | [docs/tasks/glossary/NORTH_STAR.md](../tasks/glossary/NORTH_STAR.md) |
+| Spells / Spell Completeness Audit subproject | [docs/projects/spells/subprojects/spell-completeness-audit/SPELL_COMPLETENESS_COVERAGE_SNAPSHOT.md](spells/subprojects/spell-completeness-audit/SPELL_COMPLETENESS_COVERAGE_SNAPSHOT.md) (parent: [spells/NORTH_STAR.md](spells/NORTH_STAR.md)) |
+| Spells / Structured Spell Execution subproject | [docs/tasks/spells/NORTH_STAR.md](../tasks/spells/NORTH_STAR.md) (parent: [spells/NORTH_STAR.md](spells/NORTH_STAR.md)) |
+| Testing Overhaul | [docs/tasks/testing-overhaul/NORTH_STAR.md](../tasks/testing-overhaul/NORTH_STAR.md) |
+| UI Features | [docs/tasks/ui-features/NORTH_STAR.md](../tasks/ui-features/NORTH_STAR.md) |
+| Weapon Proficiency System | [docs/tasks/weapon-proficiency-system/NORTH_STAR.md](../tasks/weapon-proficiency-system/NORTH_STAR.md) |
+| Investigation Task Cluster | [docs/tasks/investigations/NORTH_STAR.md](../tasks/investigations/NORTH_STAR.md) |
+| Item Icons | [docs/archive/tasks/item-icons/NORTH_STAR.md](../archive/tasks/item-icons/NORTH_STAR.md) - archived task |
+| Roadmap Maintenance | [docs/tasks/roadmap/NORTH_STAR.md](../tasks/roadmap/NORTH_STAR.md) |
+
+| Whole-Game Systems Audit and Gap Resolution | [docs/architecture/domains/test-quality.md](../architecture/domains/test-quality.md) - absorbed 2026-07-16; planmap topic `whole-game-systems-audit` |
 
 ## Design-Intent References
 
 | Project | Status | Confidence | Evidence | Gap signal | Living project protocol | Next step |
 |---|---|---|---|---|---|---|
-| Racial Mechanics / Race Hierarchy | partial | high | `docs/projects/racial-mechanics/NORTH_STAR.md`, `docs/projects/racial-mechanics/TRACKER.md` | GAPS.md present | implemented | maintain and expand deferred mechanics (choices, lists) |
-| Spells / Spell Phase Workstream merged reference | merged-reference | medium | `src/systems/spells`, `docs/spells`, `docs/tasks/spell-system-overhaul`, `docs/projects/spells/subprojects/structured-spell-execution` | routed under Spells parent | implemented | Do not assign separately; use `docs/projects/spells/subprojects/structured-spell-execution/NORTH_STAR.md` |
+| Racial Mechanics / Race Hierarchy | [docs/architecture/domains/character-creator.md](../architecture/domains/character-creator.md) - absorbed 2026-07-16; parked planmap topic `racial-mechanics` |
+| Spells / Spell Phase Workstream merged reference | [docs/tasks/spells/NORTH_STAR.md](../tasks/spells/NORTH_STAR.md) |
 
+
+### Project folders without a NORTH_STAR.md (tracker completeness note)
+
+The Project -> North Star map above points the project-target rows at existing
+reference folders under docs/projects/ and docs/tasks/. Those folders exist on
+disk, but only the ones listed in the map already carry their own NORTH_STAR.md.
+The remaining folders are real project/issue surfaces that have no north star yet;
+they are kept here as an incomplete-intent inventory rather than treated as dead paths.
+
+Folders under docs/projects/ with no NORTH_STAR.md:
+
+- docs/projects/combat
+- docs/projects/effects
+- docs/projects/items
+- docs/projects/script-tests
+- docs/projects/scripts-audits
+- docs/projects/scripts-quality
+- docs/projects/scripts-spell-runtime-template-audit
+
+Folders/tasks under docs/tasks/ and docs/archive/tasks/ with no NORTH_STAR.md:
+
+- docs/tasks/spell-execution-audit
+- docs/tasks/spells/subprojects/spell-execution-audit
+- docs/archive/tasks/documentation-cleanup
+- docs/archive/tasks/spells
+
+Reference-only or lone-evidence folders that exist but are not project north-star
+targets:
+
+- docs/projects/demo-area/REFERENCES.md (reference-only by decision; see the
+  tracker Demo Area row)
+
+D1 verdict, rechecked 2026-10-25: the tracker absorbed 2026-07-16 project rows are
+not link rot. Every one of those roughly 100 rows points at a real present domain
+doc under docs/architecture/domains/, and the domain docs resolve. The only missing-
+folder signal in this file is the stale-vs-planmap drift already recorded in
+docs/architecture/domains/ (GG-37 routing) plus the docs/projects/world3d/ and
+docs/projects/design-preview/ folders that were deleted from git on 2026-07-16 and
+never restored; those two are the only genuinely absent project folders named by the
+tracker, and they are covered by GG-37. No other tracker row points at a missing folder.
 ## How to use this tracker
 
 - Treat each row as a project candidate.
 - Move items into one of your project systems as separate tracks (gameplay, infra, docs, etc.).
 - Use the gap column to drive the next planning cycle; projects with explicit `GAPS.md` should be prioritized.
 - Add columns as needed (owner, due date, blockers, dependencies) without deleting these entries unless a project is truly merged away.
+- D1 is a specific exploration of the "absorbed 2026-07-16 rows" and "missing North Stars" signals in this file. Its findings live in the
+  `### Project folders without a \`NORTH_STAR.md\`` note above; the underlying repo issue it closed (gapIndex missing ~220 open rows because the
+  tracker and GLOBAL_GAPS.md both had split/blocked reads) is tracked separately and was fixed before this note was written.

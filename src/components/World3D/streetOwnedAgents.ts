@@ -5,12 +5,30 @@
  * Extracted from GroundAgents.tsx to decouple helper functions from TSX files,
  * ensuring React Fast Refresh works without module invalidation in Vite.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 10:55:11
+ * Dependents: components/World3D/GroundAgents.tsx
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { TownRoster } from '@/systems/worldforge/roster/types';
 import type { GroundAgentSceneNode } from '@/systems/worldforge/bridge/groundAgentMotion';
 import {
   residentIdentityKey,
   residentRenderKey,
   residentRenderOwnerAtClock,
+  residentRosterIndex,
   type ResidentHandoffRecord,
 } from './InteriorOccupants';
 
@@ -24,17 +42,9 @@ export function streetOwnedAgentNodes(
   rosters: TownRoster[],
   handoffs: ReadonlyMap<string, ResidentHandoffRecord>,
   clock: number,
+  personalBodyKeys: ReadonlySet<string> = new Set(),
 ): GroundAgentSceneNode[] {
-  const rosterIdentityByRenderKey = new Map<string, string>();
-  for (const roster of rosters) {
-    for (const occupant of roster.occupants) {
-      if (occupant.householdMemberId === undefined) continue;
-      rosterIdentityByRenderKey.set(
-        residentRenderKey(roster.burgId, occupant.id),
-        residentIdentityKey(roster.burgId, occupant.householdMemberId),
-      );
-    }
-  }
+  const rosterIdentityByRenderKey = residentRosterIndex(rosters);
 
   return nodes.filter((node) => {
     const renderKey = residentRenderKey(node.burgId, node.occupantId);
@@ -43,6 +53,10 @@ export function streetOwnedAgentNodes(
     if (!handoff || !rosterIdentity || handoff.stableKey !== rosterIdentity) {
       return true;
     }
-    return residentRenderOwnerAtClock(handoff.occupant, clock) === 'street';
+    // The selected personal model also owns its street leg. Keep the generic
+    // crowd as a fallback for people outside that bounded detail allocation.
+    if (personalBodyKeys.has(handoff.stableKey)) return false;
+    return !(handoff.locations ?? [handoff.occupant]).some(occupant =>
+      residentRenderOwnerAtClock(occupant, clock) === 'interior');
   });
 }

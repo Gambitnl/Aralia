@@ -8,6 +8,22 @@
  * gold/amber accent colors for the D&D fantasy theme.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 21:41:24
+ * Dependents: components/Party/PartyPane/PartyPane.tsx
+ * Imports: 8 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useMemo } from 'react';
 import { PlayerCharacter, MissingChoice, HitDieSize, Companion, RelationshipLevel } from '../../../types';
 import Tooltip from '../../ui/Tooltip';
@@ -21,6 +37,7 @@ import {
     calculateAttackBonuses,
     calculateInitiativeModifier,
     formatInitiativeModifier,
+    getMovementSpeed,
     getTotalHitDice,
     getPrimaryHitDieSize
 } from '../../../utils/character/partyStatUtils';
@@ -457,8 +474,8 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
                         )}
                         <StatBox
                             label="Move"
-                            value={`${character.speed}ft`}
-                            tooltip={`Movement Speed: ${character.speed} feet per round`}
+                            value={`${getMovementSpeed(character)}ft`}
+                            tooltip={`Walking Speed: ${getMovementSpeed(character)} feet per round${getMovementSpeed(character) < (character.speed ?? 30) ? ` (${character.speed ?? 30}ft before exhaustion)` : ''}`}
                         />
                         <StatBox
                             label="Init"

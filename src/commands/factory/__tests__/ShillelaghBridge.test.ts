@@ -9,7 +9,7 @@ import type { Item } from '@/types/items';
 
 // agora-f821.4 retired the combatUtils roller family; the modules under
 // test roll through systems/dice/rollers now. One hoisted set of mocks
-// stands in for BOTH specifiers, so one vi.mocked(...) pins every die.
+// pins dice only at their real systems/dice/rollers module.
 const diceMocks = vi.hoisted(() => ({
     rollD20: vi.fn(() => 10),
     rollDamage: vi.fn((formula: string) => formula === '1d10+3' ? 13 : 1)
@@ -21,14 +21,7 @@ vi.mock('@/systems/dice/rollers', async (importOriginal) => {
   return { ...actual, ...diceMocks }
 })
 
-vi.mock('@/utils/combat', async () => {
-  const actual = await vi.importActual<typeof import('@/utils/combat')>('@/utils/combat');
-
-  return {
-    ...actual,
-    ...diceMocks,
-};
-});
+// Keep combat utilities real; dice controls target systems/dice/rollers only.
 
 const club: Item = {
   id: 'club',
@@ -240,7 +233,8 @@ describe('Shillelagh held-weapon bridge', () => {
 
     await swappedCommand.execute(createState(empoweredCaster, swappedTarget));
 
-    expect(rollDamage).toHaveBeenCalledWith('1d8', false, 1, undefined);
+    // GG-496: weapon hits add the ability modifier: the Strength 8 caster's plain longsword hit is 1d8 - 1.
+    expect(rollDamage).toHaveBeenCalledWith('1d8-1', false, 1, undefined);
   });
 
   it('refreshes the prior Shillelagh active effect on recast', () => {

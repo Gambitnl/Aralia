@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 09/06/2026, 02:44:59
- * Dependents: App.tsx
- * Imports: 1 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file decides when Aralia's passive exploration clock is allowed to tick.
  *
@@ -24,6 +8,23 @@
  * Called by: App.tsx passive clock effect
  * Depends on: GamePhase so combat, menus, and exploration can be distinguished
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 12:04:05
+ * Dependents: hooks/app/useAppPhaseClock.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { GamePhase } from '../../types';
 
 // ============================================================================
@@ -50,6 +51,9 @@ export interface PassiveGameClockState {
   isInvestmentBoardVisible: boolean;
   isMerchantModalOpen: boolean;
   isMissingChoiceModalOpen: boolean;
+  /** Reviewing a rest or room payment is a decision, not elapsed world time. */
+  isRestModalOpen?: boolean;
+  isLodgingOfferOpen?: boolean;
 }
 
 // ============================================================================
@@ -85,5 +89,7 @@ export const shouldPassiveGameClockRun = (state: PassiveGameClockState): boolean
     !state.isGameGuideVisible &&
     !state.isInvestmentBoardVisible &&
     !state.isMerchantModalOpen &&
+    !state.isRestModalOpen &&
+    !state.isLodgingOfferOpen &&
     !state.isMissingChoiceModalOpen;
 };

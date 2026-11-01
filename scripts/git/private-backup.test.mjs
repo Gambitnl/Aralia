@@ -7,6 +7,12 @@ import path from 'node:path';
 import { eligible, prepare, redactCopy } from './private-backup.mjs';
 import { storageReasons } from './backup-policy.mjs';
 
+test('normal backup and explicit maintenance preserve every existing snapshot', () => {
+  const script = fs.readFileSync(new URL('./private-backup.ps1', import.meta.url), 'utf8');
+  assert.doesNotMatch(script, /\bforget\b|--prune|--keep-daily/);
+  assert.match(script, /resticPath -r \$config\.resticRepo check/);
+});
+
 test('cloud copy excludes credentials, profiles, caches, media and oversized text', () => {
   for (const file of ['aralia/.env', 'aralia/.env.local', 'aralia/auth.json', 'aralia/.agent/scratch/nightly-save/restic-last.jsonl', 'aralia/node_modules/test.js', 'aralia/cdp-profile/Preferences.json', 'aralia/frame.png']) assert.equal(eligible(file, 100), false, file);
   assert.equal(eligible('aralia/large.json', 6 * 1024 * 1024), false);

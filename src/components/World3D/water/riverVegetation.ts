@@ -36,6 +36,23 @@
  * shadow pass copies the alpha test but not the map, and without it each card
  * cast a solid square).
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 05/10/2026, 08:07:47
+ * Dependents: components/World3D/water/riverReachScene.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import * as THREE from 'three/webgpu';
 import { Fn, float, fwidth, materialColor, mix, positionGeometry, positionWorld, smoothstep, texture, uv, vec4 } from 'three/tsl';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -112,6 +129,8 @@ function leafTexture(kind: 'broad' | 'needle', seed: number): THREE.CanvasTextur
 }
 
 interface Variant {
+  /** Distinguishes tree draw controls from bank shrubs. */
+  kind: 'tree' | 'shrub';
   preset: string;
   seed: number;
   /** Height in meters to scale the tree to (with a +-20 % spread). */
@@ -126,18 +145,18 @@ interface Variant {
   leafSize?: number;
 }
 
-const VARIANTS: Variant[] = [
-  { preset: 'Pine Medium', seed: 11, heightM: 22, leaf: 'needle', leafTint: 0x9aa890, barkTint: 0x5a4a3c, children: { 0: 42 }, leaves: 22, leafSize: 1.5 },
-  { preset: 'Pine Large', seed: 12, heightM: 30, leaf: 'needle', leafTint: 0x8c9a84, barkTint: 0x4e4034, children: { 0: 48 }, leaves: 16, leafSize: 1.6 },
-  { preset: 'Oak Medium', seed: 21, heightM: 14, leaf: 'broad', leafTint: 0xb4c09a, barkTint: 0x4a4038, levels: 2, children: { 0: 6, 1: 4 }, leaves: 26, leafSize: 1.9 },
-  { preset: 'Ash Medium', seed: 22, heightM: 18, leaf: 'broad', leafTint: 0xa8b48c, barkTint: 0x6a6258, levels: 2, children: { 0: 7, 1: 4 }, leaves: 24, leafSize: 2.0 },
-  { preset: 'Aspen Medium', seed: 23, heightM: 24, leaf: 'broad', leafTint: 0xbcc49c, barkTint: 0xb8b0a0, levels: 2, children: { 0: 10, 1: 3 }, leaves: 14, leafSize: 1.8 },
-  { preset: 'Bush 1', seed: 31, heightM: 2.6, leaf: 'broad', leafTint: 0xa6b488, barkTint: 0x4a4034, levels: 2, children: { 0: 7, 1: 3 }, leaves: 14, leafSize: 1.6 },
-  { preset: 'Bush 2', seed: 32, heightM: 1.8, leaf: 'broad', leafTint: 0xb0b890, barkTint: 0x4a4034 },
+export const VARIANTS: Variant[] = [
+  { kind: 'tree', preset: 'Pine Medium', seed: 11, heightM: 22, leaf: 'needle', leafTint: 0x9aa890, barkTint: 0x5a4a3c, children: { 0: 42 }, leaves: 22, leafSize: 1.5 },
+  { kind: 'tree', preset: 'Pine Large', seed: 12, heightM: 30, leaf: 'needle', leafTint: 0x8c9a84, barkTint: 0x4e4034, children: { 0: 48 }, leaves: 16, leafSize: 1.6 },
+  { kind: 'tree', preset: 'Oak Medium', seed: 21, heightM: 14, leaf: 'broad', leafTint: 0xb4c09a, barkTint: 0x4a4038, levels: 2, children: { 0: 6, 1: 4 }, leaves: 26, leafSize: 1.9 },
+  { kind: 'tree', preset: 'Ash Medium', seed: 22, heightM: 18, leaf: 'broad', leafTint: 0xa8b48c, barkTint: 0x6a6258, levels: 2, children: { 0: 7, 1: 4 }, leaves: 24, leafSize: 2.0 },
+  { kind: 'tree', preset: 'Aspen Medium', seed: 23, heightM: 24, leaf: 'broad', leafTint: 0xbcc49c, barkTint: 0xb8b0a0, levels: 2, children: { 0: 10, 1: 3 }, leaves: 14, leafSize: 1.8 },
+  { kind: 'shrub', preset: 'Bush 1', seed: 31, heightM: 2.6, leaf: 'broad', leafTint: 0xa6b488, barkTint: 0x4a4034, levels: 2, children: { 0: 7, 1: 3 }, leaves: 14, leafSize: 1.6 },
+  { kind: 'shrub', preset: 'Bush 2', seed: 32, heightM: 1.8, leaf: 'broad', leafTint: 0xb0b890, barkTint: 0x4a4034 },
 ];
 
 /** Build one variant's two geometries, scaled to 1 m of height (the instance scale sets the height). */
-function buildVariant(v: Variant): { branches: THREE.BufferGeometry; leaves: THREE.BufferGeometry } {
+export function buildVariant(v: Variant): { branches: THREE.BufferGeometry; leaves: THREE.BufferGeometry } {
   const preset = JSON.parse(JSON.stringify((TreePreset as Record<string, unknown>)[v.preset])) as Record<string, any>;
   preset.seed = v.seed;
   if (v.levels !== undefined) preset.branch.levels = Math.min(preset.branch.levels, v.levels);
@@ -224,6 +243,71 @@ function decimateLeaves(g: THREE.BufferGeometry, keep: number): THREE.BufferGeom
   return out;
 }
 
+/**
+ * THE MIRROR'S STAND-IN BRANCHES (2026-10-26): the trunk and the larger limbs
+ * of the full branch mesh, with the small twigs left out. Each limb is its
+ * own tube (a connected set of triangles). The tubes are kept largest first
+ * (by bounding radius) until they hold `keepShare` of the triangles; the
+ * largest (the trunk) always stays. (A fixed radius limit jumped from every
+ * limb to the trunk alone on the broadleaf trees, which have few, large
+ * limbs; a share keeps the same fraction of each tree.) The kept tubes
+ * are the same triangles on the same vertex buffers, so no limb bends
+ * differently (the reason the branches had no stand-in before). Measured
+ * 2026-10-26: the wide view's mirror drew 3.3 M branch triangles of the far
+ * trees, which the half-blurred, third-size mirror cannot resolve.
+ */
+export function liteBranches(g: THREE.BufferGeometry, keepShare: number): THREE.BufferGeometry {
+  const pos = g.getAttribute('position') as THREE.BufferAttribute;
+  const idx = g.index;
+  if (!idx) return g;
+  const n = pos.count;
+  const parent = new Int32Array(n);
+  for (let k = 0; k < n; k += 1) parent[k] = k;
+  const find = (a: number): number => {
+    while (parent[a] !== a) { parent[a] = parent[parent[a]]; a = parent[a]; }
+    return a;
+  };
+  for (let t = 0; t < idx.count; t += 3) {
+    const a = find(idx.getX(t));
+    for (let k = 1; k < 3; k += 1) {
+      const b = find(idx.getX(t + k));
+      if (a !== b) parent[b] = a;
+    }
+  }
+  // Each tube's bounding box, by its root vertex.
+  const box = new Map<number, number[]>();
+  for (let k = 0; k < n; k += 1) {
+    const r = find(k);
+    const x = pos.getX(k); const y = pos.getY(k); const z = pos.getZ(k);
+    const b = box.get(r);
+    if (!b) { box.set(r, [x, y, z, x, y, z]); continue; }
+    if (x < b[0]) b[0] = x; if (y < b[1]) b[1] = y; if (z < b[2]) b[2] = z;
+    if (x > b[3]) b[3] = x; if (y > b[4]) b[4] = y; if (z > b[5]) b[5] = z;
+  }
+  const tris = new Map<number, number>();
+  for (let t = 0; t < idx.count; t += 3) { const r = find(idx.getX(t)); tris.set(r, (tris.get(r) ?? 0) + 1); }
+  const tubes = [...box].map(([r, b]) => ({ r, size: Math.hypot(b[3] - b[0], b[4] - b[1], b[5] - b[2]) / 2, n: tris.get(r) ?? 0 }))
+    .sort((a, b) => b.size - a.size || a.r - b.r);
+  const keep = new Set<number>();
+  const want = keepShare * (idx.count / 3);
+  let kept = 0;
+  for (const tube of tubes) {
+    if (keep.size > 0 && kept >= want) break;
+    keep.add(tube.r);
+    kept += tube.n;
+  }
+  const I: number[] = [];
+  for (let t = 0; t < idx.count; t += 3) {
+    if (keep.has(find(idx.getX(t)))) I.push(idx.getX(t), idx.getX(t + 1), idx.getX(t + 2));
+  }
+  const out = new THREE.BufferGeometry();
+  for (const [name, a] of Object.entries(g.attributes)) out.setAttribute(name, a);
+  out.setIndex(I);
+  out.boundingSphere = g.boundingSphere?.clone() ?? null;
+  if (!out.boundingSphere) out.computeBoundingSphere();
+  return out;
+}
+
 /** The canopy shapes of the far forest: a conifer spire and a broadleaf crown, 1 m tall (`detail` 1 for the mirror's stand-in). */
 function canopyGeometry(kind: 'conifer' | 'broad', seed: number, detail = 2): THREE.BufferGeometry {
   const g = new THREE.IcosahedronGeometry(1, detail);
@@ -294,6 +378,13 @@ function grassClumpGeometry(seed: number): THREE.BufferGeometry {
 }
 
 export interface RiverVegetationInput {
+  /** Optional extension owner. Omitted preserves the original seeded forest. */
+  plantAllowedAt?: (x:number,z:number)=>boolean;
+  /** A real raised land island may stand inside the river's course envelope.
+   * Wetness and slope checks still apply; this never plants in water. */
+  landIslandAt?: (x:number,z:number)=>boolean;
+  /** Add trunks to selected far canopy roots; omitted keeps the existing forest. */
+  farTrunkAt?: (x: number, z: number) => boolean;
   /** Ground height at (x, z), m. */
   groundAt: (x: number, z: number) => number;
   /** Height over the nearest water, m, or a large number far from any. */
@@ -324,6 +415,35 @@ export interface RiverVegetation {
   triangles: number;
 }
 
+/** Support selected distant crowns with their original root transforms.
+ * The short tapered stem enters the lower crown; it does not replace detailed
+ * trees or add another random draw to the forest placement sequence. */
+export function createFarCanopyTrunks(
+  kind: 'conifer' | 'broad', matrices: readonly THREE.Matrix4[],
+  farIndices: readonly number[], selectedAt?: RiverVegetationInput['farTrunkAt'],
+): THREE.InstancedMesh | null {
+  if (!selectedAt) return null;
+  const indices = farIndices.filter(i => {
+    const e = matrices[i].elements;
+    return selectedAt(e[12], e[14]);
+  });
+  if (!indices.length) return null;
+  const conifer = kind === 'conifer';
+  const height = conifer ? 0.42 : 0.5;
+  const geometry = new THREE.CylinderGeometry(conifer ? 0.005 : 0.006, conifer ? 0.012 : 0.016, height, 6, 1);
+  geometry.translate(0, height / 2, 0);
+  const material = new THREE.MeshStandardNodeMaterial({ color: conifer ? 0x5a4a3c : 0x4a4038, roughness: 0.92 });
+  const mesh = new THREE.InstancedMesh(geometry, material, indices.length);
+  indices.forEach((source, i) => mesh.setMatrixAt(i, matrices[source]));
+  mesh.name = `river-far-trunks-${kind}`;
+  mesh.userData.farCanopyIndices = indices;
+  mesh.userData.riverTree = true;
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  mesh.computeBoundingSphere();
+  return mesh;
+}
+
 /** PLANT the reach. Deterministic: same seed, same forest. */
 export function buildRiverVegetation(inp: RiverVegetationInput): RiverVegetation {
   const group = new THREE.Group();
@@ -333,10 +453,15 @@ export function buildRiverVegetation(inp: RiverVegetationInput): RiverVegetation
   const built = VARIANTS.map((v) => buildVariant(v));
   // The mirror's stand-in leaves: every second leaf, at sqrt(2) the size.
   const liteLeaves = built.map((b) => decimateLeaves(b.leaves, 2));
+  // The mirror's stand-in branches: the largest 40 % of each tree's limb
+  // tubes (liteBranches). Live pages only (`userData.liteLiveOnly`): static
+  // captures keep the full branches in the mirror.
+  const liteBark = built.map((b) => liteBranches(b.branches, 0.4));
   const place: Array<Array<{ x: number; y: number; z: number; s: number; rot: number }>> = VARIANTS.map(() => []);
   const canopies: { conifer: THREE.Matrix4[]; broad: THREE.Matrix4[]; colors: { conifer: number[]; broad: number[] } } = {
     conifer: [], broad: [], colors: { conifer: [], broad: [] },
   };
+  const farCanopyIndices: Record<'conifer' | 'broad', number[]> = { conifer: [], broad: [] };
   const slopeAt = (x: number, z: number): number => {
     const a = inp.groundAt(x + 1, z) - inp.groundAt(x - 1, z);
     const b = inp.groundAt(x, z + 1) - inp.groundAt(x, z - 1);
@@ -404,6 +529,7 @@ export function buildRiverVegetation(inp: RiverVegetationInput): RiverVegetation
       const pz = z + rnd() * 5;
       const d = inp.courseDistAt(px, pz);
       const roll = rnd();
+      if(inp.plantAllowedAt&&!inp.plantAllowedAt(px,pz))continue;
       if (cleared(px, pz, true)) continue;
       const clearedTree = cleared(px, pz);
       const sn = inp.courseSNAt(px, pz);
@@ -430,14 +556,16 @@ export function buildRiverVegetation(inp: RiverVegetationInput): RiverVegetation
         const y = inp.groundAt(px, pz) - 0.5;
         q.setFromAxisAngle(up, rnd() * Math.PI * 2);
         m.compose(new THREE.Vector3(px, y, pz), q, new THREE.Vector3(h * (0.75 + 0.4 * rnd()), h, h * (0.75 + 0.4 * rnd())));
-        (conifer ? canopies.conifer : canopies.broad).push(m.clone());
+        const kind = conifer ? 'conifer' : 'broad';
+        farCanopyIndices[kind].push(canopies[kind].length);
+        canopies[kind].push(m.clone());
         (conifer ? canopies.colors.conifer : canopies.colors.broad).push(0.6 + 0.5 * rnd());
         continue;
       }
       const over = inp.overWaterAt(px, pz);
       // The island is planted on its own finer grid below.
       if (d < 9.5 && px > 160 && px < 212) continue;
-      if (d < 9.5) continue;
+      if (d < 9.5&&!inp.landIslandAt?.(px,pz)) continue;
       const sl = slopeAt(px, pz);
       if (sl > 1.4) continue;
       let vi = -1;
@@ -489,6 +617,7 @@ export function buildRiverVegetation(inp: RiverVegetationInput): RiverVegetation
       const pz = z + rnd() * 2.5;
       const roll = rnd();
       const d = inp.courseDistAt(px, pz);
+      if(inp.plantAllowedAt&&!inp.plantAllowedAt(px,pz))continue;
       if (d > 26 || d < 5) continue;
       if (d < 9.5 && px > 160 && px < 212) continue;
       const hw = halfW(px, pz);
@@ -509,6 +638,7 @@ export function buildRiverVegetation(inp: RiverVegetationInput): RiverVegetation
     for (let x = 160; x < 212; x += 2) {
       const px = x + rnd() * 2;
       const pz = z + rnd() * 2;
+      if(inp.plantAllowedAt&&!inp.plantAllowedAt(px,pz))continue;
       if (inp.courseDistAt(px, pz) > 9.5 || inp.overWaterAt(px, pz) < 0.5 || cleared(px, pz, true)) continue;
       const roll = rnd();
       if (roll > 0.45) continue;
@@ -528,6 +658,7 @@ export function buildRiverVegetation(inp: RiverVegetationInput): RiverVegetation
       const pz = z + rnd() * 1.4;
       const roll = rnd();
       const d = inp.courseDistAt(px, pz);
+      if(inp.plantAllowedAt&&!inp.plantAllowedAt(px,pz))continue;
       if (d > 20) continue;
       const over = inp.overWaterAt(px, pz);
       const nerang = px > 135;
@@ -614,10 +745,14 @@ export function buildRiverVegetation(inp: RiverVegetationInput): RiverVegetation
       bm.setMatrixAt(k, m);
       lm.setMatrixAt(k, m);
     });
-    // The branches keep their full mesh in the mirror (a cheaper branch mesh
-    // bends the limbs differently); only the leaves have a stand-in.
+    // The branches' stand-in is a subset of their own tubes (a cheaper
+    // branch mesh bent the limbs differently; the subset keeps each kept
+    // limb exact). It is used on live pages only.
     lm.userData.lite = liteLeaves[i];
+    bm.userData.lite = liteBark[i];
+    bm.userData.liteLiveOnly = true;
     for (const im of [bm, lm]) {
+      im.userData.riverTree = v.kind === 'tree';
       im.castShadow = true;
       im.receiveShadow = true;
       im.computeBoundingSphere();
@@ -646,6 +781,9 @@ export function buildRiverVegetation(inp: RiverVegetationInput): RiverVegetation
     const clump = smoothstep(0.3, 0.7, c1.mul(0.6).add(c2.mul(0.4)));
     mat.colorNode = materialColor.mul(mix(0.45, 1.12, clump).mul(mix(0.55, 1.0, smoothstep(0.2, 0.6, positionGeometry.y))));
     const im = new THREE.InstancedMesh(g, mat, mats.length);
+    // This draw also contains low understory crowns. Only the actual far
+    // forest indices follow Show trees; shrubs keep their original draw.
+    im.userData.riverTreeIndices = farCanopyIndices[kind];
     // (No stand-in for a canopy shape: its 320 triangles are cheap, and the
     // quarter-size stand-in changed the far forest's outline in the mirror.)
     const col = new THREE.Color();
@@ -659,6 +797,15 @@ export function buildRiverVegetation(inp: RiverVegetationInput): RiverVegetation
     im.computeBoundingSphere();
     group.add(im);
     triangles += tris(g) * mats.length;
+  }
+  // Append after the existing meshes so their instance-set ordering is stable.
+  // These use the same culling, mirror copies and geometry disposal as branches.
+  for (const kind of ['conifer', 'broad'] as const) {
+    const trunks = createFarCanopyTrunks(kind, canopies[kind], farCanopyIndices[kind], inp.farTrunkAt);
+    if (!trunks) continue;
+    group.add(trunks);
+    counts[`canopy-trunk-${kind}`] = trunks.count;
+    triangles += tris(trunks.geometry) * trunks.count;
   }
   return { group, counts, triangles };
 }

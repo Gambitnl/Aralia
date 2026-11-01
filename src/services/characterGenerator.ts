@@ -117,7 +117,7 @@ export function generateCharacterFromConfig(config: CharacterGenerationConfig): 
     const proficiencyBonus = 2;
     const conMod = getAbilityModifierValue(finalAbilityScores.Constitution);
     let maxHp = charClass.hitDie + conMod;
-    if (race.traits.some(t => t.includes('Dwarven Toughness'))) maxHp += 1; // Dwarven Toughness
+    if (race.traits.some(t => t.includes('Dwarven Toughness')) || race.id === 'hill_dwarf') maxHp += 1; // Dwarven Toughness
 
     // Speed
     let speed = 30;

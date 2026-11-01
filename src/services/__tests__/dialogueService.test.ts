@@ -116,6 +116,9 @@ const mockExpiredRumor: WorldRumor = {
     virality: 0.9 // High virality shouldn't save it
 };
 
+// A retained ordinary information receipt is the player's knowledge source.
+const receiptForRumor = (rumor: WorldRumor): Item => createMockItem(`rumor_gossip_${rumor.id}`,{type:ItemType.Service,name:'Rumor',sourceId:`gossip_${rumor.id}`,description:`Purchased from a barkeep: "${rumor.text}"`});
+
 const mockGameState: GameState = {
   npcMemory: {
     'npc_1': {
@@ -129,7 +132,8 @@ const mockGameState: GameState = {
     createMockItem('gold_coin'),
     createMockItem('gold_coin'),
     createMockItem('gold_coin'), // 3 coins
-    createMockItem('sword')
+    createMockItem('sword'),
+    ...[mockRumor,mockLocalRumor,mockExpiredRumor].map(receiptForRumor)
   ],
   gold: 150, // Meets min_gold requirement
   questLog: [],
@@ -269,6 +273,29 @@ describe('Dialogue Service', () => {
   });
 
   describe('Dynamic Rumors', () => {
+    it('does not expose an unlearned world offer as a player dialogue choice',()=>{
+      expect(getDynamicRumorTopics({...mockGameState,inventory:[]},createMockNPC('npc_1'))).toEqual([]);
+    });
+    it('uses the frozen purchased account rather than rewriting it from current world news',()=>{
+      const receipt=receiptForRumor(mockRumor);receipt.description='Purchased from Mira: "The north bridge was washed out."';
+      const state={...mockGameState,inventory:[receipt],activeRumors:[{...mockRumor,text:'SECRET replacement news.'}]};
+      const topic=getDynamicRumorTopics(state,createMockNPC('npc_1'))[0];
+      expect(topic.description).toBe(receipt.description);
+      expect(topic.label).not.toContain('SECRET');
+      const result=processTopicSelection(topic.id,state,{npcId:'npc_1',discussedTopicIds:[]},0,createMockNPC('npc_1'));
+      expect(result.responsePrompt).toContain(receipt.description);
+      expect(result.responsePrompt).not.toContain('SECRET');
+      expect(result.responsePrompt).toContain('hearsay');
+    });
+    it.each(['missing receipt','expired','wrong location','different speaker'] as const)('rejects a stale account before mutation: %s',reason=>{
+      const npc=createMockNPC(reason==='different speaker'?'other':'npc_1');
+      const rumor={...mockLocalRumor,...(reason==='expired'?{expiration:90}:{}),...(reason==='wrong location'?{locationId:'elsewhere'}:{})};
+      const state={...mockGameState,inventory:reason==='missing receipt'?[]:[receiptForRumor(rumor)],activeRumors:[rumor]};
+      const session={npcId:'npc_1',discussedTopicIds:[]};
+      expect(()=>processTopicSelection('rumor_'+rumor.id,state,session,0,npc)).toThrow(/account.*available/i);
+      expect(session.discussedTopicIds).toEqual([]);
+      expect(state.gold).toBe(mockGameState.gold);
+    });
     it('should generate topics for faction-relevant rumors', () => {
       const factionNPC = createMockNPC('npc_faction', undefined, 'faction_a');
       const topics = getDynamicRumorTopics(mockGameState, factionNPC);
@@ -324,7 +351,7 @@ describe('Dialogue Service', () => {
     });
 
     it('should verify processTopicSelection works with dynamic rumors despite not being in registry', () => {
-         const result = processTopicSelection('rumor_rumor_war', mockGameState, mockSession);
+         const result = processTopicSelection('rumor_rumor_war', mockGameState, mockSession, 0, createMockNPC('npc_1'));
          expect(result.status).toBe('neutral');
          expect(result.responsePrompt).toContain('War is coming');
     });
@@ -341,7 +368,7 @@ describe('Dialogue Service', () => {
             locationId: 'loc_1',
             virality: 0.3,
         }));
-        const state = { ...mockGameState, activeRumors: floodRumors } as unknown as GameState;
+        const state = { ...mockGameState, activeRumors: floodRumors, inventory:floodRumors.map(receiptForRumor) } as unknown as GameState;
 
         const neutralNPC = createMockNPC('npc_neutral');
         const topics = getDynamicRumorTopics(state, neutralNPC);
@@ -358,7 +385,7 @@ describe('Dialogue Service', () => {
             { id: 'd', text: 'Quiet old news D.', type: 'misc', timestamp: 55, expiration: 200, locationId: 'loc_1', virality: 0.1 },
             { id: 'e', text: 'Mid news E.', type: 'misc', timestamp: 70, expiration: 200, locationId: 'loc_1', virality: 0.5 },
         ];
-        const state = { ...mockGameState, activeRumors: rumors } as unknown as GameState;
+        const state = { ...mockGameState, activeRumors: rumors, inventory:rumors.map(receiptForRumor) } as unknown as GameState;
 
         const topics = getDynamicRumorTopics(state, createMockNPC('npc_neutral'));
 
@@ -376,7 +403,7 @@ describe('Dialogue Service', () => {
             locationId: 'loc_1',
             virality: 0.3,
         }));
-        const state = { ...mockGameState, activeRumors: floodRumors } as unknown as GameState;
+        const state = { ...mockGameState, activeRumors: floodRumors, inventory:floodRumors.map(receiptForRumor) } as unknown as GameState;
         const neutralNPC = createMockNPC('npc_neutral');
 
         const available = getAvailableTopics(state, 'npc_1', mockSession, neutralNPC);

@@ -492,15 +492,19 @@ export function passMarkPath(x: number, y: number, size = 2): string {
 
 /** Point-of-interest markers (Azgaar "markers" layer) at their cell centroids. */
 export function buildPoiMarkers(atlas: FmgAtlasResult): AtlasSvgMarker[] {
-  const markers = (atlas.pack as { markers?: Array<{ cell?: number; type?: string }> }).markers;
+  const markers = (atlas.pack as { markers?: Array<{ i?: number; cell?: number; type?: string }> }).markers;
   if (!markers) return [];
   const p = atlas.pack.cells.p;
+  // FMG notes already own these public marker names. Keep only the plain name;
+  // legends can contain upstream iframe HTML and are not destination evidence.
+  const notes = (atlas as FmgAtlasResult & { notes?: Array<{ id: string; name: string }> }).notes;
   const out: AtlasSvgMarker[] = [];
   for (const m of markers) {
     if (m.cell == null) continue;
     const c = p?.[m.cell];
     if (!c) continue;
-    out.push({ x: c[0], y: c[1], type: m.type });
+    const name = m.i == null ? undefined : notes?.find(note => note.id === `marker${m.i}`)?.name;
+    out.push({ x: c[0], y: c[1], type: m.type, cell: m.cell, ...(name ? { name } : {}) });
   }
   return out;
 }

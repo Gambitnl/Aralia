@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 26/08/2026, 18:58:26
- * Dependents: commands/factory/SpellCommandFactory.ts, commands/index.ts, components/DesignPreview/steps/spells/shieldScenario.tsx
- * Imports: 32 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * ARCHITECTURAL CONTEXT:
  * This factory is responsible for bridging the gap between 'Abilities' 
@@ -32,20 +16,44 @@
  * 
  * @file src/commands/factory/AbilityCommandFactory.ts
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/10/2026, 12:14:17
+ * Dependents: commands/factory/spell/weaponBridges.ts, commands/index.ts, components/DesignPreview/steps/spells/shieldScenario.tsx
+ * Imports: 44 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import { getDuelingDamageBonus } from '@/utils/combat/fightingStyleDamage';
+import { rangedAttackPressure, RANGED_PRESSURE_REASON } from '@/systems/combat/rangedAttackPressure';
+import { getExhaustionD20Penalty } from '@/utils/combat/physicsUtils';
+import { WEAPONS_DATA } from '@/data/items';
+import { repeatedMultiattackOptions, selectRepeatedAttack } from '@/utils/combat/multiattackUtils';
 import { CombatCharacter, Ability, CombatState, AbilityEffect, SelectedSpellTarget, AbilityCost } from '@/types/combat';
 import { GameState } from '@/types';
+import { getRulesEdition } from '@/config/rulesEdition';
 import { SpellCommand, CommandContext, CommandMetadata } from '../base/SpellCommand';
 import { DamageCommand } from '../effects/DamageCommand';
 import { HealingCommand } from '../effects/HealingCommand';
 import { MovementCommand } from '../effects/MovementCommand';
 import { StatusConditionCommand } from '../effects/StatusConditionCommand';
-import { DefensiveCommand } from '../effects/DefensiveCommand';
-import { AttackRollModifierCommand } from '../effects/AttackRollModifierCommand';
+import { resolveDefensiveHitReaction } from '@/systems/combat/reactions/defensiveHitReaction';
+import { AttackRollModifierCommand, matchingAttackRollEffects, consumeMatchedAttackRollEffects } from '../effects/AttackRollModifierCommand';
 import { AbilityEffectMapper } from './AbilityEffectMapper';
 import { generateId, calculateCover, resolveAttack, getDistance, hasTavernBrawler, isImprovisedWeapon, getUnarmedStrikeDamageFormula, buildTavernBrawlerShoveOffer } from '@/utils/combat';
 import { rollD20, rollDice } from '@/systems/dice/rollers';
 import { getAbilityModifierValue } from '@/utils/character';
 import { SpellEffect, Spell, isAttackRollModifierEffect, isDamageEffect, isHealingEffect, isMovementEffect, isStatusConditionEffect } from '@/types/spells';
+import { isAtLongRange, isRangedWeapon, isThrownAttackAbilityId, LONG_RANGE_REASON } from '@/utils/combat/weaponRange';
 import { AttackRiderSystem, AttackContext } from '@/systems/combat/AttackRiderSystem';
 // Subclass attack riders. Each module owns its whole rule; this command only
 // supplies live combat state and the caller-reported surprise fact, then
@@ -68,7 +76,8 @@ import { isGreenFlameBladeRuntimeAbility } from './greenFlameBladeAttackBridge';
 import { canAffordActionCost, consumeActionCost } from '@/utils/combat/actionEconomyUtils';
 import { breakTauntsForEvent, hasTauntAttackDisadvantage } from '@/systems/combat/tauntConstraint';
 import { hasGrappledAttackDisadvantage } from '@/utils/combat/grappleUtils';
-import { getCombatantAltitudeFeet } from '@/utils/spatial/elevationGeometry';
+import { getCombatantAltitudeFeet, getCombatDistanceFeet } from '@/utils/spatial/elevationGeometry';
+import { isIncapacitated } from '@/utils/combat/deathSaveUtils';
 import { getHighGroundAdvantage } from '@/utils/spatial/elevationSemantics';
 import {
   hasUndetectedHiddenSource,
@@ -238,6 +247,90 @@ export class WeaponAttackCommand implements SpellCommand {
     return Math.floor(((score as number) - 10) / 2);
   }
 
+  /**
+   * The ability modifier a computed weapon attack uses: Dexterity for ranged,
+   * the better of Strength and Dexterity for finesse, Strength otherwise, or
+   * the spellcasting modifier when a held-weapon augment says so.
+   */
+  private getWeaponAttackAbilityModifier(liveCaster: CombatCharacter, heldWeaponAugment: HeldWeaponAugment | null): number {
+    const strMod = Math.floor((liveCaster.stats.strength - 10) / 2);
+    const dexMod = Math.floor((liveCaster.stats.dexterity - 10) / 2);
+    const isRanged = this.isRangedWeaponAttack();
+    // Finesse weapons may use Dexterity instead of Strength for the attack
+    // (RAW: the wielder's choice → take the better modifier). Catalog weapon
+    // properties are capitalized ('Finesse'), so compare case-insensitively.
+    const isFinesse = Boolean(
+      this.ability.weapon?.properties?.some(p => p.toLowerCase() === 'finesse')
+    );
+    const meleeMod = isFinesse ? Math.max(strMod, dexMod) : strMod;
+    const useSpellcastingAttackMod = Boolean(
+      heldWeaponAugment?.useSpellcastingAbilityForAttack &&
+      (heldWeaponAugment.attackType === 'ranged_weapon' || !isRanged)
+    );
+    if (useSpellcastingAttackMod) return this.getSpellcastingAbilityModifier(liveCaster, heldWeaponAugment);
+    // GG-495: a thrown melee weapon keeps the modifier it uses in melee (PHB
+    // Thrown property); a ranged weapon uses Dexterity, or the better of the
+    // two for a finesse ranged weapon such as the dart.
+    if (isThrownAttackAbilityId(this.ability.id)) return meleeMod;
+    if (isRanged) return isFinesse ? Math.max(strMod, dexMod) : dexMod;
+    return meleeMod;
+  }
+
+  /**
+   * GG-495: whether this attack is a ranged attack. A weapon decides by its
+   * category or Ammunition property, a "Throw" ability is ranged, and only a
+   * weapon-less ability falls back to range > 1. The old "range > 1" test would
+   * have made a 10 ft reach glaive a ranged (Dexterity) weapon.
+   */
+  private isRangedWeaponAttack(): boolean {
+    if (isThrownAttackAbilityId(this.ability.id)) return true;
+    if (this.ability.weapon) {
+      return isRangedWeapon(this.ability.weapon)
+        || Boolean(this.ability.weapon.properties?.some(p => p.toLowerCase() === 'range'));
+    }
+    return this.ability.range > 1;
+  }
+
+  /** A magic weapon's +N (magicProperties.magicalBonus), or 0. */
+  private getWeaponMagicBonus(): number {
+    const bonus = this.ability.weapon?.magicProperties?.magicalBonus;
+    return typeof bonus === 'number' && Number.isFinite(bonus) ? bonus : 0;
+  }
+
+  /**
+   * GG-496 (audit 2026-10-25): a weapon hit deals its dice PLUS the attack's
+   * ability modifier and the weapon's magic bonus. Before this, a player weapon
+   * hit dealt the dice alone (only unarmed strikes added Strength), so a
+   * Strength 16 longsword hit for 1d8 instead of 1d8+3.
+   *
+   * Scope: only player weapon attacks whose attack bonus is computed here
+   * (attackBonus undefined). Monster attacks carry a fixed attackBonus and
+   * their dice already include the modifier, so they are left alone. Unarmed
+   * strikes keep their own Strength path. An off-hand (bonus-action) hit adds
+   * the ability modifier only when it is negative (PHB two-weapon fighting).
+   * The bonus goes into the dice notation as a flat term, which a critical hit
+   * does not double (only dice counts double in rollContract).
+   */
+  private applyWeaponDamageBonus(effect: SpellEffect, heldWeaponAugment: HeldWeaponAugment | null, state: CombatState, isPrimaryWeaponDamage = true): SpellEffect {
+    if (!isDamageEffect(effect)) return effect;
+    if (this.ability.type !== 'attack' || !this.ability.weapon) return effect;
+    if (this.ability.attackBonus !== undefined || isUnarmedStrikeAbility(this.ability)) return effect;
+    const abilityMod = this.getWeaponAttackAbilityModifier(this.getLiveCaster(state), heldWeaponAugment);
+    const isOffHand = this.ability.id === 'attack_off' || this.ability.cost?.type === 'bonus';
+    // A held-weapon augment such as Shillelagh or Magic Stone that uses the
+    // spellcasting ability for damage already added that modifier to the dice
+    // (applyHeldWeaponAugmentToDamageEffect); adding it again would double it.
+    const augmentSetsDamageModifier = Boolean(heldWeaponAugment?.useSpellcastingAbilityForDamage);
+    const abilityPart = augmentSetsDamageModifier ? 0 : (isOffHand ? Math.min(0, abilityMod) : abilityMod);
+    // Dueling is a flat term on this weapon hit, not on each typed rider row.
+    // Fixed authored monster attacks returned above and retain their own damage.
+    const styleBonus = isPrimaryWeaponDamage ? getDuelingDamageBonus(this.getLiveCaster(state), this.ability.weapon) : 0;
+    const bonus = abilityPart + this.getWeaponMagicBonus() + styleBonus;
+    if (bonus === 0) return effect;
+    const dice = effect.damage.dice;
+    return { ...effect, damage: { ...effect.damage, dice: `${dice}${bonus > 0 ? '+' : '-'}${Math.abs(bonus)}` } };
+  }
+
   private getHeldWeaponDamageDice(augment: HeldWeaponAugment): string {
     const level = augment.sourceCasterLevel || this.caster.level || 1;
     const diceByLevel = augment.damageDiceByLevel;
@@ -376,121 +469,90 @@ export class WeaponAttackCommand implements SpellCommand {
     attacker: CombatCharacter,
     target: CombatCharacter,
     attackRoll: number,
-    coverBonus: number
+    coverBonus: number,
+    isCritical = false
   ): Promise<{ state: CombatState; target: CombatCharacter; targetAC: number; isHit: boolean }> {
-    if (!this.context.requestReaction) {
+    // NPCs decide their own defensive reactions. The authored Parry grants
+    // AC against THIS melee attack only: keep it local to the hit result,
+    // spend the existing Reaction, and never leave a permanent AC bonus.
+    // Their named weapon attack is the current monster equipment projection;
+    // a future disarm system must remove/disable that projection as well.
+    const parry = target.abilities.find(option => option.id === 'parry' && option.cost.type === 'reaction');
+    const parryBonus = parry?.description.match(/adds (\d+) to (?:its|their) AC against that attack/i);
+    const holdsAuthoredWeapon = target.abilities.some(option => option.type === 'attack' &&
+      !option.multiattackCount && (option.weapon || Object.values(WEAPONS_DATA).some(weapon => weapon.name.toLowerCase() === option.name.toLowerCase())));
+    const originalAC = (target.armorClass || 10) + coverBonus;
+    const bonus = parryBonus ? Number(parryBonus[1]) : 0;
+    if (!isCritical && target.team === 'enemy' && target.currentHP > 0 && !isIncapacitated(target) &&
+      parry && bonus > 0 && holdsAuthoredWeapon && canAffordActionCost(target, parry.cost) &&
+      getAttackEventClassification(this.ability).weaponType === 'melee' &&
+      attackRoll >= originalAC && attackRoll < originalAC + bonus) {
+      const defended = consumeActionCost(target, parry.cost);
       return {
-        state,
-        target,
-        targetAC: (target.armorClass || 10) + coverBonus,
-        isHit: true
+        state: { ...state,
+          characters: state.characters.map(character => character.id === target.id ? defended : character),
+          combatLog: [...state.combatLog, {
+            id: generateId(), timestamp: Date.now(), type: 'action',
+            message: `${target.name} uses Parry (Reaction): AC ${originalAC} + ${bonus} = ${originalAC + bonus} against this attack; ${attackRoll} misses.`,
+            characterId: target.id, targetIds: [attacker.id],
+            data: { abilityName: parry.name, attackRoll },
+          }],
+        },
+        target: defended, targetAC: originalAC + bonus, isHit: false,
       };
     }
-
-    const reactionSpells = (target.abilities || [])
-      .map(abilityOption => abilityOption.spell)
-      .filter((spellOption): spellOption is Spell => {
-        if (!spellOption) return false;
-        const reactionCost: AbilityCost = {
-          type: 'reaction',
-          spellSlotLevel: Math.max(spellOption.level || 0, 0)
-        };
-
-        return String(spellOption.castingTime?.unit ?? '').toLowerCase().includes('reaction') &&
-          spellOption.effects.some((effect: any) =>
-            effect.type === 'DEFENSIVE' &&
-            effect.reactionTrigger?.event === 'when_hit'
-          ) &&
-          canAffordActionCost(target, reactionCost);
-      });
-
-    if (reactionSpells.length === 0) {
-      return {
-        state,
-        target,
-        targetAC: (target.armorClass || 10) + coverBonus,
-        isHit: true
-      };
-    }
-
-    const selectedReactionId = await this.context.requestReaction(
-      attacker.id,
-      target.id,
-      'on_hit',
-      reactionSpells
-    );
-    const selectedReactionSpell = reactionSpells.find(spellOption => spellOption.id === selectedReactionId);
-
-    if (!selectedReactionSpell) {
-      return {
-        state,
-        target,
-        targetAC: (target.armorClass || 10) + coverBonus,
-        isHit: true
-      };
-    }
-
-    const reactionCost: AbilityCost = {
-      type: 'reaction',
-      spellSlotLevel: Math.max(selectedReactionSpell.level || 0, 0)
-    };
-    const targetAfterCost = consumeActionCost(target, reactionCost);
-    let reactionState: CombatState = {
-      ...state,
-      characters: state.characters.map(character =>
-        character.id === targetAfterCost.id ? targetAfterCost : character
-      )
-    };
-
-    // Shield-style cancellation needs the defensive AC change before damage
-    // commands run. Apply only defensive when-hit spell rows here; broader
-    // reaction spell orchestration remains owned by the hook-level prompt lane.
-    for (const effect of selectedReactionSpell.effects) {
-      if (effect.type !== 'DEFENSIVE' || effect.reactionTrigger?.event !== 'when_hit') {
-        continue;
-      }
-
-      const liveTarget = reactionState.characters.find(character => character.id === target.id) || targetAfterCost;
-      const command = new DefensiveCommand(effect, {
-        ...this.context,
-        spellId: selectedReactionSpell.id,
-        spellName: selectedReactionSpell.name,
-        caster: liveTarget,
-        targets: [liveTarget]
-      });
-      reactionState = command.execute(reactionState);
-    }
-
-    const defendedTarget = reactionState.characters.find(character => character.id === target.id) || targetAfterCost;
-    const defendedTargetAC = (defendedTarget.armorClass || 10) + coverBonus;
-    const stillHits = attackRoll >= defendedTargetAC;
-
-    if (!stillHits) {
-      reactionState = {
-        ...reactionState,
-        combatLog: [
-          ...(reactionState.combatLog || []),
-          {
-            id: generateId(),
-            timestamp: Date.now(),
-            type: 'action',
-            message: `${defendedTarget.name}'s ${selectedReactionSpell.name} raises AC to ${defendedTargetAC} and turns the hit into a miss.`,
-            characterId: defendedTarget.id,
-            targetIds: [defendedTarget.id]
-          }
-        ]
-      };
-    }
-
-    return {
-      state: reactionState,
-      target: defendedTarget,
-      targetAC: defendedTargetAC,
-      isHit: stillHits
-    };
+    return resolveDefensiveHitReaction(state, attacker, target, attackRoll, coverBonus, this.context, isCritical);
   }
 
   async execute(state: CombatState): Promise<CombatState> {
+    // A repeat-only Multiattack names one leaf attack and an exact count. Its
+    // aggregate effects exist for AI scoring, not as a synthetic damage hit.
+    // Resolve each leaf through this same command so attack bonuses, defenses,
+    // reactions and consumed riders read the state left by the preceding hit.
+    // The caller has already paid the parent action; leaf commands spend none.
+    // Explicit repeated alternatives share the AI's reach-aware weapon choice.
+    // Fixed mixed/optional sequences still need their own authored planner.
+    if (this.ability.multiattackCount && (this.ability.subAttackIds?.length === 1 ||
+      repeatedMultiattackOptions(this.getLiveCaster(state), this.ability).length > 0)) {
+      const count = this.ability.multiattackCount;
+      const options = repeatedMultiattackOptions(this.getLiveCaster(state), this.ability);
+      const leaf = options[0];
+      if (!Number.isSafeInteger(count) || count < 1 || !leaf || leaf.type !== 'attack' || leaf.multiattackCount) {
+        throw new Error(`${this.ability.name} has no valid authored repeat attack.`);
+      }
+      let sequenceState = state;
+      for (let index = 0; index < count; index += 1) {
+        const attacker = sequenceState.characters.find(character => character.id === this.caster.id);
+        if (!attacker || attacker.currentHP <= 0 || isIncapacitated(attacker)) break;
+        const targets = this.targets.flatMap(target => {
+          const live = sequenceState.characters.find(character => character.id === target.id);
+          // A dying player can still be attacked; a dead or removed target
+          // cannot. Do not choose a new victim on behalf of the monster AI.
+          return live && (live.currentHP > 0 || (live.team === 'player' && (live.deathSaves?.failures ?? 0) < 3))
+            ? [live] : [];
+        });
+        if (targets.length === 0) break;
+        const strike = selectRepeatedAttack(attacker, this.ability, targets[0]);
+        // A caller cannot fan one chosen melee weapon out to a distant target
+        // merely because that other target has a different legal alternative.
+        if (!strike || targets.some(target => selectRepeatedAttack(attacker, this.ability, target)?.id !== strike.id)) {
+          throw new Error(`${this.ability.name} has no authored attack in reach of its selected target.`);
+        }
+        sequenceState = {
+          ...sequenceState,
+          combatLog: [...sequenceState.combatLog, {
+            id: generateId(), timestamp: Date.now(), type: 'status',
+            message: `${attacker.name}: ${this.ability.name} — ${strike.name} (${index + 1} of ${count}).`,
+            characterId: attacker.id, targetIds: targets.map(target => target.id),
+          }],
+        };
+        sequenceState = await new WeaponAttackCommand(strike, attacker, targets, {
+          ...this.context, caster: attacker, targets, spellId: strike.id, spellName: strike.name,
+        }).execute(sequenceState);
+      }
+      return sequenceState;
+    }
+
     let newState = { ...state };
     const riderSystem = new AttackRiderSystem();
 
@@ -652,6 +714,7 @@ export class WeaponAttackCommand implements SpellCommand {
       // battle-map renderers. This preserves exact sense radii, makes mundane
       // darkness dim through Darkvision, lets Blindsight work only inside its
       // radius, and keeps magical darkness or blocked geometry hidden.
+      let targetUnseen = false;
       if (state.mapData && (state.mapData.theme === 'cave' || state.mapData.theme === 'dungeon')) {
         const lightLevels = VisibilitySystem.calculateLightLevels(
           state.mapData,
@@ -667,7 +730,8 @@ export class WeaponAttackCommand implements SpellCommand {
         // An unseen target can still be attacked when its location is known,
         // but the attack roll has Disadvantage. Dim visibility is sufficient
         // for an ordinary attack and remains dim for perception/rendering.
-        if (targetVisibility === 'hidden') {
+        targetUnseen = targetVisibility === 'hidden';
+        if (targetUnseen) {
           hasDisadvantage = true;
         }
       }
@@ -678,8 +742,9 @@ export class WeaponAttackCommand implements SpellCommand {
       let attackRiderFlatTotal = 0;
       const attackRiderSources: string[] = [];
 
-      const weaponType = (this.ability.range || 5) <= 5 ? 'melee_weapon' : 'ranged_weapon';
-      const resolvedAttackKind = this.ability.isMagical ? 'spell' : weaponType;
+      const rollClassification = { ...getAttackEventClassification(this.ability),
+        weaponType: this.ability.attackType === 'unarmed' || isUnarmedStrikeAbility(this.ability) ? 'unarmed' as const
+          : this.isRangedWeaponAttack() ? 'ranged' as const : 'melee' as const };
 
         const processAttackRider = (activeEffect: any, direction: 'incoming' | 'outgoing') => {
          if (!activeEffect.mechanics || activeEffect.mechanics.attackRollDirection !== direction) return;
@@ -694,15 +759,6 @@ export class WeaponAttackCommand implements SpellCommand {
           ) {
             return;
           }
-
-          const kind = activeEffect.mechanics.attackRollKind;
-        if (kind && kind !== 'any' && kind !== 'weapon' && kind !== resolvedAttackKind) {
-           if (kind === 'weapon' && (resolvedAttackKind === 'melee_weapon' || resolvedAttackKind === 'ranged_weapon')) {
-              // matches
-           } else {
-              return;
-           }
-        }
 
         const mod = activeEffect.mechanics.attackRollModifier;
         if (mod === 'advantage') hasAdvantage = true;
@@ -725,8 +781,8 @@ export class WeaponAttackCommand implements SpellCommand {
         }
       };
 
-      this.caster.activeEffects?.forEach(eff => processAttackRider(eff, 'outgoing'));
-      currentTarget.activeEffects?.forEach(eff => processAttackRider(eff, 'incoming'));
+      matchingAttackRollEffects(liveAttacker, 'outgoing', rollClassification, currentTarget.id).forEach(eff => processAttackRider(eff, 'outgoing'));
+      matchingAttackRollEffects(currentTarget, 'incoming', rollClassification).forEach(eff => processAttackRider(eff, 'incoming'));
 
       // Racial Modifiers
       this.caster.modifiers?.advantage.forEach(adv => {
@@ -760,9 +816,7 @@ export class WeaponAttackCommand implements SpellCommand {
       // funnel through rollD20's cancel-out rule like every other source.
       // Ranged attacks stay outside the rule; sight geometry owns them. The
       // altitude helper already honors explicit flying altitudes.
-      const isRangedAttackForHighGround =
-        this.ability.range > 1 ||
-        Boolean(this.ability.weapon?.properties?.some(p => p.toLowerCase() === 'range'));
+      const isRangedAttackForHighGround = this.isRangedWeaponAttack(); // GG-495
       if (
         state.mapData &&
         currentTarget &&
@@ -794,6 +848,21 @@ export class WeaponAttackCommand implements SpellCommand {
         hasAdvantage = true;
       }
 
+      // A ranged weapon remains pressured even when this enemy has spent its
+      // reaction. Sight and capability, not remaining reactions, own this rule.
+      const closeCombatPressure = this.isRangedWeaponAttack() && rangedAttackPressure(newState, liveAttacker, this.ability);
+      if (closeCombatPressure) hasDisadvantage = true;
+
+      // GG-495: past the normal range but within the long range, a ranged or
+      // thrown attack roll has Disadvantage (PHB). Distance uses the same
+      // footprint- and altitude-aware measure as targeting (useTargetValidator).
+      const longRangeShot = Boolean(state.mapData)
+        && isAtLongRange(
+          this.ability,
+          getCombatDistanceFeet(liveAttacker, currentTarget, state.mapData!) / 5,
+        );
+      if (longRangeShot) hasDisadvantage = true;
+
       // Use centralized rollD20 with integrated advantage/disadvantage handling
       const d20 = rollD20({
         advantage: hasAdvantage && !hasDisadvantage,
@@ -810,34 +879,32 @@ export class WeaponAttackCommand implements SpellCommand {
         rollStr += ` (Advantage and Disadvantage cancel out)`;
       }
 
+      // Attribute the visibility rule that actually affected this attack. Keep
+      // the reason even when Advantage cancels it; do not guess whether darkness,
+      // a sight blocker or a sense radius caused the shared hidden result.
+      if (targetUnseen) rollStr += ' (Target unseen to attacker)';
+
+      if (closeCombatPressure) rollStr += ` (${RANGED_PRESSURE_REASON})`;
+      if (longRangeShot) rollStr += ` (${LONG_RANGE_REASON})`;
+
       const heldWeaponAugment = this.getMatchingHeldWeaponAugment(newState);
       const liveCaster = this.getLiveCaster(newState);
       let modifiers: number;
       if (this.ability.attackBonus !== undefined) {
         modifiers = this.ability.attackBonus;
       } else {
-        const strMod = Math.floor((liveCaster.stats.strength - 10) / 2);
-        const dexMod = Math.floor((liveCaster.stats.dexterity - 10) / 2);
-        const isRanged = this.ability.range > 1 || this.ability.weapon?.properties?.includes('range');
-        // Finesse weapons may use Dexterity instead of Strength for the attack
-        // (RAW: the wielder's choice → take the better modifier). Catalog weapon
-        // properties are capitalized ('Finesse'), so compare case-insensitively.
-        const isFinesse = Boolean(
-          this.ability.weapon?.properties?.some(p => p.toLowerCase() === 'finesse')
-        );
-        const meleeMod = isFinesse ? Math.max(strMod, dexMod) : strMod;
-        const useSpellcastingAttackMod = Boolean(
-          heldWeaponAugment?.useSpellcastingAbilityForAttack &&
-          (heldWeaponAugment.attackType === 'ranged_weapon' || !isRanged)
-        );
-        const abilityMod = useSpellcastingAttackMod
-          ? this.getSpellcastingAbilityModifier(liveCaster, heldWeaponAugment)
-          : (isRanged ? dexMod : meleeMod);
+        const abilityMod = this.getWeaponAttackAbilityModifier(liveCaster, heldWeaponAugment);
         const pb = Math.ceil((liveCaster.level || 1) / 4) + 1;
         const proficiencyBonus = this.ability.isProficient ? pb : 0;
-        modifiers = abilityMod + proficiencyBonus;
+        // GG-496: a magic weapon's +N adds to the attack roll (it was never read).
+        modifiers = abilityMod + proficiencyBonus + this.getWeaponMagicBonus();
       }
 
+      // Re-read the live actor for every authored leaf. Exhaustion changes
+      // its total once; natural faces, source bonuses and damage stay intact.
+      const exhaustionPenalty = getExhaustionD20Penalty(liveCaster);
+      modifiers -= exhaustionPenalty;
+      if (exhaustionPenalty > 0) rollStr += ` (Exhaustion -${exhaustionPenalty})`;
       modifiers += attackRiderDiceTotal + attackRiderFlatTotal;
       if (attackRiderSources.length > 0) {
         rollStr += ` (Mods: ${attackRiderSources.join(', ')})`;
@@ -859,13 +926,14 @@ export class WeaponAttackCommand implements SpellCommand {
       let isCritical = preliminaryAttack.isCritical;
       const isAutoMiss = preliminaryAttack.isAutoMiss;
       const attackRoll = d20 + modifiers;
-      if (isHit && !isCritical) {
+      if (isHit) {
         const reactionResult = await this.applyDefensiveHitReaction(
           newState,
           liveCaster,
           currentTarget,
           attackRoll,
-          coverBonus
+          coverBonus,
+          isCritical
         );
         newState = reactionResult.state;
         currentTarget = reactionResult.target;
@@ -895,7 +963,7 @@ export class WeaponAttackCommand implements SpellCommand {
       // knows the real hit/miss outcome. Reactive systems and future action
       // envelope bridges should consume this event instead of scraping prose
       // combat-log messages for whether the target was actually hit.
-      const attackEventClassification = getAttackEventClassification(this.ability);
+      const attackEventClassification = rollClassification;
       combatEvents.emit({
         type: 'unit_attack',
         attackerId: this.caster.id,
@@ -916,7 +984,7 @@ export class WeaponAttackCommand implements SpellCommand {
         newState,
         this.caster.id,
         'outgoing',
-        attackEventClassification
+        attackEventClassification, currentTarget.id
       );
 
       // Incoming next-attack riders live on the creature being attacked. Keep
@@ -926,7 +994,7 @@ export class WeaponAttackCommand implements SpellCommand {
         newState,
         currentTarget.id,
         'incoming',
-        attackEventClassification
+        attackEventClassification, currentTarget.id
       );
       currentTarget = newState.characters.find(c => c.id === target.id) || currentTarget;
 
@@ -1085,23 +1153,51 @@ export class WeaponAttackCommand implements SpellCommand {
 
       // 3. Apply Base Ability Effects
       if (!attackPayloadIsReplaced) {
-        for (const abilityEffect of this.ability.effects) {
+        for (let effectIndex = 0; effectIndex < this.ability.effects.length; effectIndex += 1) {
+          const abilityEffect = this.ability.effects[effectIndex];
           const mappedSpellEffect = AbilityEffectMapper.mapToSpellEffect(abilityEffect);
           if (!mappedSpellEffect) continue;
           const augmentedSpellEffect = this.applyHeldWeaponAugmentToDamageEffect(mappedSpellEffect, heldWeaponAugment, newState);
-          const spellEffect = this.applyTavernBrawlerUnarmedDamage(augmentedSpellEffect, attackEventClassification);
+          const brawlerSpellEffect = this.applyTavernBrawlerUnarmedDamage(augmentedSpellEffect, attackEventClassification);
+          const spellEffect = this.applyWeaponDamageBonus(brawlerSpellEffect, heldWeaponAugment, newState,
+            effectIndex === this.ability.effects.findIndex(effect => effect.type === 'damage'));
 
           const subContext: CommandContext = {
             ...this.context,
             targets: [currentTarget],
             isCritical,
-            weaponProperties: this.ability.weapon?.properties,
-            isMagical: this.ability.isMagical || heldWeaponAugment?.isMagical,
+            // GG-495: DamageCommand treats a 'ranged' entry as "not a melee
+            // weapon attack" (Savage Attacks); item data never carries one, so
+            // mark ranged and thrown attacks here.
+            weaponProperties: this.isRangedWeaponAttack() && this.ability.weapon
+              ? [...(this.ability.weapon.properties ?? []), 'ranged']
+              : this.ability.weapon?.properties,
+            // GG-496: a +N weapon is a magic weapon for resistance purposes.
+            isMagical: this.ability.isMagical || heldWeaponAugment?.isMagical || this.getWeaponMagicBonus() > 0,
           };
 
           let command: SpellCommand | null = null;
           switch (spellEffect.type) {
-            case 'DAMAGE': command = new DamageCommand(spellEffect, subContext); break;
+            case 'DAMAGE': {
+              // Consecutive typed rows belong to this one confirmed hit. A
+              // Ghoul Bite's piercing and necrotic parts retain their defenses
+              // while sharing reactions, HP/downing and concentration. Status
+              // and other ordered effects keep their original command order.
+              // Later separately dispatched class/rider damage is not silently
+              // pulled into this base-ability packet.
+              const damageEffects = [spellEffect];
+              while (this.ability.effects[effectIndex + 1]?.type === 'damage') {
+                effectIndex += 1;
+                const mapped = AbilityEffectMapper.mapToSpellEffect(this.ability.effects[effectIndex]);
+                if (!mapped) continue;
+                const augmented = this.applyHeldWeaponAugmentToDamageEffect(mapped, heldWeaponAugment, newState);
+                const brawler = this.applyTavernBrawlerUnarmedDamage(augmented, attackEventClassification);
+                const nextDamage = this.applyWeaponDamageBonus(brawler, heldWeaponAugment, newState, false);
+                if (isDamageEffect(nextDamage)) damageEffects.push(nextDamage);
+              }
+              command = DamageCommand.forWeaponHit(damageEffects, subContext);
+              break;
+            }
             case 'HEALING': command = new HealingCommand(spellEffect, subContext); break;
             case 'STATUS_CONDITION': command = new StatusConditionCommand(spellEffect, subContext); break;
           }
@@ -1198,9 +1294,7 @@ export class WeaponAttackCommand implements SpellCommand {
       const hasUsedSneakAttack = this.caster.featUsageThisTurn?.includes('sneak_attack');
       
       const isFinesse = this.ability.weapon?.properties?.some(p => p.toLowerCase() === 'finesse');
-      const isRanged = this.ability.range > 1 ||
-                       this.ability.weapon?.properties?.includes('range') ||
-                       this.ability.weapon?.category?.toLowerCase().includes('ranged');
+      const isRanged = this.isRangedWeaponAttack(); // GG-495: a reach weapon is not ranged
       const isEligibleWeapon = isFinesse || isRanged;
 
       if (!attackPayloadIsReplaced && isRogue && !hasUsedSneakAttack && isEligibleWeapon) {
@@ -1421,61 +1515,12 @@ export class WeaponAttackCommand implements SpellCommand {
    * attack marks from consuming each other.
    */
   private consumeNextAttackRollRiders(
-    state: CombatState,
-    characterId: string,
-    direction: 'incoming' | 'outgoing',
-    attackClassification: ReturnType<typeof getAttackEventClassification>
+    state: CombatState, characterId: string, direction: 'incoming' | 'outgoing',
+    attackClassification: ReturnType<typeof getAttackEventClassification>, defenderId?: string
   ): CombatState {
-    if (attackClassification.attackType !== 'weapon') {
-      return state;
-    }
-
-    const affectedCharacter = state.characters.find(character => character.id === characterId);
-    if (!affectedCharacter?.activeEffects?.length) {
-      return state;
-    }
-
-    const remainingEffects = affectedCharacter.activeEffects.filter(effect => {
-      const mechanics = effect.mechanics;
-      if (!mechanics || mechanics.attackRollDirection !== direction) {
-        return true;
-      }
-
-      if (
-        mechanics.attackRollConsumption !== 'next_attack' &&
-        mechanics.attackRollConsumption !== 'first_attack'
-      ) {
-        return true;
-      }
-
-      const kind = mechanics.attackRollKind;
-      if (!kind || kind === 'any' || kind === 'weapon') {
-        return false;
-      }
-
-      if (kind === 'melee_weapon') {
-        return attackClassification.weaponType !== 'melee';
-      }
-
-      if (kind === 'ranged_weapon') {
-        return attackClassification.weaponType !== 'ranged';
-      }
-
-      return true;
-    });
-
-    if (remainingEffects.length === affectedCharacter.activeEffects.length) {
-      return state;
-    }
-
-    return {
-      ...state,
-      characters: state.characters.map(character =>
-        character.id === characterId
-          ? { ...character, activeEffects: remainingEffects }
-          : character
-      )
-    };
+    const owner = state.characters.find(character => character.id === characterId);
+    return owner ? consumeMatchedAttackRollEffects(state, characterId,
+      matchingAttackRollEffects(owner, direction, attackClassification, defenderId)) : state;
   }
 
   private getRiderAreaTargets(
@@ -1649,6 +1694,7 @@ export class AbilityCommandFactory {
       targets,
       selectedSpellTargets: selectedSpellTargets ?? targets.map(target => ({ kind: 'creature', id: target.id })),
       gameState,
+      rulesEdition: getRulesEdition(gameState),
       requestReaction,
       attackRollRng: randomSources?.attackRollRng,
       damageRng: randomSources?.damageRng,

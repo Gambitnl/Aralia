@@ -1,8 +1,9 @@
+// @vitest-environment node
 /**
  * This file proves the visual-test capture command rejects unsafe requests
  * before it creates output, opens Chromium, or contacts a development server.
  * It starts the real TypeScript command in short-lived child processes because
- * importing the command directly would run its production entry point.
+ * CLI rejection must be proved without relying on an imported helper alone.
  *
  * Called by: Vitest's focused tools/vistest test run.
  * Depends on: Node's TypeScript loader and the capture command's public CLI.
@@ -10,6 +11,7 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import type { Page } from 'playwright';
 import { describe, expect, it } from 'vitest';
@@ -26,6 +28,9 @@ import { captureScenarioRecipe, isReloadInterruption, probeServedCode } from '..
 
 const repoRoot = path.resolve(import.meta.dirname, '../../..');
 const shootScript = path.join(repoRoot, 'tools/vistest/shoot.ts');
+const { probeDevServer } = createRequire(import.meta.url)('../../../scripts/dev-server-watchdog.cjs') as {
+  probeDevServer: (options: { baseUrl: string; modulePath: string; repoRoot: string; timeoutMs: number }) => Promise<{ ok: boolean; status: string }>;
+};
 
 function runShoot(...args: string[]) {
   return spawnSync(process.execPath, ['--import', 'tsx', shootScript, ...args], {
@@ -167,6 +172,26 @@ function makeRecoveryOutput(): string {
 // ============================================================================
 
 describe('vistest capture command safety', () => {
+  it('rejects a blank explicitly supplied marker before contacting a server', () => {
+    const result = runShoot('--fresh-module', 'tools/vistest/shoot.ts', '--expect-served-code', '   ',
+      '--base', 'http://127.0.0.1:1/Aralia/');
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('--expect-served-code must name a nonblank code expression');
+    expect(result.stderr).not.toContain('LIVENESS_FAILURE');
+  });
+
+  it('requires an expression for ignored scratch modules before contacting a server', () => {
+    const out = '.agent/vistest/captures/wfg347-no-marker-no-write';
+    for (const modulePath of ['.agent/scratch/missing.ts', './.agent/scratch/missing.ts', '.agent\\scratch\\missing.ts']) {
+      const result = runShoot('--fresh-module', modulePath, '--base', 'http://127.0.0.1:1/Aralia/',
+        '--probe-timeout', '50', '--out', out);
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain('--expect-served-code is required for .agent');
+      expect(result.stderr).not.toContain('LIVENESS_FAILURE');
+      expect(existsSync(path.join(repoRoot, out))).toBe(false);
+    }
+  }, 15_000);
+
   it('prints help without starting capture work', () => {
     const unusedOutput = path.join(repoRoot, '.agent/vistest/captures/cli-help-no-write');
     const result = runShoot('--help', '--out', '.agent/vistest/captures/cli-help-no-write');
@@ -289,6 +314,73 @@ describe('vistest capture command safety', () => {
 });
 
 describe('transformed served-code proof', () => {
+  it('checks the ordinary module URL without creating another Vite cache entry', async () => {
+    const requests: string[] = [];
+    const server = createServer((request, response) => {
+      requests.push(request.url || '');
+      response.writeHead(200, { 'Content-Type': 'text/javascript' });
+      response.end('export const build = "ordinary-module";');
+    });
+    const port = await listen(server);
+    try {
+      const result = await probeServedCode({ baseUrl: `http://127.0.0.1:${port}/Aralia/`,
+        modulePath: '.agent/scratch/work.ts', expectedCode: 'build = "ordinary-module"', timeoutMs: 1000 });
+      expect(result.ok).toBe(true);
+      expect(requests).toEqual(['/Aralia/.agent/scratch/work.ts']);
+      expect(new URL(result.url).search).toBe('');
+    } finally { await new Promise<void>(resolve => server.close(() => resolve())); }
+  });
+
+  it('rejects stale ignored scratch transforms after two edits and accepts fresh filenames on real Vite', async () => {
+    // This is one disposable Vite service with no Aralia configuration, game,
+    // browser or GPU. It reproduces the existing .agent watcher exclusion.
+    const { createServer: createViteServer } = await import('vite');
+    const scratch = path.join(repoRoot, '.agent/scratch/wfg347/vite-fixtures');
+    mkdirSync(scratch, { recursive: true });
+    const root = mkdtempSync(path.join(scratch, 'run-'));
+    const modulePath = '.agent/scratch/work.ts';
+    const target = path.join(root, modulePath);
+    mkdirSync(path.dirname(target), { recursive: true });
+    writeFileSync(path.join(root, 'index.html'), '<html><body>Isolated Vite source proof</body></html>');
+    writeFileSync(target, 'export const scratchBuild = "WF347-1";\n');
+    const app = await createViteServer({ configFile: false, root, base: '/Aralia/', logLevel: 'silent',
+      cacheDir: path.join(root, '.cache'), optimizeDeps: { noDiscovery: true, include: [] },
+      server: { host: '127.0.0.1', port: 0, watch: { ignored: ['**/.agent/**'] } } });
+    try {
+      await app.listen();
+      const address = app.httpServer?.address();
+      if (!address || typeof address === 'string') throw new Error('No isolated Vite fixture port');
+      const baseUrl = `http://127.0.0.1:${address.port}/Aralia/`;
+      const options = { baseUrl, modulePath, timeoutMs: 3000 };
+      // Prime the exact URL the page imports before any probe or disk edit.
+      expect(await fetch(new URL(modulePath, baseUrl)).then(response => response.text()))
+        .toContain('scratchBuild = "WF347-1"');
+      expect((await probeServedCode({ ...options, expectedCode: 'scratchBuild = "WF347-1"' })).ok).toBe(true);
+      for (const iteration of [2, 3]) {
+        const expectedCode = `scratchBuild = "WF347-${iteration}"`;
+        writeFileSync(target, `export const ${expectedCode};\n`);
+        // Raw source is genuinely fresh, while the ignored ordinary transform
+        // still executes the first build. Raw freshness cannot certify a frame.
+        expect((await probeDevServer({ ...options, repoRoot: root })).ok).toBe(true);
+        const ordinary = await fetch(new URL(modulePath, baseUrl)).then(response => response.text());
+        expect(ordinary).toContain('scratchBuild = "WF347-1"');
+        expect(ordinary).not.toContain(expectedCode);
+        const rejected = await probeServedCode({ ...options, expectedCode });
+        expect(rejected.ok).toBe(false);
+        expect(rejected.error).toContain('not found in the transformed module');
+        const freshPath = `.agent/scratch/iteration-${iteration}.ts`;
+        writeFileSync(path.join(root, freshPath), readFileSync(target));
+        expect((await probeServedCode({ ...options, modulePath: freshPath, expectedCode })).ok).toBe(true);
+        expect((await probeServedCode({ ...options, modulePath: freshPath,
+          expectedCode: 'scratchBuild = "WF347-1"' })).ok).toBe(false);
+      }
+    } finally {
+      await app.close();
+      expect(path.dirname(root)).toBe(path.resolve(scratch));
+      rmSync(root, { recursive: true, force: true });
+    }
+  }, 20_000);
+
   it('accepts code in the transformed module and rejects stripped comments', async () => {
     const server = createServer((_request, response) => {
       response.writeHead(200, { 'Content-Type': 'text/javascript' });

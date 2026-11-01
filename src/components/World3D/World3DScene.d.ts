@@ -75,6 +75,9 @@ interface World3DSceneProps {
      * once the opening is over.
      */
     sceneCast?: SceneCastMember[];
+    partyCompanions?: import('@/systems/companions/companionWhereabouts').PartyCompanionPresence[];
+    partyPaused?: boolean;
+    onCompanionPositionChange?: (id: string, position: import('@/systems/companions/companionWhereabouts').CompanionPosition, trail: import('@/systems/companions/companionWhereabouts').CompanionPosition[]) => void;
     /**
      * Click-to-talk: called with an NPC figure's id when the player clicks it in
      * the 3D world. Wired to the same `talk` action the 2D action pane uses, so

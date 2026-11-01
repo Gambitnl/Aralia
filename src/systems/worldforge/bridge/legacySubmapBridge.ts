@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
- *
- * Last Sync: 19/07/2026, 22:06:11
- * Dependents: components/DesignPreview/steps/PreviewStartSelect.tsx, components/MapPane.tsx, components/World3D/WebGPUProbe.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx, components/World3D/worldGenCore.ts, components/Worldforge/AtlasDemo.tsx, components/Worldforge/SpawnPreview.tsx, components/Worldforge/StartPointSelection.tsx, components/Worldforge/responsiveAtlasCore.ts, components/Worldforge/responsiveAtlasPreparation.ts, hooks/useKnownPortsSync.ts, hooks/useVoyageArrival.ts, systems/spells/ai/MaterialTagService.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/settlementDefense.ts, systems/worldforge/chronicle/worldChronicle.ts, systems/worldforge/dungeon/world/chronicle.ts, systems/worldforge/dungeon/world/deriveIdentity.ts, systems/worldforge/dungeon/world/dungeonSites.ts, systems/worldforge/dungeon/world/raidPressure.ts, systems/worldforge/dungeon/world/rumors.ts, systems/worldforge/forests/forestKindForCell.ts, systems/worldforge/leaf3d/atlasGroundRestore.ts, systems/worldforge/local/biomeForCell.ts, systems/worldforge/local/burgProximity.ts, systems/worldforge/local/resolveSpawn.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/chronicleForLocation.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
- * Imports: 12 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file legacySubmapBridge.ts â€” the seam between the LEGACY game world and
  * the Worldforge world (Remy's 2026-06-11 focus, slice 2: Azgaar â†’ submap).
@@ -38,6 +22,23 @@
  * module level (one world per session in practice). Regions and locals are
  * cached per anchor/center so re-entering a location is instant.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 31/10/2026, 22:01:54
+ * Dependents: components/DesignPreview/steps/JudgeLandCompare.tsx, components/DesignPreview/steps/PreviewStartSelect.tsx, components/DesignPreview/steps/PreviewTown3D.tsx, components/DesignPreview/steps/PreviewWorldforge.tsx, components/DesignPreview/steps/landTerrainJob.ts, components/DesignPreview/steps/landTypeCensus.ts, components/DesignPreview/steps/sidebyside/sideBySideTerrainJob.ts, components/MapPane.tsx, components/World3D/WebGPUProbe.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx, components/World3D/worldGenCore.ts, components/Worldforge/AtlasDemo.tsx, components/Worldforge/SpawnPreview.tsx, components/Worldforge/StartPointSelection.tsx, components/Worldforge/responsiveAtlasCore.ts, components/Worldforge/responsiveAtlasPreparation.ts, components/Worldforge/townBuildingVisit.ts, hooks/useKnownPortsSync.ts, hooks/useTownCrierAnnouncements.ts, hooks/useVoyageArrival.ts, systems/companions/companionWorldActivitySource.ts, systems/gameplay/lodging.ts, systems/religion/worldforgeTemple.ts, systems/social/npcInstitutionStatements.ts, systems/spells/ai/MaterialTagService.ts, systems/travel/learnedLibraryDestinations.ts, systems/travel/npcLocalDirections.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/settlementDefense.ts, systems/worldforge/chronicle/worldChronicle.ts, systems/worldforge/dungeon/world/chronicle.ts, systems/worldforge/dungeon/world/deriveIdentity.ts, systems/worldforge/dungeon/world/dungeonSites.ts, systems/worldforge/dungeon/world/raidPressure.ts, systems/worldforge/dungeon/world/rumors.ts, systems/worldforge/forests/forestKindForCell.ts, systems/worldforge/interior/libraryCollection.ts, systems/worldforge/leaf3d/atlasGroundRestore.ts, systems/worldforge/local/biomeForCell.ts, systems/worldforge/local/burgProximity.ts, systems/worldforge/local/resolveSpawn.ts, systems/worldforge/town/townMapPosition.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/chronicleForLocation.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts, systems/worldforge/travel/localGroundJourney.ts
+ * Imports: 13 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { type FmgAtlasResult } from "../fmg/generateAtlas";
 import { generateFmgWorld, type FmgWorldResult } from "../fmg/generateWorld";
 import { generateRegion } from "../region/generateRegion";
@@ -45,6 +46,7 @@ import { generateLocal } from "../local/generateLocal";
 import { rootSeedPath } from "../seedPath";
 import { FEET_PER_FMG_PIXEL } from "../adapter/atlasArtifact";
 import { LOCAL_SIZE_FT } from "../units";
+import { CURRENT_TOWN_LAYOUT_REVISION, type TownLayoutStates } from "../town/townLayoutRevision";
 import type { LocalArtifact, RegionArtifact, RegionTownSite } from "../artifacts";
 import type { Burg } from "../fmg/burgs-generator";
 import { NamesGenerator } from "../fmg/names-generator";
@@ -197,6 +199,18 @@ export function getBridgeAtlas(worldSeed: number): FmgWorldResult {
 }
 
 /**
+ * Return the cached canonical atlas for a seed, or undefined. It never builds.
+ *
+ * Screens that build the atlas in the worker (useOffThreadBridgeAtlas, GG-555)
+ * check this first. The worker install REPLACES the cached object, so a second
+ * build would change the atlas identity under every consumer that already holds
+ * it, and would waste the ~4.5 s build.
+ */
+export function peekBridgeAtlas(worldSeed: number): FmgWorldResult | undefined {
+  return atlasCache.get(worldforgeSeedString(worldSeed));
+}
+
+/**
  * Install an atlas prepared by the browser worker into the existing canonical
  * per-seed cache.
  *
@@ -331,7 +345,7 @@ export function getWorldforgeLocalForCell(
   // When entering a settlement, pass the burg's atlas/graph PIXEL position so the
   // Locale window frames the town (cells are far larger than the window, and a
   // burg sits anywhere within its cell). Omit for wilderness (centers on site).
-  opts: { centerPx?: readonly [number, number] } = {},
+  opts: { centerPx?: readonly [number, number]; townLayouts?: TownLayoutStates } = {},
 ): BridgeLocalResult {
   const atlas = getBridgeAtlas(worldSeed);
 
@@ -356,7 +370,14 @@ export function getWorldforgeLocalForCell(
     x: region.bounds.x + region.bounds.width / 2,
     y: region.bounds.y + region.bounds.height / 2,
   };
-  const localKey = `${regionKey}/local:${Math.round(center.x)}-${Math.round(center.y)}`;
+  // Only source selection changes this cache identity. Daily family/news
+  // updates must not rebuild terrain; a legacy plan must not inherit whichever
+  // revision populated this region's Local cache first. Keep the current key.
+  const selections = (region.townSites ?? []).map(site => [site.burgId,
+    opts.townLayouts?.[site.burgId]?.layoutRevision ?? CURRENT_TOWN_LAYOUT_REVISION]);
+  const layoutTag = selections.some(([, revision]) => revision !== CURRENT_TOWN_LAYOUT_REVISION)
+    ? '/layouts:' + JSON.stringify(selections) : '';
+  const localKey = `${regionKey}/local:${Math.round(center.x)}-${Math.round(center.y)}${layoutTag}`;
   let local = localCache.get(localKey);
   if (!local) {
     const generatedLocal = generateLocal(region, center, region.seedPath, { biomeId });
@@ -371,6 +392,7 @@ export function getWorldforgeLocalForCell(
             atlas,
             worldSeed,
             townSite,
+            opts.townLayouts?.[townSite.burgId]?.layoutRevision,
           ).plan,
         }
       : generatedLocal;
@@ -425,6 +447,31 @@ export function getWorldforgeLocalForLocation(
   worldMapWidth: number,
   worldMapHeight: number,
 ): BridgeLocalResult {
+  const entry = resolveWorldforgeLocationEntry(worldSeed, worldMapX, worldMapY, worldMapWidth, worldMapHeight);
+  return getWorldforgeLocalForCell(worldSeed, entry.cellId, entry.centerPx ? { centerPx: entry.centerPx } : {});
+}
+
+/** The atlas cell (and town-framing center) a legacy grid tile opens onto. */
+export interface WorldforgeLocationEntry {
+  cellId: number;
+  /** The burg's atlas pixel position when the tile holds a town; else absent. */
+  centerPx?: readonly [number, number];
+}
+
+/**
+ * Resolve a legacy grid tile to the cell-addressed entry that
+ * `getWorldforgeLocalForLocation` builds. It reads only the atlas, so it is
+ * cheap. GG-558 (2026-11-01): the World3D demo resolves its `?gx/?gy` tile with
+ * this on the main thread, and then sends the cell to the world-gen worker. The
+ * region and ground build then run off the main thread, as in the game's entry.
+ */
+export function resolveWorldforgeLocationEntry(
+  worldSeed: number,
+  worldMapX: number,
+  worldMapY: number,
+  worldMapWidth: number,
+  worldMapHeight: number,
+): WorldforgeLocationEntry {
   const atlas = getBridgeAtlas(worldSeed);
 
   // Burg-aware tile entry (2026-07-02): a tile that visually contains burgs
@@ -438,14 +485,10 @@ export function getWorldforgeLocalForLocation(
   if (burg) {
     // Anchor on the cell actually at the burg's position — burg.cell can be
     // stale (see cellAddressedEntry.test.ts).
-    const burgCellId = nearestLandCellToPoint(atlas, burg.x, burg.y);
-    return getWorldforgeLocalForCell(worldSeed, burgCellId, { centerPx: [burg.x, burg.y] });
+    return { cellId: nearestLandCellToPoint(atlas, burg.x, burg.y), centerPx: [burg.x, burg.y] };
   }
 
-  const anchorCellId = legacyTileToAtlasCell(
-    atlas, worldMapX, worldMapY, worldMapWidth, worldMapHeight,
-  );
-  return getWorldforgeLocalForCell(worldSeed, anchorCellId);
+  return { cellId: legacyTileToAtlasCell(atlas, worldMapX, worldMapY, worldMapWidth, worldMapHeight) };
 }
 
 // ============================================================================

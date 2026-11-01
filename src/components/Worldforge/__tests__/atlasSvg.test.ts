@@ -172,7 +172,17 @@ describe('buildCellRamp + population/climate overlays', () => {
     } as any;
     const m = buildPoiMarkers(withMarkers);
     expect(m).toHaveLength(2);
-    expect(m[0]).toEqual({ x: 3, y: 4, type: 'cave' });
+    expect(m[0]).toEqual({ x: 3, y: 4, type: 'cave', cell: 1 });
+  });
+
+  it('keeps public POI identity and source cell without exposing legend HTML or moving its map glyph', () => {
+    const world = { ...mesh, notes: [{ id: 'marker17', name: 'The Ash Camp', legend: '<iframe src="secret"></iframe>' }],
+      pack: { ...mesh.pack, cells: { ...mesh.pack.cells, p: [[1, 2], [3, 4], [5, 6]] }, markers: [{ i: 17, cell: 1, type: 'brigands', x: 999, y: 999 }] } } as any;
+    const before = JSON.stringify(world);
+    const marker = buildPoiMarkers(world)[0];
+    expect(marker).toMatchObject({ cell: 1, name: 'The Ash Camp', type: 'brigands', x: 3, y: 4 });
+    expect(marker).not.toHaveProperty('legend');
+    expect(JSON.stringify(world)).toBe(before);
   });
 
   it('buildIceCells fills cells colder than the threshold (glaciers/icebergs)', () => {

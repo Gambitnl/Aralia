@@ -48,7 +48,7 @@ describe('dungeonRumorsToWorldRumors', () => {
       10,
       'coord_5_6',
     );
-    expect(rumors[0].text).toBe('The dead of the crypt do not lie quiet.');
+    expect(rumors[0].text).toBe('The Kober Channels: The dead of the crypt do not lie quiet.');
     expect(rumors[0].locationId).toBe('coord_5_6');
     expect(rumors[0].spreadDistance).toBe(0);
     expect(rumors[0].virality).toBe(0);

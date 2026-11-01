@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 13/08/2026, 05:47:40
- * Dependents: components/DesignPreview/steps/scenarioControls/reachCreatureSizeScenarioControls.ts, hooks/combat/useActionExecutor.ts
- * Imports: 3 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file src/systems/combat/reactions/OpportunityAttackSystem.ts
  * Logic for detecting and validating Opportunity Attacks (Attacks of Opportunity) in D&D 5e.
@@ -26,8 +10,25 @@
  * - Prevention: Disengage action, Teleportation, Forced Movement.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 31/10/2026, 08:21:02
+ * Dependents: components/BattleMap/hooks/useBattleMapDerivedState.ts, components/DesignPreview/steps/scenarioControls/forcedMovementScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reachCreatureSizeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reactionScenarioControls.ts, hooks/combat/actionExecutor/opportunityAttackFlow.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { CombatCharacter, Position, BattleMapData } from '../../../types/combat';
 import { canTakeReaction, getCharacterDistance } from '../../../utils/combat';
+import { getCombatDistanceFeet } from '../../../utils/spatial/elevationGeometry';
 import { hasLineOfSight } from '../../../utils/spatial';
 
 // ============================================================================
@@ -107,34 +108,15 @@ export class OpportunityAttackSystem {
     // (caller should not call this system if moveType !== 'willing')
 
     for (const attacker of potentialAttackers) {
-      // Skip self
-      if (attacker.id === mover.id) continue;
-
-      // Skip allies (assuming simplistic team check)
-      if (attacker.team === mover.team) continue;
-
-      // Check if attacker can physically take a reaction (Alive, Conscious, Not Incapacitated/Stunned/Paralyzed)
-      if (!canTakeReaction(attacker)) continue;
-
-      // Check if attacker has Opportunity Attacks Suppressed
-      const hasOASuppressed = attacker.statusEffects.some(e => e.id === 'opportunity_attacks_suppressed' || e.name === 'Opportunity Attacks Suppressed');
-      if (hasOASuppressed) continue;
-
-      // Check Visibility (Line of Sight)
-      if (mapData) {
-        // We check LoS from attacker to the 'fromPos' (where the provoke happens)
-        const startTile = mapData.tiles.get(`${attacker.position.x}-${attacker.position.y}`);
-        const targetTile = mapData.tiles.get(`${fromPos.x}-${fromPos.y}`);
-        if (startTile && targetTile && !hasLineOfSight(startTile, targetTile, mapData)) {
-            continue; // Cannot see target
-        }
-      }
+      // The map's reach hatching asks this same eligibility and geometry
+      // question. Entering reach is safe; a voluntary departure can provoke.
+      if (this.getThreatenedReachAtPosition(attacker, mover, fromPos, mapData, options) === null) continue;
 
       // Calculate reach thresholds per weapon/ability.
       // We keep the lowest threatened reach that was crossed so a character
       // with both 5ft and 10ft weapons still provokes at the first boundary
       // without generating duplicate OA entries for the same reaction spend.
-      const triggeredReach = this.getTriggeredReach(attacker, mover, fromPos, toPos);
+      const triggeredReach = this.getTriggeredReach(attacker, mover, fromPos, toPos, mapData);
       if (triggeredReach === null) continue;
 
       // Valid Trigger
@@ -218,7 +200,32 @@ export class OpportunityAttackSystem {
     );
   }
 
-  private getThreatenedReaches(character: CombatCharacter): number[] {
+  /** Shared read-only reach query for the move overlay and real departure.
+   * No reaction is paid here. The existing executor owns payment and rolls. */
+  public getThreatenedReachAtPosition(
+    attacker: CombatCharacter, mover: CombatCharacter, position: Position,
+    mapData?: BattleMapData | null, options: OpportunityAttackCheckOptions = {}
+  ): number | null {
+    if (options.movementKind === 'forced' || options.movementKind === 'teleport'
+      || attacker.id === mover.id || attacker.team === mover.team
+      || this.isDisengaged(mover) || this.isUnseenMover(mover)
+      || this.hasSummonOpportunitySuppression(mover, options.movementMode)
+      || !canTakeReaction(attacker)) return null;
+    if (attacker.statusEffects.some(effect => effect.id === 'opportunity_attacks_suppressed' || effect.name === 'Opportunity Attacks Suppressed')) return null;
+    const projectedMover = { ...mover, position: { ...position } };
+    const distance = mapData ? getCombatDistanceFeet(attacker, projectedMover, mapData) / 5
+      : getCharacterDistance(attacker, projectedMover);
+    const reach = this.getThreatenedReaches(attacker).find(candidate => distance <= candidate);
+    if (reach === undefined) return null;
+    if (mapData) {
+      const startTile = mapData.tiles.get(`${attacker.position.x}-${attacker.position.y}`);
+      const targetTile = mapData.tiles.get(`${position.x}-${position.y}`);
+      if (startTile && targetTile && !hasLineOfSight(startTile, targetTile, mapData)) return null;
+    }
+    return reach;
+  }
+
+  public getThreatenedReaches(character: CombatCharacter): number[] {
     // Default reach is 1 tile (5ft).
     // We keep the set distinct and sorted so reach checks stay deterministic
     // when a creature has both normal and reach weapons.
@@ -243,6 +250,7 @@ export class OpportunityAttackSystem {
     mover: CombatCharacter,
     fromPos: Position,
     toPos: Position,
+    mapData?: BattleMapData | null,
   ): number | null {
     const threatenedReaches = this.getThreatenedReaches(attacker);
 
@@ -252,8 +260,10 @@ export class OpportunityAttackSystem {
     // the same 5-foot/10-foot boundary as an ordinary attack validity check.
     const moverBefore = { ...mover, position: { ...fromPos } };
     const moverAfter = { ...mover, position: { ...toPos } };
-    const distFrom = getCharacterDistance(attacker, moverBefore);
-    const distTo = getCharacterDistance(attacker, moverAfter);
+    const distFrom = mapData ? getCombatDistanceFeet(attacker, moverBefore, mapData) / 5
+      : getCharacterDistance(attacker, moverBefore);
+    const distTo = mapData ? getCombatDistanceFeet(attacker, moverAfter, mapData) / 5
+      : getCharacterDistance(attacker, moverAfter);
 
     // Pick the first threatened boundary that was crossed so one movement step
     // still spends only one reaction even if the move passed through multiple

@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 14/07/2026, 18:51:44
- * Dependents: state/reducers/worldReducer.ts
- * Imports: 18 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file townSimRegistration.ts — Plan D: build a living-world sim state for a
  * REAL burg (not a demo town), so visiting a town registers it into the sim.
@@ -30,6 +14,23 @@
  * for real town tiles, where the canonical town generation already succeeds
  * (it's what renders the 3D town the player is entering).
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/10/2026, 21:11:55
+ * Dependents: hooks/actions/handleWorldEvents.ts, state/reducers/worldReducer.ts
+ * Imports: 20 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { SeededRandom } from '../../../utils/random/seededRandom';
 import { getBridgeAtlas, getBurgNamer, getBurgCultureType } from '../bridge/legacySubmapBridge';
 import { getCanonicalTownPlan, canonicalTownSeedPath } from '../town/canonicalTown';
@@ -50,6 +51,7 @@ import type { SeedPath } from '../seedPath';
 import { climateForBiomeId } from '../town/architectureStyle';
 import type { StyleContext } from '../interior/blueprintTypes';
 import { buildingPlotInput } from '../town/buildingPlotInput';
+import { CURRENT_TOWN_LAYOUT_REVISION, type TownLayoutRevision } from '../town/townLayoutRevision';
 
 /**
  * Years of history simulated BEFORE the player's first visit, so a town arrives
@@ -110,9 +112,10 @@ export function buildingEvolutionForTown(
 export function buildingEvolutionForBurg(
   worldSeed: number,
   burgId: number,
+  layoutRevision: TownLayoutRevision,
 ): NonNullable<TownSimState['buildingEvolution']> {
   const atlas = getBridgeAtlas(worldSeed);
-  const enginePlan = getCanonicalTownPlan(atlas, worldSeed, burgId);
+  const enginePlan = getCanonicalTownPlan(atlas, worldSeed, burgId, layoutRevision);
   const { plan } = toArtifactPlan(enginePlan, burgId);
   const burg = atlas.pack.burgs?.[burgId] as { cell?: number } | undefined;
   const biomeId = burg?.cell !== undefined ? atlas.pack.cells.biome?.[burg.cell] : undefined;
@@ -136,9 +139,13 @@ export function buildingEvolutionForBurg(
  * Extracted so the world-event lane can read occupant routines
  * (`roster/occupantSchedule`) without rebuilding a whole TownSimState.
  */
-export function townRosterForBurg(worldSeed: number, burgId: number): TownRoster {
+export function townRosterForBurg(
+  worldSeed: number,
+  burgId: number,
+  layoutRevision: TownLayoutRevision = CURRENT_TOWN_LAYOUT_REVISION,
+): TownRoster {
   const atlas = getBridgeAtlas(worldSeed);
-  const enginePlan = getCanonicalTownPlan(atlas, worldSeed, burgId);
+  const enginePlan = getCanonicalTownPlan(atlas, worldSeed, burgId, layoutRevision);
   const { plan } = toArtifactPlan(enginePlan, burgId);
   const nameFor = getBurgNamer(worldSeed, burgId);
   return generateTownRoster(plan, canonicalTownSeedPath(worldSeed, burgId), { nameFor });
@@ -154,9 +161,10 @@ export function buildTownSimStateForBurg(
   worldSeed: number,
   burgId: number,
   currentDay: number,
+  layoutRevision: TownLayoutRevision = CURRENT_TOWN_LAYOUT_REVISION,
 ): TownSimState {
   const atlas = getBridgeAtlas(worldSeed);
-  const enginePlan = getCanonicalTownPlan(atlas, worldSeed, burgId);
+  const enginePlan = getCanonicalTownPlan(atlas, worldSeed, burgId, layoutRevision);
   const { plan } = toArtifactPlan(enginePlan, burgId);
 
   const seedPath = canonicalTownSeedPath(worldSeed, burgId);
@@ -193,5 +201,7 @@ export function buildTownSimStateForBurg(
     currentDay - BACKSTORY_YEARS * DAYS_PER_YEAR,
     buildingEvolution,
   );
-  return advanceTown(seeded, worldSeed, currentDay);
+  // Record the exact founding layout before backfill can compact any building
+  // history. Older saves are never assigned a revision by this fresh-town path.
+  return advanceTown({ ...seeded, layoutRevision }, worldSeed, currentDay);
 }

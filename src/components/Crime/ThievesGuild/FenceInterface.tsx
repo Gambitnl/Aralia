@@ -1,5 +1,21 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 19:49:57
+ * Dependents: components/Crime/ThievesGuild/ThievesGuildInterface.tsx
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import React, { useState } from 'react';
+import { isCurrencyItemId } from '../../../utils/character/coinPurseUtils';
 import { useGameState } from '../../../state/GameContext';
 import { GuildService } from '../../../types/crime';
 import { Item, ItemRarity, ItemRarityDefinitions } from '../../../types/items';
@@ -51,7 +67,7 @@ const FenceInterface: React.FC<FenceInterfaceProps> = ({ service, onClose }) => 
     };
 
     const handleSell = () => {
-        if (!selectedItem) return;
+        if (!selectedItem || isCurrencyItemId(selectedItem.id)) return;
 
         const price = getFencePrice(selectedItem);
         const heatGenerated = getFenceHeat(selectedItem, price);
@@ -82,6 +98,8 @@ const FenceInterface: React.FC<FenceInterfaceProps> = ({ service, onClose }) => 
 
     // Filter items
     const inventory = state.inventory.filter(item => {
+        // Ordinary coins are spendable money, not goods sold at the fence cut.
+        if (isCurrencyItemId(item.id)) return false;
         const isEquippable = (item as { isEquippable?: boolean }).isEquippable;
         if (isEquippable && filter === 'treasures') return false;
         if (item.type !== 'weapon' && filter === 'weapons') return false;

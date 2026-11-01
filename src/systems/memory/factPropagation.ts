@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 09/09/2026, 10:35:25
- * Dependents: hooks/actions/handleWorldEvents.ts, state/reducers/npcReducer.ts
- * Imports: 3 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file src/systems/memory/factPropagation.ts
  * Cross-NPC fact propagation (DIAL-002).
@@ -50,6 +34,22 @@
  * so the wiring is a follow-up, exactly as `buildRumorDialogueContext` and
  * `buildWitnessDialogueContext` are today.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 18:08:13
+ * Dependents: hooks/actions/handleWorldEvents.ts, hooks/useDialogueSystem.ts, state/reducers/npcReducer.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import { KnownFact } from '../../types/world';
 import { SECONDHAND_CONFIDENCE_FALLOFF } from '../social/npcWitnessMemory';
@@ -182,6 +182,8 @@ export function buildPropagationRoster(input: PropagationRosterInput): Propagati
 export interface FactPropagationContext {
   /** The NPC who already knows the fact. */
   originNpcId: string;
+  /** Known public name for a reported personal meeting; no routing is inferred. */
+  originName?: string;
   /** Candidate recipients, including the origin (it is skipped). */
   npcs: readonly PropagationNpc[];
   /** Game day the origin learned it — the clock the delays are measured from. */
@@ -231,21 +233,24 @@ export function classifyPropagation(
 /**
  * Builds the recipient's copy of a fact.
  *
- * `text` is deliberately unchanged: the reducer de-duplicates known facts on
- * text, so an identical string is what makes re-running the daily pass
- * idempotent. Provenance moves to `source: 'gossip'` + `sourceNpcId`, which is
- * what dialogue reads to say "Bram told me…".
+ * Ordinary fact text remains unchanged for idempotent daily delivery.
+ * A personal meeting names its actual subject instead of the listener.
+ * Source provenance remains available to dialogue.
  */
 function copyFactForRecipient(
   fact: KnownFact,
   originNpcId: string,
   targetNpcId: string,
   rule: FactPropagationRule,
-  availableFromDay: number,
+  originName?: string,
 ): KnownFact {
   const baseConfidence = fact.confidence ?? Math.max(0, Math.min(1, fact.strength / 10));
   return {
     ...fact,
+    ...(fact.factKey === 'player_met_npc' ? {
+      factKey: 'player_met_npc:' + originNpcId,
+      text: (originName || 'Another person') + ' ' + fact.text.charAt(0).toLowerCase() + fact.text.slice(1),
+    } : {}),
     // Deterministic id: the same origin/target/fact triple always yields the
     // same id, so a repeated pass overwrites rather than accumulating.
     id: `${fact.id}::via-${originNpcId}->${targetNpcId}`,
@@ -255,9 +260,10 @@ function copyFactForRecipient(
     isPublic: true,
     strength: Math.max(1, fact.strength - rule.strengthPenalty),
     confidence: Math.max(0, Math.min(1, baseConfidence * rule.confidenceFalloff)),
-    // Stamped with the day it becomes sayable, not the day the origin heard it,
-    // so recency ordering in dialogue reflects when THIS NPC learned it.
-    timestamp: availableFromDay,
+    // Dates use milliseconds, including the world's pre-1970 calendar.
+    // Day numbers remain on the separate availability gate below. Older
+    // stored copies are left intact; no missing historical date is guessed.
+    timestamp: fact.timestamp + rule.delayDays * 86_400_000,
   };
 }
 
@@ -291,7 +297,7 @@ export function propagateFact(
       npcId: target.id,
       channel,
       availableFromDay,
-      fact: copyFactForRecipient(fact, context.originNpcId, target.id, rule, availableFromDay),
+      fact: copyFactForRecipient(fact, context.originNpcId, target.id, rule, context.originName),
     });
   }
 

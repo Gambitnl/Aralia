@@ -24,6 +24,22 @@
  * Pure data, zero THREE imports, deterministic from the lore rng stream.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 19:40:24
+ * Dependents: systems/worldforge/dungeon/generateDungeon.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { ChronicleKind, DungeonEvent, EventKind, RoomPurpose, RumorHook, WorldIdentity } from './types';
 import type { ArchetypeData } from './archetypes';
 import type { Rng, Room } from './buildIntact';
@@ -605,7 +621,9 @@ export function deriveLore(
     }
   }
   titlePattern ??= rng.pick(titlePool);
-  const name = fill(titlePattern, stem, titleTown);
+  // Still consume the title choice above. An explicitly authored source names
+  // its own new site without changing any old site's RNG or generated content.
+  const name = world?.siteName ?? fill(titlePattern, stem, titleTown);
 
   // Blurb — the two loudest events, joined oldest-first so it reads as history.
   // A second event of the SAME kind adds nothing ("flooded… then flooded"), so

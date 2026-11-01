@@ -17,19 +17,38 @@
  * This is the gossip-tier sibling of the crier's headline channel; a separate
  * interval keeps the two from always firing on the same tick.
  *
- * All variety comes from recency + a per-id cooldown (each gossip item is
+ * Source-bearing saved messages retain the game-time cooldown across reloads.
+ * Each report carries its source age, without rewriting older prose or events.
+ * All variety comes from recency + a per-source cooldown (each gossip item is
  * overheard at most once per GOSSIP_REPEAT_COOLDOWN_GAME_HOURS of game time;
  * when the whole pool is on cooldown the street goes quiet — silence beats
  * repetition) — no Math.random in the selection.
  *
  * Called by: App.tsx
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 00:28:48
+ * Dependents: hooks/app/useAppAmbientDialogue.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { useEffect, useRef } from 'react';
 import { GameState, GamePhase } from '../types';
 import { AppAction } from '../state/actionTypes';
 import { getGameDay } from '../utils/core';
 import { resolveTownForLocation } from '../systems/worldforge/townsim/chronicleForLocation';
-import { pickOverheardGossip, frameOverheardGossip } from '../systems/worldforge/townsim/townNews';
+import { pickOverheardGossip, frameOverheardGossip, townNewsContext } from '../systems/worldforge/townsim/townNews';
 
 // ============================================================================
 // Constants
@@ -46,6 +65,18 @@ const GOSSIP_INTERVAL_MS = 75_000; // offset from the crier so they don't always
 export const GOSSIP_REPEAT_COOLDOWN_GAME_HOURS = 6;
 const GOSSIP_REPEAT_COOLDOWN_GAME_MS = GOSSIP_REPEAT_COOLDOWN_GAME_HOURS * 60 * 60 * 1000;
 
+// Hearing is tied to one unchanged event in one world and town. Game dates
+// can precede the Unix epoch; the saved hearing time is still a finite integer.
+type GossipSource={worldSeed:number;burgId:number;eventId:number;sourceDay:number;eventKind:string;summary:string;heardAtGameMs:number};
+function gossipSourceKey(value:unknown):string|null {
+  if (!value || typeof value!=='object') return null;
+  const source=value as Record<string,unknown>;
+  if (!Number.isSafeInteger(source.worldSeed) || !Number.isInteger(source.burgId) || Number(source.burgId)<=0
+    || !Number.isInteger(source.eventId) || Number(source.eventId)<0 || !Number.isInteger(source.sourceDay)
+    || typeof source.eventKind!=='string' || typeof source.summary!=='string' || !Number.isSafeInteger(source.heardAtGameMs)) return null;
+  return JSON.stringify([source.worldSeed,source.burgId,source.eventId,source.sourceDay,source.eventKind,source.summary]);
+}
+
 // ============================================================================
 // Hook
 // ============================================================================
@@ -58,46 +89,74 @@ export const useOverheardGossip = (
   const gameStateRef = useRef(gameState);
   useEffect(() => { gameStateRef.current = gameState; }, [gameState]);
 
-  // Game-time (ms) at which each gossip id was last overheard, so no line
-  // repeats within the cooldown window.
-  const heardAtRef = useRef<Map<number, number>>(new Map());
+  // Bridge the short gap before a dispatched log entry reaches React state.
+  // A restored message history clears this buffer; future hearing is not imported.
+  const pendingRef=useRef<{messages:GameState['messages'];heard:Map<string,number>}>(
+    {messages:gameState.messages,heard:new Map()},
+  );
 
   useEffect(() => {
     const overhear = () => {
       const state = gameStateRef.current;
-      if (state.phase !== GamePhase.PLAYING) return;
+      if (state.phase !== GamePhase.PLAYING || !(state.gameTime instanceof Date)
+        || !Number.isFinite(state.gameTime.getTime()) || !Number.isSafeInteger(state.worldSeed)) return;
 
       const town = resolveTownForLocation({
         // GRID-RETIRE: BA-2 — prefer the canonical cell.
         cellId: state.playerCell?.cellId ?? null,
+        ground: state,
         currentLocationId: state.currentLocationId,
         worldSeed: state.worldSeed,
         townSim: state.townSim,
         gameTime: state.gameTime,
       });
-      if (!town) return; // not in a tracked town — nothing to overhear this tick
+      if (!town || town.chronicle.burgId!==town.burgId) return;
 
-      // Prune expired cooldowns, then exclude everything still inside the
-      // window. Game-time clock: a long rest advances hours instantly and
-      // correctly reopens the pool.
-      const nowGameMs = new Date(state.gameTime).getTime();
-      const heardAt = heardAtRef.current;
-      for (const [id, at] of heardAt) {
-        if (nowGameMs - at >= GOSSIP_REPEAT_COOLDOWN_GAME_MS || at > nowGameMs) heardAt.delete(id);
+      const nowGameMs=state.gameTime.getTime(),day=getGameDay(state.gameTime);
+      if (pendingRef.current.messages!==state.messages) pendingRef.current={messages:state.messages,heard:new Map()};
+      const heardAt=new Map<string,number>();
+      const retain=(key:string,at:number)=>{
+        // Keep the newest valid hearing. Expired and future-save timestamps
+        // cannot silence the present town, and no saved log entries are deleted.
+        if (at<=nowGameMs && nowGameMs-at<GOSSIP_REPEAT_COOLDOWN_GAME_MS) heardAt.set(key,Math.max(at,heardAt.get(key)??-Infinity));
+      };
+      for (const message of state.messages??[]) {
+        const source=message.sender==='npc' ? message.metadata?.townGossip : undefined;
+        const key=gossipSourceKey(source);
+        if (key) retain(key,(source as GossipSource).heardAtGameMs);
       }
-      const item = pickOverheardGossip(town, getGameDay(state.gameTime), new Set(heardAt.keys()));
-      if (!item) return; // no gossip-tier news, or the whole pool is on cooldown
-
-      heardAt.set(item.id, nowGameMs);
+      for (const [key,at] of pendingRef.current.heard) {
+        if (at>nowGameMs || nowGameMs-at>=GOSSIP_REPEAT_COOLDOWN_GAME_MS) pendingRef.current.heard.delete(key);
+        else retain(key,at);
+      }
+      const sourceFor=(event:{id:number;day:number;kind:string;summary:string}):GossipSource=>({
+        worldSeed:state.worldSeed,burgId:town.burgId,eventId:event.id,sourceDay:event.day,
+        eventKind:event.kind,summary:event.summary,heardAtGameMs:nowGameMs,
+      });
+      // Keep the existing picker, its 24-item window, ordering and gossip tier.
+      // Translate only the admitted source identities into its town-local ID set.
+      const counts=new Map<number,number>();
+      for (const event of town.chronicle.events) counts.set(event.id,(counts.get(event.id)??0)+1);
+      const excluded=new Set<number>();
+      for (const event of town.chronicle.events) {
+        const key=gossipSourceKey(sourceFor(event));
+        if (!key || counts.get(event.id)!==1 || heardAt.has(key)) excluded.add(event.id);
+      }
+      const item=pickOverheardGossip(town,day,excluded);
+      if (!item) return;
+      const source=sourceFor({id:item.id,day:item.day,kind:item.kind,summary:item.text});
+      const key=gossipSourceKey(source);
+      if (!key) return;
+      pendingRef.current.heard.set(key,nowGameMs);
 
       dispatch({
         type: 'ADD_MESSAGE',
         payload: {
           id: Date.now() + Math.random(), // collision-resistant key (matches App.tsx addMessage)
-          text: frameOverheardGossip(item),
+          text: frameOverheardGossip(item,townNewsContext(town,item,day).ageLabel),
           sender: 'npc',
           timestamp: new Date(),
-          metadata: { type: 'banter' },
+          metadata: { type: 'banter', townGossip: source },
         },
       });
     };

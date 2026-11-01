@@ -48,151 +48,34 @@
  *
  * UNITS. Metric, internal only (the unit rule in `oceanConfig.ts`).
  * Heights are meters above the mean sea level y = 0.
+ *
+ * C5 OWNERSHIP: The intact swash solver, bank soil and flux scratch live in oceanBeachField. Coordinates, forcing, debris and simulation assembly stay here.
  */
 
-import { Material } from '../../worldforge/terrain/voxelVolume';
-import { SUBSTANCES } from '../../worldforge/terrain/materials';
-import type { CascadeParams } from './oceanConfig';
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 25/10/2026, 02:51:10
+ * Dependents: systems/world3d/ocean/oceanBeach.ts, systems/world3d/ocean/oceanBeachWorker.ts, systems/world3d/ocean/oceanMouth.ts, systems/world3d/ocean/oceanMouthCoast.ts, systems/world3d/ocean/oceanMouthConditions.ts, systems/world3d/ocean/oceanMouthField.ts, systems/world3d/ocean/oceanMouthFineChop.ts, systems/world3d/ocean/oceanMouthJet.ts, systems/world3d/ocean/oceanMouthMath.ts, systems/world3d/ocean/oceanMouthSimulation.ts, systems/world3d/ocean/oceanMouthTransport.ts, systems/world3d/ocean/oceanMouthTypes.ts, systems/world3d/ocean/oceanMouthWaveMath.ts, systems/world3d/ocean/oceanMouthYoungSea.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import { type CascadeParams } from './oceanConfig';
 import { buildCascadeSpectrum } from './oceanSpectrum';
-import { foamCellEdgePeriodic, foamLaceAlpha, foamValueNoisePeriodic } from './oceanFoamMath';
-import { LAGOON_CAY_SEABED, islandFrameAt, seabedPointAt, type SeabedParams } from './oceanSeabedMath';
+import { G, type IncidentFn, SwashField, type SwashState, type SwashGridSpec, bilinear, BEACH_SAND, BEACH_SWASH } from './oceanBeachField';
+import { type SeabedIsland, type SeabedParams, LAGOON_CAY_SEABED, seabedPointAt, islandFrameAt, LAGOON_CAY } from './oceanSeabedMath';
+import { FOAM_TAU_S, foamValueNoisePeriodic, foamCellEdgePeriodic, foamLaceAlpha } from './oceanFoamMath';
 
-/** Gravity, m/s^2. */
-export const G = 9.81;
-
-/* ------------------------------------------------------------------ */
-/* The sand                                                             */
-/* ------------------------------------------------------------------ */
-
-/**
- * Density of a quartz grain, kg/m^3. Beach sand is mostly quartz (2650) with
- * some feldspar (2560 to 2760) and shell (2710 to 2930).
- */
-export const GRAIN_DENSITY_KG_M3 = 2650;
-
-/**
- * The sand's water physics. Every number is the registry's or a published
- * fit for sand; none is tuned to a look.
- *
- *   ksMS     saturated hydraulic conductivity: the registry's Material.Sand
- *            (1e-4 m/s, a fine to medium sand; Freeze and Cherry 1979 give
- *            1e-5 to 1e-3 for clean sand).
- *   thetaS   porosity: 1 minus the registry's bulk density (1600) over the
- *            grain density (2650), 0.396. Rawls et al. (1982) measured 0.437
- *            for their sand class; a packed beach face is denser than a
- *            field soil.
- *   thetaR   residual water content: 0.020 (Rawls et al. 1982, sand).
- *   psiBM    air entry (bubbling) suction head: 0.0726 m (Rawls et al. 1982).
- *            Sand within this height over the water table stays saturated
- *            (the capillary fringe).
- *   lambda   Brooks-Corey pore size index: 0.592 (Rawls et al. 1982). The
- *            conductivity falls as Se^(3 + 2/lambda) = Se^6.38, which is why
- *            wet sand drains fast at first and then very slowly.
- *   psiFM    Green-Ampt wetting-front suction: 0.0495 m (Rawls, Brakensiek and
- *            Miller 1983, sand). It drives water into a dry skin faster than
- *            gravity alone (the "seeps into the sand" of the tip).
- *   evapMS   evaporation from a wet sand face in sun: 6 mm/day (6.9e-8 m/s),
- *            a clear-sky summer rate; negligible over a minute, kept so the
- *            ledger names it.
- */
-export interface SandSoil {
-  readonly ksMS: number;
-  readonly thetaS: number;
-  readonly thetaR: number;
-  readonly psiBM: number;
-  readonly lambda: number;
-  readonly psiFM: number;
-  readonly evapMS: number;
-}
-
-const SAND_SUBSTANCE = SUBSTANCES[Material.Sand];
-
-export const BEACH_SAND: SandSoil = {
-  ksMS: SAND_SUBSTANCE.permeabilityMS,
-  thetaS: 1 - SAND_SUBSTANCE.densityKgM3 / GRAIN_DENSITY_KG_M3,
-  thetaR: 0.020,
-  psiBM: 0.0726,
-  lambda: 0.592,
-  psiFM: 0.0495,
-  evapMS: 6.9e-8,
-};
-
-/**
- * The two sand stores of one cell, meters of depth.
- *
- *   SKIN_M   the top centimeter: what the eye sees, and what the sheet fills
- *            first. Wet-sand color is a property of the top few grain layers
- *            (a 0.3 mm grain: about 30 layers in 1 cm).
- *   DEEP_M   the sand under the skin, down to where the water table's own
- *            store takes over: 0.30 m, about the depth a swash's water reaches
- *            in the minutes this piece shows (the wetting front of 5 mm of
- *            infiltration in sand at 0.1 saturation moves 1.3 cm; a minute of
- *            repeated swash wets the top 10 to 30 cm, Turner and Masselink
- *            1998).
- */
-export const SKIN_M = 0.01;
-export const DEEP_M = 0.30;
-/** Suction cap, m: a dry skin's suction is metres; Brooks-Corey runs off to infinity at Se 0. */
-const PSI_MAX_M = 2.0;
-
-/** Effective saturation of a store holding `w` meters of water over capacity `cap`. */
-export function saturation(w: number, cap: number): number {
-  return cap > 0 ? Math.min(Math.max(w / cap, 0), 1) : 1;
-}
-
-/** Brooks-Corey unsaturated conductivity, m/s: Ks Se^(3 + 2/lambda). */
-export function conductivity(soil: SandSoil, se: number): number {
-  const s = Math.min(Math.max(se, 0), 1);
-  return soil.ksMS * s ** (3 + 2 / soil.lambda);
-}
-
-/** Brooks-Corey suction head, m (positive): psiB Se^(-1/lambda), capped. */
-export function suction(soil: SandSoil, se: number): number {
-  const s = Math.max(se, 1e-6);
-  return Math.min(soil.psiBM * s ** (-1 / soil.lambda), PSI_MAX_M);
-}
-
-/**
- * Saturation at hydrostatic equilibrium, a height `z` (m) over the water
- * table: 1 inside the capillary fringe, (psiB / z)^lambda above it.
- */
-export function equilibriumSaturation(soil: SandSoil, z: number): number {
-  if (z <= soil.psiBM) return 1;
-  return (soil.psiBM / z) ** soil.lambda;
-}
-
-/**
- * Lookup tables for the two Brooks-Corey curves: the stores update tens of
- * thousands of cells a few dozen times a second, and a power costs as much
- * as the rest of a cell's update. 1025 entries over Se in [0, 1], linear
- * between them: the conductivity's largest table error is under 0.4% of Ks.
- */
-export class SoilTables {
-  readonly k: Float64Array;
-  readonly psi: Float64Array;
-  private readonly n = 1024;
-  constructor(readonly soil: SandSoil) {
-    this.k = new Float64Array(this.n + 1);
-    this.psi = new Float64Array(this.n + 1);
-    for (let i = 0; i <= this.n; i += 1) {
-      const se = i / this.n;
-      this.k[i] = conductivity(soil, se);
-      this.psi[i] = suction(soil, se);
-    }
-  }
-  kAt(se: number): number {
-    const x = Math.min(Math.max(se, 0), 1) * this.n;
-    const i = Math.min(Math.floor(x), this.n - 1);
-    const f = x - i;
-    return this.k[i] + (this.k[i + 1] - this.k[i]) * f;
-  }
-  psiAt(se: number): number {
-    const x = Math.min(Math.max(se, 0), 1) * this.n;
-    const i = Math.min(Math.floor(x), this.n - 1);
-    const f = x - i;
-    return this.psi[i] + (this.psi[i + 1] - this.psi[i]) * f;
-  }
-}
+// Compatibility exports preserve existing consumers while each concern has one owner.
+export { G, GRAIN_DENSITY_KG_M3, type SandSoil, BEACH_SAND, SKIN_M, DEEP_M, saturation, conductivity, suction, equilibriumSaturation, SoilTables, type SwashGridSpec, type SwashParams, BEACH_SWASH, type SwashLedger, type SwashState, type IncidentFn, SwashField, HLL_OUT, hllFaceInto, bilinear, FOAM_AGE_MAX_S } from './oceanBeachField';
 
 /* ------------------------------------------------------------------ */
 /* The grid                                                             */
@@ -212,16 +95,6 @@ export interface BeachFrame {
   readonly aZ: number;
 }
 
-/** The grid: `ns` cells of `ds` from `s0` onshore, `na` cells of `da` from `a0` along. */
-export interface SwashGridSpec {
-  readonly s0: number;
-  readonly ds: number;
-  readonly ns: number;
-  readonly a0: number;
-  readonly da: number;
-  readonly na: number;
-}
-
 /** World XZ of a local (s, a) point. */
 export function beachToWorld(f: BeachFrame, s: number, a: number): [number, number] {
   return [f.originX + s * f.sX + a * f.aX, f.originZ + s * f.sZ + a * f.aZ];
@@ -232,889 +105,6 @@ export function worldToBeach(f: BeachFrame, x: number, z: number): [number, numb
   const dx = x - f.originX;
   const dz = z - f.originZ;
   return [dx * f.sX + dz * f.sZ, dx * f.aX + dz * f.aZ];
-}
-
-/* ------------------------------------------------------------------ */
-/* The swash                                                            */
-/* ------------------------------------------------------------------ */
-
-/**
- * The swash model's numbers, each with its reason.
- *
- *   manningN   bed friction, Manning's n, s/m^(1/3): 0.018, a smooth sand
- *              bed (Chow 1959: 0.016 to 0.020 for clean sand). On a 2 cm
- *              sheet it gives a friction coefficient of 0.012, inside the
- *              0.005 to 0.025 measured in swash (Puleo and Holland 2001).
- *   hDryM      below this depth a cell carries no velocity: 1e-5 m (a
- *              hundredth of a millimeter). The water stays and is booked;
- *              only its momentum is dropped.
- *   waterTable the beach water table, m over the mean sea level:
- *              wtShoreM at the still-water line, rising landward by wtSlope,
- *              capped at wtMaxM. A beach under waves holds its water table
- *              over the sea's level by the wave setup and the swash's own
- *              infiltration (Nielsen 1990: 0.1 to 0.3 m at the shore on
- *              sandy beaches; Turner 1993: the exit point sits in the lower
- *              swash zone). 0.05 + 0.02 per meter puts the exit point, the
- *              top of the glassy saturated band, 1.7 m up a 1:11 face.
- *   foam*      the foam the sheet carries. It is born where the water
- *              surface rises faster than a bore's threshold (Kennedy et al.
- *              2000 start breaking at d(eta)/dt = 0.65 sqrt(g h) and keep it
- *              to 0.15 sqrt(g h); a bore already formed is past both, so the
- *              lower one is used), rides with the water, and pops. Swash foam
- *              lives a few seconds (bubbles over 1 mm rise out in about a
- *              second; the raft pops over 5 to 20 s); stranded on the sand it
- *              drains into the pores faster. THE GAIN: a bore's roller is
- *              white across its face. This first-order scheme spreads a bore's
- *              front over 0.5 to 1 m, so a 0.2 m bore at 2 m/s raises the
- *              surface about 0.5 m/s over its threshold for the 0.25 s it
- *              takes to pass a cell; gain 12 brings that cell to full cover
- *              (12 x 0.54 x 0.25 / sqrt(g 0.3) = 0.95). At 1.2 (the first
- *              try) the surf's foam never passed 0.32 and drew as scattered
- *              specks. THE LIFE BY DEPTH: in the surf (over 0.3 m) bubbles
- *              rise out of the column and the raft pops in about 4 s; in a
- *              swash sheet under 5 cm the bubbles are already at the surface
- *              and ride it, so the front's foam lasts 7 s, through its
- *              backwash; stranded on wet sand it lasts 25 s (a swash's foam
- *              line, drying bubble by bubble, holds tens of seconds). At 4
- *              s and 9 s the swash edge had no foam between uprushes.
- *   markLifeS  the swash mark, the line of fine grains and foam scum a swash
- *              leaves where it stops: it lasts until the next swash washes
- *              it or the sand dries under it, about a minute.
- *   sed*       THE SAND IN THE WATER. A fast sheet lifts sand off the bed and
- *              carries it; a slow one lets it settle. Depth-mean suspended
- *              concentrations measured in swash are 1 to 50 kg/m^3 in the
- *              uprush, highest at the bore front (Puleo et al. 2000;
- *              Masselink et al. 2005), and a fine-sand grain of 0.2 mm
- *              settles at 0.023 m/s (Soulsby 1997). Pickup here is
- *              sedPickupK (U^2 - Uc^2) kg/m^2/s over Uc = 0.3 m/s, the depth-
- *              mean flow at which fine sand starts to move under a thin sheet
- *              (a Shields number of 0.05); the balance with settling, P = ws C,
- *              puts a 1.5 m/s uprush at 5 kg/m^3, inside the measured band.
- *              It is the sandy veil of the surf's water and the reason the
- *              inner surf shows no caustic web.
- */
-export interface SwashParams {
-  readonly manningN: number;
-  readonly hDryM: number;
-  readonly wtShoreM: number;
-  readonly wtSlope: number;
-  readonly wtMaxM: number;
-  readonly foamBreakK: number;
-  readonly foamGain: number;
-  readonly foamLifeS: number;
-  /** Foam's life in a sheet thinner than 5 cm, s (see foam* above). */
-  readonly foamThinLifeS: number;
-  readonly foamStrandLifeS: number;
-  readonly markLifeS: number;
-  readonly sedPickupK: number;
-  readonly sedCritUMS: number;
-  readonly sedSettleMS: number;
-  /** Steps between two updates of the sand stores and the foam (their dt is this many steps). */
-  readonly slowEvery: number;
-}
-
-export const BEACH_SWASH: SwashParams = {
-  manningN: 0.018,
-  hDryM: 1e-5,
-  wtShoreM: 0.05,
-  wtSlope: 0.02,
-  wtMaxM: 0.40,
-  foamBreakK: 0.15,
-  foamGain: 5,
-  foamLifeS: 4,
-  foamThinLifeS: 7,
-  foamStrandLifeS: 25,
-  markLifeS: 60,
-  sedPickupK: 0.046,
-  sedCritUMS: 0.3,
-  sedSettleMS: 0.023,
-  slowEvery: 3,
-};
-
-/** The water that has crossed each boundary and each sink, m^3, since the start. */
-export interface SwashLedger {
-  /** Net water in across the sea edge (in minus out). */
-  arrived: number;
-  /** Gross water in and out across the sea edge. */
-  inflow: number;
-  outflow: number;
-  /** Into the sand from the sheet (the skin's intake), gross. */
-  infiltrated: number;
-  /** From the deep store down to the water table (signed: a rise is negative). */
-  drained: number;
-  /** Out of the skin to the air. */
-  evaporated: number;
-  /** Water the positivity guard would have created (should stay 0). */
-  clipped: number;
-}
-
-/** What the grid holds at one time. `data()` of `SwashField`; also its checkpoints. */
-export interface SwashState {
-  readonly step: number;
-  readonly h: Float64Array;
-  readonly hu: Float64Array;
-  readonly hv: Float64Array;
-  readonly w1: Float64Array;
-  readonly w2: Float64Array;
-  readonly foam: Float64Array;
-  readonly strand: Float64Array;
-  readonly mark: Float64Array;
-  readonly sed: Float64Array;
-  readonly wetAge: Float64Array;
-  /** The foam's age, s (round 7). */
-  readonly foamAge: Float64Array;
-  /** The intake rates the last slow update set, and the tips' velocities. */
-  readonly infil: Float64Array;
-  readonly tipU: Float64Array;
-  readonly ledger: SwashLedger;
-  readonly debris: Float64Array;
-}
-
-/** The incident water level at each row's sea edge, meters: filled by the caller per step. */
-export type IncidentFn = (tS: number, out: Float64Array) => void;
-
-/**
- * THE SWASH FIELD. A first-order finite-volume solver of the 2D shallow
- * water equations: HLL fluxes (Harten, Lax and van Leer 1983) with the
- * hydrostatic reconstruction of Audusse et al. (2004), which keeps a lake at
- * rest exactly at rest over any bed and never drives a depth negative at a
- * wet and dry front under the time step's bound. Manning friction is applied
- * semi-implicitly, so the thin tip stops without ringing. This is the class
- * of scheme the swash literature validates against the Shen and Meyer (1963)
- * run-up (Hubbard and Dodd 2002; Brocchini and Dodd 2008).
- *
- * WHY NOT THE LAND PAGE'S SOLVER. `shallowWater.ts` is a virtual-pipe grid
- * whose face flux is recomputed each step from the surface drop alone: it
- * holds no momentum, so water can only flow downhill of its surface. A swash
- * climbs ABOVE the sea's level on its own momentum; that needs the momentum
- * equations. The soak and its exact ledger are the same idea as the land
- * page's (poured = pool + soaked + runoff), here arrived = sheet + soaked.
- */
-export class SwashField {
-  readonly ns: number;
-  readonly na: number;
-  readonly ds: number;
-  readonly da: number;
-  readonly cellArea: number;
-  readonly dt: number;
-  readonly bed: Float64Array;
-  /** Water table height under each cell, m. */
-  readonly wt: Float64Array;
-  /** Capacities of the skin and deep stores, m of water (0 where the cell is under the water table). */
-  readonly cap1: Float64Array;
-  readonly cap2: Float64Array;
-  /** Height of each store's center over the water table, m. */
-  readonly zc1: Float64Array;
-  readonly zc2: Float64Array;
-
-  h: Float64Array;
-  hu: Float64Array;
-  hv: Float64Array;
-  w1: Float64Array;
-  w2: Float64Array;
-  foam: Float64Array;
-  strand: Float64Array;
-  mark: Float64Array;
-  /** Depth-mean suspended sand, kg/m^3. */
-  sed: Float64Array;
-  /** Seconds since the cell last held a sheet (0 while wet; capped). */
-  wetAge: Float64Array;
-  /**
-   * THE FOAM'S AGE, s (round 7): the mean age of the foam a cell's water
-   * carries. The foam piece's age clock (`oceanFoamMath.ts`, foamAgeStep:
-   * the age of a mix is the mix of the ages): carried with the water as the
-   * foam is, one step older each step, and new foam from a breaking bore
-   * pulls it toward 0 by the share of the cell's foam it adds. The look reads
-   * it: fresh foam is a dense raft, old foam is torn into clumps and
-   * threads (the wake's round-11 look). Capped at FOAM_AGE_MAX_S.
-   */
-  foamAge: Float64Array;
-
-  /** The still-water depth at each row's sea edge, m (bed below 0 there). */
-  readonly edgeDepth: Float64Array;
-  /** The incident level at each row's sea edge for the current step, m. */
-  readonly edgeEta: Float64Array;
-
-  step = 0;
-  readonly ledger: SwashLedger = {
-    arrived: 0, inflow: 0, outflow: 0, infiltrated: 0, drained: 0, evaporated: 0, clipped: 0,
-  };
-  /** Largest Courant number of the last step (both directions summed). */
-  lastCourant = 0;
-
-  private readonly soil: SandSoil;
-  private readonly tables: SoilTables;
-  private readonly p: SwashParams;
-  private readonly incident: IncidentFn;
-  private readonly dh: Float64Array;
-  private readonly dhu: Float64Array;
-  private readonly dhv: Float64Array;
-  private readonly u: Float64Array;
-  private readonly v: Float64Array;
-  private readonly etaPrev: Float64Array;
-  private readonly riseRate: Float64Array;
-  private readonly infilRate: Float64Array;
-  private readonly foamTmp: Float64Array;
-  private readonly strandTmp: Float64Array;
-  private readonly sedTmp: Float64Array;
-  private readonly ageTmp: Float64Array;
-  /** One past the last wet cell of each row after the last step. */
-  private readonly reach: Int32Array;
-  /** The loop end of each row this step (the active range, see `advance`). */
-  private readonly lim: Int32Array;
-  /** The first cell of each row whose bed stands over the mean sea level. */
-  private readonly shoreIndex: Int32Array;
-  /** The tip's velocity along s at the last slow update, per row (for the swash mark). */
-  private readonly tipU: Float64Array;
-
-  constructor(opts: {
-    grid: SwashGridSpec;
-    /** Bed height at each cell center, m, row-major (a, s): index j * ns + i. */
-    bed: Float64Array;
-    /** Mean-sea-level shoreline distance of each cell, m (for the water table): s, positive onshore. */
-    shoreDist: Float64Array;
-    dt: number;
-    incident: IncidentFn;
-    soil?: SandSoil;
-    params?: SwashParams;
-  }) {
-    const g = opts.grid;
-    this.ns = g.ns;
-    this.na = g.na;
-    this.ds = g.ds;
-    this.da = g.da;
-    this.cellArea = g.ds * g.da;
-    this.dt = opts.dt;
-    this.soil = opts.soil ?? BEACH_SAND;
-    this.tables = new SoilTables(this.soil);
-    this.p = opts.params ?? BEACH_SWASH;
-    this.incident = opts.incident;
-    const n = g.ns * g.na;
-    if (opts.bed.length !== n || opts.shoreDist.length !== n) {
-      throw new Error(`[ocean] The beach bed and shore distance need ${n} cells.`);
-    }
-    this.bed = opts.bed.slice();
-    this.wt = new Float64Array(n);
-    this.cap1 = new Float64Array(n);
-    this.cap2 = new Float64Array(n);
-    this.zc1 = new Float64Array(n);
-    this.zc2 = new Float64Array(n);
-    const soil = this.soil;
-    const dTheta = soil.thetaS - soil.thetaR;
-    for (let c = 0; c < n; c += 1) {
-      const s = opts.shoreDist[c];
-      const wt = Math.min(this.p.wtShoreM + this.p.wtSlope * Math.max(s, 0), this.p.wtMaxM);
-      this.wt[c] = wt;
-      const z1 = this.bed[c] - SKIN_M / 2 - wt;
-      const z2 = this.bed[c] - SKIN_M - DEEP_M / 2 - wt;
-      this.zc1[c] = z1;
-      this.zc2[c] = z2;
-      // A cell whose skin sits in the capillary fringe or under the water
-      // table is saturated for good: it takes no water and gives none.
-      this.cap1[c] = z1 > soil.psiBM ? dTheta * SKIN_M : 0;
-      this.cap2[c] = z1 > soil.psiBM ? dTheta * DEEP_M : 0;
-    }
-    this.h = new Float64Array(n);
-    this.hu = new Float64Array(n);
-    this.hv = new Float64Array(n);
-    this.w1 = new Float64Array(n);
-    this.w2 = new Float64Array(n);
-    this.foam = new Float64Array(n);
-    this.strand = new Float64Array(n);
-    this.mark = new Float64Array(n);
-    this.sed = new Float64Array(n);
-    this.wetAge = new Float64Array(n);
-    this.foamAge = new Float64Array(n);
-    this.dh = new Float64Array(n);
-    this.dhu = new Float64Array(n);
-    this.dhv = new Float64Array(n);
-    this.u = new Float64Array(n);
-    this.v = new Float64Array(n);
-    this.etaPrev = new Float64Array(n);
-    this.riseRate = new Float64Array(n);
-    this.infilRate = new Float64Array(n);
-    this.foamTmp = new Float64Array(n);
-    this.strandTmp = new Float64Array(n);
-    this.sedTmp = new Float64Array(n);
-    this.ageTmp = new Float64Array(n);
-    this.reach = new Int32Array(g.na).fill(g.ns);
-    this.shoreIndex = new Int32Array(g.na);
-    this.tipU = new Float64Array(g.na);
-    for (let j = 0; j < g.na; j += 1) {
-      let i = 0;
-      while (i < g.ns - 1 && this.bed[j * g.ns + i] < 0) i += 1;
-      this.shoreIndex[j] = i;
-    }
-    this.lim = new Int32Array(g.na);
-    this.edgeDepth = new Float64Array(g.na);
-    this.edgeEta = new Float64Array(g.na);
-    for (let j = 0; j < g.na; j += 1) this.edgeDepth[j] = Math.max(-this.bed[j * g.ns], 0.05);
-    this.reset();
-  }
-
-  /**
-   * THE FIXED START (t = 0): the sea at rest at its mean level, no sheet, and
-   * the sand in hydrostatic equilibrium with the water table (saturated in the
-   * capillary fringe, drier with height over it). The waves start at t = 0.
-   */
-  reset(): void {
-    const n = this.ns * this.na;
-    for (let c = 0; c < n; c += 1) {
-      this.h[c] = Math.max(-this.bed[c], 0);
-      this.hu[c] = 0;
-      this.hv[c] = 0;
-      this.w1[c] = this.cap1[c] * equilibriumSaturation(this.soil, this.zc1[c]);
-      this.w2[c] = this.cap2[c] * equilibriumSaturation(this.soil, this.zc2[c]);
-      this.foam[c] = 0;
-      this.strand[c] = 0;
-      this.mark[c] = 0;
-      this.sed[c] = 0;
-      this.wetAge[c] = this.h[c] > this.p.hDryM ? 0 : 600;
-      this.etaPrev[c] = this.bed[c] + this.h[c];
-    }
-    this.step = 0;
-    const l = this.ledger;
-    l.arrived = 0; l.inflow = 0; l.outflow = 0; l.infiltrated = 0; l.drained = 0; l.evaporated = 0; l.clipped = 0;
-    this.infilRate.fill(0);
-    this.reach.fill(this.ns);
-    this.tipU.fill(0);
-  }
-
-  /** Sheet volume on the grid, m^3 (all water over the bed). */
-  sheetVolume(mask?: (c: number) => boolean): number {
-    let v = 0;
-    for (let c = 0; c < this.h.length; c += 1) if (!mask || mask(c)) v += this.h[c];
-    return v * this.cellArea;
-  }
-
-  /** Water held in the sand's two stores, m^3. */
-  soakedVolume(mask?: (c: number) => boolean): number {
-    let v = 0;
-    for (let c = 0; c < this.h.length; c += 1) if (!mask || mask(c)) v += this.w1[c] + this.w2[c];
-    return v * this.cellArea;
-  }
-
-  /** Skin saturation of cell c, 0 to 1 (1 under the water table). */
-  skinSaturation(c: number): number {
-    return this.cap1[c] > 0 ? this.w1[c] / this.cap1[c] : 1;
-  }
-
-  /** Advance one fixed step of `dt`. */
-  advance(): void {
-    const { ns, na, ds, da, dt, bed, h, hu, hv, u, v, dh, dhu, dhv, reach } = this;
-    const lim = this.lim;
-    const hDry = this.p.hDryM;
-    const tNow = this.step * dt;
-    this.incident(tNow, this.edgeEta);
-
-    // THE ACTIVE RANGE. `reach[j]` is one past the last wet cell of row j
-    // after the last step. The Courant number stays under 1, so no water
-    // passes more than one cell in a step: every face and cell beyond
-    // reach + 1 is dry and stays dry, and the loops stop there. On the
-    // judged sea the upper beach is dry most of the time, and this halves
-    // the work.
-    let maxSpeedS = 0;
-    let maxSpeedA = 0;
-    let inflow = 0;
-    let outflow = 0;
-    const invDs = 1 / ds;
-    const invDa = 1 / da;
-    for (let j = 0; j < na; j += 1) {
-      const row = j * ns;
-      const end = Math.min(Math.max(reach[j], j > 0 ? reach[j - 1] : 0, j < na - 1 ? reach[j + 1] : 0) + 2, ns);
-      lim[j] = end;
-      for (let i = 0; i < end; i += 1) {
-        const c = row + i;
-        dh[c] = 0;
-        dhu[c] = 0;
-        dhv[c] = 0;
-      }
-    }
-
-    // ---- faces across s (the cross-shore direction) --------------------
-    for (let j = 0; j < na; j += 1) {
-      const row = j * ns;
-      const end = lim[j];
-      // THE SEA EDGE (face 0): an absorbing-generating boundary (Kobayashi,
-      // Otta and Roy 1987). The incoming characteristic u + 2c carries the
-      // incident wave in; the outgoing one, u - 2c, is taken from the first
-      // cell, so a reflected wave leaves the grid instead of bouncing back.
-      // The ghost's bed is the first cell's (a flat extension), so the face
-      // needs no reconstruction.
-      {
-        const c0 = row;
-        const d = this.edgeDepth[j];
-        const eta = this.edgeEta[j];
-        const alpha = 2 * Math.sqrt(G * d) + 2 * eta * Math.sqrt(G / d);
-        const h1 = h[c0];
-        const beta = u[c0] - 2 * Math.sqrt(G * (h1 > 0 ? h1 : 0));
-        let cg = (alpha - beta) / 4;
-        if (cg < 0) cg = 0;
-        const hg = (cg * cg) / G;
-        const ug = (alpha + beta) / 2;
-        hllFace(hg, ug, v[c0], h1, u[c0], v[c0]);
-        dh[c0] += fH * invDs;
-        dhu[c0] += fN * invDs;
-        dhv[c0] += fT * invDs;
-        if (fH > 0) inflow += fH * dt * da; else outflow -= fH * dt * da;
-        if (fS > maxSpeedS) maxSpeedS = fS;
-      }
-      const iEnd = end < ns ? end : ns;
-      for (let i = 1; i < iEnd; i += 1) {
-        const cL = row + i - 1;
-        const cR = cL + 1;
-        const hL = h[cL];
-        const hR = h[cR];
-        if (hL <= hDry && hR <= hDry) continue;
-        const zL = bed[cL];
-        const zR = bed[cR];
-        const zM = zL > zR ? zL : zR;
-        let hLs = hL + zL - zM; if (hLs < 0) hLs = 0;
-        let hRs = hR + zR - zM; if (hRs < 0) hRs = 0;
-        hllFace(hLs, u[cL], v[cL], hRs, u[cR], v[cR]);
-        dh[cL] -= fH * invDs;
-        dh[cR] += fH * invDs;
-        dhu[cL] -= (fN + 0.5 * G * (hL * hL - hLs * hLs)) * invDs;
-        dhu[cR] += (fN + 0.5 * G * (hR * hR - hRs * hRs)) * invDs;
-        dhv[cL] -= fT * invDs;
-        dhv[cR] += fT * invDs;
-        if (fS > maxSpeedS) maxSpeedS = fS;
-      }
-      // The landward edge (face ns) is a wall: the mirror state gives zero
-      // mass flux and the pressure the wall pushes back with.
-      if (end >= ns) {
-        const c1 = row + ns - 1;
-        const h1 = h[c1];
-        if (h1 > hDry) {
-          hllFace(h1, u[c1], v[c1], h1, -u[c1], v[c1]);
-          dhu[c1] -= fN * invDs;
-        }
-      }
-    }
-
-    // ---- faces across a (alongshore) ------------------------------------
-    for (let j = 1; j < na; j += 1) {
-      const rowL = (j - 1) * ns;
-      const rowR = j * ns;
-      const end = lim[j] < lim[j - 1] ? lim[j] : lim[j - 1];
-      for (let i = 0; i < end; i += 1) {
-        const cL = rowL + i;
-        const cR = rowR + i;
-        const hL = h[cL];
-        const hR = h[cR];
-        if (hL <= hDry && hR <= hDry) continue;
-        const zL = bed[cL];
-        const zR = bed[cR];
-        const zM = zL > zR ? zL : zR;
-        let hLs = hL + zL - zM; if (hLs < 0) hLs = 0;
-        let hRs = hR + zR - zM; if (hRs < 0) hRs = 0;
-        hllFace(hLs, v[cL], u[cL], hRs, v[cR], u[cR]);
-        dh[cL] -= fH * invDa;
-        dh[cR] += fH * invDa;
-        dhv[cL] -= (fN + 0.5 * G * (hL * hL - hLs * hLs)) * invDa;
-        dhv[cR] += (fN + 0.5 * G * (hR * hR - hRs * hRs)) * invDa;
-        dhu[cL] -= fT * invDa;
-        dhu[cR] += fT * invDa;
-        if (fS > maxSpeedA) maxSpeedA = fS;
-      }
-    }
-    // The two alongshore ends are walls, as the landward edge.
-    for (let e = 0; e < 2; e += 1) {
-      const j = e === 0 ? 0 : na - 1;
-      const row = j * ns;
-      const end = lim[j];
-      for (let i = 0; i < end; i += 1) {
-        const c = row + i;
-        const hc = h[c];
-        if (hc <= hDry) continue;
-        if (e === 1) {
-          hllFace(hc, v[c], u[c], hc, -v[c], u[c]);
-          dhv[c] -= fN * invDa;
-        } else {
-          hllFace(hc, -v[c], u[c], hc, v[c], u[c]);
-          dhv[c] += fN * invDa;
-        }
-      }
-    }
-
-    this.lastCourant = (maxSpeedS * dt) / ds + (maxSpeedA * dt) / da;
-    this.ledger.inflow += inflow;
-    this.ledger.outflow += outflow;
-    this.ledger.arrived += inflow - outflow;
-
-    // ---- update: flux divergence, positivity, friction, infiltration ----
-    // The velocities and the surface's rise rate for the next step are
-    // written here too, so no other pass over the grid is needed.
-    const n2g = G * this.p.manningN * this.p.manningN;
-    const cellA = this.cellArea;
-    const w1 = this.w1;
-    const cap1 = this.cap1;
-    const infilRate = this.infilRate;
-    const etaPrev = this.etaPrev;
-    const riseRate = this.riseRate;
-    const invDt = 1 / dt;
-    let clipped = 0;
-    let infil = 0;
-    for (let j = 0; j < na; j += 1) {
-      const row = j * ns;
-      const end = lim[j];
-      let last = -1;
-      for (let i = 0; i < end; i += 1) {
-        const c = row + i;
-        let hn = h[c] + dt * dh[c];
-        let mu = hu[c] + dt * dhu[c];
-        let mv = hv[c] + dt * dhv[c];
-        if (hn < 0) {
-          clipped -= hn;
-          hn = 0;
-        }
-        if (hn > hDry) {
-          // Manning friction, semi-implicit: tau/rho = g n^2 |U| U / h^(1/3).
-          const sp = Math.sqrt(mu * mu + mv * mv) / hn;
-          const k = 1 + (dt * n2g * sp) / (hn * Math.cbrt(hn));
-          mu /= k;
-          mv /= k;
-          // The sheet soaks into the skin at the rate the slow update set.
-          const f = infilRate[c];
-          if (f > 0) {
-            const room = cap1[c] - w1[c];
-            let take = f * dt;
-            if (take > hn) take = hn;
-            if (take > room) take = room;
-            if (take > 0) {
-              const keep = (hn - take) / hn;
-              hn -= take;
-              mu *= keep;
-              mv *= keep;
-              w1[c] += take;
-              infil += take;
-            }
-          }
-        } else {
-          mu = 0;
-          mv = 0;
-          // A film thinner than hDry soaks in whole where the skin has room;
-          // under the water table it stays, booked, until the sea takes it.
-          if (hn > 0) {
-            const room = cap1[c] - w1[c];
-            if (room > 0) {
-              const take = hn < room ? hn : room;
-              hn -= take;
-              w1[c] += take;
-              infil += take;
-            }
-          }
-        }
-        h[c] = hn;
-        hu[c] = mu;
-        hv[c] = mv;
-        if (hn > hDry) {
-          u[c] = mu / hn;
-          v[c] = mv / hn;
-          last = i;
-        } else {
-          u[c] = 0;
-          v[c] = 0;
-        }
-        const eta = bed[c] + hn;
-        riseRate[c] = (eta - etaPrev[c]) * invDt;
-        etaPrev[c] = eta;
-      }
-      reach[j] = last + 1;
-    }
-    this.ledger.clipped += clipped * cellA;
-    this.ledger.infiltrated += infil * cellA;
-
-    this.step += 1;
-    if (this.step % this.p.slowEvery === 0) this.slowUpdate(this.p.slowEvery * dt);
-  }
-
-  /**
-   * THE SLOW PART, every `slowEvery` steps: the sand's two stores exchange
-   * water and drain; the infiltration capacity for the next steps is set;
-   * the foam rides, is born and pops; the swash mark fades.
-   */
-  private slowUpdate(dtm: number): void {
-    const { ns, na, h, w1, w2, cap1, cap2, zc2 } = this;
-    const soil = this.soil;
-    const tab = this.tables;
-    const n = ns * na;
-    const dz12 = (SKIN_M + DEEP_M) / 2;
-    const cellA = this.cellArea;
-    const hDry = this.p.hDryM;
-    let drained = 0;
-    let evap = 0;
-    for (let c = 0; c < n; c += 1) {
-      const c1 = cap1[c];
-      if (c1 <= 0) {
-        this.infilRate[c] = 0;
-        continue;
-      }
-      const c2 = cap2[c];
-      const se1 = w1[c] / c1;
-      const se2 = w2[c] / c2;
-      const psi1 = tab.psiAt(se1);
-      const psi2 = tab.psiAt(se2);
-      // SKIN TO DEEP: Darcy across the half-layers, head difference over the
-      // distance, with the conductivity of the store the water leaves.
-      const grad = 1 + (psi2 - psi1) / dz12;
-      let q12 = grad > 0 ? tab.kAt(se1) * grad : tab.kAt(se2) * grad;
-      // DEEP TO THE WATER TABLE: the store's center stands zc2 over it.
-      const zc = Math.max(zc2[c], 0.05);
-      let q2 = tab.kAt(se2) * (zc - psi2) / Math.max(zc, DEEP_M);
-      // EVAPORATION from the skin, falling with its wetness.
-      let e = soil.evapMS * se1;
-      // Limit each flux to what the stores hold and have room for, then apply
-      // exactly what was limited, so the ledger closes to rounding.
-      let a1 = w1[c];
-      let a2 = w2[c];
-      let dE = e * dtm; if (dE > a1) dE = a1;
-      a1 -= dE;
-      let d12 = q12 * dtm;
-      if (d12 > 0) {
-        if (d12 > a1) d12 = a1;
-        if (d12 > c2 - a2) d12 = c2 - a2;
-      } else {
-        if (-d12 > a2) d12 = -a2;
-        if (-d12 > c1 - a1) d12 = -(c1 - a1);
-      }
-      a1 -= d12;
-      a2 += d12;
-      let d2 = q2 * dtm;
-      if (d2 > a2) d2 = a2;
-      if (-d2 > c2 - a2) d2 = -(c2 - a2);
-      a2 -= d2;
-      w1[c] = a1;
-      w2[c] = a2;
-      drained += d2;
-      evap += dE;
-      q12 = d12 / dtm;
-      q2 = d2 / dtm;
-      e = dE / dtm;
-      // THE INTAKE for the next steps: Green-Ampt at the skin (Ks times one
-      // plus the ponded head and the wetting-front suction over the skin's
-      // half depth; the suction falls as the skin fills), and never more than
-      // the skin can pass down once it is full.
-      const se1n = a1 / c1;
-      const head = (h[c] + soil.psiFM * (1 - se1n)) / (SKIN_M / 2);
-      this.infilRate[c] = se1n < 0.999 ? soil.ksMS * (1 + head) : Math.max(q12, 0);
-    }
-    this.ledger.drained += drained * cellA;
-    this.ledger.evaporated += evap * cellA;
-    this.foamUpdate(dtm, hDry);
-  }
-
-  /** The foam: born where a bore rises, carried with the water, popped with time; stranded on the sand. */
-  private foamUpdate(dtm: number, hDry: number): void {
-    const { ns, na, h, u, v, foam, strand, mark, ds, da } = this;
-    const n = ns * na;
-    const p = this.p;
-    const fTmp = this.foamTmp;
-    const sTmp = this.strandTmp;
-    const decay = Math.exp(-dtm / p.foamLifeS);
-    const decayThin = Math.exp(-dtm / p.foamThinLifeS);
-    const decayS = Math.exp(-dtm / p.foamStrandLifeS);
-    const decayM = Math.exp(-dtm / p.markLifeS);
-    // Semi-Lagrangian: each wet cell reads the foam where its water came from.
-    for (let j = 0; j < na; j += 1) {
-      for (let i = 0; i < ns; i += 1) {
-        const c = j * ns + i;
-        if (h[c] <= hDry) {
-          fTmp[c] = 0;
-          continue;
-        }
-        const x = i - (u[c] * dtm) / ds;
-        const y = j - (v[c] * dtm) / da;
-        fTmp[c] = bilinear(foam, ns, na, x, y);
-        this.sedTmp[c] = bilinear(this.sed, ns, na, x, y);
-        this.ageTmp[c] = bilinear(this.foamAge, ns, na, x, y);
-      }
-    }
-    // THE SAND IN THE WATER: pickup over the threshold speed, settling out
-    // of the column at ws / h; a dry cell has let it all down.
-    {
-      const sed = this.sedTmp;
-      const kP = p.sedPickupK;
-      const uc2 = p.sedCritUMS * p.sedCritUMS;
-      for (let c = 0; c < n; c += 1) {
-        const hc = h[c];
-        if (hc <= hDry) {
-          sed[c] = 0;
-          continue;
-        }
-        const u2 = u[c] * u[c] + v[c] * v[c];
-        const hh = Math.max(hc, 0.002);
-        let cs = sed[c] + (u2 > uc2 ? (kP * (u2 - uc2) * dtm) / hh : 0);
-        cs *= Math.exp((-p.sedSettleMS * dtm) / hh);
-        sed[c] = cs;
-      }
-      this.sed.set(sed);
-    }
-    for (let c = 0; c < n; c += 1) {
-      const wet = h[c] > hDry;
-      let f = fTmp[c];
-      if (wet) {
-        const cw = Math.sqrt(G * Math.max(h[c], 1e-4));
-        const over = this.riseRate[c] - p.foamBreakK * cw;
-        // The age: one step older; new foam pulls it toward 0 by its share.
-        let age = Math.min(this.ageTmp[c] + dtm, FOAM_AGE_MAX_S);
-        if (over > 0) {
-          const add = (p.foamGain * over * dtm) / Math.max(cw, 0.05);
-          age *= f / Math.max(f + add, 1e-9);
-          f += add;
-        }
-        this.foamAge[c] = age;
-        // Deep water loses its foam fastest; a thin sheet keeps it.
-        const thin = Math.min(Math.max((0.3 - h[c]) / 0.25, 0), 1);
-        f *= decay + (decayThin - decay) * thin;
-        if (f > 1) f = 1;
-        // Stranded foam and the mark under a sheet are lifted back into it.
-        f = Math.max(f, strand[c] * 0.6);
-        sTmp[c] = 0;
-        this.wetAge[c] = 0;
-      } else {
-        // THE SHEET LEFT THIS CELL: its foam stays on the sand.
-        sTmp[c] = Math.max(strand[c] * decayS, foam[c]);
-        f = 0;
-        this.foamAge[c] = 0;
-        this.wetAge[c] = Math.min(this.wetAge[c] + dtm, 600);
-      }
-      fTmp[c] = f;
-      mark[c] = wet && h[c] > 0.01 ? mark[c] * 0.8 : mark[c] * decayM;
-    }
-    foam.set(fTmp);
-    strand.set(sTmp);
-    // THE SWASH MARK: where an uprush stops. The tip of each row is its last
-    // cell with a sheet; when the tip's velocity turns from onshore to
-    // offshore, the sheet has reached its highest point for this swash, and
-    // the fine grains and foam scum it carried stay there as a line. Only
-    // above the still-water line; a sheet over 1 cm deep washes it out again.
-    for (let j = 0; j < na; j += 1) {
-      const tip = this.reach[j] - 1;
-      if (tip < this.shoreIndex[j]) {
-        this.tipU[j] = 0;
-        continue;
-      }
-      const c = j * ns + tip;
-      const ut = u[c];
-      if (this.tipU[j] > 0.02 && ut <= 0.02) {
-        mark[c] = 1;
-        if (tip > 0) mark[c - 1] = Math.max(mark[c - 1], 0.4);
-      }
-      this.tipU[j] = ut;
-    }
-  }
-
-  /** A snapshot of the whole state (for the checkpoints of `BeachClock`). */
-  snapshot(debris: Float64Array): SwashState {
-    return {
-      step: this.step,
-      h: this.h.slice(),
-      hu: this.hu.slice(),
-      hv: this.hv.slice(),
-      w1: this.w1.slice(),
-      w2: this.w2.slice(),
-      foam: this.foam.slice(),
-      strand: this.strand.slice(),
-      mark: this.mark.slice(),
-      sed: this.sed.slice(),
-      wetAge: this.wetAge.slice(),
-      foamAge: this.foamAge.slice(),
-      infil: this.infilRate.slice(),
-      tipU: this.tipU.slice(),
-      ledger: { ...this.ledger },
-      debris: debris.slice(),
-    };
-  }
-
-  /** Put a snapshot back. The derived per-step arrays are rebuilt from it. */
-  restore(s: SwashState): void {
-    this.h.set(s.h); this.hu.set(s.hu); this.hv.set(s.hv);
-    this.w1.set(s.w1); this.w2.set(s.w2);
-    this.foam.set(s.foam); this.strand.set(s.strand); this.mark.set(s.mark); this.wetAge.set(s.wetAge);
-    this.foamAge.set(s.foamAge);
-    this.sed.set(s.sed);
-    Object.assign(this.ledger, s.ledger);
-    this.step = s.step;
-    const n = this.ns * this.na;
-    const hDry = this.p.hDryM;
-    for (let c = 0; c < n; c += 1) {
-      this.etaPrev[c] = this.bed[c] + this.h[c];
-      // The velocities the next step reads, as the last step wrote them.
-      const hc = this.h[c];
-      this.u[c] = hc > hDry ? this.hu[c] / hc : 0;
-      this.v[c] = hc > hDry ? this.hv[c] / hc : 0;
-    }
-    this.infilRate.set(s.infil);
-    this.tipU.set(s.tipU);
-    // A full active range: the skipped faces carry no flux, so a wider
-    // range than needed changes nothing.
-    this.reach.fill(this.ns);
-  }
-
-  /** Velocity (along s, along a) of cell c, m/s; 0 when dry. */
-  velocityAt(c: number): [number, number] {
-    const hc = this.h[c];
-    return hc > this.p.hDryM ? [this.hu[c] / hc, this.hv[c] / hc] : [0, 0];
-  }
-}
-
-/* The HLL face flux, written to three module scalars so the hot loop makes no
- * object. Inputs: the two reconstructed depths, their normal velocities and
- * their tangential velocities. */
-let fH = 0;
-let fN = 0;
-let fT = 0;
-/** The face's fastest signal speed, m/s, for the Courant number. */
-let fS = 0;
-function hllFace(hL: number, unL: number, utL: number, hR: number, unR: number, utR: number): void {
-  const DRY = 1e-10;
-  if (hL <= DRY && hR <= DRY) {
-    fH = 0; fN = 0; fT = 0; fS = 0;
-    return;
-  }
-  const cL = Math.sqrt(G * hL);
-  const cR = Math.sqrt(G * hR);
-  let sL: number;
-  let sR: number;
-  if (hL <= DRY) {
-    sL = unR - 2 * cR;
-    sR = unR + cR;
-  } else if (hR <= DRY) {
-    sL = unL - cL;
-    sR = unL + 2 * cL;
-  } else {
-    sL = Math.min(unL - cL, unR - cR);
-    sR = Math.max(unL + cL, unR + cR);
-  }
-  fS = sR > -sL ? sR : -sL;
-  const qL = hL * unL;
-  const qR = hR * unR;
-  const pL = qL * unL + 0.5 * G * hL * hL;
-  const pR = qR * unR + 0.5 * G * hR * hR;
-  if (sL >= 0) {
-    fH = qL; fN = pL;
-  } else if (sR <= 0) {
-    fH = qR; fN = pR;
-  } else {
-    const inv = 1 / (sR - sL);
-    fH = (sR * qL - sL * qR + sL * sR * (hR - hL)) * inv;
-    fN = (sR * pL - sL * pR + sL * sR * (qR - qL)) * inv;
-  }
-  // The tangential momentum rides with the mass flux, upwind.
-  fT = fH > 0 ? fH * utL : fH * utR;
-}
-
-/** Bilinear read of a cell array at fractional cell indices (clamped at the edges). */
-export function bilinear(arr: Float64Array, ns: number, na: number, x: number, y: number): number {
-  const xc = Math.min(Math.max(x, 0), ns - 1);
-  const yc = Math.min(Math.max(y, 0), na - 1);
-  const i0 = Math.min(Math.floor(xc), ns - 2);
-  const j0 = Math.min(Math.floor(yc), na - 2);
-  const fx = xc - i0;
-  const fy = yc - j0;
-  const c = j0 * ns + i0;
-  return (arr[c] * (1 - fx) + arr[c + 1] * fx) * (1 - fy) + (arr[c + ns] * (1 - fx) + arr[c + ns + 1] * fx) * fy;
 }
 
 /* ------------------------------------------------------------------ */
@@ -1146,6 +136,8 @@ export class IncidentWaves {
   private readonly omega: Float64Array;
   private readonly cosKP: Float64Array;
   private readonly sinKP: Float64Array;
+  /** Round 20: each (mode, point)'s shoaling and refraction gain, or null (the sea as drawn). */
+  private readonly gain: Float64Array | null;
 
   constructor(opts: {
     cascades: readonly CascadeParams[];
@@ -1159,14 +151,14 @@ export class IncidentWaves {
     px: Float64Array;
     pz: Float64Array;
     /**
-     * Round 19 (the beach's match): turn each mode's wave vector toward the
-     * line through (x, z), keeping its length and its side, by `share` (0 keeps
-     * the sea's directions, 1 makes every crest parallel to the shore). See
-     * BEACH_MATCH_SWASH.alignShare.
+     * ROUND 20 (the match): shoal and refract every mode from the FFT sea's
+     * own depth (its cascade's `depthM`) to the still-water depth at each
+     * point, over a shore whose onshore normal is (normalX, normalZ). See
+     * `incidentModeGain`. Absent: the sea's height as the GPU draws it.
      */
-    alignTo?: { x: number; z: number; share: number };
+    shoal?: { depthM: Float64Array; normalX: number; normalZ: number };
   }) {
-    const picked: { h0r: number; h0i: number; hcr: number; hci: number; w: number; kx: number; kz: number }[] = [];
+    const picked: { h0r: number; h0i: number; hcr: number; hci: number; w: number; kx: number; kz: number; d0: number }[] = [];
     opts.cascades.forEach((c, ci) => {
       if (!opts.use.includes(c.name)) return;
       // The seed of each cascade, as `createOceanBuffers` derives it.
@@ -1191,7 +183,7 @@ export class IncidentWaves {
         const b = i * 4;
         picked.push({
           h0r: spec.h0[b], h0i: spec.h0[b + 1], hcr: spec.h0[b + 2], hci: spec.h0[b + 3],
-          w: spec.wave[b], kx: spec.wave[b + 1], kz: spec.wave[b + 2],
+          w: spec.wave[b], kx: spec.wave[b + 1], kz: spec.wave[b + 2], d0: c.depthM,
         });
       }
       this.keptShare.push(tot > 0 ? cum / tot : 0);
@@ -1204,25 +196,16 @@ export class IncidentWaves {
     this.omega = new Float64Array(m);
     this.cosKP = new Float64Array(m * p);
     this.sinKP = new Float64Array(m * p);
+    const sh = opts.shoal;
+    this.gain = sh ? new Float64Array(m * p) : null;
     picked.forEach((q, k) => {
+      if (sh && this.gain) {
+        for (let j = 0; j < p; j += 1) this.gain[k * p + j] = incidentModeGain(q.w, q.kx, q.kz, q.d0, sh.depthM[j], sh.normalX, sh.normalZ);
+      }
       this.h0[k * 4] = q.h0r; this.h0[k * 4 + 1] = q.h0i; this.h0[k * 4 + 2] = q.hcr; this.h0[k * 4 + 3] = q.hci;
       this.omega[k] = q.w;
-      let kx = q.kx;
-      let kz = q.kz;
-      const al = opts.alignTo;
-      if (al && al.share > 0) {
-        const km = Math.hypot(kx, kz);
-        if (km > 0) {
-          const sg = kx * al.x + kz * al.z >= 0 ? 1 : -1;
-          const dx = (1 - al.share) * (kx / km) + al.share * sg * al.x;
-          const dz = (1 - al.share) * (kz / km) + al.share * sg * al.z;
-          const dm = Math.hypot(dx, dz) || 1;
-          kx = (km * dx) / dm;
-          kz = (km * dz) / dm;
-        }
-      }
       for (let j = 0; j < p; j += 1) {
-        const ph = kx * opts.px[j] + kz * opts.pz[j];
+        const ph = q.kx * opts.px[j] + q.kz * opts.pz[j];
         this.cosKP[k * p + j] = Math.cos(ph);
         this.sinKP[k * p + j] = Math.sin(ph);
       }
@@ -1242,9 +225,107 @@ export class IncidentWaves {
       const hr = h0[b] * c - h0[b + 1] * s + (h0[b + 2] * c + h0[b + 3] * s);
       const hi = h0[b] * s + h0[b + 1] * c + (h0[b + 3] * c - h0[b + 2] * s);
       const o = k * p;
-      for (let j = 0; j < p; j += 1) out[j] += hr * cosKP[o + j] - hi * sinKP[o + j];
+      const gn = this.gain;
+      if (gn) {
+        for (let j = 0; j < p; j += 1) out[j] += gn[o + j] * (hr * cosKP[o + j] - hi * sinKP[o + j]);
+      } else {
+        for (let j = 0; j < p; j += 1) out[j] += hr * cosKP[o + j] - hi * sinKP[o + j];
+      }
     }
   }
+}
+
+/**
+ * ROUND 20: THE SEA-OWNED REEF MODULE'S LAWS, ON THE CPU. `oceanBathymetry.ts`
+ * holds the sea's shoaling gain, breaking share and broken-crest height, with
+ * CPU twins; but it imports `three/webgpu` for its GPU half, and this file
+ * (and the worker that runs it) must not. These are the same functions and
+ * constants, copied; a unit test (`oceanBeachMath.test.ts`) holds them equal
+ * to the module's at a sweep of periods, depths and crests, so the two cannot
+ * drift. (A pure `oceanBathymetryMath.ts` for both is in the round-20 report.)
+ */
+export const BATHY_BREAK_START = 0.45;
+export const BATHY_BREAK_FULL = 0.75;
+export const BATHY_CREST_TO_HEIGHT = 1.8;
+export const BATHY_BORE_GAMMA = 0.55;
+/** `oceanShoalGain`: Ks from deep water to depth d for period T (linear theory, Fenton and McKee 1990). */
+export function bathyShoalGain(periodS: number, depthM: number): number {
+  const w = (2 * Math.PI) / Math.max(periodS, 0.1);
+  const k0 = (w * w) / 9.81;
+  const kh0 = k0 * Math.max(depthM, 0.05);
+  const kh = kh0 / Math.tanh(kh0 ** 0.75) ** (2 / 3);
+  const k = kh / Math.max(depthM, 0.05);
+  const c = w / k;
+  const n = 0.5 * (1 + (2 * kh) / Math.sinh(2 * kh));
+  return Math.sqrt((0.5 * (9.81 / w)) / Math.max(n * c, 1e-3));
+}
+/** `oceanBreakShareCpu`: the breaking share of a crest over a depth. */
+export function bathyBreakShare(etaM: number, depthM: number): number {
+  const x = (BATHY_CREST_TO_HEIGHT * Math.max(etaM, 0)) / Math.max(depthM, 0.05);
+  const t = Math.min(Math.max((x - BATHY_BREAK_START) / (BATHY_BREAK_FULL - BATHY_BREAK_START), 0), 1);
+  return t * t * (3 - 2 * t);
+}
+/** `oceanBoreCrestM`: the crest a broken wave keeps over a depth. */
+export function bathyBoreCrestM(depthM: number): number {
+  return (BATHY_BORE_GAMMA * Math.max(depthM, 0.05)) / BATHY_CREST_TO_HEIGHT;
+}
+
+/**
+ * Linear theory's wave number at angular frequency `omega` on depth `d`,
+ * 1/m: the explicit fit of Fenton and McKee (1990), as `oceanShoalGain`
+ * (`oceanBathymetry.ts`) solves it, so the two agree.
+ */
+export function waveNumberAt(omega: number, depthM: number): number {
+  const d = Math.max(depthM, 0.05);
+  const kh0 = ((omega * omega) / G) * d;
+  return kh0 / Math.tanh(kh0 ** 0.75) ** (2 / 3) / d;
+}
+
+/**
+ * ROUND 20: ONE MODE'S HEIGHT GAIN from the FFT sea's depth `d0` to the
+ * local still-water depth `d` (linear theory, Dean and Dalrymple 1991,
+ * sections 4.8 and 4.9):
+ *   SHOALING  Ks = sqrt(cg(d0) / cg(d)): the energy flux holds as the wave
+ *             slows. The sea-owned reef module's `oceanShoalGain` (here `bathyShoalGain`) gives Ks
+ *             from deep water to a depth; the ratio of its values at d and
+ *             d0 is Ks from d0 to d.
+ *   REFRACTION Kr = sqrt(cos a0 / cos a): Snell's law, sin a / c constant on
+ *             a shore of straight, parallel depth contours, turns the crest
+ *             toward the shore as it slows, and the rays spread. a is the
+ *             angle between the mode's heading and the onshore normal; a
+ *             mode heading offshore (cos a0 < 0) is taken by its mirror.
+ * The phase is the sea's own (Snell's law keeps the along-shore wave number,
+ * so the crests' pattern along the grid's edge is the sea's), so the waves
+ * that run up are the waves in the picture, grown or thinned by the floor.
+ */
+export function incidentModeGain(omega: number, kx: number, kz: number, d0: number, d: number, nx: number, nz: number): number {
+  if (!(omega > 0)) return 1;
+  const tS = (2 * Math.PI) / omega;
+  const ks = bathyShoalGain(tS, d) / bathyShoalGain(tS, d0);
+  const km = Math.hypot(kx, kz);
+  if (!(km > 0)) return ks;
+  const cos0 = Math.min(Math.abs((kx * nx + kz * nz) / km), 1);
+  const sin0 = Math.sqrt(Math.max(1 - cos0 * cos0, 0));
+  const c0 = omega / waveNumberAt(omega, d0);
+  const c1 = omega / waveNumberAt(omega, d);
+  const sin1 = Math.min(sin0 * (c1 / c0), 1);
+  const cos1 = Math.sqrt(Math.max(1 - sin1 * sin1, 1e-12));
+  return ks * Math.sqrt(cos0 / cos1);
+}
+
+/**
+ * ROUND 20: THE DEPTH-LIMITED CREST at the grid's sea edge. A shoaled crest
+ * high for the depth breaks: the sea-owned reef module's breaking share
+ * (`oceanBreakShareCpu`, here `bathyBreakShare`; H / d from 0.45 to 0.75, Thornton and Guza 1983,
+ * McCowan 1894) takes it toward the crest a broken wave keeps there
+ * (`oceanBoreCrestM`, here `bathyBoreCrestM`; H = 0.55 d). Troughs are not held.
+ */
+export function heldIncidentCrest(etaM: number, depthM: number): number {
+  if (!(etaM > 0)) return etaM;
+  const b = bathyBreakShare(etaM, depthM);
+  if (b <= 0) return etaM;
+  const held = Math.min(etaM, bathyBoreCrestM(depthM));
+  return etaM + (held - etaM) * b;
 }
 
 /**
@@ -1752,8 +833,6 @@ export class BeachDebris {
  * At 1/80 s it reached 0.62, still with nothing clipped, but with no margin.
  */
 export const BEACH_GRID: SwashGridSpec = { s0: -7, ds: 0.125, ns: 248, a0: -24, da: 0.5, na: 96 };
-/** The foam's age is capped here, s (round 7): past it the look draws it all as old. */
-export const FOAM_AGE_MAX_S = 30;
 /**
  * ROUND 8: THE BEACH'S LACE MIX, the weights of the wake image's four
  * channels (raft, clumps, streaks, patches) in the beach's coverage noise.
@@ -1785,21 +864,28 @@ export interface BeachSite {
  * camera that looks along +a has the sea on its left and the sand on its
  * right, as the Water Pro shore shot does.
  */
+export function beachFrameOf(isl: SeabedIsland): BeachFrame {
+  // River mouth round 1: the frame alone, so the mouth's grid (`oceanMouthMath.ts`)
+  // lies in the same (s, a) frame as the swash. Unchanged from the site's own.
+  const aX = Math.cos(isl.headingRad);
+  const aZ = Math.sin(isl.headingRad);
+  const sX = -aZ;
+  const sZ = aX;
+  return {
+    originX: isl.centerX - isl.semiMinorM * sX,
+    originZ: isl.centerZ - isl.semiMinorM * sZ,
+    sX, sZ, aX, aZ,
+  };
+}
+
+/** The swash's site: the frame, the grid, and the bed, shoreline distance and sea edge of every cell. */
 export function buildBeachSite(
   params: SeabedParams = LAGOON_CAY_SEABED,
   grid: SwashGridSpec = BEACH_GRID,
 ): BeachSite {
   const isl = params.island;
   if (!isl) throw new Error('[ocean] The beach needs a seabed with an island (LAGOON_CAY_SEABED).');
-  const aX = Math.cos(isl.headingRad);
-  const aZ = Math.sin(isl.headingRad);
-  const sX = -aZ;
-  const sZ = aX;
-  const frame: BeachFrame = {
-    originX: isl.centerX - isl.semiMinorM * sX,
-    originZ: isl.centerZ - isl.semiMinorM * sZ,
-    sX, sZ, aX, aZ,
-  };
+  const frame = beachFrameOf(isl);
   const n = grid.ns * grid.na;
   const bed = new Float64Array(n);
   const shoreDist = new Float64Array(n);
@@ -1821,6 +907,14 @@ export function buildBeachSite(
     edgeZ[j] = z;
   }
   return { frame, grid, bed, shoreDist, edgeX, edgeZ };
+}
+
+/** Round 20: the still-water depth at each row's sea edge, m, as the swash's own boundary reads it. */
+export function edgeDepths(site: BeachSite): Float64Array {
+  const g = site.grid;
+  const d = new Float64Array(g.na);
+  for (let j = 0; j < g.na; j += 1) d[j] = Math.max(-site.bed[j * g.ns], 0.05);
+  return d;
 }
 
 /**
@@ -1863,9 +957,7 @@ export const WRACK_CLUMP_M = 1.4;
  * the upper face that drained for tens of seconds (0.04 to 0.1 m/s, always
  * downhill). A still of that reads as standing water. The match (and only the
  * match; the default beach is unchanged) runs the swash with:
- *   waveGain  the sea's height at the grid's edge times this (round 16: 1.2; round
- *             19: 1.6, since turning the crests toward the shore, alignShare,
- *             cut the run-up's mean reach from 9.9 to 7.5 m): a larger swash
+ *   waveGain  the sea's height at the grid's edge times this: a larger swash
  *             (Stockdon et al. 2006: R2% grows as sqrt(H L), so the run-up
  *             reach grows with the height);
  *   ksMS      the sand's saturated conductivity: a medium to coarse beach sand
@@ -1886,30 +978,93 @@ export interface BeachMatchSwash {
   readonly foamGain: number;
   readonly foamThinLifeS: number;
   /**
-   * Round 19: each mode's wave vector turned this far toward the shore's
-   * normal (IncidentWaves.alignTo): the default sea's short, oblique crests
-   * swung the swash line 0.058 to 0.065 of the frame off a straight fit
-   * whatever the cay's cusps (`beach/r16/shoreStudy.ts`); Manly's swell
-   * arrives near normal to its beach.
+   * ROUND 20 (Remy, 2026-10-09: the water's physics, derived from the sea and
+   * the ground, not fitted). Each is optional; round 16's set has none.
+   *   shoal       the sea at the grid's edge shoaled and refracted from the
+   *               FFT's depth to the edge's depth, mode by mode, and its
+   *               crests held to the depth (`incidentModeGain`,
+   *               `heldIncidentCrest`); `waveGain` is then 1.
+   *   subcellHR   the thin film feels the whole slope (`SwashParams.subcellHR`).
+   *   laminarNuM2S  the laminar film's bed stress (`SwashParams.laminarNuM2S`).
+   *   boreFoam    foam from the bore's energy loss (`SwashField.boreFoamSource`).
+   *   foamLifeS   the foam's fade in the surf (BEACH_SWASH's 4 s); with
+   *               `foamThinLifeS` the one foam field's FOAM_TAU_S.
+   *   grainD50M   the grain size `ksMS` and `manningN` came from (a record).
    */
-  readonly alignShare: number;
+  readonly shoal?: boolean;
+  readonly subcellHR?: boolean;
+  readonly laminarNuM2S?: number;
+  readonly boreFoam?: boolean;
+  readonly foamLifeS?: number;
+  readonly grainD50M?: number;
 }
-export const BEACH_MATCH_SWASH: BeachMatchSwash = { waveGain: 1.6, ksMS: 1e-3, manningN: 0.018, foamGain: 6, foamThinLifeS: 14, alignShare: 0.5 };
+
+/** Round 16's fitted match swash, kept so a study can run it beside round 20's. */
+export const BEACH_MATCH_SWASH_R16: BeachMatchSwash = { waveGain: 1.2, ksMS: 1e-3, manningN: 0.018, foamGain: 6, foamThinLifeS: 14 };
 
 /**
- * ROUND 19: THE MATCH'S CAY, WITH MANLY'S STRAIGHT SHORELINE. The default
- * cay's shoreline wanders 4 m over 45 m (`shoreWarpM`) and carries 12 m cusps
- * 5 cm high; at the judged frame the swash line swung 0.055 of the frame's
- * height off a straight fit, Manly's 0.006 to 0.033 (`beach/r12/shape.py`,
- * `beach/measure-shoreline.md`), so the run-up met dry sand on one side and
- * left a bay on the other. The match's cay keeps the default's shape but for
- * these two values (BEACH_MATCH_SHORE); the default is unchanged.
+ * Sea water's kinematic viscosity at 20 C and 35 g/kg, m^2/s: 1.08e-3 Pa s
+ * over 1025 kg/m^3 (Sharqawy, Lienhard and Zubair 2010).
  */
-export const BEACH_MATCH_SHORE = { shoreWarpM: 0.8, cuspHeightM: 0.015 };
-export const BEACH_MATCH_SEABED: SeabedParams = {
-  ...LAGOON_CAY_SEABED,
-  island: { ...LAGOON_CAY_SEABED.island!, ...BEACH_MATCH_SHORE },
-};
+export const SEA_WATER_NU_M2S = 1.05e-6;
+
+/**
+ * ROUND 20: THE SAND'S CONDUCTIVITY FROM ITS GRAIN, Kozeny-Carman (Carman
+ * 1937, in the form Bear 1972 gives):
+ *   K = (g / nu) d^2 / 180 n^3 / (1 - n)^2
+ * with d the grain size (d50 for a well-sorted beach sand) and n the
+ * porosity. For the cay's 0.35 mm sand at the beach's own porosity 0.396
+ * (the registry's density over quartz) it is 1.08e-3 m/s, inside Freeze and
+ * Cherry's (1979) 1e-5 to 1e-3 for clean sand.
+ */
+export function kozenyCarmanKs(d50M: number, porosity: number, nuM2S = SEA_WATER_NU_M2S): number {
+  const n = Math.min(Math.max(porosity, 0.05), 0.95);
+  return ((G / nuM2S) * d50M * d50M / 180) * (n * n * n) / ((1 - n) * (1 - n));
+}
+
+/**
+ * ROUND 20: THE BED'S ROUGHNESS FROM ITS GRAIN, Strickler (1923):
+ * n = 0.0417 d50^(1/6), d50 in m (published coefficients run 0.034 to 0.047
+ * by the grain size taken; this is the brief's). A plane swash bed is grain
+ * roughness alone: the uprush and backwash plane off the ripples. For the
+ * cay's 0.35 mm sand, n = 0.0111 s/m^(1/3) (round 16's table value 0.018).
+ */
+export function stricklerManningN(d50M: number): number {
+  return 0.0417 * Math.max(d50M, 1e-6) ** (1 / 6);
+}
+
+/**
+ * THE MEDIUM QUARTZ SAND the beach takes when its terrain names no grain:
+ * d50 0.35 mm, the middle of Wentworth's medium sand (0.25 to 0.5 mm) and of
+ * Bascom's (1951) 0.3 to 0.5 mm for the cay's 1:11 face.
+ */
+export const MEDIUM_SAND_D50_M = 0.35e-3;
+
+/**
+ * ROUND 20: THE MATCH'S SWASH, DERIVED. Every value comes from the sea or the
+ * ground with a law (see BeachMatchSwash): the grain gives the sand's
+ * conductivity (Kozeny-Carman) and the bed's roughness (Strickler); the sea
+ * at the edge is shoaled and refracted over the cay's own depth and held to
+ * it where it breaks; the foam comes from the bore's energy loss and fades
+ * as the sea's foam does; the thin film feels the whole slope and its laminar
+ * stress. `foamGain` is not read (boreFoam).
+ */
+export function deriveMatchSwash(grainD50M: number = LAGOON_CAY.grainD50M ?? MEDIUM_SAND_D50_M): BeachMatchSwash {
+  return {
+    waveGain: 1,
+    ksMS: kozenyCarmanKs(grainD50M, BEACH_SAND.thetaS),
+    manningN: stricklerManningN(grainD50M),
+    foamGain: 0,
+    foamThinLifeS: FOAM_TAU_S,
+    foamLifeS: FOAM_TAU_S,
+    shoal: true,
+    subcellHR: true,
+    laminarNuM2S: SEA_WATER_NU_M2S,
+    boreFoam: true,
+    grainD50M,
+  };
+}
+export const BEACH_MATCH_SWASH: BeachMatchSwash = deriveMatchSwash();
 
 export function createBeachSim(opts: {
   cascades: readonly CascadeParams[];
@@ -1918,6 +1073,8 @@ export function createBeachSim(opts: {
   params?: SeabedParams;
   grid?: SwashGridSpec;
   dt?: number;
+  /** River mouth round 1: the cells the mouth's grid owns (`SwashField`'s `wall`). Absent: none. */
+  wall?: Uint8Array;
   /** Share of each forcing cascade's variance to sum, and the most modes per cascade. */
   share?: number;
   maxModes?: number;
@@ -1930,8 +1087,7 @@ export function createBeachSim(opts: {
    */
   match?: BeachMatchSwash;
 }): BeachSim {
-  // Round 16/19: the match runs on its own cay (BEACH_MATCH_SEABED) unless the caller names one.
-  const site = buildBeachSite(opts.params ?? (opts.match ? BEACH_MATCH_SEABED : undefined), opts.grid);
+  const site = buildBeachSite(opts.params, opts.grid);
   const waves = new IncidentWaves({
     cascades: opts.cascades,
     n: opts.n,
@@ -1941,21 +1097,38 @@ export function createBeachSim(opts: {
     maxModes: opts.maxModes ?? 700,
     px: site.edgeX,
     pz: site.edgeZ,
-    // Round 19: the match's crests nearer parallel to the shore (the beach's s axis).
-    ...(opts.match ? { alignTo: { x: site.frame.sX, z: site.frame.sZ, share: opts.match.alignShare } } : {}),
+    // Round 20: the match's sea shoals and refracts to each row's edge depth.
+    ...(opts.match?.shoal ? { shoal: { depthM: edgeDepths(site), normalX: site.frame.sX, normalZ: site.frame.sZ } } : {}),
   });
   const inc0 = sampledIncident(waves, opts.forcingEveryS ?? 0.05);
   const m = opts.match;
   // Round 16: the match's forcing is the same sea's height at the edge times
   // `waveGain` (the ledger books what crosses the edge, so it stays exact).
-  const incident: IncidentFn = m ? (t, out) => { inc0(t, out); for (let j = 0; j < out.length; j += 1) out[j] *= m.waveGain; } : inc0;
+  // Round 20: with `shoal`, the shoaled sea, its crests held to the depth.
+  const dEdge = m?.shoal ? edgeDepths(site) : null;
+  const incident: IncidentFn = !m ? inc0 : dEdge
+    ? (t, out) => { inc0(t, out); for (let j = 0; j < out.length; j += 1) out[j] = heldIncidentCrest(out[j], dEdge[j]) * m.waveGain; }
+    : (t, out) => { inc0(t, out); for (let j = 0; j < out.length; j += 1) out[j] *= m.waveGain; };
   const field = new SwashField({
     grid: site.grid,
     bed: site.bed,
     shoreDist: site.shoreDist,
     dt: opts.dt ?? BEACH_DT,
     incident,
-    ...(m ? { soil: { ...BEACH_SAND, ksMS: m.ksMS }, params: { ...BEACH_SWASH, manningN: m.manningN, foamGain: m.foamGain, foamThinLifeS: m.foamThinLifeS } } : {}),
+    ...(opts.wall ? { wall: opts.wall } : {}),
+    ...(m ? {
+      soil: { ...BEACH_SAND, ksMS: m.ksMS },
+      params: {
+        ...BEACH_SWASH,
+        manningN: m.manningN,
+        foamGain: m.foamGain,
+        foamThinLifeS: m.foamThinLifeS,
+        ...(m.foamLifeS !== undefined ? { foamLifeS: m.foamLifeS } : {}),
+        ...(m.subcellHR ? { subcellHR: true } : {}),
+        ...(m.laminarNuM2S !== undefined ? { laminarNuM2S: m.laminarNuM2S } : {}),
+        ...(m.boreFoam ? { boreFoam: true } : {}),
+      },
+    } : {}),
   });
   const g = site.grid;
   const debris = new BeachDebris({
@@ -2012,9 +1185,20 @@ export interface BeachPack {
   readonly b: Uint16Array;
   /** suspended sand (kg/m^3), and three spare channels. */
   readonly d: Uint16Array;
+  /**
+   * RIVER MOUTH ROUND 1c (only when asked, `seaSlope`): the slope of the
+   * grid's water seaward of the still-water line, as the sea's surface sums
+   * its bands' slopes: (-d eta/ds, -d eta/da), eta = bed + h (h as `a` reads
+   * it), two half floats a cell. Only cells that are wet and whose bed stands
+   * under the mean sea level have a slope, from central differences between
+   * such neighbors (one-sided at the edge of the class), else 0: that is the
+   * water the sea's one surface draws over the grid (oceanMouth.ts); the
+   * sheet draws the rest.
+   */
+  readonly e?: Uint16Array;
 }
 
-export function packBeachState(f: SwashField, out?: BeachPack): BeachPack {
+export function packBeachState(f: SwashField, out?: BeachPack, seaSlope = false): BeachPack {
   const { ns, na } = f;
   const n = ns * na;
   const a = out?.a ?? new Uint16Array(n * 4);
@@ -2051,7 +1235,34 @@ export function packBeachState(f: SwashField, out?: BeachPack): BeachPack {
       d[o + 1] = toHalf(blur(f.foamAge, i, j));
     }
   }
-  return { a, b, d };
+  if (!seaSlope) return { a, b, d };
+  const e = out?.e ?? new Uint16Array(n * 2);
+  // The sea side's water level (NaN off the class: dry, or the bed over the mean sea level).
+  const lv = new Float64Array(n);
+  for (let j = 0; j < na; j += 1) {
+    for (let i = 0; i < ns; i += 1) {
+      const c = j * ns + i;
+      const hc = blur(f.h, i, j);
+      lv[c] = hc > 1e-3 && f.bed[c] < 0 ? f.bed[c] + hc : Number.NaN;
+    }
+  }
+  const diff = (c: number, cm: number | null, cp: number | null, h: number): number => {
+    const m = cm === null ? Number.NaN : lv[cm];
+    const p = cp === null ? Number.NaN : lv[cp];
+    if (!Number.isNaN(m) && !Number.isNaN(p)) return (p - m) / (2 * h);
+    if (!Number.isNaN(p)) return (p - lv[c]) / h;
+    if (!Number.isNaN(m)) return (lv[c] - m) / h;
+    return 0;
+  };
+  for (let j = 0; j < na; j += 1) {
+    for (let i = 0; i < ns; i += 1) {
+      const c = j * ns + i;
+      const ok = !Number.isNaN(lv[c]);
+      e[c * 2] = toHalf(ok ? -diff(c, i > 0 ? c - 1 : null, i < ns - 1 ? c + 1 : null, f.ds) : 0);
+      e[c * 2 + 1] = toHalf(ok ? -diff(c, j > 0 ? c - ns : null, j < na - 1 ? c + ns : null, f.da) : 0);
+    }
+  }
+  return { a, b, d, e };
 }
 
 /** Floats per object in `debrisPoses`: see its layout. */

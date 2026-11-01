@@ -12,10 +12,46 @@ import {
 import { SeededRandom } from '../../utils/random';
 import { ALL_ITEMS } from '../items';
 import { BusinessType } from '../../types/business';
+import type { EconomyState } from '../../types';
+import type { PriceContext } from '../../utils/economy/economyUtils';
 
 const STOREFRONT_TYPES: BusinessType[] = [
   'smithy', 'apothecary', 'general_store', 'tavern', 'trading_company', 'enchanter_shop', 'farm',
 ];
+
+describe('portable ignition supplies', () => {
+  it('offers a finite catalog Tinderbox at some general stores, with real scarcity', () => {
+    const shelves=Array.from({length:16},(_,seed)=>generateBusinessStock('general_store',new SeededRandom(seed)));
+    const offers=shelves.flatMap(stock=>stock.filter(line=>line.itemId==='tinderbox'));
+    expect(offers.length).toBeGreaterThan(0);
+    expect(shelves.some(stock=>!stock.some(line=>line.itemId==='tinderbox'))).toBe(true);
+    expect(offers.every(line=>Number.isInteger(line.quantity)&&line.quantity>=2&&line.quantity<=6)).toBe(true);
+    expect(ALL_ITEMS.tinderbox.type).toBe('tool');
+    expect(priceStockItem(ALL_ITEMS.tinderbox,1,undefined)).toBe(0.5);
+  });
+
+  it('keeps all earlier opening-stock rolls exact when ignition supplies are appended', () => {
+    // This is the existing seed42 test fixture captured before the repair,
+    // not the player world and not a chosen merchant outcome.
+    const earlier=generateBusinessStock('general_store',new SeededRandom(42)).filter(line=>line.itemId!=='tinderbox');
+    expect(earlier).toEqual([
+      {itemId:'rations',quantity:10},{itemId:'water-day',quantity:21},
+      {itemId:'torch',quantity:18},{itemId:'oil_flask',quantity:5},
+      {itemId:'hooded_lantern',quantity:2},{itemId:'thieves-tools',quantity:1},
+      {itemId:'leather_belt',quantity:8},{itemId:'soft_boots',quantity:3},
+    ]);
+  });
+
+  it('does not move the random stream used next for business identity and price', () => {
+    const actual=new SeededRandom(42),legacy=new SeededRandom(42);
+    // The captured eleven-line shelf used 17 draws: two staple quantities,
+    // nine optional checks, and six optional quantities. Later business fields
+    // must see that same next value when one new product becomes available.
+    for(let i=0;i<17;i++)legacy.next();
+    generateBusinessStock('general_store',actual);
+    expect(actual.next()).toBe(legacy.next());
+  });
+});
 
 describe('generateBusinessStock — determinism', () => {
   it('produces identical stock for the same seed + type', () => {
@@ -91,6 +127,14 @@ describe('generateBusinessStock — sane quantities', () => {
 });
 
 describe('priceStockItem — D&D-sane pricing', () => {
+  it('keeps faction standing in the single market quote before shop markup', () => {
+    const economy: EconomyState = { buyMultiplier: 1, sellMultiplier: 0.5, globalInflation: 0, regionalWealth: {}, marketEvents: [], tradeRoutes: [], activeEvents: [], marketFactors: { scarcity: [], surplus: [] } };
+    const context = { factions: { guild: { id: 'guild', controlledRegionIds: ['region'] } }, standings: { guild: { publicStanding: 100 } } } as unknown as PriceContext;
+    expect(priceStockItem(ALL_ITEMS.longsword, 1.2, economy, 'region')).toBe(18);
+    expect(priceStockItem(ALL_ITEMS.longsword, 1.2, economy, 'region', undefined, context)).toBe(15.3);
+    expect(priceStockItem(ALL_ITEMS.longsword, 1.2, economy, 'region', 7, context)).toBe(7);
+  });
+
   it('a longsword at 1.0 multiplier is within tolerance of its 15 GP PHB base', () => {
     const longsword = ALL_ITEMS['longsword'];
     // No economy → default buy multiplier 1.0; no region.

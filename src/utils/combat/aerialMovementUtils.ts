@@ -36,7 +36,7 @@ import type {
   CombatCharacter,
   Position,
 } from '../../types/combat';
-import { elevationUnitsToFeet } from '../../components/BattleMap/elevationPresentation';
+import { elevationUnitsToFeet } from './elevationUnits';
 import {
   getCharacterSizeMultiplier,
   getOccupiedTiles,

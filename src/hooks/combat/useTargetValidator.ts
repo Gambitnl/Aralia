@@ -24,6 +24,7 @@ import { CombatCharacter, Ability, Position, BattleMapData, CombatState, Ability
 import type { SpellTargeting } from '../../types/spells';
 import { getCharacterDistance, getOccupiedTiles } from '../../utils/combat';
 import { canAffordActionCost } from '../../utils/combat/actionEconomyUtils';
+import { maxAttackRangeTiles } from '../../utils/combat/weaponRange';
 import { hasLineOfSight } from '../../utils/spatial';
 import { CreatureTaxonomy } from '../../systems/creatures/CreatureTaxonomy';
 import { TargetResolver } from '../../systems/spells/targeting/TargetResolver';
@@ -246,11 +247,14 @@ export function useTargetValidator({ characters, mapData }: UseTargetValidatorPr
             mapData,
         );
 
-        if (distance > ability.range && !touchDelivery) {
+        // GG-495: a ranged or thrown weapon attack may reach its long range;
+        // the attack roll then has Disadvantage (AbilityCommandFactory).
+        const reachLimit = maxAttackRangeTiles(ability);
+        if (distance > reachLimit && !touchDelivery) {
             const targetLabel = getTargetLabel(targetCharacter);
             return {
                 isValid: false,
-                reason: `${targetLabel} is too far away for ${ability.name}. Range: ${formatTileDistance(ability.range)}; distance: ${formatTileDistance(distance)}.`
+                reason: `${targetLabel} is too far away for ${ability.name}. Range: ${formatTileDistance(ability.range)}${ability.longRange !== undefined ? ` (long ${formatTileDistance(reachLimit)})` : ''}; distance: ${formatTileDistance(distance)}.`
             };
         }
 

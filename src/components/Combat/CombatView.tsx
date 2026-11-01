@@ -1,24 +1,9 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 04/08/2026, 01:53:16
- * Dependents: components/Combat/index.ts
- * Imports: 46 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file CombatView.tsx
  * The main component for the active combat phase.
  * Initializes the turn manager and ability system with real game data.
  * Now handles Victory/Defeat states and Loot distribution.
+ * @modified 2026-10-31 — Carries prepared spell statuses and concentration with their existing world-clock lifetime.
  *
  * @modified 2026-02-10 — Integrated the rich combat messaging system (useCombatMessaging)
  *   via a bridge adapter (convertLogEntryToMessage). Every CombatLogEntry emitted by the
@@ -28,6 +13,24 @@
  * IMPORTANT: Do not remove inline comments from this file unless the associated code is modified.
  * If code changes, update the comment with the new date and a description of the change.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/10/2026, 19:01:52
+ * Dependents: components/Combat/index.ts
+ * Imports: 55 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import { useFocusTrap } from "../../hooks/useFocusTrap";
 import React, {
   useState,
   useEffect,
@@ -69,6 +72,7 @@ import {
   SpellObjectAccessChange,
 } from "../../types/combat";
 import ErrorBoundary from "../ui/ErrorBoundary";
+import { carryPreparedSpellEffects, endedPreparedConcentrationIds } from "../../utils/spells/preparedCombatEffects";
 import { useTurnManager } from "../../hooks/combat/useTurnManager";
 import { useCombatLog } from "../../hooks/combat/useCombatLog";
 import { useAbilitySystem } from "../../hooks/useAbilitySystem";
@@ -88,6 +92,7 @@ import ActionEconomyBar from "../BattleMap/ActionEconomyBar";
 import { CombatCommandToolbar } from "../BattleMap/CombatCommandToolbar";
 import { selectQuickAttack } from "../BattleMap/quickAttack";
 import PartyDisplay from "../BattleMap/PartyDisplay";
+import { isRangedAttackAbility, rangedAttackPressure } from '../../systems/combat/rangedAttackPressure';
 import { CombatIntentPreview } from "../BattleMap/CombatIntentPreview";
 import {
   COMBAT_BTN_BASE,
@@ -140,6 +145,7 @@ import { HARVESTABLE_CREATURES } from "../../systems/crafting/creatureHarvestDat
 // Fight-in-place slice 2: the in-scene combat surface + the World3D → CombatView
 // world handoff. When present, the fight renders IN the streamed world.
 const InPlaceCombatScene = lazy(() => import("./InPlaceCombatScene"));
+import { useSpellGroundEdits } from "./useSpellGroundEdits";
 // Next-gen combat renderer prototype (PixiJS, spec: combat-map-nextgen). Lazy
 // so pixi.js stays off the eager 2D path; only mounted under ?pixiboard=1.
 const PixiBoardPrototype = lazy(
@@ -159,6 +165,9 @@ import {
   getFightInPlaceHandoff,
   clearFightInPlaceHandoff,
 } from "../../systems/combat/fightInPlace/fightInPlaceHandoff";
+import { scheduleClockFromGameTime } from "../../systems/worldforge/roster/gameClock";
+
+import type { CombatOutcomeReview } from "../../types/combatOutcome";
 
 interface CombatViewProps {
   party: PlayerCharacter[];
@@ -166,10 +175,11 @@ interface CombatViewProps {
   biome: BattleMapBiome;
   onRoundElapsed?: (seconds: number) => void;
   onBattleEnd: (
-    result: "victory" | "defeat",
+    result: "victory" | "defeat" | "flee",
     rewards?: { gold: number; items: Item[]; xp: number },
     finalPartyState?: CombatPartySnapshotEntry[],
     finalEnemyState?: CombatEnemySnapshotEntry[],
+    outcomeReview?: CombatOutcomeReview,
   ) => void;
   currentPlane?: Plane;
 }
@@ -252,6 +262,10 @@ const CombatView: React.FC<CombatViewProps> = ({
   const { logs: combatLog, addLogEntry: baseLogEntry } = useCombatLog({
     storageKey: combatLogStorageKey,
   });
+  // Preserve the existing encounter history, while this attempt's result
+  // contains only newly emitted events. A recovery must not inherit old rolls.
+  const priorLogIds = useRef(new Set(combatLog.map(entry => entry.id)));
+  const outcomeEvents = combatLog.filter(entry => !priorLogIds.current.has(entry.id)).slice(-8);
 
   // [2026-02-10] Rich messaging system state.
   // Instantiates the useCombatMessaging hook which manages a parallel CombatMessage[] array.
@@ -265,12 +279,14 @@ const CombatView: React.FC<CombatViewProps> = ({
   // may construct a procedural arena. Missing source facts become a visible,
   // non-operational gap instead of silently changing the encounter location.
   const [initialState] = useState(() => {
-    const partyCombatants = party.map((p) =>
+    // A real preparation is not cast again at initiative. Its canonical
+    // riders keep their owner and only the duration left on the world clock.
+    const partyCombatants = carryPreparedSpellEffects(party.map((p) =>
       createPlayerCombatCharacter(
         p,
         allSpells as unknown as Record<string, Spell>,
       ),
-    );
+    ), party, allSpells as unknown as Record<string, Spell>, state.gameTime);
     const initialCombatants = [...partyCombatants, ...enemies];
 
     if (state.extractedBattleMap) {
@@ -311,6 +327,22 @@ const CombatView: React.FC<CombatViewProps> = ({
   const [mapData, setMapData] = useState<BattleMapData | null>(
     initialState.mapData,
   );
+  // The fight-in-place world handoff, read ONCE when this fight mounts and
+  // kept for its lifetime (2026-10-29, GG-533). The store is cleared on
+  // unmount (below). In development React runs every effect, its cleanup and
+  // the effect again on mount (StrictMode), so that cleanup emptied the store
+  // before the lazily loaded in-place scene read it, and every in-place fight
+  // showed "needs a live world handoff". Holding our own copy fixes that; the
+  // store is still cleared so a later placeless fight never reads it.
+  const [inPlaceHandoff] = useState(() => getFightInPlaceHandoff());
+  // GG-533 step 3 (2026-10-29): a spell that moves earth on a world-sourced
+  // patch cuts the same change into the world's one ground and saves it.
+  const spellGroundEdits = useSpellGroundEdits(
+    mapData,
+    state.worldforgeDeltas,
+    dispatch,
+    inPlaceHandoff?.ground,
+  );
   const [characters, setCharacters] = useState<CombatCharacter[]>(
     initialState.positionedCharacters,
   );
@@ -338,6 +370,8 @@ const CombatView: React.FC<CombatViewProps> = ({
   >([]);
   const [activeExtradimensionalSpaces, setActiveExtradimensionalSpaces] =
     useState<ActiveExtradimensionalSpace[]>([]);
+  // GG-467: Track party members who have fled across the battlefield edge
+  const [escapedPlayerIds, setEscapedPlayerIds] = useState<string[]>([]);
   const [activeSpellEmanations, setActiveSpellEmanations] = useState<
     ActiveSpellEmanation[]
   >([]);
@@ -409,10 +443,7 @@ const CombatView: React.FC<CombatViewProps> = ({
   // separate diorama. It's the default when a fight-in-place handoff is present
   // (the fight started from the live ground world); the 2D board stays one toggle
   // away and is the always-available correctness surface.
-  const hasInPlaceHandoff = React.useMemo(
-    () => getFightInPlaceHandoff() != null,
-    [],
-  );
+  const hasInPlaceHandoff = inPlaceHandoff != null;
   // The in-place world handoff is consumed for the lifetime of this fight; clear
   // it when CombatView unmounts so a later placeless fight never mis-renders
   // in-place with stale world context.
@@ -449,6 +480,7 @@ const CombatView: React.FC<CombatViewProps> = ({
   const { battleState, rewards, forceOutcome } = useCombatOutcome({
     characters,
     initialEnemies: enemies, // Pass the initial enemies prop to compare against
+    escapedPlayerIds,
   });
 
   // Auto-Battle State
@@ -503,6 +535,18 @@ const CombatView: React.FC<CombatViewProps> = ({
   const [selectedHarvestCreature, setSelectedHarvestCreature] = useState<
     string | null
   >(null);
+  // A real defeat exposed Tab reaching background controls. Keep keyboard
+  // ownership with the visible result, and hand it to harvesting when opened.
+  // Escape never dismisses an earned outcome or resumes tactical input.
+  // One trap stays active while its ref follows the frontmost dialog. Two
+  // independent traps would restore background focus during harvest handoff.
+  const terminalDialogRef = useFocusTrap<HTMLDivElement>(battleState !== "active");
+  useEffect(() => {
+    if (battleState === "active") return;
+    terminalDialogRef.current?.querySelector<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    )?.focus();
+  }, [battleState, isHarvestPanelOpen, selectedHarvestCreature, terminalDialogRef]);
 
   // Determine which defeated enemies can be harvested
   // Match enemy names (normalized) against HARVESTABLE_CREATURES
@@ -556,6 +600,8 @@ const CombatView: React.FC<CombatViewProps> = ({
     (entry: CombatLogEntry) => {
       baseLogEntry(entry);
       CombatReligionAdapter.processLogEntry(entry, dispatch);
+      // 4. A TerrainCommand excavate or fill reaches the world's ground.
+      spellGroundEdits.takeLogEntry(entry);
 
       // Bridge: convert simple log entry to rich CombatMessage.
       // charactersRef.current is used instead of the `characters` state variable to avoid
@@ -566,7 +612,7 @@ const CombatView: React.FC<CombatViewProps> = ({
       );
       messaging.addMessage(richMessage);
     },
-    [baseLogEntry, dispatch, messaging.addMessage],
+    [baseLogEntry, dispatch, messaging.addMessage, spellGroundEdits.takeLogEntry],
   );
   const requestReactionRef = useRef<any>(null);
   const executeReactionSpellRef = useRef<
@@ -634,6 +680,13 @@ const CombatView: React.FC<CombatViewProps> = ({
       [],
     ),
   });
+
+  // An explosion's crater rides its spell animation (groundImpactOfAbility);
+  // the world's ground digs the same crater the 3D arena does (GG-533).
+  const takeGroundAnimations = spellGroundEdits.takeAnimations;
+  useEffect(() => {
+    takeGroundAnimations(turnManager.animations);
+  }, [takeGroundAnimations, turnManager.animations]);
 
   // Initialize turn manager when characters are ready.
   // [2026-02-10] Also clears any stale rich messages before combat starts, so the
@@ -844,7 +897,11 @@ const CombatView: React.FC<CombatViewProps> = ({
   const confirmEscape = useCallback(() => {
     setEscapeConfirmOpen(false);
     if (!currentCharacter) return;
-    turnManager.escapeFromCombat?.(currentCharacter.id);
+    const verdict = turnManager.escapeFromCombat?.(currentCharacter.id);
+    if (verdict?.available) {
+      // GG-467: Record player escape to trigger flee outcome when all active players exit
+      setEscapedPlayerIds((prev) => (prev.includes(currentCharacter.id) ? prev : [...prev, currentCharacter.id]));
+    }
   }, [currentCharacter, turnManager]);
 
   // The Move / Attack commands moved from the battle map into the ACTIONS panel
@@ -898,8 +955,9 @@ const CombatView: React.FC<CombatViewProps> = ({
     difficulty: state.combatDifficulty ?? "normal",
     // AI receives no actors while the encounter is withheld. This prevents an
     // unsupported production caller from advancing combat behind the gap UI.
-    characters: mapData ? characters : [],
+    characters: mapData && battleState === "active" ? characters : [],
     mapData,
+    activeLightSources: turnManager.activeLightSources,
     currentCharacterId: turnManager.turnState.currentCharacterId,
     executeAction: turnManager.executeAction,
     executeAbility: abilitySystem.executeAbility,
@@ -927,7 +985,16 @@ const CombatView: React.FC<CombatViewProps> = ({
       {/* Victory / Defeat Modal */}
       {battleState !== "active" && (
         <div
+          ref={isHarvestPanelOpen ? undefined : terminalDialogRef}
           data-testid="combat-outcome-modal"
+          onKeyDown={(event) => {
+            // Tab belongs to the shared focus trap; other keys belong only to
+            // this dialog's buttons, not global tactical movement shortcuts.
+            if (event.key !== "Tab") event.stopPropagation();
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="combat-outcome-heading"
           className="fixed inset-0 bg-black/80 z-[var(--z-index-modal-background)] flex items-center justify-center overflow-y-auto p-4"
         >
           <motion.div
@@ -936,10 +1003,45 @@ const CombatView: React.FC<CombatViewProps> = ({
             className="bg-gray-800 p-8 rounded-xl border-2 border-amber-500 max-h-[calc(100vh-2rem)] max-w-md w-full overflow-y-auto text-center"
           >
             <h2
-              className={`text-4xl font-cinzel mb-4 ${battleState === "victory" ? "text-amber-400" : "text-red-500"}`}
+              id="combat-outcome-heading"
+              className={`text-4xl font-cinzel mb-4 ${
+                battleState === "victory"
+                  ? "text-amber-400"
+                  : battleState === "flee"
+                  ? "text-yellow-400"
+                  : "text-red-500"
+              }`}
             >
-              {battleState === "victory" ? "Victory!" : "Defeat!"}
+              {battleState === "victory"
+                ? "Victory!"
+                : battleState === "flee"
+                ? "Retreat!"
+                : "Defeat!"}
             </h2>
+
+            {/* The terminal overlay used to hide the evidence of the loss.
+                Review only already-resolved public logs and live HP here; do
+                not infer death from zero HP or reveal hidden monster facts. */}
+            <ul aria-label="Party condition" className="mb-4 space-y-1 text-left text-sm text-slate-200">
+              {characters.filter(character => character.team === "player").map(character => (
+                <li key={character.id}>
+                  {character.name}: {character.currentHP}/{character.maxHP} HP
+                  {character.currentHP <= 0
+                    ? (character.deathSaves?.failures ?? 0) >= 3 ? " — dead" : " — incapacitated"
+                    : " — conscious"}
+                </li>
+              ))}
+            </ul>
+            {outcomeEvents.length > 0 && (
+              <details open={battleState === "defeat"} className="mb-5 rounded border border-slate-600 bg-slate-950/60 p-3 text-left text-sm">
+                <summary tabIndex={0} className="cursor-pointer font-semibold text-amber-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-300">
+                  Final combat events
+                </summary>
+                <ol tabIndex={0} aria-label="Final resolved combat events" className="mt-2 max-h-56 space-y-2 overflow-y-auto text-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-300">
+                  {outcomeEvents.map(entry => <li key={entry.id}>{entry.message}</li>)}
+                </ol>
+              </details>
+            )}
 
             {battleState === "victory" && rewards && (
               <div className="mb-6 text-left bg-gray-900/50 p-4 rounded-lg">
@@ -984,8 +1086,12 @@ const CombatView: React.FC<CombatViewProps> = ({
                   .map((c) => ({
                     id: c.id,
                     currentHP: c.currentHP,
+                    position: {...c.position},
                     spellSlots: c.spellSlots,
                     limitedUses: c.limitedUses,
+                    endedPreparedConcentrationIds: endedPreparedConcentrationIds(
+                      party.find(member => member.id === c.id), characters, allSpells as Record<string, Spell>,
+                    ),
                   }));
                 // Preserve every final enemy token before App tears combat down.
                 // Source-backed encounters use these exact identities and cells
@@ -998,18 +1104,35 @@ const CombatView: React.FC<CombatViewProps> = ({
                     currentHP: c.currentHP,
                     position: { ...c.position },
                     worldSource: c.worldSource,
+                    spellSlots: c.spellSlots,
+                    limitedUses: c.limitedUses,
                   }));
                 onBattleEnd(
                   battleState,
                   rewards || undefined,
                   finalPartyState,
                   finalEnemyState,
+                  {
+                    result: battleState,
+                    party: characters.filter(c => c.team === "player").map(c => ({
+                      id: c.id, name: c.name, currentHP: c.currentHP, maxHP: c.maxHP,
+                      ...(c.deathSaves ? {deathSaves: {
+                        successes: c.deathSaves.successes, failures: c.deathSaves.failures,
+                      }} : {}),
+                    })),
+                    enemies: characters.filter(c => c.team === "enemy").map(c => ({
+                      id: c.id, name: c.name, currentHP: c.currentHP, maxHP: c.maxHP,
+                    })),
+                    events: outcomeEvents.map(({id, timestamp, type, message}) => ({id, timestamp, type, message})),
+                  },
                 );
               }}
               className="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg shadow-lg transition-colors"
             >
               {battleState === "victory"
                 ? "Collect & Continue"
+                : battleState === "flee"
+                ? "Retreat & Continue"
                 : "Return to Title"}
             </button>
           </motion.div>
@@ -1019,6 +1142,13 @@ const CombatView: React.FC<CombatViewProps> = ({
       {/* Creature Harvest Panel Modal */}
       {isHarvestPanelOpen && selectedHarvestCreature && (
         <div
+          ref={isHarvestPanelOpen ? terminalDialogRef : undefined}
+          onKeyDown={(event) => {
+            if (event.key !== "Tab") event.stopPropagation();
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Harvest defeated creature"
           className={`absolute inset-0 bg-black/80 z-[${Z_INDEX.COMBAT_OVERLAY}] flex items-center justify-center`}
         >
           <div className="relative">
@@ -1073,6 +1203,10 @@ const CombatView: React.FC<CombatViewProps> = ({
               (c) => c.id === abilitySystem.pendingReaction!.targetId,
             )?.name || "Unknown"
           }
+          reactor={characters.find(character => character.id === (
+            abilitySystem.pendingReaction!.triggerType === 'opportunity_attack'
+              ? abilitySystem.pendingReaction!.attackerId : abilitySystem.pendingReaction!.targetId
+          ))}
           reactionSpells={abilitySystem.pendingReaction.reactionSpells || []}
           reactionWeapons={abilitySystem.pendingReaction.reactionWeapons || []}
           triggerType={abilitySystem.pendingReaction.triggerType}
@@ -1105,6 +1239,7 @@ const CombatView: React.FC<CombatViewProps> = ({
               <CombatIntentPreview
                 ability={abilitySystem.selectedAbility}
                 casterName={currentCharacter?.name}
+                rangedPressure={Boolean(currentCharacter && isRangedAttackAbility(abilitySystem.selectedAbility) && rangedAttackPressure({ characters, mapData: mapData ?? undefined, activeLightSources: turnManager.activeLightSources }, currentCharacter, abilitySystem.selectedAbility))}
                 onCancel={abilitySystem.cancelTargeting}
               />
             )}
@@ -1174,99 +1309,110 @@ const CombatView: React.FC<CombatViewProps> = ({
           <span className="text-amber-500">⚜</span> Battle Map{" "}
           <span className="text-amber-500">⚜</span>
         </h1>
-        <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-600/70 bg-slate-800/80 px-3 py-1.5 text-sm font-semibold text-slate-200">
-          {BIOME_META[biome]?.icon ?? "🗺"} {BIOME_META[biome]?.label ?? biome}
-        </span>
-        <span
-          className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold ${enemiesRemaining > 0 ? "border-rose-700/70 bg-rose-950/60 text-rose-200" : "border-emerald-700/70 bg-emerald-950/60 text-emerald-200"}`}
+        {/* 2026-10-30: one status pill (biome, then the enemies left) instead
+            of two separate chips. Every control sits right in one group of one
+            height (44 px touch targets), End Turn last as the main action. */}
+        <div
+          className="inline-flex min-h-11 items-stretch overflow-hidden rounded-lg border border-slate-600/70 bg-slate-800/80 text-sm font-semibold"
           role="status"
         >
-          {enemiesRemaining > 0
-            ? `⚔ ${enemiesRemaining} ${enemiesRemaining === 1 ? "enemy remains" : "enemies remain"}`
-            : "✓ Battlefield clear"}
-        </span>
-        <button
-          onClick={turnManager.endTurn}
-          disabled={
-            !currentCharacter ||
-            !turnManager.isCharacterTurn(currentCharacter.id)
-          }
-          className={`${COMBAT_BTN_BASE} ${COMBAT_BTN_ORANGE} disabled:cursor-not-allowed disabled:opacity-40`}
-        >
-          <span>⚔</span> End Turn
-        </button>
-        {/* Edge-of-map escape (9B). Rendered only when the referee says this
-            actor is at the battlefield rim with a full movement action, so the
-            button appearing IS the cue that an exit is within reach. */}
-        {canEscapeNow && (
-          <button
-            data-testid="combat-escape-button"
-            onClick={() => setEscapeConfirmOpen(true)}
-            title={escapeVerdict?.reason}
-            className={`${COMBAT_BTN_BASE} ${COMBAT_BTN_RED}`}
+          <span className="flex items-center gap-1.5 px-3 text-slate-200">
+            {BIOME_META[biome]?.icon ?? "🗺"} {BIOME_META[biome]?.label ?? biome}
+          </span>
+          <span
+            className={`flex items-center gap-1.5 border-l border-slate-600/70 px-3 ${enemiesRemaining > 0 ? "bg-rose-950/60 text-rose-200" : "bg-emerald-950/60 text-emerald-200"}`}
           >
-            <span>🏃</span> Escape
-          </button>
-        )}
-        <button
-          onClick={() =>
-            setRenderMode(
-              renderMode === "2d"
-                ? hasInPlaceHandoff
-                  ? "inplace"
-                  : "3d"
-                : "2d",
-            )
-          }
-          className={`${COMBAT_BTN_BASE} ${COMBAT_BTN_INDIGO}`}
-        >
-          <span>🎲</span> {renderMode === "2d" ? "3D View" : "2D View"}
-        </button>
-        {renderMode === "2d" && !usePixiBoard && (
+            {enemiesRemaining > 0
+              ? `⚔ ${enemiesRemaining} ${enemiesRemaining === 1 ? "enemy remains" : "enemies remain"}`
+              : "✓ Battlefield clear"}
+          </span>
+        </div>
+        <div className="ml-auto flex flex-wrap items-center gap-2">
           <button
-            type="button"
-            aria-label={`${assetOverlayVisible ? "Hide" : "Show"} asset overlay`}
-            aria-pressed={assetOverlayVisible}
-            onClick={() => setAssetOverlayVisible((visible) => !visible)}
-            className={`${COMBAT_BTN_BASE} ${
-              assetOverlayVisible
-                ? "border border-amber-400/70 bg-amber-700 text-amber-50 hover:bg-amber-600"
-                : COMBAT_BTN_NEUTRAL
-            }`}
-            title={`${assetOverlayVisible ? "Hide" : "Show"} asset overlay`}
-          >
-            Assets
-          </button>
-        )}
-        <CombatRailControls
-          rosterVisible={rosterRailVisible}
-          commandVisible={commandRailVisible}
-          onToggleRoster={() => setRosterRailVisible((visible) => !visible)}
-          onToggleCommand={() => setCommandRailVisible((visible) => !visible)}
-          onResetLayout={resetRailLayout}
-          layoutIsDefault={railLayoutIsDefault}
-        />
-        {process.env.NODE_ENV !== 'production' && (
-          <button
-            onClick={() => {
-              if (
-                window.confirm(
-                  "End the battle now? Remaining enemies will be discarded.",
-                )
+            onClick={() =>
+              setRenderMode(
+                renderMode === "2d"
+                  ? hasInPlaceHandoff
+                    ? "inplace"
+                    : "3d"
+                  : "2d",
               )
-                forceOutcome("victory");
-            }}
-            className={`${COMBAT_BTN_BASE} ${COMBAT_BTN_RED} ml-auto`}
+            }
+            className={`${COMBAT_BTN_BASE} ${COMBAT_BTN_INDIGO}`}
           >
-            End Battle
+            <span>🎲</span> {renderMode === "2d" ? "3D View" : "2D View"}
           </button>
-        )}
+          {renderMode === "2d" && !usePixiBoard && (
+            <button
+              type="button"
+              aria-label={`${assetOverlayVisible ? "Hide" : "Show"} asset overlay`}
+              aria-pressed={assetOverlayVisible}
+              onClick={() => setAssetOverlayVisible((visible) => !visible)}
+              className={`${COMBAT_BTN_BASE} ${
+                assetOverlayVisible
+                  ? "border border-amber-400/70 bg-amber-700 text-amber-50 hover:bg-amber-600"
+                  : COMBAT_BTN_NEUTRAL
+              }`}
+              title={`${assetOverlayVisible ? "Hide" : "Show"} asset overlay`}
+            >
+              Assets
+            </button>
+          )}
+          <CombatRailControls
+            rosterVisible={rosterRailVisible}
+            commandVisible={commandRailVisible}
+            onToggleRoster={() => setRosterRailVisible((visible) => !visible)}
+            onToggleCommand={() => setCommandRailVisible((visible) => !visible)}
+            onResetLayout={resetRailLayout}
+            layoutIsDefault={railLayoutIsDefault}
+          />
+          {/* Edge-of-map escape (9B). Rendered only when the referee says this
+              actor is at the battlefield rim with a full movement action, so the
+              button appearing IS the cue that an exit is within reach. */}
+          {canEscapeNow && (
+            <button
+              data-testid="combat-escape-button"
+              onClick={() => setEscapeConfirmOpen(true)}
+              title={escapeVerdict?.reason}
+              className={`${COMBAT_BTN_BASE} ${COMBAT_BTN_RED}`}
+            >
+              <span>🏃</span> Escape
+            </button>
+          )}
+          <button
+            onClick={turnManager.endTurn}
+            disabled={
+              battleState !== "active" ||
+              !currentCharacter || currentCharacter.currentHP <= 0 ||
+              !turnManager.isCharacterTurn(currentCharacter.id)
+            }
+            className={`${COMBAT_BTN_BASE} ${COMBAT_BTN_ORANGE} disabled:cursor-not-allowed disabled:opacity-40`}
+          >
+            <span>⚔</span> End Turn
+          </button>
+          {process.env.NODE_ENV !== 'production' && (
+            <button
+              onClick={() => {
+                if (
+                  window.confirm(
+                    "End the battle now? Remaining enemies will be discarded.",
+                  )
+                )
+                  forceOutcome("victory");
+              }}
+              className={`${COMBAT_BTN_BASE} ${COMBAT_BTN_RED}`}
+            >
+              End Battle
+            </button>
+          )}
+        </div>
       </div>
 
       {/* First-fight coach line: the busiest screen in the game answers
           "what do I do now?" once, then never again after dismissal. */}
-      {!coachDismissed &&
-        currentCharacter &&
+      {/* A terminal result or downed actor cannot offer an actionable turn. */}
+      {battleState === "active" && !coachDismissed &&
+        currentCharacter && currentCharacter.currentHP > 0 &&
         currentCharacter.team === "player" &&
         turnManager.isCharacterTurn(currentCharacter.id) && (
           <div
@@ -1278,7 +1424,7 @@ const CombatView: React.FC<CombatViewProps> = ({
                 Your turn, {currentCharacter.name.split(" ")[0]}
               </span>{" "}
               — click a green tile to move, or pick an ability on the right. Red
-              hatching provokes attacks.
+              hatching marks enemy reach; leaving it can provoke an attack.
             </span>
             <button
               onClick={dismissCoach}
@@ -1323,13 +1469,23 @@ const CombatView: React.FC<CombatViewProps> = ({
           />
         </div>
 
-        {/* Center Pane — the map owns the whole center space; the turn order now
-            lives in the right rail (matching the mockup). min-h-0 keeps the
+        {/* Center Pane — the turn order strip, then the map, which owns the
+            rest of the center space (the turn order left the right rail on
+            2026-10-30: it was too small there). min-h-0 keeps the
             surrounding grid/flex layout from forcing a scroll-sized child. */}
         <div
           ref={battlefieldSectionRef}
           className="order-1 flex h-[68vh] min-h-[24rem] shrink-0 flex-col gap-2 overflow-hidden p-1 lg:order-none lg:h-auto lg:min-h-0 lg:shrink"
         >
+          {/* 2026-10-30: the turn order spans the battlefield's width. In the
+              narrow command rail it showed two tiny chips behind scroll
+              arrows; here every combatant shows at a readable size. */}
+          <InitiativeTracker
+            characters={characters}
+            turnState={turnManager.turnState}
+            onCharacterSelect={handleSheetOpen}
+            onSkipToCharacter={turnManager.skipToCharacter}
+          />
           {/* Collapsing the command rail expands the board without erasing the
               active actor, remaining resources, movement, or End Turn command. */}
           {!commandRailVisible && (
@@ -1361,6 +1517,7 @@ const CombatView: React.FC<CombatViewProps> = ({
                 <CombatIntentPreview
                   ability={abilitySystem.selectedAbility}
                   casterName={currentCharacter?.name}
+                rangedPressure={Boolean(currentCharacter && isRangedAttackAbility(abilitySystem.selectedAbility) && rangedAttackPressure({ characters, mapData: mapData ?? undefined, activeLightSources: turnManager.activeLightSources }, currentCharacter, abilitySystem.selectedAbility))}
                   onCancel={abilitySystem.cancelTargeting}
                 />
               )}
@@ -1421,6 +1578,12 @@ const CombatView: React.FC<CombatViewProps> = ({
                 renderMode === "inplace" ? (
                   <Suspense fallback={<Battle3DLoadingFallback />}>
                     <InPlaceCombatScene
+                      handoff={inPlaceHandoff}
+                      worldClockHours={
+                        state.gameTime instanceof Date
+                          ? scheduleClockFromGameTime(state.gameTime)
+                          : undefined
+                      }
                       characters={characters}
                       mapData={mapData}
                       currentCharacterId={
@@ -1429,6 +1592,9 @@ const CombatView: React.FC<CombatViewProps> = ({
                       onCommitMove={(action) => {
                         void turnManager.executeAction(action);
                       }}
+                      onExecuteAbility={(ability, caster, targetPosition, targetIds) =>
+                        abilitySystem.executeAbility(ability, caster, targetPosition, targetIds)
+                      }
                       onNotify={(message) =>
                         dispatch({
                           type: "ADD_NOTIFICATION",
@@ -1513,13 +1679,7 @@ const CombatView: React.FC<CombatViewProps> = ({
             onChange={setCommandRailWidth}
             onReset={() => setCommandRailWidth(COMBAT_COMMAND_WIDTH_DEFAULT)}
           />
-          <InitiativeTracker
-            characters={characters}
-            turnState={turnManager.turnState}
-            onCharacterSelect={handleSheetOpen}
-            onSkipToCharacter={turnManager.skipToCharacter}
-          />
-          {currentCharacter && currentCharacter.team === "player" && (
+          {battleState === "active" && currentCharacter && currentCharacter.currentHP > 0 && currentCharacter.team === "player" && (
             <>
               {/* WHO the command rail belongs to: without this banner the
                   Actions/Abilities panels are anonymous. */}
@@ -1574,7 +1734,7 @@ const CombatView: React.FC<CombatViewProps> = ({
               />
             </>
           )}
-          {currentCharacter && currentCharacter.team === "player" && (
+          {battleState === "active" && currentCharacter && currentCharacter.currentHP > 0 && currentCharacter.team === "player" && (
             <AbilityPalette
               character={currentCharacter}
               onSelectAbility={(ability) =>
@@ -1601,6 +1761,7 @@ const CombatView: React.FC<CombatViewProps> = ({
             logEntries={combatLog}
             richMessages={messaging.messages}
             useRichDisplay={true}
+            fill
           />
         </div>
       </div>

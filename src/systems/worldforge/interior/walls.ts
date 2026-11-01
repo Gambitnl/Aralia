@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
- *
- * Last Sync: 14/07/2026, 20:02:51
- * Dependents: systems/world3d/buildingModels.ts, systems/worldforge/bridge/buildingMotifParts.ts, systems/worldforge/bridge/interiorParts.ts, systems/worldforge/interior/generateBuilding.ts
- * Imports: 2 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file walls.ts — emit wall segments with thickness plus outward-facing windows.
  *
@@ -42,6 +26,23 @@
  * Deterministic: all randomness derives from the 'walls' stream of the seed
  * path. Pure data — no three.js, no rendering concerns.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 31/10/2026, 17:24:19
+ * Dependents: systems/world3d/buildingModels.ts, systems/worldforge/bridge/buildingMotifParts.ts, systems/worldforge/bridge/interiorParts.ts, systems/worldforge/interior/generateBuilding.ts, systems/worldforge/interior/guestCirculation.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type {
   BlueprintDoor, BlueprintRoom, BlueprintWindow, RoomPurpose, WallEdge, WallRun,
 } from './blueprintTypes';
@@ -361,7 +362,10 @@ export function mergeWallRuns(walls: WallEdge[]): WallRun[] {
   const groups = new Map<string, WallEdge[]>();
   for (const w of walls) {
     const fixed = w.axis === 'y' ? w.x : w.y;
-    const key = `${w.axis}:${w.kind}:${fixed}:${w.nx}:${w.ny}`;
+    // A retained masonry wall can become internal when a wing grows beside
+    // it. Joining it to a thin partition would erase its real thickness and
+    // prevent saved patches from retaining their original physical span.
+    const key = `${w.axis}:${w.kind}:${fixed}:${w.nx}:${w.ny}:${w.thicknessFt}`;
     let list = groups.get(key);
     if (!list) { list = []; groups.set(key, list); }
     list.push(w);

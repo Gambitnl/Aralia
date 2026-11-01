@@ -1,6 +1,6 @@
 # UI Modals And Floating Windows
 
-Verified: 2026-08-27
+Verified: 2026-10-31 for the 3D Adventure log. Earlier global-error verification retains its 2026-10-28 scope; the portable inventory retains its 2026-08-27 scope.
 
 ## Purpose
 
@@ -62,7 +62,7 @@ Aralia actually does today.
 | Stacking | Design Preview renders ids back-to-front. Every `WindowFrame` has the same z-index, so the final DOM sibling paints on top. A capture-phase pointer press calls `openOrBringToFront(id)`. Keyed reordering preserves the mounted panel instance. | `useWindowStack`; the workspace owns the event boundary and rendering order. |
 | Focus | Bringing a floating window forward does **not** programmatically move DOM focus. `WindowFrame` itself does not trap focus. Main-game modal wrappers opt into `useFocusTrap`; blocking `ModalDialog` always does. | Choose focus behavior separately. Do not describe visual stacking as keyboard focus. |
 | Geometry persistence | Only `{ width, height }` is written, under the caller's `storageKey`, when pointer resizing ends. Position, maximized state, open ids, and stack order are not persisted. A reopened stored-size window is centered and then clamped. | `SafeStorage` plus `safeJSONParse` inside `useResizableWindow` |
-| Keyboard | `WindowFrame` buttons are ordinary keyboard buttons. Drag and resize have no keyboard equivalent. `WindowFrame` does not listen for Escape. `useModalOrchestration` handles fallback Escape in capture phase; `useFocusTrap` handles Tab and optional child-owned Escape. | Compose the hooks intentionally; do not add both Escape owners for one entry. |
+| Keyboard | `WindowFrame` buttons are ordinary keyboard buttons. Drag and resize have no keyboard equivalent. `WindowFrame` does not listen for Escape. `useModalOrchestration` handles fallback Escape in bubble phase; `useFocusTrap` handles Tab and optional child-owned Escape. | Compose the hooks intentionally; do not add both Escape owners for one entry. |
 | ARIA | `WindowFrame` exposes one `role="dialog"`, `aria-modal="true"`, and `aria-label={title}`. Resize hit zones are `aria-hidden`. `ModalDialog` also supports labelled and described blocking dialogs. | Reuse the semantics only if the Character Forge surface is truly modal. Multiple concurrent `aria-modal` windows need an accessibility decision rather than blind copying. |
 | Responsive fallback | Geometry keeps a 20-pixel side/bottom margin and a 12-pixel gap below visible top headers. The normal minimum is 600 by 400, but the viewport wins on cramped screens; callers may request a larger desktop minimum. WindowFrame's title/actions wrap and current controls use 44-pixel targets. | Port the clamp policy independently from Aralia's Tailwind classes and visual tokens. |
 
@@ -267,3 +267,26 @@ stars/moon/volumetric-cloud capability survives for a future World3D night-sky
 port; `Scene3D` imports them from the new home. The remainder of
 `src/components/ThreeDModal/` (Scene3D included) is orphaned pending a
 keep-or-delete decision.
+
+## Global action errors over the desktop world
+
+AppShell owns gameState.error and clears it through SET_ERROR with null. Its
+fixed top banner uses the existing Z_INDEX.ERROR_OVERLAY token as an inline
+zIndex and exposes role alert. An interpolated Tailwind numeric class was not
+compiled, leaving computed z-index auto and allowing the fullscreen world HUD
+to hide the failure and intercept Dismiss. This repair retains the current
+provider order, error text, button action and layer hierarchy.
+
+Rendered desktop verification uses an explicitly controlled failed module
+request in an isolated copy of a real retained save after ground controls are
+ready. The actual Ancia world and visible banner were inspected at1440x1000;
+computed layer900, pointer hit-testing and ordinary dismissal pass. Party,
+inventory, gold, seed and location, plus copied archive bytes, remain exact.
+This qualifies the alert layer, not new gameplay, original save continuity or
+actual screen-reader output. The latter remains unplayed.
+
+## Adventure log in the walking view
+
+World3DWrapper exposes Adventure log beside the ordinary Menu and passes GameState.messages into WorldMessageLog. Open state is local to the mounted view. The existing commitment guard holds walking and clears pending click movement while reading; it does not write a position or rewrite history.
+WorldMessageLog composes the existing WindowFrame, WorldPane, useFocusTrap and useModalOrchestration. WorldPane continues to own sender styling, stored timestamps, glossary tooltips and scroll following. WindowFrame owns geometry and the existing size preference under world-message-log. The wrapper supplies the blocking pointer backdrop, focus restoration and document keyboard boundary. Tab/Escape reach the existing focus handler; other gameplay shortcuts do not reach the window behind the reader. Browser scrolling and button activation keep their default behavior.
+Native verification includes readable real roll/consequence text at 1440 by 1000 and 1280 by 800, exact W/D footing hold, resumed walking, Close/Escape focus return and M/C/R/V/Tab ownership. A found shortcut leak is repaired before acceptance. 29 affected checks pass, with zero scoped type diagnostics. Two older Wrapper fixture failures reproduce on exact pre-change source. Full reload retains 31 checked groups and 68 CURRENT archive payloads, including the earned failure and subsequent paid recovery. This establishes the bounded reader; actual screen-reader output and whole-game combat feedback are not claimed.

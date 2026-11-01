@@ -6,6 +6,8 @@
  * Gap records come from Agora's shared markdown parser so planning vocabulary has
  * one home. Comparisons refuse incomplete inventories: disappearing evidence is
  * never, by itself, proof that a feature was completed.
+ * Type-debt proposals explicitly retain an unverified call-site type premise;
+ * lexical cast/suppression detection never proves that an assertion is redundant.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -270,6 +272,26 @@ function proposalArea(item) {
   return parts.slice(0, -1).join('/') || 'repository-root';
 }
 
+// WF-G210: the scanner does not resolve the type where a cast is used. One
+// base declaration can be overridden by an Omit/union member. Both structured
+// proposals and shell scaffolds use this same conservative review requirement;
+// supplied suggestions or a claimed "verified" status cannot bypass it.
+export function typeReviewForFindings(findings = []) {
+  const kinds = new Set(['AS_ANY_CAST', 'TS_IGNORE_SUPPRESSION', 'ESLINT_TYPE_SUPPRESSION', 'DUMMY_RETURN_AS_ANY']);
+  const matches = findings.filter(item => kinds.has(item.type) || item.subsystem === 'type_debt');
+  if (!matches.length) return null;
+  return {
+    status: 'unverified',
+    findingIds: unique(matches.map(item => item.findingId).filter(id => typeof id === 'string' && id)).sort(compareText),
+    reason: 'Cast or suppression detection is lexical evidence only; no call-site type assignability was verified.',
+    requiredChecks: [
+      'Resolve the call-site type, every relevant union member, and properties overridden through Omit or redeclaration; a base interface alone is not proof.',
+      'Determine whether cast removal requires a narrowing helper; do not prescribe mechanical removal while this type premise is unverified.',
+      'Before an implementation assignment, collect focused compile/type evidence for the exact proposed change and preserve current runtime behavior.',
+    ],
+  };
+}
+
 export function buildTaskProposals(findings) {
   const groups = new Map();
   for (const item of findings) {
@@ -291,6 +313,7 @@ export function buildTaskProposals(findings) {
       ? 'Reconcile tracking and acceptance evidence before proposing any new task.'
       : existingCandidates.length ? 'Review existing task scope and link matching findings before proposing new work.' : 'Investigate current behavior and intended capability, then choose a durable record or a cohesive task.';
     const evidence = items.map(item => ({ findingId: item.findingId, file: item.file, line: item.line, type: item.type, text: item.text, trackingStatus: item.trackingStatus, disposition: item.disposition, issues: item.trackingEvidence?.issues || [] }));
+    const typeReview = typeReviewForFindings(items);
     const acceptanceCriteria = [
       'Explain current behavior and the intended capability using source or product evidence.',
       'Account for every finding ID and explicit reference, including existing work and deferred intent.',
@@ -298,12 +321,14 @@ export function buildTaskProposals(findings) {
       'Define and collect the focused test or rendered evidence needed to verify the agreed outcome.',
       'Do not treat a removed comment, missing finding, or smaller inventory as proof of completion.',
     ];
+    if (typeReview) acceptanceCriteria.push(...typeReview.requiredChecks);
     return {
       proposalId: `proposal-${createHash('sha256').update(JSON.stringify([area, findingIds])).digest('hex').slice(0, 24)}`,
       area, title: `Investigate unfinished intent in ${area}`, findingIds, refs, evidence,
       existingCandidates, preservation: PRESERVATION, nextAction, acceptanceCriteria,
       currentBehavior: 'Requires inspection of the listed evidence; scanner patterns do not establish product behavior.',
       missingCapability: 'Confirm the intended capability or unresolved decision during triage.',
+      ...(typeReview ? { typeReview } : {}),
       requiresReview: true,
     };
   });

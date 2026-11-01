@@ -1,7 +1,11 @@
 /**
  * ARCHITECTURAL CONTEXT:
- * This component manages the 'Druid Feature' selection (Primal Order, 
+ * This component manages the 'Druid Feature' selection (Primal Order,
  * Cantrips, and Level 1 Spells).
+ *
+ * Under the 2014 PHB it also holds the level 2 step: the player picks a Druid
+ * Circle here (Remy, Agora 8335; agora-f821.58). Under 2024 the circle waits
+ * for level 3 and the LevelUpModal offers it.
  *
  * Recent updates focus on '2024 Rulebook Alignment' and 'Automated Feature Injection'.
  * - Added `sr-only` accessibility labels for all spell selection inputs.
@@ -18,26 +22,44 @@
  */
 import React, { useState, useMemo } from 'react';
 import { PrimalOrderOption, Spell, Class as CharClass } from '../../../types';
+import { choosesSubclassInCreator, getSubclassLevel, type RulesEdition } from '../../../config/rulesEdition';
 import _Tooltip from '../../Tooltip';
 import { CreationStepLayout } from '../ui/CreationStepLayout';
 import { SpellCard } from './SpellCard';
+import { SubclassChoiceSection, type SubclassChoiceOption } from './SubclassChoiceSection';
 
 interface DruidFeatureSelectionProps {
   primalOrders: PrimalOrderOption[];
+  /**
+   * Every Druid Circle (agora-f821.58). Offered only when the rules edition
+   * puts the circle at level 2 (2014 PHB): Remy ruled that the creator then
+   * gets a level 2 step (Agora 8335). Optional so older callers still render.
+   */
+  circles?: SubclassChoiceOption[];
+  /** The campaign's rules edition, read by the caller via `getRulesEdition`. */
+  rulesEdition?: RulesEdition;
   spellcastingInfo: NonNullable<CharClass['spellcasting']>;
   allSpells: Record<string, Spell>;
-  onDruidFeaturesSelect: (order: 'Magician' | 'Warden', cantrips: Spell[], spellsL1: Spell[]) => void;
+  onDruidFeaturesSelect: (order: 'Magician' | 'Warden', cantrips: Spell[], spellsL1: Spell[], circleId?: string) => void;
   onBack: () => void;
 }
 
 const DruidFeatureSelection: React.FC<DruidFeatureSelectionProps> = ({
   primalOrders,
+  circles = [],
+  rulesEdition = '2024',
   spellcastingInfo,
   allSpells,
   onDruidFeaturesSelect,
   onBack,
 }) => {
   const [selectedOrder, setSelectedOrder] = useState<'Magician' | 'Warden' | null>(null);
+  const [selectedCircleId, setSelectedCircleId] = useState<string | null>(null);
+
+  // agora-f821.58: the edition decides whether the circle is part of creation.
+  const circleLevel = getSubclassLevel('druid', rulesEdition);
+  const choosesCircleNow = choosesSubclassInCreator('druid', rulesEdition) && circles.length > 0;
+  const isCircleSatisfied = !choosesCircleNow || selectedCircleId !== null;
   const [selectedCantripIds, setSelectedCantripIds] = useState<Set<string>>(new Set());
   const [selectedSpellL1Ids, setSelectedSpellL1Ids] = useState<Set<string>>(new Set());
 
@@ -76,18 +98,18 @@ const DruidFeatureSelection: React.FC<DruidFeatureSelectionProps> = ({
   };
 
   const handleSubmit = () => {
-    if (selectedOrder && selectedCantripIds.size === numCantripsToSelect && selectedSpellL1Ids.size === numSpellsL1ToSelect) {
+    if (selectedOrder && selectedCantripIds.size === numCantripsToSelect && selectedSpellL1Ids.size === numSpellsL1ToSelect && isCircleSatisfied) {
       const cantrips = Array.from(selectedCantripIds).map(id => allSpells[String(id)]);
       const speakWithAnimalsSpell = allSpells['speak-with-animals'];
       const spellsL1 = Array.from(selectedSpellL1Ids).map(id => allSpells[String(id)]);
       if(speakWithAnimalsSpell) {
         spellsL1.push(speakWithAnimalsSpell);
       }
-      onDruidFeaturesSelect(selectedOrder, cantrips, spellsL1);
+      onDruidFeaturesSelect(selectedOrder, cantrips, spellsL1, choosesCircleNow ? selectedCircleId! : undefined);
     }
   };
 
-  const isSubmitDisabled = !selectedOrder || selectedCantripIds.size !== numCantripsToSelect || selectedSpellL1Ids.size !== numSpellsL1ToSelect;
+  const isSubmitDisabled = !selectedOrder || selectedCantripIds.size !== numCantripsToSelect || selectedSpellL1Ids.size !== numSpellsL1ToSelect || !isCircleSatisfied;
 
   return (
     <CreationStepLayout
@@ -188,6 +210,20 @@ const DruidFeatureSelection: React.FC<DruidFeatureSelectionProps> = ({
               </div>
             </section>
           </>
+        )}
+
+        {choosesCircleNow ? (
+          <SubclassChoiceSection
+            subclassLabel="Druid Circle"
+            level={circleLevel}
+            options={circles}
+            selectedId={selectedCircleId}
+            onSelect={setSelectedCircleId}
+          />
+        ) : (
+          <p className="text-sm text-gray-400 italic">
+            You choose a Druid Circle at level {circleLevel}.
+          </p>
         )}
       </div>
     </CreationStepLayout>

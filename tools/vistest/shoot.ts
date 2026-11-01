@@ -98,7 +98,7 @@ const HELP_TEXT = [
   '  --width <pixels>       Viewport width (default: ' + DEFAULT_OPTIONS.viewportWidth + ')',
   '  --height <pixels>      Viewport height (default: ' + DEFAULT_OPTIONS.viewportHeight + ')',
   '  --fresh-module <path>  Required repo-relative source file to verify through Vite.',
-  '  --expect-served-code <text>  For A/B proof, require this code in the transformed module before capture.',
+  '  --expect-served-code <text>  Required for .agent modules; verify this transformed code before capture.',
   '  --probe-timeout <ms>   Per-request preflight ceiling (default: ' + DEFAULT_OPTIONS.probeTimeoutMs + ')',
 ].join('\n');
 
@@ -180,8 +180,15 @@ function parseCommand(argv: readonly string[]): ParsedCommand {
     };
   }
 
-  if (options.expectedServedCode && !options.expectedServedCode.trim()) {
+  if (argv.includes('--expect-served-code') && !options.expectedServedCode.trim()) {
     return { kind: 'error', message: 'vistest: --expect-served-code must name a nonblank code expression' };
+  }
+
+  // Vite intentionally does not watch .agent. Its raw-source endpoint can be
+  // fresh while the ordinary transformed module still contains an older build.
+  // Require executed-code proof before a scratch capture contacts the server.
+  if (options.freshnessModule.replace(/\\/g, '/').split('/').includes('.agent') && !options.expectedServedCode) {
+    return { kind: 'error', message: 'vistest: --expect-served-code is required for .agent scratch modules' };
   }
 
   // The runner writes one PNG below this directory per scenario. Rejecting a
@@ -224,7 +231,8 @@ export async function probeServedCode({
     return { ok: false, url: base.toString(), expectedCode, error: 'module path must stay below the Vite base' };
   }
   const url = new URL(relativePath, base);
-  url.searchParams.set('wf_g306_variant', `${Date.now()}`);
+  // Keep the page's ordinary module URL. An invented query creates a separate
+  // Vite cache entry and can falsely certify code the page never receives.
   if (!expectedCode.trim()) {
     return { ok: false, url: url.toString(), expectedCode, error: 'expected code expression is blank' };
   }

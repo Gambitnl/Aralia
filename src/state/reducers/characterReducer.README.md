@@ -20,9 +20,9 @@ It handles actions related to:
 *   **Resource Management**:
     *   `CAST_SPELL`: Decrements the appropriate spell slot for a character.
     *   `USE_LIMITED_ABILITY`: Decrements the uses of a character's special ability (e.g., Second Wind).
-    *   `TOGGLE_PREPARED_SPELL`: Adds or removes a spell from a character's `preparedSpells` list.
+    *   `TOGGLE_PREPARED_SPELL`: Edits a saved preparation plan using verified spell levels; active spells stay unchanged until an eligible long rest. Reset discards only the plan.
     *   `SHORT_REST`: Restores short-rest abilities, applies Hit Dice healing, and updates Hit Dice pools.
-    *   `LONG_REST`: Fully restores HP, spell slots, rest-based limited abilities, and all spent Hit Dice.
+    *   `LONG_REST`: Applies eligible recovery and valid spell plans, preserving denied/downed members. Hit Dice recovery follows the campaign edition. See `docs/architecture/domains/rest-and-recovery.md` for provisions, cooldown and paid-bed permission.
 
 ### Helper Logic
 The reducer uses utility functions from `src/utils/characterUtils.ts` (like `calculateArmorClass`) to correctly update derived character stats whenever equipment changes.

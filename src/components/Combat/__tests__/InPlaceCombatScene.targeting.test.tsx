@@ -28,10 +28,25 @@ let lastLayerProps: {
   reachable?: { centerXM: number; centerZM: number; movementFeet: number } | null;
 } = {};
 
+let lastSceneLoader: unknown = null;
 vi.mock('../../World3D/World3DScene', () => ({
-  default: ({ combatLayer }: { combatLayer?: React.ReactNode }) => (
-    <div data-testid="mock-world3d-scene">{combatLayer}</div>
-  ),
+  default: ({ combatLayer, loader }: { combatLayer?: React.ReactNode; loader?: unknown }) => {
+    lastSceneLoader = loader;
+    return <div data-testid="mock-world3d-scene">{combatLayer}</div>;
+  },
+}));
+
+// The fight builds its own worker chunk loader (2026-10-30); jsdom has no
+// Worker, so the loader is a recorded stand-in.
+const loaderLog: Array<{ ground: unknown; disposed: boolean; loader: unknown }> = [];
+vi.mock('../../World3D/createGroundWorkerChunkLoader', () => ({
+  createGroundWorkerChunkLoader: (ground: unknown) => {
+    const entry = { ground, disposed: false, loader: null as unknown };
+    const loader = Object.assign(() => new Promise(() => {}), { dispose: () => { entry.disposed = true; } });
+    entry.loader = loader;
+    loaderLog.push(entry);
+    return loader;
+  },
 }));
 
 vi.mock('../../World3D/combat/InPlaceCombatLayer', () => ({
@@ -126,6 +141,11 @@ function renderScene(characters: CombatCharacter[]) {
       mapData={makePatch()}
       currentCharacterId="hero"
       onCommitMove={(action) => committed.push(action)}
+      // A cast goes through the 2D board's own executeAbility (2026-10-29,
+      // GG-533); record it in the same list as the action it commits.
+      onExecuteAbility={(ability, caster, targetPosition, targetCharacterIds) => {
+        committed.push({ type: 'ability', abilityId: ability.id, characterId: caster.id, targetPosition, targetCharacterIds } as CombatAction);
+      }}
       onNotify={(message) => notices.push(message)}
     />,
   );
@@ -141,7 +161,7 @@ describe('InPlaceCombatScene in-scene targeting', () => {
   beforeEach(() => {
     lastLayerProps = {};
     setFightInPlaceHandoff({
-      ground: {},
+      ground: { heights: [7] },
       loader: {},
       sceneOrigin: { x: 0, z: 0 },
       anchor: ANCHOR,
@@ -158,6 +178,26 @@ describe('InPlaceCombatScene in-scene targeting', () => {
   // ==========================================================================
   // Pure referee helpers
   // ==========================================================================
+
+  it('streams the world through its own chunk loader, built from the handed-over ground and disposed at the end', () => {
+    // Exploration disposes its own loader when it unmounts at the phase swap,
+    // and a disposed loader never answers; so the fight must not reuse it.
+    loaderLog.length = 0;
+    const { unmount } = render(
+      <InPlaceCombatScene
+        characters={[makeHero([makeSwordAbility()])]}
+        mapData={makePatch()}
+        currentCharacterId="hero"
+        onCommitMove={() => {}}
+        onExecuteAbility={() => {}}
+      />,
+    );
+    expect(loaderLog).toHaveLength(1);
+    expect(loaderLog[0].ground).toEqual({ heights: [7] });
+    expect(lastSceneLoader).toBe(loaderLog[0].loader);
+    unmount();
+    expect(loaderLog[0].disposed).toBe(true);
+  });
 
   it('offers only aimable, affordable abilities', () => {
     const spent = createMockCombatCharacter({
@@ -212,7 +252,7 @@ describe('InPlaceCombatScene in-scene targeting', () => {
     expect(lastLayerProps.reachable?.movementFeet).toBe(5);
   });
 
-  it('commits the ability action the 2D board would commit when a legal target is clicked', () => {
+  it('casts through the 2D board\'s own executeAbility when a legal target is clicked', () => {
     const hero = makeHero([makeSwordAbility()]);
     const goblin = makeGoblin({ x: CENTER.x + 1, y: CENTER.y });
     const { committed, notices } = renderScene([hero, goblin]);
@@ -229,7 +269,6 @@ describe('InPlaceCombatScene in-scene targeting', () => {
       characterId: 'hero',
       targetPosition: { x: goblin.position.x, y: goblin.position.y },
       targetCharacterIds: ['goblin'],
-      cost: { type: 'action' },
     });
     // The click is spent: the surface disarms rather than arming a second swing.
     expect(screen.getByTestId('fip-ability-longsword')).toHaveAttribute('aria-pressed', 'false');

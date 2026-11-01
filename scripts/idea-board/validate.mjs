@@ -12,6 +12,7 @@
 
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import {collectIdeaSourceIdentities} from '../../tools/agora/recordSourceProvenance.mjs';
 import {
   ASSESSMENT_STATUSES,
   CONFIDENCE_LEVELS,
@@ -313,6 +314,59 @@ export function validateIdeaBoard(data) {
 // source itself.
 // ============================================================================
 
+// WF-G295: test the entire proposed primary-address batch against THIS owning
+// validator before an author promises acceptance. The clone never enters the
+// board. Archive links are not globally unique; exclusions remain untouched.
+export function probeIdeaSourceRewrites(data, rewrites) {
+  const errors = [], collisions = [], edits = [], sourceRecords = [];
+  const validate = value => { try { return validateIdeaBoard(value); } catch (error) { return ['Current board cannot be validated: ' + error.message]; } };
+  const baselineErrors = validate(data);
+  let proposed;
+  try { proposed = structuredClone(data); } catch { errors.push('Board must be cloneable JSON data.'); }
+  if (!Array.isArray(rewrites) || !rewrites.length || rewrites.length > 32) errors.push('Supply 1-32 complete source rewrites.');
+  const seen = new Set();
+  const address = value => {
+    try { const url = new URL(value); return typeof value === 'string' && value.length <= 4096 && value === value.trim() && /^https?:$/.test(url.protocol) && !url.username && !url.password; }
+    catch { return false; }
+  };
+  for (const item of Array.isArray(rewrites) && rewrites.length <= 32 ? rewrites : []) {
+    if (!item || Object.keys(item).sort().join(',') !== 'from,reason,recordId,sourceId,to'
+      || !/^IB-\d{4}$/.test(item.recordId) || !/^SRC-\d{4}$/.test(item.sourceId)
+      || !address(item.from) || !address(item.to) || typeof item.reason !== 'string'
+      || item.reason.trim().length < 8 || Buffer.byteLength(item.reason) > 4096 || /\b(?:TODO|TBD)\b/i.test(item.reason)) {
+      errors.push('Each rewrite needs exact recordId, sourceId, from, to and a reviewed reason; no approval override.'); continue;
+    }
+    if (seen.has(item.sourceId)) { errors.push('Duplicate rewrite for ' + item.sourceId); continue; }
+    seen.add(item.sourceId);
+    const records = (Array.isArray(data?.records) ? data.records : []).map((record, ri) => ({ record, ri })).filter(({record}) => record?.id === item.recordId);
+    const sources = (Array.isArray(data?.records) ? data.records : []).flatMap((record, ri) => (Array.isArray(record?.sources) ? record.sources : []).map((source, si) => ({record, source, ri, si}))).filter(({source}) => source?.id === item.sourceId);
+    if (records.length !== 1 || sources.length !== 1 || sources[0].record.id !== item.recordId) {
+      errors.push('Active owner absent or ambiguous for ' + item.recordId + '/' + item.sourceId + '; preserve exclusions and human rulings.'); continue;
+    }
+    const {source, ri, si} = sources[0];
+    if (source.url !== item.from) { errors.push('Stale from-value for ' + item.sourceId + '; re-read and reconcile with parent.'); continue; }
+    if (normalizeSourceUrl(item.from) === normalizeSourceUrl(item.to)) { errors.push('Normalized no-op for ' + item.sourceId + '; preserve the existing address.'); continue; }
+    edits.push({file:'public/idea-board/records.json', field:['records',ri,'sources',si,'url'], from:item.from, to:item.to});
+    sourceRecords.push({file:'public/idea-board/records.json',recordId:item.recordId,sourceId:item.sourceId,addressField:'url',url:item.from});
+    if (proposed) proposed.records[ri].sources[si].url = item.to;
+  }
+  if (proposed && Array.isArray(proposed.records) && Array.isArray(proposed.excludedSources)) {
+    const owners = new Map();
+    try {
+      for (const entry of collectIdeaSourceIdentities(proposed).filter(entry => entry.addressField === 'url')) {
+        try { const key = normalizeSourceUrl(entry.url); owners.set(key, [...(owners.get(key) || []), entry]); } catch { /* The owning validator reports malformed addresses. */ }
+      }
+    } catch (error) { errors.push('Source owners unavailable in malformed board: ' + error.message); }
+    for (const [url, entries] of owners) if (entries.length > 1) collisions.push({url, owners:entries});
+  }
+  const proposedErrors = proposed ? validate(proposed) : ['Proposed board unavailable.'];
+  // Never discard inherited failures or grant permission from a reason string.
+  // Reachability, licence and research meaning still need parent acceptance.
+  return {ok:!errors.length && !baselineErrors.length && !proposedErrors.length && !collisions.length,
+    requiresRuling:errors.length > 0 || baselineErrors.length > 0 || proposedErrors.length > 0 || collisions.length > 0,
+    errors, baselineErrors, proposedErrors, collisions, edits, sourceRecords};
+}
+
 export const REACH_TIMEOUT_MS = 5000;
 
 // 404 and 410 are the only answers that show the address itself is gone. Every
@@ -320,24 +374,9 @@ export const REACH_TIMEOUT_MS = 5000;
 const GONE_STATUS_CODES = new Set([404, 410]);
 
 export function collectCheckableUrls(data) {
-  const entries = [];
-
-  for (const [recordIndex, record] of (data?.records ?? []).entries()) {
-    for (const [sourceIndex, source] of (record?.sources ?? []).entries()) {
-      const path = `records[${recordIndex}].sources[${sourceIndex}]`;
-      if (hasText(source?.url)) entries.push({ path: `${path}.url`, url: source.url.trim() });
-      if (hasText(source?.archiveUrl)) entries.push({ path: `${path}.archiveUrl`, url: source.archiveUrl.trim() });
-    }
-  }
-
-  // An excluded address is kept as provenance, not as a live claim. It is
-  // carried in the list so the receipt can name it, and it is marked so the
-  // network check leaves it alone.
-  for (const [index, source] of (data?.excludedSources ?? []).entries()) {
-    if (hasText(source?.url)) entries.push({ path: `excludedSources[${index}].url`, url: source.url.trim(), excluded: true });
-  }
-
-  return entries;
+  // Stable IDs and addresses come from the same traversal used by the brief
+  // generator. Exclusions remain provenance with no active record owner.
+  return collectIdeaSourceIdentities(data);
 }
 
 function safeNormalize(url) {
@@ -345,7 +384,7 @@ function safeNormalize(url) {
 }
 
 async function checkOneUrl(entry, fetchImpl, timeoutMs, checkedAt) {
-  const receipt = { path: entry.path, url: entry.url, checkedAt, status: 0, finalUrl: entry.url };
+  const receipt = { ...entry, checkedAt, status: 0, finalUrl: entry.url };
 
   if (typeof fetchImpl !== 'function') {
     return { ...receipt, state: 'not_checked', detail: 'unavailable: this runtime exposes no fetch implementation.' };
@@ -403,8 +442,7 @@ export async function checkSourceReachability(data, options = {}) {
   for (const entry of collectCheckableUrls(data)) {
     if (entry.excluded) {
       receipts.push({
-        path: entry.path,
-        url: entry.url,
+        ...entry,
         checkedAt,
         status: 0,
         finalUrl: entry.url,
@@ -422,7 +460,7 @@ export async function checkSourceReachability(data, options = {}) {
   return { checkedAt, timeoutMs, receipts, counts };
 }
 
-function formatReachabilityReport(report) {
+export function formatReachabilityReport(report) {
   const { counts } = report;
   const lines = [
     `Idea Board reachability receipt ${report.checkedAt} (HEAD, ${report.timeoutMs} ms limit, ${report.receipts.length} address(es)): `
@@ -430,6 +468,8 @@ function formatReachabilityReport(report) {
   ];
 
   for (const receipt of report.receipts) {
+    // Paths are hints; this same-read stable identity is the authoring source.
+    lines.push(`- IDENTITY ${receipt.recordId ?? '(no active record)'} / ${receipt.sourceId ?? '(source ID unavailable)'} ${receipt.addressField} ${receipt.url} (${receipt.path})`);
     if (receipt.state === 'unreachable') lines.push(`- WARNING ${receipt.path} ${receipt.url} is unreachable. ${receipt.detail}`);
     else if (receipt.state === 'redirected') lines.push(`- NOTE ${receipt.path} ${receipt.url} redirects. ${receipt.detail}`);
     else if (receipt.state === 'not_checked') lines.push(`- NOTE ${receipt.path} ${receipt.url} was not checked. ${receipt.detail}`);

@@ -125,7 +125,9 @@ describe('AbilityCommandFactory reaction arbitration fallbacks', () => {
       // The arbiter is still consulted with the eligible Shield option, but
       // returning null (no reaction) must leave the hit intact: AC unchanged,
       // damage applied, and neither the reaction nor the spell slot spent.
-      expect(requestReaction).toHaveBeenCalledWith(attacker.id, defender.id, 'on_hit', [shieldSpell]);
+      expect(requestReaction).toHaveBeenCalledWith(attacker.id, defender.id, 'on_hit', [expect.objectContaining({
+        ...shieldSpell, hitPreview: { attackTotal: 12, currentAC: 12, defendedAC: 17, isCritical: false, stopsAttack: true }
+      })]);
       expect(updatedDefender?.armorClass).toBe(12);
       expect(updatedDefender?.currentHP).toBeLessThan(20);
       expect(updatedDefender?.actionEconomy.reaction.used).toBe(false);
@@ -162,7 +164,9 @@ describe('AbilityCommandFactory reaction arbitration fallbacks', () => {
       // An id that does not match any offered reaction is a malformed arbiter
       // answer. It must be treated as "no reaction" rather than crashing or
       // partially spending resources, so the hit stands exactly as if declined.
-      expect(requestReaction).toHaveBeenCalledWith(attacker.id, defender.id, 'on_hit', [shieldSpell]);
+      expect(requestReaction).toHaveBeenCalledWith(attacker.id, defender.id, 'on_hit', [expect.objectContaining({
+        ...shieldSpell, hitPreview: { attackTotal: 12, currentAC: 12, defendedAC: 17, isCritical: false, stopsAttack: true }
+      })]);
       expect(updatedDefender?.armorClass).toBe(12);
       expect(updatedDefender?.currentHP).toBeLessThan(20);
       expect(updatedDefender?.actionEconomy.reaction.used).toBe(false);

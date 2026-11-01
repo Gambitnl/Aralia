@@ -13,6 +13,22 @@
  * Source spec: docs/ai/local-llm-model-routing.md
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 28/10/2026, 22:33:15
+ * Dependents: services/ai/groqTextProvider.ts, services/ollama/client.ts, services/ollama/index.ts, services/ollama/router.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { TaskProfile, TaskType } from '../../types/ollama';
 
 // ---------------------------------------------------------------------------
@@ -84,7 +100,9 @@ export const DEFAULT_TASK_PROFILES: Record<TaskType, TaskProfile> = {
     npc_dialogue: {
         taskType: 'npc_dialogue',
         category: 'dialogue',
-        params: { ...DIALOGUE_PARAMS, temperature: 0.9, numPredict: 100 }
+        // Town residents must stay within their supplied lives and memories.
+        // Native play at0.9 invented businesses, people and shared history.
+        params: { ...DIALOGUE_PARAMS, temperature: 0.35, numPredict: 100 }
     },
     gossip: {
         taskType: 'gossip',

@@ -12,15 +12,33 @@
  * own terrain height (`groundSurfaceYM`) at the destination, so the plane's flat
  * Y is only the raycast surface, never the avatar's rendered elevation.
  *
- * Ordering: NPC figures (SceneCast) sit above this plane and stop propagation on
- * click, so clicking a person talks to them; clicking open ground moves you.
+ * Ordering follows the actual terrain ray: people, doors and furnishings in
+ * front of that ground own the interaction even when the flat plane is nearer.
  */
-import React from 'react';
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 02:41:27
+ * Dependents: components/World3D/World3DScene.tsx
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import React, { useEffect, useRef } from 'react';
 import type { ThreeEvent } from '@react-three/fiber';
+import { useThree } from '@react-three/fiber';
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
 import { worldToScene, type SceneOrigin } from '@/systems/world3d/sceneOrigin';
 import { groundSurfaceYM } from './terrain/groundSurfaceYM';
-import { sceneHitToTileMeters } from './groundClickMove';
+import { createGroundMoveGesture, hasInteractionBeforeGround, renderedGroundHit, sceneHitToTileMeters } from './groundClickMove';
 
 interface GroundMovePlaneProps {
   ground: GroundWorld | null;
@@ -30,6 +48,30 @@ interface GroundMovePlaneProps {
 }
 
 const GroundMovePlane: React.FC<GroundMovePlaneProps> = ({ ground, sceneOrigin, onGroundPick }) => {
+  const scene = useThree(state => state.scene);
+  const gesture = useRef(createGroundMoveGesture());
+  useEffect(() => {
+    // Native capture follows a held pointer beyond the pick mesh. MapControls
+    // can pan/orbit freely; only an uninterrupted tap reaches handlePick.
+    const move = (event: PointerEvent) => gesture.current.move(event);
+    const interrupt = (event: PointerEvent) => {
+      if (event.isPrimary === false || event.button !== 0) gesture.current.cancel();
+    };
+    const cancel = () => gesture.current.cancel();
+    window.addEventListener('pointermove', move, true);
+    window.addEventListener('pointerdown', interrupt, true);
+    window.addEventListener('pointerup', cancel);
+    window.addEventListener('pointercancel', cancel);
+    window.addEventListener('blur', cancel);
+    return () => {
+      cancel();
+      window.removeEventListener('pointermove', move, true);
+      window.removeEventListener('pointerdown', interrupt, true);
+      window.removeEventListener('pointerup', cancel);
+      window.removeEventListener('pointercancel', cancel);
+      window.removeEventListener('blur', cancel);
+    };
+  }, []);
   if (!ground || !onGroundPick) return null;
 
   const extentX = ground.extentMetersX || 0;
@@ -42,10 +84,11 @@ const GroundMovePlane: React.FC<GroundMovePlaneProps> = ({ ground, sceneOrigin, 
   const centerY = groundSurfaceYM(ground, centerXM, centerZM);
 
   const handlePick = (e: ThreeEvent<PointerEvent>) => {
-    // Stop the pick reaching any farther meshes; NPC figures already stop it
-    // first (they're nearer the camera), so this only fires on open ground.
+    if (!gesture.current.finish(e)) return;
+    const hit = renderedGroundHit(scene, e.ray);
+    if (!hit || hasInteractionBeforeGround(e.intersections, e.eventObject, e.ray, hit)) return;
     e.stopPropagation();
-    const { xM, zM } = sceneHitToTileMeters(e.point.x, e.point.z, sceneOrigin, extentX, extentZ);
+    const { xM, zM } = sceneHitToTileMeters(hit.x, hit.z, sceneOrigin, extentX, extentZ);
     onGroundPick(xM, zM);
   };
 
@@ -53,7 +96,18 @@ const GroundMovePlane: React.FC<GroundMovePlaneProps> = ({ ground, sceneOrigin, 
     <mesh
       position={[centerScene.x, centerY, centerScene.z]}
       rotation={[-Math.PI / 2, 0, 0]}
-      onPointerDown={handlePick}
+      onPointerDown={(event: ThreeEvent<PointerEvent>) => {
+        // The library desk exposed a plane-first click that both examined and
+        // walked. Yield without stopping propagation so its own handler runs.
+        const hit = renderedGroundHit(scene, event.ray);
+        if (!hit || hasInteractionBeforeGround(event.intersections, event.eventObject, event.ray, hit)) {
+          gesture.current.cancel();
+          return;
+        }
+        gesture.current.begin(event);
+      }}
+      onPointerUp={handlePick}
+      onPointerCancel={() => gesture.current.cancel()}
       data-testid="ground-move-plane"
     >
       {/* Slightly oversize so the whole visible tile is clickable. */}

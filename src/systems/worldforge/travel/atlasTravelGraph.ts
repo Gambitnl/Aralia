@@ -11,6 +11,7 @@
  * milesPerUnit converts graph units → miles so travel time is realistic.
  */
 import type { FmgAtlasResult } from '../fmg/generateAtlas';
+import { FEET_PER_FMG_PIXEL } from '../adapter/atlasArtifact';
 import type { TravelGraph } from '../../travel/routePlanning';
 import type { TravelTerrain, TransportOption } from '../../../types/travel';
 import {
@@ -34,6 +35,7 @@ export function transportMobility(transport?: TransportOption | null): TravelMob
 
 const LAND_THRESHOLD = 20;
 const KM_TO_MILES = 0.621371;
+const FEET_PER_MILE = 5280;
 
 // Biome speed/danger tables and the difficult-biome set moved to roadTunables.ts
 // (single source of truth); this file consumes them through routeTerrain.ts.
@@ -75,11 +77,19 @@ export function buildRoadCells(atlas: FmgAtlasResult): Set<number> {
   return new Set(buildRouteCellTiers(atlas.pack as unknown as Packish).keys());
 }
 
-/** Graph-unit → mile scale: from Azgaar `distanceScale` (km/unit) if present, else a continent-sized default. */
+/**
+ * Graph-unit → mile scale: from Azgaar `distanceScale` (km/unit) if present,
+ * else the world's frozen pixel scale (3 km per pixel, FEET_PER_FMG_PIXEL).
+ *
+ * GG-519: the fallback used to be 3000 / graphWidth, a guessed 3000-mile-wide
+ * world (3.125 mi/px at width 960). The atlas never carries distanceScale, so
+ * that guess always ran, and every route read about 1.68x longer than the
+ * scale the world is built at and the atlas scale bar shows (1.864 mi/px).
+ */
 export function atlasMilesPerUnit(atlas: FmgAtlasResult): number {
   const ds = (atlas as unknown as { distanceScale?: number }).distanceScale;
   if (ds && ds > 0) return ds * KM_TO_MILES;
-  return 3000 / (atlas.graphWidth || 1000); // fallback: ~3000-mile-wide world
+  return FEET_PER_FMG_PIXEL / FEET_PER_MILE;
 }
 
 export interface AtlasTravelGraphOptions {

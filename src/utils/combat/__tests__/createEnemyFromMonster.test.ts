@@ -2,13 +2,32 @@ import { describe, it, expect } from 'vitest';
 import {
   buildFallbackMonsterProfile,
   createEnemyFromMonster,
-  parseChallengeRating
+  parseChallengeRating,
+  formatChallengeRating
 } from '../createEnemyFromMonster';
 import { registerMonster } from '../../../data/adapters/runtimeMonsterRegistry';
 import { Monster } from '../../../types';
 import { MonsterData } from '../../../types/ui';
 
 describe('createEnemyFromMonster', () => {
+  it('uses an explicit stable template over a colliding display name and keeps the world alias', () => {
+    const source: MonsterData = {
+      id: 'identity_source_guardian', name: 'Catalog Guardian', maxHP: 31, armorClass: 17,
+      baseStats: { strength: 16, dexterity: 12, constitution: 14, intelligence: 10, wisdom: 10, charisma: 10,
+        baseInitiative: 1, speed: 30, cr: '2', senses: { darkvision: 60, blindsight: 0, tremorsense: 0, truesight: 0 } },
+      abilities: [], tags: [],
+    };
+    const other = { ...source, id: 'visible_alias', name: 'Visible Alias', maxHP: 7, armorClass: 9 };
+    registerMonster(source); registerMonster(other);
+    const actor = createEnemyFromMonster({
+      id: source.id, name: other.name, quantity: 1, cr: '2', description: 'Source-world display alias',
+    }, 0);
+    expect(actor.id).toBe(`enemy_${source.id}_0`);
+    expect(actor.maxHP).toBe(source.maxHP);
+    expect(actor.armorClass).toBe(source.armorClass);
+    expect(actor.stats).toEqual(source.baseStats);
+    expect(actor.name).toBe('Visible Alias 1');
+  });
   it('maps armorClass and baseAC correctly from registered monster data', () => {
     // 1. Setup mock monster data with specific AC
     const mockMonsterData: MonsterData = {
@@ -88,8 +107,38 @@ describe('createEnemyFromMonster fallback scaling', () => {
     expect(parseChallengeRating('1/4')).toBe(0.25);
     expect(parseChallengeRating('1/8')).toBe(0.125);
     expect(parseChallengeRating('5')).toBe(5);
+    expect(parseChallengeRating('0')).toBe(0);
     expect(parseChallengeRating('')).toBeUndefined();
     expect(parseChallengeRating('unrated')).toBeUndefined();
+  });
+
+  it('formats challenge ratings canonically without losing fractions or CR 0', () => {
+    expect(formatChallengeRating('1/4')).toBe('1/4');
+    expect(formatChallengeRating('1/8')).toBe('1/8');
+    expect(formatChallengeRating('1/2')).toBe('1/2');
+    expect(formatChallengeRating('0')).toBe('0');
+    expect(formatChallengeRating(0)).toBe('0');
+    expect(formatChallengeRating('0.25')).toBe('1/4');
+    expect(formatChallengeRating(0.25)).toBe('1/4');
+    expect(formatChallengeRating('0.125')).toBe('1/8');
+    expect(formatChallengeRating(0.125)).toBe('1/8');
+    expect(formatChallengeRating('0.5')).toBe('1/2');
+    expect(formatChallengeRating(0.5)).toBe('1/2');
+    expect(formatChallengeRating(1)).toBe('1');
+    expect(formatChallengeRating('5')).toBe('5');
+    expect(formatChallengeRating(undefined)).toBe('0');
+    expect(formatChallengeRating(null)).toBe('0');
+    expect(formatChallengeRating('')).toBe('0');
+  });
+
+  it('preserves CR 0 level and cr on generic fallback and bestiary monsters', () => {
+    const ratFallback = createEnemyFromMonster(missing('Giant Rat Fallback', '0'), 0);
+    expect(ratFallback.level).toBe(0);
+    expect(ratFallback.cr).toBe('0');
+
+    const goblinFallback = createEnemyFromMonster(missing('Goblin Fallback', '1/4'), 0);
+    expect(goblinFallback.level).toBe(0.25);
+    expect(goblinFallback.cr).toBe('1/4');
   });
 
   it('falls back to CR 1/4 when the challenge rating is unreadable', () => {

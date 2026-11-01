@@ -78,7 +78,9 @@ export function buildSiteMeshes(data: ChunkData): ChunkSite[] {
       localZ: local.z,
       surfaceY: s.surfaceY,
       population: s.population,
-      radius: clampRadius(estimateRadius(s)),
+      // Landmark bounds must not enlarge the existing 2 m hostile marker.
+      // Its visual footprint should leave the nearby player body readable.
+      radius: s.kind === 'monster' ? BASE_RADIUS_BY_KIND.monster : clampRadius(estimateRadius(s)),
       walled: s.walled,
       // Label metadata passes through untouched so HUD behavior can change
       // without asking the mesh builder to understand roster semantics.
@@ -106,6 +108,9 @@ export function buildSiteMeshes(data: ChunkData): ChunkSite[] {
       interiorDepthFt: s.interiorDepthFt,
       interiorOriginXFt: s.interiorOriginXFt,
       interiorOriginYFt: s.interiorOriginYFt,
+      // The body and street router must transfer at the same fitted door.
+      frontDoorOffsetX: s.frontDoorOffsetX,
+      frontDoorOffsetZ: s.frontDoorOffsetZ,
     };
 
     // Oriented-box footprint (Worldforge ground mode, 2026-06-11): a

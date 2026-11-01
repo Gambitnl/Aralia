@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 20/07/2026, 00:38:29
- * Dependents: App.tsx
- * Imports: 21 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This component provides an interactive developer dashboard to test and explore
  * the procedural world generation engine.
@@ -30,6 +14,22 @@
  *   - regionDraw.ts (pure L1 region renderer)
  *   - AtlasSvgView.tsx (canonical interactive L0 viewport)
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 11:26:15
+ * Dependents: components/screens/PlayingScreen.tsx
+ * Imports: 24 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { Sparkles, Dices, Settings, Activity, Layers, Map, ArrowLeft, Info, HelpCircle, Menu, PanelLeftClose, MapPin } from "lucide-react";
@@ -51,9 +51,9 @@ import { describeCell } from "../../systems/worldforge/cellInfo";
 import { type OverlayMarker } from "./overlay";
 import {
   canonicalTownSiteForLocal,
-  getBridgeAtlas,
   worldforgeSeedString,
 } from "../../systems/worldforge/bridge/legacySubmapBridge";
+import { useOffThreadBridgeAtlas } from "./useOffThreadBridgeAtlas";
 import { canonicalArtifactTownForSiteFromAtlas } from "../../systems/worldforge/town/canonicalTown";
 import {
   artifactsForAtlasGroundDrilldown,
@@ -61,6 +61,9 @@ import {
   type AtlasGroundDrilldown,
   type GroundFocus,
 } from "../../systems/worldforge/leaf3d/atlasGroundDrilldown";
+import { useOptionalGameState } from "../../state/GameContext";
+import { acceptedGroundPoint, quoteLocalGroundJourney, type LocalJourneyQuote } from "../../systems/worldforge/travel/localGroundJourney";
+import { LocalJourneyPreview } from "./LocalJourneyPreview";
 import type { DiscoveredHiddenSite } from "../../types/state";
 import { discoveredSiteBelongsToWorld } from "../../systems/worldforge/leaf3d/atlasGroundContinuity";
 
@@ -157,7 +160,7 @@ interface AtlasDemoProps {
   /** Canonical game seed used by start selection, travel, 3D, and persistence. */
   worldSeed?: number;
   /** Hand the exact selected hierarchy to PLAYING's established ground scene. */
-  onEnterPlayingGround?: (drilldown: AtlasGroundDrilldown) => void;
+  onEnterPlayingGround?: (drilldown: AtlasGroundDrilldown, reviewed?: LocalJourneyQuote) => void;
   /** Transient receipt used to restore the same Local after PLAYING ground closes. */
   groundReturnReceipt?: AtlasGroundDrilldown | null;
   /** Persistent hidden places discovered through the exact PLAYING Local. */
@@ -220,6 +223,8 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
   groundReturnReceipt,
   discoveredHiddenSites = [],
 }) => {
+  const gameContext = useOptionalGameState();
+  const [pendingJourney, setPendingJourney] = useState<{ drilldown: AtlasGroundDrilldown; quote: LocalJourneyQuote } | null>(null);
   // TransitionController unmounts Atlas while 3D owns the viewport. Seed the
   // remounted cartographer from the transient receipt so return opens the exact
   // retained Local rather than silently resetting to the Atlas root.
@@ -279,9 +284,17 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
   const [demoTime, setDemoTime] = useState<number>(0);
 
   // Telemetry & progress
-  const [atlas, setAtlas] = useState<FmgAtlasResult | null>(() =>
-    embeddedInGame && worldSeed != null ? getBridgeAtlas(worldSeed) : null,
-  );
+  // In a game run the atlas is the canonical getBridgeAtlas(worldSeed) world.
+  // GG-555 (2026-11-01): useOffThreadBridgeAtlas returns it at once when the
+  // run already built it (the normal case), and otherwise builds it in the
+  // atlas worker, so opening the map can never freeze the page for ~4.5 s.
+  const gameAtlas = useOffThreadBridgeAtlas(embeddedInGame && worldSeed != null ? worldSeed : null);
+  const [atlas, setAtlas] = useState<FmgAtlasResult | null>(() => gameAtlas.atlas);
+  useEffect(() => {
+    if (gameAtlas.atlas) setAtlas(gameAtlas.atlas);
+  }, [gameAtlas.atlas]);
+  // The game world is still in the worker: show the generation overlay.
+  const awaitingGameAtlas = embeddedInGame && worldSeed != null && !atlas;
   const [genTimeMs, setGenTimeMs] = useState<number>(0);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [isGeneratingRegion, setIsGeneratingRegion] = useState<boolean>(false);
@@ -295,11 +308,11 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
   // style) so the canvas gets the full area.
   const workspaceRef = useRef<HTMLElement | null>(null);
   const [mapSize, setMapSize] = useState<{ width: number; height: number }>({ width: 960, height: 540 });
-  // Phones need the map, hierarchy, and selected artifact visible before the
-  // explanatory sheet. Keep desktop's expanded guidance, while starting the
-  // same existing panel collapsed below Tailwind's `sm` breakpoint.
+  // Gameplay starts with the map controls visible: the expanded explanation
+  // covers Find Me. Options remains available; the standalone cartographer
+  // keeps its expanded desktop guidance and collapsed phone sheet.
   const [panelOpen, setPanelOpen] = useState<boolean>(() =>
-    typeof window === "undefined" || window.innerWidth >= 640
+    !embeddedInGame && (typeof window === "undefined" || window.innerWidth >= 640)
   );
 
   useEffect(() => {
@@ -401,6 +414,33 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
 
   // Atlas-coherence: the descended region tints with the SAME biome color
   // the atlas shows at the clicked cell (drawRegion options.biomeColor).
+  // Live wayfinding uses the same canonical cell site as MapPane. Supplying
+  // the existing player marker also enables AtlasSvgView's normal Find Me
+  // control. Demo entities remain separate and never stand in for the party.
+  const playerAtlasCellId = embeddedInGame ? gameContext?.state.playerCell?.cellId : undefined;
+  const playerAtlasMarker = useMemo(() => {
+    if (!atlas || playerAtlasCellId == null) return null;
+    const site = atlas.pack.cells.p?.[playerAtlasCellId];
+    return site ? { x: site[0], y: site[1] } : null;
+  }, [atlas, playerAtlasCellId]);
+
+  // Region and Local show the same accepted feet used by journey review.
+  // Inspecting another cell/world never relocates the party or reveals a site.
+  // The existing overlay owns the feet-to-canvas conversion and party symbol.
+  const groundPartyMarker = useMemo<OverlayMarker | null>(() => {
+    const state = gameContext?.state;
+    if (!embeddedInGame || !state || worldSeed == null || state.worldSeed !== worldSeed ||
+        selectedCellId !== state.playerCell?.cellId) return null;
+    const point = acceptedGroundPoint(state);
+    return point?.every(Number.isFinite)
+      ? { kind: "party", x: point[0], y: point[1], label: "Your position" }
+      : null;
+  }, [embeddedInGame, worldSeed, selectedCellId, gameContext?.state.worldSeed,
+    gameContext?.state.playerCell?.cellId, gameContext?.state.playerGroundPos,
+    gameContext?.state.entry3DAnchor, gameContext?.state.atlasGroundAddress]);
+  const localMarkers = groundPartyMarker ? [...discoveryMarkers, groundPartyMarker] : discoveryMarkers;
+  const regionMarkers = groundPartyMarker ? [...demoMarkers, groundPartyMarker] : demoMarkers;
+
   const anchorBiomeColor = useMemo(() => {
     if (!atlas || selectedCellId === null) return undefined;
     const biome = (atlas.pack.cells as unknown as { biome?: ArrayLike<number> }).biome?.[selectedCellId];
@@ -580,7 +620,16 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
         setHintMessage("PLAYING ground entry is unavailable. Return to the Atlas and try again.");
         return;
       }
-      onEnterPlayingGround(drilldown);
+      if (!gameContext) { setHintMessage('The current party is unavailable. Return to your ground position.'); return; }
+      setHintMessage('Surveying the route through land and crossings…');
+      // Paint the survey status before the bounded source-terrain calculation.
+      window.setTimeout(() => {
+        try {
+          const quote = quoteLocalGroundJourney(gameContext.state, drilldown);
+          setPendingJourney({ drilldown, quote });
+          setHintMessage('');
+        } catch (error) { setHintMessage(error instanceof Error ? error.message : 'No local route is available.'); }
+      }, 50);
       return;
     }
 
@@ -619,7 +668,10 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
   });
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+    <div className="relative min-h-screen bg-gray-950 text-gray-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+      {pendingJourney && <LocalJourneyPreview quote={pendingJourney.quote}
+        onCancel={() => setPendingJourney(null)}
+        onConfirm={() => { const journey = pendingJourney; setPendingJourney(null); onEnterPlayingGround?.(journey.drilldown, journey.quote); }} />}
       {/* Header Bar: on phone widths, stack the title and readouts while reserving room for the floating surface toggle. */}
       <header className="sticky top-0 z-20 flex flex-col gap-3 border-b border-gray-900 bg-gray-950/80 px-4 py-4 pr-28 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
@@ -1080,20 +1132,22 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
         {/* Viewport Area — fills the workspace; panels float above */}
         <section className="absolute inset-0">
           {/* Progress / Loading Overlay */}
-          {(isGenerating || isGeneratingRegion || isGeneratingLocal) && (
+          {(isGenerating || awaitingGameAtlas || isGeneratingRegion || isGeneratingLocal) && (
             <div className="absolute inset-0 bg-gray-950/80 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-10">
               <div className="h-10 w-10 border-4 border-indigo-600/30 border-t-indigo-500 rounded-full animate-spin shadow-lg shadow-indigo-500/20" />
               <div className="flex flex-col items-center">
                 <p className="text-sm font-bold text-gray-200">
-                  {isGenerating
+                  {isGenerating || awaitingGameAtlas
                     ? "Forging World Geometry..."
                     : isGeneratingRegion
                     ? "Interpolating Local Region..."
                     : "Detailing Local Area..."}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  {isGenerating
-                    ? "Running heightmap templates and hydraulic erosion"
+                  {isGenerating || awaitingGameAtlas
+                    ? gameAtlas.error
+                      ? `The world did not build: ${gameAtlas.error}`
+                      : "Running heightmap templates and hydraulic erosion"
                     : isGeneratingRegion
                     ? "Computing IDW cell weights and relief noise"
                     : "Upsampling terrain to 5 ft cells and placing features"}
@@ -1104,7 +1158,10 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
 
           {/* Breadcrumb Navigation Strip — floats top-right over the map */}
           {atlas && (
-            <div className={atlasDemoBreadcrumbClassName}>
+            // The world map's phone controls need their own left column.
+            // Keep the hierarchy below zoom buttons and clear of Find Me;
+            // Region and Local retain their existing artifact readout layout.
+            <div className={`${atlasDemoBreadcrumbClassName} ${embeddedInGame && viewMode === "atlas" ? "max-sm:left-28 max-sm:top-28" : ""}`}>
               <nav className={atlasDemoBreadcrumbIdentityClassName} aria-label="World hierarchy">
                 <span className="text-[10px] uppercase tracking-wider text-slate-500">Hierarchy</span>
                 {hierarchyCrumbs.map((crumb, index) => (
@@ -1193,6 +1250,7 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
                   width={mapSize.width}
                   height={mapSize.height}
                   prefsScope={embeddedInGame && worldSeed != null ? worldSeed : seed}
+                  marker={playerAtlasMarker}
                   travelActive={travelMode}
                   onPickCell={(info) => setInspectCellId(info.i)}
                   markers={showMarkers ? demoMarkers.map((marker) => ({
@@ -1217,7 +1275,7 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
                   width={mapSize.width}
                   height={mapSize.height}
                   onAscend={handleAscend}
-                  markers={demoMarkers}
+                  markers={regionMarkers}
                   onDescend={handleRegionDescend}
                   biomeColor={anchorBiomeColor}
                 />
@@ -1231,7 +1289,7 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
                   onAscend={handleLocalAscend}
                   biomeColor={anchorBiomeColor}
                   onEnterGround={handleEnterGround}
-                  markers={discoveryMarkers}
+                  markers={localMarkers}
                 />
               )
             ) : (

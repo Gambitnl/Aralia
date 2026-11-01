@@ -22,6 +22,10 @@ requirement to run every check. Preserve the approval boundaries in root `AGENTS
    - **Type Tests**: Run `npm run test:types` (uses `tsd`) for type-level assertions.
    - **Scoped Typecheck**: Run `npm run typecheck:files -- <path> [<path>...]` for the
      files you touched. This is the default typecheck for task work.
+   - **Domain Typecheck**: Run `npm run typecheck:combat` (or `:character`, `:services`,
+     `:world`, `:scripts`, `:node`) to check every file one domain owns, in about 20
+     seconds. Each script reads its file list from the matching `tsconfig.<domain>.json`
+     through `typecheck:files --domain`, so the list lives in one place.
    - **Full Check**: When a comprehensive typecheck is required, run
      `npx tsc --noEmit --pretty false`. If saving output, use an ignored path under
      `.agent/scratch/` after confirming it with `git check-ignore`.

@@ -86,6 +86,9 @@ self.onmessage = (ev: MessageEvent) => {
   const msg = ev.data;
 
   if (msg.type === 'init') {
+    // GG-574: the client posts only VolumeBubbleGround (createVolumeBubbleClient),
+    // not the whole GroundWorld. Read no other ground field here without
+    // adding it to that type first.
     ground = msg.ground as GroundWorld;
     return;
   }

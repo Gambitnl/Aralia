@@ -2,6 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import StartPointSelection from '../StartPointSelection';
 
+const publicPlans = vi.hoisted(() => ({load: vi.fn<(seed: number) => Array<{
+  companionId: string; name: string; burgId: number; cellId: number; summary: string;
+}>>(() => [])}));
+vi.mock('../../../systems/companions/companionWorldActivitySource', () => ({
+  companionStartingLeadsForNewWorld: publicPlans.load,
+}));
+
 // Heavy SVG atlas → stub it; we only test the selection panel behavior here.
 vi.mock('../AtlasSvgView', () => ({
   default: ({ marker, prefsScope }: { marker: { x: number; y: number } | null; prefsScope?: string | number }) => (
@@ -44,6 +51,7 @@ vi.mock('../../../systems/worldforge/fmg/generateWorld', () => ({
 }));
 
 beforeEach(() => {
+  publicPlans.load.mockReset().mockReturnValue([]);
   // jsdom lacks ResizeObserver.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (globalThis as any).ResizeObserver = class { observe() {} disconnect() {} unobserve() {} };
@@ -51,6 +59,60 @@ beforeEach(() => {
 });
 
 describe('StartPointSelection', () => {
+  it('finds an independently placed public activity beyond the current page without confirming or relocating anyone', async () => {
+    const lead = {companionId: 'elara_vance', name: 'Elara Vance', burgId: 205,
+      cellId: 241, summary: 'Preparing provisions for her restoration journey.'};
+    publicPlans.load.mockReturnValue([lead]);
+    const onConfirm = vi.fn();
+    render(<StartPointSelection worldSeed={123} onConfirm={onConfirm} />);
+    expect(publicPlans.load).not.toHaveBeenCalled();
+    fireEvent.change(screen.getByTestId('start-region-filter'), {target: {value: '2'}});
+    fireEvent.change(screen.getByTestId('start-search'), {target: {value: 'River'}});
+    fireEvent.click(screen.getByRole('button', {name: 'People with plans'}));
+    const option = await screen.findByRole('option', {name: /Elara Vance/});
+    expect(publicPlans.load).toHaveBeenCalledWith(123);
+    expect(screen.getByTestId('start-region-filter')).toHaveValue('__all__');
+    expect(screen.getByTestId('start-search')).toHaveValue('');
+    expect(onConfirm).not.toHaveBeenCalled();
+    fireEvent.click(option);
+    expect(screen.getByText(lead.summary)).toBeVisible();
+    expect(screen.getByText(/Joining your group is their choice/)).toBeVisible();
+    fireEvent.change(screen.getByTestId('start-search'), {target: {value: 'Elara'}});
+    expect(screen.getByRole('option', {name: /Elara Vance/})).toBeVisible();
+    fireEvent.click(screen.getByRole('button', {name: 'All towns'}));
+    expect(screen.getByTestId('start-search')).toHaveValue('');
+    expect(within(screen.getByTestId('start-town-list')).getByText('Riverford')).toBeVisible();
+    fireEvent.click(screen.getByRole('button', {name: 'People with plans'}));
+    fireEvent.click(await screen.findByRole('option', {name: /Elara Vance/}));
+    fireEvent.click(screen.getByTestId('start-confirm'));
+    expect(onConfirm).toHaveBeenCalledWith(expect.objectContaining({burgIndex: 205, atlasCellId: 241}));
+    expect(lead).toEqual({companionId: 'elara_vance', name: 'Elara Vance', burgId: 205,
+      cellId: 241, summary: 'Preparing provisions for her restoration journey.'});
+  });
+
+  it('does not advertise an activity whose town and cell disagree with the actual start catalogue', async () => {
+    publicPlans.load.mockReturnValue([{companionId: 'elara_vance', name: 'Elara Vance',
+      burgId: 1, cellId: 999, summary: 'Preparing provisions.'}]);
+    render(<StartPointSelection worldSeed={123} onConfirm={vi.fn()} />);
+    fireEvent.click(screen.getByRole('button', {name: 'People with plans'}));
+    expect(await screen.findByText('No public activities are available in these towns.')).toBeVisible();
+    expect(screen.getByTestId('start-confirm')).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', {name: 'All towns'}));
+    expect(screen.getByTestId('start-confirm')).not.toBeDisabled();
+  });
+
+  it('keeps ordinary town choice available when public plans cannot be loaded', async () => {
+    publicPlans.load.mockImplementation(() => {throw new Error('Source unavailable');});
+    const onConfirm = vi.fn();
+    render(<StartPointSelection worldSeed={123} onConfirm={onConfirm} />);
+    fireEvent.click(screen.getByRole('button', {name: 'People with plans'}));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Public activities are unavailable.');
+    expect(screen.getByTestId('start-confirm')).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', {name: 'All towns'}));
+    expect(screen.getByTestId('start-confirm')).not.toBeDisabled();
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
   it('scopes saved map colors to the selected world seed', () => {
     render(<StartPointSelection worldSeed={5678} onConfirm={vi.fn()} />);
 

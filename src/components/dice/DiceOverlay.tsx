@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Z_INDEX } from '../../styles/zIndex';
 import { UI_ID } from '../../styles/uiIds';
 import { X, Dice6 } from 'lucide-react';
-import { useDice } from '../../contexts/DiceContext';
+import { useDice } from '../../context/DiceContext';
 
 /**
  * Global dice overlay component.

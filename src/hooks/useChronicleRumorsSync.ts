@@ -21,6 +21,23 @@
  *
  * Mirrors the seed-keyed idempotent pattern in useKnownPortsSync.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 00:28:48
+ * Dependents: components/layout/GameModals.tsx
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { useEffect, useMemo } from 'react';
 import type { Dispatch } from 'react';
 import { GameState } from '../types';
@@ -46,12 +63,13 @@ export function useChronicleRumorsSync(
       resolveTownForLocation({
         // Grid retirement: the canonical cell is the sole town source.
         cellId: gameState.playerCell?.cellId ?? null,
+        ground: gameState,
         currentLocationId,
         worldSeed: gameState.worldSeed,
         townSim: gameState.townSim,
         gameTime,
       }),
-    [currentLocationId, gameState.worldSeed, gameState.townSim, gameTime, gameState.playerCell?.cellId],
+    [currentLocationId, gameState.worldSeed, gameState.townSim, gameTime, gameState.playerCell?.cellId, gameState.playerGroundPos, gameState.atlasGroundAddress, gameState.entry3DAnchor],
   );
 
   useEffect(() => {
@@ -66,6 +84,5 @@ export function useChronicleRumorsSync(
     if (rumors.length === 0) return;
 
     dispatch({ type: 'ADD_RUMORS', payload: { rumors } });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentLocationId, currentDay, town]); // re-run on move, day tick, or town tracked/advanced
+  }, [currentLocationId, currentDay, town, dispatch]); // re-run on move, day tick, or town tracked/advanced; dispatch is stable
 }

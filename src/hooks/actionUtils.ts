@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 04/08/2026, 01:55:11
- * Dependents: hooks/useAbilitySystem.ts
+ * Last Sync: 24/10/2026, 22:14:42
+ * Dependents: components/Combat/InPlaceCombatScene.tsx, hooks/ability/execution/spellExecutionFlow.ts, hooks/ability/targetSelection.ts, hooks/ability/useAbilityExecution.ts, hooks/ability/useActionEconomy.ts, hooks/combat/actionExecutor/opportunityAttackFlow.ts, systems/combat/riderExtraStrikes.ts
  * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
@@ -14,11 +14,8 @@
  */
 // @dependencies-end
 
-import { Ability, CombatCharacter, Position, CombatAction, BattleMapData, SelectedSpellTarget } from '../types/combat';
+import { Ability, CombatCharacter, Position, CombatAction, SelectedSpellTarget } from '../types/combat';
 import { resolveScalableNumber } from '../types/spells';
-import { AoEParams } from '../utils/combat/aoeCalculations';
-import { GameState } from '../types';
-import { Plane } from '../types/planes';
 import { generateId, getDistance } from '../utils/combat';
 
 export const buildAbilityCombatAction = (
@@ -46,13 +43,7 @@ export const buildAbilityCombatAction = (
   timestamp: Date.now()
 });
 
-export const getZoneAreaFromAoEParams = (
-  areaOfEffect: { shape: string },
-  aoeParams: AoEParams
-): { shape: string; size: number } => ({
-  shape: areaOfEffect.shape,
-  size: aoeParams.size
-});
+export { getZoneAreaFromAoEParams } from '../utils/spatial/targetingUtils';
 
 export const applyResourceSnapshotToCaster = (
   finalCaster: CombatCharacter,
@@ -70,15 +61,9 @@ export const replaceCasterForCommandState = (
   return characters.map(character => character.id === casterWithPaidCost.id ? casterWithPaidCost : character);
 };
 
-export const buildCommandGameState = (
-  characters: CombatCharacter[],
-  mapData: BattleMapData | null,
-  currentPlane?: Plane
-): GameState => ({
-  characters,
-  mapData: mapData ?? undefined,
-  currentPlane
-} as unknown as GameState);
+// C11 (agora-9ed9.11): moved to systems/combat so riderExtraStrikes no longer
+// imports hooks; re-exported here for the existing hook callers.
+export { buildCommandGameState } from '../systems/combat/commandGameState';
 
 export const resolveMultiTargetIds = (
   ability: Ability,

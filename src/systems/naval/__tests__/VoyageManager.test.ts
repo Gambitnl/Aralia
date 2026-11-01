@@ -227,4 +227,83 @@ describe('VoyageManager', () => {
                 .toEqual(friendly.updatedShip.crew.members.map(m => m.loyalty));
         });
     });
+
+    describe('immutability and multi-day voyage distance (GG-468, GG-469)', () => {
+        it('does not mutate the input VoyageState in place during advanceDay', () => {
+            const ship = createMockShip();
+            const originalVoyage = VoyageManager.startVoyage(ship, 300);
+            const frozenSnapshot = JSON.parse(JSON.stringify(originalVoyage));
+
+            const result = VoyageManager.advanceDay(originalVoyage, ship, mockWeather, 500, noEventRng);
+
+            expect(originalVoyage.distanceTraveled).toBe(frozenSnapshot.distanceTraveled);
+            expect(originalVoyage.distanceToDestination).toBe(frozenSnapshot.distanceToDestination);
+            expect(originalVoyage.daysAtSea).toBe(frozenSnapshot.daysAtSea);
+            expect(originalVoyage.log).toHaveLength(frozenSnapshot.log.length);
+            expect(result.newState.distanceTraveled).toBeGreaterThan(originalVoyage.distanceTraveled);
+        });
+
+        it('a 300-mile voyage at 72 miles/day takes 5 days to arrive, not 3 days', () => {
+            // Speed 30 -> (30 / 10) * 24 = 72 miles per day with normal wind
+            const ship = { ...createMockShip(), stats: { ...createMockShip().stats, speed: 30 } };
+            let voyage = VoyageManager.startVoyage(ship, 300);
+            const calmWindWeather: WeatherState = {
+                precipitation: 'none',
+                temperature: 'temperate',
+                wind: { direction: 'variable', speed: 'moderate' },
+                visibility: 'clear',
+            };
+
+            // Day 1: 72 miles sailed, 228 remaining
+            let advance = VoyageManager.advanceDay(voyage, ship, calmWindWeather, 1000, noEventRng);
+            voyage = advance.newState;
+            expect(voyage.daysAtSea).toBe(1);
+            expect(voyage.distanceTraveled).toBeCloseTo(72);
+            expect(voyage.distanceToDestination).toBeCloseTo(228);
+            expect(voyage.status).toBe('Sailing');
+
+            // Day 2: 144 miles sailed, 156 remaining
+            advance = VoyageManager.advanceDay(voyage, ship, calmWindWeather, 1000, noEventRng);
+            voyage = advance.newState;
+            expect(voyage.daysAtSea).toBe(2);
+            expect(voyage.distanceTraveled).toBeCloseTo(144);
+            expect(voyage.distanceToDestination).toBeCloseTo(156);
+            expect(voyage.status).toBe('Sailing');
+
+            // Day 3: 216 miles sailed, 84 remaining (pre-fix bug: 216 >= 84 arrived on day 3!)
+            advance = VoyageManager.advanceDay(voyage, ship, calmWindWeather, 1000, noEventRng);
+            voyage = advance.newState;
+            expect(voyage.daysAtSea).toBe(3);
+            expect(voyage.distanceTraveled).toBeCloseTo(216);
+            expect(voyage.distanceToDestination).toBeCloseTo(84);
+            expect(voyage.status).toBe('Sailing'); // MUST still be Sailing, not Docked!
+
+            // Day 4: 288 miles sailed, 12 remaining
+            advance = VoyageManager.advanceDay(voyage, ship, calmWindWeather, 1000, noEventRng);
+            voyage = advance.newState;
+            expect(voyage.daysAtSea).toBe(4);
+            expect(voyage.distanceTraveled).toBeCloseTo(288);
+            expect(voyage.distanceToDestination).toBeCloseTo(12);
+            expect(voyage.status).toBe('Sailing');
+
+            // Day 5: 360 miles theoretical, reaches 0 remaining distance -> Docked!
+            advance = VoyageManager.advanceDay(voyage, ship, calmWindWeather, 1000, noEventRng);
+            voyage = advance.newState;
+            expect(voyage.daysAtSea).toBe(5);
+            expect(voyage.distanceToDestination).toBe(0);
+            expect(voyage.status).toBe('Docked');
+        });
+
+        it('deducts crew daily wages from remainingFunds (GG-469)', () => {
+            const ship = createMockShip();
+            // Ada Tide: 10gp, Borin Wake: 2gp -> 12gp total wages
+            const totalWages = ship.crew.members.reduce((sum, m) => sum + m.dailyWage, 0);
+            expect(totalWages).toBe(12);
+
+            const initialFunds = 100;
+            const result = VoyageManager.advanceDay(VoyageManager.startVoyage(ship, 300), ship, mockWeather, initialFunds, noEventRng);
+
+            expect(result.remainingFunds).toBe(initialFunds - totalWages);
+        });
+    });
 });

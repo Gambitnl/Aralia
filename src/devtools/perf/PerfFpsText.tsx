@@ -14,8 +14,26 @@
  * that re-rendered a component in the page's own React root once starved a
  * heavy Suspense render forever.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 05/10/2026, 04:17:39
+ * Dependents: components/DesignPreview/steps/PreviewEntityDebug.tsx, components/DesignPreview/steps/PreviewHeroLab.tsx, components/World3D/DebugHUD.tsx, components/World3D/WebGPUProbe.tsx, devtools/perf/index.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useEffect, useRef } from 'react';
 import { getPerfSession, getPerfSessions } from './perfRegistry';
+import { isPerfMeasurementEnabled, subscribePerfMeasurement } from './perfControl';
 
 interface PerfFpsTextProps {
   /**
@@ -41,20 +59,27 @@ export const PerfFpsText: React.FC<PerfFpsTextProps> = ({
     const el = ref.current;
     if (!el) return;
     const tick = () => {
+      if (!isPerfMeasurementEnabled()) { el.textContent = fallback; return; }
       const now = performance.now();
       let session = sessionId ? getPerfSession(sessionId) : undefined;
       if (!sessionId) {
-        const live = getPerfSessions().filter((s) => s.snapshot(now).live);
+        const live = getPerfSessions().filter((s) => s.frameReading(now).live);
         const win = el.closest('[role="dialog"]');
         session =
           (win ? live.find((s) => s.element !== null && win.contains(s.element)) : undefined) ?? live[0];
       }
-      const snap = session?.snapshot(now);
+      const snap = session?.frameReading(now);
       el.textContent = snap && snap.live ? snap.frame.fps.toFixed(0) : fallback;
     };
-    tick();
-    const timer = window.setInterval(tick, intervalMs);
-    return () => window.clearInterval(timer);
+    let timer: number | null = null;
+    const update = () => {
+      if (timer !== null) window.clearInterval(timer);
+      timer = null; tick();
+      if (isPerfMeasurementEnabled()) timer = window.setInterval(tick, intervalMs);
+    };
+    update();
+    const stopControl = subscribePerfMeasurement(update);
+    return () => { if (timer !== null) window.clearInterval(timer); stopControl(); };
   }, [sessionId, fallback, intervalMs]);
 
   return <span ref={ref} data-testid="perf-fps-text">{fallback}</span>;

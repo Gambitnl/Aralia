@@ -16,22 +16,15 @@ import { createMockCombatCharacter, createMockCombatState, createMockGameState }
 import * as diceRollers from '../../../systems/dice/rollers'
 import blight from '@/data/spells/level-4/blight.json'
 
-// agora-f821.4 retired the combatUtils roller family. Modules this command
-// reaches (savingThrowUtils, the spell resolvers) roll through
-// systems/dice/rollers now, so one hoisted pair of mocks stands in for BOTH
-// specifiers and a single vi.mocked(...) call still pins every die here.
+// Dice controls target systems/dice/rollers, which the real save helpers and
+// spell resolvers use. Combat utilities keep their production exports rather
+// than inventing the retired roller exports.
 const diceMocks = vi.hoisted(() => ({
     rollDice: vi.fn(),
     rollDamage: vi.fn(),
 }))
 
-vi.mock('../../../utils/combat/combatUtils', async (importOriginal) => {
-    const actual = await importOriginal<typeof import('../../../utils/combat/combatUtils')>()
-    return {
-        ...actual,
-        ...diceMocks,
-    }
-})
+// Keep combat utilities real; dice controls target systems/dice/rollers only.
 
 vi.mock('../../../systems/dice/rollers', async (importOriginal) => {
     const actual = await importOriginal<typeof import('../../../systems/dice/rollers')>()

@@ -9,6 +9,7 @@
  * 1. Generating AI responses.
  * 2. Processing side effects of dialogue choices (XP, Reputation, Unlocks, Costs).
  * 3. Managing the dialogue session lifecycle.
+ * 4. Retaining actually heard local directions in the player's existing Logbook.
  */
 
 // @dependencies-start
@@ -16,9 +17,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 20/09/2026, 21:00:39
+ * Last Sync: 29/10/2026, 21:54:20
  * Dependents: components/layout/GameModals.tsx, hooks/useConversation.ts
- * Imports: 12 files
+ * Imports: 13 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -27,19 +28,20 @@
  */
 // @dependencies-end
 
-import { useCallback } from 'react';
-import { GameState, Action } from '../types';
+import { useCallback, useEffect, useRef } from 'react';
+import { GameState, Action, DiscoveryType } from '../types';
 import type { NPC } from '../types/world';
 import { AppAction } from '../state/actionTypes';
-import { ProcessTopicResult, buildNpcDialoguePromptContext } from '../services/dialogueService';
+import { ProcessTopicResult, buildNpcDialoguePromptContext, resolveDialogueStorefront, resolveHouseholdPersonalReply } from '../services/dialogueService';
 import * as OllamaTextService from '../services/ollamaTextService';
 import { NPCS } from '../data/world/npcs';
 import { sanitizeAIPromptText } from '../utils/core/securityUtils';
 import { topicUnlockKey } from '../systems/facts/worldFactStore';
-import { applySpeechProfile, describeSpeechProfile } from '../systems/social/speechProfile';
+import { describeSpeechProfile } from '../systems/social/speechProfile';
 import { buildRumorDialogueContext } from '../systems/intrigue/RumorMillSystem';
 import { buildPropagatedFactDialogueContext } from '../systems/memory/factPropagation';
 import { getGameDay } from '../utils/core';
+import {currentNpcDialogueProfile,generatedDialogueSpeakerKey} from '../systems/social/npcDialogueMemory';
 
 /**
  * Resolves a dialogue speaker from BOTH NPC tables (agora-f821.6, deepdive F7).
@@ -117,20 +119,33 @@ export const useDialogueSystem = (
      */
     processAction?: (action: Action) => void
 ) => {
+    // A reply belongs to one conversation lifetime and one request. Clock and
+    // topic updates may rerender that conversation without changing its owner.
+    const conversation = useRef({ npcId: gameState.activeDialogueSession?.npcId, revision: 0 });
+    const replyGeneration = useRef(0);
+    const latestState=useRef(gameState);
+    latestState.current=gameState;
+    const currentNpcId = gameState.activeDialogueSession?.npcId;
+    if (conversation.current.npcId !== currentNpcId) {
+        conversation.current = { npcId: currentNpcId, revision: conversation.current.revision + 1 };
+    }
+    useEffect(() => () => { replyGeneration.current++; }, []);
 
     /**
-     * Generates a response from the NPC using the Gemini AI service.
+     * Generates a response from the NPC through the existing configured text service.
      * Stores the result in the game state for history tracking.
      */
-    const generateResponse = useCallback(async (prompt: string): Promise<string> => {
+    const generateResponse = useCallback(async (prompt: string, signal?: AbortSignal): Promise<string> => {
+        const generation = ++replyGeneration.current;
+        const revision = conversation.current.revision;
         const session = gameState.activeDialogueSession;
-        if (!session) return "...";
+        if (!session) throw new Error("This conversation is no longer open.");
 
         const npc = resolveDialogueNpc(gameState, session.npcId);
-        if (!npc) return "...";
+        if (!npc) throw new Error("This speaker is unavailable.");
 
-        // Speech fingerprinting (agora-9e0f): the profile hint steers the model, and
-        // the post-processor below enforces the same voice when the model ignores it.
+        // Keep the speaker's voice in the prompt. Generated lines stay intact:
+        // forced word swaps distorted names, negation and grammar in native play.
         const speechHint = describeSpeechProfile(npc.speechProfile);
         // Knowledge profile (agora-13a9.4) + witness recall (agora-f58b), composed
         // in one call by the dialogue service so the boundary ("what I will talk
@@ -141,36 +156,55 @@ export const useDialogueSystem = (
         // facts that arrived through propagateFact. Kept separate from the witness
         // block above, because hearsay may be wrong and eyewitness memory may not.
         const hearsayHint = describeNpcHearsay(gameState, session.npcId);
-        const basePrompt = npc.initialPersonalityPrompt ?? '';
-        if (!basePrompt) return "...";
+        const basePrompt = currentNpcDialogueProfile(gameState,npc.id) ?? '';
+        if (!basePrompt) throw new Error("This speaker has no dialogue profile.");
+        const speakerKey=generatedDialogueSpeakerKey(gameState,npc.id);
+        if (!speakerKey) throw new Error('This speaker has no current identity.');
+        const playerPrompt=sanitizeAIPromptText(prompt ?? '');
+        const requestId=crypto.randomUUID();
         const systemPrompt = [basePrompt, speechHint, memoryHint, hearsayHint]
             .filter(Boolean)
             .join(' ');
 
+        const stillOwned = () => !signal?.aborted && generation === replyGeneration.current
+            && revision === conversation.current.revision && conversation.current.npcId === npc.id
+            && latestState.current.activeDialogueSession?.npcId===npc.id
+            && generatedDialogueSpeakerKey(latestState.current,npc.id)===speakerKey
+            && currentNpcDialogueProfile(latestState.current,npc.id)===basePrompt;
+        if (!stillOwned()) throw new Error('This reply is no longer requested.');
         try {
             const result = await OllamaTextService.generateNPCResponse(
                 npc.name,
                 // The player's free-form dialogue line — neutralize prompt-injection
                 // markers before it reaches the model.
-                sanitizeAIPromptText(prompt ?? ""),
+                playerPrompt,
                 systemPrompt
             );
 
-            if (result.data?.text) {
-                // Post-process before it is stored, so history, TTS and the UI all see the
-                // same fingerprinted line rather than diverging copies.
-                const voiced = applySpeechProfile(result.data.text, npc.speechProfile);
+            // Closing the window cancels publication, even if the transport is
+            // still finishing under its existing timeout. Never save unseen
+            // late speech as the answer to another resident or newer choice.
+            if (!stillOwned()) throw new Error('This reply is no longer requested.');
+            if (result.success && result.data?.text?.trim()) {
+                // History, TTS and the UI share the generated wording. The voice
+                // profile still guides generation; it must not rewrite facts afterward.
+                const voiced = result.data.text.trim();
                 dispatch({
                     type: 'SET_LAST_NPC_INTERACTION',
-                    payload: { npcId: npc.id, response: voiced }
+                    // Publish this heard exchange into the existing history.
+                    // Generated claims remain quotations, never new world facts.
+                    payload: { npcId: npc.id, response: voiced,
+                        dialogue:{topicId:'generated_exchange',speakerKey,
+                            source:{kind:'generated-exchange',requestId,playerPrompt}} }
                 });
                 return voiced;
             }
+            throw new Error(result.error || 'No reply was generated.');
         } catch (error) {
-            console.error("Failed to generate dialogue response:", error);
-            // Fallback response handled by UI or return generic
+            // Failure is a UI state, never invented NPC speech. The controller
+            // offers a voice-only retry without repeating the topic's effects.
+            throw error instanceof Error ? error : new Error('No reply was generated.');
         }
-        return "...";
         // Depends on `gameState` as a whole rather than a field list: the prompt now
         // reads generatedNpcs, npcMemory, townRumors and gameTime as well as the
         // session, and a stale memory snapshot would make the NPC forget something
@@ -183,7 +217,31 @@ export const useDialogueSystem = (
      */
     const handleTopicOutcome = useCallback((result: ProcessTopicResult, topicId: string) => {
         const session = gameState.activeDialogueSession;
-        if (!session) return;
+        if (!session) {
+            if (result.openMerchant || result.directReply) throw new Error('This conversation has ended.');
+            return;
+        }
+        // Recheck the source identity before recording effects. Only the normal
+        // action processor can open a shop; a reducer dispatch is not a shop.
+        const storefront = result.openMerchant
+            ? resolveDialogueStorefront(gameState, session.npcId) : undefined;
+        if (result.openMerchant) {
+            if (!processAction) throw new Error('Trading is unavailable in this view.');
+            if (result.openMerchant.npcId !== session.npcId || !storefront
+                || storefront.id !== result.openMerchant.businessId
+                || result.openMerchant.initialTab === 'gossip' && (storefront.businessType !== 'tavern'
+                    || topicId !== 'global_rumors'
+                    || resolveDialogueNpc(gameState, session.npcId)?.knowledgeProfile?.topicOverrides?.[topicId])) {
+                throw new Error('This storefront is no longer available.');
+            }
+        }
+        // Factual answers are re-read before any effects, so a stale selection
+        // cannot publish another person's family or changed household details.
+        if (result.directReply && (result.directReply.npcId !== session.npcId
+            || resolveHouseholdPersonalReply(gameState, session, topicId,
+                resolveDialogueNpc(gameState, session.npcId)) !== result.directReply.text)) {
+            throw new Error('This personal answer is no longer available.');
+        }
         const currentGameTime = Number(gameState?.gameTime ?? Date.now());
 
         // 0. Persist Topic Memory
@@ -196,6 +254,30 @@ export const useDialogueSystem = (
                 date: currentGameTime
             }
         });
+
+        if (result.directReply) {
+            dispatch({type: 'SET_LAST_NPC_INTERACTION', payload: {
+                npcId: session.npcId, response: result.directReply.text,
+                ...(result.directReply.dialogue ? {dialogue:result.directReply.dialogue} : {}),
+            }});
+        }
+
+        // Keep directions the player actually heard in the existing Logbook.
+        // This records the speaker's words, not a visit or permission to cross.
+        // Stable world/source/word identity lets the reducer ignore rapid repeat
+        // publications while preserving a later changed answer as its own account.
+        if (result.directReply && (topicId === 'global_directions' || topicId === 'household_public_history')) {
+            const speaker = resolveDialogueNpc(gameState, session.npcId)!;
+            dispatch({type: 'ADD_DISCOVERY_ENTRY', payload: {
+                id: 'npc-directions:' + gameState.worldSeed + ':' + encodeURIComponent(speaker.id) + ':' + encodeURIComponent(result.directReply.text),
+                type: DiscoveryType.NPC_INTERACTION,
+                title: 'Directions from ' + speaker.name,
+                content: speaker.name + ' told you: "' + result.directReply.text + '"',
+                gameTime: new Date(currentGameTime).toISOString(),
+                source: {type: 'NPC', id: speaker.id, name: speaker.name},
+                flags: [{key: 'knowledgeKind', value: 'local-directions', label: 'Travel directions'}],
+            }});
+        }
 
         // 1. Grant Experience
         if (result.xpReward && result.xpReward > 0) {
@@ -280,17 +362,27 @@ export const useDialogueSystem = (
             // Currently not supported in the simple reducer, but could be added to NPC Memory.
         }
 
-        // `gameState` in full: the disposition message now names a generated NPC,
-        // which lives in `generatedNpcs`, not in the two fields listed before.
-    }, [gameState, dispatch]);
+        if (result.openMerchant && storefront && processAction) {
+            // Existing merchant execution remains responsible for current life,
+            // attendance, stock, prices and later transactions. Opening debits nothing.
+            processAction({ type: 'OPEN_DYNAMIC_MERCHANT',
+                label: `Browse ${storefront.name}`,
+                payload: { merchantType: storefront.businessType, buildingId: session.npcId,
+                    ...(result.openMerchant.initialTab ? {initialTab: result.openMerchant.initialTab} : {}) } });
+        }
+
+        // Read the current person/business and processor along with the world;
+        // neither stale ownership nor a prior callback can retarget this choice.
+    }, [gameState, dispatch, processAction]);
 
     /**
      * Surfaces the "Invite to party" dialogue affordance. Emits a `talk` action
      * carrying a `recruitOffer`, which the NPC-interaction handler picks up
      * (handleNpcInteraction → handleRecruitOffer): it runs the consent gate,
      * converts the NPC, and dispatches RECRUIT_COMPANION on a yes (or posts the
-     * refusal reason on a no). The button is always shown in the UI — ineligible
-     * NPCs are declined by the consent gate with a reason, not hidden.
+     * refusal reason on a no). The UI offers it only when a companion opportunity
+     * exists for a household resident; the shared consent gate rechecks that
+     * opportunity as well as trust before any party mutation.
      */
     const inviteToParty = useCallback((npcId: string) => {
         const action: Action = {

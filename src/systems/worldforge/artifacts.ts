@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
- *
- * Last Sync: 04/08/2026, 02:04:57
- * Dependents: components/World3D/InWorldHUD.tsx, components/World3D/World3DWrapper.tsx, components/World3D/createWorldGenClient.ts, components/World3D/worldGenCore.ts, components/Worldforge/AtlasDemo.tsx, components/Worldforge/LocalMapView.tsx, components/Worldforge/RegionMapView.tsx, components/Worldforge/TownAgentSnapshotView.tsx, components/Worldforge/localDraw.ts, components/Worldforge/regionDraw.ts, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/spells/ai/MaterialTagService.ts, systems/worldforge/adapter/atlasArtifact.ts, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/bridge/farShells.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundDeltas.ts, systems/worldforge/bridge/groundHostiles.ts, systems/worldforge/bridge/groundWorldAdapter.ts, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/bridge/seamProbe.ts, systems/worldforge/delta/applyDeltas.ts, systems/worldforge/delta/types.ts, systems/worldforge/generate.ts, systems/worldforge/index.ts, systems/worldforge/leaf3d/atlasGroundDrilldown.ts, systems/worldforge/local/generateLocal.ts, systems/worldforge/local/stitchLocalArtifacts.ts, systems/worldforge/provenance/groundProvenance.ts, systems/worldforge/region/generateRegion.ts, systems/worldforge/roster/agentPath.ts, systems/worldforge/roster/generateTownRoster.ts, systems/worldforge/roster/townSnapshot.ts, systems/worldforge/roster/types.ts, systems/worldforge/town/buildingPlotInput.ts, systems/worldforge/town/canonicalTown.ts, systems/worldforge/town/demoTownPlan.ts, systems/worldforge/town/householdBrief.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/town/voronoiTownAdapter.ts, systems/worldforge/townsim/keyNpcs.ts, systems/worldforge/townsim/townSimRegistration.ts
- * Imports: 2 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file artifacts.ts — Worldforge layer artifact types.
  *
@@ -35,6 +19,23 @@
  * untouched; Worldforge artifacts are the NEW canonical geography contract
  * (Decision Blitz D2) and adapters will bridge legacy consumers at cutover.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 01/11/2026, 06:37:15
+ * Dependents: components/World3D/InWorldHUD.tsx, components/World3D/World3DWrapper.tsx, components/World3D/createWorldGenClient.ts, components/World3D/worldGenCore.ts, components/Worldforge/AtlasDemo.tsx, components/Worldforge/LocalMapView.tsx, components/Worldforge/RegionMapView.tsx, components/Worldforge/TownAgentSnapshotView.tsx, components/Worldforge/localDraw.ts, components/Worldforge/regionDraw.ts, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/gameplay/lodging.ts, systems/spells/ai/MaterialTagService.ts, systems/worldforge/adapter/atlasArtifact.ts, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/bridge/farShells.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundDeltas.ts, systems/worldforge/bridge/groundHostiles.ts, systems/worldforge/bridge/groundWorldAdapter.ts, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/bridge/residentDoorRoutes.ts, systems/worldforge/bridge/seamProbe.ts, systems/worldforge/delta/applyDeltas.ts, systems/worldforge/delta/types.ts, systems/worldforge/generate.ts, systems/worldforge/index.ts, systems/worldforge/leaf3d/atlasGroundDrilldown.ts, systems/worldforge/local/generateLocal.ts, systems/worldforge/local/stitchLocalArtifacts.ts, systems/worldforge/provenance/groundProvenance.ts, systems/worldforge/region/generateRegion.ts, systems/worldforge/roster/agentPath.ts, systems/worldforge/roster/generateTownRoster.ts, systems/worldforge/roster/institutionWorkplaces.ts, systems/worldforge/roster/townSnapshot.ts, systems/worldforge/roster/types.ts, systems/worldforge/town/buildingPlotInput.ts, systems/worldforge/town/canonicalTown.ts, systems/worldforge/town/demoTownPlan.ts, systems/worldforge/town/householdBrief.ts, systems/worldforge/town/ruralHomesteadArtifacts.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/town/voronoiTownAdapter.ts, systems/worldforge/townsim/keyNpcs.ts, systems/worldforge/townsim/townSimRegistration.ts, systems/worldforge/travel/localGroundJourney.ts, systems/worldforge/travel/localTownStreetRoute.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { BoundsFt, Feet } from './units';
 import { SeedPath } from './seedPath';
 
@@ -191,7 +192,24 @@ export interface RegionRiverBank {
   riverId: number;
   /** Polyline of [x, y] feet pairs along the channel center. */
   centerline: Array<[Feet, Feet]>;
+  /** The river's width at its mouth (its widest), ft: crossings and the far tiers read it. */
   widthFt: Feet;
+  /**
+   * ONE WATER (2026-10-30, `region/riverChannel.ts`): the river's width at
+   * each centerline point, ft. It grows downstream with the atlas water count,
+   * so a river is narrow near its source and widens at each tributary.
+   */
+  widthFtAt: Feet[];
+  /** The river's fall at each centerline point, m per m, from the atlas heights. */
+  slopeAt: number[];
+  /**
+   * The river's flood level (bank top) at each centerline point, ABSOLUTE
+   * local-elevation feet (`elevationCurveFt`), from its grade along the FULL
+   * course (`region/riverValley.ts`, GG-536, 2026-11-01). Every window reads
+   * the same level at a shared point, so the 3D channel cut from it cannot
+   * step at a window seam. Absent on artifacts made before it.
+   */
+  floodFtAt?: number[];
 }
 
 export interface RegionRoad {
@@ -398,6 +416,8 @@ export interface TownPlan {
    * (avenue / street / lane) so the 3D bake vertex-colors each ribbon; absent =
    * default packed dirt.
    */
+  /** Exact canonical gate passages in Atlas feet; street ends need not be entrances. */
+  gates?: Array<[Feet, Feet]>;
   streets: Array<{ id: number; centerline: Array<[Feet, Feet]>; widthFt: Feet; colorHex?: string }>;
   /**
    * Shared residential-block courts. Optional for legacy and player-authored
@@ -413,6 +433,22 @@ export interface TownPlan {
     amenity: import('./town/courtyardSpaces').CourtyardAmenity;
     courtyardSignature: string;
   }>;
+  /**
+   * The grounds of each temple, keep and citadel (GG-566, GG-569), feet: the
+   * grounds, the paved forecourt and the set-piece features (graves, trees, a
+   * pool, a cloister, a curtain wall and its gatehouse). Optional: plans made
+   * before GG-566 and authored plans have none.
+   */
+  civicGrounds?: Array<{
+    wardIndex: number;
+    civicKind: 'temple' | 'keep' | 'citadel';
+    setPiece: import('./town/civicGrounds').CivicSetPiece;
+    grounds: Array<[Feet, Feet]>;
+    forecourt: Array<[Feet, Feet]>;
+    features: Array<{ kind: import('./town/civicGrounds').CivicGroundsFeature['kind']; polygon: Array<[Feet, Feet]> }>;
+  }>;
+  /** Explicit fresh rural source bridge; absence preserves old artifact output. */
+  ruralSources?: import('./town/ruralHomesteadArtifacts').RuralArtifactSources;
   /** Building plots with role + polygon footprint (the L3/L4 contract input). */
   plots: Array<{
     id: number;

@@ -45,6 +45,17 @@ const mockQuests: Quest[] = [
 ];
 
 describe('QuestLog Component', () => {
+  it('separates unaccepted work from active promises and retains withdrawn work in history', () => {
+    render(<QuestLog isOpen onClose={vi.fn()} quests={[
+      {...mockQuests[0],id:'available',title:'Offered Temple Work',status:QuestStatus.Available,dateStarted:undefined,dateOffered:1000},
+      {...mockQuests[0],id:'withdrawn',title:'Withdrawn Temple Promise',status:QuestStatus.Abandoned,dateAbandoned:2000},
+    ]} />);
+    expect(screen.getByRole('region',{name:'Available work'})).toHaveTextContent('Offered Temple Work');
+    expect(screen.getByText('You have not accepted this work.')).toBeInTheDocument();
+    expect(screen.getByText('No active quests.')).toBeInTheDocument();
+    expect(screen.getByText('Withdrawn Temple Promise')).toBeInTheDocument();
+    expect(screen.getByText('Withdrawn',{selector:'span'})).toBeInTheDocument();
+  });
   it('does not render when isOpen is false', () => {
     const { container } = render(<QuestLog isOpen={false} onClose={vi.fn()} quests={[]} />);
     expect(container).toBeEmptyDOMElement();

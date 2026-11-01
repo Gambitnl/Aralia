@@ -441,7 +441,7 @@
   .task-sub .who { color: var(--text-dim); }
   .task-pri { display: inline-block; margin-left: 6px; padding: 0 5px; border-radius: 8px; font-size: 10px; font-family: var(--mono); background: #2a2f45; color: var(--text-dim); vertical-align: 1px; }
   .task-refs { color: #7aa2f7; }
-  .task-waiting { color: #e0af68; }
+  .task-waiting, .task-dependency-warning { color: #e0af68; }
   .task-result { color: var(--text-dim); font-size: 11px; margin-top: 3px; font-style: italic; }
   .task-result.triage-only { color: #e0af68; }
   .task-result.unclassified { color: var(--text-faint); }
@@ -595,6 +595,61 @@
     border-radius: 5px; padding: 0 4px; font-family: var(--mono); font-size: 12px;
   }
   .badge.gold { background: #3a2c10; color: #ffd479; }
+  /* A2H "To Remy" feed: plain English for the human, the ask in bold first. */
+  .a2h-panel { border-color: rgba(255,212,121,.45); }
+  /* Full-height left column taking half the window; the header and board use
+     the other half (Remy, Agora 7973 and 7980). Below 1400 px the board's
+     panels stack in one column so they keep a readable width. Below 920 px the
+     feed returns to the top of the page as an ordinary panel. */
+  :root { --a2h-width: max(320px, 50vw); }
+  #a2h-sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--a2h-width); box-sizing: border-box;
+    padding: 12px 0 12px 12px; display: flex; z-index: 11; }
+  #a2h-sidebar .a2h-panel { flex: 1; display: flex; flex-direction: column; min-height: 0; margin: 0; }
+  #a2h-sidebar .a2h-panel > h2 { flex-wrap: wrap; row-gap: 4px; }
+  .a2h-body { flex: 1; min-height: 0; overflow: auto; }
+  body.has-a2h { padding-left: var(--a2h-width); box-sizing: border-box; }
+  body.has-a2h main { max-width: none; margin: 0; }
+  @media (max-width: 1400px) { body.has-a2h main { grid-template-columns: 1fr; } }
+  @media (max-width: 920px) {
+    #a2h-sidebar { position: static; width: auto; padding: 12px 12px 0; }
+    body.has-a2h { padding-left: 0; }
+    .a2h-body { max-height: 340px; }
+  }
+  .a2h-filters { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 0 12px 8px; }
+  .a2h-filter { font: inherit; font-size: 12px; background: none; color: inherit; border: 1px solid rgba(148,163,184,.4); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
+  .a2h-filter[aria-pressed="true"] { background: rgba(255,212,121,.18); border-color: #ffd479; color: #ffd479; font-weight: 600; }
+  .a2h-filter .n { opacity: .8; margin-left: 4px; }
+  .a2h-unanswered { font-size: 12px; display: inline-flex; gap: 4px; align-items: center; margin-left: auto; cursor: pointer; }
+  #b-a2h-decisions { cursor: pointer; }
+  .a2h-decisions-link { margin-left: auto; font-size: 12px; font-weight: 400; color: var(--cyan, #67e8f9); text-decoration: none; }
+  .a2h-item { padding: 10px 12px; border-left: 3px solid rgba(148,163,184,.5); margin: 0 0 8px; border-radius: 6px; background: rgba(148,163,184,.06); }
+  .a2h-item.need-decision { border-left-color: #ffd479; background: linear-gradient(90deg, rgba(255,212,121,.10), transparent 60%); }
+  .a2h-item.need-info { border-left-color: var(--cyan, #67e8f9); }
+  .a2h-item.need-answered { border-left-color: #86efac; background: linear-gradient(90deg, rgba(134,239,172,.10), transparent 60%); }
+  .a2h-ask { font-size: 14px; }
+  .a2h-ask b { color: #ffd479; }
+  .a2h-item.need-info .a2h-ask b, .a2h-item.need-none .a2h-ask b { color: inherit; }
+  .a2h-item.need-answered .a2h-ask b { color: #86efac; }
+  /* inline-block: a title that wraps stays ONE box, so a pointer at its
+     center always lands on it (Codex, Agora 8001). */
+  .a2h-ref { cursor: pointer; text-decoration: underline dotted; display: inline-block; }
+  .a2h-ref.unknown { cursor: default; text-decoration: none; opacity: .7; }
+  /* The board row an "about" link points at, highlighted after it scrolls into view. */
+  .a2h-focus { outline: 2px solid #ffd479; outline-offset: 2px; box-shadow: 0 0 0 6px rgba(255,212,121,.22); border-radius: 6px; transition: box-shadow .3s; }
+  .a2h-text { margin: 6px 0; font-size: 14px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .a2h-from { font-size: 12px; opacity: .85; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .a2h-from .a2h-sender { cursor: pointer; font-weight: 600; }
+  .a2h-replies { margin: 8px 0 0 12px; border-left: 2px solid rgba(255,212,121,.35); padding-left: 10px; }
+  .a2h-reply { font-size: 13px; margin: 4px 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .a2h-reply .who { font-weight: 600; color: #ffd479; }
+  /* Remy 8702: an agent answer under a reply is not Remy speaking, so it reads as the agent, in the cyan the feed uses for information. */
+  .a2h-reply.agent-reply .who { color: var(--cyan, #67e8f9); }
+  .a2h-reply-toggle { margin-top: 6px; font-size: 12px; background: none; border: 1px solid rgba(148,163,184,.4); color: inherit; border-radius: 6px; padding: 3px 10px; cursor: pointer; }
+  .a2h-reply-form { margin-top: 8px; display: grid; gap: 6px; }
+  .a2h-reply-form textarea { width: 100%; min-height: 54px; resize: vertical; box-sizing: border-box; font: inherit; font-size: 14px; }
+  .a2h-reply-row { display: flex; gap: 8px; align-items: center; }
+  .a2h-reply-status { font-size: 12px; opacity: .85; }
+  .a2h-reply-status.error { color: #fca5a5; opacity: 1; }
 
   .lock-queue { margin-top: 5px; font-size: 11px; color: var(--text-dim); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .lock-queue .queue-pos { font-family: var(--mono); color: var(--amber); font-weight: 700; }
@@ -694,6 +749,17 @@
     display: flex; flex-direction: column;
   }
   #entry-inspector.open { transform: translateX(0); }
+  /* Docked details panel (Remy, Agora 7987): on wide screens it sits beside the
+     board instead of over it, and the board narrows while it is open. It is
+     narrower than the floating panel so the board keeps a usable width between
+     the half-width To Remy feed and the panel. Small screens keep the overlay. */
+  /* The script adds inspector-docked only when the board would keep at least
+     DOCK_MIN_BOARD px between the feed and the panel (Codex, Agora 7990);
+     otherwise the panel floats over the board as before. */
+  :root { --inspector-docked: clamp(360px, 26vw, 560px); }
+  body.inspector-docked #entry-inspector { width: var(--inspector-docked); box-shadow: none; }
+  body.inspector-docked { padding-right: var(--inspector-docked); box-sizing: border-box; }
+  body.inspector-docked main { grid-template-columns: 1fr; }
   .inspector-head {
     display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
     padding: 13px 14px; border-bottom: 1px solid var(--border, #232a3a);
@@ -963,7 +1029,21 @@
   }
 </style>
 </head>
-<body>
+<body class="has-a2h">
+  <!-- A2H feed (agora-437d.9): what agents ask of the human, in plain English,
+       each linked to its task or campaign and its sender. A full-height column
+       down the left side, so it is never buried under coordination traffic;
+       the rest of the board fills the right. Data: dashboard/a2h-feed.mjs. -->
+  <aside id="a2h-sidebar" aria-label="Messages to Remy">
+    <section class="panel a2h-panel" id="a2h-panel">
+      <h2>📨 To Remy <span class="badge gold" id="b-a2h-decisions" style="display:none"></span> <span class="badge" id="b-a2h">0</span>
+        <a class="a2h-decisions-link" href="/dashboard/decisions.html" title="Tasks explicitly waiting on you">pending decisions: <span id="a2h-decisions-count">–</span></a></h2>
+      <!-- Feed filter (Remy, Agora 8318). Each button names what it keeps and
+           how many items; the pressed one is the filter in force. -->
+      <div class="a2h-filters" id="a2h-filters" role="group" aria-label="Filter messages to Remy"></div>
+      <div class="body a2h-body" id="a2h-feed"></div>
+    </section>
+  </aside>
   <header>
     <div class="brand">
       <h1>🏛️ Agora</h1>
@@ -977,6 +1057,7 @@
     <button id="docs-btn" title="Coordination reference docs — protocol & orchestrator playbook">📚 Docs</button>
     <nav class="view-tabs" aria-label="Dashboard views">
       <button class="view-tab active" id="board-tab" type="button" data-view-tab="board">Board</button>
+      <a class="view-tab" href="/dashboard/decisions.html" style="text-decoration:none">Decisions <span class="view-tab-count" id="decisions-tab-count">...</span></a>
       <a class="view-tab" href="/dashboard/wildkin.html" style="text-decoration:none" aria-label="Wildkin repo board">Wildkin</a>
       <button class="view-tab" id="pets-tab" type="button" data-view-tab="pets">Pets <span class="view-tab-count" id="pets-tab-count">0</span></button>
     </nav>
@@ -987,6 +1068,7 @@
       <div class="count"><span class="n" id="c-reservations">–</span><span class="l">reservations</span></div>
       <div class="count"><span class="n" id="c-tasks">–</span><span class="l">tasks</span></div>
       <div class="count"><span class="n" id="c-messages">–</span><span class="l">messages</span></div>
+      <a class="count count-link" href="/dashboard/decisions.html" title="Decisions and hands-on requests explicitly waiting on you"><span class="n" id="c-decisions">–</span><span class="l">your requests</span></a>
       <a class="count count-link" href="/docs/WORKFLOW_GAPS.md" target="_blank" rel="noopener" title="Open workflow gaps in tools/agora/WORKFLOW_GAPS.md (status open, blocked, or in progress)"><span class="n" id="c-gaps">–</span><span class="l">open gaps</span></a>
     </div>
   </header>
@@ -1091,6 +1173,8 @@
   </aside>
 
 <script type="module">
+import { collectHumanRequests, resolveTaskDependencies } from "/dashboard/decision-inbox.mjs";
+import { A2H_FILTERS, A2H_FILTER_LABELS, A2H_NEEDS, collectA2H, filterA2H, formatA2HReply, isAnswered } from "/dashboard/a2h-feed.mjs";
 import {
   PET_ACTIONS,
   PET_REACTION_MS,
@@ -1105,11 +1189,28 @@ import {
   "use strict";
 
   // ----------------------------- state -----------------------------
+  // To Remy feed filter, remembered per browser (Remy, Agora 8318). A stored
+  // value that is no longer a filter name reads as "all".
+  const A2H_FILTER_KEY = "agora.a2hFilter";
+  const A2H_UNANSWERED_KEY = "agora.a2hUnansweredOnly";
+  function readA2HFilter() {
+    try { const v = localStorage.getItem(A2H_FILTER_KEY); return A2H_FILTERS.includes(v) ? v : "all"; } catch (e) { return "all"; }
+  }
+  function readA2HUnanswered() {
+    try { return localStorage.getItem(A2H_UNANSWERED_KEY) === "1"; } catch (e) { return false; }
+  }
+  function saveA2HFilter() {
+    try {
+      localStorage.setItem(A2H_FILTER_KEY, ST.a2hFilter);
+      localStorage.setItem(A2H_UNANSWERED_KEY, ST.a2hUnansweredOnly ? "1" : "0");
+    } catch (e) {}
+  }
   const ST = {
     agents: [],            // [{id,handle,note,status,lastSeen,...}]
     locks: [],             // [{id,paths,globs,agentId,reason,createdAt,expiresAt}]
     reservations: [],      // [{id,paths,globs,agentId,reason,createdAt,position}]
     tasks: [],             // [{id,title,state,createdBy,claimedBy,assignedPet,updatedAt,...}]
+    tasksLoaded: false,
     campaigns: [],         // [{id,role,leadCampaignId,agentId,scope,paths,globs,wave,state,...}]
     messages: [],          // [{id,seq,from,to,body,createdAt}]
     docsNames: [],         // names served by GET /docs (pact strip links the pact when present)
@@ -1120,6 +1221,8 @@ import {
     archiveTierMs: 0,       // main feed: 0 = archived hidden; else reveal those newer than now - tier; Infinity = all
     cmdArchiveTierMs: 0,    // command feed, same rule
     categoryFilter: "all", // Optional task view filter.
+    a2hFilter: readA2HFilter(),        // To Remy feed: "all" or one need (Remy, Agora 8318)
+    a2hUnansweredOnly: readA2HUnanswered(), // To Remy feed: hide items Remy already replied to
     // High-volume task buckets start closed but remain normal per-session
     // toggles for operators who need to inspect the backlog.
     collapsedTaskGroups: { blocked: true, done: true },
@@ -1902,14 +2005,15 @@ import {
     if (!task) return null;
     const createdBy = resolvedAgentRecord(task.createdBy, task.creatorAgent);
     const claimedBy = task.claimedBy ? resolvedAgentRecord(task.claimedBy, task.claimedAgent) : null;
-    const deps = (task.deps || []).map((id) => ST.tasks.find((row) => row.id === id) || { id, missing: true });
+    const deps = resolveTaskDependencies(task, ST.tasks);
     const messages = ST.messages.filter((message) => String(message.body || "").includes(task.id));
 
     const references = (task.refs || []).map((ref) => '<strong>' + esc(ref) + '</strong>');
     const dependencyRows = deps.map((dep) => {
-      const title = dep.title || "Missing task record";
-      const state = dep.missing ? "missing" : dep.state;
-      return '<strong>' + esc(title) + '</strong><div class="list-meta">' + esc(state) + ' · ' + esc(dep.id) + '</div>';
+      const title = dep.task?.title || (dep.ambiguous ? "Ambiguous task reference" : "Missing task record");
+      const state = dep.missing ? "missing" : dep.task.state;
+      const relation = dep.invalid ? "unrecognized relationship" : dep.blocking ? "blocking" : "nonblocking";
+      return '<strong>' + esc(title) + '</strong><div class="list-meta">' + esc(state) + ' · ' + esc(dep.type) + ' · ' + esc(relation) + ' · ' + esc(dep.id) + '</div>';
     });
     const activityRows = (task.history || []).slice().reverse().map((entry) => {
       const actor = entry.by === "system" ? "system" : handleOf(entry.by);
@@ -2019,13 +2123,66 @@ import {
     panel.classList.add("open");
     panel.setAttribute("aria-hidden", "false");
     panel.removeAttribute("inert");
+    // Docks the panel when there is room: the board narrows instead of being covered.
+    document.body.classList.add("inspector-open");
+    updateInspectorDock();
   }
+
+  // Dock only when the board keeps a usable width between the To Remy feed and
+  // the panel. The check uses the real widths, not a viewport breakpoint, so a
+  // wide screen with a narrow board still floats the panel (Codex, Agora 7990).
+  const DOCK_MIN_BOARD = 420;
+  function updateInspectorDock() {
+    const body = document.body;
+    if (!body.classList.contains("inspector-open")) {
+      body.classList.remove("inspector-docked");
+      body.style.removeProperty("--a2h-width");
+      return;
+    }
+    // Remove temporary narrowing before probing natural width
+    body.style.removeProperty("--a2h-width");
+    const probe = (variable) => {
+      const el = document.createElement("div");
+      el.style.cssText = `position:absolute;visibility:hidden;width:var(${variable})`;
+      document.body.appendChild(el);
+      const width = el.getBoundingClientRect().width;
+      el.remove();
+      return width;
+    };
+    const sidebar = $("a2h-sidebar");
+    const isFixed = sidebar && getComputedStyle(sidebar).position === "fixed";
+    const naturalFeedWidth = isFixed ? probe("--a2h-width") : 0;
+    const panelWidth = probe("--inspector-docked");
+    const clientWidth = document.documentElement.clientWidth;
+    let board = clientWidth - naturalFeedWidth - panelWidth;
+
+    if (isFixed && board < DOCK_MIN_BOARD) {
+      // Narrow the feed when the panel is open so the board keeps its min width
+      // rather than popping the panel out into a floating overlay (Remy 7987, Claude 8444).
+      // Keep feed width at least 320 px.
+      const availForFeed = clientWidth - panelWidth - DOCK_MIN_BOARD;
+      if (availForFeed >= 320) {
+        const narrowedFeed = Math.min(naturalFeedWidth, Math.max(320, availForFeed));
+        body.style.setProperty("--a2h-width", `${narrowedFeed}px`);
+        board = clientWidth - narrowedFeed - panelWidth;
+      }
+    }
+
+    body.classList.toggle("inspector-docked", board >= DOCK_MIN_BOARD);
+  }
+  window.addEventListener("resize", updateInspectorDock);
+  // Emulated or programmatic viewport changes can skip the resize event; a
+  // ResizeObserver on the page root sees every layout width change. Docking
+  // only changes body padding, not the root width, so this cannot loop.
+  if (typeof ResizeObserver === "function") new ResizeObserver(updateInspectorDock).observe(document.documentElement);
 
   function closeEntryInspector() {
     const panel = $("entry-inspector");
     panel.classList.remove("open");
     panel.setAttribute("aria-hidden", "true");
     panel.setAttribute("inert", "");
+    document.body.classList.remove("inspector-open");
+    updateInspectorDock();
   }
 
   function wireEntryInspectors(root) {
@@ -2316,6 +2473,13 @@ import {
 
   function renderTasks() {
     const el = $("tasks");
+    // The inbox count is computed from the same task snapshot as the board.
+    // Missing task data stays unknown, rather than pretending no decisions exist.
+    if (ST.tasksLoaded) {
+      const humanRequests = collectHumanRequests(ST.tasks);
+      $("c-decisions").textContent = humanRequests.length;
+      $("decisions-tab-count").textContent = humanRequests.filter((row) => row.kind === "decision").length;
+    }
     $("b-tasks").textContent = ST.tasks.length;
     const categorySet = new Set();
     for (const t of ST.tasks) {
@@ -2357,7 +2521,11 @@ import {
       ST.categoryFilter === "all" ? `${visible.length} task(s)` : `${visible.length} / ${ST.tasks.length} task(s) in ${ST.categoryFilter}`;
 
     const taskRow = (t, cat) => {
-      const waitingOn = (t.deps || []).filter((d) => (byId.get(d) || {}).state !== "done");
+      // Related work is context, not a gate. Typed and legacy blocking edges
+      // use the same resolved IDs as the inspector, including renamed tasks.
+      const dependencies = resolveTaskDependencies(t, ST.tasks, {byId});
+      const waitingOn = dependencies.filter((dep) => dep.blocking === true && dep.task?.state !== "done");
+      const uncertainDependencies = dependencies.some((dep) => dep.invalid || dep.ambiguous);
       const gapChip = cat && cat.gapId
         ? (cat.project
           ? `<a class="task-gap" href="/gaps/view?project=${encodeURIComponent(cat.project)}" target="_blank" rel="noopener" title="open the ${esc(cat.project)} tracker card">${esc(cat.gapId)}</a>`
@@ -2370,6 +2538,7 @@ import {
           ${t.assignedPet ? `<span class="pet-owner">${assignedPetAvatar(t.assignedPet, { action: taskPetAction(t), extraClass: "mini" })} ${esc(t.assignedPet.displayName || t.assignedPet.slug)}</span>` : ""}
           <span>updated ${relTime(t.updatedAt)}</span>
           ${waitingOn.length && t.state === "open" ? `<span class="task-waiting">⏳ waiting on ${waitingOn.length} dep(s)</span>` : ""}
+          ${uncertainDependencies ? '<span class="task-dependency-warning">dependency data needs review</span>' : ""}
           ${(t.refs || []).length ? `<span class="task-refs">⛓ ${t.refs.map(esc).join(", ")}</span>` : ""}
         </div>
         ${taskResultMarkup(t)}
@@ -2494,7 +2663,219 @@ import {
     }));
   }
 
+  // A2H "To Remy" feed: agent messages tagged `A2H need=... ref=...`, newest
+  // first, with the ask in bold, the board link, and the sender's identity.
+  // Filter row for the To Remy feed (Remy, Agora 8318). One press sets the
+  // filter; the pressed button shows the filter in force and each button
+  // shows how many items it keeps.
+  function renderA2HFilters(view) {
+    const bar = $("a2h-filters");
+    if (!bar) return;
+    const label = (key) => A2H_FILTER_LABELS?.[key] || (key === "all" ? "All" : A2H_NEEDS[key] || key);
+    bar.innerHTML = A2H_FILTERS.map((key) =>
+      `<button type="button" class="a2h-filter" data-a2h-filter="${key}" aria-pressed="${view.need === key}">${esc(label(key))}<span class="n">${view.counts[key]}</span></button>`
+    ).join("") +
+      `<label class="a2h-unanswered" title="Hide messages you already replied to"><input type="checkbox" id="a2h-unanswered"${ST.a2hUnansweredOnly ? " checked" : ""}> Unanswered only</label>`;
+    bar.querySelectorAll("[data-a2h-filter]").forEach((button) => button.addEventListener("click", () => setA2HFilter(button.dataset.a2hFilter)));
+    const box = $("a2h-unanswered");
+    if (box) box.addEventListener("change", () => { ST.a2hUnansweredOnly = box.checked; saveA2HFilter(); renderA2H(); });
+  }
+
+  function setA2HFilter(need) {
+    ST.a2hFilter = A2H_FILTERS.includes(need) ? need : "all";
+    saveA2HFilter();
+    renderA2H();
+  }
+
+  function renderA2H() {
+    const el = $("a2h-feed");
+    if (!el) return;
+    // Never redraw under the human's typing: a poll or SSE event would wipe the
+    // draft and the cursor. Redraw once the reply box loses focus or is sent.
+    if (el.contains(document.activeElement) && document.activeElement.tagName === "TEXTAREA") {
+      ST.a2hRenderPending = true;
+      return;
+    }
+    ST.a2hRenderPending = false;
+    const items = collectA2H(ST.messages, { agents: ST.agents, tasks: ST.tasks, campaigns: ST.campaigns });
+    ST.a2hItems = new Map(items.map((item) => [String(item.seq), item]));
+    ST.a2hDrafts = ST.a2hDrafts || {};
+    $("b-a2h").textContent = items.length;
+    const openDecisions = items.filter((item) => item.need === "decision" && !isAnswered(item)).length;
+    const db = $("b-a2h-decisions");
+    if (db) {
+      db.textContent = openDecisions ? `★ ${openDecisions} need a decision` : "";
+      db.style.display = openDecisions ? "" : "none";
+      db.title = "Show only messages that need your decision";
+      db.onclick = () => setA2HFilter("decision");
+    }
+    const view = filterA2H(items, { need: ST.a2hFilter, unansweredOnly: ST.a2hUnansweredOnly });
+    renderA2HFilters(view);
+    const pending = $("a2h-decisions-count");
+    if (pending) pending.textContent = ST.tasksLoaded ? collectHumanRequests(ST.tasks).filter((row) => row.kind === "decision").length : "…";
+    if (!items.length) {
+      el.innerHTML = '<div class="empty">No messages to you yet. Agents post here with: say --need decision|info|none --ref &lt;task or campaign id&gt; "plain English"</div>';
+      return;
+    }
+    if (!view.items.length) {
+      const filterText = A2H_FILTER_LABELS?.[view.need] || A2H_NEEDS[view.need] || view.need;
+      const what = view.need === "all" ? "messages" : `“${esc(filterText)}” messages`;
+      el.innerHTML = `<div class="empty">No ${ST.a2hUnansweredOnly ? "unanswered " : ""}${what}. Press “All” to see the other ${items.length}.</div>`;
+      return;
+    }
+    el.innerHTML = view.items.map((item) => {
+      // Lead with the work's plain-words title; the raw id is only a small link.
+      const label = item.refTitle ? `“${esc(item.refTitle)}”` : esc(item.ref);
+      const ref = item.refKind
+        ? `<span class="a2h-ref inspectable" role="button" tabindex="0" data-entry-kind="${item.refKind}" data-entry-id="${esc(item.ref)}" title="Open ${esc(item.ref)}">${label}</span> <span class="id">${esc(item.ref)}</span>`
+        : `<span class="a2h-ref unknown" title="Not on the board now">${label}</span>`;
+      const sender = item.from.handle
+        ? `<span class="a2h-sender inspectable" role="button" tabindex="0" data-entry-kind="agent" data-entry-id="${esc(item.from.id)}">${esc(item.from.handle)}</span>`
+        : `<span class="a2h-sender">unknown sender</span>`;
+      const replies = item.replies.length
+        ? `<div class="a2h-replies">${item.replies.map((reply) => `<div class="a2h-reply${reply.byHuman ? "" : " agent-reply"}"><span class="who">${esc(reply.label || reply.from.handle || "an agent")}:</span> ${esc(reply.text)} <span class="id">· ${esc(relTime(reply.createdAt))}</span></div>`).join("")}</div>`
+        : "";
+      const key = String(item.seq);
+      const open = ST.a2hOpen === key;
+      const draft = ST.a2hDrafts[key] || "";
+      const form = open
+        ? `<div class="a2h-reply-form" data-a2h-seq="${esc(key)}">
+            <textarea class="a2h-reply-text" maxlength="4000" placeholder="Your answer to ${esc(item.from.handle || "this agent")}">${esc(draft)}</textarea>
+            <div class="a2h-reply-row"><button type="button" class="a2h-reply-send">Send reply</button><button type="button" class="a2h-reply-cancel">Cancel</button><span class="a2h-reply-status" role="status"></span></div>
+          </div>`
+        : `<button type="button" class="a2h-reply-toggle" data-a2h-open="${esc(key)}">${item.replies.length ? "Reply again" : "Reply"}</button>`;
+      const answered = isAnswered(item);
+      const needClass = answered ? "need-answered" : `need-${esc(item.need)}`;
+      return `<div class="a2h-item ${needClass}">
+        <div class="a2h-ask"><b>${esc(item.needLabel)}</b> · about ${ref}</div>
+        <div class="a2h-text">${esc(item.text)}</div>
+        <div class="a2h-from">from ${sender}${item.from.model ? `<span class="model-chip">${esc(item.from.model)}</span>` : ""}<span class="id">${esc(String(item.from.id || "").slice(0, 8))}</span><span>· ${esc(relTime(item.createdAt))}</span></div>
+        ${replies}
+        ${form}
+      </div>`;
+    }).join("");
+    wireEntryInspectors(el);
+    wireA2HReplies(el);
+  }
+
+  // "About" link: besides the details panel (wired by wireEntryInspectors),
+  // scroll the board to the referenced task or campaign row and highlight it
+  // (Remy, Agora 7985). A task hidden by the category filter, or a finished
+  // campaign in the collapsed list, is revealed first; when no row exists the
+  // board's panel for that kind gets the highlight instead.
+  function focusBoardEntry(kind, id) {
+    const selector = `main [data-entry-kind="${kind}"][data-entry-id="${CSS.escape(id)}"]`;
+    let row = document.querySelector(selector);
+    if (!row && kind === "task") {
+      const filter = $("task-category-filter");
+      if (filter && filter.value !== "all") {
+        filter.value = "all";
+        filter.dispatchEvent(new Event("change"));
+        row = document.querySelector(selector);
+      }
+    }
+    if (!row && kind === "campaign" && ST.collapsedCampaignDone) {
+      ST.collapsedCampaignDone = false;
+      renderCampaigns();
+      row = document.querySelector(selector);
+    }
+    // A row inside a collapsed task-state group (Blocked and Done start
+    // collapsed) has no height, so open that group and find the row again.
+    if (row && kind === "task") {
+      const group = row.closest(".task-group.collapsed");
+      if (group && group.dataset.taskState) {
+        toggleTaskGroup(group.dataset.taskState);
+        row = document.querySelector(selector);
+      }
+    }
+    const target = row || (kind === "task" ? $("tasks") : kind === "campaign" ? $("campaigns") : null);
+    if (!target) return;
+    // A collapsed board panel hides every row in it, and scrollIntoView then
+    // does nothing (Codex, Agora 7997). Open the panel and keep that choice.
+    const panel = target.closest("main > .panel[data-panel-id]");
+    if (panel && panel.classList.contains("collapsed")) togglePanel(panel.dataset.panelId);
+    // Instant, not smooth: a smooth scroll did not move a background or
+    // embedded browser pane at all, while an instant one always lands.
+    target.scrollIntoView({ behavior: "auto", block: "center" });
+    target.classList.add("a2h-focus");
+    setTimeout(() => target.classList.remove("a2h-focus"), 2600);
+  }
+
+  // Reply box: the answer goes straight to the agent who asked, on the command
+  // channel (human posts are wake-worthy), tagged with the message it answers.
+  function wireA2HReplies(el) {
+    for (const link of el.querySelectorAll(".a2h-ref.inspectable")) {
+      link.addEventListener("click", () => focusBoardEntry(link.dataset.entryKind, link.dataset.entryId));
+      // The keyboard path must do the same as the pointer path.
+      link.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter" || ev.key === " ") focusBoardEntry(link.dataset.entryKind, link.dataset.entryId);
+      });
+    }
+    for (const button of el.querySelectorAll("[data-a2h-open]")) {
+      button.addEventListener("click", () => {
+        ST.a2hOpen = button.dataset.a2hOpen;
+        renderA2H();
+        const box = el.querySelector(".a2h-reply-text");
+        if (box) box.focus();
+      });
+    }
+    const form = el.querySelector(".a2h-reply-form");
+    if (!form) return;
+    const key = form.dataset.a2hSeq;
+    const box = form.querySelector(".a2h-reply-text");
+    box.addEventListener("input", () => { ST.a2hDrafts[key] = box.value; });
+    box.addEventListener("blur", () => { if (ST.a2hRenderPending) setTimeout(renderA2H, 0); });
+    form.querySelector(".a2h-reply-cancel").addEventListener("click", () => {
+      ST.a2hOpen = null;
+      renderA2H();
+    });
+    form.querySelector(".a2h-reply-send").addEventListener("click", () => sendA2HReply(form, key));
+  }
+
+  async function sendA2HReply(form, key) {
+    const item = ST.a2hItems && ST.a2hItems.get(key);
+    const box = form.querySelector(".a2h-reply-text");
+    const status = form.querySelector(".a2h-reply-status");
+    const button = form.querySelector(".a2h-reply-send");
+    const setStatus = (text, error) => { status.textContent = text; status.classList.toggle("error", Boolean(error)); };
+    let body;
+    try {
+      body = formatA2HReply({ seq: item ? item.seq : 0, ref: item ? item.ref : "", text: box.value });
+    } catch (e) {
+      setStatus(e.message, true);
+      return;
+    }
+    button.disabled = true;
+    setStatus("sending...");
+    try {
+      let identity = await ensureDashboardIdentity(false);
+      let result;
+      try {
+        result = await postJSON("/messages", { to: item.from.id, body, channel: "command" }, identity.token);
+      } catch (e) {
+        // Same recovery as the composers: a reaped or pre-role identity gets
+        // one fresh registration and one retry.
+        if (e.status !== 401 && e.status !== 403) throw e;
+        identity = await ensureDashboardIdentity(true);
+        result = await postJSON("/messages", { to: item.from.id, body, channel: "command" }, identity.token);
+      }
+      if (result && result.message && !ST.messages.some((m) => m.id === result.message.id)) {
+        ST.messages.push(result.message);
+        if (result.message.seq > ST.seenMsgSeq) ST.seenMsgSeq = result.message.seq;
+      }
+      delete ST.a2hDrafts[key];
+      ST.a2hOpen = null;
+      box.blur();
+      renderFeed();
+    } catch (e) {
+      const missingPet = e && e.message === "Choose a pet identity before joining presence";
+      setStatus(missingPet ? "Choose your name and pet in the message box at the bottom of the page first." : "Send failed. Try again.", true);
+      button.disabled = false;
+    }
+  }
+
   function renderFeed() {
+    renderA2H();
     renderCommandFeed();
     const el = $("feed");
     // Pre-channel messages have no channel field and belong to main.
@@ -2829,7 +3210,14 @@ import {
   }
   async function refreshTasks() {
     // Pact strip re-renders too: the identity-verified marker is board-derived.
-    try { ST.tasks = (await getJSON("/tasks")).tasks || []; renderTasks(); renderPactStrip(); renderPresence(); } catch (e) {}
+    try {
+      ST.tasks = (await getJSON("/tasks")).tasks || []; ST.tasksLoaded = true; renderTasks(); renderPactStrip(); renderPresence();
+      // Source links from the decision page can open even a collapsed task row.
+      if (pendingTaskLink) {
+        openEntryInspector("task", pendingTaskLink);
+        pendingTaskLink = null;
+      }
+    } catch (e) {}
   }
   async function refreshHealth() {
     try { ST.health = await getJSON("/health"); renderHeader(); } catch (e) {}
@@ -3117,6 +3505,7 @@ import {
 
   // ----------------------------- boot -----------------------------
   const launchParams = new URLSearchParams(window.location.search);
+  let pendingTaskLink = launchParams.get("task");
   setDashboardView(launchParams.get("view") === "pets" ? "pets" : "board");
   if (launchParams.get("docs") === "1") toggleDocs(true);
   fullRefresh();   // REST seed on load (also a fallback if SSE is slow)

@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 09/06/2026, 02:11:07
- * Dependents: components/Submap/SubmapPane.tsx, components/layout/GameLayout.tsx
- * Imports: 6 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file ActionPane/index.tsx
  * This component displays available actions to the player.
@@ -23,6 +7,23 @@
  * It is now structured to separate UI components (ActionButton, SystemMenu)
  * and logic (useActionGeneration) from the main view.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 13:45:10
+ * Dependents: components/layout/GameLayout.tsx
+ * Imports: 10 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useState, useEffect, useRef } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Location, Action, NPC, Item } from '../../types';
@@ -31,6 +32,9 @@ import { ActionButton } from './ActionButton';
 import { useActionGeneration } from './useActionGeneration';
 import { SystemMenu } from './SystemMenu';
 import { UI_ID } from '../../styles/uiIds';
+import { useOptionalGameState } from '../../state/GameContext';
+import { burgIdForLocation } from '../../systems/worldforge/townsim/chronicleForLocation';
+import { requestMapDrillToPlayerTown } from '../Worldforge/mapFocusSignal';
 import { groupActionPaneActions, shortPersonActionLabel, type PersonGroup } from './actionPaneGrouping';
 
 /**
@@ -128,6 +132,17 @@ const ActionPane: React.FC<ActionPaneProps> = ({
 
   hasNewRateLimitError,
 }) => {
+  const game = useOptionalGameState();
+  const townId = game ? burgIdForLocation({
+    worldSeed: game.state.worldSeed, cellId: game.state.playerCell?.cellId, ground: game.state,
+  }) : undefined;
+  // The nearby keeper list is deliberately bounded. The existing town plan
+  // remains the complete discovery surface, including businesses outside it.
+  const openTownServices = () => {
+    if (townId === undefined || disabled || isOracleInputVisible) return;
+    requestMapDrillToPlayerTown(townId);
+    onAction({ type: 'toggle_map', label: 'Town shops and services' });
+  };
   const oracleInputRef = useRef<HTMLInputElement | null>(null);
   const [isOracleInputVisible, setIsOracleInputVisible] = useState(false);
   const [oracleQuery, setOracleQuery] = useState('');
@@ -246,9 +261,16 @@ const ActionPane: React.FC<ActionPaneProps> = ({
       )}
 
       {/* Shops — browse a specific store's goods. */}
-      {shops.length > 0 && (
+      {(shops.length > 0 || townId !== undefined) && (
         <div className="mb-4">
           <h3 className="text-sm font-semibold text-amber-300 mb-2">Shops</h3>
+          {townId !== undefined && <div className="mb-3">
+            <button type="button" onClick={openTownServices} disabled={disabled || isOracleInputVisible}
+              className="min-h-11 w-full rounded-lg border border-amber-400/50 bg-slate-900 px-4 py-2 text-left text-amber-200 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed">
+              Town shops and services
+            </button>
+            <p className="mt-1 text-xs text-slate-300">Inspect the town plan for other businesses, keepers and guest beds.</p>
+          </div>}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {shops.map((action, index) => (
               <ActionButton

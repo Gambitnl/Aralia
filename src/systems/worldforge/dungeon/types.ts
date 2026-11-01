@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
- *
- * Last Sync: 19/07/2026, 05:56:57
- * Dependents: components/BattleMap/dungeon/Dungeon3DPreview.tsx, components/BattleMap/dungeon/dungeonSceneModel.ts, components/DesignPreview/steps/PreviewDungeon.tsx, components/DesignPreview/steps/previewDungeon/compositor.ts, components/DesignPreview/steps/previewDungeon/geometry.ts, components/DesignPreview/steps/previewDungeon/painter.ts, components/DesignPreview/steps/previewDungeon/theme.ts, systems/worldforge/dungeon/archetypes.ts, systems/worldforge/dungeon/buildIntact.ts, systems/worldforge/dungeon/generateDungeon.ts, systems/worldforge/dungeon/history/appliers.ts, systems/worldforge/dungeon/history/chronicleBinding.ts, systems/worldforge/dungeon/history/context.ts, systems/worldforge/dungeon/history/events.ts, systems/worldforge/dungeon/history/graph.ts, systems/worldforge/dungeon/history/recorder.ts, systems/worldforge/dungeon/intact/attach.ts, systems/worldforge/dungeon/intact/circulation.ts, systems/worldforge/dungeon/intact/primitives.ts, systems/worldforge/dungeon/intact/repeats.ts, systems/worldforge/dungeon/intact/sprawl.ts, systems/worldforge/dungeon/lore.ts, systems/worldforge/dungeon/simulateHistory.ts, systems/worldforge/dungeon/world/bestiaryTable.ts, systems/worldforge/dungeon/world/chronicle.ts, systems/worldforge/dungeon/world/deriveIdentity.ts, systems/worldforge/dungeon/world/dungeonSites.ts, systems/worldforge/dungeon/world/rumors.ts
- * Imports: 2 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file types.ts
  * @description Dungeon plan contract — the pure-data output of the procedural
@@ -30,6 +14,22 @@
  *   lists (`doorways`, `corridorCells`, `secretDoorCells`) are in 5 ft CELLS,
  *   because they index the row-major grid directly. cell = feet / `cellFt`.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 28/10/2026, 19:40:24
+ * Dependents: components/BattleMap/dungeon/Dungeon3DPreview.tsx, components/BattleMap/dungeon/dungeonSceneModel.ts, components/DesignPreview/steps/PreviewDungeon.tsx, components/DesignPreview/steps/previewDungeon/compositor.ts, components/DesignPreview/steps/previewDungeon/geometry.ts, components/DesignPreview/steps/previewDungeon/painter.ts, components/DesignPreview/steps/previewDungeon/theme.ts, components/World3D/DungeonExpeditionOverlay.tsx, components/World3D/DungeonParchmentMap.tsx, components/World3D/dungeonEntryRuntime.ts, components/World3D/dungeonKnowledge.ts, systems/worldforge/dungeon/archetypes.ts, systems/worldforge/dungeon/buildIntact.ts, systems/worldforge/dungeon/generateDungeon.ts, systems/worldforge/dungeon/history/appliers.ts, systems/worldforge/dungeon/history/chronicleBinding.ts, systems/worldforge/dungeon/history/context.ts, systems/worldforge/dungeon/history/events.ts, systems/worldforge/dungeon/history/graph.ts, systems/worldforge/dungeon/history/recorder.ts, systems/worldforge/dungeon/intact/attach.ts, systems/worldforge/dungeon/intact/circulation.ts, systems/worldforge/dungeon/intact/primitives.ts, systems/worldforge/dungeon/intact/repeats.ts, systems/worldforge/dungeon/intact/sprawl.ts, systems/worldforge/dungeon/lore.ts, systems/worldforge/dungeon/simulateHistory.ts, systems/worldforge/dungeon/world/bestiaryTable.ts, systems/worldforge/dungeon/world/chronicle.ts, systems/worldforge/dungeon/world/deriveIdentity.ts, systems/worldforge/dungeon/world/dungeonCaches.ts, systems/worldforge/dungeon/world/dungeonCombat.ts, systems/worldforge/dungeon/world/dungeonDoorActions.ts, systems/worldforge/dungeon/world/dungeonExplorationResume.ts, systems/worldforge/dungeon/world/dungeonGameplay.ts, systems/worldforge/dungeon/world/dungeonLevels.ts, systems/worldforge/dungeon/world/dungeonLifecycle.ts, systems/worldforge/dungeon/world/dungeonMap.ts, systems/worldforge/dungeon/world/dungeonObjectActions.ts, systems/worldforge/dungeon/world/dungeonSites.ts, systems/worldforge/dungeon/world/rumors.ts, types/dungeonCombat.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import type { Feet } from '../units';
 import type { SeedPath } from '../seedPath';
@@ -50,6 +50,8 @@ import type { SeedPath } from '../seedPath';
 export interface WorldIdentity {
   builderName: string;
   builderStem: string;
+  /** Public name from a distinct authored site record. Existing sites omit it. */
+  siteName?: string;
   townName?: string;
   /**
    * Real world events near the dungeon's site (Pillar 2, Task 4). When present,

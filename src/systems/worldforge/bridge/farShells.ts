@@ -90,6 +90,8 @@ export interface HorizonSource {
 const SEAM_BLEND_M = 90;
 /** Shell sits this far under the window's own terrain where they overlap. */
 const TUCK_M = 0.7;
+/** The shell's tuck under the window terrain, m (the ground loader lifts out-of-window ground by it). */
+export const FAR_SHELL_TUCK_M = TUCK_M;
 /** Region shell sampling stride over the 100 ft heightfield grid. */
 const REGION_STRIDE = 2;
 /** Horizon shell half-extent (m) and sample spacing (m). */
@@ -106,14 +108,14 @@ const SHELL_HIGHLAND: [number, number, number] = [0.5, 0.46, 0.36];
 const SHELL_ROCK: [number, number, number] = [0.46, 0.42, 0.4];
 
 /** Land tint for a normalized height, before shading/snow. */
-function landTint(n: number): [number, number, number] {
+function landTint(n: number, grass: [number, number, number] = SHELL_GRASS): [number, number, number] {
   if (n < WATER_N) return SHELL_WATER;
   // grass → highland over 0.35..0.55, highland → rock over 0.55..0.7.
   const t1 = Math.max(0, Math.min(1, (n - 0.35) / 0.2));
   const t2 = Math.max(0, Math.min(1, (n - 0.55) / 0.15));
-  const r = SHELL_GRASS[0] + (SHELL_HIGHLAND[0] - SHELL_GRASS[0]) * t1 + (SHELL_ROCK[0] - SHELL_HIGHLAND[0]) * t2;
-  const g = SHELL_GRASS[1] + (SHELL_HIGHLAND[1] - SHELL_GRASS[1]) * t1 + (SHELL_ROCK[1] - SHELL_HIGHLAND[1]) * t2;
-  const b = SHELL_GRASS[2] + (SHELL_HIGHLAND[2] - SHELL_GRASS[2]) * t1 + (SHELL_ROCK[2] - SHELL_HIGHLAND[2]) * t2;
+  const r = grass[0] + (SHELL_HIGHLAND[0] - grass[0]) * t1 + (SHELL_ROCK[0] - SHELL_HIGHLAND[0]) * t2;
+  const g = grass[1] + (SHELL_HIGHLAND[1] - grass[1]) * t1 + (SHELL_ROCK[1] - SHELL_HIGHLAND[1]) * t2;
+  const b = grass[2] + (SHELL_HIGHLAND[2] - grass[2]) * t1 + (SHELL_ROCK[2] - SHELL_HIGHLAND[2]) * t2;
   return [r, g, b];
 }
 
@@ -124,8 +126,9 @@ function bakeColor(
   n: number,
   elevFt: number,
   snowLineFt: number,
+  grass?: [number, number, number],
 ): void {
-  let [r, g, b] = landTint(n);
+  let [r, g, b] = landTint(n, grass);
   // Gentle relief brightness (mirrors heightShade's direction, gentler swing).
   const shade = 0.85 + Math.max(0, Math.min(1, n)) * 0.3;
   r *= shade; g *= shade; b *= shade;
@@ -155,6 +158,7 @@ export function buildRegionShell(
   windowHeights: ArrayLike<number>,
   windowCols: number,
   windowRows: number,
+  grass?: [number, number, number],
 ): FarShellGrid {
   const hf = region.heightfield;
   const cols = Math.floor((hf.width - 1) / REGION_STRIDE) + 1;
@@ -186,9 +190,10 @@ export function buildRegionShell(
   // border (their carved trench is already in the heightfield — this is tint).
   const riverMask = new Uint8Array(cols * rows);
   for (const river of region.rivers ?? []) {
-    const halfW = Math.max(river.widthFt / 2, hf.resolutionFt);
     const line = river.centerline ?? [];
     for (let p = 0; p < line.length - 1; p++) {
+      // One water (2026-10-30): the river's own width at this point.
+      const halfW = Math.max(river.widthFtAt[p] / 2, hf.resolutionFt);
       const [ax, ay] = line[p];
       const [bx, by] = line[p + 1];
       const segLen = Math.hypot(bx - ax, by - ay);
@@ -239,7 +244,7 @@ export function buildRegionShell(
       heightsM[idx] = hM;
       // River-masked samples read as water regardless of their land height —
       // the tint continuation of the window's carved rivers.
-      bakeColor(colors, idx, riverMask[idx] ? WATER_N - 0.01 : n, elevFt, snowLineFt);
+      bakeColor(colors, idx, riverMask[idx] ? WATER_N - 0.01 : n, elevFt, snowLineFt, grass);
     }
   }
   // The streamed window is the hole. Inset by one sample spacing so the quads
@@ -265,6 +270,7 @@ export function buildHorizonShell(
   local: LocalArtifact,
   baseElevFt: number,
   snowLineFt: number,
+  grass?: [number, number, number],
 ): FarShellGrid {
   const spacingM = HORIZON_SPACING_M;
   const cols = Math.floor((2 * HORIZON_HALF_M) / spacingM) + 1;
@@ -342,7 +348,7 @@ export function buildHorizonShell(
       }
 
       heightsM[idx] = hM;
-      bakeColor(colors, idx, n, elevFt, snowLineFt);
+      bakeColor(colors, idx, n, elevFt, snowLineFt, grass);
     }
   }
   return { cols, rows, originXM, originZM, spacingM, heightsM, colors, holeM: null };
@@ -358,14 +364,37 @@ export function buildFarShells(
   windowCols: number,
   windowRows: number,
   horizonSource: HorizonSource | null,
+  /**
+   * The window's mean ground color (2026-10-27, agora-257c): the shells' low
+   * land takes it in place of the fixed shell grass, so the shell beside the
+   * streamed ground matches it (it read lighter, a hard edge at the loaded
+   * area). Absent keeps the fixed palette.
+   */
+  landGrass?: [number, number, number],
 ): FarShells {
   const snowLineFt = resolveSnowLineFt(anchorLatitudeDeg);
   return {
     region: buildRegionShell(
-      region, local, baseElevFt, snowLineFt, windowHeights, windowCols, windowRows,
+      region, local, baseElevFt, snowLineFt, windowHeights, windowCols, windowRows, landGrass,
     ),
     horizon: horizonSource
-      ? buildHorizonShell(horizonSource, region, local, baseElevFt, snowLineFt)
+      ? buildHorizonShell(horizonSource, region, local, baseElevFt, snowLineFt, landGrass)
       : null,
   };
+}
+
+/**
+ * The shell surface at window-relative metres (x, z), bilinear between its
+ * samples and clamped at its edge (2026-10-27, agora-257c). The ground loader
+ * reads it for chunk vertices outside the window, which had repeated the
+ * border row as flat plateaus over the shell.
+ */
+export function farShellHeightAtM(grid: FarShellGrid, x: number, z: number): number {
+  const fx = Math.max(0, Math.min(grid.cols - 1.000001, (x - grid.originXM) / grid.spacingM));
+  const fz = Math.max(0, Math.min(grid.rows - 1.000001, (z - grid.originZM) / grid.spacingM));
+  const i = Math.floor(fx), j = Math.floor(fz), tx = fx - i, tz = fz - j;
+  const at = (ii: number, jj: number): number => grid.heightsM[jj * grid.cols + ii];
+  const top = at(i, j) + (at(i + 1, j) - at(i, j)) * tx;
+  const bot = at(i, j + 1) + (at(i + 1, j + 1) - at(i, j + 1)) * tx;
+  return top + (bot - top) * tz;
 }

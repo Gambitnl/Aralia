@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 19/07/2026, 22:07:05
- * Dependents: components/Worldforge/AtlasSvgView.tsx
+ * Last Sync: 29/10/2026, 14:28:50
+ * Dependents: components/Worldforge/AtlasGlobeView.tsx, components/Worldforge/AtlasSvgView.tsx
  * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
@@ -67,6 +67,8 @@ export interface AtlasLayersProps {
    * own cutoff; see the cross-file follow-up note in AtlasSvgView.tsx (~544).
    */
   softenActive?: boolean;
+  /** Inspect an existing public glyph before any separate cell-travel choice. */
+  onInspectPoi?: (index: number, keyboard?: boolean) => void;
 }
 
 // ============================================================================
@@ -220,7 +222,7 @@ function ProgressiveRoutes({
  * nodes on every mouse move). Props are shallow-compared: same `model` + same
  * `visible` ref ⇒ skipped.
  */
-function AtlasLayersImpl({ model, visible, softenActive = true, deferDecorativeGlyphs = false }: AtlasLayersProps): React.ReactElement {
+function AtlasLayersImpl({ model, visible, softenActive = true, deferDecorativeGlyphs = false, onInspectPoi }: AtlasLayersProps): React.ReactElement {
   const ocean = model.layers.find((l) => l.id === 'ocean');
   const land = model.layers.find((l) => l.id === 'land')!;
   // P1 perf: only reference the expensive `#atlas-soften` blur filter when it is
@@ -427,7 +429,16 @@ function AtlasLayersImpl({ model, visible, softenActive = true, deferDecorativeG
           size, tier-distinct), so they read as map icons instead of facet-sized
           circles on the Voronoi. */}
       {visible.markers ? (model.poiMarkers ?? []).map((m, i) => (
-        <g key={`mk${i}`}>
+        <g key={`mk${i}`} role={onInspectPoi ? 'button' : undefined} tabIndex={onInspectPoi ? 0 : undefined}
+          aria-label={`Inspect ${m.name ?? m.type?.replace(/[-_]/g, ' ') ?? 'Point of interest'}`}
+          style={{ cursor: onInspectPoi ? 'pointer' : undefined }}
+          onClick={event => { if (onInspectPoi) { event.stopPropagation(); onInspectPoi(i); } }}
+          onKeyDown={event => {
+            if (onInspectPoi && (event.key === 'Enter' || event.key === ' ')) {
+              event.preventDefault(); event.stopPropagation(); onInspectPoi(i, true);
+            }
+          }}>
+          <title>{m.name ?? m.type?.replace(/[-_]/g, ' ') ?? 'Point of interest'} — approximate map area</title>
           <circle cx={m.x} cy={m.y} r={2.6} fill="#fde68a" stroke="#92400e" strokeWidth={0.8} vectorEffect="non-scaling-stroke" />
           <circle cx={m.x} cy={m.y} r={0.9} fill="#92400e" />
         </g>

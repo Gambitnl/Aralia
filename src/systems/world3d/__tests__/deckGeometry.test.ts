@@ -1,4 +1,4 @@
-import { buildDeckMesh } from '../deckGeometry';
+import { buildDeckMesh, createDeckSupportQuery, createDeckSupportQueryFromMesh } from '../deckGeometry';
 import type { ChunkData } from '../types';
 
 const baseChunk = (): ChunkData => ({
@@ -63,6 +63,95 @@ const pierRect = [
   { x: 0.01, y: 0.004 }, // farR
   { x: 0.0, y: 0.004 },  // nearR
 ];
+
+describe('rendered deck support query', () => {
+  const data = (topY = 5, detail?: { pilingSpacingM: number; railing: boolean; archRiseM: number }): ChunkData => ({
+    ...flatChunk(), decks: [{ points: pierRect, topY, kind: 'bridge', detail }],
+  });
+
+  it('returns actual support layers without choosing a higher bridge for a walker underneath', () => {
+    const chunk = data();
+    chunk.decks!.push({ points: pierRect, topY: 9, kind: 'dock' });
+    const query = createDeckSupportQuery(chunk);
+    expect(query.surfaceHeightsAt(5, 2)).toEqual([5, 9]);
+    expect(query.surfaceHeightsAt(12, 2)).toEqual([]);
+    expect(query.surfaceHeightsAt(NaN, 2)).toEqual([]);
+    expect(query.surfaceHeightsAt(Number.MAX_VALUE, 2)).toEqual([]);
+    expect(query.intersectsBody({ xM: 5, zM: 2, yM: 5 })).toBe(false);
+  });
+
+  it('matches the planar rendered arch strips instead of the ideal parabola', () => {
+    const chunk = data(6, { pilingSpacingM: 0, railing: false, archRiseM: 1.5 });
+    const query = createDeckSupportQuery(chunk);
+    // Halfway through the first of eight strips: linear interpolation between
+    // rendered endpoints, not the slightly higher mathematical parabola.
+    expect(query.surfaceHeightsAt(0.64, 2)[0]).toBeCloseTo(6.328125, 6);
+    expect(query.surfaceHeightsAt(5.12, 2)[0]).toBeCloseTo(7.5, 6);
+    chunk.decks![0].points = [...pierRect].reverse();
+    expect(createDeckSupportQuery(chunk).surfaceHeightsAt(0.64, 2)[0]).toBeCloseTo(6.328125, 6);
+  });
+
+  it('honors clipped triangles and translated chunk coordinates', () => {
+    const chunk = data(6, { pilingSpacingM: 0, railing: false, archRiseM: 1.5 });
+    // A clipped five-corner deck renders as a flat fan, not a new quad arch.
+    chunk.decks![0].points = [{ x: 0, y: 0 }, { x: .005, y: 0 }, { x: .01, y: .002 }, { x: .01, y: .004 }, { x: 0, y: .004 }];
+    expect(createDeckSupportQuery(chunk).surfaceHeightsAt(6, 2)[0]).toBe(6);
+    expect(createDeckSupportQuery(chunk).surfaceHeightsAt(9, .2)).toEqual([]);
+    const shifted = data();
+    shifted.cx = 1; shifted.cy = 2;
+    // Query uses chunk-local meters, just like the actual mesh positions.
+    const mesh = buildDeckMesh(shifted);
+    expect(createDeckSupportQuery(shifted).surfaceHeightsAt(mesh.positions[0] + 5, mesh.positions[2] + 2)).toEqual([5]);
+  });
+
+  it('blocks the slab underside while preserving a clear underpass and top contact', () => {
+    const query = createDeckSupportQuery(data());
+    expect(query.intersectsBody({ xM: 5, zM: 2, yM: 2.9 })).toBe(true); // head enters 4.55m soffit
+    expect(query.intersectsBody({ xM: 5, zM: 2, yM: 2.5 })).toBe(false);
+    expect(query.intersectsBody({ xM: 5, zM: 2, yM: 5 })).toBe(false);
+    expect(query.intersectsBody({ xM: 5, zM: 2, yM: 4.9 })).toBe(true);
+    expect(query.intersectsBody({ xM: NaN, zM: 2, yM: 5 })).toBe(true);
+  });
+
+  it('uses rendered rail and piling solids rather than granting a flat rectangle', () => {
+    const query = createDeckSupportQuery(data(5, { pilingSpacingM: 2, railing: true, archRiseM: 0 }));
+    expect(query.intersectsBody({ xM: 5, zM: 0, yM: 5 })).toBe(true);
+    expect(query.intersectsBody({ xM: 5, zM: 2, yM: 5 })).toBe(false);
+    expect(query.intersectsBody({ xM: 0, zM: 0, yM: 0 })).toBe(true);
+    expect(query.surfaceHeightsAt(5, 0)).toEqual([5, 6]);
+  });
+
+  it('includes actual bank abutments but does not invent one at a floating bridge end', () => {
+    const detail = { pilingSpacingM: 0, railing: false, archRiseM: .5 };
+    expect(createDeckSupportQuery(data(.4, detail)).surfaceHeightsAt(-1, 2)[0]).toBeCloseTo(.37, 6);
+    expect(createDeckSupportQuery(data(6, detail)).surfaceHeightsAt(-1, 2)).toEqual([]);
+  });
+
+  it('keeps the empty space beside a rotated rail passable', () => {
+    const chunk = data(5, { pilingSpacingM: 0, railing: true, archRiseM: 0 });
+    chunk.decks![0].points = pierRect.map(p => ({ x: (p.x - p.y) / Math.SQRT2, y: (p.x + p.y) / Math.SQRT2 }));
+    const query = createDeckSupportQuery(chunk);
+    expect(query.surfaceHeightsAt(1, 6)).toEqual([5]);
+    expect(query.intersectsBody({ xM: 1, zM: 6, yM: 5 })).toBe(false);
+    expect(query.intersectsBody({ xM: 2, zM: 2, yM: 5 })).toBe(true);
+  });
+
+  it('queries the actual worker-cloned mesh and exposes missing legacy clearance', () => {
+    const mesh = buildDeckMesh(data());
+    const transferred = structuredClone(mesh);
+    const query = createDeckSupportQueryFromMesh(transferred);
+    expect(query.hasSlabUndersides).toBe(true);
+    expect(query.surfaceHeightsAt(5, 2)).toEqual([5]);
+    expect(query.intersectsBody({ xM: 5, zM: 2, yM: 2.9 })).toBe(true);
+    const legacy = createDeckSupportQueryFromMesh({ positions: mesh.positions, indices: mesh.indices });
+    expect(legacy.hasSlabUndersides).toBe(false);
+    expect(legacy.surfaceHeightsAt(5, 2)).toEqual([5]);
+    // structuredClone creates host-realm typed arrays in jsdom. Compare bytes
+    // rather than realm-specific prototypes; the worker payload must be exact.
+    expect(Array.from(new Uint8Array(transferred.positions.buffer))).toEqual(Array.from(new Uint8Array(mesh.positions.buffer)));
+    expect(Array.from(new Uint8Array(transferred.indices.buffer))).toEqual(Array.from(new Uint8Array(mesh.indices.buffer)));
+  });
+});
 
 it('emits pilings below the deck when detail is present', () => {
   const bare = buildDeckMesh({ ...flatChunk(), decks: [{ points: pierRect, topY: 5, kind: 'dock' }] });
@@ -327,5 +416,34 @@ describe('single-winding emission', () => {
       checked++;
     }
     expect(checked).toBeGreaterThan(0);
+  });
+});
+
+describe('one bridge span across chunk boundaries', () => {
+  const sourcePoints = [{x:100/1024,y:48/1024},{x:180/1024,y:48/1024},{x:180/1024,y:80/1024},{x:100/1024,y:80/1024}];
+  const detail = { pilingSpacingM: 0, railing: true, archRiseM: .8 };
+  const full = () => ({...flatChunk(), decks:[{points:sourcePoints,topY:10,kind:'bridge' as const,detail}]});
+  const clipped = (cx:number) => {
+    const deck = { ...full().decks[0], sourcePoints,
+      points: cx===0 ? [{x:100/1024,y:48/1024},{x:128/1024,y:48/1024},{x:128/1024,y:80/1024},{x:100/1024,y:80/1024}]
+        : [{x:128/1024,y:48/1024},{x:180/1024,y:48/1024},{x:180/1024,y:80/1024},{x:128/1024,y:80/1024}] };
+    return {...flatChunk(),cx,decks:[deck]};
+  };
+  it('keeps the original arch direction and planar height on both sides of a seam', () => {
+    const reference=createDeckSupportQuery(full());
+    for(const x of [101,120,127.9,128,128.1,160,179]) {
+      const cx=x<128?0:1;
+      expect(createDeckSupportQuery(clipped(cx)).surfaceHeightsAt(x-cx*128,64)[0]).toBeCloseTo(reference.surfaceHeightsAt(x,64)[0],5);
+    }
+  });
+  it('clips finished slab and rail triangles, retains physical clearance, and leaves source points intact', () => {
+    const before=JSON.stringify(sourcePoints),chunk=clipped(0),mesh=buildDeckMesh(chunk),query=createDeckSupportQueryFromMesh(mesh);
+    for(let i=0;i<mesh.positions.length;i+=3){expect(mesh.positions[i]).toBeGreaterThanOrEqual(0);expect(mesh.positions[i]).toBeLessThanOrEqual(128);}
+    expect(query.surfaceHeightsAt(129,64)).toEqual([]);
+    expect(query.intersectsBody({xM:101,zM:64,yM:7.6})).toBe(false);
+    expect(query.intersectsBody({xM:101,zM:64,yM:8.2})).toBe(true);
+    expect(query.intersectsBody({xM:101,zM:48,yM:10.035})).toBe(true);
+    expect(query.hasSlabUndersides).toBe(true);
+    expect(JSON.stringify(sourcePoints)).toBe(before);
   });
 });

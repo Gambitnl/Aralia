@@ -99,15 +99,16 @@ export class VoyageManager {
         // Runs every 24 in-game hours while at sea.
         // Calculates progress, processes the "Supply Tax" (Food/Water), and rolls for random encounters.
         
-        // Clone ship to avoid mutating input directly
+        // Clone ship and voyageState to avoid mutating input directly (GG-468)
         let currentShip = JSON.parse(JSON.stringify(ship)) as Ship;
+        let voyageState = JSON.parse(JSON.stringify(state)) as VoyageState;
 
-        if (state.distanceToDestination <= 0) {
+        if (voyageState.distanceToDestination <= 0) {
             // Already arrived, just return
-             return { newState: state, updatedShip: currentShip, remainingFunds: availableFunds };
+             return { newState: voyageState, updatedShip: currentShip, remainingFunds: availableFunds };
         }
 
-        const day = state.daysAtSea + 1;
+        const day = voyageState.daysAtSea + 1;
         let dailyLog = '';
         let dailyLogType: VoyageState['log'][0]['type'] = 'Info';
 
@@ -131,10 +132,10 @@ export class VoyageManager {
         const actualDistance = baseMilesPerDay * weatherModifier;
 
         const randomSource = rng ?? new SeededRandom(hashStringToSeed([
-            state.shipId,
-            state.daysAtSea + 1,
-            state.distanceTraveled,
-            state.distanceToDestination,
+            voyageState.shipId,
+            voyageState.daysAtSea + 1,
+            voyageState.distanceTraveled,
+            voyageState.distanceToDestination,
             weather.precipitation,
             weather.wind.speed,
             weather.visibility,
@@ -143,7 +144,7 @@ export class VoyageManager {
 
         // 2. Event Trigger
         // RALPH: Chaos Factor. 40% chance of a random event (Storm, Kraken, Ghost Ship).
-        const possibleEvents = VOYAGE_EVENTS.filter(e => !e.conditions || e.conditions(state));
+        const possibleEvents = VOYAGE_EVENTS.filter(e => !e.conditions || e.conditions(voyageState));
 
         // Simple weighted choice
         const eventRoll = randomSource.next();
@@ -152,15 +153,15 @@ export class VoyageManager {
             const event = possibleEvents[eventIndex];
 
             if (randomSource.next() < (event.probability * 3)) {
-                 const result = event.effect(state, currentShip, () => randomSource.next());
+                 const result = event.effect(voyageState, currentShip, () => randomSource.next());
                  dailyLog = result.log;
                  dailyLogType = result.type;
             }
         }
 
         // Update state distance
-        state.distanceTraveled += actualDistance;
-        state.distanceToDestination = Math.max(0, state.distanceToDestination - actualDistance);
+        voyageState.distanceTraveled += actualDistance;
+        voyageState.distanceToDestination = Math.max(0, voyageState.distanceToDestination - actualDistance);
 
         // 3. Crew Updates
         // A hull saved before Ship.factionId existed is flagged here, once, so the
@@ -179,7 +180,7 @@ export class VoyageManager {
         // RALPH: Survival Mechanics. Crew consumes 1 Food / 2 Water per day base.
         // Rationing Level affects consumption and Morale.
         const crewCount = currentShip.crew.members.length;
-        const rationing = state.rationingLevel || 'normal';
+        const rationing = voyageState.rationingLevel || 'normal';
         
         let foodMultiplier = 1.0;
         let waterMultiplier = 1.0;
@@ -205,10 +206,10 @@ export class VoyageManager {
         // Deduct Food
         if (currentShip.cargo.supplies.food >= foodNeeded) {
             currentShip.cargo.supplies.food -= foodNeeded;
-            state.suppliesConsumed.food += foodNeeded;
+            voyageState.suppliesConsumed.food += foodNeeded;
         } else {
             // Consume remainder
-            state.suppliesConsumed.food += currentShip.cargo.supplies.food;
+            voyageState.suppliesConsumed.food += currentShip.cargo.supplies.food;
             currentShip.cargo.supplies.food = 0;
             starving = true;
         }
@@ -216,9 +217,9 @@ export class VoyageManager {
         // Deduct Water
         if (currentShip.cargo.supplies.water >= waterNeeded) {
             currentShip.cargo.supplies.water -= waterNeeded;
-            state.suppliesConsumed.water += waterNeeded;
+            voyageState.suppliesConsumed.water += waterNeeded;
         } else {
-             state.suppliesConsumed.water += currentShip.cargo.supplies.water;
+             voyageState.suppliesConsumed.water += currentShip.cargo.supplies.water;
              currentShip.cargo.supplies.water = 0;
              thirsty = true;
         }
@@ -246,9 +247,9 @@ export class VoyageManager {
             dailyLog = `Day ${day}: ${dailyLog} (Sailed ${Math.round(actualDistance)} miles)`;
         }
 
-        if (state.distanceToDestination <= 0) {
+        if (voyageState.distanceToDestination <= 0) {
             dailyLog += ' Land ho! Destination reached.';
-            state.status = 'Docked';
+            voyageState.status = 'Docked';
         }
 
         // Add Crew Logs
@@ -260,10 +261,10 @@ export class VoyageManager {
         });
 
         const newState: VoyageState = {
-            ...state,
+            ...voyageState,
             daysAtSea: day,
             log: [
-                ...state.log,
+                ...voyageState.log,
                 {
                     day,
                     event: dailyLog,

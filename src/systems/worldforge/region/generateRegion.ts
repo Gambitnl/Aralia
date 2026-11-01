@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
- *
- * Last Sync: 19/08/2026, 01:15:34
- * Dependents: components/DesignPreview/steps/sidebyside/sideBySideTerrainJob.ts, components/Worldforge/AtlasDemo.tsx, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/bridge/seamProbe.ts, systems/worldforge/leaf3d/atlasGroundRestore.ts, systems/worldforge/region/regionTerrainField.ts
- * Imports: 17 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file generateRegion.ts — L1 Region generator (Worldforge build-order item 3).
  *
@@ -111,6 +95,23 @@
  *   path    →  8 ft (forest spur, Task 7)
  * Heightfield is gently flattened under town envelopes (build sites).
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 28/10/2026, 11:26:15
+ * Dependents: components/DesignPreview/steps/sidebyside/sideBySideTerrainJob.ts, components/Worldforge/AtlasDemo.tsx, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/bridge/seamProbe.ts, systems/worldforge/leaf3d/atlasGroundRestore.ts, systems/worldforge/travel/localGroundJourney.ts
+ * Imports: 16 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import {
   WORLDFORGE_SCHEMA_VERSION,
   type RegionArtifact,
@@ -127,8 +128,6 @@ import {
   worldSeedFromPath,
   type SeedPath,
 } from '../seedPath';
-import { makeWorldFeetNoise } from '../local/worldFeetNoise';
-import { RIDGE_AMPLITUDE, RIDGE_SPAN_FT, RIDGE_START_N } from '../mountains/mountainTunables';
 import { townEnvelopeHalfFtForPeople, POPULATION_RATE } from '../town/townScale';
 import { BoundsFt, Feet, REGION_SIZE_FT } from '../units';
 import type { FmgAtlasResult } from '../fmg/generateAtlas';
@@ -138,8 +137,14 @@ import type { Route } from '../fmg/routes-generator';
 import { roadCourseFt } from './roadCourse';
 import { generateRiverCourse } from './riverCourse';
 import { riverWidthFt } from './riverWidth';
+import { elevationCurveFt, elevationCurveSlopeFt } from '../local/generateLocal';
+import { riverChannelSection, riverSegmentWater, segmentWidthM, type RiverClimate, type RiverFallAtlas, type RiverSegmentWater } from './riverChannel';
 import { makeAtlasNaturalHeight } from './regionTerrainField';
-import { buildWindowComposite } from './regionCompositeField';
+// Preserve callers' generator import path while the point-sampler module owns
+// its shared math directly, avoiding the former reverse import cycle.
+export { computeIdwRadiusFt, makeMountainRidgeField } from './regionTerrainField';
+import { buildWindowComposite, type CompositeHeightField } from './regionCompositeField';
+import { normalizedFromFt, riverGradeFt, valleyCutWeight, valleyReachFt, valleyTargetFt, VALLEY_REACH_CAP_FT, VALLEY_SIDE_SLOPE } from './riverValley';
 import { bakeAtlasErosion, type AtlasErosionField } from '../erosion/atlasErosionBake';
 import {
   buildRiverAttractors,
@@ -150,6 +155,21 @@ import {
 
 /** Normalized waterline: FMG cell h<20 ≙ height < 0.2 in the refined field. */
 const WATER_THRESHOLD = 0.2;
+
+/**
+ * The lowest dry land, normalized: 6 ft (1.8 m) above the waterline (one
+ * normalized unit is 2000 ft in the lowlands). A town's dry floor and a
+ * river's floodplain both stand here, so a low river town meets its water.
+ */
+const DRY_LAND_FLOOR = WATER_THRESHOLD + 0.003;
+
+/** The radius the settlement floor keeps dry, ft: the area the old 0.23 cone
+ * held above the waterline ((1 - 0.2 / 0.23) of its 12,500 ft reach). */
+const SETTLEMENT_DRY_RADIUS_FT = 1630;
+
+/** The settlement floor's crown: it falls 1 in 200 from the burg point to the
+ * dry radius (8 ft, 2.5 m, in all), so a low town drains to its water. */
+const SETTLEMENT_CROWN_SLOPE = 1 / 200;
 
 /**
  * One erosion bake per atlas object.
@@ -198,6 +218,96 @@ function erosionBakeFor(atlas: FmgAtlasResult): AtlasErosionField | undefined {
   return field;
 }
 
+/**
+ * THE RIVER GRADE CACHE (towns build down to the river, Remy 2026-11-01).
+ * A river's flood level along its FULL course (`riverValley.ts`), keyed on
+ * the atlas's cell-point array (one per atlas) and then on river id and
+ * sample spacing (the course resolves at twice the spacing). Every window of
+ * an atlas reads the same grade at a shared point, which is the seam contract.
+ */
+const riverGradeCache = new WeakMap<object, Map<string, Float64Array>>();
+
+/**
+ * A pack cell's climate for the river flood ratio (GG-540): FMG rainfall is
+ * the grid cell's `prec` x 100 mm a year (FMG `units.ts` `getPrecipitation`),
+ * temperature its `temp` in deg C. Undefined when the atlas carries no grid
+ * climate (hand-built test atlases), and the river reads the reference ratio.
+ */
+function riverClimateOf(atlas: FmgAtlasResult): ((cell: number) => RiverClimate | undefined) | undefined {
+  const g = atlas.pack.cells.g;
+  const prec = atlas.grid?.cells?.prec;
+  const temp = (atlas.grid?.cells as { temp?: ArrayLike<number> } | undefined)?.temp;
+  if (!g || !prec || !temp) return undefined;
+  return (cell) => {
+    const gi = g[cell];
+    if (gi == null) return undefined;
+    return { precipMm: prec[gi] * 100, tempC: temp[gi] };
+  };
+}
+
+/**
+ * The grade at each point of a published centerline, which is a clipped
+ * slice of `course` (its clip points lie on course segments): each point
+ * takes the grade interpolated on the course segment it falls on. A forward
+ * scan from the last match keeps it linear; a miss rescans the whole course.
+ */
+function gradeAlongCourse(
+  centerline: Array<[Feet, Feet]>,
+  course: Array<[Feet, Feet]>,
+  grade: ArrayLike<number>,
+): number[] {
+  const out: number[] = [];
+  let from = 0;
+  const scan = (p: [Feet, Feet], lo: number, hi: number) => {
+    let best = { d: Number.POSITIVE_INFINITY, k: lo, t: 0 };
+    for (let k = Math.max(0, lo); k < Math.min(course.length - 1, hi); k++) {
+      const [ax, ay] = course[k];
+      const [bx, by] = course[k + 1];
+      const dx = bx - ax;
+      const dy = by - ay;
+      const lenSq = dx * dx + dy * dy;
+      const t = lenSq > 0 ? Math.max(0, Math.min(1, ((p[0] - ax) * dx + (p[1] - ay) * dy) / lenSq)) : 0;
+      const d = Math.hypot(p[0] - (ax + t * dx), p[1] - (ay + t * dy));
+      if (d < best.d) best = { d, k, t };
+    }
+    return best;
+  };
+  for (const p of centerline) {
+    let hit = scan(p, from - 2, from + 64);
+    if (hit.d > 1) hit = scan(p, 0, course.length);
+    from = hit.k;
+    out.push(grade[hit.k] + (grade[Math.min(hit.k + 1, course.length - 1)] - grade[hit.k]) * hit.t);
+  }
+  return out;
+}
+
+/** The composite ground read along a course, in tiles of one region window
+ * each: a window's field sees only the regions near it, and the composite's
+ * seam contract gives every field the same value at a shared world point. */
+const GRADE_TILE_FT = REGION_SIZE_FT;
+const compositeTileCache = new WeakMap<object, Map<string, CompositeHeightField>>();
+
+function compositeGroundFt(
+  key: object,
+  /** What else the field depends on (scale, world seed), so two callers of one atlas never share a wrong tile. */
+  scope: string,
+  build: (bounds: BoundsFt) => CompositeHeightField,
+  x: Feet,
+  y: Feet,
+): number {
+  let tiles = compositeTileCache.get(key);
+  if (!tiles) compositeTileCache.set(key, (tiles = new Map()));
+  const tx = Math.floor(x / GRADE_TILE_FT);
+  const ty = Math.floor(y / GRADE_TILE_FT);
+  const tileKey = `${scope}|${tx},${ty}`;
+  let field = tiles.get(tileKey);
+  if (!field) {
+    field = build({ x: tx * GRADE_TILE_FT, y: ty * GRADE_TILE_FT, width: GRADE_TILE_FT, height: GRADE_TILE_FT });
+    tiles.set(tileKey, field);
+  }
+  return elevationCurveFt(field.sample(x, y));
+}
+
 export interface GenerateRegionOptions {
   /** Feet per FMG pixel (Lane B's canonical converter; pass any plausible value for tests). */
   feetPerPixel: number;
@@ -216,6 +326,9 @@ export interface GenerateRegionOptions {
    * Defaults to the anchor cell's Voronoi site.
    */
   windowCenterPx?: readonly [number, number];
+  /** Survey windows have no settlement at their camera center. Existing entry
+   * callers keep the original dry-land guarantee unless they explicitly opt out. */
+  applySettlementFloor?: boolean;
 }
 
 /**
@@ -274,12 +387,18 @@ export function generateRegion(
   // the burg point so the town center — and everything above it — stays land.
   // This is a single standalone Locale window (not seam-streamed), so a local
   // floor here does not affect open-world region handoffs.
-  const settlementFloor = opts.windowCenterPx
+  const settlementFloor = opts.windowCenterPx && opts.applySettlementFloor !== false
     ? {
         x: opts.windowCenterPx[0] * feetPerPixel,
         y: opts.windowCenterPx[1] * feetPerPixel,
         // Just above the waterline: the town reads as low coastal land, not sea.
-        minHeight: WATER_THRESHOLD + 0.03,
+        // TOWNS BUILD DOWN TO THE RIVER (2026-11-01): 0.03 normalized is 60 ft
+        // (18 m), not "just above". With the old cone (0.23 at the burg point,
+        // falling to 0 at half the window) every low river town stood on an
+        // 18 m mound, and the 3D river cut a gorge through it (Fapolis, seed
+        // 42). Now a LEVEL dry disk at DRY_LAND_FLOOR over the same area the
+        // cone kept dry, with a 1 in 8 edge down to the water.
+        minHeight: DRY_LAND_FLOOR,
       }
     : undefined;
 
@@ -342,8 +461,39 @@ export function generateRegion(
     resolutionFt,
   );
 
+  // The ground along a river's whole course, for its grade (riverValley.ts):
+  // the same composite as the window, built per region-sized tile.
+  const groundScope = `${feetPerPixel}|${worldSeedFromPath(worldSeedPath)}|${erosion ? 'bake' : 'ref'}`;
+  const courseGround = {
+    key: pack.cells.p as object,
+    scope: groundScope,
+    ftAt: (x: Feet, y: Feet) => compositeGroundFt(pack.cells.p as object, groundScope, (tile) => buildWindowComposite(
+      pack.cells.p,
+      pack.cells.h,
+      (pack.cells as unknown as { biome?: ArrayLike<number> }).biome,
+      feetPerPixel,
+      worldSeedFromPath(worldSeedPath),
+      tile,
+      GRADE_TILE_FT, // one raster sample: only the field is read
+      erosion,
+    ).field, x, y),
+  };
+
   const rivers = generateRiverBanks(
     pack.rivers ?? [],
+    {
+      p: pack.cells.p,
+      h: pack.cells.h,
+      fl: (pack.cells as unknown as { fl?: ArrayLike<number> }).fl ?? [],
+      f: (pack.cells as unknown as { f?: ArrayLike<number> }).f,
+      features: (pack as unknown as { features?: RiverFallAtlas['features'] }).features,
+      rivers: (pack.rivers ?? []) as RiverFallAtlas['rivers'],
+      // GG-540: each river's flood ratio comes from its catchment's climate.
+      // FMG keeps rainfall and temperature on the grid cell under each pack
+      // cell: rainfall is `prec` x 100 mm a year (FMG `getPrecipitation`),
+      // temperature is deg C. Hand-built atlases carry neither.
+      climate: riverClimateOf(atlas),
+    },
     pack.cells.p,
     memberSet,
     feetPerPixel,
@@ -352,6 +502,7 @@ export function generateRegion(
     regionPath,
     naturalHeight,
     riverAttractors,
+    courseGround,
   );
 
   // ── Town sites + roads (C2) ─────────────────────────────────────────
@@ -444,8 +595,14 @@ function applyRegionDiscipline(
       const fdy = bounds.y + row * hf.resolutionFt - settlementFloor.y;
       const fdSq = fdx * fdx + fdy * fdy;
       if (fdSq < floorReachSq) {
-        const falloff = 1 - Math.sqrt(fdSq) / floorReachFt; // 1 at center → 0 at reach
-        const target = settlementFloor.minHeight * falloff;
+        // A gentle crown inside the dry radius (1 in 200 down from the burg
+        // point, so rain drains off a low town instead of pooling on a dead
+        // level disk), then down at 1 in 8 until it is under the water and
+        // does nothing. Normalized units are 2000 ft each in the lowlands.
+        const d = Math.sqrt(fdSq);
+        const crown = (Math.max(0, SETTLEMENT_DRY_RADIUS_FT - d) * SETTLEMENT_CROWN_SLOPE) / 2000;
+        const beyond = Math.max(0, d - SETTLEMENT_DRY_RADIUS_FT);
+        const target = settlementFloor.minHeight + crown - (beyond * VALLEY_SIDE_SLOPE) / 2000;
         if (s < target) s = target;
       }
     }
@@ -675,88 +832,14 @@ function computeMemberBounds(
 }
 
 /**
- * IDW neighborhood radius, world feet — a WORLD-level constant (depends only
- * on the atlas point layout and feetPerPixel, never on the anchor or window),
- * so every region computes the exact same per-sample neighborhood. Estimated
- * as 4× the mean cell spacing: dense enough that every sample sees ~50
- * surrounding cells (comparable context to the old BFS membership), and
- * guaranteed non-empty (nearest cell is always ≤ ~1 spacing away).
- * Exported for tests.
- */
-export function computeIdwRadiusFt(
-  cellPoints: Array<[number, number]>,
-  feetPerPixel: number,
-): number {
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  let n = 0;
-  for (const p of cellPoints) {
-    if (!p) continue;
-    n++;
-    if (p[0] < minX) minX = p[0];
-    if (p[0] > maxX) maxX = p[0];
-    if (p[1] < minY) minY = p[1];
-    if (p[1] > maxY) maxY = p[1];
-  }
-  if (n === 0) throw new Error('[generateRegion] atlas has no cell points');
-  // Mean spacing of an n-point layout over its extent (≥1 px floor for
-  // degenerate single-point layouts).
-  const spacingPx = Math.max(1, Math.sqrt(((maxX - minX) * (maxY - minY)) / n));
-  return 4 * spacingPx * feetPerPixel;
-}
-
-/** Clamped smoothstep on [0,1]: 0 for t ≤ 0, 1 for t ≥ 1, C1 in between. The
- * `t ≤ 0 → 0` clamp is what makes the ridge boost EXACTLY 0 below the line. */
-function smoothstep01(t: number): number {
-  if (t <= 0) return 0;
-  if (t >= 1) return 1;
-  return t * t * (3 - 2 * t);
-}
-
-/**
- * Build the MOUNTAIN RIDGE field (Task 11): a domain-warped, ridged world-feet
- * noise that adds real peaks to high country, returning the feet-normalized
- * height delta to ADD to a heightfield sample.
- *
- * `(fx, fy, baseH) => delta`, where:
- *  - `ridgeBoost = smoothstep01((baseH − RIDGE_START_N) / (1 − RIDGE_START_N))`
- *    ramps the effect in above RIDGE_START_N. For `baseH ≤ RIDGE_START_N` the
- *    boost is EXACTLY 0, so the delta is EXACTLY 0 and the sample is unchanged —
- *    the lowland-invariance hard gate, true by construction (no float drift).
- *  - the ridged component is `1 − 2|n|` of a world-feet noise sampled at
- *    coordinates domain-warped by two aux world-feet noises (±0.35·RIDGE_SPAN_FT),
- *    exactly mirroring the octave loop's ridge transform.
- *
- * Keyed off the WORLD seed (`worldSeed ^ constants`) and indexed by WORLD FEET,
- * never the region path/grid — so two adjacent regions add the identical delta
- * at a shared world point and the relief meets seamlessly across region borders,
- * the same construction the octave loop already relies on. Pure.
- */
-export function makeMountainRidgeField(
-  worldSeed: number,
-): (fx: number, fy: number, baseH: number) => number {
-  const ridgeBase = makeWorldFeetNoise((worldSeed ^ 0x52444745) >>> 0, RIDGE_SPAN_FT); // 'RDGE'
-  const warpX = makeWorldFeetNoise((worldSeed ^ 0x57727058) >>> 0, RIDGE_SPAN_FT); // 'WrpX'
-  const warpY = makeWorldFeetNoise((worldSeed ^ 0x57727059) >>> 0, RIDGE_SPAN_FT); // 'WrpY'
-  const WARP_FT = 0.7 * RIDGE_SPAN_FT; // (noise − 0.5) spans ±0.35·RIDGE_SPAN_FT
-  const span = 1 - RIDGE_START_N;
-  return (fx: number, fy: number, baseH: number): number => {
-    const boost = smoothstep01((baseH - RIDGE_START_N) / span);
-    if (boost === 0) return 0; // baseH ≤ RIDGE_START_N ⇒ lowland-invariant
-    const dx = (warpX(fx, fy) - 0.5) * WARP_FT;
-    const dy = (warpY(fx, fy) - 0.5) * WARP_FT;
-    const n = ridgeBase(fx + dx, fy + dy) * 2 - 1; // [0,1] → [-1,1]
-    const ridge = 1 - 2 * Math.abs(n); // ridge transform → crest lines
-    return ridge * RIDGE_AMPLITUDE * boost;
-  };
-}
-
-/**
  * Generate river banks: centerline polylines + heightfield carving.
- * Width mapping: widthFt = 50 + sqrt(flux) * 20 (flux is m³/s from Rivers.generate).
- * Carve depth: 0.02 normalized within half-width of centerline.
+ * Width: `riverWidthFt` of the atlas water count, at each point (one water,
+ * 2026-10-30); the bank's `widthFt` stays the mouth's.
+ * Carve depth: the channel's flood depth at each point (`riverChannel.ts`).
  */
 function generateRiverBanks(
   rivers: Array<{ i: number; cells: number[]; discharge: number; width: number }>,
+  fallAtlas: RiverFallAtlas,
   cellPoints: Array<[number, number]>,
   memberSet: Set<number>,
   feetPerPixel: number,
@@ -765,8 +848,13 @@ function generateRiverBanks(
   regionPath: SeedPath,
   naturalHeight: (x: Feet, y: Feet) => number,
   riverAttractors: Map<number, RiverAttractor[]>,
+  courseGround: { key: object; scope: string; ftAt: (x: Feet, y: Feet) => number },
 ): RegionRiverBank[] {
   const banks: RegionRiverBank[] = [];
+  let grades = riverGradeCache.get(courseGround.key);
+  if (!grades) riverGradeCache.set(courseGround.key, (grades = new Map()));
+  // The valley floor stays land: just above the waterline.
+  const valleyFloorFt = elevationCurveFt(DRY_LAND_FLOOR);
 
   for (const river of rivers) {
     // Locality prefilter: the river must touch the membership context at all.
@@ -797,8 +885,67 @@ function generateRiverBanks(
     const centerline = clipPolylineToBounds(course, bounds);
     if (centerline.length < 2) continue;
 
-    banks.push({ riverId: river.i, centerline, widthFt });
-    carveRiverChannel(course, widthFt, heightfield, bounds);
+    // THE WATER ALONG THE RIVER (one water, 2026-10-30): each atlas segment
+    // carries its own water count, width and fall (`riverChannel.ts`). A
+    // point takes the segment of the anchor line nearest it: the course is
+    // that line, smoothed and pulled through its towns.
+    const water = riverSegmentWater(fallAtlas, river.i, feetPerPixel, elevationCurveFt);
+    const segmentAt = (p: [number, number]): RiverSegmentWater => {
+      let best = 0;
+      let bestD = Infinity;
+      for (let k = 0; k < water.length; k++) {
+        const d = pointToSegmentDist(p[0], p[1], anchors[k][0], anchors[k][1], anchors[k + 1][0], anchors[k + 1][1]);
+        if (d < bestD) { bestD = d; best = k; }
+      }
+      return water[best];
+    };
+    const centerWater = centerline.map(segmentAt);
+    banks.push({
+      riverId: river.i,
+      centerline,
+      widthFt,
+      widthFtAt: centerWater.map((w) => w.widthFt),
+      slopeAt: centerWater.map((w) => w.slope),
+    });
+    // The channel's flood depth for each atlas segment, ft.
+    const depthFtOf = new Map<RiverSegmentWater, number>();
+    // GG-540 (2026-11-02): each segment now carries its climate-derived flood
+    // ratio (`w.floodRatio`), but the channel still cuts with the stated 3.
+    // The width here is the map's, tied to the MEAN flow (Moody and Troutman
+    // 2002), so a larger flood can only deepen the channel: the derived ratio
+    // (up to 22 in dry catchments) cut V channels 13 to 26 m deep where real
+    // dry rivers are wide and shallow. The width law at the bankfull flow
+    // comes first (GG-540's follow-up).
+    for (const w of water) depthFtOf.set(w, riverChannelSection(segmentWidthM(w), w.slope).depthM / 0.3048);
+    const courseWater = course.map(segmentAt);
+    // The river's flood level along its whole course (towns build down to
+    // the river, 2026-11-01): one grade per river for every window.
+    // GG-536 (2026-11-01): the grade also falls at the atlas grade at least
+    // (a dead level bed drains the live river), down to twice the channel's
+    // flood depth under the ground at most.
+    const gradeKey = `${courseGround.scope}|${heightfield.resolutionFt}|${river.i}`;
+    let grade = grades.get(gradeKey);
+    if (!grade || grade.length !== course.length) {
+      const courseDepthFt = courseWater.map((w) => depthFtOf.get(w)!);
+      grade = riverGradeFt(
+        course.map(([x, y]) => courseGround.ftAt(x, y)),
+        valleyFloorFt,
+        course.map((p, i) => (i === 0 ? 0 : courseWater[i].slope * Math.hypot(p[0] - course[i - 1][0], p[1] - course[i - 1][1]))),
+        courseDepthFt.map((d) => 2 * d),
+      );
+      grades.set(gradeKey, grade);
+    }
+    // The published (clipped) centerline carries the grade too: each of its
+    // points takes the level where it falls on the course.
+    banks[banks.length - 1].floodFtAt = gradeAlongCourse(centerline, course, grade);
+    carveRiverChannel(
+      course,
+      courseWater.map((w) => w.widthFt),
+      courseWater.map((w) => depthFtOf.get(w)!),
+      grade,
+      heightfield,
+      bounds,
+    );
   }
 
   return banks;
@@ -806,34 +953,91 @@ function generateRiverBanks(
 
 /**
  * Carve a river channel into the heightfield: reduce heights along the
- * centerline by a modest depth within half the river width.
+ * centerline by the channel's depth within half the river width. Width and
+ * depth are per centerline point (a segment takes its start point's).
+ *
+ * THE VALLEY (towns build down to the river, Remy 2026-11-01): the channel
+ * and the ground beside it also come down to the river's flood level
+ * (`floodFtAt`, its grade along the full course): a floodplain one river
+ * width wide, then a valley side at 1 in 8 up to the land (`riverValley.ts`).
+ * Before, the cut followed the ground, so a river over a 12 m hump stayed on
+ * the hump, and the 3D ground cut a gorge through the town to keep the water
+ * running downhill. The relative channel cut stays a lower bound, and the
+ * carve only lowers ground.
  */
 function carveRiverChannel(
   centerline: Array<[Feet, Feet]>,
-  widthFt: Feet,
+  widthFtAt: Feet[],
+  depthFtAt: Feet[],
+  floodFtAt: ArrayLike<number>,
   heightfield: RegionHeightfield,
   bounds: BoundsFt,
 ): void {
-  const CARVE_DEPTH = 0.04; // normalized depth; visible in hypsometric render
-  const halfWidth = widthFt / 2;
+  // THE DEPTH FOLLOWS THE RIVER (2026-10-27, agora-257c). A fixed 0.04
+  // normalized cut is 80 ft (24 m) in the lowlands: in 3D every river ran at
+  // the bottom of a canyon whose steep walls the ground painted as gray rock
+  // (the "hard-edged dark gray patches" beside a town). A river's banks stand
+  // about 0.15 of its width above its bed, so the cut is that depth in feet,
+  // from 6 to 20 ft, turned into normalized units through the elevation
+  // curve's local slope (2000 ft per unit in the lowlands).
+  // ONE WATER (2026-10-30): the depth is now the channel's flood depth from
+  // `riverChannel.ts` (Manning at the river's fall, banks at repose), per
+  // point: the median river's is about 1.2 m (4 ft), Sinzheim's 2.5 m. The
+  // 6 to 20 ft guess put every river in a trench deeper than its water.
+  // A CONTINUOUS TRENCH (2026-10-27, agora-257c). A 15-30 m river on 100 ft
+  // samples carved only the samples that happened to lie within its half
+  // width, so the trench was a chain of separate pits. The 3D ground filled
+  // them into flat lakes beside the river and drew the far river as a row of
+  // blue lenses. The carve now reaches at least 0.75 of a sample spacing: a
+  // line always passes within 0.71 spacing of some sample, so every stretch of
+  // the course lowers at least one sample. Wide rivers are unchanged.
+  const halfWidthOf = (widthFt: Feet) => Math.max(widthFt / 2, heightfield.resolutionFt * 0.75);
+  // Full depth out to the larger of the river's half width and half a sample
+  // spacing, then a linear fall to the reach: the sample nearest a narrow
+  // river gets most of the cut, so the trench is a real channel.
+  const coreOf = (widthFt: Feet) => Math.min(halfWidthOf(widthFt), Math.max(widthFt / 2, heightfield.resolutionFt * 0.5));
+  // The widest channel along the line, for the relative cut.
+  const halfWidth = halfWidthOf(Math.max(...widthFtAt));
+
+  // THE VALLEY'S REACH. A valley side must climb from the flood level to the
+  // highest ground of the window before it can stop without a step, so each
+  // segment reaches that far past its channel edge (capped; a capped reach
+  // fades out). Two windows share the grade, so where both carve they agree.
+  let maxN = 0;
+  for (let i = 0; i < heightfield.samples.length; i++) if (heightfield.samples[i] > maxN) maxN = heightfield.samples[i];
+  const windowMaxFt = elevationCurveFt(maxN);
 
   // Perf-only segment prefilter: drop segments whose bounding box lies more
-  // than halfWidth outside the window — they cannot carve any in-window
-  // sample, so this never changes results (the centerline is the smoothed
-  // FULL river line since the 2026-07-02 seam-purity fix).
-  const rx0 = bounds.x - halfWidth;
-  const ry0 = bounds.y - halfWidth;
-  const rx1 = bounds.x + bounds.width + halfWidth;
-  const ry1 = bounds.y + bounds.height + halfWidth;
-  const segments: Array<[number, number, number, number]> = [];
+  // than their whole reach outside the window — they cannot carve any
+  // in-window sample, so this never changes results (the centerline is the
+  // smoothed FULL river line since the 2026-07-02 seam-purity fix).
+  interface CarveSegment {
+    ax: number; ay: number; bx: number; by: number;
+    half: number; core: number; depth: number; width: number;
+    floodA: number; floodB: number;
+    /** Valley reach past the channel edge, ft, and whether it hit the cap. */
+    reach: number; capped: boolean;
+    /** Channel half width plus valley reach: nothing past this is carved. */
+    total: number;
+  }
+  const segments: CarveSegment[] = [];
+  let maxTotal = halfWidth;
   for (let i = 0; i < centerline.length - 1; i++) {
     const [ax, ay] = centerline[i];
     const [bx, by] = centerline[i + 1];
+    const width = widthFtAt[i];
+    const half = halfWidthOf(width);
+    const floodA = floodFtAt[i];
+    const floodB = floodFtAt[i + 1];
+    const reach = valleyReachFt(Math.min(floodA, floodB), windowMaxFt, width);
+    const capped = (windowMaxFt - Math.min(floodA, floodB)) / VALLEY_SIDE_SLOPE > VALLEY_REACH_CAP_FT;
+    const total = half + reach;
     if (
-      Math.max(ax, bx) < rx0 || Math.min(ax, bx) > rx1 ||
-      Math.max(ay, by) < ry0 || Math.min(ay, by) > ry1
+      Math.max(ax, bx) < bounds.x - total || Math.min(ax, bx) > bounds.x + bounds.width + total ||
+      Math.max(ay, by) < bounds.y - total || Math.min(ay, by) > bounds.y + bounds.height + total
     ) continue;
-    segments.push([ax, ay, bx, by]);
+    segments.push({ ax, ay, bx, by, half, core: coreOf(width), depth: depthFtAt[i], width, floodA, floodB, reach, capped, total });
+    if (total > maxTotal) maxTotal = total;
   }
   if (segments.length === 0) return;
 
@@ -843,23 +1047,20 @@ function carveRiverChannel(
   // heightfield's own scale, so the same window now holds hundreds of segments
   // and the quadratic loop dominated region generation.
   //
-  // This is a pure accelerator — the carve is bit-identical. A segment is
-  // registered in every bucket its bounding box, EXPANDED BY halfWidth,
-  // overlaps. Any sample within halfWidth of a segment therefore lies inside
-  // that expanded box and so shares a bucket with it, which means the buckets
-  // hold a superset of every segment that could carve the sample. Segments left
-  // out are all at distance >= halfWidth, where the carve does nothing.
-  const bucketFt = Math.max(halfWidth, heightfield.resolutionFt);
+  // This is a pure accelerator. A segment is registered in every bucket its
+  // bounding box, EXPANDED BY its whole reach, overlaps, so the buckets hold a
+  // superset of every segment that could carve a sample. A bucket is at least
+  // a few hundred feet wide; a narrow valley keeps the buckets small.
+  const bucketFt = Math.max(Math.min(maxTotal, 1200), heightfield.resolutionFt);
   const bucketCols = Math.max(1, Math.ceil(bounds.width / bucketFt) + 1);
   const bucketRows = Math.max(1, Math.ceil(bounds.height / bucketFt) + 1);
-  const buckets: Array<Array<[number, number, number, number]> | undefined> =
-    new Array(bucketCols * bucketRows);
+  const buckets: Array<CarveSegment[] | undefined> = new Array(bucketCols * bucketRows);
   for (const seg of segments) {
-    const [ax, ay, bx, by] = seg;
-    const c0 = Math.max(0, Math.floor((Math.min(ax, bx) - halfWidth - bounds.x) / bucketFt));
-    const c1 = Math.min(bucketCols - 1, Math.floor((Math.max(ax, bx) + halfWidth - bounds.x) / bucketFt));
-    const r0 = Math.max(0, Math.floor((Math.min(ay, by) - halfWidth - bounds.y) / bucketFt));
-    const r1 = Math.min(bucketRows - 1, Math.floor((Math.max(ay, by) + halfWidth - bounds.y) / bucketFt));
+    const { ax, ay, bx, by, total } = seg;
+    const c0 = Math.max(0, Math.floor((Math.min(ax, bx) - total - bounds.x) / bucketFt));
+    const c1 = Math.min(bucketCols - 1, Math.floor((Math.max(ax, bx) + total - bounds.x) / bucketFt));
+    const r0 = Math.max(0, Math.floor((Math.min(ay, by) - total - bounds.y) / bucketFt));
+    const r1 = Math.min(bucketRows - 1, Math.floor((Math.max(ay, by) + total - bounds.y) / bucketFt));
     for (let br = r0; br <= r1; br++) {
       for (let bc = c0; bc <= c1; bc++) {
         const key = br * bucketCols + bc;
@@ -878,19 +1079,35 @@ function carveRiverChannel(
       const near = buckets[bucketRow * bucketCols + bucketCol];
       if (!near) continue;
 
-      // Find minimum distance to any centerline segment that could reach here
-      let minDist = Infinity;
-      for (const [ax, ay, bx, by] of near) {
-        const dist = pointToSegmentDist(sampleX, sampleY, ax, ay, bx, by);
-        minDist = Math.min(minDist, dist);
+      const idx = row * heightfield.width + col;
+      const n = heightfield.samples[idx];
+      const groundFt = elevationCurveFt(n);
+      // The deepest relative cut any nearby segment makes here: full depth in
+      // its core, a linear fall to its half width (each segment its own width).
+      // And the lowest valley ground any nearby segment asks for.
+      let cutFt = 0;
+      let valleyFt = groundFt;
+      for (const s of near) {
+        const dx = s.bx - s.ax;
+        const dy = s.by - s.ay;
+        const lenSq = dx * dx + dy * dy;
+        const t = lenSq > 0 ? Math.max(0, Math.min(1, ((sampleX - s.ax) * dx + (sampleY - s.ay) * dy) / lenSq)) : 0;
+        const dist = Math.hypot(sampleX - (s.ax + t * dx), sampleY - (s.ay + t * dy));
+        if (dist >= s.total) continue;
+        if (dist < s.half) {
+          const falloff = dist <= s.core ? 1 : 1 - (dist - s.core) / (s.half - s.core); // 1 in the core, 0 at the half width
+          cutFt = Math.max(cutFt, s.depth * falloff);
+        }
+        const target = valleyTargetFt(dist, s.floodA + (s.floodB - s.floodA) * t, s.half, s.core, s.depth, s.width);
+        if (target >= groundFt) continue;
+        const w = valleyCutWeight(Math.max(0, dist - s.half), s.reach, s.capped);
+        valleyFt = Math.min(valleyFt, groundFt - w * (groundFt - target));
       }
 
-      // If within half-width, carve proportionally
-      if (minDist < halfWidth) {
-        const idx = row * heightfield.width + col;
-        const falloff = 1 - minDist / halfWidth; // 1 at center, 0 at edge
-        heightfield.samples[idx] = Math.max(0, heightfield.samples[idx] - CARVE_DEPTH * falloff);
-      }
+      let next = n;
+      if (cutFt > 0) next = Math.max(0, n - cutFt / elevationCurveSlopeFt(n));
+      if (valleyFt < groundFt) next = Math.min(next, Math.max(0, normalizedFromFt(valleyFt)));
+      heightfield.samples[idx] = next;
     }
   }
 }
@@ -1091,11 +1308,14 @@ export function deriveRegionCrossings(
           const crossingAngleSine = Math.abs(
             roadDirection[0] * riverDirection[1] - roadDirection[1] * riverDirection[0],
           );
+          // ONE WATER (2026-10-30): the river's width where the road crosses
+          // it (the segment's start point), not its mouth's.
+          const riverWidthHereFt = river.widthFtAt[riverIndex - 1];
           const kind: RegionCrossing['kind'] = (
-            river.widthFt <= FORD_MAX_RIVER_WIDTH_FT
+            riverWidthHereFt <= FORD_MAX_RIVER_WIDTH_FT
             && (road.kind === 'trail' || road.kind === 'path')
           ) ? 'ford' : 'bridge';
-          const spanFt = river.widthFt / Math.max(MIN_CROSSING_ANGLE_SINE, crossingAngleSine)
+          const spanFt = riverWidthHereFt / Math.max(MIN_CROSSING_ANGLE_SINE, crossingAngleSine)
             + CROSSING_LANDING_FT * 2;
 
           crossings.push({

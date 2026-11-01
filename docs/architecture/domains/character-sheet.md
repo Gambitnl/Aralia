@@ -1,6 +1,6 @@
 # Character Sheet
 
-Verified: unknown - predates the verification rule (see AGENTS.md)
+Verified: 2026-10-31 (Journal tab and existing empty spread checked; other sections retain the prior audit)
 
 ## Purpose
 
@@ -77,3 +77,9 @@ The older path assumptions about top-level Party and SpellbookOverlay files were
 - Which docs should explain the current CharacterSheet subtree layout in more detail so the modal is not treated as the whole domain?
 - How much of the level-up flow should be documented here versus in character-progression references?
 - Which deprecated bridge files should remain visible in domain docs versus being called out as historical compatibility layers?
+
+## Honest empty Journal
+
+JournalTab passes only saved JournalState.entries into JournalSpread. With no saved page, the existing empty spread appears. It no longer creates a fake crossroads opening, completed events, objectives or Year1492DR date. Existing authored pages keep their identity, dates, quest data and navigation. This presentation change writes no game state and does not generate a recap from pending events.
+
+Native Ilan in year351 exposed the fallback while inspecting earned march fatigue. Four affected checks pass and two scoped type paths have zero diagnostics. The actual desktop empty state is inspected after named-save/fullreload with31checked state groups and64CURRENTarchive payloads exact. Access to real travel messages from the3D HUD remains GF-G114 in the Gameplay Flow gaps record.

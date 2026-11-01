@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 08/06/2026, 17:22:06
- * Dependents: components/Trade/MerchantModal.tsx, hooks/actions/handleMerchantInteraction.ts, utils/economy/index.ts
- * Imports: 6 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file handles all calculations for item prices in the game's economy.
  *
@@ -25,6 +9,22 @@
  * Called by: MerchantModal.tsx (for display), handleMerchantInteraction.ts (for execution)
  * Depends on: RegionalEconomySystem for local wealth data, FactionEconomyManager for standing bonuses
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 28/10/2026, 15:55:19
+ * Dependents: components/Economy/ShopModal.tsx, components/Trade/MerchantModal.tsx, data/economy/businessStock.ts, hooks/actions/handleMerchantInteraction.ts, utils/economy/index.ts
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 // ============================================================================
 // Imports and Definitions
@@ -46,7 +46,7 @@ import { Faction, PlayerFactionStanding } from '../../types/factions';
 import { REGIONAL_ECONOMIES } from '../../data/economy/regions';
 import { getRegionalPriceModifier } from '../../systems/economy/RegionalEconomySystem';
 import { getFactionTradeBonus } from '../../systems/world/FactionEconomyManager';
-import { getMarketEventTags } from './marketEvents';
+import { getMarketEventTags, deduplicateRouteMarketEvents } from './marketEvents';
 
 export interface PriceContext {
   factions?: Record<string, Faction>;
@@ -128,6 +128,60 @@ export interface PriceCalculationResult {
  * @param context Optional faction data and player standings for faction trade bonuses.
  * @returns Detailed calculation result including final price and modifiers.
  */
+/**
+ * Plural/stem normalization map for common market goods and category tags (GG-443 / agora-76f7).
+ */
+const TAG_ALIASES: Record<string, string> = {
+  weapons: 'weapon',
+  armors: 'armor',
+  potions: 'potion',
+  consumables: 'consumable',
+  foods: 'food',
+  food_drink: 'food',
+  drinks: 'food',
+  spices: 'spice',
+  cloths: 'cloth',
+  clothes: 'cloth',
+  clothing: 'cloth',
+  metals: 'metal',
+  ores: 'ore',
+  irons: 'iron',
+  salts: 'salt',
+  silks: 'silk',
+  luxuries: 'luxury',
+  treasures: 'treasure',
+  golds: 'gold',
+  tools: 'tool',
+};
+
+function normalizeTagToken(token: string): string {
+  const clean = token.toLowerCase().trim().replace(/[^a-z0-9_]/g, '');
+  return TAG_ALIASES[clean] || clean;
+}
+
+/**
+ * Checks whether an item matches a specific market event tag.
+ * Matches exact item.type (and aliases), or whole words in item.name of length >= 3 (GG-443 / agora-76f7).
+ * Avoids bidirectional substring matches that caused unrelated goods (e.g. gold locket matching 'consumable' via 'a')
+ * to have price swings.
+ */
+export function itemMatchesMarketTag(item: Item, rawEventTag: string): boolean {
+  const normEventTag = normalizeTagToken(rawEventTag);
+  if (!normEventTag || normEventTag === 'all') return true;
+
+  // 1. Exact match on item.type (or normalized alias)
+  const normItemType = normalizeTagToken(item.type);
+  if (normItemType === normEventTag) return true;
+  // Specific alias for food_drink / potion / treasure types matching categories
+  if (item.type === 'food_drink' && (normEventTag === 'food' || normEventTag === 'consumable')) return true;
+  if (item.type === 'potion' && normEventTag === 'consumable') return true;
+  if (item.type === 'treasure' && (normEventTag === 'luxury' || normEventTag === 'valuable' || normEventTag === 'treasure')) return true;
+
+  // 2. Whole token matching in item.name (words of length >= 3)
+  const nameTokens = item.name.toLowerCase().split(/[\s,.-]+/).map(normalizeTagToken).filter(t => t.length >= 3);
+  return nameTokens.some(token => token === normEventTag);
+}
+
 export const calculatePrice = (
   item: Item,
   economy: EconomyState | undefined,
@@ -174,41 +228,42 @@ export const calculatePrice = (
 
   // 1. Check MarketEvents (Primary System)
   if (economy.marketEvents && economy.marketEvents.length > 0) {
-    economy.marketEvents.forEach(event => {
-      // Determine if event applies to this item
-      // Route/world event tags are now carried in affectedTags or affectedCategories.
-      // Keep name parsing only as fallback for legacy events.
-      const eventTags = getMarketEventTags(event);
-      const applies = itemTags.some(tag =>
-        eventTags.some(eventTag =>
-          eventTag === 'all' || eventTag === tag || eventTag.includes(tag) || tag.includes(eventTag))
-      );
-
-      if (applies) {
-        if (event.type === MarketEventType.SHORTAGE) {
-          // Shortage = Higher Price
-          // Buy: +Intensity, Sell: +Intensity * 0.5 (Merchants pay more for scarce items)
-          const mod = event.intensity || 0.5;
-          multiplier += transactionType === 'buy' ? mod : mod * 0.5;
-        } else if (event.type === MarketEventType.SURPLUS) {
-          // Surplus = Lower Price
-          // Buy: -Intensity, Sell: -Intensity * 0.8 (Merchants pay way less for common items)
-          const mod = event.intensity || 0.3;
-          multiplier -= transactionType === 'buy' ? mod : mod * 0.8;
-        }
+    // Test relevance before choosing a route report: an unrelated stronger
+    // commodity must not displace the effect on this particular item.
+    const matchingEvents = economy.marketEvents.filter(event =>
+      getMarketEventTags(event).some(tag => itemMatchesMarketTag(item, tag)));
+    deduplicateRouteMarketEvents(matchingEvents, economy.tradeRoutes ?? []).forEach(event => {
+      // EnrichedMarketEvent or template priceModifier (explicit multiplier)
+      // e.g. Plague Outbreak: 3.0 (precious medicine); Trade Fair: 0.8 (competitive pricing)
+      if (typeof event.priceModifier === 'number' && event.priceModifier > 0) {
+        multiplier *= event.priceModifier;
+      } else if (
+        event.type === MarketEventType.SHORTAGE ||
+        event.type === MarketEventType.BUST ||
+        event.type === MarketEventType.WAR_TAX
+      ) {
+        // Shortage / Scarcity / War Tax = Higher Price
+        // Buy: +Intensity, Sell: +Intensity * 0.5 (Merchants pay more for scarce items)
+        const mod = event.intensity || 0.5;
+        multiplier += transactionType === 'buy' ? mod : mod * 0.5;
+      } else if (
+        event.type === MarketEventType.SURPLUS ||
+        event.type === MarketEventType.FESTIVAL ||
+        event.type === MarketEventType.BOOM
+      ) {
+        // Surplus / Festival / Boom = Lower Price
+        // Buy: -Intensity, Sell: -Intensity * 0.8 (Merchants pay way less for common items)
+        const mod = event.intensity || 0.3;
+        multiplier -= transactionType === 'buy' ? mod : mod * 0.8;
       }
     });
   } else {
     // 2. Fallback to Legacy MarketFactors (If no events found)
     // Scarcity increases price (Demand > Supply)
-    const isScarce = economy.marketFactors.scarcity.some(tag =>
-      itemTags.some(it => it.includes(tag.toLowerCase()))
-    );
+    const isScarce = economy.marketFactors.scarcity.some(tag => itemMatchesMarketTag(item, tag));
 
     // Surplus decreases price (Supply > Demand)
-    const isSurplus = economy.marketFactors.surplus.some(tag =>
-      itemTags.some(it => it.includes(tag.toLowerCase()))
-    );
+    const isSurplus = economy.marketFactors.surplus.some(tag => itemMatchesMarketTag(item, tag));
 
     // Logic from MerchantModal (preserved):
     if (transactionType === 'buy') {

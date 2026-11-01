@@ -4,6 +4,13 @@ import type { ChunkData } from '../types';
 
 const SITE_RAW_HEIGHT = 40;
 
+it('carries exact front-door offsets to live resident packets, including zero', () => {
+  const data = chunkWithTown();
+  data.sites[0].frontDoorOffsetX = 0;
+  data.sites[0].frontDoorOffsetZ = -3.25;
+  expect(buildSiteMeshes(data)[0]).toMatchObject({frontDoorOffsetX: 0, frontDoorOffsetZ: -3.25});
+});
+
 const chunkWithTown = (): ChunkData => ({
   cx: 0,
   cy: 0,
@@ -113,6 +120,20 @@ it('puts the door on the street-facing wall for both street sides', () => {
   expect(above.doorZSign).toBe(1);
   // Same frontage axis → same yaw; only the door face flips.
   expect(below.rotationY).toBeCloseTo(above.rotationY ?? NaN);
+});
+
+it('keeps a hostile marker at body scale without changing source placement or landmark bounds', () => {
+  const data = chunkWithTown();
+  const source = data.sites[0];
+  data.sites = [
+    { ...source, id: 'hostile-source-7', kind: 'monster', name: 'Highwayman', footprint: [], labelRangeM: 15 },
+    { ...source, id: 'landmark', kind: 'landmark', footprint: [] },
+  ];
+  const [hostile, landmark] = buildSiteMeshes(data);
+  expect(hostile).toMatchObject({id: 'hostile-source-7', kind: 'monster', name: 'Highwayman', radius: 2, labelRangeM: 15, surfaceY: source.surfaceY});
+  expect(hostile.localX).toBe(landmark.localX);
+  expect(hostile.localZ).toBe(landmark.localZ);
+  expect(landmark.radius).toBe(11);
 });
 
 it('uses kind-based base radius for non-town sites without population', () => {

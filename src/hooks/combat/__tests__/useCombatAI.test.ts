@@ -279,6 +279,35 @@ describe('useCombatAI', () => {
     expect(mockEndTurn).toHaveBeenCalledTimes(1);
   });
 
+  it('does not plan another action when cost publication rerenders during an awaited attack', async () => {
+    let publishCost = () => {};
+    let finishAttack = () => {};
+    const executeAbility = vi.fn(() => {
+      publishCost();
+      return new Promise<void>(resolve => { finishAttack = resolve; });
+    });
+    mockEvaluateCombatTurn.mockReturnValueOnce(abilityAction).mockReturnValue(endTurnAction);
+    const { result } = renderHook(() => {
+      const [characters, setCharacters] = React.useState([mockCharacter, playerTarget]);
+      publishCost = () => setCharacters(previous => previous.map(actor => actor.id === mockCharacter.id
+        ? { ...actor, actionEconomy: { ...actor.actionEconomy, action: { used: true, remaining: 0 } } }
+        : actor));
+      return useCombatAI({ difficulty: 'easy', characters, mapData: mockMapData,
+        currentCharacterId: mockCharacter.id, executeAction: mockExecuteAction,
+        executeAbility, endTurn: mockEndTurn, autoCharacters: new Set() });
+    });
+    act(() => { vi.advanceTimersByTime(AI_THINKING_DELAY_MS.easy); });
+    await act(async () => { await Promise.resolve(); });
+    expect(executeAbility).toHaveBeenCalledTimes(1);
+    expect(mockEvaluateCombatTurn).toHaveBeenCalledTimes(1);
+    expect(mockEndTurn).not.toHaveBeenCalled();
+    await act(async () => { finishAttack(); await Promise.resolve(); });
+    act(() => { vi.advanceTimersByTime(AI_THINKING_DELAY_MS.easy); });
+    await act(async () => { await Promise.resolve(); });
+    expect(mockEndTurn).toHaveBeenCalledTimes(1);
+    expect(result.current.aiState).toBe('done');
+  });
+
   it('reads the thinking delay from AIConfigContext instead of the difficulty table', async () => {
     const customDelay = 4000;
     // 4000ms is far outside the 500/1000/1500 difficulty table, so only the

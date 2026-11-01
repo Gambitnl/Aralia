@@ -1,11 +1,16 @@
+/**
+ * @file src/hooks/actions/handleNpcInteraction.ts
+ * Handles NPC interaction actions like 'talk'.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 16/07/2026, 13:30:02
+ * Last Sync: 31/10/2026, 03:11:09
  * Dependents: hooks/actions/actionHandlers.ts
- * Imports: 23 files
+ * Imports: 31 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,10 +19,6 @@
  */
 // @dependencies-end
 
-/**
- * @file src/hooks/actions/handleNpcInteraction.ts
- * Handles NPC interaction actions like 'talk'.
- */
 import React from 'react';
 import { GameState, Action, GoalStatus } from '../../types';
 import { AppAction } from '../../state/actionTypes';
@@ -30,13 +31,19 @@ import { resolveAndRegisterEntities } from '../../utils/context';
 import { generateNPC, NPCGenerationConfig } from '../../services/npcGenerator';
 import { generateId } from '../../utils/core/idGenerator';
 import { getDayPartLabel, getGameDay } from '../../utils/core/timeUtils';
-import { buildActionMemoryDispatches } from '../../systems/memory/actionMemoryMatrix';
+import { buildActionMemoryDispatches, hasDirectPlayerMeeting } from '../../systems/memory/actionMemoryMatrix';
+import { latestSpokenDialogueReplies } from '../../systems/social/npcDialogueMemory';
 import { OllamaService } from '../../services/ollama';
 import { ConversationMessage } from '../../types/conversation';
 import { getWeatherSummary } from '../../types/environment';
 import { INITIAL_QUESTS } from '../../data/quests';
 import type { QuestOffer } from '../../types/actions';
 import type { RichNPC } from '../../types/world';
+import type { Companion } from '../../types/companions';
+import { preparationMeetingRecall } from '../../systems/companions/companionPreparations';
+import { companionRumorRecall } from '../../systems/companions/companionRumors';
+import { companionActivityContactError, companionActivityMeetingLine } from '../../systems/companions/companionWorldActivities';
+import { sharedJourneyRecall } from '../../systems/companions/companionJourney';
 import { evaluateRecruitOffer } from '../../systems/party/recruitConsent';
 import { npcToPartyMember, promoteCompanionToMember } from '../../systems/party/npcToPartyMember';
 import { isInParty } from '../../systems/party/recruitTypes';
@@ -257,6 +264,14 @@ function handleRecruitOffer(
         );
 
         if (!verdict.willJoin) {
+            if (!isInParty(existingCompanion)) {
+                // A refusal is part of this person's shared history, without
+                // granting trust or changing the consent decision itself.
+                dispatch({ type: 'ADD_COMPANION_MEMORY', payload: { companionId: targetId, memory: {
+                    id: generateId(), type: 'event', timestamp: gameState.gameTime.getTime(),
+                    text: verdict.reason, tags: ['recruitment', 'refused'], importance: 7,
+                } } });
+            }
             addMessage(verdict.reason, 'system');
             return;
         }
@@ -317,8 +332,42 @@ function buildConversationContext(state: GameState): BanterContext {
     };
 }
 
-function getCompanionConversationMessage(companionName: string): string {
-    return `${companionName} looks up, smiles, and waits for you to speak.`;
+async function withGreetingDeadline<T>(request: Promise<T>, waitMs: number): Promise<T | null> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+        return await Promise.race([
+            request,
+            new Promise<null>(resolve => { timer = setTimeout(() => resolve(null), waitMs); }),
+        ]);
+    } finally {
+        if (timer !== undefined) clearTimeout(timer);
+    }
+}
+
+function getCompanionConversationMessage(companion: Companion, wasMet: boolean, state: GameState): string {
+    const worldSeed = state.worldSeed;
+    // A played shared arrival is the present conversation, not another introduction.
+    // Original meeting facts remain saved without being repeated on every greeting.
+    const journey = sharedJourneyRecall(companion, worldSeed, state.currentLocationId,
+        state.party?.find(person => person.id === companion.id)?.conditions?.includes('exhaustion'));
+    if (journey) return journey;
+    // Authored public information makes the first meeting useful even offline.
+    // Secret ambitions never enter this line or the optional model context.
+    const goal = companion.goals?.find(goal => !goal.isSecret && goal.status === 'active');
+    const aim = goal ? goal.description.charAt(0).toLowerCase() + goal.description.slice(1) : null;
+    const invitationRecall = companion.memories?.some(memory => memory.tags.includes('recruitment') && memory.tags.includes('refused'))
+        ? ' "I remember your invitation to travel together."' : '';
+    const preparationMemory = preparationMeetingRecall(companion);
+    const preparationRecall = preparationMemory ? ` "${preparationMemory}"` : '';
+    const rumorMemory = companionRumorRecall(companion, worldSeed);
+    const rumorRecall = rumorMemory ? ` "${rumorMemory}"` : '';
+    const activityLine = companionActivityMeetingLine(companion, worldSeed);
+    if (wasMet) {
+        return `${companion.identity.name} recognizes you. ${aim
+            ? `"I'm still working to ${aim}.${activityLine}"` : `"What is on your mind?${activityLine}"`}${invitationRecall}${preparationRecall}${rumorRecall}`;
+    }
+    return `"I'm ${companion.identity.name}${companion.identity.class ? `, a ${companion.identity.class.toLowerCase()}` : ''}.` +
+        `${aim ? ` My aim is to ${aim}.` : ''}${activityLine}"`;
 }
 
 export async function handleStartDialogue({
@@ -329,6 +378,8 @@ export async function handleStartDialogue({
 }: HandleTalkProps): Promise<void> {
   const { npcId } = (action.payload as { npcId?: string } | undefined) || {};
   if (!npcId) return;
+  const contactError=companionActivityContactError(gameState,npcId);
+  if(contactError){addMessage(contactError,'system');return;}
 
   // Check if NPC exists in static or generated registries
   let npc = NPCS[npcId] || gameState.generatedNpcs?.[npcId];
@@ -350,29 +401,40 @@ export async function handleStartDialogue({
     // Register them permanently
     dispatch({ type: 'REGISTER_GENERATED_NPC', payload: { npc: generatedNpc } });
 
+    addMessage(`You greet ${generatedNpc.name}, a ${generatedNpc.biography.age}-year-old ${generatedNpc.biography.classId}.`, "system");
+  }
+
+  // Town arrival registers residents before the player speaks to them. First
+  // contact belongs to the meeting, not NPC creation, so those residents and
+  // authored NPCs must remember this entry path too. Repeat visits preserve the
+  // original meeting fact while updating the last time we spoke.
+  // Capture familiarity before first-contact recording. Reading the newly added
+  // fact in the UI would incorrectly turn this first meeting into a reunion.
+  // An exact-life delivered conversation remains a prior meeting after a venue
+  // packet changes. Keep its old record; do not copy facts or award trust.
+  const hadDirectMeeting = hasDirectPlayerMeeting(gameState.npcMemory?.[npc.id]?.knownFacts)
+    || latestSpokenDialogueReplies(gameState,npc.id,1).length>0;
+  if (!hadDirectMeeting) {
     // Add "Met" fact immediately so they remember you. Routed through the
     // action-memory matrix so first contact carries the same id, strength,
     // lifespan and provenance rules as every other remembered act.
     buildActionMemoryDispatches({
       actionType: 'met',
-      observerNpcId: generatedNpc.id,
+      observerNpcId: npc.id,
       gameDay: getGameDay(gameState.gameTime),
       timestamp: gameState.gameTime.getTime(),
       detail: 'the adventurer',
     }).forEach(memoryAction => dispatch(memoryAction));
-    dispatch({ type: 'ADD_MET_NPC', payload: { npcId: generatedNpc.id } });
-    // First contact now counts as a fresh memory touch so the new fact and the
-    // interaction clock stay aligned before the dialogue session opens.
-    dispatch({
-      type: 'UPDATE_NPC_INTERACTION_TIMESTAMP',
-      payload: { npcId: generatedNpc.id, timestamp: gameState.gameTime.getTime() },
-    });
-
-    addMessage(`You greet ${generatedNpc.name}, a ${generatedNpc.biography.age}-year-old ${generatedNpc.biography.classId}.`, "system");
   }
+  if (!gameState.metNpcIds.includes(npc.id)) dispatch({ type: 'ADD_MET_NPC', payload: { npcId: npc.id } });
+
+  dispatch({
+    type: 'UPDATE_NPC_INTERACTION_TIMESTAMP',
+    payload: { npcId: npc.id, timestamp: gameState.gameTime.getTime() },
+  });
 
   // Now dispatch the actual session start with the guaranteed valid ID
-  dispatch({ type: 'START_DIALOGUE_SESSION', payload: { npcId } });
+  dispatch({ type: 'START_DIALOGUE_SESSION', payload: { npcId, contactStatus: hadDirectMeeting ? 'returning' : 'first-meeting' } });
 }
 
 export async function handleTalk({
@@ -392,6 +454,9 @@ export async function handleTalk({
     return;
   }
 
+  const contactError=companionActivityContactError(gameState,targetId);
+  if(contactError){addMessage(contactError,'system');return;}
+
   // An "Invite to party" dialogue outcome can ride on any talk action. Process it
   // once, up front, so the recruit pipeline runs regardless of which talk branch
   // (companion / static NPC / generated NPC) the target resolves into. It is a
@@ -409,6 +474,22 @@ export async function handleTalk({
       dispatch({ type: 'END_DIALOGUE_SESSION' });
     }
 
+    // Opening a companion conversation is a real meeting, even when the model
+    // is unavailable. Use the existing NPC memory owner and saved game clock;
+    // repeated greetings touch recency without inventing another first meeting.
+    const wasMet = gameState.metNpcIds.includes(targetId);
+    if (!hasDirectPlayerMeeting(gameState.npcMemory?.[targetId]?.knownFacts)) {
+      buildActionMemoryDispatches({
+        actionType: 'met', observerNpcId: targetId,
+        gameDay: getGameDay(gameState.gameTime), timestamp: gameState.gameTime.getTime(),
+        detail: playerContext,
+      }).forEach(memoryAction => dispatch(memoryAction));
+    }
+    if (!wasMet) dispatch({ type: 'ADD_MET_NPC', payload: { npcId: targetId } });
+    dispatch({ type: 'UPDATE_NPC_INTERACTION_TIMESTAMP', payload: {
+      npcId: targetId, timestamp: gameState.gameTime.getTime(),
+    } });
+
     dispatch({ type: 'SET_CONVERSATION_PENDING', payload: true });
     dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
 
@@ -421,24 +502,32 @@ export async function handleTalk({
       sex: companion.identity.sex,
       age: companion.identity.age,
       physicalDescription: companion.identity.physicalDescription,
-      personality: `Values: ${companion.personality.values.join(', ')}. Quirks: ${companion.personality.quirks.join(', ')}.`
+      personality: `Values: ${companion.personality.values.join(', ')}. Quirks: ${companion.personality.quirks.join(', ')}. ` +
+        `Public ambitions: ${(companion.goals ?? []).filter(goal => !goal.isSecret && goal.status === 'active').map(goal => goal.description).join('; ') || 'not disclosed'}. ` +
+        `Remembered preparations: ${preparationMeetingRecall(companion) || 'none disclosed'}. ` +
+        `Remembered player-shared accounts: ${companionRumorRecall(companion, gameState.worldSeed) || 'none disclosed'}. ` +
+        'Treat shared accounts as hearsay. Do not invent local people, destinations, past meetings or promises. Do not claim consent to travel.'
     };
 
     let initialMessage: ConversationMessage = {
       id: generateId(),
       speakerId: targetId,
-      text: getCompanionConversationMessage(companion.identity.name),
+      text: getCompanionConversationMessage(companion, wasMet, gameState),
       timestamp: Date.now(),
     };
 
     try {
-        const result = await OllamaService.continueConversation(
+        // Availability discovery can itself stall when the local proxy is down.
+        // Bound both optional waits below the action watchdog. A late result has
+        // no writer attached, so it cannot reopen or overwrite a later meeting.
+        const available = await withGreetingDeadline(OllamaService.isAvailable(), 1500);
+        const result = available ? await withGreetingDeadline(OllamaService.continueConversation(
             [participant],
             [],
             context
-        );
+        ), 8000) : null;
 
-        if (result.metadata) {
+        if (result?.metadata) {
             addGeminiLog(
                 'continueConversation',
                 result.metadata.prompt,
@@ -446,7 +535,7 @@ export async function handleTalk({
             );
         }
 
-        if (result.success && result.data) {
+        if (result?.success && result.data) {
             initialMessage = {
                 ...initialMessage,
                 speakerId: result.data.speakerId,
@@ -458,6 +547,19 @@ export async function handleTalk({
         // Keep fallback message on any model/path failure.
     } finally {
         dispatch({ type: 'SET_CONVERSATION_PENDING', payload: false });
+    }
+
+    // Retain only public ambitions actually spoken in this greeting. Merely
+    // owning the authored companion data must never reveal a secret objective.
+    for (const goal of companion.goals ?? []) {
+      const factId = targetId + ':public-goal:' + goal.id;
+      if (goal.isSecret || goal.status !== 'active'
+        || !initialMessage.text.toLowerCase().includes(goal.description.toLowerCase())
+        || companion.discoveredFacts?.some(fact => fact.id === factId || fact.fact === goal.description)) continue;
+      dispatch({ type: 'ADD_DISCOVERED_FACT', payload: { companionId: targetId, fact: {
+        id: factId, category: 'other', fact: goal.description,
+        discoveredAt: gameState.gameTime.getTime(), source: 'conversation',
+      } } });
     }
 
     dispatch({
@@ -479,7 +581,7 @@ export async function handleTalk({
     }
 
     // Add NPC to met list on first successful interaction
-    if (!gameState.metNpcIds.includes(npc.id)) {
+    if (!hasDirectPlayerMeeting(gameState.npcMemory?.[npc.id]?.knownFacts)) {
       buildActionMemoryDispatches({
         actionType: 'met',
         observerNpcId: npc.id,
@@ -487,8 +589,8 @@ export async function handleTalk({
         timestamp: gameState.gameTime.getTime(),
         detail: playerContext,
       }).forEach(memoryAction => dispatch(memoryAction));
-      dispatch({ type: 'ADD_MET_NPC', payload: { npcId: npc.id } });
     }
+    if (!gameState.metNpcIds.includes(npc.id)) dispatch({ type: 'ADD_MET_NPC', payload: { npcId: npc.id } });
 
     // 1. Retrieve NPC memory from gameState
     const memory = gameState.npcMemory[npc.id];
@@ -629,7 +731,11 @@ export async function handleTalk({
       return;
     }
 
-    if (!gameState.metNpcIds.includes(generated.id)) {
+    // The Town Plan and body Talk route enters here. Familiarity belongs to
+    // this person's prior direct memory, not a pre-registered town roster ID.
+    const hadDirectMeeting = hasDirectPlayerMeeting(gameState.npcMemory?.[generated.id]?.knownFacts)
+      || latestSpokenDialogueReplies(gameState,generated.id,1).length>0;
+    if (!hadDirectMeeting) {
       buildActionMemoryDispatches({
         actionType: 'met',
         observerNpcId: generated.id,
@@ -637,11 +743,11 @@ export async function handleTalk({
         timestamp: gameState.gameTime.getTime(),
         detail: playerContext,
       }).forEach(memoryAction => dispatch(memoryAction));
-      dispatch({ type: 'ADD_MET_NPC', payload: { npcId: generated.id } });
     }
+    if (!gameState.metNpcIds.includes(generated.id)) dispatch({ type: 'ADD_MET_NPC', payload: { npcId: generated.id } });
 
     dispatch({ type: 'UPDATE_NPC_INTERACTION_TIMESTAMP', payload: { npcId: generated.id, timestamp: gameState.gameTime.getTime() } });
-    dispatch({ type: 'START_DIALOGUE_SESSION', payload: { npcId: generated.id } });
+    dispatch({ type: 'START_DIALOGUE_SESSION', payload: { npcId: generated.id, contactStatus: hadDirectMeeting ? 'returning' : 'first-meeting' } });
   } else {
     addMessage(`There is no one named ${targetId} to talk to here.`, 'system');
     dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });

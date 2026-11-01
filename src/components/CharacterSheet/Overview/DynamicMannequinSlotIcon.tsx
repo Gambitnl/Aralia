@@ -6,6 +6,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { ArmorProficiencyLevel, EquipmentSlotType } from '../../../types';
+import { resolveItemAssetSrc } from '../../../utils/visuals';
 
 interface DynamicMannequinSlotIconProps {
   characterProficiency: ArmorProficiencyLevel;
@@ -18,16 +19,18 @@ const DynamicMannequinSlotIcon: React.FC<DynamicMannequinSlotIconProps> = ({
   slotType,
   fallbackIcon,
 }) => {
-  // Dynamic SVG loading is pending asset creation, tracked in Agora task agora-d1c7.14.
-  // When SVG assets are authored and placed under public/assets/icons/mannequin/[proficiency]/[slot].svg,
-  // toggle MANNEQUIN_SVGS_EXIST to true. For now, always use the fallback icon to prevent 404 errors.
-  const MANNEQUIN_SVGS_EXIST = false;
+  // SVG assets live at public/assets/icons/mannequin/[proficiency]/[slot].svg,
+  // covering all 13 paper-doll slots for light, medium, and heavy proficiency.
+  // MANNEQUIN_SVGS_EXIST stays as a kill-switch: flip it to false to restore the
+  // default slot icons everywhere without deleting assets.
+  const MANNEQUIN_SVGS_EXIST = true;
 
   const [svgSrc, setSvgSrc] = useState<string | null>(null);
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    if (!MANNEQUIN_SVGS_EXIST) {
+    // No unarmored/ asset tier exists: unarmored characters keep the default icons.
+    if (!MANNEQUIN_SVGS_EXIST || characterProficiency === 'unarmored') {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setHasError(true); // Skip straight to fallback
       return;
@@ -35,11 +38,11 @@ const DynamicMannequinSlotIcon: React.FC<DynamicMannequinSlotIconProps> = ({
 
     const slotIdLowercase = slotType.toLowerCase();
     const proficiencyPathPart = characterProficiency.toLowerCase();
-    // Path assumes SVGs are in /public/assets/icons/mannequin/[PROFICIENCY_LEVEL]/[SLOT_ID_LOWERCASE].svg
-    // which resolves to /assets/icons/mannequin/... at runtime
-    const path = `/assets/icons/mannequin/${proficiencyPathPart}/${slotIdLowercase}.svg`;
+    // Catalog-style portable path; resolveItemAssetSrc routes it through the Vite
+    // base so the /Aralia/ deployment and nested routes request the right URL.
+    const path = resolveItemAssetSrc(`assets/icons/mannequin/${proficiencyPathPart}/${slotIdLowercase}.svg`);
 
-    setSvgSrc(path);
+    setSvgSrc(path ?? null);
     setHasError(false);
   }, [characterProficiency, slotType, MANNEQUIN_SVGS_EXIST]);
 

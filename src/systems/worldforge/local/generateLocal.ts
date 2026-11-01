@@ -131,8 +131,11 @@ const MATERIALS: TerrainMaterial[] = [
 ];
 const MAT = Object.fromEntries(MATERIALS.map((m, i) => [m, i])) as Record<TerrainMaterial, number>;
 
-/** Water threshold in the region's normalized heightfield (FMG h<20 ≙ 0.2). */
-const WATER_LEVEL = 0.2;
+/**
+ * Water threshold in the region's normalized heightfield (FMG h<20 ≙ 0.2).
+ * Exported: the ground loader tests a town's sea apron against it (2026-10-27).
+ */
+export const WATER_LEVEL = 0.2;
 /**
  * Slopes steeper than this (rise over 5ft run, in normalized units) read as
  * rock — scree/outcrops on the steepest ~1% of cells. Real 5ft gradients are
@@ -322,8 +325,9 @@ export function generateLocal(
   // River banks crossing the local bounds carve water bands (the region
   // already carved the heightfield; here we classify the surface).
   for (const river of region.rivers) {
-    const halfW = Math.max(river.widthFt / 2, CELL_FT);
     for (let p = 0; p < river.centerline.length - 1; p++) {
+      // One water (2026-10-30): the river's own width at this point.
+      const halfW = Math.max(river.widthFtAt[p] / 2, CELL_FT);
       const [ax, ay] = river.centerline[p];
       const [bx, by] = river.centerline[p + 1];
       // Walk the segment at 5ft steps, stamping water within halfW.

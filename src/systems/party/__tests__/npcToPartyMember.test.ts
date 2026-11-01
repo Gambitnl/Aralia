@@ -23,6 +23,7 @@ import { generateNPC } from '../../../services/npcGenerator';
 import { createMockCompanion } from '../../../utils/character/companionFactories';
 import { npcToPartyMember, promoteCompanionToMember } from '../npcToPartyMember';
 import { isInParty } from '../recruitTypes';
+import { COMPANIONS } from '../../../data/companions';
 
 /** Build a deterministic-id RichNPC via the real generator. */
 function makeRichNpc(overrides?: Partial<Parameters<typeof generateNPC>[0]>): RichNPC {
@@ -39,6 +40,27 @@ function makeRichNpc(overrides?: Partial<Parameters<typeof generateNPC>[0]>): Ri
 }
 
 describe('npcToPartyMember', () => {
+  it('keeps the generated species and family in both recruited stores', () => {
+    const npc=makeRichNpc({raceId:'tiefling'});
+    const roundTrip=JSON.parse(JSON.stringify(npc));
+    expect(roundTrip.biography.raceId).toBe('tiefling');
+    const {character,companion}=npcToPartyMember(roundTrip);
+    expect(character.race.id).toBe('tiefling');
+    expect(character.darkvisionRange).toBe(60);
+    expect(companion.identity.race).toBe('Tiefling');
+    expect(character.richNpcData?.family).toEqual(npc.biography.family);
+    expect(character.equippedItems).toEqual(npc.equippedItems);
+    expect(character.speed).toBe(npc.stats.speed);
+  });
+
+  it('preserves the legacy untyped NPC fallback without guessing species from prose', () => {
+    const npc=makeRichNpc();
+    delete npc.biography.raceId;
+    npc.baseDescription='A person wearing a tiefling festival mask.';
+    const {character,companion}=npcToPartyMember(npc);
+    expect(character.race.id).toBe('human');
+    expect(companion.identity.race).toBe('Human');
+  });
   it('produces a payload whose character and companion share one id', () => {
     const npc = makeRichNpc();
     const payload = npcToPartyMember(npc);
@@ -132,6 +154,47 @@ describe('npcToPartyMember', () => {
 });
 
 describe('promoteCompanionToMember', () => {
+  it('keeps the met person mechanics but the authored biography and full companion history', () => {
+    const original=structuredClone(COMPANIONS.elara_vance);
+    const npc=makeRichNpc({id:original.id,classId:'cleric',level:1});
+    npc.stats.hp=4;
+    npc.biography.age=45;
+    const before=JSON.stringify({original,npc});
+    const payload=promoteCompanionToMember(original, 'cleric', 1, npc);
+    expect(payload.character.finalAbilityScores).toEqual(npc.biography.abilityScores);
+    expect(payload.character.hp).toBe(4);
+    expect(payload.character.maxHp).toBe(npc.stats.maxHp);
+    expect(payload.character.armorClass).toBe(npc.stats.armorClass);
+    expect(payload.character.equippedItems).toEqual(npc.equippedItems);
+    expect(payload.character.richNpcData?.age).toBe(original.identity.age);
+    expect(payload.character.richNpcData?.backgroundId).toBe(original.identity.background);
+    expect(payload.character.richNpcData?.family).toEqual([]);
+    expect(payload.companion).toEqual({...original,inParty:true});
+    expect(JSON.stringify({original,npc})).toBe(before);
+  });
+
+  it('rejects unrelated mechanical sources and preserves explicit build overrides', () => {
+    const original=structuredClone(COMPANIONS.elara_vance);
+    const npc=makeRichNpc({id:original.id,classId:'cleric',level:1});
+    expect(promoteCompanionToMember(original,'cleric',1,{...npc,id:'someone-else'}).character.finalAbilityScores)
+      .toEqual(promoteCompanionToMember(original).character.finalAbilityScores);
+    const override=promoteCompanionToMember(original,'cleric',4,npc).character;
+    expect(override.level).toBe(4);
+    expect(override.finalAbilityScores).toEqual(promoteCompanionToMember(original,'cleric',4).character.finalAbilityScores);
+  });
+  it('keeps authored Tiefling identity and senses without choosing a secret lineage', () => {
+    const original=structuredClone(COMPANIONS.kaelen_thorne);
+    const before=JSON.stringify(original);
+    const {character,companion}=promoteCompanionToMember(original);
+    expect(character.race.id).toBe('tiefling');
+    expect(character.class.id).toBe('rogue');
+    expect(character.darkvisionRange).toBe(60);
+    expect(character.racialSelections?.tiefling?.choiceId).toBeUndefined();
+    expect(companion.identity).toBe(original.identity);
+    expect(companion.goals).toBe(original.goals);
+    expect(companion.memories).toBe(original.memories);
+    expect(JSON.stringify(original)).toBe(before);
+  });
   const makeAuthored = (overrides?: Partial<Companion>): Companion =>
     createMockCompanion({
       id: 'kaelen_thorne',
@@ -183,19 +246,19 @@ describe('promoteCompanionToMember', () => {
 
   it('synthesizes a character from identity with the given class and level', () => {
     const companion = makeAuthored();
-    const { character } = promoteCompanionToMember(companion, 'rogue', 4);
+    const { character } = promoteCompanionToMember(companion, 'cleric', 4);
     expect(character.name).toBe('Kaelen Thorne');
-    expect(character.class.id).toBe('rogue');
+    expect(character.class.id).toBe('cleric');
     expect(character.level).toBe(4);
     expect(character.richNpcData?.physicalDescription).toBe(
       'A wiry drifter with quick hands.',
     );
   });
 
-  it('defaults to fighter / level 1 when class and level are omitted', () => {
+  it('keeps the authored class at level 1 when overrides are omitted', () => {
     const companion = makeAuthored();
     const { character } = promoteCompanionToMember(companion);
-    expect(character.class.id).toBe('fighter');
+    expect(character.class.id).toBe('rogue');
     expect(character.level).toBe(1);
   });
 });

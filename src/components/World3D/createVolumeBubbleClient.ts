@@ -14,8 +14,26 @@
  * `workerFactory` is injectable so a test can drive this with a synchronous
  * fake instead of a real Worker.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 25/10/2026, 12:37:12
+ * Dependents: components/World3D/VolumeGroundBubble.tsx
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
-import { VoxelVolume } from '@/systems/worldforge/terrain/voxelVolume';
+import { VoxelVolume, type VolumeSnapshot } from '@/systems/worldforge/terrain/voxelVolume';
+import { createWorkerClient } from '@/workers/workerClient';
 import type { GroundBand } from '@/systems/worldforge/terrain/materials';
 import type {
   BubbleSlab,
@@ -119,11 +137,43 @@ export interface VolumeBubbleClient {
   dispose: () => void;
 }
 
+/**
+ * The ground fields the bubble worker reads (GG-574, 2026-11-02): the surface
+ * sampler needs `cols`, `rows` and `heights`; the band stacks need
+ * `biomeIds` and `snowLineH`; the town tint needs `townKeepOuts`.
+ *
+ * The client used to post the whole GroundWorld. For a 700-building town that
+ * is a structured clone of about 100 MB (building parts, roofs, occupants),
+ * 0.4 s of main-thread time, and the World3D demo paid it two times. Add a
+ * field here before volumeBubbleWorker.ts reads it.
+ */
+export type VolumeBubbleGround = Pick<GroundWorld, 'cols' | 'rows' | 'heights' | 'biomeIds' | 'snowLineH' | 'townKeepOuts'>;
+
+/** The part of a ground the bubble worker needs. Field identities are kept. */
+export function volumeBubbleGround(ground: VolumeBubbleGround): VolumeBubbleGround {
+  return {
+    cols: ground.cols,
+    rows: ground.rows,
+    heights: ground.heights,
+    biomeIds: ground.biomeIds,
+    snowLineH: ground.snowLineH,
+    townKeepOuts: ground.townKeepOuts,
+  };
+}
+
+type BubbleWorkerRequest =
+  | { type: 'init'; ground: VolumeBubbleGround }
+  | ({ type: 'build'; id: number } & Pick<BubbleRequest, 'centerXM' | 'centerZM' | 'extentM' | 'cellM' | 'heightM' | 'preCut'>);
+
+type BubbleWorkerResponse =
+  | (Omit<BubbleVolume, 'volume' | 'cellsY'> & { type: 'fill'; id: number; snapshot: VolumeSnapshot; cellsY?: number })
+  | { type: 'slab'; id: number; slab: BubbleSlab }
+  | { type: 'done'; id: number; meshMs: number; drawnSlabs: number };
+
 export function createVolumeBubbleClient(
-  ground: GroundWorld,
+  ground: VolumeBubbleGround,
   workerFactory: WorkerFactory = defaultWorkerFactory,
 ): VolumeBubbleClient {
-  let worker: Worker | null = null;
   let disposed = false;
   let nextId = 1;
   /* Only the newest build's callbacks are live. A stale build's slabs are
@@ -131,10 +181,9 @@ export function createVolumeBubbleClient(
    * where they used to stand is worse than drawing nothing. */
   const inFlight = new Map<number, BubbleRequest>();
 
-  const spawn = (): void => {
-    const w = workerFactory();
-    w.onmessage = (ev: MessageEvent) => {
-      const m = ev.data;
+  const client = createWorkerClient<BubbleWorkerRequest, BubbleWorkerResponse>({
+    factory: workerFactory,
+    onMessage: (m) => {
       const req = inFlight.get(m.id);
       if (!req) return;
       if (m.type === 'fill') {
@@ -160,23 +209,21 @@ export function createVolumeBubbleClient(
         inFlight.delete(m.id);
         req.onDone({ meshMs: m.meshMs, drawnSlabs: m.drawnSlabs });
       }
-    };
-    w.onerror = () => {
-      if (worker === w) worker = null;
-    };
-    w.postMessage({ type: 'init', ground });
-    worker = w;
-  };
+    },
+    // Every replacement receives the same ground before its first build. The
+    // shared client owns crash termination and rejects obsolete generations.
+    onSpawn: (post) => post({ type: 'init', ground: volumeBubbleGround(ground) }),
+  });
 
   const build = (req: BubbleRequest): void => {
     if (disposed) return;
-    if (!worker) spawn();
+    client.start();
     // Supersede: anything still in flight belongs to a position the caller has
     // already left behind.
     inFlight.clear();
     const id = nextId++;
     inFlight.set(id, req);
-    worker!.postMessage({
+    client.post({
       type: 'build',
       id,
       centerXM: req.centerXM,
@@ -192,15 +239,13 @@ export function createVolumeBubbleClient(
     disposed = true;
     inFlight.clear();
     try {
-      worker?.terminate();
+      client.dispose();
     } catch {
       /* already gone */
     }
-    worker = null;
   };
 
-  // Warm up front so the first build does not pay spawn + init latency.
-  spawn();
+  // The shared client warms and initializes the worker during construction.
 
   return { build, dispose };
 }

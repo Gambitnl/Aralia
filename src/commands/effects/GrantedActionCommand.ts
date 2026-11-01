@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 04/10/2026, 00:42:28
+ * Last Sync: 31/10/2026, 06:47:53
  * Dependents: commands/factory/AbilityCommandFactory.ts
- * Imports: 13 files
+ * Imports: 14 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,6 +14,7 @@
  */
 // @dependencies-end
 
+import { getExhaustionD20Penalty } from '@/utils/combat/physicsUtils';
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { CombatState, LightSource, Position, SelectedSpellTarget, SpellObjectImpact } from '../../types/combat'
@@ -489,11 +490,14 @@ export class GrantedActionCommand extends BaseEffectCommand {
       : 10
 
     const d20 = rollD20()
-    const attackModifier = this.calculateSpellAttackModifier(actor) ?? 0
+    // A granted spell attack remains the acting creature's D20 test.
+    const exhaustionPenalty = getExhaustionD20Penalty(actor)
+    const exhaustionText = exhaustionPenalty > 0 ? ` (Exhaustion -${exhaustionPenalty})` : ''
+    const attackModifier = (this.calculateSpellAttackModifier(actor) ?? 0) - exhaustionPenalty
     const attackResult = resolveAttack(d20, attackModifier, targetArmorClass)
     let currentState = this.addLogEntry(state, {
       type: 'action',
-      message: `${actor.name} uses ${actionLabel} against ${targetName}. ${d20} + ${attackModifier} = ${attackResult.total} vs AC ${targetArmorClass}. ${attackResult.isHit ? (attackResult.isCritical ? 'CRITICAL HIT!' : 'HIT!') : (attackResult.isAutoMiss ? 'CRITICAL MISS!' : 'MISS.')}`,
+      message: `${actor.name} uses ${actionLabel} against ${targetName}. ${d20} + ${attackModifier} = ${attackResult.total}${exhaustionText} vs AC ${targetArmorClass}. ${attackResult.isHit ? (attackResult.isCritical ? 'CRITICAL HIT!' : 'HIT!') : (attackResult.isAutoMiss ? 'CRITICAL MISS!' : 'MISS.')}`,
       characterId: actor.id,
       targetIds: [targetId],
       data: {

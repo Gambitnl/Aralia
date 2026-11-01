@@ -33,6 +33,7 @@ import { CombatState, CombatCharacter, Position, SelectedSpellTarget } from '@/t
 import { GameState } from '@/types'
 import { EffectDuration, SpellAttackType, MagicSchool, ConditionalEnding, SpellEffect } from '@/types/spells'
 import { Plane } from '@/types/planes'
+import type { RulesEdition } from '@/config/rulesEdition'
 
 /**
  * Interface for all executable spell commands.
@@ -166,6 +167,11 @@ export interface CommandContext {
    * teleport fallback) omit it, and no command currently reads this field.
    */
   gameState?: GameState
+  /**
+   * Authoritative campaign rules edition ('2014' | '2024') for commands whose
+   * mechanics differ by edition (e.g. concentration save DC caps).
+   */
+  rulesEdition?: RulesEdition
   /** Duration of the effect (if applicable) */
   effectDuration?: EffectDuration
   /** Type of attack roll (melee/ranged) if applicable */

@@ -21,6 +21,7 @@
 import React from 'react';
 import type { SceneOrigin } from '@/systems/world3d/sceneOrigin';
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
+import type { CombatCharacter } from '@/types/combat';
 /** One combatant to draw in the scene. */
 export interface InPlaceToken {
     id: string;
@@ -34,6 +35,8 @@ export interface InPlaceToken {
     isActive: boolean;
     /** Approximate body height in meters (defaults to a 6-ft adult). */
     heightM?: number;
+    /** The combatant itself: the token draws the 3D arena's generated body (CharacterActor). */
+    character?: CombatCharacter;
 }
 export interface InPlaceCombatLayerProps {
     ground: GroundWorld;
@@ -55,7 +58,28 @@ export interface InPlaceCombatLayerProps {
     anchorZM: number;
     /** Fired when the player clicks the ground; carries world meters. */
     onGroundPick?: (worldXM: number, worldZM: number) => void;
+    /** Every combatant, for the bodies' facing. */
+    characters?: CombatCharacter[];
+    /** The actor whose turn it is. */
+    activeCharacterId?: string | null;
 }
+/** The world-meter origin of the arena group that puts one combatant's body on its token. */
+export declare function arenaGroupOriginM(token: {
+    xM: number;
+    zM: number;
+}, tile: {
+    x: number;
+    y: number;
+}, anchor: {
+    xM: number;
+    zM: number;
+}, patchDims: {
+    width: number;
+    height: number;
+}): {
+    xM: number;
+    zM: number;
+};
 /** The full in-scene combat layer mounted inside World3DScene's Canvas. */
 declare const InPlaceCombatLayer: React.FC<InPlaceCombatLayerProps>;
 export default InPlaceCombatLayer;

@@ -6,16 +6,26 @@ import { GamePhase } from '../../types/core';
 import { COMPANIONS } from '../../data/companions';
 import { CompanionReactionRule, Companion } from '../../types/companions';
 import { DEFAULT_WEATHER } from '../../systems/environment/EnvironmentSystem';
+import { OllamaService } from '../../services/ollama';
+
+vi.mock('../../services/ollama', () => ({
+  OllamaService: {
+    isAvailable: vi.fn().mockResolvedValue(false),
+    generateReaction: vi.fn(),
+  },
+}));
 
 describe('useCompanionCommentary', () => {
-  let mockDispatch: ReturnType<typeof vi.fn>;
+  let mockDispatch: ReturnType<typeof vi.fn<Parameters<typeof useCompanionCommentary>[1]>>;
   let mockState: GameState;
 
   beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(OllamaService.isAvailable).mockResolvedValue(false);
     mockDispatch = vi.fn();
 
     // Deep copy/modification of COMPANIONS to ensure predictable test data
-    const mockCompanions = JSON.parse(JSON.stringify(COMPANIONS)); Object.values(mockCompanions).forEach((c: any) => { if (!c.memories) c.memories = []; });
+    const mockCompanions = JSON.parse(JSON.stringify(COMPANIONS)); Object.values(mockCompanions).forEach((c: any) => { c.inParty = true; if (!c.memories) c.memories = []; });
 
     // Ensure Kaelen has a cooldown on his loot reaction for the cooldown test
     if (mockCompanions['kaelen_thorne']) {
@@ -162,9 +172,45 @@ describe('useCompanionCommentary', () => {
 
   // --- NEW CRIME TESTS ---
 
+  it.each([false, undefined])('does not give an absent companion loot knowledge or approval (inParty=%s)', async inParty => {
+    const remembered = { ...mockState.companions.kaelen_thorne, inParty };
+    const state = { ...mockState, companions: { kaelen_thorne: remembered } };
+    const { rerender } = renderHook(({ state }) => useCompanionCommentary(state, mockDispatch), {
+      initialProps: { state },
+    });
+    await act(async () => { vi.advanceTimersByTime(5000); });
+    await act(async () => {
+      rerender({ state: { ...state, gold: 100, messages: [{ text: 'You found 100 gold.' } as any] } });
+    });
+    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(OllamaService.isAvailable).not.toHaveBeenCalled();
+    expect(state.companions.kaelen_thorne).toBe(remembered);
+  });
+
+  it('drops a pending reaction when its speaker leaves the party', async () => {
+    let finishAvailability!: (available: boolean) => void;
+    vi.mocked(OllamaService.isAvailable).mockImplementationOnce(() => new Promise(resolve => { finishAvailability = resolve; }));
+    vi.spyOn(Math, 'random').mockReturnValue(0);
+    const { rerender } = renderHook(({ state }) => useCompanionCommentary(state, mockDispatch), {
+      initialProps: { state: mockState },
+    });
+    await act(async () => { vi.advanceTimersByTime(5000); });
+    const looted = { ...mockState, gold: 100, messages: [{ text: 'You found 100 gold.' } as any] };
+    await act(async () => { rerender({ state: looted }); });
+    await act(async () => {
+      rerender({ state: { ...looted, companions: {
+        ...looted.companions,
+        kaelen_thorne: { ...looted.companions.kaelen_thorne, inParty: false },
+      } } });
+    });
+    await act(async () => { finishAvailability(false); });
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
   it('should trigger reaction when a crime is committed', async () => {
     const mockCompanion: Companion = {
       id: 'test_comp',
+      inParty: true,
       identity: {
         id: 'test_comp',
         name: 'TestComp',

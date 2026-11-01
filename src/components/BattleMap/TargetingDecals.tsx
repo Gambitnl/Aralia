@@ -37,6 +37,11 @@ const SEGMENTS = 4; // per-tile subdivision so the patch follows slopes
 interface TargetingDecalsProps {
   /** Tiles a selected ability may target, keys "x-y" (useTargetSelection). */
   validTargetSet: Set<string>;
+  /**
+   * GG-495: the subset of validTargetSet at long range, where the attack has
+   * Disadvantage. Drawn as a fainter frame; omitted means no band.
+   */
+  longRangeTargetSet?: ReadonlySet<string>;
   /** Teleport destination tiles, keys "x-y". */
   teleportDestinationSet: Set<string>;
   /** Hovered AoE template tiles, keys "x-y" (useTargetSelection aoeSet). */
@@ -134,7 +139,9 @@ const DecalLayer: React.FC<{
   baseOpacity: number;
   shape: "fill" | "frame";
   lift?: number;
-}> = ({ tiles, groundSampler, color, baseOpacity, shape, lift }) => {
+  /** Dev-probe key; defaults to color/shape. GG-495: two red frame layers need distinct keys. */
+  debugKey?: string;
+}> = ({ tiles, groundSampler, color, baseOpacity, shape, lift, debugKey }) => {
   const materialRef = useRef<THREE.MeshBasicMaterial>(null);
 
   const geometry = useMemo(
@@ -166,7 +173,7 @@ const DecalLayer: React.FC<{
       }
     }
     // Key by color+shape: the AoE fill shares the valid-target red.
-    w.__bm3dDecalDebug[`${color}/${shape}`] = {
+    w.__bm3dDecalDebug[debugKey ?? `${color}/${shape}`] = {
       tiles: tiles.size,
       verts: p ? p.count : 0,
       first: p ? { x: p.getX(0), y: p.getY(0), z: p.getZ(0) } : null,
@@ -174,7 +181,7 @@ const DecalLayer: React.FC<{
       yMax,
       ySpread: yMin !== null && yMax !== null ? yMax - yMin : null,
     };
-  }, [geometry, tiles, color, shape]);
+  }, [geometry, tiles, color, shape, debugKey]);
 
   // Gentle pulse — unmissable that targeting is live, without strobing
   useFrame(({ clock }) => {
@@ -202,11 +209,24 @@ const DecalLayer: React.FC<{
 
 const TargetingDecals: React.FC<TargetingDecalsProps> = ({
   validTargetSet,
+  longRangeTargetSet,
   teleportDestinationSet,
   aoeSet,
   targetingMode,
   groundSampler,
 }) => {
+  // GG-495: split the valid tiles into the normal range and the long-range
+  // band. Hooks run before the early return so their order stays fixed.
+  const { normalRangeTiles, longRangeTiles } = React.useMemo(() => {
+    if (!longRangeTargetSet || longRangeTargetSet.size === 0) {
+      return { normalRangeTiles: validTargetSet, longRangeTiles: new Set<string>() };
+    }
+    const normal = new Set<string>();
+    const long = new Set<string>();
+    validTargetSet.forEach(tile => (longRangeTargetSet.has(tile) ? long : normal).add(tile));
+    return { normalRangeTiles: normal, longRangeTiles: long };
+  }, [validTargetSet, longRangeTargetSet]);
+
   if (!targetingMode) return null;
 
   return (
@@ -215,11 +235,21 @@ const TargetingDecals: React.FC<TargetingDecalsProps> = ({
           Frame, not fill: target tiles are occupied, and a fill hides under
           the unit standing on them. */}
       <DecalLayer
-        tiles={validTargetSet}
+        tiles={normalRangeTiles}
         groundSampler={groundSampler}
         color="#ef4444"
         baseOpacity={0.85}
         shape="frame"
+      />
+      {/* GG-495: the long-range band keeps the target red at a fainter frame,
+          matching the 2D faded, hatched tile and its legend entry. */}
+      <DecalLayer
+        tiles={longRangeTiles}
+        groundSampler={groundSampler}
+        color="#ef4444"
+        baseOpacity={0.35}
+        shape="frame"
+        debugKey="#ef4444/frame-long-range"
       />
       {/* Sky = "you may blink here" — 2D parity (bg-sky-400/55). Destinations
           are empty tiles, so a fill reads cleanly. */}

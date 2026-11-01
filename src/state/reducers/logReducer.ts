@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 25/06/2026, 00:51:22
- * Dependents: services/saveLoadService.ts, state/appState.ts
- * Imports: 2 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file src/state/reducers/logReducer.ts
  * This file handles game-state changes for player-visible and debug logs.
@@ -23,6 +7,23 @@
  * actions here, and the returned partial state is merged into the central
  * GameState by the app state layer.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 11:12:41
+ * Dependents: services/saveLoad/saveLoadCore.ts, state/appState.ts, state/reducers/companionGoalDestinationReducer.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { GameState, DiscoveryEntry, DiscoveryType } from '../../types';
 import { AppAction } from '../actionTypes';
 import { appendAdventureLogEntry } from '../../systems/adventureLog/adventureLog';
@@ -105,6 +106,32 @@ function hasDuplicateDiscoveryEntry(discoveryLog: DiscoveryEntry[], newEntry: Di
       );
     }
 
+    case DiscoveryType.NPC_INTERACTION: {
+      // Only source directions use this stable account identity. Ordinary NPC
+      // events remain repeatable; new words or another world/source stay new.
+      if (getDiscoveryFlagValue(newEntry, 'knowledgeKind') !== 'local-directions'
+        || newEntry.source.type !== 'NPC' || !newEntry.source.id
+        || !newEntry.id.startsWith('npc-directions:')) return false;
+      return discoveryLog.some(entry => entry.type === newEntry.type
+        && getDiscoveryFlagValue(entry, 'knowledgeKind') === 'local-directions'
+        && entry.id === newEntry.id && entry.content === newEntry.content
+        && getDiscoverySourceKey(entry) === getDiscoverySourceKey(newEntry));
+    }
+
+    case DiscoveryType.LORE_DISCOVERY: {
+      // Stable source readings preserve their first dated account. New words,
+      // world/source identities or library collection versions remain new lore.
+      const kind = getDiscoveryFlagValue(newEntry, 'knowledgeKind');
+      if ((kind !== 'temple-dedication' && kind !== 'library-account')
+        || newEntry.source.type !== 'LOCATION' || !newEntry.source.id
+        || !(kind === 'temple-dedication' ? newEntry.id.startsWith('temple-dedication:') : newEntry.id.startsWith('library-account:v1:'))) return false;
+      return discoveryLog.some(entry => entry.type === newEntry.type
+        && getDiscoveryFlagValue(entry, 'knowledgeKind') === kind
+        && entry.id === newEntry.id && entry.content === newEntry.content
+        && getDiscoverySourceKey(entry) === getDiscoverySourceKey(newEntry)
+        && JSON.stringify(entry.flags) === JSON.stringify(newEntry.flags));
+    }
+
     case DiscoveryType.ACTION_DISCOVERED: {
       // Past-action residue is stable when the same NPC discovers the same
       // evidence at the same location. Content is included so new evidence at
@@ -121,7 +148,7 @@ function hasDuplicateDiscoveryEntry(discoveryLog: DiscoveryEntry[], newEntry: Di
     }
 
     default:
-      // Harvest, quest, lore, and miscellaneous entries remain append-only for
+      // Harvest, quest, other lore, and miscellaneous entries remain append-only for
       // now because repeated events can be meaningful even with matching text.
       return false;
   }
@@ -204,7 +231,10 @@ export function logReducer(state: GameState, action: AppAction): Partial<GameSta
         newEntryData.isQuestRelated === true || Boolean(newEntryData.questId);
       const adventureLogUpdate = isQuestDiscovery
         ? {}
-        : appendAdventureLogEntry(state, {
+        : appendAdventureLogEntry(payload.gameTime && Number.isFinite(Date.parse(payload.gameTime))
+            // Mirror the explicit source event's in-world time. Travel discovery
+            // can arrive before ADVANCE_TIME; never rewrite older log entries.
+            ? { ...state, gameTime: new Date(payload.gameTime) } : state, {
             kind: 'discovery',
             summary: newEntryData.title,
             ...(newEntryData.associatedLocationId

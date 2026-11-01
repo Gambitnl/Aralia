@@ -24,9 +24,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/09/2026, 14:54:08
+ * Last Sync: 31/10/2026, 06:47:53
  * Dependents: hooks/combat/useTurnManager.ts
- * Imports: 15 files
+ * Imports: 18 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -35,6 +35,8 @@
  */
 // @dependencies-end
 
+import { advanceCasterTurnEndAttackRiders } from '../../../commands/effects/AttackRollModifierCommand';
+import { getExhaustionD20Penalty } from '../../../utils/combat/physicsUtils';
 import { useCallback, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
 import {
   CombatCharacter,
@@ -331,6 +333,8 @@ export const useTurnLifecycle = ({
     // Roll Death Saving Throw for downed player character at start of turn
     if (character.currentHP === 0 && character.team === 'player' && character.deathSaves && !character.deathSaves.isStable) {
       const roll = Math.floor(Math.random() * 20) + 1;
+      const exhaustionPenalty = getExhaustionD20Penalty(updatedChar);
+      const deathSaveMath = exhaustionPenalty > 0 ? ` - ${exhaustionPenalty} (Exhaustion) = ${roll - exhaustionPenalty}` : '';
       const deathSaveResult = resolveDeathSavingThrow(updatedChar, roll);
       updatedChar = deathSaveResult.character;
 
@@ -342,7 +346,7 @@ export const useTurnLifecycle = ({
         type: 'action',
         message: deathSaveResult.outcome === 'revived'
           ? `${character.name} rolls a 20 on Death Saving Throw and revives with 1 HP!`
-          : `${character.name} rolls a ${roll} on Death Saving Throw (${updatedChar.deathSaves?.successes ?? 0} successes, ${updatedChar.deathSaves?.failures ?? 0} failures).`,
+          : `${character.name} rolls a ${roll}${deathSaveMath} on Death Saving Throw (${updatedChar.deathSaves?.successes ?? 0} successes, ${updatedChar.deathSaves?.failures ?? 0} failures).`,
         characterId: character.id
       });
     }
@@ -673,11 +677,11 @@ export const useTurnLifecycle = ({
     // Compelled Duel checks the caster's distance at the end of the caster's
     // turn. Apply every returned character update because ending concentration
     // can remove the tracked taunt from a different creature.
-    const tauntBreak = breakTauntsForEvent(characters, {
+    const tauntBreak = breakTauntsForEvent(boundaryRoster, {
       event: 'caster_ends_turn_outside_leash',
       casterId: currentCharacter.id
     });
-    if (tauntBreak.characters !== characters) {
+    if (tauntBreak.characters !== boundaryRoster) {
       tauntBreak.characters.forEach(character => publishCharacter(character));
       processedChar = recordCharacter(
         tauntBreak.characters.find(character => character.id === processedChar.id) ?? processedChar
@@ -694,7 +698,22 @@ export const useTurnLifecycle = ({
     }
 
     // 2. Expire save penalties originating from this character
-    expireSavePenaltiesForCaster(characters, currentCharacter.id, turnState.currentTurn);
+    // Use the boundary's latest roster so an expiry cannot restore older HP,
+    // conditions or riders after earlier end-of-turn work has published them.
+    for (const actor of boundaryRoster) {
+      const expiry = advanceCasterTurnEndAttackRiders(actor, currentCharacter.id);
+      if (expiry.character !== actor) {
+        publishCharacter(expiry.character);
+        if (actor.id === processedChar.id) processedChar = expiry.character;
+      }
+      expiry.expiredNames.forEach(spellName => onLogEntry({
+        id: generateId(), timestamp: Date.now(), type: 'status',
+        message: `${spellName} on ${actor.name} ends at its caster's turn end.`,
+        characterId: currentCharacter.id, targetIds: [actor.id],
+        data: { cleanup: 'caster_turn_end_attack_rider', casterId: currentCharacter.id }
+      }));
+    }
+    expireSavePenaltiesForCaster(boundaryRoster, currentCharacter.id, turnState.currentTurn);
 
     // 3. Advance the turn order
     const groupTransition = advanceTurnOrder();

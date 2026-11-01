@@ -32,6 +32,9 @@ import React from 'react';
 import type { SceneOrigin } from '@/systems/world3d/sceneOrigin';
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
 import type { PlayerCharacter } from '@/types/character';
+import type { EntityRecipe } from '@/systems/entities3d/types';
+import type { GroundWalkSurfaces } from './groundBuildingMotion';
+import type { GroundMovementIntent } from './groundLocomotion';
 /**
  * Cheap race scale, kept for legacy callers: small folk get a visibly smaller
  * body. The avatar itself no longer uses this — race frames come from the
@@ -39,10 +42,22 @@ import type { PlayerCharacter } from '@/types/character';
  */
 export declare function raceScale(raceName: string | undefined): number;
 interface PlayerAvatarProps {
+    recipe?: EntityRecipe;
+    actorId?: string;
+    trackCamera?: boolean;
+    routeTarget?: Readonly<{ current: { xM: number; zM: number } | null }>;
+    onTalk?: () => void;
+    actorNotice?: string | null;
+    onPositionChange?: (position: { xM: number; zM: number; yM: number }) => void;
+    onMovementBlocked?: (position: { xM: number; zM: number; yM: number }) => void;
+    openDoors?: ReadonlySet<string>;
+    walkingSurfaces?: GroundWalkSurfaces;
+    movementIntent?: GroundMovementIntent;
     /** The ONE movement state — tile-local ground meters. Null = stand at spawn. */
     groundPos: {
         xM: number;
         zM: number;
+        yM?: number;
     } | null;
     /** Ground world (heights for terrain planting). Renders nothing without it. */
     ground: GroundWorld | null;

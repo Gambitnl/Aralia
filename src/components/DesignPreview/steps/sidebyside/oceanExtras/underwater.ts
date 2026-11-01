@@ -55,6 +55,19 @@ export default async function mount(ctx: OceanExtraContext): Promise<OceanExtra>
   const uw = createOceanUnderwater({ field: ctx.field, sky: ctx.sky, seed: ctx.seed });
   ctx.scene.add(uw.group);
   // Build every pipeline now, before the page reports ready (see warmUp).
+  // THE PIPELINES COMPILE IN PARALLEL FIRST (build-time round 1, GG-388).
+  // This piece mounts last (oceanExtras.ts adds it after the named pieces,
+  // unless the URL names it before them), so the scene holds its final
+  // materials here. The warm-up's
+  // renders create each pipeline with the sync call, which the browser
+  // compiles one after another (the surface with foam, rocks and the river
+  // mouth: about 38 s of compiles). compileAsync creates the same pipelines
+  // with the async call, which the browser compiles on several threads; the
+  // warm-up then finds them made and builds only the views below the
+  // surface. Measured on the gate (extras=foam,rocks,mouth&sea=surf, same
+  // minutes): ready after 48.5 s with this, 70.8 s without. The WGSL is the
+  // same, so no pixel changes.
+  await ctx.renderer.compileAsync(ctx.scene, ctx.camera);
   uw.warmUp(ctx.renderer, ctx.camera, ctx.scene);
 
   return {

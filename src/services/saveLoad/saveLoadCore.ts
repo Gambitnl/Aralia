@@ -20,9 +20,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/09/2026, 14:39:58
+ * Last Sync: 31/10/2026, 22:46:21
  * Dependents: services/saveLoadService.ts
- * Imports: 13 files
+ * Imports: 17 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -32,6 +32,7 @@
 // @dependencies-end
 
 import { GameState, GamePhase } from '../../types';
+import { needsHistoricalTownLoad } from '../../systems/worldforge/town/historicalTownLoadContract';
 import { buildHitPointDicePools, normalizeClassLevels } from '../../utils/character';
 import { getGameDay } from '../../utils/core';
 import { createEmptyHistory } from '../../utils/world';
@@ -40,6 +41,7 @@ import { safeJSONParse } from '../../utils/core';
 import { logger } from '../../utils/core';
 import { simpleHash } from '../../utils/core';
 import * as IDBStorage from '../indexedDBStorageService';
+import { waitForStorageInitialization } from './saveStorageInit';
 import {
   advanceDiceSaveCounter,
   applyCampaignDiceStream,
@@ -97,6 +99,7 @@ export async function saveGame(
   options?: SaveGameOptions,
 ): Promise<SaveLoadResult> {
   try {
+    await waitForStorageInitialization();
     // Sanitization: create a clean copy where transient flags (isLoading, isError)
     // are reset. We don't want to load into a broken state.
     // agora-f821.63: every save advances the campaign's dice counter. With
@@ -211,6 +214,9 @@ export async function saveGame(
  */
 export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: NotifyFn): Promise<SaveLoadResult> {
   try {
+    // Unknown storage is still starting, not a decision to use a legacy save.
+    // Wait before selecting the payload so fast Continue preserves the journey.
+    await waitForStorageInitialization();
     const storageKey = resolveSlotKey(slotName);
 
     // Try IndexedDB first, then fall back to localStorage.
@@ -294,7 +300,8 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
     if (loadedState.phase === GamePhase.COMBAT || loadedState.phase === GamePhase.BATTLE_MAP_DEMO) {
       notify?.({ message: 'Resumed from pre-combat checkpoint.', type: 'info' });
     }
-    loadedState.phase = GamePhase.PLAYING; // Ensure game phase is set to playing
+    // A finished defeat is durable history. Only non-terminal saves resume play.
+    if (loadedState.phase !== GamePhase.GAME_OVER) loadedState.phase = GamePhase.PLAYING;
     loadedState.characterSheetModal = loadedState.characterSheetModal || { isOpen: false, character: null }; // Ensure it exists
 
     // Initialize and prune the discovery log for older saves. Runtime Logbook
@@ -365,6 +372,27 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
       loadedState.mapSurface = 'worldforge';
       loadedState.playerGroundPos = null;
       loadedState.atlasGroundPosition = null;
+    }
+    // Qualify an observed historical town before any current scene mounts.
+    // Work stays off-thread, and refusal leaves both storage and active play
+    // untouched. Ordinary new/known saves never start this heavy source check.
+    if (loadedState.phase !== GamePhase.GAME_OVER && needsHistoricalTownLoad(loadedState)) {
+      notify?.({message: 'Checking your saved town…', type: 'info'});
+      try {
+        const {loadHistoricalTownSource} = await import('./loadHistoricalTownSource');
+        const admission = await loadHistoricalTownSource(loadedState);
+        if (admission.result.status === 'unresolved') {
+          const failure = {success: false, message: admission.result.message} as const;
+          notify?.({message: failure.message, type: 'warning'});
+          return failure;
+        }
+        loadedState.townSim = admission.state.townSim;
+      } catch (error) {
+        logger.warn('Saved-town source check did not complete', {error});
+        const failure = {success: false, message: 'The saved-town check could not finish. Your saved game has not been changed. Try loading again.'} as const;
+        notify?.({message: failure.message, type: 'warning'});
+        return failure;
+      }
     }
     // Ensure new rest pacing fields exist when loading older saves.
     const restTrackerSeedTime = loadedState.gameTime instanceof Date

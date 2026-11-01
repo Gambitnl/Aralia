@@ -1,0 +1,28 @@
+name: 'Setup Node & Dependencies'
+description: 'Sets up Node.js, caches node_modules by package-lock hash, and installs dependencies on cache miss'
+inputs:
+  node-version:
+    description: 'Node.js version'
+    required: false
+    default: '22'
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/setup-node@v6
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: npm
+    - name: Cache node_modules
+      uses: actions/cache@v4
+      id: npm-cache
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node-modules-${{ hashFiles('package.json', 'package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-modules-
+    - name: Install dependencies on cache miss
+      if: steps.npm-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        npm install -g npm@11
+        npm ci

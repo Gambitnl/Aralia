@@ -1,11 +1,16 @@
+/**
+ * @file src/state/reducers/worldReducer.ts
+ * A slice reducer that handles world-related state changes.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 30/08/2026, 01:51:16
+ * Last Sync: 29/10/2026, 12:21:46
  * Dependents: state/appState.ts
- * Imports: 29 files
+ * Imports: 33 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,13 +19,12 @@
  */
 // @dependencies-end
 
-/**
- * @file src/state/reducers/worldReducer.ts
- * A slice reducer that handles world-related state changes.
- */
 import { GameState } from "../../types";
+import { advanceWorldTimedEffects } from "../../utils/spells/worldTimedEffects";
 import { withLegacyWeatherBridge } from "../../types/environment";
 import { AppAction } from "../actionTypes";
+import { publishSpokenNpcReply } from "../../systems/social/npcDialogueMemory";
+import { reserveLodging } from '../../systems/gameplay/lodging';
 import { LOCATIONS } from "../../data/world/locations";
 import { NPCS } from "../../data/world/npcs";
 import { appendAdventureLogEntry } from "../../systems/adventureLog/adventureLog";
@@ -40,6 +44,7 @@ import { UnderdarkMechanics } from "../../systems/underdark/UnderdarkMechanics";
 import { DEFAULT_WEATHER } from "../../systems/environment/EnvironmentSystem";
 import { updateWeather } from "../../systems/environment/WeatherSystem";
 import { ritualReducer } from "./ritualReducer";
+import { resolveDungeonObject } from "../../systems/worldforge/dungeon/world/dungeonObjectResolution";
 import { addHistoryEvent, createEmptyHistory } from "../../utils/world";
 import {
   processAllStrongholds,
@@ -136,6 +141,10 @@ export function worldReducer(
   action: AppAction,
 ): Partial<GameState> {
   switch (action.type) {
+    case 'DUNGEON_OBJECT_INTERACTED':
+      return resolveDungeonObject(state,action.payload);
+    case 'RESERVE_LODGING':
+      return reserveLodging(state, action.payload);
     case "SET_PLAYER_GROUND_POS": {
       // Ground mode reports camera anchors in tile-local meters. Store them in
       // their own field so atlas/world travel never consumes them as continent
@@ -148,6 +157,13 @@ export function worldReducer(
       if (nextPosition === null) {
         return { playerGroundPos: null, atlasGroundPosition: null };
       }
+
+      // A departed scene may report one last footfall while travel unmounts
+      // it. Cell-native feet belong only to the current cell; ignoring that
+      // stale report preserves the earned destination and its unset arrival.
+      // Legacy named/grid callers keep their existing coordinate contract.
+      if (state.playerCell && state.currentLocationId === `cell_${state.playerCell.cellId}` &&
+          (nextPosition.tileX !== state.playerCell.cellId || nextPosition.tileY !== 0)) return {};
 
       // GRID-RETIRE: BA-3 — Stage 3 makes `playerGroundPos` the single live
       // Locale movement state shared by the 3D ground view (which dispatches
@@ -229,6 +245,7 @@ export function worldReducer(
           ...ledger,
           [identity.dungeonId]: enterDungeonExpedition(identity, ledger[identity.dungeonId]),
         },
+        dungeonCombatReturn: null,
       };
     }
 
@@ -238,10 +255,23 @@ export function worldReducer(
       const ledger = state.dungeonExpeditions ?? {};
       const current = ledger[action.payload.dungeonId];
       if (!current) return {};
+      const landing = action.payload.progress.activeVisit;
+      const resume = state.dungeonCombatReturn;
+      // The exact battle landing must be saved before consuming its transient return.
+      // Otherwise a later reload would rewind legitimate exploration to the fight.
+      const consumedReturn = landing && resume && resume.rootIdentity.dungeonId === current.identity.dungeonId &&
+        landing.depth === resume.depth && landing.returnContext.worldSeed === resume.returnContext.worldSeed &&
+        landing.playerCell.x === resume.playerCell.x && landing.playerCell.y === resume.playerCell.y;
+      const legacyHP = consumedReturn && typeof resume.enemyHP === 'number' && current.progress.encounterHitPoints?.[resume.encounterId] === undefined
+        ? {[resume.encounterId]: resume.enemyHP} : undefined;
       return {
+        ...(consumedReturn ? {dungeonCombatReturn:null} : {}),
         dungeonExpeditions: {
           ...ledger,
-          [action.payload.dungeonId]: recordDungeonProgress(current, action.payload.progress),
+          [action.payload.dungeonId]: recordDungeonProgress(current, {
+            ...action.payload.progress,
+            ...(legacyHP ? {encounterHitPoints:{...legacyHP,...action.payload.progress.encounterHitPoints}} : {}),
+          }),
         },
       };
     }
@@ -256,6 +286,7 @@ export function worldReducer(
           ...ledger,
           [action.payload.dungeonId]: retreatDungeonExpedition(current),
         },
+        dungeonCombatReturn: null,
       };
     }
 
@@ -419,6 +450,9 @@ export function worldReducer(
     }
 
     case "SET_LAST_NPC_INTERACTION":
+      // Only explicit delivered-reply publications create conversation history.
+      // Display-only/generated callers retain their existing behavior.
+      if (action.payload.dialogue) return publishSpokenNpcReply(state,action.payload.npcId,action.payload.response,action.payload.dialogue);
       return {
         lastInteractedNpcId: (action.payload as { npcId: string | null }).npcId,
         lastNpcResponse: (action.payload as { response: string | null })
@@ -446,6 +480,10 @@ export function worldReducer(
       if (registry[burgId]) {
         const existing = registry[burgId];
         if (existing.buildingEvolution) return {};
+        // An unversioned saved town may predate today's streets and lot IDs.
+        // Keep its people/history intact until source admission resolves that
+        // layout; never attach growth geometry from an unrelated new town.
+        if (existing.layoutRevision === undefined) return {};
         // Old saves already own their people and history. Hydrate only the
         // immutable lot-safe growth briefs that did not exist in that schema.
         return {
@@ -456,6 +494,7 @@ export function worldReducer(
               buildingEvolution: buildingEvolutionForBurg(
                 state.worldSeed,
                 burgId,
+                existing.layoutRevision,
               ),
             },
           },
@@ -529,7 +568,13 @@ export function worldReducer(
 
       // RALPH: Pipeline Logic.
       // We start with a base update (the time itself) and then pass it through sub-handlers.
-      let nextState: GameState = { ...state, gameTime: newTime };
+      let nextState: GameState = {
+        ...state, gameTime: newTime,
+        // Walking, waiting, rest and combat's existing round callback all pass
+        // this clock boundary. Expire only explicitly timed spell records;
+        // permanent conditions, injuries and other world consequences remain.
+        party: advanceWorldTimedEffects(state.party, state.messages, newTime),
+      };
 
       // 1. Ritual Advancement
       // We apply the ritualReducer directly to our accumulating nextState.
@@ -931,8 +976,22 @@ export function worldReducer(
       const newOnes = action.payload.rumors.filter(
         (r) => !existingIds.has(r.id),
       );
-      if (newOnes.length === 0) return {};
-      return { activeRumors: [...existing, ...newOnes] };
+      // Dungeon legends are derived offers. Refresh their source wording without
+      // renewing first-seen dates or rewriting paid notes and NPC memories.
+      const incoming = new Map(action.payload.rumors.map((r) => [r.id, r]));
+      let refreshed = false;
+      const current = existing.map((rumor) => {
+        const source = incoming.get(rumor.id);
+        if (rumor.id.startsWith('dungeon-') && rumor.type === 'event' &&
+            source?.type === 'event' && source.locationId === rumor.locationId &&
+            source.text !== rumor.text) {
+          refreshed = true;
+          return { ...rumor, text: source.text };
+        }
+        return rumor;
+      });
+      if (newOnes.length === 0 && !refreshed) return {};
+      return { activeRumors: [...current, ...newOnes] };
     }
 
     case "ADD_WORLD_HISTORY_EVENT": {

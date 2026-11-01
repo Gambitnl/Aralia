@@ -3,6 +3,23 @@
  * Modal component for displaying reaction opportunities (e.g. Shield spell)
  * and capturing user choice.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/10/2026, 10:58:11
+ * Dependents: components/Combat/CombatView.tsx, components/Combat/index.ts, components/DesignPreview/steps/PreviewCombatScenarios.tsx
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * This file renders a popup modal when a character can use their reaction.
  *
@@ -21,11 +38,10 @@
  */
 
 import React from 'react';
-import { Spell } from '../../types/spells';
-import { Ability } from '../../types/combat';
+import { Ability, CombatCharacter, ReactionSpellOption } from '../../types/combat';
+import { canAffordActionCost, getReactionSpellCost } from '../../utils/combat/actionEconomyUtils';
 import { ModalDialog } from '../ui/ModalDialog';
 
-type ReactionSpellOption = Spell | Ability;
 
 // ============================================================================
 // Reaction Prompt Properties
@@ -40,6 +56,8 @@ interface ReactionPromptProps {
     targetName?: string;
     // Spells available to cast as a reaction
     reactionSpells?: ReactionSpellOption[];
+    /** Live reacting actor supplies the same resource quote as execution. */
+    reactor?: CombatCharacter;
     // Melee weapons/attacks available to execute as an Opportunity Attack reaction
     reactionWeapons?: Ability[];
     // The category/trigger type of this reaction (e.g., 'on_hit', 'opportunity_attack')
@@ -59,6 +77,7 @@ export const ReactionPrompt: React.FC<ReactionPromptProps> = ({
     targetName = 'Unknown',
     reactionSpells = [],
     reactionWeapons = [],
+    reactor,
     triggerType,
     onResolve
 }) => {
@@ -68,6 +87,7 @@ export const ReactionPrompt: React.FC<ReactionPromptProps> = ({
     // Build user-friendly strings for title and descriptions
     const titleText = isOpportunityAttack ? 'Opportunity Attack!' : 'Reaction Opportunity!';
     const actionCostLabel = '1 Reaction';
+    const hasHitPreview = reactionSpells.some(option => option.hitPreview);
 
     return (
         <ModalDialog
@@ -109,7 +129,7 @@ export const ReactionPrompt: React.FC<ReactionPromptProps> = ({
                     </>
                 ) : (
                     <>
-                        <span className="text-white font-medium">{attackerName}</span> hit you!
+                        <span className="text-white font-medium">{attackerName}</span>{hasHitPreview ? " has an attack that would hit you. Damage is waiting for your decision." : " hit you!"}
                         Would you like to use your reaction?
                     </>
                 )}
@@ -148,10 +168,20 @@ export const ReactionPrompt: React.FC<ReactionPromptProps> = ({
                 })}
 
                 {/* Render reaction spells for magical protection/countermeasures, including War Caster Opportunity Attack substitutions. */}
-                {reactionSpells.map((spell) => (
+                {reactionSpells.map((spell) => {
+                    const packet = 'level' in spell ? spell : spell.spell;
+                    const cost = packet ? getReactionSpellCost(reactor, packet) : ('cost' in spell ? spell.cost : { type: 'reaction' as const });
+                    const source = cost.castSource;
+                    const grant = source?.type === 'feat' ? reactor?.limitedUses?.[`feat_${source.featId}_${source.spellId}`] : undefined;
+                    const costLabel = grant ? `1 Reaction + ${grant.name.split(':')[0]} free cast (${grant.current}/${grant.max})`
+                        : cost.spellSlotLevel ? `1 Reaction + level ${cost.spellSlotLevel} slot` : '1 Reaction';
+                    const available = !reactor || canAffordActionCost(reactor, cost);
+                    return (
                     <button
                         key={spell.id}
                         onClick={() => onResolve(spell.id)}
+                        disabled={!available}
+                        title={!available ? 'Reaction or spell resource unavailable' : undefined}
                         className="w-full group relative overflow-hidden p-4 rounded-lg bg-gray-800 border border-gray-700 hover:border-purple-500/50 hover:bg-gray-800/80 transition-all duration-200 text-left focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900"
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -159,15 +189,25 @@ export const ReactionPrompt: React.FC<ReactionPromptProps> = ({
                             <span className="font-semibold text-purple-300 group-hover:text-purple-200 transition-colors">
                                 Cast {spell.name}
                             </span>
-                            <span className="text-xs text-gray-500 font-mono">
-                                1 Reaction + Slot
+                            <span className="text-xs text-gray-300 font-mono">
+                                {costLabel}
                             </span>
                         </div>
                         <div className="text-xs text-gray-400 mt-1 line-clamp-1">
                             {isOpportunityAttack ? `War Caster spell option. ${spell.description}` : spell.description}
                         </div>
+                        {spell.hitPreview && (
+                            <div className="text-sm text-gray-200 mt-2">
+                                Attack {spell.hitPreview.attackTotal} vs AC {spell.hitPreview.currentAC}.
+                                {spell.hitPreview.defendedAC !== undefined && ` ${spell.name} raises AC to ${spell.hitPreview.defendedAC}.`}
+                                {spell.hitPreview.isCritical ? ' Critical hit: this attack still hits; the defense can protect against later attacks.'
+                                    : spell.hitPreview.stopsAttack === true ? ' This attack will miss.'
+                                    : spell.hitPreview.stopsAttack === false ? ' This attack still hits; the defense can protect against later attacks.' : ''}
+                            </div>
+                        )}
                     </button>
-                ))}
+                    );
+                })}
             </div>
         </ModalDialog>
     );

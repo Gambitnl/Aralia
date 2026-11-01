@@ -61,6 +61,22 @@
             "description": "Free-text nuance the 5 status words cannot hold (for example the original wording a migration converted).",
             "type": "string"
           },
+          "adoption": {
+            "description": "Optional codebase adoption state (not_adopted | partial | adopted). A topic with not_adopted or partial cannot be marked done (WF-G176 / WF-G186).",
+            "enum": ["not_adopted", "partial", "adopted"]
+          },
+          "reachableSymbols": {
+            "description": "Optional list of exported symbols that must have at least one reachable non-test production caller when the topic is marked done (WF-G188).",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["symbol", "definedIn"],
+              "properties": {
+                "symbol": { "type": "string", "minLength": 1 },
+                "definedIn": { "type": "string", "minLength": 1 }
+              }
+            }
+          },
           "verified": {
             "description": "The day this topic was last checked against the code (same discipline as the Verified: lines in docs/architecture/domains/*.md). Written by planmap-add --verified; consumed by sync-surfaces.mjs --steps health for the staleUnverified signal (GG-121).",
             "type": "string",
@@ -110,6 +126,22 @@
                 "status_note": {
                   "description": "Free-text nuance the 5 status words cannot hold.",
                   "type": "string"
+                },
+                "adoption": {
+                  "description": "Optional codebase adoption state (not_adopted | partial | adopted). A feature with not_adopted or partial cannot be marked done (WF-G176 / WF-G186).",
+                  "enum": ["not_adopted", "partial", "adopted"]
+                },
+                "reachableSymbols": {
+                  "description": "Optional list of exported symbols that must have at least one reachable non-test production caller when the feature is marked done (WF-G188).",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["symbol", "definedIn"],
+                    "properties": {
+                      "symbol": { "type": "string", "minLength": 1 },
+                      "definedIn": { "type": "string", "minLength": 1 }
+                    }
+                  }
                 },
                 "verified": {
                   "description": "The day this feature was last checked against the code. Written by planmap-add --feature-match ... --verified.",

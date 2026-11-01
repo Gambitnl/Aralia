@@ -485,9 +485,25 @@ describe('worldforge pipeline integration', () => {
       // rock competence, closing the "uniform-width channel" half of the
       // region-terrain verdict. atlasCellCount unchanged; region heightfield
       // AND downstream local material classification both move.
+      // Re-frozen 2026-10-27 (agora-257c, continuous river carve): the region
+      // river carve now reaches at least 0.75 of a sample spacing, so a narrow
+      // river cuts a continuous trench instead of a chain of separate pits
+      // (the 3D ground filled those into flat lakes beside the river), and its
+      // depth follows the river's width (6-20 ft) instead of a fixed 80 ft.
+      // atlasCellCount unchanged; region heightfield AND downstream local
+      // material classification both move.
+      // Re-frozen 2026-10-30 (agora-257c, one water, `region/riverChannel.ts`):
+      // the carve depth is the channel's flood depth from the river's width
+      // and fall (Manning, banks at repose), per point, not 6-20 ft; and the
+      // local water band takes the river's width at each point (narrower
+      // upstream), not the mouth's. Both hashes move; the cell count does not.
+      // Re-frozen 2026-11-01 (agora-257c, towns build down to the river,
+      // GG-539): the river carve also lowers a valley to the river's grade
+      // along its full course (`region/riverValley.ts`). The region heightfield
+      // moves; the local material and the cell count do not.
       atlasCellCount: 6005,
-      regionHeightfieldHash: 4038907665,
-      localMaterialHash: 416382634,
+      regionHeightfieldHash: 2017107986,
+      localMaterialHash: 3812605997,
     });
   }, 60_000); // world gen now includes Military/Markers/Zones (stages 33-35)
 
@@ -643,7 +659,25 @@ describe('worldforge pipeline integration', () => {
       // discards far fewer of the authored plan's plots as slivers.
       // Larger negotiated floorplans now filter undersized parcels while
       // preserving the same first plot and deterministic delta identities.
-      plotCount: 262,
+      // 2026-10-30: 262 → 307 (one water): the town's river is as wide as the
+      // river is AT the town (`townRiverCourse.ts`), not at its mouth, so the
+      // narrower channel leaves more land for plots.
+      // 2026-11-01: 307 → 496 (GG-552): the town-look rules re-lay out every
+      // town (Remy's ruling q2). Suburbs outside the wall and deep narrow lots
+      // add plots; plot 0 is still the same inn.
+      // 2026-11-01: 496 → 467 (GG-560..GG-567): slivers and pies merge or
+      // become yard (GG-563), and passages, civic grounds and the river channel
+      // take ground from lots.
+      // 2026-11-01: 467 → 340 (GG-563, Remy's squarish ruling): a wedge lot
+      // that cannot hold a square house joins its neighbor or becomes yard.
+      // 2026-11-01: 340 → 377 (GG-563 block shapes, Remy's ruling): the ward
+      // grid and rectangle rows give back square houses.
+      // 2026-11-02: 377 → 354 (GG-577 shared courts, GG-569): the old core's
+      // coarse grid makes fewer, larger blocks, and a court takes the middle
+      // of each large block. Measured while another session's uncommitted
+      // river-valley work in region/generateRegion.ts was also in the tree;
+      // that work also moves regionHeightfieldHash above.
+      plotCount: 354,
       firstPlotId: 0,
       firstPlotRole: 'inn',
       firstPlotStoreys: 3,
@@ -749,7 +783,16 @@ describe('worldforge pipeline integration', () => {
       // so the smaller footprint re-packs → 1 room.
       // 2026-07-22: 1 → 2 after the town-scale lift — the same wedge footprint
       // now spans real house dimensions, so the interior BSP fits two rooms.
-      addedBlueprintRoomCount: 4,
+      // 2026-10-30: 4 → 2 (one water): the town's narrower river re-lays the
+      // plots (307, above), so the copied footprint packs two rooms.
+      // 2026-11-01: 2 → 1 (GG-552): the town-look re-layout (Remy's ruling
+      // q2) adds plots, so newPlotId (max plot id + 100) reseeds the room pack.
+      // 2026-11-01: 1 → 4 (GG-563 squarish ruling): plot 0 is now a rectangle
+      // and the plot count fell (467 → 340), so the copied footprint and the
+      // reseeded pack give four rooms.
+      // 2026-11-01: 4 → 2 (GG-563 block shapes): plot 0 and newPlotId change
+      // again with the ward grid.
+      addedBlueprintRoomCount: 2,
       hasAddedExteriorDoor: true,
       removedPlotPresent: false,
     });

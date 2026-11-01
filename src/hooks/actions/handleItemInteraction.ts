@@ -1,11 +1,16 @@
+/**
+ * @file src/hooks/actions/handleItemInteraction.ts
+ * Handles item interaction actions like 'take_item', 'EQUIP_ITEM', etc.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:28:12
- * Dependents: actionHandlers.ts
- * Imports: 10 files
+ * Last Sync: 29/10/2026, 09:00:18
+ * Dependents: hooks/actions/actionHandlers.ts
+ * Imports: 18 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,11 +19,10 @@
  */
 // @dependencies-end
 
-/**
- * @file src/hooks/actions/handleItemInteraction.ts
- * Handles item interaction actions like 'take_item', 'EQUIP_ITEM', etc.
- */
 import React from 'react';
+import {torchUseError} from '../../systems/underdark/carriedItemLight';
+import {adventuringPackUseError} from '../../systems/gameplay/adventuringPacks';
+import { preparePartyMeal } from '../../systems/travel/partyMeal';
 import { GameState, Action, EquipItemPayload, UnequipItemPayload, UseItemPayload, UseHealersKitPayload, DropItemPayload, DiscoveryType, DiscoveryEntry, Item } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import { AddMessageFn, AddGeminiLogFn } from './actionHandlerTypes';
@@ -30,6 +34,7 @@ import { getAbilityModifierValue } from '../../utils/character';
 import { INITIAL_QUESTS } from '../../data/quests';
 import { biomeIdForCell } from '../../systems/worldforge/local/biomeForCell';
 import { generateId } from '../../utils/core/idGenerator';
+import { formatGameTime } from '../../utils/core/timeUtils';
 import { forageWilderness } from '../../systems/exploration/forage';
 import { isWildernessLocationId } from '../../utils/location/cellLocationId';
 import { resolveHealersKitUse, HEALERS_KIT_ITEM_ID } from '../../systems/healing/healersKit';
@@ -109,10 +114,11 @@ export async function handleTakeItem({
   const itemsCurrentlyInLoc = gameState.dynamicLocationItemIds[currentLocId] || [];
 
   if (itemToTake && itemsCurrentlyInLoc.includes(targetId)) {
-    // Create the discovery entry here in the handler
+    // Journal entries share the UTC game clock, including ancient campaign dates.
+    // Existing saved entry times remain historical; only new entries use this formatter.
     const newDiscoveryEntry: DiscoveryEntry = {
       id: generateId(),
-      gameTime: gameState.gameTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+      gameTime: formatGameTime(gameState.gameTime, { hour: '2-digit', minute: '2-digit', hour12: true }),
       type: DiscoveryType.ITEM_ACQUISITION,
       title: `Item Acquired: ${itemToTake.name}`,
       content: `You found and picked up ${itemToTake.name}. ${itemToTake.description}`,
@@ -202,7 +208,7 @@ export async function handleSearchArea({
       type: 'ADD_DISCOVERY_ENTRY',
       payload: {
         id: generateId(),
-        gameTime: gameState.gameTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+        gameTime: formatGameTime(gameState.gameTime, { hour: '2-digit', minute: '2-digit', hour12: true }),
         type: DiscoveryType.LOCATION_DISCOVERY,
         title: 'Foraged the area',
         content: `Searching the wilds, you found: ${names}.`,
@@ -227,7 +233,41 @@ export function handleUnequipItem(dispatch: React.Dispatch<AppAction>, payload: 
   dispatch({ type: 'UNEQUIP_ITEM', payload });
 }
 
-export function handleUseItem(dispatch: React.Dispatch<AppAction>, payload: UseItemPayload): void {
+export function handleUseItem(dispatch: React.Dispatch<AppAction>, payload: UseItemPayload,
+    context?: {gameState: GameState; addMessage: AddMessageFn}): void {
+  if (payload.unpack) {
+    if (!context) return;
+    const error = adventuringPackUseError(context.gameState,payload);
+    if (error) {context.addMessage(error,'system'); return;}
+    // The reducer rechecks the source. Its new inventory is the success receipt;
+    // a stale queued click must not announce an opening that never happened.
+    dispatch({type:'USE_ITEM',payload});
+    return;
+  }
+  if (payload.meal) {
+    if (!context) return;
+    if (!context.gameState.party.some(member => member.id === payload.characterId)) {
+      context.addMessage('That character is no longer in the party.', 'system'); return;
+    }
+    const meal = preparePartyMeal(context.gameState, payload.meal);
+    if ('error' in meal) {context.addMessage(meal.error, 'system'); return;}
+    dispatch({ type: 'USE_ITEM', payload });
+    context.addMessage(`The party takes a proper meal, using ${payload.meal.partyIds.length} ration(s) and water unit(s). Starving and fatigued clear; no healing or rest benefits are granted.`, 'system');
+    return;
+  }
+  if (payload.itemId === 'torch' || payload.light) {
+    if (context) {
+      const error = torchUseError(context.gameState, payload);
+      if (error) { context.addMessage(error, 'system'); return; }
+    }
+    dispatch({type: 'USE_ITEM', payload});
+    return;
+  }
+  const held = context?.gameState.inventory.find(item => item.id === payload.itemId);
+  if (held?.type === 'food_drink') {
+    context?.addMessage('This food does not yet have a defined provision portion. No item was consumed.', 'system');
+    return;
+  }
   dispatch({ type: 'USE_ITEM', payload });
   // The payload carries only the item id, so the hook is read from the registry entry.
   fireItemQuestHook(dispatch, ITEMS[payload.itemId], 'onUse');
@@ -353,7 +393,7 @@ export async function handleHarvestResource({
         type: 'ADD_DISCOVERY_ENTRY',
         payload: {
           id: generateId(),
-          gameTime: gameState.gameTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+          gameTime: formatGameTime(gameState.gameTime, { hour: '2-digit', minute: '2-digit', hour12: true }),
           type: DiscoveryType.HARVEST,
           title: `Harvested: ${item.name}`,
           content: `You successfully harvested ${item.name}. ${item.description}`,

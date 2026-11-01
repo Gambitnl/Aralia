@@ -27,11 +27,33 @@ import { globIterateSync, hasMagic } from 'glob';
 import { run as clientRun } from './client.mjs';
 import { OPEN_STATUSES, CLOSED_STATUSES, indexGaps } from './gapIndex.mjs';
 import { hasDispatchWiring, runMatrixCheck } from './syncAgents.mjs';
+import { publishControlNotice, publishCapabilityNotice, publishScopeNotice, publishRulingUnblock, publishSourceReview } from './controlNotice.mjs';
+import {createVisualSplit,validateVisualPacket,visualHandoffPrompt,visualReviewPrompt,visualAcceptancePending} from './visualAcceptance.mjs';
+import {isVisualBuildOnlyTask,visualReviewDeliveryIssue} from './visualTaskKind.mjs';
+import { inspectCountSources, inspectDedupAcceptance, inspectSymbolChecks, inspectSourceReviews, inspectSourceMembers, sourceMembersProse } from './taskLint.mjs';
+import { sharedTypePromptBlock } from './sharedTypeOwnership.mjs';
+import { mountPointPromptBlock } from './mountOwnership.mjs';
+import { inspectPacketActionWiring, actionWiringPromptBlock } from './actionWiring.mjs';
+import { validatePacketUnions, unionPromptBlock } from './unionConsumerOwnership.mjs';
+import { inspectProductionCallers, productionCallerPromptBlock } from './productionCallerOwnership.mjs';
+import { dataValuePromptBlock } from './dataValueProvenance.mjs';
+import {sourceRecordPromptBlock} from './recordSourceProvenance.mjs';
+import {sourceRewritePromptBlock,inspectPacketSourceRewrites} from './sourceRewritePreflight.mjs';
 import {
   checkPlanOwnership,
+  checkPacketLaunchLocks,
+  formatLockSnapshot,
   formatPacketOwnershipReport,
   handoffPromptBlock,
+  localTestHomePromptBlock,
+  forwarderOnlyPromptBlock,
   validateOwnershipDeclarations,
+  assertResolvedPacketDiscovery,
+  inspectPacketDataEdits,
+  inspectPacketDataValueOwnership,
+  inspectPacketSourceRecordOwnership,
+  inspectPacketValueEquivalence,
+  inspectPacketRuntimeLimitations,
 } from './packetOwnership.mjs';
 
 const DEFAULT_URL = 'http://localhost:4319';
@@ -266,7 +288,7 @@ function vendorOnlyVerificationNote(pkt) {
 function checkedVendorVerificationNote(pkt) {
   const note = vendorOnlyVerificationNote(pkt);
   if (!note) return '';
-  const guidance = String(pkt.guidance || '');
+  const guidance = sourceMembersProse(pkt.guidance);
   if (/\b(?:add|extend|write|create)\b[^.\n]*\b(?:unit\s+)?tests?\b[^.\n]*\b(?:next to|adjacent to|beside|inside|under|in)\b/i.test(guidance)
       || /\bvitest\b[^\n]*\bvendor\b/i.test(guidance)) {
     throw new Error(`packet ${pkt.id}: WF-G221 vendor files are excluded by Vitest; remove the in-vendor test demand and name an available proof instead.`);
@@ -296,7 +318,9 @@ export function validatePlan(plan, { registry, onWarn } = {}) {
   const seenHandles = new Set();
   for (const p of plan.packets) {
     if (!p.id || !p.handle || !p.scope) throw new Error(`packet missing id/handle/scope: ${JSON.stringify(p)}`);
-    if (!Array.isArray(p.files) || p.files.length === 0) throw new Error(`packet ${p.id} has no files`);
+    if (!Array.isArray(p.files) || (p.files.length === 0 && !p.visualReview)) throw new Error(`packet ${p.id} has no files`);
+    if (p.visualReview) validateVisualPacket(p); // Empty files is permitted only for an explicit inspection-only review.
+    assertResolvedPacketDiscovery(p);
     if (!p.pet || typeof p.pet !== 'string') throw new Error(`packet ${p.id} is missing required pet identity`);
     if (!petSlugs.has(p.pet)) throw new Error(`packet ${p.id}: pet "${p.pet}" is not in dashboard/pets/pets.json`);
     if (seenHandles.has(p.handle)) throw new Error(`duplicate handle "${p.handle}" (each agent needs a unique identity)`);
@@ -305,6 +329,11 @@ export function validatePlan(plan, { registry, onWarn } = {}) {
     const def = reg.agents[p.agent];
     if (!def) throw new Error(`packet ${p.id}: unknown agent "${p.agent}" (registry has: ${Object.keys(reg.agents).join(', ')})`);
     assertDispatchableWorker(p.id, p.agent, def);
+    // WF-G226: enforce per-packet file count caps declared on an agent lane (e.g. cline maxFiles: 1).
+    const maxFiles = def?.dispatch?.maxFiles;
+    if (Number.isInteger(maxFiles) && maxFiles > 0 && Array.isArray(p.files) && p.files.length > maxFiles) {
+      throw new Error(`packet ${p.id}: agent "${p.agent}" allows at most ${maxFiles} file(s) per packet (got ${p.files.length}, WF-G226)`);
+    }
     // WF-G14: expired date-bound constraints mean re-verify, not trust.
     for (const c of staleConstraints(def)) {
       warn(`packet ${p.id}: agent "${p.agent}" has an EXPIRED constraint (${c.expiresAt}): ${c.note} — re-verify before dispatch`);
@@ -323,6 +352,21 @@ export function validatePlan(plan, { registry, onWarn } = {}) {
       seenFiles.set(f, p.id);
     }
     checkedVendorVerificationNote(p);
+    // Check command and rendered-proof contracts before seeding board work,
+    // not only when a worker's prompt is eventually printed.
+    buildVerificationStep(p);
+    buildVisualProofStep(p);
+    validateVisualPacket(p);
+    checkedPacketCountSources(p);
+    checkedPacketDedupAcceptance(p);
+    checkedPacketSymbolChecks(p);
+    checkedPacketSourceReviews(p);
+    checkedPacketSourceMembers(p);
+    inspectPacketValueEquivalence(p);
+    inspectPacketRuntimeLimitations(p);
+    for (const edit of inspectPacketDataEdits(p)) {
+      if (edit.needsVerification) warn(`packet ${p.id}: WF-G327 VERIFY BEFORE EDITING ${edit.file} ${JSON.stringify(edit.field)}; no from-value recorded.`);
+    }
   }
   validateOwnershipDeclarations(plan);
   return true;
@@ -330,9 +374,125 @@ export function validatePlan(plan, { registry, onWarn } = {}) {
 
 const oneLine = (s) => String(s).replace(/\s+/g, ' ').trim().slice(0, 80);
 
-function packetTaskBody(pkt) {
-  const scope = String(pkt.scope).replace(/\s+/g, ' ').trim();
-  return `Packet ${pkt.id}: ${scope}. Owned files: ${pkt.files.join(', ')}. Acceptance: complete the packet scope within those files and record concrete verification or blockers in the result.`;
+// WF-G291: keep the audit on both durable task briefs and worker prompts. This
+// is conditional repair guidance, not a semantic doc scanner or wider permission.
+const DOCUMENTATION_AUDIT_POLICY = 'DOCUMENTATION AUDIT (WF-G291): For documentation repairs, read each repaired document end to end. Historical line ranges are motivating citations, not exhaustive acceptance. File-check every repository path presented as current and recheck every absence claim anywhere in the document, including sections outside the cited ranges. Reconcile contradictory current-state sections instead of merely prepending a correction. Historical, retired and planned references need separate classification; do not silently make them current or remove unfinished intent. Record timestamp, exact scoped checks, outcomes and unchecked scope before changing Verified: metadata. Unresolved claims block the corresponding acceptance and verification-date claim. Label partial verification by section and retain older dates for unchecked behavior. File existence is not proof of wiring, test execution or rendered behavior. This audit does not grant extra files or commands: required unowned edits need parent authorization and your own locks; unavailable checks remain explicit blockers.';
+
+// Authored metadata and literal checks never replace manual call-site review.
+const SYMBOL_PREMISE_POLICY = 'FILE/SYMBOL PREMISES (WF-G272): Authors must declare every named file/symbol pair with SYMBOL-CHECK before dispatch and re-read its exact file; a global symbol hit is not exact-file proof. Workers must re-read task show and task lint, then inspect the intended definition, call site or type member before acting. An already-present field contradicts an absence prescription; do not duplicate it. A missing, stale or SYMBOL-CHECK-UNVERIFIED premise requires author reconciliation; do not fabricate call sites or guess a new implementation surface. Keep superseded prose as history. Checks are case-sensitive whole literal identifiers, not semantic proof; comments and strings can match. An absent declaration does not authorize adding an API. These declarations grant no files or commands, and no task command executes automatically. Arbitrary English pairs are not inferred by this checker; authors and workers remain responsible for coverage and meaning.';
+
+function checkedPacketSymbolChecks(pkt) {
+  if (pkt.symbolChecks !== undefined && (!Array.isArray(pkt.symbolChecks) || pkt.symbolChecks.length > 64)) throw new Error('packet ' + pkt.id + ': WF-G272 symbolChecks must be an array of at most64 declarations');
+  const body = [pkt.scope || '', pkt.guidance || '', ...(pkt.symbolChecks || []).map(item => 'SYMBOL-CHECK: ' + JSON.stringify(item))].join('\n');
+  const check = inspectSymbolChecks({ body }, { repoRoot: REPO });
+  if (check.issues.length) throw new Error('packet ' + pkt.id + ': WF-G272 ' + check.issues.map(issue => (issue.file || '') + ' ' + (issue.symbol || '') + ': ' + issue.reason).join('; '));
+  return check;
+}
+
+// The parent reviews affected behaviors; hashes only detect later literal drift.
+const SOURCE_PRESERVATION_POLICY = 'SIBLING PRESERVATION (WF-G307): Before replacing a source block, the author must re-read its current anchored contents and append a timestamped SOURCE-REVIEW with reviewed affected symbols and preservation assessment. Historical line ranges and still-present old symbols do not prove the block has not grown. Workers must re-read task show and task lint after acquiring their own authorized locks and before editing. A changed, missing, ambiguous or unavailable block needs parent reconciliation through an explicitly superseding durable source-review; do not silently refresh the baseline, follow a stale deletion instruction or discard a sibling addition. Preserve earlier receipts and intervening task text. Literal hashes and parent-supplied symbols are not semantic completeness, inferred English coverage, ownership or command grants; record actual behavioral proof or blockers separately.';
+
+function checkedPacketSourceReviews(pkt) {
+  if (pkt.sourceReviews !== undefined && (!Array.isArray(pkt.sourceReviews) || pkt.sourceReviews.length > 32)) throw new Error('packet ' + pkt.id + ': WF-G307 sourceReviews must be an array of at most32 receipts');
+  const body = [pkt.scope || '', pkt.guidance || '', ...(pkt.sourceReviews || []).map(item => 'SOURCE-REVIEW: ' + JSON.stringify(item))].join('\n');
+  const check = inspectSourceReviews({ body }, { repoRoot: REPO });
+  if (check.issues.length) throw new Error('packet ' + pkt.id + ': WF-G307 ' + check.issues.map(issue => issue.reason).join('; '));
+  return check;
+}
+
+// WF-G283: a copied member list is a source premise, never ownership or runtime proof.
+const SOURCE_MEMBERS_POLICY = 'SOURCE MEMBERS (WF-G283): When quoting a union or enum member list, the author must record SOURCE-MEMBERS with the exact file, symbol, declaration kind, complete current source quote and all members. Finite direct string-union literals and enum member names are checked; enum values are not evaluated. Re-read task show and task lint before acting and after acquiring your authorized locks. Extra neighboring members, omissions, duplicates, stale, ambiguous, unavailable or unsupported declarations require author reconciliation. Do not invent a concept from a wrong list, silently refresh evidence or widen file/command ownership. Preserve superseded lists as explicitly historical evidence. Obvious prose lists warn but arbitrary English coverage and semantic impact remain parent responsibilities; AST membership is not behavioral acceptance.';
+
+function checkedPacketSourceMembers(pkt) {
+  if (pkt.sourceMembers !== undefined && (!Array.isArray(pkt.sourceMembers) || pkt.sourceMembers.length > 32)) throw new Error('packet ' + pkt.id + ': WF-G283 sourceMembers must be an array of at most32 declarations');
+  const body = [pkt.scope || '', pkt.guidance || '', ...(pkt.sourceMembers || []).map(item => 'SOURCE-MEMBERS: ' + JSON.stringify(item))].join('\n');
+  const check = inspectSourceMembers({ body }, { repoRoot: REPO });
+  if (check.issues.length) throw new Error('packet ' + pkt.id + ': WF-G283 ' + check.issues.map(issue => (issue.file || '') + ' ' + (issue.symbol || '') + ': ' + issue.reason).join('; '));
+  return check;
+}
+
+export function packetTaskBody(pkt, sharedTypes) {
+  inspectProductionCallers(pkt);
+  inspectPacketDataValueOwnership(pkt);
+  inspectPacketSourceRecordOwnership(pkt);
+  const scope = sourceMembersProse(pkt.scope).replace(/\s+/g, ' ').trim();
+  const sources = packetCountSources(pkt).map(command => `\nCOUNT-SOURCE: ${command}`).join('');
+  inspectPacketSourceRewrites(pkt);
+  const data = packetDataEditLines(pkt) + dataValuePromptBlock(pkt) + sourceRecordPromptBlock(pkt) + sourceRewritePromptBlock(pkt);
+  const dedup = checkedPacketDedupAcceptance(pkt);
+  const acceptance = dedup.contracts.map(({ line, ...contract }) => '\nDEDUP-ACCEPTANCE: ' + JSON.stringify(contract)).join('');
+  const goals = dedup.goals.map(item => '\nDEDUP-GOAL: ' + item.claim).join('');
+  const symbols = checkedPacketSymbolChecks(pkt).declarations.map(({ bodyLine, ...claim }) => '\nSYMBOL-CHECK: ' + JSON.stringify(claim)).join('');
+  const reviews = checkedPacketSourceReviews(pkt).declarations.map(({ bodyLine, ...review }) => '\nSOURCE-REVIEW: ' + JSON.stringify(review)).join('');
+  const members = checkedPacketSourceMembers(pkt).declarations.map(({ bodyLine, ...claim }) => '\nREFERENCE-ONLY: SOURCE-MEMBERS: ' + JSON.stringify(claim)).join('');
+  return `Packet ${pkt.id}: ${scope}. Owned files: ${pkt.files.join(', ')}. Acceptance: complete the packet scope within those files and record concrete verification or blockers in the result.${sources}${data}${goals}${acceptance}${symbols}${reviews}${members}${runtimeLimitationPromptBlock(pkt)}${valueEquivalencePromptBlock(pkt)}${productionCallerPromptBlock(pkt)}${mountPointPromptBlock(pkt)}${sharedTypePromptBlock(pkt, sharedTypes)}${actionWiringPromptBlock(pkt)}${unionPromptBlock(pkt)}\n\n${visualHandoffPrompt(pkt)}\n\n${DOCUMENTATION_AUDIT_POLICY}\n\n${SYMBOL_PREMISE_POLICY}\n\n${SOURCE_PRESERVATION_POLICY}\n\n${SOURCE_MEMBERS_POLICY}\n\n${ACTION_WIRING_POLICY}\n\n${UNION_CONSUMER_POLICY}`;
+}
+
+function runtimeLimitationPromptBlock(pkt){
+  const report=inspectPacketRuntimeLimitations(pkt);
+  if(!report.declarations.length)return '';
+  const records=report.declarations.map(({bodyLine,...item})=>'RUNTIME-LIMITATION: '+JSON.stringify(item)).join('\n');
+  return '\n'+records+'\nRUNTIME PREMISE POLICY (WF-G264): Re-read task show and task lint before acting. Source boundary prose is not behavior evidence. Review the exact named entry call, failing assertion, input and diagnostic; a matching test receipt is not semantic or authenticated proof. Unverified state permits investigation only, not an implementation recipe. If the entry succeeds, preserve the observation and reconcile the false premise with the parent. Refresh evidence when source/test bytes or the two-hour receipt window change. No declared command executes automatically and no record grants ownership or permission.\n';
+}
+
+// Preserve each comparison receipt once, separate from title and permission
+// text. The worker still needs current authorized proof before any deletion.
+function valueEquivalencePromptBlock(pkt){
+  const report=inspectPacketValueEquivalence(pkt);
+  if(!report.declarations.length)return '';
+  const records=report.declarations.map(({bodyLine,...item})=>'VALUE-EQUIVALENCE: '+JSON.stringify(item)).join('\n');
+  return '\n'+records+'\nVALUE COMPARISON POLICY (WF-G276): Re-read task show and task lint, both current value paths and named evidence after acquiring authorized locks. reported_equal is an author report, not semantic certification. An unverified comparison permits investigation only; do not delete or follow a removal recipe until the proposed probe proves the relevant fields and consumers match and the parent reconciles the record. Do not infer removal safety merely because a parser populated a similar value. Preserve old claims as history. No record or probe grants files or commands, and no declared command executes automatically. Stale, missing, conflicting or unequal results block deletion; preserve unfinished intent.\n';
+}
+
+// Wiring changes need deliberate owners, not a reducer that nobody can reach.
+const ACTION_WIRING_POLICY = 'ACTION DELIVERY (WF-G237): Authors must audit each affected UI action or payload change across its emitter, UI types/metadata/handler where applicable, AppAction, reducer and payload builder/caller. Declare reviewed actionWiring routes, current source anchors, existing/planned links and each required edit. Core reducer/AppAction packets require affected routes or a justified current unchanged-wiring review. Re-read task show and partition before editing; declared changes outside the packet need parent-assigned files or an exact owning sibling handoff. Read-only roles need a parent preservation assessment, not a silent omission. Planned links and deferred sibling work remain incomplete acceptance. Missing or unsupported evidence requires reconciliation; do not fabricate dispatches, invent a route or silently widen ownership. Syntax clues are not complete control/data flow or runtime proof. Declarations grant no files, locks or commands; preserve actual integration/test/rendered proof and approval limits.';
+
+// Changed vocabulary consumers remain explicit delivery obligations, not scope grants.
+const UNION_CONSUMER_POLICY = 'UNION DELIVERY (WF-G282): recheck the current declared member delta and full partition consumer report. Every exhaustive table and complete literal vocabulary needs owned files or an exact owning sibling handoff with companion tests. Record integration dependencies and acceptance before claiming completion. Sparse tables, value-position uses, subsets, JavaScript behavior, complex unions and other call sites need the recorded parent review and any explicitly declared additional consumer edits. Source-symbol discovery is not runtime acceptance or a complete semantic impact graph; incomplete or unsupported relevant evidence cannot clear preflight. Do not silently drop task union records or expand file, lock or command permission.';
+
+// WF-G325: carry one role-labeled acceptance contract into the durable task,
+// rather than losing it after preflight. No declared measurement is executed.
+function checkedPacketDedupAcceptance(pkt) {
+  const authored = pkt.dedupAcceptance === undefined ? '' : '\nDEDUP-ACCEPTANCE: ' + JSON.stringify(pkt.dedupAcceptance);
+  const check = inspectDedupAcceptance([pkt.scope || '', pkt.guidance || '', authored].join('\n'));
+  if (check.issues.length) throw new Error('packet ' + pkt.id + ': WF-G325 ' + check.issues.map(issue => issue.reason).join('; '));
+  return check;
+}
+
+// Keep authored from-values (or their absence) on the durable task. A current
+// read is a raw preflight, not semantic approval or permission to change data.
+function packetDataEditLines(pkt) {
+  return inspectPacketDataEdits(pkt).map(edit => '\nREFERENCE-ONLY: DATA-EDIT: ' + JSON.stringify({
+    file: edit.file, field: edit.field, ...(edit.needsVerification ? {} : { from: edit.from }), to: edit.to,
+    verification: edit.needsVerification ? 'VERIFY BEFORE EDITING' : 'RECHECK BEFORE EDITING',
+  })).join('');
+}
+
+// Keep measurement commands on the durable task as well as the prompt. The
+// declaration does not execute anything or grant edit/verification permission.
+function packetCountSources(pkt) {
+  const commands = pkt.countSources ?? [];
+  if (!Array.isArray(commands) || commands.some(command => typeof command !== 'string' || !command.trim() || /[\r\n]/.test(command))) {
+    throw new Error(`packet ${pkt.id}: countSources must be an array of nonempty single-line commands.`);
+  }
+  return [...new Set([...commands.map(command => command.trim()),
+    ...inspectCountSources(sourceMembersProse(pkt.guidance)).sources.map(item => item.command)])];
+}
+
+function checkedPacketCountSources(pkt) {
+  const commands = packetCountSources(pkt);
+  const checked = inspectCountSources(`${sourceMembersProse(pkt.scope)}\n${sourceMembersProse(pkt.guidance)}\n${commands.map(command => 'COUNT-SOURCE: ' + command).join('\n')}`);
+  if (checked.missingSources || checked.invalidSources.length) {
+    throw new Error(`packet ${pkt.id}: WF-G343 needs a real COUNT-SOURCE measurement for count-dependent work.`);
+  }
+  for (const command of commands) {
+    const permitted = sourceMembersProse(pkt.guidance).split(/\r?\n/).some(line => line.includes(command)
+      && !/\b(?:do not|don't|never|forbid|avoid)\b/i.test(line));
+    if (!permitted) throw new Error(`packet ${pkt.id}: Guidance must authorize the read-only measurement ${command}.`);
+    // Count extraction is not a back door for expensive tests, builds or servers.
+    if (commandsNamedInGuidance(command).length) throw new Error(`packet ${pkt.id}: test/build/typecheck/server commands are forbidden as countSources; authorize verification separately.`);
+  }
+  return commands;
 }
 
 function shellDoubleQuoted(value, powershell) {
@@ -491,6 +651,10 @@ export async function resolveSeedIdentity(plan, { processEnv = process.env, base
 }
 
 export async function seedPlan(plan, { env, planMapData } = {}) {
+  // Programmatic callers must pass the same contract gate as CLI readPlan;
+  // refuse unsafe verification before presence, campaign or task mutations.
+  validatePlan(plan);
+  if(plan.packets.some(p=>p.visualHandoff||p.visualReview))throw new Error('WF-G266 split tasks already exist: use the returned assigned packets, not seed another task');
   const ownership = await checkPlanOwnership(plan);
   if (!ownership.ok) throw new Error(formatPacketOwnershipReport(ownership));
   const baseUrl = plan.baseUrl || DEFAULT_URL;
@@ -573,8 +737,8 @@ export async function seedPlan(plan, { env, planMapData } = {}) {
       throw new Error(`seed: circular/unresolvable "after" chain among: ${remaining.map((p) => p.id).join(', ')}`);
     }
     for (const pkt of creatable) {
-      const argv = ['task', 'new', `${pkt.id}: ${pkt.scope}`, '--id-only'];
-      if (pkt.files && pkt.files.length) argv.push('--body', packetTaskBody(pkt));
+      const argv = ['task', 'new', `${pkt.id}: ${sourceMembersProse(pkt.scope)}`, '--id-only'];
+      if (pkt.files && pkt.files.length) argv.push('--body', packetTaskBody(pkt, ownership.sharedTypes));
       argv.push('--campaign', pkt.campaign || campaignId, '--wave', String(plan.wave || campaignId));
       if (typeof pkt.priority === 'number') argv.push('--priority', String(pkt.priority));
       for (const ref of packetRefs(pkt)) argv.push('--ref', ref);
@@ -596,10 +760,10 @@ function seedFilePath(plan) {
 /** WF-G10: a MISSING seed map is a legitimate state (un-seeded wave → workers
  *  create their own tasks) and gets a loud warning; a CORRUPT one is an error,
  *  never a silent `{}` that quietly builds TID-less prompts. */
-function loadSeededMap(plan) {
+function loadSeededMap(plan, { warnMissing = true } = {}) {
   const file = seedFilePath(plan);
   if (!fs.existsSync(file)) {
-    console.warn(`⚠ no seed map at ${file} — workers will create their own tasks. Run: orchestrate seed <plan> for board-tracked waves.`);
+    if (warnMissing) console.warn(`⚠ no seed map at ${file} — workers will create their own tasks. Run: orchestrate seed <plan> for board-tracked waves.`);
     return {};
   }
   try {
@@ -607,6 +771,15 @@ function loadSeededMap(plan) {
   } catch (e) {
     throw new Error(`seed map ${file} exists but is unreadable (${e.message}) — re-run: orchestrate seed <plan>`);
   }
+}
+
+/** Bind seeded tasks to ordinary ownership preflight without changing the authored plan. */
+export function withSeededTasks(plan, seededMap) {
+  if (!seededMap || typeof seededMap !== 'object' || Array.isArray(seededMap)) throw new Error('seed map must be an object, not an unchecked task identity');
+  for (const [id, taskId] of Object.entries(seededMap)) {
+    if (!plan.packets.some(packet => packet.id === id) || typeof taskId !== 'string' || !/^agora-[a-z0-9]+(?:\.[0-9]+)*$/i.test(taskId)) throw new Error('seed map has unknown packet or invalid task id: ' + id);
+  }
+  return { ...plan, packets: plan.packets.map(packet => ({ ...packet, taskIds: [...new Set([...(packet.taskIds || []), ...(seededMap[packet.id] ? [seededMap[packet.id]] : [])])] })) };
 }
 
 /** WF-G12: resolve packet issue-refs against the gap index at seed time.
@@ -660,7 +833,8 @@ export function waveStatus(seededMap, tasks) {
     else if (t && t.state === 'blocked') blocked.push(entry);
     else pending.push(entry);
   }
-  return { done, blocked, pending, complete: pending.length === 0 };
+  const visualPending = visualAcceptancePending(seededMap, tasks);
+  return { done, blocked, pending, visualPending, complete: pending.length === 0 && visualPending.length === 0 };
 }
 
 /** Campaign retrospective from the seeded tasks' history: timings, claimants,
@@ -693,7 +867,7 @@ export function buildWaveReport(seededMap, tasks) {
     else if (t.state === 'blocked') totals.blocked++;
     else totals.pending++;
   }
-  return { packets, totals };
+  return { packets, totals, visualPending: visualAcceptancePending(seededMap, tasks) };
 }
 
 /**
@@ -715,6 +889,8 @@ export function reconcileGaps(doneTasks, allGaps) {
     else if (byKey.get(bare) !== 'ambiguous' && byKey.get(bare).project !== g.project) byKey.set(bare, 'ambiguous');
   }
   const staleOpen = [];
+  const buildOnly = [];
+  const invalidVisual = [];
   const pendingRestart = [];
   const alreadyClosed = [];
   const unmatchedRefs = [];
@@ -722,10 +898,15 @@ export function reconcileGaps(doneTasks, allGaps) {
   const unrecognizedStatus = [];
   for (const t of doneTasks) {
     if (t.state !== 'done') continue;
+    const deliveryIssue=visualReviewDeliveryIssue(t,doneTasks,allGaps);
+    if(deliveryIssue){invalidVisual.push({task:t,reason:deliveryIssue});continue;}
     for (const ref of t.refs || []) {
       const gap = byKey.get(String(ref).toLowerCase());
       if (gap === 'ambiguous') { ambiguousRefs.push(ref); continue; }
       if (!gap) { unmatchedRefs.push(ref); continue; }
+      // Build receipts stay durable, but only the separately accepted review
+      // can reconcile delivery. A damaged split declaration is held, not guessed.
+      if (isVisualBuildOnlyTask(t)) { buildOnly.push({ ref, task:t, gap }); continue; }
       // WF-G259: a finished board task is only source-level evidence for a
       // daemon repair. Reconcile --apply must not close it before restart and
       // a separate live check.
@@ -735,7 +916,7 @@ export function reconcileGaps(doneTasks, allGaps) {
       else unrecognizedStatus.push({ ref, task: t, gap }); // WF-G13: surface, don't swallow
     }
   }
-  return { staleOpen, pendingRestart, alreadyClosed, unmatchedRefs, ambiguousRefs, unrecognizedStatus };
+  return { staleOpen, pendingRestart, alreadyClosed, unmatchedRefs, ambiguousRefs, unrecognizedStatus, buildOnly, invalidVisual };
 }
 
 // ---------------------------------------------------------------- prompt build
@@ -761,14 +942,14 @@ export function reconcileGaps(doneTasks, allGaps) {
 const COMMAND_PATTERNS = [
   { name: 'vitest', re: /\b(?:npx\s+)?vitest\b|\bnpm\s+(?:run\s+)?test\b/i },
   { name: 'node --test', re: /\bnode\s+--test\b/i },
-  { name: 'tsc', re: /\b(?:npx\s+)?tsc\b|\bnpm\s+run\s+typecheck\b/i },
+  { name: 'tsc', re: /\b(?:npx(?:\.cmd)?\s+)?tsc\b|\bnpm(?:\.cmd)?\s+run\s+typecheck\b/i },
   { name: 'build', re: /\bnpm\s+run\s+build\b|\bvite\s+build\b/i },
   { name: 'dev-server', re: /\bnpm\s+run\s+dev\b|\bvite\s+dev\b|\bdev-server\b/i },
 ];
 
 /** Every known command the Guidance text names, in the order they are listed. */
 export function commandsNamedInGuidance(guidance) {
-  const text = String(guidance || '');
+  const text = sourceMembersProse(guidance);
   return COMMAND_PATTERNS.filter(({ re }) => re.test(text)).map(({ name }) => name);
 }
 
@@ -778,11 +959,11 @@ export function commandsNamedInGuidance(guidance) {
  */
 export function commandLinesInGuidance(guidance) {
   const out = [];
-  for (const raw of String(guidance || '').split(/\r?\n/)) {
+  for (const raw of sourceMembersProse(guidance).split(/\r?\n/)) {
     const line = raw.trim().replace(/^[-*>\s]+/, '');
     if (!line) continue;
     if (!COMMAND_PATTERNS.some(({ re }) => re.test(line))) continue;
-    if (!/^(?:run\b|node\b|npx\b|npm\b)/i.test(line)) continue;
+    if (!/^(?:run\b|node\b|npx(?:\.cmd)?\b|npm(?:\.cmd)?\b|tsc\b)/i.test(line)) continue;
     out.push(line.replace(/^run\s+/i, '').replace(/\s+and report.*$/i, '').trim());
   }
   return [...new Set(out)];
@@ -795,6 +976,20 @@ export function commandLinesInGuidance(guidance) {
 export function buildVerificationStep(pkt) {
   const named = commandsNamedInGuidance(pkt.guidance);
   const forbidden = Array.isArray(pkt.forbidCommands) ? pkt.forbidCommands : [];
+  const scope = pkt.verificationScope || 'packet';
+  if (!['packet', 'repository'].includes(scope)) {
+    throw new Error(`packet ${pkt.id}: verificationScope must be packet or repository.`);
+  }
+  const wholeRepoTypecheck = sourceMembersProse(pkt.guidance).split(/[;\r\n]+/)
+    .map(line => line.trim().replace(/^[-*>\s]+/, ''))
+    .filter(line => !/^(?:do not|don't|never|avoid|forbid)\b/i.test(line))
+    .some(line => /\btsc\b|\bnpm(?:\.cmd)?\s+run\s+typecheck(?!:files)\b/i.test(line));
+  // A grep after a full compile does not make the compile scoped. Refuse
+  // that old packet recipe instead of silently rewriting the user's command.
+  if (wholeRepoTypecheck && (scope !== 'repository' || typeof pkt.verificationReason !== 'string' || !pkt.verificationReason.trim())) {
+    throw new Error(`packet ${pkt.id}: WF-G208 ordinary task typechecks must use npm run typecheck:files -- <owned paths>. `
+      + 'A full typecheck needs verificationScope: repository and verificationReason naming the explicit authorization.');
+  }
   const untrackedEolNote = 'git ls-files --eol prints no result for untracked files; use the EOL reading in the lock warning before multi-line edits. ';
   const clash = named.filter((c) => forbidden.includes(c));
   if (clash.length) {
@@ -819,7 +1014,30 @@ export function buildVerificationStep(pkt) {
     + `Do not run other verification commands${forbidden.length ? ` (this packet also forbids: ${forbidden.join(', ')})` : ''}. `
     + 'Read-only git (status, diff, log, ls-files, show) is allowed for shared-checkout inspection. '
     + untrackedEolNote
+    + (wholeRepoTypecheck ? `Repository-wide verification only: ${pkt.verificationReason}. This does not widen edit ownership. ` : '')
     + 'The orchestrator runs the integration gate. Self-review the rest of your edits.';
+}
+
+// Rendered proof is an attachment to a named running server, not permission
+// to start one. Keep it separate from heavy command authorization (WF-G213).
+export function buildVisualProofStep(pkt) {
+  if(pkt.visualHandoff)return visualHandoffPrompt(pkt);
+  if (pkt.visualProof === undefined) {
+    return pkt.files.some(file => /\.(tsx|jsx|html|css)$/i.test(file))
+      ? 'RENDERED ACCEPTANCE: visible UI changes need rendered proof. No visualProof URL is declared; ask the orchestrator for the running surface and report that acceptance blocked, not done, until inspected.'
+      : '';
+  }
+  const proof = pkt.visualProof;
+  let url;
+  try { url = new URL(proof?.url); } catch {}
+  if (!url || !['http:', 'https:'].includes(url.protocol)
+    || !['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)
+    || url.username || url.password || typeof proof?.acceptance !== 'string' || !proof.acceptance.trim()) {
+    throw new Error(`packet ${pkt.id}: visualProof needs a credential-free local HTTP(S) url and acceptance text.`);
+  }
+  return `RENDERED ACCEPTANCE (WF-G213): attach to the already-running server at ${url.href}. `
+    + `Inspect this exact surface: ${proof.acceptance}. Capture one focused screenshot in your private scratch directory with a fresh filename, confirm it is ignored, and inspect the rendered image. `
+    + 'Do not start, restart or stop a dev server, or run a full build. If this surface is unavailable or the image does not prove acceptance, report the blocker rather than done. A dev-server prohibition does not forbid this bounded browser attachment.';
 }
 
 /**
@@ -834,11 +1052,29 @@ export function promptCampaignId(plan, pkt) {
   return pkt.campaign
     || (plan.campaign && plan.campaign.id)
     || plan.campaignId
-    || String(plan.wave || 'unnamed');
+    || campaignIdForPlan(plan, planMapCampaignForPlan(plan));
 }
 
-export function buildPrompt(plan, pkt, { taskId } = {}) {
+export function buildPrompt(plan, pkt, { taskId, lockSnapshot, sharedTypes } = {}) {
+  assertResolvedPacketDiscovery(pkt);
+  inspectPacketActionWiring(pkt);
+  validatePacketUnions(pkt);
+  inspectPacketDataEdits(pkt);
+  inspectPacketDataValueOwnership(pkt);
+  inspectPacketSourceRecordOwnership(pkt);
   const vendorVerification = checkedVendorVerificationNote(pkt);
+  inspectPacketSourceRewrites(pkt);
+  checkedPacketCountSources(pkt);
+  checkedPacketDedupAcceptance(pkt);
+  checkedPacketSymbolChecks(pkt);
+  checkedPacketSourceReviews(pkt);
+  checkedPacketSourceMembers(pkt);
+  if (pkt.visualReview) return visualReviewPrompt(pkt);
+  // Keep each worker's temporary files private and inside the checkout so
+  // Node can resolve repo dependencies. Encoding preserves distinct identities
+  // without letting a wave or handle escape the ignored scratch directory.
+  const scratchSegment = (value) => encodeURIComponent(String(value)).replace(/\./g, '%2E');
+  const scratchDir = `.agent/scratch/orchestrate/${scratchSegment(plan.wave || 'unnamed')}/${scratchSegment(pkt.handle)}`;
   const B = plan.baseUrl || DEFAULT_URL;
   const files = pkt.files.join(' ');
   const ownedList = pkt.files.map((f) => '`' + f + '`').join(', ');
@@ -849,9 +1085,16 @@ export function buildPrompt(plan, pkt, { taskId } = {}) {
   const scopedClient = external
     ? `$env:AGORA_AGENT_ID='${pkt.handle}'; node tools/agora/client.mjs`
     : `AGORA_AGENT_ID=${pkt.handle} node tools/agora/client.mjs`;
-  const taskTitle = shellDoubleQuoted(oneLine(pkt.scope), external);
-  const taskBody = shellDoubleQuoted(packetTaskBody(pkt), external);
+  const taskTitle = shellDoubleQuoted(oneLine(sourceMembersProse(pkt.scope)), external);
+  const taskBody = shellDoubleQuoted(packetTaskBody(pkt, sharedTypes), external);
+  // Seeded workers still need the reviewed bytes and preservation inventory in their prompt.
+  const preservationReviews = checkedPacketSourceReviews(pkt).declarations
+    .map(({ bodyLine, ...review }) => 'SOURCE-REVIEW: ' + JSON.stringify(review)).join('\n');
+  const memberClaims = checkedPacketSourceMembers(pkt).declarations
+    .map(({ bodyLine, ...claim }) => 'REFERENCE-ONLY: SOURCE-MEMBERS: ' + JSON.stringify(claim)).join('\n');
   const taskRef = taskId || 'TASK_ID_HERE';
+  const followupCampaign = shellDoubleQuoted(promptCampaignId(plan, pkt), external);
+  const suggestedAgents = [...Object.keys(loadRegistry().agents), 'human-operator'].sort();
   const taskSetup = taskId
     ? `  ${scopedClient} task claim "${taskRef}" --url "${B}"`
     : `  ${scopedClient} task new ${taskTitle} --campaign ${promptCampaignId(plan, pkt)} --body ${taskBody} --id-only --url "${B}"
@@ -865,16 +1108,41 @@ HARD RULES: No state-changing git (commit, branch, worktree, checkout, reset, st
 
   return `${hardRules}
 
-Packet **${pkt.id}** — ${pkt.scope}${refs.length ? ` (refs: ${refs.join(', ')})` : ''}.
+Packet **${pkt.id}** — ${sourceMembersProse(pkt.scope)}${refs.length ? ` (refs: ${refs.join(', ')})` : ''}.
 Owned files (edit ONLY these): ${ownedList}.
-${pkt.guidance ? `\nGuidance:\n${pkt.guidance}\n` : ''}
+${preservationReviews ? `\nSOURCE PRESERVATION RECEIPTS (WF-G307):\n${preservationReviews}\n` : ''}
+${memberClaims ? `\nCURRENT SOURCE MEMBERS (WF-G283):\n${memberClaims}\n` : ''}
+${formatLockSnapshot(lockSnapshot)}
+${pkt.dataEdits?.length ? `\nDATA EDIT DECLARATIONS (WF-G327):${packetDataEditLines(pkt)}\n` : ''}
+${sourceMembersProse(pkt.guidance) ? `\nGuidance:\n${sourceMembersProse(pkt.guidance)}\n` : ''}
 ${vendorVerification ? `\n${vendorVerification}\n` : ''}
 ${handoffPromptBlock(pkt)}
+${localTestHomePromptBlock(pkt)}
+${forwarderOnlyPromptBlock(pkt)}
+${mountPointPromptBlock(pkt)}
+${actionWiringPromptBlock(pkt)}
+${unionPromptBlock(pkt)}
+${sharedTypePromptBlock(pkt, sharedTypes)}
+${productionCallerPromptBlock(pkt)}
+${dataValuePromptBlock(pkt)}
+${sourceRecordPromptBlock(pkt)}
+${sourceRewritePromptBlock(pkt)}
+${valueEquivalencePromptBlock(pkt)}
+${runtimeLimitationPromptBlock(pkt)}
 STEP 1 — Join Agora (each line is a self-contained shell call; do not rely on earlier exports or variables).
 Your identity "${pkt.handle}" is ASSIGNED to you by the orchestrator and is unique across the fleet — always use it, never invent your own. Keep the AGORA_AGENT_ID prefix on EVERY Agora command, starting with register:
   # Replace the placeholder with this worker's exact harness task/thread id; Presence rejects omission.
-  ${scopedClient} register ${pkt.handle} --pet ${pkt.pet} --note "${oneLine(pkt.scope)}" --model ${pkt.model || pkt.agent} --session <your-task-or-thread-id> --url "${B}"
+  ${scopedClient} register ${pkt.handle} --pet ${pkt.pet} --note "${oneLine(sourceMembersProse(pkt.scope))}" --model ${pkt.model || pkt.agent} --session <your-task-or-thread-id> --url "${B}"
 ${taskSetup}
+  ${scopedClient} task show "${taskRef}" --url "${B}"
+CAMPAIGN POLICY (WF-G251): recorded membership, deliberate standalone with a reason, and NONE RECORDED are different states. Read task show, including any legacy task assigned in this packet. Do not run task campaign or backfill legacy membership yourself; only the orchestrator/master/human may decide that. Missing membership alone does not block the assigned repair. Discovered follow-ups use assigned campaign ${followupCampaign}, not an invented campaign or a silent standalone opt-out; verify it exists before filing, and ask the orchestrator if it does not.
+COUNT PREMISES (WF-G343): before acting on a corpus count, re-read task show and run its COUNT-SOURCE commands only when Guidance authorizes the reviewed read-only measurement. Do not execute task text automatically; declarations do not widen ownership or verification permissions. Record timestamp, exact command, current count and an ignored receipt in a checkpoint and the final result before relying on the count. Dated SNAPSHOT numbers are history, not a current workload. If no source is recorded, the command is unsafe/unavailable, or the corpus scan is incomplete, stop the count-dependent work and ask the orchestrator to repair the premise; do not guess, silently reuse a stale number or mark that acceptance done.
+
+DEDUPLICATION (WF-G325): when the task declares deduplication, prove one canonical definition, zero obsolete duplicate definitions and every named consumer's behavior. Do not optimize for a legacy hit count that leaves a duplicate alive. Reconcile conflicting criteria with the parent; keep old text as history. A valid declaration is not execution proof, file permission or authorization to run a new command. Missing equivalence/consumer proof means acceptance remains blocked.
+DATA EDIT PREMISES (WF-G327): before any prescribed data diff, re-read task show and the exact current field. DATA-EDIT lines record authored from-values, never automatic write authority. Missing or undeclared from-values mean VERIFY BEFORE EDITING; an owned filename is not a request to rewrite it. Check the owning normalizer for semantically equivalent representations and preserve authored source text when the goal already holds. Checkpoint the timestamp, field, current raw value, reviewed semantic evidence and needed change (or no-change decision) before editing; if the premise is stale or unclear, stop and ask the orchestrator. A raw preflight does not grant files or commands, certify semantic necessity or skip required verification.
+MOUNT DELIVERY (WF-G214): before promising a new or changed mounted feature, re-read task show and the declared MOUNT POINTS, audit the actual leaf/importer, and verify owned parent/test/declaration paths or the named unfinished dependent mounting task. Missing or contradictory mount declarations require parent reconciliation, not a guessed screen, an unowned edit or a done-with-unmounted result. Planned links and import/JSX clues are not rendered acceptance. Record current integration proof or the explicit pending follow-up within unchanged command, file and approval limits.
+SHARED TYPE CHANGES (WF-G228): re-read the advisory SHARED TYPE DEPENDENCIES, actual imported contract and current owners/locks before deciding an extra type change is needed. An import is read context, not edit permission. If the required field or signature is outside your owned files, stop that dependent edit and ask the parent to reconcile explicit scope, an owning sibling/dependent task and blocking order; acquire your own newly authorized lock before editing. Do not silently encode structured data into strings, invent any/cast workarounds, widen ownership or mark the affected acceptance done with an untracked required type change. Missing or incomplete audit evidence needs manual source review, not a guess. Keep existing verification and approval limits.
+DISCOVERY CHECK (WF-G333): the orchestrator must resolve presumed implementation surfaces before dispatch. Re-read task show and inspect the named current files before editing. If a required UI/state/caller surface is unnamed, absent or different from the body, stop the affected work and ask the orchestrator to audit the sources and choose the location explicitly. Do not invent a settings screen, silently choose a new source path or widen ownership. An old absence claim is historical evidence, not permission to build a parallel system. Exact intentional new paths still need parent assignment, creation intent and your own lock; use the ownership-overflow flow below when extra caller/prop-chain files are needed.
   ${scopedClient} lock ${files} --reason "${pkt.id}" --url "${B}"
   ${scopedClient} say "starting ${pkt.id}" --url "${B}"
 If work will take >20 minutes, use a bounded heartbeat helper (30-minute default; renew only while active):
@@ -885,14 +1153,48 @@ FAILURE HANDLING:
 - lock returns CONFLICT/409: do NOT edit that file; say "409 CONFLICT: <file> held by <holder>" and skip that file.
 - any call returns 401 mid-work: you were reaped (too long silent). Re-register with the SAME handle and pet (--pet ${pkt.pet}; add --allow-duplicate only if the old record lingers), then re-claim "${taskRef}" and re-lock before continuing. Keep the identity prefix on recovery calls too.
 
-STEP 2 — Fix the issue(s) in ONLY your owned (successfully-locked) files, matching surrounding style. If a fix needs a file you don't own, do NOT edit it — report it as a cross-file follow-up.
+STEP 2 — Fix the issue(s) in ONLY your owned (successfully-locked) files, matching surrounding style. If a fix needs a file you don't own, do NOT edit it.
+SHARED CONTROL CHANGES (WF-G305): before retiring a roller, clock, ID source or test control, tell the orchestrator the old control, replacement, affected test paths and actual evidence. The orchestrator must publish a durable control-notice to each owning sibling task before the retiring packet closes. During a long wave, read inbox and re-read task show before verification/completion; follow any SHARED CONTROL CHANGE block for your owned tests. A broadcast alone is not durable packet guidance, and a notice never widens your files or command permissions. If delivery or replacement proof is missing, report the blocker rather than accepting a lucky green run.
+OWNER RULINGS (WF-G323): after an owner decision, re-read the full task body, history and authoritative source before work or acceptance. A SUPERSEDED BY RULING block explicitly replaces only its matching earlier instruction; keep the original brief as history. Do not follow a stale body over the recorded ruling, infer approval from a coordinator role, or treat reopening as proof of implementation. If the body, history, source or later decision conflict, stop the affected work and ask the coordinator to reconcile them before resuming. A ruling does not grant files or commands, remove dependencies or authorize protected/external actions.
+${DOCUMENTATION_AUDIT_POLICY}
+${SYMBOL_PREMISE_POLICY}
+${SOURCE_PRESERVATION_POLICY}
+${SOURCE_MEMBERS_POLICY}
+${ACTION_WIRING_POLICY}
+${UNION_CONSUMER_POLICY}
+CAPABILITY CLAIM CORRECTIONS (WF-G334): if current evidence disproves a capability claim in a task brief, send the orchestrator the exact old text, source task, observed time, conditions, replacement guidance and proof. The orchestrator must sweep matching unfinished campaign tasks and append a durable CAPABILITY CLAIM CORRECTION before affected verification. Read inbox and re-read task show before verification/completion. A correction supersedes the matching earlier claim for the stated conditions only; check the actual host and touched surface, record current proof or a blocker. Historical headless/GPU evidence is not today's capability proof. The notice does not grant commands, files or runtime acceptance, and chat alone is not durable delivery.
+AUDIT SCOPE CORRECTIONS (WF-G246): when a deepdive or audit supersedes a brief, give the parent its current exact citation, linked audit task and corrected scope. The parent must publish a durable AUDIT SCOPE CORRECTION when the audit lands, not relay it only in chat. Re-read task show and current audit before work/acceptance; the matching narrower scope is superseded, not the rest of the original intent. The parent must reconcile packet scope, acceptance, dependencies and file owners before implementation. Uncovered work or conflicting evidence blocks implementation; no notice expands ownership, commands or runtime acceptance, and historical counts need current proof.
+SEPARATE VISUAL ACCEPTANCE (WF-G266): if visual inspection/tuning belongs to another owner, the parent must create a separate blocking-dependent review task before assigning the build. Re-read the exact build/review tasks and VISUAL-HANDOFF before work/completion. A build-only done result is not overall visual acceptance; keep the named review pending and report its exact task ID. Missing, completed, contradicted or differently claimed handoffs require parent reconciliation, not done-with-unperformed-criteria. The visual reviewer needs a separately scoped packet, authorized tuning locks and actual rendered proof; this contract grants no files, commands or server restart.
+OWNERSHIP OVERFLOW (WF-G252): stop the affected edit and report the exact extra paths, required change, current lock holder, completed slice and missing acceptance. A free lock is NOT authorization to expand this packet. Search the board for an existing matching follow-up first; reuse it instead of duplicating it. If none exists, create this ownership-review task with real paths and evidence (replace every placeholder):
+  ${scopedClient} tasks --url "${B}"
+  ${scopedClient} campaign show ${followupCampaign} --url "${B}"
+  ${scopedClient} task new "Ownership review for ${taskRef}: <extra file>" --campaign ${followupCampaign} --dep "${taskRef}:discovered-from" --ref "<extra repo-relative file>" --body "Source task ${taskRef}. DO: review packet ownership for <extra repo-relative file>. Required change: <change and evidence>. Current lock holder: <holder or none>. Acceptance still missing: <proof>. Do not edit this extra file until the orchestrator assigns it in a revised packet." --id-only --url "${B}"
+  # Replace FOLLOWUP_TASK_ID_HERE with the returned id, or the existing matching follow-up id.
+  # Block only a follow-up you created or own; ask a peer owner to update theirs.
+  ${scopedClient} task state "FOLLOWUP_TASK_ID_HERE" blocked --reason "Awaiting orchestrator ownership assignment for <extra file>; source ${taskRef}" --url "${B}"
+  ${scopedClient} task state "${taskRef}" blocked --reason "Ownership overflow: <extra file>; follow-up FOLLOWUP_TASK_ID_HERE; completed <slice>; missing <acceptance proof>" --url "${B}"
+  ${scopedClient} say "OWNERSHIP OVERFLOW ${taskRef}: <extra file>, follow-up FOLLOWUP_TASK_ID_HERE; no unowned edit; needs parent assignment" --url "${B}"
+The discovered-from edge records origin without blocking the follow-up on its already-blocked parent. Do not mark the original task done with a known acceptance gap. The orchestrator must review locks, widen or sequence packets, link any real blocking dependency, then authorize resumption; the review task itself grants no file access. When reusing a peer-owned follow-up, ask its owner to record the blocker rather than overwriting its state.
+SCRATCH RULE (WF-G222/WF-G319/WF-G324): Private scratch directory: \`${scratchDir}/\`.
+Put temporary helpers, patch scripts, logs and captures there, never in a shared scratchpad or another worker's directory. Before creating a file, confirm \`git check-ignore -v "${scratchDir}/probe.mjs"\` succeeds. Scripts kept here resolve repository dependencies from this checkout's node_modules; Node resolves packages from the script location, NOT the shell's cwd. If your harness requires external scratch, import repo dependencies by an absolute file URL instead. Use the stable tracked guide tools/agora/AGENT.md#private-scratch-and-capture-helpers, not a dated scratch capture path that may not exist (WF-G332). This scratch rule does not authorize extra verification commands or starting a dev server; Guidance and STEP 3 still control that. Preserve target file line endings and use your supported edit tool for owned source files; do not assume a shell script has repository write access.
 SCRIPTS WITH BACKSLASHES (WF-G160): Never pipe scripts containing backslashes through a Bash heredoc or -e string (the harness silently strips backslashes, corrupting regexes and path separators). Write any script containing backslashes to a file with Write and execute that file.
+EDIT CAPABILITY (WF-G241): preserve the target EOL with your supported file edit tool. A CRLF multi-line anchor failure is not an instruction to rewrite the repo file through Bash or a shell script. If no permitted edit tool can write your locked target, report the capability blocker; do not probe a sibling file, change permissions or bypass the sandbox. A transient UNKNOWN/-4094 write race is not proof of sandbox denial; use the existing bounded scripts/writeWithRetry.mjs helper only when script writes are already permitted.
 
 ${buildVerificationStep(pkt)}
+${buildVisualProofStep(pkt)}
 
 STEP 4 — Wrap up + REQUIRED workflow feedback (BOTH the say broadcast — live coordination — AND task done --result — the durable record the orchestrator verifies — are required):
-  ${scopedClient} say "done ${pkt.id}: <one-line of what you changed>" --url "${B}"
-  ${scopedClient} task done "${taskRef}" --result "<files changed + concrete proof (e.g. 'a.tsx,b.ts; self-reviewed, matches M1 spec')>" --url "${B}"
+Only mark done when every assigned acceptance criterion is proved. If verification is blocked, use task state "${taskRef}" blocked --reason "<missing proof or dependency>" instead of task done; still report, unlock and retire.
+  ${scopedClient} say "status ${pkt.id}: <done or blocked, changes and actual proof>" --url "${B}"
+  # If workflow friction was found, search before filing. Fill every quoted field; do not file a template stub.
+  ${scopedClient} gap search "<workflow defect>" --project workflow --url "${B}"
+  ${scopedClient} gap add --project workflow --gap "<workflow defect>" --evidence "<observed evidence>" --why "<impact>" --next "<repair>" --proof "<next proof>" --surface "<repair component>" --detected-during "${taskRef}" --notes "Detected during task ${taskRef}" --suggested-agent "<lane>" --url "${B}"
+  # --surface names a component, never a board task id. --detected-during names the task.
+  # Workflow Task/thread is your registered session; Notes retains the detection task separately.
+  # Accepted --suggested-agent keys from agents.json: ${suggestedAgents.join(', ')}.
+  # --proof and --suggested-agent are part of the contract, not optional follow-up data (WF-G215/WF-G216).
+  # Run task done ONLY when all assigned acceptance is proved; otherwise use task state blocked above.
+  ${scopedClient} task done "${taskRef}" --result "<files changed + actual acceptance proof>" --url "${B}"
   ${scopedClient} unlock --mine --url "${B}"
   ${scopedClient} say "WORKFLOW: <any friction with THIS coordination workflow itself, or 'none'>" --url "${B}"
   ${scopedClient} retire --note "completed ${pkt.id}" --url "${B}"
@@ -954,7 +1256,7 @@ async function cmdWatch(plan, { intervalSec = 20, timeoutMin = 120 } = {}) {
   let lastSummary = '';
   for (;;) {
     const status = waveStatus(seeded, await fetchTasks(plan));
-    const summary = `done ${status.done.length} / blocked ${status.blocked.length} / pending ${status.pending.length}`;
+    const summary = `done ${status.done.length} / blocked ${status.blocked.length} / pending ${status.pending.length} / visual acceptance pending ${status.visualPending.length}`;
     if (summary !== lastSummary) {
       console.log(`[${new Date().toLocaleTimeString()}] ${summary}` +
         (status.pending.length ? `  (waiting on: ${status.pending.map((p) => p.packetId).join(', ')})` : ''));
@@ -967,6 +1269,11 @@ async function cmdWatch(plan, { intervalSec = 20, timeoutMin = 120 } = {}) {
       }
       for (const b of status.blocked) console.log(`  ${b.packetId.padEnd(16)} ⚠ BLOCKED`);
       return status.blocked.length ? 1 : 0;
+    }
+    if (status.visualPending.some((entry) => entry.state === 'blocked' || entry.state === 'invalid')) {
+      console.log('Visual acceptance is blocked or inconsistent; this wave is not complete.');
+      for (const entry of status.visualPending) console.log(`  ${entry.taskId || entry.packetId}: ${entry.reason}`);
+      return 1;
     }
     if (Date.now() >= deadline) {
       console.log(`\n⏱ watch timeout (${timeoutMin}m) — still pending: ${status.pending.map((p) => p.packetId).join(', ')}`);
@@ -989,6 +1296,7 @@ async function cmdReport(plan) {
     console.log(`  ${p.packetId.padEnd(16)} [${p.state}]  time-to-done ${mins}${p.reaps ? `  ⚠ reaped×${p.reaps}` : ''}`);
     if (p.result) console.log(`      result: ${p.result}`);
   }
+  for (const entry of rep.visualPending) console.log(`  VISUAL ACCEPTANCE PENDING ${entry.taskId || entry.packetId}: ${entry.reason}`);
   return 0;
 }
 
@@ -999,7 +1307,9 @@ async function cmdReconcile(plan, root = 'docs/projects', { apply = false } = {}
   const gaps = indexGaps({ root }).concat(root === 'tools/agora' ? [] : indexGaps({ root: 'tools/agora' }));
   const rec = reconcileGaps(tasks, gaps);
   console.log(`Reconcile (board done-tasks vs ${root} GAPS registries)${apply ? ' — APPLYING row updates' : ''}:`);
-  if (!rec.staleOpen.length && !rec.pendingRestart.length) console.log('  ✅ no stale-open gaps — tracker matches the board.');
+  if (!rec.staleOpen.length && !rec.pendingRestart.length && !rec.invalidVisual.length) console.log('  ✅ no stale-open gaps — tracker matches the board.');
+  for (const entry of rec.buildOnly) console.log(`  BUILD ONLY ${entry.task.id}: ${entry.ref} remains held for separate visual acceptance; no gap closure.`);
+  for (const entry of rec.invalidVisual) console.log(`  VISUAL DELIVERY HELD ${entry.task.id}: ${entry.reason}`);
   // --apply respects Agora locks: a registry file locked by another agent is skipped.
   let heldPaths = [];
   if (apply) {
@@ -1068,7 +1378,12 @@ function cmdAgents() {
 async function cmdDispatch(plan, packetId) {
   const pkt = plan.packets.find((p) => p.id === packetId || p.handle === packetId);
   if (!pkt) throw new Error(`no packet "${packetId}" in plan`);
-  const prompt = buildPrompt(plan, pkt, { taskId: loadSeededMap(plan)[pkt.id] });
+  if (pkt.visualReview) throw new Error('WF-G266: send the checked review prompt to the named existing reviewer; automatic dispatch would create another identity');
+  const seeded = loadSeededMap(plan);
+  withSeededTasks(plan, seeded);
+  const ownership = await checkPacketLaunchLocks(plan, pkt, { taskId: seeded[pkt.id] });
+  if (!ownership.ok) throw new Error(formatPacketOwnershipReport(ownership));
+  const prompt = buildPrompt(plan, pkt, { taskId: seeded[pkt.id], lockSnapshot: ownership.lockSnapshot, sharedTypes: ownership.sharedTypes });
 
   if (pkt.agent === 'claude') {
     const dir = path.resolve(REPO, '.agent/scratch/orchestrate');
@@ -1126,8 +1441,13 @@ async function cmdDispatch(plan, packetId) {
 // Launch one external packet in the foreground of the wave scheduler. Unlike
 // the legacy one-packet path above, this promise settles only when the worker
 // exits, which is what frees a queue slot and creates a truthful terminal record.
-function runAttachedExternalPacket(plan, pkt, registry) {
-  const prompt = buildPrompt(plan, pkt, { taskId: loadSeededMap(plan)[pkt.id] });
+async function runAttachedExternalPacket(plan, pkt, registry) {
+  if (pkt.visualReview) throw new Error('WF-G266: visual review belongs to the named existing reviewer, not a new external process');
+  const seeded = loadSeededMap(plan);
+  withSeededTasks(plan, seeded);
+  const ownership = await checkPacketLaunchLocks(plan, pkt, { taskId: seeded[pkt.id] });
+  if (!ownership.ok) throw new Error(formatPacketOwnershipReport(ownership));
+  const prompt = buildPrompt(plan, pkt, { taskId: seeded[pkt.id], lockSnapshot: ownership.lockSnapshot, sharedTypes: ownership.sharedTypes });
   const dir = path.resolve(REPO, '.agent/scratch/orchestrate');
   fs.mkdirSync(dir, { recursive: true });
   const promptFile = path.join(dir, `${pkt.handle}.prompt.txt`);
@@ -1142,13 +1462,17 @@ function runAttachedExternalPacket(plan, pkt, registry) {
   return new Promise((resolve, reject) => {
     let child;
     let settled = false;
+    let externalTimer = null;
+    let emptyLogTimer = null;
+    const dispatchCfg = registry?.agents?.[pkt.agent]?.dispatch || {};
 
-    // Close the shared log descriptor exactly once whether process creation
-    // fails or the worker exits normally. This keeps long waves from leaking
-    // one Windows file handle per packet.
+    // Close the shared log descriptor and clear watchdogs exactly once whether
+    // process creation fails, a watchdog fires, or the worker exits normally.
     const finish = (callback) => {
       if (settled) return;
       settled = true;
+      if (externalTimer) clearTimeout(externalTimer);
+      if (emptyLogTimer) clearTimeout(emptyLogTimer);
       fs.closeSync(logFd);
       callback();
     };
@@ -1158,6 +1482,40 @@ function runAttachedExternalPacket(plan, pkt, registry) {
     } catch (error) {
       finish(() => reject(error));
       return;
+    }
+
+    // WF-G226: enforce optional external wall-clock timeout and empty-log timeout
+    // so a silent headless hang (e.g. cline) aborts deterministically.
+    if (Number.isInteger(dispatchCfg.externalTimeoutMs) && dispatchCfg.externalTimeoutMs > 0) {
+      externalTimer = setTimeout(() => {
+        try { child.kill(); } catch { /* ignore */ }
+        finish(() => resolve({
+          exitCode: 124,
+          signal: 'SIGTERM',
+          output: logFile,
+          result: `pid ${child.pid} killed after externalTimeoutMs (${dispatchCfg.externalTimeoutMs}ms, WF-G226)`,
+          promptFile,
+          logFile,
+        }));
+      }, dispatchCfg.externalTimeoutMs);
+    }
+
+    if (Number.isInteger(dispatchCfg.emptyLogTimeoutMs) && dispatchCfg.emptyLogTimeoutMs > 0) {
+      emptyLogTimer = setTimeout(() => {
+        let logSize = 0;
+        try { logSize = fs.statSync(logFile).size; } catch { logSize = 0; }
+        if (logSize === 0) {
+          try { child.kill(); } catch { /* ignore */ }
+          finish(() => resolve({
+            exitCode: 124,
+            signal: 'SIGTERM',
+            output: logFile,
+            result: `pid ${child.pid} killed after emptyLogTimeoutMs (${dispatchCfg.emptyLogTimeoutMs}ms with 0-byte log, WF-G226)`,
+            promptFile,
+            logFile,
+          }));
+        }
+      }, dispatchCfg.emptyLogTimeoutMs);
     }
 
     console.log(`started ${pkt.agent} packet "${pkt.id}" (pid ${child.pid}); queued slots open only after exit.`);
@@ -1310,6 +1668,12 @@ const HELP = `Agora Orchestrator — drive a multi-agent campaign wave.
   node tools/agora/orchestrate.mjs prompt   <plan.json> <packetId>
   node tools/agora/orchestrate.mjs partition <plan.json>                       read-only file-ownership report for claimed tasks
   node tools/agora/orchestrate.mjs seed     <plan.json>
+  node tools/agora/orchestrate.mjs control-notice <plan.json> <notice.json> [--dry]   append shared test-control guidance to affected tasks, then broadcast
+  node tools/agora/orchestrate.mjs capability-notice <plan.json> <notice.json> [--dry]   sweep campaign tasks for an exact stale capability claim; append scoped corrections
+  node tools/agora/orchestrate.mjs scope-notice <plan.json> <notice.json> [--dry]   carry reviewed audit scope and citation into matching campaign briefs
+  node tools/agora/orchestrate.mjs split-visual <plan.json> <split.json> [--dry]   create linked build and pending visual acceptance tasks
+  node tools/agora/orchestrate.mjs ruling-unblock <plan.json> <ruling.json> [--dry]   verify recorded ruling and exact blocker; reconcile the brief before reopening
+  node tools/agora/orchestrate.mjs source-review <plan.json> <review.json> [--dry]   capture reviewed current block and append preservation receipt without replacing sibling text
   node tools/agora/orchestrate.mjs dispatch <plan.json> [packetId] [--max <positive-integer>]   one packet, or a bounded external CLI wave
   node tools/agora/orchestrate.mjs gate     <plan.json> [--exclude <regex>] [--only <id,id>]   (--only = gate ONE wave's packets)
   node tools/agora/orchestrate.mjs watch    <plan.json> [--interval s] [--timeout min]   block until every seeded task is done/blocked
@@ -1347,15 +1711,75 @@ async function main() {
   }
   if (cmd === 'prompt') {
     const plan = loadPlan(planArg);
-    const ownership = await checkPlanOwnership(plan);
+    const seeded = loadSeededMap(plan);
+    const ownership = await checkPlanOwnership(withSeededTasks(plan, seeded));
     if (!ownership.ok) throw new Error(formatPacketOwnershipReport(ownership));
     const pkt = requirePacket(plan, packetArg);
-    console.log(buildPrompt(plan, pkt, { taskId: loadSeededMap(plan)[pkt.id] }));
+    console.log(buildPrompt(plan, pkt, { taskId: seeded[pkt.id], lockSnapshot: ownership.lockSnapshot, sharedTypes: ownership.sharedTypes }));
     return;
   }
   const plan = loadPlan(planArg);
+  if (cmd === 'source-review') {
+    if (!packetArg || packetArg.startsWith('--') || process.argv.slice(5).some(flag => flag !== '--dry')) throw new Error('usage: source-review <plan.json> <review.json> [--dry]');
+    const review = JSON.parse(fs.readFileSync(path.resolve(packetArg), 'utf8'));
+    const receipt = await publishSourceReview(plan, review, { env: process.env, dryRun: process.argv.includes('--dry') });
+    console.log(JSON.stringify(receipt, null, 2));
+    return;
+  }
+  if (cmd === 'ruling-unblock') {
+    if (!packetArg || packetArg.startsWith('--') || process.argv.slice(5).some(flag => flag !== '--dry')) {
+      throw new Error('usage: ruling-unblock <plan.json> <ruling.json> [--dry]');
+    }
+    // Only reconcile a reviewed existing decision. No workers, products or
+    // source files are changed, and no owner consent is inferred by this call.
+    const ruling = JSON.parse(fs.readFileSync(path.resolve(packetArg), 'utf8'));
+    const receipt = await publishRulingUnblock(plan, ruling, { env: process.env, dryRun: process.argv.includes('--dry') });
+    console.log(JSON.stringify(receipt, null, 2));
+    return;
+  }
+  if(cmd==='split-visual'){
+    if(!packetArg||packetArg.startsWith('--')||process.argv.slice(5).some(flag=>flag!=='--dry'))throw new Error('usage: split-visual <plan.json> <split.json> [--dry]');
+    const input=JSON.parse(fs.readFileSync(path.resolve(packetArg),'utf8'));
+    const receipt=await createVisualSplit(plan,input,{env:process.env,taskBody:packetTaskBody,dryRun:process.argv.includes('--dry')});
+    console.log(JSON.stringify(receipt,null,2));return;
+  }
+  if (cmd === 'scope-notice') {
+    if (!packetArg || packetArg.startsWith('--') || process.argv.slice(5).some(flag => flag !== '--dry')) {
+      throw new Error('usage: scope-notice <plan.json> <notice.json> [--dry]');
+    }
+    // Reuse current campaign tasks and the atomic append delivery; no workers
+    // are created, no historical tasks restored and no permissions expanded.
+    const notice = JSON.parse(fs.readFileSync(path.resolve(packetArg), 'utf8'));
+    const receipt = await publishScopeNotice(plan, notice, {env:process.env,dryRun:process.argv.includes('--dry')});
+    console.log(JSON.stringify(receipt,null,2));
+    return;
+  }
+  if (cmd === 'capability-notice') {
+    if (!packetArg || packetArg.startsWith('--') || process.argv.slice(5).some(flag => flag !== '--dry')) {
+      throw new Error('usage: capability-notice <plan.json> <notice.json> [--dry]');
+    }
+    // Use current campaign tasks, not a potentially incomplete packet/seed map.
+    // This command neither creates tasks nor registers or dispatches workers.
+    const notice = JSON.parse(fs.readFileSync(path.resolve(packetArg), 'utf8'));
+    const receipt = await publishCapabilityNotice(plan, notice, { env: process.env, dryRun: process.argv.includes('--dry') });
+    console.log(JSON.stringify(receipt, null, 2));
+    return;
+  }
+  if (cmd === 'control-notice') {
+    if (!packetArg || packetArg.startsWith('--') || process.argv.slice(5).some(flag => flag !== '--dry')) {
+      throw new Error('usage: control-notice <plan.json> <notice.json> [--dry]');
+    }
+    const notice = JSON.parse(fs.readFileSync(path.resolve(packetArg), 'utf8'));
+    const receipt = await publishControlNotice(plan, notice, {
+      // Explicit taskIds are sufficient here; this command never dispatches
+      // workers or creates missing tasks. Corrupt existing seed maps still fail.
+      seededMap: loadSeededMap(plan, { warnMissing: false }), env: process.env, dryRun: process.argv.includes('--dry'),
+    });
+    console.log(JSON.stringify(receipt, null, 2));
+    return;
+  }
   if (cmd === 'partition') {
-    const ownership = await checkPlanOwnership(plan);
+    const ownership = await checkPlanOwnership(withSeededTasks(plan, loadSeededMap(plan, { warnMissing: false })));
     console.log(formatPacketOwnershipReport(ownership));
     for (const note of packetVerificationNotes(plan)) console.log(note);
     process.exitCode = ownership.ok ? 0 : 1;
@@ -1366,7 +1790,7 @@ async function main() {
   if (cmd === 'feedback') return void (await cmdFeedback(plan, Number(getFlag(process.argv, '--since') || 0)));
   if (cmd === 'dispatch') {
     const cliMax = getDispatchMaxFlag(process.argv);
-    const ownership = await checkPlanOwnership(plan);
+    const ownership = await checkPlanOwnership(withSeededTasks(plan, loadSeededMap(plan, { warnMissing: false })));
     if (!ownership.ok) throw new Error(formatPacketOwnershipReport(ownership));
     const requestedPacket = packetArg && !packetArg.startsWith('--') ? packetArg : undefined;
     if (requestedPacket) return void (await cmdDispatch(plan, requestedPacket));

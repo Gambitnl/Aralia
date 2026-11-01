@@ -454,6 +454,7 @@ export function assertNoWritePath(files) {
     path.join(here, 'campaign-model.mjs'),
     path.join(here, 'store-reducers.mjs'),
     path.join(here, 'planmap-reconcile-lib.mjs'),
+    path.join(here, 'visualTaskKind.mjs'),
   ];
   // EVERY TERM IS SPLIT IN TWO. The check reads this file among its targets,
   // so a whole "writeFileSync" written here would make the guard fail on its

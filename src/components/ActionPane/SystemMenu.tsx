@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 05/07/2026, 07:59:58
- * Dependents: components/ActionPane/index.tsx
- * Imports: 7 files
+ * Last Sync: 28/10/2026, 13:23:17
+ * Dependents: components/ActionPane/index.tsx, components/World3D/DungeonExpeditionOverlay.tsx, components/World3D/World3DWrapper.tsx
+ * Imports: 10 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -71,6 +71,8 @@ const menuItemColorFor = (action: Action): string => {
 };
 
 interface SystemMenuProps {
+  /** Header placement without the action pane separator and vertical spacing. */
+  compact?: boolean;
   onAction: (action: Action) => void;
   disabled: boolean;
   unreadDiscoveryCount: number;
@@ -85,6 +87,7 @@ interface SystemMenuProps {
 
 export const SystemMenu: React.FC<SystemMenuProps> = ({
   onAction,
+  compact = false,
   disabled,
   unreadDiscoveryCount,
   hasNewRateLimitError,
@@ -248,7 +251,7 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
       // Middle section: Persistence (Save/Quit).
       { action: { type: 'save_game', label: 'Save Game' } },
       { action: { type: 'toggle_auto_save', label: `Auto-save: ${autoSaveEnabled ? 'On' : 'Off'}` } },
-      { action: { type: 'cycle_combat_difficulty', label: `Difficulty: ${COMBAT_DIFFICULTY_LABEL[combatDifficulty]}` } },
+      { action: { type: 'cycle_combat_difficulty', label: `Enemy pace: ${COMBAT_DIFFICULTY_LABEL[combatDifficulty]}` } },
       { action: { type: 'cycle_rules_edition', label: `Rules: ${RULES_EDITION_LABEL[rulesEdition]}` } },
       { action: { type: 'toggle_save_scum', label: `Save-scum: ${allowSaveScum ? SAVE_SCUM_LABEL.on : SAVE_SCUM_LABEL.off}` } },
       { action: { type: 'go_to_main_menu', label: 'Main Menu' } },
@@ -297,7 +300,7 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
     <div
       id={UI_ID.SYSTEM_MENU}
       data-testid={UI_ID.SYSTEM_MENU}
-      className={`mt-6 flex justify-end border-t border-gray-700 pt-4 relative ${isMenuOpen ? 'z-[var(--z-index-content-overlay-top)]' : 'z-auto'}`}
+      className={`${compact ? '' : 'mt-6 border-t border-gray-700 pt-4'} flex justify-end relative ${isMenuOpen ? 'z-[var(--z-index-content-overlay-top)]' : 'z-auto'}`}
       ref={menuContainerRef}
     >
       <button

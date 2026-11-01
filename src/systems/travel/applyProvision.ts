@@ -91,5 +91,13 @@ export function buildProvisionActions(
     }
   }
 
+  // GG-471: Track remaining travel minutes toward the next whole-day ration burn
+  if (provision.remainderMinutes !== undefined) {
+    actions.push({
+      type: 'SET_TRAVEL_MINUTES_REMAINDER',
+      payload: { minutes: provision.remainderMinutes },
+    });
+  }
+
   return actions;
 }

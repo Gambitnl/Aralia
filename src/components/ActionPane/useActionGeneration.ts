@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 02:20:35
- * Dependents: components/ActionPane/index.tsx
- * Imports: 5 files
+ * Last Sync: 28/10/2026, 11:55:39
+ * Dependents: components/ActionPane/index.tsx, components/layout/GameModals.tsx
+ * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -17,9 +17,11 @@
 import { useMemo } from 'react';
 import { Action, Location, NPC, Item } from '../../types';
 import { useOptionalGameState } from '../../state/GameContext';
-import { resolveTownForLocation } from '../../systems/worldforge/townsim/chronicleForLocation';
+import { resolveTownForLocation, burgIdForLocation } from '../../systems/worldforge/townsim/chronicleForLocation';
 import { isWildernessLocationId } from '../../utils/location/cellLocationId';
 import type { BusinessType, WorldBusiness } from '../../types/business';
+import { BUSINESS_TEMPLATES } from '../../data/economy/businessTemplates';
+import { useBusinessAttendance } from '../../hooks/useBusinessAttendance';
 
 /**
  * Map a worldforge business type to the closest legacy merchant-type string the
@@ -59,6 +61,14 @@ export const useActionGeneration = ({
   // standing in a tracked living-world town and surface the notice board.
   const gameContext = useOptionalGameState();
 
+  const ownersKey = npcsInLocation.map(npc => npc.id).sort().join('|');
+  const worldBusinesses = gameContext?.state.worldBusinesses;
+  const displayedBusinesses = useMemo(() => {
+    const owners = new Set(ownersKey.split('|'));
+    return Object.values(worldBusinesses ?? {}).filter(business => owners.has(business.ownerId));
+  }, [ownersKey, worldBusinesses]);
+  const attendance = useBusinessAttendance(gameContext?.state, displayedBusinesses);
+
   const generalActions = useMemo(() => {
     const actions: Action[] = [];
 
@@ -90,11 +100,18 @@ export const useActionGeneration = ({
       // dispatch. merchantType maps the wf business type to the legacy shop key
       // the handler + deterministic inventory generator expect; buildingId is the
       // NPC id (1:1 registry key); seedKey is the business id (stable inventory).
-      if (business) {
+      // An independently placed proprietor can still be met on the road.
+      // Their distant shop does not travel with that person.
+      const groundTown = gsForNpcs && (gsForNpcs.playerGroundPos || gsForNpcs.atlasGroundAddress)
+        ? burgIdForLocation({worldSeed: gsForNpcs.worldSeed, cellId: gsForNpcs.playerCell?.cellId, ground: gsForNpcs}) : undefined;
+      const hasGround = !!(gsForNpcs?.playerGroundPos || gsForNpcs?.atlasGroundAddress);
+      if (business && (!hasGround || business.burgId === groundTown)) {
         const merchantType = merchantTypeForBusiness(business.businessType);
         actions.push({
           type: 'OPEN_DYNAMIC_MERCHANT',
-          label: `Browse Goods — ${business.name}`,
+          // A shop name can sound like a forge while its saved business is a
+          // tavern. Identify the actual trade without renaming its owner or stock.
+          label: `Browse Goods — ${business.name} (${BUSINESS_TEMPLATES[business.businessType].name})${attendance[business.id] ? ` — ${attendance[business.id].open ? 'Open' : 'Closed'}: ${attendance[business.id].hours}` : ''}`,
           payload: { merchantType, buildingId: npc.id, seedKey: business.id },
         });
 
@@ -174,6 +191,7 @@ export const useActionGeneration = ({
     // computes its own news live from gameState, so no payload is attached here.
     const gs = gameContext?.state;
     if (gs && resolveTownForLocation({
+      ground: gs,
       currentLocationId: gs.currentLocationId,
       worldSeed: gs.worldSeed,
       cellId: gs.playerCell?.cellId ?? null,
@@ -190,7 +208,7 @@ export const useActionGeneration = ({
     }
 
     return actions;
-  }, [currentLocation, npcsInLocation, itemsInLocation, gameContext]);
+  }, [currentLocation, npcsInLocation, itemsInLocation, gameContext, attendance]);
 
   return { generalActions };
 };

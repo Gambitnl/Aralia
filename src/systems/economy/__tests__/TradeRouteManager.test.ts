@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { processDailyRoutes, initializeTradeRoutes } from '../TradeRouteManager';
 import { GameState } from '../../../types';
 import { TradeRoute } from '../../../types/economy';
+import { INITIAL_TRADE_ROUTES } from '../../../data/tradeRoutes';
 import { SeededRandom } from '@/utils/random';
 import { calculateMarketFactors } from '@/utils/economy/marketEvents';
 
@@ -76,6 +77,22 @@ describe('TradeRouteManager', () => {
       expect(marketFactors.surplus).toEqual([]);
     });
 
+    it('does not force every production route into a boom on an ordinary daily roll', () => {
+      mockState.economy.tradeRoutes = INITIAL_TRADE_ROUTES.map(route => ({...route}));
+      const result = processDailyRoutes(mockState, 1, {next:()=>0.5} as SeededRandom);
+      expect(result.state.economy.tradeRoutes.map(route=>route.status)).toEqual(INITIAL_TRADE_ROUTES.map(()=> 'active'));
+      expect(result.state.economy.marketEvents).toEqual([]);
+    });
+
+    it('keeps real production boom intensities within their declared range', () => {
+      mockState.economy.tradeRoutes = INITIAL_TRADE_ROUTES.map(route => ({...route,status:'booming'}));
+      const result = processDailyRoutes(mockState, 1, {next:()=>0.8} as SeededRandom);
+      expect(result.state.economy.marketEvents).toHaveLength(14);
+      expect(result.state.economy.marketEvents.every(event=>event.intensity >= 0.3 && event.intensity <= 0.6)).toBe(true);
+      expect(result.state.economy.marketEvents.find(event=>event.id.includes('route_salt_run_food'))?.intensity).toBeCloseTo(0.57);
+      expect(result.state.economy.tradeRoutes.map(route=>route.id)).toEqual(INITIAL_TRADE_ROUTES.map(route=>route.id));
+    });
+
     it('should simulate route changes', () => {
       // Create a predictable RNG mock
       const rng = { next: () => 0.01 } as SeededRandom; // Low roll triggers blockage
@@ -139,7 +156,7 @@ describe('TradeRouteManager', () => {
         goods: ['Silk'],
         status: 'active',
         riskLevel: 0,
-        profitability: 0.5,
+        profitability: 50,
         daysInStatus: 3
       };
 

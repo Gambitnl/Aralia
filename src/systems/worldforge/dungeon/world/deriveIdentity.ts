@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 19/07/2026, 08:43:22
- * Dependents: components/World3D/dungeonEntryRuntime.ts, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/dungeon/world/rumors.ts
- * Imports: 9 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file deriveIdentity.ts — Pillar 2, Task 3: turn a DungeonSite into the fully
  * WORLD-DERIVED generation parameters and naming a dungeon needs.
@@ -46,6 +30,23 @@
  * Pure data, zero THREE imports, deterministic (new streams only — perturbs no
  * existing worldforge golden).
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 28/10/2026, 19:40:24
+ * Dependents: components/World3D/dungeonEntryRuntime.ts, components/World3D/hooks/useInteriorTransition.ts, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/dungeon/world/dungeonLevels.ts, systems/worldforge/dungeon/world/dungeonObjectResolution.ts, systems/worldforge/dungeon/world/rumors.ts, types/combatOutcome.ts
+ * Imports: 9 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { streamPath, rngFromPath, type SeedPath } from '../../seedPath';
 import { getBridgeAtlas, getBurgNamer } from '../../bridge/legacySubmapBridge';
 import { computeDangerField } from '../../overlays/dangerField';
@@ -122,7 +123,12 @@ export function resolveDungeonIdentity(
     );
   }
 
-  const site = enumerateDungeonSites(worldSeed).find(
+  // Ground/loaded-save callers retain the complete atlas seed. The frozen
+  // path stores only its uint32 root, which can name a different bridge atlas.
+  // Use the caller's checked seed to find the original attachment. Keep the
+  // returned generation seed unchanged: existing interiors already derive
+  // their layout/naming context from that frozen root, not the full timestamp.
+  const site = enumerateDungeonSites(expectedWorldSeed ?? worldSeed).find(
     (candidate) => candidate.sitePath === identity.seedPath,
   );
   if (!site) {
@@ -131,6 +137,14 @@ export function resolveDungeonIdentity(
     );
   }
 
+  if (site.authoredGoal) {
+    // New story sites have always used the full atlas context. Older interiors
+    // keep their frozen uint32 generation branch and their existing saved plans.
+    if (expectedWorldSeed === undefined || site.authoredGoal.worldSeed !== expectedWorldSeed) {
+      throw new Error('Authored dungeon identity requires its complete source world seed.');
+    }
+    return { worldSeed: expectedWorldSeed, site };
+  }
   return { worldSeed, site };
 }
 
@@ -315,6 +329,11 @@ export function deriveDungeonIdentity(
   };
 
   const world: WorldIdentity = { builderName, builderStem };
+  if (site.authoredGoal) {
+    if (site.authoredGoal.worldSeed !== worldSeed) throw new Error('Authored site belongs to a different source world.');
+    world.siteName = site.authoredGoal.entranceName;
+    world.builderName = site.authoredGoal.builderName;
+  }
   if (townName) world.townName = townName;
   // Chronicle grounding (Pillar 2, Task 4): the real world zones near this site,
   // each with a world-consistent derived age. simulateHistory binds matching

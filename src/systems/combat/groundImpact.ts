@@ -70,14 +70,53 @@ export interface GroundImpact {
  */
 export interface ImpactAbilityLike {
   type?: string;
+  /** The combat ability's area. Its size is in TILES (`types/combat/actions.ts`). */
   areaOfEffect?: { shape?: string; size?: number } | null;
   areaShape?: string;
+  /** In tiles, like `areaOfEffect.size`. */
   areaSize?: number;
+  /** The combat ability's effects: a damage effect names its type here. */
+  effects?: ReadonlyArray<{ type?: string; damageType?: string; damage?: { type?: string } | null }> | null;
   spell?: {
     damage?: { type?: string } | null;
+    /** The spell data's area. Its size is in FEET, as the spell JSON is written. */
     areaOfEffect?: { shape?: string; size?: number } | null;
+    targeting?: { areaOfEffect?: { shape?: string; size?: number } | null } | null;
+    effects?: ReadonlyArray<{ damage?: { type?: string } | null }> | null;
   } | null;
   damage?: { type?: string } | null;
+}
+
+/**
+ * The blast's shape and its size in feet. GG-533 (2026-10-29): this read
+ * `areaOfEffect.size` as feet, but a combat ability carries it in tiles, so a
+ * real Fireball (a circle of 4 tiles) measured 4 ft and never cratered; only
+ * the hand-built test shape (20 "ft") did. The ability's own area is tiles; the
+ * spell data's area is feet.
+ */
+function blastAreaFeet(ability: ImpactAbilityLike): { shape: string; feet: number } {
+  if (ability.areaOfEffect || ability.areaSize != null) {
+    const tiles = ability.areaOfEffect?.size ?? ability.areaSize ?? 0;
+    return { shape: (ability.areaOfEffect?.shape ?? ability.areaShape ?? '').toLowerCase(), feet: tiles * FEET_PER_TILE };
+  }
+  const area = ability.spell?.areaOfEffect ?? ability.spell?.targeting?.areaOfEffect ?? null;
+  return { shape: (area?.shape ?? '').toLowerCase(), feet: area?.size ?? 0 };
+}
+
+/**
+ * Every damage type the ability deals. GG-533 (2026-10-29): a real spell
+ * ability names its damage in its effects (`effects[].damageType`, and the
+ * spell's `effects[].damage.type`), not in a top-level `damage`, which only
+ * the hand-built test shape had.
+ */
+function damageTypesOf(ability: ImpactAbilityLike): string[] {
+  const types = [
+    ability.spell?.damage?.type,
+    ability.damage?.type,
+    ...(ability.effects ?? []).flatMap((e) => [e.damageType, e.damage?.type]),
+    ...(ability.spell?.effects ?? []).map((e) => e.damage?.type),
+  ];
+  return types.filter((t): t is string => typeof t === 'string').map((t) => t.toLowerCase());
 }
 
 /**
@@ -92,14 +131,11 @@ export interface ImpactAbilityLike {
 export function groundImpactOfAbility(ability: ImpactAbilityLike | null | undefined): GroundImpact | null {
   if (!ability) return null;
 
-  const area = ability.areaOfEffect ?? ability.spell?.areaOfEffect ?? null;
-  const shape = (area?.shape ?? ability.areaShape ?? '').toLowerCase();
-  const sizeFeet = area?.size ?? ability.areaSize ?? 0;
+  const { shape, feet: sizeFeet } = blastAreaFeet(ability);
   if (!BLAST_SHAPES.has(shape)) return null;
   if (!(sizeFeet >= MIN_BLAST_FEET)) return null;
 
-  const damageType = (ability.spell?.damage?.type ?? ability.damage?.type ?? '').toLowerCase();
-  if (!BLAST_DAMAGE.has(damageType)) return null;
+  if (!damageTypesOf(ability).some((type) => BLAST_DAMAGE.has(type))) return null;
 
   const blastTiles = sizeFeet / FEET_PER_TILE;
   const radiusM = Math.min(MAX_CRATER_TILES, blastTiles * CRATER_OF_BLAST);

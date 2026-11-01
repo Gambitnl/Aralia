@@ -23,7 +23,7 @@
  * dev-only probe stays stubbed so it does not race a second scan per render.
  */
 import React from 'react';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent, within, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import axe from 'axe-core';
 import SaveSlotSelector from '../SaveSlotSelector';
@@ -90,6 +90,37 @@ const slotButton = (name: string): HTMLButtonElement =>
   screen.getByText(name).closest('button') as HTMLButtonElement;
 
 describe('SaveSlotSelector accessibility', () => {
+  it('waits for persistence, prevents duplicate writes and keeps a failed entry retryable', async () => {
+    let rejectSave!: (cause: Error) => void;
+    const onSaveSlot = vi.fn(() => new Promise<void>((_, reject) => { rejectSave = reject; }));
+    const onClose = vi.fn();
+    renderSelector({ onSaveSlot, onClose });
+    fireEvent.change(screen.getByPlaceholderText('Name this memory...'), { target: { value: 'Expedition ready' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Scribe Entry' }));
+    expect(screen.getByRole('status')).toHaveTextContent('Saving');
+    expect(onClose).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Scribe Entry' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(onSaveSlot).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
+    await act(async () => { rejectSave(new Error('Storage is full')); });
+    expect(screen.getByRole('alert')).toHaveTextContent('Storage is full');
+    expect(screen.getByPlaceholderText('Name this memory...')).toHaveValue('Expedition ready');
+    expect(screen.getByRole('button', { name: 'Scribe Entry' })).toBeEnabled();
+  });
+
+  it('closes only after an asynchronous save commits', async () => {
+    let resolveSave!: () => void;
+    const onSaveSlot = vi.fn(() => new Promise<void>(resolve => { resolveSave = resolve; }));
+    const onClose = vi.fn();
+    renderSelector({ onSaveSlot, onClose });
+    fireEvent.change(screen.getByPlaceholderText('Name this memory...'), { target: { value: 'Expedition ready' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Scribe Entry' }));
+    expect(onClose).not.toHaveBeenCalled();
+    await act(async () => { resolveSave(); });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
   });

@@ -8,6 +8,23 @@
  * roof. Whoever has NO close kin in town either has relatives in ANOTHER town or
  * is genuinely alone in the world. Pure: same roster + seed → identical families.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 01/11/2026, 13:07:47
+ * Dependents: components/Worldforge/AgentSimPreview.tsx, components/Worldforge/LivingWorldPreview.tsx, components/Worldforge/VillagerRegistry.tsx, systems/worldforge/roster/relationshipWeb.ts, systems/worldforge/town/household.ts, systems/worldforge/townsim/townSim.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { Occupant, AgeBand } from './types';
 import { rngFromPath, streamPath, type SeedPath } from '../seedPath';
 
@@ -78,7 +95,38 @@ const DISTANT_RELATIONS: KinRelation[] = ['parent', 'sibling', 'child', 'cousin'
  * id. Deterministic over a sorted traversal so household decisions never depend
  * on input order.
  */
-export function assignFamilies(occupants: Occupant[], seedPath: SeedPath): Map<number, FamilyTies> {
+/** Source farm members keep their original ages, ancestry and roles. Run the
+ * legacy random family pass on urban residents alone, so appending a farm
+ * cannot redraw an established marriage, sibling or distant-family decision. */
+export function assignFamilies(occupants:Occupant[],seedPath:SeedPath):Map<number,FamilyTies>{
+ const rural=occupants.filter(o=>o.ruralHousehold);
+ if(!rural.length)return assignGeneratedFamilies(occupants,seedPath);
+ const ties=assignGeneratedFamilies(occupants.filter(o=>!o.ruralHousehold),seedPath);
+ const households=new Map<number,Occupant[]>();
+ for(const person of [...rural].sort((a,b)=>a.id-b.id)){
+  const source=person.ruralHousehold!,member=source.member;
+  if(ties.has(person.id)||!person.householdMemberId?.startsWith(source.farmId+':')
+   ||!Number.isFinite(member.age)||member.age<0||!member.race)throw new Error('Source farm family identity or age is inconsistent');
+  ties.set(person.id,{occupantId:person.id,age:member.age,race:member.race,parentIds:[],childIds:[],siblingIds:[],distantKin:[],alone:false});
+  const group=households.get(person.homePlotId)??[];group.push(person);households.set(person.homePlotId,group);
+ }
+ for(const members of households.values()){
+  const farmIds=new Set(members.map(o=>o.ruralHousehold!.farmId));
+  const heads=members.filter(o=>o.ruralHousehold!.member.role==='head'),spouses=members.filter(o=>o.ruralHousehold!.member.role==='spouse');
+  if(farmIds.size!==1||heads.length>1||spouses.length>1)throw new Error('Source farm family has ambiguous household roles');
+  const parents=[...heads,...spouses],children=members.filter(o=>o.ruralHousehold!.member.role==='child');
+  if(heads.length===1&&spouses.length===1){ties.get(heads[0].id)!.spouseId=spouses[0].id;ties.get(spouses[0].id)!.spouseId=heads[0].id;}
+  for(const child of children){const own=ties.get(child.id)!;
+   own.parentIds=parents.map(p=>p.id);own.siblingIds=children.filter(s=>s.id!==child.id).map(s=>s.id);
+   for(const parent of parents)ties.get(parent.id)!.childIds.push(child.id);
+  }
+  // Elder/kin/lodger labels do not identify a specific parent or a distant
+  // relation. Leave that unfinished world knowledge unasserted, not rerolled.
+ }
+ return ties;
+}
+
+function assignGeneratedFamilies(occupants: Occupant[], seedPath: SeedPath): Map<number, FamilyTies> {
   const rng = rngFromPath(streamPath(seedPath, 'family'));
   const ties = new Map<number, FamilyTies>();
 

@@ -146,7 +146,7 @@ export const navalReducer = (state: GameState, action: AppAction): GameState => 
         currentWeather.wind.speed,
         currentWeather.visibility
       ].join('|'));
-      const { newState: updatedVoyage, updatedShip } = VoyageManager.advanceDay(
+      const { newState: updatedVoyage, updatedShip, remainingFunds } = VoyageManager.advanceDay(
         state.naval.currentVoyage,
         ship,
         currentWeather,
@@ -154,9 +154,9 @@ export const navalReducer = (state: GameState, action: AppAction): GameState => 
         new SeededRandom(voyageSeed)
       );
 
-      // Check for arrival
+      // Check for arrival (GG-468: arrival occurs when distanceToDestination reaches 0 or voyage status is Docked)
       let arrivedShip = updatedShip;
-      const arrived = updatedVoyage.distanceTraveled >= updatedVoyage.distanceToDestination;
+      const arrived = updatedVoyage.distanceToDestination <= 0 || updatedVoyage.status === 'Docked';
       if (arrived) {
          updatedVoyage.status = 'Docked';
          updatedVoyage.log.push({
@@ -221,7 +221,7 @@ export const navalReducer = (state: GameState, action: AppAction): GameState => 
       return {
         ...state,
         ...logUpdate,
-        gold: state.gold + salvageGold,
+        gold: (typeof remainingFunds === 'number' ? remainingFunds : state.gold) + salvageGold,
         naval: {
           ...state.naval,
           currentVoyage: updatedVoyage,

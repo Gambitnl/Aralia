@@ -144,9 +144,12 @@ export class HeightmapModule {
         limit++;
       } while (this.heights[start] + h > 90 && limit < 50);
       change[start] = h;
+      // GG-556: a read index replaces upstream `queue.shift()`, which copied
+      // the whole queue for each cell. Same first-in, first-out order.
       const queue = [start];
-      while (queue.length) {
-        const q = queue.shift() as number;
+      let head = 0;
+      while (head < queue.length) {
+        const q = queue[head++] as number;
 
         for (const c of this.grid.cells.c[q]) {
           if (change[c]) continue;
@@ -180,9 +183,12 @@ export class HeightmapModule {
         limit++;
       } while (this.heights[start] < 20 && limit < 50);
 
+      // GG-556: a read index replaces upstream `queue.shift()`, which copied
+      // the whole queue for each cell. Same first-in, first-out order.
       const queue = [start];
-      while (queue.length) {
-        const q = queue.shift() as number;
+      let head = 0;
+      while (head < queue.length) {
+        const q = queue[head++] as number;
         h = h ** this.blobPower * (Math.random() * 0.2 + 0.9);
         if (h < 1) return;
 

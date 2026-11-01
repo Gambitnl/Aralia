@@ -1,6 +1,6 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { checkPlanarRestRules } from '../rest';
+import { checkPlanarRestRules, getPlanarRestPreview } from '../rest';
 import { GameState, Location } from '../../../types';
 import { Plane } from '../../../types/planes';
 import { getCurrentPlane } from '../../../utils/planar';
@@ -106,6 +106,16 @@ describe('checkPlanarRestRules', () => {
                 { id: 'shadowfell_despair', name: 'Shadowfell Despair', type: 'environmental', description: '' }
             ]
         });
+
+        // Reopening the preview cannot spend RNG, mutate the party or decide
+        // which members will benefit. Only commitment resolves the existing saves.
+        const before = JSON.stringify(mockGameState);
+        const preview = getPlanarRestPreview(mockGameState, 'long');
+        expect(preview.blockReason).toBeNull();
+        expect(preview.warning).toContain('DC 15 Wisdom saving throw with disadvantage');
+        expect(getPlanarRestPreview(mockGameState, 'long')).toEqual(preview);
+        expect(rollSavingThrow).not.toHaveBeenCalled();
+        expect(JSON.stringify(mockGameState)).toBe(before);
 
         // Mock saving throws
         // Character 1 fails (Needs to fail one of the two rolls)

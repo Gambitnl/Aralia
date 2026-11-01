@@ -17,6 +17,14 @@
  * It is purely presentational: positions and the reachable radius come in as
  * props (CombatView owns the turn manager / ability system). Tokens interpolate
  * (lerp) toward their target scene position so a committed move glides.
+ *
+ * BODIES (2026-10-30). A token that carries its combatant draws the 3D
+ * arena's own `CharacterActor`: the generated body, the selection and turn
+ * rings, the nameplate and HP bar, and the walk and attack animation. The
+ * arena works in its own units (one unit = one 5 ft tile = 1.524 m, an actor
+ * stands at its tile + 0.5), so each actor sits in a group scaled by 1.524
+ * whose origin puts the actor's tile center on the token's world point. The
+ * colored pawn stays for a token without its combatant.
  */
 import React, { useMemo, useRef } from 'react';
 import { useFrame, type ThreeEvent } from '@react-three/fiber';
@@ -26,6 +34,8 @@ import type { SceneOrigin } from '@/systems/world3d/sceneOrigin';
 import { worldToScene } from '@/systems/world3d/sceneOrigin';
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
 import { groundSurfaceYM } from '../terrain/groundSurfaceYM';
+import { CharacterActor } from '@/components/BattleMap/characters';
+import type { CombatCharacter } from '@/types/combat';
 import {
   GROUND_METERS_PER_CELL_FIP,
 } from '@/systems/combat/fightInPlace/inSceneMovement';
@@ -45,6 +55,12 @@ export interface InPlaceToken {
   isActive: boolean;
   /** Approximate body height in meters (defaults to a 6-ft adult). */
   heightM?: number;
+  /**
+   * The combatant itself (2026-10-30). With it the token draws the 3D
+   * arena's own generated body (`CharacterActor`: race and class or creature
+   * body, rings, nameplate, HP bar) instead of the colored pawn.
+   */
+  character?: CombatCharacter;
 }
 
 const TEAM_COLOR: Record<InPlaceToken['team'], string> = {
@@ -124,6 +140,78 @@ const TokenBody: React.FC<TokenBodyProps> = ({ token, ground, sceneOrigin }) => 
   );
 };
 
+/** One arena unit in meters: the arena draws one 5 ft tile per unit. */
+const ARENA_UNIT_M = GROUND_METERS_PER_CELL_FIP;
+
+/**
+ * The world-meter point of the arena group's origin for one combatant: the
+ * patch's tile (0, 0) corner, so the actor's tile center (t + 0.5 units, one
+ * unit = 1.524 m) lands on the extraction's own point for t (anchor + (t -
+ * floor(dims / 2)) x 1.524 m), shifted by the token's offset from that point.
+ * A surface-contact fight places some combatants by their source meters, so
+ * the token, not the patch mapping, is the truth for where a body stands.
+ */
+export function arenaGroupOriginM(
+  token: { xM: number; zM: number },
+  tile: { x: number; y: number },
+  anchor: { xM: number; zM: number },
+  patchDims: { width: number; height: number },
+): { xM: number; zM: number } {
+  const cx = Math.floor(patchDims.width / 2);
+  const cz = Math.floor(patchDims.height / 2);
+  const offsetXM = token.xM - (anchor.xM + (tile.x - cx) * ARENA_UNIT_M);
+  const offsetZM = token.zM - (anchor.zM + (tile.y - cz) * ARENA_UNIT_M);
+  return {
+    xM: anchor.xM - (cx + 0.5) * ARENA_UNIT_M + offsetXM,
+    zM: anchor.zM - (cz + 0.5) * ARENA_UNIT_M + offsetZM,
+  };
+}
+
+interface ActorBodyProps {
+  token: InPlaceToken;
+  character: CombatCharacter;
+  characters: CombatCharacter[];
+  ground: GroundWorld;
+  sceneOrigin: SceneOrigin;
+  anchorXM: number;
+  anchorZM: number;
+  patchDims: { width: number; height: number };
+  activeCharacterId?: string | null;
+  onGroundPick?: (worldXM: number, worldZM: number) => void;
+}
+
+/**
+ * The arena's generated body for one combatant, on the real ground. The group
+ * maps arena units to scene meters, with its origin from `arenaGroupOriginM`.
+ * The actor eases between tiles by itself; a click on it aims at its tile.
+ */
+const ActorBody: React.FC<ActorBodyProps> = ({
+  token, character, characters, ground, sceneOrigin, anchorXM, anchorZM, patchDims, activeCharacterId, onGroundPick,
+}) => {
+  const o = arenaGroupOriginM(token, character.position, { xM: anchorXM, zM: anchorZM }, patchDims);
+  const origin = worldToScene(o.xM, o.zM, sceneOrigin);
+  // The ground under the token, in arena units (the group scales units to meters).
+  const groundY = groundSurfaceYM(ground, token.xM, token.zM) / ARENA_UNIT_M;
+  return (
+    <group position={[origin.x, 0, origin.z]} scale={ARENA_UNIT_M} data-testid={`fip-token-${token.id}`}>
+      <CharacterActor
+        character={character}
+        allCharacters={characters}
+        tileElevation={0}
+        groundY={groundY}
+        isSelected={false}
+        isTurn={token.isActive}
+        isTargetable={false}
+        targetingMode={false}
+        onClick={() => onGroundPick?.(token.xM, token.zM)}
+        activeCharacterId={activeCharacterId}
+        // The quiet marker set: the arena's chrome shouts over a lit town.
+        chrome="town"
+      />
+    </group>
+  );
+};
+
 interface ReachableDiscProps {
   ground: GroundWorld;
   sceneOrigin: SceneOrigin;
@@ -175,6 +263,10 @@ export interface InPlaceCombatLayerProps {
   anchorZM: number;
   /** Fired when the player clicks the ground; carries world meters. */
   onGroundPick?: (worldXM: number, worldZM: number) => void;
+  /** Every combatant, for the bodies' facing (each turns toward its nearest foe). */
+  characters?: CombatCharacter[];
+  /** The actor whose turn it is (the bodies' turn ring and nameplate). */
+  activeCharacterId?: string | null;
 }
 
 /** The full in-scene combat layer mounted inside World3DScene's Canvas. */
@@ -187,6 +279,8 @@ const InPlaceCombatLayer: React.FC<InPlaceCombatLayerProps> = ({
   anchorXM,
   anchorZM,
   onGroundPick,
+  characters,
+  activeCharacterId,
 }) => {
   // Invisible ground-pick plane covering the patch. Centered on the anchor at a
   // representative surface height; a click raycasts to a scene point we convert
@@ -225,9 +319,23 @@ const InPlaceCombatLayer: React.FC<InPlaceCombatLayerProps> = ({
           movementFeet={reachable.movementFeet}
         />
       )}
-      {tokens.map((t) => (
+      {tokens.map((t) => (t.character ? (
+        <ActorBody
+          key={t.id}
+          token={t}
+          character={t.character}
+          characters={characters ?? [t.character]}
+          ground={ground}
+          sceneOrigin={sceneOrigin}
+          anchorXM={anchorXM}
+          anchorZM={anchorZM}
+          patchDims={patchDims}
+          activeCharacterId={activeCharacterId}
+          onGroundPick={onGroundPick}
+        />
+      ) : (
         <TokenBody key={t.id} token={t} ground={ground} sceneOrigin={sceneOrigin} />
-      ))}
+      )))}
     </group>
   );
 };

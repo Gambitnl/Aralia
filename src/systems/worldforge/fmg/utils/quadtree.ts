@@ -37,14 +37,22 @@ function defaultY(d: unknown): number {
   return (d as number[])[1];
 }
 
-class Quad<T> {
-  constructor(
-    public node: QuadNode<T> | undefined,
-    public x0: number,
-    public y0: number,
-    public x1: number,
-    public y1: number,
-  ) {}
+/**
+ * Swap two entries of a flat quad stack (a node array plus four bounds per
+ * entry). find() and graphUtils findAllInQuadtree use it for d3's "visit the
+ * closest quadrant first" swap.
+ */
+export function swapQuads<N>(nodes: N[], bounds: number[], a: number, b: number): void {
+  const node = nodes[a];
+  nodes[a] = nodes[b];
+  nodes[b] = node;
+  const ba = a * 4;
+  const bb = b * 4;
+  for (let k = 0; k < 4; k++) {
+    const v = bounds[ba + k];
+    bounds[ba + k] = bounds[bb + k];
+    bounds[bb + k] = v;
+  }
 }
 
 export class Quadtree<T> {
@@ -253,7 +261,14 @@ export class Quadtree<T> {
     /* eslint-enable @typescript-eslint/no-explicit-any */
   }
 
-  // d3-quadtree find.js — verbatim port
+  // d3-quadtree find.js — verbatim port of the search order.
+  //
+  // GG-556 (2026-11-01): d3 pushes a `Quad` object for every visited node, and
+  // world generation calls find() many thousands of times, so those objects
+  // were a large share of the GC work. This version keeps the same stack as
+  // two flat arrays (nodes, and four bounds per entry). The push order, the
+  // closest-quadrant swap and the pop order are d3's, so ties resolve exactly
+  // as before (scripts/worldforge/fmgWorldHash.ts proves the world is the same).
   find(x: number, y: number, radius?: number): T | undefined {
     let data: T | undefined;
     let x0 = this._x0;
@@ -264,12 +279,20 @@ export class Quadtree<T> {
     let y2: number;
     let x3 = this._x1;
     let y3 = this._y1;
-    const quads: Quad<T>[] = [];
+    const nodes: (QuadNode<T> | undefined)[] = [];
+    const bounds: number[] = [];
+    let top = 0; // number of stacked quads
     let node = this._root;
-    let q: Quad<T> | undefined;
     let i: number;
 
-    if (node) quads.push(new Quad(node, x0, y0, x3, y3));
+    if (node) {
+      nodes[0] = node;
+      bounds[0] = x0;
+      bounds[1] = y0;
+      bounds[2] = x3;
+      bounds[3] = y3;
+      top = 1;
+    }
     if (radius == null) radius = Infinity;
     else {
       x0 = x - radius;
@@ -279,14 +302,17 @@ export class Quadtree<T> {
       radius *= radius;
     }
 
-    while ((q = quads.pop())) {
+    while (top > 0) {
+      top--;
+      node = nodes[top];
+      const b = top * 4;
       // Stop searching if this quadrant can't contain a closer node.
       if (
-        !(node = q.node) ||
-        (x1 = q.x0) > x3 ||
-        (y1 = q.y0) > y3 ||
-        (x2 = q.x1) < x0 ||
-        (y2 = q.y1) < y0
+        !node ||
+        (x1 = bounds[b]) > x3 ||
+        (y1 = bounds[b + 1]) > y3 ||
+        (x2 = bounds[b + 2]) < x0 ||
+        (y2 = bounds[b + 3]) < y0
       )
         continue;
 
@@ -296,19 +322,19 @@ export class Quadtree<T> {
         const ym = (y1 + y2) / 2;
         const internal = node as InternalNode<T>;
 
-        quads.push(
-          new Quad(internal[3], xm, ym, x2, y2),
-          new Quad(internal[2], x1, ym, xm, y2),
-          new Quad(internal[1], xm, y1, x2, ym),
-          new Quad(internal[0], x1, y1, xm, ym),
-        );
+        // Same push order as d3: children 3, 2, 1, 0 (0 ends on top).
+        nodes[top] = internal[3];
+        bounds[b] = xm; bounds[b + 1] = ym; bounds[b + 2] = x2; bounds[b + 3] = y2;
+        nodes[top + 1] = internal[2];
+        bounds[b + 4] = x1; bounds[b + 5] = ym; bounds[b + 6] = xm; bounds[b + 7] = y2;
+        nodes[top + 2] = internal[1];
+        bounds[b + 8] = xm; bounds[b + 9] = y1; bounds[b + 10] = x2; bounds[b + 11] = ym;
+        nodes[top + 3] = internal[0];
+        bounds[b + 12] = x1; bounds[b + 13] = y1; bounds[b + 14] = xm; bounds[b + 15] = ym;
+        top += 4;
 
         // Visit the closest quadrant first.
-        if ((i = (+(y >= ym) << 1) | +(x >= xm))) {
-          q = quads[quads.length - 1];
-          quads[quads.length - 1] = quads[quads.length - 1 - i];
-          quads[quads.length - 1 - i] = q;
-        }
+        if ((i = (+(y >= ym) << 1) | +(x >= xm))) swapQuads(nodes, bounds, top - 1, top - 1 - i);
       }
 
       // Visit this point. (Visiting coincident points isn't necessary!)

@@ -61,3 +61,35 @@ describe('adventure log append hooks', () => {
     expect(next.adventureLog).toBeUndefined();
   });
 });
+
+
+// Arrival summaries must use the reached time even while travel's original
+// MOVE/discovery/time action order still holds the departure clock.
+describe('arrival journal chronology', () => {
+  it('dates travel at arrival across midnight without advancing the reducer clock', async () => {
+    const {appReducer}=await import('../../appState');
+    const state=createMockGameState({gameTime:new Date('0351-01-01T23:00:00Z'),adventureLog:[{id:'earned',day:1,time:'10:32',timestamp:1,kind:'travel',summary:'Earlier earned arrival.'}]});
+    const before=JSON.stringify(state);
+    const next=appReducer(state,{type:'MOVE_PLAYER',payload:{newLocationId:'cell_42',activeDynamicNpcIds:null,arrivalGameTime:'0351-01-02T02:47:00Z'}});
+    expect(next.adventureLog.at(-1)?.time).toBe('02:47');
+    expect(next.adventureLog.at(-1)?.day).toBe(Math.floor(Date.parse('0351-01-02T02:47:00Z')/86400000));
+    expect(next.gameTime).toEqual(state.gameTime);
+    expect(next.adventureLog[0]).toEqual(state.adventureLog[0]);
+    expect(JSON.stringify(state)).toBe(before);
+  });
+  it.each([undefined,'invalid-date'])('preserves ordinary movement timing for %s',async arrivalGameTime=>{
+    const {appReducer}=await import('../../appState');
+    const state=createMockGameState({gameTime:new Date('0351-01-01T23:00:00Z'),adventureLog:[]});
+    const next=appReducer(state,{type:'MOVE_PLAYER',payload:{newLocationId:'cell_42',activeDynamicNpcIds:null,arrivalGameTime}});
+    expect(next.adventureLog.at(-1)?.time).toBe('23:00');
+  });
+  it('mirrors the source discovery time and preserves earlier earned entries',async()=>{
+    const {logReducer}=await import('../logReducer');
+    const {DiscoveryType}=await import('../../../types');
+    const state=createMockGameState({gameTime:new Date('0351-01-01T23:00:00Z'),adventureLog:[]});
+    const next=logReducer(state,{type:'ADD_DISCOVERY_ENTRY',payload:{type:DiscoveryType.LOCATION_DISCOVERY,title:'Location Discovered: Stamstad',gameTime:'0351-01-02T02:47:00Z',flags:[{key:'locationId',value:'cell_42',label:'Stamstad'}]}});
+    expect(next.adventureLog?.at(-1)?.time).toBe('02:47');
+    expect(state.adventureLog).toEqual([]);
+    expect(next.discoveryLog?.[0].gameTime).toBe('0351-01-02T02:47:00Z');
+  });
+});

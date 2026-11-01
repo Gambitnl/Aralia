@@ -205,6 +205,45 @@ test('locks carry a repo field and cross-repo same-path locks raise no WF-G91 wa
   await request('DELETE', `/locks/${mine.json.lock.id}`, { token: here.token });
 });
 
+test('WF-G297: HTTP queue notices and holder response fields preserve FIFO and partial unlocks', async () => {
+  const holder = await registerAgent('notice-holder');
+  const first = await registerAgent('notice-first');
+  const second = await registerAgent('notice-second');
+  const file = 'src/queue-http.ts';
+  const lock = await request('POST', '/locks', { token: holder.token,
+    body: { paths: [file, 'src/queue-kept.ts'], ttlMs: 600000 } });
+  const queued = await request('POST', '/reservations', { token: first.token,
+    body: { paths: [file], reason: 'HTTP first repair' } });
+  assert.equal(queued.status, 201, queued.raw);
+  assert.equal(queued.json.notifications, true);
+  const repeat = await request('POST', '/reservations', { token: first.token,
+    body: { paths: ['F:/Repos/Aralia/' + file], reason: 'duplicate retry' } });
+  assert.equal(repeat.json.reused, true);
+  assert.equal(repeat.json.reservation.id, queued.json.reservation.id);
+  await request('POST', '/reservations', { token: second.token, body: { paths: [file], reason: 'HTTP second repair' } });
+  const heartbeat = await request('POST', '/agents/heartbeat', { token: holder.token });
+  assert.deepEqual(heartbeat.json.waiters.map(w => [w.handle, w.position]), [['notice-first', 1], ['notice-second', 2]]);
+  assert.equal(JSON.stringify(heartbeat.json).includes(first.token), false, 'waiter identities are token-free');
+  const renewal = await request('POST', `/locks/${lock.json.lock.id}/renew`, { token: holder.token });
+  assert.equal(renewal.json.waiters.length, 2);
+  assert.equal(renewal.json.lock.ttlMs, 600000);
+  const released = await request('POST', `/locks/${lock.json.lock.id}/shrink`, { token: holder.token, body: { paths: [file] } });
+  assert.equal(released.status, 200, released.raw);
+  assert.deepEqual(released.json.lock.paths, ['src/queue-kept.ts']);
+  assert.deepEqual(released.json.waiters.map(w => w.ready), [true, false]);
+  const inbox = await request('GET', `/messages?to=${first.id}`);
+  assert.equal(inbox.json.messages.filter(m => m.body.includes('available to attempt') && m.body.includes(file)).length, 1);
+  const later = await request('POST', '/locks', { token: second.token, body: { paths: [file] } });
+  assert.equal(later.status, 409);
+  assert.equal(later.json.conflict.type, 'reservation');
+  const acquired = await request('POST', '/locks', { token: first.token, body: { paths: [file] } });
+  assert.equal(acquired.status, 201);
+  const unlock = await request('DELETE', `/locks/${acquired.json.lock.id}`, { token: first.token });
+  assert.equal(unlock.json.waiters[0].handle, 'notice-second');
+  assert.equal(unlock.json.waiters[0].ready, true);
+  await request('DELETE', `/locks/${lock.json.lock.id}`, { token: holder.token });
+});
+
 test('campaigns carry the same repo field (WF-G119)', async () => {
   const lead = await registerAgent('repo-campaign-lead');
   const r = await request('POST', '/campaigns', {

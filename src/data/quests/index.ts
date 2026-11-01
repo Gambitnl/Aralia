@@ -2,13 +2,42 @@
  * @file src/data/quests/index.ts
  * Defines quest templates and helpers to produce runtime quest instances.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 28/10/2026, 12:51:04
+ * Dependents: components/Town/Intrigue/RumorMill.tsx, hooks/actions/handleItemInteraction.ts, hooks/actions/handleNpcInteraction.ts, state/reducers/companionPreparationReducer.ts, systems/companions/companionPreparations.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { Quest, QuestStatus, QuestTemplate } from '../../types';
 
 /**
  * Quest templates are immutable blueprints. The reducer clones these into
  * fresh runtime instances to avoid cross-quest mutation.
  */
+export const ELARA_PREPARATIONS_QUEST_ID = 'elara_road_preparations';
+
 export const QUEST_TEMPLATES: Record<string, QuestTemplate> = {
+  // This authored chapter prepares Elara's own journey. It establishes no new
+  // temple location and pays no currency or recruitment reward for a handover.
+  [ELARA_PREPARATIONS_QUEST_ID]: {
+    id: ELARA_PREPARATIONS_QUEST_ID,
+    title: "Elara: Road Preparations",
+    description: "You promised Elara two rations and two days of water for her restoration journey. Hand them to her when you meet again.",
+    giverId: 'elara_vance',
+    objectives: [{ id: 'handover_supplies', description: 'Give Elara 2 rations and 2 water-days.' }],
+    questType: 'Companion',
+  },
   lost_map: {
     id: 'lost_map',
     title: 'The Lost Map',

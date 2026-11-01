@@ -290,4 +290,31 @@ describe("BattleMapTile", () => {
     // CSS grid placement is 1-based; tile coordinates are 0-based.
     expect(tileElement).toHaveStyle({ gridColumn: "18", gridRow: "43" });
   });
+  it('names ready enemy reach and explains that leaving, rather than entering, can provoke',()=>{
+    render(<BattleMapTile tile={mockTile} isValidMove isThreatened isInPath={false} isTargetable={false} isAoePreview={false} isTeleportDestinationPreview={false} targetingMode={false} onTileClick={mockOnTileClick} />);
+    expect(screen.getByRole('button',{name:/enemy melee reach; leaving may provoke an opportunity attack/i})).toBeInTheDocument();
+    expect(screen.getByTestId('threat-hatch')).toBeInTheDocument();
+  });
+
+
+  // GG-495 (2026-11-01): the long-range band keeps the attack color but draws
+  // apart from the normal attack range, so a player sees where Disadvantage applies.
+  it("draws a long-range target tile apart from a normal-range one", () => {
+    const { rerender } = render(
+      <BattleMapTile tile={mockTile} isValidMove={false} isInPath={false} isTargetable isAoePreview={false}
+        isTeleportDestinationPreview={false} targetingMode onTileClick={mockOnTileClick} />,
+    );
+    const normal = screen.getByTestId("tile-interaction-overlay");
+    expect(normal).toHaveAttribute("data-overlay-kind", "target");
+    const normalClass = normal.className;
+
+    rerender(
+      <BattleMapTile tile={mockTile} isValidMove={false} isInPath={false} isTargetable isLongRangeTarget isAoePreview={false}
+        isTeleportDestinationPreview={false} targetingMode onTileClick={mockOnTileClick} />,
+    );
+    const longRange = screen.getByTestId("tile-interaction-overlay");
+    expect(longRange).toHaveAttribute("data-overlay-kind", "target-long-range");
+    expect(longRange.className).not.toBe(normalClass);
+  });
+
 });

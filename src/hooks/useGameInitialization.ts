@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 08/06/2026, 13:33:58
- * Dependents: App.tsx
- * Imports: 14 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * ARCHITECTURAL CONTEXT:
  * This hook is the 'bootloader' for the Aralia engine. It handles all entrance 
@@ -28,6 +12,22 @@
  * - Dev flow (Skip Character Creator -> Direct Gameplay)
  * - Persistence (Load Game)
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 29/10/2026, 01:02:45
+ * Dependents: App.tsx, components/screens/AppPhaseContent.tsx, hooks/app/useAppCharacterEntry.ts, hooks/app/useAppDeveloperMenu.ts, hooks/app/useAppWorldGeneration.ts
+ * Imports: 19 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * @file src/hooks/useGameInitialization.ts
@@ -66,15 +66,15 @@ import { wfBiomeIndexToLegacyId } from '../systems/worldforge/local/wfBiomeToLeg
 import { WorldHistoryService } from '../services/WorldHistoryService';
 // Save/load service for persisting and restoring game state from local storage.
 import * as SaveLoadService from '../services/saveLoadService';
+import { setDefeatSlotInUrl } from '../services/combatDefeatService';
 // Utility that determines which dynamic NPCs should be active at a given location.
 import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
 import { getAllFactions } from '../utils/world';
 import { generateWorldSeed } from '../utils/random/generateWorldSeed';
 import { generateId } from '../utils/core/idGenerator';
 import { makeCellLocationId } from '../utils/location/cellLocationId';
-// Authored companions (Kaelen, Elara) are seeded into state.companions but placed
-// NOWHERE — so a fresh player can never meet them. Build placeable RichNPC shells
-// from their authored data and drop them into the opening scene.
+// Authored identities supply placeable shells; their new-world public activities
+// determine presence independently of the player's starting town.
 import { COMPANIONS } from '../data/companions';
 import { authoredCompanionsToRichNpcs } from '../systems/party/authoredCompanionToRichNpc';
 
@@ -229,6 +229,10 @@ export function useGameInitialization({
 
     if (result.success && result.data) {
       // Restore the entire game state from the save file.
+      if (result.data.phase === GamePhase.GAME_OVER) {
+        const recordSlot = result.data.lastCombatOutcome?.chronicleSlotId ?? slotId;
+        if (recordSlot) setDefeatSlotInUrl(recordSlot);
+      }
       dispatch({ type: 'LOAD_GAME_SUCCESS', payload: result.data });
       // Confirm success via toast only. Do NOT append to the persistent
       // message log: `messages` is serialized into save slots, so a chat
@@ -327,20 +331,13 @@ export function useGameInitialization({
         payload: payload
       });
 
-      // COMPANION-FINDABILITY (2026-07-04): make the authored companions Kaelen &
-      // Elara actually meetable. They live in state.companions but nothing placed
-      // them in the world, so no "Talk to" / "Ask to join" action ever surfaced.
-      // Build placeable RichNPC shells from their AUTHORED identity+personality and
-      // register them at the spawn via PLACE_SITUATION_NPCS — the same mechanism
-      // the opening-situation strangers use (adds them to generatedNpcs AND the
-      // current location's active dynamic NPC list). The recruit path already
-      // promotes authored companions via promoteCompanionToMember (handleRecruitOffer
-      // checks state.companions before generatedNpcs), so their real personality and
-      // relationship record come through — this shell is presence only.
-      const placeableCompanions = authoredCompanionsToRichNpcs(Object.values(COMPANIONS));
-      if (placeableCompanions.length > 0) {
-        dispatch({ type: 'PLACE_SITUATION_NPCS', payload: { npcs: placeableCompanions } });
-      }
+      // Keep authored people meetable at their own public activity source.
+      // The planner takes the world only, never the selected player start.
+      // Loading an old Chronicle does not run this new-world initialization.
+      const {companionActivitiesForNewWorld}=await import('../systems/companions/companionWorldActivitySource');
+      const activities=companionActivitiesForNewWorld(worldSeed);
+      dispatch({type:'INITIALIZE_COMPANION_WORLD_PRESENCE',payload:{activities,
+        npcs:authoredCompanionsToRichNpcs(Object.values(COMPANIONS))}});
 
       // GAME-ENTRY-SITUATION (additive, 2026-06-16): a brand-new game does not
       // spawn into the static clearing description — it kicks off generation of a

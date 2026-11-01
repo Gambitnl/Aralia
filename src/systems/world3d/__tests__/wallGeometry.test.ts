@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { buildWallMesh } from '../wallGeometry';
 import type { ChunkData } from '../types';
-import { heightToMeters } from '../config';
+import { WORLD3D_CONFIG, heightToMeters } from '../config';
+import { gridPointToLocal } from '../coords';
 
 const baseChunk = (): ChunkData => ({
   cx: 0,
@@ -59,5 +60,24 @@ describe('buildWallMesh', () => {
     expect(mesh.colors[0]).toBeCloseTo(0x9a / 255, 6);
     expect(mesh.colors[1]).toBeCloseTo(0x93 / 255, 6);
     expect(mesh.colors[2]).toBeCloseTo(0x87 / 255, 6);
+  });
+});
+
+// agora-257c (2026-10-28): a bend is one mitered join, not two boxes.
+describe('wall corners', () => {
+  it('meets at a right-angle bend on two shared corner posts, outer and inner', () => {
+    const mesh = buildWallMesh({ ...baseChunk(), walls: [run('#7a4030')] });
+    const M = WORLD3D_CONFIG.METERS_PER_CELL;
+    const c = gridPointToLocal(1.5, 0.5, 0, 0);
+    const near = new Set<string>();
+    for (let i = 0; i < mesh.positions.length; i += 3) {
+      const x = mesh.positions[i], z = mesh.positions[i + 2];
+      if (Math.hypot(x - c.x, z - c.z) < 1.2 * Math.SQRT2 + 0.01 && Math.hypot(x - c.x, z - c.z) > 0.5) {
+        near.add(`${x.toFixed(3)},${z.toFixed(3)}`);
+      }
+    }
+    // Separate boxes put four corners here; a miter puts exactly two.
+    expect(near.size).toBe(2);
+    expect(M).toBeGreaterThan(0);
   });
 });

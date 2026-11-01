@@ -51,7 +51,8 @@ export default tseslint.config(
       ],
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-empty-object-type': 'off',
-      '@typescript-eslint/ban-ts-comment': 'warn',
+      // C8 (agora-9ed9.8, 2026-10-24): an error, not a warning. @ts-ignore and @ts-nocheck hide every type error on a line or file; @ts-expect-error stays allowed with a reason, since it fails once the error is gone. The only remaining @ts-ignore lines import the untyped vendored ez-tree library and carry their own reasoned disable, so this rule blocks only NEW suppressions.
+      '@typescript-eslint/ban-ts-comment': ['error', { 'ts-ignore': true, 'ts-nocheck': true, 'ts-check': false, 'ts-expect-error': 'allow-with-description' }],
       // Newer versions of eslint-plugin-react-hooks include additional rules that are currently too strict
       // for this repo's existing patterns. Keep them as warnings so pushes aren't blocked while we
       // migrate code incrementally.
@@ -149,6 +150,44 @@ export default tseslint.config(
             "If intentionally custom, add the file to EXEMPT_FILES in buttonAudit.test.ts.",
         },
       ],
+    },
+  },
+  {
+    // C11 (agora-9ed9.11, 2026-10-25): layering. Production code in systems/ and
+    // utils/ must not import components/ or hooks/; move the shared piece down
+    // into systems, utils, or types and re-export it from the old path. Type-only
+    // imports count too, since they still tie the lower layer to UI files.
+    // Tests are exempt: integration tests cross layers on purpose.
+    files: ['src/systems/**/*.{ts,tsx}', 'src/utils/**/*.{ts,tsx}'],
+    ignores: ['**/*.test.{ts,tsx}', '**/__tests__/**'],
+    rules: {
+      'no-restricted-imports': ['error', {
+        patterns: [{
+          regex: '^(@/|(\\.\\./)+)(components|hooks)/',
+          message: 'systems/ and utils/ must not import components/ or hooks/ (C11). Move the shared piece into systems, utils, or types and re-export it from the old path.',
+        }],
+      }],
+    },
+  },
+  {
+    // C11 exception, tracked as GG-438 in docs/projects/GLOBAL_GAPS.md: these four
+    // river files import water modules from components/World3D/water. All of them
+    // and their targets carry another agent's uncommitted or untracked water work,
+    // so the shared pieces move into systems/world3d/river when that work lands.
+    // Warn until then; remove each file from this list as it is fixed.
+    files: [
+      'src/systems/world3d/river/riverMapWorker.ts',
+      'src/systems/world3d/river/riverHeadwaters.ts',
+      'src/systems/world3d/river/riverReconstructionRock.ts',
+      'src/systems/world3d/river/waterfallTerrainComparisons.worker.ts',
+    ],
+    rules: {
+      'no-restricted-imports': ['warn', {
+        patterns: [{
+          regex: '^(@/|(\\.\\./)+)(components|hooks)/',
+          message: 'systems/ and utils/ must not import components/ or hooks/ (C11). Known exception; see GG-438 in GLOBAL_GAPS.md.',
+        }],
+      }],
     },
   },
   {

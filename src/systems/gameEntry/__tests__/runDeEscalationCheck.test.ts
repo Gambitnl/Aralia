@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveCheck, getActiveCheckBoosts } from '../runDeEscalationCheck';
+import { resolveCheck, getActiveCheckBoosts, computeSkillModifier } from '../runDeEscalationCheck';
 
 describe('resolveCheck', () => {
   it('succeeds when d20 + modifier meets the DC', () => {
@@ -33,5 +33,32 @@ describe('getActiveCheckBoosts', () => {
         modifiers: { skill: 'Athletics' } },
     ] } as any;
     expect(getActiveCheckBoosts(character, 'Stealth')).toEqual([]);
+  });
+});
+
+describe('computeSkillModifier', () => {
+  it('applies expertise to Persuasion for a level-2 Bard', () => {
+    const bard = {
+      level: 2,
+      proficiencyBonus: 2,
+      class: { id: 'bard' },
+      finalAbilityScores: { Charisma: 16, Dexterity: 10 },
+      skills: [{ id: 'persuasion', name: 'Persuasion', ability: 'Charisma' }],
+      featChoices: { expertise: { selectedExpertiseSkills: ['Persuasion'] } },
+    } as any;
+    // Cha 16 -> +3, prof +2, expertise +2 = +7
+    expect(computeSkillModifier(bard, 'Charisma', 'Persuasion')).toBe(7);
+  });
+
+  it('applies Jack of All Trades to untrained skills for a level-2 Bard', () => {
+    const bard = {
+      level: 2,
+      proficiencyBonus: 2,
+      class: { id: 'bard' },
+      finalAbilityScores: { Charisma: 16, Dexterity: 10 },
+      skills: [],
+    } as any;
+    // Dex 10 -> +0, untrained gets floor(2/2) = 1
+    expect(computeSkillModifier(bard, 'Dexterity', 'Stealth')).toBe(1);
   });
 });

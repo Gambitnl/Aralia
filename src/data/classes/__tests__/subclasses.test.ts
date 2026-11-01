@@ -51,11 +51,11 @@ describe('classFeaturesForLevel with a subclass', () => {
 });
 
 describe('performLevelUp subclass milestone', () => {
-  it('applies a subclass when a character reaches level 3 (defaults to the first)', () => {
+  it('does not assign a default subclass when reaching level 3 without an explicit choice (GG-453)', () => {
     const l2 = createMockPlayerCharacter({ class: CLASSES_DATA['fighter'], level: 2, xp: 900 });
     const l3 = performLevelUp(l2, {});
     expect(l3.level).toBe(3);
-    expect(l3.subclassId).toBe('champion'); // first fighter subclass
+    expect(l3.subclassId).toBeUndefined();
   });
 
   it('honors an explicit subclass choice at level 3', () => {

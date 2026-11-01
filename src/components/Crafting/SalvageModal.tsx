@@ -13,6 +13,22 @@
  * Depends on: WindowFrame, crafterAdapter, GameContext, ALL_ITEMS, CRAFTING_MATERIALS
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 13:21:01
+ * Dependents: components/Crafting/index.ts, components/World3D/World3DWrapper.tsx, components/layout/GameModals.tsx
+ * Imports: 9 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 // ============================================================================
 // Imports
 // ============================================================================
@@ -40,6 +56,7 @@ import { CRAFTING_MATERIALS } from '../../data/craftingMaterials';
 import { Item, PlayerCharacter } from '../../types';
 import { resolveCraftingCrafter, NO_CRAFTER_MESSAGE } from './crafterAdapter';
 import { formatGpAsCoins } from '../../utils/character';
+import { resolveItemAssetSrc, resolveItemVisual } from '../../utils/visuals/visualUtils';
 
 // ============================================================================
 // Types & Yield Formulas
@@ -47,6 +64,8 @@ import { formatGpAsCoins } from '../../utils/character';
 export interface SalvageModalProps {
     // Optional close callback; when omitted, the modal will close its window
     onClose?: () => void;
+    /** A reached, staffed workbench. No location bonus or household stock is granted. */
+    station?: { name: string; checkAccess: (durationMinutes: number) => string | null };
 }
 
 export type SalvageFilterCategory = 'all' | 'weapons' | 'armor' | 'gear' | 'magical';
@@ -248,7 +267,17 @@ export function calculateSalvagePreview(item: Item): SalvageRecipePreview {
 // ============================================================================
 // Main Component
 // ============================================================================
-export const SalvageModal: React.FC<SalvageModalProps> = ({ onClose }) => {
+/** Share inventory's base-aware image resolution; a path is never a text glyph. */
+const SalvageItemGlyph: React.FC<{item: Item}> = ({item}) => {
+    const visual = resolveItemVisual(item);
+    const [broken, setBroken] = useState(false);
+    const src = resolveItemAssetSrc(visual.src);
+    if (src && !broken) return <img src={src} alt="" aria-hidden="true" loading="lazy" className="h-8 w-8 shrink-0 object-contain" onError={() => setBroken(true)} />;
+    const glyph = visual.fallbackContent;
+    return <span className="shrink-0 text-2xl" aria-hidden="true">{glyph && !glyph.includes('/') && !glyph.startsWith('data:') ? glyph : '📦'}</span>;
+};
+
+export const SalvageModal: React.FC<SalvageModalProps> = ({ onClose, station }) => {
     const { state, dispatch } = useGameState();
 
     const [selectedCategory, setSelectedCategory] = useState<SalvageFilterCategory>('all');
@@ -256,6 +285,7 @@ export const SalvageModal: React.FC<SalvageModalProps> = ({ onClose }) => {
     const [salvageQuantity, setSalvageQuantity] = useState<number>(1);
     const [isProcessing, setIsProcessing] = useState<boolean>(false);
     const [logEntries, setLogEntries] = useState<SalvageLogEntry[]>([]);
+    const [stationError, setStationError] = useState<string | null>(null);
 
     // Resolve the active party crafter and their tool check ability
     const crafterResolution = useMemo(
@@ -337,6 +367,11 @@ export const SalvageModal: React.FC<SalvageModalProps> = ({ onClose }) => {
         const maxAvailable = activeItem.quantity || 1;
         const countToBreak = Math.min(salvageQuantity, maxAvailable);
         if (countToBreak <= 0) return;
+        // The preview is not permission: recheck the actual body and keeper
+        // immediately before breaking owned gear. A denied visit spends nothing.
+        const denial = station?.checkAccess(recipePreview.estimatedMinutes * countToBreak);
+        setStationError(denial ?? null);
+        if (denial) return;
 
         setIsProcessing(true);
 
@@ -357,7 +392,10 @@ export const SalvageModal: React.FC<SalvageModalProps> = ({ onClose }) => {
 
             if (isSuccess) {
                 anySuccess = true;
-                totalGold += recipePreview.baseGoldValue;
+                // A physical bench produces scrap, not coins. The old standalone
+                // salvage conversion remains compatible; selling recovered goods
+                // at a real bench goes through the ordinary merchant transaction.
+                if (!station) totalGold += recipePreview.baseGoldValue;
 
                 // Standard outputs with possible 50% bonus yield on critical mastery
                 for (const y of recipePreview.yields) {
@@ -401,10 +439,15 @@ export const SalvageModal: React.FC<SalvageModalProps> = ({ onClose }) => {
         // 2. Add all recovered material items to inventory
         for (const [itemId, info] of Object.entries(recoveredTotals)) {
             if (info.quantity > 0) {
-                dispatch({
-                    type: 'ADD_ITEM',
-                    payload: { itemId, count: info.quantity },
-                });
+                if (station) {
+                    // Generic ADD_ITEM deliberately assigns instance UUIDs. Raw
+                    // crafting stacks need their registry identity so recipes can
+                    // both recognize and consume the earned material. GIVE_ITEM
+                    // preserves this full catalog stack and stamps acquisition.
+                    dispatch({type:'GIVE_ITEM', payload:{item:{...CRAFTING_MATERIALS[itemId], id:itemId, quantity:info.quantity}}});
+                } else {
+                    dispatch({type:'ADD_ITEM', payload:{itemId, count:info.quantity}});
+                }
             }
         }
 
@@ -446,6 +489,8 @@ export const SalvageModal: React.FC<SalvageModalProps> = ({ onClose }) => {
         }
     };
 
+    const sourceAccessError = station?.checkAccess((recipePreview?.estimatedMinutes ?? 0) * salvageQuantity) ?? null;
+
     return (
         <WindowFrame
             title="Salvage Workshop"
@@ -454,8 +499,13 @@ export const SalvageModal: React.FC<SalvageModalProps> = ({ onClose }) => {
             initialMaximized={false}
         >
             <div className="flex flex-col h-full bg-slate-950 text-slate-100 overflow-hidden select-none">
+                {station && <div data-testid="salvage-station-context" className="shrink-0 border-b border-amber-400/30 bg-slate-900 px-6 py-3 text-sm">
+                    <p className="font-semibold text-amber-200">{station.name}</p>
+                    <p>Use your own equipment. Keep the recovered materials, then sell them through a merchant.</p>
+                    {(stationError ?? sourceAccessError) && <p role="status" className="mt-1 text-amber-300">{stationError ?? sourceAccessError}</p>}
+                </div>}
                 {/* Header Subtitle */}
-                <div className="shrink-0 px-6 py-2 bg-slate-900/80 border-b border-slate-800 flex items-center justify-between">
+                <div className="shrink-0 px-4 md:px-6 py-2 bg-slate-900/80 border-b border-slate-800 flex flex-col items-start gap-2 md:flex-row md:items-center md:justify-between">
                     <div className="flex items-center gap-2 text-sm text-slate-300">
                         <Anvil className="w-4 h-4 text-amber-400" />
                         <span>Break down equipment into crafting scrap, leather, wood splinters, and arcane dust.</span>
@@ -472,12 +522,12 @@ export const SalvageModal: React.FC<SalvageModalProps> = ({ onClose }) => {
                     )}
                 </div>
 
-                {/* Main 2-Pane Content Area */}
-                <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
+                {/* Phones use one scrolling flow so inventory cannot push the work action into an unreachable nested pane. Desktop keeps two independently scrolling panes. */}
+                <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden">
                     {/* Left Column: Inventory Item Selector */}
-                    <div className="w-full md:w-1/2 flex flex-col border-r border-slate-800 bg-slate-900/40">
+                    <div className="w-full md:w-1/2 shrink-0 md:shrink flex flex-col md:min-h-0 border-r border-slate-800 bg-slate-900/40">
                         {/* Filter Tabs */}
-                        <div className="shrink-0 p-3 border-b border-slate-800 flex items-center gap-1.5 overflow-x-auto">
+                        <div className="shrink-0 p-3 border-b border-slate-800 flex flex-wrap items-center gap-1.5">
                             {(
                                 [
                                     { id: 'all', label: 'All' },
@@ -504,7 +554,7 @@ export const SalvageModal: React.FC<SalvageModalProps> = ({ onClose }) => {
                         </div>
 
                         {/* Inventory Item List */}
-                        <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-1.5 scrollable-content">
+                        <div className="md:flex-1 md:min-h-0 md:overflow-y-auto p-3 space-y-1.5 scrollable-content">
                             {displayedItems.length === 0 ? (
                                 <div className="p-8 text-center text-slate-400 space-y-2">
                                     <Hammer className="w-8 h-8 mx-auto text-slate-500 opacity-60" />
@@ -533,7 +583,7 @@ export const SalvageModal: React.FC<SalvageModalProps> = ({ onClose }) => {
                                             }`}
                                         >
                                             <div className="flex items-center gap-3 min-w-0">
-                                                <span className="text-2xl shrink-0">{item.icon || '📦'}</span>
+                                                <SalvageItemGlyph item={item} />
                                                 <div className="min-w-0">
                                                     <div className="text-sm font-medium text-slate-200 truncate">
                                                         {item.name}
@@ -560,14 +610,14 @@ export const SalvageModal: React.FC<SalvageModalProps> = ({ onClose }) => {
                     </div>
 
                     {/* Right Column: Recipe Breakdown Preview & Actions */}
-                    <div className="w-full md:w-1/2 flex flex-col bg-slate-950/90 overflow-y-auto p-4 space-y-4">
+                    <div className="w-full md:w-1/2 shrink-0 md:shrink flex flex-col bg-slate-950/90 md:overflow-y-auto p-4 space-y-4">
                         {recipePreview && activeItem ? (
                             <>
                                 {/* Selected Item Summary Card */}
                                 <div className="p-3.5 rounded-lg bg-slate-900/80 border border-slate-800 space-y-2">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                            <span className="text-2xl">{activeItem.icon || '⚔️'}</span>
+                                            <SalvageItemGlyph key={activeItem.id} item={activeItem} />
                                             <div>
                                                 <h3 className="text-base font-bold text-amber-300">{activeItem.name}</h3>
                                                 <p className="text-xs text-slate-400">{activeItem.description || 'Standard equipment item.'}</p>
@@ -582,7 +632,7 @@ export const SalvageModal: React.FC<SalvageModalProps> = ({ onClose }) => {
                                             <div className="font-semibold text-amber-300">DC {recipePreview.dc} {recipePreview.skillName}</div>
                                         </div>
                                         <div className="p-2 rounded bg-slate-950/60 border border-slate-800/60 text-center">
-                                            <div className="text-slate-400">Scrap Gold</div>
+                                            <div className="text-slate-400">{station ? "Estimated scrap value" : "Scrap Gold"}</div>
                                             <div className="font-semibold text-amber-400">{recipePreview.baseGoldValue} GP</div>
                                         </div>
                                         <div className="p-2 rounded bg-slate-950/60 border border-slate-800/60 text-center">
@@ -658,7 +708,7 @@ export const SalvageModal: React.FC<SalvageModalProps> = ({ onClose }) => {
                                 <button
                                     type="button"
                                     onClick={handleExecuteSalvage}
-                                    disabled={isProcessing || !hasCrafter}
+                                    disabled={isProcessing || !hasCrafter || Boolean(sourceAccessError)}
                                     className="w-full py-3 px-4 rounded-lg font-bold text-sm bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 shadow-lg shadow-amber-950/40 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <Flame className="w-4 h-4 text-slate-950" />

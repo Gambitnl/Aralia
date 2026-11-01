@@ -180,6 +180,12 @@ export function createReducers(state, { canonicalId, getTask, getCampaign, touch
       const reservation = state.reservations.get(p.reservationId);
       if (reservation) reservation.freeSince = p.at || undefined;
     },
+    // Persist the ready/not-ready transition, so replay never sends the same
+    // availability notice merely because a daemon was restarted.
+    'reservation.notice'(p) {
+      const reservation = state.reservations.get(p.reservationId);
+      if (reservation) reservation.readyNotified = p.ready;
+    },
     // WF-G122: a lock loses some of its tokens but keeps its id and expiry.
     'lock.shrink'(p) {
       const lock = state.locks.get(p.lockId);
@@ -535,6 +541,12 @@ export function createReducers(state, { canonicalId, getTask, getCampaign, touch
     'message.post'(p) {
       state.messages.push({ ...p.message });
       if (p.message.seq > state.messageSeq) state.messageSeq = p.message.seq;
+      // Internal queue messages persist delivery and the ready marker together.
+      // Ordinary HTTP messages never receive this internal payload field.
+      if (p.reservationNotice) {
+        const reservation = state.reservations.get(p.reservationNotice.reservationId);
+        if (reservation) reservation.readyNotified = p.reservationNotice.ready;
+      }
     },
   };
 

@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
- *
- * Last Sync: 18/07/2026, 19:57:39
- * Dependents: components/Worldforge/LivingWorldPreview.tsx, components/debug/TownHistoryDevOverlay.tsx, systems/worldforge/roster/agentLife.ts, systems/worldforge/townsim/townSimRegistration.ts, systems/worldforge/townsim/townSimRegistry.ts
- * Imports: 13 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file townSim.ts — Life-event core: age a town's tracked villagers forward
  * day-by-day, emitting personal and town events plus exact saved changes on
@@ -26,6 +10,23 @@
  * fixed seed. Building evolution uses named hashes and prevalidated geometry,
  * so it does not consume or shift the established simulation draws.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 28/10/2026, 19:47:45
+ * Dependents: components/Worldforge/LivingWorldPreview.tsx, components/debug/TownHistoryDevOverlay.tsx, systems/worldforge/roster/agentLife.ts, systems/worldforge/townsim/townSimRegistration.ts, systems/worldforge/townsim/townSimRegistry.ts
+ * Imports: 14 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { SeededRandom } from '../../../utils/random/seededRandom';
 import type { TownRoster } from '../roster/types';
 import type { FamilyTies } from '../roster/family';
@@ -110,6 +111,7 @@ export function initTownSimState(
     const age = ties?.age ?? 30;
     villagers[occ.id] = {
       occupantId: occ.id,
+      ...(occ.householdMemberId ? { householdMemberId: occ.householdMemberId } : {}),
       name: occ.name,
       race: ties?.race ?? 'Human',
       bornDay: startDay - age * DAYS_PER_YEAR,

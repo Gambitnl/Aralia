@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 17/07/2026, 22:08:23
- * Dependents: App.tsx
- * Imports: 7 files
+ * Last Sync: 31/10/2026, 22:01:54
+ * Dependents: hooks/app/useAppAtlasRuntime.ts, systems/gameplay/lodging.ts, systems/worldforge/travel/localGroundJourney.ts
+ * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -15,15 +15,17 @@
 // @dependencies-end
 
 import { FEET_PER_FMG_PIXEL } from '../adapter/atlasArtifact';
-import { getBridgeAtlas } from '../bridge/legacySubmapBridge';
+import { canonicalTownSiteForLocal, getBridgeAtlas } from '../bridge/legacySubmapBridge';
+import { canonicalArtifactTownForSiteFromAtlas } from '../town/canonicalTown';
 import { generateLocal } from '../local/generateLocal';
 import { generateRegion } from '../region/generateRegion';
 import { rootSeedPath } from '../seedPath';
 import { LOCAL_SIZE_FT } from '../units';
+import type { TownLayoutStates } from '../town/townLayoutRevision';
 import {
   artifactsForAtlasGroundDrilldown,
   buildAtlasGroundDrilldown,
-  groundFocusesForLocal,
+  restorableGroundFocusesForLocal,
   normalizeAtlasGroundAddress,
   type AtlasGroundAddress,
   type AtlasGroundDrilldown,
@@ -59,6 +61,7 @@ export type AtlasGroundRestoreResult =
 export function restoreAtlasGroundDrilldown(
   input: unknown,
   expectedWorldSeed?: number,
+  townLayouts?: TownLayoutStates,
 ): AtlasGroundRestoreResult {
   if (input == null) return { status: 'absent' };
 
@@ -128,7 +131,7 @@ export function restoreAtlasGroundDrilldown(
         address.atlasCellId
       ] ?? 6,
     );
-    const local = generateLocal(
+    const generatedLocal = generateLocal(
       region,
       {
         x: localCenterX,
@@ -137,6 +140,13 @@ export function restoreAtlasGroundDrilldown(
       region.seedPath,
       { biomeId },
     );
+    // Replay AtlasDemo's canonical town adaptation before validating a saved
+    // focus. The raw window plan can describe a different town layout; using
+    // it here discarded legitimate town centers and road arrival addresses.
+    const townSite = canonicalTownSiteForLocal(region, generatedLocal);
+    const local = townSite
+      ? { ...generatedLocal, townPlan: canonicalArtifactTownForSiteFromAtlas(atlas, address.worldSeed, townSite, townLayouts?.[townSite.burgId]?.layoutRevision).plan }
+      : generatedLocal;
     if (
       local.seedPath !== address.localSeedPath ||
       !sameBounds(local.bounds, address.localBounds)
@@ -149,7 +159,7 @@ export function restoreAtlasGroundDrilldown(
       address.focus.yFt >= local.bounds.y &&
       address.focus.xFt <= local.bounds.x + local.bounds.width &&
       address.focus.yFt <= local.bounds.y + local.bounds.height;
-    const focus = groundFocusesForLocal(local).find(
+    const focus = restorableGroundFocusesForLocal(local).find(
       (candidate) =>
         candidate.kind === address.focus.kind &&
         candidate.id === address.focus.id &&

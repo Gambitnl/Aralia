@@ -135,7 +135,13 @@ describe('AbilityCommandFactory', () => {
       // raises the target to AC 17 before damage commands run, proving the
       // defensive reaction changes the triggering hit outcome instead of only
       // adding AC after damage has already landed.
-      expect(requestReaction).toHaveBeenCalledWith(attacker.id, defender.id, 'on_hit', [shieldSpell]);
+      // The offered Shield carries the hit preview the reaction prompt shows
+      // (defensiveHitReaction.ts). This test predated that preview and still
+      // expected the bare spell, so it failed although Shield worked.
+      expect(requestReaction).toHaveBeenCalledWith(attacker.id, defender.id, 'on_hit', [{
+        ...shieldSpell,
+        hitPreview: { attackTotal: 12, currentAC: 12, defendedAC: 17, isCritical: false, stopsAttack: true },
+      }]);
       expect(updatedDefender?.currentHP).toBe(20);
       expect(updatedDefender?.armorClass).toBe(17);
       expect(updatedDefender?.actionEconomy.reaction.used).toBe(true);

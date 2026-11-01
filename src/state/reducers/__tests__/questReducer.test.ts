@@ -11,7 +11,7 @@ import { describe, expect, it } from 'vitest';
 import { questReducer } from '../questReducer';
 import { Quest, QuestStatus } from '../../../types';
 import { createInitialJournalState } from '../../../types/journal';
-import { createMockGameState, createMockLegacyQuest } from '../../../utils/core';
+import { createMockGameState, createMockLegacyQuest, createMockPlayerCharacter } from '../../../utils/core';
 
 describe('questReducer', () => {
   // COV-1: built by the shared quest factory instead of a hand-written literal,
@@ -78,6 +78,114 @@ describe('questReducer', () => {
       type: 'quest_completed',
       questId: 'quest-1',
       title: 'Quest Completed: Courier Run',
+    });
+  });
+
+  describe('quest rewards and level progression (GG-460, GG-464)', () => {
+    it('applies level progression when quest XP reaches milestone (GG-464)', () => {
+      // Level 1 character with 250 XP
+      const pc = createMockPlayerCharacter({
+        id: 'hero',
+        name: 'Hero',
+        level: 1,
+        xp: 250,
+      });
+
+      const questWithXp: Quest = {
+        id: 'herbalist_helper',
+        title: "Herbalist's Helper",
+        description: 'Gather wild herbs for the town healer.',
+        status: QuestStatus.Active,
+        objectives: [{ id: 'obj-1', description: 'Deliver herbs', isCompleted: true }],
+        rewards: {
+          xp: 85, // 250 + 85 = 335 XP >= 300 (milestone for Level 2)
+        },
+      };
+
+      const state = createMockGameState({
+        party: [pc],
+        questLog: [questWithXp],
+      });
+
+      const next = questReducer(state, {
+        type: 'COMPLETE_QUEST',
+        payload: { questId: 'herbalist_helper' },
+      });
+
+      expect(next.party).toBeDefined();
+      expect(next.party![0].xp).toBe(335);
+      expect(next.party![0].level).toBe(2);
+    });
+
+    it('instantiates quest reward items with unique ids and acquiredAt stamps (GG-460)', () => {
+      const pc = createMockPlayerCharacter({ id: 'hero', name: 'Hero' });
+      const questWithItems: Quest = {
+        id: 'alchemist_bounty',
+        title: "Alchemist's Bounty",
+        description: 'Deliver rare reagents.',
+        status: QuestStatus.Active,
+        objectives: [{ id: 'obj-1', description: 'Complete delivery', isCompleted: true }],
+        rewards: {
+          items: ['healing_potion', 'healing_potion'],
+        },
+      };
+
+      const state = createMockGameState({
+        party: [pc],
+        inventory: [],
+        questLog: [questWithItems],
+      });
+
+      const next = questReducer(state, {
+        type: 'COMPLETE_QUEST',
+        payload: { questId: 'alchemist_bounty' },
+      });
+
+      expect(next.inventory).toHaveLength(2);
+      const [item1, item2] = next.inventory!;
+      expect(item1.id).not.toBe(item2.id); // Must have unique instance IDs, not shared singleton id!
+      expect(item1.acquiredAt).toBeDefined();
+      expect(item2.acquiredAt).toBeDefined();
+    });
+
+    it('applies reputation rewards via FactionManager with ripple effects (GG-465)', () => {
+      const pc = createMockPlayerCharacter({ id: 'hero', name: 'Hero' });
+      const questWithRep: Quest = {
+        id: 'faction_favor',
+        title: 'Favor for the Iron Ledger',
+        description: 'Recover the ledgers.',
+        status: QuestStatus.Active,
+        objectives: [{ id: 'obj-1', description: 'Recover books', isCompleted: true }],
+        rewards: {
+          reputation: [{ factionId: 'iron_ledger', change: 10 }],
+        },
+      };
+
+      const state = createMockGameState({
+        party: [pc],
+        questLog: [questWithRep],
+        playerFactionStandings: {
+          iron_ledger: {
+            factionId: 'iron_ledger',
+            publicStanding: 5,
+            secretStanding: 5,
+            rankId: 'outsider',
+            favorsOwed: 0,
+            renown: 0,
+            history: [],
+          },
+        },
+      });
+
+      const next = questReducer(state, {
+        type: 'COMPLETE_QUEST',
+        payload: { questId: 'faction_favor' },
+      });
+
+      expect(next.playerFactionStandings).toBeDefined();
+      expect(next.playerFactionStandings!['iron_ledger'].publicStanding).toBe(15);
+      expect(next.messages).toBeDefined();
+      expect(next.messages!.length).toBeGreaterThan(0);
     });
   });
 });

@@ -15,7 +15,7 @@
 // @dependencies-end
 
 /**
- * This file renders the shared body of Aralia's topic-based NPC conversation.
+ * This file renders NPC conversation topics and optional player-written speech.
  *
  * The in-game DialogueInterface and the Design Preview both use this view so
  * the portrait, response, topic choices, invite action, and exit control stay
@@ -42,10 +42,16 @@ export interface DialogueConversationViewProps {
     npcDescription: string;
     currentResponse: string | null;
     isThinking: boolean;
+    replyError?: string | null;
+    onRetryResponse?: () => void;
     topicResult?: ProcessTopicResult | null;
     topics: ConversationTopic[];
     onTopicSelect: (topic: ConversationTopic) => void;
     onInvite?: () => void;
+    /** Optional player-written follow-up; the controller owns its reply and memory. */
+    speechDraft?: string;
+    onSpeechDraftChange?: (text: string) => void;
+    onSpeak?: () => void;
     onEndConversation: () => void;
 }
 
@@ -77,10 +83,15 @@ export const DialogueConversationView: React.FC<DialogueConversationViewProps> =
     npcDescription,
     currentResponse,
     isThinking,
+    replyError,
+    onRetryResponse,
     topicResult,
     topics,
     onTopicSelect,
     onInvite,
+    speechDraft = '',
+    onSpeechDraftChange,
+    onSpeak,
     onEndConversation,
 }) => (
     <div
@@ -103,13 +114,19 @@ export const DialogueConversationView: React.FC<DialogueConversationViewProps> =
         <div className="flex min-h-0 flex-1 flex-col md:w-2/3">
             <section className="max-h-[34%] shrink-0 overflow-y-auto p-3 md:max-h-[40%] md:p-6" aria-live="polite">
                 <div className="rounded-lg border border-amber-800/30 bg-gray-950/60 p-4 shadow-inner md:p-6">
-                    <p className="text-base leading-relaxed text-gray-200 md:text-lg">
+                    {replyError && !isThinking ? <div role="alert" className="space-y-3 text-sm text-amber-100">
+                        <p>{replyError}</p>
+                        {onRetryResponse && <button type="button" onClick={onRetryResponse}
+                            className={`${BTN_BASE} min-h-11 border border-amber-700 bg-gray-800 px-3 py-2 text-amber-100 hover:bg-gray-700`}>
+                            Retry reply
+                        </button>}
+                    </div> : <p className="text-base leading-relaxed text-gray-200 md:text-lg">
                         {isThinking ? (
                             <span className="animate-pulse text-gray-500">Thinking...</span>
                         ) : (
                             currentResponse
                         )}
-                    </p>
+                    </p>}
                 </div>
 
                 {/* Mechanical feedback stays close to the reply it explains. */}
@@ -139,8 +156,9 @@ export const DialogueConversationView: React.FC<DialogueConversationViewProps> =
                                 disabled={isThinking}
                                 className={`${BTN_BASE} group flex min-h-11 w-full items-center justify-between gap-3 border border-gray-700 bg-gray-800 px-3 py-2.5 text-left shadow-none hover:border-amber-700/60 hover:bg-gray-700 focus:ring-amber-500/70 disabled:cursor-wait md:px-4 md:py-3`}
                             >
-                                <span className="font-medium text-gray-300 group-hover:text-amber-100">
-                                    {topic.label}
+                                <span className="min-w-0 font-medium text-gray-300 group-hover:text-amber-100">
+                                    <span className="block">{topic.label}</span>
+                                    {topic.description && <span className="mt-1 block whitespace-normal break-words text-sm font-normal leading-relaxed text-gray-400">{topic.description}</span>}
                                 </span>
                                 {skillCheckLabel && (
                                     <span className="shrink-0 rounded border border-gray-700 bg-gray-950 px-2 py-1 text-xs text-gray-500">
@@ -169,8 +187,24 @@ export const DialogueConversationView: React.FC<DialogueConversationViewProps> =
             </section>
 
             {/* The exit remains outside every scrolling region so resizing or a
-                long topic list can never trap the player in dialogue. */}
-            <footer className="shrink-0 border-t border-gray-700 bg-gray-950/75 p-3">
+                long topic list can never trap the player in dialogue. The bottom
+                gutter also clears WindowFrame's 44px resize hit target. */}
+            <footer className="shrink-0 border-t border-gray-700 bg-gray-950/75 px-3 pt-3 pb-12">
+                {/* A resident can hear the player's own question as well as a
+                    prepared topic. Keep it visible beside the persistent exit. */}
+                {onSpeak && <form className="mb-2 flex items-end gap-2" onSubmit={event => {event.preventDefault(); onSpeak();}}>
+                    <label className="min-w-0 flex-1 text-xs text-gray-400">
+                        Say something
+                        <textarea value={speechDraft} onChange={event => onSpeechDraftChange?.(event.target.value)}
+                            rows={2} maxLength={1200} disabled={isThinking}
+                            placeholder="Ask a question or tell them what happened…"
+                            className="mt-1 block w-full resize-none rounded border border-gray-600 bg-gray-900 px-3 py-2 text-sm text-gray-100 focus:border-amber-500 focus:outline-none disabled:opacity-60" />
+                    </label>
+                    <button type="submit" disabled={isThinking || !speechDraft.trim()}
+                        className={`${BTN_BASE} min-h-11 border border-amber-800/50 bg-gray-800 px-4 py-2 text-amber-100 hover:bg-gray-700 disabled:cursor-default disabled:opacity-50`}>
+                        Speak
+                    </button>
+                </form>}
                 <button
                     type="button"
                     data-testid="dialogue-end-conversation"

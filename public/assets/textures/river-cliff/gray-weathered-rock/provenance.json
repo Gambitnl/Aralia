@@ -1,0 +1,37 @@
+{
+  "asset": "Rock 01",
+  "source": "https://polyhaven.com/a/rock_01",
+  "metadataSource": "https://api.polyhaven.com/info/rock_01",
+  "author": [
+    "Rob Tuytel"
+  ],
+  "license": "CC0-1.0",
+  "licenseSource": "https://polyhaven.com/license",
+  "physicalTileMeters": 1.5,
+  "resolution": 2048,
+  "selection": "Gray naturally weathered granular rock without oversized seams. Selected by inspecting diffuse against Yosemite reference; source does not certify granite lithology or Yosemite origin.",
+  "mapping": "World triplanar at original measured tile scale; original colors retained. Existing wet attributes darken exposed rock.",
+  "files": [
+    {
+      "file": "rock_01_diff_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rock_01/rock_01_diff_2k.jpg",
+      "bytes": 3020379,
+      "md5": "fd84a894b55e56b17bdfdeec99277f92",
+      "sha256": "fe9013368539b5604602e64bfa48bef1a2a4c452fcb6894868fb556d0b14501c"
+    },
+    {
+      "file": "rock_01_nor_gl_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rock_01/rock_01_nor_gl_2k.jpg",
+      "bytes": 2989093,
+      "md5": "1b75b6018dcaa4a6335b9a9b70352651",
+      "sha256": "70427a2c81f85c0e1ee4a147e273d028c3d0188bad2583f2509d6df9a3d55b89"
+    },
+    {
+      "file": "rock_01_rough_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rock_01/rock_01_rough_2k.jpg",
+      "bytes": 1772336,
+      "md5": "cdaa2b58562517340a9c9d00757cb71d",
+      "sha256": "fad2e7353b9af032a36d394d33b23154ec7bce3371f9e9436cf318c5f863d64d"
+    }
+  ]
+}

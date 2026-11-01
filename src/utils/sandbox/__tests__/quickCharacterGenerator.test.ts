@@ -112,3 +112,42 @@ describe('createQuickCharacter race coverage (agora-c582)', () => {
     expect(createQuickCharacter({ ...BASE, classId: 'not_a_class', raceId: 'human' })).toBeNull();
   });
 });
+
+// GG-559: quick characters used to carry no equipment, so every one (including
+// the World Battle Lab's fallback "Orc Reaver" fighter) fought with Unarmed
+// Strike at AC 10 + Dex. They now get their class's level-one kit.
+describe('createQuickCharacter starting kit (GG-559)', () => {
+  const mod = (score: number) => Math.floor((score - 10) / 2);
+  const quick = (classId: string) =>
+    createQuickCharacter({ raceId: 'human', classId, level: 2, stats: [16, 14, 14, 10, 12, 10] })!;
+
+  it('equips the class package and computes armor class from it', () => {
+    const fighter = quick('fighter');
+    expect(fighter.equippedItems.MainHand?.id).toBe('greatsword');
+    expect(fighter.equippedItems.Torso?.id).toBe('chain_mail');
+    // Chain mail is heavy armor: AC 16 and no Dex bonus.
+    expect(fighter.armorClass).toBe(16);
+
+    const rogue = quick('rogue');
+    expect(rogue.equippedItems.MainHand?.id).toBe('shortsword');
+    // Leather armor: 11 + Dex. The generator reorders stats by class priority,
+    // so the Dex modifier is read from the assembled character.
+    expect(rogue.armorClass).toBe(11 + mod(rogue.finalAbilityScores.Dexterity));
+  });
+
+  it('keeps Barbarian Unarmored Defense through the shared calculator', () => {
+    const barbarian = quick('barbarian');
+    expect(barbarian.equippedItems.MainHand?.id).toBe('greataxe');
+    expect(barbarian.equippedItems.Torso).toBeUndefined();
+    // 10 + Dex + Con, the same value the old hand-written rule gave.
+    const scores = barbarian.finalAbilityScores;
+    expect(barbarian.armorClass).toBe(10 + mod(scores.Dexterity) + mod(scores.Constitution));
+  });
+
+  it('gives the combat actor a weapon attack instead of Unarmed Strike', () => {
+    const fighter = createQuickCombatCharacter({ raceId: 'human', classId: 'fighter', level: 2, useRecommendedStats: true })!;
+    const attack = fighter.abilities.find(ability => ability.id === 'attack_main');
+    expect(attack?.name).toBe('Greatsword');
+    expect(fighter.abilities.some(ability => ability.id === 'unarmed_strike')).toBe(false);
+  });
+});

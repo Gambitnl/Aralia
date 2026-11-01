@@ -17,7 +17,11 @@ test('WF-G217: board commands survive an invalid taskLint module', async () => {
   const serverDir = path.join(root, 'server');
   const identityDir = path.join(root, 'identity');
   fs.mkdirSync(copyDir);
-  for (const name of ['client.mjs', 'client-usage.txt', 'identity-policy.mjs', 'gapIndex.mjs', 'gapAppend.mjs']) {
+  // Probe the editable implementation in isolation. The stable entry separately
+  // proves release protection; this test still covers lazy helper failure.
+  // WF-G260: preserve the runtime's recovery dependency in this isolated copy;
+  // task-lint failure must still be lazy, not masked by a missing core helper.
+  for (const name of ['client-runtime.mjs', 'client-root.mjs', 'client-usage.txt', 'identity-policy.mjs', 'gapIndex.mjs', 'gapAppend.mjs', 'taskFreshness.mjs', 'lockSnapshots.mjs']) {
     fs.copyFileSync(path.join(here, name), path.join(copyDir, name));
   }
   fs.writeFileSync(path.join(copyDir, 'taskLint.mjs'), 'export const broken = ;\n');
@@ -26,7 +30,7 @@ test('WF-G217: board commands survive an invalid taskLint module', async () => {
   try {
     await new Promise((resolve) => app.listen(0, resolve));
     const baseUrl = `http://127.0.0.1:${app.server.address().port}`;
-    const { run } = await import(pathToFileURL(path.join(copyDir, 'client.mjs')).href);
+    const { run } = await import(pathToFileURL(path.join(copyDir, 'client-runtime.mjs')).href);
     const env = { AGORA_DIR: identityDir, AGORA_AGENT_ID: 'lazy-lint-probe', AGORA_PET: 'gf-sd' };
     const call = (argv) => run(argv, { env, baseUrl });
 
@@ -57,7 +61,7 @@ test('WF-G219: raw backticks in help prose cannot break client commands', async 
   const copyDir = path.join(root, 'client');
   fs.mkdirSync(copyDir);
   try {
-    for (const name of ['client.mjs', 'client-usage.txt', 'identity-policy.mjs', 'gapIndex.mjs', 'gapAppend.mjs']) {
+    for (const name of ['client-runtime.mjs', 'client-root.mjs', 'client-usage.txt', 'identity-policy.mjs', 'gapIndex.mjs', 'gapAppend.mjs', 'lockSnapshots.mjs']) {
       fs.copyFileSync(path.join(here, name), path.join(copyDir, name));
     }
     const helpFile = path.join(copyDir, 'client-usage.txt');
@@ -68,7 +72,7 @@ test('WF-G219: raw backticks in help prose cannot break client commands', async 
       '`task new --category <name>` warns',
     ));
 
-    const copiedClient = path.join(copyDir, 'client.mjs');
+    const copiedClient = path.join(copyDir, 'client-runtime.mjs');
     const syntax = spawnSync(process.execPath, ['--check', copiedClient], { encoding: 'utf8' });
     assert.equal(syntax.status, 0, syntax.stderr);
     const { run } = await import(pathToFileURL(copiedClient).href);

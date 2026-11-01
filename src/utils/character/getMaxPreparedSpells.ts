@@ -1,11 +1,17 @@
+/**
+ * @file getMaxPreparedSpells.ts
+ * Calculates daily spell capacity for the campaign edition and actual class level.
+ * 2024 uses fixed tables; 2014 daily preparation uses the relevant ability modifier.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 27/02/2026, 09:30:50
- * Dependents: characterReducer.ts, characterUtils.ts
- * Imports: 1 files
+ * Last Sync: 28/10/2026, 13:51:52
+ * Dependents: systems/gameplay/spellPreparation.ts, utils/character/characterUtils.ts, utils/character/index.ts, utils/character/progression.ts
+ * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,12 +20,8 @@
  */
 // @dependencies-end
 
-/**
- * @file getMaxPreparedSpells.ts
- * Calculates the maximum number of spells a character can prepare based on D&D 5e 2024 rules.
- * Uses fixed level-based tables from the PHB instead of ability modifier formulas.
- */
 import type { PlayerCharacter } from '../../types';
+import { getRulesEdition, type RulesEdition } from '../../config/rulesEdition';
 
 /**
  * 2024 PHB Prepared Spells Tables by Class Level (1-20)
@@ -41,7 +43,7 @@ const PREPARED_SPELLS_TABLES: Record<string, number[]> = {
     artificer: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21],
 
     // Warlock (uses Pact Magic, but still has prepared spells in 2024)
-    warlock: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+    warlock: [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15],
 };
 
 /**
@@ -62,12 +64,20 @@ const ARCANE_TRICKSTER_SPELLS = [3, 4, 4, 4, 5, 6, 6, 7, 8, 8, 9, 10, 10, 11, 11
  * @param character - The player character
  * @returns The max prepared spells count, or null if unlimited/not applicable
  * 
- * In 2024 rules, ALL spellcasters use prepared spells with fixed level-based tables.
- * There is no longer a distinction between "known" and "prepared" casters.
+ * 2024 capacity tables do not grant permission to change spells at will.
+ * Daily changes and level-up changes have separate timing rules.
  */
-export function getMaxPreparedSpells(character: PlayerCharacter): number | null {
+export function getMaxPreparedSpells(character: PlayerCharacter, edition: RulesEdition = getRulesEdition(undefined)): number | null {
     const classId = character.class.id.toLowerCase();
-    const level = Math.max(1, Math.min(20, character.level ?? 1)); // Clamp to 1-20
+    const level = Math.max(1, Math.min(20, character.classLevels?.[classId] ?? character.level ?? 1));
+    if (edition === '2014') {
+        const ability = classId === 'paladin' ? 'Charisma' : ['cleric', 'druid'].includes(classId) ? 'Wisdom' : 'Intelligence';
+        const modifier = Math.floor(((character.finalAbilityScores?.[ability] ?? character.abilityScores?.[ability] ?? 10) - 10) / 2);
+        if (['cleric', 'druid', 'wizard'].includes(classId)) return Math.max(1, modifier + level);
+        if (classId === 'paladin') return level < 2 ? 0 : Math.max(1, modifier + Math.floor(level / 2));
+        if (classId === 'artificer') return Math.max(1, modifier + Math.floor(level / 2));
+        return null; // Known-spell casters do not choose a daily list in 2014.
+    }
 
     // Check main class table
     const classTable = PREPARED_SPELLS_TABLES[classId];

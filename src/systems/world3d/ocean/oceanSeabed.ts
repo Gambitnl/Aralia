@@ -53,6 +53,23 @@
  * picked this piece still named the web's one cell size and contrast
  * across the frame.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 12/10/2026, 05:45:34
+ * Dependents: components/DesignPreview/steps/sidebyside/oceanExtras/beach.ts, components/DesignPreview/steps/sidebyside/oceanExtras/buoys.ts, components/DesignPreview/steps/sidebyside/oceanExtras/seabed.ts, systems/world3d/ocean/oceanBeach.ts, systems/world3d/ocean/oceanSurface.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import * as THREE from 'three/webgpu';
 import {
   Fn,
@@ -92,6 +109,7 @@ import {
 } from 'three/tsl';
 import type { OceanField } from './oceanField';
 import { createOceanSampler } from './oceanSampler';
+import { oceanSkyDeckLight } from './oceanSky';
 import {
   CAUSTIC_LAYER_DEPTHS_M,
   FLOOR_LIGHT,
@@ -340,6 +358,27 @@ export interface OceanSeabedOptions {
    * floor, the reader and the floor mesh then build exactly as before.
    */
   readonly shore?: SeabedShoreHook;
+  /**
+   * RIVER MOUTH ROUND 12 (gap 3, GG-394): ONE TERRAIN AT THE SPIT. Rectangles in a shore frame (s, a: the beach
+   * frame's origin and unit axes in world XZ) where the floor is drawn by a DETAIL MESH at `cellM` (the beach's own
+   * sand mesh's cell) in place of the 2.5 m floor mesh, with the same material laws (the floor's light, the hook's wet
+   * sand), its vertices reading the same half-float map. The 2.5 m mesh draws nothing inside them. The mouth passes
+   * its grid's box less the beach's patch (the beach's own 0.5 m sand mesh draws that): the river's banks and spits
+   * and the bar meet the beach's sand at one resolution, and the waterline on them is the map's own contour, not the
+   * 2.5 m triangles' (the sawtooth at the spit, GG-394). Absent: the floor builds exactly as before (no detail mesh,
+   * the floor's node graph unchanged).
+   */
+  readonly detail?: {
+    readonly originX: number;
+    readonly originZ: number;
+    readonly sX: number;
+    readonly sZ: number;
+    readonly aX: number;
+    readonly aZ: number;
+    /** [s0, s1, a0, a1] each, m. */
+    readonly rects: readonly (readonly [number, number, number, number])[];
+    readonly cellM: number;
+  };
 }
 
 /**
@@ -416,6 +455,8 @@ export interface OceanSeabed {
   readonly reader: OceanSeabedReader;
   /** The floor mesh; add it to the scene. It shows only when it can be seen. */
   readonly mesh: THREE.Mesh;
+  /** RIVER MOUTH ROUND 12: the detail mesh over `OceanSeabedOptions.detail` (null without it); add it beside `mesh`. */
+  readonly detailMesh: THREE.Mesh | null;
   /** The caustic layers: one render target, a layer per channel, `CAUSTIC_LAYER_DEPTHS_M` order. */
   readonly layers: THREE.RenderTarget;
   /**
@@ -468,7 +509,10 @@ export function createOceanSeabed(opts: OceanSeabedOptions): OceanSeabed {
   /** The sun in the air, toward it: the light of dry land (a map with land only). */
   const uSunAir = uniform(new THREE.Vector3(sunV[0], sunV[1], sunV[2]).normalize());
   const uOvercast: TslNode = opts.overcast ?? uniform(0);
-  const sunVis = float(1).sub(uOvercast);
+  // River mouth round 6: under the sky's stratus deck the sun's unscattered share and the sky's diffuse gain
+  // (oceanSky.ts DECK_OF; both 1 with no deck, so every other scene draws as before).
+  const deckLight = oceanSkyDeckLight(uOvercast);
+  const sunVis = float(1).sub(uOvercast).mul(deckLight.sunDirect);
   /**
    * Tuning channel, as the surface's `tune`: named uniforms whose defaults
    * are the shipped values, so a capture rig compares values in one page
@@ -847,14 +891,14 @@ export function createOceanSeabed(opts: OceanSeabedOptions): OceanSeabed {
     const tSun = exp(downPerM.mul(pathDepth.div(sun.cosWater)).negate());
     const tSky = exp(downPerM.mul(pathDepth.div(0.8)).negate());
     const eSunSea = tSun.mul(cosF.mul(beamW).mul(caustic).mul(sunVis));
-    const eSkySea = tSky.mul(float(light.skyE * 0.93).mul(float(0.5).add(nF.y.mul(0.5))));
+    const eSkySea = tSky.mul(float(light.skyE * 0.93).mul(float(0.5).add(nF.y.mul(0.5)))).mul(deckLight.skyGain);
     if (!hasLand) return albedo.mul(eSunSea.add(eSkySea)).div(Math.PI);
     // DRY LAND (a map with land only): the sun as it is in the air, square
     // irradiance sunE on the facet's cosine to it, and the skylight with no
     // Fresnel loss into water. The share of land runs over the last 2 cm.
     const landK = smoothstep(float(0.02), float(-0.02), depth);
     const eSunLand = vec3(1, 1, 1).mul(max(dot(nF, uSunAir), float(0)).mul(light.sunE).mul(sunVis));
-    const eSkyLand = vec3(1, 1, 1).mul(float(light.skyE).mul(float(0.5).add(nF.y.mul(0.5))));
+    const eSkyLand = vec3(1, 1, 1).mul(float(light.skyE).mul(float(0.5).add(nF.y.mul(0.5)))).mul(deckLight.skyGain);
     return albedo.mul(mix(eSunSea.add(eSkySea), eSunLand.add(eSkyLand), landK)).div(Math.PI);
   };
 
@@ -938,9 +982,40 @@ export function createOceanSeabed(opts: OceanSeabedOptions): OceanSeabed {
   floorGeom.rotateX(-Math.PI / 2);
   floorGeom.translate(params.centerX, 0, params.centerZ);
   const floorMat = new THREE.MeshBasicNodeMaterial();
+  // The sea's reach under the mean sea level, m (as the underwater piece's `reachM`): see the floor's fragment.
+  const floorReachM = 1.2 * field.significantWaveHeightM + 0.6;
   const fxz = vec2(positionGeometry.x, positionGeometry.z);
-  floorMat.positionNode = vec3(positionGeometry.x, depthAt(fxz).negate(), positionGeometry.z);
-  floorMat.fragmentNode = Fn(() => {
+  /* THE FLOOR'S EDGE ROWS READ THE MAP'S OWN EDGE (river mouth round 1c, the
+   * lead's seam 3). The plane's last vertex row stands at the map's outer
+   * texel edge, UV exactly 1, and its vertex read there came back with the
+   * map's first row (the inland end of the surf coast: land 3 m up), so the
+   * floor's offshore edge stood up as a wall from 11 m under the water to
+   * over it, 740 m out, and drew a dashed teal strip on the horizon at every
+   * low pose (a high pose with the sea hidden showed the wall). The vertex
+   * now reads its point clamped to the map's outer texel centers. */
+  const fxzIn = vec2(
+    clamp(fxz.x, float(map.originX), float(map.originX + (map.res - 1) * map.texelM)),
+    clamp(fxz.y, float(map.originZ), float(map.originZ + (map.res - 1) * map.texelM)),
+  );
+  floorMat.positionNode = vec3(positionGeometry.x, depthAt(fxzIn).negate(), positionGeometry.z);
+  // RIVER MOUTH ROUND 12 (gap 3): true inside the detail rectangles (`OceanSeabedOptions.detail`).
+  const det = opts.detail;
+  // (A boolean node; this function's own \`step\` is the per-frame callback further down, so no TSL step here.)
+  const inDetail = (xz: TslNode): TslNode => {
+    const d = det!;
+    const rel = xz.sub(vec2(d.originX, d.originZ));
+    const s = rel.x.mul(d.sX).add(rel.y.mul(d.sZ));
+    const a = rel.x.mul(d.aX).add(rel.y.mul(d.aZ));
+    let acc: TslNode | null = null;
+    for (const [s0, s1, a0, a1] of d.rects) {
+      const c = s.greaterThanEqual(float(s0)).and(s.lessThanEqual(float(s1))).and(a.greaterThanEqual(float(a0))).and(a.lessThanEqual(float(a1)));
+      acc = acc === null ? c : acc.or(c);
+    }
+    return acc;
+  };
+  // The floor's fragment, built once for the 2.5 m mesh and (round 12) once more for the detail mesh: the 2.5 m mesh
+  // draws nothing inside the detail rectangles; the detail mesh draws its own. Without `detail` the node is as before.
+  const floorFragment = (cutDetail: boolean): TslNode => Fn(() => {
     const w = positionWorld;
     const xz = vec2(w.x, w.z);
     // The beach draws its own ground over its patch (the hook).
@@ -949,6 +1024,26 @@ export function createOceanSeabed(opts: OceanSeabedOptions): OceanSeabed {
         Discard();
       });
     }
+    if (det && cutDetail) {
+      If(inDetail(xz), () => {
+        Discard();
+      });
+    }
+    // NO TROUGH BARES A FLOOR THIS DEEP (river mouth round 1c, the lead's
+    // seam 3). From over the water this mesh is for the floor that stands
+    // in the air (a beach face, a bar in a trough); the floor under the
+    // water is the surface's to draw (`reader.shade`). Under the sea's reach
+    // (1.2 Hs + 0.6 m, the underwater piece's: no trough of this sea goes
+    // deeper) no floor is ever in the air, and from an eye over the water
+    // the mesh draws nothing there. Round 1 left it to the depth test: on
+    // the surf coast the floor's deep far rows (11 m, 740 m out) came through
+    // the sea's far rows as a dashed teal strip on the horizon at every low
+    // pose, in every bearing that leaves the floor's map by its sea edge (the
+    // lead's seam 3; the floor hidden, the strip was gone). Under the water
+    // the whole mesh draws, as before.
+    If(cameraPosition.y.greaterThan(float(0)).and(w.y.lessThan(float(-floorReachM))), () => {
+      Discard();
+    });
     const foot = max(length(dFdx(xz)), length(dFdy(xz)));
     const inWaterPath = cameraPosition.sub(w).length().mul(clamp(float(0).sub(w.y).div(max(cameraPosition.y.sub(w.y).abs(), float(1e-3))), float(0), float(1)));
     const rad = floorRadiance(xz, foot, select(cameraPosition.y.lessThan(0), cameraPosition.sub(w).length(), inWaterPath));
@@ -963,7 +1058,49 @@ export function createOceanSeabed(opts: OceanSeabedOptions): OceanSeabed {
     const tr = exp(upPerM.mul(inWater).negate());
     return vec4(rad.mul(tr).add(vec3(0.006, 0.07, 0.1).mul(vec3(1, 1, 1).sub(tr))), float(1));
   })();
+  floorMat.fragmentNode = floorFragment(true);
   floorMat.toneMapped = true;
+  /* RIVER MOUTH ROUND 12 (gap 3): THE DETAIL MESH, a lattice of `cellM` over each rectangle in the shore frame (its
+   * vertices on the frame's s and a lines, so a rectangle's edge on the beach's grid line shares the beach's border
+   * vertices), its height the same map read as the floor's, its fragment the floor's without the detail cut. */
+  let detailGeom: THREE.BufferGeometry | null = null;
+  let detailMat: THREE.MeshBasicNodeMaterial | null = null;
+  let detailMesh: THREE.Mesh | null = null;
+  if (det) {
+    const pos: number[] = [];
+    const idx: number[] = [];
+    for (const [s0, s1, a0, a1] of det.rects) {
+      const ns = Math.max(Math.round((s1 - s0) / det.cellM), 1);
+      const na = Math.max(Math.round((a1 - a0) / det.cellM), 1);
+      const base = pos.length / 3;
+      for (let j = 0; j <= na; j += 1) {
+        for (let i = 0; i <= ns; i += 1) {
+          const s = s0 + ((s1 - s0) * i) / ns;
+          const a = a0 + ((a1 - a0) * j) / na;
+          pos.push(det.originX + s * det.sX + a * det.aX, 0, det.originZ + s * det.sZ + a * det.aZ);
+        }
+      }
+      // Face up: the cross of the lattice's two edges (s then a) points down when s x a is down in world.
+      const up = det.sZ * det.aX - det.sX * det.aZ < 0;
+      for (let j = 0; j < na; j += 1) {
+        for (let i = 0; i < ns; i += 1) {
+          const q = base + j * (ns + 1) + i;
+          if (up) { idx.push(q, q + ns + 1, q + 1, q + 1, q + ns + 1, q + ns + 2); } else { idx.push(q, q + 1, q + ns + 1, q + 1, q + ns + 2, q + ns + 1); }
+        }
+      }
+    }
+    detailGeom = new THREE.BufferGeometry();
+    detailGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(pos), 3));
+    detailGeom.setIndex(idx);
+    detailMat = new THREE.MeshBasicNodeMaterial();
+    detailMat.positionNode = vec3(positionGeometry.x, depthAt(fxzIn).negate(), positionGeometry.z);
+    detailMat.fragmentNode = floorFragment(false);
+    detailMat.toneMapped = true;
+    detailMesh = new THREE.Mesh(detailGeom, detailMat);
+    detailMesh.frustumCulled = false;
+    detailMesh.renderOrder = 10;
+    detailMesh.visible = false;
+  }
   const mesh = new THREE.Mesh(floorGeom, floorMat);
   mesh.frustumCulled = false;
   // After the water, so the water's depth hides it fragment for fragment
@@ -985,6 +1122,7 @@ export function createOceanSeabed(opts: OceanSeabedOptions): OceanSeabed {
     renderer.setRenderTarget(prevTarget);
     renderer.setClearColor(clearColor, prevAlpha);
     mesh.visible = camera.position.y < 0 || floorReachesSurface;
+    if (detailMesh !== null) detailMesh.visible = mesh.visible;
   };
 
   /* --- proof ------------------------------------------------------------ */
@@ -1216,6 +1354,7 @@ export function createOceanSeabed(opts: OceanSeabedOptions): OceanSeabed {
     map,
     reader,
     mesh,
+    detailMesh,
     floorRadianceAt: (xz: TslNode, footM: TslNode, viewPathM: TslNode) => floorRadiance(xz, footM, viewPathM),
     layers: causticRT,
     step,
@@ -1225,6 +1364,8 @@ export function createOceanSeabed(opts: OceanSeabedOptions): OceanSeabed {
       for (const m of layerMats) m.dispose();
       floorGeom.dispose();
       floorMat.dispose();
+      detailGeom?.dispose();
+      detailMat?.dispose();
       mapTex.dispose();
     },
     probe,

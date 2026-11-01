@@ -15,6 +15,27 @@ import path from 'node:path';
 import { createAgoraServer } from './server.mjs';
 import { createStore } from './store.mjs';
 
+test('WF-G285: HTTP task and filtered ready views expose advisory completion receipts without writes', async () => {
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'agora-freshness-http-'));
+  const clock={at:10}; const store=createStore({dir,now:()=>clock.at});
+  const fixture=createAgoraServer({storeFactory:()=>store,dir,seatRosterPath:null});
+  try {
+    await new Promise(resolve=>fixture.listen(0,resolve));
+    const owner=store.registerAgent({handle:'freshness-http-owner',petSlug:'dream-girl'});
+    const source=store.createTask({agentId:owner.id,title:'Sibling',body:'Private proof',refs:['src/shared.ts']});
+    const target=store.createTask({agentId:owner.id,title:'Count brief',body:'Original instructions.',refs:['src/shared.ts']});
+    clock.at=20; assert.equal(store.setTaskState({agentId:owner.id,taskId:source.id,state:'done',result:'Private completion'}).ok,true);
+    const journal=fs.readFileSync(path.join(dir,'journal.jsonl'),'utf8'),sequence=store.lastSeq;
+    const port=fixture.server.address().port;
+    for(const url of ['/tasks?state=open','/tasks?ready=1','/tasks/'+target.id]){
+      const reply=await requestOn(port,'GET',url);assert.equal(reply.status,200);
+      const task=reply.json.task || reply.json.tasks.find(t=>t.id===target.id);
+      assert.equal(task.referenceFreshness.status,'unverified'); assert.equal(task.body,'Original instructions.'); assert.equal(task.ready,true);
+    }
+    assert.equal(store.lastSeq,sequence);assert.equal(fs.readFileSync(path.join(dir,'journal.jsonl'),'utf8'),journal);
+  } finally {await fixture.close();fs.rmSync(dir,{recursive:true,force:true});}
+});
+
 let app;
 let port;
 let tmpDir;

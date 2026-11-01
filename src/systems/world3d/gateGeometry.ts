@@ -13,6 +13,13 @@ const TOWER_SIDE_M = 3;
 const LINTEL_H_M = 1.2;      // beam spanning over the gap
 const TUNNEL_DEPTH_M = 5;    // tunnelBlock: extent along the road
 const BASE_SINK_M = 0.4;     // footing sink, matches the wall
+const WALL_TOP_M = 4.8;      // the rampart's top over its ground (wallGeometry.WALL_HEIGHT_M 5.2 less its 0.4 m footing)
+// Water gate: the wall over the river starts this far above the lower bank, so
+// the opening reaches from the water (about 1.5 m under the bank) to here.
+const WATER_GATE_OPENING_ABOVE_BANK_M = 0.6;
+const GRILLE_SPACING_M = 0.9; // iron bars of the water gate's grille
+const GRILLE_BAR_M = 0.09;
+const GRILLE_RGB: [number, number, number] = [0.16, 0.15, 0.14];
 
 type GateMesh = ChunkGeometryArrays & { colors: Float32Array };
 
@@ -28,19 +35,34 @@ export function buildGateMesh(data: ChunkData): GateMesh {
     const c = Math.cos(ang), s = Math.sin(ang);
     const corners: Array<[number, number]> = ([[-w / 2, -d / 2], [w / 2, -d / 2], [w / 2, d / 2], [-w / 2, d / 2]] as Array<[number, number]>)
       .map(([x, z]) => [cx + x * c - z * s, cz + x * s + z * c]);
-    const base = positions.length / 3;
-    for (const y of [baseY, baseY + h]) {
-      for (const [x, z] of corners) { positions.push(x, y, z); normals.push(0, 1, 0); colors.push(...color); }
-    }
-    // 4 sides + top, both windings (no back-face culling artifacts, matches wallGeometry).
-    const quad = (a: number, b: number, cc: number, dd: number) => {
-      indices.push(a, b, cc, cc, dd, a, cc, b, a, a, dd, cc);
+    // Each face gets its own four vertices with its OUTWARD normal, wound once
+    // to face out (agora-257c, 2026-10-28). Every vertex used to carry (0,1,0),
+    // so each tower side lit as if it faced the sky and the gates drew near
+    // white beside the tan wall; and every face was emitted in both windings,
+    // the coplanar-duplicate trap that blackened the deck tops (deckGeometry).
+    const top = baseY + h;
+    const face = (p: Array<[number, number, number]>, n: [number, number, number]) => {
+      const start = positions.length / 3;
+      for (const v of p) { positions.push(...v); normals.push(...n); colors.push(...color); }
+      // Wind so the geometric normal agrees with n: (b - a) x (c - a) . n > 0.
+      const [a, b, cc] = p;
+      const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2];
+      const vx = cc[0] - a[0], vy = cc[1] - a[1], vz = cc[2] - a[2];
+      const dot = (uy * vz - uz * vy) * n[0] + (uz * vx - ux * vz) * n[1] + (ux * vy - uy * vx) * n[2];
+      if (dot >= 0) indices.push(start, start + 1, start + 2, start, start + 2, start + 3);
+      else indices.push(start, start + 2, start + 1, start, start + 3, start + 2);
     };
     for (let i = 0; i < 4; i++) {
-      const j = (i + 1) % 4;
-      quad(base + i, base + j, base + 4 + j, base + 4 + i);
+      const [ax, az] = corners[i];
+      const [bx, bz] = corners[(i + 1) % 4];
+      // Outward: the edge's perpendicular pointing away from the box center.
+      let nx = bz - az, nz = -(bx - ax);
+      const len = Math.hypot(nx, nz) || 1;
+      nx /= len; nz /= len;
+      if (nx * ((ax + bx) / 2 - cx) + nz * ((az + bz) / 2 - cz) < 0) { nx = -nx; nz = -nz; }
+      face([[ax, baseY, az], [bx, baseY, bz], [bx, top, bz], [ax, top, az]], [nx, 0, nz]);
     }
-    quad(base + 4, base + 5, base + 6, base + 7); // top
+    face(corners.map(([x, z]) => [x, top, z] as [number, number, number]), [0, 1, 0]);
   };
 
   for (const g of gates) {
@@ -57,6 +79,31 @@ export function buildGateMesh(data: ChunkData): GateMesh {
         pushBox(tx, tz, baseY, TOWER_SIDE_M, TOWER_H_M, TOWER_SIDE_M, g.angleRad, color);
       }
       pushBox(local.x, local.z, baseY + TOWER_H_M - LINTEL_H_M, off * 2 + TOWER_SIDE_M, LINTEL_H_M, 1.2, g.angleRad, color);
+    } else if (g.form === 'waterGate') {
+      // A WATER GATE (agora-257c, 2026-10-28): where a river passes under the
+      // town wall, the wall runs on over the water instead of stopping. The
+      // gate point is the river's centerline, so the ground there is the bed:
+      // each tower stands on its own bank, and the wall section over the water
+      // starts above the LOWER bank, leaving an opening down to the water, with
+      // an iron grille in it. Heights follow the rampart (WALL_HEIGHT_M 3.2).
+      const bankY: number[] = [];
+      for (const side of [-1, 1]) {
+        const [tx, tz] = along(side * off);
+        const ground = heightAtLocal(data, tx, tz);
+        bankY.push(ground);
+        pushBox(tx, tz, ground - BASE_SINK_M, TOWER_SIDE_M, TOWER_H_M, TOWER_SIDE_M, g.angleRad, color);
+      }
+      const lowBank = Math.min(bankY[0], bankY[1]);
+      const spanW = off * 2 - TOWER_SIDE_M;
+      const archTop = lowBank + WATER_GATE_OPENING_ABOVE_BANK_M;
+      pushBox(local.x, local.z, archTop, spanW, WALL_TOP_M - WATER_GATE_OPENING_ABOVE_BANK_M, 1.2, g.angleRad, color);
+      // The grille: bars from the river bed up into the wall section.
+      const bedY = heightAt(data, g.x, g.y);
+      const bars = Math.max(3, Math.floor(spanW / GRILLE_SPACING_M));
+      for (let k = 1; k < bars; k++) {
+        const [bx, bz] = along(-spanW / 2 + (spanW * k) / bars);
+        pushBox(bx, bz, bedY - BASE_SINK_M, GRILLE_BAR_M, archTop - bedY + BASE_SINK_M + 0.2, GRILLE_BAR_M, g.angleRad, GRILLE_RGB);
+      }
     } else if (g.form === 'singleTower') {
       const [tx, tz] = along(off);
       pushBox(tx, tz, baseY, TOWER_SIDE_M + 1, TOWER_H_M, TOWER_SIDE_M + 1, g.angleRad, color);
@@ -80,6 +127,13 @@ export function buildGateMesh(data: ChunkData): GateMesh {
 
 // Same nearest-vertex terrain sampler as wallGeometry.heightAt (deliberately
 // duplicated — both files keep their samplers private and parallel).
+/** Ground height at a CHUNK-LOCAL point, meters (inverse of gridPointToLocal). */
+function heightAtLocal(data: ChunkData, lx: number, lz: number): number {
+  const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
+  const M = WORLD3D_CONFIG.METERS_PER_CELL;
+  return heightAt(data, (lx + data.cx * S) / M, (lz + data.cy * S) / M);
+}
+
 function heightAt(data: ChunkData, gx: number, gy: number): number {
   const res = data.resolution;
   const span = WORLD3D_CONFIG.CHUNK_WORLD_SIZE / WORLD3D_CONFIG.METERS_PER_CELL;

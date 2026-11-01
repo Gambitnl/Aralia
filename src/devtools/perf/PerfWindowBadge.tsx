@@ -15,8 +15,26 @@
  * writes its text straight into the DOM from a timer. React never re-renders
  * it, and the page's render work is never interrupted.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 05/10/2026, 04:17:39
+ * Dependents: devtools/perf/index.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useEffect, useRef } from 'react';
 import { fpsColor } from './PerfOverlay';
+import { isPerfMeasurementEnabled, subscribePerfMeasurement } from './perfControl';
 import { getPerfSessions, requestPerfPanel, subscribePerfSessions } from './perfRegistry';
 
 /** Twice a second is enough for a number the eye reads in passing. */
@@ -46,12 +64,13 @@ export const PerfWindowBadge: React.FC = () => {
     if (!el) return;
 
     const tick = () => {
+      if (!isPerfMeasurementEnabled()) { el.style.display = 'none'; sessionId.current = null; return; }
       const win = el.closest('[role="dialog"]');
       const now = performance.now();
       const inside = win
         ? getPerfSessions()
             .filter((s) => s.element !== null && win.contains(s.element))
-            .map((s) => s.snapshot(now))
+            .map((s) => s.frameReading(now))
         : [];
       const shown = inside.find((s) => s.live) ?? inside[0];
       if (!shown) {
@@ -70,11 +89,20 @@ export const PerfWindowBadge: React.FC = () => {
         : `${shown.label} stopped drawing. Click for the full panel (Alt+P).`;
     };
 
-    tick();
-    const timer = window.setInterval(tick, BADGE_POLL_MS);
+    // Suspend the timer without putting periodic state updates in the page's
+    // React root. Re-enabling keeps the same button and restarts its reading.
+    let timer: number | null = null;
+    const update = () => {
+      if (timer !== null) window.clearInterval(timer);
+      timer = null; tick();
+      if (isPerfMeasurementEnabled()) timer = window.setInterval(tick, BADGE_POLL_MS);
+    };
+    update();
+    const stopControl = subscribePerfMeasurement(update);
     const stop = subscribePerfSessions(tick);
     return () => {
-      window.clearInterval(timer);
+      if (timer !== null) window.clearInterval(timer);
+      stopControl();
       stop();
     };
   }, []);

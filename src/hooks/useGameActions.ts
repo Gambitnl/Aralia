@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 12/07/2026, 01:22:36
- * Dependents: App.tsx
- * Imports: 8 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file src/hooks/useGameActions.ts
  * This hook is the front door for player actions from the exploration interface.
@@ -23,6 +7,22 @@
  * lifecycle themselves. App.tsx calls this hook and passes the resulting processAction
  * function to action-producing controls throughout the game.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 29/10/2026, 00:29:58
+ * Dependents: App.tsx, components/layout/AppShell.tsx, components/screens/AppPhaseContent.tsx, hooks/app/useAppDeveloperCombatFixtures.ts, hooks/app/useAppDeveloperMenu.ts
+ * Imports: 9 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 // ============================================================================
 // Dependencies
@@ -38,6 +38,7 @@ import { NPCS } from '../data/world/npcs';
 import { AddMessageFn, PlayPcmAudioFn, GetCurrentLocationFn, GetCurrentNPCsFn, GetTileTooltipTextFn, AddGeminiLogFn, LogDiscoveryFn } from './actions/actionHandlerTypes';
 import { getDiegeticPlayerActionMessage } from '../utils/combat';
 import { generateGeneralActionContext } from '../utils/context';
+import { burgIdForLocation } from '../systems/worldforge/townsim/chronicleForLocation';
 
 // ============================================================================
 // Hook Inputs
@@ -129,63 +130,81 @@ export function useGameActions({
         dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Processing action..." } });
       }
 
-      // Leaving conversation work resets the selected NPC so a later action cannot
-      // accidentally inherit dialogue context from the previous interaction.
-      if (action.type !== 'talk') {
-        if (gameState.lastInteractedNpcId !== null) {
-          dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
-        }
-      }
-
-      const playerCharacter = gameState.party[0];
-
-      // Echo actions that have a player-facing phrasing into the message history.
-      const diegeticMessage = getDiegeticPlayerActionMessage(action, NPCS, LOCATIONS, playerCharacter);
-      if (diegeticMessage) {
-        addMessage(diegeticMessage, 'player');
-      }
-
-      let playerContext = 'An adventurer';
-
-      // Prefer the lead party member's authored identity when one is available.
-      if (playerCharacter) {
-        playerContext = `${playerCharacter.name}, a ${playerCharacter.race.name} ${playerCharacter.class.name}`;
-      }
-
-      const currentLoc = getCurrentLocation();
-      const npcsInLocation = getCurrentNPCs();
-
-      // Use the centralized context generator for consistent, rich narrative context
-      const generalActionContext = generateGeneralActionContext({
-        gameState,
-        playerCharacter,
-        currentLocation: currentLoc,
-        npcsInLocation
-      });
-
-      // Load the full action registry only once a player action actually needs it.
-      // That registry imports encounter, item, spell, and merchant handlers, so
-      // keeping it out of the startup path protects the main menu from gameplay data.
-      const { buildActionHandlers } = await import('./actions/actionHandlers');
-
-      // Build the registry in src/hooks/actions/actionHandlers.ts so this hook
-      // stays focused on orchestration and lifecycle management.
-      const handlers = buildActionHandlers({
-        gameState,
-        dispatch,
-        addMessage,
-        playPcmAudio,
-        getCurrentLocation,
-        getCurrentNPCs,
-        getTileTooltipText,
-        addGeminiLog,
-        logDiscovery,
-        playerCharacter,
-        playerContext,
-        generalActionContext,
-      });
-
+      // Context and lazy registry setup can fail before any handler starts.
+      // Keep them inside the same error and loading recovery boundary.
       try {
+        // A stale or suggested action must obey the same geographic presence
+        // as the visible pane. This does not relocate keepers or alter their lives.
+        if (gameState.playerGroundPos || gameState.atlasGroundAddress) {
+          const townId = burgIdForLocation({worldSeed: gameState.worldSeed, cellId: gameState.playerCell?.cellId, ground: gameState});
+          const townNews = ['OPEN_NOTICE_BOARD', 'OPEN_BROADSHEET', 'TAKE_BROADSHEET'].includes(action.type);
+          const payload = action.payload as {buildingId?: string; targetNpcId?: string; seedKey?: string} | undefined;
+          const target = ('targetId' in action ? action.targetId : undefined) ?? payload?.targetNpcId ?? payload?.buildingId;
+          const businesses = Object.values(gameState.worldBusinesses ?? {});
+          const business = businesses.find(b => b.id === payload?.seedKey) ?? businesses.find(b => b.ownerId === target);
+          if ((townNews && townId === undefined) ||
+              (business && business.burgId !== townId && (action.type === 'OPEN_DYNAMIC_MERCHANT' ||
+                (action.type === 'talk' && !getCurrentNPCs().some(npc => npc.id === target))))) {
+            addMessage('That town service is not at your current position. Travel to the town before using it.', 'system');
+            return;
+          }
+        }
+        // Leaving conversation work resets the selected NPC so a later action cannot
+        // accidentally inherit dialogue context from the previous interaction.
+        if (action.type !== 'talk') {
+          if (gameState.lastInteractedNpcId !== null) {
+            dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
+          }
+        }
+
+        const playerCharacter = gameState.party[0];
+
+        // Echo actions that have a player-facing phrasing into the message history.
+        const diegeticMessage = getDiegeticPlayerActionMessage(action, NPCS, LOCATIONS, playerCharacter);
+        if (diegeticMessage) {
+          addMessage(diegeticMessage, 'player');
+        }
+
+        let playerContext = 'An adventurer';
+
+        // Prefer the lead party member's authored identity when one is available.
+        if (playerCharacter) {
+          playerContext = `${playerCharacter.name}, a ${playerCharacter.race.name} ${playerCharacter.class.name}`;
+        }
+
+        const currentLoc = getCurrentLocation();
+        const npcsInLocation = getCurrentNPCs();
+
+        // Use the centralized context generator for consistent, rich narrative context
+        const generalActionContext = generateGeneralActionContext({
+          gameState,
+          playerCharacter,
+          currentLocation: currentLoc,
+          npcsInLocation
+        });
+
+        // Load the full action registry only once a player action actually needs it.
+        // That registry imports encounter, item, spell, and merchant handlers, so
+        // keeping it out of the startup path protects the main menu from gameplay data.
+        const { buildActionHandlers } = await import('./actions/actionHandlers');
+
+        // Build the registry in src/hooks/actions/actionHandlers.ts so this hook
+        // stays focused on orchestration and lifecycle management.
+        const handlers = buildActionHandlers({
+          gameState,
+          dispatch,
+          addMessage,
+          playPcmAudio,
+          getCurrentLocation,
+          getCurrentNPCs,
+          getTileTooltipText,
+          addGeminiLog,
+          logDiscovery,
+          playerCharacter,
+          playerContext,
+          generalActionContext,
+        });
+
         // Await the selected handler so the loading gate covers the complete action,
         // including network-backed narration and other asynchronous game systems.
         const handler = handlers[action.type];

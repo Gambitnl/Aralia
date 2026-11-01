@@ -1,11 +1,18 @@
+/**
+ * Assemble the one canonical blueprint input shared by rendering, simulation
+ * registration, and history compaction. Keeping household and architecture
+ * identity here prevents a save replay from rebuilding a subtly different
+ * base house than the one the player originally saw.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 18/07/2026, 19:54:02
- * Dependents: devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/townSimRegistration.ts
- * Imports: 5 files
+ * Last Sync: 01/11/2026, 07:06:39
+ * Dependents: components/Worldforge/townBuildingVisit.ts, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/town/prepareHistoricalTownLoad.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,12 +21,7 @@
  */
 // @dependencies-end
 
-/**
- * Assemble the one canonical blueprint input shared by rendering, simulation
- * registration, and history compaction. Keeping household and architecture
- * identity here prevents a save replay from rebuilding a subtly different
- * base house than the one the player originally saw.
- */
+import type { BuildingSourceContext } from '../interior/buildingSource';
 import type { TownPlan } from "../artifacts";
 import type { BuildingEventHistory } from "../interior/blueprintTypes";
 import type { InteriorPlotInput } from "../interior/generateInterior";
@@ -36,6 +38,7 @@ export interface BuildingPlotInputContext {
   cultureType: string;
   climate: StyleContext["climate"];
   eventLog?: BuildingEventHistory;
+  retainedSource?: BuildingSourceContext;
 }
 
 /** Build the exact production input for one canonical artifact plot. */
@@ -50,7 +53,7 @@ export function buildingPlotInput(
   // owner's HOME wealth even when the workplace sits in another district.
   const pops = householdPopulationsForPlan(plan);
   const plotPopulation = householdPopulationForPlot(plot);
-  const household = plotPopulation
+  const household = context.retainedSource ? context.retainedSource.source.plan.household : plotPopulation
     ? briefForPlot(plotPopulation, pops, townSeed)
     : undefined;
   const wealth = resolvePlotWealth(plot);
@@ -62,6 +65,10 @@ export function buildingPlotInput(
     ...(plot.ensemble ? { ensemble: { ...plot.ensemble } } : {}),
     ...(plot.pop?.buildingType ? { buildingType: plot.pop.buildingType } : {}),
     ...(household ? { household } : {}),
+    // Only the explicit unaccepted farm source selects this recipe. A retained
+    // observed foundation remains the complete authority for an established home.
+    ...(!context.retainedSource&&plan.ruralSources?.homesteads.sites.some(site=>site.plotId===plot.id)
+      ? {householdLayoutRecipe:plan.ruralSources.layoutRecipe} : {}),
     style: {
       cultureType: context.cultureType,
       climate: context.climate,
@@ -74,5 +81,6 @@ export function buildingPlotInput(
       },
     },
     ...(context.eventLog ? { eventLog: context.eventLog } : {}),
+    ...(context.retainedSource ? {retainedSource: context.retainedSource} : {}),
   };
 }

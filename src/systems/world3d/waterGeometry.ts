@@ -24,6 +24,7 @@
  */
 import type { ChunkData, ChunkGeometryArrays, ClippedPolyline } from './types';
 import earcut from 'earcut';
+import Delaunator from 'delaunator';
 import { WORLD3D_CONFIG, heightToMeters } from './config';
 import { gridPointToLocal } from './coords';
 
@@ -71,13 +72,47 @@ function smoothstep01(t: number): number {
  */
 export interface WaterMesh extends ChunkGeometryArrays {
   colors: Float32Array;
+  /**
+   * Surface flow per vertex, world meters per second on x and z (2 per vertex).
+   * Rivers flow along their course at a speed set by the waterline's slope;
+   * lakes and the sea are still (0, 0). The water material moves its ripple
+   * and foam along this (agora-257c, 2026-10-27: the ripple did not move).
+   */
+  flow: Float32Array;
 }
+
+/**
+ * Vertices across a river ribbon. Two (one per bank) gave the shader only bank
+ * depths, which are about 0, so a whole river drew at shoreline opacity: on
+ * tile 17,4 a 1.3 m deep river was almost clear (agora-257c, 2026-10-27). Five
+ * put the deep middle and both shoulders into the depth encoding.
+ *
+ * Thirteen since 2026-10-30 (with a row at least every RIBBON_ROW_STEP_M): five
+ * across and one row per polyline point (about 12 m) still made quads 4.5 m by
+ * 12 m, and the per-vertex depth spread over them as long pale wedges, so the
+ * bed and the bridge posts showed through the channel as ghosts, and an edge
+ * vertex over a low bank stood a flat sliver of water on it (Remy, Sinzheim,
+ * "weirdness under water"). Thirteen puts a vertex about every 1.5 m across an
+ * 18 m river, the ground grid's own spacing.
+ */
+export const RIBBON_ACROSS = 13;
+
+/** The longest step between two ribbon rows along the river, m (2026-10-30; see RIBBON_ACROSS). */
+export const RIBBON_ROW_STEP_M = 2;
+
+/** River surface speed with no slope, m/s: a slow lowland river. */
+const RIVER_BASE_SPEED_MPS = 0.5;
+/** Added speed per unit of waterline slope (m/m), m/s. */
+const RIVER_SPEED_PER_SLOPE = 60;
+/** Fastest drawn surface speed, m/s: rapids. */
+const RIVER_MAX_SPEED_MPS = 3;
 
 const EMPTY: WaterMesh = {
   positions: new Float32Array(0),
   indices: new Uint32Array(0),
   normals: new Float32Array(0),
   colors: new Float32Array(0),
+  flow: new Float32Array(0),
 };
 
 export function buildWaterMesh(data: ChunkData): WaterMesh {
@@ -89,10 +124,15 @@ export function buildWaterMesh(data: ChunkData): WaterMesh {
   const indices: number[] = [];
   const normals: number[] = [];
   const colors: number[] = [];
+  const flow: number[] = [];
 
   for (const lake of lakes) {
+    if (lake.interior?.length) {
+      emitFilledBody(lake, data, positions, indices, normals, colors, flow);
+      continue;
+    }
     const startVert = positions.length / 3;
-    emitLake(lake, data, positions, normals, colors);
+    emitLake(lake, data, positions, normals, colors, flow);
     const flat: number[] = [];
     for (const p of lake.points) {
       const local = gridPointToLocal(p.x, p.y, data.cx, data.cy);
@@ -103,14 +143,23 @@ export function buildWaterMesh(data: ChunkData): WaterMesh {
 
   for (const ribbon of ribbons) {
     const startVert = positions.length / 3;
-    emitRibbon(ribbon, data, positions, normals, colors);
-    const ptCount = ribbon.points.length;
-    for (let i = 0; i < ptCount - 1; i++) {
-      const l0 = startVert + i * 2;
-      const r0 = l0 + 1;
-      const l1 = startVert + (i + 1) * 2;
-      const r1 = l1 + 1;
-      indices.push(l0, l1, r0, r0, l1, r1);
+    const { rows, depth } = emitRibbon(ribbon, data, positions, normals, colors, flow);
+    // A triangle with all three vertices dry stands over a bank: drop it
+    // (2026-10-30). One wet vertex keeps it, fading to clear at the dry ones.
+    // Only a ground river (a real shared waterline) is judged: a legacy
+    // continent ribbon sits under its own ground sample by design.
+    const judged = !!ribbon.waterlineY?.length;
+    const wet = (a: number, b: number, c: number) => !judged
+      || depth[a - startVert] > 0 || depth[b - startVert] > 0 || depth[c - startVert] > 0;
+    for (let i = 0; i < rows - 1; i++) {
+      for (let k = 0; k < RIBBON_ACROSS - 1; k++) {
+        const l0 = startVert + i * RIBBON_ACROSS + k;
+        const r0 = l0 + 1;
+        const l1 = l0 + RIBBON_ACROSS;
+        const r1 = l1 + 1;
+        if (wet(l0, l1, r0)) indices.push(l0, l1, r0);
+        if (wet(r0, l1, r1)) indices.push(r0, l1, r1);
+      }
     }
   }
 
@@ -119,6 +168,7 @@ export function buildWaterMesh(data: ChunkData): WaterMesh {
     indices: new Uint32Array(indices),
     normals: new Float32Array(normals),
     colors: new Float32Array(colors),
+    flow: new Float32Array(flow),
   };
 }
 
@@ -221,18 +271,132 @@ function emitLake(
   positions: number[],
   normals: number[],
   colors: number[],
+  flow: number[],
 ): void {
   // Sea surfaces are already AT their true height (zero) and must not be pushed
   // under their own floor; the legacy buried offset applies to the old flat
-  // lake path only.
-  const drop = lake.kind === 'sea' || lake.kind === 'river' ? 0 : LAKE_DROP_M;
-  for (const p of lake.points) {
+  // lake path only: a body with NO kind. A `lake` (a hydrology basin filled to
+  // its spill level) took it too, which sank every pond 0.55 m below its own
+  // level, and a basin needs only 0.5 m of depth to fill (agora-257c, 2026-10-27).
+  const drop = lake.kind === undefined ? LAKE_DROP_M : 0;
+  lake.points.forEach((p, i) => {
     const local = gridPointToLocal(p.x, p.y, data.cx, data.cy);
     const y = waterSurfaceYAt(lake, p.x, p.y) - drop;
     positions.push(local.x, y, local.z);
     normals.push(0, 1, 0);
-    pushDepthEncoding(colors, y - waterHeightAt(data, p.x, p.y));
+    // Depth against the SHALLOWER of the loader's full-grid bed and the ground
+    // this chunk actually draws. A far chunk draws a vertex every 4 to 8 m and
+    // cannot hold a 10 m pool 0.5 m deep: measured against the fine bed alone,
+    // the pool stood over flat drawn ground as a hard-edged staircase of grid
+    // squares (Remy, 17,4, 2026-10-28). Up close the drawn ground holds the
+    // basin and the pool shows at its full depth.
+    const drawn = waterHeightAt(data, p.x, p.y);
+    pushDepthEncoding(colors, y - Math.max(lake.bedY?.[i] ?? drawn, drawn));
+    const f = lakeFlowAt(lake, p.x, p.y);
+    flow.push(f.x, f.z);
+  });
+}
+
+/**
+ * A body with inner samples (2026-10-30; the loader's `townWaterFill`): its
+ * fine outline plus its inner points, filled with a Delaunay mesh. Each vertex
+ * takes its height and depth by the same rules as an outline vertex (the
+ * body's surface at that point; depth against the shallower of the fine bed and
+ * the drawn ground), so the deep channel goes dark and opaque and only the true
+ * shore fades. Delaunay fills the points' convex hull, so a triangle whose
+ * center falls outside the outline is dropped, and so is a triangle over dry
+ * ground (all three vertices at or above the water): that one would only stand
+ * as a flat sheet over a bank, invisible at best.
+ */
+function emitFilledBody(
+  lake: NonNullable<ChunkData['lakes']>[number],
+  data: ChunkData,
+  positions: number[],
+  indices: number[],
+  normals: number[],
+  colors: number[],
+  flow: number[],
+): void {
+  const pts = [...lake.points, ...(lake.interior ?? [])];
+  const beds = [...(lake.bedY ?? []), ...(lake.interiorBedY ?? [])];
+  const drop = lake.kind === undefined ? LAKE_DROP_M : 0;
+  const startVert = positions.length / 3;
+  const coords = new Float64Array(pts.length * 2);
+  const depth: number[] = [];
+  pts.forEach((p, i) => {
+    const local = gridPointToLocal(p.x, p.y, data.cx, data.cy);
+    coords[i * 2] = local.x;
+    coords[i * 2 + 1] = local.z;
+    const y = waterSurfaceYAt(lake, p.x, p.y) - drop;
+    positions.push(local.x, y, local.z);
+    normals.push(0, 1, 0);
+    const drawn = waterHeightAt(data, p.x, p.y);
+    const d = y - Math.max(beds[i] ?? drawn, drawn);
+    depth.push(d);
+    pushDepthEncoding(colors, d);
+    const f = lakeFlowAt(lake, p.x, p.y);
+    flow.push(f.x, f.z);
+  });
+  if (pts.length < 3) return;
+  const tri = new Delaunator(coords).triangles;
+  const ring = lake.points;
+  const insideRing = (gx: number, gy: number): boolean => {
+    let hit = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
+      const a = ring[i], b = ring[j];
+      if ((a.y > gy) !== (b.y > gy) && gx < ((b.x - a.x) * (gy - a.y)) / (b.y - a.y) + a.x) hit = !hit;
+    }
+    return hit;
+  };
+  const kept: number[] = [];
+  for (let t = 0; t < tri.length; t += 3) {
+    const a = tri[t], b = tri[t + 1], c = tri[t + 2];
+    if (depth[a] <= 0 && depth[b] <= 0 && depth[c] <= 0) continue;
+    const gx = (pts[a].x + pts[b].x + pts[c].x) / 3;
+    const gy = (pts[a].y + pts[b].y + pts[c].y) / 3;
+    if (!insideRing(gx, gy)) continue;
+    kept.push(a, b, c);
   }
+  pushUpwardTriangles(kept, startVert, positions, indices);
+}
+
+/**
+ * Flow of a lake-polygon vertex. A town river drawn as a polygon flows along
+ * its centerline segment nearest the vertex; still water does not flow.
+ */
+function lakeFlowAt(
+  lake: NonNullable<ChunkData['lakes']>[number],
+  gx: number,
+  gy: number,
+): { x: number; z: number } {
+  const line = lake.centerline;
+  if (lake.kind !== 'river' || !line || line.length < 2) return { x: 0, z: 0 };
+  let best = { d2: Infinity, i: 0 };
+  for (let i = 0; i < line.length - 1; i++) {
+    const a = line[i];
+    const b = line[i + 1];
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const lenSq = dx * dx + dy * dy;
+    const t = lenSq === 0 ? 0 : Math.max(0, Math.min(1, ((gx - a.x) * dx + (gy - a.y) * dy) / lenSq));
+    const d2 = (gx - a.x - dx * t) ** 2 + (gy - a.y - dy * t) ** 2;
+    if (d2 < best.d2) best = { d2, i };
+  }
+  const a = line[best.i];
+  const b = line[best.i + 1];
+  return riverFlow(b.x - a.x, b.y - a.y, a.surfaceY - b.surfaceY);
+}
+
+/**
+ * Surface flow along a river step: direction in world x/z, speed from the
+ * waterline slope. dgx/dgy are grid units; dropM is the fall over the step.
+ */
+function riverFlow(dgx: number, dgy: number, dropM: number): { x: number; z: number } {
+  const lenM = Math.hypot(dgx, dgy) * M;
+  if (lenM === 0) return { x: 0, z: 0 };
+  const slope = Math.max(0, dropM) / lenM;
+  const speed = Math.min(RIVER_MAX_SPEED_MPS, RIVER_BASE_SPEED_MPS + RIVER_SPEED_PER_SLOPE * slope);
+  return { x: ((dgx * M) / lenM) * speed, z: ((dgy * M) / lenM) * speed };
 }
 
 function emitRibbon(
@@ -241,20 +405,16 @@ function emitRibbon(
   positions: number[],
   normals: number[],
   colors: number[],
-): void {
+  flow: number[],
+): { rows: number; depth: number[] } {
   const pts = ribbon.points;
-  for (let i = 0; i < pts.length; i++) {
-    const p = pts[i];
+  // Per polyline point: direction, half width, surface height and flow.
+  const at = pts.map((p, i) => {
     const prev = pts[Math.max(0, i - 1)];
     const next = pts[Math.min(pts.length - 1, i + 1)];
     const dirX = (next.x - prev.x) * M;
     const dirZ = (next.y - prev.y) * M;
     const len = Math.hypot(dirX, dirZ) || 1;
-    const perpX = -dirZ / len;
-    const perpZ = dirX / len;
-    const halfW = ((ribbon.width[i] ?? 0.01) * M) / 2;
-
-    const local = gridPointToLocal(p.x, p.y, data.cx, data.cy);
     // Ground-mode chunks carry the authoritative per-point surface. Older
     // callers remain byte-compatible by falling back to their original bed
     // sample and drop when no shared waterline is present.
@@ -262,20 +422,79 @@ function emitRibbon(
     const y = typeof sharedWaterlineY === 'number' && Number.isFinite(sharedWaterlineY)
       ? sharedWaterlineY
       : waterHeightAt(data, p.x, p.y) - LEGACY_RIVER_DROP_M;
+    // The waterline falls from prev to next; that slope sets the speed.
+    const prevY = ribbon.waterlineY?.[Math.max(0, i - 1)];
+    const nextY = ribbon.waterlineY?.[Math.min(pts.length - 1, i + 1)];
+    const dropM = typeof prevY === 'number' && typeof nextY === 'number' ? prevY - nextY : 0;
+    return {
+      perpX: -dirZ / len,
+      perpZ: dirX / len,
+      halfW: ((ribbon.width[i] ?? 0.01) * M) / 2,
+      y,
+      f: riverFlow(next.x - prev.x, next.y - prev.y, dropM),
+    };
+  });
 
-    positions.push(local.x - perpX * halfW, y, local.z - perpZ * halfW);
-    normals.push(0, 1, 0);
-    positions.push(local.x + perpX * halfW, y, local.z + perpZ * halfW);
-    normals.push(0, 1, 0);
-
-    // Bed sampled UNDER each bank vertex, not under the centerline. The two are
-    // the whole point here: a ribbon is ~18 m wide against a 4 m heightfield
-    // sample spacing, so its edges land on genuinely shallower bed than its
-    // middle and that difference is what draws the shoreline.
+  const depth: number[] = [];
+  let rows = 0;
+  // One row of RIBBON_ACROSS vertices at segment i, fraction t toward i + 1.
+  const row = (i: number, t: number): void => {
+    const a = at[i];
+    const b = at[Math.min(at.length - 1, i + 1)];
+    const pa = pts[i];
+    const pb = pts[Math.min(pts.length - 1, i + 1)];
+    const gx = pa.x + (pb.x - pa.x) * t;
+    const gy = pa.y + (pb.y - pa.y) * t;
+    let perpX = a.perpX + (b.perpX - a.perpX) * t;
+    let perpZ = a.perpZ + (b.perpZ - a.perpZ) * t;
+    const pl = Math.hypot(perpX, perpZ) || 1;
+    perpX /= pl;
+    perpZ /= pl;
+    const halfW = a.halfW + (b.halfW - a.halfW) * t;
+    const y = a.y + (b.y - a.y) * t;
+    const fx = a.f.x + (b.f.x - a.f.x) * t;
+    const fz = a.f.z + (b.f.z - a.f.z) * t;
+    const local = gridPointToLocal(gx, gy, data.cx, data.cy);
+    // Bed sampled UNDER each vertex, left bank to right bank, from the drawn
+    // ground read bilinearly (what the eye sees under the water; the nearest
+    // 4 m sample stepped the depth in blocks).
     const halfGrid = halfW / M;
-    pushDepthEncoding(colors, y - waterHeightAt(data, p.x - perpX * halfGrid, p.y - perpZ * halfGrid));
-    pushDepthEncoding(colors, y - waterHeightAt(data, p.x + perpX * halfGrid, p.y + perpZ * halfGrid));
+    for (let k = 0; k < RIBBON_ACROSS; k++) {
+      const s = (2 * k) / (RIBBON_ACROSS - 1) - 1; // -1 left bank .. +1 right bank
+      positions.push(local.x + perpX * halfW * s, y, local.z + perpZ * halfW * s);
+      normals.push(0, 1, 0);
+      const d = y - drawnHeightAt(data, gx + perpX * halfGrid * s, gy + perpZ * halfGrid * s);
+      depth.push(d);
+      pushDepthEncoding(colors, d);
+      flow.push(fx, fz);
+    }
+    rows += 1;
+  };
+  for (let i = 0; i < pts.length - 1; i++) {
+    const segM = Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y) * M;
+    const k = Math.max(1, Math.ceil(segM / RIBBON_ROW_STEP_M));
+    for (let j = 0; j < k; j++) row(i, j / k);
   }
+  if (pts.length > 0) row(pts.length - 1, 0);
+  return { rows, depth };
+}
+
+/**
+ * The drawn ground height at a grid point, read bilinearly from the chunk's
+ * own height samples (2026-10-30; the ribbon's depth). `waterHeightAt` keeps
+ * the nearest sample for its older callers.
+ */
+function drawnHeightAt(data: ChunkData, gx: number, gy: number): number {
+  const res = data.resolution;
+  const span = WORLD3D_CONFIG.CHUNK_WORLD_SIZE / M;
+  if (res < 2 || span === 0) return waterHeightAt(data, gx, gy);
+  const fx = Math.max(0, Math.min(res - 1, ((gx - data.cx * span) / span) * (res - 1)));
+  const fy = Math.max(0, Math.min(res - 1, ((gy - data.cy * span) / span) * (res - 1)));
+  const i = Math.min(res - 2, Math.floor(fx));
+  const j = Math.min(res - 2, Math.floor(fy));
+  const tx = fx - i, ty = fy - j;
+  const h = (c: number, r: number) => heightToMeters(data.heights[r * res + c]);
+  return (h(i, j) * (1 - tx) + h(i + 1, j) * tx) * (1 - ty) + (h(i, j + 1) * (1 - tx) + h(i + 1, j + 1) * tx) * ty;
 }
 
 function waterHeightAt(data: ChunkData, gx: number, gy: number): number {

@@ -16,9 +16,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 20/09/2026, 21:00:39
+ * Last Sync: 31/10/2026, 07:53:59
  * Dependents: hooks/combat/turnManager/useTurnLifecycle.ts, hooks/combat/useCombatAI.ts, utils/combat/index.ts
- * Imports: 7 files
+ * Imports: 10 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -28,7 +28,11 @@
 // @dependencies-end
 
 import { CombatCharacter, CombatAction, BattleMapData, Ability, AbilityEffect, Position, BattleMapTile, SpellSlots } from '../../types/combat';
-import { computeAoETiles, getDistance, generateId, resolveAreaDefinition, getOccupiedTiles, getCharacterDistance } from './combatUtils';
+import { computeAoETiles, getDistance, generateId, resolveAreaDefinition, getOccupiedTiles, getCharacterDistance, resolveCombatantTerrainMovementPolicy } from './combatUtils';
+import { calculatePathMovementCost } from './movementUtils';
+import { selectRepeatedAttack } from './multiattackUtils';
+import { isAtLongRange, maxAttackRangeTiles } from './weaponRange';
+import { isRangedAttackAbility, rangedAttackPressure } from '../../systems/combat/rangedAttackPressure';
 import { hasLineOfSight } from '../spatial/lineOfSight';
 import { TargetValidationUtils } from '../../systems/spells/targeting/TargetValidationUtils';
 import { logger } from '../core/logger';
@@ -59,6 +63,12 @@ const WEIGHTS = {
   HEAL: 1.6,
   /** Bonus for actions that improve the caster's own survival (e.g. retreating when low). */
   SELF_PRESERVATION: 4,
+  /**
+   * GG-495: expected-damage multiplier for a long-range shot. Disadvantage
+   * cuts the hit chance (about 0.55 to 0.30 against a typical AC), so the
+   * damage part of a long-range plan counts a little over half.
+   */
+  LONG_RANGE_DAMAGE_FACTOR: 0.55,
   /** Penalty per tile moved to discourage unnecessary movement. */
   DISTANCE_PENALTY: -0.1,
   /** Bonus for attacking a target that is already damaged (Focus Fire). */
@@ -124,6 +134,8 @@ export interface EncounterStanceInput {
 export interface CombatTurnOptions {
   /** Supply to let witness memory override tactical scoring. */
   stance?: EncounterStanceInput;
+  /** Live tactical lights keep nearby pressure consistent with spell/weapon execution. */
+  activeLightSources?: import('../../types/combat').LightSource[];
 }
 
 /**
@@ -644,6 +656,8 @@ export function evaluateCombatTurn(
 
   // Consider all abilities with simple action-economy checks.
   for (const ability of character.abilities) {
+    // Reactions belong to their trigger window, not the creature's action turn.
+    if (ability.cost.type === 'reaction') continue;
     if (ability.currentCooldown && ability.currentCooldown > 0) continue;
     if (ability.isRecharging) continue;
     if (ability.maxUses !== undefined && (ability.usesRemaining ?? ability.maxUses) <= 0) continue;
@@ -682,7 +696,7 @@ export function evaluateCombatTurn(
       // Filter by creature-type constraint (e.g. Hold Person: Humanoid only)
       const validTargets = allEnemies.filter(enemy => matchesAbilityCreatureTypes(enemy, ability.validCreatureTypes));
       for (const target of validTargets) {
-        const plan = evaluateAttackPlan(character, target, ability, mapData, reachableTiles, activeEnemies, allAllies);
+        const plan = evaluateAttackPlan(character, target, ability, mapData, reachableTiles, activeEnemies, allAllies, options.activeLightSources);
         if (plan) possiblePlans.push(plan);
       }
     } else if (ability.targeting === 'single_ally') {
@@ -747,7 +761,8 @@ export function evaluateCombatTurn(
     if (bestPlan.actionType === 'ability' && bestPlan.targetPosition) {
       const dist = getDistance(character.position, bestPlan.targetPosition);
       const ability = character.abilities.find(a => a.id === bestPlan.abilityId);
-      const inRange = ability ? dist <= ability.range : true;
+      // GG-495: a planned long-range shot is in range; do not walk first.
+      const inRange = ability ? dist <= maxAttackRangeTiles(ability) : true;
       if (ability && (!inRange || !hasClearShot(character.position, bestPlan.targetPosition, mapData))) {
         const moveAction = planMovement(character, bestPlan.targetPosition, ability.range, mapData, reachableTiles, occupiedTileIds);
         if (moveAction) {
@@ -1081,21 +1096,36 @@ function evaluateAttackPlan(
   mapData: BattleMapData,
   reachableTiles: Map<string, ReachableTilePlan>,
   activeEnemies: CombatCharacter[],
-  allAllies: CombatCharacter[] = []
+  allAllies: CombatCharacter[] = [],
+  activeLightSources: import('../../types/combat').LightSource[] = []
 ): AIPlan | null {
+  // Score the same authored weapon that production will execute at this range.
+  // Aggregate ingestion damage is a planning hint, never a synthetic attack.
+  const repeatedLeaf = selectRepeatedAttack(caster, ability, target, false);
+  if (repeatedLeaf) {
+    ability = { ...ability, range: repeatedLeaf.range, attackBonus: repeatedLeaf.attackBonus,
+      effects: repeatedLeaf.effects.map(effect => effect.type === 'damage'
+        ? { ...effect, value: (effect.value ?? 0) * ability.multiattackCount! } : effect) };
+  }
   const dist = getDistance(caster.position, target.position);
 
   // Check if reachable within move + range
   const moveRange = caster.actionEconomy.movement.total - caster.actionEconomy.movement.used;
-  if (dist > ability.range + moveRange) return null; // Too far
+  // GG-495: a ranged or thrown attack can reach its long range.
+  if (dist > maxAttackRangeTiles(ability) + moveRange) return null; // Too far
 
   let score = 0;
+  let damageScore = 0;
 
   // Damage potential
   const damageEffect = ability.effects.find(e => e.type === 'damage');
   if (damageEffect) {
     const damage = damageEffect.value || 0;
-    score += damage * WEIGHTS.DAMAGE;
+    // Keep the authored attack; nearby enemy pressure lowers its expected
+    // value so a monster can prefer its real melee option while threatened.
+    const pressured = isRangedAttackAbility(ability) && rangedAttackPressure({characters: [caster, ...activeEnemies, ...allAllies], mapData, activeLightSources}, caster, ability);
+    damageScore = damage * WEIGHTS.DAMAGE * (pressured ? 0.5 : 1);
+    score += damageScore;
 
     // Kill potential
     if (target.currentHP <= damage && target.currentHP > 0) {
@@ -1150,11 +1180,27 @@ function evaluateAttackPlan(
     };
   }
 
+  // GG-495: no normal-range shot. A ranged or thrown attack may still reach
+  // the target at long range, with Disadvantage, so its damage counts at
+  // LONG_RANGE_DAMAGE_FACTOR. It competes with moving into normal range; the
+  // better-scored plan wins, and a shot always beats having no plan.
+  const longRangePlan: AIPlan | null = isAtLongRange(ability, dist) && hasClearShot(caster.position, target.position, mapData)
+    ? {
+        actionType: 'ability',
+        abilityId: ability.id,
+        targetPosition: target.position,
+        targetCharacterIds: [target.id],
+        score: score - damageScore * (1 - WEIGHTS.LONG_RANGE_DAMAGE_FACTOR),
+        description: `Attack ${target.name} with ${ability.name} at long range (Disadvantage)`,
+      }
+    : null;
+
   // If out of range, look for a reachable tile that puts us in range + LoS.
   const moveTile = findCastPosition(reachableTiles, target.position, ability, mapData);
+  let moveIntoRangePlan: AIPlan | null = null;
   if (moveTile) {
     const movePlan = reachableTiles.get(moveTile.id);
-    return {
+    moveIntoRangePlan = {
       actionType: 'move',
       targetPosition: moveTile.coordinates,
       movementPath: movePlan?.path,
@@ -1164,7 +1210,10 @@ function evaluateAttackPlan(
     };
   }
 
-  return null;
+  if (longRangePlan && (!moveIntoRangePlan || longRangePlan.score > moveIntoRangePlan.score)) {
+    return longRangePlan;
+  }
+  return moveIntoRangePlan;
 }
 
 /**
@@ -1649,7 +1698,7 @@ function planMovement(
 }
 
 /**
- * Builds a map of all reachable tiles and their cost using a BFS flood fill.
+ * Builds reachable paths with the same feet-based ruler as player movement.
  * This is reused by many scoring functions to avoid redundant map scans.
  *
  * @param character - The character to calculate movement for.
@@ -1666,12 +1715,21 @@ function buildReachableTileMap(
   if (!startTile) return reachable;
 
   const availableMovement = character.actionEconomy.movement.total - character.actionEconomy.movement.used;
-  const queue: ReachableTilePlan[] = [{ tile: startTile, cost: 0, path: [startTile.coordinates] }];
-  const visited = new Set<string>([startTile.id]);
+  const terrainPolicy = resolveCombatantTerrainMovementPolicy(character);
+  const queue: Array<ReachableTilePlan & { diagonalCount: number }> = [
+    { tile: startTile, cost: 0, path: [startTile.coordinates], diagonalCount: 0 },
+  ];
+  // A tile can be reached with either diagonal parity. Keep both until its
+  // next step is priced, because the shared 5-10-5 ruler depends on parity.
+  const bestCosts = new Map<string, number>([[`${startTile.id}:0`, 0]]);
 
   while (queue.length > 0) {
-    const { tile, cost, path } = queue.shift()!;
-    reachable.set(tile.id, { tile, cost, path });
+    queue.sort((left, right) => left.cost - right.cost);
+    const { tile, cost, path, diagonalCount } = queue.shift()!;
+    if (cost !== bestCosts.get(`${tile.id}:${diagonalCount % 2}`)) continue;
+    if (!reachable.has(tile.id) || cost < reachable.get(tile.id)!.cost) {
+      reachable.set(tile.id, { tile, cost, path });
+    }
 
     if (cost >= availableMovement) continue;
 
@@ -1684,11 +1742,18 @@ function buildReachableTileMap(
         const isProtectedCircleTile = character.summonMetadata?.bloodCircle?.protectedTiles?.some(protectedTile =>
           protectedTile.x === neighbor?.coordinates.x && protectedTile.y === neighbor?.coordinates.y
         ) ?? false;
-        if (neighbor && !neighbor.blocksMovement && !visited.has(neighborId) && !isOccupied && !isProtectedCircleTile) {
-          const newCost = cost + neighbor.movementCost;
-          if (newCost <= availableMovement) {
-            visited.add(neighborId);
-            queue.push({ tile: neighbor, cost: newCost, path: [...path, neighbor.coordinates] });
+        if (neighbor && !neighbor.blocksMovement && !isOccupied && !isProtectedCircleTile) {
+          const nextPath = [...path, neighbor.coordinates];
+          const nextDiagonalCount = diagonalCount + (dx !== 0 && dy !== 0 ? 1 : 0);
+          const key = `${neighborId}:${nextDiagonalCount % 2}`;
+          // Tile movementCost may be a multiplier (1/2) or legacy feet (5/10).
+          // Reuse the normal path ruler, including terrain policy/elevation,
+          // rather than spending those raw values as feet from an AI budget.
+          const newCost = calculatePathMovementCost(nextPath.map(position =>
+            mapData.tiles.get(`${position.x}-${position.y}`)!), terrainPolicy);
+          if (newCost <= availableMovement && newCost < (bestCosts.get(key) ?? Infinity)) {
+            bestCosts.set(key, newCost);
+            queue.push({ tile: neighbor, cost: newCost, path: nextPath, diagonalCount: nextDiagonalCount });
           }
         }
       }

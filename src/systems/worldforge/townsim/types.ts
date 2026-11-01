@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
- *
- * Last Sync: 30/08/2026, 01:45:19
- * Dependents: components/Worldforge/LivingWorldPreview.tsx, components/debug/TownHistoryDevOverlay.tsx, systems/worldforge/roster/agentDeepening.ts, systems/worldforge/roster/agentLife.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/chronicle.ts, systems/worldforge/townsim/chronicleForLocation.ts, systems/worldforge/townsim/keyNpcs.ts, systems/worldforge/townsim/townNews.ts, systems/worldforge/townsim/townSim.ts, systems/worldforge/townsim/townSimRegistration.ts, systems/worldforge/townsim/townSimRegistry.ts, systems/worldforge/townsim/townSituation.ts, utils/world/chronicleNewsToRumors.ts
- * Imports: 2 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file types.ts — Data contracts for the living-world town sim (life-event core).
  *
@@ -30,8 +14,26 @@
  * without rerolling or guessing its future geometry.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 31/10/2026, 21:11:55
+ * Dependents: components/Worldforge/LivingWorldPreview.tsx, components/debug/TownHistoryDevOverlay.tsx, state/reducers/townReducer.ts, systems/intrigue/RumorMillSystem.ts, systems/worldforge/roster/agentDeepening.ts, systems/worldforge/roster/agentLife.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/chronicle.ts, systems/worldforge/townsim/chronicleForLocation.ts, systems/worldforge/townsim/graveyard.ts, systems/worldforge/townsim/inheritance.ts, systems/worldforge/townsim/keyNpcs.ts, systems/worldforge/townsim/townNews.ts, systems/worldforge/townsim/townSim.ts, systems/worldforge/townsim/townSimRegistration.ts, systems/worldforge/townsim/townSimRegistry.ts, systems/worldforge/townsim/townSituation.ts, utils/world/chronicleNewsToRumors.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { BuildingEvent, BuildingEventLogsByPlot } from '../interior/blueprintTypes';
+import type { ObservedBuildingSource } from '../interior/buildingSource';
 import type { PlannedBuildingExtension } from '../interior/buildingExtensions';
+import type { TownLayoutRevision } from '../town/townLayoutRevision';
 
 /** Re-exported here so town-sim callers need one contract surface for persisted state. */
 export type TownBuildingEvent = BuildingEvent;
@@ -97,6 +99,8 @@ export type InstitutionRole =
 /** A tracked person in the living-world sim (alive or, once dead, retained for genealogy). */
 export interface LivingVillager {
   occupantId: number;
+  /** Stable household provenance; older saves retain their original numeric id. */
+  householdMemberId?: string;
   name: string;
   race: string;
   /** gameDay of birth (may be negative for villagers alive at sim start). */
@@ -177,6 +181,10 @@ export interface TownChronicle {
 /** The complete persistable state of one town's living-world sim. */
 export interface TownSimState {
   burgId: number;
+  /** Canonical streets/lots/founding inputs used when this town registered.
+   * Missing in older saves means unresolved, not revision 1 or today's layout.
+   * Admission and intentional relayout must preserve people and site joins. */
+  layoutRevision?: TownLayoutRevision;
   /** Keyed by occupantId. Includes the dead (diedDay set) for genealogy. */
   villagers: Record<number, LivingVillager>;
   chronicle: TownChronicle;
@@ -186,6 +194,12 @@ export interface TownSimState {
    * chronological tail; structural outcomes retain their absolute ordinals.
    */
   buildingEvents?: BuildingEventLogsByPlot;
+  /** Sparse current door state by plot and geometry-backed door id. Old saves
+   * omit it: generated entries begin closed. This is not structural history. */
+  buildingDoors?: Record<number, Record<string, boolean>>;
+  /** Exact first physically observed source. Old saves omit it; recording is
+   * not a claim to recover historical originals or an automatic migration. */
+  buildingSources?: Record<number, ObservedBuildingSource>;
   /**
    * Prevalidated future additions keyed by canonical plot id. Registration
    * derives these from the real lot and district roof grammar; old saves may

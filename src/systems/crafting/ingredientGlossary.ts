@@ -19,7 +19,7 @@
  * Ingredient glossary - comprehensive data for all gatherable ingredients.
  */
 import { GATHERABLE_RESOURCES, Biome } from './gatheringData';
-import { HARVESTABLE_CREATURES, CreaturePart } from './creatureHarvestData';
+import { HARVESTABLE_CREATURES } from './creatureHarvestData';
 import { ALL_RECIPES, CraftingRecipe } from './alchemyRecipes';
 
 export interface IngredientEntry {
@@ -54,6 +54,14 @@ const SOURCE_ICONS: Record<string, string> = {
     purchased: '🪙'
 };
 
+/** C14: display names for CreaturePart.harvestTool (the old code always said "Harvesting Tools"). */
+const HARVEST_TOOL_LABELS: Record<string, string> = {
+    poisoners_kit: "Poisoner's Kit",
+    alchemists_kit: "Alchemist's Supplies",
+    knife: 'Knife',
+    none: 'None',
+};
+
 /**
  * Builds the complete ingredient glossary from all data sources.
  */
@@ -82,7 +90,9 @@ export function buildIngredientGlossary(): IngredientEntry[] {
     // Add creature parts
     for (const creature of HARVESTABLE_CREATURES) {
         for (const part of creature.parts) {
-            const partId = (part as Partial<CreaturePart> & { itemId?: string }).itemId ?? part.name;
+            // C14: CreaturePart carries `id` (the itemId recipes use, e.g. serpents_venom), not
+            // `itemId`, so the old lookup always fell back to the display name and no recipe matched.
+            const partId = part.id ?? part.name;
             const usedIn = findRecipesUsingIngredient(partId);
 
             glossary.push({
@@ -93,7 +103,7 @@ export function buildIngredientGlossary(): IngredientEntry[] {
                 rarity: getCreaturePartRarity(creature),
                 locations: creature.locations,
                 harvestDC: part.harvestDC,
-                toolRequired: (part as Partial<CreaturePart> & { toolRequired?: string }).toolRequired ?? 'Harvesting Tools',
+                toolRequired: HARVEST_TOOL_LABELS[part.harvestTool] ?? 'Harvesting Tools',
                 usedInRecipes: usedIn,
                 properties: part.properties || ['inert'],
                 icon: getIngredientIcon(partId, 'creature')

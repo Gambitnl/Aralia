@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 26/08/2026, 13:55:29
+ * Last Sync: 29/10/2026, 19:30:23
  * Dependents: components/World3D/World3DWrapper.tsx
- * Imports: 16 files
+ * Imports: 21 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -21,6 +21,7 @@ import type { GroundWorld } from '../../../systems/worldforge/bridge/groundChunk
 import { groundSurfaceYM } from '../terrain/groundSurfaceYM';
 import { scheduleClockFromGameTime } from '../../../systems/worldforge/roster/gameClock';
 import type { BattleMapBiome, BattleMapData } from '../../../types/combat';
+import type { Monster } from '../../../types';
 import {
   prepareActiveGroundSettlementEncounter,
   registerActiveGroundCombatProvider,
@@ -32,6 +33,7 @@ import { planBattlefieldFromExploration } from '../../../systems/combat/fightInP
 import { findStatePatrolWorldEvent } from '../../../systems/combat/worldScenario/statePatrolWorldEvent';
 import type { OpeningThreatSceneReceipt } from '../../../systems/combat/worldScenario/worldforgeEncounterReceipt';
 import { getGameDay } from '../../../utils/core';
+import { surfaceHostileSourceScope, SURFACE_HOSTILE_CONTACT_RADIUS_M } from '../../../systems/combat/worldScenario/surfaceHostileContinuity';
 
 /**
  * Hook for managing in-place combat transitions, battle referee handoffs, and hostile encounters.
@@ -149,6 +151,13 @@ export function useInPlaceCombatTransition({
   // deterministic event attempted during this mounted ground session so a
   // source gap or withheld provider result cannot spam the same request.
   const statePatrolAttemptedRef = useRef<Set<string>>(new Set());
+  // Report one profile failure per actual approach, rather than at movement frequency.
+  const surfaceSourceGapsRef = useRef<Set<string>>(new Set());
+  const exploringRef = useRef(true);
+  useEffect(() => {
+    exploringRef.current = true;
+    return () => { exploringRef.current = false; };
+  }, []);
 
   // ========================================================================
   // Live GroundWorld Combat Provider Registration
@@ -496,34 +505,73 @@ export function useInPlaceCombatTransition({
       if (ground && extractPatch) {
         for (const h of ground.hostiles) {
           const dist = Math.hypot(x - h.xM, z - h.zM);
-          if (dist < 4.0) {
+          const contactKey = [state.worldSeed ?? 42, state.playerCell?.cellId ?? tile.x, h.id].join(':');
+          if (dist >= SURFACE_HOSTILE_CONTACT_RADIUS_M) surfaceSourceGapsRef.current.delete(contactKey);
+          if (dist < SURFACE_HOSTILE_CONTACT_RADIUS_M && !surfaceSourceGapsRef.current.has(contactKey)) {
             combatTriggered.current = true;
 
-            // Persist fight position immediately so returning spawns at this exact spot
-            dispatch({
-              type: 'SET_PLAYER_GROUND_POS',
-              payload: {
-                position: {
-                  tileX: tile.x,
-                  tileY: tile.y,
-                  xM: x,
-                  zM: z,
-                },
-              },
-            });
-
             void (async () => {
+              // Catalog imports must not turn a past footfall into a forced fight.
+              const stillAtContact = () => exploringRef.current && groundRef.current === ground
+                && lastGroundXZ.current.x === x && lastGroundXZ.current.z === z;
               try {
+                const { resolveSurfaceHostileTemplate } = await import(
+                  '../../../systems/combat/worldScenario/surfaceHostileTemplate'
+                );
+                const profile = await resolveSurfaceHostileTemplate(h);
+                if (!stillAtContact()) { combatTriggered.current = false; return; }
+                if (profile.status !== 'ready') {
+                  surfaceSourceGapsRef.current.add(contactKey);
+                  combatTriggered.current = false;
+                  dispatch({type: 'ADD_NOTIFICATION', payload: {type: 'warning',
+                    message: 'Combat unavailable for ' + h.name + ': ' + profile.detail + ' No encounter has started.',
+                  }});
+                  return;
+                }
+                const monster = profile.monster;
+                const { prepareSurfaceHostileEncounter, selectSurfaceHostileParticipants } = await import('../../../systems/combat/worldScenario/surfaceHostileEncounter');
+                if (!stillAtContact()) { combatTriggered.current = false; return; }
+                const sourceScope = surfaceHostileSourceScope(state);
+                const participants = selectSurfaceHostileParticipants({hostile: h, hostiles: ground.hostiles,
+                  player: {xM: x, zM: z}, worldSeed: state.worldSeed ?? 42, cellId: state.playerCell?.cellId ?? tile.x,
+                  sourceScope, receipts: state.worldforgeEncounterReceipts ?? []});
+                if (participants.status !== 'ready') {
+                  surfaceSourceGapsRef.current.add(contactKey); combatTriggered.current = false;
+                  dispatch({type: 'ADD_NOTIFICATION', payload: {type: 'warning', message: participants.detail + ' No encounter has started.'}});
+                  return;
+                }
+                // Validate every participating source body before extracting or
+                // freezing anything. A broken pack member cannot be omitted.
+                const profiles: Array<{entityId: string; monster: Monster}> = [];
+                for (const member of participants.hostiles) {
+                  if (member.id === h.id) continue;
+                  const resolved = await resolveSurfaceHostileTemplate(member);
+                  if (!stillAtContact()) { combatTriggered.current = false; return; }
+                  if (resolved.status !== 'ready') {
+                    surfaceSourceGapsRef.current.add(contactKey); combatTriggered.current = false;
+                    dispatch({type: 'ADD_NOTIFICATION', payload: {type: 'warning',
+                      message: 'Combat unavailable for ' + member.name + ': ' + resolved.detail + ' No group member was omitted and no encounter has started.'}});
+                    return;
+                  }
+                  profiles.push({entityId: member.id, monster: resolved.monster});
+                }
                 const { handleStartBattleMapEncounter } = await import(
                   '../../../hooks/actions/handleEncounter'
                 );
-
-                const monster = {
-                  name: h.name,
-                  quantity: 1,
-                  cr: '1/4',
-                  description: 'Hostile creature from ground mode',
-                };
+                if (!stillAtContact()) { combatTriggered.current = false; return; }
+                const partyAnchors: Array<{characterId:string;xM:number;zM:number;yM?:number}> = [];
+                for (const [index, member] of (state.party ?? []).entries()) {
+                  if (index === 0) partyAnchors.push({characterId: member.id, xM: x, zM: z, yM: state.playerGroundPos?.yM});
+                  else {
+                    const companion = state.companions?.[member.id], where = companion?.whereabouts;
+                    if (!companion?.inParty || where?.worldSeed !== state.worldSeed || where.locationId !== state.currentLocationId || !where.position) {
+                      surfaceSourceGapsRef.current.add(contactKey); combatTriggered.current = false;
+                      dispatch({type: 'ADD_NOTIFICATION', payload: {type: 'warning', message: member.name + ' has no current source-ground position. No encounter has started.'}});
+                      return;
+                    }
+                    partyAnchors.push({characterId: member.id, ...where.position});
+                  }
+                }
 
                 // Full-freedom initiation (9C): walking into an enemy is THE
                 // unscripted combat entry, so it uses the same shared picker as
@@ -568,14 +616,31 @@ export function useInPlaceCombatTransition({
                   z,
                 );
 
-                await handleStartBattleMapEncounter(dispatch, {
-                  monsters: [monster],
-                  extractedBattleMap: extractedMap,
-                });
+                const prepared = prepareSurfaceHostileEncounter({hostile: h, profile: monster, hostiles: ground.hostiles, profiles, map: extractedMap,
+                  worldSeed, cellId: state.playerCell?.cellId ?? tile.x, sourceScope,
+                  gameTimeMs: state.gameTime.getTime(), party: partyAnchors, receipts: state.worldforgeEncounterReceipts ?? []});
+                if (prepared.status !== 'ready') {
+                  surfaceSourceGapsRef.current.add(contactKey); combatTriggered.current = false;
+                  dispatch({type: 'ADD_NOTIFICATION', payload: {type: 'warning', message: prepared.detail + ' No encounter has started.'}});
+                  return;
+                }
+                // Persist only a fully validated contact; the root outcome gate
+                // consumes this same receipt before clearing the tactical map.
+                dispatch({type: 'SET_PLAYER_GROUND_POS', payload: {position: {
+                  tileX: tile.x, tileY: tile.y, xM: x, zM: z,
+                  ...(state.playerGroundPos?.yM !== undefined ? {yM: state.playerGroundPos.yM} : {}),
+                }}});
+                dispatch({type: 'RECORD_WORLDFORGE_ENCOUNTER', payload: {receipt: prepared.receipt}});
+                await handleStartBattleMapEncounter(dispatch, prepared.payload);
               } catch (err) {
                 // eslint-disable-next-line no-console
                 console.error('[combat handoff] failed to enter battle:', err);
                 combatTriggered.current = false;
+                if (!stillAtContact()) return;
+                surfaceSourceGapsRef.current.add(contactKey);
+                dispatch({type: 'ADD_NOTIFICATION', payload: {type: 'error',
+                  message: 'Could not prepare combat for ' + h.name + '. No encounter has started.',
+                }});
               }
             })();
             break;
@@ -595,6 +660,9 @@ export function useInPlaceCombatTransition({
       state.playerFactionStandings,
       state.worldSeed,
       state.worldforgeEncounterReceipts,
+      state.party, state.companions, state.currentLocationId, state.playerGroundPos,
+      state.atlasGroundAddress, state.entry3DAnchor,
+      lastGroundXZ,
     ],
   );
 

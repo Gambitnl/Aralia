@@ -30,6 +30,22 @@
  * level y = 0.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 12/10/2026, 18:12:20
+ * Dependents: components/DesignPreview/steps/sidebyside/oceanExtras/buoys.ts, components/DesignPreview/steps/sidebyside/oceanExtras/mouth.ts, systems/world3d/ocean/oceanBeach.ts, systems/world3d/ocean/oceanBeachMath.ts, systems/world3d/ocean/oceanBeachWorker.ts, systems/world3d/ocean/oceanFoam.ts, systems/world3d/ocean/oceanMouth.ts, systems/world3d/ocean/oceanMouthMath.ts, systems/world3d/ocean/oceanSeabed.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { CascadeParams } from './oceanConfig';
 import { directionalSpectrum } from './oceanSpectrum';
 
@@ -530,6 +546,15 @@ export interface SeabedParams {
    * `LAGOON_SEABED`, so the caustics piece's floor is unchanged.
    */
   readonly island?: SeabedIsland;
+  /**
+   * RIVER MOUTH ROUND 10, THE TIDE: the still water's height over the mean sea level at the place's moment, m
+   * (negative at low water). The floor is shaped over the mean sea level (the berm, the valley, the bar); every
+   * depth this module returns is under the STILL WATER, so the one water (the FFT sea at y = 0, the near fields,
+   * the beach's swash, the floor's mesh) stands at the tide's level with no other change: a depth is the floor's
+   * depth under the mean sea level plus this level. Absent or 0: the mean sea level (every other piece's floor,
+   * node for node).
+   */
+  readonly stillLevelM?: number;
 }
 
 /**
@@ -799,6 +824,17 @@ export function seabedPointAt(p: SeabedParams, x: number, z: number): SeabedPoin
   // THE CAY rises out of the floor: the higher of the two, joined over
   // 0.3 m of height, so its terrace runs down into the lagoon flat.
   if (isl) depth = -smax(-depth, islandHeightAt(isl, x, z), 0.3);
+  // RIVER MOUTH ROUND 14 (ruling 2): the spit's seaward terrace raises the coast's floor (before the valley's cut, so
+  // the outlet's channel and its bar stand on it as before). Without one this line does not run.
+  const ter = isl?.valley?.course?.terrace;
+  if (ter) depth = courseTerraceDepthAt(ter, x, z, islandFrameAt(isl!, x, z).s, depth);
+  // THE RIVER VALLEY (river mouth round 1): the ground is the lower of the
+  // cay and the valley's cut, and the ebb bar raises the floor off the mouth.
+  // Without a valley neither line runs.
+  if (isl?.valley) {
+    depth = Math.max(depth, -valleyCutAt(isl.valley, x, z));
+    depth = Math.min(depth, valleyBarDepthAt(isl.valley, x, z, depth));
+  }
 
   // Seagrass in the middle depths of the flat, in ragged patches.
   const gs = 1 / p.grassScaleM;
@@ -816,7 +852,8 @@ export function seabedPointAt(p: SeabedParams, x: number, z: number): SeabedPoin
   const rock = Math.max(head, wallRock * (0.5 + 0.5 * smooth(-0.2, 0.3, fbm2(x / 6, z / 6, seed + 61, 3))));
 
   const warp = fbm2(x / p.rippleWarpScaleM, z / p.rippleWarpScaleM, seed + 71, 2) * p.rippleWarpPeriods;
-  return { depthM: depth, grass, rock, warp };
+  // ROUND 10 (river mouth, the tide): the depth under the still water (`SeabedParams.stillLevelM`).
+  return { depthM: p.stillLevelM ? depth + p.stillLevelM : depth, grass, rock, warp };
 }
 
 /* ------------------------------------------------------------------ */
@@ -866,6 +903,29 @@ export interface SeabedIsland {
   readonly cuspHeightM: number;
   readonly cuspCenterM: number;
   readonly cuspWidthM: number;
+  /**
+   * The sand's median grain size, m (beach round 20). OPTIONAL and read by the
+   * swash alone (`oceanBeachMath.ts`, deriveMatchSwash: the sand's
+   * conductivity by Kozeny-Carman and the bed's roughness by Strickler); no
+   * floor or map reads it, so it changes no pixel. Absent, the swash takes a
+   * medium quartz sand (MEDIUM_SAND_D50_M, 0.35 mm).
+   */
+  readonly grainD50M?: number;
+  /**
+   * River mouth round 1: a river valley cut through the cay and its ebb bar
+   * (`SeabedValley`). OPTIONAL: absent, the cay is the beach's, bit for bit.
+   */
+  readonly valley?: SeabedValley;
+  /**
+   * River mouth round 1: AN OPEN COAST'S NEARSHORE in place of the cay's 1:7
+   * terrace under the toe. Below the toe the bed follows Dean's (1977)
+   * equilibrium profile, depth = A x^(2/3) over the distance x offshore,
+   * shifted to meet the toe, until it meets the base floor. Set the island's
+   * `terraceSlope` to the profile's slope at the toe so the two join with no
+   * kink. OPTIONAL: absent, the terrace is the cay's, bit for bit.
+   * `oceanMouthMath.ts` (`deriveSurfCoast`) derives A.
+   */
+  readonly offshore?: { readonly deanA: number };
 }
 
 /**
@@ -928,7 +988,264 @@ export const LAGOON_CAY: SeabedIsland = {
   cuspHeightM: 0.05,
   cuspCenterM: 4.5,
   cuspWidthM: 3.5,
+  // A medium quartz sand, 0.35 mm: the grain Bascom (1951) found under 1:7 to
+  // 1:15 faces (0.3 to 0.5 mm), so the face's 1:11 and the swash's grain agree.
+  grainD50M: 0.35e-3,
 };
+
+/**
+ * A RIVER VALLEY CUT THROUGH THE CAY, with the ebb bar off its mouth (river
+ * mouth round 1, ADR 0006). OPTIONAL on `SeabedIsland`: `LAGOON_CAY` has
+ * none, so the beach's floor and every judged frame are unchanged. The mouth
+ * piece (`oceanMouthMath.ts`, `deriveMouthDesign`) derives every number
+ * here from the river's discharge and the sea's waves; this file only cuts
+ * the shape. Lengths in meters, heights up from the mean sea level.
+ *
+ * THE SHAPE. A straight axis from the mouth (the still-water shoreline on
+ * the axis) inland. Along it the thalweg is `-depthM` at the mouth and rises
+ * at `slope`; at `headM` inland the valley ends in a head wall at the bank
+ * slope. Across it the channel is `|n / half|^shapeP` deep from the thalweg
+ * to the channel top (half = widthM / 2), and past the channel's edge the
+ * banks rise at `bankSlope` until they meet the cay's own ground. The ground
+ * is the lower of the cay and the cut.
+ */
+export interface SeabedValley {
+  /** The mouth: the still-water shoreline point on the axis, world XZ. */
+  readonly mouthX: number;
+  readonly mouthZ: number;
+  /** The unit direction inland along the axis. */
+  readonly inX: number;
+  readonly inZ: number;
+  readonly widthM: number;
+  readonly depthM: number;
+  readonly shapeP: number;
+  readonly slope: number;
+  readonly headM: number;
+  readonly bankSlope: number;
+  /**
+   * How far seaward of the mouth the cut reaches, m: past it the floor is the
+   * sea's own (the deriver puts it at the foreshore's toe, where the face
+   * already stands deeper than the channel, so the end draws no step).
+   */
+  readonly seaEndM: number;
+  /**
+   * The ebb bar: a disc of the sea floor raised to `depthM` out to `innerM`
+   * from its center and back to the floor by `outerM` (smoothstep), the
+   * shelf law of `oceanBathymetry.ts` (`oceanShelfDepthCpu`), so the sea's
+   * bathymetry and this floor hold one shape. Absent: no bar.
+   */
+  readonly bar?: {
+    readonly xM: number; readonly zM: number; readonly innerM: number; readonly outerM: number; readonly depthM: number;
+    /**
+     * River mouth round 6: THE MIDDLE-GROUND BAR'S PLANFORM. With `laterM`
+     * the bar is not a disc: its inner and outer radii hold along the axis
+     * (`inX`, `inZ`; the lobe's own length), and across it the crest's height
+     * falls as a Gaussian of `laterM` (the jet's deposit across its width), so
+     * the crest shoals toward the axis and the two channels round it fall to
+     * the floor's depth. Absent: round 5's disc.
+     */
+    readonly laterM?: number;
+  };
+  /**
+   * River mouth round 13 (GG-413): THE DEFLECTED COURSE. OPTIONAL: absent, the axis is the straight one above, bit for
+   * bit. Present, the channel's centerline is this polyline (the mouth piece derives it by the longshore drift law,
+   * `deriveMouthDesign`): the cross-section is the same |n / half|^shapeP channel and banks, set about the nearest
+   * point of the course, and the thalweg is the course's own height there. The spit (`SeabedCourse.spit`) caps the
+   * ground on the course's spit side at its platform's crest.
+   */
+  readonly course?: SeabedCourse;
+}
+
+/**
+ * River mouth round 13 (GG-413): A VALLEY'S COURSE, a polyline in world XZ from its sea end inland. `along` is the
+ * distance along it at each point (0 at the mouth's shoreline point, negative seaward), `thal` the thalweg's height
+ * over the mean sea level there. Past the last point the course ends in a head wall at the bank slope. `box` bounds
+ * every point the cut can touch (world x0, z0, x1, z1): outside it the cut is not there.
+ */
+export interface SeabedCourse {
+  readonly xz: Float64Array;
+  readonly along: Float64Array;
+  readonly thal: Float64Array;
+  readonly box: readonly [number, number, number, number];
+  /**
+   * THE SPIT (a barrier built by the longshore drift that deflects the river): on the side of the course where the
+   * cross product of the course's direction and the offset to the point has the sign `side`, between `fromM` and
+   * `toM` along the course, the ground is at most `capM` over the mean sea level (the platform's crest); past `toM`
+   * the cap rises out over `fadeM` (the spit's root joins the coast's berm). Null: no spit.
+   */
+  readonly spit: {
+    readonly capM: number; readonly side: 1 | -1; readonly fromM: number; readonly toM: number; readonly fadeM: number;
+    /**
+     * River mouth round 14 (ruling 1): THE WASHOVER'S SURFACE. OPTIONAL: absent, the cap is flat at `capM` (round 13).
+     * Present, the cap is `capM` at the platform's seaward edge (across = `seaAcrossM` from the course) and falls
+     * linearly to the river's mean-flow level at its landward edge (across = `innerAcrossM`): `baseM + slope * along`
+     * (along held to 0 .. `toM`), m over the mean sea level.
+     */
+    readonly washover?: { readonly seaAcrossM: number; readonly innerAcrossM: number; readonly baseM: number; readonly slope: number };
+  } | null;
+  /**
+   * River mouth round 14 (ruling 2): THE SPIT'S SEAWARD TERRACE. OPTIONAL: absent, the coast's floor seaward of the spit
+   * is its own (round 13). Present, seaward of the island's still-water shoreline (the island frame's s under 0) the
+   * floor stands at most `depthM` under the mean sea level out to `widthM` offshore, and past it falls back at
+   * `frontSlope` to the coast's own floor; along the shore (the beach frame's a: `frame`) it is whole between `a0` and
+   * `a1` and fades in over `fadeM` outside them (smoothstep).
+   */
+  readonly terrace?: {
+    readonly depthM: number; readonly widthM: number; readonly frontSlope: number;
+    readonly frame: { readonly originX: number; readonly originZ: number; readonly aX: number; readonly aZ: number };
+    readonly a0: number; readonly a1: number; readonly fadeM: number;
+  };
+  /**
+   * River mouth round 15 (ruling 2): THE LOW-FLOW CHANNEL. OPTIONAL: absent, the channel's bed is the mean flow's
+   * section (rounds 13 and 14). Present, inside the mean-flow width the bed stands FILLED to the day's water level
+   * eta_d(along) = `baseM` + `slope` * along (along 0 .. `toM`; seaward of the shoreline point the outlet's throat keeps
+   * the mean cut and the bar's flank channels, the day's way out), and the
+   * day's flow runs in a channel `widthM` wide and `depthM` deep cut into that fill about the course's centerline
+   * (the same |n / half|^shapeP section): the thalweg is eta_d - depthM. Where the mean section's banks stand over
+   * the fill (near the mean width's edges) they rule, so the cut is the higher of the two.
+   */
+  readonly lowFlow?: { readonly widthM: number; readonly depthM: number; readonly baseM: number; readonly slope: number; readonly toM: number };
+}
+
+/**
+ * The nearest point of a course to a world point: the distance along the course there (past its last point, the
+ * distance on along the last segment; before its first, back along the first), the distance across, the cross
+ * product's sign of the segment's direction and the offset (+1 or -1), and the thalweg there.
+ */
+export function courseNearest(c: SeabedCourse, x: number, z: number): { along: number; across: number; side: number; thal: number } {
+  const p = c.xz;
+  const n = c.along.length;
+  let best = Infinity;
+  let bAlong = 0;
+  let bSide = 1;
+  let bThal = 0;
+  for (let k = 0; k + 1 < n; k += 1) {
+    const x0 = p[2 * k];
+    const z0 = p[2 * k + 1];
+    const dx = p[2 * k + 2] - x0;
+    const dz = p[2 * k + 3] - z0;
+    const len2 = dx * dx + dz * dz;
+    if (len2 <= 0) continue;
+    let t = ((x - x0) * dx + (z - z0) * dz) / len2;
+    // The two ends run on: before the first point and past the last, the segment's line.
+    if (k > 0 && t < 0) t = 0;
+    if (k + 2 < n && t > 1) t = 1;
+    const qx = x0 + t * dx;
+    const qz = z0 + t * dz;
+    const d2 = (x - qx) * (x - qx) + (z - qz) * (z - qz);
+    if (d2 < best) {
+      best = d2;
+      const len = Math.sqrt(len2);
+      bAlong = c.along[k] + t * len;
+      const tt = Math.min(Math.max(t, 0), 1);
+      bThal = c.thal[k] + tt * (c.thal[k + 1] - c.thal[k]);
+      bSide = dx * (z - qz) - dz * (x - qx) >= 0 ? 1 : -1;
+    }
+  }
+  return { along: bAlong, across: Math.sqrt(best), side: bSide, thal: bThal };
+}
+
+/** The valley cut's ground height at a world point, m (Infinity outside the cut's reach). */
+export function valleyCutAt(v: SeabedValley, x: number, z: number): number {
+  if (v.course) return courseCutAt(v, v.course, x, z);
+  const dx = x - v.mouthX;
+  const dz = z - v.mouthZ;
+  const along = dx * v.inX + dz * v.inZ;
+  if (along < -v.seaEndM) return Infinity;
+  const across = Math.abs(-dx * v.inZ + dz * v.inX);
+  const half = v.widthM / 2;
+  // The thalweg: the river's slope from the mouth, then the head wall.
+  const thal = along <= v.headM
+    ? -v.depthM + v.slope * along
+    : -v.depthM + v.slope * v.headM + (along - v.headM) * v.bankSlope;
+  if (across <= half) return thal + v.depthM * (across / half) ** v.shapeP;
+  return thal + v.depthM + (across - half) * v.bankSlope;
+}
+
+/**
+ * River mouth round 13: the cut of a DEFLECTED course (`SeabedValley.course`), the straight cut's cross-section about
+ * the course's nearest point, the thalweg the course's own, a head wall past its last point, and the spit's cap.
+ */
+function courseCutAt(v: SeabedValley, c: SeabedCourse, x: number, z: number): number {
+  const b = c.box;
+  if (x < b[0] || x > b[2] || z < b[1] || z > b[3]) return Infinity;
+  const q = courseNearest(c, x, z);
+  if (q.along < -v.seaEndM) return Infinity;
+  const end = c.along[c.along.length - 1];
+  // Past the course's last point: the head wall at the bank slope.
+  const thal = q.along <= end ? q.thal : c.thal[c.thal.length - 1] + (q.along - end) * v.bankSlope;
+  const half = v.widthM / 2;
+  let g = q.across <= half
+    ? thal + v.depthM * (q.across / half) ** v.shapeP
+    : thal + v.depthM + (q.across - half) * v.bankSlope;
+  // Round 15 (ruling 2): the low-flow channel in the filled mean bed (see `SeabedCourse.lowFlow`).
+  // The fill runs from the shoreline point up the reach; the outlet's throat (along under 0) keeps the mean cut and
+  // the bar's flank channels, where the day's flow runs out at Escoffier's speed (round 14's measure).
+  const lf = c.lowFlow;
+  if (lf && q.across <= half && q.along >= 0) {
+    const eta = lf.baseM + lf.slope * Math.min(q.along, lf.toM);
+    const hd = lf.widthM / 2;
+    const gLf = q.across <= hd ? eta - lf.depthM * (1 - (q.across / hd) ** v.shapeP) : eta;
+    if (gLf > g) g = gLf;
+  }
+  const s = c.spit;
+  if (s && q.side === s.side && q.along >= s.fromM && q.across > half) {
+    // The platform's crest; past the root the cap rises out (10 m over the fade: no coast stands that high).
+    let top = s.capM;
+    const wo = s.washover;
+    if (wo) {
+      // Round 14: the washover's surface falls from the crest to the river's mean-flow level at the landward edge.
+      const t = Math.min(Math.max((wo.seaAcrossM - q.across) / Math.max(wo.seaAcrossM - wo.innerAcrossM, 1e-3), 0), 1);
+      const inner = wo.baseM + wo.slope * Math.min(Math.max(q.along, 0), s.toM);
+      top = s.capM - (s.capM - Math.min(inner, s.capM)) * t;
+    }
+    const cap = top + Math.max(q.along - s.toM, 0) * (10 / Math.max(s.fadeM, 1e-3));
+    if (cap < g) g = cap;
+  }
+  return g;
+}
+
+/**
+ * River mouth round 14 (ruling 2): the spit's seaward terrace (`SeabedCourse.terrace`) on a floor depth under the mean
+ * sea level at a world point, m: the shallower of the floor and the terrace, faded along the shore. `sM` is the island
+ * frame's s there (negative in the water).
+ */
+export function courseTerraceDepthAt(t: NonNullable<SeabedCourse['terrace']>, x: number, z: number, sM: number, depthM: number): number {
+  if (sM >= 0) return depthM;
+  const a = (x - t.frame.originX) * t.frame.aX + (z - t.frame.originZ) * t.frame.aZ;
+  const lo = Math.min(t.a0, t.a1);
+  const hi = Math.max(t.a0, t.a1);
+  const out = a < lo ? lo - a : a > hi ? a - hi : 0;
+  if (out >= t.fadeM) return depthM;
+  const u = 1 - out / Math.max(t.fadeM, 1e-3);
+  const w = u * u * (3 - 2 * u);
+  const off = -sM;
+  const top = off <= t.widthM ? t.depthM : t.depthM + (off - t.widthM) * t.frontSlope;
+  if (top >= depthM) return depthM;
+  return depthM + (top - depthM) * w;
+}
+
+/** The bar's depth at a world point, m, or Infinity off the bar (the shelf law, see `SeabedValley.bar`). */
+export function valleyBarDepthAt(v: SeabedValley, x: number, z: number, floorDepthM: number): number {
+  const b = v.bar;
+  if (!b) return Infinity;
+  if (b.laterM !== undefined) {
+    // Round 6: along the axis the lobe's radii, across it the deposit's Gaussian (see `SeabedValley.bar`).
+    const dx = x - b.xM;
+    const dz = z - b.zM;
+    const along = Math.abs(dx * v.inX + dz * v.inZ);
+    const across = -dx * v.inZ + dz * v.inX;
+    if (along >= b.outerM || Math.abs(across) >= 4 * b.laterM) return Infinity;
+    const tA = Math.min(Math.max((along - b.innerM) / Math.max(b.outerM - b.innerM, 1e-3), 0), 1);
+    const lift = (1 - tA * tA * (3 - 2 * tA)) * Math.exp(-(across * across) / (2 * b.laterM * b.laterM));
+    return floorDepthM - (floorDepthM - b.depthM) * lift;
+  }
+  const r = Math.hypot(x - b.xM, z - b.zM);
+  if (r >= b.outerM) return Infinity;
+  const t = Math.min(Math.max((r - b.innerM) / Math.max(b.outerM - b.innerM, 1e-3), 0), 1);
+  const k = t * t * (3 - 2 * t);
+  return b.depthM + (floorDepthM - b.depthM) * k;
+}
 
 /** The island's local frame at a world point: distance landward of the shoreline, and the angle round it. */
 export interface IslandFrame {
@@ -987,7 +1304,14 @@ export function islandHeightAt(isl: SeabedIsland, x: number, z: number): number 
   // gentler terrace is the higher of the two lines seaward of the toe, a
   // steeper step the lower one.
   const face = isl.faceSlope * s;
-  const terrace = -isl.faceToeM + isl.terraceSlope * (s - sToe);
+  let terrace = -isl.faceToeM + isl.terraceSlope * (s - sToe);
+  const off = isl.offshore;
+  if (off && s < sToe) {
+    // Dean's profile from the toe (x offshore of the shoreline).
+    const x = -s;
+    const xToe = -sToe;
+    terrace = -(isl.faceToeM + off.deanA * (x ** (2 / 3) - xToe ** (2 / 3)));
+  }
   let hgt = isl.terraceSlope > isl.faceSlope ? -smax(-face, -terrace, 0.12) : smax(face, terrace, 0.12);
   // The berm and the backshore: the face turns over the crest into a 1:40
   // rise, capped at the top.

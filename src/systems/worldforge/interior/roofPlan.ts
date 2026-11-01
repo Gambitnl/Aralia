@@ -245,6 +245,18 @@ function gablePrism(
  * each end → 2 trapezoids (long sides) + 2 triangles (short ends). Same slope
  * as a gable so it lines up with wings. Eaves on all four sides.
  */
+/** A flat roof deck over a mass, at the wall top (z 0), wound like the other planes. */
+function flatDeck(rect: RectFt): RoofPlane {
+  return {
+    pts: [
+      [rect.x, rect.y, 0],
+      [rect.x + rect.w, rect.y, 0],
+      [rect.x + rect.w, rect.y + rect.h, 0],
+      [rect.x, rect.y + rect.h, 0],
+    ],
+  };
+}
+
 function hipPrism(
   rect: RectFt,
   slope: number,
@@ -639,7 +651,12 @@ export function solveRoof(input: SolveRoofInput): RoofPlan {
 
   // ── Step 1: main mass roof ─────────────────────────────────────────────────
   if (roofForm === 'flat') {
-    // No sloped planes; one ridge record marks the parapet line at z 0.
+    // No sloped planes; one ridge record marks the parapet line at z 0. The
+    // roof itself is a flat DECK at the wall top (agora-257c, 2026-10-28): with
+    // no plane at all, a keep drew its battlements around an open box and the
+    // player looked down into its empty shell.
+    planes.push(flatDeck(mainRect));
+    owners.push(0);
     const along = mainRect.w >= mainRect.h;
     ridges.push(
       along
@@ -672,7 +689,10 @@ export function solveRoof(input: SolveRoofInput): RoofPlan {
       ridges.push(ridge);
       valleys.push(...wingValleys(wRect, mainRect));
     } else {
-      // Flat main → flat wing: just a parapet ridge record.
+      // Flat main → flat wing: its own deck and a parapet ridge record.
+      planes.push(flatDeck(wRect));
+      owners.push(wingOwner);
+      wingOwner += 1;
       const along = wRect.w >= wRect.h;
       ridges.push(
         along

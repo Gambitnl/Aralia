@@ -1,9 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { characterReducer } from '../characterReducer';
+import { characterReducer, instantiateItem } from '../characterReducer';
 import { GameState } from '../../../types';
 import { AppAction } from '../../actionTypes';
 import { createMockGameState } from '../../../utils/core';
 import { daysOfFood, daysOfWater } from '../../../systems/travel/provisioning';
+import { CURRENCY_COPPER_VALUES } from '../../../utils/character/coinPurseUtils';
+import { getPartyFundsGp } from '../../../systems/economy/partyFunds';
+import { ALL_ITEMS } from '../../../data/items';
 
 /**
  * Integration: the provisioning math (daysOfFood/daysOfWater) reads rations and
@@ -14,6 +17,21 @@ import { daysOfFood, daysOfWater } from '../../../systems/travel/provisioning';
 const baseState: GameState = { ...createMockGameState(), inventory: [], gold: 0 };
 
 describe('provision items round-trip through the reducer', () => {
+  it.each(Object.entries(CURRENCY_COPPER_VALUES))('ADD_ITEM keeps %s recognizable at its face value', (itemId, copper) => {
+    const after = characterReducer(baseState, {type: 'ADD_ITEM', payload: {itemId, count: 3}});
+    expect(after.inventory).toHaveLength(3);
+    expect(after.inventory!.every(item => item.id === itemId && item.acquiredAt != null)).toBe(true);
+    expect(getPartyFundsGp({...baseState, inventory: after.inventory!})).toBe(copper * 3 / 100);
+  });
+
+  it('keeps a source coin stack while ordinary gear still receives independent identity', () => {
+    const earned = {...ALL_ITEMS.shiny_coin, quantity: 6, acquiredAt: 42, sourceId: 'landmark-cache', containerId: 'pouch'};
+    expect(instantiateItem(earned, 99)).toEqual(earned);
+    const gear = instantiateItem(ALL_ITEMS.healing_potion, 99);
+    expect(gear.id).not.toBe(ALL_ITEMS.healing_potion.id);
+    expect(gear.acquiredAt).toBe(99);
+  });
+
   it('ADD_ITEM keeps the canonical "rations" id so daysOfFood can count them', () => {
     const add: AppAction = { type: 'ADD_ITEM', payload: { itemId: 'rations', count: 5 } };
     const next = characterReducer(baseState, add);

@@ -20,6 +20,7 @@ import React from 'react';
 import { PlayerCharacter, RacialRestChoiceData } from '../../types';
 interface LongRestModalProps {
     isOpen: boolean;
+    restWarning?: string | null;
     party: PlayerCharacter[];
     onClose: () => void;
     onConfirm: (choices: Record<string, Record<string, RacialRestChoiceData>>) => void;

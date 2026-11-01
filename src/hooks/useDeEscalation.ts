@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 16/07/2026, 03:21:08
- * Dependents: components/ConversationPanel/ConversationPanel.tsx
- * Imports: 1 file
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file src/hooks/useDeEscalation.ts
  * Binds the visible dice tray to a single skill check.
@@ -26,8 +10,25 @@
  * `systems/intent/startThreatCombat`. What remains here is the part that must
  * touch React: rolling real dice on the visible tray.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 24/10/2026, 20:48:19
+ * Dependents: components/ConversationPanel/ConversationPanel.tsx
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { useCallback } from 'react';
-import { useDice } from '../contexts/DiceContext';
+import { useDice } from '../context/DiceContext';
 import type { CheckDiceRequest, CheckDiceResult } from '../systems/intent/runIntentFlow';
 
 export type { CheckDiceRequest, CheckDiceResult };

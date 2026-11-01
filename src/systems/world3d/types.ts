@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
- *
- * Last Sync: 07/09/2026, 23:24:41
- * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/GroundAgents.tsx, components/World3D/InteriorLights.tsx, components/World3D/InteriorOccupants.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DNameplates.tsx, components/World3D/World3DScene.tsx, components/World3D/buildingExteriorGeometry.ts, components/World3D/createGroundWorkerChunkLoader.ts, components/World3D/createWorkerChunkLoader.ts, components/World3D/createWorldGenClient.ts, components/World3D/useChunkStreaming.ts, components/World3D/vegetation/GrassLayer.tsx, components/World3D/vegetationInstanceMatrices.ts, systems/world3d/buildingModels.ts, systems/world3d/chunkBundle.ts, systems/world3d/chunkGeometry.ts, systems/world3d/chunkManager.ts, systems/world3d/chunkSampler.ts, systems/world3d/chunkStreamer.ts, systems/world3d/chunkWorkerCore.ts, systems/world3d/config.ts, systems/world3d/coords.ts, systems/world3d/deckGeometry.ts, systems/world3d/gateGeometry.ts, systems/world3d/lod.ts, systems/world3d/polylineClip.ts, systems/world3d/roadGeometry.ts, systems/world3d/siteBoxBatches.ts, systems/world3d/siteGeometry.ts, systems/world3d/vegetationScatter.ts, systems/world3d/wallGeometry.ts, systems/world3d/waterGeometry.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundChunkWorkerCore.ts, systems/worldforge/vegetation/treeBatching.ts
- * Imports: 3 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file types.ts
  * @description Shared types for the 3D world streaming system.
@@ -25,10 +9,26 @@
  * - ChunkLoader provides an abstract producer interface so streaming can run in-worker or in-process (tests).
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 01/11/2026, 16:20:35
+ * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/GroundAgents.tsx, components/World3D/InteriorLights.tsx, components/World3D/InteriorOccupants.tsx, components/World3D/NearbyBuildingDoor.tsx, components/World3D/NearbyFurnishing.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DNameplates.tsx, components/World3D/World3DScene.tsx, components/World3D/buildingExteriorGeometry.ts, components/World3D/createGroundWorkerChunkLoader.ts, components/World3D/createWorkerChunkLoader.ts, components/World3D/createWorldGenClient.ts, components/World3D/groundBuildingMotion.ts, components/World3D/libraryReadingAccess.ts, components/World3D/residentDoorUse.ts, components/World3D/useChunkStreaming.ts, components/World3D/useFootingMeshes.ts, components/World3D/vegetation/GrassLayer.tsx, components/World3D/vegetationInstanceMatrices.ts, systems/world3d/buildingModels.ts, systems/world3d/chunkBundle.ts, systems/world3d/chunkGeometry.ts, systems/world3d/chunkManager.ts, systems/world3d/chunkSampler.ts, systems/world3d/chunkStreamer.ts, systems/world3d/chunkWorkerCore.ts, systems/world3d/config.ts, systems/world3d/coords.ts, systems/world3d/deckGeometry.ts, systems/world3d/footingMeshJob.ts, systems/world3d/gateGeometry.ts, systems/world3d/groundEditRoadCut.ts, systems/world3d/lod.ts, systems/world3d/polylineClip.ts, systems/world3d/roadGeometry.ts, systems/world3d/siteBoxBatches.ts, systems/world3d/siteGeometry.ts, systems/world3d/terrainFootingDetail.ts, systems/world3d/vegetationScatter.ts, systems/world3d/wallGeometry.ts, systems/world3d/waterGeometry.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundChunkMesh.ts, systems/worldforge/bridge/groundChunkWorkerCore.ts, systems/worldforge/vegetation/treeBatching.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 // Living-interiors live clock: the baked occupant render packet references the
 // occupancy resolver's plan-feet station point and the interior body shape.
 // Type-only imports — erased at compile, so they add no runtime dependency.
-import type { StationFeetPoint } from "../worldforge/bridge/buildingOccupancy";
+import type { StationFeetPoint, ResidentPrivateDoorAccess } from "../worldforge/bridge/buildingOccupancy";
 import type { WallMaterial, RoofCovering } from '../worldforge/interior/blueprintTypes';
 import type { OccupantBody } from "../worldforge/bridge/interiorParts";
 
@@ -65,13 +65,16 @@ export interface BuildingOccupantRender {
   body: OccupantBody;
   /** stationsByHour[h] = the member's station at hour h (plan feet), or null when OUT. */
   stationsByHour: (StationFeetPoint | null)[];
+  /** Source-backed resident claim; never a player or visitor permission. */
+  privateDoorAccess?:ResidentPrivateDoorAccess;
   /**
-   * Canonical roster ownership for each hour. A household station can describe
-   * an authored work/chores pose even while the town simulation owns that
-   * person outside, so joined residents must prefer this street-schedule flag
-   * over station nullability. Older packets fall back to stationsByHour.
+   * Whether this building has a real destination for the resident this hour.
+   * The separate arrival delay keeps the street body until its route arrives.
+   * Older packets retain station-nullability ownership.
    */
   interiorOwnedByHour?: boolean[];
+  /** Keep the street body until its measured door-to-door commute arrives. */
+  interiorArrivalDelayByHour?: number[];
 }
 
 /** Integer chunk coordinate on the chunk grid. */
@@ -102,6 +105,12 @@ export interface ChunkData {
   rivers: ClippedPolyline[];
   /** Road polylines clipped to this chunk (grid space). */
   roads: ClippedPolyline[];
+  /**
+   * Market-square polygons clipped to this chunk (grid space). buildRoadMesh
+   * paves each in flagstones (2026-10-28). Moved here from the separate
+   * `ChunkPlazas` type in roadGeometry.ts on 2026-11-01 (GG-532).
+   */
+  plazas?: { points: { x: number; y: number }[] }[];
   /** Town wall rings clipped to this chunk (grid space), rendered as extruded barriers. */
   walls?: ClippedPolyline[];
   /**
@@ -113,6 +122,10 @@ export interface ChunkData {
    */
   decks?: {
     points: { x: number; y: number }[];
+    /** Original bridge corners in grid space. Shape and dressing use this span
+     * before triangle clipping, so a chunk edge cannot rotate or restart an arch.
+     * Optional for legacy packets and non-bridge decks; never a saved position. */
+    sourcePoints?: { x: number; y: number }[];
     topY: number;
     kind: "dock" | "bridge" | "ford" | "fordStone";
     /**
@@ -145,6 +158,22 @@ export interface ChunkData {
      * per-vertex height array that clipping would invalidate.
      */
     centerline?: { x: number; y: number; surfaceY: number }[];
+    /**
+     * Optional bed height under each point, world meters, read from the full
+     * ground grid. The chunk's own heights are coarser (a point every 4 m), so
+     * a lake laid in 1.5 m cells needs these for its depth shading.
+     */
+    bedY?: number[];
+    /**
+     * Optional points INSIDE the outline (grid space), with `interiorBedY` the
+     * fine bed under each (2026-10-30). A large body (a town river channel)
+     * filled from its outline alone has every vertex on the shore, where the
+     * depth is about zero, so the whole sheet took the shore's pale, see-through
+     * look. With these the sheet is filled with a mesh that samples the bed
+     * inside the body too (waterGeometry `emitFilledBody`).
+     */
+    interior?: { x: number; y: number }[];
+    interiorBedY?: number[];
   }[];
   /** Town road-gate gatehouse placements in this chunk (grid space), meshed by gateGeometry. */
   gatehouses?: Array<{
@@ -152,7 +181,7 @@ export interface ChunkData {
     y: number;
     angleRad: number;
     gapHalfM: number;
-    form: "twinTowers" | "tunnelBlock" | "singleTower";
+    form: "twinTowers" | "tunnelBlock" | "singleTower" | "waterGate";
     colorHex: string;
   }>;
   /** Sites whose center falls within this chunk (grid space). */
@@ -221,6 +250,11 @@ export interface ChunkData {
       baseY?: number;
       emissiveHex?: string;
       tag?: string;
+      furnishing?: import('../worldforge/bridge/interiorParts').SitePart['furnishing'];
+      door?: import('../worldforge/bridge/interiorParts').SitePart['door'];
+      walkSurface?: import('../worldforge/bridge/interiorParts').SitePart['walkSurface'];
+      stairSolid?: boolean;
+      beam?: import('../worldforge/bridge/interiorParts').SitePart['beam'];
       wallMaterial?: WallMaterial;
       lightRole?: "window" | "hearth";
       /** Present in collision data but intentionally omitted from rendering. */
@@ -329,6 +363,12 @@ export interface ClippedPolyline {
    * wallTint (styled-architecture slice) so wallGeometry can vertex-color them.
    */
   colorHex?: string;
+  /**
+   * Optional distance of each point from the START of the whole source line,
+   * meters. Road surfaces lay their stones and ruts along it, so the pattern
+   * runs on across chunk seams instead of restarting at each one.
+   */
+  alongM?: number[];
 }
 
 /** A site contained in a chunk, with chunk-local placement for geometry. */
@@ -385,6 +425,11 @@ export interface ChunkSite {
     baseY?: number;
     emissiveHex?: string;
     tag?: string;
+    furnishing?: import('../worldforge/bridge/interiorParts').SitePart['furnishing'];
+    door?: import('../worldforge/bridge/interiorParts').SitePart['door'];
+    walkSurface?: import('../worldforge/bridge/interiorParts').SitePart['walkSurface'];
+    stairSolid?: boolean;
+    beam?: import('../worldforge/bridge/interiorParts').SitePart['beam'];
     wallMaterial?: WallMaterial;
     lightRole?: "window" | "hearth";
     /** Present in collision data but intentionally omitted from rendering. */
@@ -482,6 +527,12 @@ export interface ChunkMeshBundle {
    */
   roads?: ChunkGeometryArrays & { colors?: Float32Array };
   /**
+   * Road verges (roadGeometry.buildRoadVergeMesh, 2026-10-28): a strip each
+   * side of every road that fades into the ground. Carries the same `road`
+   * road-space attribute as `roads`; drawn by the WebGPU road material only.
+   */
+  roadVerges?: ChunkGeometryArrays & { colors?: Float32Array };
+  /**
    * Extruded town wall-ring barriers (Worldforge Option B). Carries optional
    * per-vertex `colors` (styled-architecture slice) so each town's ramparts
    * take their style family's wall tint under one vertex-colored material.
@@ -497,7 +548,12 @@ export interface ChunkMeshBundle {
    * per-vertex `colors` (TG5) so docks and bridges read distinctly under one
    * vertex-colored material.
    */
-  decks?: ChunkGeometryArrays & { colors?: Float32Array };
+  decks?: ChunkGeometryArrays & {
+    colors?: Float32Array;
+    /** Triangle vertex indices for authored slab tops. Physical clearance uses
+     * their 0.45 m underside; optional for older worker mesh packets. */
+    slabTopIndices?: Uint32Array;
+  };
   sites: ChunkSite[];
   vegetation?: VegetationScatter;
   /** Second vegetation layer (ground mode): bushes, rendered as their own

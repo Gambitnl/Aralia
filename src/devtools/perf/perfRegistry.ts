@@ -16,9 +16,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 29/09/2026, 00:50:48
- * Dependents: components/World3D/World3DScene.tsx, devtools/buildingIdentityLab/BuildingSceneDiagnostics.tsx, devtools/perf/PerfFpsText.tsx, devtools/perf/PerfOverlay.tsx, devtools/perf/PerfWindowBadge.tsx, devtools/perf/index.ts, devtools/perf/rendererProbe.ts
- * Imports: 1 files
+ * Last Sync: 05/10/2026, 04:17:39
+ * Dependents: components/DesignPreview/steps/water/RiverScene.tsx, components/World3D/World3DScene.tsx, devtools/buildingIdentityLab/BuildingSceneDiagnostics.tsx, devtools/perf/PerfFpsText.tsx, devtools/perf/PerfOverlay.tsx, devtools/perf/PerfWindowBadge.tsx, devtools/perf/index.ts, devtools/perf/rendererProbe.ts
+ * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -27,10 +27,19 @@
  */
 // @dependencies-end
 
+import { isPerfMeasurementEnabled, setPerfMeasurementEnabled } from './perfControl';
 import { PerfSession, type SceneDiagnostics } from './perfSession';
 
 const sessions = new Map<string, { session: PerfSession; refs: number }>();
 const listeners = new Set<() => void>();
+
+// A hidden tab may stop callbacks entirely. Observe the transition itself so
+// even a short background visit cannot become a visible-scene slow frame.
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) for (const { session } of sessions.values()) session.suspend();
+  });
+}
 
 function notify(): void {
   for (const fn of listeners) fn();
@@ -143,6 +152,8 @@ export function subscribePerfPanelRequests(fn: (id: string) => void): () => void
  */
 if (typeof window !== 'undefined') {
   (window as unknown as { __araliaPerf?: unknown }).__araliaPerf = {
+    measurementEnabled: isPerfMeasurementEnabled,
+    setMeasurementEnabled: setPerfMeasurementEnabled,
     ids: () => getPerfSessions().map((s) => s.id),
     snapshots: () => getPerfSessions().map((s) => s.snapshot()),
     report: (id?: string) =>

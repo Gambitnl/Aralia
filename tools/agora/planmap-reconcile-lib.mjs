@@ -4,6 +4,7 @@
  * without spawning a child process. No I/O here: caller supplies the parsed
  * topics.json `data` and the Agora task list.
  */
+import { isVisualBuildOnlyTask, visualReviewDeliveryIssue } from './visualTaskKind.mjs';
 
 const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
 // SHARED SCHEME with planmap-to-wave.mjs (must stay identical or the truth-loop
@@ -63,6 +64,10 @@ export function reconcileBoardToPlanmap(data, tasks, { campaigns = [] } = {}) {
       // WF-G150: a task closed by triage as obsolete or superseded delivered
       // nothing. Its done state is a closure, not evidence that the work exists.
       const state = t.state === 'done' && t.closedReason ? null
+        : t.state === 'done' && visualReviewDeliveryIssue(t,tasks) ? null
+        // A finished build-only task is progress, not rendered delivery. The
+        // separate review carries the same canonical refs and closes the feature.
+        : t.state === 'done' && isVisualBuildOnlyTask(t) ? 'active'
         : t.state === 'done' ? 'done'
         : (t.state === 'claimed' || t.state === 'in_progress') ? 'active'
         : null;

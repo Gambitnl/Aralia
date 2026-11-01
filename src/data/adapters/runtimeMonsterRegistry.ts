@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 24/06/2026, 14:42:02
- * Dependents: components/Combat/MonsterPicker.tsx, utils/combat/createEnemyFromMonster.ts
+ * Last Sync: 29/10/2026, 16:27:40
+ * Dependents: components/Combat/MonsterPicker.tsx, systems/combat/startBattleMapEncounter.ts, systems/worldforge/dungeon/world/dungeonCombat.ts, utils/combat/createEnemyFromMonster.ts
  * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
@@ -17,49 +17,30 @@
 import { MonsterData } from '../../types/ui';
 import { MONSTERS_DATA, loadMonstersData } from '../monsters';
 
-// Module-level cache, persists for the tab's lifetime.
-// Pre-seeded from build-time ingested data; expanded at runtime by MonsterPicker.
+// Runtime registrations are tab-local overrides. The existing MONSTERS_DATA
+// object remains the catalog owner and expands in place when its lazy loader
+// finishes. Reading it directly avoids freezing a partial authored catalog
+// into a second snapshot before ingested creatures have arrived.
 const registry = new Map<string, MonsterData>();
-let isSeeded = false;
-
-/**
- * Seeding helper. Populates the registry Map using the current contents
- * of MONSTERS_DATA if it is loaded.
- * 
- * DESIGN DECISION: Set isSeeded = true only if MONSTERS_DATA is populated,
- * allowing tests or gameplay features to register custom monsters even
- * if the full dataset hasn't finished loading yet.
- */
-function ensureSeeded() {
-  if (isSeeded) return;
-  if (Object.keys(MONSTERS_DATA).length > 0) {
-    Object.entries(MONSTERS_DATA).forEach(([key, val]) => {
-      registry.set(key, val);
-    });
-    isSeeded = true;
-  }
-}
 
 function toKey(name: string): string {
   return name.toLowerCase().replace(/\s+/g, '_');
 }
 
 export function getMonster(name: string): MonsterData | undefined {
-  ensureSeeded();
-  return registry.get(toKey(name));
+  const key = toKey(name);
+  return registry.get(key) ?? (Object.hasOwn(MONSTERS_DATA, key) ? MONSTERS_DATA[key] : undefined);
 }
 
 export function registerMonster(data: MonsterData): void {
-  ensureSeeded();
   registry.set(data.id, data);
 }
 
 /**
- * Force-loads the monster data asynchronously and seeds the registry.
- * Primarily useful for test environments or specific flows requiring guaranteed data.
+ * Wait for the existing lazy catalog loader, even after a partial cold read.
+ * Its shared promise owns readiness; an authored or registered creature does
+ * not mean every creature is loaded. Runtime overrides keep precedence.
  */
 export async function ensureMonsterRegistryLoaded(): Promise<void> {
-  if (isSeeded) return;
   await loadMonstersData();
-  ensureSeeded();
 }

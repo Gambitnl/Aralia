@@ -61,6 +61,19 @@ describe('deriveTownSituation', () => {
   });
 });
 describe('resolveTownSituation', () => {
+  it('keeps fractional merchant proceeds in whole coppers after a town reward', () => {
+    const result = resolveTownSituation(townWith([concern(9, 12)]), {
+      sourceEventId: 9,
+      resolutionId: 'exploit_disruption',
+      currentDay: 13,
+      currentGold: 23.77,
+      actorName: 'Dara Blackwood',
+    });
+    expect(result.status).toBe('resolved');
+    expect(result.gold).toBe(38.77);
+    expect(result.town.prosperity).toBe(46);
+  });
+
   it('appends one immutable response and applies purse and prosperity together', () => {
     const town = townWith([concern(9, 12)]);
     const result = resolveTownSituation(town, {

@@ -58,12 +58,12 @@ describe('useActionGeneration — Packet B/D town shop + recruit actions', () =>
     businessType: 'smithy',
   } as unknown as WorldBusiness;
 
-  function wrapperWithState(): React.FC<{ children: React.ReactNode }> {
+  function wrapperWithState(shop = business): React.FC<{ children: React.ReactNode }> {
     const state = {
       worldSeed: 12345,
       playerCell: { cellId: 0 },
       generatedNpcs: { [keeper.id]: keeper as any },
-      worldBusinesses: { [business.id]: business },
+      worldBusinesses: { [shop.id]: shop },
     } as unknown as GameState;
     const dispatch = () => {};
     return ({ children }) =>
@@ -85,11 +85,21 @@ describe('useActionGeneration — Packet B/D town shop + recruit actions', () =>
       (a) => a.type === 'OPEN_DYNAMIC_MERCHANT' && !(a.payload as { hire?: boolean })?.hire,
     );
     expect(browse).toBeDefined();
-    expect(browse?.label).toBe("Browse Goods — Bram's Forge");
+    expect(browse?.label).toBe("Browse Goods — Bram's Forge (Smithy)");
     const payload = browse?.payload as { merchantType: string; buildingId: string; seedKey: string };
     expect(payload.merchantType).toBe('shop_blacksmith');
     expect(payload.buildingId).toBe('npc_burg_1_plot_2');
     expect(payload.seedKey).toBe('biz_burg_1_plot_2');
+  });
+
+  it('identifies a tavern by its actual business even when its name suggests a smithy', () => {
+    const misleadingName = { ...business, name: 'The Silver Anvil', businessType: 'tavern' as const };
+    const { result } = renderHook(() => useActionGeneration({
+      currentLocation: coordLocation, npcsInLocation: [keeper], itemsInLocation: [],
+    }), { wrapper: wrapperWithState(misleadingName) });
+    const browse = result.current.generalActions.find(action => action.type === 'OPEN_DYNAMIC_MERCHANT' && !(action.payload as { hire?: boolean })?.hire);
+    expect(browse?.label).toBe('Browse Goods — The Silver Anvil (Tavern)');
+    expect(browse?.payload).toMatchObject({ merchantType: 'shop_tavern', buildingId: keeper.id, seedKey: business.id });
   });
 
   it('offers "Ask <name> to join you" for a generated NPC, carrying a recruitOffer', () => {

@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 15/07/2026, 23:40:35
- * Dependents: App.tsx, components/MapPane.tsx, systems/travel/applyProvision.ts
- * Imports: 1 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file travelMeta.ts — the contract MapPane hands to App on a world-travel pick.
  *
@@ -22,6 +6,22 @@
  * the player and applies these effects. Keeping the shape here stops the three
  * call sites (App, MapPane, GameModals) from drifting.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 29/10/2026, 09:38:09
+ * Dependents: components/MapPane.tsx, hooks/app/useAppDeveloperCombatFixtures.ts, hooks/app/useAppTravelActions.ts, systems/companions/companionJourney.ts, systems/travel/applyProvision.ts, systems/travel/prepareTravelBattlefield.ts, systems/worldforge/travel/localGroundJourney.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /** Provisioning consequences of a committed trip, applied after the move. */
 export interface TravelProvisionEffect {
@@ -35,9 +35,19 @@ export interface TravelProvisionEffect {
   companionLoyaltyDelta?: number;
   /** A system message to surface (e.g. "Your food runs out on the road…"). */
   note?: string | null;
+  /** Accumulated travel minutes carried forward toward the next day boundary (GG-471). */
+  remainderMinutes?: number;
 }
 
 import type { Entry3DAnchor } from './state';
+
+/** The actual reviewed map route, including its origin and intended endpoint.
+ * A supply halt can reach a prefix without changing the purpose of the trip. */
+export interface TravelRouteLineage {
+  fromCellId: number;
+  intendedCellId: number;
+  cells: number[];
+}
 
 /**
  * Deterministic world-travel event asking the tactical layer to start combat.
@@ -53,6 +63,7 @@ export interface TravelCombatEncounter {
 
 /** Per-trip metadata for a world-map move. */
 export interface TravelMeta {
+  routeLineage?: TravelRouteLineage;
   /** Real trip duration in seconds (advances the game clock). */
   seconds: number;
   /** Pre-rolled "danger on the road" message, if an encounter was rolled. */

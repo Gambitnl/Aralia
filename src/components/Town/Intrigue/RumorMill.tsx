@@ -6,10 +6,30 @@
  * UI component for the "Rumor Mill" - the intrigue interface within Taverns.
  * Allows players to buy gossip, secrets, and leads.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 12:09:15
+ * Dependents: components/Trade/MerchantModal.tsx
+ * Imports: 8 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useMemo } from 'react';
+import { rumorsForBurg } from '../../../systems/worldforge/dungeon/world/rumors';
+import { burgIdForLocation } from '../../../systems/worldforge/townsim/chronicleForLocation';
+import { dungeonRumorsToWorldRumors } from '../../../utils/world/dungeonRumorsToWorldRumors';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Action, Item, ItemType } from '../../../types';
-import { TavernGossipSystem, PurchaseableRumor } from '../../../systems/intrigue/TavernGossipSystem';
+import { TavernGossipSystem, PurchaseableRumor, chronicleRumorContext } from '../../../systems/intrigue/TavernGossipSystem';
 import { useGameState } from '../../../state/GameContext';
 import { formatGpAsCoins } from '../../../utils/character';
 import { INITIAL_QUESTS } from '../../../data/quests';
@@ -25,6 +45,17 @@ export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, 
     const { state } = useGameState();
 
   const availableRumors = TavernGossipSystem.getAvailableRumors(state, merchantName);
+  // A legacy paid receipt already owns this information. Recover its named
+  // source from the same frozen site/event id without selling it a second time.
+  // A legend names a site; it does not establish a safe route or move a marker.
+  const sourceNames = useMemo(() => {
+    if (state.worldSeed == null || state.playerCell?.cellId == null) return new Map<string, string>();
+    const burgId = burgIdForLocation({ground: state, worldSeed: state.worldSeed, cellId: state.playerCell.cellId});
+    if (burgId === undefined) return new Map<string, string>();
+    const sources = rumorsForBurg(state.worldSeed, burgId, state.clearedDungeons ?? undefined);
+    const projected = dungeonRumorsToWorldRumors(sources, 0, state.currentLocationId);
+    return new Map(projected.map((rumor, index) => [`gossip_${rumor.id}`, sources[index].dungeonName]));
+  }, [state.worldSeed, state.playerCell?.cellId, state.currentLocationId, state.clearedDungeons, state.playerGroundPos, state.atlasGroundAddress, state.entry3DAnchor]);
 
     // Track purchased rumors by checking inventory for the Service receipts we create.
     // Each receipt records the rumor it came from in sourceId, so the lookup needs no
@@ -39,6 +70,13 @@ export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, 
         return map;
     }, [playerInventory]);
 
+    // World gossip leaves the offer pool as soon as it is bought. Read the
+    // durable receipt here too, so paying reveals information immediately
+    // instead of replacing it with another unexplained price button.
+    const retiredNotes = playerInventory.filter(item =>
+        item.type === ItemType.Service && item.id.startsWith('rumor_')
+        && item.sourceId && !availableRumors.some(rumor => rumor.id === item.sourceId));
+
     const handlePurchase = (rumor: PurchaseableRumor) => {
         if (playerGold < rumor.cost) return;
 
@@ -50,16 +88,26 @@ export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, 
             name: rumor.type === 'secret' ? 'Secret Info' : rumor.type === 'lead' ? 'Lead' : 'Rumor',
             type: ItemType.Service,
             cost: '0', // Resell value is 0 (info degrades)
-            description: `Purchased from ${merchantName}: "${rumor.content}"`, // Store content here!
+            description: `Purchased from ${merchantName}: "${sourceNames.has(rumor.id) && !rumor.content?.startsWith(sourceNames.get(rumor.id)!) ? `${sourceNames.get(rumor.id)}: ` : ''}${rumor.content}"`, // Store content here!
             weight: 0,
             icon: '📜'
         };
 
-        // Dispatch BUY_ITEM to deduct gold and add the item to inventory
+        // Keep this context as a purchase-time snapshot. Older earned notes are
+        // never rewritten when the town advances or its current offers change.
+        if (rumor.context) serviceItem.description += ' Account age when purchased: '+rumor.context.ageLabel+'.';
+
+        // Use the same validated transaction seam as shop purchases. A flat
+        // reducer payload is ignored by the action handler. Gossip has a posted
+        // price, so equipment haggling must not change the displayed charge.
         onAction({
             type: 'BUY_ITEM',
             label: `Buy ${serviceItem.name}`,
-            payload: { item: serviceItem, cost: rumor.cost } as any
+            payload: {
+                merchantId: state.merchantModal?.merchantId,
+                priceMultiplier: 1,
+                transaction: { buy: { item: serviceItem, cost: rumor.cost } },
+            }
         });
 
         // Log specific event for intrigue system hook (optional, handled by BUY_ITEM logs generally)
@@ -119,6 +167,7 @@ export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, 
                                                 className="mt-2 text-sm text-white italic font-serif"
                                             >
                                                 &quot;{rumor.content}&quot;
+                                                {sourceNames.has(rumor.id) && <span className="mt-2 block text-sky-200">Source site: {sourceNames.get(rumor.id)}. This account gives no confirmed travel route.</span>}
                                             </motion.p>
                                         ) : (
                                             <p className="text-sm text-gray-400">{rumor.title}</p>
@@ -148,6 +197,24 @@ export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, 
                         </motion.div>
                     );
                 })}
+
+                {retiredNotes.length > 0 && (
+                    <section aria-label="Purchased information" className="space-y-2 border-t border-slate-600 pt-3">
+                        <h4 className="font-bold text-amber-200">Your notes</h4>
+                        {retiredNotes.map(item => {
+                            const source = state.activeRumors?.find(rumor => item.sourceId === 'gossip_'+rumor.id
+                                && item.description?.includes('"'+rumor.text+'"'));
+                            const context = source ? chronicleRumorContext(state,source) : undefined;
+                            return (
+                            <article key={item.id} className="rounded border border-slate-600 bg-slate-800 p-3">
+                                <p className="text-xs text-green-400">Acquired · {item.name}</p>
+                                <p className="mt-2 text-sm text-white font-serif">{item.description}</p>
+                                {context && <p className="mt-2 text-sm text-sky-200">Town chronicle · {context.subject} · {context.ageLabel}</p>}
+                                {item.sourceId && sourceNames.has(item.sourceId) && <p className="mt-2 text-sm text-sky-200">Source site: {sourceNames.get(item.sourceId)}. This account gives no confirmed travel route.</p>}
+                            </article>
+                        );})}
+                    </section>
+                )}
 
                 {availableRumors.length === 0 && (
                     

@@ -1,7 +1,6 @@
 {
   "_comment": "Reviewed raw-button debt. New paths fail immediately; remove a path when its buttons migrate or receive an explicit exemption.",
   "reviewedNeedsWorkPaths": [
-    "App.tsx",
     "components/ActionPane/index.tsx",
     "components/ActionPane/SystemMenu.tsx",
     "components/Atlas/AtlasExplorer.tsx",
@@ -99,6 +98,7 @@
     "components/Glossary/glossaryUIUtils.tsx",
     "components/Glossary/SingleGlossaryEntryModal.tsx",
     "components/Glossary/SpellCardTemplate.tsx",
+    "components/layout/AppShell.tsx",
     "components/layout/GameLayout.tsx",
     "components/layout/GameModals.tsx",
     "components/Logbook/DiscoveryLogPane.tsx",
@@ -114,6 +114,7 @@
     "components/Religion/TempleModal.tsx",
     "components/SaveLoad/LoadGameModal.tsx",
     "components/SaveLoad/SaveSlotSelector.tsx",
+    "components/screens/AppPhaseContent.tsx",
     "components/Town/Intrigue/LeverageUI.tsx",
     "components/Town/Intrigue/RumorMill.tsx",
     "components/Trade/MerchantModal.tsx",

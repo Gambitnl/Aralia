@@ -9,7 +9,7 @@ import * as diceRollers from '../../../systems/dice/rollers'
 
 // agora-f821.4 retired the combatUtils roller family; the modules under
 // test roll through systems/dice/rollers now. One hoisted set of mocks
-// stands in for BOTH specifiers, so one vi.mocked(...) pins every die.
+// pins dice only at their real systems/dice/rollers module.
 const diceMocks = vi.hoisted(() => ({
     rollDice: vi.fn(),
     rollDamage: vi.fn(),
@@ -20,13 +20,7 @@ vi.mock('../../../systems/dice/rollers', async (importOriginal) => {
   return { ...actual, ...diceMocks }
 })
 
-vi.mock('../../../utils/combat/combatUtils', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../../utils/combat/combatUtils')>()
-  return {
-    ...actual,
-    ...diceMocks,
-}
-})
+// Keep combat utilities real; dice controls target systems/dice/rollers only.
 
 // Deterministic dice: sum of every face (e.g. "2d6" -> 12), so a modest damage
 // effect reliably drops a low-HP target to 0 for the kill-trigger tests.

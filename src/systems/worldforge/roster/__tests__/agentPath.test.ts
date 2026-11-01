@@ -46,6 +46,20 @@ const frontagePlan = {
 } as unknown as TownPlan;
 
 describe('buildStreetGraph', () => {
+  it('uses fitted physical door anchors without changing the source plots or roads', () => {
+    const before = JSON.stringify(frontagePlan);
+    const doors = new Map<number, Point>([[10, [17, 12]], [20, [83, 11]]]);
+    const graph = buildStreetGraph(frontagePlan, doors);
+    expect(frontDoorForPlot(graph, 10)).toEqual([17, 12]);
+    expect(frontDoorForPlot(graph, 20)).toEqual([83, 11]);
+    expect(graph.plotEntrances.get(10)).toMatchObject({streetPoint: [17, 0], connectorLengthFt: 12});
+    const route = routeAlongStreets(graph, [17, 12], [83, 11]);
+    expect(route[0]).toEqual([17, 12]);
+    expect(route.at(-1)).toEqual([83, 11]);
+    expect(JSON.stringify(frontagePlan)).toBe(before);
+    expect(doors.get(10)).toEqual([17, 12]);
+  });
+
   it('merges coincident street vertices into shared intersection nodes', () => {
     const g = buildStreetGraph(plan);
     // 6 distinct points: (0,0),(0,50),(0,100),(100,0),(100,50),(100,100).

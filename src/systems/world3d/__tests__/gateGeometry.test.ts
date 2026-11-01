@@ -38,3 +38,38 @@ describe('buildGateMesh', () => {
     expect(maxY - minY).toBeGreaterThan(4.5);
   });
 });
+
+// agora-257c (2026-10-28): faces wound once and outward; the water gate form.
+describe('gate faces and water gates', () => {
+  const faceNormalsAgree = (g: ReturnType<typeof buildGateMesh>): boolean => {
+    for (let t = 0; t < g.indices.length; t += 3) {
+      const [a, b, c] = [g.indices[t], g.indices[t + 1], g.indices[t + 2]].map((i) => i * 3);
+      const p = g.positions;
+      const ux = p[b] - p[a], uy = p[b + 1] - p[a + 1], uz = p[b + 2] - p[a + 2];
+      const vx = p[c] - p[a], vy = p[c + 1] - p[a + 1], vz = p[c + 2] - p[a + 2];
+      const n = [uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx];
+      if (n[0] * g.normals[a] + n[1] * g.normals[a + 1] + n[2] * g.normals[a + 2] <= 0) return false;
+    }
+    return true;
+  };
+
+  for (const form of ['twinTowers', 'tunnelBlock', 'singleTower', 'waterGate'] as const) {
+    it(`winds every ${form} face once, toward its own normal`, () => {
+      const d = chunkWithGate('twinTowers');
+      d.gatehouses![0].form = form;
+      const g = buildGateMesh(d);
+      expect(faceNormalsAgree(g)).toBe(true);
+      // Side faces are not lit as if they faced the sky.
+      const sideNormals = Array.from({ length: g.normals.length / 3 }, (_, i) => g.normals[i * 3 + 1]).filter((y) => y === 0);
+      expect(sideNormals.length).toBeGreaterThan(0);
+    });
+  }
+
+  it('builds a water gate as two towers, the wall over the water and a grille', () => {
+    const d = chunkWithGate('twinTowers');
+    d.gatehouses![0].form = 'waterGate';
+    const g = buildGateMesh(d);
+    // Each box is 5 faces x 4 vertices: 2 towers + 1 wall section + at least 2 bars.
+    expect(g.positions.length / 3 / 20).toBeGreaterThanOrEqual(5);
+  });
+});

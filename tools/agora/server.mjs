@@ -459,7 +459,7 @@ export function createAgoraServer({ dir = DEFAULT_DIR, dashboardDir = DASHBOARD_
         paths: Array.isArray(body.paths) ? body.paths : [],
         globs: Array.isArray(body.globs) ? body.globs : [],
       });
-      if (result.ok) return sendJson(res, 200, { lock: result.lock, released: result.released });
+      if (result.ok) return sendJson(res, 200, { lock: result.lock, released: result.released, waiters: result.waiters || [] });
       if (result.error === 'lock not found') return sendJson(res, 404, { error: result.error });
       if (/holder/.test(result.error || '')) return sendJson(res, 403, { error: result.error });
       return sendJson(res, 400, { error: result.error });
@@ -480,7 +480,7 @@ export function createAgoraServer({ dir = DEFAULT_DIR, dashboardDir = DASHBOARD_
         agentId: ctx.agent.id,
         ttlMs: typeof body.ttlMs === 'number' ? body.ttlMs : undefined,
       });
-      if (result.ok) return sendJson(res, 200, { lock: result.lock });
+      if (result.ok) return sendJson(res, 200, { lock: result.lock, waiters: result.waiters || [] });
       if (result.error === 'lock not found') return sendJson(res, 404, { error: result.error });
       return sendJson(res, 403, { error: result.error || 'forbidden' });
     }),
@@ -493,7 +493,7 @@ export function createAgoraServer({ dir = DEFAULT_DIR, dashboardDir = DASHBOARD_
       // store refuses force against an online holder → 409).
       const force = ctx.query.get('force') === '1' || ctx.query.get('force') === 'true';
       const result = store.releaseLock({ lockId: ctx.params.id, agentId: ctx.agent.id, force });
-      if (result.ok) return sendJson(res, 200, { ok: true });
+      if (result.ok) return sendJson(res, 200, { ok: true, waiters: result.waiters || [] });
       if (result.error === 'lock not found') return sendJson(res, 404, { error: result.error });
       if (/online/.test(result.error || '')) return sendJson(res, 409, { error: result.error });
       return sendJson(res, 403, { error: result.error || 'forbidden' });
@@ -519,7 +519,8 @@ export function createAgoraServer({ dir = DEFAULT_DIR, dashboardDir = DASHBOARD_
         globs: Array.isArray(body.globs) ? body.globs : [],
         reason: body.reason,
       });
-      if (result.ok) return sendJson(res, 201, { reservation: result.reservation });
+      if (result.ok) return sendJson(res, 201, { reservation: result.reservation,
+        reused: Boolean(result.reused), notifications: true });
       return sendJson(res, 400, { error: result.error || 'bad reservation request' });
     }),
   );

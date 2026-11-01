@@ -13,13 +13,24 @@ import {
   MIN_BLAST_FEET,
   CENTRE_BELOW_SURFACE,
 } from '../groundImpact';
+import fs from 'node:fs';
+import path from 'node:path';
 import { VoxelVolume, Material } from '@/systems/worldforge/terrain/voxelVolume';
 import { applyBrush } from '@/systems/worldforge/terrain/voxelBrush';
+import { createAbilityFromSpell } from '@/utils/character/spellAbilityFactory';
+import { createMockPlayerCharacter } from '@/utils/core/factories';
+import type { Spell } from '@/types/spells';
 
+/**
+ * A Fireball as a combat ability really carries it (GG-533, 2026-10-29): its
+ * area in TILES (a 20 ft radius is 4) and its damage type in its effects. The
+ * first fixture here used feet and a top-level `spell.damage`, a shape no real
+ * ability has, so the tests passed while real Fireballs never cratered.
+ */
 const fireball = {
   type: 'spell',
-  areaOfEffect: { shape: 'sphere', size: 20 },
-  spell: { damage: { type: 'fire' } },
+  areaOfEffect: { shape: 'circle', size: 4 },
+  effects: [{ type: 'damage', damageType: 'fire' }],
 };
 
 describe('which effects crater the ground', () => {
@@ -32,18 +43,18 @@ describe('which effects crater the ground', () => {
   });
 
   it('no single cast reshapes more of the board than the cap', () => {
-    const huge = { ...fireball, areaOfEffect: { shape: 'sphere', size: 300 } };
+    const huge = { ...fireball, areaOfEffect: { shape: 'circle', size: 60 } };
     expect(groundImpactOfAbility(huge)!.radiusM).toBe(MAX_CRATER_TILES);
   });
 
   it('a single-target spell does not, however much damage it deals', () => {
-    expect(groundImpactOfAbility({ type: 'spell', spell: { damage: { type: 'fire' } } })).toBeNull();
+    expect(groundImpactOfAbility({ type: 'spell', effects: [{ type: 'damage', damageType: 'fire' }] })).toBeNull();
   });
 
   it('a cone or a line does not — the class is a POINT-CENTRED blast', () => {
     for (const shape of ['cone', 'line', 'cube', 'wall']) {
       expect(
-        groundImpactOfAbility({ ...fireball, areaOfEffect: { shape, size: 30 } }),
+        groundImpactOfAbility({ ...fireball, areaOfEffect: { shape, size: 6 } }),
       ).toBeNull();
     }
   });
@@ -51,23 +62,37 @@ describe('which effects crater the ground', () => {
   it('a large area of the wrong damage type does not', () => {
     for (const type of ['cold', 'poison', 'radiant', 'necrotic', 'psychic']) {
       expect(
-        groundImpactOfAbility({ ...fireball, spell: { damage: { type } } }),
+        groundImpactOfAbility({ ...fireball, effects: [{ type: 'damage', damageType: type }] }),
       ).toBeNull();
     }
   });
 
   it('a blast too small to move earth does not', () => {
     expect(
-      groundImpactOfAbility({ ...fireball, areaOfEffect: { shape: 'sphere', size: MIN_BLAST_FEET - 1 } }),
+      groundImpactOfAbility({ ...fireball, areaOfEffect: { shape: 'circle', size: MIN_BLAST_FEET / 5 - 1 } }),
     ).toBeNull();
     expect(
-      groundImpactOfAbility({ ...fireball, areaOfEffect: { shape: 'sphere', size: MIN_BLAST_FEET } }),
+      groundImpactOfAbility({ ...fireball, areaOfEffect: { shape: 'circle', size: MIN_BLAST_FEET / 5 } }),
     ).not.toBeNull();
   });
 
   it('reads the flattened areaShape/areaSize shape too', () => {
-    const flat = { type: 'spell', areaShape: 'sphere', areaSize: 20, damage: { type: 'thunder' } };
+    const flat = { type: 'spell', areaShape: 'circle', areaSize: 4, damage: { type: 'thunder' } };
     expect(groundImpactOfAbility(flat)).not.toBeNull();
+  });
+
+  it('reads the spell data\'s own area in feet when the ability carries none', () => {
+    const data = { type: 'spell', spell: { targeting: { areaOfEffect: { shape: 'Sphere', size: 20 } }, effects: [{ damage: { type: 'Fire' } }] } };
+    expect(groundImpactOfAbility(data)!.radiusM).toBeCloseTo(4 * CRATER_OF_BLAST, 6);
+  });
+
+  it('craters for the real Fireball ability the game builds from the spell data', () => {
+    const file = path.resolve(__dirname, '../../../../public/data/spells/level-3/fireball.json');
+    const spell = JSON.parse(fs.readFileSync(file, 'utf-8')) as Spell;
+    const ability = createAbilityFromSpell(spell, createMockPlayerCharacter({ spellcastingAbility: 'intelligence' }));
+    const impact = groundImpactOfAbility(ability);
+    expect(impact).not.toBeNull();
+    expect(impact!.radiusM).toBeCloseTo(4 * CRATER_OF_BLAST, 6);
   });
 
   it('nothing at all is not a crater', () => {

@@ -166,7 +166,7 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
                   onCharacterSelect?.(char.id);
                 }
               }}
-              className={`flex flex-col items-center gap-0.5 px-1.5 py-1 rounded-lg border shrink-0 transition-all
+              className={`flex flex-col items-center gap-1 px-2.5 py-1.5 rounded-lg border shrink-0 transition-all
                 ${isCurrent
                   ? 'bg-amber-500/20 border-amber-400 shadow-md shadow-amber-900/40'
                   : isActiveGroupMember
@@ -180,7 +180,7 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
               aria-label={`${char.name}, turn ${index + 1}${canInspectMonster ? ', click for monster info' : ''}${canInspectMonster && canSkip ? ', shift plus click to skip here' : canSkip ? ', click to skip here' : ''}`}
             >
               {/* Position number */}
-              <span className={`text-[9px] leading-none font-bold ${isCurrent ? 'text-amber-400' : 'text-gray-400'}`}>
+              <span className={`text-[11px] leading-none font-bold ${isCurrent ? 'text-amber-400' : 'text-gray-400'}`}>
                 {index + 1}
               </span>
 
@@ -199,7 +199,7 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
                   turn strip, side roster, and grid speak the same visual
                   language. Player characters still fall back to initials until
                   dedicated party portraits exist. */}
-              <div className={`w-6 h-6 rounded-full overflow-hidden flex items-center justify-center text-xs font-bold
+              <div className={`w-9 h-9 rounded-full overflow-hidden flex items-center justify-center text-sm font-bold
                 ${isPlayer ? 'bg-sky-700 text-sky-100' : 'bg-red-800 text-red-100'}
                 ${isCurrent ? 'ring-1 ring-amber-400' : ''}
               `}>
@@ -211,7 +211,7 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
               </div>
 
               {/* Name */}
-              <span className="max-w-[52px] truncate text-[9px] leading-none text-gray-300">
+              <span className="max-w-[76px] truncate text-[11px] leading-none text-gray-200">
                 {shortLabel}
               </span>
 
@@ -233,7 +233,7 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
                   )}
                 </div>
               ) : (
-                <div className="w-full h-0.5 bg-gray-600 rounded-full min-w-[32px]">
+                <div className="w-full h-1 bg-gray-600 rounded-full min-w-[44px]">
                   <div
                     className={`h-full rounded-full transition-all ${
                       hpPct > 50 ? (isPlayer ? 'bg-sky-400' : 'bg-red-400')

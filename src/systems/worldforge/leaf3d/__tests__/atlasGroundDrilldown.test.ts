@@ -5,6 +5,7 @@ import {
   artifactsForAtlasGroundDrilldown,
   buildAtlasGroundDrilldown,
   groundFocusesForLocal,
+  restorableGroundFocusesForLocal,
   groundStartForFocus,
   normalizeAtlasGroundAddress,
 } from '../atlasGroundDrilldown';
@@ -12,7 +13,13 @@ import { restoreAtlasGroundDrilldown } from '../atlasGroundRestore';
 import {
   getBridgeAtlas,
   getWorldforgeLocalForCell,
+  canonicalTownSiteForLocal,
 } from '../../bridge/legacySubmapBridge';
+import { canonicalArtifactTownForSiteFromAtlas } from '../../town/canonicalTown';
+import { generateRegion } from '../../region/generateRegion';
+import { generateLocal } from '../../local/generateLocal';
+import { rootSeedPath } from '../../seedPath';
+import { FEET_PER_FMG_PIXEL } from '../../adapter/atlasArtifact';
 
 /**
  * These tests prove that Atlas hands ground 3D an exact, deterministic location receipt.
@@ -33,6 +40,67 @@ const local = {
 } as unknown as LocalArtifact;
 
 describe('Atlas ground drilldown', () => {
+  it('restores the actual canonical Arvalhana center and earned western-road address through the same town plan as Atlas', () => {
+    const worldSeed = 1793176470555, atlasCellId = 1567;
+    const atlas = getBridgeAtlas(worldSeed);
+    const actualRegion = generateRegion(atlas, atlasCellId, rootSeedPath(worldSeed), {
+      feetPerPixel: FEET_PER_FMG_PIXEL, resolutionFt: 100, world: atlas,
+    });
+    const generated = generateLocal(actualRegion, {
+      x: 7512588.96516654, y: 1931792.495045879,
+    }, actualRegion.seedPath, { biomeId: 12 });
+    const site = canonicalTownSiteForLocal(actualRegion, generated);
+    expect(site).toBeDefined();
+    if (!site) throw Error('Actual Arvalhana source missing');
+    const canonicalLocal = { ...generated,
+      townPlan: canonicalArtifactTownForSiteFromAtlas(atlas, worldSeed, site).plan,
+    };
+    const choices = groundFocusesForLocal(canonicalLocal);
+    expect(choices.filter(f => f.label.includes(' — Gate '))).toHaveLength(4);
+    const west = restorableGroundFocusesForLocal(canonicalLocal).find(f => f.label === 'Arvalhana — western road approach');
+    expect(choices).not.toContainEqual(west);
+    expect(west).toEqual({ kind: 'town', id: 2, label: 'Arvalhana — western road approach',
+      xFt: 7511417.740309878, yFt: 1931995.5290499064 });
+    for (const focus of [...choices, west!]) {
+      const receipt = buildAtlasGroundDrilldown({ worldSeed, atlasCellId, region: actualRegion, local: canonicalLocal, focus });
+      const saved = JSON.parse(JSON.stringify(atlasGroundAddressFromDrilldown(receipt)));
+      const restored = restoreAtlasGroundDrilldown(saved, worldSeed);
+      expect(restored.status).toBe('ready');
+      if (restored.status !== 'ready') throw Error(restored.status === 'rejected' ? restored.reason : 'Address disappeared');
+      expect(restored.address).toEqual(saved);
+      expect(restored.drilldown.focus).toEqual(focus);
+      expect(restored.drilldown.local.townPlan).toEqual(canonicalLocal.townPlan);
+    }
+  }, 60000);
+
+  it('restores historical road endpoints without offering them as new town entrances', () => {
+    const townLocal = { ...local, features: [], townPlan: {
+      burgId: 12, identity: { sourceId: 12, name: 'Alderwatch' },
+      plots: [{ footprint: [[1900, 1400], [2100, 1600]] }],
+      streets: [
+        { id: 1, centerline: [[1200, 1500], [2800, 1500]] },
+        { id: 2, centerline: [[2000, 700], [2000, 2300]] },
+      ],
+    } } as unknown as LocalArtifact;
+    const choices = restorableGroundFocusesForLocal(townLocal);
+    expect(groundFocusesForLocal(townLocal)).toEqual([choices[0]]);
+    expect(choices).toEqual([
+      { kind: 'town', id: 12, label: 'Alderwatch', xFt: 2000, yFt: 1500 },
+      { kind: 'town', id: 12, label: 'Alderwatch — western road approach', xFt: 1200, yFt: 1500 },
+      { kind: 'town', id: 12, label: 'Alderwatch — northern road approach', xFt: 2000, yFt: 700 },
+      { kind: 'town', id: 12, label: 'Alderwatch — eastern road approach', xFt: 2800, yFt: 1500 },
+      { kind: 'town', id: 12, label: 'Alderwatch — southern road approach', xFt: 2000, yFt: 2300 },
+    ]);
+    for (const focus of choices) {
+      const receipt = buildAtlasGroundDrilldown({ worldSeed: 42, atlasCellId: 9, region, local: townLocal, focus });
+      expect(artifactsForAtlasGroundDrilldown(receipt).local).toBe(townLocal);
+      expect(normalizeAtlasGroundAddress(JSON.parse(JSON.stringify(atlasGroundAddressFromDrilldown(receipt))))?.focus)
+        .toEqual({ kind: 'town', id: 12, xFt: focus.xFt, yFt: focus.yFt });
+    }
+    expect(() => buildAtlasGroundDrilldown({ worldSeed: 42, atlasCellId: 9, region, local: townLocal,
+      focus: { ...choices[1], xFt: 1201 } })).toThrow(/does not belong/);
+  });
+
   it('preserves exact seed lineage, cell identity, coordinates, and selected site', () => {
     const focus = groundFocusesForLocal(local)[0];
     const receipt = buildAtlasGroundDrilldown({ worldSeed: 42, atlasCellId: 9, region, local, focus });

@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
- *
- * Last Sync: 24/08/2026, 00:55:38
- * Dependents: components/DesignPreview/steps/PreviewTown3D.tsx, components/MapPane.tsx, components/Worldforge/AtlasDemo.tsx, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
- * Imports: 10 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file canonicalTown.ts — the SINGLE source of truth for a burg's town plan.
  *
@@ -35,6 +19,26 @@
  * the same burg within one FMG world. See the call sites for how the atlas is
  * sourced.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 01/11/2026, 05:10:00
+ * Dependents: components/DesignPreview/steps/PreviewTown3D.tsx, components/MapPane.tsx, components/Worldforge/AtlasDemo.tsx, components/Worldforge/townBuildingVisit.ts, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, hooks/useTownCrierAnnouncements.ts, state/reducers/townReducer.ts, systems/gameplay/lodging.ts, systems/religion/worldforgeTemple.ts, systems/social/npcInstitutionStatements.ts, systems/travel/npcLocalDirections.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/leaf3d/atlasGroundRestore.ts, systems/worldforge/town/prepareHistoricalTownLoad.ts, systems/worldforge/town/townMapPosition.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Imports: 16 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import {generateTownPlan as generateTownLayoutV1} from './townLayoutV1';
+import { planRuralHomesteads } from './ruralHomesteads';
+import {CURRENT_TOWN_LAYOUT_REVISION, RURAL_HOUSEHOLD_TOWN_LAYOUT_REVISION, requireTownLayoutRevision, type TownLayoutRevision} from './townLayoutRevision';
 import { generateTownPlan, typologyForPopulation, type TownPlan, type TownWard, type TownTypology } from './townEngine';
 import { townSpanFtForPeople, POPULATION_RATE, CANON_TOWN_SPAN } from './townScale';
 import { polygonBounds, type Pt } from '../submap/submapEngine';
@@ -43,8 +47,9 @@ import { rootSeedPath, childSeedPath, streamPath } from '../seedPath';
 import { burgCellPolygon, cellWaterFeatures } from './cellFeatures';
 import { townRoadCourseCanon } from './townRoadCourse';
 import { townRiverCourseCanon } from './townRiverCourse';
+import type { TownFaith, TownHolder } from './civicGrounds';
 import type { RegionTownSite } from '../artifacts';
-import { toArtifactPlan, type AdaptedTownPlan } from './townPlanAdapter';
+import { toArtifactPlan, type AdaptedTownPlan, type TownPlanAdaptOptions } from './townPlanAdapter';
 import {
   climateForBiomeId,
   styleFamilyForCultureType,
@@ -101,6 +106,29 @@ export function townSpanFtForBurg(atlas: TownAtlas, burgId: number): number {
 }
 
 /**
+ * The faith of a burg's cell and the form of its state (GG-566). They choose
+ * the set pieces round its temple and its keep. A cell with no religion
+ * (FMG religion 0) and a stateless burg (FMG state 0) give none.
+ */
+export function townFaithAndHolder(atlas: TownAtlas, burgId: number): { faith?: TownFaith; holder?: TownHolder } {
+  const pack = atlas.pack as unknown as {
+    burgs?: Array<{ cell?: number; state?: number }>;
+    cells?: { religion?: ArrayLike<number> };
+    religions?: Array<{ type?: string; form?: string }>;
+    states?: Array<{ form?: string }>;
+  };
+  const burg = pack.burgs?.[burgId];
+  if (!burg) return {};
+  const ri = burg.cell != null ? pack.cells?.religion?.[burg.cell] ?? 0 : 0;
+  const rel = ri > 0 ? pack.religions?.[ri] : undefined;
+  const st = burg.state && burg.state > 0 ? pack.states?.[burg.state] : undefined;
+  return {
+    ...(rel?.type && rel.form ? { faith: { type: rel.type, form: rel.form } } : {}),
+    ...(st?.form ? { holder: { form: st.form } } : {}),
+  };
+}
+
+/**
  * The shared seed path for a burg's town: `wf:<worldSeed>/burg:<id>/s:town`.
  * BOTH views derive this identically from (worldSeed, burgId) — it does NOT
  * depend on the drill path, so the same burg always seeds the same town.
@@ -123,24 +151,29 @@ function canonAffine(cellPoly: Pt[]): (p: Pt) => Pt {
   return ([x, y]) => [(x - cx) * k, (y - cy) * k];
 }
 
-// Memoize per atlas (object identity) → per burg. Same world + same burg never
-// regenerates; a different atlas (different world) gets its own table.
-const planCache = new WeakMap<object, Map<number, TownPlan>>();
+// Memoize per Atlas, world seed, burg and layout revision. A compatibility
+// reader and the current layout must coexist without contaminating each other.
+const planCache = new WeakMap<object, Map<string, TownPlan>>();
 
 /**
  * The canonical town plan for a burg, in the NORMALIZED frame (cell shape,
  * centered at the origin, ~CANON_TOWN_SPAN across). The 2D renderer fits this to
  * view directly; the 3D bake scales+translates it via {@link transformTownPlan}
- * using {@link townPlacementForBurg}. Identity: same atlas + burgId ⇒ same plan.
+ * using {@link townPlacementForBurg}. Identity: same Atlas + world seed + burg + layout revision ⇒ same plan.
  */
 export function getCanonicalTownPlan(
   atlas: TownAtlas,
   worldSeed: number,
   burgId: number,
+  layoutRevision: TownLayoutRevision = CURRENT_TOWN_LAYOUT_REVISION,
 ): TownPlan {
+  // One Atlas may be read under different saved layout revisions. Neither
+  // revision nor the seed may inherit whichever plan reached the cache first.
+  const revision = requireTownLayoutRevision(layoutRevision);
+  const key = worldSeed + ':' + burgId + ':' + revision;
   let perBurg = planCache.get(atlas as object);
   if (!perBurg) { perBurg = new Map(); planCache.set(atlas as object, perBurg); }
-  const hit = perBurg.get(burgId);
+  const hit = perBurg.get(key);
   if (hit) return hit;
 
   const cellPoly = burgCellPolygon(atlas, burgId);
@@ -166,7 +199,7 @@ export function getCanonicalTownPlan(
   // tier draws, so the town's approach road IS the wilderness road. The cell
   // affine shrank every route ~30x and left town roads ending in grass.
   const roads = townRoadCourseCanon(atlas, burgId);
-  const plan = generateTownPlan(footprint, canonicalTownSeedPath(worldSeed, burgId), {
+  const options = {
     population,
     water,
     // Bridges belong on RIVERS ONLY. A coast edge is a shoreline — the boundary
@@ -178,8 +211,25 @@ export function getCanonicalTownPlan(
     // rather than a fixed 11% of the town.
     waterWidth: course.widthCanon,
     roads,
-  });
-  perBurg.set(burgId, plan);
+  };
+  const seed = canonicalTownSeedPath(worldSeed, burgId);
+  // The default retains all approved town-look rules. Revision 1 uses its
+  // preserved algorithm and original option set; this selects source only.
+  // It never migrates a saved person, building, booking or physical position.
+  const plan: TownPlan = revision === 1
+    ? generateTownLayoutV1(footprint, seed, options)
+    : generateTownPlan(footprint, seed, {
+        ...options,
+        ...(revision === RURAL_HOUSEHOLD_TOWN_LAYOUT_REVISION ? {ruralHouseholdSources:true} : {}),
+        coast,
+        feetPerUnit: townSpanFtForBurg(atlas, burgId) / CANON_TOWN_SPAN,
+        // GG-566: the temple follows the faith, the keep its holder.
+        ...townFaithAndHolder(atlas, burgId),
+      });
+  if (revision === RURAL_HOUSEHOLD_TOWN_LAYOUT_REVISION) {
+    plan.ruralHomesteads = planRuralHomesteads(plan, seed, townSpanFtForBurg(atlas, burgId) / CANON_TOWN_SPAN);
+  }
+  perBurg.set(key, plan);
   return plan;
 }
 
@@ -327,8 +377,8 @@ export interface CanonicalTownPersonality {
   profile: VillageIntegrationProfile;
 }
 
-// Memoize per atlas (object identity) → per burg, exactly like `planCache`.
-const personalityCache = new WeakMap<object, Map<number, CanonicalTownPersonality>>();
+// Personality reads the same versioned town as its map and geometry.
+const personalityCache = new WeakMap<object, Map<string, CanonicalTownPersonality>>();
 
 /**
  * The canonical settlement personality for a burg, and the authored
@@ -347,10 +397,13 @@ export function getCanonicalTownPersonality(
   atlas: TownAtlas,
   worldSeed: number,
   burgId: number,
+  layoutRevision: TownLayoutRevision = CURRENT_TOWN_LAYOUT_REVISION,
 ): CanonicalTownPersonality {
+  const revision = requireTownLayoutRevision(layoutRevision);
+  const key = worldSeed + ':' + burgId + ':' + revision;
   let perBurg = personalityCache.get(atlas as object);
   if (!perBurg) { perBurg = new Map(); personalityCache.set(atlas as object, perBurg); }
-  const hit = perBurg.get(burgId);
+  const hit = perBurg.get(key);
   if (hit) return hit;
 
   const burg = atlas.pack.burgs?.[burgId];
@@ -390,7 +443,7 @@ export function getCanonicalTownPersonality(
     burg.port ? 'coastal' : flavor.upland ? 'highland' : biomeStyle;
 
   const typology = typologyForPopulation(peopleForBurg(atlas, burgId));
-  const plan = getCanonicalTownPlan(atlas, worldSeed, burgId);
+  const plan = getCanonicalTownPlan(atlas, worldSeed, burgId, revision);
 
   const personality: VillagePersonality = {
     wealth: townWealthBand(plan.wards),
@@ -406,7 +459,7 @@ export function getCanonicalTownPersonality(
     personality,
     profile: resolveVillageIntegrationProfile(personality),
   };
-  perBurg.set(burgId, resolved);
+  perBurg.set(key, resolved);
   return resolved;
 }
 
@@ -436,7 +489,9 @@ export function transformTownPlan(plan: TownPlan, k: number, dx = 0, dy = 0): To
     wards,
     // Top-level plots share refs with wards[].plots (townEngine contract).
     plots: wards.flatMap((w) => w.plots),
-    outskirts: plan.outskirts.map((o) => ({ ...o, polygon: mapPoly(o.polygon, k, dx, dy) })),
+    outskirts: plan.outskirts.map((o) => ({ ...o, polygon: mapPoly(o.polygon, k, dx, dy),
+      ...(o.farmParent?{farmParent:{...o.farmParent,polygon:mapPoly(o.farmParent.polygon,k,dx,dy)}}:{}),
+    })),
     // Intramural open land rides the same affine, so the gardens/paddocks the 2D
     // map shows inside the walls are the same parcels the 3D town stands on.
     openLand: plan.openLand.map((o) => ({ ...o, polygon: mapPoly(o.polygon, k, dx, dy) })),
@@ -467,6 +522,25 @@ export function transformTownPlan(plan: TownPlan, k: number, dx = 0, dy = 0): To
       radius: court.radius * Math.abs(k),
     })),
     farmsteads: plan.farmsteads.map((f) => ({ ...f, x: f.x * k + dx, y: f.y * k + dy })),
+    // GG-569: the civic grounds ride the same affine (lengths scale by |k|),
+    // so the 3D bake draws them where the 2D map does. Dropped here before.
+    ...(plan.civicGrounds ? { civicGrounds: plan.civicGrounds.map((g) => ({
+      ...g,
+      grounds: mapPoly(g.grounds, k, dx, dy),
+      forecourt: mapPoly(g.forecourt, k, dx, dy),
+      approach: mapPoly(g.approach, k, dx, dy),
+      approachWidth: g.approachWidth * Math.abs(k),
+      features: g.features.map((f) => ({ ...f, polygon: mapPoly(f.polygon, k, dx, dy) })),
+    })) } : {}),
+    ...(plan.ruralHomesteads ? {ruralHomesteads:{
+      version:plan.ruralHomesteads.version,
+      sites:plan.ruralHomesteads.sites.map(site=>({...site,
+        sourceCenter:mapPt(site.sourceCenter,k,dx,dy),center:mapPt(site.center,k,dx,dy),
+        house:mapPoly(site.house,k,dx,dy),yard:mapPoly(site.yard,k,dx,dy),
+        approach:{...site.approach,points:mapPoly(site.approach.points,k,dx,dy),width:site.approach.width*Math.abs(k)},
+      })),
+      declined:plan.ruralHomesteads.declined.map(row=>({...row,...(row.rejections?{rejections:{...row.rejections}}:{})})),
+    }} : {}),
     demographics: plan.demographics,
   };
 }
@@ -483,6 +557,8 @@ export function canonicalArtifactTownForSiteFromAtlas(
   atlas: TownAtlas,
   worldSeed: number,
   site: RegionTownSite,
+  layoutRevision: TownLayoutRevision = CURRENT_TOWN_LAYOUT_REVISION,
+  options: TownPlanAdaptOptions = {},
 ): AdaptedTownPlan & { family: StyleFamily } {
   const burg = atlas.pack.burgs?.[site.burgId];
   if (!burg || burg.removed || !burg.i) {
@@ -508,7 +584,7 @@ export function canonicalArtifactTownForSiteFromAtlas(
 
   // Generate in the normalized burg frame once, then place that exact result
   // into the Region envelope used by the retained Local and Ground window.
-  const enginePlan = getCanonicalTownPlan(atlas, worldSeed, site.burgId);
+  const enginePlan = getCanonicalTownPlan(atlas, worldSeed, site.burgId, layoutRevision);
   const spanFt = townSpanFtForBurg(atlas, site.burgId);
   const placeScale = spanFt / CANON_TOWN_SPAN;
   const placeDx = site.envelope.x + site.envelope.width / 2;
@@ -520,6 +596,7 @@ export function canonicalArtifactTownForSiteFromAtlas(
     site.burgId,
     family,
     climateForBiomeId(Number(biomeId)),
+    options,
   );
 
   // Current Regions already carry this exact receipt. The legacy construction
@@ -544,6 +621,8 @@ export function canonicalArtifactTownForSiteFromAtlas(
     ...adapted,
     plan: {
       ...adapted.plan,
+      // Reuse the same projected gate centers consumed by the ground renderer.
+      gates: adapted.walls.gatehouses.map(point => [point[0], point[1]]),
       identity,
     },
     family,

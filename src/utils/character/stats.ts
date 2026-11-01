@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 26/08/2026, 13:53:24
- * Dependents: utils/character/characterUtils.ts, utils/character/index.ts, utils/character/progression.ts
- * Imports: 7 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file handles character statistics, racial traits, senses, and derived attributes.
  *
@@ -26,6 +10,22 @@
  * Called by: Character sheets, party management, level-up routines, and characterUtils facade.
  * Depends on: statUtils (for core math and AC), racial trait libraries, and class data.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 28/10/2026, 16:17:36
+ * Dependents: systems/gameplay/spellPreparation.ts, utils/character/characterUtils.ts, utils/character/index.ts, utils/character/progression.ts, utils/sandbox/quickCharacterGenerator.ts
+ * Imports: 10 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import {
   PlayerCharacter,
@@ -46,6 +46,7 @@ import {
 } from '../../data/races/racialTraits';
 import {
   ALL_RACES_DATA as RACES_DATA,
+  buildRacialTraitLibrary,
   getRacialTraitLibrary,
 } from '../../data/races';
 import { DRAGONBORN_ANCESTRIES_DATA as DRAGONBORN_ANCESTRIES } from '../../data/races/dragonborn';
@@ -510,6 +511,9 @@ export function resolveRacialResourceId(kind: 'feature' | 'spell', a: string, b?
 export const resolveRacialSpellLimitedUseId = (sourceRaceId: string, spellId: string): string =>
   resolveRacialResourceId('spell', sourceRaceId, spellId);
 
+// Build the list of racial trait library keys that apply to this character:
+// the base race ID plus any subrace/lineage choice ID (such as a Dragonborn
+// ancestry or Tiefling fiendish legacy) stored in `racialSelections`.
 export const getRacialSelectionIdsForCharacter = (character: PlayerCharacter): string[] => {
   const { race, racialSelections } = character;
   const baseIds = [race.id];
@@ -518,21 +522,49 @@ export const getRacialSelectionIdsForCharacter = (character: PlayerCharacter): s
   return [...baseIds, choiceId, `${choiceId}_${race.id}`];
 };
 
+// Return all non-spell racial traits that are active at `targetLevel`.
+// Canonical races resolve from the cached `getRacialTraitLibrary().byRaceId`
+// map by ID. When a character carries an inline custom/NPC/fixture Race whose
+// ID is not registered in the canonical library, we parse its inline `traits`
+// array on demand through `buildRacialTraitLibrary` so level-gated and
+// trait-prose features (including alternate movement speeds in
+// `getRacialMovementSpeedsForLevel`) still resolve with full level-window
+// semantics instead of being silently dropped (WF-G277).
 export const getActiveRacialFeatureTraitsForCharacter = (
   character: PlayerCharacter,
   targetLevel: number,
 ): RacialFeatureTrait[] => {
   const seen = new Set<string>();
-  const traits = getRacialSelectionIdsForCharacter(character).flatMap(
-    id => getRacialTraitLibrary().byRaceId[id] ?? []
+  const library = getRacialTraitLibrary();
+  const selectionIds = getRacialSelectionIdsForCharacter(character);
+  let traits = selectionIds.flatMap(
+    id => library.byRaceId[id] ?? []
   );
 
+  // Fallback for unlisted inline race objects whose ID is absent from the
+  // canonical racial trait library (WF-G277).
+  if (
+    traits.length === 0 &&
+    character.race?.id &&
+    !library.byRaceId[character.race.id] &&
+    Array.isArray(character.race.traits) &&
+    character.race.traits.length > 0
+  ) {
+    const inlineLibrary = buildRacialTraitLibrary({ [character.race.id]: character.race });
+    traits = selectionIds.flatMap(
+      id => inlineLibrary.byRaceId[id] ?? []
+    );
+  }
+
+  // Filter out spell grants and keep only traits whose level window covers
+  // the character's target level.
   const active = traits.filter((trait): trait is RacialFeatureTrait =>
     trait.type !== 'spell' &&
     targetLevel >= trait.minLevel &&
     (trait.maxLevel === undefined || targetLevel <= trait.maxLevel)
   );
 
+  // Deduplicate identical trait entries across base race and sub-choice buckets.
   const deduped: RacialFeatureTrait[] = [];
   active.forEach((trait) => {
     const traitKey = `${trait.sourceRaceId}::${trait.traitName}::${trait.minLevel}::${trait.maxLevel ?? ''}::${trait.traitDescription}`;
@@ -845,21 +877,22 @@ export function calculateCharacterSpeedFromRace(
   return speed;
 }
 
+/** Equipment calculation and the sheet share this rule. Some carried legacy
+ * racial traits explicitly exempt heavy armor from reducing speed; a species
+ * name alone grants nothing. This does not remove stealth or other armor costs. */
+export function hasHeavyArmorSpeedPenalty(character: PlayerCharacter): boolean {
+  const torso = character.equippedItems?.Torso;
+  if (!torso || torso.type !== 'armor' || torso.armorCategory !== 'Heavy' || !torso.strengthRequirement) return false;
+  const armorExempt = character.race?.traits?.some(trait =>
+    /\bspeed is not reduced by wearing heavy armor\b/i.test(trait));
+  return !armorExempt && (character.finalAbilityScores?.Strength ?? 10) < torso.strengthRequirement;
+}
+
 export function calculateCharacterSpeed(character: PlayerCharacter): number {
   const baseSpeed = calculateCharacterSpeedFromRace(character.race, character.racialSelections);
   const featBonus = getSpeedBonusFromFeats(character.feats || []);
-  let finalSpeed = baseSpeed + featBonus;
-
-  // Deduct 10 feet if wearing heavy armor without meeting its Strength requirement
-  const torso = character.equippedItems?.Torso;
-  if (torso && torso.type === 'armor' && torso.armorCategory === 'Heavy' && torso.strengthRequirement) {
-    const strength = character.finalAbilityScores?.Strength ?? 10;
-    if (strength < torso.strengthRequirement) {
-      finalSpeed = Math.max(0, finalSpeed - 10);
-    }
-  }
-
-  return finalSpeed;
+  const finalSpeed = baseSpeed + featBonus;
+  return hasHeavyArmorSpeedPenalty(character) ? Math.max(0, finalSpeed - 10) : finalSpeed;
 }
 
 export type MovementMode = 'swim' | 'climb' | 'fly' | 'burrow';
@@ -964,18 +997,20 @@ export const updateDerivedStats = (character: PlayerCharacter): PlayerCharacter 
   updated.finalAbilityScores = calculateFinalAbilityScores(
     updated.abilityScores,
     updated.race,
-    updated.equippedItems
+    updated.equippedItems,
+    updated.id
   );
 
   // 2. Max HP (Base + Con Mod * Level + Feat Bonuses)
   const conMod = getAbilityModifierValue(updated.finalAbilityScores.Constitution);
   const hpBonusPerLevel = getHpBonusPerLevelFromFeats(updated.feats || []);
+  const racialHpBonus = (updated.race?.traits?.some(t => t.includes('Dwarven Toughness')) || updated.race?.id === 'hill_dwarf') ? 1 : 0;
   const hitDie = updated.class.hitDie;
   const level = updated.level || 1;
 
   // PHB Logic: Level 1 is full die, subsequent levels are average (die/2 + 1).
-  const hpGainFirstLevel = hitDie + conMod + hpBonusPerLevel;
-  const hpGainSubseqLevels = (level - 1) * (Math.floor(hitDie / 2) + 1 + conMod + hpBonusPerLevel);
+  const hpGainFirstLevel = hitDie + conMod + hpBonusPerLevel + racialHpBonus;
+  const hpGainSubseqLevels = (level - 1) * (Math.floor(hitDie / 2) + 1 + conMod + hpBonusPerLevel + racialHpBonus);
   const newMaxHp = Math.max(1, hpGainFirstLevel + hpGainSubseqLevels);
 
   // Maintain current HP ratio or clamp to new max
@@ -1025,9 +1060,11 @@ export const normalizeCharacterRaceData = (character: PlayerCharacter): PlayerCh
  * @param {TempPartyMember} tempMember - The temporary member data.
  * @returns {PlayerCharacter} A complete PlayerCharacter object.
  */
-export const createPlayerCharacterFromTemp = (tempMember: TempPartyMember): PlayerCharacter => {
+export const createPlayerCharacterFromTemp = (tempMember: TempPartyMember, raceId: string = 'human'): PlayerCharacter => {
   const classData = CLASSES_DATA[tempMember.classId] || CLASSES_DATA['fighter'];
-  const raceData = RACES_DATA['human']; // Default to Human for simplicity
+  // Known recruits keep their species. Legacy callers still default to Human;
+  // missing lineage/ancestry choices stay unresolved instead of being invented.
+  const raceData = RACES_DATA[raceId.trim().toLowerCase().replace(/\s+/g, '_')] || RACES_DATA['human'];
   const baseAbilityScores: AbilityScores = { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 };
   const finalAbilityScores = calculateFixedRacialBonuses(baseAbilityScores, raceData);
   const maxHp = classData.hitDie + getAbilityModifierValue(finalAbilityScores.Constitution);
@@ -1059,5 +1096,7 @@ export const createPlayerCharacterFromTemp = (tempMember: TempPartyMember): Play
   const charWithRacialSpells = applyRacialSpellGrantsByLevel(newChar, charLevel);
   charWithRacialSpells.hitPointDice = buildHitPointDicePools(charWithRacialSpells, { classLevels });
   charWithRacialSpells.armorClass = calculateArmorClass(charWithRacialSpells, charWithRacialSpells.activeEffects);
+  charWithRacialSpells.speed = calculateCharacterSpeed(charWithRacialSpells);
+  charWithRacialSpells.darkvisionRange = calculateCharacterDarkvisionFromRace(raceData);
   return charWithRacialSpells;
 };

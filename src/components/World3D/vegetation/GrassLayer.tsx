@@ -21,11 +21,15 @@
  * biome-tinted from the terrain vertex colors, deterministic per chunk.
  * Distance falloff: only chunks within GRASS_CHUNK_RADIUS (Chebyshev) of the
  * anchor chunk mount a grass mesh at all; far terrain keeps its painted color.
- * Standard materials only — WebGL and WebGPU compatible (no TSL).
+ * The WebGL material is a stock MeshStandardMaterial with an onBeforeCompile
+ * sway; under `?gpu=1` (ADR 0009 step 4) the layer draws with the TSL twin from
+ * `gpu/grassWindNode.ts`, which reads the same wind clock.
  */
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { isWebGpuWorldEnabled } from '../webgpuWorldFlag';
+import { makeGrassWindNodeMaterial } from '../gpu/grassWindNode';
 import type { LoadedChunk } from '@/systems/world3d/types';
 import { WORLD3D_CONFIG } from '@/systems/world3d/config';
 import { buildGrassField } from '@/systems/worldforge/vegetation/grassField';
@@ -149,6 +153,16 @@ GRASS_MATERIAL.onBeforeCompile = (shader) => {
     );
 };
 
+/**
+ * ADR 0009 step 4: the material the layer draws with. Under WebGPU the
+ * onBeforeCompile sway above is ignored without a message, so the TSL twin
+ * (same math, same GRASS_WIND clock) takes its place; the WebGL material is
+ * unchanged for `?gpu=0`.
+ */
+const GRASS_DRAW_MATERIAL: THREE.Material = isWebGpuWorldEnabled()
+  ? makeGrassWindNodeMaterial(GRASS_WIND)
+  : GRASS_MATERIAL;
+
 export const GrassLayer: React.FC<{
   chunk: LoadedChunk;
   anchor: { cx: number; cy: number };
@@ -172,7 +186,14 @@ export const GrassLayer: React.FC<{
   });
 
   const ref = useRef<THREE.InstancedMesh>(null);
-  useEffect(() => {
+  // A LAYOUT effect, not a passive one (ADR 0009 step 4, 2026-10-26). A passive
+  // effect can run after the browser paints, so the renderer can draw the new
+  // mesh once before `setColorAt` has created `instanceColor`. WebGL recompiles
+  // on `needsUpdate` and recovers; the WebGPU node graph is fixed at its first
+  // build and the grass stayed white (river window, gx=17 gy=4). The layout
+  // effect fills the matrices and colors before any frame can draw the mesh.
+  // Same values, same order; only earlier.
+  useLayoutEffect(() => {
     const mesh = ref.current;
     if (!mesh || !field) return;
     const matrix = new THREE.Matrix4();
@@ -205,7 +226,7 @@ export const GrassLayer: React.FC<{
     }
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-    GRASS_MATERIAL.needsUpdate = true;
+    GRASS_DRAW_MATERIAL.needsUpdate = true;
   }, [field]);
 
   if (!field || field.count === 0) return null;
@@ -214,7 +235,7 @@ export const GrassLayer: React.FC<{
       name="world3d:grass"
       ref={ref}
       key={field.cacheKey}
-      args={[BLADE_GEOMETRY, GRASS_MATERIAL, field.count]}
+      args={[BLADE_GEOMETRY, GRASS_DRAW_MATERIAL, field.count]}
       position={position}
       frustumCulled={false}
     />

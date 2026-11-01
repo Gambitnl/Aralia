@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 09/08/2026, 22:42:49
- * Dependents: state/appState.ts
- * Imports: 6 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -22,15 +6,119 @@
  * Handles companion-related state updates.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 12:06:53
+ * Dependents: state/appState.ts
+ * Imports: 17 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { GameState } from '../../types';
 import { AppAction } from '../actionTypes';
+import { payPartyFunds } from '../../systems/economy/partyFunds';
 import { RelationshipManager } from '../../systems/companions/RelationshipManager';
 import { inGameTimestamp } from '../../utils/core/timeUtils';
 import { isOverSoftCap } from '../../systems/party/partyConstants';
 import { appendAdventureLogEntry } from '../../systems/adventureLog/adventureLog';
+import { applyCompanionPreparationChoice } from './companionPreparationReducer';
+import { applyCompanionTravelChoice } from './companionTravelReducer';
+import { discussCompanionRumor } from './companionRumorReducer';
+import { discussCompanionDestination } from './companionGoalDestinationReducer';
+import { applyCompanionGoalWorkChoice } from './companionGoalWorkReducer';
+import { separatedCompanion, retainCompanionWhereabouts, validCompanionPosition } from '../../systems/companions/companionWhereabouts';
+import { arrivingCompanions } from '../../systems/companions/companionJourney';
+import { spendPartyProvisions } from '../../systems/travel/partyProvisions';
+import { promoteCompanionToMember } from '../../systems/party/npcToPartyMember';
+import { authoredCompanionCapabilities } from '../../systems/party/authoredCompanionCapabilities';
 
 export function companionReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
+    case 'SPEND_TRAVEL_PROVISIONS':
+      return spendPartyProvisions(state, action.payload.rations, action.payload.water) ?? {};
+    case 'RECORD_COMPANION_ARRIVALS': {
+      const { worldSeed, locationId, arrivals } = action.payload;
+      const expected = arrivingCompanions(state), feet = state.playerGroundPos;
+      if (worldSeed !== state.worldSeed || locationId !== state.currentLocationId || !feet || !validCompanionPosition(feet)
+        || arrivals.length !== expected.length || !expected.length || new Set(arrivals.map(a => a.companionId)).size !== arrivals.length) return {};
+      for (const c of expected) {
+        const found = arrivals.find(a => a.companionId === c.id);
+        if (!found || found.journeyId !== c.journey!.id || !validCompanionPosition(found.position)
+          || Math.hypot(found.position.xM - feet.xM, found.position.zM - feet.zM) > 8.1) return {};
+      }
+      const companions = { ...state.companions };
+      for (const c of expected) {
+        const position = arrivals.find(a => a.companionId === c.id)!.position, leg = c.journey!;
+        companions[c.id] = { ...c, journey: { ...leg, status: 'arrived' },
+          whereabouts: { worldSeed, locationId, observedAt: state.gameTime.getTime(), source: 'party', position: { ...position } },
+          following: { worldSeed, locationId, trail: [{ xM: feet.xM, yM: feet.yM, zM: feet.zM }] },
+          memories: [...c.memories, { id: `${leg.id}:arrived`, type: 'event', timestamp: leg.arrivalAt, importance: 5,
+            text: c.travelAgreement?.response === 'accepted' ? `Traveled together on the agreed ${c.travelAgreement.destinationName} expedition.` : 'Shared a journey with the party.',
+            tags: ['shared-journey', 'arrived', leg.id] }],
+        };
+      }
+      return { companions };
+    }
+    case 'RECORD_COMPANION_POSITION': {
+      const { companionId, worldSeed, locationId, position, trail } = action.payload;
+      const companion = state.companions[companionId];
+      // Moving party bodies checkpoint their own reached feet and unresolved
+      // route. Membership alone cannot relocate a person from another cell.
+      if (companion?.inParty && state.party.some(member => member.id === companionId)) {
+        if (worldSeed !== state.worldSeed || locationId !== state.currentLocationId
+          || companion.whereabouts?.worldSeed !== worldSeed || companion.whereabouts.locationId !== locationId
+          || !validCompanionPosition(position) || !Array.isArray(trail) || trail.length > 512
+          || !trail.every(point => point && validCompanionPosition(point))) return {};
+        const previous = companion.whereabouts.position, following = companion.following;
+        // Remounting unchanged feet is not a new event. Preserve the exact
+        // checkpoint and its time rather than changing a resting save on Load.
+        if (companion.whereabouts.source === 'party' && previous
+          && previous.xM === position.xM && previous.yM === position.yM && previous.zM === position.zM
+          && following?.worldSeed === worldSeed && following.locationId === locationId
+          && following.trail.length === trail.length && following.trail.every((point, index) =>
+            point.xM === trail[index].xM && point.yM === trail[index].yM && point.zM === trail[index].zM)) return {};
+        return { companions: { ...state.companions, [companionId]: { ...companion,
+          journeyDeparture: companion.journeyDeparture ?? companion.whereabouts,
+          whereabouts: { ...companion.whereabouts, source: 'party', observedAt: state.gameTime.getTime(), position: { ...position } },
+          following: { worldSeed, locationId, trail: trail.map(point => ({ ...point })) },
+        } } };
+      }
+      // Ignore an old scene's callback, remote knowledge, and camera re-entry.
+      // Only the first actual cast placement may attach a point to this sojourn.
+      if (!companion || worldSeed !== state.worldSeed || locationId !== state.currentLocationId
+        || !state.currentLocationActiveDynamicNpcIds?.includes(companionId)
+        || companion.inParty || state.party.some(member => member.id === companionId)
+        || !state.generatedNpcs[companionId] || !validCompanionPosition(position)) return {};
+      const companions = retainCompanionWhereabouts(state);
+      const placed = companions[companionId];
+      if (!placed.whereabouts || placed.whereabouts.position) return {};
+      return { companions: { ...companions, [companionId]: { ...placed,
+        whereabouts: { ...placed.whereabouts, position: { ...position } },
+      } } };
+    }
+    case 'COMPANION_TRAVEL_CHOICE': {
+      const result=applyCompanionTravelChoice(state,action.payload.companionId,action.payload.choice);
+      // Dialogue owns consent and its remembered terms. Existing recruitment
+      // still owns both party/companion stores, under the same latest state.
+      return {...result.patch,...(result.recruit?companionReducer({...state,...result.patch},
+        {type:'RECRUIT_COMPANION',payload:result.recruit}):{})};
+    }
+    case 'COMPANION_GOAL_WORK_CHOICE':
+      return applyCompanionGoalWorkChoice(state, action.payload.companionId, action.payload.choice);
+    case 'DISCUSS_COMPANION_DESTINATION':
+      return discussCompanionDestination(state, action.payload);
+    case 'DISCUSS_COMPANION_RUMOR':
+      return discussCompanionRumor(state, action.payload);
+    case 'COMPANION_PREPARATION_CHOICE':
+      return applyCompanionPreparationChoice(state, action.payload.companionId, action.payload.choice);
     // Recruit an NPC (or promote an authored companion) into the party.
     //
     // Membership spans TWO unlinked stores (see DISCOVERY §1): the playable
@@ -44,18 +132,39 @@ export function companionReducer(state: GameState, action: AppAction): Partial<G
     // The soft cap is only a UI hint; we surface a non-blocking notice when the
     // party grows past it, but the recruit always succeeds.
     case 'RECRUIT_COMPANION': {
-      const { character, companion } = action.payload;
+      const { character, companion, source, hireCostGp } = action.payload;
 
       // Idempotency / safety: if this id is already an active party member,
       // don't double-append. (Re-recruiting a former member is fine: they were
       // removed from `party` on leave, so this path adds them back.)
       const alreadyInParty = state.party.some(member => member.id === character.id);
-      const nextParty = alreadyInParty ? state.party : [...state.party, character];
+      // Paid consent has already been evaluated by the existing offer owner.
+      // Money and membership still settle against this latest state together:
+      // stale funds, repeated hires or altered quotes cannot recruit for free.
+      let payment: ReturnType<typeof payPartyFunds> = null;
+      if (hireCostGp !== undefined) {
+        const expectedCost = 15 * Math.max(1, character.level ?? 1);
+        if (source !== 'tavern' || alreadyInParty || character.id !== companion.id
+          || !Number.isFinite(hireCostGp) || hireCostGp !== expectedCost) return {};
+        payment = payPartyFunds(state, hireCostGp);
+        if (!payment) return {};
+      }
+      // Both authored invitation paths converge here. The same met NPC keeps
+      // their rolled mechanics and worn gear when consent actually recruits
+      // them; repeated recruitment never replaces an active, injured member.
+      const recruitedCharacter = !alreadyInParty && source === 'promote' && state.generatedNpcs?.[companion.id]
+        ? promoteCompanionToMember(companion, character.class.id, character.level, state.generatedNpcs[companion.id]).character
+        : character;
+      const withCapabilities = !alreadyInParty && source === 'promote'
+        ? authoredCompanionCapabilities(recruitedCharacter, companion, 'new-recruit', state) : recruitedCharacter;
+      const nextParty = alreadyInParty ? state.party : [...state.party, withCapabilities];
 
       const messages = [...state.messages];
       messages.push({
         id: Date.now(),
-        text: `${companion.identity.name} joins the party.`,
+        text: payment
+          ? `You pay ${hireCostGp} gold and ${companion.identity.name} joins your party.`
+          : `${companion.identity.name} joins the party.`,
         sender: 'system',
         timestamp: inGameTimestamp(state.gameTime),
       });
@@ -71,7 +180,14 @@ export function companionReducer(state: GameState, action: AppAction): Partial<G
       }
 
       return {
+        ...(payment ?? {}),
         party: nextParty,
+        // Recruitment and Load use the same local-roster convention. Leaving
+        // a joined id here previously changed the save on its first reload.
+        ...(state.currentLocationActiveDynamicNpcIds?.includes(companion.id) ? {
+          currentLocationActiveDynamicNpcIds: state.currentLocationActiveDynamicNpcIds.filter(id => id !== companion.id).length
+            ? state.currentLocationActiveDynamicNpcIds.filter(id => id !== companion.id) : null,
+        } : {}),
         companions: {
           ...state.companions,
           [companion.id]: { ...companion, inParty: true },
@@ -119,7 +235,8 @@ export function companionReducer(state: GameState, action: AppAction): Partial<G
       if (companion) {
         result.companions = {
           ...state.companions,
-          [memberId]: { ...companion, inParty: false },
+          [memberId]: state.party.some(member => member.id === memberId)
+            ? separatedCompanion(state, companion, 'dismissed') : { ...companion, inParty: false },
         };
         result.messages = [
           ...state.messages,
@@ -258,7 +375,8 @@ export function companionReducer(state: GameState, action: AppAction): Partial<G
         party: state.party.filter(member => member.id !== companionId),
         companions: {
           ...state.companions,
-          [companionId]: { ...companion, inParty: false },
+          [companionId]: state.party.some(member => member.id === companionId)
+            ? separatedCompanion(state, companion, 'deserted') : { ...companion, inParty: false },
         },
         messages: [
           ...state.messages,

@@ -9,6 +9,13 @@ import { handleCastSpell } from '../handleResourceActions';
 import type { GameState, PlayerCharacter, Spell } from '../../../types';
 import type { AppAction } from '../../../state/actionTypes';
 import { spellService } from '../../../services/SpellService';
+import longstriderData from '../../../../public/data/spells/level-1/longstrider.json';
+import shieldData from '../../../../public/data/spells/level-1/shield.json';
+import { getMovementSpeed } from '../../../utils/character/partyStatUtils';
+import waterSpell from '../../../../public/data/spells/level-1/create-or-destroy-water.json';
+import {ALL_ITEMS} from '../../../data/items';
+import {createMockGameState} from '../../../utils/core/factories';
+import {GamePhase} from '../../../types';
 
 vi.mock('../../../services/SpellService', () => ({
     spellService: {
@@ -120,6 +127,38 @@ describe('handleCastSpell (out-of-combat spellbook path)', () => {
         dispatched = [];
         messages = [];
         getSpellDetails.mockReset();
+    });
+    it('refuses water without a mode/vessel before spending, then sends one verified atomic water cast',async()=>{
+        const caster=makeCaster({spellbook:{cantrips:[],knownSpells:['create-or-destroy-water'],preparedSpells:['create-or-destroy-water']}});
+        const vessel={...ALL_ITEMS.waterskin,quantity:1};
+        const state=createMockGameState({phase:GamePhase.PLAYING,party:[caster],inventory:[vessel]});
+        getSpellDetails.mockResolvedValue(waterSpell as Spell);
+        const payload={characterId:caster.id,spellId:'create-or-destroy-water',spellLevel:1,outOfCombat:{targetCharacterId:caster.id}};
+        await handleCastSpell(dispatch,payload,state,addMessage);
+        expect(dispatched).toEqual([]);expect(messages.join(' ')).toContain('Choose a contained-water mode');
+        const explicit={...payload,outOfCombat:{...payload.outOfCombat,water:{mode:'create' as const,inventoryIndex:0,sourceItem:vessel,castId:'one'}}};
+        await handleCastSpell(dispatch,explicit,state,addMessage);
+        expect(dispatched).toEqual([{type:'CAST_SPELL',payload:explicit}]);
+    });
+
+    it('refuses an untriggered Shield before any slot or effect dispatch', async () => {
+        getSpellDetails.mockResolvedValue(shieldData as Spell);
+        const caster=makeCaster(), state=makeGameState([caster]), before=structuredClone(state);
+        await handleCastSpell(dispatch,{characterId:'pc-caster',spellLevel:1,spellId:'shield',
+            outOfCombat:{targetCharacterId:'pc-caster'}},state,addMessage);
+        expect(dispatched).toEqual([]);
+        expect(state).toEqual(before);
+        expect(messages.some(m=>m.includes('Reaction spell — use it when its trigger occurs.'))).toBe(true);
+    });
+
+    it.each(['missing identity','failed lookup'] as const)('does not debit an unverifiable downtime spell after %s', async reason => {
+        if(reason==='failed lookup')getSpellDetails.mockRejectedValue(new Error('fixture unavailable'));
+        const caster=makeCaster(),state=makeGameState([caster]),before=structuredClone(state);
+        await handleCastSpell(dispatch,{characterId:'pc-caster',spellLevel:1,
+            ...(reason==='failed lookup'?{spellId:'shield'}:{}),outOfCombat:{targetCharacterId:'pc-caster'}},state,addMessage);
+        expect(dispatched).toEqual([]);
+        expect(state).toEqual(before);
+        expect(messages).toHaveLength(1);
     });
 
     it('dispatches CAST_SPELL with the exact payload, then heals the chosen target', async () => {
@@ -267,4 +306,20 @@ describe('handleCastSpell (out-of-combat spellbook path)', () => {
         expect(dispatched).toHaveLength(1);
         expect(dispatched[0].type).toBe('CAST_SPELL');
     });
+});
+
+
+it('keeps Longstrider slot, live effect and open-sheet speed in the same cast', async () => {
+    getSpellDetails.mockResolvedValue(longstriderData as unknown as Spell);
+    const caster=makeCaster({speed:30,class:{id:'ranger',name:'Ranger'},spellbook:{preparedSpells:['longstrider'],cantrips:[],knownSpells:[]}});
+    const state={...makeGameState([caster],caster),gameTime:new Date('0351-01-01T09:04:10Z')};
+    const dispatch=vi.fn(),message=vi.fn();
+    await handleCastSpell(dispatch,{characterId:caster.id!,spellId:'longstrider',spellLevel:1,outOfCombat:{targetCharacterId:caster.id!}},state,message);
+    expect(dispatch.mock.calls.filter(([a])=>a.type==='CAST_SPELL')).toHaveLength(1);
+    const applied=dispatch.mock.calls.map(([a])=>a).find(a=>a.type==='APPLY_CHARACTER_STATUS_EFFECT');
+    expect(applied.payload.statusEffect).toMatchObject({effect:{type:'stat_modifier',stat:'speed',value:10},worldTime:{appliedAtMs:state.gameTime.getTime(),expiresAtMs:state.gameTime.getTime()+3600000}});
+    const refreshed=dispatch.mock.calls.map(([a])=>a).find(a=>a.type==='OPEN_CHARACTER_SHEET').payload;
+    expect(refreshed.spellSlots.level_1.current).toBe(1);
+    expect(getMovementSpeed(refreshed)).toBe(40);
+    expect(caster.spellSlots?.level_1.current).toBe(2);expect(caster.speed).toBe(30);
 });

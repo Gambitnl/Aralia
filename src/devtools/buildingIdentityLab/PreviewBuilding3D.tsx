@@ -24,9 +24,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 04/10/2026, 00:42:29
+ * Last Sync: 28/10/2026, 05:58:04
  * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, devtools/buildingIdentityLab/BuildingIdentityLab.tsx
- * Imports: 10 files
+ * Imports: 11 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -73,6 +73,7 @@ import React, { useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, type ThreeEvent } from '@react-three/fiber';
 import { ContactShadows, Edges, Html, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
+import { buildBeamGeometry } from '@/systems/world3d/beamGeometry';
 import { toonGradient } from '@/systems/entities3d/three/toon';
 import type { BlueprintPlan } from '@/systems/worldforge/interior/blueprintTypes';
 import { blueprintSiteOrigin } from '@/systems/worldforge/interior/blueprintTypes';
@@ -540,7 +541,9 @@ const PreviewBuilding3D: React.FC<PreviewBuilding3DProps> = ({
     },
   });
 
-  const boxGeometries = useMemo(() => model.boxes.map(b => applyWallSurfaceUvs(
+  // The workbench reads the live world's timber shape rather than drawing its
+  // conservative collision bounds as a solid panel across the stairs.
+  const boxGeometries = useMemo(() => model.boxes.map(b => b.beam ? buildBeamGeometry(b.beam) : applyWallSurfaceUvs(
     new THREE.BoxGeometry(b.w, b.h, b.d),
     { x: b.x, y: b.z0 + b.h / 2, z: b.y }, 0.3048,
   )), [model.boxes]);

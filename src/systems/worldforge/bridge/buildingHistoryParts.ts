@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 14/07/2026, 21:20:42
- * Dependents: systems/worldforge/bridge/interiorParts.ts
- * Imports: 3 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file turns permanent backstory and live building events into visible
  * 3D parts.
@@ -31,6 +15,22 @@
  * Called by: interiorParts.ts
  * Depends on: BlueprintPlan history targets and the shared SitePart contract
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/10/2026, 17:45:36
+ * Dependents: state/reducers/townReducer.ts, systems/worldforge/bridge/interiorParts.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import type {
   BlueprintPlan,
@@ -88,7 +88,10 @@ function requireWallRun(
   const floor = blueprint.floors.find((candidate) =>
     candidate.level === feature.floorLevel);
   const run = floor?.wallRuns[feature.wallRunIndex];
-  if (!run || run.kind !== 'outer') {
+  // An admitted extension can enclose a formerly exterior patched wall.
+  // The recorded patch still belongs to that retained masonry surface; other
+  // exterior history kinds keep their existing outer-wall requirement.
+  if (!run || (run.kind !== 'outer' && feature.kind !== 'patched-wall')) {
     throw new Error(
       `buildBuildingHistoryParts: ${feature.kind} targets missing outer wall ` +
       `${feature.floorLevel}:${feature.wallRunIndex}`,

@@ -17,7 +17,7 @@ import { disarmGlyph } from '../../systems/puzzles/arcaneGlyphSystem';
 import { PlayerCharacter } from '../../types/character';
 import { Item } from '../../types/items';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
-import { useDice } from '../../contexts/DiceContext';
+import { useDice } from '../../context/DiceContext';
 
 interface LockpickingModalProps {
     isOpen: boolean;

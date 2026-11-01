@@ -146,10 +146,9 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
   // interior-hole reasoning).
   const geometry = useMemo(
     () => buildTerrainGeometry({ mapData, tileGrid, width, height, interiorHoleInsetTiles }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mapData.seed is the
-    // only mapData field the geometry depends on; widening this to `mapData`
-    // would rebuild a quarter-million vertices on unrelated map-state changes.
-    [tileGrid, width, height, mapData.seed, interiorHoleInsetTiles]
+    // mapData adds no rebuilds: tileGrid above already rebuilds on every mapData change.
+    // The old suppression here never applied (its comment ran over two lines) (C9).
+    [tileGrid, width, height, mapData, interiorHoleInsetTiles]
   );
 
   useEffect(() => {

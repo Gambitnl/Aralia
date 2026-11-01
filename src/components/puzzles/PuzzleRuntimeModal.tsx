@@ -21,6 +21,7 @@ import { Lightbulb, ScrollText } from 'lucide-react';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import type { PlayerCharacter } from '../../types';
+import type { AppAction } from '../../state/actionTypes';
 import type { Puzzle, PuzzleResult } from '../../systems/puzzles/types';
 import { requestPuzzleHint, type PuzzleRuntimeHintResult } from '../../systems/puzzles/puzzleRuntime';
 import { attemptPuzzleInput } from '../../systems/puzzles/puzzleSystem';
@@ -30,6 +31,9 @@ interface PuzzleRuntimeModalProps {
   onClose: () => void;
   puzzle: Puzzle;
   character: PlayerCharacter;
+  // Optional so standalone unit tests can render without a full AppState
+  // reducer harness while GameModals wires live PUZZLE_ATTEMPT dispatches.
+  dispatch?: React.Dispatch<AppAction>;
 }
 
 // ============================================================================
@@ -85,21 +89,14 @@ export function getUnplacedRequiredItems(puzzle: Puzzle): string[] {
 // ============================================================================
 // Puzzle Runtime Modal
 // ============================================================================
-// This surface owns the live Puzzle object, the hint caller, and — since
+// This surface owns the live Puzzle UI, the hint caller, and — since
 // agora-b877 — solve attempts.
 //
-// Attempts are sent to `attemptPuzzleInput` against the LIVE puzzle record that
-// GameModals passes down from `state.activePuzzle`. That is deliberate:
-// puzzleSystem.ts is written to advance puzzle state in place
-// (`puzzle.isSolved = true`, `puzzle.currentInputSequence.push(...)`), and the
-// reducer holds that same object, so progress survives the player closing and
-// reopening the modal. The React re-render is driven by the stored attempt
-// result, and the render body reads the mutated record directly.
-//
-// What this does NOT do: there is no PUZZLE_ATTEMPT reducer action, so the
-// mutation never flows through the reducer pipeline and a save written from a
-// snapshot-copying path would not carry it. Filed as a workflow/system gap
-// rather than papered over here.
+// As of WF-G231, solve attempts no longer mutate the incoming `puzzle` prop in
+// place. Instead, `handleAttempt` clones the current puzzle record before
+// calling `attemptPuzzleInput` for immediate local feedback and dispatches
+// `PUZZLE_ATTEMPT` (`{ puzzleId, input }`) so `uiReducer` produces a fresh
+// `state.activePuzzle` reference through the normal reducer pipeline.
 // ============================================================================
 
 export const PuzzleRuntimeModal: React.FC<PuzzleRuntimeModalProps> = ({
@@ -107,10 +104,18 @@ export const PuzzleRuntimeModal: React.FC<PuzzleRuntimeModalProps> = ({
   onClose,
   puzzle,
   character,
+  dispatch,
 }) => {
+  const [currentPuzzle, setCurrentPuzzle] = useState<Puzzle>(puzzle);
   const [hintResult, setHintResult] = useState<PuzzleRuntimeHintResult | null>(null);
   const [attemptResult, setAttemptResult] = useState<PuzzleResult | null>(null);
   const [riddleAnswer, setRiddleAnswer] = useState('');
+
+  // Keep the local mirror synchronized whenever the parent reducer supplies a
+  // new activePuzzle reference or a different puzzle opens.
+  useEffect(() => {
+    setCurrentPuzzle(puzzle);
+  }, [puzzle]);
 
   // Reset transient output whenever a new puzzle opens.
   useEffect(() => {
@@ -125,17 +130,31 @@ export const PuzzleRuntimeModal: React.FC<PuzzleRuntimeModalProps> = ({
     // Route the first gameplay hint request through the puzzle runtime surface.
     const result = requestPuzzleHint({
       character: getPuzzleHintStats(character),
-      puzzle,
+      puzzle: currentPuzzle,
     });
     setHintResult(result);
-  }, [character, puzzle]);
+  }, [character, currentPuzzle]);
 
   const handleAttempt = useCallback((input: string) => {
-    // puzzleSystem owns every puzzle rule. The modal only decides WHICH input
-    // the player just chose; it never re-implements the solve check.
-    const result = attemptPuzzleInput(puzzle, input);
+    // puzzleSystem owns every puzzle rule. Clone the puzzle record and its
+    // input sequence before calling attemptPuzzleInput so the incoming prop is
+    // never mutated in place (WF-G231), then dispatch PUZZLE_ATTEMPT so the
+    // reducer pipeline persists the new activePuzzle immutably.
+    const nextPuzzle: Puzzle = {
+      ...currentPuzzle,
+      currentInputSequence: [...currentPuzzle.currentInputSequence],
+    };
+    const result = attemptPuzzleInput(nextPuzzle, input);
+    setCurrentPuzzle(nextPuzzle);
     setAttemptResult(result);
-  }, [puzzle]);
+    dispatch?.({
+      type: 'PUZZLE_ATTEMPT',
+      payload: {
+        puzzleId: currentPuzzle.id,
+        input,
+      },
+    });
+  }, [currentPuzzle, dispatch]);
 
   const handleRiddleSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -147,19 +166,19 @@ export const PuzzleRuntimeModal: React.FC<PuzzleRuntimeModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Read straight off the live record so the panel reflects the mutation
-  // puzzleSystem just made.
-  const isResolved = puzzle.isSolved || puzzle.isFailed;
-  const sequenceSteps = getAuthoredSequenceSteps(puzzle);
-  const unplacedItems = getUnplacedRequiredItems(puzzle);
-  const isSequenceType = puzzle.type === 'sequence' || puzzle.type === 'combination';
+  // Read from the cloned/reducer-synced record so the panel reflects the pure
+  // state transition without mutating the caller's prop reference.
+  const isResolved = currentPuzzle.isSolved || currentPuzzle.isFailed;
+  const sequenceSteps = getAuthoredSequenceSteps(currentPuzzle);
+  const unplacedItems = getUnplacedRequiredItems(currentPuzzle);
+  const isSequenceType = currentPuzzle.type === 'sequence' || currentPuzzle.type === 'combination';
 
   return (
     // WindowFrame already provides the named dialog surface for this puzzle.
     // Avoid wrapping it in a second zero-height dialog, because browsers and
     // assistive tools will find the hidden wrapper before the visible window.
     <WindowFrame
-      title={puzzle.name}
+      title={currentPuzzle.name}
       onClose={onClose}
       storageKey={WINDOW_KEYS.PUZZLE_RUNTIME_MODAL}
     >
@@ -169,12 +188,12 @@ export const PuzzleRuntimeModal: React.FC<PuzzleRuntimeModalProps> = ({
               <ScrollText className="h-5 w-5" aria-hidden="true" />
               <span className="text-sm font-semibold uppercase tracking-wide">Puzzle</span>
             </div>
-            <h2 className="mt-2 text-xl font-bold text-white">{puzzle.name}</h2>
+            <h2 className="mt-2 text-xl font-bold text-white">{currentPuzzle.name}</h2>
           </div>
 
           <div className="scrollable-content flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4 sm:p-6">
             <p className="rounded border border-slate-700 bg-slate-900/70 p-4 text-sm leading-6 text-slate-200">
-              {puzzle.description}
+              {currentPuzzle.description}
             </p>
 
             {hintResult && (
@@ -190,40 +209,40 @@ export const PuzzleRuntimeModal: React.FC<PuzzleRuntimeModalProps> = ({
             )}
 
             {/* ------------------------------------------------------------
-                Solve attempts (agora-b877)
+                Solve attempts (agora-b877 / WF-G231)
                 ------------------------------------------------------------ */}
             <section aria-label="Solve attempts" className="flex flex-col gap-3">
               <div className="flex items-center justify-between text-xs uppercase tracking-wide text-slate-400">
                 <span>Attempt</span>
-                {typeof puzzle.maxAttempts === 'number' && (
+                {typeof currentPuzzle.maxAttempts === 'number' && (
                   <span data-testid="puzzle-attempt-counter">
-                    Attempts {puzzle.currentAttempts} / {puzzle.maxAttempts}
+                    Attempts {currentPuzzle.currentAttempts} / {currentPuzzle.maxAttempts}
                   </span>
                 )}
               </div>
 
-              {isSequenceType && puzzle.currentInputSequence.length > 0 && (
+              {isSequenceType && currentPuzzle.currentInputSequence.length > 0 && (
                 <p className="text-sm text-slate-300" data-testid="puzzle-entered-steps">
-                  Entered: {puzzle.currentInputSequence.join(' → ')}
+                  Entered: {currentPuzzle.currentInputSequence.join(' → ')}
                 </p>
               )}
 
               {isResolved ? (
                 <p
                   className={`rounded border p-3 text-sm ${
-                    puzzle.isSolved
+                    currentPuzzle.isSolved
                       ? 'border-emerald-500/60 bg-emerald-950/40 text-emerald-100'
                       : 'border-rose-500/60 bg-rose-950/40 text-rose-100'
                   }`}
                   data-testid="puzzle-resolved-state"
                 >
-                  {puzzle.isSolved
+                  {currentPuzzle.isSolved
                     ? 'This puzzle is solved. Nothing more to try.'
                     : 'The mechanism is jammed or broken. No further attempts are possible.'}
                 </p>
               ) : (
                 <>
-                  {puzzle.type === 'riddle' && (
+                  {currentPuzzle.type === 'riddle' && (
                     <form onSubmit={handleRiddleSubmit} className="flex flex-col gap-2 sm:flex-row">
                       <label className="sr-only" htmlFor="puzzle-riddle-answer">
                         Your answer
@@ -269,7 +288,7 @@ export const PuzzleRuntimeModal: React.FC<PuzzleRuntimeModalProps> = ({
                     )
                   )}
 
-                  {puzzle.type === 'item_placement' && (
+                  {currentPuzzle.type === 'item_placement' && (
                     unplacedItems.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {unplacedItems.map(itemId => (

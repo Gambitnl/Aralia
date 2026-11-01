@@ -11,15 +11,35 @@
  * not drift from the composite's 8,000 ft macro wavelength (the composite's
  * band 0 deliberately matches it — see BAND_SPANS_FT).
  *
+ * Shared IDW radius and ridge math live here; generateRegion forwards their
+ * existing public exports. Their equations, seed keys and error text are unchanged.
+ *
  * Everything here is a pure function of WORLD position and the WORLD seed. The
  * settlement dry-land floor is deliberately NOT included: it is a per-window
  * town pad, and a river must not route around it. The post-noise water
  * re-clamp is likewise excluded — it is a rendering discipline for the grid,
  * not a statement about where the land surface sits.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 24/10/2026, 20:32:10
+ * Dependents: systems/worldforge/region/generateRegion.ts, systems/worldforge/town/townRiverCourse.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { Feet } from '../units';
 import { makeWorldFeetNoise } from '../local/worldFeetNoise';
-import { makeMountainRidgeField, computeIdwRadiusFt } from './generateRegion';
+import { RIDGE_AMPLITUDE, RIDGE_SPAN_FT, RIDGE_START_N } from '../mountains/mountainTunables';
 
 /** An FMG cell center in feet with its normalized 0..1 height. */
 export interface HeightCandidate {
@@ -232,4 +252,80 @@ export function makeAtlasNaturalHeight(
     worldSeed >>> 0,
     NOISE_BASE_CELLS * resolutionFt,
   );
+}
+
+/**
+ * IDW neighborhood radius, world feet — a WORLD-level constant (depends only
+ * on the atlas point layout and feetPerPixel, never on the anchor or window),
+ * so every region computes the exact same per-sample neighborhood. Estimated
+ * as 4× the mean cell spacing: dense enough that every sample sees ~50
+ * surrounding cells (comparable context to the old BFS membership), and
+ * guaranteed non-empty (nearest cell is always ≤ ~1 spacing away).
+ * Exported for tests.
+ */
+export function computeIdwRadiusFt(
+  cellPoints: Array<[number, number]>,
+  feetPerPixel: number,
+): number {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let n = 0;
+  for (const p of cellPoints) {
+    if (!p) continue;
+    n++;
+    if (p[0] < minX) minX = p[0];
+    if (p[0] > maxX) maxX = p[0];
+    if (p[1] < minY) minY = p[1];
+    if (p[1] > maxY) maxY = p[1];
+  }
+  if (n === 0) throw new Error('[generateRegion] atlas has no cell points');
+  // Mean spacing of an n-point layout over its extent (≥1 px floor for
+  // degenerate single-point layouts).
+  const spacingPx = Math.max(1, Math.sqrt(((maxX - minX) * (maxY - minY)) / n));
+  return 4 * spacingPx * feetPerPixel;
+}
+
+/** Clamped smoothstep on [0,1]: 0 for t ≤ 0, 1 for t ≥ 1, C1 in between. The
+ * `t ≤ 0 → 0` clamp is what makes the ridge boost EXACTLY 0 below the line. */
+function smoothstep01(t: number): number {
+  if (t <= 0) return 0;
+  if (t >= 1) return 1;
+  return t * t * (3 - 2 * t);
+}
+
+/**
+ * Build the MOUNTAIN RIDGE field (Task 11): a domain-warped, ridged world-feet
+ * noise that adds real peaks to high country, returning the feet-normalized
+ * height delta to ADD to a heightfield sample.
+ *
+ * `(fx, fy, baseH) => delta`, where:
+ *  - `ridgeBoost = smoothstep01((baseH − RIDGE_START_N) / (1 − RIDGE_START_N))`
+ *    ramps the effect in above RIDGE_START_N. For `baseH ≤ RIDGE_START_N` the
+ *    boost is EXACTLY 0, so the delta is EXACTLY 0 and the sample is unchanged —
+ *    the lowland-invariance hard gate, true by construction (no float drift).
+ *  - the ridged component is `1 − 2|n|` of a world-feet noise sampled at
+ *    coordinates domain-warped by two aux world-feet noises (±0.35·RIDGE_SPAN_FT),
+ *    exactly mirroring the octave loop's ridge transform.
+ *
+ * Keyed off the WORLD seed (`worldSeed ^ constants`) and indexed by WORLD FEET,
+ * never the region path/grid — so two adjacent regions add the identical delta
+ * at a shared world point and the relief meets seamlessly across region borders,
+ * the same construction the octave loop already relies on. Pure.
+ */
+export function makeMountainRidgeField(
+  worldSeed: number,
+): (fx: number, fy: number, baseH: number) => number {
+  const ridgeBase = makeWorldFeetNoise((worldSeed ^ 0x52444745) >>> 0, RIDGE_SPAN_FT); // 'RDGE'
+  const warpX = makeWorldFeetNoise((worldSeed ^ 0x57727058) >>> 0, RIDGE_SPAN_FT); // 'WrpX'
+  const warpY = makeWorldFeetNoise((worldSeed ^ 0x57727059) >>> 0, RIDGE_SPAN_FT); // 'WrpY'
+  const WARP_FT = 0.7 * RIDGE_SPAN_FT; // (noise − 0.5) spans ±0.35·RIDGE_SPAN_FT
+  const span = 1 - RIDGE_START_N;
+  return (fx: number, fy: number, baseH: number): number => {
+    const boost = smoothstep01((baseH - RIDGE_START_N) / span);
+    if (boost === 0) return 0; // baseH ≤ RIDGE_START_N ⇒ lowland-invariant
+    const dx = (warpX(fx, fy) - 0.5) * WARP_FT;
+    const dy = (warpY(fx, fy) - 0.5) * WARP_FT;
+    const n = ridgeBase(fx + dx, fy + dy) * 2 - 1; // [0,1] → [-1,1]
+    const ridge = 1 - 2 * Math.abs(n); // ridge transform → crest lines
+    return ridge * RIDGE_AMPLITUDE * boost;
+  };
 }

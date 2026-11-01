@@ -113,10 +113,19 @@ describe('TownPlanView', () => {
         }
       }
     }
-  });
+  // 20 s: the deep-lot rule (GG-545, 2026-10-31) raised this 12,000-person
+  // town to about 680 buildings, and the per-block checks scan every building
+  // once per block. It takes about 8 s alone, over the 5 s default.
+  }, 20_000);
 
   it('renders each canonical shared court with district and amenity evidence', () => {
-    const plan = generateTownPlan(footprint, rootSeedPath(1420), { population: 12_000 });
+    // RE-PINNED (GG-552 after GG-563..GG-567, 2026-11-01): seed 1420 lost its
+    // back courts to the deeper garden rows of its wealthy wards (GG-564).
+    // After the GG-563 block shapes the small schematic city keeps none at any
+    // seed (GG-577), so this renders a capital that keeps two.
+    const CAP: Pt[] = [[-500, -500], [500, -500], [500, 500], [-500, 500]];
+    const RD: Pt[] = [[-600, 40], [-200, 20], [200, -10], [600, 30]];
+    const plan = generateTownPlan(CAP, rootSeedPath(32), { population: 30_000, roads: [RD], feetPerUnit: 2 });
     const { container } = render(
       <TownPlanView plan={plan} width={600} height={400} />,
     );

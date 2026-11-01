@@ -14,6 +14,9 @@ import type { LifeEventKind, LivingVillager, TownSimState } from '../../townsim/
 import {
   advanceAgentLifeDays,
   livingRosterAt,
+  residentAliveAt,
+  residentLifeStatusAt,
+  villagerForResident,
   replayAgentLifeTo,
   resolveAgentLifeMoment,
 } from '../agentLife';
@@ -104,6 +107,63 @@ function generatedRoster(): TownRoster {
 // These expectations mirror simulateMindsTo: a target earlier than the replay
 // anchor is forward across midnight, and wrapped anchors are equivalent.
 // ============================================================================
+
+describe('saved household life identity', () => {
+  it('does not attach one old death to two current people with the same name', () => {
+    const state=initialState(); state.villagers[2].diedDay=0;
+    const resident={name:'Mara Rowan',homePlotId:2,householdMemberId:'b2:child:0'};
+    expect(villagerForResident(state,resident,false)).toBeUndefined();
+    expect(residentLifeStatusAt(state,resident,0,false)).toBe('unresolved');
+    expect(residentAliveAt(state,resident,0,false)).toBe(true);
+    state.villagers[2].householdMemberId='b2:child:0';
+    expect(residentLifeStatusAt(state,resident,0,false)).toBe('deceased');
+  });
+  it('distinguishes a future birth from a death or absent history', () => {
+    const state=initialState(); state.villagers[2].bornDay=5;
+    expect(residentLifeStatusAt(state,{name:'Mara Rowan',homePlotId:2},3)).toBe('not-born');
+    expect(residentLifeStatusAt(state,{name:'New Person',homePlotId:2},3)).toBe('untracked');
+  });
+  it('does not give a shifted roster slot another person’s life or workplace', () => {
+    const state = initialState();
+    state.villagers[2].diedDay = 0;
+    const roster = generatedRoster();
+    roster.occupants[1].id = 3;
+    roster.occupants[2].id = 2;
+    expect(residentAliveAt(state, roster.occupants[1], 0)).toBe(false);
+    expect(residentAliveAt(state, roster.occupants[2], 0)).toBe(true);
+    const living = livingRosterAt(state, roster, 0);
+    expect(living.occupants.find(o => o.id === 3)).toMatchObject({name: 'Tomas Vale', occupation: 'resident'});
+    expect(living.occupants.find(o => o.id === 3)?.workPlotId).toBeUndefined();
+  });
+
+  it('uses saved household provenance after a name or home changes', () => {
+    const state = initialState();
+    state.villagers[2].householdMemberId = 'b2:head';
+    state.villagers[2].diedDay = 1;
+    const resident = {name: 'Mara Changed', homePlotId: 12, householdMemberId: 'b2:head'};
+    expect(villagerForResident(state, resident)).toBe(state.villagers[2]);
+    expect(residentAliveAt(state, resident, 0)).toBe(true);
+    expect(residentAliveAt(state, resident, 1)).toBe(false);
+    expect(residentAliveAt(state, resident, 2)).toBe(false);
+  });
+
+  it('leaves ambiguous and absent legacy identities unresolved without changing history', () => {
+    const state = initialState();
+    state.villagers[5] = {...state.villagers[2], occupantId: 5, diedDay: 0};
+    const before = JSON.stringify(state);
+    expect(villagerForResident(state, {name: 'Mara Rowan', homePlotId: 2})).toBeUndefined();
+    expect(residentAliveAt(state, {name: 'Mara Rowan', homePlotId: 2}, 0)).toBe(true);
+    expect(villagerForResident(state, {name: 'Mara Rowan', homePlotId: 99})).toBeUndefined();
+    expect(JSON.stringify(state)).toBe(before);
+  });
+
+  it('does not borrow a tagged resident’s history through an unrelated legacy name', () => {
+    const state = initialState();
+    state.villagers[2].householdMemberId = 'b2:head';
+    state.villagers[2].diedDay = 0;
+    expect(villagerForResident(state, {name: 'Mara Rowan', homePlotId: 2, householdMemberId: 'b2:child:0'})).toBeUndefined();
+  });
+});
 
 describe('agent life clock resolution', () => {
   it('keeps arbitrary dayStart and midnight progression explicit', () => {

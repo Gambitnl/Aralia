@@ -14,7 +14,7 @@
  */
 // @dependencies-end
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ExternalLink,
   Eye,
@@ -28,7 +28,7 @@ import {
 import AtlasMapView from '../../Worldforge/AtlasMapView';
 import AtlasSvgView from '../../Worldforge/AtlasSvgView';
 import type { AtlasOverlayMode } from '../../Worldforge/atlasDraw';
-import { getBridgeAtlas } from '../../../systems/worldforge/bridge/legacySubmapBridge';
+import { useOffThreadBridgeAtlas } from '../../Worldforge/useOffThreadBridgeAtlas';
 import type { FmgAtlasResult } from '../../../systems/worldforge/fmg/generateAtlas';
 import { Button } from '../../ui/Button';
 
@@ -42,7 +42,7 @@ import { Button } from '../../ui/Button';
  * restore its retired route or give it any gameplay state authority.
  *
  * Called by: DesignPreviewPage.tsx at `?step=worldforge`.
- * Depends on: getBridgeAtlas for shared geography, AtlasMapView for the retired
+ * Depends on: getBridgeAtlas (via useOffThreadBridgeAtlas) for shared geography, AtlasMapView for the retired
  * reference, and AtlasSvgView for the maintained player-facing renderer.
  */
 
@@ -230,9 +230,17 @@ export const PreviewWorldforge: React.FC = () => {
 
   // Generate once per applied seed, then hand the exact same object to both
   // renderers. This prevents data drift from being mistaken for visual drift.
-  const atlas = useMemo(() => getBridgeAtlas(seed), [seed]);
-  const cellCount = atlas.pack.cells.h.length;
-  const townCount = atlas.pack.burgs?.filter((burg) => burg && !burg.removed).length ?? 0;
+  // GG-555 (2026-11-01): the atlas worker builds the canonical world, so a new
+  // seed no longer freezes this page for ~4.5 s. It is still the same cached
+  // getBridgeAtlas object, handed to both renderers.
+  const { atlas, error: atlasError } = useOffThreadBridgeAtlas(seed);
+  const cellCount = atlas?.pack.cells.h.length ?? 0;
+  const townCount = atlas?.pack.burgs?.filter((burg) => burg && !burg.removed).length ?? 0;
+  const preparing = (
+    <div className="p-6 text-sm text-slate-400" data-testid="world-map-preparing">
+      {atlasError ? `The world did not build: ${atlasError}` : 'Preparing the world…'}
+    </div>
+  );
 
   // Apply only valid positive whole-number seeds. Invalid drafts stay visible
   // so the reviewer can correct them without either map changing underneath.
@@ -253,7 +261,7 @@ export const PreviewWorldforge: React.FC = () => {
     const host = window as unknown as Record<string, unknown>;
     host.__worldMapComparison = {
       seed,
-      atlasSeed: atlas.seed,
+      atlasSeed: atlas?.seed ?? null,
       referenceRenderer: 'canvas',
       canonicalRenderer: 'svg',
       referenceLens,
@@ -261,7 +269,7 @@ export const PreviewWorldforge: React.FC = () => {
       townCount,
     };
     return () => { delete host.__worldMapComparison; };
-  }, [atlas.seed, cellCount, referenceLens, seed, townCount]);
+  }, [atlas?.seed, cellCount, referenceLens, seed, townCount]);
 
   return (
     <div className="h-full overflow-y-auto bg-slate-950 text-slate-100 scrollable-content">
@@ -387,7 +395,7 @@ export const PreviewWorldforge: React.FC = () => {
               </div>
               <span className="w-fit rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-xs font-bold text-amber-200">Reference only</span>
             </div>
-            <CanvasReferenceSpecimen atlas={atlas} lens={referenceLens} />
+            {atlas ? <CanvasReferenceSpecimen atlas={atlas} lens={referenceLens} /> : preparing}
           </article>
 
           <article
@@ -406,7 +414,7 @@ export const PreviewWorldforge: React.FC = () => {
                 <ShieldCheck size={14} aria-hidden="true" /> Canonical
               </span>
             </div>
-            <CanonicalSvgSpecimen atlas={atlas} />
+            {atlas ? <CanonicalSvgSpecimen atlas={atlas} /> : preparing}
           </article>
         </section>
 

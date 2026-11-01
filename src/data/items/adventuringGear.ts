@@ -9,10 +9,39 @@
  * Merged into ALL_ITEMS (see ./index.ts). Kept as its own module so the
  * starting-loadout system has one clearly-bounded source for "the basic kit."
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 18:06:50
+ * Dependents: systems/gameplay/adventuringPacks.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { Item } from '../../types/index.js';
 import { ItemType } from '../../types';
+import { GENERATED_GLOSSARY_ITEMS } from './generatedGlossaryItems';
 
 export const ADVENTURING_GEAR: Record<string, Item> = {
+  // Normal acquisition can assign an instance id. Keep capacity on the catalog
+  // item itself so the known four-pint vessel remains usable after that copy.
+  // Other glossary fields and all previously saved vessels remain unchanged.
+  'waterskin': {...GENERATED_GLOSSARY_ITEMS.waterskin, waterCapacityGallons:0.5},
+  // The authored Explorer's Pack already promises this reusable tool. Give it
+  // a real catalog identity so opening the bundle does not invent loose prose.
+  'mess_kit': {
+    id: 'mess_kit', name: 'Mess Kit', icon: '🍽️',
+    description: 'A compact set of eating utensils and a cooking tin for a traveler.',
+    type: ItemType.Tool, weight: 1, cost: '2 SP',
+  },
   // --- Spellcasting focuses & arcane gear ---
   'arcane_focus': {
     id: 'arcane_focus', name: 'Arcane Focus', icon: '🔮',

@@ -1,6 +1,6 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor, act } from '@testing-library/react';
 import { useCombatOutcome } from '../useCombatOutcome';
 import { CombatCharacter } from '../../../types/combat';
 import { generateLoot } from '../../../services/lootService';
@@ -118,7 +118,9 @@ describe('useCombatOutcome', () => {
       initialEnemies
     }));
 
-    result.current.forceOutcome('victory');
+    act(() => {
+      result.current.forceOutcome('victory');
+    });
 
     await waitFor(() => {
       expect(result.current.battleState).toBe('victory');
@@ -126,5 +128,99 @@ describe('useCombatOutcome', () => {
 
     // Forced victory generates default rewards if none existed
     expect(result.current.rewards).not.toBeNull();
+  });
+
+  it('should support forcing flee outcome without rewards (GG-467)', async () => {
+    const { result } = renderHook(() => useCombatOutcome({
+      characters: [mockPlayer, mockEnemy],
+      initialEnemies
+    }));
+
+    act(() => {
+      result.current.forceOutcome('flee');
+    });
+
+    await waitFor(() => {
+      expect(result.current.battleState).toBe('flee');
+    });
+
+    expect(result.current.rewards).toBeNull();
+  });
+
+  it('should detect flee when all active player characters have escaped (GG-467)', async () => {
+    const { result } = renderHook(() => useCombatOutcome({
+      characters: [mockPlayer, mockEnemy],
+      initialEnemies,
+      escapedPlayerIds: ['p1']
+    }));
+
+    expect(result.current.battleState).toBe('flee');
+    expect(result.current.rewards).toBeNull();
+  });
+
+  it('passes canonical fractional CR to generateLoot and computes fractional CR XP', async () => {
+    const goblinEnemy: CombatCharacter = {
+      ...mockEnemy,
+      id: 'goblin-1',
+      name: 'Goblin',
+      level: 0.25,
+      cr: '1/4',
+      stats: { ...mockEnemy.stats, cr: '1/4' }
+    };
+    const defeatedGoblin = { ...goblinEnemy, currentHP: 0 };
+
+    const { result, rerender } = renderHook(({ chars }) => useCombatOutcome({
+      characters: chars,
+      initialEnemies: [goblinEnemy]
+    }), {
+      initialProps: { chars: [mockPlayer, goblinEnemy] }
+    });
+
+    rerender({ chars: [mockPlayer, defeatedGoblin] });
+
+    await waitFor(() => {
+      expect(result.current.battleState).toBe('victory');
+    });
+
+    expect(generateLoot).toHaveBeenCalledWith([
+      expect.objectContaining({
+        name: 'Goblin',
+        cr: '1/4'
+      })
+    ]);
+    expect(result.current.rewards?.xp).toBe(50); // CR 1/4 is worth 50 XP
+  });
+
+  it('preserves CR 0 for rats and does not inflate to CR 1', async () => {
+    const ratEnemy: CombatCharacter = {
+      ...mockEnemy,
+      id: 'rat-1',
+      name: 'Rat',
+      level: 0,
+      cr: '0',
+      stats: { ...mockEnemy.stats, cr: '0' }
+    };
+    const defeatedRat = { ...ratEnemy, currentHP: 0 };
+
+    const { result, rerender } = renderHook(({ chars }) => useCombatOutcome({
+      characters: chars,
+      initialEnemies: [ratEnemy]
+    }), {
+      initialProps: { chars: [mockPlayer, ratEnemy] }
+    });
+
+    rerender({ chars: [mockPlayer, defeatedRat] });
+
+    await waitFor(() => {
+      expect(result.current.battleState).toBe('victory');
+    });
+
+    expect(generateLoot).toHaveBeenCalledWith([
+      expect.objectContaining({
+        name: 'Rat',
+        cr: '0'
+      })
+    ]);
+    expect(result.current.rewards?.xp).toBe(10); // CR 0 is worth 10 XP
   });
 });

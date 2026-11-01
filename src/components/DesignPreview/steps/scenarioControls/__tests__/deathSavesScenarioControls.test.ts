@@ -236,7 +236,8 @@ describe('downed damage and healing', () => {
       { 'downed-damage': 'normal' },
       [stable, makeCharacter('training-target')],
     );
-    expect(tester(broken).deathSaves).toEqual({ successes: 3, failures: 1, isStable: false });
+    // When damage breaks stabilization, stale successes are reset to 0 (GG-445 / agora-1d80)
+    expect(tester(broken).deathSaves).toEqual({ successes: 0, failures: 1, isStable: false });
   });
 
   it('heals 5 HP, clears death saves and Unconscious, then replays safely', () => {

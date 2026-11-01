@@ -57,6 +57,9 @@ export default async function mount(ctx: OceanExtraContext): Promise<OceanExtra>
     // `&beachmatch=1` builds round 12's look, matched by measure to the Manly
     // frames (see `OceanBeachOptions.match`; off by default).
     match: new URLSearchParams(window.location.search).get('beachmatch') === '1',
+    // Beach round 20: `&beachswash=r16` runs the match on round 16's fitted
+    // swash (an A/B switch; the derived swash is the match's own).
+    ...(new URLSearchParams(window.location.search).get('beachswash') === 'r16' ? { matchSwash: 'r16' as const } : {}),
   });
   surface.setSeabed(beach.seabed.reader);
   ctx.scene.add(beach.seabed.mesh);

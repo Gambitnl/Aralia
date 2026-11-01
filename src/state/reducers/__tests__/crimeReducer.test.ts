@@ -181,3 +181,9 @@ describe('crimeReducer', () => {
     expect(newState.notoriety!.knownCrimes).toHaveLength(0);
   });
 });
+
+describe('rejected legal currency fence request', () => {
+  it('does not invent heat for the transaction rejected by the inventory owner', () => {
+    expect(crimeReducer(initialGameState,{type:'SELL_FENCED_ITEM',payload:{itemId:'gold_piece',value:0.1,locationId:'town',heatGenerated:1}})).toEqual({});
+  });
+});

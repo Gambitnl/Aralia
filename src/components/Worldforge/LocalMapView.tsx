@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 17/07/2026, 22:34:53
+ * Last Sync: 29/10/2026, 08:44:03
  * Dependents: components/Worldforge/AtlasDemo.tsx
- * Imports: 5 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -21,6 +21,7 @@ import { computeRegionFitView } from "./regionDraw";
 import type { LocalArtifact } from "../../systems/worldforge/artifacts";
 import { groundFocusesForLocal, type GroundFocus } from "../../systems/worldforge/leaf3d/atlasGroundDrilldown";
 import { drawOverlay, type OverlayMarker } from "./overlay";
+import { getCleanNumber } from "./atlasDraw";
 
 /**
  * Interactive viewport for the L2 LOCAL layer (3,000 ft / 600×600 5-ft
@@ -80,6 +81,11 @@ const LocalMapView: React.FC<LocalMapViewProps> = ({
   const lastPointerPos = useRef({ x: 0, y: 0 });
   const initialScaleRef = useRef(1);
   const viewRef = useRef(view);
+  // Local coordinates are feet, with north at the top. Reuse the atlas's
+  // readable distance steps, but derive the bar from this live Local zoom.
+  // Panning and inspecting the ruler never change the party's accepted feet.
+  const scaleFeet = getCleanNumber(120 / view.scale);
+  const scalePixels = scaleFeet * view.scale;
   const townIdentity = local.townPlan?.identity;
   const townRelationships = townIdentity
     ? [
@@ -106,10 +112,14 @@ const LocalMapView: React.FC<LocalMapViewProps> = ({
   // Esc ascends (back to the region view)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onAscend();
+      // Own Atlas ascent before global gameplay shortcuts, while leaving an
+      // open trade/dialog review in charge of its own dismissal.
+      if (e.key !== "Escape" || e.defaultPrevented || document.querySelector('[aria-modal="true"]')) return;
+      e.preventDefault();
+      onAscend();
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown, true);
+    return () => window.removeEventListener("keydown", handleKeyDown, true);
   }, [onAscend]);
 
   // Pointer drag panning
@@ -222,6 +232,20 @@ const LocalMapView: React.FC<LocalMapViewProps> = ({
       offsetX: view.offsetX,
       offsetY: view.offsetY,
     });
+    // Gate labels match entry choices and identify actual passages, rather than
+    // turning an arbitrary street endpoint into a presumed opening in the wall.
+    for (const [index, [x, y]] of (local.townPlan?.gates ?? []).entries()) {
+      const px = view.offsetX + (x - local.bounds.x) * view.scale;
+      const py = view.offsetY + (y - local.bounds.y) * view.scale;
+      ctx.fillStyle = '#fef3c7';
+      ctx.strokeStyle = '#78350f';
+      ctx.lineWidth = 2;
+      ctx.fillRect(px - 4, py - 4, 8, 8);
+      ctx.strokeRect(px - 4, py - 4, 8, 8);
+      ctx.font = 'bold 12px sans-serif';
+      ctx.strokeText(`Gate ${index + 1}`, px + 7, py - 7);
+      ctx.fillText(`Gate ${index + 1}`, px + 7, py - 7);
+    }
     // Persistent discoveries share the same absolute-feet coordinate space as
     // Local features, so the overlay lands on the precise ground source.
     drawOverlay(ctx, markers, {
@@ -304,7 +328,7 @@ const LocalMapView: React.FC<LocalMapViewProps> = ({
         <div className="absolute bottom-20 left-2 right-2 z-20 flex flex-wrap gap-2 rounded-xl border border-amber-400/30 bg-gray-950/90 p-2 shadow-xl backdrop-blur sm:left-4 sm:right-auto sm:max-w-[70%]">
           {groundFocusesForLocal(local).map((focus) => (
             <button
-              key={`${focus.kind}:${String(focus.id)}`}
+              key={`${focus.kind}:${String(focus.id)}:${focus.xFt}:${focus.yFt}`}
               type="button"
               onClick={() => onEnterGround(focus)}
               aria-label={`Enter ${focus.label} on Ground`}
@@ -319,6 +343,15 @@ const LocalMapView: React.FC<LocalMapViewProps> = ({
           ))}
         </div>
       )}
+
+      {/* Orientation belongs to the inspected map, not the camera heading. */}
+      <div data-testid="local-map-wayfinding" className="pointer-events-none absolute bottom-6 left-1/2 z-10 -translate-x-1/2 rounded-lg border border-gray-700 bg-gray-950/90 px-3 py-2 text-xs text-gray-100 shadow-lg">
+        <div className="mb-2 text-center font-semibold">↑ N · North is up</div>
+        <div data-testid="local-map-scale" aria-label={`Map distance: ${scaleFeet.toLocaleString()} feet`} style={{ width: scalePixels }}>
+          <div className="h-2 border-x border-b border-gray-100" />
+          <div className="mt-1 flex justify-between gap-4 font-mono text-[10px]"><span>0</span><span>{scaleFeet.toLocaleString()} ft</span></div>
+        </div>
+      </div>
 
       {/* Zoom controls. Keep icon-only map controls at the shared 44px target
           size so cramped panes remain usable without changing map behavior. */}

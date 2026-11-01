@@ -47,3 +47,19 @@ describe('resolveModelForTask — one model, no fallback', () => {
     expect(resolveOllamaModel('prose')).toBe(OLLAMA_CATEGORY_DEFAULT_MODEL.prose);
   });
 });
+
+
+describe('model changes after an earlier request',()=>{
+ beforeEach(()=>{resetRouterCache();localStorage.clear()});
+ it('honors a changed model choice without requiring a page reload',async()=>{
+  const client=clientWith(['first:latest','second:latest']);setOllamaModelChoice('dialogue','first');
+  expect(await resolveModelForTask(client,'npc_dialogue')).toBe('first:latest');
+  setOllamaModelChoice('dialogue','second');
+  expect(await resolveModelForTask(client,'npc_dialogue')).toBe('second:latest');
+ });
+ it('does not silently reuse the cached old model when the new choice is missing',async()=>{
+  const client=clientWith(['first:latest']);setOllamaModelChoice('dialogue','first');
+  await resolveModelForTask(client,'npc_dialogue');setOllamaModelChoice('dialogue','missing');
+  await expect(resolveModelForTask(client,'npc_dialogue')).rejects.toThrow(/missing/);
+ });
+});

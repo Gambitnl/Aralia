@@ -31,6 +31,12 @@ vi.mock('../../../utils/character/characterUtils', async (importOriginal) => {
 const mockCharacter: PlayerCharacter = createMockPlayerCharacter();
 
 describe('EquipmentMannequin', () => {
+  it('includes selected Dueling in the actual one-handed damage badge', () => {
+    const weapon = { id: 'longsword', name: 'Longsword', type: 'weapon', category: 'Martial Melee', damageDice: '1d8', properties: ['Versatile'] } as Item;
+    const character = { ...mockCharacter, selectedFightingStyle: { id: 'dueling', name: 'Dueling', description: '+2 damage', levelAvailable: 1 }, equippedItems: { MainHand: weapon } };
+    render(<EquipmentMannequin character={character} />);
+    expect(screen.getByText('1d8 + 4')).toBeInTheDocument();
+  });
   it('renders emoji fallback when item image fails to load', () => {
     const characterWithEmojiItem: PlayerCharacter = {
       ...mockCharacter,

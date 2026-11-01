@@ -143,6 +143,7 @@ describe('useDialogueSystem - handleTopicOutcome unlock propagation (DIAL-002/DI
 const knowledgeMocks = vi.hoisted(() => ({
     generateNPCResponse: vi.fn(
         async (_npcName: string, _playerInput: string, _systemPrompt: string) => ({
+            success: true,
             data: { text: 'Aye.' },
         })
     ),
@@ -184,6 +185,7 @@ vi.mock('../../data/world/npcs', async (importOriginal) => {
 describe('useDialogueSystem - knowledge profile in the AI prompt', () => {
     const makeKnowerState = (): GameState =>
         ({
+            worldSeed: 42,
             activeDialogueSession: {
                 npcId: 'npc-knower',
                 discussedTopicIds: [],

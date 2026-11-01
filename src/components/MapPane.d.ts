@@ -22,6 +22,7 @@
  * claim that it receives a legacy grid and reads it through a geography adapter
  * was already false when the adapter was deleted; the contract type now says so.
  */
+import type { GameState } from '../types/state';
 import React from 'react';
 import { WorldCellView } from '../types';
 import type { Item } from '@/types/items';
@@ -31,6 +32,8 @@ import type { Entry3DAnchor } from '@/types/state';
 import { type TripEventPartyMember } from '@/systems/travel/tripEvents';
 import type { Ship } from '@/types/naval';
 interface MapPaneProps {
+  /** Exact accepted ground state for the current-town marker; absent in previews. */
+  groundState?: GameState;
     worldSeed?: number;
     onTileClick: (x: number, y: number, cell: WorldCellView, travelMeta?: TravelMeta) => void;
     /** When set, clicking a discovered cell in Enter 3D mode starts streamed world entry. */
@@ -118,6 +121,8 @@ interface MapPaneProps {
      * (main-menu previews and tests plan season-free).
      */
     gameTime?: Date | null;
+    /** Accumulated travel minutes carried forward toward the next whole-day ration deduction (GG-471). */
+    travelMinutesRemainder?: number;
 }
 declare const MapPane: React.FC<MapPaneProps>;
 export default MapPane;

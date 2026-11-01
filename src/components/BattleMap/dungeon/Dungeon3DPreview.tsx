@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 04/08/2026, 01:52:29
- * Dependents: components/DesignPreview/steps/PreviewDungeon.tsx, components/World3D/DungeonExpeditionOverlay.tsx
- * Imports: 6 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file presents a generated dungeon as an explorable three-dimensional scene.
  *
@@ -31,19 +15,43 @@
  * Depends on: React Three Fiber for the canvas and drei for accessible camera controls/labels.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 02/11/2026, 00:18:50
+ * Dependents: components/DesignPreview/steps/PreviewDungeon.tsx, components/World3D/DungeonExpeditionOverlay.tsx
+ * Imports: 21 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Html, MapControls } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette, N8AO, ToneMapping } from '@react-three/postprocessing';
 import { BlendFunction, ToneMappingMode } from 'postprocessing';
 import * as THREE from 'three';
+import {applyDungeonVisibility, createDungeonVisibilityUniforms, type DungeonVisibilityUniforms} from './dungeonVisibilityMaterial';
+const DungeonVisibilityContext = React.createContext<DungeonVisibilityUniforms | null>(null);
+import {applyDungeonIndirectLight, createDungeonIndirectLight, type DungeonIndirectLight} from './dungeonIndirectLight';
+import {DungeonIndirectLighting} from './DungeonIndirectLighting';
+const DungeonIndirectContext = React.createContext<DungeonIndirectLight | null>(null);
 import { Button } from '../../ui/Button';
+import {CarriedTorchIgnition,type CarriedTorchChoice} from './CarriedTorchIgnition';
 import type { Cell, DungeonPlan, DungeonTheme } from '../../../systems/worldforge/dungeon/types';
 import type { DungeonIdentity } from '../../../systems/worldforge/dungeon/world/dungeonIdentity';
 import {
   canClaimDungeonTreasure,
   canClearDungeonEncounter,
   dungeonCellToScenePosition,
+  dungeonEncounterEventId,
+  dungeonSpawnCell,
   dungeonEntrancePlayerCell,
   dungeonPathToEncounterInteraction,
   dungeonPathToTreasureInteraction,
@@ -52,10 +60,21 @@ import {
   moveDungeonPlayer,
   type DungeonMoveDirection,
 } from '../../../systems/worldforge/dungeon/world/dungeonGameplay';
+import { dungeonPlayerCameraFrame } from './dungeonPlayerCamera';
+import { dungeonCaches } from '../../../systems/worldforge/dungeon/world/dungeonCaches';
+import { dungeonObjectId, nearbyDungeonObjects, type DungeonObjectFinding } from '../../../systems/worldforge/dungeon/world/dungeonObjectActions';
+import type {LightSource} from '../../../types/underdark';
+import type {PlayerCharacter} from '../../../types/character';
+import {DungeonPartyFigure} from './DungeonPartyFigure';
+import {DungeonCreatureFigure} from './DungeonCreatureFigure';
+import {visibleDungeonCreatures,type DungeonCreatureActor} from './dungeonCreatureActors';
+import {createDungeonSurfaceMaterial} from './dungeonSurfaceMaterial';
 import { revealedDungeonCellKeys } from '../../../systems/worldforge/dungeon/world/dungeonMap';
 import { PerfProbe } from '../../../devtools/perf';
+import {calculateDifficulty} from '../../../utils/combat/encounterDifficulty';
 import {
   buildDungeonSceneModel,
+  dungeonPlayerAccentLights,
   dungeonThemeLighting,
   type DungeonSceneInstance,
   type DungeonSceneLine,
@@ -70,7 +89,7 @@ import {
 // if the framing formula changes as the renderer evolves.
 // ============================================================================
 
-export type DungeonCameraPreset = 'tactical' | 'entrance' | 'objective';
+export type DungeonCameraPreset = 'player' | 'tactical' | 'entrance' | 'objective';
 
 export interface Dungeon3DOverlays {
   graph: boolean;
@@ -91,12 +110,33 @@ export interface Dungeon3DObjectiveTarget {
 
 export interface Dungeon3DGameplay {
   identity: DungeonIdentity;
+  /** Actual lead party identity and equipped gear; the renderer owns no character state. */
+  playerCharacter?: PlayerCharacter;
+  /** Explicit developer mode keeps progress simulators out of ordinary play. */
+  developerTools?: boolean;
+  /** Reading the map suspends walking and rendering without losing the accepted cell. */
+  paused?: boolean;
+  /** Accepted floor positions let the expedition require actual stair arrival. */
+  onPlayerCellChange?: (cell: Cell) => void;
+  /** Open only an ordinary door adjacent to accepted footing; the parent persists the route. */
+  onOpenDoor?: (target: Cell, player: Cell) => void;
+  objectFindings?: Readonly<Record<string, DungeonObjectFinding>>;
+  onObjectInteraction?: (id:string,intent:'examine'|'collect'|'light_torch',inventoryIndex?:number) => void;
+  carriedTorch?: LightSource;
+  carriedTorchIndex?: number;
+  /** Explicit carried sources keep a partly burned torch distinct from a fresh backup. */
+  carriedTorchChoices?: readonly CarriedTorchChoice[];
+  getTorchUseError?: (inventoryIndex:number,sourceObjectId:string)=>string|null;
+  onExtinguishTorch?: () => void;
   claimedTreasureIds: readonly string[];
   onClaimTreasure: (eventId: string) => void;
   /** Encounters already cleared on this level, as persisted by the canonical lifecycle ledger. */
   clearedEncounterIds: readonly string[];
   /** Defeating a generated encounter reports its stable id; the reducer owns durable progress. */
   onClearEncounter: (eventId: string) => void;
+  /** Start normal initiative against a currently visible source creature from accepted footing. */
+  onStartEncounter?: (eventId: string, playerCell: Cell) => Promise<void>;
+  partyLevels?: readonly number[];
   /** Current-level discovery already stored by the canonical dungeon lifecycle ledger. */
   discoveredCellKeys: readonly string[];
   /** Movement reports only newly visible canonical cell keys; the reducer owns persistence. */
@@ -128,6 +168,7 @@ interface SceneProbeWindow extends Window {
   };
 }
 
+const NO_OBJECT_FINDINGS: Readonly<Record<string,DungeonObjectFinding>> = {};
 const NO_CLAIMED_TREASURE: readonly string[] = [];
 const NO_CLEARED_ENCOUNTERS: readonly string[] = [];
 const NO_DISCOVERED_CELLS: readonly string[] = [];
@@ -150,6 +191,9 @@ const InstancedPieces: React.FC<{
   solidColor?: string;
   opacity?: number;
   castShadow?: boolean;
+  surface?: 'floor'|'wall';
+  cellFeet?: number;
+  occluder?: boolean;
 }> = ({
   instances,
   shape = 'box',
@@ -159,7 +203,26 @@ const InstancedPieces: React.FC<{
   solidColor = '#ffffff',
   opacity = 1,
   castShadow = false,
+  surface,
+  cellFeet = 5,
+  occluder = false,
 }) => {
+  const sightline = React.useContext(DungeonVisibilityContext);
+  const indirect = React.useContext(DungeonIndirectContext);
+  const renderMaterial = useMemo(() => {
+    const material = surface ? createDungeonSurfaceMaterial(surface, cellFeet)
+      : emissive || baked ? new THREE.MeshBasicMaterial({color:solidColor,vertexColors:false,
+        transparent:opacity<1,opacity,toneMapped:false})
+      : new THREE.MeshStandardMaterial({color:solidColor,vertexColors:false,
+        roughness:shape==='box'?0.82:shape==='arch'?0.76:0.68,
+        metalness:shape==='octahedron'?0.08:0.02,transparent:opacity<1,opacity});
+    // Only foreground structure receives the cutaway. Floor, light sources,
+    // characters, source collision and the untouched shadow pass remain intact.
+    if (occluder && sightline) applyDungeonVisibility(material,sightline);
+    if (!emissive && !baked && indirect) applyDungeonIndirectLight(material,indirect);
+    return material;
+  },[surface,cellFeet,emissive,baked,solidColor,opacity,shape,occluder,sightline,indirect]);
+  useEffect(() => () => renderMaterial.dispose(),[renderMaterial]);
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const instanceColors = useMemo(() => {
     // Attach the color buffer declaratively so it exists before Three compiles the first
@@ -167,9 +230,14 @@ const InstancedPieces: React.FC<{
     // no-instance-color shader even after the matrix batch was otherwise ready.
     const values = new Float32Array(instances.length * 3);
     const color = new THREE.Color();
-    instances.forEach((instance, index) => color.set(instance.color).toArray(values, index * 3));
+    instances.forEach((instance, index) => {
+      color.set(instance.color);
+      // Retain seeded tint variation without painting the authored stone brown.
+      if (surface) color.lerp(new THREE.Color('#c9c5b9'), 0.48);
+      color.toArray(values, index * 3);
+    });
     return values;
-  }, [instances]);
+  }, [instances, surface]);
 
   // Populate matrices and colors only when the deterministic scene model changes. Camera motion
   // then costs no React updates and no per-object scene traversal.
@@ -190,6 +258,9 @@ const InstancedPieces: React.FC<{
 
   if (instances.length === 0) return null;
 
+  // Instance colors have their own shader input. These primitives have no
+  // per-vertex color attribute; enabling both inputs blackens growth and scars.
+  // Keep the authored colors and existing lighting, geometry and interactions.
   return (
     <instancedMesh
       ref={meshRef}
@@ -207,24 +278,7 @@ const InstancedPieces: React.FC<{
       {/* A half torus is a real curved doorway head. Scaling and yaw come from DungeonPlan's
           authored door cell, so this shape adds no independent opening or collision rule. */}
       {shape === 'arch' && <torusGeometry args={[0.5, 0.11, 6, 18, Math.PI]} />}
-      {emissive || baked ? (
-        <meshBasicMaterial
-          color={solidColor}
-          vertexColors={useInstanceColors}
-          transparent={opacity < 1}
-          opacity={opacity}
-          toneMapped={false}
-        />
-      ) : (
-        <meshStandardMaterial
-          color={solidColor}
-          vertexColors={useInstanceColors}
-          roughness={shape === 'box' ? 0.82 : shape === 'arch' ? 0.76 : 0.68}
-          metalness={shape === 'octahedron' ? 0.08 : 0.02}
-          transparent={opacity < 1}
-          opacity={opacity}
-        />
-      )}
+      <primitive object={renderMaterial} attach="material" />
     </instancedMesh>
   );
 };
@@ -301,17 +355,19 @@ const SceneLines: React.FC<{ lines: DungeonSceneLine[]; overlays: Dungeon3DOverl
   );
 };
 
-const SceneMarker: React.FC<{ marker: DungeonSceneMarker }> = ({ marker }) => (
+const SceneMarker: React.FC<{ marker: DungeonSceneMarker; avoidParty?: boolean }> = ({ marker, avoidParty = false }) => (
   <group position={[marker.x, 0.08, marker.z]}>
     <mesh rotation={[-Math.PI / 2, 0, 0]}>
       <torusGeometry args={[0.62, 0.08, 8, 32]} />
       <meshBasicMaterial color={marker.color} toneMapped={false} />
     </mesh>
-    <mesh position={[0, 0.72, 0]}>
+    {/* Keep the known entrance ring and caption when the party stands here.
+        Its inspection cone must not replace the body or cross the name label. */}
+    {!avoidParty && <mesh position={[0, 0.72, 0]}>
       <coneGeometry args={[0.24, 0.62, 8]} />
       <meshBasicMaterial color={marker.color} toneMapped={false} />
-    </mesh>
-    <Html position={[0, 1.25, 0]} center distanceFactor={16} occlude>
+    </mesh>}
+    <Html style={{pointerEvents: 'none'}} zIndexRange={[0, 0]} position={[0, avoidParty ? 2.25 : 1.25, 0]} center distanceFactor={16} occlude>
       <span
         className="whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.16em] shadow-xl"
         style={{ color: marker.color, borderColor: marker.color, background: 'rgba(5,7,10,0.86)' }}
@@ -324,23 +380,14 @@ const SceneMarker: React.FC<{ marker: DungeonSceneMarker }> = ({ marker }) => (
 
 // The mounted expedition adds only two gameplay markers: the player's real grid position and the
 // next reachable authored treasure room. Design Preview callers omit gameplay and keep their scene.
-const DungeonPlayerMarker: React.FC<{ position: { x: number; z: number } }> = ({ position }) => (
-  <group position={[position.x, 0.08, position.z]}>
-    <mesh position={[0, 0.48, 0]} castShadow>
-      <cylinderGeometry args={[0.22, 0.3, 0.86, 10]} />
-      <meshStandardMaterial color="#38bdf8" emissive="#075985" emissiveIntensity={0.7} />
-    </mesh>
-    <mesh position={[0, 1.02, 0]} castShadow>
-      <sphereGeometry args={[0.24, 12, 10]} />
-      <meshStandardMaterial color="#e0f2fe" emissive="#0ea5e9" emissiveIntensity={0.35} />
-    </mesh>
-    <Html position={[0, 1.62, 0]} center distanceFactor={13} occlude>
-      <span
-        data-testid="dungeon-player-marker"
-        className="whitespace-nowrap rounded-full border border-sky-300 bg-sky-950/90 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.16em] text-sky-100 shadow-xl"
-      >
-        You
-      </span>
+const DungeonPlayerMarker: React.FC<{position:{x:number;z:number};character?:PlayerCharacter;cellFeet:number}> = ({position,character,cellFeet}) => (
+  character ? <DungeonPartyFigure character={character} position={position} cellFeet={cellFeet} /> :
+  // Inspection callers without a character retain an honest position marker,
+  // rather than pretending that a glowing primitive is the player's body.
+  <group position={[position.x,0.025,position.z]}>
+    <mesh rotation={[-Math.PI/2,0,0]}><ringGeometry args={[0.24,0.3,24]} /><meshBasicMaterial color="#c9b88b" transparent opacity={0.7} /></mesh>
+    <Html style={{pointerEvents:'none'}} zIndexRange={[0,0]} position={[0,0.4,0]} center distanceFactor={13}>
+      <span data-testid="dungeon-player-marker" className="text-xs text-amber-100">You</span>
     </Html>
   </group>
 );
@@ -351,7 +398,7 @@ const DungeonTreasureMarker: React.FC<{ position: { x: number; z: number } }> = 
       <torusGeometry args={[0.48, 0.09, 8, 28]} />
       <meshBasicMaterial color="#fbbf24" toneMapped={false} />
     </mesh>
-    <Html position={[0, 1.25, 0]} center distanceFactor={15} occlude>
+    <Html style={{pointerEvents: 'none'}} zIndexRange={[0, 0]} position={[0, 1.25, 0]} center distanceFactor={15} occlude>
       <span className="whitespace-nowrap rounded-full border border-amber-300 bg-amber-950/90 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] text-amber-100 shadow-xl">
         Treasure cache
       </span>
@@ -370,11 +417,22 @@ const DungeonCamera: React.FC<{
   model: DungeonSceneModel;
   preset: DungeonCameraPreset;
   autoRotate: boolean;
-}> = ({ model, preset, autoRotate }) => {
+  playerPosition?: {x: number; z: number};
+  frameNonce: number;
+}> = ({ model, preset, autoRotate, playerPosition, frameNonce }) => {
   const controlsRef = useRef<React.ElementRef<typeof MapControls>>(null);
   const { camera } = useThree();
 
   useEffect(() => {
+    if(preset==='player' && playerPosition) {
+      const frame=dungeonPlayerCameraFrame(model,playerPosition);
+      if(!frame)return;
+      camera.position.set(...frame.position);
+      camera.updateProjectionMatrix();
+      controlsRef.current?.target.set(...frame.target);
+      controlsRef.current?.update();
+      return;
+    }
     const entrance = model.markers[0];
     const objective = model.markers[1];
     const tacticalFocus = {
@@ -383,7 +441,11 @@ const DungeonCamera: React.FC<{
       x: model.bounds.centerX + model.bounds.width * 0.1,
       z: model.bounds.centerZ + model.bounds.depth * 0.1,
     };
-    const closeMarker = preset === 'entrance'
+    // Product exploration follows accepted floor steps. Design presets retain
+    // their existing whole-plan and room framing for inspection.
+    const closeMarker = preset === 'player' && playerPosition
+      ? {...playerPosition, radius: 3}
+      : preset === 'entrance'
       ? entrance
       : preset === 'objective'
         ? objective
@@ -404,7 +466,7 @@ const DungeonCamera: React.FC<{
       focus.z,
     );
     controlsRef.current?.update();
-  }, [camera, model, preset]);
+  }, [camera, model, preset, playerPosition?.x, playerPosition?.z, frameNonce]);
 
   return (
     <MapControls
@@ -567,31 +629,71 @@ const AtmosphericGround: React.FC<{ model: DungeonSceneModel }> = ({ model }) =>
 // ============================================================================
 
 const DungeonScene: React.FC<{
+  plan: DungeonPlan;
+  clearSightline: boolean;
+  softLighting: boolean;
   model: DungeonSceneModel;
   /** The plan's theme, used only to select this scene's lighting recipe. */
   theme: DungeonTheme;
   overlays: Dungeon3DOverlays;
   preset: DungeonCameraPreset;
   autoRotate: boolean;
+  frameNonce: number;
   visibleProps: VisibleDungeonProps;
   readyOwner: symbol;
   playerPosition?: { x: number; z: number };
+  playerCharacter?: PlayerCharacter;
+  cellFeet: number;
   treasurePosition?: { x: number; z: number };
+  showPreviewObjective: boolean;
+  creatureActors?: readonly DungeonCreatureActor[];
 }> = ({
+  plan,
+  clearSightline,
+  softLighting,
   model,
   theme,
   overlays,
   preset,
   autoRotate,
+  frameNonce,
   visibleProps,
   readyOwner,
   playerPosition,
+  playerCharacter,
+  cellFeet,
   treasurePosition,
+  showPreviewObjective,
+  creatureActors,
 }) => {
+  const masonry = theme === 'crypt' || theme === 'sewer';
+  const sightline = useMemo(createDungeonVisibilityUniforms,[]);
+  const indirect = useMemo(()=>createDungeonIndirectLight(plan),[plan,model]);
+  useEffect(()=>()=>indirect.dispose(),[indirect]);
+  const sightTarget = useMemo(() => new THREE.Vector3(),[]);
+  useFrame(({camera}) => {
+    sightline.dungeonSightEnabled.value = playerPosition && clearSightline ? 1 : 0;
+    indirect.uniforms.dungeonBounceStrength.value = softLighting ? 0.65 : 0;
+    if (playerPosition) sightline.dungeonSightTarget.value.copy(
+      sightTarget.set(playerPosition.x,0.65,playerPosition.z).applyMatrix4(camera.matrixWorldInverse));
+  });
+  // Junction paving shares the constructed floor's authored stone. Separate
+  // batches retain each source part while ordinary furniture keeps its material.
+  const pavingProps = useMemo(() => {
+    const isPaving = (part: DungeonSceneInstance) => part.purposeLandmark === true && part.roomPurpose === 'junction';
+    return {
+      boxes: visibleProps.boxes.filter(part => !isPaving(part)),
+      cylinders: visibleProps.cylinders.filter(part => !isPaving(part)),
+      pavingBoxes: visibleProps.boxes.filter(isPaving),
+      pavingCylinders: visibleProps.cylinders.filter(isPaving),
+    };
+  }, [visibleProps]);
+
   const readyFrames = useRef(0);
   // Per-theme lighting recipe. Before this lookup all five themes shared one hardcoded
   // ambient/hemisphere/sun/torch budget, so crypt, cavern, and frost differed only in hue.
   const lighting = dungeonThemeLighting(theme);
+  const activeLights = useMemo(() => playerPosition ? dungeonPlayerAccentLights(model, playerPosition) : model.lights, [model, playerPosition]);
   const fogDensity = 0.46 / Math.max(model.bounds.width, model.bounds.depth);
 
   // A seed, theme, or overlay rebuild invalidates the previous canvas proof. Reset both the
@@ -614,7 +716,9 @@ const DungeonScene: React.FC<{
   });
 
   return (
-      <>
+      <DungeonVisibilityContext.Provider value={sightline}>
+      <DungeonIndirectContext.Provider value={indirect}>
+      <DungeonIndirectLighting light={indirect} sightline={sightline} playerPosition={playerPosition} />
       <color attach="background" args={[model.palette.background]} />
       {/* Scale fog to the generated footprint. A fixed cave-like density hid an entire
           large dungeon from the tactical camera even though close rooms looked correct. A modest
@@ -631,12 +735,15 @@ const DungeonScene: React.FC<{
           casting put a 28-room crypt at 5,267 draw calls and 13.6M triangles per frame; only the
           leading few torches contribute perceptible contact shadowing, so the shadow pass is now
           budgeted per theme while the light count, positions, and colours are unchanged. */}
-      {model.lights.map((light, index) => (
+      {activeLights.map((light, index) => (
         <pointLight
           key={`${light.x}:${light.z}:${index}`}
+          userData={{dungeonFixedLight:true}}
           position={[light.x, light.y, light.z]}
           color={light.color}
-          intensity={lighting.torchIntensity}
+          // Tone-mapped bodies and masonry share the same nearby fixtures. Keep
+          // their source positions/ranges while avoiding a clipped orange wash.
+          intensity={lighting.torchIntensity * 0.18}
           distance={lighting.torchDistance}
           decay={2}
           castShadow={index < lighting.shadowCasters}
@@ -668,7 +775,7 @@ const DungeonScene: React.FC<{
       {overlays.rooms || overlays.heatmap || overlays.critical ? (
         <ColorBatchedPieces instances={model.floors} baked />
       ) : (
-        <InstancedPieces instances={model.floors} useInstanceColors />
+        <InstancedPieces instances={model.floors} useInstanceColors surface={masonry ? 'floor' : undefined} cellFeet={cellFeet} />
       )}
       {/* Walls cast (2026-09-09, agora-75ed.1). Every torch is a bounded shadow-
           casting point light, but the walls — the only real occluders a dungeon
@@ -680,8 +787,8 @@ const DungeonScene: React.FC<{
           sitting on top of walls that already block, so they doubled the added
           triangle cost (crypt tactical +0.97M -> +0.48M) for no occlusion a
           floor-level torch can see. */}
-      <InstancedPieces instances={model.walls} useInstanceColors castShadow />
-      <InstancedPieces instances={model.wallCaps} useInstanceColors />
+      <InstancedPieces occluder instances={model.walls} useInstanceColors castShadow surface={masonry ? 'wall' : undefined} cellFeet={cellFeet} />
+      <InstancedPieces occluder instances={model.wallCaps} useInstanceColors surface={masonry ? 'floor' : undefined} cellFeet={cellFeet} />
       {/* Architecture remains visible when the optional prop overlay is hidden. These bounded
           batches are raised from real wall/door cells: rotated supports for crypts, curved rock
           masses for caverns, ice spires for frost, and one true half-ring per authored doorway. */}
@@ -691,12 +798,12 @@ const DungeonScene: React.FC<{
           instanced meshes and thousands of calls per frame. The declarative instanceColor path
           (the same one floors and walls already use) keeps identical shading at one draw per
           shape. Debug overlays keep ColorBatchedPieces, where the colours really are banded. */}
-      <InstancedPieces instances={model.architectureBoxes} shape="box" castShadow useInstanceColors />
-      <InstancedPieces instances={model.architectureCylinders} shape="cylinder" castShadow useInstanceColors />
-      <InstancedPieces instances={model.architectureCones} shape="cone" castShadow useInstanceColors />
-      <InstancedPieces instances={model.architectureSpheres} shape="sphere" castShadow useInstanceColors />
-      <InstancedPieces instances={model.architectureOctahedrons} shape="octahedron" castShadow useInstanceColors />
-      <InstancedPieces instances={model.arches} shape="arch" castShadow useInstanceColors />
+      <InstancedPieces occluder instances={model.architectureBoxes} shape="box" castShadow useInstanceColors />
+      <InstancedPieces occluder instances={model.architectureCylinders} shape="cylinder" castShadow useInstanceColors />
+      <InstancedPieces occluder instances={model.architectureCones} shape="cone" castShadow useInstanceColors />
+      <InstancedPieces occluder instances={model.architectureSpheres} shape="sphere" castShadow useInstanceColors />
+      <InstancedPieces occluder instances={model.architectureOctahedrons} shape="octahedron" castShadow useInstanceColors />
+      <InstancedPieces occluder instances={model.arches} shape="arch" castShadow useInstanceColors />
       {/* Suspended theme atmosphere: cavern spores, frost snow, crypt dust. One unlit instanced
           batch; the motes carry their own theme colour so no per-theme branch lives here. */}
       <InstancedPieces
@@ -706,14 +813,18 @@ const DungeonScene: React.FC<{
         opacity={0.62}
         useInstanceColors
       />
-      <ColorBatchedPieces instances={model.liquids} baked opacity={0.72} />
+      <ColorBatchedPieces instances={model.liquids} opacity={0.72} />
+      {/* Growth and old scars respond to the same light as the floor; color is not luminescence. */}
+      <InstancedPieces instances={model.solidSurfaces} />
       <InstancedPieces
+        occluder
         instances={model.doors.filter((door) => door.state === 'door')}
         useInstanceColors={false}
         solidColor="#7b5134"
         castShadow
       />
       <InstancedPieces
+        occluder
         instances={model.doors.filter((door) => door.state === 'bricked')}
         useInstanceColors={false}
         solidColor="#8a4739"
@@ -721,6 +832,7 @@ const DungeonScene: React.FC<{
       />
       {overlays.secrets && (
         <InstancedPieces
+          occluder
           instances={model.doors.filter((door) => door.state === 'secret')}
           useInstanceColors={false}
           solidColor={model.palette.wallCap}
@@ -732,15 +844,17 @@ const DungeonScene: React.FC<{
           {/* Furniture, natural growth, treasure, traps, and historical scars now keep their
               generated meaning through composed silhouettes. Six bounded batches replace the
               former low/tall/evidence placeholders without changing the DungeonPlan. */}
-          <ColorBatchedPieces instances={visibleProps.boxes} shape="box" castShadow />
-          <ColorBatchedPieces instances={visibleProps.cylinders} shape="cylinder" castShadow />
+          <ColorBatchedPieces instances={pavingProps.boxes} shape="box" castShadow />
+          <InstancedPieces instances={pavingProps.pavingBoxes} shape="box" surface={masonry ? 'floor' : undefined} cellFeet={cellFeet} />
+          <ColorBatchedPieces instances={pavingProps.cylinders} shape="cylinder" castShadow />
+          <InstancedPieces instances={pavingProps.pavingCylinders} shape="cylinder" surface={masonry ? 'floor' : undefined} cellFeet={cellFeet} />
           <ColorBatchedPieces instances={visibleProps.cones} shape="cone" castShadow />
           <ColorBatchedPieces instances={visibleProps.spheres} shape="sphere" castShadow />
           <ColorBatchedPieces instances={visibleProps.octahedrons} shape="octahedron" baked />
           <InstancedPieces instances={visibleProps.semanticFlames} shape="sphere" emissive useInstanceColors={false} solidColor={model.palette.flame} />
         </>
       )}
-      {overlays.spawns && (
+      {overlays.spawns && creatureActors === undefined && (
         <>
           {/* Floor halos make encounter locations readable at tactical range; cones preserve
               vertical position in close views. Both layers are instanced, not per-spawn meshes. */}
@@ -748,16 +862,25 @@ const DungeonScene: React.FC<{
           <ColorBatchedPieces instances={model.spawns} shape="cone" emissive opacity={0.96} />
         </>
       )}
+      {/* Gameplay depicts only currently visible, uncleared source inhabitants.
+          The design preview retains its full-plan inspection cones. */}
+      <group userData={{dungeonDynamic:true}}>{creatureActors?.map(actor => <DungeonCreatureFigure key={actor.eventId} actor={actor} cellFeet={cellFeet} />)}</group>
       <SceneLines lines={model.lines} overlays={overlays} />
-      {/* Entrance/objective waypoint markers are gameplay chrome, not environment. A capture
-          scenario sets window.__dungeon3dMarkers = false to keep the frame a clean environment
-          (A9 hygiene); default (undefined) keeps them on so product users still see waypoints. */}
+      {/* Generated objective waypoints belong to the design preview. The expedition keeps its
+          real entrance marker, while the existing capture switch can still hide all markers. */}
       {(window as unknown as { __dungeon3dMarkers?: boolean }).__dungeon3dMarkers !== false
-        && model.markers.map((marker) => <SceneMarker key={marker.label} marker={marker} />)}
+        && model.markers
+          // The generated boss waypoint is a preview aid, not learned expedition knowledge.
+          // Keep source encounter markers and the real entrance; neither geometry nor threats change.
+          .filter((marker) => showPreviewObjective || marker.label !== 'Objective')
+          .map((marker) => <SceneMarker key={marker.label} marker={marker}
+            avoidParty={!showPreviewObjective && Boolean(playerPosition
+              && Math.hypot(marker.x - playerPosition.x, marker.z - playerPosition.z) < 1.2)} />)}
       {treasurePosition ? <DungeonTreasureMarker position={treasurePosition} /> : null}
-      {playerPosition ? <DungeonPlayerMarker position={playerPosition} /> : null}
-      <DungeonCamera model={model} preset={preset} autoRotate={autoRotate} />
-    </>
+      {playerPosition ? <group userData={{dungeonDynamic:true}}><DungeonPlayerMarker position={playerPosition} character={playerCharacter} cellFeet={cellFeet} /></group> : null}
+      <DungeonCamera model={model} preset={preset} autoRotate={autoRotate} playerPosition={playerPosition} frameNonce={frameNonce} />
+    </DungeonIndirectContext.Provider>
+    </DungeonVisibilityContext.Provider>
   );
 };
 
@@ -780,8 +903,8 @@ const DungeonScene: React.FC<{
 // world radius cannot serve both: tuned for the entrance it vanishes at
 // tactical, tuned for tactical it smears at the entrance. The fix is therefore
 // NOT a better number but a different unit — screenSpaceRadius reinterprets
-// aoRadius as PIXELS, which is scale-free across both presets. 48 px spans a
-// wall/floor junction on this canvas at either range.
+// aoRadius as PIXELS, which is scale-free across both presets. The desktop
+// player view uses a narrower contact band so shading does not bury the masonry.
 // depthAwareUpsampling keeps halfRes (and its cost) while stopping the half-res
 // AO from bleeding across wall silhouettes. quality "medium" raises the sample
 // count from the "performance" preset, which was visibly under-sampled once the
@@ -794,15 +917,15 @@ const PostProcessingStack: React.FC = () => (
       depthAwareUpsampling
       screenSpaceRadius
       quality="medium"
-      aoRadius={48}
+      aoRadius={16}
       distanceFalloff={1}
-      intensity={3}
+      intensity={1.25}
     />
     <Bloom
       mipmapBlur
-      luminanceThreshold={0.45}
+      luminanceThreshold={1}
       luminanceSmoothing={0.25}
-      intensity={0.9}
+      intensity={0.3}
     />
     <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
     <Vignette
@@ -974,22 +1097,59 @@ export const Dungeon3DPreview: React.FC<Dungeon3DPreviewProps> = ({ plan, overla
   // A short-lived outgoing Design Preview instance must not clear readiness for the incoming
   // canvas. Ownership keeps the public flag tied to whichever preview mounted most recently.
   const readyOwnerRef = useRef(Symbol('dungeon-3d-ready'));
-  const [preset, setPreset] = useState<DungeonCameraPreset>('tactical');
+  const [preset, setPreset] = useState<DungeonCameraPreset>(gameplay ? 'player' : 'tactical');
+  const [clearSightline,setClearSightline] = useState(true);
+  const [softLighting,setSoftLighting] = useState(true);
+  // A repeated preset click restores framing after the player manually orbits.
+  const [cameraFrameNonce, setCameraFrameNonce] = useState(0);
   const [autoRotate, setAutoRotate] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [playerCell, setPlayerCell] = useState<Cell>(() => (
     gameplay?.initialPlayerCell ?? dungeonEntrancePlayerCell(plan)
   ));
+  const arrivalOwner = useRef<{identity?: string; cell?: Cell} | null>(null);
   const [lastClaimedTreasureId, setLastClaimedTreasureId] = useState<string | null>(null);
   const [lastClearedEncounterId, setLastClearedEncounterId] = useState<string | null>(null);
+  const [startingEncounter, setStartingEncounter] = useState(false);
+  const [encounterError, setEncounterError] = useState<string | null>(null);
+  const encounterStartRef = useRef(false);
   const claimedTreasureIds = gameplay?.claimedTreasureIds ?? NO_CLAIMED_TREASURE;
   const clearedEncounterIds = gameplay?.clearedEncounterIds ?? NO_CLEARED_ENCOUNTERS;
   const discoveredCellKeys = gameplay?.discoveredCellKeys ?? NO_DISCOVERED_CELLS;
+  const objectFindings = gameplay?.objectFindings ?? NO_OBJECT_FINDINGS;
+  const nearbyObjects = gameplay?.onObjectInteraction
+    ? nearbyDungeonObjects(plan,gameplay.identity,playerCell,discoveredCellKeys,{claimedTreasureIds,clearedEncounterIds}) : [];
+  // Keep model inputs stable when only footing or unrelated field notes change.
+  const hiddenKey = gameplay ? plan.props.flatMap((prop,index) =>
+    prop.kind === 'dropped-coins' && objectFindings[dungeonObjectId(gameplay.identity,index)] === 'collected' ? [index] : []).join(',') : '';
+  const hiddenPropIndices = useMemo(() => hiddenKey ? hiddenKey.split(',').map(Number) : [],[hiddenKey]);
+  const caches = useMemo(() => gameplay ? dungeonCaches(plan,gameplay.identity) : [],[plan,gameplay?.identity.dungeonId]);
+  const knownCells = new Set(discoveredCellKeys);
+  const cacheRenderKey = caches.flatMap((cache,index) => cache.existingPropIndex!==undefined || knownCells.has(cache.cell.x+','+cache.cell.y)
+    ? [index+':'+(cache.plundered || claimedTreasureIds.includes(cache.id) ? 'o':'c')] : []).join('|');
+  const cacheScene = useMemo(() => {
+    const cacheProps: typeof plan.props = [];
+    const openedChestIndices:number[] = [];
+    for(const token of cacheRenderKey ? cacheRenderKey.split('|') : []) {
+      const [index,open]=token.split(':');const cache=caches[Number(index)];
+      const propIndex=cache.existingPropIndex??plan.props.length+cacheProps.length;
+      if(cache.existingPropIndex===undefined)cacheProps.push(cache.prop);
+      if(open==='o')openedChestIndices.push(propIndex);
+    }
+    return {cacheProps,openedChestIndices};
+  },[caches,cacheRenderKey,plan.props.length]);
+  // Newly observed hazard cells change only this compact model key. Ordinary
+  // footsteps do not rebuild all source geometry, and concealed traps stay hidden.
+  const trapKey = gameplay ? plan.traps.flatMap((trap,index) =>
+    knownCells.has(Math.floor(trap.x/plan.cellFt)+','+Math.floor(trap.y/plan.cellFt)) ? [index] : []).join(',') : undefined;
+  const visibleTrapIndices = useMemo(() => trapKey === undefined ? undefined :
+    trapKey ? trapKey.split(',').map(Number) : [], [trapKey]);
   const model = useMemo(() => buildDungeonSceneModel(plan, {
+    hiddenPropIndices,...cacheScene,visibleTrapIndices,
     showRoomTypes: overlays.rooms,
     showDifficulty: overlays.heatmap,
     showCritical: overlays.critical,
-  }), [overlays.critical, overlays.heatmap, overlays.rooms, plan]);
+  }), [overlays.critical, overlays.heatmap, overlays.rooms, plan, hiddenPropIndices,cacheScene,visibleTrapIndices]);
   const visibleProps = useMemo(() => selectVisibleDungeonProps(model, preset), [model, preset]);
   const treasureInteraction = useMemo(() => (
     gameplay
@@ -1006,6 +1166,14 @@ export const Dungeon3DPreview: React.FC<Dungeon3DPreviewProps> = ({ plan, overla
       ? dungeonPathToTreasureInteraction(plan, playerCell, treasureInteraction)
       : []
   ), [gameplay, plan, playerCell, treasureInteraction]);
+  // Current visibility is separate from remembered parchment discovery. A
+  // ranged approach keeps this exact square and starts initiative, not a free hit.
+  const currentlyVisibleCellKeys = useMemo(() => revealedDungeonCellKeys(
+    plan, playerCell, gameplay?.carriedTorch?.brightRadius ?? 0,
+  ), [plan, playerCell, gameplay?.carriedTorch?.brightRadius]);
+  const creatureActors = useMemo(() => gameplay
+    ? visibleDungeonCreatures(plan,gameplay.identity,currentlyVisibleCellKeys,clearedEncounterIds)
+    : undefined, [plan,gameplay?.identity,currentlyVisibleCellKeys,clearedEncounterIds]);
   const encounterInteraction = useMemo(() => (
     gameplay
       ? findNextDungeonEncounterInteraction(
@@ -1013,18 +1181,42 @@ export const Dungeon3DPreview: React.FC<Dungeon3DPreviewProps> = ({ plan, overla
         gameplay.identity,
         clearedEncounterIds,
         playerCell,
+        gameplay.onStartEncounter ? currentlyVisibleCellKeys : undefined,
       )
       : null
-  ), [clearedEncounterIds, gameplay, plan, playerCell]);
+  ), [clearedEncounterIds, gameplay, plan, playerCell, currentlyVisibleCellKeys]);
   const encounterPath = useMemo(() => (
     gameplay && encounterInteraction
       ? dungeonPathToEncounterInteraction(plan, playerCell, encounterInteraction)
       : []
   ), [encounterInteraction, gameplay, plan, playerCell]);
+  const encounterSpawn = gameplay && encounterInteraction ? plan.spawns.find(spawn =>
+    dungeonEncounterEventId(gameplay.identity, spawn.roomId, dungeonSpawnCell(plan, spawn)) === encounterInteraction.eventId) : undefined;
+  const encounterRisk = encounterSpawn && gameplay?.partyLevels?.length
+    ? calculateDifficulty([{cr: encounterSpawn.cr, quantity: 1}], [...gameplay.partyLevels]).tier : undefined;
   const playerPosition = gameplay ? dungeonCellToScenePosition(plan, playerCell) : undefined;
-  const treasurePosition = gameplay && treasureInteraction
-    ? dungeonCellToScenePosition(plan, treasureInteraction.targetCell)
-    : undefined;
+  // A living source creature occupies its square. Movement cannot walk through
+  // it before the real combat owner resolves that exact encounter.
+  function legalPlayerStep(current: Cell, direction: DungeonMoveDirection): Cell {
+    const next = moveDungeonPlayer(plan, current, direction);
+    if (gameplay?.onStartEncounter && plan.spawns.some(spawn => {
+      const cell = dungeonSpawnCell(plan, spawn);
+      return cell.x === next.x && cell.y === next.y
+        && !clearedEncounterIds.includes(dungeonEncounterEventId(gameplay.identity, spawn.roomId, cell));
+    })) return current;
+    return next;
+  }
+  // Adjacent exits use the same floor/door rule as accepted movement; no unseen
+  // treasure route or distant enemy is needed to navigate a dark room.
+  const openDirections = (['north', 'east', 'south', 'west'] as DungeonMoveDirection[]).filter(direction => {
+    const next = legalPlayerStep(playerCell, direction);
+    return next.x !== playerCell.x || next.y !== playerCell.y;
+  });
+  const nearbyDoors = gameplay?.onOpenDoor ? plan.doors.filter(door => door.state === 'door'
+    && Math.abs(door.cell.x - playerCell.x) + Math.abs(door.cell.y - playerCell.y) === 1) : [];
+  // No distant reward waypoint: the actual cache must first be observed and reached.
+  const nearbyCache=nearbyObjects.find(object=>object.cache&&!object.previouslySecured&&!object.cache.plundered)?.cache;
+  const treasurePosition=nearbyCache?dungeonCellToScenePosition(plan,nearbyCache.cell):undefined;
   const treasureIsClaimable = canClaimDungeonTreasure(playerCell, treasureInteraction);
   const encounterIsClearable = canClearDungeonEncounter(playerCell, encounterInteraction);
   const objective = gameplay?.objective ?? null;
@@ -1034,25 +1226,32 @@ export const Dungeon3DPreview: React.FC<Dungeon3DPreviewProps> = ({ plan, overla
     && playerCell.y === objective.cell.y,
   );
 
-  // A new level begins at the transition-selected floor. Ordinary ledger re-renders keep the
-  // current cell; only a different level identity or regenerated plan applies a new arrival.
+  // Opening a leaf changes the projected plan. Keep the accepted party square
+  // through that update; only a real entry/stair arrival applies a new position.
+  // Design Preview still resets when its inspection plan changes.
   useEffect(() => {
+    const previous = arrivalOwner.current;
+    if (gameplay && previous?.identity === gameplay.identity.dungeonId
+      && previous.cell === gameplay.initialPlayerCell) return;
+    arrivalOwner.current = {identity: gameplay?.identity.dungeonId, cell: gameplay?.initialPlayerCell};
     setPlayerCell(gameplay?.initialPlayerCell ?? dungeonEntrancePlayerCell(plan));
     setLastClaimedTreasureId(null);
     setLastClearedEncounterId(null);
   }, [gameplay?.identity.dungeonId, gameplay?.initialPlayerCell, plan]);
 
+  useEffect(() => { gameplay?.onPlayerCellChange?.(playerCell); }, [gameplay?.onPlayerCellChange, playerCell]);
+
   useEffect(() => {
     if (!gameplay) return;
     const remembered = new Set(discoveredCellKeys);
-    const newlyRevealed = revealedDungeonCellKeys(plan, playerCell).filter(
+    const newlyRevealed = currentlyVisibleCellKeys.filter(
       (cellKey) => !remembered.has(cellKey),
     );
 
     // Initial entry and every accepted one-cell movement ink only newly visible plan cells. A
     // blocked move produces no new key and therefore no redundant persistence action.
     if (newlyRevealed.length > 0) gameplay.onDiscoverCells(newlyRevealed);
-  }, [discoveredCellKeys, gameplay, plan, playerCell]);
+  }, [discoveredCellKeys, gameplay, currentlyVisibleCellKeys]);
 
   useEffect(() => {
     const probeWindow = window as SceneProbeWindow;
@@ -1073,9 +1272,10 @@ export const Dungeon3DPreview: React.FC<Dungeon3DPreviewProps> = ({ plan, overla
   }, []);
 
   const movePlayer = useCallback((direction: DungeonMoveDirection) => {
-    if (!gameplay) return;
-    setPlayerCell((current) => moveDungeonPlayer(plan, current, direction));
-  }, [gameplay, plan]);
+    if (!gameplay || gameplay.paused) return;
+    if (encounterStartRef.current) return;
+    setPlayerCell((current) => legalPlayerStep(current, direction));
+  }, [gameplay, plan, clearedEncounterIds]);
 
   const advanceTowardTreasure = useCallback(() => {
     // The path includes the current square first. Advancing one square keeps movement visible and
@@ -1097,6 +1297,15 @@ export const Dungeon3DPreview: React.FC<Dungeon3DPreviewProps> = ({ plan, overla
     if (next) setPlayerCell(next);
   }, [encounterPath]);
 
+  const startEncounter = useCallback(async () => {
+    if (gameplay?.paused || !gameplay?.onStartEncounter || !encounterInteraction || encounterStartRef.current) return;
+    encounterStartRef.current = true;
+    setStartingEncounter(true); setEncounterError(null);
+    try { await gameplay.onStartEncounter(encounterInteraction.eventId, playerCell); }
+    catch (error) { setEncounterError(error instanceof Error ? error.message : String(error)); }
+    finally { encounterStartRef.current = false; setStartingEncounter(false); }
+  }, [encounterInteraction, gameplay, playerCell]);
+
   const clearEncounter = useCallback(() => {
     if (!gameplay || !encounterInteraction || !encounterIsClearable) return;
     gameplay.onClearEncounter(encounterInteraction.eventId);
@@ -1109,10 +1318,12 @@ export const Dungeon3DPreview: React.FC<Dungeon3DPreviewProps> = ({ plan, overla
   }, [gameplay, objective, objectiveIsReached]);
 
   useEffect(() => {
-    if (!gameplay) return undefined;
+    if (!gameplay || gameplay.paused) return undefined;
     const onGameplayKey = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
-      if (target?.matches('input, select, textarea, button')) return;
+      // Returning focus from the parchment to a normal expedition button must
+      // not disable walking. Dialogs, menus and text entry still own their keys.
+      if (target?.matches('input, select, textarea') || target?.isContentEditable || target?.closest('[role="dialog"], [role="menu"]')) return;
       const keyDirections: Partial<Record<string, DungeonMoveDirection>> = {
         ArrowUp: 'north',
         w: 'north',
@@ -1137,6 +1348,7 @@ export const Dungeon3DPreview: React.FC<Dungeon3DPreviewProps> = ({ plan, overla
   useEffect(() => {
     const onFullscreen = () => setFullscreen(document.fullscreenElement === rootRef.current);
     const onKey = (event: KeyboardEvent) => {
+      if (gameplay?.paused) return;
       const target = event.target as HTMLElement | null;
       if (target?.matches('input, select, textarea, button')) return;
       if (event.key.toLowerCase() === 'f') void toggleFullscreen();
@@ -1147,7 +1359,7 @@ export const Dungeon3DPreview: React.FC<Dungeon3DPreviewProps> = ({ plan, overla
       document.removeEventListener('fullscreenchange', onFullscreen);
       window.removeEventListener('keydown', onKey);
     };
-  }, [toggleFullscreen]);
+  }, [toggleFullscreen, gameplay?.paused]);
 
   useEffect(() => {
     const probeWindow = window as SceneProbeWindow;
@@ -1164,11 +1376,14 @@ export const Dungeon3DPreview: React.FC<Dungeon3DPreviewProps> = ({ plan, overla
   return (
     <div
       ref={rootRef}
-      className="relative h-[clamp(360px,62vh,720px)] min-h-[360px] w-full max-w-[1440px] overflow-hidden rounded-xl border border-gray-700 bg-black shadow-2xl sm:h-[clamp(500px,calc(100vh-390px),720px)] sm:min-h-[500px] fullscreen:h-screen fullscreen:max-h-none"
+      className={gameplay ? "relative grid h-full min-h-[400px] w-full grid-cols-[minmax(0,1fr)_360px] overflow-hidden rounded-xl border border-gray-700 bg-black shadow-2xl" : "relative h-[clamp(360px,62vh,720px)] min-h-[360px] w-full max-w-[1440px] overflow-hidden rounded-xl border border-gray-700 bg-black shadow-2xl sm:h-[clamp(500px,calc(100vh-390px),720px)] sm:min-h-[500px] fullscreen:h-screen fullscreen:max-h-none"}
       data-testid="dungeon-3d-preview"
     >
       <Canvas
+        frameloop={gameplay?.paused ? 'never' : 'always'}
         className="h-full w-full"
+        // Desktop controls reserve a readable 360px column; they never cover the playable scene.
+        style={gameplay ? {gridArea: '1 / 1', minWidth: 0} : undefined}
         dpr={[1, 2]}
         shadows
         // near/far were 0.1/600 — a 6000:1 ratio that spends most of a 24-bit
@@ -1184,33 +1399,47 @@ export const Dungeon3DPreview: React.FC<Dungeon3DPreviewProps> = ({ plan, overla
         camera={{ fov: 46, near: 0.5, far: 450, position: [30, 34, 30] }}
         gl={{ antialias: true, alpha: false, preserveDrawingBuffer: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.35 }}
       >
-        <PerfProbe id="dungeon3d" label="Dungeon 3D" />
+        {!gameplay?.paused && <PerfProbe id="dungeon3d" label="Dungeon 3D" />}
         <DungeonScene
+          plan={plan}
+          clearSightline={clearSightline}
+          softLighting={softLighting}
           model={model}
           theme={plan.params.theme}
           overlays={overlays}
           preset={preset}
           autoRotate={autoRotate}
+          frameNonce={cameraFrameNonce}
           visibleProps={visibleProps}
           readyOwner={readyOwnerRef.current}
           playerPosition={playerPosition}
+          playerCharacter={gameplay?.playerCharacter}
+          cellFeet={plan.cellFt}
           treasurePosition={treasurePosition}
+          showPreviewObjective={!gameplay}
+          creatureActors={creatureActors}
         />
+        {playerPosition && gameplay?.carriedTorch && <group userData={{dungeonDynamic:true}} position={[playerPosition.x+0.55,0.85,playerPosition.z+0.2]}>
+          {/* A carried flame follows accepted footing; fixed flames and source geometry remain unchanged. */}
+          <mesh><cylinderGeometry args={[0.035,0.045,0.55,6]} /><meshStandardMaterial color="#734a25" /></mesh>
+          <mesh position={[0,0.34,0]}><sphereGeometry args={[0.09,8,6]} /><meshBasicMaterial color="#ffc76b" /></mesh>
+          <pointLight color="#ffb55e" intensity={2.8} distance={40/plan.cellFt} decay={2} />
+        </group>}
         <PostProcessingStack />
         <FrameProfiler />
       </Canvas>
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 bg-gradient-to-b from-black/85 via-black/45 to-transparent p-4">
+      <div className="pointer-events-none absolute left-0 top-0 flex items-start justify-between gap-3 bg-gradient-to-b from-black/85 via-black/45 to-transparent p-4" style={{right: gameplay ? 360 : 0}}>
         <div>
-          <div className="text-[10px] font-black uppercase tracking-[0.26em] text-amber-300">3D Expedition</div>
-          <div className="mt-1 font-serif text-xl font-bold text-white">{plan.name}</div>
-          <div className="mt-0.5 text-xs text-gray-300">
+          {!gameplay && <><div className="text-[10px] font-black uppercase tracking-[0.26em] text-amber-300">3D Expedition</div>
+          <div className="mt-1 font-serif text-xl font-bold text-white">{plan.name}</div></>}
+          {!gameplay && <div className="mt-0.5 text-xs text-gray-300">
             {model.floors.length} floor cells · {model.walls.length} raised walls · {model.lights.length} accent lights
             {overlays.props && ` · ${visibleProps.visibleCount}/${visibleProps.totalCount} visible props`}
-          </div>
+          </div>}
         </div>
         <div className="rounded-full border border-white/15 bg-black/45 px-3 py-1 text-[10px] uppercase tracking-wider text-gray-300 backdrop-blur-sm">
-          Drag to orbit · wheel to zoom · right-drag to pan
+          Drag to pan · wheel to zoom · right-drag to orbit
         </div>
       </div>
 
@@ -1218,26 +1447,79 @@ export const Dungeon3DPreview: React.FC<Dungeon3DPreviewProps> = ({ plan, overla
         <aside
           data-testid="dungeon-gameplay-controls"
           data-player-cell={`${playerCell.x},${playerCell.y}`}
-          className="absolute bottom-16 left-4 z-30 rounded-xl border border-sky-400/35 bg-gray-950/92 p-3 text-gray-100 shadow-2xl backdrop-blur-md"
-          style={{ width: 'min(330px, calc(100% - 2rem))' }}
+          aria-label="Expedition navigation and encounters"
+          className="relative col-start-2 row-start-1 z-30 h-full min-h-0 overflow-y-auto border-l border-sky-400/25 bg-gray-950 p-5 text-sm leading-relaxed text-gray-100"
         >
           <div className="flex items-start justify-between gap-3">
             <div>
-              <div className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-300">
+              <div className="text-xs font-black uppercase tracking-[0.2em] text-sky-300">
                 Dungeon movement
               </div>
-              <div data-testid="dungeon-player-cell" className="mt-1 text-xs text-gray-300">
-                Cell {playerCell.x}, {playerCell.y} · arrow keys or WASD
+              <div data-testid="dungeon-player-cell" className="mt-1 text-sm text-gray-300">
+                Arrow keys or WASD · one step at a time
               </div>
             </div>
             <div
               data-testid="dungeon-claimed-treasure-count"
-              className="rounded-full border border-emerald-400/35 bg-emerald-950/60 px-2 py-1 text-[10px] font-bold text-emerald-200"
+              className="rounded-full border border-emerald-400/35 bg-emerald-950/60 px-2 py-1 text-xs font-bold text-emerald-200"
             >
-              {claimedTreasureIds.length} claimed
+              {discoveredCellKeys.length} squares mapped
             </div>
           </div>
 
+          <p className="mt-2 text-sm text-stone-300">Open ways: {openDirections.length ? openDirections.join(', ') : 'none'}</p>
+          <div className="mt-3 grid grid-cols-4 gap-2">
+            <Button type="button" size="md" className="min-w-0 px-2" aria-label="Move north" disabled={!openDirections.includes('north')} onClick={() => movePlayer('north')}>↑</Button>
+            <Button type="button" size="md" className="min-w-0 px-2" aria-label="Move west" disabled={!openDirections.includes('west')} onClick={() => movePlayer('west')}>←</Button>
+            <Button type="button" size="md" className="min-w-0 px-2" aria-label="Move south" disabled={!openDirections.includes('south')} onClick={() => movePlayer('south')}>↓</Button>
+            <Button type="button" size="md" className="min-w-0 px-2" aria-label="Move east" disabled={!openDirections.includes('east')} onClick={() => movePlayer('east')}>→</Button>
+          </div>
+          {gameplay.carriedTorch && <div role="status" className="mt-3 flex flex-wrap items-center gap-2 text-sm text-amber-200">
+            Burning torch · {Math.ceil(gameplay.carriedTorch.durationRemaining)} min fuel
+            <Button type="button" size="sm" disabled={startingEncounter || gameplay.paused} onClick={gameplay.onExtinguishTorch}>Extinguish torch</Button>
+          </div>}
+          {nearbyObjects.length > 0 && <section aria-label="Nearby objects" className="mt-2 rounded-lg border border-amber-200/25 bg-stone-950/90 p-3 text-sm">
+            <details>
+            <summary className="cursor-pointer text-amber-100">Nearby objects · {nearbyObjects.map(object=>object.label).join(', ')}</summary>
+            {nearbyObjects.map(object => <div key={object.id} className="mb-2 last:mb-0">
+              <div className="font-semibold capitalize text-amber-100">{object.label}</div>
+              {objectFindings[object.id] ? <p className="my-1 text-stone-200">{objectFindings[object.id] === 'collected' ? object.collectionSummary??'Collected · one gold piece.' : object.observation}</p> : null}
+              {object.previouslySecured && !objectFindings[object.id] && <p className="my-1 text-stone-300">Previously secured. No new contents remain.</p>}
+              {objectFindings[object.id] === 'examined' && object.warning && <p className="my-1 text-amber-200">{object.warning}</p>}
+              {!objectFindings[object.id] && !object.previouslySecured && <Button type="button" size="sm" disabled={startingEncounter || gameplay.paused} onClick={() => gameplay.onObjectInteraction?.(object.id,'examine')}>Examine {object.label}</Button>}
+              {object.prop.kind==='torch' && !gameplay.carriedTorch && (gameplay.carriedTorchChoices
+                ? <CarriedTorchIgnition choices={gameplay.carriedTorchChoices.map(choice=>({...choice,
+                    error:gameplay.getTorchUseError?.(choice.inventoryIndex,object.id)}))}
+                    disabled={startingEncounter || gameplay.paused}
+                    onIgnite={inventoryIndex=>gameplay.onObjectInteraction?.(object.id,'light_torch',inventoryIndex)}/>
+                : (gameplay.carriedTorchIndex??-1)>=0 && <>
+                    <Button type="button" size="sm" disabled={startingEncounter || gameplay.paused} onClick={()=>gameplay.onObjectInteraction?.(object.id,'light_torch',gameplay.carriedTorchIndex)}>Light a carried torch</Button>
+                    <p className="mt-1 text-amber-200">Uses one carried torch and keeps its remaining fuel. 20 ft bright + 20 ft dim.</p>
+                  </>)}
+              {object.collectible && objectFindings[object.id] === 'examined' && <Button type="button" size="sm" disabled={startingEncounter || gameplay.paused} onClick={() => gameplay.onObjectInteraction?.(object.id,'collect')}>{object.cache?'Open and secure cache':'Recover loose coin'}</Button>}
+            </div>)}
+            </details>
+          </section>}
+          {nearbyDoors.length > 0 && <section aria-label="Nearby doors" className="mt-3 rounded-lg border border-amber-300/30 bg-stone-900 p-2">
+            <p className="text-xs text-amber-100">A closed door bars the passage.</p>
+            {nearbyDoors.map(door => {
+              const direction = door.cell.x > playerCell.x ? 'east' : door.cell.x < playerCell.x ? 'west' : door.cell.y > playerCell.y ? 'south' : 'north';
+              return <Button key={`${door.cell.x},${door.cell.y}`} type="button" size="sm" className="mt-2 mr-2" disabled={startingEncounter} onClick={() => { if (!encounterStartRef.current) gameplay.onOpenDoor?.(door.cell, playerCell); }}>Open door {direction}</Button>;
+            })}
+          </section>}
+          {gameplay.onStartEncounter && encounterInteraction && (
+            <section aria-label="Nearby creature" className="mt-3 rounded-lg border border-rose-400/40 bg-rose-950/80 p-3">
+              <h3 className="font-bold capitalize text-rose-100">{encounterInteraction.monsterKey.replace(/_/g, ' ')}</h3>
+              {encounterRisk && <p className="mt-1 font-semibold text-amber-200">{encounterRisk} encounter for your current party.</p>}
+              <p className="mt-1 text-sm text-stone-200">A creature is visible. Engaging begins initiative from your current square; it does not grant an attack.</p>
+              <Button type="button" variant="action" size="sm" className="mt-2 w-full" disabled={startingEncounter || gameplay.paused} onClick={startEncounter}>
+                {startingEncounter ? 'Preparing encounter…' : 'Engage creature'}
+              </Button>
+            </section>
+          )}
+          {encounterError && <p role="alert" className="mt-2 text-sm text-rose-200">{encounterError}</p>}
+          {gameplay.developerTools && <details className="mt-3 text-xs text-stone-400">
+          <summary className="cursor-pointer">Developer navigation and progress tools</summary>
           {treasureInteraction ? (
             <div className="mt-2 rounded-lg border border-amber-400/25 bg-amber-950/35 p-2 text-[11px] text-amber-100">
               <div className="font-bold">Treasure room {treasureInteraction.roomId}</div>
@@ -1319,7 +1601,7 @@ export const Dungeon3DPreview: React.FC<Dungeon3DPreviewProps> = ({ plan, overla
                   onClick={clearEncounter}
                   className="flex-1 border border-rose-400 bg-rose-700 font-black text-rose-50 disabled:border-gray-700 disabled:bg-gray-900 disabled:text-gray-500"
                 >
-                  {encounterIsClearable ? 'Defeat encounter' : 'Move onto it'}
+                  {encounterIsClearable ? 'Mark encounter cleared (test)' : 'Move onto it'}
                 </Button>
               </div>
             </div>
@@ -1349,26 +1631,36 @@ export const Dungeon3DPreview: React.FC<Dungeon3DPreviewProps> = ({ plan, overla
               onClick={completeObjective}
               className="mt-3 w-full border border-fuchsia-400 bg-fuchsia-800 font-black text-fuchsia-50 disabled:border-gray-700 disabled:bg-gray-900 disabled:text-gray-500"
             >
-              {objectiveIsReached ? 'Defeat boss and complete dungeon' : 'Reach the boss objective'}
+              {objectiveIsReached ? 'Mark objective complete (test)' : 'Reach the boss objective'}
             </Button>
           ) : null}
+          </details>}
         </aside>
       ) : null}
 
-      <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 flex-wrap items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-gray-950/82 p-1.5 shadow-xl backdrop-blur-md">
-        {(['tactical', 'entrance', 'objective'] as DungeonCameraPreset[]).map((option) => (
+      <div className={gameplay ? "absolute bottom-4 left-0 right-[360px] z-20 mx-auto flex w-fit items-center justify-center gap-1.5 rounded-lg border border-white/15 bg-gray-950/90 p-1.5 shadow-xl" : "absolute bottom-4 left-1/2 z-20 flex w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 flex-wrap items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-gray-950/82 p-1.5 shadow-xl backdrop-blur-md"}>
+        {((gameplay ? ['player', 'entrance'] : ['tactical', 'entrance', 'objective']) as DungeonCameraPreset[]).map((option) => (
           <Button
             key={option}
             type="button"
             variant="ghost"
             size="sm"
             data-testid={`dungeon-camera-${option}`}
-            onClick={() => setPreset(option)}
-            className={`h-8 rounded-lg px-3 text-xs font-bold capitalize transition ${preset === option ? 'bg-amber-500 text-gray-950' : 'text-gray-300 hover:bg-white/10'}`}
+            onClick={() => { setPreset(option); setCameraFrameNonce(value => value + 1); }}
+            style={preset === option ? {background: '#f59e0b', color: '#111827'} : undefined}
+            className={`h-9 rounded-lg px-3 text-sm font-bold capitalize transition ${preset === option ? 'bg-amber-500 text-gray-950' : 'text-gray-300 hover:bg-white/10'}`}
           >
-            {option}
+            {option === 'player' ? 'Follow me' : option}
           </Button>
         ))}
+        {gameplay && <>
+          <Button type="button" variant="ghost" size="sm" aria-pressed={clearSightline}
+            onClick={()=>setClearSightline(value=>!value)} title="Keep foreground walls from hiding your character"
+            className={clearSightline?'text-sky-200':'text-gray-400'}>Keep party visible</Button>
+          <Button type="button" variant="ghost" size="sm" aria-pressed={softLighting}
+            onClick={()=>setSoftLighting(value=>!value)} title="Show soft light reflected from fixed dungeon fixtures"
+            className={softLighting?'text-sky-200':'text-gray-400'}>Soft lighting</Button>
+        </>}
         <span className="mx-0.5 h-5 w-px bg-white/15" />
         <Button
           type="button"
@@ -1393,7 +1685,7 @@ export const Dungeon3DPreview: React.FC<Dungeon3DPreviewProps> = ({ plan, overla
         </Button>
       </div>
 
-      <div
+      {!gameplay && <div
         className="pointer-events-none absolute bottom-4 right-4 z-10 hidden max-w-56 rounded-lg border border-white/10 bg-black/68 px-3 py-2 text-[10px] leading-relaxed text-gray-300 shadow-xl backdrop-blur-sm md:block"
         aria-label="Active dungeon scene legend"
       >
@@ -1415,7 +1707,7 @@ export const Dungeon3DPreview: React.FC<Dungeon3DPreviewProps> = ({ plan, overla
         {overlays.props && preset === 'tactical' && visibleProps.visibleCount < visibleProps.totalCount && (
           <div className="mt-1 border-t border-white/10 pt-1 text-gray-400">Close presets restore minor dressing.</div>
         )}
-      </div>
+      </div>}
     </div>
   );
 };

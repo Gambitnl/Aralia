@@ -26,6 +26,7 @@ import { AddMessageFn, AddGeminiLogFn, GetCurrentLocationFn, GetCurrentNPCsFn } 
 import { NPCS } from '../../constants';
 import { SKILLS_DATA } from '../../data/skills';
 import { getAbilityModifierValue } from '../../utils/character';
+import { getCharacterSkillModifier } from '../../utils/character/skillModifierUtils';
 import { assessPlausibility } from '../../utils/world';
 import { handleImmediateGossip } from './handleWorldEvents';
 import { resolveAndRegisterEntities } from '../../utils/context';
@@ -86,16 +87,13 @@ export async function handleGeminiCustom({
     const dcModifier = Math.floor(-disposition / 10);
     const finalDc = baseDc + dcModifier + plausibilityModifier;
 
-    const abilityScoreValue = player.finalAbilityScores[skill.ability];
-    const abilityModifier = getAbilityModifierValue(abilityScoreValue);
-    const isProficient = player.skills.some(s => s.id === skill.id);
-    const proficiencyBonus = isProficient ? (player.proficiencyBonus || 2) : 0;
+    const skillModifier = getCharacterSkillModifier(player, skill.id, skill.ability);
 
     const d20Roll = Math.floor(Math.random() * 20) + 1;
-    const totalRoll = d20Roll + abilityModifier + proficiencyBonus;
+    const totalRoll = d20Roll + skillModifier;
     const wasSuccess = totalRoll >= finalDc;
 
-    addMessage(`(DC ${finalDc}) You attempt to ${skill.name}... Rolled ${totalRoll} (${d20Roll} + ${abilityModifier} + ${proficiencyBonus})`, "system");
+    addMessage(`(DC ${finalDc}) You attempt to ${skill.name}... Rolled ${totalRoll} (${d20Roll} + ${skillModifier})`, "system");
 
     const outcomeResult = await GeminiService.generateSocialCheckOutcome(
       npcMemory as any,

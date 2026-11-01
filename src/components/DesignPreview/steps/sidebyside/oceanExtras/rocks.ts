@@ -41,9 +41,9 @@
  * ARCHITECTURAL ADVISORY:
  * This file appears to be an ISOLATED UTILITY or ORPHAN.
  *
- * Last Sync: 29/09/2026, 19:24:38
+ * Last Sync: 11/10/2026, 01:38:15
  * Dependents: None (Orphan)
- * Imports: 3 files
+ * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -60,6 +60,21 @@ import type { OceanExtra, OceanExtraContext } from '../oceanExtras';
 export const enabledByDefault = false;
 
 /**
+ * ROCKS ROUND 18: THE MAIN ROCK IS THE CLIP'S (GG-418; the lead: seventeen rounds judged the wrong rock).
+ * k2_012's rock, measured (rocks/r18/clipMask18.py, clipProfile18.py; the stone the frame's darkest
+ * surface, its foot where the sea starts under it): 0.522 of the frame's width by 0.228 of its height,
+ * centered at (0.510, 0.459), 4.07 times wider than tall (k2_013 4.08, k2_014 3.92); a flat crest (0.84
+ * of the top within 0.12 of the height of its local crest) over u 0.2 to 0.75 of the width, falling to
+ * 0.48 at the left end and 0.57 at the right; its base at the waterline 0.81 of its width. At the judged
+ * camera (round 13's, 85 m, fov 3.49 deg: 9.6 mm a pixel of the clip's 960 x 540 at the rock) that is
+ * 4.8 m by 1.2 m of silhouette over the sea. The four lobes below were solved for that silhouette
+ * (rocks/r18/lobes18.ts: coordinate descent on the lobes' centers, sizes and heights for the IoU of the
+ * mesh's projection over the judged instant's water, 1.4 m, against the clip's mask, with the rear-left
+ * lobe at least 0.4 m more seaward, where the clip's plume stands): IoU 0.84 (round 17's loaf, rendered:
+ * 0.39). The rock is 6.3 by 4.8 m at still water and 2.23 m high, its flat crest 5 m long over the judged
+ * instant's 1.4 m water (the loaf's 3.6 m): a wide low cluster, as both clips show
+ * (sl_003's rock too is about four times wider than tall). Round 17's rock is ROCK_SPEC_LOAF.
+ *
  * THREE ROCKS (round 2: blocks). Both judges read round 1's rock as "one
  * smooth, rubbery hump". The main rock is now a cluster of four jointed
  * blocks (`lobes`) cut by 14 joint planes, 6.7 by 4.4 m: a tall block on
@@ -73,14 +88,18 @@ export const enabledByDefault = false;
  */
 export const ROCK_SPECS: readonly RockSpec[] = [
   {
-    xM: 0, zM: -60, halfLengthM: 3.0, halfWidthM: 2.2, headingRad: 0.18, topM: 2.2, baseM: 4.5,
-    squareness: 3.2, flatness: 4.5, taper: 0.18, tiltAlong: 0.04, tiltAcross: -0.04,
+    xM: 0, zM: -60, halfLengthM: 3.0, halfWidthM: 2.2, headingRad: 0.18, topM: 2.27, baseM: 4.5,
+    squareness: 3.2, flatness: 4.5, taper: 0.12, tiltAlong: 0, tiltAcross: 0,
     lumps: 0.07, creaseM: 0.14, seed: 101, facets: 14,
     lobes: [
-      { dxM: -0.9, dzM: 0.5, halfLengthM: 2.0, halfWidthM: 1.6, upM: 2.2, downM: 4.5, headingRad: 0.25, squareness: 5, flatness: 5 },
-      { dxM: 1.4, dzM: -0.2, halfLengthM: 1.7, halfWidthM: 1.4, upM: 1.6, downM: 4.5, headingRad: -0.3, squareness: 4, flatness: 4.5 },
-      { dxM: 0.3, dzM: -1.0, halfLengthM: 2.6, halfWidthM: 1.3, upM: 1.0, downM: 4.5, headingRad: 0.05, squareness: 3.5, flatness: 4 },
-      { dxM: -1.6, dzM: 0.1, halfLengthM: 1.9, halfWidthM: 1.3, upM: 1.3, downM: 4.5, headingRad: 0.6, squareness: 3.2, flatness: 3.6 },
+      // A, the rear-left block the crest strikes first (the clip's plume column peaks over u 0.0 to 0.4).
+      { dxM: 0.45, dzM: 0.9, halfLengthM: 2.2, halfWidthM: 2.4, upM: 2.2, downM: 4.5, headingRad: 0, squareness: 5, flatness: 5.5 },
+      // B, the right-center block (the flat crest over u 0.5 to 0.75).
+      { dxM: -0.85, dzM: 0.3, halfLengthM: 2.12, halfWidthM: 1.25, upM: 2.27, downM: 4.5, headingRad: 0, squareness: 4.5, flatness: 5 },
+      // C, the right tail, falling to 0.57 of the rock's height at its end.
+      { dxM: -2.25, dzM: 0.3, halfLengthM: 2.7, halfWidthM: 1.4, upM: 2.06, downM: 4.5, headingRad: 0.07, squareness: 3.8, flatness: 4.2 },
+      // D, the low left-front blocks (the top at 0.48 to 0.65 of the height over u 0 to 0.2).
+      { dxM: 1.6, dzM: -1.05, halfLengthM: 2.0, halfWidthM: 1.85, upM: 1.9, downM: 4.5, headingRad: -0.11, squareness: 4.2, flatness: 4.5 },
     ],
   },
   {
@@ -102,6 +121,31 @@ export const ROCK_SPECS: readonly RockSpec[] = [
     ],
   },
 ];
+
+/**
+ * ROCKS ROUND 18: THE ROUND-17 MAIN ROCK, kept for the lead's control (`?rockShape=loaf`, the `rk18-loaf`
+ * frames): the four-block loaf of rounds 2 to 17, 6.7 by 4.4 m and 2.2 m high, its blocks domed toward
+ * the middle. The Kalaloch frame's rock (k2_012) is a wide low cluster: GG-418.
+ */
+export const ROCK_SPEC_LOAF: RockSpec = {
+  xM: 0, zM: -60, halfLengthM: 3.0, halfWidthM: 2.2, headingRad: 0.18, topM: 2.2, baseM: 4.5,
+  squareness: 3.2, flatness: 4.5, taper: 0.18, tiltAlong: 0.04, tiltAcross: -0.04,
+  lumps: 0.07, creaseM: 0.14, seed: 101, facets: 14,
+  lobes: [
+    { dxM: -0.9, dzM: 0.5, halfLengthM: 2.0, halfWidthM: 1.6, upM: 2.2, downM: 4.5, headingRad: 0.25, squareness: 5, flatness: 5 },
+    { dxM: 1.4, dzM: -0.2, halfLengthM: 1.7, halfWidthM: 1.4, upM: 1.6, downM: 4.5, headingRad: -0.3, squareness: 4, flatness: 4.5 },
+    { dxM: 0.3, dzM: -1.0, halfLengthM: 2.6, halfWidthM: 1.3, upM: 1.0, downM: 4.5, headingRad: 0.05, squareness: 3.5, flatness: 4 },
+    { dxM: -1.6, dzM: 0.1, halfLengthM: 1.9, halfWidthM: 1.3, upM: 1.3, downM: 4.5, headingRad: 0.6, squareness: 3.2, flatness: 3.6 },
+  ],
+};
+
+/** Round 18: `?rockShape=loaf` draws round 17's main rock (the control); absent or `kalaloch`, the clip's. */
+function rockSpecsParam(): readonly RockSpec[] {
+  const v = new URLSearchParams(globalThis.location?.search ?? '').get('rockShape');
+  if (v === null || v === 'kalaloch') return ROCK_SPECS;
+  if (v === 'loaf') return [ROCK_SPEC_LOAF, ...ROCK_SPECS.slice(1)];
+  throw new Error(`[ocean] ?rockShape=${v}: use kalaloch or loaf.`);
+}
 
 /**
  * Where the white water goes (Remy's one-water rule). Round 3: the sea's
@@ -127,15 +171,16 @@ function foamPathParam(): 'field' | 'own' {
 }
 
 /**
- * Round 5: how the plume is drawn. The default is one ray march a pixel
- * (oceanSplash.ts, WHY A MARCH); `?plume=slices` draws round 4's slice stack
- * for an A/B only.
+ * Round 5: how the plume is drawn: one ray march a pixel (oceanSplash.ts,
+ * WHY A MARCH). Round 6 removed round 4's slice stack (`?plume=slices`):
+ * its detail, erosion and gains were looks, and the grids it read are gone
+ * (oceanSplash.ts, THE SLICE DRAW IS GONE). The parameter now fails with a
+ * clear message rather than drawing a different plume.
  */
-function plumeDrawParam(): 'march' | 'slices' {
+function plumeDrawParam(): 'march' {
   const v = new URLSearchParams(globalThis.location?.search ?? '').get('plume');
   if (v === null || v === 'march') return 'march';
-  if (v === 'slices') return 'slices';
-  throw new Error(`[ocean] ?plume=${v}: use march or slices.`);
+  throw new Error(`[ocean] ?plume=${v}: only march is drawn since rocks round 6 (the slice stack was removed).`);
 }
 
 export default async function mount(ctx: OceanExtraContext): Promise<OceanExtra> {
@@ -146,7 +191,8 @@ export default async function mount(ctx: OceanExtraContext): Promise<OceanExtra>
     field: ctx.field,
     sunDir: ctx.sky.sunDir,
     overcast: ctx.sky.uOvercast,
-    specs: ROCK_SPECS,
+    // Round 18: `?rockShape=loaf` swaps in round 17's main rock (rockSpecsParam).
+    specs: rockSpecsParam(),
     // The main rock at icosphere level 6 (40,962 vertices, 6 cm edges: its
     // joints and ledges are sharp at the telephoto's 7 mm a pixel), the
     // small ones at 5.
@@ -161,6 +207,8 @@ export default async function mount(ctx: OceanExtraContext): Promise<OceanExtra>
     /** Where the white water went: 'field' (the sea's foam field) or 'own' (the rocks' own grid). */
     foamPath: () => rocks.foamPath,
     stats: () => rocks.stats(),
+    /** Round 6: the pinned start's sea at the faces, for a CPU replay of the model (oceanRocks.ts, dumpPrime). */
+    dumpPrime: () => rocks.dumpPrime(),
     /** Round 4: the foam discs handed to the sea's foam field now (x, z, radius, strength, t0, t1). */
     discs: () => rockFoamSources(rocks.sim, rocks.sim.time, FOAM_DISC_SLOTS).map((d) => [d.xM, d.zM, d.rM, +d.s.toFixed(3), d.t0S, d.t1S]),
     /** Round 4: the live splash particles (x, y, z, kind, owner, vx, vy, vz, age: nine numbers a particle), for a plot of where the burst stands. */
@@ -178,12 +226,20 @@ export default async function mount(ctx: OceanExtraContext): Promise<OceanExtra>
     debugSpray: (m: number) => rocks.debugSpray(m),
     /** Round 5: the marched plume's debug draw: 0 the shipped draw, 1 its opacity as grey, 2 the depth prepass. */
     debugPlume: (m: number) => rocks.debugPlume(m),
+    // Rocks round 14: the stone's film debug view (OceanRocks.debugRock).
+    debugRock: (m: number) => rocks.debugRock(m),
+    // Rocks round 18: the march's turbulence multiplier on or off (THE EDGE TEARS), for the A/B.
+    turbulence: (on: boolean) => rocks.setTurbulence(on),
+    // Round 19: the march's dome source (THE PLUME SEES THE DOME), for the A/B.
+    dome: (on: boolean) => rocks.setDome(on),
     /** What the rocks do from t0 to t1 (see `OceanRocks.scan`); pass the pinned time as `now`. */
     scan: (t0: number, t1: number, every?: number, now?: number) => rocks.scan(t0, t1, every, now),
     tables: () => rocks.tables.map((t) => ({
       center: [t.centerX, t.centerZ], topM: t.topM, topAreaM2: t.topAreaM2,
       waterline: Array.from(t.waterlineM), rim: Array.from(t.rimM), slopeDeg: Array.from(t.slopeRad, (r) => (r * 180) / Math.PI),
     })),
+    /** Round 10: turn one of the splash model's round-10 laws off or on ('breakup', 'bubbleMist'), for a cost ablation. */
+    ablateLaw: (law: 'breakup' | 'bubbleMist', on: boolean) => { rocks.sim.splash.lawsOn[law] = on; },
     /** Show or hide one part: 'spray', 'foam', 'rocks', 'patch'. */
     setVisible: (part: string, on: boolean) => {
       for (const o of rocks.group.children) {
@@ -194,6 +250,8 @@ export default async function mount(ctx: OceanExtraContext): Promise<OceanExtra>
         else if (part === 'foam' && o.name.startsWith('oceanRockFoam')) o.visible = on;
         else if (part === 'rocks' && /^oceanRock\d/.test(o.name)) o.visible = on;
         else if (part === 'patch' && o.name === 'oceanRockFinePatch') o.visible = on;
+        // Round 10: the sheets', strands' and drops' sprites (createOceanSplashDropDraw), for a cost ablation.
+        else if (part === 'sprites' && o.name === 'oceanRockDrops') o.visible = on;
       }
     },
   };

@@ -16,6 +16,7 @@ import { generateDungeon } from '../../../../systems/worldforge/dungeon/generate
 import { CellKind, OverlayKind } from '../../../../systems/worldforge/dungeon/types';
 import {
   buildDungeonSceneModel,
+  dungeonPlayerAccentLights,
   classifyPropKind,
   decomposeProp,
   DUNGEON_3D_LIGHTING,
@@ -56,6 +57,95 @@ const BASE_OPTIONS: DungeonSceneOptions = {
 };
 
 describe('buildDungeonSceneModel', () => {
+  it('keeps the ladder-shaft threshold below accepted feet instead of burying the returning party',()=>{
+    const plan=generateDungeon({seed:42,params:{roomCount:28,theme:'sewer',loopChance:.25,decorDensity:.6}});
+    const source=JSON.stringify(plan),grid=plan.grid;
+    const shafts=plan.rooms.filter(room=>room.purpose==='ladder-shaft');
+    expect(shafts.length).toBeGreaterThan(0);
+    const model=buildDungeonSceneModel(plan,BASE_OPTIONS);
+    const parts=[...model.propBoxes,...model.propCylinders,...model.propCones,...model.propSpheres,...model.propOctahedrons]
+      .filter(part=>part.purposeLandmark&&part.roomPurpose==='ladder-shaft');
+    expect(new Set(parts.map(part=>part.roomId)).size).toBe(shafts.length);
+    expect(Math.max(...parts.map(part=>part.y+part.sy/2))).toBeLessThanOrEqual(.01);
+    expect(JSON.stringify(plan)).toBe(source);
+    expect(plan.grid).toBe(grid);
+  });
+
+  it('keeps junction landmarks below the party footing without inventing a vertical obstacle',()=>{
+    const plan=generateDungeon({seed:42,params:{roomCount:28,theme:'sewer',loopChance:.25,decorDensity:.6}});
+    // Preserve canonical values and buffer identity without structuredClone's
+    // different typed-array realm becoming a false source-mutation failure.
+    const source=JSON.stringify(plan),grid=plan.grid;
+    const junctions=plan.rooms.filter(room=>room.purpose==='junction');
+    expect(junctions.length).toBeGreaterThan(0);
+    const model=buildDungeonSceneModel(plan,BASE_OPTIONS);
+    const parts=[...model.propBoxes,...model.propCylinders,...model.propCones,
+      ...model.propSpheres,...model.propOctahedrons].filter(part=>
+      part.purposeLandmark && part.roomPurpose==='junction');
+    expect(new Set(parts.map(part=>part.roomId)).size).toBe(junctions.length);
+    // These pieces have no collision owner. Crossing the source floor must not
+    // bury the figure in decorative stairs or silently raise its accepted feet.
+    expect(Math.max(...parts.map(part=>part.y+part.sy/2))).toBeLessThanOrEqual(.01);
+    expect(JSON.stringify(plan)).toBe(source);
+    expect(plan.grid).toBe(grid);
+  });
+  it('keeps each authored surface footprint while separating water from nonluminous growth and scars',()=>{
+    const plan=generateDungeon({seed:91,params:{roomCount:8,theme:'sewer'}});
+    const cells=Array.from(plan.grid).flatMap((cell,index)=>cell===CellKind.Floor?[index]:[]).slice(0,4);
+    plan.overlay.fill(OverlayKind.None);
+    [OverlayKind.Water,OverlayKind.Ice,OverlayKind.Bloom,OverlayKind.Scorch].forEach((kind,index)=>{
+      plan.overlay[cells[index]]=kind;
+    });
+    const source=Array.from(plan.overlay), grid=Array.from(plan.grid);
+    const model=buildDungeonSceneModel(plan,BASE_OPTIONS);
+    expect(model.liquids).toHaveLength(1);
+    expect(model.solidSurfaces).toHaveLength(3);
+    const surfaces=[...model.liquids,...model.solidSurfaces];
+    expect(surfaces.map(part=>[part.x,part.z])).toEqual(cells.map(index=>[
+      index%plan.W-plan.W/2+.5,Math.floor(index/plan.W)-plan.H/2+.5,
+    ]));
+    expect(surfaces.every(part=>part.sx===.96 && part.sz===.96)).toBe(true);
+    expect(Array.from(plan.overlay)).toEqual(source);
+    expect(Array.from(plan.grid)).toEqual(grid);
+  });
+  it('adds a source cache and opens only its lid without changing floor, doors, lights or inhabitants',()=>{
+    const room=PLAN.rooms.find(room=>room.id===PLAN.entranceId)!;
+    const prop={kind:'chest',x:room.x,y:room.y,rot:0 as const,scale:1.1,roomId:room.id};
+    const before=buildDungeonSceneModel(PLAN,BASE_OPTIONS);
+    const closed=buildDungeonSceneModel(PLAN,{...BASE_OPTIONS,cacheProps:[prop]});
+    const opened=buildDungeonSceneModel(PLAN,{...BASE_OPTIONS,cacheProps:[prop],openedChestIndices:[PLAN.props.length]});
+    for(const model of [closed,opened]){
+      expect(model.floors).toEqual(before.floors);
+      expect(model.walls).toEqual(before.walls);
+      expect(model.doors).toEqual(before.doors);
+      expect(model.spawns).toEqual(before.spawns);
+      expect(model.lights).toEqual(before.lights);
+    }
+    expect(closed.lowProps).toHaveLength(before.lowProps.length+1);
+    expect(opened.propBoxes.length).toBeGreaterThan(closed.propBoxes.length);
+    expect(PLAN.props).not.toContain(prop);
+  });
+  it('removes only a collected loose prop from presentation while retaining the complete source plan', () => {
+    const entrance=PLAN.rooms.find(room=>room.id===PLAN.entranceId)!;
+    const index=PLAN.props.length;
+    const variant={...PLAN,props:[...PLAN.props,{kind:'dropped-coins',x:entrance.x,y:entrance.y,rot:0 as const,scale:1,roomId:entrance.id}]};
+    const hidden=buildDungeonSceneModel(variant,{...BASE_OPTIONS,hiddenPropIndices:[index]});
+    expect(hidden).toEqual(buildDungeonSceneModel(PLAN,BASE_OPTIONS));
+    expect(variant.props[index].kind).toBe('dropped-coins');
+    expect(variant.grid).toBe(PLAN.grid);
+  });
+  it('lights the reached source fixture without moving it or spending an extra light', () => {
+    const model = buildDungeonSceneModel(PLAN, BASE_OPTIONS);
+    const unselected = model.flames.find(flame => !model.lights.some(light => light.x === flame.x && light.z === flame.z));
+    expect(unselected).toBeDefined();
+    const before = structuredClone(model);
+    const lights = dungeonPlayerAccentLights(model, unselected!);
+    expect(lights).toHaveLength(Math.min(10,model.flames.length));
+    expect(lights[0]).toMatchObject({x:unselected!.x,z:unselected!.z,y:unselected!.y+0.18});
+    expect(lights.every(light=>model.flames.some(flame=>flame.x===light.x&&flame.z===light.z&&flame.y+0.18===light.y))).toBe(true);
+    expect(model).toEqual(before);
+    expect(dungeonPlayerAccentLights(model, unselected!)).toEqual(lights);
+  });
   it('raises every floor and wall cell exactly once', () => {
     const model = buildDungeonSceneModel(PLAN, BASE_OPTIONS);
     const floorCells = Array.from(PLAN.grid).filter((cell) => cell === CellKind.Floor).length;
@@ -209,8 +299,11 @@ describe('buildDungeonSceneModel', () => {
       && overlay !== OverlayKind.Rubble
     )).length;
 
-    // Rubble is represented by evidence props; fluid/ice/bloom/scorch become shallow surfaces.
-    expect(model.liquids).toHaveLength(raisedOverlays);
+    // Rubble stays in evidence props. Only water is translucent; other source scars are solid.
+    const waterCells = Array.from(PLAN.overlay).filter((overlay,index) =>
+      PLAN.grid[index] === CellKind.Floor && overlay === OverlayKind.Water).length;
+    expect(model.liquids).toHaveLength(waterCells);
+    expect(model.solidSurfaces).toHaveLength(raisedOverlays-waterCells);
     expect(model.lights.length).toBeLessThanOrEqual(10);
     expect(model.lights.length).toBeLessThanOrEqual(model.flames.length);
     expect(model.lights.some((light) => (
@@ -228,7 +321,10 @@ describe('buildDungeonSceneModel', () => {
 
     // The renderer may hide minor clutter from the distant tactical preset, but every generated
     // prop remains in the shared model and returns in entrance/objective inspection views.
-    expect(physicalProps).toHaveLength(PLAN.props.length);
+    // Canonical floor hazards now join that presentation exactly once; they are
+    // not inserted into the generator's independent furniture array.
+    expect(physicalProps).toHaveLength(PLAN.props.length + PLAN.traps.length);
+    expect(physicalProps.filter(prop=>prop.visualKind==='trap')).toHaveLength(PLAN.traps.length);
     expect(physicalProps.some((prop) => prop.detail === true)).toBe(true);
     expect(physicalProps.some((prop) => prop.detail !== true)).toBe(true);
   });

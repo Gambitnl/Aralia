@@ -81,7 +81,9 @@ export function useGameHotkeys({
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       // Pass through if disabled, not in gameplay, modifier key pressed, or typing
-      if (disabled || !isPlaying || e.ctrlKey || e.metaKey || e.altKey) return;
+      // A focused surface may already own this key (for example Atlas Escape).
+      // Honor that dismissal instead of also opening a gameplay menu beneath it.
+      if (e.defaultPrevented || disabled || !isPlaying || e.ctrlKey || e.metaKey || e.altKey) return;
       if (isEditableElementFocused()) return;
 
       const code = e.code;

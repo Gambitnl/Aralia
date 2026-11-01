@@ -6,6 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import { groundTownAgentsAt, allGroundAgentsAt, groundAgentScenePositions } from '../groundAgentMotion';
 import { occupantLocationAt } from '../../roster/occupantSchedule';
+import { buildStreetGraph } from '../../roster/agentPath';
 import { WORLD3D_CONFIG } from '../../../world3d/config';
 import type { TownPlan } from '../../artifacts';
 import type { TownRoster } from '../../roster/types';
@@ -69,6 +70,17 @@ describe('groundTownAgentsAt', () => {
 });
 
 describe('allGroundAgentsAt', () => {
+  it('uses the ground world fitted door graph rather than rebuilding plot-midpoint entrances', () => {
+    const routedPlan = {...plan, streets: [{id: 1, widthFt: 10, centerline: [[1000, 1990], [1110, 1990]]}]} as TownPlan;
+    const graph = buildStreetGraph(routedPlan);
+    graph.plotEntrances.set(10, {...graph.plotEntrances.get(10)!, door: [1007, 2001]});
+    const ground = {rosters: [roster], townPlans: [{burgId: 3, plan: routedPlan, streetGraph: graph}], boundsFeet: bounds} as unknown as Parameters<typeof allGroundAgentsAt>[0];
+    const person = allGroundAgentsAt(ground, 3).find(a => a.occupantId === 1)!;
+    expect(person.xM).toBeCloseTo(7 * FEET_TO_METERS);
+    expect(person.zM).toBeCloseTo(FEET_TO_METERS);
+    expect(person.moving).toBe(false);
+  });
+
   const groundLike = {
     rosters: [roster, { burgId: 9, occupants: [{ id: 5, name: 'Cara', ageBand: 'adult', homePlotId: 10, occupation: 'resident' }] }],
     townPlans: [

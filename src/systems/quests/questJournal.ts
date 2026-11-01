@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 09/06/2026, 02:06:39
- * Dependents: state/reducers/questReducer.ts, systems/quests/QuestManager.ts
- * Imports: 3 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file turns quest transitions into journal events.
  *
@@ -26,11 +10,27 @@
  * Depends on: the shared journal state shape and the quest ID generator
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 28/10/2026, 22:39:44
+ * Dependents: state/reducers/companionGoalWorkReducer.ts, state/reducers/companionPreparationReducer.ts, state/reducers/questReducer.ts, systems/quests/QuestManager.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { GameState, Quest } from '../../types';
 import { JournalEvent, createInitialJournalState } from '../../types/journal';
 import { generateId } from '../../utils/core/idGenerator';
 
-type QuestJournalEventType = Extract<JournalEvent['type'], 'quest_accepted' | 'quest_completed' | 'quest_failed'>;
+type QuestJournalEventType = Extract<JournalEvent['type'], 'quest_accepted' | 'quest_completed' | 'quest_failed' | 'npc_conversation'>;
 
 interface QuestJournalEventInput {
   type: QuestJournalEventType;

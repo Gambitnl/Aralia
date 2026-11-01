@@ -5,6 +5,8 @@ for, and record where they overlap or contradict.
 
 This file is living. Update it in place. Do not date a copy of it.
 
+Verified: 2026-10-25
+
 ## The six stores
 
 | Store | Size | Shape | Who writes it |
@@ -48,7 +50,7 @@ in the file itself that says so.
 
 ### Finding 2 - dated files are the safe default
 
-162 files carry a date in the name. July alone produced 129, about four a day.
+162 files carried a date in the name (as of 2026-08-05). July alone produced 129, about four a day.
 
 This is not laziness. An agent needs somewhere to put a finding, sees six
 candidate homes, and has no rule saying which is right. A new dated file is the
@@ -56,6 +58,16 @@ only choice that cannot be wrong.
 
 The system rewards a new file over an update. That is the root cause of the
 sprawl, and it is a rule problem rather than a discipline problem.
+
+**Migration completed 2026-10-25 (agora-3b09.3):** 168 dated files were classified and migrated:
+- 1 ADR moved to `docs/adr/0008-decision-blitz-2026-06-10.md`
+- 167 historical documentation files moved to `docs/archive/superpowers/` (specs, plans, research, handovers, briefs, root)
+- Additional design/plans files moved to `docs/archive/design/` and `docs/archive/plans/`
+- Index created at `docs/archive/dated-docs-migration-index.md`
+
+Dated files now only exist in `docs/adr/` (by design) and `docs/archive/` (historical reference).
+
+Dated files now only exist in `docs/adr/` (by design) and `docs/archive/` (historical reference).
 
 ### Finding 3 - memory and the plan map overlap heavily
 

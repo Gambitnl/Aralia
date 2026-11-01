@@ -6,6 +6,22 @@
  * Types for the interactive companion conversation system.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 28/10/2026, 12:51:04
+ * Dependents: hooks/actions/handleNpcInteraction.ts, hooks/useConversation.ts, hooks/useOpeningSituation.ts, state/reducers/conversationReducer.ts, types/index.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * A single message in an ongoing conversation.
  */
@@ -15,6 +31,9 @@ export interface ConversationMessage {
     text: string;
     emotion?: string;
     timestamp: number;
+    /** Fixed story choices already recorded their outcome in companion memory.
+     * Exclude them from model summarization and a second approval award. */
+    memoryHandled?: boolean;
 }
 
 /**

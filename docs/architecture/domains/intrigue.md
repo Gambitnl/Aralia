@@ -1,6 +1,6 @@
 # Intrigue Domain Architecture
 
-Verified: unknown - predates the verification rule (see AGENTS.md)
+Verified: 2026-10-31 (tavern gossip; other intrigue surfaces retain their earlier verification scope)
 
 ## Purpose
 
@@ -37,6 +37,10 @@ The repo now has an explicit LeverageSystem plus secret-generation surfaces, so 
 ### Rumors and tavern gossip
 
 The TavernGossipSystem is now the clearest concrete bridge between low-confidence social information and downstream intrigue mechanics.
+
+Current tavern offers use local, unexpired world accounts and town talk that has actually spread. Bought account IDs are excluded using their existing Service receipts. Dungeon accounts keep the actual source rumor ID and text; public adventurer accounts require the companion's retained activity and current whereabouts. A rumor grants no meeting, travel route or recruitment consent.
+
+The former random northward glowing-ruin offer had no source and started the separate eastern legacy quest. It is no longer generated. Its chance and price draws are consumed to preserve later seeded offer choices and prices. The authored explore_ruins template, legacy location data, existing item hooks and explicitly supplied quest-lead purchase path remain available. New work offers still need actual world sources and meaningful objectives; the repair does not create them.
 
 ### Identity and disguise
 

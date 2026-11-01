@@ -250,10 +250,30 @@ describe('buildBuildingMaterialParts', () => {
     const parts = buildBuildingMaterialParts(blueprint, 3);
     const derived = dressingContrastTone(style.trimColor, style.wallColor);
     for (const part of parts) {
+      if (part.materialDetailKind === 'wall-course') continue;
       expect(part.colorHex).toBe(
         part.materialDetailKind === 'roof-edge' ? style.roofColor : derived,
       );
     }
+  });
+
+  it('keeps course relief shallow and wall-colored across production materials', () => {
+    const seen = new Set<string>();
+    for (let seed = 0; seed < 60; seed++) {
+      const blueprint = styledBuilding(seed);
+      const material = blueprint.styleResolved!.construction.wallMaterial;
+      const courses = buildBuildingMaterialParts(blueprint, 3).filter(p => p.materialDetailKind === 'wall-course');
+      for (const course of courses) {
+        seen.add(material);
+        const isLog = material === 'round-log' || material === 'hewn-log';
+        expect(Math.min(course.w, course.d)).toBeLessThanOrEqual(isLog ? 0.061 : 0.016);
+        expect(luma01(course.colorHex)).toBeLessThan(luma01(blueprint.styleResolved!.wallColor));
+        expect(luma01(blueprint.styleResolved!.wallColor) - luma01(course.colorHex)).toBeLessThan(0.16);
+      }
+    }
+    expect(seen.has('weatherboard') || seen.has('tarred-board')).toBe(true);
+    expect(seen.has('round-log') || seen.has('hewn-log')).toBe(true);
+    expect(seen.has('rubble-stone') || seen.has('dressed-stone')).toBe(true);
   });
 
   it('omits material courses and edges from the neighbor-owned party wall', () => {

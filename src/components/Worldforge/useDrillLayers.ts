@@ -27,7 +27,7 @@ function usePersistedToggles<K extends string>(
     if (keyRef.current === key) return;
     keyRef.current = key;
     setLayers(load(key));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyRef makes this idempotent; re-running on a new defaults object would reload over the user's layer toggles (C9).
   }, [key]);
 
   useEffect(() => {

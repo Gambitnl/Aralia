@@ -10,7 +10,11 @@ import { buildBuildingMotifParts } from '../../../systems/worldforge/bridge/buil
 import {
   blueprintForHarnessPlot,
   buildHarnessTown,
+  buildSelectedPlotHistoryReceipt,
   compareBuildingFacts,
+  filterHarnessPlotsByAge,
+  plotAgeBand,
+  resolveHarnessSelectedPlot,
 } from '../buildingIdentityLabModel';
 
 const OPTIONS = {
@@ -177,5 +181,49 @@ describe('building identity lab model', () => {
     // A blueprint that carries no resolved dress can never verify silently:
     // every cross-checked fact must surface as a structured mismatch.
     expect(compareBuildingFacts(plot, undefined)).toHaveLength(5);
+  });
+
+  it('WF-G308: resolves requested plotId or ageFilter and publishes backstory wear kinds', () => {
+    const model = buildHarnessTown({ ...OPTIONS, population: 3200 });
+
+    // Locate an aged/old/ancient plot that carries permanent roof or wall backstory wear.
+    const plotsWithBackstoryWear = model.artifactPlan.plots
+      .map((plot) => ({
+        plot,
+        blueprint: blueprintForHarnessPlot(model, plot.id),
+      }))
+      .filter(({ blueprint }) => (blueprint.backstory?.wear.length ?? 0) > 0);
+    expect(plotsWithBackstoryWear.length).toBeGreaterThan(0);
+
+    const target = plotsWithBackstoryWear[0];
+    const targetAge = plotAgeBand(target.plot);
+    expect(targetAge).not.toBe('new');
+
+    // 1. Direct plotId selection returns that exact building.
+    const byPlotId = resolveHarnessSelectedPlot(model, {
+      plotId: target.plot.id,
+      ageFilter: 'all',
+    });
+    expect(byPlotId?.id).toBe(target.plot.id);
+
+    // 2. Age-band filtering selects a building matching the requested age band
+    // even when plotId defaults to a 'new' plot.
+    const byAgeBand = resolveHarnessSelectedPlot(model, {
+      plotId: 0,
+      ageFilter: targetAge,
+    });
+    expect(byAgeBand).toBeDefined();
+    expect(plotAgeBand(byAgeBand!)).toBe(targetAge);
+
+    const filtered = filterHarnessPlotsByAge(model.artifactPlan.plots, targetAge);
+    expect(filtered.length).toBeGreaterThan(0);
+    expect(filtered.every((candidate) => plotAgeBand(candidate) === targetAge)).toBe(true);
+
+    // 3. The published receipt exposes both ageBand and backstory wear kinds.
+    const receipt = buildSelectedPlotHistoryReceipt(target.plot, target.blueprint);
+    expect(receipt.selectedPlotAgeBand).toBe(targetAge);
+    expect(receipt.selectedPlotWear).toEqual(target.blueprint.backstory?.wear);
+    expect(receipt.selectedBackstoryWear).toEqual(target.blueprint.backstory?.wear);
+    expect(receipt.selectedBackstoryFeatures.length).toBeGreaterThan(0);
   });
 });

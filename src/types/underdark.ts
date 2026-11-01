@@ -4,6 +4,24 @@
  * and Alien Faction Civilizations.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 28/10/2026, 19:15:01
+ * Dependents: components/BattleMap/dungeon/Dungeon3DPreview.tsx, data/underdark/biomes.ts, data/underdarkFactions.ts, hooks/useUnderdarkLighting.ts, services/underdarkService.ts, systems/underdark/UnderdarkFactionSystem.ts, systems/underdark/UnderdarkMechanics.ts, systems/underdark/carriedItemLight.ts, types/index.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import type {Item} from './items';
+
 export type LightSourceType = 'torch' | 'lantern' | 'spell' | 'bioluminescence';
 
 export interface LightSource {
@@ -13,6 +31,12 @@ export interface LightSource {
     radius: number; // In feet
     durationRemaining: number; // In minutes
     isActive: boolean;
+    /** Explicit carried fuel; a packed torch alone produces no light. */
+    bearerId?: string;
+    sourceItem?: Item;
+    brightRadius?: number;
+    dimRadius?: number;
+    expiresAtGameTime?: number;
 }
 
 export type DepthLayer = 'upper' | 'middle' | 'lower' | 'abyss';

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 25/06/2026, 07:55:29
+ * Last Sync: 28/10/2026, 19:49:57
  * Dependents: state/appState.ts
- * Imports: 5 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -16,6 +16,7 @@
 
 import { GameState, Crime, HeistActionType } from '../../types';
 import { AppAction } from '../actionTypes';
+import { isCurrencyItemId } from '../../utils/character/coinPurseUtils';
 import { CrimeSystem } from '../../systems/crime/CrimeSystem';
 import { HeistManager } from '../../systems/crime/HeistManager';
 import type { HeistAction, GuildMembership, GameMessage } from '../../types';
@@ -264,12 +265,22 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
                 state.gameTime.getTime()
             );
 
-            if (prunedNotoriety === state.notoriety) {
+            // GG-479: heat cools with world time (decayHeat: 1 local point and
+            // 0.1 global point per hour). decayHeat had no production caller, so
+            // a town that grew hot stayed at its peak heat for the whole game.
+            const hoursPassed = Math.max(0, (action.payload?.seconds ?? 0) / 3600);
+            const hasHeat = prunedNotoriety.globalHeat > 0
+                || Object.values(prunedNotoriety.localHeat).some(heat => heat > 0);
+            const cooledNotoriety = hoursPassed > 0 && hasHeat
+                ? CrimeSystem.decayHeat(prunedNotoriety, hoursPassed)
+                : prunedNotoriety;
+
+            if (cooledNotoriety === state.notoriety) {
                 return {};
             }
 
             return {
-                notoriety: prunedNotoriety
+                notoriety: cooledNotoriety
             };
         }
 
@@ -325,6 +336,9 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
         }
 
         case 'SELL_FENCED_ITEM': {
+            // The inventory owner rejects currency as merchandise; that rejected
+            // request must not create a rumor or criminal consequence either.
+            if (isCurrencyItemId(action.payload.itemId)) return {};
             const { locationId, heatGenerated } = action.payload;
             const heatIncrease = Math.max(0, heatGenerated);
             if (heatIncrease === 0) return {};
@@ -371,13 +385,17 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
         case 'ACCEPT_GUILD_JOB': {
             const { job } = action.payload;
             const guild = getGuildMembershipOrDefault(state.thievesGuild);
-            // Add to active jobs
+            // GG-480: a job is taken once. Refuse a job that is already active
+            // or completed, and take it out of the stored offers, so the
+            // accept -> complete loop can no longer pay the same job again.
+            if (guild.activeJobs.some(j => j.id === job.id) || guild.completedJobs.includes(job.id)) {
+                return {};
+            }
             return {
                 thievesGuild: {
                     ...guild,
                     activeJobs: [...guild.activeJobs, job],
-                    // Remove from available if we were tracking that separately?
-                    // For now, assuming available jobs are transient or managed by UI
+                    availableJobs: guild.availableJobs.filter(j => j.id !== job.id),
                 },
                 messages: [
                     ...state.messages,
@@ -398,7 +416,10 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
             if (!job) return {};
 
             const newActiveJobs = guild.activeJobs.filter(j => j.id !== jobId);
-            const newCompletedJobs = [...guild.completedJobs, jobId];
+            // GG-480: record each job once.
+            const newCompletedJobs = guild.completedJobs.includes(jobId)
+                ? guild.completedJobs
+                : [...guild.completedJobs, jobId];
             const newRep = guild.reputation + rewardRep;
 
             // Rank up logic? (Simple threshold for now)
@@ -439,7 +460,10 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
                     activeJobs: newActiveJobs,
                     completedJobs: newCompletedJobs,
                     reputation: newRep,
-                    rank: newRank
+                    rank: newRank,
+                    // GG-480: a rank-up clears the stored offers so the guild
+                    // screen generates jobs for the new rank.
+                    availableJobs: newRank !== guild.rank ? [] : guild.availableJobs,
                 },
                 messages: msgs
             };
@@ -518,7 +542,9 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
             return {
                 thievesGuild: {
                     ...guild,
-                    availableJobs: jobs
+                    // GG-480: never offer a job that is active or already done.
+                    availableJobs: jobs.filter(j =>
+                        !guild.completedJobs.includes(j.id) && !guild.activeJobs.some(a => a.id === j.id)),
                 }
             };
         }

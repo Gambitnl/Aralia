@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 18/07/2026, 19:32:47
- * Dependents: components/Worldforge/AgentSimPreview.tsx
- * Imports: 1 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file agentSim.ts — WF-AGENTSIM behaviour layer (SPEC §8).
  *
@@ -29,7 +13,25 @@
  * lockstep. This is the stateful counterpart to the stateless `townSnapshotAt`;
  * a host ticks it forward and reads each agent's chosen `activity` + `targetPlotId`.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 06:27:07
+ * Dependents: components/Worldforge/AgentSimPreview.tsx
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { Occupant } from './types';
+import { occupantLocationAt, occupantWorkPlotId } from './occupantSchedule';
 
 /** All needs are 0 (desperate) … 100 (fully satisfied). */
 export interface AgentNeeds {
@@ -120,14 +122,19 @@ const wrapHour = (h: number): number => ((h % 24) + 24) % 24;
  */
 function decide(occupant: Occupant, needs: AgentNeeds, hour: number): AgentActivity {
   const h = wrapHour(hour);
-  const isWorker = occupant.workPlotId !== undefined && occupant.ageBand !== 'child';
+  const isWorker = (occupant.workPlotId !== undefined
+    || (occupant.civicWorkplace !== undefined && !occupant.retired)) && occupant.ageBand !== 'child';
   const night = h >= 22 || h < 6 + jitter01(occupant.id, 5) * 1.5;
 
   if (needs.energy <= LOW.energy * (0.8 + jitter01(occupant.id, 6) * 0.4)) return 'sleep';
   if (night) return 'sleep';
   if (needs.satiety <= LOW.satiety * (0.8 + jitter01(occupant.id, 7) * 0.4)) return 'eat';
   if (needs.social <= LOW.social * (0.8 + jitter01(occupant.id, 8) * 0.4)) return 'socialize';
-  if (isWorker && h >= 7 && h < 18) return 'work';
+  // Civic duty follows the same household meal boundaries as the physical
+  // schedule. Hunger, exhaustion and company retain their existing priority.
+  const onDuty = occupant.workPlotId === undefined && occupant.civicWorkplace
+    ? occupantLocationAt(occupant, h).activity === 'working' : h >= 7 && h < 18;
+  if (isWorker && onDuty) return 'work';
   // Idle non-workers run a daytime errand sometimes; otherwise stay home.
   if (!isWorker && h >= 9 && h < 17 && jitter01(occupant.id, Math.floor(h)) > 0.6) return 'shop';
   return 'home';
@@ -139,7 +146,7 @@ function targetFor(occupant: Occupant, activity: AgentActivity, ctx: AgentSimCon
     ? ctx.gatheringPlotIds[Math.abs(occupant.id) % ctx.gatheringPlotIds.length]
     : occupant.homePlotId;
   switch (activity) {
-    case 'work': return occupant.workPlotId ?? occupant.homePlotId;
+    case 'work': return occupantWorkPlotId(occupant) ?? occupant.homePlotId;
     case 'socialize':
     case 'shop': return gathering;
     case 'sleep':

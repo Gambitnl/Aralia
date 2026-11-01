@@ -92,6 +92,8 @@ export function getOwnedHellishRebukeSpells(retaliator: CombatCharacter): Spell[
 // ============================================================================
 
 export interface ReactiveDamageEvent {
+  /** One post-HP event can contain several damage types without becoming several hits. */
+  damageComponents?: Array<{ damageType: string; rawDamage: number; finalDamage: number }>;
   id: string;
   boundary: 'post_hp';
   sourceCharacterId: string;

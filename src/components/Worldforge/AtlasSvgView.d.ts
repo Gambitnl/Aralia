@@ -38,6 +38,8 @@ export interface AtlasSvgViewProps {
         y: number;
         label?: string;
     }>;
+    /** View a learned general area without picking or traveling. */
+    areaFocus?: { cellId: number; token: number } | null;
     /** Fired with the picked cell's traits on click (SP0 T7). */
     onPickCell?: (info: CellTraits) => void;
     /** Travel mode: when true, hovering a cell previews the fastest route to it. */

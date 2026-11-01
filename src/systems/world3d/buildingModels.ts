@@ -1,11 +1,18 @@
+/**
+ * @file buildingModels.ts
+ * Procedural roof-form geometry for styled town buildings (2026-07-01).
+ * Origin at the roof BASE center; walls place it at wall-top Y. Plain arrays
+ * so the React layer wraps them in BufferGeometry (memoized per form+dims).
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 14/07/2026, 18:16:44
- * Dependents: components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DScene.tsx, systems/world3d/buildingSceneModel.ts, systems/worldforge/bridge/interiorParts.ts
- * Imports: 4 files
+ * Last Sync: 31/10/2026, 20:18:17
+ * Dependents: components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DScene.tsx, components/World3D/groundFurnishingInteraction.ts, components/World3D/groundResidentInteraction.ts, components/World3D/publicBuildingDiscovery.ts, systems/world3d/beamGeometry.ts, systems/world3d/buildingSceneModel.ts, systems/worldforge/bridge/interiorParts.ts, systems/worldforge/interior/activityPositions.ts, systems/worldforge/interior/householdFurnish.ts
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,12 +21,6 @@
  */
 // @dependencies-end
 
-/**
- * @file buildingModels.ts
- * Procedural roof-form geometry for styled town buildings (2026-07-01).
- * Origin at the roof BASE center; walls place it at wall-top Y. Plain arrays
- * so the React layer wraps them in BufferGeometry (memoized per form+dims).
- */
 import type { ChunkGeometryArrays } from './types';
 import type { RoofForm } from '../worldforge/town/architectureStyle';
 import type {
@@ -27,11 +28,13 @@ import type {
   BlueprintPlan,
   BlueprintWindow,
   Cell,
+  ReturnStairLayout,
   RoofPlan,
   RoofPlane,
   WallRun,
 } from '../worldforge/interior/blueprintTypes';
-import { EXTERIOR, cellKey } from '../worldforge/interior/blueprintTypes';
+import { EXTERIOR, cellKey, doorClearWidthFt } from '../worldforge/interior/blueprintTypes';
+import { returnStairPoint } from '../worldforge/interior/stairLayout';
 import {
   INNER_THICKNESS_FT,
   OUTER_THICKNESS_FT,
@@ -130,13 +133,18 @@ const CELL_FT = 5;
 /** Default storey height, feet (callers may override to fit a shell). */
 export const BLUEPRINT_STOREY_FT = 10;
 /** Floor/ceiling slab thickness, feet. */
-const SLAB_FT = 0.4;
+export const SLAB_FT = 0.4;
 /** Door clear opening width, feet (inside the 5 ft door cell). */
-const DOOR_CLEAR_FT = 3;
-/** Jamb reveal width each side of the opening, feet (fills the cell). */
-const DOOR_JAMB_FT = (CELL_FT - DOOR_CLEAR_FT) / 2;
+export const DOOR_CLEAR_FT = doorClearWidthFt({});
 /** Door head height, feet (lintel fills from here to the storey top). */
 const DOOR_HEAD_FT = 7;
+/** Door head elevation measured from the slab bottom. The authored seven-foot
+ * clearance starts at the finished floor; otherwise the slab steals headroom.
+ * Structural openings, entry leaves and added beams share this same elevation.
+ * Short storeys retain their existing ceiling limit. */
+export function doorHeadHeightFt(storeyFt: number): number {
+  return Math.min(DOOR_HEAD_FT + SLAB_FT, storeyFt - 0.5);
+}
 /** Window clear opening width, feet. */
 const WINDOW_FT = 3;
 /** Window sill height, feet (sill box fills floor → here). */
@@ -155,11 +163,19 @@ export type MeshBoxKind =
   // box seated on a sloped plane. Both live above wallTopFt (z0 ≥ wallTopFt-ish).
   | 'chimney' | 'dormer';
 
-/** One axis-aligned box in PLAN FEET: x/y = footprint center (blueprint
+/** Conservative bounds in PLAN FEET: x/y = footprint center (blueprint
  *  frame, origin at the footprint's 0,0 corner), w/d = extents, z0/h =
  *  vertical base + height (z0 < 0 for basement geometry). */
+/** Beam direction uses rendering axes: x across plan, y up, z into plan.
+ * Units follow the containing model (feet here, meters after the site bridge). */
+export interface BeamProfile { dx: number; dy: number; dz: number; thickness: number; }
+
 export interface MeshBox {
   kind: MeshBoxKind;
+  /** Measured return-stair construction; legacy compact stairs omit this. */
+  stairRole?: 'tread' | 'riser' | 'landing' | 'support' | 'rail';
+  /** The box bounds remain conservative collision data for this sloped timber. */
+  beam?: BeamProfile;
   /** For wall-derived boxes: which wall family the box belongs to. */
   wallKind?: 'outer' | 'inner';
   /** For wall-derived boxes: the run's outward normal (see WallRun.nx/ny). */
@@ -185,6 +201,94 @@ export interface BuildingFloorMeshData {
    *  the level below rises through. Empty when nothing joins from below. */
   stairHoleCells: Cell[];
   boxes: MeshBox[];
+}
+
+/** Timber return stair: two comfortable flights and a half-height landing.
+ * Thin boards and stepped edge stringers preserve the space beneath a flight;
+ * floor-to-tread solid columns would close the next flight's headroom. */
+export function returnStairBoxes(layout: ReturnStairLayout, baseZ: number, storeyFt = BLUEPRINT_STOREY_FT): MeshBox[] {
+  const boxes: MeshBox[] = [];
+  const box = (u: number, v: number, run: number, across: number, z0: number, h: number, stairRole: MeshBox['stairRole']) => {
+    const p = returnStairPoint(layout, u, v);
+    const alongX = layout.runDir.dx !== 0;
+    boxes.push({ kind: 'stair', stairRole, x: p.x, y: p.y,
+      w: alongX ? run : across, d: alongX ? across : run, z0, h });
+  };
+  const n = layout.risesPerFlight;
+  const rise = storeyFt / (n * 2), going = layout.flightRunFt / (n - 1);
+  const walkBase = baseZ + SLAB_FT;
+  const board = 0.12, stringer = 0.3, riserDepth = 0.09;
+  for (const flight of [0, 1]) {
+    const v = flight === 0 ? 2.5 : 7.5;
+    for (let i = 0; i < n - 1; i++) {
+      const u = flight === 0 ? (i + 0.5) * going : layout.flightRunFt - (i + 0.5) * going;
+      const top = walkBase + (flight * n + i + 1) * rise;
+      box(u, v, going, layout.flightWidthFt, top - board, board, 'tread');
+      const edge = u + (flight === 0 ? -going / 2 : going / 2);
+      box(edge, v, riserDepth, layout.flightWidthFt, top - rise, rise, 'riser');
+      for (const side of [-1, 1]) box(u, v + side * (layout.flightWidthFt / 2 - 0.1),
+        going, 0.2, top - board - stringer, stringer, 'support');
+    }
+  }
+  const landingTop = walkBase + storeyFt / 2;
+  box(layout.flightRunFt + layout.landingDepthFt / 2, 5, layout.landingDepthFt,
+    5 + layout.flightWidthFt, landingTop - board - stringer, board + stringer, 'landing');
+  box(layout.flightRunFt, 2.5, riserDepth, layout.flightWidthFt, landingTop - rise, rise, 'riser');
+  // The last rise meets the upper slab outside the shaft; it is not a floating
+  // extra tread across the opening. Floor landings remain actual floor cells.
+  box(0, 7.5, riserDepth, layout.flightWidthFt, walkBase + storeyFt - rise, rise, 'riser');
+  const handHeight = .95 / .3048;
+  const posts = new Map<string, { u: number; v: number; bottom: number; top: number; thickness: number }>();
+  const post = (u: number, v: number, bottom: number, top: number, thickness: number) => {
+    const key = `${u.toFixed(5)},${v.toFixed(5)}`, old = posts.get(key);
+    posts.set(key, { u, v, bottom: Math.min(bottom, old?.bottom ?? bottom),
+      top: Math.max(top, old?.top ?? top), thickness: Math.max(thickness, old?.thickness ?? thickness) });
+  };
+  const beam = (u0: number, v0: number, z0: number, u1: number, v1: number, z1: number, thickness: number) => {
+    const a = returnStairPoint(layout, u0, v0), b = returnStairPoint(layout, u1, v1);
+    const dx = b.x - a.x, dy = z1 - z0, dz = b.y - a.y;
+    boxes.push({ kind: 'stair', stairRole: 'rail', x: (a.x + b.x) / 2, y: (a.y + b.y) / 2,
+      w: Math.abs(dx) + thickness, d: Math.abs(dz) + thickness,
+      z0: Math.min(z0, z1) - thickness / 2, h: Math.abs(dy) + thickness,
+      beam: { dx, dy, dz, thickness } });
+  };
+  // Handrails follow the nosings continuously, with close-set balusters and
+  // stronger terminal posts. They sit on tread edges, preserving clear passage.
+  for (const flight of [0, 1]) for (const side of [-1, 1]) {
+    const v = (flight === 0 ? 2.5 : 7.5) + side * layout.flightWidthFt / 2;
+    const startU = flight === 0 ? 0 : layout.flightRunFt;
+    const endU = flight === 0 ? layout.flightRunFt : 0;
+    const startTop = walkBase + (flight * n + 1) * rise + handHeight;
+    const endTop = walkBase + (flight + 1) * n * rise + handHeight;
+    beam(startU, v, startTop, endU, v, endTop, .14);
+    for (let i = 0; i <= 2 * (n - 1); i++) {
+      const t = i / (2 * (n - 1)), u = startU + (endU - startU) * t;
+      const bottom = i === 0 ? walkBase + flight * n * rise
+        : walkBase + (flight * n + Math.min(n, Math.floor(i / 2 + 1e-8) + 1)) * rise;
+      post(u, v, bottom, startTop + (endTop - startTop) * t, i === 0 || i === 2 * (n - 1) ? .22 : .12);
+    }
+  }
+  const guard = (u0: number, v0: number, h0: number, u1: number, v1: number, h1: number) => {
+    beam(u0, v0, h0, u1, v1, h1, .14);
+    const intervals = Math.ceil(Math.hypot(u1 - u0, v1 - v0) / (going / 2));
+    for (let i = 0; i <= intervals; i++) {
+      const t = i / intervals;
+      post(u0 + (u1 - u0) * t, v0 + (v1 - v0) * t, landingTop, h0 + (h1 - h0) * t,
+        i === 0 || i === intervals ? .22 : .12);
+    }
+  };
+  const lowV = 2.5 - layout.flightWidthFt / 2, highV = 7.5 + layout.flightWidthFt / 2;
+  // Keep the outside landing guard within the shaft. Its remaining clear depth
+  // exceeds the same 0.8 m walking width used by household furniture admission.
+  const farU = layout.flightRunFt + layout.landingDepthFt - .12;
+  const lowHand = landingTop + handHeight, highHand = lowHand + rise;
+  guard(layout.flightRunFt, lowV, lowHand, farU, lowV, lowHand);
+  guard(farU, lowV, lowHand, farU, highV, lowHand);
+  guard(farU, highV, lowHand, layout.flightRunFt, highV, highHand);
+  guard(layout.flightRunFt, 2.5 + layout.flightWidthFt / 2, lowHand,
+    layout.flightRunFt, 7.5 - layout.flightWidthFt / 2, highHand);
+  for (const p of posts.values()) beam(p.u, p.v, p.bottom, p.u, p.v, p.top, p.thickness);
+  return boxes;
 }
 
 export interface BuildingMeshData {
@@ -222,7 +326,7 @@ const runSpan = (r: WallRun): [number, number] =>
  * extent — the run has room to climb. Ties break by axis ('x' before 'y') then
  * positive before negative direction. Returns a unit (dx, dy) cell delta.
  */
-function stairAscentDir(
+export function stairAscentDir(
   floor: BlueprintFloor,
   stairCx: number,
   stairCy: number,
@@ -255,7 +359,7 @@ export function buildBuildingMeshData(
   opts: { storeyHeightFt?: number } = {},
 ): BuildingMeshData {
   const storeyFt = opts.storeyHeightFt ?? BLUEPRINT_STOREY_FT;
-  const headFt = Math.min(DOOR_HEAD_FT, storeyFt - 0.5);
+  const headFt = doorHeadHeightFt(storeyFt);
   const sillFt = Math.min(SILL_FT, storeyFt / 3);
   const winHeadFt = Math.min(WINDOW_HEAD_FT, storeyFt - 0.5);
   const topLevel = Math.max(...plan.floors.map((f) => f.level));
@@ -282,9 +386,11 @@ export function buildBuildingMeshData(
     const stairHoleCells: Cell[] = [];
     for (const s of plan.stairs) {
       if (s.fromLevel !== floor.level - 1) continue;
-      const cell = { cx: Math.floor(s.x / CELL_FT), cy: Math.floor(s.y / CELL_FT) };
-      holeKeys.add(`${cell.cx},${cell.cy}`);
-      stairHoleCells.push(cell);
+      const cells = s.layout?.shaftCells ?? [{ cx: Math.floor(s.x / CELL_FT), cy: Math.floor(s.y / CELL_FT) }];
+      for (const cell of cells) {
+        holeKeys.add(`${cell.cx},${cell.cy}`);
+        stairHoleCells.push(cell);
+      }
     }
     for (const c of plan.footprintCells) {
       if (holeKeys.has(`${c.cx},${c.cy}`)) continue;
@@ -402,13 +508,23 @@ export function buildBuildingMeshData(
       const r = door.axis === 'y'
         ? { axis: 'y' as const, thicknessFt, nx: sign, ny: 0, line }
         : { axis: 'x' as const, thicknessFt, nx: 0, ny: sign, line };
-      const a = along - DOOR_CLEAR_FT / 2;
-      const b = along + DOOR_CLEAR_FT / 2;
+      const clearWidth = doorClearWidthFt(door);
+      const jambWidth = (CELL_FT - clearWidth) / 2;
+      const a = along - clearWidth / 2;
+      const b = along + clearWidth / 2;
       // Jambs + lintel cap at the wall column top (ceiling underside on the top
       // level) so they never poke through the ceiling slab (z-fight fix).
-      boxes.push({ ...runBox(r, a - DOOR_JAMB_FT, a, baseZ, wallColFt, 'jamb'), wallKind });
-      boxes.push({ ...runBox(r, b, b + DOOR_JAMB_FT, baseZ, wallColFt, 'jamb'), wallKind });
-      boxes.push({ ...runBox(r, a, b, baseZ + headFt, wallColFt - headFt, 'door-lintel'), wallKind });
+      boxes.push({ ...runBox(r, a - jambWidth, a, baseZ, wallColFt, 'jamb'), wallKind });
+      boxes.push({ ...runBox(r, b, b + jambWidth, baseZ, wallColFt, 'jamb'), wallKind });
+      // The first tread rises immediately inside this opening. A normal
+      // seven-foot lintel clips a standing head before its shoulders clear
+      // the wall; the return stair's lower access needs an eight-foot head.
+      const stairAccess = plan.stairs.some(s => s.fromLevel === floor.level && s.layout && (() => {
+        const p = returnStairPoint(s.layout!, 0, 2.5);
+        return Math.abs(p.x - door.x) < 1e-6 && Math.abs(p.y - door.y) < 1e-6;
+      })());
+      const clearHead = stairAccess ? Math.min(8, wallColFt) : headFt;
+      boxes.push({ ...runBox(r, a, b, baseZ + clearHead, wallColFt - clearHead, 'door-lintel'), wallKind });
     }
 
     // ── Stair flight rising FROM this level toward the next. A real straight
@@ -419,6 +535,10 @@ export function buildBuildingMeshData(
     // top, so the flight reads as a solid staircase from the side.
     for (const s of plan.stairs) {
       if (s.fromLevel !== floor.level) continue;
+      if (s.layout) {
+        boxes.push(...returnStairBoxes(s.layout, baseZ, storeyFt));
+        continue;
+      }
       const stairCx = Math.floor(s.x / CELL_FT);
       const stairCy = Math.floor(s.y / CELL_FT);
       const { dx, dy } = stairAscentDir(floor, stairCx, stairCy);

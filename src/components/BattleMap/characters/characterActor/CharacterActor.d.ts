@@ -20,6 +20,8 @@ interface CharacterActorProps {
     targetingMode: boolean;
     onClick: (character: CombatCharacter) => void;
     activeCharacterId?: string | null;
+    /** How loud the actor's markers are: 'arena' (default) or the quiet 'town' set. */
+    chrome?: 'arena' | 'town';
 }
 declare const CharacterActor: React.FC<CharacterActorProps>;
 export default CharacterActor;

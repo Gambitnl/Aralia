@@ -728,7 +728,8 @@ export function tintRatio(
  * it from its surroundings, so the street network broke into disconnected
  * strips. Feet wear ground bare; the tint is what says so.
  */
-export const TOWN_FLOOR_RGB: readonly [number, number, number] = [0.42, 0.36, 0.27];
+// Dry trodden loam, reflectance about 0.2 (2026-10-28; was 0.38, see the sheet path).
+export const TOWN_FLOOR_RGB: readonly [number, number, number] = [0.23, 0.195, 0.145];
 
 /** How far past the town ring the bare ground fades back to wild biome. */
 export const TOWN_FLOOR_FEATHER_M = 26;

@@ -38,6 +38,23 @@ function fixture(seed: number, wealth: 'common' | 'wealthy' = 'common') {
 }
 
 describe('computeOccupancy', () => {
+  it('refuses conflicting or unfurnished explicit meal rooms without changing the household', () => {
+    const source=fixture(9, 'wealthy'), household=source.household;
+    // Generation caches its plans. Malformed admission fixtures must never
+    // alter the canonical cached home used by the later routine checks.
+    const plan=structuredClone(source.plan), before=structuredClone(household);
+    const rooms=plan.floors.flatMap(f=>f.rooms.map(r=>({floor:f,room:r})));
+    const target=rooms.find(({floor,room})=>floor.furnishings.some(p=>p.roomId===room.id&&p.kind==='table'))!;
+    target.room.mealForSlot='head';
+    const other=rooms.find(({room})=>room!==target.room)!;
+    other.room.mealForSlot='head';
+    other.floor.furnishings.push({kind:'table',roomId:other.room.id,x:other.room.bbox.x+2.5,y:other.room.bbox.y+2.5,rotation:0});
+    expect(()=>computeOccupancy(plan, household, {worksAtHome:false})).toThrow('conflicting meal rooms');
+    delete target.room.mealForSlot;
+    other.floor.furnishings=other.floor.furnishings.filter(p=>p.roomId!==other.room.id);
+    expect(()=>computeOccupancy(plan, household, {worksAtHome:false})).toThrow('real table');
+    expect(household).toEqual(before);
+  });
   it('every member has a station at every hour; home stations point at real rooms — 25 seeds', () => {
     for (let seed = 0; seed < 25; seed++) {
       const { plan, household } = fixture(seed);

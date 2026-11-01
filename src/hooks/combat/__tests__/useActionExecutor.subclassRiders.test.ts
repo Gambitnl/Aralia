@@ -190,8 +190,9 @@ describe('useActionExecutor subclass riders', () => {
 
         expect(mockOnLogEntry.mock.calls.map(call => call[0].message as string)
             .some(message => message.includes('Colossus Slayer'))).toBe(false);
-        // Only the pinned weapon die lands: 12 hit points less 4.
-        expect(lastPublishedMover(mover.id)?.currentHP).toBe(8);
+        // Only the pinned weapon die and the attacker's Strength modifier land:
+        // 12 hit points less 4 less 3 (GG-496: weapon hits add the ability modifier).
+        expect(lastPublishedMover(mover.id)?.currentHP).toBe(5);
     });
 
     it('makes an Assassin opportunity attack critical against a caller-reported surprised target', async () => {
@@ -224,8 +225,8 @@ describe('useActionExecutor subclass riders', () => {
 
         // A pinned 19 is not a natural critical. Assassinate made it one, so the
         // critical rule doubled the weapon's die count and both pinned dice show
-        // 4: the mover loses 8 of its 20 hit points.
-        expect(lastPublishedMover(mover.id)?.currentHP).toBe(12);
+        // 4: the mover loses 8 + 3 (Strength modifier, GG-496: weapon hits add the ability modifier) of its 20 hit points.
+        expect(lastPublishedMover(mover.id)?.currentHP).toBe(9);
     });
 
     it('does not make the attack critical when the caller reports no surprise', async () => {
@@ -248,8 +249,10 @@ describe('useActionExecutor subclass riders', () => {
 
         await result.current.executeAction(leaveReachAction(mover.id, assassin.id));
 
-        // One pinned weapon die, not two: 20 hit points less 4.
-        expect(lastPublishedMover(mover.id)?.currentHP).toBe(16);
+        // One pinned weapon die, not two: 20 hit points less 4 (and less the
+        // Strength modifier 3).
+        // Pinned die 4 + Strength modifier 3 (GG-496: weapon hits add the ability modifier).
+        expect(lastPublishedMover(mover.id)?.currentHP).toBe(13);
     });
 
     it('spends the rogue bonus action through resolveCunningAction', async () => {

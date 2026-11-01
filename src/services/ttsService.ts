@@ -14,6 +14,30 @@ const DEFAULT_VOICE_NAME = 'Kore'; // A default Gemini TTS voice
 type AudioResponseModality = 'AUDIO';
 
 /**
+ * agora-9890: bounded, content-free diagnostics for an invalid TTS response.
+ * The response variant that reaches the invalid-audio branch can carry
+ * generated/echoed text (parts[].text) and large base64 audio (inlineData.data),
+ * so the previous raw JSON.stringify dump is replaced with shape/size metadata
+ * only: lengths and mime types, never payload content.
+ */
+function describeInvalidResponse(response: GenerateContentResponse, model: string) {
+  const candidate = response.candidates?.[0];
+  const parts = candidate?.content?.parts ?? [];
+  return {
+    model,
+    candidateCount: response.candidates?.length ?? 0,
+    partShapes: parts.map(p => ({
+      hasText: typeof p.text === 'string' && p.text.length > 0,
+      textLength: typeof p.text === 'string' ? p.text.length : 0,
+      hasInlineData: Boolean(p.inlineData),
+      mimeType: p.inlineData?.mimeType ?? null,
+      dataLength: typeof p.inlineData?.data === 'string' ? p.inlineData.data.length : 0,
+    })),
+    finishReason: candidate?.finishReason ?? null,
+  };
+}
+
+/**
  * Synthesizes speech from text using the Gemini API's native TTS.
  * Includes a fallback mechanism to retry with different models on rate limit errors.
  * @param {string} text - The text to synthesize.
@@ -61,7 +85,9 @@ export async function synthesizeSpeech(
       if (typeof audioData === 'string' && audioData.length > 0) {
         return { audioData, rateLimitHit: rateLimitHitInChain }; // Success
       } else {
-        console.warn(`Gemini TTS with model ${model} returned invalid audio data. Trying next model. Response:`, JSON.stringify(response, null, 2));
+        // agora-9890: log bounded metadata, never the raw response (which can
+        // contain generated text or base64 audio payloads).
+        console.warn(`Gemini TTS with model ${model} returned invalid audio data. Trying next model. Response metadata:`, JSON.stringify(describeInvalidResponse(response, model)));
       }
     } catch (error) {
       lastError = error;

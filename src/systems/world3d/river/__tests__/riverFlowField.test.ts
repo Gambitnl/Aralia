@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { buildFlowMap, RIVER_FOAM } from '../riverFlowField';
+import { buildFlowMap, flowMapCore, mainRiverSurfaceEnergy, RIVER_FOAM } from '../riverFlowField';
 import type { RiverSteadyField } from '../riverSolver';
+import { buildWaterSheetArrays } from '../riverWaterSheet';
+import { LiveRiver, liveMapperPatchTransfer } from '../riverLive';
+import { MAIN_CHANNEL_S, setRiverHeadwaters } from '../riverHeadwaters';
 
 /**
  * A synthetic steady field: a straight channel along +x, 0.5 m cells, with
@@ -38,6 +41,188 @@ function field(opts: { patch: boolean; speed: number; depth: number }): RiverSte
 }
 
 describe('riverFlowField: the flow map', () => {
+  it('distinguishes a real deep level from an unavailable level at the old-100m sentinel',()=>{
+    const wet=field({patch:false,speed:0,depth:.5});
+    wet.bed.fill(-100.5);
+    const map=buildFlowMap(wet),c=10*wet.grid.nx+50;
+    expect(map.t0[c*4+3]).toBe(-100);
+    expect(map.t1[c*4+3]).toBeGreaterThanOrEqual(0);
+    const empty=field({patch:false,speed:0,depth:0});empty.bed.fill(-100.5);
+    const dry=buildFlowMap(empty);
+    expect(dry.t0[c*4+3]).toBe(-100);
+    expect(dry.t1[c*4+3]).toBe(-1);
+  });
+  it.each([false, true])('keeps wet film triangles above their flat or sloping bed (sloping=%s)', (sloping) => {
+    const f = field({ patch: false, speed: 0, depth: 0.0201 });
+    const { nx, nz, dx } = f.grid;
+    if (sloping) {
+      // Use one affine bed plane so interpolation of terrain and water shares
+      // the same triangles. Every corner must retain its actual water depth.
+      for (let j = 2; j < nz - 2; j++) for (let i = 0; i < nx; i++) f.bed[j * nx + i] = 0.01 * i + 0.02 * j;
+    }
+    const cells = [10 * nx + 50, 10 * nx + 51, 11 * nx + 50, 11 * nx + 51];
+    f.h[cells[0]] = 0.0199;
+    const dryHollow = 10 * nx + 80;
+    f.h[dryHollow] = 0;
+    const before = { h: f.h.slice(), bed: f.bed.slice(), u: f.u.slice(), v: f.v.slice(), stats: { ...f.stats } };
+    const map = buildFlowMap(f), sheet = buildWaterSheetArrays(f.grid, map.surface);
+    const vertices = cells.map(c => {
+      const x = f.grid.x0 + (c % nx + 0.5) * dx, z = f.grid.z0 + (Math.floor(c / nx) + 0.5) * dx;
+      const vertex = Array.from({ length: sheet.pos.length / 3 }, (_, v) => v)
+        .find(v => sheet.pos[v * 3] === x && sheet.pos[v * 3 + 2] === z);
+      expect(vertex).toBeDefined();
+      return vertex!;
+    });
+    const triangles: number[][] = [];
+    for (let k = 0; k < sheet.index.length; k += 3) {
+      const tri = Array.from(sheet.index.slice(k, k + 3));
+      if (tri.every(v => vertices.includes(v))) triangles.push(tri);
+    }
+    const [a, b, c, d] = vertices;
+    expect(triangles).toEqual([[a, c, b], [b, c, d]]);
+    // A 19.9 mm wet corner beside 20.1 mm corners used to be tucked 3 cm
+    // below terrain. Retaining its triangle alone did not prevent the cutout.
+    cells.forEach((cell, corner) => {
+      expect(map.surface[cell]).toBe(Math.fround(f.bed[cell] + f.h[cell]));
+      expect(sheet.pos[vertices[corner] * 3 + 1] - f.bed[cell]).toBeCloseTo(f.h[cell], 6);
+      expect(sheet.pos[vertices[corner] * 3 + 1]).toBeGreaterThan(f.bed[cell]);
+    });
+    // Changing the wet surface must preserve dry-bank hiding and reject a
+    // dry hollow, without editing the hydraulic field or its accounting.
+    const bank = nx + 50;
+    expect(Number.isFinite(map.surface[bank])).toBe(true);
+    expect(map.surface[bank]).toBeLessThanOrEqual(f.bed[bank] - 0.03);
+    expect(Number.isNaN(map.surface[dryHollow])).toBe(true);
+    expect({ h: f.h, bed: f.bed, u: f.u, v: f.v, stats: f.stats }).toEqual(before);
+  });
+
+  it('preserves actual Float32 wet membership at the 3 mm boundary', () => {
+    const f = field({ patch: false, speed: 0, depth: 0.0201 });
+    const below = 10 * f.grid.nx + 50, above = below + 1;
+    // Decimal 0.003 rounds slightly above the strict wet threshold in
+    // Float32. Its preceding representable value is the dry-side input.
+    const encoded = new Float32Array([0.003]);
+    const bits = new Uint32Array(encoded.buffer);
+    const wetDepth = encoded[0];
+    bits[0] -= 1;
+    const dryDepth = encoded[0];
+    expect(dryDepth).toBeLessThan(0.003);
+    expect(wetDepth).toBeGreaterThan(0.003);
+    f.h[below] = dryDepth; f.h[above] = wetDepth;
+    const map = buildFlowMap(f);
+    expect(Number.isNaN(map.surface[below])).toBe(true);
+    expect(map.surface[above]).toBe(wetDepth);
+    expect(map.t0[below * 4 + 2]).toBe(0);
+    expect(map.t0[above * 4 + 2]).toBe(wetDepth);
+  });
+
+  it('uses accepted impact power and receiving depth for native aeration without a second footprint', () => {
+    const grid = { x0: 0, z0: 0, dx: 1, nx: 12, nz: 12 }, n = 144, source = 78;
+    const at = (depth: number, specificEnergy: number, discharge = 2) => {
+      const h = new Float32Array(n).fill(depth), bed = new Float32Array(n);
+      const impactEnergy = { receivingDepth: depth, fallSpecificEnergy: specificEnergy, radialSpecificEnergy: 0,
+        dissipatedSpecificEnergy: specificEnergy, cells: [{ c: source, share: 1 }] };
+      const foam = { kind: 'step' as const, dtS: 0.2, W: new Float32Array(n), T: new Float32Array(n), L: new Float32Array(n) };
+      return flowMapCore({ grid, bed, h, u: new Float32Array(n), v: new Float32Array(n), uRms: new Float32Array(n),
+        waterfallImpact: { x: 6.5, z: 6.5, width: 2, tx: 1, tz: 0, discharge, impactEnergy } }, bed, undefined, [], foam);
+    };
+    const shallow = at(1, 2), deep = at(4, 2), energetic = at(1, 8), higherFlow = at(1, 2, 4), stopped = at(1, 8, 0), dry = at(0, 8);
+    expect(shallow.W[source]).toBeGreaterThan(deep.W[source]);
+    expect(energetic.W[source]).toBeGreaterThan(shallow.W[source]);
+    expect(higherFlow.W[source]).toBeGreaterThan(shallow.W[source]);
+    expect(stopped.W.every(value => value === 0)).toBe(true);
+    expect(dry.W.every(value => value === 0)).toBe(true);
+    // At rest, new impact white water exists only on its actual mass cell;
+    // downstream spread is the existing velocity transport's responsibility.
+    expect(energetic.W.filter(value => value > 0).length).toBe(1);
+    expect(energetic.T[source]).toBeGreaterThan(0);
+  });
+
+  it('keeps native maps identical while adding explicit headwater surface drivers', () => {
+    const base = field({ patch: true, speed: 2, depth: 0.5 });
+    const f = { ...base, grid: { ...base.grid, x0: 20, z0: 16 } };
+    const legacy = buildFlowMap(f);
+    // The distant accepted impact has no foam contribution in this box.
+    // Its explicit frame input enables only the new main surface channels.
+    const main = buildFlowMap({ ...f, waterfallImpact: { x: -150, z: 30, tx: 1, tz: 0, width: 10, discharge: 12 } });
+    expect(main.t0).toEqual(legacy.t0);
+    expect(main.t1).toEqual(legacy.t1);
+    expect(main.surface).toEqual(legacy.surface);
+    let energyCells = 0;
+    for (let c = 0; c < f.h.length; c++) {
+      expect(main.t2[c * 4]).toBe(legacy.t2[c * 4]);
+      expect(main.t2[c * 4 + 1]).toBe(legacy.t2[c * 4 + 1]);
+      expect(legacy.t2[c * 4 + 2]).toBe(0);
+      expect(legacy.t2[c * 4 + 3]).toBe(0);
+      if (main.t2[c * 4 + 3] > 0) energyCells++;
+    }
+    expect(energyCells).toBeGreaterThan(0);
+  });
+
+  it('keeps a uniform fast glide free of large forced waves despite friction', () => {
+    const glide = { speed: 3, depth: 0.5, dissipation: 0.5, froude: 1.35,
+      downSlope: 0.035, upSlope: 0, compression: 0, contact: 0, wake: 0, rockCover: 0, unsteadySpeed: 0 };
+    const energy = mainRiverSurfaceEnergy(glide);
+    expect(energy.forcing).toBe(0);
+    expect(energy.breakingCover).toBe(0);
+    expect(energy.microSlope).toBeGreaterThan(0);
+    expect(energy.microSlope).toBeLessThanOrEqual(0.1);
+    // A rising backwater surface without compression is not a breaking jump.
+    expect(mainRiverSurfaceEnergy({ ...glide, upSlope: 0.2 }).forcing).toBe(0);
+    expect(mainRiverSurfaceEnergy({ ...glide, upSlope: 0.2 }).breakingCover).toBe(0);
+    expect(mainRiverSurfaceEnergy({ ...glide, downSlope: 0.3 }).forcing).toBe(1);
+    expect(mainRiverSurfaceEnergy({ ...glide, upSlope: 0.2, compression: 1.3 }).forcing).toBe(1);
+    expect(mainRiverSurfaceEnergy({ ...glide, contact: 0.9 }).forcing).toBe(0.9);
+  });
+
+  it('localizes main white water while retaining the original source and one native transport', () => {
+    const base = field({ patch: false, speed: 3, depth: 0.2 });
+    const f = { ...base, grid: { ...base.grid, x0: 20, z0: 16 }, waterfallImpact: { x: -150, z: 30, tx: 1, tz: 0, width: 10, discharge: 12 } };
+    const legacy = buildFlowMap(f);
+    const originalAddresses = new Float32Array(f.h.length);
+    const mainAddresses = new Float32Array(f.h.length).fill(MAIN_CHANNEL_S + 45);
+    const original = buildFlowMap({ ...f, cellS: originalAddresses });
+    const main = buildFlowMap({ ...f, cellS: mainAddresses });
+    const c = 10 * f.grid.nx + 50;
+    // Uniform fast water has no local breaking feature. An original-owned
+    // cell at the very same position still receives its legacy source.
+    expect(legacy.t1[c * 4]).toBeGreaterThan(0.02);
+    expect(main.t1[c * 4]).toBeLessThan(1e-5);
+    expect(original.t1).toEqual(legacy.t1);
+    expect(main.t0).toEqual(legacy.t0);
+    expect(main.surface).toEqual(legacy.surface);
+    for (let q = 0; q < f.h.length; q++) expect(main.t1[q * 4 + 3]).toBe(legacy.t1[q * 4 + 3]);
+    // A real local drop generates a tongue, and the existing transport carries
+    // it downstream before its native 1.3-second lifetime clears the bubbles.
+    const patch = field({ patch: true, speed: 2, depth: 0.5 });
+    const broken = buildFlowMap({ ...patch, grid: f.grid, waterfallImpact: f.waterfallImpact, cellS: mainAddresses });
+    const at = (i: number) => broken.t1[(10 * f.grid.nx + i) * 4];
+    expect(at(20)).toBeGreaterThan(0.04);
+    expect(at(27)).toBeGreaterThan(0.001);
+    expect(at(35)).toBeLessThan(at(27));
+  });
+
+  it('transfers mapper ownership copies without detaching the live solver addresses', () => {
+    const live = new LiveRiver(20260928, true);
+    try {
+      const init = live.mapperInit();
+      expect(init.cellS).toBeDefined();
+      expect(init.cellS!.buffer).not.toBe(live.cellS.buffer);
+      const originalLength = live.cellS.length, address = live.cellS[12345];
+      const copy = structuredClone(init, { transfer: [init.cellS!.buffer] });
+      expect(copy.cellS!.length).toBe(originalLength);
+      expect(live.cellS.length).toBe(originalLength);
+      expect(live.cellS[12345]).toBe(address);
+      const patch = { box: null, ground: null, bed: null, manning: null, cellS: live.cellS.slice(0, 4), boulderMoves: new Float32Array(0) };
+      const buffers = liveMapperPatchTransfer(patch);
+      expect(buffers.filter(b => b === patch.cellS.buffer).length).toBe(1);
+      structuredClone(patch, { transfer: buffers });
+      expect(live.cellS.length).toBe(originalLength);
+    } finally { setRiverHeadwaters(false); }
+    // This constructs the actual 451,200-cell headwater solver; its startup
+    // exceeds the small-unit-test budget under shared worker load.
+  }, 30000);
+
   it('makes white water where the flow breaks and carries it downstream, fading over speed x life', () => {
     const f = field({ patch: true, speed: 2, depth: 0.5 });
     const map = buildFlowMap(f);

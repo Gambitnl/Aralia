@@ -1,0 +1,13 @@
+{
+  "asset": "Rock Face 01",
+  "source": "https://polyhaven.com/a/rock_face_01",
+  "license": "CC0-1.0",
+  "author": "Dario Barresi",
+  "geometryUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/rock_face_01/rock_face_01.bin",
+  "geometryBytes": 476436,
+  "geometryMd5": "06caed23e725af568b64f8cbee210c1c",
+  "derivedFile": "src/components/World3D/water/riverCliffScanRelief.json",
+  "derivedSha256": "2cf079657a4429553ccfe83a131426f066e6d1c6470b2980a2367aecdd8b6699",
+  "method": "Front-most scanned triangle depth and barycentrically interpolated original atlas UV sampled on a 97x97 XY lattice. Depth uses millimeters; atlas UV uses 65535 units per 1.0. Missing outline samples extrapolated. The core uses the original scan material/maps through these UVs; relief and placement are synthetic, not a Yosemite survey.",
+  "originalTriangles": 20174
+}

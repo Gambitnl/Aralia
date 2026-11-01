@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 15/07/2026, 03:31:24
- * Dependents: systems/combat/worldScenario/worldBattleScenario.ts, systems/worldforge/bridge/groundChunkLoader.ts
- * Imports: 7 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file groundProps.ts — adapter that projects a live GroundWorld onto the prop
  * placement engine's slim `PropPlacementContext`, plus the combat-extraction
@@ -28,13 +12,32 @@
  * discipline the hidden-sites top-up uses. Same world + same window → identical
  * props, forever.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 01/11/2026, 04:35:09
+ * Dependents: systems/combat/worldScenario/worldBattleScenario.ts, systems/worldforge/bridge/groundChunkLoader.ts
+ * Imports: 12 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { GroundWorld } from './groundChunkLoader';
+import type { BlueprintPlan } from '../interior/blueprintTypes';
 import type {
   PropPlacementContext,
   CtxBuilding,
   CtxDeck,
   CtxPlaza,
   CtxCourtyard,
+  CtxCivicFeature,
   CtxGatehouse,
   CtxHiddenSite,
   CtxDeadEnd,
@@ -46,6 +49,7 @@ import {
   summarizeGate,
 } from './propPlacementGate';
 import type { GateResult } from '../placement/gate';
+import { propLandConstraint } from '../props/propLandUse';
 import type { WorldBusiness } from '../../../types/business';
 import { WAVE1_PROPS_BY_ID, PROPS_BY_ID } from '../props/catalog';
 import { CELL_METERS, providesCover as defProvidesCover, type PropInstance, type PropDefinition } from '../props/propSchema';
@@ -78,6 +82,33 @@ function mapBuildingRole(role: string): string {
   }
 }
 
+/** Facts from the same resolved blueprint that supplies rooms and residents. */
+export type FreshBuildingPropUse = Pick<CtxBuilding, 'role' | 'wealthy' | 'businessType'>;
+
+/**
+ * New prop sources use the building's actual purpose and its household's wealth.
+ * A shop may sit in a different district from its proprietor's home. The brief
+ * already resolves that family's wealth; architecture is the fallback for civic
+ * buildings without households. No crop or access right is inferred here.
+ */
+export function freshBuildingPropUse(
+  plan: Pick<BlueprintPlan, 'type' | 'household' | 'style'>,
+): FreshBuildingPropUse {
+  const wealth = plan.household?.wealth ?? plan.style?.wealth;
+  let role: string = plan.type;
+  switch (plan.type) {
+    case 'cottage': case 'townhouse': case 'tenement': case 'manor':
+      role = wealth === 'poor' ? 'poor' : 'house'; break;
+    case 'farmstead': role = 'farm'; break;
+    case 'storehouse': case 'granary': role = 'warehouse'; break;
+    case 'bakery': case 'windmill': case 'lumbermill': role = 'workshop'; break;
+    case 'shop': role = 'market'; break;
+  }
+  return { role, wealthy: wealth === 'wealthy',
+    ...(plan.type === 'tavern' ? { businessType: 'tavern' } : {}),
+  };
+}
+
 /**
  * Derive the props seed path for a ground window. Rooted at the region's town
  * identity when we have it (props then live under the town's own path), else at
@@ -105,25 +136,46 @@ export function propsSeedPathFor(
 export function groundToPlacementContext(
   ground: GroundWorld,
   worldBusinesses?: Record<string, WorldBusiness>,
+  retainPropAffiliations = false,
 ): PropPlacementContext {
   // SLICE B — tavern signal: match each plot to its economy business type. The
   // GroundWorld building id is `wf-plot-<burg>-<plot>`; businesses are keyed
   // `biz_burg_<burg>_plot_<plot>`. A 'tavern' business dresses its frontage.
   const businessTypeForBuilding = buildBusinessTypeLookup(worldBusinesses);
 
-  // SLICE B — wealthy-quarter signal: townEngine ranks wards "wealthy near the
-  // keep/market". We derive the same proxy WITHOUT threading `district` through
-  // the town-plan adapter (a cross-cutting hot-file change): the wealthy ward is
-  // the cluster of plots nearest the market/temple centroid. Deterministic.
-  const wealthyIds = deriveWealthyPlots(ground);
+  // Established sources retain the old market-distance quarter proxy. Fresh
+  // sources use the exact blueprint household/architecture wealth below;
+  // absent facts never make a nearby poor family wealthy.
+  const wealthyIds = retainPropAffiliations ? new Set<string>() : deriveWealthyPlots(ground);
+
+  const ruralCropByBuilding = new Map<string,string>();
+  if (retainPropAffiliations) for (const town of ground.townPlans ?? []) {
+    const sources = town.plan.ruralSources;
+    if (!sources || sources.layoutRecipe !== 'rural-family-v1' || sources.homesteads.version !== 1) continue;
+    for (const site of sources.homesteads.sites) {
+      const homes = town.plan.plots.filter(plot => plot.id === site.plotId);
+      const fields = sources.fields.filter(field => field.farmParcelIndex === site.farmParcelIndex);
+      const duplicate = sources.homesteads.sites.filter(other => other.plotId === site.plotId || other.farmId === site.farmId).length !== 1;
+      if (duplicate || homes.length !== 1 || homes[0].pop?.homeId !== site.farmId
+        || homes[0].pop.buildingType !== 'farmstead' || fields.length !== 1 || fields[0].crop !== site.crop) continue;
+      const id = 'wf-plot-' + town.burgId + '-' + site.plotId;
+      // Duplicate burg packets are ambiguous even when their crops agree.
+      if ((ground.townPlans ?? []).filter(other => other.burgId === town.burgId).length === 1) ruralCropByBuilding.set(id,site.crop);
+    }
+  }
 
   const buildings: CtxBuilding[] = ground.buildings.map((b) => ({
     id: b.id,
     xM: b.xM,
     zM: b.zM,
-    role: mapBuildingRole(b.role),
-    businessType: businessTypeForBuilding.get(b.id),
-    wealthy: wealthyIds.has(b.id),
+    // The opt-in source uses resolved building facts. Old sources keep their
+    // historical role/quarter projection, even if newer metadata is present.
+    role: retainPropAffiliations ? (b.propUse?.role ?? b.role) : mapBuildingRole(b.role),
+    businessType: businessTypeForBuilding.get(b.id)
+      ?? (retainPropAffiliations ? b.propUse?.businessType : undefined),
+    wealthy: retainPropAffiliations ? (b.propUse?.wealthy ?? false) : wealthyIds.has(b.id),
+    // Crop tools follow an explicit home/field join, never a nearby marker.
+    ...(retainPropAffiliations && ruralCropByBuilding.has(b.id) ? {crop:ruralCropByBuilding.get(b.id)} : {}),
   }));
 
   const decks: CtxDeck[] = ground.decks.map((d) => {
@@ -148,6 +200,9 @@ export function groundToPlacementContext(
   // the same GroundWorld origin as buildings and streets; no geometric guessing
   // occurs in the prop layer, and legacy plans simply contribute no anchors.
   const courtyards: CtxCourtyard[] = buildCourtyardAnchors(ground);
+
+  // GG-569: graves and sacred pools the town plan placed in civic grounds.
+  const civicFeatures: CtxCivicFeature[] = buildCivicFeatureAnchors(ground);
 
   // SLICE B — gate/walls: road gatehouses (already carried on GroundWorld) anchor
   // gate dressing; the wall rings ride through as-is for future wall props.
@@ -174,6 +229,10 @@ export function groundToPlacementContext(
   const surface = makeGroundWorldProbe(ground) ?? undefined;
 
   return {
+    ...(retainPropAffiliations ? {retainPropAffiliations: true,
+      surfaceForProp: (prop: PropInstance) => prop.affiliation?.kind === 'dock'
+        ? propLandConstraint(ground,prop).surface : undefined,
+    } : {}),
     surface,
     extentMetersX: ground.extentMetersX,
     extentMetersZ: ground.extentMetersZ,
@@ -185,6 +244,7 @@ export function groundToPlacementContext(
     decks,
     plazas,
     courtyards,
+    ...(civicFeatures.length ? { civicFeatures } : {}),
     // SLICE B context signals (all from data GroundWorld already carries, except
     // tavern which comes from the optional businesses map above).
     heights: ground.heights,
@@ -250,6 +310,28 @@ function buildCourtyardAnchors(ground: GroundWorld): CtxCourtyard[] {
     }
   }
   return anchors;
+}
+
+/**
+ * Project civic-grounds graves and pools into window-local ground meters
+ * (GG-569). A feature with any corner outside the window is skipped, as a
+ * court is, so no prop is clamped onto the window border.
+ */
+function buildCivicFeatureAnchors(ground: GroundWorld): CtxCivicFeature[] {
+  if (!ground.townPlans || !ground.boundsFeet) return [];
+  const bx = ground.boundsFeet.x, by = ground.boundsFeet.y;
+  const out: CtxCivicFeature[] = [];
+  for (const { burgId, plan } of ground.townPlans) {
+    for (const g of plan.civicGrounds ?? []) {
+      g.features.forEach((f, fi) => {
+        if (f.kind !== 'grave' && f.kind !== 'pool') return;
+        const pointsM = f.polygon.map(([fx, fy]) => ({ x: (fx - bx) * FEET_TO_METERS, z: (fy - by) * FEET_TO_METERS }));
+        if (pointsM.some((p) => p.x < 0 || p.x > ground.extentMetersX || p.z < 0 || p.z > ground.extentMetersZ)) return;
+        out.push({ id: `burg:${burgId}:ward:${g.wardIndex}:${f.kind}:${fi}`, kind: f.kind, pointsM });
+      });
+    }
+  }
+  return out;
 }
 
 /**
@@ -382,8 +464,9 @@ export function buildGroundPropsInstrumented(
   regionSeedPath?: SeedPath,
   worldBusinesses?: Record<string, WorldBusiness>,
   report?: (line: string) => void,
+  retainPropAffiliations = false,
 ): GroundPropsBuild {
-  const ctx = groundToPlacementContext(ground, worldBusinesses);
+  const ctx = groundToPlacementContext(ground, worldBusinesses, retainPropAffiliations);
   const path = propsSeedPathFor(ground, seed, regionSeedPath);
   const { instances, stats } = placePropsInstrumented(path, ctx);
 

@@ -108,3 +108,27 @@ describe('entities3d blueprint generator', () => {
     expect(bp.parts.some((p) => p.partId === 'axeMain')).toBe(true);
   });
 });
+
+
+describe('real player gear remains authoritative when every visible slot is empty',()=>{
+ beforeAll(()=>registerAllParts());
+ const character=(equippedItems:PlayerCharacter['equippedItems']|undefined)=>({
+  id:'gwyn-stow-regression',name:'Gwyn',race:ALL_RACES_DATA['human'],class:CLASSES_DATA['wizard'],equippedItems,
+ }) as unknown as PlayerCharacter;
+ it.each(['empty','missing','unmapped'] as const)('does not add a wizard staff for %s equipment',kind=>{
+  const pc=character(kind==='missing'?undefined:kind==='unmapped'?{Belt:{id:'rope',name:'Rope',type:'tool'} as never}:{});
+  const before=structuredClone(pc),recipe=recipeFromCharacter(pc);
+  if(recipe.kind!=='humanoid')throw Error('Expected actual character recipe');
+  expect(recipe.gearOverride).toEqual([]);
+  expect(generateEntityBlueprint(recipe).parts.some(p=>p.partId==='staffMain')).toBe(false);
+  expect(pc).toEqual(before);
+ });
+ it('stows and re-equips the same quarterstaff without replacing the body or class',()=>{
+  const staff={id:'quarterstaff',name:'Quarterstaff',type:'weapon',category:'Simple Melee'} as never;
+  const equipped=character({MainHand:staff}),stowed={...equipped,equippedItems:{}};
+  const a=generateEntityBlueprint(recipeFromCharacter(equipped)),b=generateEntityBlueprint(recipeFromCharacter(stowed));
+  expect(a.parts.some(p=>p.partId==='staffMain')).toBe(true);expect(b.parts.some(p=>p.partId==='staffMain')).toBe(false);
+  expect(b.frame).toEqual(a.frame);expect(b.palette).toEqual(a.palette);expect(b.label).toEqual(a.label);expect(b.gait).toEqual(a.gait);
+  expect(generateEntityBlueprint(recipeFromCharacter({...stowed,equippedItems:{MainHand:staff}}))).toEqual(a);
+ });
+});

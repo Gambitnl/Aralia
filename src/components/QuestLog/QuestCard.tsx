@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 22:39:44
+ * Dependents: components/QuestLog/QuestLog.tsx
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React from 'react';
 import { Quest, QuestStatus } from '../../types';
 import { formatQuestDate } from './questUtils';
@@ -69,11 +85,13 @@ export const QuestCard: React.FC<QuestCardProps> = ({ quest }) => {
             </span>
           </h4>
           <p className="text-sm text-gray-400 mb-2">{quest.description}</p>
-          <p className="text-[11px] text-gray-400">Giver: {quest.giverId}</p>
+          {quest.notes && <p className="mb-2 whitespace-pre-line text-xs text-gray-300">{quest.notes}</p>}
+          <p className="text-[11px] text-gray-400">Giver: {quest.giverName ?? quest.giverId}</p>
           {quest.regionHint && <p className="text-[11px] text-gray-400">Region: {quest.regionHint}</p>}
           {quest.questType && <p className="text-[11px] text-gray-400">Type: {quest.questType}</p>}
         </div>
         <div className="w-full sm:w-48">
+          {quest.status === QuestStatus.Available ? <p className="text-xs text-sky-200">You have not accepted this work.</p> : <>
           <div className="flex justify-between text-xs text-gray-400 mb-1">
             <span>Progress</span>
             <span>{progress}%</span>
@@ -81,6 +99,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({ quest }) => {
           <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
             <div className="h-full bg-amber-500" style={{ width: `${progress}%` }} />
           </div>
+          </>}
           <div className="mt-2">
             {renderRewards(quest)}
           </div>
@@ -93,14 +112,19 @@ export const QuestCard: React.FC<QuestCardProps> = ({ quest }) => {
               {obj.isCompleted ? '☑' : '☐'}
             </span>
             <span className={obj.isCompleted ? 'line-through text-gray-500' : 'text-gray-300'}>
-              {obj.description}
+              {/* Retained early offers may contain an internal entrance subtitle.
+                  Display only the named public destination until its discovery.
+                  This changes wording, never saved progress or source identity. */}
+              {quest.companionWork && obj.id === 'find_entrance' && !obj.isCompleted
+                ? `Find the entrance to the ${quest.companionWork.destination.name}.`
+                : obj.description}
             </span>
           </div>
         ))}
       </div>
       <div className="mt-3 text-[11px] text-gray-400 flex gap-4">
-        <span>Started: {formatQuestDate(quest.dateStarted)}</span>
-        <span>Completed: {formatQuestDate(quest.dateCompleted)}</span>
+        <span>{quest.status === QuestStatus.Available ? 'Offered' : 'Started'}: {formatQuestDate(quest.status === QuestStatus.Available ? quest.dateOffered : quest.dateStarted)}</span>
+        {quest.dateCompleted != null && <span>Completed: {formatQuestDate(quest.dateCompleted)}</span>}
       </div>
     </div>
   );

@@ -33,7 +33,7 @@ import dominateMonster from '@/data/spells/level-8/dominate-monster.json';
 // dice functions lets each test prove whether one or two d20s were requested.
 // agora-f821.4 retired the combatUtils roller family; the modules under
 // test roll through systems/dice/rollers now. One hoisted set of mocks
-// stands in for BOTH specifiers, so one vi.mocked(...) pins every die.
+// pins dice only at their real systems/dice/rollers module.
 const diceMocks = vi.hoisted(() => ({
     rollDice: vi.fn(),
     rollDamage: vi.fn()
@@ -44,13 +44,7 @@ vi.mock('@/systems/dice/rollers', async (importOriginal) => {
   return { ...actual, ...diceMocks }
 })
 
-vi.mock('@/utils/combat/combatUtils', async importOriginal => {
-  const actual = await importOriginal<typeof import('@/utils/combat/combatUtils')>();
-  return {
-    ...actual,
-    ...diceMocks,
-};
-});
+// Keep combat utilities real; dice controls target systems/dice/rollers only.
 
 /** Build a combatant with neutral saving-throw modifiers and an explicit side. */
 const makeCharacter = (

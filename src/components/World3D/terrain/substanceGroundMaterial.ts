@@ -112,6 +112,17 @@ function rotMat3(ax: number, ay: number, az: number): string {
 export const CUT_FACET_SNAP = 0.5;
 
 /**
+ * The three octave frames (Euler angles, radians) behind ROT1..ROT3 below.
+ * Exported so the WebGPU node twin (`gpu/substanceGroundNode.ts`, ADR 0009
+ * step 4) rotates its octaves by the same frames; the GLSL text is unchanged.
+ */
+export const SUBSTANCE_OCTAVE_EULERS: ReadonlyArray<readonly [number, number, number]> = [
+  [0.0, 0.0, 0.0],
+  [0.61, 1.13, 0.37],
+  [-1.02, 0.53, 2.21],
+];
+
+/**
  * Where a face stops being weathered ground and starts being a CUT, in cells.
  *
  * The threshold clears the datum quantization — original-top heights are
@@ -233,9 +244,9 @@ uniform int uBandCount;
 uniform float uCellM;
 uniform vec3 uGridOrigin;
 uniform float uTintMix;
-const mat3 ROT1 = ${rotMat3(0.0, 0.0, 0.0)};
-const mat3 ROT2 = ${rotMat3(0.61, 1.13, 0.37)};
-const mat3 ROT3 = ${rotMat3(-1.02, 0.53, 2.21)};
+const mat3 ROT1 = ${rotMat3(...SUBSTANCE_OCTAVE_EULERS[0])};
+const mat3 ROT2 = ${rotMat3(...SUBSTANCE_OCTAVE_EULERS[1])};
+const mat3 ROT3 = ${rotMat3(...SUBSTANCE_OCTAVE_EULERS[2])};
 varying float vCutDepth;
 varying float vAO;
 varying vec3 vTint;

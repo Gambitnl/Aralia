@@ -49,10 +49,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { analyzeSource } from './sweep-syntax.mjs';
-import { computeFindingId, loadGapRecords, classifyFinding, buildTaskProposals, compareReports, ACTIVE_TASK_STATES, CLOSED_TASK_STATES } from './sweep-triage.mjs';
+import { computeFindingId, loadGapRecords, classifyFinding, buildTaskProposals, typeReviewForFindings, compareReports, ACTIVE_TASK_STATES, CLOSED_TASK_STATES } from './sweep-triage.mjs';
 export { computeFindingId, compareReports, ACTIVE_TASK_STATES, CLOSED_TASK_STATES } from './sweep-triage.mjs';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
+import { inspectSourceCitations } from '../../tools/agora/taskLint.mjs';
 
 // ============================================================================
 // Section 1: Configuration & Directory Anchors
@@ -782,8 +783,10 @@ export function analyzeArchitecturalHealth(repoRoot = REPO_ROOT) {
  * Generates shell-safe PowerShell commands for Agora task creation.
  * Uses PowerShell verbatim single-quoted strings where every single quote is escaped as ''.
  * Completely avoids shell expansion of $(), backticks, and environment variables.
+ * WF-G210: type-debt suggestions remain explicitly unverified investigation,
+ * never a compiler-approved assertion-removal instruction.
  */
-export function generateScaffoldCommand(item) {
+export function generateScaffoldCommand(item, { repoRoot = REPO_ROOT } = {}) {
   // Accept both the legacy single finding and a grouped proposal. Commands are
   // suggestions only; this scanner never registers work or edits source files.
   const proposal = item.findings || item.evidence instanceof Array ? item : {
@@ -792,16 +795,34 @@ export function generateScaffoldCommand(item) {
   };
   const findings = proposal.findings || proposal.evidence;
   const refs = proposal.refs || [...new Set(findings.map(f => f.file))];
-  const evidence = findings.map(f => `${f.findingId}: ${f.file}:${f.line || 1} [${f.type}] ${f.text || ''}`).join('\n');
-  const body = `Evidence:\n${evidence}\n\n` +
+  const typeReview = typeReviewForFindings(findings);
+  const typePremise = typeReview ? 'TYPE-PREMISE-UNVERIFIED: ' + typeReview.reason + '\n' +
+    'Type-review finding IDs: ' + JSON.stringify(typeReview.findingIds) + '\n' +
+    typeReview.requiredChecks.map(check => 'Required type review: ' + check).join('\n') + '\n' : '';
+  // Keep externally supplied ideas visible, but do not present their claimed
+  // type facts or mechanical removal recipe as an approved implementation step.
+  const suggestion = (label, value) => `${typeReview ? 'UNVERIFIED proposed ' : ''}${label}: ${value}\n`;
+  const evidence = findings.map(f => `SNAPSHOT: ${f.findingId}: ${f.file}:${f.line || 1} [${f.type}] ${f.text || ''}`).join('\n');
+  // Re-read exact evidence before suggesting a body. Tracking annotations can
+  // move it, so the current unique quote, not the old line, identifies it.
+  // Failed/ambiguous reads stay explicit author review; this creates no tasks.
+  const citations = findings.map(f => {
+    const citation = { file: f.file, quote: f.text || '', observedLine: f.line || 1, findingId: f.findingId };
+    const report = inspectSourceCitations({ body: 'SOURCE-CITATION: ' + JSON.stringify(citation) }, { repoRoot });
+    if (report.resolved.length) return 'SOURCE-CITATION: ' + JSON.stringify({ ...citation, observedLine: report.resolved[0].line });
+    return 'SOURCE-CITATION-UNVERIFIED: ' + JSON.stringify({ file: f.file, findingId: f.findingId, reason: report.issues[0]?.reason || 'source quote was not verified' });
+  }).join('\n');
+  const body = `Evidence:\n${evidence}\n${citations}\n\n` + typePremise +
+    'Re-read SOURCE-CITATION quotes and run task lint before assignment; line hints are snapshots, not authority. Resolve every unverified citation before acting. A quote is literal evidence, not semantic proof or file ownership.\n' +
     'Preserve current behavior, unfinished intent, and future feature scope.\n' +
     'First decide whether to link existing work, record deferred intent, investigate, or implement a missing capability.\n' +
     'Acceptance: document the intended behavior and decision; retain the finding IDs in the task; provide focused behavior evidence for any implementation.\n' +
     'A removed marker or absent scan finding is not proof of completion. Uncertain design choices need user decision.\n' +
-    `Current behavior to preserve: ${proposal.currentBehavior || 'Inspect the evidence before choosing an implementation.'}\n` +
-    `Missing capability or question: ${proposal.missingCapability || 'Confirm whether the observed placeholder represents unfinished behavior.'}\n` +
-    `Next action: ${proposal.nextAction || 'Review existing work and choose a disposition.'}\n` +
-    `Acceptance criteria: ${(proposal.acceptanceCriteria || []).join(' ')}\n` +
+    suggestion('Current behavior to preserve', proposal.currentBehavior || 'Inspect the evidence before choosing an implementation.') +
+    suggestion('Missing capability or question', proposal.missingCapability || 'Confirm whether the observed placeholder represents unfinished behavior.') +
+    suggestion('Next action', proposal.nextAction || 'Review existing work and choose a disposition.') +
+    suggestion('Acceptance criteria', (proposal.acceptanceCriteria || []).join(' ')) +
+    (typeReview ? 'Next action: Investigate the unverified call-site type premise and whether a narrowing helper is required before assigning cast removal. Source quotes and task lint do not prove type assignability.\n' : '') +
     `Existing task candidates to review before creation: ${JSON.stringify(proposal.existingCandidates || proposal.existingTaskCandidates || proposal.relatedTasks || [])}`;
   const quote = value => "'" + String(value).replace(/'/g, "''") + "'";
   // Agora requires an explicit campaign decision. This standalone suggestion
@@ -899,6 +920,9 @@ export async function scanCodebase(options = {}) {
     const finding = {...item, findingId, subsystem,
       evidence: {rule:item.type, text:item.text, confidence:item.confidence || 'high'},
       citedAgoraIds:item.citedAgoraIds || [], citedGaps:item.citedGaps || []};
+    // Type observations stay advisory, but their unresolved premise is visible
+    // before anyone turns the finding into a cast-removal assignment.
+    if (subsystem === 'type_debt') finding.typeReview = typeReviewForFindings([finding]);
     findings.push(debt ? classifyFinding(finding, context) : {...finding, trackingStatus:'advisory', disposition:{action:'review',reason:'This observation alone does not justify removal or refactoring.'}});
   };
   for (const file of [...new Set(scannedFiles)].sort()) {
@@ -1101,7 +1125,10 @@ No-longer-detected findings are observations, never automatic completion.`);
     console.log('Recorded or blocked work remains visible. Findings are evidence for a decision, not instructions to delete or refactor.');
     for(const warning of report.registryWarnings)console.log('Registry review: '+JSON.stringify(warning));
     if(report.completionReview.length)console.log('Finding remains after linked task completion: review delivered behavior, accepted scope, and remaining intent before changing commentary.');
-    if(options.scaffold)for(const proposal of report.proposals)console.log('\nReview proposal:\n'+generateScaffoldCommand(proposal));
+    if(options.scaffold)for(const proposal of report.proposals)console.log('\nReview proposal:\n'+generateScaffoldCommand(proposal, { repoRoot: options.repoRoot }));
+    // Explicit scaffold mode offers investigation only; it neither creates tasks
+    // nor promotes advisory type findings into the actionable proposal inventory.
+    if(options.scaffold)for(const finding of report.typeDebt)console.log('\nReview unverified type premise:\n'+generateScaffoldCommand(finding, { repoRoot: options.repoRoot }));
     if(report.comparison)console.log('Comparison (absence is not resolution): '+JSON.stringify(report.comparison));
     console.log(`Preservation gate: ${report.gate.passed?'passed':'needs attention'}`);
     for(const reason of report.gate.reasons)console.log('  - '+reason);

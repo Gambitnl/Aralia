@@ -1,15 +1,35 @@
 /**
  * @file src/components/ui/OllamaModelPicker.tsx
- * One Ollama model per task category, chosen by the player (agora-d1c7.1).
+ * One Ollama model and explicit processing choice per task category.
  * Lists the models the local Ollama server reports plus the catalog; the
  * choice persists through aiProviderSettings. No fallback: a chosen model that
  * is not installed is shown with a warning, and the runtime reports it as an
  * error instead of quietly using another model.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 22:00:50
+ * Dependents: components/ui/OllamaDependencyModal.tsx
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   OLLAMA_MODEL_CATEGORIES,
   getOllamaModelChoices,
+  getOllamaComputeMode,
+  setOllamaComputeMode,
+  type OllamaComputeMode,
   setOllamaModelChoice,
   type OllamaModelCategory,
 } from '../../services/ai/aiProviderSettings';
@@ -33,6 +53,9 @@ const defaultListInstalled = async (): Promise<string[] | null> => {
 export const OllamaModelPicker: React.FC<OllamaModelPickerProps> = ({ listInstalled = defaultListInstalled }) => {
   const [installed, setInstalled] = useState<string[] | null | 'loading'>('loading');
   const [choices, setChoices] = useState(() => getOllamaModelChoices());
+  const [computeModes, setComputeModes] = useState(() => Object.fromEntries(
+    OLLAMA_MODEL_CATEGORIES.map(category => [category, getOllamaComputeMode(category)]),
+  ) as Record<OllamaModelCategory, OllamaComputeMode>);
 
   useEffect(() => {
     let alive = true;
@@ -56,6 +79,11 @@ export const OllamaModelPicker: React.FC<OllamaModelPickerProps> = ({ listInstal
     setChoices(getOllamaModelChoices());
   };
 
+  const onComputePick = (category: OllamaModelCategory, mode: OllamaComputeMode) => {
+    setOllamaComputeMode(category, mode);
+    setComputeModes(current => ({ ...current, [category]: getOllamaComputeMode(category) }));
+  };
+
   return (
     <div data-testid="ollama-model-picker" className="rounded-md border border-amber-500/30 bg-gray-900/60 p-3">
       <h3 className="text-amber-200 font-semibold mb-1">Which model does each job?</h3>
@@ -64,6 +92,7 @@ export const OllamaModelPicker: React.FC<OllamaModelPickerProps> = ({ listInstal
         {installed === 'loading' && ' Checking installed models…'}
         {installed === null && ' Ollama did not answer, so only the catalog is listed.'}
       </p>
+      <p className="mb-2 text-xs text-gray-300">CPU only uses system memory instead of graphics memory and can be slower.</p>
       <ul className="space-y-1.5">
         {OLLAMA_MODEL_CATEGORIES.map((category) => {
           const { chosen, resolved } = choices[category];
@@ -85,6 +114,19 @@ export const OllamaModelPicker: React.FC<OllamaModelPickerProps> = ({ listInstal
                   <option key={m} value={m}>{m}</option>
                 ))}
               </select>
+              <label className="flex items-center gap-2 text-xs text-gray-300">
+                <span>Run on</span>
+                <select
+                  aria-label={`${OLLAMA_MODEL_CATEGORY_LABEL[category]} processing`}
+                  data-testid={`ollama-compute-${category}`}
+                  className="rounded border border-gray-600 bg-gray-800 px-2 py-1 text-gray-100"
+                  value={computeModes[category]}
+                  onChange={event => onComputePick(category, event.target.value as OllamaComputeMode)}
+                >
+                  <option value="auto">Automatic</option>
+                  <option value="cpu">CPU only</option>
+                </select>
+              </label>
               <span
                 className={`text-xs ${state === false ? 'text-rose-300' : state === true ? 'text-emerald-300' : 'text-gray-400'}`}
                 title={resolved}

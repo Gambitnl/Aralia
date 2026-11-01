@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 09/06/2026, 04:34:01
- * Dependents: App.tsx
- * Imports: 6 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -33,6 +17,22 @@
  * Called by: App.tsx
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 09:41:17
+ * Dependents: hooks/app/useAppAmbientDialogue.ts
+ * Imports: 7 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GameState, OllamaLogEntry } from '../types';
 import { getWeatherSummary } from '../types/environment';
@@ -40,6 +40,7 @@ import { isPlayerFocused } from '../utils/world/sceneUtils';
 import { Companion, ReactionTriggerType, CompanionReactionRule } from '../types/companions';
 import { OllamaService, BanterContext } from '../services/ollama';
 import { getDayPartLabel } from '../utils/core/timeUtils';
+import { isInParty } from '../systems/party/recruitTypes';
 
 // Cooldown tracking: companionId -> triggerType -> timestamp
 type CooldownMap = Record<string, Record<string, number>>;
@@ -54,6 +55,8 @@ export const useCompanionCommentary = (
   dispatch: React.Dispatch<CompanionAction>,
 ) => {
   const [cooldowns, setCooldowns] = useState<CooldownMap>({});
+  const latestState = useRef(gameState);
+  latestState.current = gameState;
 
   // Track previous state to detect changes
   const prevLocationRef = useRef(gameState.currentLocationId);
@@ -117,6 +120,9 @@ export const useCompanionCommentary = (
     }[] = [];
 
     Object.values(gameState.companions).forEach((companion: Companion) => {
+      // Keeping someone's relationship record does not make them a witness to
+      // the party's travels. Refused, dismissed and separated people stay known.
+      if (!isInParty(companion)) return;
       companion.reactionRules.forEach(rule => {
         const ruleType = rule.triggerType || 'decision';
         if (ruleType !== triggerType) return;
@@ -205,6 +211,12 @@ export const useCompanionCommentary = (
           }
         }
       }
+
+      // A model reply can arrive after dismissal or departure. Do not publish
+      // that delayed voice or approval into a different scene or relationship.
+      const currentCompanion = latestState.current.companions?.[winner.companionId];
+      if (!currentCompanion || !isInParty(currentCompanion)
+        || latestState.current.currentLocationId !== gameState.currentLocationId) return;
 
       dispatch({
         type: 'ADD_COMPANION_REACTION',

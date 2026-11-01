@@ -134,6 +134,15 @@ const archetypeCache = new Map<string, CrowdArchetype>();
  * compiles that identity into an entity recipe and blueprint, and then bakes the
  * blueprint's keyframe geometries.
  */
+/**
+ * The cached archetype for a group, or null when it is not baked yet. It never
+ * bakes. GG-574: GroundAgents bakes one group per task and draws only the
+ * groups this returns, so the first crowd does not freeze the page.
+ */
+export function peekCrowdArchetype(group: string): CrowdArchetype | null {
+  return archetypeCache.get(group) ?? null;
+}
+
 export function crowdArchetypeForGroup(group: string): CrowdArchetype {
   const cached = archetypeCache.get(group);
   if (cached) return cached;

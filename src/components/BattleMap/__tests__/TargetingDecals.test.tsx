@@ -99,4 +99,23 @@ describe("TargetingDecals", () => {
     const meshes = container.querySelectorAll("mesh");
     expect(meshes.length).toBe(1);
   });
+
+  // GG-495 (2026-11-01): the long-range band draws as its own fainter red frame,
+  // so the 3D map matches the 2D hatched tile. The dev probe reports each layer.
+  it("splits valid targets into a normal frame and a long-range frame", () => {
+    const probe = window as unknown as { __bm3dDecalDebug?: Record<string, { tiles: number }> };
+    delete probe.__bm3dDecalDebug;
+    render(
+      <TargetingDecals
+        validTargetSet={new Set(["3-0", "8-0"])}
+        longRangeTargetSet={new Set(["8-0"])}
+        teleportDestinationSet={new Set()}
+        aoeSet={new Set()}
+        targetingMode={true}
+        groundSampler={null}
+      />,
+    );
+    expect(probe.__bm3dDecalDebug?.["#ef4444/frame"]?.tiles).toBe(1);
+    expect(probe.__bm3dDecalDebug?.["#ef4444/frame-long-range"]?.tiles).toBe(1);
+  });
 });

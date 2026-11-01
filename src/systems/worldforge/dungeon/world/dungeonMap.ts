@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 21/07/2026, 01:47:08
- * Dependents: components/BattleMap/dungeon/Dungeon3DPreview.tsx, components/World3D/DungeonParchmentMap.tsx, systems/worldforge/dungeon/world/dungeonLevels.ts
- * Imports: 1 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file turns explored cells from the canonical DungeonPlan into remembered map ink.
  *
@@ -28,7 +12,24 @@
  * Depends on: the pure-data dungeon plan contract.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 28/10/2026, 16:21:14
+ * Dependents: components/BattleMap/dungeon/Dungeon3DPreview.tsx, components/World3D/DungeonParchmentMap.tsx, components/World3D/dungeonKnowledge.ts, systems/worldforge/dungeon/world/dungeonLevels.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { CellKind, type Cell, type DungeonPlan, type DungeonRoom } from '../types';
+import { bresenhamLine } from '../../../../utils/spatial/lineOfSight';
 
 // ============================================================================
 // Persisted Cell Addressing
@@ -54,11 +55,11 @@ function isFloorCell(plan: DungeonPlan, cell: Cell): boolean {
 // ============================================================================
 // Movement-Driven Discovery
 // ============================================================================
-// The occupied square and adjacent visible floor are inked. This keeps the first sheet mostly
-// blank, makes every legal step reveal more plan, and does not look through distant rooms.
+// Near footing remains available in darkness. Fixed source torches let the party
+// remember visible floor within20ft, without granting sight through walls or doors.
 // ============================================================================
 
-export function revealedDungeonCellKeys(plan: DungeonPlan, playerCell: Cell): string[] {
+export function revealedDungeonCellKeys(plan: DungeonPlan, playerCell: Cell, carriedBrightRadiusFt = 0): string[] {
   const candidates: Cell[] = [
     playerCell,
     { x: playerCell.x, y: playerCell.y - 1 },
@@ -68,7 +69,37 @@ export function revealedDungeonCellKeys(plan: DungeonPlan, playerCell: Cell): st
   ];
 
   // Preserve this fixed order so reducer receipts and proof counts stay deterministic.
-  return candidates.filter((cell) => isFloorCell(plan, cell)).map(dungeonCellKey);
+  const keys=candidates.filter((cell) => isFloorCell(plan, cell)).map(dungeonCellKey);
+  if(!isFloorCell(plan,playerCell))return keys;
+  const closed=new Set(plan.doors.filter(door=>door.state!=='open').map(door=>dungeonCellKey(door.cell)));
+  const opaque=(cell:Cell)=>!isFloorCell(plan,cell)||closed.has(dungeonCellKey(cell));
+  const clear=(from:Cell,to:Cell)=>{
+    const line=bresenhamLine(from.x,from.y,to.x,to.y);
+    return line.every((cell,index)=>{
+      if(index===0)return true;
+      if(opaque(cell))return false;
+      const previous=line[index-1];
+      return previous.x===cell.x||previous.y===cell.y||
+        !(opaque({x:cell.x,y:previous.y})&&opaque({x:previous.x,y:cell.y}));
+    });
+  };
+  // Fixed flames and explicitly burning owned torches provide light. A packed torch does not.
+  // Twenty feet is a conservative bright-light limit; dim-light and character
+  // vision capabilities remain outside this bounded discovery repair.
+  const radius=Math.floor(20/plan.cellFt);
+  const torches=plan.props.filter(prop=>prop.kind==='torch').map(prop=>({
+    x:Math.floor(prop.x/plan.cellFt),y:Math.floor(prop.y/plan.cellFt),
+  })).filter(cell=>isFloorCell(plan,cell));
+  const known=new Set(keys);
+  for(let y=Math.max(0,playerCell.y-radius);y<=Math.min(plan.H-1,playerCell.y+radius);y++)
+    for(let x=Math.max(0,playerCell.x-radius);x<=Math.min(plan.W-1,playerCell.x+radius);x++){
+      const cell={x,y},key=dungeonCellKey(cell);
+      if(known.has(key)||Math.hypot(x-playerCell.x,y-playerCell.y)>radius||opaque(cell)||!clear(playerCell,cell))continue;
+      if(!(Number.isFinite(carriedBrightRadiusFt)&&carriedBrightRadiusFt>0&&Math.hypot(x-playerCell.x,y-playerCell.y)*plan.cellFt<=carriedBrightRadiusFt)
+        &&!torches.some(torch=>Math.hypot(x-torch.x,y-torch.y)<=radius&&clear(torch,cell)))continue;
+      keys.push(key);known.add(key);
+    }
+  return keys;
 }
 
 // ============================================================================

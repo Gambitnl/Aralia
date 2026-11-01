@@ -161,6 +161,13 @@ describe('actionEconomyUtils', () => {
   });
 
   describe('canAffordActionCost and consumeActionCost', () => {
+    it('keeps a spent Reaction counter aligned with its used flag without mutating the actor', () => {
+      const character = createMockCombatCharacter({ actionEconomy: createDefaultActionEconomy(30) });
+      const spent = consumeActionCost(character, { type: 'reaction' });
+      expect(spent.actionEconomy.reaction).toEqual({ used: true, remaining: 0 });
+      expect(canAffordActionCost(spent, { type: 'reaction' })).toBe(false);
+      expect(character.actionEconomy.reaction).toEqual({ used: false, remaining: 1 });
+    });
     it('supports racial once-per-rest spells by consuming limited uses before spell slots and allowing fallback when enabled', () => {
       const limitedUseId = resolveRacialSpellLimitedUseId('deep_gnome', 'disguise-self');
 
@@ -328,4 +335,71 @@ describe('actionEconomyUtils', () => {
       expect(afterSpell.spellSlots?.level_1.current).toBe(1);
     });
   });
+  describe('Chilled condition speed halving (GG-64 / agora-7bdb)', () => {
+    it('halves base walking speed when Chilled condition is present', () => {
+      const character = createMockCombatCharacter();
+      character.stats.speed = 30;
+      character.conditions = [{ name: 'Chilled', duration: { type: 'rounds', value: 2 } } as any];
+
+      expect(calculateMovementModeTotal(character, 'walk')).toBe(15);
+    });
+
+    it('halves speed across all movement modes (fly, swim, climb, burrow)', () => {
+      const character = createMockCombatCharacter();
+      character.stats.speed = 30;
+      character.stats.extraMovementSpeeds = { fly: 60, swim: 40, climb: 20, burrow: 10 };
+      character.conditions = [{ name: 'Chilled', duration: { type: 'rounds', value: 2 } } as any];
+
+      expect(calculateMovementModeTotal(character, 'walk')).toBe(15);
+      expect(calculateMovementModeTotal(character, 'fly')).toBe(30);
+      expect(calculateMovementModeTotal(character, 'swim')).toBe(20);
+      expect(calculateMovementModeTotal(character, 'climb')).toBe(10);
+      expect(calculateMovementModeTotal(character, 'burrow')).toBe(5);
+    });
+
+    it('applies additive modifiers before halving and rounds down per 5e rules', () => {
+      // 30 base + 5 buff = 35 -> halved = 17 (rounded down)
+      const character = createMockCombatCharacter({
+        stats: { speed: 30, strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, baseInitiative: 0, cr: "1" },
+        statusEffects: [{
+          id: 'speed-buff',
+          name: 'Speed Buff',
+          type: 'buff',
+          duration: 1,
+          effect: { type: 'stat_modifier', stat: 'speed', value: 5 }
+        }],
+        conditions: [{ name: 'Chilled', duration: { type: 'rounds', value: 2 } } as any]
+      });
+
+      expect(calculateMovementModeTotal(character, 'walk')).toBe(17);
+    });
+
+    it('recognizes Chilled in statusEffects as well as conditions', () => {
+      const character = createMockCombatCharacter();
+      character.stats.speed = 30;
+      character.statusEffects = [{ id: 'chilled-status', name: 'Chilled', type: 'debuff', duration: 1 }];
+
+      expect(calculateMovementModeTotal(character, 'walk')).toBe(15);
+    });
+
+    it('preserves speed 0 when frozen or movement is blocked, even if chilled', () => {
+      const character = createMockCombatCharacter();
+      character.stats.speed = 30;
+      character.conditions = [
+        { name: 'Chilled', duration: { type: 'rounds', value: 2 } } as any,
+        { name: 'Frozen', duration: { type: 'rounds', value: 1 } } as any
+      ];
+
+      expect(calculateMovementModeTotal(character, 'walk')).toBe(0);
+    });
+  });
+});
+
+
+it('uses the same single Longstrider benefit when two retained casters overlap', () => {
+    const base=createMockCombatCharacter();
+    const rider={id:'ooc-longstrider-one',name:'Longstrider',source:'Longstrider',sourceCasterId:'one',type:'buff' as const,duration:600,effect:{type:'stat_modifier' as const,stat:'speed' as const,value:10}};
+    const character={...base,stats:{...base.stats,speed:30},conditions:[],activeEffects:[],statusEffects:[rider,{...rider,id:'ooc-longstrider-two',sourceCasterId:'two'}]};
+    expect(calculateMovementModeTotal(character,'walk')).toBe(40);
+    expect(character.stats.speed).toBe(30);expect(character.statusEffects).toHaveLength(2);
 });

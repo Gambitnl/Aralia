@@ -33,6 +33,23 @@
  * a few new ones (bench, altar, desk, chair, weapon-rack) for purposes the
  * legacy generator never had.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 01:49:45
+ * Dependents: systems/worldforge/interior/generateBuilding.ts, systems/worldforge/interior/householdFurnish.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { rngFromPath, streamPath, type SeedPath } from '../seedPath';
 import {
   cellKey,
@@ -84,7 +101,9 @@ const recipe = (core: string[], filler: string[]): Recipe => ({
 });
 
 const RECIPES: Record<RoomPurpose, Recipe> = {
-  'hall':         recipe(['hearth', 'table'], ['table', 'bench']),
+  // A household's common hall needs provisions as well as a second table.
+  // Real placement still rejects a barrel that would consume a walking route.
+  'hall':         recipe(['hearth', 'table'], ['barrel', 'table', 'bench']),
   'common-room':  recipe(['hearth', 'table'], ['table', 'bench', 'barrel']),
   'great-hall':   recipe(['hearth', 'table', 'table'], ['table', 'bench']),
   'nave':         recipe(['altar', 'bench'], ['bench']),
@@ -121,6 +140,12 @@ export const FURNISHING_RECIPE_KINDS: ReadonlySet<string> = new Set(
 );
 
 const N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]] as const;
+
+/** Household placement uses these same room recipes with physical-size checks. */
+export function furnishingRecipeKinds(purpose: RoomPurpose) {
+  const recipe = RECIPES[purpose];
+  return { core: recipe.core.map((item) => item.kind), filler: recipe.filler.map((item) => item.kind) };
+}
 
 /** Cells a door touches: the two cells flanking its wall edge. */
 function doorCells(door: BlueprintDoor): Cell[] {

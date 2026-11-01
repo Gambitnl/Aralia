@@ -22,6 +22,8 @@ import {
 } from '../../utils/character';
 import FeatSelection from '../CharacterCreator/FeatSelection';
 import { subclassesForClass } from '../../data/classes/subclasses';
+import { getRulesEdition, getSubclassLevel } from '../../config/rulesEdition';
+import { useOptionalGameState } from '../../state/GameContext';
 import { classFeaturesForLevel } from '../../data/classes/classFeatureProgression';
 import { SKILLS_DATA } from '../../data/skills';
 import { EXPERTISE_CHOICE_KEY } from '../../utils/character/skillModifierUtils';
@@ -110,12 +112,19 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
   const [featChoices, setFeatChoices] = useState<Record<string, FeatChoiceState>>({});
   const [selectedSubclassId, setSelectedSubclassId] = useState<string>('');
 
-  // The level-3 subclass milestone: offer the class's subclasses when the
-  // character is advancing to level 3 and hasn't already chosen one.
+  // The subclass milestone: offer the class's subclasses when the character
+  // reaches its subclass level and hasn't already chosen one. The level comes
+  // from the rules edition (agora-f821.58/.59): 3 under 2024; under 2014 it is
+  // 1 for cleric, sorcerer and warlock and 2 for druid and wizard. Those 2014
+  // classes normally choose in the creator, so this catches a character made
+  // without that choice (an older save, or a campaign switched to 2014).
+  const rulesEdition = getRulesEdition(useOptionalGameState()?.state);
+  const subclassClassId = selectedClassId || character?.class?.id || '';
+  const subclassLevel = getSubclassLevel(subclassClassId, rulesEdition);
   const subclassOptions = useMemo(() => {
-    if (!character || nextLevel < 3 || character.subclassId) return [];
-    return subclassesForClass(selectedClassId || character.class?.id || '');
-  }, [character, nextLevel, selectedClassId]);
+    if (!character || nextLevel < subclassLevel || character.subclassId) return [];
+    return subclassesForClass(subclassClassId);
+  }, [character, nextLevel, subclassLevel, subclassClassId]);
   const needsSubclassChoice = subclassOptions.length > 0;
 
   /**
@@ -506,7 +515,7 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
                 <>
                   <h3 className="text-sm font-semibold text-amber-200">Choose your subclass</h3>
                   <p className="text-xs text-gray-400">
-                    At level 3 you commit to a specialization — the defining choice of your career.
+                    At level {subclassLevel} you commit to a specialization — the defining choice of your career.
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {subclassOptions.map((sub) => (

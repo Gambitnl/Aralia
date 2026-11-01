@@ -24,7 +24,9 @@ import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { MovementEffect } from '@/types/spells'
 import { CombatState, CombatCharacter, Position, StatusEffect, ActiveCondition } from '@/types/combat'
-import { getDistance } from '../../utils/combat'
+// Use the existing distance leaf: the combat barrel also exports shove commands,
+// which import this command and would close a module initialization cycle.
+import { getDistance } from '../../utils/combat/combatUtils'
 import { findPath } from '../../utils/spatial/pathfinding'
 import { calculatePathMovementCost } from '../../utils/combat/movementUtils'
 import { calculateMovementTotal } from '../../utils/combat/actionEconomyUtils'

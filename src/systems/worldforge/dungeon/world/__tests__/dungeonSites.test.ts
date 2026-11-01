@@ -21,6 +21,20 @@ const sites = enumerateDungeonSites(SEED);
 
 const LAND_H = 20;
 
+it('does not let a truncated seed cache replace a timestamp-seeded world attachment', () => {
+  // This is the actually played world. Its frozen path uses uint32, while
+  // getBridgeAtlas has always keyed generation by the complete saved number.
+  const savedSeed = 1793176550524;
+  const sourceAtlas = getBridgeAtlas(savedSeed);
+  const marker = sourceAtlas.markers.find(marker => marker.i === 54)!;
+  enumerateDungeonSites(savedSeed >>> 0);
+  const savedSites = enumerateDungeonSites(savedSeed);
+  const originalMarker = savedSites.find(site => site.markerRef === marker.i);
+  expect(originalMarker?.cellId).toBe(marker.cell);
+  const [x, y] = sourceAtlas.pack.cells.p[marker.cell];
+  expect(originalMarker?.posFt).toEqual({ x: Math.round(x * FEET_PER_FMG_PIXEL), y: Math.round(y * FEET_PER_FMG_PIXEL) });
+});
+
 interface BurgLike {
   i?: number;
   cell?: number;

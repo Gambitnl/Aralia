@@ -282,7 +282,6 @@ const Glossary: React.FC<GlossaryProps> = ({
       setShowSpellGateChecks(defaultShowSpellGateChecks);
       hasNavigatedInitial.current = null; // Reset when closed
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, initialTermId, displayGlossaryIndex, defaultShowSpellGateChecks, filteredGlossaryIndex, sortedCategories, expandedCategories, handleNavigateToGlossary, handleEntrySelect, selectedEntry, setExpandedCategories, setSearchTerm]);
 
   // Auto-select first filtered entry
@@ -317,7 +316,7 @@ const Glossary: React.FC<GlossaryProps> = ({
     } else if (filteredGlossaryIndex.length === 0) {
       setSelectedEntry(null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-select runs only when the filtered list changes; adding selectedEntry would override navigation to an entry outside the filter (C9).
   }, [filteredGlossaryIndex]);
 
   // Scroll selected entry into view

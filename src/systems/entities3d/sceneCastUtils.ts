@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 30/08/2026, 21:43:15
- * Dependents: components/World3D/SceneCast.tsx, components/World3D/sceneCastUtils.ts
- * Imports: 1 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file sceneCastUtils.ts — UI-neutral scene-cast rules for generated entities.
  *
@@ -23,6 +7,22 @@
  * so engine tests and future renderers can use them without importing a React or
  * World3D component. World3D consumes this contract and remains the visual owner.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 14:27:28
+ * Dependents: components/World3D/SceneCast.tsx, components/World3D/sceneCastUtils.ts, systems/companions/companionWhereabouts.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import type { EntityRecipe } from './types';
 
@@ -42,6 +42,8 @@ export interface SceneCastMember {
   isSpeaker?: boolean;
   /** Real generated-entity identity when the game already knows it. */
   recipe?: EntityRecipe;
+  /** Retained scene-space position; a returning companion keeps their real spot. */
+  position?: [number, number, number];
 }
 
 // ============================================================================
@@ -99,7 +101,7 @@ export function layoutCast(
     const offsetFromCentre = index - (npcs.length - 1) / 2;
     const x = offsetFromCentre * spreadMetres;
     const z = -1 - Math.abs(offsetFromCentre) * 0.25;
-    positioned.push({ ...npc, pos: [x, 0, z] });
+    positioned.push({ ...npc, pos: npc.position ?? [x, 0, z] });
   });
 
   return positioned;

@@ -55,7 +55,7 @@ export const BanterAttentionBanner: React.FC<BanterAttentionBannerProps> = ({
     const timer = setTimeout(() => setDismissed(true), 10_000);
     setAutoFadeTimer(timer);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- this effect sets autoFadeTimer, so listing it would loop; the cleanup already clears the timer; follow-up: drop the autoFadeTimer state (C9).
   }, [speakerName, lastLine]);
 
   const truncatedLine = lastLine && lastLine.length > MAX_LINE_LENGTH

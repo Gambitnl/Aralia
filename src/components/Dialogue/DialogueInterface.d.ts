@@ -20,11 +20,11 @@ interface DialogueInterfaceProps {
     onClose: () => void;
     onUpdateSession: (newSession: DialogueSession) => void;
     onTopicOutcome?: (result: ProcessTopicResult, topicId: string) => void;
-    onGenerateResponse: (prompt: string) => Promise<string>;
+    onGenerateResponse: (prompt: string, signal?: AbortSignal) => Promise<string>;
     /**
-     * Invokes the "Invite to party" flow for this NPC. Always rendered as a
-     * button when provided; the consent gate (downstream) declines ineligible
-     * NPCs with a reason rather than the button being hidden.
+     * Invokes the "Invite to party" flow for an available companion opportunity.
+     * Ordinary household residents need an established companion record;
+     * the downstream consent gate still decides trust and willingness.
      */
     onInvite?: (npcId: string) => void;
     /**

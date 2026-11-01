@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
- *
- * Last Sync: 18/07/2026, 19:53:47
- * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, systems/worldforge/bridge/buildingOccupancy.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/interior/occupancy.ts, systems/worldforge/roster/generateTownRoster.ts, systems/worldforge/town/buildingPlotInput.ts
- * Imports: 5 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file householdBrief.ts — town → blueprint household brief bridge.
  *
@@ -26,6 +10,23 @@
  * Determinism flows entirely from `generateHousehold` (deterministic per
  * `(townSeed, homeId)`); both functions here are pure.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 29/10/2026, 23:21:08
+ * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, components/World3D/ResidentProfile.tsx, components/World3D/World3DWrapper.tsx, components/World3D/groundResidentInteraction.ts, components/World3D/libraryReadingAccess.ts, components/Worldforge/TownBuildingInspector.tsx, components/Worldforge/townBuildingVisit.ts, devtools/buildingIdentityLab/BuildingIdentityLab.tsx, systems/economy/businessAttendance.ts, systems/worldforge/bridge/buildingOccupancy.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/interior/occupancy.ts, systems/worldforge/roster/generateTownRoster.ts, systems/worldforge/town/buildingPlotInput.ts, systems/worldforge/townsim/householdNpc.ts, systems/worldforge/townsim/registerBurgMerchants.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type {
   BriefWealth,
   HouseholdBrief,
@@ -159,7 +160,10 @@ export function briefFromHousehold(
  * this, so the family the house is DESIGNED for and the family whose members
  * STAND at stations can never drift. Residential plot → its family. Workplace
  * plot (smithy/shop/inn/tavern) run by a family → the PROPRIETOR family with
- * `worksAtHome: true` (they live over the shop).
+ * `worksAtHome: true` for the trade-space design. This is an ownership/design
+ * context, not permission to place the family in both buildings: occupancy
+ * callers pass workplaceOnly for a non-residential business. The separately
+ * identified residential plot remains the family's home.
  */
 export function householdForPlot(
   plot: HouseholdPopulationContext,
@@ -168,7 +172,8 @@ export function householdForPlot(
 ):
   | { household: Household; wealth: BriefWealth; worksAtHome: boolean }
   | undefined {
-  // Workplace run by a family: the proprietor's household lives over the shop.
+  // Reuse the proprietor family for trade-space design and owned goods. Actual
+  // attendance is separate; a proprietorHomeId does not relocate that family.
   if (!plot.residential && plot.proprietorHomeId) {
     const home = allPlots.find((p) => p.homeId === plot.proprietorHomeId);
     if (!home?.homeId || !home.occupants) return undefined;
@@ -211,7 +216,8 @@ export function householdForPlot(
 /**
  * Brief for a plot. Residential plot → its household's brief. Workplace plot
  * (smithy/shop/inn/tavern) run by a family → the PROPRIETOR family's brief with
- * `worksAtHome: true` (they live over the shop). Returns `undefined` for plots
+ * `worksAtHome: true` for trade-space design, without relocating their home.
+ * Returns `undefined` for plots
  * with no household (storehouse, civic, temple, keep, unpopulated towns) — a
  * legitimate absence, not a fallback. Thin wrapper over
  * {@link householdForPlot}, coarsening its named family into the brief.
@@ -223,8 +229,11 @@ export function briefForPlot(
 ): HouseholdBrief | undefined {
   const resolved = householdForPlot(plot, allPlots, townSeed);
   if (!resolved) return undefined;
-  return briefFromHousehold(resolved.household, {
+  const brief = briefFromHousehold(resolved.household, {
     wealth: resolved.wealth,
     worksAtHome: resolved.worksAtHome,
   });
+  // The owner supplies the trade and names for this workplace, but their
+  // family still sleeps at its source home. Leave ordinary home briefs exact.
+  return plot.residential ? brief : { ...brief, residential: false };
 }

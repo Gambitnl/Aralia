@@ -106,3 +106,17 @@ describe('PartyOverlay dismiss wiring', () => {
         );
     });
 });
+
+it('keeps both rests blocked with the actual expedition reason outside combat', () => {
+  const reason = 'Return through the expedition entrance before resting outside.';
+  const props = renderOverlay({ isCombatActive: false, restUnavailableReason: reason });
+  expect(screen.getByText(reason)).toBeInTheDocument();
+  expect(screen.queryByText('Resting is unavailable during active combat.')).not.toBeInTheDocument();
+  for (const name of [/Long Rest/i, /Short Rest/i]) {
+    const button = screen.getByRole('button', { name });
+    expect(button).toBeDisabled();
+    fireEvent.click(button);
+  }
+  expect(props.onLongRest).not.toHaveBeenCalled();
+  expect(props.onShortRest).not.toHaveBeenCalled();
+});

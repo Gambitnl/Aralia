@@ -44,13 +44,14 @@ import {
   SLOT_PREFIX,
 } from './saveLoadConstants';
 import type { SaveSlotSummary, StoredSavePayload } from './saveLoadConstants';
-import { extractPreview, isUsingIndexedDB } from './saveLoadHelpers';
+import { extractPreview, getIndexedDbAvailability } from './saveLoadHelpers';
 
 // Local in-memory cache of slot metadata to avoid repeated JSON parses and
 // Local Storage scans on every call to getSaveSlots(). This improves menu
 // responsiveness because the slot selector and load modal call into this
 // service frequently while the player hovers between options.
 let slotIndexCache: SaveSlotSummary[] | null = null;
+let cachedBackend: boolean | null = null;
 // Handle storage change sync across tabs/contexts. This ensures that if one
 // tab wipes or repopulates localStorage, every other open tab rebuilds its
 // metadata cache instead of showing stale previews.
@@ -62,6 +63,15 @@ let detachStorageSyncListener: (() => void) | null = null;
  */
 export function getSaveSlots(): SaveSlotSummary[] {
   try {
+    // The title menu can render before the asynchronous storage check finishes.
+    // Re-evaluate cached metadata when that check resolves, without deleting
+    // IndexedDB-backed entries while their backend is still unknown.
+    const backend = getIndexedDbAvailability();
+    if (backend !== cachedBackend) {
+      slotIndexCache = null;
+      SafeSession.removeItem(SESSION_CACHE_KEY);
+      cachedBackend = backend;
+    }
     if (slotIndexCache) {
       return [...slotIndexCache];
     }
@@ -239,9 +249,11 @@ function buildSlotIndex(): SaveSlotSummary[] {
   // When IndexedDB is active, payloads live in IDB (not localStorage), so we
   // trust the persisted metadata index as authoritative. Ghost entries will
   // naturally fail during loadGame and can be cleaned up at that point.
-  const validIndex = isUsingIndexedDB()
-    ? parsedIndex
-    : parsedIndex.filter(slot => SafeStorage.getAllKeys().includes(slot.slotId));
+  // Only a confirmed local-only backend can prove a missing local payload is
+  // a ghost. At cold start the real payload may already be safe in IndexedDB.
+  const validIndex = getIndexedDbAvailability() === false
+    ? parsedIndex.filter(slot => SafeStorage.getAllKeys().includes(slot.slotId))
+    : parsedIndex;
 
   return mergeWithLegacySaves(validIndex).sort((a, b) => b.lastSaved - a.lastSaved);
 }

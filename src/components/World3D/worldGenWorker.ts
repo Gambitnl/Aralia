@@ -17,21 +17,58 @@
  *   matching chunkWorker.ts / chunkWorkerCore.ts.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/10/2026, 22:46:21
+ * Dependents: components/World3D/createWorldGenClient.ts, services/saveLoad/loadHistoricalTownSource.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /// <reference lib="webworker" />
 import { runWorldGen, type WorldGenRequest } from './worldGenCore';
+import type { GameState } from '../../types';
 
 const ctx = self as unknown as Worker;
 
 ctx.onmessage = async (ev: MessageEvent) => {
-  const msg = ev.data as { type?: string; id?: number; req?: WorldGenRequest };
+  // Historical loads use the same heavy-generation worker and shared one-shot
+  // lifecycle. No stage or source artifact mounts while preflight is pending.
+  if(ev.data?.type==='historicalTownLoad'&&typeof ev.data.id==='number'&&ev.data.state){
+    const {id,state}=ev.data as {id:number;state:GameState};
+    try {
+      const {prepareHistoricalTownLoad}=await import('../../systems/worldforge/town/prepareHistoricalTownLoad');
+      ctx.postMessage({type:'historicalTownLoad',id,result:prepareHistoricalTownLoad(state)});
+    }catch(error){
+      ctx.postMessage({type:'error',id,message:`Saved-town source check failed: ${error instanceof Error?error.message:String(error)}`});
+    }
+    return;
+  }
+  const msg = ev.data as { type?: string; id?: number; req?: WorldGenRequest; meshPort?: MessagePort };
   if (msg?.type !== 'generate' || typeof msg.id !== 'number' || !msg.req) return;
-  const { id, req } = msg;
+  const { id, req, meshPort } = msg;
   try {
     await runWorldGen(req, {
       emitProgress: (stage) => ctx.postMessage({ type: 'progress', id, stage }),
-      emitStageA: (a) =>
-        ctx.postMessage({ type: 'stageA', id, ground: a.ground, local: a.local, region: a.region }),
-      emitStageB: (props) => ctx.postMessage({ type: 'stageB', id, props }),
+      emitStageA: (a) => {
+        ctx.postMessage({ type: 'stageA', id, ground: a.ground, local: a.local, region: a.region });
+        // GG-573: the same ground goes to the chunk-mesh worker from HERE, so
+        // the main thread does not serialize it a second time. It is posted
+        // after the main-thread reply, so Stage A reaches the page first; the
+        // mesh worker queues its loads until this init arrives.
+        // The port is not closed here: a close right after the post can drop
+        // the queued message. The mesh worker closes its end after it reads.
+        if (meshPort) meshPort.postMessage({ type: 'init', ground: a.ground });
+      },
+      emitStageB: (props, propSource) => ctx.postMessage({ type: 'stageB', id, props, ...(propSource ? { propSource } : {}) }),
     });
   } catch (err) {
     ctx.postMessage({

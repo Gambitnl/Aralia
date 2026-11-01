@@ -32,6 +32,110 @@
  * riverFlowField.ts, riverWaterMaterial.ts) take any bed and any course.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 17/10/2026, 07:31:24
+ * Dependents: components/DesignPreview/steps/water/RiverScene.tsx, components/DesignPreview/steps/water/riverSectionLabels.ts, components/World3D/water/riverDroppedObjectsView.ts, components/World3D/water/riverEditHandles.ts, components/World3D/water/riverFloatersView.ts, components/World3D/water/riverFlowBlockersView.ts, components/World3D/water/riverLiveClient.ts, components/World3D/water/riverReachScene.ts, components/World3D/water/riverReceivingRefiner.ts, components/World3D/water/riverSistersCliffSurface.ts, components/World3D/water/riverVegetation.ts, components/World3D/water/riverWaterfallCliff.ts, components/World3D/water/riverWaterfallView.ts, components/World3D/water/waterfallTerrainComparisonView.ts, systems/world3d/ocean/oceanMouthMath.ts, systems/world3d/river/riverDroppedObjects.ts, systems/world3d/river/riverFlowField.ts, systems/world3d/river/riverHeadwaters.ts, systems/world3d/river/riverLive.ts, systems/world3d/river/riverQuadInspection.ts, systems/world3d/river/riverRapidsReconstruction.ts, systems/world3d/river/riverWorker.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import { createBoulderShapeCache } from './riverBoulderShape';
+import { carveMainRapids, mainRapidsChuteAt, WATERFALL, waterfallRockBoundary, waterfallSourceRockHeight, headwaterKey, MAIN_CHANNEL_S, mainRapidsAt, projectMainRapids, riverHeadwatersEnabled, riverReconstructionEnabled } from './riverHeadwaters';
+import { worldBedHeightLocal, worldBedInflowM3S, type RiverWorldBedInit } from './riverWorldBed';
+
+/**
+ * THE WORLD'S BED (ADR 0009 step 6, slice 10, 2026-10-26). When the game
+ * world hosts the live river, the reach is built on the world's own terrain
+ * and river line (`riverWorldBed.ts`) instead of the page's seeded valley:
+ * - the course runs through the world river's points (`defaultRiverCourse`);
+ * - the ground is the drawn world terrain (`terrainHeightAt`);
+ * - the channel key is the world river's width, one roughness, and the
+ *   world's channel depth under its water line (`courseKeyAt`);
+ * - the design level is the world bed under the course plus that depth,
+ *   never rising downstream (`designLevelAt`);
+ * - no boulders are placed (the world has no rock data for its rivers yet).
+ * MODULE STATE, as the shape and the course edit are: the flow worker sets it
+ * from its start message before it builds the LiveRiver. The river page never
+ * sets it, so with no world bed every function below runs its old code.
+ */
+let worldBed: RiverWorldBedInit | null = null;
+/** The world design level per meter of s (see designLevelAt), built on first use. */
+let worldLevels: { s0: number; table: Float64Array } | null = null;
+
+export function setRiverWorldBed(bed: RiverWorldBedInit | null): void {
+  worldBed = bed;
+  worldLevels = null;
+  // The course and the level tables were built for the other bed.
+  defaultCourse = null;
+  designTable = null;
+  shapedDesignTable = null;
+}
+
+export function getRiverWorldBed(): RiverWorldBedInit | null {
+  return worldBed;
+}
+
+/**
+ * THE WORLD BED'S DESIGN LEVEL at s (the solver's start guess and its wet
+ * ceiling). At each meter of s inside the grid's x range: the lowest bed
+ * across the channel (|n| under the half width) plus the world's channel
+ * depth. Then the water ponds behind every downstream sill: the level is the
+ * running MAXIMUM from the outflow edge upstream, so the start is never dry
+ * behind a bump of the drawn terrain (the 8 m lattice makes a carved trench
+ * floor undulate by a meter or two). Past the grid's x range the edge values
+ * hold: the solver sees no sill past its outflow edge, so a world bed that
+ * rises again downstream of the grid does not flood the reach.
+ */
+function worldDesignLevelAt(s: number): number {
+  const bed = worldBed!;
+  if (!worldLevels) {
+    const course = defaultRiverCourse();
+    const samples = course.samples;
+    const s0 = Math.floor(samples[0].s);
+    const s1 = Math.ceil(samples[samples.length - 1].s);
+    const n = Math.max(2, s1 - s0 + 1);
+    const raw = new Float64Array(n).fill(Number.NaN);
+    let qA = -1;
+    let qB = -1;
+    for (let q = 0; q < n; q += 1) {
+      const p = course.at(s0 + q);
+      if (p.x < bed.levelRangeX[0] || p.x > bed.levelRangeX[1]) continue;
+      // The left normal is (tz, -tx): n > 0 is the course's left side.
+      let low = Infinity;
+      for (let off = -bed.halfW; off <= bed.halfW; off += 0.5) {
+        const h = worldBedHeightLocal(bed, p.x + p.tz * off, p.z - p.tx * off);
+        if (h < low) low = h;
+      }
+      raw[q] = low + bed.channelDepthM;
+      if (qA < 0) qA = q;
+      qB = q;
+    }
+    if (qA < 0) throw new Error('[river] The world river course does not cross the solver grid.');
+    const table = new Float64Array(n);
+    let hold = -Infinity;
+    for (let q = qB; q >= qA; q -= 1) {
+      if (raw[q] > hold) hold = raw[q];
+      table[q] = hold;
+    }
+    for (let q = 0; q < qA; q += 1) table[q] = table[qA];
+    for (let q = qB + 1; q < n; q += 1) table[q] = raw[qB];
+    worldLevels = { s0, table };
+  }
+  const T = worldLevels.table;
+  const f = Math.max(0, Math.min(T.length - 1 - 1e-9, s - worldLevels.s0));
+  const i = Math.floor(f);
+  return T[i] + (T[Math.min(T.length - 1, i + 1)] - T[i]) * (f - i);
+}
+
 /** Seeded 32-bit generator (mulberry32). Deterministic on every engine. */
 export function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
@@ -169,8 +273,19 @@ export const RIVER_SHAPE_LIMITS = Object.freeze({
 
 let activeShape: RiverShape = RIVER_SHAPE_DEFAULT;
 
+/**
+ * The flow a shape takes when none is set. ONE WATER (2026-10-30): with a
+ * world bed, the world river's own flow (its normal flow at the reach's
+ * upstream edge plus each tributary that joins inside the box,
+ * `worldBedInflowM3S`); the river page's 1.5 m^3/s had fed every world river
+ * and drained the wide ones (GG-534).
+ */
+function defaultDischargeM3S(): number {
+  return worldBed ? worldBedInflowM3S(worldBed) : RIVER_DISCHARGE_M3S;
+}
+
 export function isDefaultRiverShape(s: RiverShape): boolean {
-  return s.widthScale === 1 && s.depthScale === 1 && s.dischargeM3S === RIVER_DISCHARGE_M3S;
+  return s.widthScale === 1 && s.depthScale === 1 && s.dischargeM3S === defaultDischargeM3S();
 }
 
 /** A short key for a shape, for caches and addresses. The default's key is empty. */
@@ -185,12 +300,17 @@ export function clampRiverShape(s: Partial<RiverShape> | null | undefined): Rive
     const x = typeof v === 'number' && Number.isFinite(v) ? v : d;
     return Math.min(r[1], Math.max(r[0], x));
   };
+  // A world river's flow comes from the world, not the panel's page range.
+  const q = s?.dischargeM3S;
   const next: RiverShape = {
     widthScale: clamp(s?.widthScale, L.widthScale, 1),
     depthScale: clamp(s?.depthScale, L.depthScale, 1),
-    dischargeM3S: clamp(s?.dischargeM3S, L.dischargeM3S, RIVER_DISCHARGE_M3S),
+    dischargeM3S: worldBed
+      ? (typeof q === 'number' && Number.isFinite(q) && q > 0 ? q : defaultDischargeM3S())
+      : clamp(q, L.dischargeM3S, RIVER_DISCHARGE_M3S),
   };
-  return isDefaultRiverShape(next) ? RIVER_SHAPE_DEFAULT : next;
+  if (!isDefaultRiverShape(next)) return next;
+  return worldBed ? Object.freeze({ widthScale: 1, depthScale: 1, dischargeM3S: defaultDischargeM3S() }) : RIVER_SHAPE_DEFAULT;
 }
 
 /** Set the shape the next build uses, clamped to the panel's ranges. */
@@ -226,6 +346,9 @@ export function riverFlowDepthFactor(s: RiverShape = activeShape): number {
  * while they stay dry.
  */
 export function riverCeilingMarginM(): number {
+  // Falling water and the joining currents can stand above their estimated
+  // start levels. Keep room for that transient on the expanded landscape.
+  if (riverHeadwatersEnabled()) return 2.4 * Math.max(1, riverFlowDepthFactor());
   if (isDefaultRiverShape(activeShape)) return 0.8;
   return 0.8 * Math.max(1, riverFlowDepthFactor()) + 0.8;
 }
@@ -614,6 +737,11 @@ function catmull(p0: number, p1: number, p2: number, p3: number, t: number): num
  * seen from above with +z down the page), the left of an eastward flow is
  * north, which is -z: the left normal of the tangent (tx, tz) is (tz, -tx).
  */
+interface CourseSearchNode {
+  start: number; end: number; minX: number; maxX: number; minZ: number; maxZ: number;
+  left?: CourseSearchNode; right?: CourseSearchNode;
+}
+
 export class RiverCourse {
   readonly samples: CourseSample[] = [];
   /** The control points the curve runs through, m. */
@@ -638,6 +766,51 @@ export class RiverCourse {
   private bh = 0;
   private bucketStart = new Int32Array(1);
   private bucketItems = new Int32Array(0);
+  private farSearchTree?: CourseSearchNode;
+
+  /** Exact nearest-sample fallback for land far beyond the original river.
+   * The complete rapids domain contains millions of those cells. Bounding
+   * sample ranges avoid scanning the whole original curve for every cell;
+   * equal distances still choose the earliest sample, as the old scan did. */
+  private projectFarSample(x: number, z: number, bucket?: {x:number;z:number}): number {
+    const build = (start: number, end: number): CourseSearchNode => {
+      let minX=Infinity,maxX=-Infinity,minZ=Infinity,maxZ=-Infinity;
+      for(let k=start;k<end;k++){
+        const p=this.samples[k];minX=Math.min(minX,p.x);maxX=Math.max(maxX,p.x);
+        minZ=Math.min(minZ,p.z);maxZ=Math.max(maxZ,p.z);
+      }
+      const node:CourseSearchNode={start,end,minX,maxX,minZ,maxZ};
+      if(end-start>16){const mid=(start+end)>>>1;node.left=build(start,mid);node.right=build(mid,end);}
+      return node;
+    };
+    const root=this.farSearchTree??=build(0,this.samples.length);
+    const bound=(n:CourseSearchNode):number=>Math.max(n.minX-x,0,x-n.maxX)**2+Math.max(n.minZ-z,0,z-n.maxZ)**2;
+    let best=-1,bestD2=Infinity;
+    const visit=(node:CourseSearchNode):void=>{
+      if(bound(node)>bestD2)return;
+      // Preserve the old forty-ring search region, including its fallback.
+      // Skipping empty buckets changes search work, never the admitted samples.
+      if(bucket&&(Math.floor(node.maxX/this.bucketM)<bucket.x-39||Math.floor(node.minX/this.bucketM)>bucket.x+39
+        ||Math.floor(node.maxZ/this.bucketM)<bucket.z-39||Math.floor(node.minZ/this.bucketM)>bucket.z+39))return;
+      if(node.left&&node.right){
+        const leftFirst=bound(node.left)<=bound(node.right);
+        visit(leftFirst?node.left:node.right);visit(leftFirst?node.right:node.left);return;
+      }
+      for(let k=node.start;k<node.end;k++){
+        const p=this.samples[k],d2=(p.x-x)**2+(p.z-z)**2;
+        const dx=bucket?Math.floor(p.x/this.bucketM)-bucket.x:0,dz=bucket?Math.floor(p.z/this.bucketM)-bucket.z:0;
+        const ring=Math.max(Math.abs(dx),Math.abs(dz));if(bucket&&ring>=40)continue;
+        let earlier=best<0||k<best;
+        if(bucket&&best>=0&&d2===bestD2){
+          const prior=this.samples[best],px=Math.floor(prior.x/this.bucketM)-bucket.x,pz=Math.floor(prior.z/this.bucketM)-bucket.z;
+          const previousRing=Math.max(Math.abs(px),Math.abs(pz));
+          earlier=ring<previousRing||(ring===previousRing&&(dz<pz||(dz===pz&&(dx<px||(dx===px&&k<best)))));
+        }
+        if(d2<bestD2||(d2===bestD2&&earlier)){bestD2=d2;best=k;}
+      }
+    };
+    visit(root);return best;
+  }
 
   /**
    * With no `reference`, the course runs through `points` by its own arc
@@ -646,8 +819,25 @@ export class RiverCourse {
    * it is now, and the samples are the reference's samples in number and in s
    * (the live river editor, 2026-09-29).
    */
-  constructor(points: ReadonlyArray<readonly [number, number]> = COURSE_POINTS, reference: RiverCourse | null = null) {
+  constructor(points: ReadonlyArray<readonly [number, number]> = COURSE_POINTS, reference: RiverCourse | null = null, retainedSamples?: readonly CourseSample[]) {
     this.points = points.map((p) => [p[0], p[1]] as const);
+    if (retainedSamples) {
+      // A surveyed extension can retain the judged upstream/downstream samples
+      // exactly. Their physical stations need not land on one quarter-meter phase.
+      // Reuse the native projection index; never fit a new curve over protected land.
+      if (retainedSamples.length < 2) throw Error('[river] A sampled course needs at least two samples.');
+      for (let k = 0; k < retainedSamples.length; k++) {
+        const p = retainedSamples[k];
+        if (![p.x,p.z,p.s,p.tx,p.tz,p.curv,p.stretch].every(Number.isFinite)
+          || p.stretch <= 0 || Math.abs(Math.hypot(p.tx,p.tz)-1) > 1e-8
+          || (k > 0 && p.s <= retainedSamples[k-1].s)) throw Error('[river] Invalid retained physical course sample.');
+        this.samples.push({...p});
+      }
+      this.sOffset = 0;
+      this.retainedStations = true;
+      this.indexSamples();
+      return;
+    }
     // Dense raw curve, then resample by arc length.
     const raw: Array<[number, number]> = [];
     for (let k = 0; k < points.length - 1; k += 1) {
@@ -755,6 +945,20 @@ export class RiverCourse {
       // flow in this frame (z south); a left turn gives a negative cross.
       this.samples[k].curv = -Math.asin(Math.max(-1, Math.min(1, cross))) / ds;
     }
+    this.indexSamples();
+  }
+
+  /** Admit already measured native samples through the same spatial index. */
+  /** Keep authored physical stations for the long waterfall route. The
+   * supplied samples are copied and indexed directly, so fitting a new curve
+   * cannot move the protected joins. This creates no terrain or water. */
+  static fromSamples(samples: readonly CourseSample[]): RiverCourse {
+    return new RiverCourse([], null, samples);
+  }
+
+  private retainedStations = false;
+
+  private indexSamples(): void {
     // THE BUCKETS as a dense grid over the samples' extent: bucket b holds
     // the samples bucketItems[bucketStart[b] .. bucketStart[b + 1]), in
     // ascending order (a Map of lists cost 20 to 40 ns an empty lookup, and a
@@ -793,6 +997,21 @@ export class RiverCourse {
 
   /** The course point at arc length s (clamped to the line). */
   at(s: number): CourseSample {
+    if (riverHeadwatersEnabled() && s >= MAIN_CHANNEL_S) return mainRapidsAt(s);
+    return this.atCurve(s);
+  }
+
+  /** Sample this actual curve, without the original river's branch-address
+   * redirect. A long reconstructed rapids curve must not jump to the old
+   * quadratic branch when its physical distance passes1000m. Existing at()
+   * callers retain their original routing and editor address behavior. */
+  atCurve(s: number): CourseSample {
+    if (this.retainedStations) {
+      let lo=0,hi=this.samples.length-1;
+      while(lo<hi){const mid=(lo+hi)>>>1;if(this.samples[mid].s<s)lo=mid+1;else hi=mid;}
+      if(lo>0 && s-this.samples[lo-1].s <= this.samples[lo].s-s)lo--;
+      return this.samples[lo];
+    }
     const k = Math.max(0, Math.min(this.samples.length - 1, Math.round(s / COURSE_STEP_M) + this.sOffset));
     return this.samples[k];
   }
@@ -807,7 +1026,21 @@ export class RiverCourse {
     const bz = Math.floor(z / this.bucketM);
     let best = -1;
     let bestD2 = Infinity;
-    for (let r = 0; r < 40; r += 1) {
+    // More than40 buckets beyond the samples' bounding box cannot reach a
+    // populated bucket. Go directly to the exact bounded search there.
+    const beyondBuckets=bx<this.bx0-39||bx>this.bx0+this.bw-1+39||bz<this.bz0-39||bz>this.bz0+this.bh-1+39;
+    const gx=bx-this.bx0,gz=bz-this.bz0;
+    const outside=gx<0||gx>=this.bw||gz<0||gz>=this.bh;
+    const indexed=outside||this.bucketStart[gz*this.bw+gx]===this.bucketStart[gz*this.bw+gx+1];
+    // Full-course setup projects millions of dry-land points. Empty starting
+    // buckets formerly walked up to6400empty neighbors for each point. Reuse
+    // the existing exact sample tree there, retaining ring/row/column/sample
+    // tie order. Populated near-channel buckets keep their existing fast path.
+    if(indexed&&!beyondBuckets){
+      best=this.projectFarSample(x,z,{x:bx,z:bz});
+      if(best>=0){const p=this.samples[best];bestD2=(p.x-x)**2+(p.z-z)**2;}
+    }
+    for (let r = 0; !indexed && r < 40; r += 1) {
       // The ring's buckets only, row by row and left to right (the order of
       // the full square this loop once walked, so ties resolve the same way;
       // walking the square cost O(r^3) for a far point: 2.5 s of the page's
@@ -832,14 +1065,11 @@ export class RiverCourse {
       // A point in ring r + 1 is at least r * bucketM away.
       if (best >= 0 && r * this.bucketM > Math.sqrt(bestD2)) break;
     }
-    // Past 40 rings (320 m) the buckets hold nothing: read every sample. Only
-    // the far corners of the render domain get here.
+    // Preserve the nearest-sample result without a full scan for every far
+    // downstream cell. Near-course bucket behavior remains unchanged.
     if (best < 0) {
-      for (let k = 0; k < this.samples.length; k += 1) {
-        const smp = this.samples[k];
-        const d2 = (smp.x - x) ** 2 + (smp.z - z) ** 2;
-        if (d2 < bestD2) { bestD2 = d2; best = k; }
-      }
+      best=this.projectFarSample(x,z);
+      const p=this.samples[best];bestD2=(p.x-x)**2+(p.z-z)**2;
     }
     const smp = this.samples[best];
     const ddx = x - smp.x;
@@ -856,9 +1086,9 @@ export class RiverCourse {
 
 let defaultCourse: RiverCourse | null = null;
 
-/** The judged course (built once; it never changes). */
+/** The judged course (built once; it never changes). On a world bed: the world river's course. */
 export function defaultRiverCourse(): RiverCourse {
-  if (!defaultCourse) defaultCourse = new RiverCourse();
+  if (!defaultCourse) defaultCourse = worldBed ? new RiverCourse(worldBed.course) : new RiverCourse();
   return defaultCourse;
 }
 
@@ -877,7 +1107,18 @@ export const RIVER_COURSE_POINTS: ReadonlyArray<readonly [number, number]> = COU
  * default shape it returns the table's own numbers.
  */
 export function courseKeyAt(s: number): CourseKey {
-  const k = courseKeyAtBase(s);
+  if (worldBed) {
+    // One key along the whole world reach: the world river's half width, its
+    // channel depth under the design level, a flat floor and one roughness.
+    // thalweg and bankTop are read only by the page's own ground and level
+    // tables, which a world bed does not use.
+    const lvl = worldDesignLevelAt(s);
+    return { s, thalweg: lvl - worldBed.channelDepthM, halfW: worldBed.halfW, bankTop: lvl + worldBed.channelDepthM, shapeP: 5, manning: worldBed.manning };
+  }
+  const k = headwaterKey(s) ?? courseKeyAtBase(s);
+  // The main branch is fixed scenery. Shape handles still belong to the
+  // original editable course; do not pretend its sliders widened this bed.
+  if (riverHeadwatersEnabled() && s >= MAIN_CHANNEL_S) return k;
   const sh = activeShape;
   // The edit mode's local width (1 with no edit, so the judged river is exact).
   const wl = activeCourseEdit ? riverWidthAt(s) : 1;
@@ -886,7 +1127,9 @@ export function courseKeyAt(s: number): CourseKey {
     ...k,
     halfW: k.halfW * sh.widthScale * wl,
     // The bed drops under the bank top; the banks keep their height.
-    thalweg: sh.depthScale === 1 ? k.thalweg : k.bankTop - (k.bankTop - k.thalweg) * sh.depthScale,
+    // The cliff crest is a fixed rock lip. Deepening the receiving channel
+    // must not lower the upstream approach beneath its visible ledge.
+    thalweg: sh.depthScale === 1 || (riverHeadwatersEnabled() && s < -171) ? k.thalweg : k.bankTop - (k.bankTop - k.thalweg) * sh.depthScale,
   };
 }
 
@@ -957,7 +1200,8 @@ function shapedDesignLevelAt(s: number): number {
     for (let q = DESIGN_S0; q <= DESIGN_S1; q += 1) {
       const k = courseKeyAt(q);
       let lvl: number;
-      if (q < 100) lvl = k.thalweg + 0.55 * f;
+      if (headwaterKey(q)) lvl = designLevelAt(q);
+      else if (q < 100) lvl = k.thalweg + 0.55 * f;
       else if (q < 142) lvl = Math.max(k.thalweg + 0.4 * f, bendHold + (q < 125 ? 0.6 : 0.3) * f);
       else if (q <= 272) lvl = Math.max(k.thalweg + 0.3 * f, sill + 0.3 * f);
       else lvl = k.thalweg + 0.3 * f;
@@ -973,6 +1217,14 @@ function shapedDesignLevelAt(s: number): number {
 }
 
 export function designLevelAt(s: number): number {
+  if (worldBed) return worldDesignLevelAt(s);
+  const head = headwaterKey(s);
+  if (head) return s >= MAIN_CHANNEL_S ? head.level
+    // The plunge pool is held by its outlet sill. Scaling its entire depth
+    // with discharge initialized twelve meters of extra head at high flow,
+    // which collapsed into tall spikes. Depth edits change its bed instead;
+    // only a small surcharge changes the held reference waterline.
+    : head.level + Math.max(-0.25, Math.min(0.8, (riverFlowDepthFactor() - 1) * 0.3));
   if (activeShape !== RIVER_SHAPE_DEFAULT) return shapedDesignLevelAt(s);
   if (!designTable) {
     // Running minimum from upstream, on a 1 m step: the level never rises.
@@ -981,7 +1233,8 @@ export function designLevelAt(s: number): number {
     for (let q = DESIGN_S0; q <= DESIGN_S1; q += 1) {
       const k = courseKeyAt(q);
       let lvl: number;
-      if (q < 100) lvl = k.thalweg + 0.55;
+      if (headwaterKey(q)) lvl = headwaterKey(q)!.level;
+      else if (q < 100) lvl = k.thalweg + 0.55;
       // 2.5 since the bend head's rocks (rivers round 3) hold the bend pool
       // up by 0.2 m (a 430 s run: 2.54 to 2.62 m at s = 110 to 120).
       // (Round 3, recalibrated with the bend head's 52 rocks: the bend's
@@ -1237,13 +1490,13 @@ export class OutsideFields {
  * floodplain where the bank-top camera stands. The two formulas blend over
  * t = 0.92 .. 1.12 of the half width, so the bank top has no step.
  */
-export function makeTerrainHeight(course: RiverCourse, seed: number): (x: number, z: number) => number {
+export function makeTerrainHeight(course: RiverCourse, seed: number, includeMainRibs = true): (x: number, z: number) => number {
   const fields = new OutsideFields(course);
   const noise = { x: 0, z: 0, at(k: number): number { return terrainNoiseAt(this.x, this.z, seed, k); } };
   return (x: number, z: number): number => {
     noise.x = x;
     noise.z = z;
-    return terrainHeightAt(course, fields, x, z, course.project(x, z), noise);
+    return terrainHeightAt(course, fields, x, z, course.project(x, z), noise, includeMainRibs);
   };
 }
 
@@ -1291,8 +1544,32 @@ export function terrainHeightAt(
   z: number,
   pr: { s: number; n: number; d: number },
   noise: TerrainNoiseSource,
+  includeMainRibs = true,
 ): number {
+  // The world's bed: the drawn terrain, nothing carved or added (slice 10).
+  if (worldBed) return worldBedHeightLocal(worldBed, x, z);
   const f = outsideScratch;
+  if (riverHeadwatersEnabled() && pr.s < -155) {
+    const source = courseKeyAt(Math.min(pr.s, -175));
+    const crest = course.at(WATERFALL.crestS);
+    const forward = (x - crest.x) * crest.tx + (z - crest.z) * crest.tz;
+    const lateral = (x - crest.x) * crest.tz - (z - crest.z) * crest.tx;
+    // Exposed shoulders project beyond the central spill notch. Both this
+    // actual bed and the drawn cliff end on the same irregular rock boundary.
+    if (pr.s < WATERFALL.crestS || (Math.abs(lateral) < 144 && forward <= waterfallRockBoundary(lateral, source.halfW * 2))) {
+      const n = pr.s < WATERFALL.crestS ? pr.n : lateral;
+      const upland = waterfallSourceRockHeight(n, source.halfW * 2, forward) + noise.at(3) * 0.025;
+      // A distant point can still project onto the original source address.
+      // Its early return formerly skipped the descending valley entirely,
+      // leaving a299-meter wall across neighboring half-meter cells. Feed
+      // this upland through the SAME carve as the neighboring terrain. Its
+      // fork/source/quiet-channel ownership guards keep protected land intact;
+      // the ordinary original-course preview retains its existing return.
+      return riverReconstructionEnabled()
+        ? carveMainRapids(x, z, upland, noise.at(4), pr.d, includeMainRibs, source.halfW)
+        : upland;
+    }
+  }
   {
     const key = courseKeyAt(pr.s);
     const smp = course.at(pr.s);
@@ -1346,7 +1623,9 @@ export function terrainHeightAt(
       if (hz !== 0) yIn += hz * riverMoundAt(tIn);
     }
     const T = RIVER_THREAD;
-    const threadK = 1 - smooth01((pr.s - T.sEnd) / T.sFade);
+    // The plunge pool and falling sheet stay open; the old low-water thread
+    // still shapes the original boulder reach below the new rapids.
+    const threadK = riverHeadwatersEnabled() && pr.s < -60 ? 0 : 1 - smooth01((pr.s - T.sEnd) / T.sFade);
     if (threadK > 0) {
       const dn = nRel - threadCenterAt(pr.s, key.halfW);
       // The thread's width and raise follow the shape and the edit's local
@@ -1373,7 +1652,19 @@ export function terrainHeightAt(
       const hill = crest * (1 - Math.exp(-(rate * softplus(e, 3)) / crest));
       const hillNoise = (3 + 5 * smooth01(e / 120)) * noise.at(6) * smooth01(e / 30);
       const bankNoise = 0.35 * noise.at(5) * smooth01(dd / 3);
-      const yOut = bankTop + fp + hill + hillNoise + bankNoise + rough;
+      let yOut = bankTop + fp + hill + hillNoise + bankNoise + rough;
+      // The pool now occupies its own raised plateau. Read its actual bank
+      // key through the spill and runoff instead of blending early into the
+      // old valley's lower banks. The same wandering edge shapes both sides
+      // of this join, preserving noise and avoiding a seam in the wet bank.
+      if (riverHeadwatersEnabled() && pr.s >= WATERFALL.crestS && pr.s < -60) {
+        const receiving = (1 - smooth01((pr.s + 80) / 20)) * (1 - smooth01((Math.abs(pr.n) - 40) / 18));
+        const outside = Math.max(0, Math.abs(nRel) - sideHalf);
+        // A broad rock shoulder supports the elevated basin before rounding
+        // into its valley flank. It is continuous at the channel bank.
+        const poolBank = key.bankTop + 0.12 * Math.min(outside, 12) + 0.7 * Math.max(0, outside - 12) + rough;
+        yOut += (poolBank - yOut) * receiving;
+      }
       y = yIn + (yOut - yIn) * wOut;
     }
     // The island: an ellipse in (s, n), a smooth dome to its top with gravel margins.
@@ -1394,12 +1685,22 @@ export function terrainHeightAt(
       dome += 0.12 * noise.at(7);
       y = Math.max(y, Math.min(I.top + 0.1, dome));
     }
-    return y;
+    return carveMainRapids(x, z, y, noise.at(4), pr.d, includeMainRibs,key.halfW);
   }
 }
 
+const exactMainShape = createBoulderShapeCache(mulberry32, valueNoise);
+/** Main rocks draw and collide against one mesh; original rocks retain their old shape. */
+export function mainBoulderShape(b: Boulder) { return exactMainShape(b); }
+/** Include noisy main-rock edges in both initial and edited collision splats. */
+export function boulderBounds(b: Boulder) {
+  if (b.s !== undefined && b.s >= MAIN_CHANNEL_S) return mainBoulderShape(b).bounds;
+  const r = Math.max(b.rx, b.rz);
+  return { minX: b.x-r, maxX: b.x+r, minZ: b.z-r, maxZ: b.z+r };
+}
 /** Top height of one boulder at (x, z), or -Infinity outside it. */
 export function boulderTopAt(b: Boulder, x: number, z: number): number {
+  if (b.s !== undefined && b.s >= MAIN_CHANNEL_S) return mainBoulderShape(b).heightAt(x, z);
   const c = Math.cos(b.rot);
   const s = Math.sin(b.rot);
   const lx = (x - b.x) * c + (z - b.z) * s;
@@ -1423,7 +1724,14 @@ export function boulderTopAt(b: Boulder, x: number, z: number): number {
  *   - 20 small ones in the riffle, mostly just under the surface, and 10 along
  *     the pool banks.
  */
-export function placeBoulders(course: RiverCourse, terrain: (x: number, z: number) => number, seed: number): Boulder[] {
+export function placeBoulders(course: RiverCourse, terrainWithRibs: (x: number, z: number) => number, seed: number,
+  terrain = terrainWithRibs): Boulder[] {
+  // A world bed has no rocks yet: the world carries no rock data for its
+  // rivers, and the page's rock table is keyed on the page's course (slice 10).
+  if (worldBed) return [];
+  // Preserve every existing rock placement and random draw before regrouping
+  // the five selected main caps. Original-bank rocks near the new main ribs
+  // must not acquire a different y just because their ground now has support.
   const rnd = mulberry32(seed ^ 0x5bd1e995);
   const out: Boulder[] = [];
   const fits = (x: number, z: number, r: number): boolean => {
@@ -1625,7 +1933,98 @@ export function placeBoulders(course: RiverCourse, terrain: (x: number, z: numbe
       k += 1;
     }
   }
+  // These rocks use the same bed, collision height and white-water machinery
+  // as the existing reach. They are obstacles in the flow, not foam decals.
+  if (riverHeadwatersEnabled()) {
+    for (let q = 0; q < 220; q += 1) {
+      const s = MAIN_CHANNEL_S + 20 + rnd() * 305;
+      add(s, (rnd() - 0.5) * 14, 0.45 + rnd() * 0.9, 0.4 + rnd() * 0.45, true);
+    }
+    // Open only the local oblique mouths, moving obstructing rocks onto
+    // nearby flanks where spacing permits. Keep every rock and consume
+    // no new randomness: the original downstream rock field is unchanged.
+    for (const b of out) {
+      if (b.s === undefined || b.n === undefined || b.s < MAIN_CHANNEL_S + 35) continue;
+      const chute = mainRapidsChuteAt(b.s - MAIN_CHANNEL_S);
+      if (!chute) continue;
+      const radius = Math.max(b.rx, b.rz);
+      if (Math.abs(b.n - chute.center) >= radius + chute.halfWidth) continue;
+      const oldGround = terrain(b.x, b.z);
+      const p = course.at(b.s);
+      const preferred = b.n < chute.center ? -1 : 1;
+      let moved = false;
+      for (const side of [preferred, -preferred]) {
+        for (let extra = 0; extra <= 3.6; extra += 0.4) {
+          const lateral = chute.center + side * (radius + chute.halfWidth + 0.25 + extra);
+          // The seven wider reference cuts use their actual dry flanks.
+          // Relocate the same rock/contact together; retain narrow-mouth rules.
+          if (Math.abs(lateral) > (chute.halfWidth>3?12:7)) continue;
+          const x = p.x + p.tz * lateral, z = p.z - p.tx * lateral;
+          const conflict = out.some(other => other !== b
+            && (other.x - x) ** 2 + (other.z - z) ** 2 < (0.85 * (radius + Math.max(other.rx, other.rz))) ** 2);
+          if (conflict) continue;
+          b.x = x; b.z = z; b.n = lateral;
+          b.y += terrain(x, z) - oldGround;
+          moved = true; break;
+        }
+        if (moved) break;
+      }
+    }
+  }
+  applyMainRibCaps(out, terrainWithRibs, seed);
   return out;
+}
+
+/** Attach the bounded default-seed caps to a supplied shared terrain. */
+export function applyMainRibCaps(out: Boulder[], terrainWithRibs: (x: number, z: number) => number, seed: number): void {
+  // Default-seed prototype: reuse native identities, with no new random draws,
+  // dimensions or rocks. Unmatched identities and other seeds keep their layout.
+  // Numerical and rendered acceptance at all three flows remains separate.
+  if (riverHeadwatersEnabled() && seed === 20260928) {
+    const sites = [[102463419, 90, 6], [924926638, 91.4, 4.4], [331829731, 92.8, 2.8],
+      [267574660, 101.4, -4.4], [837373192, 102.8, -2.8]] as const;
+    for (const [identity, u, lateral] of sites) {
+      const b = out.find(rock => rock.seed === identity && (rock.s ?? 0) >= MAIN_CHANNEL_S);
+      if (!b) continue;
+      const p = mainRapidsAt(MAIN_CHANNEL_S + u), x = p.x + p.tz * lateral, z = p.z - p.tx * lateral;
+      // Pending native positions also count: a later skipped or unsupported cap
+      // must never remain underneath a cap already moved earlier in this loop.
+      const conflict = out.some(other => other !== b
+        && Math.hypot(x - other.x, z - other.z) < .85 * (Math.max(b.rx, b.rz) + Math.max(other.rx, other.rz)));
+      if (conflict) continue;
+      const targetGround = terrainWithRibs(x, z);
+      if (!Number.isFinite(targetGround)) continue;
+      const original = { ...b };
+      Object.assign(b, { x, z, s: MAIN_CHANNEL_S + u, n: lateral });
+      b.y += targetGround + .2 - mainBoulderShape(b).bounds.maxY;
+      // Intersect actual lower triangles across the footprint. A nominal radius
+      // can hide unsupported corners; bury the sampled underside before use.
+      let buried = false;
+      for (let attempt = 0; attempt <= 40; attempt++) {
+        const shape = mainBoulderShape(b), P = shape.positions, I = shape.indices;
+        buried = true;
+        outer: for (let zz = shape.bounds.minZ + .0625; zz < shape.bounds.maxZ; zz += .125) {
+          for (let xx = shape.bounds.minX + .0625; xx < shape.bounds.maxX; xx += .125) {
+            let low = Infinity;
+            for (let t = 0; t < I.length; t += 3) {
+              const a = I[t] * 3, c = I[t + 1] * 3, d = I[t + 2] * 3;
+              const ax = P[a], az = P[a + 2], cx = P[c] - ax, cz = P[c + 2] - az, ex = P[d] - ax, ez = P[d + 2] - az;
+              const det = cx * ez - ex * cz;
+              if (Math.abs(det) < 1e-12) continue;
+              const q = ((xx - ax) * ez - ex * (zz - az)) / det, r = (cx * (zz - az) - (xx - ax) * cz) / det;
+              if (q >= 0 && r >= 0 && q + r <= 1) low = Math.min(low, P[a + 1] + q * (P[c + 1] - P[a + 1]) + r * (P[d + 1] - P[a + 1]));
+            }
+            const ground = terrainWithRibs(xx, zz);
+            if (!Number.isFinite(ground) || (Number.isFinite(low) && low > ground)) { buried = false; break outer; }
+          }
+        }
+        if (buried) break;
+        b.y -= .025;
+      }
+      // Leave a native rock unchanged if a future terrain shape cannot support it.
+      if (!buried) Object.assign(b, original);
+    }
+  }
 }
 
 export interface RiverReach {
@@ -1658,7 +2057,7 @@ export function buildRiverReach(seed = 20260928, grid: RiverGridSpec = RIVER_GRI
   if (activeCourseEdit) throw new Error('[river] buildRiverReach builds the judged course. Apply a course edit with LiveRiver.applyEdit.');
   const course = defaultRiverCourse();
   const terrainHeight = makeTerrainHeight(course, seed);
-  const boulders = placeBoulders(course, terrainHeight, seed);
+  const boulders = placeBoulders(course, terrainHeight, seed, makeTerrainHeight(course, seed, false));
   const n = grid.nx * grid.nz;
   const ground = new Float64Array(n);
   const bed = new Float64Array(n);
@@ -1673,7 +2072,7 @@ export function buildRiverReach(seed = 20260928, grid: RiverGridSpec = RIVER_GRI
       const g = terrainHeight(x, z);
       ground[c] = g;
       bed[c] = g;
-      const pr = course.project(x, z);
+      const pr = riverChannelProjection(course, x, z);
       cellS[c] = pr.s;
       cellN[c] = pr.n;
       manning[c] = courseKeyAt(pr.s).manning;
@@ -1681,14 +2080,17 @@ export function buildRiverReach(seed = 20260928, grid: RiverGridSpec = RIVER_GRI
   }
   for (const b of boulders) {
     if (!b.inChannel) continue;
-    const r = Math.max(b.rx, b.rz);
-    const i0 = Math.max(0, Math.floor((b.x - r - grid.x0) / grid.dx));
-    const i1 = Math.min(grid.nx - 1, Math.ceil((b.x + r - grid.x0) / grid.dx));
-    const j0 = Math.max(0, Math.floor((b.z - r - grid.z0) / grid.dx));
-    const j1 = Math.min(grid.nz - 1, Math.ceil((b.z + r - grid.z0) / grid.dx));
+    // Fetch once per rock; cell queries do not allocate cache keys.
+    const mainShape = b.s !== undefined && b.s >= MAIN_CHANNEL_S ? mainBoulderShape(b) : undefined;
+    const bounds = boulderBounds(b);
+    const i0 = Math.max(0, Math.floor((bounds.minX - grid.x0) / grid.dx));
+    const i1 = Math.min(grid.nx - 1, Math.ceil((bounds.maxX - grid.x0) / grid.dx));
+    const j0 = Math.max(0, Math.floor((bounds.minZ - grid.z0) / grid.dx));
+    const j1 = Math.min(grid.nz - 1, Math.ceil((bounds.maxZ - grid.z0) / grid.dx));
     for (let j = j0; j <= j1; j += 1) {
       for (let i = i0; i <= i1; i += 1) {
-        const top = boulderTopAt(b, grid.x0 + (i + 0.5) * grid.dx, grid.z0 + (j + 0.5) * grid.dx);
+        const x = grid.x0 + (i + 0.5) * grid.dx, z = grid.z0 + (j + 0.5) * grid.dx;
+        const top = mainShape ? mainShape.heightAt(x, z) : boulderTopAt(b, x, z);
         const c = j * grid.nx + i;
         if (top > bed[c]) bed[c] = top;
       }
@@ -1698,4 +2100,12 @@ export function buildRiverReach(seed = 20260928, grid: RiverGridSpec = RIVER_GRI
     seed, grid, course, terrainHeight, boulders, ground, bed, cellS, cellN, manning,
     dischargeM3S: activeShape.dischargeM3S,
   };
+}
+
+/** The hydraulic address of either branch on their shared solver grid. */
+export function riverChannelProjection(course: RiverCourse, x: number, z: number): { s: number; n: number; d: number; k: number } {
+  const original = course.project(x, z);
+  if (!riverHeadwatersEnabled() || x < -25) return original;
+  const main = projectMainRapids(x, z);
+  return main.d / courseKeyAt(main.s).halfW < original.d / courseKeyAt(original.s).halfW ? main : original;
 }

@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
- *
- * Last Sync: 26/08/2026, 16:41:08
- * Dependents: commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, utils/character/defense.ts, utils/character/index.ts, utils/combat/combatUtils.ts
- * Imports: 1 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file handles weapon classifications and proficiency validation.
  *
@@ -27,6 +11,23 @@
  *            AbilityCommandFactory.ts (attack roll resolution), and CharacterSheet mannequin.
  * Depends on: PlayerCharacter and Item type models.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 28/10/2026, 23:08:34
+ * Dependents: commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, utils/character/defense.ts, utils/character/index.ts, utils/character/partyStatUtils.ts, utils/combat/combatUtils.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { PlayerCharacter, Item } from '../../types';
 
 // ============================================================================
@@ -153,3 +154,27 @@ export function isWeaponProficient(
 
 // Export helper function for reuse across combat and character systems.
 export { isWeaponMartial };
+
+// Shared by combat and preparation displays so improvised training has one rule.
+/** Feat id as stored on a character's `feats` array. */
+export const TAVERN_BRAWLER_FEAT_ID = 'tavern_brawler';
+
+/** True when the character holds Tavern Brawler. */
+export function hasTavernBrawler(character: { feats?: string[] } | null | undefined): boolean {
+  return !!character?.feats?.includes(TAVERN_BRAWLER_FEAT_ID);
+}
+
+/**
+ * True when an item counts as an Improvised Weapon.
+ *
+ * 5e calls an object an improvised weapon when it is not a weapon but is used
+ * as one — a bar stool, a bottle, a frying pan. An item may also declare the
+ * category or property outright, which is how a purpose-built improvised
+ * weapon entry opts in.
+ */
+export function isImprovisedWeapon(item: Item | null | undefined): boolean {
+  if (!item) return false;
+  if (item.category?.toLowerCase().includes('improvised')) return true;
+  if (item.properties?.some(property => property.toLowerCase() === 'improvised')) return true;
+  return item.type !== 'weapon';
+}

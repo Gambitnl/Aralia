@@ -28,3 +28,33 @@ launches. An ad hoc `shoot.mjs` should make the same pre-capture check against
 its transformed module URL. If the implementation changes, update the marker
 to a new variant-specific code expression; do not replace it with a comment or
 skip the assertion.
+
+## Ignored Scratch Builds (WF-G347)
+
+Vite deliberately ignores `.agent/` to avoid excessive watcher handles. Editing
+an already served scratch file can leave its ordinary transformed URL cached,
+even when `?raw` matches the new disk contents. `shoot.ts` therefore requires
+`--expect-served-code` for any `--fresh-module` path containing `.agent`.
+
+Use a new file or directory name for every revised scratch build. Update the
+viewer imports and any routed scratch dependencies to those new paths. Verify
+the current expression at the ordinary URL that the page imports. The capture
+probe does not add a cache-busting query: that would test a different module
+cache entry and could approve a stale page. A query, a fresh raw hash, or a new
+entry filename alone does not prove that every imported dependency is fresh.
+
+Before batched saves or captures, check each build's transformed expression
+and a negative control for the previous build. Keep the shared watcher exclusion
+and do not restart another agent's development server to refresh scratch work.
+This verifies served code, not rendered appearance or GPU behavior; those still
+need their own visual proof.
+
+Run the capture-tool safety tests in their Node-only lane:
+
+```powershell
+npx.cmd vitest run --config tools/vistest/vitest.config.ts
+```
+
+The real isolated Vite fixture edits the same ignored file twice, confirms that
+raw source updates while its ordinary transform stays stale, rejects both stale
+variants, and accepts each new filename. It closes its private server afterward.

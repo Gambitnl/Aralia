@@ -53,16 +53,104 @@
  * Nothing here runs in the judged scene: its captures draw the steady field
  * (riverReachScene.ts), and this file only adds to it.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 17/10/2026, 08:41:43
+ * Dependents: components/DesignPreview/steps/water/RiverScene.tsx, components/World3D/water/riverEditHandles.ts, components/World3D/water/riverLiveClient.ts, components/World3D/water/riverReachScene.ts, components/World3D/water/riverReceivingRefiner.ts, systems/world3d/river/riverMapWorker.ts, systems/world3d/river/riverWorker.ts
+ * Imports: 15 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import { RiverTerrainBrush, type RiverTerrainBrushCommand, type TerrainBrushBounds } from './riverTerrainBrush';
 import {
-  OutsideFields, RIVER_RENDER_DOMAIN, RIVER_SHAPE_DEFAULT, boulderTopAt, buildRiverReach, clampRiverShape, courseKeyAt, defaultRiverCourse,
+  OutsideFields, RIVER_RENDER_DOMAIN, RIVER_SHAPE_DEFAULT, mainBoulderShape, boulderBounds, boulderTopAt, buildRiverReach, clampRiverShape, courseKeyAt, defaultRiverCourse,
   designLevelAt, getRiverCourseEdit, getRiverShape, isDefaultRiverShape, riverBaseHalfWidthAt, riverCeilingMarginM,
   riverCourseEditKey, riverCourseFor, riverFlowDepthFactor, riverHeightAt, riverLateralN, setRiverCourseEdit, setRiverShape,
   terrainHeightAt, terrainNoiseAt, RIVER_EDITABLE_POINTS, RIVER_TERRAIN_NOISE,
   type Boulder, type RiverCourse, type RiverCourseEdit, type RiverGridSpec, type RiverReach, type RiverShape,
 } from './riverReach';
-import { RiverFlowSolver, meanOfAverage, G } from './riverSolver';
-import { flowMapCore, reachInflow, reachStartState, type RiverFlowMapStats } from './riverFlowField';
+import { RiverFlowSolver, G } from './riverSolver';
+import { smoothRiverFrame, smoothRiverFrameAt } from './riverFrameSmoothing';
+import type { RiverGpuExecutor } from './riverGpuStep';
+import type { RiverGpuResidentExecutor } from './riverGpuResident';
+import { copyRawRiverCells, type RawRiverCells } from './riverCellInspection';
+import { airborneHeadwater, headwatersGrid, headwaterKey, MAIN_CHANNEL_S, riverHeadwatersEnabled, riverReconstructionEnabled, setRiverHeadwaters } from './riverHeadwaters';
+import { RIVER_GRID, getRiverWorldBed, riverChannelProjection } from './riverReach';
+import { applyFineGroundPatch, carryRiverWater, worldBedHeightLocal, type RiverWaterExport, type RiverWorldCarry, type RiverWorldFrame, type WorldFineGroundPatch } from './riverWorldBed';
+import { reconstructionLandscapeDomain } from './riverRapidsReconstruction';
+import type { RiverCoarseLevel } from './riverFlowPatch';
+import { applyRiverPatch, riverPatchFrom, riverPatchRows, type LiveFlowArrays, type LiveFlowPatch } from './riverFlowPatch';
+import { FlowMapScratch, flowMapCore, reachInflow, reachStartState, type RiverFlowMapStats, type WaterfallImpactSource, type WaterfallLandingState } from './riverFlowField';
 import { buildWaterSheetArrays, toHalfArray, type WaterSheetArrays } from './riverWaterSheet';
+import { RiverSourceHistory, riverSourceAt } from './riverSourceHistory';
+import { RiverFloodSurge, type RiverFloodOptions, type RiverFloodStatus } from './riverFloodSurge';
+import { RiverSpillTransfer, type RiverSpillSnapshot } from './riverSpillTransfer';
+import { WATERFALL, waterfallHydraulics } from './riverHeadwaters';
+import { WaterfallContactFlow, type WaterfallContactSnapshot, type ContactArrival } from './waterfallContactFlow';
+import { worldBedInflowM3S } from './riverWorldBed';
+import type { InflowCell } from './riverSolver';
+
+/**
+ * ONE WATER (2026-10-30): the part of a total flow `q` that enters at the
+ * west edge. With a world bed whose tributaries join inside the box, that is
+ * the main river's share; the west-edge inflow's speed is set from it, not
+ * from the whole. Otherwise all of `q`.
+ */
+function mainRiverShareM3S(q: number): number {
+  const bed = getRiverWorldBed();
+  if (!bed || bed.tributaries.length === 0) return q;
+  return (q * bed.dischargeM3S) / worldBedInflowM3S(bed);
+}
+
+/**
+ * ONE WATER (2026-10-30): the west edge's inflow cells keep the main river's
+ * share of the flow, and each world tributary that ends inside the box adds
+ * its own cells: those within its half width of its mouth, on the solver's
+ * bed, sharing its flow equally and moving along the tributary. The shares
+ * sum to 1, so the solver's one total flow splits as the world's rivers do.
+ * Throws when a tributary's mouth has no bed cell: its water would be lost.
+ */
+function withWorldTributaries(grid: RiverGridSpec, bed: ArrayLike<number>, westEdge: readonly InflowCell[]): readonly InflowCell[] {
+  const world = getRiverWorldBed();
+  if (!world || world.tributaries.length === 0) return westEdge;
+  const total = worldBedInflowM3S(world);
+  const out: InflowCell[] = westEdge.map((c) => ({ ...c, share: (c.share * world.dischargeM3S) / total }));
+  const { nx, nz, dx, x0, z0 } = grid;
+  for (const t of world.tributaries) {
+    const cells: number[] = [];
+    const i0 = Math.max(0, Math.floor((t.x - t.halfW - x0) / dx));
+    const i1 = Math.min(nx - 1, Math.ceil((t.x + t.halfW - x0) / dx));
+    const j0 = Math.max(0, Math.floor((t.z - t.halfW - z0) / dx));
+    const j1 = Math.min(nz - 1, Math.ceil((t.z + t.halfW - z0) / dx));
+    for (let j = j0; j <= j1; j += 1) {
+      for (let i = i0; i <= i1; i += 1) {
+        const c = j * nx + i;
+        if (!Number.isFinite(bed[c])) continue;
+        if (Math.hypot(x0 + (i + 0.5) * dx - t.x, z0 + (j + 0.5) * dx - t.z) <= t.halfW) cells.push(c);
+      }
+    }
+    if (cells.length === 0) throw new Error(`[river] The tributary mouth at (${t.x.toFixed(1)}, ${t.z.toFixed(1)}) m has no bed cell on the solver grid.`);
+    const velocityMS: [number, number] = [t.dir[0] * t.speedMS, t.dir[1] * t.speedMS];
+    for (const c of cells) out.push({ c, share: t.dischargeM3S / total / cells.length, velocityMS });
+  }
+  return out;
+}
+
+/** The transport receipt distinguishes crossing the pool plane from actual
+ * native acceptance. Pending arrivals keep their volume until a wet receiver
+ * exists; downward momentum becomes unresolved impact energy, never SWE mass. */
+export interface ContactPoolSnapshot extends WaterfallContactSnapshot {
+  pool: { acceptedVolume: number; pendingVolume: number; acceptedMomentum: [number, number, number]; verticalReactionNs: number; dissipatedEnergy: number; arrivalRate: number; requested: boolean; capacityBlocked: boolean };
+}
 
 /** An edit of the river: the panel's shape and the edit mode's course edit. */
 export interface RiverEditState {
@@ -71,6 +159,11 @@ export interface RiverEditState {
 }
 
 /** The live river's tunables, each with its reason. */
+/** The longest resident GPU interval in fast mode, s of flow (2026-10-27; was 0.2 s). */
+export const RIVER_RESIDENT_INTERVAL_S = 0.8;
+/** The longest resident GPU interval in real-time mode, s of flow. */
+export const RIVER_RESIDENT_REALTIME_INTERVAL_S = 0.2;
+
 export const RIVER_LIVE = Object.freeze({
   /**
    * The band past each bank that an edit carves again (the floodplain), m.
@@ -202,7 +295,18 @@ export interface LiveBedPatch {
 export interface LiveFlowReadout { meanSpeed: number; meanDepth: number; froude: number; wetAreaM2: number }
 
 /** One live frame of the water: the flow map, the sheet and the drawn field. */
+export { applyRiverPatch, riverPatchFrom, riverPatchRows, type LiveFlowArrays, type LiveFlowPatch };
+
 export interface LiveFlowSnapshot {
+  /** Exact worker-computed texture regions; consumers verify resident lineage. */
+  flowDelta?: import('./riverFlowTextureDelta').RiverFlowTextureDelta;
+  /** Owned native outgoing face water in flight; no added downstream source. */
+  spill?: RiverSpillSnapshot | null;
+  /** Crest emission and delayed landing rates; the grid receives only the latter. */
+  flood?: RiverFloodStatus;
+  /** The exact receiving state accepted by the solver, carried through both workers. */
+  waterfallLanding?: WaterfallLandingState | null;
+  contactWaterfall?: ContactPoolSnapshot | null;
   /** The flow's own time, s. */
   simTime: number;
   /** The worker's time per stage of this flow map, ms. */
@@ -213,6 +317,18 @@ export interface LiveFlowSnapshot {
   t2h: Uint16Array;
   surface: Float32Array;
   sheet: WaterSheetArrays;
+  /**
+   * SPARSE PICTURES (2026-10-22, GG-430). From the flow-map worker, a picture
+   * after the first carries only the changed rows (`patch`) and empty t0,
+   * t0h, t1h, t2h and surface arrays; RiverLiveClient writes the patch into
+   * its kept arrays and hands consumers full arrays again, with `patch` (and
+   * `surfaceBeforeAt`, the surface the patch replaced) for in-place uploads.
+   */
+  patch?: LiveFlowPatch;
+  /** The previous surface of a patched cell (the blend reads it); other cells did not change. */
+  surfaceBeforeAt?: (c: number) => number;
+  /** The coarse far-field level for cells whose t0.w is RIVER_FAR_LEVEL. */
+  coarse?: RiverCoarseLevel | null;
   /** The drawn (smoothed) field: depth, velocity, m and m/s. */
   h: Float32Array;
   u: Float32Array;
@@ -338,6 +454,64 @@ class NoiseCache {
 }
 
 /** Bilinear read of a row-major grid at fractional cell coordinates (clamped). */
+/**
+ * THE SPILL LEVEL of every cell (2026-10-24, GG-427): the lowest water level
+ * at which water standing at the cell can leave the grid over its east
+ * (outflow) edge. It is the highest bed on the lowest path out (a minimax),
+ * found by a priority flood from the edge (Barnes, Lehman and Mulla 2014):
+ * each cell enters the queue once, at max(its bed, the level it was reached
+ * from). Water at rest fills a basin to exactly this level; on a slope or a
+ * fall face the level equals the bed, so no water rests there. Cells with a
+ * non-finite bed are walls. Returns Infinity where no path leaves the grid.
+ */
+export function spillLevels(bed: ArrayLike<number>, nx: number, nz: number): Float64Array {
+  const n = nx * nz, level = new Float64Array(n).fill(Infinity), seen = new Uint8Array(n);
+  // A binary min-heap of cells keyed by level; each cell is pushed once.
+  const heap = new Int32Array(n); let size = 0;
+  const up = (k: number) => { const c = heap[k]; const v = level[c];
+    while (k > 0) { const pk = (k - 1) >> 1, pc = heap[pk]; if (level[pc] <= v) break; heap[k] = pc; k = pk; } heap[k] = c; };
+  const down = (k: number) => { const c = heap[k]; const v = level[c];
+    for (;;) { let m = 2 * k + 1; if (m >= size) break; if (m + 1 < size && level[heap[m + 1]] < level[heap[m]]) m++;
+      if (level[heap[m]] >= v) break; heap[k] = heap[m]; k = m; } heap[k] = c; };
+  const push = (c: number, v: number) => { level[c] = v; seen[c] = 1; heap[size] = c; up(size++); };
+  for (let j = 0; j < nz; j++) { const c = j * nx + nx - 1; if (Number.isFinite(bed[c])) push(c, bed[c]); }
+  while (size) {
+    const c = heap[0]; heap[0] = heap[--size]; if (size) down(0);
+    const i = c % nx, L = level[c];
+    const visit = (nb: number) => { if (seen[nb] || !Number.isFinite(bed[nb])) return; push(nb, Math.max(L, bed[nb])); };
+    if (i > 0) visit(c - 1); if (i < nx - 1) visit(c + 1); if (c >= nx) visit(c - nx); if (c + nx < n) visit(c + nx);
+  }
+  return level;
+}
+
+/** A checksum of the solver bed, so a saved warm start is never loaded onto a
+ * changed terrain. Same bed, same number; any edit to the course changes it. */
+export function bedChecksum(bed: ArrayLike<number>): number {
+  let sum = 0;
+  for (let c = 0; c < bed.length; c++) if (Number.isFinite(bed[c])) sum = (sum + bed[c] * ((c % 9973) + 1)) % 1e9;
+  return sum;
+}
+
+/**
+ * THE WARM-START FILE (2026-10-24): a 4-byte header length, a JSON header
+ * padded so the arrays start on a 4-byte boundary, then the wet cells only:
+ * cell index (Int32), h, hu, hv (Float32). Written by the bake script from a
+ * filled start run to steady flow; read by LiveRiver.startWarm.
+ */
+export interface RiverWarmHeader { simTime: number; cells: number; n: number; bedSum: number; added?: number; inVolume?: number; outVolume?: number }
+export function encodeRiverWarmState(head: RiverWarmHeader, h: ArrayLike<number>, hu: ArrayLike<number>, hv: ArrayLike<number>): Uint8Array {
+  const wet: number[] = []; for (let c = 0; c < h.length; c++) if (h[c] > 0) wet.push(c);
+  const json = JSON.stringify({ ...head, cells: wet.length });
+  const pad = (4 - ((json.length + 4) % 4)) % 4, len = json.length + pad, k = wet.length;
+  const out = new Uint8Array(4 + len + 16 * k), dv = new DataView(out.buffer);
+  dv.setUint32(0, len, true);
+  out.set(new TextEncoder().encode(json + ' '.repeat(pad)), 4);
+  const idx = new Int32Array(out.buffer, 4 + len, k), H = new Float32Array(out.buffer, 4 + len + 4 * k, k);
+  const HU = new Float32Array(out.buffer, 4 + len + 8 * k, k), HV = new Float32Array(out.buffer, 4 + len + 12 * k, k);
+  wet.forEach((c, i) => { idx[i] = c; H[i] = h[c]; HU[i] = hu[c]; HV[i] = hv[c]; });
+  return out;
+}
+
 function bilinear(a: ArrayLike<number>, nx: number, nz: number, fx: number, fz: number): number {
   const x = Math.max(0, Math.min(nx - 1.001, fx));
   const z = Math.max(0, Math.min(nz - 1.001, fz));
@@ -361,6 +535,216 @@ export interface OuterLattice { x0: number; z0: number; step: number; nx: number
  * draw it. The worker (riverWorker.ts) drives it; Node tests call it directly.
  */
 export class LiveRiver {
+  private readonly terrainBrush = new RiverTerrainBrush();
+  private terrainBrushBounds: TerrainBrushBounds | null = null;
+
+  /** Paint the worker's current ground, then use the ordinary terrain/bed
+   * patch so drawn land, rocks and water see the same edited surface. */
+  applyTerrainBrush(command: RiverTerrainBrushCommand): {patch: LiveBedPatch | null; undoCount: number} {
+    return this.applyTerrainBrushBatch([command]);
+  }
+
+  /** Rebuild once for an ordered group, instead of once per pointer dab.
+   * Intermediate brush heights are read through sparse offsets; the accepted
+   * native bed, water remap and drawing patch still commit together. */
+  applyTerrainBrushBatch(commands:readonly RiverTerrainBrushCommand[]): {patch: LiveBedPatch | null; undoCount: number} {
+    this.frameAll = true;
+    const g=this.grid,o=this.outerDef;
+    const bounds=this.terrainBrush.applyBatch(commands,[
+      {id:'ground',nx:g.nx,nz:g.nz,step:g.dx,x0:g.x0+g.dx/2,z0:g.z0+g.dx/2,heights:this.ground},
+      {id:'outer',nx:o.nx,nz:o.nz,step:o.step,x0:o.x0,z0:o.z0,heights:this.outerHeights},
+    ]);
+    if(!bounds)return {patch:null,undoCount:this.terrainBrush.undoCount};
+    this.terrainBrushBounds=bounds;
+    try{return {patch:this.applyEdit({shape:this.shape,course:this.edit}),undoCount:this.terrainBrush.undoCount};}
+    finally{this.terrainBrushBounds=null;}
+  }
+
+  /**
+   * THE WORLD'S GROUND CHANGED (agora-257c, 2026-10-29, GG-533). A spell or a
+   * tool cut a shape into the world's one ground (groundRecord.ts); the main
+   * thread sends the new fine-ground values over the box it changed. The
+   * river's default ground (the bed with no brush) is read again there from
+   * the world bed, and the ordinary bed patch runs over the box: the solver
+   * takes the new bed and KEEPS THE WATER'S VOLUME, as for the brush and
+   * spells (updateBed keepVolume): water on raised ground runs off it, a dug
+   * hole fills from its neighbors, and no water is made or deleted (the
+   * patch's volumeChange is 0). The page gets the drawing patch. The river keeps no copy of the edit of its own:
+   * the next read of the world bed already has it. `box` is river-local m.
+   */
+  applyWorldGround(patch: WorldFineGroundPatch, box: TerrainBrushBounds): LiveBedPatch {
+    const bed = getRiverWorldBed();
+    if (!bed?.fine) throw Error('[river] The world ground changed, but this river has no fine world bed.');
+    applyFineGroundPatch(bed.fine, patch);
+    const g = this.grid;
+    const gDef = this.reach.ground;
+    const i0 = Math.max(0, Math.floor((box.x0 - g.x0) / g.dx)), i1 = Math.min(g.nx - 1, Math.ceil((box.x1 - g.x0) / g.dx));
+    const j0 = Math.max(0, Math.floor((box.z0 - g.z0) / g.dx)), j1 = Math.min(g.nz - 1, Math.ceil((box.z1 - g.z0) / g.dx));
+    for (let j = j0; j <= j1; j += 1) {
+      for (let i = i0; i <= i1; i += 1) gDef[j * g.nx + i] = worldBedHeightLocal(bed, g.x0 + (i + 0.5) * g.dx, g.z0 + (j + 0.5) * g.dx);
+    }
+    const o = this.outerDef;
+    const oi0 = Math.max(0, Math.floor((box.x0 - o.x0) / o.step)), oi1 = Math.min(o.nx - 1, Math.ceil((box.x1 - o.x0) / o.step));
+    const oj0 = Math.max(0, Math.floor((box.z0 - o.z0) / o.step)), oj1 = Math.min(o.nz - 1, Math.ceil((box.z1 - o.z0) / o.step));
+    for (let j = oj0; j <= oj1; j += 1) {
+      for (let i = oi0; i <= oi1; i += 1) o.heights[j * o.nx + i] = worldBedHeightLocal(bed, o.x0 + i * o.step, o.z0 + j * o.step);
+    }
+    this.frameAll = true;
+    this.terrainBrushBounds = box;
+    try { return this.applyEdit({ shape: this.shape, course: this.edit }); }
+    finally { this.terrainBrushBounds = null; }
+  }
+
+  private readonly sourceHistory = new RiverSourceHistory();
+  private sourceFlightDelayS = 0;
+  private readonly floodSurge = new RiverFloodSurge();
+  private floodDriving = false;
+  private floodInjectedExtraM3 = 0;
+
+  get flood(): RiverFloodStatus {
+    // The helper schedules arrival; the actual receiver may reject it. Report
+    // the rate accepted by the solver, alongside its integrated added volume.
+    return { ...this.floodSurge.status(this.simTime, this.shape.dischargeM3S),
+      source: this.sourceHistory.status(this.sourceFlightDelayS),
+      sourceM3S: this.sourceAt(this.simTime),
+      landingM3S: this.contactFlow ? this.contactArrivalRate : this.solver.discharge, extraLandedM3: this.floodInjectedExtraM3 };
+  }
+
+  /** Feed a temporary hydrograph without rebuilding the bed or topping up the field. */
+  startFlood(options: RiverFloodOptions = {}): boolean {
+    if (this.sourceHistory.paused) return false;
+    const started = this.floodSurge.start(this.simTime, this.shape.dischargeM3S, this.headwaters ? this.waterfallLanding?.flightS ?? 0 : 0, options);
+    if (started) {
+      this.floodDriving = true;
+      this.floodInjectedExtraM3 = 0;
+      this.updateInflow();
+    }
+    return started;
+  }
+
+  /** Source pause leaves the solver clock and every admitted water cell alone. */
+  setSourcePaused(paused: boolean): void {
+    if (paused === this.sourceHistory.paused) return;
+    this.sourceHistory.record(this.simTime, this.shape.dischargeM3S);
+    if (paused) this.floodSurge.stop(this.simTime);
+    this.sourceHistory.paused = paused;
+    this.sourceHistory.record(this.simTime, this.shape.dischargeM3S);
+    this.updateInflow();
+  }
+
+  private sourceAt(timeS: number): number {
+    return riverSourceAt(this.sourceHistory.status(this.sourceFlightDelayS),
+      this.floodSurge.status(this.simTime, this.shape.dischargeM3S).pulse, timeS);
+  }
+
+  cancelFlood(): void { this.floodSurge.cancel(this.simTime); this.updateInflow(); }
+  private waterfallLanding: WaterfallLandingState | null = null;
+  private contactFlow: WaterfallContactFlow | null = null;
+  private contactRequested = false;
+  private contactPending: ContactArrival[] = [];
+  private contactAcceptedVolume = 0;
+  private contactAcceptedMomentum: [number, number, number] = [0, 0, 0];
+  private contactDissipatedEnergy = 0;
+  private contactArrivalRate = 0;
+  private goodContact: { state: ReturnType<WaterfallContactFlow['saveState']>; pending: ContactArrival[];
+    accepted: number; momentum: [number, number, number]; energy: number; arrivalRate: number;
+    inVolume: number; outVolume: number; steps: number; floodExtra: number; landing: WaterfallLandingState | null } | null = null;
+
+  /** Start empty at the worker's present clock. Turning it off drains all
+   * water admitted earlier before the ordinary inflow can resume. */
+  setContactWaterfall(enabled: boolean, impactMode: 'absorb' | 'junction' = 'absorb'): void {
+    if (!this.headwaters && enabled) throw Error('Contact waterfall requires headwaters');
+    this.contactRequested = enabled;
+    if (enabled && !this.contactFlow) {
+      this.contactFlow = new WaterfallContactFlow({ startTime: this.simTime, dt: 1 / 60,
+        parcelsPerStep: 6, maxParcels: 20000, maxStepsPerAdvance: 120, impactMode });
+      this.contactAcceptedVolume = 0; this.contactAcceptedMomentum = [0, 0, 0]; this.contactDissipatedEnergy = 0;
+    }
+    this.updateInflow();
+    if (enabled) this.checkHealth();
+  }
+
+  private advanceContact(dt: number): void {
+    const flow = this.contactFlow;
+    if (!flow) return;
+    const source = waterfallHydraulics(this.shape);
+    const emitting = this.contactRequested;
+    const result = flow.advanceTo(this.simTime + dt, time => ({ ...source,
+      q: emitting ? this.sourceAt(time) : 0,
+      speed: (emitting ? this.sourceAt(time) : 0) / (source.width * source.depth), pool: WATERFALL.poolLevel }));
+    this.contactPending.push(...result.arrivals);
+    const crest = this.course.at(WATERFALL.crestS);
+    const { nx, nz, dx, x0, z0 } = this.grid;
+    const retained: ContactArrival[] = [];
+    const acceptedCells = new Map<number, number>();
+    let accepted = 0, verticalEnergy = 0, weightedX = 0, weightedZ = 0;
+    for (const arrival of this.contactPending) {
+      const [forward, , lateral] = arrival.position;
+      const x = crest.x + crest.tx * forward + crest.tz * lateral;
+      const z = crest.z + crest.tz * forward - crest.tx * lateral;
+      const i = Math.floor((x - x0) / dx), j = Math.floor((z - z0) / dx);
+      // Search only near this physical arrival. An out-of-domain trajectory
+      // keeps ownership; it is never clamped into a distant arbitrary cell.
+      let cell = -1, distance = Infinity;
+      if (i >= 0 && i < nx && j >= 0 && j < nz) {
+        const radius = Math.ceil(6 / dx);
+        for (let jj = Math.max(0, j - radius); jj <= Math.min(nz - 1, j + radius); jj++) {
+          for (let ii = Math.max(0, i - radius); ii <= Math.min(nx - 1, i + radius); ii++) {
+            const c = jj * nx + ii;
+            const d = (x0 + (ii + 0.5) * dx - x) ** 2 + (z0 + (jj + 0.5) * dx - z) ** 2;
+            if (d <= 36 && d < distance && this.solver.h[c] > 0.02 && Number.isFinite(this.solver.bed[c])
+              && this.solver.bed[c] < WATERFALL.poolLevel) { cell = c; distance = d; }
+          }
+        }
+      }
+      const momentum: [number, number, number] = [
+        (crest.tx * arrival.momentum[0] + crest.tz * arrival.momentum[2]) / 1000,
+        arrival.momentum[1] / 1000,
+        (crest.tz * arrival.momentum[0] - crest.tx * arrival.momentum[2]) / 1000];
+      if (cell < 0 || !this.solver.depositWater(cell, arrival.volume, momentum)) { retained.push(arrival); continue; }
+      accepted += arrival.volume; weightedX += x * arrival.volume; weightedZ += z * arrival.volume;
+      const energy = 0.5 * 1000 * arrival.volume * arrival.velocity[1] ** 2;
+      verticalEnergy += energy; this.contactDissipatedEnergy += energy;
+      this.contactAcceptedVolume += arrival.volume;
+      for (let k = 0; k < 3; k++) this.contactAcceptedMomentum[k] += momentum[k] * 1000;
+      acceptedCells.set(cell, (acceptedCells.get(cell) ?? 0) + arrival.volume);
+    }
+    this.contactPending = retained;
+    this.contactArrivalRate = dt > 0 ? accepted / dt : 0;
+    // Foam reads energy from the same accepted mass stencil. The prototype
+    // reports all vertical kinetic energy as dissipated; no invented radial
+    // momentum is added to the native pool.
+    this.waterfallLanding = { x: accepted ? weightedX / accepted : crest.x, z: accepted ? weightedZ / accepted : crest.z,
+      tx: crest.tx, tz: crest.tz, width: source.width, depth: source.depth, speed: source.speed, top: source.top,
+      flightS: source.flightS, poolLevel: WATERFALL.poolLevel, forward: 0, crestX: crest.x, crestZ: crest.z,
+      discharge: this.contactArrivalRate, impactEnergy: {
+        receivingDepth: accepted ? [...acceptedCells].reduce((sum, [c, v]) => sum + this.solver.h[c] * v / accepted, 0) : 0,
+        fallSpecificEnergy: accepted ? verticalEnergy / (1000 * accepted) : 0, radialSpecificEnergy: 0,
+        dissipatedSpecificEnergy: accepted ? verticalEnergy / (1000 * accepted) : 0,
+        cells: [...acceptedCells].map(([c, v]) => ({ c, share: v / accepted })) } };
+  }
+
+  private finishContactDrain(): void {
+    const flow = this.contactFlow;
+    if (flow && !this.contactRequested && flow.totalOwnedVolume === 0 && this.contactPending.length === 0) {
+      // Commit the ownership transition only after both owners pass health.
+      // A failed check may restore water in flight or on the ledge. Film is
+      // still owned water even when no ballistic parcels remain; numerical
+      // tails stay visible in the receipt instead of being silently discarded.
+      this.checkHealth();
+      if (flow.totalOwnedVolume === 0 && this.contactPending.length === 0) {
+        this.contactFlow = null; this.goodContact = null; this.updateInflow();
+      }
+    }
+  }
+
+  private contactSnapshot(): ContactPoolSnapshot | null {
+    return this.contactFlow ? { ...this.contactFlow.snapshot(), pool: {
+      acceptedVolume: this.contactAcceptedVolume, pendingVolume: this.contactPending.reduce((v, a) => v + a.volume, 0),
+      acceptedMomentum: [this.contactAcceptedMomentum[0], 0, this.contactAcceptedMomentum[2]],
+      verticalReactionNs: -this.contactAcceptedMomentum[1], dissipatedEnergy: this.contactDissipatedEnergy,
+      arrivalRate: this.contactArrivalRate, requested: this.contactRequested, capacityBlocked: this.contactPending.length >= 20000 } } : null;
+  }
   readonly seed: number;
   readonly grid: RiverGridSpec;
   /** The judged reach. Its arrays are never changed. */
@@ -381,6 +765,16 @@ export class LiveRiver {
   edit: RiverCourseEdit | null = null;
   /** The flow's time since the live run started, s. */
   simTime = 0;
+
+  /** Read current raw cell inventory without changing the solver or its displayed mean.
+   * The worker adds request/run provenance; this read cannot certify a drawn-frame pair. */
+  inspectCells(cellIds: unknown): RawRiverCells {
+    return copyRawRiverCells({
+      grid: this.grid, h: this.solver.h, hu: this.solver.hu, hv: this.solver.hv,
+      bed: this.solver.bed, ground: this.ground, time: this.solver.time,
+      steps: this.solver.steps, liveSimTime: this.simTime,
+    }, cellIds);
+  }
 
   private readonly n: number;
   private readonly fieldsDef: OutsideFields;
@@ -407,6 +801,22 @@ export class LiveRiver {
   private simAtSnap = 0;
   /** The drawn field (depth, discharges, depth x speed squared), smoothed over RIVER_LIVE.smoothS. */
   private readonly disp: { h: Float32Array; qu: Float32Array; qv: Float32Array; q2: Float32Array };
+  /**
+   * THE LIVE CELLS (2026-10-22, GG-430): every cell whose integrals, display
+   * values or water can be other than zero. `frame()` smooths and reads only
+   * these; every other cell holds zeros, which the whole-grid pass would
+   * leave at zero, so each frame is the same. A rare whole-grid writer
+   * (start, top-up, warm start, edits, restore) sets `frameAll`: the next
+   * frame takes the whole-grid pass and lists the live cells again.
+   */
+  private readonly liveMark: Uint8Array;
+  private liveList: number[] = [];
+  private liveSorted: Int32Array | null = null;
+  private frameAll = true;
+  private readonly markLive = (c: number): void => {
+    if (this.liveMark[c]) return;
+    this.liveMark[c] = 1; this.liveList.push(c); this.liveSorted = null;
+  };
   private readonly W: Float32Array;
   private readonly T: Float32Array;
   private readonly L: Float32Array;
@@ -434,12 +844,20 @@ export class LiveRiver {
   editAddedM3 = 0;
   topUpM3 = 0;
 
-  constructor(seed = 20260928) {
+  private spillTransfer: RiverSpillTransfer | null = null;
+
+  constructor(seed = 20260928, private readonly headwaters = false, private readonly spillEnabled = false, reconstructed=false) {
     this.seed = seed;
+    // The browser's expanded landscape shares one solver. Tests and the
+    // original comparison captures keep their original domain by default.
+    setRiverHeadwaters(headwaters,reconstructed);
     // The judged reach, built with no shape and no edit.
     setRiverShape(null);
     setRiverCourseEdit(null);
-    const reach = buildRiverReach(seed);
+    // With a world bed the default shape carries the world river's own flow
+    // (one water, 2026-10-30); on the page it is RIVER_SHAPE_DEFAULT, as before.
+    this.shape = getRiverShape();
+    const reach = buildRiverReach(seed, headwaters ? headwatersGrid(reconstructed) : RIVER_GRID);
     this.reach = reach;
     this.grid = reach.grid;
     const { nx, nz, dx, x0, z0 } = reach.grid;
@@ -471,8 +889,10 @@ export class LiveRiver {
     this.defN = this.prN.slice();
     this.noise = new NoiseCache(n, seed);
     // The outer lattice, as the worker builds it for the page.
-    const D = RIVER_RENDER_DOMAIN;
-    const step = 2;
+    // Reuse the native outer-land lattice around the complete deep course.
+    // Only distant landscape samples become8m; all water cells remain0.5m.
+    const D = reconstructed?reconstructionLandscapeDomain():RIVER_RENDER_DOMAIN;
+    const step = reconstructed?reconstructionLandscapeDomain().step:2;
     const onx = Math.floor((D.x1 - D.x0) / step) + 1;
     const onz = Math.floor((D.z1 - D.z0) / step) + 1;
     const heights = new Float32Array(onx * onz);
@@ -486,13 +906,33 @@ export class LiveRiver {
     // The solver on the judged bed, with the judged ceiling and inflow.
     const st = reachStartState(reach.grid, reach.bed, reach.cellS, reach.cellN, reach.course, reach.dischargeM3S);
     this.ceiling = st.ceiling;
-    const inf = reachInflow(reach.grid, st.h0, reach.cellS, reach.cellN, reach.course, reach.dischargeM3S);
+    const inf = reachInflow(reach.grid, st.h0, reach.cellS, reach.cellN, reach.course, mainRiverShareM3S(reach.dischargeM3S), reach.bed);
+    this.waterfallLanding = inf.waterfallLanding ?? null;
+    this.sourceFlightDelayS = this.headwaters ? this.waterfallLanding?.flightS ?? 0 : 0;
+    this.sourceHistory.record(0, this.shape.dischargeM3S);
     this.solver = new RiverFlowSolver({
       grid: reach.grid, bed: reach.bed, manning: reach.manning, dischargeM3S: reach.dischargeM3S,
-      inflow: inf.inflow, inflowDir: inf.dir, inflowSpeedMS: inf.speed, outflowEdge: 'east',
+      inflow: withWorldTributaries(reach.grid, reach.bed, inf.inflow), inflowDir: inf.dir, inflowSpeedMS: inf.speed, outflowEdge: 'east',
     }, st.ceiling);
+    // Ordinary live flow also awakens nearby dry land when its actual surface
+    // approaches it. A design-height estimate must not be an invisible flood wall.
+    const allowed = new Uint8Array(n);
+    for (let c = 0; c < n; c++) allowed[c] = !airborneHeadwater(this.cellS[c]) && Number.isFinite(this.solver.bed[c]) ? 1 : 0;
+    this.solver.enableWetFrontExpansion(allowed);
+    if (headwaters && spillEnabled) {
+      // DETECTED LIPS (2026-10-21): every face on the grid may launch water,
+      // and only the separation test in RiverSpillTransfer decides which do.
+      // This replaced a hand list of the pool crest's faces near
+      // POOL_SPILL.crestS: that list missed the seven reference falls, and
+      // there the water slid down each wall as a film. The test reads only
+      // the bed and the water now, so it follows edits with no refresh.
+      this.spillTransfer = new RiverSpillTransfer(this.grid, [], WATERFALL.gravity, { detect: true });
+      this.solver.setSpillTransfer(this.spillTransfer);
+    }
     this.acc = { sh: new Float64Array(n), shu: new Float64Array(n), shv: new Float64Array(n), su2: new Float64Array(n) };
     this.disp = { h: new Float32Array(n), qu: new Float32Array(n), qv: new Float32Array(n), q2: new Float32Array(n) };
+    this.liveMark = new Uint8Array(n);
+    this.solver.onWater = this.markLive;
     this.W = new Float32Array(n);
     this.T = new Float32Array(n);
     this.L = new Float32Array(n);
@@ -503,6 +943,7 @@ export class LiveRiver {
    * designLevelAt's, or with node heights the edited one (buildLevelTable).
    */
   levelAt(s: number): number {
+    if (s >= MAIN_CHANNEL_S || headwaterKey(s)) return designLevelAt(s);
     const T = this.levelTable;
     if (!T) return designLevelAt(s);
     const g = Math.max(0, Math.min(LEVEL_S1 - LEVEL_S0 - 1e-9, s - LEVEL_S0));
@@ -728,6 +1169,7 @@ export class LiveRiver {
    * streaks, distance, turbulence).
    */
   startFromField(f: { h: Float32Array; u: Float32Array; v: Float32Array; uRms: Float32Array; t1?: Float32Array }): void {
+    this.frameAll = true;
     const n = this.n;
     const h = new Float64Array(n);
     const u = new Float64Array(n);
@@ -743,10 +1185,11 @@ export class LiveRiver {
       if (f.t1) {
         this.W[c] = f.t1[c * 4];
         this.L[c] = f.t1[c * 4 + 1];
-        this.T[c] = f.t1[c * 4 + 3];
+        this.T[c] = Math.max(0,f.t1[c * 4 + 3]);
       }
     }
     this.solver.refreshWaveSpeed();
+    if (this.headwaters) this.updateInflow();
   }
 
   /**
@@ -754,6 +1197,8 @@ export class LiveRiver {
    * steady run, and the page watches it spin up.
    */
   startCold(): void {
+    this.frameAll = true;
+    this.spillTransfer?.reset(this.solver.time);
     const st = reachStartState(this.grid, this.solver.bed, this.cellS, this.cellN, this.course, this.solver.discharge);
     this.solver.setState(st.h0, st.u0, st.v0);
     const n = this.n;
@@ -765,6 +1210,67 @@ export class LiveRiver {
       this.disp.q2[c] = d * (st.u0[c] * st.u0[c] + st.v0[c] * st.v0[c]);
     }
     this.solver.refreshWaveSpeed();
+    if (this.headwaters) this.updateInflow();
+  }
+
+  /**
+   * THE WATER TO CARRY (one water, step 1, 2026-10-30): copies of the depth,
+   * the discharges and the bed, so a reach placed further along the world's
+   * river starts from this reach's water where the two boxes overlap.
+   */
+  exportWater(): RiverWaterExport {
+    return {
+      h: Float32Array.from(this.solver.h), hu: Float32Array.from(this.solver.hu),
+      hv: Float32Array.from(this.solver.hv), bed: Float32Array.from(this.solver.bed),
+    };
+  }
+
+  /**
+   * AFTER `startCold`: take the previous reach's water where its box covers
+   * this one (`carryRiverWater`); the rest keeps the design level. Returns the
+   * cells taken.
+   */
+  overlayCarry(carry: RiverWorldCarry, frame: RiverWorldFrame): number {
+    const n = this.n;
+    const h = Float64Array.from(this.solver.h);
+    const u = new Float64Array(n);
+    const v = new Float64Array(n);
+    for (let c = 0; c < n; c += 1) {
+      const d = h[c];
+      if (d > 1e-6) { u[c] = this.solver.hu[c] / d; v[c] = this.solver.hv[c] / d; }
+    }
+    const taken = carryRiverWater(carry, frame, this.grid, this.solver.bed, { h, u, v });
+    if (taken === 0) return 0;
+    this.frameAll = true;
+    this.solver.setState(h, u, v);
+    for (let c = 0; c < n; c += 1) {
+      const d = h[c];
+      this.disp.h[c] = d;
+      this.disp.qu[c] = d * u[c];
+      this.disp.qv[c] = d * v[c];
+      this.disp.q2[c] = d * (u[c] * u[c] + v[c] * v[c]);
+    }
+    this.solver.refreshWaveSpeed();
+    if (this.headwaters) this.updateInflow();
+    return taken;
+  }
+
+  /** A new, genuinely empty run. No design-level water or cached flow is
+   * admitted. The existing upstream source and delayed landing remain the
+   * only admission path; source shutoff preserves water already in transit.
+   * Call only before advancing a fresh LiveRiver, never to erase live water. */
+  startDry(): void {
+    this.frameAll = true;
+    if(this.solver.time!==0||this.solver.inVolume!==0||this.solver.outVolume!==0||this.solver.h.some(h=>h>0))
+      throw Error('Dry start requires a fresh river; existing inventory must be retained');
+    // Empty ground also means no water was released before this run began.
+    // Keep the first pool admission behind its real flight delay, rather than
+    // inheriting the steady source's pre-time-zero history.
+    this.sourceHistory.beginDry(this.shape.dischargeM3S);
+    this.solver.setState(new Float64Array(this.n));
+    this.disp.h.fill(0);this.disp.qu.fill(0);this.disp.qv.fill(0);this.disp.q2.fill(0);
+    this.solver.refreshWaveSpeed();
+    if(this.headwaters)this.updateInflow();
   }
 
   /**
@@ -779,6 +1285,10 @@ export class LiveRiver {
    * solver then settles the level. Returns the water added, m^3.
    */
   topUpToDesignLevel(): number {
+    this.frameAll = true;
+    // The seven-falls course's design level stands above the rock on every
+    // fall face; water put there slid past the blow-up limit (GG-427).
+    if (riverReconstructionEnabled()) return this.fillBasinsToSpill();
     const s = this.solver;
     const { nx, nz, dx } = this.grid;
     let added = 0;
@@ -789,6 +1299,7 @@ export class LiveRiver {
       const d = s.h[c];
       if (d > 1e-4) { u[c] = s.hu[c] / d; v[c] = s.hv[c] / d; }
       const sc = this.cellS[c];
+      if (airborneHeadwater(sc)) continue;
       if (Math.abs(this.cellN[c]) >= courseKeyAt(sc).halfW + 4) continue;
       const want = this.levelAt(sc) - s.bed[c];
       if (want > d) {
@@ -810,6 +1321,83 @@ export class LiveRiver {
   }
 
   /**
+   * THE WARM START (2026-10-24; Remy: "it seems a long time to wait"): the
+   * water of a saved steady run (encodeRiverWarmState) on a dry river, so
+   * every fall runs from the first frame. The file must match this river's
+   * grid and bed exactly (bedChecksum); otherwise nothing changes and the
+   * reason comes back for the page to show. Airborne parcels are not saved;
+   * the lips launch again within the first step. Returns null when loaded.
+   */
+  startWarm(buf: ArrayBuffer): string | null {
+    this.frameAll = true;
+    if (buf.byteLength < 8) return 'the warm-start file is empty';
+    const len = new DataView(buf).getUint32(0, true);
+    const head = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 4, len))) as RiverWarmHeader;
+    const k = head.cells, off = 4 + len;
+    if (head.n !== this.n) return `the warm start holds ${head.n} cells, this river ${this.n}`;
+    if (buf.byteLength !== off + 16 * k) return 'the warm-start file is cut short';
+    const bedSum = bedChecksum(this.solver.bed);
+    // The browser worker and Node round a few last bits of the terrain math
+    // differently (checksums ...620.9000052 baked, ...620.9000067 in the page:
+    // about 1e-13 m of bed). A real course edit moves the sum by at least about
+    // 0.01, so a gap under 0.001 is the same bed.
+    if (!(Math.abs(head.bedSum - bedSum) < 1e-3)) return `the river bed changed since the warm start was saved (checksum ${head.bedSum} saved, ${bedSum} now)`;
+    const idx = new Int32Array(buf, off, k), h = new Float32Array(buf, off + 4 * k, k);
+    const hu = new Float32Array(buf, off + 8 * k, k), hv = new Float32Array(buf, off + 12 * k, k);
+    this.startDry();
+    const n = this.n, H = new Float64Array(n), U = new Float64Array(n), V = new Float64Array(n);
+    let added = 0;
+    for (let i = 0; i < k; i++) { const c = idx[i]; H[c] = h[i]; U[c] = hu[i] / h[i]; V[c] = hv[i] / h[i]; added += h[i]; }
+    this.solver.setState(H, U, V);
+    this.solver.refreshWaveSpeed();
+    // The panel's ledger counts the saved water with the top-ups.
+    this.topUpM3 += added * this.grid.dx * this.grid.dx;
+    for (let c = 0; c < n; c += 1) {
+      const d = this.solver.h[c];
+      this.disp.h[c] = d; this.disp.qu[c] = this.solver.hu[c]; this.disp.qv[c] = this.solver.hv[c];
+      this.disp.q2[c] = d > 1e-4 ? (this.solver.hu[c] ** 2 + this.solver.hv[c] ** 2) / d : 0;
+    }
+    return null;
+  }
+
+  /**
+   * FILL THE BASINS TO THEIR SPILL LEVEL (2026-10-24, GG-427): every channel
+   * cell (the same band as the top-up) under its spill level (spillLevels)
+   * takes water up to it, at rest; water already higher keeps its level.
+   * This is the state of a river whose lakes and plunge pools are full and
+   * whose flow has stopped: each pool stands at the lip of the fall below it,
+   * and the fall faces and rapids stay dry. Inflow then spills at once, so
+   * every fall runs within the flow's travel time, instead of the 41 minutes
+   * a dry start needs to fill the raised pool. Returns the water added, m^3.
+   */
+  fillBasinsToSpill(): number {
+    this.frameAll = true;
+    const s = this.solver, { nx, nz, dx } = this.grid, n = nx * nz;
+    const spill = spillLevels(s.bed, nx, nz);
+    const h = new Float64Array(s.h), u = new Float64Array(n), v = new Float64Array(n);
+    let added = 0;
+    for (let c = 0; c < n; c += 1) {
+      const d = s.h[c];
+      if (d > 1e-4) { u[c] = s.hu[c] / d; v[c] = s.hv[c] / d; }
+      const sc = this.cellS[c];
+      if (airborneHeadwater(sc) || !Number.isFinite(spill[c])) continue;
+      if (Math.abs(this.cellN[c]) >= courseKeyAt(sc).halfW + 4) continue;
+      const want = spill[c] - s.bed[c];
+      // The added water is at rest: the cell keeps its momentum (h u).
+      if (want > d) { added += (want - d) * dx * dx; h[c] = want; u[c] *= d / want; v[c] *= d / want; }
+    }
+    s.setState(h, u, v);
+    s.refreshWaveSpeed();
+    this.topUpM3 += added;
+    for (let c = 0; c < n; c += 1) {
+      const d = s.h[c];
+      this.disp.h[c] = d; this.disp.qu[c] = s.hu[c]; this.disp.qv[c] = s.hv[c];
+      this.disp.q2[c] = d > 1e-4 ? (s.hu[c] * s.hu[c] + s.hv[c] * s.hv[c]) / d : 0;
+    }
+    return added;
+  }
+
+  /**
    * STEP THE SOLVER for at most `maxWallMs` of work or `maxSimS` of flow,
    * whichever ends first. The steps add to the running sums of the next
    * flow map. Every `keepGoodEveryS` of flow the solver's own stability check
@@ -817,18 +1405,115 @@ export class LiveRiver {
    * counts it).
    */
   advance(maxWallMs: number, maxSimS = Infinity): { simS: number; steps: number } {
+    const batch = this.advanceSteps(maxWallMs, maxSimS);
+    let next = batch.next();
+    while (!next.done) next = batch.next(this.solver.step());
+    return next.value;
+  }
+
+  /** Same source history, flood clock, averaging and recovery as CPU advance.
+   * The worker serializes edits while a shared-device calculation is pending. */
+  async advanceOnGpu(execute: RiverGpuExecutor, maxWallMs: number, maxSimS = Infinity): Promise<{ simS: number; steps: number }> {
+    const batch = this.advanceSteps(maxWallMs, maxSimS);
+    let next = batch.next();
+    while (!next.done) next = batch.next(await this.solver.stepOnGpu(execute));
+    return next.value;
+  }
+
+  /** Explicit candidate cadence: refresh the measured inlet at each bounded
+   * interval (at most RIVER_RESIDENT_MAX_STEPS steps / RIVER_RESIDENT_INTERVAL_S,
+   * with the native last-step overshoot).
+   * This cadence is shared by replay checks; it is not asserted equivalent to
+   * independently timed wall-budget batches. Per-step CPU-coupled modes retain
+   * the synchronized GPU path and report why, without silently using CPU flow.
+   * The device keeps the water between intervals (see RiverFlowSolver.intervalOnGpu).
+   */
+  residentSynchronization: string|null=null;
+  async advanceResidentOnGpu(execute:RiverGpuResidentExecutor,synchronized:RiverGpuExecutor,maxWallMs:number,maxSimS=Infinity):Promise<{simS:number;steps:number}>{
+    // Detected spill lips run inside the device interval (GG-429); a listed
+    // face set keeps the per-step synchronized path.
+    this.residentSynchronization=this.spillTransfer&&!this.spillTransfer.detect?'airborne spill':this.contactFlow||this.contactRequested?'contact waterfall':this.floodDriving?'flood waveform':null;
+    if(this.residentSynchronization)return this.advanceOnGpu(synchronized,maxWallMs,maxSimS);
+    if(!(maxSimS>0))return{simS:0,steps:0};
+    if(this.headwaters)this.updateInflow();
+    const releasedAt=this.simTime-this.sourceFlightDelayS;
+    // RETARDED SOURCE HISTORY (2026-10-21). The CPU path samples the released
+    // source at the start of each step. A resident interval does the same: it
+    // takes the source now, and it ends before the first step that would start
+    // at or after the next recorded change, so that step takes the new flow in
+    // the next interval. This replaced a per-step synchronized fallback that
+    // copied the whole grid each step (0.14 GB free RAM at a dry start).
+    // The interval clock is Float32: a step that starts within about 1e-7 s
+    // of a change can fall on the other side of it.
+    let untilSource=Infinity;
+    if(this.sourceHistory.hasChanges){
+      if(this.sourceAt(releasedAt)!==this.solver.discharge)this.updateInflow();
+      for(const change of this.sourceHistory.status(this.sourceFlightDelayS).changes)if(change.timeS>releasedAt){untilSource=change.timeS-releasedAt;break;}
+    }
+    const untilHealth=RIVER_LIVE.keepGoodEveryS-(this.simTime-this.goodAt);
+    // 2026-10-27: with no flow-time budget (fast mode) an interval may run
+    // 0.8 s of flow, up to RIVER_RESIDENT_MAX_STEPS steps (warm start: fast
+    // 1.55x -> 2.28x). Remy approved the less frequent inflow refresh this
+    // gives. Real-time mode keeps 0.2 s: the GPU queue runs one interval
+    // before the next frame, and 0.8 s intervals dropped the page from 46 to
+    // 29 fps there. (Chunked submits with a wait between them cost about
+    // 20 ms a wait, so they were not kept.)
+    const cap=maxSimS===Infinity?RIVER_RESIDENT_INTERVAL_S:RIVER_RESIDENT_REALTIME_INTERVAL_S;
+    const result=await this.solver.intervalOnGpu(execute,Math.min(cap,maxSimS,untilSource,Math.max(1e-6,untilHealth)));
+    // Only changed cells carry integrals (2026-10-21); every other cell's is zero.
+    const {sh,shu,shv,su2}=this.acc,records=result.records,average=new Float32Array(records.buffer,records.byteOffset,records.length);
+    for(let p=0;p<records.length;p+=8){const c=records[p]>>>4;this.markLive(c);sh[c]+=average[p+4];shu[c]+=average[p+5];shv[c]+=average[p+6];su2[c]+=average[p+7];}
+    this.accT+=result.duration;this.simTime+=result.duration;
+    if(this.simTime-this.goodAt>=RIVER_LIVE.keepGoodEveryS)this.checkHealth();
+    return{simS:result.duration,steps:result.steps};
+  }
+
+  private *advanceSteps(maxWallMs: number, maxSimS: number): Generator<void, { simS: number; steps: number }, number> {
     const t0 = performance.now();
+    // The worker calls advance repeatedly, including without shape edits.
+    // Freeze one measured receiving state for this batch so its mass, foam and
+    // airborne drawing agree; the next batch follows the pool as it changes.
+    if (this.headwaters) this.updateInflow();
     let simS = 0;
     let steps = 0;
+    // A rejected transport experiment preserves both owners. Retry at the
+    // current native time so a reverted geometry edit can repair the source,
+    // then keep the native clock stopped while the explicit failure remains.
+    if (this.contactFlow?.failureReason) {
+      this.advanceContact(0);
+      if (this.contactFlow?.failureReason) return { simS, steps };
+    }
+    // Keep source history intact under receiver backpressure. Retry retained
+    // water against edited native geometry, then freeze both clocks if full.
+    if (this.contactPending.length >= 20000) {
+      this.advanceContact(0);
+      if (this.contactPending.length >= 20000) return { simS, steps };
+    }
     const { sh, shu, shv, su2 } = this.acc;
     while (simS < maxSimS && performance.now() - t0 < maxWallMs) {
-      const dt = this.solver.step();
-      this.solver.addToAverage(dt, sh, shu, shv, su2);
+      if (this.contactFlow?.failureReason) break;
+      if (this.contactPending.length >= 20000) break;
+      // Sample the retarded source on each adaptive step. No downstream
+      // depth or speed is prescribed; existing faces carry the surge onward.
+      if (this.sourceHistory.hasChanges && this.sourceAt(this.simTime - this.sourceFlightDelayS) !== this.solver.discharge) this.updateInflow();
+      if (this.floodDriving) {
+        const status = this.flood;
+        // Before the first emitted excess reaches the pool, use exactly the
+        // ordinary batch update path. The flood must not perturb receiving
+        // geometry or momentum simply because its button was pressed.
+        if (this.floodSurge.landingAt(this.simTime, this.shape.dischargeM3S) > status.baseM3S || status.phase === 'idle') this.updateInflow();
+        this.floodDriving = status.phase !== 'idle';
+      }
+      const dt = yield;
+      this.advanceContact(dt);
+      this.floodInjectedExtraM3 += Math.max(0, (this.contactFlow ? this.contactArrivalRate : this.solver.discharge) - this.shape.dischargeM3S) * dt;
+      this.solver.addToAverage(dt, sh, shu, shv, su2, this.markLive);
       this.accT += dt;
       simS += dt;
       steps += 1;
       this.simTime += dt;
       if (this.simTime - this.goodAt >= RIVER_LIVE.keepGoodEveryS) this.checkHealth();
+      this.finishContactDrain();
     }
     return { simS, steps };
   }
@@ -839,11 +1524,35 @@ export class LiveRiver {
     this.lastHealth = hl;
     if (hl.ok) {
       this.good = this.solver.saveState();
+      this.goodContact = this.contactFlow ? {
+        state: this.contactFlow.saveState(), pending: structuredClone(this.contactPending),
+        accepted: this.contactAcceptedVolume, momentum: [...this.contactAcceptedMomentum], energy: this.contactDissipatedEnergy,
+        arrivalRate: this.contactArrivalRate, inVolume: this.solver.inVolume, outVolume: this.solver.outVolume,
+        steps: this.solver.steps, floodExtra: this.floodInjectedExtraM3, landing: structuredClone(this.waterfallLanding) } : null;
       this.goodAt = this.simTime;
       return;
     }
     this.restores += 1;
-    if (this.good) this.solver.restoreState(this.good);
+    this.frameAll = true;
+    if (this.contactFlow && !this.goodContact) throw Error('Contact recovery requires both water owners');
+    if (this.good) {
+      this.solver.restoreState(this.good);
+      if (this.contactFlow && this.goodContact) {
+        const contact = this.goodContact;
+        this.contactFlow.restoreState(contact.state); this.contactPending = structuredClone(contact.pending);
+        this.solver.time = this.good.time;
+        this.contactAcceptedVolume = contact.accepted; this.contactAcceptedMomentum = [...contact.momentum];
+        this.contactDissipatedEnergy = contact.energy; this.contactArrivalRate = contact.arrivalRate;
+        this.solver.inVolume = contact.inVolume; this.solver.outVolume = contact.outVolume; this.solver.steps = contact.steps;
+        this.waterfallLanding = structuredClone(contact.landing);
+        this.floodInjectedExtraM3 = contact.floodExtra;
+        this.simTime = this.solver.time; this.simAtSnap = this.simTime; this.outAtSnap = this.solver.outVolume;
+      }
+      if (this.spillTransfer) {
+        this.simTime = this.solver.time;
+        this.simAtSnap = this.simTime; this.outAtSnap = this.solver.outVolume;
+      }
+    }
     else this.startCold();
     this.goodAt = this.simTime;
     this.acc.sh.fill(0); this.acc.shu.fill(0); this.acc.shv.fill(0); this.acc.su2.fill(0);
@@ -900,6 +1609,7 @@ export class LiveRiver {
    * and return the patch the page applies. The water keeps running.
    */
   applyEdit(next: RiverEditState): LiveBedPatch {
+    this.frameAll = true;
     const t0 = performance.now();
     const L = RIVER_LIVE;
     const prevShape = this.shape;
@@ -913,7 +1623,7 @@ export class LiveRiver {
     // x0.5 and back emptied the pool: about 2,000 s of flow to fill again).
     // The flow is held at its old value here: a new flow keeps the surface,
     // and the river rises as the new inflow comes down.
-    const D0 = -140;
+    const D0 = riverHeadwatersEnabled() ? -230 : -140;
     const D1 = 440;
     const levelsOf = (): Float64Array => {
       const a = new Float64Array(D1 - D0 + 1);
@@ -1004,6 +1714,9 @@ export class LiveRiver {
     // The box takes the cells 20 m past the band again, and the fields 40 m,
     // so a drag ends on the ground a jump to the same edit draws (within a
     // few mm; riverLive.test.ts holds the bound).
+    // A brush can reach land beyond the river's control-point band.
+    const brush=this.terrainBrushBounds;
+    if(brush){bx0=Math.min(bx0,brush.x0);bz0=Math.min(bz0,brush.z0);bx1=Math.max(bx1,brush.x1);bz1=Math.max(bz1,brush.z1);}
     const pad = 20;
     bx0 -= pad; bz0 -= pad; bx1 += pad; bz1 += pad;
     const { nx, nz, dx, x0, z0 } = this.grid;
@@ -1044,9 +1757,10 @@ export class LiveRiver {
             if (courseMoved && moved.has(x, z)) {
               const pr = course.project(x, z);
               this.prS[c] = pr.s; this.prN[c] = pr.n; this.prD[c] = pr.d;
-              this.cellS[c] = pr.s;
-              this.cellN[c] = pr.n;
-              this.manning[c] = courseKeyAt(pr.s).manning;
+              const channel = riverChannelProjection(course, x, z);
+              this.cellS[c] = channel.s;
+              this.cellN[c] = channel.n;
+              this.manning[c] = courseKeyAt(channel.s).manning;
             }
             const w = reachMask.has(x, z) ? this.weight(this.prS[c], this.prN[c], this.defS[c], this.defN[c]) : 0;
             let g = gDef[c];
@@ -1056,6 +1770,7 @@ export class LiveRiver {
               g = gDef[c] + (gNew - gDef[c]) * w;
               cells += 1;
             }
+            g += this.terrainBrush.offset('ground',c);
             this.ground[c] = g;
             groundOut[(j - j0) * bw + (i - i0)] = g;
           }
@@ -1099,6 +1814,7 @@ export class LiveRiver {
                 any = true;
               }
             }
+            g += this.terrainBrush.offset('outer',q);
             if (g !== this.outerHeights[q]) any = true;
             this.outerHeights[q] = g;
             vals[(j - oj0) * ow + (i - oi0)] = g;
@@ -1124,7 +1840,7 @@ export class LiveRiver {
         if (!inBox(b0.x, b0.z) && !inBox(b.x, b.z)) continue;
         let x = b0.x;
         let z = b0.z;
-        if (b0.s !== undefined && b0.n !== undefined) {
+        if (b0.s !== undefined && b0.n !== undefined && b0.s < MAIN_CHANNEL_S) {
           const ks = Math.max(0, Math.min(m - 1, Math.round((course.at(b0.s).s - sMin) / 0.25)));
           if (changed[ks]) {
             const smp = course.at(b0.s);
@@ -1151,14 +1867,17 @@ export class LiveRiver {
       }
       for (const b of this.boulders) {
         if (!b.inChannel) continue;
-        const r = Math.max(b.rx, b.rz);
-        const ii0 = Math.max(box.i0, Math.floor((b.x - r - x0) / dx));
-        const ii1 = Math.min(box.i1, Math.ceil((b.x + r - x0) / dx));
-        const jj0 = Math.max(box.j0, Math.floor((b.z - r - z0) / dx));
-        const jj1 = Math.min(box.j1, Math.ceil((b.z + r - z0) / dx));
+        // Fetch once per rock; cell queries do not allocate cache keys.
+        const mainShape = b.s !== undefined && b.s >= MAIN_CHANNEL_S ? mainBoulderShape(b) : undefined;
+        const bounds = boulderBounds(b);
+        const ii0 = Math.max(box.i0, Math.floor((bounds.minX - x0) / dx));
+        const ii1 = Math.min(box.i1, Math.ceil((bounds.maxX - x0) / dx));
+        const jj0 = Math.max(box.j0, Math.floor((bounds.minZ - z0) / dx));
+        const jj1 = Math.min(box.j1, Math.ceil((bounds.maxZ - z0) / dx));
         for (let j = jj0; j <= jj1; j += 1) {
           for (let i = ii0; i <= ii1; i += 1) {
-            const top = boulderTopAt(b, x0 + (i + 0.5) * dx, z0 + (j + 0.5) * dx);
+            const x = x0 + (i + 0.5) * dx, z = z0 + (j + 0.5) * dx;
+            const top = mainShape ? mainShape.heightAt(x, z) : boulderTopAt(b, x, z);
             const c = j * nx + i;
             if (top > bedNew[c]) bedNew[c] = top;
           }
@@ -1182,7 +1901,7 @@ export class LiveRiver {
     const margin = riverCeilingMarginM();
     const ceil = (c: number): number => {
       const s = this.cellS[c];
-      return Math.abs(this.cellN[c]) < courseKeyAt(s).halfW + 6 ? this.levelAt(s) + margin : -Infinity;
+      return !airborneHeadwater(s) && Math.abs(this.cellN[c]) < courseKeyAt(s).halfW + 6 ? this.levelAt(s) + margin : -Infinity;
     };
     const ub: CellBox | null = shapeChanged || levelChanged ? { i0: 0, j0: 0, i1: nx - 1, j1: nz - 1 } : box;
     let volumeChange = 0;
@@ -1197,6 +1916,9 @@ export class LiveRiver {
         for (let j = ub.j0; j <= ub.j1; j += 1) {
           for (let i = ub.i0; i <= ub.i1; i += 1) {
             const c = j * nx + i;
+            // Shape controls belong to the offshoot and source. The fixed
+            // main branch must retain its waterline and stored volume.
+            if (this.cellS[c] >= MAIN_CHANNEL_S) continue;
             const g = Math.max(0, Math.min(D1 - D0 - 1e-9, this.cellS[c] - D0));
             const q = Math.floor(g);
             const f = g - q;
@@ -1207,7 +1929,9 @@ export class LiveRiver {
         }
       }
       const vol0 = this.solver.volume();
-      this.solver.updateBed(ub.i0, ub.j0, ub.i1, ub.j1, bedNew, this.manning, this.ceiling, shift);
+      // A brush or spell edit keeps the water's volume; course and shape edits
+      // keep its surface, as the editor has always done (see updateBed).
+      this.solver.updateBed(ub.i0, ub.j0, ub.i1, ub.j1, bedNew, this.manning, this.ceiling, shift, this.terrainBrushBounds !== null);
       volumeChange = this.solver.volume() - vol0;
       if (volumeChange < 0) this.editLostM3 -= volumeChange; else this.editAddedM3 += volumeChange;
       // The drawn field follows the solver at once where the bed changed.
@@ -1227,7 +1951,9 @@ export class LiveRiver {
     }
     mark('solver');
     // THE INFLOW: again when the flow changed or the box reaches the west edge.
-    if (shapeChanged || (box && box.i0 <= 2)) this.updateInflow();
+    // The waterfall lands inside the grid, so any local bed edit can affect
+    // its receiving cells. The older reach retains its west-edge shortcut.
+    if (shapeChanged || (box && (riverHeadwatersEnabled() || box.i0 <= 2))) this.updateInflow();
     mark('inflow');
     const pts = new Float32Array(course.points.length * 2);
     course.points.forEach((p, k) => { pts[k * 2] = p[0]; pts[k * 2 + 1] = p[1]; });
@@ -1257,31 +1983,64 @@ export class LiveRiver {
   }
 
   /** The inflow from the design level at the west edge, and the flow now. */
+  // refreshSpillFaces (the pool crest's hand list, rebuilt at each inflow
+  // update) was removed on 2026-10-21: the transfer now detects its lips from
+  // the bed and the water each step (see the constructor). The old list is in
+  // git history before that date if a listed-face study needs it again.
+
   private updateInflow(): void {
+    this.sourceHistory.record(this.simTime, this.shape.dischargeM3S);
+    if (this.contactFlow) {
+      this.solver.setInflow(0, [], [0, 0], 0);
+      this.inflowDry = this.contactPending.length > 0;
+      return;
+    }
+    const arrivingQ = this.sourceAt(this.simTime - this.sourceFlightDelayS);
+    if (arrivingQ === 0) {
+      // A closed source is intentional. Retain the trajectory for released
+      // airborne water, but stop pool impact forcing once no water arrives.
+      // Drawing and foam must report the same zero rate as the receiving solver.
+      if (this.waterfallLanding) this.waterfallLanding = { ...this.waterfallLanding, discharge: 0 };
+      this.inflowDry = false;
+      this.solver.setInflow(0, [], [0, 0], 0);
+      return;
+    }
+    if (this.headwaters) {
+      const inf = reachInflow(this.grid, this.solver.h, this.cellS, this.cellN,
+        this.course, arrivingQ, this.solver.bed);
+      this.waterfallLanding = inf.waterfallLanding ?? null;
+      const accepted = this.waterfallLanding?.discharge ?? 0;
+      this.inflowDry = accepted === 0;
+      this.solver.setInflow(accepted, inf.inflow, inf.dir, inf.speed);
+      return;
+    }
     const { nx, nz } = this.grid;
     const h0 = new Float64Array(nx * nz);
     for (let j = 0; j < nz; j += 1) {
-      for (let i = 0; i < 3; i += 1) {
+      for (let i = 0; i < (riverHeadwatersEnabled() ? nx : 3); i += 1) {
         const c = j * nx + i;
         const s = this.cellS[c];
-        if (Math.abs(this.cellN[c]) < courseKeyAt(s).halfW + 4) {
+        if (!airborneHeadwater(s) && Math.abs(this.cellN[c]) < courseKeyAt(s).halfW + 4) {
           const d = this.levelAt(s) - this.solver.bed[c];
           if (d > 0) h0[c] = d;
         }
       }
     }
-    const q = this.shape.dischargeM3S;
+    const q = arrivingQ;
     let inf: ReturnType<typeof reachInflow>;
     try {
-      inf = reachInflow(this.grid, h0, this.cellS, this.cellN, this.course, q);
+      inf = reachInflow(this.grid, h0, this.cellS, this.cellN, this.course, mainRiverShareM3S(q));
     } catch (err) {
-      // No wet cell at the west edge: keep the last inflow, and say so.
+        // A blocked waterfall landing cannot accept water. Pause that source
+        // and report it; never continue an old discharge into an old footprint.
+        // The original west-edge river retains its existing fallback behavior.
       if (!(err instanceof Error) || !/no wet inflow/.test(err.message)) throw err;
       this.inflowDry = true;
+        if (riverHeadwatersEnabled()) this.solver.setInflow(0, [], [0, 0], 0);
       return;
     }
     this.inflowDry = false;
-    this.solver.setInflow(q, inf.inflow, inf.dir, inf.speed);
+    this.solver.setInflow(q, withWorldTributaries(this.grid, this.solver.bed, inf.inflow), inf.dir, inf.speed);
   }
 
   /** The course samples every 1 m from s = -120 to 400 (x, z, s, tx, tz). */
@@ -1290,6 +2049,16 @@ export class LiveRiver {
     for (let s = -120; s <= 400; s += 1) {
       const p = this.course.at(s);
       cs.push(p.x, p.z, p.s, p.tx, p.tz);
+    }
+    // Keep the original sample indexes used by the boat and cameras. Append
+    // the new reaches so placement queries also recognize their banks.
+    if (riverHeadwatersEnabled()) {
+      for (const [a, b] of [[-230, -121], [MAIN_CHANNEL_S, MAIN_CHANNEL_S + 420]]) {
+        for (let s = a; s <= b; s += 1) {
+          const p = this.course.at(s);
+          cs.push(p.x, p.z, p.s, p.tx, p.tz);
+        }
+      }
     }
     return Float32Array.from(cs);
   }
@@ -1300,7 +2069,7 @@ export class LiveRiver {
 
   /**
    * THE FIELD FRAME: the mean of the steps since the last frame, smoothed
-   * over RIVER_LIVE.smoothS, with the readouts. It costs a few ms; the flow
+   * over RIVER_LIVE.smoothS, with the readouts. Smoothing uses one pass; the flow
    * map is made from it by a LiveFlowMapper, which the page runs in a worker
    * of its own so the solver never waits for it (the map costs about 180 ms).
    */
@@ -1309,31 +2078,28 @@ export class LiveRiver {
     const n = this.n;
     const span = this.accT;
     const d = this.disp;
+    const all = this.frameAll;
+    const cells = all ? null : this.liveCells();
     if (span > 0) {
-      const mean = meanOfAverage(this.acc.sh, this.acc.shu, this.acc.shv, this.acc.su2, span);
       const a = 1 - Math.exp(-span / RIVER_LIVE.smoothS);
       const ar = 1 - Math.exp(-span / RIVER_LIVE.rmsSmoothS);
-      for (let c = 0; c < n; c += 1) {
-        const h = mean.h[c];
-        const qu = h * mean.u[c];
-        const qv = h * mean.v[c];
-        d.h[c] += a * (h - d.h[c]);
-        d.qu[c] += a * (qu - d.qu[c]);
-        d.qv[c] += a * (qv - d.qv[c]);
-        const q2 = h * (mean.u[c] * mean.u[c] + mean.v[c] * mean.v[c] + mean.uRms[c] * mean.uRms[c]);
-        d.q2[c] += ar * (q2 - d.q2[c]);
-      }
-      this.acc.sh.fill(0); this.acc.shu.fill(0); this.acc.shv.fill(0); this.acc.su2.fill(0);
+      // Retain the old Float32 mean rounding without allocating four full
+      // temporary maps. Physical steps and outgoing fields are unchanged.
+      if (cells) smoothRiverFrameAt(this.acc, d, span, a, ar, cells);
+      else smoothRiverFrame(this.acc, d, span, a, ar);
     }
     const h = new Float32Array(n);
     const u = new Float32Array(n);
     const v = new Float32Array(n);
     const uRms = new Float32Array(n);
     let wn = 0; let sh = 0; let sv = 0; let sf = 0;
-    for (let c = 0; c < n; c += 1) {
+    const wetList: number[] = [];
+    for (let k = 0, end = cells ? cells.length : n; k < end; k += 1) {
+      const c = cells ? cells[k] : k;
       const hh = d.h[c];
       if (!(hh > 1e-4)) continue;
       h[c] = hh;
+      wetList.push(c);
       const uu = d.qu[c] / hh;
       const vv = d.qv[c] / hh;
       u[c] = uu;
@@ -1349,18 +2115,30 @@ export class LiveRiver {
     this.simAtSnap = this.simTime;
     this.outAtSnap = this.solver.outVolume;
     this.accT = 0;
+    // The readouts sum over the live cells (ascending), which hold all water.
+    if (all) this.relistLive();
+    const live = this.liveCells();
+    // Cells whose display has decayed to exact zeros leave the list.
+    this.pruneLive();
     return {
+      waterfallLanding: this.waterfallLanding,
+      contactWaterfall: this.contactSnapshot(),
+      spill: this.spillTransfer?.snapshot({ volume: this.solver.volumeAt(live), momentum: this.solver.wetMomentumAt(live) }) ?? null,
+      waterfallImpact: this.waterfallLanding,
       simTime: this.simTime,
+      flood: this.flood,
       dtS,
       h, u, v, uRms,
+      cells: Int32Array.from(wetList),
       readout: wn === 0
         ? { meanSpeed: 0, meanDepth: 0, froude: 0, wetAreaM2: 0 }
         : { meanSpeed: sv / wn, meanDepth: sh / wn, froude: sf / wn, wetAreaM2: wn * this.grid.dx * this.grid.dx },
-      qIn: this.solver.discharge,
+      qIn: this.contactFlow ? this.contactArrivalRate : this.solver.discharge,
       qOut,
-      volume: this.solver.volume(),
+      volume: (this.spillTransfer ? this.solver.totalWetPlusAirVolumeAt(live) : this.solver.volumeAt(live))
+        + (this.contactFlow?.totalOwnedVolume ?? 0) + this.contactPending.reduce((v, a) => v + a.volume, 0),
       activeCells: this.solver.activeCells,
-      breachCells: this.solver.breachCells(),
+      breachCells: this.solver.breachCellsAt(live),
       maxSpeed: this.solver.maxSpeedNow,
       restores: this.restores,
       healthy: this.lastHealth.ok,
@@ -1371,6 +2149,34 @@ export class LiveRiver {
       topUpM3: this.topUpM3,
       ms: performance.now() - t0,
     };
+  }
+
+  /** The live cells, ascending (the whole-grid sums' order). */
+  private liveCells(): Int32Array {
+    return this.liveSorted ??= Int32Array.from(this.liveList).sort();
+  }
+
+  /** List again every cell with water, integrals or display values (after a whole-grid writer). */
+  private relistLive(): void {
+    const { h, hu, hv } = this.solver, d = this.disp, a = this.acc;
+    this.liveMark.fill(0); this.liveList = []; this.liveSorted = null;
+    for (let c = 0; c < this.n; c += 1) {
+      if (h[c] !== 0 || hu[c] !== 0 || hv[c] !== 0 || d.h[c] !== 0 || d.qu[c] !== 0 || d.qv[c] !== 0 || d.q2[c] !== 0
+        || a.sh[c] !== 0 || a.shu[c] !== 0 || a.shv[c] !== 0 || a.su2[c] !== 0) this.markLive(c);
+    }
+    this.frameAll = false;
+  }
+
+  /** Drop live cells that hold only zeros now (their display has decayed to 0). */
+  private pruneLive(): void {
+    const { h, hu, hv } = this.solver, d = this.disp, a = this.acc;
+    let kept = 0;
+    for (const c of this.liveList) {
+      if (h[c] !== 0 || hu[c] !== 0 || hv[c] !== 0 || d.h[c] !== 0 || d.qu[c] !== 0 || d.qv[c] !== 0 || d.q2[c] !== 0
+        || a.sh[c] !== 0 || a.shu[c] !== 0 || a.shv[c] !== 0 || a.su2[c] !== 0) this.liveList[kept++] = c;
+      else this.liveMark[c] = 0;
+    }
+    if (kept !== this.liveList.length) { this.liveList.length = kept; this.liveSorted = null; }
   }
 
   /**
@@ -1397,6 +2203,9 @@ export class LiveRiver {
       ground: Float32Array.from(this.ground),
       bed: Float32Array.from(this.solver.bed),
       manning: this.manning.slice(),
+      // Copy addresses once; transferring mapper payloads must never detach
+      // the live solver's branch ownership array.
+      cellS: this.headwaters ? this.cellS.slice() : undefined,
       boulders: this.boulders.map((b) => ({ ...b })),
       W: this.W.slice(),
       T: this.T.slice(),
@@ -1414,14 +2223,16 @@ export class LiveRiver {
     const bh = box.j1 - box.j0 + 1;
     const bed = new Float32Array(bw * bh);
     const manning = new Float32Array(bw * bh);
+    const cellS = this.headwaters ? new Float32Array(bw * bh) : undefined;
     for (let j = 0; j < bh; j += 1) {
       for (let i = 0; i < bw; i += 1) {
         const c = (j + box.j0) * nx + i + box.i0;
         bed[j * bw + i] = this.solver.bed[c];
         manning[j * bw + i] = this.manning[c];
+        if (cellS) cellS[j * bw + i] = this.cellS[c];
       }
     }
-    return { box, ground: p.ground ? p.ground.slice() : null, bed, manning, boulderMoves: p.boulderMoves.slice() };
+    return { box, ground: p.ground ? p.ground.slice() : null, bed, manning, cellS, boulderMoves: p.boulderMoves.slice() };
   }
 
   private mapper: LiveFlowMapper | null = null;
@@ -1461,6 +2272,11 @@ export class LiveRiver {
 
 /** One field frame of the live run (see LiveRiver.frame). */
 export interface LiveFieldFrame {
+  spill?: RiverSpillSnapshot | null;
+  flood?: RiverFloodStatus;
+  waterfallLanding?: WaterfallLandingState | null;
+  contactWaterfall?: ContactPoolSnapshot | null;
+  waterfallImpact?: WaterfallImpactSource | null;
   simTime: number;
   /** The flow's time since the last frame, s (the carried foam moves on by it). */
   dtS: number;
@@ -1468,6 +2284,9 @@ export interface LiveFieldFrame {
   u: Float32Array;
   v: Float32Array;
   uRms: Float32Array;
+  /** Every cell with h != 0, ascending (2026-10-22, GG-430): the mapper reads
+   * only these for its wet scan. Absent from older senders. */
+  cells?: Int32Array;
   readout: LiveFlowReadout;
   qIn: number;
   qOut: number;
@@ -1492,6 +2311,8 @@ export interface LiveFieldFrame {
 
 /** What a LiveFlowMapper starts from. */
 export interface LiveMapperInit {
+  /** Optional copied solver branch addresses; old mapper payloads stay valid. */
+  cellS?: Float32Array;
   grid: RiverGridSpec;
   ground: Float32Array;
   bed: Float32Array;
@@ -1506,6 +2327,7 @@ export interface LiveMapperInit {
 
 /** What a LiveFlowMapper takes of a bed patch (the same box as LiveBedPatch.box). */
 export interface LiveMapperPatch {
+  cellS?: Float32Array;
   box: CellBox | null;
   ground: Float32Array | null;
   bed: Float32Array | null;
@@ -1521,6 +2343,7 @@ export interface LiveMapperPatch {
  * bed patches update, so it can run in a worker of its own.
  */
 export class LiveFlowMapper {
+  private readonly cellS?: Float32Array;
   private readonly grid: RiverGridSpec;
   private readonly ground: Float32Array;
   private readonly bed: Float32Array;
@@ -1529,8 +2352,12 @@ export class LiveFlowMapper {
   private readonly W: Float32Array;
   private readonly T: Float32Array;
   private readonly L: Float32Array;
+  private readonly scratch = new FlowMapScratch();
+  /** The kept full arrays of the last map (the receiving refiner reads them in this worker). */
+  lastFull: { t0: Float32Array; t0h: Uint16Array; t1h: Uint16Array; t2h: Uint16Array; surface: Float32Array } | null = null;
 
   constructor(init: LiveMapperInit) {
+    this.cellS = init.cellS;
     this.grid = init.grid;
     this.ground = init.ground;
     this.bed = init.bed;
@@ -1544,7 +2371,7 @@ export class LiveFlowMapper {
       for (let c = 0; c < n; c += 1) {
         this.W[c] = init.t1[c * 4];
         this.L[c] = init.t1[c * 4 + 1];
-        this.T[c] = init.t1[c * 4 + 3];
+        this.T[c] = Math.max(0,init.t1[c * 4 + 3]);
       }
     }
   }
@@ -1561,6 +2388,7 @@ export class LiveFlowMapper {
           this.ground[c] = p.ground[q];
           this.bed[c] = p.bed[q];
           this.manning[c] = p.manning[q];
+          if (this.cellS && p.cellS) this.cellS[c] = p.cellS[q];
         }
       }
     }
@@ -1579,27 +2407,45 @@ export class LiveFlowMapper {
     const t0 = performance.now();
     const timings: Record<string, number> = {};
     const core = flowMapCore(
-      { grid: this.grid, h: f.h, u: f.u, v: f.v, uRms: f.uRms, bed: this.bed },
+      { grid: this.grid, h: f.h, u: f.u, v: f.v, uRms: f.uRms, cells: f.cells, bed: this.bed, cellS: this.cellS, waterfallImpact: f.waterfallImpact ? { ...f.waterfallImpact, discharge: f.qIn } : null },
       this.ground, this.manning, this.boulders,
       { kind: 'step', dtS: f.dtS, W: this.W, T: this.T, L: this.L },
       timings,
+      // 2026-10-21: reused work arrays (FlowMapScratch); t1/t2 are copied to
+      // half floats below before the next map.
+      this.scratch,
     );
     let tq = performance.now();
-    const sheet = buildWaterSheetArrays(this.grid, core.map.surface);
+    const sp = core.sparse!;
+    const sheet = buildWaterSheetArrays(this.grid, core.map.surface, sp.surfaceCells);
     timings.sheet = performance.now() - tq;
     tq = performance.now();
-    const t0h = toHalfArray(core.map.t0);
-    const t1h = toHalfArray(core.map.t1);
-    const t2h = toHalfArray(core.map.t2);
+    // The core keeps its arrays; the picture carries copies (first or after a
+    // full rewrite) or only the changed rows.
+    const fullCopy = sp.full;
+    const patch = fullCopy ? undefined : riverPatchFrom(riverPatchRows(sp.dirty, this.grid.nx), this.grid.nx, core.map.t0, sp.t0h, sp.t1h, sp.t2h, core.map.surface);
+    const none32 = new Float32Array(0), none16 = new Uint16Array(0);
+    const picT0 = fullCopy ? core.map.t0.slice() : none32;
+    const t0h = fullCopy ? sp.t0h.slice() : none16;
+    const t1h = fullCopy ? sp.t1h.slice() : none16;
+    const t2h = fullCopy ? sp.t2h.slice() : none16;
+    const surface = fullCopy ? core.map.surface.slice() : none32;
     timings.half = performance.now() - tq;
+    this.lastFull = { t0: core.map.t0, t0h: sp.t0h, t1h: sp.t1h, t2h: sp.t2h, surface: core.map.surface };
     return {
+      patch,
+      coarse: sp.coarse ? { ...sp.coarse, data: sp.coarse.data.slice() } : null,
+      waterfallLanding: f.waterfallLanding ? { ...f.waterfallLanding } : null,
+      contactWaterfall: f.contactWaterfall ? structuredClone(f.contactWaterfall) : null,
+      spill: f.spill ? structuredClone(f.spill) : null,
+      flood: f.flood ? { ...f.flood } : undefined,
       simTime: f.simTime,
       timings,
-      t0: core.map.t0,
+      t0: picT0,
       t0h,
       t1h,
       t2h,
-      surface: core.map.surface,
+      surface,
       sheet,
       h: f.h,
       u: f.u,
@@ -1622,13 +2468,16 @@ export class LiveFlowMapper {
 
 /** The transfer list of a frame's buffers. */
 export function liveFrameTransfer(f: LiveFieldFrame): ArrayBuffer[] {
-  return [f.h, f.u, f.v, f.uRms].map((a) => a.buffer as ArrayBuffer);
+  return [f.h, f.u, f.v, f.uRms, ...(f.cells ? [f.cells] : [])].map((a) => a.buffer as ArrayBuffer);
 }
 
 /** The transfer list of a snapshot's buffers. */
 export function liveSnapshotTransfer(s: LiveFlowSnapshot): ArrayBuffer[] {
   // (h, u and v are the frame's own arrays, moved on to the page.)
-  return [s.t0, s.t0h, s.t1h, s.t2h, s.surface, s.sheet.pos, s.sheet.nor, s.sheet.index, s.h, s.u, s.v].map((a) => a.buffer as ArrayBuffer);
+  const patch = s.patch ? [s.patch.rows, s.patch.t0, s.patch.t0h, s.patch.t1h, s.patch.t2h, s.patch.surface] : [];
+  const arrays = [s.t0, s.t0h, s.t1h, s.t2h, s.surface, s.sheet.pos, s.sheet.nor, s.sheet.index, s.h, s.u, s.v, ...patch, ...(s.coarse ? [s.coarse.data] : [])];
+  // Zero-length placeholders share no buffer worth moving; transfer each buffer once.
+  return [...new Set(arrays.filter(a => a.byteLength > 0).map(a => a.buffer as ArrayBuffer))];
 }
 
 /** The transfer list of a patch's buffers (to the page). */
@@ -1643,6 +2492,6 @@ export function livePatchTransfer(p: LiveBedPatch): ArrayBuffer[] {
 /** The transfer list of a mapper patch's buffers. */
 export function liveMapperPatchTransfer(p: LiveMapperPatch): ArrayBuffer[] {
   const out: ArrayBuffer[] = [p.boulderMoves.buffer as ArrayBuffer];
-  for (const a of [p.ground, p.bed, p.manning]) if (a) out.push(a.buffer as ArrayBuffer);
+  for (const a of [p.ground, p.bed, p.manning, p.cellS]) if (a) out.push(a.buffer as ArrayBuffer);
   return out;
 }

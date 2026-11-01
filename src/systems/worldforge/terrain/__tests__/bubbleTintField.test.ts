@@ -180,7 +180,7 @@ describe('town floor tint', () => {
      * TOWN_FLOOR_RGB / _STRENGTH / _FEATHER_M in
      * `groundChunkLoader.sampleGroundChunk` ever move, this test is what says
      * the two paths have stopped agreeing about what a town looks like. */
-    expect(Array.from(TOWN_FLOOR_RGB)).toEqual([0.42, 0.36, 0.27]);
+    expect(Array.from(TOWN_FLOOR_RGB)).toEqual([0.23, 0.195, 0.145]);
     expect(TOWN_FLOOR_STRENGTH).toBe(0.88);
     expect(TOWN_FLOOR_FEATHER_M).toBe(26);
   });
@@ -198,9 +198,11 @@ describe('town floor tint', () => {
       expect(t[i]).toBeCloseTo(GRASS[i] + (TOWN_FLOOR_RGB[i] - GRASS[i]) * TOWN_FLOOR_STRENGTH, 12);
     }
     /* The point of the whole change, stated as a measurement: the green a
-     * player saw between the houses drops, and the red rises. */
+     * player saw between the houses drops, and the hue turns brown (red over
+     * green rises). Since 2026-10-28 the floor is also DARKER than grass (dry
+     * trodden loam reflects about 0.2), so red falls too, but less than green. */
     expect(t[1]).toBeLessThan(GRASS[1]);
-    expect(t[0]).toBeGreaterThan(GRASS[0]);
+    expect(t[0] / t[1]).toBeGreaterThan(GRASS[0] / GRASS[1]);
     // Below 1 so a town keeps a trace of the biome it stands on.
     expect(t[1]).toBeGreaterThan(TOWN_FLOOR_RGB[1]);
   });
@@ -255,9 +257,10 @@ describe('town floor tint', () => {
     // Wilderness is untouched: exactly the reference, so the top surface there
     // is bit-identical to a bubble built before this existed.
     expect(Array.from(outside)).toEqual([1, 1, 1]);
-    // The town is browner: green falls, red rises.
-    expect(inside[1]).toBeCloseTo(0.78, 2);
-    expect(inside[0]).toBeGreaterThan(1);
+    // The town is browner: green falls further than red.
+    const ratio = (i: number) => (GRASS[i] + (TOWN_FLOOR_RGB[i] - GRASS[i]) * TOWN_FLOOR_STRENGTH) / GRASS[i];
+    expect(inside[1]).toBeCloseTo(ratio(1), 2);
+    expect(inside[0] / inside[1]).toBeGreaterThan(1);
 
     /* The feather is a RAMP, not a contour. Sampled straight out through the
      * ring's edge, the green ratio climbs back monotonically to 1. */

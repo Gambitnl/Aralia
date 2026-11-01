@@ -37,6 +37,11 @@ describe('dialogueReducer', () => {
     expect(keys).not.toContain('sessionDispositionMod');
   });
 
+  it.each(['first-meeting','returning'] as const)('retains the prior-contact snapshot: %s', contactStatus => {
+    const next = dialogueReducer(emptyState, { type:'START_DIALOGUE_SESSION', payload:{npcId:'keeper',contactStatus} } as AppAction);
+    expect(next.activeDialogueSession).toEqual({npcId:'keeper',discussedTopicIds:[],contactStatus});
+  });
+
   it('replaces the session wholesale on update', () => {
     const session = { npcId: 'old_hermit', discussedTopicIds: ['topic_weather'] };
     const next = dialogueReducer(emptyState, {

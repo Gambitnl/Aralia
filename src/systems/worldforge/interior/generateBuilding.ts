@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 20/07/2026, 01:52:10
- * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/interior/generateInterior.ts
- * Imports: 15 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file generateBuilding.ts — assemble a full multi-floor BlueprintPlan.
  *
@@ -23,15 +7,32 @@
  *   - ground floor (level 0) partitions with keepMainWhole: true
  *   - upper floors are sleeping quarters (bedrooms / guest rooms)
  *   - the basement (level -1) is cellars / storage, keepMainWhole: false
- *   - ONE stair shaft at the ground main room's center cell, same (x, y) on
- *     every level; the shaft cell is passed to furnishRooms as blocked on
- *     every floor it touches
+ *   - the initial compact shaft anchors in the ground main room; household
+ *     plans replace it with a measured return stair only after real furniture
+ *     fitting preserves every sleeper. Unsupported plans retain the original.
  *   - basement floors get NO windows (underground)
  *
  * Deterministic: each floor seeds from childSeedPath(path, 'floor:<level>').
  * Memoized per (seedPath, type, storeys, basement) exactly as
  * generateInterior memoizes per plot key. Pure data — no three.js.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 01/11/2026, 07:06:39
+ * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/interior/generateInterior.ts
+ * Imports: 19 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type {
   BlueprintFloor,
   BlueprintPlan,
@@ -60,6 +61,10 @@ import { programForBrief, type BedroomAssignment } from './briefProgram';
 import { wireDoors } from './doors';
 import { buildWalls } from './walls';
 import { furnishRooms } from './furnish';
+import { furnishHouseholdBuilding,furnishHouseholdSeating } from './householdFurnish';
+import { RURAL_FAMILY_LAYOUT_RECIPE,seatRuralSharedEntry,ruralFamilyMissingBeds,ruralFamilyMissingSeats,ruralFamilyPrivateAccessIssues,ruralFamilyCirculationDeficit,planRuralFamilyGround,wireRuralSharedBedrooms,ruralFamilyMixedSleepingRooms,ruralFamilyMissingLivingBasics,ruralFamilyStairDeficit,RURAL_FAMILY_FURNISHING,type RuralFamilyLayoutRecipe } from './ruralFamilyLayout';
+import { planHouseholdReturnStair } from './stairHousehold';
+import { returnStairPoint, stairDoorCells } from './stairLayout';
 import {
   finishPaletteForTier,
   resolveStyle,
@@ -108,6 +113,8 @@ export interface GenerateBuildingInput {
    *  rooms + wealth extras and the bedroom distribution across floors. Omitted
    *  → the v1 (briefless) plan, byte-for-byte. */
   household?: HouseholdBrief;
+  /** New farm prototype only; absent inputs retain the original recipe and memo key. */
+  householdLayoutRecipe?: RuralFamilyLayoutRecipe;
   /** Town-authored row/courtyard/arcade instruction; geometry remains lot-bound. */
   ensemble?: BuildingEnsemble;
   /** Optional architectural style context (culture/climate/wealth/age). When
@@ -129,6 +136,9 @@ export interface GenerateBuildingInput {
 // cheap; clearing on cap keeps long sessions from growing without bound.
 const buildingMemo = new Map<string, BlueprintPlan>();
 const BUILDING_MEMO_CAP = 50_000;
+// Keyed by the canonical first trial, so repeated readers share the selected
+// recipe result without repeating its bounded geometry search or retaining evicted plans.
+const ruralFamilySelections=new WeakMap<BlueprintPlan,BlueprintPlan>();
 
 /** Build one floor from its already-assigned room grid and rooms. Purpose
  *  assignment (including the household brief) happens in generateBuilding so
@@ -141,10 +151,15 @@ function buildFloor(
   level: number,
   blocked: Set<string>,
   ensemble?: BuildingEnsemble,
+  ruralFamily=false,
 ): BlueprintFloor {
   // Only the ground floor opens onto the street; upper floors and basements
   // are reached by the stair shaft, never through an exterior door.
   const { doors } = wireDoors(floorPath, rg, rooms, { streetEntry: level === 0 });
+  if(ruralFamily){
+    if(level===0)wireRuralSharedBedrooms(rooms,doors);
+    for(const door of doors)door.clearWidthFt=4;
+  }
   const { walls, windows, wallRuns } = buildWalls(floorPath, rg, doors, rooms, {
     partyWallLeft: ensemble?.partyWallLeft ?? false,
     partyWallRight: ensemble?.partyWallRight ?? false,
@@ -169,11 +184,47 @@ function mainRoomCenterCell(rooms: BlueprintRoom[]): { cx: number; cy: number } 
   return { cx: main.anchor.cx, cy: main.anchor.cy };
 }
 
+/** A workplace's retained compact flight must not fill a doorway. Prefer the
+ * original shaft unless it blocks a door; then reserve one cell that leaves
+ * every floor's room connected. This repairs entry circulation, not the
+ * compact flight's still-unqualified climbing geometry. Residential plans and
+ * admitted return stairs keep their existing placement. */
+function workplaceFallbackStairCell(floors: BlueprintFloor[], original: {cx:number;cy:number}) {
+  const doorCells = new Set(floors.flatMap(f => f.doors.flatMap(stairDoorCells)).map(c => cellKey(c.cx,c.cy)));
+  if (!doorCells.has(cellKey(original.cx,original.cy))) return original;
+  const ground = floors.find(f => f.level === 0)!;
+  const candidates = ground.rooms.flatMap(r => r.cells.map(c => ({...c,main:r.isMain})))
+    .sort((a,b) => Number(b.main)-Number(a.main)
+      || Math.hypot(a.cx-original.cx,a.cy-original.cy)-Math.hypot(b.cx-original.cx,b.cy-original.cy)
+      || a.cy-b.cy || a.cx-b.cx);
+  for (const candidate of candidates) {
+    const blockedKey = cellKey(candidate.cx,candidate.cy);
+    if (doorCells.has(blockedKey)) continue;
+    const fits = floors.every(f => {
+      const room = f.rooms.find(r => r.cells.some(c => cellKey(c.cx,c.cy) === blockedKey));
+      if (!room || room.cells.length < 2) return false;
+      const free = new Set(room.cells.map(c => cellKey(c.cx,c.cy)));
+      free.delete(blockedKey);
+      const queue = [room.cells.find(c => free.has(cellKey(c.cx,c.cy)))!];
+      free.delete(cellKey(queue[0].cx,queue[0].cy));
+      for (let i=0;i<queue.length;i++) for (const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+        const next = {cx:queue[i].cx+dx,cy:queue[i].cy+dy};
+        if (free.delete(cellKey(next.cx,next.cy))) queue.push(next);
+      }
+      return free.size === 0;
+    });
+    if (fits) return {cx:candidate.cx,cy:candidate.cy};
+  }
+  // Do not erase a floor, room or stair when no safe reservation exists.
+  return original;
+}
+
 /** Stable digest of a household brief for the memo key: two briefs that would
  *  yield different plans MUST produce different digests. Empty string when
  *  there is no brief (so briefless memo keys are unchanged). Must cover every
  *  brief field (homeId, slots with tag/role/ageBand, trade, worksAtHome,
- *  wealth) — homeId doesn't affect geometry but is echoed into the plan. */
+ *  wealth, residential) — homeId doesn't affect geometry but is echoed into
+ *  the plan. Absent residential scope retains the original digest. */
 export function briefDigest(brief: HouseholdBrief | undefined): string {
   if (!brief) return '';
   return JSON.stringify([
@@ -182,6 +233,8 @@ export function briefDigest(brief: HouseholdBrief | undefined): string {
     brief.trade,
     brief.worksAtHome,
     brief.wealth,
+    // Keep legacy keys exact, while separating explicitly scoped briefs.
+    ...(brief.residential === undefined ? [] : [brief.residential]),
   ]);
 }
 
@@ -245,6 +298,30 @@ function roomOwnsWindow(room: BlueprintRoom, w: BlueprintWindow): boolean {
 }
 
 export function generateBuilding(input: GenerateBuildingInput): BlueprintPlan {
+  if(!input.householdLayoutRecipe)return generateBuildingCandidate(input);
+  if(input.householdLayoutRecipe!==RURAL_FAMILY_LAYOUT_RECIPE||input.type!=='farmstead'||!input.household
+    ||input.household.residential===false||input.maxWidthFt===undefined||input.maxDepthFt===undefined)
+    throw new Error('Rural family layouts require explicit resident farm and lot sources.');
+  // A bounded set of room proportions uses the same family and allocated land.
+  // Prefer complete assigned sleeping capacity, then fewer private-through
+  // routes. Any residual limitation remains measurable; this is not native admission.
+  const first=generateBuildingCandidate(input,0),selected=ruralFamilySelections.get(first);
+  if(selected)return selected;
+  let best:BlueprintPlan|undefined,bestScore:number[]|undefined;
+  for(let trial=0;trial<12;trial++){
+    const candidate=trial===0?first:generateBuildingCandidate(input,trial);
+    const score=[ruralFamilyMissingBeds(candidate),ruralFamilyPrivateAccessIssues(candidate).length,
+      ruralFamilyMixedSleepingRooms(candidate),ruralFamilyStairDeficit(candidate),ruralFamilyMissingLivingBasics(candidate),
+      ruralFamilyMissingSeats(candidate),ruralFamilyCirculationDeficit(candidate)];
+    const difference=bestScore?score.findIndex((value,index)=>value!==bestScore![index]):-1;
+    if(!bestScore||difference>=0&&score[difference]<bestScore[difference]){best=candidate;bestScore=score;}
+    if(score.every(value=>value===0))break;
+  }
+  ruralFamilySelections.set(first,best!);
+  return best!;
+}
+
+function generateBuildingCandidate(input: GenerateBuildingInput,trial=0): BlueprintPlan {
   const { buildingId, type, seedPath } = input;
   const storeys = Math.max(1, Math.floor(input.storeys ?? 1));
   const basement = input.basement === true;
@@ -259,9 +336,15 @@ export function generateBuilding(input: GenerateBuildingInput): BlueprintPlan {
     );
   }
 
+  const ruralFamily=input.householdLayoutRecipe===RURAL_FAMILY_LAYOUT_RECIPE;
+  // A modest small family shares a kitchen meal/work table. A second hall
+  // table can consume its only seating bay beside the real stair. Larger
+  // families retain both room tables; neither policy alters retained homes.
+  const ruralFurnishing={...RURAL_FAMILY_FURNISHING,
+    ...(input.household&&input.household.slots.length<=5?{sharedTableRoom:'kitchen' as const}:{})};
   const buildingPath = childSeedPath(seedPath, `building:${buildingId}`);
   const memoKey =
-    `${buildingPath}|${type}|${storeys}|${basement}|${input.maxWidthFt ?? ''}|${input.maxDepthFt ?? ''}|${briefDigest(input.household)}|${ensembleDigest(input.ensemble)}|${styleDigest(input.style)}|${backstoryDigest(input.backstory)}|${eventLogDigest(input.eventLog)}`;
+    `${buildingPath}|${type}|${storeys}|${basement}|${input.maxWidthFt ?? ''}|${input.maxDepthFt ?? ''}|${briefDigest(input.household)}|${ensembleDigest(input.ensemble)}|${styleDigest(input.style)}|${backstoryDigest(input.backstory)}|${eventLogDigest(input.eventLog)}${ruralFamily?'|rural-family-v1:'+trial:''}`;
   const cached = buildingMemo.get(memoKey);
   if (cached) return cached;
 
@@ -287,6 +370,9 @@ export function generateBuilding(input: GenerateBuildingInput): BlueprintPlan {
       input.maxDepthFt !== undefined ? Math.floor(input.maxDepthFt / CELL_FT) : fp.rows,
     );
   }
+  // These new farms already have a complete rectangular envelope reserved.
+  // Use that usable space before enlarging land or dropping family members.
+  if(ruralFamily)fp=footprintForLotProfile('full-envelope',Math.floor(input.maxWidthFt!/CELL_FT),Math.floor(input.maxDepthFt!/CELL_FT));
   // Structural history changes the canonical footprint before any dependent
   // geometry is derived. Its stable origin preserves the old core's position
   // even when an extension enlarges only one side of the envelope.
@@ -300,9 +386,9 @@ export function generateBuilding(input: GenerateBuildingInput): BlueprintPlan {
   // Every occupied footprint cell belongs to a room on every level (partition
   // covers the footprint), so the same shaft cell lands inside a room on the
   // basement and each upper floor too.
-  const groundPath = childSeedPath(buildingPath, 'floor:0');
-  const groundRg = partition(groundPath, fp, {
-    keepMainWhole: true,
+  const groundPath = childSeedPath(buildingPath, ruralFamily&&trial>0?'floor:0:rural-trial:'+trial:'floor:0');
+  let groundRg = partition(groundPath, fp, {
+    keepMainWhole: !ruralFamily,
     maxRooms: roomCapFor(type),
   });
   // Single-storey buildings house the whole family on the ground floor;
@@ -310,7 +396,7 @@ export function generateBuilding(input: GenerateBuildingInput): BlueprintPlan {
   // bedrooms onto the upper floors. Mutated in place by assignPurposes.
   const groundQueue: BedroomAssignment[] =
     bp ? (storeys === 1 ? bp.bedrooms.map((b) => ({ ...b })) : []) : [];
-  const groundRooms = assignPurposes(
+  let groundRooms = assignPurposes(
     groundPath,
     type,
     groundRg,
@@ -320,8 +406,18 @@ export function generateBuilding(input: GenerateBuildingInput): BlueprintPlan {
       bedroomQueue: groundQueue,
     },
   );
+  let customGroundApplied=false;
+  if(ruralFamily){
+    // Structural history can produce a nonrectangular envelope. Preserve that
+    // source rather than replacing it with cells the lot never contained.
+    const rectangular=fp.cells.length===fp.cols*fp.rows&&fp.cells.every(c=>c.cx>=0&&c.cx<fp.cols&&c.cy>=0&&c.cy<fp.rows);
+    const custom=rectangular?planRuralFamilyGround(fp.cols,fp.rows,input.household!,trial>=3?4:3):undefined;
+    if(custom){groundRg=custom.grid;groundRooms=custom.rooms;groundQueue.length=0;customGroundApplied=true;}
+    else seatRuralSharedEntry(groundRooms);
+  }
   const joins = storeys - 1 + (basement ? 1 : 0);
-  const stairCell = joins > 0 ? mainRoomCenterCell(groundRooms) : null;
+  let stairCell = joins > 0 ? mainRoomCenterCell(customGroundApplied
+    ?groundRooms.map(room=>({...room,isMain:room.purpose==='hall'})):groundRooms) : null;
   const blocked = new Set<string>();
   if (stairCell) blocked.add(cellKey(stairCell.cx, stairCell.cy));
 
@@ -333,11 +429,11 @@ export function generateBuilding(input: GenerateBuildingInput): BlueprintPlan {
   // single-storey plans already emptied the family onto the ground floor, so
   // the shared queue only carries entries when storeys > 1.
   const upperQueue: BedroomAssignment[] =
-    bp && storeys > 1 ? bp.bedrooms.map((b) => ({ ...b })) : [];
-  const floors: BlueprintFloor[] = levels.map((level) => {
-    const floorPath = childSeedPath(buildingPath, `floor:${level}`);
+    bp && storeys > 1 && !customGroundApplied ? bp.bedrooms.map((b) => ({ ...b })) : [];
+  let floors: BlueprintFloor[] = levels.map((level) => {
+    const floorPath = childSeedPath(buildingPath, `floor:${level}${ruralFamily&&trial>0?':rural-trial:'+trial:''}`);
     if (level === 0) {
-      return buildFloor(floorPath, groundRg, groundRooms, level, blocked, input.ensemble);
+      return buildFloor(floorPath, groundRg, groundRooms, level, blocked, input.ensemble,ruralFamily);
     }
     const rg = partition(floorPath, fp, {
       keepMainWhole: false,
@@ -346,8 +442,8 @@ export function generateBuilding(input: GenerateBuildingInput): BlueprintPlan {
     // Basements never hold bedrooms (empty queue → v1 cellar/storage rule);
     // upper floors draw from the shared family queue.
     const queue = level < 0 ? [] : upperQueue;
-    const rooms = assignUpperPurposes(floorPath, type, rg, level, queue);
-    return buildFloor(floorPath, rg, rooms, level, blocked, input.ensemble);
+    const rooms = assignUpperPurposes(floorPath, type, rg, level, queue, input.household?.residential === false);
+    return buildFloor(floorPath, rg, rooms, level, blocked, input.ensemble,ruralFamily);
   });
 
   // Misfit rule (families must be SEATED, never invented rooms): any bedrooms
@@ -377,12 +473,54 @@ export function generateBuilding(input: GenerateBuildingInput): BlueprintPlan {
     }
   }
 
+  // Furnish once the complete family assignment is known, including groups
+  // sharing a ground-floor room. Bare previews retain the legacy layout.
+  let returnLayout: BlueprintStair['layout'];
+  if (input.household) {
+    const servants = input.household.residential === false
+      ? 0 : input.household.slots.filter(slot => slot.role === 'servant').length;
+    // Keep town streaming bounded: admit the first qualified shaft and one
+    // child-room repair. Unsupported homes retain their existing fitted plan;
+    // a stair trial can never consume an assigned resident's sleeping place.
+    const admitted = joins > 0
+      ? planHouseholdReturnStair(fp.cells, floors, servants, { candidates: ruralFamily?3:1, merges: 1, ...(ruralFamily?{furnishing:ruralFurnishing,minimumDoorWidthFt:4}:{}) })
+      : undefined;
+    if (admitted) {
+      returnLayout = admitted.layout;
+      floors = admitted.floors;
+      for (const floor of floors) {
+        if(ruralFamily)for(const door of floor.doors)door.clearWidthFt=4;
+        const grid = Array.from({ length: fp.rows }, () => Array<number>(fp.cols).fill(-1));
+        for (const room of floor.rooms) for (const c of room.cells) grid[c.cy][c.cx] = room.id;
+        const rebuilt = buildWalls(childSeedPath(buildingPath, `floor:${floor.level}`), grid, floor.doors, floor.rooms, {
+          partyWallLeft: input.ensemble?.partyWallLeft ?? false,
+          partyWallRight: input.ensemble?.partyWallRight ?? false,
+        });
+        floor.walls = rebuilt.walls;
+        floor.wallRuns = rebuilt.wallRuns;
+        floor.windows = floor.level < 0 ? [] : rebuilt.windows;
+      }
+    } else {
+      if (stairCell && input.household.residential === false) {
+        stairCell = workplaceFallbackStairCell(floors, stairCell);
+        blocked.clear();
+        blocked.add(cellKey(stairCell.cx,stairCell.cy));
+      }
+      furnishHouseholdBuilding(floors, blocked, servants, ruralFamily?ruralFurnishing:undefined);
+    }
+  }
+
+  if(ruralFamily&&input.household){
+    const seatedBlocks=returnLayout?new Set(returnLayout.shaftCells.map(c=>cellKey(c.cx,c.cy))):blocked;
+    furnishHouseholdSeating(floors,seatedBlocks,input.household.slots.filter(s=>s.role==='servant').length,input.household.slots.length,ruralFurnishing);
+  }
+
   const stairs: BlueprintStair[] = [];
   if (stairCell) {
-    const x = stairCell.cx * CELL_FT + CELL_FT / 2;
-    const y = stairCell.cy * CELL_FT + CELL_FT / 2;
+    const { x, y } = returnLayout ? returnStairPoint(returnLayout, 2.5, 2.5)
+      : { x: stairCell.cx * CELL_FT + CELL_FT / 2, y: stairCell.cy * CELL_FT + CELL_FT / 2 };
     for (const level of levels) {
-      if (levels.includes(level + 1)) stairs.push({ fromLevel: level, x, y });
+      if (levels.includes(level + 1)) stairs.push({ fromLevel: level, x, y, ...(returnLayout ? { layout: returnLayout } : {}) });
     }
   }
 

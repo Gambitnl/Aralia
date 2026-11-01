@@ -263,6 +263,15 @@
   .tl-playhead { stroke: #fbbf24; stroke-width: 2; }
   .tl-knob { fill: #fbbf24; cursor: ew-resize; }
   .tl-readout { font-size: 11px; fill: #94a3b8; }
+  /* The shared progress projection uses the full desktop, not the narrow
+     Markdown reference drawer. The child remains the existing snapshot. */
+  #project-progress { position:fixed; inset:0; z-index:1200; background:#0b1120; color:#e2e8f0; display:flex; flex-direction:column; }
+  #project-progress[hidden], #project-progress-frame[hidden], #project-progress-notice[hidden] { display:none; }
+  #project-progress nav { display:flex; align-items:center; flex-wrap:wrap; gap:18px; padding:14px 22px; border-bottom:1px solid #334155; font-size:14px; }
+  #project-progress nav button { padding:10px 16px; border:1px solid #64748b; border-radius:5px; background:#1e293b; color:#f8fafc; cursor:pointer; }
+  #project-progress nav a { color:#c4b5fd; }
+  #project-progress-frame { width:100%; flex:1; min-height:0; border:0; }
+  #project-progress-notice { margin:28px; font-size:16px; line-height:1.6; }
 </style>
 </head>
 <body>
@@ -271,6 +280,7 @@
   <span class="hint">solid arrow = hard prerequisite · dashed = chosen order · steps branch off their parent tile (chained = sequential) · click any tile or arrow to pin details · edit <code>public/planmap/topics.json</code> · age heat + sync banner show freshness</span>
   <span class="hint" style="margin-left: auto;" id="header-links">
     <a href="explorer.html">Roadmap explorer</a> ·
+    <a id="project-progress-link" href="?view=project-progress">Project progress</a> ·
     <a id="grillprompt-link" href="#">🤖 Grill prompt</a> ·
     <a id="glossary-link" href="#">📖 Glossary</a> ·
     <a id="atlas-link" href="#">🗺️ Doc atlas</a> ·
@@ -389,7 +399,7 @@
      roadmap tool, so "what counts as READY" has exactly one home. -->
 <script type="module">
 import { isDead as deriveIsDead, topicReadiness } from './ready-derive.mjs';
-import { createDocLinkResolver } from './doc-link-derive.mjs';
+import { createDocLinkResolver, detectLocalDocBridge } from './doc-link-derive.mjs';
 
 const COLORS = {
   purple: { fill: '#2e1065', stroke: '#a78bfa', title: '#ede9fe', sub: '#c4b5fd' },
@@ -658,7 +668,7 @@ Promise.all([
   // health.json is written by tools/agora/sync-surfaces.mjs — absence just
   // means the sync program has never run; the banner says so.
   fetch('./health.json').then(r => (r.ok ? r.json() : null)).catch(() => null),
-]).then(([data, health]) => {
+]).then(async ([data, health]) => {
   window.planmapHealth = health;
   // Sync banner: a dead sync program must be visible, never silent.
   (() => {
@@ -720,19 +730,21 @@ Promise.all([
   })();
 
   const repoRoot = data.repoRoot || '';
-  // Document cards need two destinations: Vite can read the active checkout,
-  // but static hosts cannot see that local disk path. The resolver preserves
-  // fast local drawer loading and gives published maps a working GitHub view.
+  // PM-G3: public inline modules may have no import.meta.hot even on Vite.
+  // Verify this host's client and checkout bridge before publishing links.
+  // Static/error/timeout responses retain GitHub; prefetch waits for this
+  // decision instead of caching an external copy of an unpublished local doc.
   const docLinks = createDocLinkResolver({
     appBase: APP_BASE,
     repoRoot,
-    useFsBridge: Boolean(import.meta.hot),
+    useFsBridge: await detectLocalDocBridge({ appBase: APP_BASE, repoRoot }),
   });
   const docHref = link => docLinks.href(link);
   const docFetchUrl = link => docLinks.fetchUrl(link);
   window.docHref = docHref;
   window.docFetchUrl = docFetchUrl;
   window.repoRoot = repoRoot;
+  window.dispatchEvent(new CustomEvent('planmap-doc-links-ready'));
 
   // ---- Wire header links off repoRoot / APP_BASE (item 5) --------------
   // The two doc links open in the modal (handled below); still give them a
@@ -2179,6 +2191,7 @@ Promise.all([
     applyTopicFocus(); // reframe the deep-linked tile — this rebuild replaced the SVG
   }).catch(() => {});
 }).catch(e => {
+  window.dispatchEvent(new CustomEvent('planmap-doc-links-ready', { detail: { error: String(e.message || e) } }));
   document.getElementById('canvas').innerHTML =
     `<p style="padding: 20px; color: #f87171;">Failed to load topics.json: ${e.message}</p>`;
 });
@@ -2202,6 +2215,19 @@ Promise.all([
   const escGlossary = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   const cache = {}; // path → { html, raw }
   let current = null; // the DOCS entry currently shown
+
+  // PM-G3: this drawer starts before the module's asynchronous source
+  // observation finishes. All reads, including early header clicks and the
+  // prefetch timer, wait for its single choice; never cache GitHub first.
+  const docLinksReady = typeof window.docFetchUrl === 'function' ? Promise.resolve() : new Promise((resolve, reject) => {
+    window.addEventListener('planmap-doc-links-ready', event => {
+      if (event.detail?.error) reject(new Error(event.detail.error));
+      else resolve();
+    }, { once: true });
+  });
+  // Retain rejection for loadDoc's error panel without an early boot failure
+  // becoming an unhandled rejection before the prefetch timer attaches.
+  docLinksReady.catch(() => {});
 
   // Portability (item 5): same /@fs base derivation as the main script, so no
   // hardcoded /Aralia or F:/Repos/Aralia when the main script hasn't run yet.
@@ -2298,8 +2324,7 @@ Promise.all([
   const loadDoc = (doc) => {
     if (cache[doc.path]) return Promise.resolve(cache[doc.path]);
     if (doc._pending) return doc._pending;
-    const url = docUrl(doc.path);
-    doc._pending = fetch(url).then(r => {
+    doc._pending = docLinksReady.then(() => fetch(docUrl(doc.path))).then(r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       return r.text();
     }).then(text => {
@@ -2400,5 +2425,21 @@ Promise.all([
   });
 })();
 </script>
+<!-- Read-only projection: canonical records remain the editable authority. -->
+<section id="project-progress" aria-label="Project progress" hidden>
+  <nav aria-label="Project progress navigation">
+    <button id="project-progress-close" type="button">Back to Planmap</button>
+    <strong>Project progress</strong>
+    <span>Derived snapshot · canonical records remain authoritative</span>
+    <a data-project-record="docs/projects/PROJECT_TRACKER.md" target="_blank" rel="noopener">Project records</a>
+    <span>Gameplay:</span>
+    <a data-project-record="docs/projects/gameplay-flow/NORTH_STAR.md" target="_blank" rel="noopener">North Star</a>
+    <a data-project-record="docs/projects/gameplay-flow/TRACKER.md" target="_blank" rel="noopener">Tracker</a>
+    <a data-project-record="docs/projects/gameplay-flow/GAPS.md" target="_blank" rel="noopener">Gaps</a>
+  </nav>
+  <p id="project-progress-notice" role="status"></p>
+  <iframe id="project-progress-frame" title="Existing shared project snapshot" hidden></iframe>
+</section>
+<script type="module" src="./project-view.mjs"></script>
 </body>
 </html>

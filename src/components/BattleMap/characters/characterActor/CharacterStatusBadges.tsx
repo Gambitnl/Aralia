@@ -38,7 +38,7 @@
 import React from 'react';
 import * as THREE from 'three';
 import type { CombatCharacter } from '../../../../types/combat';
-import type { ActorTeamColors } from './actorTheme';
+import type { ActorChrome, ActorTeamColors } from './actorTheme';
 import { ActorDefeatedMarker, ActorNameplate, ActorTempHpBadge } from './actorChromeHtml';
 
 export interface CharacterStatusBadgesProps {
@@ -55,6 +55,8 @@ export interface CharacterStatusBadgesProps {
   hpColor: string;
   /** Feet to the active player character while hovered, or null. */
   distanceToActive: number | null;
+  /** 'town' makes the HP pip half size and softly lit, without its team ring (CharacterActor `chrome`). */
+  chrome?: ActorChrome;
 }
 
 export const CharacterStatusBadges: React.FC<CharacterStatusBadgesProps> = ({
@@ -68,6 +70,7 @@ export const CharacterStatusBadges: React.FC<CharacterStatusBadgesProps> = ({
   hpPercent,
   hpColor,
   distanceToActive,
+  chrome = 'arena',
 }) => (
   <>
     {/* Always-visible HP pip — sphere + team ring, riding above the real head.
@@ -77,16 +80,18 @@ export const CharacterStatusBadges: React.FC<CharacterStatusBadgesProps> = ({
       {/* HP color sphere — glows team-appropriate health color (sized down
           for the generated bodies; readability still carried by the glow) */}
       <mesh>
-        <sphereGeometry args={[0.14, 10, 8]} />
+        <sphereGeometry args={[chrome === 'town' ? 0.07 : 0.14, 10, 8]} />
         <meshStandardMaterial
           color={hpColor}
           emissive={hpColor}
-          emissiveIntensity={1.0}
+          emissiveIntensity={chrome === 'town' ? 0.3 : 1.0}
           transparent
           opacity={0.95}
         />
       </mesh>
-      {/* Team ring — larger for visibility at 20+ unit distance */}
+      {/* Team ring — larger for visibility at 20+ unit distance; the quiet
+          town set leaves it out (the nameplate and ground ring carry the team). */}
+      {chrome !== 'town' && (
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.03, 0]}>
         <ringGeometry args={[0.16, 0.29, 20]} />
         <meshStandardMaterial
@@ -99,6 +104,7 @@ export const CharacterStatusBadges: React.FC<CharacterStatusBadgesProps> = ({
           depthWrite={false}
         />
       </mesh>
+      )}
     </group>
 
     {/* G10 defeat marker. */}

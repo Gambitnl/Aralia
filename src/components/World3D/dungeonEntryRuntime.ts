@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 19/07/2026, 06:50:34
- * Dependents: components/World3D/DungeonExpeditionOverlay.tsx, components/World3D/World3DWrapper.tsx
- * Imports: 3 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file turns a world-grown dungeon doorway into one validated expedition session.
  *
@@ -26,6 +10,23 @@
  * Called by: World3DWrapper.tsx when the player chooses Enter Dungeon.
  * Depends on: the canonical dungeon identity resolver and GroundWorld entrance contract.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 05:29:47
+ * Dependents: components/World3D/DungeonExpeditionOverlay.tsx, components/World3D/hooks/useInteriorTransition.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { GroundDungeonEntrance } from '../../systems/worldforge/bridge/groundChunkLoader';
 import {
   generateDungeonForIdentity,
@@ -56,6 +57,7 @@ export interface DungeonWorldReturnContext {
   tileY: number;
   xM: number;
   zM: number;
+  yM?: number;
 }
 
 export interface ActiveDungeonEntry {

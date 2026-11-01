@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "assets": {
+    "oblique-interface": {
+      "file": "oblique-interface.json",
+      "sha256": "8c93220022ced4f0e0d5b958dee2461248ede254c52f07fe7678a617cef729f4",
+      "captureSha256": "8c83dc3b402d6747d1399e5b808e27373de97ff74828e32fdc80b753dbb85424",
+      "pieces": [
+        {
+          "state": "before",
+          "count": 2
+        },
+        {
+          "state": "rejected",
+          "count": 2
+        }
+      ]
+    },
+    "connected-basin": {
+      "file": "connected-basin.json",
+      "sha256": "d1d0ba695bd6d71e3b64437d2cc02f8087e9bf3a9420d16139fa97b00f01d8c3",
+      "captureSha256": "a3ef9c228983103d3bde7e92723cdb604aa1bbc4ab9a22e39a1afba9ef92860b",
+      "pieces": [
+        {
+          "state": "stored",
+          "count": 12
+        }
+      ]
+    }
+  },
+  "nativeSources": {
+    "src/systems/world3d/river/riverSolver.ts": "980cc76fcf30ed4c075d1f84b4c8c777a79548da36c3c337cc0d10eba17eace6",
+    "src/systems/world3d/river/riverFlowField.ts": "a13b09710164496f8e90ab4cd60e70b814869478add700ffce0b81d412e16ddd",
+    "src/components/World3D/water/riverWaterMaterial.ts": "f53eb55ee2104b03b6c26a2703c6a350251b12f39b611aefe78776cebadcf704",
+    "src/components/World3D/water/riverExperimentPool.ts": "7557fff2f8f6b49c2d029e413f37d855e79aee8311705069b560582a573cfc78"
+  }
+}

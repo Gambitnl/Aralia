@@ -14,7 +14,7 @@
  * - the live flow map's pieces agree with the judged ones (the sheet builder,
  *   the half-float packing).
  */
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DataUtils } from 'three';
 import {
   RIVER_COURSE_POINTS, RIVER_SHAPE_DEFAULT, RiverCourse, clampRiverCourseEdit, courseKeyAt, defaultRiverCourse, designLevelAt,
@@ -30,6 +30,37 @@ afterEach(() => {
 });
 
 const N = RIVER_COURSE_POINTS.length;
+
+describe('current raw live-cell observation', () => {
+  it('reads the current solver arrays without a displayed frame or solver operation', () => {
+    // A tiny prototype-backed LiveRiver avoids constructing or advancing a real
+    // reach. Display depth is deliberately zero while raw inventory is positive.
+    const rawDepth = 0.0000001234567890123;
+    const solver = { h: new Float64Array([rawDepth]), hu: new Float64Array([0.1234567890123]),
+      hv: new Float64Array([-0.5]), bed: new Float64Array([3.48]), time: 19.125, steps: 47,
+      saveState: vi.fn(() => { throw new Error('Forbidden saveState'); }),
+      step: vi.fn(() => { throw new Error('Forbidden step'); }) };
+    const live = Object.create(LiveRiver.prototype) as LiveRiver;
+    Object.assign(live, {
+      grid: { nx: 1, nz: 1, dx: 0.5, x0: 36.5, z0: 23 }, solver,
+      ground: new Float64Array([3.48]), simTime: 21,
+      disp: { h: new Float32Array([0]) },
+    });
+    const forbidden = ['advance', 'frame', 'snapshot', 'topUpToDesignLevel', 'applyEdit'] as const;
+    const spies = forbidden.map(name => vi.spyOn(live, name).mockImplementation(() => { throw new Error(`Forbidden ${name}`); }));
+    try {
+      const result = live.inspectCells([0]);
+      expect(result).toMatchObject({ solverTime: 19.125, solverSteps: 47, liveSimTime: 21,
+        cells: [{ h: rawDepth, cellVolumeM3: rawDepth * 0.25, worldBounds: [36.5, 23, 37, 23.5] }] });
+      expect(result.cells[0].h).not.toBe(Math.fround(rawDepth));
+      expect(spies.every(spy => spy.mock.calls.length === 0)).toBe(true);
+      expect(solver.saveState).not.toHaveBeenCalled();
+      expect(solver.step).not.toHaveBeenCalled();
+      expect(live.simTime).toBe(21);
+      expect(solver.time).toBe(19.125);
+    } finally { spies.forEach(spy => spy.mockRestore()); }
+  });
+});
 const move = (p: number, dx: number, dz: number, widths?: number[]): RiverCourseEdit => ({
   offsets: Array.from({ length: N }, (_, k) => (k === p ? [dx, dz] as [number, number] : [0, 0] as [number, number])),
   widths: widths ?? new Array(N).fill(1),

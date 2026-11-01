@@ -53,7 +53,11 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
       ? `${ability.usesRemaining ?? ability.maxUses}/${ability.maxUses}`
       : null;
     const costText = ability.cost.type.charAt(0).toUpperCase() + ability.cost.type.slice(1);
-    const rangeText = formatAbilityRange(ability.range);
+    // GG-495: a ranged or thrown weapon also shows its long range, where the
+    // attack roll has Disadvantage. Every other ability shows one range.
+    const rangeText = ability.longRange !== undefined && ability.longRange > ability.range
+      ? `${formatAbilityRange(ability.range)}, long ${formatAbilityRange(ability.longRange)}`
+      : formatAbilityRange(ability.range);
     const hasWeaponProficiencyWarning = Boolean(ability.weapon && ability.isProficient === false);
     const weaponProficiencyWarning = 'No proficiency bonus or weapon mastery on this attack.';
     const grantedActions = ability.grantedActions ?? [];

@@ -79,4 +79,23 @@ describe('broadsheet keepsake reducers', () => {
     expect(next.isBroadsheetVisible).toBe(false);
     expect(next.broadsheetSnapshot).toBeUndefined();
   });
+  it('retains library presentation only for the current live reading', () => {
+    const base=createMockGameState(),readingPlace={burgId:675,townName:'Menaikon'};
+    const opened={...base,...uiReducer(base,{type:'SET_BROADSHEET_VISIBLE',payload:true,readingPlace})};
+    expect(opened.broadsheetReadingPlace).toEqual(readingPlace);
+    expect(opened.inventory).toBe(base.inventory);
+    const closed={...opened,...uiReducer(opened,{type:'SET_BROADSHEET_VISIBLE',payload:false})};
+    expect(closed.broadsheetReadingPlace).toBeUndefined();
+    const ordinary={...opened,...uiReducer(opened,{type:'SET_BROADSHEET_VISIBLE',payload:true})};
+    expect(ordinary.broadsheetReadingPlace).toBeUndefined();
+  });
+  it('does not carry the library label into a pocketed frozen book', () => {
+    const base=createMockGameState(),item=makeBroadsheetItem();
+    const state={...base,inventory:[item],broadsheetReadingPlace:{burgId:675,townName:'Menaikon'}};
+    const next={...state,...uiReducer(state,{type:'READ_ITEM',payload:{itemId:item.id}})};
+    expect(next.broadsheetSnapshot).toBe(SNAPSHOT);
+    expect(next.broadsheetReadingPlace).toBeUndefined();
+    expect(next.inventory).toBe(state.inventory);
+  });
+
 });

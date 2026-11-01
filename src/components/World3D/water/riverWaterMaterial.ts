@@ -47,12 +47,33 @@
  * `createRiverWaterMaterial`. The textures, the flow textures and the water
  * sheet below did not change.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 16/10/2026, 07:56:21
+ * Dependents: components/World3D/water/riverBankMaterial.ts, components/World3D/water/riverExperimentStations.ts, components/World3D/water/riverReachScene.ts, components/World3D/water/riverReceivingRefiner.ts, components/World3D/water/riverSpillView.ts, components/World3D/water/riverSurfaceMirror.ts, components/World3D/water/riverTerrainCourseView.ts, components/World3D/water/riverVegetation.ts, components/World3D/water/riverWaterfallView.ts, components/World3D/water/waterfallContactView.ts, components/World3D/water/waterfallLiquidSurfaceView.ts, components/World3D/water/waterfallReconstructedFluid.ts, components/World3D/water/waterfallTerrainComparisonView.ts, components/World3D/water/waterfallThinLiveView.ts, systems/world3d/river/waterfallTerrainComparisons.worker.ts
+ * Imports: 7 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import * as THREE from 'three/webgpu';
+import type { RiverTerrainFrame } from '@/systems/world3d/river/riverTerrainFrame';
+import { riverCellWidth, riverInverseMapSegments } from '@/systems/world3d/river/riverRectGrid';
+import type { RiverSolverGrid } from '@/systems/world3d/river/riverSolver';
+import { WATER_TO_AIR_IOR, UNDERWATER_TRACE_STEPS, UNDERWATER_TRACE_START, UNDERWATER_TRACE_GROWTH } from './riverUnderwaterOptics';
 import {
-  Fn, If, abs, atan, cameraPosition, cameraProjectionMatrix, cameraViewMatrix, clamp, cos, dFdx, dFdy, dot, exp, float,
+  Fn, If, abs, atan, cameraPosition, cameraProjectionMatrix, cameraViewMatrix, clamp, cos, cubeTexture, dFdx, dFdy, dot, exp, float,
   floor, fract, frontFacing, inverseSqrt, ivec2, length, log, log2, max, min, mix, mod, normalWorld, normalize,
-  perspectiveDepthToViewZ, positionView, positionWorld, pow, reflect, refract, screenCoordinate, select, sin, smoothstep,
-  sqrt, texture, uniform, vec2, vec3, vec4,
+  perspectiveDepthToViewZ, positionLocal, positionView, positionWorld, pow, reflect, refract, screenCoordinate, select, sin, smoothstep,
+  sqrt, texture, uniform, vec2, vec3, vec4, attribute,
 } from 'three/tsl';
 import type { RiverFlowMap } from '@/systems/world3d/river/riverFlowField';
 import { buildWaterSheetArrays, type WaterSheetArrays } from '@/systems/world3d/river/riverWaterSheet';
@@ -95,7 +116,17 @@ let foamTex: THREE.DataTexture | null = null;
  *    two channels are normalized by their own maxima). The surface height
  *    for the floaters needs it.
  */
-export const RIVER_TEX_STATS = { slopeRms: 0.35, licB: 0.6, foamLic: 0.6, streakLic: 0.6, heightPerSlope: 0.01, foamLicLong: 0.4 };
+export const RIVER_TEX_STATS = { slopeRms: 0.35, licB: 0.6, foamLic: 0.6, streakLic: 0.6, heightPerSlope: 0.01, foamLicLong: 0.4, foamLicMain: 0.6 };
+
+/** Reversible main-channel attribution controls, shared by material instances.
+ * Defaults preserve the judged look. Standing slopes affect optical shading
+ * and its slope statistics only: baked standing heights and CPU heights stay
+ * unchanged, so this control cannot establish a geometry attribution. */
+export const riverMainSurfaceDiagnostics = {
+  rockSlopes: uniform(1),
+  standingSlopesOnly: uniform(1),
+  reflectionLodBlur: uniform(1),
+};
 
 /** Bilinear read of a wrapping N x N field at texel coordinates (x, y). */
 function wrapBilinear(f: Float32Array, N: number, x: number, y: number): number {
@@ -323,6 +354,9 @@ export function getRiverFoamTexture(): THREE.DataTexture {
   gaussianize(blobA, RIVER_FOAM_SIGMA);
   gaussianize(filA, RIVER_FOAM_SIGMA);
   RIVER_TEX_STATS.foamLic = lineBlurSpread(blobA, N, (0.28 / 4.0) * N, 5, false);
+  // Smaller main-channel foam aggregates still need their measured spread,
+  // so changing shape does not silently change the area threshold's meaning.
+  RIVER_TEX_STATS.foamLicMain = lineBlurSpread(blobA, N, (0.2 / 1.6) * N, 5, false);
   RIVER_TEX_STATS.streakLic = lineBlurSpread(blobA, N, (0.4 / 4.0) * N, 5, true);
   // (Rivers round 5, the V2 and V3 tunes: eight samples 0.45 m apart upstream.)
   RIVER_TEX_STATS.foamLicLong = lineBlurSpread(blobA, N, (0.45 / 4.0) * N, 8, false);
@@ -391,6 +425,98 @@ export function riverWaterGeometryFrom(sheet: WaterSheetArrays): THREE.BufferGeo
   g.setIndex(new THREE.BufferAttribute(sheet.index, 1));
   g.computeBoundingSphere();
   g.computeBoundingBox();
+  return g;
+}
+
+/** Bake only broad, bed-fixed standing waves into owned main-channel faces.
+ * Midpoints retain each original triangle's plane and interpolated normal.
+ * Fine ripples remain optical; static rock pillows never enter displacement.
+ * A shared positive edge selects both neighboring faces, so refinement cannot
+ * leave a displaced midpoint hanging against an unchanged coarse edge. */
+export function riverStandingGeometryFrom(sheet: WaterSheetArrays, share: (x: number, z: number) => number,
+  standing: (x: number, z: number) => number, active: (x: number, z: number) => number = share,
+  bounds?: readonly [number, number, number, number], reuseFieldSamples = false): THREE.BufferGeometry {
+  // Grow packed storage rather than expanding every original value into a JS array.
+  // Float64 intermediates preserve the previous midpoint and height arithmetic;
+  // conversion to Float32 still happens only at the final output boundary.
+  let capacity = Math.max(3, sheet.pos.length * 2);
+  let pos = new Float64Array(capacity), nor = new Float64Array(capacity);
+  pos.set(sheet.pos); nor.set(sheet.nor);
+  let components = sheet.pos.length;
+  const tris: number[] = []; const owned: number[] = [];
+  const vertices = sheet.pos.length / 3;
+  // Adjacent faces ask about the same edge. Cache those pure field samples
+  // within this snapshot, preserving all seven selection points and every
+  // displacement equation. Numeric edge keys avoid a string per lookup.
+  const edgeKey = (a: number, b: number): number => a < b ? a * vertices + b : b * vertices + a;
+  // Experimental sample reuse preserves exact arrays but did not improve the
+  // frozen 42,972-vertex benchmark (26.88 ms vs 26.41/26.78 ms). Keep it off
+  // by default; future experiments can explicitly opt in without altering optics.
+  const midpoints = new Map<string | number, number>();
+  const shareEdges = reuseFieldSamples ? new Map<number, number>() : null;
+  const activeEdges = reuseFieldSamples ? new Map<number, number>() : null;
+  const midpointShares: number[] = [];
+  const midpoint = (a: number, b: number): number => {
+    const key = reuseFieldSamples ? edgeKey(a, b) : a < b ? `${a}:${b}` : `${b}:${a}`;
+    const found = midpoints.get(key); if (found !== undefined) return found;
+    const k = components / 3;
+    if (components + 3 > capacity) {
+      capacity *= 2;
+      const p = new Float64Array(capacity), n = new Float64Array(capacity);
+      p.set(pos); n.set(nor); pos = p; nor = n;
+    }
+    for (let d = 0; d < 3; d += 1) {
+      pos[components + d] = (sheet.pos[a * 3 + d] + sheet.pos[b * 3 + d]) * 0.5;
+      nor[components + d] = (sheet.nor[a * 3 + d] + sheet.nor[b * 3 + d]) * 0.5;
+    }
+    components += 3;
+    if (reuseFieldSamples) midpointShares.push(weight(share, a, b));
+    midpoints.set(key, k); return k;
+  };
+  const shareVertices = new Float64Array(sheet.pos.length / 3).fill(NaN);
+  const activeVertices = new Float64Array(sheet.pos.length / 3).fill(NaN);
+  const weight = (field: typeof share, a: number, b = a): number => {
+    const cache = field === share ? shareVertices : activeVertices;
+    if (a === b && !Number.isNaN(cache[a])) return cache[a];
+    const edges = field === share ? shareEdges : activeEdges;
+    const key = a !== b ? edgeKey(a, b) : 0;
+    if (a !== b && edges) { const found = edges.get(key); if (found !== undefined) return found; }
+    const w = field((sheet.pos[a * 3] + sheet.pos[b * 3]) * 0.5,
+      (sheet.pos[a * 3 + 2] + sheet.pos[b * 3 + 2]) * 0.5);
+    if (a === b) cache[a] = w; else edges?.set(key, w);
+    return w;
+  };
+  let refinedCount = 0;
+  for (let t = 0; t < sheet.index.length; t += 3) {
+    const a = sheet.index[t]; const b = sheet.index[t + 1]; const c = sheet.index[t + 2];
+    // The mask is localized within a much larger solver domain. Reject its
+    // empty exterior before evaluating flow/ownership on seven face points.
+    if (bounds && (Math.max(sheet.pos[a*3],sheet.pos[b*3],sheet.pos[c*3]) < bounds[0]
+      || Math.min(sheet.pos[a*3],sheet.pos[b*3],sheet.pos[c*3]) > bounds[1]
+      || Math.max(sheet.pos[a*3+2],sheet.pos[b*3+2],sheet.pos[c*3+2]) < bounds[2]
+      || Math.min(sheet.pos[a*3+2],sheet.pos[b*3+2],sheet.pos[c*3+2]) > bounds[3])) {
+      tris.push(a,b,c); continue;
+    }
+    const has = (field: typeof share): boolean => weight(field,a) > 0 || weight(field,b) > 0 || weight(field,c) > 0
+      || weight(field,a,b) > 0 || weight(field,b,c) > 0 || weight(field,c,a) > 0 ||
+      field((sheet.pos[a * 3] + sheet.pos[b * 3] + sheet.pos[c * 3]) / 3,
+        (sheet.pos[a * 3 + 2] + sheet.pos[b * 3 + 2] + sheet.pos[c * 3 + 2]) / 3) > 0;
+    const main = has(share); const selected = main && has(active);
+    if (!selected) { tris.push(a, b, c); if (main) owned.push(a,b,c); continue; }
+    refinedCount += 1;
+    const ab = midpoint(a, b); const bc = midpoint(b, c); const ca = midpoint(c, a);
+    const refined = [a, ab, ca, ab, b, bc, ca, bc, c, ab, bc, ca];
+    tris.push(...refined); owned.push(...refined);
+  }
+  for (let v = 0; v < components / 3; v += 1) {
+    const x = pos[v * 3]; const z = pos[v * 3 + 2];
+    const ownership = reuseFieldSamples ? (v < vertices ? weight(share, v) : midpointShares[v - vertices]) : share(x, z);
+    if (ownership > 0) pos[v * 3 + 1] += standing(x, z);
+  }
+  const g = riverWaterGeometryFrom({ pos: Float32Array.from(pos.subarray(0, components)), nor: Float32Array.from(nor.subarray(0, components)), index: Uint32Array.from(tris) });
+  g.userData.mainStandingTriangles = Uint32Array.from(owned);
+  g.userData.standingStats = { baseTriangles: sheet.index.length / 3, refinedBaseTriangles: refinedCount,
+    addedTriangles: tris.length / 3 - sheet.index.length / 3, vertices: components / 3 };
   return g;
 }
 
@@ -463,9 +589,15 @@ export function riverTexture(t: THREE.Texture): TslNode {
   return texture(t, vec2(0, 0));
 }
 
+/** The flow textures of the previous live picture, and how far the drawn
+ * water has moved from it to the current one (0..1). See createRiverWaterMaterial. */
+export interface RiverFlowPrevious { flow0: THREE.Texture; flow1: THREE.Texture; blend: TslNode }
+
 export function createRiverFlowNodes(
   flow: { flow0: THREE.Texture; flow1: THREE.Texture },
-  grid: { x0: number; z0: number; nx: number; nz: number; dx: number },
+  grid: RiverSolverGrid,
+  frame?: RiverTerrainFrame,
+  previous?: RiverFlowPrevious,
 ): RiverFlowNodes {
   const u: RiverFlowUniforms = {
     uTime: uniform(0),
@@ -477,9 +609,24 @@ export function createRiverFlowNodes(
   // (Each base node has a placeholder uv: see riverTexture.)
   const f0T: TslNode = riverTexture(flow.flow0);
   const f1T: TslNode = riverTexture(flow.flow1);
+  // The previous picture's textures, when the caller blends between pictures.
+  const f0P: TslNode | null = previous ? riverTexture(previous.flow0) : null;
+  const f1P: TslNode | null = previous ? riverTexture(previous.flow1) : null;
   const noise: TslNode = riverTexture(getRiverNoiseTexture());
   const foam: TslNode = riverTexture(getRiverFoamTexture());
-  const uvOf = (xz: TslNode): TslNode => xz.sub(u.uGridOrigin).div(u.uGridSize);
+  const inverseSegments=grid.xEdges?riverInverseMapSegments(grid):[];
+  // A course-aligned map still shades world-space water. Rotate sampling
+  // coordinates into the grid and currents back out; keep world noise intact.
+  const uvOf = (xz: TslNode): TslNode => {
+    const p=frame?xz.sub(vec2(...frame.origin)):xz;
+    const local=frame?vec2(dot(p,vec2(...frame.xAxis)),dot(p,vec2(...frame.zAxis))):p;
+    if(grid.xEdges){
+      let index=local.x.sub(grid.x0).div(riverCellWidth(grid,0));
+      for(const part of inverseSegments)index=index.add(max(local.x.sub(part.x),0).mul(part.delta));
+      return vec2(index.div(grid.nx),local.y.sub(grid.z0).div(grid.nz*grid.dx));
+    }
+    return local.sub(u.uGridOrigin).div(u.uGridSize);
+  };
   // RIVERS ROUND 4: an additive low-discrepancy hash (the R2 sequence), not
   // fract(sin(n) * 43758): the GPU's sine of an argument near 2,000 rad is not
   // the CPU's to the fifth digit, and times 43758 the two hashes disagreed
@@ -619,8 +766,12 @@ export function createRiverFlowNodes(
   };
   return {
     u, noise, foam, uv: uvOf,
-    flow0: (xz) => f0T.sample(uvOf(xz)),
-    flow1: (xz) => f1T.sample(uvOf(xz)),
+    flow0: (xz) => {
+      const uv=uvOf(xz);
+      const f=f0P?mix(f0P.sample(uv),f0T.sample(uv),previous!.blend):f0T.sample(uv);
+      return frame?vec4(vec2(...frame.xAxis).mul(f.x).add(vec2(...frame.zAxis).mul(f.y)),f.zw):f;
+    },
+    flow1: (xz) => { const uv=uvOf(xz); return f1P?mix(f1P.sample(uv),f1T.sample(uv),previous!.blend):f1T.sample(uv); },
     hash2, phases, normalQuantile, blend, advectNoise, advectAniso, staticAniso,
   };
 }
@@ -633,6 +784,33 @@ export function createRiverFlowNodes(
 export type RiverWaterUniforms = RiverFlowUniforms & Record<string, TslNode>;
 
 /** The water material and its uniforms (a NodeMaterial has no `uniforms` of its own). */
+/** Accepted vertical arrival drives a receiving-only visual wave field.
+ * It does not alter depth, discharge or mass in the shallow-water solver. */
+export interface RiverPoolImpact { x: number; z: number; tx: number; tz: number; width: number; discharge: number; verticalSpeed: number; poolLevel: number; depth: number }
+
+/** Convert 0.1% of vertical kinetic power over 0.5 s into surface potential
+ * energy over the native elliptical impact footprint. Density cancels.
+ * Q1.5/v37.14/width10 yields about 4.5 cm RMS, not a new mass source. */
+export function riverPoolImpactAmplitude(q: number, width: number, velocity: number): number {
+  return Math.sqrt(Math.max(0, 0.001 * 0.5 * q * velocity * velocity * 0.5 / (9.81 * Math.PI * 2 * Math.max(0.42 * width, 0.1))));
+}
+
+/** CPU form of the analytic GPU vertex displacement. Wavelengths of 2.8
+ * and 4.2 m resolve on the pool's native 0.5 m mesh. Their temporal mean is
+ * zero; outward motion fades between 4 and 8 m. Entrainment is unresolved. */
+export function riverPoolImpactHeight(impact: RiverPoolImpact | null, x: number, z: number, y: number, time: number, localDepth: number): number {
+  if (!impact || impact.discharge <= 0 || impact.depth <= 0) return 0;
+  const r = Math.hypot(x - impact.x, z - impact.z);
+  if (r >= 8 || Math.abs(y - impact.poolLevel) >= 0.5 || localDepth <= 0.02) return 0;
+  const smooth = (a: number, b: number, value: number) => { const v = Math.max(0, Math.min(1, (value - a) / (b - a))); return v * v * (3 - 2 * v); };
+  const fade = (1 - smooth(4, 8, r)) * Math.exp(-r * r / 32)
+    * (1 - smooth(0.25, 0.5, Math.abs(y - impact.poolLevel))) * smooth(0.02, 0.15, localDepth);
+  const k0 = 2 * Math.PI / 2.8; const k1 = 2 * Math.PI / 4.2;
+  const omega = (k: number) => Math.sqrt(9.81 * k * Math.tanh(k * impact.depth));
+  const amplitude = riverPoolImpactAmplitude(impact.discharge, impact.width, impact.verticalSpeed);
+  return amplitude * fade * (Math.sin(k0 * r - omega(k0) * time) + 0.5 * Math.sin(k1 * r - omega(k1) * time + 1.7)) / Math.sqrt(0.625);
+}
+
 export interface RiverWaterMaterial {
   material: THREE.NodeMaterial;
   uniforms: RiverWaterUniforms;
@@ -660,12 +838,28 @@ export interface RiverWaterMaterial {
  *  - The GLSL's loops are unrolled, and its `riverPhaseOffset` (0.0) is the
  *    constant it was.
  */
-export function createRiverWaterMaterial(map: RiverFlowMap, flow: { flow0: THREE.Texture; flow1: THREE.Texture; flow2: THREE.Texture }): RiverWaterMaterial {
+/**
+ * BLEND BETWEEN LIVE PICTURES (2026-10-21). The live river sends a new flow
+ * map only a few times a second; drawn as-is, the water jumps at each one.
+ * With `previous` (the last picture's three textures), the water draws
+ * mix(previous, current, uFlowBlend) and its sheet moves each vertex from
+ * its `aPrevY` height to its current height. The scene moves uFlowBlend from
+ * 0 to 1 over the time between pictures, so the drawn water lags the newest
+ * picture by about one picture interval. Without `previous` the shader is
+ * unchanged.
+ */
+export function createRiverWaterMaterial(map: RiverFlowMap, flow: { flow0: THREE.Texture; flow1: THREE.Texture; flow2: THREE.Texture }, shared: Partial<RiverWaterUniforms> = {}, frame?:RiverTerrainFrame,
+  previous?: { flow0: THREE.Texture; flow1: THREE.Texture; flow2: THREE.Texture }): RiverWaterMaterial {
   const { nx, nz, dx } = map.grid;
   // Build both textures first: their statistics feed the uniforms below.
   getRiverNoiseTexture();
   getRiverFoamTexture();
-  const F = createRiverFlowNodes(flow, map.grid);
+  const uFlowBlend: TslNode = uniform(1);
+  const F = createRiverFlowNodes(flow, map.grid, frame, previous ? { flow0: previous.flow0, flow1: previous.flow1, blend: uFlowBlend } : undefined);
+  // Separate connected water surfaces may keep their own depth/current map
+  // while sharing the scene targets, lighting and clock. Existing callers
+  // keep precisely the same shader and defaults.
+  Object.assign(F.u, shared);
   const U: RiverWaterUniforms = {
     ...F.u,
     // The frame's targets: the scene sets `.value` before each water pass.
@@ -674,6 +868,15 @@ export function createRiverWaterMaterial(map: RiverFlowMap, flow: { flow0: THREE
     uSceneColor: riverTexture(new THREE.Texture()),
     uSceneDepth: riverTexture(new THREE.DepthTexture(1, 1)),
     uReflection: riverTexture(new THREE.Texture()),
+    // Only set when this frame's mirror contains below-interface geometry.
+    uUnderReflectionValid: uniform(0),
+    // A tiny valid cube keeps the shader binding usable above water; the
+    // scene replaces and disposes it only when an underwater probe is needed.
+    uAirEnvironment: cubeTexture(new THREE.CubeTexture(Array.from({ length: 6 }, () => {
+      const face = new THREE.DataTexture(new Uint8Array([0, 0, 0, 255]), 1, 1);
+      return face;
+    }))),
+    uAirProbeValid: uniform(0),
     uReflMatrix: uniform(new THREE.Matrix4()),
     uReflPlaneY: uniform(0),
     uResolution: uniform(new THREE.Vector2(1, 1)),
@@ -727,13 +930,19 @@ export function createRiverWaterMaterial(map: RiverFlowMap, flow: { flow0: THREE
     uNoiseSlopeRms: uniform(RIVER_TEX_STATS.slopeRms),
     uNoiseHeightScale: uniform(RIVER_TEX_STATS.heightPerSlope),
     uProbe: uniform(new THREE.Vector2()),
+    // A shared constant origin isolates geometric height from half-float
+    // flow-texture filtering when the diagnostic is read back on the CPU.
+    uProbeLevel: uniform(0),
     // The rock surface features (flow map t2): the texture, one texel in uv, and
     // the cell size in m.
     uFlow2: riverTexture(flow.flow2),
     uFlow2Texel: uniform(new THREE.Vector2(1 / nx, 1 / nz)),
+    // 0 = the previous live picture, 1 = the current one (see above).
+    uFlowBlend,
     uFlow2Cell: uniform(dx),
     uLicNormB: uniform(RIVER_TEX_STATS.licB),
     uFoamLicNorm: uniform(RIVER_TEX_STATS.foamLic),
+    uMainFoamLicNorm: uniform(RIVER_TEX_STATS.foamLicMain),
     uStreakLicNorm: uniform(RIVER_TEX_STATS.streakLic),
     uFoamLicLong: uniform(RIVER_TEX_STATS.foamLicLong),
     // RIVERS ROUND 5, THE VARIANT TUNES (step 1 of a variant round; each one
@@ -743,9 +952,35 @@ export function createRiverWaterMaterial(map: RiverFlowMap, flow: { flow0: THREE
     // = the fix of the white slabs (the mirror read out of its frame, and the
     // rough water's sky cone). All 0 = round 4, pixel for pixel.
     uTune: uniform(new THREE.Vector4(0, 0, 0, 0)),
+    /** 1 = the flow map's depth is read as the film thickness across the
+     * surface (h · cos θ); 0 = the vertical column, as before 2026-10-24.
+     * 0 by default: the static judged captures stay pixel-identical (the
+     * rule moved up to 71 pixels a pose by over 8/255 there). Live pages
+     * turn it on (RiverScene: liveWanted). */
+    uFilmOnSurface: uniform(0),
     uTuneSlab: uniform(0),
+    // The added main rapids can correct reflection sampling independently of
+    // the original river. The scene supplies an ownership mask; zero keeps
+    // every established optical equation below unchanged.
+    // Default zero keeps source approaches and ordinary river materials
+    // independent of the receiving pool's unresolved vertical impact.
+    uPoolImpactFrame: uniform(new THREE.Vector4()),
+    uPoolImpactEnergy: uniform(new THREE.Vector4()),
+    uPoolImpactLevel: uniform(0),
+    uPoolRefractionEdge: uniform(0),
+    uMainRapidsOptics: uniform(0),
+    uMainRapidsMask: riverTexture(flow.flow0),
   };
 
+  U.uAirEnvironment.value.generateMipmaps = false;
+  U.uAirEnvironment.value.minFilter = THREE.LinearFilter;
+  U.uAirEnvironment.value.needsUpdate = true;
+  Object.assign(U, shared);
+  // One blend factor drives every blended read (shared optics never replace it).
+  U.uFlowBlend = uFlowBlend;
+  const flow2P: TslNode | null = previous ? riverTexture(previous.flow2) : null;
+  /** The rock surface features (flow map t2), blended between live pictures. */
+  const flow2At = (uv: TslNode): TslNode => flow2P ? mix(flow2P.sample(uv), U.uFlow2.sample(uv), uFlowBlend) : U.uFlow2.sample(uv);
   const riverSky = (d: TslNode): TslNode => {
     const up = clamp(d.y, 0.0, 1.0);
     const c = mix(U.uSkyHorizon, U.uSkyZenith, pow(up, 0.5)).mul(U.uSkyGain);
@@ -771,12 +1006,50 @@ export function createRiverWaterMaterial(map: RiverFlowMap, flow: { flow0: THREE
   };
   const T = U.uTune;
 
+  // Analytic waves are evaluated in the vertex shader, not CPU-baked each
+  // frame. CPU floaters evaluate these same expressions at triangle vertices.
+  const poolImpactHeight = (point: TslNode): TslNode => {
+    const height = float(0).toVar();
+    If(U.uPoolImpactEnergy.x.greaterThan(0).and(U.uPoolImpactEnergy.w.greaterThan(0)), () => {
+      const r = length(point.xz.sub(U.uPoolImpactFrame.xy));
+      // Off-pool/source fragments skip trigonometry and the depth lookup.
+      If(r.lessThan(8).and(abs(point.y.sub(U.uPoolImpactLevel)).lessThan(0.5)), () => {
+      const gate = float(1).sub(smoothstep(0.25, 0.5, abs(point.y.sub(U.uPoolImpactLevel))));
+      const wet = smoothstep(0.02, 0.15, F.flow0(point.xz).z);
+      const fade = float(1).sub(smoothstep(4, 8, r)).mul(exp(r.mul(r).div(-32))).mul(gate).mul(wet);
+      const amplitude = sqrt(U.uPoolImpactEnergy.x.mul(U.uPoolImpactEnergy.z).mul(U.uPoolImpactEnergy.z).mul(0.001 * 0.5 * 0.5)
+        .div(max(U.uPoolImpactEnergy.y.mul(0.42), 0.1).mul(9.81 * Math.PI * 2)));
+      const omega = (k: number): TslNode => {
+        const argument = U.uPoolImpactEnergy.w.mul(k);
+        // tanh through exp, exactly the CPU's tanh for positive depth.
+        const e = exp(argument.mul(-2));
+        return sqrt(float(1).sub(e).div(float(1).add(e)).mul(9.81 * k));
+      };
+      const k0 = 2 * Math.PI / 2.8; const k1 = 2 * Math.PI / 4.2;
+      height.assign(sin(r.mul(k0).sub(omega(k0).mul(U.uTime)))
+        .add(sin(r.mul(k1).sub(omega(k1).mul(U.uTime)).add(1.7)).mul(0.5))
+        .mul(amplitude).mul(fade).div(Math.sqrt(0.625)));
+      });
+    });
+    return height;
+  };
+
   const frag = Fn(() => {
     const xz = positionWorld.xz.toVar();
     const f0 = F.flow0(xz).toVar();
     const f1 = F.flow1(xz).toVar();
     const vel = f0.xy.toVar();
-    const depth = max(f0.z, 0.0).toVar();
+    // FILM THICKNESS ACROSS THE SURFACE (2026-10-24, one-material rebuild).
+    // The flow map's depth is a vertical column over a flat cell. On a
+    // slope the same volume spreads over a larger surface, so the water's
+    // thickness across the surface is h · cos θ (cos θ = the surface
+    // normal's vertical part). On flat water that is h, as before. On the
+    // Steinsdalsfossen wall a 2 cm cell over a 33 m drop is about 0.3 mm:
+    // wet rock, not the gray curtain the height-field mesh drew there.
+    // Every term that reads depth (light path, Froude, roughness, foam,
+    // standing waves) follows from this one rule; no term is tuned per fall.
+    const filmCos = clamp(abs(normalize(normalWorld).y), 0.0, 1.0);
+    const depth = max(f0.z, 0.0).mul(mix(float(1.0), filmCos, U.uFilmOnSurface)).toVar();
     const speed = length(vel).toVar();
     const white = clamp(f1.x, 0.0, 1.0).toVar();
     const streak = clamp(f1.y, 0.0, 1.0).toVar();
@@ -788,6 +1061,10 @@ export function createRiverWaterMaterial(map: RiverFlowMap, flow: { flow0: THREE
     const dir = select(speed.greaterThan(0.03), vel.div(speed), vec2(1.0, 0.0)).toVar();
     const perp = vec2(dir.y.negate(), dir.x).toVar();
     const off = float(0.0);
+    const mainMorphology = float(0.0).toVar();
+    If(U.uMainRapidsOptics.greaterThan(0.0), () => {
+      mainMorphology.assign(clamp(U.uMainRapidsMask.sample(F.uv(xz)).r.mul(U.uMainRapidsOptics), 0.0, 1.0));
+    });
 
     // ---- HOW BROKEN THE SURFACE IS (rivers round 2) ----
     // The flow map's turbulence (made where the water loses energy and carried
@@ -809,30 +1086,28 @@ export function createRiverWaterMaterial(map: RiverFlowMap, flow: { flow0: THREE
     // beside choppy riffles", not one texture everywhere.
     rgh.assign(max(rgh, smoothstep(0.3, 0.8, froude).mul(0.6).mul(smoothstep(0.02, 0.08, depth))));
 
+    // Main water has physical surface drivers separate from legacy saturated
+    // turbulence. Speed still advects the pattern, but creates no wave by
+    // itself. Friction supplies fine ripples; local obstacles/transitions supply
+    // broader chop. Original/source fragments retain their excitation drivers.
+    const mainSurface = flow2At(F.uv(xz)).toVar();
+    const mainForcing = clamp(mainSurface.z, 0.0, 1.0);
+    const mainMicroSlope = clamp(mainSurface.w, 0.0, 0.10);
+    const mainRoughness = clamp(sqrt(mainMicroSlope.mul(mainMicroSlope).add(mainForcing.mul(mainForcing).mul(0.16 * 0.16))).div(0.26), 0.0, 1.0);
+    rgh.assign(mix(rgh, mainRoughness, mainMorphology));
+
     // ---- detail normal (slopes, world units) ----
-    // THREE SCALES, each riding the flow, each with a target RMS slope that
-    // runs from a calm pool's (left) to a riffle's (right):
-    //   A: 0.2 m ripples (1.6 m tile), 0.012 .. 0.10
-    //   B: 0.7 m chop and boils (5.5 m tile), 0.012 .. 0.26
-    //   C: 2.2 m swells and boils (18 m tile), 0.03 .. 0.06
-    // A riffle's 0.26: a 2.5-sigma facet tilts 33 degrees, and seen 33
-    // degrees down (riffle-down) it meets the eye at 88 degrees and mirrors
-    // the sky, while the facet beside it shows the dark bed.
-    // RIVERS ROUND 3: the calm ends went DOWN (0.028 and 0.016 to 0.012): a
-    // judge read round 2's pool as "the same fine ripple texture from bank to
-    // bank". A calm pool is a mirror that wavers (C), and its high-passed
-    // spread in the Nerang frame comes from the mirrored trees, not ripples.
-    // ORIENTED RIPPLES (round 3): A and B are STRETCHED ALONG THE FLOW, by up
-    // to 2 and 3 times in fast water, so a still frame shows streaks that run
-    // with the current ("the ripples look the same in every direction").
-    // RIVERS ROUND 4: the calm ends went down again (to 0.004, 0.004 and
-    // 0.008): the Nerang's still pool is a near-perfect mirror of every trunk
-    // and leaf mass, and at 0.012 and 0.03 the 2.2 m swells alone moved the
-    // mirrored trees by about a meter (18 m away) and broke them up. The lead
-    // measured our pool as dark ripple texture with no mirrored shapes.
-    const rmsA = mix(0.004, 0.10, rgh).toVar();
-    const rmsB = mix(0.004, 0.26, rgh).toVar();
-    const rmsC = mix(0.008, 0.06, rgh).toVar();
+    // Three fixed ripple scales ride the current. Their maximum RMS slopes
+    // remain 0.10, 0.26 and 0.06; the formerly unconditional calm floors
+    // kept isolated water writhing after its driving flow had settled.
+    // Stretching still follows the existing flow-direction response.
+    // Zero flow/turbulence excitation supplies no continual ripple source.
+    // Legacy maximum slopes remain fixed; intermediate slopes lose their
+    // calm contribution. Main-channel micro/forcing terms lose their old
+    // offsets too. Separate arriving-impact waves remain enabled.
+    const rmsA = rgh.mul(0.10).toVar();
+    const rmsB = rgh.mul(0.26).toVar();
+    const rmsC = rgh.mul(0.06).toVar();
     // The stretch is FIXED (2 and 3); the speed sets only how much of the
     // stretched tile is blended in (a stretch that changed with the speed drew
     // fine lines along the streamlines, see riverAnisoOne).
@@ -852,6 +1127,32 @@ export function createRiverWaterMaterial(map: RiverFlowMap, flow: { flow0: THREE
     // stretched chop alone draws even parallel lines across a riffle. The two
     // share the chop's RMS slope (0.6 and 0.8 of it).
     const rB2 = F.advectNoise(xz, vel, 3.7, off.add(0.4), 31.0).toVar();
+    // The original reach keeps its broad isotropic boils. In the added main
+    // channel those boils made closed reflective cells between every rock.
+    // Smaller fixed tiles, stretched along the measured current, instead
+    // carry irregular narrow fragments. Their amplitude comes from local
+    // obstacle/drop forcing, while friction supplies only fine ripples.
+    // A fast uniform glide therefore keeps clear paths between disturbances.
+    // Height channels include the new/old tile ratio: hWaves and the CPU
+    // mirror then describe the same smaller waves, not merely different light.
+    const mainDirection = smoothstep(0.05, 0.4, speed);
+    const mainB = vec3(0.0).toVar();
+    const mainB2 = vec3(0.0).toVar();
+    // Keep extra texture work out of the original/default renderer. This
+    // uniform branch is shared by every pixel, so texture derivatives remain
+    // valid; the ownership mask below can then blend the sampled waves.
+    If(U.uMainRapidsOptics.greaterThan(0.0), () => {
+      mainB.assign(F.advectAniso(xz, vel, 2.8, off.add(0.25), 11.0, dir, 3.0, mainDirection));
+      mainB2.assign(F.advectAniso(xz, vel, 1.7, off.add(0.4), 31.0, dir, 2.5, mainDirection));
+    });
+    If(mainMorphology.greaterThan(0.0), () => {
+      const excitation = mainForcing;
+      rmsA.assign(mix(rmsA, sqrt(mainMicroSlope.mul(mainMicroSlope).add(excitation.mul(excitation).mul(0.065 * 0.065))), mainMorphology));
+      rmsB.assign(mix(rmsB, excitation.mul(0.16), mainMorphology));
+      rmsC.assign(mix(rmsC, excitation.mul(0.028), mainMorphology));
+      rB.assign(mix(rB, vec3(mainB.xy, mainB.z.mul(2.8 / 5.5)), mainMorphology));
+      rB2.assign(mix(rB2, vec3(mainB2.xy, mainB2.z.mul(1.7 / 3.7)), mainMorphology));
+    });
     const slope = rA.xy.mul(rmsA).add(rB.xy.mul(0.6).add(rB2.xy.mul(0.8)).mul(rmsB)).add(rC.xy.mul(rmsC))
       .div(U.uNoiseSlopeRms).toVar();
 
@@ -867,6 +1168,7 @@ export function createRiverWaterMaterial(map: RiverFlowMap, flow: { flow0: THREE
     If(T.z.greaterThan(0.0), () => {
       swAmp.assign(mix(swAmp, max(swAmp, smoothstep(0.3, 0.8, froude).mul(0.2).mul(float(1).sub(smoothstep(0.5, 1.2, depth)))), T.z));
     });
+    swAmp.mulAssign(mix(1.0, mainForcing, mainMorphology));
     const swS = vec2(0.0, 0.0).toVar();
     const swH = float(0.0).toVar();
     If(swAmp.greaterThan(0.001), () => {
@@ -883,21 +1185,24 @@ export function createRiverWaterMaterial(map: RiverFlowMap, flow: { flow0: THREE
       // slope above (the compression along the flow is in both).
       swH.assign(s0.z.mul(k0).mul(6.4).add(s1.z.mul(k1).mul(12.8)).add(s2.z.mul(k2).mul(25.6)).div(ks));
     });
-    slope.addAssign(swS.mul(swAmp));
+    const standingSlopeScale = mix(1.0, riverMainSurfaceDiagnostics.standingSlopesOnly, mainMorphology);
+    slope.addAssign(swS.mul(swAmp).mul(standingSlopeScale));
 
     // THE WATER'S SHAPE AROUND THE ROCKS (flow map t2, round 3): pillows on
     // their upstream faces, troughs in their lee, boils over submerged rocks,
     // and the two ridges of each V-wake. Their height gradient is surface
     // slope; the ridges also break the surface along their lines.
     const uv2 = F.uv(xz).toVar();
-    const f2 = U.uFlow2.sample(uv2).toVar();
-    const bX = U.uFlow2.sample(uv2.add(vec2(U.uFlow2Texel.x, 0.0))).x.sub(U.uFlow2.sample(uv2.sub(vec2(U.uFlow2Texel.x, 0.0))).x).toVar();
-    const bZ = U.uFlow2.sample(uv2.add(vec2(0.0, U.uFlow2Texel.y))).x.sub(U.uFlow2.sample(uv2.sub(vec2(0.0, U.uFlow2Texel.y))).x).toVar();
-    slope.addAssign(vec2(bX, bZ).div(U.uFlow2Cell.mul(2.0)));
+    const f2 = flow2At(uv2).toVar();
+    const bX = flow2At(uv2.add(vec2(U.uFlow2Texel.x, 0.0))).x.sub(flow2At(uv2.sub(vec2(U.uFlow2Texel.x, 0.0))).x).toVar();
+    const bZ = flow2At(uv2.add(vec2(0.0, U.uFlow2Texel.y))).x.sub(flow2At(uv2.sub(vec2(0.0, U.uFlow2Texel.y))).x).toVar();
+    const rockSlopeScale = mix(1.0, riverMainSurfaceDiagnostics.rockSlopes, mainMorphology);
+    const rockGradient=frame?vec2(...frame.xAxis).mul(bX).add(vec2(...frame.zAxis).mul(bZ)):vec2(bX,bZ);
+    slope.addAssign(rockGradient.div(U.uFlow2Cell.mul(2.0)).mul(rockSlopeScale));
     // V1 (round 5): the water's shape around the rocks at three times its
     // slope: a rock under the surface bulges it.
     If(T.x.greaterThan(0.0), () => {
-      slope.addAssign(vec2(bX, bZ).mul(T.x.mul(2.0)).div(U.uFlow2Cell.mul(2.0)));
+      slope.addAssign(rockGradient.mul(T.x.mul(2.0)).div(U.uFlow2Cell.mul(2.0)).mul(rockSlopeScale));
     });
     const wakeLine = clamp(f2.y, 0.0, 1.0).toVar();
     rgh.assign(max(rgh, wakeLine.mul(0.8)));
@@ -912,6 +1217,14 @@ export function createRiverWaterMaterial(map: RiverFlowMap, flow: { flow0: THREE
       .add(rC.z.mul(rmsC).mul(18.0)).div(U.uNoiseSlopeRms)
       .add(swH.mul(swAmp)).mul(U.uNoiseHeightScale).add(f2.x).toVar();
 
+    // Keep existing foam first. Only the actual receiving wave displacement
+    // and its slope are added; horizontal flow/foam fields are unchanged.
+    const poolHeight = poolImpactHeight(positionWorld);
+    hWaves.addAssign(poolHeight);
+    slope.addAssign(vec2(
+      poolImpactHeight(positionWorld.add(vec3(0.25, 0, 0))).sub(poolImpactHeight(positionWorld.sub(vec3(0.25, 0, 0)))),
+      poolImpactHeight(positionWorld.add(vec3(0, 0, 0.25))).sub(poolImpactHeight(positionWorld.sub(vec3(0, 0, 0.25))))).div(0.5));
+
     // DETAIL LOST TO DISTANCE. Where a ripple tile is minified under one
     // texel per pixel, the mip chain averages its slopes away. The lost slope
     // goes into the roughness (glint spread and the reflection's blur), so far
@@ -920,6 +1233,25 @@ export function createRiverWaterMaterial(map: RiverFlowMap, flow: { flow0: THREE
     const px = max(length(dFdx(xz)), length(dFdy(xz))).mul(256.0).toVar();
     const lostSlope = rmsA.mul(smoothstep(1.0, 6.0, px.div(1.6))).add(rmsB.add(swAmp).mul(smoothstep(1.0, 6.0, px.div(5.5))))
       .add(rmsC.mul(smoothstep(1.0, 6.0, px.div(18.0)))).toVar();
+    If(mainMorphology.greaterThan(0.0), () => {
+      // Independent wave bands contribute variance, not coherent amplitude.
+      // Adding their RMS values made the fine main channel's distant cone
+      // too broad and pale. Account for exactly the variance that filtering
+      // removes: total variance minus the resolved amplitude squared. The
+      // two B bands retain their 0.6/0.8 variance weights, and standing waves
+      // use the measured stored texture RMS rather than their raw multiplier.
+      // Fully resolved detail contributes zero; at full minification B alone
+      // remains rmsB, not 1.4*rmsB. Existing offshoot equations stay intact.
+      const removedVariance = (rms: TslNode, tile: number, weight: number): TslNode => {
+        const resolved = float(1).sub(smoothstep(1.0, 6.0, px.div(tile)));
+        return rms.mul(rms).mul(weight * weight).mul(float(1).sub(resolved.mul(resolved)));
+      };
+      const mainLost = sqrt(removedVariance(rmsA, 1.6, 1.0)
+        .add(removedVariance(rmsB, 2.8, 0.6)).add(removedVariance(rmsB, 1.7, 0.8))
+        .add(removedVariance(rmsC, 18.0, 1.0))
+        .add(removedVariance(swAmp.mul(U.uNoiseSlopeRms).mul(standingSlopeScale), 5.5, 1.0)));
+      lostSlope.assign(mix(lostSlope, mainLost, mainMorphology));
+    });
 
     // V2 and V3 (round 5): a long line blur of the foam texture's blob channel
     // UPSTREAM along the flow (eight samples 0.45 m apart), riding the flow:
@@ -1001,7 +1333,20 @@ export function createRiverWaterMaterial(map: RiverFlowMap, flow: { flow0: THREE
     const lenT = depth.div(max(float(0.2), Tr.y.negate())).toVar();
     const Pb = positionWorld.add(Tr.mul(lenT)).toVar();
     const pc = cameraProjectionMatrix.mul(cameraViewMatrix).mul(vec4(Pb, 1.0)).toVar();
-    const ruv = clamp(clipToUv(pc), vec2(0.001, 0.001), vec2(0.999, 0.999)).toVar();
+    const projectedBedUv = clipToUv(pc);
+    const ruv = clamp(projectedBedUv, vec2(0.001, 0.001), vec2(0.999, 0.999)).toVar();
+    // Any refracted read can leave the scene capture, not only at the plunge
+    // pool and the added rapids: looking down at the water near the camera, the
+    // bent ray's bed point projects below the screen's bottom edge. Clamping
+    // that read repeats one screen-edge texel into a false vertical wall: Remy
+    // saw it as stretched streaks along the bottom of the screen in the world's
+    // river (2026-10-28, agora-257c). The fade to the local bed read used to run
+    // only near the pool and the rapids; it now runs everywhere. A read well
+    // inside the screen is unchanged (the fade starts 6 % from an edge).
+    If(pc.w.greaterThan(0), () => {
+      const margin = min(min(projectedBedUv.x, float(1).sub(projectedBedUv.x)), min(projectedBedUv.y, float(1).sub(projectedBedUv.y)));
+      ruv.assign(mix(suv, ruv, smoothstep(0.01, 0.06, margin)));
+    }).Else(() => { ruv.assign(suv); });
     const zScene = sceneViewZ(ruv).toVar();
     // A read in front of the water (a rock, a bank) is not under it: straight.
     If(zScene.greaterThan(zWater.sub(0.01)), () => {
@@ -1149,6 +1494,10 @@ export function createRiverWaterMaterial(map: RiverFlowMap, flow: { flow0: THREE
     If(T.z.greaterThan(0.0), () => {
       lod.mulAssign(float(1).sub(T.z.mul(0.5)));
     });
+    // Isolate texture LOD blur without changing the reflected ray, Fresnel,
+    // native foam or geometry. Ownership zero always retains the old LOD.
+    const reflectionLodScale = mix(1.0, riverMainSurfaceDiagnostics.reflectionLodBlur, mainMorphology);
+    lod.mulAssign(reflectionLodScale);
     const refl = riverSky(Rw).toVar();
     If(U.uTuneSlab.greaterThan(0.5).and(rq.w.greaterThan(0.0)), () => {
       // THE WHITE SLABS (round 5): where the rippled read left the mirror's
@@ -1201,6 +1550,63 @@ export function createRiverWaterMaterial(map: RiverFlowMap, flow: { flow0: THREE
     // V3: at the grazing angle the water still shows some of its body.
     If(T.z.greaterThan(0.0), () => {
       Fr.assign(min(Fr, mix(1.0, 0.8, T.z)));
+    });
+    // The new channel's low eye-height view exposed broad white reflections,
+    // while its separate foam diagnostic showed mostly clear water. Read the
+    // actual reflected canyon at the frame edge instead of substituting open
+    // sky, and blur only slopes smaller than a pixel. Resolved ripples already
+    // turn the reflected ray; adding their roughness to a second sky cone
+    // counted the same facets twice and hid the solver's calm pockets.
+    // The mask is based on channel ownership, not camera pose. Its zero cells
+    // (including the original offshoot) never enter this extension.
+    If(U.uMainRapidsOptics.greaterThan(0.0), () => {
+      const mainOptics = clamp(U.uMainRapidsMask.sample(F.uv(xz)).r.mul(U.uMainRapidsOptics), 0.0, 1.0);
+      If(mainOptics.greaterThan(0.0).and(rq.w.greaterThan(0.0)), () => {
+        const boundedReflection = U.uReflection.sample(clamp(reuv, vec2(0.002, 0.002), vec2(0.998, 0.998))).level(lod).rgb.toVar();
+        const unresolvedCone = smoothstep(0.02, 0.2, lostSlope);
+        const rqMain = U.uReflMatrix.mul(vec4(Pm.add(Rup.mul(18.0)), 1.0));
+        If(rqMain.w.greaterThan(0.0), () => {
+          const canyonGloss = U.uReflection.sample(clamp(reflUv(rqMain), vec2(0.002, 0.002), vec2(0.998, 0.998))).level(lod.add(reflectionLodScale.mul(2.0))).rgb;
+          boundedReflection.assign(mix(boundedReflection, canyonGloss, unresolvedCone.mul(0.55)));
+        });
+        refl.assign(mix(refl, boundedReflection, mainOptics));
+        // Keep Fresnel from the actual resolved facet. An unresolved slope
+        // may retain its original statistical floor; resolved roughness alone
+        // must not brighten every dark facet between the breaking tongues.
+        const facetFresnel = float(0.02).add(pow(float(1).sub(NoV), 5.0).mul(0.98));
+        const mainFresnel = mix(facetFresnel, max(facetFresnel, 0.16), unresolvedCone.mul(rgh).mul(float(1).sub(T.y))).toVar();
+        If(T.z.greaterThan(0.0), () => { mainFresnel.assign(min(mainFresnel, mix(1.0, 0.8, T.z))); });
+        // These ripples turn the optical normal without lifting the mesh, so
+        // the mesh cannot hide a facet behind its neighboring crest. Clamping
+        // a backward-facing facet to NoV=0.001 made it a full white mirror.
+        // Smith visibility supplies that missing statistical crest occlusion:
+        // backward facets contribute no reflection, and grazing visible ones
+        // are masked according to the measured RMS slopes of this water.
+        // Only resolved slopes enter here. Smaller-than-pixel detail already
+        // feeds the reflection cone and glint distribution above; including
+        // it again would count its masking twice. This does not increase
+        // reflected energy, change the transmitted body, or create foam.
+        // LIMITATION: this accounts for view masking, not exact intersections
+        // between individual crests; a displaced mesh is still future work.
+        const resolvedA = float(1).sub(smoothstep(1.0, 6.0, px.div(1.6)));
+        const resolvedB = float(1).sub(smoothstep(1.0, 6.0, px.div(5.5))).toVar();
+        const resolvedStanding = resolvedB.toVar();
+        const mainResolvedB = float(1).sub(smoothstep(1.0, 6.0, px.div(2.8)));
+        const mainResolvedB2 = float(1).sub(smoothstep(1.0, 6.0, px.div(1.7)));
+        resolvedB.assign(mix(resolvedB, sqrt(mainResolvedB.mul(mainResolvedB).mul(0.36).add(mainResolvedB2.mul(mainResolvedB2).mul(0.64))), mainMorphology));
+        const resolvedC = float(1).sub(smoothstep(1.0, 6.0, px.div(18.0)));
+        const slopeA = rmsA.mul(resolvedA);
+        const slopeB = rmsB.mul(resolvedB);
+        const slopeC = rmsC.mul(resolvedC);
+        const standingSlope = swAmp.mul(U.uNoiseSlopeRms).mul(resolvedStanding).mul(standingSlopeScale);
+        const alphaSquared = slopeA.mul(slopeA).add(slopeB.mul(slopeB)).add(slopeC.mul(slopeC)).add(standingSlope.mul(standingSlope)).mul(2.0);
+        const meanView = clamp(dot(Ng, V), 0.001, 1.0);
+        const tangentSquared = float(1).sub(meanView.mul(meanView)).div(meanView.mul(meanView));
+        const smithVisibility = float(2).div(float(1).add(sqrt(float(1).add(alphaSquared.mul(tangentSquared)))));
+        const facetVisibility = select(dot(N, V).greaterThan(0.0), smithVisibility, float(0.0));
+        mainFresnel.mulAssign(facetVisibility);
+        Fr.assign(mix(Fr, mainFresnel, mainOptics));
+      });
     });
     // V1: the PILLOW on a rock's upstream face stands up and catches the sky:
     // a raised, bright, glassy cushion.
@@ -1259,11 +1665,38 @@ export function createRiverWaterMaterial(map: RiverFlowMap, flow: { flow0: THREE
     const fa = vec3(faM.x.div(U.uFoamLicNorm), faM.y, faM.z);
     const fb = vec3(fbM.x.div(U.uFoamLicNorm), fbM.y, fbM.z);
     const fm = F.blend(fa, fb, ph.w0, ph.w1).toVar();
+    // Native W sets the area of carried air, not the number of tiny white
+    // marks. The 1.6m tile put 13cm aggregates everywhere W was moderate;
+    // their 0.8m trails read as a continuous comb across otherwise clear runs.
+    // Gather the same area into unequal half-meter masses with 1.68m torn
+    // downstream tongues. Spacing/tile stays 0.07, so the existing measured
+    // five-tap spread preserves its area calibration. This is surface foam
+    // morphology, not another air source or transport field.
+    // This uniform guard leaves the original river and source sampling cost
+    // unchanged when the main extension is disabled.
+    If(U.uMainRapidsOptics.greaterThan(0.0), () => {
+      const mq0 = a0.div(6.0).add(F.hash2(ph.c0.add(5.0)));
+      const mq1 = a1.div(6.0).add(F.hash2(ph.c1.add(23.0)));
+      const md = dir.mul(0.42 / 6.0);
+      let ms0: TslNode = vec3(0.0);
+      let ms1: TslNode = vec3(0.0);
+      for (let k = 0; k < 5; k += 1) {
+        ms0 = ms0.add(F.foam.sample(mq0.sub(md.mul(k))).rgb);
+        ms1 = ms1.add(F.foam.sample(mq1.sub(md.mul(k))).rgb);
+      }
+      const ma = ms0.div(5.0).sub(0.5);
+      const mb = ms1.div(5.0).sub(0.5);
+      const mainFoam = F.blend(vec3(ma.x.div(U.uFoamLicNorm), ma.y, ma.z), vec3(mb.x.div(U.uFoamLicNorm), mb.y, mb.z), ph.w0, ph.w1);
+      fm.assign(mix(fm, mainFoam, mainMorphology));
+    });
     const ga = F.foam.sample(a0.div(1.2).add(F.hash2(ph.c0.add(7.0)))).r.sub(0.5);
     const gb = F.foam.sample(a1.div(1.2).add(F.hash2(ph.c1.add(29.0)))).r.sub(0.5);
     const gm = ga.mul(ph.w0).add(gb.mul(ph.w1)).mul(inverseSqrt(ph.w0.mul(ph.w0).add(ph.w1.mul(ph.w1)))).toVar();
     const tppFine = px.div(1.2 * 12.0);
-    const wg = float(1).sub(smoothstep(0.15, 0.4, tppFine)).mul(0.45);
+    // Fine bubbles tear the boundary of a main-channel tongue; they must not
+    // redistribute its entire area into sparkles between the connected masses.
+    // The denominator below retains the variance for either mixture.
+    const wg = float(1).sub(smoothstep(0.15, 0.4, tppFine)).mul(mix(0.45, 0.18, mainMorphology));
     const zb = fm.x.mul(0.9).add(wg.mul(gm)).div(sqrt(wg.mul(wg).add(0.81)).mul(SIG)).toVar();
     // The drawn cover: none under 0.03, at most 72 % over 0.45 of the flow
     // map's white water (its 90th percentile is 0.2 to 0.4 at the rocks). At
@@ -1271,12 +1704,24 @@ export function createRiverWaterMaterial(map: RiverFlowMap, flow: { flow0: THREE
     // map's smooth outline; at 72 % the foam texture tears holes and a ragged
     // edge into it.
     const cover = smoothstep(0.04, 0.5, white).mul(0.72).toVar();
+    // W is already the carried local white-water cover (flowMapCore), so
+    // moderate W must not become a mostly opaque patch: W=0.4 previously
+    // became 63% cover. In the added main channel, keep at most 72% of the
+    // native share and let dilute tails below 0.2 tear away. Fully aerated
+    // sources retain the original maximum; no new foam source is invented.
+    If(mainMorphology.greaterThan(0.0), () => {
+      const mainCover = white.mul(0.72).mul(smoothstep(0.08, 0.2, white));
+      cover.assign(mix(cover, mainCover, mainMorphology));
+    });
     const zq = F.normalQuantile(float(1).sub(cover)).toVar();
     const whiteMask = select(cover.greaterThan(0.005), smoothstep(zq.sub(0.5), zq.add(0.4), zb), float(0.0)).toVar();
     const core = smoothstep(zq.add(0.2), zq.add(1.4), zb).toVar();
     // Far away, where a foam clump is under about a pixel, the mask fades to
     // its expected value (the cover) so far white water keeps its share.
     const farF = smoothstep(0.5, 1.6, px.div(4.0 * 12.0)).toVar();
+    If(mainMorphology.greaterThan(0.0), () => {
+      farF.assign(mix(farF, smoothstep(0.5, 1.6, px.div(6.0 * 12.0)), mainMorphology));
+    });
     whiteMask.assign(mix(whiteMask, cover, farF));
     core.assign(mix(core, cover.mul(0.6), farF));
     // FOAM STREAKS from the flow map's streak foam (at most 12 % of the
@@ -1345,6 +1790,15 @@ export function createRiverWaterMaterial(map: RiverFlowMap, flow: { flow0: THREE
       wakeFoam.assign(max(wakeFoam, T.x.mul(smoothstep(0.72, 0.92, wakeLine)).mul(smoothstep(0.2, 0.6, speed)).mul(0.85).mul(lace2)));
       contactFoam.assign(max(contactFoam, T.x.mul(pilK).mul(nearSolid).mul(smoothstep(-0.3, 0.6, zb)).mul(0.9)));
     });
+    // A wake ridge or ripple crest can stay clear. In the added main channel,
+    // these supplemental surface marks require the carried native air field;
+    // their geometric shape alone cannot manufacture foam. Existing original
+    // river/source supplemental-air gating stays unchanged at ownership zero.
+    const mainAir = smoothstep(0.02, 0.18, white);
+    const supplementalAir = mix(1.0, mainAir, mainMorphology);
+    fleck.mulAssign(supplementalAir);
+    contactFoam.mulAssign(supplementalAir);
+    wakeFoam.mulAssign(supplementalAir);
     const foam = max(max(max(max(whiteMask.mul(mix(0.45, 1.0, core)), streakMask), fleck), contactFoam), wakeFoam).toVar();
     const lit = max(dot(Ng, U.uSunDir), 0.0);
     const mott = mix(0.62, 1.0, clamp(fm.z.div(SIG).mul(0.25).add(0.6), 0.0, 1.0));
@@ -1381,11 +1835,133 @@ export function createRiverWaterMaterial(map: RiverFlowMap, flow: { flow0: THREE
     If(dbg.greaterThan(6.5).and(dbg.lessThan(7.5)), () => { col.assign(refl); });
     If(dbg.greaterThan(7.5).and(dbg.lessThan(8.5)), () => { col.assign(body); });
     If(dbg.greaterThan(8.5).and(dbg.lessThan(9.5)), () => { col.assign(vec3(Fr, Fr, Fr)); });
+    // Separate actual aerated coverage from bright reflected sky in rapids
+    // proof frames. A white-looking surface can carry very little foam.
+    If(dbg.greaterThan(10.5).and(dbg.lessThan(11.5)), () => { col.assign(vec3(foam, foam, foam)); });
+    // Verify which water a reference camera actually judges. White is the
+    // added main channel; black retains the original or source treatment.
+    // Mode12 remains the actual-geometry float readback below. Ownership
+    // uses mode13 so that readback cannot overwrite this grayscale image.
+    If(dbg.greaterThan(12.5).and(dbg.lessThan(13.5)), () => { col.assign(vec3(mainMorphology)); });
     // MEASUREMENT: the advected ripple texture alone (its height), so a
     // tracker sees only what the flow map moves.
     If(dbg.greaterThan(3.5).and(dbg.lessThan(4.5)), () => {
       const g = rA.z.add(rB.z).mul(0.35).add(0.5);
       col.assign(vec3(g, g, g));
+    });
+    // From below, light exits water rather than entering it. The original
+    // above-water equations stay unchanged. In particular, the banks-only
+    // planar mirror cannot supply an underwater reflection of the river bed.
+    If(frontFacing.not(), () => {
+      const incidentNormal = N.toVar();
+      // A shading facet facing away from the eye is hidden by a neighboring
+      // crest. Use the geometric underside normal there rather than flipping
+      // the facet into the air-side hemisphere and changing its medium.
+      If(dot(incidentNormal, V).lessThan(0), () => { incidentNormal.assign(Ng.negate()); });
+      const ci = clamp(dot(incidentNormal, V), 0, 1);
+      const sinT2 = float(WATER_TO_AIR_IOR * WATER_TO_AIR_IOR).mul(float(1).sub(ci.mul(ci)));
+      const ct = sqrt(max(float(0), float(1).sub(sinT2)));
+      const rs = ci.mul(WATER_TO_AIR_IOR).sub(ct).div(max(ci.mul(WATER_TO_AIR_IOR).add(ct), 0.00001));
+      const rp = ci.sub(ct.mul(WATER_TO_AIR_IOR)).div(max(ci.add(ct.mul(WATER_TO_AIR_IOR)), 0.00001));
+      const underwaterF = select(sinT2.greaterThanEqual(1), float(1), rs.mul(rs).add(rp.mul(rp)).mul(0.5)).toVar();
+      const underwaterTea = smoothstep(130, 150, xz.x);
+      const underwaterAbsorb = mix(U.uAbsorbClear, U.uAbsorb, underwaterTea);
+      const underwaterScatter = mix(U.uScatterClear, U.uScatter, underwaterTea).mul(mix(U.uSkyHorizon, U.uSkyZenith, 0.5));
+
+      // DEBT: this bounded trace can see only geometry present in the current
+      // camera capture. Hidden/offscreen bed rays fall back to water scatter,
+      // never to above-water trees or sky. A dedicated underside capture or
+      // world-space ray query would recover that missing reflection detail.
+      const trace = (direction: TslNode, transmitted: boolean): TslNode => {
+        const rayColor = (transmitted ? riverSky(direction) : underwaterScatter).toVar();
+        if (transmitted) {
+          If(U.uAirProbeValid.greaterThan(0.5), () => {
+            rayColor.assign(U.uAirEnvironment.sample(direction).level(0).rgb);
+          });
+        }
+        const found = float(0).toVar();
+        const priorGap = float(-1).toVar();
+        for (let step = 0; step < UNDERWATER_TRACE_STEPS; step += 1) {
+          const distance = UNDERWATER_TRACE_START * Math.pow(UNDERWATER_TRACE_GROWTH, step);
+          const point = positionWorld.add(direction.mul(distance));
+          const viewPoint = cameraViewMatrix.mul(vec4(point, 1));
+          const clip = cameraProjectionMatrix.mul(viewPoint);
+          // Divide by a positive bounded W before testing, so rejected points
+          // cannot create infinities or repeat the nearest screen-edge texel.
+          const ndc = clip.xy.div(max(clip.w, 0.00001));
+          const rayUv = vec2(ndc.x.mul(0.5).add(0.5), ndc.y.mul(-0.5).add(0.5));
+          If(found.lessThan(0.5).and(clip.w.greaterThan(0))
+            .and(rayUv.x.greaterThan(0.002)).and(rayUv.x.lessThan(0.998))
+            .and(rayUv.y.greaterThan(0.002)).and(rayUv.y.lessThan(0.998)), () => {
+            const capturedZ = sceneViewZ(rayUv);
+            const gap = capturedZ.sub(viewPoint.z);
+            const ratio = capturedZ.div(min(viewPoint.z, -0.00001));
+            const capturedWorld = cameraPosition.add(point.sub(cameraPosition).mul(ratio));
+            const capturedY = capturedWorld.y;
+            const alongRay = dot(capturedWorld.sub(positionWorld), direction);
+            const hitError = length(capturedWorld.sub(point));
+            const sameMedium = transmitted ? capturedY.greaterThan(positionWorld.y.add(0.02)) : capturedY.lessThan(positionWorld.y.sub(0.02));
+            // Accept a crossing only close to the sampled depth. A coarse
+            // march that jumps far from the ray cannot borrow nearby scenery.
+            // A reflected bed ray can return toward the eye and have the same
+            // camera depth as the interface. Order hits along this optical ray,
+            // never by comparing their view depth to the water surface.
+            If(alongRay.greaterThan(0.02).and(capturedZ.greaterThan(U.uFar.mul(-0.995)))
+              .and(sameMedium).and(priorGap.lessThan(0)).and(gap.greaterThanEqual(0))
+              .and(hitError.lessThan(float(0.12).add(float(distance).mul(0.08)))), () => {
+              const hit = U.uSceneColor.sample(rayUv).rgb;
+              const edgeMargin = min(min(rayUv.x, float(1).sub(rayUv.x)), min(rayUv.y, float(1).sub(rayUv.y)));
+              // A marginal coarse crossing contributes less than an exact
+              // foreground hit. Blend before Fresnel so capture confidence
+              // cannot soften the physical total-internal-reflection boundary.
+              const hitConfidence = float(1).sub(smoothstep(0.025, float(0.12).add(float(distance).mul(0.08)), hitError));
+              const edgeWeight = smoothstep(0.002, 0.03, edgeMargin).mul(hitConfidence);
+              const reflectedTrans = exp(underwaterAbsorb.negate().mul(distance));
+              const hitColor = transmitted ? hit : hit.mul(reflectedTrans).add(underwaterScatter.mul(float(1).sub(reflectedTrans)));
+              rayColor.assign(mix(rayColor, hitColor, edgeWeight));
+              found.assign(1);
+            });
+            priorGap.assign(gap);
+          });
+        }
+        return rayColor;
+      };
+      const reflectedDirection = reflect(V.negate(), incidentNormal);
+      const underwaterReflection = trace(reflectedDirection, false).toVar();
+      If(U.uUnderReflectionValid.greaterThan(0.5).and(reflectedDirection.y.lessThan(-0.02)), () => {
+        // The flow map supplies a local bed plane, not an invented downward
+        // denominator. Nearly horizontal rays keep the validated scene trace.
+        // DEBT: this planar hit neglects bed relief along the bent ray; a bed
+        // depth capture or world-space ray query can refine that parallax.
+        const bedRayLength = depth.div(reflectedDirection.y.negate());
+        const reflectedBedPoint = positionWorld.add(reflectedDirection.mul(bedRayLength));
+        const bedProjection = U.uReflMatrix.mul(vec4(reflectedBedPoint, 1));
+        const bedUv = reflUv(bedProjection);
+        If(bedRayLength.greaterThan(0).and(bedRayLength.lessThan(60)).and(bedProjection.w.greaterThan(0))
+          .and(bedUv.x.greaterThan(0.002)).and(bedUv.x.lessThan(0.998))
+          .and(bedUv.y.greaterThan(0.002)).and(bedUv.y.lessThan(0.998)), () => {
+          const bedSample = U.uReflection.sample(bedUv).level(clamp(lostSlope.mul(6), 0, 1));
+          const bedTrans = exp(underwaterAbsorb.negate().mul(bedRayLength.add(depth)));
+          const bedRadiance = bedSample.rgb.mul(bedTrans).add(underwaterScatter.mul(float(1).sub(bedTrans)));
+          const margin = min(min(bedUv.x, float(1).sub(bedUv.x)), min(bedUv.y, float(1).sub(bedUv.y)));
+          const confidence = smoothstep(0.002, 0.03, margin).mul(clamp(bedSample.a, 0, 1));
+          underwaterReflection.assign(mix(underwaterReflection, bedRadiance, confidence));
+        });
+      });
+      // Total internal reflection has no transmitted ray and no sky light.
+      const interfaceColor = underwaterReflection.toVar();
+      If(sinT2.lessThan(1), () => {
+        const transmittedDirection = refract(V.negate(), incidentNormal, WATER_TO_AIR_IOR);
+        const transmittedColor = underwaterScatter.toVar();
+        If(transmittedDirection.y.greaterThan(0), () => { transmittedColor.assign(trace(transmittedDirection, true)); });
+        interfaceColor.assign(mix(transmittedColor, underwaterReflection, underwaterF));
+      });
+      // Both branches travel through water from the interface to the eye.
+      // Air haze and the above-water foam/glint cannot replace that extinction.
+      const eyeTrans = exp(underwaterAbsorb.negate().mul(length(positionWorld.sub(cameraPosition))));
+      col.assign(interfaceColor.mul(eyeTrans).add(underwaterScatter.mul(float(1).sub(eyeTrans))));
+      If(U.uDebug.greaterThan(6.5).and(U.uDebug.lessThan(7.5)), () => { col.assign(underwaterReflection); });
+      If(U.uDebug.greaterThan(8.5).and(U.uDebug.lessThan(9.5)), () => { col.assign(vec3(underwaterF)); });
     });
     const out = vec4(col, 1.0).toVar();
     // MEASUREMENT: the drawn foam and the cell's class, read back as floats.
@@ -1404,11 +1980,24 @@ export function createRiverWaterMaterial(map: RiverFlowMap, flow: { flow0: THREE
     // MEASUREMENT (rivers round 4): the surface height over the level, the
     // level, and the pixel's world x and z less the probe point, read back.
     If(dbg.greaterThan(9.5).and(dbg.lessThan(10.5)), () => { out.assign(vec4(hWaves, f0.w, xz.x.sub(U.uProbe.x), xz.y.sub(U.uProbe.y))); });
+    // Geometry proof: actual triangle height, independent of texture mipmaps.
+    If(dbg.greaterThan(11.5).and(dbg.lessThan(12.5)), () => { out.assign(vec4(positionWorld.y.sub(U.uProbeLevel), f0.w, xz.x.sub(U.uProbe.x), xz.y.sub(U.uProbe.y))); });
+    // Both coverage views draw the same existing triangles in the same color.
+    // This final override removes optics, including underwater shading, while
+    // preserving surface displacement. The scene alone controls terrain depth.
+    If(dbg.greaterThan(13.5).and(dbg.lessThan(15.5)), () => { out.assign(vec4(1, 0.05, 0.55, 1)); });
     return out;
   });
 
   const material = new THREE.NodeMaterial();
   material.name = 'river water';
+  material.positionNode = Fn(() => {
+    const point = positionLocal.toVar();
+    // Every sheet drawn with a blending material carries aPrevY (the scene sets it).
+    if (previous) point.y.assign(mix(attribute('aPrevY', 'float'), point.y, uFlowBlend));
+    point.y.addAssign(poolImpactHeight(positionLocal));
+    return point;
+  })();
   material.fragmentNode = frag();
   material.side = THREE.DoubleSide;
   // The water hazes itself, by the distance to the eye (above); the scene's

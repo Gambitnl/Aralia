@@ -39,6 +39,11 @@ import {
 } from '../../types';
 import { FEATS_DATA } from '../../data/feats/featsData';
 import { subclassesForClass } from '../../data/classes/subclasses';
+import {
+  getSubclassLevel,
+  DEFAULT_RULES_EDITION,
+  type RulesEdition,
+} from '../../config/rulesEdition';
 import { classFeaturesForLevel } from '../../data/classes/classFeatureProgression';
 import { SKILLS_DATA } from '../../data/skills';
 import { growSpellSlots, cantripsKnownForClassLevel } from '../../systems/character/spellSlotProgression';
@@ -348,9 +353,9 @@ export const applyFeatToCharacter = (
   if (benefit?.initiativeBonus) {
     updated.initiativeBonus = (updated.initiativeBonus || 0) + benefit.initiativeBonus;
   }
-  // Alert (2024): Initiative bonus = Proficiency Bonus (scales with level)
+  // Alert (2024): Initiative bonus = Proficiency Bonus (scales with level, additive to DEX)
   if (benefit?.initiativeBonusProficiency) {
-    updated.initiativeBonus = (updated.initiativeBonus || 0) + (updated.proficiencyBonus || 2);
+    updated.initiativeProficiency = true;
   }
 
   // Handle saving throw proficiencies
@@ -397,7 +402,7 @@ export const applyFeatToCharacter = (
   }
 
   // Recalculate derived properties when ability scores change.
-  updated.finalAbilityScores = calculateFinalAbilityScores(updated.abilityScores, updated.race, updated.equippedItems);
+  updated.finalAbilityScores = calculateFinalAbilityScores(updated.abilityScores, updated.race, updated.equippedItems, updated.id);
   updated.armorClass = calculateArmorClass(updated, updated.activeEffects);
 
   return updated;
@@ -581,6 +586,7 @@ const applyLevelUpSpellLearning = (
 export const performLevelUp = (
   character: PlayerCharacter,
   choices?: LevelUpChoices,
+  options?: { rulesEdition?: RulesEdition },
 ): PlayerCharacter => {
   if (!canLevelUp(character)) return character;
 
@@ -645,11 +651,19 @@ export const performLevelUp = (
     updatedCharacter.spellSlots = grownSlots;
   }
 
-  // Level 3 is the subclass milestone. Apply chosen subclass if unassigned.
-  if (newLevel >= 3 && !updatedCharacter.subclassId) {
-    const chosenSubclass = choices?.subclassId ?? subclassesForClass(spellcastingClassId)[0]?.id;
+  // Subclass milestone: Apply chosen subclass if unassigned.
+  // Never default to the first subclass in the list (GG-453 / agora-c0bb). Player
+  // choice is required. If no choice is provided, subclassId remains undefined
+  // so the player can select their specialization via the level-up modal.
+  const levelingClassId = choices?.classId || updatedCharacter.class?.id || '';
+  const milestoneLevel = getSubclassLevel(levelingClassId, options?.rulesEdition ?? DEFAULT_RULES_EDITION);
+  if (newLevel >= milestoneLevel && !updatedCharacter.subclassId) {
+    const chosenSubclass = choices?.subclassId;
     if (chosenSubclass) {
-      updatedCharacter.subclassId = chosenSubclass;
+      const validSubclasses = subclassesForClass(levelingClassId);
+      if (validSubclasses.length === 0 || validSubclasses.some(s => s.id === chosenSubclass)) {
+        updatedCharacter.subclassId = chosenSubclass;
+      }
     }
   }
 
@@ -684,15 +698,16 @@ export const performLevelUp = (
 
   // Recalculate derived scores after ASI/feat adjustments.
   updatedCharacter = applyRacialSpellGrantsByLevel(updatedCharacter, newLevel);
-  updatedCharacter.finalAbilityScores = calculateFinalAbilityScores(updatedCharacter.abilityScores, updatedCharacter.race, updatedCharacter.equippedItems);
+  updatedCharacter.finalAbilityScores = calculateFinalAbilityScores(updatedCharacter.abilityScores, updatedCharacter.race, updatedCharacter.equippedItems, updatedCharacter.id);
 
-  // Calculate HP increase (Average of Hit Die + Con Mod) plus any feat bonuses.
+  // Calculate HP increase (Average of Hit Die + Con Mod) plus any feat bonuses and racial bonuses.
   const leveledClassId = choices?.classId || updatedCharacter.class?.id;
   const hitDie = leveledClassId ? resolveClassHitDie(updatedCharacter, leveledClassId) : updatedCharacter.class.hitDie;
   const hpIncreaseBase = (hitDie / 2) + 1;
   const conMod = getAbilityModifierValue(updatedCharacter.finalAbilityScores.Constitution);
   const hpBonusPerLevel = getHpBonusPerLevelFromFeats(updatedCharacter.feats || []);
-  const hpGainThisLevel = Math.max(1, hpIncreaseBase + conMod + hpBonusPerLevel);
+  const racialHpBonus = (updatedCharacter.race?.traits?.some(t => t.includes('Dwarven Toughness')) || updatedCharacter.race?.id === 'hill_dwarf') ? 1 : 0;
+  const hpGainThisLevel = Math.max(1, hpIncreaseBase + conMod + hpBonusPerLevel + racialHpBonus);
 
   // Retroactively apply new Con modifier and per-level bonuses to existing levels.
   const previousConMod = getAbilityModifierValue(character.finalAbilityScores.Constitution);
@@ -724,12 +739,14 @@ export const performLevelUp = (
 };
 
 /**
- * Adds XP and processes level ups until the character no longer qualifies.
+ * Adds XP and processes level ups until the character no longer qualifies or
+ * reaches a milestone requiring a player choice (ASI, feat, or subclass).
  */
 export const applyXpAndHandleLevelUps = (
   character: PlayerCharacter,
   xpGained: number,
   choices?: LevelUpChoices,
+  rulesEdition: RulesEdition = DEFAULT_RULES_EDITION,
 ): PlayerCharacter => {
   let updatedCharacter = { ...character, xp: (character.xp || 0) + xpGained } as PlayerCharacter;
   let safetyCounter = 0;
@@ -739,12 +756,22 @@ export const applyXpAndHandleLevelUps = (
     const asiBudget = getAbilityScoreImprovementBudget(nextLevel);
     const hasAsiOrFeatChoice = !!choices && (!!choices.featId || !!choices.abilityScoreIncreases);
 
-    // Pause automatic leveling when a choice is required but none was provided.
+    // Pause automatic leveling when an ASI/feat choice is required but none was provided.
     if (asiBudget > 0 && !hasAsiOrFeatChoice) {
       break;
     }
 
-    updatedCharacter = performLevelUp(updatedCharacter, choices);
+    // Pause automatic leveling when advancing into a subclass milestone without a subclass choice (GG-453).
+    // The player must choose their subclass through the level-up UI; we never auto-assign one.
+    const levelingClassId = choices?.classId || updatedCharacter.class?.id || '';
+    const milestoneLevel = getSubclassLevel(levelingClassId, rulesEdition);
+    const availableSubclasses = subclassesForClass(levelingClassId);
+    const needsSubclassChoice = availableSubclasses.length > 0 && nextLevel >= milestoneLevel && !updatedCharacter.subclassId;
+    if (needsSubclassChoice && !choices?.subclassId) {
+      break;
+    }
+
+    updatedCharacter = performLevelUp(updatedCharacter, choices, { rulesEdition });
     safetyCounter += 1;
 
     // Avoid reusing a single choice payload across multiple level-ups.
@@ -768,22 +795,26 @@ export const applyXpAndHandleLevelUps = (
 // This pairs that same speed parser with the level window the racial trait
 // parser already records, so a mode is reported only once its trait is live.
 //
+// Resolution contract (WF-G277):
+// - Core "Speed:" line modes (e.g., "Speed: 30 feet, Swim 30 feet") are read
+//   directly from `character.race.traits` and are always active from level 1.
+// - Feature-granted modes resolve through `getActiveRacialFeatureTraitsForCharacter`:
+//   canonical race IDs (present in `getRacialTraitLibrary().byRaceId`) use their
+//   cached canonical trait entries by ID (plus any `racialSelections` choice IDs),
+//   while unlisted inline custom/NPC/fixture race IDs fall back to parsing
+//   `character.race.traits` through `buildRacialTraitLibrary` on demand.
+//
 // Preserved: the speed prose parser stays the one place that decides how a
 // speed sentence is read (numeric, comma form, and "equal to your walking
 // speed"), and the level window stays owned by the racial trait library.
 // Neither is re-implemented here.
 //
-// Caller status (agora-81ba, verified 2026-09-20): the character sheet overview
-// reads this module. `CharacterOverview.tsx` calls `getRacialMovementSpeedsForLevel`,
-// so a later-level mode such as Draconic Flight stays off the sheet until its own
-// level is reached.
-//
-// Still open (agora-81ba follow-up): the combat actor build does not read it.
-// `createPlayerCombatCharacter` in src/utils/combat/combatUtils.ts sets a walking
-// `stats.speed` only and never writes `stats.extraMovementSpeeds`, so a racial fly,
-// swim, climb, or burrow mode never reaches a player combatant at any level. The
-// readers of that field (aerialMovementUtils, actionEconomyUtils, useBattleMap,
-// useGridMovement) therefore see nothing for a player actor.
+// Caller status (agora-81ba, agora-db71.30 / GG-259): both the character sheet
+// overview (`CharacterOverview.tsx`) and the combat actor builder
+// (`createPlayerCombatCharacter` in `src/utils/combat/combatUtils.ts`) call
+// `getRacialMovementSpeedsForLevel`, so later-level modes such as Draconic
+// Flight stay off the sheet and off `stats.extraMovementSpeeds` until their
+// unlock level is reached.
 // ============================================================================
 
 /**
@@ -799,6 +830,9 @@ export interface RacialMovementUnlock {
   traitName: string;
 }
 
+// Re-run the shared alternate-movement prose parser against a specific subset
+// of trait lines so we can attribute each unlocked speed to the trait that
+// granted it while keeping the base "Speed:" line in scope.
 const readMovementSpeedsFromTraits = (
   character: PlayerCharacter,
   traits: string[],
@@ -810,6 +844,10 @@ const readMovementSpeedsFromTraits = (
 /**
  * Lists the movement modes a character's race has actually unlocked at a given
  * level, one entry per granting trait.
+ *
+ * Canonical race IDs resolve feature traits through the cached racial trait
+ * library by ID; unlisted inline race IDs fall back to parsing
+ * `character.race.traits` through `buildRacialTraitLibrary` (WF-G277).
  *
  * @param {PlayerCharacter} character - The character whose race is read.
  * @param {number} targetLevel - Character level to judge trait windows against.
@@ -837,6 +875,8 @@ export const getRacialMovementUnlocksForLevel = (
         : [{ mode, speedFeet, minLevel: 1, traitName: 'Speed' }];
     });
 
+  // Walk each racial feature trait active at `targetLevel` and check whether
+  // its prose grants an additional or faster movement mode beyond the base line.
   getActiveRacialFeatureTraitsForCharacter(character, targetLevel).forEach((trait) => {
     const traitText = trait.sourceText ?? `${trait.traitName}: ${trait.traitDescription}`;
     const speeds = readMovementSpeedsFromTraits(character, [...baseSpeedTraits, traitText]);
@@ -863,6 +903,15 @@ export const getRacialMovementUnlocksForLevel = (
  * Level-gated companion to `deriveAlternateMovementSpeeds`: the alternate
  * movement speeds a character has at a level, with later-level racial traits
  * left out until that level is reached.
+ *
+ * Resolution contract (WF-G277):
+ * - Modes on the core `Speed:` line are always included from level 1.
+ * - Canonical race IDs resolve feature traits from `getRacialTraitLibrary().byRaceId`
+ *   by ID (and `racialSelections` choice IDs).
+ * - Unlisted inline race objects (whose `race.id` is absent from the canonical
+ *   library) fall back to parsing `character.race.traits` through
+ *   `buildRacialTraitLibrary`, preserving both ungated and level-gated trait
+ *   movement grants for custom races, NPCs, and test fixtures.
  *
  * @param {PlayerCharacter} character - The character whose race is read.
  * @param {number} targetLevel - Character level to judge trait windows against.

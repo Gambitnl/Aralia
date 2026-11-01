@@ -200,6 +200,72 @@
                                                    "notes":  "Cone of Cold is otherwise instantaneous damage, but a creature killed by it becomes a frozen statue until thawed."
                                                }
                                            ]
+                    },
+                    {
+                          "type": "STATUS_CONDITION",
+                          "trigger": {
+                            "type": "immediate",
+                            "frequency": "every_time",
+                            "consumption": "unlimited",
+                            "attackFilter": {
+                              "weaponType": "any",
+                              "attackType": "any"
+                            },
+                            "movementType": "any",
+                            "sustainCost": {
+                              "actionType": "action",
+                              "optional": false
+                            }
+                          },
+                          "condition": {
+                            "type": "save",
+                            "saveType": "Constitution",
+                            "saveEffect": "negates_condition",
+                            "targetFilter": {
+                              "creatureTypes": [],
+                              "excludeCreatureTypes": [],
+                              "sizes": [],
+                              "alignments": [],
+                              "hasCondition": [],
+                              "isNativeToPlane": false,
+                              "willing": "not_applicable",
+                              "objectEligibility": {
+                                "wornOrCarried": "not_applicable",
+                                "magicalStatus": "not_applicable",
+                                "fixedToSurface": "not_applicable",
+                                "maxSize": "not_applicable",
+                                "maxWeightPounds": "not_applicable",
+                                "maxWeightScaling": "not_applicable"
+                              },
+                              "communicationPrerequisites": {
+                                "canHearCaster": "not_applicable",
+                                "canUnderstandCaster": "not_applicable",
+                                "canSeeCaster": "not_applicable"
+                              },
+                              "abilityThreshold": {
+                                "ability": "not_applicable",
+                                "operator": "not_applicable",
+                                "value": "not_applicable"
+                              },
+                              "selfRelation": "not_applicable"
+                            },
+                            "requiresStatus": [],
+                            "saveModifiers": [],
+                            "saveOutcomeOverrides": []
+                          },
+                          "statusCondition": {
+                            "name": "Frozen",
+                            "duration": {
+                              "type": "turn_end",
+                              "value": 2
+                            },
+                            "level": 0,
+                            "breakTriggers": [
+                              "target_takes_damage"
+                            ]
+                          },
+                          "description": "A creature that fails the Constitution save is encased in ice, becoming Frozen. The ice shatters if the target takes damage and otherwise melts after two turn ends.",
+                          "conditionalEndings": []
                     }
                 ],
     "arbitrationType":  "mechanical",

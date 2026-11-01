@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { vi } from 'vitest';
 import { getGameDay } from '../../../utils/core';
 import { createMockGameState } from '../../../utils/core/factories';
@@ -31,6 +31,30 @@ function renderBoard(state: GameState, dispatch: React.Dispatch<AppAction> = () 
 }
 
 describe('NoticeBoard', () => {
+  it('distinguishes older household news from today and exposes only its recorded people', () => {
+    const base=createMockGameState();
+    const day=getGameDay(base.gameTime);
+    const built=buildTownSimStateForBurg(SEED,firstTile.burgId,day);
+    const source={id:260,day:day-56,kind:'building' as const,subjectId:285,relatedIds:[484],summary:'A household brought the abandoned home on plot64 back into use.'};
+    const town={...built,villagers:{
+      285:{occupantId:285,name:'Oswin Oakcroft',race:'Half-Elf',bornDay:day-18613,parentIds:[],childIds:[],homePlotId:64,wealth:50},
+      484:{occupantId:484,name:'Faelan Ironfield',race:'Tiefling',bornDay:day-18248,parentIds:[],childIds:[],homePlotId:64,wealth:50},
+    },chronicle:{...built.chronicle,events:[source],nextEventId:261}};
+    const state:GameState={...base,worldSeed:SEED,playerCell:{cellId:firstTileBurgCell,localeCoords:null},townSim:{[firstTile.burgId]:town},isNoticeBoardVisible:true};
+    const before=JSON.stringify(state);
+    const dispatch=vi.fn<React.Dispatch<AppAction>>();
+    renderBoard(state,dispatch);
+    const context=screen.getByTestId('town-situation-context');
+    expect(context.textContent).toContain('56 days ago');
+    expect(context.textContent).toContain('Oswin Oakcroft');
+    expect(context.textContent).toContain('Faelan Ironfield');
+    const news=within(screen.getByTestId('notice-board-news'));
+    expect(news.getByText('56 days ago')).toBeTruthy();
+    expect(news.getByText(/People in the record: Oswin Oakcroft, Faelan Ironfield/)).toBeTruthy();
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(JSON.stringify(state)).toBe(before);
+  });
+
   it('shows the empty state when the player is not in a tracked town', () => {
     const base = createMockGameState();
     const state: GameState = {

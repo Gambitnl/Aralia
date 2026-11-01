@@ -346,7 +346,8 @@ describe('TerrainCommand', () => {
     })
     const result = cmd.execute(state)
 
-    expect(result.mapData?.tiles.get('4-1')?.elevation).toBe(-1)
+    // 5 ft down, in the shared 0.3 m elevation unit (GG-533).
+    expect(result.mapData?.tiles.get('4-1')?.elevation).toBeCloseTo(-(5 * 0.3048) / 0.3, 6)
     expect(result.mapData?.tiles.get('2-2')?.elevation).toBe(0)
     expect(result.combatLog.at(-1)?.data?.affectedPositions).toContainEqual({ x: 4, y: 1 })
   })

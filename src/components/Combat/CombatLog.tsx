@@ -69,6 +69,13 @@ export interface CombatLogProps {
   defaultChannel?: CombatLogChannel;
   /** Optional callback fired when the active channel tab changes. */
   onChannelChange?: (channel: CombatLogChannel) => void;
+  /**
+   * Grow into the free height of a column layout (2026-10-30). The dragged
+   * height becomes the panel's minimum instead of its fixed size, so in the
+   * combat command rail the log takes the space below the abilities rather
+   * than scrolling inside 220 px over an empty rail.
+   */
+  fill?: boolean;
 }
 
 /**
@@ -264,6 +271,7 @@ export const CombatLog: React.FC<CombatLogProps> = ({
   useRichDisplay,
   defaultChannel = 'all',
   onChannelChange,
+  fill = false,
 }) => {
   // Reference to the bottom anchor for auto-scrolling to newest entries
   const logEndRef = useRef<HTMLDivElement>(null);
@@ -385,7 +393,7 @@ export const CombatLog: React.FC<CombatLogProps> = ({
    */
   const channelTabsBar = (
     <div
-      className="flex items-center gap-1 overflow-x-auto py-1 border-b border-amber-900/30 text-xs no-scrollbar"
+      className="flex flex-wrap items-center gap-1 py-1 border-b border-amber-900/30 text-xs"
       role="tablist"
       aria-label="Combat log channels"
     >
@@ -487,8 +495,11 @@ export const CombatLog: React.FC<CombatLogProps> = ({
   return (
     <>
       <div
-        className="rounded-xl border border-amber-900/40 bg-slate-900/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_10px_30px_rgba(0,0,0,0.45)] p-3 backdrop-blur-sm flex flex-col overflow-hidden relative"
-        style={{ height: isExpanded ? 64 : logHeight }}
+        className={`rounded-xl border border-amber-900/40 bg-slate-900/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_10px_30px_rgba(0,0,0,0.45)] p-3 backdrop-blur-sm flex flex-col overflow-hidden relative ${fill && !isExpanded ? 'lg:flex-1' : ''}`}
+        // The tab row wraps (2026-10-30): it scrolled sideways under a
+        // `no-scrollbar` class no stylesheet defines, so a second scroll bar
+        // showed beside the log's own.
+        style={isExpanded ? { height: 64 } : fill ? { minHeight: logHeight } : { height: logHeight }}
       >
         {/* Resize handle at top edge */}
         {!isExpanded && (

@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 07/09/2026, 23:23:33
- * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, devtools/buildingIdentityLab/PreviewBuilding3D.tsx
- * Imports: 8 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file buildingSceneModel.ts
  * @description Pure blueprint → render-ready 3D scene model for the design
@@ -41,6 +25,22 @@
  * __tests__/buildingSceneModel.test.ts. The R3F consumer maps plan feet
  * (x, y, z0/h) onto three space as (x, z, y) and renders in feet.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 05:58:04
+ * Dependents: components/DesignPreview/steps/PreviewBlueprint.tsx, devtools/buildingIdentityLab/PreviewBuilding3D.tsx, devtools/buildingIdentityLab/buildingRenderBatches.ts
+ * Imports: 8 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * ARCHITECTURAL COMMENTARY:
@@ -72,6 +72,7 @@ import {
   buildRoofMeshData,
   roofDeformationForPlan,
   type MeshBoxKind,
+  type BeamProfile,
 } from './buildingModels';
 import {
   buildBlueprintParts,
@@ -124,6 +125,7 @@ export interface SceneBox {
   w: number; d: number;
   z0: number; h: number;
   color: string;
+  beam?: BeamProfile;
   /** Set only when the box should glow (lit window pane / lit hearth). */
   emissive?: string;
   emissiveIntensity?: number;
@@ -392,6 +394,7 @@ export function buildingSceneModel(
         kind: b.kind, level: floor.level,
         x: b.x, y: b.y, w: b.w, d: b.d, z0: b.z0, h: b.h,
         color: b.kind === 'wall' ? wallSurfaceColor : BOX_COLOR[b.kind],
+        ...(b.beam ? { beam: { ...b.beam } } : {}),
       };
       if (b.kind === 'window-pane' && windowsLit) {
         box.emissive = WINDOW_GLOW;

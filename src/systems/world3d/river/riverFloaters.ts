@@ -23,7 +23,8 @@
  *     body turns with the water's own rotation rate, which is half the
  *     vorticity), and turns gently toward the flow direction where the water
  *     moves (an elongated floater settles lengthwise in a current);
- *   - rocks are circles at their waterline: the boat slides round them (the
+ *   - rocks retain their drawn footprint and crest through floods: the boat
+ *     slides round them until local water clears its hull (the
  *     velocity into a rock is removed, the rest kept);
  *   - where the depth is under its 1.2 cm draft it runs aground; after 3 s
  *     aground, or once it leaves the reach, it starts again at a fixed point
@@ -39,20 +40,40 @@
  * when it strays (see `duckHome`). Swept into fast water, it rides it.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 04/10/2026, 17:10:12
+ * Dependents: components/World3D/water/riverFloatersView.ts, components/World3D/water/riverSurfaceMirror.ts, systems/world3d/river/riverDroppedObjects.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /** The water, as the floaters read it. */
 export interface FloaterWaterSampler {
   /** The water's surface velocity at (x, z), m/s, written into `out` as [u, v] (x and z). */
   velocity(x: number, z: number, out: [number, number]): void;
   /** The water's depth at (x, z), m (0 or less on dry ground). */
   depth(x: number, z: number): number;
+  /** Live drawn height at the fixed simulation time. Omitted by legacy 2D samplers. */
+  surface?(x: number, z: number, time: number): number;
 }
 
-/** A rock at the waterline: a circle the floaters keep out of. */
+/** A rock footprint retained through floods and recession. */
 export interface FloaterRock {
   x: number;
   z: number;
-  /** Radius at the waterline, m. */
+  /** Full projected footprint radius, m; legacy callers may supply their waterline circle. */
   r: number;
+  /** Crest of the drawn triangles. Heightless legacy circles always block. */
+  topY?: number;
 }
 
 export interface PaperBoatState {
@@ -128,6 +149,8 @@ export interface RiverFloatersOptions {
    * carry cannot be seen.
    */
   duckHome?: { x: number; z: number; r: number };
+  /** Optional mesh-bound clearance, including the view's current body tilt and sink. */
+  hullDraft?(kind: 'boat' | 'duck', x: number, z: number, heading: number, time: number): number;
 }
 
 /** The floaters' constants. */
@@ -148,6 +171,8 @@ export const RIVER_FLOATERS = {
   boatGroundedS: 3,
   /** A duck's body as a circle, m. */
   duckRadiusM: 0.18,
+  /** Body center .005 m minus vertical radius .075 m; the view supplies its mesh bound. */
+  duckDraftM: 0.07,
   /** The fastest a duck turns, rad/s. */
   duckTurnRate: 1.3,
   /** A duck's wander: a new intent every 3 to 6 s, up to +-0.9 rad from the old one. */
@@ -179,7 +204,7 @@ export function wrapAngle(a: number): number {
 }
 
 /** A uniform grid over the rocks, so a floater reads only the rocks near it. */
-class RockGrid {
+export class RockGrid {
   private readonly cell = 2;
   private readonly map = new Map<number, FloaterRock[]>();
 
@@ -284,7 +309,7 @@ export class RiverFloaters {
     this.step += 1;
     const s = this.cur;
     s.t = this.step * dt;
-    this.stepBoat(s.boat, dt);
+    this.stepBoat(s.boat, dt, s.t);
     for (let i = 0; i < s.ducks.length; i += 1) this.stepDuck(i, s.ducks, dt, s.t);
   }
 
@@ -306,16 +331,35 @@ export class RiverFloaters {
     b.aground = false; b.agroundS = 0; b.launches += 1; b.sailedS = 0;
   }
 
-  private stepBoat(b: PaperBoatState, dt: number): void {
+  /** The same crest/draft rule as dropped objects: both local water levels
+   * must clear the hull. Retaining rocks makes recession restore contact
+   * without rebuilding the grid; missing height data keeps legacy behavior. */
+  private rockBlocks(r: FloaterRock, x: number, z: number, t: number, draft: number): boolean {
+    const surface = this.o.water.surface;
+    if (r.topY === undefined || !surface) return true;
+    const bodyLevel = surface.call(this.o.water, x, z, t);
+    const rockLevel = surface.call(this.o.water, r.x, r.z, t);
+    return !(Number.isFinite(bodyLevel) && Number.isFinite(rockLevel) && Math.min(bodyLevel, rockLevel) - draft >= r.topY + 0.01);
+  }
+
+  private stepBoat(b: PaperBoatState, dt: number, t: number): void {
     const R = RIVER_FLOATERS;
     const W = this.o.water;
     const d0 = this.o.domain;
     b.sailedS += dt;
     if (b.aground) {
-      b.agroundS += dt;
-      b.vx = 0; b.vz = 0; b.spin = 0;
-      if (b.agroundS >= R.boatGroundedS) this.respawnBoat(b);
-      return;
+      // Rising water lifts this same boat before its upstream restart is due.
+      // Unknown depth cannot lift it; sustained shallow water keeps the old timer.
+      const depth = W.depth(b.x, b.z);
+      if (Number.isFinite(depth) && depth >= R.boatDraftM) {
+        b.aground = false;
+        b.agroundS = 0;
+      } else {
+        b.agroundS += dt;
+        b.vx = 0; b.vz = 0; b.spin = 0;
+        if (b.agroundS >= R.boatGroundedS) this.respawnBoat(b);
+        return;
+      }
     }
     W.velocity(b.x, b.z, this.w);
     const wx = this.w[0];
@@ -342,7 +386,9 @@ export class RiverFloaters {
     b.x += b.vx * dt;
     b.z += b.vz * dt;
     // Rocks: slide round them.
+    const boatDraft = this.o.hullDraft?.('boat', b.x, b.z, b.heading, t) ?? R.boatDraftM;
     for (const r of this.rocks.near(b.x, b.z, R.boatRadiusM + 1.2, this.rockTmp)) {
+      if (!this.rockBlocks(r, b.x, b.z, t, boatDraft)) continue;
       const dx = b.x - r.x;
       const dz = b.z - r.z;
       const dist = Math.hypot(dx, dz);
@@ -410,7 +456,9 @@ export class RiverFloaters {
       if (gl > 1e-5) { tx += 3 * gx / gl; tz += 3 * gz / gl; } else { tx -= 3 * hx; tz -= 3 * hz; }
     }
     // Rocks: push away from any rock within a meter of the body.
+    const duckDraft = this.o.hullDraft?.('duck', d.x, d.z, d.heading, t) ?? R.duckDraftM;
     for (const r of this.rocks.near(d.x, d.z, R.duckRadiusM + 1.5, this.rockTmp)) {
+      if (!this.rockBlocks(r, d.x, d.z, t, duckDraft)) continue;
       const dx = d.x - r.x;
       const dz = d.z - r.z;
       const dist = Math.hypot(dx, dz);
@@ -460,7 +508,9 @@ export class RiverFloaters {
     d.x += d.gx * dt;
     d.z += d.gz * dt;
     // A rock the body still touches pushes it out (the steering keeps this rare).
+    const contactDraft = this.o.hullDraft?.('duck', d.x, d.z, d.heading, t) ?? R.duckDraftM;
     for (const r of this.rocks.near(d.x, d.z, R.duckRadiusM + 1.5, this.rockTmp)) {
+      if (!this.rockBlocks(r, d.x, d.z, t, contactDraft)) continue;
       const dx = d.x - r.x;
       const dz = d.z - r.z;
       const dist = Math.hypot(dx, dz);

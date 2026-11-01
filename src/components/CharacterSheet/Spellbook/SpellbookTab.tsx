@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 18/07/2026, 11:28:11
- * Dependents: components/CharacterSheet/Spellbook/index.ts
- * Imports: 14 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file renders the Spellbook tab inside the resizable Character Sheet.
  *
@@ -27,8 +11,29 @@
  * Called by: CharacterSheetModal.tsx
  * Depends on: SpellContext, GlossaryContext, FullEntryDisplay, and SpellDetailPane
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 13:51:52
+ * Dependents: components/CharacterSheet/Spellbook/index.ts
+ * Imports: 16 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useState, useContext, useMemo, useEffect } from 'react';
+// Local SVG glyphs remain legible when an external icon font is unavailable.
+import {Sparkles,Lock,Search,MousePointer} from 'lucide-react';
 import { PlayerCharacter, Spell, Action } from '../../../types';
+import { getRulesEdition, type RulesEdition } from '../../../config/rulesEdition';
+import { preparationPlanError, preparationMinutes, preparationSpellError, togglePreparationPlan, usesRestPreparation } from '../../../systems/gameplay/spellPreparation';
 import SpellContext from '../../../context/SpellContext';
 import GlossaryContext from '../../../context/GlossaryContext';
 import { CLASSES_DATA } from '../../../constants';
@@ -50,8 +55,9 @@ import { SpellSummaryCard } from '../../ui/SpellSummaryCard';
 // Character Sheet supplies before the component assembles its visible spell list.
 // ============================================================================
 
-// Casters that pick spells permanently (no daily preparation step).
-const KNOWN_CASTER_CLASS_IDS = ['bard', 'sorcerer', 'warlock', 'ranger'];
+// These classes choose daily spells from their class list. A wizard still
+// needs a learned spell in the spellbook; browsing a list never teaches it.
+const CLASS_LIST_PREPARATION_IDS = ['cleric', 'druid', 'paladin', 'artificer'];
 
 interface SpellReferencedRule {
     label: string;
@@ -70,6 +76,7 @@ interface SpellReferencedRulesEnrichmentFile {
 
 interface SpellbookTabProps {
     character: PlayerCharacter;
+    rulesEdition?: RulesEdition;
     onAction: (action: Action) => void;
     /** Full party, used by the out-of-combat cast target picker. */
     party?: PlayerCharacter[];
@@ -77,7 +84,8 @@ interface SpellbookTabProps {
     onNavigateToGlossary?: (termId: string) => void;
 }
 
-const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party, onNavigateToGlossary }) => {
+const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party, onNavigateToGlossary, rulesEdition }) => {
+    const edition = getRulesEdition({rulesEdition});
     const [currentLevel, setCurrentLevel] = useState(0);
     const [selectedSpellId, setSelectedSpellId] = useState<string | null>(null);
     const [showAllPossibleSpells, setShowAllPossibleSpells] = useState(false);
@@ -132,7 +140,9 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party,
         }
 
         const { spellbook, spellSlots } = character;
-        const maxSpellLevelCharCanCast = Math.max(0, ...Object.keys(spellSlots ?? {}).map(k => parseInt(k.replace('level_', ''))));
+        const maxSpellLevelCharCanCast = Math.max(0, ...Object.entries(spellSlots ?? {})
+            .filter(([, slot]) => slot.max > 0)
+            .map(([key]) => parseInt(key.replace('level_', ''))));
         
         // Include levels for future racial spell grants
         const racialFutureLevels = (character.race.knownSpells ?? [])
@@ -148,6 +158,7 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party,
         const known = new Set([
             ...(spellbook.cantrips ?? []),
             ...(spellbook.preparedSpells ?? []),
+            ...(spellbook.preparationPlan?.preparedSpells ?? []),
             ...(spellbook.knownSpells ?? []),
             ...(character.race.knownSpells?.map(s => s.spellId) ?? [])
         ]);
@@ -192,7 +203,9 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party,
     const selectedSpellEntry = useMemo(() => {
         if (!selectedSpellId || !glossaryEntries) return null;
         const { entry } = findGlossaryEntryAndPath(selectedSpellId, glossaryEntries);
-        return entry;
+        // Shield is also an equipment ID. Only spell entries may replace the
+        // selected spell record; other matches use its existing detail pane.
+        return entry && (entry.hasSpellJson || entry.category.toLowerCase() === 'spells') ? entry : null;
     }, [selectedSpellId, glossaryEntries]);
 
     // Readiness gate for the out-of-combat Cast button: cantrips must be known;
@@ -208,7 +221,7 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party,
                 ? { ready: true as const, reason: undefined }
                 : { ready: false as const, reason: 'Not a known cantrip.' };
         }
-        const isKnownCaster = KNOWN_CASTER_CLASS_IDS.includes(character.class.id.toLowerCase());
+        const isKnownCaster = !usesRestPreparation(character, edition);
         const alwaysPrepared =
             isRacialSpellLockedForPreparation(character, selectedSpell.id) ||
             (character.class.id === 'druid' && selectedSpell.id === 'speak-with-animals');
@@ -218,7 +231,7 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party,
         return ready
             ? { ready: true as const, reason: undefined }
             : { ready: false as const, reason: isKnownCaster ? 'Not a known spell.' : 'Not prepared.' };
-    }, [selectedSpell, character, knownSpellIds, preparedSpellIds]);
+    }, [selectedSpell, character, knownSpellIds, preparedSpellIds, edition]);
 
     if (!allSpellsData || !character.spellbook) {
         return (
@@ -232,13 +245,19 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party,
 
     // Calculate prepared spell count and limit
     const preparedCount = getPreparedSpellsAffectingLimit(character).size;
-    const maxPrepared = getMaxPreparedSpells(character);
-    const isAtPrepLimit = maxPrepared !== null && preparedCount >= maxPrepared;
+    const maxPrepared = getMaxPreparedSpells(character, edition);
+    const plan = character.spellbook.preparationPlan;
+    const plannedIds = new Set(plan?.preparedSpells ?? character.spellbook.preparedSpells);
+    const plannedCount = getPreparedSpellsAffectingLimit({...character, spellbook: {...character.spellbook, preparedSpells: [...plannedIds]}}).size;
+    const isAtPrepLimit = maxPrepared !== null && plannedCount >= maxPrepared;
+    const spellLevels = Object.fromEntries(Object.values(allSpellsData).map(spell => [spell.id, spell.level]));
+    const planError = plan ? preparationPlanError(character, plan, edition) : null;
+    const restPreparation = usesRestPreparation(character, edition);
 
     return (
-        <div className="h-full flex overflow-hidden rounded-lg border border-slate-700/50 bg-slate-900/50">
+        <div className="h-full min-h-0 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden rounded-lg border border-slate-700/50 bg-slate-900/50">
             {/* Left Column - Spell List */}
-            <div className="w-80 flex-shrink-0 border-r border-slate-700 flex flex-col bg-slate-800/30">
+            <div className="h-64 md:h-auto w-full md:w-80 flex-shrink-0 border-b md:border-b-0 md:border-r border-slate-700 flex flex-col bg-slate-800/30">
                 {/* Level Tabs */}
                 <div className="p-3 border-b border-slate-700 flex flex-wrap gap-1.5">
                     {levels.map(level => (
@@ -272,11 +291,17 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party,
                                 const isFutureRacial = racialGrant && racialGrant.minLevel > (character.level || 1);
                                 
                                 // Known-spell casters choose spells permanently elsewhere, so this sheet should not offer preparation toggles for them.
-                                const isKnownCaster = ['bard', 'sorcerer', 'warlock', 'ranger'].includes(character.class.id.toLowerCase());
+                                const isKnownCaster = !restPreparation;
                                 const isKnown = knownSpellIds.has(spell.id) && !isFutureRacial;
+                                const canChooseFromClassList = (CLASS_LIST_PREPARATION_IDS.includes(character.class.id.toLowerCase()) || (edition === '2024' && character.class.id === 'ranger'))
+                                    && (CLASSES_DATA[character.class.id]?.spellcasting?.spellList.includes(spell.id) ?? false)
+                                    && (character.spellSlots?.[`level_${spell.level}` as keyof NonNullable<PlayerCharacter['spellSlots']>]?.max ?? 0) > 0;
+                                const canPrepare = !isFutureRacial && (preparedSpellIds.has(spell.id) || !preparationSpellError(character, spell.id, spell.level, edition));
                                 const isPrepared = (preparedSpellIds.has(spell.id) || isAlwaysPrepared || racialAlwaysPrepared) && !isFutureRacial;
                                 const isSelected = selectedSpellId === spell.id;
                                 const isLocked = isAlwaysPrepared || racialAlwaysPrepared;
+                                const isPlanned = plannedIds.has(spell.id);
+                                const choiceError = togglePreparationPlan(character, spell.id, spellLevels, edition).error;
 
                                 const statusBadges = (
                                     <>
@@ -290,7 +315,10 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party,
                                                 {isAlwaysPrepared || racialAlwaysPrepared ? 'Always' : 'Prep'}
                                             </span>
                                         )}
-                                        {!isPrepared && isKnown && spell.level > 0 && (
+                                        {plan && isPlanned !== preparedSpellIds.has(spell.id) && (
+                                            <span className="text-[9px] text-amber-300">{isPlanned ? 'After rest' : 'Remove after rest'}</span>
+                                        )}
+                                        {!isPrepared && canPrepare && spell.level > 0 && (
                                             <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-700 text-slate-400 border border-slate-600/50 font-bold tracking-wider flex-shrink-0">
                                                 Unprepared
                                             </span>
@@ -298,25 +326,26 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party,
                                     </>
                                 );
 
-                                const prepareButton = spell.level > 0 && isKnown && maxPrepared !== null && !isKnownCaster ? (
+                                const prepareButton = spell.level > 0 && canPrepare && maxPrepared !== null && !isKnownCaster ? (
                                     <button
-                                        className={`opacity-0 group-hover:opacity-100 px-2 py-0.5 text-[10px] font-bold uppercase rounded transition-all ${isPrepared && !isLocked
+                                        title={choiceError ?? "Plan a change for the next eligible long rest; current spells stay active."}
+                                        className={`min-h-11 md:min-h-0 px-2 py-0.5 text-[10px] font-bold uppercase rounded transition-all disabled:opacity-40 disabled:cursor-not-allowed ${isPlanned && !isLocked
                                             ? 'bg-slate-600 text-slate-200 hover:bg-slate-500'
                                             : isAtPrepLimit && !isPrepared
                                                 ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
                                                 : 'bg-purple-600/80 text-white hover:bg-purple-500'
                                             }`}
-                                        disabled={isLocked || (!isPrepared && isAtPrepLimit)}
+                                        disabled={isLocked || Boolean(choiceError)}
                                         onClick={(event) => {
                                             event.stopPropagation();
                                             onAction({
                                                 type: 'TOGGLE_PREPARED_SPELL',
-                                                label: 'Toggle Spell Prep',
+                                                label: 'Plan Spell Preparation',
                                                 payload: { characterId: character.id!, spellId: spell.id }
                                             });
                                         }}
                                     >
-                                        {isPrepared ? (isLocked ? '-' : 'Unprep') : 'Prep'}
+                                        {isLocked ? '-' : isPlanned ? 'Plan removal' : 'Plan prepare'}
                                     </button>
                                 ) : null;
 
@@ -329,13 +358,13 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party,
                                         density="row"
                                         onSelect={() => setSelectedSpellId(spell.id)}
                                         leadingIcon={
-                                            <span className={`material-symbols-outlined text-base ${isSelected ? 'text-purple-400' : 'text-slate-500 group-hover:text-purple-400'}`}>
-                                                {isFutureRacial ? 'lock' : 'auto_fix_high'}
+                                            <span aria-hidden="true" className={isSelected ? 'text-purple-400' : 'text-slate-500 group-hover:text-purple-400'}>
+                                                {isFutureRacial ? <Lock size={16}/> : <Sparkles size={16}/>}
                                             </span>
                                         }
                                         statusBadges={statusBadges}
                                         trailing={prepareButton}
-                                        className={`group ${!isKnown ? 'opacity-50 hover:opacity-80 grayscale hover:grayscale-0' : ''}`}
+                                        className={`group ${!isKnown && !canChooseFromClassList ? 'opacity-50 hover:opacity-80 grayscale hover:grayscale-0' : ''}`}
                                     />
                                 );
                             })}
@@ -345,12 +374,12 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party,
             </div>
 
             {/* Right Column - Spell Details */}
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="min-h-0 min-w-0 flex-none md:flex-1 flex flex-col overflow-visible md:overflow-hidden">
                 {/* Right Header - Spell Slots, Prepared Count & Toggle */}
-                <div className="flex items-center justify-between px-6 py-3 border-b border-slate-700 bg-slate-800/20">
+                <div className="flex flex-wrap items-center justify-between gap-2 px-3 md:px-6 py-3 border-b border-slate-700 bg-slate-800/20">
                     <div className="flex items-center gap-4">
                         <SpellSlotDisplay spellSlots={character.spellSlots} />
-                        {maxPrepared !== null && !['bard', 'sorcerer', 'warlock', 'ranger'].includes(character.class.id.toLowerCase()) && (
+                        {maxPrepared !== null && restPreparation && (
                             <div className="flex items-center gap-1.5">
                                 <span className="text-xs text-slate-400">Prepared</span>
                                 <span className={`text-sm font-bold ${isAtPrepLimit ? 'text-amber-400' : 'text-purple-400'}`}>
@@ -377,6 +406,22 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party,
                     </label>
                 </div>
 
+                {restPreparation && (
+                    <div className="shrink-0 max-h-40 overflow-y-auto px-3 md:px-6 py-2 md:py-3 border-b border-slate-700 text-xs md:text-sm text-slate-300" aria-label="Preparation plan">
+                        <p>Current spells stay available until an eligible long rest completes. {edition === '2024' && ['paladin', 'ranger'].includes(character.class.id.toLowerCase()) ? 'You may replace one spell per long rest.' : 'Plan your next daily list here.'}</p>
+                        {plan && <>
+                            <p className="mt-1 text-amber-300">After rest: {plannedCount} / {maxPrepared} prepared. {planError ?? 'These choices apply when you complete the rest.'}</p>
+                            <p>{plan.preparedSpells.map(id => allSpellsData[id]?.name ?? id).join(', ') || 'No planned spells.'}</p>
+                            {preparationMinutes(character, edition) > 0 && <p>Prayer or study: {preparationMinutes(character, edition)} additional minutes after the rest, at your current location.</p>}
+                            <button type="button" className="min-h-11 md:min-h-0 mt-2 underline text-amber-200" onClick={() => onAction({type: 'TOGGLE_PREPARED_SPELL', label: 'Reset spell preparation plan', payload: {characterId: character.id!, spellId: '', resetPlan: true}})}>Reset planned changes</button>
+                        </>}
+                    </div>
+                )}
+                {!restPreparation && ['bard', 'sorcerer', 'warlock', 'ranger'].includes(character.class.id.toLowerCase()) && (
+                    <p className="shrink-0 px-3 md:px-6 py-3 border-b border-slate-700 text-sm text-slate-300">
+                        {character.class.name} spell selections change when you gain a class level. Resting does not replace them.
+                    </p>
+                )}
                 {/* Out-of-combat casting bar for the selected spell */}
                 {selectedSpell && (
                     <CastSpellControls
@@ -410,7 +455,7 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party,
                     </div>
                 )}
 
-                <div className="flex-1 overflow-y-auto p-6 scrollable-content">
+                <div className="flex-none md:flex-1 overflow-visible md:overflow-y-auto p-3 md:p-6 scrollable-content">
                     {selectedSpellEntry?.hasSpellJson && selectedSpell ? (
                         <SpellCardTemplate
                             spell={selectedSpell}
@@ -426,13 +471,13 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party,
                         <SpellDetailPane spell={selectedSpell} />
                     ) : selectedSpellId ? (
                         <div className="flex flex-col items-center justify-center h-full text-slate-500">
-                            <span className="material-symbols-outlined text-4xl mb-2">search_off</span>
+                            <Search aria-hidden="true" size={40} className="mb-2"/>
                             <p>Spell data not found.</p>
                             <p className="text-sm">ID: {selectedSpellId}</p>
                         </div>
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full text-slate-500">
-                            <span className="material-symbols-outlined text-4xl mb-2">touch_app</span>
+                            <MousePointer aria-hidden="true" size={40} className="mb-2"/>
                             <p>Select a spell to view details</p>
                         </div>
                     )}

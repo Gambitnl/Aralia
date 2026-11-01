@@ -7,7 +7,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { rollAbilityCheck } from '../checkUtils';
+import { rollAbilityCheck, getCheckAdvantageSources, hasArmorStealthDisadvantage } from '../checkUtils';
 import { CombatCharacter } from '../../../types/combat';
 import { rollDice } from '../../../systems/dice/rollers';
 import { rollSavingThrow } from '../savingThrowUtils';
@@ -172,5 +172,93 @@ describe('rollAbilityCheck', () => {
 
     expect(result.roll).toBe(18);
     expect(rollDice).toHaveBeenCalledWith('1d20', { rng: deterministicRng });
+  });
+
+  it('applies Jack of All Trades (floor(PB/2)) to untrained ability and skill checks', () => {
+    // Level 2 Bard: proficiency bonus is 2 -> Jack of All Trades adds floor(2/2) = 1.
+    const bard = {
+      id: 'bard-pc',
+      name: 'Minstrel',
+      level: 2,
+      proficiencyBonus: 2,
+      class: { id: 'bard' },
+      finalAbilityScores: {
+        Strength: 10,
+        Dexterity: 10,
+        Constitution: 10,
+        Intelligence: 10,
+        Wisdom: 10,
+        Charisma: 16,
+      },
+      skills: [{ id: 'performance', name: 'Performance', ability: 'Charisma' }],
+      statusEffects: [],
+      modifiers: { advantage: [], disadvantage: [], bonuses: [] },
+    } as any;
+
+    // Untrained Stealth (Dex 10 -> +0 mod): rolls 10, gets +1 from Jack of All Trades -> total 11
+    vi.mocked(rollDice).mockReturnValue(10);
+    const untrainedStealth = rollAbilityCheck(bard, 'Dexterity', 'Stealth');
+    expect(untrainedStealth.roll).toBe(10);
+    expect(untrainedStealth.total).toBe(11);
+    expect(untrainedStealth.modifiersApplied).toEqual([{ source: 'Jack of All Trades', value: 1 }]);
+
+    // Bare Dexterity check (no skill): also gets +1 from Jack of All Trades -> total 11
+    vi.clearAllMocks();
+    vi.mocked(rollDice).mockReturnValue(10);
+    const bareDexCheck = rollAbilityCheck(bard, 'Dexterity');
+    expect(bareDexCheck.roll).toBe(10);
+    expect(bareDexCheck.total).toBe(11);
+    expect(bareDexCheck.modifiersApplied).toEqual([{ source: 'Jack of All Trades', value: 1 }]);
+
+    // Proficient Performance (Cha 16 -> +3 mod, prof bonus +2): rolls 10, total 15, no Jack of All Trades
+    vi.clearAllMocks();
+    vi.mocked(rollDice).mockReturnValue(10);
+    const perfCheck = rollAbilityCheck(bard, 'Charisma', 'Performance');
+    expect(perfCheck.roll).toBe(10);
+    expect(perfCheck.total).toBe(15);
+    expect(perfCheck.modifiersApplied).toBeUndefined();
+  });
+
+  it('applies disadvantage to Stealth checks when wearing armor with stealthDisadvantage (GG-503)', () => {
+    const chainMailPlayer = {
+      id: 'chain-mail-warrior',
+      name: 'Knight',
+      level: 3,
+      proficiencyBonus: 2,
+      equippedItems: {
+        Torso: {
+          id: 'chain_mail',
+          name: 'Chain Mail',
+          type: 'armor',
+          armorCategory: 'Heavy',
+          stealthDisadvantage: true,
+        },
+      },
+      finalAbilityScores: { Dexterity: 14 },
+      skills: [{ id: 'stealth', name: 'Stealth', ability: 'Dexterity' }],
+      statusEffects: [],
+      modifiers: { advantage: [], disadvantage: [], bonuses: [] },
+    } as any;
+
+    expect(hasArmorStealthDisadvantage(chainMailPlayer)).toBe(true);
+
+    // Roll d20 twice due to disadvantage: rolls 18 and 4 -> takes 4
+    vi.mocked(rollDice).mockReturnValueOnce(18).mockReturnValueOnce(4);
+    const stealthResult = rollAbilityCheck(chainMailPlayer, 'Dexterity', 'Stealth');
+    expect(stealthResult.roll).toBe(4);
+    expect(rollDice).toHaveBeenCalledTimes(2);
+
+    // Non-stealth check (e.g. Acrobatics) rolls once without disadvantage
+    vi.clearAllMocks();
+    vi.mocked(rollDice).mockReturnValueOnce(15);
+    const acrobaticsResult = rollAbilityCheck(chainMailPlayer, 'Dexterity', 'Acrobatics');
+    expect(acrobaticsResult.roll).toBe(15);
+    expect(rollDice).toHaveBeenCalledTimes(1);
+
+    // getCheckAdvantageSources reports Armor disadvantage for Stealth
+    const sources = getCheckAdvantageSources(chainMailPlayer, 'Dexterity', 'Stealth');
+    expect(sources.disadvantage).toContain('Armor');
+    const acroSources = getCheckAdvantageSources(chainMailPlayer, 'Dexterity', 'Acrobatics');
+    expect(acroSources.disadvantage).not.toContain('Armor');
   });
 });

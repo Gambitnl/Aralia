@@ -11,6 +11,7 @@ import { SeededRandom } from '../../../../utils/random/seededRandom';
 import { initTownSimState, ageOf, rollTownDay, advanceTownDays } from '../townSim';
 import { advanceTown } from '../townSimRegistry';
 import type { TownSimState, LivingVillager } from '../types';
+import type { TownRoster } from '../../roster/types';
 import { COURTSHIP_DAYS, DAYS_PER_YEAR, RETENTION_YEARS } from '../constants';
 import { generateTownRoster } from '../../roster/generateTownRoster';
 import { assignFamilies } from '../../roster/family';
@@ -239,6 +240,13 @@ function realInit(worldSeed: number, population: number) {
 }
 
 describe('initTownSimState (real roster + families)', () => {
+  it('persists household provenance without changing the canonical numeric record', () => {
+    const roster: TownRoster={burgId:1,occupants:[{id:405,name:'Roban Westsmith',householdMemberId:'b151:head',
+      ageBand:'adult',homePlotId:151,workPlotId:156,occupation:'shopkeeper'}]};
+    const state=initTownSimState(1,roster,new Map(),new Map(),0);
+    expect(state.villagers[405]).toMatchObject({occupantId:405,householdMemberId:'b151:head',homePlotId:151});
+    expect(JSON.parse(JSON.stringify(state)).villagers[405].householdMemberId).toBe('b151:head');
+  });
   it('builds one living villager per occupant with derived bornDay/race', () => {
     const { roster, state } = realInit(1337, 200);
     expect(Object.keys(state.villagers).length).toBe(roster.occupants.length);

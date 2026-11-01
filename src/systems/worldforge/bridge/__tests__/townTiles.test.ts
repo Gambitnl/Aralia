@@ -64,7 +64,10 @@ describe('getTownTilesForGrid', () => {
 
       expect(ground.towns.length).toBeGreaterThan(0);
     }
-  }, 60_000);
+  // 180 s (GG-552, 2026-11-01): the town-look rules (Remy's ruling q2) give
+  // towns 2 to 3 times more buildings. Six ground builds took 58.5 s alone and
+  // 95 s beside other suites, over the old 60 s bound.
+  }, 180_000);
 
   it('returns deterministic results for repeat calls', () => {
     const first = getTownTilesForGrid(42, 30, 20);

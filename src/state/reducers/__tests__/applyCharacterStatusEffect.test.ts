@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { characterReducer } from '../characterReducer';
 import type { GameState } from '../../../types';
 import type { AppAction } from '../../actionTypes';
+import { buildOutOfCombatStatusEffect } from '../../../utils/spells/outOfCombatCasting';
+import bladeWardData from '../../../../public/data/spells/level-0/blade-ward.json';
+import type { Spell } from '../../../types';
 
 const EFFECT = {
   id: 'se-guidance-1',
@@ -29,6 +32,27 @@ const apply = (state: GameState, statusEffect: object = EFFECT) =>
   } as AppAction);
 
 describe('APPLY_CHARACTER_STATUS_EFFECT', () => {
+  it('replaces only this caster\'s prepared concentration across party holders', () => {
+    const spell = bladeWardData as unknown as Spell;
+    const ward = buildOutOfCombatStatusEffect(spell, 'pc-1', new Date(), 0)!;
+    const otherCaster = buildOutOfCombatStatusEffect(spell, 'pc-2', new Date(), 0)!;
+    const old = { ...ward, id: 'ooc-old-spell-pc-1', sourceSpellId: 'old-spell', name: 'Old spell', source: 'Old spell' };
+    const state = stateWith([otherCaster, EFFECT]);
+    state.party[1].statusEffects = [old];
+    const next = apply(state, ward);
+    expect(next.party?.[0].statusEffects).toEqual([otherCaster, EFFECT, ward]);
+    expect(next.party?.[1].statusEffects).toEqual([]);
+    expect(state.party[1].statusEffects).toEqual([old]);
+  });
+
+  it('does not clear concentration when its requested recipient is absent', () => {
+    const ward = buildOutOfCombatStatusEffect(bladeWardData as unknown as Spell, 'pc-1', new Date(), 0)!;
+    const state = stateWith([ward]);
+    const next = characterReducer(state, { type: 'APPLY_CHARACTER_STATUS_EFFECT',
+      payload: { characterId: 'absent', statusEffect: ward } } as AppAction);
+    expect(next).toEqual({});
+    expect(state.party[0].statusEffects).toEqual([ward]);
+  });
   it('appends the effect to the matching party member only', () => {
     const next = apply(stateWith([]));
     expect(next.party?.[0].statusEffects).toHaveLength(1);

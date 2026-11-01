@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 12/08/2026, 01:08:51
- * Dependents: components/DesignPreview/steps/scenarioControls/sustainActionsOngoingControlScenarioControls.ts
- * Imports: 11 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file turns Witch Bolt's structured ongoing rules into live combat state.
  *
@@ -27,6 +11,23 @@
  * Depends on: canonical Witch Bolt JSON and shared combat-rule utilities.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/10/2026, 06:47:53
+ * Dependents: components/DesignPreview/steps/scenarioControls/sustainActionsOngoingControlScenarioControls.ts
+ * Imports: 12 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import { getExhaustionD20Penalty } from '@/utils/combat/physicsUtils';
 import witchBoltData from '@/data/spells/level-1/witch-bolt.json';
 import type { PlayerCharacter } from '../../../types';
 import type {
@@ -527,8 +528,10 @@ export function resolveWitchBoltInitialCast(
     };
   }
 
+  // Only the initial attack is a D20 test. Later automatic linked damage
+  // below retains its existing cost and must not acquire another attack roll.
   const attackBonus = getAbilityModifierValue(score)
-    + calculateProficiencyBonus(actors.caster.level || 1);
+    + calculateProficiencyBonus(actors.caster.level || 1) - getExhaustionD20Penalty(actors.caster);
   const targetAc = actors.target.armorClass ?? actors.target.baseAC ?? 10;
   const attack = resolveAttack(input.d20Roll, attackBonus, targetAc);
   const paidCaster = consumeActionCost(actors.caster, cost);

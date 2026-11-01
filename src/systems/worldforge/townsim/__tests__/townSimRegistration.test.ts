@@ -8,7 +8,8 @@ import { worldReducer } from '../../../../state/reducers/worldReducer';
 import { createMockGameState } from '../../../../utils/core/factories';
 import { getGameDay } from '../../../../utils/core';
 import { getTownTilesForGrid } from '../../bridge/legacySubmapBridge';
-import { buildTownSimStateForBurg } from '../townSimRegistration';
+import { buildTownSimStateForBurg, buildingEvolutionForBurg, townRosterForBurg } from '../townSimRegistration';
+import { CURRENT_TOWN_LAYOUT_REVISION } from '../../town/townLayoutRevision';
 import { advanceTown } from '../townSimRegistry';
 import {
   isBuildingHistoryJournal,
@@ -24,6 +25,7 @@ describe('buildTownSimStateForBurg', () => {
     expect(firstBurgId).toBeDefined();
     const s = buildTownSimStateForBurg(SEED, firstBurgId!, 100);
     expect(s.burgId).toBe(firstBurgId);
+    expect(s.layoutRevision).toBe(CURRENT_TOWN_LAYOUT_REVISION);
     expect(Object.keys(s.villagers).length).toBeGreaterThan(0);
     expect(s.lastSimDay).toBe(100);
     const roleHolders = Object.values(s.villagers).filter((v) => v.role).length;
@@ -103,10 +105,18 @@ describe('canonical building lifecycle', () => {
 
     expect(kinds).toContain('abandonment');
     expect(kinds).toContain('reoccupation');
-    expect(kinds).toContain('ruin');
+    // Re-pinned 2026-11-02 (GG-552 rule, GG-563/GG-577 layout): the first
+    // burg (512) refills all 24 empty homes before neglect can ruin them, so
+    // it shows no ruin in a century. Burg 205 of the same world shows 2.
+    const ruinTown = advanceTown(buildTownSimStateForBurg(SEED, 205, 0), SEED, 100 * 365);
+    const ruinKinds = Object.values(ruinTown.buildingEvents ?? {})
+      .flatMap((history) => isBuildingHistoryJournal(history) ? history.events : history)
+      .map((event) => event.kind);
+    expect(ruinKinds).toContain('ruin');
     // 2026-07-20: 20s → 60s. Corner-wedge packing raised canonical town
     // density ~25%, and this century sim scales with building count.
-  }, 60_000);
+    // 2026-11-02: 60s → 120s for the second town's century.
+  }, 120_000);
 });
 
 describe('TOWNSIM_REGISTER_BURG reducer (Plan D wiring)', () => {
@@ -145,5 +155,42 @@ describe('TOWNSIM_REGISTER_BURG reducer (Plan D wiring)', () => {
     expect(migrated.villagers).toBe(oldTown.villagers);
     expect(migrated.chronicle).toBe(oldTown.chronicle);
     expect(migrated.buildingEvents).toBe(oldTown.buildingEvents);
+  });
+});
+
+
+describe('saved canonical town layout selection', () => {
+  it('retains the selected earlier layout through backfill, daily life and JSON serialization', () => {
+    const town = buildTownSimStateForBurg(SEED, firstBurgId!, 100, 1);
+    expect(town.layoutRevision).toBe(1);
+    const advanced = advanceTown(town, SEED, 102);
+    expect(JSON.parse(JSON.stringify(advanced)).layoutRevision).toBe(1);
+    expect(townRosterForBurg(SEED, firstBurgId!, 1)).not.toEqual(
+      townRosterForBurg(SEED, firstBurgId!, 2),
+    );
+  });
+
+  it('hydrates missing growth from the saved earlier layout without replacing people or history', () => {
+    const base = { ...createMockGameState(), worldSeed: SEED };
+    const original = buildTownSimStateForBurg(SEED, firstBurgId!, 100, 1);
+    const oldTown = { ...original, buildingEvolution: undefined };
+    const result = worldReducer({ ...base, townSim: { [firstBurgId!]: oldTown } },
+      { type: 'TOWNSIM_REGISTER_BURG', payload: { burgId: firstBurgId! } } as never);
+    const hydrated = result.townSim![firstBurgId!];
+    expect(hydrated.layoutRevision).toBe(1);
+    expect(hydrated.buildingEvolution).toEqual(buildingEvolutionForBurg(SEED, firstBurgId!, 1));
+    expect(hydrated.villagers).toBe(oldTown.villagers);
+    expect(hydrated.chronicle).toBe(oldTown.chronicle);
+    expect(hydrated.buildingEvents).toBe(oldTown.buildingEvents);
+  });
+
+  it('does not guess a revision or hydrate new-lot growth into an unversioned save', () => {
+    const base = { ...createMockGameState(), worldSeed: SEED };
+    const registered = buildTownSimStateForBurg(SEED, firstBurgId!, 100);
+    const oldTown = { ...registered, layoutRevision: undefined, buildingEvolution: undefined };
+    const before = JSON.stringify(oldTown);
+    expect(worldReducer({ ...base, townSim: { [firstBurgId!]: oldTown } },
+      { type: 'TOWNSIM_REGISTER_BURG', payload: { burgId: firstBurgId! } } as never)).toEqual({});
+    expect(JSON.stringify(oldTown)).toBe(before);
   });
 });

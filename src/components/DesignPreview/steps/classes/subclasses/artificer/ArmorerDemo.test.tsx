@@ -107,10 +107,13 @@ describe('Armorer native Arcane Armor boundary', () => {
     expect(level2Audit.combatClassId).toBe('artificer');
     expect(guardianAudit.combatClassId).toBe('artificer');
     expect(infiltratorAudit.combatClassId).toBe('artificer');
-    // The production quick-character fixture starts empty. Its absence of generic
-    // equipment makes the negative subclass audit stricter, not weaker.
-    expect(guardianAudit.hasGenericWornArmor).toBe(false);
-    expect(guardianAudit.hasGenericWeaponAttack).toBe(false);
+    // GG-559 (2026-11-01): the production quick-character fixture now carries the
+    // Artificer starting kit (leather armor, light crossbow) instead of starting
+    // empty. These two values changed only for that reason. Generic armor and a
+    // generic weapon attack are now present, and every native Arcane Armor check
+    // below still fails, which is the "rejects generic equipment" claim itself.
+    expect(guardianAudit.hasGenericWornArmor).toBe(true);
+    expect(guardianAudit.hasGenericWeaponAttack).toBe(true);
     expect(guardianAudit.maxArmorProficiency).toBe('medium');
     expect(guardianAudit.hasHeavyArmorProficiency).toBe(false);
     expect(guardianAudit.hasArcaneArmorAbility).toBe(false);

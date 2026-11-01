@@ -71,6 +71,12 @@ export const LEGEND_ITEMS: Array<{
   },
   { swatch: "bg-emerald-300/80", label: "Destination" },
   { swatch: "bg-rose-500/60", label: "Attack Range" },
+  // GG-495: the same color, faded and hatched, marks the long-range band.
+  {
+    swatch:
+      "bg-rose-500/[0.14] bg-[repeating-linear-gradient(135deg,rgba(244,63,94,0.32)_0px,rgba(244,63,94,0.32)_2px,transparent_2px,transparent_7px)]",
+    label: "Long Range (Disadvantage)",
+  },
   { swatch: "bg-orange-500/60", label: "Area Effect" },
   {
     swatch: "border-t-2 border-amber-200/70",

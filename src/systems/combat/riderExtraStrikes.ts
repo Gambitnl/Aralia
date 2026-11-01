@@ -22,7 +22,7 @@ import type { Ability, CombatCharacter, CombatLogEntry, CombatState } from '../.
 import type { CombatAttackResult } from '../events/CombatEvents';
 import { AbilityCommandFactory, CommandExecutor } from '../../commands';
 import { combatEvents } from '../events/CombatEvents';
-import { buildCommandGameState } from '../../hooks/actionUtils';
+import { buildCommandGameState } from './commandGameState';
 import {
   resolveGiantKillerReaction,
   resolveHordeBreakerAttack,

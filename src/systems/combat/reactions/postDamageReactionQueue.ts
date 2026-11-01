@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 13/08/2026, 09:59:57
- * Dependents: hooks/useAbilitySystem.ts
- * Imports: 3 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file bridges normal combat damage logs into explicit reaction choices.
  *
@@ -26,6 +10,22 @@
  * Called by: useAbilitySystem after spell and ability command execution.
  * Depends on: typed combat logs and the canonical Hellish Rebuke resolver.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 13:19:17
+ * Dependents: hooks/ability/execution/spellExecutionFlow.ts, hooks/ability/useAbilityExecution.ts, hooks/ability/useReactionSystem.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import type { BattleMapData, CombatCharacter, CombatLogEntry } from '../../../types/combat';
 import type { Spell } from '../../../types/spells';
@@ -99,6 +99,7 @@ export function extractPostHpDamageEvents(combatLog: CombatLogEntry[]): Reactive
       rawDamage: data.rawDamage,
       finalDamage: data.finalDamage,
       damageType: data.damageType ?? data.type ?? 'untyped',
+      damageComponents: data.damageComponents,
       hpBefore: data.hitPointsBefore,
       hpAfter: data.hitPointsAfter,
       tempHPBefore: data.temporaryHitPointsBefore,

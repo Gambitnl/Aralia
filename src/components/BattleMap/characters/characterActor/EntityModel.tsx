@@ -7,11 +7,28 @@
  * The combat chrome (rings, badges, pips, nameplate) stays in CharacterActor;
  * this component owns only the body.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 28/10/2026, 23:02:13
+ * Dependents: components/BattleMap/BattleMap3DGpuScene.tsx, components/BattleMap/characters/characterActor/CharacterBody.tsx, components/BattleMap/dungeon/DungeonCreatureFigure.tsx, components/BattleMap/dungeon/DungeonPartyFigure.tsx
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Vector3, type Object3D } from 'three';
 import type { EntityBlueprint } from '@/systems/entities3d/types';
-import { assembleEntity, gameBodyOptions } from '@/systems/entities3d/three/assembleEntity';
+import { assembleEntity, gameBodyOptions, type BodyTech } from '@/systems/entities3d/three/assembleEntity';
 import type { LocomotionState } from '@/systems/entities3d/three/gaits';
 import type { AnimationState } from './models';
 import { combatOverlayPose } from './entityOverlays';
@@ -45,9 +62,12 @@ interface EntityModelProps {
    * function identity rebuilds the body.
    */
   adaptMaterials?: (root: Object3D) => void;
+  /** Local anatomy override: water can use the existing continuous tube path.
+   * Omitted keeps every existing combat/town actor on its current defaults. */
+  bodyTech?: BodyTech;
 }
 
-export const EntityModel: React.FC<EntityModelProps> = ({ blueprint, animState, animTimeRef, controlPose = null, adaptMaterials }) => {
+export const EntityModel: React.FC<EntityModelProps> = ({ blueprint, animState, animTimeRef, controlPose = null, adaptMaterials, bodyTech }) => {
   // Tactical camera distance affords chunkier fields, and stationary tokens
   // don't need 60 Hz body rebuilds — a whole encounter must stay cheap.
   // Skinned by default (skeleton pivot flip 2026-08-18): a whole encounter of
@@ -58,6 +78,7 @@ export const EntityModel: React.FC<EntityModelProps> = ({ blueprint, animState, 
         resolutionScale: 0.7,
         fieldUpdateHz: 10,
         ...gameBodyOptions(blueprint),
+        ...(bodyTech ? {bodyTech} : {}),
       });
       // Backend adaptation happens here, not in an effect: the group is handed
       // to the renderer on this same commit, and a one-frame black body would
@@ -65,7 +86,7 @@ export const EntityModel: React.FC<EntityModelProps> = ({ blueprint, animState, 
       adaptMaterials?.(assembled.group);
       return assembled;
     },
-    [blueprint, adaptMaterials],
+    [blueprint, adaptMaterials, bodyTech],
   );
   useEffect(() => {
     handle.retain();

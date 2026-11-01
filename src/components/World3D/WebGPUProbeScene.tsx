@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 17/08/2026, 15:43:41
- * Dependents: components/World3D/WebGPUProbe.tsx
- * Imports: 21 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file WebGPUProbeScene.tsx
  * @description PROBE-LOCAL copy of the streamed-world R3F scene, rendered through
@@ -64,9 +48,26 @@
  * probe fails loudly; the badge shows the real backend either way.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 05:58:04
+ * Dependents: components/World3D/WebGPUProbe.tsx
+ * Imports: 22 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useMemo, useRef, useEffect, useLayoutEffect } from 'react';
 import { Canvas, extend, useFrame, useThree, type Catalogue } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
+import { beamRotation } from '@/systems/world3d/beamGeometry';
 import type { WebGLRenderer } from 'three';
 import {
   vec3,
@@ -472,6 +473,10 @@ const SiteBoxBatchMesh: React.FC<{
       position.set(instance.x, instance.y, instance.z);
       rotation.setFromAxisAngle(up, instance.rotationY);
       scale.set(instance.width, instance.height, instance.depth);
+      if (instance.beam) {
+        rotation.multiply(beamRotation(instance.beam));
+        scale.set(instance.beam.thickness, Math.hypot(instance.beam.dx, instance.beam.dy, instance.beam.dz), instance.beam.thickness);
+      }
       matrix.compose(position, rotation, scale);
       mesh.setMatrixAt(index, matrix);
       mesh.setColorAt(index, color);

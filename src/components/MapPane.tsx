@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 09/09/2026, 11:30:56
- * Dependents: components/layout/GameModals.tsx
- * Imports: 55 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file MapPane.tsx
  * World map modal surface. Worldforge native renderers (SVG/canvas) are the sole
@@ -25,6 +9,27 @@
  * claim that it receives a legacy grid and reads it through a geography adapter
  * was already false when the adapter was deleted; the contract type now says so.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/10/2026, 13:07:48
+ * Dependents: components/layout/GameModals.tsx
+ * Imports: 63 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import type { GameState } from '../types/state';
+import { learnedCompanionDestinations } from '../systems/companions/companionGoalDestinations';
+import { learnedLibraryDestinations } from '../systems/travel/learnedLibraryDestinations';
+import { townMapPosition } from '../systems/worldforge/town/townMapPosition';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { WorldCellView } from '../types';
 import type { Item } from '@/types/items';
@@ -33,6 +38,7 @@ import {
   daysOfWater,
   foodRangeDays,
   tripDaysFromMinutes,
+  tripDaysAndRemainder,
   provisionStatusMulti,
   type RationMode,
 } from '@/systems/travel/provisioning';
@@ -59,6 +65,10 @@ import {
 import { dungeonStatesForWorld } from '../systems/worldforge/dungeon/world/dungeonStates';
 import SubmapSvgView from './Worldforge/SubmapSvgView';
 import TownPlanView from './Worldforge/TownPlanView';
+import TownBuildingInspector from './Worldforge/TownBuildingInspector';
+import { townBuildingChoices } from './Worldforge/townBuildingVisit';
+import type { BuildingEventHistory } from '../systems/worldforge/interior/blueprintTypes';
+import type { TownLifeState } from '../systems/worldforge/roster/agentLife';
 import NeighbourhoodSvgView from './Worldforge/NeighbourhoodSvgView';
 import { consumeMapDrillToPlayerTown } from './Worldforge/mapFocusSignal';
 import { atlasCellToSubmapContext } from '@/systems/worldforge/submap/l0Adapter';
@@ -120,14 +130,24 @@ function deriveForcedMarch(seconds: number): { hours: number; saveDC: number } |
     : undefined;
 }
 
+import type { LodgingReservation } from '../types/rest';
+
 interface MapPaneProps {
+  /** Exact accepted ground state for the current-town marker; absent in previews. */
+  groundState?: GameState;
+  getTownBusinessName?: (burgId: number, plotId: number) => string | undefined;
+  getTownLodging?: (burgId: number, plotId: number) => LodgingReservation | undefined;
+  /** Local building actions remain owned by the normal gameplay action handler. */
+  onTownKeeperAction?: (burgId: number, plotId: number, kind: 'talk' | 'shop' | 'lodging') => void;
+  getTownBuildingHistory?: (burgId: number, plotId: number) => BuildingEventHistory | undefined;
+  getTownLife?: (burgId: number) => TownLifeState | undefined;
   // Grid retirement: MapPane no longer takes mapData — it renders the cell-native
   // atlas (getBridgeAtlas(worldSeed)) and uses MAP_GRID_SIZE for legacy tx,ty
   // bookkeeping. worldSeed is the world identity.
   worldSeed?: number;
   onTileClick: (x: number, y: number, cell: WorldCellView, travelMeta?: TravelMeta) => void;
   /** When set, clicking a discovered cell in Enter 3D mode starts streamed world entry. */
-  onEnter3DAtCell?: (x: number, y: number, cell: WorldCellView, anchor?: Entry3DAnchor) => void;
+  onEnter3DAtCell?: (x: number, y: number, cell: WorldCellView, anchor?: Entry3DAnchor, resumeCurrentPosition?: boolean) => string | void;
   /** Last known 3D position — draws AtlasPlayerMarker on the Worldforge atlas. */
   playerWorldPos?: PlayerWorldPosition | null;
   /** SP4 discovered hidden places — pinned on the World Forge atlas. */
@@ -209,6 +229,8 @@ interface MapPaneProps {
    * (main-menu previews and tests plan season-free).
    */
   gameTime?: Date | null;
+  /** Accumulated travel minutes carried forward toward the next whole-day ration deduction (GG-471). */
+  travelMinutesRemainder?: number;
 }
 
 interface PreparedMapPaneProps extends MapPaneProps {
@@ -220,6 +242,10 @@ interface PreparedMapPaneProps extends MapPaneProps {
 
 type WorldMapInteractionMode = 'pan' | 'travel' | 'enter3d';
 type SeaPreference = 'none' | 'ferry' | 'ship';
+
+// The town-drill effect depends on exploration identity. A fresh default array
+// on each render would rebuild that effect forever when no discoveries exist.
+const EMPTY_EXPLORED_CELLS: number[] = [];
 
 /**
  * Each drill tier renders fit-to-view, but the SP1 engine + clipping degrade at
@@ -288,6 +314,11 @@ function synthCellTile(
 }
 
 const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
+  onTownKeeperAction,
+  getTownBuildingHistory,
+  getTownLife,
+  getTownBusinessName,
+  getTownLodging,
   // Grid retirement: mapData is no longer read by MapPane (atlas + MAP_GRID_SIZE
   // bookkeeping replaced every tile/gridSize use). Prop kept on the interface
   // until App stops passing it in the coord_X_Y/save cut.
@@ -295,6 +326,7 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
   onTileClick,
   onEnter3DAtCell,
   playerWorldPos = null,
+  groundState,
   discoveredHiddenSites = [],
   clearedDungeonPaths,
   onClose,
@@ -310,14 +342,20 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
   partyGold = 0,
   partySurvivalModifier = 0,
   transportParty = [],
-  exploredCellIds = [],
+  exploredCellIds = EMPTY_EXPLORED_CELLS,
   activeShip = null,
   onSetSail,
   playerAtlasCellId = null,
   gameTime = null,
+  travelMinutesRemainder = 0,
   preparedAtlas: worldforgeAtlas,
   preparedAtlasModel,
 }) => {
+  // Geometry and building choices share the town's saved selection. The
+  // canonical state wins; the existing life callback also supports inspectors.
+  const layoutRevisionForBurg = useCallback((burgId: number) =>
+    groundState?.townSim?.[burgId]?.layoutRevision ?? getTownLife?.(burgId)?.layoutRevision,
+  [groundState?.townSim, getTownLife]);
   // Grid retirement: MapPane is fully cell-native — it renders the atlas
   // (getBridgeAtlas(worldSeed)) and resolves picks by cellId. The onTileClick/
   // onEnter3DAtCell x,y args it hands back are vestigial (App uses the cellId).
@@ -337,10 +375,10 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
   // Travel) — closes the feedback loop (WM6/WM9).
   const [mapNotice, setMapNotice] = useState<string | null>(null);
   const noticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const showMapNotice = useCallback((text: string) => {
+  const showMapNotice = useCallback((text: string, durationMs = 2600) => {
     setMapNotice(text);
     if (noticeTimerRef.current) clearTimeout(noticeTimerRef.current);
-    noticeTimerRef.current = setTimeout(() => setMapNotice(null), 2600);
+    noticeTimerRef.current = setTimeout(() => setMapNotice(null), durationMs);
   }, []);
   useEffect(() => () => { if (noticeTimerRef.current) clearTimeout(noticeTimerRef.current); }, []);
   // An underprovisioned travel pick awaiting the player's choice (turn back /
@@ -484,6 +522,7 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
   // the party is threaded in). Walking + riding horse are the modeled choices.
   const transportChoices = useMemo(() => availableTransports(transportParty), [transportParty]);
   const [transportId, setTransportId] = useState('walking');
+  const [routePreference, setRoutePreference] = useState<'fastest' | 'cautious'>('fastest');
   const [seaPref, setSeaPref] = useState<SeaPreference>('none');
   const selectedTransport = transportChoices.find((t) => t.id === transportId) ?? transportChoices[0];
   useEffect(() => {
@@ -520,8 +559,9 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
       milesPerUnit: atlasMilesPerUnit(worldforgeAtlas),
       speedMph: partyTravelSpeedMph,
       timeCostMultiplier: seasonTravelMultiplier,
+      preference: routePreference,
     });
-  }, [interactionMode, worldforgeAtlas, playerAtlasCell, selectedTransport, partyTravelSpeedMph, seasonTravelMultiplier]);
+  }, [interactionMode, worldforgeAtlas, playerAtlasCell, selectedTransport, partyTravelSpeedMph, seasonTravelMultiplier, routePreference]);
   const planAtlasRoute = useCallback((toCell: number) => travelField?.to(toCell) ?? null, [travelField]);
 
   // Provisioning rings (R1): the contour of cells reachable before the binding
@@ -540,7 +580,7 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
       if (!Number.isFinite(range)) return [];
       const out: number[] = [];
       for (const [cell, minutes] of travelField.dist) {
-        if (tripDaysFromMinutes(minutes) <= range) out.push(cell);
+        if (tripDaysFromMinutes(minutes, travelMinutesRemainder) <= range) out.push(cell);
       }
       return out;
     };
@@ -570,12 +610,17 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
     }];
   }, [interactionMode, travelField, partySize, provisionInventory]);
 
-  // PRV3: the party is carrying no provisions (a fresh party's default) — the
-  // supply-reach ring is suppressed above; surface an explicit cue in the travel
-  // toolbar so the zero-horizon reads as "you have no provisions", not a missing ring.
-  const noProvisions = useMemo(() => {
-    if (interactionMode !== 'travel' || partySize <= 0) return false;
-    return daysOfFood(provisionInventory) <= 0 || daysOfWater(provisionInventory) <= 0;
+  // Keep the nonblocking starter-travel notice established by agora-db71.32.
+  // Report the actual depleted resource instead of promising free travel:
+  // route review and the existing commit path still own costs and shortages.
+  const missingProvisionMessage = useMemo(() => {
+    if (interactionMode !== 'travel' || partySize <= 0) return null;
+    const foodMissing = daysOfFood(provisionInventory) <= 0;
+    const waterMissing = daysOfWater(provisionInventory) <= 0;
+    if (foodMissing && waterMissing) return 'No food or water carried';
+    if (foodMissing) return 'No food carried';
+    if (waterMissing) return 'No water carried';
+    return null;
   }, [interactionMode, partySize, provisionInventory]);
 
   // Provisions readout line for the hovered route: "Food: 6 days" / "Water: 2
@@ -583,7 +628,7 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
   const provisionLineForMinutes = useCallback((minutes: number): { text: string; color: string } | null => {
     if (partySize <= 0) return null;
     const status = provisionStatusMulti({
-      tripDays: tripDaysFromMinutes(minutes),
+      tripDays: tripDaysFromMinutes(minutes, travelMinutesRemainder),
       consumers: partySize,
       mode: 'full',
       supplies: [
@@ -616,8 +661,9 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
       milesPerUnit: atlasMilesPerUnit(worldforgeAtlas),
       speedMph: partyTravelSpeedMph,
       timeCostMultiplier: seasonTravelMultiplier,
+      preference: routePreference,
     });
-  }, [interactionMode, seaPref, worldforgeAtlas, playerAtlasCell, selectedTransport, partyTravelSpeedMph, activeShip, seasonTravelMultiplier]);
+  }, [interactionMode, seaPref, worldforgeAtlas, playerAtlasCell, selectedTransport, partyTravelSpeedMph, activeShip, seasonTravelMultiplier, routePreference]);
 
   const isAtlasLandCell = useCallback((cell: number): boolean => {
     const height = (worldforgeAtlas?.pack as unknown as { cells?: { h?: ArrayLike<number> } } | undefined)
@@ -697,7 +743,7 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
         : undefined,
       encounterMessage: roll.encounter
         ? `After ${formatTravelTime(route.minutes)} on the road, danger finds you — an encounter!`
-        : `You travel for ${formatTravelTime(route.minutes)} and arrive without incident.`,
+        : `No hostile encounter along the planned ${formatTravelTime(route.minutes)} leg.`,
     };
   }, [isAtlasLandCell, worldforgeAtlas, worldforgeSeed]);
 
@@ -750,6 +796,12 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
   // canonical atlas cell (grid retirement: cell-native — the site stores `cellId`
   // directly; no grid↔atlas bridge). The optional sub-cell offset nudges the pin
   // off the exact site toward where the place actually sits inside its cell.
+  // Directions are retained knowledge, independently of the speaker's presence.
+  // Viewing their general cell changes only this map's local UI state.
+  const learnedDirections = useMemo(() => learnedCompanionDestinations(groundState), [groundState]);
+  const learnedLibraryTowns = useMemo(() => groundState?.worldSeed === worldforgeSeed
+    ? learnedLibraryDestinations(groundState) : [], [groundState, worldforgeSeed]);
+  const [learnedAreaFocus, setLearnedAreaFocus] = useState<{cellId:number;token:number}|null>(null);
   const worldforgeDiscoveryPins = useMemo(() => {
     if (!worldforgeAtlas) return [];
     const cells = worldforgeAtlas.pack.cells as unknown as { p?: ArrayLike<[number, number]> };
@@ -860,9 +912,9 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
     if (!cell || cell.feature?.kind !== 'burg' || cell.feature.id == null) return null;
     const childCtx = normalizeCtxScale(submapCellToChildContext(cell, regionTier.ctx, regionTier.model.cells));
     if (childCtx.polygon.length < 3) return null;
-    const town = getCanonicalTownPlan(worldforgeAtlas, worldforgeSeed, cell.feature.id);
+    const town = getCanonicalTownPlan(worldforgeAtlas, worldforgeSeed, cell.feature.id, layoutRevisionForBurg(cell.feature.id));
     return [regionTier, { ctx: childCtx, town, playerCellIndex: 0, burgId: cell.feature.id }];
-  }, [worldforgeAtlas, worldforgeSeed, buildNeighbourTier]);
+  }, [worldforgeAtlas, worldforgeSeed, buildNeighbourTier, layoutRevisionForBurg]);
 
   // One-shot: when the 3D HUD's "Town Plan" button opens the map, drill straight
   // to the 3D world's town instead of the fit-to-world atlas. Mirrors AtlasSvgView's
@@ -914,12 +966,13 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
       // Cell-native entry: carry the EXACT clicked cell (burg-centered when the
       // cell is settled, so the Locale frames the town instead of wilderness).
       const anchor = entry3DAnchorForCell(worldforgeAtlas, info.i);
-      onEnter3DAtCell(
+      const refusal = onEnter3DAtCell(
         0,
         0,
         synthCellTile(worldforgeAtlas, anchor.cellId, 0, 0, isExploredCell(anchor.cellId)),
         anchor,
       );
+      if (typeof refusal === 'string') showMapNotice(refusal, 8000);
       return;
     }
     const tile = synthCellTile(worldforgeAtlas, info.i, 0, 0);
@@ -1040,21 +1093,22 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
             tripRng,
           );
       // Provisioning gate: does the party carry enough food + water for the trip?
+      const { days: tripDays, remainderMinutes } = tripDaysAndRemainder(route.minutes, travelMinutesRemainder);
       const decision = decideTravelProvision({
         foodDays: daysOfFood(provisionInventory),
         waterDays: daysOfWater(provisionInventory),
         partySize,
-        tripDays: tripDaysFromMinutes(route.minutes),
+        tripDays,
         mode: 'full',
       });
       // Ungated (no consumers) or in range → travel now, spending the supplies used.
       if (partySize <= 0 || decision.status.inRange) {
         const provision: TravelProvisionEffect | undefined = partySize > 0
-          ? { rationsToSpend: decision.rationsToSpend, waterToSpend: decision.waterToSpend }
+          ? { rationsToSpend: decision.rationsToSpend, waterToSpend: decision.waterToSpend, remainderMinutes }
           : undefined;
         const tripSeconds = Math.round(route.minutes * 60);
         const forcedMarch = deriveForcedMarch(tripSeconds);
-        onTileClick(0, 0, tile, { seconds: tripSeconds, encounterMessage, encounter, provision, destinationCell, ...(ferryFareGp > 0 ? { ferryFareGp } : {}), ...(forcedMarch ? { forcedMarch } : {}), ...(navDrift ? { navDrift } : {}), ...(tripEvent ? { tripEvent } : {}) });
+        onTileClick(0, 0, tile, { seconds: tripSeconds, routeLineage: { fromCellId: route.cells[0], intendedCellId: info.i, cells: [...route.cells] }, encounterMessage, encounter, provision, destinationCell, ...(ferryFareGp > 0 ? { ferryFareGp } : {}), ...(forcedMarch ? { forcedMarch } : {}), ...(navDrift ? { navDrift } : {}), ...(tripEvent ? { tripEvent } : {}) });
         return;
       }
       // Underprovisioned → open the choice flow instead of moving. Carry the fare
@@ -1082,7 +1136,7 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
     if (!pt || !worldforgeAtlas) return;
     const foodDays = daysOfFood(provisionInventory);
     const waterDays = daysOfWater(provisionInventory);
-    const tripDays = tripDaysFromMinutes(pt.route.minutes);
+    const { days: tripDays, remainderMinutes } = tripDaysAndRemainder(pt.route.minutes, travelMinutesRemainder);
     const mode: RationMode = choice === 'half' ? 'half' : 'full';
 
     let forageFoodDays = 0;
@@ -1112,6 +1166,7 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
       const provision: TravelProvisionEffect = {
         rationsToSpend: decision.rationsToSpend,
         waterToSpend: decision.waterToSpend,
+        remainderMinutes,
         ...(conditions.length ? { conditions } : {}),
         note: forageNote,
       };
@@ -1161,6 +1216,7 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
         : undefined;
       if (target) onTileClick(0, 0, target, {
         seconds: fullSeconds,
+        routeLineage: { fromCellId: fullRoute.cells[0], intendedCellId: pt.cellId, cells: [...fullRoute.cells] },
         provision,
         destinationCell,
         encounterMessage: pt.encounterMessage,
@@ -1186,9 +1242,11 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
     const elapsedMinutes = pt.route.cumulativeMinutes?.[haltIndex]
       ?? (pt.route.cells.length <= 1 ? 0 : pt.route.minutes * (haltIndex / (pt.route.cells.length - 1)));
     const haltSeconds = Math.round(elapsedMinutes * 60 + extraSeconds);
+    const { remainderMinutes: haltRemainder } = tripDaysAndRemainder(elapsedMinutes, travelMinutesRemainder);
     const provision: TravelProvisionEffect = {
       rationsToSpend: decision.rationsToSpend,
       waterToSpend: decision.waterToSpend,
+      remainderMinutes: haltRemainder,
       conditions: ['starving', ...extraConditions],
       companionLoyaltyDelta: -15,
       note: `${forageNote ? forageNote + ' ' : ''}Your supplies run out on the road. The party halts, starving.`,
@@ -1205,6 +1263,7 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
     const haltEncounter = haltRoute ? encounterMetaForRoute(haltRoute) : {};
     onTileClick(0, 0, targetTile, {
       seconds: haltSeconds,
+      routeLineage: { fromCellId: pt.route.cells[0], intendedCellId: pt.cellId, cells: [...pt.route.cells] },
       provision,
       destinationCell: haltCell,
       ...haltEncounter,
@@ -1220,33 +1279,37 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
       foodDays: daysOfFood(provisionInventory),
       waterDays: daysOfWater(provisionInventory),
       partySize,
-      tripDays: tripDaysFromMinutes(pendingTravel.route.minutes),
+      tripDays: tripDaysFromMinutes(pendingTravel.route.minutes, travelMinutesRemainder),
       mode: 'full',
     }).status;
   }, [pendingTravel, provisionInventory, partySize]);
 
-  // Enter 3D from inside the drill: the leaf rung of World ▸ Region ▸ Local ▸ Town
-  // ▸ 3D. Resolves the region's focus atlas cell (drill base) → world tile and
-  // hands off via the existing onEnter3DAtCell contract.
+  // These display submaps are not a georeferenced journey receipt. Ask the
+  // gameplay authority about initial entry at the real Atlas cell; a live body
+  // must resume explicitly or take the reviewed Atlas journey path.
   const handleEnter3DHere = useCallback(() => {
     if (!worldforgeAtlas || !onEnter3DAtCell) return;
     const cellId = submapStack[0]?.neighbourhood?.focusCellId;
     if (cellId == null) return;
     // Cell-native entry: the focus cell IS a real atlas cell — anchor on it
-    // directly (burg-centered if settled) so the leaf enters exactly here. The
+    // directly (burg-centered if settled) for initial current-area entry. The
     // x,y args are vestigial bookkeeping (App uses the anchor cellId), so pass 0,0.
     const anchor = entry3DAnchorForCell(worldforgeAtlas, cellId);
-    onEnter3DAtCell(0, 0, synthCellTile(worldforgeAtlas, cellId, 0, 0, isExploredCell(cellId)), anchor);
-  }, [worldforgeAtlas, onEnter3DAtCell, submapStack, isExploredCell]);
+    // The gameplay authority can refuse a focus reset without closing this map.
+    // Keep the reason visible here; the message log is behind the modal.
+    const refusal = onEnter3DAtCell(0, 0, synthCellTile(worldforgeAtlas, cellId, 0, 0, isExploredCell(cellId)), anchor);
+    if (typeof refusal === 'string') showMapNotice(refusal, 8000);
+  }, [worldforgeAtlas, onEnter3DAtCell, submapStack, isExploredCell, showMapNotice]);
 
-  // Direct entry at the player's current position — no cell pick needed. Uses
+  // Explicit body resume, distinct from selecting a fresh focus in the map. Uses
   // the same canonical playerAtlasCell as the "Find Me" marker, so the entry
   // point always matches where the map says you are.
   const handleEnter3DAtPlayer = useCallback(() => {
     if (!worldforgeAtlas || !onEnter3DAtCell || playerAtlasCell == null) return;
     const anchor = entry3DAnchorForCell(worldforgeAtlas, playerAtlasCell);
-    onEnter3DAtCell(0, 0, synthCellTile(worldforgeAtlas, anchor.cellId, 0, 0, true), anchor);
-  }, [worldforgeAtlas, onEnter3DAtCell, playerAtlasCell]);
+    const refusal = onEnter3DAtCell(0, 0, synthCellTile(worldforgeAtlas, anchor.cellId, 0, 0, true), anchor, true);
+    if (typeof refusal === 'string') showMapNotice(refusal, 8000);
+  }, [worldforgeAtlas, onEnter3DAtCell, playerAtlasCell, showMapNotice]);
 
   const handleSubmapDrill = useCallback((siteIndex: number) => {
     setSubmapStack((stack) => {
@@ -1275,13 +1338,13 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
       // for the same burg (Worldforge Option B). The burgId rides on the leaf
       // feature (l0Adapter sets it from the FMG burg).
       if (cell.feature?.kind === 'burg' && cell.feature.id != null) {
-        const town = getCanonicalTownPlan(worldforgeAtlas, worldforgeSeed, cell.feature.id);
+        const town = getCanonicalTownPlan(worldforgeAtlas, worldforgeSeed, cell.feature.id, layoutRevisionForBurg(cell.feature.id));
         return [...stack, { ctx: childCtx, town, playerCellIndex: onPlayerPath ? 0 : null, burgId: cell.feature.id }];
       }
       const childModel = generateSubmap(childCtx, { count: SUBMAP_COUNT });
       return [...stack, { model: childModel, ctx: childCtx, playerCellIndex: onPlayerPath ? playerSubCellIndex(childModel) : null }];
     });
-  }, [worldforgeAtlas, worldforgeSeed]);
+  }, [worldforgeAtlas, worldforgeSeed, layoutRevisionForBurg]);
 
   const handleAscend = useCallback(() => setSubmapStack((stack) => stack.slice(0, -1)), []);
   // Pop the drill stack to a given depth (0 = back to the atlas / World tier).
@@ -1297,6 +1360,29 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
   // resolution the 3D ground bake uses (culture TYPE → family), so the 2D map
   // paints the SAME buildings the SAME colors as the 3D town for this burg.
   const topTownBurgId = submapStack[submapStack.length - 1]?.burgId;
+  const [inspectedBuilding, setInspectedBuilding] = useState<{ burgId: number; plotId: number } | null>(null);
+  const [onlyLodgingBuildings, setOnlyLodgingBuildings] = useState(false);
+  useEffect(() => {setOnlyLodgingBuildings(false);}, [topTownBurgId]);
+  const localBuildingChoices = useMemo(() => {
+    // Inspect belongings only in the settlement the player currently occupies.
+    if (topTownBurgId == null || !worldforgeAtlas || !onTownKeeperAction) return [];
+    const burg = worldforgeAtlas.pack.burgs?.[topTownBurgId];
+    if (burg?.cell !== playerAtlasCell) return [];
+    return townBuildingChoices(worldforgeSeed, topTownBurgId, layoutRevisionForBurg(topTownBurgId));
+  }, [topTownBurgId, worldforgeAtlas, onTownKeeperAction, playerAtlasCell, worldforgeSeed, layoutRevisionForBurg]);
+  // Shared business names do not identify a unique destination. Keep every
+  // saved name and source plot, and distinguish only colliding menu labels by
+  // the same one-based building number already used for unnamed houses.
+  const localBuildingLabels = useMemo(() => {
+    const labels = localBuildingChoices.map(building => {
+      const name = topTownBurgId == null ? undefined : getTownBusinessName?.(topTownBurgId, building.id);
+      return {id: building.id, label: (name ?? (building.role + ' ' + (building.id + 1)))
+        + (building.buildingType ? ' · ' + building.buildingType.replaceAll('-', ' ') : '')};
+    });
+    const counts = new Map<string, number>();
+    for (const {label} of labels) counts.set(label, (counts.get(label) ?? 0) + 1);
+    return new Map(labels.map(({id, label}) => [id, counts.get(label)! > 1 ? label + ' · building ' + (id + 1) : label]));
+  }, [localBuildingChoices, topTownBurgId, getTownBusinessName]);
   const topTownStyleFamily = useMemo(() => {
     if (topTownBurgId == null) return undefined;
     return styleFamilyForCultureType(getBurgCultureType(worldforgeSeed, topTownBurgId));
@@ -1321,8 +1407,8 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
   // them (deepdive village-generator-vs-worldforge-town.md finding 7).
   const topTownPersonality = useMemo(() => {
     if (topTownBurgId == null || !worldforgeAtlas) return undefined;
-    return getCanonicalTownPersonality(worldforgeAtlas, worldforgeSeed, topTownBurgId).profile;
-  }, [topTownBurgId, worldforgeAtlas, worldforgeSeed]);
+    return getCanonicalTownPersonality(worldforgeAtlas, worldforgeSeed, topTownBurgId, layoutRevisionForBurg(topTownBurgId)).profile;
+  }, [topTownBurgId, worldforgeAtlas, worldforgeSeed, layoutRevisionForBurg]);
 
   // Submap-tier travel: a route field over the drilled tier's Voronoi cells from
   // the player's sub-cell, so the same route preview works inside the drill.
@@ -1334,8 +1420,9 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
       milesPerUnit: 0.02, // ~20 miles across a normalized region tier
       speedMph: partyTravelSpeedMph,
       timeCostMultiplier: seasonTravelMultiplier,
+      preference: routePreference,
     });
-  }, [interactionMode, submapStack, selectedTransport, partyTravelSpeedMph, seasonTravelMultiplier]);
+  }, [interactionMode, submapStack, selectedTransport, partyTravelSpeedMph, seasonTravelMultiplier, routePreference]);
   const planSubmapRoute = useCallback((idx: number) => submapTravelField?.to(idx) ?? null, [submapTravelField]);
 
   const prepareAndRegenerate = useCallback((nextSeed: number) => {
@@ -1392,6 +1479,29 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
         className="bg-gray-800 p-4 md:p-6 flex h-full w-full flex-col overflow-y-auto scrollable-content"
         style={{ backgroundImage: `url(${oldPaperBg})`, backgroundSize: 'cover' }}
       >
+        {(learnedDirections.length > 0 || learnedLibraryTowns.length > 0) && !isPreviewOnly && (
+          <section aria-label="Learned directions" className="mb-4 flex flex-wrap items-center gap-4 rounded border border-amber-700 bg-slate-900/95 px-4 py-3 text-base text-slate-100">
+            <div><strong className="text-amber-200">Learned directions</strong><p className="text-sm text-slate-300">Places learned from conversations and written accounts.</p></div>
+            {/* Written accounts locate the named town, through the existing
+                camera-only area focus. Travel retains its separate review. */}
+            {learnedLibraryTowns.map(direction => (
+              <button key={direction.key} type="button"
+                className="rounded border border-amber-600 bg-slate-800 px-4 py-2 text-left hover:bg-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-300"
+                onClick={() => {setSubmapStack([]);setLearnedAreaFocus(previous=>({cellId:direction.cellId,token:(previous?.token??0)+1}));}}>
+                <span className="block font-semibold">View town: {direction.name}</span>
+                <span className="block text-sm text-slate-300">{direction.sourceName} · Municipal register</span>
+              </button>
+            ))}
+            {learnedDirections.map(direction => (
+              <button key={direction.companionId+':'+direction.goalId} type="button"
+                className="rounded border border-amber-600 bg-slate-800 px-4 py-2 text-left hover:bg-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-300"
+                onClick={() => {setSubmapStack([]);setLearnedAreaFocus(previous=>({cellId:direction.cellId,token:(previous?.token??0)+1}));}}>
+                <span className="block font-semibold">View area: {direction.name}</span>
+                <span className="block text-sm text-slate-300">{direction.companionName} · near {direction.nearbyBurgName}</span>
+              </button>
+            ))}
+          </section>
+        )}
         <div className="mb-3 space-y-2 text-xs">
           <div className="flex items-center gap-2 flex-wrap">
             <button
@@ -1426,6 +1536,18 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
             )}
             {allowTravel && interactionMode === 'travel' && (
               <select
+                value={routePreference}
+                onChange={(event) => { setRoutePreference(event.target.value === 'cautious' ? 'cautious' : 'fastest'); setPendingTravel(null); }}
+                className={toolbarSelectClass}
+                aria-label="Route preference"
+                title="Compare time, danger and supplies before setting out"
+              >
+                <option value="fastest">Fastest route</option>
+                <option value="cautious">Favor safer ground</option>
+              </select>
+            )}
+            {allowTravel && interactionMode === 'travel' && (
+              <select
                 data-testid="travel-sea-pref"
                 value={seaPref}
                 onChange={(e) => setSeaPref(e.target.value as SeaPreference)}
@@ -1450,13 +1572,14 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
                 })()}
               </select>
             )}
-            {allowTravel && interactionMode === 'travel' && noProvisions && (
+            {allowTravel && interactionMode === 'travel' && missingProvisionMessage && (
               <span
                 data-testid="travel-no-provisions"
-                className="inline-flex min-h-11 items-center px-3 py-2 rounded bg-rose-900/80 text-rose-100 border border-rose-600 font-semibold"
-                title="Your party carries no rations or water — stock up before a long journey."
+                role="status"
+                className="inline-flex min-h-11 items-center px-3 py-2 rounded bg-amber-900/60 text-amber-100 border border-amber-600 font-semibold"
+                title="Food or water is depleted. Check the route's supply readout before setting out."
               >
-                ⚠ No provisions — can't sustain travel
+                {missingProvisionMessage}
               </span>
             )}
             {allow3DEntry && (
@@ -1554,6 +1677,7 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
                 {submapStack[submapStack.length - 1].town ? (
                   <TownPlanView
                     plan={submapStack[submapStack.length - 1].town!}
+                    partyPosition={townMapPosition(groundState, worldforgeSeed, topTownBurgId)}
                     width={worldforgeViewportSize.width}
                     height={worldforgeViewportSize.height}
                     prefsScope={worldforgeSeed}
@@ -1563,6 +1687,8 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
                     coast={topTownWater?.coast}
                     riverWidth={topTownWater?.riverWidth}
                     personality={topTownPersonality}
+                    selectedPlotId={inspectedBuilding?.burgId === topTownBurgId ? inspectedBuilding?.plotId : undefined}
+                    onSelectPlot={localBuildingChoices.length && topTownBurgId != null ? (plotId) => setInspectedBuilding({ burgId: topTownBurgId, plotId }) : undefined}
                   />
                 ) : submapStack[submapStack.length - 1].neighbourhood ? (
                   <NeighbourhoodSvgView
@@ -1604,9 +1730,9 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
                         onClick={handleEnter3DHere}
                         className="min-h-11 px-3 py-2 rounded bg-rose-700 text-white text-xs border border-rose-900 hover:bg-rose-600"
                         type="button"
-                        title="Enter the streamed 3D world at this region"
+                        title="Enter your current area in 3D. Use 3D at My Location to return to a saved position."
                       >
-                        Enter 3D here
+                        Enter current area in 3D
                       </button>
                     )}
                     {/* Breadcrumb: World ▸ Region ▸ Local … — click a crumb to ascend to it. */}
@@ -1648,6 +1774,23 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
                       })}
                     </nav>
                   </div>
+                  {localBuildingChoices.length > 0 && topTownBurgId != null && <div className="flex max-w-full flex-wrap items-end gap-2 rounded bg-slate-950/95 p-2 text-xs text-slate-100">
+                    <label className="flex min-w-0 max-w-full flex-col gap-1 sm:flex-row sm:items-center">Inspect a building
+                    <select aria-label="Inspect a building" className="max-w-full min-h-11 rounded border border-slate-500 bg-slate-800 p-2 sm:ml-2" value={inspectedBuilding?.burgId === topTownBurgId ? inspectedBuilding.plotId : ''} onChange={(event) => {
+                      setInspectedBuilding(event.target.value === '' ? null : {burgId: topTownBurgId, plotId: Number(event.target.value)});
+                    }}>
+                      <option value="">Choose a building</option>
+                      {localBuildingChoices.filter(building => !onlyLodgingBuildings || building.buildingType === 'inn' || building.buildingType === 'tavern').map(building =>
+                        <option key={building.id} value={building.id}>{localBuildingLabels.get(building.id)}</option>)}
+                    </select>
+                    </label>
+                    <button type="button" aria-pressed={onlyLodgingBuildings} className="min-h-11 rounded border border-sky-600 px-3 py-2 text-sky-200 hover:bg-slate-800"
+                      onClick={() => {setOnlyLodgingBuildings(current => !current); setInspectedBuilding(null);}}>
+                      {onlyLodgingBuildings ? 'Show all buildings' : 'Find inns and taverns'}
+                    </button>
+                    {onlyLodgingBuildings && !localBuildingChoices.some(building => building.buildingType === 'inn' || building.buildingType === 'tavern') &&
+                      <p className="w-full">No inn or tavern buildings are listed here.</p>}
+                  </div>}
                   <span className="px-2 py-1 rounded bg-black/60 text-slate-200 text-xs self-start">
                     {submapStack[submapStack.length - 1].town
                       ? 'Town plan — pan/zoom to explore'
@@ -1666,6 +1809,7 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
                    control (gated on `marker` in AtlasSvgView) appears. */
                 marker={isPreviewOnly ? null : worldforgeMarker}
                 markers={worldforgeDiscoveryPins}
+                areaFocus={learnedAreaFocus}
                 onPickCell={handleWorldforgePick}
                 travelActive={interactionMode === 'travel'}
                 planRoute={planAtlasRoute}
@@ -1762,6 +1906,21 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
             {/* WM6/WM9: brief, self-clearing cue for clicks that would otherwise be
                 silent no-ops (non-drillable cell in Explore, unreachable/ocean cell
                 in Travel). Sits top-center, clear of the drill chrome + choice panels. */}
+            {inspectedBuilding && inspectedBuilding.burgId === topTownBurgId && localBuildingChoices.length > 0 && <TownBuildingInspector
+              key={`${inspectedBuilding.burgId}:${inspectedBuilding.plotId}`}
+              worldSeed={worldforgeSeed}
+              burgId={inspectedBuilding.burgId}
+              plotId={inspectedBuilding.plotId}
+              hour={gameTime ? new Date(gameTime).getUTCHours() : 12}
+              gameTime={gameTime ?? undefined}
+              businessName={getTownBusinessName?.(inspectedBuilding.burgId, inspectedBuilding.plotId)}
+              reservation={getTownLodging?.(inspectedBuilding.burgId, inspectedBuilding.plotId)}
+              eventLog={getTownBuildingHistory?.(inspectedBuilding.burgId, inspectedBuilding.plotId)}
+              retainedSource={groundState?.townSim?.[inspectedBuilding.burgId]?.buildingSources?.[inspectedBuilding.plotId]}
+              life={getTownLife?.(inspectedBuilding.burgId)}
+              onClose={() => setInspectedBuilding(null)}
+              onKeeperAction={(kind) => onTownKeeperAction?.(inspectedBuilding.burgId, inspectedBuilding.plotId, kind)}
+            />}
             {mapNotice ? (
               <div
                 data-testid="map-action-notice"
@@ -1787,7 +1946,7 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
           className="text-xs text-center mt-2 mx-auto max-w-3xl rounded bg-black/70 px-3 py-1.5 text-slate-100"
         >
           {allowTravel || allow3DEntry
-            ? 'World map: use Pan/Zoom to explore. Travel moves on the world grid; Enter 3D jumps into the streamed world at a discovered cell. Click a cell to drill into the submap.'
+            ? 'World map: use Pan/Zoom to explore. Click a cell to inspect its submap. Choose and review a route in Travel to move the party. 3D at My Location returns to your accepted location.'
             : 'World preview: use Pan/Zoom and layer controls to inspect world generation before starting a game. Click cells to drill deeper.'}
         </p>
       </div>

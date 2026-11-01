@@ -8,10 +8,11 @@
  * own number, and says so plainly when there is none.
  */
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { act, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { PerfFpsText } from '../PerfFpsText';
 import { acquirePerfSession, clearPerfSessions } from '../perfRegistry';
+import { setPerfMeasurementEnabled } from '../perfControl';
 import DebugHUD from '../../../components/World3D/DebugHUD';
 
 /** A session that drew 31 frames 16.67 ms apart, ending now. */
@@ -22,11 +23,13 @@ function sixtyFpsSession(id: string) {
   return s;
 }
 
-afterEach(() => clearPerfSessions());
+afterEach(() => { setPerfMeasurementEnabled(true); clearPerfSessions(); vi.useRealTimers(); });
 
 describe('PerfFpsText', () => {
   it('shows the named session\'s frame rate', () => {
-    sixtyFpsSession('world3d');
+    const session = sixtyFpsSession('world3d');
+    // A simple HUD must not allocate the full diagnostic report to read FPS.
+    vi.spyOn(session, 'snapshot').mockImplementation(() => { throw new Error('Full diagnostics requested'); });
     render(<PerfFpsText sessionId="world3d" />);
     expect(screen.getByTestId('perf-fps-text')).toHaveTextContent('60');
   });
@@ -61,5 +64,22 @@ describe('DebugHUD', () => {
     sixtyFpsSession('world3d');
     render(<DebugHUD chunkCount={4} playerPos={null} />);
     expect(screen.getByTestId('perf-fps-text')).toHaveTextContent('60');
+  });
+});
+
+describe('inline reading bypass', () => {
+  it('stops its poll timer and restores the same reading without a page state loop', () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    sixtyFpsSession('bypass-text');
+    const { unmount } = render(<PerfFpsText sessionId="bypass-text" />);
+    expect(screen.getByTestId('perf-fps-text')).toHaveTextContent('60');
+    expect(vi.getTimerCount()).toBe(1);
+    act(() => setPerfMeasurementEnabled(false));
+    expect(vi.getTimerCount()).toBe(0);
+    expect(screen.getByTestId('perf-fps-text')).toHaveTextContent('—');
+    act(() => setPerfMeasurementEnabled(true));
+    expect(vi.getTimerCount()).toBe(1);
+    expect(screen.getByTestId('perf-fps-text')).toHaveTextContent('60');
+    unmount(); expect(vi.getTimerCount()).toBe(0);
   });
 });

@@ -1,0 +1,4 @@
+{
+  "initialGzipKiB": 950,
+  "note": "C13 (agora-9ed9.13), 2026-10-24: measured 875 KiB gzip after moving drei's three-dependent helpers out of vendor-others (was 1548 KiB with three.js eager). Budget = measured + about 8 percent headroom. Raise only on purpose, in the same change as the code that needs it."
+}

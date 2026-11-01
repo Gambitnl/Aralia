@@ -1,11 +1,19 @@
+/**
+ * Versioned, replay-preserving compaction for living-building save history.
+ *
+ * Every full block is folded into renderer-ready state while a bounded tail
+ * remains chronological. Fixed block boundaries make the serialized result
+ * independent of whether game time advanced one day or many days per call.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 14/07/2026, 18:51:15
+ * Last Sync: 31/10/2026, 15:48:08
  * Dependents: systems/worldforge/townsim/townSimRegistry.ts
- * Imports: 9 files
+ * Imports: 10 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,16 +22,10 @@
  */
 // @dependencies-end
 
-/**
- * Versioned, replay-preserving compaction for living-building save history.
- *
- * Every full block is folded into renderer-ready state while a bounded tail
- * remains chronological. Fixed block boundaries make the serialized result
- * independent of whether game time advanced one day or many days per call.
- */
 import { getBridgeAtlas, getBurgCultureType } from '../bridge/legacySubmapBridge';
 import {
   applyHistory,
+  buildingHistoryEventCount,
   cloneBuildingEventHistory,
   isBuildingHistoryJournal,
   snapshotBuildingHistory,
@@ -33,6 +35,7 @@ import type {
   BuildingEventHistory,
   BuildingHistoryJournalV1,
 } from '../interior/blueprintTypes';
+import { buildingSourceNeedsStructuralMigration } from '../interior/buildingSource';
 import { blueprintForPlot } from '../interior/generateInterior';
 import { buildingPlotInput } from '../town/buildingPlotInput';
 import { climateForBiomeId } from '../town/architectureStyle';
@@ -87,8 +90,12 @@ export function compactTownBuildingHistories(
   if (!histories || !Object.values(histories).some((history) =>
     foldableBuildingHistoryCount(history) > 0)) return state;
 
+  // Folding discards the original prefix, so its geometry must have a known
+  // source. Preserve every event in unversioned saves until admission resolves
+  // the layout; daily life can continue without this storage optimization.
+  if (state.layoutRevision === undefined) return state;
   const atlas = getBridgeAtlas(worldSeed);
-  const enginePlan = getCanonicalTownPlan(atlas, worldSeed, state.burgId);
+  const enginePlan = getCanonicalTownPlan(atlas, worldSeed, state.burgId, state.layoutRevision);
   const { plan } = toArtifactPlan(enginePlan, state.burgId);
   const townSeed = canonicalTownSeedPath(worldSeed, state.burgId);
   const burg = atlas.pack.burgs?.[state.burgId] as { cell?: number } | undefined;
@@ -107,6 +114,12 @@ export function compactTownBuildingHistories(
     const split = splitHistory(history);
     if (!split) continue;
     const plotId = Number(rawPlotId);
+    const source = state.buildingSources?.[plotId];
+    // A partial fold may precede the observed anchor. Keep that journal until
+    // its next block includes the anchor; never reconstruct an older layout.
+    // Pending structural changes likewise retain their full migration intent.
+    if (source && (buildingHistoryEventCount(split.prefix) < buildingHistoryEventCount(
+      JSON.parse(source.historySignature) ?? undefined) || buildingSourceNeedsStructuralMigration(source, split.prefix))) continue;
     const plot = plan.plots.find((candidate) => candidate.id === plotId);
     if (!plot) {
       throw new Error(
@@ -116,6 +129,7 @@ export function compactTownBuildingHistories(
     const input = buildingPlotInput(plan, plot, townSeed, {
       ...styleBase,
       eventLog: split.prefix,
+      retainedSource: source ? {worldSeed, burgId: state.burgId, source} : undefined,
     });
     const resolvedPrefix = blueprintForPlot(input, townSeed);
     // blueprintForPlot already replays the prefix; the explicit guard makes a

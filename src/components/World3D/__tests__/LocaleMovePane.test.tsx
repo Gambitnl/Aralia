@@ -96,4 +96,53 @@ describe('LocaleMovePane — 2D Locale view + click-to-move (Stage 3)', () => {
     expect(fx).toBeCloseTo(EXTENT.cols * 5, 4); // 500 ft
     expect(fy).toBeCloseTo(EXTENT.rows * 5, 4); // 300 ft
   });
+
+  it('keeps fractional pointer coordinates when the following click rounds to whole pixels', () => {
+    const onMoveTo = vi.fn();
+    const position = { xM: 439.8759186625575, zM: 388.59424434971515 };
+    render(<LocaleMovePane localeExtent={{ cols: 600, rows: 600 }} groundPos={position} onMoveTo={onMoveTo} />);
+    const surface = screen.getByTestId('locale-move-surface');
+    surface.getBoundingClientRect = () => ({ left: 0, top: 0, width: 240, height: 160 }) as DOMRect;
+    const feet = groundPosToLocaleFeet(position);
+    const x = 40 + feet.x * 160 / 3000, y = feet.y * 160 / 3000;
+
+    // Native Chromium preserved these fractions on pointerup, then rounded
+    // click coordinates and sent Bera roughly sixteen feet off her marker.
+    fireEvent(surface, new MouseEvent('pointerup', { bubbles: true, button: 0, clientX: x, clientY: y }));
+    fireEvent.click(surface, { detail: 1, clientX: Math.floor(x), clientY: Math.floor(y) });
+
+    expect(onMoveTo).toHaveBeenCalledTimes(1);
+    expect(onMoveTo.mock.calls[0][0]).toBeCloseTo(feet.x, 6);
+    expect(onMoveTo.mock.calls[0][1]).toBeCloseTo(feet.y, 6);
+  });
+
+  it('consumes a pointer position once and retains the ordinary click fallback', () => {
+    const onMoveTo = vi.fn();
+    render(<LocaleMovePane localeExtent={EXTENT} groundPos={GROUND_POS} onMoveTo={onMoveTo} />);
+    const surface = screen.getByTestId('locale-move-surface');
+    surface.getBoundingClientRect = () => ({ left: 0, top: 0, width: 240, height: 160 }) as DOMRect;
+    fireEvent(surface, new MouseEvent('pointerup', { bubbles: true, button: 0, clientX: 72.25, clientY: 55.75 }));
+    fireEvent.click(surface, { detail: 1, clientX: 72, clientY: 55 });
+    fireEvent.click(surface, { detail: 1, clientX: 120, clientY: 80 });
+    expect(onMoveTo).toHaveBeenCalledTimes(2);
+    expect(onMoveTo.mock.calls[1][0]).toBeCloseTo(250, 6);
+    expect(onMoveTo.mock.calls[1][1]).toBeCloseTo(150, 6);
+  });
+
+  it('does not reuse a pointer position for a cancelled gesture or a non-pointer click', () => {
+    const onMoveTo = vi.fn();
+    render(<LocaleMovePane localeExtent={EXTENT} groundPos={GROUND_POS} onMoveTo={onMoveTo} />);
+    const surface = screen.getByTestId('locale-move-surface');
+    surface.getBoundingClientRect = () => ({ left: 0, top: 0, width: 240, height: 160 }) as DOMRect;
+    for (const cancel of [true, false]) {
+      fireEvent(surface, new MouseEvent('pointerup', { bubbles: true, button: 0, clientX: 72.25, clientY: 55.75 }));
+      if (cancel) fireEvent.pointerCancel(surface);
+      fireEvent.click(surface, { detail: cancel ? 1 : 0, clientX: 120, clientY: 80 });
+    }
+    expect(onMoveTo).toHaveBeenCalledTimes(2);
+    for (const [x, y] of onMoveTo.mock.calls) {
+      expect(x).toBeCloseTo(250, 6);
+      expect(y).toBeCloseTo(150, 6);
+    }
+  });
 });

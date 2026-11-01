@@ -1,0 +1,40 @@
+{
+  "asset": "Rock Face",
+  "source": "https://polyhaven.com/a/rock_face",
+  "sourceFiles": "https://api.polyhaven.com/files/rock_face",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "publisherLicenseUrl": "https://polyhaven.com/license",
+  "authors": {
+    "Greg Zaal": "Photography",
+    "Dario Barresi": "Processing"
+  },
+  "physicalTileMeters": 2.4,
+  "resolution": [2048, 2048],
+  "files": [
+    {
+      "file": "rock_face_diff_2k.jpg",
+      "role": "baseColor",
+      "colorSpace": "sRGB",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rock_face/rock_face_diff_2k.jpg",
+      "bytes": 2971109,
+      "sha256": "b989c832327538a9e546cca359417acb9a657d041f300407e8398daaf743f5bc"
+    },
+    {
+      "file": "rock_face_nor_gl_2k.jpg",
+      "role": "normalOpenGL",
+      "colorSpace": "linearData",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rock_face/rock_face_nor_gl_2k.jpg",
+      "bytes": 4158538,
+      "sha256": "352b87db2502d54487b0ed8abdfb621fae2abf7d360a281b419f567346178cf0"
+    },
+    {
+      "file": "rock_face_rough_2k.jpg",
+      "role": "roughness",
+      "colorSpace": "linearData",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rock_face/rock_face_rough_2k.jpg",
+      "bytes": 980027,
+      "sha256": "91517cdc191bf60fdb135929e12041e2ad50dd7343b33f25dae75d87ba61b226"
+    }
+  ]
+}

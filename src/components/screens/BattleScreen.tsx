@@ -67,7 +67,8 @@ export interface BattleScreenProps {
     result: 'victory' | 'defeat' | 'flee',
     rewards?: any,
     finalPartyState?: any,
-    finalEnemyState?: any
+    finalEnemyState?: any,
+    outcomeReview?: import("../../types/combatOutcome").CombatOutcomeReview
   ) => void;
 }
 

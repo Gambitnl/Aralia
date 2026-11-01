@@ -2,7 +2,7 @@
 
 /**
  * Normalized spell record for roadmap branch navigation.
- * Derived at build time from public/data/spells/**/*.json.
+ * Derived at build time from public/data/spells/ (*.json files).
  * Runtime-only fields (aiContext, description, higherLevels) are excluded.
  * This is the single source of truth the axis engine reads from.
  */

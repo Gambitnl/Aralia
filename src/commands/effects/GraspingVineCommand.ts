@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 10/08/2026, 14:04:49
- * Dependents: commands/effects/GrantedActionCommand.ts, commands/factory/SpellCommandFactory.ts
- * Imports: 8 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file owns Grasping Vine's composite initial and later attack events.
  *
@@ -28,6 +12,23 @@
  * normal resistance, duration, collision, and logging rules remain authoritative.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/10/2026, 06:47:53
+ * Dependents: commands/effects/GrantedActionCommand.ts, commands/factory/spell/utilityBridges.ts
+ * Imports: 10 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import { getExhaustionD20Penalty } from '@/utils/combat/physicsUtils';
 import type { CommandContext, CommandMetadata, SpellCommand } from '../base/SpellCommand'
 import type { ActionCombatLogData, ActiveSpellForce, CombatCharacter, CombatState, Position } from '@/types/combat'
 import type { DamageEffect, MovementEffect, SpellEffect, StatusConditionEffect } from '@/types/spells'
@@ -111,14 +112,17 @@ export class GraspingVineCommand implements SpellCommand {
     }
 
     const attackRoll = rollD20()
-    const attackBonus = this.resolveSpellAttackBonus(caster)
+    // A granted spell attack remains the acting creature's D20 test.
+    const exhaustionPenalty = getExhaustionD20Penalty(caster)
+    const exhaustionText = exhaustionPenalty > 0 ? ` (Exhaustion -${exhaustionPenalty})` : ''
+    const attackBonus = this.resolveSpellAttackBonus(caster) - exhaustionPenalty
     const targetArmorClass = target.armorClass ?? 10
     const attackResult = resolveAttack(attackRoll, attackBonus, targetArmorClass)
 
     nextState = this.addLogEntry(
       nextState,
       caster,
-      `${caster.name}'s Grasping Vine attacks ${target.name}: ${attackRoll} + ${attackBonus} = ${attackResult.total} vs AC ${targetArmorClass}. ${attackResult.isHit ? 'HIT!' : 'MISS.'}`,
+      `${caster.name}'s Grasping Vine attacks ${target.name}: ${attackRoll} + ${attackBonus} = ${attackResult.total}${exhaustionText} vs AC ${targetArmorClass}. ${attackResult.isHit ? 'HIT!' : 'MISS.'}`,
       {
         sourceSpellId: this.context.spellId,
         targetId: target.id,

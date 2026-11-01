@@ -32,6 +32,7 @@ import { COMBAT_COST_COLORS } from './combatUiTheme';
 interface CombatIntentPreviewProps {
   ability: Ability;
   casterName?: string;
+  rangedPressure?: boolean;
   onCancel: () => void;
 }
 
@@ -74,6 +75,7 @@ const isEditableTarget = (target: EventTarget | null): boolean => {
 export const CombatIntentPreview: React.FC<CombatIntentPreviewProps> = ({
   ability,
   casterName,
+  rangedPressure,
   onCancel,
 }) => {
   const visual = getAbilityIconVisual(ability);
@@ -132,7 +134,11 @@ export const CombatIntentPreview: React.FC<CombatIntentPreviewProps> = ({
       <dl className="mt-2 space-y-1 text-[11px]">
         <div className="flex justify-between">
           <dt className="text-slate-400">Range</dt>
-          <dd className="font-medium text-amber-200">{rangeLabel(ability.range)}</dd>
+          <dd className="font-medium text-amber-200">
+            {/* GG-495: a ranged or thrown attack also names its long range. */}
+            {rangeLabel(ability.range)}
+            {ability.longRange !== undefined && ability.longRange > ability.range && `, long ${rangeLabel(ability.longRange)}`}
+          </dd>
         </div>
         {grants.length > 0 && (
           <div className="flex justify-between gap-2">
@@ -147,6 +153,12 @@ export const CombatIntentPreview: React.FC<CombatIntentPreviewProps> = ({
           </div>
         )}
       </dl>
+
+      {rangedPressure && (
+        <p role="status" className="mt-2 rounded border border-amber-500/50 bg-amber-950/70 p-2 text-xs text-amber-100">
+          Ranged attack: Disadvantage because a nearby enemy can see you. Advantage from another source cancels it.
+        </p>
+      )}
 
       {ability.description && (
         <p className="mt-2 line-clamp-3 border-t border-slate-800 pt-2 text-[11px] leading-snug text-slate-300">

@@ -9,6 +9,9 @@ import { describe, it, expect } from 'vitest';
 import {
   buildStreetNetwork,
   densifyPolyline,
+  dropGateHooks,
+  dropJogs,
+  MAIN_STREET_WIDTH_FT,
   halfWidthByWardEdge,
   roadGateCandidates,
   segmentCross,
@@ -312,5 +315,85 @@ describe('townStreetNetwork — terminal (dead-end) nodes', () => {
     }
     // Deterministic: the same network yields the same ends, in the same order.
     expect(streetDeadEnds(buildStreetNetwork(makeInput()), 1e-6)).toEqual(ends);
+  });
+});
+
+describe('gate hooks (GG-562) and the main street (GG-567)', () => {
+  it('drops a corner near the gate that turns the street back on itself', () => {
+    // Hafting's north gate: out past the wall to a corner, then back into town.
+    const gate: Pt = [0, 0];
+    const line: Pt[] = [gate, [12, 0], [6, 40], [6, 120]];
+    const out = dropGateHooks(line, gate, 10);
+    expect(out).toEqual([gate, [6, 40], [6, 120]]);
+  });
+
+  it('looks again at the corner before a dropped one', () => {
+    // Removing [10, -6] leaves [3, -2] as a new hook; the step back drops it too.
+    const gate: Pt = [0, 0];
+    const line: Pt[] = [gate, [3, -2], [10, -6], [9, 60], [0, 120]];
+    const out = dropGateHooks(line, gate, 10);
+    expect(out[1]).toEqual([9, 60]);
+  });
+
+  it('keeps a real turn farther from the gate than its reach', () => {
+    const gate: Pt = [0, 0];
+    const line: Pt[] = [gate, [0, 50], [-40, 20]];
+    expect(dropGateHooks(line, gate, 10)).toEqual(line);
+  });
+
+  it('drops any gate corner over 30 degrees for the main street', () => {
+    const gate: Pt = [0, 0];
+    const line: Pt[] = [gate, [2, 2], [30, 0], [100, 0]];
+    expect(dropGateHooks(line, gate, 10, 90)).toEqual(line);
+    expect(dropGateHooks(line, gate, 10, 30)).toEqual([gate, [30, 0], [100, 0]]);
+  });
+
+  it('smooths a short sharp jog out of a street and keeps its ends', () => {
+    const line: Pt[] = [[0, 0], [50, 0], [51, 2], [100, 2]];
+    // One corner of the jog goes; the street then runs almost straight.
+    const out = dropJogs(line, 5, 30);
+    expect(out).toHaveLength(3);
+    expect(out[0]).toEqual([0, 0]);
+    expect(out[2]).toEqual([100, 2]);
+    expect(dropJogs([[0, 0], [50, 0], [50, 40]], 5, 30)).toEqual([[0, 0], [50, 0], [50, 40]]);
+  });
+
+  it('routes the main street along the line the engine laid, at 25 ft, to the market', () => {
+    const wardPolys = gridWards();
+    const civic = wardPolys.map((_, i) => (i === 5 ? 'plaza' : undefined));
+    const streets = buildStreetNetwork(makeInput({
+      wardCivic: civic,
+      // The main street runs east from the west gate along y = 200.
+      mainStreet: { gate: [0, 200], line: [[0, 200], [150, 200]], near: 5 },
+    }));
+    const main = streets.filter((s) => s.main);
+    expect(main).toHaveLength(1);
+    expect(main[0].width).toBeCloseTo(10 * (MAIN_STREET_WIDTH_FT / STREET_TIER_SPECS.lane.widthFt), 6);
+    // It runs from its gate and ends on a corner of the market ward (ward 5
+    // spans [100,200]^2).
+    expect(main[0].centerline[0]).toEqual([0, 200]);
+    const end = main[0].centerline[main[0].centerline.length - 1];
+    expect(end[0] >= 100 - 1e-6 && end[0] <= 200 + 1e-6 && end[1] >= 100 - 1e-6 && end[1] <= 200 + 1e-6).toBe(true);
+    // No other street but the market frontage is as wide.
+    for (const s of streets) if (!s.main && s.tier !== 'plaza' && s.role !== 'approach') expect(s.width).toBeLessThan(main[0].width);
+  });
+
+  it('joins a bridge link to the graph so a route can cross it', () => {
+    // Two banks: wards west of x=180 and east of x=220, no shared edge.
+    const west: Pt[][] = [[[0, 0], [180, 0], [180, 200], [0, 200]], [[0, 200], [180, 200], [180, 400], [0, 400]]];
+    const east: Pt[][] = [[[220, 0], [400, 0], [400, 200], [220, 200]], [[220, 200], [400, 200], [400, 400], [220, 400]]];
+    const wardPolys = [...west, ...east];
+    const base = makeInput({ wardPolys, wardCivic: wardPolys.map((_, i) => (i === 0 ? 'plaza' : undefined)) });
+    const without = buildStreetNetwork(base);
+    const withLink = buildStreetNetwork({ ...base, links: [[[180, 200], [220, 200]]] });
+    const crosses = (ss: readonly TownStreet[]): boolean => ss.some((s) => s.role !== 'approach'
+      && s.centerline.some((p, i) => i > 0 && Math.min(p[0], s.centerline[i - 1][0]) <= 180 && Math.max(p[0], s.centerline[i - 1][0]) >= 220));
+    expect(crosses(without)).toBe(false);
+    expect(crosses(withLink)).toBe(true);
+  });
+
+  it('gives a passage no dead-end dressing', () => {
+    const streets: TownStreet[] = [{ centerline: [[0, 0], [10, 0]], tier: 'lane', role: 'passage', width: 2 }];
+    expect(streetDeadEnds(streets, 1e-6)).toEqual([]);
   });
 });

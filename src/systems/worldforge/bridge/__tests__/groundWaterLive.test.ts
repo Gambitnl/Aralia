@@ -40,9 +40,14 @@ describe('water in a real baked ground world', () => {
     });
   }, 60_000);
 
-  it('bakes water runs at all', () => {
+  it('bakes water runs only for basins their catchment keeps wet', () => {
+    // This forest window has no river and no town water. Its hollows are rain
+    // hollows: the best catchment ratio of the 70 basins 0.5 m deep is 5.3,
+    // under the temperate balance (8), so none holds a lasting pond and the
+    // window bakes no runs (measured 2026-10-27, agora-257c). Before the water
+    // balance, every pit 0.5 m deep filled into a flat sheet.
     expect(ground.waterRuns).toBeDefined();
-    expect(ground.waterRuns!.length).toBeGreaterThan(0);
+    expect(ground.waterRuns).toHaveLength(0);
   });
 
   it('reports whether this location has an authored river', () => {
@@ -160,14 +165,18 @@ describe('Epicea town water reaches the 3D bake', () => {
     expect(uncentered.region.townSites).toHaveLength(0);
   }, 120000);
 
-  it('places a river body and a sea body into the ground world', () => {
+  it('places the river body, and a sea body only where the window has sea', () => {
     const { ground, townSites } = epiceaGround();
     expect(townSites).toBe(1);
     expect(ground.towns).toHaveLength(1);
 
     const kinds = ground.waterBodies.map((b) => b.kind);
     expect(kinds).toContain('river');
-    expect(kinds).toContain('sea');
+    // Epicea's 2D plan draws a harbor, because the plan takes its coast from the
+    // edge of the burg's whole atlas cell. The 3D window holds no ground below
+    // sea level (measured 2026-10-27), so its sea apron would be an inland
+    // basin, and dropInlandSeaAprons drops it (agora-257c).
+    expect(kinds).not.toContain('sea');
 
     // The river must arrive with the ordered centerline its height pass needs;
     // without it every channel vertex collapses to one flat pond height.
@@ -203,21 +212,34 @@ describe('Epicea town water reaches the 3D bake', () => {
 
   it('survives chunk sampling into lakes and builds real water triangles', () => {
     const { ground } = epiceaGround();
+    // When a region river runs along the town's channel, the region ribbon
+    // draws it and the body draws no sheet of its own (bindTownRiversToRibbons,
+    // agora-257c 2026-10-27). Either way the river must reach the bake.
+    const drawnByRibbon = ground.waterBodies.some(
+      (b) => b.kind === 'river' && b.drawnByRiverRibbon,
+    );
 
     let riverLakes = 0;
+    let riverRibbons = 0;
     let triangles = 0;
     // The town sits well inside the 914 m window; sweep the chunks that cover it.
     for (let cx = -1; cx <= 7; cx++) {
       for (let cy = -1; cy <= 7; cy++) {
         const data = sampleGroundChunk(ground, cx, cy, 33);
         const lakes = data.lakes ?? [];
-        if (lakes.length === 0) continue;
+        riverRibbons += data.rivers.filter((r) => (r.waterlineY?.length ?? 0) > 0).length;
+        if (lakes.length === 0 && data.rivers.length === 0) continue;
         riverLakes += lakes.filter((l) => l.kind === 'river').length;
         triangles += buildWaterMesh(data).indices.length / 3;
       }
     }
 
-    expect(riverLakes).toBeGreaterThan(0);
+    if (drawnByRibbon) {
+      expect(riverRibbons).toBeGreaterThan(0);
+      expect(riverLakes).toBe(0); // one sheet: the body draws nothing
+    } else {
+      expect(riverLakes).toBeGreaterThan(0);
+    }
     expect(triangles).toBeGreaterThan(0);
   }, 120000);
 });

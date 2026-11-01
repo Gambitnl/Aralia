@@ -22,6 +22,23 @@
  *   - servants get NO bedroom — they share one `servant-room` groundExtra slot
  *     emitted when any servant slots exist.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 23:21:08
+ * Dependents: systems/worldforge/interior/generateBuilding.ts, systems/worldforge/interior/program.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { BuildingType, HouseholdBrief, RoomPurpose } from './blueprintTypes';
 import { HEADLINE, type ProgramSlot } from './program';
 import { tradeRoomsFor, type TradeRoomDemand } from './tradeRooms';
@@ -52,6 +69,9 @@ const fixedSlot = (purpose: RoomPurpose): ProgramSlot => ({ purpose, min: 1, max
  * @returns the extra ground slots, trade demands, and shared bedroom list.
  */
 export function programForBrief(type: BuildingType, brief: HouseholdBrief): BriefProgram {
+  // A separate workplace retains the proprietor brief for trade design and
+  // identity. It must not duplicate that family's beds or servant quarters.
+  const residentSlots = brief.residential === false ? [] : brief.slots;
   // --- Trade rooms (only when the family runs THIS building). ---
   // Drop any demand the building's headline room already satisfies — the main
   // room provides that purpose, so a duplicate slot would double it up.
@@ -74,7 +94,7 @@ export function programForBrief(type: BuildingType, brief: HouseholdBrief): Brie
   }
 
   // --- Servants share ONE room (a ground slot, never a bedroom). ---
-  if (brief.slots.some((s) => s.role === 'servant')) {
+  if (residentSlots.some((s) => s.role === 'servant')) {
     groundExtra.push(fixedSlot('servant-room'));
   }
 
@@ -82,22 +102,22 @@ export function programForBrief(type: BuildingType, brief: HouseholdBrief): Brie
   const bedrooms: BedroomAssignment[] = [];
 
   // 1. head + spouse share bedroom 1 (either alone if the other is absent).
-  const couple = brief.slots.filter((s) => s.role === 'head' || s.role === 'spouse').map((s) => s.tag);
+  const couple = residentSlots.filter((s) => s.role === 'head' || s.role === 'spouse').map((s) => s.tag);
   if (couple.length > 0) bedrooms.push({ slotTags: couple });
 
   // 2. children share 2 per room, grouped in tag order.
-  const children = brief.slots.filter((s) => s.role === 'child').map((s) => s.tag);
+  const children = residentSlots.filter((s) => s.role === 'child').map((s) => s.tag);
   for (let i = 0; i < children.length; i += 2) {
     bedrooms.push({ slotTags: children.slice(i, i + 2) });
   }
 
   // 3. elders and kin get single rooms.
-  for (const s of brief.slots) {
+  for (const s of residentSlots) {
     if (s.role === 'elder' || s.role === 'kin') bedrooms.push({ slotTags: [s.tag] });
   }
 
   // 4. lodgers get single rooms LAST (they land in attic/back positions).
-  for (const s of brief.slots) {
+  for (const s of residentSlots) {
     if (s.role === 'lodger') bedrooms.push({ slotTags: [s.tag] });
   }
 

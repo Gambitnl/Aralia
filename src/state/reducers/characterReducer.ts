@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 25/06/2026, 01:10:56
- * Dependents: state/appState.ts
- * Imports: 9 files
+ * Last Sync: 31/10/2026, 19:01:52
+ * Dependents: state/appState.ts, state/reducers/questReducer.ts, systems/worldforge/dungeon/world/dungeonObjectResolution.ts
+ * Imports: 23 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,6 +14,10 @@
  */
 // @dependencies-end
 
+import { planRestMeals } from '../../systems/gameplay/restMeals';
+import { removePreviousPreparedConcentration } from '../../utils/spells/outOfCombatCasting';
+import {containedWaterDays,consumeProvision} from '../../systems/travel/containedWater';
+import {prepareContainedWaterCast,CONTAINED_WATER_SPELL_ID} from '../../systems/gameplay/containedWaterCasting';
 /**
  * This reducer manages everything related to characters in the world.
  *
@@ -35,7 +39,15 @@
  */
 import { GameState, LimitedUseAbility, SpellSlots, Item, RacialSelectionData, LevelUpChoices, EquipmentSlotType, ArmorCategory, AbilityScoreName, Skill } from '../../types';
 import { AppAction } from '../actionTypes';
+import { isCurrencyItemId } from '../../utils/character/coinPurseUtils';
+import { applyMerchantPurchase, applyMerchantSale } from './merchantTransactions';
+import {prepareCarriedTorch} from '../../systems/underdark/carriedItemLight';
+import {prepareAdventuringPack} from '../../systems/gameplay/adventuringPacks';
+import { preparePartyMeal } from '../../systems/travel/partyMeal';
 import { SKILLS_DATA } from '../../data/skills';
+import { getRulesEdition } from '../../config/rulesEdition';
+import { exhaustionLevelFromConditions } from '../../utils/combat/physicsUtils';
+import { lodgingRestError, consumeLodgingRest } from '../../systems/gameplay/lodging';
 import {
   calculateArmorClass,
   createPlayerCharacterFromTemp,
@@ -48,14 +60,14 @@ import {
   getArmorCategoryHierarchy,
   buildHitPointDicePools,
   updateDerivedStats,
-  getPreparedSpellsAffectingLimit,
-  isRacialSpellLockedForPreparation,
   getRacialSpellGrantForSpell,
   isRacialSpellCastLevelAllowed,
   resolveRacialSpellLimitedUseId,
   resolveRacialResourceId,
+  isTwoHandedWeapon,
 } from '../../utils/character';
-import { getMaxPreparedSpells } from '../../utils/character/getMaxPreparedSpells';
+import { completePreparation, togglePreparationPlan } from '../../systems/gameplay/spellPreparation';
+import { spellSlotsForClassLevel } from '../../systems/character/spellSlotProgression';
 import { isWeaponProficient } from '../../utils/character';
 import { rollDice } from '../../systems/dice/rollers';
 import { ITEMS, CLASSES_DATA } from '../../constants';
@@ -79,7 +91,7 @@ const resolveMaxValue = (char: GameState['party'][0], ability: LimitedUseAbility
  * helper preserves any timestamp that already exists and only fills the missing
  * value at acquisition boundaries owned by this reducer.
  */
-const stampItemAcquiredAt = (item: Item, acquiredAt = Date.now()): Item => ({
+export const stampItemAcquiredAt = (item: Item, acquiredAt = Date.now()): Item => ({
     ...item,
     acquiredAt: item.acquiredAt ?? acquiredAt,
 });
@@ -90,7 +102,21 @@ const stampItemAcquiredAt = (item: Item, acquiredAt = Date.now()): Item => ({
  * relied on this; travel provisions (rations, water) need it for the
  * provisioning math (daysOfFood) and ration spend (REMOVE_ITEM) to find them.
  */
-const STABLE_STACKABLE_ITEM_IDS = new Set(['gold_piece', 'rations', 'water-day']);
+export const STABLE_STACKABLE_ITEM_IDS = new Set(['gold_piece', 'rations', 'water-day']);
+
+/**
+ * Creates an independent item instance with a unique id (unless it is a stable
+ * stackable item) and stamps acquiredAt if not already present (GG-460).
+ */
+export const instantiateItem = (item: Item, acquiredAt = Date.now()): Item =>
+    stampItemAcquiredAt(
+        {
+            ...item,
+            // Currency keeps its catalog identity for face-value payment; gear stays independent.
+            id: STABLE_STACKABLE_ITEM_IDS.has(item.id) || isCurrencyItemId(item.id) ? item.id : generateId(),
+        },
+        acquiredAt
+    );
 
 // ============================================================================
 // Main Reducer Logic
@@ -150,6 +176,38 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             };
         }
 
+        // Apply a status condition to a single character (e.g. forced march 'exhaustion' on a failed save).
+        // Idempotent: if already present, the character is untouched.
+        case 'SET_CHARACTER_CONDITION': {
+            const { characterId, condition } = action.payload;
+            return {
+                party: state.party.map(pc =>
+                    pc.id === characterId && !pc.conditions?.includes(condition)
+                        ? { ...pc, conditions: [...(pc.conditions ?? []), condition] }
+                        : pc,
+                ),
+            };
+        }
+
+        // Clear a condition from a single character.
+        case 'CLEAR_CHARACTER_CONDITION': {
+            const { characterId, condition } = action.payload;
+            return {
+                party: state.party.map(pc =>
+                    pc.id === characterId
+                        ? { ...pc, conditions: (pc.conditions ?? []).filter(c => c !== condition) }
+                        : pc,
+                ),
+            };
+        }
+
+        // GG-471: Track elapsed travel minutes accumulated toward the next whole-day ration deduction
+        case 'SET_TRAVEL_MINUTES_REMAINDER': {
+            return {
+                travelMinutesRemainder: Math.max(0, action.payload.minutes),
+            };
+        }
+
         case 'ADD_ITEM': {
             const { itemId, count = 1 } = action.payload;
             const item = ITEMS[itemId] || Object.values(ITEMS).find(i => i.id === itemId);
@@ -162,7 +220,7 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             // Create independent item instances and stamp when they entered
             // inventory so perishable food can expire from durable item data.
             const acquiredAt = Date.now();
-            const newItems = Array.from({ length: count }, () => stampItemAcquiredAt({ ...item, id: STABLE_STACKABLE_ITEM_IDS.has(item.id) ? item.id : generateId() }, acquiredAt));
+            const newItems = Array.from({ length: count }, () => instantiateItem(item, acquiredAt));
 
             // For stackable items (like gold), we might want to just add them as is, but current inventory is a flat list.
             // If the item is generic (like gold_piece), we keep the ID. If it's a unique gear item, we give it a unique ID.
@@ -185,6 +243,9 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
         }
 
         case 'REMOVE_ITEM': {
+            if (action.payload.itemId==='water-day'&&state.inventory.some(item=>containedWaterDays(item)>0)) {
+                return {inventory:consumeProvision(state.inventory,'water-day',action.payload.count??1).inventory};
+            }
             const { itemId, count = 1 } = action.payload;
             let remaining = count;
             const newInventory: Array<Item | null> = [...state.inventory];
@@ -239,7 +300,8 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
 
         case 'GRANT_EXPERIENCE': {
             const { amount } = action.payload;
-            const newParty = state.party.map(char => applyXpAndHandleLevelUps(char, amount));
+            const rulesEdition = getRulesEdition(state);
+            const newParty = state.party.map(char => applyXpAndHandleLevelUps(char, amount, undefined, rulesEdition));
             return { party: newParty };
         }
 
@@ -308,7 +370,7 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             // 1. Ability Scores (from magic items).
             // 2. Armor Class (Base AC + Dex Mod + Shield).
             // 3. Max HP (if Constitution changed).
-            const payload = action.payload as { itemId?: string; characterId?: string };
+            const payload = action.payload;
             const itemId = payload.itemId;
             const characterId = payload.characterId;
             if (!itemId || !characterId) return {};
@@ -316,15 +378,27 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             if (charIndex === -1) return {};
 
             const charToUpdate = { ...state.party[charIndex] };
-            const itemToEquip = state.inventory.find(item => item.id === itemId);
-            if (!itemToEquip) return {};
+            // A filtered row can share its item ID with another purchase. Keep
+            // its original source and reject stale clicks instead of switching it.
+            const sourceIndex = payload.inventoryIndex ?? state.inventory.findIndex(item => item.id === itemId);
+            if (!Number.isInteger(sourceIndex) || sourceIndex < 0) return {};
+            const itemToEquip = state.inventory[sourceIndex];
+            if (!itemToEquip || itemToEquip.id !== itemId || (payload.inventoryItem && payload.inventoryItem !== itemToEquip)) return {};
+            const quantity = itemToEquip.quantity ?? 1;
+            if (!Number.isSafeInteger(quantity) || quantity < 1) return {};
 
-            const isOneHandedWeapon = itemToEquip.type === 'weapon' && !itemToEquip.properties?.includes('Two-Handed');
+            const isOneHandedWeapon = itemToEquip.type === 'weapon' && !isTwoHandedWeapon(itemToEquip);
+            const isMainHandTwoHanded = isTwoHandedWeapon(charToUpdate.equippedItems.MainHand);
             const targetSlot = isOneHandedWeapon
-                ? (!charToUpdate.equippedItems.MainHand ? 'MainHand' : !charToUpdate.equippedItems.OffHand ? 'OffHand' : 'MainHand')
+                ? (isMainHandTwoHanded ? 'MainHand' : !charToUpdate.equippedItems.MainHand ? 'MainHand' : !charToUpdate.equippedItems.OffHand ? 'OffHand' : 'MainHand')
                 : itemToEquip.slot || null;
 
             if (!targetSlot) return {};
+
+            // GG-502: If trying to equip into OffHand while wielding a Two-Handed weapon in MainHand, refuse!
+            if (targetSlot === 'OffHand' && isMainHandTwoHanded) {
+                return {};
+            }
 
             const newEquippedItems = { ...charToUpdate.equippedItems };
             const newInventory = [...state.inventory];
@@ -332,9 +406,20 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
 
             if (itemInSlot) newInventory.push(itemInSlot);
 
-            newEquippedItems[targetSlot] = itemToEquip;
-            const itemIndexInInventory = newInventory.findIndex(item => item.id === itemId);
-            if (itemIndexInInventory > -1) newInventory.splice(itemIndexInInventory, 1);
+            // GG-502: If equipping a Two-Handed weapon in MainHand, unequip any item currently in OffHand!
+            if (targetSlot === 'MainHand' && isTwoHandedWeapon(itemToEquip)) {
+                const offHandItem = newEquippedItems.OffHand;
+                if (offHandItem) {
+                    newInventory.push(offHandItem);
+                    delete newEquippedItems.OffHand;
+                }
+            }
+
+            // One hand or armor slot takes one unit. Its spare stays with the
+            // same provenance; existing gear returns to the pack as before.
+            newEquippedItems[targetSlot] = quantity > 1 ? { ...itemToEquip, quantity: 1 } : itemToEquip;
+            if (quantity > 1) newInventory[sourceIndex] = { ...itemToEquip, quantity: quantity - 1 };
+            else newInventory.splice(sourceIndex, 1);
 
             // RALPH: Logic Extraction.
             // Uses centralized utility to recalculate AC, HP, and Ability Scores.
@@ -398,6 +483,20 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
         }
 
         case 'USE_ITEM': {
+            if (action.payload.unpack) {
+                const result = prepareAdventuringPack(state,action.payload);
+                return 'patch' in result ? result.patch : {};
+            }
+            if (action.payload.meal) {
+                if (!state.party.some(member => member.id === action.payload.characterId)) return {};
+                const meal = preparePartyMeal(state, action.payload.meal);
+                return 'patch' in meal ? meal.patch : {};
+            }
+            // Inventory and burning fuel change atomically; repeated use cannot spend a second torch.
+            if (action.payload.itemId === 'torch' || action.payload.light) {
+                const result = prepareCarriedTorch(state, action.payload);
+                return 'patch' in result ? result.patch : {};
+            }
             const { itemId, characterId } = action.payload as { itemId?: string; characterId?: string };
             if (!itemId || !characterId) return {};
             const charIndex = state.party.findIndex(c => c.id === characterId);
@@ -420,7 +519,7 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             } else {
                 // Handle new structured ItemEffect
                 if (itemToUse.effect.type === 'heal') {
-                    let healAmount = itemToUse.effect.value;
+                    let healAmount = itemToUse.effect.value ?? 0;
                     if (itemToUse.effect.dice) {
                         healAmount += rollDice(itemToUse.effect.dice);
                     }
@@ -503,47 +602,17 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
         }
 
         case 'TOGGLE_PREPARED_SPELL': {
-            const { characterId, spellId } = action.payload;
-            const charIndex = state.party.findIndex(c => c.id === characterId);
-            if (charIndex === -1) return {};
-
-            const charToUpdate = { ...state.party[charIndex] };
-            if (!charToUpdate.spellbook) return {};
-
-            const isLockedForRacialPrep = isRacialSpellLockedForPreparation(charToUpdate, spellId);
-            const spellbook = { ...charToUpdate.spellbook };
-            const preparedSpells = new Set(spellbook.preparedSpells);
-
-            if (preparedSpells.has(spellId)) {
-                if (isLockedForRacialPrep) {
-                    return {};
-                }
-                preparedSpells.delete(spellId);
-            } else {
-                // Check limit before adding
-                const maxPrepared = getMaxPreparedSpells(charToUpdate);
-                const preparedSpellCountAffectingLimit = getPreparedSpellsAffectingLimit(charToUpdate).size;
-
-                // If maxPrepared is null (known caster), no limit applies
-                // Otherwise, enforce the limit
-                if (maxPrepared !== null && preparedSpellCountAffectingLimit >= maxPrepared) {
-                    console.log(`Cannot prepare more spells. Already at max (${maxPrepared}).`);
-                    return {}; // Don't add - already at limit
-                }
-                preparedSpells.add(spellId);
-            }
-
-            spellbook.preparedSpells = Array.from(preparedSpells);
-            const updatedCharacter = { ...charToUpdate, spellbook };
-
-            const newParty = [...state.party];
-            newParty[charIndex] = updatedCharacter;
-
-            const newCharacterSheetModalState = state.characterSheetModal.isOpen && state.characterSheetModal.character?.id === updatedCharacter.id
-                ? { ...state.characterSheetModal, character: updatedCharacter }
-                : state.characterSheetModal;
-
-            return { party: newParty, characterSheetModal: newCharacterSheetModalState };
+            const {characterId, spellId, spellLevels, resetPlan} = action.payload;
+            const index = state.party.findIndex(character => character.id === characterId);
+            if (index < 0 || (!resetPlan && !spellLevels)) return {};
+            const result = togglePreparationPlan(state.party[index], spellId, spellLevels ?? {}, getRulesEdition(state), resetPlan);
+            if (result.character === state.party[index]) return {};
+            const party = [...state.party];
+            party[index] = result.character;
+            // The open sheet displays the draft; casting still reads active spells.
+            const characterSheetModal = state.characterSheetModal.isOpen && state.characterSheetModal.character?.id === characterId
+                ? {...state.characterSheetModal, character: result.character} : state.characterSheetModal;
+            return {party, characterSheetModal};
         }
 
         case 'APPLY_CHARACTER_STATUS_EFFECT': {
@@ -551,10 +620,14 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             // CombatState snapshots). Mirrors the engine's same-source de-dup so
             // re-casting replaces rather than stacks.
             const { characterId, statusEffect } = action.payload;
+            if (!state.party.some(char => char.id === characterId)) return {};
             return {
                 party: state.party.map(char => {
-                    if (char.id !== characterId) return char;
-                    const retained = (char.statusEffects ?? []).filter(existing =>
+                    // Concentration belongs to the caster, even when its old
+                    // effect was on somebody else. Preserve all other owners.
+                    const remaining = removePreviousPreparedConcentration(char.statusEffects ?? [], statusEffect);
+                    if (char.id !== characterId) return remaining === char.statusEffects ? char : { ...char, statusEffects: remaining };
+                    const retained = remaining.filter(existing =>
                         existing.source !== statusEffect.source ||
                         existing.sourceCasterId !== statusEffect.sourceCasterId,
                     );
@@ -564,6 +637,12 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
         }
 
         case 'CAST_SPELL': {
+            // Container, source, current preparation and slot are settled together.
+            // The generic spell path cannot spend a water slot without a choice.
+            if (action.payload.outOfCombat&&action.payload.spellId===CONTAINED_WATER_SPELL_ID) {
+                const result=prepareContainedWaterCast(state,action.payload);
+                return 'error' in result?{}:result.patch;
+            }
             const { characterId, spellLevel, spellId, castSource, materialComponentItemIdToConsume } = action.payload;
 
             // Resolve the new inventory state if a material component was consumed during casting.
@@ -706,6 +785,43 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                     }
                 }
 
+                // Restore Warlock Pact Magic spell slots on Short Rest.
+                // In D&D 5e (both 2014 and 2024), Warlock Pact Magic slots recharge on a short rest.
+                // For multiclass characters, only the slots belonging to the Warlock level pool are recharged,
+                // leaving long-rest caster slots (Wizard, Cleric, etc.) untouched.
+                const warlockLevel = updatedChar.class?.id?.toLowerCase() === 'warlock'
+                    ? (updatedChar.level ?? 1)
+                    : (updatedChar.classLevels?.warlock ?? 0);
+
+                if (warlockLevel > 0 && updatedChar.spellSlots) {
+                    const warlockSlots = spellSlotsForClassLevel('warlock', warlockLevel);
+                    if (warlockSlots) {
+                        let slotsChanged = false;
+                        const restoredSlots = { ...updatedChar.spellSlots };
+                        for (let lvl = 1; lvl <= 5; lvl++) {
+                            const slotKey = `level_${lvl}` as keyof SpellSlots;
+                            const pactMax = warlockSlots[slotKey]?.max ?? 0;
+                            if (pactMax > 0 && restoredSlots[slotKey]) {
+                                const current = restoredSlots[slotKey].current;
+                                const max = restoredSlots[slotKey].max;
+                                // Restore expended pact slots up to the available max capacity
+                                const newCurrent = Math.min(max, Math.max(current, pactMax));
+                                if (newCurrent !== current) {
+                                    restoredSlots[slotKey] = {
+                                        ...restoredSlots[slotKey],
+                                        current: newCurrent,
+                                    };
+                                    slotsChanged = true;
+                                }
+                            }
+                        }
+                        if (slotsChanged) {
+                            updatedChar = { ...updatedChar, spellSlots: restoredSlots };
+                            hasChanged = true;
+                        }
+                    }
+                }
+
                 // Apply any hit dice spend updates calculated by the short rest handler.
                 if (charId && hitPointDiceUpdates[charId]) {
                     updatedChar = { ...updatedChar, hitPointDice: hitPointDiceUpdates[charId] };
@@ -730,37 +846,47 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
         }
 
         case 'LONG_REST': {
+            // A paid night grants benefits only after reaching its reserved bed.
+            // Expired, moved or already-used admissions cannot bypass recovery.
+            if (action.payload?.lodgingRestAdmission && lodgingRestError(state, action.payload.lodgingRestAdmission)) return {};
+            // GG-449: A party can only benefit from one Long Rest in a 24-hour period,
+            // with at least 16 hours between rests (D&D 5e / glossary long_rest).
+            // If less than 16 hours have passed since the last Long Rest, refuse the rest.
+            const currentTime = state.gameTime ? new Date(state.gameTime) : null;
+            if (state.lastLongRestAt && currentTime) {
+                const lastRestMs = new Date(state.lastLongRestAt).getTime();
+                const currentMs = currentTime.getTime();
+                const cooldownMs = 16 * 3600 * 1000;
+                if (!isNaN(lastRestMs) && !isNaN(currentMs) && (currentMs - lastRestMs < cooldownMs)) {
+                    return state;
+                }
+            }
+
+            const rulesEdition = getRulesEdition(state);
             const deniedIds = action.payload?.deniedCharacterIds || [];
             const racialChoices = action.payload?.racialRestChoices || {};
 
-            // PRV9 — overnight provisions: the party eats a proper meal during the
-            // rest only if EVERYONE can (1 ration + 1 water per member, all-or-
-            // nothing so a partial stock isn't silently nibbled away). Eating
-            // clears the travel hardships ('starving'/'fatigued'); a member who
-            // stays starving cannot recover HP from the rest. 'poisoned' is
-            // purged by the night's rest itself, food or not.
-            const need = state.party.length;
-            const heldInventory = state.inventory ?? [];
-            const rationsHeld = heldInventory.filter(i => i.id === 'rations').length;
-            const waterHeld = heldInventory.filter(i => i.id === 'water-day').length;
-            const partyEats = need > 0 && rationsHeld >= need && waterHeld >= need;
-            let newInventory = heldInventory;
-            if (partyEats) {
-                let rationsToEat = need, waterToDrink = need;
-                newInventory = heldInventory.filter(item => {
-                    if (item.id === 'rations' && rationsToEat > 0) { rationsToEat--; return false; }
-                    if (item.id === 'water-day' && waterToDrink > 0) { waterToDrink--; return false; }
-                    return true;
-                });
-            }
+            // Preview and settlement use the same owned-meal allocation. A
+            // private bag feeds its owner; shared-only behavior stays intact.
+            const meals = planRestMeals(state, deniedIds);
 
             const newParty = state.party.map(char => {
                 const charId = char.id;
+                const partyEats = meals.fedIds.includes(charId);
                 if (charId && deniedIds.includes(charId)) {
                     return char; // No benefits for denied characters
                 }
 
-                const charCopy = { ...char };
+                // GG-449: In D&D 5e (PHB 2014 p. 186 / PHB 2024 p. 367), a character
+                // must have at least 1 HP at the start of a Long Rest to gain its benefits.
+                // A character at 0 HP is unconscious/dying and does not regain HP, spell slots,
+                // Hit Dice, or features from resting.
+                if (char.hp <= 0) {
+                    return char;
+                }
+
+                // Only an eligible completed long rest commits the saved spell plan.
+                const charCopy = { ...completePreparation(char, rulesEdition) };
                 // Process Racial Rest Choices
                 if (charId && racialChoices[charId]) {
                     const newChoicesForChar = racialChoices[charId];
@@ -844,6 +970,14 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                         c !== 'poisoned' && !(partyEats && (c === 'starving' || c === 'fatigued')),
                     );
                 }
+                // Recover one level using the same legacy/numbered forms combat
+                // reads. Other persistent conditions and denied/downed members
+                // keep their existing rules. Older-edition recovery needs a meal.
+                const exhaustion = exhaustionLevelFromConditions(charCopy.conditions);
+                if (exhaustion > 0 && (rulesEdition === '2024' || partyEats)) {
+                    charCopy.conditions = (charCopy.conditions ?? []).filter(c => !/^exhaustion(?:[_ -]?\d)?$/i.test(c));
+                    if (exhaustion > 1) charCopy.conditions.push(`exhaustion_${exhaustion - 1}`);
+                }
                 const stillStarving = (charCopy.conditions ?? []).includes('starving');
 
                 // Restore HP — unless the member is still starving (PRV9): you
@@ -855,12 +989,45 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                 // Reset flight status
                 charCopy.isFlying = false;
 
-                // Restore Hit Point Dice (2024 rules: Long Rest restores all spent dice).
-                const restoredHitPointDice = buildHitPointDicePools(charCopy).map(pool => ({
-                    ...pool,
-                    current: pool.max,
-                }));
-                charCopy.hitPointDice = restoredHitPointDice;
+                // GG-450: Clear temporary hit points (PHB 2014 p. 198 / PHB 2024 p. 25:
+                // temporary hit points last until depleted or until finishing a Long Rest).
+                charCopy.tempHP = 0;
+
+                // GG-451: Restore Hit Point Dice according to the active rules edition:
+                // - 2024 rules: Long Rest restores all spent Hit Dice.
+                // - 2014 rules: Long Rest restores up to half of the character's total Hit Dice (minimum of 1).
+                const currentPools = buildHitPointDicePools(charCopy);
+                if (rulesEdition === '2024') {
+                    charCopy.hitPointDice = currentPools.map(pool => ({
+                        ...pool,
+                        current: pool.max,
+                    }));
+                } else {
+                    // 2014: regain up to floor(total/2) spent dice, minimum 1 die if any were spent.
+                    const totalMax = currentPools.reduce((sum, p) => sum + p.max, 0);
+                    const totalSpent = currentPools.reduce((sum, p) => sum + (p.max - p.current), 0);
+                    let diceToRegain = Math.min(totalSpent, Math.max(1, Math.floor(totalMax / 2)));
+
+                    // Regain dice starting from the largest die size down to smallest (d12 down to d6)
+                    // so multiclass characters recover their most valuable dice first.
+                    const sortedByDieDesc = [...currentPools].sort((a, b) => b.die - a.die);
+                    const regainedByDie = new Map<number, number>();
+
+                    for (const pool of sortedByDieDesc) {
+                        if (diceToRegain <= 0) break;
+                        const spentInPool = pool.max - pool.current;
+                        if (spentInPool > 0) {
+                            const regain = Math.min(spentInPool, diceToRegain);
+                            regainedByDie.set(pool.die, regain);
+                            diceToRegain -= regain;
+                        }
+                    }
+
+                    charCopy.hitPointDice = currentPools.map(pool => ({
+                        ...pool,
+                        current: pool.current + (regainedByDie.get(pool.die) ?? 0),
+                    }));
+                }
 
                 // Resourceful: You gain Heroic Inspiration whenever you finish a Long Rest.
                 if (charCopy.race?.traits?.some(t => t.toLowerCase().includes('resourceful'))) {
@@ -869,45 +1036,30 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
 
                 return charCopy;
             });
+            // The cooldown begins when the eight-hour rest FINISHES. Recording
+            // its start allowed a new rest only eight hours after waking.
+            const restStart = currentTime?.getTime() ?? Date.now();
+            const lastLongRestAt = new Date(restStart + 8 * 3600 * 1000).toISOString();
             return {
+                // Permission is consumed only with the accepted recovery update.
+                ...(action.payload?.lodgingRestAdmission ? consumeLodgingRest(state, action.payload.lodgingRestAdmission) : {}),
                 party: newParty,
-                ...(partyEats ? { inventory: newInventory } : {}),
+                lastLongRestAt,
+                travelMinutesRemainder: 0,
+                ...meals.patch,
                 ...appendAdventureLogEntry(state, {
                     kind: 'rest',
-                    summary: partyEats
-                        ? 'The party took a long rest and a proper meal.'
+                    summary: meals.fedIds.length
+                        ? `The party took a long rest. Meals: ${state.party.filter(person => meals.fedIds.includes(person.id)).map(person => person.name).join(', ')}.`
                         : 'The party took a long rest.',
                 }),
             };
         }
 
         case 'BUY_ITEM': {
-            const { item, cost } = action.payload;
-            if (state.gold >= cost) {
-                // Currency is represented in GP but many prices are fractional (CP/SP),
-                // so we round to the nearest copper (0.01 GP) to avoid floating-point drift.
-                const newGold = Math.round((state.gold - cost) * 100) / 100;
-
-                // Also remove the item from merchant inventory (finite stock).
-                // We find and remove only the first matching item by id.
-                const currentMerchantInventory = state.merchantModal?.merchantInventory || [];
-                const itemIndex = currentMerchantInventory.findIndex(i => i.id === item.id);
-                const newMerchantInventory = itemIndex !== -1
-                    ? [...currentMerchantInventory.slice(0, itemIndex), ...currentMerchantInventory.slice(itemIndex + 1)]
-                    : currentMerchantInventory;
-
-                return {
-                    gold: newGold,
-                    // Purchased items enter the player inventory here, so this
-                    // is the merchant acquisition boundary for freshness timing.
-                    inventory: [...state.inventory, stampItemAcquiredAt(item)],
-                    merchantModal: state.merchantModal ? {
-                        ...state.merchantModal,
-                        merchantInventory: newMerchantInventory
-                    } : undefined
-                };
-            }
-            return {};
+            // Settle coin, one acquired unit and both shelf views together.
+            // The helper rechecks current stock/funds for repeated clicks.
+            return applyMerchantPurchase(state, action.payload, stampItemAcquiredAt);
         }
 
         case 'ADD_SPELL_CREATED_ITEMS': {
@@ -920,23 +1072,15 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
         }
 
         case 'SELL_ITEM': {
-            const { itemId, value } = action.payload;
-            const newInventory = [...state.inventory];
-
-            const itemIndex = newInventory.findIndex(i => i.id === itemId);
-            if (itemIndex === -1) return {};
-
-            newInventory.splice(itemIndex, 1);
-
-            return {
-                inventory: newInventory,
-                // Round to the nearest copper (0.01 GP) to keep GP display stable.
-                gold: Math.round((state.gold + value) * 100) / 100
-            };
+            // Sell one unit from the clicked row, retaining other stacks and
+            // returning carried stock to this shop when it sells that item.
+            return applyMerchantSale(state, action.payload);
         }
 
         case 'SELL_FENCED_ITEM': {
             const { itemId, value } = action.payload;
+            // Legal coin pays at face value; stale fence requests cannot discard it.
+            if (isCurrencyItemId(itemId)) return {};
             const newInventory = [...state.inventory];
 
             const itemIndex = newInventory.findIndex(i => i.id === itemId);
@@ -967,10 +1111,11 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                 const levelChoices = parsedSecondary.choices;
                 const xpGain = typeof parsedSecondary.xpGained === 'number' ? parsedSecondary.xpGained : 0;
 
+                const rulesEdition = getRulesEdition(state);
                 if (xpGain !== 0) {
-                    charToUpdate = applyXpAndHandleLevelUps(charToUpdate, xpGain, levelChoices);
+                    charToUpdate = applyXpAndHandleLevelUps(charToUpdate, xpGain, levelChoices, rulesEdition);
                 } else if (canLevelUp(charToUpdate)) {
-                    charToUpdate = performLevelUp(charToUpdate, levelChoices);
+                    charToUpdate = performLevelUp(charToUpdate, levelChoices, { rulesEdition });
                 }
 
                 // RALPH: Logic Extraction.
@@ -1147,19 +1292,7 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                 }
             }
 
-            // Equip Shield in OffHand if proficient and not already equipped
-            if (!newEquippedItems.OffHand) {
-                const hasShieldProficiency = charToUpdate.class.armorProficiencies.map(p => p.toLowerCase()).includes('shields');
-                if (hasShieldProficiency) {
-                    const shield = newInventory.find(item => item.type === 'armor' && item.armorCategory === 'Shield');
-                    if (shield) {
-                        newEquippedItems.OffHand = shield;
-                        newInventory = newInventory.filter(i => i.id !== shield.id);
-                    }
-                }
-            }
-
-            // Equip weapon in MainHand if not already equipped (pick best proficient weapon)
+            // GG-502: Equip weapon in MainHand first if not already equipped (pick best proficient weapon)
             if (!newEquippedItems.MainHand) {
                 const proficientWeapons = newInventory.filter(item =>
                     item.type === 'weapon' && isWeaponProficient(charToUpdate, item)
@@ -1175,6 +1308,23 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
 
                     newEquippedItems.MainHand = bestWeapon;
                     newInventory = newInventory.filter(i => i.id !== bestWeapon.id);
+                }
+            }
+
+            // GG-502: Equip Shield in OffHand only if MainHand is not two-handed
+            if (isTwoHandedWeapon(newEquippedItems.MainHand)) {
+                if (newEquippedItems.OffHand) {
+                    newInventory.push(newEquippedItems.OffHand);
+                    delete newEquippedItems.OffHand;
+                }
+            } else if (!newEquippedItems.OffHand) {
+                const hasShieldProficiency = charToUpdate.class.armorProficiencies.map(p => p.toLowerCase()).includes('shields');
+                if (hasShieldProficiency) {
+                    const shield = newInventory.find(item => item.type === 'armor' && item.armorCategory === 'Shield');
+                    if (shield) {
+                        newEquippedItems.OffHand = shield;
+                        newInventory = newInventory.filter(i => i.id !== shield.id);
+                    }
                 }
             }
 
@@ -1205,22 +1355,32 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
 
             const character = state.party[charIndex];
             
-            // Limit check: D&D 5e restricts active attunement to 3 magic items per character
+            // GG-501: D&D 5e restricts active attunement to 3 magic items per character across inventory and all equipment
             const equippedAttunedCount = Object.values(character.equippedItems).filter(
-                item => item && item.requiresAttunement && item.isAttuned
+                item => item && item.requiresAttunement && item.isAttuned && item.attunedCharacterId === characterId
             ).length;
             const inventoryAttunedCount = state.inventory.filter(
                 item => item && item.requiresAttunement && item.isAttuned && item.attunedCharacterId === characterId
             ).length;
+            const otherPartyEquippedAttunedCount = state.party.reduce((count, member) => {
+                if (member.id === characterId) return count;
+                return count + Object.values(member.equippedItems).filter(
+                    item => item && item.requiresAttunement && item.isAttuned && item.attunedCharacterId === characterId
+                ).length;
+            }, 0);
             
-            if (equippedAttunedCount + inventoryAttunedCount >= 3) {
+            if (equippedAttunedCount + inventoryAttunedCount + otherPartyEquippedAttunedCount >= 3) {
                 // Reject attunement if the character is at the 3-item limit
                 return {};
             }
 
             // Find and attune the target item, whether it resides in the player's general bag or is equipped
             let itemFound = false;
-            const newEquippedItems = { ...character.equippedItems };
+            const newParty = state.party.map(p => ({
+                ...p,
+                equippedItems: { ...p.equippedItems }
+            }));
+
             const newInventory = state.inventory.map(item => {
                 if (item.id === itemId) {
                     itemFound = true;
@@ -1230,23 +1390,27 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             });
 
             if (!itemFound) {
-                for (const slot of Object.keys(newEquippedItems) as EquipmentSlotType[]) {
-                    const item = newEquippedItems[slot];
-                    if (item && item.id === itemId) {
-                        newEquippedItems[slot] = { ...item, isAttuned: true, attunedCharacterId: characterId };
-                        itemFound = true;
-                        break;
+                for (const member of newParty) {
+                    for (const slot of Object.keys(member.equippedItems) as EquipmentSlotType[]) {
+                        const item = member.equippedItems[slot];
+                        if (item && item.id === itemId) {
+                            member.equippedItems[slot] = { ...item, isAttuned: true, attunedCharacterId: characterId };
+                            itemFound = true;
+                            break;
+                        }
                     }
+                    if (itemFound) break;
                 }
             }
 
             if (!itemFound) return {};
 
             // Recalculate all ability scores and AC since magical bonuses are now active
-            const updatedChar = updateDerivedStats({ ...character, equippedItems: newEquippedItems });
-            const newParty = [...state.party];
-            newParty[charIndex] = updatedChar;
+            for (let i = 0; i < newParty.length; i++) {
+                newParty[i] = updateDerivedStats(newParty[i]);
+            }
 
+            const updatedChar = newParty[charIndex];
             const newCharacterSheetModalState = state.characterSheetModal.isOpen && state.characterSheetModal.character?.id === updatedChar.id
                 ? { ...state.characterSheetModal, character: updatedChar }
                 : state.characterSheetModal;
@@ -1259,11 +1423,13 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             const charIndex = state.party.findIndex(c => c.id === characterId);
             if (charIndex === -1) return {};
 
-            const character = state.party[charIndex];
-            const newEquippedItems = { ...character.equippedItems };
             let itemFound = false;
+            const newParty = state.party.map(p => ({
+                ...p,
+                equippedItems: { ...p.equippedItems }
+            }));
 
-            // Clear attunement state on the target item in player inventory or equipment slots
+            // Clear attunement state on the target item in player inventory or equipment slots across party
             const newInventory = state.inventory.map(item => {
                 if (item.id === itemId) {
                     itemFound = true;
@@ -1273,23 +1439,27 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             });
 
             if (!itemFound) {
-                for (const slot of Object.keys(newEquippedItems) as EquipmentSlotType[]) {
-                    const item = newEquippedItems[slot];
-                    if (item && item.id === itemId) {
-                        newEquippedItems[slot] = { ...item, isAttuned: false, attunedCharacterId: undefined };
-                        itemFound = true;
-                        break;
+                for (const member of newParty) {
+                    for (const slot of Object.keys(member.equippedItems) as EquipmentSlotType[]) {
+                        const item = member.equippedItems[slot];
+                        if (item && item.id === itemId) {
+                            member.equippedItems[slot] = { ...item, isAttuned: false, attunedCharacterId: undefined };
+                            itemFound = true;
+                            break;
+                        }
                     }
+                    if (itemFound) break;
                 }
             }
 
             if (!itemFound) return {};
 
             // Recalculate derived attributes since magical stat/AC modifiers are no longer active
-            const updatedChar = updateDerivedStats({ ...character, equippedItems: newEquippedItems });
-            const newParty = [...state.party];
-            newParty[charIndex] = updatedChar;
+            for (let i = 0; i < newParty.length; i++) {
+                newParty[i] = updateDerivedStats(newParty[i]);
+            }
 
+            const updatedChar = newParty[charIndex];
             const newCharacterSheetModalState = state.characterSheetModal.isOpen && state.characterSheetModal.character?.id === updatedChar.id
                 ? { ...state.characterSheetModal, character: updatedChar }
                 : state.characterSheetModal;
@@ -1353,7 +1523,23 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
         // unmount and never reached a save. The assignment now lives on the item
         // itself (`Item.containerId`), which the sheet already reads (agora-17eb).
         case 'MOVE_ITEM_TO_CONTAINER': {
-            const { itemId, containerId } = action.payload;
+            const { itemId, containerId, inventoryIndex, sourceItem } = action.payload;
+
+            // One dropdown selects one source stack. Same catalog IDs can carry
+            // different ages or pack origins; never reorganize all of them.
+            // Older callers remain valid only when their bare ID is unambiguous.
+            let selectedIndex: number;
+            if (inventoryIndex !== undefined) {
+                if (!Number.isInteger(inventoryIndex) || inventoryIndex < 0) return {};
+                selectedIndex = inventoryIndex;
+                const selected = state.inventory[selectedIndex];
+                if (!selected || selected.id !== itemId || (sourceItem !== undefined && sourceItem !== selected)) return {};
+            } else {
+                if (sourceItem !== undefined) return {};
+                const matches = state.inventory.flatMap((item, index) => item.id === itemId ? [index] : []);
+                if (matches.length !== 1) return {};
+                selectedIndex = matches[0];
+            }
 
             // An item cannot be stowed inside itself; that would build a cycle the
             // sheet's recursive weight walk has to defend against.
@@ -1372,8 +1558,8 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             }
 
             let moved = false;
-            const newInventory = state.inventory.map(item => {
-                if (item.id !== itemId) return item;
+            const newInventory = state.inventory.map((item, index) => {
+                if (index !== selectedIndex) return item;
                 if ((item.containerId ?? null) === containerId) return item;
                 moved = true;
                 if (containerId === null) {
@@ -1397,6 +1583,8 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
 
             // Remove sold junk items and calculate total transaction earnings
             items.forEach(({ itemId, value }) => {
+                // Even a legacy coin marked junk remains available money.
+                if (isCurrencyItemId(itemId)) return;
                 const itemIndex = newInventory.findIndex(i => i.id === itemId);
                 if (itemIndex > -1) {
                     newInventory.splice(itemIndex, 1);

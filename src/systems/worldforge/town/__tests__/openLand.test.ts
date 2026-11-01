@@ -23,7 +23,19 @@ describe('intramural open land', () => {
     expect(plan.openLand.length).toBeGreaterThan(0);
     for (const parcel of plan.openLand) {
       expect(parcel.polygon.length).toBeGreaterThanOrEqual(3);
-      expect(['rim', 'ward']).toContain(parcel.source);
+      // 'extramural': an unbuilt suburb block outside the wall, kept as a
+      // market garden (GG-544, town-look 2026-10-31).
+      expect(['rim', 'ward', 'extramural']).toContain(parcel.source);
+    }
+  });
+
+  it('keeps every market garden outside the wall ring', () => {
+    const plan = planFor(2500);
+    // Every corner, not a center point: a thin parcel curved round the wall
+    // can have its vertex mean inside the ring while all of it lies outside.
+    for (const parcel of plan.openLand) {
+      if (parcel.source !== 'extramural') continue;
+      for (const v of parcel.polygon) expect(pointInPolygon(v, plan.walls.ring)).toBe(false);
     }
   });
 
@@ -56,7 +68,14 @@ describe('intramural open land', () => {
     const emptyNonCivic = plan.wards.filter(
       (w) => w.plots.length === 0 && w.civic == null && polyArea(w.block) > 2000,
     );
-    expect(emptyNonCivic.length).toBeGreaterThan(0);
+    // RE-PINNED (GG-552 after GG-563..GG-567, 2026-11-01). The main street's
+    // paired ward sites and the front gardens leave no capital ward empty at
+    // seeds 4242..4249, so the rule is tested as a rule: every empty ward
+    // worth parcelling has open land in it. Front gardens are ward-source
+    // parcels too, marked `front`.
+    for (const w of emptyNonCivic) {
+      expect(plan.openLand.some((o) => !o.front && o.source === 'ward' && pointInPolygon(centroid(o.polygon), w.polygon))).toBe(true);
+    }
     expect(plan.openLand.some((o) => o.source === 'ward')).toBe(true);
     // No parcel may sit on a plaza: the plaza's emptiness IS the civic structure.
     const plaza = plan.civic.find((c) => c.kind === 'plaza');

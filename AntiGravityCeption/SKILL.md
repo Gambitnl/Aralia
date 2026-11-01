@@ -14,6 +14,8 @@ version: 1.0.0
 
 # AntiGravityCeption
 
+> **Note**: This skill is mirrored in the canonical repository skills root at [skills/antigravityception/SKILL.md](../skills/antigravityception/SKILL.md).
+
 A continuous learning system for the AntiGravity (Gemini) agent that extracts reusable
 knowledge from work sessions and persists it across conversations.
 

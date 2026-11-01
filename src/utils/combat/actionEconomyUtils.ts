@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
- *
- * Last Sync: 13/08/2026, 08:00:44
- * Dependents: commands/effects/MovementCommand.ts, commands/factory/AbilityCommandFactory.ts, components/DesignPreview/steps/scenarioControls/companionReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/conditionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/counterspellNestedReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/damageOverTimeScheduledEffectsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/dispelMagicCleanupScenarioControls.ts, components/DesignPreview/steps/scenarioControls/grappleEscapeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/multiattackRidersScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reachCreatureSizeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reactiveDamageRetaliationScenarioControls.ts, components/DesignPreview/steps/scenarioControls/repeatSavesConditionExpiryScenarioControls.ts, components/DesignPreview/steps/scenarioControls/spellSlotsUpcastingScenarioControls.ts, components/DesignPreview/steps/scenarioControls/sustainActionsOngoingControlScenarioControls.ts, components/DesignPreview/steps/scenarioControls/tauntForcedTargetingScenarioControls.ts, components/DesignPreview/steps/scenarioControls/teleportationOccupiedSpacesScenarioControls.ts, hooks/combat/useActionEconomy.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useGridMovement.ts, hooks/combat/useTargetValidator.ts, hooks/combat/useTurnManager.ts, hooks/useAbilitySystem.ts, systems/combat/fallingGroundImpactResolution.ts, systems/combat/reactions/companionProtectionReaction.ts, systems/spells/mechanics/directDamageSpellCastResolution.ts, systems/spells/mechanics/dispelMagicResolution.ts, systems/spells/mechanics/healingTemporaryHitPointResolution.ts, systems/spells/mechanics/reactiveDamageRetaliationResolution.ts, systems/spells/mechanics/teleportationResolution.ts, systems/spells/mechanics/witchBoltOngoingResolution.ts, utils/combat/aerialMovementUtils.ts, utils/combat/grappleUtils.ts, utils/combat/index.ts, utils/combat/multiattackUtils.ts, utils/combat/repeatSaveUtils.ts, utils/combat/shoveUtils.ts
- * Imports: 5 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file src/utils/combat/actionEconomyUtils.ts
  * Shared helpers for the D&D-style action economy used by battle-map combat.
@@ -23,24 +7,46 @@
  * and the UI reads the same state to decide which buttons are still legal.
  */
 
-import { CombatCharacter, ActionEconomyState, AbilityCost, ActiveEffect, StatusEffect } from '../../types/combat';
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 31/10/2026, 10:56:56
+ * Dependents: commands/effects/MovementCommand.ts, commands/factory/AbilityCommandFactory.ts, components/Combat/InPlaceCombatScene.tsx, components/Combat/ReactionPrompt.tsx, components/DesignPreview/steps/raceDomain/leaves/aquaticHalfElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/astralElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/autumnEladrinRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/beastbornHumanRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/beasthideShifterRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/blackDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/blueDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/brassDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/bronzeDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/bugbearRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/centaurRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/changelingRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/cloudGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/copperDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/draconbloodDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/earthGenasiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fallenAasimarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/firbolgRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fireGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/frostGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/giffRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/goblinRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/goldDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/greenDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/hadozeeRaceLeaf.tsx, components/DesignPreview/steps/scenarioControls/areaEffectScenarioControls.ts, components/DesignPreview/steps/scenarioControls/companionReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/concentrationScenarioControls.ts, components/DesignPreview/steps/scenarioControls/conditionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/counterspellNestedReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/damageOverTimeScheduledEffectsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/dispelMagicCleanupScenarioControls.ts, components/DesignPreview/steps/scenarioControls/forcedMovementScenarioControls.ts, components/DesignPreview/steps/scenarioControls/grappleEscapeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/multiattackRidersScenarioControls.ts, components/DesignPreview/steps/scenarioControls/objectInteractionScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reachCreatureSizeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reactiveDamageRetaliationScenarioControls.ts, components/DesignPreview/steps/scenarioControls/repeatSavesConditionExpiryScenarioControls.ts, components/DesignPreview/steps/scenarioControls/resistanceScenarioControls.ts, components/DesignPreview/steps/scenarioControls/spellSlotsUpcastingScenarioControls.ts, components/DesignPreview/steps/scenarioControls/spellTargetRestrictionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/stealthHiddenScenarioControls.ts, components/DesignPreview/steps/scenarioControls/summonsControlledScenarioControls.ts, components/DesignPreview/steps/scenarioControls/sustainActionsOngoingControlScenarioControls.ts, components/DesignPreview/steps/scenarioControls/tauntForcedTargetingScenarioControls.ts, components/DesignPreview/steps/scenarioControls/teleportationOccupiedSpacesScenarioControls.ts, components/DesignPreview/steps/scenarioControls/terrainScenarioControls.ts, hooks/ability/execution/spellExecutionFlow.ts, hooks/ability/useAbilityExecution.ts, hooks/ability/useActionEconomy.ts, hooks/combat/turnManager/useTurnLifecycle.ts, hooks/combat/useActionEconomy.ts, hooks/combat/useGridMovement.ts, hooks/combat/useTargetValidator.ts, hooks/combat/useTurnManager.ts, systems/combat/actionEconomyResolution.ts, systems/combat/fallingGroundImpactResolution.ts, systems/combat/objectInteractionResolution.ts, systems/combat/opportunityAttackPlanning.ts, systems/combat/reactions/companionProtectionReaction.ts, systems/combat/reactions/defensiveHitReaction.ts, systems/perception/stealthResolution.ts, systems/puzzles/arcaneGlyphSystem.ts, systems/spells/mechanics/areaDamageSpellCastResolution.ts, systems/spells/mechanics/directDamageSpellCastResolution.ts, systems/spells/mechanics/dispelMagicResolution.ts, systems/spells/mechanics/healingTemporaryHitPointResolution.ts, systems/spells/mechanics/reactiveDamageRetaliationResolution.ts, systems/spells/mechanics/teleportationResolution.ts, systems/spells/mechanics/witchBoltOngoingResolution.ts, utils/combat/aerialMovementUtils.ts, utils/combat/grappleUtils.ts, utils/combat/index.ts, utils/combat/multiattackUtils.ts, utils/combat/repeatSaveUtils.ts, utils/combat/shoveUtils.ts, utils/combat/statusConditionUtils.ts
+ * Imports: 7 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import { CombatCharacter, ActionEconomyState, AbilityCost, ActiveEffect } from '../../types/combat';
+import { sumMovementSpeedEffects } from '../character/movementSpeedEffects';
 import { SpellSlots } from '../../types';
+import type { Spell } from '../../types/spells';
 import { resolveRacialSpellLimitedUseId } from '../character/characterUtils';
 import { isIncapacitated, isMovementBlocked } from './deathSaveUtils';
 import { isUnlimitedSpellSlotCombatant } from './combatUtils';
 
-const SPEED_ZERO_CONDITIONS = new Set(['grappled', 'paralyzed', 'petrified', 'restrained', 'unconscious']);
+/** Quote the same owned resource that the reaction executor will actually spend. */
+export function getReactionSpellCost(character: CombatCharacter | undefined, spell: Spell): AbilityCost {
+    const cost: AbilityCost = { type: 'reaction', spellSlotLevel: Math.max(0, spell.level ?? 0) };
+    if (spell.level <= 0) return cost;
+    const featId = character?.feats?.find(id =>
+        (character.limitedUses?.[`feat_${id}_${spell.id}`]?.current ?? 0) > 0);
+    return featId ? { ...cost, castSource: { type: 'feat', featId, spellId: spell.id, allowSlotFallback: true } } : cost;
+}
 
-const getStatusEffectMovementDelta = (effect: StatusEffect): number => {
-    const statModifier = effect.effect?.type === 'stat_modifier' && effect.effect.stat === 'speed' && typeof effect.effect.value === 'number'
-        ? effect.effect.value
-        : 0;
-    const legacyMovementBonus = typeof effect.modifiers?.movementSpeed === 'number'
-        ? effect.modifiers.movementSpeed
-        : 0;
-
-    return statModifier + legacyMovementBonus;
+const getOwnedFeatSpellResource = (character: CombatCharacter, cost: AbilityCost) => {
+    const source = cost.castSource;
+    if (source?.type !== 'feat' || !character.feats?.includes(source.featId)) return undefined;
+    return character.limitedUses?.[`feat_${source.featId}_${source.spellId}`];
 };
+
+const SPEED_ZERO_CONDITIONS = new Set(['grappled', 'paralyzed', 'petrified', 'restrained', 'unconscious', 'frozen']); // 'frozen' added by agora-f821.54: ConditionDefinitions gives Frozen "Speed becomes 0"
 
 const getActiveEffectMovementDelta = (effect: ActiveEffect): number => {
     const mechanics = effect.mechanics as (ActiveEffect['mechanics'] & {
@@ -73,10 +79,7 @@ export function calculateMovementModeTotal(
         return 0;
     }
 
-    const statusEffectDelta = (character.statusEffects ?? []).reduce(
-        (total, effect) => total + getStatusEffectMovementDelta(effect),
-        0
-    );
+    const statusEffectDelta = sumMovementSpeedEffects(character.statusEffects ?? []);
     const activeEffectDelta = (character.activeEffects ?? []).reduce(
         (total, effect) => total + getActiveEffectMovementDelta(effect),
         0
@@ -86,7 +89,17 @@ export function calculateMovementModeTotal(
         ? character.stats.speed
         : character.stats.extraMovementSpeeds?.[mode] ?? 0;
 
-    return Math.max(0, authoredSpeed + statusEffectDelta + activeEffectDelta);
+    const baseModifiedSpeed = Math.max(0, authoredSpeed + statusEffectDelta + activeEffectDelta);
+
+    // Chilled condition: Speed halved (GG-64 / agora-7bdb).
+    // In D&D 5e, multipliers/divisors apply after additive modifiers.
+    // Results are rounded down per standard 5e integer rounding.
+    const isChilled = [
+        ...(character.statusEffects ?? []),
+        ...(character.conditions ?? [])
+    ].some(effect => effect.name.toLowerCase() === 'chilled');
+
+    return isChilled ? Math.floor(baseModifiedSpeed / 2) : baseModifiedSpeed;
 }
 
 /**
@@ -265,6 +278,15 @@ export function canAffordActionCost(character: CombatCharacter | undefined, cost
         return Boolean(slot && slot.current > 0);
     }
 
+    // The character creator already owns feat spell grants and their reset clocks.
+    // A free cast still needs the reaction; an orphaned counter grants nothing.
+    if (castSource?.type === 'feat') {
+        const resource = getOwnedFeatSpellResource(character, cost);
+        if (!resource) return false;
+        if (resource.current > 0) return canAffordActionByType(economy, cost);
+        if (castSource.allowSlotFallback === false) return false;
+    }
+
     // Leveled spells consume from the same action path, but also need an
     // available spell slot at the requested level.
     if (!ignoresSpellSlotCaps && cost.spellSlotLevel && cost.spellSlotLevel > 0) {
@@ -324,7 +346,14 @@ export function consumeActionCost(character: CombatCharacter, cost: AbilityCost)
             newEconomy.bonusAction = { ...newEconomy.bonusAction, used: true };
             break;
         case 'reaction':
-            newEconomy.reaction = { ...newEconomy.reaction, used: true };
+            // Interception and other native reactions must show the same paid
+            // budget that their used flag already enforces. The legality
+            // rule stays unchanged; the numeric counter follows the payment.
+            newEconomy.reaction = {
+                ...newEconomy.reaction,
+                used: true,
+                remaining: Math.max(0, (newEconomy.reaction.remaining ?? 1) - 1),
+            };
             break;
         case 'legendary':
             newEconomy.legendary.used += (cost.quantity || 1);
@@ -372,6 +401,17 @@ export function consumeActionCost(character: CombatCharacter, cost: AbilityCost)
         if (!allowSlotFallback || !cost.spellSlotLevel || cost.spellSlotLevel <= 0) {
             return newCharacter;
         }
+    }
+
+    // Pay the same feat grant quoted by availability, without spending a slot too.
+    if (castSource?.type === 'feat') {
+        const resource = getOwnedFeatSpellResource(character, cost);
+        if (resource && resource.current > 0) {
+            const key = `feat_${castSource.featId}_${castSource.spellId}`;
+            return { ...newCharacter, limitedUses: { ...newCharacter.limitedUses,
+                [key]: { ...resource, current: resource.current - 1 } } };
+        }
+        if (castSource.allowSlotFallback === false) return newCharacter;
     }
 
     // Spell slots are part of the same "pay the cost" operation, so a spell

@@ -9,6 +9,7 @@ import {
   dailyNeed,
   foodRangeDays,
   tripDaysFromMinutes,
+  tripDaysAndRemainder,
   provisionStatusForTrip,
   terrainBurnFactor,
   meanBurnMultiplier,
@@ -84,15 +85,45 @@ describe('foodRangeDays', () => {
   });
 });
 
-describe('tripDaysFromMinutes', () => {
-  it('rounds partial days up to whole travel-days', () => {
-    expect(tripDaysFromMinutes(60)).toBe(1); // 1h -> 1 day
-    expect(tripDaysFromMinutes(24 * 60)).toBe(1); // exactly 1 day
-    expect(tripDaysFromMinutes(25 * 60)).toBe(2); // spills into day 2
+describe('tripDaysFromMinutes and tripDaysAndRemainder (GG-471)', () => {
+  it('charges only whole days crossed and preserves remainder minutes', () => {
+    // 1h without prior elapsed time does not cross a 24h day boundary
+    expect(tripDaysFromMinutes(60)).toBe(0);
+    expect(tripDaysAndRemainder(60)).toEqual({ days: 0, remainderMinutes: 60 });
+
+    // exactly 24h crosses 1 day
+    expect(tripDaysFromMinutes(24 * 60)).toBe(1);
+    expect(tripDaysAndRemainder(24 * 60)).toEqual({ days: 1, remainderMinutes: 0 });
+
+    // 25h crosses 1 day with 1h remainder
+    expect(tripDaysFromMinutes(25 * 60)).toBe(1);
+    expect(tripDaysAndRemainder(25 * 60)).toEqual({ days: 1, remainderMinutes: 60 });
+
+    // 23h elapsed + 1h new trip crosses the day boundary
+    expect(tripDaysFromMinutes(60, 23 * 60)).toBe(1);
+    expect(tripDaysAndRemainder(60, 23 * 60)).toEqual({ days: 1, remainderMinutes: 0 });
   });
 
   it('is 0 for a zero-length trip', () => {
     expect(tripDaysFromMinutes(0)).toBe(0);
+    expect(tripDaysAndRemainder(0)).toEqual({ days: 0, remainderMinutes: 0 });
+  });
+
+  it('charges 0 days across three 1-hour hops (GG-471)', () => {
+    let remainder = 0;
+    const hop1 = tripDaysAndRemainder(60, remainder);
+    expect(hop1).toEqual({ days: 0, remainderMinutes: 60 });
+    remainder = hop1.remainderMinutes;
+
+    const hop2 = tripDaysAndRemainder(60, remainder);
+    expect(hop2).toEqual({ days: 0, remainderMinutes: 120 });
+    remainder = hop2.remainderMinutes;
+
+    const hop3 = tripDaysAndRemainder(60, remainder);
+    expect(hop3).toEqual({ days: 0, remainderMinutes: 180 });
+    remainder = hop3.remainderMinutes;
+
+    expect(remainder).toBe(180);
   });
 });
 

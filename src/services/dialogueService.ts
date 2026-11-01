@@ -8,9 +8,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 20/09/2026, 21:00:39
+ * Last Sync: 29/10/2026, 22:28:58
  * Dependents: components/Dialogue/DialogueConversationView.tsx, components/Dialogue/DialogueInterface.tsx, hooks/useConversation.ts, hooks/useDialogueSystem.ts, systems/puzzles/dialogueBridge.ts
- * Imports: 8 files
+ * Imports: 16 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -31,7 +31,15 @@ import { INITIAL_TOPICS } from '../data/dialogue/topics';
 import { getGameDay } from '../utils/core';
 import { hasWorldFact, topicUnlockKey } from '../systems/facts/worldFactStore';
 import { buildWitnessDialogueContext } from '../systems/social/npcWitnessMemory';
-import type { NpcMemory } from '../types/world';
+import type { NpcMemory, RichNPC } from '../types/world';
+import { householdNpcAliveAt } from '../systems/worldforge/townsim/householdNpc';
+import { latestSpokenWorkReply, latestSpokenPersonalReply, npcDialogueSpeakerKey, latestSpokenDialogueReplies } from '../systems/social/npcDialogueMemory';
+import {resolveNpcInstitutionStatement} from '../systems/social/npcInstitutionStatements';
+import { resolveNpcPersonalStatement } from '../systems/social/npcPersonalStatements';
+import type { NpcDialoguePublication } from '../types/memory';
+import type { WorldBusiness } from '../types/business';
+import { shareableRumorNotes, rumorSubject } from '../systems/companions/companionRumors';
+import { resolveNpcLocalDirections } from '../systems/travel/npcLocalDirections';
 
 const TOPIC_REGISTRY: Record<string, ConversationTopic> = {};
 
@@ -211,19 +219,23 @@ export function canNPCDiscuss(
   return false;
 }
 
-function convertRumorToTopic(rumor: WorldRumor): ConversationTopic {
+function convertRumorToTopic(rumor: WorldRumor, receipt: Item): ConversationTopic {
+  const subject = rumorSubject(receipt);
   return {
     id: `rumor_${rumor.id}`,
-    label: `Hear anything about ${rumor.text.substring(0, 20)}...?`, // Shorten for label
+    label: subject === 'Rumor' || subject === 'Lead' ? 'Discuss this account' : `Discuss ${subject}`,
+    description: receipt.description,
     category: 'rumor',
-    playerPrompt: `I heard whispers about ${rumor.text}. What do you know?`,
+    // A bought note is a frozen account. Do not replace its words with newer
+    // world data or turn a second-hand story into a witnessed event or route.
+    playerPrompt: `I was told this account: ${receipt.description}. What do you know about it? Treat this as hearsay, not a witnessed event or a confirmed route. If you have no supporting knowledge, say so.`,
     isGlobal: false, // It's generated specifically for this context
     isOneTime: false,
   };
 }
 
 /**
- * Upper bound on how many rumor-derived ("Hear anything about…?") topics a
+ * Upper bound on how many retained-account topics a
  * single NPC will surface at once.
  *
  * The living-world chronicle can accumulate dozens of buyable rumors in a busy
@@ -256,7 +268,15 @@ export function getDynamicRumorTopics(
   const npcLocationId: string | undefined = gameState.currentLocationId;
   const currentGameDay = getGameDay(gameState.gameTime);
 
+  // activeRumors is the world offer pool, not the player's knowledge. Reuse
+  // the same retained ordinary notes already shared with companions. Secrets
+  // retain their own disclosure path; no purchase or duplicate ledger is made.
+  const receipts = new Map<string, Item>();
+  for (const { item } of shareableRumorNotes(gameState)) {
+    if (!receipts.has(item.sourceId!)) receipts.set(item.sourceId!, item);
+  }
   const relevantRumors = gameState.activeRumors.filter(rumor => {
+    if (!receipts.has(`gossip_${rumor.id}`)) return false;
     // 0. Expiration Check
     // If expiration timestamp (in game days) is less than current game day, it's old news.
     // Note: If timestamps are different units, this logic fails.
@@ -292,7 +312,133 @@ export function getDynamicRumorTopics(
       (b.timestamp || 0) - (a.timestamp || 0),
   );
 
-  return ranked.slice(0, MAX_DYNAMIC_RUMOR_TOPICS).map(convertRumorToTopic);
+  return ranked.slice(0, MAX_DYNAMIC_RUMOR_TOPICS).map(rumor => convertRumorToTopic(rumor, receipts.get(`gossip_${rumor.id}`)!));
+}
+
+/** Resolve the same registered person/storefront identity used by merchant
+ * execution. A linked shop wins; an unlinked legacy person needs one unique
+ * owned business. Static NPCs and ambiguous businesses keep their old dialogue
+ * path instead of generating a replacement person or guessing an inventory. */
+export function resolveDialogueStorefront(gameState: GameState, npcId: string): WorldBusiness | undefined {
+  const speaker = gameState.generatedNpcs?.[npcId];
+  if (!speaker) return undefined;
+  const businesses = gameState.worldBusinesses ?? {};
+  const linked = speaker.businessId ? businesses[speaker.businessId] : undefined;
+  const owned = Object.values(businesses).filter(business => business.ownerId === npcId);
+  const business = linked ?? (owned.length === 1 ? owned[0] : undefined);
+  return business?.ownerId === npcId && Array.isArray(business.stock)
+    ? business : undefined;
+}
+
+/** A global question is not proof that a resident has goods for sale.
+ * Merchant roles retain legacy shops; other residents need their own persisted
+ * storefront stock, including an empty sold-out list. A farm/mine simulation
+ * or another person's business link does not create a shop. */
+function canOfferTrade(gameState: GameState, npcId: string, npc?: NPC): boolean {
+  const speaker = npc ?? gameState.generatedNpcs?.[npcId];
+  if (!speaker) return false;
+  if (speaker.role === 'merchant') return true;
+  return Object.values(gameState.worldBusinesses ?? {}).some(
+    business => business.ownerId === speaker.id && Array.isArray(business.stock)
+  );
+}
+
+/** Resolve the same owned report for both speech and its immutable source receipt. */
+function resolveHouseholdWorkReport(gameState: GameState,resident: RichNPC) {
+    const owned = Object.values(gameState.worldBusinesses ?? {}).filter(b => b.ownerId === resident.id && b.ownerType === 'npc');
+    const linked = resident.businessId ? owned.find(b => b.id === resident.businessId) : undefined;
+    const business = linked ?? (!resident.businessId && owned.length === 1 ? owned[0] : undefined);
+    if (!business?.name?.trim()) return undefined;
+    // Saved legacy trades can disagree with the real household job (GF-G25).
+    // Do not turn a misconfigured enchanter ledger into an innkeeper's hardship.
+    if (resident.occupation === 'innkeeper' && business.businessType !== 'tavern') return undefined;
+    if (resident.occupation === 'shopkeeper' && !['general_store','apothecary','trading_company','enchanter_shop'].includes(business.businessType)) return undefined;
+    const report = business.lastDailyReport;
+    const day = getGameDay(gameState.gameTime);
+    // Newly registered all-zero reports are placeholders. Old, future or
+    // inconsistent figures cannot establish how somebody's work is going now.
+    if (!report || ![report.day,report.revenue,report.costs,report.profit].every(Number.isFinite)
+        || !Number.isInteger(report.day) || report.day > day || day - report.day > 1
+        || report.revenue < 0 || report.costs < 0 || report.revenue + report.costs === 0
+        || Math.abs(report.revenue - report.costs - report.profit) > 0.011
+        || ![report.supplyIssues,report.competitorActions,report.staffIssues].every(v=>v===undefined || Array.isArray(v)&&v.every(x=>typeof x==='string'))) return undefined;
+    return {business,report};
+}
+
+/** Personal facts come from the registered household; conversation recall
+ * quotes actually delivered history. Neither is inferred from an old biography
+ * or a business slot. New open conversation still uses the model. Explicit
+ * knowledge overrides keep their authored/guarded behavior. */
+const HOUSEHOLD_TOPICS: ConversationTopic[] = [
+  {id:'household_temple',label:"I read the temple's dedication.",category:'lore',playerPrompt:"I read the temple's dedication. Tell me about the temple you serve.",isOneTime:true},
+  {id:'household_office_history',label:'How did you become the priest?',category:'personal',playerPrompt:'How did you become the priest?',isOneTime:true},
+  {id:'household_public_history',label:"Where can I read the town's history?",category:'lore',playerPrompt:"Where can I read the town's history?",isOneTime:true},
+  {id:'conversation_recall',label:'What did we last discuss?',category:'personal',playerPrompt:'What did we last discuss?',isOneTime:true},
+  {id:'household_identity_recall',label:'What did you tell me about yourself?',category:'personal',playerPrompt:'What did you tell me about yourself?',isOneTime:true},
+  {id:'household_family_recall',label:'What did you tell me about your family?',category:'personal',playerPrompt:'What did you tell me about your family?',isOneTime:true},
+  {id:'household_family', label:'Tell me about your family.', category:'personal', playerPrompt:'Tell me about your family.', isOneTime:true},
+  {id:'household_work_recall', label:'What did you tell me about work?', category:'personal', playerPrompt:'What did you tell me about work?', isOneTime:true},
+  {id:'household_work', label:'How is work going?', category:'personal', playerPrompt:'How is work going?', isOneTime:true},
+  {id:'household_meeting', label:'Have we met before?', category:'personal', playerPrompt:'Have we met before?', isOneTime:true},
+];
+export function resolveHouseholdPersonalReply(gameState: GameState, session: DialogueSession, topicId: string, npc?: NPC): string | undefined {
+  if (topicId==='conversation_recall') {
+    if (npc && npc.id!==session.npcId || npc?.knowledgeProfile?.topicOverrides?.[topicId]) return undefined;
+    const previous=latestSpokenDialogueReplies(gameState,session.npcId,1).at(-1);
+    const speaker=npc??gameState.generatedNpcs?.[session.npcId];
+    // Remembering old words does not remove today's authored refusal to
+    // discuss that subject. Keep the history; do not voice it through recall.
+    if (previous?.dialogue&&speaker?.knowledgeProfile?.topicOverrides?.[previous.dialogue.topicId]) return undefined;
+    return previous ? 'Last time, I told you: “'+previous.summary+'”' : undefined;
+  }
+  const resident = gameState.generatedNpcs?.[session.npcId] as (RichNPC & {worldforgeHousehold?: {memberId:string}}) | undefined;
+  if (!resident?.worldforgeHousehold || (npc && npc.id !== resident.id)
+      || !householdNpcAliveAt(resident, gameState.townSim, getGameDay(gameState.gameTime))) return undefined;
+  // An authored answer, refusal or secret cannot be overwritten by public facts.
+  if (resident.knowledgeProfile?.topicOverrides?.[topicId] || npc?.knowledgeProfile?.topicOverrides?.[topicId]) return undefined;
+  if (topicId==='household_temple'||topicId==='household_office_history'||topicId==='household_public_history') return resolveNpcInstitutionStatement(gameState,resident.id,topicId)?.text;
+  // Basic local directions use this resident's own canonical town/workplace.
+  // The existing factual publication guard re-reads the same answer before effects.
+  if (topicId === 'global_directions') return resolveNpcLocalDirections(gameState, resident);
+  if (topicId === 'global_who_are_you' || topicId === 'household_family') return resolveNpcPersonalStatement(gameState,resident.id,topicId)?.text;
+  if (topicId === 'household_identity_recall' || topicId === 'household_family_recall') {
+    const original=topicId==='household_identity_recall'?'global_who_are_you':'household_family';
+    if (resident.knowledgeProfile?.topicOverrides?.[original] || npc?.knowledgeProfile?.topicOverrides?.[original]) return undefined;
+    const previous=latestSpokenPersonalReply(gameState,resident.id,original);
+    if (!previous) return undefined;
+    const yesterday=getGameDay(gameState.gameTime)-getGameDay(new Date(previous.date))===1;
+    return (yesterday?'Yesterday, when':'When')+' you asked '+(original==='household_family'?'about my family':'who I was')+', I told you: “'+previous.summary+'”';
+  }
+  if (topicId === 'household_work_recall') {
+    if (resident.knowledgeProfile?.topicOverrides?.household_work || npc?.knowledgeProfile?.topicOverrides?.household_work) return undefined;
+    const previous=latestSpokenWorkReply(gameState,resident.id);
+    if (!previous) return undefined;
+    const yesterday=getGameDay(gameState.gameTime)-getGameDay(new Date(previous.date))===1;
+    return `${yesterday ? 'Yesterday, when' : 'When'} you asked about work, I told you: “${previous.summary}”`;
+  }
+  if (topicId === 'household_work') {
+    const work = resolveHouseholdWorkReport(gameState,resident);
+    if (!work) return undefined;
+    const {business,report}=work;
+    const trading = report.profit < -0.005 ? "The latest day's takings didn't cover costs."
+      : report.profit > 0.005 ? "The latest day's takings covered costs, with something left over."
+      : "The latest day's takings just covered costs.";
+    // These concerns come from the report, not seeded metrics or stereotypes.
+    // They name no culprit, location, hardship, reward or unoffered quest.
+    const concerns = [
+      report.supplyIssues?.length ? 'There are problems with deliveries to sort out.' : '',
+      report.competitorActions?.length ? 'Competition has been making trade harder.' : '',
+      report.staffIssues?.length ? 'There are problems with staffing to sort out.' : '',
+    ].filter(Boolean);
+    return [`I run ${business.name.trim()}.`,trading,...concerns].join(' ');
+  }
+  if (topicId === 'household_meeting') {
+    if (session.contactStatus === 'first-meeting') return "We're meeting for the first time.";
+    const direct = gameState.npcMemory?.[resident.id]?.knownFacts?.some(f => f.source === 'direct' && f.factKey === 'player_met_npc');
+    return direct || latestSpokenDialogueReplies(gameState,resident.id,1).length>0
+      ? "Yes, we've met before." : "I don't remember meeting you before.";
+  }
+  return undefined;
 }
 
 /**
@@ -311,6 +457,12 @@ export function getAvailableTopics(
   if (npc) {
       const rumorTopics = getDynamicRumorTopics(gameState, npc);
       availableTopics.push(...rumorTopics);
+      const personal=HOUSEHOLD_TOPICS.filter(topic => resolveHouseholdPersonalReply(gameState, session, topic.id, npc) !== undefined);
+      // The reached book and this person's real career lead this encounter.
+      // Keep ordinary introductions, rumors and prior recall in their old order.
+      const institution=(topic:ConversationTopic)=>topic.id==='household_temple'||topic.id==='household_office_history'||topic.id==='household_public_history';
+      availableTopics.unshift(...personal.filter(institution));
+      availableTopics.push(...personal.filter(topic=>!institution(topic)));
   }
 
   // Get current disposition
@@ -318,6 +470,8 @@ export function getAvailableTopics(
   const disposition = memory ? memory.disposition : 0;
 
   return availableTopics.filter(topic => {
+    if (topic.id === 'global_trade' && !canOfferTrade(gameState, npcId, npc)) return false;
+
     // 1. One-time check
     if (topic.isOneTime && session.discussedTopicIds.includes(topic.id)) {
       return false;
@@ -330,7 +484,9 @@ export function getAvailableTopics(
 
     // 3. NPC Knowledge check (Can the NPC answer?)
     if (npc) {
-        // Special case for dynamic rumors: If we generated it for this NPC, they can discuss it!
+        // A retained account can be raised in this local conversation. The
+        // prompt still requires uncertainty; visibility is not corroboration.
+        if (HOUSEHOLD_TOPICS.some(personal => personal.id === topic.id)) return true;
         if (topic.id.startsWith('rumor_')) {
             return true;
         }
@@ -352,6 +508,11 @@ export interface ProcessTopicResult {
   xpReward?: number;
   lockTopic?: boolean;
   deductions?: TopicCost[];
+  /** Hand off to the existing shop action; this is not generated NPC speech.
+   * The hook re-resolves ownership and execution still checks attendance. */
+  openMerchant?: { npcId: string; businessId: string; initialTab?: 'gossip' };
+  /** Explicit factual topic, not a fallback after generation fails. */
+  directReply?: { npcId: string; text: string; dialogue?: NpcDialoguePublication };
 }
 
 /**
@@ -370,20 +531,34 @@ export function processTopicSelection(
   skillModifier: number = 0,
   npc?: NPC // Added NPC for dynamic DC adjustments
 ): ProcessTopicResult {
-  let topic = TOPIC_REGISTRY[topicId];
+  let topic: ConversationTopic | undefined = TOPIC_REGISTRY[topicId];
+
+  if (!topic && HOUSEHOLD_TOPICS.some(personal => personal.id === topicId)) {
+    if (resolveHouseholdPersonalReply(gameState, session, topicId, npc) === undefined) {
+      throw new Error('This personal subject is no longer available.');
+    }
+    topic = HOUSEHOLD_TOPICS.find(personal => personal.id === topicId);
+  }
 
   // Dynamic Topic Lookup (if not in registry)
   if (!topic && topicId.startsWith('rumor_')) {
-      // Try to find the rumor in active rumors
-      const rumorId = topicId.replace('rumor_', '');
-      const rumor = gameState.activeRumors?.find(r => r.id === rumorId);
-      if (rumor) {
-          topic = convertRumorToTopic(rumor);
+      // Revalidate a stale click against the same player knowledge, speaker,
+      // location and expiry rules that produced the visible choice. Do this
+      // before recording the topic or applying any costs/outcomes.
+      const speaker = npc ?? gameState.generatedNpcs?.[session.npcId];
+      if (speaker?.id === session.npcId) {
+          topic = getDynamicRumorTopics(gameState, speaker).find(candidate => candidate.id === topicId);
       }
+      if (!topic) throw new Error('This account is not available for this conversation.');
   }
 
   if (!topic) {
     throw new Error(`Topic ${topicId} not found`);
+  }
+
+  // Recheck stale or direct trade selections before recording a choice or cost.
+  if (topic.id === 'global_trade' && !canOfferTrade(gameState, session.npcId, npc)) {
+    throw new Error('This resident has no wares to offer.');
   }
 
   // Verify costs first
@@ -458,13 +633,42 @@ export function processTopicSelection(
     }
   }
 
+  // Real storefronts use the existing stock/attendance action, never prose
+  // that pretends to sell goods. Other authored/legacy topics retain speech.
+  const speaker = npc ?? gameState.generatedNpcs?.[session.npcId];
+  // A tavern's ordinary inquiry opens its posted information offers. Opening
+  // reveals no paid account and creates no invented spoken reply. Authored
+  // answers and non-tavern conversation retain their existing voice path.
+  const rumorInquiry = topicId === 'global_rumors' && speaker?.id === session.npcId
+    && !speaker.knowledgeProfile?.topicOverrides?.[topicId];
+  const candidate = topicId === 'global_trade' || rumorInquiry
+    ? resolveDialogueStorefront(gameState, session.npcId) : undefined;
+  const storefront = topicId === 'global_trade' || candidate?.businessType === 'tavern'
+    ? candidate : undefined;
+
   // Standard (Neutral) Outcome
   const unlocks = topic.unlocksTopics || [];
+  const directText=resolveHouseholdPersonalReply(gameState,session,topicId,npc);
+  const speakerKey=directText && topicId==='household_work' ? npcDialogueSpeakerKey(gameState,session.npcId) : undefined;
+  const work=speakerKey ? resolveHouseholdWorkReport(gameState,gameState.generatedNpcs[session.npcId]) : undefined;
+  let dialogue: NpcDialoguePublication|undefined=work && speakerKey ? {topicId:'household_work',speakerKey,source:{kind:'business-report',businessId:work.business.id,day:work.report.day,revenue:work.report.revenue,costs:work.report.costs,profit:work.report.profit,supplyIssues:[...(work.report.supplyIssues??[])],competitorActions:[...(work.report.competitorActions??[])],staffIssues:[...(work.report.staffIssues??[])]}} : undefined;
+  if (directText && (topicId==='global_who_are_you' || topicId==='household_family')) {
+    const personal=resolveNpcPersonalStatement(gameState,session.npcId,topicId);
+    const personalKey=npcDialogueSpeakerKey(gameState,session.npcId);
+    if (personalKey && personal?.snapshot && personal.text===directText) dialogue={topicId,speakerKey:personalKey,source:{kind:'household-personal',snapshot:personal.snapshot}};
+  }
+  if (directText && (topicId==='household_temple'||topicId==='household_office_history'||topicId==='household_public_history')) {
+    const statement=resolveNpcInstitutionStatement(gameState,session.npcId,topicId);
+    const key=npcDialogueSpeakerKey(gameState,session.npcId);
+    if (key && statement?.text===directText) dialogue={topicId,speakerKey:key,source:{kind:'institution-statement',snapshot:statement.snapshot}};
+  }
   return {
     status: 'neutral',
     responsePrompt: topic.playerPrompt,
     unlocks,
-    deductions
+    deductions,
+    ...(directText !== undefined ? {directReply: {npcId: session.npcId, text: directText,...(dialogue ? {dialogue} : {})}} : {}),
+    ...(storefront ? { openMerchant: { npcId: session.npcId, businessId: storefront.id, ...(rumorInquiry ? {initialTab: 'gossip' as const} : {}) } } : {})
   };
 }
 
@@ -569,8 +773,8 @@ export function describeWitnessRecall(
 
 /**
  * Composes every prompt fragment this service owns for one NPC in one call, in a
- * fixed order: who they are willing to talk about, then what they have seen the
- * player do.
+ * fixed order: guarded knowledge, supplied identity, direct contact, then what
+ * they have seen the player do.
  *
  * The order is deliberate. The knowledge profile sets the NPC's subject-matter
  * boundaries; the witness recall is evidence about the player specifically. A
@@ -590,5 +794,35 @@ export function buildNpcDialoguePromptContext(
     gameState.npcMemory[npcId],
     getGameDay(gameState.gameTime)
   );
-  return [knowledge, recall].filter(Boolean).join(' ');
+  // Knowing a job does not supply a workplace name. Use the existing owner
+  // records for names only; legacy business types do not rewrite anyone's job.
+  const names = npc?.id === npcId ? [...new Set(Object.values(gameState.worldBusinesses ?? {})
+    .filter(business => business.ownerId === npcId && typeof business.name === 'string' && business.name.trim())
+    .map(business => business.name.trim()))] : [];
+  const identity = npc?.id === npcId ? [
+    names.length ? `Your registered business names: ${names.map(name => JSON.stringify(name)).join(', ')}.` : '',
+    'Use only names supplied in your character context or records. Do not invent names for businesses, places or people; if a name is missing, leave it unnamed.',
+  ].filter(Boolean).join(' ') : '';
+
+  // A saved direct first-contact fact was previously visible in greetings but
+  // absent from this AI prompt. Preserve its provenance and the pre-contact
+  // session snapshot so a newly recorded first visit cannot become a reunion.
+  const meeting = gameState.npcMemory[npcId]?.knownFacts?.find(fact => fact.source === 'direct' && fact.factKey === 'player_met_npc');
+  const contactStatus = gameState.activeDialogueSession?.npcId === npcId ? gameState.activeDialogueSession.contactStatus : undefined;
+  const contact = meeting ? [
+    contactStatus === 'first-meeting' ? 'This is your first conversation; do not claim an earlier visit.'
+      : contactStatus === 'returning' ? 'You have previously met this person.' : '',
+    `Direct contact record: ${meeting.text} Do not invent other shared history.`,
+  ].filter(Boolean).join(' ') : '';
+  // Quoted dialogue recalls what was said, not proof that those claims were true.
+  // Retain only three recent exchanges so old speech cannot bury today's facts.
+  const spoken=latestSpokenDialogueReplies(gameState,npcId).map(record=>{
+    const topic=HOUSEHOLD_TOPICS.find(candidate=>candidate.id===record.dialogue?.topicId)??TOPIC_REGISTRY[record.dialogue?.topicId??''];
+    const input=record.dialogue?.source.kind==='generated-exchange'?record.dialogue.source.playerPrompt:topic?.playerPrompt;
+    return 'At '+new Date(record.date).toISOString()+', the conversation input was '+JSON.stringify(input??'a prior conversation')
+      +' and you replied '+JSON.stringify(record.summary)+'.';
+  });
+  const conversation=spoken.length ? 'Your recorded conversations: '+spoken.join(' ')
+    +' These are words exchanged, not independent evidence or permission. Do not turn questions or unsupported past claims into world facts.' : '';
+  return [knowledge, identity, contact, recall, conversation].filter(Boolean).join(' ');
 }

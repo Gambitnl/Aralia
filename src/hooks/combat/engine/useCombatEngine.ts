@@ -1,11 +1,18 @@
+/**
+ * @file hooks/combat/engine/useCombatEngine.ts
+ * Core combat simulation engine.
+ * Handles the "physics" of combat: damage, saving throws, area effects, and triggers.
+ * Decoupled from turn scheduling (useTurnOrder) and UI (CombatView).
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/09/2026, 08:36:57
- * Dependents: hooks/combat/useTurnManager.ts
- * Imports: 14 files
+ * Last Sync: 24/10/2026, 22:14:42
+ * Dependents: hooks/combat/turnManager/useTurnLifecycle.ts, hooks/combat/useTurnManager.ts
+ * Imports: 17 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,12 +21,6 @@
  */
 // @dependencies-end
 
-/**
- * @file hooks/combat/engine/useCombatEngine.ts
- * Core combat simulation engine.
- * Handles the "physics" of combat: damage, saving throws, area effects, and triggers.
- * Decoupled from turn scheduling (useTurnOrder) and UI (CombatView).
- */
 import { useState, useCallback, useEffect, useRef } from 'react';
 import {
     CombatCharacter,
@@ -41,223 +42,24 @@ import {
 } from '../../../systems/spells/effects';
 import { AreaEffectTracker } from '../../../systems/spells/effects/AreaEffectTracker';
 import { MovementCommand } from '../../../commands/effects/MovementCommand';
-// A failed concentration save runs the same cleanup the command path runs, by
-// running the command the command path runs (agora-f821.43).
-import { BreakConcentrationCommand } from '../../../commands/effects/ConcentrationCommands';
-import { generateId, calculateDamageWithDefense, getDistance } from '../../../utils/combat';
-import { rollDice, rollD20 } from '../../../systems/dice/rollers';
-import { calculateSpellDC, rollSavingThrow, checkConcentration } from '../../../utils/character';
+import { generateId, getDistance } from '../../../utils/combat';
+import { rollDice } from '../../../systems/dice/rollers';
+import { calculateSpellDC, rollSavingThrow } from '../../../utils/character';
 import { SavePenaltySystem } from '../../../systems/combat/SavePenaltySystem';
 import type { SavePenaltyExpiryState } from '../../../systems/combat/SavePenaltySystem';
-import { getAbilityModifierValue } from '../../../utils/character';
-import { hasLineOfSight } from '../../../utils/spatial/lineOfSight';
-import { findPath } from '../../../utils/spatial/pathfinding';
-import { applyDamageAndCheckDowned, applyHealingAndRestore } from '../../../utils/combat/deathSaveUtils';
+import { applyHealingAndRestore } from '../../../utils/combat/deathSaveUtils';
 import { applyRuntimeStatusCondition } from '../../../utils/combat/statusConditionUtils';
-import { resolveOnDamageSpellEffect } from '../../../systems/spells/effects/onDamageSpellEffects';
-import { removeRepeatSaveLinkedEffects } from '../../../utils/combat/repeatSaveUtils';
 import { getStatusDiscriminator } from '../../../types/combatMessages';
+import { runRepeatSaves, isRepeatSaveRollAbility, type RepeatSaveRuntimeTiming } from '../../../systems/combat/engine/repeatSaves';
+import { removeScheduledSourceLinks as removeScheduledSourceLinksRule, shouldKeepScheduledEffectAfterTrigger as shouldKeepScheduledEffectAfterTriggerRule } from '../../../systems/combat/engine/scheduledEffectRules';
+import { breakConcentrationThroughCommandLayer as breakConcentrationRule } from '../../../systems/combat/engine/concentrationBreak';
+import { resolveDamage } from '../../../systems/combat/engine/damage';
+import { resolveTileEffects } from '../../../systems/combat/engine/tileEffects';
 
-// Repeat-save metadata now lives on StatusEffect, but not every repeat-save
-// shape is a saving throw. Some spell data asks for ability checks such as
-// `strength_check`; those need a separate check resolver instead of being
-// forced through the saving-throw roller.
-type RepeatSaveRollAbility = Parameters<typeof rollSavingThrow>[1];
-type RepeatSaveMetadata = NonNullable<CombatCharacter['statusEffects'][number]['repeatSave']>;
-type RepeatSaveRuntimeStatus = CombatCharacter['statusEffects'][number];
-type RepeatSaveCheckAbility = 'strength_check' | 'wisdom_check';
-type RepeatSaveRuntimeTiming = 'turn_end' | 'turn_start' | 'on_damage' | 'on_action' | 'after_forced_movement';
-type CharacterStatKey = keyof CombatCharacter['stats'];
-
-const REPEAT_SAVE_ROLL_ABILITIES = new Set<string>([
-    'Strength',
-    'Dexterity',
-    'Constitution',
-    'Intelligence',
-    'Wisdom',
-    'Charisma'
-]);
-
-const isRepeatSaveRollAbility = (saveType: unknown): saveType is RepeatSaveRollAbility => (
-    typeof saveType === 'string' && REPEAT_SAVE_ROLL_ABILITIES.has(saveType)
-);
-
-const REPEAT_SAVE_CHECK_ABILITIES: Record<RepeatSaveCheckAbility, { statKey: CharacterStatKey; label: string }> = {
-    strength_check: { statKey: 'strength', label: 'Strength' },
-    wisdom_check: { statKey: 'wisdom', label: 'Wisdom' }
-};
-
-const isRepeatSaveCheckAbility = (saveType: unknown): saveType is RepeatSaveCheckAbility => (
-    typeof saveType === 'string' && saveType in REPEAT_SAVE_CHECK_ABILITIES
-);
-
-const hasNoLineOfSightPrerequisite = (repeat: RepeatSaveMetadata): boolean => (
-    repeat.prerequisites?.includes('no_line_of_sight_to_caster') === true
-);
-
-// Some spells, such as Tasha's Hideous Laughter, use one normal repeat-save
-// timing and then add a second timing for special events like damage. Keep the
-// match logic in one named helper so the engine does not accidentally treat
-// additional timings as schema-only metadata again.
-const repeatSaveMatchesTiming = (
-    repeat: RepeatSaveMetadata,
-    timing: RepeatSaveRuntimeTiming
-): boolean => (
-    repeat.timing === timing || repeat.additionalTimings?.includes(timing) === true
-);
-
-const getRepeatSaveDc = (repeat: RepeatSaveMetadata): number => {
-    const repeatWithRuntimeDc = repeat as RepeatSaveMetadata & { dc?: unknown };
-    return typeof repeatWithRuntimeDc.dc === 'number' ? repeatWithRuntimeDc.dc : 10;
-};
-
-// Flesh to Stone and Contagion do not end on a single repeat-save result. They
-// count successes and failures until a configured threshold is reached. The
-// count lives on the status effect because that is the durable runtime object
-// already carried between turns.
-const recordRepeatSaveProgress = (
-    effect: RepeatSaveRuntimeStatus,
-    success: boolean
-): RepeatSaveRuntimeStatus => {
-    const progress = effect.repeatSaveProgress ?? { successes: 0, failures: 0 };
-    const consecutiveRequired = effect.repeatSave?.progression?.consecutiveRequired === true;
-
-    return {
-        ...effect,
-        repeatSaveProgress: {
-            successes: success
-                ? progress.successes + 1
-                : consecutiveRequired ? 0 : progress.successes,
-            failures: success
-                ? consecutiveRequired ? 0 : progress.failures
-                : progress.failures + 1
-        }
-    };
-};
-
-const replaceRepeatSaveStatus = (
-    character: CombatCharacter,
-    updatedEffect: RepeatSaveRuntimeStatus
-): CombatCharacter => ({
-    ...character,
-    statusEffects: character.statusEffects.map(effect =>
-        effect.id === updatedEffect.id ? updatedEffect : effect
-    )
-});
-
-const repeatSaveProgressionReached = (
-    effect: RepeatSaveRuntimeStatus,
-    success: boolean
-): boolean => {
-    const progression = effect.repeatSave?.progression;
-    if (!progression || !effect.repeatSaveProgress) return false;
-
-    if (success && progression.successThreshold) {
-        return effect.repeatSaveProgress.successes >= progression.successThreshold;
-    }
-
-    if (!success && progression.failureThreshold) {
-        return effect.repeatSaveProgress.failures >= progression.failureThreshold;
-    }
-
-    return false;
-};
-
-const progressionSuccessEndsEffect = (repeat: RepeatSaveMetadata): boolean => {
-    const outcome = repeat.progression?.successOutcome;
-    return !outcome || ['spell_ends', 'ends_spell', 'ends_condition', 'not_restrained'].includes(outcome);
-};
-
-const applyRepeatSaveFailureOutcome = (
-    character: CombatCharacter,
-    effect: RepeatSaveRuntimeStatus
-): { character: CombatCharacter; handled: boolean; message?: string } => {
-    const outcome = effect.repeatSave?.progression?.failureOutcome;
-
-    // Flesh to Stone has a second structured effect for Petrified, but the
-    // repeat-save engine owns the threshold moment. Apply both condition mirrors
-    // here so combat rules, cleanup, and map-facing status surfaces agree.
-    if (outcome === 'apply_petrified_condition') {
-        const duration = effect.duration;
-        const source = effect.source || String(effect.name);
-        const sourceCasterId = effect.sourceCasterId;
-        const petrifiedStatus: RepeatSaveRuntimeStatus = {
-            id: generateId(),
-            name: 'Petrified',
-            type: 'debuff',
-            description: `${character.name} is turned to stone after failing repeated saves.`,
-            duration,
-            source,
-            sourceCasterId,
-            effect: { type: 'condition' },
-            visualEffect: 'petrified'
-        };
-        const petrifiedCondition = {
-            name: 'Petrified',
-            duration: { type: 'rounds' as const, value: duration },
-            appliedTurn: 0,
-            source,
-            sourceCasterId
-        };
-
-        return {
-            character: {
-                ...character,
-                statusEffects: [
-                    ...character.statusEffects.filter(status => status.id !== effect.id && status.name !== 'Petrified'),
-                    petrifiedStatus
-                ],
-                conditions: [
-                    ...(character.conditions ?? []).filter(condition => condition.name !== effect.name && condition.name !== 'Petrified'),
-                    petrifiedCondition
-                ]
-            },
-            handled: true,
-            message: `${character.name} is petrified after failing repeated saves against ${effect.name}.`
-        };
-    }
-
-    // Contagion's current spell data already stores the seven-day Poisoned
-    // duration on the status payload. Once the failure threshold is reached,
-    // keep that condition and remove the repeat-save machine so future turns do
-    // not keep rolling against an outcome that has already locked in.
-    if (outcome === 'poisoned_duration_lasts_7_days') {
-        const lockedEffect: RepeatSaveRuntimeStatus = {
-            ...effect,
-            duration: Math.max(effect.duration, 100800),
-            repeatSave: undefined,
-            repeatSaveProgress: undefined
-        };
-
-        return {
-            character: replaceRepeatSaveStatus(character, lockedEffect),
-            handled: true,
-            message: `${character.name}'s ${effect.name} progression locks in for 7 days.`
-        };
-    }
-
-    return { character, handled: false };
-};
-
-const rollRepeatSaveCheck = (
-    character: CombatCharacter,
-    saveType: RepeatSaveCheckAbility,
-    dc: number,
-    options: { advantage: boolean; disadvantage: boolean }
-) => {
-    const ability = REPEAT_SAVE_CHECK_ABILITIES[saveType];
-    const score = character.stats[ability.statKey];
-    const modifier = typeof score === 'number' ? getAbilityModifierValue(score) : 0;
-    const roll = rollD20({ advantage: options.advantage, disadvantage: options.disadvantage });
-    const total = roll + modifier;
-
-    return {
-        ability: ability.label,
-        roll,
-        total,
-        success: total >= dc
-    };
-};
+// C2 (agora-9ed9.2): the repeat-save rules, the damage packet, concentration
+// breaks, tile effects and the scheduled-effect cleanup rules now live in
+// systems/combat/engine/. This hook keeps state, phase ownership and the
+// useCallback wrappers below.
 
 interface UseCombatEngineProps {
     characters: CombatCharacter[];
@@ -362,296 +164,7 @@ export const useCombatEngine = ({
         character: CombatCharacter,
         timing: RepeatSaveRuntimeTiming,
         actionEffectId?: string
-    ): CombatCharacter => {
-        let updatedCharacter = { ...character };
-        const savedEffectIds: string[] = [];
-        const savePenaltySystem = new SavePenaltySystem();
-
-        updatedCharacter.statusEffects.forEach(effect => {
-            const repeat = effect.repeatSave;
-            if (!repeat) return;
-            if (timing === 'on_action' && effect.id !== actionEffectId) return;
-            if (!repeatSaveMatchesTiming(repeat, timing)) return;
-
-            const dc = getRepeatSaveDc(repeat);
-            let hasAdvantage = false;
-            let hasDisadvantage = false;
-
-            if (repeat.modifiers?.advantageOnDamage && character.damagedThisTurn) {
-                hasAdvantage = true;
-            }
-            if (repeat.modifiers?.sizeAdvantage && character.stats.size && repeat.modifiers.sizeAdvantage.includes(character.stats.size)) {
-                hasAdvantage = true;
-            }
-            if (repeat.modifiers?.sizeDisadvantage && character.stats.size && repeat.modifiers.sizeDisadvantage.includes(character.stats.size)) {
-                hasDisadvantage = true;
-            }
-            if (repeat.modifiers?.disadvantage) {
-                hasDisadvantage = true;
-            }
-            if (hasNoLineOfSightPrerequisite(repeat)) {
-                const caster = characters.find(candidate => candidate.id === effect.sourceCasterId);
-                const casterTile = caster ? mapData?.tiles.get(`${caster.position.x}-${caster.position.y}`) : undefined;
-                const targetTile = mapData?.tiles.get(`${character.position.x}-${character.position.y}`);
-
-                if (!caster || !mapData || !casterTile || !targetTile) {
-                    onLogEntry({
-                        id: generateId(),
-                        timestamp: Date.now(),
-                        type: 'status',
-                        message: `${character.name}'s repeat save against ${effect.name} requires line-of-sight context that is not available yet.`,
-                        characterId: character.id,
-                        data: {
-                            repeatPrerequisites: repeat.prerequisites,
-                            effectId: effect.id,
-                            sourceCasterId: effect.sourceCasterId
-                        }
-                    });
-                    return;
-                }
-
-                if (hasLineOfSight(casterTile, targetTile, mapData)) {
-                    onLogEntry({
-                        id: generateId(),
-                        timestamp: Date.now(),
-                        type: 'status',
-                        message: `${character.name} can still see ${caster.name}, so ${effect.name} does not grant a repeat save yet.`,
-                        characterId: character.id,
-                        data: { repeatPrerequisites: repeat.prerequisites, effectId: effect.id, sourceCasterId: effect.sourceCasterId }
-                    });
-                    return;
-                }
-
-                onLogEntry({
-                    id: generateId(),
-                    timestamp: Date.now(),
-                    type: 'status',
-                    message: `${character.name} no longer has line of sight to ${caster.name}; ${effect.name} grants a repeat save.`,
-                    characterId: character.id,
-                    data: { repeatPrerequisites: repeat.prerequisites, effectId: effect.id, sourceCasterId: effect.sourceCasterId }
-                });
-            }
-
-            if (isRepeatSaveCheckAbility(repeat.saveType)) {
-                const checkResult = rollRepeatSaveCheck(updatedCharacter, repeat.saveType, dc, {
-                    advantage: hasAdvantage,
-                    disadvantage: hasDisadvantage
-                });
-
-                if (checkResult.success) {
-                    let resolvedEffect = effect;
-                    if (repeat.progression) {
-                        resolvedEffect = recordRepeatSaveProgress(effect, true);
-                        updatedCharacter = replaceRepeatSaveStatus(updatedCharacter, resolvedEffect);
-                    }
-                    onLogEntry({
-                        id: generateId(),
-                        timestamp: Date.now(),
-                        type: 'status',
-                        message: `${character.name} succeeds on ${checkResult.ability} check against ${effect.name}! (${checkResult.total} vs DC ${dc})`,
-                        characterId: character.id
-                    });
-                    if (repeat.progression && repeatSaveProgressionReached(resolvedEffect, true)) {
-                        onLogEntry({
-                            id: generateId(),
-                            timestamp: Date.now(),
-                            type: 'status',
-                            message: `${character.name} reaches ${effect.name}'s repeat-save success threshold.`,
-                            characterId: character.id,
-                            data: { effectId: effect.id, repeatSaveProgress: resolvedEffect.repeatSaveProgress }
-                        });
-                        if (progressionSuccessEndsEffect(repeat)) {
-                            savedEffectIds.push(effect.id);
-                        }
-                    } else if (!repeat.progression && repeat.successEnds) {
-                        savedEffectIds.push(effect.id);
-                    }
-                } else {
-                    let resolvedEffect = effect;
-                    if (repeat.progression) {
-                        resolvedEffect = recordRepeatSaveProgress(effect, false);
-                        updatedCharacter = replaceRepeatSaveStatus(updatedCharacter, resolvedEffect);
-                    }
-                    onLogEntry({
-                        id: generateId(),
-                        timestamp: Date.now(),
-                        type: 'status',
-                        message: `${character.name} fails ${checkResult.ability} check against ${effect.name}. (${checkResult.total} vs DC ${dc})`,
-                        characterId: character.id
-                    });
-                    if (repeat.progression && repeatSaveProgressionReached(resolvedEffect, false)) {
-                        const outcome = applyRepeatSaveFailureOutcome(updatedCharacter, resolvedEffect);
-                        updatedCharacter = outcome.character;
-                        onLogEntry({
-                            id: generateId(),
-                            timestamp: Date.now(),
-                            type: 'status',
-                            message: outcome.message || `${character.name} is fully overcome by ${effect.name}.`,
-                            characterId: character.id,
-                            data: {
-                                effectId: effect.id,
-                                repeatSaveProgress: resolvedEffect.repeatSaveProgress,
-                                failureOutcome: repeat.progression.failureOutcome,
-                                handled: outcome.handled
-                            }
-                        });
-                    }
-                }
-                return;
-            }
-
-            if (!isRepeatSaveRollAbility(repeat.saveType)) {
-                onLogEntry({
-                    id: generateId(),
-                    timestamp: Date.now(),
-                    type: 'status',
-                    message: `${character.name} holds steady against ${effect.name}.`,
-                    characterId: character.id,
-                    data: { repeatSaveType: repeat.saveType, effectId: effect.id }
-                });
-                return;
-            }
-
-            const saveType = repeat.saveType;
-            const saveModifiers = savePenaltySystem.getActivePenalties(updatedCharacter);
-            const roll = rollSavingThrow(updatedCharacter, saveType, dc, saveModifiers);
-
-            let finalSuccess = roll.success;
-            // ...advantage/disadvantage logic uses saveModifiers...
-            if (hasAdvantage) {
-                const roll2 = rollSavingThrow(updatedCharacter, saveType, dc, saveModifiers);
-                finalSuccess = roll.success || roll2.success;
-            } else if (hasDisadvantage) {
-                const roll2 = rollSavingThrow(updatedCharacter, saveType, dc, saveModifiers);
-                finalSuccess = roll.success && roll2.success;
-            }
-
-            // Immediately consume 'next_save' penalties if this roll was made
-            if (updatedCharacter.savePenaltyRiders?.some(r => r.applies === 'next_save')) {
-                updatedCharacter = {
-                    ...updatedCharacter,
-                    savePenaltyRiders: updatedCharacter.savePenaltyRiders.filter(r => r.applies !== 'next_save')
-                };
-            }
-
-            if (roll.modifiersApplied && roll.modifiersApplied.length > 0) {
-                const penaltyDetails = roll.modifiersApplied.map(m => `${m.value} from ${m.source}`).join(', ');
-                onLogEntry({
-                    id: generateId(),
-                    timestamp: Date.now(),
-                    type: 'status',
-                    message: `${character.name}'s save is modified: ${penaltyDetails}`,
-                    characterId: character.id
-                });
-            }
-
-            if (finalSuccess) {
-                let resolvedEffect = effect;
-                if (repeat.progression) {
-                    resolvedEffect = recordRepeatSaveProgress(effect, true);
-                    updatedCharacter = replaceRepeatSaveStatus(updatedCharacter, resolvedEffect);
-                }
-                onLogEntry({
-                    id: generateId(),
-                    timestamp: Date.now(),
-                    type: 'status',
-                    message: `${character.name} succeeds on repeat save against ${effect.name}!`,
-                    characterId: character.id
-                });
-                if (repeat.progression && repeatSaveProgressionReached(resolvedEffect, true)) {
-                    onLogEntry({
-                        id: generateId(),
-                        timestamp: Date.now(),
-                        type: 'status',
-                        message: `${character.name} reaches ${effect.name}'s repeat-save success threshold.`,
-                        characterId: character.id,
-                        data: { effectId: effect.id, repeatSaveProgress: resolvedEffect.repeatSaveProgress }
-                    });
-                    if (progressionSuccessEndsEffect(repeat)) {
-                        savedEffectIds.push(effect.id);
-                    }
-                } else if (!repeat.progression && repeat.successEnds) {
-                    savedEffectIds.push(effect.id);
-                }
-            } else {
-                let resolvedEffect = effect;
-                if (repeat.progression) {
-                    resolvedEffect = recordRepeatSaveProgress(effect, false);
-                    updatedCharacter = replaceRepeatSaveStatus(updatedCharacter, resolvedEffect);
-                }
-                onLogEntry({
-                    id: generateId(),
-                    timestamp: Date.now(),
-                    type: 'status',
-                    message: `${character.name} fails repeat save against ${effect.name}.`,
-                    characterId: character.id
-                });
-                if (repeat.progression && repeatSaveProgressionReached(resolvedEffect, false)) {
-                    const outcome = applyRepeatSaveFailureOutcome(updatedCharacter, resolvedEffect);
-                    updatedCharacter = outcome.character;
-                    onLogEntry({
-                        id: generateId(),
-                        timestamp: Date.now(),
-                        type: 'status',
-                        message: outcome.message || `${character.name} is fully overcome by ${effect.name}.`,
-                        characterId: character.id,
-                        data: {
-                            effectId: effect.id,
-                            repeatSaveProgress: resolvedEffect.repeatSaveProgress,
-                            failureOutcome: repeat.progression.failureOutcome,
-                            handled: outcome.handled
-                        }
-                    });
-                }
-            }
-        });
-
-        if (savedEffectIds.length > 0) {
-            // A successful repeat save ends the whole source-linked condition,
-            // not only the legacy status label. The shared cleanup also removes
-            // matching structured/active records, restores movement penalties,
-            // and leaves unrelated spells on the target untouched.
-            updatedCharacter = removeRepeatSaveLinkedEffects(
-                updatedCharacter,
-                savedEffectIds
-            ).character;
-
-            const demonControlReleased = savedEffectIds.some(effectId =>
-                effectId.startsWith('summon-greater-demon-control-') &&
-                updatedCharacter.summonMetadata?.aftermathState?.kind === 'summon_greater_demon_control'
-            );
-            if (demonControlReleased && updatedCharacter.summonMetadata) {
-                updatedCharacter = {
-                    ...updatedCharacter,
-                    summonMetadata: {
-                        ...updatedCharacter.summonMetadata,
-                        commandsPerTurn: 0,
-                        commandsUsedThisTurn: 0,
-                        control: {
-                            ...updatedCharacter.summonMetadata.control,
-                            allegiance: 'uncontrolled_hostile',
-                            obedience: 'pursues_and_attacks_nearest_non_demons'
-                        },
-                        aftermathState: {
-                            ...updatedCharacter.summonMetadata.aftermathState,
-                            kind: 'summon_greater_demon_uncontrolled',
-                            controlBroken: true
-                        }
-                    }
-                };
-                onLogEntry({
-                    id: generateId(),
-                    timestamp: Date.now(),
-                    type: 'status',
-                    message: `${updatedCharacter.name}'s control ends; the demon turns hostile.`,
-                    characterId: updatedCharacter.id,
-                    data: { summonControl: 'broken', spellId: updatedCharacter.summonMetadata?.spellId }
-                });
-            }
-        }
-
-        return updatedCharacter;
-    }, [characters, mapData, onLogEntry]);
+    ): CombatCharacter => runRepeatSaves({ characters, mapData, onLogEntry }, character, timing, actionEffectId), [characters, mapData, onLogEntry]);
 
     // Remove only the status/condition/active-effect mirrors owned by one
     // scheduled spell and caster. The repeat-save cleanup utility already
@@ -659,16 +172,7 @@ export const useCombatEngine = ({
     const removeScheduledSourceLinks = useCallback((
         character: CombatCharacter,
         scheduledEffect: ScheduledSpellEffect,
-    ): CombatCharacter => {
-        const ownedStatusIds = character.statusEffects
-            .filter(status => (
-                status.sourceSpellId === scheduledEffect.spellId
-                && status.sourceCasterId === scheduledEffect.casterId
-            ))
-            .map(status => status.id);
-
-        return removeRepeatSaveLinkedEffects(character, ownedStatusIds).character;
-    }, []);
+    ): CombatCharacter => removeScheduledSourceLinksRule(character, scheduledEffect), []);
 
     /**
    * Ends one creature's concentration through `BreakConcentrationCommand`, the
@@ -684,60 +188,7 @@ export const useCombatEngine = ({
    */
     const breakConcentrationThroughCommandLayer = useCallback((
         concentrator: CombatCharacter,
-    ): CombatCharacter => {
-        const concentration = concentrator.concentratingOn;
-        if (!concentration) return concentrator;
-
-        const stateCharacters = characters.map(candidate => (
-            candidate.id === concentrator.id ? concentrator : candidate
-        ));
-        const commandState: CombatState = {
-            isActive: true,
-            characters: stateCharacters,
-            turnState: {
-                currentTurn: 0,
-                turnOrder: stateCharacters.map(candidate => candidate.id),
-                currentCharacterId: concentrator.id,
-                phase: 'planning',
-                actionsThisTurn: []
-            },
-            selectedCharacterId: null,
-            selectedAbilityId: null,
-            actionMode: 'select',
-            validTargets: [],
-            validMoves: [],
-            combatLog: [],
-            reactiveTriggers: [],
-            activeLightSources: activeLightSources ?? [],
-            spellZones,
-            mapData: mapData || undefined
-        };
-
-        const nextState = new BreakConcentrationCommand({
-            spellId: concentration.spellId,
-            spellName: concentration.spellName,
-            castAtLevel: concentration.spellLevel ?? 0,
-            caster: concentrator,
-            targets: [],
-        }).execute(commandState);
-
-        nextState.characters.forEach((character, index) => {
-            if (character === stateCharacters[index]) return;
-            if (character.id === concentrator.id) return;
-            onCharacterUpdate(character);
-        });
-
-        nextState.combatLog.forEach(entry => onLogEntry(entry));
-
-        if (nextState.spellZones !== spellZones) {
-            setSpellZones((nextState.spellZones ?? []) as ActiveSpellZone[]);
-        }
-        if (onActiveLightSourcesUpdate && nextState.activeLightSources !== commandState.activeLightSources) {
-            onActiveLightSourcesUpdate(nextState.activeLightSources ?? []);
-        }
-
-        return nextState.characters.find(candidate => candidate.id === concentrator.id) ?? concentrator;
-    }, [activeLightSources, characters, mapData, onActiveLightSourcesUpdate, onCharacterUpdate, onLogEntry, spellZones]);
+    ): CombatCharacter => breakConcentrationRule({ activeLightSources, characters, mapData, onActiveLightSourcesUpdate, onCharacterUpdate, onLogEntry, spellZones, setSpellZones }, concentrator), [activeLightSources, characters, mapData, onActiveLightSourcesUpdate, onCharacterUpdate, onLogEntry, spellZones]);
 
     const handleDamage = useCallback((
         character: CombatCharacter,
@@ -747,158 +198,12 @@ export const useCombatEngine = ({
         currentTurnNumber = 0,
         sourceCharacter?: CombatCharacter,
         damageTrigger?: 'turn_start' | 'turn_end' | 'on_start_turn_in_area' | 'on_end_turn_in_area',
-    ): CombatCharacter => {
-        let updatedCharacter = { ...character };
-
-        // The same defense calculator serves immediate, environmental, and
-        // scheduled packets. A known owner is passed through for source feats;
-        // environmental callers remain source-less through the optional field.
-        // CMB-GAP-002 (2026-09-09): switched from `calculateDamage` to
-        // `calculateDamageWithDefense`. Both call the same ResistanceCalculator
-        // breakdown, so `finalDamage` is identical and behavior is preserved;
-        // the wider return also carries the resistance/vulnerability/immunity
-        // flags and structured tags that used to be computed and thrown away
-        // here, leaving the combat log with no defense metadata to show.
-        const triggeringDefense = calculateDamageWithDefense(amount, sourceCharacter ?? null, character, damageType, {
-            spellZones,
-            characters
-        });
-        const triggeringDamage = triggeringDefense.finalDamage;
-        const onDamageResolution = resolveOnDamageSpellEffect(
-            character,
-            damageType,
-            currentTurnNumber,
-            triggeringDamage
-        );
-        const extraDamage = onDamageResolution.damageDice
-            ? rollDice(onDamageResolution.damageDice)
-            : 0;
-
-        // Fold any matching rider into the same typed damage packet. This lets
-        // Elemental Bane suppress resistance and lets vulnerability or immunity
-        // affect both the triggering and extra damage consistently.
-        updatedCharacter = onDamageResolution.character;
-        // The rider-folded recomputation is the packet actually applied, so its
-        // breakdown is the one the log should describe. When no rider fired we
-        // reuse the triggering breakdown rather than recomputing it.
-        const finalDefense = extraDamage > 0
-            ? calculateDamageWithDefense(amount + extraDamage, sourceCharacter ?? null, updatedCharacter, damageType, {
-                spellZones,
-                characters
-            })
-            : triggeringDefense;
-        const finalAmount = finalDefense.finalDamage;
-        const defenseTagSuffix = finalDefense.tags.length > 0 ? ` ${finalDefense.tags.join(' ')}` : '';
-
-        const updatedTarget = applyDamageAndCheckDowned(updatedCharacter, finalAmount);
-        updatedCharacter = {
-            ...updatedCharacter,
-            currentHP: updatedTarget.currentHP,
-            tempHP: updatedTarget.tempHP,
-            temporaryHitPointSource: updatedTarget.temporaryHitPointSource,
-            deathSaves: updatedTarget.deathSaves,
-            statusEffects: updatedTarget.statusEffects,
-            conditions: updatedTarget.conditions,
-            damagedThisTurn: updatedTarget.damagedThisTurn
-        };
-
-        addDamageNumber(finalAmount, updatedCharacter.position, 'damage');
-
-        // Check for death
-        const isDeath = updatedCharacter.currentHP === 0 && character.currentHP > 0;
-
-        onLogEntry({
-            id: generateId(),
-            timestamp: Date.now(),
-            type: 'damage',
-            // CMB-GAP-002: defense tags are appended to the text so the legacy
-            // (non-rich) log still renders "[Resisted: Fire (-50%)]" pills via
-            // the existing tokenizer. The suffix is empty when no defense
-            // applied, so ordinary damage lines are unchanged.
-            message: `${character.name} takes ${finalAmount} ${damageType || ''} damage from ${source}${defenseTagSuffix}${isDeath ? ' and is defeated!' : ''}`,
-            characterId: character.id,
-            data: {
-                damage: amount,
-                damageType,
-                source,
-                damageDealt: finalAmount,
-                trigger: damageTrigger,
-                // CMB-GAP-002: structured defense metadata. The adapter copies
-                // these into DamageMessageData, and CombatLog renders them as
-                // Resisted / Vulnerable / Immune badges in rich display mode.
-                isResisted: finalDefense.effectiveResistance,
-                resistanceApplied: finalDefense.effectiveResistance,
-                resistedDamageType: finalDefense.effectiveResistance ? damageType : undefined,
-                isVulnerable: finalDefense.isVulnerable,
-                vulnerabilityApplied: finalDefense.isVulnerable,
-                vulnerableDamageType: finalDefense.isVulnerable ? damageType : undefined,
-                isImmune: finalDefense.isImmune,
-                immunityApplied: finalDefense.isImmune,
-                immuneDamageType: finalDefense.isImmune ? damageType : undefined,
-                defenseTags: finalDefense.tags.length > 0 ? finalDefense.tags : undefined,
-                // Delayed and area-phase callers pass the owning spell id as
-                // `source`. Preserve that provenance even when no on-damage
-                // rider fired during this packet.
-                spellId: onDamageResolution.sourceSpellId
-                    ?? (damageTrigger ? source : undefined),
-                isDeath,
-                targetTags: character.creatureTypes
-            }
-        });
-
-        // --- Concentration ---
-        // Any damage can break concentration, not only damage a command
-        // delivered. The DC is 10 or half the damage actually taken, whichever
-        // is higher, measured after defenses exactly as the command path
-        // measures it.
-        //
-        // The 0 HP case is deliberately NOT handled here. `useTurnManager`
-        // already ends concentration for a creature that drops, and it logs and
-        // cleans as it does so; rolling here as well would clean twice and log
-        // twice for one packet.
-        if (character.concentratingOn && finalAmount > 0 && updatedCharacter.currentHP > 0) {
-            const check = checkConcentration(updatedCharacter, finalAmount);
-
-            onLogEntry({
-                id: generateId(),
-                timestamp: Date.now(),
-                type: 'status',
-                message: check.success
-                    ? `${character.name} maintains concentration (${check.roll} vs DC ${check.dc})`
-                    : `${character.name} fails concentration save (${check.roll} vs DC ${check.dc})`,
-                characterId: character.id,
-                data: {
-                    spellId: character.concentratingOn.spellId,
-                    saveDC: check.dc,
-                    rollResult: check.roll,
-                    saveResult: check.success,
-                },
-            });
-
-            if (!check.success) {
-                updatedCharacter = breakConcentrationThroughCommandLayer(updatedCharacter);
-            }
-        }
-
-        updatedCharacter = processRepeatSaves(updatedCharacter, 'on_damage');
-
-        return updatedCharacter;
-    }, [addDamageNumber, breakConcentrationThroughCommandLayer, characters, onLogEntry, processRepeatSaves, spellZones]);
+    ): CombatCharacter => resolveDamage({ addDamageNumber, breakConcentrationThroughCommandLayer, characters, onLogEntry, processRepeatSaves, spellZones }, character, amount, source, damageType, currentTurnNumber, sourceCharacter, damageTrigger), [addDamageNumber, breakConcentrationThroughCommandLayer, characters, onLogEntry, processRepeatSaves, spellZones]);
 
     const shouldKeepScheduledEffectAfterTrigger = useCallback((
         scheduledEffect: ScheduledSpellEffect,
         currentTurnNumber: number
-    ): boolean => {
-        if (scheduledEffect.expiresAtRound && scheduledEffect.expiresAtRound <= currentTurnNumber) {
-            return false;
-        }
-
-        return scheduledEffect.effects.some(effect => {
-            const trigger = effect.trigger as { frequency?: string } | undefined;
-            const frequency = scheduledEffect.recurringMechanic?.frequency ?? trigger?.frequency;
-            return !frequency || frequency === 'every_time' || frequency === 'first_per_turn';
-        });
-    }, []);
+    ): boolean => shouldKeepScheduledEffectAfterTriggerRule(scheduledEffect, currentTurnNumber), []);
 
     const processScheduledSpellEffects = useCallback((
         character: CombatCharacter,
@@ -1303,65 +608,7 @@ export const useCombatEngine = ({
     const processTileEffects = useCallback((
         character: CombatCharacter,
         tilePos: Position
-    ): CombatCharacter => {
-        if (!mapData) return character;
-
-        const tileKey = `${tilePos.x}-${tilePos.y}`;
-        const tile = mapData.tiles.get(tileKey);
-        const envEffect = tile ? tile.environmentalEffect : null;
-        if (!tile || !envEffect) return character;
-
-        let updatedChar = { ...character };
-        const env = envEffect;
-        const innerEffect = env.effect.effect;
-
-        if (innerEffect?.type === 'damage_per_turn') {
-            const damage = innerEffect.value || 0;
-            if (damage > 0) {
-                updatedChar = handleDamage(updatedChar, damage, env.effect.name, env.type === 'fire' ? 'fire' : 'bludgeoning');
-            } else {
-                onLogEntry({
-                    id: generateId(),
-                    timestamp: Date.now(),
-                    type: 'status',
-                    message: `${character.name} enters ${env.effect.name}.`,
-                    characterId: character.id
-                });
-            }
-        } else if (innerEffect?.type === 'condition') {
-            // Environmental conditions share the spell status refresh policy so
-            // stepping through the same hazardous tile updates both mirrors
-            // instead of leaving stale duplicate condition records behind.
-            updatedChar = applyRuntimeStatusCondition(
-                updatedChar,
-                {
-                    ...env.effect,
-                    id: generateId(),
-                    duration: 1,
-                    source: env.effect.source || env.effect.name
-                },
-                {
-                    name: env.effect.name,
-                    duration: { type: 'rounds', value: 1 },
-                    appliedTurn: 0,
-                    source: env.effect.source || env.effect.name
-                }
-            ).character;
-            onLogEntry({
-                id: generateId(),
-                timestamp: Date.now(),
-                type: 'status',
-                message: `${character.name} is affected by ${env.effect.name}.`,
-                characterId: character.id,
-                // agora-db71.10: the emitter knows which status it just applied, so it says so.
-                // The adapter's live lookup can only classify a record whose named effect is still
-                // on the character when the record is converted; a stamp survives that.
-                eventClass: getStatusDiscriminator(env.effect.type)?.eventClass
-            });
-        }
-
-        return updatedChar;
-    }, [mapData, handleDamage, onLogEntry]);
+    ): CombatCharacter => resolveTileEffects({ mapData, handleDamage, onLogEntry }, character, tilePos), [mapData, handleDamage, onLogEntry]);
 
     const processStartOfTurnEffects = useCallback((character: CombatCharacter, currentTurnNumber: number) => {
         let updatedCharacter = { ...character };

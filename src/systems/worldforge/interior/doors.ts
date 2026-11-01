@@ -34,8 +34,25 @@
  * seed path. Pure data — no three.js, no rendering concerns. No fallback:
  * throws if the room graph cannot be connected or no entry wall exists.
  */
-import type { BlueprintDoor, BlueprintRoom, RoomPurpose } from './blueprintTypes';
-import { EXTERIOR } from './blueprintTypes';
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 01/11/2026, 15:55:53
+ * Dependents: components/World3D/groundDoorInteraction.ts, systems/worldforge/bridge/interiorParts.ts, systems/worldforge/interior/generateBuilding.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import type { BlueprintDoor, BlueprintRoom, BlueprintPlan, RoomPurpose } from './blueprintTypes';
+import { EXTERIOR, doorClearWidthFt } from './blueprintTypes';
 import { rngFromPath, streamPath, type SeedPath } from '../seedPath';
 
 const CELL_FT = 5;
@@ -313,4 +330,38 @@ export function wireDoors(
   });
 
   return { doors };
+}
+
+/** Resolve the explicitly versioned private leaves without changing legacy
+ * generators. This first profile requires one corridor-fed entry per bedroom;
+ * private-through routes refuse instead of silently closing an accepted path.
+ * Source identity is not permission to enter, use a bed or take possessions. */
+export function privateRoomDoorSpecs(plan:BlueprintPlan):Array<{level:number;index:number;roomId:number;door:BlueprintDoor}>{
+  if(plan.doorLeafProfile===undefined)return [];
+  if(plan.doorLeafProfile!=='private-room-leaves-v1')throw new Error('Unsupported private door leaf profile.');
+  const result:Array<{level:number;index:number;roomId:number;door:BlueprintDoor}>=[];
+  const privateRoom=(room:BlueprintRoom)=>PRIVATE_PURPOSES.includes(room.purpose)||room.purpose==='servant-room';
+  for(const floor of plan.floors){
+    for(const [index,door]of floor.doors.entries()){
+      if(door.isEntry)continue;
+      const endpoints=[floor.rooms.find(room=>room.id===door.a),floor.rooms.find(room=>room.id===door.b)];
+      const owned=endpoints.filter((room):room is BlueprintRoom=>!!room&&privateRoom(room));
+      if(!owned.length)continue;
+      const shared=endpoints.find(room=>room&&!privateRoom(room));
+      if(owned.length!==1||!shared?.isCorridor||shared.forSlot||!['hall','corridor'].includes(shared.purpose)
+        ||floor.furnishings.some(piece=>piece.roomId===shared.id&&piece.kind==='bed')
+        ||door.swingInto!==owned[0].id||!Number.isFinite(door.x)||!Number.isFinite(door.y)
+        ||(door.axis==='x'?(door.openDir.nx!==0||Math.abs(door.openDir.ny)!==1):(door.openDir.ny!==0||Math.abs(door.openDir.nx)!==1)))
+        throw new Error('Private leaf profile requires a unique shared-to-bedroom entry.');
+      const sideCell=(sign:number)=>({cx:Math.floor((door.x+sign*door.openDir.nx*.1)/5),cy:Math.floor((door.y+sign*door.openDir.ny*.1)/5)});
+      const inside=sideCell(1),outside=sideCell(-1);
+      if(doorClearWidthFt(door)*.3048<1.2||!owned[0].cells.some(cell=>cell.cx===inside.cx&&cell.cy===inside.cy)
+        ||!shared.cells.some(cell=>cell.cx===outside.cx&&cell.cy===outside.cy))
+        throw new Error('Private leaf profile needs body width and a swing into its actual bedroom.');
+      result.push({level:floor.level,index,roomId:owned[0].id,door});
+    }
+    for(const room of floor.rooms.filter(privateRoom))if(result.filter(spec=>spec.level===floor.level&&spec.roomId===room.id).length!==1)
+      throw new Error('Private leaf profile requires a unique shared-to-bedroom entry.');
+  }
+  return result;
 }

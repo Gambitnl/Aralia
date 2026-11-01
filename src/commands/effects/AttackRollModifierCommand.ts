@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 10/08/2026, 13:45:53
- * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
- * Imports: 9 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file applies spell riders that change how attack rolls work without
  * pretending the spell created a real condition.
@@ -29,11 +13,28 @@
  * Depends on: DamageCommand for any bundled damage payload, saving throw tools,
  * and the shared active-effect storage on combat characters.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 31/10/2026, 19:01:52
+ * Dependents: commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/spell/effectRegistry.ts, commands/factory/spell/spellAttack.ts, hooks/combat/turnManager/useTurnLifecycle.ts, utils/spells/preparedCombatEffects.ts
+ * Imports: 9 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { BaseEffectCommand } from '../base/BaseEffectCommand';
 import { DamageCommand } from './DamageCommand';
 import { StatusConditionCommand } from './StatusConditionCommand';
 import { CombatState, CombatCharacter, ActiveEffect, LightSource } from '../../types/combat';
-import { DamageEffect, StatusConditionEffect, isAttackRollModifierEffect } from '../../types/spells';
+import { DamageEffect, StatusConditionEffect, AttackRollModifierEffect, isAttackRollModifierEffect } from '../../types/spells';
 import { calculateSpellDC, rollSavingThrow } from '../../utils/character';
 import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
 import { generateId } from '../../utils/core';
@@ -47,6 +48,70 @@ import { resolveSourceSaveAdvantageModifiers } from '../../systems/spells/mechan
 // the rider separate from true conditions, but it still stores the result as an
 // active effect so the attack factory can read it later.
 // ============================================================================
+
+/** Builds the same live roll rider for a new cast or an already paid preparation.
+ * Construction alone rolls no dice, spends no resources and applies no damage.
+ */
+export function buildAttackRollActiveEffect(
+  effect: AttackRollModifierEffect,
+  source: { id: string; spellId: string; casterId: string; sourceName: string; currentTurn: number },
+): ActiveEffect {
+    const attackMod = effect.attackRollModifier;
+    const saveMod = effect.savingThrowModifier;
+
+    // Determine type by looking at either attackMod or saveMod
+    const modValue = attackMod?.modifier || saveMod?.modifier;
+    const effectType = modValue === 'advantage' || modValue === 'bonus' ? 'buff' : 'debuff';
+
+    // Determine duration by preferring attack duration or falling back to save duration
+      const duration = attackMod?.duration || saveMod?.duration || { type: 'rounds', value: 1 };
+      const riderDuration =
+        attackMod?.consumption === 'next_attack' &&
+        duration.type === 'rounds'
+          // One-shot riders need to survive through the target's next turn so
+          // the combat engine can expire them at the next turn boundary if the
+          // target never makes a qualifying attack.
+          ? {
+              ...duration,
+              value: Math.max(duration.value ?? 0, 2)
+            }
+          : duration;
+
+    return {
+      id: source.id,
+      spellId: source.spellId,
+      casterId: source.casterId,
+      sourceName: source.sourceName,
+      type: effectType,
+      duration: riderDuration,
+      startTime: source.currentTurn,
+      mechanics: {
+        ...(attackMod ? {
+          attackRollDirection: attackMod.direction,
+          attackRollModifier: attackMod.modifier,
+          attackRollKind: attackMod.attackKind,
+          attackRollConsumption: attackMod.consumption,
+          attackRollValue: attackMod.value,
+          attackRollDice: attackMod.dice,
+          attackerFilter: attackMod.attackerFilter,
+        } : {}),
+        ...(effect.invisibilitySuppression ? {
+          // Shining Smite-style riders do more than grant advantage: they also
+          // turn off the target's benefit from being Invisible. Store that as a
+          // generic suppressed-condition benefit so the attack factory can
+          // enforce it without knowing which spell created the rider.
+          suppressedConditionBenefit: effect.invisibilitySuppression.suppressesConditionBenefit
+        } : {}),
+        ...(saveMod ? {
+          savingThrowModifier: saveMod.modifier,
+          savingThrowConsumption: saveMod.consumption,
+          savingThrowValue: saveMod.value,
+          savingThrowDice: saveMod.dice,
+          savingThrowAbility: saveMod.ability,
+        } : {})
+      }
+    };
+}
 
 export class AttackRollModifierCommand extends BaseEffectCommand {
   async execute(state: CombatState): Promise<CombatState> {
@@ -242,62 +307,11 @@ export class AttackRollModifierCommand extends BaseEffectCommand {
     if (!isAttackRollModifierEffect(this.effect)) {
       throw new Error('AttackRollModifierCommand received the wrong effect type');
     }
-
-    const attackMod = this.effect.attackRollModifier;
-    const saveMod = this.effect.savingThrowModifier;
-
-    // Determine type by looking at either attackMod or saveMod
-    const modValue = attackMod?.modifier || saveMod?.modifier;
-    const effectType = modValue === 'advantage' || modValue === 'bonus' ? 'buff' : 'debuff';
-
-    // Determine duration by preferring attack duration or falling back to save duration
-      const duration = attackMod?.duration || saveMod?.duration || { type: 'rounds', value: 1 };
-      const riderDuration =
-        attackMod?.consumption === 'next_attack' &&
-        duration.type === 'rounds'
-          // One-shot riders need to survive through the target's next turn so
-          // the combat engine can expire them at the next turn boundary if the
-          // target never makes a qualifying attack.
-          ? {
-              ...duration,
-              value: Math.max(duration.value ?? 0, 2)
-            }
-          : duration;
-
-    return {
-      id: `roll_mod_${this.context.spellId}_${targetId}_${Date.now()}`,
-      spellId: this.context.spellId,
-      casterId: this.context.caster.id,
-      sourceName: this.context.spellName,
-      type: effectType,
-      duration: riderDuration,
-      startTime: currentTurn,
-      mechanics: {
-        ...(attackMod ? {
-          attackRollDirection: attackMod.direction,
-          attackRollModifier: attackMod.modifier,
-          attackRollKind: attackMod.attackKind,
-          attackRollConsumption: attackMod.consumption,
-          attackRollValue: attackMod.value,
-          attackRollDice: attackMod.dice,
-          attackerFilter: attackMod.attackerFilter,
-        } : {}),
-        ...(this.effect.invisibilitySuppression ? {
-          // Shining Smite-style riders do more than grant advantage: they also
-          // turn off the target's benefit from being Invisible. Store that as a
-          // generic suppressed-condition benefit so the attack factory can
-          // enforce it without knowing which spell created the rider.
-          suppressedConditionBenefit: this.effect.invisibilitySuppression.suppressesConditionBenefit
-        } : {}),
-        ...(saveMod ? {
-          savingThrowModifier: saveMod.modifier,
-          savingThrowConsumption: saveMod.consumption,
-          savingThrowValue: saveMod.value,
-          savingThrowDice: saveMod.dice,
-          savingThrowAbility: saveMod.ability,
-        } : {})
-      }
-    };
+    return buildAttackRollActiveEffect(this.effect, {
+      id: `roll_mod_${this.context.spellId}_${targetId}_${this.context.caster.id}_${Date.now()}`,
+      spellId: this.context.spellId, casterId: this.context.caster.id,
+      sourceName: this.context.spellName, currentTurn,
+    });
   }
 
   private applyAttackRollLightSource(state: CombatState, targetId: string): CombatState {
@@ -372,10 +386,17 @@ export class AttackRollModifierCommand extends BaseEffectCommand {
     if (!target) return state;
 
     const existing = target.activeEffects || [];
+    // Boolean incoming advantage does not stack, but distinct caster clocks
+    // retain their owners. A different caster must not erase an earlier clock.
+    // Numeric and other existing rider replacement policies remain unchanged.
+    const separateCasterClock = effect.duration.type === 'caster_turn_end'
+      && effect.mechanics?.attackRollDirection === 'incoming'
+      && effect.mechanics.attackRollModifier === 'advantage';
     const filtered = existing.filter(active =>
       !(
         active.spellId === effect.spellId &&
         active.sourceName === effect.sourceName
+        && (!separateCasterClock || active.casterId === effect.casterId)
       )
     );
 
@@ -421,6 +442,10 @@ export class AttackRollModifierCommand extends BaseEffectCommand {
       }
     }
 
+    if (attackMod?.duration.type === 'caster_turn_end') {
+      parts.push("until the end of the caster's next turn, unless the next matching attack consumes it first");
+    }
+
     if (saveMod) {
       const timing = saveMod.consumption === 'while_active'
         ? 'for the spell\'s duration'
@@ -444,4 +469,48 @@ export class AttackRollModifierCommand extends BaseEffectCommand {
 
     return `Applies ${this.describeRider()}`;
   }
+}
+
+/** Advance source-owned attack riders only at their caster's real turn end.
+ * Recipient turns and unrelated round timers never consume this boundary.
+ * The turn lifecycle already deduplicates actual member end events. */
+export function advanceCasterTurnEndAttackRiders(character: CombatCharacter, casterId: string): {
+  character: CombatCharacter; expiredNames: string[];
+} {
+  const expiredNames: string[] = [];
+  let changed = false;
+  const activeEffects = (character.activeEffects ?? []).flatMap(effect => {
+    if (effect.casterId !== casterId || effect.duration.type !== 'caster_turn_end') return [effect];
+    changed = true;
+    const remaining = (effect.duration.value ?? 0) - 1;
+    if (remaining <= 0) { expiredNames.push(effect.sourceName); return []; }
+    return [{ ...effect, duration: { ...effect.duration, value: remaining } }];
+  });
+  return { character: changed ? { ...character, activeEffects } : character, expiredNames };
+}
+
+/** Match existing attack-roll effects without rolling or consuming during a preview.
+ * Incoming marks and outgoing target-specific riders keep their original owner. */
+export function matchingAttackRollEffects(character: CombatCharacter, direction: 'incoming' | 'outgoing', classification: {
+  attackType: 'weapon' | 'spell' | 'unarmed'; weaponType: 'melee' | 'ranged' | 'unarmed';
+}, defenderId?: string): ActiveEffect[] {
+  return (character.activeEffects ?? []).filter(effect => {
+    const m = effect.mechanics;
+    if (m?.attackRollDirection !== direction) return false;
+    if (direction === 'outgoing' && m.attackRollTargetId && m.attackRollTargetId !== defenderId) return false;
+    const kind = m.attackRollKind;
+    if (!kind || kind === 'any') return true;
+    if (kind === 'spell') return classification.attackType === 'spell';
+    if (classification.attackType !== 'weapon') return false;
+    return kind === 'weapon' || (kind === 'melee_weapon' && classification.weaponType === 'melee') || (kind === 'ranged_weapon' && classification.weaponType === 'ranged');
+  });
+}
+
+/** A rolled matching attack spends its one-shot riders on a hit or a miss.
+ * Matching before hit effects also keeps a newly applied mark for the next roll. */
+export function consumeMatchedAttackRollEffects(state: CombatState, ownerId: string, matched: ActiveEffect[]): CombatState {
+  const spent = new Set(matched.filter(effect => ['next_attack', 'first_attack'].includes(effect.mechanics?.attackRollConsumption ?? '')).map(effect => effect.id));
+  if (!spent.size) return state;
+  return {...state, characters: state.characters.map(character => character.id === ownerId
+    ? {...character, activeEffects: (character.activeEffects ?? []).filter(effect => !spent.has(effect.id))} : character)};
 }

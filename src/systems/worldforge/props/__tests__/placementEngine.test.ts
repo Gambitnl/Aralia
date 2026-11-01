@@ -30,6 +30,50 @@ function emptyCtx(over: Partial<PropPlacementContext> = {}): PropPlacementContex
 
 const SEED = makeSeedPath(1337, 'cell:71-8', 'local:2-1');
 
+describe('source-anchored discovery cues', () => {
+  it.each([
+    ['cave', 'cave-mouth'], ['shrine', 'wayside-shrine'], ['camp', 'firepit'],
+    ['grove', 'mossy-rock-cluster'], ['wreck', 'driftwood-pile'],
+  ])('gives an existing %s source a physical %s cue', (kind, defId) => {
+    const ctx = emptyCtx({ hiddenSites: [{ id: 'authored-source', kind, xM: 80, zM: 90 }] });
+    const original = structuredClone(ctx);
+    const props = placeProps(SEED, ctx);
+    expect(props.some(p => p.defId === defId)).toBe(true);
+    expect(props.every(p => Math.hypot(p.xM - 80, p.zM - 90) <= 5)).toBe(true);
+    expect(ctx).toEqual(original);
+  });
+
+  it('preserves source centers and all old ruin/scatter streams', () => {
+    const ctx = emptyCtx({ hiddenSites: [{ id: 'old-ruin', kind: 'ruin', xM: 40, zM: 40 }] });
+    const old = placeProps(SEED, ctx);
+    const next = placeProps(SEED, { ...ctx, hiddenSites: [...ctx.hiddenSites!,
+      { id: 'new-cave', kind: 'cave', xM: 150, zM: 150 },
+      { id: 'new-camp', kind: 'camp', xM: 100, zM: 100 },
+    ] });
+    expect(next.slice(0, old.length)).toEqual(old);
+    expect(next.find(p => p.defId === 'cave-mouth')).toMatchObject({ xM: 150, zM: 150 });
+    expect(next.find(p => p.defId === 'firepit')).toMatchObject({ xM: 100, zM: 100 });
+  });
+
+  it('does not manufacture cues without a source or clamp a foreign source onto the edge', () => {
+    expect(placeProps(SEED, emptyCtx())).toEqual([]);
+    expect(placeProps(SEED, emptyCtx({ hiddenSites: [
+      { id: 'outside', kind: 'cave', xM: 300, zM: 100 },
+      { id: 'invalid', kind: 'camp', xM: NaN, zM: 100 },
+      { id: 'unknown', kind: 'unknown-future-kind', xM: 100, zM: 100 },
+    ] }))).toEqual([]);
+  });
+
+  it('keeps source appearance independent of another source being inserted', () => {
+    const site = { id: 'stable-cave', kind: 'cave', xM: 80, zM: 90 };
+    const alone = placeProps(SEED, emptyCtx({ hiddenSites: [site] }));
+    const together = placeProps(SEED, emptyCtx({ hiddenSites: [
+      { id: 'other', kind: 'camp', xM: 160, zM: 160 }, site,
+    ] })).filter(p => p.defId === 'cave-mouth');
+    expect(together).toEqual(alone);
+  });
+});
+
 describe('placementEngine — determinism', () => {
   it('same seed + context → deep-equal output, twice', () => {
     const ctx = emptyCtx({
@@ -555,7 +599,7 @@ describe('placementEngine — BG3 density calibration bounds', () => {
 
 import { placePropsInstrumented } from '../placementEngine';
 import { surfaceGateFor } from '../catalog';
-import { makeGridSurfaceProbe, FEET_PER_METER } from '../../terrain/surfaceProbe';
+import { makeGridSurfaceProbe, makeFlatSurfaceProbe, FEET_PER_METER } from '../../terrain/surfaceProbe';
 
 const GRID = 64;
 
@@ -585,6 +629,14 @@ function slopedCtx(slopeDeg: number, biome: string, extent = 512): PropPlacement
 }
 
 describe('placementEngine — surface gate', () => {
+  it('applies the existing cliff refusal to discovery cues too', () => {
+    const ctx = slopedCtx(60, 'hills');
+    ctx.hiddenSites = [{ id: 'cliff-camp', kind: 'camp', xM: 100, zM: 100 }];
+    const { instances, stats } = placePropsInstrumented(SEED, ctx);
+    expect(stats.byPass['discovery-cues'].considered).toBeGreaterThan(0);
+    expect(stats.byPass['discovery-cues'].rejectionRate).toBe(1);
+    expect(instances.some(p => p.defId === 'firepit')).toBe(false);
+  });
   it('reports a tally for every pass', () => {
     const { stats } = placePropsInstrumented(SEED, slopedCtx(0, 'grassland'));
     expect(Object.keys(stats.byPass)).toContain('wilderness');
@@ -790,5 +842,85 @@ describe('placementEngine — farmstead crop identity', () => {
 
   it('dresses an unknown crop as a bare farm rather than inventing one', () => {
     expect(placeProps(SEED, farmCtx('sky-melon'))).toEqual(placeProps(SEED, farmCtx()));
+  });
+});
+
+
+
+describe('opt-in emission affiliations', () => {
+  it('preserves every legacy candidate, seed draw and order while tagging the actual serving building', () => {
+    const ctx=emptyCtx({buildings:[{id:'smithy-source',role:'smithy',xM:40,zM:40},
+      {id:'workshop-source',role:'workshop',xM:120,zM:110}]});
+    const before=JSON.stringify(ctx),legacy=placeProps(SEED,ctx);
+    const tagged=placeProps(SEED,{...ctx,retainPropAffiliations:true});
+    expect(tagged.map(({affiliation,...prop})=>prop)).toEqual(legacy);
+    expect(legacy.every(prop=>!Object.hasOwn(prop,'affiliation'))).toBe(true);
+    expect(tagged.some(prop=>prop.affiliation?.id==='smithy-source')).toBe(true);
+    expect(tagged.some(prop=>prop.affiliation?.id==='workshop-source')).toBe(true);
+    expect(tagged.every(prop=>prop.affiliation?.kind==='building')).toBe(true);
+    expect(JSON.stringify(ctx)).toBe(before);
+  });
+  it('distinguishes dock loading stock from the building stock and retains shared anchor areas', () => {
+    const ctx=emptyCtx({decks:[{kind:'dock',xM:150,zM:150}],
+      plazas:[{id:'market-source',xM:50,zM:50,radiusM:10}],
+      courtyards:[{id:'court-source',xM:100,zM:100,radiusM:8,districtKey:'district',wealth:'common',amenity:'well',courtyardSignature:'court-v1'}]});
+    const tagged=placeProps(SEED,{...ctx,retainPropAffiliations:true});
+    expect(tagged.map(({affiliation,...prop})=>prop)).toEqual(placeProps(SEED,ctx));
+    expect(tagged.some(p=>p.affiliation?.kind==='dock'&&p.affiliation.id==='deck:0')).toBe(true);
+    expect(tagged.some(p=>p.affiliation?.kind==='court'&&p.affiliation.radiusM===8)).toBe(true);
+    expect(tagged.some(p=>p.affiliation?.kind==='market'&&p.affiliation.radiusM===10)).toBe(true);
+  });
+});
+
+
+
+
+describe('affiliated surface before first admission',()=>{
+  it('gates dock stock on its deck rather than rejecting or shrinking it against the seabed',()=>{
+    const base=emptyCtx({decks:[{kind:'dock',xM:80,zM:80}]});
+    const steep={sampleAt:()=>({elevationFt:0,slopeRad:Math.PI/2,normal:[1,0,0] as [number,number,number]})};
+    const rejected=placeProps(SEED,{...base,retainPropAffiliations:true,surface:steep});
+    expect(rejected).toEqual([]);
+    const admitted=placeProps(SEED,{...base,retainPropAffiliations:true,surface:steep,
+      surfaceForProp:prop=>prop.affiliation?.kind==='dock'?makeFlatSurfaceProbe(10):undefined});
+    expect(admitted.length).toBeGreaterThan(0);
+    expect(admitted.every(prop=>prop.surface?.groundYM===10/FEET_PER_METER&&prop.surface.tiltRad===0)).toBe(true);
+    expect(admitted.map(({affiliation,surface,...prop})=>prop)).toEqual(placeProps(SEED,base));
+  });
+});
+
+describe('civic grounds dressing (GG-569)', () => {
+  // A grave 1 m wide and 2 m long, its head at z = 100; a 10 m square pool.
+  const grave = { id: 'burg:1:ward:0:grave:0', kind: 'grave' as const,
+    pointsM: [{ x: 99.5, z: 100 }, { x: 100.5, z: 100 }, { x: 100.5, z: 102 }, { x: 99.5, z: 102 }] };
+  const pool = { id: 'burg:1:ward:0:pool:1', kind: 'pool' as const,
+    pointsM: [{ x: 150, z: 150 }, { x: 160, z: 150 }, { x: 160, z: 160 }, { x: 150, z: 160 }] };
+
+  it('stands one headstone inside each grave, near its head end', () => {
+    const props = placeProps(SEED, emptyCtx({ civicFeatures: [grave] }));
+    const stones = props.filter((p) => p.defId === 'gravestone');
+    expect(stones).toHaveLength(1);
+    expect(stones[0].xM).toBeCloseTo(100, 5);
+    expect(stones[0].zM).toBeCloseTo(100.25, 5);
+  });
+
+  it('rings a pool with reed beds that lie on its edge', () => {
+    const reeds = placeProps(SEED, emptyCtx({ civicFeatures: [pool] })).filter((p) => p.defId === 'reed-bed');
+    // 40 m of edge at 2.5 m spacing is 16 samples; about 30% are gaps.
+    expect(reeds.length).toBeGreaterThan(5);
+    expect(reeds.length).toBeLessThanOrEqual(16);
+    for (const r of reeds) {
+      const onEdge = Math.min(Math.abs(r.xM - 150), Math.abs(r.xM - 160), Math.abs(r.zM - 150), Math.abs(r.zM - 160));
+      expect(onEdge).toBeLessThan(1e-6);
+    }
+  });
+
+  it('adds props only after every earlier pass, so old output does not change', () => {
+    const base = emptyCtx({ courtyards: [{ id: 'c', xM: 60, zM: 60, radiusM: 8, districtKey: 'd', wealth: 'common', amenity: 'well', courtyardSignature: 's' }] });
+    const before = placeProps(SEED, base);
+    const after = placeProps(SEED, { ...base, civicFeatures: [grave, pool] });
+    expect(after.slice(0, before.length)).toEqual(before);
+    expect(after.length).toBeGreaterThan(before.length);
+    expect(placeProps(SEED, { ...base, civicFeatures: [grave, pool] })).toEqual(after);
   });
 });

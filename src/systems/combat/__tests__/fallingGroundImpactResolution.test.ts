@@ -277,7 +277,8 @@ describe('resolveFallingGroundImpact damage transaction', () => {
     });
     const result = resolveFallingGroundImpact(createInput(faller));
 
-    expect(result.faller?.deathSaves).toEqual({ successes: 1, failures: 2, isStable: false });
+    // Breaking stability resets successes to 0 and adds 1 failure (GG-445 / agora-1d80)
+    expect(result.faller?.deathSaves).toEqual({ successes: 0, failures: 2, isStable: false });
   });
 });
 

@@ -7,7 +7,7 @@ import type { ChunkData, ChunkMeshBundle } from './types';
 import { buildTerrainMesh } from './chunkGeometry';
 import { weldChunkEdgeHeights } from './edgeWeld';
 import { buildWaterMesh } from './waterGeometry';
-import { buildRoadMesh } from './roadGeometry';
+import { buildRoadMesh, buildRoadVergeMesh } from './roadGeometry';
 import { buildWallMesh } from './wallGeometry';
 import { buildDeckMesh } from './deckGeometry';
 import { buildGateMesh } from './gateGeometry';
@@ -24,6 +24,7 @@ export function buildChunkBundle(rawData: ChunkData): ChunkMeshBundle {
   const terrain = buildTerrainMesh(data);
   const water = buildWaterMesh(data);
   const roads = buildRoadMesh(data);
+  const roadVerges = buildRoadVergeMesh(data);
   const walls = buildWallMesh(data);
   const decks = buildDeckMesh(data);
   const gates = buildGateMesh(data);
@@ -36,6 +37,7 @@ export function buildChunkBundle(rawData: ChunkData): ChunkMeshBundle {
     terrain,
     water: water.positions.length > 0 ? water : undefined,
     roads: roads.positions.length > 0 ? roads : undefined,
+    roadVerges: roadVerges.positions.length > 0 ? roadVerges : undefined,
     walls: walls.positions.length > 0 ? walls : undefined,
     decks: decks.positions.length > 0 ? decks : undefined,
     gates: gates.positions.length > 0 ? gates : undefined,

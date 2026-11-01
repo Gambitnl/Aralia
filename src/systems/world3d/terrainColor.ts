@@ -38,6 +38,10 @@ const PALETTE: Record<string, RGB> = {
   paved: [0.55, 0.55, 0.57],
   // Interior floor boards.
   floor: [0.40, 0.32, 0.24],
+  // Wet riverbed silt (2026-10-27): the ground under and beside world river
+  // water. Darker and cooler than `dirt` (water fills the pores); the ground
+  // loader paints `water` cells with it, because the water meshes draw the water.
+  riverbed: [0.30, 0.28, 0.22],
 };
 
 const FALLBACK: RGB = [0.45, 0.5, 0.4];

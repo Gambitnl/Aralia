@@ -30,6 +30,14 @@ const topics: ConversationTopic[] = [
 ];
 
 describe('DialogueConversationView', () => {
+  it('shows the complete retained account and keeps the exact topic callback',()=>{
+    const topic={...topics[0],label:'Discuss this account',description:'Purchased from Mira: "The bridge beside the old mill has washed out."'};
+    const onTopicSelect=vi.fn();
+    render(<DialogueConversationView npcDescription="A keeper." currentResponse="Welcome." isThinking={false} topics={[topic]} onTopicSelect={onTopicSelect} onEndConversation={vi.fn()}/>);
+    expect(screen.getByText(topic.description)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button',{name:/Discuss this account/}));
+    expect(onTopicSelect).toHaveBeenCalledWith(topic);
+  });
   it('renders NPC context, response, topics, recruitment, and exit controls', () => {
     render(
       <DialogueConversationView

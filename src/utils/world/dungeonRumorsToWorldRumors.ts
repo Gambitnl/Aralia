@@ -13,6 +13,23 @@
  * (`dungeon-<loc>-<sitePath>-<eventRef>`) let the ADD_RUMORS reducer dedup by id,
  * so re-running the sync on the same burg never produces duplicate rumors.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 12:09:15
+ * Dependents: components/Town/Intrigue/RumorMill.tsx, hooks/useDungeonRumorsSync.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { WorldRumor } from '../../types/world';
 import type { BurgRumor } from '../../systems/worldforge/dungeon/world/rumors';
 
@@ -39,7 +56,8 @@ export function dungeonRumorsToWorldRumors(
 ): WorldRumor[] {
   return rumors.map((r) => ({
     id: `dungeon-${locationId}-${r.sitePath}-${r.eventRef}`,
-    text: r.text,
+    // Keep the real named source with the account the player pays to retain.
+    text: `${r.dungeonName}: ${r.text}`,
     type: 'event' as const,
     timestamp: currentDay,
     expiration: currentDay + RUMOR_LIFESPAN_DAYS,

@@ -2,7 +2,25 @@
  * @file DiscoveryLogPane.tsx
  * This component displays the player's discovery journal in a modal.
  * It allows browsing, filtering, and searching of discovered entries.
+ * Dates follow the stored game clock, with receipt-time fallback for older accounts.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 19:57:10
+ * Dependents: components/Logbook/index.ts, components/layout/GameModals.tsx
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { GameState, DiscoveryEntry, DiscoveryType, NPC, KnownFact } from '../../types';
 import { formatGameDate, formatGameDateTime } from '@/utils/core';
@@ -25,6 +43,18 @@ type SortOrder = 'newest' | 'oldest' | 'title_asc' | 'title_desc';
 
 const LOGBOOK_LIST_PAGE_SIZE = 25;
 
+// Complete game clocks describe the world date. Older notices sometimes kept
+// only a clock: show that partial knowledge without turning a host receipt into
+// a fictional date. Stored entries and their receipt-based sort stay unchanged.
+const entryClock = (entry: DiscoveryEntry): {date: Date; isInGame: boolean; clockOnly?: string} => {
+  const raw = typeof entry.gameTime === 'string' ? entry.gameTime.trim() : '';
+  const clockOnly = /^(?:[01]?\d|2[0-3]):[0-5]\d(?::[0-5]\d)?(?:\s*[AP]M)?$/i.test(raw) ? raw : undefined;
+  const played = Date.parse(raw);
+  const isInGame = !clockOnly && Number.isFinite(played);
+  return {date: new Date(isInGame ? played : entry.timestamp), isInGame, clockOnly};
+};
+
+
 const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
   isOpen,
   entries,
@@ -35,6 +65,12 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
   allNpcs,
 }) => {
   const [selectedEntry, setSelectedEntry] = useState<DiscoveryEntry | null>(null);
+  // Library provenance stays in the save for continuity; players read the
+  // named source and account rather than world seeds and engine identifiers.
+  const isLibraryAccount = selectedEntry?.type === DiscoveryType.LORE_DISCOVERY
+    && selectedEntry.id.startsWith('library-account:v1:')
+    && selectedEntry.source?.type === 'LOCATION'
+    && selectedEntry.flags?.some(flag => flag.key === 'knowledgeKind' && flag.value === 'library-account');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<DiscoveryType | 'ALL'>('ALL');
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
@@ -114,7 +150,7 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
         }
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the default selection runs on the open edge only; re-running on list or selection changes would override the player's pick (C9).
   }, [isOpen]);
 
   const handleEntrySelect = (entry: DiscoveryEntry) => {
@@ -297,7 +333,7 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
                           )}
                           <span className={`flex-grow truncate ${!entry.isRead ? 'font-semibold' : ''}`}>{entry.title}</span>
                         </div>
-                        <span className="text-xs text-gray-400 block mt-0.5">{entry.type} - {formatGameDate(new Date(entry.timestamp))}</span>
+                        <span className="text-xs text-gray-400 block mt-0.5">{entry.type} - {entryClock(entry).clockOnly ? 'Date not recorded' : formatGameDate(entryClock(entry).date)}</span>
                       </button>
                     </li>
                   ))}
@@ -334,17 +370,18 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
                 <h3 className="mb-2 break-words font-cinzel text-xl font-semibold leading-snug tracking-wide text-amber-300 sm:text-2xl">{selectedEntry.title}</h3>
                 <div className="text-xs text-gray-400 mb-3 space-x-3">
                   <span><strong className="text-gray-400">Type:</strong> {selectedEntry.type}</span>
-                  <span><strong className="text-gray-400">Logged:</strong> {formatGameDateTime(new Date(selectedEntry.timestamp))}</span>
-                  <span><strong className="text-gray-400">In-Game Time:</strong> {selectedEntry.gameTime}</span>
+                  <span><strong className="text-gray-400">{entryClock(selectedEntry).clockOnly ? 'In-game time (date not recorded):' : entryClock(selectedEntry).isInGame ? 'In-game time:' : 'Recorded:'}</strong> {entryClock(selectedEntry).clockOnly ?? formatGameDateTime(entryClock(selectedEntry).date)}</span>
                 </div>
                 {selectedEntry.source && (
                   <p className="text-xs text-gray-400 mb-3">
-                    <strong className="text-gray-400">Source:</strong> {selectedEntry.source.type}
-                    {selectedEntry.source.name && ` - ${selectedEntry.source.name}`}
-                    {selectedEntry.source.id && ` (ID: ${selectedEntry.source.id})`}
+                    {isLibraryAccount ? <><strong className="text-gray-400">Read at:</strong> {selectedEntry.source.name || 'a library'}</> : <>
+                      <strong className="text-gray-400">Source:</strong> {selectedEntry.source.type}
+                      {selectedEntry.source.name && ` - ${selectedEntry.source.name}`}
+                      {selectedEntry.source.id && ` (ID: ${selectedEntry.source.id})`}
+                    </>}
                   </p>
                 )}
-                {selectedEntry.flags && selectedEntry.flags.length > 0 && (
+                {!isLibraryAccount && selectedEntry.flags && selectedEntry.flags.length > 0 && (
                   <div className="mb-3 text-xs">
                     <strong className="text-gray-400">Tags:</strong>
                     {selectedEntry.flags.map(flag => (

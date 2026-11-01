@@ -83,6 +83,9 @@ const SUBCLASS_LABELS: Record<string, string> = {
   warlock: 'Patron',
   cleric: 'Divine Domain',
   sorcerer: 'Sorcerous Origin',
+  // agora-f821.58/.59: the 2014 level 2 step (Remy, Agora 8335).
+  druid: 'Druid Circle (level 2)',
+  wizard: 'Arcane Tradition (level 2)',
 };
 
 const NameAndReview: React.FC<NameAndReviewProps> = ({

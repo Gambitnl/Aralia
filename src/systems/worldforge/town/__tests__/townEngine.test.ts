@@ -17,9 +17,16 @@ import {
   insetConvexPolygon,
   MAIN_ROAD_CARVE_HALF_FRAC,
   WATER_CARVE_HALF_FRAC,
+  wallFill,
+  MIN_LOT_WIDTH_FT,
+  MAX_LOT_WIDTH_FT,
+  QUAY_WIDTH_FT,
+  type TownPlan,
 } from '../townEngine';
 import { pointInPolygon, polygonBounds, type Pt } from '../../submap/submapEngine';
 import { rootSeedPath } from '../../seedPath';
+import { cornerAngles, houseShapeOk, isSquarish, minWidth, packBlockDeep, packBlockRows, packBlockSquare, rectangleOnFront, simplifyConvexCorners } from '../townLots';
+import { STREET_TIER_SPECS } from '../streetRibbons';
 import { courtyardCentersForBlock, resolveCourtyardSpaces } from '../courtyardSpaces';
 import { resolveBuildingEnsembles } from '../buildingEnsembles';
 
@@ -238,8 +245,13 @@ describe('variety + interior infill (criterion #6)', () => {
   });
 
   it('emits deterministic shared-courtyard receipts from surviving interior plots', () => {
-    const first = generateTownPlan(footprint, rootSeedPath(404), { population: 12_000 });
-    const replay = generateTownPlan(footprint, rootSeedPath(404), { population: 12_000 });
+    // RE-PINNED (GG-552 after the GG-563 block shapes, 2026-11-01): the smaller
+    // grid blocks leave the 12,000-person schematic city no shared court
+    // (GG-577), so the receipts are checked on a capital that keeps two.
+    const CAP: Pt[] = [[-500, -500], [500, -500], [500, 500], [-500, 500]];
+    const RD: Pt[] = [[-600, 40], [-200, 20], [200, -10], [600, 30]];
+    const first = generateTownPlan(CAP, rootSeedPath(32), { population: 30_000, roads: [RD], feetPerUnit: 2 });
+    const replay = generateTownPlan(CAP, rootSeedPath(32), { population: 30_000, roads: [RD], feetPerUnit: 2 });
 
     expect(first.courtyards.length).toBeGreaterThan(0);
     expect(replay.courtyards).toEqual(first.courtyards);
@@ -374,24 +386,6 @@ describe('plots respect streets (the overlap fix)', () => {
       }
     }
   });
-
-  it('carves plots off the inherited main-road corridor', () => {
-    const roads: Pt[][] = [[[-50, 60], [200, 60]], [[60, -50], [60, 200]]];
-    const p2 = generateTownPlan(footprint, rootSeedPath(137), { population: 3200, roads });
-    const b = polygonBounds(footprint);
-    const half = Math.max(b.maxX - b.minX, b.maxY - b.minY) * MAIN_ROAD_CARVE_HALF_FRAC;
-    for (const s of p2.streets) {
-      for (let i = 0; i < s.length - 1; i++) {
-        const [x1, y1] = s[i], [x2, y2] = s[i + 1];
-        const L = Math.hypot(x2 - x1, y2 - y1) || 1;
-        const nx = -(y2 - y1) / L * half, ny = (x2 - x1) / L * half;
-        const quad: Pt[] = [[x1 - nx, y1 - ny], [x2 - nx, y2 - ny], [x2 + nx, y2 + ny], [x1 + nx, y1 + ny]];
-        for (const w of p2.wards) for (const pl of w.plots) {
-          expect(polysIntersect(pl.polygon, quad)).toBe(false);
-        }
-      }
-    }
-  });
 });
 
 describe('terrain/water pass (criterion #4)', () => {
@@ -478,9 +472,14 @@ describe('no-overlap + density invariants (audit regression)', () => {
         expect(buildings.length).toBeGreaterThan(0);
 
         // No two buildings overlap (centroid-in-other test, both directions).
+        // A bounding-box reject first: deep lots and suburbs tripled a
+        // capital's building count, and the all-pairs test outran its timeout.
+        const boxes = buildings.map((b) => polygonBounds(b));
         for (let i = 0; i < buildings.length; i++) {
           const ci = cellCentroid(buildings[i]);
           for (let j = i + 1; j < buildings.length; j++) {
+            const A = boxes[i], B = boxes[j];
+            if (A.maxX < B.minX || B.maxX < A.minX || A.maxY < B.minY || B.maxY < A.minY) continue;
             if (pointInPolygon(ci, buildings[j]) || pointInPolygon(cellCentroid(buildings[j]), buildings[i])) {
               throw new Error(`${c.label}: buildings ${i} and ${j} overlap`);
             }
@@ -494,9 +493,12 @@ describe('no-overlap + density invariants (audit regression)', () => {
           for (let j = i + 1; j < solid.length; j++)
             expect(polysOverlap(solid[i].polygon, solid[j].polygon)).toBe(false);
 
-        // Walled towns keep every building inside the wall ring.
+        // Walled towns keep every intramural building inside the wall ring,
+        // and every suburb building outside it (GG-544).
         if (plan.walls.ring.length >= 3) {
-          for (const b of buildings) expect(pointInPolygon(cellCentroid(b), plan.walls.ring)).toBe(true);
+          for (const w of plan.wards) {
+            for (const p of w.plots) expect(pointInPolygon(cellCentroid(p.polygon), plan.walls.ring)).toBe(!w.extramural);
+          }
         }
       });
     }
@@ -728,7 +730,18 @@ describe('dock/bridge deck geometry (TG5)', () => {
     const plan = generateTownPlan(bigFp, rootSeedPath(22), { population: 8000, water: crossingWater, wardCount: 24 });
     const bridges = plan.civic.filter((c) => c.kind === 'bridge');
     expect(bridges.length).toBeGreaterThan(0);
-    for (const br of bridges) expect(aspect(br.polygon)).toBeGreaterThan(1.6);
+    // RE-PINNED (GG-560, Remy 2026-11-01: "why are these bridges so massive"):
+    // a deck is as wide as the street it carries plus its parapets, not 32%
+    // of its length, so a plaza-wide street gives a near-square deck on this
+    // schematic plan. What stays is the span: the long side crosses the whole
+    // carved channel, and the short side is no wider than the widest street
+    // plus parapets.
+    const widest = Math.max(...plan.streetNetwork.map((s) => s.width));
+    for (const br of bridges) {
+      const e = br.polygon.map((p, i) => Math.hypot(br.polygon[(i + 1) % 4][0] - p[0], br.polygon[(i + 1) % 4][1] - p[1]));
+      expect(Math.max(...e)).toBeGreaterThanOrEqual(2 * 1000 * WATER_CARVE_HALF_FRAC);
+      expect(Math.min(...e)).toBeLessThanOrEqual(widest * 1.25);
+    }
   });
 });
 
@@ -764,5 +777,390 @@ describe('water-gates where a river crosses the wall ring (TG7)', () => {
     const plan = generateTownPlan(bigFp, rootSeedPath(23), { population: 50, water: river });
     expect(plan.walls.ring).toHaveLength(0);
     expect(plan.walls.waterGates ?? []).toHaveLength(0);
+  });
+});
+
+/**
+ * TOWN-LOOK RULES (GG-544 to GG-551, Remy's town-look sheet 2026-10-31).
+ * Each rule was measured against the Watabou town and village output; these
+ * tests pin the rule itself, at the canonical scale (1000-unit cell, 1.2 ft
+ * per unit — a 1,200 ft town, the usual span for a town under 10,000 people).
+ */
+describe('town-look rules (GG-544..GG-551)', () => {
+  const CELL: Pt[] = [[-500, -500], [500, -500], [500, 500], [-500, 500]];
+  const FPU = 1.2;
+  const ROAD: Pt[] = [[-600, 40], [-200, 20], [200, -10], [600, 30]];
+  const walled = generateTownPlan(CELL, rootSeedPath(31), { population: 6000, roads: [ROAD], feetPerUnit: FPU });
+  const ftWide = (p: Pt[]): number => Math.hypot(p[1][0] - p[0][0], p[1][1] - p[0][1]) * FPU;
+  const centroidOf = (poly: Pt[]): Pt => {
+    let x = 0, y = 0; for (const [px, py] of poly) { x += px; y += py; } return [x / poly.length, y / poly.length];
+  };
+  const area = (poly: Pt[]): number => {
+    let a = 0; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) a += poly[j][0] * poly[i][1] - poly[i][0] * poly[j][1];
+    return Math.abs(a / 2);
+  };
+  /** True overlap: shrink both 1% so a shared party wall is not a hit. */
+  const overlaps = (a: Pt[], b: Pt[]): boolean => {
+    const s = (p: Pt[]): Pt[] => { const c = centroidOf(p); return p.map(([x, y]) => [c[0] + (x - c[0]) * 0.99, c[1] + (y - c[1]) * 0.99] as Pt); };
+    return polysIntersect(s(a), s(b));
+  };
+
+  it('GG-545: deep lots tile a block from every street to its rear line', () => {
+    const block: Pt[] = [[0, 0], [100, 0], [100, 60], [0, 60]];
+    const lots = packBlockDeep(block, rootSeedPath(5), {
+      lotWidth: 20, minLotWidth: 15, maxLotWidth: 30, maxDepth: 40, snap: 5, alleyChance: 0, alleyWidth: 5,
+    });
+    const covered = lots.reduce((s, l) => s + area(l.polygon), 0);
+    // Rows meet at the bisector: the whole block is built.
+    // RE-PINNED (GG-563, Remy 2026-11-01: "pie shapes and really squished
+    // houses"): a lot under 12 ft across, or with a corner under 30 degrees,
+    // joins its neighbor or stays yard, and a pie tip is cut off as open
+    // ground. So the rows meet at the bisector but no longer cover 99%.
+    // Remy's squarish ruling (GG-563): a corner wedge that cannot hold a
+    // square house joins its neighbor, so cover drops to about 0.92.
+    expect(covered / area(block)).toBeGreaterThan(0.9);
+    for (const l of lots) expect(houseShapeOk(l.polygon, 12, 30)).toBe(true);
+    for (let i = 0; i < lots.length; i++) {
+      // The street edge comes first and lies on the block boundary.
+      expect(distToBoundary(lots[i].polygon[0], block)).toBeLessThan(1e-6);
+      expect(distToBoundary(lots[i].polygon[1], block)).toBeLessThan(1e-6);
+      for (let j = i + 1; j < lots.length; j++) expect(overlaps(lots[i].polygon, lots[j].polygon)).toBe(false);
+    }
+  });
+
+  it('GG-545: deep lots never leave a concave block', () => {
+    const block: Pt[] = [[0, 0], [120, 0], [120, 50], [60, 50], [60, 110], [0, 110]];
+    const lots = packBlockDeep(block, rootSeedPath(6), {
+      lotWidth: 20, minLotWidth: 15, maxLotWidth: 30, maxDepth: 35, snap: 5, alleyChance: 0, alleyWidth: 5,
+    });
+    // RE-PINNED (GG-563): the shape rule merges the slivers at the concave
+    // corner, and Remy's squarish ruling merges each wedge that cannot hold
+    // a square house, so the block holds 4 wider lots where it held 9.
+    expect(lots.length).toBeGreaterThanOrEqual(4);
+    for (const l of lots) expect(houseShapeOk(l.polygon, 12, 30)).toBe(true);
+    for (const lot of lots) {
+      for (const v of lot.polygon) expect(pointInPolygon(v, block) || distToBoundary(v, block) < 1e-6).toBe(true);
+    }
+  });
+
+  it('GG-545: physical lots are three to six 5-ft cells wide (Watabou grain)', () => {
+    const widths = walled.plots.filter((p) => p.kind === 'frontage' && p.shape === 'rect').map((p) => ftWide(p.polygon));
+    expect(widths.length).toBeGreaterThan(50);
+    widths.sort((a, b) => a - b);
+    const median = widths[Math.floor(widths.length / 2)];
+    expect(median).toBeGreaterThanOrEqual(MIN_LOT_WIDTH_FT - 1e-6);
+    expect(median).toBeLessThanOrEqual(MAX_LOT_WIDTH_FT + 1e-6);
+  });
+
+  it('GG-545: deep rows keep a back court, so shared courts survive', () => {
+    const capital = generateTownPlan(CELL, rootSeedPath(32), { population: 30000, roads: [ROAD], feetPerUnit: 2 });
+    expect(capital.courtyards.length).toBeGreaterThan(0);
+  });
+
+  it('GG-550: plan streets use the shared feet ladder (lane 10 ft, nothing wider than the plaza)', () => {
+    const lanes = walled.streetNetwork.filter((s) => s.tier === 'lane' && !s.track);
+    expect(lanes.length).toBeGreaterThan(0);
+    for (const s of lanes) expect(s.width * FPU).toBeLessThanOrEqual(STREET_TIER_SPECS.lane.widthFt + 1e-6);
+    for (const s of walled.streetNetwork) expect(s.width * FPU).toBeLessThanOrEqual(STREET_TIER_SPECS.plaza.widthFt + 1e-6);
+  });
+
+  it('GG-549: every gate has a way out — its road, or a field track', () => {
+    expect(walled.walls.gatehouses.length).toBe(3);
+    const approaches = walled.streetNetwork.filter((s) => s.role === 'approach');
+    const touches = (g: Pt): boolean => approaches.some((s) =>
+      s.centerline.some((p) => Math.hypot(p[0] - g[0], p[1] - g[1]) < 1e-6));
+    for (const g of walled.walls.gatehouses) expect(touches(g)).toBe(true);
+    // One road makes at most two road gates; the third gate gets a track.
+    expect(walled.streetNetwork.some((s) => s.track)).toBe(true);
+  });
+
+  it('GG-544: suburbs stand outside the wall, after every intramural plot', () => {
+    const outside = walled.plots.filter((p) => !pointInPolygon(centroidOf(p.polygon), walled.walls.ring));
+    expect(outside.length).toBeGreaterThan(0);
+    const firstSuburb = walled.wards.findIndex((w) => w.extramural);
+    expect(firstSuburb).toBeGreaterThan(0);
+    // Suburb wards come last, so intramural plot numbers keep their order.
+    expect(walled.wards.slice(firstSuburb).every((w) => w.extramural)).toBe(true);
+    for (const w of walled.wards) {
+      for (const p of w.plots) expect(pointInPolygon(centroidOf(p.polygon), walled.walls.ring)).toBe(!w.extramural);
+    }
+  });
+
+  it('GG-544: the suburb is set by how full the walls are', () => {
+    const inside = walled.wards.filter((w) => !w.extramural).reduce((n, w) => n + w.plots.length, 0);
+    const outside = walled.plots.length - inside;
+    const fill = wallFill(6000, area(walled.walls.ring), 1000);
+    expect(fill).toBeGreaterThan(0);
+    // The target is fill x inside; one suburb block may overshoot it.
+    const biggestBlock = Math.max(...walled.wards.filter((w) => w.extramural).map((w) => w.plots.length));
+    expect(outside).toBeLessThanOrEqual(Math.round(fill * inside) + biggestBlock);
+  });
+
+  it('GG-546: the road carve follows the drawn approaches, not the raw road inside the wall', () => {
+    const half = MAIN_ROAD_CARVE_HALF_FRAC * 1000;
+    const inner = clipToRing(ROAD, walled.walls.ring);
+    // Houses now stand along the raw road's line inside the wall, where the
+    // drawn street is the routed spine and the blocks are inset for it.
+    const nearRaw = walled.plots.filter((p) => p.polygon.some((v) => inner.some((seg) => segDist(v, seg[0], seg[1]) < half)));
+    expect(nearRaw.length).toBeGreaterThan(0);
+    for (const s of walled.streetNetwork.filter((x) => x.role === 'approach')) {
+      for (let i = 0; i < s.centerline.length - 1; i++) {
+        for (const p of walled.plots) {
+          for (const v of p.polygon) expect(segDist(v, s.centerline[i], s.centerline[i + 1])).toBeGreaterThan(s.width / 2 - 1e-6);
+        }
+      }
+    }
+  });
+
+  it('GG-547: a port core runs out to its shore', () => {
+    const coastEdge: Pt[] = [[500, -500], [500, 500]];
+    const dry = generateTownPlan(CELL, rootSeedPath(33), { population: 6000, feetPerUnit: FPU });
+    const port = generateTownPlan(CELL, rootSeedPath(33), { population: 6000, feetPerUnit: FPU, water: [coastEdge], coast: [coastEdge] });
+    const reach = (plan: TownPlan): number => Math.max(...plan.core.map((p) => p[0]));
+    expect(500 - reach(port)).toBeLessThanOrEqual((QUAY_WIDTH_FT / FPU) * 2 + 1e-6);
+    expect(reach(port)).toBeGreaterThan(reach(dry));
+  });
+
+  it('GG-548: an unwalled settlement is a lane village with a green, a church and gardens', () => {
+    const village = generateTownPlan(CELL, rootSeedPath(34), { population: 400, roads: [ROAD], feetPerUnit: FPU });
+    expect(village.form).toBe('lanes');
+    expect(village.walls.ring).toHaveLength(0);
+    expect(village.plots.length).toBeGreaterThan(20);
+    const kinds = village.civic.map((c) => c.kind);
+    expect(kinds).toContain('plaza');
+    expect(kinds).toContain('temple');
+    expect(village.openLand.some((o) => o.kind === 'garden' || o.kind === 'orchard')).toBe(true);
+    // Every house fronts a lane or the village street.
+    const lines = village.streetNetwork.map((s) => s.centerline);
+    for (const p of village.plots) {
+      const front: Pt = [(p.polygon[0][0] + p.polygon[1][0]) / 2, (p.polygon[0][1] + p.polygon[1][1]) / 2];
+      const d = Math.min(...lines.flatMap((l) => l.slice(1).map((q, i) => segDist(front, l[i], q))));
+      // RE-PINNED (GG-564, Remy's ruling: villages stand back behind a front
+      // garden): the setback is the 15 ft garden, +/- 20%, not a quarter lot.
+      expect(d * FPU).toBeLessThan(STREET_TIER_SPECS.avenue.widthFt / 2 + 15 * 1.2 + 1);
+    }
+    for (let i = 0; i < village.plots.length; i++) {
+      for (let j = i + 1; j < village.plots.length; j++) {
+        expect(overlaps(village.plots[i].polygon, village.plots[j].polygon)).toBe(false);
+      }
+    }
+  });
+
+  it('GG-551: farm parcels are cut into strips that carry their furrow direction', () => {
+    const strips = walled.outskirts.filter((o) => o.kind === 'farm' && o.furrowAngle != null);
+    expect(strips.length).toBeGreaterThan(10);
+    for (const o of walled.outskirts) if (o.kind !== 'farm') expect(o.furrowAngle).toBeUndefined();
+  });
+});
+
+/** Distance from p to segment ab. */
+function segDist(p: Pt, a: Pt, b: Pt): number {
+  const dx = b[0] - a[0], dy = b[1] - a[1];
+  const L2 = dx * dx + dy * dy || 1;
+  const t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / L2));
+  return Math.hypot(p[0] - (a[0] + dx * t), p[1] - (a[1] + dy * t));
+}
+
+/** The segments of a polyline whose midpoints lie inside a ring. */
+function clipToRing(line: Pt[], ring: Pt[]): Array<[Pt, Pt]> {
+  const out: Array<[Pt, Pt]> = [];
+  for (let i = 0; i < line.length - 1; i++) {
+    const steps = 40;
+    for (let k = 0; k < steps; k++) {
+      const a: Pt = [line[i][0] + (line[i + 1][0] - line[i][0]) * (k / steps), line[i][1] + (line[i + 1][1] - line[i][1]) * (k / steps)];
+      const b: Pt = [line[i][0] + (line[i + 1][0] - line[i][0]) * ((k + 1) / steps), line[i][1] + (line[i + 1][1] - line[i][1]) * ((k + 1) / steps)];
+      if (pointInPolygon([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], ring)) out.push([a, b]);
+    }
+  }
+  return out;
+}
+
+describe('town-map rules (GG-560..GG-567, Remy 2026-11-01)', () => {
+  const CELL: Pt[] = [[-500, -500], [500, -500], [500, 500], [-500, 500]];
+  const FPU = 1.2;
+  const ROAD: Pt[] = [[-600, 40], [-200, 20], [200, -10], [600, 30]];
+  const RIVER: Pt[] = [[60, -600], [40, 0], [70, 600]];
+  const plain = generateTownPlan(CELL, rootSeedPath(31), { population: 6000, roads: [ROAD], feetPerUnit: FPU });
+  const river = generateTownPlan(CELL, rootSeedPath(31), {
+    population: 6000, roads: [ROAD], feetPerUnit: FPU,
+    water: [RIVER], bridgeWater: [RIVER], waterWidth: 60,
+  });
+  const segD = (p: Pt, a: Pt, b: Pt): number => {
+    const vx = b[0] - a[0], vy = b[1] - a[1];
+    const t = Math.max(0, Math.min(1, ((p[0] - a[0]) * vx + (p[1] - a[1]) * vy) / (vx * vx + vy * vy || 1)));
+    return Math.hypot(p[0] - a[0] - t * vx, p[1] - a[1] - t * vy);
+  };
+  const lineD = (p: Pt, L: Pt[]): number => Math.min(...L.slice(1).map((b, i) => segD(p, L[i], b)));
+  const turnDeg = (a: Pt, b: Pt, c: Pt): number => {
+    const v1 = [b[0] - a[0], b[1] - a[1]], v2 = [c[0] - b[0], c[1] - b[1]];
+    const n = Math.hypot(v1[0], v1[1]) * Math.hypot(v2[0], v2[1]);
+    return n < 1e-12 ? 0 : (Math.acos(Math.max(-1, Math.min(1, (v1[0] * v2[0] + v1[1] * v2[1]) / n))) * 180) / Math.PI;
+  };
+
+  it('GG-563: no house under 12 ft across or with a corner under 30 degrees', () => {
+    for (const plan of [plain, river]) {
+      for (const p of plan.plots) {
+        expect(p.polygon.length).toBeGreaterThanOrEqual(4);
+        expect(minWidth(p.polygon) * FPU).toBeGreaterThanOrEqual(12 - 1e-6);
+        expect(Math.min(...cornerAngles(p.polygon))).toBeGreaterThanOrEqual(30 - 1e-6);
+        // Remy's squarish ruling: every corner within 15 degrees of square.
+        expect(isSquarish(p.polygon)).toBe(true);
+      }
+    }
+  });
+
+  it('GG-563: a wedge lot gets a rectangle on its street front; the rest is yard', () => {
+    // A row-end wedge: 30 ft of front, one side slanted in at 60 degrees.
+    const lot: Pt[] = [[0, 0], [30, 0], [30, 25], [0 + 25 / Math.tan(Math.PI / 3), 25]];
+    expect(isSquarish(lot)).toBe(false);
+    const rect = rectangleOnFront(lot, 12)!;
+    expect(rect).not.toBeNull();
+    expect(isSquarish(rect)).toBe(true);
+    // Street edge first, on the lot's front line, square to it.
+    expect(rect[0][1]).toBeCloseTo(0, 9);
+    expect(rect[1][1]).toBeCloseTo(0, 9);
+    for (const v of rect) expect(pointInPolygon(v, lot) || distToBoundary(v, lot) < 1e-6).toBe(true);
+    expect(minWidth(rect)).toBeGreaterThanOrEqual(12);
+    // Too small for a 12 ft square: no house.
+    expect(rectangleOnFront([[0, 0], [14, 0], [3, 10]], 12)).toBeNull();
+  });
+
+  it('GG-563 block shapes: rectangle rows cut only square lots that stay in the block and apart', () => {
+    // A six-sided block like a Voronoi ward, corners about 120 degrees.
+    const hex: Pt[] = [[0, 0], [100, 0], [150, 70], [100, 140], [0, 140], [-50, 70]];
+    const lots = packBlockRows(hex, rootSeedPath(8), {
+      lotWidth: 20, minLotWidth: 15, maxLotWidth: 30, maxDepth: 40, snap: 5, alleyChance: 0, alleyWidth: 5, minHouseWidth: 12,
+    });
+    expect(lots.length).toBeGreaterThan(10);
+    for (const l of lots) {
+      expect(isSquarish(l.polygon, 1e-6)).toBe(true);
+      expect(minWidth(l.polygon)).toBeGreaterThanOrEqual(12 - 1e-9);
+      for (const v of l.polygon) expect(pointInPolygon(v, hex) || distToBoundary(v, hex) < 1e-6).toBe(true);
+    }
+    for (let i = 0; i < lots.length; i++) {
+      // Shrunk 1% so a shared side cut (a party wall) is not an overlap.
+      const shrink = (p: Pt[]): Pt[] => { const c = polygonCentroid(p); return p.map((v) => [c[0] + (v[0] - c[0]) * 0.99, c[1] + (v[1] - c[1]) * 0.99] as Pt); };
+      for (let j = i + 1; j < lots.length; j++) expect(polysIntersect(shrink(lots[i].polygon), shrink(lots[j].polygon))).toBe(false);
+    }
+    // On a rectangle block every row is clean, so rows beat the bisector cut.
+    const rect: Pt[] = [[0, 0], [120, 0], [120, 80], [0, 80]];
+    const o = { lotWidth: 20, minLotWidth: 15, maxLotWidth: 30, maxDepth: 30, snap: 5, alleyChance: 0, alleyWidth: 5, minHouseWidth: 12 };
+    expect(packBlockSquare(rect, rootSeedPath(9), o).every((l) => isSquarish(l.polygon, 1e-6))).toBe(true);
+  });
+
+  it('GG-563 block shapes: a straight-ish curve of block corners merges into one street edge', () => {
+    // The front bulges out of the block by at most 1.5: convex corners.
+    const arc: Pt[] = [[0, 0], [50, -1], [100, -1.5], [150, -1], [200, 0], [200, 60], [0, 60]];
+    const out = simplifyConvexCorners(arc, 2);
+    expect(out.length).toBeLessThan(arc.length);
+    for (const v of out) expect(pointInPolygon(v, arc) || distToBoundary(v, arc) < 1e-6).toBe(true);
+  });
+
+  it('GG-564: no house reaches into a street, and the suburbs and wealthy wards have front gardens', () => {
+    for (const plan of [plain, river]) {
+      // Box test first; one expect per plan (millions of expect calls time out).
+      const segs = plan.streetNetwork.filter((s) => s.role !== 'passage').flatMap((s) => s.centerline.slice(1).map((q, i) => {
+        const p0 = s.centerline[i], h = s.width / 2;
+        return { a: p0, b: q, h, x0: Math.min(p0[0], q[0]) - h, x1: Math.max(p0[0], q[0]) + h, y0: Math.min(p0[1], q[1]) - h, y1: Math.max(p0[1], q[1]) + h };
+      }));
+      let inRoad = 0;
+      for (const p of plan.plots) {
+        for (const v of p.polygon) {
+          for (const s of segs) {
+            if (v[0] < s.x0 || v[0] > s.x1 || v[1] < s.y0 || v[1] > s.y1) continue;
+            if (segD(v, s.a, s.b) < s.h - 0.25) inRoad++;
+          }
+        }
+      }
+      expect(inRoad).toBe(0);
+    }
+    const front = plain.openLand.filter((o) => o.front);
+    expect(front.length).toBeGreaterThan(0);
+    // Every front garden lies in a suburb or a wealthy ward.
+    for (const g of front) {
+      const c = polygonCentroid(g.polygon);
+      const ward = plain.wards.find((w) => pointInPolygon(c, w.polygon));
+      expect(ward && (ward.extramural || ward.wealth === 'wealthy')).toBeTruthy();
+    }
+  });
+
+  it('GG-565: every back-court house has a passage to a street that crosses no other house', () => {
+    const passages = plain.streetNetwork.filter((s) => s.role === 'passage' && s.serves);
+    const interior = plain.plots.filter((p) => p.kind === 'interior');
+    expect(interior.length).toBeGreaterThan(0);
+    for (const house of interior) {
+      const way = passages.find((s) => pointInPolygon(s.centerline[0], house.polygon));
+      expect(way).toBeDefined();
+      for (const other of plain.plots) {
+        if (other === house) continue;
+        for (const v of other.polygon) expect(segD(v, way!.centerline[0], way!.centerline[1])).toBeGreaterThan(way!.width / 2 * 0.98);
+      }
+    }
+  });
+
+  it('GG-566: each temple and keep has grounds, a forecourt and an open approach', () => {
+    const grounds = plain.civicGrounds ?? [];
+    expect(grounds.map((g) => g.civicKind).sort()).toEqual(['keep', 'temple']);
+    for (const g of grounds) {
+      expect(g.grounds.length).toBeGreaterThanOrEqual(3);
+      expect(g.approach).toHaveLength(2);
+      for (const p of plain.plots) {
+        expect(polysIntersect(p.polygon, g.grounds)).toBe(false);
+        for (const v of p.polygon) expect(segD(v, g.approach[0], g.approach[1])).toBeGreaterThan(g.approachWidth / 2 * 0.98);
+      }
+      // No faith or holder was given: plain grounds.
+      expect(g.setPiece).toBe('grounds');
+    }
+    const faithful = generateTownPlan(CELL, rootSeedPath(31), {
+      population: 6000, roads: [ROAD], feetPerUnit: FPU,
+      faith: { type: 'Folk', form: 'Totemism' }, holder: { form: 'Monarchy' },
+    });
+    const kinds = Object.fromEntries((faithful.civicGrounds ?? []).map((g) => [g.civicKind, g.setPiece]));
+    expect(kinds).toEqual({ temple: 'grove', keep: 'bailey' });
+  });
+
+  it('GG-567: one main street from a gate to the market, gently curved, widest after the market ring', () => {
+    for (const plan of [plain, river]) {
+      const main = plan.streetNetwork.filter((s) => s.main);
+      expect(main).toHaveLength(1);
+      const L = main[0].centerline;
+      for (let i = 1; i < L.length - 1; i++) expect(turnDeg(L[i - 1], L[i], L[i + 1])).toBeLessThanOrEqual(30);
+      expect(plan.walls.gatehouses.some((g) => Math.hypot(g[0] - L[0][0], g[1] - L[0][1]) < 1e-6)).toBe(true);
+      const plaza = plan.civic.find((c) => c.kind === 'plaza')!;
+      const end = L[L.length - 1];
+      const toPlaza = Math.min(...plaza.polygon.map((a, i) => segD(end, a, plaza.polygon[(i + 1) % plaza.polygon.length])));
+      expect(toPlaza * FPU).toBeLessThan(STREET_TIER_SPECS.plaza.widthFt);
+      for (const s of plan.streetNetwork) {
+        if (s.main || s.tier === 'plaza' || s.role === 'approach') continue;
+        expect(s.width).toBeLessThan(main[0].width);
+      }
+    }
+  });
+
+  it('GG-561: the river channel is cut out of the town; docks start at a bank', () => {
+    const half = 30;
+    for (const p of river.plots) expect(lineD(polygonCentroid(p.polygon), RIVER)).toBeGreaterThan(half);
+    for (const w of river.wards) expect(lineD(polygonCentroid(w.polygon), RIVER)).toBeGreaterThan(half);
+    for (const d of river.civic.filter((c) => c.kind === 'dock')) {
+      const base = polygonCentroid([d.polygon[0], d.polygon[3]]);
+      const tip = polygonCentroid([d.polygon[1], d.polygon[2]]);
+      expect(lineD(base, RIVER)).toBeGreaterThanOrEqual(half - 1e-6);
+      expect(lineD(tip, RIVER)).toBeLessThan(half);
+    }
+  });
+
+  it('GG-560: each bridge is its street plus parapets wide, and no two decks touch', () => {
+    const decks = river.civic.filter((c) => c.kind === 'bridge');
+    expect(decks.length).toBeGreaterThan(0);
+    const widths = new Set(river.streetNetwork.map((s) => +(s.width + 2 * (2 / FPU)).toFixed(6)));
+    for (const d of decks) {
+      const e = d.polygon.map((p, i) => Math.hypot(d.polygon[(i + 1) % 4][0] - p[0], d.polygon[(i + 1) % 4][1] - p[1]));
+      const w = Math.min(...e);
+      expect([...widths].some((x) => Math.abs(x - w) < 1e-6)).toBe(true);
+      expect(Math.max(...e)).toBeGreaterThan(60);
+    }
+    for (let i = 0; i < decks.length; i++) {
+      for (let j = i + 1; j < decks.length; j++) expect(polysIntersect(decks[i].polygon, decks[j].polygon)).toBe(false);
+    }
   });
 });

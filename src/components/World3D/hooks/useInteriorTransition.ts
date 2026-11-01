@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 26/08/2026, 13:55:01
+ * Last Sync: 29/10/2026, 14:00:47
  * Dependents: components/World3D/World3DWrapper.tsx
- * Imports: 5 files
+ * Imports: 8 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,7 +14,10 @@
  */
 // @dependencies-end
 
+import {companionDungeonRiskError} from '../../../systems/companions/companionSiteRisk';
+import { validateDungeonExplorationPosition } from '../../../systems/worldforge/dungeon/world/dungeonExplorationResume';
 import { useCallback, useState } from 'react';
+import {generateDungeonForIdentity} from '../../../systems/worldforge/dungeon/world/deriveIdentity';
 import { useGameState } from '../../../state/GameContext';
 import type { GameState } from '../../../types';
 import type {
@@ -100,7 +103,25 @@ export function useInteriorTransition({
   // rather than a second world-generation request.
   const [nearbyDungeonEntrance, setNearbyDungeonEntrance] =
     useState<GroundDungeonEntrance | null>(null);
-  const [activeDungeonEntry, setActiveDungeonEntry] = useState<ActiveDungeonEntry | null>(null);
+  const [activeDungeonEntry, setActiveDungeonEntry] = useState<ActiveDungeonEntry | null>(() => {
+    const resume = state.dungeonCombatReturn;
+    if (!resume) {
+      const visits = Object.values(state.dungeonExpeditions ?? {}).filter(record =>
+        record.visitPhase === 'active' && record.progress.activeVisit?.returnContext.worldSeed === state.worldSeed &&
+        record.progress.activeVisit.returnContext.cellId === state.playerCell?.cellId);
+      if (visits.length > 1) throw new Error('More than one saved dungeon visit is active at this location.');
+      const record = visits[0];
+      const position = record?.progress.activeVisit;
+      if (!record || !position) return null;
+      const entry = {identity:record.identity, entranceKind:position.entranceKind,
+        plan:generateDungeonForIdentity(record.identity, position.returnContext.worldSeed), returnContext:position.returnContext};
+      if (!validateDungeonExplorationPosition(record, entry)) throw new Error('Saved dungeon footing is unavailable in its source plan.');
+      return entry;
+    }
+    if (resume.returnContext.worldSeed !== state.worldSeed) throw new Error('Dungeon combat return belongs to another world.');
+    return {identity: resume.rootIdentity, entranceKind: resume.entranceKind,
+      plan: generateDungeonForIdentity(resume.rootIdentity, resume.returnContext.worldSeed), returnContext: resume.returnContext};
+  });
   const [dungeonEntryError, setDungeonEntryError] = useState<string | null>(null);
 
   /**
@@ -140,7 +161,7 @@ export function useInteriorTransition({
     const savedPosition = playerGroundPosRef.current;
     const origin =
       savedPosition && savedPosition.tileX === tile.x && savedPosition.tileY === tile.y
-        ? { xM: savedPosition.xM, zM: savedPosition.zM }
+        ? { xM: savedPosition.xM, zM: savedPosition.zM, ...(savedPosition.yM !== undefined ? { yM: savedPosition.yM } : {}) }
         : { xM: lastGroundXZ.current.x, zM: lastGroundXZ.current.z };
 
     try {
@@ -151,8 +172,13 @@ export function useInteriorTransition({
         tileY: tile.y,
         xM: origin.xM,
         zM: origin.zM,
+        ...('yM' in origin ? { yM: origin.yM } : {}),
       });
 
+      // A travel promise is not agreement to a new danger. Check the current
+      // person's answer before mounting or persisting this expedition.
+      const concern = companionDungeonRiskError(state, entry.identity);
+      if (concern) { setDungeonEntryError(concern); return; }
       // Persist entry to GameState only after generation succeeds
       dispatch({ type: 'DUNGEON_ENTERED', payload: { identity: entry.identity } });
       setDungeonEntryError(null);
@@ -167,8 +193,7 @@ export function useInteriorTransition({
     lastGroundXZ,
     nearbyDungeonEntrance,
     playerGroundPosRef,
-    state.playerCell?.cellId,
-    state.worldSeed,
+    state,
     wfGroundView?.tile,
   ]);
 
@@ -191,6 +216,7 @@ export function useInteriorTransition({
           tileY: origin.tileY,
           xM: origin.xM,
           zM: origin.zM,
+          ...(origin.yM !== undefined ? { yM: origin.yM } : {}),
         },
       },
     });

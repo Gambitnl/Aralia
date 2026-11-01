@@ -290,17 +290,60 @@ function ensureSeaRoute(pack: IslandHarborPack, port: Burg): void {
     return [x, y, cell];
   };
 
-  const target = existingCells.sort((a, b) => compareHarborCells(pack, a, b))[0];
+  // GG-520 (audit 2026-10-25): link the harbor to the NEAREST lane cell by a
+  // path over this sea's water cells, and store every step. The old code took
+  // the lowest-numbered lane cell anywhere on the sea (water cells tie on
+  // harbor and population) and drew one straight two-point segment, which ran
+  // across land and which the ferry planner (adjacent cells only) could not use.
+  const path = waterPathToNearest(pack, waterCell, new Set(existingCells), waterFeature);
+  if (!path) {
+    // The lane is on the same feature id but no water path reaches it; leave
+    // the harbor unlinked rather than draw a route across land.
+    rebuildRouteLinks(pack);
+    return;
+  }
+
   const routeId = pack.routes.length;
   pack.routes.push({
     i: routeId,
     group: 'searoutes',
     feature: waterFeature,
-    points: [point(waterCell), point(target)],
-    cells: [waterCell, target],
+    points: path.map(point),
+    cells: path,
   });
 
   rebuildRouteLinks(pack);
+}
+
+/**
+ * Breadth-first search from `start` over water cells of `waterFeature` (land
+ * and other water bodies block it). Returns the cell path from start to the
+ * first target reached, or null when no target is reachable. Neighbor order
+ * comes from the packed graph, so the result is deterministic for a seed.
+ */
+function waterPathToNearest(
+  pack: IslandHarborPack,
+  start: number,
+  targets: Set<number>,
+  waterFeature: number,
+): number[] | null {
+  const isSeaCell = (cell: number) => !isLand(pack, cell) && (pack.cells.f?.[cell] ?? waterFeature) === waterFeature;
+  const parent = new Map<number, number>([[start, -1]]);
+  const queue = [start];
+  for (let head = 0; head < queue.length; head++) {
+    const current = queue[head];
+    if (targets.has(current) && current !== start) {
+      const path: number[] = [];
+      for (let cell = current; cell !== -1; cell = parent.get(cell) as number) path.push(cell);
+      return path.reverse();
+    }
+    for (const next of pack.cells.c[current] ?? []) {
+      if (parent.has(next) || !isSeaCell(next)) continue;
+      parent.set(next, current);
+      queue.push(next);
+    }
+  }
+  return null;
 }
 
 // ============================================================================

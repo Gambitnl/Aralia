@@ -1,11 +1,16 @@
+/**
+ * @file src/hooks/actions/handleWorldEvents.ts
+ * This file contains handlers for world-level events that occur outside of direct player actions.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/09/2026, 10:35:53
- * Dependents: hooks/actions/handleGeminiCustom.ts, hooks/actions/handleResourceActions.ts
- * Imports: 9 files
+ * Last Sync: 31/10/2026, 21:27:48
+ * Dependents: hooks/actions/actionHandlers.ts, hooks/actions/handleGeminiCustom.ts, hooks/actions/handleResourceActions.ts
+ * Imports: 15 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,10 +19,6 @@
  */
 // @dependencies-end
 
-/**
- * @file src/hooks/actions/handleWorldEvents.ts
- * This file contains handlers for world-level events that occur outside of direct player actions.
- */
 import React from 'react';
 import { GameState, KnownFact, GossipUpdatePayload, DiscoveryType, NpcMemory } from '../../types';
 import { AppAction } from '../../state/actionTypes';
@@ -35,6 +36,8 @@ import {
 import { generateId } from '../../utils/core/idGenerator';
 import { occupantLocationAt, type ScheduleBlock } from '../../systems/worldforge/roster/occupantSchedule';
 import { burgIdForLocation } from '../../systems/worldforge/townsim/chronicleForLocation';
+import type { TownLayoutRevision } from '../../systems/worldforge/town/townLayoutRevision';
+import { residentAliveAt } from '../../systems/worldforge/roster/agentLife';
 import type { TownRoster } from '../../systems/worldforge/roster/types';
 
 // ============================================================================
@@ -108,7 +111,7 @@ export interface TownRoutineEventOptions {
    * player stands in; tests (and any caller that already holds a roster) pass
    * their own instead of paying for atlas + town generation.
    */
-  resolveRoster?: (worldSeed: number, burgId: number) => TownRoster | undefined;
+  resolveRoster?: (worldSeed: number, burgId: number, layoutRevision?: TownLayoutRevision) => TownRoster | undefined;
   /** Cap on emitted events. */
   max?: number;
 }
@@ -117,7 +120,8 @@ export interface TownRoutineEventOptions {
  * Emit NPC location changes as world events for the town the player is in.
  *
  * Called on a world-time advance. Returns [] when the player is not standing in
- * a burg, or when the advance did not cross an hour boundary — both legitimate
+ * a burg, or when the start and end UTC hours are the same (inside one hour,
+ * or a whole number of days, so nobody is anywhere new) — both legitimate
  * "nothing moved" cases, not swallowed errors (no-fallback directive: a roster
  * that fails to build throws).
  */
@@ -127,6 +131,7 @@ export async function handleTownRoutineEvents(
   options: TownRoutineEventOptions
 ): Promise<NpcRoutineChange[]> {
   const burgId = burgIdForLocation({
+    ground: gameState,
     worldSeed: gameState.worldSeed,
     cellId: gameState.playerCell?.cellId,
   });
@@ -134,24 +139,51 @@ export async function handleTownRoutineEvents(
 
   const arrived = new Date(gameState.gameTime);
   const left = new Date(arrived.getTime() - options.hoursAdvanced * 3600 * 1000);
-  const fromHour = left.getHours();
-  const toHour = arrived.getHours();
-  if (fromHour === toHour) return []; // advance stayed inside one hour
+  // GG-515: the game clock is UTC (gameClock.ts, timeUtils.ts: never use
+  // .getHours() on it). Local hours shifted the log by the host's offset.
+  const fromHour = left.getUTCHours();
+  const toHour = arrived.getUTCHours();
+  // The log diffs where each occupant was at the two hours. Inside one hour,
+  // or after a whole number of days, everyone is where they were, so there is
+  // no net change to report.
+  if (fromHour === toHour) return [];
 
+  const life = gameState.townSim?.[burgId];
+  // An existing unversioned town has history but no admitted layout. Reading
+  // today's founding roster could invent different people at the same member
+  // keys, so defer reports until admission identifies their actual source.
+  // This preserves its life history and adds no guessed journal memories.
+  if (life && life.layoutRevision === undefined) return [];
   const resolveRoster =
     options.resolveRoster ??
     (await import('../../systems/worldforge/townsim/townSimRegistration')).townRosterForBurg;
-  const roster = resolveRoster(gameState.worldSeed, burgId);
+  // Report routines from the same streets and households as the saved town.
+  // Unregistered towns keep the earlier two-argument callback behavior.
+  const layoutRevision = life?.layoutRevision;
+  const roster = layoutRevision === undefined
+    ? resolveRoster(gameState.worldSeed, burgId)
+    : resolveRoster(gameState.worldSeed, burgId, layoutRevision);
   if (!roster) return [];
 
-  const changes = townRoutineChanges(roster, fromHour, toHour, options.max);
+  // Founding rosters also contain people who have since died. Use the existing
+  // saved member/home/name identity guard before applying the event cap; a
+  // deceased first row must not hide a living worker later in the roster.
+  // Ambiguous old names stay unresolved rather than inheriting another death.
+  const nameCounts = new Map<string, number>();
+  const nameKey = (person: TownRoster['occupants'][number]) => JSON.stringify([person.homePlotId, person.name]);
+  for (const person of roster.occupants) nameCounts.set(nameKey(person), (nameCounts.get(nameKey(person)) ?? 0) + 1);
+  const living = life ? {...roster, occupants: roster.occupants.filter(person =>
+    residentAliveAt(life, person, getGameDay(left), nameCounts.get(nameKey(person)) === 1)
+      && residentAliveAt(life, person, getGameDay(arrived), nameCounts.get(nameKey(person)) === 1))} : roster;
+  const changes = townRoutineChanges(living, fromHour, toHour, options.max);
 
   for (const change of changes) {
     dispatch({
       type: 'ADD_DISCOVERY_ENTRY',
       payload: {
         id: generateId(),
-        gameTime: formatGameTime(arrived, { hour: '2-digit', minute: '2-digit' }),
+        // Keep the observation date as well as its clock; the log formats UTC.
+        gameTime: arrived.toISOString(),
         type: DiscoveryType.MISC_EVENT,
         title: 'Town Routine',
         content: `${change.name} ${ROUTINE_PHRASE[change.to.activity]}.`,

@@ -613,7 +613,7 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
   }, [abilitySystem, characters, mapData, turnState.currentCharacterId]);
 
   // Target selection — same as 2D BattleMap
-  const { aoeSet, validTargetSet, teleportDestinationSet } = useTargetSelection({
+  const { aoeSet, validTargetSet, longRangeTargetSet, teleportDestinationSet } = useTargetSelection({
     selectedAbility: abilitySystem.selectedAbility,
     targetingMode: abilitySystem.targetingMode,
     isValidTarget: abilitySystem.isValidTarget,
@@ -967,6 +967,7 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, spellMap
             but only fed character isTargetable flags. 2D color parity. */}
         <TargetingDecals
           validTargetSet={validTargetSet}
+          longRangeTargetSet={longRangeTargetSet}
           teleportDestinationSet={teleportDestinationSet}
           aoeSet={aoeSet}
           targetingMode={abilitySystem.targetingMode}

@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 21/07/2026, 01:46:10
- * Dependents: components/BattleMap/dungeon/Dungeon3DPreview.tsx, systems/worldforge/dungeon/world/dungeonLevels.ts
- * Imports: 3 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file supplies the first playable rules for a canonical generated dungeon.
  *
@@ -27,6 +11,22 @@
  * Called by: Dungeon3DPreview.tsx, dungeonLevels.ts, and focused dungeon gameplay tests.
  * Depends on: DungeonPlan geometry, canonical dungeon identity, and the lifecycle progress patch.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 28/10/2026, 21:53:13
+ * Dependents: components/BattleMap/dungeon/Dungeon3DPreview.tsx, systems/worldforge/dungeon/world/dungeonCaches.ts, systems/worldforge/dungeon/world/dungeonCombat.ts, systems/worldforge/dungeon/world/dungeonLevels.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import {
   CellKind,
@@ -269,8 +269,10 @@ export function findNextDungeonEncounterInteraction(
   identity: DungeonIdentity,
   clearedEncounterIds: readonly string[],
   playerCell: Cell,
+  visibleCellKeys?: readonly string[],
 ): DungeonEncounterInteraction | null {
   const cleared = new Set(clearedEncounterIds);
+  const visible = visibleCellKeys ? new Set(visibleCellKeys) : null;
   const distances = dungeonDistanceMap(plan, playerCell);
   const candidates: DungeonEncounterInteraction[] = [];
 
@@ -280,7 +282,9 @@ export function findNextDungeonEncounterInteraction(
   for (const spawn of plan.spawns) {
     const spawnCell = dungeonSpawnCell(plan, spawn);
     const eventId = dungeonEncounterEventId(identity, spawn.roomId, spawnCell);
-    if (cleared.has(eventId)) continue;
+    // Production choices use current sight, never accumulated parchment ink.
+    // Omitted filtering preserves existing developer/pathfinding callers.
+    if (cleared.has(eventId) || (visible && !visible.has(cellKey(spawnCell)))) continue;
 
     const room = plan.rooms.find((candidate) => candidate.id === spawn.roomId);
     let best: Cell | null = null;

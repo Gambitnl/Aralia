@@ -66,12 +66,30 @@
  * never the player's streamed cell; burg loops skip i===0 / removed; frozen
  * seed grammar (new draws on new streams only). Zero THREE imports.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 28/10/2026, 19:40:24
+ * Dependents: components/World3D/DungeonEntrances.tsx, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/dungeon/world/authoredCompanionSites.ts, systems/worldforge/dungeon/world/chronicle.ts, systems/worldforge/dungeon/world/deriveIdentity.ts, systems/worldforge/dungeon/world/dungeonStates.ts, systems/worldforge/dungeon/world/raidPressure.ts, systems/worldforge/dungeon/world/rumors.ts
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { Feet } from '../../units';
 import type { SeedPath } from '../../seedPath';
 import { rootSeedPath, childSeedPath, streamPath, rngFromPath } from '../../seedPath';
 import { FEET_PER_FMG_PIXEL } from '../../adapter/atlasArtifact';
 import { getBridgeAtlas } from '../../bridge/legacySubmapBridge';
 import type { DungeonTheme, BuilderArchetype } from '../types';
+import { authoredCompanionSitesForWorld, type AuthoredCompanionSiteSource } from './authoredCompanionSites';
 
 /** A land cell has height ≥ 20 in FMG's convention (LAND_H). */
 const LAND_H = 20;
@@ -104,7 +122,7 @@ const STATES_PER_CIV_MINE = 2;
 
 export type EntranceKind = 'ruin-door' | 'cave-mouth' | 'temple-stair' | 'sewer-grate';
 /** 'civ' is reserved for Task 2 archaeology sites; sewers are 'town'. */
-export type SiteOrigin = 'marker' | 'temple' | 'town' | 'civ';
+export type SiteOrigin = 'marker' | 'temple' | 'town' | 'civ' | 'authored';
 
 /**
  * Why a `civ`-origin site exists — the world-history fact that grounds it.
@@ -136,6 +154,8 @@ export interface DungeonSite {
   markerRef?: number;
   /** Present only for 'civ'-origin sites — the world-history fact behind them. */
   provenance?: SiteProvenance;
+  /** A distinct authored public-goal location, never an alias for an old site. */
+  authoredGoal?: AuthoredCompanionSiteSource;
   posFt: { x: Feet; y: Feet };
 }
 
@@ -551,7 +571,11 @@ const siteCache = new Map<number, DungeonSite[]>();
  * it reads is itself cached, so the result is stable across calls).
  */
 export function enumerateDungeonSites(worldSeed: number): DungeonSite[] {
-  const key = worldSeed >>> 0;
+  // The bridge atlas is keyed by the complete saved seed (often a timestamp).
+  // Truncating only this cache let an atlas generated from the uint32 path
+  // root replace the original world's sites after a cold reload. Frozen site
+  // paths still use rootSeedPath; isolate their source-atlas caches instead.
+  const key = worldSeed;
   const cached = siteCache.get(key);
   if (cached) return cached.map((s) => ({ ...s, posFt: { ...s.posFt } }));
 
@@ -663,6 +687,11 @@ export function enumerateDungeonSites(worldSeed: number): DungeonSite[] {
   // capped per state so archaeology never floods a region.
   const rawZones = ((atlas.pack as { zones?: ZoneLike[] }).zones ?? []) as ZoneLike[];
   appendCivSites(sites, root, cells, gridTemp, burgs, rawZones);
+
+  // Additive story content uses its own versioned stream after all established
+  // sources. No prior site, atlas marker, terrain or encounter is rewritten.
+  sites.push(...authoredCompanionSitesForWorld(worldSeed, atlas.pack.cells, burgs as Array<BurgLike & {name?:string}>, sites,
+    (atlas.pack.markers??[]).flatMap(marker=>Number.isInteger(marker.cell)?[marker.cell]:[])));
 
   const result = stableSort(sites);
   siteCache.set(key, result);

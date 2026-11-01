@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
- *
- * Last Sync: 24/08/2026, 00:55:12
- * Dependents: components/DesignPreview/steps/townMesh.ts, components/Worldforge/TownPlanView.tsx, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/town/canonicalTown.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
- * Imports: 10 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file townPlanAdapter.ts — fold a rich `townEngine` TownPlan (organic wards,
  * walls, civic) into the flat `artifacts.ts` TownPlan that the 3D ground bake
@@ -30,6 +14,23 @@
  * individual variant. Artifact ids and footprints remain unchanged because
  * businesses and interiors key on them.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 01/11/2026, 06:37:15
+ * Dependents: components/DesignPreview/steps/townMesh.ts, components/Worldforge/TownPlanView.tsx, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/town/canonicalTown.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Imports: 11 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { TownPlan as EngineTownPlan, BuildingPlot, CivicKind } from './townEngine';
 import type { TownPlan as ArtifactTownPlan } from '../artifacts';
 import { pointInPolygon, type Pt } from '../submap/submapEngine';
@@ -45,9 +46,18 @@ import { resolveBuildingAgeBand } from './buildingAge';
 import { detachedParcelInsets } from './detachedParcels';
 import { buildingTypeForRole } from '../interior/generateInterior';
 import { STREET_TIER_SPECS } from './streetRibbons';
+import { buildRuralHomesteadArtifacts } from './ruralHomesteadArtifacts';
 
+export interface TownPlanAdaptOptions {
+  /** Fresh prototype only; callers must install rural cultivation/prop exclusions before physical use. */
+  includeRuralHomesteads?: boolean;
+  /** Fresh prop siting needs the original lot, before the building setback. */
+  retainPropParcels?: boolean;
+}
 export interface AdaptedTownPlan {
   plan: ArtifactTownPlan;
+  /** Opt-in source lots in the same feet frame as plan; never inferred from a nearby house. */
+  propParcels?: Array<{ plotId: number; polygon: Pt[] }>;
   /** Wall ring + gatehouses, plus the river water-gate breaks (TG7). */
   walls: { ring: Pt[]; gatehouses: Pt[]; waterGates: Pt[] };
   /**
@@ -432,8 +442,10 @@ export function toArtifactPlan(
   burgId: number,
   family?: StyleFamily,
   climate?: ClimateClass,
+  options: TownPlanAdaptOptions = {},
 ): AdaptedTownPlan {
   const plots: ArtifactTownPlan['plots'] = [];
+  const propParcels: NonNullable<AdaptedTownPlan['propParcels']> = [];
   let id = 0;
 
   for (const ward of plan.wards) {
@@ -453,6 +465,7 @@ export function toArtifactPlan(
       // Capture the id once so style identity and the durable artifact record
       // refer to the exact same building. The increment order is unchanged.
       const plotId = id++;
+      if (options.retainPropParcels) propParcels.push({plotId, polygon: pl.polygon.map(([x,y])=>[x,y])});
       const buildingKey = pl.architectureKey ?? `plot:${plotId}`;
       const buildingType = pl.buildingType ?? buildingTypeForRole(role);
       plots.push({
@@ -513,6 +526,7 @@ export function toArtifactPlan(
     const districtLabel = civicWard?.architectureDistrict?.label ?? `${wealth} quarter`;
     const plotId = id++;
     const buildingType = buildingTypeForRole(role);
+    if (options.retainPropParcels) propParcels.push({plotId, polygon: c.polygon.map(([x,y])=>[x,y])});
     plots.push({
       id: plotId,
       footprint: orientedQuad(c.polygon),
@@ -557,6 +571,23 @@ export function toArtifactPlan(
       colorHex: STREET_TIERS[s.tier].colorHex,
     }));
 
+  // Explicit prototype bridge: append admitted farm plots/tracks without
+  // renumbering urban identities. Keep source/declined needs beside artifacts
+  // so physical consumers can reserve yards and routes before adoption.
+  const rural=options.includeRuralHomesteads
+    ? buildRuralHomesteadArtifacts(plan,plots.map(p=>p.id),streets.map(s=>s.id)) : undefined;
+  if(rural){
+    for(const plot of rural.plots){
+      const site=rural.sources.homesteads.sites.find(s=>s.plotId===plot.id)!;
+      plots.push({...plot,...(family?styleStamp(family,burgId,'rural:'+site.yardSource.id,'Farm households',
+        'farm:'+site.farmId,'common',resolveBuildingAgeBand({polygon:site.house,townCore:plan.core,
+          settlementKey:'burg:'+burgId,buildingKey:'farm:'+site.farmId}),undefined,climate,'farmstead'):{})});
+      if(options.retainPropParcels)propParcels.push({plotId:plot.id,polygon:site.yard.map(([x,y])=>[x,y])});
+    }
+    streets.push(...rural.streets.map(street=>({...street,colorHex:STREET_TIERS.lane.colorHex,
+      centerline:subdividePolyline(street.centerline)})));
+  }
+
   // Shared courts are open-space receipts, not fake building plots. Carry them
   // beside plots so prop placement can dress their exact transformed center
   // without changing plot ids or introducing collision geometry.
@@ -571,8 +602,23 @@ export function toArtifactPlan(
     courtyardSignature: court.courtyardSignature,
   }));
 
+  // GG-569: the civic grounds ride beside the courts (feet, already in the
+  // caller's frame). Only plans that carry them gain the field.
+  const civicGrounds: NonNullable<ArtifactTownPlan['civicGrounds']> = (plan.civicGrounds ?? []).map((g) => ({
+    wardIndex: g.wardIndex,
+    civicKind: g.civicKind,
+    setPiece: g.setPiece,
+    grounds: g.grounds.map(([x, y]) => [x, y] as [number, number]),
+    forecourt: g.forecourt.map(([x, y]) => [x, y] as [number, number]),
+    features: g.features.map((f) => ({ kind: f.kind, polygon: f.polygon.map(([x, y]) => [x, y] as [number, number]) })),
+  }));
+  // A cloister's garth is a garden: the town's own planting covers it.
+  const garths = (plan.civicGrounds ?? []).flatMap((g) => g.features.filter((f) => f.kind === 'garth'))
+    .map((f) => ({ polygon: f.polygon, kind: 'garden' as const }));
+
   return {
-    plan: { burgId, streets, courtyards, plots },
+    plan: { burgId, streets, courtyards, plots, ...(civicGrounds.length ? { civicGrounds } : {}), ...(rural?{ruralSources:rural.sources}:{}) },
+    ...(options.retainPropParcels ? {propParcels} : {}),
     walls: {
       ring: plan.walls.ring,
       gatehouses: plan.walls.gatehouses,
@@ -580,6 +626,6 @@ export function toArtifactPlan(
     },
     // Passed straight through: these polygons are already in the caller's frame
     // because canonicalTown transforms the whole engine plan before adapting it.
-    openLand: (plan.openLand ?? []).map((o) => ({ polygon: o.polygon, kind: o.kind })),
+    openLand: [...(plan.openLand ?? []).map((o) => ({ polygon: o.polygon, kind: o.kind })), ...garths],
   };
 }

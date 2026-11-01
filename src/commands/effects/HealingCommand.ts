@@ -36,18 +36,65 @@ export class HealingCommand extends BaseEffectCommand {
 
     let currentState = state
     const targets = this.getTargets(currentState)
-    const poolShare = this.effect.healing.pool !== undefined && targets.length > 0
-      ? Math.ceil(this.effect.healing.pool / targets.length)
-      : undefined
+    // Pool-based healing (e.g. Mass Heal): deterministically allocate up to the total pool,
+    // capping each recipient at missing HP and redistributing unused capacity (GG-452 / agora-0450).
+    const isPoolHealing = this.effect.healing.pool !== undefined;
+    const poolAllocations: Record<string, number> = {};
+
+    if (isPoolHealing) {
+      let remainingPool = Math.max(0, this.effect.healing.pool ?? 0);
+      let activeTargets = targets.map(t => ({
+        id: t.id,
+        missingHp: Math.max(0, t.maxHP - t.currentHP),
+      }));
+
+      // While there is remaining pool and targets needing HP:
+      while (remainingPool > 0 && activeTargets.some(t => t.missingHp > 0)) {
+        const eligible = activeTargets.filter(t => t.missingHp > 0);
+        const baseShare = Math.floor(remainingPool / eligible.length);
+        const remainder = remainingPool % eligible.length;
+
+        if (baseShare === 0) {
+          // Remainder only: distribute 1 HP each to the most-wounded targets
+          eligible.sort((a, b) => b.missingHp - a.missingHp);
+          for (let i = 0; i < remainder; i++) {
+            poolAllocations[eligible[i].id] = (poolAllocations[eligible[i].id] || 0) + 1;
+            eligible[i].missingHp -= 1;
+            remainingPool -= 1;
+          }
+          break;
+        }
+
+        // Give each eligible target up to baseShare (capped at missing HP)
+        let totalAssignedThisRound = 0;
+        for (let i = 0; i < eligible.length; i++) {
+          const target = eligible[i];
+          const extra = i < remainder ? 1 : 0;
+          const share = baseShare + extra;
+          const actualAllocated = Math.min(target.missingHp, share);
+
+          poolAllocations[target.id] = (poolAllocations[target.id] || 0) + actualAllocated;
+          target.missingHp -= actualAllocated;
+          totalAssignedThisRound += actualAllocated;
+        }
+
+        remainingPool -= totalAssignedThisRound;
+        if (totalAssignedThisRound === 0) {
+          break;
+        }
+      }
+    }
 
     for (const target of targets) {
       // 1. Roll healing
-      const healingRoll = this.rollHealing(
-        this.effect.healing.dice,
-        this.effect.healing.amount,
-        poolShare,
-        target.maxHP,
-      )
+      const healingRoll = isPoolHealing
+        ? (poolAllocations[target.id] ?? 0)
+        : this.rollHealing(
+            this.effect.healing.dice,
+            this.effect.healing.amount,
+            undefined,
+            target.maxHP,
+          )
 
       // 2. Calculate new HP (capped at maxHP) or Temp HP
       if (this.effect.healing?.isTemporaryHp) {

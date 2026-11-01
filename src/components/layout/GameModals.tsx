@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 18/08/2026, 00:08:40
- * Dependents: App.tsx
- * Imports: 49 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * ARCHITECTURAL CONTEXT:
  * This component is the 'Modal Manager' for the Aralia RPG. It centralizes 
@@ -39,13 +23,36 @@
  * quick-start action should appear instead of the main menu rendering a separate
  * developer-only launch button.
  */
-import React, { lazy, Suspense, useEffect, useMemo, useRef } from 'react';
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 09:38:09
+ * Dependents: components/layout/AppShell.tsx
+ * Imports: 62 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import React, { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { partyProvisionInventory } from '@/systems/travel/partyProvisions';
+import { merchantTypeForBusiness } from '../ActionPane/useActionGeneration';
+import { getPartyFundsGp } from '../../systems/economy/partyFunds';
 import { getAbilityModifierValue } from '../../utils/character/statUtils';
 import { GameState, Action, Location, NPC, Item, PlayerCharacter, MissingChoice, WorldCellView, GamePhase } from '../../types';
 import { AppAction } from '../../state/actionTypes';
+import { getRulesEdition } from '../../config/rulesEdition';
+import { getPlanarRestPreview } from '../../systems/planar/rest';
 import { STARTER_SHIP_COST } from '../../state/reducers/navalReducer';
 import { NPCS } from '../../data/world/npcs';
-import { canUseDevTools } from '../../utils/core';
+import { canUseDevTools, getGameDay } from '../../utils/core';
+import { householdNpcAliveAt, householdNpcLifeStatusAt } from '../../systems/worldforge/townsim/householdNpc';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { useDialogueSystem } from '../../hooks/useDialogueSystem';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
@@ -89,6 +96,8 @@ const ShipPane = lazy(() => import('../Naval/ShipPane').then(module => ({ defaul
 const LockpickingModal = lazy(() => import('../puzzles/LockpickingModal'));
 const PuzzleRuntimeModal = lazy(() => import('../puzzles/PuzzleRuntimeModal'));
 const DiceRollerModal = lazy(() => import('../dice/DiceRollerModal'));
+import {lodgingRestError, propertyRestError, restEnvironmentError} from '../../systems/gameplay/lodging';
+const LodgingModal = lazy(() => import('../ui/LodgingModal'));
 const LongRestModal = lazy(() => import('../ui/LongRestModal'));
 const RestModal = lazy(() => import('../ui/RestModal'));
 const OllamaDependencyModal = lazy(() => import('../ui/OllamaDependencyModal').then(module => ({ default: module.OllamaDependencyModal })));
@@ -106,7 +115,7 @@ const TradeRouteModal = lazy(() => import('../Economy/TradeRouteModal'));
 interface GameModalsProps {
     gameState: GameState;
     dispatch: React.Dispatch<AppAction>;
-    onAction: (action: Action) => void;
+    onAction: (action: Action) => void | Promise<void>;
     onTileClick: (x: number, y: number, cell: WorldCellView, travelMeta?: import('../../types/travelMeta').TravelMeta) => void;
     onEnter3DAtCell?: (x: number, y: number, cell: WorldCellView) => void;
     playerWorldPos?: GameState['playerWorldPos'];
@@ -174,6 +183,29 @@ const GameModals: React.FC<GameModalsProps> = ({
     worldGenerationLockedReason,
     onRegenerateWorldMap,
 }) => {
+
+    const shortRestPreview = getPlanarRestPreview(gameState, 'short');
+    const longRestPreview = getPlanarRestPreview(gameState, 'long');
+    const [restPlaceError, setRestPlaceError] = useState<string | null>('Checking the resting place…');
+    const [partyRestEnvironmentError, setPartyRestEnvironmentError] = useState<string | null>('Checking the resting place…');
+    const [waitPlaceError, setWaitPlaceError] = useState<string | null>('Checking the waiting place…');
+    useEffect(() => {
+      if (!gameState.isLongRestModalVisible && !gameState.isShortRestModalVisible && !gameState.isPartyOverlayVisible) return;
+      let cancelled = false;
+      setRestPlaceError('Checking the resting place…');
+      setPartyRestEnvironmentError('Checking the resting place…');
+      setWaitPlaceError('Checking the waiting place…');
+      const check = (async () => {
+        const environmentError = await restEnvironmentError(gameState);
+        if (!cancelled) {setWaitPlaceError(environmentError); setPartyRestEnvironmentError(environmentError); }
+        if (environmentError || gameState.isShortRestModalVisible || !gameState.isLongRestModalVisible) return environmentError;
+        return gameState.lodgingRestAdmission ? lodgingRestError(gameState, gameState.lodgingRestAdmission) : propertyRestError(gameState);
+      })();
+      void check.then(error => {if (!cancelled) setRestPlaceError(error);})
+        .catch(() => {if (!cancelled) {setPartyRestEnvironmentError('The resting place could not be verified. Close the roster and return to your current location.'); setRestPlaceError('The resting place could not be verified. Close this dialog and return to your current location.'); setWaitPlaceError('The waiting place could not be verified.');}});
+      return () => {cancelled = true;};
+    }, [gameState.isLongRestModalVisible, gameState.isShortRestModalVisible, gameState.isPartyOverlayVisible, gameState.worldSeed, gameState.playerCell, gameState.dungeonExpeditions, gameState.gameTime, gameState.lodgingRestAdmission, gameState.atlasGroundAddress,
+      gameState.playerGroundPos, gameState.party, gameState.lodgingReservations]);
 
     const { generateResponse, handleTopicOutcome, inviteToParty } = useDialogueSystem(gameState, dispatch, onAction);
 
@@ -263,6 +295,7 @@ const GameModals: React.FC<GameModalsProps> = ({
         // but their position still matters: sitting above the Party Overlay is
         // what tells the shared handler to stand down while one of them is up,
         // instead of closing the overlay underneath them.
+        { id: 'lodging', isOpen: Boolean(gameState.lodgingOffer), locksBackgroundScroll: true },
         { id: 'long-rest', isOpen: Boolean(gameState.isLongRestModalVisible), locksBackgroundScroll: true },
         { id: 'short-rest', isOpen: Boolean(gameState.isShortRestModalVisible), locksBackgroundScroll: true },
         // Party Overlay is the parent of the character sheet and of both rest
@@ -301,6 +334,7 @@ const GameModals: React.FC<GameModalsProps> = ({
     // Best forager's Survival modifier (Wis mod + proficiency bonus if the party
     // member lists Survival among their proficient skills) — drives the travel
     // "Forage en route" biome-yield roll. Max across the party (best forager leads).
+    const travelSupplies = useMemo(() => partyProvisionInventory(gameState), [gameState.inventory, gameState.companions, gameState.party]);
     const partySurvivalModifier = useMemo(() => {
         // Preserve an honestly weak party: starting at zero silently upgrades
         // every all-negative-Wisdom group to an average forager/navigator.
@@ -356,7 +390,11 @@ const GameModals: React.FC<GameModalsProps> = ({
     const isEncounterModalOpen = gameState.isEncounterModalVisible;
     const isDiceRollerModalOpen = gameState.isDiceRollerVisible;
     const isInvestmentBoardModalOpen = gameState.isInvestmentBoardVisible;
-    const isCombatActive = Boolean(gameState.currentEnemies?.length);
+    const isCombatActive = gameState.phase === GamePhase.COMBAT || gameState.phase === GamePhase.BATTLE_MAP_DEMO;
+    // Pending source encounters can exist during exploration. They still block
+    // rest, but the roster must not tell the player they are taking combat turns.
+    const partyRestUnavailableReason = partyRestEnvironmentError
+        || (gameState.currentEnemies?.length ? 'Resolve or leave the pending encounter before resting.' : null);
 
     const mapPaneFocusRef = useFocusTrap<HTMLDivElement>(isMapModalOpen);
     const questLogFocusRef = useFocusTrap<HTMLDivElement>(isQuestLogModalOpen);
@@ -383,9 +421,35 @@ const GameModals: React.FC<GameModalsProps> = ({
                     <Suspense fallback={<LoadingSpinner />}>
                         <ErrorBoundary fallbackMessage="Error displaying the World Map.">
                             <MapPane
+                                groundState={gameState}
+                                getTownBusinessName={(burgId, plotId) => gameState.worldBusinesses?.['biz_burg_' + burgId + '_plot_' + plotId]?.name}
+                                getTownLodging={(burgId, plotId) => [...(gameState.lodgingReservations ?? [])].reverse().find(stay => stay.worldSeed === gameState.worldSeed && stay.burgId === burgId && stay.plotId === plotId)}
+                                getTownBuildingHistory={(burgId, plotId) => gameState.townSim?.[burgId]?.buildingEvents?.[plotId]}
+                                getTownLife={(burgId) => gameState.townSim?.[burgId]}
+                                onTownKeeperAction={(burgId, plotId, kind) => {
+                                    // Reuse the registered keeper and normal talk/trade handlers.
+                                    // Looking at a floor plan never creates a replacement NPC.
+                                    const npcId = `npc_burg_${burgId}_plot_${plotId}`;
+                                    const business = gameState.worldBusinesses?.[`biz_burg_${burgId}_plot_${plotId}`];
+                                    if (!business || !gameState.generatedNpcs?.[npcId]) {
+                                        dispatch({ type: 'ADD_NOTIFICATION', payload: { message: 'The keeper is not available yet.', type: 'info' } });
+                                        return;
+                                    }
+                                    if (!householdNpcAliveAt(gameState.generatedNpcs[npcId], gameState.townSim, getGameDay(gameState.gameTime))) {
+                                        dispatch({type: 'ADD_NOTIFICATION', payload: {message: householdNpcLifeStatusAt(gameState.generatedNpcs[npcId], gameState.townSim, getGameDay(gameState.gameTime)) === 'deceased' ? 'The proprietor has died. No successor is recorded to serve here.' : 'The keeper’s current identity could not be verified.', type: 'info'}});
+                                        return;
+                                    }
+                                    dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
+                                    onAction(kind === 'lodging'
+                                        ? { type: 'REQUEST_LODGING', label: `Ask about guest beds — ${business.name}`, payload: {businessId: business.id} }
+                                        : kind === 'talk'
+                                        ? { type: 'talk', label: 'Talk to keeper', targetId: npcId, payload: { targetNpcId: npcId } }
+                                        : { type: 'OPEN_DYNAMIC_MERCHANT', label: `Browse Goods — ${business.name}`, payload: { merchantType: merchantTypeForBusiness(business.businessType), buildingId: npcId, seedKey: business.id } });
+                                }}
                                 worldSeed={gameState.worldSeed}
                                 onTileClick={onTileClick}
                                 onEnter3DAtCell={onEnter3DAtCell}
+                                travelMinutesRemainder={gameState.travelMinutesRemainder}
                                 playerWorldPos={playerWorldPos}
                                 playerAtlasCellId={gameState.playerCell?.cellId ?? null}
                                 gameTime={gameState.gameTime}
@@ -398,7 +462,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                                 canRegenerateWorld={canRegenerateWorldMap}
                                 generationLockedReason={worldGenerationLockedReason}
                                 onRegenerateWorld={onRegenerateWorldMap}
-                                provisionInventory={gameState.inventory}
+                                provisionInventory={travelSupplies}
                                 partySize={gameState.party.length}
                                 partyGold={gameState.gold}
                                 partySurvivalModifier={partySurvivalModifier}
@@ -485,6 +549,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                                 onAction={onAction}
                                 onNavigateToGlossary={handleNavigateToGlossaryFromTooltip}
                                 party={gameState.party}
+                                rulesEdition={getRulesEdition(gameState)}
                             />
                         </ErrorBoundary>
                     </Suspense>
@@ -522,6 +587,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                                 onShortRest={() => dispatch({ type: 'TOGGLE_SHORT_REST_MODAL' })}
                                 shortRestTracker={gameState.shortRestTracker}
                                 isCombatActive={isCombatActive}
+                                restUnavailableReason={partyRestUnavailableReason}
                             />
                         </ErrorBoundary>
                     </Suspense>
@@ -534,11 +600,15 @@ const GameModals: React.FC<GameModalsProps> = ({
                     <ErrorBoundary fallbackMessage="Error in Short Rest Modal.">
                         <RestModal
                             isOpen={gameState.isShortRestModalVisible}
+                            locationError={restPlaceError || shortRestPreview.blockReason}
                             party={gameState.party}
+                            gameTime={gameState.gameTime}
+                            shortRestTracker={gameState.shortRestTracker}
                             onClose={() => dispatch({ type: 'TOGGLE_SHORT_REST_MODAL' })}
-                            onConfirm={(spend) => {
-                                onAction({ type: 'SHORT_REST', label: 'Short Rest', payload: { hitPointDiceSpend: spend } });
-                                dispatch({ type: 'TOGGLE_SHORT_REST_MODAL' });
+                            onConfirm={async (spend) => {
+                                // RestModal owns its close callback. Toggling here too
+                                // reopened the completed dialog immediately.
+                                await onAction({ type: 'SHORT_REST', label: 'Short Rest', payload: { hitPointDiceSpend: spend } });
                             }}
                         />
                     </ErrorBoundary>
@@ -824,6 +894,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                             onClose={() => dispatch({ type: 'CLOSE_PUZZLE_RUNTIME' })}
                             puzzle={gameState.activePuzzle}
                             character={gameState.party[0]}
+                            dispatch={dispatch}
                         />
                     </ErrorBoundary>
                 </Suspense>
@@ -1000,6 +1071,12 @@ const GameModals: React.FC<GameModalsProps> = ({
                 </Suspense>
             )}
 
+        {gameState.lodgingOffer && <Suspense key="lodging" fallback={<LoadingSpinner />}>
+            <LodgingModal offer={gameState.lodgingOffer.offer} gold={getPartyFundsGp(gameState)} error={gameState.lodgingOffer.error}
+                onClose={() => dispatch({type: 'SHOW_LODGING_OFFER', payload: null})}
+                onConfirm={async () => { await onAction({type: 'BOOK_LODGING', label: 'Reserve guest beds', payload: {offer: gameState.lodgingOffer!.offer}}); }} />
+        </Suspense>}
+
         {/* Long Rest Modal */}
         {gameState.isLongRestModalVisible && (
             <Suspense key="longrest" fallback={<LoadingSpinner />}>
@@ -1007,8 +1084,18 @@ const GameModals: React.FC<GameModalsProps> = ({
                     <LongRestModal
                         isOpen={gameState.isLongRestModalVisible}
                         party={gameState.party}
+                        companions={gameState.companions}
+                        inventory={gameState.inventory}
+                        gameTime={gameState.gameTime}
+                        lastLongRestAt={gameState.lastLongRestAt}
+                        locationError={restPlaceError || longRestPreview.blockReason}
+                        restWarning={longRestPreview.warning}
+                        lodgingName={gameState.lodgingRestAdmission ? gameState.lodgingReservations?.find(stay => stay.id === gameState.lodgingRestAdmission?.reservationId)?.businessName : undefined}
+                        waitLocationError={waitPlaceError}
+                        onWait={async (seconds) => { const error = await restEnvironmentError(gameState); if (error) throw new Error(error); await onAction({type: 'wait', label: 'Wait here', payload: {seconds}} as Action); }}
+                        rulesEdition={getRulesEdition(gameState)}
                         onClose={() => dispatch({ type: 'TOGGLE_LONG_REST_MODAL' })}
-                        onConfirm={(choices) => {
+                        onConfirm={async (choices) => {
                             // Route confirmation through the same gameplay
                             // pipeline as every other Action Pane command. A
                             // direct reducer dispatch restores resources but
@@ -1016,10 +1103,10 @@ const GameModals: React.FC<GameModalsProps> = ({
                             // rollover, and the promised eight-hour advance.
                             // LongRestModal closes itself after this callback,
                             // so the action must not toggle the modal a second time.
-                            void onAction({
+                            await onAction({
                                 type: 'LONG_REST',
                                 label: 'Long Rest',
-                                payload: { racialRestChoices: choices },
+                                payload: { racialRestChoices: choices, lodgingRestAdmission: gameState.lodgingRestAdmission ?? undefined },
                             } as unknown as Action);
                         }}
                     />

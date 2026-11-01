@@ -19,7 +19,7 @@
  */
 // @dependencies-end
 
-import { BattleMapData, BattleMapTile, BattleMapTerrain, BattleMapDecoration, BattleMapBiome, TargetableMapObject } from '../types/combat';
+import { BattleMapData, BattleMapTile, BattleMapTerrain, BattleMapDecoration, BattleMapBiome, TargetableMapObject, EnvironmentalEffect } from '../types/combat';
 import { PerlinNoise } from '../utils/random';
 import { SeededRandom } from '@/utils/random';
 
@@ -181,6 +181,33 @@ export class BattleMapGenerator {
     }
 
 
+    // agora-f821.54: wind-scoured pans between the drifts freeze to black
+    // ice — a walkable cold hazard. resolveTileEffects (systems/combat/
+    // engine/tileEffects.ts) already turns an `ice` environmental effect with
+    // a condition payload into a Chilled creature; the generator only has to
+    // author the tile. The legacy single field is what the engine seam reads
+    // today; the canonical array is kept in step so newer readers see the
+    // same truth.
+    let coldHazard: EnvironmentalEffect | undefined;
+    if (biome === 'snow' && terrain === 'grass' && noiseValue > 0.28) {
+      coldHazard = {
+        id: `${x}-${y}-black-ice`,
+        type: 'ice',
+        // Static map feature: the tile seam re-applies on entry, so the
+        // duration field is inert here; 0 says "not a timed surface".
+        duration: 0,
+        effect: {
+          id: 'chilled-black-ice',
+          name: 'Chilled',
+          type: 'debuff',
+          duration: 1,
+          description: 'Black ice numbs the limbs: speed halved, disadvantage on Dexterity saves until warmed.',
+          source: 'Black ice',
+          effect: { type: 'condition' },
+        },
+      };
+    }
+
     return {
       id: `${x}-${y}`,
       coordinates: { x, y },
@@ -190,7 +217,8 @@ export class BattleMapGenerator {
       blocksLoS: terrain === 'wall',
       blocksMovement: terrain === 'wall' || terrain === 'water',
       decoration: null,
-      effects: []
+      effects: [],
+      ...(coldHazard ? { environmentalEffect: coldHazard, environmentalEffects: [coldHazard] } : {}),
     };
   }
 

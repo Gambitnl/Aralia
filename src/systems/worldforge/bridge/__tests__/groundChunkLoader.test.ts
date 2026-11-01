@@ -204,8 +204,8 @@ function footprintCellIndexes(
   ground: GroundWorld,
   corners: Array<{ x: number; z: number }>,
 ): number[] {
-  // Cell centers are what the pad contract promises to flatten. Restricting to
-  // the plot bounds keeps the assertion focused even on larger terrain grids.
+  // Pads level the integer height samples read by the continuous query and
+  // rendered terrain. Cell-coverage centers are half a grid cell elsewhere.
   const minCol = Math.max(
     0,
     Math.floor(Math.min(...corners.map((c) => c.x)) / GROUND_METERS_PER_CELL) -
@@ -231,8 +231,8 @@ function footprintCellIndexes(
   for (let row = minRow; row <= maxRow; row++) {
     for (let col = minCol; col <= maxCol; col++) {
       const center = {
-        x: (col + 0.5) * GROUND_METERS_PER_CELL,
-        z: (row + 0.5) * GROUND_METERS_PER_CELL,
+        x: col * GROUND_METERS_PER_CELL,
+        z: row * GROUND_METERS_PER_CELL,
       };
       if (pointInsideConvexQuad(center, corners))
         indexes.push(row * ground.cols + col);
@@ -303,6 +303,31 @@ describe("ground river waterlines", () => {
         (height) => heightToMeters(height) + GROUND_RIVER_CHANNEL_DEPTH_M,
       ),
     );
+  });
+
+  it("ignores points outside the window, which read only the clamped edge", () => {
+    // Downhill inside the window: 6 -> 1. The last column (the edge) is a high
+    // bank at 8. Twenty points past the edge read that clamped 8; before the
+    // fix they pooled the whole river up to a flat slab above its own bed.
+    const heights = [6, 4, 1, 8];
+    const inside = [0, 1, 2].map((c) => ({ x: c * GROUND_METERS_PER_CELL, z: 0 }));
+    const outside = Array.from({ length: 20 }, (_, k) => ({
+      x: (6 + k) * GROUND_METERS_PER_CELL,
+      z: 0,
+    }));
+    const [river] = computeGroundRiverWaterlines(
+      [{ points: [...inside, ...outside], widthM: 8, sourceKind: "river" }],
+      heights,
+      4,
+      1,
+      false,
+    );
+    const expected = [6, 4, 1].map(
+      (h) => heightToMeters(h) + GROUND_RIVER_CHANNEL_DEPTH_M,
+    );
+    expect(river.waterlineY!.slice(0, 3)).toEqual(expected);
+    // Outside points hold the last inside value: no rise, no pull upward.
+    for (const y of river.waterlineY!.slice(3)) expect(y).toBe(expected[2]);
   });
 
   it("pools an uphill reach and exposes the same interpolated surface query", () => {
@@ -406,6 +431,8 @@ describe("regionPolylinesToGround", () => {
               [250, 500],
             ],
             widthFt: 80,
+            widthFtAt: [80, 80],
+            slopeAt: [0.001, 0.001],
           },
         ],
         crossings: [
@@ -512,6 +539,8 @@ describe("regionPolylinesToGround", () => {
             [250, 500],
           ],
           widthFt: 80,
+          widthFtAt: [80, 80],
+          slopeAt: [0.001, 0.001],
         },
       ],
       crossings: [
@@ -611,6 +640,8 @@ describe("regionPolylinesToGround", () => {
             [250, 500],
           ],
           widthFt: 80,
+          widthFtAt: [80, 80],
+          slopeAt: [0.001, 0.001],
         },
       ],
       crossings: [
@@ -691,6 +722,8 @@ describe("regionPolylinesToGround", () => {
             [250, 500],
           ],
           widthFt: 80,
+          widthFtAt: [80, 80],
+          slopeAt: [0.001, 0.001],
         },
       ],
       crossings: [
@@ -722,26 +755,20 @@ describe("regionPolylinesToGround", () => {
     expect(strips.length).toBeGreaterThanOrEqual(3);
     expect(strips.length).toBeLessThanOrEqual(7); // span 34 m / 5 m strips
     const crossing = ground.crossings![0];
-    const halfSpanM = crossing.spanM / 2;
-    const sampleHalfM = halfSpanM - Math.min(halfSpanM * 0.4, 16 * 0.3048);
-    let channelFloorM = Number.POSITIVE_INFINITY;
-    for (let i = -8; i <= 8; i += 1) {
-      const enc = bilinearHeightAtCellSpace(
-        ground.heights,
-        ground.cols,
-        ground.rows,
-        crossing.xM + crossing.roadDirection.x * (i / 8) * sampleHalfM,
-        crossing.zM + crossing.roadDirection.z * (i / 8) * sampleHalfM,
-      );
-      channelFloorM = Math.min(channelFloorM, heightToMeters(enc));
-    }
+    // Each strip RESTS on the gravel bar raised under it (raiseFordBars,
+    // agora-257c 2026-10-27). The waterline fills the channel to its bank, so
+    // a strip set from the waterline used to float metres over a deep bed.
     for (const strip of strips) {
       expect(strip.sourceCrossingId).toBe("crossing:5:9:0");
       expect(strip.cornersM).toHaveLength(4);
-      expect(strip.topY).toBeGreaterThan(channelFloorM + 0.3);
-      // Strips may step up over bed humps but stay causeway-low, and each
-      // carries a wet/dry tint so awash strips darken.
-      expect(strip.topY).toBeLessThan(channelFloorM + 2);
+      const cx = strip.cornersM.reduce((s, c) => s + c.x, 0) / 4;
+      const cz = strip.cornersM.reduce((s, c) => s + c.z, 0) / 4;
+      const barM = heightToMeters(
+        bilinearHeightAtCellSpace(ground.heights, ground.cols, ground.rows, cx, cz),
+      );
+      expect(strip.topY).toBeGreaterThan(barM + 0.05);
+      expect(strip.topY).toBeLessThan(barM + 0.6);
+      // Each strip carries a wet/dry tint so awash strips darken.
       expect(strip.color).toHaveLength(3);
     }
     // At least one strip rides just below the shared visible surface: the bar
@@ -833,6 +860,8 @@ describe("regionPolylinesToGround", () => {
             [250, 500],
           ],
           widthFt: 80,
+          widthFtAt: [80, 80],
+          slopeAt: [0.001, 0.001],
         },
       ],
       crossings: [
@@ -1025,36 +1054,29 @@ describe("sampleGroundChunk occupant sites", () => {
       hour: 20,
       deltas,
     });
-    const worker = noonGround.rosters[0].occupants.find(
-      (occupant) => occupant.workPlotId !== undefined,
-    );
-
-    expect(worker).toBeDefined();
-    const noonOccupant = noonGround.occupants.find(
-      (occupant) => occupant.occupantId === worker!.id,
-    );
-    const eveningOccupant = eveningGround.occupants.find(
-      (occupant) => occupant.occupantId === worker!.id,
-    );
-    const workBuilding = noonGround.buildings.find(
-      (building) => building.id === `wf-plot-7-${worker!.workPlotId}`,
-    );
-    const homeBuilding = eveningGround.buildings.find(
-      (building) => building.id === `wf-plot-7-${worker!.homePlotId}`,
-    );
-
-    // Nameplates resolve from the same plot assignment that feeds interior
-    // figure placement: work during business hours, home afterward.
-    expect(noonOccupant).toMatchObject({
-      name: worker!.name,
-      xM: workBuilding?.xM,
-      zM: workBuilding?.zM,
-    });
-    expect(eveningOccupant).toMatchObject({
-      name: worker!.name,
-      xM: homeBuilding?.xM,
-      zM: homeBuilding?.zM,
-    });
+    const roster=noonGround.rosters[0];
+    // The roster covers the complete town, while this ground window clips its
+    // outer plots. Compare every worker whose two endpoints are represented;
+    // an absent off-window building is not an in-window placement failure.
+    const workers=roster.occupants.filter(person=>person.workPlotId!==undefined&&[noonGround,eveningGround].every(world=>
+      [person.homePlotId,person.workPlotId].every(plotId=>world.buildings.some(building=>building.id==='wf-plot-'+roster.burgId+'-'+plotId))));
+    expect(workers.length).toBeGreaterThan(0);
+    expect(workers.some(worker=>!worker.retired&&worker.publicHouseWorkRole)).toBe(true);
+    expect(workers.some(worker=>!worker.retired&&!worker.publicHouseWorkRole)).toBe(true);
+    expect(workers.some(worker=>worker.retired)).toBe(true);
+    // Qualified inn/tavern owners work through20:00; day workers have gone
+    // home. Retired owners keep their identities and home instead of a shift.
+    // Check every actual worker, rather than selecting the first job by index.
+    for(const worker of workers){
+      for(const [world,plotId]of [[noonGround,worker.retired?worker.homePlotId:worker.workPlotId!],
+        [eveningGround,worker.retired||!worker.publicHouseWorkRole?worker.homePlotId:worker.workPlotId!]] as const){
+        const person=world.occupants.find(candidate=>candidate.burgId===roster.burgId&&candidate.occupantId===worker.id);
+        const building=world.buildings.find(candidate=>candidate.id==='wf-plot-'+roster.burgId+'-'+plotId);
+        expect(building,worker.name+' source plot '+plotId).toBeDefined();
+        expect(person,worker.name+' '+(worker.publicHouseWorkRole??'day')+(worker.retired?' retired':''))
+          .toMatchObject({name:worker.name,xM:building!.xM,zM:building!.zM});
+      }
+    }
     // Bakes a full ground world with a roster; the 5 s default left no
     // headroom once the town plan started inheriting a real river course.
   }, 30_000);
@@ -1157,15 +1179,25 @@ describe("sampleGroundChunk occupant sites", () => {
             candidate.householdMemberId === member.householdMemberId,
         );
       const expected = body?.stationsByHour.map(
-        (station) =>
-          station !== null &&
-          station.activity !== "work" &&
-          station.activity !== "out",
+        (station) => station !== null && station.activity !== "out",
       );
-
-      // Authored work/out points identify the exterior owner even when they
-      // retain a useful doorway pose; meals and chores remain interior-owned.
+      // Room stations at home and work own the resident after actual arrival.
       expect(body?.interiorOwnedByHour).toEqual(expected);
+      expect(body?.interiorArrivalDelayByHour).toHaveLength(24);
+    }
+    const workers = ground.buildings.flatMap(building => building.occupants ?? [])
+      .filter(body => body.stationsByHour.some(station => station?.activity === 'work'));
+    expect(workers.length).toBeGreaterThan(0);
+    expect(workers.some(worker => worker.interiorOwnedByHour !== undefined)).toBe(true);
+    for (const worker of workers) {
+      worker.stationsByHour.forEach((station,hour) => {
+        if (station?.activity === 'work') {
+          // Members outside the bounded street roster are interior-only; their
+          // existing station-nullability fallback remains authoritative.
+          expect(worker.interiorOwnedByHour?.[hour] ?? Boolean(station)).toBe(true);
+          if (worker.interiorOwnedByHour) expect(worker.interiorArrivalDelayByHour?.[hour]).toBeGreaterThanOrEqual(0);
+        }
+      });
     }
   });
 });
@@ -1418,6 +1450,26 @@ describe("makeGroundWorld building terrain pads", () => {
     expect(ground.canopy ?? null).toBeNull();
   });
 
+  it("labels fitted civic landmarks without naming private homes", () => {
+    const ground = makeGroundWorld(makeLocalArtifact(), 42, makeRegionArtifact());
+    const labels: Record<string, string> = {library: 'Library', school: 'School', shrine: 'Shrine', guildhall: 'Guild Hall', civic: 'Civic Hall', temple: 'Temple'};
+    const plots = ground.townPlans!.flatMap(town => town.plan.plots.map(plot => ({burgId: town.burgId, plot})));
+    const landmarks = plots.flatMap(({burgId, plot}) => {
+      const type = plot.pop?.buildingType ?? plot.role;
+      const building = ground.buildings.find(b => b.id === `wf-plot-${burgId}-${plot.id}`);
+      return type && labels[type] && building ? [{building, label: labels[type]}] : [];
+    });
+    // This must exercise a real projected civic building, not pass on an empty list.
+    expect(landmarks.length).toBeGreaterThan(0);
+    for (const {building, label} of landmarks) {
+      expect(building.name).toBe(label);
+      expect(building.unlabeled).toBe(false);
+    }
+    const homes = ground.buildings.filter(b => b.role === 'house');
+    expect(homes.length).toBeGreaterThan(0);
+    expect(homes.every(b => b.name === undefined && b.unlabeled === true)).toBe(true);
+  });
+
   it("correctly maps worldBusinesses and NPC owner names to buildings and keepers", () => {
     const local = makeLocalArtifact();
     const region = makeRegionArtifact();
@@ -1426,8 +1478,25 @@ describe("makeGroundWorld building terrain pads", () => {
     // Plot ids are POSITIONAL, so re-deriving the plan (2026-07-29: the town
     // river is now the region's real course, not a 30x-shrunk cell copy)
     // renumbers them and can move a low id outside the 500 ft artifact window.
-    const plotId = 2;
-    const deltas = [makeMarketDelta(plotId)]; // makes that plot a market
+    // GG-552 (2026-11-01): 2 → 10. The town-look rules re-lay out every town
+    // (Remy's ruling q2), and plot 2 now falls outside this window; plot 10 is
+    // inside it. GG-560..GG-567 (2026-11-01) moved plot 10 out as well, so the
+    // test now takes the lowest plot id the loader really places in the
+    // window: the mapping under test does not depend on which plot it is.
+    // After the squarish ruling (GG-563) the lowest placed plot got no roster
+    // worker as a market, so the test takes the first one that does.
+    const placed = makeGroundWorld(local, 42, region, { hour: 12 }).buildings
+      .map((b) => /^wf-plot-7-(\d+)$/.exec(b.id)?.[1])
+      .filter((m): m is string => m !== undefined)
+      .map(Number)
+      .sort((p, q) => p - q);
+    expect(placed.length).toBeGreaterThan(0);
+    const plotId = placed.slice(0, 8).find((id) => makeGroundWorld(local, 42, region, {
+      hour: 12,
+      deltas: [makeMarketDelta(id)],
+    }).rosters[0].occupants.some((o) => o.workPlotId === id));
+    expect(plotId).toBeDefined();
+    const deltas = [makeMarketDelta(plotId!)]; // makes that plot a market
     const bizId = `biz_burg_${burgId}_plot_${plotId}`;
     const npcId = `npc_burg_${burgId}_plot_${plotId}`;
 
@@ -1685,6 +1754,21 @@ describe("extractLocalTerrainPatch", () => {
     // The route-authority pass erased the stale tree from the referee grid, so
     // it must not survive as an invisible spell target on the same cell.
     expect(patch.targetableObjects).toEqual([]);
+  });
+
+  it("keeps a repaired prop tactical identity while publishing its current physical location", () => {
+    const ground = makeGroundWorldFixture({ cols: 100, rows: 100, heights: new Array(10000).fill(0),
+      biomeIds: new Array(10000).fill("plains"), extentMetersX: 152.4, extentMetersZ: 152.4,
+      props: [{ defId: "woodpile", xM: 54, zM: 50, rotationRad: .25,
+        retainedSourceId: "prop:woodpile:5200:5100:100", variation: { scale: 1, variant: 0 } }],
+    });
+    const before = JSON.stringify(ground.props);
+    const patch = extractLocalTerrainPatch(ground, 50, 50, "forest", 42, { width: 9, height: 9 });
+    const target = patch.targetableObjects?.find(object => object.source?.kind === "worldforge-prop");
+    expect(target).toMatchObject({ id: "worldforge-prop:woodpile:5200:5100:100",
+      weightPounds: 400, isFixedToSurface: false,
+      source: { sourceId: "prop:woodpile:5200:5100:100", sourceKind: "woodpile", worldMeters: { x: 54, z: 50 } } });
+    expect(JSON.stringify(ground.props)).toBe(before);
   });
 
   it("publishes one provenance-bearing target per represented feature and catalog prop", () => {

@@ -4,6 +4,9 @@
  * It is the core damage engine of the combat system. It handles applying damage numbers,
  * checking damage type resistances or vulnerabilities, rolling saving throws, running feat checks,
  * logging damage events, removing defeated summons, and prompting/checking spell concentration.
+ * Confirmed weapon hits can prepare several typed rows through those same defenses,
+ * then resolve one reaction/HP/concentration boundary. Ordinary single effects keep
+ * their existing lane; later class/rider commands are not implicitly joined here.
  *
  * Called by: useAbilitySystem.ts and various spell/ability command factories.
  * Depends on: deathSaveUtils for applying damage, resistanceUtils for resistances, and ConcentrationCommands to break spell maintenance.
@@ -16,9 +19,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 09/09/2026, 14:55:02
- * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/GraspingVineCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, components/DesignPreview/steps/raceDomain/leaves/halfOrcRaceLeaf.tsx
- * Imports: 20 files
+ * Last Sync: 28/10/2026, 13:19:17
+ * Dependents: commands/effects/AttackRollModifierCommand.ts, commands/effects/GrantedActionCommand.ts, commands/effects/GraspingVineCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/spell/effectRegistry.ts, commands/factory/spell/movement.ts, components/DesignPreview/steps/raceDomain/leaves/halfOrcRaceLeaf.tsx
+ * Imports: 27 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -28,10 +31,12 @@
 // @dependencies-end
 
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
+import type { CommandContext } from '../base/SpellCommand';
 import { CombatState, CombatCharacter, StatusEffect, ActiveEffect, ActiveEnvironmentalControl, ActiveSpellEmanation, ActiveSpellGuardian, Position, SelectedSpellTarget } from '../../types/combat'
 import { isDamageEffect } from '../../types/spells'
 import type { DamageEffect } from '../../types/spells'
 import { checkConcentration } from '../../utils/character';
+import { getRulesEdition } from '../../config/rulesEdition';
 import { calculateSpellDC, rollSavingThrow, calculateSaveDamage, resolveSaveOutcomeOverride } from '../../utils/character';
 import type { SavingThrowModifier, SavingThrowResult } from '../../utils/character';
 import type { SavingThrowAbility } from '../../types/spellEffectTypes';
@@ -60,6 +65,18 @@ import {
 
 /** Unique key for tracking Slasher speed reduction once-per-turn usage */
 const SLASHER_SLOW_USAGE_KEY = 'slasher_slow';
+
+interface PreparedDamageComponent {
+  command: DamageCommand;
+  effect: DamageEffect;
+  rawDamage: number;
+  finalDamage: number;
+}
+
+type DamageDelivery =
+  | { mode: 'packet'; effects: DamageEffect[] }
+  | { mode: 'prepare'; collect: (component: PreparedDamageComponent) => void }
+  | { mode: 'settle'; components: PreparedDamageComponent[] };
 
 /**
  * Dark One's Blessing is gated on reducing a *hostile* creature to 0 HP. The
@@ -137,6 +154,60 @@ export function selectDamageVerb(
 // The generic base contract keeps helper methods aligned with the same damage
 // shape that execute() already validates, without changing the runtime guard.
 export class DamageCommand extends BaseEffectCommand<DamageEffect> {
+  constructor(effect: DamageEffect, context: CommandContext, private readonly delivery?: DamageDelivery) {
+    super(effect, context);
+  }
+
+  /**
+   * One confirmed weapon hit can carry several typed damage rows. Keep every
+   * row's native dice/passive defenses, then offer reactions and settle HP,
+   * massive damage, concentration and the post-HP event once for that hit.
+   * Save-based and delayed spell damage retain their existing command path.
+   */
+  static forWeaponHit(effects: DamageEffect[], context: CommandContext): DamageCommand {
+    if (effects.length === 0 || effects.some(effect =>
+      !['always', 'hit'].includes(effect.condition.type)
+      || (effect.trigger && effect.trigger.type !== 'immediate')
+      || effect.controlledEntity
+    )) throw new Error('A weapon damage packet requires immediate confirmed-hit damage rows.');
+    const confirmed = effects.map(effect => ({ ...effect, condition: { ...effect.condition, type: 'hit' as const } }));
+    return new DamageCommand(confirmed[0], context,
+      confirmed.length > 1 ? { mode: 'packet', effects: confirmed } : undefined);
+  }
+
+  private async executePacket(state: CombatState): Promise<CombatState> {
+    if (this.delivery?.mode !== 'packet') return state;
+    let currentState = state;
+    for (const target of this.getTargets(currentState)) {
+      const context = { ...this.context, targets: [target], damageEventId: this.context.damageEventId ?? this.id };
+      const claimId = getAlliedProtectionClaimId(`${context.damageEventId}:${target.id}`);
+      if (currentState.combatLog.some(entry => entry.id === claimId)) continue;
+      const components: PreparedDamageComponent[] = [];
+      for (const effect of this.delivery.effects) {
+        currentState = await new DamageCommand(effect, context, {
+          mode: 'prepare', collect: component => components.push(component),
+        }).execute(currentState);
+      }
+      if (components.length === 0) continue;
+      currentState = await new DamageCommand(components[0].effect, context, {
+        mode: 'settle', components,
+      }).execute(currentState);
+    }
+    return currentState;
+  }
+
+  private remainingComponents(finalDamage: number): PreparedDamageComponent[] | undefined {
+    if (this.delivery?.mode !== 'settle') return undefined;
+    // A flat whole-hit reduction removes damage in source row order. Typed
+    // resistance/immunity has already resolved independently before this point.
+    let reduction = Math.max(0, this.delivery.components.reduce((sum, part) => sum + part.finalDamage, 0) - finalDamage);
+    return this.delivery.components.map(part => {
+      const removed = Math.min(reduction, part.finalDamage);
+      reduction -= removed;
+      return { ...part, finalDamage: part.finalDamage - removed };
+    });
+  }
+
   async execute(state: CombatState): Promise<CombatState> {
     if (!isDamageEffect(this.effect)) {
       console.warn('DamageCommand received non-damage effect')
@@ -152,6 +223,8 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
     ) {
       return state
     }
+
+    if (this.delivery?.mode === 'packet') return this.executePacket(state);
 
     let currentState = state
     const caster = this.getCaster(currentState);
@@ -217,253 +290,270 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
         continue;
       }
 
-      // Step 1: Roll base damage
-      // - Parses dice string (e.g., "2d6+3") and rolls
-      // - Doubles dice on critical hits
-      // - Applies minRoll floor from Elemental Adept
+      // Prepare each type before the one hit reaches reactions or HP. The
+      // ordinary single-effect lane below keeps its existing native rules.
       const isCritical = this.context.isCritical || false;
-      this.emitSpellAttackHitEvent(caster, target, isCritical);
-      const damageDice = this.resolveHitPointStateDamageDice(target);
-      let damageRoll = this.rollDamage(damageDice, isCritical, minRoll);
+      let damageRoll: number;
+      let finalDamage: number;
+      let targetAfterResistance: CombatCharacter;
+      if (this.delivery?.mode === 'settle') {
+        damageRoll = this.delivery.components.reduce((sum, part) => sum + part.rawDamage, 0);
+        finalDamage = this.delivery.components.reduce((sum, part) => sum + part.finalDamage, 0);
+        targetAfterResistance = currentState.characters.find(character => character.id === target.id) ?? target;
+      } else {
+        // Step 1: Roll base damage
+        // - Parses dice string (e.g., "2d6+3") and rolls
+        // - Doubles dice on critical hits
+        // - Applies minRoll floor from Elemental Adept
+        this.emitSpellAttackHitEvent(caster, target, isCritical);
+        const damageDice = this.resolveHitPointStateDamageDice(target);
+        damageRoll = this.rollDamage(damageDice, isCritical, minRoll);
 
-      // Some spell payloads deliberately resolve as a fraction of the rolled
-      // damage before any mitigation is applied. Lightning Arrow's missed
-      // attack rider is the first shared runtime use: it rolls the normal
-      // primary damage, halves that roll, then still needs the standard
-      // resistance, immunity, temporary HP, death-save, elemental-state, and
-      // concentration handling below.
-      if (typeof this.context.damageMultiplier === 'number') {
-        damageRoll = Math.max(0, Math.floor(damageRoll * this.context.damageMultiplier));
-      }
-
-      // --- RACIAL TRAIT: Savage Attacks (Half-Orc) ---
-      // If melee weapon attack and critical hit, roll one extra damage die
-      // Following the 5e rules, Savage Attacks applies to a melee weapon attack.
-      // We check if it is not ranged and has the savageAttacks modifier.
-      if (
-        isCritical &&
-        caster.modifiers?.savageAttacks &&
-        this.context.weaponProperties &&
-        !this.context.weaponProperties.includes('ranged')
-      ) {
-        const dieSizeMatch = this.effect.damage.dice.match(/\b\d*d(\d+)\b/i);
-        if (dieSizeMatch && dieSizeMatch[1]) {
-          const dieSize = parseInt(dieSizeMatch[1], 10);
-          const extraRoll = rollDamageUtil(`1d${dieSize}`, false, minRoll, this.context.damageRng);
-          damageRoll += extraRoll;
-          currentState = this.addLogEntry(currentState, {
-            type: 'status',
-            message: `${caster.name}'s Savage Attacks adds +${extraRoll} (1d${dieSize}) to critical damage!`,
-            characterId: caster.id
-          });
+        // Some spell payloads deliberately resolve as a fraction of the rolled
+        // damage before any mitigation is applied. Lightning Arrow's missed
+        // attack rider is the first shared runtime use: it rolls the normal
+        // primary damage, halves that roll, then still needs the standard
+        // resistance, immunity, temporary HP, death-save, elemental-state, and
+        // concentration handling below.
+        if (typeof this.context.damageMultiplier === 'number') {
+          damageRoll = Math.max(0, Math.floor(damageRoll * this.context.damageMultiplier));
         }
-      }
 
-      // Step 2: Apply planar impediment (negative modifier only)
-      // Positive modifiers are handled upstream via upcasting.
-      if (planarModifier < 0) {
-        damageRoll += planarModifier; // Reduce damage
-        damageRoll = Math.max(0, damageRoll); // Damage cannot go below 0
-      }
+        // --- RACIAL TRAIT: Savage Attacks (Half-Orc) ---
+        // If melee weapon attack and critical hit, roll one extra damage die
+        // Following the 5e rules, Savage Attacks applies to a melee weapon attack.
+        // We check if it is not ranged and has the savageAttacks modifier.
+        if (
+          isCritical &&
+          caster.modifiers?.savageAttacks &&
+          this.context.weaponProperties &&
+          !this.context.weaponProperties.includes('ranged')
+        ) {
+          const dieSizeMatch = this.effect.damage.dice.match(/\b\d*d(\d+)\b/i);
+          if (dieSizeMatch && dieSizeMatch[1]) {
+            const dieSize = parseInt(dieSizeMatch[1], 10);
+            const extraRoll = rollDamageUtil(`1d${dieSize}`, false, minRoll, this.context.damageRng);
+            damageRoll += extraRoll;
+            currentState = this.addLogEntry(currentState, {
+              type: 'status',
+              message: `${caster.name}'s Savage Attacks adds +${extraRoll} (1d${dieSize}) to critical damage!`,
+              characterId: caster.id
+            });
+          }
+        }
 
-      // --- GWM FEAT (2024): +Proficiency Bonus damage on every Heavy weapon hit ---
-      // WHAT CHANGED: Added GWM damage bonus check.
-      // WHY IT CHANGED: Following the 2024 PHB rules, GWM now adds a 
-      // reliable flat bonus (Proficiency) instead of the old -5/+10 
-      // mechanic. This is implemented here so it applies to any damage 
-      // command tagged with 'heavy' weapon properties, ensuring consistency 
-      // across all martial attacks.
-      if (
-        caster.feats?.includes('great_weapon_master') &&
-        this.context.weaponProperties?.includes('heavy')
-      ) {
-        const gwmPB = Math.ceil((caster.level || 1) / 4) + 1;
-        damageRoll += gwmPB;
-      }
-
-      // --- Step 3: Handle Saving Throw ---
-      // If the effect requires a save (e.g., Dex save for Fireball), roll it here.
-      // saveEffect determines damage on success: 'half' (most spells), 'none' (cantrips), or 'negates_condition'
-      if (this.effect.condition.type === 'save' && this.effect.condition.saveType) {
-        // Calculate the spell save DC: 8 + proficiency + spellcasting modifier
-        let dc = calculateSpellDC(caster);
-
-        // Impeded spell schools on certain planes reduce DC
+        // Step 2: Apply planar impediment (negative modifier only)
+        // Positive modifiers are handled upstream via upcasting.
         if (planarModifier < 0) {
-          dc += planarModifier;
+          damageRoll += planarModifier; // Reduce damage
+          damageRoll = Math.max(0, damageRoll); // Damage cannot go below 0
         }
 
-        // Gather any active save penalties (e.g., Mind Sliver's -1d4)
-        const savePenaltySystem = new SavePenaltySystem();
-        const activeSaveModifiers = savePenaltySystem.getActivePenalties(target);
+        // --- GWM FEAT (2024): +Proficiency Bonus damage on every Heavy weapon hit ---
+        // WHAT CHANGED: Added GWM damage bonus check.
+        // WHY IT CHANGED: Following the 2024 PHB rules, GWM now adds a
+        // reliable flat bonus (Proficiency) instead of the old -5/+10
+        // mechanic. This is implemented here so it applies to any damage
+        // command tagged with 'heavy' weapon properties, ensuring consistency
+        // across all martial attacks.
+        if (
+          caster.feats?.includes('great_weapon_master') &&
+          // GG-496: item data capitalizes properties ('Heavy'); compare without case.
+          this.context.weaponProperties?.some(p => p.toLowerCase() === 'heavy')
+        ) {
+          const gwmPB = Math.ceil((caster.level || 1) / 4) + 1;
+          damageRoll += gwmPB;
+        }
 
-        // Dexterity saving throws can benefit from physical map cover, using the
-        // same cover calculation that already protects attack rolls. This keeps
-        // Fireball-style map positioning meaningful without changing non-Dex saves.
-        const coverSaveModifier = this.getCoverSaveModifier(currentState, caster, target);
-        const saveModifiers = coverSaveModifier
-          ? [...activeSaveModifiers, coverSaveModifier]
-          : activeSaveModifiers;
+        // --- Step 3: Handle Saving Throw ---
+        // If the effect requires a save (e.g., Dex save for Fireball), roll it here.
+        // saveEffect determines damage on success: 'half' (most spells), 'none' (cantrips), or 'negates_condition'
+        if (this.effect.condition.type === 'save' && this.effect.condition.saveType) {
+          // Calculate the spell save DC: 8 + proficiency + spellcasting modifier
+          let dc = calculateSpellDC(caster);
 
-        // Creature type, size, condition, and explicit fighting predicates can
-        // change the d20 mode without being inferred from description prose.
-        const structuredSaveModifiers = resolveSourceSaveAdvantageModifiers(
-          this.effect.condition.saveModifiers,
-          caster,
-          target
-        );
+          // Impeded spell schools on certain planes reduce DC
+          if (planarModifier < 0) {
+            dc += planarModifier;
+          }
 
-        // Roll the save: 1d20 + ability mod + proficiency (if proficient) + modifiers
-        let saveResult = resolveSaveOutcomeOverride(
-          this.effect.condition.saveOutcomeOverrides,
-          target,
-          dc,
-          caster.team
-        ) ?? rollSavingThrow(
-          target,
-          this.effect.condition.saveType,
-          dc,
-          saveModifiers,
-          undefined,
-          structuredSaveModifiers
-        );
+          // Gather any active save penalties (e.g., Mind Sliver's -1d4)
+          const savePenaltySystem = new SavePenaltySystem();
+          const activeSaveModifiers = savePenaltySystem.getActivePenalties(target);
 
-        // A failed save is the trigger for Lucky Footwork-style racial
-        // reactions (agora-db71.12). racialTraits emits them with
-        // trigger.type 'on_failed_saving_throw', and until now no consumer
-        // existed, so the d4 could never be added. The offer happens here,
-        // before the save outcome is priced into damage, because the die is
-        // added to the SAVE, not to the damage.
-        const savedByReaction = await this.offerFailedSaveReactions(
-            currentState,
-            target.id,
+          // Dexterity saving throws can benefit from physical map cover, using the
+          // same cover calculation that already protects attack rolls. This keeps
+          // Fireball-style map positioning meaningful without changing non-Dex saves.
+          const coverSaveModifier = this.getCoverSaveModifier(currentState, caster, target);
+          const saveModifiers = coverSaveModifier
+            ? [...activeSaveModifiers, coverSaveModifier]
+            : activeSaveModifiers;
+
+          // Creature type, size, condition, and explicit fighting predicates can
+          // change the d20 mode without being inferred from description prose.
+          const structuredSaveModifiers = resolveSourceSaveAdvantageModifiers(
+            this.effect.condition.saveModifiers,
+            caster,
+            target
+          );
+
+          // Roll the save: 1d20 + ability mod + proficiency (if proficient) + modifiers
+          let saveResult = resolveSaveOutcomeOverride(
+            this.effect.condition.saveOutcomeOverrides,
+            target,
+            dc,
+            caster.team
+          ) ?? rollSavingThrow(
+            target,
             this.effect.condition.saveType,
             dc,
-            saveResult
-        );
-        currentState = savedByReaction.state;
-        saveResult = savedByReaction.saveResult;
+            saveModifiers,
+            undefined,
+            structuredSaveModifiers
+          );
 
-        // Adjust damage based on save outcome:
-        // - Failed save: full damage
-        // - Successful save with 'half': half damage (most leveled spells)
-        // - Successful save with 'none': no damage reduction (rare)
-        // - Successful save with 'negates_condition': 0 damage (cantrips)
-        // NOTE: Default is 'half' which is WRONG for cantrips - spell data should specify 'none'
-        damageRoll = calculateSaveDamage(
-          damageRoll,
-          saveResult,
-          this.effect.condition.saveEffect || 'half'
-        );
+          // A failed save is the trigger for Lucky Footwork-style racial
+          // reactions (agora-db71.12). racialTraits emits them with
+          // trigger.type 'on_failed_saving_throw', and until now no consumer
+          // existed, so the d4 could never be added. The offer happens here,
+          // before the save outcome is priced into damage, because the die is
+          // added to the SAVE, not to the damage.
+          const savedByReaction = await this.offerFailedSaveReactions(
+              currentState,
+              target.id,
+              this.effect.condition.saveType,
+              dc,
+              saveResult
+          );
+          currentState = savedByReaction.state;
+          saveResult = savedByReaction.saveResult;
 
-        // Consume one-time save penalties (e.g., Mind Sliver applies to "next save" only)
-        currentState = savePenaltySystem.consumeNextSavePenalties(currentState, target.id);
+          // Adjust damage based on save outcome:
+          // - Failed save: full damage
+          // - Successful save with 'half': half damage (most leveled spells)
+          // - Successful save with 'none': no damage reduction (rare)
+          // - Successful save with 'negates_condition': 0 damage (cantrips)
+          // NOTE: Default is 'half' which is WRONG for cantrips - spell data should specify 'none'
+          damageRoll = calculateSaveDamage(
+            damageRoll,
+            saveResult,
+            this.effect.condition.saveEffect || 'half'
+          );
 
-        // Build and log the save outcome message
-        const saveWasOverridden = saveResult.roll === undefined;
-        let saveLogMessage = `${target.name} ${saveResult.success ? 'succeeds' : 'fails'} ${this.effect.condition.saveType} save (${saveResult.total} vs DC ${dc})`;
-        if (saveWasOverridden) {
-          saveLogMessage += ' (source-backed outcome override)';
-        }
+          // Consume one-time save penalties (e.g., Mind Sliver applies to "next save" only)
+          currentState = savePenaltySystem.consumeNextSavePenalties(currentState, target.id);
 
-        // Append modifier details if any were applied (e.g., "-3 [Mind Sliver]")
-        if (saveResult.modifiersApplied && saveResult.modifiersApplied.length > 0) {
-          const modDetails = saveResult.modifiersApplied.map(m => `${m.value >= 0 ? '+' : ''}${m.value} [${m.source}]`).join(', ');
-          saveLogMessage += ` (Mods: ${modDetails})`;
-        }
-
-        currentState = this.addLogEntry(currentState, {
-          type: 'status',
-          message: saveLogMessage,
-          characterId: target.id
-        });
-      }
-
-      // Resolve delayed on-damage spell riders before the final resistance pass.
-      // A preliminary pass proves that the triggering damage is not stopped by
-      // immunity. The rider then joins the same damage packet so vulnerability,
-      // temporary hit points, concentration, and defeat handling apply once.
-      const targetBeforeResistance = currentState.characters.find(character => character.id === target.id) ?? target;
-      const preliminaryDamage = ResistanceCalculator.applyResistances(
-        damageRoll,
-        this.effect.damage.type,
-        targetBeforeResistance,
-        caster,
-        this.context.isMagical,
-        {
-          spellZones: state.spellZones,
-          characters: state.characters
-        }
-      );
-      const onDamageResolution = resolveOnDamageSpellEffect(
-        targetBeforeResistance,
-        this.effect.damage.type,
-        currentState.turnState.currentTurn,
-        preliminaryDamage
-      );
-
-      if (onDamageResolution.damageDice) {
-        const extraDamage = rollDamageUtil(onDamageResolution.damageDice, false, 1, this.context.damageRng);
-        damageRoll += extraDamage;
-        currentState = {
-          ...currentState,
-          characters: currentState.characters.map(character =>
-            character.id === target.id ? onDamageResolution.character : character
-          )
-        };
-        currentState = this.addLogEntry(currentState, {
-          type: 'damage',
-          message: `${onDamageResolution.sourceName ?? 'A spell effect'} adds ${extraDamage} ${this.effect.damage.type} damage.`,
-          characterId: target.id,
-          targetIds: [target.id],
-          data: {
-            spellId: onDamageResolution.sourceSpellId,
-            damageDice: onDamageResolution.damageDice,
-            damageDealt: extraDamage,
-            trigger: 'on_damage'
+          // Build and log the save outcome message
+          const saveWasOverridden = saveResult.roll === undefined;
+          let saveLogMessage = `${target.name} ${saveResult.success ? 'succeeds' : 'fails'} ${this.effect.condition.saveType} save (${saveResult.total} vs DC ${dc})`;
+          if (saveWasOverridden) {
+            saveLogMessage += ' (source-backed outcome override)';
           }
-        });
-      }
 
-      // --- Step 4: Apply Resistances and Vulnerabilities ---
-      // Reduces damage by half if resistant, doubles if vulnerable, or 0 if immune.
-      // Also checks for bypasses (e.g., magical weapons bypassing non-magical resistance).
-      const targetForFinalDamage = currentState.characters.find(character => character.id === target.id) ?? targetBeforeResistance;
-      let finalDamage = ResistanceCalculator.applyResistances(
-        damageRoll,
-        this.effect.damage.type,
-        targetForFinalDamage,
-        caster,
-        this.context.isMagical,
-        {
-          spellZones: state.spellZones,
-          characters: state.characters
+          // Append modifier details if any were applied (e.g., "-3 [Mind Sliver]")
+          if (saveResult.modifiersApplied && saveResult.modifiersApplied.length > 0) {
+            const modDetails = saveResult.modifiersApplied.map(m => `${m.value >= 0 ? '+' : ''}${m.value} [${m.source}]`).join(', ');
+            saveLogMessage += ` (Mods: ${modDetails})`;
+          }
+
+          currentState = this.addLogEntry(currentState, {
+            type: 'status',
+            message: saveLogMessage,
+            characterId: target.id
+          });
         }
-      );
 
-      // Resistance is a separate flat rider from the normal resistance math.
-      // It spends once per turn on the first qualifying hit of the chosen type
-      // and leaves every other damage type untouched.
-      const resistanceRiderResult = this.applyResistanceRider(currentState, target, finalDamage);
-      currentState = resistanceRiderResult.state;
-      finalDamage = resistanceRiderResult.damage;
-      const targetAfterResistance = currentState.characters.find(character => character.id === target.id) ?? target;
+        // Resolve delayed on-damage spell riders before the final resistance pass.
+        // A preliminary pass proves that the triggering damage is not stopped by
+        // immunity. The rider then joins the same damage packet so vulnerability,
+        // temporary hit points, concentration, and defeat handling apply once.
+        const targetBeforeResistance = currentState.characters.find(character => character.id === target.id) ?? target;
+        const preliminaryDamage = ResistanceCalculator.applyResistances(
+          damageRoll,
+          this.effect.damage.type,
+          targetBeforeResistance,
+          caster,
+          this.context.isMagical,
+          {
+            spellZones: state.spellZones,
+            characters: state.characters
+          }
+        );
+        const onDamageResolution = resolveOnDamageSpellEffect(
+          targetBeforeResistance,
+          this.effect.damage.type,
+          currentState.turnState.currentTurn,
+          preliminaryDamage
+        );
 
-      // --- HAM FEAT (2024): Reduce nonmagical physical weapon damage ---
-      // Heavy Armor Master only protects a character who is actually wearing
-      // heavy torso armour. The combat equipment projection carries that fact
-      // from the persistent loadout without coupling this damage rule to the
-      // inventory model. Magical attacks remain outside this reduction.
-      const physicalDamageTypes = ['bludgeoning', 'piercing', 'slashing', 'physical'];
-      if (
-        targetAfterResistance.feats?.includes('heavy_armor_master') &&
-        targetAfterResistance.equipment?.wornArmor?.category === 'Heavy' &&
-        physicalDamageTypes.includes(this.effect.damage.type.toLowerCase()) &&
-        this.context.weaponProperties !== undefined &&
-        this.context.isMagical !== true
-      ) {
-        const hamPB = Math.ceil((targetAfterResistance.level || 1) / 4) + 1;
-        finalDamage = Math.max(0, finalDamage - hamPB);
+        if (onDamageResolution.damageDice) {
+          const extraDamage = rollDamageUtil(onDamageResolution.damageDice, false, 1, this.context.damageRng);
+          damageRoll += extraDamage;
+          currentState = {
+            ...currentState,
+            characters: currentState.characters.map(character =>
+              character.id === target.id ? onDamageResolution.character : character
+            )
+          };
+          currentState = this.addLogEntry(currentState, {
+            type: 'damage',
+            message: `${onDamageResolution.sourceName ?? 'A spell effect'} adds ${extraDamage} ${this.effect.damage.type} damage.`,
+            characterId: target.id,
+            targetIds: [target.id],
+            data: {
+              spellId: onDamageResolution.sourceSpellId,
+              damageDice: onDamageResolution.damageDice,
+              damageDealt: extraDamage,
+              trigger: 'on_damage'
+            }
+          });
+        }
+
+        // --- Step 4: Apply Resistances and Vulnerabilities ---
+        // Reduces damage by half if resistant, doubles if vulnerable, or 0 if immune.
+        // Also checks for bypasses (e.g., magical weapons bypassing non-magical resistance).
+        const targetForFinalDamage = currentState.characters.find(character => character.id === target.id) ?? targetBeforeResistance;
+        finalDamage = ResistanceCalculator.applyResistances(
+          damageRoll,
+          this.effect.damage.type,
+          targetForFinalDamage,
+          caster,
+          this.context.isMagical,
+          {
+            spellZones: state.spellZones,
+            characters: state.characters
+          }
+        );
+
+        // Resistance is a separate flat rider from the normal resistance math.
+        // It spends once per turn on the first qualifying hit of the chosen type
+        // and leaves every other damage type untouched.
+        const resistanceRiderResult = this.applyResistanceRider(currentState, target, finalDamage);
+        currentState = resistanceRiderResult.state;
+        finalDamage = resistanceRiderResult.damage;
+        targetAfterResistance = currentState.characters.find(character => character.id === target.id) ?? target;
+
+        // --- HAM FEAT (2024): Reduce nonmagical physical weapon damage ---
+        // Heavy Armor Master only protects a character who is actually wearing
+        // heavy torso armour. The combat equipment projection carries that fact
+        // from the persistent loadout without coupling this damage rule to the
+        // inventory model. Magical attacks remain outside this reduction.
+        const physicalDamageTypes = ['bludgeoning', 'piercing', 'slashing', 'physical'];
+        if (
+          targetAfterResistance.feats?.includes('heavy_armor_master') &&
+          targetAfterResistance.equipment?.wornArmor?.category === 'Heavy' &&
+          physicalDamageTypes.includes(this.effect.damage.type.toLowerCase()) &&
+          this.context.weaponProperties !== undefined &&
+          this.context.isMagical !== true
+        ) {
+          const hamPB = Math.ceil((targetAfterResistance.level || 1) / 4) + 1;
+          finalDamage = Math.max(0, finalDamage - hamPB);
+        }
+
+      }
+      if (this.delivery?.mode === 'prepare') {
+        this.delivery.collect({ command: this, effect: this.effect, rawDamage: damageRoll, finalDamage });
+        continue;
       }
 
       // --- ALLIED PRE-DAMAGE REACTIONS (e.g. Interception) ---
@@ -635,14 +725,17 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
       // Elemental damage contacts the target and resolves against its existing
       // stateTags (e.g. Wet + Cold -> Frozen, Wet + Fire -> Smoke). This is the
       // command-level wiring from damage element into the physics state engine.
-      currentState = this.applyElementalState(currentState, target, finalDamage);
-
-      // --- SLASHER FEAT LOGIC ---
-      if (caster.feats?.includes('slasher') && this.effect.damage.type.toLowerCase() === 'slashing' && finalDamage > 0) {
-        // Slasher delegates its slow to the same asynchronous condition command
-        // used by spells. Wait for that completed state before logging damage or
-        // resolving concentration so later steps never receive a pending Promise.
-        currentState = await this.applySlasherFeat(currentState, caster, target, isCritical);
+      const contacts = this.remainingComponents(finalDamage) ?? [{
+        command: this, effect: this.effect, rawDamage: damageRoll, finalDamage,
+      }];
+      for (const contact of contacts) {
+        const liveTarget = currentState.characters.find(character => character.id === target.id) ?? target;
+        currentState = contact.command.applyElementalState(currentState, liveTarget, contact.finalDamage);
+        if (caster.feats?.includes('slasher') && contact.effect.damage.type.toLowerCase() === 'slashing' && contact.finalDamage > 0) {
+          // Preserve the native once-per-turn rider while using the type that
+          // actually contacted the target after whole-hit prevention.
+          currentState = await contact.command.applySlasherFeat(currentState, caster, liveTarget, isCritical);
+        }
       }
 
       // --- LOGGING ---
@@ -655,6 +748,30 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
         finalDamage,
         planarModifier
       );
+
+      // Explain the consequence produced by the shared HP transaction. A
+      // zero-HP label alone cannot tell the player whether a hit downed them,
+      // added death-save failures, or met the massive-damage death threshold.
+      // These receipts describe the result; they do not change the rules.
+      if (target.team === 'player' && finalDamage > 0 && updatedTarget.currentHP === 0) {
+        const beforeFailures = targetAfterResistance.deathSaves?.failures ?? 0;
+        const afterFailures = updatedTarget.deathSaves?.failures ?? 0;
+        const damageToHP = Math.max(0, finalDamage - (targetAfterResistance.tempHP ?? 0));
+        const overflow = Math.max(0, damageToHP - targetAfterResistance.currentHP);
+        let consequence: string | undefined;
+        if (beforeFailures < 3 && afterFailures === 3 && overflow >= updatedTarget.maxHP) {
+          consequence = targetAfterResistance.currentHP > 0
+            ? `${target.name} dies from massive damage: ${overflow} damage remains after reaching 0 HP, meeting maximum HP (${updatedTarget.maxHP}).`
+            : `${target.name} dies from massive damage at 0 HP: ${damageToHP} damage meets maximum HP (${updatedTarget.maxHP}).`;
+        } else if (targetAfterResistance.currentHP > 0) {
+          consequence = `${target.name} falls unconscious at 0 HP; death saves: ${updatedTarget.deathSaves?.successes ?? 0} successes, ${afterFailures} failures.`;
+        } else if (afterFailures > beforeFailures) {
+          consequence = `${target.name} takes damage at 0 HP and adds ${afterFailures - beforeFailures} failed death saves${isCritical ? ' (critical hit)' : ''}; ${afterFailures} failures total${afterFailures === 3 ? ' — dead' : ''}.`;
+        }
+        if (consequence) currentState = this.addLogEntry(currentState, {
+          type: 'status', message: consequence, characterId: target.id, targetIds: [target.id],
+        });
+      }
 
       // Negative Energy Flood has a delayed death animation instead of an
       // immediate summon. When its damage actually kills a non-Undead target,
@@ -728,7 +845,9 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
             characterId: target.id
           });
         } else {
-          const check = checkConcentration(target, finalDamage);
+          // GG-458 / agora-c887: Respect 2024 DC 30 cap on concentration saves while preserving uncapped 2014 rules.
+          const rulesEdition = this.context.rulesEdition ?? getRulesEdition(this.context.gameState);
+          const check = checkConcentration(target, finalDamage, rulesEdition);
 
           if (!check.success) {
             // Concentration broken - execute command to clean up the spell's effects
@@ -1331,6 +1450,9 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
   }
 
   get description(): string {
+    if (this.delivery?.mode === 'packet') {
+      return `Deals ${this.delivery.effects.map(effect => `${effect.damage.dice} ${effect.damage.type}`).join(' + ')} damage as one hit`;
+    }
     if (isDamageEffect(this.effect)) {
       return `Deals ${this.effect.damage.dice} ${this.effect.damage.type} damage`
     }
@@ -1719,15 +1841,21 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
     );
 
     const sourceName = this.context.spellName;
+    const components = this.remainingComponents(finalDamage)?.map(part => ({
+      damageType: part.effect.damage.type, rawDamage: part.rawDamage, finalDamage: part.finalDamage,
+    }));
+    const componentText = components?.map(part => `${part.finalDamage} ${part.damageType}`).join(' + ');
+    const packetDamageType = components ? [...new Set(components.map(part => part.damageType))].join(' + ') : this.effect.damage.type;
+    const damageText = componentText ? `${componentText} damage (${finalDamage} total)` : `${finalDamage} ${damageType} damage`;
     let logMessage = '';
 
     if (sourceName && sourceName !== 'Attack') {
-      logMessage = `${caster.name} ${verb} ${targetBeforeDamage.name} with ${sourceName} for ${finalDamage} ${damageType} damage`;
+      logMessage = `${caster.name} ${verb} ${targetBeforeDamage.name} with ${sourceName} for ${damageText}`;
       if (planarModifier !== 0) {
         logMessage += ` (Planar Boost: ${planarModifier > 0 ? '+' : ''}${planarModifier})`;
       }
     } else {
-      logMessage = `${caster.name} ${verb} ${targetBeforeDamage.name} for ${finalDamage} ${damageType} damage`;
+      logMessage = `${caster.name} ${verb} ${targetBeforeDamage.name} for ${damageText}`;
     }
 
     return this.addLogEntry(state, {
@@ -1737,8 +1865,9 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
       targetIds: [targetBeforeDamage.id],
       data: {
         value: finalDamage,
-        type: this.effect.damage.type,
-        damageType: this.effect.damage.type,
+        type: packetDamageType,
+        damageType: packetDamageType,
+        damageComponents: components,
         // This log entry is the normal combat pipeline's once-only handoff.
         // Its generated log ID becomes the stable reaction event ID; consumers
         // must never apply this triggering damage again.

@@ -10,10 +10,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 09/09/2026, 15:05:02
- * Dependents: components/DesignPreview/steps/raceDomain/leaves/aquaticHalfElfRaceLeaf.tsx, systems/combat/fallingGroundImpactResolution.ts, systems/travel/forcedMarch.ts, utils/character/encumbrance.ts, utils/combat/combatUtils.ts, utils/combat/index.ts, utils/combat/thiefUtils.ts, utils/spatial/pathfinding.ts
+ * Last Sync: 31/10/2026, 06:47:53
+ * Dependents: commands/effects/GrantedActionCommand.ts, commands/effects/GraspingVineCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/spell/spellAttack.ts, components/CharacterSheet/Overview/CharacterOverview.tsx, components/CharacterSheet/Skills/SkillsTab.tsx, components/DesignPreview/steps/raceDomain/leaves/aquaticHalfElfRaceLeaf.tsx, components/World3D/groundWaterMovement.ts, hooks/combat/turnManager/useTurnLifecycle.ts, state/reducers/characterReducer.ts, systems/combat/fallingGroundImpactResolution.ts, systems/companions/companionSiteRisk.ts, systems/spells/mechanics/witchBoltOngoingResolution.ts, systems/travel/forcedMarch.ts, utils/character/checkUtils.ts, utils/character/encumbrance.ts, utils/character/partyStatUtils.ts, utils/character/savingThrowUtils.ts, utils/combat/combatUtils.ts, utils/combat/deathSaveUtils.ts, utils/combat/index.ts, utils/combat/initiativeUtils.ts, utils/combat/multiattackUtils.ts, utils/combat/thiefUtils.ts, utils/spatial/pathfinding.ts
  * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
@@ -482,4 +482,25 @@ export function calculateExhaustionEffects(level: number): {
     speedPenalty: validLevel * 5,
     isDead: false,
   };
+}
+
+/**
+ * Read the existing exhaustion rule for an ordinary D20 test. Saved party
+ * strings and combat's structured/status mirrors describe the same condition;
+ * take its highest level once instead of stacking those representations.
+ * This derives a number at the roll boundary, without another modifier store.
+ */
+export function getExhaustionD20Penalty(character: {
+  conditions?: readonly (string | { name: string; duration?: { type: string; value?: number } })[];
+  statusEffects?: readonly { name: string; duration?: number; persistsUntilRemoved?: boolean }[];
+}): number {
+  const names = [
+    ...(character.conditions ?? [])
+      .filter(condition => typeof condition === 'string' || condition?.duration?.type !== 'rounds' || (condition.duration.value ?? 0) > 0)
+      .map(condition => typeof condition === 'string' ? condition : condition?.name ?? ''),
+    ...(character.statusEffects ?? [])
+      .filter(effect => effect && (effect.persistsUntilRemoved || effect.duration === undefined || effect.duration > 0))
+      .map(effect => effect.name),
+  ];
+  return calculateExhaustionEffects(exhaustionLevelFromConditions(names)).d20Penalty;
 }

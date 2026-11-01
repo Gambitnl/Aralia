@@ -37,6 +37,36 @@ class FakeWorker {
 }
 
 describe('createGroundWorkerChunkLoader', () => {
+  it('initializes then replays stranded requests once before sending the new request', async () => {
+    const workers: Array<{ onmessage: ((event: { data: unknown }) => void) | null; onerror: ((event: unknown) => void) | null; sent: Array<{ type: string; id?: number; resolution?: number }>; terminated: boolean; postMessage: (message: { type: string; id?: number; resolution?: number }) => void; terminate: () => void }> = [];
+    const loader = createGroundWorkerChunkLoader(fakeGround(), 4, () => {
+      const worker = {
+        onmessage: null,
+        onerror: null,
+        sent: [] as Array<{ type: string; id?: number; resolution?: number }>,
+        terminated: false,
+        postMessage(message: { type: string; id?: number; resolution?: number }) { this.sent.push(message); },
+        terminate() { this.terminated = true; },
+      };
+      workers.push(worker);
+      return worker as unknown as Worker;
+    });
+    const stranded = loader(0, 0, 'low');
+    workers[0].onerror!({});
+    const fresh = loader(1, 0, 'mid');
+    expect(workers[0].terminated).toBe(true);
+    expect(workers[1].sent.map(message => [message.type, message.id])).toEqual([
+      ['init', undefined], ['load', 1], ['load', 2],
+    ]);
+    expect(workers[1].sent[1].resolution).toBe(resolutionForLod('low'));
+    expect(workers[1].sent[2].resolution).toBe(resolutionForLod('mid'));
+    workers[1].onmessage!({ data: { id: 2, bundle: markerBundle(2) } });
+    workers[1].onmessage!({ data: { id: 1, bundle: markerBundle(1) } });
+    expect((await stranded).terrain.positions.length).toBe(1);
+    expect((await fresh).terrain.positions.length).toBe(2);
+    loader.dispose();
+  });
+
   it('resolves a chunk load from the worker at the default resolution', async () => {
     const fw = new FakeWorker();
     const loader = createGroundWorkerChunkLoader(fakeGround(), undefined, () => fw as unknown as Worker);
@@ -85,5 +115,30 @@ describe('createGroundWorkerChunkLoader', () => {
     await Promise.resolve();
     expect(resolved).toBe(false);
     expect(terminated).toBe(true);
+  });
+
+  it('gives the ground port to the first worker only; a respawn gets the ground itself (GG-573)', () => {
+    const workers: Array<{ onerror: ((event: unknown) => void) | null; sent: Array<{ type: string; port?: unknown }>; transfers: unknown[][] }> = [];
+    const { port1, port2 } = new MessageChannel();
+    const loader = createGroundWorkerChunkLoader(fakeGround(), 4, () => {
+      const worker = {
+        onmessage: null,
+        onerror: null,
+        sent: [] as Array<{ type: string; port?: unknown }>,
+        transfers: [] as unknown[][],
+        postMessage(message: { type: string; port?: unknown }, transfer?: unknown[]) { this.sent.push(message); this.transfers.push(transfer ?? []); },
+        terminate() {},
+      };
+      workers.push(worker);
+      return worker as unknown as Worker;
+    }, { groundPort: port2 });
+    expect(workers[0].sent[0]).toEqual({ type: 'init-port', port: port2 });
+    expect(workers[0].transfers[0]).toEqual([port2]);
+    workers[0].onerror!({});
+    void loader(0, 0, 'low');
+    expect(workers[1].sent.map((m) => m.type)).toEqual(['init', 'load']);
+    loader.dispose();
+    port1.close();
+    port2.close();
   });
 });

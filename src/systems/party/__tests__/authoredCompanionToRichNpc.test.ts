@@ -82,6 +82,19 @@ describe('authoredCompanionsToRichNpcs', () => {
 });
 
 describe('recruit round-trip (placement -> promote)', () => {
+  it.each([KAELEN, ELARA])('keeps $identity.name in their authored class after promotion', (companion) => {
+    const before = JSON.stringify(companion);
+    const payload = promoteCompanionToMember(companion);
+    // Consent changes membership, not vocation, ambitions, or remembered history.
+    expect(payload.character.class.id).toBe(companion.identity.class.toLowerCase());
+    expect(payload.character.race.id).toBe(companion.identity.race.toLowerCase());
+    expect(authoredCompanionToRichNpc(companion).biography.raceId).toBe(companion.identity.race.toLowerCase());
+    expect(payload.companion.identity).toBe(companion.identity);
+    expect(payload.companion.goals).toBe(companion.goals);
+    expect(payload.companion.relationships).toBe(companion.relationships);
+    expect(JSON.stringify(companion)).toBe(before);
+  });
+
   it('promoteCompanionToMember recruits the SAME authored companion the shell represents', () => {
     // The shell id must match the companion key so handleRecruitOffer resolves the
     // authored record (state.companions) and promotes it — preserving loyalty etc.

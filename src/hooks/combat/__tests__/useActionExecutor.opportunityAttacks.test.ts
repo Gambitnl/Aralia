@@ -331,15 +331,17 @@ describe('useActionExecutor', () => {
             .map(call => call[0] as CombatCharacter)
             .find(character => character.id === mover.id);
         expect(guardUpdate?.actionEconomy.reaction).toMatchObject({ used: true, remaining: 0 });
+        // GG-496: the damage roll 6 plus the guard's Strength modifier 3.
         expect(moverUpdate).toMatchObject({
-            currentHP: 14,
+            currentHP: 11,
             position: { x: 0, y: 2 },
             actionEconomy: { movement: { used: 5, total: 30 } },
         });
         // The swing is a WeaponAttackCommand, so its damage is applied by
         // DamageCommand inside the command transaction and never reaches the
         // engine's handleDamage prop. The pinned damageRoll of 6 on this
-        // weapon's 1d8 is visible as the mover's 20 -> 14 hit points above.
+        // weapon's 1d8, plus the Strength modifier 3 (GG-496), is visible as the
+        // mover's 20 -> 11 hit points above.
         expect(mockHandleDamage).not.toHaveBeenCalledWith(
             expect.objectContaining({ id: mover.id }),
             expect.any(Number),
@@ -348,7 +350,7 @@ describe('useActionExecutor', () => {
             mockTurnState.currentTurn,
         );
         expect(messagesOf(mockOnLogEntry)).toEqual(expect.arrayContaining([
-            expect.stringContaining('for 6 slashing damage'),
+            expect.stringContaining('for 9 slashing damage'),
         ]));
         const messages = messagesOf(mockOnLogEntry);
         expect(messages.findIndex(message => message.includes('Opportunity Attack')))

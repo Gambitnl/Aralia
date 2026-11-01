@@ -30,7 +30,7 @@
 import type { AreaOfEffect, EffectTrigger, SpellEffect, TargetConditionFilter } from '../../../../types/spells';
 import type { CombatCharacter, Position } from '../../../../types/combat';
 import { AoECalculator } from '../../targeting/AoECalculator';
-import { getRecurringMechanics } from '../../../../hooks/spellEffectUtils';
+import { getRecurringMechanics } from '../spellEffectRules';
 import type { RecurringMechanic } from '../../../../types/spellEffectTypes';
 import type {
     ActiveSpellZone,

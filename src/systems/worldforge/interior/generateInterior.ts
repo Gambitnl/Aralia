@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
- *
- * Last Sync: 18/07/2026, 19:07:35
- * Dependents: components/Worldforge/TownPlanView.tsx, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/worldforge/bridge/buildingOccupancy.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/interiorParts.ts, systems/worldforge/roster/generateTownRoster.ts, systems/worldforge/town/buildingPlotInput.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/townSimRegistration.ts
- * Imports: 4 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file adapts a town plot into its canonical building blueprint.
  *
@@ -30,6 +14,22 @@
  * making blueprintForPlot the single data contract.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 01/11/2026, 07:06:39
+ * Dependents: components/Worldforge/TownPlanView.tsx, components/Worldforge/townBuildingVisit.ts, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/worldforge/bridge/buildingOccupancy.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/interiorParts.ts, systems/worldforge/roster/generateTownRoster.ts, systems/worldforge/town/buildingPlotInput.ts, systems/worldforge/town/prepareHistoricalTownLoad.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import {
   childSeedPath,
   rngFromPath,
@@ -38,6 +38,8 @@ import {
 } from '../seedPath';
 import type { Feet } from '../units';
 import { generateBuilding } from './generateBuilding';
+import type { RuralFamilyLayoutRecipe } from './ruralFamilyLayout';
+import { readObservedBuildingSource, type BuildingSourceContext } from './buildingSource';
 import type {
   BuildingBackstory,
   BuildingEvent,
@@ -75,12 +77,16 @@ export interface InteriorPlotInput {
   buildingType?: BuildingType;
   /** Founding household brief, present only after the population pass ran. */
   household?: HouseholdBrief;
+  /** Explicit fresh rural source recipe; retained foundations bypass it. */
+  householdLayoutRecipe?: RuralFamilyLayoutRecipe;
   /** Regional architectural context; absent plots keep their style-less output. */
   style?: StyleContext;
   /** Optional replay/save override for the building's permanent history. */
   backstory?: BuildingBackstory;
   /** Optional legacy event array or compacted journal for this canonical plot. */
   eventLog?: BuildingEventHistory | readonly BuildingEvent[];
+  /** Retained observed foundation, with full expected world identity. */
+  retainedSource?: BuildingSourceContext;
 }
 
 /** Ignore affine/rotation dust without rounding a genuinely short lot up. */
@@ -183,6 +189,10 @@ export function blueprintForPlot(
   plot: InteriorPlotInput,
   seedPath: SeedPath,
 ): BlueprintPlan {
+  // Established interiors bypass newer recipes. Current condition history is
+  // resolved by the retained-source reader, never by replacing this foundation.
+  if (plot.retainedSource) return readObservedBuildingSource(plot.retainedSource, plot.id,
+    plot.eventLog as BuildingEventHistory | undefined, seedPath).plan;
   const interiorPath = childSeedPath(seedPath, `interior:${plot.id}`);
 
   // Measure the rotation-free frontage and depth, then snap down to the same
@@ -214,6 +224,7 @@ export function blueprintForPlot(
     maxWidthFt: lotWidthFt,
     maxDepthFt: lotDepthFt,
     household: plot.household,
+    ...(plot.householdLayoutRecipe ? {householdLayoutRecipe:plot.householdLayoutRecipe} : {}),
     style: plot.style,
     backstory: plot.backstory,
     eventLog: plot.eventLog,

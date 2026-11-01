@@ -36,6 +36,13 @@ describe('groupForOccupant', () => {
 });
 
 describe('crowdInstancePlan', () => {
+  it('uses source ancestry for a joined resident instead of rerolling it from the roster id', () => {
+    expect(groupForOccupant(84)).toBe('Dwarf'); // actual Fenna regression
+    const nodes=[node({burgId:675,occupantId:84}),node({burgId:676,occupantId:84})];
+    const result=crowdInstancePlan(nodes,0,new Map(),new Map([['675:84','Human']]));
+    expect(result.map(r=>r.group)).toEqual(['Human','Dwarf']);
+  });
+
   it('assigns idle agents phase 0 and walkers a walk phase', () => {
     const headings = new Map<number, { x: number; z: number; yaw: number }>();
     const plan = crowdInstancePlan(

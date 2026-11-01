@@ -81,8 +81,8 @@ async function collectIds(server) {
   return wanted;
 }
 
-// Existing unresolved race references stay explicit; any new omission blocks generation.
-const KNOWN_MISSING = new Set(['create', 'detect-poison', 'drink', 'enlarge', 'gust', 'pass', 'purify-food', 'this', 'unseen']);
+// All racial spell references are now reconciled (Spells gap G63). Any new omission blocks generation.
+const KNOWN_MISSING = new Set();
 export async function deriveRacialSpellSubset(bundle) {
 const server = await createServer({
   configFile: false,

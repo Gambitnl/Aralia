@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
- *
- * Last Sync: 13/08/2026, 18:02:52
- * Dependents: commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/HealingCommand.ts, commands/effects/StatusConditionCommand.ts, components/DesignPreview/steps/raceDomain/leaves/bugbearRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/centaurRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fallenAasimarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fireGenasiRaceLeaf.tsx, components/DesignPreview/steps/scenarioControls/companionReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/counterspellNestedReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/deathSavesScenarioControls.ts, components/DesignPreview/steps/scenarioControls/healingTempHpScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reachCreatureSizeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/resistanceScenarioControls.ts, components/DesignPreview/steps/scenarioControls/savingThrowsHalfDamageScenarioControls.ts, components/DesignPreview/steps/spells/fireBoltScenario.tsx, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useTurnManager.ts, systems/combat/fallingGroundImpactResolution.ts, systems/combat/reactions/companionProtectionReaction.ts, systems/spells/mechanics/areaDamageSpellCastResolution.ts, systems/spells/mechanics/directDamageSpellCastResolution.ts, systems/spells/mechanics/healingTemporaryHitPointResolution.ts, systems/spells/mechanics/reactiveDamageRetaliationResolution.ts, systems/spells/mechanics/witchBoltOngoingResolution.ts, utils/combat/actionEconomyUtils.ts, utils/combat/grappleUtils.ts, utils/combat/multiattackUtils.ts
- * Imports: 1 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file utils/combat/deathSaveUtils.ts
  * Centralized utility functions for managing Downing states, Death Saving Throws,
@@ -32,6 +16,23 @@
  * and turn coordinators can execute pure HP transitions predictably and isolate state leaks.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 31/10/2026, 06:47:53
+ * Dependents: commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/HealingCommand.ts, commands/effects/StatusConditionCommand.ts, commands/factory/AbilityCommandFactory.ts, components/DesignPreview/steps/raceDomain/leaves/bugbearRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/centaurRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fallenAasimarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fireGenasiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fireGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/frostGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/githyankiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/githzeraiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/goblinRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/goldDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/grayDwarfDuergarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/greenDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/hadozeeRaceLeaf.tsx, components/DesignPreview/steps/scenarioControls/companionReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/counterspellNestedReactionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/deathSavesScenarioControls.ts, components/DesignPreview/steps/scenarioControls/healingTempHpScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reachCreatureSizeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/resistanceScenarioControls.ts, components/DesignPreview/steps/scenarioControls/savingThrowsHalfDamageScenarioControls.ts, components/DesignPreview/steps/spells/fireBoltScenario.tsx, hooks/combat/engine/useCombatEngine.ts, hooks/combat/turnManager/useTurnLifecycle.ts, systems/combat/engine/damage.ts, systems/combat/fallingGroundImpactResolution.ts, systems/combat/reactions/companionProtectionReaction.ts, systems/spells/mechanics/areaDamageSpellCastResolution.ts, systems/spells/mechanics/directDamageSpellCastResolution.ts, systems/spells/mechanics/healingTemporaryHitPointResolution.ts, systems/spells/mechanics/reactiveDamageRetaliationResolution.ts, systems/spells/mechanics/witchBoltOngoingResolution.ts, utils/combat/actionEconomyUtils.ts, utils/combat/grappleUtils.ts, utils/combat/multiattackUtils.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import { getExhaustionD20Penalty } from './physicsUtils';
 import { CombatCharacter } from '../../types/combat';
 
 /**
@@ -196,14 +197,17 @@ export function resolveDeathSavingThrow(
     };
   }
 
-  const successes = Math.min(3, deathSaves.successes + (roll >= 10 ? 1 : 0));
-  const failures = Math.min(3, deathSaves.failures + (roll === 1 ? 2 : roll < 10 ? 1 : 0));
+  // Natural faces above/below keep their special rules. Only the ordinary
+  // meet-10 test uses exhaustion, just like the other saving-throw owner.
+  const total = roll - getExhaustionD20Penalty(character);
+  const successes = Math.min(3, deathSaves.successes + (roll !== 1 && total >= 10 ? 1 : 0));
+  const failures = Math.min(3, deathSaves.failures + (roll === 1 ? 2 : total < 10 ? 1 : 0));
   const isStable = successes >= 3;
   const outcome: DeathSavingThrowOutcome = failures >= 3
     ? 'dead'
     : isStable
       ? 'stable'
-      : roll >= 10
+      : total >= 10
         ? 'success'
         : 'failure';
 
@@ -281,6 +285,16 @@ export function applyTemporaryHitPoints(
  * @param isCritical Whether the source damage is a critical hit (inflicts 2 failures while downed).
  * @returns The mutated CombatCharacter state.
  */
+/**
+ * Helper to identify active Relentless Endurance limited-use resource.
+ */
+function findRelentlessEnduranceResourceKey(character: CombatCharacter): string | undefined {
+  if (!character.limitedUses) return undefined;
+  return Object.keys(character.limitedUses).find(key =>
+    key.toLowerCase().includes('relentless_endurance') && (character.limitedUses?.[key]?.current ?? 0) > 0
+  );
+}
+
 export function applyDamageAndCheckDowned(character: CombatCharacter, amount: number, isCritical: boolean = false): CombatCharacter {
   let updatedCharacter = { ...character };
   const originalHP = updatedCharacter.currentHP;
@@ -301,33 +315,80 @@ export function applyDamageAndCheckDowned(character: CombatCharacter, amount: nu
     }
   }
 
-  // 2. Apply remaining damage to standard HP pool
+  // 2. Calculate damage overflow for massive damage instant death (PHB 2014 p. 197 / PHB 2024 p. 27):
+  // "When damage reduces you to 0 Hit Points and there is damage remaining,
+  // you die if the remaining damage equals or exceeds your Hit Point maximum."
+  const overflowDamage = Math.max(0, damageToApply - originalHP);
+  const isKilledOutright = damageToApply > 0 && originalHP > 0 && overflowDamage >= updatedCharacter.maxHP;
+
+  // 3. Relentless Endurance check (Orc / Half-Orc racial trait):
+  // "When you are reduced to 0 hit points but not killed outright, you can drop to 1 hit point instead."
+  const reResourceKey = findRelentlessEnduranceResourceKey(updatedCharacter);
+  if (!isKilledOutright && damageToApply >= originalHP && originalHP > 0 && reResourceKey) {
+    updatedCharacter.currentHP = 1;
+    updatedCharacter.limitedUses = {
+      ...updatedCharacter.limitedUses,
+      [reResourceKey]: {
+        ...updatedCharacter.limitedUses![reResourceKey],
+        current: updatedCharacter.limitedUses![reResourceKey].current - 1
+      }
+    };
+    updatedCharacter.damagedThisTurn = true;
+    return updatedCharacter;
+  }
+
+  // 4. Apply remaining damage to standard HP pool
   updatedCharacter.currentHP = Math.max(0, updatedCharacter.currentHP - damageToApply);
   updatedCharacter.damagedThisTurn = true;
 
-  // 3. Downed & Death Saving Throw Transitions
+  // 5. Downed & Death Saving Throw Transitions
   if (updatedCharacter.currentHP === 0 && originalHP > 0) {
     if (updatedCharacter.team === 'player') {
-      // Transition player character to downed / dying state
-      updatedCharacter.deathSaves = {
-        successes: 0,
-        failures: 0,
-        isStable: false
-      };
-      updatedCharacter = addUnconsciousCondition(updatedCharacter);
+      if (isKilledOutright) {
+        // Massive damage kills outright (represented by 3 failed death saves)
+        updatedCharacter.deathSaves = {
+          successes: 0,
+          failures: 3,
+          isStable: false
+        };
+        updatedCharacter = addUnconsciousCondition(updatedCharacter);
+      } else {
+        // Transition player character to downed / dying state
+        updatedCharacter.deathSaves = {
+          successes: 0,
+          failures: 0,
+          isStable: false
+        };
+        updatedCharacter = addUnconsciousCondition(updatedCharacter);
+      }
     }
   } else if (updatedCharacter.currentHP === 0 && originalHP === 0 && updatedCharacter.team === 'player' && amount > 0) {
-    // A player character already at 0 HP takes damage. This counts as an automatic death save failure.
-    // (If the damage is critical, it counts as two failures).
-    const failuresToAdd = isCritical ? 2 : 1;
-    const currentFailures = updatedCharacter.deathSaves?.failures || 0;
-    const newFailures = Math.min(3, currentFailures + failuresToAdd);
-    
-    updatedCharacter.deathSaves = {
-      successes: updatedCharacter.deathSaves?.successes || 0,
-      failures: newFailures,
-      isStable: false // Taking damage breaks stabilization
-    };
+    // A player character already at 0 HP takes damage.
+    // If the remaining damage equals or exceeds max HP, instant death occurs.
+    if (damageToApply >= updatedCharacter.maxHP) {
+      updatedCharacter.deathSaves = {
+        successes: 0,
+        failures: 3,
+        isStable: false
+      };
+    } else {
+      const failuresToAdd = isCritical ? 2 : 1;
+      const currentFailures = updatedCharacter.deathSaves?.failures || 0;
+      const newFailures = Math.min(3, currentFailures + failuresToAdd);
+      
+      // When stability is broken by damage, stale death-save successes must be reset
+      // (GG-445 / agora-1d80). If the character was not stable, their current successes
+      // are retained unless/until stabilized or revived.
+      const successes = updatedCharacter.deathSaves?.isStable
+        ? 0
+        : (updatedCharacter.deathSaves?.successes || 0);
+
+      updatedCharacter.deathSaves = {
+        successes,
+        failures: newFailures,
+        isStable: false // Taking damage breaks stabilization
+      };
+    }
   }
 
   return updatedCharacter;

@@ -24,6 +24,7 @@ import { getGameEpoch } from '../../utils/core';
 import type { GameState } from '../../types';
 
 const ollama = vi.hoisted(() => ({
+    summarizeConversation: vi.fn(async () => ({ success: false, error: 'offline' })),
     // Typed parameters so `mock.calls[0][0]` is a real tuple element: the
     // assertions read the participant list handed to the prompt builder.
     continueConversation: vi.fn(async (
@@ -75,6 +76,23 @@ const personalityFromLastCall = (): string => {
 };
 
 describe('useConversation - NPC knowledge reaches the chat prompt (agora-f821.12)', () => {
+    it('ends an authored exchange without a model summary or a second approval award', async () => {
+        const state = makeState({});
+        state.activeConversation = {
+            id: 'authored-promise', participants: ['cmp_dara'], startedAt: 1, isPlayerTurn: true, pendingResponse: false,
+            messages: [
+                { id: 'greet', speakerId: 'cmp_dara', text: 'Hello.', timestamp: 1 },
+                { id: 'promise', speakerId: 'player', text: 'I will help.', timestamp: 2, memoryHandled: true },
+                { id: 'answer', speakerId: 'cmp_dara', text: 'I will remember your promise.', timestamp: 2, memoryHandled: true },
+            ],
+        };
+        const dispatch = vi.fn();
+        const { result } = renderHook(() => useConversation(state, dispatch));
+        await act(async () => { await result.current.endConversation(); });
+        expect(ollama.summarizeConversation).not.toHaveBeenCalled();
+        expect(dispatch).toHaveBeenCalledWith({ type: 'END_CONVERSATION' });
+        expect(dispatch.mock.calls.some(([action]) => action.type === 'UPDATE_COMPANION_APPROVAL')).toBe(false);
+    });
     beforeEach(() => {
         ollama.continueConversation.mockClear();
     });

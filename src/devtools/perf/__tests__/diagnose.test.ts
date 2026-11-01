@@ -8,7 +8,7 @@
  * page before the rule existed.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { analyzeVsync, browserParts, memoryTrend, readWork, scriptName, snapToRefresh, type MemorySample } from '../diagnose';
+import { analyzeVsync, browserParts, memoryTrend, readWork, summarizePerformance, scriptName, snapToRefresh, type MemorySample } from '../diagnose';
 import { PassGpuTimer } from '../gpuTimer';
 import { StallLog, type FrameSample } from '../stallLog';
 import { instrumentRenderer, rendererProbeInternals } from '../rendererProbe';
@@ -64,7 +64,8 @@ describe('readWork', () => {
     expect(w.busiestSide).toBe('gpu');
     expect(w.busiestMs).toBeCloseTo(11.27, 2);
     expect(w.serialMs).toBeCloseTo(19.65, 2);
-    expect(w.waitMs).toBeCloseTo(5.93, 2);
+    // A pacing rhythm does not prove the residual was display waiting.
+    expect(w.waitMs).toBeNull();
     expect(w.headroomMs).toBeCloseTo(5.40, 1);
     expect(w.headroomShare).toBeCloseTo(0.324, 2);
     expect(w.gpuMeasured).toBe(true);
@@ -413,5 +414,88 @@ describe('renderer probe: passes and causes', () => {
     });
     const rec = getPerfSession('loaf')!.snapshot(clock).stallLog[0];
     expect(rec.contributors[0].name).toBe('browser: setTimeout: flush in streamer.ts');
+  });
+});
+
+describe('ranked matched frame causes',()=>{
+  const reading={live:true,frame:{samples:20,meanMs:50,p95Ms:60},cpuMs:30,gpu:{meanMs:12},stalls:20,passes:[]};
+  const attribution={frames:20,windowMs:1000,meanFrameMs:50,callbackMs:15,outsideScriptMs:25,browserRenderingMs:5,unknownMs:5,
+    browserCoverage:'long-animation-frame' as const,sources:[{name:'Worker reply: riverLiveClient.ts',ms:25,source:'event' as const},
+      {name:'Browser rendering phase',ms:5,source:'browser' as const}]};
+  it('ranks same-window exclusive costs and does not subtract mismatched GPU/CPU clocks',()=>{
+    const d=summarizePerformance({...reading,attribution},16.67);
+    expect(d.reasons?.[0]).toContain('Worker reply: riverLiveClient.ts: 25.0 ms/frame');
+    expect(d.headline).toContain('outside render callback');
+    expect(d.pacingGap).toContain('callback 15.0 + outside script 25.0 + browser rendering 5.0 + unexplained 5.0');
+    expect(d.coverage).toContain('50 ms');expect(d.coverage).toContain('5 ms');
+  });
+  it('keeps the largest unobserved share explicit rather than blaming a small measured cost',()=>{
+    const a={...attribution,callbackMs:5,outsideScriptMs:1,browserRenderingMs:0,unknownMs:44,
+      sources:[{name:'small handler',ms:1,source:'event' as const}]};
+    const d=summarizePerformance({...reading,attribution:a},16.67);
+    expect(d.headline).toContain('largest share still unexplained');expect(d.pacingGap).toContain('not proven idle');
+  });
+});
+
+describe('evidence summary', () => {
+  it('names expensive water work within callback time without adding it twice', () => {
+    const d = summarizePerformance({ live: true, frame: { samples: 10, meanMs: 60, p95Ms: 90 },
+      cpuMs: 32, gpu: { meanMs: 8 }, stalls: 10, passes: [],
+      spans: [{ name: 'Comparison waterfall display', ms: 4 }, { name: 'Original waterfall display', ms: 14 },
+        { name: 'Invalid', ms: NaN }, { name: 'Tiny', ms: 0.01 }] }, 16.67);
+    expect(d.blockers).toEqual(['Original waterfall display: 14.0 ms/frame inside CPU callback',
+      'Comparison waterfall display: 4.0 ms/frame inside CPU callback']);
+    expect(d.evidence).toContain('CPU callback 32.0 ms');
+    expect(d.pacingGap).toContain('28.0 ms');
+  });
+  const reading = { live: true, frame: { samples: 15, meanMs: 67, p95Ms: 94 }, cpuMs: 58, gpu: { meanMs: null }, stalls: 15,
+    passes: [{ name: 'main', depth: 0, cpuMs: 40, gpuMs: null }, { name: 'nested', depth: 1, cpuMs: 30, gpuMs: null }, { name: 'reflection', depth: 0, cpuMs: 12, gpuMs: null }] };
+  it('reports over-budget callback without asserting GPU or CPU-bound causality', () => {
+    const d = summarizePerformance(reading, 16.67);
+    expect(d.headline).toBe('CPU callback exceeds budget · measured');
+    expect(d.evidence).toContain('GPU duration unavailable');
+    expect(d.evidence).toContain('sustained slow pacing');
+    expect(d.next).toContain('possible GPU waiting');
+    expect(d.costly).toEqual(['main: 40.00 ms CPU', 'nested: 30.00 ms CPU', 'reflection: 12.00 ms CPU']);
+  });
+  it('leaves unexplained pacing unresolved when callback cost is small', () => {
+    const d = summarizePerformance({ ...reading, cpuMs: 2, stalls: 3 }, 16.67);
+    expect(d.headline).toContain('cause unresolved');
+    expect(d.next).toContain('Total worker utilization needs its own timer');
+    expect(d.evidence).not.toContain('sustained slow pacing');
+  });
+  it('withholds live diagnosis for stopped or undersampled surfaces', () => {
+    expect(summarizePerformance({ ...reading, live: false }, 16.67).headline).toContain('last reading');
+    expect(summarizePerformance({ ...reading, frame: { ...reading.frame, samples: 2 } }, 16.67).headline).toContain('low confidence');
+  });
+  it('elevates a slow worker reply rather than implying unmeasured time is spare capacity', () => {
+    const d=summarizePerformance({...reading, frame:{samples:4,meanMs:300,p95Ms:400},cpuMs:50,gpu:{meanMs:10},operations:[{name:'Waterfall reply',meanMs:280,p95Ms:295,samples:3,ageMs:100}]},16.67);
+    expect(d.headline).toBe('Waterfall reply exceeds budget · measured');
+    expect(d.pacingGap).toContain('250.0 ms');
+    expect(d.pacingGap).toContain('not measured idle time');
+    expect(d.blockers?.[0]).toContain('280.0 ms/call');
+    expect(d.next).toContain('do not add');
+  });
+  it('keeps asynchronous worker execution out of browser-blocking attribution', () => {
+    const d = summarizePerformance({...reading, cpuMs: 2, operations: [
+      {name:'worker: waterfall geometry',meanMs:800,p95Ms:900,samples:2,ageMs:50},
+      {name:'Waterfall reply',meanMs:4,p95Ms:6,samples:2,ageMs:50},
+    ]},16.67);
+    expect(d.headline).toBe('Slow frame pacing · cause unresolved');
+    expect(d.blockers).toEqual(['Waterfall reply: 4.0 ms/call · p95 6.0 · 2 calls in 2 s']);
+    expect(d.next).not.toContain('named handler blocks');
+  });
+  it('still reports a blocking reply when a longer worker duration is present', () => {
+    const d = summarizePerformance({...reading, cpuMs: 2, operations: [
+      {name:'worker: waterfall geometry',meanMs:800,p95Ms:900,samples:2,ageMs:50},
+      {name:'Waterfall reply',meanMs:40,p95Ms:60,samples:2,ageMs:50},
+    ]},16.67);
+    expect(d.headline).toBe('Waterfall reply exceeds budget · measured');
+    expect(d.blockers?.join(' ')).not.toContain('worker:');
+  });
+  it('does not blame a stale operation for a new slow frame', () => {
+    const d=summarizePerformance({...reading,operations:[{name:'Old rebuild',meanMs:280,p95Ms:295,samples:3,ageMs:2500}]},16.67);
+    expect(d.headline).not.toContain('Old rebuild');
+    expect(d.blockers).toEqual([]);
   });
 });

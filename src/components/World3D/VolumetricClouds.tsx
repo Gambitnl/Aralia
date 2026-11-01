@@ -31,6 +31,13 @@
  * Without skipRendering={false}, the ray-march runs but composites zero alpha
  * — invisible clouds. TakramSkySystem already passes this prop; this component
  * did not. TEMP diagnostic code (scene.traverse readback) removed.
+ *
+ * FIX (2026-10-29): tree crowns showed a white rim while the camera turned.
+ * The clouds' temporal resolve pulled leaf-pixel history into the sky pixels
+ * at each silhouette, cloud alpha fell there, and the brighter GradientSky
+ * under the clouds showed through. cloudsSceneEdgeRef (see
+ * sky/cloudsSceneEdgeResolve.ts) stops cloud history at the scene/sky edge.
+ * TakramSkySystem's own <Clouds> uses the same ref (2026-11-01).
  */
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
@@ -40,6 +47,8 @@ import { Atmosphere, type AtmosphereApi } from '@takram/three-atmosphere/r3f';
 import { Clouds } from '@takram/three-clouds/r3f';
 import type { CloudsQualityPreset } from '@takram/three-clouds';
 import { trueSunVector } from './World3DLighting';
+import { cloudsSceneEdgeRef } from './sky/cloudsSceneEdgeResolve';
+import { sharedAtmosphereTextures } from './sky/sharedAtmosphereTextures';
 import {
   ATMOSPHERE_TEXTURES_URL,
   CLOUD_LOCAL_WEATHER_URL,
@@ -77,11 +86,13 @@ const VolumetricClouds: React.FC<{
     // WGS84 radius exceeds Bruneton's, and our scene owns the terrain disc.
     <Atmosphere
       ref={atmosphereRef}
-      textures={ATMOSPHERE_TEXTURES_URL}
+      // GG-574: the same shared load as TakramSkySystem (one EXR parse a page).
+      textures={sharedAtmosphereTextures(ATMOSPHERE_TEXTURES_URL)}
       correctAltitude
       ground={false}
     >
       <Clouds
+        ref={cloudsSceneEdgeRef}
         coverage={cloudCoverage}
         qualityPreset={qualityPreset}
         skipRendering={false}

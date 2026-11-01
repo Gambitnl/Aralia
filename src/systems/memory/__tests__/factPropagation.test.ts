@@ -158,3 +158,24 @@ describe('buildPropagatedFactDialogueContext', () => {
     ]);
   });
 });
+
+describe('reported personal meetings use their own subject and date clock',()=>{
+  const instant=new Date('0351-01-01T07:43:00Z').getTime();
+  it('reports the origin person meeting Mara instead of claiming the recipient met her',()=>{
+    const fact=publicFact({text:'Met Mara Tanner.',factKey:'player_met_npc',timestamp:instant});
+    const context={originNpcId:'bram',originName:'Elara Vance',npcs:ROSTER,learnedOnDay:DAY};
+    const report=propagateFact(fact,context).find(row=>row.npcId==='neighbor')!.fact;
+    expect(report.factKey).toBe('player_met_npc:bram');
+    expect(report.text).toBe('Elara Vance met Mara Tanner.');
+    expect(report.source).toBe('gossip');expect(report.sourceNpcId).toBe('bram');
+    expect(fact.text).toBe('Met Mara Tanner.');expect(fact.factKey).toBe('player_met_npc');
+  });
+  it.each([['neighbor','same_town'],['distant_ally','faction'],['stranger','rumor_mill']] as const)('keeps millisecond date recency separate from day availability for %s', (target,channel)=>{
+    const fact=publicFact({timestamp:instant});
+    const result=propagateFact(fact,{originNpcId:'bram',npcs:ROSTER,learnedOnDay:DAY,rumorReachedNpcIds:['stranger']}).find(row=>row.npcId===target)!;
+    const delay=FACT_PROPAGATION_RULES[channel].delayDays;
+    expect(result.availableFromDay).toBe(DAY+delay);
+    expect(result.fact.timestamp).toBe(instant+delay*86400000);
+    expect(result.fact.text).toBe(fact.text);
+  });
+});

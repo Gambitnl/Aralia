@@ -351,7 +351,7 @@ const PartyDisplay: React.FC<PartyDisplayProps> = ({ characters, onCharacterSele
             </button>
           </div>
         ) : (
-          <div className="relative flex min-h-0 flex-1 flex-col gap-4 overflow-hidden sm:grid sm:grid-cols-2 sm:items-start lg:flex lg:flex-col">
+          <div className="relative flex min-h-0 flex-1 flex-col gap-4 overflow-hidden sm:grid sm:grid-cols-2 sm:items-start lg:flex lg:flex-col lg:items-stretch">
             <button
               onClick={() => setIsExpanded(true)}
               className="absolute top-2 right-2 z-10 flex h-11 w-11 items-center justify-center rounded text-gray-300 transition-colors hover:bg-gray-700/80 hover:text-white"
@@ -360,10 +360,12 @@ const PartyDisplay: React.FC<PartyDisplayProps> = ({ characters, onCharacterSele
               <ExpandIcon />
             </button>
             {/* The docked roster should not force Party and Enemies into equal
-                halves. Party gets the height it needs first, then Enemies can
-                use the remaining rail space without making both sections feel
-                oddly oversized. */}
-            <div className={`${COMBAT_PANEL} min-h-0 overflow-y-auto scrollable-content p-3 ${enemyCharacters.length > 0 ? 'lg:max-h-[44%] lg:flex-none' : 'lg:flex-1'}`}>
+                halves, and neither panel should stretch past its own cards. */}
+            {/* 2026-10-30: both panels take their content height (flex 0 1 auto)
+                and shrink, each scrolling, only when the two do not fit. The
+                old 44% cap scrolled a four-member party inside a short box
+                while a one-card Enemies panel grew to fill the empty rest. */}
+            <div className={`${COMBAT_PANEL} min-h-0 overflow-y-auto scrollable-content p-3 lg:flex-[0_1_auto]`}>
               <h3 className={`${COMBAT_LABEL} mb-3 flex items-center gap-2 border-b border-amber-900/40 pb-2`}>
                 <span className="text-amber-400">⚜</span> Party
               </h3>
@@ -384,7 +386,7 @@ const PartyDisplay: React.FC<PartyDisplayProps> = ({ characters, onCharacterSele
             </div>
 
             {enemyCharacters.length > 0 && (
-              <div className={`${COMBAT_PANEL} min-h-0 flex-1 overflow-y-auto scrollable-content p-3`}>
+              <div className={`${COMBAT_PANEL} min-h-0 overflow-y-auto scrollable-content p-3 lg:flex-[0_1_auto]`}>
                 <h3 className="text-[11px] font-bold uppercase tracking-[0.22em] text-rose-400/90 mb-3 flex items-center gap-2 border-b border-rose-900/40 pb-2">
                   <span className="text-rose-400">☠</span> Enemies
                 </h3>

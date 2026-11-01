@@ -9,7 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import {
-  computeFindingId, loadGapRecords, classifyFinding, buildTaskProposals, compareReports,
+  computeFindingId, loadGapRecords, classifyFinding, buildTaskProposals, typeReviewForFindings, compareReports,
 } from './sweep-triage.mjs';
 
 const baseFinding = (overrides = {}) => ({ file: 'src/systems/combat/actions.ts', line: 42, type: 'TODO', text: '// TODO: implement bonus', citedAgoraIds: [], citedGaps: [], ...overrides });
@@ -33,6 +33,32 @@ function withRegistry(t, files) {
   return root;
 }
 const table = rows => `| Gap ID | Status | Gap | Next action |\n|---|---|---|---|\n${rows.map(([id, status]) => `| ${id} | ${status} | Preserve capability | Inspect behavior |`).join('\n')}\n`;
+
+test('WF210: every cast/suppression proposal carries fresh unverified call-site type review', () => {
+  for (const type of ['AS_ANY_CAST', 'TS_IGNORE_SUPPRESSION', 'ESLINT_TYPE_SUPPRESSION', 'DUMMY_RETURN_AS_ANY']) {
+    const input = [{ type, findingId: 'finding-type', typeReview: { status: 'verified' } }];
+    const before = structuredClone(input), review = typeReviewForFindings(input);
+    assert.equal(review.status, 'unverified'); assert.deepEqual(review.findingIds, ['finding-type']);
+    assert.match(review.requiredChecks.join('\n'), /union member.*Omit or redeclaration/);
+    assert.match(review.requiredChecks.join('\n'), /narrowing helper/); assert.match(review.requiredChecks.join('\n'), /focused compile\/type evidence/);
+    review.requiredChecks.length = 0; assert.equal(typeReviewForFindings(input).requiredChecks.length, 3);
+    assert.deepEqual(input, before);
+  }
+  assert.equal(typeReviewForFindings([{ type: 'TODO', findingId: 'ordinary' }]), null);
+  assert.equal(typeReviewForFindings([{ type: 'FUTURE_TYPE_RULE', subsystem: 'type_debt' }]).status, 'unverified');
+});
+
+test('WF210: grouped type review preserves finding/proposal identities, candidates and normal proposals', () => {
+  const finding = baseFinding({ type: 'AS_ANY_CAST', findingId: 'finding-cast', trackingStatus: 'unlisted', relatedTasks: [{ id: 'agora-existing', state: 'open', reason: 'finding_id' }] });
+  const normal = baseFinding({ findingId: 'finding-intent', trackingStatus: 'unlisted' });
+  const [proposal] = buildTaskProposals([finding, normal]);
+  assert.equal(proposal.typeReview.status, 'unverified'); assert.deepEqual(proposal.typeReview.findingIds, ['finding-cast']);
+  assert.deepEqual(proposal.findingIds, ['finding-cast', 'finding-intent']); assert.equal(proposal.existingCandidates[0].id, 'agora-existing');
+  assert.equal(proposal.acceptanceCriteria.length, 8); assert.deepEqual(proposal.acceptanceCriteria.slice(-3), proposal.typeReview.requiredChecks);
+  assert.deepEqual(proposal, buildTaskProposals([normal, finding])[0]);
+  const identity = proposal.proposalId; finding.typeReview = { status: 'verified' }; assert.equal(buildTaskProposals([finding, normal])[0].proposalId, identity);
+  const [ordinary] = buildTaskProposals([normal]); assert.ok(!Object.hasOwn(ordinary, 'typeReview')); assert.equal(ordinary.acceptanceCriteria.length, 5);
+});
 
 test('finding identity survives tracking annotations, line endings, and path separators', () => {
   const original = computeFindingId('src/a.ts', 'TODO', '// TODO: implement bonus', 'bonus');

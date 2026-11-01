@@ -3,7 +3,27 @@
  * @file src/hooks/actions/handleMerchantInteraction.ts
  * Handles interactions with dynamic merchants and shops.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 19:49:57
+ * Dependents: hooks/actions/actionHandlers.ts
+ * Imports: 24 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React from 'react';
+import { getPartyFundsGp, payPartyFunds } from '../../systems/economy/partyFunds';
+import { isCurrencyItemId } from '../../utils/character/coinPurseUtils';
+import { businessAttendance } from '../../systems/economy/businessAttendance';
 import { GameState, Action, VillageActionContext, PlayerCharacter, Skill } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import * as GeminiService from '../../services/geminiService';
@@ -30,6 +50,8 @@ import {
   findActiveHaggleFact,
   roundToCopper,
 } from '../../utils/economy/haggleFact';
+import { createEmptyMemory } from '../../utils/world/memoryUtils';
+import { buildActionMemoryDispatches, hasDirectPlayerMeeting } from '../../systems/memory/actionMemoryMatrix';
 
 /**
  * Typed stand-in used when a game state reaches the merchant flow without an
@@ -83,7 +105,8 @@ export function ensureBusinessStock(
   worldSeed: number,
   dispatch: React.Dispatch<AppAction>,
 ): WorldBusiness {
-  if (business.stock && business.stock.length > 0) return business;
+  // An empty shelf is a real saved outcome, not a legacy record to refill.
+  if (Array.isArray(business.stock)) return business;
   const stock = backfillBusinessStock(business.businessType, worldSeed, business.id);
   if (!stock) return business; // storefront-less type — nothing to backfill
   const patched: WorldBusiness = { ...business, stock };
@@ -109,7 +132,7 @@ export function buildInventoryFromStock(
   if (!business.stock || business.stock.length === 0) return [];
   const out: Item[] = [];
   for (const line of business.stock) {
-    if (line.quantity <= 0) continue;
+    if (line.quantity <= 0 || isCurrencyItemId(line.itemId)) continue;
     const base = ALL_ITEMS[line.itemId];
     if (!base) continue;
     const price = priceStockItem(base, business.priceMultiplier, economy, regionId, line.priceOverride);
@@ -178,15 +201,15 @@ export function offerTavernHire(
   // Paid hire costs coin up front, scaled by the keeper's experience (they were
   // running a business, after all). Before this, "hire" recruited for free.
   const hireCost = 15 * Math.max(1, npc.biography?.level ?? 1);
-  if ((gameState.gold ?? 0) < hireCost) {
+  if (!payPartyFunds(gameState, hireCost)) {
     addMessage(`"I'd take up the sword again — for ${hireCost} gold. Come back when your purse is heavier."`, 'system');
     return;
   }
 
   const payload = npcToPartyMember(npc, 'tavern');
-  dispatch({ type: 'RECRUIT_COMPANION', payload });
-  dispatch({ type: 'MODIFY_GOLD', payload: { amount: -hireCost } });
-  addMessage(`You pay ${hireCost} gold and ${npc.name} hangs up their apron to join your party.`, 'system');
+  // The membership owner pays once from current funds before recording a join.
+  dispatch({ type: 'RECRUIT_COMPANION', payload: { ...payload, hireCostGp: hireCost } });
+  addMessage(`You offer ${hireCost} gold for ${npc.name}'s company.`, 'system');
   addMessage(verdict.reason, 'system');
 }
 
@@ -224,15 +247,17 @@ export function validateMerchantTransaction(
   if (type === 'buy') {
     const { item, cost } = payload;
     if (!item) return { valid: false, error: "No item specified for purchase." };
-    if (typeof cost !== 'number' || cost < 0) return { valid: false, error: "Invalid purchase cost." };
-    if (gameState.gold < cost) {
-      return { valid: false, error: `Insufficient gold. Need ${cost} GP, but you only have ${gameState.gold} GP.` };
+    if (typeof cost !== 'number' || !Number.isFinite(cost) || cost < 0) return { valid: false, error: "Invalid purchase cost." };
+    if (isCurrencyItemId(item.id)) return { valid: false, error: 'Currency is used at face value, not bought as merchandise.' };
+    if (!payPartyFunds(gameState, cost)) {
+      return { valid: false, error: `Insufficient gold. Need ${cost} GP, but you only have ${getPartyFundsGp(gameState)} GP.` };
     }
   } else if (type === 'sell') {
     const { itemId, value } = payload;
     if (!itemId) return { valid: false, error: "No item specified for sale." };
-    if (typeof value !== 'number' || value < 0) return { valid: false, error: "Invalid sale value." };
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) return { valid: false, error: "Invalid sale value." };
 
+    if (isCurrencyItemId(itemId)) return { valid: false, error: 'Currency is used at face value, not sold as merchandise.' };
     const hasItem = gameState.inventory.some(i => i.id === itemId);
     if (!hasItem) {
       return { valid: false, error: "Item not found in inventory." };
@@ -250,6 +275,7 @@ export function validateMerchantTransaction(
  */
 export function merchantTownProfile(gameState: GameState): TownProfile | undefined {
   const town = resolveTownForLocation({
+    ground: gameState,
     currentLocationId: gameState.currentLocationId,
     worldSeed: gameState.worldSeed,
     cellId: gameState.playerCell?.cellId,
@@ -284,7 +310,7 @@ export async function handleOpenDynamicMerchant({
   addGeminiLog,
   generalActionContext,
 }: HandleMerchantInteractionProps): Promise<void> {
-  const payload = action.payload as { merchantType: string; villageContext?: VillageActionContext; buildingId?: string; seedKey?: string; hire?: boolean };
+  const payload = action.payload as { merchantType: string; villageContext?: VillageActionContext; buildingId?: string; seedKey?: string; hire?: boolean; initialTab?: 'gossip' };
   const { merchantType, villageContext, buildingId, seedKey, hire } = payload || {};
   if (!merchantType) {
     addMessage("Invalid merchant data.", "system");
@@ -299,6 +325,18 @@ export async function handleOpenDynamicMerchant({
   let merchantName = merchantType; // Default fallback
   const resolvedBuildingId = (typeof buildingId === 'string' && buildingId) ||
     (typeof (villageContext as VillageActionContext)?.buildingId === 'string' ? (villageContext as VillageActionContext).buildingId : undefined);
+
+  const sourceBusiness = resolveMerchantBusiness(gameState, resolvedBuildingId);
+  const availability = sourceBusiness ? await businessAttendance(gameState, sourceBusiness) : undefined;
+  if (availability && !availability.open) {
+    const reason = availability.reason ?? 'This business cannot serve you right now.';
+    addMessage(reason, 'system');
+    // The 3D town hides the ordinary system log. Keep the keeper's actual
+    // refusal visible instead of closing the plan with no explanation.
+    dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'warning', message: reason } });
+    dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });
+    return;
+  }
 
   if (resolvedBuildingId) {
     // Check registry
@@ -343,9 +381,24 @@ export async function handleOpenDynamicMerchant({
       dispatch({ type: 'REGISTER_WORLD_BUSINESS', payload: { business: npcBusiness } });
 
       addMessage(`A new face greets you: ${npc.name}, the ${npc.biography.age}-year-old ${npc.biography.classId}.`, 'system');
-    } else {
+    } else if (gameState.metNpcIds?.includes(npc.id)) {
       addMessage(`You recognize ${npc.name}.`, 'system');
+    } else {
+      addMessage(`You meet ${npc.name}.`, 'system');
     }
+
+    // Town registration establishes a person, not a meeting with the player.
+    // A successful staffed visit uses the same first-contact memory owner as
+    // direct dialogue. Repeat visits keep that fact and refresh only recency.
+    if (!hasDirectPlayerMeeting(gameState.npcMemory?.[npc.id]?.knownFacts)) {
+      buildActionMemoryDispatches({
+        actionType: 'met', observerNpcId: npc.id,
+        gameDay: getGameDay(gameState.gameTime), timestamp: gameState.gameTime.getTime(),
+        detail: gameState.party?.[0]?.name?.trim() || 'the adventurer',
+      }).forEach(memoryAction => dispatch(memoryAction));
+    }
+    if (!gameState.metNpcIds?.includes(npc.id)) dispatch({ type: 'ADD_MET_NPC', payload: { npcId: npc.id } });
+    dispatch({ type: 'UPDATE_NPC_INTERACTION_TIMESTAMP', payload: { npcId: npc.id, timestamp: gameState.gameTime.getTime() } });
 
     // Use the generated name for the UI. When the merchant has a linked
     // WorldBusiness with a proper shop name (e.g. "The Gilded Blade"), lead with
@@ -386,10 +439,10 @@ export async function handleOpenDynamicMerchant({
   const linkedBusiness = resolvedBusiness
     ? ensureBusinessStock(resolvedBusiness, gameState.worldSeed || 42, dispatch)
     : undefined;
-  if (linkedBusiness?.stock && linkedBusiness.stock.length > 0) {
+  if (linkedBusiness && Array.isArray(linkedBusiness.stock)) {
     const regionId = (gameState as { currentRegionId?: string }).currentRegionId;
     const stockInventory = buildInventoryFromStock(linkedBusiness, gameState.economy, regionId);
-    if (stockInventory.length > 0) {
+    {
       dispatch({
         type: 'OPEN_MERCHANT',
         payload: {
@@ -400,6 +453,10 @@ export async function handleOpenDynamicMerchant({
           merchantId: resolvedBuildingId,
           merchantName,
           inventory: stockInventory,
+          // The owned business still passes ordinary attendance and stock checks.
+          // This selects a tab only; information keeps its posted purchase price.
+          ...(linkedBusiness.businessType === 'tavern' && payload.initialTab === 'gossip'
+            ? {initialTab: 'gossip' as const} : {}),
           economy: gameState.economy,
         },
       });
@@ -499,11 +556,23 @@ export async function handleMerchantAction({
 }: HandleMerchantInteractionProps): Promise<void> {
   const payload = action.payload as import('../../types').MerchantActionPayload;
   const { strategy, transaction, merchantId, priceMultiplier } = payload;
+  // An already-open window cannot keep an absent keeper serving after a shift.
+  const sourceBusiness = resolveMerchantBusiness(gameState, merchantId);
+  const availability = sourceBusiness ? await businessAttendance(gameState, sourceBusiness) : undefined;
+  if (availability && !availability.open) {
+    const reason = availability.reason ?? 'This business cannot serve you right now.';
+    addMessage(reason, 'system');
+    // The 3D town hides the ordinary system log. Keep the keeper's actual
+    // refusal visible instead of closing the plan with no explanation.
+    dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'warning', message: reason } });
+    return;
+  }
 
   if (action.type === 'HAGGLE_ITEM') {
     const nowMs = gameState.gameTime.getTime();
     const merchantId = payload.merchantId;
-    const merchantMemory = merchantId ? gameState.npcMemory?.[merchantId] : undefined;
+    // GG-165: fall back to a blank memory object if this merchant has no saved record yet
+    const merchantMemory = merchantId ? (gameState.npcMemory?.[merchantId] ?? createEmptyMemory()) : undefined;
 
     if (merchantId && merchantMemory) {
       const recentHaggle = findActiveHaggleFact(merchantMemory, nowMs);
@@ -555,7 +624,7 @@ export async function handleMerchantAction({
       ? Math.min(10, Math.max(2, margin))
       : Math.max(-10, Math.min(-2, margin));
 
-    if (merchantId && merchantMemory && dispositionNudge !== 0) {
+    if (merchantId && dispositionNudge !== 0) {
       dispatch({ type: 'UPDATE_NPC_DISPOSITION', payload: { npcId: merchantId, amount: dispositionNudge } });
     }
 
@@ -563,7 +632,7 @@ export async function handleMerchantAction({
       ? (strategy === 'intimidate' ? 0.8 : 0.9)
       : (strategy === 'intimidate' ? 1.1 : 1.0);
 
-    if (merchantId && merchantMemory) {
+    if (merchantId) {
       dispatch({
         type: 'ADD_NPC_KNOWN_FACT',
         payload: {
@@ -615,33 +684,46 @@ export async function handleMerchantAction({
 
   if (transaction?.buy) {
     const { item, cost } = transaction.buy;
-    const nowMs = gameState.gameTime.getTime();
     const merchantId = payload.merchantId;
-    const merchantMemory = merchantId ? gameState.npcMemory?.[merchantId] : undefined;
+    const merchantBusiness = resolveMerchantBusiness(gameState, merchantId);
+    // Rumors use the same payment path but are delivered by their service owner.
+    // Physical goods must still exist on this business's actual shelves.
+    const isService = item.type === 'service';
+    if (isService && item.id.startsWith('rumor_') && item.sourceId
+      && gameState.inventory.some(owned => owned.type === 'service' && owned.sourceId === item.sourceId)) {
+      addMessage('You already own this information. Read the note you purchased.', 'system');
+      return;
+    }
+    const stockLine = merchantBusiness?.stock?.find(line => line.itemId === item.id);
+    if (merchantBusiness && !isService && (!stockLine || stockLine.quantity < 1 || !ALL_ITEMS[item.id])) {
+      addMessage('That item is no longer in stock. Please browse the shop again.', 'system');
+      return;
+    }
+    const regionId = (gameState as { currentRegionId?: string }).currentRegionId;
+    const unitCost = merchantBusiness && stockLine && !isService
+      ? priceStockItem(ALL_ITEMS[item.id], merchantBusiness.priceMultiplier, gameState.economy, regionId, stockLine.priceOverride, { factions: gameState.factions, standings: gameState.playerFactionStandings })
+      : cost;
+    const nowMs = gameState.gameTime.getTime();
+    const merchantMemory = merchantId ? (gameState.npcMemory?.[merchantId] ?? createEmptyMemory()) : undefined;
     // Same helper the merchant UI uses to render the price, so the number on
     // the button and the number charged here cannot drift apart.
     const haggleMultiplier = activeHagglePriceMultiplier(merchantMemory, nowMs);
 
-    const activePriceMultiplier = typeof payload.priceMultiplier === 'number'
+    const activePriceMultiplier = isService && typeof payload.priceMultiplier === 'number'
       ? payload.priceMultiplier
       : haggleMultiplier;
-    const finalCost = roundToCopper(cost * activePriceMultiplier);
+    const finalCost = roundToCopper(unitCost * activePriceMultiplier);
     const validation = validateMerchantTransaction('buy', { item, cost: finalCost }, gameState);
     if (validation.valid) {
       // Buy ONE unit for the single-unit price. Stocked items carry a stack
       // quantity (e.g. 30 rations); inserting the whole stack for one unit's
       // cost was a duplication/infinite-money exploit once buying worked.
-      dispatch({ type: 'BUY_ITEM', payload: { item: { ...item, quantity: 1 }, cost: finalCost } });
-      // If this merchant owns persisted stock and the bought item is one of its
-      // stock lines, decrement the owned quantity so the shelf depletes across
-      // visits (BUY_ITEM only trims the transient modal inventory).
-      const merchantBusiness = resolveMerchantBusiness(gameState, merchantId);
-      if (merchantBusiness?.stock?.some(s => s.itemId === item.id)) {
-        dispatch({
-          type: 'DEBIT_BUSINESS_STOCK',
-          payload: { businessId: merchantBusiness.id, itemId: item.id, quantity: 1 },
-        });
-      }
+      // Shelf prices belong to the shop. Keep the catalog identity, value and
+      // equipment rules on the acquired unit so another shop can value it fairly.
+      const acquiredItem = merchantBusiness && !isService ? ALL_ITEMS[item.id] : item;
+      dispatch({ type: 'BUY_ITEM', payload: { item: { ...acquiredItem, quantity: 1 }, cost: finalCost } });
+      // BUY_ITEM settles owned stock and the wallet in one reducer step.
+      // A separate debit could consume stock after a stale purchase was refused.
       addMessage(
         `You purchased ${item.name} for ${finalCost} gold${activePriceMultiplier < 1 ? ' (discounted)' : activePriceMultiplier > 1 ? ' (increased)' : ''}.`,
         'system'
@@ -652,11 +734,20 @@ export async function handleMerchantAction({
   }
 
   if (transaction?.sell) {
-    const { itemId, value } = transaction.sell;
+    const { itemId, value, inventoryIndex, inventoryItem } = transaction.sell;
+    const selected = inventoryIndex === undefined ? gameState.inventory.find(item => item.id === itemId) : gameState.inventory[inventoryIndex];
+    if (!selected || selected.id !== itemId || (inventoryItem && inventoryItem !== selected)) {
+      addMessage('That inventory entry has changed. Please select the item again.', 'system');
+      return;
+    }
+    if (selected.type === 'service' && selected.id.startsWith('rumor_')) {
+      addMessage('Purchased information is yours to keep; its note cannot be sold back.', 'system');
+      return;
+    }
     const validation = validateMerchantTransaction('sell', { itemId, value }, gameState);
     if (validation.valid) {
-      dispatch({ type: 'SELL_ITEM', payload: { itemId, value } });
-      addMessage(`You sold an item for ${value} gold.`, 'system');
+      dispatch({ type: 'SELL_ITEM', payload: { itemId, value, inventoryIndex, inventoryItem } });
+      addMessage(`You sold one ${selected.name} for ${value} gold.`, 'system');
     } else {
       addMessage(validation.error || 'Sale failed.', 'system');
     }

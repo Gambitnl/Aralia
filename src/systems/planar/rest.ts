@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 04/08/2026, 02:02:49
- * Dependents: hooks/actions/handleResourceActions.ts
+ * Last Sync: 28/10/2026, 19:10:35
+ * Dependents: components/layout/GameModals.tsx, hooks/actions/handleResourceActions.ts
  * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
@@ -18,18 +18,16 @@ import { GameState, Location } from '../../types';
 import { getCurrentPlane } from '../../utils/planar';
 import { rollSavingThrow } from '../../utils/character';
 import { createPlayerCombatCharacter } from '../../utils/combat';
-import { LOCATIONS } from '../../constants';
+import { LOCATIONS } from '../../data/world/locations';
 
 export interface RestOutcome {
   deniedCharacterIds: string[];
   messages: string[];
 }
 
-/**
- * Checks planar rules for resting and determines which characters
- * are denied benefits or suffer consequences.
- */
-export function checkPlanarRestRules(gameState: GameState): RestOutcome {
+// Preview and commitment resolve the same authored location, including dynamic
+// planes. Opening a dialog must never roll saves or consume world state.
+function resolveRestPlane(gameState: GameState) {
   const resolvedLocation =
     gameState.dynamicLocations?.[gameState.currentLocationId] ??
     LOCATIONS[gameState.currentLocationId];
@@ -41,7 +39,32 @@ export function checkPlanarRestRules(gameState: GameState): RestOutcome {
     biomeId: 'unknown',
     planeId: 'material'
   };
-  const plane = getCurrentPlane(resolvedLocation ?? fallbackLocation);
+  return getCurrentPlane(resolvedLocation ?? fallbackLocation);
+}
+
+function hasDespairRestRisk(plane: ReturnType<typeof getCurrentPlane>): boolean {
+  return plane.traits.some(trait => trait.id === 'shadowfell_despair' || trait.name.includes('Despair'));
+}
+
+export function getPlanarRestPreview(gameState: GameState, kind: 'short' | 'long'): {
+  blockReason: string | null;
+  warning: string | null;
+} {
+  const plane = resolveRestPlane(gameState), rules = plane.effects?.affectsRest;
+  if (!rules) return {blockReason: null, warning: null};
+  const allowed = kind === 'long' ? rules.longRestAllowed : rules.shortRestAllowed;
+  if (!allowed) return {blockReason: (kind === 'long' ? 'Long' : 'Short') + ' rests are not possible in ' + plane.name + '.', warning: null};
+  return {blockReason: null, warning: kind === 'long' && hasDespairRestRisk(plane)
+    ? 'In ' + plane.name + ', each eligible member makes a DC 15 Wisdom saving throw with disadvantage. Those who fail gain no rest benefits. The attempt still uses its normal time and provisions.'
+    : null};
+}
+
+/**
+ * Checks planar rules for resting and determines which characters
+ * are denied benefits or suffer consequences.
+ */
+export function checkPlanarRestRules(gameState: GameState): RestOutcome {
+  const plane = resolveRestPlane(gameState);
   const outcome: RestOutcome = {
     deniedCharacterIds: [],
     messages: []
@@ -62,7 +85,7 @@ export function checkPlanarRestRules(gameState: GameState): RestOutcome {
   }
 
   // Shadowfell Logic (or any plane with Despair trait)
-  const hasDespairTrait = plane.traits.some(t => t.id === 'shadowfell_despair' || t.name.includes('Despair'));
+  const hasDespairTrait = hasDespairRestRisk(plane);
 
   if (hasDespairTrait) {
      outcome.messages.push(`The despair of the ${plane.name} weighs heavy...`);

@@ -33,6 +33,22 @@
  * - Rebels   -> Rebel (Bandit, count: 1-2)
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 19:30:23
+ * Dependents: systems/combat/worldScenario/surfaceHostileEncounter.ts, systems/combat/worldScenario/surfaceHostileTemplate.ts, systems/worldforge/bridge/groundChunkLoader.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { RegionMarker, RegionZone } from '../artifacts';
 import type { GroundHostile } from './groundChunkLoader';
 import { SeededRandom } from '../../../utils/random/seededRandom';
@@ -55,7 +71,9 @@ const HOSTILE_MARKER_MAP: Record<string, CreatureTemplate[]> = {
   brigands: [
     { name: 'Bandit', monsterId: 'Bandit', cr: '1/8', minCount: 2, maxCount: 4 },
     { name: 'Bandit Captain', monsterId: 'Bandit Captain', cr: '2', minCount: 1, maxCount: 2 },
-    { name: 'Highwayman', monsterId: 'Bandit', cr: '3', minCount: 1, maxCount: 2 },
+    // The owner keeps the CR3 threat (agora-6c83). Use the existing martial
+    // profile while preserving the world name, source group and placement.
+    { name: 'Highwayman', monsterId: 'Warrior Veteran', cr: '3', minCount: 1, maxCount: 2 },
   ],
   pirates: [
     { name: 'Pirate', monsterId: 'Bandit', cr: '1/4', minCount: 2, maxCount: 4 },
@@ -184,6 +202,8 @@ export function generateGroundHostiles(
   const extentXM = localBoundsWidth * FEET_TO_METERS;
   const extentZM = localBoundsHeight * FEET_TO_METERS;
   let hostileCount = 0;
+  const markerOccurrences = new Map<string, number>();
+  const zoneOccurrences = new Map<string, number>();
 
   // ── Marker-based spawns ──────────────────────────────────────────────
   if (markers) {
@@ -209,6 +229,15 @@ export function generateGroundHostiles(
         rng.next() * (template.maxCount - template.minCount + 1),
       );
 
+      // Cohort metadata consumes no RNG and preserves every existing entity ID.
+      const groupStart = hostileCount;
+      const sourceKey = JSON.stringify([marker.type, marker.x, marker.y]);
+      const occurrence = markerOccurrences.get(sourceKey) ?? 0;
+      markerOccurrences.set(sourceKey, occurrence + 1);
+      const sourceGroup = {kind: 'marker' as const,
+        key: JSON.stringify(['marker', marker.type, marker.x, marker.y, occurrence]),
+        memberIds: Array.from({length: count}, (_, i) => `wf-hostile-marker-${marker.type}-${groupStart + i}-${i}`)};
+
       // Generate individual creature positions scattered around the marker.
       for (let i = 0; i < count; i++) {
         const angle = rng.next() * Math.PI * 2;
@@ -222,6 +251,7 @@ export function generateGroundHostiles(
 
         result.push({
           id: `wf-hostile-marker-${marker.type}-${hostileCount++}-${i}`,
+          sourceGroup,
           name: template.name,
           xM: clampedX,
           zM: clampedZ,
@@ -238,10 +268,16 @@ export function generateGroundHostiles(
     for (const zone of zones) {
       if (zone.type !== 'Invasion' && zone.type !== 'Rebels') continue;
 
+      const sourceKey = JSON.stringify([zone.type, zone.name]);
+      const occurrence = zoneOccurrences.get(sourceKey) ?? 0;
+      zoneOccurrences.set(sourceKey, occurrence + 1);
       const numToSpawn = 1 + Math.floor(rng.next() * 2);
       for (let i = 0; i < numToSpawn; i++) {
+        const id = `wf-hostile-zone-${zone.type}-${hostileCount++}`;
         result.push({
-          id: `wf-hostile-zone-${zone.type}-${hostileCount++}`,
+          id,
+          // These bodies are independently scattered, not one distant pack.
+          sourceGroup: {kind: 'zone', key: JSON.stringify(['zone', zone.type, zone.name, occurrence, i]), memberIds: [id]},
           name: zone.type === 'Invasion' ? 'Invader' : 'Rebel',
           monsterId: 'Bandit',
           xM: rng.next() * extentXM,
@@ -266,4 +302,18 @@ export function hasHostileZoneContext(
   if (!zones?.length) return false;
   const hostileZoneTypes = new Set(['Invasion', 'Rebels', 'Crusade']);
   return zones.some(z => hostileZoneTypes.has(z.type));
+}
+
+/** Read the original marker declaration without changing any generated placement.
+ * This metadata is a consistency check, not a stat-scaling instruction. */
+export function declaredGroundHostileChallengeRating(
+  hostile: Pick<GroundHostile, 'name' | 'monsterId'>,
+): string | undefined {
+  // Exact profile references retain their declaration. An older ground packet
+  // must not erase a unique named threat merely by retaining its old template.
+  const named = Object.values(HOSTILE_MARKER_MAP).flat().filter(template => template.name === hostile.name);
+  const matching = named.filter(template => template.monsterId === hostile.monsterId);
+  const ratings = new Set((matching.length ? matching : named).map(template => template.cr));
+  if (ratings.size > 1) throw new Error('The source creature has conflicting challenge declarations.');
+  return ratings.values().next().value;
 }

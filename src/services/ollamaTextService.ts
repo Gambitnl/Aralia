@@ -7,6 +7,22 @@
  * Provides local AI-powered narrative generation for the RPG.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 28/10/2026, 22:33:15
+ * Dependents: components/ui/GameGuideModal.tsx, hooks/actions/handleItemInteraction.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleObservation.ts, hooks/actions/handleOracle.ts, hooks/actions/handleWorldEvents.ts, hooks/useDialogueSystem.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { getDefaultClient } from './ollama/client';
 import type { TaskType, ModelParams } from './ollama';
 import { isGeminiFallbackReady } from './ai/aiCredentials';
@@ -237,7 +253,7 @@ export async function generateNPCResponse(
   playerAction: string,
   npcContext: string
 ): Promise<StandardizedResult<OllamaTextData>> {
-  const systemInstruction = "You are role-playing NPCs in a high fantasy RPG. Your replies should be 1-2 sentences, in the NPC's voice, and react to the player's action and context.";
+  const systemInstruction = "You are role-playing an NPC in a high fantasy RPG. Answer the player in 1-2 complete sentences using only the supplied facts. Keep the speaker's voice, but do not invent named people or places, personal or family history, physical actions, promises or quest offers. If the context does not support an answer, say you do not know.";
 
   const prompt = `NPC: ${npcName}
 Player Action: ${playerAction}

@@ -1,6 +1,6 @@
 # World3D Lighting & Sky
 
-Verified: 2026-08-26 (clouds port session: design landed, render-invisibility open)
+Verified: 2026-11-01 (cloud resolve edge rule checked against code in both cloud setups; motion captures from 2026-10-29)
 
 ## Purpose
 
@@ -18,7 +18,9 @@ facades live in `streamed-3d-world.md`; game-time systems live in
 - `src/components/World3D/World3DScene.tsx` - mounts `<NightSky timeOfDayHours>` right after the lighting block (~line 1418); owns the scene post chain (N8AO + ACES ToneMapping)
 - `src/components/World3D/World3DWrapper.tsx` - passes `timeOfDayHours={scheduleClockFromGameTime(state.gameTime)}` to the scene
 - `src/components/DesignPreview/steps/PreviewTown3D.tsx` - hour slider lab knob on the `town3d` design-preview step (the rendered-verification surface)
-- Tests: `src/components/World3D/__tests__/World3DLighting.test.ts`
+- `src/components/World3D/VolumetricClouds.tsx` - takram `<Clouds>` effect inside the scene composer (ground profile, WebGL only)
+- `src/components/World3D/sky/cloudsSceneEdgeResolve.ts` - stops the clouds' temporal history at the scene/sky edge
+- Tests: `src/components/World3D/__tests__/World3DLighting.test.ts`, `src/components/World3D/sky/__tests__/cloudsSceneEdgeResolve.test.ts`
 
 ## How the 24h cycle works NOW
 
@@ -54,19 +56,47 @@ internal composer exists only for volumetric Clouds + their ToneMapping, and it
 would take over rendering from the scene's N8AO+ACES chain. Dome/stars/moon are
 ordinary scene meshes and work without it.
 
-**Volumetric clouds (IN PROGRESS, 2026-08-26):** the blocker was never "two
-composers can't stack" - it was that nobody tried hosting the cloud effect in
-the SCENE's composer. `VolumetricClouds.tsx` does exactly that: `@takram/
-three-clouds` `<Clouds>` is a postprocessing `Effect` (depth-only ray-march)
-that attaches to whichever composer is in context, wrapped in its own
-`<Atmosphere>` provider (pure context; LUTs URL-cached by three's loader) and
-driven by the same `trueSunVector` clock. It sits after N8AO, before ACES
-ToneMapping, and is ground-profile-only (the continent view has no composer by
-design). Open bug at handoff: the effect REGISTERS in the composer (verified by
-runtime probe) but its output is invisible (pixel census ≈0.08% change vs
-cloudless baseline) - suspected zero-alpha cloudsPass output. Continuation:
-Agora task 4f94961d; the readback probe lives in VolumetricClouds.tsx marked
-TEMP DIAGNOSTIC.
+**Volumetric clouds:** `VolumetricClouds.tsx` hosts the `@takram/three-clouds`
+`<Clouds>` effect (depth-only ray-march) in the SCENE's composer, wrapped in
+its own `<Atmosphere>` provider (pure context; LUTs URL-cached by three's
+loader) and driven by the same `trueSunVector` clock. It sits after N8AO,
+before ACES ToneMapping, and is ground-profile-only (the continent view has no
+composer by design). The early "invisible clouds" bug was the library default
+`skipRendering=true`; the component passes `skipRendering={false}`.
+
+The cloud layer is premultiplied (rgb, alpha) and composites as
+`scene * (1 - a) + cloud`. Over open sky the takram haze gives alpha about
+0.97, and that haze color is the dusk sky the player sees. The brighter
+`GradientSky` dome sits under it. Over scene geometry the march stops at the
+surface, so the layer there is thin haze only (alpha about 0.05).
+
+**Cloud resolve edge rule (2026-10-29).** The resolve pass blends 90%
+reprojected history (`temporalAlpha` 0.1) inside a 3x3 variance box. At a
+crown silhouette that box holds both leaf and sky, so in motion it let leaf
+alpha into the sky rim (0.97 fell to 0.66), and the bright `GradientSky`
+showed through as a white rim on tree tops. `cloudsSceneEdgeResolve.ts` patches
+the resolve shader through the `<Clouds>` ref: a pixel uses history only if
+its whole 3x3 neighborhood is open sky, by the march's own depth test and
+uniforms. Measured on the town demo (`?phase=world3d&ground=1&gx=16&gy=4&wfseed=42`,
+frames stepped by hand, motion frame against a settled frame at the same
+pose): glow pixels (>40 levels brighter) went from 4,993 to 0 on a slow turn
+and from 7,121 to 0 on a fast turn with forward walk. Sky pixels keep the
+temporal filter, which the cloud ray-march noise needs. The rule covers the
+full-resolution TAA path only (`temporalUpscale={false}`); the helper logs an
+error and does nothing on the upscale path. The unit test fails if a takram
+upgrade moves the shader text the rule hooks into.
+
+Every `<Clouds>` carries the rule: it passes `ref={cloudsSceneEdgeRef}` and
+`temporalUpscale={false}`. There are two setups. `VolumetricClouds` is the
+one the game uses. `TakramSkySystem` has its own composer, which mounts only
+with `effectComposerEnabled`; no World3D caller sets it today. TakramSkySystem
+got the rule on 2026-11-01, so it left the library's quarter-resolution
+upscale path. That setup has no rendered check, because no screen mounts it.
+The unit test reads every `<Clouds>` element in `src/` and fails if one of
+them drops the ref or the TAA path.
+
+The WebGPU world has no clouds yet (ADR 0009 step 7). Any cloud port there
+must keep the same rule: no temporal history on or next to scene geometry.
 
 ## Asset integrity gotcha (bit us 2026-08-26)
 
@@ -93,8 +123,6 @@ day/night).
 
 ## Known open items
 
-- Volumetric clouds render-invisibility (see clouds section above; Agora task
-  4f94961d).
 - The `glBlitFramebuffer GL_INVALID_OPERATION` WebGL warning observed during
   captures is unclassified - present in both day and night, suspected
   pre-existing N8AO/post-chain behaviour, not yet bisected against the night

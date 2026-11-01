@@ -22,6 +22,7 @@ import {
   INTERIOR_WALL_COLOR,
   PERIMETER_WALL_COLORS,
   DOOR_LEAF_COLOR,
+  DOOR_LINTEL_COLOR,
   WINDOW_PANE_COLOR,
   CEILING_COLOR,
   STAIR_COLOR,
@@ -40,13 +41,18 @@ import {
   type InteriorPlotInput,
 } from '../../interior/generateInterior';
 import { isAtWork } from '../groundChunkLoader';
-import { rootSeedPath } from '../../seedPath';
+import { rootSeedPath, childSeedPath } from '../../seedPath';
+import { containerManifests } from '../../interior/manifests';
 import { STYLE_FAMILIES } from '../../town/architectureStyle';
 import {
   dressingContrastTone,
   glazingPaneColor,
 } from '../buildingMaterialParts';
-import { blueprintSiteOrigin, EXTERIOR } from '../../interior/blueprintTypes';
+import { blueprintSiteOrigin, EXTERIOR, type WallRun, type BlueprintPlan } from '../../interior/blueprintTypes';
+import observed from '../../interior/__tests__/fixtures/observedBuildingSources.json';
+import {canonicalTownSeedPath} from '../../town/canonicalTown';
+import {planGuestCirculation} from '../../interior/guestCirculation';
+import {applyFurnitureLayoutMoves, bedsideStorageMoves} from '../../interior/buildingLayoutRepair';
 
 /** Colors that identify structural walls in legacy, unstyled test fixtures. */
 const isWallColor = (color: string): boolean =>
@@ -111,6 +117,30 @@ const fig = (
   ageBand,
   atWork,
   body: body(),
+});
+
+it('recorded door width changes the actual leaf and masonry opening while legacy plans stay exact', () => {
+  const bp = structuredClone(blueprintForPlot(plot(), SEED_PATH));
+  const ground = bp.floors.find(f => f.level === 0)!;
+  const door = ground.doors.find(d => d.isEntry)!;
+  const old = buildInteriorParts(plot(), SEED_PATH, 3, [], bp);
+  const unchanged = structuredClone(bp);
+  door.clearWidthFt = 4;
+  const wider = buildInteriorParts(plot(), SEED_PATH, 3, [], bp);
+  const leaf = wider.find(p => p.door)!;
+  expect(door.axis === 'x' ? leaf.w : leaf.d).toBeCloseTo(4 * FT);
+  const legacyLeaf = old.find(p => p.door)!;
+  expect(door.axis === 'x' ? legacyLeaf.w : legacyLeaf.d).toBeCloseTo(3 * FT);
+  expect(leaf.door!.id).toBe(legacyLeaf.door!.id);
+  // The wider opening must be a real void: an adult-width body positioned
+  // off the old centerline cannot intersect jambs or a coincident wall.
+  const origin = blueprintSiteOrigin(bp), x = (door.x - origin.x) * FT, z = (door.y - origin.y) * FT;
+  const sample = door.axis === 'x' ? {x: x + .52, z} : {x, z: z + .52};
+  expect(wider.some(p => isWallColor(p.colorHex) && (p.baseY ?? 0) < 1.5 && (p.baseY ?? 0) + p.h > .5
+    && Math.abs(p.x - sample.x) < p.w / 2 - 1e-6 && Math.abs(p.z - sample.z) < p.d / 2 - 1e-6)).toBe(false);
+  expect(buildInteriorParts(plot(), SEED_PATH, 3, [], unchanged)).toEqual(old);
+  for (const width of [0, 6, Number.NaN]) { door.clearWidthFt = width;
+    expect(() => buildInteriorParts(plot(), SEED_PATH, 3, [], bp)).toThrow('five-foot wall cell'); }
 });
 
 it('is deterministic', () => {
@@ -445,6 +475,13 @@ it('leaves a real door gap in the entry WALL and dresses it with a door leaf', (
       Math.abs(p.z - doorZ) < 0.05,
   );
   expect(leaf).toBeDefined();
+  // The seven-foot opening starts above the finished floor. Both beams share
+  // the leaf head elevation rather than stealing the slab thickness from it.
+  expect(leaf!.h).toBeCloseTo(7*FT);
+  const entryHeads=parts.filter(p=>p.colorHex===DOOR_LINTEL_COLOR
+    &&Math.abs((isX?p.x:p.z)-doorAlong)<.05&&Math.abs((isX?p.z:p.x)-wallLine)<.25&&(p.baseY??0)>1);
+  expect(entryHeads.length).toBeGreaterThanOrEqual(2);
+  for(const head of entryHeads)expect(head.baseY).toBeCloseTo((leaf!.baseY ?? 0) + leaf!.h);
 });
 
 it('emits perimeter windows and a single-storey ceiling (IN1/IN2)', () => {
@@ -871,6 +908,46 @@ describe('solved roof parts (BGv2 Task 5)', () => {
     expect(facade.some((part) => part.w > part.d)).toBe(true);
     expect(facade.some((part) => part.d > part.w)).toBe(true);
   });
+
+  it.each([[-1, -1], [-1, 1], [1, -1], [1, 1]])('keeps concave-corner facade trim outside adjacent masonry for normals %i/%i', (sx, sy) => {
+    for (const pattern of ['half-timber', 'log-bands'] as const) {
+      const bp = structuredClone(bare());
+      bp.styleResolved = {...styled().styleResolved!, facadePattern: pattern};
+      const floor = bp.floors.find(f => f.level === 0)!;
+      bp.floors = [floor]; bp.stairs = [];
+      floor.doors = []; floor.windows = [];
+      floor.wallRuns = [
+        {axis: 'x', x1: Math.min(10, 10 + sx * 10), x2: Math.max(10, 10 + sx * 10), y1: 10, y2: 10, nx: 0, ny: sy, thicknessFt: 1.5, kind: 'outer'},
+        {axis: 'y', x1: 10, x2: 10, y1: Math.min(10, 10 + sy * 10), y2: Math.max(10, 10 + sy * 10), nx: sx, ny: 0, thicknessFt: 1.5, kind: 'outer'},
+      ] as WallRun[];
+      const unchanged = structuredClone(bp), origin = blueprintSiteOrigin(bp);
+      const facade = buildBlueprintParts(bp, 3.048, '#bca581', false).parts.filter(p => p.tag === FACADE_PART_TAG);
+      expect(facade.length).toBeGreaterThan(0);
+      for (const part of facade) for (const wall of floor.wallRuns) {
+        const x1 = Math.min(wall.x1, wall.x2, wall.x1 + wall.nx * wall.thicknessFt);
+        const x2 = Math.max(wall.x1, wall.x2, wall.x1 + wall.nx * wall.thicknessFt);
+        const z1 = Math.min(wall.y1, wall.y2, wall.y1 + wall.ny * wall.thicknessFt);
+        const z2 = Math.max(wall.y1, wall.y2, wall.y1 + wall.ny * wall.thicknessFt);
+        const overlapX = Math.min(part.x + part.w / 2, (x2 - origin.x) * FT) - Math.max(part.x - part.w / 2, (x1 - origin.x) * FT);
+        const overlapZ = Math.min(part.z + part.d / 2, (z2 - origin.y) * FT) - Math.max(part.z - part.d / 2, (z1 - origin.y) * FT);
+        expect(overlapX > 1e-6 && overlapZ > 1e-6, 'exterior trim must not be buried inside an adjacent room wall').toBe(false);
+      }
+      expect(bp).toEqual(unchanged);
+    }
+  });
+
+  it('removes the actual inn courtyard trim stripe without changing the frozen corrected plan', () => {
+    const original = observed.inn.plan as unknown as BlueprintPlan;
+    const foundation = applyFurnitureLayoutMoves(original, bedsideStorageMoves(original));
+    const bp = planGuestCirculation(foundation, canonicalTownSeedPath(1793146029630, 675))!;
+    const unchanged = structuredClone(bp);
+    const facade = buildBlueprintParts(bp, 3.048, '#bca581', false).parts.filter(p => p.tag === FACADE_PART_TAG);
+    // Native rays found the old post exactly co-planar with the bedroom's
+    // inner face x=1.524m. The courtyard return occupies its first1.5ft.
+    expect(facade.some(p => p.h > 2 && Math.abs(p.z - 1.2792) < 1e-6
+      && p.x - p.w / 2 < 1.9812 - 1e-6 && p.x + p.w / 2 > 1.524)).toBe(false);
+    expect(bp).toEqual(unchanged);
+  }, 60000);
 
   it('gives plain timber-plaster houses framing without covering their window apertures', () => {
     const blueprint = styled();
@@ -1694,5 +1771,28 @@ describe('basements (blueprint-primary path, v1)', () => {
     expect(buildInteriorParts(tavern(), SEED_PATH, SHELL_H)).toEqual(
       buildInteriorParts(tavern(), SEED_PATH, SHELL_H),
     );
+  });
+});
+
+
+describe('owned shelf render metadata', () => {
+  it('carries the same per-plot manifest as examination without changing furniture identity or bounds', () => {
+    const input: InteriorPlotInput = {...plot(), role: 'market', buildingType: 'shop',
+      household: {homeId: 'shelf-home', slots: [{tag: 'head', role: 'head', ageBand: 'adult'}],
+      trade: 'shopkeeper', worksAtHome: true, wealth: 'common'}};
+    const plan = blueprintForPlot(input, SEED_PATH);
+    const expected = containerManifests(plan, input.household!, childSeedPath(SEED_PATH, 'interior:7'));
+    const parts = buildInteriorParts(input, SEED_PATH, 3, [], plan);
+    const shelves = parts.filter(part => part.furnishing?.kind === 'shelf');
+    expect(shelves.length).toBeGreaterThan(0);
+    for (const part of shelves) {
+      const id = part.furnishing!;
+      const manifest = expected.find(m => m.level === id.level && m.furnishingIndex === id.index)!;
+      expect(part.shelfDisplay?.ownerHomeId).toBe(manifest.ownerHomeId);
+      expect(part.shelfDisplay?.entries).toEqual(manifest.entries);
+      expect(part.furnishing).toEqual({level: id.level, roomId: id.roomId, index: id.index, kind: 'shelf'});
+      expect([Math.min(part.w, part.d), Math.max(part.w, part.d), part.h]).toEqual([.4, 1.8, 1.8]);
+    }
+    expect(containerManifests(plan, input.household!, childSeedPath(SEED_PATH, 'interior:7'))).toEqual(expected);
   });
 });

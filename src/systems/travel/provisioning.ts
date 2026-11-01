@@ -5,7 +5,25 @@
  * reducers, route rendering, and starvation outcomes so later travel-gating work
  * can build on a tested helper instead of mixing inventory math into MapPane.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 29/10/2026, 17:15:11
+ * Dependents: components/ConversationPanel/CompanionPreparationChoices.tsx, components/MapPane.tsx, systems/companions/companionPreparations.ts, systems/gameplay/restMeals.ts, systems/travel/applyProvision.ts, systems/travel/forage.ts, systems/travel/partyMeal.ts, systems/travel/partyProvisions.ts, systems/travel/provisionCache.ts, systems/travel/provisionEncumbrance.ts, systems/travel/provisionReach.ts, systems/travel/travelProvisionDecision.ts, systems/travel/travelReadout.ts, systems/worldforge/travel/localGroundJourney.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { Item } from '@/types/items';
+import {containedWaterDays} from './containedWater';
 import type { TravelTerrain } from '@/types/travel';
 
 /** Canonical one-day ration item id. A stack's `quantity` is its ration-days. */
@@ -36,6 +54,7 @@ export function resourceDays(inventory: readonly Item[], resourceItemId: string)
   let total = 0;
 
   for (const item of inventory) {
+    if (resourceItemId === WATER_ITEM_ID) total += containedWaterDays(item);
     if (item.id === resourceItemId) {
       total += item.quantity ?? 1;
     }
@@ -65,9 +84,25 @@ export function dailyNeed(consumers: number, mode: RationMode, burnMultiplier = 
   return Math.ceil(base * Math.max(0, burnMultiplier));
 }
 
-/** Whole travel-days a trip of `minutes` costs (partial day rounds up). */
-export function tripDaysFromMinutes(minutes: number): number {
-  return Math.ceil(Math.max(0, minutes) / (24 * 60));
+/**
+ * Whole travel-days a trip of `minutes` costs, along with remainder minutes.
+ * Tracks elapsed minutes since the last meal and charges per full day crossed (GG-471).
+ */
+export function tripDaysAndRemainder(
+  minutes: number,
+  elapsedMinutes = 0,
+): { days: number; remainderMinutes: number } {
+  const totalMinutes = Math.max(0, elapsedMinutes) + Math.max(0, minutes);
+  const minutesPerDay = 24 * 60;
+  return {
+    days: Math.floor(totalMinutes / minutesPerDay),
+    remainderMinutes: totalMinutes % minutesPerDay,
+  };
+}
+
+/** Whole travel-days a trip of `minutes` costs (per full day crossed, carrying remainder) (GG-471). */
+export function tripDaysFromMinutes(minutes: number, elapsedMinutes = 0): number {
+  return tripDaysAndRemainder(minutes, elapsedMinutes).days;
 }
 
 /** How many travel-days the party can sustain on `days` of a resource. */

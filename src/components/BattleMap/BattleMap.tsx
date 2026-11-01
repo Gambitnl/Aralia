@@ -247,6 +247,7 @@ const BattleMap: React.FC<BattleMapProps> = ({
     visibility,
     aoeSet,
     validTargetSet,
+    longRangeTargetSet,
     teleportDestinationSet,
     activePathSet,
     threatCoordSet,
@@ -399,6 +400,7 @@ const BattleMap: React.FC<BattleMapProps> = ({
                   <BattleMapTileLayer
                     visibleTiles={visibleTiles}
                     validTargetSet={validTargetSet}
+                    longRangeTargetSet={longRangeTargetSet}
                     aoeSet={aoeSet}
                     teleportDestinationSet={teleportDestinationSet}
                     activePathSet={activePathSet}

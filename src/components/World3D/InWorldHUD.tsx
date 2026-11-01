@@ -1,25 +1,9 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 09/08/2026, 17:24:36
- * Dependents: components/World3D/World3DWrapper.tsx
- * Imports: 9 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file src/components/World3D/InWorldHUD.tsx
  * HUD container that overlays the 3D canvas without blocking R3F interaction.
  *
  * Mounts as a sibling of World3DScene inside World3DWrapper.
- * Uses position: absolute; pointer-events: auto to overlay the canvas.
+ * Only drawn control groups capture input; blank spacing keeps 3D interaction.
  *
  * Sub-components:
  * - HUDControlPanel: dropdown menu with "Open Map", "Exit to Menu"
@@ -30,11 +14,29 @@
  * - Controls Hint: subtle bottom-center pill reminding players of WASD/hotkey controls
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 21:41:50
+ * Dependents: components/World3D/World3DWrapper.tsx
+ * Imports: 10 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useState, useRef, useEffect } from 'react';
 import HUDControlPanel from './HUDControlPanel';
 import ViewModeToggle from './ViewModeToggle';
 import DebugHUD from './DebugHUD';
 import World3DMinimap from './World3DMinimap';
+import {compassPointForBearing} from './cameraHeading';
+import { releaseCamera, useCameraHold } from './cameraHold';
 import type { WorldData } from '../../services/worldSim/types';
 import type { PlayerWorldPosition } from '../../types';
 import type { WorldGenDiagnostics } from '../../types/world';
@@ -52,6 +54,8 @@ interface InWorldHUDProps {
   chunkCount?: number;
   /** Player world position (for DebugHUD and minimap). */
   playerPos?: PlayerWorldPosition | null;
+  /** Rounded camera bearing from the ground scene; unavailable views hide it. */
+  cameraBearingDegrees?: number | null;
   /** Streamer stats (for DebugHUD). */
   streamerStats?: {
     chunksLoaded: number;
@@ -81,6 +85,8 @@ interface InWorldHUDProps {
    * staying in 3D. Only provided in ground mode (otherwise the button hides).
    */
   onFrameTownCell?: () => void;
+  /** Return the camera to current footing without moving the player. */
+  onFramePlayer?: () => void;
   /**
    * Open the 2D Voronoi world map (modal over the 3D view) centered on the
    * player's town cell. Only provided in ground mode (otherwise hides).
@@ -92,7 +98,11 @@ interface InWorldHUDProps {
    * is standing in. Only provided in ground mode (otherwise hides).
    */
   onOpenTownPlan?: () => void;
-  /** Canonical retained-Local focus shown as the PLAYING place identity. */
+  /** Existing one-hour rest without abandoning the current ground position. */
+  onShortRest?: () => void;
+  /** Existing overnight recovery flow at the accepted ground position. */
+  onLongRest?: () => void;
+  /** Retained Local entry focus; walking does not update it to current feet. */
   groundFocus?: GroundFocus | null;
   /** Atlas burg identity copied through Region and Local without renaming. */
   groundTownIdentity?: CanonicalTownIdentity | null;
@@ -196,6 +206,7 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
   worldGen,
   chunkCount,
   playerPos,
+  cameraBearingDegrees,
   streamerStats,
   onOpenMap,
   onExitToMenu,
@@ -207,11 +218,15 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
   isGroundMode = false,
   onToggleGroundMode,
   onFrameTownCell,
+  onFramePlayer,
   onOpenCellMap,
   onOpenTownPlan,
+  onShortRest,
+  onLongRest,
   groundFocus,
   groundTownIdentity,
 }) => {
+  const cameraHold = useCameraHold();
   const groundRelationship = groundTownIdentity
     ? [
         groundTownIdentity.settlementType,
@@ -236,7 +251,9 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
         pointerEvents: 'none',
       }}
     >
-      {/* Top bar: location name + control panel */}
+      {/* Fenna's nameplate can overlap this row in a close interior view.
+          Only the drawn title/control groups own input; empty spacing yields
+          to the scene without changing the controls or resident reach rules. */}
       <div
         style={{
           display: 'flex',
@@ -245,40 +262,50 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
           padding: '8px 56px 8px 12px',
           position: 'relative',
           zIndex: 30,
-          pointerEvents: 'auto',
+          pointerEvents: 'none',
         }}
       >
-        <WorldViewTitle
-          isDevModeEnabled={isDevModeEnabled}
-          title={groundFocus?.label ?? '3D World View'}
-          subtitle={groundSubtitle}
-        >
-          <DebugHUD
-            chunkCount={chunkCount ?? 0}
-            playerPos={playerPos ?? null}
-            streamerStats={streamerStats}
-            worldGen={worldGen}
+        <div style={{ pointerEvents: 'auto' }}>
+          <WorldViewTitle
+            isDevModeEnabled={isDevModeEnabled}
+            // Preserve the source name while making its role explicit: this is
+            // the entry anchor, not a live claim that the player is still there.
+            title={groundFocus ? `Entry: ${groundFocus.label}` : '3D World View'}
+            subtitle={groundSubtitle}
+          >
+            <DebugHUD
+              chunkCount={chunkCount ?? 0}
+              playerPos={playerPos ?? null}
+              streamerStats={streamerStats}
+              worldGen={worldGen}
+            />
+          </WorldViewTitle>
+        </div>
+        <div style={{ pointerEvents: 'auto' }}>
+          <HUDControlPanel
+            onOpenMap={onOpenMap}
+            onExitToMenu={onExitToMenu}
+            isLocaleMapAvailable={isLocaleMapAvailable}
+            isLocaleMapOpen={isLocaleMapOpen}
+            onToggleLocaleMap={onToggleLocaleMap}
+            isDevModeEnabled={isDevModeEnabled}
+            onOpenAgentSim={onOpenAgentSim}
+            onOpenTownHistory={onOpenTownHistory}
           />
-        </WorldViewTitle>
-        <HUDControlPanel
-          onOpenMap={onOpenMap}
-          onExitToMenu={onExitToMenu}
-          isLocaleMapAvailable={isLocaleMapAvailable}
-          isLocaleMapOpen={isLocaleMapOpen}
-          onToggleLocaleMap={onToggleLocaleMap}
-          isDevModeEnabled={isDevModeEnabled}
-          onOpenAgentSim={onOpenAgentSim}
-          onOpenTownHistory={onOpenTownHistory}
-        />
+        </div>
       </div>
 
-      {/* Bottom right: Enter Village / Ascend toggle + View Mode toggle */}
+      {/* View and rest controls sit below the header. Bottom interaction cards
+          must not cover navigation buttons, including the wrapped phone rows. */}
       <div
         style={{
           position: 'absolute',
-          bottom: '12px',
+          top: '52px',
           right: '12px',
           display: 'flex',
+          flexWrap: 'wrap',
+          justifyContent: 'flex-end',
+          maxWidth: 'calc(100% - 24px)',
           gap: '8px',
           alignItems: 'center',
           pointerEvents: 'auto',
@@ -315,6 +342,9 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
             ⤢ Town Cell
           </button>
         )}
+        {isGroundMode && onFramePlayer && <button type="button" onClick={onFramePlayer} data-testid="hud-frame-player"
+          className="rounded border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-100 shadow-lg hover:bg-slate-700"
+          title="Bring the camera back to your current position without moving you">To Player</button>}
         {isGroundMode && onOpenCellMap && (
           <button
             type="button"
@@ -381,9 +411,13 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
           <button
             type="button"
             data-testid="hud-toggle-ground-mode"
-            onClick={onToggleGroundMode}
+            // Cell-native play has no continent streamer to ascend into.
+            // Reuse its real map modal; legacy two-scale callers keep theirs.
+            onClick={isGroundMode && onOpenCellMap && !worldData ? onOpenCellMap : onToggleGroundMode}
             title={
-              isGroundMode
+              isGroundMode && onOpenCellMap && !worldData
+                ? 'Open the world map at your location without moving your character'
+                : isGroundMode
                 ? 'Zoom out to the continent view — stays in 3D'
                 : 'Zoom in to the village on foot — stays in 3D'
             }
@@ -409,11 +443,46 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
               e.currentTarget.style.borderColor = 'var(--border-color, #3a4a5a)';
             }}
           >
-            {isGroundMode ? 'Ascend to Continent' : 'Enter Village'}
+            {isGroundMode && onOpenCellMap && !worldData ? 'World Map' : isGroundMode ? 'Ascend to Continent' : 'Enter Village'}
           </button>
         )}
         <ViewModeToggle onOpenMap={onOpenMap} />
+        {isGroundMode && onShortRest && <button type="button" onClick={onShortRest} data-testid="hud-short-rest"
+          className="rounded border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-100 shadow-lg hover:bg-slate-700"
+          title="Rest for an hour without leaving your location">Short Rest</button>}
+        {isGroundMode && onLongRest && <button type="button" onClick={onLongRest} data-testid="hud-long-rest"
+          className="rounded border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-100 shadow-lg hover:bg-slate-700"
+          title="Review an eight-hour rest and recovery before committing">Long Rest</button>}
       </div>
+
+      {/* THE CAMERA HOLD (2026-10-30, cameraHold.ts): a probe that holds the
+          camera says so here, with who holds it and one press to give the
+          camera back. Remy: "an indicator somewhere that the camera is locked". */}
+      {cameraHold && (
+        <div data-testid="hud-camera-hold" role="status"
+          className="absolute bottom-28 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full border border-amber-500/80 bg-amber-950/90 px-3 py-1.5 text-xs font-semibold text-amber-100 shadow-lg sm:bottom-24"
+          style={{pointerEvents:'auto'}} onPointerDown={event => event.stopPropagation()} onClick={event => event.stopPropagation()}>
+          <span aria-hidden="true">🔒</span>
+          <span>Camera held by {cameraHold.note}. Your camera controls are off.</span>
+          <button type="button" data-testid="hud-camera-release" onClick={() => releaseCamera()}
+            className="rounded-full border border-amber-400 bg-amber-500 px-2 py-0.5 text-[11px] font-bold text-amber-950 hover:bg-amber-400"
+            title="Give the camera back to your controls">Release camera</button>
+        </div>
+      )}
+
+      {/* Ground north is map north. This read-only view bearing stays separate
+          from the retained entry label, the actual body and movement controls.
+          Clicks on the badge stay in the HUD instead of selecting ground. */}
+      {isGroundMode && typeof cameraBearingDegrees === 'number' && Number.isFinite(cameraBearingDegrees) && (
+        <div data-testid="hud-compass" role="img"
+          aria-label={`View direction: ${compassPointForBearing(cameraBearingDegrees)}, ${cameraBearingDegrees} degrees`}
+          className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full border border-slate-600 bg-slate-950/90 px-3 py-1.5 text-xs font-medium text-sky-100 shadow-lg sm:bottom-14"
+          style={{pointerEvents:'auto'}} onPointerDown={event => event.stopPropagation()} onClick={event => event.stopPropagation()}>
+          <span data-testid="hud-compass-north" aria-hidden="true" className="inline-block text-base leading-none"
+            style={{transform:`rotate(${-cameraBearingDegrees}deg)`}}>↑</span>
+          <span className="tabular-nums">View {compassPointForBearing(cameraBearingDegrees)} · {cameraBearingDegrees}°</span>
+        </div>
+      )}
 
       {/* Bottom Center: Exploration Controls Hint Bar */}
       <div

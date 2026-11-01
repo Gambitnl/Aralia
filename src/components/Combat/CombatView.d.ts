@@ -34,7 +34,7 @@ interface CombatViewProps {
     enemies: CombatCharacter[];
     biome: BattleMapBiome;
     onRoundElapsed?: (seconds: number) => void;
-    onBattleEnd: (result: "victory" | "defeat", rewards?: {
+    onBattleEnd: (result: "victory" | "defeat" | "flee", rewards?: {
         gold: number;
         items: Item[];
         xp: number;

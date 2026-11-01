@@ -107,6 +107,9 @@ export const WATER_SHALLOW_COLOR = '#7d9a8c';
 /** Opacity at the shore edge and in the deep channel. */
 const SHALLOW_OPACITY = 0.12;
 const DEEP_OPACITY = 0.9;
+/** The same two endpoints for the WebGPU node twin (`gpu/waterSurfaceNode.ts`, ADR 0009 step 4). */
+export const WATER_SHALLOW_OPACITY = SHALLOW_OPACITY;
+export const WATER_DEEP_OPACITY = DEEP_OPACITY;
 
 let material: THREE.MeshStandardMaterial | null = null;
 

@@ -48,6 +48,60 @@ function canonicalIdentity() {
 // ============================================================================
 
 describe('persistent dungeon lifecycle', () => {
+  it('retains root and child hazard examinations without accepting hazard rewards or foreign keys',()=>{
+    const identity=canonicalIdentity(),root=`object.v1:${identity.dungeonId}:trap:0`;
+    const child=`object.v1:${canonicalDungeonId(`${identity.seedPath}/level:1`)}:trap:2`;
+    const record=recordDungeonProgress(enterDungeonExpedition(identity),{objectFindings:{[root]:'examined',[child]:'examined'}});
+    const raw=JSON.parse(JSON.stringify(record));
+    Object.assign(raw.progress.objectFindings,{[`object.v1:${identity.dungeonId}:trap:3`]:'collected','object.v1:foreign:trap:0':'examined'});
+    const restored=normalizeDungeonExpeditionLedger({[identity.dungeonId]:raw})[identity.dungeonId];
+    expect(restored.progress.objectFindings).toEqual({[root]:'examined',[child]:'examined'});
+    expect(restored.progress.claimedTreasureIds).toEqual([]);
+    expect(restored.progress.clearedEncounterIds).toEqual([]);
+  });
+  it('keeps root and child surface observations through reload while rejecting surface collection and foreign keys',()=>{
+    const identity=canonicalIdentity();
+    const root=`object.v1:${identity.dungeonId}:surface:bloom:16`;
+    const child=`object.v1:${canonicalDungeonId(`${identity.seedPath}/level:1`)}:surface:bloom:17`;
+    let record=recordDungeonProgress(enterDungeonExpedition(identity),{objectFindings:{[root]:'examined',[child]:'examined'}});
+    record=recordDungeonProgress(record,{objectFindings:{[root]:'collected'}});
+    const raw=JSON.parse(JSON.stringify(record));
+    Object.assign(raw.progress.objectFindings,{
+      [`object.v1:${identity.dungeonId}:surface:bloom:18`]:'collected',
+      [`object.v1:${identity.dungeonId}:surface:unknown:19`]:'examined',
+      'object.v1:foreign:surface:bloom:20':'examined',
+    });
+    const restored=normalizeDungeonExpeditionLedger({[identity.dungeonId]:raw})[identity.dungeonId];
+    expect(restored.progress.objectFindings).toEqual({[root]:'examined',[child]:'examined'});
+    expect(restored.progress.claimedTreasureIds).toEqual([]);
+    expect(restored.progress.clearedEncounterIds).toEqual([]);
+  });
+  it('keeps separate source enemy health through save normalization and drops malformed or foreign HP', () => {
+    const identity = canonicalIdentity();
+    const rootEvent = `encounter.v1:${identity.dungeonId}:room:1:cell:2,3`;
+    const childEvent = `encounter.v1:${canonicalDungeonId(`${identity.seedPath}/level:1`)}:room:2:cell:4,5`;
+    const damaged = recordDungeonProgress(enterDungeonExpedition(identity), {
+      encounterHitPoints: {[rootEvent]: 7, [childEvent]: 11},
+    });
+    const updated = recordDungeonProgress(damaged, {encounterHitPoints: {[rootEvent]: 3}});
+    const raw = JSON.parse(JSON.stringify(retreatDungeonExpedition(updated)));
+    Object.assign(raw.progress.encounterHitPoints, {
+      [`encounter.v1:other-dungeon:room:1:cell:2,3`]: 1,
+      [`encounter.v1:${identity.dungeonId}:room:4:cell:2,3`]: -1,
+      [`encounter.v1:${identity.dungeonId}:room:5:cell:2,3`]: 2.5,
+      [`encounter.v1:${identity.dungeonId}:room:6:cell:2,3`]: Infinity,
+      [`encounter.v1:${identity.dungeonId}:room:7:cell:2,3`]: '3',
+      [`encounter.v1:${identity.dungeonId}:unrelated`]: 3,
+    });
+    const loaded = normalizeDungeonExpeditionLedger({[identity.dungeonId]: raw})[identity.dungeonId];
+    const revisited = enterDungeonExpedition(identity, loaded);
+    expect(revisited.progress.encounterHitPoints).toEqual({[rootEvent]: 3, [childEvent]: 11});
+    expect(damaged.progress.encounterHitPoints).toEqual({[rootEvent]: 7, [childEvent]: 11});
+    expect(revisited.progress.clearedEncounterIds).toEqual([]);
+    expect(revisited.progress.claimedTreasureIds).toEqual([]);
+    expect(normalizeDungeonExpeditionLedger({[identity.dungeonId]: enterDungeonExpedition(identity)})[identity.dungeonId].progress.encounterHitPoints).toBeUndefined();
+  });
+
   it('preserves progress and completion through retreat, save/load, and revisit', () => {
     const identity = canonicalIdentity();
     const entered = enterDungeonExpedition(identity);

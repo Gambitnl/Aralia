@@ -22,12 +22,15 @@
  * @component-owner Gameplay Team / Core UI
  */
 import React from 'react';
-import { PlayerCharacter, HitPointDiceSpendMap } from '../../types';
+import { PlayerCharacter, HitPointDiceSpendMap, ShortRestTracker } from '../../types';
 interface RestModalProps {
     isOpen: boolean;
     party: PlayerCharacter[];
     onClose: () => void;
-    onConfirm: (spend: HitPointDiceSpendMap) => void;
+    onConfirm: (spend: HitPointDiceSpendMap) => void | Promise<void>;
+    locationError?: string | null;
+    gameTime?: Date;
+    shortRestTracker?: ShortRestTracker;
 }
 declare const RestModal: React.FC<RestModalProps>;
 export default RestModal;

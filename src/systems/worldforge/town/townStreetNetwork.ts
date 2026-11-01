@@ -76,7 +76,14 @@ export type StreetRole =
   /** The intervallum lane just inside the wall ring. */
   | 'ring'
   /** Plain ward frontage — the back lanes. */
-  | 'ward';
+  | 'ward'
+  /**
+   * A narrow way through a row of houses (GG-565, GG-566): from a back court
+   * to its street, or the approach from a civic door to its street. Not a
+   * ward edge, so no block is inset for it; the engine opens the houses in
+   * its way instead.
+   */
+  | 'passage';
 
 /** One street of the network, in the PLAN's own coordinate frame. */
 export interface TownStreet {
@@ -85,6 +92,28 @@ export interface TownStreet {
   role: StreetRole;
   /** Full paved width in plan units. The ward block inset is half of this. */
   width: number;
+  /**
+   * A FIELD TRACK (GG-549): an `approach` that no world road made. It leaves a
+   * gate that has no road and runs out to the fields, so every gate has a way
+   * out. Absent on every other street.
+   */
+  track?: boolean;
+  /**
+   * For a back-court `passage` (GG-565): the ward and court it serves.
+   * Absent on every other street, the civic approaches included.
+   */
+  serves?: { wardIndex: number; court: number };
+  /**
+   * THE MAIN STREET (GG-567): the one street from the main gate to the
+   * market. Absent on every other street.
+   */
+  main?: boolean;
+  /**
+   * The ward edges a street was routed over, when its drawn `centerline` was
+   * smoothed and no longer lists them (the main street, GG-567). The block
+   * inset reads these, so the blocks still leave the street its full width.
+   */
+  wardEdges?: Pt[];
 }
 
 /**
@@ -140,7 +169,51 @@ export interface StreetNetworkInput {
   envelope: readonly Pt[];
   /** Back-lane full width in plan units. Every other tier scales off this. */
   laneWidth: number;
+  /**
+   * Where the fields lie, for the field tracks of gates with no road (GG-549).
+   * Absent = no tracks (schematic plans and tests that predate the rule).
+   */
+  fields?: {
+    /** The town cell. */
+    footprint: readonly Pt[];
+    /** The organic core the wall ring was inset from. */
+    core: readonly Pt[];
+    /** Center the core and the farm band are radial about. */
+    center: Pt;
+  };
+  /**
+   * THE MAIN STREET (GG-567): the line the engine laid from the main gate to
+   * the market before it cut the wards. Ward edges that lie along it are
+   * cheap to route over, and the spine from `gate` becomes the main street.
+   * `near` is how far an edge may lie from the line and still be on it.
+   * Absent = no main street (an unwalled plan, a schematic test).
+   */
+  mainStreet?: { gate: Pt; line: readonly Pt[]; near: number };
+  /**
+   * BRIDGES (GG-560, GG-561): street links across a river the engine cut out
+   * of the wards, each from a ward corner on one bank to a ward corner on the
+   * other. They join the graph as edges with no ward beside them, so routes
+   * can cross the river, and they are tiered by traffic like any edge.
+   */
+  links?: ReadonlyArray<readonly [Pt, Pt]>;
 }
+
+/**
+ * Width of the main street in feet (GG-567): wider than an avenue (22 ft),
+ * narrower than the market frontage (28 ft), so it is the widest street after
+ * the market ring.
+ */
+export const MAIN_STREET_WIDTH_FT = 25;
+
+/** Route weight of a ward edge that lies along the main street (GG-567). */
+const MAIN_STREET_ROUTE_WEIGHT = 0.25;
+
+/**
+ * How far out a field track runs: to the outer edge of the farm band, as a
+ * share of the ground between the core edge and the cell edge. Matches the
+ * `farm` band in `townEngine.buildOutskirts` (frac < 0.45).
+ */
+const FIELD_TRACK_REACH = 0.45;
 
 /* ------------------------------------------------------------------ geometry */
 
@@ -359,9 +432,12 @@ function nearestNode(g: Graph, p: Pt): number {
 function shortestPath(
   g: Graph,
   from: number,
-  to: number,
+  toAny: number | ReadonlySet<number>,
   weightOf: (edge: GraphEdge) => number,
 ): number[] {
+  // A set of targets (GG-567) ends the search at the first one reached.
+  const isTarget = (v: number): boolean => (typeof toAny === 'number' ? v === toAny : toAny.has(v));
+  let to = typeof toAny === 'number' ? toAny : -1;
   const n = g.nodes.length;
   const distTo = new Float64Array(n).fill(Infinity);
   const viaEdge = new Int32Array(n).fill(-1);
@@ -371,7 +447,8 @@ function shortestPath(
     let u = -1;
     let bestD = Infinity;
     for (let i = 0; i < n; i++) if (!done[i] && distTo[i] < bestD) { bestD = distTo[i]; u = i; }
-    if (u < 0 || u === to) break;
+    if (u < 0) break;
+    if (isTarget(u)) { to = u; break; }
     done[u] = 1;
     for (const ei of g.adj[u]) {
       const e = g.edges[ei];
@@ -381,7 +458,7 @@ function shortestPath(
       if (nd < distTo[v]) { distTo[v] = nd; viaEdge[v] = ei; }
     }
   }
-  if (!isFinite(distTo[to])) return [];
+  if (to < 0 || !isFinite(distTo[to])) return [];
   const path: number[] = [];
   let cur = to;
   while (cur !== from) {
@@ -420,6 +497,73 @@ function pathToPolyline(g: Graph, path: readonly number[]): Pt[] {
   return line;
 }
 
+/**
+ * Drop the hook a spine draws at its gate (GG-562, Remy 2026-11-01, "strange
+ * road squiggle"). The router runs only between ward corners. Where the corner
+ * past the gate is the only way into town, the spine left the gate, ran out to
+ * that corner and turned back by more than 90 degrees; at Hafting's north gate
+ * the turn was 121 degrees, 14 units from the arch. A corner that close to the
+ * gate that turns the street back on itself is removed, so the street runs
+ * straight from the arch to the next corner. Farther corners are real turns
+ * and stay. Works on either end, because the gate may be first or last.
+ * `maxTurnDeg` (default 90) sets how sharp a corner must be to go; the main
+ * street uses 30 (GG-567).
+ */
+export function dropGateHooks(line: Pt[], gate: Pt, width: number, maxTurnDeg = 90): Pt[] {
+  const reach = width * 1.5;
+  const cosMax = Math.cos((maxTurnDeg * Math.PI) / 180);
+  const trim = (pts: Pt[]): Pt[] => {
+    const out = pts.slice();
+    let i = 1;
+    while (out.length >= 3 && i < out.length - 1 && dist(out[i], gate) <= reach) {
+      const a = out[i - 1];
+      const b = out[i];
+      const c = out[i + 1];
+      const ux = b[0] - a[0], uy = b[1] - a[1], vx = c[0] - b[0], vy = c[1] - b[1];
+      const n = Math.hypot(ux, uy) * Math.hypot(vx, vy);
+      if (n > 1e-12 && (ux * vx + uy * vy) / n < cosMax) {
+        // Turns by more than `maxTurnDeg`: drop the corner, then look again
+        // at the corner before it, whose next point just changed. Without
+        // the step back, Hafting's north spine kept a 113-degree hook one
+        // corner nearer the gate.
+        out.splice(i, 1);
+        i = Math.max(1, i - 1);
+      } else i++;
+    }
+    return out;
+  };
+  if (line.length < 3) return line;
+  return dist(line[0], gate) <= dist(line[line.length - 1], gate)
+    ? trim(line)
+    : trim(line.slice().reverse()).reverse();
+}
+
+/**
+ * Smooth the jogs out of a street (GG-567). Where four Voronoi cells meet
+ * almost at one point, the street takes a short edge between two corners a
+ * few feet apart, at a sharp angle. A corner that turns by more than
+ * `maxTurnDeg` with a segment shorter than `jogLen` on either side is
+ * dropped, again until none is left. The ends always stay.
+ */
+export function dropJogs(line: Pt[], jogLen: number, maxTurnDeg: number): Pt[] {
+  const cosMax = Math.cos((maxTurnDeg * Math.PI) / 180);
+  const out = line.slice();
+  for (let changed = true; changed;) {
+    changed = false;
+    for (let i = 1; i < out.length - 1; i++) {
+      const a = out[i - 1], b = out[i], c = out[i + 1];
+      const ux = b[0] - a[0], uy = b[1] - a[1], vx = c[0] - b[0], vy = c[1] - b[1];
+      const lu = Math.hypot(ux, uy), lv = Math.hypot(vx, vy);
+      if (lu < 1e-12 || lv < 1e-12 || ((ux * vx + uy * vy) / (lu * lv) < cosMax && Math.min(lu, lv) < jogLen)) {
+        out.splice(i, 1);
+        changed = true;
+        break;
+      }
+    }
+  }
+  return out;
+}
+
 /* ------------------------------------------------------------------- network */
 
 /**
@@ -438,10 +582,22 @@ function pathToPolyline(g: Graph, path: readonly number[]): Pt[] {
  */
 function trimApproach(road: readonly Pt[], ring: readonly Pt[]): Pt[][] {
   if (ring.length < 3) return [road.map((p) => [p[0], p[1]] as Pt)];
+  return splitPolylineByRing(road, ring).outside;
+}
 
+/**
+ * Split a polyline at every crossing of a closed ring into the runs INSIDE and
+ * the runs OUTSIDE it. `trimApproach` keeps the outside runs; the lane village
+ * (GG-548) uses both, because its road is the village street inside the
+ * village extent and the approach outside it.
+ */
+export function splitPolylineByRing(road: readonly Pt[], ring: readonly Pt[]): { inside: Pt[][]; outside: Pt[][] } {
+  const inside: Pt[][] = [];
   const out: Pt[][] = [];
   let run: Pt[] = [];
+  let inRun: Pt[] = [];
   const flush = (): void => { if (run.length >= 2) out.push(run); run = []; };
+  const flushIn = (): void => { if (inRun.length >= 2) inside.push(inRun); inRun = []; };
 
   for (let i = 0; i < road.length - 1; i++) {
     const a = road[i];
@@ -469,13 +625,84 @@ function trimApproach(road: readonly Pt[], ring: readonly Pt[]): Pt[][] {
       const p1 = stops[k + 1];
       if (Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) < 1e-9) continue;
       const mid: Pt = [(p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2];
-      if (pointInPoly(mid, ring)) { flush(); continue; }
+      if (pointInPoly(mid, ring)) {
+        flush();
+        if (inRun.length === 0) inRun.push([p0[0], p0[1]]);
+        inRun.push([p1[0], p1[1]]);
+        continue;
+      }
+      flushIn();
       if (run.length === 0) run.push([p0[0], p0[1]]);
       run.push([p1[0], p1[1]]);
     }
   }
   flush();
-  return out;
+  flushIn();
+  return { inside, outside: out };
+}
+
+/** Distance from `center` to a polygon boundary along `dir` (nearest crossing). */
+function rayToPolygon(center: Pt, dir: Pt, poly: readonly Pt[]): number {
+  let best = Infinity;
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i], b = poly[(i + 1) % poly.length];
+    const ex = b[0] - a[0], ey = b[1] - a[1];
+    const det = ex * dir[1] - dir[0] * ey;
+    if (Math.abs(det) < 1e-12) continue;
+    const acx = a[0] - center[0], acy = a[1] - center[1];
+    const t = (ex * acy - ey * acx) / det;
+    const u = (dir[0] * acy - dir[1] * acx) / det;
+    if (t >= 0 && u >= -1e-9 && u <= 1 + 1e-9 && t < best) best = t;
+  }
+  return isFinite(best) ? best : 0;
+}
+
+/**
+ * The field track out of a gate that no road reaches (GG-549, Remy's town-look
+ * ruling q5: "Give it a track to the fields"). It runs straight out from the
+ * town center through the gate to the outer edge of the farm band, with one
+ * gentle bend. When an approach road passes closer than that, the track joins
+ * the road instead — a farmer takes the short way to the highway.
+ *
+ * Deterministic: the bend side comes from the gate's own coordinates, so the
+ * module stays free of any random stream.
+ */
+function fieldTrack(
+  gate: Pt,
+  fields: NonNullable<StreetNetworkInput['fields']>,
+  roads: readonly Pt[][],
+): Pt[] | null {
+  const dx = gate[0] - fields.center[0];
+  const dy = gate[1] - fields.center[1];
+  const dl = Math.hypot(dx, dy);
+  if (dl < 1e-9) return null;
+  const dir: Pt = [dx / dl, dy / dl];
+  const coreR = rayToPolygon(fields.center, dir, fields.core);
+  const cellR = rayToPolygon(fields.center, dir, fields.footprint);
+  const reach = coreR + FIELD_TRACK_REACH * Math.max(0, cellR - coreR);
+  let end: Pt = [fields.center[0] + dir[0] * reach, fields.center[1] + dir[1] * reach];
+  let endD = dist(gate, end);
+  for (const road of roads) {
+    for (let i = 0; i < road.length - 1; i++) {
+      const a = road[i], b = road[i + 1];
+      const ex = b[0] - a[0], ey = b[1] - a[1];
+      const L2 = ex * ex + ey * ey;
+      if (L2 < 1e-12) continue;
+      const f = Math.max(0, Math.min(1, ((gate[0] - a[0]) * ex + (gate[1] - a[1]) * ey) / L2));
+      const q: Pt = [a[0] + ex * f, a[1] + ey * f];
+      // Only a road OUT here counts: the point must lie beyond the gate.
+      if ((q[0] - gate[0]) * dir[0] + (q[1] - gate[1]) * dir[1] <= 0) continue;
+      const d = dist(gate, q);
+      if (d < endD) { endD = d; end = q; }
+    }
+  }
+  if (endD < 1e-9) return null;
+  const side = (Math.round(gate[0] * 7 + gate[1] * 13) & 1) === 0 ? 1 : -1;
+  const mid: Pt = [
+    (gate[0] + end[0]) / 2 - ((end[1] - gate[1]) / endD) * endD * 0.08 * side,
+    (gate[1] + end[1]) / 2 + ((end[0] - gate[0]) / endD) * endD * 0.08 * side,
+  ];
+  return [[gate[0], gate[1]], mid, end];
 }
 
 /**
@@ -492,6 +719,23 @@ export function buildStreetNetwork(input: StreetNetworkInput): TownStreet[] {
   const span = polygonSpan(envelope.length >= 3 ? envelope : wardPolys.flat());
   const graph = buildGraph(wardPolys, Math.max(span * 1e-4, 1e-6));
   if (graph.edges.length === 0) return [];
+  // Bridge links: each end must be a ward corner (a graph node) on its bank.
+  for (const [pa, pb] of input.links ?? []) {
+    const na = nearestNode(graph, pa);
+    const nb = nearestNode(graph, pb);
+    const tol = span * 1e-3;
+    if (na < 0 || nb < 0 || na === nb || dist(graph.nodes[na], pa) > tol || dist(graph.nodes[nb], pb) > tol) continue;
+    const ei = graph.edges.length;
+    graph.edges.push({
+      a: na, b: nb,
+      length: dist(graph.nodes[na], graph.nodes[nb]),
+      wards: [],
+      use: 0,
+      geom: [[graph.nodes[na][0], graph.nodes[na][1]], [graph.nodes[nb][0], graph.nodes[nb][1]]],
+    });
+    graph.adj[na].push(ei);
+    graph.adj[nb].push(ei);
+  }
 
   // ---- Route the through-traffic. -----------------------------------------
   // The heart is the market square when the town has one (that is where the
@@ -501,6 +745,9 @@ export function buildStreetNetwork(input: StreetNetworkInput): TownStreet[] {
     ? polygonCentroidLocal(wardPolys[plazaWard])
     : polygonCentroidLocal(envelope.length >= 3 ? envelope : wardPolys[0]);
   const heartNode = nearestNode(graph, heartPoint);
+  // Every corner of the market ward (GG-567).
+  const plazaNodes = new Set<number>();
+  if (plazaWard >= 0) graph.edges.forEach((e) => { if (e.wards.includes(plazaWard)) { plazaNodes.add(e.a); plazaNodes.add(e.b); } });
 
   // Where traffic ENTERS. A walled town's entries are its gatehouses (already
   // seated on the roads by `buildWalls`). An unwalled village has no gates, so
@@ -532,7 +779,18 @@ export function buildStreetNetwork(input: StreetNetworkInput): TownStreet[] {
   // Edges hugging the rampart therefore cost more, so a route takes them only
   // when nothing through the town is close in length.
   const ringBand = span * 0.14;
+  // GG-567: an edge on the main street is a quarter of its length to route
+  // over, so the routes run down the high street the town grew along.
+  const main = input.mainStreet;
+  const distToLine = (p: Pt, line: readonly Pt[]): number => {
+    let best = Infinity;
+    for (let i = 0; i < line.length - 1; i++) best = Math.min(best, distToSegment(p, line[i], line[i + 1]));
+    return best;
+  };
+  const onMain = (e: GraphEdge): boolean => !!main
+    && distToLine(e.geom[0], main.line) <= main.near && distToLine(e.geom[1], main.line) <= main.near;
   const weightOf = (e: GraphEdge): number => {
+    if (onMain(e)) return e.length * MAIN_STREET_ROUTE_WEIGHT;
     if (wallRing.length < 3) return e.length;
     const mid: Pt = [(e.geom[0][0] + e.geom[1][0]) / 2, (e.geom[0][1] + e.geom[1][1]) / 2];
     const d = distToRing(mid, wallRing);
@@ -541,10 +799,22 @@ export function buildStreetNetwork(input: StreetNetworkInput): TownStreet[] {
 
   // Each spine carries the gate point it starts from, so extending it to the
   // arch later cannot pick up a different gate's coordinates.
-  const spinePaths: Array<{ path: number[]; gate: Pt }> = [];
+  const spinePaths: Array<{ path: number[]; gate: Pt; main?: boolean }> = [];
+  // The main street's gate: the entry nearest the gate the engine chose.
+  let mainGateIdx = -1;
+  if (main) {
+    let bd = Infinity;
+    gatePoints.forEach((g, i) => { const d = dist(g, main.gate); if (d < bd) { bd = d; mainGateIdx = i; } });
+  }
   gateNodes.forEach((gn, i) => {
-    const p = shortestPath(graph, gn, heartNode, weightOf);
-    if (p.length > 0) spinePaths.push({ path: p, gate: gatePoints[i] });
+    // The main street runs to where it meets the market (GG-567), not to the
+    // corner nearest the market's middle, which turned it at the square.
+    // The main street ends where it first meets the market (GG-567): any
+    // corner of the market ward. Run on to the corner nearest the market's
+    // middle, it turned through a corner at the square.
+    const target: number | Set<number> = i === mainGateIdx && plazaWard >= 0 ? plazaNodes : heartNode;
+    const p = shortestPath(graph, gn, target, weightOf);
+    if (p.length > 0) spinePaths.push({ path: p, gate: gatePoints[i], main: i === mainGateIdx });
   });
   const throughPaths: number[][] = [];
   for (let i = 0; i < gateNodes.length; i++) {
@@ -617,7 +887,7 @@ export function buildStreetNetwork(input: StreetNetworkInput): TownStreet[] {
   const widthFor = (tier: StreetTierName, cap: number): number =>
     Math.min(laneWidth * TIER_WIDTH_RATIO[tier], cap);
 
-  spinePaths.forEach(({ path, gate }) => {
+  spinePaths.forEach(({ path, gate, main: isMain }) => {
     // A spine is painted at the best tier any of its edges earned, so the high
     // street does not narrow and widen along its own length; its width is capped
     // by the tightest ward it squeezes past for the same reason.
@@ -646,6 +916,11 @@ export function buildStreetNetwork(input: StreetNetworkInput): TownStreet[] {
     // ends up under the gatehouse.
     if (dist(line[0], gate) <= dist(line[line.length - 1], gate)) line = [[gate[0], gate[1]], ...line];
     else line = [...line, [gate[0], gate[1]]];
+    // The main street may not turn by more than 30 degrees near its gate
+    // (GG-567); every other spine drops only a hook back past 90 (GG-562).
+    // It also looks twice as far from the gate: its first corner can sit just
+    // past the reach of an avenue (burg 12 turned back 28 units out).
+    line = dropGateHooks(line, gate, widthFor(tier, cap) * (isMain ? 2 : 1), isMain ? 30 : 90);
     // A spine claims the edges it paints so the same ground is not painted twice
     // at two widths — EXCEPT the market square's own frontage. Those edges stay
     // unclaimed so the square keeps a COMPLETE plaza-tier ring: letting a spine
@@ -656,6 +931,24 @@ export function buildStreetNetwork(input: StreetNetworkInput): TownStreet[] {
     for (const ei of path) {
       if (plazaWard >= 0 && graph.edges[ei].wards.includes(plazaWard)) continue;
       claimed.add(ei);
+    }
+    if (isMain) {
+      // THE MAIN STREET (GG-567): avenue paint at its own width, the widest
+      // street after the market ring, still capped by its tightest ward.
+      // No ward cap: the town is laid along this street, so the wards beside
+      // it give up the ground (as the market's own frontage does). Capped, a
+      // thin strip of small wards (burg 7) cut it to 14 ft, narrower than 50
+      // ordinary streets.
+      const mainWidth = laneWidth * (MAIN_STREET_WIDTH_FT / STREET_TIER_SPECS.lane.widthFt);
+      // It always runs from its gate to the market.
+      let fromGate = dist(line[0], gate) <= dist(line[line.length - 1], gate) ? line : line.slice().reverse();
+      // The same 30-degree trim at the market end: where the market ward is
+      // a thin strip (burg 7, between its wall and its river) the last
+      // corner before the square turned the street by 59 degrees.
+      fromGate = dropGateHooks(fromGate, fromGate[fromGate.length - 1], widthFor(tier, cap) * 2, 30);
+      // A jog shorter than the street is wide does not read as a turn.
+      streets.push({ centerline: dropJogs(fromGate, Math.max(laneWidth * 1.5, mainWidth), 30), tier: 'avenue', role: 'spine', width: mainWidth, main: true, wardEdges: fromGate });
+      return;
     }
     streets.push({ centerline: line, tier, role: 'spine', width: widthFor(tier, cap) });
   });
@@ -685,6 +978,23 @@ export function buildStreetNetwork(input: StreetNetworkInput): TownStreet[] {
     }
   }
 
+  // Field tracks (GG-549): `buildWalls` tops a town up to three gates, and a
+  // top-up gate has no road. The census found 19% of walled-town gates opening
+  // onto grass. Each such gate now gets a dirt track out to the fields.
+  if (input.fields && wallRing.length >= 3) {
+    const roadTol = span * 0.03;
+    const nearRoad = (g: Pt): boolean => approachRoads.some((road) => {
+      for (let i = 0; i < road.length - 1; i++) if (distToSegment(g, road[i], road[i + 1]) <= roadTol) return true;
+      return false;
+    });
+    for (const gate of gatehouses) {
+      if (nearRoad(gate)) continue;
+      const line = fieldTrack(gate, input.fields, approachRoads);
+      if (!line) continue;
+      streets.push({ centerline: line, tier: 'lane', role: 'approach', width: widthFor('lane', Infinity), track: true });
+    }
+  }
+
   return streets;
 }
 
@@ -706,8 +1016,9 @@ export function halfWidthByWardEdge(
   };
   for (const s of streets) {
     if (s.role === 'approach') continue; // extramural: no ward block borders it
-    for (let i = 0; i < s.centerline.length - 1; i++) {
-      const k = key(s.centerline[i], s.centerline[i + 1]);
+    const path = s.wardEdges ?? s.centerline;
+    for (let i = 0; i < path.length - 1; i++) {
+      const k = key(path[i], path[i + 1]);
       out.set(k, Math.max(out.get(k) ?? 0, s.width / 2));
     }
   }
@@ -795,12 +1106,15 @@ export interface StreetDeadEnd {
  *
  * `approach` streets are excluded: their outer tip is where the extramural road
  * leaves the plan window, which is a map edge, not a place in the town.
+ * `passage` streets are excluded too (see below).
  */
 export function streetDeadEnds(
   streets: readonly TownStreet[],
   quant: number,
 ): StreetDeadEnd[] {
-  const intramural = streets.filter((s) => s.role !== 'approach');
+  // A passage (GG-565, GG-566) ends in a court or at a civic door: a place,
+  // not a street that stops, so it gets no dead-end dressing.
+  const intramural = streets.filter((s) => s.role !== 'approach' && s.role !== 'passage');
   return polylineDeadEnds(intramural.map((s) => s.centerline), quant).map((d) => ({
     point: d.point,
     inwardRad: d.inwardRad,

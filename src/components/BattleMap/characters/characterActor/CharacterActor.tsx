@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 09/09/2026, 10:01:40
- * Dependents: components/BattleMap/characters/CharacterActor.tsx
- * Imports: 17 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file characters/characterActor/CharacterActor.tsx
  * The CharacterActor component — CONTAINER: state, hooks, and scene-graph
@@ -35,6 +19,23 @@
  * so it is behavior, not formatting — which is why the target reticle is still
  * mounted after the body rather than folded into the ring cluster.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 00:16:10
+ * Dependents: components/BattleMap/characters/CharacterActor.tsx
+ * Imports: 18 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -50,11 +51,12 @@ import { useFresnelRim } from '../useFresnelRim';
 import { resolveActorBodyShading } from '../actorStatusShading';
 import { registerAllParts } from '@/systems/entities3d/parts';
 import { generateEntityBlueprint } from '@/systems/entities3d/generateEntityBlueprint';
+import { usesProceduralWater } from '@/systems/entities3d/creatureAppearance';
 import { recipeFromCombatant } from '@/systems/entities3d/recipeFromCombatant';
 import { heightM } from '@/systems/entities3d/types';
 import { resolveControlPose } from '../../controlOptionPose';
 import { elevationUnitsToFeet } from '../../elevationPresentation';
-import { ELEVATION_SCALE, MODEL_SCALE, TEAM_COLORS, TILE_SIZE } from './actorTheme';
+import { ELEVATION_SCALE, MODEL_SCALE, TEAM_COLORS, TILE_SIZE, type ActorChrome } from './actorTheme';
 import { CharacterBody } from './CharacterBody';
 import { CharacterSelectionRing, CharacterTargetReticle } from './CharacterSelectionRing';
 import { CharacterStatusBadges } from './CharacterStatusBadges';
@@ -78,6 +80,16 @@ interface CharacterActorProps {
   targetingMode: boolean;
   onClick: (character: CombatCharacter) => void;
   activeCharacterId?: string | null;
+  /**
+   * How loud the actor's markers are (2026-10-30). 'arena' (default): the 3D
+   * battle map's full chrome, built to read at tactical distance on a bare
+   * board. 'town': the fight-in-place view inside a lit, busy town, where that
+   * chrome shouts over the world: no golden turn beam or bobbing arrow (the
+   * pulsing turn ring under the feet carries the turn), no colored point light
+   * at the feet, a dimmed facing wedge, and a half-size, softly lit HP pip
+   * without its team ring.
+   */
+  chrome?: ActorChrome;
 }
 
 // ---------------------------------------------------------------------------
@@ -94,7 +106,8 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
   isTargetable,
   targetingMode,
   onClick,
-  activeCharacterId
+  activeCharacterId,
+  chrome = 'arena',
 }) => {
   const groupRef = useRef<THREE.Group>(null);
   const modelGroupRef = useRef<THREE.Group>(null);
@@ -259,6 +272,7 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
         isTurn={isTurn}
         showTargetHighlight={showTargetHighlight}
         facingRotation={facingRotation}
+        chrome={chrome}
       />
 
       {/* Defense badges stay on the actor itself so the 3D map exposes the
@@ -272,6 +286,7 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
       {/* Character body. The ref is forwarded so useFresnelRim above can patch
           this exact group's materials. */}
       <CharacterBody
+        proceduralWater={usesProceduralWater(character.name, character.creatureTypes?.includes('Humanoid') ? 'Humanoid' : character.creatureTypes?.find(type => type === 'Elemental'))}
         ref={modelGroupRef}
         blueprint={blueprint}
         animState={isAlive ? animState : 'death'}
@@ -295,6 +310,7 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
         hpPercent={hpPercent}
         hpColor={hpColor}
         distanceToActive={distanceToActive}
+        chrome={chrome}
       />
     </group>
   );

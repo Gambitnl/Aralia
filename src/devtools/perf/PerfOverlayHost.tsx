@@ -34,6 +34,7 @@ import React, { createElement, useEffect } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { PerfOverlayView } from './PerfOverlay';
 import { installPerfAutoProbe } from './rendererProbe';
+import { startPageFrameProbe } from './pageFrameProbe';
 
 /** Named so the element is obvious to anyone reading the DOM. */
 const CONTAINER_ID = 'aralia-perf-hud-root';
@@ -41,6 +42,8 @@ const CONTAINER_ID = 'aralia-perf-hud-root';
 let mountCount = 0;
 let container: HTMLDivElement | null = null;
 let root: Root | null = null;
+/** Releases the page meter (see pageFrameProbe.ts). It runs while the display is on the page. */
+let stopPageMeter: (() => void) | null = null;
 
 function attach(): void {
   // A page that shows the display also wants every renderer measured. This is
@@ -49,6 +52,9 @@ function attach(): void {
   installPerfAutoProbe();
   mountCount += 1;
   if (root) return;
+  // The page meter gives the display a number on pages with no 3D at all
+  // (Remy, 2026-11-01). It lives and dies with the display's root.
+  stopPageMeter = startPageFrameProbe();
   container = document.createElement('div');
   container.id = CONTAINER_ID;
   document.body.appendChild(container);
@@ -65,6 +71,8 @@ function detach(): void {
   window.setTimeout(() => {
     if (mountCount > 0 || !root) return;
     root.unmount();
+    stopPageMeter?.();
+    stopPageMeter = null;
     container?.remove();
     root = null;
     container = null;

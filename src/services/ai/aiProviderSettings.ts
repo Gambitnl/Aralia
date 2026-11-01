@@ -21,6 +21,22 @@
  * key accessors read/write from the store the active mode selects.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 28/10/2026, 22:00:50
+ * Dependents: components/ui/OllamaDependencyModal.tsx, components/ui/OllamaModelPicker.tsx, hooks/useBiomeGenerator.ts, services/CompanionGenerator.ts, services/ai/textProviderRouter.ts, services/ollama/client.ts, services/ollama/router.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 export type AiTextProvider = 'ollama' | 'groq';
 
 /**
@@ -83,6 +99,7 @@ const LS_GROQ_KEY_STORAGE = 'aralia.ai.groqKeyStorage';
 const LS_GROQ_PROXY_URL = 'aralia.ai.groqProxyUrl';
 /** Prefix for the per-category Ollama model choice (agora-d1c7.1). */
 const LS_OLLAMA_MODEL_PREFIX = 'aralia.ai.ollamaModel.';
+const LS_OLLAMA_COMPUTE_PREFIX = 'aralia.ai.ollamaCompute.';
 
 type WebStorageKind = 'local' | 'session';
 
@@ -305,4 +322,17 @@ export function getOllamaModelChoices(): Record<OllamaModelCategory, { chosen: s
   const out = {} as Record<OllamaModelCategory, { chosen: string | null; resolved: string }>;
   for (const c of OLLAMA_MODEL_CATEGORIES) out[c] = { chosen: getOllamaModelChoice(c), resolved: resolveOllamaModel(c) };
   return out;
+}
+
+
+/** Automatic preserves Ollama's device choice. CPU is an explicit player choice
+ * for this job, useful when the 3D world needs the available graphics memory.
+ * It never changes the chosen model/provider or installs an error fallback. */
+export type OllamaComputeMode = 'auto' | 'cpu';
+export function getOllamaComputeMode(category: OllamaModelCategory): OllamaComputeMode {
+  return readItem(LS_OLLAMA_COMPUTE_PREFIX + category) === 'cpu' ? 'cpu' : 'auto';
+}
+export function setOllamaComputeMode(category: OllamaModelCategory, mode: OllamaComputeMode): void {
+  if (mode === 'cpu') writeItem(LS_OLLAMA_COMPUTE_PREFIX + category, 'cpu');
+  else removeItem(LS_OLLAMA_COMPUTE_PREFIX + category);
 }

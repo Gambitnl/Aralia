@@ -12,6 +12,7 @@
 import { describe, it, expect } from 'vitest';
 import { calculateForcedMarchStatus } from '../TravelCalculations';
 import { resolveForcedMarch } from '../forcedMarch';
+import { CLASSES_DATA } from '../../../data/classes';
 import type { PlayerCharacter } from '../../../types/character';
 
 /** Minimal party member for the Con-save resolver (only fields it reads). */
@@ -56,6 +57,24 @@ describe('calculateForcedMarchStatus — threshold + DC (travel G1 proof)', () =
 });
 
 describe('resolveForcedMarch — per-member Constitution saves (apply path)', () => {
+  it('includes the saved Fighter class proficiency without a duplicate top-level grant', () => {
+    // Native Ilan has Constitution 14 and the normal Fighter class grant. The
+    // historical face 4 still fails DC 11, but future totals must match the sheet.
+    const ilan = { ...member({ id: 'ilan', name: 'Ilan', con: 14 }), class: CLASSES_DATA.fighter };
+    expect(resolveForcedMarch([ilan], 11, () => 4).results[0]).toMatchObject({ roll: 4, total: 8, failed: true });
+    expect(resolveForcedMarch([ilan], 11, () => 7).results[0]).toMatchObject({ total: 11, failed: false });
+  });
+
+  it('adds class and additional proficiency only once and retains earned exhaustion', () => {
+    const ilan = { ...member({ id: 'ilan', name: 'Ilan', con: 14, conSaveProficient: true }), class: CLASSES_DATA.fighter, conditions: ['exhaustion'] };
+    expect(resolveForcedMarch([ilan], 11, () => 9).results[0]).toMatchObject({ total: 11, failed: false });
+  });
+
+  it('uses the shared proficiency aliases for an additional grant', () => {
+    const traveler = { ...member({ id: 'traveler', name: 'Traveler', con: 14 }), savingThrowProficiencies: [' CON '] } as unknown as PlayerCharacter;
+    expect(resolveForcedMarch([traveler], 11, () => 7).results[0]).toMatchObject({ total: 11, failed: false });
+  });
+
   const party = [
     member({ id: 'a', name: 'Alia', con: 10 }),   // +0 mod
     member({ id: 'b', name: 'Borin', con: 16 }),  // +3 mod

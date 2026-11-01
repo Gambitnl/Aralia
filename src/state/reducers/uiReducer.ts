@@ -1,11 +1,16 @@
+/**
+ * @file src/state/reducers/uiReducer.ts
+ * A slice reducer that handles UI-related state changes.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 17/08/2026, 14:11:40
+ * Last Sync: 28/10/2026, 12:04:05
  * Dependents: state/appState.ts
- * Imports: 4 files
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,14 +19,11 @@
  */
 // @dependencies-end
 
-/**
- * @file src/state/reducers/uiReducer.ts
- * A slice reducer that handles UI-related state changes.
- */
 import { GameState, GamePhase, Notification } from '../../types';
 import { AppAction } from '../actionTypes';
 import { MOCK_SHIP_SLOOP } from '../../data/dev/mockShips';
 import { generateId } from '../../utils/core/idGenerator';
+import { attemptPuzzleInput } from '../../systems/puzzles/puzzleSystem';
 
 export function uiReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
@@ -108,8 +110,15 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
     case 'TOGGLE_LOGBOOK':
       return { isLogbookVisible: !state.isLogbookVisible, isMapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isDiscoveryLogVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isQuestLogVisible: false };
 
+    case 'SHOW_LODGING_OFFER':
+      return { lodgingOffer: action.payload, isMapVisible: false, merchantModal: { ...state.merchantModal, isOpen: false } };
+    case 'OPEN_LODGING_REST':
+      // Use the established modal policy to close competing panels. The bed
+      // owner supplies admission; opening a dialog itself grants no recovery.
+      return { ...uiReducer({ ...state, isLongRestModalVisible: false }, { type: 'TOGGLE_LONG_REST_MODAL' }),
+        lodgingRestAdmission: action.payload };
     case 'TOGGLE_LONG_REST_MODAL':
-      return { isLongRestModalVisible: !state.isLongRestModalVisible, isPartyOverlayVisible: false, isMapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isNpcTestModalVisible: false, isDiscoveryLogVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isQuestLogVisible: false };
+      return { lodgingRestAdmission: null, isLongRestModalVisible: !state.isLongRestModalVisible, isPartyOverlayVisible: false, isMapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isNpcTestModalVisible: false, isDiscoveryLogVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isQuestLogVisible: false };
 
     case 'TOGGLE_SHORT_REST_MODAL':
       return { isShortRestModalVisible: !state.isShortRestModalVisible, isPartyOverlayVisible: false, isMapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isNpcTestModalVisible: false, isDiscoveryLogVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isQuestLogVisible: false };
@@ -131,8 +140,8 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
       // keepsake snapshot is cleared; closing also clears it so a later live
       // open never inherits a stale snapshot.
       return action.payload
-        ? { isBroadsheetVisible: true, broadsheetSnapshot: undefined, isMapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isDiscoveryLogVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isLogbookVisible: false, isQuestLogVisible: false, isNoticeBoardVisible: false }
-        : { isBroadsheetVisible: false, broadsheetSnapshot: undefined };
+        ? { isBroadsheetVisible: true, broadsheetSnapshot: undefined, broadsheetReadingPlace: action.readingPlace, isMapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isDiscoveryLogVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isLogbookVisible: false, isQuestLogVisible: false, isNoticeBoardVisible: false }
+        : { isBroadsheetVisible: false, broadsheetSnapshot: undefined, broadsheetReadingPlace: undefined };
 
     case 'READ_ITEM': {
       // Reading a readable Book item (e.g. a broadsheet keepsake) opens the
@@ -140,7 +149,7 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
       // the player has left the town. Non-readable items are a no-op.
       const item = state.inventory.find(i => i.id === action.payload.itemId);
       if (!item?.readableContent) return {};
-      return { isBroadsheetVisible: true, broadsheetSnapshot: item.readableContent, isNoticeBoardVisible: false };
+      return { isBroadsheetVisible: true, broadsheetSnapshot: item.readableContent, broadsheetReadingPlace: undefined, isNoticeBoardVisible: false };
     }
 
     case 'TOGGLE_GLOSSARY_VISIBILITY': {
@@ -317,6 +326,25 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
         activePuzzle: null,
       };
 
+    case 'PUZZLE_ATTEMPT': {
+      // Advance the active puzzle through the reducer pipeline rather than
+      // mutating state.activePuzzle in place inside the modal (WF-G231). We
+      // clone the puzzle record and its input sequence before calling the
+      // puzzleSystem rule owner so structural sharing and snapshot-copying
+      // save/load paths observe a fresh reference on every attempt.
+      if (!state.activePuzzle || state.activePuzzle.id !== action.payload.puzzleId) {
+        return {};
+      }
+      const nextPuzzle = {
+        ...state.activePuzzle,
+        currentInputSequence: [...state.activePuzzle.currentInputSequence],
+      };
+      attemptPuzzleInput(nextPuzzle, action.payload.input);
+      return {
+        activePuzzle: nextPuzzle,
+      };
+    }
+
     case 'TOGGLE_DICE_ROLLER':
       return {
         isDiceRollerVisible: !state.isDiceRollerVisible,
@@ -345,6 +373,7 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
           merchantId: action.payload.merchantId,
           merchantName: action.payload.merchantName,
           merchantInventory: action.payload.inventory,
+          initialTab: action.payload.initialTab,
           economy: (action.payload as { economy?: GameState['economy'] }).economy // Persist economy state
         },
         economy: (action.payload as { economy?: GameState['economy'] }).economy || state.economy,

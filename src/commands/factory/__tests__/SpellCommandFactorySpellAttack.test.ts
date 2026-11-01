@@ -14,7 +14,7 @@ import { HealingCommand } from '@/commands/effects/HealingCommand'
 
 // agora-f821.4 retired the combatUtils roller family; the modules under
 // test roll through systems/dice/rollers now. One hoisted set of mocks
-// stands in for BOTH specifiers, so one vi.mocked(...) pins every die.
+// pins dice only at their real systems/dice/rollers module.
 const diceMocks = vi.hoisted(() => ({
     rollD20: vi.fn()
 }))
@@ -25,13 +25,7 @@ vi.mock('@/systems/dice/rollers', async (importOriginal) => {
   return { ...actual, ...diceMocks }
 })
 
-vi.mock('@/utils/combat', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/utils/combat')>()
-  return {
-    ...actual,
-    ...diceMocks,
-}
-})
+// Keep combat utilities real; dice controls target systems/dice/rollers only.
 
 /**
  * This file proves spell-attack spells that should roll to hit before their

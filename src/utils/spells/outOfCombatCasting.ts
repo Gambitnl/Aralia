@@ -13,6 +13,23 @@
  * - Cantrips never need a slot; leveled spells consume the lowest available
  *   slot at or above their level.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 31/10/2026, 19:01:52
+ * Dependents: components/CharacterSheet/Spellbook/CastSpellControls.tsx, hooks/actions/handleResourceActions.ts, state/appState.ts, state/reducers/characterReducer.ts, utils/spells/preparedCombatEffects.ts, utils/spells/worldTimedEffects.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { PlayerCharacter, Spell, SpellSlots } from '../../types';
 import type { SpellEffect } from '../../types/spells';
 import type { StatusEffect } from '../../types/effects';
@@ -53,12 +70,19 @@ function isBenignEffect(effect: SpellEffect): boolean {
     );
 }
 
+function requiresReactionTrigger(spell: Spell): boolean {
+    return spell.castingTime?.unit === 'reaction' || spell.castingTime?.combatCost?.type === 'reaction';
+}
+
 /**
  * True when the spell makes sense to cast outside combat: healing, buffs,
  * utility, or self/ally-targeted magic. Attack-roll spells and anything whose
  * effects need an enemy on a battle map are excluded.
  */
 export function isSpellCastableOutOfCombat(spell: Spell): boolean {
+    // Defensive effects do not waive a reaction's trigger. The spellbook has
+    // no triggering attack, fall or event; those belong to their reaction flow.
+    if (requiresReactionTrigger(spell)) return false;
     // Spell attack rolls need an enemy target on a battle map.
     if (spell.attackType) return false;
     const effects = spell.effects ?? [];
@@ -100,6 +124,9 @@ export function getOutOfCombatCastability(
     character: PlayerCharacter,
     spell: Spell,
 ): OutOfCombatCastability {
+    if (requiresReactionTrigger(spell)) {
+        return {allowed: false, castLevel: null, reason: 'Reaction spell — use it when its trigger occurs.'};
+    }
     if (!isSpellCastableOutOfCombat(spell)) {
         return {
             allowed: false,
@@ -186,6 +213,11 @@ const ROUNDS_PER_UNIT: Record<string, number> = {
 /** Long-but-finite stand-in for "until dispelled" effects, in rounds. */
 const UNTIL_DISPELLED_ROUNDS = 999999;
 
+// Longstrider still has an authored UTILITY/other record. Honor that exact
+// spell identity while preserving the corpus and its unfinished migration.
+export const LONGSTRIDER_SPEED_BONUS = 10;
+export const LONGSTRIDER_DURATION_ROUNDS = ROUNDS_PER_UNIT.hour;
+
 /**
  * Converts a spell duration to rounds for the StatusEffect record.
  * Returns null for instantaneous/special durations (nothing persists).
@@ -213,6 +245,8 @@ export function spellDurationToRounds(duration: Spell['duration']): number | nul
 export function buildOutOfCombatStatusEffect(
     spell: Spell,
     casterId: string,
+    gameTime?: Date,
+    castLevel: number = spell.level,
 ): StatusEffect | null {
     const rounds = spellDurationToRounds(spell.duration);
     if (rounds === null || rounds <= 0) return null;
@@ -226,13 +260,43 @@ export function buildOutOfCombatStatusEffect(
         name: spell.name,
         type: 'buff',
         duration: rounds,
-        effect: { type: 'condition' },
+        effect: spell.id === 'longstrider'
+            ? { type: 'stat_modifier', stat: 'speed', value: LONGSTRIDER_SPEED_BONUS }
+            : { type: 'condition' },
+        // Only explicitly timed spells get an expiry. Until-dispelled effects
+        // retain their existing lifecycle instead of gaining an invented date.
+        ...(spell.duration.type === 'timed' && gameTime instanceof Date && Number.isFinite(gameTime.getTime())
+            ? { worldTime: { appliedAtMs: gameTime.getTime(), expiresAtMs: gameTime.getTime() + rounds * 6000 } }
+            : {}),
         source: spell.name,
         sourceCasterId: casterId,
+        sourceSpellId: spell.id,
+        sourceCastLevel: castLevel,
+        requiresConcentration: Boolean(spell.duration.concentration),
         description: spell.duration.concentration
             ? `${spell.name} (concentration), cast outside combat.`
             : `${spell.name}, cast outside combat.`,
     };
+}
+
+/** Only the generated preparation contract owns this concentration. The exact
+ * legacy description is a compatibility marker written by this same builder;
+ * custom named conditions and effects without a caster are left untouched. */
+export function isPreparedConcentrationStatus(effect: StatusEffect): boolean {
+    if (!effect.sourceCasterId || effect.source !== effect.name || !effect.id.startsWith('ooc-')
+        || !effect.id.endsWith('-' + effect.sourceCasterId)) return false;
+    if (effect.sourceSpellId && effect.id !== `ooc-${effect.sourceSpellId}-${effect.sourceCasterId}`) return false;
+    return effect.requiresConcentration === true || effect.requiresConcentration === undefined
+        && effect.description === `${effect.name} (concentration), cast outside combat.`;
+}
+
+/** A new preparation replaces only this caster's previous concentration,
+ * including effects carried by another party member. No health or slots change. */
+export function removePreviousPreparedConcentration(effects: StatusEffect[], incoming: StatusEffect): StatusEffect[] {
+    if (!isPreparedConcentrationStatus(incoming)) return effects;
+    const retained = effects.filter(effect => effect.sourceCasterId !== incoming.sourceCasterId
+        || !isPreparedConcentrationStatus(effect));
+    return retained.length === effects.length ? effects : retained;
 }
 
 /**
@@ -244,7 +308,7 @@ export function buildOutOfCombatStatusEffect(
 export function applyPostCastToCharacter(
     character: PlayerCharacter,
     castLevel: number,
-    options: { selfHealing?: number; statusEffect?: StatusEffect | null } = {},
+    options: { selfHealing?: number; statusEffect?: StatusEffect | null; concentrationReplacement?: StatusEffect | null } = {},
 ): PlayerCharacter {
     let updated: PlayerCharacter = { ...character };
 
@@ -266,6 +330,8 @@ export function applyPostCastToCharacter(
         updated = { ...updated, hp: Math.min(updated.hp + options.selfHealing, updated.maxHp) };
     }
 
+    const replacement = options.concentrationReplacement ?? options.statusEffect;
+    if (replacement) updated = { ...updated, statusEffects: removePreviousPreparedConcentration(updated.statusEffects ?? [], replacement) };
     if (options.statusEffect) {
         const incoming = options.statusEffect;
         const retained = (updated.statusEffects ?? []).filter(

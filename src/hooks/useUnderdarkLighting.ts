@@ -23,6 +23,23 @@
  * far a source is from the party, so a carried bright source still reads as
  * bright light everywhere.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ *
+ * Last Sync: 28/10/2026, 19:15:01
+ * Dependents: None (Orphan)
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { Item } from '../types';
 import { LightSource as SpellLightSource } from '../types/combat';
 import { LightSource, UnderdarkBiomeId } from '../types/underdark';
@@ -81,6 +98,8 @@ const DIM_ONLY_TYPES = new Set<LightSource['type']>(['bioluminescence']);
  * Every field is optional so callers can adopt the checks one at a time.
  */
 export interface UnderdarkLightingEnvironment {
+    /** When supplied, only explicitly ignited carried lights count. Legacy callers retain their inventory fallback. */
+    carriedLightSources?: readonly LightSource[];
     /**
      * Light records written by the spell engine (`CombatState.activeLightSources`).
      * The engine deletes a record when its spell ends or concentration breaks,
@@ -128,9 +147,13 @@ export const useUnderdarkLighting = (
     const getActiveLightSources = (): LightSource[] => {
         const sources: LightSource[] = [];
 
+        if (environment.carriedLightSources !== undefined) {
+            sources.push(...environment.carriedLightSources.filter(source => source.isActive && source.durationRemaining > 0));
+        }
+        // Existing callers retain their historical inventory-based estimate. Expedition callers supply explicit fuel.
         // Check for Torches
         const torches = inventory.filter(i => i.id === 'torch');
-        if (torches.length > 0) {
+        if (environment.carriedLightSources === undefined && torches.length > 0) {
             sources.push({
                 id: 'active_torch',
                 type: 'torch',
@@ -144,7 +167,7 @@ export const useUnderdarkLighting = (
         // Check for Lanterns
         const lanterns = inventory.filter(i => i.id === 'hooded_lantern');
         const oil = inventory.filter(i => i.id === 'oil_flask');
-        if (lanterns.length > 0 && oil.length > 0) {
+        if (environment.carriedLightSources === undefined && lanterns.length > 0 && oil.length > 0) {
              sources.push({
                 id: 'active_lantern',
                 type: 'lantern',

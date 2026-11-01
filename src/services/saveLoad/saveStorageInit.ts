@@ -18,8 +18,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/09/2026, 14:39:58
- * Dependents: services/saveLoadService.ts
+ * Last Sync: 28/10/2026, 12:52:12
+ * Dependents: services/saveLoad/saveLoadCore.ts, services/saveLoadService.ts
  * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
@@ -30,7 +30,7 @@
 // @dependencies-end
 
 import type { GameState } from '../../types';
-import { SafeStorage, logger, safeJSONParse, simpleHash } from '../../utils/core';
+import { SafeStorage, logger, safeJSONParse } from '../../utils/core';
 import * as IDBStorage from '../indexedDBStorageService';
 import {
   AUTO_SAVE_SLOT,
@@ -38,20 +38,19 @@ import {
   DEFAULT_SAVE_SLOT,
   EMERGENCY_SAVE_KEY,
   MIGRATION_FLAG_KEY,
-  SAVE_GAME_VERSION,
   SLOT_PREFIX,
 } from './saveLoadConstants';
-import type { StoredSavePayload } from './saveLoadConstants';
-import { calculatePlaytimeSeconds, extractPreview, setIndexedDbAvailable } from './saveLoadHelpers';
-import { getSaveSlots } from './saveSlotIndex';
+import { getIndexedDbAvailability, setIndexedDbAvailable } from './saveLoadHelpers';
+import { writeEmergencySnapshot } from './emergencySnapshot';
 
 // Tracks whether the one-time localStorage→IndexedDB migration has completed.
 let migrationDone = false;
+let initializationInFlight: Promise<void> | null = null;
 
 // ============================================================================
 // IndexedDB Initialization and Migration
 // ============================================================================
-// On module load, we check if IndexedDB is available and migrate any existing
+// At startup, we check if IndexedDB is available and migrate any existing
 // localStorage saves. This runs once per page load. If IndexedDB is not
 // available, the service silently stays in localStorage-only mode.
 // ============================================================================
@@ -59,9 +58,26 @@ let migrationDone = false;
 /**
  * Initializes IndexedDB and migrates existing localStorage saves if needed.
  * Called once on app startup (from useGameInitialization or similar).
- * Safe to call multiple times — it short-circuits after the first run.
+ * Concurrent calls share the running pass. Later explicit calls can recheck
+ * availability and recover an emergency payload written since the last pass.
  */
-export async function initializeStorage(): Promise<void> {
+export function initializeStorage(): Promise<void> {
+  // Startup and an immediate Continue can arrive together. Both must await the
+  // same backend/recovery pass instead of reading a stale legacy copy first.
+  if (!initializationInFlight) {
+    initializationInFlight = initializeStorageBackend().finally(() => { initializationInFlight = null; });
+  }
+  return initializationInFlight;
+}
+
+/** Payload I/O joins pending recovery too, even after availability resolves.
+ * A completed unavailable check retains the existing localStorage fallback. */
+export async function waitForStorageInitialization(): Promise<void> {
+  if (initializationInFlight) await initializationInFlight;
+  else if (getIndexedDbAvailability() === null) await initializeStorage();
+}
+
+async function initializeStorageBackend(): Promise<void> {
   // Check if IndexedDB is available in this browser environment.
   const available = await IDBStorage.isAvailable();
   setIndexedDbAvailable(available);
@@ -160,42 +176,6 @@ async function recoverEmergencySave(): Promise<void> {
  * save is moved to IndexedDB via recoverEmergencySave().
  */
 export function emergencySaveSync(gameState: GameState): void {
-  try {
-    const stateToSave: GameState = {
-      ...gameState,
-      saveVersion: SAVE_GAME_VERSION,
-      saveTimestamp: Date.now(),
-      isLoading: false,
-      isImageLoading: false,
-      error: null,
-      // Overlay flags persist as-is — same contract as saveGame (task 4).
-      geminiGeneratedActions: null,
-      isDevMenuVisible: false,
-      isGeminiLogViewerVisible: false,
-      characterSheetModal: { isOpen: false, character: null },
-      notifications: [],
-    };
-
-    const serializedStateForHash = JSON.stringify(stateToSave);
-    const checksum = simpleHash(serializedStateForHash);
-    const existingSlotSummary = getSaveSlots().find(slot => slot.slotId === AUTO_SAVE_SLOT);
-    const playtimeSeconds = calculatePlaytimeSeconds(existingSlotSummary);
-
-    const payload: StoredSavePayload = {
-      version: SAVE_GAME_VERSION,
-      slotId: AUTO_SAVE_SLOT,
-      slotName: 'Auto-Save',
-      isAutoSave: true,
-      preview: extractPreview(stateToSave, playtimeSeconds),
-      state: stateToSave,
-      checksum,
-    };
-
-    // Write synchronously to localStorage — this is the only way to guarantee
-    // the write completes during beforeunload.
-    SafeStorage.setItem(EMERGENCY_SAVE_KEY, JSON.stringify(payload));
-  } catch (error) {
-    // Best-effort — if this fails, there's nothing more we can do.
-    logger.error('Emergency save failed', { error });
-  }
+  // Same autosave target and envelope as before; defeat uses a separate owned key.
+  writeEmergencySnapshot(gameState, {slotId: AUTO_SAVE_SLOT, slotName: 'Auto-Save', isAutoSave: true});
 }

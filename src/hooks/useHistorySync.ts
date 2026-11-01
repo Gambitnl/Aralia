@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/05/2026, 23:32:33
+ * Last Sync: 28/10/2026, 18:54:15
  * Dependents: App.tsx
- * Imports: 4 files
+ * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -21,6 +21,7 @@ import { getPhaseSlug, getPhaseFromSlug } from '../routes';
 
 export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<AppAction>) => {
   const isInitialMount = useRef(true);
+  const pendingTerminalNavigation = useRef(false);
 
   // Guard Logic Helper
   const safeNavigate = useCallback((targetPhase: GamePhase, silent: boolean = false) => {
@@ -49,13 +50,15 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
   }, [dispatch, gameState.party.length, gameState.phase]);
 
   // Helper to sync state params.
-  // Only the phase is a meaningful deep link. Player position (submap coords +
+  // Phase and an explicit saved defeat are meaningful deep links. Player position (submap coords +
   // location id) is session/save state, not something to expose in the URL —
   // and the legacy x/y grid no longer reflects the WF-atlas spawn — so we never
   // write x/y/loc and strip any stale ones left over from old links.
   const syncParams = useCallback((params: URLSearchParams, phase: GamePhase) => {
     params.set('phase', getPhaseSlug(phase));
     ['x', 'y', 'loc'].forEach((k) => params.delete(k));
+    // Outcome links select a saved aftermath, never a different live journey.
+    if (phase !== GamePhase.GAME_OVER) params.delete('defeat');
   }, []);
 
   useEffect(() => {
@@ -70,6 +73,11 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
       if (urlPhase !== null) {
         // Use silent mode on mount to avoid confusing "no party" warnings if deep-linking
         // while the app is still initializing its state.
+        // Cold startup begins on the menu. Strict Mode can repeat this
+        // effect before the dispatched terminal phase reaches the next render.
+        // Keep its specific record attached until that navigation is accepted.
+        pendingTerminalNavigation.current = urlPhase === GamePhase.GAME_OVER
+          && params.has('defeat') && gameState.phase !== GamePhase.GAME_OVER;
         safeNavigate(urlPhase, true);
       } else if (rawPhase && urlPhase === null) {
         // Ranger: Handle 404 (valid parameter but invalid phase)
@@ -80,6 +88,11 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
         window.history.replaceState({ phase: gameState.phase }, '', `${window.location.pathname}?${params.toString()}`);
       }
       return;
+    }
+
+    if (pendingTerminalNavigation.current) {
+      if (gameState.phase !== GamePhase.GAME_OVER) return;
+      pendingTerminalNavigation.current = false;
     }
 
     // State -> URL Sync (User Action)

@@ -41,7 +41,7 @@ import type { SavePreview, SaveSlotSummary } from './saveLoadConstants';
 
 // Tracks whether IndexedDB is available for save payloads. Set once during
 // initialization. When false, the service falls back to localStorage-only mode.
-let idbAvailable = false;
+let idbAvailable: boolean | null = null;
 
 // Tracks when the current play session last started or resumed so we can
 // measure incremental playtime in real-world seconds instead of relying on
@@ -53,6 +53,11 @@ let sessionStartedAtMs = Date.now();
  * Useful for the UI to show storage status or debug info.
  */
 export function isUsingIndexedDB(): boolean {
+  return idbAvailable === true;
+}
+
+/** Unknown at cold start is different from a completed, unsuccessful check. */
+export function getIndexedDbAvailability(): boolean | null {
   return idbAvailable;
 }
 

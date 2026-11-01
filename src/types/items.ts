@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 19/06/2026, 00:48:21
- * Dependents: components/Crime/ThievesGuild/FenceInterface.tsx, components/puzzles/LockpickingModal.tsx, services/travelService.ts, systems/crafting/alchemySystem.ts, systems/crafting/craftingService.ts, systems/crime/BlackMarketSystem.ts, systems/puzzles/lockSystem.ts, systems/puzzles/mechanism.ts, systems/puzzles/pressurePlateSystem.ts, systems/spells/targeting/ObjectTargetRegistry.ts, systems/travel/TravelCalculations.ts, types/index.ts, utils/world/provenanceUtils.ts
+ * Last Sync: 29/10/2026, 17:15:11
+ * Dependents: commands/effects/utility/core.ts, commands/effects/utility/minorUtility.ts, commands/factory/boomingBladeAttackBridge.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/trueStrikeAttackBridge.ts, components/Crime/ThievesGuild/FenceInterface.tsx, components/MapPane.tsx, components/puzzles/LockpickingModal.tsx, data/items/householdGoods.ts, hooks/ability/abilityExecutionTypes.ts, hooks/actions/actionHandlers.ts, hooks/useAbilitySystem.ts, systems/companions/companionPreparations.ts, systems/companions/companionRumors.ts, systems/crafting/alchemySystem.ts, systems/crafting/craftingService.ts, systems/crime/BlackMarketSystem.ts, systems/entities3d/recipeFromCharacter.ts, systems/gameplay/restMeals.ts, systems/healing/healersKit.ts, systems/planar/InfernalMechanics.ts, systems/puzzles/lockSystem.ts, systems/puzzles/mechanism.ts, systems/puzzles/pressurePlateSystem.ts, systems/spells/targeting/ObjectTargetRegistry.ts, systems/travel/TravelCalculations.ts, systems/travel/containedWater.ts, systems/travel/partyProvisions.ts, systems/travel/provisionEncumbrance.ts, systems/travel/provisioning.ts, types/companions.ts, types/index.ts, types/infernal.ts, types/underdark.ts, utils/items/foodFreshness.ts, utils/world/provenanceUtils.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -137,6 +137,16 @@ export enum ItemType {
   Reagent = 'reagent',
   /** Purchased intangibles: information, passage, lodging. Carries no physical form. */
   Service = 'service',
+  // GG-576 (Remy ruling 2026-11-02): types for 5eTools items that had no
+  // game type. Data only for now: no riding, driving or animal rules yet.
+  /** Riding and draft animals bought as mounts (Riding Horse, Mule, Elephant). */
+  Mount = 'mount',
+  /** Land, water and air vehicles (Cart, Rowboat, Airship). */
+  Vehicle = 'vehicle',
+  /** Farm animals bought as trade goods (Chicken, Cow, Sheep). */
+  Livestock = 'livestock',
+  /** Items that channel spells: held foci (Orb, Wand) and worn ones (Hat of Wizardry). */
+  SpellcastingFocus = 'spellcasting_focus',
 }
 
 export interface ItemTypeTraits {
@@ -240,6 +250,24 @@ export const ItemTypeDefinitions: Record<ItemType, ItemTypeTraits> = {
     isStackable: false,
     description: "Intangible goods bought rather than carried, such as information, passage, or lodging.",
   },
+  // GG-576: no trait here grants riding, driving or animal care; those rules
+  // do not exist yet.
+  [ItemType.Mount]: {
+    isStackable: false,
+    description: "Animals bought to ride or to pull loads.",
+  },
+  [ItemType.Vehicle]: {
+    isStackable: false,
+    description: "Carts, wagons, boats and other vehicles that carry people or cargo.",
+  },
+  [ItemType.Livestock]: {
+    isStackable: true,
+    description: "Farm animals kept or sold for food, wool, labor or trade.",
+  },
+  [ItemType.SpellcastingFocus]: {
+    isEquippable: true,
+    description: "Items that a spellcaster holds or wears to channel spells.",
+  },
 };
 
 export type ItemEffect =
@@ -258,6 +286,12 @@ export interface Item {
   value?: number | string;
   /** Optional stack size for legacy inventory math; kept flexible for encumbrance tests. */
   quantity?: number;
+  /** Remaining minutes on an extinguished torch; relighting preserves spent fuel. */
+  lightFuelMinutes?: number;
+  /** Authored capacity for a liquid vessel; legacy waterskins retain four pints. */
+  waterCapacityGallons?: number;
+  /** Actual water stays with the vessel when it is moved, sold or dropped. */
+  containedWater?: {gallons:number;lastCastId?:string};
   /** The classification of the item. */
   type: ItemType;
 
@@ -346,6 +380,10 @@ export interface Item {
    * can carry durable freshness timing for perishable food.
    */
   acquiredAt?: number;
+  /** The actual opened bundle and opening identity survive alongside every
+   * separated item. This records ownership/history without inventing a maker
+   * or refreshing the age of food that was already carried. */
+  unpackedFrom?: { openingId: string; sourceItem: Item; gameTime: string };
   shelfLife?: string;
   nutritionValue?: number;
   perishable?: boolean;

@@ -34,7 +34,7 @@
 import React from 'react';
 import * as THREE from 'three';
 import { SelectionDecal, TurnIndicator } from './models';
-import type { ActorTeamColors } from './actorTheme';
+import type { ActorChrome, ActorTeamColors } from './actorTheme';
 
 export interface CharacterSelectionRingProps {
   teamColors: ActorTeamColors;
@@ -48,6 +48,8 @@ export interface CharacterSelectionRingProps {
   showTargetHighlight: boolean;
   /** Y rotation the body faces, in radians. */
   facingRotation: number;
+  /** 'town' drops the turn beam and the ground light and dims the wedge (CharacterActor `chrome`). */
+  chrome?: ActorChrome;
 }
 
 export const CharacterSelectionRing: React.FC<CharacterSelectionRingProps> = ({
@@ -58,6 +60,7 @@ export const CharacterSelectionRing: React.FC<CharacterSelectionRingProps> = ({
   isTurn,
   showTargetHighlight,
   facingRotation,
+  chrome = 'arena',
 }) => (
   <>
     {/* Selection decal — always-on BG3 style ground ring for team identity */}
@@ -78,9 +81,9 @@ export const CharacterSelectionRing: React.FC<CharacterSelectionRingProps> = ({
           <meshStandardMaterial
             color={teamColors.selection}
             emissive={teamColors.selection}
-            emissiveIntensity={1.5}
+            emissiveIntensity={chrome === 'town' ? 0.3 : 1.5}
             transparent
-            opacity={0.9}
+            opacity={chrome === 'town' ? 0.5 : 0.9}
             side={THREE.DoubleSide}
             depthWrite={false}
           />
@@ -88,16 +91,20 @@ export const CharacterSelectionRing: React.FC<CharacterSelectionRingProps> = ({
       </group>
     )}
 
-    {/* Active turn golden ring */}
-    <TurnIndicator active={isTurn} />
+    {/* Active turn golden beam and arrow. In town the pulsing turn ring of
+        the selection decal above carries the turn on its own. */}
+    <TurnIndicator active={isTurn && chrome !== 'town'} />
 
-    {/* Team-colored ground glow — most readable team indicator at tactical distance */}
-    <pointLight
-      color={teamColors.groundGlow}
-      intensity={isPlayer ? 0.7 : 1.0}
-      distance={3.2}
-      position={[0, 0.05, 0]}
-    />
+    {/* Team-colored ground glow — most readable team indicator at tactical
+        distance on a bare board; a lit town needs no extra light per actor. */}
+    {chrome !== 'town' && (
+      <pointLight
+        color={teamColors.groundGlow}
+        intensity={isPlayer ? 0.7 : 1.0}
+        distance={3.2}
+        position={[0, 0.05, 0]}
+      />
+    )}
   </>
 );
 

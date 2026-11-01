@@ -1,5 +1,5 @@
 import { SeededRandom } from '../../../../utils/random/seededRandom';
-import { assignKeyNpcs } from '../keyNpcs';
+import { assignKeyNpcs, institutionPlotForRole } from '../keyNpcs';
 import { generateTownRoster } from '../../roster/generateTownRoster';
 import { makeSeedPath } from '../../seedPath';
 import { buildDemoTownPlan } from '../../town/demoTownPlan';
@@ -59,5 +59,24 @@ describe('assignKeyNpcs', () => {
     const { plan, roster } = build(6000, 6000);
     const roles = assignKeyNpcs(plan, roster, { rng: new SeededRandom(4), wildcards: 0 });
     expect([...roles.values()].includes('wildcard')).toBe(false);
+  });
+});
+
+
+describe('source institution location', () => {
+  const plot = (id: number, role: string, x: number) => ({id, role, footprint:[[x,0],[x+4,0],[x+4,4],[x,4]]});
+  it('retains the central temple policy rather than the current holder nearest temple', () => {
+    const plan={plots:[plot(54,'house',0),plot(112,'house',5),plot(49,'temple',-100),plot(168,'temple',10),plot(7,'market',20)]} as unknown as TownPlan;
+    expect(institutionPlotForRole(plan,'priest')?.id).toBe(168);
+    expect(institutionPlotForRole({...plan,plots:[...plan.plots].reverse()},'priest')?.id).toBe(168);
+  });
+  it('retains the lower source plot id when central institutions tie', () => {
+    const plan={plots:[plot(168,'temple',8),plot(49,'temple',-12),plot(54,'house',-2)]} as unknown as TownPlan;
+    expect(institutionPlotForRole(plan,'priest')?.id).toBe(49);
+  });
+  it('does not fabricate a building for an absent or unsupported office', () => {
+    const plan={plots:[plot(54,'house',0)]} as unknown as TownPlan;
+    expect(institutionPlotForRole(plan,'priest')).toBeUndefined();
+    expect(institutionPlotForRole(plan,'wildcard')).toBeUndefined();
   });
 });

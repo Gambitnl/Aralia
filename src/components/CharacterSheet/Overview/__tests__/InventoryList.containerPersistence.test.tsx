@@ -52,10 +52,12 @@ describe('InventoryList container persistence (agora-17eb)', () => {
 
     fireEvent.change(torchSelect(), { target: { value: POUCH.id } });
 
+    // GG-578: the payload also names the exact source stack (inventoryIndex and
+    // sourceItem), which the reducer uses so that one select moves one stack.
     expect(onAction).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'MOVE_ITEM_TO_CONTAINER',
-        payload: { itemId: TORCH.id, containerId: POUCH.id },
+        payload: { itemId: TORCH.id, containerId: POUCH.id, inventoryIndex: 1, sourceItem: TORCH },
       }),
     );
   });
@@ -67,14 +69,15 @@ describe('InventoryList container persistence (agora-17eb)', () => {
   });
 
   it('sends null for the root backpack, which is a heading rather than an item', () => {
-    const onAction = renderList([POUCH, { ...TORCH, containerId: POUCH.id }]);
+    const stowedTorch = { ...TORCH, containerId: POUCH.id };
+    const onAction = renderList([POUCH, stowedTorch]);
 
     fireEvent.change(torchSelect(), { target: { value: 'root-backpack' } });
 
     expect(onAction).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'MOVE_ITEM_TO_CONTAINER',
-        payload: { itemId: TORCH.id, containerId: null },
+        payload: { itemId: TORCH.id, containerId: null, inventoryIndex: 1, sourceItem: stowedTorch },
       }),
     );
   });

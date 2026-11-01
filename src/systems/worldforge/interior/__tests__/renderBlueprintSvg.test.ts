@@ -6,6 +6,8 @@ import { generateHousehold } from '../../town/household';
 import { briefFromHousehold } from '../../town/householdBrief';
 import { computeOccupancy } from '../occupancy';
 import { containerManifests } from '../manifests';
+import {FURNITURE} from '../furnitureCatalog';
+import {bedGeometry} from '../../../../components/World3D/BedDisplay';
 
 const CELL = 25; // px per 5 ft cell (matches the renderer)
 
@@ -36,6 +38,52 @@ describe('renderBlueprintSvg', () => {
     const fts = [...svg.matchAll(/data-door-ft="([0-9.]+)"/g)].map((m) => Number(m[1]));
     expect(fts.length).toBeGreaterThan(0);
     expect(fts.every((f) => f <= 3)).toBe(true);
+  });
+
+  it.each(['x','y'] as const)('draws a recorded four-foot %s leaf and matching swing without changing legacy doors',axis=>{
+    const input=structuredClone(plan),floor=input.floors.find(f=>f.level===0)!;
+    const target=floor.doors.find(d=>d.axis===axis)!;expect(target).toBeDefined();target.clearWidthFt=4;
+    const svg=renderBlueprintSvg(input,0);
+    const leaves=[...svg.matchAll(/<line ([^>]*data-door-ft="([0-9.]+)"[^>]*)>/g)];
+    expect(leaves.filter(m=>Number(m[2])===4)).toHaveLength(1);
+    expect(leaves.filter(m=>Number(m[2])===3)).toHaveLength(floor.doors.length-1);
+    const attrs=leaves.find(m=>Number(m[2])===4)![1];
+    const value=(name:string)=>Number(attrs.match(new RegExp(name+'="([^"]+)"'))![1]);
+    expect(Math.hypot(value('x2')-value('x1'),value('y2')-value('y1'))).toBeCloseTo(20);
+    expect(svg).toContain(' A 20 20 0 0 ');
+    expect(ground.doors.every(d=>d.clearWidthFt===undefined)).toBe(true);
+  });
+
+  it('draws catalog-sized furnishing silhouettes, including the full two-meter bed in all four rotations',()=>{
+    for(const [kind,spec]of Object.entries(FURNITURE))for(const rotation of [0,90,180,270] as const){
+      const input=structuredClone(plan),floor=input.floors.find(f=>f.level===0)!;
+      floor.furnishings=[{kind,roomId:floor.rooms[0].id,x:7.5,y:7.5,rotation}];
+      const svg=renderBlueprintSvg(input,0),group=svg.match(/<g data-kind="[^"]+">([\s\S]*?)<\/g>/)![1];
+      if(kind==='barrel'){expect(Number(group.match(/ r="([^"]+)"/)![1])).toBeCloseTo(spec.w/.3048*5/2,1);continue;}
+      const attrs=group.match(/<rect ([^>]+)>/)![1],value=(name:string)=>Number(attrs.match(new RegExp(name+'="([^"]+)"'))![1]);
+      expect(value('width'),kind+' '+rotation).toBeCloseTo(spec.w/.3048*5,1);
+      expect(value('height'),kind+' '+rotation).toBeCloseTo(spec.d/.3048*5,1);
+      if(rotation)expect(attrs).toContain('rotate('+(-rotation)+' ');
+    }
+  });
+
+  it.each([0,90,180,270] as const)('puts the mapped bed pillow at the same head end as the actual %s-degree 3D bed',rotation=>{
+    const input=structuredClone(plan),floor=input.floors.find(f=>f.level===0)!;
+    floor.furnishings=[{kind:'bed',roomId:floor.rooms[0].id,x:7.5,y:7.5,rotation}];
+    const group=renderBlueprintSvg(input,0).match(/<g data-kind="bed">([\s\S]*?)<\/g>/)![1];
+    const rects=[...group.matchAll(/<rect ([^>]+)>/g)].map(m=>m[1]);
+    const value=(s:string,n:string)=>Number(s.match(new RegExp(n+'="([^"]+)"'))![1]);
+    const cx=value(rects[0],'x')+value(rects[0],'width')/2,cy=value(rects[0],'y')+value(rects[0],'height')/2;
+    const x=value(rects[1],'x')+value(rects[1],'width')/2-cx,y=value(rects[1],'y')+value(rects[1],'height')/2-cy;
+    const angle=Number(rects[1].match(/rotate\(([-0-9.]+)/)?.[1]??0)*Math.PI/180;
+    const head=[x*Math.cos(angle)-y*Math.sin(angle),x*Math.sin(angle)+y*Math.cos(angle)];
+    const side=rotation===90||rotation===270,geometry=bedGeometry(side?2:1,.6,side?1:2,'#7da0c4',rotation),pos=geometry.getAttribute('position');
+    const vertices=Array.from({length:pos.count},(_,i)=>[pos.getX(i),pos.getY(i),pos.getZ(i)]);
+    const top=Math.max(...vertices.map(v=>v[1])),board=vertices.filter(v=>Math.abs(v[1]-top)<1e-6);
+    const model=[board.reduce((a,v)=>a+v[0],0)/board.length,board.reduce((a,v)=>a+v[2],0)/board.length];
+    const hn=Math.hypot(...head),mn=Math.hypot(...model);
+    expect(head[0]/hn).toBeCloseTo(model[0]/mn,2);expect(head[1]/hn).toBeCloseTo(model[1]/mn,2);
+    geometry.dispose();
   });
 
   it('renders one door leaf per door on the ground floor', () => {

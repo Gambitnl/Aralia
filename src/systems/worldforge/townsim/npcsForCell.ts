@@ -13,18 +13,40 @@
  * Pure and bounded. Returns [] when the player isn't standing in a burg (a
  * legitimate "no town here" case, not a swallowed error) — no try/catch fallback.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 28/10/2026, 19:47:46
+ * Dependents: hooks/app/useAppLocationView.ts
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { NPC } from '../../../types';
 import type { RichNPC } from '../../../types/world';
 import type { WorldBusiness } from '../../../types/business';
-import { burgIdForLocation } from './chronicleForLocation';
+import { burgIdForLocation, type TownGroundContext } from './chronicleForLocation';
+import { householdNpcAliveAt } from './householdNpc';
+import type { TownLifeRegistry } from '../roster/agentLife';
 
 export interface TownNpcsInput {
   worldSeed: number;
   cellId?: number | null;
+  ground?: TownGroundContext;
   generatedNpcs: Record<string, RichNPC> | undefined;
   worldBusinesses: Record<string, WorldBusiness> | undefined;
   /** Cap on how many keepers to surface (keeps the talk list bounded). */
   max?: number;
+  townLife?: TownLifeRegistry;
+  day?: number;
 }
 
 /**
@@ -34,7 +56,7 @@ export interface TownNpcsInput {
  * town never floods the action pane.
  */
 export function townMerchantNpcsForCell(input: TownNpcsInput): NPC[] {
-  const burgId = burgIdForLocation({ worldSeed: input.worldSeed, cellId: input.cellId });
+  const burgId = burgIdForLocation({ worldSeed: input.worldSeed, cellId: input.cellId, ground: input.ground });
   if (burgId === undefined) return []; // not standing in a burg
 
   const businesses = input.worldBusinesses ?? {};
@@ -48,7 +70,7 @@ export function townMerchantNpcsForCell(input: TownNpcsInput): NPC[] {
     const owner = npcs[biz.ownerId];
     // The owner must be a registered generated NPC; a business with no resolvable
     // keeper is skipped rather than surfaced as an un-talkable ghost.
-    if (owner) result.push(owner as unknown as NPC);
+    if (owner && householdNpcAliveAt(owner, input.townLife, input.day ?? 0)) result.push(owner as unknown as NPC);
   }
   return result;
 }

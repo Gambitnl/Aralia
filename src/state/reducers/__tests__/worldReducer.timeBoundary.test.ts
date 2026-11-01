@@ -22,7 +22,7 @@ import { GameState } from '../../../types';
 import { RitualState } from '../../../types/rituals';
 import * as RitualManager from '../../../systems/rituals/RitualManager';
 import { getGameDay, getGameEpoch, GAME_EPOCH_YEAR } from '../../../utils/core';
-import { createMockGameState } from '../../../utils/core/factories';
+import { createMockGameState, createMockPlayerCharacter, createMockSpellSlots } from '../../../utils/core/factories';
 import type { AppAction } from '../../actionTypes';
 
 // The day-boundary path calls processWorldEvents once a day rolls over. Stub it
@@ -292,5 +292,27 @@ describe('worldReducer day-boundary transition (time G2)', () => {
 
     expect(result.gameTime?.toISOString()).toBe('2024-06-11T11:00:00.000Z');
     expect(getGameDay(result.gameTime!)).toBe(getGameDay(baseState.gameTime) + 1);
+  });
+});
+
+
+describe('world-clock preparation spells', () => {
+  it('expires the retained paid cast at its original hour without recovering or relocating anyone', () => {
+    const cast=new Date('0351-01-01T09:04:10Z');
+    const character=createMockPlayerCharacter({id:'eldrin',name:'Eldrin Smith',speed:30,hp:7,maxHp:10,conditions:['exhaustion'],
+      spellSlots:createMockSpellSlots({level_1:{current:1,max:2}}),statusEffects:[{id:'ooc-longstrider-eldrin',name:'Longstrider',source:'Longstrider',sourceCasterId:'eldrin',type:'buff',duration:600,effect:{type:'condition'},description:'Longstrider, cast outside combat.'}]});
+    const state=createMockGameState({party:[character],gameTime:cast,gold:11.5,
+      playerGroundPos:{tileX:5608,tileY:0,xM:454.046761,zM:473.190244,yM:8.207416},
+      messages:[{id:1,text:'Eldrin Smith casts Longstrider.',sender:'system',timestamp:cast}]});
+    const before=structuredClone(state);
+    const near={...state,...worldReducer(state,advanceAction(3599))};
+    expect(near.party[0].statusEffects?.[0].effect).toEqual({type:'stat_modifier',stat:'speed',value:10});
+    const expired={...near,...worldReducer(near,advanceAction(1))};
+    expect(expired.gameTime.toISOString()).toBe('0351-01-01T10:04:10.000Z');
+    expect(expired.party[0].statusEffects).toEqual([]);
+    expect(expired.party[0].spellSlots?.level_1.current).toBe(1);
+    expect(expired.party[0].hp).toBe(7);expect(expired.party[0].conditions).toEqual(['exhaustion']);
+    expect(expired.playerGroundPos).toEqual(state.playerGroundPos);expect(expired.gold).toBe(11.5);
+    expect(state).toEqual(before);
   });
 });

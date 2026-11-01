@@ -77,7 +77,7 @@ vi.mock('../../commands', () => ({
 
 // agora-f821.4 retired the combatUtils roller family; the modules under
 // test roll through systems/dice/rollers now. One hoisted set of mocks
-// stands in for BOTH specifiers, so one vi.mocked(...) pins every die.
+// pins dice only at their real systems/dice/rollers module.
 const diceMocks = vi.hoisted(() => ({
     rollDamage: () => 5,
     rollDice: () => 15
@@ -90,7 +90,6 @@ vi.mock('../../systems/dice/rollers', async (importOriginal) => {
 
 vi.mock('../../utils/combat', async () => {
   const actual = await vi.importActual<typeof import('../../utils/combat')>('../../utils/combat');
-
   // Keep the real player-to-combat bridge available so the test exercises the
   // actual premade wizard spellbook, but make geometry and dice deterministic.
   return {
@@ -99,7 +98,6 @@ vi.mock('../../utils/combat', async () => {
     getCharacterDistance: () => 1,
     getOccupiedTiles: (character: CombatCharacter) => [character.position],
     generateId: () => 'test-id',
-    ...diceMocks,
 };
 });
 

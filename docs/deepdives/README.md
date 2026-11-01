@@ -71,6 +71,7 @@ gap rows in a project registry, a plan-map topic edit, a captured screenshot.
 
 | Document | Board task | Boundary | Written |
 |---|---|---|---|
+| [agora-product-review.md](agora-product-review.md) | agora-db57 | Agora product outcomes against workflow-gap closure | 2026-10-22 |
 | [combat-condition-palette-unification.md](combat-condition-palette-unification.md) | agora-8e37 | Combat condition colors against one shared palette | 2026-09-20 |
 | [command-pattern-vs-action-executor.md](command-pattern-vs-action-executor.md) | agora-ab40 | The command pattern against `useActionExecutor` | 2026-09-20 |
 | [dialogue-models-boundary.md](dialogue-models-boundary.md) | agora-7ba5 | Topic registry, Graph DAG and LLM chat | 2026-09-20 |

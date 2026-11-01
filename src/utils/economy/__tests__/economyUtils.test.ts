@@ -228,5 +228,90 @@ describe('economyUtils', () => {
       expect(result.multiplier).toBeCloseTo(1.8);
       expect(result.finalPrice).toBe(18);
     });
+    it('does not match unrelated goods through substring overlap (GG-443 / agora-76f7)', () => {
+      // Food Shortage (tags: consumable, food)
+      const foodShortageEconomy: EconomyState = {
+        ...economy,
+        marketEvents: [{
+          id: 'evt_food_shortage',
+          type: MarketEventType.SHORTAGE,
+          name: 'Food Shortage',
+          startTime: 0,
+          duration: 1,
+          intensity: 0.5,
+          affectedTags: ['consumable', 'food'],
+        } as MarketEvent],
+      };
+
+      // Item with single letter 'a' or words containing substrings (e.g. 'Gold locket with a painted portrait inside')
+      const goldLocket: Item = {
+        id: 'gold_locket',
+        name: 'Gold locket with a painted portrait inside',
+        description: 'A valuable locket.',
+        type: ItemType.Treasure,
+        costInGp: 100,
+        weight: 1,
+      };
+
+      // Carpet containing 'x' in '3 ft. x 5 ft.'
+      const flyingCarpet: Item = {
+        id: 'carpet_flying',
+        name: 'Carpet of Flying, 3 ft. x 5 ft.',
+        description: 'A magic carpet.',
+        type: ItemType.Treasure,
+        costInGp: 500,
+        weight: 10,
+      };
+
+      // Actual food item that SHOULD match
+      const rations: Item = {
+        id: 'rations',
+        name: 'Rations',
+        description: 'Dry food.',
+        type: ItemType.FoodDrink,
+        costInGp: 2,
+        weight: 1,
+      };
+
+      const locketPrice = calculatePrice(goldLocket, foodShortageEconomy, 'buy');
+      expect(locketPrice.multiplier).toBe(1.0);
+      expect(locketPrice.finalPrice).toBe(100);
+
+      const carpetPrice = calculatePrice(flyingCarpet, foodShortageEconomy, 'buy');
+      expect(carpetPrice.multiplier).toBe(1.0);
+      expect(carpetPrice.finalPrice).toBe(500);
+
+      const rationsPrice = calculatePrice(rations, foodShortageEconomy, 'buy');
+      expect(rationsPrice.multiplier).toBe(1.5); // Base 1.0 + 0.5
+      expect(rationsPrice.finalPrice).toBe(3);
+    });
+
+    it('matches category and plural tags via whole token and alias maps', () => {
+      const weaponSurplusEconomy: EconomyState = {
+        ...economy,
+        marketEvents: [{
+          id: 'evt_weapon_surplus',
+          type: MarketEventType.SURPLUS,
+          name: 'Weapon Surplus',
+          startTime: 0,
+          duration: 1,
+          intensity: 0.2,
+          affectedTags: ['weapons'], // Plural tag
+        } as MarketEvent],
+      };
+
+      const dagger: Item = {
+        id: 'dagger',
+        name: 'Dagger',
+        description: 'A sharp blade.',
+        type: ItemType.Weapon,
+        costInGp: 10,
+        weight: 1,
+      };
+
+      const price = calculatePrice(dagger, weaponSurplusEconomy, 'buy');
+      expect(price.multiplier).toBeCloseTo(0.8); // 1.0 - 0.2
+      expect(price.finalPrice).toBe(8);
+    });
   });
 });

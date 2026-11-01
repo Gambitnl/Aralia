@@ -10,8 +10,23 @@ import { describe, expect, it } from 'vitest';
 import { Material } from '../../../worldforge/terrain/voxelVolume';
 import { SUBSTANCES } from '../../../worldforge/terrain/materials';
 import {
+  BATHY_BORE_GAMMA,
+  BATHY_BREAK_FULL,
+  BATHY_BREAK_START,
+  BATHY_CREST_TO_HEIGHT,
   BEACH_MATCH_SWASH,
+  BEACH_MATCH_SWASH_R16,
   BEACH_SAND,
+  BEACH_SWASH,
+  bathyBoreCrestM,
+  bathyBreakShare,
+  bathyShoalGain,
+  heldIncidentCrest,
+  incidentModeGain,
+  kozenyCarmanKs,
+  stricklerManningN,
+  waveNumberAt,
+  type BeachMatchSwash,
   BeachClock,
   BeachDebris,
   DEBRIS_STRIDE,
@@ -33,6 +48,15 @@ import { LAGOON_CAY, LAGOON_CAY_SEABED, LAGOON_SEABED, islandFrameAt, islandHeig
 import { buildCascadeSpectrum } from '../oceanSpectrum';
 import { realizeCascade } from '../oceanFieldReference';
 import { oceanSeaState } from '../oceanSeaStates';
+import {
+  OCEAN_BORE_GAMMA,
+  OCEAN_BREAK_FULL,
+  OCEAN_BREAK_START,
+  OCEAN_CREST_TO_HEIGHT,
+  oceanBoreCrestM,
+  oceanBreakShareCpu,
+  oceanShoalGain,
+} from '../oceanBathymetry';
 
 /** A planar beach of slope `beta` on a small grid, and the field over it. */
 function planarBeach(opts: {
@@ -293,14 +317,14 @@ describe('the swash foam tile (round 2)', () => {
 });
 
 describe("the match look's swash (round 16)", () => {
-  // The match runs the same sea with BEACH_MATCH_SWASH: a larger height at the
+  // The match ran the same sea with round 16's set (BEACH_MATCH_SWASH_R16): a larger height at the
   // grid's edge and a faster-draining sand. The default must be unchanged,
   // and the match's ledger must close as the default's does.
   const cascades = oceanSeaState('shallow');
   it('leaves the default beach bit for bit unchanged, and closes its own ledger', () => {
     const a = createBeachSim({ cascades, n: 64, seed: 7 });
     const b = createBeachSim({ cascades, n: 64, seed: 7, match: undefined });
-    const m = createBeachSim({ cascades, n: 64, seed: 7, match: BEACH_MATCH_SWASH });
+    const m = createBeachSim({ cascades, n: 64, seed: 7, match: BEACH_MATCH_SWASH_R16 });
     const v0 = m.field.sheetVolume() + m.field.soakedVolume();
     a.clock.advanceTo(12); b.clock.advanceTo(12); m.clock.advanceTo(12);
     expect(Array.from(b.field.h)).toEqual(Array.from(a.field.h));
@@ -312,4 +336,140 @@ describe("the match look's swash (round 16)", () => {
     expect(l.inflow).toBeGreaterThan(a.field.ledger.inflow);
     expect(l.infiltrated).toBeGreaterThan(a.field.ledger.infiltrated);
   }, 120000);
+});
+
+describe('the match swash, derived from the sea and the ground (round 20)', () => {
+  const cascades = oceanSeaState('shallow');
+  /** FNV-1a over the bytes of the swash state at 12 s (n 64, seed 7). */
+  const stateHash = (match?: BeachMatchSwash): string => {
+    const s = createBeachSim({ cascades, n: 64, seed: 7, ...(match ? { match } : {}) });
+    s.clock.advanceTo(12);
+    const f = s.field;
+    let h = 0x811c9dc5 >>> 0;
+    for (const a of [f.h, f.hu, f.hv, f.w1, f.w2, f.foam, f.strand, f.mark, f.sed, f.foamAge]) {
+      const b = new Uint8Array(a.buffer, a.byteOffset, a.byteLength);
+      for (let i = 0; i < b.length; i += 1) { h ^= b[i]; h = Math.imul(h, 0x01000193) >>> 0; }
+    }
+    return h.toString(16).padStart(8, '0');
+  };
+
+  it('leaves the default beach and the round-16 match bit for bit as they were before round 20', () => {
+    // Hashes taken with the code before the round-20 edit
+    // (`.agent/scratch/ocean-gauntlet/beach/r20/golden.ts`).
+    expect(stateHash()).toBe('cf5db13b');
+    expect(stateHash(BEACH_MATCH_SWASH_R16)).toBe('cb4cf6af');
+  }, 120000);
+
+  it('closes the derived match ledger exactly, with nothing clipped', () => {
+    const m = createBeachSim({ cascades, n: 64, seed: 7, match: BEACH_MATCH_SWASH });
+    const v0 = m.field.sheetVolume() + m.field.soakedVolume();
+    m.clock.advanceTo(20);
+    const l = m.field.ledger;
+    const lhs = m.field.sheetVolume() + m.field.soakedVolume() - v0 + l.drained + l.evaporated;
+    expect(Math.abs(lhs - l.arrived)).toBeLessThan(1e-9 * Math.max(1, Math.abs(l.inflow)));
+    expect(l.clipped).toBe(0);
+    expect(l.infiltrated).toBeGreaterThan(0);
+  }, 120000);
+
+  it('derives the sand and the bed from the grain, and the cay carries its grain', () => {
+    expect(LAGOON_CAY.grainD50M).toBe(0.35e-3);
+    expect(BEACH_MATCH_SWASH.grainD50M).toBe(LAGOON_CAY.grainD50M);
+    // Kozeny-Carman at the beach's own porosity: about 1.1e-3 m/s for 0.35 mm.
+    expect(BEACH_MATCH_SWASH.ksMS).toBeCloseTo(kozenyCarmanKs(0.35e-3, BEACH_SAND.thetaS), 12);
+    expect(BEACH_MATCH_SWASH.ksMS).toBeGreaterThan(1.0e-3);
+    expect(BEACH_MATCH_SWASH.ksMS).toBeLessThan(1.2e-3);
+    // K grows as d^2.
+    expect(kozenyCarmanKs(0.7e-3, 0.4) / kozenyCarmanKs(0.35e-3, 0.4)).toBeCloseTo(4, 9);
+    // Strickler: 0.0417 d^(1/6).
+    expect(BEACH_MATCH_SWASH.manningN).toBeCloseTo(0.0417 * (0.35e-3) ** (1 / 6), 12);
+    expect(stricklerManningN(0.35e-3)).toBeGreaterThan(0.0105);
+    expect(stricklerManningN(0.35e-3)).toBeLessThan(0.0115);
+  });
+
+  it('copies the laws of the sea-owned reef module exactly', () => {
+    expect(BATHY_BREAK_START).toBe(OCEAN_BREAK_START);
+    expect(BATHY_BREAK_FULL).toBe(OCEAN_BREAK_FULL);
+    expect(BATHY_CREST_TO_HEIGHT).toBe(OCEAN_CREST_TO_HEIGHT);
+    expect(BATHY_BORE_GAMMA).toBe(OCEAN_BORE_GAMMA);
+    for (const T of [1.5, 2.1, 4, 9.3, 12.7]) for (const d of [0.05, 0.3, 0.74, 2.5, 4.5, 40]) {
+      expect(bathyShoalGain(T, d)).toBe(oceanShoalGain(T, d));
+    }
+    for (const d of [0.2, 0.74, 2]) {
+      expect(bathyBoreCrestM(d)).toBe(oceanBoreCrestM(d));
+      for (const e of [-0.1, 0, 0.05, 0.2, 0.3, 0.6]) expect(bathyBreakShare(e, d)).toBe(oceanBreakShareCpu(e, d));
+    }
+  });
+
+  it('shoals and refracts a mode by linear theory, and holds a crest to the depth', () => {
+    const w = (2 * Math.PI) / 9.3;
+    const k0 = waveNumberAt(w, 4.5);
+    // Normal incidence: Ks alone, the ratio of the deep-water gains.
+    const ks = oceanShoalGain(9.3, 0.74) / oceanShoalGain(9.3, 4.5);
+    expect(incidentModeGain(w, k0, 0, 4.5, 0.74, 1, 0)).toBeCloseTo(ks, 12);
+    expect(ks).toBeGreaterThan(1.4);
+    // The same depth: no change.
+    expect(incidentModeGain(w, k0, 0, 4.5, 4.5, 1, 0)).toBeCloseTo(1, 12);
+    // Oblique incidence: refraction spreads the rays, so the gain is lower.
+    expect(incidentModeGain(w, k0 * Math.cos(0.8), k0 * Math.sin(0.8), 4.5, 0.74, 1, 0)).toBeLessThan(ks);
+    // The held crest: troughs as they are, small crests as they are, high
+    // ones toward 0.55 d / 1.8.
+    expect(heldIncidentCrest(-0.3, 0.74)).toBe(-0.3);
+    expect(heldIncidentCrest(0.1, 0.74)).toBe(0.1);
+    expect(heldIncidentCrest(0.6, 0.74)).toBeCloseTo(oceanBoreCrestM(0.74), 12);
+    expect(heldIncidentCrest(0.25, 0.74)).toBeLessThan(0.25);
+  });
+
+  it('keeps a lake at rest at rest with the subcell faces, and drains a thin film faster than Audusse', () => {
+    const ns = 96; const na = 4; const ds = 0.125; const s0 = -6;
+    const grid: SwashGridSpec = { s0, ds, ns, a0: 0, da: 0.5, na };
+    const bed = new Float64Array(ns * na); const shore = new Float64Array(ns * na);
+    for (let j = 0; j < na; j += 1) {
+      for (let i = 0; i < ns; i += 1) {
+        const s = s0 + (i + 0.5) * ds;
+        bed[j * ns + i] = s / 11 + 0.01 * Math.sin(j + i * 0.7);
+        shore[j * ns + i] = s;
+      }
+    }
+    const mk = (subcellHR: boolean) => new SwashField({
+      grid, bed, shoreDist: shore, dt: 1 / 100, incident: (_t, out) => out.fill(0),
+      params: { ...BEACH_SWASH, subcellHR, manningN: 0.011, laminarNuM2S: 1.05e-6 },
+    });
+    const lake = mk(true);
+    const h0 = lake.h.slice();
+    for (let k = 0; k < 300; k += 1) lake.advance();
+    let maxDh = 0; let maxU = 0;
+    for (let c = 0; c < lake.h.length; c += 1) {
+      maxDh = Math.max(maxDh, Math.abs(lake.h[c] - h0[c]));
+      maxU = Math.max(maxU, Math.abs(lake.hu[c]));
+    }
+    expect(maxDh).toBeLessThan(1e-9);
+    expect(maxU).toBeLessThan(1e-9);
+    // A 2 mm film laid on the dry face from s = 2 to 6 m, after 1 s: its mean
+    // speed down the slope with the subcell faces against Audusse's (whose
+    // thin film feels only 0.5 g h^2 per cell of the slope's pull).
+    const speed = (subcellHR: boolean): number => {
+      const f = mk(subcellHR);
+      for (let j = 0; j < na; j += 1) {
+        for (let i = 0; i < ns; i += 1) { const s = s0 + (i + 0.5) * ds; if (s > 2 && s < 6) f.h[j * ns + i] = 0.002; }
+      }
+      f.restore(f.snapshot(new Float64Array(0)));
+      for (let k = 0; k < 100; k += 1) f.advance();
+      let m = 0; let v = 0;
+      for (let c = 0; c < f.h.length; c += 1) if (f.h[c] > 1e-5 && bed[c] > 0) { m += f.h[c]; v += f.hu[c]; }
+      return v / m;
+    };
+    const sub = speed(true);
+    const aud = speed(false);
+    expect(sub).toBeLessThan(0);
+    expect(sub).toBeLessThan(aud * 1.5);
+  });
+
+  it('takes foam from the energy a bore loses: none from a vanishing step, all from a collapse', () => {
+    // The relative head loss of the jump (boreFoamSource): 0.05 for a bore
+    // twice the depth ahead.
+    const loss = (h1: number, h2: number) => ((h2 - h1) ** 3) / (h2 * (4 * h1 * h1 + h2 * (h1 + h2)));
+    expect(loss(0.1, 0.2)).toBeCloseTo(0.05, 12);
+    expect(loss(0.1, 0.1)).toBe(0);
+    expect(loss(1e-6, 0.2)).toBeGreaterThan(0.99);
+  });
 });

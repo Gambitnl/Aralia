@@ -15,6 +15,23 @@
  * Deterministic: all randomness derives from the 'program' stream of the
  * given seed path. Pure data — no three.js, no rendering concerns.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 23:21:08
+ * Dependents: systems/worldforge/interior/briefProgram.ts, systems/worldforge/interior/generateBuilding.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { BuildingType, RoomPurpose, Cell, BlueprintRoom } from './blueprintTypes';
 import type { BedroomAssignment } from './briefProgram';
 import type { TradeRoomDemand } from './tradeRooms';
@@ -643,13 +660,16 @@ export function assignPurposes(
  *
  * @param level floor level (> 0 upper, < 0 basement; never 0).
  * @param bedroomQueue tagged bedrooms to place here (consumed in place).
+ * @param workplaceOnly explicit separate workplace; upper rooms follow the
+ *   existing building-type filler instead of the legacy home-bedroom rule.
  */
 export function assignUpperPurposes(
   path: SeedPath,
-  _type: BuildingType,
+  type: BuildingType,
   rg: number[][],
   level: number,
   bedroomQueue: BedroomAssignment[],
+  workplaceOnly = false,
 ): BlueprintRoom[] {
   const { ids, cellsById, corridor, mainId } = analyzeFloor(path, rg);
   const cellsOf = (id: number) => cellsById.get(id) as Cell[];
@@ -658,7 +678,11 @@ export function assignUpperPurposes(
   const fillerPurpose = (id: number, isMain: boolean): RoomPurpose =>
     level < 0
       ? id % 2 === 0 ? 'cellar' : 'storage'
-      : isMain || id % 3 !== 2 ? 'bedroom' : 'guest-room';
+      // Separate workplaces use their existing type program upstairs too:
+      // guest rooms at an inn, studies at a school, storage at a shop, etc.
+      // Homes and legacy callers retain the original bedroom fallback.
+      : workplaceOnly ? PROGRAMS[type].filler
+        : isMain || id % 3 !== 2 ? 'bedroom' : 'guest-room';
 
   // Briefed bedrooms take the largest rooms first (ties: lowest id), one each.
   const forSlotById = new Map<number, string>();

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 09/09/2026, 10:30:03
- * Dependents: components/World3D/World3DWrapper.tsx, hooks/actions/handleMerchantInteraction.ts, hooks/actions/handleNpcInteraction.ts, services/CompanionGenerator.ts, systems/gameEntry/situationNpcToRichNpc.ts, systems/party/authoredCompanionToRichNpc.ts, systems/party/npcToPartyMember.ts, systems/worldforge/townsim/registerBurgMerchants.ts
- * Imports: None
+ * Last Sync: 28/10/2026, 16:17:36
+ * Dependents: components/World3D/groundResidentInteraction.ts, hooks/actions/handleMerchantInteraction.ts, hooks/actions/handleNpcInteraction.ts, services/CompanionGenerator.ts, systems/gameEntry/situationNpcToRichNpc.ts, systems/party/authoredCompanionToRichNpc.ts, systems/party/npcToPartyMember.ts, systems/worldforge/townsim/registerBurgMerchants.ts
+ * Imports: 1 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -644,6 +644,8 @@ export function generateNPC(config: NPCGenerationConfig): RichNpcWithBackground 
     memory: initialMemory,
     biography: {
       age,
+      // Keep the species used for this person's actual rules and appearance.
+      raceId: raceData.id,
       classId: charClassId,
       backgroundId,
       level,

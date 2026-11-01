@@ -30,8 +30,10 @@ interface PartyOverlayProps {
     onShortRest?: () => void;
     /** Current short rest tracking state */
     shortRestTracker?: ShortRestTracker;
-    /** Whether active enemies are present in the current combat state */
+    /** Whether the party is currently taking combat turns */
     isCombatActive?: boolean;
+    /** Environmental or pending-encounter reason that blocks either rest. */
+    restUnavailableReason?: string | null;
     /**
      * Optional dismiss handler threaded down to PartyPane and each member card.
      * The card omits the control for the party leader (`player` id), so the

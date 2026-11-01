@@ -200,3 +200,75 @@ describe('Legacy racial spell choice adapter (agora-c859)', () => {
     expect(choices.find(choice => choice.id === 'mute_genasi::legacy-choice')?.availableAbilities).toBeUndefined();
   });
 });
+
+describe('Racial spell parsing reconciliation (agora-9d61 / G63)', () => {
+  it('parses multi-word spell titles containing "and", "or", and "without" intact', () => {
+    const testRace: Race = {
+      id: 'test_mark_race',
+      name: 'Test Mark Race',
+      description: 'Test description',
+      traits: [
+        'Magic: You can cast the Purify Food and Drink and Unseen Servant spells with this trait.',
+        'Detection: You can cast the Detect Magic and Detect Poison and Disease spells with this trait.',
+        'Nature: Starting at 3rd level, you can cast Create or Destroy Water once per long rest.',
+        'Stealth: Starting at 5th level, you can cast Pass without Trace once per long rest.',
+        'Giant: Starting at 3rd level, you can cast the Enlarge/Reduce spell on yourself.',
+      ],
+      abilityBonuses: [],
+    };
+
+    const spells = spellGrants(testRace);
+    const ids = spells.map(s => s.spellId);
+    expect(ids).toContain('purify-food-and-drink');
+    expect(ids).toContain('unseen-servant');
+    expect(ids).toContain('detect-magic');
+    expect(ids).toContain('detect-poison-and-disease');
+    expect(ids).toContain('create-or-destroy-water');
+    expect(ids).toContain('pass-without-trace');
+    expect(ids).toContain('enlarge-reduce');
+
+    // Confirm no fragmented or invalid tokens were emitted
+    expect(ids).not.toContain('drink');
+    expect(ids).not.toContain('purify-food');
+    expect(ids).not.toContain('detect-poison');
+    expect(ids).not.toContain('disease');
+    expect(ids).not.toContain('create');
+    expect(ids).not.toContain('destroy-water');
+    expect(ids).not.toContain('pass');
+    expect(ids).not.toContain('enlarge');
+  });
+
+  it('rejects demonstrative pronoun "this" as a spell token in prose', () => {
+    const forgeborn: Race = {
+      id: 'test_forgeborn',
+      name: 'Test Forgeborn',
+      description: 'Test description',
+      traits: [
+        'Spellsmith: You know the Mending cantrip. You can also cast Magic Weapon with this trait. When you do so, the spell lasts for 1 hour. Once you cast this spell with this trait, you cannot do so again.',
+      ],
+      abilityBonuses: [],
+    };
+
+    const ids = spellGrants(forgeborn).map(s => s.spellId);
+    expect(ids).toContain('mending');
+    expect(ids).toContain('magic-weapon');
+    expect(ids).not.toContain('this');
+  });
+
+  it('maps legacy "gust" cantrip to canonical "elementalism"', () => {
+    const stormborn: Race = {
+      id: 'test_stormborn',
+      name: 'Test Stormborn',
+      description: 'Test description',
+      traits: [
+        'Headwinds: You know the Gust cantrip. Starting at 3rd level, you can cast the Gust of Wind spell once with this trait.',
+      ],
+      abilityBonuses: [],
+    };
+
+    const ids = spellGrants(stormborn).map(s => s.spellId);
+    expect(ids).toContain('elementalism');
+    expect(ids).toContain('gust-of-wind');
+    expect(ids).not.toContain('gust');
+  });
+});

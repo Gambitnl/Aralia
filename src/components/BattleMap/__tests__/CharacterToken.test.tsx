@@ -9,7 +9,7 @@
  * the 3D follow-up remains a later parity pass.
  */
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import CharacterToken from '../CharacterToken';
 import type { CombatCharacter } from '../../../types/combat';
@@ -50,6 +50,31 @@ const buildCharacter = (overrides: Partial<CombatCharacter> = {}): CombatCharact
     freeActions: 0
   },
   ...overrides
+});
+
+describe('CharacterToken defense feedback', () => {
+  it.each([
+    ['fighter', 13, 18, 13],
+    ['wizard', 16, 12, 16],
+    ['fighter', undefined, 18, 10],
+  ])('shows the attack resolver AC for %s instead of a class estimate', async (classId, armorClass, baseAC, expectedAC) => {
+    const { container } = render(
+      <CharacterToken
+        character={buildCharacter({ class: { id: classId, name: classId } as CombatCharacter['class'], armorClass, baseAC })}
+        position={{ x: 2, y: 1 }}
+        isSelected={false}
+        isTargetable={false}
+        targetingMode={false}
+        isTurn={false}
+        onCharacterClick={() => undefined}
+      />
+    );
+
+    // Hover the actual token body: this must match the defense attacks use,
+    // even when a legacy baseAC or the actor's class suggests another number.
+    fireEvent.mouseEnter(container.querySelector('[aria-describedby]') ?? container.querySelector('[role="button"]')!.firstElementChild!);
+    expect(await screen.findByTestId('tooltip')).toHaveTextContent(`Target (Armor Class: ${expectedAC}, Hit Points: 22/22)`);
+  });
 });
 
 describe('CharacterToken defense badges', () => {

@@ -365,7 +365,7 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- handleClose closes over onClose and onDontShowAgain, and every caller passes stable setters; follow-up: hold handleClose in a ref (C9).
   }, [isOpen, dontShowAgain]);
 
   useEffect(() => {

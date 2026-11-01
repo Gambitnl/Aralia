@@ -103,6 +103,10 @@ function makeOpenWaterAtlas(): FmgAtlasResult {
 // Original tests (ferry lane extraction)
 // ============================================================================
 
+
+// One fixture unit = 3 miles, stated as km for distanceScale (GG-519).
+const THREE_MILES_IN_KM = 3 / 0.621371;
+
 describe('buildFerryLaneCells', () => {
   it('collects only generated sea-route cells', () => {
     const lanes = buildFerryLaneCells(makePortedIslandAtlas());
@@ -262,10 +266,13 @@ describe('buildMultiModalAtlasGraph — ship open-water passability (3A)', () =>
 
 describe('graded road mechanics on land legs (2026-07-11 road systems)', () => {
   // 3 land cells in a row, all the given biome; routes spliced in per case.
-  // graphWidth 1000 → the milesPerUnit fallback is 3 mi/unit, so each 10-unit
-  // hop is 30 miles; at the default 3 mph land speed that is 600 base minutes.
+  // The fixture states its own scale: distanceScale (km per unit) set so one
+  // unit is 3 miles, so each 10-unit hop is 30 miles; at the default 3 mph land
+  // speed that is 600 base minutes. GG-519 replaced the old 3000 / graphWidth
+  // fallback (which these numbers relied on) with the world's frozen 3 km/px.
   const makeLandAtlas = (biomeName: string, routes: unknown[]): FmgAtlasResult => ({
     graphWidth: 1000,
+    distanceScale: THREE_MILES_IN_KM,
     biomesData: { name: ['Marine', biomeName] },
     pack: {
       cells: {
@@ -330,6 +337,7 @@ describe('graded road mechanics on land legs (2026-07-11 road systems)', () => {
   // road on cell 1 only, so one leg is tier-softened and one takes full slope.
   const makeRidgeAtlas = (): FmgAtlasResult => ({
     graphWidth: 1000,
+    distanceScale: THREE_MILES_IN_KM,
     biomesData: { name: ['Marine', 'Grassland'] },
     pack: {
       cells: {

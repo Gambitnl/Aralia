@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 13/08/2026, 08:34:21
- * Dependents: components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/combat/useTurnManager.ts, hooks/combat/useTurnOrder.ts
- * Imports: 1 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file builds Aralia's deterministic combat initiative sequence.
  *
@@ -29,6 +13,23 @@
  * Depends on: CombatCharacter initiative, stats, and summon metadata.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 31/10/2026, 06:47:53
+ * Dependents: components/BattleMap/BattleMapDemo.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/combat/turnManager/useTurnLifecycle.ts, hooks/combat/useTurnOrder.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import { getExhaustionD20Penalty } from './physicsUtils';
 import type { CombatCharacter } from '../../types/combat';
 
 export function rollInitiativeTotal(
@@ -39,7 +40,8 @@ export function rollInitiativeTotal(
   // by production combat, then add Dexterity and the authored initiative bonus.
   const dexterityModifier = Math.floor((character.stats.dexterity - 10) / 2);
   const d20Face = Math.floor(randomSource() * 20) + 1;
-  return d20Face + dexterityModifier + character.stats.baseInitiative;
+  // Initiative is a Dexterity D20 test; exhaustion changes the total, not tie policy.
+  return d20Face + dexterityModifier + character.stats.baseInitiative - getExhaustionD20Penalty(character);
 }
 
 // ============================================================================

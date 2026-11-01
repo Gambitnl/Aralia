@@ -10,13 +10,32 @@
  * other live sessions are concurrently touching on the shared working tree.
  * Pure: no React/DOM/state.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 17:15:11
+ * Dependents: components/CharacterSheet/Overview/InventoryList.tsx, systems/gameplay/adventuringPacks.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { Item } from '@/types/items';
 import { RATIONS_ITEM_ID, WATER_ITEM_ID } from './provisioning';
+import {containedWaterGallons,WATER_POUNDS_PER_GALLON} from './containedWater';
 
 /** Total weight (lbs) of carried provisions (rations + water). */
 export function provisionWeight(inventory: readonly Item[]): number {
   let total = 0;
   for (const item of inventory) {
+    total += containedWaterGallons(item)*WATER_POUNDS_PER_GALLON;
     if (item.id === RATIONS_ITEM_ID || item.id === WATER_ITEM_ID) {
       total += (item.weight ?? 0) * (item.quantity ?? 1);
     }
@@ -27,7 +46,7 @@ export function provisionWeight(inventory: readonly Item[]): number {
 /** Total weight (lbs) of the entire inventory — the basis for encumbrance. */
 export function inventoryWeight(inventory: readonly Item[]): number {
   let total = 0;
-  for (const item of inventory) total += (item.weight ?? 0) * (item.quantity ?? 1);
+  for (const item of inventory) total += (item.weight ?? 0) * (item.quantity ?? 1) + containedWaterGallons(item)*WATER_POUNDS_PER_GALLON;
   return total;
 }
 

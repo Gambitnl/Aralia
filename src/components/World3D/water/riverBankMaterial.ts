@@ -17,9 +17,11 @@
  * it was a `MeshStandardMaterial` with GLSL hooks): world-space albedo (no
  * UVs, no image assets), a roughness change where the ground is wet, a bump
  * per stone, and a caustic factor on the sun's direct light under the water.
- * Two kinds, set per vertex by the `aKind` attribute: 0 = ground (cobbles,
+ * Surface kinds, set per vertex by the `aKind` attribute: 0 = ground (cobbles,
  * pebbles, gravel, soil, grass by height over the water and by slope), 1 =
- * rock (granite boulders with speckle, lichen and a water stain).
+ * rock (granite boulders with speckle, lichen and a water stain), 2 = exposed
+ * reconstructed granite, retaining those same effects without the unrelated
+ * downstream Nerang reach's geographic brown tint.
  *
  * THE FOUR HOOKS, AS NODES (the WebGL build replaced four chunks):
  *   - the albedo (after `color_fragment`) is the `colorNode`;
@@ -34,16 +36,49 @@
  * share and the caustics from a second, lighter one (a node function returns
  * one value); the second reads the flow map and the wet line's wander again.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 12/10/2026, 02:45:04
+ * Dependents: components/World3D/water/riverReachScene.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import * as THREE from 'three/webgpu';
 import {
-  Fn, If, abs, attribute, cross, dFdx, dFdy, dot, float, floor, fract, fwidth, length, max, mix, normalView, normalWorld,
-  normalize, positionView, positionWorld, select, sign, sin, smoothstep, sqrt, uniform, vec2, vec3, vec4,
+  Fn, If, abs, attribute, clamp, cross, dFdx, dFdy, dot, float, floor, fract, fwidth, length, max, mix, normalView, normalWorld,
+  ivec2, normalize, positionView, positionWorld, select, sign, sin, smoothstep, sqrt, uniform, vec2, vec3, vec4,
 } from 'three/tsl';
-import { createRiverFlowNodes, getRiverNoiseTexture, getRiverFoamTexture } from './riverWaterMaterial';
+import { createRiverFlowNodes, getRiverNoiseTexture, getRiverFoamTexture, riverTexture, type RiverWaterUniforms } from './riverWaterMaterial';
+import type { RiverCoarseLevelTexture } from './riverCoarseLevelTexture';
 
 /** A TSL node expression (see riverWaterMaterial.ts). */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TslNode = any;
+
+/** Native soil and exposed-granite endpoints read the same live flow nodes.
+ * The scene blends their explicit vertex ownership, so an edge never invents
+ * the original river's intermediate rock category or its geographic tint. */
+export interface RiverGroundSurfaceNodes { readonly soil: TslNode; readonly granite: TslNode }
+const groundSurfaceFactories = new WeakMap<THREE.MeshStandardNodeMaterial, (graniteAlbedo?: TslNode) => RiverGroundSurfaceNodes>();
+
+/** Keep the native bank's uniforms and flow textures shared with its ground
+ * clone. Rebuilding two unrelated materials would freeze or duplicate their
+ * clocks, wetting fields and appearance controls. Ordinary rocks stay native. */
+export function riverGroundSurfaceNodes(material: THREE.MeshStandardNodeMaterial, graniteAlbedo?: TslNode): RiverGroundSurfaceNodes {
+  const create = groundSurfaceFactories.get(material);
+  if (!create) throw new Error('Ground surface endpoints require a native river bank material');
+  return create(graniteAlbedo);
+}
 
 const rbHash = (p: TslNode): TslNode => fract(sin(dot(p, vec2(127.1, 311.7))).mul(43758.5453));
 const rbHash2 = (p: TslNode): TslNode => fract(sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)))).mul(43758.5453));
@@ -156,22 +191,44 @@ class RiverBankNodeMaterial extends THREE.MeshStandardNodeMaterial {
  * them off). The uniforms are TSL nodes in `userData.riverUniforms` (set
  * `.value`), under the WebGL build's names.
  */
-export function createRiverBankMaterial(flow: { flow0: THREE.Texture; flow1: THREE.Texture }, grid: { x0: number; z0: number; nx: number; nz: number; dx: number }): THREE.MeshStandardNodeMaterial {
+export function createRiverBankMaterial(flow: { flow0: THREE.Texture; flow1: THREE.Texture; flow2: THREE.Texture }, grid: { x0: number; z0: number; nx: number; nz: number; dx: number }, shared: Partial<RiverWaterUniforms> = {},
+  /** The live map's coarse far level (GG-430); without it the level is the filtered t0.w, as before. */
+  coarse?: RiverCoarseLevelTexture): THREE.MeshStandardNodeMaterial {
   const mat = new RiverBankNodeMaterial({ color: 0xffffff, roughness: 0.92, metalness: 0 });
   mat.name = 'river bank';
   // Build the textures first (the flow nodes read them).
   getRiverNoiseTexture();
   getRiverFoamTexture();
   const F = createRiverFlowNodes(flow, grid);
+  // The far-level reads (see waterAt).
+  const flowLevel: TslNode | null = coarse ? riverTexture(flow.flow0) : null;
+  const coarseLevel: TslNode | null = coarse ? riverTexture(coarse.texture) : null;
+  const uCoarseScale: TslNode | null = coarse ? uniform(coarse.scale) : null;
   const uniforms = {
     ...F.u,
+    uMainRapidsOptics: shared.uMainRapidsOptics ?? uniform(0),
+    uMainRapidsMask: shared.uMainRapidsMask ?? riverTexture(flow.flow0),
+    uPoolImpactFrame: shared.uPoolImpactFrame ?? uniform(new THREE.Vector4()),
+    uPoolImpactEnergy: shared.uPoolImpactEnergy ?? uniform(new THREE.Vector4()),
+    uPoolImpactLevel: shared.uPoolImpactLevel ?? uniform(0),
     uCausticSun: uniform(new THREE.Vector3(1, 1, 1)),
     // RIVERS ROUND 5, THE VARIANT TUNES (see riverWaterMaterial.ts): x = V1 rock
     // contact, w = V4 stones and wet margins. 0 = round 4.
     uTune: uniform(new THREE.Vector4(0, 0, 0, 0)),
+    // THE RIVER'S ORIGIN in its host's world (ADR 0009 step 6, 2026-10-26):
+    // the bank reads the flow map at river-local positions, so a bed placed at
+    // an offset in the game world subtracts it. Zero on the river page, where
+    // the subtraction leaves every position exact.
+    uRiverOrigin: uniform(new THREE.Vector3(0, 0, 0)),
+    // THE RIVER'S TURN in its host's world (slice 10, 2026-10-26): (cos yaw,
+    // sin yaw) of the bearing of river-local +x. The bed turned with the world
+    // river reads the flow map at the turned-back position. (1, 0) on the
+    // page: x * 1 - z * 0 is x exactly, so every position stays exact.
+    uRiverTurn: uniform(new THREE.Vector2(1, 0)),
   };
   mat.userData.riverUniforms = uniforms;
   const T = uniforms.uTune;
+  const surfaceDrivers = riverTexture(flow.flow2);
   const noise = F.noise;
   const nb = (uv: TslNode): TslNode => noise.sample(uv).b;
   // RIVERS ROUND 4: an instanced mesh (the small stones) carries its place in
@@ -180,7 +237,11 @@ export function createRiverBankMaterial(flow: { flow0: THREE.Texture; flow1: THR
   // the map, so "dry" and pale even under the water. A judge saw them as "pale
   // blue blobs" in every round since the small stones were added.
   // (TSL's world position and normal carry the instance's matrix.)
-  const P = positionWorld;
+  // Moved to the river's origin, then turned back by -yaw (riverWorldBed.ts
+  // worldToRiverLocal: x' = c x + s z, z' = -s x + c z).
+  const D = positionWorld.sub(uniforms.uRiverOrigin);
+  const turn = uniforms.uRiverTurn;
+  const P = vec3(D.x.mul(turn.x).add(D.z.mul(turn.y)), D.y, D.x.mul(turn.y).negate().add(D.z.mul(turn.x)));
   const kind = attribute('aKind', 'float');
   const tone = attribute('aTone', 'float');
 
@@ -191,15 +252,38 @@ export function createRiverBankMaterial(flow: { flow0: THREE.Texture; flow1: THR
     // texel's level over the whole valley: read no water there.
     const fuv = F.uv(P.xz);
     const inMap = fuv.x.greaterThan(0.0).and(fuv.x.lessThan(1.0)).and(fuv.y.greaterThan(0.0)).and(fuv.y.lessThan(1.0));
-    const f0 = select(inMap, F.flow0(P.xz), vec4(0.0, 0.0, 0.0, -100.0)).toVar();
+    const f0Filtered = select(inMap, F.flow0(P.xz), vec4(0.0, 0.0, 0.0, -100.0));
+    // THE FAR LEVEL (2026-10-27, GG-430): a live map marks the level of a
+    // cell far from the water RIVER_FAR_LEVEL (-30000) and sends a coarse
+    // level grid. A filtered read would mix the marker into every texel near
+    // such a cell, so read the four texels, put the coarse level in place of
+    // each marked one, and interpolate as the filter does.
+    let levelNode: TslNode = f0Filtered.w;
+    if (coarse) {
+      const tc = fuv.mul(vec2(grid.nx, grid.nz)).sub(0.5);
+      const base = floor(tc);
+      const t = tc.sub(base);
+      const lo = clamp(base, vec2(0, 0), vec2(grid.nx - 1, grid.nz - 1));
+      const hi = clamp(base.add(1), vec2(0, 0), vec2(grid.nx - 1, grid.nz - 1));
+      const far = coarseLevel!.sample(fuv.mul(uCoarseScale!)).r;
+      // (A load, no sampler: r172 has no .load(); a sample with the sampler off.)
+      const at = (x: TslNode, y: TslNode): TslNode => {
+        const w = flowLevel!.sample(ivec2(x, y)).setSampler(false).w;
+        return select(w.greaterThan(-10000.0), w, far);
+      };
+      levelNode = select(inMap, mix(mix(at(lo.x, lo.y), at(hi.x, lo.y), t.x), mix(at(lo.x, hi.y), at(hi.x, hi.y), t.x), t.y), float(-100.0));
+    }
+    const f0 = vec4(f0Filtered.xyz, levelNode).toVar();
     const level = f0.w;
-    const wetDist = select(inMap, F.flow1(P.xz).z, float(8.0)).toVar();
-    // Height over the water: + above, - under. Far from any water the level
-    // reads -100 and the ground counts as high and dry. Past 3 m from the
+    const f1=select(inMap,F.flow1(P.xz),vec4(0.0,0.0,8.0,-1.0)).toVar();
+    const wetDist = f1.z;
+    // Height over the water: + above, - under. Validity is carried separately
+    // from elevation, so a real surface below-50m (even exactly-100m) remains
+    // wet. Missing fields retain the dry treatment. Past 3 m from the
     // nearest water the ground counts as dry whatever its height: the level
     // field is smooth everywhere, and a dry rock 5 m from the water took the
     // waterline stain (round 7).
-    const over0 = select(level.greaterThan(-50.0), P.y.sub(level), float(100.0));
+    const over0 = select(f1.w.greaterThanEqual(0.0), P.y.sub(level), float(100.0));
     const nearWater = float(1).sub(smoothstep(1.5, 3.5, wetDist));
     const over = mix(max(over0, 2.0), over0, nearWater).toVar();
     // A RAGGED WET LINE (rivers round 2): the wet band's edge wanders by up to
@@ -212,7 +296,7 @@ export function createRiverBankMaterial(flow: { flow0: THREE.Texture; flow1: THR
   };
 
   // THE WET BAND'S TERMS for the point (both functions use them).
-  const wetTerms = (W: { over: TslNode; wetDist: TslNode; wetWander: TslNode }): { wet0: TslNode; wetR: TslNode; under: TslNode; rim: TslNode; strip: TslNode } => {
+  const wetTerms = (W: { over: TslNode; wetDist: TslNode; wetWander: TslNode }, surfaceKind: TslNode = kind): { wet0: TslNode; wetR: TslNode; under: TslNode; rim: TslNode; strip: TslNode } => {
     const { over, wetDist, wetWander } = W;
     // THE WET BAND: soaked ground is darker (water fills the pores, so less
     // light scatters out: about half the albedo) and glossier. Fully wet under
@@ -224,8 +308,8 @@ export function createRiverBankMaterial(flow: { flow0: THREE.Texture; flow1: THR
     // (0.1 to 0.25 m on a rock: at 0.15 to 0.45 m every rock in the boulder
     // reach, whose tops stand 0.2 to 0.6 m out of the water, went dark all
     // over; a dry pale top over a dark waterline band is what the clips show.)
-    const wetLo = select(kind.lessThan(0.5), float(0.04), float(0.1));
-    const wetHi = select(kind.lessThan(0.5), float(0.2), float(0.25));
+    const wetLo = select(surfaceKind.lessThan(0.5), float(0.04), float(0.1));
+    const wetHi = select(surfaceKind.lessThan(0.5), float(0.2), float(0.25));
     const wet0 = float(1).sub(smoothstep(wetLo, wetHi, over.add(wetWander))).toVar();
     const under = smoothstep(0.0, -0.02, over).toVar();
     // V1 (round 5): A ROCK'S WET RIM. A dark band from the waterline to 12 cm
@@ -241,19 +325,19 @@ export function createRiverBankMaterial(flow: { flow0: THREE.Texture; flow1: THR
       .mul(float(1).sub(smoothstep(0.04, 0.07, over))).mul(smoothstep(-0.02, 0.0, over)).toVar();
     // The wet the roughness reads: the rim raises it on a rock with V1 on, the
     // strip on the stones with V4 on (each product is 0 with its tune at 0).
-    const wetR = max(wet0, select(kind.greaterThan(0.5), T.x.mul(rim), T.w.mul(strip)));
+    const wetR = max(wet0, select(surfaceKind.greaterThan(0.5), T.x.mul(rim), T.w.mul(strip)));
     return { wet0, wetR, under, rim, strip };
   };
 
   // THE ALBEDO AND THE BUMP (the WebGL hook after `color_fragment`).
-  const albedoBump = Fn(() => {
+  const albedoBumpFor = (surfaceKind: TslNode, exposedAlbedo?: TslNode): TslNode => Fn(() => {
     const W = waterAt();
     const { f0, over } = W;
     const Nw = normalize(normalWorld);
     const slope = float(1).sub(Nw.y);
     const alb = vec3(0.0, 0.0, 0.0).toVar();
     const rbBump = float(0.0).toVar();
-    If(kind.lessThan(0.5), () => {
+    If(surfaceKind.lessThan(0.5), () => {
       // STONES: cobbles (0.24 m) with pebbles (0.07 m) between them. Each stone
       // is a dome in the bump height (so the sun lights one side and shades the
       // other, as rounded stones are), with a dark gap between stones. Both
@@ -375,7 +459,13 @@ export function createRiverBankMaterial(flow: { flow0: THREE.Texture; flow1: THR
         dirt.assign(mix(dirt, dirt.mul(vec3(0.72, 0.64, 0.5)), T.w.mul(nerang)));
         stones.assign(mix(stones, stones.mul(vec3(0.78, 0.7, 0.56)), T.w.mul(nerang)));
       });
-      const scree = mix(vec3(0.38, 0.37, 0.35), vec3(0.52, 0.5, 0.47), n2).mul(n3.mul(0.3).add(0.8));
+      const proceduralScree = mix(vec3(0.38, 0.37, 0.35), vec3(0.52, 0.5, 0.47), n2).mul(n3.mul(0.3).add(0.8));
+      // A soil-owned shoulder still exposes rock on its steep portions.
+      // The ownership render located the remaining white strip here. Use
+      // the same measured rock for that scree, retaining soil on gentler
+      // slopes and the original western source's existing material.
+      const scree = exposedAlbedo === undefined ? proceduralScree
+        : select(P.x.greaterThan(75), exposedAlbedo, proceduralScree);
       // The bare-stone zone is narrow (0.1 to 0.6 m over the water): above it
       // the bank is sand, dirt and grass. Round 1's wider zone drew the pool
       // banks as a grey ribbon.
@@ -412,11 +502,19 @@ export function createRiverBankMaterial(flow: { flow0: THREE.Texture; flow1: THR
               select(tn.lessThan(0.88), vec3(0.25, 0.24, 0.23), vec3(0.50, 0.40, 0.26)))));
         base.assign(mix(base, b4, T.w));
       });
-      alb.assign(base.mul(sp.mul(0.3).add(0.82)));
+      // The full-course mountains use the same measured weathered rock as
+      // their finite cliff. The previous pale procedural granite clipped
+      // toward white in the actual valley view. Keep the stains, lichen and
+      // wet response below; ordinary river rocks retain their existing base.
+      alb.assign(exposedAlbedo ?? base.mul(sp.mul(0.3).add(0.82)));
       // Nerang-side rocks (round 3): brown sandstone and dark river stones,
       // not pale granite (a judge read the pale stones lining the pool as "a
       // smooth, even grey ribbon").
-      alb.mulAssign(mix(vec3(1.0, 1.0, 1.0), vec3(0.78, 0.66, 0.5), smoothstep(125.0, 145.0, P.x)));
+      // Reconstructed granite can lie east of the original river's Nerang
+      // color boundary. Its material comes from the actual rock owner rather
+      // than inheriting sandstone merely because its world X exceeds125 m.
+      const nerangRock=select(surfaceKind.greaterThan(1.5),float(0),smoothstep(125.0,145.0,P.x));
+      alb.mulAssign(mix(vec3(1.0, 1.0, 1.0), vec3(0.78, 0.66, 0.5), nerangRock));
       alb.assign(mix(alb, vec3(0.12, 0.12, 0.12), smoothstep(0.78, 0.9, sp2).mul(0.6)));
       alb.assign(mix(alb, vec3(0.44, 0.44, 0.34), smoothstep(0.62, 0.75, lich).mul(0.5).mul(smoothstep(0.3, 1.0, over))));
       // The water stain: brown-olive up to 0.3 m over the water (a rock's
@@ -438,15 +536,15 @@ export function createRiverBankMaterial(flow: { flow0: THREE.Texture; flow1: THR
       alb.assign(mix(alb, alb.mul(vec3(0.62, 0.58, 0.38)).mul(film), smoothstep(0.03, -0.02, over)));
     });
     // The wet band's terms (the second function reads them again).
-    const w = wetTerms(W);
+    const w = wetTerms(W, surfaceKind);
     // V1 (round 5): A ROCK'S WET RIM (its albedo part).
-    If(kind.greaterThan(0.5).and(T.x.greaterThan(0.0)), () => {
+    If(surfaceKind.greaterThan(0.5).and(T.x.greaterThan(0.0)), () => {
       alb.mulAssign(mix(1.0, 0.3, T.x.mul(w.rim)));
       alb.assign(mix(alb, alb.mul(vec3(0.55, 0.62, 0.5)), T.x.mul(w.under)));
     });
     // V4 (round 5): A NARROW WET STRIP on the stones along every waterline
     // (its albedo part).
-    If(kind.lessThan(0.5).and(T.w.greaterThan(0.0)), () => {
+    If(surfaceKind.lessThan(0.5).and(T.w.greaterThan(0.0)), () => {
       alb.mulAssign(mix(1.0, 0.55, T.w.mul(w.strip)));
       // Under the water: darker, with an olive film.
       alb.assign(mix(alb, alb.mul(vec3(0.7, 0.72, 0.52)), T.w.mul(w.under)));
@@ -459,9 +557,9 @@ export function createRiverBankMaterial(flow: { flow0: THREE.Texture; flow1: THR
     // (0.55 in the Merced's clear water, 0.45 in the Nerang's.)
     const underDark = mix(0.55, 0.45, smoothstep(125.0, 145.0, P.x));
     // (By the base wet, as the GLSL's `wet`: the tunes raise only the gloss's.)
-    alb.mulAssign(mix(float(1.0), select(w.under.greaterThan(0.5), underDark, select(kind.lessThan(0.5), float(0.62), float(0.5))), w.wet0));
+    alb.mulAssign(mix(float(1.0), select(w.under.greaterThan(0.5), underDark, select(surfaceKind.lessThan(0.5), float(0.62), float(0.5))), w.wet0));
     return vec4(alb, rbBump);
-  });
+  })();
 
   // THE WET, THE UNDER-WATER SHARE AND THE CAUSTICS (the WebGL hooks after
   // `roughnessmap_fragment` and `lights_fragment_end`).
@@ -483,14 +581,48 @@ export function createRiverBankMaterial(flow: { flow0: THREE.Texture; flow1: THR
       const web0 = max(float(0.0), float(1).sub(abs(a.z.add(b.z.mul(0.8))).mul(2.2)));
       const web = web0.mul(web0).mul(web0);
       const k = smoothstep(0.02, 0.12, d).mul(float(1).sub(smoothstep(0.6, 2.5, d)));
+      // The old web changed with the clock even under a settled surface.
+      // Match the surface's existing excitation fields and ownership blend:
+      // carried turbulence still works at zero mean speed; main-channel
+      // ripples use friction and local forcing, not speed alone.
+      const speed = length(vel);
+      const depth = max(f0.z, 0.0);
+      const froude = speed.div(sqrt(max(depth, 0.02).mul(9.81)));
+      const legacy = max(max(clamp(F.flow1(P.xz).w, 0.0, 1.0), smoothstep(0.6, 1.7, speed).mul(0.7)),
+        smoothstep(0.3, 0.8, froude).mul(0.6).mul(smoothstep(0.02, 0.08, depth)));
+      const drivers = surfaceDrivers.sample(F.uv(P.xz));
+      const forcing = clamp(drivers.z, 0.0, 1.0);
+      const micro = clamp(drivers.w, 0.0, 0.10);
+      const main = clamp(sqrt(micro.mul(micro).add(forcing.mul(forcing).mul(0.16 * 0.16))).div(0.26), 0.0, 1.0);
+      const share = clamp(uniforms.uMainRapidsMask.sample(F.uv(P.xz)).r.mul(uniforms.uMainRapidsOptics), 0.0, 1.0);
+      const activity = mix(legacy, main, share).toVar();
+      // Preserve the existing impact-region light while arriving impact waves
+      // are active, including a pool whose mean horizontal current is zero.
+      // DEBT: this web is an optical approximation, not refracted-ray transport
+      // from the actual wave curvature. Impact caustic strength is unchanged.
+      If(uniforms.uPoolImpactEnergy.x.greaterThan(0).and(uniforms.uPoolImpactEnergy.w.greaterThan(0))
+        .and(length(P.xz.sub(uniforms.uPoolImpactFrame.xy)).lessThan(8))
+        .and(abs(f0.w.sub(uniforms.uPoolImpactLevel)).lessThan(0.5)).and(depth.greaterThan(0.02)), () => {
+        activity.assign(1.0);
+      });
       // (Round 3: peak 2.4 to 1.4 and a softer floor; bright caustic domes on
       // the submerged stones read as pale cyan pebbles "pasted on".)
-      caustic.assign(float(1).add(web.mul(1.4).sub(0.2).mul(k).mul(uniforms.uCausticSun.x)));
+      caustic.assign(float(1).add(web.mul(1.4).sub(0.2).mul(k).mul(activity).mul(uniforms.uCausticSun.x)));
     });
     return vec4(w.wetR, w.under, caustic, 0.0);
   });
 
-  const ab = albedoBump().toVar('rbAlbedoBump');
+  // Build these endpoints only when the full-course ground requests them.
+  // They retain the actual native wet stains and share every live uniform.
+  let groundNodes: RiverGroundSurfaceNodes | undefined;
+  const buildGroundNodes = (graniteAlbedo?: TslNode): RiverGroundSurfaceNodes => ({
+    soil: albedoBumpFor(float(0), graniteAlbedo).toVar('rbGroundSoil'),
+    granite: albedoBumpFor(float(2), graniteAlbedo).toVar('rbGroundGranite'),
+  });
+  groundSurfaceFactories.set(mat, graniteAlbedo => graniteAlbedo === undefined
+    ? groundNodes ??= buildGroundNodes() : buildGroundNodes(graniteAlbedo));
+
+  const ab = albedoBumpFor(kind).toVar('rbAlbedoBump');
   const wc = wetCaustic().toVar('rbWetCaustic');
   mat.colorNode = ab.xyz;
   // The stone bump on the view-space normal (a front-side material: the face

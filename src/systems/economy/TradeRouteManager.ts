@@ -25,7 +25,7 @@
 import { GameState, GameMessage, TradeRoute, EconomyState, MarketEvent, MarketEventType } from '../../types';
 import { SeededRandom } from '@/utils/random';
 import { INITIAL_TRADE_ROUTES } from '../../data/tradeRoutes';
-import { calculateMarketFactors } from '../../utils/economy/marketEvents';
+import { calculateMarketFactors, ROUTE_MARKET_EVENT_PREFIX, routeMarketEventId } from '../../utils/economy/marketEvents';
 
 export interface TradeRouteUpdateResult {
   state: GameState;
@@ -104,7 +104,10 @@ export const processDailyRoutes = (state: GameState, daysPassed: number, rng: Se
 
     // Boom Chance Calculation
     // (Profitability * 0.05) per day
-    const dailyBoom = route.profitability * 0.05;
+    // Profitability is a percentage (0–100), unlike fractional risk (0–1).
+    // Using 80 as a fraction made a normal night's boom chance exceed 100%.
+    const profitabilityFraction = Math.min(1, Math.max(0, route.profitability / 100));
+    const dailyBoom = profitabilityFraction * 0.05;
     const boomChance = 1 - Math.pow(1 - dailyBoom, daysPassed);
 
     // Normalize Chance (Boom -> Active)
@@ -191,7 +194,7 @@ export const processDailyRoutes = (state: GameState, daysPassed: number, rng: Se
   }
 
   // Generate Market Events from Routes
-  const routeEventPrefix = 'route_event_';
+  const routeEventPrefix = ROUTE_MARKET_EVENT_PREFIX;
 
   // Filter out old route events to regenerate them based on current status
   const existingEvents = (economy.marketEvents || []).filter(e => !e.id.startsWith(routeEventPrefix));
@@ -205,7 +208,7 @@ export const processDailyRoutes = (state: GameState, daysPassed: number, rng: Se
     const eventSuffix = status === 'blockaded' ? 'scarcity' : 'surplus';
     const routeLabel = status === 'blockaded' ? 'Blockade' : 'Boom';
     const direction = status === 'blockaded' ? 'scarcity of' : 'surplus of';
-    const eventId = `${routeEventPrefix}${route.id}_${good}_${eventSuffix}`;
+    const eventId = routeMarketEventId(route.id, good, eventSuffix);
     const existing = economy.marketEvents?.find(e => e.id === eventId);
 
     return {
@@ -217,7 +220,7 @@ export const processDailyRoutes = (state: GameState, daysPassed: number, rng: Se
       duration: 1,
       intensity: status === 'blockaded'
         ? 0.5 + (route.riskLevel * 0.5)
-        : 0.3 + (route.profitability * 0.3),
+        : 0.3 + (Math.min(1, Math.max(0, route.profitability / 100)) * 0.3),
       affectedTags: [good.toLowerCase()]
     } as MarketEvent;
   };

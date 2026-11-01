@@ -9,6 +9,24 @@
  * (see library/acceptedEntities). A combatant with no recognizable creature
  * type throws — no silent shape.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/10/2026, 00:16:10
+ * Dependents: components/BattleMap/BattleMap3DGpuScene.tsx, components/BattleMap/characters/characterActor/CharacterActor.tsx
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import { proceduralCreatureAppearance } from './creatureAppearance';
 import { CreatureType } from '../../types/creatures';
 import { CLASSES_DATA } from '../../data/classes';
 import type { CombatCharacter } from '../../types/combat';
@@ -80,6 +98,8 @@ export function recipeFromCombatant(c: CombatCharacter): EntityRecipe {
       `entities3d: combatant "${c.name}" has no canonical creature type (tags: ${tags.join(', ') || 'none'})`,
     );
   }
+  const appearance = proceduralCreatureAppearance(c.name, creatureType, seed);
+  if (appearance) return appearance;
   const size = (c.stats?.size as SizeCategory | undefined) ?? 'Medium';
   const cues = [
     ...tags.filter((t) => t !== creatureType).map((t) => t.toLowerCase()),

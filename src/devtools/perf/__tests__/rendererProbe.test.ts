@@ -16,6 +16,9 @@ import {
 } from '../rendererProbe';
 import { acquirePerfSession, clearPerfSessions, getPerfSession, getPerfSessions } from '../perfRegistry';
 
+import { setPerfMeasurementEnabled } from '../perfControl';
+import { clearPerfOverhead, perfOverheadSnapshot } from '../perfOverhead';
+
 const { runAsAnimationFrame, wrapRenderer, wrapClass, reset } = rendererProbeInternals;
 
 let clock = 0;
@@ -107,10 +110,45 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  setPerfMeasurementEnabled(true);
   reset();
   clearPerfSessions();
   document.body.innerHTML = '';
   vi.restoreAllMocks();
+});
+
+describe('matched callback attribution',()=>{
+  it('counts later synchronous render submissions without counting the asynchronous wait',()=>{
+    const r=fakeWebGl(),original=r.render.bind(r);r.render=(...args)=>{original(...args);clock+=3;};
+    document.body.append(r.domElement);instrumentRenderer(r,{id:'async-submission'});
+    clock=100;runAsAnimationFrame(100,()=>{r.render();clock=105;});
+    clock=120;r.render(); // a continuation after waiting, outside the RAF body
+    clock=150;runAsAnimationFrame(150,()=>{r.render();clock=155;});
+    const a=getPerfSession('async-submission')!.snapshot(clock).attribution!;
+    expect(a.callbackMs).toBe(8);expect(a.unknownMs).toBe(42);r.domElement.remove();
+  });
+  it('reports unavailable coverage when the browser rejects its timing observer',()=>{
+    const original=globalThis.PerformanceObserver;
+    class RejectedObserver { static supportedEntryTypes=['long-animation-frame'];observe(){throw Error('denied');}disconnect(){} }
+    try {
+      setPerfMeasurementEnabled(false);vi.stubGlobal('PerformanceObserver',RejectedObserver);
+      installPerfAutoProbe();setPerfMeasurementEnabled(true);
+      const r=fakeWebGl();document.body.append(r.domElement);instrumentRenderer(r,{id:'denied-observer'});
+      clock=100;runAsAnimationFrame(100,()=>{r.render();clock=105;});
+      clock=150;runAsAnimationFrame(150,()=>{r.render();clock=155;});
+      expect(getPerfSession('denied-observer')!.snapshot(clock).attribution?.browserCoverage).toBe('unavailable');
+      r.domElement.remove();
+    } finally { setPerfMeasurementEnabled(false);vi.stubGlobal('PerformanceObserver',original);setPerfMeasurementEnabled(true); }
+  });
+  it('captures other animation callbacks outside this surface on the same clock',()=>{
+    const r=fakeWebGl();document.body.append(r.domElement);instrumentRenderer(r,{id:'matched-probe'});
+    clock=100;runAsAnimationFrame(100,()=>{r.render();clock=110;});
+    clock=130;runAsAnimationFrame(130,function otherPageWork(){clock=140;});
+    clock=150;runAsAnimationFrame(150,()=>{r.render();clock=155;});
+    const a=getPerfSession('matched-probe')!.snapshot(clock).attribution!;
+    expect(a.callbackMs).toBe(10);expect(a.outsideScriptMs).toBe(10);expect(a.unknownMs).toBe(30);
+    expect(a.sources[0].name).toContain('otherPageWork');r.domElement.remove();
+  });
 });
 
 describe('renderer probe: counting a frame', () => {
@@ -349,5 +387,94 @@ describe('renderer probe: names and lifetime', () => {
     displayFrame(16, () => r.render());
     expect(manual.snapshot(clock).spans).toEqual([{ name: 'settle', ms: 3 }]);
     expect(manual.snapshot(clock).counters.renderCalls).toBe(1);
+  });
+});
+
+describe('renderer measurement bypass', () => {
+  it('keeps native draws and resumes with fresh timing after a long bypass', () => {
+    const r = fakeWebGl();
+    instrumentRenderer(r, { id: 'bypass', label: 'Bypass' });
+    displayFrame(16, () => r.render());
+    displayFrame(32, () => r.render());
+    expect(getPerfSession('bypass')).toBeDefined();
+    setPerfMeasurementEnabled(false);
+    expect(getPerfSession('bypass')).toBeUndefined();
+    displayFrame(5032, () => r.render(3,300));
+    expect(r.info.render.calls).toBe(3);
+    expect(getPerfSession('bypass')).toBeUndefined();
+    setPerfMeasurementEnabled(true);
+    displayFrame(5048, () => r.render());
+    displayFrame(5064, () => r.render());
+    const resumed = getPerfSession('bypass')!.snapshot(clock);
+    expect(resumed.frame.meanMs).toBe(16);
+    expect(resumed.frame.worstMs).toBe(16);
+  });
+
+  it('bypasses graphics clocks without swallowing or duplicating native failures', () => {
+    const r = new FakeWebGpu();
+    const failure = new Error('native upload failed');
+    const writeBuffer = vi.fn(() => { throw failure; });
+    const withDevice = Object.assign(r, { backend: { device: { queue: { writeBuffer } } } });
+    instrumentRenderer(withDevice, { id: 'upload-bypass' });
+    displayFrame(16, () => r.render());
+    clearPerfOverhead();
+    setPerfMeasurementEnabled(false);
+    const clockSpy = vi.spyOn(performance, 'now');
+    clockSpy.mockClear();
+    expect(() => withDevice.backend.device.queue.writeBuffer()).toThrow(failure);
+    expect(writeBuffer).toHaveBeenCalledOnce();
+    expect(clockSpy).not.toHaveBeenCalled();
+    expect(perfOverheadSnapshot(clock)).toEqual([]);
+  });
+});
+
+describe('slow WebGPU upload evidence', () => {
+  it('retains the three slowest writes with exact ranges and allocation age', () => {
+    const r = new FakeWebGpu();
+    let delay = 0;
+    const nativeWrite = vi.fn(function (this: unknown, ..._args: unknown[]) { clock += delay; return 'receipt'; });
+    const nativeCreate = vi.fn((desc: {label: string; size: number}) => { clock += 2; return {...desc}; });
+    const device = {
+      createBuffer: nativeCreate,
+      queue: {writeBuffer: nativeWrite},
+    };
+    instrumentRenderer(Object.assign(r,{backend:{device}}),{id:'write-evidence'});
+    displayFrame(16,()=>r.render());
+    displayFrame(32,()=>{
+      r.render();
+      const buffer=device.createBuffer({label:'water positions',size:64});
+      delay=5; expect(device.queue.writeBuffer(buffer,0,new Float32Array(16),2,3)).toBe('receipt');
+      delay=6; device.queue.writeBuffer(buffer,0,new DataView(new ArrayBuffer(64)),3,8);
+      delay=7; device.queue.writeBuffer(buffer,0,new ArrayBuffer(64),4);
+      delay=8; device.queue.writeBuffer(buffer,0,new Float32Array(16),4);
+    });
+    displayFrame(220,()=>r.render());
+    const session=getPerfSession('write-evidence')!;
+    const severe=session.snapshot(clock).severeFrames![0];
+    expect(severe.notes).toHaveLength(3);
+    expect(severe.notes![0]).toContain('8.0 ms, 48 bytes of 64');
+    expect(severe.notes![1]).toContain('7.0 ms, 60 bytes of 64');
+    expect(severe.notes![2]).toContain('6.0 ms, 8 bytes of 64');
+    expect(severe.notes![0]).toContain('water positions');
+    expect(severe.notes![0]).toContain('allocated 18 ms before write');
+    expect(severe.parts.find(p=>p.name==='buffer upload')?.ms).toBe(26);
+    expect(session.snapshot(clock).costs.lastTenSeconds.bufferBytes).toBe(128);
+    expect(nativeWrite).toHaveBeenCalledTimes(4);
+    expect(nativeCreate).toHaveBeenCalledOnce();
+    severe.notes![0]='mutated';
+    expect(session.snapshot(clock).severeFrames![0].notes![0]).toContain('water positions');
+  });
+
+  it('keeps existing-buffer age unknown and does not leak notes into later frames', () => {
+    const r=new FakeWebGpu();
+    const device={queue:{writeBuffer(..._args: unknown[]){clock+=120;}}};
+    instrumentRenderer(Object.assign(r,{backend:{device}}),{id:'unknown-age'});
+    displayFrame(16,()=>r.render());
+    displayFrame(32,()=>{r.render();device.queue.writeBuffer({size:32},0,new Uint8Array(32));});
+    displayFrame(200,()=>r.render());
+    displayFrame(380,()=>r.render());
+    const frames=getPerfSession('unknown-age')!.snapshot(clock).severeFrames!;
+    expect(frames.find(f=>f.atMs===200)?.notes?.[0]).toContain('allocation age unknown');
+    expect(frames.find(f=>f.atMs===380)?.notes).toEqual([]);
   });
 });

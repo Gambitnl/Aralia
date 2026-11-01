@@ -10,11 +10,30 @@ import { Spell } from '../../../../../types/spells';
  * job is to make sure that data quality problems introduced by early
  * prototyping don't silently grow unchecked.
  *
- * Nearly every rule is now a HARD FAILURE: if a spell breaks one, the test
- * fails and blocks the build. `systematicAllSpellValidation.test.ts` hard-gates
- * Concentration Sync, Ritual Sync, Duration Progression, Mode Choice, Action
- * Cost Metadata, Light Metadata, Monolithic Effect Formulation, Effect
- * Description Completeness, and Effect Target Filter Completeness. The
+ * The following all-level checks are HARD FAILURES: if a spell breaks one,
+ * `systematicAllSpellValidation.test.ts` fails and blocks the build. Its guard
+ * checks this list against the actual corpus-wide tests, so adding or removing
+ * a gate requires updating the human overview too. Named-spell examples and
+ * narrower per-area tests remain separate; this list does not replace them.
+ *
+ * BEGIN ALL-LEVEL HARD GATES
+ * - `hard-fails unclassified restricted-filter mismatches`: Effect Target Filter Completeness and reviewed classifications.
+ * - `hard-fails concentration tag mismatches across all spells`: Concentration Sync.
+ * - `hard-fails ritual tag mismatches across all spells`: Ritual Sync.
+ * - `hard-fails duration progression mismatches across all spells`: Duration Progression.
+ * - `hard-fails unclassified mode choice mismatches across all spells`: Mode Choice.
+ * - `hard-fails unclassified malformed action-cost metadata across all spells`: Action Cost Metadata.
+ * - `hard-fails malformed light metadata across all spells`: Light Metadata.
+ * - `hard-fails unconstrained Enchantment targeting across all spells`: Enchantment Targeting.
+ * - `hard-fails missing upcast scaling across all spells`: Upcast Scaling Sync.
+ * - `hard-fails stale Enchantment targeting exemptions across all spells`: Reviewed Enchantment exemptions must still match spell data.
+ * - `keeps every reviewed Enchantment exemption pointed at a real corpus spell`: Reviewed Enchantment exemptions cannot reference removed spells.
+ * - `hard-fails monolithic spell effects across all spells`: Monolithic Effect Formulation.
+ * - `hard-fails blank or generic effect descriptions across all spells`: Effect Description Completeness.
+ * - `hard-fails importer scaffold wording in effect descriptions across all spells`: Effect descriptions must explain player-facing behavior, not importer machinery.
+ * END ALL-LEVEL HARD GATES
+ *
+ * Existing corpus assertions and reviewed exceptions remain unchanged. The
  * Monolithic Effect rule finished its soft-warning phase: its hit list reached
  * zero and the assertion is live, so the shared reviewed clearances are the only
  * way a single-effect spell passes.

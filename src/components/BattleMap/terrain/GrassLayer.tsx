@@ -516,7 +516,7 @@ const GrassLayer: React.FC<GrassLayerProps> = ({ mapData, surfaceY }) => {
     }
 
     return { matrices: mats, tints: tintArr };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- isNearRock and clusterNoise are per-render helpers over data grassTiles already tracks; follow-up: hoist clusterNoise and useCallback isNearRock (C9).
   }, [grassTiles, instanceCount, mapData.seed, groundSampler, openingSceneGrassSuppression]);
 
   // Shader material

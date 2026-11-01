@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
- *
- * Last Sync: 07/09/2026, 23:25:23
- * Dependents: components/World3D/InteriorHourContext.tsx, systems/world3d/buildingSceneModel.ts, systems/world3d/types.ts, systems/worldforge/bridge/buildingHistoryParts.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/sitePartTransform.ts
- * Imports: 13 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file interiorParts.ts — canonical building blueprint → renderable parts.
  *
@@ -36,6 +20,22 @@
  * rotated group — same convention the exterior door mesh already uses.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 01/11/2026, 15:55:53
+ * Dependents: components/World3D/AltarDisplay.tsx, components/World3D/BedDisplay.tsx, components/World3D/BuildingDoor.tsx, components/World3D/FurnishingFocusMarker.tsx, components/World3D/InteriorHourContext.tsx, components/World3D/ShelfDisplay.tsx, components/World3D/groundFurnishingInteraction.ts, systems/world3d/buildingSceneModel.ts, systems/world3d/types.ts, systems/worldforge/bridge/buildingEntryApproach.ts, systems/worldforge/bridge/buildingHistoryParts.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/sitePartTransform.ts, systems/worldforge/props/freshPropClearance.ts
+ * Imports: 18 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import {
   blueprintForPlot,
   type InteriorPlotInput,
@@ -51,16 +51,21 @@ import type {
   WallMaterial,
   RoofCovering,
 } from '../interior/blueprintTypes';
-import { blueprintSiteOrigin, EXTERIOR } from '../interior/blueprintTypes';
+import { readObservedBuildingSource, buildingPlanSignature } from '../interior/buildingSource';
+import { blueprintSiteOrigin, EXTERIOR, doorClearWidthFt } from '../interior/blueprintTypes';
+import { privateRoomDoorSpecs } from '../interior/doors';
 import { HEARTH_KINDS } from '../interior/occupancy';
 import { OUTER_THICKNESS_FT } from '../interior/walls';
 import {
   buildBuildingMeshData,
+  doorHeadHeightFt,
+  SLAB_FT,
   buildRoofMeshData,
   roofDeformationForPlan,
   type MeshBox,
 } from '../../world3d/buildingModels';
-import type { SeedPath } from '../seedPath';
+import { childSeedPath, type SeedPath } from '../seedPath';
+import { containerManifests, type ManifestEntry } from '../interior/manifests';
 import { buildBuildingMotifParts } from './buildingMotifParts';
 import { buildBuildingHistoryParts } from './buildingHistoryParts';
 import {
@@ -79,6 +84,7 @@ import {
 } from './buildingEnsembleParts';
 import { isVisibleExteriorRun } from './buildingPartyWalls';
 import { CELL_FT } from '../units';
+import { siteDoorId } from './sitePartTransform';
 
 // Preserve the bridge's public tag import while the dedicated motif module owns
 // the geometry and literal. Existing renderers and tests need no migration.
@@ -94,7 +100,8 @@ export { WEATHERING_PART_TAG } from './buildingWeatheringParts';
 // Block-level eaves and arcades stay separately inspectable and nonstructural.
 export { ENSEMBLE_PART_TAG } from './buildingEnsembleParts';
 
-/** One renderable box, site-local meters (y sits on the ground). */
+/** A structural part's bounds in site-local meters; an optional beam describes
+ * its sloped timber shape while preserving conservative collision dimensions. */
 export interface SitePart {
   x: number;
   z: number;
@@ -119,6 +126,22 @@ export interface SitePart {
    * (chimney flues, dormer masses) so consumers/tests can separate roof parts
    * from the wall/floor structure without a color sniff (BGv2 Task 5). */
   tag?: string;
+  /** Original bed facing; display detail never changes its physical envelope. */
+  bedFacing?: 0 | 90 | 180 | 270;
+  /** Render-only view of the same owned shelf manifest used by examination.
+   * Facing follows the nearest cell in its actual room; neither footprint nor
+   * collision is inferred from the small displayed objects. */
+  shelfDisplay?: { front: 'x+' | 'x-' | 'z+' | 'z-'; ownerHomeId?: string; entries: ManifestEntry[] };
+  /** Canonical identity for physically examining this rendered furnishing. */
+  furnishing?: { level: number; roomId: number; index: number; kind: string };
+  /** Canonical leaf identity and actual swing; shared by render and movement.
+   * Private-room metadata is not a permission grant. */
+  door?: { id: string; level: number; index: number; axis: 'x' | 'y'; swingX: number; swingZ: number; privateRoomId?: number };
+  /** Actual structural support, never inferred from a decorative color. */
+  walkSurface?: 'floor' | 'tread' | 'landing';
+  stairSolid?: boolean;
+  /** Sloped timber direction and square section, in site-local meters. */
+  beam?: { dx: number; dy: number; dz: number; thickness: number };
   /** Resolved construction travels with exterior walls to every renderer. */
   wallMaterial?: WallMaterial;
   /** Exact exterior motif represented by this additive part. */
@@ -197,9 +220,8 @@ export const WINDOW_PANE_COLOR = '#2f3a4d';
 export const CEILING_COLOR = '#8c7d68';
 /** Door leaf clear width, feet (slightly under the DOOR_FT gap so the leaf
  * sits inside the opening). */
-const DOOR_LEAF_FT = 4;
-/** Door leaf height, meters. */
-const DOOR_LEAF_H = 2.1;
+// Each entry leaf follows its plan's recorded opening, including legacy defaults.
+// Leaf height comes from the same storey-aware head as structural masonry.
 /** Exterior (perimeter) wall tint by plot role — keeps the market/house
  * identity the solid shells used to carry. */
 export const PERIMETER_WALL_COLORS: Record<string, string> = {
@@ -208,49 +230,10 @@ export const PERIMETER_WALL_COLORS: Record<string, string> = {
   house: '#b09a72',
 };
 
-export const FURNITURE: Record<
-  string,
-  { w: number; d: number; h: number; colorHex: string }
-> = {
-  table: { w: 1.6, d: 0.9, h: 0.8, colorHex: '#c8a24a' },
-  hearth: { w: 1.4, d: 0.7, h: 1.4, colorHex: '#b5552e' },
-  'forge-hearth': { w: 1.6, d: 0.9, h: 1.2, colorHex: '#5a4636' },
-  counter: { w: 2.2, d: 0.7, h: 1.0, colorHex: '#c8a24a' },
-  shelf: { w: 1.8, d: 0.4, h: 1.8, colorHex: '#9a8458' },
-  barrel: { w: 0.7, d: 0.7, h: 1.0, colorHex: '#8a6a42' },
-  bed: { w: 1.0, d: 2.0, h: 0.6, colorHex: '#7da0c4' },
-  chest: { w: 1.0, d: 0.6, h: 0.6, colorHex: '#a07c4a' },
-  crate: { w: 0.8, d: 0.8, h: 0.8, colorHex: '#8a6a42' },
-  workbench: { w: 2.0, d: 0.8, h: 0.9, colorHex: '#b08968' },
-  bench: { w: 1.5, d: 0.4, h: 0.45, colorHex: '#a5824f' },
-  altar: { w: 1.4, d: 0.8, h: 1.1, colorHex: '#b8b2a4' },
-  desk: { w: 1.4, d: 0.7, h: 0.78, colorHex: '#8f6b45' },
-  chair: { w: 0.5, d: 0.5, h: 0.9, colorHex: '#9c7a4e' },
-  'weapon-rack': { w: 1.2, d: 0.4, h: 1.7, colorHex: '#6f5a3e' },
-  anvil: { w: 0.9, d: 0.4, h: 0.9, colorHex: '#45464b' },
-  'writing-desk': { w: 1.3, d: 0.6, h: 0.95, colorHex: '#8f6b45' },
-  strongbox: { w: 0.7, d: 0.5, h: 0.5, colorHex: '#5f5140' },
-};
-
-/**
- * Resolve a furnishing kind to its 3D box spec. Throws on an unknown kind
- * rather than silently dropping the piece from the scene (no-fallback). The
- * FURNISHING_RECIPE_KINDS coverage test guarantees every emitted kind resolves,
- * so this throw fires only when a new generator kind lands without a render spec.
- */
-export function furnishingSpec(kind: string): {
-  w: number;
-  d: number;
-  h: number;
-  colorHex: string;
-} {
-  const spec = FURNITURE[kind];
-  if (!spec)
-    throw new Error(
-      `interiorParts: unknown furnishing kind "${kind}" — add a spec to FURNITURE`,
-    );
-  return spec;
-}
+// Placement and rendering read one catalog; the historical bridge exports stay
+// available so existing callers retain their exact dimensions and materials.
+export { FURNITURE, furnishingSpec } from '../interior/furnitureCatalog';
+import { furnishingSpec } from '../interior/furnitureCatalog';
 
 /** Stair flight tint (worn timber). */
 export const STAIR_COLOR = '#7a5a36';
@@ -491,6 +474,38 @@ function facadePartOnRun(
   };
 }
 
+// At a concave courtyard corner an adjacent wall occupies part of this
+// run's outward face. Dressing that buried span put a trim post exactly on
+// the bedroom's inner face, producing the striped surface seen in play.
+// Subtract only perpendicular masonry volumes; convex corners and the
+// underlying frozen walls, doors and collision geometry remain unchanged.
+function facadeExposedSpans(run: WallRun, walls: WallRun[]): Array<[number, number]> {
+  const [lo, hi] = wallRunSpan(run);
+  const line = run.axis === 'x' ? run.y1 : run.x1;
+  const normal = run.axis === 'x' ? run.ny : run.nx;
+  const face = line + normal * run.thicknessFt;
+  const edge = face + normal * FACADE_DEPTH_M / FT;
+  const normalLo = Math.min(face, edge), normalHi = Math.max(face, edge);
+  let spans: Array<[number, number]> = [[lo, hi]];
+  for (const neighbor of walls) {
+    if (neighbor.axis === run.axis) continue;
+    const [near, far] = wallRunSpan(neighbor);
+    if (Math.min(far, normalHi) - Math.max(near, normalLo) < 1e-6) continue;
+    const crossLine = run.axis === 'x' ? neighbor.x1 : neighbor.y1;
+    const crossNormal = run.axis === 'x' ? neighbor.nx : neighbor.ny;
+    const otherFace = crossLine + crossNormal * neighbor.thicknessFt;
+    const cutLo = Math.min(crossLine, otherFace), cutHi = Math.max(crossLine, otherFace);
+    spans = spans.flatMap(([a, b]): Array<[number, number]> => {
+      if (cutHi <= a || cutLo >= b) return [[a, b]];
+      const remaining: Array<[number, number]> = [];
+      if (cutLo > a) remaining.push([a, cutLo]);
+      if (cutHi < b) remaining.push([cutHi, b]);
+      return remaining;
+    });
+  }
+  return spans;
+}
+
 /**
  * Dress every above-grade outer wall from the resolved facade grammar.
  *
@@ -532,96 +547,97 @@ function facadeDetails(
 
     for (const run of floor.wallRuns) {
       if (!isVisibleExteriorRun(blueprint, run)) continue;
-      const [lo, hi] = wallRunSpan(run);
-      const runLengthFt = hi - lo;
-      if (runLengthFt <= 0) continue;
+      for (const [lo, hi] of facadeExposedSpans(run, floor.wallRuns)) {
+        const runLengthFt = hi - lo;
+        if (runLengthFt <= 0) continue;
 
-      // Belt-course and half-timber districts repeat a strong line below each
-      // eave. Wealthy buildings add a lower sill course as restrained ornament.
-      const bandOffsetsFt: number[] = [];
-      if (pattern === 'belt-course' || pattern === 'half-timber') {
-        bandOffsetsFt.push(Math.max(0.5, storeyHeightFt - 1));
-        if (style.ornament) bandOffsetsFt.push(1);
-      }
-
-      // Log districts use several close horizontal bands so the wall reads as
-      // stacked construction rather than a plaster face.
-      if (pattern === 'log-bands') {
-        for (
-          let offsetFt = 1.5;
-          offsetFt < storeyHeightFt - 0.5;
-          offsetFt += 2
-        ) {
-          bandOffsetsFt.push(offsetFt);
+        // Belt-course and half-timber districts repeat a strong line below each
+        // eave. Wealthy buildings add a lower sill course as restrained ornament.
+        const bandOffsetsFt: number[] = [];
+        if (pattern === 'belt-course' || pattern === 'half-timber') {
+          bandOffsetsFt.push(Math.max(0.5, storeyHeightFt - 1));
+          if (style.ornament) bandOffsetsFt.push(1);
         }
-      }
 
-      for (const offsetFt of bandOffsetsFt) {
-        for (const [spanLo, spanHi] of facadeBandSpans(
-          run,
-          floor.windows,
-          lo,
-          hi,
-        )) {
-          parts.push(
-            facadePartOnRun(
-              run,
-              origin.x,
-              origin.y,
-              (spanLo + spanHi) / 2,
-              spanHi - spanLo,
-              floorBaseFt + offsetFt,
-              FACADE_BAND_HEIGHT_FT,
-              facadeTone,
-            ),
-          );
+        // Log districts use several close horizontal bands so the wall reads as
+        // stacked construction rather than a plaster face.
+        if (pattern === 'log-bands') {
+          for (
+            let offsetFt = 1.5;
+            offsetFt < storeyHeightFt - 0.5;
+            offsetFt += 2
+          ) {
+            bandOffsetsFt.push(offsetFt);
+          }
         }
-      }
 
-      // Vertical-bay and half-timber districts mark corners, door breaks, and
-      // long spans. Ten-foot spacing is broad enough to remain legible at town
-      // scale while still giving a close building a constructed rhythm.
-      if (pattern === 'vertical-bays' || pattern === 'half-timber') {
-        const centersFt: number[] = [lo];
-        for (
-          let atFt = lo + FACADE_BAY_SPACING_FT;
-          atFt < hi;
-          atFt += FACADE_BAY_SPACING_FT
-        ) {
-          centersFt.push(atFt);
+        for (const offsetFt of bandOffsetsFt) {
+          for (const [spanLo, spanHi] of facadeBandSpans(
+            run,
+            floor.windows,
+            lo,
+            hi,
+          )) {
+            parts.push(
+              facadePartOnRun(
+                run,
+                origin.x,
+                origin.y,
+                (spanLo + spanHi) / 2,
+                spanHi - spanLo,
+                floorBaseFt + offsetFt,
+                FACADE_BAND_HEIGHT_FT,
+                facadeTone,
+              ),
+            );
+          }
         }
-        centersFt.push(hi);
 
-        const postWidthFt = Math.min(FACADE_POST_WIDTH_FT, runLengthFt);
-        for (const proposedFt of centersFt) {
-          // Keep the post body on this run even when the marker represents an
-          // endpoint; adjacent runs may overlap at a corner, which reads as one
-          // stronger corner post and is harmless additive geometry.
-          const centerFt = Math.max(
-            lo + postWidthFt / 2,
-            Math.min(hi - postWidthFt / 2, proposedFt),
-          );
-          const crossesWindow = floor.windows.some(window => {
-            if (window.axis !== run.axis) return false;
-            const fixed = run.axis === 'x' ? window.y : window.x;
-            const runFixed = run.axis === 'x' ? run.y1 : run.x1;
-            const along = run.axis === 'x' ? window.x : window.y;
-            return Math.abs(fixed - runFixed) < 0.01
-              && Math.abs(centerFt - along) < 1.7 + postWidthFt / 2;
-          });
-          if (crossesWindow) continue;
-          parts.push(
-            facadePartOnRun(
-              run,
-              origin.x,
-              origin.y,
-              centerFt,
-              postWidthFt,
-              floorBaseFt + 0.45,
-              Math.max(0.5, storeyHeightFt - 0.9),
-              facadeTone,
-            ),
-          );
+        // Vertical-bay and half-timber districts mark exposed corners, door breaks, and
+        // long spans. Ten-foot spacing is broad enough to remain legible at town
+        // scale while still giving a close building a constructed rhythm.
+        if (pattern === 'vertical-bays' || pattern === 'half-timber') {
+          const centersFt: number[] = [lo];
+          for (
+            let atFt = lo + FACADE_BAY_SPACING_FT;
+            atFt < hi;
+            atFt += FACADE_BAY_SPACING_FT
+          ) {
+            centersFt.push(atFt);
+          }
+          centersFt.push(hi);
+
+          const postWidthFt = Math.min(FACADE_POST_WIDTH_FT, runLengthFt);
+          for (const proposedFt of centersFt) {
+            // Keep the post body on this run even when the marker represents an
+            // endpoint. The exposed span already excludes masonry at concave
+            // corners, so that endpoint cannot leak into the adjoining room.
+            const centerFt = Math.max(
+              lo + postWidthFt / 2,
+              Math.min(hi - postWidthFt / 2, proposedFt),
+            );
+            const crossesWindow = floor.windows.some(window => {
+              if (window.axis !== run.axis) return false;
+              const fixed = run.axis === 'x' ? window.y : window.x;
+              const runFixed = run.axis === 'x' ? run.y1 : run.x1;
+              const along = run.axis === 'x' ? window.x : window.y;
+              return Math.abs(fixed - runFixed) < 0.01
+                && Math.abs(centerFt - along) < 1.7 + postWidthFt / 2;
+            });
+            if (crossesWindow) continue;
+            parts.push(
+              facadePartOnRun(
+                run,
+                origin.x,
+                origin.y,
+                centerFt,
+                postWidthFt,
+                floorBaseFt + 0.45,
+                Math.max(0.5, storeyHeightFt - 0.9),
+                facadeTone,
+              ),
+            );
+          }
         }
       }
     }
@@ -701,6 +717,14 @@ function blueprintStructureParts(
         d: b.d * FT,
         h: b.h * FT,
         colorHex: colorFor(b),
+        ...(b.beam ? { beam: { dx: b.beam.dx * FT, dy: b.beam.dy * FT,
+          dz: b.beam.dz * FT, thickness: b.beam.thickness * FT } } : {}),
+        ...(b.kind === 'floor' ? { walkSurface: 'floor' as const } : {}),
+        ...(b.stairRole === 'tread' || b.stairRole === 'landing' ? { walkSurface: b.stairRole } : {}),
+        // Legacy compact stairs still have real tops. Marking support does not
+        // waive the walking solver's rise limit or make that steep shaft pass.
+        ...(b.kind === 'stair' && !b.stairRole ? { walkSurface: 'tread' as const } : {}),
+        ...(b.kind === 'stair' ? { stairSolid: true } : {}),
         // Exterior walls retain their real openings at town-view distance.
         // This label lets the renderer batch the facade without mounting rooms.
         ...(b.wallKind === 'outer' ? { tag: 'exterior', wallMaterial: bp.styleResolved?.construction.wallMaterial } : {}),
@@ -970,19 +994,28 @@ export function buildInteriorParts(
     // axis place the leaf correctly without assuming a rectangular street wall.
     const dx = toX(entry.x);
     const dz = toZ(entry.y);
-    const leafLen = DOOR_LEAF_FT * FT;
-    // Door leaf: thin slab filling the gap, slightly thicker than the wall so
-    // it shows from both faces. Spans x (h:0) or z (v:0) depending on axis.
+    const leafLen = doorClearWidthFt(entry) * FT;
+    // Stand the leaf on the finished floor, with its head matching the masonry.
+    // Preserve the door footprint and identity while retaining real headroom.
+    const floorBase = SLAB_FT * FT;
+    const headElevation = doorHeadHeightFt(storeyHeightM / FT) * FT;
+    const leafHeight = headElevation - floorBase;
+    // Timber leaf fits the canonical clear opening. Its six-centimeter depth
+    // is independent of the much thicker wall around the frame.
     parts.push({
       x: dx,
       z: dz,
-      w: isX ? leafLen : WALL_T + 0.06,
-      d: isX ? WALL_T + 0.06 : leafLen,
-      h: DOOR_LEAF_H,
+      // A timber leaf fills the clear opening, not the wall's masonry width.
+      w: isX ? leafLen : 0.06,
+      d: isX ? 0.06 : leafLen,
+      h: leafHeight,
       colorHex: DOOR_LEAF_COLOR,
+      baseY: floorBase,
+      door: { id: siteDoorId(0, groundFloor.doors.indexOf(entry), entry.axis, dx, dz), level: 0,
+        index: groundFloor.doors.indexOf(entry), axis: entry.axis, swingX: entry.openDir.nx, swingZ: entry.openDir.ny },
     });
     // Lintel: a low beam capping the opening, from the door head to the shell.
-    const lintelH = Math.max(0.15, shellHeightM - DOOR_LEAF_H);
+    const lintelH = Math.max(0.15, shellHeightM - headElevation);
     if (lintelH > 0.16) {
       parts.push({
         x: dx,
@@ -991,19 +1024,59 @@ export function buildInteriorParts(
         d: isX ? WALL_T + 0.08 : leafLen + 0.4,
         h: lintelH,
         colorHex: DOOR_LINTEL_COLOR,
-        baseY: DOOR_LEAF_H,
+        baseY: headElevation,
       });
     }
   }
+
+  // The versioned candidate supplies real private leaves on their actual
+  // floors. Their canonical identity drives the same render, swing and collision
+  // path as the exterior entry; omitted profiles emit no additional parts.
+  for(const {level,index,roomId,door}of privateRoomDoorSpecs(blueprint)){
+    const x=toX(door.x),z=toZ(door.y),width=doorClearWidthFt(door)*FT;
+    const baseY=level*storeyHeightM+SLAB_FT*FT;
+    const height=doorHeadHeightFt(storeyHeightM/FT)*FT-SLAB_FT*FT;
+    if(!Number.isFinite(height)||height<=0)throw new Error('Private door storey height is invalid.');
+    parts.push({x,z,w:door.axis==='x'?width:0.06,d:door.axis==='y'?width:0.06,
+      h:height,baseY,colorHex:DOOR_LEAF_COLOR,
+      door:{id:siteDoorId(level,index,door.axis,x,z),level,index,axis:door.axis,
+        swingX:door.openDir.nx,swingZ:door.openDir.ny,privateRoomId:roomId}});
+  }
+
+  // Match townBuildingVisit's existing per-plot goods stream exactly. Carry
+  // only a shelf's own manifest, without rolling another inventory or taking it.
+  const retained = plot.retainedSource ? readObservedBuildingSource(plot.retainedSource, plot.id,
+    plot.eventLog as import('../interior/blueprintTypes').BuildingEventHistory | undefined, seedPath) : undefined;
+  if (retained && buildingPlanSignature(retained.plan) !== buildingPlanSignature(blueprint)) {
+    throw new Error('Rendered furniture and retained contents must use the same building source.');
+  }
+  const shelfManifests = new Map((retained ? retained.manifests : plot.household
+    ? containerManifests(blueprint, plot.household, childSeedPath(seedPath, `interior:${plot.id}`)) : [])
+    .map(manifest => [`${manifest.level}:${manifest.furnishingIndex}`, manifest]));
 
   // Furnish every canonical floor, including basements. Each floor's level
   // supplies its elevation, so no separate ground/upper legacy arrays are
   // needed. Hearths keep their live-light identity independent of bake hour.
   for (const floor of blueprint.floors) {
     const baseY = floor.level * storeyHeightM;
-    for (const furnishing of floor.furnishings) {
+    for (const [index, furnishing] of floor.furnishings.entries()) {
       const spec = furnishingSpec(furnishing.kind);
       const rotated = furnishing.rotation === 90 || furnishing.rotation === 270;
+      let shelfDisplay: SitePart['shelfDisplay'];
+      if (furnishing.kind === 'shelf') {
+        const room = floor.rooms.find(candidate => candidate.id === furnishing.roomId);
+        const cell = room?.cells.reduce((best, candidate) => {
+          const distance = (c: typeof candidate) => Math.hypot(c.cx * 5 + 2.5 - furnishing.x, c.cy * 5 + 2.5 - furnishing.y);
+          return distance(candidate) < distance(best) ? candidate : best;
+        });
+        const manifest = shelfManifests.get(`${floor.level}:${index}`);
+        shelfDisplay = {
+          front: rotated ? ((cell ? cell.cx * 5 + 2.5 : furnishing.x) >= furnishing.x ? 'x+' : 'x-')
+            : ((cell ? cell.cy * 5 + 2.5 : furnishing.y) >= furnishing.y ? 'z+' : 'z-'),
+          ...(manifest ? {ownerHomeId: manifest.ownerHomeId} : {}),
+          entries: manifest?.entries.map(entry => ({...entry})) ?? [],
+        };
+      }
       parts.push({
         x: toX(furnishing.x),
         z: toZ(furnishing.y),
@@ -1011,6 +1084,9 @@ export function buildInteriorParts(
         d: rotated ? spec.w : spec.d,
         h: spec.h,
         colorHex: spec.colorHex,
+        furnishing: { level: floor.level, roomId: furnishing.roomId, index, kind: furnishing.kind },
+        ...(shelfDisplay ? {shelfDisplay} : {}),
+        ...(furnishing.kind === 'bed' ? {bedFacing: furnishing.rotation} : {}),
         ...(baseY !== 0 ? { baseY } : {}),
         ...(HEARTH_KINDS.has(furnishing.kind)
           ? { lightRole: 'hearth' as const }

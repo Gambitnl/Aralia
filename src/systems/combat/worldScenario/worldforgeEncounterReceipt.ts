@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
- *
- * Last Sync: 16/07/2026, 08:56:41
- * Dependents: components/World3D/World3DWrapper.tsx, systems/combat/fightInPlace/activeGroundCombatSession.ts, systems/combat/worldScenario/openingThreatBattlefield.ts, systems/combat/worldScenario/openingThreatOutcome.ts, systems/combat/worldScenario/statePatrolWorldEvent.ts
- * Imports: 1 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file owns the save-backed history records emitted by generated-world
  * encounter systems.
@@ -25,12 +9,32 @@
  * Called by: world-event authoring, opening-threat projection, GameState
  * Depends on: combat's source-entity and ecological-trace value contracts
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 29/10/2026, 18:48:07
+ * Dependents: components/World3D/hooks/useInPlaceCombatTransition.ts, systems/combat/fightInPlace/activeGroundCombatSession.ts, systems/combat/worldScenario/openingThreatBattlefield.ts, systems/combat/worldScenario/openingThreatOutcome.ts, systems/combat/worldScenario/statePatrolWorldEvent.ts, systems/combat/worldScenario/surfaceHostileContinuity.ts, systems/combat/worldScenario/surfaceHostileEncounter.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type {
   BattleMapOpeningActivitySite,
   BattleMapOpeningEcologicalTrace,
   BattleMapOpeningSceneResolution,
   BattleMapOpeningTerrainImprint,
   WorldforgeOpeningThreatSource,
+  WorldforgeSurfaceHostileSource,
+  CombatEnemySnapshotEntry,
+  BattleMapEncounterContext,
 } from "@/types/combat";
 
 // ============================================================================
@@ -104,6 +108,38 @@ export interface OpeningThreatSceneReceiptV2 extends OpeningThreatSceneReceiptBa
 export type OpeningThreatSceneReceipt =
   OpeningThreatSceneReceiptV1 | OpeningThreatSceneReceiptV2;
 
+/** One contact in the existing world history, not another enemy-state store. */
+export interface SurfaceHostileEncounterReceipt {
+  id: string;
+  kind: "surface-hostile-contact";
+  sourceScope: string;
+  partySources: Extract<BattleMapEncounterContext, {kind: "surface-contact"}>["partySources"];
+  worldSeed: number;
+  sourceCellId: number;
+  triggeredAtGameTimeMs: number;
+  playerGroundMeters: { x: number; z: number };
+  entities: Array<{
+    combatantId: string;
+    name: string;
+    source: WorldforgeSurfaceHostileSource;
+    maxHP: number;
+    currentHP: number;
+    spellSlots?: CombatEnemySnapshotEntry['spellSlots'];
+    limitedUses?: CombatEnemySnapshotEntry['limitedUses'];
+  }>;
+  resolution?: {
+    result: "victory" | "defeat" | "flee" | "ended";
+    resolvedAtGameTimeMs: number;
+    entities: Array<{
+      entityId: string;
+      currentHP: number;
+      position: { xM: number; zM: number };
+      spellSlots?: CombatEnemySnapshotEntry['spellSlots'];
+      limitedUses?: CombatEnemySnapshotEntry['limitedUses'];
+    }>;
+  };
+}
+
 /** Every generated-world encounter record accepted by GameState. */
 export type WorldforgeEncounterReceipt =
-  StatePatrolEncounterReceipt | OpeningThreatSceneReceipt;
+  StatePatrolEncounterReceipt | OpeningThreatSceneReceipt | SurfaceHostileEncounterReceipt;

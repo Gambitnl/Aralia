@@ -15,10 +15,27 @@
  * 'fatigued'/'starving') when the march bites. No new exhaustion system is
  * invented here — only the per-member save resolution the gap requires.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/10/2026, 06:47:53
+ * Dependents: components/MapPane.tsx, hooks/app/useAppTravelActions.ts, systems/worldforge/travel/localGroundJourney.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { PlayerCharacter } from '../../types/character';
 import { getAbilityModifierValue } from '../../utils/character/statUtils';
-import { calculateProficiencyBonus } from '../../utils/character/savingThrowUtils';
-import { calculateExhaustionEffects } from '../../utils/combat/physicsUtils';
+import { calculateProficiencyBonus, hasSavingThrowProficiency } from '../../utils/character/savingThrowUtils';
+import { calculateExhaustionEffects, getExhaustionD20Penalty } from '../../utils/combat/physicsUtils';
 
 /** One member's forced-march Constitution save outcome. */
 export interface ForcedMarchSaveResult {
@@ -62,10 +79,13 @@ export function resolveForcedMarch(
   const results: ForcedMarchSaveResult[] = party.map((pc) => {
     const conScore = (pc.finalAbilityScores as { Constitution?: number } | undefined)?.Constitution ?? 10;
     let mod = getAbilityModifierValue(conScore);
-    const proficient = (pc.savingThrowProficiencies ?? []).some(
-      (a) => String(a).toLowerCase() === 'constitution',
-    );
+    // Native Fighter saves must include the class grant shown on the sheet.
+    // The shared owner also normalizes extra grants and adds proficiency once.
+    const proficient = hasSavingThrowProficiency(pc, 'Constitution');
     if (proficient) mod += calculateProficiencyBonus(pc.level ?? 1);
+    // A later march must retain an already-earned exhaustion penalty. The
+    // existing log reads total minus raw face, so its displayed bonus stays exact.
+    mod -= getExhaustionD20Penalty(pc);
     const roll = rollD20();
     const total = roll + mod;
     return {

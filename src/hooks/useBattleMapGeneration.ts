@@ -1,10 +1,18 @@
+/**
+ * @file hooks/useBattleMapGeneration.ts
+ * Utility logic for battle-map setup generation.
+ * The filename is still hook-shaped for caller stability, but this module is
+ * a plain stateless helper. Keep callers pointed here until a coordinated
+ * rename can update every use site together.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 16/07/2026, 08:58:08
- * Dependents: components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx
+ * Last Sync: 28/10/2026, 09:01:34
+ * Dependents: components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/classes/ClassBattlefieldDemo.tsx
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -14,13 +22,6 @@
  */
 // @dependencies-end
 
-/**
- * @file hooks/useBattleMapGeneration.ts
- * Utility logic for battle-map setup generation.
- * The filename is still hook-shaped for caller stability, but this module is
- * a plain stateless helper. Keep callers pointed here until a coordinated
- * rename can update every use site together.
- */
 import {
   BattleMapBiome,
   BattleMapData,
@@ -488,9 +489,41 @@ function getSourceEncounterSpawnTiles(
   mapData: BattleMapData,
   playerCount: number,
   enemyCount: number,
+  characters: CombatCharacter[],
 ): { playerTiles: BattleMapTile[]; enemyTiles: BattleMapTile[] } | null {
+  const dungeon = mapData.dungeonEncounter;
+  if (dungeon) {
+    if (playerCount !== dungeon.partySpawns.length || enemyCount !== 1) throw new Error('Dungeon deployment does not match its source roster.');
+    const exact = (cell: {x: number; y: number}) => {
+      const tile = mapData.tiles.get(`${cell.x}-${cell.y}`);
+      if (!tile || tile.blocksMovement) throw new Error('Dungeon deployment lost its source floor.');
+      return tile;
+    };
+    return {playerTiles: dungeon.partySpawns.map(exact), enemyTiles: [exact(dungeon.enemySpawn)]};
+  }
   const context = mapData.encounterContext;
   if (!context) return null;
+  if (context.kind === 'surface-contact') {
+    const players = characters.filter(c => c.team === 'player');
+    const enemies = characters.filter(c => c.team === 'enemy');
+    if (players.length !== context.partySources.length || enemies.length !== context.sourceEntities.length
+      || new Set(characters.map(c => c.id)).size !== characters.length) throw new Error('Surface source roster does not match tactical actors.');
+    const occupied = new Set((mapData.worldOccupants ?? []).map(p => [p.position.x, p.position.y].join('-')));
+    const exact = (position: {x:number;y:number} | undefined) => {
+      const key = position ? [position.x, position.y].join('-') : '';
+      const tile = mapData.tiles.get(key);
+      if (!tile || tile.blocksMovement || occupied.has(key)) throw new Error('Surface source position is missing, blocked or occupied.');
+      occupied.add(key); return tile;
+    };
+    return {
+      playerTiles: players.map(c => exact(context.partySources.find(p => p.characterId === c.id)?.position)),
+      enemyTiles: enemies.map(c => {
+        const entity = context.sourceEntities.find(e => e.combatantId === c.id);
+        if (!entity || c.worldSource?.kind !== 'worldforge-surface-hostile' || JSON.stringify(c.worldSource) !== JSON.stringify(entity.source)) throw new Error('Surface enemy lost its source identity.');
+        return exact(entity.source.sourcePatchTile);
+      }),
+    };
+  }
 
   const allWalkable = [...mapData.tiles.values()].filter(
     (tile) => !tile.blocksMovement,
@@ -866,7 +899,7 @@ const positionBattleSetup = (
   // mandatory, not every newer deployment annotation.
   const sourceTiles =
     source === "world-derived"
-      ? getSourceEncounterSpawnTiles(mapData, playerCount, enemyCount)
+      ? getSourceEncounterSpawnTiles(mapData, playerCount, enemyCount, initialCharacters)
       : null;
   const { playerTiles, enemyTiles } =
     source === "world-derived"
