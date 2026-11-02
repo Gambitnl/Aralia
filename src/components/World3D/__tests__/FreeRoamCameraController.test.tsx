@@ -20,6 +20,28 @@ import FreeRoamCameraController from '../FreeRoamCameraController';
 
 describe('explicit camera commands', () => {
   beforeEach(() => fixture.controls.update.mockReset());
+  it('keeps the requested arm over a bank when a higher pitch clears the same heading', () => {
+    const camera = new THREE.PerspectiveCamera(), body = [0,1.15,0] as const;
+    const radius = Math.hypot(6,1.45);
+    // A low eye meets the rising bank after 2.6 m. A higher eye clears it;
+    // shortening to about two meters instead makes the lead body crowd/fade.
+    const sightline = (focus: readonly number[], eye: readonly number[]) => {
+      const horizontal = Math.hypot(eye[0]-focus[0],eye[2]-focus[2]);
+      const length = Math.hypot(horizontal,eye[1]-focus[1]);
+      return length > 2.6 && eye[1]-focus[1] < horizontal*.45 ? 2.6 : null;
+    };
+    render(<FreeRoamCameraController initialTarget={body} sceneOrigin={{x:0,z:0}}
+      onPositionChange={vi.fn()} minDistance={2} getPlayerTarget={() => body}
+      playerSightline={sightline}
+      frameRequest={{kind:'player',nonce:106,target:body,position:[0,2.6,6],height:1.45}} />);
+    for(let frame=0;frame<20;frame++)fixture.frame!({camera},.1);
+    expect(camera.position.distanceTo(new THREE.Vector3(...body))).toBeCloseTo(radius);
+    expect(camera.position.y).toBeGreaterThan(body[1]+3);
+    expect(camera.position.x).toBeCloseTo(0);
+    expect(camera.position.z).toBeGreaterThan(0);
+    expect(fixture.controls.target.toArray()).toEqual(body);
+    expect(sightline(body,camera.position.toArray())).toBeNull();
+  });
   it('keeps a damped turn when a shorter arm clears its requested heading', () => {
     const camera = new THREE.PerspectiveCamera(), body = [0,1,0] as const, notify = vi.fn();
     let turn = false, blocked = true, momentum = 0;

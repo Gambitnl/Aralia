@@ -25,9 +25,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 01/11/2026, 05:10:00
- * Dependents: components/DesignPreview/steps/PreviewTown3D.tsx, components/MapPane.tsx, components/Worldforge/AtlasDemo.tsx, components/Worldforge/townBuildingVisit.ts, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, hooks/useTownCrierAnnouncements.ts, state/reducers/townReducer.ts, systems/gameplay/lodging.ts, systems/religion/worldforgeTemple.ts, systems/social/npcInstitutionStatements.ts, systems/travel/npcLocalDirections.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/leaf3d/atlasGroundRestore.ts, systems/worldforge/town/prepareHistoricalTownLoad.ts, systems/worldforge/town/townMapPosition.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
- * Imports: 16 files
+ * Last Sync: 02/11/2026, 16:40:51
+ * Dependents: components/DesignPreview/steps/PreviewTown3D.tsx, components/MapPane.tsx, components/Worldforge/AtlasDemo.tsx, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, hooks/useTownCrierAnnouncements.ts, state/reducers/townReducer.ts, systems/gameplay/lodging.ts, systems/religion/worldforgeTemple.ts, systems/social/npcInstitutionStatements.ts, systems/travel/npcLocalDirections.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/leaf3d/atlasGroundRestore.ts, systems/worldforge/town/prepareHistoricalTownLoad.ts, systems/worldforge/town/townBuildingVisit.ts, systems/worldforge/town/townMapPosition.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Imports: 18 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -38,13 +38,13 @@
 
 import {generateTownPlan as generateTownLayoutV1} from './townLayoutV1';
 import { planRuralHomesteads } from './ruralHomesteads';
-import {CURRENT_TOWN_LAYOUT_REVISION, RURAL_HOUSEHOLD_TOWN_LAYOUT_REVISION, requireTownLayoutRevision, type TownLayoutRevision} from './townLayoutRevision';
+import {CURRENT_TOWN_LAYOUT_REVISION, CELL_AFFINE_TOWN_LAYOUT_REVISION, RURAL_HOUSEHOLD_TOWN_LAYOUT_REVISION, requireTownLayoutRevision, type TownLayoutRevision} from './townLayoutRevision';
 import { generateTownPlan, typologyForPopulation, type TownPlan, type TownWard, type TownTypology } from './townEngine';
 import { townSpanFtForPeople, POPULATION_RATE, CANON_TOWN_SPAN } from './townScale';
 import { polygonBounds, type Pt } from '../submap/submapEngine';
 import type { FmgWorldResult } from '../fmg/generateWorld';
 import { rootSeedPath, childSeedPath, streamPath } from '../seedPath';
-import { burgCellPolygon, cellWaterFeatures } from './cellFeatures';
+import { burgCellPolygon, cellWaterFeatures, cellRoadPolylines } from './cellFeatures';
 import { townRoadCourseCanon } from './townRoadCourse';
 import { townRiverCourseCanon, townRiverRoadReachFt } from './townRiverCourse';
 import type { TownFaith, TownHolder } from './civicGrounds';
@@ -217,8 +217,12 @@ export function getCanonicalTownPlan(
   // The default retains all approved town-look rules. Revision 1 uses its
   // preserved algorithm and original option set; this selects source only.
   // It never migrates a saved person, building, booking or physical position.
-  const plan: TownPlan = revision === 1
-    ? generateTownLayoutV1(footprint, seed, options)
+  // Reader4 retains the earlier road INPUT as well as the layout algorithm.
+  // Reader1 and the approved current default keep their existing recipes.
+  const historicalOptions = revision === CELL_AFFINE_TOWN_LAYOUT_REVISION
+    ? {...options, roads: cellRoadPolylines(atlas, burgId).map(toCanonLine)} : options;
+  const plan: TownPlan = revision === 1 || revision === CELL_AFFINE_TOWN_LAYOUT_REVISION
+    ? generateTownLayoutV1(footprint, seed, historicalOptions)
     : generateTownPlan(footprint, seed, {
         ...options,
         // GG-582: the world roads keep to a bank of the town's river, the

@@ -10,10 +10,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/10/2026, 22:27:53
- * Dependents: None (Orphan)
+ * Last Sync: 02/11/2026, 16:40:51
+ * Dependents: systems/worldforge/town/prepareHistoricalTownLoad.ts
  * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
@@ -27,7 +27,7 @@ import type {BlueprintPlan} from '../interior/blueprintTypes';
 import {readObservedBuildingSource, type ObservedBuildingSource} from '../interior/buildingSource';
 import type {TownRoster} from '../roster/types';
 import type {TownSimState} from '../townsim/types';
-import {CURRENT_TOWN_LAYOUT_REVISION, type TownLayoutRevision} from './townLayoutRevision';
+import {HISTORICAL_TOWN_LAYOUT_REVISIONS, type TownLayoutRevision} from './townLayoutRevision';
 
 export interface HistoricalTownLayoutCandidate {
   revision: TownLayoutRevision;
@@ -62,6 +62,9 @@ export function qualifyHistoricalTownLayout(input: {
   gameTime: Date | string;
   town: TownSimState;
   candidates: readonly HistoricalTownLayoutCandidate[];
+  /** The producer must also check saved business/keeper joins and exact dry
+   * exterior support. This cannot qualify a remembered interior foundation. */
+  allowUnobservedExterior?: boolean;
 }): HistoricalTownLayoutQualification {
   const {town,worldSeed,cellId,candidates}=input;
   if (town.layoutRevision!==undefined) return {status:'unresolved',reason:'already-selected'};
@@ -70,7 +73,7 @@ export function qualifyHistoricalTownLayout(input: {
     || !Number.isSafeInteger(town.burgId) || town.burgId<=0 || !Number.isFinite(now)
     || town.chronicle.burgId!==town.burgId) return {status:'unresolved',reason:'invalid-context'};
   const entries=Object.entries(town.buildingSources??{});
-  if (!entries.length) return {status:'unresolved',reason:'missing-observations'};
+  if (!entries.length && !input.allowUnobservedExterior) return {status:'unresolved',reason:'missing-observations'};
   const siteFields=['xM','zM','surfaceY','rotationY','doorZSign'] as const;
   try {
     for (const [key,source] of entries) {
@@ -88,7 +91,7 @@ export function qualifyHistoricalTownLayout(input: {
 
   // A caller cannot secure a unique match simply by omitting the alternative.
   // Extend this inventory when another historical reader is introduced.
-  const readers=[1,CURRENT_TOWN_LAYOUT_REVISION];
+  const readers=HISTORICAL_TOWN_LAYOUT_REVISIONS;
   if (candidates.length!==readers.length || readers.some(revision=>
     candidates.filter(candidate=>candidate.revision===revision).length!==1)) {
     return {status:'unresolved',reason:'incomplete-readers'};

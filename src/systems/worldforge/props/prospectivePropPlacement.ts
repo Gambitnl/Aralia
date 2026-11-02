@@ -30,7 +30,7 @@ import { exteriorPropSearchPoints } from './exteriorPropRepair';
 import { createFreshPropClearance } from './freshPropClearance';
 import { convexFootprint, type FootprintPoint } from './propFootprint';
 import { propLandConstraint } from './propLandUse';
-import { renderedPropPose } from '@/components/World3D/groundPropGeometry';
+import { renderedPropPose } from '@/systems/worldforge/props/groundPropGeometry';
 
 export interface FreshPropPlacementReport {
   considered: number;

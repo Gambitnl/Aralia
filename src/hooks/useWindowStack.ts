@@ -75,6 +75,24 @@ export function removeWindowFromStack<WindowId extends string>(
   return orderedIds.filter((id) => id !== windowId);
 }
 
+/**
+ * Replaces the entire open window stack with a single window id (or clears all
+ * open windows when passed `null`). Returning the existing array when it already
+ * holds only that window avoids unnecessary rerenders on repeated step clicks.
+ */
+export function replaceWindowStack<WindowId extends string>(
+  orderedIds: readonly WindowId[],
+  windowId: WindowId | null,
+): readonly WindowId[] {
+  if (windowId === null) {
+    return orderedIds.length === 0 ? orderedIds : [];
+  }
+  if (orderedIds.length === 1 && orderedIds[0] === windowId) {
+    return orderedIds;
+  }
+  return [windowId];
+}
+
 // ============================================================================
 // React Workspace Adapter
 // ============================================================================
@@ -87,6 +105,8 @@ export interface WindowStackController<WindowId extends string> {
   orderedOpenIds: readonly WindowId[];
   /** Open an absent id or bring an already-open id to the front. */
   openOrBringToFront: (windowId: WindowId) => void;
+  /** Replace all currently open windows with a single window (or clear when null). */
+  replaceWith: (windowId: WindowId | null) => void;
   /** Close an id without changing the order of the remaining windows. */
   closeWindow: (windowId: WindowId) => void;
   /** Report whether a registered caller id is currently open. */
@@ -117,6 +137,12 @@ export function useWindowStack<WindowId extends string>(
     setOrderedOpenIds((currentIds) => moveWindowToFront(currentIds, windowId));
   }, []);
 
+  // Primary navigation clicks replace the active window so only one step
+  // shows at a time unless the user explicitly asks to stack another window.
+  const replaceWith = useCallback((windowId: WindowId | null) => {
+    setOrderedOpenIds((currentIds) => replaceWindowStack(currentIds, windowId));
+  }, []);
+
   // Closing unmounts only the named window and preserves every sibling's order.
   const closeWindow = useCallback((windowId: WindowId) => {
     setOrderedOpenIds((currentIds) => removeWindowFromStack(currentIds, windowId));
@@ -131,6 +157,7 @@ export function useWindowStack<WindowId extends string>(
   return {
     orderedOpenIds,
     openOrBringToFront,
+    replaceWith,
     closeWindow,
     isWindowOpen,
   };

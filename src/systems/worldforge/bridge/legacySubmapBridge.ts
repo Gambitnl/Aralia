@@ -28,9 +28,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 31/10/2026, 22:01:54
- * Dependents: components/DesignPreview/steps/JudgeLandCompare.tsx, components/DesignPreview/steps/PreviewStartSelect.tsx, components/DesignPreview/steps/PreviewTown3D.tsx, components/DesignPreview/steps/PreviewWorldforge.tsx, components/DesignPreview/steps/landTerrainJob.ts, components/DesignPreview/steps/landTypeCensus.ts, components/DesignPreview/steps/sidebyside/sideBySideTerrainJob.ts, components/MapPane.tsx, components/World3D/WebGPUProbe.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx, components/World3D/worldGenCore.ts, components/Worldforge/AtlasDemo.tsx, components/Worldforge/SpawnPreview.tsx, components/Worldforge/StartPointSelection.tsx, components/Worldforge/responsiveAtlasCore.ts, components/Worldforge/responsiveAtlasPreparation.ts, components/Worldforge/townBuildingVisit.ts, hooks/useKnownPortsSync.ts, hooks/useTownCrierAnnouncements.ts, hooks/useVoyageArrival.ts, systems/companions/companionWorldActivitySource.ts, systems/gameplay/lodging.ts, systems/religion/worldforgeTemple.ts, systems/social/npcInstitutionStatements.ts, systems/spells/ai/MaterialTagService.ts, systems/travel/learnedLibraryDestinations.ts, systems/travel/npcLocalDirections.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/settlementDefense.ts, systems/worldforge/chronicle/worldChronicle.ts, systems/worldforge/dungeon/world/chronicle.ts, systems/worldforge/dungeon/world/deriveIdentity.ts, systems/worldforge/dungeon/world/dungeonSites.ts, systems/worldforge/dungeon/world/raidPressure.ts, systems/worldforge/dungeon/world/rumors.ts, systems/worldforge/forests/forestKindForCell.ts, systems/worldforge/interior/libraryCollection.ts, systems/worldforge/leaf3d/atlasGroundRestore.ts, systems/worldforge/local/biomeForCell.ts, systems/worldforge/local/burgProximity.ts, systems/worldforge/local/resolveSpawn.ts, systems/worldforge/town/townMapPosition.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/chronicleForLocation.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts, systems/worldforge/travel/localGroundJourney.ts
- * Imports: 13 files
+ * Last Sync: 02/11/2026, 18:02:39
+ * Dependents: components/DesignPreview/steps/JudgeLandCompare.tsx, components/DesignPreview/steps/PreviewStartSelect.tsx, components/DesignPreview/steps/PreviewTown3D.tsx, components/DesignPreview/steps/landTerrainJob.ts, components/DesignPreview/steps/landTypeCensus.ts, components/DesignPreview/steps/sidebyside/sideBySideTerrainJob.ts, components/MapPane.tsx, components/World3D/WebGPUProbe.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx, components/World3D/worldGenCore.ts, components/Worldforge/AtlasDemo.tsx, components/Worldforge/SpawnPreview.tsx, components/Worldforge/responsiveAtlasCore.ts, components/Worldforge/responsiveAtlasPreparation.ts, components/Worldforge/useOffThreadBridgeAtlas.ts, hooks/useTownCrierAnnouncements.ts, hooks/useTownSimRegistration.ts, hooks/useVoyageArrival.ts, systems/companions/companionWorldActivitySource.ts, systems/gameplay/lodging.ts, systems/religion/worldforgeTemple.ts, systems/social/npcInstitutionStatements.ts, systems/spells/ai/MaterialTagService.ts, systems/travel/learnedLibraryDestinations.ts, systems/travel/npcLocalDirections.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/settlementDefense.ts, systems/worldforge/chronicle/worldChronicle.ts, systems/worldforge/dungeon/world/chronicle.ts, systems/worldforge/dungeon/world/deriveIdentity.ts, systems/worldforge/dungeon/world/dungeonSites.ts, systems/worldforge/dungeon/world/raidPressure.ts, systems/worldforge/dungeon/world/rumors.ts, systems/worldforge/forests/forestKindForCell.ts, systems/worldforge/interior/libraryCollection.ts, systems/worldforge/leaf3d/atlasGroundRestore.ts, systems/worldforge/local/biomeForCell.ts, systems/worldforge/local/burgProximity.ts, systems/worldforge/local/resolveSpawn.ts, systems/worldforge/town/prepareHistoricalTownLoad.ts, systems/worldforge/town/townBuildingVisit.ts, systems/worldforge/town/townMapPosition.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/chronicleForLocation.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/townSimRegistration.ts, systems/worldforge/travel/localGroundJourney.ts
+ * Imports: 14 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -41,12 +41,13 @@
 
 import { type FmgAtlasResult } from "../fmg/generateAtlas";
 import { generateFmgWorld, type FmgWorldResult } from "../fmg/generateWorld";
-import { generateRegion } from "../region/generateRegion";
+import { generateRegionFromSource, type TerrainSourceRevision } from "../region/terrainSource";
 import { generateLocal } from "../local/generateLocal";
 import { rootSeedPath } from "../seedPath";
 import { FEET_PER_FMG_PIXEL } from "../adapter/atlasArtifact";
 import { LOCAL_SIZE_FT } from "../units";
 import { CURRENT_TOWN_LAYOUT_REVISION, type TownLayoutStates } from "../town/townLayoutRevision";
+import { POPULATION_RATE, townEnvelopeHalfFtForPeople } from "../town/townScale";
 import type { LocalArtifact, RegionArtifact, RegionTownSite } from "../artifacts";
 import type { Burg } from "../fmg/burgs-generator";
 import { NamesGenerator } from "../fmg/names-generator";
@@ -61,11 +62,143 @@ const FMG_CELLS_DESIRED = 10000;
 const FMG_TEMPLATE = "continents";
 
 // â”€â”€ Module caches (one game world per session; keyed defensively anyway) â”€â”€
+// Keep at most MAX_CACHED_WORLD_SEEDS (3) worlds in memory at once (GG-579):
+// the active running game world (never dropped while pinned) plus up to 2
+// recent preview/regenerated seeds (or 3 recent seeds when no game world is
+// pinned). Each full FMG world + SVG model + regions/locals/town tiles/namers
+// holds tens of MBs of typed arrays and Voronoi state; 3 worlds cover the live
+// game plus A/B preview comparison without unbounded growth when rolling seeds.
+export const MAX_CACHED_WORLD_SEEDS = 3;
+
 const atlasCache = new Map<string, FmgWorldResult>();
 const regionCache = new Map<string, RegionArtifact>();
 const localCache = new Map<string, LocalArtifact>();
 const townTileCache = new Map<string, TownTileEntry[]>();
 const namerCache = new Map<string, NamesGenerator>();
+
+const recentWorldSeeds: number[] = [];
+let activeGameWorldSeed: number | null = null;
+
+export interface WorldSeedCacheListener {
+  onEvictSeed(worldSeed: number): void;
+  onClearAll(): void;
+}
+
+const worldSeedCacheListeners = new Set<WorldSeedCacheListener>();
+
+/**
+ * Register a companion per-seed cache (such as responsiveAtlasPreparation's
+ * preparedCache) so it drops evicted seeds in lockstep with the bridge caches.
+ */
+export function registerWorldSeedCacheListener(
+  listener: WorldSeedCacheListener,
+): () => void {
+  worldSeedCacheListeners.add(listener);
+  return () => {
+    worldSeedCacheListeners.delete(listener);
+  };
+}
+
+function evictWorldSeedFromAllCaches(worldSeed: number): void {
+  const idx = recentWorldSeeds.indexOf(worldSeed);
+  if (idx >= 0) {
+    recentWorldSeeds.splice(idx, 1);
+  }
+  const seedStr = worldforgeSeedString(worldSeed);
+  atlasCache.delete(seedStr);
+  namerCache.delete(seedStr);
+
+  const regionAndLocalPrefix = `${seedStr}/`;
+  for (const key of regionCache.keys()) {
+    if (key.startsWith(regionAndLocalPrefix)) {
+      regionCache.delete(key);
+    }
+  }
+  for (const key of localCache.keys()) {
+    if (key.startsWith(regionAndLocalPrefix)) {
+      localCache.delete(key);
+    }
+  }
+
+  const townTilePrefix = `${seedStr}|`;
+  for (const key of townTileCache.keys()) {
+    if (key.startsWith(townTilePrefix)) {
+      townTileCache.delete(key);
+    }
+  }
+
+  for (const listener of worldSeedCacheListeners) {
+    listener.onEvictSeed(worldSeed);
+  }
+}
+
+function enforceWorldSeedCacheLimit(): void {
+  while (recentWorldSeeds.length > MAX_CACHED_WORLD_SEEDS) {
+    const victimIdx = recentWorldSeeds.findIndex(
+      (seed) => seed !== activeGameWorldSeed,
+    );
+    if (victimIdx < 0) break;
+    evictWorldSeedFromAllCaches(recentWorldSeeds[victimIdx]);
+  }
+}
+
+/**
+ * Record that `worldSeed` was just read or populated in a per-seed cache and
+ * evict the oldest non-game world across all per-seed caches if over budget.
+ */
+export function touchWorldSeedCache(worldSeed: number): void {
+  const existingIdx = recentWorldSeeds.indexOf(worldSeed);
+  if (existingIdx >= 0) {
+    recentWorldSeeds.splice(existingIdx, 1);
+  }
+  recentWorldSeeds.push(worldSeed);
+  enforceWorldSeedCacheLimit();
+}
+
+/**
+ * Remove a seed from the LRU list if an off-thread preparation failed before
+ * installing anything into the bridge caches.
+ */
+export function releaseUninstalledWorldSeedCache(
+  worldSeed: number,
+  hasPreparedEntry: boolean,
+): void {
+  if (hasPreparedEntry) return;
+  if (atlasCache.has(worldforgeSeedString(worldSeed))) return;
+  const idx = recentWorldSeeds.indexOf(worldSeed);
+  if (idx >= 0) {
+    recentWorldSeeds.splice(idx, 1);
+  }
+}
+
+/**
+ * Pin the running game's world seed so preview rolls never evict the live game
+ * world. Pass `null` when no game world is active.
+ */
+export function setGameWorldSeed(worldSeed: number | null): void {
+  activeGameWorldSeed =
+    worldSeed != null && Number.isFinite(worldSeed) ? worldSeed : null;
+  if (
+    activeGameWorldSeed !== null &&
+    recentWorldSeeds.includes(activeGameWorldSeed)
+  ) {
+    touchWorldSeedCache(activeGameWorldSeed);
+  } else {
+    enforceWorldSeedCacheLimit();
+  }
+}
+
+export function getGameWorldSeed(): number | null {
+  return activeGameWorldSeed;
+}
+
+/**
+ * Return the world seeds currently tracked across the unified per-seed caches
+ * (oldest to newest).
+ */
+export function getCachedWorldSeeds(): number[] {
+  return [...recentWorldSeeds];
+}
 
 export interface TownTileEntry {
   x: number;
@@ -195,6 +328,7 @@ export function getBridgeAtlas(worldSeed: number): FmgWorldResult {
     });
     atlasCache.set(seedStr, atlas);
   }
+  touchWorldSeedCache(worldSeed);
   return atlas;
 }
 
@@ -236,6 +370,7 @@ export function installPreparedBridgeAtlas(
     atlas.pack.cells.p.map(([x, y], i) => [x, y, i] as number[]),
   );
   atlasCache.set(worldforgeSeedString(worldSeed), atlas);
+  touchWorldSeedCache(worldSeed);
   return atlas;
 }
 
@@ -345,20 +480,23 @@ export function getWorldforgeLocalForCell(
   // When entering a settlement, pass the burg's atlas/graph PIXEL position so the
   // Locale window frames the town (cells are far larger than the window, and a
   // burg sits anywhere within its cell). Omit for wilderness (centers on site).
-  opts: { centerPx?: readonly [number, number]; townLayouts?: TownLayoutStates } = {},
+  opts: { centerPx?: readonly [number, number]; townLayouts?: TownLayoutStates; terrainRevision?: TerrainSourceRevision } = {},
 ): BridgeLocalResult {
   const atlas = getBridgeAtlas(worldSeed);
 
   const centerTag = opts.centerPx ? `@${Math.round(opts.centerPx[0])},${Math.round(opts.centerPx[1])}` : '';
-  const regionKey = `${worldforgeSeedString(worldSeed)}/cell:${anchorCellId}${centerTag}`;
+  // Terrain is a separate saved source identity (ADR0013/0015). A town
+  // layout must not silently select another generation system.
+  const terrainTag = opts.terrainRevision === 1 ? '/terrain:pre-oct30' : '';
+  const regionKey = `${worldforgeSeedString(worldSeed)}/cell:${anchorCellId}${centerTag}${terrainTag}`;
   let region = regionCache.get(regionKey);
   if (!region) {
-    region = generateRegion(atlas, anchorCellId, rootSeedPath(worldSeed), {
+    region = generateRegionFromSource(atlas, anchorCellId, rootSeedPath(worldSeed), {
       feetPerPixel: FEET_PER_FMG_PIXEL,
       resolutionFt: 100,
       world: atlas,
       windowCenterPx: opts.centerPx,
-    });
+    }, opts.terrainRevision);
     regionCache.set(regionKey, region);
   }
 
@@ -500,12 +638,14 @@ export function resolveWorldforgeLocationEntry(
 // candidate with legacyTileToAtlasCell so water-to-land snapping cannot drift.
 // ============================================================================
 
-function townHalfExtentFt(burg: Burg): number {
-  // Region generation sizes every town envelope from population with the same
-  // clamp. Mirroring that formula here lets the inverse include tiles where
-  // only part of a town envelope overlaps the local ground window.
+export function townHalfExtentFt(burg: Burg): number {
+  // Region generation sizes every town envelope from real people using the
+  // canonical townScale helper (`townEnvelopeHalfFtForPeople(population * POPULATION_RATE)`).
+  // Calling that same helper here keeps the inverse tile lookup aligned with
+  // the actual region town envelope (floor 800 ft up to 3,200 ft half-extent)
+  // so edge-overlapping towns are never missed by the legacy tile bridge.
   const population = burg.population ?? 10;
-  return Math.max(400, Math.min(4000, Math.sqrt(population) * 80));
+  return townEnvelopeHalfFtForPeople(population * POPULATION_RATE);
 }
 
 function isLiveBurg(burg: Burg | undefined): burg is LiveBurg {
@@ -610,7 +750,10 @@ export function getTownTilesForGrid(
   const safeRows = Math.max(1, Math.floor(rows));
   const cacheKey = `${worldforgeSeedString(worldSeed)}|${safeCols}x${safeRows}`;
   const cached = townTileCache.get(cacheKey);
-  if (cached) return cached.map((entry) => ({ ...entry }));
+  if (cached) {
+    touchWorldSeedCache(worldSeed);
+    return cached.map((entry) => ({ ...entry }));
+  }
 
   const atlas = getBridgeAtlas(worldSeed);
   const tileHits = new Map<string, TownTileEntry>();
@@ -699,10 +842,50 @@ export function getTownTilesForGrid(
   return result.map((entry) => ({ ...entry }));
 }
 
+/**
+ * Return the number of entries held for `worldSeed` across each bridge cache
+ * map (diagnostics/tests for GG-579).
+ */
+export function getBridgeCacheCountsForSeed(worldSeed: number): {
+  atlas: number;
+  region: number;
+  local: number;
+  townTiles: number;
+  namer: number;
+} {
+  const seedStr = worldforgeSeedString(worldSeed);
+  const regionAndLocalPrefix = `${seedStr}/`;
+  const townTilePrefix = `${seedStr}|`;
+  let region = 0;
+  for (const key of regionCache.keys()) {
+    if (key.startsWith(regionAndLocalPrefix)) region++;
+  }
+  let local = 0;
+  for (const key of localCache.keys()) {
+    if (key.startsWith(regionAndLocalPrefix)) local++;
+  }
+  let townTiles = 0;
+  for (const key of townTileCache.keys()) {
+    if (key.startsWith(townTilePrefix)) townTiles++;
+  }
+  return {
+    atlas: atlasCache.has(seedStr) ? 1 : 0,
+    region,
+    local,
+    townTiles,
+    namer: namerCache.has(seedStr) ? 1 : 0,
+  };
+}
+
 /** Test/dev hook: drop all cached worlds (e.g. between seeds in a session). */
 export function clearBridgeCaches(): void {
   atlasCache.clear();
   regionCache.clear();
   localCache.clear();
   townTileCache.clear();
+  namerCache.clear();
+  recentWorldSeeds.length = 0;
+  for (const listener of worldSeedCacheListeners) {
+    listener.onClearAll();
+  }
 }

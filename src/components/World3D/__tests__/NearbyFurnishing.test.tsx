@@ -11,7 +11,7 @@ import type {BlueprintPlan} from '@/systems/worldforge/interior/blueprintTypes';
 import type {AvatarFootfall} from '../groundFurnishingInteraction';
 const f=vi.hoisted(()=>({frame:null as null|((state:unknown,delta:number)=>void)}));
 vi.mock('@react-three/fiber',()=>({useFrame:(fn:typeof f.frame)=>{f.frame=fn;}}));
-vi.mock('../terrain/groundSurfaceYM',()=>({groundSurfaceYM:()=>4}));
+vi.mock('@/systems/world3d/groundSurfaceYM',()=>({groundSurfaceYM:()=>4}));
 afterEach(cleanup);
 
 function fixture(){

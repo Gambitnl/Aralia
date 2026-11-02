@@ -224,6 +224,8 @@ export interface ActionCombatLogData extends CommonCombatLogData {
    * (AbilityCommandFactory), leaving no other record of why it applied.
    */
   hiddenAttackerAdvantage?: boolean;
+  /** A confirmed hit promoted by a live nearby-target condition, after defenses. */
+  conditionCritical?: { condition: string; distanceFeet: number };
   interruptedSpellId?: string;
   isAutoMiss?: boolean;
   isHit?: boolean;

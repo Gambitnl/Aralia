@@ -11,16 +11,26 @@ import { liveWorkerCount } from '../../../workers/workerClient';
 import { findCellAtPoint } from '../atlasSvg';
 import {
   clearResponsiveAtlasPreparationCacheForTests,
+  getCachedWorldSeeds,
+  hasPreparedResponsiveAtlasForSeed,
+  MAX_CACHED_WORLD_SEEDS,
   prepareResponsiveAtlas,
   prepareResponsiveAtlasNow,
+  setGameWorldSeed,
 } from '../responsiveAtlasPreparation';
 import type {
   ResponsiveAtlasPrepared,
   ResponsiveAtlasResponse,
 } from '../responsiveAtlasProtocol';
 import {
+  clearBridgeCaches,
   getBridgeAtlas,
+  getBridgeCacheCountsForSeed,
+  getBurgNamer,
+  getTownTilesForGrid,
+  getWorldforgeLocalForCell,
   installPreparedBridgeAtlas,
+  peekBridgeAtlas,
 } from '../../../systems/worldforge/bridge/legacySubmapBridge';
 
 const CONTROLLED_SEED = 1337;
@@ -229,4 +239,109 @@ it('keeps a replacement cached when an older cleared attempt fails', async () =>
   replacement.complete();
   await current;
   expect(factory).toHaveBeenCalledOnce();
+});
+
+describe('bounded per-seed world caches (GG-579)', () => {
+  it('keeps at most MAX_CACHED_WORLD_SEEDS after 10 seeds, never drops the running game world, and rebuilds dropped seeds identically', async () => {
+    clearBridgeCaches();
+    setGameWorldSeed(CONTROLLED_SEED);
+
+    try {
+      // 1. Populate all six per-seed caches for the running game world (CONTROLLED_SEED).
+      const gameWorker = new AtlasTestWorker();
+      const gamePrepPromise = prepareResponsiveAtlas(
+        { seed: CONTROLLED_SEED },
+        () => gameWorker.asWorker(),
+      );
+      gameWorker.complete();
+      const gamePrepared = await gamePrepPromise;
+
+      const gameLandCell = gamePrepared.atlas.pack.cells.h.findIndex((h) => h >= 20);
+      const gameLiveBurg = gamePrepared.atlas.pack.burgs?.find(
+        (b): b is NonNullable<typeof b> & { i: number } => Boolean(b?.i && !b.removed),
+      );
+      expect(gameLandCell).toBeGreaterThanOrEqual(0);
+      expect(gameLiveBurg).toBeDefined();
+
+      getWorldforgeLocalForCell(CONTROLLED_SEED, gameLandCell);
+      getTownTilesForGrid(CONTROLLED_SEED, 30, 20);
+      getBurgNamer(CONTROLLED_SEED, gameLiveBurg!.i);
+
+      expect(getBridgeCacheCountsForSeed(CONTROLLED_SEED)).toEqual({
+        atlas: 1,
+        region: 1,
+        local: 1,
+        townTiles: 1,
+        namer: 1,
+      });
+
+      // 2. Roll 10 different seeds (2001..2010). Seed 2001 runs a real build so we
+      // can verify that every bridge sub-cache populates, gets evicted together,
+      // and later rebuilds the exact same world when requested again.
+      const rolledSeeds = [2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010];
+      const realDroppedSeed = rolledSeeds[0];
+
+      const realAtlasBeforeDrop = getBridgeAtlas(realDroppedSeed);
+      const realAtlasBytesBeforeDrop = canonicalAtlasBytes(realAtlasBeforeDrop);
+      const realTownTilesBeforeDrop = getTownTilesForGrid(realDroppedSeed, 30, 20);
+      const realLandCell = realAtlasBeforeDrop.pack.cells.h.findIndex((h) => h >= 20);
+      const realLiveBurg = realAtlasBeforeDrop.pack.burgs?.find(
+        (b): b is NonNullable<typeof b> & { i: number } => Boolean(b?.i && !b.removed),
+      );
+      getWorldforgeLocalForCell(realDroppedSeed, realLandCell);
+      getBurgNamer(realDroppedSeed, realLiveBurg!.i);
+
+      for (const seed of rolledSeeds) {
+        const w = new AtlasTestWorker();
+        const p = prepareResponsiveAtlas({ seed }, () => w.asWorker());
+        if (seed === realDroppedSeed) {
+          w.emit({ type: 'model', model: prepared.model });
+          w.emit({
+            type: 'atlas',
+            atlas: realAtlasBeforeDrop,
+            transferProperties: prepared.transferProperties,
+          });
+        } else {
+          w.complete();
+        }
+        await p;
+      }
+
+      // 3. At most MAX_CACHED_WORLD_SEEDS (3) stay cached: the running game world + 2 recent seeds.
+      const cachedSeeds = getCachedWorldSeeds();
+      expect(cachedSeeds.length).toBeLessThanOrEqual(MAX_CACHED_WORLD_SEEDS);
+      expect(cachedSeeds).toEqual([CONTROLLED_SEED, 2009, 2010]);
+
+      // 4. The running game's world is never dropped from any cache.
+      expect(hasPreparedResponsiveAtlasForSeed(CONTROLLED_SEED)).toBe(true);
+      expect(peekBridgeAtlas(CONTROLLED_SEED)).toBe(gamePrepared.atlas);
+      expect(getBridgeCacheCountsForSeed(CONTROLLED_SEED)).toEqual({
+        atlas: 1,
+        region: 1,
+        local: 1,
+        townTiles: 1,
+        namer: 1,
+      });
+
+      // 5. Evicted seeds (2001..2008) were dropped from preparedCache and every bridge cache together.
+      for (const droppedSeed of rolledSeeds.slice(0, 8)) {
+        expect(hasPreparedResponsiveAtlasForSeed(droppedSeed)).toBe(false);
+        expect(peekBridgeAtlas(droppedSeed)).toBeUndefined();
+        expect(getBridgeCacheCountsForSeed(droppedSeed)).toEqual({
+          atlas: 0,
+          region: 0,
+          local: 0,
+          townTiles: 0,
+          namer: 0,
+        });
+      }
+
+      // 6. Requesting a dropped seed again rebuilds the exact same world.
+      const rebuiltAtlas = getBridgeAtlas(realDroppedSeed);
+      expect(canonicalAtlasBytes(rebuiltAtlas)).toBe(realAtlasBytesBeforeDrop);
+      expect(getTownTilesForGrid(realDroppedSeed, 30, 20)).toEqual(realTownTilesBeforeDrop);
+    } finally {
+      setGameWorldSeed(null);
+    }
+  }, 60_000);
 });

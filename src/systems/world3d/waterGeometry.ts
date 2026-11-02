@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 18/07/2026, 19:30:57
- * Dependents: systems/world3d/chunkBundle.ts
- * Imports: 3 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * @file waterGeometry.ts
  * Build visible water surfaces for clipped rivers and lake polygons. Ground
@@ -22,11 +6,29 @@
  * ribbon beneath the carved bed. Legacy continent rivers keep their previous
  * terrain-following fallback. Output is chunk-local.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 02/11/2026, 17:13:32
+ * Dependents: systems/world3d/chunkBundle.ts, systems/worldforge/bridge/groundWaterSurfaceQuery.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { ChunkData, ChunkGeometryArrays, ClippedPolyline } from './types';
 import earcut from 'earcut';
 import Delaunator from 'delaunator';
 import { WORLD3D_CONFIG, heightToMeters } from './config';
 import { gridPointToLocal } from './coords';
+import { ribbonBedHeightAt, validateRibbonBed } from '../worldforge/bridge/groundRibbonBed';
 
 const M = WORLD3D_CONFIG.METERS_PER_CELL;
 // Legacy continent rivers do not yet carry the ground-mode waterline contract.
@@ -116,6 +118,9 @@ const EMPTY: WaterMesh = {
 };
 
 export function buildWaterMesh(data: ChunkData): WaterMesh {
+  // Legacy continent packets retain their terrain-following renderer. Native
+  // ground packets must prove their source bed before emitting water faces.
+  if (data.groundRibbonMode !== undefined || data.groundRibbonBed || data.groundRibbonSource) validateRibbonBed(data);
   const lakes = data.lakes?.filter((l) => l.points.length >= 3) ?? [];
   const ribbons = data.rivers.filter((r) => r.points.length >= 2);
   if (lakes.length === 0 && ribbons.length === 0) return EMPTY;
@@ -455,15 +460,18 @@ function emitRibbon(
     const fx = a.f.x + (b.f.x - a.f.x) * t;
     const fz = a.f.z + (b.f.z - a.f.z) * t;
     const local = gridPointToLocal(gx, gy, data.cx, data.cy);
-    // Bed sampled UNDER each vertex, left bank to right bank, from the drawn
-    // ground read bilinearly (what the eye sees under the water; the nearest
-    // 4 m sample stepped the depth in blocks).
+    // Read the native source bed under each ribbon vertex, independent of
+    // display LOD. Legacy and out-of-source samples retain the drawn grid.
+    // This preserves authored vertices and the existing any-wet-vertex mask.
     const halfGrid = halfW / M;
     for (let k = 0; k < RIBBON_ACROSS; k++) {
       const s = (2 * k) / (RIBBON_ACROSS - 1) - 1; // -1 left bank .. +1 right bank
       positions.push(local.x + perpX * halfW * s, y, local.z + perpZ * halfW * s);
       normals.push(0, 1, 0);
-      const d = y - drawnHeightAt(data, gx + perpX * halfGrid * s, gy + perpZ * halfGrid * s);
+      const d = y - (ribbon.waterlineY?.length === ribbon.points.length
+        ? ribbonBedHeightAt(data, gx + perpX * halfGrid * s, gy + perpZ * halfGrid * s,
+          () => drawnHeightAt(data, gx + perpX * halfGrid * s, gy + perpZ * halfGrid * s))
+        : drawnHeightAt(data, gx + perpX * halfGrid * s, gy + perpZ * halfGrid * s));
       depth.push(d);
       pushDepthEncoding(colors, d);
       flow.push(fx, fz);

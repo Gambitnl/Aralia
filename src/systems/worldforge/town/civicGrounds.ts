@@ -111,14 +111,12 @@ export function templeSetPiece(faith: TownFaith | undefined): { setPiece: CivicS
     case 'Shamanism':
     case 'Nature Worship':
     case 'Pantheism':
-    // An open cult meets in a sacred grove.
-    case 'Cult':
+    case 'Cult': // An open cult meets in a sacred grove.
       return { setPiece: 'grove', chosenBy };
     case 'Polytheism':
       return { setPiece: 'pool', chosenBy };
     case 'Non-theism':
-    // A closed order (a sect, a dark cult) keeps behind a cloister wall.
-    case 'Sect':
+    case 'Sect': // A closed order (a sect, a dark cult) keeps behind a cloister wall.
     case 'Dark Cult':
       return { setPiece: 'cloister', chosenBy };
     default:
@@ -138,8 +136,7 @@ export function strongholdSetPiece(kind: 'keep' | 'citadel', holder: TownHolder 
       return { setPiece: 'cloister', chosenBy };
     case 'Republic':
     case 'Union':
-    // An anarchy is ruled by a council or a commune: a hall, not a keep.
-    case 'Anarchy':
+    case 'Anarchy': // An anarchy is ruled by a council or a commune: a hall, not a keep.
       return { setPiece: 'hall-yard', chosenBy };
     default:
       throw new Error(`[civicGrounds] No keep set piece for the state form "${holder.form}".`);
@@ -293,8 +290,7 @@ export function setPieceFeatures(a: SetPieceInput): CivicGroundsFeature[] {
       return out;
     }
     case 'grounds':
-    // A market square places its own pieces (`marketSquare.ts`).
-    case 'market':
+    case 'market': // A market square places its own pieces (`marketSquare.ts`).
       return out;
   }
 }

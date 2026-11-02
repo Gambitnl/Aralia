@@ -19,7 +19,7 @@
 
 import type { GameState } from '../../types/state';
 import type { WorldBusiness } from '../../types/business';
-import type { TownBuildingVisit } from '../../components/Worldforge/townBuildingVisit';
+import type { TownBuildingVisit } from '../worldforge/town/townBuildingVisit';
 import { householdResidentLifeStatusAt, type TownLifeState } from '../worldforge/roster/agentLife';
 import { householdMemberIdentity } from '../worldforge/town/householdBrief';
 import { shopKeeperAt, type ShopLifeView } from '../worldforge/townsim/shopLife';
@@ -73,7 +73,7 @@ export async function businessAttendance(state: Pick<GameState, 'worldSeed' | 'g
   business: WorldBusiness): Promise<BusinessAttendance | undefined> {
   if (business.burgId == null || business.plotId == null || state.worldSeed == null) return undefined;
   try {
-    const { townBuildingVisit } = await import('../../components/Worldforge/townBuildingVisit');
+    const { townBuildingVisit } = await import('../worldforge/town/townBuildingVisit');
     const visit = townBuildingVisit(state.worldSeed, business.burgId, business.plotId,
       state.townSim?.[business.burgId]?.buildingEvents?.[business.plotId],
       state.townSim?.[business.burgId]?.buildingSources?.[business.plotId], state.townSim?.[business.burgId]?.layoutRevision);

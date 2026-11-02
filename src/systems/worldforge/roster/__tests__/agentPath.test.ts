@@ -137,6 +137,54 @@ describe('routeAlongStreets', () => {
   });
 });
 
+// GG-601 (2026-11-02): walking faults found in the 3D crowd.
+describe('street joins and door connectors (GG-601)', () => {
+  it('joins a street that ends on the middle of another span (a T-junction)', () => {
+    // A side lane ends at (50, 0), mid-span on the main street. No shared node.
+    const tee = {
+      burgId: 1,
+      streets: [
+        { id: 1, widthFt: 10, centerline: [[0, 0], [100, 0]] },
+        { id: 2, widthFt: 8, centerline: [[50, 0.4], [50, 80]] },
+      ],
+      plots: [
+        { id: 1, role: 'house', footprint: [[55, 60], [75, 60], [75, 75], [55, 75]] }, // on the lane
+        { id: 2, role: 'market', footprint: [[85, -25], [100, -25], [100, -5], [85, -5]] }, // on the main street
+      ],
+    } as unknown as TownPlan;
+    const graph = buildStreetGraph(tee);
+    const path = routeAlongStreets(graph, frontDoorForPlot(graph, 1)!, frontDoorForPlot(graph, 2)!);
+    // Along the lane to the junction, then along the main street: no straight
+    // line through the gap between them.
+    expect(path.length).toBeGreaterThan(3);
+    expect(path.some(([x, y]) => Math.abs(x - 50) < 1 && Math.abs(y) < 1)).toBe(true);
+  });
+
+  it('keeps the door but joins a street point whose step misses the neighbor', () => {
+    // Plot 1's door is on its south wall, at (34, 12). The square step to the
+    // street at (34, 0) cuts the corner of plot 2 (x 32 to 60, y 2 to 11).
+    const corner = {
+      burgId: 1,
+      streets: [{ id: 1, widthFt: 10, centerline: [[-100, 0], [200, 0]] }],
+      plots: [
+        { id: 1, role: 'house', footprint: [[24, 12], [44, 12], [44, 30], [24, 30]] },
+        { id: 2, role: 'house', footprint: [[32, 2], [60, 2], [60, 11], [32, 11]] },
+      ],
+    } as unknown as TownPlan;
+    const graph = buildStreetGraph(corner);
+    const entrance = graph.plotEntrances.get(1)!;
+    expect(entrance.door).toEqual([34, 12]); // the door does not move
+    expect(entrance.streetPoint[0]).toBeLessThan(34); // a slant step west of the corner
+    const [dx, dy] = entrance.door, [sx, sy] = entrance.streetPoint;
+    let inside = 0;
+    for (let k = 1; k < 40; k++) {
+      const x = dx + ((sx - dx) * k) / 40, y = dy + ((sy - dy) * k) / 40;
+      if (x > 32 && x < 60 && y > 2 && y < 11) inside++;
+    }
+    expect(inside).toBeLessThanOrEqual(2); // under 1 ft of the 12 ft step
+  });
+});
+
 describe('positionAlongPath', () => {
   const path: Point[] = [[0, 0], [0, 100], [100, 100]]; // L, total length 200
 

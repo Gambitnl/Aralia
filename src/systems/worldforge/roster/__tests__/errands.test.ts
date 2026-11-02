@@ -11,6 +11,7 @@ import {
   occupantStopAt,
   errandSpotFor,
   legDepartureDelayHours,
+  registerErrandGroups,
 } from '../townSnapshot';
 import { occupantLocationAt } from '../occupantSchedule';
 import { buildStreetGraph } from '../agentPath';
@@ -119,6 +120,54 @@ describe('errand walks in the street motion', () => {
       const stepM = Math.hypot(cur.x - prev.x, cur.y - prev.y) * 0.3048;
       expect(stepM, `second ${s}`).toBeLessThanOrEqual(1.2 + 1e-6);
       prev = cur;
+    }
+  });
+});
+
+describe('errand groups (GG-601)', () => {
+  it('gives each person at one place a standing point of their own', () => {
+    const graph = buildStreetGraph(plan);
+    const people: Occupant[] = Array.from({ length: 60 }, (_, i) => ({ ...resident(500 + i), homePlotId: i % 2 ? 10 : 11 }));
+    registerErrandGroups(graph, people);
+    const byPlace = new Map<number, Array<[number, number]>>();
+    for (const o of people) {
+      const place = errandPlotFor(graph, o)!;
+      const spot = errandSpotFor(graph, o, place)!.spot;
+      byPlace.set(place, [...(byPlace.get(place) ?? []), spot]);
+    }
+    // People whose OUT hours overlap stand at least 0.5 m (1.64 ft) apart.
+    const hoursOut = (o: Occupant) => outHours(o);
+    let checked = 0;
+    for (let i = 0; i < people.length; i++) for (let j = i + 1; j < people.length; j++) {
+      const a = people[i], b = people[j];
+      if (errandPlotFor(graph, a) !== errandPlotFor(graph, b)) continue;
+      if (!hoursOut(a).some((h) => hoursOut(b).includes(h))) continue;
+      const pa = errandSpotFor(graph, a, errandPlotFor(graph, a)!)!.spot, pb = errandSpotFor(graph, b, errandPlotFor(graph, b)!)!.spot;
+      expect(Math.hypot(pa[0] - pb[0], pa[1] - pb[1])).toBeGreaterThan(1.64);
+      checked++;
+    }
+    expect(checked).toBeGreaterThan(20);
+    expect(byPlace.size).toBeGreaterThan(0);
+  });
+
+  it('keeps a zone short of a close neighbor place', () => {
+    // Two markets with doors 20 ft apart: each zone stays inside its half.
+    const close = {
+      burgId: 1,
+      streets: [{ id: 1, widthFt: 10, centerline: [[-50, 0], [400, 0]] }],
+      plots: [
+        { id: 10, role: 'house', footprint: [[0, 5], [20, 5], [20, 25], [0, 25]] },
+        { id: 20, role: 'market', footprint: [[200, 5], [220, 5], [220, 25], [200, 25]] },
+        { id: 21, role: 'market', footprint: [[220, 5], [240, 5], [240, 25], [220, 25]] },
+      ],
+    } as unknown as TownPlan;
+    const graph = buildStreetGraph(close);
+    for (let i = 0; i < 40; i++) {
+      const o = resident(900 + i);
+      const place = errandPlotFor(graph, o)!;
+      const [x] = errandSpotFor(graph, o, place)!.spot;
+      if (place === 20) expect(x).toBeLessThan(220);
+      else expect(x).toBeGreaterThan(220);
     }
   });
 });

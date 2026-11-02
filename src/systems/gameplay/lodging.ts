@@ -21,10 +21,10 @@
 import type { GameState } from '../../types/state';
 import { getPartyFundsGp, payPartyFunds } from '../economy/partyFunds';
 import type { GuestBedReference, LodgingOffer, LodgingReservation, LodgingRestAdmission } from '../../types/rest';
-import type { TownBuildingVisit } from '../../components/Worldforge/townBuildingVisit';
+import type { TownBuildingVisit } from '../worldforge/town/townBuildingVisit';
 import type { GroundWorld } from '../worldforge/bridge/groundChunkLoader';
 import type { LocalArtifact, RegionArtifact } from '../worldforge/artifacts';
-import { publishedGroundWaterSurfaceYAt } from '../worldforge/bridge/groundWaterSurfaceQuery';
+import { inspectGroundWater } from '../worldforge/bridge/groundWaterSurfaceQuery';
 import { normalizeDungeonExplorationPosition } from '../worldforge/dungeon/world/dungeonLifecycle';
 import {projectSurfaceHostileOutcomes, surfaceHostileSourceScope, SURFACE_HOSTILE_CONTACT_RADIUS_M} from '../combat/worldScenario/surfaceHostileContinuity';
 
@@ -152,19 +152,21 @@ async function restSourceFrame(state: GameState): Promise<{local: LocalArtifact;
     import('../worldforge/leaf3d/atlasGroundRestore'),
     import('../worldforge/bridge/legacySubmapBridge'),
   ]);
-  const restored = state.atlasGroundAddress ? restoreAtlasGroundDrilldown(state.atlasGroundAddress, state.worldSeed, state.townSim) : null;
+  const restored = state.atlasGroundAddress ? restoreAtlasGroundDrilldown(state.atlasGroundAddress, state.worldSeed, state.townSim, state.worldforgeTerrainRevision) : null;
   if (restored && restored.status !== 'ready') return {error: 'The resting place could not be verified. Return to your current location before resting.'};
   const anchorCell = state.entry3DAnchor?.cellId ?? state.playerCell?.cellId;
   if (!restored && (anchorCell == null || state.playerGroundPos.tileX !== anchorCell || state.playerGroundPos.tileY !== 0)) return {error: 'The resting place could not be verified. Return to your current location before resting.'};
   return restored?.status === 'ready' ? restored.drilldown
-    : getWorldforgeLocalForCell(state.worldSeed, anchorCell!, {centerPx: state.entry3DAnchor?.centerPx, townLayouts: state.townSim});
+    : getWorldforgeLocalForCell(state.worldSeed, anchorCell!, {centerPx: state.entry3DAnchor?.centerPx, townLayouts: state.townSim, terrainRevision: state.worldforgeTerrainRevision});
 }
 
 /** Read the water surfaces already drawn by the world; do not flatten a river,
  * raise the body, or turn its submerged channel floor into a safe campsite. */
 export function submergedRestError(ground: GroundWorld, point: {xM: number; zM: number; yM?: number}): string | null {
   if (![point.xM, point.zM, point.yM].every(Number.isFinite)) return 'Your footing must be verified in the world before resting here.';
-  const waterY = publishedGroundWaterSurfaceYAt(ground, point.xM, point.zM);
+  const water = inspectGroundWater(ground, point.xM, point.zM);
+  if (water.status === 'unavailable') return 'The water at your resting place could not be verified. Reach verified dry, supported ground before resting.';
+  const waterY = water.surfaceY;
   return waterY !== undefined && waterY > point.yM! + 0.05
     ? 'You are below the water surface. Reach dry, supported ground before taking an ordinary rest.' : null;
 }
@@ -185,7 +187,7 @@ function restGroundKey(state: GameState): string {
       [source.planSignature, source.furnishingRepair?.recipe, source.circulationRepair?.planSignature, source.householdRevision?.planSignature]])),
   }]));
   const frame = state.atlasGroundAddress ?? state.entry3DAnchor ?? {cellId: state.playerCell?.cellId};
-  return JSON.stringify([state.worldSeed, frame, state.worldforgeDeltas ?? [], history, sources]);
+  return JSON.stringify([state.worldSeed, state.worldforgeTerrainRevision, frame, state.worldforgeDeltas ?? [], history, sources]);
 }
 /** The loader publishes its already-built source, using the state captured for
  * that generation. Opening a rest in the same world needs no second world build. */

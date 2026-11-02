@@ -136,6 +136,26 @@ describe('rendered ground picking', () => {
   };
   const ray = new THREE.Ray(new THREE.Vector3(0, 20, 20), new THREE.Vector3(0, -1, -1).normalize());
 
+  it('picks the visible raised floor instead of shifting the tap onto buried terrain', () => {
+    // In the played temple the two surfaces differ by only 12cm, yet an
+    // oblique floor tap shifts sideways when it follows the terrain below.
+    const scene = new THREE.Scene(), floor = raisedTerrain();
+    floor.name = 'world3d:walk-surface'; floor.position.y = 10.12;
+    scene.add(raisedTerrain(), floor); scene.updateMatrixWorld(true);
+    const hit = renderedGroundHit(scene, ray)!;
+    expect(hit.y).toBeCloseTo(10.12);
+    expect(hit.z).toBeCloseTo(10.12);
+  });
+
+  it('does not turn a stair side or a hidden floor into a walking destination', () => {
+    const scene = new THREE.Scene(), hidden = raisedTerrain();
+    hidden.name = 'world3d:walk-surface'; hidden.position.y = 15; hidden.visible = false;
+    const side = new THREE.Mesh(new THREE.BoxGeometry(10, 10, 1), new THREE.MeshBasicMaterial());
+    side.name = 'world3d:walk-surface'; side.position.set(0, 15, 17);
+    scene.add(raisedTerrain(), hidden, side); scene.updateMatrixWorld(true);
+    expect(renderedGroundHit(scene, ray)?.y).toBeCloseTo(10);
+  });
+
   it('lands on the raised visible ground rather than the low capture plane', () => {
     const scene = new THREE.Scene(); scene.add(raisedTerrain()); scene.updateMatrixWorld(true);
     const hit = renderedGroundHit(scene, ray)!;

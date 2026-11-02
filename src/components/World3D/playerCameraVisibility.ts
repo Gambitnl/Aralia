@@ -91,23 +91,14 @@ export function createPlayerCameraSightline(getScene: () => THREE.Scene | null,
       while (ancestor && ancestor !== scene && ancestor.visible) ancestor = ancestor.parent;
       if (ancestor !== scene || !scene.visible || !raycaster.ray.intersectsBox(bounds)) continue;
       if (!updated.has(root)) { root.updateWorldMatrix(true, true); updated.add(root); }
-      if (root.name === 'world3d:terrain' || root.name === 'world3d:roads') {
-        const hit = nearestGroundCameraHit(root, raycaster);
-        if (hit !== null) {
-          const armDistance = hit / sampleLength * distance;
-          if (nearest === null || armDistance < nearest) nearest = armDistance;
-        }
-        continue;
-      }
-      for (const hit of raycaster.intersectObject(root, true)) {
-        let visible = true;
-        for (let object: THREE.Object3D | null = hit.object; object; object = object.parent) {
-          if (!object.visible) { visible = false; break; }
-        }
-        const mesh = hit.object as THREE.Mesh;
-        const material = Array.isArray(mesh.material) ? mesh.material[hit.face?.materialIndex ?? 0] : mesh.material;
-        if (!visible || !material?.visible || material.opacity <= 0 || (material.transparent && material.opacity < 0.95)) continue;
-        const armDistance = hit.distance / sampleLength * distance;
+      // Dense interior floors/walls need the same exact triangle candidate
+      // index as terrain. Native temple play spent most sampled CPU time in
+      // full building scans. The helper still reads current leaf transforms,
+      // material sides/visibility and custom raycasts; nothing becomes clear
+      // merely because it is expensive, and no physical geometry is changed.
+      const hit = nearestGroundCameraHit(root, raycaster);
+      if (hit !== null) {
+        const armDistance = hit / sampleLength * distance;
         if (nearest === null || armDistance < nearest) nearest = armDistance;
       }
     }

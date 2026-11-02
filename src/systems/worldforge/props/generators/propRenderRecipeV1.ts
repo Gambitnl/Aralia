@@ -26,7 +26,7 @@ import * as THREE from 'three';
 import type { PropInstance } from '../propSchema';
 import { propSourceId } from '../propSchema';
 import type { SceneOrigin } from '@/systems/world3d/sceneOrigin';
-import type { RenderedGroundPropShape, PropShapePoint } from '@/components/World3D/groundPropGeometry';
+import type { RenderedGroundPropShape, PropShapePoint } from '@/systems/worldforge/props/groundPropGeometry';
 import { createRockGeometry } from './rockGeometry';
 import { createLogGeometry } from './logGeometry';
 import { createBushGeometry } from './bushGeometry';

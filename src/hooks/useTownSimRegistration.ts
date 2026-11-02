@@ -20,12 +20,19 @@ import type { Dispatch } from 'react';
 import { GameState } from '../types';
 import { AppAction } from '../state/actionTypes';
 import { burgIdForLocation } from '../systems/worldforge/townsim/chronicleForLocation';
+import { setGameWorldSeed } from '../systems/worldforge/bridge/legacySubmapBridge';
 
 export function useTownSimRegistration(
   gameState: GameState,
   dispatch: Dispatch<AppAction>,
 ): void {
   const { worldSeed } = gameState;
+  const hasActiveParty = gameState.party.length > 0;
+  useEffect(() => {
+    if (hasActiveParty && Number.isFinite(worldSeed) && worldSeed > 0) {
+      setGameWorldSeed(worldSeed);
+    }
+  }, [hasActiveParty, worldSeed]);
   // Grid retirement: the canonical cell is the sole "which town am I in?" source.
   const cellId = gameState.playerCell?.cellId ?? null;
   const burgId = useMemo(() => {

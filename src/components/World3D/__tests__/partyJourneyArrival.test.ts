@@ -4,8 +4,8 @@ import { COMPANIONS } from '@/data/companions';
 import { createMockGameState, createMockPlayerCharacter } from '@/utils/core/factories';
 import { qualifyPartyJourneyArrival } from '../partyJourneyArrival';
 const water = vi.hoisted(() => ({ y: undefined as number | undefined }));
-vi.mock('../terrain/groundSurfaceYM', () => ({ groundSurfaceYM: () => 0 }));
-vi.mock('@/systems/worldforge/bridge/groundWaterSurfaceQuery', () => ({ publishedGroundWaterSurfaceYAt: () => water.y }));
+vi.mock('@/systems/world3d/groundSurfaceYM', () => ({ groundSurfaceYM: () => 0 }));
+vi.mock('@/systems/worldforge/bridge/groundWaterSurfaceQuery', () => ({ inspectGroundWater: () => ({status: 'valid', surfaceY: water.y}) }));
 vi.mock('../initialTownEntry', async original => ({ ...await original<typeof import('../initialTownEntry')>(), measureEntryActors: (people: Array<{ id: string }>) => people.map(p => ({ id: p.id, offset: { x: 0, z: 0 }, body: { halfWidthM: .4, heightM: 1.7 } })) }));
 function ground() { return { extentMetersX: 100, extentMetersZ: 100, towns: [], buildings: [], roads: [], plazas: [], decks: [], walls: [], rivers: [] } as unknown as GroundWorld; }
 function state() {

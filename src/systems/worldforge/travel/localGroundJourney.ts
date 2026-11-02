@@ -24,7 +24,7 @@ import { getBridgeAtlas, getWorldforgeLocalForCell } from '../bridge/legacySubma
 import { entry3DAnchorForCell } from '../local/gridAtlasBridge';
 import { biomeIdForCell } from '../local/biomeForCell';
 import { FEET_PER_FMG_PIXEL } from '../adapter/atlasArtifact';
-import { generateRegion } from '../region/generateRegion';
+import { generateRegionFromSource as generateRegion,type TerrainSourceRevision } from '../region/terrainSource';
 import { makeSeedPath, rootSeedPath, rngFromPath } from '../seedPath';
 import { landSpeedFactor, landDanger, navDC, climbFactorFor } from './routeTerrain';
 import { planFastestRoute, type RoutePlan, type TravelGraph } from '../../travel/routePlanning';
@@ -73,6 +73,7 @@ export function acceptedGroundPoint(state: GameState): Point | null {
   const bounds = receipt?.localBounds ?? getWorldforgeLocalForCell(state.worldSeed, cell, {
     centerPx: state.entry3DAnchor?.centerPx ?? entry3DAnchorForCell(getBridgeAtlas(state.worldSeed), cell).centerPx,
     townLayouts: state.townSim,
+    terrainRevision: state.worldforgeTerrainRevision,
   }).local.bounds;
   if (body.xM < 0 || body.zM < 0 || body.xM * FT_PER_M > bounds.width || body.zM * FT_PER_M > bounds.height) return null;
   return [bounds.x + body.xM * FT_PER_M, bounds.y + body.zM * FT_PER_M];
@@ -210,8 +211,8 @@ export function planLocalTerrainRoute(
 }
 
 const terrainCache = new Map<string, RegionArtifact[]>();
-function journeyRegions(seed: number, cell: number, origin: Point, destination: Point): RegionArtifact[] {
-  const key = `${seed}:${cell}:${origin.join(',')}:${destination.join(',')}`;
+function journeyRegions(seed: number, cell: number, origin: Point, destination: Point, terrainRevision?:TerrainSourceRevision): RegionArtifact[] {
+  const key = `${seed}:${cell}:${origin.join(',')}:${destination.join(',')}:terrain:${terrainRevision ?? 2}`;
   const cached = terrainCache.get(key); if (cached) return cached;
   const atlas = getBridgeAtlas(seed), result: RegionArtifact[] = [];
   const loX = Math.min(origin[0], destination[0]) - PADDING_FT - STEP_FT;
@@ -220,7 +221,7 @@ function journeyRegions(seed: number, cell: number, origin: Point, destination: 
   const hiY = Math.max(origin[1], destination[1]) + PADDING_FT + STEP_FT;
   for (let y = loY; y <= hiY; y += 20000) for (let x = loX; x <= hiX; x += 20000) {
     result.push(generateRegion(atlas, cell, rootSeedPath(seed), { feetPerPixel: FEET_PER_FMG_PIXEL, resolutionFt: 100, world: atlas,
-      windowCenterPx: [(x + 10000) / FEET_PER_FMG_PIXEL, (y + 10000) / FEET_PER_FMG_PIXEL], applySettlementFloor: false }));
+      windowCenterPx: [(x + 10000) / FEET_PER_FMG_PIXEL, (y + 10000) / FEET_PER_FMG_PIXEL], applySettlementFloor: false }, terrainRevision));
   }
   if (terrainCache.size >= 4) terrainCache.delete(terrainCache.keys().next().value!);
   terrainCache.set(key, result); return result;
@@ -247,13 +248,13 @@ export function quoteLocalGroundJourney(state: GameState, drilldown: AtlasGround
   const biomeIndex = (atlas.pack.cells as unknown as { biome: ArrayLike<number> }).biome[drilldown.atlasCellId];
   const biomeName = atlas.biomesData.name[biomeIndex];
   const speed = exhaustedSpeedMph(3, partyExhaustionLevel(state.party));
-  const restored = state.atlasGroundAddress ? restoreAtlasGroundDrilldown(state.atlasGroundAddress, state.worldSeed, state.townSim) : null;
+  const restored = state.atlasGroundAddress ? restoreAtlasGroundDrilldown(state.atlasGroundAddress, state.worldSeed, state.townSim, state.worldforgeTerrainRevision) : null;
   if (restored && restored.status !== 'ready') throw new Error('Your saved departure terrain could not be restored. Return to your current position first.');
-  const originRegion = restored?.status === 'ready' ? restored.drilldown.region : getWorldforgeLocalForCell(state.worldSeed, drilldown.atlasCellId, { centerPx: state.entry3DAnchor?.centerPx ?? entry3DAnchorForCell(atlas, drilldown.atlasCellId).centerPx , townLayouts: state.townSim}).region;
+  const originRegion = restored?.status === 'ready' ? restored.drilldown.region : getWorldforgeLocalForCell(state.worldSeed, drilldown.atlasCellId, { centerPx: state.entry3DAnchor?.centerPx ?? entry3DAnchorForCell(atlas, drilldown.atlasCellId).centerPx , townLayouts: state.townSim, terrainRevision: state.worldforgeTerrainRevision}).region;
   // The accepted Local's padded land remains authoritative where it exists.
   // The rest of the corridor is surveyed without creating new settlement pads.
   const sourceRegions = [...(originRegion ? [originRegion] : []), drilldown.region,
-    ...journeyRegions(state.worldSeed, drilldown.atlasCellId, origin, destination)];
+    ...journeyRegions(state.worldSeed, drilldown.atlasCellId, origin, destination, state.worldforgeTerrainRevision)];
   const ownsPoint = (p: Point) => atlas.pack.cells.q?.find(p[0] / FEET_PER_FMG_PIXEL, p[1] / FEET_PER_FMG_PIXEL)?.[2] === drilldown.atlasCellId;
   const departureRefusal = localTerrainEndpointRefusal(origin, sourceRegions, 'departure', ownsPoint);
   if (departureRefusal) throw new Error(departureRefusal);
@@ -296,7 +297,7 @@ export function quoteLocalGroundJourney(state: GameState, drilldown: AtlasGround
     ...(forced.isForcedMarch && forced.constitutionSaveDC > 0 ? { forcedMarch: { hours: totalSeconds / 3600, saveDC: forced.constitutionSaveDC } } : {}),
     ...(dangerRoll.encounter ? { encounterMessage: 'Danger interrupts your journey.', encounter: { kind: 'land-route-ambush' as const, monsters: pickTravelEncounterMonsters(route, path), routeCells: route.cells } } : {}),
   };
-  const key = JSON.stringify([path, origin, destination, state.party.map(p => [p.id, p.hp, p.conditions]), state.inventory, state.travelMinutesRemainder, meta,
+  const key = JSON.stringify([state.worldforgeTerrainRevision ?? 2, path, origin, destination, state.party.map(p => [p.id, p.hp, p.conditions]), state.inventory, state.travelMinutesRemainder, meta,
     ...(townRoute ? ['town-streets', route.points] : [])]);
   return { key, label: drilldown.focus.label, biomeId, route, meta, totalSeconds, encounterChance: dangerRoll.chance,
     ...(townRoute ? {routeKind: 'town-streets' as const} : {}),

@@ -157,6 +157,15 @@ export async function putSave(slotId: string, serializedPayload: string): Promis
     store.put(record);
 
     tx.oncomplete = () => resolve();
+    // Browser cancellation can abort without a request error. Leaving this
+    // promise pending also strands emergency recovery and every normal Load
+    // waiting for startup. Reject without clearing or replacing any save;
+    // recovery keeps its original emergency payload when this write fails.
+    tx.onabort = () => {
+      const error = tx.error ?? new DOMException('Save write transaction aborted', 'AbortError');
+      logger.error('IndexedDB: Save transaction aborted', { slotId, error });
+      reject(error);
+    };
     tx.onerror = () => {
       logger.error('IndexedDB: Failed to write save', { slotId, error: tx.error });
       reject(tx.error);

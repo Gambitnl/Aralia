@@ -27,7 +27,7 @@ import type { GroundWorld } from './groundChunkLoader';
 import type { TownPlan } from '../artifacts';
 import type { TownRoster } from '../roster/types';
 import { buildStreetGraph, type Point } from '../roster/agentPath';
-import { commuteArrivalDelayAtHour } from '../roster/townSnapshot';
+import { commuteArrivalDelayAtHour, registerErrandGroups } from '../roster/townSnapshot';
 import { siteOrientationFromQuad, sitePartScenePosition } from './sitePartTransform';
 
 type ResidentBuilding = GroundWorld['buildings'][number];
@@ -72,6 +72,9 @@ export function residentDoorRoutes(
     return {...building, frontDoorOffsetX: door.x, frontDoorOffsetZ: door.z};
   });
   const streetGraph = buildStreetGraph(plan, doors);
+  // GG-601: the errand slots decide each walk's last step, so they must be
+  // set before the arrival delays below read the walk times.
+  registerErrandGroups(streetGraph, roster.occupants);
   const members = new Map(roster.occupants.filter(o => o.householdMemberId !== undefined)
     .map(o => [o.householdMemberId!, o]));
   return {

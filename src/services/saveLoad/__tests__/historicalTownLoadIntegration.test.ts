@@ -13,7 +13,7 @@ vi.mock('../loadHistoricalTownSource',()=>({loadHistoricalTownSource:vi.fn()}));
 vi.mock('../saveStorageInit',()=>({waitForStorageInitialization:vi.fn().mockResolvedValue(undefined)}));
 const key='aralia_rpg_default_save';
 function fixture(){
- return createMockGameState({worldSeed:77,currentLocationId:'cell_9',party:[createMockPlayerCharacter({id:'hero'})],
+ return createMockGameState({worldSeed:77,worldforgeTerrainRevision:2,currentLocationId:'cell_9',party:[createMockPlayerCharacter({id:'hero'})],
   playerCell:{cellId:9,localeCoords:null},playerGroundPos:{tileX:9,tileY:0,xM:20,zM:30,yM:2},
   townSim:{8:{burgId:8,layoutRevision:undefined,villagers:{},chronicle:{burgId:8,events:[],nextEventId:1},
    lastSimDay:1,nextVillagerId:1,buildingSources:{1:{cellId:9} as ObservedBuildingSource}}}});
@@ -30,10 +30,11 @@ describe('saved-town preflight in ordinary loadGame',()=>{
   expect(notify).toHaveBeenCalledWith({type:'warning',message:result.message});
  });
  it('selects the qualified revision in loaded data, then preserves it through an ordinary resave/reload',async()=>{
-  await saveGame(fixture());const before=localStorage.getItem(key);
+  const old=fixture();delete old.worldforgeTerrainRevision;
+  await saveGame(old);const before=localStorage.getItem(key);
   vi.mocked(loadHistoricalTownSource).mockImplementation(async state=>({
-   state:{...state,townSim:{...state.townSim,8:{...state.townSim[8],layoutRevision:1}}},
-   result:{status:'qualified',burgId:8,revision:1,observations:1,founders:1,surfaceY:2}}));
+   state:{...state,worldforgeTerrainRevision:1,townSim:{...state.townSim,8:{...state.townSim[8],layoutRevision:1}}},
+   result:{status:'qualified',burgId:8,revision:1,terrainRevision:1,observations:1,founders:1,surfaceY:2}}));
   const result=await loadGame(key);expect(result.success).toBe(true);
   if(!result.success||!('data' in result)||!result.data)throw new Error('Expected loaded state');
   expect(result.data.townSim[8].layoutRevision).toBe(1);expect(result.data.playerGroundPos).toEqual(fixture().playerGroundPos);
@@ -41,6 +42,7 @@ describe('saved-town preflight in ordinary loadGame',()=>{
   await saveGame(result.data);const reloaded=await loadGame(key);
   expect(reloaded.success).toBe(true);if(!reloaded.success||!('data' in reloaded)||!reloaded.data)throw new Error('Expected reload');
   expect(reloaded.data.townSim[8].layoutRevision).toBe(1);
+  expect(reloaded.data.worldforgeTerrainRevision).toBe(1);
   expect(vi.mocked(loadHistoricalTownSource)).toHaveBeenCalledTimes(1);
  });
  it('reports a failed worker separately from corrupt save data and leaves storage intact',async()=>{
@@ -62,5 +64,13 @@ describe('saved-town preflight in ordinary loadGame',()=>{
   if(!result.success||!('data' in result)||!result.data)throw new Error('Expected terminal save');
   expect(result.data.phase).toBe(GamePhase.GAME_OVER);
   expect(vi.mocked(loadHistoricalTownSource)).not.toHaveBeenCalled();
+ });
+ it('refuses a future terrain identity before mounting or modifying storage',async()=>{
+  const state=fixture();Object.assign(state,{worldforgeTerrainRevision:99});
+  await saveGame(state);const before=localStorage.getItem(key);
+  const result=await loadGame(key);
+  expect(result.success).toBe(false);
+  expect(vi.mocked(loadHistoricalTownSource)).not.toHaveBeenCalled();
+  expect(localStorage.getItem(key)).toBe(before);
  });
 });

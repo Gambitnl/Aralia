@@ -1,4 +1,4 @@
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import * as THREE from 'three';
 import {cameraBeforeBuilding, createPlayerCameraSightline} from '../playerCameraVisibility';
 
@@ -12,6 +12,25 @@ function fixture() {
 }
 
 describe('rendered player camera sightline', () => {
+  it('keeps exact dense-building clearance without rereading the entire structure on warm rays', () => {
+    // Native temple profiling found repeated full triangle scans in this path.
+    // Count source reads instead of imposing a machine-dependent time limit.
+    const scene = new THREE.Scene(), building = new THREE.Group();
+    building.name = 'world3d:site-building';
+    const wall = new THREE.Mesh(new THREE.PlaneGeometry(256, 256, 128, 128),
+      new THREE.MeshBasicMaterial({side: THREE.DoubleSide}));
+    wall.position.z = 3; building.add(wall); scene.add(building);
+    const from = [0, 1.15, 0] as const, to = [0, 2.6, 6] as const;
+    const query = createPlayerCameraSightline(() => scene, () => 0);
+    const expected = 3 * Math.hypot(6, 1.45) / 6;
+    expect(query(from, to)).toBeCloseTo(expected, 10);
+    const reads = vi.spyOn(wall.geometry.getAttribute('position'), 'getX');
+    for (let i = 0; i < 4; i++) expect(query(from, to)).toBeCloseTo(expected, 10);
+    expect(reads.mock.calls.length).toBeLessThan(5000);
+    reads.mockRestore();
+    wall.position.x = 1000;
+    expect(query(from, to)).toBeNull();
+  });
   it('does not treat the projected ground shadow as the physical figure width', () => {
     const scene = new THREE.Scene(), building = new THREE.Group(), player = new THREE.Group();
     building.name = 'world3d:site-building'; player.name = 'world3d:player';

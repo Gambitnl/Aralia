@@ -22,9 +22,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/10/2026, 12:14:17
+ * Last Sync: 02/11/2026, 20:18:49
  * Dependents: commands/factory/spell/weaponBridges.ts, commands/index.ts, components/DesignPreview/steps/spells/shieldScenario.tsx
- * Imports: 44 files
+ * Imports: 45 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -77,6 +77,7 @@ import { canAffordActionCost, consumeActionCost } from '@/utils/combat/actionEco
 import { breakTauntsForEvent, hasTauntAttackDisadvantage } from '@/systems/combat/tauntConstraint';
 import { hasGrappledAttackDisadvantage } from '@/utils/combat/grappleUtils';
 import { getCombatantAltitudeFeet, getCombatDistanceFeet } from '@/utils/spatial/elevationGeometry';
+import { conditionAttackBenefits } from '@/utils/combat/statusConditionUtils';
 import { isIncapacitated } from '@/utils/combat/deathSaveUtils';
 import { getHighGroundAdvantage } from '@/utils/spatial/elevationSemantics';
 import {
@@ -623,7 +624,8 @@ export class WeaponAttackCommand implements SpellCommand {
         hasDisadvantage = true;
       }
 
-      let hasAdvantage = false;
+      const targetConditionBenefits = conditionAttackBenefits(liveAttacker, currentTarget, newState.mapData);
+      let hasAdvantage = targetConditionBenefits.advantage;
 
       // Hide-derived Hidden is observer-relative: it grants Advantage only
       // while this defender has not detected the source. The status is removed
@@ -883,6 +885,7 @@ export class WeaponAttackCommand implements SpellCommand {
       // the reason even when Advantage cancels it; do not guess whether darkness,
       // a sight blocker or a sense radius caused the shared hidden result.
       if (targetUnseen) rollStr += ' (Target unseen to attacker)';
+      if (targetConditionBenefits.advantage) rollStr += ` (Target ${targetConditionBenefits.condition})`;
 
       if (closeCombatPressure) rollStr += ` (${RANGED_PRESSURE_REASON})`;
       if (longRangeShot) rollStr += ` (${LONG_RANGE_REASON})`;
@@ -959,6 +962,19 @@ export class WeaponAttackCommand implements SpellCommand {
         });
       }
 
+      // A condition promotes a confirmed hit, never a miss or an automatic
+      // hit. Re-read after defenses, and use the shared footprint/height ruler
+      // so reach weapons and ranged attacks obey the same five-foot boundary.
+      const hitConditionBenefits = conditionAttackBenefits(this.getLiveCaster(newState), currentTarget, newState.mapData);
+      const conditionCritical = isHit && !isCritical && hitConditionBenefits.criticalOnHit
+        && hitConditionBenefits.condition && hitConditionBenefits.distanceFeet !== undefined
+        ? { condition: hitConditionBenefits.condition, distanceFeet: hitConditionBenefits.distanceFeet }
+        : undefined;
+      if (conditionCritical) {
+        isCritical = true;
+        rollStr += ` (${conditionCritical.condition}: hit within 5 ft is critical)`;
+      }
+
       // Publish the structured attack result at the same point the command
       // knows the real hit/miss outcome. Reactive systems and future action
       // envelope bridges should consume this event instead of scraping prose
@@ -1020,6 +1036,7 @@ export class WeaponAttackCommand implements SpellCommand {
           attackType: attackEventClassification.attackType,
           weaponType: attackEventClassification.weaponType,
           hiddenAttackerAdvantage,
+          conditionCritical,
           // Tavern Brawler (agora-4325.2): after a hit with an Unarmed Strike
           // or an Improvised Weapon the feat OFFERS a free 5-foot shove. It is
           // published as data on the attack entry rather than applied here, so

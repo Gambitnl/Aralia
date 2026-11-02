@@ -26,6 +26,22 @@ let atlas:ReturnType<typeof getBridgeAtlas>;
 beforeAll(()=>{atlas=getBridgeAtlas(seed);},60000);
 
 describe('explicit town layout revision',()=>{
+ it('recovers the pre-road-scale Kodok source without changing reader1 or the default',()=>{
+  const worldSeed=1793176397587,burg=200,world=getBridgeAtlas(worldSeed);
+  const source=getCanonicalTownPlan(world,worldSeed,burg,4),artifact=toArtifactPlan(source,burg).plan;
+  expect(artifact.plots).toHaveLength(78);
+  expect(artifact.plots.filter(p=>p.role==='market'||p.role==='workshop').map(p=>p.id))
+    .toEqual([13,14,18,20,21,22,23,24,31,37,49,64,68]);
+  const roster=generateTownRoster(artifact,canonicalTownSeedPath(worldSeed,burg),{nameFor:getBurgNamer(worldSeed,burg)});
+  expect(roster.occupants).toHaveLength(219);
+  expect(roster.occupants.slice(0,6).map(p=>[p.id,p.name,p.householdMemberId])).toEqual([
+   [1,'Hew Oakton','b0:head'],[2,'Sten Oakton','b0:spouse'],[3,'Fen Oakton','b0:child:0'],
+   [4,'Bryn Woodstead','b1:head'],[5,'Bess Woodstead','b1:child:0'],[6,'Ulric Ashbourne','b2:head'],
+  ]);
+  expect(requireTownLayoutRevision(4)).toBe(4);
+  expect(getCanonicalTownPlan(world,worldSeed,burg)).toBe(getCanonicalTownPlan(world,worldSeed,burg,2));
+  expect(getCanonicalTownPlan(world,worldSeed,burg,1)).not.toBe(source);
+ });
   it('reconstructs the exact normalized protected Stamstad layout',()=>{
     const plan=getCanonicalTownPlan(atlas,seed,burgId,1);
     expect(plan.plots).toHaveLength(65);
@@ -89,7 +105,7 @@ describe('explicit town layout revision',()=>{
   // plans; alone it takes 4.6 s against the 5 s default, so it timed out
   // whenever other suites ran beside it.
   },20000);
-  it.each([0,4,'1',null,NaN])('rejects unsupported revision %s instead of silently substituting',value=>{
+  it.each([0,5,'1',null,NaN])('rejects unsupported revision %s instead of silently substituting',value=>{
     expect(()=>requireTownLayoutRevision(value)).toThrow('unsupported layout revision');
     expect(()=>getCanonicalTownPlan(atlas,seed,burgId,value as TownLayoutRevision)).toThrow('unsupported layout revision');
   });

@@ -54,9 +54,10 @@ export interface ScheduleBlock {
 const HOURS_PER_DAY = 24;
 
 /** An explicit trade keeps its existing destination and business identity.
- * A qualified civic duty supplies a destination only when there is no trade. */
+ * A qualified civic duty supplies a destination only when there is no trade.
+ * An employment link (GG-600: staff, family helper, day labour) comes last. */
 export function occupantWorkPlotId(occupant: Occupant): number | undefined {
-  return occupant.workPlotId ?? occupant.civicWorkplace?.plotId;
+  return occupant.workPlotId ?? occupant.civicWorkplace?.plotId ?? occupant.employment?.plotId;
 }
 
 /** Small stable hash of an id → a non-negative integer (no RNG dependency). */

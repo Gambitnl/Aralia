@@ -938,6 +938,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
         client.generate(
           {
             wfSeed,
+            terrainRevision: state.worldforgeTerrainRevision,
             entryCellId,
             centerPx: anchor?.centerPx,
             hour,
@@ -1100,6 +1101,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
   }, [
     state.currentLocationId,
     state.worldSeed,
+    state.worldforgeTerrainRevision,
     isGroundMode,
     state.phase,
     state.entry3DAnchor,

@@ -16,7 +16,7 @@
  */
 // @dependencies-end
 
-import type { ActiveDungeonEntry } from '../../../../components/World3D/dungeonEntryRuntime';
+import type { ActiveDungeonEntry } from './dungeonEntryRuntime';
 import { CellKind } from '../types';
 import { buildDungeonLevelStack } from './dungeonLevels';
 import { withOpenedDungeonDoors } from './dungeonDoorActions';

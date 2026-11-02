@@ -28,7 +28,14 @@
 
 import { runWorkerTask } from '../../workers/workerClient';
 import {
+  getCachedWorldSeeds,
+  getGameWorldSeed,
   installPreparedBridgeAtlas,
+  MAX_CACHED_WORLD_SEEDS,
+  registerWorldSeedCacheListener,
+  releaseUninstalledWorldSeedCache,
+  setGameWorldSeed,
+  touchWorldSeedCache,
 } from '../../systems/worldforge/bridge/legacySubmapBridge';
 import { prepareResponsiveAtlasNow } from './responsiveAtlasCore';
 import type {
@@ -43,11 +50,45 @@ import type {
 // Reopening the same seed and cleared-dungeon state reuses the completed
 // preparation. Different inputs get separate promises, so stale worker replies
 // can never overwrite the currently requested world.
+//
+// Cache ownership (GG-579): preparedCache is registered with the unified
+// world-seed cache owner in legacySubmapBridge.ts so evicted seeds are dropped
+// from preparedCache, atlasCache, regionCache, localCache, townTileCache, and
+// namerCache together while preserving the active game world seed.
 // ============================================================================
 
 type WorkerFactory = () => Worker;
 
 const preparedCache = new Map<string, Promise<ResponsiveAtlasPrepared>>();
+
+export function hasPreparedResponsiveAtlasForSeed(seed: number): boolean {
+  const prefix = `${seed}:`;
+  for (const key of preparedCache.keys()) {
+    if (key.startsWith(prefix)) return true;
+  }
+  return false;
+}
+
+registerWorldSeedCacheListener({
+  onEvictSeed(worldSeed: number) {
+    const prefix = `${worldSeed}:`;
+    for (const key of preparedCache.keys()) {
+      if (key.startsWith(prefix)) {
+        preparedCache.delete(key);
+      }
+    }
+  },
+  onClearAll() {
+    preparedCache.clear();
+  },
+});
+
+export {
+  MAX_CACHED_WORLD_SEEDS,
+  setGameWorldSeed,
+  getGameWorldSeed,
+  getCachedWorldSeeds,
+};
 
 export function responsiveAtlasPreparationKey(
   seed: number,
@@ -85,7 +126,10 @@ export function prepareResponsiveAtlas(
 ): Promise<ResponsiveAtlasPrepared> {
   const key = responsiveAtlasPreparationKey(request.seed, request.clearedDungeonPaths);
   const cached = preparedCache.get(key);
-  if (cached) return cached;
+  if (cached) {
+    touchWorldSeedCache(request.seed);
+    return cached;
+  }
 
   // Unit-test and server-like environments have no Worker. They still use the
   // same deterministic core, while supported browsers always take the worker.
@@ -122,16 +166,29 @@ export function prepareResponsiveAtlas(
         transferProperties: atlasPart.transferProperties,
       });
     },
-  }).then((prepared) => ({
-    ...prepared,
-    atlas: installPreparedBridgeAtlas(request.seed, prepared.atlas, prepared.transferProperties),
-  })).catch((error: unknown) => {
+  }).then((prepared) => {
+    const stillCached = preparedCache.get(key) === pending;
+    const atlas = stillCached
+      ? installPreparedBridgeAtlas(request.seed, prepared.atlas, prepared.transferProperties)
+      : prepared.atlas;
+    return {
+      ...prepared,
+      atlas,
+    };
+  }).catch((error: unknown) => {
     // A failed attempt must not poison reopening this world. An older failure
     // must also leave a replacement promise alone if the test cache was cleared.
-    if (preparedCache.get(key) === pending) preparedCache.delete(key);
+    if (preparedCache.get(key) === pending) {
+      preparedCache.delete(key);
+      releaseUninstalledWorldSeedCache(
+        request.seed,
+        hasPreparedResponsiveAtlasForSeed(request.seed),
+      );
+    }
     throw error;
   });
 
+  touchWorldSeedCache(request.seed);
   preparedCache.set(key, pending);
   return pending;
 }

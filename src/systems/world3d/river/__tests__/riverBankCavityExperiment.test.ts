@@ -284,3 +284,47 @@ describe('decimal rock edges on the 1/64 grid',()=>{
     expect(()=>build([[A,B,C],[A,T,B],[B,T,C],[C,T,A]])).not.toThrow();
   });
 });
+
+// GG-589 (2026-11-02): the merge accepts a copy a few ulps from a stored vertex
+// and still rejects a real gap. A gap stays two vertices; two exact copies
+// that differ stop the candidate.
+describe('retained vertex merge tolerance',()=>{
+  type Store=Parameters<typeof core.mergeRetainedVertex>[0];
+  const fresh=():Store=>({vertices:[],exact:[],ids:new Map()});
+  const where=()=>({x:36,z:22});
+  const corner=[36.296875,22.296875] as const;
+  const rounded=[36.296875,22.296875000000004] as const;
+  it('takes the CI copy as one ulp from the exact corner',()=>{
+    expect(rounded[1]).toBeGreaterThan(corner[1]);
+    expect(rounded[1]-corner[1]).toBe(2**-48);
+  });
+  it('merges a rounded copy into a stored exact vertex in either arrival order',()=>{
+    const exactFirst=fresh();
+    expect(core.mergeRetainedVertex(exactFirst,corner,true,where)).toBe(0);
+    expect(core.mergeRetainedVertex(exactFirst,rounded,false,where)).toBe(0);
+    expect(exactFirst.vertices).toEqual([corner]);
+    const roundedFirst=fresh();
+    expect(core.mergeRetainedVertex(roundedFirst,rounded,false,where)).toBe(0);
+    expect(core.mergeRetainedVertex(roundedFirst,corner,true,where)).toBe(0);
+    expect(roundedFirst.vertices).toEqual([corner]);
+    expect(roundedFirst.exact).toEqual([true]);
+  });
+  it('keeps a real gap open as two vertices',()=>{
+    // 1e-11 m is far below the 1/64 m grid but far above the stated
+    // tolerance (128 ulp of 1, scaled by the coordinate: about 6e-13 m here).
+    const store=fresh();
+    const gap=[corner[0],corner[1]+1e-11] as const;
+    expect(core.mergeRetainedVertex(store,corner,false,where)).toBe(0);
+    expect(core.mergeRetainedVertex(store,gap,false,where)).toBe(1);
+    expect(store.vertices).toEqual([corner,gap]);
+    const exactStore=fresh();
+    expect(core.mergeRetainedVertex(exactStore,corner,true,where)).toBe(0);
+    expect(core.mergeRetainedVertex(exactStore,gap,false,where)).toBe(1);
+  });
+  it('stops the candidate when two exact copies of one vertex differ',()=>{
+    const store=fresh();
+    core.mergeRetainedVertex(store,corner,true,where);
+    expect(()=>core.mergeRetainedVertex(store,rounded,true,where)).toThrow(/Unresolved retained vertex key merge/);
+    expect(core.mergeRetainedVertex(store,corner,true,where)).toBe(0);
+  });
+});

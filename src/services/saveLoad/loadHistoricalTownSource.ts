@@ -9,9 +9,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/10/2026, 22:46:21
+ * Last Sync: 02/11/2026, 18:02:39
  * Dependents: services/saveLoad/saveLoadCore.ts
- * Imports: 4 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -23,6 +23,8 @@
 import type {GameState} from '../../types';
 import {runWorkerTask,type WorkerFactory} from '../../workers/workerClient';
 import {needsHistoricalTownLoad,type HistoricalTownLoadResult} from '../../systems/worldforge/town/historicalTownLoadContract';
+import {HISTORICAL_TOWN_LAYOUT_REVISIONS} from '../../systems/worldforge/town/townLayoutRevision';
+import {TERRAIN_SOURCE_REVISIONS} from '../../systems/worldforge/region/terrainSource';
 
 export async function loadHistoricalTownSource(state:GameState,options:{workerFactory?:WorkerFactory;signal?:AbortSignal}={}):Promise<{
   state:GameState;result:HistoricalTownLoadResult;
@@ -50,15 +52,20 @@ export async function loadHistoricalTownSource(state:GameState,options:{workerFa
   if(result.status==='not-needed')return refuse('the source check returned no conclusion for the recorded town.');
   if(result.status!=='qualified')return {state,result};
   const town=state.townSim?.[result.burgId],feet=state.playerGroundPos;
-  if(!town||town.burgId!==result.burgId||town.layoutRevision!==undefined
-    ||![1,2].includes(result.revision)||!feet||feet.yM===undefined
+  const terrainRevision=result.terrainRevision??state.worldforgeTerrainRevision;
+  if(!town||town.burgId!==result.burgId||(town.layoutRevision!==undefined&&town.layoutRevision!==result.revision)
+    ||!HISTORICAL_TOWN_LAYOUT_REVISIONS.some(revision=>revision===result.revision)||!feet||feet.yM===undefined
+    ||!TERRAIN_SOURCE_REVISIONS.some(revision=>revision===terrainRevision)
+    ||(state.worldforgeTerrainRevision!==undefined&&state.worldforgeTerrainRevision!==terrainRevision)
     ||!Number.isFinite(result.surfaceY)||Math.abs(result.surfaceY-feet.yM)>1e-6
-    ||result.observations!==Object.keys(town.buildingSources??{}).length||result.observations<1
+    ||result.observations!==Object.keys(town.buildingSources??{}).length||result.observations<0
     ||!Number.isSafeInteger(result.founders)||result.founders<1||result.founders>Object.keys(town.villagers).length
     ||!Object.values(town.buildingSources??{}).every(source=>source.cellId===state.playerCell?.cellId))
     return refuse('the source check no longer matches the saved town.');
-  // This copy is the whole transaction. All other town fields and every other
-  // state group retain their exact values/references. Storage writes occur only
-  // through an ordinary subsequent save, after successful loading and play.
-  return {state:{...state,townSim:{...state.townSim,[result.burgId]:{...town,layoutRevision:result.revision}}},result};
+  // This is the whole transaction: two explicit source identities, not new
+  // terrain, people or progress. Unknown old terrain is never inferred from a
+  // town number. The producer must supply its independently admitted recipe.
+  // Storage writes still require an ordinary subsequent save.
+  return {state:{...state,worldforgeTerrainRevision:terrainRevision,
+    townSim:{...state.townSim,[result.burgId]:{...town,layoutRevision:result.revision}}},result};
 }

@@ -28,6 +28,7 @@ import type { LoadedChunk } from '@/systems/world3d/types';
 import type { SceneOrigin } from '@/systems/world3d/sceneOrigin';
 import { siteDoorKey, sitePartScenePosition, worldOffsetToSiteLocal, type SiteGroupTransform } from '@/systems/worldforge/bridge/sitePartTransform';
 import { recentCommute } from '@/systems/worldforge/roster/townSnapshot';
+import { streetGraphForTown } from '@/systems/worldforge/bridge/groundAgentMotion';
 import { collectInteriorOccupants, createResidentStreetSampler, isInteriorEntryTraversalAtClock, occupantMotionAtClock,
   residentLocationAtClock, residentRosterIndex } from './InteriorOccupants';
 
@@ -47,6 +48,10 @@ export function createResidentDoorSampler(ground: GroundWorld | null | undefined
   const identities = residentRosterIndex(ground?.rosters ?? []);
   const sources = new Map<string, NonNullable<GroundWorld['rosters']>[number]['occupants'][number]>((ground?.rosters ?? []).flatMap(roster => roster.occupants.map(person => [`${roster.burgId}:${person.id}`, person] as const)));
   const sites = new Map(loaded.flatMap(chunk => chunk.bundle.sites.map(site => [site.id, site] as const)));
+  // GG-601 (2026-11-02): legs read with the town's street graph, the same one
+  // the crowd walks, so an errand trip (OUT, sent to an errand place) is a leg
+  // too and the resident opens their own door to leave and to come back.
+  const graphs = new Map((ground?.townPlans ?? []).map(town => [town.burgId, streetGraphForTown(town)] as const));
   const privateLeaves=new Map<string,{part:SitePart;transform:SiteGroupTransform}>();
   for(const chunk of loaded){const offset=chunkOriginWorld(chunk.cx,chunk.cy);
     for(const site of chunk.bundle.sites)for(const part of site.parts??[])if(part.door?.privateRoomId!==undefined)
@@ -68,7 +73,7 @@ export function createResidentDoorSampler(ground: GroundWorld | null | undefined
       const location = residentLocationAtClock(figure, clock);
       const motion = location ? occupantMotionAtClock(location.occ, clock, location.frame, location.placement, location.surfaceY, location.doorPosition) : street(figure.key, clock);
       if (!motion) continue;
-      const leg = recentCommute(source, hour);
+      const leg = recentCommute(source, hour, figure.occ.burgId === undefined ? undefined : graphs.get(figure.occ.burgId));
       for (const entry of figure.locations ?? [figure]) {
         const site = entry.siteId ? sites.get(entry.siteId) : undefined;
         if (!site) continue;

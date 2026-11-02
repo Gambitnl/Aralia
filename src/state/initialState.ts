@@ -103,6 +103,7 @@ export const initialGameState: GameState = {
     isImageLoading: false,
     error: null,
     worldSeed: Date.now(), // Default seed, will be overwritten on new game
+    worldforgeTerrainRevision: 2, // New worlds record the current terrain source.
     isMapVisible: false,
     isLongRestModalVisible: false,
     isShortRestModalVisible: false,

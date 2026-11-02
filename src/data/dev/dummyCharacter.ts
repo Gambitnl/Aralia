@@ -202,6 +202,64 @@ export function getDummyParty(): PlayerCharacter[] {
     tempElara.hitPointDice = buildHitPointDicePools(tempElara, { classLevels: elaraClassLevels });
     tempElara.armorClass = calculateArmorClass(tempElara);
 
+    // --- Use Maelis Quill (Level 3 Wizard for 2nd-level spell / Misty Step coverage, GG-131) ---
+    // The dev/demo combat party previously contained only level-1 characters
+    // (Fighter, Rogue, Cleric), leaving 2nd-level self-teleport spells such as
+    // Misty Step unreachable from the ability palette in ?dummy=1&dev_combat=1
+    // and BattleMapDemo. A level-3 Wizard unlocks 2nd-level spell slots in 5e
+    // and carries the real 'misty-step' spell id so TargetingDecals' sky-blue
+    // teleport-destination preview layer is exercised by real spell data.
+    const maelisRace = ALL_RACES_DATA['human'];
+    const maelisClass = CLASSES_DATA['wizard'];
+    const maelisLevel = 3;
+
+    const MAELIS_BASE_SCORES: AbilityScores = {
+        Strength: 8, Dexterity: 14, Constitution: 13, Intelligence: 16, Wisdom: 12, Charisma: 10
+    };
+    const MAELIS_FINAL_SCORES = calculateFixedRacialBonuses(MAELIS_BASE_SCORES, maelisRace);
+    const maelisConMod = getAbilityModifierValue(MAELIS_FINAL_SCORES.Constitution);
+    const MAELIS_MAX_HP = (maelisClass.hitDie + maelisConMod)
+        + (maelisLevel - 1) * (Math.floor(maelisClass.hitDie / 2) + 1 + maelisConMod);
+    const MAELIS_SKILLS: Skill[] = [SKILLS_DATA['arcana'], SKILLS_DATA['history']].filter(Boolean) as Skill[];
+
+    const maelisSpellbook: SpellbookData = {
+        cantrips: ['fire-bolt', 'mage-hand', 'minor-illusion'],
+        knownSpells: ['mage-armor', 'magic-missile', 'shield', 'misty-step'],
+        preparedSpells: ['mage-armor', 'magic-missile', 'shield', 'misty-step']
+    };
+    const maelisSlots: SpellSlots = {
+        level_1: { current: 4, max: 4 }, level_2: { current: 2, max: 2 }, level_3: { current: 0, max: 0 },
+        level_4: { current: 0, max: 0 }, level_5: { current: 0, max: 0 }, level_6: { current: 0, max: 0 },
+        level_7: { current: 0, max: 0 }, level_8: { current: 0, max: 0 }, level_9: { current: 0, max: 0 },
+    };
+
+    const maelisClassLevels = { [maelisClass.id]: maelisLevel };
+    const tempMaelis: PlayerCharacter = {
+        id: 'maelis_quill',
+        name: "Maelis Quill",
+        age: 45,
+        background: 'sage',
+        level: maelisLevel, proficiencyBonus: 2, xp: 900,
+        race: maelisRace, class: maelisClass,
+        classLevels: maelisClassLevels,
+        abilityScores: MAELIS_BASE_SCORES, finalAbilityScores: MAELIS_FINAL_SCORES,
+        skills: MAELIS_SKILLS, hp: MAELIS_MAX_HP, maxHp: MAELIS_MAX_HP,
+        hitPointDice: undefined,
+        armorClass: 10,
+        speed: 30,
+        darkvisionRange: 0,
+        transportMode: 'foot',
+        racialSelections: { human: { skillIds: ['arcana'] } },
+        spellcastingAbility: 'intelligence', spellbook: maelisSpellbook, spellSlots: maelisSlots,
+        limitedUses: {
+            'arcane_recovery': { name: 'Arcane Recovery', current: 1, max: 1, resetOn: 'long_rest' }
+        },
+        equippedItems: {},
+        activeEffects: [], statusEffects: [],
+    };
+    tempMaelis.hitPointDice = buildHitPointDicePools(tempMaelis, { classLevels: maelisClassLevels });
+    tempMaelis.armorClass = calculateArmorClass(tempMaelis);
+
     // --- Create DEv Player ---
     const playerRace = ALL_RACES_DATA['human'];
     const playerClass = CLASSES_DATA['fighter'];
@@ -244,7 +302,7 @@ export function getDummyParty(): PlayerCharacter[] {
     tempPlayer.hitPointDice = buildHitPointDicePools(tempPlayer, { classLevels: playerClassLevels });
     tempPlayer.armorClass = calculateArmorClass(tempPlayer);
 
-    MEMOIZED_DUMMY_PARTY = [tempPlayer, tempKaelen, tempElara];
+    MEMOIZED_DUMMY_PARTY = [tempPlayer, tempKaelen, tempElara, tempMaelis];
     return MEMOIZED_DUMMY_PARTY;
 }
 

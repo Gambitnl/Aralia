@@ -122,8 +122,10 @@ const wrapHour = (h: number): number => ((h % 24) + 24) % 24;
  */
 function decide(occupant: Occupant, needs: AgentNeeds, hour: number): AgentActivity {
   const h = wrapHour(hour);
+  // GG-600: an employment link (staff, family helper, day labour) is work too.
   const isWorker = (occupant.workPlotId !== undefined
-    || (occupant.civicWorkplace !== undefined && !occupant.retired)) && occupant.ageBand !== 'child';
+    || ((occupant.civicWorkplace !== undefined || occupant.employment !== undefined) && !occupant.retired))
+    && occupant.ageBand !== 'child';
   const night = h >= 22 || h < 6 + jitter01(occupant.id, 5) * 1.5;
 
   if (needs.energy <= LOW.energy * (0.8 + jitter01(occupant.id, 6) * 0.4)) return 'sleep';

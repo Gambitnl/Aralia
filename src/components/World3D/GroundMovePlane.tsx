@@ -12,8 +12,8 @@
  * own terrain height (`groundSurfaceYM`) at the destination, so the plane's flat
  * Y is only the raycast surface, never the avatar's rendered elevation.
  *
- * Ordering follows the actual terrain ray: people, doors and furnishings in
- * front of that ground own the interaction even when the flat plane is nearer.
+ * Ordering follows the actual terrain or supported floor ray: people, doors
+ * and furnishings in front own the interaction even when the flat plane is nearer.
  */
 
 // @dependencies-start

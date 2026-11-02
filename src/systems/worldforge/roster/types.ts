@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 01/11/2026, 13:07:47
- * Dependents: components/World3D/GroundAgents.tsx, components/World3D/InteriorOccupants.tsx, components/World3D/streetOwnedAgents.ts, components/Worldforge/TownAgentSnapshotView.tsx, components/Worldforge/VillagerRegistry.tsx, hooks/actions/handleWorldEvents.ts, systems/worldforge/body/generateBody.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/institutionOccupancy.ts, systems/worldforge/bridge/residentDoorRoutes.ts, systems/worldforge/roster/agentDeepening.ts, systems/worldforge/roster/agentLife.ts, systems/worldforge/roster/agentSim.ts, systems/worldforge/roster/family.ts, systems/worldforge/roster/generateTownRoster.ts, systems/worldforge/roster/institutionWorkplaces.ts, systems/worldforge/roster/occupantSchedule.ts, systems/worldforge/roster/relationshipWeb.ts, systems/worldforge/roster/ruralHouseholds.ts, systems/worldforge/roster/townSnapshot.ts, systems/worldforge/town/historicalTownLayout.ts, systems/worldforge/town/household.ts, systems/worldforge/town/prepareHistoricalTownLoad.ts, systems/worldforge/townsim/keyNpcs.ts, systems/worldforge/townsim/townSim.ts, systems/worldforge/townsim/townSimRegistration.ts
+ * Last Sync: 02/11/2026, 21:55:43
+ * Dependents: components/World3D/GroundAgents.tsx, components/World3D/InteriorOccupants.tsx, components/World3D/streetOwnedAgents.ts, components/Worldforge/TownAgentSnapshotView.tsx, components/Worldforge/VillagerRegistry.tsx, hooks/actions/handleWorldEvents.ts, systems/worldforge/body/generateBody.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/institutionOccupancy.ts, systems/worldforge/bridge/residentDoorRoutes.ts, systems/worldforge/bridge/shopKeeperOccupancy.ts, systems/worldforge/roster/agentDeepening.ts, systems/worldforge/roster/agentLife.ts, systems/worldforge/roster/agentSim.ts, systems/worldforge/roster/employment.ts, systems/worldforge/roster/errands.ts, systems/worldforge/roster/family.ts, systems/worldforge/roster/generateTownRoster.ts, systems/worldforge/roster/institutionWorkplaces.ts, systems/worldforge/roster/occupantSchedule.ts, systems/worldforge/roster/relationshipWeb.ts, systems/worldforge/roster/ruralHouseholds.ts, systems/worldforge/roster/townSnapshot.ts, systems/worldforge/town/historicalTownLayout.ts, systems/worldforge/town/household.ts, systems/worldforge/town/prepareHistoricalTownLoad.ts, systems/worldforge/townsim/keyNpcs.ts, systems/worldforge/townsim/shopLife.ts, systems/worldforge/townsim/townSim.ts, systems/worldforge/townsim/townSimRegistration.ts
  * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
@@ -69,6 +69,12 @@ export interface Occupant {
    * The physical bridge admits this only with the current holder and a clear
    * source station; it never changes home, trade, family or NPC memory keys. */
   civicWorkplace?: {role: 'priest' | 'librarian'; plotId: number};
+  /** NPC lives (GG-600): the workplace this person earns a living at, read
+   * from the town engine's home-to-work links (`roster/employment.ts`). A
+   * staff member, a family helper or a day labourer. It is NOT `workPlotId`:
+   * that field still marks only the business keeper, whom merchant ids,
+   * stock and shop succession join on. It never changes home or identity. */
+  employment?: {plotId: number; role: 'proprietor' | 'staff' | 'labourer'};
   /** A retired proprietor retains the business identity without a daily shift. */
   retired?: boolean;
   occupation: Occupation;

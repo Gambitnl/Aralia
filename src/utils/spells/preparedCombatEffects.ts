@@ -11,9 +11,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/10/2026, 19:01:52
+ * Last Sync: 02/11/2026, 19:20:12
  * Dependents: components/Combat/CombatView.tsx
- * Imports: 7 files
+ * Imports: 8 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -22,6 +22,7 @@
  */
 // @dependencies-end
 
+import { isPreparedMageArmor, preparedMageArmorMechanics } from './preparedMageArmor';
 import type { PlayerCharacter, Spell } from '../../types';
 import type { CombatCharacter, StatusEffect } from '../../types/combat';
 import type { StatusEffect as SavedStatusEffect } from '../../types/effects';
@@ -84,7 +85,8 @@ export function carryPreparedSpellEffects(
         : Object.values(spells).find(candidate => saved.id === `ooc-${candidate.id}-${caster.id}`);
       if (!spell || saved.id !== `ooc-${spell.id}-${caster.id}`
         || saved.source !== spell.name || saved.name !== spell.name
-        || !isSpellCastableOutOfCombat(spell) || !supportsPreparedRollEntry(spell)
+        || !isSpellCastableOutOfCombat(spell) || !(supportsPreparedRollEntry(spell)
+          || isPreparedMageArmor(saved) && preparedMageArmorMechanics(target))
         || saved.requiresConcentration !== undefined
           && saved.requiresConcentration !== Boolean(spell.duration.concentration)) continue;
       const castLevel = saved.sourceCastLevel ?? (spell.level === 0 ? 0 : undefined);
@@ -129,9 +131,17 @@ export function carryPreparedSpellEffects(
       // The world-clock remainder wins over a fresh cast's full duration.
       duration: { type: 'rounds' as const, value: cast.remaining },
     } })));
+  // The same paid Mage Armor enters turn expiry as a structured defense.
+  // Its remaining time wins; this is not a second cast or a combat log event.
+  const armorEffects = surviving.filter(cast => isPreparedMageArmor(cast.saved)).map(cast => ({cast, effect: {
+    id: `${cast.saved.id}:${cast.targetId}:armor`, spellId: cast.spell.id,
+    casterId: cast.caster.id, sourceName: cast.spell.name, type: 'buff' as const,
+    duration: {type: 'rounds' as const, value: cast.remaining}, startTime: 0,
+    mechanics: preparedMageArmorMechanics(party.find(target => target.id === cast.targetId)!),
+  }}));
   return combatants.map(actor => {
     const additions = projected.filter(item => item.cast.targetId === actor.id).map(item => item.status);
-    const activeAdditions = rollEffects.filter(item => item.cast.targetId === actor.id).map(item => item.effect);
+    const activeAdditions = [...rollEffects, ...armorEffects].filter(item => item.cast.targetId === actor.id).map(item => item.effect);
     const concentration = surviving.find(cast => cast.caster.id === actor.id && cast.spell.duration.concentration);
     if (!additions.length && !activeAdditions.length && !concentration) return actor;
     const ids = new Set(additions.map(effect => effect.id));

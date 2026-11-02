@@ -3,6 +3,8 @@ import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader'
 import type { LoadedChunk, BuildingOccupantRender } from '@/systems/world3d/types';
 import { createResidentDoorSampler, mergeResidentDoorOpens } from '../residentDoorUse';
 import * as groundMotion from '@/systems/worldforge/bridge/groundAgentMotion';
+import { occupantLocationAt } from '@/systems/worldforge/roster/occupantSchedule';
+import type { TownPlan } from '@/systems/worldforge/artifacts';
 
 function fixture() {
   const occ: BuildingOccupantRender = {id:84, burgId:675, householdMemberId:'b34:head', name:'Fenna Hartham', ageBand:'adult', body:{} as never,
@@ -51,6 +53,26 @@ describe('resident entry use',()=>{
     spy.mockReturnValue([{burgId:675,occupantId:84,name:'Fenna Hartham',xM:10,zM:0,surfaceY:0,moving:true}] as never);
     expect(createResidentDoorSampler(ground,loaded,{x:0,z:0})(8).size).toBe(0);
     spy.mockRestore();
+  });
+  it('opens the home leaf for an errand trip when the town street graph is known (GG-601)',()=>{
+    const {loaded,ground,occ}=fixture();
+    // A resident with no job: their OUT block is an errand to the market.
+    const person={id:84,householdMemberId:'b34:head',name:occ.name,homePlotId:34,occupation:'resident',ageBand:'adult'} as const;
+    const out=Array.from({length:24},(_,h)=>h).filter(h=>occupantLocationAt(person as never,h).activity==='out');
+    expect(out.length).toBeGreaterThan(0);
+    occ.stationsByHour=Array.from({length:24},(_,h)=>out.includes(h)?null:{xFt:0,yFt:10,level:0,activity:'hearthside'});
+    const plan={burgId:675,streets:[{id:1,widthFt:10,centerline:[[-50,0],[600,0]]}],plots:[
+      {id:34,role:'house',footprint:[[0,5],[20,5],[20,25],[0,25]]},
+      {id:200,role:'market',footprint:[[200,5],[220,5],[220,25],[200,25]]}]} as unknown as TownPlan;
+    const spy=vi.spyOn(groundMotion,'groundAgentScenePositions');
+    spy.mockReturnValue([{burgId:675,occupantId:84,name:occ.name,xM:0,zM:0,surfaceY:0,moving:true}] as never);
+    const leaving=out[0]+0.01;
+    const withoutGraph={rosters:[{burgId:675,occupants:[person]}]} as unknown as GroundWorld;
+    expect(createResidentDoorSampler(withoutGraph,loaded,{x:0,z:0})(leaving).size).toBe(0);
+    const withGraph={...withoutGraph,townPlans:[{burgId:675,plan}]} as unknown as GroundWorld;
+    expect([...createResidentDoorSampler(withGraph,loaded,{x:0,z:0})(leaving)]).toEqual([['wf-plot-675-34/entry',[occ.name]]]);
+    spy.mockRestore();
+    void ground;
   });
   it('never erases or mutates player-saved door opens when resident use ends',()=>{
     const saved=new Set(['shop/player-open']),users=new Map([['home/entry',['Fenna Hartham']]]);

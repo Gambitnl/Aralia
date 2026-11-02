@@ -17,9 +17,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 31/10/2026, 12:15:37
+ * Last Sync: 02/11/2026, 19:20:12
  * Dependents: commands/effects/MovementCommand.ts, components/BattleMap/BattleMap3DGpuScene.tsx, components/BattleMap/characters/characterActor/CharacterActor.tsx, components/BattleMap/hooks/useBattleMapDerivedState.ts, components/DesignPreview/steps/classes/subclasses/artificer/AlchemistDemo.tsx, components/DesignPreview/steps/classes/subclasses/artificer/ArmorerDemo.tsx, components/DesignPreview/steps/classes/subclasses/barbarian/WildHeartDemo.tsx, components/DesignPreview/steps/classes/subclasses/fighter/ChampionDemo.tsx, components/DesignPreview/steps/classes/subclasses/monk/WarriorOfShadowDemo.tsx, components/DesignPreview/steps/classes/subclasses/monk/WarriorOfTheOpenHandDemo.tsx, components/DesignPreview/steps/classes/subclasses/paladin/OathOfVengeanceDemo.tsx, components/DesignPreview/steps/classes/subclasses/sorcerer/DraconicSorceryDemo.tsx, components/DesignPreview/steps/classes/subclasses/sorcerer/WildMagicSorceryDemo.tsx, components/DesignPreview/steps/classes/subclasses/warlock/ArchfeyPatronDemo.tsx, components/DesignPreview/steps/classes/subclasses/warlock/FiendPatronDemo.tsx, components/DesignPreview/steps/classes/subclasses/wizard/AbjurerDemo.tsx, components/DesignPreview/steps/classes/subclasses/wizard/EvokerDemo.tsx, components/DesignPreview/steps/raceDomain/leaves/abyssalTieflingRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/airGenasiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/astralElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/autumnEladrinRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/beastbornHumanRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/beasthideShifterRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/blackDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/blueDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/brassDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/bronzeDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/bugbearRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/centaurRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/chthonicTieflingRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/cloudGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/copperDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/draconbloodDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/drowHalfElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fairyRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fallenAasimarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/firbolgRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fireGenasiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fireGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/forestGnomeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/frostGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/giffRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/githyankiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/githzeraiRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/goblinRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/goldDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/grayDwarfDuergarRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/greenDragonbornRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/hadozeeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halfElfRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halfOrcRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/halflingRaceLeaf.tsx, components/DesignPreview/steps/scenarioControls/conditionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/reachCreatureSizeScenarioControls.ts, components/DesignPreview/steps/scenarioControls/tauntForcedTargetingScenarioControls.ts, components/DesignPreview/steps/scenarioControls/teleportationOccupiedSpacesScenarioControls.ts, systems/combat/fallingGroundImpactResolution.ts, systems/combat/rangedAttackPressure.ts, systems/combat/reactions/companionProtectionReaction.ts, systems/spells/mechanics/areaDamageSpellCastResolution.ts, systems/spells/mechanics/reactiveDamageRetaliationResolution.ts, systems/spells/mechanics/teleportationResolution.ts, systems/spells/mechanics/witchBoltOngoingResolution.ts, utils/combat/actionEconomyUtils.ts, utils/combat/aerialMovementUtils.ts, utils/combat/combatAI.ts, utils/combat/grappleUtils.ts, utils/combat/index.ts, utils/combat/multiattackUtils.ts, utils/combat/shoveUtils.ts, utils/sandbox/quickCharacterGenerator.ts
- * Imports: 22 files
+ * Imports: 23 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -36,7 +36,8 @@ import { getRacialDefenseBucketsFromTraitText, type RacialDefenseBuckets } from 
 import { createAbilityFromSpell } from '../character/spellAbilityFactory';
 import { isWeaponProficient, hasTavernBrawler, isImprovisedWeapon } from '../character/weaponUtils';
 import { generateId } from '../core/idGenerator';
-import { getAbilityModifierValue } from '../character/statUtils';
+import { getAbilityModifierValue, calculateArmorClass } from '../character/statUtils';
+import { isPreparedMageArmor } from '../spells/preparedMageArmor';
 import { hasJackOfAllTrades } from '../character/skillModifierUtils';
 import { buildHitPointDicePools, resolveRacialResourceId } from '../character/characterUtils';
 import { getRacialMovementSpeedsForLevel } from '../character/progression';
@@ -1521,8 +1522,13 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     team: 'player',
     currentHP: player.hp,
     maxHP: player.maxHp,
-    armorClass: player.armorClass || 10,
-    baseAC: player.armorClass || 10,
+    armorClass: player.statusEffects?.some(isPreparedMageArmor)
+      ? calculateArmorClass(player, player.activeEffects) : player.armorClass || 10,
+    // Keep the unbuffed base for expiry; the retained cast enters as an
+    // active effect below rather than becoming permanent base armor.
+    baseAC: player.statusEffects?.some(isPreparedMageArmor)
+      ? calculateArmorClass({ ...player, statusEffects: player.statusEffects.filter(effect => !isPreparedMageArmor(effect)) }, player.activeEffects)
+      : player.armorClass || 10,
     // Project armour once at the persistent-to-combat boundary. Damage and
     // future equipment-sensitive rules can now inspect stable tactical facts
     // without reaching back into the player's inventory object.

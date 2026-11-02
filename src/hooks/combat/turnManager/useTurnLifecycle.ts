@@ -421,7 +421,9 @@ export const useTurnLifecycle = ({
         const dexterityModifier = effect.mechanics.baseACFormula?.includes('dex')
           ? getAbilityModifierValue(updatedChar.stats.dexterity)
           : 0;
-        baseAC = effect.mechanics.baseAC + dexterityModifier;
+        // A spell supplies an alternative base, not a downgrade from a
+        // stronger natural or unarmored defense already chosen by the actor.
+        baseAC = Math.max(baseAC, effect.mechanics.baseAC + dexterityModifier);
       }
       if (effect.mechanics?.acMinimum !== undefined) {
         acMinimum = Math.max(acMinimum, effect.mechanics.acMinimum);

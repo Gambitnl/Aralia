@@ -31,10 +31,10 @@ vi.mock('@/systems/entities3d/three/assembleEntity', () => ({
     return { group, retain: vi.fn(), release: vi.fn(), update: vi.fn() };
   },
 }));
-vi.mock('@/systems/worldforge/bridge/groundWaterSurfaceQuery', () => ({ publishedGroundWaterSurfaceYAt: () => harness.waterY }));
+vi.mock('@/systems/worldforge/bridge/groundWaterSurfaceQuery', () => ({ inspectGroundWater: () => ({status: 'valid', surfaceY: harness.waterY}) }));
 vi.mock('../webgpuWorldFlag', () => ({ isWebGpuWorldEnabled: () => false }));
 vi.mock('../worldEntityGpu', () => ({ adaptWorldEntityForWebGpu: vi.fn() }));
-vi.mock('../terrain/groundSurfaceYM', () => ({ groundSurfaceYM: () => 0 }));
+vi.mock('@/systems/world3d/groundSurfaceYM', () => ({ groundSurfaceYM: () => 0 }));
 
 const ground = { rivers: [], buildings: [], extentMetersX: 1000, extentMetersZ: 1000 } as unknown as GroundWorld;
 const character = { name: 'Sana', speed: 30 } as PlayerCharacter;

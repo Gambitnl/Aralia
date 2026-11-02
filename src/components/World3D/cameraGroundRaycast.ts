@@ -1,7 +1,7 @@
 /** Keep the walking camera in front of the real ground without scanning an
  * entire town for every view check. playerCameraVisibility calls this helper
- * for mounted terrain and roads; buildings keep their existing query. Only
- * candidate selection is cached. Rendered vertices and player feet never move. */
+ * for mounted terrain, roads, buildings and decks. Only triangle candidate
+ * selection is cached. Rendered vertices and player feet never move. */
 
 // @dependencies-start
 /**
@@ -85,10 +85,12 @@ export function nearestGroundCameraHit(root: THREE.Object3D, raycaster: THREE.Ra
     if (!mesh.isMesh || !mesh.layers.test(raycaster.layers)) return;
     const geometry = mesh.geometry, position = geometry.getAttribute('position');
     if (!position) return;
-    // These named terrain/road meshes are static ordinary BufferGeometry.
-    // Keep native behavior if a future owner supplies a deformed mesh or an
-    // unusual draw range instead of silently indexing the wrong surface.
+    // Ordinary static structural meshes share this exact index. Preserve the
+    // native path for animated meshes, custom decorative raycasts (including
+    // lamps that intentionally yield), or unusual ranges rather than indexing
+    // a shape that differs from what its owner actually permits the ray to hit.
     if (mesh instanceof THREE.SkinnedMesh || mesh instanceof THREE.InstancedMesh
+      || mesh.raycast !== THREE.Mesh.prototype.raycast
       || geometry.morphAttributes.position?.length || geometry.drawRange.start % 3
       || (Array.isArray(mesh.material) && geometry.groups.some(group => group.start % 3))
       || !Number.isFinite(raycaster.far)) {

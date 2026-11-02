@@ -23,9 +23,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/10/2026, 15:48:08
+ * Last Sync: 02/11/2026, 18:02:39
  * Dependents: components/World3D/createWorldGenClient.ts, components/World3D/worldGenWorker.ts
- * Imports: 8 files
+ * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -33,6 +33,8 @@
  * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 // @dependencies-end
+
+import type {TerrainSourceRevision} from '../../systems/worldforge/region/terrainSource';
 
 import { getWorldforgeLocalForCell } from '@/systems/worldforge/bridge/legacySubmapBridge';
 import { makeGroundWorld, computeGroundProps } from '@/systems/worldforge/bridge/groundChunkLoader';
@@ -47,6 +49,7 @@ import type { TownLifeRegistry } from '@/systems/worldforge/roster/agentLife';
 /** Everything the worker needs to build a world — all structured-clone-safe. */
 export interface WorldGenRequest {
   wfSeed: number;
+  terrainRevision?: TerrainSourceRevision;
   entryCellId: number;
   /** Burg pixel position so the window frames the town; omit for wilderness. */
   centerPx?: readonly [number, number];
@@ -94,11 +97,12 @@ export interface WorldGenEmit {
  * — the point is that it runs OFF the main thread, not that it yields.
  */
 export async function runWorldGen(req: WorldGenRequest, emit: WorldGenEmit): Promise<void> {
-  const { wfSeed, entryCellId, centerPx, hour, deltas, worldBusinesses, buildingEventLogs, buildingSources, propGenerationRevision, propSources, townLife, day } = req;
+  const { wfSeed, terrainRevision, entryCellId, centerPx, hour, deltas, worldBusinesses, buildingEventLogs, buildingSources, propGenerationRevision, propSources, townLife, day } = req;
 
   const { local, region } = getWorldforgeLocalForCell(wfSeed, entryCellId, {
     centerPx,
     townLayouts: townLife,
+    terrainRevision,
   });
 
   // The land/region is resolved; the town is next. This boundary drives the

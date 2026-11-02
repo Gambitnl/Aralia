@@ -19,9 +19,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 31/10/2026, 19:01:52
+ * Last Sync: 02/11/2026, 19:20:11
  * Dependents: components/CharacterSheet/Spellbook/CastSpellControls.tsx, hooks/actions/handleResourceActions.ts, state/appState.ts, state/reducers/characterReducer.ts, utils/spells/preparedCombatEffects.ts, utils/spells/worldTimedEffects.ts
- * Imports: 5 files
+ * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -33,6 +33,8 @@
 import type { PlayerCharacter, Spell, SpellSlots } from '../../types';
 import type { SpellEffect } from '../../types/spells';
 import type { StatusEffect } from '../../types/effects';
+import { calculateArmorClass } from '../character/statUtils';
+import { isPreparedMageArmor } from './preparedMageArmor';
 import { rollDice } from '../../systems/dice/rollers';
 import { getAbilityModifierValue } from '../character/characterUtils';
 
@@ -342,5 +344,9 @@ export function applyPostCastToCharacter(
         updated = { ...updated, statusEffects: [...retained, incoming] };
     }
 
+    // The sheet snapshot and reducer must expose the same paid defense.
+    if (updated.statusEffects?.some(isPreparedMageArmor)) {
+        updated = { ...updated, armorClass: calculateArmorClass(updated, updated.activeEffects) };
+    }
     return updated;
 }

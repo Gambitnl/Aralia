@@ -12,9 +12,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/10/2026, 10:56:56
+ * Last Sync: 02/11/2026, 20:18:49
  * Dependents: commands/factory/SpellCommandFactory.ts
- * Imports: 15 files
+ * Imports: 16 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -38,6 +38,7 @@ import { rollDice, rollD20 } from '@/systems/dice/rollers'
 import { combatEvents } from '@/systems/events/CombatEvents'
 import { hasTauntAttackDisadvantage } from '@/systems/combat/tauntConstraint'
 import { buildActiveFireEffect } from './fire'
+import { conditionAttackBenefits } from '@/utils/combat/statusConditionUtils'
 
 export type SpellAttackInstance = {
   target?: CombatCharacter
@@ -138,8 +139,11 @@ export class SpellAttackCommand implements SpellCommand {
       const classification = { attackType: 'spell' as const, weaponType }
       const outgoing = matchingAttackRollEffects(liveCaster, 'outgoing', classification, liveTarget?.id)
       const incoming = liveTarget ? matchingAttackRollEffects(liveTarget, 'incoming', classification) : []
-      let hasAdvantage = false
-      const riderReasons: string[] = []
+      const targetConditionBenefits = liveTarget
+        ? conditionAttackBenefits(liveCaster, liveTarget, nextState.mapData) : null
+      let hasAdvantage = targetConditionBenefits?.advantage ?? false
+      const riderReasons: string[] = targetConditionBenefits?.advantage
+        ? [`Target ${targetConditionBenefits.condition}`] : []
       for (const effect of [...outgoing, ...incoming]) {
         const m = effect.mechanics!
         if (m.attackRollModifier === 'advantage') { hasAdvantage = true; riderReasons.push(effect.sourceName) }
@@ -173,6 +177,16 @@ export class SpellAttackCommand implements SpellCommand {
         resolvedAttack = { ...resolvedAttack, isHit: defense.isHit };
       }
 
+      // Apply the same live condition rule as weapons after defenses settle.
+      // Objects have no creature conditions; a miss never becomes a hit.
+      const hitConditionBenefits = liveTarget
+        ? conditionAttackBenefits(liveCaster, liveTarget, nextState.mapData) : null
+      const conditionCritical = resolvedAttack.isHit && !resolvedAttack.isCritical && hitConditionBenefits?.criticalOnHit
+        && hitConditionBenefits.condition && hitConditionBenefits.distanceFeet !== undefined
+        ? { condition: hitConditionBenefits.condition, distanceFeet: hitConditionBenefits.distanceFeet } : undefined
+      if (conditionCritical) resolvedAttack = { ...resolvedAttack, isCritical: true }
+      const criticalReasonText = conditionCritical ? ` (${conditionCritical.condition}: hit within 5 ft is critical)` : ''
+
       combatEvents.emit({
         type: 'unit_attack',
         attackerId: this.caster.id,
@@ -191,7 +205,7 @@ export class SpellAttackCommand implements SpellCommand {
             id: generateId(),
             timestamp: Date.now(),
             type: 'action',
-            message: `${this.caster.name} casts ${this.spell.name} at ${targetName}. ${attackRoll} + ${attackBonus} = ${total}${exhaustionText}${rollModeText}${pressureText}${riderText} vs AC ${targetAC}. ${resolvedAttack.isHit ? (resolvedAttack.isCritical ? 'CRITICAL HIT!' : 'HIT!') : (resolvedAttack.isAutoMiss ? 'CRITICAL MISS!' : 'MISS.')}`,
+            message: `${this.caster.name} casts ${this.spell.name} at ${targetName}. ${attackRoll} + ${attackBonus} = ${total}${exhaustionText}${rollModeText}${pressureText}${riderText}${criticalReasonText} vs AC ${targetAC}. ${resolvedAttack.isHit ? (resolvedAttack.isCritical ? 'CRITICAL HIT!' : 'HIT!') : (resolvedAttack.isAutoMiss ? 'CRITICAL MISS!' : 'MISS.')}`,
             characterId: this.caster.id,
             targetIds: [targetId],
             data: {
@@ -202,6 +216,7 @@ export class SpellAttackCommand implements SpellCommand {
               weaponType,
               isHit: resolvedAttack.isHit,
               isCrit: resolvedAttack.isCritical,
+              conditionCritical,
               rollResult: attackRoll,
               total,
               spellAttackInstanceIndex: index,

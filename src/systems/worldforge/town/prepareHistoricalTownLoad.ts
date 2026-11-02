@@ -13,9 +13,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/10/2026, 22:46:21
+ * Last Sync: 02/11/2026, 18:02:39
  * Dependents: components/World3D/worldGenWorker.ts
- * Imports: 22 files
+ * Imports: 23 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -29,7 +29,7 @@ import {getGameDay} from '../../../utils/core';
 import {getBridgeAtlas,getBurgCultureType,getWorldforgeLocalForCell} from '../bridge/legacySubmapBridge';
 import {makeGroundWorld,groundSurfaceY,type GroundWorld} from '../bridge/groundChunkLoader';
 import {siteOrientationFromQuad,siteDoorKey} from '../bridge/sitePartTransform';
-import {publishedGroundWaterSurfaceYAt} from '../bridge/groundWaterSurfaceQuery';
+import {inspectGroundWater} from '../bridge/groundWaterSurfaceQuery';
 import {restoreAtlasGroundDrilldown} from '../leaf3d/atlasGroundRestore';
 import {townRosterForBurg} from '../townsim/townSimRegistration';
 import {blueprintForPlot} from '../interior/generateInterior';
@@ -38,26 +38,41 @@ import {buildingPlotInput} from './buildingPlotInput';
 import {canonicalTownSeedPath} from './canonicalTown';
 import {climateForBiomeId} from './architectureStyle';
 import {qualifyHistoricalTownLayout,type HistoricalTownLayoutCandidate} from './historicalTownLayout';
-import {townBuildingVisit} from '../../../components/Worldforge/townBuildingVisit';
+import {townBuildingVisit} from './townBuildingVisit';
 import {guestBedsForVisit} from '../../gameplay/lodging';
 import {businessTypeForTownPlot} from '../townsim/townBusinessIdentity';
 import {pointInPolygon} from '../submap/submapEngine';
-import {isGroundFootingSupported} from '../../../components/World3D/groundBuildingMotion';
-import type {TownLayoutRevision} from './townLayoutRevision';
+import {isGroundFootingSupported} from '../../world3d/groundBuildingMotion';
+import {HISTORICAL_TOWN_LAYOUT_REVISIONS,type TownLayoutRevision} from './townLayoutRevision';
 import type {TownRoster} from '../roster/types';
 import {needsHistoricalTownLoad,type HistoricalTownLoadResult} from './historicalTownLoadContract';
+import {TERRAIN_SOURCE_REVISIONS,requireTerrainSourceRevision,type TerrainSourceRevision} from '../region/terrainSource';
 
 type SourceFrame=Pick<ReturnType<typeof getWorldforgeLocalForCell>,'local'|'region'>;
 
 export function prepareHistoricalTownLoad(state:GameState):HistoricalTownLoadResult {
   if(!needsHistoricalTownLoad(state))return {status:'not-needed'};
+  // A town reader does not identify its terrain. Independently reconstruct each
+  // available terrain source and accept only one complete, exact physical join.
+  const revisions=state.worldforgeTerrainRevision===undefined ? TERRAIN_SOURCE_REVISIONS
+    : [requireTerrainSourceRevision(state.worldforgeTerrainRevision)];
+  const results=revisions.map(revision=>prepareForTerrainSource(state,revision));
+  const qualified=results.filter((result):result is Extract<HistoricalTownLoadResult,{status:'qualified'}>=>result.status==='qualified');
+  if(qualified.length===1)return qualified[0];
+  if(qualified.length===0&&results.length===1)return results[0];
+  return {status:'unresolved',message:`This saved town could not be loaded safely: ${qualified.length
+    ? 'more than one terrain source matches its recorded position.'
+    : 'none of the retained terrain sources matches all recorded identities and exact dry support.'} Your saved game has not been changed.`};
+}
+
+function prepareForTerrainSource(state:GameState,terrainRevision:TerrainSourceRevision):HistoricalTownLoadResult {
   const refuse=(detail:string):HistoricalTownLoadResult=>({status:'unresolved',
     message:`This saved town could not be loaded safely: ${detail} Your saved game has not been changed.`});
   const cellId=state.playerCell!.cellId;
   const atlas=getBridgeAtlas(state.worldSeed);
   const burgId=atlas.pack.cells.burg?.[cellId];
   const town=burgId?state.townSim?.[burgId]:undefined;
-  if(!burgId||!town||town.layoutRevision!==undefined)return refuse('the recorded town does not match this location.');
+  if(!burgId||!town)return refuse('the recorded town does not match this location.');
   const feet=state.playerGroundPos;
   if(state.party.length!==1||!feet||!Number.isFinite(feet.yM)
     ||![feet.xM,feet.zM].every(Number.isFinite)||feet.tileX!==cellId||feet.tileY!==0)
@@ -83,10 +98,11 @@ export function prepareHistoricalTownLoad(state:GameState):HistoricalTownLoadRes
       ...(retained?{buildingSources:Object.fromEntries(Object.entries(state.townSim??{})
         .map(([id,t])=>[id,t.buildingSources??{}]))}:{}),
     });
-  for(const revision of [1,2] as const){
+  for(const revision of HISTORICAL_TOWN_LAYOUT_REVISIONS){
+    if(town.layoutRevision!==undefined&&town.layoutRevision!==revision)continue;
     let frame:SourceFrame;
     if(state.atlasGroundAddress){
-      const restored=restoreAtlasGroundDrilldown(state.atlasGroundAddress,state.worldSeed,lifeFor(revision));
+      const restored=restoreAtlasGroundDrilldown(state.atlasGroundAddress,state.worldSeed,lifeFor(revision),terrainRevision);
       if(restored.status!=='ready'){
         candidates.push({revision,worldSeed:state.worldSeed,burgId,cellId,plotIds:[],
           foundingRoster:{burgId,occupants:[]},buildings:{}});
@@ -94,7 +110,7 @@ export function prepareHistoricalTownLoad(state:GameState):HistoricalTownLoadRes
       }
       frame={local:restored.drilldown.local,region:restored.drilldown.region};
     }else frame=getWorldforgeLocalForCell(state.worldSeed,cellId,{
-      centerPx:state.entry3DAnchor!.centerPx,townLayouts:lifeFor(revision),
+      centerPx:state.entry3DAnchor!.centerPx,townLayouts:lifeFor(revision),terrainRevision,
     });
     frames.set(revision,frame);
     const ground=build(frame,revision),artifact=ground.townPlans?.find(t=>t.burgId===burgId)?.plan;
@@ -113,13 +129,21 @@ export function prepareHistoricalTownLoad(state:GameState):HistoricalTownLoadRes
     candidates.push({revision,worldSeed:state.worldSeed,burgId,cellId,plotIds:artifact.plots.map(p=>p.id),
       foundingRoster:townRosterForBurg(state.worldSeed,burgId,revision),buildings});
   }
-  const result=qualifyHistoricalTownLayout({worldSeed:state.worldSeed,cellId,gameTime:state.gameTime,town,candidates});
+  // A pre-capture exterior save can identify its layout by the complete saved
+  // founding population. It still must pass all business, knowledge and exact
+  // dry-footing checks below; this does not invent an observed building plan.
+  // The qualification helper expects an unversioned input. A temporary view
+  // lets it verify a known layout without deleting or replacing saved metadata;
+  // the candidate loop above remains constrained to that exact known reader.
+  const result=qualifyHistoricalTownLayout({worldSeed:state.worldSeed,cellId,gameTime:state.gameTime,
+    town:{...town,layoutRevision:undefined},candidates,
+    allowUnobservedExterior:observations.length===0});
   if(result.status!=='qualified')return refuse(`its historical layout is unresolved (${result.reason}).`);
   const frame=frames.get(result.revision)!,ground=build(frame,result.revision,true);
   const roster=candidates.find(c=>c.revision===result.revision)!.foundingRoster;
   const joinError=historicalTownLoadJoinError(state,ground,burgId,result.revision,roster);
   if(joinError)return refuse(joinError);
-  return {status:'qualified',burgId,revision:result.revision,observations:result.observations,
+  return {status:'qualified',burgId,revision:result.revision,terrainRevision,observations:result.observations,
     founders:result.founders,surfaceY:groundSurfaceY(ground,feet.xM,feet.zM)};
 }
 
@@ -218,6 +242,8 @@ function exteriorSupportError(ground:GroundWorld,feet:NonNullable<GameState['pla
   if(Math.abs(groundSurfaceY(ground,feet.xM,feet.zM)-feet.yM!)>1e-6
     ||!isGroundFootingSupported(ground,{...feet,yM:feet.yM!},doors))
     return 'the saved feet no longer have their original terrain support.';
-  const water=publishedGroundWaterSurfaceYAt(ground,feet.xM,feet.zM);
+  const evidence=inspectGroundWater(ground,feet.xM,feet.zM);
+  if(evidence.status==='unavailable')return 'the saved position has unverified water evidence.';
+  const water=evidence.surfaceY;
   if(water!==undefined&&water!==null&&water>feet.yM!+.1)return 'the saved position is covered by water.';
 }

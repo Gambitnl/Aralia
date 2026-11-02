@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/10/2026, 05:33:29
+ * Last Sync: 02/11/2026, 19:20:12
  * Dependents: components/CharacterSheet/Overview/index.ts
- * Imports: 10 files
+ * Imports: 11 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,6 +14,7 @@
  */
 // @dependencies-end
 
+import { preparedMageArmorMechanics } from '../../../utils/spells/preparedMageArmor';
 import React, { useState } from 'react';
 import { PlayerCharacter, AbilityScoreName } from '../../../types';
 import Tooltip from '../../ui/Tooltip';
@@ -147,6 +148,9 @@ const buildAcTooltip = (character: PlayerCharacter, dexMod: number): React.React
             lines.push(`Unarmored Defense (Wis): +${wisMod}`);
         }
     }
+
+    const preparedArmor = preparedMageArmorMechanics(character);
+    if (preparedArmor) lines.push(`Mage Armor: base ${preparedArmor.baseAC} + Dex ${dexMod >= 0 ? '+' : ''}${dexMod} (choose the best base)`);
 
     // Shield
     if (shield && shield.type === 'armor' && shield.armorCategory === 'Shield' && shield.armorClassBonus) {

@@ -20,7 +20,7 @@
 
 import * as THREE from 'three';
 import { propSourceId, type PropInstance } from '../propSchema';
-import type { RenderedGroundPropShape, PropShapePoint } from '@/components/World3D/groundPropGeometry';
+import type { RenderedGroundPropShape, PropShapePoint } from '@/systems/worldforge/props/groundPropGeometry';
 
 export const WOODPILE_LOG_POSITIONS_V1 = [
   [-.3, .15], [0, .15], [.3, .15], [-.15, .42], [.15, .42], [0, .68],

@@ -21,9 +21,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 01/11/2026, 04:35:09
- * Dependents: components/Combat/InPlaceCombatScene.tsx, components/DesignPreview/steps/JudgeLandCompare.tsx, components/DesignPreview/steps/PreviewTown3D.tsx, components/DesignPreview/steps/landTerrainJob.ts, components/DesignPreview/steps/landTypeCensus.ts, components/World3D/DungeonEntrances.tsx, components/World3D/FarShells.tsx, components/World3D/GroundAgents.tsx, components/World3D/GroundMovePlane.tsx, components/World3D/GroundProps.tsx, components/World3D/InteriorOccupants.tsx, components/World3D/NearbyBuildingDoor.tsx, components/World3D/NearbyFurnishing.tsx, components/World3D/PartyGroundActors.tsx, components/World3D/PlayerAvatar.tsx, components/World3D/VolumeGroundBubble.tsx, components/World3D/WebGPUProbe.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DScene.tsx, components/World3D/World3DWrapper.tsx, components/World3D/canopyInterior.ts, components/World3D/combat/InPlaceCombatLayer.tsx, components/World3D/createGroundWorkerChunkLoader.ts, components/World3D/createVolumeBubbleClient.ts, components/World3D/createWorldGenClient.ts, components/World3D/dungeonEntryRuntime.ts, components/World3D/footingMeshWorker.ts, components/World3D/groundBuildingMotion.ts, components/World3D/groundChunkWorker.ts, components/World3D/groundFootingRecovery.ts, components/World3D/groundPlacementInspection.ts, components/World3D/groundResidentInteraction.ts, components/World3D/groundWaterMovement.ts, components/World3D/hooks/useInPlaceCombatTransition.ts, components/World3D/hooks/useInteriorTransition.ts, components/World3D/hooks/useWorld3DDiscovery.ts, components/World3D/initialTownEntry.ts, components/World3D/partyJourneyArrival.ts, components/World3D/playerCameraFrame.ts, components/World3D/publicBuildingDiscovery.ts, components/World3D/residentDoorUse.ts, components/World3D/terrain/groundSurfaceYM.ts, components/World3D/useFootingMeshes.ts, components/World3D/useGroundKeyboardControls.ts, components/World3D/volumeBubbleWorker.ts, components/World3D/water/riverWorldSite.ts, components/World3D/water/worldGroundHook.ts, components/World3D/worldGenCore.ts, components/Worldforge/AgentSim3DPreview.tsx, components/Worldforge/WorldforgeGroundDrilldown.tsx, systems/combat/worldScenario/liveSettlementEncounter.ts, systems/combat/worldScenario/statePatrolWorldEvent.ts, systems/combat/worldScenario/surfaceHostileContinuity.ts, systems/combat/worldScenario/surfaceHostileEncounter.ts, systems/combat/worldScenario/surfaceHostileTemplate.ts, systems/combat/worldScenario/travelAmbushBattlefield.ts, systems/combat/worldScenario/worldBattleScenario.ts, systems/gameplay/lodging.ts, systems/worldforge/bridge/buildingEntryApproach.ts, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkMesh.ts, systems/worldforge/bridge/groundChunkWorkerCore.ts, systems/worldforge/bridge/groundHostiles.ts, systems/worldforge/bridge/groundProps.ts, systems/worldforge/bridge/groundWaterSurfaceQuery.ts, systems/worldforge/bridge/institutionOccupancy.ts, systems/worldforge/bridge/residentDoorRoutes.ts, systems/worldforge/bridge/streamedSurface.ts, systems/worldforge/bridge/townVegetation.ts, systems/worldforge/props/exteriorPropRevision.ts, systems/worldforge/props/freshPropClearance.ts, systems/worldforge/props/propGenerationSource.ts, systems/worldforge/props/propLandUse.ts, systems/worldforge/props/prospectivePropPlacement.ts, systems/worldforge/provenance/groundProvenance.ts, systems/worldforge/town/prepareHistoricalTownLoad.ts, systems/worldforge/travel/localGroundJourney.ts, types/combat/actors.ts
- * Imports: 79 files
+ * Last Sync: 02/11/2026, 18:02:39
+ * Dependents: components/Combat/InPlaceCombatScene.tsx, components/DesignPreview/steps/JudgeLandCompare.tsx, components/DesignPreview/steps/PreviewTown3D.tsx, components/DesignPreview/steps/landTerrainJob.ts, components/DesignPreview/steps/landTypeCensus.ts, components/World3D/DungeonEntrances.tsx, components/World3D/FarShells.tsx, components/World3D/GroundAgents.tsx, components/World3D/GroundMovePlane.tsx, components/World3D/GroundProps.tsx, components/World3D/InteriorOccupants.tsx, components/World3D/NearbyBuildingDoor.tsx, components/World3D/NearbyFurnishing.tsx, components/World3D/PartyGroundActors.tsx, components/World3D/PlayerAvatar.tsx, components/World3D/VolumeGroundBubble.tsx, components/World3D/WebGPUProbe.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DScene.tsx, components/World3D/World3DWrapper.tsx, components/World3D/canopyInterior.ts, components/World3D/combat/InPlaceCombatLayer.tsx, components/World3D/createGroundWorkerChunkLoader.ts, components/World3D/createVolumeBubbleClient.ts, components/World3D/createWorldGenClient.ts, components/World3D/footingMeshWorker.ts, components/World3D/groundChunkWorker.ts, components/World3D/groundFootingRecovery.ts, components/World3D/groundInteriorRoute.ts, components/World3D/groundPlacementInspection.ts, components/World3D/groundResidentInteraction.ts, components/World3D/groundSwimming.ts, components/World3D/groundWaterMovement.ts, components/World3D/hooks/useInPlaceCombatTransition.ts, components/World3D/hooks/useInteriorTransition.ts, components/World3D/hooks/useWorld3DDiscovery.ts, components/World3D/initialTownEntry.ts, components/World3D/partyJourneyArrival.ts, components/World3D/playerCameraFrame.ts, components/World3D/publicBuildingDiscovery.ts, components/World3D/residentDoorUse.ts, components/World3D/residentInteriorMotion.ts, components/World3D/useFootingMeshes.ts, components/World3D/useGroundKeyboardControls.ts, components/World3D/volumeBubbleWorker.ts, components/World3D/water/riverWorldSite.ts, components/World3D/water/worldGroundHook.ts, components/World3D/worldGenCore.ts, components/Worldforge/AgentSim3DPreview.tsx, components/Worldforge/WorldforgeGroundDrilldown.tsx, systems/combat/worldScenario/liveSettlementEncounter.ts, systems/combat/worldScenario/statePatrolWorldEvent.ts, systems/combat/worldScenario/surfaceHostileContinuity.ts, systems/combat/worldScenario/surfaceHostileEncounter.ts, systems/combat/worldScenario/surfaceHostileTemplate.ts, systems/combat/worldScenario/travelAmbushBattlefield.ts, systems/combat/worldScenario/worldBattleScenario.ts, systems/gameplay/lodging.ts, systems/world3d/groundBuildingMotion.ts, systems/world3d/groundSurfaceYM.ts, systems/worldforge/bridge/buildingEntryApproach.ts, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkMesh.ts, systems/worldforge/bridge/groundChunkWorkerCore.ts, systems/worldforge/bridge/groundHostiles.ts, systems/worldforge/bridge/groundProps.ts, systems/worldforge/bridge/groundRibbonBed.ts, systems/worldforge/bridge/groundWaterMovement.ts, systems/worldforge/bridge/groundWaterSurfaceQuery.ts, systems/worldforge/bridge/institutionOccupancy.ts, systems/worldforge/bridge/residentDoorRoutes.ts, systems/worldforge/bridge/streamedSurface.ts, systems/worldforge/bridge/townVegetation.ts, systems/worldforge/dungeon/world/dungeonEntryRuntime.ts, systems/worldforge/props/exteriorPropRevision.ts, systems/worldforge/props/freshPropClearance.ts, systems/worldforge/props/propGenerationSource.ts, systems/worldforge/props/propLandUse.ts, systems/worldforge/props/prospectivePropPlacement.ts, systems/worldforge/provenance/groundProvenance.ts, systems/worldforge/town/prepareHistoricalTownLoad.ts, systems/worldforge/travel/localGroundJourney.ts, types/combat/actors.ts
+ * Imports: 82 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -134,7 +134,7 @@ import { institutionPlotForRole } from "../townsim/keyNpcs";
 import { institutionWorkplaceRoster } from "../roster/institutionWorkplaces";
 import { institutionDutyStation, institutionOccupancyBuildings } from "./institutionOccupancy";
 import { addBuildingEntryApproaches } from "./buildingEntryApproach";
-import { groundWaterMovementAt } from "../../../components/World3D/groundWaterMovement";
+import { groundWaterMovementAt } from "./groundWaterMovement";
 import { generateBody } from "../body/generateBody";
 import type { BodyPlan } from "../body/types";
 import { childSeedPath, rootSeedPath } from "../seedPath";
@@ -215,6 +215,8 @@ import {
   resolveTerrainTerraces,
   type TerrainTerraceReceipt,
 } from "./terrainTerraces";
+import { gradePlazaTerrainPads } from "./plazaTerrainPads";
+import { attachRibbonBed } from "./groundRibbonBed";
 import {
   resolveSnowLineFt,
   latitudeAtGraphY,
@@ -1074,7 +1076,11 @@ export function regionPolylinesToGround(
         // GG-536: the flood level comes in absolute feet; the ground's heights
         // stand on the window's lowest elevation (`localArtifactToWorldData`).
         const water =
-          line.widthFtAt && line.slopeAt && landRun === pts
+          // Retained terrain has observed constant widths but no hydraulic
+          // slope samples. Keep its existing legacy ribbon path; an empty
+          // slope array cannot stand in for a measured per-point profile.
+          line.widthFtAt?.length === line.centerline.length &&
+          line.slopeAt?.length === line.centerline.length && landRun === pts
             ? {
                 widthAtM: line.widthFtAt.map((w) => w * FEET_TO_METERS),
                 slopeAt: line.slopeAt.slice(),
@@ -2134,6 +2140,17 @@ export function makeGroundWorld(
   // Each makeGroundWorld call receives a freshly allocated height array from
   // localArtifactToWorldData. Flattening mutates only that per-call array, so
   // the LocalArtifact terrain and any future makeGroundWorld calls stay clean.
+  // GG-593: the market square and the civic forecourts get a gentle pad first
+  // (at most 5 degrees), so their stalls and pieces pass the prop surface gate
+  // on a hillside. The building pads come after, so a hall or weigh house in a
+  // square stands on the graded paving and every house keeps a level floor.
+  gradePlazaTerrainPads(
+    wd.heights,
+    wd.gridSize.cols,
+    wd.gridSize.rows,
+    GROUND_METERS_PER_CELL,
+    townContent.planPlazas,
+  );
   flattenBuildingTerrainPads(
     wd.heights,
     wd.gridSize.cols,
@@ -4411,9 +4428,13 @@ function groundTowns(
       // boxes into the static parts (pass an empty roster). Unpopulated plots
       // still bake the roster figures (agent-sim commuters), unchanged — each
       // gets a parametric body (BODY-1) from its own seed path.
+      // NPC lives (GG-600): staff and day labour (`employment`) are not baked
+      // here. A storehouse with 20 labourers at the bake hour would otherwise
+      // hold 20 static boxes all day and night; the street crowd draws their
+      // walk, and a staff room packet is a later step.
       const occFigures: OccupantFigure[] = schedule
         ? []
-        : (byPlot.get(p.id) ?? []).map((o) => ({
+        : (byPlot.get(p.id) ?? []).filter((o) => !(o.atWork && o.employment && o.workPlotId === undefined)).map((o) => ({
             id: o.id,
             ageBand: o.ageBand,
             atWork: o.atWork,
@@ -5101,7 +5122,8 @@ export function sampleGroundChunk(
     }
   }
 
-  return {
+  // The display grid stays coarse; water receives its own copied fine bed.
+  return attachRibbonBed(ground, {
     cx,
     cy,
     resolution,
@@ -5303,7 +5325,7 @@ export function sampleGroundChunk(
           labelRangeM: 15,
         })),
     ],
-  };
+  });
 }
 
 function inChunk(xM: number, zM: number, cx: number, cy: number): boolean {

@@ -230,7 +230,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
         case 'SET_WORLD_SEED': {
             // Reset naval.knownPorts so a mid-session seed change repopulates for
             // the new world (useKnownPortsSync re-fires when knownPorts is empty).
-            return { ...state, worldSeed: action.payload, naval: { ...state.naval, knownPorts: [] } };
+            return { ...state, worldSeed: action.payload, worldforgeTerrainRevision: 2, naval: { ...state.naval, knownPorts: [] } };
         }
         case 'SET_GAME_PHASE': {
             // A rejected surface outcome must not be bypassed by the next

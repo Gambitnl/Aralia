@@ -20,9 +20,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 28/10/2026, 11:26:15
+ * Last Sync: 02/11/2026, 18:02:39
  * Dependents: components/screens/PlayingScreen.tsx
- * Imports: 24 files
+ * Imports: 25 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -36,7 +36,7 @@ import { Sparkles, Dices, Settings, Activity, Layers, Map, ArrowLeft, Info, Help
 import { generateFmgAtlas, type FmgAtlasResult } from "../../systems/worldforge/fmg/generateAtlas";
 import { generateFmgWorld } from "../../systems/worldforge/fmg/generateWorld";
 import { heightmapTemplates } from "../../systems/worldforge/fmg/heightmap-templates";
-import { generateRegion } from "../../systems/worldforge/region/generateRegion";
+import { generateRegionFromSource as generateRegion } from "../../systems/worldforge/region/terrainSource";
 import { generateLocal } from "../../systems/worldforge/local/generateLocal";
 import { rootSeedPath } from "../../systems/worldforge/seedPath";
 import { FEET_PER_FMG_PIXEL } from "../../systems/worldforge/adapter/atlasArtifact";
@@ -540,7 +540,7 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
           feetPerPixel: FEET_PER_FMG_PIXEL,
           resolutionFt: 100, // L1 standard target
           world: worldResult,
-        });
+        }, embeddedInGame ? gameContext?.state.worldforgeTerrainRevision : undefined);
         setRegionArtifact(regionData);
         setSelectedCellId(cellId);
         setInspectCellId(null); // descending supersedes the inspect panel
@@ -580,6 +580,7 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
                 atlas,
                 canonicalWorldSeed,
                 townSite,
+                embeddedInGame ? gameContext?.state.townSim?.[townSite.burgId]?.layoutRevision : undefined,
               ).plan,
             }
           : generatedLocal;

@@ -188,16 +188,20 @@ const FreeRoamCameraController: React.FC<FreeRoamCameraControllerProps> = ({
         let clearEye = cameraBeforeBuilding(focus, eyeAt(requestedPlayerElevation.current), playerSightline);
         const armLength = (point: CameraPoint | null) => point
           ? Math.hypot(point[0] - focus[0], point[1] - focus[1], point[2] - focus[2]) : 0;
-        // Before collapsing into the avatar, try three bounded, shallower arms
-        // under the same roof. Keep yaw fixed: an automatic orbit would redirect
-        // held WASD keys. Every candidate uses the same mounted-geometry checks.
-        // Solid walls retain ordinary retraction when no readable arm clears.
-        const readableDistance = Math.min(2, requestedPlayerDistance.current);
-        if (body && horizontal > 1e-6 && armLength(clearEye) < readableDistance) {
-          for (const angle of [Math.PI / 10, Math.PI / 20, Math.PI / 50]) {
-            if (angle >= requestedPlayerElevation.current) continue;
+        // A low porch may need a shallower eye; a rising outdoor bank may need
+        // a higher one. Recover the longest legal arm before accepting a short
+        // view that fades the body. Every candidate checks the same mounted
+        // walls, ceilings and ground. Keep yaw fixed so held keys retain their
+        // direction, and never extend beyond the player's requested zoom.
+        if (body && horizontal > 1e-6 && armLength(clearEye) < requestedPlayerDistance.current - .02) {
+          const lower = [Math.PI / 10, Math.PI / 20, Math.PI / 50]
+            .filter(angle => angle < requestedPlayerElevation.current!);
+          const higher = [Math.PI / 10, Math.PI / 6, Math.PI / 4, Math.PI / 3]
+            .filter(angle => angle > requestedPlayerElevation.current!);
+          for (const angle of [...lower, ...higher]) {
             const candidate = cameraBeforeBuilding(focus, eyeAt(angle), playerSightline);
-            if (armLength(candidate) >= readableDistance) { clearEye = candidate; break; }
+            if (armLength(candidate) > armLength(clearEye) + .02) clearEye = candidate;
+            if (armLength(clearEye) >= requestedPlayerDistance.current - .02) break;
           }
         }
         if (clearEye) {

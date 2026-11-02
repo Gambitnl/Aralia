@@ -24,8 +24,8 @@ import type { PlayerCharacter, SpellSlots, LimitedUses } from '../../types/chara
 import type { Companion } from '../../types/companions';
 import { ELARA_CLERIC_BUILD as build } from '../../data/companionBuilds';
 import { SKILLS_DATA } from '../../data/skills';
-import { initialCharacterCreatorState } from '../../components/CharacterCreator/state/characterCreatorState';
-import { assemblePlayerCharacter } from '../../components/CharacterCreator/hooks/useCharacterAssembly';
+import { initialCharacterCreatorState } from '../character/characterCreatorState';
+import { assemblePlayerCharacter } from '../character/characterAssembly';
 import { getRulesEdition, type RulesEdition } from '../../config/rulesEdition';
 
 export function authoredCompanionCapabilities(

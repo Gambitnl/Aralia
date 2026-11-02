@@ -20,71 +20,23 @@
 // @dependencies-end
 
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
-import { publishedGroundWaterSurfaceYAt } from '@/systems/worldforge/bridge/groundWaterSurfaceQuery';
-import { GROUND_METERS_PER_CELL } from '@/systems/worldforge/bridge/groundWorldAdapter';
-import { applyMovementCostModifiers } from '@/utils/combat/physicsUtils';
-import { ANY_DIFFICULT_TERRAIN_POLICY, type TerrainMovementPolicy } from '@/utils/combat/movementUtils';
 import { resolveGroundWalk, type GroundWalkSurfaces } from './groundBuildingMotion';
+import { groundWaterMovementAt, type GroundWaterMovement, type GroundWaterProfile } from '@/systems/worldforge/bridge/groundWaterMovement';
+
+// The pure water classifier moved to systems/worldforge/bridge/groundWaterMovement.ts
+// on 2026-11-02 (GG-587, lint rule C11). This walk solver stays here because it calls
+// resolveGroundWalk; the re-export keeps every existing caller and test mock working.
+export * from '@/systems/worldforge/bridge/groundWaterMovement';
 
 type Feet = { xM: number; zM: number; yM: number };
 type Point = { xM: number; zM: number };
-export interface GroundWaterProfile {
-  /** Actual rendered mouth height above the feet, supplied by the body owner.
-   * Missing anatomy cannot authorize walking with the body submerged. */
-  mouthHeightM?: number;
-  /** Standing figure and held gear; independent of mouth immersion. */
-  standingHeightM?: number;
-  terrainPolicy?: TerrainMovementPolicy | null;
-}
-export interface GroundWaterMovement {
-  mode: 'dry' | 'wading' | 'blocked';
-  multiplier: number;
-  depthM?: number;
-  reason?: 'deep-water' | 'unknown-water' | 'unknown-body';
-}
 export type GroundWaterWalk = ReturnType<typeof resolveGroundWalk> & {
   water: GroundWaterMovement;
   /** Movement effort in meters; time was already budgeted by the input owner. */
   spentMovementM: number;
 };
-const CONTACT_M = .05;
-const BREATHING_CLEARANCE_M = .05;
 const SUBSTEP_M = .04;
 const CLOSED_DOORS: ReadonlySet<string> = new Set();
-
-function hasUnresolvedRibbonAt(ground: GroundWorld, point: Point): boolean {
-  for (const river of ground.rivers) {
-    if (river.points.length < 2 || (river.waterlineY?.length === river.points.length && river.waterlineY.every(Number.isFinite))) continue;
-    for (let i = 1; i < river.points.length; i++) {
-      const a = river.points[i - 1], b = river.points[i], dx = b.x - a.x, dz = b.z - a.z;
-      const t = Math.max(0, Math.min(1, ((point.xM - a.x) * dx + (point.zM - a.z) * dz) / (dx * dx + dz * dz || 1)));
-      const width = Math.max(river.surfaceWidthM?.[i - 1] ?? river.widthM, river.surfaceWidthM?.[i] ?? river.widthM);
-      // Missing published levels remain unknown inside the possible ribbon,
-      // including overdraw and end caps. They must not become a dry shortcut.
-      if (!Number.isFinite(width) || Math.hypot(point.xM - a.x - t * dx, point.zM - a.z - t * dz) <= width / 2 + GROUND_METERS_PER_CELL) return true;
-    }
-  }
-  return false;
-}
-
-export function groundWaterMovementAt(ground: GroundWorld, feet: Feet, profile: GroundWaterProfile): GroundWaterMovement {
-  if (![feet.xM, feet.zM, feet.yM].every(Number.isFinite)) return { mode: 'blocked', multiplier: Infinity, reason: 'unknown-body' };
-  if (hasUnresolvedRibbonAt(ground, feet)) return { mode: 'blocked', multiplier: Infinity, reason: 'unknown-water' };
-  const surfaceY = publishedGroundWaterSurfaceYAt(ground, feet.xM, feet.zM);
-  const depthM = surfaceY == null ? 0 : Math.max(0, surfaceY - feet.yM);
-  // This only classifies grounded, source-supported local movement. A dry
-  // published point is never a regional route or crossing certificate.
-  if (depthM <= CONTACT_M) return { mode: 'dry', multiplier: 1, depthM };
-  if (!Number.isFinite(profile.mouthHeightM) || profile.mouthHeightM! <= 0) return { mode: 'blocked', multiplier: Infinity, depthM, reason: 'unknown-body' };
-  if (depthM + BREATHING_CLEARANCE_M >= profile.mouthHeightM!) return { mode: 'blocked', multiplier: Infinity, depthM, reason: 'deep-water' };
-  // The existing unrestricted policy covers water. Earth Walk and Timberwalk
-  // keep their ground/plant qualifiers rather than gaining a new water waiver.
-  const multiplier = applyMovementCostModifiers(1, {
-    isDifficultTerrain: true,
-    ignoreDifficultTerrain: profile.terrainPolicy === ANY_DIFFICULT_TERRAIN_POLICY,
-  });
-  return { mode: 'wading', multiplier, depthM };
-}
 
 /** Spend one frame's walking budget along the requested direction. Sampling
  * every existing 4 cm support step prevents a distant click from skipping

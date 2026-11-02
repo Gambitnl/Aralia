@@ -18,8 +18,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 29/10/2026, 01:49:01
- * Dependents: components/World3D/GroundAgents.tsx, components/World3D/InteriorOccupants.tsx, components/World3D/World3DWrapper.tsx, components/World3D/agentInstanceMatrices.ts, components/World3D/crowdInstancePlan.ts, components/World3D/streetOwnedAgents.ts, systems/combat/worldScenario/worldBattleScenario.ts, systems/worldforge/travel/localGroundJourney.ts
+ * Last Sync: 02/11/2026, 21:55:43
+ * Dependents: components/World3D/GroundAgents.tsx, components/World3D/InteriorOccupants.tsx, components/World3D/World3DWrapper.tsx, components/World3D/agentInstanceMatrices.ts, components/World3D/crowdInstancePlan.ts, components/World3D/residentDoorUse.ts, components/World3D/streetOwnedAgents.ts, systems/combat/worldScenario/worldBattleScenario.ts, systems/worldforge/travel/localGroundJourney.ts
  * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
@@ -51,6 +51,14 @@ function streetGraphForPlan(plan: TownPlan): StreetGraph {
   const graph = buildStreetGraph(plan);
   streetGraphByPlan.set(plan, graph);
   return graph;
+}
+
+/** The one street graph a town's motion uses: the bake's graph when the
+ * ground world carries it, else the cached graph for the plan. Callers that
+ * read legs (the door sampler, GG-601) must use this same object, because the
+ * per-person route cache in townSnapshot is keyed on it. */
+export function streetGraphForTown(town: { plan: TownPlan; streetGraph?: StreetGraph }): StreetGraph {
+  return town.streetGraph ?? streetGraphForPlan(town.plan);
 }
 
 const FEET_TO_METERS = 0.3048;
@@ -124,7 +132,7 @@ export function allGroundAgentsAt(ground: GroundWorld, clock: number, options: {
   for (const { burgId, plan, streetGraph } of ground.townPlans) {
     const roster = ground.rosters.find((r) => r.burgId === burgId);
     if (!roster) continue;
-    out.push(...groundTownAgentsAt(burgId, plan, roster, bounds, clock, streetGraph ?? streetGraphForPlan(plan), options));
+    out.push(...groundTownAgentsAt(burgId, plan, roster, bounds, clock, streetGraphForTown({ plan, streetGraph }), options));
   }
   return out;
 }

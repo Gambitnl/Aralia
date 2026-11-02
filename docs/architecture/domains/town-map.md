@@ -1,6 +1,6 @@
 # Town Map
 
-Verified: 2026-11-02 (street crowd errands, departures, outdoor-only drawing and talk/listen poses: see "Street crowd: errands, departures and outdoor drawing"). Earlier: 2026-11-02 (GG-586 market square: measured at four bands and 24 sampled towns, Hafting rendered in the 2D town map at `step=town3d`). Earlier: 2026-11-02 (GG-577 shared courts in the old core and GG-569 civic grounds in the 3D bake, measured at four bands, rendered at `step=town3d` Real 3D for Paphina). Earlier: 2026-11-02 (GG-542: staff and patron parity between the building visit and the live schedule). Earlier: 2026-11-01 (town-map rules GG-560 to GG-567: main street, river channel, bridges, docks, gate hooks, house shape, front gardens, passages and civic grounds, measured at four bands and thirteen water towns, rendered at `step=town3d`; candidate homestead/parent-land/shared-approach planning and larger-town coverage failure; explicit candidate rural household/field source facts; fresh-only resolved building purpose and household-first prop wealth; native settled nave orbit, altar route and retained knowledge reload; requested-heading camera retraction and native temple bench/reload; measured retained-prop repair proposal and native movement contract; saved-revision factual readers and Local/address reconstruction; revision-aware building/rest readers, truthful routine reports and source-change inspector reset; recorded door widths, household reference drafts and native poor-home reload; saved town-layout registration and ground projection; retained town-layout reader and measured runtime precision; reached furnishing identity source and captured desktop component view; town-look rules GG-544 to GG-551, census of 813 towns; fitted civic labels and native library use; town roads meet the world roads, GG-541, census of 8 towns). Earlier, 2026-10-29: (canonical door-head alignment, measured standing clearance, actual Fenna entry/owned trade/counter examination and two native interior reloads; live Brooksmith work/home handoff, night manual full reload and continuous terrain walking; separate workplace attendance and retirement; ground recovery, finish-based rest cooldown and named-slot reload; source-grid combat handoff and actual Alrio defeat; observed Alrio growth, saved exploration knowledge, bounded stair/input gates and exact repaired world return; typed tavern services and saved local hooks; canonical proprietor reconciliation, clear activity targets, resident mouse selection, family/memory reload, in-place rest, saved front doors and qualified railed Hartdown traversal). Source-bound shelf rendering and owned-content examination were checked in the saved Menaikon visit.
+Verified: 2026-11-02 (GG-600 town work and GG-601 street joins, door steps, errand doors and errand slots: see "Street crowd: errands, departures and outdoor drawing"). Earlier: 2026-11-02 (GG-593 plaza pads: market squares and civic forecourts graded to at most 5 degrees in the 3D bake, measured at four bands and a town sample). Earlier: 2026-11-02 (street crowd errands, departures, outdoor-only drawing and talk/listen poses: see "Street crowd: errands, departures and outdoor drawing"). Earlier: 2026-11-02 (GG-586 market square: measured at four bands and 24 sampled towns, Hafting rendered in the 2D town map at `step=town3d`). Earlier: 2026-11-02 (GG-577 shared courts in the old core and GG-569 civic grounds in the 3D bake, measured at four bands, rendered at `step=town3d` Real 3D for Paphina). Earlier: 2026-11-02 (GG-542: staff and patron parity between the building visit and the live schedule). Earlier: 2026-11-01 (town-map rules GG-560 to GG-567: main street, river channel, bridges, docks, gate hooks, house shape, front gardens, passages and civic grounds, measured at four bands and thirteen water towns, rendered at `step=town3d`; candidate homestead/parent-land/shared-approach planning and larger-town coverage failure; explicit candidate rural household/field source facts; fresh-only resolved building purpose and household-first prop wealth; native settled nave orbit, altar route and retained knowledge reload; requested-heading camera retraction and native temple bench/reload; measured retained-prop repair proposal and native movement contract; saved-revision factual readers and Local/address reconstruction; revision-aware building/rest readers, truthful routine reports and source-change inspector reset; recorded door widths, household reference drafts and native poor-home reload; saved town-layout registration and ground projection; retained town-layout reader and measured runtime precision; reached furnishing identity source and captured desktop component view; town-look rules GG-544 to GG-551, census of 813 towns; fitted civic labels and native library use; town roads meet the world roads, GG-541, census of 8 towns). Earlier, 2026-10-29: (canonical door-head alignment, measured standing clearance, actual Fenna entry/owned trade/counter examination and two native interior reloads; live Brooksmith work/home handoff, night manual full reload and continuous terrain walking; separate workplace attendance and retirement; ground recovery, finish-based rest cooldown and named-slot reload; source-grid combat handoff and actual Alrio defeat; observed Alrio growth, saved exploration knowledge, bounded stair/input gates and exact repaired world return; typed tavern services and saved local hooks; canonical proprietor reconciliation, clear activity targets, resident mouse selection, family/memory reload, in-place rest, saved front doors and qualified railed Hartdown traversal). Source-bound shelf rendering and owned-content examination were checked in the saved Menaikon visit.
 
 Named household schedules share the occupancy owner's 07:00 breakfast, 08:00
 work and 18:00 return boundaries. Street travel uses existing route length at
@@ -881,13 +881,42 @@ Measured with `.agent/scratch/town-look/market.mts` and `market3d.mts`
   are squares with no room left.
 - Facing houses that trade: 171 of 182 in the sample; the rest are landmarks.
 - 3D bake: Paphina places 13 of 13 market props at their plan positions,
-  and its hall and weigh house are buildings. Hafting places 25 of 26; the
-  surface gate drops one stall on 10.9 degree ground. Sarprak places 0 of 6:
-  its green lies on 11 to 18 degree ground (GG-593).
+  and its hall and weigh house are buildings. Before the plaza pads (below),
+  Hafting placed 25 of 26 and Sarprak 0 of 6, because the surface gate
+  refused props on 11 to 18 degree ground.
 
-Open: the 3D bake does not level a market square, so on a slope the surface
-gate drops its pieces (GG-593). A village green with no room after its walk
-and centerpiece holds no stall (two of four sampled greens hold 0 or 1).
+### Plaza pads in the 3D bake (GG-593)
+
+Verified 2026-11-02 with `.agent/scratch/town-look/market3d-593.mts`,
+world 903674813. The bake grades each paved square to a gentle pad before
+it levels the building plots. `gradePlazaTerrainPads`
+(`bridge/plazaTerrainPads.ts`) runs in `makeGroundWorld` just before
+`flattenBuildingTerrainPads`, on the same encoded height grid.
+
+- The plazas are `planPlazas`: the market square first, then each civic
+  forecourt, cloister walk, hall yard and gatehouse passage (GG-569).
+- Each plaza gets a plane fitted to the grid nodes inside it (least
+  squares). The plane passes through their mean height, so cut and fill
+  balance and the square keeps its level.
+- The plane's grade is held to `PLAZA_MAX_GRADE_DEG` (5 degrees, about one
+  in eleven). That is well under the 10 degree prop surface gate. A square
+  that is already gentler keeps its own fall.
+- A node that an earlier plaza graded keeps its height, so the market square
+  wins where a forecourt touches it. One ring of nodes round each pad blends
+  halfway toward it, as round a building pad.
+- The building pads run after this step. A hall or weigh house inside a
+  square samples the graded paving, and every house keeps its level floor.
+
+Results: Sarprak places 6 of 6 (before 0 of 6), Hafting 26 of 26 (before
+25 of 26), Paphina 13 of 13 and Borieborum 66 of 66. Sample: 14 sampled towns place 365 of 365 market pieces at their plan positions; 3 of them have a square steeper than 5 degrees (up to 9.6), now graded to 5; the steepest ground under a piece is 5.0 degrees; the largest cut or fill at a square's edge is 3.4 m.
+
+Open: a steep square has a bank at its edge where the pad meets the natural
+ground; no retaining wall marks it yet. The graves of a churchyard stand on
+its grass, not on paving, so the plaza pads do not grade them. At Sarprak
+43 of 44 gravestones stand, but the civic-grounds prop pass still refuses 11
+pieces on steep ground. A village
+green with no room after its walk and centerpiece holds no stall (two of four
+sampled greens hold 0 or 1).
 
 ## Town perimeter and skyline rendering
 
@@ -1222,7 +1251,8 @@ The Gameplay Flow tracker owns the precise receipt and physical replay gates.
 
 Verified: 2026-11-02 (unit tests; Node probes of the seed-42 demo town and of
 Borieborum, burg 702 at world 903674813; headless World3D demo shots and frame
-counts).
+counts). Work, street joins and errand slots (GG-600, GG-601) were checked
+the same day with unit tests and Node probes of both towns.
 
 The street crowd (`GroundAgents`) draws only people who are outside a
 building. `townMotionSnapshotAt` marks them `outdoors`: a walker, a person at
@@ -1240,18 +1270,56 @@ Children favor the market and civic plots, adults the market, elders the
 market and the temple. The choice is among the 8 nearest places of the chosen
 role within about 400 m. `townSnapshot.occupantStopAt` swaps the OUT block to
 that plot. `recentCommute(occupant, hour, graph)` sees errand legs only when
-it gets the graph. `residentDoorUse` calls it without one, so an errand trip
-does not swing a door.
+it gets the graph. `residentDoorUse` gets the town's graph from
+`groundAgentMotion.streetGraphForTown`, the same object the crowd walks, so a
+resident opens their own door to leave for an errand and to come back.
+
+Work (GG-600). The town engine links every home to its work
+(`population.assignWorkplaces`): the home that runs a workplace, a home whose
+breadwinner is staff at a near workplace, or a labor home.
+`roster/employment.ts` reads those links into `Occupant.employment`
+(`{plotId, role}`) once the roster ids are fixed. The head works where the
+link says; in a family business the spouse and adult kin help there; a lodger
+and a spare roster slot take day labor. Children, servants, retired people
+and the spouse and kin of a staff or labor home do not work. Day labor goes to
+the nearest heavy-work building with room (storehouse, granary, mill, bakery,
+workshop, smithy, the keep, then shops and inns as porters). `workPlotId`
+still marks only the business keeper, because merchant ids, the owner's name,
+stock and shop succession join on it. `occupantWorkPlotId` returns
+`workPlotId`, then the civic duty, then `employment`. Every new worker is away
+from their house packet during the day shift, so the street walk and the room
+agree. Staff are not drawn inside their workplace yet (its room packet admits
+only the keeper), and a staff or labor job is never baked as a static figure.
+Borieborum: 1,017 of 3,524 people work (70 before), and 906 different people
+walk from 07:00 to 09:00. Demo town: 600 of 2,109 (53 before).
+
+Street joins and door steps (GG-601). `buildStreetGraph` joins a street that
+ends on another street's span (`joinStreetEnds`, within 2 ft): it splits that
+span at the dead end. Before this the seed-42 town had 13 unjoined lanes, and
+838 of its 3,886 legs fell back to a straight line through the buildings. A
+door never moves (interiors are fitted to it), but its street point may: when
+the square step to the nearest street would cut another plot, or go back into
+its own plot past its first 6 ft, the router takes the nearest clear point
+within 40 ft more, including points that slide along the nearest street. A
+door with no clear point keeps the step that crosses least; deep-block row
+houses with no clear way to a street are GG-604.
 
 Departures. A household leg leaves 0 to 39 minutes after the hour
 (`legDepartureDelayHours`, a hash of person and hour). Until then the person
 is still inside. `commuteArrivalDelayAtHour` adds the wait to the walk, so a
 room claims a body only after both.
 
-At the place. `errandSpotFor` puts the person on the street side of the door,
-up to 26 ft along the street each way, at one of 96 evenly spread points. The
-group faces the middle of that zone. Places next to each other can share
-street, so some people still stand closer than 0.5 m.
+At the place. `errandSpotFor` puts the person on the street side of the
+door, short of the street center, so a group never meets the group across the
+street. The zone runs up to 26 ft along the street each way, and short of
+half the gap to the nearest other errand place. Every caller that has the
+roster calls `registerErrandGroups` first (the crowd pass and the bake's
+`residentDoorRoutes`). Each person then takes the lowest slot that is free
+when they arrive, and the slots fill a grid 2.5 ft apart from the door outward.
+So two people at one place at one time never share a point. A caller with no
+roster keeps a stable hash point. The group faces the middle of the zone.
+Pairs closer than 0.5 m at 13:00: demo town 0 (49 before), Borieborum 0
+(136 before).
 
 Speed and smoothness. The 3D crowd walks everyone at 1.2 m/s
 (`measuredWalk`). The 2D agent preview keeps its half-hour legs for people

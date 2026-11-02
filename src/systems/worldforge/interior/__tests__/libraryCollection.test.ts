@@ -1,9 +1,9 @@
 import {beforeEach,describe,expect,it,vi} from 'vitest';
 import {createMockGameState} from '@/utils/core/factories';
 import {DiscoveryType} from '@/types/state';
-import type {TownBuildingVisit} from '@/components/Worldforge/townBuildingVisit';
+import type {TownBuildingVisit} from '@/systems/worldforge/town/townBuildingVisit';
 const mocks=vi.hoisted(()=>({visit:vi.fn(),town:vi.fn(),attendance:vi.fn(),sites:vi.fn(),chronicle:vi.fn()}));
-vi.mock('@/components/Worldforge/townBuildingVisit',()=>({townBuildingVisit:mocks.visit}));
+vi.mock('@/systems/worldforge/town/townBuildingVisit',()=>({townBuildingVisit:mocks.visit}));
 vi.mock('../../townsim/chronicleForLocation',()=>({resolveTownForLocation:mocks.town}));
 vi.mock('@/systems/economy/businessAttendance',()=>({attendanceForVisit:mocks.attendance}));
 vi.mock('../../bridge/legacySubmapBridge',()=>({getBridgeAtlas:()=>({pack:{burgs:{40:{cell:1,name:'Librarytown'},502:{cell:2,name:'Menina'},503:{cell:3,name:'Other'}},cells:{state:[0,5,5,6]},states:{5:{name:'Hafrostia'}}}})}));

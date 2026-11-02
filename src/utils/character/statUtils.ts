@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 01/06/2026, 17:38:35
- * Dependents: components/CharacterCreator/SkillSelection.tsx, components/DesignPreview/steps/PreviewCombatSandbox.tsx, components/Party/PartyPane/PartyMemberCard.tsx, utils/character/characterUtils.ts, utils/character/checkUtils.ts, utils/character/index.ts, utils/character/savingThrowUtils.ts, utils/character/skillModifierUtils.ts, utils/combat/combatUtils.ts, utils/sandbox/quickCharacterGenerator.ts, utils/statUtils.ts
- * Imports: None
+ * Last Sync: 02/11/2026, 19:20:11
+ * Dependents: commands/effects/GrantedActionCommand.ts, commands/factory/greenFlameBladeAttackBridge.ts, commands/factory/spell/spellAttack.ts, commands/factory/trueStrikeAttackBridge.ts, components/CharacterCreator/SkillSelection.tsx, components/Crafting/crafterAdapter.ts, components/DesignPreview/steps/classes/subclasses/sorcerer/DraconicSorceryDemo.tsx, components/DesignPreview/steps/classes/subclasses/warlock/FiendPatronDemo.tsx, components/DesignPreview/steps/raceDomain/leaves/autognomeRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/autumnEladrinRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/beasthideShifterRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/fireGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/frostGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/giffRaceLeaf.tsx, components/DesignPreview/steps/scenarioControls/multiattackRidersScenarioControls.ts, components/DesignPreview/steps/spells/cureWoundsScenario.tsx, components/DesignPreview/steps/spells/fireBoltScenario.tsx, components/Party/PartyPane/PartyMemberCard.tsx, components/layout/GameModals.tsx, devtools/worldBattleLabParty.ts, systems/character/characterAssembly.ts, systems/perception/eventDetection.ts, systems/perception/stealthResolution.ts, systems/spells/mechanics/witchBoltOngoingResolution.ts, systems/travel/forcedMarch.ts, systems/travel/tripEvents.ts, systems/worldforge/travel/localGroundJourney.ts, utils/character/characterUtils.ts, utils/character/checkUtils.ts, utils/character/defense.ts, utils/character/index.ts, utils/character/progression.ts, utils/character/savingThrowUtils.ts, utils/character/skillModifierUtils.ts, utils/character/stats.ts, utils/combat/abjurerUtils.ts, utils/combat/archfeyUtils.ts, utils/combat/battleMasterUtils.ts, utils/combat/combatUtils.ts, utils/combat/draconicSorceryUtils.ts, utils/combat/multiattackUtils.ts, utils/combat/oathOfDevotionUtils.ts, utils/combat/openHandUtils.ts, utils/combat/shoveUtils.ts, utils/combat/thiefUtils.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spells/outOfCombatCasting.ts, utils/spells/worldTimedEffects.ts
+ * Imports: 1 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,6 +14,7 @@
  */
 // @dependencies-end
 
+import { preparedMageArmorMechanics } from '../spells/preparedMageArmor';
 import { AbilityScores, Race, PlayerCharacter, Item, EquipmentSlotType } from '../../types/index.js';
 import { ActiveEffect } from '../../types/effects.js';
 
@@ -303,6 +304,11 @@ export const calculateArmorClass = (character: PlayerCharacter, activeEffects: A
   // However, Mage Armor calculation (13+Dex) vs Armor (12+Dex) might favor Mage Armor incorrectly if we don't suppress it while armored.
   // The 'set_base_ac' effects should strictly NOT apply if wearing armor.
   let validEffects: ACRelevantActiveEffect[] = [...activeEffects];
+  // A real downtime cast retains its original clock and canonical formula.
+  // Treat it as a base choice, so racial/monk defenses and shields still use
+  // the shared calculator and the same spell cannot add a second flat bonus.
+  const preparedArmor = preparedMageArmorMechanics(character);
+  if (preparedArmor) validEffects.push({ type: 'set_base_ac', value: preparedArmor.baseAC, mechanics: preparedArmor });
   if (armor && armor.type === 'armor') {
     // Mage Armor-style effects do not apply while armor is worn. This must
     // check both legacy direct effects and combat effects that store base AC

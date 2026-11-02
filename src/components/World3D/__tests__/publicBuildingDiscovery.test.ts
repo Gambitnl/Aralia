@@ -5,7 +5,7 @@ import type {TownBuildingVisit} from '../../Worldforge/townBuildingVisit';
 import type {GameState} from '../../../types/state';
 import {BLUEPRINT_STOREY_FT} from '../../../systems/world3d/buildingModels';
 
-vi.mock('../terrain/groundSurfaceYM', () => ({groundSurfaceYM: () => 10}));
+vi.mock('@/systems/world3d/groundSurfaceYM', () => ({groundSurfaceYM: () => 10}));
 const fixture = () => {
   const building = {id:'wf-plot-253-1',xM:20,zM:30,name:'Fallback Crown',
     cornersM:[{x:18,z:28},{x:22,z:28},{x:22,z:32},{x:18,z:32}],

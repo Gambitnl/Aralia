@@ -71,6 +71,21 @@ const runInitialTurnStart = (character: CombatCharacter): CombatCharacter | unde
 // DefensiveCommand active-effect metadata.
 // ============================================================================
 describe('useTurnManager defensive AC lifecycle', () => {
+  it('retains a stronger intrinsic AC while Mage Armor ticks and after it expires', () => {
+    const character = createDefensiveAcCharacter({
+      id: 'unarmored-hero', armorClass: 17, baseAC: 17,
+      stats: { dexterity: 12 } as CombatCharacter['stats'],
+      activeEffects: [{ id: 'paid-armor', spellId: 'mage-armor', casterId: 'hero',
+        sourceName: 'Mage Armor', type: 'buff', duration: {type: 'rounds', value: 2},
+        startTime: 1, mechanics: {baseAC: 13, baseACFormula: '13 + dex_mod'} }]
+    });
+    const ticking = runInitialTurnStart(character);
+    expect(ticking?.armorClass).toBe(17);
+    expect(ticking?.activeEffects).toHaveLength(1);
+    const expired = runInitialTurnStart({...character, activeEffects: [{...character.activeEffects![0], duration: {type: 'rounds', value: 1}}]});
+    expect(expired?.armorClass).toBe(17);
+    expect(expired?.activeEffects).toHaveLength(0);
+  });
   it('expires Shield-style AC bonuses back to the pre-effect Armor Class', () => {
     const shieldEffect: ActiveEffect = {
       id: 'shield-effect',

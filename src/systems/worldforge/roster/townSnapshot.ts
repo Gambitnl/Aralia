@@ -17,9 +17,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 29/10/2026, 02:07:12
+ * Last Sync: 02/11/2026, 21:55:43
  * Dependents: components/World3D/residentDoorUse.ts, components/Worldforge/TownAgentSnapshotView.tsx, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/residentDoorRoutes.ts
- * Imports: 4 files
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -31,7 +31,7 @@
 import type { TownPlan } from '../artifacts';
 import type { Occupant, TownRoster, TownPlot } from './types';
 import { occupantLocationAt, occupantWorkPlotId, type ActivityKind, type ScheduleBlock } from './occupantSchedule';
-import { errandPlotFor } from './errands';
+import { ERRAND_ROLES, errandPlotFor } from './errands';
 import {
   frontDoorForPlot,
   routeAlongStreets,
@@ -256,6 +256,83 @@ export interface ErrandSpot {
 const ERRAND_POINTS = 96;
 /** The standing zone runs this far along the street each way from the door (ft). */
 const ERRAND_ALONG_FT = 26;
+/** A zone never runs narrower than this each way, beside a close neighbor (ft). */
+const ERRAND_MIN_ALONG_FT = 4;
+
+// GG-601 (2026-11-02): one standing slot per person at each errand place.
+// The hash slot let two people of one group stand inside each other, and the
+// zones of neighbor places overlapped (89 pairs closer than 0.5 m at 13:00 in
+// the demo town). Every caller that has the roster registers it first. Each
+// person takes the lowest slot that is free when they arrive (the slots of
+// people who stay are held to one hour after they leave, for the walk), so
+// the slot numbers stay as small as the largest group, and two people at the
+// place at one time never share a slot.
+interface ErrandSlots { rosters: WeakSet<readonly Occupant[]>; slot: WeakMap<Occupant, number> }
+const errandSlotsByGraph = new WeakMap<StreetGraph, ErrandSlots>();
+
+/** Hand out the standing slots of every errand place for one town's people.
+ * Call it before any motion read for this graph; a second call with the same
+ * roster array costs nothing. */
+export function registerErrandGroups(graph: StreetGraph, occupants: readonly Occupant[]): void {
+  let entry = errandSlotsByGraph.get(graph);
+  if (!entry) { entry = { rosters: new WeakSet(), slot: new WeakMap() }; errandSlotsByGraph.set(graph, entry); }
+  if (entry.rosters.has(occupants)) return;
+  entry.rosters.add(occupants);
+  const byPlace = new Map<number, Array<{ occupant: Occupant; start: number; end: number }>>();
+  for (const occupant of occupants) {
+    const place = errandPlotFor(graph, occupant);
+    if (place === undefined || place === occupant.homePlotId || place === occupantWorkPlotId(occupant)) continue;
+    let start = -1, end = -1;
+    for (let h = 0; h < 24; h++) {
+      if (occupantLocationAt(occupant, h).activity !== 'out') continue;
+      if (start < 0) start = h;
+      end = h + 1;
+    }
+    if (start < 0) continue;
+    const list = byPlace.get(place) ?? [];
+    list.push({ occupant, start, end });
+    byPlace.set(place, list);
+  }
+  for (const list of byPlace.values()) {
+    list.sort((x, y) => x.start - y.start || x.occupant.id - y.occupant.id);
+    const freeFrom: number[] = []; // per slot: the hour it is free again
+    for (const { occupant, start, end } of list) {
+      let slot = freeFrom.findIndex((hour) => hour <= start);
+      if (slot < 0) { slot = freeFrom.length; freeFrom.push(0); }
+      freeFrom[slot] = end + 1;
+      entry!.slot.set(occupant, slot);
+      // A spot or leg read before this call used the hash slot: drop it.
+      const cache = personCache(graph, occupant);
+      cache.spots.clear();
+      cache.legs.clear();
+    }
+  }
+}
+
+/** Grid spacing of registered slots (ft): 0.76 m between neighbors. */
+const ERRAND_SLOT_FT = 2.5;
+
+const zoneHalfByGraph = new WeakMap<StreetGraph, Map<number, number>>();
+
+/** Half the zone length along the street: up to ERRAND_ALONG_FT, and short of
+ * half the gap to the nearest other errand place's door. */
+function zoneHalfAlongFt(graph: StreetGraph, plotId: number): number {
+  let byPlot = zoneHalfByGraph.get(graph);
+  if (!byPlot) {
+    byPlot = new Map();
+    const places = [...graph.plotEntrances.values()]
+      .filter((e) => e.role !== undefined && (ERRAND_ROLES as readonly string[]).includes(e.role));
+    for (const place of places) {
+      let gap = Infinity;
+      for (const other of places) {
+        if (other.plotId !== place.plotId) gap = Math.min(gap, Math.hypot(other.door[0] - place.door[0], other.door[1] - place.door[1]));
+      }
+      byPlot.set(place.plotId, Math.max(ERRAND_MIN_ALONG_FT, Math.min(ERRAND_ALONG_FT, gap / 2 - 1.5)));
+    }
+    zoneHalfByGraph.set(graph, byPlot);
+  }
+  return byPlot.get(plotId) ?? ERRAND_ALONG_FT;
+}
 
 /** The spot in front of `plotId`'s door when that plot is this person's
  * errand place (not their home or work). Undefined for any other plot.
@@ -280,13 +357,33 @@ export function errandSpotFor(graph: StreetGraph, occupant: Occupant, plotId: nu
     const tl = Math.hypot(bx - ax, by - ay);
     if (tl > 1) { tx = (bx - ax) / tl; ty = (by - ay) / tl; }
   }
-  // Depth: from just outside the door to a few feet past the street center.
+  // Depth: from just outside the door to just short of the street center, so
+  // a group never meets the group of a place across the street (GG-601).
   const near = Math.min(3, Math.max(1.5, entrance.connectorLengthFt * 0.4));
-  const far = entrance.connectorLengthFt + 3;
-  const k = stableHash(occupant.id, 101) % ERRAND_POINTS;
-  const u = (0.5 + k * 0.7548776662) % 1, v = (0.5 + k * 0.5698402910) % 1;
-  const along = (u - 0.5) * 2 * ERRAND_ALONG_FT;
-  const depth = near + (Math.max(far, near + 2) - near) * v;
+  const far = entrance.connectorLengthFt - 1.5;
+  const half = zoneHalfAlongFt(graph, plotId);
+  const slot = errandSlotsByGraph.get(graph)?.slot.get(occupant);
+  let along: number, depth: number;
+  if (slot !== undefined) {
+    // A registered slot: a grid that fills from the door outward, the middle
+    // of each row first (0, +1, -1, +2, ...). A big group runs deeper into the
+    // street rather than into a neighbor's zone. A small stable jitter keeps
+    // the rows from reading as a drill line; it never closes the gap below
+    // 2.5 - 0.8 = 1.7 ft (0.52 m).
+    const columns = 2 * Math.floor(half / ERRAND_SLOT_FT) + 1; // symmetric: no column past the edge
+    const row = Math.floor(slot / columns), column = slot % columns;
+    const offset = column === 0 ? 0 : (column % 2 ? 1 : -1) * Math.ceil(column / 2);
+    const jitter = (salt: number) => ((stableHash(occupant.id, salt) % 1000) / 1000 - 0.5) * 0.8;
+    along = offset * ERRAND_SLOT_FT + jitter(102);
+    depth = near + row * ERRAND_SLOT_FT + jitter(103);
+  } else {
+    // An unregistered caller (a test, a lone preview person) keeps the stable
+    // hash point of the R2 sequence.
+    const k = stableHash(occupant.id, 101) % ERRAND_POINTS;
+    const u = (0.5 + k * 0.7548776662) % 1, v = (0.5 + k * 0.5698402910) % 1;
+    along = (u - 0.5) * 2 * half;
+    depth = near + (Math.max(far, near + 2) - near) * v;
+  }
   const mid = (near + Math.max(far, near + 2)) / 2;
   return {
     spot: [dx + ux * depth + tx * along, dy + uy * depth + ty * along],
@@ -414,6 +511,7 @@ export function townMotionSnapshotAt(
   const hr = Math.floor(wrapped);
   const frac = wrapped - hr;
 
+  registerErrandGroups(graph, roster.occupants);
   const out: MovingAgentSnapshot[] = [];
   const people = options.outdoorsOnly ? outdoorCandidates(graph, roster, hr) : (roster.occupants as Occupant[]);
   for (const occ of people) {

@@ -4,6 +4,7 @@ import {
   moveWindowToFront,
   normalizeWindowStack,
   removeWindowFromStack,
+  replaceWindowStack,
   useWindowStack,
 } from '../useWindowStack';
 
@@ -38,6 +39,13 @@ describe('window stack transitions', () => {
   it('preserves sibling order when a window closes', () => {
     expect(removeWindowFromStack(['map', 'party', 'sheet'], 'party')).toEqual(['map', 'sheet']);
   });
+
+  it('replaces the stack with a single window id or clears it when null', () => {
+    expect(replaceWindowStack(['floorplans', 'party'], 'dungeon')).toEqual(['dungeon']);
+    const existing = ['dungeon'] as const;
+    expect(replaceWindowStack(existing, 'dungeon')).toBe(existing);
+    expect(replaceWindowStack(['dungeon'], null)).toEqual([]);
+  });
 });
 
 // ============================================================================
@@ -48,7 +56,7 @@ describe('window stack transitions', () => {
 // ============================================================================
 
 describe('useWindowStack', () => {
-  it('drives open, bring-to-front, open-state, and close through stable ids', () => {
+  it('drives open, bring-to-front, replaceWith, open-state, and close through stable ids', () => {
     const { result } = renderHook(() => useWindowStack(['map', 'party']));
 
     expect(result.current.orderedOpenIds).toEqual(['map', 'party']);
@@ -57,8 +65,13 @@ describe('useWindowStack', () => {
     act(() => result.current.openOrBringToFront('map'));
     expect(result.current.orderedOpenIds).toEqual(['party', 'map']);
 
-    act(() => result.current.closeWindow('party'));
-    expect(result.current.orderedOpenIds).toEqual(['map']);
-    expect(result.current.isWindowOpen('party')).toBe(false);
+    act(() => result.current.replaceWith('sheet'));
+    expect(result.current.orderedOpenIds).toEqual(['sheet']);
+    expect(result.current.isWindowOpen('map')).toBe(false);
+    expect(result.current.isWindowOpen('sheet')).toBe(true);
+
+    act(() => result.current.closeWindow('sheet'));
+    expect(result.current.orderedOpenIds).toEqual([]);
+    expect(result.current.isWindowOpen('sheet')).toBe(false);
   });
 });

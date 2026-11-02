@@ -20,9 +20,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/10/2026, 22:46:21
+ * Last Sync: 02/11/2026, 18:02:39
  * Dependents: services/saveLoadService.ts
- * Imports: 17 files
+ * Imports: 18 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -33,6 +33,7 @@
 
 import { GameState, GamePhase } from '../../types';
 import { needsHistoricalTownLoad } from '../../systems/worldforge/town/historicalTownLoadContract';
+import { requireTerrainSourceRevision } from '../../systems/worldforge/region/terrainSource';
 import { buildHitPointDicePools, normalizeClassLevels } from '../../utils/character';
 import { getGameDay } from '../../utils/core';
 import { createEmptyHistory } from '../../utils/world';
@@ -373,6 +374,11 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
       loadedState.playerGroundPos = null;
       loadedState.atlasGroundPosition = null;
     }
+    // Reject corrupt or future explicit terrain identities before mounting a
+    // scene. Absence remains unknown for independent historical admission.
+    if (loadedState.worldforgeTerrainRevision !== undefined) {
+      requireTerrainSourceRevision(loadedState.worldforgeTerrainRevision);
+    }
     // Qualify an observed historical town before any current scene mounts.
     // Work stays off-thread, and refusal leaves both storage and active play
     // untouched. Ordinary new/known saves never start this heavy source check.
@@ -387,6 +393,7 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
           return failure;
         }
         loadedState.townSim = admission.state.townSim;
+        loadedState.worldforgeTerrainRevision = admission.state.worldforgeTerrainRevision;
       } catch (error) {
         logger.warn('Saved-town source check did not complete', {error});
         const failure = {success: false, message: 'The saved-town check could not finish. Your saved game has not been changed. Try loading again.'} as const;

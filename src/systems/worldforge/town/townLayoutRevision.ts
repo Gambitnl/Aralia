@@ -11,8 +11,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 01/11/2026, 04:56:53
- * Dependents: components/Worldforge/townBuildingVisit.ts, hooks/actions/handleWorldEvents.ts, hooks/app/useAppAtlasRuntime.ts, hooks/useTownCrierAnnouncements.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/leaf3d/atlasGroundRestore.ts, systems/worldforge/town/canonicalTown.ts, systems/worldforge/town/historicalTownLayout.ts, systems/worldforge/town/historicalTownLoadContract.ts, systems/worldforge/town/prepareHistoricalTownLoad.ts, systems/worldforge/townsim/townSimRegistration.ts, systems/worldforge/townsim/types.ts
+ * Last Sync: 02/11/2026, 16:40:51
+ * Dependents: hooks/actions/handleWorldEvents.ts, hooks/app/useAppAtlasRuntime.ts, hooks/useTownCrierAnnouncements.ts, services/saveLoad/loadHistoricalTownSource.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/legacySubmapBridge.ts, systems/worldforge/leaf3d/atlasGroundRestore.ts, systems/worldforge/town/canonicalTown.ts, systems/worldforge/town/historicalTownLayout.ts, systems/worldforge/town/historicalTownLoadContract.ts, systems/worldforge/town/prepareHistoricalTownLoad.ts, systems/worldforge/town/townBuildingVisit.ts, systems/worldforge/townsim/townSimRegistration.ts, systems/worldforge/townsim/types.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -23,9 +23,13 @@
 // @dependencies-end
 
 export const CURRENT_TOWN_LAYOUT_REVISION = 2 as const;
+/** Before the October 31 road-scale change, streets used the cell affine.
+ * Keep that complete input recipe separate from reader1's protected fixture. */
+export const CELL_AFFINE_TOWN_LAYOUT_REVISION = 4 as const;
+export const HISTORICAL_TOWN_LAYOUT_REVISIONS = [1, CURRENT_TOWN_LAYOUT_REVISION, CELL_AFFINE_TOWN_LAYOUT_REVISION] as const;
 /** Explicit candidate only: rural household/field source facts; never the default. */
 export const RURAL_HOUSEHOLD_TOWN_LAYOUT_REVISION = 3 as const;
-export type TownLayoutRevision = 1 | typeof CURRENT_TOWN_LAYOUT_REVISION | typeof RURAL_HOUSEHOLD_TOWN_LAYOUT_REVISION;
+export type TownLayoutRevision = 1 | typeof CURRENT_TOWN_LAYOUT_REVISION | typeof RURAL_HOUSEHOLD_TOWN_LAYOUT_REVISION | typeof CELL_AFFINE_TOWN_LAYOUT_REVISION;
 
 /** Read-only selection projected from the existing TownSim registry. This is
  * not another save store; terrain readers need layout metadata, not people. */
@@ -33,6 +37,6 @@ export type TownLayoutStates = Readonly<Record<number, {readonly layoutRevision?
 
 /** An unknown saved revision must not silently receive a different town. */
 export function requireTownLayoutRevision(value: unknown): TownLayoutRevision {
-  if (value === 1 || value === CURRENT_TOWN_LAYOUT_REVISION || value === RURAL_HOUSEHOLD_TOWN_LAYOUT_REVISION) return value;
+  if (value === 1 || value === CURRENT_TOWN_LAYOUT_REVISION || value === RURAL_HOUSEHOLD_TOWN_LAYOUT_REVISION || value === CELL_AFFINE_TOWN_LAYOUT_REVISION) return value;
   throw new Error('This town uses an unsupported layout revision.');
 }

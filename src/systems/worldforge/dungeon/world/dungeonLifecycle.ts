@@ -38,7 +38,7 @@
 // Lifecycle state validates the lightweight receipt and never imports atlas generation machinery.
 // ============================================================================
 
-import type { ActiveDungeonEntry } from '../../../../components/World3D/dungeonEntryRuntime';
+import type { ActiveDungeonEntry } from './dungeonEntryRuntime';
 import type { Cell } from '../types';
 import type { DungeonObjectFinding } from './dungeonObjectActions';
 

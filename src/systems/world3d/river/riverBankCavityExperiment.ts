@@ -325,6 +325,34 @@ function retainedIntersection(a:Plane,b:Plane,first:LineOwner,second:LineOwner,x
   for(const box of [original,represented]) for(const xx of box[0]) for(const zz of box[1]) need(key([xx,zz])===k,'Unresolved retained intersection key');
   return {point:p,exact:false};
 }
+// VERTEX MERGE (2026-11-02, agora-257c; CI run 41363850920; GG-589). Two line
+// pairs can meet at one point that one pair gives exactly (a grid coordinate or
+// a shared source point) and the other gives by a rounded solve a few ulps away
+// (22.296875 against 22.296875000000004; 22.3125 against 22.312499999999993:
+// a decimal source edge that meets a grid corner in real numbers). The old
+// rule merged only two equal exact points, so float noise stopped the whole
+// candidate. Now a point within VERTEX_MERGE of a stored vertex on each axis
+// IS that vertex, and an exact coordinate replaces a rounded one. The stated
+// tolerance is ROUND (128 ulp of 1) scaled by the coordinate, about 1e-12 m at
+// 36 m. A real gap stays open: points farther apart than that are two
+// vertices, and two exact points that differ at all still stop the candidate.
+// The search reads every stored vertex, so a rounded key boundary between two
+// noisy copies cannot split them. (GG-589 moved this out of localPartition so
+// a test can drive the rule directly; the rule did not change.)
+interface VertexStore { readonly vertices:P[]; readonly exact:boolean[]; readonly ids:Map<string,number> }
+const VERTEX_MERGE=(q:number)=>ROUND*Math.max(1,Math.abs(q));
+const nearVertex=(a:P,b:P)=>Math.abs(a[0]-b[0])<=VERTEX_MERGE(b[0])&&Math.abs(a[1]-b[1])<=VERTEX_MERGE(b[1]);
+/** Returns the stored vertex id for p, and stores p when no stored vertex is near. */
+function mergeRetainedVertex(store:VertexStore,p:P,exact:boolean,where:()=>object):number {
+  const {vertices,ids}=store,exactVertices=store.exact;
+  const k = key(p); let id = ids.get(k);
+  if (id === undefined) { const at=vertices.findIndex(v=>nearVertex(p,v)); if(at>=0) id=at; }
+  if (id === undefined) { id = vertices.length; ids.set(k, id); vertices.push(p);exactVertices.push(exact); }
+  else if (exact && !exactVertices[id] && nearVertex(p, vertices[id])) { vertices[id] = p; exactVertices[id] = true; ids.set(k, id); }
+  else need(nearVertex(p,vertices[id])&&!(exact&&exactVertices[id]&&(vertices[id][0]!==p[0]||vertices[id][1]!==p[1])),
+    `Unresolved retained vertex key merge: ${JSON.stringify({...where(),point:p,previous:vertices[id],exact,previousExact:exactVertices[id]})}`);
+  return id;
+}
 function localPartition(candidates: readonly Tri[], x: number, z: number, budget: Budget): P[][] {
   const {lines,linePairs,owners}=collectLocalLines(candidates,x,z,budget);
   for(const group of owners) {budget.tick();const first=group[0];
@@ -335,28 +363,11 @@ function localPartition(candidates: readonly Tri[], x: number, z: number, budget
       'Unresolved retained separator key merge');
   }
   const vertices: P[] = [], ids = new Map<string, number>(), onLine = lines.map(() => new Set<number>());
-  const exactVertices:boolean[]=[];
-  // VERTEX MERGE (2026-11-02, agora-257c; CI run 41363850920). Two line pairs
-  // can meet at one point that one pair gives exactly (a grid coordinate or a
-  // shared source point) and the other gives by a rounded solve a few ulps away
-  // (22.296875 against 22.296875000000004; 22.3125 against 22.312499999999993:
-  // a decimal source edge that meets a grid corner in real numbers). The old
-  // rule merged only two equal exact points, so float noise stopped the whole
-  // candidate. Now a point within VERTEX_MERGE of a stored vertex on each axis
-  // IS that vertex, and an exact coordinate replaces a rounded one. Two exact
-  // points that differ still stop the candidate. The search reads every stored
-  // vertex, so a rounded key boundary between two noisy copies cannot split them.
-  const VERTEX_MERGE=(q:number)=>ROUND*Math.max(1,Math.abs(q));
-  const near=(a:P,b:P)=>Math.abs(a[0]-b[0])<=VERTEX_MERGE(b[0])&&Math.abs(a[1]-b[1])<=VERTEX_MERGE(b[1]);
+  const store:VertexStore={vertices,exact:[],ids};
   for (let i = 0; i < lines.length; i++) for (let j = i + 1; j < lines.length; j++) {
     budget.tick(); const result=retainedIntersection(lines[i],lines[j],owners[i][0],owners[j][0],x,z),p=result.point;
     if(!p) continue;
-    const k = key(p); let id = ids.get(k);
-    if (id === undefined) { const at=vertices.findIndex(v=>near(p,v)); if(at>=0) id=at; }
-    if (id === undefined) { id = vertices.length; ids.set(k, id); vertices.push(p);exactVertices.push(result.exact); }
-    else if (result.exact && !exactVertices[id] && near(p, vertices[id])) { vertices[id] = p; exactVertices[id] = true; ids.set(k, id); }
-    else need(near(p,vertices[id])&&!(result.exact&&exactVertices[id]&&(vertices[id][0]!==p[0]||vertices[id][1]!==p[1])),
-      `Unresolved retained vertex key merge: ${JSON.stringify({x,z,point:p,previous:vertices[id],exact:result.exact,previousExact:exactVertices[id],owners:[owners[i][0],owners[j][0]]})}`);
+    const id=mergeRetainedVertex(store,p,result.exact,()=>({x,z,owners:[owners[i][0],owners[j][0]]}));
     onLine[i].add(id); onLine[j].add(id);
     need(vertices.length <= BANK_CAVITY_LIMITS.vertices, 'Local graph vertex cap');
   }
@@ -897,7 +908,7 @@ class CavityTransactionStop extends Error {
   constructor(message:string, readonly surface:CavitySurface|null) { super(message); }
 }
 /** Narrow numerical access for disposable synthetic cases. No native caller uses it. */
-export const cavityExperimentInternals = Object.freeze({Budget,buildGeometry,state,invert,atLevel,advance,atmospheric,surface,collectLocalLines,localPartition,lineProvablyOutside,originalSlopeBounds,outward,retainedIntersection});
+export const cavityExperimentInternals = Object.freeze({Budget,buildGeometry,state,invert,atLevel,advance,atmospheric,surface,collectLocalLines,localPartition,mergeRetainedVertex,lineProvablyOutside,originalSlopeBounds,outward,retainedIntersection});
 
 function cavityOriginalEdgeContinuous(a:Tri,b:Tri,start:P,end:P,provenance?:ReadonlySet<string>) {
   if(a.id===b.id) return true;

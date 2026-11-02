@@ -31,8 +31,8 @@ import { fnv1a } from '../seedPath';
 import { propSourceId, type PropInstance } from './propSchema';
 import { exteriorPropClearanceIssues, type ExteriorPropRepairContext } from './exteriorPropRepair';
 import { woodpileShapeV1, capturedWoodpileMatchesV1 } from './generators/woodpileGeometry';
-import { verifyRenderedPropSupport } from '@/components/World3D/groundPropSupport';
-import type { RenderedGroundPropShape, RenderedGroundPropBounds } from '@/components/World3D/groundPropGeometry';
+import { verifyRenderedPropSupport } from '@/systems/worldforge/props/groundPropSupport';
+import type { RenderedGroundPropShape, RenderedGroundPropBounds } from '@/systems/worldforge/props/groundPropGeometry';
 
 export interface ExteriorPropRevision {
   version: 1;

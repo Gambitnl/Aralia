@@ -48,9 +48,16 @@ export function useTownMerchantRegistration(
     if (cellId == null) return undefined;
     return burgIdForLocation({ worldSeed, cellId });
   }, [worldSeed, cellId]);
+  const townLife = burgId === undefined ? undefined : gameState.townSim?.[burgId];
+  const layoutRevision = townLife?.layoutRevision;
+  const hasUnqualifiedTown = townLife !== undefined && layoutRevision === undefined;
 
   useEffect(() => {
-    if (burgId === undefined) return;
+    // A played, unversioned town cannot use today's default plot layout: the
+    // same plot id may now belong to a different household. Keep its saved
+    // people, businesses and memory until source admission selects a revision.
+    // A first arrival with no saved town still registers normally.
+    if (burgId === undefined || hasUnqualifiedTown) return;
     const gameDay = getGameDay(gameState.gameTime);
     const { npcs, businesses } = computeBurgMerchants(
       worldSeed,
@@ -62,8 +69,8 @@ export function useTownMerchantRegistration(
     );
     for (const npc of npcs) dispatch({ type: 'REGISTER_GENERATED_NPC', payload: { npc } });
     for (const business of businesses) dispatch({ type: 'REGISTER_WORLD_BUSINESS', payload: { business } });
-    // Intentionally keyed on the burg (not every state change): computeBurgMerchants
-    // is idempotent, and re-running on each generatedNpcs change would loop.
+    // Retry when admission supplies a revision, including a different save in
+    // the same burg. NPC/business dispatches do not retrigger registration.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [burgId, worldSeed, dispatch]);
+  }, [burgId, worldSeed, dispatch, hasUnqualifiedTown, layoutRevision]);
 }

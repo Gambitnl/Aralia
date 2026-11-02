@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/06/2026, 11:30:55
+ * Last Sync: 02/11/2026, 18:02:39
  * Dependents: systems/spells/ai/AISpellArbitrator.ts
- * Imports: 3 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -51,7 +51,7 @@ export class MaterialTagService {
         const cellId = gameState.playerCell?.cellId;
         if (cellId != null) {
             const biomeId = biomeIdForCell(gameState.worldSeed ?? 0, cellId) ?? 'plains';
-            const { local } = getWorldforgeLocalForCell(gameState.worldSeed ?? 0, cellId);
+            const { local } = getWorldforgeLocalForCell(gameState.worldSeed ?? 0, cellId, {terrainRevision: gameState.worldforgeTerrainRevision});
             const { widthCells, heightCells, materialIndex, materials } = local.terrain;
 
             // Base cell: the caster's Locale-feet position (feet from the window's

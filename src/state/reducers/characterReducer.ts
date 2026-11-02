@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/10/2026, 19:01:52
+ * Last Sync: 02/11/2026, 19:20:11
  * Dependents: state/appState.ts, state/reducers/questReducer.ts, systems/worldforge/dungeon/world/dungeonObjectResolution.ts
- * Imports: 23 files
+ * Imports: 24 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,6 +14,7 @@
  */
 // @dependencies-end
 
+import { isPreparedMageArmor } from '../../utils/spells/preparedMageArmor';
 import { planRestMeals } from '../../systems/gameplay/restMeals';
 import { removePreviousPreparedConcentration } from '../../utils/spells/outOfCombatCasting';
 import {containedWaterDays,consumeProvision} from '../../systems/travel/containedWater';
@@ -423,7 +424,12 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
 
             // RALPH: Logic Extraction.
             // Uses centralized utility to recalculate AC, HP, and Ability Scores.
-            const updatedPlayerCharacter = updateDerivedStats({ ...charToUpdate, equippedItems: newEquippedItems });
+            // Donning body armor ends this generated cast; unequipping later
+            // must not revive its old eight-hour benefit. Other conditions stay.
+            const statusEffects = targetSlot === 'Torso' && itemToEquip.type === 'armor'
+                ? charToUpdate.statusEffects.filter(effect => !isPreparedMageArmor(effect))
+                : charToUpdate.statusEffects;
+            const updatedPlayerCharacter = updateDerivedStats({ ...charToUpdate, statusEffects, equippedItems: newEquippedItems });
 
             const newParty = [...state.party];
             newParty[charIndex] = updatedPlayerCharacter;
@@ -631,7 +637,12 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                         existing.source !== statusEffect.source ||
                         existing.sourceCasterId !== statusEffect.sourceCasterId,
                     );
-                    return { ...char, statusEffects: [...retained, statusEffect] };
+                    const updated = { ...char, statusEffects: [...retained, statusEffect] };
+                    // Applying the lasting cast updates AC without recasting or
+                    // resetting its paid resource and world-clock ownership.
+                    return isPreparedMageArmor(statusEffect)
+                        ? { ...updated, armorClass: calculateArmorClass(updated, updated.activeEffects) }
+                        : updated;
                 }),
             };
         }

@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
- *
- * Last Sync: 13/08/2026, 16:15:58
- * Dependents: commands/effects/StatusConditionCommand.ts, components/DesignPreview/steps/raceDomain/leaves/autumnEladrinRaceLeaf.tsx, components/DesignPreview/steps/scenarioControls/conditionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/grappleEscapeScenarioControls.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useTurnManager.ts, systems/combat/fallingGroundImpactResolution.ts, utils/combat/grappleUtils.ts, utils/combat/shoveUtils.ts
- * Imports: 2 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * This file keeps Aralia's two runtime condition records synchronized.
  *
@@ -26,8 +10,48 @@
  * Called by: combat commands, turn-boundary processing, and deterministic scenario adapters.
  * Depends on: combat character types and canonical movement calculation.
  */
-import type { ActiveCondition, CombatCharacter, StatusEffect } from '../../types/combat';
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 02/11/2026, 20:18:48
+ * Dependents: commands/effects/StatusConditionCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/spell/spellAttack.ts, components/DesignPreview/steps/raceDomain/leaves/autumnEladrinRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/firbolgRaceLeaf.tsx, components/DesignPreview/steps/raceDomain/leaves/frostGiantGoliathRaceLeaf.tsx, components/DesignPreview/steps/scenarioControls/conditionsScenarioControls.ts, components/DesignPreview/steps/scenarioControls/grappleEscapeScenarioControls.ts, hooks/combat/actionExecutor/moveExecutionFlow.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/turnManager/useTurnLifecycle.ts, hooks/combat/useTurnManager.ts, systems/combat/engine/tileEffects.ts, systems/combat/fallingGroundImpactResolution.ts, utils/combat/archfeyUtils.ts, utils/combat/battleMasterUtils.ts, utils/combat/berserkerUtils.ts, utils/combat/circleOfTheMoonUtils.ts, utils/combat/collegeOfValorUtils.ts, utils/combat/grappleUtils.ts, utils/combat/openHandUtils.ts, utils/combat/shoveUtils.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import type { ActiveCondition, BattleMapData, CombatCharacter, StatusEffect } from '../../types/combat';
+import { getCombatDistanceFeet } from '../spatial/elevationGeometry';
 import { calculateMovementTotal } from './actionEconomyUtils';
+
+/**
+ * Paralyzed and Unconscious grant incoming Advantage at any distance, while
+ * their critical rule applies only to a hit from within five actual feet.
+ * Both attack owners use this live-condition projection; it never grants a
+ * hit or changes the condition. Missing geometry cannot establish proximity.
+ */
+export function conditionAttackBenefits(
+  attacker: CombatCharacter,
+  target: CombatCharacter,
+  mapData: BattleMapData | null | undefined,
+): { advantage: boolean; criticalOnHit: boolean; condition?: string; distanceFeet?: number } {
+  const condition = target.conditions?.find(c => c.name === 'Paralyzed' || c.name === 'Unconscious');
+  if (!condition) return { advantage: false, criticalOnHit: false };
+  const distanceFeet = mapData ? getCombatDistanceFeet(attacker, target, mapData) : undefined;
+  return {
+    advantage: true,
+    criticalOnHit: distanceFeet !== undefined && distanceFeet <= 5,
+    condition: condition.name,
+    distanceFeet,
+  };
+}
 
 // ============================================================================
 // Ownership Matching

@@ -354,5 +354,10 @@ export const GlossaryContentRenderer: React.FC<GlossaryContentRendererProps> = (
     }
   }, [structuredHtml, onNavigate]);
 
-  return <div ref={contentRef} className={className} dangerouslySetInnerHTML={{ __html: structuredHtml }} />;
+  // Keep the explanation DOM when only its parent or navigation callback changes.
+  // React 19 replaces innerHTML for a fresh prop object, collapsing cards and
+  // dropping keyboard focus even when the rules text has not changed.
+  // Actual content changes still replace the sanitized HTML as before.
+  const renderedHtml = useMemo(() => ({ __html: structuredHtml }), [structuredHtml]);
+  return <div ref={contentRef} className={className} dangerouslySetInnerHTML={renderedHtml} />;
 };

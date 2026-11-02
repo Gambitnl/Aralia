@@ -170,6 +170,172 @@ function nearestStreetProjection(graph: StreetGraph, point: Point): GraphProject
   return best;
 }
 
+// GG-601 (2026-11-02): the straight step from a door to its street point must
+// not cut through a neighbor's building. About 1% of walked length did, when
+// the nearest street point lay past a neighbor's corner. The door itself never
+// moves (interiors are fitted to it); only the street point it joins may.
+const CONNECTOR_DETOUR_FT = 40;
+const CONNECTOR_CLEAR_FT = 1;
+const CONNECTOR_SLIDES_FT = [-5, 5, -10, 10, -15, 15, -20, 20, -25, 25, -30, 30];
+const PLOT_GRID_FT = 60;
+
+type PlotIndex = Map<string, Array<{ id: number; footprint: Point[] }>>;
+
+function plotIndexFor(plots: ReadonlyArray<{ id: number; footprint: Point[] }>): PlotIndex {
+  const grid: PlotIndex = new Map();
+  for (const plot of plots) {
+    if (plot.footprint.length < 3) continue;
+    const xs = plot.footprint.map((q) => q[0]), ys = plot.footprint.map((q) => q[1]);
+    for (let gx = Math.floor(Math.min(...xs) / PLOT_GRID_FT); gx <= Math.floor(Math.max(...xs) / PLOT_GRID_FT); gx++) {
+      for (let gy = Math.floor(Math.min(...ys) / PLOT_GRID_FT); gy <= Math.floor(Math.max(...ys) / PLOT_GRID_FT); gy++) {
+        const key = `${gx},${gy}`;
+        const cell = grid.get(key);
+        if (cell) cell.push(plot); else grid.set(key, [plot]);
+      }
+    }
+  }
+  return grid;
+}
+
+function insidePolygon(point: Point, polygon: Point[]): boolean {
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const [xi, yi] = polygon[i], [xj, yj] = polygon[j];
+    if ((yi > point[1]) !== (yj > point[1]) && point[0] < ((xj - xi) * (point[1] - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
+/** Length (ft, sampled every 2 ft) of the step a -> b inside a plot. A step
+ * back into its own building counts too, except its first few feet: a fitted
+ * door leaf stands on the wall, which is inset from the plot edge. */
+const OWN_SETBACK_FT = 6;
+function crossingFt(a: Point, b: Point, ownId: number, index: PlotIndex): number {
+  const length = distanceBetween(a, b);
+  const steps = Math.max(1, Math.ceil(length / 2));
+  let inside = 0;
+  for (let k = 0; k < steps; k++) {
+    const t = (k + 0.5) / steps;
+    const p: Point = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+    const cell = index.get(`${Math.floor(p[0] / PLOT_GRID_FT)},${Math.floor(p[1] / PLOT_GRID_FT)}`);
+    const nearDoor = length * t <= OWN_SETBACK_FT;
+    if (cell?.some((plot) => (plot.id !== ownId || !nearDoor) && insidePolygon(p, plot.footprint))) inside += length / steps;
+  }
+  return inside;
+}
+
+/** The street point a door joins: the nearest one whose step stays clear of
+ * other plots, within a short detour; else the one that crosses least. When
+ * the nearest point is clear (most doors) the result is the old nearest one. */
+function clearStreetProjection(graph: StreetGraph, door: Point, ownId: number, index: PlotIndex): GraphProjection | undefined {
+  const nearest = nearestStreetProjection(graph, door);
+  if (!nearest || crossingFt(door, nearest.point, ownId, index) <= CONNECTOR_CLEAR_FT) return nearest;
+  const candidates: GraphProjection[] = [];
+  for (let segmentIndex = 0; segmentIndex < graph.segments.length; segmentIndex++) {
+    const segment = graph.segments[segmentIndex];
+    const projection = projectOntoSegment(door, graph.nodes[segment.fromNode], graph.nodes[segment.toNode]);
+    if (projection.distanceFt <= nearest.distanceFt + CONNECTOR_DETOUR_FT) candidates.push({ ...projection, segmentIndex });
+  }
+  // Points that slide along the nearest span: a slant step can pass beside a
+  // neighbor's corner that the square step would cut.
+  const near = graph.segments[nearest.segmentIndex];
+  const [ax, ay] = graph.nodes[near.fromNode], [bx, by] = graph.nodes[near.toNode];
+  const spanFt = distanceBetween(graph.nodes[near.fromNode], graph.nodes[near.toNode]);
+  for (const slideFt of CONNECTOR_SLIDES_FT) {
+    if (spanFt === 0) break;
+    const t = Math.max(0, Math.min(1, nearest.t + slideFt / spanFt));
+    const point: Point = [ax + (bx - ax) * t, ay + (by - ay) * t];
+    const distanceFt = distanceBetween(door, point);
+    if (distanceFt <= nearest.distanceFt + CONNECTOR_DETOUR_FT) candidates.push({ point, t, distanceFt, segmentIndex: nearest.segmentIndex });
+  }
+  candidates.sort((x, y) => x.distanceFt - y.distanceFt || x.segmentIndex - y.segmentIndex);
+  let best = nearest, bestCross = Infinity;
+  for (const candidate of candidates) {
+    const cross = crossingFt(door, candidate.point, ownId, index);
+    if (cross <= CONNECTOR_CLEAR_FT) return candidate;
+    if (cross < bestCross - 1e-9) { best = candidate; bestCross = cross; }
+  }
+  return best;
+}
+
+/** A dead end this close to another span joins it (ft). */
+const T_JOIN_FT = 2;
+
+/**
+ * Split a span at each dead end that lies on it, so a T-junction is walkable.
+ * Mutates the graph arrays in place. Deterministic: dead ends go in node
+ * order, splits on one span in order along it, and ties keep the first span.
+ */
+function joinStreetEnds(
+  nodes: Point[],
+  adj: StreetGraph['adj'],
+  segments: StreetSegment[],
+  linkedSegments: Set<string>,
+): void {
+  const splits = new Map<number, Array<{ t: number; node: number }>>();
+  const extraLinks: Array<[number, number]> = [];
+  for (let node = 0; node < nodes.length; node++) {
+    if (adj[node].length !== 1) continue;
+    let best: { segmentIndex: number; t: number; distanceFt: number } | undefined;
+    for (let segmentIndex = 0; segmentIndex < segments.length; segmentIndex++) {
+      const segment = segments[segmentIndex];
+      if (segment.fromNode === node || segment.toNode === node) continue;
+      const projection = projectOntoSegment(nodes[node], nodes[segment.fromNode], nodes[segment.toNode]);
+      if (projection.distanceFt <= T_JOIN_FT && (!best || projection.distanceFt < best.distanceFt)) {
+        best = { segmentIndex, t: projection.t, distanceFt: projection.distanceFt };
+      }
+    }
+    if (!best) continue;
+    const segment = segments[best.segmentIndex];
+    // Near a span's end: join that end node; else split the span.
+    const lengthFt = distanceBetween(nodes[segment.fromNode], nodes[segment.toNode]);
+    if (best.t * lengthFt <= T_JOIN_FT) extraLinks.push([node, segment.fromNode]);
+    else if ((1 - best.t) * lengthFt <= T_JOIN_FT) extraLinks.push([node, segment.toNode]);
+    else {
+      const list = splits.get(best.segmentIndex) ?? [];
+      list.push({ t: best.t, node });
+      splits.set(best.segmentIndex, list);
+    }
+  }
+  const addLink = (fromNode: number, toNode: number): void => {
+    if (fromNode === toNode) return;
+    const key = `${Math.min(fromNode, toNode)}:${Math.max(fromNode, toNode)}`;
+    if (linkedSegments.has(key)) return;
+    const lengthFt = distanceBetween(nodes[fromNode], nodes[toNode]);
+    adj[fromNode].push({ to: toNode, w: lengthFt });
+    adj[toNode].push({ to: fromNode, w: lengthFt });
+    segments.push({ fromNode, toNode });
+    linkedSegments.add(key);
+  };
+  const removed = new Set<number>();
+  for (const segmentIndex of [...splits.keys()].sort((x, y) => x - y)) {
+    const { fromNode, toNode } = segments[segmentIndex];
+    removed.add(segmentIndex);
+    linkedSegments.delete(`${Math.min(fromNode, toNode)}:${Math.max(fromNode, toNode)}`);
+    adj[fromNode] = adj[fromNode].filter((edge) => edge.to !== toNode);
+    adj[toNode] = adj[toNode].filter((edge) => edge.to !== fromNode);
+    // Walk the span from its start: start -> split -> ... -> end. Each split
+    // point is the dead end's own projection; a tiny link reaches the dead end.
+    let previous = fromNode;
+    for (const split of splits.get(segmentIndex)!.sort((x, y) => x.t - y.t || x.node - y.node)) {
+      const [ax, ay] = nodes[fromNode], [bx, by] = nodes[toNode];
+      const at = nodes.length;
+      nodes.push([ax + (bx - ax) * split.t, ay + (by - ay) * split.t]);
+      adj.push([]);
+      addLink(previous, at);
+      addLink(at, split.node);
+      previous = at;
+    }
+    addLink(previous, toNode);
+  }
+  for (const [fromNode, toNode] of extraLinks) addLink(fromNode, toNode);
+  if (removed.size === 0) return;
+  // Drop the split spans; later spans keep their relative order.
+  const kept = segments.filter((_, index) => !removed.has(index));
+  segments.length = 0;
+  segments.push(...kept);
+}
+
 /** Add a route point unless it repeats the previous position. */
 function appendDistinct(path: Point[], point: Point): void {
   if (path.length === 0 || !pointsMatch(path[path.length - 1], point)) path.push(point);
@@ -241,11 +407,19 @@ export function buildStreetGraph(
     }
   }
 
+  // GG-601 (2026-11-02): a street that ends on the middle of another street's
+  // span (a T-junction) shared no node with it, so the two were not joined.
+  // The seed-42 town had 13 such stubs; every leg to a door on one of them
+  // fell back to a straight line through the buildings (838 of 3,886 legs).
+  // Join each dead end that lies on another span: split that span there.
+  joinStreetEnds(nodes, adj, segments, linkedSegments);
+
   const graph: StreetGraph = { nodes, adj, segments, plotEntrances: new Map() };
 
   // The closest wall midpoint is the building's street-facing facade. Choosing
   // a midpoint keeps doors away from corners and works for rotated/L-shaped lots.
   const plots = [...plan.plots].sort((left, right) => left.id - right.id);
+  const plotIndex = plotIndexFor(plots);
   for (const plot of plots) {
     if (plot.footprint.length < 2 || segments.length === 0) continue;
 
@@ -272,6 +446,9 @@ export function buildStreetGraph(
     // A valid street graph always yields a projection. Keep the defensive guard
     // so malformed legacy plots never poison routing for the rest of the town.
     if (!bestDoor || !bestStreet) continue;
+    // The door stays; its street point moves only if the nearest one would
+    // send walkers through a neighbor (GG-601).
+    bestStreet = clearStreetProjection(graph, bestDoor, plot.id, plotIndex) ?? bestStreet;
     graph.plotEntrances.set(plot.id, {
       plotId: plot.id,
       centroid: footprintCentroid(plot.footprint),

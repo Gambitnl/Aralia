@@ -25,10 +25,26 @@ function fixture(){
    {id:2,name:'Fin',householdMemberId:'b2:head',homePlotId:2,ageBand:'adult',occupation:'resident'},
   ]},buildings:{1:{plan:structuredClone(plan),site:{...site}}}};
  const current=structuredClone(earlier);current.revision=2;current.buildings[1].plan.widthFt+=5;
- return {worldSeed:77,cellId:9,gameTime:'0351-01-01T10:00:00Z',town,candidates:[earlier,current]};
+ const cellAffine=structuredClone(earlier);cellAffine.revision=4;
+ cellAffine.foundingRoster.occupants[0].name='Different founding household';
+ return {worldSeed:77,cellId:9,gameTime:'0351-01-01T10:00:00Z',town,candidates:[earlier,current,cellAffine]};
 }
 
 describe('historical layout qualification',()=>{
+ it('requires a unique full founding match for explicitly unobserved exterior admission',()=>{
+  const input={...fixture(),allowUnobservedExterior:true};input.town.buildingSources={};
+  // With no foundations, two identical founding rosters are ambiguous even
+  // though their new blueprints differ. A timestamp cannot choose a reader.
+  expect(qualifyHistoricalTownLayout(input)).toMatchObject({status:'unresolved',reason:'ambiguous'});
+  input.candidates[0].foundingRoster.occupants[0].name='A different founder';
+  expect(qualifyHistoricalTownLayout(input)).toMatchObject({status:'qualified',revision:2,observations:0});
+  input.candidates[1].foundingRoster.occupants[0].name='Another different founder';
+  expect(qualifyHistoricalTownLayout(input)).toMatchObject({status:'unresolved',reason:'no-match'});
+ });
+ it('does not qualify the cell-affine reader if that alternative was omitted',()=>{
+  const input=fixture();input.candidates.pop();
+  expect(qualifyHistoricalTownLayout(input)).toMatchObject({status:'unresolved',reason:'incomplete-readers'});
+ });
  it('uniquely identifies independent foundations without moving a married resident back home or changing input',()=>{
   const input=fixture(),before=JSON.stringify(input);
   expect(qualifyHistoricalTownLayout(input)).toEqual({status:'qualified',revision:1,observations:1,founders:2});

@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 31/10/2026, 22:01:54
- * Dependents: hooks/app/useAppAtlasRuntime.ts, systems/gameplay/lodging.ts, systems/worldforge/travel/localGroundJourney.ts
+ * Last Sync: 02/11/2026, 18:02:39
+ * Dependents: hooks/app/useAppAtlasRuntime.ts, systems/gameplay/lodging.ts, systems/worldforge/town/prepareHistoricalTownLoad.ts, systems/worldforge/travel/localGroundJourney.ts
  * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
@@ -18,7 +18,7 @@ import { FEET_PER_FMG_PIXEL } from '../adapter/atlasArtifact';
 import { canonicalTownSiteForLocal, getBridgeAtlas } from '../bridge/legacySubmapBridge';
 import { canonicalArtifactTownForSiteFromAtlas } from '../town/canonicalTown';
 import { generateLocal } from '../local/generateLocal';
-import { generateRegion } from '../region/generateRegion';
+import { generateRegionFromSource as generateRegion,type TerrainSourceRevision } from '../region/terrainSource';
 import { rootSeedPath } from '../seedPath';
 import { LOCAL_SIZE_FT } from '../units';
 import type { TownLayoutStates } from '../town/townLayoutRevision';
@@ -62,6 +62,7 @@ export function restoreAtlasGroundDrilldown(
   input: unknown,
   expectedWorldSeed?: number,
   townLayouts?: TownLayoutStates,
+  terrainRevision?: TerrainSourceRevision,
 ): AtlasGroundRestoreResult {
   if (input == null) return { status: 'absent' };
 
@@ -97,6 +98,7 @@ export function restoreAtlasGroundDrilldown(
         resolutionFt: 100,
         world: atlas,
       },
+      terrainRevision,
     );
     if (
       region.seedPath !== address.regionSeedPath ||

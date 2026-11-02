@@ -11,10 +11,15 @@
  */
 import { describe, expect, it } from 'vitest';
 import {
+  getBridgeAtlas,
   getTownTilesForGrid,
   getWorldforgeLocalForLocation,
+  townHalfExtentFt,
 } from '../legacySubmapBridge';
 import { makeGroundWorld } from '../groundChunkLoader';
+import { generateRegion } from '../../region/generateRegion';
+import { rootSeedPath } from '../../seedPath';
+import { FEET_PER_FMG_PIXEL } from '../../adapter/atlasArtifact';
 
 // ============================================================================
 // Probe Ground Truth
@@ -75,4 +80,42 @@ describe('getTownTilesForGrid', () => {
 
     expect(second).toEqual(first);
   });
+
+  it('matches the region town envelope half-extent for burg 13 and a large burg in seed 903674813 (GG-523)', () => {
+    const worldSeed = 903674813;
+    const atlas = getBridgeAtlas(worldSeed);
+    const burgs = atlas.pack.burgs ?? [];
+
+    // Burg 13 is a small hamlet whose population sits at the minimum town span
+    // floor (1,200 ft span / 2 + 200 ft apron = 800 ft half-extent, not 400 ft).
+    const burg13 = burgs[13];
+    expect(burg13).toBeDefined();
+    expect(burg13?.i).toBe(13);
+
+    // Pick the largest live burg in seed 903674813 to verify the upper scaling
+    // regime above the minimum floor as well.
+    const largeBurg = burgs
+      .filter((b): b is NonNullable<typeof b> => Boolean(b?.i && !b.removed))
+      .reduce((max, b) => ((b.population ?? 0) > (max.population ?? 0) ? b : max));
+    expect(largeBurg.i).not.toBe(13);
+    expect(largeBurg.population ?? 0).toBeGreaterThan(10);
+
+    for (const burg of [burg13!, largeBurg]) {
+      const region = generateRegion(atlas, burg.cell, rootSeedPath(worldSeed), {
+        feetPerPixel: FEET_PER_FMG_PIXEL,
+        resolutionFt: 100,
+        world: atlas,
+        windowCenterPx: [burg.x, burg.y],
+      });
+      const site = region.townSites.find((s) => s.burgId === burg.i);
+      expect(site).toBeDefined();
+
+      const halfExtent = townHalfExtentFt(burg);
+      expect(halfExtent).toBe(site!.envelope.width / 2);
+      expect(halfExtent).toBe(site!.envelope.height / 2);
+    }
+
+    expect(townHalfExtentFt(burg13!)).toBeGreaterThanOrEqual(800);
+    expect(townHalfExtentFt(largeBurg)).toBeGreaterThan(townHalfExtentFt(burg13!));
+  }, 60_000);
 });

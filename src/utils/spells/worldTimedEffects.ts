@@ -10,9 +10,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/10/2026, 12:21:46
+ * Last Sync: 02/11/2026, 19:20:11
  * Dependents: state/reducers/worldReducer.ts
- * Imports: 3 files
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -21,6 +21,8 @@
  */
 // @dependencies-end
 
+import { calculateArmorClass } from '../character/statUtils';
+import { isPreparedMageArmor } from './preparedMageArmor';
 import type { GameState, PlayerCharacter } from '../../types';
 import type { StatusEffect } from '../../types/effects';
 import { LONGSTRIDER_DURATION_ROUNDS, LONGSTRIDER_SPEED_BONUS } from './outOfCombatCasting';
@@ -80,9 +82,15 @@ export function advanceWorldTimedEffects(
             characterChanged ||= effect !== original;
             effects.push(effect);
         }
-        if (!characterChanged) return character;
+        // Recalculate a retained paid defense as well as its expiry. This
+        // derives old generated cast records from their original identity; it
+        // neither grants a new cast nor renews the eight-hour clock on load.
+        const updated = characterChanged ? { ...character, statusEffects: effects } : character;
+        const hasArmorCast = character.statusEffects.some(isPreparedMageArmor);
+        const armorClass = hasArmorCast ? calculateArmorClass(updated, updated.activeEffects) : updated.armorClass;
+        if (!characterChanged && armorClass === character.armorClass) return character;
         changed = true;
-        return { ...character, statusEffects: effects };
+        return armorClass === updated.armorClass ? updated : { ...updated, armorClass };
     });
     return changed ? advanced : party;
 }

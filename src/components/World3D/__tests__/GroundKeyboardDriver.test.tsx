@@ -17,7 +17,7 @@ import type { PlayerCharacter } from '@/types/character';
 import type { GroundMovementIntent } from '../groundLocomotion';
 
 const waterHarness = vi.hoisted(() => ({ waterY: undefined as number | undefined }));
-vi.mock('@/systems/worldforge/bridge/groundWaterSurfaceQuery', () => ({ publishedGroundWaterSurfaceYAt: () => waterHarness.waterY }));
+vi.mock('@/systems/worldforge/bridge/groundWaterSurfaceQuery', () => ({ inspectGroundWater: () => ({status: 'valid', surfaceY: waterHarness.waterY}) }));
 
 let frameCallback: ((state: any, delta: number) => void) | null = null;
 const mockCamera = new THREE.PerspectiveCamera();

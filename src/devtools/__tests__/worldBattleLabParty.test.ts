@@ -8,8 +8,14 @@
  *
  * Exercises: worldBattleLabParty.ts and the production player-to-combat adapter
  */
-import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { act, renderHook } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { getDummyParty } from "../../data/dev/dummyCharacter";
+import { useAbilitySystem } from "../../hooks/useAbilitySystem";
+import type { BattleMapData } from "../../types/combat";
+import type { Spell } from "../../types/spells";
+import { canAffordActionCost } from "../../utils/combat/actionEconomyUtils";
 import { createPlayerCombatCharacter } from "../../utils/combat/combatUtils";
 import { buildWorldBattleLabParty } from "../worldBattleLabParty";
 
@@ -50,6 +56,11 @@ describe("buildWorldBattleLabParty", () => {
       torso: "chain_shirt",
       offHand: "shield_std",
     });
+    expect(equipmentByCharacter.maelis_quill).toEqual({
+      mainHand: "quarterstaff",
+      torso: undefined,
+      offHand: undefined,
+    });
   });
 
   it("creates a visible weapon attack for every lab party member", () => {
@@ -77,6 +88,93 @@ describe("buildWorldBattleLabParty", () => {
         .toBe(false);
       expect(character.armorClass).toBeGreaterThan(10);
     }
+  });
+
+  it("hydrates Misty Step on the level-3 Wizard and builds a teleport destination preview when targeting (GG-131)", () => {
+    // Load the real Misty Step spell asset from the spell corpus so the test
+    // exercises production spell-to-ability translation and targeting.
+    const mistyStepSpell = JSON.parse(
+      readFileSync("public/data/spells/level-2/misty-step.json", "utf8"),
+    ) as Spell;
+    const allSpells: Record<string, Spell> = {
+      [mistyStepSpell.id]: mistyStepSpell,
+    };
+
+    const party = buildWorldBattleLabParty();
+    const maelis = party.find((member) => member.id === "maelis_quill");
+    expect(maelis).toBeDefined();
+    expect(maelis?.level).toBe(3);
+
+    const combatant = {
+      ...createPlayerCombatCharacter(maelis!, allSpells),
+      position: { x: 2, y: 2 },
+    };
+    const mistyStepAbility = combatant.abilities.find(
+      (ability) => ability.id === "misty-step",
+    );
+
+    expect(mistyStepAbility).toBeDefined();
+    expect(mistyStepAbility?.name).toBe("Misty Step");
+    expect(mistyStepAbility?.targeting).toBe("self");
+    expect(canAffordActionCost(combatant, mistyStepAbility!.cost)).toBe(true);
+
+    // Build a 10x10 open battle map and drive the real useAbilitySystem +
+    // useTargeting hooks to verify that starting targeting with Misty Step
+    // populates teleportDestinationPreview instead of auto-casting on self.
+    const mapData: BattleMapData = {
+      dimensions: { width: 10, height: 10 },
+      theme: "forest",
+      seed: 1,
+      tiles: new Map(
+        Array.from({ length: 100 }, (_, index) => {
+          const x = index % 10;
+          const y = Math.floor(index / 10);
+          const id = `${x}-${y}`;
+          return [
+            id,
+            {
+              id,
+              coordinates: { x, y },
+              terrain: "grass",
+              elevation: 0,
+              movementCost: 5,
+              blocksMovement: false,
+              blocksLoS: false,
+              decoration: null,
+              effects: [],
+            },
+          ];
+        }),
+      ),
+    };
+
+    const { result } = renderHook(() =>
+      useAbilitySystem({
+        characters: [combatant],
+        mapData,
+        onExecuteAction: vi.fn(),
+        onCharacterUpdate: vi.fn(),
+        onLogEntry: vi.fn(),
+      }),
+    );
+
+    act(() => {
+      result.current.startTargeting(mistyStepAbility!, combatant);
+    });
+
+    expect(result.current.targetingMode).toBe(true);
+    expect(result.current.selectedAbility?.id).toBe("misty-step");
+    expect(result.current.teleportDestinationPreview).not.toBeNull();
+    expect(result.current.teleportDestinationPreview?.targetId).toBe(
+      combatant.id,
+    );
+    expect(
+      result.current.teleportDestinationPreview?.affectedTiles.length,
+    ).toBeGreaterThan(0);
+    expect(result.current.teleportDestinationPreview?.affectedTiles).toContainEqual({
+      x: 3,
+      y: 2,
+    });
   });
 
   it("does not mutate the shared dummy party", () => {

@@ -63,24 +63,30 @@ export function createGroundMoveGesture(maxTravelPx = 5) {
   };
 }
 
-/** The input plane only captures a pointer event. Its flat elevation cannot
- * define a destination on a raised street or hillside. Pick the nearest real,
- * terrain mesh with the same camera ray used for that click. Presentation
- * toggles may hide terrain without deleting its physical ground surface. */
+/** The input plane only captures a pointer event. Pick the real terrain or
+ * the top of an explicitly supported rendered floor/tread with that same ray.
+ * Otherwise an indoor floor tap drifts onto the buried terrain beneath it.
+ * Roofs, walls and furnishings never become walk surfaces. Presentation toggles
+ * may hide terrain without deleting its existing physical ground surface. */
 export function renderedGroundHit(scene: Object3D, ray: Ray): Vector3 | null {
-  const terrain: Object3D[] = [];
+  const surfaces: Object3D[] = [];
   scene.traverse(object => {
-    if (object.name !== 'world3d:terrain') return;
-    terrain.push(object);
+    if (object.name === 'world3d:terrain' || object.name === 'world3d:walk-surface') surfaces.push(object);
   });
   const caster = new Raycaster();
   caster.ray.copy(ray);
-  return caster.intersectObjects(terrain, false)[0]?.point ?? null;
+  return caster.intersectObjects(surfaces, false).find(hit => {
+    if (hit.object.name === 'world3d:terrain') return true;
+    for (let object: Object3D | null = hit.object; object; object = object.parent) if (!object.visible) return false;
+    // A stair riser or slab underside is not a place to put feet. Walking still
+    // validates the entire route and supported height; picking grants no access.
+    return (hit.face?.normal.clone().transformDirection(hit.object.matrixWorld).y ?? 0) > .5;
+  })?.point ?? null;
 }
 
 /** A flat input plane can stand above a desk on sloping ground. Let the visible
  * person, door or furnishing receive that click without also starting a walk.
- * Compare against the real terrain, rather than the input plane's elevation;
+ * Compare against the real walk surface, rather than the input plane's elevation;
  * interactive objects behind the ground do not own the visible destination. */
 export function hasInteractionBeforeGround(
   intersections: readonly { distance: number; eventObject: Object3D }[],

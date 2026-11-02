@@ -23,6 +23,12 @@ function oracle(mesh: THREE.Mesh, query: THREE.Raycaster) {
 }
 
 describe('exact camera ground candidates', () => {
+  it('preserves custom raycast behavior on decorative or specially shaped mounted pieces', () => {
+    const mesh = slope(), query = ray();mesh.updateMatrixWorld(true);
+    mesh.raycast = vi.fn();
+    expect(nearestGroundCameraHit(mesh, query)).toBeNull();
+    expect(mesh.raycast).toHaveBeenCalledOnce();
+  });
   it.each([true, false])('matches native rendered intersections indexed=%s through transformed slopes', indexed => {
     const mesh = slope(indexed);mesh.position.set(12, 4, -9);mesh.rotation.y = .7;mesh.scale.set(1.2, .8, 1.4);mesh.updateMatrixWorld(true);
     const from = new THREE.Vector3(0, 1.15, 0).applyMatrix4(mesh.matrixWorld), to = new THREE.Vector3(0, 1.55, 6).applyMatrix4(mesh.matrixWorld);

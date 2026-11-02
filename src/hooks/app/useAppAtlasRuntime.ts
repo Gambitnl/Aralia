@@ -45,7 +45,7 @@ export function useAppAtlasRuntime(gameState: GameState, dispatch: Dispatch<AppA
     // do not retain a current receipt merely because the address is equal.
     const olderSelection = Object.values(townLayouts).some(town =>
       town.layoutRevision !== undefined && town.layoutRevision !== CURRENT_TOWN_LAYOUT_REVISION);
-    if (atlasGroundDrilldown && gameState.atlasGroundAddress && !olderSelection) {
+    if (atlasGroundDrilldown && gameState.atlasGroundAddress && !olderSelection && gameState.worldforgeTerrainRevision !== 1) {
       const transientAddress = atlasGroundAddressFromDrilldown(atlasGroundDrilldown);
       // Loading another slot can replace reducer state without remounting App.
       // Keep Wave 1 object identity only when it belongs to the active address;
@@ -62,12 +62,13 @@ export function useAppAtlasRuntime(gameState: GameState, dispatch: Dispatch<AppA
       gameState.atlasGroundAddress,
       gameState.worldSeed,
       townLayouts,
+      gameState.worldforgeTerrainRevision,
     );
     return {
       drilldown: restored.status === "ready" ? restored.drilldown : null,
       rejected: restored.status === "rejected",
     };
-  }, [atlasGroundDrilldown, gameState.atlasGroundAddress, gameState.worldSeed, townLayouts]);
+  }, [atlasGroundDrilldown, gameState.atlasGroundAddress, gameState.worldSeed, gameState.worldforgeTerrainRevision, townLayouts]);
 
   // A structurally valid but stale address is discovered only after canonical
   // generation. Heal back to native Atlas before TransitionController can mount

@@ -21,8 +21,8 @@
 
 import type {GameState,DiscoveryEntry} from '@/types/state';
 import {DiscoveryType} from '@/types/state';
-import type {TownBuildingVisit} from '@/components/Worldforge/townBuildingVisit';
-import {townBuildingVisit} from '@/components/Worldforge/townBuildingVisit';
+import type {TownBuildingVisit} from '@/systems/worldforge/town/townBuildingVisit';
+import {townBuildingVisit} from '@/systems/worldforge/town/townBuildingVisit';
 import {worldChronicleFor} from '../chronicle/worldChronicle';
 import {getBridgeAtlas} from '../bridge/legacySubmapBridge';
 import {enumerateDungeonSites} from '../dungeon/world/dungeonSites';

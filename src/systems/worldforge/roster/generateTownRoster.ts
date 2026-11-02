@@ -17,6 +17,8 @@
 import type { TownPlan } from "../artifacts";
 import {appendRuralHouseholds} from './ruralHouseholds';
 import {publicHouseWorkRoleForOwner} from './workHours';
+import { assignEmployment } from './employment';
+import type { HouseholdMember } from '../town/household';
 import { blueprintForPlot } from "../interior/generateInterior";
 import type { BlueprintPlan, RoomPurpose } from "../interior/blueprintTypes";
 import {
@@ -119,6 +121,8 @@ export function generateTownRoster(
   const occupants: Occupant[] = [];
   const householdCounts = new Map<number, number>();
   const householdPopulations = householdPopulationsForPlan(plan);
+  // Roster id -> named household member, read by the employment pass below.
+  const namedMembers = new Map<number, HouseholdMember>();
   let nextId = 1;
 
   for (const house of houses) {
@@ -140,6 +144,7 @@ export function generateTownRoster(
 
     for (const [memberIndex, ageBand] of ageBands.entries()) {
       const namedMember = namedHousehold?.household.members[memberIndex];
+      if (namedMember && namedHousehold) namedMembers.set(nextId, namedMember);
       occupants.push(
         createOccupant(
           nextId,
@@ -264,6 +269,11 @@ export function generateTownRoster(
       nextId++;
     }
   }
+
+  // NPC lives (GG-600): earners take the town engine's home-to-work links.
+  // This runs after every id is fixed and draws no random numbers, so names,
+  // ids, keepers and servants stay exactly as they were.
+  assignEmployment(plan, occupants, namedMembers);
 
   return {
     burgId: plan.burgId,

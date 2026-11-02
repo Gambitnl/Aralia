@@ -1,6 +1,6 @@
 import React from 'react';
-import { render } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { fireEvent, render } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 import { GlossaryContentRenderer } from '../Glossary/GlossaryContentRenderer';
 
 describe('GlossaryContentRenderer Security', () => {
@@ -28,5 +28,31 @@ describe('GlossaryContentRenderer Security', () => {
 
     expect(container.innerHTML).toContain('<strong>Bold Text</strong>');
     expect(container.innerHTML).toContain('<em>Italic</em>');
+  });
+});
+
+describe('GlossaryContentRenderer reading continuity', () => {
+  it('keeps an opened explanation and keyboard focus through unrelated parent renders', () => {
+    const markdownContent = '### Attacks Affected\nIncoming attacks have Advantage.\n\n### Automatic Critical Hits\nA hit within 5 feet is critical.';
+    const { container, rerender } = render(
+      <GlossaryContentRenderer markdownContent={markdownContent} onNavigate={vi.fn()} />
+    );
+    const card = container.querySelector('details')!;
+    const summary = card.querySelector('summary')!;
+    // A native details toggle changes the DOM without a React state update.
+    card.open = true;
+    fireEvent(card, new Event('toggle'));
+    summary.focus();
+    rerender(<GlossaryContentRenderer markdownContent={markdownContent} onNavigate={vi.fn()} />);
+    expect(container.querySelector('details')).toBe(card);
+    expect(card.open).toBe(true);
+    expect(summary).toHaveFocus();
+  });
+
+  it('still replaces the displayed rules when their actual content changes', () => {
+    const { container, rerender } = render(<GlossaryContentRenderer markdownContent="### Attacks\nOld explanation." />);
+    rerender(<GlossaryContentRenderer markdownContent="### Attacks\nUpdated explanation." />);
+    expect(container).toHaveTextContent('Updated explanation.');
+    expect(container).not.toHaveTextContent('Old explanation.');
   });
 });

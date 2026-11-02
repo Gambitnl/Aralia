@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { publishedGroundWaterSurfaceYAt } from '../groundWaterSurfaceQuery';
+import { inspectGroundWater, publishedGroundWaterSurfaceYAt } from '../groundWaterSurfaceQuery';
 import { sampleGroundChunk, type GroundWorld } from '../groundChunkLoader';
 import { buildWaterMesh } from '../../../world3d/waterGeometry';
-import { WORLD3D_CONFIG } from '../../../world3d/config';
+import { metersToHeight, WORLD3D_CONFIG } from '../../../world3d/config';
+import { GROUND_METERS_PER_CELL } from '../groundWorldAdapter';
 
 function ground(overrides: Partial<GroundWorld> = {}): GroundWorld {
   return { cols: 4, rows: 4, heights: Array(16).fill(0), biomeIds: Array(16).fill('plains'), extentMetersX: 4, extentMetersZ: 4,
@@ -28,6 +29,29 @@ function renderedOracle(source: GroundWorld) {
 }
 
 describe('published ground water surface admission', () => {
+  it('does not call a carved channel dry when the coarse chunk corners are all above its waterline', () => {
+    // This is the played Todtnau failure class: corner-only terrain sampling
+    // erases the bed and drops every query triangle while water remains visible.
+    const cols = 129, rows = 129;
+    const source = ground({ cols, rows,
+      extentMetersX: cols * GROUND_METERS_PER_CELL, extentMetersZ: rows * GROUND_METERS_PER_CELL,
+      heights: Array.from({ length: cols * rows }, (_, i) => {
+        const z = Math.floor(i / cols) * GROUND_METERS_PER_CELL;
+        return metersToHeight(Math.abs(z - 64) < 8 ? -2 : 6);
+      }),
+      biomeIds: Array(cols * rows).fill('plains'),
+      rivers: [{ sourceKind: 'river', points: [{ x: 12, z: 64 }, { x: 116, z: 64 }],
+        widthM: 8, surfaceWidthM: [8, 8], waterlineY: [2, 2] }],
+    });
+    const before = JSON.stringify(source), oracle = renderedOracle(source);
+    try {
+      expect(oracle.height(64, 64)).toBeCloseTo(2, 5);
+      expect(publishedGroundWaterSurfaceYAt(source, 64, 64)).toBeCloseTo(2, 5);
+      expect(publishedGroundWaterSurfaceYAt(source, 64, 80)).toBeUndefined();
+      expect(JSON.stringify(source)).toBe(before);
+    } finally { oracle.dispose(); }
+  });
+
   it('includes visible bank overdraw but does not widen a town ribbon to its regional referee width', () => {
     const source = ground({ rivers: [{ sourceKind: 'river', sourceId: 42, points: [{ x: 10, z: 64 }, { x: 110, z: 64 }],
       widthM: 68, surfaceWidthM: [4, 4], waterlineY: [6, 4] }] });
@@ -73,7 +97,9 @@ describe('published ground water surface admission', () => {
 
   it('keeps legacy unqualified ribbons unknown and rejects invalid query coordinates', () => {
     const source = ground({ rivers: [{ sourceKind: 'river', points: [{ x: 10, z: 20 }, { x: 80, z: 20 }], widthM: 8 }] });
-    expect(publishedGroundWaterSurfaceYAt(source, 40, 20)).toBeUndefined();
+    // Unknown native water is now an explicit admission refusal, never dry.
+    expect(() => publishedGroundWaterSurfaceYAt(source, 40, 20)).toThrow(/waterline unavailable/);
+    expect(inspectGroundWater(source, 40, 20)).toMatchObject({status: 'unavailable'});
     expect(publishedGroundWaterSurfaceYAt(source, NaN, 20)).toBeUndefined();
     expect(publishedGroundWaterSurfaceYAt(source, 40, Infinity)).toBeUndefined();
   });

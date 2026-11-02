@@ -14,8 +14,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 01/11/2026, 16:20:35
- * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/GroundAgents.tsx, components/World3D/InteriorLights.tsx, components/World3D/InteriorOccupants.tsx, components/World3D/NearbyBuildingDoor.tsx, components/World3D/NearbyFurnishing.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DNameplates.tsx, components/World3D/World3DScene.tsx, components/World3D/buildingExteriorGeometry.ts, components/World3D/createGroundWorkerChunkLoader.ts, components/World3D/createWorkerChunkLoader.ts, components/World3D/createWorldGenClient.ts, components/World3D/groundBuildingMotion.ts, components/World3D/libraryReadingAccess.ts, components/World3D/residentDoorUse.ts, components/World3D/useChunkStreaming.ts, components/World3D/useFootingMeshes.ts, components/World3D/vegetation/GrassLayer.tsx, components/World3D/vegetationInstanceMatrices.ts, systems/world3d/buildingModels.ts, systems/world3d/chunkBundle.ts, systems/world3d/chunkGeometry.ts, systems/world3d/chunkManager.ts, systems/world3d/chunkSampler.ts, systems/world3d/chunkStreamer.ts, systems/world3d/chunkWorkerCore.ts, systems/world3d/config.ts, systems/world3d/coords.ts, systems/world3d/deckGeometry.ts, systems/world3d/footingMeshJob.ts, systems/world3d/gateGeometry.ts, systems/world3d/groundEditRoadCut.ts, systems/world3d/lod.ts, systems/world3d/polylineClip.ts, systems/world3d/roadGeometry.ts, systems/world3d/siteBoxBatches.ts, systems/world3d/siteGeometry.ts, systems/world3d/terrainFootingDetail.ts, systems/world3d/vegetationScatter.ts, systems/world3d/wallGeometry.ts, systems/world3d/waterGeometry.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundChunkMesh.ts, systems/worldforge/bridge/groundChunkWorkerCore.ts, systems/worldforge/vegetation/treeBatching.ts
+ * Last Sync: 02/11/2026, 17:13:32
+ * Dependents: components/Combat/InPlaceCombatScene.tsx, components/World3D/GroundAgents.tsx, components/World3D/InteriorLights.tsx, components/World3D/InteriorOccupants.tsx, components/World3D/NearbyBuildingDoor.tsx, components/World3D/NearbyFurnishing.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DNameplates.tsx, components/World3D/World3DScene.tsx, components/World3D/buildingExteriorGeometry.ts, components/World3D/createGroundWorkerChunkLoader.ts, components/World3D/createWorkerChunkLoader.ts, components/World3D/createWorldGenClient.ts, components/World3D/libraryReadingAccess.ts, components/World3D/residentDoorUse.ts, components/World3D/useChunkStreaming.ts, components/World3D/useFootingMeshes.ts, components/World3D/vegetation/GrassLayer.tsx, components/World3D/vegetationInstanceMatrices.ts, systems/world3d/buildingModels.ts, systems/world3d/chunkBundle.ts, systems/world3d/chunkGeometry.ts, systems/world3d/chunkManager.ts, systems/world3d/chunkSampler.ts, systems/world3d/chunkStreamer.ts, systems/world3d/chunkWorkerCore.ts, systems/world3d/config.ts, systems/world3d/coords.ts, systems/world3d/deckGeometry.ts, systems/world3d/footingMeshJob.ts, systems/world3d/gateGeometry.ts, systems/world3d/groundBuildingMotion.ts, systems/world3d/groundEditRoadCut.ts, systems/world3d/lod.ts, systems/world3d/polylineClip.ts, systems/world3d/roadGeometry.ts, systems/world3d/siteBoxBatches.ts, systems/world3d/siteGeometry.ts, systems/world3d/terrainFootingDetail.ts, systems/world3d/vegetationScatter.ts, systems/world3d/wallGeometry.ts, systems/world3d/waterGeometry.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/groundChunkMesh.ts, systems/worldforge/bridge/groundChunkWorkerCore.ts, systems/worldforge/bridge/groundRibbonBed.ts, systems/worldforge/vegetation/treeBatching.ts
  * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
@@ -88,6 +88,12 @@ export interface ChunkCoord {
  * Plan 3 extends this with intersecting rivers/roads/lakes and contained sites.
  */
 export interface ChunkData {
+  /** Ground ribbons use a copied source-bed window for stable wet coverage at
+   * every display LOD. Absent means the existing continent/legacy producer.
+   * Missing data on an explicitly native packet is unavailable, never dry. */
+  groundRibbonMode?: 'native-source-bed-v1' | 'legacy-continent';
+  groundRibbonBed?: import('../worldforge/bridge/groundRibbonBed').RibbonBedPatch;
+  groundRibbonSource?: import('../worldforge/bridge/groundRibbonBed').RibbonBedPatch['source'];
   cx: number;
   cy: number;
   /** Vertices per edge (square grid). */

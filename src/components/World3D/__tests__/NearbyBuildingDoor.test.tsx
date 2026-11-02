@@ -10,7 +10,7 @@ import type {LoadedChunk} from '@/systems/world3d/types';
 import type {AvatarFootfall} from '../groundFurnishingInteraction';
 const f=vi.hoisted(()=>({frame:null as null|((state:unknown,delta:number)=>void)}));
 vi.mock('@react-three/fiber',()=>({useFrame:(fn:typeof f.frame)=>{f.frame=fn;}}));
-vi.mock('../terrain/groundSurfaceYM',()=>({groundSurfaceYM:()=>4}));
+vi.mock('@/systems/world3d/groundSurfaceYM',()=>({groundSurfaceYM:()=>4}));
 afterEach(cleanup);
 function fixture(){
   const part={x:0,z:0,w:.9144,d:.06,h:2.13,colorHex:'#65462f',door:{id:'entry',level:0,index:0,axis:'x' as const,swingX:0,swingZ:1}};

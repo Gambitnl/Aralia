@@ -31,10 +31,10 @@ vi.mock('@/systems/entities3d/three/assembleEntity', () => ({
     }) };
   },
 }));
-vi.mock('@/systems/worldforge/bridge/groundWaterSurfaceQuery', () => ({ publishedGroundWaterSurfaceYAt: () => harness.waterY }));
+vi.mock('@/systems/worldforge/bridge/groundWaterSurfaceQuery', () => ({ inspectGroundWater: () => ({status: 'valid', surfaceY: harness.waterY}) }));
 vi.mock('../webgpuWorldFlag', () => ({ isWebGpuWorldEnabled: () => false }));
 vi.mock('../worldEntityGpu', () => ({ adaptWorldEntityForWebGpu: vi.fn() }));
-vi.mock('../terrain/groundSurfaceYM', () => ({ groundSurfaceYM: (_ground: unknown, x: number) => x / 100 }));
+vi.mock('@/systems/world3d/groundSurfaceYM', () => ({ groundSurfaceYM: (_ground: unknown, x: number) => x / 100 }));
 
 const character = { name: 'Sana' } as PlayerCharacter;
 const ground = { rivers: [] } as unknown as GroundWorld;
