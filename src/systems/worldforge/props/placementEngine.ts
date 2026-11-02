@@ -153,8 +153,12 @@ export interface CtxCourtyard {
 export interface CtxCivicFeature {
   /** Stable anchor id; the dressing seed path hangs off it. */
   id: string;
-  /** 'grave' gets a headstone; 'pool' gets reeds round its edge. */
-  kind: 'grave' | 'pool';
+  /**
+   * 'grave' gets a headstone; 'pool' gets reeds round its edge. The market
+   * square's pieces (GG-586) get their own prop: a stall, a well, a market
+   * cross, a fountain or a pillory.
+   */
+  kind: 'grave' | 'pool' | 'stall' | 'well' | 'market-cross' | 'fountain' | 'pillory';
   /** The feature outline, meters, in the plan's winding. */
   pointsM: Array<{ x: number; z: number }>;
 }
@@ -277,6 +281,9 @@ export const RENDERABLE_DEF_IDS: ReadonlySet<string> = new Set<string>([
   // Vegetation forms → bush variants.
   'bramble-patch', 'deadfall', 'fern-clump', 'gorse-shrub', 'hedge-run',
   'reed-bed', 'topiary', 'ivy-mass', 'mushroom-ring', 'gravel-bar',
+  // The market square's pieces (GG-586), drawn as a well basin, a stone
+  // cross and a fingerpost post.
+  'fountain', 'market-cross', 'pillory',
 ]);
 
 /**
@@ -715,6 +722,47 @@ function placeCivicGrounds(basePath: SeedPath, ctx: PropPlacementContext): PropI
         xM: clamp(head.x + (cx - head.x) * 0.25, 0, ctx.extentMetersX),
         zM: clamp(head.z + (cz - head.z) * 0.25, 0, ctx.extentMetersZ),
         rotationRad: axis + Math.PI / 2 + uniform(rng, -0.06, 0.06),
+        variation: makeVariation(rng),
+      }));
+    } else if (f.kind === 'stall') {
+      // GG-586: the stall stands on its plot, its open side toward the aisle
+      // (corners 2 and 3 of the plan rectangle). Its stock stays inside it.
+      const front = { x: (pts[2].x + pts[3].x) / 2, z: (pts[2].z + pts[3].z) / 2 };
+      const back = { x: (pts[0].x + pts[1].x) / 2, z: (pts[0].z + pts[1].z) / 2 };
+      const cx = (front.x + back.x) / 2, cz = (front.z + back.z) / 2;
+      const facing = Math.atan2(front.z - back.z, front.x - back.x);
+      out.push(...emit({
+        defId: 'market-stall',
+        xM: clamp(cx, 0, ctx.extentMetersX),
+        zM: clamp(cz, 0, ctx.extentMetersZ),
+        rotationRad: facing,
+        variation: makeVariation(rng),
+      }));
+      // One or two pieces of stock behind the counter, a third of the way
+      // from the back, spread along the stall.
+      const along = { x: pts[1].x - pts[0].x, z: pts[1].z - pts[0].z };
+      const stock = rng.nextInt(1, 3);
+      for (let j = 0; j < stock; j++) {
+        const s = (j + 0.5) / stock - 0.5;
+        out.push(...emit({
+          defId: pickWeighted(rng, MARKET_UNDERSTOCK),
+          xM: clamp(back.x + (front.x - back.x) / 3 + along.x * s * 0.6, 0, ctx.extentMetersX),
+          zM: clamp(back.z + (front.z - back.z) / 3 + along.z * s * 0.6, 0, ctx.extentMetersZ),
+          rotationRad: facing + uniform(rng, -0.3, 0.3),
+          variation: makeVariation(rng),
+        }));
+      }
+    } else if (f.kind !== 'pool') {
+      // GG-586: a well, a market cross, a fountain or a pillory stands at the
+      // middle of its plan outline, square to the square's own frame.
+      let cx = 0, cz = 0;
+      for (const p of pts) { cx += p.x; cz += p.z; }
+      cx /= pts.length; cz /= pts.length;
+      out.push(...emit({
+        defId: f.kind,
+        xM: clamp(cx, 0, ctx.extentMetersX),
+        zM: clamp(cz, 0, ctx.extentMetersZ),
+        rotationRad: Math.atan2(pts[1].z - pts[0].z, pts[1].x - pts[0].x),
         variation: makeVariation(rng),
       }));
     } else {

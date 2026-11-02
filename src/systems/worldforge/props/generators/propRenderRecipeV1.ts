@@ -82,6 +82,9 @@ export function composeTiltedRotationV1(
 }
 
 const FORM_SIZE_MUL: Record<string, number> = {
+  // GG-586: a fountain basin is about 3 m across its radius against a well's
+  // 0.8 m; a market cross stands about 2.5 times a grave cross.
+  fountain: 3.4, 'market-cross': 2.5,
   // Stone family (bucket base = the plain scatter boulder).
   cairn: 0.75, 'stone-planter': 0.8, 'stone-bench': 0.9,
   'mossy-rock-cluster': 1.05, 'rubble-pile': 1.1, 'standing-stone': 1.15,
@@ -154,6 +157,9 @@ const RENDER_VARIANT: Record<string, string> = {
   'coiled-rope': 'barrel', 'mooring-post': 'barrel', 'awning-pole': 'barrel',
   // Loose heaps → sack.
   'coal-heap': 'sack', 'rubbish-heap': 'sack',
+  // The market square (GG-586): a fountain is a wide well basin, a market
+  // cross a tall stone cross, a pillory a post with a cross board.
+  fountain: 'well', 'market-cross': 'stone-cross', pillory: 'fingerpost',
 };
 
 /** Resolve an emitted defId to the id of the render form that draws it. */

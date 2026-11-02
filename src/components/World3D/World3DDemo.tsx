@@ -125,6 +125,11 @@ const World3DDemo: React.FC = () => {
   // probes in .agent/a8/. &hour= drives time-of-day occupant placement
   // (default noon: workers at their shops).
   const hour = Number(urlParams.get('hour') ?? 12);
+  // &sunhour= (2026-11-02, house lighting proof): drives the sun AND the
+  // interior clock (lit windows, lamps, hearths) to one hour. Absent, the
+  // scene keeps its defaults (sun 18.2 h, interior clock noon) as before.
+  const sunHourParam = urlParams.get('sunhour');
+  const sunHour = sunHourParam !== null && Number.isFinite(Number(sunHourParam)) ? Number(sunHourParam) : undefined;
   const seamMode = urlParams.get('seam') === '1';
 
   // GG-558 (2026-11-01): the cell this window opens onto. ?dcell= names the
@@ -333,6 +338,8 @@ const World3DDemo: React.FC = () => {
             groundWorld={demoGround ?? null}
             playerCharacter={groundMode ? demoCharacter : null}
             sceneCast={groundMode && urlParams.get('cast') === '1' ? demoCast : undefined}
+            timeOfDayHours={sunHour}
+            agentClock={sunHour}
           />
         </div>
       </div>

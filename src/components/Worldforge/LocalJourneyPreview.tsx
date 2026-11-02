@@ -17,6 +17,7 @@
 import type { LocalJourneyQuote } from '../../systems/worldforge/travel/localGroundJourney';
 import { useEffect, useRef } from 'react';
 import { formatTravelTime } from '../../systems/travel/travelReadout';
+import { Button } from '../ui/Button';
 
 /** Review a real journey before spending time or replacing the accepted ground body. */
 export function LocalJourneyPreview({ quote, onCancel, onConfirm }: {
@@ -49,8 +50,9 @@ export function LocalJourneyPreview({ quote, onCancel, onConfirm }: {
       {quote.meta.forcedMarch && <p className="mt-3 text-amber-300">This journey risks exhaustion from a forced march.</p>}
       {quote.refusal && <p role="alert" className="mt-3 text-red-300">{quote.refusal}</p>}
       <div className="mt-5 flex justify-end gap-3">
-        <button ref={cancel} type="button" onClick={onCancel} className="rounded border border-stone-600 px-4 py-2">Stay here</button>
-        <button type="button" onClick={onConfirm} disabled={!quote.allowed} className="rounded bg-amber-800 px-4 py-2 disabled:opacity-40">Set out on foot</button>
+        {/* Shared Button style. Button forwards the ref, so "Stay here" still takes the first focus. */}
+        <Button ref={cancel} type="button" variant="secondary" onClick={onCancel}>Stay here</Button>
+        <Button type="button" variant="action" onClick={onConfirm} disabled={!quote.allowed}>Set out on foot</Button>
       </div>
     </section>
   </div>;

@@ -26,6 +26,7 @@ import { clipPolylineToPolygon, type Pt } from '../submap/submapEngine';
 import type { FmgWorldResult } from '../fmg/generateWorld';
 import { generateRiverCourse } from '../region/riverCourse';
 import { riverWidthFt } from '../region/riverWidth';
+import { riverRoadClearAtFt, ROAD_RIVER_CLEAR_FT, type RoadRiverReach } from '../region/roadCourse';
 import { makeAtlasNaturalHeight } from '../region/regionTerrainField';
 import {
   buildRiverAttractors,
@@ -197,4 +198,41 @@ export function townRiverCourseCanon(
     lines: clipPolylineToPolygon(canon, square).filter((seg) => seg.length >= 2),
     widthCanon: widthHereFt * k,
   };
+}
+
+/**
+ * The burg's river as a road must keep off it (GG-582), in WORLD feet: the
+ * full course the region tier draws, and at each course point half the
+ * river's width there plus `ROAD_RIVER_CLEAR_FT`. The width at a point is the
+ * width of its nearest atlas segment, the rule `generateRiverBanks` uses, so
+ * the town's approach roads and the region's roads keep one clearance and
+ * stay one line. Empty for a burg with no river.
+ */
+export function townRiverRoadReachFt(
+  atlas: TownAtlas,
+  worldSeed: number,
+  burgId: number,
+): RoadRiverReach[] {
+  const pack = atlas.pack as unknown as {
+    cells: { p: Array<[number, number]>; r?: ArrayLike<number>; fl?: ArrayLike<number> };
+    burgs?: Array<{ cell: number; removed?: boolean }>;
+    rivers?: Array<{ i: number; cells: number[]; discharge: number }>;
+  };
+  const burg = pack.burgs?.[burgId];
+  if (!burg || burg.removed) return [];
+  const riverId = pack.cells.r?.[burg.cell];
+  if (!riverId) return [];
+  const river = (pack.rivers ?? []).find((r) => r.i === Number(riverId));
+  if (!river) return [];
+  const anchors = riverAnchorsFt(river.cells, pack.cells.p, FEET_PER_FMG_PIXEL);
+  if (anchors.length < 2) return [];
+  // The course the town river and the region river share (see above).
+  townRiverCourseCanon(atlas, worldSeed, burgId);
+  const course = contextFor(atlas, worldSeed).courses.get(Number(riverId));
+  if (!course || course.length < 2) return [];
+  const fl = pack.cells.fl;
+  if (!fl) throw new Error(`[town] The atlas has no water count for river ${riverId}.`);
+  const own = river.cells.filter((c) => c >= 0 && pack.cells.p[c]);
+  const segmentWidthFt = own.slice(0, -1).map((c) => riverWidthFt(fl[c]));
+  return [{ line: course, clear: ROAD_RIVER_CLEAR_FT, clearAt: riverRoadClearAtFt(course, anchors, segmentWidthFt) }];
 }

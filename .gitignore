@@ -138,6 +138,11 @@ vite.config.d.ts
 test-results/
 test_output.log
 verification/
+# Reusable source-isolation tooling belongs in history; disposable captures do not.
+!scripts/verification/
+scripts/verification/*
+!scripts/verification/sourceCut.mjs
+!scripts/verification/sourceCut.test.mjs
 
 # Generated documentation output
 docs/api/

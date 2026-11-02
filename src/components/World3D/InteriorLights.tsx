@@ -19,6 +19,17 @@
  *     camera and reached player share a shell, it stays above the player so
  *     orbiting several meters away does not leave the furniture dark.
  *
+ *  3. LIT WINDOWS onto the street (2026-11-02) — the nearest ≤8 lit panes within
+ *     40 m each get a RectAreaLight the size of the pane, facing out, with the
+ *     radiance the pane shows. The street receives the light the glass emits.
+ *
+ *  4. TABLE LAMPS (2026-11-02) — while a household's windows are lit, an oil
+ *     lamp (8 cd, about 100 lm) burns on each table, desk, counter and
+ *     workbench; the nearest ≤4 within 30 m are real point lights.
+ *
+ * The window and lamp lights keep a fixed count and go dark by intensity, so
+ * a camera move never changes the light count (which recompiles materials).
+ *
  * DATA vs RENDER: which windows glow and where the hearths are flows through the
  * existing SitePart plumbing (emissiveHex tags, baked deterministically). This
  * component only does render-side, camera-relative SELECTION — legitimately not
@@ -44,11 +55,29 @@
 import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { RectAreaLightNode } from 'three/webgpu';
+import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
+import { RectAreaLightTexturesLib } from 'three/examples/jsm/lights/RectAreaLightTexturesLib.js';
 import type { LoadedChunk } from '@/systems/world3d/types';
 import { chunkOriginWorld } from '@/systems/world3d/coords';
 import { worldToScene, type SceneOrigin } from '@/systems/world3d/sceneOrigin';
+import { buildInteriorDaylight } from '@/systems/world3d/interiorDaylight';
 import { siteLocalToScene, type SitePlacement } from './interiorPlacement';
-import { useInteriorHour } from './InteriorHourContext';
+import { emissiveForPart, useInteriorHour } from './InteriorHourContext';
+import { isWebGpuWorldEnabled } from './webgpuWorldFlag';
+import { WINDOW_GLOW_HEX } from '@/systems/worldforge/bridge/interiorParts';
+
+/**
+ * NIGHT LIGHT OUT (2026-11-02, Remy: "lighting in the houses"). A lit window
+ * is a rectangle of lamplit room seen through glass, so it is modeled as what
+ * it is: a rectangular area light the size of the pane, facing out of the
+ * house, with the same radiance the pane shows (WINDOW_GLOW_HEX at the pane's
+ * emissive intensity). No look-tuned number: the street receives exactly the
+ * light the glass appears to emit. RectAreaLight needs its LTC tables once
+ * per renderer type.
+ */
+if (isWebGpuWorldEnabled()) RectAreaLightNode.setLTC(RectAreaLightTexturesLib.init());
+else RectAreaLightUniformsLib.init();
 
 /** Max simultaneous hearth point lights — a hard cap (perf discipline). */
 const MAX_HEARTH_LIGHTS = 4;
@@ -60,6 +89,28 @@ const HEARTH_LIGHT_COLOR = new THREE.Color('#ff8a3c');
 const HEARTH_INTENSITY = 14;
 const HEARTH_DISTANCE_M = 9;
 const HEARTH_DECAY = 2;
+
+/** A lit pane's radiance, as the glass shows it (emissiveForPart at a lit hour). */
+const WINDOW_RADIANCE = emissiveForPart('window', 0, [true]).emissiveIntensity;
+/** Max lit windows that light the street at once, nearest first. */
+const MAX_WINDOW_LIGHTS = 8;
+/** Only lit windows within this scene-meter radius of the camera light the street. */
+const WINDOW_RANGE_M = 40;
+/** Max table lamps lit at once, nearest first (perf discipline, as hearths). */
+const MAX_LAMP_LIGHTS = 4;
+const LAMP_RANGE_M = 30;
+/**
+ * An oil lamp gives about 100 lumens; spread over the full sphere that is
+ * 100 / (4 pi) = 8 candela. three's physical point-light intensity is candela.
+ */
+const LAMP_INTENSITY_CD = 8;
+const LAMP_DISTANCE_M = 7;
+/** Warm oil-flame color. */
+const LAMP_LIGHT_COLOR = new THREE.Color('#ffb36b');
+/** The lamp's flame stands this far above the top of its table. */
+const LAMP_FLAME_ABOVE_M = 0.3;
+/** Furniture that holds a lamp when the household has its lamps lit. */
+const LAMP_FURNITURE = new Set(['table', 'desk', 'writing-desk', 'counter', 'workbench']);
 
 /** Neutral camera-inside fill — readable interior at any hour. */
 const FILL_COLOR = new THREE.Color('#fff2e0');
@@ -82,6 +133,30 @@ export interface HearthLight {
    * selector skips a hearth whose current hour is dark before the distance test.
    */
   hearthHours?: boolean[];
+}
+
+/** One window pane as an outward-facing area emitter, scene space. */
+export interface WindowEmitter {
+  x: number;
+  y: number;
+  z: number;
+  /** Unit outward normal (horizontal). */
+  nx: number;
+  nz: number;
+  /** Pane width along the wall and height, meters. */
+  width: number;
+  height: number;
+  /** The building's window-lit schedule (litHours[h]); undefined = never lit. */
+  litHours?: boolean[];
+}
+
+/** One lamp position (scene space) on a table-like furnishing. */
+export interface LampLight {
+  x: number;
+  y: number;
+  z: number;
+  /** The building's window-lit schedule: lamps burn when the windows glow. */
+  litHours?: boolean[];
 }
 
 /** One building shell's scene-space bounds for the camera-inside test. */
@@ -137,9 +212,11 @@ export const INTERIOR_LIGHT_TUNING = {
 export function collectInteriorLighting(
   loaded: LoadedChunk[],
   origin: SceneOrigin,
-): { hearths: HearthLight[]; shells: ShellBounds[] } {
+): { hearths: HearthLight[]; shells: ShellBounds[]; windows: WindowEmitter[]; lamps: LampLight[] } {
   const hearths: HearthLight[] = [];
   const shells: ShellBounds[] = [];
+  const windows: WindowEmitter[] = [];
+  const lamps: LampLight[] = [];
   for (const chunk of loaded) {
     const o = chunkOriginWorld(chunk.cx, chunk.cy);
     const chunkScene = worldToScene(o.x, o.y, origin); // chunk-local frame origin
@@ -176,9 +253,62 @@ export function collectInteriorLighting(
         const y = s.surfaceY + (p.baseY ?? 0) + p.h * 0.5;
         hearths.push({ x, y, z, hearthHours: s.hearthHours });
       }
+      // Lit windows and lamps exist only for a building with a lit schedule.
+      if (!s.litHours?.some(Boolean)) continue;
+      for (const p of s.parts) {
+        if (!p.furnishing || !LAMP_FURNITURE.has(p.furnishing.kind)) continue;
+        const { x, z } = siteLocalToScene(p.x, p.z, placement);
+        lamps.push({ x, y: s.surfaceY + (p.baseY ?? 0) + p.h + LAMP_FLAME_ABOVE_M, z, litHours: s.litHours });
+      }
+      // Window openings in the render frame (z already flipped by doorZSign),
+      // then the group's yaw and origin, as three applies them.
+      const day = buildInteriorDaylight(s.parts, doorSign);
+      if (!day) continue;
+      const cos = Math.cos(rot), sin = Math.sin(rot);
+      for (const o of day.openings) {
+        const [a, b, , d] = o.corners;
+        windows.push({
+          x: gx + o.center.x * cos + o.center.z * sin,
+          y: s.surfaceY + o.center.y,
+          z: gz - o.center.x * sin + o.center.z * cos,
+          nx: o.outward.x * cos + o.outward.z * sin,
+          nz: -o.outward.x * sin + o.outward.z * cos,
+          width: Math.hypot(b.x - a.x, b.z - a.z),
+          height: Math.abs(d.y - a.y),
+          litHours: s.litHours,
+        });
+      }
     }
   }
-  return { hearths, shells };
+  return { hearths, shells, windows, lamps };
+}
+
+/**
+ * Pick the nearest `cap` candidates that are lit at `hourInt` and inside
+ * `range` of the camera, into `pick` (indices, -1 = empty). Sorted top-N
+ * insertion over preallocated arrays: no per-frame allocation.
+ */
+function nearestLit(
+  items: ReadonlyArray<{ x: number; y: number; z: number; litHours?: boolean[] }>,
+  cam: THREE.Vector3,
+  hourInt: number,
+  range: number,
+  pick: number[],
+  dist: number[],
+): void {
+  const cap = pick.length;
+  for (let i = 0; i < cap; i++) { pick[i] = -1; dist[i] = Infinity; }
+  const rangeSq = range * range;
+  for (let k = 0; k < items.length; k++) {
+    if (!items[k].litHours?.[hourInt]) continue;
+    const dx = items[k].x - cam.x, dy = items[k].y - cam.y, dz = items[k].z - cam.z;
+    const d2 = dx * dx + dy * dy + dz * dz;
+    if (d2 > rangeSq || d2 >= dist[cap - 1]) continue;
+    let slot = cap - 1;
+    while (slot > 0 && dist[slot - 1] > d2) { dist[slot] = dist[slot - 1]; pick[slot] = pick[slot - 1]; slot--; }
+    dist[slot] = d2;
+    pick[slot] = k;
+  }
 }
 
 const InteriorLights: React.FC<{
@@ -193,7 +323,7 @@ const InteriorLights: React.FC<{
   // Static-per-chunk-set lighting data (no per-frame rebuild). The key changes
   // only when chunks stream in/out.
   const loadedKey = loaded.map((c) => `${c.cx}|${c.cy}`).join(',');
-  const { hearths, shells } = useMemo(
+  const { hearths, shells, windows, lamps } = useMemo(
     () => collectInteriorLighting(loaded, origin),
     // loadedKey captures set membership; origin is frozen for the session.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -201,6 +331,14 @@ const InteriorLights: React.FC<{
   );
 
   const hearthRefs = useRef<Array<THREE.PointLight | null>>([]);
+  const windowRefs = useRef<Array<THREE.RectAreaLight | null>>([]);
+  const lampRefs = useRef<Array<THREE.PointLight | null>>([]);
+  const nightScratch = useRef({
+    winPick: new Array<number>(MAX_WINDOW_LIGHTS).fill(-1),
+    winDist: new Array<number>(MAX_WINDOW_LIGHTS).fill(Infinity),
+    lampPick: new Array<number>(MAX_LAMP_LIGHTS).fill(-1),
+    lampDist: new Array<number>(MAX_LAMP_LIGHTS).fill(Infinity),
+  });
   const fillRef = useRef<THREE.PointLight>(null);
   const fillIntensity = useRef(0);
   const fillBody = useRef<{scene:THREE.Scene|null; player:THREE.Object3D|null; retryAfter:number}>(
@@ -256,6 +394,35 @@ const InteriorLights: React.FC<{
       light.visible = true;
     }
 
+    // ── Lit windows onto the street, lamps inside: nearest-first ≤ cap ───────
+    // These lights keep a FIXED count and go dark by intensity 0, not by
+    // `visible`: a change in the light count makes three rebuild the
+    // programs of every lit material.
+    const night = nightScratch.current;
+    nearestLit(windows, cam, hourInt, WINDOW_RANGE_M, night.winPick, night.winDist);
+    for (let i = 0; i < MAX_WINDOW_LIGHTS; i++) {
+      const light = windowRefs.current[i];
+      if (!light) continue;
+      const idx = night.winPick[i];
+      if (idx < 0) { light.intensity = 0; continue; }
+      const w = windows[idx];
+      light.intensity = WINDOW_RADIANCE;
+      light.width = w.width;
+      light.height = w.height;
+      // A hair outside the glass, facing out of the house.
+      light.position.set(w.x + w.nx * 0.03, w.y, w.z + w.nz * 0.03);
+      light.lookAt(w.x + w.nx, w.y, w.z + w.nz);
+    }
+    nearestLit(lamps, cam, hourInt, LAMP_RANGE_M, night.lampPick, night.lampDist);
+    for (let i = 0; i < MAX_LAMP_LIGHTS; i++) {
+      const light = lampRefs.current[i];
+      if (!light) continue;
+      const idx = night.lampPick[i];
+      if (idx < 0) { light.intensity = 0; continue; }
+      light.intensity = LAMP_INTENSITY_CD;
+      light.position.set(lamps[idx].x, lamps[idx].y, lamps[idx].z);
+    }
+
     // ── Camera-inside fill: fade in when inside any shell ─────────────────────
     // Reuse the actual mounted body, as ground nameplates do. Cache its identity
     // and bound missing-body searches to four per second; no game pose is moved.
@@ -289,7 +456,7 @@ const InteriorLights: React.FC<{
   });
 
   // Nothing lit anywhere → mount no lights at all (perf: zero cost when dark).
-  if (hearths.length === 0 && shells.length === 0) return null;
+  if (hearths.length === 0 && shells.length === 0 && windows.length === 0 && lamps.length === 0) return null;
 
   return (
     <>
@@ -305,6 +472,33 @@ const InteriorLights: React.FC<{
             intensity={HEARTH_INTENSITY}
             distance={HEARTH_DISTANCE_M}
             decay={HEARTH_DECAY}
+            castShadow={false}
+          />
+        ))}
+      {windows.length > 0 &&
+        Array.from({ length: MAX_WINDOW_LIGHTS }).map((_, i) => (
+          <rectAreaLight
+            key={`window-${i}`}
+            ref={(el) => {
+              windowRefs.current[i] = el;
+            }}
+            color={WINDOW_GLOW_HEX}
+            intensity={0}
+            width={1}
+            height={1}
+          />
+        ))}
+      {lamps.length > 0 &&
+        Array.from({ length: MAX_LAMP_LIGHTS }).map((_, i) => (
+          <pointLight
+            key={`lamp-${i}`}
+            ref={(el) => {
+              lampRefs.current[i] = el;
+            }}
+            color={LAMP_LIGHT_COLOR}
+            intensity={0}
+            distance={LAMP_DISTANCE_M}
+            decay={2}
             castShadow={false}
           />
         ))}

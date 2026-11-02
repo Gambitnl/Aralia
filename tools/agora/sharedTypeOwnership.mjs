@@ -15,6 +15,7 @@ const within = (root, file) => {
 };
 const slash = file => file.replace(/\\/g, '/');
 const hasModifier = (node, kind) => node.modifiers?.some(modifier => modifier.kind === kind);
+const FALLBACK_BASIS = 'explicit type import; declaration not identified';
 const typeDeclaration = node => ts.isInterfaceDeclaration(node) || ts.isTypeAliasDeclaration(node)
   || ts.isClassDeclaration(node) || ts.isEnumDeclaration(node);
 
@@ -109,8 +110,13 @@ export function inspectSharedTypeDependencies(plan, sourcesByPacket, locks = [],
     }
     // Explicit type-only imports may describe typeof a value. Retain the known
     // module with a qualified basis instead of inventing a declaration or edit.
-    if (!results.length && explicitType) add(symbol, 'explicit type import; declaration not identified');
-    return results;
+    if (!results.length && explicitType) add(symbol, FALLBACK_BASIS);
+    // An `export type *` barrel sends the symbol down every branch, and each branch
+    // without the declaration adds the fallback above. Keep a fallback only when no
+    // branch found the declaration itself; otherwise src/types/combat/index.ts reported
+    // all nine of its modules for every imported combat type.
+    const declared = new Set(results.filter(found => found.basis !== FALLBACK_BASIS).map(found => found.symbol));
+    return results.filter(found => found.basis !== FALLBACK_BASIS || !declared.has(found.symbol));
   }
   function imports(tree) {
     const found = [];

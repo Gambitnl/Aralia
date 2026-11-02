@@ -38,19 +38,28 @@ export type CivicSetPiece =
   /** An open yard before a council hall: the seat of a republic or a league. */
   | 'hall-yard'
   /** Plain grounds: no faith or holder is known (a schematic plan). */
-  | 'grounds';
+  | 'grounds'
+  /** A market square: stalls in rows, a centerpiece, and in larger towns a hall (GG-586, `marketSquare.ts`). */
+  | 'market';
 
 /** One feature drawn on the grounds. */
 export interface CivicGroundsFeature {
-  kind: 'grave' | 'tree' | 'pool' | 'cloister-walk' | 'garth' | 'curtain-wall' | 'gatehouse' | 'yard';
+  kind: 'grave' | 'tree' | 'pool' | 'cloister-walk' | 'garth' | 'curtain-wall' | 'gatehouse' | 'yard'
+    // The market square (GG-586). A stall is a rectangle from `orientedRect`;
+    // its customer side is the edge from corner 2 to corner 3.
+    | 'stall' | 'well' | 'market-cross' | 'fountain' | 'market-hall' | 'weigh-house' | 'pillory';
   polygon: Pt[];
 }
 
-/** The grounds of one temple, keep or citadel, in the plan's own frame. */
+/**
+ * The grounds of one temple, keep or citadel, in the plan's own frame. A market
+ * square (GG-586) uses the same record: its civic kind is `plaza`, its grounds
+ * are the square, and it has no forecourt and no approach.
+ */
 export interface CivicGrounds {
   /** Ward the civic building stands in (as on `CivicStructure.wardIndex`). */
   wardIndex: number;
-  civicKind: 'temple' | 'keep' | 'citadel';
+  civicKind: 'temple' | 'keep' | 'citadel' | 'plaza';
   setPiece: CivicSetPiece;
   /** The faith or holder form the set piece was chosen from, for the record. */
   chosenBy: string;
@@ -284,6 +293,8 @@ export function setPieceFeatures(a: SetPieceInput): CivicGroundsFeature[] {
       return out;
     }
     case 'grounds':
+    // A market square places its own pieces (`marketSquare.ts`).
+    case 'market':
       return out;
   }
 }

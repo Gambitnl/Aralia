@@ -95,9 +95,18 @@ describe('WAVE-1 prop wiring into GroundWorld', () => {
   it('projects market plots into plaza anchors', () => {
     const ground = portGround(42);
     const ctx = groundToPlacementContext(ground);
-    const marketCount = ground.buildings.filter((b) => b.role === 'market').length;
-    // A market plot exists ⇒ a plaza anchor is synthesized for it.
-    if (marketCount > 0) expect(ctx.plazas.length).toBeGreaterThan(0);
+    // GG-586: a town whose plan lays out its own market square sends its
+    // stalls as plan anchors, and gets no ring of stalls round its shops.
+    const planned = new Set((ground.townPlans ?? [])
+      .filter(({ plan }) => (plan.civicGrounds ?? []).some((g) => g.setPiece === 'market'))
+      .map(({ burgId }) => String(burgId)));
+    const burgOf = (id: string) => /^wf-plot-(\d+)-/.exec(id)?.[1] ?? 'x';
+    const ringBurgs = new Set(ground.buildings.filter((b) => b.role === 'market' && !planned.has(burgOf(b.id))).map((b) => burgOf(b.id)));
+    // A market plot of an unplanned town ⇒ a plaza anchor is synthesized for it.
+    expect(ctx.plazas.map((p) => p.id).sort()).toEqual([...ringBurgs].map((b) => `mkt-${b}`).sort());
+    for (const b of planned) expect(ctx.plazas.some((p) => p.id === `mkt-${b}`)).toBe(false);
+    // Each planned stall inside the window is an anchor.
+    if (planned.size > 0) expect((ctx.civicFeatures ?? []).some((f) => f.kind === 'stall')).toBe(true);
   }, 20000);
 
   it('projects canonical courts and emits their amenity props in the live ground world', () => {

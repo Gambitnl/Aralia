@@ -150,11 +150,19 @@ const OPEN_LAND_STROKE: Record<'yard' | 'garden' | 'orchard' | 'paddock' | 'ruin
 const GROUNDS_FILL: Record<CivicSetPiece, string> = {
   churchyard: '#b9c79a', grove: '#93ad73', pool: '#c3d0a4', cloister: '#cdd3b0',
   bailey: '#c8bd98', 'hall-yard': '#d6caa6', grounds: '#c5cfa5',
+  // The market square keeps the plaza's own tan (GG-586).
+  market: '#c9b88a',
 };
 const FEATURE_FILL: Record<CivicGroundsFeature['kind'], string> = {
   grave: '#8f8a7e', tree: '#4f6f37', pool: '#5d8fb3', 'cloister-walk': '#a99a78', garth: '#9fbb7c',
   'curtain-wall': 'none', gatehouse: '#5a4a2a', yard: '#ddd0ac',
+  // The market square (GG-586): stalls in canvas tones, stone and water for
+  // the centerpiece, roof browns for the hall and the weigh house.
+  stall: '#b8733a', well: '#4f86b0', 'market-cross': '#7d7466', fountain: '#5fa0cf',
+  'market-hall': '#6b4b2f', 'weigh-house': '#7a5c34', pillory: '#3a2a1a',
 };
+/** Market pieces draw with a thin dark edge, so each stall reads on its own. */
+const MARKET_FEATURE = new Set<CivicGroundsFeature['kind']>(['stall', 'well', 'market-cross', 'fountain', 'market-hall', 'weigh-house', 'pillory']);
 
 const poly = (pts: Pt[]): string => 'M' + pts.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join('L') + 'Z';
 const open = (pts: Pt[]): string => 'M' + pts.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join('L');
@@ -1120,16 +1128,18 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
         ))}
         {/* CIVIC GROUNDS (GG-566): the grounds, forecourt and set piece round
             each temple, keep and citadel. The approach is a street of the
-            network (role `passage`) and draws with the streets. */}
+            network (role `passage`) and draws with the streets. The market
+            square (GG-586) draws here too: the square, its stalls and pieces. */}
         {layers.civic && (plan.civicGrounds ?? []).map((g, i) => (
           <g key={`cg${i}`} data-testid={`town-civic-grounds-${g.setPiece}`}
             data-civic-kind={g.civicKind} data-chosen-by={g.chosenBy}>
-            <path d={poly(g.grounds)} fill={GROUNDS_FILL[g.setPiece]} stroke="#6a7f4a" strokeWidth={0.6} vectorEffect="non-scaling-stroke" />
+            <path d={poly(g.grounds)} fill={GROUNDS_FILL[g.setPiece]}
+              stroke={g.setPiece === 'market' ? '#1c150a' : '#6a7f4a'} strokeWidth={g.setPiece === 'market' ? 1 : 0.6} vectorEffect="non-scaling-stroke" />
             {g.forecourt.length >= 3 && <path d={poly(g.forecourt)} fill="#e3d6b4" stroke="none" />}
             {g.features.map((f, k) => (
               <path key={k} d={poly(f.polygon)} fill={FEATURE_FILL[f.kind]}
-                stroke={f.kind === 'curtain-wall' ? '#5a4a2a' : 'none'}
-                strokeWidth={f.kind === 'curtain-wall' ? 2.5 : 0} vectorEffect="non-scaling-stroke"
+                stroke={f.kind === 'curtain-wall' ? '#5a4a2a' : MARKET_FEATURE.has(f.kind) ? '#2a1f10' : 'none'}
+                strokeWidth={f.kind === 'curtain-wall' ? 2.5 : MARKET_FEATURE.has(f.kind) ? 0.5 : 0} vectorEffect="non-scaling-stroke"
                 data-testid={`town-civic-feature-${f.kind}`} />
             ))}
           </g>
@@ -1271,7 +1281,10 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
             <path d={`M${(f.x - 4).toFixed(1)},${(f.y - 3).toFixed(1)}L${f.x.toFixed(1)},${(f.y - 6).toFixed(1)}L${(f.x + 4).toFixed(1)},${(f.y - 3).toFixed(1)}`} fill="#8a6643" stroke="#5f4527" strokeWidth={0.5} vectorEffect="non-scaling-stroke" />
           </g>
         ))}
+        {/* A plaza with a market (GG-586) is drawn by its market group above,
+            under the houses; filling it here, over everything, hid its stalls. */}
         {layers.civic && plan.civic.map((c, i) => (
+          c.kind === 'plaza' && (plan.civicGrounds ?? []).some((g) => g.setPiece === 'market' && g.wardIndex === c.wardIndex) ? null :
           <path key={`c${i}`} d={poly(c.polygon)} fill={CIVIC_COLOR[c.kind]} stroke="#1c150a" strokeWidth={1} vectorEffect="non-scaling-stroke" />
         ))}
         {layers.walls && plan.walls.ring.length > 0 && (

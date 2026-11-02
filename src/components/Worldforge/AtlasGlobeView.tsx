@@ -26,6 +26,7 @@ import AtlasLayers from './AtlasLayers';
 import type { AtlasSvgModel } from './atlasSvg';
 import type { FmgAtlasResult } from '../../systems/worldforge/fmg/generateAtlas';
 import { globeDirection, globeRegion } from './atlasGlobe';
+import { Button } from '../ui/Button';
 
 interface Props {
   atlas: FmgAtlasResult;
@@ -41,7 +42,8 @@ type Viewer = {
   material: THREE.MeshBasicMaterial;
   render: () => void;
 };
-const buttonStyle: React.CSSProperties = { minHeight: 44, minWidth: 44, padding: '8px 10px', borderRadius: 4, border: '1px solid #475569', background: '#0f172a', color: '#e2e8f0', cursor: 'pointer', fontSize: 12 };
+// The globe controls use the shared Button style. The old inline buttonStyle
+// object served only these three buttons; min-h-11 min-w-11 keep its 44 px target.
 
 export default function AtlasGlobeView({ atlas, model, visible, width, height }: Props) {
   const host = useRef<HTMLDivElement>(null);
@@ -194,9 +196,9 @@ export default function AtlasGlobeView({ atlas, model, visible, width, height }:
       {visible.labels ? model.labels?.filter(l => l.kind === 'state').map((l, i) => <text key={i} x={l.x} y={l.y} textAnchor="middle" fontFamily="Georgia, serif" fontSize={12} fill="#251b32" stroke="#fff6df" strokeWidth={2} paintOrder="stroke">{l.text}</text>) : null}
     </svg>
     <div style={{ position: 'absolute', top: 62, left: 8, display: 'flex', gap: 4 }}>
-      <button type="button" style={buttonStyle} aria-label="Zoom globe in" onClick={() => zoom(1 / 1.2)}>+</button>
-      <button type="button" style={buttonStyle} aria-label="Zoom globe out" onClick={() => zoom(1.2)}>−</button>
-      <button type="button" style={buttonStyle} onClick={reset}>Reset globe</button>
+      <Button type="button" variant="secondary" size="sm" className="min-h-11 min-w-11" aria-label="Zoom globe in" onClick={() => zoom(1 / 1.2)}>+</Button>
+      <Button type="button" variant="secondary" size="sm" className="min-h-11 min-w-11" aria-label="Zoom globe out" onClick={() => zoom(1.2)}>−</Button>
+      <Button type="button" variant="secondary" size="sm" className="min-h-11 min-w-11" onClick={reset}>Reset globe</Button>
     </div>
     <p role="status" style={{ position: 'absolute', bottom: 64, left: 12, right: 12, margin: 0, textAlign: 'center', color: '#cbd5e1', fontSize: 11, pointerEvents: 'none' }}>
       {error ?? (!region ? 'This atlas has no valid globe coordinates. Switch to Map.' : !ready ? 'Drawing globe…' : 'Drag to rotate · Scroll to zoom · Slate grid: uncharted · Select destinations in Map')}

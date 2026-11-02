@@ -406,6 +406,35 @@ export const EXPANDED_PROPS: readonly PropDefinition[] = [
     gen: 'HA',
     placementTags: ['market', 'wealthy-quarter'], // merged: ornamental well/fountain (wealthy) — same referee row
   },
+  // GG-586: the market square's own pieces, placed where the town plan puts
+  // them. A market cross is a stone shaft on steps; a pillory holds an
+  // offender by the neck and wrists on a post.
+  {
+    id: 'market-cross',
+    isFixedToSurface: true,
+    weightPounds: 4000,
+    isMagical: false,
+    name: 'Market cross',
+    sizeClass: 'L',
+    referee: { cover: 'half', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'stone', thicknessInches: 12 },
+    flammable: false,
+    destructible: false,
+    gen: 'HA',
+    placementTags: ['market'],
+  },
+  {
+    id: 'pillory',
+    isFixedToSurface: true,
+    weightPounds: 200,
+    isMagical: false,
+    name: 'Pillory',
+    sizeClass: 'M',
+    referee: { cover: 'half', blocksLoS: false, blocksMovement: true, difficultTerrain: false, material: 'wood', thicknessInches: 4 },
+    flammable: true,
+    destructible: true,
+    gen: 'PC',
+    placementTags: ['market'],
+  },
   {
     id: 'trestle-table',
     isFixedToSurface: false,

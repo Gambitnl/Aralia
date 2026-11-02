@@ -799,6 +799,8 @@ const RENDER_VARIANT: Record<string, string> = {
   'dead-snag': 'fallen-log', 'jetty-post': 'fallen-log', plough: 'fallen-log',
   'bramble-patch': 'bush', deadfall: 'bush', 'fern-clump': 'bush', 'gorse-shrub': 'bush', 'hedge-run': 'bush',
   'reed-bed': 'bush', topiary: 'bush', 'ivy-mass': 'bush', 'mushroom-ring': 'bush',
+  // GG-586: the market square's pieces (as propRenderRecipeV1).
+  fountain: 'well', 'market-cross': 'stone-cross', pillory: 'fingerpost',
   'produce-basket': 'crate', 'notice-board': 'crate', 'net-drying-rack': 'crate', 'tool-rack': 'crate',
   'metal-bar-stack': 'crate', 'chicken-coop': 'crate', 'trestle-table': 'crate', 'wood-bench': 'crate',
   beehive: 'crate',

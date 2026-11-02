@@ -35,7 +35,8 @@
 import { fnv1a, rngFromPath, streamPath, type SeedPath } from '../seedPath';
 import { generateSubmap, polygonBounds, pointInPolygon, clipPolygon, clipPolylineToPolygon, type Pt } from '../submap/submapEngine';
 import { CELL_FT } from '../units';
-import { assignTownPopulation, assignWardWealth } from './population';
+import { assignTownPopulation, assignWardWealth, townWealthBand } from './population';
+import { buildMarketSquare, plotFacesSquare } from './marketSquare';
 import {
   assignArchitectureDistricts,
   type TownArchitectureDistrict,
@@ -68,6 +69,7 @@ import {
 } from './townLots';
 import { buildSuburbs, pointAt, polylineLength } from './townSuburbs';
 import { cutRiverChannel, distToLines, type RiverLink } from './townRiverCut';
+import { keepRoadOffRivers, ROAD_RIVER_CLEAR_FT } from '../region/roadCourse';
 import { buildLaneVillage } from './laneVillage';
 import { stripFarmParcels, STRIP_FIELD_WIDTH_FT } from './stripFields';
 import {
@@ -114,6 +116,8 @@ export interface BuildingPlot {
   proprietorHomeId?: string;
   /** For a WORKPLACE: number of employee homes assigned to it (excludes the proprietor). */
   staffCount?: number;
+  /** A frontage plot whose street side looks onto the market square (GG-586). */
+  facesMarket?: boolean;
 }
 
 /**
@@ -1068,8 +1072,12 @@ function resolveCollisions(
  * rule survives only as the TOP-UP: it fills the ring out to `gateCount` when a
  * town has fewer approach roads than gates, and its candidates are rejected when
  * they land on top of a road gate.
+ *
+ * A TOP-UP GATE STANDS ON DRY GROUND (GG-582). `dry` says whether a point is
+ * clear of the river; a top-up candidate that is not goes to the next longest
+ * edge. Toseiraion (burg 758) had its main gate 12 ft inside its river.
  */
-export function buildWalls(footprint: Pt[], gateCount = 3, roads: Pt[][] = [], inset = 0.94): TownWalls {
+export function buildWalls(footprint: Pt[], gateCount = 3, roads: Pt[][] = [], inset = 0.94, dry?: (p: Pt) => boolean): TownWalls {
   const c = polygonCentroid(footprint);
   // `inset` is the ring's share of the core radius: 0.94 for a town that
   // fills its walls loosely, less for one that has outgrown them (GG-544).
@@ -1090,6 +1098,7 @@ export function buildWalls(footprint: Pt[], gateCount = 3, roads: Pt[][] = [], i
     // Project the edge midpoint onto the ring (same inset toward centroid).
     const g: Pt = [c[0] + (e.mid[0] - c[0]) * inset, c[1] + (e.mid[1] - c[1]) * inset];
     if (gatehouses.some((h) => len(h, g) < minSpacing)) continue;
+    if (dry && !dry(g)) continue;
     gatehouses.push(g);
   }
   // waterGates are seated later by generateTownPlan once the inherited water is
@@ -2005,6 +2014,18 @@ export const CIVIC_GROUNDS_FT: Record<'temple' | 'keep' | 'citadel', number> = {
  * building, its grounds and its streets.
  */
 export const CIVIC_SEAT_FT: Record<'temple' | 'keep' | 'citadel', number> = { temple: 140, keep: 140, citadel: 180 };
+/**
+ * Least clearance round the market point, in feet, by size class (GG-586).
+ * No scattered ward site stands nearer, so the market ward is at least about
+ * this big. A ward span sized the square before, and a city's wards are
+ * smaller than a walled town's: city squares came out 6,000 to 11,000 sq ft,
+ * too small for the market hall a city's market holds. A square that was
+ * already bigger keeps its size (the larger of the two clearances wins). A
+ * capital takes the city's floor: without one, Borieborum's square (a river
+ * cuts its old core) was 9,473 sq ft with 2 stalls; with 160 ft the sampled
+ * capitals' squares are 26,000 to 40,000 sq ft.
+ */
+export const MARKET_SEAT_FT: Partial<Record<TownTypology, number>> = { 'walled town': 120, city: 160, capital: 160 };
 /** Full width of the approach to each civic building, in feet (GG-566). */
 export const CIVIC_APPROACH_FT: Record<'temple' | 'keep' | 'citadel', number> = { temple: 12, keep: 12, citadel: 14 };
 /** Depth of the forecourt before a civic door, in feet (GG-566). */
@@ -2309,6 +2330,7 @@ function planMainStreet(
   wardSpan: number,
   seedPath: SeedPath,
   channel: { rivers: Pt[][]; half: number } | null = null,
+  marketClearMin = 0,
 ): MainStreetPlan | null {
   if (ring.length < 3 || gatehouses.length === 0) return null;
   // The road each gate stands on, by its length inside the town cell.
@@ -2323,7 +2345,7 @@ function planMainStreet(
   };
   const d = physical ? unit(MAIN_STREET_SITE_FT) : wardSpan * 0.3;
   const blockLen = physical ? unit(MAIN_STREET_BLOCK_FT) : wardSpan * 0.9;
-  const marketClear = wardSpan * 0.8;
+  const marketClear = Math.max(wardSpan * 0.8, marketClearMin);
   const bend = (fnv1a(`${seedPath}|main-street-bend`) / 0xffffffff - 0.5) * 0.2;
   const layFrom = (gate: Pt): { plan: MainStreetPlan; pairs: number; slots: number } | null => {
     let market: Pt = [marketIn[0], marketIn[1]];
@@ -2427,6 +2449,79 @@ function weldWardCorners(polys: Pt[][], tol: number): Pt[][] {
 }
 
 /**
+ * A ROAD THAT STOPS SHORT OF THE WALL RUNS ON TO IT (GG-582). A world road
+ * ends at its town's center, and a river town's center usually lies in its
+ * river. Kept to a bank, such a road can end just outside the wall without
+ * ever crossing it (Jarkkite, burg 20 of world 903674813, had no gate on its
+ * west road). A road that
+ * never crosses the ring and ends within 15% of the ring's span of it
+ * runs on to the nearest DRY ring point (`dry`, as for a top-up gate), or to
+ * a gate already within the gate spacing, and a gate stands there. Changes
+ * `walls.gatehouses` in place.
+ */
+function roadsReachWall(roads: Pt[][], walls: TownWalls, dry: (p: Pt) => boolean): Pt[][] {
+  const ring = walls.ring;
+  const b = polygonBounds(ring);
+  const span = Math.max(b.maxX - b.minX, b.maxY - b.minY) || 1;
+  const minSpacing = span * 0.08; // as `buildWalls`
+  // The ring sampled finely, so the nearest dry point is found to within a
+  // small share of the span.
+  const step = span * 0.005;
+  const ringPts: Pt[] = [];
+  for (let i = 0; i < ring.length; i++) {
+    const a = ring[i], c = ring[(i + 1) % ring.length];
+    const n = Math.max(1, Math.ceil(len(a, c) / step));
+    for (let k = 0; k < n; k++) ringPts.push([a[0] + ((c[0] - a[0]) * k) / n, a[1] + ((c[1] - a[1]) * k) / n]);
+  }
+  const nearestOnRing = (p: Pt): { q: Pt; d: number } => {
+    let best = { q: ring[0], d: Infinity };
+    for (const q of ringPts) {
+      const d = len(p, q);
+      if (d < best.d && dry(q)) best = { q, d };
+    }
+    return best;
+  };
+  const crossesRing = (road: Pt[]): boolean => {
+    for (let s = 0; s < road.length - 1; s++) {
+      for (let e = 0; e < ring.length; e++) if (segIntersectPoint(road[s], road[s + 1], ring[e], ring[(e + 1) % ring.length])) return true;
+    }
+    return false;
+  };
+  return roads.map((road) => {
+    if (road.length < 2 || crossesRing(road)) return road;
+    for (const atEnd of [true, false]) {
+      const end = atEnd ? road[road.length - 1] : road[0];
+      if (pointInPolygon(end, ring)) continue;
+      const hit = nearestOnRing(end);
+      if (hit.d > span * 0.15) continue;
+      const shared = walls.gatehouses.find((g) => len(g, hit.q) < minSpacing);
+      const gate: Pt = shared ?? hit.q;
+      if (!shared) walls.gatehouses.push(gate);
+      return atEnd ? [...road, gate] : [gate, ...road];
+    }
+    return road;
+  });
+}
+
+/**
+ * The river lines a town road keeps off, and how far (GG-582): half the
+ * river's width at the town plus `ROAD_RIVER_CLEAR_FT`, in plan units. The
+ * world roads are moved before they reach the engine (`townRoadCourseCanon`,
+ * the rule the region tier shares); this reach serves what the town makes
+ * itself, its top-up gates and its field tracks. A gate needs less: it stands
+ * anywhere out of the water (`gateClear`, half the river's width), as a
+ * gatehouse at the water's edge does. Null without physical scale or without
+ * a river.
+ */
+function riverRoadReach(opts: GenerateTownOptions): { rivers: Pt[][]; clear: number; gateClear: number } | null {
+  const fpu = opts.feetPerUnit;
+  const coast = new Set(opts.coast ?? []);
+  const rivers = opts.bridgeWater ?? (opts.water ?? []).filter((l) => !coast.has(l));
+  if (!fpu || fpu <= 0 || !opts.waterWidth || opts.waterWidth <= 0 || rivers.length === 0) return null;
+  return { rivers, clear: opts.waterWidth / 2 + ROAD_RIVER_CLEAR_FT / fpu, gateClear: opts.waterWidth / 2 };
+}
+
+/**
  * SP-T: parent cell → organic town CORE inside it → Voronoi wards (via the SP1
  * engine) → party-wall frontage plots + civic anatomy + walls; the ring between
  * the core and the cell edge becomes farmland/pasture/scrub outskirts. The town
@@ -2440,6 +2535,10 @@ export function generateTownPlan(
   seedPath: SeedPath,
   opts: GenerateTownOptions = {},
 ): TownPlan {
+  // GG-582: the world roads come in already on a bank (`townRoadCourseCanon`
+  // with the river's reach). Top-up gates and field tracks keep this far off
+  // the river too.
+  const riverReach = riverRoadReach(opts);
   // Population (if given) drives the typology profile: ward count, walls, and
   // which civic structures appear (hamlet → capital + citadel). Criterion #5.
   const profile = opts.population != null ? scaleProfile(opts.population) : null;
@@ -2472,8 +2571,11 @@ export function generateTownPlan(
   // it is full — and the band between becomes suburb blocks.
   const crowd = profile ? wallFill(profile.population, Math.abs(polyArea(core)) * 0.94 * 0.94, fpSpan) : 0;
   const walls = !profile || profile.hasWalls
-    ? buildWalls(core, 3, opts.roads ?? [], 0.94 - 0.24 * crowd)
+    ? buildWalls(core, 3, opts.roads ?? [], 0.94 - 0.24 * crowd, riverReach ? (p) => distToLines(p, riverReach.rivers) >= riverReach.gateClear : undefined)
     : { ring: [], gatehouses: [], waterGates: [] };
+  // GG-582: a world road kept to a bank can stop just short of the wall where
+  // the town's center lies in the river; it runs on to the wall at a gate.
+  if (riverReach && walls.ring.length >= 3) opts = { ...opts, roads: roadsReachWall(opts.roads ?? [], walls, (p) => distToLines(p, riverReach.rivers) >= riverReach.gateClear) };
   const envelope = walls.ring.length >= 3 ? walls.ring : core;
   // Reuse SP1's clip-to-parent Voronoi tessellation to carve the envelope into
   // wards — the town is itself a submap, one tier deeper than the local map.
@@ -2489,7 +2591,10 @@ export function generateTownPlan(
     ? { rivers: riverLines, half: opts.waterWidth / 2 + sizingPre.unit(RIVER_BANK_FT) }
     : null;
   const mainStreet = walls.ring.length >= 3 && (!profile || profile.hasPlaza)
-    ? planMainStreet(walls.ring, walls.gatehouses, opts.roads ?? [], footprint, polygonCentroid(envelope), sizingPre.unit, sizingPre.physical, wardSpanPre, seedPath, channel)
+    ? planMainStreet(walls.ring, walls.gatehouses, opts.roads ?? [], footprint, polygonCentroid(envelope), sizingPre.unit, sizingPre.physical, wardSpanPre, seedPath, channel,
+      // GG-586: a floor on the market's size, for a plan at true scale only,
+      // and never more than a fifth of the walled area across.
+      sizingPre.physical && profile ? Math.min(sizingPre.unit(MARKET_SEAT_FT[profile.typology] ?? 0), Math.max(ebPre.maxX - ebPre.minX, ebPre.maxY - ebPre.minY) * 0.2) : 0)
     : null;
   // The wards: Voronoi cells of the envelope, the river channel cut out of
   // them. `seats` are extra forced sites and `keepClear` keeps the grid off
@@ -2688,7 +2793,20 @@ export function generateTownPlan(
     fields: { footprint, core, center: cellCenter },
     mainStreet: mainStreet ? { gate: mainStreet.gate, line: mainStreet.line, near: mainStreet.near } : undefined,
     links: bridgeLinks.map((l) => [l.a, l.b] as [Pt, Pt]),
+    // GG-582: the main street does not cut a river bend when it drops a corner.
+    ...(channel && opts.waterWidth ? { river: { lines: channel.rivers, half: opts.waterWidth / 2 } } : {}),
+    // GG-582: a road that shares a gate with another runs to that gate.
+    approachesToGates: true,
   });
+  // GG-582: a field track keeps to a bank as the world roads do. Its gate end
+  // stays where the gate is; the rest moves onto dry ground.
+  if (riverReach) {
+    for (const st of streetNetwork) {
+      if (!st.track) continue;
+      const gate = st.centerline[0];
+      st.centerline = keepRoadOffRivers(st.centerline, riverReach.rivers.map((line) => ({ line, clear: riverReach.clear })), (p) => p[0] === gate[0] && p[1] === gate[1]);
+    }
+  }
   // Ward-edge → half-width, keyed on the same quantized endpoints the network
   // used. This is the join that makes the gap the generator leaves EQUAL the
   // ribbon every renderer paints.
@@ -2907,8 +3025,9 @@ export function generateTownPlan(
     // crosses: the run from a gate that stands where the wall meets the
     // river, say (Kalg, burg 2, drew its east-gate street over open water).
     const crossDecks: CivicStructure[] = [];
+    // GG-582: an approach road and a field track get a deck where they cross
+    // too; they used to be skipped, so their crossings were open water.
     for (const st of streetNetwork) {
-      if (st.role === 'approach') continue;
       const L = st.centerline;
       for (let i = 0; i < L.length - 1; i++) {
         for (const river of channel.rivers) {
@@ -3593,6 +3712,52 @@ function finishTownPlan(a: {
   // Front gardens by district (GG-564); the lane village seats its own.
   const frontGardens = a.form === 'wards' ? cutFrontGardens(wards, a.unit, seedPath) : [];
 
+  // THE MARKET SQUARE (GG-586, Remy 2026-11-02 at Hafting: "we need a market
+  // square to be implemented"). The plaza was a bare block. Now its square
+  // holds stalls in rows, a centerpiece and, in a larger town, a market hall,
+  // a weigh house and a pillory, chosen by the town's size and wealth band
+  // (`marketSquare.ts`). It is built here, once every house is final, because
+  // the houses that face the square become its shops and inns (the population
+  // pass below reads `facesMarket`). A plan with no scale profile (a
+  // schematic plan) has no size class to choose from, so its square stays bare.
+  const marketGrounds: CivicGrounds[] = [];
+  const plaza = civic.find((c) => c.kind === 'plaza');
+  if (plaza && plaza.polygon.length >= 3 && profile) {
+    const square = plaza.polygon;
+    const marketStreets = a.streetNetwork
+      .filter((s) => s.role !== 'passage' && s.centerline.length >= 2)
+      .map((s) => ({ line: s.centerline, half: s.width / 2 }));
+    // The main street's mouth: the point of the main street nearest the square.
+    let mainEnd: Pt | undefined;
+    let mainD = Infinity;
+    for (const s of a.streetNetwork) {
+      if (!s.main) continue;
+      for (const p of s.centerline) {
+        const d = distToPolyBoundary(p, square);
+        if (d < mainD) { mainD = d; mainEnd = p; }
+      }
+    }
+    const market = buildMarketSquare({
+      wardIndex: plaza.wardIndex,
+      square,
+      typology: profile.typology,
+      band: townWealthBand(wards.map((w) => w.wealth)),
+      streets: marketStreets,
+      ...(mainEnd ? { mainEnd } : {}),
+      unit: a.unit,
+      seedPath: streamPath(seedPath, `market:${plaza.wardIndex}`),
+    });
+    if (market) marketGrounds.push(market);
+    // A house faces the square when its street side looks onto it across the
+    // market frontage street and at most a wealthy front garden.
+    const maxGap = a.laneWidth * TIER_WIDTH_RATIO.plaza + a.unit(FRONT_GARDEN_FT.wealthy) + a.unit(4);
+    for (const w of wards) {
+      for (const p of w.plots) {
+        if (p.frontageEdge >= 0 && p.kind !== 'interior' && plotFacesSquare(p.polygon, square, maxGap)) p.facesMarket = true;
+      }
+    }
+  }
+
   const allPlots = wards.flatMap((w) => w.plots);
   // Architecture identity exists even for unpopulated previews. Assign it only
   // after civic-overlap and cross-ward filtering finalize the canonical plot
@@ -3644,7 +3809,8 @@ function finishTownPlan(a: {
     ...st,
     centerline: densifyPolyline(st.centerline, envSpan / 50),
   }));
-  return { footprint, core, wards, plots: allPlots, outskirts, openLand, walls, civic, streets, streetNetwork: densified, courtyards, farmsteads, demographics, form: a.form, civicGrounds: a.civicGrounds ?? [] };
+  // The market comes after the temple and keep grounds, so their indices stay.
+  return { footprint, core, wards, plots: allPlots, outskirts, openLand, walls, civic, streets, streetNetwork: densified, courtyards, farmsteads, demographics, form: a.form, civicGrounds: [...(a.civicGrounds ?? []), ...marketGrounds] };
 }
 
 /**
@@ -3685,6 +3851,8 @@ function generateLaneVillagePlan(
     center: cellCenter,
     roads: opts.roads ?? [],
     blockers: waterCarve,
+    // GG-582: a branch lane may not start on the street's bridge.
+    ...(villageRivers.length > 0 && opts.waterWidth ? { river: { lines: villageRivers, half: opts.waterWidth / 2 } } : {}),
     population: profile.population,
     hasGreen: profile.hasPlaza,
     hasChurch: profile.hasTemple,

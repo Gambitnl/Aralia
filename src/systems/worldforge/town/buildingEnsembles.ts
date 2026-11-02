@@ -224,7 +224,9 @@ export function resolveBuildingEnsembles(
 
     for (const [edge, plots] of frontageByEdge) {
       const blockKey = `ward:${wardIndex}:edge:${edge}`;
-      const kind: BuildingEnsemble['kind'] = marketWards.has(wardIndex)
+      // GG-586: a frontage that looks onto the market square is market arcade
+      // too, whatever ward it stands in: the square's best frontage.
+      const kind: BuildingEnsemble['kind'] = marketWards.has(wardIndex) || plots.some((plot) => plot.facesMarket)
         ? 'market-arcade'
         : dense
           ? 'row'

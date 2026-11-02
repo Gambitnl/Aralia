@@ -38,6 +38,9 @@ import {CameraHeadingReporter} from './CameraHeadingReporter';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { buildBeamGeometry } from '@/systems/world3d/beamGeometry';
+import { bakeInteriorSkyFactors, buildInteriorDaylight, daylightSegments, interiorSkyFactor } from '@/systems/world3d/interiorDaylight';
+import { makeInteriorMaterial, quantizeSkyView, type InteriorMaterialLook } from './interiorDaylightMaterial';
+import { SHADOW_ONLY_LAYER } from './World3DLighting';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { isWebGpuWorldEnabled } from './webgpuWorldFlag';
 
@@ -1153,6 +1156,26 @@ function sharedPartMaterial(
   return material;
 }
 
+/**
+ * INTERIOR DAYLIGHT (2026-11-02, Remy: "windows should allow light through").
+ * Live interiors take their sky light through the windows only: each look's
+ * material multiplies the indirect light by a sky factor (see
+ * systems/world3d/interiorDaylight.ts and interiorDaylightMaterial.ts). The
+ * cache works like partMaterialCache; the key adds the factor source and the
+ * glass flag. Never disposed: a few dozen looks per town, plus up to 65 factor
+ * steps for furnishings.
+ */
+const interiorMaterialCache = new Map<string, THREE.Material>();
+function sharedInteriorMaterial(look: InteriorMaterialLook): THREE.Material {
+  const key = `${new THREE.Color(look.color).getHexString()}|${look.map?.uuid ?? '-'}|${look.emissive}|${look.emissiveIntensity}|${look.skyView}|${look.glass ? 'g' : '-'}`;
+  let material = interiorMaterialCache.get(key);
+  if (!material) {
+    material = makeInteriorMaterial(look, WEBGPU_WORLD);
+    interiorMaterialCache.set(key, material);
+  }
+  return material;
+}
+
 /** The iron bands of a barrel, one material for every barrel. */
 const BARREL_BAND_MATERIAL = new THREE.MeshStandardMaterial({ color: '#352f28', metalness: 0.5, roughness: 0.7 });
 /** Bridge contract strings (interiorParts MATERIAL_PART_TAG / FACADE_PART_TAG).
@@ -1211,10 +1234,18 @@ const SiteBuilding: React.FC<{
   // look depends on the hour (lit windows), so the merge keys on the whole
   // hour, as emissiveForPart does; it rebuilds at most once an hour.
   const wholeHour = Math.floor(hour);
+  // Interior daylight (see INTERIOR DAYLIGHT): the window openings, floor
+  // footprint, wall occluders and interreflection of this building. Null when
+  // it has no floor or no window; those buildings keep the old materials.
+  const daylight = useMemo(
+    () => (hasLiveInterior && s.parts ? buildInteriorDaylight(s.parts, s.doorZSign ?? -1) : null),
+    [hasLiveInterior, s],
+  );
+  const skyBakeCache = useRef<{ day: object | null; byLook: Map<string, Float32Array> }>({ day: null, byLook: new Map() });
   const mergedStructure = useMemo(() => {
     if (!hasLiveInterior || !s.parts) return [];
     const looks = new Map<string, {
-      color: THREE.ColorRepresentation; mapped: boolean; emissive: string; emissiveIntensity: number; pieces: THREE.BufferGeometry[];
+      color: THREE.ColorRepresentation; mapped: boolean; emissive: string; emissiveIntensity: number; glass: boolean; pieces: THREE.BufferGeometry[];
     }>();
     for (const p of s.parts.filter(isSitePartRenderable)) {
       if (p.door || p.furnishing) continue;
@@ -1225,29 +1256,67 @@ const SiteBuilding: React.FC<{
       const color = mapped ? houseSurfaceColor('wall', wallKey, p.colorHex) : p.colorHex;
       const emissive = isDressing ? p.colorHex : em.emissive;
       const emissiveIntensity = isDressing ? DRESSING_EMISSIVE_FLOOR : em.emissiveIntensity;
-      const key = `${new THREE.Color(color).getHexString()}|${mapped}|${emissive}|${emissiveIntensity}`;
+      // Glass is its own look: it casts no sun shadow and is see-through.
+      const glass = !!daylight && p.lightRole === 'window';
+      const key = `${new THREE.Color(color).getHexString()}|${mapped}|${emissive}|${emissiveIntensity}|${glass ? 'g' : '-'}`;
       // Boxes retain HousePartGeometry's UVs; directional timbers use their
-      // actual sloped shape, then share the same site-local placement.
+      // actual sloped shape, then share the same site-local placement. With
+      // interior daylight, large faces are split into DAYLIGHT_GRID_M cells
+      // so the baked sky factor can fall off across a floor or wall.
       const piece = p.beam ? buildBeamGeometry(p.beam, -(s.doorZSign ?? -1))
-        : applyWallSurfaceUvs(new THREE.BoxGeometry(p.w, p.h, p.d), off);
+        : applyWallSurfaceUvs(daylight && !glass
+          ? new THREE.BoxGeometry(p.w, p.h, p.d, daylightSegments(p.w), daylightSegments(p.h), daylightSegments(p.d))
+          : new THREE.BoxGeometry(p.w, p.h, p.d), off);
       piece.translate(off.x, off.y, off.z);
-      const look = looks.get(key) ?? { color, mapped, emissive, emissiveIntensity, pieces: [] };
+      const look = looks.get(key) ?? { color, mapped, emissive, emissiveIntensity, glass, pieces: [] };
       look.pieces.push(piece);
       looks.set(key, look);
     }
     return [...looks.entries()].map(([key, look]) => {
       const geometry = mergeGeometries(look.pieces, false) ?? new THREE.BufferGeometry();
       for (const piece of look.pieces) piece.dispose();
-      return { key, geometry, color: look.color, mapped: look.mapped, emissive: look.emissive, emissiveIntensity: look.emissiveIntensity };
+      if (daylight && geometry.getAttribute('position')) {
+        // Glass shows the sky itself (factor 1); every other face takes the
+        // factor of its own vertex position and normal.
+        // The merge reruns each game hour (window glow changes the looks),
+        // but the geometry of a look does not: reuse its bake.
+        const n = geometry.getAttribute('position').count;
+        const cache = skyBakeCache.current;
+        if (cache.day !== daylight) { cache.day = daylight; cache.byLook.clear(); }
+        let sky = cache.byLook.get(key);
+        if (!sky || sky.length !== n) {
+          sky = look.glass
+            ? new Float32Array(n).fill(1)
+            : bakeInteriorSkyFactors(daylight, geometry.getAttribute('position').array, geometry.getAttribute('normal').array);
+          cache.byLook.set(key, sky);
+        }
+        geometry.setAttribute('skyView', new THREE.BufferAttribute(sky, 1));
+      }
+      return { key, geometry, color: look.color, mapped: look.mapped, emissive: look.emissive, emissiveIntensity: look.emissiveIntensity, glass: look.glass };
     });
-  }, [hasLiveInterior, s, wallKey, wholeHour]);
+  }, [hasLiveInterior, s, wallKey, wholeHour, daylight]);
+  // One sky factor per furnishing, at the center of its top face (1/64 steps
+  // so furnishings share materials). Recomputed only with the building.
+  const furnishingSky = useMemo(() => {
+    const out = new Map<number, number>();
+    if (!daylight || !s.parts) return out;
+    s.parts.forEach((p, i) => {
+      if (!p.furnishing || !isSitePartRenderable(p)) return;
+      const off = sitePartLocalOffset(p, s.doorZSign ?? -1);
+      out.set(i, quantizeSkyView(interiorSkyFactor(daylight, { x: off.x, y: off.y + p.h / 2, z: off.z }, { x: 0, y: 1, z: 0 })));
+    });
+    return out;
+  }, [daylight, s]);
   useEffect(() => () => mergedStructure.forEach((m) => m.geometry.dispose()), [mergedStructure]);
 
   // A roof can be hidden only while its enterable interior is live. Restore it
   // immediately when player-proximity LOD turns that building back into a
   // shell; otherwise a roof hidden during an earlier visit could stay absent.
   React.useEffect(() => {
-    if (!hasLiveInterior && roofRef.current) roofRef.current.visible = true;
+    if (!hasLiveInterior && roofRef.current) {
+      roofRef.current.visible = true;
+      roofRef.current.layers?.set(0);
+    }
   }, [hasLiveInterior]);
 
   useFrame(({ camera }) => {
@@ -1272,7 +1341,11 @@ const SiteBuilding: React.FC<{
       Math.abs(localCam.current.x) <= halfW &&
       Math.abs(localCam.current.z) <= halfD &&
       localCam.current.y <= (s.boxHeight ?? 0) + 1.0;
-    roof.visible = !inside;
+    // INTERIOR DAYLIGHT: a hidden roof still shades the rooms. Before, it
+    // went invisible, which also took it out of the shadow map, so the sun
+    // lit the whole interior through the missing roof. On SHADOW_ONLY_LAYER
+    // the camera and raycasts skip it, but the sun's shadow cameras keep it.
+    roof.layers?.set(inside ? SHADOW_ONLY_LAYER : 0);
   });
 
   const roof = roofFootprint(s);
@@ -1315,11 +1388,20 @@ const SiteBuilding: React.FC<{
           <mesh
             key={`look-${m.key}`}
             geometry={m.geometry}
-            castShadow={false}
+            // INTERIOR DAYLIGHT: walls, floors and ceilings now cast the sun's
+            // shadow, so sunlight enters only through the window and door
+            // openings. Glass casts none (it passes the sun). These are the
+            // ~20 merged looks of the few walk-up buildings, not every part.
+            castShadow={!!daylight && castsLocalShadow && !m.glass}
             receiveShadow={castsLocalShadow}
           >
             <primitive
-              object={sharedPartMaterial(m.color, m.mapped ? (wallTex || null) : null, m.emissive, m.emissiveIntensity)}
+              object={daylight
+                ? sharedInteriorMaterial({
+                  color: m.color, map: m.mapped ? (wallTex || null) : null, emissive: m.emissive,
+                  emissiveIntensity: m.emissiveIntensity, skyView: 'attribute', glass: m.glass,
+                })
+                : sharedPartMaterial(m.color, m.mapped ? (wallTex || null) : null, m.emissive, m.emissiveIntensity)}
               attach="material"
               dispose={null}
             />
@@ -1384,7 +1466,15 @@ const SiteBuilding: React.FC<{
             {/* Shared by look (see SHARED PART MATERIALS); dispose={null}
                 keeps an unmounting part from freeing a material others use. */}
             <primitive
-              object={p.furnishing?.kind === 'bed' ? BED_MATERIAL : sharedPartMaterial(
+              object={p.furnishing?.kind === 'bed' ? BED_MATERIAL : furnishingSky.has(i)
+                // INTERIOR DAYLIGHT: one sky factor for the whole piece.
+                ? sharedInteriorMaterial({
+                  color: p.colorHex, map: null,
+                  emissive: isDressing ? p.colorHex : em.emissive,
+                  emissiveIntensity: isDressing ? DRESSING_EMISSIVE_FLOOR : em.emissiveIntensity,
+                  skyView: furnishingSky.get(i)!,
+                })
+                : sharedPartMaterial(
                 p.tag === 'exterior' && p.lightRole !== 'window' ? houseSurfaceColor('wall', wallKey, p.colorHex) : p.colorHex,
                 p.tag === 'exterior' && p.lightRole !== 'window' ? (wallTex || null) : null,
                 isDressing ? p.colorHex : em.emissive,

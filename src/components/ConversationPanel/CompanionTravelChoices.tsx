@@ -21,6 +21,7 @@ import {companionSiteRiskContext} from '@/systems/companions/companionSiteRisk';
 import React from 'react';
 import type {GameState} from '@/types/state';
 import type {AppAction} from '@/state/actionTypes';
+import {BTN_BASE,BTN_SECONDARY} from '@/styles/buttonStyles';
 import type {CompanionTravelChoice} from '@/types/companions';
 import {travelConversationCompanion,companionJourneyReadiness,independentWorkConversation} from '@/systems/companions/companionJourneyReadiness';
 import {sharedJourneyRecall} from '@/systems/companions/companionJourney';
@@ -48,7 +49,7 @@ export function CompanionTravelChoices({state,dispatch,disabled}:{state:GameStat
    {a&&<><p className="mt-2">{a.destinationName} — {a.response==='accepted'?'Agreed expedition':a.response==='declined'?'Terms declined':'Terms offered; no one has joined'}</p><ul className="my-2 list-disc pl-5 text-sm">{a.terms.map(term=><li key={term}>{term}</li>)}</ul></>}
    {a?.exploration&&<div className="my-3 border-t border-amber-500/30 pt-3"><p className="font-semibold">Entrance-floor inspection — {a.exploration.response}</p><ul className="my-2 list-disc pl-5 text-sm">{a.exploration.terms.map(term=><li key={term}>{term}</li>)}</ul>{a.exploration.concerns.map(concern=><p key={concern} className="mt-2 text-amber-200">{concern}</p>)}</div>}
    <div className="mt-2 flex flex-col gap-2">{choices.map(({choice,label})=><button key={choice} type="button" disabled={disabled}
-    className="rounded border border-gray-600 bg-gray-800 px-3 py-2 text-left text-gray-100 hover:bg-gray-700 disabled:opacity-50"
+    className={`${BTN_BASE} ${BTN_SECONDARY} px-3 py-2 text-left`}
     onClick={()=>dispatch({type:'COMPANION_TRAVEL_CHOICE',payload:{companionId:id,choice}})}>{label}</button>)}</div>
   </section>;
  })}</>;

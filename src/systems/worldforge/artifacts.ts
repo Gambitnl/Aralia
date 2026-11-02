@@ -437,11 +437,12 @@ export interface TownPlan {
    * The grounds of each temple, keep and citadel (GG-566, GG-569), feet: the
    * grounds, the paved forecourt and the set-piece features (graves, trees, a
    * pool, a cloister, a curtain wall and its gatehouse). Optional: plans made
-   * before GG-566 and authored plans have none.
+   * before GG-566 and authored plans have none. The market square (GG-586)
+   * rides here too, as civic kind `plaza` with the set piece `market`.
    */
   civicGrounds?: Array<{
     wardIndex: number;
-    civicKind: 'temple' | 'keep' | 'citadel';
+    civicKind: 'temple' | 'keep' | 'citadel' | 'plaza';
     setPiece: import('./town/civicGrounds').CivicSetPiece;
     grounds: Array<[Feet, Feet]>;
     forecourt: Array<[Feet, Feet]>;

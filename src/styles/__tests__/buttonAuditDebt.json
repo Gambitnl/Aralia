@@ -114,7 +114,6 @@
     "components/Religion/TempleModal.tsx",
     "components/SaveLoad/LoadGameModal.tsx",
     "components/SaveLoad/SaveSlotSelector.tsx",
-    "components/screens/AppPhaseContent.tsx",
     "components/Town/Intrigue/LeverageUI.tsx",
     "components/Town/Intrigue/RumorMill.tsx",
     "components/Trade/MerchantModal.tsx",

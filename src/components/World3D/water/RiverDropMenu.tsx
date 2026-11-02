@@ -22,6 +22,7 @@ import type { RiverHeatmapReading } from './riverPerformanceHeatmap';
 import type { FreeLookOptions, FreeLookReading } from '@/components/DesignPreview/steps/sidebyside/oceanFreeLook';
 type CameraMovementReading = FreeLookReading & { floorY: number | null; atFloor: boolean };
 import { RIVER_DROP_PROFILES, type RiverDropKind } from '@/systems/world3d/river/riverDroppedObjects';
+import { BTN_BASE, BTN_PRIMARY, BTN_SECONDARY } from '@/styles/buttonStyles';
 
 export type RiverDropPlace = 'plunge-pool' | 'rapids' | 'island-pool';
 export interface RiverDropMenuProps {
@@ -61,7 +62,8 @@ export const RiverDropMenu: React.FC<RiverDropMenuProps> = (props) => {
   }, [objects, target, props.onFollow]);
   useEffect(() => { props.onInspect(ground, water, blockers); }, [ground, water, blockers, props.onInspect]);
   const p = RIVER_DROP_PROFILES[kind];
-  const button = 'rounded border border-slate-500 px-2 py-1 text-[12px] hover:bg-sky-900/60';
+  // Shared secondary button style. The panel keeps its compact padding and 12 px text.
+  const button = `${BTN_BASE} ${BTN_SECONDARY} px-2 py-1 text-[12px]`;
   return <div className="absolute left-3 top-24 w-[285px] max-w-[calc(100%-1.5rem)] max-h-[calc(100%-10rem)] max-[600px]:fixed max-[600px]:z-50 max-[600px]:bottom-3 max-[600px]:top-auto max-[600px]:max-h-[65vh] overflow-y-auto rounded-md bg-slate-950/85 p-3 text-[12px] text-slate-100 shadow-lg">
     <div className="flex items-center justify-between"><strong>River controls</strong><button className={button} onClick={() => setOpen(!open)}>{open ? 'Collapse' : 'Expand'}</button></div>
     {open && <>
@@ -88,7 +90,7 @@ export const RiverDropMenu: React.FC<RiverDropMenuProps> = (props) => {
       <label className="mt-2 block">Drop location<select aria-label="Drop location" value={place} onChange={(e) => setPlace(e.target.value as RiverDropPlace)} className="mt-1 w-full rounded border border-slate-500 bg-slate-900 p-1.5">
         <option value="plunge-pool">Waterfall plunge pool</option><option value="rapids">Rapids at the split</option><option value="island-pool">Original river pool</option>
       </select></label>
-      <div className="mt-2 flex gap-2"><button className={`${button} flex-1 border-sky-400 bg-sky-800/60`} onClick={() => {
+      <div className="mt-2 flex gap-2"><button className={`${BTN_BASE} ${BTN_PRIMARY} flex-1 px-2 py-1 text-[12px]`} onClick={() => {
         const n = props.onDrop(kind, place); setMessage(n ? `Dropped ${n} ${n === 1 ? 'object' : 'individual objects'}.` : 'No suitable wet spot here, or the 320-object limit is reached.');
       }}>Drop object</button><button className={button} onClick={() => { setArmed(!armed); props.onArm(armed ? null : kind); }}>{armed ? 'Cancel placement' : 'Click to place'}</button></div>
       {armed && <p className="mt-2 text-amber-200">Click visible river water to drop this object. Placement stays on until canceled.</p>}

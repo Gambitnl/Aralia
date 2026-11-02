@@ -102,12 +102,16 @@ describe('fitted business use for new registration', () => {
 
   it('passes the real played town fitted uses through the shared 2D/3D owner', () => {
     const result = computeBurgMerchants(1793176470555, 2, 3, {}, {});
-    expect(result.businesses.find(b => b.id === 'biz_burg_2_plot_93')?.businessType).toBe('tavern');
+    expect(result.businesses.find(b => b.id === 'biz_burg_2_plot_228')?.businessType).toBe('tavern');
     expect(result.businesses.find(b => b.id === 'biz_burg_2_plot_45')?.businessType).toBe('smithy');
-    expect(result.businesses.find(b => b.id === 'biz_burg_2_plot_101')?.businessType).toBe('general_store');
-    // Re-pinned 2026-11-02 for the GG-563/GG-577 layout (GG-552 rule): the first
+    expect(result.businesses.find(b => b.id === 'biz_burg_2_plot_263')?.businessType).toBe('general_store');
+    // Re-pinned 2026-11-02 for the GG-563/GG-577 layout (GG-552 rule), and the
+    // general store again for GG-582 (Kalg's roads keep to a bank), and the
+    // tavern and general store for GG-586 (the houses that face the market
+    // square trade, and the market square's size floor re-cuts the wards):
+    // the first
     // tavern, smithy and general store of the current layout.
-    const inn = result.businesses.find(b => b.id === 'biz_burg_2_plot_93')!;
+    const inn = result.businesses.find(b => b.id === 'biz_burg_2_plot_228')!;
     const keeper = result.npcs.find(n => n.id === inn.ownerId)!;
     // Old sales and shelves remain history even when a new-registration rule changes.
     const oldBusiness = {...inn, name: 'The Grand Wonders', businessType: 'enchanter_shop' as const, stock: [{itemId: 'healing_potion', quantity: 2}], priceMultiplier: 1.17};

@@ -20,6 +20,7 @@ import type { SaveLoadResult } from '../../services/saveLoadService';
 import {
   createDefeatSlotId, defeatSlotFromSearch, loadDefeatChronicle, saveDefeatChronicle,
 } from '../../services/combatDefeatService';
+import { Button } from '../ui/Button';
 
 interface Props {
   gameState: GameState;
@@ -93,9 +94,10 @@ export default function GameOverScreen({ gameState, title, onRestore, onReturnTo
         {status === 'loading' && 'Restoring the recorded defeat…'}
         {status === 'saved' && 'This defeat is recorded separately. Earlier recovery saves remain available through Resume Journey.'}
         {status === 'empty' && 'No saved defeat is attached to this page. Resume Journey lets you choose an earlier stored Chronicle.'}
-        {status === 'error' && <><p role="alert">{error}</p><button type="button"
+        {/* Shared Button style; its focus ring replaces the old amber focus outline. */}
+        {status === 'error' && <><p role="alert">{error}</p><Button type="button" variant="action"
           onClick={() => { setStatus(initial.mode === 'save' ? 'saving' : 'loading'); setRetry(value => value + 1); }}
-          className="mt-3 rounded border border-amber-500 px-4 py-2 text-amber-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-300">Retry recording or loading</button></>}
+          className="mt-3">Retry recording or loading</Button></>}
       </div>
       {outcome && <>
         <section aria-labelledby="defeat-party-heading" className="rounded-lg border border-slate-700 p-4">
@@ -120,10 +122,10 @@ export default function GameOverScreen({ gameState, title, onRestore, onReturnTo
           </ol> : <p className="mt-3 text-sm text-slate-300">No events were captured for this battle.</p>}
         </details>
       </>}
-      <button type="button" disabled={busy} onClick={onReturnToMainMenu}
-        className="w-full rounded-lg border border-red-700 bg-red-900/50 px-5 py-3 text-lg text-red-100 hover:bg-red-800/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-300 disabled:cursor-wait disabled:opacity-60 sm:w-fit">
+      <Button type="button" variant="danger" size="lg" disabled={busy} onClick={onReturnToMainMenu}
+        className="w-full sm:w-fit">
         Return to Main Menu
-      </button>
+      </Button>
     </div>
   </main>;
 }

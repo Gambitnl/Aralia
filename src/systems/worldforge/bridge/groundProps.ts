@@ -312,6 +312,9 @@ function buildCourtyardAnchors(ground: GroundWorld): CtxCourtyard[] {
   return anchors;
 }
 
+/** Civic-ground features the prop layer dresses (GG-569, GG-586). */
+const CIVIC_PROP_KINDS = new Set<string>(['grave', 'pool', 'stall', 'well', 'market-cross', 'fountain', 'pillory']);
+
 /**
  * Project civic-grounds graves and pools into window-local ground meters
  * (GG-569). A feature with any corner outside the window is skipped, as a
@@ -324,10 +327,11 @@ function buildCivicFeatureAnchors(ground: GroundWorld): CtxCivicFeature[] {
   for (const { burgId, plan } of ground.townPlans) {
     for (const g of plan.civicGrounds ?? []) {
       g.features.forEach((f, fi) => {
-        if (f.kind !== 'grave' && f.kind !== 'pool') return;
+        // GG-586: the market square's pieces ride the same anchors.
+        if (!CIVIC_PROP_KINDS.has(f.kind)) return;
         const pointsM = f.polygon.map(([fx, fy]) => ({ x: (fx - bx) * FEET_TO_METERS, z: (fy - by) * FEET_TO_METERS }));
         if (pointsM.some((p) => p.x < 0 || p.x > ground.extentMetersX || p.z < 0 || p.z > ground.extentMetersZ)) return;
-        out.push({ id: `burg:${burgId}:ward:${g.wardIndex}:${f.kind}:${fi}`, kind: f.kind, pointsM });
+        out.push({ id: `burg:${burgId}:ward:${g.wardIndex}:${f.kind}:${fi}`, kind: f.kind as CtxCivicFeature['kind'], pointsM });
       });
     }
   }
@@ -392,10 +396,16 @@ function burgOfPlot(plotId: string): string {
 }
 
 function buildMarketPlazas(ground: GroundWorld): CtxPlaza[] {
+  // GG-586: a town whose plan lays out its own market square gets its stalls
+  // from the plan (`buildCivicFeatureAnchors`), not a ring round its shops.
+  const planned = new Set((ground.townPlans ?? [])
+    .filter(({ plan }) => (plan.civicGrounds ?? []).some((g) => g.setPiece === 'market'))
+    .map(({ burgId }) => String(burgId)));
   const byBurg = new Map<string, Array<{ x: number; z: number }>>();
   for (const b of ground.buildings) {
     if (b.role !== 'market') continue;
     const key = burgOfPlot(b.id);
+    if (planned.has(key)) continue;
     let arr = byBurg.get(key);
     if (!arr) {
       arr = [];

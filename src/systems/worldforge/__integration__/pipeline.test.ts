@@ -684,7 +684,10 @@ describe('worldforge pipeline integration', () => {
       // of each large block. Measured while another session's uncommitted
       // river-valley work in region/generateRegion.ts was also in the tree;
       // that work also moves regionHeightfieldHash above.
-      plotCount: 354,
+      // 2026-11-02: 354 → 355 (GG-586 market square): the market hall or
+      // weigh house on the square is a civic plot, added after every other
+      // plot, so plot 0 and every earlier id stay the same.
+      plotCount: 355,
       firstPlotId: 0,
       firstPlotRole: 'inn',
       firstPlotStoreys: 3,

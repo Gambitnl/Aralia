@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-11-01T23:07:17.718Z",
-  "lastGoodRun": "2026-11-01T23:07:17.718Z",
+  "generatedAt": "2026-11-02T09:18:03.323Z",
+  "lastGoodRun": "2026-11-02T09:18:03.323Z",
   "stepErrors": [],
   "surfaces": {
-    "chronicleDaysSilent": 120,
-    "atlasDaysSilent": 1
+    "chronicleDaysSilent": 121,
+    "atlasDaysSilent": 0
   },
   "coverage": {
     "domainDocs": {
@@ -741,8 +741,7 @@
       "ageDays": 110
     },
     "item-categorization": {
-      "ageDays": 0,
-      "staleUnverified": true
+      "ageDays": 0
     },
     "logbook": {
       "ageDays": 110
@@ -1008,6 +1007,10 @@
     },
     "water-campaign-one-water": {
       "ageDays": 3,
+      "staleUnverified": true
+    },
+    "shared-button-migration": {
+      "ageDays": 0,
       "staleUnverified": true
     }
   }

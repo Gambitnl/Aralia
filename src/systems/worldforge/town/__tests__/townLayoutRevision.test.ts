@@ -85,7 +85,10 @@ describe('explicit town layout revision',()=>{
     expect(candidate.farmsteads.every(f=>f.farmParcelIndex!==undefined&&f.representedPopulation!==undefined&&f.occupants<=8)).toBe(true);
     expect(old.farmsteads.every(f=>!Object.hasOwn(f,'farmParcelIndex')&&!Object.hasOwn(f,'representedPopulation'))).toBe(true);
     expect(getCanonicalTownPlan(atlas,seed,burgId)).toBe(old);
-  });
+  // 2026-11-02 (GG-586): an explicit 20 s. The test builds two whole town
+  // plans; alone it takes 4.6 s against the 5 s default, so it timed out
+  // whenever other suites ran beside it.
+  },20000);
   it.each([0,4,'1',null,NaN])('rejects unsupported revision %s instead of silently substituting',value=>{
     expect(()=>requireTownLayoutRevision(value)).toThrow('unsupported layout revision');
     expect(()=>getCanonicalTownPlan(atlas,seed,burgId,value as TownLayoutRevision)).toThrow('unsupported layout revision');

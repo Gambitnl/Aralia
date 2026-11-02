@@ -250,3 +250,37 @@ describe('bounded retained-intersection validity',()=>{
     expect(core.localPartition([a,b],36,22,new core.Budget(0,()=>0))).toHaveLength(2);
   });
 });
+
+// CI run 41363850920 (2026-11-02, agora-257c): the decimal tetrahedron of the
+// passage test meets the 1/64 grid at exact corners, and two of its faces give
+// one edge in opposite winding. Each test below fails on the code before the fix.
+describe('decimal rock edges on the 1/64 grid',()=>{
+  const ground=[[34,20],[42,20],[34,28]];
+  const build=(faces:number[][][])=>core.buildGeometry({identity:'decimal-edges',sourceSha256:'0'.repeat(64),
+    vertices:[...ground.flatMap(p=>[p[0],3.2,p[1]]),...faces.flat(2)],
+    triangles:[{objectIndex:0},...faces.map(()=>({objectIndex:1}))],
+    objects:[{sourceName:'ground-test'},{sourceName:'rock-top-tile'}]},new core.Budget(0,()=>0));
+  it('merges a rounded crossing one ulp from an exact grid corner into that corner',()=>{
+    // Edge A-T is x - z = 14, so it meets x = 36.296875 at the grid corner
+    // z = 22.296875; the rounded solve gives 22.296875000000004.
+    const A=[36.3,3.4,22.3],B=[36.8,3.4,22.3],C=[36.3,3.4,22.8],T=[36.4,3.8,22.4];
+    const g=build([[A,B,C],[A,T,B],[B,T,C],[C,T,A]]);
+    const corner=g.pieces.flatMap(p=>p.p).filter(q=>Math.abs(q[0]-36.296875)<1e-9&&Math.abs(q[1]-22.296875)<1e-9);
+    expect(corner.length).toBeGreaterThan(0);
+    expect(corner.every(q=>q[0]===36.296875&&q[1]===22.296875)).toBe(true);
+  });
+  it('orients merged original bounds, so an edge given in both windings can be proved outside',()=>{
+    const flat=(id:number,p:readonly (readonly [number,number])[]):Geometry['triangles'][number]=>({id,ground:true,source:'ground-test',p,y:[0,0,0],plane:[0,0,0],orientation:p[0][0]*(p[1][1]-p[2][1])+p[1][0]*(p[2][1]-p[0][1])+p[2][0]*(p[0][1]-p[1][1])} as Geometry['triangles'][number]);
+    // Edge P-Q is x + z = 58.2, about 0.12 m from the bin at (36, 22).
+    const P=[36.2,22] as const,Q=[36,22.2] as const;
+    const budget=new core.Budget(0,()=>0);
+    core.collectLocalLines([flat(0,[P,Q,[36.5,22.5]]),flat(1,[Q,P,[35.5,21.5]])],36,22,budget);
+    const edge=budget.lineDiagnostics!.lines.find(l=>Math.abs(l.coefficients[0]-Math.SQRT1_2)<1e-12&&Math.abs(l.coefficients[1]-Math.SQRT1_2)<1e-12);
+    expect(edge).toBeDefined();
+    expect(edge!.outside).toBe(true);
+  });
+  it('builds the whole decimal tetrahedron without an unresolved determinant',()=>{
+    const A=[36.3,3.4,22.3],B=[36.8,3.4,22.3],C=[36.3,3.4,22.8],T=[36.4,3.8,22.4];
+    expect(()=>build([[A,B,C],[A,T,B],[B,T,C],[C,T,A]])).not.toThrow();
+  });
+});

@@ -272,6 +272,12 @@ const FAR_SHADOW_INTENSITY_SHARE = 0.35;
  * a second 1.7-kilometre map cost roughly one third of the delivered frames.
  */
 export const FAR_SHADOW_ENABLE_HEIGHT_M = 90;
+/**
+ * A layer that only the sun's shadow cameras render (INTERIOR DAYLIGHT,
+ * 2026-11-02). A roof hidden while the camera is inside its building moves
+ * here: the camera and raycasts skip it, but it still shades the rooms.
+ */
+export const SHADOW_ONLY_LAYER = 5;
 /** Sun distance from the frustum center along the sun direction. */
 const SUN_DIST_M = 900;
 
@@ -409,6 +415,9 @@ const World3DLighting: React.FC<{
     // `.shadow` is absent on the mocked light in the jsdom test environment.
     lightRef.current?.shadow?.camera?.updateProjectionMatrix();
     farLightRef.current?.shadow?.camera?.updateProjectionMatrix();
+    // Both sun shadow cameras also draw the shadow-only layer (hidden roofs).
+    lightRef.current?.shadow?.camera?.layers.enable(SHADOW_ONLY_LAYER);
+    farLightRef.current?.shadow?.camera?.layers.enable(SHADOW_ONLY_LAYER);
   }, [castShadows]);
 
   // Follow the camera with the shadow frustum, snapped to shadow-map texels so
@@ -435,6 +444,17 @@ const World3DLighting: React.FC<{
       farLightRef.current.castShadow = useFarShadow;
       farLightRef.current.shadow.needsUpdate = useFarShadow;
     }
+    // INTERIOR DAYLIGHT (2026-11-02): the sun is split between the two lights
+    // only while BOTH cast shadows. When the far light casts none (walking
+    // height, and always under WebGPU), its 35% share was sun with no shadow:
+    // it lit the inside of every house through the walls and roof, and it
+    // lit every outdoor shadow at 35% sun. The near light now carries the
+    // whole sun then. Past the near map's 220 m edge three treats a point as
+    // lit, so the far view keeps its full brightness; inside the near map a
+    // shadow now holds only sky light, as it already did in aerial view.
+    const farCasting = farLightRef.current?.castShadow === true;
+    if (lightRef.current) lightRef.current.intensity = sun.sunIntensity * (farCasting ? 1 - FAR_SHADOW_INTENSITY_SHARE : 1);
+    if (farLightRef.current) farLightRef.current.intensity = farCasting ? sun.sunIntensity * FAR_SHADOW_INTENSITY_SHARE : 0;
     const followFrustum = (
       light: THREE.DirectionalLight | null,
       halfM: number,

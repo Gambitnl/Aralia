@@ -21,6 +21,7 @@ import React from 'react';
 import type {GameState} from '@/types/state';
 import {QuestStatus} from '@/types/quests';
 import type {AppAction} from '@/state/actionTypes';
+import {BTN_BASE,BTN_SECONDARY} from '@/styles/buttonStyles';
 import type {CompanionGoalWorkChoice} from '@/types/companions';
 import {companionTempleWork,firsthandTempleAccount} from '@/systems/companions/companionGoalWork';
 
@@ -36,7 +37,7 @@ export function CompanionGoalWorkChoices({state,dispatch,disabled}:{state:GameSt
     return <section key={id} aria-label={`Discuss work with ${work.companion.identity.name}`} className="rounded-lg border border-amber-500/30 bg-slate-900 p-3 text-xs text-gray-200">
       <p className="font-semibold text-amber-200">A firsthand account</p>
       <p className="mt-1 text-gray-300">{quest?.status===QuestStatus.Active?'You promised to return with a report.':quest?.status===QuestStatus.Completed?'Your report is remembered. The restoration remains unfinished.':quest?.status===QuestStatus.Abandoned?'You withdrew your promise.':'Discuss a contribution to her restoration work.'}</p>
-      <div className="mt-2 flex flex-col gap-2">{choices.map(({choice,label})=><button key={choice} type="button" disabled={disabled} className="rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-left text-xs text-gray-100 hover:bg-gray-700 disabled:opacity-50"
+      <div className="mt-2 flex flex-col gap-2">{choices.map(({choice,label})=><button key={choice} type="button" disabled={disabled} className={`${BTN_BASE} ${BTN_SECONDARY} px-3 py-2 text-left text-xs`}
         onClick={()=>dispatch({type:'COMPANION_GOAL_WORK_CHOICE',payload:{companionId:id,choice}})}>{label}</button>)}</div>
     </section>;
   })}</>;

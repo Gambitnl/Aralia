@@ -588,6 +588,46 @@ export function toArtifactPlan(
       centerline:subdividePolyline(street.centerline)})));
   }
 
+  // THE MARKET HALL AND THE WEIGH HOUSE (GG-586) are civic buildings on the
+  // market square, so the 3D town raises them the way it raises a temple or
+  // a keep. They come last, after every urban and rural plot, so no plot id
+  // that a save or a business already holds can move.
+  for (const g of plan.civicGrounds ?? []) {
+    if (g.setPiece !== 'market') continue;
+    const ward = plan.wards[g.wardIndex];
+    const wealth = ward?.wealth ?? 'common';
+    const districtKey = ward?.architectureDistrict?.key ?? `wealth:${wealth}`;
+    const districtLabel = ward?.architectureDistrict?.label ?? `${wealth} quarter`;
+    g.features.forEach((f, fi) => {
+      if (f.kind !== 'market-hall' && f.kind !== 'weigh-house') return;
+      const plotId = id++;
+      const buildingKey = `civic:${f.kind}:${g.wardIndex}:${fi}`;
+      if (options.retainPropParcels) propParcels.push({plotId, polygon: f.polygon.map(([x,y])=>[x,y])});
+      plots.push({
+        id: plotId,
+        footprint: orientedQuad(f.polygon),
+        role: 'civic',
+        // A market hall is a hall over an open floor (two storeys); a weigh
+        // house is one room with its beam.
+        storeys: f.kind === 'market-hall' ? 2 : 1,
+        ...(family
+          ? styleStamp(
+              family,
+              burgId,
+              districtKey,
+              districtLabel,
+              buildingKey,
+              wealth,
+              resolveBuildingAgeBand({ polygon: f.polygon, townCore: plan.core, settlementKey: `burg:${burgId}`, buildingKey }),
+              undefined,
+              climate,
+              buildingTypeForRole('civic'),
+            )
+          : {}),
+      });
+    });
+  }
+
   // Shared courts are open-space receipts, not fake building plots. Carry them
   // beside plots so prop placement can dress their exact transformed center
   // without changing plot ids or introducing collision geometry.

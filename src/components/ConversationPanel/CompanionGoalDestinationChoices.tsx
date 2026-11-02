@@ -20,6 +20,7 @@
 import React from 'react';
 import type { GameState } from '@/types/state';
 import type { AppAction } from '@/state/actionTypes';
+import { BTN_BASE, BTN_SECONDARY } from '@/styles/buttonStyles';
 import { publicCompanionDestinations } from '@/systems/companions/companionGoalDestinations';
 
 export function CompanionGoalDestinationChoices({state, dispatch, disabled}: {
@@ -28,7 +29,8 @@ export function CompanionGoalDestinationChoices({state, dispatch, disabled}: {
   return <>{state.activeConversation?.participants.flatMap(id => publicCompanionDestinations(state, id).map(({goal, site, source}) =>
     <section key={`${id}:${goal.id}`} aria-label="Ask about personal plans" className="rounded-lg border border-amber-500/30 bg-slate-900 p-3 text-xs text-gray-200">
       <p className="font-semibold text-amber-200">Your own plans</p>
-      <button type="button" disabled={disabled} className="mt-2 rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-left text-xs text-gray-100 hover:bg-gray-700 disabled:opacity-50"
+      {/* Shared secondary button style; the row keeps its own compact padding and left-aligned text. */}
+      <button type="button" disabled={disabled} className={`mt-2 ${BTN_BASE} ${BTN_SECONDARY} px-3 py-2 text-left text-xs`}
         onClick={() => dispatch({type:'DISCUSS_COMPANION_DESTINATION', payload:{companionId:id, goalId:goal.id, worldSeed:source.worldSeed, sitePath:site.sitePath}})}>
         {goal.disclosedDestination?.worldSeed === source.worldSeed ? 'Recall' : 'Ask about'} {source.name}
       </button>

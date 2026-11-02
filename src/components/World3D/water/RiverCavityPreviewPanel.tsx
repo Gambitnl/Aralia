@@ -23,6 +23,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { RiverReachView } from './riverReachScene';
 import { loadCavityPreview, type CavityPreviewData } from './riverCavityPreview';
+import { BTN_BASE, BTN_SECONDARY } from '@/styles/buttonStyles';
 
 export function RiverCavityPreviewPanel({ view }: { view: RiverReachView | null }) {
   const [data, setData] = useState<CavityPreviewData | null>(null);
@@ -68,15 +69,17 @@ export function RiverCavityPreviewPanel({ view }: { view: RiverReachView | null 
     studyActive.current = on;
     setStudy(on);
   };
+  // Shared secondary button style. The panel keeps its compact padding and inherited 12 px text.
+  const button = `${BTN_BASE} ${BTN_SECONDARY} px-2 py-1`;
   return <aside aria-label="Bank cavity experimental preview" className="max-h-[40vh] w-full shrink-0 overflow-auto border border-amber-400 bg-slate-950 p-3 text-xs text-slate-100 md:h-full md:max-h-full md:w-80">
     <strong className="text-sm text-amber-300">Experimental cloned river · bank cavity</strong>
     <p className="mt-1">2 m × 2 m bank patch · x 36–38, z 22–24</p>
     <a className="mt-2 block text-sky-300 underline" href={currentUrl.toString()}>Back to current river</a>
     <div className="mt-3 flex flex-wrap gap-2">
-      <button type="button" className="rounded border px-2 py-1" onClick={() => compare(false)}>Ordinary cloned river</button>
-      <button type="button" className="rounded border px-2 py-1 disabled:opacity-40" disabled={!view || !data} onClick={() => compare(true)}>Frozen captured patch</button>
-      <button type="button" className="rounded border px-2 py-1 disabled:opacity-40" disabled={!view} onClick={() => view?.focusCavityPatch(study ? data?.terrain : undefined)}>Focus patch</button>
-      <button type="button" className="rounded border px-2 py-1" onClick={() => { compare(false); setReload(n => n + 1); }}>Reload experiment</button>
+      <button type="button" className={button} onClick={() => compare(false)}>Ordinary cloned river</button>
+      <button type="button" className={button} disabled={!view || !data} onClick={() => compare(true)}>Frozen captured patch</button>
+      <button type="button" className={button} disabled={!view} onClick={() => view?.focusCavityPatch(study ? data?.terrain : undefined)}>Focus patch</button>
+      <button type="button" className={button} onClick={() => { compare(false); setReload(n => n + 1); }}>Reload experiment</button>
     </div>
     <p className="mt-3" role="status">{data?.status ?? 'UNAVAILABLE'} · {message}</p>
     <p className="mt-2">{study ? 'Frozen native geometry study. Surrounding cloned terrain is hidden because it has not been certified against this captured input.' : 'Ordinary river copy. Its worker and editing state belong to this page.'}</p>

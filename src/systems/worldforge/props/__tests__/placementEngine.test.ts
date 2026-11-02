@@ -915,6 +915,38 @@ describe('civic grounds dressing (GG-569)', () => {
     }
   });
 
+  it('stands a market stall on each planned stall, open toward its aisle, with its stock inside it (GG-586)', () => {
+    // A stall 3 m wide and 2 m deep whose open side (corners 2 and 3) faces +z.
+    const stall = { id: 'burg:1:ward:4:stall:5', kind: 'stall' as const,
+      pointsM: [{ x: 101.5, z: 99 }, { x: 98.5, z: 99 }, { x: 98.5, z: 101 }, { x: 101.5, z: 101 }] };
+    const props = placeProps(SEED, emptyCtx({ civicFeatures: [stall] }));
+    const stalls = props.filter((p) => p.defId === 'market-stall');
+    expect(stalls).toHaveLength(1);
+    expect(stalls[0].xM).toBeCloseTo(100, 6);
+    expect(stalls[0].zM).toBeCloseTo(100, 6);
+    // The same facing rule as the old ring of stalls: (cos, sin) of the angle points out of the open side.
+    expect(Math.cos(stalls[0].rotationRad)).toBeCloseTo(0, 6);
+    expect(Math.sin(stalls[0].rotationRad)).toBeCloseTo(1, 6);
+    const stock = props.filter((p) => p.defId !== 'market-stall');
+    expect(stock.length).toBeGreaterThanOrEqual(1);
+    expect(stock.length).toBeLessThanOrEqual(2);
+    for (const s of stock) {
+      expect(s.xM).toBeGreaterThan(98.5);
+      expect(s.xM).toBeLessThan(101.5);
+      expect(s.zM).toBeGreaterThan(99);
+      expect(s.zM).toBeLessThan(101);
+    }
+  });
+
+  it('stands the market centerpiece and the pillory at the middle of their outlines (GG-586)', () => {
+    const at = (kind: 'well' | 'market-cross' | 'fountain' | 'pillory', x: number) => ({ id: `burg:1:ward:4:${kind}:0`, kind,
+      pointsM: [{ x: x - 1, z: 49 }, { x: x + 1, z: 49 }, { x: x + 1, z: 51 }, { x: x - 1, z: 51 }] });
+    const props = placeProps(SEED, emptyCtx({ civicFeatures: [at('well', 20), at('market-cross', 40), at('fountain', 60), at('pillory', 80)] }));
+    expect(props.map((p) => [p.defId, Math.round(p.xM), Math.round(p.zM)])).toEqual([
+      ['well', 20, 50], ['market-cross', 40, 50], ['fountain', 60, 50], ['pillory', 80, 50],
+    ]);
+  });
+
   it('adds props only after every earlier pass, so old output does not change', () => {
     const base = emptyCtx({ courtyards: [{ id: 'c', xM: 60, zM: 60, radiusM: 8, districtKey: 'd', wealth: 'common', amenity: 'well', courtyardSignature: 's' }] });
     const before = placeProps(SEED, base);

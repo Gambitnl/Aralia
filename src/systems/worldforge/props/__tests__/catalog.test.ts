@@ -75,9 +75,11 @@ describe('WAVE-1 catalog', () => {
 });
 
 describe('FULL catalog (WAVE-1 + expanded strawman set)', () => {
-  it('carries the full strawman: 14 WAVE-1 + 91 expanded = 105 defs', () => {
-    expect(EXPANDED_PROPS).toHaveLength(91);
-    expect(PROP_CATALOG).toHaveLength(105);
+  // RE-PINNED (GG-586, 2026-11-02): the market square added two defs beyond
+  // the strawman, a market cross and a pillory: 91 + 2 = 93 expanded.
+  it('carries the full strawman plus the market pieces: 14 WAVE-1 + 93 expanded = 107 defs', () => {
+    expect(EXPANDED_PROPS).toHaveLength(93);
+    expect(PROP_CATALOG).toHaveLength(107);
   });
 
   it('every def in the FULL catalog passes validatePropDefinition', () => {

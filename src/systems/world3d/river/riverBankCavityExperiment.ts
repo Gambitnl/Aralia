@@ -225,14 +225,22 @@ function collectLocalLines(candidates: readonly Tri[], x: number, z: number, bud
     const provenance=owner??{bounds,identity:`${kind}:${a}:${b}:${c}`,points:[],axis:null,coordinate:null};
     const sign = a < 0 || (a === 0 && b < 0) ? -1 : 1;
     const q: Plane = [sign * a / length, sign * b / length, sign * c / length];
+    // ORIENTED BOUNDS (2026-11-02, agora-257c; CI run 41363850920). The stored
+    // line takes `sign`, so its original bounds take it too. Without it, one
+    // edge that two triangles give in opposite winding (B->C and C->B) merged
+    // [+0.5,+0.5] with [-0.5,-0.5] into [-0.5,+0.5], and a line 0.12 m from the
+    // bin could never be proved outside. Negation is exact, so the enclosure
+    // stays certified.
+    const orient=(r:Interval):Interval=>sign<0?[-r[1],-r[0]]:r;
+    const oriented:PlaneBounds=[orient(bounds[0]),orient(bounds[1]),orient(bounds[2])];
     const id = q.map(v => v.toPrecision(15)).join(',');
     let ix=seen.get(id);
-    if(ix===undefined) { ix=lines.length;seen.set(id,ix);lines.push(q);linePairs.push(new Set());originalBounds.push(bounds);owners.push([]); }
+    if(ix===undefined) { ix=lines.length;seen.set(id,ix);lines.push(q);linePairs.push(new Set());originalBounds.push(oriented);owners.push([]); }
     else {
       // Preserve the first representative and every original plane-pair owner.
       // Union before exclusion also keeps a later uncertain key collision alive.
       const merge=(r:Interval,b:Interval):Interval=>[Math.min(r[0],b[0]),Math.max(r[1],b[1])];
-      originalBounds[ix]=[merge(originalBounds[ix][0],bounds[0]),merge(originalBounds[ix][1],bounds[1]),merge(originalBounds[ix][2],bounds[2])];
+      originalBounds[ix]=[merge(originalBounds[ix][0],oriented[0]),merge(originalBounds[ix][1],oriented[1]),merge(originalBounds[ix][2],oriented[2])];
     }
     if(pair) linePairs[ix].add(pair);
     owners[ix].push(provenance);
@@ -328,12 +336,26 @@ function localPartition(candidates: readonly Tri[], x: number, z: number, budget
   }
   const vertices: P[] = [], ids = new Map<string, number>(), onLine = lines.map(() => new Set<number>());
   const exactVertices:boolean[]=[];
+  // VERTEX MERGE (2026-11-02, agora-257c; CI run 41363850920). Two line pairs
+  // can meet at one point that one pair gives exactly (a grid coordinate or a
+  // shared source point) and the other gives by a rounded solve a few ulps away
+  // (22.296875 against 22.296875000000004; 22.3125 against 22.312499999999993:
+  // a decimal source edge that meets a grid corner in real numbers). The old
+  // rule merged only two equal exact points, so float noise stopped the whole
+  // candidate. Now a point within VERTEX_MERGE of a stored vertex on each axis
+  // IS that vertex, and an exact coordinate replaces a rounded one. Two exact
+  // points that differ still stop the candidate. The search reads every stored
+  // vertex, so a rounded key boundary between two noisy copies cannot split them.
+  const VERTEX_MERGE=(q:number)=>ROUND*Math.max(1,Math.abs(q));
+  const near=(a:P,b:P)=>Math.abs(a[0]-b[0])<=VERTEX_MERGE(b[0])&&Math.abs(a[1]-b[1])<=VERTEX_MERGE(b[1]);
   for (let i = 0; i < lines.length; i++) for (let j = i + 1; j < lines.length; j++) {
     budget.tick(); const result=retainedIntersection(lines[i],lines[j],owners[i][0],owners[j][0],x,z),p=result.point;
     if(!p) continue;
     const k = key(p); let id = ids.get(k);
+    if (id === undefined) { const at=vertices.findIndex(v=>near(p,v)); if(at>=0) id=at; }
     if (id === undefined) { id = vertices.length; ids.set(k, id); vertices.push(p);exactVertices.push(result.exact); }
-    else need(result.exact&&exactVertices[id]&&vertices[id][0]===p[0]&&vertices[id][1]===p[1],
+    else if (result.exact && !exactVertices[id] && near(p, vertices[id])) { vertices[id] = p; exactVertices[id] = true; ids.set(k, id); }
+    else need(near(p,vertices[id])&&!(result.exact&&exactVertices[id]&&(vertices[id][0]!==p[0]||vertices[id][1]!==p[1])),
       `Unresolved retained vertex key merge: ${JSON.stringify({x,z,point:p,previous:vertices[id],exact:result.exact,previousExact:exactVertices[id],owners:[owners[i][0],owners[j][0]]})}`);
     onLine[i].add(id); onLine[j].add(id);
     need(vertices.length <= BANK_CAVITY_LIMITS.vertices, 'Local graph vertex cap');

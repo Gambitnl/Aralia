@@ -272,6 +272,33 @@ function ruralFracFor(profile: TownScaleProfile | null): number {
  * the rest common. A little deterministic jitter keeps districts from being a clean
  * bullseye. Returns wealth per ward index.
  */
+/**
+ * Collapse the per-ward social classes of a plan into one town wealth band.
+ * `assignWardWealth` scores every ward by its distance to the prestige
+ * anchors, so the wealthy-minus-poor share is a real measure of how much of the
+ * town hugs power. Threshold 0.15 keeps the middle band wide: most towns are
+ * `comfortable`, and `rich`/`poor` mean something when they appear. Shared by
+ * the town personality (`canonicalTown`) and the market square (GG-586).
+ */
+export function townWealthBand(wealths: ReadonlyArray<WardWealth | undefined>): 'rich' | 'comfortable' | 'poor' {
+  let wealthy = 0;
+  let poor = 0;
+  let counted = 0;
+  for (const w of wealths) {
+    if (!w) continue;
+    counted += 1;
+    if (w === 'wealthy') wealthy += 1;
+    else if (w === 'poor') poor += 1;
+  }
+  if (counted === 0) {
+    throw new Error('Cannot derive town wealth: no ward on the canonical plan carries a social class');
+  }
+  const score = (wealthy - poor) / counted;
+  if (score > 0.15) return 'rich';
+  if (score < -0.15) return 'poor';
+  return 'comfortable';
+}
+
 export function assignWardWealth(
   wardCentroids: Pt[],
   anchors: Pt[],
@@ -343,7 +370,20 @@ export function classifyBuilding(
   // Named landmarks outrank the generic trades: a plot that rolls one either
   // claims the town's remaining allowance or downgrades to a home.
   const wanted = wantedLandmark(dist, h);
-  if (wanted) return ledger && claimLandmark(ledger, wanted) ? wanted : homeFront;
+  if (wanted && ledger && claimLandmark(ledger, wanted)) return wanted;
+  // GG-586: a house that faces the market square trades on it, a shop, an inn
+  // or a tavern by its class. A landmark there (a guild hall) still comes
+  // first; a spent landmark falls to a trade, not a home.
+  // (An interior plot returned above, so this is always a frontage plot.)
+  if (plot.facesMarket) {
+    const trades: BuildingType[] = wealthy
+      ? ['shop', 'inn', 'shop', 'shop', 'inn']
+      : poor
+        ? ['shop', 'tavern', 'shop', 'inn', 'tavern']
+        : ['shop', 'inn', 'shop', 'tavern', 'shop'];
+    return trades[h % trades.length];
+  }
+  if (wanted) return homeFront;
   if (central) {
     // Commercial heart: tenements crowd the poor centre; the rich centre stays low.
     if (dense && !wealthy && h % (poor ? 4 : 5) === 0) return 'tenement';

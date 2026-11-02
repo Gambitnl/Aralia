@@ -20,6 +20,7 @@
 import React from 'react';
 import type { GameState } from '@/types/state';
 import type { AppAction } from '@/state/actionTypes';
+import { BTN_BASE, BTN_SECONDARY } from '@/styles/buttonStyles';
 import { rumorConversationCompanion, shareableRumorNotes } from '@/systems/companions/companionRumors';
 
 export function CompanionRumorChoices({ state, dispatch, disabled }: { state: GameState; dispatch: React.Dispatch<AppAction>; disabled: boolean }) {
@@ -33,7 +34,7 @@ export function CompanionRumorChoices({ state, dispatch, disabled }: { state: Ga
       <div className="mt-2 flex flex-col gap-2">{notes.map(({ item, inventoryIndex, subject }) => {
         const discussed = companion.memories?.some(memory => memory.hearsay && memory.hearsay.sourceId === item.sourceId && memory.hearsay.account === item.description && memory.hearsay.sharedInWorldSeed === state.worldSeed);
         return <button key={`${inventoryIndex}:${item.id}`} type="button" disabled={disabled}
-          className="min-h-11 rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-left text-xs text-gray-100 hover:bg-gray-700 disabled:opacity-50"
+          className={`min-h-11 ${BTN_BASE} ${BTN_SECONDARY} px-3 py-2 text-left text-xs`}
           onClick={() => dispatch({ type: 'DISCUSS_COMPANION_RUMOR', payload: { companionId: id, inventoryIndex, itemId: item.id, sourceId: item.sourceId!, description: item.description } })}
         >{discussed ? 'Revisit' : 'Discuss'} {subject}</button>;
       })}</div>

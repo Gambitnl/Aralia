@@ -60,6 +60,7 @@ import type {
 } from "@/systems/world3d/types";
 import { chunkOriginWorld } from "@/systems/world3d/coords";
 import { worldToScene, type SceneOrigin } from "@/systems/world3d/sceneOrigin";
+import { BTN_BASE, BTN_GHOST } from "@/styles/buttonStyles";
 import {
   siteLocalToScene,
   planFeetToSiteLocal,
@@ -654,6 +655,9 @@ export const InteriorOccupantNameplate: React.FC<{
       }}
       data-testid={`interior-occupant-name-${occupant.id}`}
       data-household-member-id={occupant.householdMemberId}
+      // Shared button states (weight, focus ring, dimmed while not selectable).
+      // The inline style below keeps the small dark name-tag shape and colors.
+      className={`${BTN_BASE} ${BTN_GHOST}`}
       style={{
         pointerEvents: onSelect ? "auto" : "none",
         cursor: onSelect ? 'pointer' : 'default',

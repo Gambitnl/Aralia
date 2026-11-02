@@ -46,8 +46,9 @@ import type { FmgWorldResult } from '../fmg/generateWorld';
 import { rootSeedPath, childSeedPath, streamPath } from '../seedPath';
 import { burgCellPolygon, cellWaterFeatures } from './cellFeatures';
 import { townRoadCourseCanon } from './townRoadCourse';
-import { townRiverCourseCanon } from './townRiverCourse';
+import { townRiverCourseCanon, townRiverRoadReachFt } from './townRiverCourse';
 import type { TownFaith, TownHolder } from './civicGrounds';
+import { townWealthBand as sharedTownWealthBand } from './population';
 import type { RegionTownSite } from '../artifacts';
 import { toArtifactPlan, type AdaptedTownPlan, type TownPlanAdaptOptions } from './townPlanAdapter';
 import {
@@ -220,6 +221,10 @@ export function getCanonicalTownPlan(
     ? generateTownLayoutV1(footprint, seed, options)
     : generateTownPlan(footprint, seed, {
         ...options,
+        // GG-582: the world roads keep to a bank of the town's river, the
+        // rule the region tier applies to the same roads. Revision 1 keeps
+        // the roads as the atlas routes them.
+        roads: townRoadCourseCanon(atlas, burgId, townRiverRoadReachFt(atlas, worldSeed, burgId)),
         ...(revision === RURAL_HOUSEHOLD_TOWN_LAYOUT_REVISION ? {ruralHouseholdSources:true} : {}),
         coast,
         feetPerUnit: townSpanFtForBurg(atlas, burgId) / CANON_TOWN_SPAN,
@@ -351,22 +356,8 @@ const TYPOLOGY_TO_POPULATION_BAND: Record<TownTypology, VillagePersonality['popu
  * towns are `comfortable`, and `rich`/`poor` mean something when they appear.
  */
 function townWealthBand(wards: TownWard[]): VillagePersonality['wealth'] {
-  let wealthy = 0;
-  let poor = 0;
-  let counted = 0;
-  for (const w of wards) {
-    if (!w.wealth) continue;
-    counted += 1;
-    if (w.wealth === 'wealthy') wealthy += 1;
-    else if (w.wealth === 'poor') poor += 1;
-  }
-  if (counted === 0) {
-    throw new Error('Cannot derive town wealth: no ward on the canonical plan carries a social class');
-  }
-  const score = (wealthy - poor) / counted;
-  if (score > 0.15) return 'rich';
-  if (score < -0.15) return 'poor';
-  return 'comfortable';
+  // The rule lives in population.ts since GG-586: the market square reads it too.
+  return sharedTownWealthBand(wards.map((w) => w.wealth));
 }
 
 /** The personality of a burg plus the flavor profile it resolves to. */

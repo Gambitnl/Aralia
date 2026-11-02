@@ -186,6 +186,11 @@ describe('waterfall, pool and branching rapids', () => {
     frame.h = new Float32Array(count).fill(1);
     frame.u = new Float32Array(count); frame.v = new Float32Array(count); frame.uRms = new Float32Array(count);
     frame.dtS = 4;
+    // GG-430 SPARSE CELLS (2026-10-22): a frame lists its wet cells, and the
+    // mapper scans only those. The worker frame listed cells of the full grid;
+    // on this 40 x 40 grid every cell is wet, so every cell is listed
+    // (2026-11-02, agora-257c; CI run 41363850920).
+    frame.cells = Int32Array.from({ length: count }, (_, c) => c);
     const init = () => ({ grid, ground: new Float32Array(count).fill(7), bed: new Float32Array(count).fill(7), manning: new Float32Array(count).fill(0.04), boulders: [], W: new Float32Array(count), T: new Float32Array(count), L: new Float32Array(count) });
     setRiverHeadwaters(false); setRiverShape(null);
     try {
@@ -312,11 +317,23 @@ describe('waterfall, pool and branching rapids', () => {
     { widthScale: 0.6, depthScale: 2, dischargeM3S: 0.5 },
   ])('keeps the requested high and low flows healthy after initialization: %j', (shape) => {
     live.applyEdit({ shape, course: null }); live.startCold();
-    let seconds = 0;
+    // RETARDED SOURCE (2026-10-21): an edited flow leaves the crest at the
+    // edit and reaches the pool one flight time later, on the river's clock.
+    // Stepping the solver alone never moves that clock, so the old flow
+    // stayed. live.advance moves the clock past the flight; the solver then
+    // steps on to 20 s as before (live.advance for all 20 s took 85 s)
+    // (2026-11-02, agora-257c; CI run 41363850920).
+    expect(live.solver.discharge).not.toBe(shape.dischargeM3S);
+    const flightS = live.flood.source!.flightDelayS;
+    expect(flightS).toBeGreaterThan(0);
+    let seconds = live.advance(Infinity, flightS + 0.1).simS;
+    expect(live.solver.discharge).toBe(shape.dischargeM3S);
     while (seconds < 20) seconds += live.solver.step();
     expect(live.solver.health(25)).toMatchObject({ ok: true, badCells: 0 });
     expect(live.inflowDry).toBe(false);
     expect(live.solver.discharge).toBe(shape.dischargeM3S);
     expect(Array.from(live.solver.h).every((depth, c) => reach.cellS[c] >= -175 || depth === 0)).toBe(true);
-  }, 60000);
+    // 240 s: the 12 m3/s flow now really arrives, and its 13.5 m/s water
+    // forces 8.5 ms steps (about 95 s on the dev PC on 2026-11-02; 60 s timed out).
+  }, 240000);
 });

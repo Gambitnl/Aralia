@@ -338,8 +338,22 @@ const weatherFiles = source => {
 const weatherMount = { leaf: weatherLeaf, parent: weatherParent, symbol: 'AmbientWeather', relation: 'existing', delivery: 'owned' };
 
 // Read current shared contracts without changing game files or launching workers.
+// Fixtures that name live source find their paths at test time, so a source move
+// cannot break them: src/types/combat.ts became a barrel over src/types/combat/*.ts,
+// and a fixed contract path no longer matched the declaration file the analyzer reports.
+const liveSourceFiles = dir => fs.readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
+  const file = path.posix.join(dir, entry.name);
+  return entry.isDirectory() ? liveSourceFiles(file) : /\.[cm]?[jt]sx?$/.test(entry.name) ? [file] : [];
+});
+const declaringFile = (symbol, dir) => {
+  const declaration = new RegExp('^export\\s+(?:interface|type|class|enum)\\s+' + symbol + '\\b', 'm');
+  const found = liveSourceFiles(dir).filter(file => declaration.test(fs.readFileSync(file, 'utf8')));
+  assert.equal(found.length, 1, symbol + ' must have exactly one declaration file under ' + dir + ': ' + found.join(', '));
+  return found[0];
+};
+const escapeRegExp = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const combatCaller = 'src/hooks/combat/useActionExecutor.ts';
-const combatContract = 'src/types/combat.ts';
+const combatContract = declaringFile('CombatLogEntry', 'src/types');
 const sharedContractFiles = source => {
   const files = [source], twin = source.replace(/\.[^.]+$/, '.d.ts');
   if (fs.existsSync(twin)) files.push(twin);
@@ -366,7 +380,7 @@ test('WF228: partition exposes current imported type contracts, packet owners an
   const owned = report.sharedTypes.entries.find(item => item.source === combatCaller && item.file === combatContract);
   assert.equal(owned.ownership, 'sibling'); assert.equal(owned.owners[0].packetId, owner.id);
   assert.equal(owned.owners[0].handle, owner.handle); assert.equal(owned.locks[0].agentId, lock.agentId);
-  assert.match(formatPacketOwnershipReport(report), /SHARED TYPE.*useActionExecutor.*combat\.ts/);
+  assert.match(formatPacketOwnershipReport(report), new RegExp('SHARED TYPE.*useActionExecutor.*' + escapeRegExp(combatContract)));
   assert.match(formatPacketOwnershipReport(report), /type-owner-fixture/);
   assert.match(formatPacketOwnershipReport(report), /not.*edit permission/i);
   assert.equal(JSON.stringify(packet), before); assert.deepEqual(fs.readFileSync(combatCaller), bytes);
@@ -418,7 +432,7 @@ test('WF228: real isolated partition/prompt CLI is read-only and seeded briefs p
     const before = snapshot();
     const partition = await execute(['partition', file]);
     assert.equal(partition.code, 0, partition.stdout + partition.stderr);
-    assert.match(partition.stdout, /SHARED TYPE.*PK-combat.*combat\.ts/);
+    assert.match(partition.stdout, new RegExp('SHARED TYPE.*PK-combat.*' + escapeRegExp(combatContract)));
     assert.match(partition.stdout, /PK-types \(shared-owner-fixture\)/);
     const prompt = await execute(['prompt', file, packet.id]);
     assert.equal(prompt.code, 0, prompt.stdout + prompt.stderr);
@@ -1351,7 +1365,9 @@ test('WF-G262: a state-slice / save-state reducer packet requires src/types/stat
     packets: [{
       id: 'PK-30',
       scope: 'reducer action + save-state wiring in src/state/reducers/townReducer.ts',
-      files: [reducer, 'src/state/reducers/__tests__/townReducer.rumors.test.ts'],
+      // The reducer and every current companion test (WF-G209 needs them together);
+      // a fixed test list failed when townReducer.doors and .buildingSources tests arrived.
+      files: sharedContractFiles(reducer),
       actionWiringReview: {
         reason: 'Fixture tests state-slice type ownership rather than a new action route.',
         sources: [{ file: reducer, quote: fs.readFileSync(reducer, 'utf8').slice(0, 120) }],
@@ -1476,13 +1492,14 @@ test('WF-G273: a task adding a new trigger case to CommandContext.requestReactio
   };
   const failed = analyzePacketOwnership(plan, [task]);
   assert.equal(failed.ok, false);
-  for (const declFile of [
-    'src/commands/base/SpellCommand.ts',
-    'src/commands/factory/AbilityCommandFactory.ts',
-    'src/commands/factory/SpellCommandFactory.ts',
-    'src/hooks/ability/useAbilityExecution.ts',
-    'src/hooks/ability/useReactionSystem.ts',
-  ]) {
+  // The declaration sites are found at test time; a fixed list failed when the union
+  // moved from useAbilityExecution.ts to abilityExecutionTypes.ts. This scan is looser
+  // than the analyzer's pattern (any line whose triggerType names both cases), so a
+  // site that the analyzer misses still fails here.
+  const declarationSites = liveSourceFiles('src').filter(file => fs.readFileSync(file, 'utf8').split(/\r?\n/)
+    .some(line => /\btriggerType\b/.test(line) && /['"]on_hit['"]/.test(line) && /['"]on_take_damage['"]/.test(line)));
+  assert.ok(declarationSites.length >= 3, 'expected several inline triggerType union sites, found: ' + declarationSites.join(', '));
+  for (const declFile of declarationSites) {
     assert.ok(
       failed.errors.some((e) => e.includes(declFile) && e.includes('WF-G273')),
       'expected WF-G273 error for ' + declFile + ' in:\n' + failed.errors.join('\n')

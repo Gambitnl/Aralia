@@ -1,6 +1,6 @@
 # Town Map
 
-Verified: 2026-11-02 (GG-577 shared courts in the old core and GG-569 civic grounds in the 3D bake, measured at four bands, rendered at `step=town3d` Real 3D for Paphina). Earlier: 2026-11-02 (GG-542: staff and patron parity between the building visit and the live schedule). Earlier: 2026-11-01 (town-map rules GG-560 to GG-567: main street, river channel, bridges, docks, gate hooks, house shape, front gardens, passages and civic grounds, measured at four bands and thirteen water towns, rendered at `step=town3d`; candidate homestead/parent-land/shared-approach planning and larger-town coverage failure; explicit candidate rural household/field source facts; fresh-only resolved building purpose and household-first prop wealth; native settled nave orbit, altar route and retained knowledge reload; requested-heading camera retraction and native temple bench/reload; measured retained-prop repair proposal and native movement contract; saved-revision factual readers and Local/address reconstruction; revision-aware building/rest readers, truthful routine reports and source-change inspector reset; recorded door widths, household reference drafts and native poor-home reload; saved town-layout registration and ground projection; retained town-layout reader and measured runtime precision; reached furnishing identity source and captured desktop component view; town-look rules GG-544 to GG-551, census of 813 towns; fitted civic labels and native library use; town roads meet the world roads, GG-541, census of 8 towns). Earlier, 2026-10-29: (canonical door-head alignment, measured standing clearance, actual Fenna entry/owned trade/counter examination and two native interior reloads; live Brooksmith work/home handoff, night manual full reload and continuous terrain walking; separate workplace attendance and retirement; ground recovery, finish-based rest cooldown and named-slot reload; source-grid combat handoff and actual Alrio defeat; observed Alrio growth, saved exploration knowledge, bounded stair/input gates and exact repaired world return; typed tavern services and saved local hooks; canonical proprietor reconciliation, clear activity targets, resident mouse selection, family/memory reload, in-place rest, saved front doors and qualified railed Hartdown traversal). Source-bound shelf rendering and owned-content examination were checked in the saved Menaikon visit.
+Verified: 2026-11-02 (GG-586 market square: measured at four bands and 24 sampled towns, Hafting rendered in the 2D town map at `step=town3d`). Earlier: 2026-11-02 (GG-577 shared courts in the old core and GG-569 civic grounds in the 3D bake, measured at four bands, rendered at `step=town3d` Real 3D for Paphina). Earlier: 2026-11-02 (GG-542: staff and patron parity between the building visit and the live schedule). Earlier: 2026-11-01 (town-map rules GG-560 to GG-567: main street, river channel, bridges, docks, gate hooks, house shape, front gardens, passages and civic grounds, measured at four bands and thirteen water towns, rendered at `step=town3d`; candidate homestead/parent-land/shared-approach planning and larger-town coverage failure; explicit candidate rural household/field source facts; fresh-only resolved building purpose and household-first prop wealth; native settled nave orbit, altar route and retained knowledge reload; requested-heading camera retraction and native temple bench/reload; measured retained-prop repair proposal and native movement contract; saved-revision factual readers and Local/address reconstruction; revision-aware building/rest readers, truthful routine reports and source-change inspector reset; recorded door widths, household reference drafts and native poor-home reload; saved town-layout registration and ground projection; retained town-layout reader and measured runtime precision; reached furnishing identity source and captured desktop component view; town-look rules GG-544 to GG-551, census of 813 towns; fitted civic labels and native library use; town roads meet the world roads, GG-541, census of 8 towns). Earlier, 2026-10-29: (canonical door-head alignment, measured standing clearance, actual Fenna entry/owned trade/counter examination and two native interior reloads; live Brooksmith work/home handoff, night manual full reload and continuous terrain walking; separate workplace attendance and retirement; ground recovery, finish-based rest cooldown and named-slot reload; source-grid combat handoff and actual Alrio defeat; observed Alrio growth, saved exploration knowledge, bounded stair/input gates and exact repaired world return; typed tavern services and saved local hooks; canonical proprietor reconciliation, clear activity targets, resident mouse selection, family/memory reload, in-place rest, saved front doors and qualified railed Hartdown traversal). Source-bound shelf rendering and owned-content examination were checked in the saved Menaikon visit.
 
 Named household schedules share the occupancy owner's 07:00 breakfast, 08:00
 work and 18:00 return boundaries. Street travel uses existing route length at
@@ -526,7 +526,8 @@ Flat chunks retain compact ribbons; regional road routes and colors are preserve
 
 ## Town roads meet the world roads
 
-Verified 2026-10-31 (GG-541). One function, `region/roadCourse.ts`
+Verified 2026-11-02 (GG-582: roads keep to a bank). Earlier: 2026-10-31
+(GG-541). One function, `region/roadCourse.ts`
 (`roadCourseFt`), gives each world road its course. It smooths the route
 between towns and keeps every route point in a burg's cell exactly, so a road
 runs through each town it serves. The region tier draws that course, and the
@@ -541,6 +542,53 @@ grass. At Tineroe (world 1793371993547) the trail passed 403 m from the town.
 A census of 8 towns in that world after the fix: the world road passes 0 m from
 7 town centers and 4.6 m from one, and every town street end that touches no
 other street lies on a world road, except one inner lane near a market.
+
+**A road keeps to a bank (GG-582).** A world road and the river in its valley
+follow the same chain of map cells, so at true scale a road can lie on the
+river's center line. Remy found one at Borieborum (burg 702, world 903674813):
+1,083 ft of approach road in the water. The shared rule
+`keepRoadOffRivers` (`region/roadCourse.ts`) moves each stretch of road
+that comes nearer a river than half the river's width plus
+`ROAD_RIVER_CLEAR_FT` (30 ft) onto the bank, at exactly that distance. The
+width is the river's width at each point (`riverRoadClearAtFt`, the nearest
+atlas segment, the rule `generateRiverBanks` uses). A stretch that leaves on
+the side it came from stays on that bank. A stretch that leaves on the other
+side crosses once, at the place where the atlas road itself changes bank and
+meets the river most nearly square, and the crossing runs straight across.
+Both tiers apply the rule to the full world road within
+`ROAD_RIVER_CONTEXT_FT` (10,000 ft) of their own area
+(`keepRoadOffRiversNear`): the region tier with every river near its window
+(`generateRegion`), and the town with its own river
+(`townRiverRoadReachFt`, passed to `townRoadCourseCanon` for layout
+revision 2 only). The town's approach and the wilderness road stay one line.
+
+Town points are not held to the river rule. A river town's center usually lies
+in its river, and a road held there runs into the water. The town plan closes
+what that leaves:
+
+- an approach road and a field track get a bridge deck where they cross;
+- a field track keeps to a bank, with its gate end held;
+- a top-up gate stands out of the water (`buildWalls` `dry`);
+- a road that stops short of the wall runs on to the nearest ring point out of
+  the water, within 15% of the ring's span, and a gate stands there
+  (`roadsReachWall`);
+- a road that shares a gate with another road runs to that gate
+  (`approachesToGates`);
+- the main street drops a corner only where the new straight line stays out of
+  the water (`river` input to `buildStreetNetwork`);
+- a village branch lane does not start on its street's bridge, and it ends
+  where any part of a step meets the water (`laneVillage.ts`).
+
+Measured on all 249 river towns of world 903674813 with
+`.agent/scratch/town-look/road-in-river.mts`, `road-ends.mts` and
+`region-match.mts` (gitignored): road length in the water outside bridges
+0 ft (5,647 ft in 18 of a 40-town sample before); every approach end on a wall
+is at a gate; each town approach that reaches the town edge meets the region
+road there (0 ft off in a 40-town sample); those 40 region windows have no
+road in the water, and all 26 of their crossings meet the river at 90
+degrees. Open: GG-583 (a wall in the river, or a town center outside its
+wall, leaves 4 roads without a gate) and GG-584 (a hedge in the Legium
+gateway).
 
 ## Town shape rules measured against Watabou (town look)
 
@@ -740,6 +788,106 @@ plan position. Measured with `courts-bands.mts`, `civic3d.mts` and
 Still open: the Hafting cloister places no walk because the cloister does
 not fit its grounds (GG-581), and the 3D river carve is narrower than the
 channel the plan now cuts (GG-553).
+
+## The market square (GG-586)
+
+Verified 2026-11-02 at the four filled bands of the `town3d` step and at six
+towns of each size class in world 903674813. Remy asked at Hafting (burg 433)
+for a market square: the plaza was a bare tan block. Layout revision 1 is
+unchanged.
+
+The square is the plaza ward's block. `buildMarketSquare`
+(`town/marketSquare.ts`) lays it out at the end of `finishTownPlan`, after
+every house is final. The result is a `plan.civicGrounds` entry with civic
+kind `plaza` and set piece `market`, placed after the temple and keep
+grounds. So the GG-566 and GG-569 paths carry it to the 2D map and to the 3D
+bake. A plan with no scale profile (a schematic plan) gets no market.
+
+What the square holds (`marketPieces`) comes from the size class and the
+town wealth band. The band is `townWealthBand` in `population.ts`, the rule
+the town personality uses:
+
+| Size | Centerpiece | Market hall | Weigh house | Pillory | Stall cap |
+|---|---|---|---|---|---|
+| Village | well; market cross when rich | no | no | no | 6 |
+| Walled town | well, market cross, fountain (poor, comfortable, rich) | rich only | not poor | yes | 24 |
+| City | market cross when poor, else fountain | yes | yes | yes | 40 |
+| Capital | fountain | yes | yes | yes | 64 |
+
+A poor town's stall cap is 0.7 times the table, and a rich town's 1.3 times.
+
+How the pieces stand:
+
+- A clear walk runs round the inside of the square: 16 ft, or 8 ft on a
+  village green. So a street that enters at a corner or a side, and a shop
+  that faces the square, opens onto paving, never onto a stall.
+- The centerpiece stands at the most open point of the square. A 16 ft lane
+  from the main street's mouth to the centerpiece stays clear.
+- The market hall stands as far from the main street's mouth as it fits. It
+  covers at most 18% of the square and shrinks to half size before it gives
+  up. The weigh house stands as near the hall as it fits. The pillory stands
+  beside the centerpiece.
+- Stalls are 10 by 7 ft. They stand back to back in pairs of rows along the
+  square's longest side, with a 12 ft aisle between pairs and an 8 ft cross
+  aisle after every four stalls. The stalls nearest the centerpiece fill
+  first, up to the cap, and at least 55% of the square stays open.
+- A walk grid (2.5 ft cells) floods in from every part of the square's edge
+  that lies on a street. A stall whose open side the flood does not reach is
+  dropped (`marketReach` measures the same thing).
+
+A market square has a size floor (`MARKET_SEAT_FT`): no scattered ward site
+stands nearer the market point than 120 ft in a walled town or 160 ft in a
+city or capital. The larger of that floor and the old clearance (0.8 ward
+spans) wins, at true scale only. Before it, city squares were 6,000 to 11,000
+sq ft, too small for their hall, and Borieborum's was 9,473 sq ft with two
+stalls.
+
+The edges: a frontage house whose street side looks onto the square, across
+the market street and at most a wealthy front garden, is `facesMarket`
+(`plotFacesSquare`). The population pass makes it a shop, an inn or a tavern
+by its class; a landmark such as a guild hall still comes first. Its frontage
+is a `market-arcade` ensemble.
+
+Where it draws:
+
+- 2D: `TownPlanView` draws the square, its stalls and pieces in the civic
+  grounds group, under the houses. The plaza's own fill no longer draws over
+  everything when a market covers it.
+- 3D: `toArtifactPlan` adds the market hall (two storeys) and the weigh
+  house (one storey) as `civic` plots after every other plot, so no plot id
+  moves. The `civic-grounds` prop pass stands a `market-stall` on each
+  planned stall, open toward its aisle, with one or two pieces of stock inside
+  it, and a `well`, `market-cross`, `fountain` or `pillory` at its outline's
+  middle. `market-cross` and `pillory` are new catalog props; a fountain is
+  drawn as a wide well basin, a market cross as a tall stone cross, a pillory
+  as a fingerpost. A town with a planned market gets no old ring of stalls
+  (`buildMarketPlazas`).
+
+Measured with `.agent/scratch/town-look/market.mts` and `market3d.mts`
+(gitignored):
+
+- Bands: Sarprak (village) a well and 5 stalls, 90% open; Hafting (walled
+  town, comfortable) a market cross, weigh house, pillory and 24 stalls, 86%
+  open; Paphina (city, rich) a fountain, hall, weigh house, pillory and 11
+  stalls, 82% open; Borieborum (capital) a fountain, hall, weigh house,
+  pillory and 64 stalls, 76% open.
+- Six towns per class: stalls per square, village 0 to 4, walled town 5 to
+  24, city 4 to 21, capital 30 to 64; open share at least 0.72 (capital), 0.79
+  (city), 0.81 (walled town), 0.89 (village). Every stall in every sampled
+  square is reached from a street, and all the free paving is reached. No
+  stall stands nearer the edge than the walk.
+- Halls where due: city 5 of 6, capital 6 of 6, rich walled town 1 of 1.
+  Weigh houses: walled town 5 of 6, city 3 of 6, capital 6 of 6; the misses
+  are squares with no room left.
+- Facing houses that trade: 171 of 182 in the sample; the rest are landmarks.
+- 3D bake: Paphina places 13 of 13 market props at their plan positions,
+  and its hall and weigh house are buildings. Hafting places 25 of 26; the
+  surface gate drops one stall on 10.9 degree ground. Sarprak places 0 of 6:
+  its green lies on 11 to 18 degree ground (GG-593).
+
+Open: the 3D bake does not level a market square, so on a slope the surface
+gate drops its pieces (GG-593). A village green with no room after its walk
+and centerpiece holds no stall (two of four sampled greens hold 0 or 1).
 
 ## Town perimeter and skyline rendering
 

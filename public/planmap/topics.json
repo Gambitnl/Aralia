@@ -9439,6 +9439,17 @@
           "verified": "2026-10-30"
         }
       ]
+    },
+    {
+      "id": "shared-button-migration",
+      "title": "Shared button style across game screens",
+      "sub": "Raw buttons move to the ui/Button component or the BTN_* constants; the button audit guard fails on any new unstyled button.",
+      "campaign": "ui",
+      "status": "active",
+      "deps": [],
+      "tier": "component",
+      "updated": "2026-11-02",
+      "status_note": "GG-378. 2026-11-02: 14 screens migrated (party meal, five companion choice lists, interior nameplate, three river panels, atlas globe, local journey, game over, lodging); audit passes. 152 files remain in the reviewed debt list."
     }
   ]
 }

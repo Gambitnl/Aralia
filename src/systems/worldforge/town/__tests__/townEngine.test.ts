@@ -1,3 +1,4 @@
+import { marketReach, MARKET_EDGE_WALK_FT, MARKET_OPEN_SHARE_MIN } from '../marketSquare';
 import { describe, it, expect } from 'vitest';
 import {
   polygonCentroid,
@@ -1099,7 +1100,8 @@ describe('town-map rules (GG-560..GG-567, Remy 2026-11-01)', () => {
   });
 
   it('GG-566: each temple and keep has grounds, a forecourt and an open approach', () => {
-    const grounds = plain.civicGrounds ?? [];
+    // The market square (GG-586) rides in the same list; it has no approach.
+    const grounds = (plain.civicGrounds ?? []).filter((g) => g.civicKind !== 'plaza');
     expect(grounds.map((g) => g.civicKind).sort()).toEqual(['keep', 'temple']);
     for (const g of grounds) {
       expect(g.grounds.length).toBeGreaterThanOrEqual(3);
@@ -1115,8 +1117,38 @@ describe('town-map rules (GG-560..GG-567, Remy 2026-11-01)', () => {
       population: 6000, roads: [ROAD], feetPerUnit: FPU,
       faith: { type: 'Folk', form: 'Totemism' }, holder: { form: 'Monarchy' },
     });
-    const kinds = Object.fromEntries((faithful.civicGrounds ?? []).map((g) => [g.civicKind, g.setPiece]));
+    const kinds = Object.fromEntries((faithful.civicGrounds ?? []).filter((g) => g.civicKind !== 'plaza').map((g) => [g.civicKind, g.setPiece]));
     expect(kinds).toEqual({ temple: 'grove', keep: 'bailey' });
+  });
+
+  it('GG-586: the market square holds reachable stalls and its pieces, and the houses facing it trade', () => {
+    const unit = (ft: number): number => ft / FPU;
+    for (const plan of [plain, river]) {
+      const markets = (plan.civicGrounds ?? []).filter((g) => g.setPiece === 'market');
+      expect(markets).toHaveLength(1);
+      const m = markets[0];
+      // The market is the plaza ward's square, recorded after the other grounds.
+      const plaza = plan.civic.find((c) => c.kind === 'plaza')!;
+      expect(m).toMatchObject({ civicKind: 'plaza', wardIndex: plaza.wardIndex });
+      expect(m.grounds).toEqual(plaza.polygon);
+      expect((plan.civicGrounds ?? []).at(-1)).toBe(m);
+      const streets = plan.streetNetwork.filter((s) => s.role !== 'passage').map((s) => ({ line: s.centerline, half: s.width / 2 }));
+      const r = marketReach(m, streets, unit);
+      expect(r.stalls).toBeGreaterThan(0);
+      expect(r.reachedStalls).toBe(r.stalls);
+      expect(r.openShare).toBeGreaterThanOrEqual(MARKET_OPEN_SHARE_MIN);
+      expect(r.stallEdgeGap).toBeGreaterThanOrEqual(unit(MARKET_EDGE_WALK_FT) - 1e-6);
+      const kinds = new Set(m.features.map((f) => f.kind));
+      expect(kinds.has('pillory')).toBe(true);
+      expect(['well', 'market-cross', 'fountain'].some((k) => kinds.has(k as never))).toBe(true);
+      // The houses that face the square are its shops and inns (a landmark,
+      // such as a guild hall, may stand there too).
+      const facing = plan.plots.filter((p) => p.facesMarket);
+      expect(facing.length).toBeGreaterThan(0);
+      const trades = facing.filter((p) => p.buildingType === 'shop' || p.buildingType === 'inn' || p.buildingType === 'tavern');
+      expect(trades.length / facing.length).toBeGreaterThanOrEqual(0.75);
+      expect(facing.every((p) => p.ensemble?.kind === 'market-arcade')).toBe(true);
+    }
   });
 
   it('GG-567: one main street from a gate to the market, gently curved, widest after the market ring', () => {

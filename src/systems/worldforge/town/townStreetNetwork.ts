@@ -196,6 +196,21 @@ export interface StreetNetworkInput {
    * can cross the river, and they are tiered by traffic like any edge.
    */
   links?: ReadonlyArray<readonly [Pt, Pt]>;
+  /**
+   * THE RIVER (GG-582): its center lines and half its width. When present,
+   * the main street drops a corner only where the straight line that
+   * replaces it stays out of the water. Absent = no such check (layout
+   * revision 1 and schematic plans).
+   */
+  river?: { lines: readonly Pt[][]; half: number };
+  /**
+   * EVERY APPROACH ENDS AT A GATE (GG-582). Two roads that meet the wall
+   * closer than the gate spacing share one gate (`buildWalls`), so the second
+   * road ended at blank wall (Jarimibu, burg 1, once both roads kept to the
+   * same bank). When set, such a road turns its last stretch to the nearest
+   * gate. Absent = the old ends (layout revision 1).
+   */
+  approachesToGates?: boolean;
 }
 
 /**
@@ -509,7 +524,7 @@ function pathToPolyline(g: Graph, path: readonly number[]): Pt[] {
  * `maxTurnDeg` (default 90) sets how sharp a corner must be to go; the main
  * street uses 30 (GG-567).
  */
-export function dropGateHooks(line: Pt[], gate: Pt, width: number, maxTurnDeg = 90): Pt[] {
+export function dropGateHooks(line: Pt[], gate: Pt, width: number, maxTurnDeg = 90, chordOk: (a: Pt, b: Pt) => boolean = () => true): Pt[] {
   const reach = width * 1.5;
   const cosMax = Math.cos((maxTurnDeg * Math.PI) / 180);
   const trim = (pts: Pt[]): Pt[] => {
@@ -521,7 +536,7 @@ export function dropGateHooks(line: Pt[], gate: Pt, width: number, maxTurnDeg = 
       const c = out[i + 1];
       const ux = b[0] - a[0], uy = b[1] - a[1], vx = c[0] - b[0], vy = c[1] - b[1];
       const n = Math.hypot(ux, uy) * Math.hypot(vx, vy);
-      if (n > 1e-12 && (ux * vx + uy * vy) / n < cosMax) {
+      if (n > 1e-12 && (ux * vx + uy * vy) / n < cosMax && chordOk(a, c)) {
         // Turns by more than `maxTurnDeg`: drop the corner, then look again
         // at the corner before it, whose next point just changed. Without
         // the step back, Hafting's north spine kept a 113-degree hook one
@@ -545,7 +560,7 @@ export function dropGateHooks(line: Pt[], gate: Pt, width: number, maxTurnDeg = 
  * `maxTurnDeg` with a segment shorter than `jogLen` on either side is
  * dropped, again until none is left. The ends always stay.
  */
-export function dropJogs(line: Pt[], jogLen: number, maxTurnDeg: number): Pt[] {
+export function dropJogs(line: Pt[], jogLen: number, maxTurnDeg: number, chordOk: (a: Pt, b: Pt) => boolean = () => true): Pt[] {
   const cosMax = Math.cos((maxTurnDeg * Math.PI) / 180);
   const out = line.slice();
   for (let changed = true; changed;) {
@@ -554,7 +569,7 @@ export function dropJogs(line: Pt[], jogLen: number, maxTurnDeg: number): Pt[] {
       const a = out[i - 1], b = out[i], c = out[i + 1];
       const ux = b[0] - a[0], uy = b[1] - a[1], vx = c[0] - b[0], vy = c[1] - b[1];
       const lu = Math.hypot(ux, uy), lv = Math.hypot(vx, vy);
-      if (lu < 1e-12 || lv < 1e-12 || ((ux * vx + uy * vy) / (lu * lv) < cosMax && Math.min(lu, lv) < jogLen)) {
+      if (lu < 1e-12 || lv < 1e-12 || ((ux * vx + uy * vy) / (lu * lv) < cosMax && Math.min(lu, lv) < jogLen && chordOk(a, c))) {
         out.splice(i, 1);
         changed = true;
         break;
@@ -703,6 +718,28 @@ function fieldTrack(
     (gate[1] + end[1]) / 2 + ((end[0] - gate[0]) / endD) * endD * 0.08 * side,
   ];
   return [[gate[0], gate[1]], mid, end];
+}
+
+/**
+ * Turn an approach that ends on the wall away from any gate to the nearest
+ * gate (GG-582). The end on the ring moves to the gate when one lies within a
+ * tenth of the town span; otherwise the piece comes back unchanged.
+ */
+function endAtGate(piece: Pt[], ring: readonly Pt[], gates: readonly Pt[], span: number): Pt[] {
+  if (ring.length < 3 || gates.length === 0) return piece;
+  const onRing = (p: Pt): boolean => {
+    for (let i = 0; i < ring.length; i++) if (distToSegment(p, ring[i], ring[(i + 1) % ring.length]) < span * 1e-6) return true;
+    return false;
+  };
+  const out = piece.slice();
+  for (const at of [0, out.length - 1]) {
+    const end = out[at];
+    if (!onRing(end) || gates.some((g) => dist(g, end) < span * 1e-6)) continue;
+    let best: Pt | null = null;
+    for (const g of gates) if (dist(g, end) <= span * 0.1 && (!best || dist(g, end) < dist(best, end))) best = g;
+    if (best) out[at] = [best[0], best[1]];
+  }
+  return out;
 }
 
 /**
@@ -887,6 +924,19 @@ export function buildStreetNetwork(input: StreetNetworkInput): TownStreet[] {
   const widthFor = (tier: StreetTierName, cap: number): number =>
     Math.min(laneWidth * TIER_WIDTH_RATIO[tier], cap);
 
+  // GG-582: where a dropped corner is replaced by a straight line, that line
+  // must stay out of the river. Courdon's main street cut a river bend 66 ft
+  // into the water between two bank corners.
+  const river = input.river;
+  const dryChord = (a: Pt, b: Pt): boolean => {
+    if (!river || river.half <= 0) return true;
+    const n = Math.max(1, Math.ceil(dist(a, b) / (river.half / 2)));
+    for (let k = 0; k <= n; k++) {
+      const p: Pt = [a[0] + ((b[0] - a[0]) * k) / n, a[1] + ((b[1] - a[1]) * k) / n];
+      for (const L of river.lines) for (let i = 0; i < L.length - 1; i++) if (distToSegment(p, L[i], L[i + 1]) < river.half) return false;
+    }
+    return true;
+  };
   spinePaths.forEach(({ path, gate, main: isMain }) => {
     // A spine is painted at the best tier any of its edges earned, so the high
     // street does not narrow and widen along its own length; its width is capped
@@ -920,7 +970,7 @@ export function buildStreetNetwork(input: StreetNetworkInput): TownStreet[] {
     // (GG-567); every other spine drops only a hook back past 90 (GG-562).
     // It also looks twice as far from the gate: its first corner can sit just
     // past the reach of an avenue (burg 12 turned back 28 units out).
-    line = dropGateHooks(line, gate, widthFor(tier, cap) * (isMain ? 2 : 1), isMain ? 30 : 90);
+    line = dropGateHooks(line, gate, widthFor(tier, cap) * (isMain ? 2 : 1), isMain ? 30 : 90, dryChord);
     // A spine claims the edges it paints so the same ground is not painted twice
     // at two widths — EXCEPT the market square's own frontage. Those edges stay
     // unclaimed so the square keeps a COMPLETE plaza-tier ring: letting a spine
@@ -945,9 +995,9 @@ export function buildStreetNetwork(input: StreetNetworkInput): TownStreet[] {
       // The same 30-degree trim at the market end: where the market ward is
       // a thin strip (burg 7, between its wall and its river) the last
       // corner before the square turned the street by 59 degrees.
-      fromGate = dropGateHooks(fromGate, fromGate[fromGate.length - 1], widthFor(tier, cap) * 2, 30);
+      fromGate = dropGateHooks(fromGate, fromGate[fromGate.length - 1], widthFor(tier, cap) * 2, 30, dryChord);
       // A jog shorter than the street is wide does not read as a turn.
-      streets.push({ centerline: dropJogs(fromGate, Math.max(laneWidth * 1.5, mainWidth), 30), tier: 'avenue', role: 'spine', width: mainWidth, main: true, wardEdges: fromGate });
+      streets.push({ centerline: dropJogs(fromGate, Math.max(laneWidth * 1.5, mainWidth), 30, dryChord), tier: 'avenue', role: 'spine', width: mainWidth, main: true, wardEdges: fromGate });
       return;
     }
     streets.push({ centerline: line, tier, role: 'spine', width: widthFor(tier, cap) });
@@ -966,8 +1016,12 @@ export function buildStreetNetwork(input: StreetNetworkInput): TownStreet[] {
   // Approach roads: the extramural half only, ending at the gate they made.
   for (const road of approachRoads) {
     if (road.length < 2) continue;
-    for (const piece of trimApproach(road, wallRing)) {
-      if (piece.length < 2) continue;
+    for (const raw of trimApproach(road, wallRing)) {
+      if (raw.length < 2) continue;
+      const piece = input.approachesToGates ? endAtGate(raw, wallRing, gatehouses, span) : raw;
+      // A stub of road outside the wall whose two ends both met one gate is
+      // gone: nothing is left of it but the gate (GG-582).
+      if (input.approachesToGates && piece.slice(1).reduce((s, p, i) => s + dist(piece[i], p), 0) < laneWidth) continue;
       streets.push({
         centerline: piece,
         tier: 'avenue',

@@ -5,22 +5,6 @@
  * Generated from public/data/glossary/entries/equipment and magic_items.
  */
 
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * This file appears to be an ISOLATED UTILITY or ORPHAN.
- *
- * Last Sync: 04/10/2026, 00:42:29
- * Dependents: None (Orphan)
- * Imports: None
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 import { Item, ItemRarity } from '../../types/index.js';
 
 export const GENERATED_GLOSSARY_ITEMS: Record<string, Item> = {

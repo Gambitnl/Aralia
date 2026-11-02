@@ -134,7 +134,7 @@ import type { FmgAtlasResult } from '../fmg/generateAtlas';
 import type { FmgWorldResult } from '../fmg/generateWorld';
 import type { Burg } from '../fmg/burgs-generator';
 import type { Route } from '../fmg/routes-generator';
-import { roadCourseFt } from './roadCourse';
+import { keepRoadOffRiversNear, roadCourseFt, ROAD_RIVER_CLEAR_FT, type RoadRiverReach } from './roadCourse';
 import { generateRiverCourse } from './riverCourse';
 import { riverWidthFt } from './riverWidth';
 import { elevationCurveFt, elevationCurveSlopeFt } from '../local/generateLocal';
@@ -479,6 +479,9 @@ export function generateRegion(
     ).field, x, y),
   };
 
+  // GG-582: each river's full course and the distance a road keeps from it,
+  // filled by the river pass and read by the road pass below.
+  const roadReaches: RoadRiverReach[] = [];
   const rivers = generateRiverBanks(
     pack.rivers ?? [],
     {
@@ -503,6 +506,7 @@ export function generateRegion(
     naturalHeight,
     riverAttractors,
     courseGround,
+    roadReaches,
   );
 
   // ── Town sites + roads (C2) ─────────────────────────────────────────
@@ -517,6 +521,7 @@ export function generateRegion(
     feetPerPixel,
     bounds,
     heightfield,
+    roadReaches,
   );
   // Crossings are Region facts, not renderer guesses. Derive them only after
   // both independently generated source networks have their final smoothed,
@@ -849,6 +854,7 @@ function generateRiverBanks(
   naturalHeight: (x: Feet, y: Feet) => number,
   riverAttractors: Map<number, RiverAttractor[]>,
   courseGround: { key: object; scope: string; ftAt: (x: Feet, y: Feet) => number },
+  roadReaches: RoadRiverReach[] = [],
 ): RegionRiverBank[] {
   const banks: RegionRiverBank[] = [];
   let grades = riverGradeCache.get(courseGround.key);
@@ -918,6 +924,10 @@ function generateRiverBanks(
     // comes first (GG-540's follow-up).
     for (const w of water) depthFtOf.set(w, riverChannelSection(segmentWidthM(w), w.slope).depthM / 0.3048);
     const courseWater = course.map(segmentAt);
+    // GG-582: a road keeps half the river's width plus ROAD_RIVER_CLEAR_FT from
+    // the full course, at each point's own segment width. The town tier builds
+    // the same clearance (`townRiverRoadReachFt`), so the two draw one road.
+    roadReaches.push({ line: course, clear: ROAD_RIVER_CLEAR_FT, clearAt: courseWater.map((w) => w.widthFt / 2 + ROAD_RIVER_CLEAR_FT) });
     // The river's flood level along its whole course (towns build down to
     // the river, 2026-11-01): one grade per river for every window.
     // GG-536 (2026-11-01): the grade also falls at the atlas grade at least
@@ -1125,6 +1135,7 @@ function generateCivData(
   feetPerPixel: number,
   bounds: BoundsFt,
   heightfield: RegionHeightfield,
+  roadReaches: readonly RoadRiverReach[] = [],
 ): { townSites: RegionTownSite[]; roads: RegionRoad[] } {
   // Atlas-only mode: no civilization data
   if (!world || !world.pack.burgs || !world.pack.routes || !cellBurg) {
@@ -1156,7 +1167,16 @@ function generateCivData(
     // GG-541 (2026-10-31): smoothed between towns but PINNED at each burg the
     // route serves, so the road runs through its towns instead of cutting the
     // corner past them. Shared with the town generator (townRoadCourse).
-    const centerline = clipPolylineToBounds(roadCourseFt(route.points, feetPerPixel, cellBurg), bounds);
+    // GG-582: the road keeps to a bank of every river near the window
+    // (`keepRoadOffRiversNear`), by the rule the town tier applies to the
+    // same road, before the clip; so the wilderness road and the town's
+    // approach stay one line, and a crossing runs square to the river.
+    const course = keepRoadOffRiversNear(
+      roadCourseFt(route.points, feetPerPixel, cellBurg),
+      roadReaches,
+      { minX: bounds.x, minY: bounds.y, maxX: bounds.x + bounds.width, maxY: bounds.y + bounds.height },
+    );
+    const centerline = clipPolylineToBounds(course, bounds);
     if (centerline.length < 2) continue;
 
     // Width by kind: highway 44ft paved trunk, road 40ft trade route,

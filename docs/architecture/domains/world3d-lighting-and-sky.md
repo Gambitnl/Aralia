@@ -1,6 +1,6 @@
 # World3D Lighting & Sky
 
-Verified: 2026-11-01 (cloud resolve edge rule checked against code in both cloud setups; motion captures from 2026-10-29)
+Verified: 2026-11-02 for house lighting (code, unit tests, and WebGL day and night captures with a perf A-B; WebGPU not rendered); 2026-11-01 for the cloud resolve edge rule (code in both cloud setups; motion captures from 2026-10-29)
 
 ## Purpose
 
@@ -20,7 +20,10 @@ facades live in `streamed-3d-world.md`; game-time systems live in
 - `src/components/DesignPreview/steps/PreviewTown3D.tsx` - hour slider lab knob on the `town3d` design-preview step (the rendered-verification surface)
 - `src/components/World3D/VolumetricClouds.tsx` - takram `<Clouds>` effect inside the scene composer (ground profile, WebGL only)
 - `src/components/World3D/sky/cloudsSceneEdgeResolve.ts` - stops the clouds' temporal history at the scene/sky edge
-- Tests: `src/components/World3D/__tests__/World3DLighting.test.ts`, `src/components/World3D/sky/__tests__/cloudsSceneEdgeResolve.test.ts`
+- `src/systems/world3d/interiorDaylight.ts` - window view factors, the inside test, wall occlusion and the split-flux interreflection for one building (pure)
+- `src/components/World3D/interiorDaylightMaterial.ts` - interior materials that scale their indirect light by the sky factor (WebGL and WebGPU)
+- `src/components/World3D/InteriorLights.tsx` - hearth lights, camera-inside fill, lit-window area lights and table lamps
+- Tests: `src/components/World3D/__tests__/World3DLighting.test.ts`, `src/components/World3D/sky/__tests__/cloudsSceneEdgeResolve.test.ts`, `src/systems/world3d/__tests__/interiorDaylight.test.ts`, `src/components/World3D/__tests__/InteriorLights.test.ts`
 
 ## How the 24h cycle works NOW
 
@@ -97,6 +100,104 @@ them drops the ref or the TAA path.
 
 The WebGPU world has no clouds yet (ADR 0009 step 7). Any cloud port there
 must keep the same rule: no temporal history on or next to scene geometry.
+
+## House lighting: daylight in, lamplight out (2026-11-02)
+
+Remy asked for light in the houses: "windows should allow light through".
+Only live interiors (the walk-up buildings near the player) have rooms, so
+the rules below apply to them. Distant shells keep their exterior look.
+
+**What existed before.** Window panes are boxes tagged `lightRole: 'window'`
+that glow (emissive) during the building's `litHours`. Hearths glow during
+`hearthHours`, and the nearest 4 lit hearths get warm point lights. A neutral
+fill light follows the camera inside a building. Nothing let light in through
+a window, for these reasons:
+- Interior walls, floors and ceilings did not cast sun shadows.
+- The roof went invisible while the camera was inside, which also took it
+  out of the shadow map, so the sun lit the whole interior.
+- At walking height, 35% of the sun was a second light with no shadow
+  (`FAR_SHADOW_INTENSITY_SHARE`). It lit every room through its walls.
+- The hemisphere sky light reached every interior surface at full strength.
+
+**Sun in.** The merged structure of a live interior casts sun shadows; the
+glass looks do not. A roof hidden from the camera moves to
+`SHADOW_ONLY_LAYER` (layer 5), which only the sun's shadow cameras draw, so it
+still shades the rooms. When the far light casts no shadow (walking height,
+and always under WebGPU), the near light carries the whole sun. Past the near
+map's 220 m edge three treats a point as lit, so far views keep their full
+brightness. This also makes outdoor shadows at walking height as dark as they
+already were in aerial view: a shadow now holds sky light only.
+
+**Sky in.** `interiorDaylight.ts` gives each interior surface point a sky
+factor, 0 to 1, from the building's own window openings:
+- Lambert's polygon formula gives the view factor from the point to each
+  pane, clipped to the half-space in front of the surface.
+- Clear glass passes 85% (`GLASS_TRANSMITTANCE`).
+- A wall between the point and the pane center blocks that pane.
+- The BRE split-flux formula adds one interreflected component per
+  building, from window area, surface area and surface reflectances.
+- A point outside the floor footprint (the outer face of a perimeter wall)
+  keeps factor 1, so the street view does not change.
+
+The merged structure carries the factor as a per-vertex `skyView` attribute,
+baked once per building on boxes split into 0.75 m cells. Each furnishing gets
+one factor at its top center. The material multiplies the indirect light by
+the factor (WebGL: after `aomap_fragment`; WebGPU: `aoNode`). For a 6 m by 4 m
+room with one 1.2 m pane the factor runs from about 6% beside the window to
+1% at the back wall, the normal daylight-factor range of a real room.
+
+**Glass.** Live-interior panes are see-through glass (opacity 0.35 by day,
+0.9 while lit), so the street shows from inside and the lamplit room shows
+from outside.
+
+**Lamplight out.** A lit window is modeled as a rectangular area light the
+size of its pane, facing out of the house, with the radiance the pane shows
+(`WINDOW_GLOW_HEX` at its emissive intensity). The nearest 8 lit panes within
+40 m get one. While the windows of a household are lit, an oil lamp of 8 cd
+(about 100 lm) burns on each table, desk, counter and workbench; the nearest
+4 within 30 m are point lights. The window and lamp lights keep a fixed count
+and go dark by intensity 0: a change in the light count rebuilds the programs
+of every lit material.
+
+**Rendered check (2026-11-02, WebGL, town demo
+`?phase=world3d&ground=1&gx=16&gy=4&wfseed=42&sunhour=H`).** `&sunhour=` sets
+the sun and the interior clock to one hour; without it the demo is unchanged.
+The rig holds the camera inside the nearest live house and compares the new
+rules with the old rules emulated at run time (rig in
+`.agent/scratch/houselight/`, gitignored).
+- 13 h, inside: the panes are see-through, and the street and the window bars
+  show through them. The wall and floor near the camera look the same as
+  before, because the camera-inside fill lights them at any hour.
+- 21 h, street: the ground below a lit window gained warm light (red channel
+  31.6 to 48.5, +53%; farther ground +30%). The pane shows the lamplit room.
+- Frame cost, perf toolkit, A-B-A-B on a loaded machine (10 to 20 fps):
+  day GPU 56.1 and 54.0 ms old, 54.3 and 52.5 ms new; night GPU 39.4 and
+  41.9 ms old, 40.6 and 39.6 ms new. GPU time did not change past the noise.
+  Night frame time read higher in the new runs (60 and 73 ms against 51 and
+  55 ms); the second new run holds a 283 ms frame from the shader rebuild
+  that the rig's own light switch causes.
+- Without the camera-inside fill, a room at noon renders nearly black: a
+  daylight factor of 1 to 6% is physically right, but the renderer has no
+  eye adaptation. A 12x exposure test through `toneMappingExposure` changed
+  nothing in the WebGL composer, so adaptation needs its own exposure step
+  before the ACES pass.
+
+**Open items.**
+- The camera-inside fill (24 cd, 2.7 m over the player) is a readability
+  light. It brightens the room around the player at any hour and hides part
+  of the window falloff there. Whether it stays is Remy's call.
+- Sunlight that lands on a floor does not bounce into the room; only the
+  sky's interreflection (split flux) is counted.
+- No lamp mesh is drawn: the lamp is a light only.
+- Newer three.js could do more (research 2026-11-02; the game is on r172):
+  `ClusteredLighting` (r185) lifts the lamp caps for point and spot lights,
+  and `LightProbeGrid` (r186, faster bake r187) adds the sun's bounce, but it
+  leaks through walls without one grid per house. With a probe grid the
+  window factor must stop acting as AO, or occlusion counts twice. On r172,
+  `TiledLighting` (WebGPU backend only) could lift the lamp cap under
+  `?gpu=1`. An upgrade is Remy's decision.
+- The existing hearth lights still go dark by `visible`, which changes the
+  light count when a hearth enters or leaves range.
 
 ## Asset integrity gotcha (bit us 2026-08-26)
 

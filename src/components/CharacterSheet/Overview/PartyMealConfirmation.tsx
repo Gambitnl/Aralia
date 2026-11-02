@@ -17,6 +17,7 @@
 import React, { useState } from 'react';
 import type { Action, Item, PlayerCharacter } from '../../../types';
 import { preparePartyMeal } from '../../../systems/travel/partyMeal';
+import { Button } from '../../ui/Button';
 
 /** Local confirmation keeps the character sheet's source selection visible.
  * Nothing is consumed by opening, changing supplies or canceling this quote. */
@@ -46,11 +47,12 @@ export function PartyMealConfirmation({ inventory, party, selectedIndex, onActio
     {supply('water-day', 'Water supply to use first', waterIndex, index => setWaterItem(inventory[index]))}
     {'error' in result && <p role="status" className="text-sm text-amber-200">{result.error}</p>}
     <div className="flex flex-wrap gap-2">
-      <button className="min-h-11 rounded bg-slate-700 px-3" onClick={onCancel}>Cancel meal</button>
-      <button disabled={'error' in result} className="min-h-11 rounded bg-green-700 px-3 disabled:opacity-50" onClick={() => {
+      {/* Shared Button style; min-h-11 keeps the 44 px touch target. No type is set, as before. */}
+      <Button variant="secondary" size="sm" className="min-h-11" onClick={onCancel}>Cancel meal</Button>
+      <Button variant="success" size="sm" disabled={'error' in result} className="min-h-11" onClick={() => {
         onAction({ type: 'USE_ITEM', label: 'Take a party meal', payload: { itemId: inventory[selectedIndex]?.id ?? 'rations', characterId: party[0]?.id ?? '', meal } });
         onCancel();
-      }}>Confirm party meal</button>
+      }}>Confirm party meal</Button>
     </div>
   </section>;
 }

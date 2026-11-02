@@ -21,6 +21,7 @@
 import React from 'react';
 import type { GameState } from '@/types/state';
 import type { AppAction } from '@/state/actionTypes';
+import { BTN_BASE, BTN_SECONDARY } from '@/styles/buttonStyles';
 import { preparationChoices, preparationCompanion } from '@/systems/companions/companionPreparations';
 import { daysOfFood, daysOfWater } from '@/systems/travel/provisioning';
 
@@ -35,7 +36,7 @@ export function CompanionPreparationChoices({ state, dispatch, disabled }: { sta
     {stage === 'supplied' && <p className="my-2">Elara’s own supplies: {daysOfFood(companion.inventory ?? [])} rations, {daysOfWater(companion.inventory ?? [])} water-days. Her restoration goal remains unfinished.</p>}
     <div className="mt-2 flex flex-col gap-2">{choices.map(({ choice, label, disabled: unavailable }) => <button
       key={choice} type="button" disabled={disabled || unavailable}
-      className="min-h-11 rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-left text-xs text-gray-100 hover:bg-gray-700 disabled:opacity-50"
+      className={`min-h-11 ${BTN_BASE} ${BTN_SECONDARY} px-3 py-2 text-left text-xs`}
       onClick={() => dispatch({ type: 'COMPANION_PREPARATION_CHOICE', payload: { companionId: companion.id, choice } })}
     >{label}</button>)}</div>
   </section>;

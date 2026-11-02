@@ -48,6 +48,11 @@ export interface LaneVillageInput {
   roads: readonly Pt[][];
   /** Polygons no house may touch: river and quay corridors. */
   blockers: readonly Pt[][];
+  /**
+   * The river's center lines and half its width (GG-582). A branch lane may
+   * not start in the water: that is the street's own bridge. Absent = no test.
+   */
+  river?: { lines: readonly Pt[][]; half: number };
   population: number;
   /** Hamlets get no green and no church. */
   hasGreen: boolean;
@@ -158,6 +163,19 @@ function frontRect(p0: Pt, p1: Pt, n: Pt, depth: number): Pt[] {
  * garden behind it) would refuse each other. Testing the shrunken copy keeps
  * true overlaps and lets exact contact through.
  */
+/**
+ * True when any point of the step from `a` to `b` lies in a blocker (GG-582).
+ * Samples at `step` spacing, at most half a lane apart.
+ */
+function stepMeetsWater(a: Pt, b: Pt, blockers: readonly Pt[][], step: number): boolean {
+  const n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / Math.max(step, 1e-9)));
+  for (let k = 1; k < n; k++) {
+    const p: Pt = [a[0] + ((b[0] - a[0]) * k) / n, a[1] + ((b[1] - a[1]) * k) / n];
+    if (blockers.some((poly) => pointInPolygon(p, poly as Pt[]))) return true;
+  }
+  return false;
+}
+
 function shrunk(poly: readonly Pt[]): Pt[] {
   let x = 0, y = 0;
   for (const p of poly) { x += p[0]; y += p[1]; }
@@ -217,6 +235,9 @@ export function buildLaneVillage(input: LaneVillageInput): LaneVillageLayout {
     const offset = (rng.next() < 0.5 ? -1 : 1) * R * (0.1 + rng.next() * 0.45);
     const s0 = Math.max(input.lotWidth, Math.min(hostLen - input.lotWidth, hostHeartS + offset));
     const at = pointAt(host, s0);
+    // GG-582: no branch leaves a street on its bridge. Rostotynsk (burg 617)
+    // grew a lane that started 17 ft out over its river.
+    if (input.river && input.river.lines.some((l) => nearestOnLine(at.p, l).d < input.river!.half)) continue;
     const side = rng.next() < 0.5 ? 1 : -1;
     let heading = Math.atan2(at.t[0] * side, -at.t[1] * side) + (rng.next() - 0.5) * 0.9;
     const length = R * (0.7 + rng.next() * 0.6);
@@ -230,7 +251,10 @@ export function buildLaneVillage(input: LaneVillageInput): LaneVillageLayout {
       heading += (rng.next() - 0.5) * 0.5;
       const next: Pt = [cur[0] + Math.cos(heading) * (length / steps), cur[1] + Math.sin(heading) * (length / steps)];
       if (!pointInPolygon(next, footprint as Pt[])) break;
-      const wet = blockers.some((b) => pointInPolygon(next, b));
+      // GG-582: test the whole step, not only its end. A step is about a
+      // sixth of the village radius, so it could jump clean over a river at a
+      // slant (Rostotynsk, burg 617: a lane over its 36 ft river at 15 degrees).
+      const wet = blockers.some((b) => pointInPolygon(next, b)) || (dry && stepMeetsWater(cur, next, blockers, laneHalf));
       if (wet && dry) break;
       // Still wet two steps out: this lane runs down the river, not away
       // from it. Refuse it; the next attempt picks another start.

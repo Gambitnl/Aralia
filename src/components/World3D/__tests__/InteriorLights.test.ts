@@ -62,7 +62,7 @@ function renderedPartWorldPos(
   return partObj.getWorldPosition(new THREE.Vector3());
 }
 
-function makeChunk(cx: number, cy: number, site: OracleSite, parts: unknown[]): LoadedChunk {
+function makeChunk(cx: number, cy: number, site: OracleSite, parts: unknown[], extra: Record<string, unknown> = {}): LoadedChunk {
   return {
     cx,
     cy,
@@ -79,6 +79,7 @@ function makeChunk(cx: number, cy: number, site: OracleSite, parts: unknown[]): 
           wallDepthM: 4,
           boxHeight: 6,
           parts,
+          ...extra,
         },
       ],
     },
@@ -155,5 +156,64 @@ describe('collectInteriorLighting hearth projection', () => {
     const site: OracleSite = { localX: 0, localZ: 0, surfaceY: 0, rotationY: 0.5, doorZSign: -1 };
     const { hearths } = collectInteriorLighting([makeChunk(0, 0, site, [wall, wall, hearth])], origin);
     expect(hearths).toHaveLength(1);
+  });
+});
+
+describe('collectInteriorLighting lit windows and lamps (night light out)', () => {
+  const origin: SceneOrigin = { x: 12.5, z: -7.25 };
+  // A 6 m by 4 m floor; one pane in the authored +z wall (z = 2.15); a table.
+  const floor = { x: 0, z: 0, w: 6, d: 4, h: 0.1, baseY: -0.1, colorHex: '#9a8a72', walkSurface: 'floor' };
+  const pane = { x: 0.5, z: 2.15, w: 1.2, d: 0.04, h: 1.2, baseY: 0.9, colorHex: '#2f3a4d', lightRole: 'window' as const };
+  const table = { x: -1, z: -0.5, w: 1.6, d: 0.9, h: 0.8, baseY: 0, colorHex: '#c8a24a', furnishing: { kind: 'table' } };
+  const evening = Array.from({ length: 24 }, (_, h) => h >= 17 && h <= 22);
+
+  for (const c of [
+    { rotationY: 0, doorZSign: -1 },
+    { rotationY: 0, doorZSign: 1 },
+    { rotationY: Math.PI / 3, doorZSign: -1 },
+    { rotationY: -2.1, doorZSign: 1 },
+  ]) {
+    it(`puts each pane emitter on the rendered pane and points it out of the house (yaw ${c.rotationY.toFixed(2)}, doorZSign ${c.doorZSign})`, () => {
+      const site: OracleSite = { localX: 4.5, localZ: -3.25, surfaceY: 1.75, ...c };
+      const o = chunkOriginWorld(1, 2);
+      const chunkScene = worldToScene(o.x, o.y, origin);
+      const { windows } = collectInteriorLighting([makeChunk(1, 2, site, [floor, pane, table], { litHours: evening })], origin);
+      expect(windows).toHaveLength(1);
+      const w = windows[0];
+      const expected = renderedPartWorldPos(site, chunkScene.x, chunkScene.z, pane);
+      expect(w.x).toBeCloseTo(expected.x, 6);
+      expect(w.y).toBeCloseTo(expected.y, 6);
+      expect(w.z).toBeCloseTo(expected.z, 6);
+      expect(w.width).toBeCloseTo(1.2, 6);
+      expect(w.height).toBeCloseTo(1.2, 6);
+      // Outward: a step along the normal moves away from the floor's center.
+      const center = renderedPartWorldPos(site, chunkScene.x, chunkScene.z, { ...floor, h: 0.1 });
+      const before = Math.hypot(w.x - center.x, w.z - center.z);
+      const after = Math.hypot(w.x + w.nx - center.x, w.z + w.nz - center.z);
+      expect(after).toBeGreaterThan(before);
+      expect(Math.hypot(w.nx, w.nz)).toBeCloseTo(1, 6);
+    });
+  }
+
+  it('sets a lamp just above each table-like furnishing of a lit household', () => {
+    const site: OracleSite = { localX: 0, localZ: 0, surfaceY: 2, rotationY: 0.4, doorZSign: -1 };
+    const o = chunkOriginWorld(0, 0);
+    const chunkScene = worldToScene(o.x, o.y, origin);
+    const { lamps } = collectInteriorLighting([makeChunk(0, 0, site, [floor, pane, table], { litHours: evening })], origin);
+    expect(lamps).toHaveLength(1);
+    const tableCenter = renderedPartWorldPos(site, chunkScene.x, chunkScene.z, table);
+    expect(lamps[0].x).toBeCloseTo(tableCenter.x, 6);
+    expect(lamps[0].z).toBeCloseTo(tableCenter.z, 6);
+    expect(lamps[0].y).toBeCloseTo(tableCenter.y + table.h / 2 + 0.3, 6);
+    expect(lamps[0].litHours).toBe(evening);
+  });
+
+  it('gives a building that is never lit no window emitters and no lamps', () => {
+    const site: OracleSite = { localX: 0, localZ: 0, surfaceY: 0, rotationY: 0, doorZSign: -1 };
+    const dark = collectInteriorLighting([makeChunk(0, 0, site, [floor, pane, table], { litHours: Array(24).fill(false) })], origin);
+    expect(dark.windows).toHaveLength(0);
+    expect(dark.lamps).toHaveLength(0);
+    const unscheduled = collectInteriorLighting([makeChunk(0, 0, site, [floor, pane, table])], origin);
+    expect(unscheduled.windows).toHaveLength(0);
   });
 });

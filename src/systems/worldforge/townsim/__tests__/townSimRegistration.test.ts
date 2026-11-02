@@ -107,8 +107,11 @@ describe('canonical building lifecycle', () => {
     expect(kinds).toContain('reoccupation');
     // Re-pinned 2026-11-02 (GG-552 rule, GG-563/GG-577 layout): the first
     // burg (512) refills all 24 empty homes before neglect can ruin them, so
-    // it shows no ruin in a century. Burg 205 of the same world shows 2.
-    const ruinTown = advanceTown(buildTownSimStateForBurg(SEED, 205, 0), SEED, 100 * 365);
+    // it shows no ruin in a century. Burg 205 of the same world showed 2.
+    // Re-pinned 2026-11-02 (GG-586 market square: the size floor and the
+    // market trades re-lay the towns): burgs 512, 205 and 47 show no ruin in
+    // a century now; burg 726 shows 1.
+    const ruinTown = advanceTown(buildTownSimStateForBurg(SEED, 726, 0), SEED, 100 * 365);
     const ruinKinds = Object.values(ruinTown.buildingEvents ?? {})
       .flatMap((history) => isBuildingHistoryJournal(history) ? history.events : history)
       .map((event) => event.kind);

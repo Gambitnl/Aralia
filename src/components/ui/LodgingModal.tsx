@@ -20,6 +20,7 @@
 import React, { useRef, useState } from 'react';
 import type { LodgingOffer } from '../../types/rest';
 import { ModalDialog } from './ModalDialog';
+import { Button } from './Button';
 import { formatGpAsCoins } from '../../utils/character';
 
 export default function LodgingModal({ offer, gold, error, onConfirm, onClose }: {
@@ -39,8 +40,9 @@ export default function LodgingModal({ offer, gold, error, onConfirm, onClose }:
   };
   return <ModalDialog isOpen id="lodging" ariaLabel="Reserve guest beds" title="Reserve guest beds" onClose={close} size="lg"
     footer={<>
-      <button type="button" onClick={close} disabled={busy} className="min-h-11 rounded bg-slate-700 px-4 py-2 text-white disabled:opacity-50">Cancel</button>
-      <button type="button" onClick={confirm} disabled={busy || gold < offer.costGp} className="min-h-11 rounded bg-amber-600 px-4 py-2 font-semibold text-white disabled:opacity-50">{busy ? 'Reserving…' : `Reserve for ${formatGpAsCoins(offer.costGp)}`}</button>
+      {/* Shared Button style; min-h-11 keeps the 44 px touch target. */}
+      <Button type="button" variant="secondary" onClick={close} disabled={busy} className="min-h-11">Cancel</Button>
+      <Button type="button" variant="action" onClick={confirm} disabled={busy || gold < offer.costGp} className="min-h-11">{busy ? 'Reserving…' : `Reserve for ${formatGpAsCoins(offer.costGp)}`}</Button>
     </>}>
     <div className="space-y-3 text-sm text-slate-200">
       <p><strong>{offer.keeperName}</strong> offers {offer.beds.length} guest bed(s) at <strong>{offer.businessName}</strong>.</p>

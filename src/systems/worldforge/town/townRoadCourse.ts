@@ -17,7 +17,7 @@
  */
 import { clipPolylineToPolygon, type Pt } from '../submap/submapEngine';
 import type { FmgWorldResult } from '../fmg/generateWorld';
-import { roadCourseFt, type RoutePoint } from '../region/roadCourse';
+import { keepRoadOffRiversNear, roadCourseFt, type RoadRiverReach, type RoutePoint } from '../region/roadCourse';
 import { townSpanFtForPeople, POPULATION_RATE, CANON_TOWN_SPAN } from './townScale';
 import { FEET_PER_FMG_PIXEL } from '../adapter/atlasArtifact';
 
@@ -29,8 +29,13 @@ type TownAtlas = Pick<FmgWorldResult, 'pack'>;
  * at town center, CANON_TOWN_SPAN across), clipped to the town square.
  * Searoutes are not roads. A route that only passes near the town shows only
  * if its true course crosses the town square.
+ *
+ * `rivers` (GG-582, world feet, from `townRiverRoadReachFt`): the course
+ * keeps to a bank of each, by the rule the region tier applies to the same
+ * road (`keepRoadOffRiversNear`), so the moved road is still the world road.
+ * Absent = the course as the atlas routes it (layout revision 1).
  */
-export function townRoadCourseCanon(atlas: TownAtlas, burgId: number): Pt[][] {
+export function townRoadCourseCanon(atlas: TownAtlas, burgId: number, rivers: readonly RoadRiverReach[] = []): Pt[][] {
   const pack = atlas.pack as unknown as {
     cells: { burg?: ArrayLike<number> };
     burgs?: Array<{ x: number; y: number; removed?: boolean; population?: number }>;
@@ -70,7 +75,10 @@ export function townRoadCourseCanon(atlas: TownAtlas, burgId: number): Pt[][] {
     }
     if (cxFt < minX - reachFt || cxFt > maxX + reachFt || cyFt < minY - reachFt || cyFt > maxY + reachFt) continue;
 
-    const course = roadCourseFt(points, FEET_PER_FMG_PIXEL, cellBurg);
+    const pinned = roadCourseFt(points, FEET_PER_FMG_PIXEL, cellBurg);
+    const course = rivers.length > 0
+      ? keepRoadOffRiversNear(pinned, rivers, { minX: cxFt - spanFt / 2, minY: cyFt - spanFt / 2, maxX: cxFt + spanFt / 2, maxY: cyFt + spanFt / 2 })
+      : pinned;
     const canon: Pt[] = course.map(([x, y]) => [(x - cxFt) * k, (y - cyFt) * k]);
     for (const seg of clipPolylineToPolygon(canon, square)) {
       if (seg.length >= 2) out.push(seg);

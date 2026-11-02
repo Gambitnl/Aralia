@@ -44,6 +44,26 @@ test('WF228: aliases, mixed/type imports and renamed barrels expose the actual d
   assert.equal(fs.existsSync(path.join(root, 'src/ghost.ts')), false);
 }));
 
+// The src/types/combat/index.ts shape: an `export type *` barrel over several
+// modules. Only the module that declares a type may be reported for it; the
+// "declaration not identified" fallback stays for a type that no branch declares.
+test('WF228: an export-type-star barrel reports only the declaring module, and keeps the fallback for an undeclared type', () => fixture(({ put, inspect }) => {
+  put('src/types/actors.ts', 'export interface Actor { id: string }');
+  put('src/types/log.ts', 'export interface LogEntry { text: string }');
+  put('src/types/values.ts', 'export const onlyValue = 1;');
+  put('src/types/index.ts', 'export type * from "./actors";\nexport type * from "./log";\nexport type * from "./values";');
+  put('src/worker.ts', 'import { Actor, LogEntry, onlyValue } from "./types";');
+  const audit = inspect();
+  assert.deepEqual(audit.issues, []);
+  const symbols = file => new Set(audit.entries.find(entry => entry.file === file)?.symbols || []);
+  assert.deepEqual(symbols('src/types/actors.ts'), new Set(['Actor', 'onlyValue']));
+  assert.deepEqual(symbols('src/types/log.ts'), new Set(['LogEntry', 'onlyValue']));
+  assert.ok(audit.entries.every(entry => entry.evidence.every(item => item.symbol !== 'Actor' || entry.file === 'src/types/actors.ts')));
+  assert.ok(audit.entries.every(entry => entry.evidence.every(item => item.symbol !== 'LogEntry' || entry.file === 'src/types/log.ts')));
+  const fallback = audit.entries.flatMap(entry => entry.evidence).filter(item => item.symbol === 'onlyValue');
+  assert.equal(fallback.length, 3); assert.ok(fallback.every(item => /declaration not identified/.test(item.basis)));
+}));
+
 test('WF228: wildcard contracts and explicit typeof context stay qualified, not invented semantic claims', () => fixture(({ put, inspect }) => {
   put('src/types/leaf.ts', 'export interface Contract {}\nexport class Entity {}\nexport const runtime = 1;');
   put('src/types/index.ts', 'export * from "./leaf";');
