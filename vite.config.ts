@@ -429,6 +429,15 @@ export default defineConfig(async ({ mode, command }) => {
         'three/examples/jsm/tsl/display/BloomNode.js',
       ],
     },
+    // Workers build as ES modules (2026-11-02, CI run 41363850920). Vite's
+    // default worker format is "iife", and IIFE cannot hold more than one
+    // chunk. worldGenWorker.ts loads prepareHistoricalTownLoad with a dynamic
+    // import(), so its bundle splits and the build failed. Every worker in src
+    // is created with `{ type: 'module' }`, so ES output matches how the app
+    // already loads them (and how the dev server serves them).
+    worker: {
+      format: 'es',
+    },
     build: {
       rollupOptions: {
         input: {
