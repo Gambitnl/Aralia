@@ -333,6 +333,16 @@ export const useDialogueSystem = (
             });
         }
 
+        // 3b. NPC lives (2026-11-02): a resident's help request uses the
+        // existing quest offer, and paying it is one HELP_TOWNSFOLK action that
+        // re-checks the quest, the purse and the resident before it changes anything.
+        if (result.offerQuest) {
+            dispatch({ type: 'OFFER_QUEST', payload: result.offerQuest });
+        }
+        if (result.helpTownsfolk) {
+            dispatch({ type: 'HELP_TOWNSFOLK', payload: result.helpTownsfolk });
+        }
+
         // 4. Handle Topic Unlocks — durable cross-NPC propagation (DIAL-002/DIAL-004)
         // Every unlock becomes a world-level fact: what THIS NPC told the player
         // now durably unlocks the gated topic with EVERY NPC (dialogueService's

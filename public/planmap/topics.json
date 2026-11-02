@@ -1619,6 +1619,53 @@
       "updated": "2026-07-03"
     },
     {
+      "id": "npc-lives",
+      "title": "NPCs live their lives",
+      "sub": "Town NPCs change over days and weeks (shops pass, close and reopen; fortunes rise and fall; moods follow real events), and they react to the player from disposition, heard deeds, crimes and their own troubles.",
+      "campaign": "sim",
+      "status": "active",
+      "deps": [
+        "shipped-living-world"
+      ],
+      "history": {
+        "designed": "2026-11-02",
+        "built": "2026-11-02"
+      },
+      "features": [
+        {
+          "title": "Shop succession, closure and reopening in the town sim",
+          "status": "done",
+          "status_note": "GG-595: townsim/shopLife.ts. An heir takes the shop, else it closes; a shop closed a year reopens under a new owner. Merchants follow the sim keeper.",
+          "verified": "2026-11-02"
+        },
+        {
+          "title": "Personal fortune and derived mood for villagers",
+          "status": "done",
+          "status_note": "GG-595: yearly fortune from a separate seed stream (fortune_rose, fortune_fell); townsim/villagerMood.ts gives mood and recent-life lines.",
+          "verified": "2026-11-02"
+        },
+        {
+          "title": "Greeting stance from disposition, heard deeds, crimes and mood",
+          "status": "done",
+          "status_note": "GG-596: systems/social/npcLifeReactions.ts. The stance sets the greeting tone; the lowest stance turns away.",
+          "verified": "2026-11-02"
+        },
+        {
+          "title": "Residents tell their own news and ask for help with hardship",
+          "status": "done",
+          "status_note": "GG-596: \"How have you been?\", \"Is something troubling you?\" (OFFER_QUEST) and HELP_TOWNSFOLK (gold, sim wealth, receipt, quest completion, donation deed).",
+          "verified": "2026-11-02"
+        },
+        {
+          "title": "More troubles and wider stance use",
+          "status": "planned",
+          "status_note": "GG-595 and GG-596 follow-ups: fire, plague, grief and closed-shop troubles; stance in free-text conversation; faction standing; old-save shop backfill; heir identity in 3D."
+        }
+      ],
+      "tier": "strategic",
+      "updated": "2026-11-02"
+    },
+    {
       "id": "village-biome-flavor-coverage",
       "title": "Village biome flavor reaches the live town plan",
       "sub": "resolveVillageIntegrationProfile falls back exact -> biome -> culture -> default, and getCanonicalTownPersonality derives each burg's personality from its FMG biome, culture type, port flag, population band and ward wealth, so a settlement reads with its own biome flavor in the live 2D town plan instead of a temperate default. Reachable biomes: temperate, arid, coastal, jungle, tundra, polar, swampy, highland. No FMG biome produces volcanic or blighted, so those two authored profiles remain unreachable.",

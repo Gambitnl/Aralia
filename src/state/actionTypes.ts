@@ -232,6 +232,10 @@ export type AppAction =
         resolutionId: import("../systems/worldforge/townsim/townSituation.js").TownSituationResolutionId;
       };
     }
+  // NPC lives (2026-11-02): pay an accepted townsfolk help request. One action
+  // charges the gift, raises the resident's sim wealth, appends the town receipt,
+  // completes the quest and records the deed as town talk.
+  | { type: "HELP_TOWNSFOLK"; payload: { npcId: string; questId: string } }
   | { type: "SET_DEV_MODE_ENABLED"; payload: boolean }
   | { type: "TOGGLE_DEV_MENU" }
   | { type: "TOGGLE_PARTY_EDITOR_MODAL" }

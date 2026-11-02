@@ -57,7 +57,15 @@ export type LifeEventKind =
   // Pillar 2, Task 8 (living ecology): an occasional worry line about the
   // uncleared dungeons around the burg (raid-pressure signal, one visible
   // symptom). Never lethal — it colors the town's mood, not its population.
-  | 'raid_worry';
+  | 'raid_worry'
+  // NPC lives (2026-11-02): a shop passes to an heir, closes with no heir, or
+  // reopens under a new keeper. See shopLife.ts. Old saves never contain them.
+  | 'shop_succession'
+  | 'shop_closed'
+  | 'shop_opened'
+  // A villager crosses the rich or poor wealth threshold at a year boundary.
+  | 'fortune_rose'
+  | 'fortune_fell';
 
 /** One recorded fact in a town's history (a diary line). */
 export interface LifeEvent {
@@ -170,6 +178,22 @@ export interface AgentDeepeningState {
   townEvents: AgentTownEventState;
 }
 
+/**
+ * The current keeper of one market or workshop plot. The chronicle keeps the
+ * history (shop_succession, shop_closed, shop_opened); this record keeps only
+ * the present holder, so readers do not replay the diary to staff a shop.
+ */
+export interface TownShopRecord {
+  /** occupantId of the keeper, or null while the shop is closed. */
+  keeperId: number | null;
+  /** gameDay the current keeper took the shop (or the seed day). */
+  sinceDay: number;
+  /** gameDay the shop closed; absent while the shop is open. */
+  closedDay?: number;
+  /** Plain noun for the trade ("smithy", "general store"), for diary lines. */
+  trade?: string;
+}
+
 /** A town's append-only history. */
 export interface TownChronicle {
   burgId: number;
@@ -222,6 +246,12 @@ export interface TownSimState {
    * omit it; deepened replay initializes it deterministically from the roster.
    */
   agentDeepening?: AgentDeepeningState;
+  /**
+   * Current keepers of market and workshop plots, keyed by plot id. Seeded at
+   * registration from roster occupants with a work plot. Old saves omit it:
+   * missing means "untracked", and every shop rule then does nothing.
+   */
+  shops?: Record<number, TownShopRecord>;
   /** Last gameDay this state has been advanced to. */
   lastSimDay: number;
   /** Next occupant id to allocate for newborns. */

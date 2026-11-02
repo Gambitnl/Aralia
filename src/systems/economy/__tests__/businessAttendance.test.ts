@@ -45,6 +45,34 @@ describe('source business attendance', () => {
       {memberIndex:1,where:'home',activity:'work'} as never];
     expect(attendanceForVisit(source,12).open).toBe(false);
   });
+  // NPC lives (2026-11-02): the town sim's shop record decides who keeps the shop.
+  const deadProprietor = () => {
+    const source = visit([8,9]);
+    source.household = {homeId:'b151',members:[{name:'Roban Westsmith',role:'head'}]} as never;
+    (source as {plot: unknown}).plot = {id:156};
+    return source;
+  };
+  const villagers = {395:{occupantId:395,name:'Roban Westsmith',homePlotId:151,bornDay:-10000,diedDay:-253},
+    500:{occupantId:500,householdMemberId:'b151:child1',name:'Mara Westsmith',homePlotId:151,bornDay:-8000}};
+  it('staffs a shop under a recorded heir at the posted hours after the proprietor dies', () => {
+    const life = {villagers, shops:{156:{keeperId:500,sinceDay:-253,trade:'smithy'}}};
+    expect(attendanceForVisit(deadProprietor(),9,life,3)).toEqual({open:true,hours:'08:00–10:00'});
+    expect(attendanceForVisit(deadProprietor(),12,life,3)).toMatchObject({open:false,hours:'08:00–10:00'});
+  });
+  it('keeps a closed shop closed even while its source proprietor lives', () => {
+    const source = deadProprietor();
+    const life = {villagers:{...villagers,395:{...villagers[395],diedDay:undefined}},
+      shops:{156:{keeperId:null,sinceDay:0,closedDay:1}}};
+    expect(attendanceForVisit(source,9,life,3)).toMatchObject({open:false,hours:'Closed'});
+  });
+  it('keeps the household check for a plot without a shop record', () => {
+    const life = {villagers, shops:{999:{keeperId:500,sinceDay:0}}};
+    expect(attendanceForVisit(deadProprietor(),9,life,3)).toMatchObject({open:false,hours:'Unstaffed'});
+  });
+  it('does not staff a shop whose recorded keeper has died', () => {
+    const life = {villagers:{...villagers,500:{...villagers[500],diedDay:1}}, shops:{156:{keeperId:500,sinceDay:-253}}};
+    expect(attendanceForVisit(deadProprietor(),9,life,3)).toMatchObject({open:false,hours:'Unstaffed'});
+  });
   it('preserves unlocated legacy shops instead of assigning invented hours', async () => {
     expect(await businessAttendance({} as GameState,{} as WorldBusiness)).toBeUndefined();
   });

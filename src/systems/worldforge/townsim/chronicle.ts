@@ -39,6 +39,10 @@ const HEADLINE_KINDS = new Set<LifeEvent['kind']>([
   // Player interventions are rare causal receipts, so preserve their exact
   // wording in the readable chronicle instead of collapsing them into a count.
   'player_intervention',
+  // NPC lives: a shop that changes hands, closes or reopens is named history.
+  'shop_succession',
+  'shop_closed',
+  'shop_opened',
 ]);
 
 /**
@@ -69,11 +73,17 @@ export function summarizeChronicle(state: TownSimState, range: ChronicleRange = 
     // Festivals recur every year, so they are counted in the tail rather than
     // listed as headlines (which would flood the chronicle).
     const festivals = evs.filter((e) => e.kind === 'festival').length;
+    // Personal fortune can touch many villagers in one year, so count it in
+    // the tail. The full lines stay in the gossip news tier.
+    const rose = evs.filter((e) => e.kind === 'fortune_rose').length;
+    const fell = evs.filter((e) => e.kind === 'fortune_fell').length;
     const tail: string[] = [];
     if (births) tail.push(`${births} ${births === 1 ? 'birth' : 'births'}`);
     if (comingOfAge) tail.push(`${comingOfAge} came of age`);
     if (courtships) tail.push(`${courtships} new ${courtships === 1 ? 'courtship' : 'courtships'}`);
     if (festivals) tail.push(`${festivals} ${festivals === 1 ? 'festival' : 'festivals'}`);
+    if (rose) tail.push(`${rose} grew prosperous`);
+    if (fell) tail.push(`${fell} fell on hard times`);
 
     let line = `Year ${year}: ${headlines.join(' ')}`;
     if (tail.length) line += `${headlines.length ? ' ' : ''}${tail.join(', ')}.`;

@@ -41,6 +41,7 @@ import { makeSeedPath, seedFromPath } from '../seedPath';
 import { DAYS_PER_YEAR } from './constants';
 import { assignKeyNpcs } from './keyNpcs';
 import { initTownSimState } from './townSim';
+import { seedShopsFromRoster } from './shopLife';
 import { advanceTown } from './townSimRegistry';
 import type { TownSimState } from './types';
 import type { TownPlan } from '../artifacts';
@@ -203,5 +204,8 @@ export function buildTownSimStateForBurg(
   );
   // Record the exact founding layout before backfill can compact any building
   // history. Older saves are never assigned a revision by this fresh-town path.
-  return advanceTown({ ...seeded, layoutRevision }, worldSeed, currentDay);
+  // Shop keepers are seeded from the same roster, so the backfill can already
+  // pass, close and reopen shops (NPC lives, shopLife.ts).
+  const shops = seedShopsFromRoster(plan, roster, seeded.lastSimDay);
+  return advanceTown({ ...seeded, layoutRevision, shops }, worldSeed, currentDay);
 }

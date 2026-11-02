@@ -63,6 +63,14 @@ const PROMINENCE: Record<LifeEventKind, NewsProminence> = {
   // Raid-worry (Task 8) travels as everyday overheard talk — a notice, not a
   // crier's headline. Loud enough to reach the quest/notice board.
   raid_worry: 'notice',
+  // NPC lives: a shop that changes hands, closes or reopens matters to every
+  // customer, so it reaches the notice board. A personal change of fortune is
+  // everyday talk.
+  shop_succession: 'notice',
+  shop_closed: 'notice',
+  shop_opened: 'notice',
+  fortune_rose: 'gossip',
+  fortune_fell: 'gossip',
 };
 
 const RANK: Record<NewsProminence, number> = { headline: 3, notice: 2, gossip: 1 };

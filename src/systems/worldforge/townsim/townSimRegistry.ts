@@ -95,8 +95,11 @@ export function advanceTown(
   targetDay: number,
   raidPressure?: number,
 ): TownSimState {
+  // worldSeed always travels now: the personal-fortune stream (shopLife.ts)
+  // derives from it. Raid pressure still enters only when positive, so the
+  // raid-worry behavior is unchanged.
   const opts =
-    raidPressure && raidPressure > 0 ? { worldSeed, raidPressure } : undefined;
+    raidPressure && raidPressure > 0 ? { worldSeed, raidPressure } : { worldSeed };
   let s = state;
   for (let day = s.lastSimDay + 1; day <= targetDay; day++) {
     s = rollTownDay(s, day, seedForTownDay(worldSeed, s.burgId, day), opts);

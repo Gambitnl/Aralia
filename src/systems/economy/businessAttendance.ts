@@ -22,6 +22,7 @@ import type { WorldBusiness } from '../../types/business';
 import type { TownBuildingVisit } from '../../components/Worldforge/townBuildingVisit';
 import { householdResidentLifeStatusAt, type TownLifeState } from '../worldforge/roster/agentLife';
 import { householdMemberIdentity } from '../worldforge/town/householdBrief';
+import { shopKeeperAt, type ShopLifeView } from '../worldforge/townsim/shopLife';
 import { getGameDay } from '../../utils/core';
 
 export interface BusinessAttendance {
@@ -30,9 +31,18 @@ export interface BusinessAttendance {
   reason?: string;
 }
 
-export function attendanceForVisit(visit: TownBuildingVisit, hour: number, life?: TownLifeState, day = 0): BusinessAttendance {
+export function attendanceForVisit(visit: TownBuildingVisit, hour: number, life?: TownLifeState & Pick<ShopLifeView, 'shops'>, day = 0): BusinessAttendance {
   const keeper = visit.household?.members[0];
-  const lifeStatus = keeper ? householdResidentLifeStatusAt(life, householdMemberIdentity(visit.household!, 0), keeper.name, day, visit.household!.members.filter(m => m.name === keeper.name).length === 1) : 'untracked';
+  // NPC lives (2026-11-02): the town sim records who keeps each shop now. A
+  // closed shop stays closed. A recorded heir or new keeper staffs the shop at
+  // its posted hours even when the source proprietor has died. Saves without
+  // shop records ('untracked') keep the established household check below.
+  const shop = shopKeeperAt(life, visit.plot?.id, day);
+  if (shop.status === 'closed') {
+    return {open: false, hours: 'Closed', reason: 'This shop closed when its keeper died with no heir. Nobody has reopened it.'};
+  }
+  let lifeStatus = keeper ? householdResidentLifeStatusAt(life, householdMemberIdentity(visit.household!, 0), keeper.name, day, visit.household!.members.filter(m => m.name === keeper.name).length === 1) : 'untracked';
+  if (shop.status === 'open' && lifeStatus !== 'alive' && lifeStatus !== 'untracked') lifeStatus = 'alive';
   if (lifeStatus === 'deceased') {
     // An inheritance receipt transfers its stated property, not an occupation.
     // Leave the saved business and stock intact until a real successor exists.

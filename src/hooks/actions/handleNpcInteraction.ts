@@ -24,6 +24,7 @@ import { GameState, Action, GoalStatus } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import * as OllamaTextService from '../../services/ollamaTextService';
 import { townChronicleForLocation } from '../../systems/worldforge/townsim/chronicleForLocation';
+import { npcGreetingPromptLine, npcGreetingStance, npcShunMessage } from '../../systems/social/npcLifeReactions';
 import { synthesizeSpeech } from '../../services/ttsService';
 import { AddMessageFn, AddGeminiLogFn, PlayPcmAudioFn } from './actionHandlerTypes';
 import { NPCS } from '../../constants';
@@ -599,6 +600,15 @@ export async function handleTalk({
       return;
     }
 
+    // NPC lives (2026-11-02): the NPC's stance toward the player comes from its
+    // disposition, the talk it heard about the player, a crime the player is
+    // wanted for here, and its own sim mood. At the lowest stance the NPC turns
+    // away and no conversation opens; otherwise the stance sets the greeting tone.
+    const reaction = npcGreetingStance(gameState, npc.id);
+    if (reaction.refuses) {
+      addMessage(npcShunMessage(npc.name, gameState), 'system');
+      return;
+    }
 
 
     // START DIALOGUE SESSION
@@ -635,6 +645,7 @@ export async function handleTalk({
     if (townHistory.length > 0) {
       fullPrompt += `\nRecent happenings in this town (you may reference them naturally): ${townHistory.join(' ')}`;
     }
+    fullPrompt += `\nYour attitude: ${npcGreetingPromptLine(gameState, npc.id)}`;
 
     // Post-combat acknowledgment: if a fight just broke out here (the opening
     // strangers were beaten), the NPC should react to the aftermath — not greet

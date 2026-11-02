@@ -36,6 +36,7 @@ import type { WorldBusiness } from '../../../types/business';
 import { burgIdForLocation, type TownGroundContext } from './chronicleForLocation';
 import { householdNpcAliveAt } from './householdNpc';
 import type { TownLifeRegistry } from '../roster/agentLife';
+import { shopKeeperAt, type ShopLifeView } from './shopLife';
 
 export interface TownNpcsInput {
   worldSeed: number;
@@ -45,7 +46,8 @@ export interface TownNpcsInput {
   worldBusinesses: Record<string, WorldBusiness> | undefined;
   /** Cap on how many keepers to surface (keeps the talk list bounded). */
   max?: number;
-  townLife?: TownLifeRegistry;
+  /** Life registry; entries may carry the sim's `shops` records (ShopLifeView). */
+  townLife?: Record<number, TownLifeRegistry[number] & Pick<ShopLifeView, 'shops'>>;
   day?: number;
 }
 
@@ -70,7 +72,19 @@ export function townMerchantNpcsForCell(input: TownNpcsInput): NPC[] {
     const owner = npcs[biz.ownerId];
     // The owner must be a registered generated NPC; a business with no resolvable
     // keeper is skipped rather than surfaced as an un-talkable ghost.
-    if (owner && householdNpcAliveAt(owner, input.townLife, input.day ?? 0)) result.push(owner as unknown as NPC);
+    if (!owner) continue;
+    // NPC lives (2026-11-02): the town sim's shop record wins when it exists.
+    // A closed shop shows no keeper. An open shop shows its owner only when the
+    // registered identity already names the sim keeper; a stale identity waits
+    // for merchant registration on the next town entry instead of showing a
+    // dead keeper. Saves without shop records keep the household check.
+    const shop = shopKeeperAt(input.townLife?.[burgId], biz.plotId ?? undefined, input.day ?? 0);
+    if (shop.status === 'closed') continue;
+    if (shop.status === 'open') {
+      if (owner.name === shop.keeper.name) result.push(owner as unknown as NPC);
+      continue;
+    }
+    if (householdNpcAliveAt(owner, input.townLife, input.day ?? 0)) result.push(owner as unknown as NPC);
   }
   return result;
 }

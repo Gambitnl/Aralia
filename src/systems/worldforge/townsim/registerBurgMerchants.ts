@@ -47,7 +47,8 @@ import { canonicalTownSeedPath } from '../town/canonicalTown';
 import { generateTownRoster } from '../roster/generateTownRoster';
 import { householdForPlot, householdPopulationForPlot, householdPopulationsForPlan, householdMemberIdentity } from '../town/householdBrief';
 import { reconcileHouseholdNpc } from './householdNpc';
-import type { TownLifeState } from '../roster/agentLife';
+import type { TownLifeState, TownLifeVillager } from '../roster/agentLife';
+import { shopKeeperAt, type ShopLifeView } from './shopLife';
 
 import { businessTypeForTownPlot } from './townBusinessIdentity';
 export { businessTypeForTownPlot } from './townBusinessIdentity';
@@ -59,6 +60,34 @@ export const townMerchantBizId = (burgId: number, plotId: number) => `biz_burg_$
 export interface BurgMerchants {
   npcs: RichNPC[];
   businesses: WorldBusiness[];
+}
+
+/** True when the sim keeper is the roster worker (same household key, or the
+ * same name and home for a legacy record without a key). */
+function isRosterWorker(keeper: TownLifeVillager, worker: { name: string; homePlotId: number; householdMemberId?: string } | undefined): boolean {
+  if (!worker) return false;
+  if (keeper.householdMemberId || worker.householdMemberId) return keeper.householdMemberId === worker.householdMemberId;
+  return keeper.name === worker.name && keeper.homePlotId === worker.homePlotId;
+}
+
+/**
+ * NPC lives (2026-11-02): a keeper born in the sim has no household brief, so
+ * no household facts exist for them. Keep the merchant id, business and stock;
+ * replace the dead keeper's identity with a short honest one. Removing the old
+ * household link stops the dead keeper's death from hiding the new keeper.
+ */
+function simBornKeeperNpc(npc: RichNPC, keeper: TownLifeVillager, trade: string, townName: string): RichNPC {
+  if (npc.name === keeper.name && !(npc as { worldforgeHousehold?: unknown }).worldforgeHousehold) return npc;
+  const description = `${keeper.name}, keeper of the ${trade}.`;
+  const revised: RichNPC & { worldforgeHousehold?: unknown } = {
+    ...npc,
+    name: keeper.name,
+    baseDescription: description,
+    initialPersonalityPrompt: `${description} You live in ${townName}. Do not claim to have met the player before unless your memory records it.`,
+    biography: { ...npc.biography, family: [], background: undefined },
+  };
+  delete revised.worldforgeHousehold;
+  return revised;
 }
 
 /**
@@ -73,7 +102,7 @@ export function computeBurgMerchants(
   gameDay: number,
   existingNpcs: Record<string, RichNPC> | undefined,
   existingBusinesses: Record<string, WorldBusiness> | undefined,
-  life?: TownLifeState,
+  life?: TownLifeState & Pick<ShopLifeView, 'shops'>,
 ): BurgMerchants {
   const atlas = getBridgeAtlas(worldSeed);
   const enginePlan = getCanonicalTownPlan(atlas, worldSeed, burgId, life?.layoutRevision);
@@ -102,16 +131,38 @@ export function computeBurgMerchants(
   const townName = (atlas.pack.burgs?.[burgId] as {name?: string} | undefined)?.name;
   if (!townName) throw new Error(`Missing canonical name for settlement ${burgId}`);
 
+  // NPC lives (2026-11-02): when the town sim records a different living
+  // keeper (an heir or a reopened shop), the merchant id now speaks for that
+  // keeper. The id, business and stock stay; only the identity follows the
+  // sim. Family links point the new keeper's household key at the merchant id.
+  const simKeepers = new Map<number, TownLifeVillager>();
+  for (const plot of adapted.plan.plots) {
+    if (plot.role !== 'market' && plot.role !== 'workshop') continue;
+    const shop = shopKeeperAt(life, plot.id, gameDay);
+    if (shop.status !== 'open') continue;
+    if (isRosterWorker(shop.keeper, roster.occupants.find(o => o.workPlotId === plot.id))) continue;
+    simKeepers.set(plot.id, shop.keeper);
+    const npcId = townMerchantNpcId(burgId, plot.id);
+    for (const [memberId, mapped] of [...keeperIds]) if (mapped === npcId) keeperIds.delete(memberId);
+    if (shop.keeper.householdMemberId) keeperIds.set(shop.keeper.householdMemberId, npcId);
+  }
+
   for (const plot of adapted.plan.plots) {
     if (plot.role !== 'market' && plot.role !== 'workshop') continue;
     const npcId = townMerchantNpcId(burgId, plot.id);
     const bizId = townMerchantBizId(burgId, plot.id);
     const worker = roster.occupants.find(o => o.workPlotId === plot.id);
-    const identity = worker?.householdMemberId ? members.get(worker.householdMemberId) : undefined;
+    const simKeeper = simKeepers.get(plot.id);
+    const keeperKey = simKeeper ? simKeeper.householdMemberId : worker?.householdMemberId;
+    const identity = keeperKey ? members.get(keeperKey) : undefined;
+    const trade = life?.shops?.[plot.id]?.trade ?? 'shop';
     const previous = existingNpcs?.[npcId];
     if (previous && existingBusinesses?.[bizId]) {
       if (identity && previous.biography) {
         const revised = reconcileHouseholdNpc(previous, identity.home, identity.index, burgId, townName, keeperIds, life, gameDay);
+        if (revised !== previous) npcs.push(revised);
+      } else if (simKeeper) {
+        const revised = simBornKeeperNpc(previous, simKeeper, trade, townName);
         if (revised !== previous) npcs.push(revised);
       }
       continue;
@@ -128,13 +179,14 @@ export function computeBurgMerchants(
 
     const npcConfig: NPCGenerationConfig = {
       id: npcId,
-      name: worker?.name ?? fallbackName,
+      name: simKeeper?.name ?? worker?.name ?? fallbackName,
       role: 'merchant',
       occupation: plot.role === 'market' ? 'shopkeeper' : 'artisan',
       level: 3,
     };
     const generated = previous ?? generateNPC({...npcConfig, worldSeed});
-    let richNpc = identity && generated.biography ? reconcileHouseholdNpc(generated, identity.home, identity.index, burgId, townName, keeperIds, life, gameDay) : generated;
+    let richNpc = identity && generated.biography ? reconcileHouseholdNpc(generated, identity.home, identity.index, burgId, townName, keeperIds, life, gameDay)
+      : simKeeper ? simBornKeeperNpc(generated, simKeeper, trade, townName) : generated;
     if (richNpc.businessId !== bizId) richNpc = {...richNpc, businessId: bizId};
 
     const worldBiz = generateNpcBusiness(richNpc, makeCellLocationId(bizCell), bizType, gameDay, rng);

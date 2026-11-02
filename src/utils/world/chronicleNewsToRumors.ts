@@ -57,6 +57,12 @@ const KIND_TO_TYPE: Record<LifeEventKind, WorldRumor['type']> = {
   courtship: 'misc',
   marriage: 'misc',
   festival: 'misc',
+  // NPC lives: shop changes are trade news; personal fortune is small talk.
+  shop_succession: 'market',
+  shop_closed: 'market',
+  shop_opened: 'market',
+  fortune_rose: 'misc',
+  fortune_fell: 'misc',
 };
 
 /** How likely a rumor is to spread, derived from how loudly its news travels. */

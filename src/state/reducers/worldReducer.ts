@@ -39,6 +39,7 @@ import {
   buildingEvolutionForBurg,
 } from "../../systems/worldforge/townsim/townSimRegistration";
 import { resolveTownSituation } from "../../systems/worldforge/townsim/townSituation";
+import { resolveHelpTownsfolk } from "../../systems/social/npcLifeReactions";
 import { processWorldEvents } from "../../systems/world/WorldEventManager";
 import { UnderdarkMechanics } from "../../systems/underdark/UnderdarkMechanics";
 import { DEFAULT_WEATHER } from "../../systems/environment/EnvironmentSystem";
@@ -507,6 +508,29 @@ export function worldReducer(
         currentDay,
       );
       return { townSim: { ...registry, [burgId]: townState } };
+    }
+
+    case "HELP_TOWNSFOLK": {
+      // NPC lives (2026-11-02): the player pays a resident's accepted help
+      // request. The pure transaction charges the gift, raises the resident's
+      // sim wealth and appends a player_intervention receipt in one step. The
+      // quest and town slices run later in the same pipeline and read that
+      // receipt to complete the quest and record the deed.
+      const result = resolveHelpTownsfolk(state, action.payload.npcId, action.payload.questId);
+      if (result.status !== "resolved") return {};
+      return {
+        townSim: { ...(state.townSim ?? {}), [result.burgId]: result.town },
+        gold: result.gold,
+        messages: [
+          ...state.messages,
+          {
+            id: state.gameTime.getTime() + state.messages.length + 1,
+            text: result.outcome.summary,
+            sender: "system",
+            timestamp: new Date(state.gameTime),
+          },
+        ],
+      };
     }
 
     case "RESOLVE_TOWN_SITUATION": {

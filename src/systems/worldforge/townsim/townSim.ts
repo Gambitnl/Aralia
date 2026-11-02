@@ -55,6 +55,7 @@ import {
 import { festivalsOnDayOfYear } from './festivals';
 import { newbornName } from './naming';
 import { resolveHeirs, splitEstate } from './inheritance';
+import { applyPersonalFortune, reopenClosedShops, transferShopOnDeath } from './shopLife';
 import { fnv1a, makeSeedPath, seedFromPath } from '../seedPath';
 import {
   appendBuildingEvent,
@@ -158,6 +159,11 @@ function cloneState(state: TownSimState): TownSimState {
     // Evolution briefs are immutable registration metadata. Reuse the same
     // reference across daily states; only event logs and villagers are mutable.
     totals: { ...(state.totals ?? { births: 0, deaths: 0 }) },
+    // Shop records change on deaths and year boundaries; copy each record so
+    // the input state stays untouched. Old saves keep the field absent.
+    ...(state.shops
+      ? { shops: Object.fromEntries(Object.entries(state.shops).map(([plotId, r]) => [Number(plotId), { ...r }])) }
+      : {}),
   };
 }
 
@@ -435,6 +441,8 @@ function killVillager(state: TownSimState, v: LivingVillager, day: number, summa
   addEvent(state.chronicle, day, 'death', v.occupantId, [], summary);
   applyInheritance(state, v, day);
   applySuccession(state, v, day);
+  // A kept shop passes to an heir or closes (shopLife.ts). No rng is drawn.
+  transferShopOnDeath(state, v, day);
 }
 
 /** Sorted living villager ids (numeric) for deterministic iteration. */
@@ -726,6 +734,11 @@ export function rollTownDay(
   // the town prosperity meter, and writes one chronicle line. subjectId 0 marks
   // a town-level event (not a personal diary entry).
   if (!lifeEventsOnly && day > 0 && day % DAYS_PER_YEAR === 0) {
+    // Snapshot the meters before the economy and disaster passes, so the
+    // fortune pass (5c) can tell who crossed a rich/poor line this year.
+    const wealthAtYearStart = new Map<number, number>(
+      Object.values(next.villagers).map((v) => [v.occupantId, v.wealth]),
+    );
     const outcome = rollAnnualEconomy(rng);
     if (outcome.kind !== 'steady') {
       for (const id of Object.keys(next.villagers)) {
@@ -781,6 +794,13 @@ export function rollTownDay(
         }
       }
     }
+
+    // 5c. Personal fortune, then shop reopening (shopLife.ts). Both run after
+    // every main-rng draw of the day. Fortune uses its own per-(burg, day,
+    // villager) stream and reopening uses no rng, so every existing draw keeps
+    // its order and value.
+    applyPersonalFortune(next, day, opts?.worldSeed ?? 0, wealthAtYearStart);
+    reopenClosedShops(next, day);
   }
 
   // 6. Festivals (calendar-deterministic; no rng). Any festival whose fixed

@@ -43,6 +43,7 @@ import { applyXpAndHandleLevelUps } from '../../utils/character';
 import { getRulesEdition } from '../../config/rulesEdition';
 import { FactionManager } from '../../systems/world/FactionManager';
 import { companionWorkAccount, verifiedCompanionWorkReport } from '../../systems/companions/companionGoalWork';
+import { helpReceipt, HARDSHIP_OBJECTIVE_ID, isHardshipQuestId, resolveResidentLife } from '../../systems/social/npcLifeReactions';
 
 type NotificationTuple = Pick<GameState, 'notifications'>;
 
@@ -273,6 +274,21 @@ export function questReducer(state: GameState, action: AppAction): Partial<GameS
         questLog: newQuestLog,
         ...pushNotification(state, `Quest Updated: ${quest.title}`, 'success', 3000),
       };
+    }
+
+    case 'HELP_TOWNSFOLK': {
+      // The world slice ran first. Complete the request only when its town
+      // receipt now exists, so an unpaid or rejected gift completes nothing.
+      const { npcId, questId } = action.payload;
+      if (!isHardshipQuestId(questId)) return {};
+      const questIndex = state.questLog.findIndex(q => q.id === questId && q.giverId === npcId);
+      if (questIndex === -1) return {};
+      const quest = state.questLog[questIndex];
+      if (quest.status !== QuestStatus.Active) return {};
+      const town = resolveResidentLife(state, npcId)?.town;
+      if (!town || !helpReceipt(town, questId)) return {};
+      const paid = { ...quest, objectives: quest.objectives.map(o => o.id === HARDSHIP_OBJECTIVE_ID ? { ...o, isCompleted: true } : o) };
+      return applyQuestCompletion(state, questIndex, paid);
     }
 
     case 'COMPLETE_QUEST': {

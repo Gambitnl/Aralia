@@ -9,6 +9,7 @@
 import { SeededRandom } from '../../../../utils/random/seededRandom';
 import { resolveHeirs, splitEstate, HEIR_TIERS } from '../inheritance';
 import { advanceTownDays } from '../townSim';
+import { DRIFT_FORTUNE_RANGE } from '../shopLife';
 import { DAYS_PER_YEAR } from '../constants';
 import type { LivingVillager, TownSimState } from '../types';
 
@@ -135,8 +136,12 @@ describe('inheritance through the live sim', () => {
     expect(s.villagers[1].wealth).toBe(0);
     // The brother is the only living kin, so the whole estate lands on him.
     // (Sim wealth can also drift from other rules, so assert the floor.)
-    expect(s.villagers[2].wealth).toBeGreaterThanOrEqual(before);
+    // NPC lives (2026-11-02): the year-boundary personal-fortune pass can now
+    // lower an adult's wealth by up to |DRIFT_FORTUNE_RANGE[0]| each year, so
+    // the floor allows that one drift. The full estate is proven by the line.
+    expect(s.villagers[2].wealth).toBeGreaterThanOrEqual(before + DRIFT_FORTUNE_RANGE[0]);
     const inheritance = s.chronicle.events.filter((e) => e.kind === 'inheritance');
+    expect(inheritance[0].summary).toContain('inherited 120 from');
     expect(inheritance.length).toBeGreaterThan(0);
     expect(inheritance[0].subjectId).toBe(2);
     expect(inheritance[0].relatedIds).toContain(1);

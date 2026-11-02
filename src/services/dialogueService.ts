@@ -40,6 +40,8 @@ import type { NpcDialoguePublication } from '../types/memory';
 import type { WorldBusiness } from '../types/business';
 import { shareableRumorNotes, rumorSubject } from '../systems/companions/companionRumors';
 import { resolveNpcLocalDirections } from '../systems/travel/npcLocalDirections';
+import { activeHardshipQuest, HARDSHIP_GIFT_GOLD, npcGreetingStance, resolveNpcRecentLifeReply, resolveResidentTrouble } from '../systems/social/npcLifeReactions';
+import type { Quest } from '../types/quests';
 
 const TOPIC_REGISTRY: Record<string, ConversationTopic> = {};
 
@@ -380,6 +382,10 @@ const HOUSEHOLD_TOPICS: ConversationTopic[] = [
   {id:'household_work_recall', label:'What did you tell me about work?', category:'personal', playerPrompt:'What did you tell me about work?', isOneTime:true},
   {id:'household_work', label:'How is work going?', category:'personal', playerPrompt:'How is work going?', isOneTime:true},
   {id:'household_meeting', label:'Have we met before?', category:'personal', playerPrompt:'Have we met before?', isOneTime:true},
+  // NPC lives (2026-11-02): the resident's own sim life, troubles and the help the player gives.
+  {id:'household_news', label:'How have you been?', category:'personal', playerPrompt:'How have you been?', isOneTime:true},
+  {id:'household_trouble', label:'Is something troubling you?', category:'personal', playerPrompt:'Is something troubling you?', isOneTime:true},
+  {id:'household_help', label:'Here is the coin you asked for.', category:'personal', playerPrompt:`Here is the ${HARDSHIP_GIFT_GOLD} gold you asked for.`, isOneTime:true},
 ];
 export function resolveHouseholdPersonalReply(gameState: GameState, session: DialogueSession, topicId: string, npc?: NPC): string | undefined {
   if (topicId==='conversation_recall') {
@@ -431,6 +437,16 @@ export function resolveHouseholdPersonalReply(gameState: GameState, session: Dia
       report.staffIssues?.length ? 'There are problems with staffing to sort out.' : '',
     ].filter(Boolean);
     return [`I run ${business.name.trim()}.`,trading,...concerns].join(' ');
+  }
+  if (topicId === 'household_news') return resolveNpcRecentLifeReply(gameState,resident.id);
+  if (topicId === 'household_trouble') {
+    // A resident who dislikes the player does not ask them for help.
+    const stance=npcGreetingStance(gameState,resident.id).stance;
+    return stance==='cold'||stance==='shuns' ? undefined : resolveResidentTrouble(gameState,resident.id)?.text;
+  }
+  if (topicId === 'household_help') {
+    return activeHardshipQuest(gameState,resident.id) && gameState.gold >= HARDSHIP_GIFT_GOLD
+      ? 'Thank you. I will not forget this.' : undefined;
   }
   if (topicId === 'household_meeting') {
     if (session.contactStatus === 'first-meeting') return "We're meeting for the first time.";
@@ -513,6 +529,10 @@ export interface ProcessTopicResult {
   openMerchant?: { npcId: string; businessId: string; initialTab?: 'gossip' };
   /** Explicit factual topic, not a fallback after generation fails. */
   directReply?: { npcId: string; text: string; dialogue?: NpcDialoguePublication };
+  /** A resident's help request, offered through the existing OFFER_QUEST action. */
+  offerQuest?: Quest;
+  /** Pay an accepted help request (HELP_TOWNSFOLK). The reducer re-checks it. */
+  helpTownsfolk?: { npcId: string; questId: string };
 }
 
 /**
@@ -668,7 +688,9 @@ export function processTopicSelection(
     unlocks,
     deductions,
     ...(directText !== undefined ? {directReply: {npcId: session.npcId, text: directText,...(dialogue ? {dialogue} : {})}} : {}),
-    ...(storefront ? { openMerchant: { npcId: session.npcId, businessId: storefront.id, ...(rumorInquiry ? {initialTab: 'gossip' as const} : {}) } } : {})
+    ...(storefront ? { openMerchant: { npcId: session.npcId, businessId: storefront.id, ...(rumorInquiry ? {initialTab: 'gossip' as const} : {}) } } : {}),
+    ...(directText !== undefined && topicId==='household_trouble' ? (() => { const trouble=resolveResidentTrouble(gameState,session.npcId); return trouble ? {offerQuest: trouble.quest} : {}; })() : {}),
+    ...(directText !== undefined && topicId==='household_help' ? (() => { const quest=activeHardshipQuest(gameState,session.npcId); return quest ? {helpTownsfolk: {npcId: session.npcId, questId: quest.id}} : {}; })() : {}),
   };
 }
 

@@ -43,6 +43,7 @@ import { VillagePersonality } from '../../types/village';
 import { getGameDay } from '../../utils/core';
 import { SeededRandom } from '../../utils/random';
 import { resolveTownForLocation } from '../../systems/worldforge/townsim/chronicleForLocation';
+import { helpReceipt, resolveResidentLife } from '../../systems/social/npcLifeReactions';
 import {bedsideStorageMoves, outsideLayoutRepairEnvelope, FURNITURE_REPAIR_RECIPE} from '../../systems/worldforge/interior/buildingLayoutRepair';
 import {exteriorPropBaseline, replayExteriorPropRevisions, propDataSignature} from '../../systems/worldforge/props/exteriorPropRevision';
 import {isGroundFootingSupported} from '../../components/World3D/groundBuildingMotion';
@@ -334,6 +335,20 @@ export function townReducer(state: GameState, action: AppAction): Partial<GameSt
                     temple: null
                 }
             };
+        }
+
+        case 'HELP_TOWNSFOLK': {
+            // NPC lives (2026-11-02): a paid help request becomes good town talk
+            // through the same deed path as a completed quest. The receipt from
+            // the world slice proves the gift; the rumor id stops a duplicate.
+            const town = resolveResidentLife(state, action.payload.npcId)?.town;
+            const receipt = town ? helpReceipt(town, action.payload.questId) : undefined;
+            if (!receipt) return {};
+            return recordDeed(state, {
+                id: `rumor_help_${action.payload.questId}`,
+                kind: 'donation',
+                detail: receipt.summary,
+            });
         }
 
         case 'COMPLETE_QUEST': {
