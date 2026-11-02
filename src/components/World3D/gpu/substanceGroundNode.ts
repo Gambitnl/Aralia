@@ -82,9 +82,9 @@ import {
   MAX_BANDS,
   SUBSTANCE_OCTAVE_EULERS,
 } from '../terrain/substanceGroundMaterial';
+import type { TslNode } from '@/types/tslNode';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-type N = any;
+type N = TslNode; // Shared TSL alias (GG-588): see src/types/tslNode.ts.
 
 /** `vgHash(vec3)`: the GLSL's sin-free hash. */
 const vgHash = Fn(([p0]: [N]) => {
@@ -359,4 +359,3 @@ export function makeSubstanceGroundNodeMaterial(
 
   return m;
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */

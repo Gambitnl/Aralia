@@ -115,7 +115,7 @@ test('quality lane is required, ratchet failures block it, and the broad scan re
   assert.doesNotMatch(lane.slice(0, lane.indexOf('    steps:')), /continue-on-error/);
   assert.doesNotMatch(lane.slice(lane.indexOf('      - name: Enforce'), lane.indexOf('      - run: npm --silent')), /continue-on-error/);
   assert.match(lane, /quality-scan.json\n        continue-on-error: true/);
-  assert.match(ci, /needs: \[policy, typecheck, build, lint, validate, test, node-tests, quality-scan\]/);
+  assert.match(ci, /needs: \[policy, typecheck, build, lint, validate, test, heavy-tests, node-tests, quality-scan\]/);
 });
 
 

@@ -43,7 +43,11 @@ beforeAll(()=>{
  const bed=guestBedsForVisit(innVisit)[0];expect(bed).toBeDefined();
  const door=ground.buildings.find(b=>b.id==='wf-plot-188-66')!.parts.find(p=>p.door)!.door!;
  life.buildingDoors={66:{[door.id]:false}};
- baseline=createMockGameState({worldSeed,gameTime:new Date('0351-01-01T10:00:00Z'),party:[createMockPlayerCharacter({id:'hero'})],
+ // GG-603: the frame above reads the current terrain source (revision 2). Since
+ // ADR 0015 a save with no terrain revision tries every source, and here both
+ // give the same ground, so the producer refuses the match as ambiguous. Record
+ // the source this fixture was built on; the layout readers stay unversioned.
+ baseline=createMockGameState({worldSeed,worldforgeTerrainRevision:2,gameTime:new Date('0351-01-01T10:00:00Z'),party:[createMockPlayerCharacter({id:'hero'})],
   playerCell:{cellId,localeCoords:null},currentLocationId:'cell_1506',entry3DAnchor:{cellId,centerPx:[376.7,199.25]},
   playerGroundPos:feet,worldViewMode:'3d',townSim:{188:life},generatedNpcs,worldBusinesses,worldforgeDeltas:[],
   lodgingReservations:[{id:'paid-room',businessId:inn.id,businessName:inn.name,keeperId:inn.ownerId,
@@ -68,10 +72,13 @@ describe('independent historical-town load producer and existing site joins',()=
  it('matches actual merchants, owned sources, recorded doors and the paid inn visit before mount',()=>{
   expect(historicalTownLoadJoinError(baseline,ground,188,1,roster)).toBeUndefined();
  });
- it.each(['business','proprietor','door','bed','keeper','lore','inn-name','height','interior'] as const)('refuses unresolved %s joins without changing records',kind=>{
+ it.each(['business','proprietor','other-keeper','door','bed','keeper','lore','inn-name','height','interior'] as const)('refuses unresolved %s joins without changing records',kind=>{
   const state=structuredClone(baseline);
   if(kind==='business')state.worldBusinesses.biz_burg_188_plot_8.businessType='farm';
   if(kind==='proprietor')state.worldBusinesses.biz_burg_188_plot_8.ownerId='missing-owner';
+  // A real merchant from another workplace is neither the founder nor the sim keeper.
+  if(kind==='other-keeper')state.worldBusinesses.biz_burg_188_plot_8.ownerId=Object.values(state.worldBusinesses)
+   .find(b=>b.burgId===188&&b.plotId!==8&&b.ownerId!=='player')!.ownerId;
   if(kind==='door')state.townSim[188].buildingDoors![66]['missing-leaf']=false;
   if(kind==='bed')state.lodgingReservations![0].beds[0].index+=999;
   if(kind==='keeper')state.lodgingReservations![0].keeperId='other-keeper';

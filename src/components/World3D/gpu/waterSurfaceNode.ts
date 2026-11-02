@@ -79,9 +79,9 @@ import {
   WATER_SHALLOW_COLOR,
   WATER_SHALLOW_OPACITY,
 } from '../water/waterSurfaceMaterial';
+import type { TslNode } from '@/types/tslNode';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-type N = any;
+type N = TslNode; // Shared TSL alias (GG-588): see src/types/tslNode.ts.
 
 /** Seconds per flow-map cycle: long enough not to pulse, short enough not to stretch. */
 const FLOW_CYCLE_S = 1.6;
@@ -345,4 +345,3 @@ export function resetWaterSurfaceNodeMaterialForTest(): void {
   foamTexture?.dispose();
   foamTexture = null;
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */

@@ -29,6 +29,7 @@ import type { SceneOrigin } from '@/systems/world3d/sceneOrigin';
 import { siteDoorKey, sitePartScenePosition, worldOffsetToSiteLocal, type SiteGroupTransform } from '@/systems/worldforge/bridge/sitePartTransform';
 import { recentCommute } from '@/systems/worldforge/roster/townSnapshot';
 import { streetGraphForTown } from '@/systems/worldforge/bridge/groundAgentMotion';
+import type { StreetGraph } from '@/systems/worldforge/roster/agentPath';
 import { collectInteriorOccupants, createResidentStreetSampler, isInteriorEntryTraversalAtClock, occupantMotionAtClock,
   residentLocationAtClock, residentRosterIndex } from './InteriorOccupants';
 
@@ -42,16 +43,34 @@ export function mergeResidentDoorOpens(saved: ReadonlySet<string> | undefined, u
   return new Set([...(saved ?? []), ...users.keys()]);
 }
 
+type RosterPerson = NonNullable<GroundWorld['rosters']>[number]['occupants'][number];
+/** GG-580 (2026-11-02): the roster and street-graph maps depend only on the
+ * ground, but the sampler is rebuilt each time a chunk streams in. Keep them
+ * per ground so a chunk arrival does not walk the whole roster again. */
+const groundIndexCache = new WeakMap<GroundWorld, { sources: ReadonlyMap<string, RosterPerson>; graphs: ReadonlyMap<number, StreetGraph> }>();
+const NO_GROUND_INDEX = { sources: new Map<string, RosterPerson>(), graphs: new Map<number, StreetGraph>() };
+function groundIndexFor(ground: GroundWorld | null | undefined) {
+  if (!ground) return NO_GROUND_INDEX;
+  let index = groundIndexCache.get(ground);
+  if (!index) {
+    index = {
+      sources: new Map((ground.rosters ?? []).flatMap(roster => roster.occupants.map(person => [`${roster.burgId}:${person.id}`, person] as const))),
+      // GG-601 (2026-11-02): legs read with the town's street graph, the same one
+      // the crowd walks, so an errand trip (OUT, sent to an errand place) is a leg
+      // too and the resident opens their own door to leave and to come back.
+      graphs: new Map((ground.townPlans ?? []).map(town => [town.burgId, streetGraphForTown(town)] as const)),
+    };
+    groundIndexCache.set(ground, index);
+  }
+  return index;
+}
+
 export function createResidentDoorSampler(ground: GroundWorld | null | undefined, loaded: LoadedChunk[], origin: SceneOrigin, readActualFeet?:(residentKey:string)=>ResidentActualFootfall|null,clearanceContext?:ResidentDoorClearanceContext) {
   const figures = collectInteriorOccupants(loaded, origin);
   const street = createResidentStreetSampler(ground, loaded, origin);
   const identities = residentRosterIndex(ground?.rosters ?? []);
-  const sources = new Map<string, NonNullable<GroundWorld['rosters']>[number]['occupants'][number]>((ground?.rosters ?? []).flatMap(roster => roster.occupants.map(person => [`${roster.burgId}:${person.id}`, person] as const)));
+  const { sources, graphs } = groundIndexFor(ground);
   const sites = new Map(loaded.flatMap(chunk => chunk.bundle.sites.map(site => [site.id, site] as const)));
-  // GG-601 (2026-11-02): legs read with the town's street graph, the same one
-  // the crowd walks, so an errand trip (OUT, sent to an errand place) is a leg
-  // too and the resident opens their own door to leave and to come back.
-  const graphs = new Map((ground?.townPlans ?? []).map(town => [town.burgId, streetGraphForTown(town)] as const));
   const privateLeaves=new Map<string,{part:SitePart;transform:SiteGroupTransform}>();
   for(const chunk of loaded){const offset=chunkOriginWorld(chunk.cx,chunk.cy);
     for(const site of chunk.bundle.sites)for(const part of site.parts??[])if(part.door?.privateRoomId!==undefined)

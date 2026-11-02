@@ -66,9 +66,9 @@ import {
   vec3,
 } from 'three/tsl';
 import { riverWaterDiscard } from './riverFootprintCut';
+import type { TslNode } from '@/types/tslNode';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-type N = any;
+type N = TslNode; // Shared TSL alias (GG-588): see src/types/tslNode.ts.
 
 /** Kind ids: keep in step with ROAD_SURFACE in systems/world3d/roadGeometry.ts. */
 const K = { flagstone: 1, setts: 2, cobble: 3, lane: 4, curb: 5, rutStripe: 6, highway: 7, road: 8, trail: 9, path: 10 };
@@ -322,4 +322,3 @@ export function resetRoadSurfaceNodeMaterialForTest(): void {
   vergeMaterial?.dispose();
   vergeMaterial = null;
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */

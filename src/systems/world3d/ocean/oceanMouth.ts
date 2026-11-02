@@ -69,6 +69,7 @@ import type { OceanFoamBreaker, OceanFoamSource } from './oceanFoam';
 import { createOceanSampler } from './oceanSampler';
 import { OCEAN_BREAK_FULL, OCEAN_BREAK_START, oceanBathymetryFor } from './oceanBathymetry';
 import { oceanSkyDeckLight } from './oceanSky';
+import type { TslNode } from '@/types/tslNode';
 
 /**
  * ROUND 2'S WEIGHT OF A DEPTH BREAK IN THE ONE FOAM FIELD: the field's own
@@ -103,10 +104,6 @@ export function mouthDisplayCurveNode(c: { exposure: number; gamma: number }): {
  * imports this one. The near field's fine chop replaces it there.
  */
 export const OCEAN_UNRESOLVED_BASE_VAR = 0.009;
-
-/** A TSL node expression (see `oceanSurface.ts` for why this is `any`). */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type TslNode = any;
 
 export interface OceanRiverSample {
   readonly level: TslNode;
@@ -1104,7 +1101,6 @@ export async function createOceanMouth(o: {
     settled: () => !inFlight && shown !== null && shown.step === stepOf(wantT),
     state: () => shown,
     design: () => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { params, ...rest } = d;
       return rest;
     },

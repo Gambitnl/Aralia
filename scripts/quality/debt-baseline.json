@@ -11,7 +11,7 @@
       "tsNoCheck": 0
     },
     "src/commands/factory/AbilityCommandFactory.ts": {
-      "anyType": 3,
+      "anyType": 2,
       "anyAssertion": 0,
       "eslintDisable": 0,
       "tsIgnore": 0,
@@ -19,7 +19,7 @@
       "tsNoCheck": 0
     },
     "src/commands/factory/SpellCommandFactory.ts": {
-      "anyType": 2,
+      "anyType": 1,
       "anyAssertion": 0,
       "eslintDisable": 0,
       "tsIgnore": 0,
@@ -146,14 +146,6 @@
       "tsExpectError": 0,
       "tsNoCheck": 0
     },
-    "src/components/BattleMap/terrain/TerrainMesh.tsx": {
-      "anyType": 0,
-      "anyAssertion": 0,
-      "eslintDisable": 1,
-      "tsIgnore": 0,
-      "tsExpectError": 0,
-      "tsNoCheck": 0
-    },
     "src/components/BattleMap/terrain/VolumeArenaGround.tsx": {
       "anyType": 0,
       "anyAssertion": 0,
@@ -229,7 +221,7 @@
     "src/components/Dialogue/DialogueInterface.tsx": {
       "anyType": 0,
       "anyAssertion": 0,
-      "eslintDisable": 1,
+      "eslintDisable": 2,
       "tsIgnore": 0,
       "tsExpectError": 0,
       "tsNoCheck": 0
@@ -245,7 +237,7 @@
     "src/components/Glossary/Glossary.tsx": {
       "anyType": 0,
       "anyAssertion": 0,
-      "eslintDisable": 2,
+      "eslintDisable": 1,
       "tsIgnore": 0,
       "tsExpectError": 0,
       "tsNoCheck": 0
@@ -282,14 +274,6 @@
       "tsExpectError": 0,
       "tsNoCheck": 0
     },
-    "src/components/Town/Intrigue/RumorMill.tsx": {
-      "anyType": 1,
-      "anyAssertion": 1,
-      "eslintDisable": 0,
-      "tsIgnore": 0,
-      "tsExpectError": 0,
-      "tsNoCheck": 0
-    },
     "src/components/World3D/FreeRoamCameraController.tsx": {
       "anyType": 1,
       "anyAssertion": 0,
@@ -298,23 +282,7 @@
       "tsExpectError": 0,
       "tsNoCheck": 0
     },
-    "src/components/World3D/GroundAgents.tsx": {
-      "anyType": 0,
-      "anyAssertion": 0,
-      "eslintDisable": 1,
-      "tsIgnore": 0,
-      "tsExpectError": 0,
-      "tsNoCheck": 0
-    },
     "src/components/World3D/InteriorLights.tsx": {
-      "anyType": 0,
-      "anyAssertion": 0,
-      "eslintDisable": 1,
-      "tsIgnore": 0,
-      "tsExpectError": 0,
-      "tsNoCheck": 0
-    },
-    "src/components/World3D/InteriorOccupants.tsx": {
       "anyType": 0,
       "anyAssertion": 0,
       "eslintDisable": 1,
@@ -349,7 +317,15 @@
     "src/components/World3D/World3DScene.tsx": {
       "anyType": 0,
       "anyAssertion": 0,
-      "eslintDisable": 2,
+      "eslintDisable": 4,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/components/World3D/World3DWrapper.tsx": {
+      "anyType": 0,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
       "tsIgnore": 0,
       "tsExpectError": 0,
       "tsNoCheck": 0
@@ -365,7 +341,7 @@
     "src/components/World3D/vegetation/VegetationTreeField.tsx": {
       "anyType": 0,
       "anyAssertion": 0,
-      "eslintDisable": 3,
+      "eslintDisable": 2,
       "tsIgnore": 0,
       "tsExpectError": 0,
       "tsNoCheck": 0
@@ -396,14 +372,6 @@
     },
     "src/components/World3D/water/riverWaterMaterial.ts": {
       "anyType": 1,
-      "anyAssertion": 0,
-      "eslintDisable": 1,
-      "tsIgnore": 0,
-      "tsExpectError": 0,
-      "tsNoCheck": 0
-    },
-    "src/components/Worldforge/AtlasSvgView.tsx": {
-      "anyType": 0,
       "anyAssertion": 0,
       "eslintDisable": 1,
       "tsIgnore": 0,
@@ -610,14 +578,6 @@
       "tsExpectError": 0,
       "tsNoCheck": 0
     },
-    "src/hooks/ability/useAbilityExecution.ts": {
-      "anyType": 7,
-      "anyAssertion": 6,
-      "eslintDisable": 0,
-      "tsIgnore": 0,
-      "tsExpectError": 0,
-      "tsNoCheck": 0
-    },
     "src/hooks/actions/handleGeminiCustom.ts": {
       "anyType": 2,
       "anyAssertion": 2,
@@ -682,14 +642,6 @@
       "tsExpectError": 0,
       "tsNoCheck": 0
     },
-    "src/hooks/useChronicleRumorsSync.ts": {
-      "anyType": 0,
-      "anyAssertion": 0,
-      "eslintDisable": 1,
-      "tsIgnore": 0,
-      "tsExpectError": 0,
-      "tsNoCheck": 0
-    },
     "src/hooks/useCompanionCommentary.ts": {
       "anyType": 1,
       "anyAssertion": 1,
@@ -715,22 +667,6 @@
       "tsNoCheck": 0
     },
     "src/hooks/useDungeonRumorsSync.ts": {
-      "anyType": 0,
-      "anyAssertion": 0,
-      "eslintDisable": 1,
-      "tsIgnore": 0,
-      "tsExpectError": 0,
-      "tsNoCheck": 0
-    },
-    "src/hooks/useFocusTrap.ts": {
-      "anyType": 0,
-      "anyAssertion": 0,
-      "eslintDisable": 1,
-      "tsIgnore": 0,
-      "tsExpectError": 0,
-      "tsNoCheck": 0
-    },
-    "src/hooks/useKnownPortsSync.ts": {
       "anyType": 0,
       "anyAssertion": 0,
       "eslintDisable": 1,
@@ -906,14 +842,6 @@
       "tsExpectError": 0,
       "tsNoCheck": 0
     },
-    "src/systems/world3d/ocean/oceanBeach.ts": {
-      "anyType": 1,
-      "anyAssertion": 0,
-      "eslintDisable": 1,
-      "tsIgnore": 0,
-      "tsExpectError": 0,
-      "tsNoCheck": 0
-    },
     "src/systems/world3d/ocean/oceanBuoyancyProbe.ts": {
       "anyType": 1,
       "anyAssertion": 0,
@@ -938,14 +866,6 @@
       "tsExpectError": 0,
       "tsNoCheck": 0
     },
-    "src/systems/world3d/ocean/oceanFoam.ts": {
-      "anyType": 1,
-      "anyAssertion": 0,
-      "eslintDisable": 1,
-      "tsIgnore": 0,
-      "tsExpectError": 0,
-      "tsNoCheck": 0
-    },
     "src/systems/world3d/ocean/oceanNormalMip.ts": {
       "anyType": 1,
       "anyAssertion": 0,
@@ -963,14 +883,6 @@
       "tsNoCheck": 0
     },
     "src/systems/world3d/ocean/oceanReflector.ts": {
-      "anyType": 1,
-      "anyAssertion": 0,
-      "eslintDisable": 1,
-      "tsIgnore": 0,
-      "tsExpectError": 0,
-      "tsNoCheck": 0
-    },
-    "src/systems/world3d/ocean/oceanRocks.ts": {
       "anyType": 1,
       "anyAssertion": 0,
       "eslintDisable": 1,
@@ -1026,23 +938,7 @@
       "tsExpectError": 0,
       "tsNoCheck": 0
     },
-    "src/systems/world3d/ocean/oceanSurface.ts": {
-      "anyType": 1,
-      "anyAssertion": 0,
-      "eslintDisable": 1,
-      "tsIgnore": 0,
-      "tsExpectError": 0,
-      "tsNoCheck": 0
-    },
     "src/systems/world3d/ocean/oceanUnderwater.ts": {
-      "anyType": 1,
-      "anyAssertion": 0,
-      "eslintDisable": 1,
-      "tsIgnore": 0,
-      "tsExpectError": 0,
-      "tsNoCheck": 0
-    },
-    "src/systems/world3d/ocean/oceanWake.ts": {
       "anyType": 1,
       "anyAssertion": 0,
       "eslintDisable": 1,
@@ -1115,7 +1011,7 @@
       "tsNoCheck": 0
     },
     "src/systems/worldforge/fmg/utils/graphUtils.ts": {
-      "anyType": 6,
+      "anyType": 4,
       "anyAssertion": 0,
       "eslintDisable": 1,
       "tsIgnore": 0,
@@ -1178,7 +1074,7 @@
       "tsExpectError": 0,
       "tsNoCheck": 0
     },
-    "src/types/combat.ts": {
+    "src/types/combat/actions.ts": {
       "anyType": 1,
       "anyAssertion": 0,
       "eslintDisable": 0,
@@ -1191,22 +1087,6 @@
       "anyAssertion": 0,
       "eslintDisable": 0,
       "tsIgnore": 0,
-      "tsExpectError": 0,
-      "tsNoCheck": 0
-    },
-    "src/types/index.ts": {
-      "anyType": 0,
-      "anyAssertion": 0,
-      "eslintDisable": 0,
-      "tsIgnore": 39,
-      "tsExpectError": 0,
-      "tsNoCheck": 0
-    },
-    "src/types/spells.ts": {
-      "anyType": 0,
-      "anyAssertion": 0,
-      "eslintDisable": 0,
-      "tsIgnore": 1,
       "tsExpectError": 0,
       "tsNoCheck": 0
     },
@@ -1230,6 +1110,14 @@
       "anyType": 7,
       "anyAssertion": 0,
       "eslintDisable": 0,
+      "tsIgnore": 0,
+      "tsExpectError": 0,
+      "tsNoCheck": 0
+    },
+    "src/types/tslNode.ts": {
+      "anyType": 1,
+      "anyAssertion": 0,
+      "eslintDisable": 1,
       "tsIgnore": 0,
       "tsExpectError": 0,
       "tsNoCheck": 0

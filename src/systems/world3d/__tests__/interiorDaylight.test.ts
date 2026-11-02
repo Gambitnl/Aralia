@@ -11,6 +11,7 @@ import {
   interiorSkyFactor,
   polygonViewFactor,
   reflectanceOfHex,
+  sunFloorPatch,
   type DaylightPart,
 } from '../interiorDaylight';
 
@@ -149,6 +150,118 @@ describe('buildInteriorDaylight', () => {
   it('returns null for a building with no floor or no window', () => {
     expect(buildInteriorDaylight(oneRoomHouse().filter((p) => p.lightRole !== 'window'), -1)).toBeNull();
     expect(buildInteriorDaylight(oneRoomHouse().filter((p) => p.walkSurface !== 'floor'), -1)).toBeNull();
+  });
+});
+
+describe('sunFloorPatch (GG-594 part 2: the sun bounce source)', () => {
+  // The pane: x -0.6..0.6, y 0.9..2.1, in the wall plane z = 2.15, facing +z.
+  // The floor top is y = 0 and the floor ends at z = -2.
+  const day = buildInteriorDaylight(oneRoomHouse(), -1)!;
+  const pane = day.openings[0];
+  const sunAt = (x: number, y: number, z: number) => {
+    const l = Math.hypot(x, y, z);
+    return { x: x / l, y: y / l, z: z / l };
+  };
+
+  // The sill and head boxes are 0.3 m deep: the reveal.
+  const T = 0.3;
+
+  it('reads the reveal depth from the sill and head around the pane', () => {
+    expect(pane.revealM).toBeCloseTo(T, 9);
+  });
+
+  it('throws the pane onto the floor along the sun ray (45 degrees, straight in)', () => {
+    const p = sunFloorPatch(day, pane, sunAt(0, 1, 1))!;
+    // The beam drops T = 0.3 m inside the reveal, so the lit band leaves the
+    // inner face (0.15 m in) from 0.9 m to 1.8 m and lands 1.05..1.95 m in.
+    expect(p.center.x).toBeCloseTo(0, 9);
+    expect(p.center.y).toBeCloseTo(0, 9);
+    expect(p.center.z).toBeCloseTo(2.15 - 1.5, 9);
+    expect(p.width).toBeCloseTo(1.2, 9);
+    expect(p.depth).toBeCloseTo(0.9, 9);
+    expect(p.outward).toEqual({ x: 0, y: 0, z: 1 });
+    expect(p.floorHex).toBe('#9a8a72');
+  });
+
+  it('carries the flux that clears the reveal: area * s.y = (h - T s.y/sn)(w - T |st|/sn) * sn', () => {
+    for (const s of [sunAt(0, 1, 1), sunAt(0.3, 1, 0.8), sunAt(-0.5, 2, 1), sunAt(0.2, 1.5, 0.6)]) {
+      const p = sunFloorPatch(day, pane, s)!;
+      const lit = (1.2 - (T * s.y) / s.z) * (1.2 - (T * Math.abs(s.x)) / s.z);
+      expect(p.width * p.depth * s.y).toBeCloseTo(lit * s.z, 9);
+    }
+  });
+
+  it('lets a pane with no sill or head pass its whole area', () => {
+    const bare = buildInteriorDaylight(oneRoomHouse().filter((q) => !(q.z === 2.15 && q.w === 1.2 && q.d === 0.3)), -1)!;
+    expect(bare.openings[0].revealM).toBe(0);
+    const s = sunAt(0.3, 1, 0.8);
+    const p = sunFloorPatch(bare, bare.openings[0], s)!;
+    expect(p.width * p.depth * s.y).toBeCloseTo(1.44 * s.z, 9);
+  });
+
+  it('gives no patch when a deep reveal shades the whole pane from a high sun', () => {
+    // s.y / (s . n) = 4: the beam drops 1.2 m across the 0.3 m reveal.
+    expect(sunFloorPatch(day, pane, sunAt(0, 4, 1))).toBeNull();
+  });
+
+  it('shifts the patch along the wall when the sun comes in at a slant', () => {
+    // s . t = s.y: the patch center moves by -(1.5 m) along +x.
+    const p = sunFloorPatch(day, pane, sunAt(1, 1, 1))!;
+    expect(p.center.x).toBeCloseTo(-1.5, 9);
+    expect(p.center.z).toBeCloseTo(0.65, 9);
+  });
+
+  it('gives no patch when the sun is down or behind the window', () => {
+    expect(sunFloorPatch(day, pane, sunAt(0, -0.2, 1))).toBeNull();
+    expect(sunFloorPatch(day, pane, sunAt(0, 1, -1))).toBeNull();
+    expect(sunFloorPatch(day, pane, sunAt(1, 1, 0))).toBeNull();
+  });
+
+  it('stops the patch at the back of the floor', () => {
+    // (s . n) / s.y = 3: the beam spans 2.85 m in onward (0.15 + 0.9 * 3);
+    // the floor ends 4.15 m in.
+    const p = sunFloorPatch(day, pane, sunAt(0, 1, 3))!;
+    expect(p.depth).toBeCloseTo(4.15 - 2.85, 9);
+    expect(p.center.z).toBeCloseTo(2.15 - (2.85 + 4.15) / 2, 9);
+    // A lower sun puts the whole beam on the back wall: no floor patch.
+    expect(sunFloorPatch(day, pane, sunAt(0, 1, 5))).toBeNull();
+  });
+
+  it('stops the patch at a wall across the beam', () => {
+    // A partition at z = 0 (0.15 m thick): its near face is 2.075 m in.
+    const walled = buildInteriorDaylight(oneRoomHouse([
+      { x: 0, z: 0, w: 6, d: 0.15, h: 2.8, colorHex: '#cfc7b8' },
+    ]), -1)!;
+    const p = sunFloorPatch(walled, walled.openings[0], sunAt(0, 1, 2))!;
+    expect(p.depth).toBeCloseTo(2.075 - (0.15 + 1.8), 9);
+  });
+
+  it('continues the patch across an abutting floor slab at the same level', () => {
+    // Split the floor in two slabs at z = 0; no wall between them.
+    const parts = oneRoomHouse().filter((q) => q.walkSurface !== 'floor');
+    parts.push(
+      { x: 0, z: 1, w: 6, d: 2, h: 0.1, baseY: -0.1, colorHex: '#9a8a72', walkSurface: 'floor' },
+      { x: 0, z: -1, w: 6, d: 2, h: 0.1, baseY: -0.1, colorHex: '#9a8a72', walkSurface: 'floor' },
+    );
+    const split = buildInteriorDaylight(parts, -1)!;
+    const p = sunFloorPatch(split, split.openings[0], sunAt(0, 1, 3))!;
+    expect(p.depth).toBeCloseTo(4.15 - 2.85, 9);
+  });
+
+  it('keeps its full width across floor tiles along the wall', () => {
+    // The floor in 1 m tiles along x, as the town lays it; a slant sun puts
+    // the patch across several seams.
+    const parts = oneRoomHouse().filter((q) => q.walkSurface !== 'floor');
+    for (let i = 0; i < 6; i++) {
+      parts.push({ x: -2.5 + i, z: 0, w: 1, d: 4, h: 0.1, baseY: -0.1, colorHex: '#9a8a72', walkSurface: 'floor' });
+    }
+    const tiled = buildInteriorDaylight(parts, -1)!;
+    const s = sunAt(0.3, 1, 0.8);
+    const whole = sunFloorPatch(day, pane, s)!;
+    const p = sunFloorPatch(tiled, tiled.openings[0], s)!;
+    expect(p.width).toBeCloseTo(whole.width, 9);
+    expect(p.depth).toBeCloseTo(whole.depth, 9);
+    expect(p.center.x).toBeCloseTo(whole.center.x, 9);
   });
 });
 

@@ -28,12 +28,12 @@
 import { If, float, int, storage, vec3, vec4 } from 'three/tsl';
 import { StorageBufferAttribute } from 'three/webgpu';
 import type { FlipParams } from './flipCompute';
+import type { TslNode } from '@/types/tslNode';
 
 type V3 = [number, number, number];
 // Three's TSL expression types do not cover mutable shader variables reliably.
 // Keep that boundary local, matching flipCompute rather than weakening callers.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Node = any;
+type Node = TslNode; // Shared TSL alias (GG-588): see src/types/tslNode.ts.
 const dot = (a: readonly number[], b: readonly number[]) => a.reduce((s, v, i) => s + v * b[i], 0);
 const sub = (a: readonly number[], b: readonly number[]): V3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const cross = (a: V3, b: V3): V3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];

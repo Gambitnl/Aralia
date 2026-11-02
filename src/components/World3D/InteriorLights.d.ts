@@ -61,8 +61,6 @@ export declare const INTERIOR_LIGHT_TUNING: {
     readonly HEARTH_RANGE_M: 40;
     readonly HEARTH_INTENSITY: 14;
     readonly HEARTH_DISTANCE_M: 9;
-    readonly FILL_TARGET_INTENSITY: 1.15;
-    readonly FILL_FADE_S: 0.3;
 };
 export declare function collectInteriorLighting(loaded: LoadedChunk[], origin: SceneOrigin): {
     hearths: HearthLight[];

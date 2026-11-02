@@ -93,7 +93,6 @@ export function publishCanopyField(inputs: readonly TreeBatchInput[]): void {
   if (PRESET_TREES) {
     if (!warnedPreset) {
       warnedPreset = true;
-      // eslint-disable-next-line no-console
       console.warn('[world3d-water] ?trees=preset: the canopy field is empty; water reflects banks, not trees.');
     }
     canopyFieldTexture.needsUpdate = true;

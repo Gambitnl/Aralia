@@ -1,6 +1,6 @@
 # Town Map
 
-Verified: 2026-11-02 (GG-600 town work and GG-601 street joins, door steps, errand doors and errand slots: see "Street crowd: errands, departures and outdoor drawing"). Earlier: 2026-11-02 (GG-593 plaza pads: market squares and civic forecourts graded to at most 5 degrees in the 3D bake, measured at four bands and a town sample). Earlier: 2026-11-02 (street crowd errands, departures, outdoor-only drawing and talk/listen poses: see "Street crowd: errands, departures and outdoor drawing"). Earlier: 2026-11-02 (GG-586 market square: measured at four bands and 24 sampled towns, Hafting rendered in the 2D town map at `step=town3d`). Earlier: 2026-11-02 (GG-577 shared courts in the old core and GG-569 civic grounds in the 3D bake, measured at four bands, rendered at `step=town3d` Real 3D for Paphina). Earlier: 2026-11-02 (GG-542: staff and patron parity between the building visit and the live schedule). Earlier: 2026-11-01 (town-map rules GG-560 to GG-567: main street, river channel, bridges, docks, gate hooks, house shape, front gardens, passages and civic grounds, measured at four bands and thirteen water towns, rendered at `step=town3d`; candidate homestead/parent-land/shared-approach planning and larger-town coverage failure; explicit candidate rural household/field source facts; fresh-only resolved building purpose and household-first prop wealth; native settled nave orbit, altar route and retained knowledge reload; requested-heading camera retraction and native temple bench/reload; measured retained-prop repair proposal and native movement contract; saved-revision factual readers and Local/address reconstruction; revision-aware building/rest readers, truthful routine reports and source-change inspector reset; recorded door widths, household reference drafts and native poor-home reload; saved town-layout registration and ground projection; retained town-layout reader and measured runtime precision; reached furnishing identity source and captured desktop component view; town-look rules GG-544 to GG-551, census of 813 towns; fitted civic labels and native library use; town roads meet the world roads, GG-541, census of 8 towns). Earlier, 2026-10-29: (canonical door-head alignment, measured standing clearance, actual Fenna entry/owned trade/counter examination and two native interior reloads; live Brooksmith work/home handoff, night manual full reload and continuous terrain walking; separate workplace attendance and retirement; ground recovery, finish-based rest cooldown and named-slot reload; source-grid combat handoff and actual Alrio defeat; observed Alrio growth, saved exploration knowledge, bounded stair/input gates and exact repaired world return; typed tavern services and saved local hooks; canonical proprietor reconciliation, clear activity targets, resident mouse selection, family/memory reload, in-place rest, saved front doors and qualified railed Hartdown traversal). Source-bound shelf rendering and owned-content examination were checked in the saved Menaikon visit.
+Verified: 2026-11-02 (GG-604 suburb lanes: the lanes between suburb blocks are passages joined to the approach roads, measured on the demo town and Borieborum). Earlier: 2026-11-02 (GG-600 town work and GG-601 street joins, door steps, errand doors and errand slots: see "Street crowd: errands, departures and outdoor drawing"). Earlier: 2026-11-02 (GG-593 plaza pads: market squares and civic forecourts graded to at most 5 degrees in the 3D bake, measured at four bands and a town sample). Earlier: 2026-11-02 (street crowd errands, departures, outdoor-only drawing and talk/listen poses: see "Street crowd: errands, departures and outdoor drawing"). Earlier: 2026-11-02 (GG-586 market square: measured at four bands and 24 sampled towns, Hafting rendered in the 2D town map at `step=town3d`). Earlier: 2026-11-02 (GG-577 shared courts in the old core and GG-569 civic grounds in the 3D bake, measured at four bands, rendered at `step=town3d` Real 3D for Paphina). Earlier: 2026-11-02 (GG-542: staff and patron parity between the building visit and the live schedule). Earlier: 2026-11-01 (town-map rules GG-560 to GG-567: main street, river channel, bridges, docks, gate hooks, house shape, front gardens, passages and civic grounds, measured at four bands and thirteen water towns, rendered at `step=town3d`; candidate homestead/parent-land/shared-approach planning and larger-town coverage failure; explicit candidate rural household/field source facts; fresh-only resolved building purpose and household-first prop wealth; native settled nave orbit, altar route and retained knowledge reload; requested-heading camera retraction and native temple bench/reload; measured retained-prop repair proposal and native movement contract; saved-revision factual readers and Local/address reconstruction; revision-aware building/rest readers, truthful routine reports and source-change inspector reset; recorded door widths, household reference drafts and native poor-home reload; saved town-layout registration and ground projection; retained town-layout reader and measured runtime precision; reached furnishing identity source and captured desktop component view; town-look rules GG-544 to GG-551, census of 813 towns; fitted civic labels and native library use; town roads meet the world roads, GG-541, census of 8 towns). Earlier, 2026-10-29: (canonical door-head alignment, measured standing clearance, actual Fenna entry/owned trade/counter examination and two native interior reloads; live Brooksmith work/home handoff, night manual full reload and continuous terrain walking; separate workplace attendance and retirement; ground recovery, finish-based rest cooldown and named-slot reload; source-grid combat handoff and actual Alrio defeat; observed Alrio growth, saved exploration knowledge, bounded stair/input gates and exact repaired world return; typed tavern services and saved local hooks; canonical proprietor reconciliation, clear activity targets, resident mouse selection, family/memory reload, in-place rest, saved front doors and qualified railed Hartdown traversal). Source-bound shelf rendering and owned-content examination were checked in the saved Menaikon visit.
 
 Named household schedules share the occupancy owner's 07:00 breakfast, 08:00
 work and 18:00 return boundaries. Street travel uses existing route length at
@@ -624,6 +624,29 @@ subjects (GG-552). The rules, in `town/`:
   wards carry `extramural: true` and come after every intramural ward, so
   intramural plot numbers keep their order. Unbuilt band blocks are market
   gardens (`openLand` source `extramural`).
+- **Suburb lanes** (GG-604). Each suburb block is pulled in from its cell
+  by about half a lane, and that lane is now a street. `suburbLanes` in
+  `townEngine.ts` emits the cell edges of the built suburb blocks as
+  passages (`role: 'passage'`, tier `lane`, half a lane wide, no
+  `serves`). Before this, a row that faced its cell edge had no way out
+  except through the row behind.
+  - An edge two built cells share is one lane. A piece inside a house is
+    left out. A suburb lot keeps more than a quarter lane from its cell edge,
+    so the lane reaches no house, and as a passage it drops no house (GG-564).
+  - Each lane joins every approach road it crosses: the crossing point is
+    added to both lines, so the router joins them at one node.
+  - A lane group that reaches no road gets one straight link (at most eight
+    lanes long) to the nearest road or reached lane. The link may not cross a
+    house, the wall or the water. A group that still reaches nothing is
+    dropped, so no lane is an island.
+  - The lanes come last in `streetNetwork`, so every earlier street keeps
+    its id. Revisions 1 and 4 (`townLayoutV1`) do not run this pass.
+  - Measured with `.agent/scratch/npc-life/faults.mts`: fitted doors whose
+    step crosses another plot fell from 27 to 5 of 674 (demo town) and from
+    184 to 9 of 1,151 (Borieborum). Routes that cut another plot for more than
+    3 ft fell from 98 to 22 (demo). The 14 doors left are blueprint entries
+    on a back or side wall (GG-608). Cost: the router has more nodes, and the
+    demo bake rose from about 20 s to 31 s (GG-605).
 - **Ports reach the shore** (GG-547). `buildTownCore` runs the core out to two
   quay widths of any coast edge. A crowded town's wall stands back from the
   shore, so quays may seat on the suburb band outside the wall (`pierFor`).
@@ -2668,6 +2691,17 @@ Verified: 2026-10-31. householdFurnish retains its established furniture and bed
 The canonical Menaikon inn, plot 35 in seed 1793146029630, appends a rotated bench at ground-floor index 7 without moving any of its prior furniture, rooms, walls, doors or stairs. Actual desktop play reaches it, opens its existing PublicSeatRestAction and completes the normal one-hour, zero-dice rest. No seated animation is added; the simple furnishing model and cramped camera remain open. The action reuses current-room reach checks and normal rest review rather than bypassing rest limits, lodging or privacy. Reload keeps the earned rest count and the next review refuses an early repeat. Twenty-six affected cases, two scoped type paths and native 18-group reload are qualified. See [A real public seat and an earned inn rest](../../projects/gameplay-flow/TRACKER.md#a-real-public-seat-and-an-earned-inn-rest).
 
 ## Nearby town door actions
+
+Door state (GG-580). Verified: 2026-11-02 (unit tests and a headless World3D
+demo profile). The scene keeps the live door state in one store per scene
+(`groundDoorStore.ts`): the player's saved opens merged with the doors that
+residents use now, and the resident names at each door. `GroundFurnishingContext`
+carries the store as `doors` and holds no door values, because every building
+reads that context. Each `BuildingDoor` subscribes to its own door key, so a
+resident at one door renders that leaf only. `NearbyBuildingDoor` and the
+resident actors read the store in their frame loops. The movement solver
+(`groundBuildingMotion.buildingsFor`) keeps one set of solids per state of each
+building's own doors, so a door change rebuilds only that building.
 
 Verified: 2026-10-31. NearbyBuildingDoor derives candidate entries from mounted canonical town buildings and samples the actual supported footfall at ten hertz. It nominates one leaf within 1.5 m and the existing floor tolerance, independent of camera target, orbit or a requested movement destination. World3DWrapper displays its ordinary desktop action using the shared Button. The dungeon view's nearby-door controls are the reused presentation pattern.
 

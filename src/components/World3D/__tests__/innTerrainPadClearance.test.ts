@@ -6,13 +6,20 @@ import {getWorldforgeLocalForCell} from '@/systems/worldforge/bridge/legacySubma
 import {makeGroundWorld,groundSurfaceY,type GroundWorld} from '@/systems/worldforge/bridge/groundChunkLoader';
 import {siteDoorKey} from '@/systems/worldforge/bridge/sitePartTransform';
 import {resolveGroundWalk} from '../groundBuildingMotion';
+import {buildTownSimStateForBurg} from '@/systems/worldforge/townsim/townSimRegistration';
+import {CELL_AFFINE_TOWN_LAYOUT_REVISION} from '@/systems/worldforge/town/townLayoutRevision';
 
 describe('the played inn terrain pad preserves standing entrance clearance',()=>{
  let ground:GroundWorld;
  beforeAll(()=>{
   const seed=1793146029630;
-  const {local,region}=getWorldforgeLocalForCell(seed,4337,{centerPx:[114.73,362.3]});
-  ground=makeGroundWorld(local,seed,region,{skipProps:true,anchorCellId:4337,hour:11.3});
+  // GG-603 (2026-11-02): the played inn was generated with the cell-affine
+  // recipe from before the October 31 road-scale change. The current default
+  // (after the GG-586 market re-lay) puts a house on plot 10. Read the town
+  // with that saved revision, as a load of the played save does.
+  const life=buildTownSimStateForBurg(seed,675,0,CELL_AFFINE_TOWN_LAYOUT_REVISION);
+  const {local,region}=getWorldforgeLocalForCell(seed,4337,{centerPx:[114.73,362.3],townLayouts:{675:life}});
+  ground=makeGroundWorld(local,seed,region,{skipProps:true,anchorCellId:4337,hour:11.3,townLife:{675:life}});
  },60000);
  const inn=()=>ground.buildings.find(b=>b.id==='wf-plot-675-10')!;
  const leaf=()=>inn().parts.find(p=>p.door?.level===0)!;

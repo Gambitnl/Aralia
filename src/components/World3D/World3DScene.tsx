@@ -40,7 +40,9 @@ import * as THREE from 'three';
 import { buildBeamGeometry } from '@/systems/world3d/beamGeometry';
 import { bakeInteriorSkyFactors, buildInteriorDaylight, daylightSegments, interiorSkyFactor } from '@/systems/world3d/interiorDaylight';
 import { makeInteriorMaterial, quantizeSkyView, type InteriorMaterialLook } from './interiorDaylightMaterial';
-import { SHADOW_ONLY_LAYER } from './World3DLighting';
+import { LAMP_BODY_HEX, LAMP_FURNITURE, tableLampBodyGeometry, tableLampFlameGeometry, tableLampFlameMaterial } from './tableLamp';
+import { markInteriorLive } from './liveInteriors';
+import { DEFAULT_TIME_OF_DAY_H, SHADOW_ONLY_LAYER } from './World3DLighting';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { isWebGpuWorldEnabled } from './webgpuWorldFlag';
 
@@ -121,6 +123,7 @@ import type { ActorSpace } from './actorPersonalSpace';
 import PartyGroundActors from './PartyGroundActors';
 import type { PartyCompanionPresence, CompanionPosition } from '@/systems/companions/companionWhereabouts';
 import { GroundFurnishingContext } from './GroundFurnishingContext';
+import { createGroundDoorStore } from './groundDoorStore';
 import { BuildingDoor } from './BuildingDoor';
 import type { AvatarFootfall, FurnishingPick } from './groundFurnishingInteraction';
 import GroundMovePlane from './GroundMovePlane';
@@ -164,6 +167,8 @@ import { publishCanopyField } from './water/canopyHeightField';
 import type { TreeBatchInput } from '@/systems/worldforge/vegetation/treeBatching';
 import { getRoadSurfaceNodeMaterial, getRoadVergeNodeMaterial } from './gpu/roadSurfaceNode';
 import { buildWorldGpuPost, type WorldGpuPostHandle } from './gpu/worldGpuPost';
+import { EyeAdaptationEffect } from './eyeAdaptationEffect';
+import { EyeAdaptation } from '../../systems/world3d/eyeAdaptation';
 import { publishWorldGround, publishWorldPlayer } from './water/worldGroundHook';
 import type { WebGPURenderer } from 'three/webgpu';
 import type { PlayerWorldPosition } from '@/types';
@@ -792,6 +797,8 @@ const CanopyFieldPublisher: React.FC<{ inputs: readonly TreeBatchInput[] }> = ({
   const signature = inputs.map((i) => `${i.scatter.cacheKey}@${i.offset.join(',')}`).join('|');
   useEffect(() => {
     publishCanopyField(inputs);
+    // `signature` is the content key of `inputs`; the array itself is a new
+    // object on every render, so listing it would republish every frame.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signature]);
   return null;
@@ -810,13 +817,15 @@ const CanopyFieldPublisher: React.FC<{ inputs: readonly TreeBatchInput[] }> = ({
  * console and on `window.__wf3dPostChain`; it does not fake the post look.
  * Mounted only under the flag: the WebGL world does not reach this code.
  */
-const WorldGpuPostChain: React.FC = () => {
+const WorldGpuPostChain: React.FC<{ timeOfDayHours?: number }> = ({ timeOfDayHours }) => {
   const { gl, scene, camera } = useThree();
+  const hoursRef = React.useRef(timeOfDayHours ?? DEFAULT_TIME_OF_DAY_H);
+  hoursRef.current = timeOfDayHours ?? DEFAULT_TIME_OF_DAY_H;
   const handleRef = React.useRef<WorldGpuPostHandle | null>(null);
   React.useEffect(() => {
     let cancelled = false;
     let built: WorldGpuPostHandle | null = null;
-    const w = window as unknown as { __wf3dPostChain?: string; __wf3dPost?: WorldGpuPostHandle | null };
+    const w = window as unknown as { __wf3dPostChain?: string; __wf3dPost?: WorldGpuPostHandle | null; __wf3dEye?: EyeAdaptation };
     w.__wf3dPostChain = 'building';
     buildWorldGpuPost(gl as unknown as WebGPURenderer, scene, camera).then((h) => {
       if (cancelled) { h.dispose(); return; }
@@ -825,22 +834,24 @@ const WorldGpuPostChain: React.FC = () => {
       // Dev hook, like __wf3dScene: a rig reads the chain or swaps its
       // composite (for example AO off) for an A/B measurement.
       w.__wf3dPost = h;
+      // Dev hook for eye adaptation (GG-594 part 1), as the WebGL step sets it.
+      w.__wf3dEye = h.eye;
       w.__wf3dPostChain = 'ready';
     }).catch((e: unknown) => {
       w.__wf3dPostChain = 'failed';
-      // eslint-disable-next-line no-console
       console.error('[world3d-webgpu] post chain failed to build; the world draws with no post:', e);
     });
     return () => {
       cancelled = true;
       handleRef.current = null;
+      if (built && w.__wf3dEye === built.eye) delete w.__wf3dEye;
       built?.dispose();
       w.__wf3dPost = null;
       delete w.__wf3dPostChain;
     };
   }, [gl, scene, camera]);
   const size = useThree((s) => s.size);
-  useFrame(() => {
+  useFrame((_, delta) => {
     // R3F sets the camera's aspect only when the SIZE changes. In the game the
     // async WebGPU start can leave the default camera made after the size was
     // set, with aspect 0: a degenerate projection and a black frame
@@ -851,10 +862,35 @@ const WorldGpuPostChain: React.FC = () => {
       if (cam.aspect !== aspect) { cam.aspect = aspect; cam.updateProjectionMatrix(); }
     }
     const h = handleRef.current;
-    if (h) h.render();
-    else gl.render(scene, camera);
+    if (h) {
+      // Eye adaptation (GG-594 part 1): renderOutput's ACES reads this.
+      h.eye.hours = hoursRef.current;
+      (gl as unknown as WebGPURenderer).toneMappingExposure = h.baseExposure * h.eye.step(delta);
+      h.render();
+    } else gl.render(scene, camera);
   }, 1);
   return null;
+};
+
+/**
+ * GG-594 part 1: eye adaptation on the WebGL composer. One effect, mounted
+ * just before <ToneMapping>, multiplies the linear color by an exposure that
+ * follows the frame's measured light (eyeAdaptationEffect.ts; the shared rule
+ * is src/systems/world3d/eyeAdaptation.ts). `window.__wf3dEye` is the live
+ * controller: a rig reads `exposure` and `measuredLog2`, or sets `hold`.
+ */
+const EyeAdaptationStep: React.FC<{ timeOfDayHours?: number }> = ({ timeOfDayHours }) => {
+  const effect = useMemo(() => new EyeAdaptationEffect(new EyeAdaptation()), []);
+  useEffect(() => {
+    const w = window as unknown as { __wf3dEye?: EyeAdaptation };
+    w.__wf3dEye = effect.eye;
+    return () => {
+      if (w.__wf3dEye === effect.eye) delete w.__wf3dEye;
+      effect.dispose();
+    };
+  }, [effect]);
+  useEffect(() => { effect.eye.hours = timeOfDayHours ?? DEFAULT_TIME_OF_DAY_H; }, [effect, timeOfDayHours]);
+  return <primitive object={effect} dispose={null} />;
 };
 
 /**
@@ -1191,8 +1227,9 @@ const DRESSING_TAGS = new Set(['building-material', 'facade']);
  * frame each frame makes the inside-test rotation-correct.
  */
 // Body-position updates do not change most buildings. Reuse their render
-// tree until the source site or interior admission changes; clock, door and
-// resident context updates still reach every existing consumer.
+// tree until the source site or interior admission changes; clock and
+// resident context updates still reach every existing consumer. Door state
+// is not in the context (GG-580): each BuildingDoor subscribes to its own key.
 const SiteBuilding: React.FC<{
   site: LoadedChunk['bundle']['sites'][number];
   /** Full room geometry is mounted only where the player can enter it. */
@@ -1226,6 +1263,8 @@ const SiteBuilding: React.FC<{
   useEffect(() => () => Object.values(exterior).forEach(g => g.dispose()), [exterior]);
   const hasExterior = exterior.walls.getAttribute('position').count > 0;
   const hasLiveInterior = renderInterior && !!s.parts;
+  // InteriorLights puts sun-bounce and lamp lights only in live rooms.
+  useEffect(() => (hasLiveInterior ? markInteriorLive(s) : undefined), [hasLiveInterior, s]);
   // Shadow maps are camera-local too: distant shells keep their color and
   // silhouette, while nearby buildings retain the grounding/readability pass.
   const castsLocalShadow = SHADOWS && renderInterior;
@@ -1234,6 +1273,8 @@ const SiteBuilding: React.FC<{
   // look depends on the hour (lit windows), so the merge keys on the whole
   // hour, as emissiveForPart does; it rebuilds at most once an hour.
   const wholeHour = Math.floor(hour);
+  // The table lamps burn while the household's windows are lit.
+  const lampsLit = !!s.litHours?.[((wholeHour % 24) + 24) % 24];
   // Interior daylight (see INTERIOR DAYLIGHT): the window openings, floor
   // footprint, wall occluders and interreflection of this building. Null when
   // it has no floor or no window; those buildings keep the old materials.
@@ -1245,7 +1286,7 @@ const SiteBuilding: React.FC<{
   const mergedStructure = useMemo(() => {
     if (!hasLiveInterior || !s.parts) return [];
     const looks = new Map<string, {
-      color: THREE.ColorRepresentation; mapped: boolean; emissive: string; emissiveIntensity: number; glass: boolean; pieces: THREE.BufferGeometry[];
+      color: THREE.ColorRepresentation; mapped: boolean; emissive: string; emissiveIntensity: number; glass: boolean; walkable: boolean; pieces: THREE.BufferGeometry[];
     }>();
     for (const p of s.parts.filter(isSitePartRenderable)) {
       if (p.door || p.furnishing) continue;
@@ -1258,7 +1299,11 @@ const SiteBuilding: React.FC<{
       const emissiveIntensity = isDressing ? DRESSING_EMISSIVE_FLOOR : em.emissiveIntensity;
       // Glass is its own look: it casts no sun shadow and is see-through.
       const glass = !!daylight && p.lightRole === 'window';
-      const key = `${new THREE.Color(color).getHexString()}|${mapped}|${emissive}|${emissiveIntensity}|${glass ? 'g' : '-'}`;
+      // Keep the source's existing supported floors/treads distinguishable in
+      // the merged drawing. A floor tap must hit that visible slab, not terrain
+      // below it; sharing its color must never make a wall or roof selectable.
+      const walkable = !!p.walkSurface;
+      const key = `${new THREE.Color(color).getHexString()}|${mapped}|${emissive}|${emissiveIntensity}|${glass ? 'g' : '-'}|${walkable ? 'walk' : '-'}`;
       // Boxes retain HousePartGeometry's UVs; directional timbers use their
       // actual sloped shape, then share the same site-local placement. With
       // interior daylight, large faces are split into DAYLIGHT_GRID_M cells
@@ -1268,7 +1313,7 @@ const SiteBuilding: React.FC<{
           ? new THREE.BoxGeometry(p.w, p.h, p.d, daylightSegments(p.w), daylightSegments(p.h), daylightSegments(p.d))
           : new THREE.BoxGeometry(p.w, p.h, p.d), off);
       piece.translate(off.x, off.y, off.z);
-      const look = looks.get(key) ?? { color, mapped, emissive, emissiveIntensity, glass, pieces: [] };
+      const look = looks.get(key) ?? { color, mapped, emissive, emissiveIntensity, glass, walkable, pieces: [] };
       look.pieces.push(piece);
       looks.set(key, look);
     }
@@ -1292,7 +1337,7 @@ const SiteBuilding: React.FC<{
         }
         geometry.setAttribute('skyView', new THREE.BufferAttribute(sky, 1));
       }
-      return { key, geometry, color: look.color, mapped: look.mapped, emissive: look.emissive, emissiveIntensity: look.emissiveIntensity, glass: look.glass };
+      return { key, geometry, color: look.color, mapped: look.mapped, emissive: look.emissive, emissiveIntensity: look.emissiveIntensity, glass: look.glass, walkable: look.walkable };
     });
   }, [hasLiveInterior, s, wallKey, wholeHour, daylight]);
   // One sky factor per furnishing, at the center of its top face (1/64 steps
@@ -1387,6 +1432,7 @@ const SiteBuilding: React.FC<{
         {mergedStructure.map((m) => (
           <mesh
             key={`look-${m.key}`}
+            name={m.walkable ? 'world3d:walk-surface' : undefined}
             geometry={m.geometry}
             // INTERIOR DAYLIGHT: walls, floors and ceilings now cast the sun's
             // shadow, so sunlight enters only through the window and door
@@ -1492,6 +1538,31 @@ const SiteBuilding: React.FC<{
           </mesh>
           );
           })}
+        {/* TABLE LAMPS (GG-594 part 3): a household with a lit schedule keeps
+            an oil lamp on each table-like furnishing (tableLamp.ts). The flame
+            shows while the windows are lit; InteriorLights puts the lamp's
+            point light at the flame. Outside the raycast, so the table under
+            it stays the thing a click picks. */}
+        {s.litHours?.some(Boolean) && s.parts!.map((p, i) => {
+          if (!p.furnishing || !LAMP_FURNITURE.has(p.furnishing.kind) || !isSitePartRenderable(p)) return null;
+          const off = sitePartLocalOffset(p, s.doorZSign ?? -1);
+          return (
+            <group key={`lamp-${i}`} name="world3d:table-lamp" position={[off.x, off.y + p.h / 2, off.z]}>
+              <mesh geometry={tableLampBodyGeometry()} receiveShadow={castsLocalShadow} raycast={() => undefined} dispose={null}>
+                <primitive
+                  object={furnishingSky.has(i)
+                    ? sharedInteriorMaterial({ color: LAMP_BODY_HEX, map: null, emissive: '#000000', emissiveIntensity: 0, skyView: furnishingSky.get(i)! })
+                    : sharedPartMaterial(LAMP_BODY_HEX, null, '#000000', 0)}
+                  attach="material"
+                  dispose={null}
+                />
+              </mesh>
+              <mesh geometry={tableLampFlameGeometry()} visible={lampsLit} raycast={() => undefined} dispose={null}>
+                <primitive object={tableLampFlameMaterial()} attach="material" dispose={null} />
+              </mesh>
+            </group>
+          );
+        })}
         </>
       ) : hasExterior ? (
         <>
@@ -1972,9 +2043,15 @@ const World3DScene: React.FC<World3DSceneProps> = ({
   const [previewDoorClock, setPreviewDoorClock] = React.useState<number | undefined>();
   const doorUsers = residentDoors(previewDoorClock ?? agentClock ?? 12);
   const effectiveOpenDoors = useMemo(() => mergeResidentDoorOpens(openDoors, doorUsers), [openDoors, doorUsers]);
-  React.useLayoutEffect(()=>{doorLedger.current.opens=effectiveOpenDoors;},[effectiveOpenDoors]);
+  // GG-580 (2026-11-02): door state goes to a store that each door leaf
+  // subscribes to, not into the context value. A resident at one door used to
+  // make a new context value and so render every SiteBuilding (about 250 ms
+  // for 666 buildings, about once a second). The store starts with this
+  // render's state, so the first frame of a leaf is already right.
+  const [doorStore] = React.useState(() => createGroundDoorStore({ openDoors: effectiveOpenDoors, doorUsers }));
+  React.useLayoutEffect(()=>{doorLedger.current.opens=effectiveOpenDoors;doorStore.set({ openDoors: effectiveOpenDoors, doorUsers });},[effectiveOpenDoors, doorUsers, doorStore]);
   const selectDoorWithBodies=useCallback((pick:FurnishingPick)=>onSelectDoor?.({...pick,readDoorBodies:()=>doorLedger.current.source===groundWorld?doorLedger.current.bodies:null}),[onSelectDoor,groundWorld]);
-  const furnishingContext = useMemo(() => ({ origin: sceneOrigin, onSelect: onSelectFurnishing, onDoor: onSelectDoor?selectDoorWithBodies:undefined, onResident: onSelectResident, openDoors: effectiveOpenDoors, doorUsers, focusedFurnishingId }), [sceneOrigin, onSelectFurnishing, onSelectDoor, selectDoorWithBodies, onSelectResident, effectiveOpenDoors, doorUsers, focusedFurnishingId]);
+  const furnishingContext = useMemo(() => ({ origin: sceneOrigin, onSelect: onSelectFurnishing, onDoor: onSelectDoor?selectDoorWithBodies:undefined, onResident: onSelectResident, doors: doorStore, focusedFurnishingId }), [sceneOrigin, onSelectFurnishing, onSelectDoor, selectDoorWithBodies, onSelectResident, doorStore, focusedFurnishingId]);
   // ADR 0009 step 6, slice 10: the river's world mode builds its bed from the
   // ground world and places it against this origin (water/worldGroundHook.ts).
   // Published on every ground view since GG-533 step 2 (2026-10-29): the same
@@ -2245,7 +2322,6 @@ const World3DScene: React.FC<World3DSceneProps> = ({
             'webglcontextlost',
             (e) => {
               e.preventDefault(); // allows the browser to fire webglcontextrestored
-              // eslint-disable-next-line no-console
               console.warn('[world3d] WebGL context lost â€” will attempt restore');
             },
             false,
@@ -2253,7 +2329,6 @@ const World3DScene: React.FC<World3DSceneProps> = ({
           el.addEventListener(
             'webglcontextrestored',
             () => {
-              // eslint-disable-next-line no-console
               console.warn('[world3d] WebGL context restored');
             },
             false,
@@ -2294,14 +2369,15 @@ const World3DScene: React.FC<World3DSceneProps> = ({
             they render in daylight too. */}
         <NightSky timeOfDayHours={timeOfDayHours} />
         {/* Interior lighting (ground profile): warm hearth flame point lights
-            near the camera (nearest ≤4), lit-window emissive glow (baked into
-            parts), and a camera-inside fill so any interior is readable. */}
+            near the camera (nearest ≤4), lit windows, table lamps and the sun
+            bounce. No camera-inside fill (GG-594 part 1): eye adaptation in
+            the post chain makes a dim room readable. */}
         {viewProfile === 'ground' && (
           // One InteriorHour clock source for the hearth lights and live
           // occupants (windows already read it via the provider wrapping the
           // chunk pieces below). Honors the window.__wfAgentClock scrub override.
           <InteriorHourProvider clock={agentClock}>
-            <InteriorLights loaded={loaded} origin={sceneOrigin} />
+            <InteriorLights loaded={loaded} origin={sceneOrigin} sunHours={timeOfDayHours} />
             <InteriorOccupants loaded={loaded} origin={sceneOrigin} ground={groundWorld} bodyOwners={residentBodyOwners} walkingSurfaces={walkingSurfaces} />
           </InteriorHourProvider>
         )}
@@ -2557,13 +2633,15 @@ const World3DScene: React.FC<World3DSceneProps> = ({
                 sun/ECEF state. Works day AND night — NightSky only supplies
                 the stars/moon/dome. Depth-buffer only (no normal pass). */}
             <VolumetricClouds timeOfDayHours={timeOfDayHours} />
+            {/* GG-594 part 1: eye adaptation, the exposure step before ACES. */}
+            <EyeAdaptationStep timeOfDayHours={timeOfDayHours} />
             <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
             <SMAA />
           </EffectComposer>
         )}
         {/* ADR 0009 step 5: the same chain on WebGPU (GTAO, ACES, SMAA; no
             clouds until step 7), drawn by three's node PostProcessing. */}
-        {viewProfile === 'ground' && WEBGPU_WORLD && <WorldGpuPostChain />}
+        {viewProfile === 'ground' && WEBGPU_WORLD && <WorldGpuPostChain timeOfDayHours={timeOfDayHours} />}
         </GroundFurnishingContext.Provider>
         </ActorPersonalSpaceContext.Provider>
       </Canvas>

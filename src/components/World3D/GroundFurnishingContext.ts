@@ -5,9 +5,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 31/10/2026, 20:26:15
+ * Last Sync: 02/11/2026, 23:06:19
  * Dependents: components/World3D/BuildingDoor.tsx, components/World3D/InteriorOccupants.tsx, components/World3D/NearbyBuildingDoor.tsx, components/World3D/NearbyFurnishing.tsx, components/World3D/World3DScene.tsx
- * Imports: 3 files
+ * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -20,6 +20,7 @@ import { createContext } from 'react';
 import type { SceneOrigin } from '../../systems/world3d/sceneOrigin';
 import type { FurnishingPick } from './groundFurnishingInteraction';
 import type { ReadResidentPick } from './groundResidentInteraction';
+import type { GroundDoorStore } from './groundDoorStore';
 
 export const GroundFurnishingContext = createContext<{
   origin: SceneOrigin;
@@ -30,7 +31,8 @@ export const GroundFurnishingContext = createContext<{
   onDoor?: (pick: FurnishingPick) => void;
   /** A named resident's current body and canonical household identity. */
   onResident?: (read: ReadResidentPick) => void;
-  openDoors?: ReadonlySet<string>;
-  /** Transient use by a source resident; independent of player-saved opens. */
-  doorUsers?: ReadonlyMap<string, readonly string[]>;
+  /** Live open doors and resident door users (GG-580). A store, not a value:
+   * a door change must not make a new context value, because every building
+   * reads this context. Leaves subscribe to their own key. */
+  doors?: GroundDoorStore;
 } | null>(null);

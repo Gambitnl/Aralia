@@ -1,12 +1,11 @@
 /** Proves that receiving water controls one shared fall state across the
  * running solver and its serialized foam/drawing frames, without a full reach. */
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { defaultRiverCourse, setRiverShape } from '../riverReach';
+import { defaultRiverCourse, setRiverShape, type RiverReach } from '../riverReach';
 import { setRiverHeadwaters, WATERFALL } from '../riverHeadwaters';
 import { coupleWaterfallImpact, flowMapCore, reachInflow, WATERFALL_IMPACT } from '../riverFlowField';
 import { LiveFlowMapper, LiveRiver } from '../riverLive';
 import { RiverFlowSolver } from '../riverSolver';
-import { RiverSourceHistory } from '../riverSourceHistory';
 
 describe('actual waterfall receiving state', () => {
   beforeEach(() => { setRiverHeadwaters(true); setRiverShape({ widthScale: 1, depthScale: 1, dischargeM3S: 12 }); });
@@ -56,30 +55,23 @@ describe('actual waterfall receiving state', () => {
     const solver = new RiverFlowSolver({ grid: f.grid, bed: f.bed, manning: new Float32Array(f.n).fill(0.045),
       dischargeM3S: 12, inflow: f.inflow.inflow, inflowDir: f.inflow.dir, inflowSpeedMS: f.inflow.speed, outflowEdge: 'east' });
     solver.setState(f.h, new Float64Array(f.n), new Float64Array(f.n));
-    // REAL CONSTRUCTOR FIXTURE (2026-11-02, agora-257c; CI run 41363850920).
-    // The old fixture used Object.create(LiveRiver.prototype), which skips
-    // every field initializer, so each new field (the GG-430 live cells and
-    // `markLive`, the waterfall contact queue) broke it. The real constructor
-    // now sets every field. Then the small real solver and its grid replace
-    // the full reach's, with the per-cell arrays sized to that grid, so the
-    // normal advance/frame methods run on this pool. No method is mocked.
-    const live = new LiveRiver(20260928, true);
-    // The constructor builds the judged reach with no shape (1.5 m3/s) and
-    // records that source at t = 0. This pool is a steady 12 m3/s fall, so
-    // the shape and a source history that was always 12 take their place.
-    const shape = { widthScale: 1, depthScale: 1, dischargeM3S: 12 };
-    setRiverShape(shape);
-    Object.assign(live, {
-      shape, sourceHistory: new RiverSourceHistory(), sourceFlightDelayS: 2, solver, grid: f.grid, course: f.course, cellS: f.s, cellN: f.lateral, n: f.n,
-      acc: { sh: new Float64Array(f.n), shu: new Float64Array(f.n), shv: new Float64Array(f.n), su2: new Float64Array(f.n) },
-      disp: { h: Float32Array.from(f.h), qu: new Float32Array(f.n), qv: new Float32Array(f.n), q2: new Float32Array(f.n) },
-      liveMark: new Uint8Array(f.n), liveList: [], liveSorted: null, frameAll: true,
-      W: new Float32Array(f.n), T: new Float32Array(f.n), L: new Float32Array(f.n),
-      ground: Float32Array.from(f.bed), manning: new Float32Array(f.n).fill(0.045), boulders: [],
-      good: null, goodAt: -1, mapper: null,
-    });
-    solver.onWater = (live as unknown as { markLive: (c: number) => void }).markLive;
+    // REAL CONSTRUCTOR FIXTURE (2026-11-02, agora-257c, GG-590). The old
+    // fixture used Object.create(LiveRiver.prototype) and a private field
+    // list, which skips every field initializer, so each new field (the
+    // GG-430 live cells and `markLive`, the waterfall contact queue) broke it.
+    // `LiveRiver.onParts` runs the real constructor on this small reach and
+    // solver, with a steady 12 m3/s source from t = 0. No field is set here
+    // and no method is mocked.
+    const reach: RiverReach = { seed: 20260928, grid: f.grid, course: f.course, terrainHeight: () => 4, boulders: [],
+      ground: Float64Array.from(f.bed), bed: f.bed, cellS: f.s, cellN: f.lateral,
+      manning: new Float32Array(f.n).fill(0.045), dischargeM3S: 12 };
+    const live = LiveRiver.onParts({ reach, solver, shape: { widthScale: 1, depthScale: 1, dischargeM3S: 12 } });
+    expect(live.solver).toBe(solver);
     expect(live.simTime).toBe(0);
+    // The fall's own flight time, from the pool the solver holds. The clock
+    // moves a little past it, so the arrival does not rest on float equality.
+    const flightS = live.flood.source!.flightDelayS;
+    expect(flightS).toBeGreaterThan(0);
     live.advance(Infinity, 0);
     const before = live.frame().waterfallLanding!;
     solver.h.fill(16);
@@ -117,7 +109,7 @@ describe('actual waterfall receiving state', () => {
     const tailStep = live.advance(Infinity, 0.05);
     expect(solver.volume() - tailVolume + solver.outVolume - tailOut).toBeCloseTo(12 * tailStep.simS, 8);
     const tailLanding = { ...live.frame().waterfallLanding! };
-    live.simTime += 2;
+    live.simTime += flightS + 0.01;
     live.advance(Infinity, 0);
     const stoppedFrame = live.frame();
     expect(stoppedFrame.qIn).toBe(0);
@@ -133,7 +125,7 @@ describe('actual waterfall receiving state', () => {
     live.setSourcePaused(false);
     expect(live.flood.sourceM3S).toBe(12);
     expect(live.frame().waterfallLanding!.discharge).toBe(0);
-    live.simTime += 2;
+    live.simTime += flightS + 0.01;
     live.advance(Infinity, 0);
     const resumedFrame = live.frame();
     expect(resumedFrame.qIn).toBe(12);

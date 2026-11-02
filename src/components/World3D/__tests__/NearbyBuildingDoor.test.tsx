@@ -4,6 +4,7 @@ import React from 'react';
 import {act,cleanup,render} from '@testing-library/react';
 import {afterEach,describe,expect,it,vi} from 'vitest';
 import {GroundFurnishingContext} from '../GroundFurnishingContext';
+import {createGroundDoorStore} from '../groundDoorStore';
 import {mountedBuildingDoors,nearestBuildingDoor,NearbyBuildingDoor,type NearbyBuildingDoorAction} from '../NearbyBuildingDoor';
 import type {GroundWorld} from '@/systems/worldforge/bridge/groundChunkLoader';
 import type {LoadedChunk} from '@/systems/world3d/types';
@@ -46,11 +47,13 @@ describe('nearest mounted town door',()=>{
 describe('live nearby door publisher',()=>{
   function setup(){
     const q=fixture(),onDoor=vi.fn(),onChange=vi.fn();let enabled=true;
-    let context={origin:{x:0,z:0},onDoor,openDoors:new Set<string>(),doorUsers:new Map<string,readonly string[]>()};
+    // GG-580: door state reaches the publisher through the scene's door store.
+    const doors=createGroundDoorStore({openDoors:new Set<string>(),doorUsers:new Map<string,readonly string[]>()});
+    const context={origin:{x:0,z:0},onDoor,doors};
     const view=()=> <GroundFurnishingContext.Provider value={context}><NearbyBuildingDoor ground={q.ground} loaded={q.loaded} enabled={enabled} readFootfall={()=>q.feet} onChange={onChange}/></GroundFurnishingContext.Provider>;
     const rendered=render(view());const frame=()=>act(()=>{f.frame!({},.11);});
     const action=()=>onChange.mock.calls.at(-1)?.[0] as NearbyBuildingDoorAction|null;
-    return {q,onDoor,onChange,rendered,frame,action,pause:()=>{enabled=false;rendered.rerender(view());},unload:()=>{q.loaded=[];rendered.rerender(view());},open:()=>{context={...context,openDoors:new Set([q.candidates[0].id])};rendered.rerender(view());},users:()=>{context={...context,doorUsers:new Map([[q.candidates[0].id,['Fenna Hartham']]])};rendered.rerender(view());}};
+    return {q,onDoor,onChange,rendered,frame,action,pause:()=>{enabled=false;rendered.rerender(view());},unload:()=>{q.loaded=[];rendered.rerender(view());},open:()=>{act(()=>doors.set({...doors.read(),openDoors:new Set([q.candidates[0].id])}));},users:()=>{act(()=>doors.set({...doors.read(),doorUsers:new Map([[q.candidates[0].id,['Fenna Hartham']]])}));}};
   }
   it('publishes a single nearby action and delegates without selecting from a camera or moving feet',()=>{
     const t=setup(),before=JSON.stringify(t.q.feet);t.frame();t.frame();

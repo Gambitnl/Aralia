@@ -3,10 +3,13 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import os from 'node:os';
 import { captureSourceCut, completeSourceCut, reviseSourceCut, verifySourceCut, isLiveApplicationImport } from './sourceCut.mjs';
 
 async function fixture() {
-  const parent = path.resolve('.agent/scratch/combat-gameplay');
+  // Disposable fixtures must not compete with earned browser saves on the
+  // repository volume. Each still has its own ignored source-cut boundary.
+  const parent = path.join(os.tmpdir(), 'aralia-source-cut-tests');
   await fs.mkdir(parent, { recursive: true });
   const root = await fs.mkdtemp(path.join(parent, 'source-cut-test-'));
   await fs.mkdir(path.join(root, 'src'));
@@ -118,4 +121,59 @@ test('environment revision cannot capture secrets or arbitrary root files', asyn
     await assert.rejects(reviseSourceCut({ projectRoot: root, base: cut,
       output: path.join(root, '.agent/scratch/refused-environment'), replacements: [file] }), /Only application source/);
   }
+});
+
+// Asset sharing saves disk space without coupling mutable application source.
+// A later alteration to the shared immutable asset must invalidate the cut.
+test('shared public assets retain independent application bytes and detect corruption', async () => {
+  const { root, cut } = await fixture();
+  await captureSourceCut({ projectRoot: root, output: cut });
+  await fs.writeFile(path.join(root, 'src/main.ts'), 'export const world = 2;');
+  const output = path.join(root, '.agent/scratch/shared-public');
+  await reviseSourceCut({ projectRoot: root, base: cut, output, replacements: ['src/main.ts'], reusePublic: true });
+  assert.equal(await fs.realpath(path.join(output, 'public')), await fs.realpath(path.join(cut, 'public')));
+  assert.notEqual((await fs.stat(path.join(output, 'src/main.ts'))).ino, (await fs.stat(path.join(cut, 'src/main.ts'))).ino);
+  assert.equal(await fs.readFile(path.join(output, 'src/main.ts'), 'utf8'), 'export const world = 2;');
+  assert.equal(await fs.readFile(path.join(cut, 'src/main.ts'), 'utf8'), 'export const world = 1;');
+  await verifySourceCut(output);
+  await fs.writeFile(path.join(cut, 'public/data/source.json'), 'unexpected asset change');
+  await assert.rejects(verifySourceCut(output), /Source bytes changed/);
+});
+
+test('shared mode refuses asset revisions and mismatched public targets', async () => {
+  const { root, cut } = await fixture();
+  await captureSourceCut({ projectRoot: root, output: cut });
+  const output = path.join(root, '.agent/scratch/shared-public');
+  await assert.rejects(reviseSourceCut({ projectRoot: root, base: cut, output,
+    replacements: ['public/data/source.json'], reusePublic: true }), /cannot be revised/);
+  const manifest = await reviseSourceCut({ projectRoot: root, base: cut, output,
+    replacements: ['src/main.ts'], reusePublic: true });
+  manifest.publicSource = path.join(root, 'public');
+  await fs.writeFile(path.join(output, 'source-cut.json'), JSON.stringify(manifest));
+  await assert.rejects(verifySourceCut(output), /does not match/);
+});
+
+test('explicit ignored overlay preserves the frozen world and ignores newer live edits', async () => {
+  const {root, cut} = await fixture();
+  await captureSourceCut({projectRoot:root, output:cut});
+  await fs.writeFile(path.join(root,'src/main.ts'),'export const world = 999;');
+  const overlay=path.join(root,'.agent/scratch/reviewed-overlay');
+  await fs.mkdir(path.join(overlay,'src'),{recursive:true});
+  await fs.writeFile(path.join(overlay,'src/water.ts'),'export const sharedBed = true;');
+  const output=path.join(root,'.agent/scratch/revised-overlay');
+  const manifest=await reviseSourceCut({projectRoot:root,base:cut,output,replacementRoot:overlay,replacements:['src/water.ts']});
+  assert.equal(manifest.replacementSourceRoot,await fs.realpath(overlay));
+  assert.equal(await fs.readFile(path.join(output,'src/main.ts'),'utf8'),'export const world = 1;');
+  assert.equal(await fs.readFile(path.join(output,'src/water.ts'),'utf8'),'export const sharedBed = true;');
+  await verifySourceCut(output);await verifySourceCut(cut);
+});
+
+test('overlay cannot escape ignored project scratch or substitute a source link', async () => {
+  const {root,cut}=await fixture();await captureSourceCut({projectRoot:root,output:cut});
+  await assert.rejects(reviseSourceCut({projectRoot:root,base:cut,output:path.join(root,'.agent/scratch/refused'),
+    replacementRoot:path.join(root,'src'),replacements:['src/main.ts']}),/ignored scratch/);
+  const overlay=path.join(root,'.agent/scratch/linked-overlay');await fs.mkdir(overlay,{recursive:true});
+  await fs.symlink(path.join(root,'src'),path.join(overlay,'src'),process.platform==='win32'?'junction':'dir');
+  await assert.rejects(reviseSourceCut({projectRoot:root,base:cut,output:path.join(root,'.agent/scratch/refused-link'),
+    replacementRoot:overlay,replacements:['src/main.ts']}),/escapes its source root/);
 });

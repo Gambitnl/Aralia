@@ -87,6 +87,8 @@ import type { TownRoster } from '@/systems/worldforge/roster/types';
  * Re-evaluated at a slow tick with hysteresis so figures don't pop at the rim.
  */
 const BODY_RADIUS_M = 18;
+/** One shared closed set: a new set per frame would miss the solver's per-set cache (GG-580). */
+const NO_OPEN_DOORS: ReadonlySet<string> = new Set();
 const BODY_RADIUS_EXIT_M = 24;
 /** A small distance preference prevents flicker without letting old neighbors hide a newly reached household. */
 const BODY_RETENTION_MARGIN_M = 1;
@@ -212,7 +214,20 @@ export function residentRenderKey(burgId: number, occupantId: number): string {
 }
 
 /** A numeric id alone cannot join people from different settlements or homes. */
+// GG-580 (2026-11-02): the door sampler and this layer both read these three
+// indexes, and both rebuilt them each time a chunk streamed in (about 110 ms
+// per chunk in a town). Each index is now kept per input array. The inputs are
+// immutable snapshots (a new roster list or loaded-chunk array on a change),
+// and no caller writes to a returned index or figure.
+const rosterIndexCache = new WeakMap<TownRoster[], ReadonlyMap<string, string>>();
 export function residentRosterIndex(rosters: TownRoster[]): ReadonlyMap<string, string> {
+  const cached = rosterIndexCache.get(rosters);
+  if (cached) return cached;
+  const index = buildResidentRosterIndex(rosters);
+  rosterIndexCache.set(rosters, index);
+  return index;
+}
+function buildResidentRosterIndex(rosters: TownRoster[]): ReadonlyMap<string, string> {
   const index = new Map<string, string>();
   for (const roster of rosters) for (const person of roster.occupants) {
     if (person.householdMemberId !== undefined) index.set(residentRenderKey(roster.burgId, person.id),
@@ -262,7 +277,17 @@ export interface ResidentHandoffRecord {
  * Collect one resident identity with all of its real building destinations.
  * Home/work packets share a person; their current schedule selects the owner.
  */
+const handoffIndexCache = new WeakMap<LoadedChunk[], ReadonlyMap<string, ResidentHandoffRecord>>();
 export function collectResidentHandoffIndex(
+  loaded: LoadedChunk[],
+): ReadonlyMap<string, ResidentHandoffRecord> {
+  const cached = handoffIndexCache.get(loaded);
+  if (cached) return cached;
+  const index = buildResidentHandoffIndex(loaded);
+  handoffIndexCache.set(loaded, index);
+  return index;
+}
+function buildResidentHandoffIndex(
   loaded: LoadedChunk[],
 ): ReadonlyMap<string, ResidentHandoffRecord> {
   const byRenderKey = new Map<string, ResidentHandoffRecord>();
@@ -749,7 +774,13 @@ export const InteriorOccupantActor: React.FC<{
   const personalBody=useRef<{radiusM:number;heightM:number;footprint?:ActorFootprint}|null>(null),yielded=useRef<ActorPoint|null>(null);
   const yieldRoute=useRef<ActorYieldRouteState>({});
   const interiorRoute=useRef<ResidentInteriorRouteState>({});
-  useLayoutEffect(()=>{yieldRoute.current={};},[interaction?.openDoors]);
+  // GG-580: door state lives in a store, so a door change does not render
+  // every building. A changed open set still drops this actor's yield route.
+  useLayoutEffect(()=>{
+    const store=interaction?.doors;yieldRoute.current={};
+    if(!store)return;let last=store.read().openDoors;
+    return store.subscribe(()=>{const now=store.read().openDoors;if(now!==last){last=now;yieldRoute.current={};}});
+  },[interaction?.doors]);
   const receiveBody=React.useCallback((body:{radiusM:number;heightM:number;footprint?:ActorFootprint})=>{personalBody.current=body;},[]);
   useLayoutEffect(()=>()=>{personalSpace?.delete(bodyKey);},[personalSpace,bodyKey]);
   const readPick: ReadResidentPick = () => {
@@ -794,6 +825,7 @@ export const InteriorOccupantActor: React.FC<{
     if(location && residentRenderOwnerAtClock(location.occ,sampledClock)!=='interior')motion=null;
     const group=groupRef.current;
     if(!group){cancelPlanning();return;}
+    const openDoors=interaction?.doors?.read().openDoors;
     const shape=personalBody.current;
     const profiled=location?.occ.privateDoorAccess?.profile==='private-room-leaves-v1';
     if(!profiled)cancelPlanning();
@@ -817,7 +849,7 @@ export const InteriorOccupantActor: React.FC<{
         const hour=((Math.floor(sampledClock)%24)+24)%24,current=location.occ.stationsByHour[hour],prior=location.occ.stationsByHour[(hour+23)%24];
         const doors=(location.parts??[]).filter(part=>part.door&&permission.doors.some(claim=>claim.id===part.door!.id&&claim.level===part.door!.level
           &&claim.roomId===part.door!.privateRoomId&&(Boolean(current&&current.level===claim.level&&current.roomId===claim.roomId)!==Boolean(prior&&prior.level===claim.level&&prior.roomId===claim.roomId))))
-          .filter(part=>!interaction.openDoors?.has(siteDoorKey(location.siteId!,part)))
+          .filter(part=>!openDoors?.has(siteDoorKey(location.siteId!,part)))
           .filter(part=>{
             if(Math.abs(from.yM-transform.surfaceY-(part.baseY??0))>.08)return true;
             const local=worldOffsetToSiteLocal(from.xM-transform.groupX,from.zM-transform.groupZ,transform.rotationY);
@@ -827,7 +859,7 @@ export const InteriorOccupantActor: React.FC<{
             return part.door!.axis==='x'?(local.lz*-transform.doorZSign-part.z)*(target.lz*-transform.doorZSign-part.z)<0:(local.lx-part.x)*(target.lx-part.x)<0;
           }).map(part=>({part,transform}));
         const step=advanceResidentInteriorRoute(from,{xM:destination.x+interaction.origin.x,yM:destination.y,zM:destination.z+interaction.origin.z},delta,{ground,key:bodyKey,body:{...from,...shape},bodies:personalSpace,
-          query:{bodyRadiusM:residentRouteRadius({...from,...shape}),standingHeightM:shape.heightM,doors:interaction.openDoors??new Set(),surfaces:walkingSurfaces,acceptsFoot:region,
+          query:{bodyRadiusM:residentRouteRadius({...from,...shape}),standingHeightM:shape.heightM,doors:openDoors??NO_OPEN_DOORS,surfaces:walkingSurfaces,acceptsFoot:region,
             grid:{originXM:transform.groupX,originZM:transform.groupZ,yawRad:transform.rotationY,stepM:.1524},maxNodes:3000,coarseSearch:{stepMultiplier:4,maxNodes:128}},policyToken:location,doors,planningFrame:planningBudget?{id:frame.clock.elapsedTime,budget:planningBudget}:undefined},interiorRoute.current);
         motion={position:{x:step.position.xM-interaction.origin.x,y:step.position.yM,z:step.position.zM-interaction.origin.z},rotationY:step.rotationY,moving:step.moving};
         personalSpace.set(bodyKey,{...step.position,...shape,footprint:shape.footprint?{...shape.footprint,yawRad:step.rotationY}:undefined});
@@ -870,7 +902,7 @@ export const InteriorOccupantActor: React.FC<{
             // adjacent terrain is not a second room or an outdoor escape.
             if(!floors?.some(f=>Math.abs(local.lx-f.x)<=f.w/2&&Math.abs(z-f.z)<=f.d/2))return null;
           }
-          const walk=resolveGroundWaterWalk(ground,start,point,budgetM,{standingHeightM:shape.heightM},interaction.openDoors,walkingSurfaces);
+          const walk=resolveGroundWaterWalk(ground,start,point,budgetM,{standingHeightM:shape.heightM},openDoors,walkingSurfaces);
           return walk.water.mode==='dry'&&Math.abs(walk.yM-start.yM)<=.08?{xM:walk.xM,yM:walk.yM,zM:walk.zM}:null;
         };
         const reached=yieldActorStep(from,desired,bodyKey,body,reservation,INTERIOR_WALK_METERS_PER_SECOND*Math.min(.1,Math.max(0,delta)),probe,personalSpace,yieldRoute.current);
@@ -941,7 +973,18 @@ export const InteriorOccupantActor: React.FC<{
  * Mirrors InteriorLights.collectInteriorLighting: chunk origin → scene, then the
  * site's (localX, localZ) added to build each building group's placement.
  */
+const figureCache = new WeakMap<LoadedChunk[], { origin: SceneOrigin; figures: FlatFigure[] }>();
 export function collectInteriorOccupants(
+  loaded: LoadedChunk[],
+  origin: SceneOrigin,
+): FlatFigure[] {
+  const cached = figureCache.get(loaded);
+  if (cached && cached.origin === origin) return cached.figures;
+  const figures = buildInteriorOccupants(loaded, origin);
+  figureCache.set(loaded, { origin, figures });
+  return figures;
+}
+function buildInteriorOccupants(
   loaded: LoadedChunk[],
   origin: SceneOrigin,
 ): FlatFigure[] {

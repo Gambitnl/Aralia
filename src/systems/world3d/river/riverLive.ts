@@ -534,6 +534,14 @@ export interface OuterLattice { x0: number; z0: number; step: number; nx: number
  * then call `advance` to step it, `applyEdit` to change it and `snapshot` to
  * draw it. The worker (riverWorker.ts) drives it; Node tests call it directly.
  */
+/** The parts a test gives `LiveRiver.onParts`: a built reach, a solver on that
+ * reach's grid and bed, and the steady source shape (GG-590). */
+export interface LiveRiverParts {
+  reach: RiverReach;
+  solver: RiverFlowSolver;
+  shape: RiverShape;
+}
+
 export class LiveRiver {
   private readonly terrainBrush = new RiverTerrainBrush();
   private terrainBrushBounds: TerrainBrushBounds | null = null;
@@ -846,18 +854,31 @@ export class LiveRiver {
 
   private spillTransfer: RiverSpillTransfer | null = null;
 
-  constructor(seed = 20260928, private readonly headwaters = false, private readonly spillEnabled = false, reconstructed=false) {
+  /**
+   * A LIVE RIVER ON GIVEN PARTS (2026-11-02, agora-257c, GG-590). A test
+   * that needs the live loop on a small pool gives its own reach, its own
+   * solver and the shape of its steady source. The real constructor then sets
+   * every field, so a new field never needs a test-side field list (the old
+   * `Object.create` fixture broke on each one: the GG-430 live cells, the
+   * contact queue). The page and the worker never use this path.
+   */
+  static onParts(parts: LiveRiverParts, headwaters = true): LiveRiver {
+    return new LiveRiver(parts.reach.seed, headwaters, false, false, parts);
+  }
+
+  constructor(seed = 20260928, private readonly headwaters = false, private readonly spillEnabled = false, reconstructed=false, parts: LiveRiverParts | null = null) {
     this.seed = seed;
     // The browser's expanded landscape shares one solver. Tests and the
     // original comparison captures keep their original domain by default.
     setRiverHeadwaters(headwaters,reconstructed);
-    // The judged reach, built with no shape and no edit.
-    setRiverShape(null);
+    // The judged reach, built with no shape and no edit. Given parts, the
+    // reach is already built, and the source is the parts' shape from t = 0.
+    setRiverShape(parts?.shape ?? null);
     setRiverCourseEdit(null);
     // With a world bed the default shape carries the world river's own flow
     // (one water, 2026-10-30); on the page it is RIVER_SHAPE_DEFAULT, as before.
     this.shape = getRiverShape();
-    const reach = buildRiverReach(seed, headwaters ? headwatersGrid(reconstructed) : RIVER_GRID);
+    const reach = parts?.reach ?? buildRiverReach(seed, headwaters ? headwatersGrid(reconstructed) : RIVER_GRID);
     this.reach = reach;
     this.grid = reach.grid;
     const { nx, nz, dx, x0, z0 } = reach.grid;
@@ -906,19 +927,25 @@ export class LiveRiver {
     // The solver on the judged bed, with the judged ceiling and inflow.
     const st = reachStartState(reach.grid, reach.bed, reach.cellS, reach.cellN, reach.course, reach.dischargeM3S);
     this.ceiling = st.ceiling;
-    const inf = reachInflow(reach.grid, st.h0, reach.cellS, reach.cellN, reach.course, mainRiverShareM3S(reach.dischargeM3S), reach.bed);
+    // A given solver already holds its water, so the landing reads that water.
+    const inf = reachInflow(reach.grid, parts ? parts.solver.h : st.h0, reach.cellS, reach.cellN, reach.course, mainRiverShareM3S(reach.dischargeM3S), reach.bed);
     this.waterfallLanding = inf.waterfallLanding ?? null;
     this.sourceFlightDelayS = this.headwaters ? this.waterfallLanding?.flightS ?? 0 : 0;
     this.sourceHistory.record(0, this.shape.dischargeM3S);
-    this.solver = new RiverFlowSolver({
-      grid: reach.grid, bed: reach.bed, manning: reach.manning, dischargeM3S: reach.dischargeM3S,
-      inflow: withWorldTributaries(reach.grid, reach.bed, inf.inflow), inflowDir: inf.dir, inflowSpeedMS: inf.speed, outflowEdge: 'east',
-    }, st.ceiling);
-    // Ordinary live flow also awakens nearby dry land when its actual surface
-    // approaches it. A design-height estimate must not be an invisible flood wall.
-    const allowed = new Uint8Array(n);
-    for (let c = 0; c < n; c++) allowed[c] = !airborneHeadwater(this.cellS[c]) && Number.isFinite(this.solver.bed[c]) ? 1 : 0;
-    this.solver.enableWetFrontExpansion(allowed);
+    if (parts) {
+      // The caller built this solver, with its own inflow, ceiling and wet front.
+      this.solver = parts.solver;
+    } else {
+      this.solver = new RiverFlowSolver({
+        grid: reach.grid, bed: reach.bed, manning: reach.manning, dischargeM3S: reach.dischargeM3S,
+        inflow: withWorldTributaries(reach.grid, reach.bed, inf.inflow), inflowDir: inf.dir, inflowSpeedMS: inf.speed, outflowEdge: 'east',
+      }, st.ceiling);
+      // Ordinary live flow also awakens nearby dry land when its actual surface
+      // approaches it. A design-height estimate must not be an invisible flood wall.
+      const allowed = new Uint8Array(n);
+      for (let c = 0; c < n; c++) allowed[c] = !airborneHeadwater(this.cellS[c]) && Number.isFinite(this.solver.bed[c]) ? 1 : 0;
+      this.solver.enableWetFrontExpansion(allowed);
+    }
     if (headwaters && spillEnabled) {
       // DETECTED LIPS (2026-10-21): every face on the grid may launch water,
       // and only the separation test in RiverSpillTransfer decides which do.

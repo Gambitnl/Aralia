@@ -391,7 +391,6 @@ const VolumeGroundBubble: React.FC<VolumeGroundBubbleProps> = ({
           `${Math.round(st.msTotal)} ms (worst ${st.maxSlice.toFixed(1)} ms) · ` +
           `floor cell ${st.field.floorCell}, ${st.field.blockedColumns} columns below it, ` +
           `${st.field.boundStops} hops refused`;
-        // eslint-disable-next-line no-console
         console.info(`[bubble] ${slumpRef.current}`);
         st.field = null;
       }

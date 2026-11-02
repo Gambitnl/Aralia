@@ -42,12 +42,13 @@ function safeFile(root, relative) {
   return absolute;
 }
 
-async function inputs(root, extras = [], extrasOnly = false) {
+async function inputs(root, extras = [], extrasOnly = false, publicSource) {
   const result = [];
   async function walk(relative, ancestors = new Set()) {
     const absolute = safeFile(root, relative);
     const real = await fs.realpath(absolute);
-    if (!inside(root, real)) throw new Error(`Source link escapes the project: ${relative}`);
+    const sharedPublic = publicSource && (relative === 'public' || slash(relative).startsWith('public/')) && inside(publicSource, real);
+    if (!inside(root, real) && !sharedPublic) throw new Error(`Source link escapes the project: ${relative}`);
     const stat = await fs.stat(absolute);
     if (stat.isDirectory()) {
       if (ancestors.has(real)) throw new Error(`Source link cycle: ${relative}`);
@@ -72,7 +73,7 @@ async function inputs(root, extras = [], extrasOnly = false) {
 }
 
 async function verifyFiles(root, manifest, quietFence, extrasOnly = false) {
-  const actual = await inputs(root, manifest.extraInputs ?? [], extrasOnly);
+  const actual = await inputs(root, manifest.extraInputs ?? [], extrasOnly, manifest.publicSource);
   const expected = manifest.files.map(file => file.path).sort();
   if (JSON.stringify(actual) !== JSON.stringify(expected)) throw new Error('Source file inventory changed');
   const fence = [];
@@ -123,6 +124,22 @@ export async function verifySourceCut(cut) {
   const manifest = JSON.parse(await fs.readFile(path.join(cut, MANIFEST), 'utf8'));
   if (manifest.version !== 3 || !Array.isArray(manifest.files)) throw new Error('Unsupported or incomplete source-cut manifest');
   if ([...REQUIRED_FILES].some(name => !manifest.files.some(file => file.path === name))) throw new Error('Incomplete bootstrap/style capture');
+  if (manifest.publicSource) {
+    // Only unchanged assets from the recorded immutable base may be shared.
+    // Application source remains a distinct copy; arbitrary external links
+    // and public-asset revisions cannot use this storage-saving mode.
+    const base = await fs.realpath(manifest.sourceBase?.path ?? '');
+    const scratch = path.join(manifest.projectRoot, '.agent/scratch');
+    if (!inside(scratch, base) || base === await fs.realpath(cut)) throw new Error('Invalid shared public base');
+    const text = await fs.readFile(path.join(base, MANIFEST), 'utf8');
+    if (sha256(text) !== manifest.sourceBase.manifestSha256) throw new Error('Shared public base manifest changed');
+    const publicPath = await fs.realpath(path.join(base, 'public'));
+    if (publicPath !== manifest.publicSource || publicPath !== await fs.realpath(path.join(cut, 'public')))
+      throw new Error('Shared public link does not match its recorded base');
+    const publicFiles = files => files.filter(f => f.path.startsWith('public/'));
+    if (JSON.stringify(publicFiles(manifest.files)) !== JSON.stringify(publicFiles(JSON.parse(text).files)))
+      throw new Error('Shared public inventory differs from its base');
+  }
   await verifyFiles(cut, manifest, false);
   return manifest;
 }
@@ -173,7 +190,15 @@ export async function completeSourceCut({ projectRoot = PROJECT_ROOT, base, outp
  * Every unlisted byte comes from the verified base. Explicit replacements are
  * fenced against concurrent edits; neither an old cut nor a save is modified.
  */
-export async function reviseSourceCut({ projectRoot = PROJECT_ROOT, base, output, replacements, onProgress }) {
+export async function reviseSourceCut({ projectRoot = PROJECT_ROOT, base, output, replacements, onProgress, reusePublic = false, replacementRoot }) {
+  // A reviewed delta may be prepared against the frozen base in ignored
+  // scratch. Reading that explicit overlay avoids adopting unrelated live
+  // world changes. Default revisions still read only the project checkout.
+  replacementRoot = await fs.realpath(replacementRoot ?? projectRoot);
+  if (replacementRoot !== await fs.realpath(projectRoot)
+    && !inside(path.join(projectRoot, '.agent', 'scratch'), replacementRoot)) {
+    throw new Error('Replacement overlay must be inside this project ignored scratch');
+  }
   projectRoot = await fs.realpath(projectRoot);
   base = await fs.realpath(base);
   output = path.resolve(output);
@@ -190,28 +215,46 @@ export async function reviseSourceCut({ projectRoot = PROJECT_ROOT, base, output
     if (!normalized.startsWith('src/') && !normalized.startsWith('public/') && !environmentFile) throw new Error('Only application source or explicit verification environment files may be revised');
     return normalized;
   }))].sort();
+  if (reusePublic && changed.some(file => file.startsWith('public/'))) throw new Error('Shared public assets cannot be revised');
   const baseText = await fs.readFile(path.join(base, MANIFEST), 'utf8');
   const prior = await verifySourceCut(base);
   const revisionFiles = [];
   for (const relative of changed) {
-    const absolute = safeFile(projectRoot, relative);
-    if (!inside(projectRoot, await fs.realpath(absolute))) throw new Error('Replacement link escapes the project');
+    const absolute = safeFile(replacementRoot, relative);
+    if (!inside(replacementRoot, await fs.realpath(absolute))) throw new Error('Replacement link escapes its source root');
     const data = await fs.readFile(absolute);
     const stat = await fs.stat(absolute);
     revisionFiles.push({ path: relative, bytes: data.length, sha256: sha256(data), mtimeMs: stat.mtimeMs, data });
   }
   await fs.mkdir(path.dirname(output), { recursive: true });
+  const changedBytes = new Map(revisionFiles.map(file => [file.path, file.bytes]));
+  const copyBytes = prior.files.reduce((sum, file) => sum + (reusePublic && file.path.startsWith('public/') ? 0 : changedBytes.get(file.path) ?? file.bytes), 0)
+    + revisionFiles.filter(file => !prior.files.some(old => old.path === file.path)).reduce((sum, file) => sum + file.bytes, 0);
+  const disk = await fs.statfs(path.dirname(output));
+  // Reserve room for Vite's cache and the next real save. Refuse BEFORE making
+  // an incomplete copy when the logical-copy upper bound cannot fit.
+  if (disk.bavail * disk.bsize < copyBytes + 64 * 1024 * 1024) throw new Error('Insufficient free space for source revision plus64MiB reserve');
   await fs.mkdir(output);
   const manifest = { version: 3, projectRoot, capturedAt: new Date().toISOString(),
     purpose: 'Accepted source plus explicit owned revisions; no save compatibility claim',
     sourceBase: { path: base, manifestSha256: sha256(baseText) }, replacements: changed,
+    ...(replacementRoot !== await fs.realpath(projectRoot) ? {replacementSourceRoot: replacementRoot} : {}),
     extraInputs: prior.extraInputs ?? [], files: [] };
+  if (reusePublic) {
+    manifest.publicSource = await fs.realpath(path.join(base, 'public'));
+    await fs.symlink(manifest.publicSource, path.join(output, 'public'), process.platform === 'win32' ? 'junction' : 'dir');
+  }
   const paths = [...new Set([...prior.files.map(file => file.path), ...changed])].sort();
   const oldFiles = new Map(prior.files.map(file => [file.path, file]));
   const revised = new Map(revisionFiles.map(file => [file.path, file]));
   let copied = 0;
   await eachBounded(paths, async (relative, index) => {
     const revision = revised.get(relative);
+    if (reusePublic && relative.startsWith('public/')) {
+      manifest.files[index] = { ...oldFiles.get(relative) };
+      copied++;
+      return;
+    }
     const data = revision?.data ?? await fs.readFile(safeFile(base, relative));
     const hash = sha256(data);
     if (!revision && hash !== oldFiles.get(relative).sha256) throw new Error(`Base source changed: ${relative}`);
@@ -224,7 +267,7 @@ export async function reviseSourceCut({ projectRoot = PROJECT_ROOT, base, output
   });
   await verifyFiles(base, prior, true);
   for (const file of revisionFiles) {
-    const absolute = safeFile(projectRoot, file.path), stat = await fs.stat(absolute);
+    const absolute = safeFile(replacementRoot, file.path), stat = await fs.stat(absolute);
     if (stat.mtimeMs !== file.mtimeMs || sha256(await fs.readFile(absolute)) !== file.sha256) throw new Error(`Replacement changed during capture: ${file.path}`);
   }
   await verifyFiles(output, manifest, false);
@@ -282,12 +325,12 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       ...(additions.length ? { additions } : {}), onProgress: progress => console.log(JSON.stringify({ completingSource: progress })) });
     console.log(JSON.stringify({ cut: path.resolve(portText), files: manifest.files.length, sourceBase: manifest.sourceBase }));
   } else if (command === 'revise' && target && portText) {
-    const manifest = await reviseSourceCut({ base: target, output: portText, replacements: additions,
+    const manifest = await reviseSourceCut({ base: target, output: portText, replacements: additions.filter(file => file !== '--reuse-public'), reusePublic: additions.includes('--reuse-public'),
       onProgress: progress => console.log(JSON.stringify({ revisingSource: progress })) });
     console.log(JSON.stringify({ cut: path.resolve(portText), files: manifest.files.length, sourceBase: manifest.sourceBase, replacements: manifest.replacements }));
   } else if (command === 'serve' && target) {
     const server = await serveSourceCut(target, Number(portText));
     console.log(`Immutable verification source listening on http://localhost:${Number(portText)}/Aralia/`);
     for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, async () => { await server.close(); process.exit(0); });
-  } else throw new Error('Usage: sourceCut.mjs capture <ignored-cut-directory> | complete <base-cut> <new-cut> [missing-input...] | revise <base-cut> <new-cut> <owned-file...> | serve <cut-directory> <port>');
+  } else throw new Error('Usage: sourceCut.mjs capture <ignored-cut-directory> | complete <base-cut> <new-cut> [missing-input...] | revise <base-cut> <new-cut> [--reuse-public] <owned-file...> | serve <cut-directory> <port>');
 }

@@ -16,9 +16,10 @@
  */
 // @dependencies-end
 
-/** A TSL node expression. See `oceanSurface.ts` for why this is `any`. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type TslNode = any;
+import type { TslNode } from '@/types/tslNode';
+
+/** A TSL node expression: the shared alias in src/types/tslNode.ts (GG-588). */
+export type { TslNode };
 
 /** The surface's side of the wake: one call per stage. */
 export interface OceanWakeReader {

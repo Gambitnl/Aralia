@@ -17,10 +17,10 @@
 import { DataTexture, FloatType, NearestFilter, RedFormat, Vector2 } from 'three';
 import { Discard, If, abs, clamp, positionWorld, texture, uniform, vec2 } from 'three/tsl';
 import { corridorCenterAt } from '@/systems/world3d/river/riverWorldBed';
+import type { TslNode } from '@/types/tslNode';
 
 /* TSL node graphs chain operators that @types/three 0.172 does not model. */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-type N = any;
+type N = TslNode; // Shared TSL alias (GG-588): see src/types/tslNode.ts.
 
 /** The footprint: a rectangle in river-local m, placed in the scene by an origin and a turn. */
 export interface RiverFootprintCut {
@@ -168,4 +168,3 @@ export function riverBedOutsideDiscard(): void {
     If(riverOwned().not(), () => { Discard(); });
   });
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */

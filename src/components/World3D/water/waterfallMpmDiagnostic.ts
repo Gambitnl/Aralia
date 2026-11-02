@@ -28,12 +28,26 @@ import {planFiniteSource,buildFiniteSource,captureFiniteExports,finiteSourceInve
 import {ballisticInletMoments} from '@/systems/worldforge/terrain/flipSourceMoments';
 import {physicalFlipUnits,createFlipContactObservations,readFlipContactObservations} from '@/systems/worldforge/terrain/flipContactAccounting';
 
+/** The progress record this diagnostic reports. The named fields are the ones
+ * the river scene reads. The other measured fields (admission, invalidState and
+ * so on) stay open, because the receipt only displays them. GG-588 (2026-11-02)
+ * replaced the earlier `any` with this type. */
+export interface WaterfallMpmStatus {
+  state: string;
+  time?: number;
+  wallSeconds?: number;
+  reason?: string;
+  [field: string]: unknown;
+}
+/** One completed step in the diagnostic record. */
+type WaterfallMpmStepRecord = { firstParticleContact?: number | null } & Record<string, unknown>;
+
 /** Bounded development run with unchanged admission/contact/energy guards.
  * This receiver failed qualification. It exists here only so the user can
  * inspect actual progress and its rejection, instead of a cached animation. */
 export async function runWaterfallMpmDiagnostic(renderer: WebGPURenderer, hooks: {
   cancelled: () => boolean;
-  status: (result: any) => void;
+  status: (result: WaterfallMpmStatus) => void;
   attach: (buffers: ReturnType<typeof createFlipBuffers>, source: ReturnType<typeof buildFiniteSource>) => void;
   publish: (count: number) => Promise<void>;
 }) {
@@ -42,15 +56,15 @@ export async function runWaterfallMpmDiagnostic(renderer: WebGPURenderer, hooks:
  const sourceSpec={flowM3s:1.5,widthM:10,bottomM:77.3,depthM:.7,entranceY:76,sourceOn:0,sourceOff:4,depthCells:7,spanCells:40};
  const params={n:112,dx:.25,count:131072,origin:[-2,50,-14] as [number,number,number]};
  const units=physicalFlipUnits(params.dx),dt=MPM_DT*units.time;
- const records:any[]=[];let result:any={state:'PREPARING',dt,params,sourceSpec,records};
+ const records:WaterfallMpmStepRecord[]=[];const result:WaterfallMpmStatus={state:'PREPARING',dt,params,sourceSpec,records};
  const display=()=>hooks.status({...result,wallSeconds:(performance.now()-started)/1000});
  const checkTime=()=>{if(hooks.cancelled())throw Error('Stopped by user');if(performance.now()-started>limit)throw Error('Inclusive 180s ceiling');};
  const read=async(b:StorageBufferAttribute)=>new Float32Array(await renderer.getArrayBufferAsync(b));
  let kernelPasses=0;
  let capturePartial: (()=>Promise<void>) | null = null;
  const errors:string[]=[];
- const dev=(renderer.backend as any).device as GPUDevice;
- const gpuError=(e:any)=>errors.push(e.error?.message ?? String(e.error));
+ const dev=(renderer.backend as unknown as {device:GPUDevice}).device;
+ const gpuError=(e:Event)=>{const error=(e as GPUUncapturedErrorEvent).error;errors.push(error?.message ?? String(error));};
  dev.addEventListener('uncapturederror',gpuError);
  try{
   checkTime();
@@ -63,7 +77,7 @@ export async function runWaterfallMpmDiagnostic(renderer: WebGPURenderer, hooks:
    span.set(solid?[(top-params.origin[1])/params.dx,1e6,-1e6,(top-2.5-params.origin[1])/params.dx]:[-1e6,1e6,-1e6,1e6],i);
   }
   const ground={buffer:new StorageBufferAttribute(span,4),n:params.n,cellM:params.dx,originXZ:[params.origin[0],params.origin[2]] as [number,number],slots:2};
-  const gridRead=async(b:any,bounds?:{counts:Uint32Array,mass:number,speed:number})=>{
+  const gridRead=async(b:ReturnType<typeof createFlipBuffers>,bounds?:{counts:Uint32Array,mass:number,speed:number})=>{
    const arrays=await Promise.all([b.gridMass,b.gridMomX,b.gridMomY,b.gridMomZ].map(async x=>new Int32Array(await renderer.getArrayBufferAsync(x))));
    let mass=0,kineticJ=0,arithmeticEnergyJ=0;const momentum=[0,0,0],angular=[0,0,0];let negative=0;
    for(let i=0;i<arrays[0].length;i++){
@@ -86,7 +100,7 @@ export async function runWaterfallMpmDiagnostic(renderer: WebGPURenderer, hooks:
     angular[0]+=(x[1]*p[2]-x[2]*p[1])*units.impulse;angular[1]+=(x[2]*p[0]-x[0]*p[2])*units.impulse;angular[2]+=(x[0]*p[1]-x[1]*p[0])*units.impulse;
    }return{volumeM3:mass*params.dx**3/4,kineticJ,momentum,angular,negative,arithmeticEnergyJ};
   };
-  const pass=async(p:any)=>{checkTime();await renderer.computeAsync(p);kernelPasses++;};
+  const pass=async(p:Parameters<WebGPURenderer['computeAsync']>[0])=>{checkTime();await renderer.computeAsync(p);kernelPasses++;};
   // This audit uses a common-time steady crossing cohort, including its finite
   // birth extent, before paying for the advancing full-pulse buffers.
   const audit=ballisticInletMoments(sourceSpec,1,dt,params.dx,0);
@@ -125,8 +139,8 @@ export async function runWaterfallMpmDiagnostic(renderer: WebGPURenderer, hooks:
       masses:Array.from(masses),states:Array.from(new Uint32Array(states)),positions:Array.from(positions),velocities:Array.from(velocities),affine:[Array.from(c0),Array.from(c1),Array.from(c2)]};
   };
   const k=s.buildKernels(ground,{openDomain:true,viscosity:units.viscosity,contact:obs,convexContact:boundary});
-  const exported=new Set<number>(),exterior:any[]=[];result.exterior=exterior;
-  const readU=async(buffer:any)=>new Uint32Array(await renderer.getArrayBufferAsync(buffer));
+  const exported=new Set<number>(),exterior:Record<string,unknown>[]=[];result.exterior=exterior;
+  const readU=async(buffer:Parameters<WebGPURenderer['getArrayBufferAsync']>[0])=>new Uint32Array(await renderer.getArrayBufferAsync(buffer));
   let admittedK=0,numericalLoss=0,arithmeticUncertainty=0,unexplainedGain=0,firstContact:number|null=null;
   let beforeK=0,admittedCount=0;let previousPos:Float32Array|null=null,previousMotion:Float32Array[]|null=null;
   for(let step=0;step<cohorts.length;step++){

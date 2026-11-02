@@ -1,6 +1,6 @@
 # Overland Travel
 
-Verified: 2026-10-31
+Verified: 2026-11-02
 
 ## Purpose
 
@@ -198,6 +198,8 @@ GroundMovePlane uses the existing groundClickMove gesture helper. Only a
 primary tap commits on release. Camera orbit, pan, drag, cancellation and
 multiple pointers do not issue a destination. Native move capture tracks
 excursions beyond the pick plane. Actual desktop orbit/pan and tap were replayed.
+
+The same renderedGroundHit now considers visible upward caps of explicitly tagged source walkSurface floors and treads as well as terrain. World3DScene keeps those parts separate when merging drawing by material, so a shared wall or roof color cannot become a floor pick. Oblique indoor taps therefore target the drawn slab rather than terrain underneath it. Hidden floors and slab sides are excluded; the existing hidden-terrain presentation behavior remains. People, doors and furnishings before that actual surface still own the interaction. The destination is only XZ intent: normal supported walking and access checks control the path and reached height. This changes no source geometry or accepted feet by itself.
 
 Walking can query exact mounted deck geometry through
 createDeckSupportQueryFromMesh. The optional slabTopIndices receipt permits
@@ -531,7 +533,9 @@ A paid atlas-cell arrival does not establish a public-room visit or a reachable 
 
 publicBuildingDiscovery records a first-hand public-room visit only when accepted feet stand on a real structural slab in the matching room. Exterior labels and a refused contact cannot grant that account, a meeting, a service or permission. Exterior observation memory would need its own explicit knowledge kind in the existing discovery system while preserving this visit guard.
 
-In player follow, camera collision retracts along the same yaw and can reject a blocked stationary orbit by recalling its last checked clear view. An orbit gesture therefore does not guarantee its requested bearing near a facade. The View compass reports the rendered bearing; ordinary WASD uses that camera-relative direction. Neither framing nor its refusal relocates accepted feet.
+A visit does not supply a temple dedication. The normal altar reading uses templeDedicationAccessError for fresh public-room reach and resolveWorldforgeTempleIdentity for the actual atlas-cell religion and canonical main temple. A unique living office holder supplies the optional clergy listing; a missing or disputed office stays unknown. The existing discovery log retains a stable snapshot of the faith and listed clergy. An unchanged reread keeps the first account, while a later succession can produce a new historical account without rewriting earlier knowledge. Reading grants no meeting, attendance, service, permission or recovery.
+
+In player follow, camera collision retracts along the same yaw and can reject a blocked stationary orbit by recalling its last checked clear view. An orbit gesture therefore does not guarantee its requested bearing near a facade. The View compass reports the rendered bearing; ordinary WASD uses that camera-relative direction. Neither framing nor its refusal relocates accepted feet. When collision shortens a requested player-follow arm, FreeRoamCameraController compares legal lower and higher pitch candidates along that same yaw before accepting a short view. Each candidate uses the existing mounted structure/ground sightline query; requested zoom, gradual arm recovery and the final post-damping check remain. This can clear a rising outdoor bank without changing physical support or input heading. The existing cameraGroundRaycast exact triangle index serves static mounted buildings and decks as well as terrain and roads, so a short indoor arm does not scan every structural triangle for every body sample. It caches candidate selection only. Live transforms, attribute/index changes and material rules remain authoritative. Animated, instanced, custom-raycast and unusual-range meshes retain the native raycast path; decorative geometry that intentionally yields therefore remains nonblocking. Initial To Player admission remains a separate playerCameraFrame query; a follow-camera improvement does not prove that every interior can be framed after reload.
 
 ## Moving near-foot drawing off the browser thread
 

@@ -32,11 +32,12 @@ const stub = {
 } as any;
 
 describe('AtlasSvgView', () => {
-  function renderPublicPoi(keepMenuOpen = false) {
+  function renderPublicPoi(keepMenuOpen = false, nearbyTown = false) {
     const pick = vi.fn();
     const plan = vi.fn<(cell: number) => RoutePlan | null>(() => ({ cells: [0, 1], points: [[2, 2], [7, 7]], miles: 2, minutes: 60, danger: 0.2 }));
     const world = { ...stub, notes: [{ id: 'marker7', name: 'The Ash Camp' }],
-      pack: { ...stub.pack, markers: [{ i: 7, cell: 1, type: 'brigands' }] } } as any;
+      pack: { ...stub.pack, markers: [{ i: 7, cell: 1, type: 'brigands' }],
+        ...(nearbyTown ? { burgs: [null, {i:1,name:'Papurcurum',x:8,y:7,cell:1,population:20}] } : {}) } } as any;
     const result = render(<AtlasSvgView atlas={world} width={600} height={400} travelActive onPickCell={pick} planRoute={plan} />);
     fireEvent.click(result.getByTestId('atlas-layers-toggle'));
     fireEvent.click(result.getByRole('checkbox', { name: 'Markers' }));
@@ -76,6 +77,24 @@ describe('AtlasSvgView', () => {
     fireEvent.pointerUp(svg, { clientX: 128, clientY: 28, pointerId: 7, pointerType: 'mouse', button: 0 });
     fireEvent.click(svg, { clientX: 128, clientY: 28, button: 0 });
     expect(view.getByTestId('atlas-poi-card')).toHaveTextContent('The Ash Camp');
+    expect(view.pick).not.toHaveBeenCalled();
+  });
+
+  it('keeps nearby town and public-site inspection distinct after pointer capture', () => {
+    const view = renderPublicPoi(false, true);
+    const svg = view.getByTestId('atlas-svg-view');
+    vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({left:0,top:0,width:600,height:400} as DOMRect);
+    const clickAt = (x:number) => {
+      fireEvent.pointerDown(svg,{clientX:x,clientY:28,pointerId:7,pointerType:'mouse',button:0});
+      fireEvent.pointerUp(svg,{clientX:x,clientY:28,pointerId:7,pointerType:'mouse',button:0});
+      fireEvent.click(svg,{clientX:x,clientY:28,button:0});
+    };
+    clickAt(128); // Public marker center, inside the neighboring town's radius.
+    expect(view.getByTestId('atlas-poi-card')).toHaveTextContent('The Ash Camp');
+    expect(view.queryByRole('button',{name:'Close town details'})).toBeNull();
+    clickAt(132); // Town center must still inspect the actual settlement.
+    expect(view.queryByTestId('atlas-poi-card')).toBeNull();
+    expect(view.getByRole('button',{name:'Close town details'})).toBeInTheDocument();
     expect(view.pick).not.toHaveBeenCalled();
   });
 

@@ -113,13 +113,11 @@ export function applyCloudsSceneEdgeResolve(effect: CloudsEffect): boolean {
   if (resolve[PATCHED]) return true;
 
   if (resolve.temporalUpscale) {
-    // eslint-disable-next-line no-console
     console.error('[clouds] scene-edge resolve covers the temporalUpscale={false} path only; the rim stays.');
     return false;
   }
   const source = resolve.fragmentShader;
   if (!source.includes(PRELUDE_ANCHOR) || !source.includes(TAA_ANCHOR)) {
-    // eslint-disable-next-line no-console
     console.error('[clouds] @takram/three-clouds resolve shader changed; scene-edge resolve not applied.');
     return false;
   }

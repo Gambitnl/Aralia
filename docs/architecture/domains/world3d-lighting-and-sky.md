@@ -1,6 +1,6 @@
 # World3D Lighting & Sky
 
-Verified: 2026-11-02 for house lighting (code, unit tests, and WebGL day and night captures with a perf A-B; WebGPU not rendered); 2026-11-01 for the cloud resolve edge rule (code in both cloud setups; motion captures from 2026-10-29)
+Verified: 2026-11-02 for house lighting, including GG-594 parts 1 to 3 (code, unit tests; parts 2 and 3 by WebGL captures, part 1 by WebGL and WebGPU captures, each with a perf A-B); 2026-11-01 for the cloud resolve edge rule (code in both cloud setups; motion captures from 2026-10-29)
 
 ## Purpose
 
@@ -22,8 +22,12 @@ facades live in `streamed-3d-world.md`; game-time systems live in
 - `src/components/World3D/sky/cloudsSceneEdgeResolve.ts` - stops the clouds' temporal history at the scene/sky edge
 - `src/systems/world3d/interiorDaylight.ts` - window view factors, the inside test, wall occlusion and the split-flux interreflection for one building (pure)
 - `src/components/World3D/interiorDaylightMaterial.ts` - interior materials that scale their indirect light by the sky factor (WebGL and WebGPU)
-- `src/components/World3D/InteriorLights.tsx` - hearth lights, camera-inside fill, lit-window area lights and table lamps
-- Tests: `src/components/World3D/__tests__/World3DLighting.test.ts`, `src/components/World3D/sky/__tests__/cloudsSceneEdgeResolve.test.ts`, `src/systems/world3d/__tests__/interiorDaylight.test.ts`, `src/components/World3D/__tests__/InteriorLights.test.ts`
+- `src/components/World3D/InteriorLights.tsx` - hearth lights, lit-window area lights, sun-bounce area lights and table lamps (no fill light since GG-594 part 1)
+- `src/systems/world3d/eyeAdaptation.ts` - eye adaptation: the meter code, the exposure rule and its time response (shared by both renderers)
+- `src/components/World3D/eyeAdaptationEffect.ts` - the WebGL exposure step and meter, before the composer's ACES; the WebGPU meter is in `gpu/worldGpuPost.ts`
+- `src/components/World3D/tableLamp.ts` - the table lamp mesh and its placement constants
+- `src/components/World3D/liveInteriors.ts` - which buildings have their rooms mounted now
+- Tests: `src/components/World3D/__tests__/World3DLighting.test.ts`, `src/components/World3D/sky/__tests__/cloudsSceneEdgeResolve.test.ts`, `src/systems/world3d/__tests__/interiorDaylight.test.ts`, `src/components/World3D/__tests__/InteriorLights.test.ts`, `src/components/World3D/__tests__/InteriorLights.test.tsx`, `src/components/World3D/__tests__/tableLamp.test.ts`, `src/systems/world3d/__tests__/eyeAdaptation.test.ts`
 
 ## How the 24h cycle works NOW
 
@@ -180,15 +184,126 @@ rules with the old rules emulated at run time (rig in
   daylight factor of 1 to 6% is physically right, but the renderer has no
   eye adaptation. A 12x exposure test through `toneMappingExposure` changed
   nothing in the WebGL composer, so adaptation needs its own exposure step
-  before the ACES pass.
+  before the ACES pass. (That step now exists, and the fill is gone: see
+  "Eye adaptation, no fill light" below.)
+
+**Sun bounce (GG-594 part 2).** three.js has no global illumination, so the
+sunlit patch on a floor lit nothing else. `sunFloorPatch` (interiorDaylight.ts)
+now finds the patch that each window throws onto the floor of its storey:
+- Each pane point projects along the sun ray to the floor. The rectangle
+  keeps the true parallelogram's width, depth and center, so it carries the
+  same flux.
+- The reveal counts. The pane sits in the center of its wall, and the sill
+  and head boxes give the hole's depth T (`revealM`). A ray must clear the
+  hole on both wall faces, so the lit part of the pane is
+  (h - T s.y / (s . n)) by (w - T |s . t| / (s . n)). The live town has
+  0.46 m walls, and at a high sun the reveal shades most of a pane.
+- The patch stops at the far edge of the floor (abutting slabs at the same
+  level continue it) and at the first wall across the beam.
+
+InteriorLights puts an upward `RectAreaLight` on each patch near the camera
+(within 25 m), but only in live rooms: SiteBuilding registers a building
+while its rooms are mounted (`liveInteriors.ts`). A closed shell keeps the
+sun out, so a patch there would light nothing the player sees and would leak
+through the shell. Table-lamp lights follow the same rule. Its radiance is the patch as drawn: the floor receives
+`sunIntensity * s.y` (glass casts no shadow, so the drawn patch has no glass
+loss either), and a matte floor sends `rho * E / pi`. The light color is the
+sun color times the floor color. The area light's form factor gives the
+first bounce at every surface above the patch. The bounce lights use the
+window-light slots that no lit window holds, so they add no light to the
+shader.
+
+**Table lamps and fixed light counts (GG-594 part 3).** A household with a
+lit schedule keeps a brass standing oil lamp on each table, desk, counter
+and workbench of a live interior (`tableLamp.ts`, drawn by SiteBuilding). The
+flame shows while the windows are lit, and its widest point is at
+`LAMP_FLAME_ABOVE_M`, where InteriorLights puts the lamp's point light. The
+lamp is outside the raycast, so a click still picks the table. The hearth
+lights now go dark by intensity 0, and every light pool (4 hearths, 8 window
+or bounce slots, 4 lamps) mounts at full size while any interior building
+is loaded. The light count changes only when the town streams in or out.
+
+**Rendered check for parts 2 and 3 (2026-11-02, WebGL, same demo).** The rig
+(`.agent/scratch/houselight/rig2.mjs`) holds the camera in a live house and
+compares the new code with parts 2 and 3 switched off at run time (bounce
+slots at 0, lamp meshes hidden). Proof sheet:
+`.agent/scratch/houselight/gg594_proof.png`.
+- 21 h: the brass lamp and its flame stand on the table, in the pool of the
+  lamp light that was there before.
+- 08 h: the live rooms near the player hold 8 bounce patches (0.48 m by
+  1.07 m, radiance 0.30). A ray test toward the sun found furniture (a hearth)
+  over 4 of them; the best patch was 40% open. The game frame changed by at
+  most 1 level of 255, with the fill on or off. That matches the physics: a
+  0.5 m^2 patch of radiance 0.1 adds about 0.002 to a wall 2 m away, under
+  one display level without eye adaptation. A rig-only view with the bounce
+  at 50x shows the light where it belongs, on the wall above the patch.
+- 13 h: the 0.46 m reveal lets only a 0.04 m strip of sun onto the floor.
+  18 h: lit windows hold all 8 shared slots, so no bounce shows.
+- Frame cost, A-B-A-B: GPU 25.6 and 25.1 ms old, 24.4 and 24.3 ms new (08 h);
+  24.3 and 24.8 ms old, 23.6 and 27.8 ms new (13 h); 32.9 and 31.7 ms old,
+  33.2 and 30.3 ms new (16 h). No change past the noise. The lamps add 6 to
+  16 draw calls. The bounce adds no light to the shader, so this A-B cannot
+  see a shader cost; the town already filled every light pool before.
+
+**Eye adaptation, no fill light (GG-594 part 1).** Remy ruled on
+2026-11-02: "Drop it, add eye adaptation". The camera-inside fill light (24 cd
+over the player) is gone. It lit every room at any hour and flattened the
+window falloff. A room now shows only the light it receives, and the frame
+sets its own exposure from the light it measures:
+- A meter pass draws the linear frame (before tone mapping) into a 64 by 32
+  RGBA8 grid of log2 luminance codes, four taps a cell. An async readback
+  brings the grid to the CPU every 4 frames, one read at a time, so the GPU
+  never waits.
+- The frame's log2 average (a geometric mean) sets the target exposure,
+  2^(key - average), clamped to 1 .. 16. The key is -5. The exposure never
+  drops below 1, so a bright street keeps today's look.
+- The exposure moves toward the target in log space: time constant 1.2 s to
+  brighten, 0.4 s to darken.
+- WebGL: an effect just before the composer's ACES multiplies the color by
+  the exposure (`eyeAdaptationEffect.ts`). `toneMappingExposure` does not
+  reach that ACES. WebGPU: `renderer.toneMappingExposure` is the base 1.05
+  times the exposure, and `renderOutput` applies it; its meter reads
+  `sceneColor` in `gpu/worldGpuPost.ts`.
+- Night is not adapted. The sun model keeps its intensity at night and makes
+  the look dark through color, so a frame-only rule would lift the night street.
+  The upper clamp fades from 16 to 1 over dusk (`daylightWeight`, from the
+  same sun angle as `sunFromTime`). Night rooms keep their hearth and lamp
+  lights.
+- `window.__wf3dEye` is the live controller: `measuredLog2`, `exposure`,
+  `target`, and `hold` (a fixed exposure for an A-B; it also stops the meter).
+
+**Rendered check for part 1 (2026-11-02, town demo at 13 h).** Rig:
+`.agent/scratch/houselight/rig3.mjs`. Proof sheet:
+`.agent/scratch/houselight/gg594_part1_proof.png`. The camera stands at one side
+of a live room with a sunlit window and looks across it. Luma is the mean
+sRGB value (0 to 255) of a 15 px box at a projected probe point.
+- Calibration: the outdoor start view measures log2 -3.6 (WebGL) and -3.6
+  (WebGPU); the room measures -10.4 (WebGL) and -9.5 (WebGPU). A first key of
+  -2.6 lifted the street 2x and washed the square white, so the key is -5.
+- WebGL: at exposure 1 the sunlit floor is 7 and the back floor 0. Adapted
+  (x15.9), the sunlit floor is 105, the sunlit wall beside the window reads
+  bright, and the back floor is 12. The street stays at exposure 1.
+- WebGPU: the sunlit floor goes from 6 to 100, and the back floor stays 0.
+- The exposure reaches 50% of the step (in stops) in about 1 s and 99% in
+  about 4 s.
+- The wall under the window stays 0: it gets no sun and little sky.
+- Frame cost, A-B-A-B, held (meter off) against adapting, on a loaded machine:
+  WebGL GPU 37.6 and 34.2 ms against 36.8 and 35.0 ms; WebGPU GPU 10.7 and
+  13.5 ms against 13.7 and 11.1 ms. No change past the noise.
 
 **Open items.**
-- The camera-inside fill (24 cd, 2.7 m over the player) is a readability
-  light. It brightens the room around the player at any hour and hides part
-  of the window falloff there. Whether it stays is Remy's call.
-- Sunlight that lands on a floor does not bounce into the room; only the
-  sky's interreflection (split flux) is counted.
-- No lamp mesh is drawn: the lamp is a light only.
+- The meter weighs every part of the frame the same. A bright window that
+  fills much of the view holds the exposure down; center weighting is a
+  later cut if play shows it.
+- The WebGL meter reads the frame after the AO pass, the WebGPU meter before
+  it. The averages agree within one stop in the room check.
+- Night adaptation (a scotopic range) needs its own ruling.
+- The sun bounce has no shadows: a wall between the patch and a point does
+  not stop it. Furniture on the patch and outdoor shade on the window (a
+  neighbor, a tree) do not cut the patch's flux. The bounce is one bounce
+  from the patch only; the split-flux term covers the sky's later bounces,
+  not the sun's.
+- Lit windows take the shared slots first, so at dusk the bounce gets none.
 - Newer three.js could do more (research 2026-11-02; the game is on r172):
   `ClusteredLighting` (r185) lifts the lamp caps for point and spot lights,
   and `LightProbeGrid` (r186, faster bake r187) adds the sun's bounce, but it
@@ -196,8 +311,6 @@ rules with the old rules emulated at run time (rig in
   window factor must stop acting as AO, or occlusion counts twice. On r172,
   `TiledLighting` (WebGPU backend only) could lift the lamp cap under
   `?gpu=1`. An upgrade is Remy's decision.
-- The existing hearth lights still go dark by `visible`, which changes the
-  light count when a hearth enters or leaves range.
 
 ## Asset integrity gotcha (bit us 2026-08-26)
 

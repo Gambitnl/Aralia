@@ -46,11 +46,11 @@ import {
   smoothstep,
   uniform,
 } from 'three/tsl';
+import type { TslNode } from '@/types/tslNode';
 
 /* TSL node graphs chain operators that @types/three 0.172 does not model (no
  * ShaderNodeObject). The alias matches gpu/terrainColorNode.ts. */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-type N = any;
+type N = TslNode; // Shared TSL alias (GG-588): see src/types/tslNode.ts.
 
 /** A uniform node whose `.value` the host writes, like a ShaderMaterial uniform. */
 export interface ValueUniform<T> {
@@ -146,4 +146,3 @@ export function makeMoonNodeMaterial(): MoonNodes {
     opacity: opacity as unknown as ValueUniform<number>,
   };
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */

@@ -38,9 +38,9 @@ import {
   mat4,
   vec3,
 } from 'three/tsl';
+import type { TslNode } from '@/types/tslNode';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-type N = any;
+type N = TslNode; // Shared TSL alias (GG-588): see src/types/tslNode.ts.
 
 export interface InstanceMatrixNodes {
   /** The instance's mat4 for the current `instanceIndex`. */
@@ -103,4 +103,3 @@ export function adoptInstanceNodes(
     instanceNode.bufferColor = color.buffer;
   }
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */

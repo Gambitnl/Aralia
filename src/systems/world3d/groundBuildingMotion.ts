@@ -110,6 +110,15 @@ type Solid = { x: number; z: number; hx: number; hz: number; bottom: number; top
 type Support = { x: number; z: number; hx: number; hz: number; top: number; stairs: boolean };
 type Building = { x: number; z: number; yaw: number; radius: number; solids: Solid[]; supports: Support[] };
 const cache = new WeakMap<GroundWorld, WeakMap<ReadonlySet<string>, Building[]>>();
+type SourceBuilding = NonNullable<GroundWorld['buildings']>[number];
+/** GG-580 (2026-11-02): one building's solids for each of its own door states.
+ * A door change used to rebuild every building in the town (about 150 ms for
+ * 666 buildings) and so dropped every per-building query index below. Now only
+ * the building whose door changed gets a new `Building`; the others keep the
+ * same object, so their indexes and measured bodies stay warm. */
+type BuildingEntry = { doorKeys: readonly string[]; byOpenKeys: Map<string, Building> };
+const entries = new WeakMap<GroundWorld, WeakMap<SourceBuilding, BuildingEntry>>();
+const propSolids = new WeakMap<GroundWorld, { source: GroundWorld['props']; list: Building[] }>();
 const CLOSED_DOORS: ReadonlySet<string> = new Set();
 // Legacy movement retains its 0.6 m walking proxy. Explicit route queries can
 // supply a larger horizontal radius without resizing accepted bodies on load.
@@ -117,36 +126,52 @@ const HALF_BODY = 0.3;
 const SKIN = 0.001;
 const DRESSING = new Set(['motif', 'building-material', 'building-weathering', 'building-ensemble', 'building-history', 'roof', 'facade']);
 
-function buildingsFor(ground: GroundWorld, openDoors: ReadonlySet<string>): Building[] {
-  let byState = cache.get(ground);
-  if (!byState) { byState = new WeakMap(); cache.set(ground, byState); }
-  const previous = byState.get(openDoors);
-  if (previous) return previous;
-  const buildings = (ground.buildings ?? []).filter(b => b.cornersM.length >= 4).map(b => {
-    const { rotationY, doorZSign } = siteOrientationFromQuad(b.cornersM);
-    const surface = groundSurfaceYM(ground, b.xM, b.zM);
-    const supports: Support[] = [];
-    const solids = b.parts.flatMap(source => {
-      const p = doorPartForState(source, openDoors.has(siteDoorKey(b.id, source)));
-      // Canonical door leaves block in their real current position. Only old
-      // untagged leaves keep the legacy passage rule; combat is unchanged.
-      if ((p.tag && DRESSING.has(p.tag)) || (!p.door && p.colorHex === '#4a3220')) return [];
-      // Production floor slabs are four inches thick and start at the pad
-      // datum. They support the walker rather than obstruct horizontal travel.
-      if (p.h <= 0 || p.w <= 0 || p.d <= 0) return [];
-      const off = sitePartLocalOffset(p, doorZSign);
-      if (p.walkSurface && p.renderRole !== 'tactical-only') supports.push({ x: off.x, z: off.z, hx: p.w / 2, hz: p.d / 2,
-        top: surface + (p.baseY ?? 0) + p.h, stairs: p.walkSurface !== 'floor' });
-      return [{ x: off.x, z: off.z, hx: p.w / 2 + HALF_BODY, hz: p.d / 2 + HALF_BODY,
-        thin: p.h <= 0.15, stair: p.stairSolid, tactical: p.renderRole === 'tactical-only',
-        // The lower storey's wall ends just below an upper landing. Its last
-        // few centimeters meet shins, not the standing torso above the slab.
-        support: !!p.walkSurface || (!p.furnishing && !p.door),
-        bottom: surface + (p.baseY ?? 0), top: surface + (p.baseY ?? 0) + p.h }];
-    });
-    return { x: b.xM, z: b.zM, yaw: rotationY,
-      radius: Math.max(0, ...solids.map(s => Math.hypot(s.x, s.z) + Math.hypot(s.hx, s.hz))), solids, supports };
+function buildBuilding(ground: GroundWorld, b: SourceBuilding, openDoors: ReadonlySet<string>): Building {
+  const { rotationY, doorZSign } = siteOrientationFromQuad(b.cornersM);
+  const surface = groundSurfaceYM(ground, b.xM, b.zM);
+  const supports: Support[] = [];
+  const solids = b.parts.flatMap(source => {
+    const p = doorPartForState(source, openDoors.has(siteDoorKey(b.id, source)));
+    // Canonical door leaves block in their real current position. Only old
+    // untagged leaves keep the legacy passage rule; combat is unchanged.
+    if ((p.tag && DRESSING.has(p.tag)) || (!p.door && p.colorHex === '#4a3220')) return [];
+    // Production floor slabs are four inches thick and start at the pad
+    // datum. They support the walker rather than obstruct horizontal travel.
+    if (p.h <= 0 || p.w <= 0 || p.d <= 0) return [];
+    const off = sitePartLocalOffset(p, doorZSign);
+    if (p.walkSurface && p.renderRole !== 'tactical-only') supports.push({ x: off.x, z: off.z, hx: p.w / 2, hz: p.d / 2,
+      top: surface + (p.baseY ?? 0) + p.h, stairs: p.walkSurface !== 'floor' });
+    return [{ x: off.x, z: off.z, hx: p.w / 2 + HALF_BODY, hz: p.d / 2 + HALF_BODY,
+      thin: p.h <= 0.15, stair: p.stairSolid, tactical: p.renderRole === 'tactical-only',
+      // The lower storey's wall ends just below an upper landing. Its last
+      // few centimeters meet shins, not the standing torso above the slab.
+      support: !!p.walkSurface || (!p.furnishing && !p.door),
+      bottom: surface + (p.baseY ?? 0), top: surface + (p.baseY ?? 0) + p.h }];
   });
+  return { x: b.xM, z: b.zM, yaw: rotationY,
+    radius: Math.max(0, ...solids.map(s => Math.hypot(s.x, s.z) + Math.hypot(s.hx, s.hz))), solids, supports };
+}
+
+/** The building for this door state, reused while its own open doors match. */
+function buildingFor(ground: GroundWorld, byBuilding: WeakMap<SourceBuilding, BuildingEntry>, b: SourceBuilding, openDoors: ReadonlySet<string>): Building {
+  let entry = byBuilding.get(b);
+  if (!entry) {
+    entry = { doorKeys: b.parts.filter(part => part.door).map(part => siteDoorKey(b.id, part)), byOpenKeys: new Map() };
+    byBuilding.set(b, entry);
+  }
+  const openKeys = entry.doorKeys.filter(key => openDoors.has(key)).join('\n');
+  let building = entry.byOpenKeys.get(openKeys);
+  if (!building) {
+    building = buildBuilding(ground, b, openDoors);
+    entry.byOpenKeys.set(openKeys, building);
+  }
+  return building;
+}
+
+function propBuildingsFor(ground: GroundWorld): Building[] {
+  const cached = propSolids.get(ground);
+  if (cached && cached.source === ground.props) return cached.list;
+  const list: Building[] = [];
   // Only explicitly admitted model-bound props join this existing solver.
   // Legacy scenery is not retroactively solidified around accepted bodies.
   for (const prop of ground.props ?? []) {
@@ -154,9 +179,24 @@ function buildingsFor(ground: GroundWorld, openDoors: ReadonlySet<string>): Buil
     const base = prop.surface.groundYM - prop.surface.sinkM;
     const solids = woodpileBoxesV1(prop).map(box => ({ ...box, hx: box.hx + HALF_BODY, hz: box.hz + HALF_BODY,
       bottom: base + box.bottom, top: base + box.top, thin: false, stair: false, support: false, tactical: false }));
-    buildings.push({ x: prop.xM, z: prop.zM, yaw: prop.rotationRad, solids, supports: [],
+    list.push({ x: prop.xM, z: prop.zM, yaw: prop.rotationRad, solids, supports: [],
       radius: Math.max(...solids.map(s => Math.hypot(s.x, s.z) + Math.hypot(s.hx, s.hz))) });
   }
+  propSolids.set(ground, { source: ground.props, list });
+  return list;
+}
+
+/** Exported for the GG-580 reuse test only; movement callers use the queries below. */
+export function buildingsFor(ground: GroundWorld, openDoors: ReadonlySet<string>): Building[] {
+  let byState = cache.get(ground);
+  if (!byState) { byState = new WeakMap(); cache.set(ground, byState); }
+  const previous = byState.get(openDoors);
+  if (previous) return previous;
+  let byBuilding = entries.get(ground);
+  if (!byBuilding) { byBuilding = new WeakMap(); entries.set(ground, byBuilding); }
+  const buildings = (ground.buildings ?? []).filter(b => b.cornersM.length >= 4)
+    .map(b => buildingFor(ground, byBuilding, b, openDoors));
+  buildings.push(...propBuildingsFor(ground));
   byState.set(openDoors, buildings);
   return buildings;
 }

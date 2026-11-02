@@ -44,10 +44,10 @@ import {
   TERRAIN_NOISE_WEIGHT_SUM,
 } from '../terrain/terrainSurfaceNoise';
 import { riverFootprintDiscard } from './riverFootprintCut';
+import type { TslNode } from '@/types/tslNode';
 
 /* TSL node graphs chain operators that @types/three 0.172 does not model. */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-type N = any;
+type N = TslNode; // Shared TSL alias (GG-588): see src/types/tslNode.ts.
 
 /** The GLSL wrote its constants with toFixed; the node graph uses the same rounded numbers. */
 const AMP = Number(TERRAIN_NOISE_AMP.toFixed(3));
@@ -150,4 +150,3 @@ export function useTerrainSurfaceNoiseNodeMaterial(
   useEffect(() => () => material?.dispose(), [material]);
   return material;
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */

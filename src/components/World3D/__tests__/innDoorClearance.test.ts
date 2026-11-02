@@ -5,13 +5,24 @@ import { getWorldforgeLocalForCell } from '@/systems/worldforge/bridge/legacySub
 import { makeGroundWorld, type GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
 import { siteDoorKey } from '@/systems/worldforge/bridge/sitePartTransform';
 import { resolveGroundWalk } from '../groundBuildingMotion';
+import { buildTownSimStateForBurg } from '@/systems/worldforge/townsim/townSimRegistration';
+import { CELL_AFFINE_TOWN_LAYOUT_REVISION } from '@/systems/worldforge/town/townLayoutRevision';
 
 describe('the paid inn keeps its authored doorway clear above the finished floor', () => {
   let ground: GroundWorld;
   beforeAll(() => {
     const seed = 1793244363464;
-    const { local, region } = getWorldforgeLocalForCell(seed, 5608, { centerPx: [390.45, 412.86] });
-    ground = makeGroundWorld(local, seed, region, { skipProps: true, anchorCellId: 5608 });
+    // GG-603 (2026-11-02): the paid inn was booked in a town generated with the
+    // cell-affine recipe from before the October 31 road-scale change. The
+    // current default lays this burg out as a 1,733-building town: inn door 7
+    // is gone and the bake takes about two minutes, past the hook timeout.
+    // Read the town with its saved revision (123 buildings), as a load does.
+    // The booking also predates terrain revision 2 (ADR 0015): the current
+    // recipe sets this inn's floor 6.3 m below the measured body. Read the
+    // saved terrain source 1 too, so the pinned pose stands on its own floor.
+    const life = buildTownSimStateForBurg(seed, 3, 0, CELL_AFFINE_TOWN_LAYOUT_REVISION);
+    const { local, region } = getWorldforgeLocalForCell(seed, 5608, { centerPx: [390.45, 412.86], townLayouts: { 3: life }, terrainRevision: 1 });
+    ground = makeGroundWorld(local, seed, region, { skipProps: true, anchorCellId: 5608, townLife: { 3: life } });
   }, 60000);
 
   const parts = () => ground.buildings.find(building => building.id === 'wf-plot-3-67')!;

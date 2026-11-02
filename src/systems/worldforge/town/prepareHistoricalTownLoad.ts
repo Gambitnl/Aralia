@@ -13,9 +13,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 02/11/2026, 18:02:39
+ * Last Sync: 02/11/2026, 23:06:19
  * Dependents: components/World3D/worldGenWorker.ts
- * Imports: 23 files
+ * Imports: 24 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -41,6 +41,7 @@ import {qualifyHistoricalTownLayout,type HistoricalTownLayoutCandidate} from './
 import {townBuildingVisit} from './townBuildingVisit';
 import {guestBedsForVisit} from '../../gameplay/lodging';
 import {businessTypeForTownPlot} from '../townsim/townBusinessIdentity';
+import {shopKeeperAt} from '../townsim/shopLife';
 import {pointInPolygon} from '../submap/submapEngine';
 import {isGroundFootingSupported} from '../../world3d/groundBuildingMotion';
 import {HISTORICAL_TOWN_LAYOUT_REVISIONS,type TownLayoutRevision} from './townLayoutRevision';
@@ -153,6 +154,7 @@ function prepareForTerrainSource(state:GameState,terrainRevision:TerrainSourceRe
 export function historicalTownLoadJoinError(state:GameState,ground:GroundWorld,burgId:number,
   revision:TownLayoutRevision,roster:TownRoster):string|undefined {
   const town=state.townSim[burgId],feet=state.playerGroundPos!,cellId=state.playerCell!.cellId;
+  const day=getGameDay(new Date(state.gameTime));
   const observations=Object.values(town.buildingSources??{});
   const plan=ground.townPlans?.find(t=>t.burgId===burgId)?.plan;
   if(!plan)return 'the selected town is absent from its ground window.';
@@ -184,8 +186,14 @@ export function historicalTownLoadJoinError(state:GameState,ground:GroundWorld,b
     if(business.ownerId==='player')continue;
     const owner=state.generatedNpcs?.[business.ownerId] as RichNPC&{worldforgeHousehold?:{memberId:string}}|undefined;
     const worker=roster.occupants.find(p=>p.workPlotId===plot.id);
-    if(!owner||!worker||owner.name!==worker.name
-      ||owner.worldforgeHousehold?.memberId!==worker.householdMemberId)
+    // GG-603: since GG-595 an heir or a new owner can take a shop in the town
+    // sim, and the merchant follows that keeper (`computeBurgMerchants`). A
+    // save from before GG-595 still names the founding worker. Accept either
+    // real keeper of this workplace on the save's day, and nobody else.
+    const shop=shopKeeperAt(town,plot.id,day);
+    const keepers=[worker&&{name:worker.name,memberId:worker.householdMemberId},
+      shop.status==='open'&&{name:shop.keeper.name,memberId:shop.keeper.householdMemberId}];
+    if(!owner||!keepers.some(k=>k&&owner.name===k.name&&owner.worldforgeHousehold?.memberId===k.memberId))
       return refuse('a saved proprietor no longer matches the workplace roster.');
   }
   const openDoors=new Set<string>();

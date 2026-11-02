@@ -5,8 +5,15 @@ import { buildBlueprintParts } from '@/systems/worldforge/bridge/interiorParts';
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
 import { groundWalkHeight, resolveGroundWalk } from '../groundBuildingMotion';
 
+// GG-603 (2026-11-02): the GG-586 market re-lay moved revision 2's plot 1 in
+// Sypege to a 10 by 10 ft cottage with no treads. Layout revision 1 is the
+// protected compatibility reader that never changes, and it still holds the
+// 30 by 15 ft Hartdown house and its Blackford neighbor these paths measure.
+// Pin revision 1 so a later re-lay of the current town cannot move them again.
+const STAIR_FIXTURE_REVISION = 1;
+
 function fixture(yaw = 0, sign = -1) {
-  const { plan } = townBuildingVisit(1793146029630, 10, 1);
+  const { plan } = townBuildingVisit(1793146029630, 10, 1, undefined, undefined, STAIR_FIXTURE_REVISION);
   const { parts } = buildBlueprintParts(plan, 3.048, '#aaa');
   const project = (xFt: number, yFt: number) => {
     const p = new THREE.Vector3((xFt - 15) * .3048, 0, (yFt - 7.5) * .3048 * -sign)
@@ -50,7 +57,7 @@ describe('supported stair movement', () => {
 
   it('climbs beside Blackford without colliding with its hidden duplicate party wall', () => {
     const { ground, project } = fixture();
-    const neighbor = townBuildingVisit(1793146029630, 10, 2).plan;
+    const neighbor = townBuildingVisit(1793146029630, 10, 2, undefined, undefined, STAIR_FIXTURE_REVISION).plan;
     const { parts } = buildBlueprintParts(neighbor, 3.048, '#aaa');
     ground.buildings.push({ ...ground.buildings[0], id: 'neighbor', xM: 100 + 30 * .3048,
       cornersM: [[30, 0], [60, 0], [60, 15], [30, 15]].map(([x, y]) => { const p = project(x, y); return { x: p.xM, z: p.zM }; }), parts });

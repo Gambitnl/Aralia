@@ -27,14 +27,14 @@ import { uniformArray, int, attribute, floor, varying, Fn, positionWorld, normal
 import { GRAVITY_MS2 } from './oceanConfig';
 import { oceanSkyRadiance } from './oceanSky';
 import type { RockFaceTable, RockMesh, RockSpec } from './oceanRocksMath';
+import type { TslNode } from '@/types/tslNode';
 
 
 /**
- * A TSL node expression. See `oceanSurface.ts` for why this is `any`: three
- * 0.172 ships no type that names every node class an expression can produce.
+ * A TSL node expression: the shared alias in src/types/tslNode.ts (GG-588).
+ * three 0.172 ships no type that names every node class an expression can produce.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type TslNode = any;
+export type { TslNode };
 
 interface RockMaterialContext {
   tables: readonly RockFaceTable[];

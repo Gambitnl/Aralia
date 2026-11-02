@@ -52,7 +52,8 @@ export interface WaterfallContactReceipt {
   requestedMode: 'original' | 'stepped';
   draining: boolean;
   authoritativeSnapshot: boolean;
-  pool: any;
+  /** The stepped contact snapshot's pool record, or null. Shown, not read (GG-588: was `any`). */
+  pool: unknown;
   rocksVisible: boolean;
   waterVisible: boolean;
 }

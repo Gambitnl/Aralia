@@ -114,11 +114,22 @@ export function calculateExpertiseBonus(params: {
  */
 export function hasJackOfAllTrades(character: unknown): boolean {
   if (!character || typeof character !== 'object') return false;
-  const c = character as Record<string, any>;
+  // GG-588: each field stays `unknown` and is narrowed where it is read, in place
+  // of `Record<string, any>`. Partial saves and test doubles reach this check.
+  const c = character as {
+    level?: unknown;
+    class?: unknown;
+    subclassId?: unknown;
+    features?: unknown;
+    modifiers?: { traits?: unknown } | null;
+    traits?: unknown;
+  };
   const level = (typeof c.level === 'number' && c.level > 0) ? c.level : 1;
 
   // 1. Direct class check for Bard at level 2+
-  const classId = typeof c.class === 'string' ? c.class : c.class?.id;
+  const classId = typeof c.class === 'string'
+    ? c.class
+    : (c.class as { id?: unknown } | null | undefined)?.id;
   if (typeof classId === 'string' && classId.toLowerCase() === 'bard' && level >= 2) {
     return true;
   }
@@ -126,7 +137,8 @@ export function hasJackOfAllTrades(character: unknown): boolean {
   // 2. Class features progression check
   if (c.class && typeof c.class === 'object') {
     try {
-      const features = classFeaturesForLevel(c.class, level, c.subclassId);
+      // A malformed class object throws, and the catch below ignores it.
+      const features = classFeaturesForLevel(c.class as PlayerCharacter['class'], level, c.subclassId as string | undefined);
       if (features.some(f => f.id === 'jack_of_all_trades')) {
         return true;
       }
@@ -136,10 +148,14 @@ export function hasJackOfAllTrades(character: unknown): boolean {
   }
 
   // 3. Fallback: direct feature lists or traits or modifiers
-  if (Array.isArray(c.features) && c.features.some((f: any) => f?.id === 'jack_of_all_trades' || f === 'jack_of_all_trades')) {
+  if (Array.isArray(c.features) && c.features.some((f: unknown) =>
+    (f as { id?: unknown } | null | undefined)?.id === 'jack_of_all_trades' || f === 'jack_of_all_trades')) {
     return true;
   }
-  if (c.modifiers?.traits?.includes('jack_of_all_trades')) {
+  // Before GG-588 this called `.includes` on any value; an array or a string
+  // still answers the same way.
+  const modifierTraits = c.modifiers?.traits;
+  if ((Array.isArray(modifierTraits) || typeof modifierTraits === 'string') && modifierTraits.includes('jack_of_all_trades')) {
     return true;
   }
   if (Array.isArray(c.traits) && c.traits.includes('jack_of_all_trades')) {

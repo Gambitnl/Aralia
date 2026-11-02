@@ -21,9 +21,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 01/11/2026, 05:10:00
- * Dependents: components/DesignPreview/steps/PreviewTown3D.tsx, components/DesignPreview/steps/Town3DScene.tsx, components/DesignPreview/steps/townMesh.ts, components/MapPane.tsx, components/Worldforge/TownPlanView.tsx, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/worldforge/bridge/buildingOccupancy.ts, systems/worldforge/town/architectureDistricts.ts, systems/worldforge/town/buildingEnsembles.ts, systems/worldforge/town/canonicalTown.ts, systems/worldforge/town/cultureStructures.ts, systems/worldforge/town/demoTownPlan.ts, systems/worldforge/town/householdBrief.ts, systems/worldforge/town/laneVillage.ts, systems/worldforge/town/population.ts, systems/worldforge/town/ruralHomesteads.ts, systems/worldforge/town/stripFields.ts, systems/worldforge/town/townDiagnostics.ts, systems/worldforge/town/townLots.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/town/townSuburbs.ts, systems/worldforge/town/voronoiTownAdapter.ts
- * Imports: 13 files
+ * Last Sync: 02/11/2026, 23:06:19
+ * Dependents: components/DesignPreview/steps/PreviewTown3D.tsx, components/DesignPreview/steps/Town3DScene.tsx, components/DesignPreview/steps/townMesh.ts, components/MapPane.tsx, components/Worldforge/TownPlanView.tsx, devtools/buildingIdentityLab/buildingIdentityLabModel.ts, systems/worldforge/bridge/buildingOccupancy.ts, systems/worldforge/town/architectureDistricts.ts, systems/worldforge/town/buildingEnsembles.ts, systems/worldforge/town/canonicalTown.ts, systems/worldforge/town/cultureStructures.ts, systems/worldforge/town/demoTownPlan.ts, systems/worldforge/town/householdBrief.ts, systems/worldforge/town/laneVillage.ts, systems/worldforge/town/population.ts, systems/worldforge/town/ruralHomesteadArtifacts.ts, systems/worldforge/town/ruralHomesteads.ts, systems/worldforge/town/stripFields.ts, systems/worldforge/town/townDiagnostics.ts, systems/worldforge/town/townLots.ts, systems/worldforge/town/townPlanAdapter.ts, systems/worldforge/town/townSuburbs.ts, systems/worldforge/town/voronoiTownAdapter.ts
+ * Imports: 17 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -3221,6 +3221,8 @@ export function generateTownPlan(
   // Every suburb ward comes AFTER every intramural ward, so intramural plot
   // numbers keep their order. Unbuilt band blocks are market gardens.
   const extramuralLand: TownOpenLand[] = [];
+  // SUBURB LANES (GG-604), filled below once every suburb house is placed.
+  const suburbLaneStreets: TownStreet[] = [];
   if (profile && walls.ring.length >= 3) {
     const insideCount = wards.reduce((n, w) => n + w.plots.length, 0);
     const ringArea = Math.abs(polyArea(walls.ring));
@@ -3357,6 +3359,21 @@ export function generateTownPlan(
         wards.push({ polygon: row.ground, block: row.strip, plots: row.plots, extramural: true });
       }
     }
+    // SUBURB LANES (GG-604). Each suburb block is pulled in from its cell by
+    // about half a lane, but that lane was never a street. The router, the 2D
+    // map and the 3D bake did not know it, so a house that faced it had no way
+    // out except through the row behind (Borieborum: 471 rows on such edges,
+    // 182 of its 1,151 doors cut a neighbor). The cell edges of the built
+    // suburb blocks become passages, joined to the approach roads they cross.
+    // The ribbons along the roads already face their road and are unchanged.
+    const builtCells = band.filter((b) => bandWard.has(b) && wards[bandWard.get(b)!].plots.length > 0).map((b) => b.cell);
+    // A link from a lane group to its nearest road may not cross the wall or
+    // the water, and is at most eight lanes long.
+    const ringEdges = walls.ring.map((p, i) => [p, walls.ring[(i + 1) % walls.ring.length]] as const);
+    const blockedLink = (p: Pt, q: Pt): boolean => ringEdges.some(([r0, r1]) => segmentsCross(p, q, r0, r1))
+      || waterCarve.some((quad) => polygonsIntersect([p, q, p], quad));
+    suburbLaneStreets.push(...suburbLanes(builtCells, approaches, wards.flatMap((w) => w.plots.map((pl) => pl.polygon)),
+      laneWidth, edgeQuant, laneWidth * 8, blockedLink));
   }
 
   // Outskirts: the ring between the built core and the cell edge → farm/pasture/scrub,
@@ -3373,7 +3390,8 @@ export function generateTownPlan(
   });
 
   return finishTownPlan({
-    footprint, core, wards, civic, walls, streets, streetNetwork: [...streetNetwork, ...passages, ...approachWays], outskirts,
+    // The suburb lanes come last, so every earlier street keeps its id.
+    footprint, core, wards, civic, walls, streets, streetNetwork: [...streetNetwork, ...passages, ...approachWays, ...suburbLaneStreets], outskirts,
     profile, seedPath, townCenter, coreSpan, envSpan, form: 'wards',
     civicGrounds,
     unit: sizing.unit, laneWidth,
@@ -3496,6 +3514,214 @@ function buildSuburbBand(a: {
       && distToPolyBoundary(v, a.ring) >= a.clearance / 2));
     out.push({ cell: clamped, block, plots, roadDist });
   }
+}
+
+/**
+ * SUBURB LANES (GG-604): the lanes between the built suburb blocks, as
+ * passages (`role: 'passage'`, half a lane wide).
+ *
+ * - Each cell edge is emitted once, so the edge two built cells share is one
+ *   lane. A piece whose middle lies in a house is left out.
+ * - A suburb lot keeps more than a quarter lane from its cell edge
+ *   (`buildSuburbBand`), so a lane half a lane wide reaches no house. As a
+ *   passage it is not a street the GG-564 pass drops houses for.
+ * - Each lane is simplified, then joined to every approach road it crosses:
+ *   the crossing point is added to both lines (a collinear point, so the road
+ *   keeps its shape), and the router joins them at that one node.
+ * - A group of lanes that reaches no road gets one straight link to the
+ *   nearest road or reached lane, clear of houses, the wall and the water.
+ *   A group that still reaches nothing is dropped: a lane with no way to the
+ *   town would trap the doors that join it instead of freeing them.
+ *
+ * Deterministic: the cells, segments and roads are read in their given order.
+ * MUTATES the centerlines of `roads` (the inserted crossing points only).
+ */
+function suburbLanes(
+  cells: Pt[][], roads: TownStreet[], plots: Pt[][], laneWidth: number, quant: number,
+  maxLink: number, blockedLink: (a: Pt, b: Pt) => boolean,
+): TownStreet[] {
+  if (cells.length === 0) return [];
+  const key = (p: Pt): string => `${Math.round(p[0] / quant)},${Math.round(p[1] / quant)}`;
+  const segKey = (a: Pt, b: Pt): string => { const ka = key(a), kb = key(b); return ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`; };
+  // A coarse grid of house polygons keeps the inside test cheap.
+  const gridSize = Math.max(laneWidth * 8, 1e-6);
+  const gkey = (x: number, y: number): string => `${Math.floor(x / gridSize)},${Math.floor(y / gridSize)}`;
+  const grid = new Map<string, Pt[][]>();
+  for (const poly of plots) {
+    const bb = polygonBounds(poly);
+    for (let gx = Math.floor(bb.minX / gridSize); gx <= Math.floor(bb.maxX / gridSize); gx++) {
+      for (let gy = Math.floor(bb.minY / gridSize); gy <= Math.floor(bb.maxY / gridSize); gy++) {
+        const k = `${gx},${gy}`;
+        const bucket = grid.get(k) ?? [];
+        bucket.push(poly);
+        grid.set(k, bucket);
+      }
+    }
+  }
+  const inHouse = (p: Pt): boolean => (grid.get(gkey(p[0], p[1])) ?? []).some((q) => pointInPolygon(p, q));
+
+  // 1. Cell edges, once each, as runs of kept segments.
+  const seen = new Set<string>();
+  const runs: Pt[][] = [];
+  for (const ring of cells) {
+    const own: Pt[][] = [];
+    let run: Pt[] | null = null;
+    let firstKept = false;
+    for (let i = 0; i < ring.length; i++) {
+      const a = ring[i], b = ring[(i + 1) % ring.length];
+      const k = segKey(a, b);
+      const drop = key(a) === key(b) || seen.has(k) || inHouse([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]);
+      seen.add(k);
+      if (drop) { if (run) { own.push(run); run = null; } continue; }
+      if (i === 0) firstKept = true;
+      if (!run) run = [[a[0], a[1]]];
+      run.push([b[0], b[1]]);
+    }
+    if (run) {
+      // The ring closes: a run that ends at the ring's first point joins the
+      // run that starts there.
+      if (firstKept && own.length > 0) own[0] = [...run, ...own[0].slice(1)];
+      else own.push(run);
+    }
+    runs.push(...own);
+  }
+
+  // 2. Simplify (Douglas-Peucker, a twentieth of a lane): the cells were
+  // densified to follow the wall curve, and every vertex is a router node.
+  const tol2 = (laneWidth * 0.05) ** 2;
+  const simplify = (line: Pt[]): Pt[] => {
+    if (line.length <= 2) return line;
+    const keep = new Array<boolean>(line.length).fill(false);
+    keep[0] = keep[line.length - 1] = true;
+    const stack: Array<[number, number]> = [[0, line.length - 1]];
+    while (stack.length > 0) {
+      const [s, e] = stack.pop()!;
+      let best = -1, bestD = tol2;
+      for (let i = s + 1; i < e; i++) {
+        const d = segDist2(line[i], line[s], line[e]);
+        if (d > bestD) { bestD = d; best = i; }
+      }
+      if (best < 0) continue;
+      keep[best] = true;
+      stack.push([s, best], [best, e]);
+    }
+    return line.filter((_, i) => keep[i]);
+  };
+  const lineLength = (line: Pt[]): number => line.slice(1).reduce((s, p, i) => s + len(line[i], p), 0);
+  const lanes = runs.map(simplify).filter((line) => line.length >= 2 && lineLength(line) >= laneWidth);
+
+  // 3. Join each lane to the approach roads it crosses.
+  const touchesRoad = new Array<boolean>(lanes.length).fill(false);
+  const nearTol = laneWidth * 0.2;
+  const insertAt = (line: Pt[], hits: Array<{ seg: number; t: number; p: Pt }>): void => {
+    // Back to front, so each index stays valid while the line grows.
+    for (const h of [...hits].sort((x, y) => y.seg - x.seg || y.t - x.t)) {
+      const a = line[h.seg], b = line[h.seg + 1];
+      if (key(h.p) === key(a) || key(h.p) === key(b)) continue;
+      line.splice(h.seg + 1, 0, h.p);
+    }
+  };
+  lanes.forEach((line, li) => {
+    for (const road of roads) {
+      const rl = road.centerline;
+      const laneHits: Array<{ seg: number; t: number; p: Pt }> = [];
+      const roadHits: Array<{ seg: number; t: number; p: Pt }> = [];
+      for (let i = 0; i < line.length - 1; i++) {
+        for (let j = 0; j < rl.length - 1; j++) {
+          const p = segIntersectPoint(line[i], line[i + 1], rl[j], rl[j + 1]);
+          if (!p) continue;
+          laneHits.push({ seg: i, t: len(line[i], p), p });
+          roadHits.push({ seg: j, t: len(rl[j], p), p });
+        }
+      }
+      if (laneHits.length > 0) {
+        touchesRoad[li] = true;
+        insertAt(line, laneHits);
+        insertAt(rl, roadHits);
+      }
+      // A lane end on the road (within the router's T-join reach) joins too.
+      for (const end of [line[0], line[line.length - 1]]) {
+        for (let j = 0; j < rl.length - 1 && !touchesRoad[li]; j++) {
+          if (segDist2(end, rl[j], rl[j + 1]) <= nearTol * nearTol) touchesRoad[li] = true;
+        }
+      }
+    }
+  });
+
+  // 4. Keep only the groups of lanes that reach a road. Two lanes are one
+  // group when they share a vertex, or when an end of one lies on the other.
+  const parent = lanes.map((_, i) => i);
+  const find = (i: number): number => { while (parent[i] !== i) { parent[i] = parent[parent[i]]; i = parent[i]; } return i; };
+  const union = (i: number, j: number): void => { const a = find(i), b = find(j); if (a !== b) parent[Math.max(a, b)] = Math.min(a, b); };
+  const byVertex = new Map<string, number>();
+  lanes.forEach((line, li) => {
+    for (const p of line) {
+      const k = key(p);
+      const other = byVertex.get(k);
+      if (other === undefined) byVertex.set(k, li); else union(li, other);
+    }
+  });
+  lanes.forEach((line, li) => {
+    for (const end of [line[0], line[line.length - 1]]) {
+      lanes.forEach((otherLine, oi) => {
+        if (oi === li || find(oi) === find(li)) return;
+        for (let j = 0; j < otherLine.length - 1; j++) {
+          if (segDist2(end, otherLine[j], otherLine[j + 1]) <= nearTol * nearTol) { union(li, oi); return; }
+        }
+      });
+    }
+  });
+  const reached = new Set<number>();
+  lanes.forEach((_, li) => { if (touchesRoad[li]) reached.add(find(li)); });
+
+  // 5. A group that reaches no road (its neighbor cells are market gardens)
+  // gets one straight link to the nearest road or reached lane, if the link
+  // stays clear of every house and of `blockedLink` (the wall, the water) and
+  // is at most `maxLink` long. Groups are linked in lane order, so a group
+  // linked first can carry the next one.
+  const links: Pt[][] = [];
+  const clearOfHouses = (a: Pt, b: Pt): boolean => {
+    const n = Math.max(1, Math.ceil(len(a, b) / (laneWidth * 0.25)));
+    for (let k = 1; k < n; k++) if (inHouse([a[0] + ((b[0] - a[0]) * k) / n, a[1] + ((b[1] - a[1]) * k) / n])) return false;
+    return true;
+  };
+  const project = (p: Pt, a: Pt, b: Pt): Pt => {
+    const vx = b[0] - a[0], vy = b[1] - a[1], L = vx * vx + vy * vy;
+    const t = L > 0 ? Math.max(0, Math.min(1, ((p[0] - a[0]) * vx + (p[1] - a[1]) * vy) / L)) : 0;
+    return [a[0] + vx * t, a[1] + vy * t];
+  };
+  const groups = [...new Set(lanes.map((_, li) => find(li)))];
+  for (const g of groups) {
+    if (reached.has(g)) continue;
+    const targets: Pt[][] = [...roads.map((r) => r.centerline), ...lanes.filter((_, li) => reached.has(find(li)))];
+    let from: Pt | undefined, to: Pt | undefined, target: Pt[] | undefined, bestD = maxLink;
+    for (let li = 0; li < lanes.length; li++) {
+      if (find(li) !== g) continue;
+      for (const v of lanes[li]) {
+        for (const line of targets) {
+          for (let j = 0; j < line.length - 1; j++) {
+            const q = project(v, line[j], line[j + 1]);
+            const d = len(v, q);
+            if (d > bestD || (target && d === bestD)) continue;
+            if (!clearOfHouses(v, q) || blockedLink(v, q)) continue;
+            from = v; to = q; target = line; bestD = d;
+          }
+        }
+      }
+    }
+    if (!from || !to || !target) continue;
+    // The link's far end becomes a vertex of its target, so the router joins it.
+    for (let j = 0; j < target.length - 1; j++) {
+      if (segDist2(to, target[j], target[j + 1]) <= 1e-12 && key(to) !== key(target[j]) && key(to) !== key(target[j + 1])) {
+        target.splice(j + 1, 0, to);
+        break;
+      }
+    }
+    links.push([from, to]);
+    reached.add(g);
+  }
+  return [...lanes.filter((_, li) => reached.has(find(li))), ...links]
+    .map((centerline) => ({ centerline, tier: 'lane' as const, role: 'passage' as const, width: laneWidth / 2 }));
 }
 
 /**

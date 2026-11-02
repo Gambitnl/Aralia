@@ -17,7 +17,8 @@
  */
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
-import { collectInteriorLighting, interiorFillAnchor, type ShellBounds } from '../InteriorLights';
+import { collectInteriorLighting, scenePatchFor } from '../InteriorLights';
+import { sunFloorPatch } from '@/systems/world3d/interiorDaylight';
 import { chunkOriginWorld } from '@/systems/world3d/coords';
 import { worldToScene, type SceneOrigin } from '@/systems/world3d/sceneOrigin';
 import type { LoadedChunk } from '@/systems/world3d/types';
@@ -85,33 +86,6 @@ function makeChunk(cx: number, cy: number, site: OracleSite, parts: unknown[], e
     },
   } as unknown as LoadedChunk;
 }
-
-describe('interior fill follows the reached room', () => {
-  const shell:ShellBounds={cx:0,cz:0,rotationY:0,halfW:5,halfD:5,baseY:0,topY:4};
-  it('keeps the one presentation fill beside the reached body while the camera orbits in the same building',()=>{
-    const camera=new THREE.Vector3(0,2,-4),body=new THREE.Vector3(0,1.5,0);
-    expect(interiorFillAnchor(camera,body,[shell])).toBe(body);
-  });
-  it('retains camera anchoring when there is no mounted body',()=>{
-    const camera=new THREE.Vector3(0,2,-4);
-    expect(interiorFillAnchor(camera,null,[shell])).toBe(camera);
-  });
-  it('does not move the fill to a body in another building',()=>{
-    const camera=new THREE.Vector3(0,2,0),body=new THREE.Vector3(20,1.5,0);
-    expect(interiorFillAnchor(camera,body,[shell,{...shell,cx:20}])).toBe(camera);
-  });
-  it('preserves the camera-inside and under-roof gate even when the body is indoors',()=>{
-    const body=new THREE.Vector3(0,1.5,0);
-    expect(interiorFillAnchor(new THREE.Vector3(6,2,0),body,[shell])).toBeNull();
-    expect(interiorFillAnchor(new THREE.Vector3(0,6,0),body,[shell])).toBeNull();
-  });
-  it('uses the rotated source shell rather than its wider world-aligned box',()=>{
-    const rotated={...shell,rotationY:Math.PI/4,halfW:4,halfD:1};
-    const camera=new THREE.Vector3(2,2,-2),body=new THREE.Vector3(0,1.5,0);
-    expect(interiorFillAnchor(camera,body,[rotated])).toBe(body);
-    expect(interiorFillAnchor(camera,new THREE.Vector3(2,1.5,2),[rotated])).toBe(camera);
-  });
-});
 
 describe('collectInteriorLighting hearth projection', () => {
   const origin: SceneOrigin = { x: 12.5, z: -7.25 };
@@ -206,6 +180,71 @@ describe('collectInteriorLighting lit windows and lamps (night light out)', () =
     expect(lamps[0].z).toBeCloseTo(tableCenter.z, 6);
     expect(lamps[0].y).toBeCloseTo(tableCenter.y + table.h / 2 + 0.3, 6);
     expect(lamps[0].litHours).toBe(evening);
+  });
+
+  for (const c of [
+    { rotationY: 0, doorZSign: -1 },
+    { rotationY: 0, doorZSign: 1 },
+    { rotationY: Math.PI / 3, doorZSign: -1 },
+    { rotationY: -2.1, doorZSign: 1 },
+  ]) {
+    it(`puts the sun bounce patch where three.js renders the render-frame patch (yaw ${c.rotationY.toFixed(2)}, doorZSign ${c.doorZSign})`, () => {
+      const site: OracleSite = { localX: 4.5, localZ: -3.25, surfaceY: 1.75, ...c };
+      const o = chunkOriginWorld(1, 2);
+      const chunkScene = worldToScene(o.x, o.y, origin);
+      // Every pane is an aperture, lit schedule or not.
+      const { apertures } = collectInteriorLighting([makeChunk(1, 2, site, [floor, pane, table])], origin);
+      expect(apertures).toHaveLength(1);
+      const a = apertures[0];
+      // The sun at 45 degrees, straight in through this window, plus a slant.
+      const tx = -a.nz, tz = a.nx;
+      const l = Math.hypot(1, 1, 0.3);
+      const sun = {
+        direction: [(a.nx + 0.3 * tx) / l, 1 / l, (a.nz + 0.3 * tz) / l] as [number, number, number],
+        sunColor: 0xfff0d0,
+        sunIntensity: 2.35,
+      };
+      const patch = scenePatchFor(a, sun)!;
+      expect(patch).not.toBeNull();
+      // Oracle: the same patch in the render frame, placed by a three.js group
+      // set up as SiteBuilding's.
+      const [sx, sy, sz] = sun.direction;
+      const cos = Math.cos(c.rotationY), sin = Math.sin(c.rotationY);
+      const localSun = { x: sx * cos - sz * sin, y: sy, z: sx * sin + sz * cos };
+      const local = sunFloorPatch(a.house.day, a.opening, localSun)!;
+      const chunkGroup = new THREE.Group();
+      chunkGroup.position.set(chunkScene.x, 0, chunkScene.z);
+      const siteGroup = new THREE.Group();
+      siteGroup.position.set(site.localX, site.surfaceY, site.localZ);
+      siteGroup.rotation.set(0, site.rotationY, 0);
+      chunkGroup.add(siteGroup);
+      chunkGroup.updateMatrixWorld(true);
+      const expected = siteGroup.localToWorld(new THREE.Vector3(local.center.x, local.center.y, local.center.z));
+      expect(patch.x).toBeCloseTo(expected.x, 6);
+      expect(patch.y).toBeCloseTo(expected.y, 6);
+      expect(patch.z).toBeCloseTo(expected.z, 6);
+      // The local sun is the scene sun seen from inside the rotated group.
+      const back = new THREE.Vector3(localSun.x, localSun.y, localSun.z).applyQuaternion(siteGroup.quaternion);
+      expect(back.x).toBeCloseTo(sx, 9);
+      expect(back.z).toBeCloseTo(sz, 9);
+      // The patch lies inside the house: on the room side of the pane.
+      expect((patch.x - a.x) * a.nx + (patch.z - a.z) * a.nz).toBeLessThan(0);
+      expect(patch.nx).toBeCloseTo(a.nx, 9);
+      expect(patch.nz).toBeCloseTo(a.nz, 9);
+      // Radiance of the drawn patch: E = I * s.y on the floor, L = rho E / pi.
+      expect(patch.intensity).toBeCloseTo((2.35 * sy) / Math.PI, 9);
+      const rho = new THREE.Color(0xfff0d0).multiply(new THREE.Color(floor.colorHex));
+      expect(patch.color.r).toBeCloseTo(rho.r, 9);
+      expect(patch.color.b).toBeCloseTo(rho.b, 9);
+    });
+  }
+
+  it('gives no bounce patch when the sun is behind the window', () => {
+    const site: OracleSite = { localX: 0, localZ: 0, surfaceY: 0, rotationY: 0.7, doorZSign: -1 };
+    const { apertures } = collectInteriorLighting([makeChunk(0, 0, site, [floor, pane])], origin);
+    const a = apertures[0];
+    const l = Math.SQRT2;
+    expect(scenePatchFor(a, { direction: [-a.nx / l, 1 / l, -a.nz / l], sunColor: 0xffffff, sunIntensity: 2 })).toBeNull();
   });
 
   it('gives a building that is never lit no window emitters and no lamps', () => {

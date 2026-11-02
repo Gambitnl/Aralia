@@ -836,10 +836,6 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
     if (dp && Math.hypot(e.clientX - dp.x, e.clientY - dp.y) > DRAG_SLOP) return;
     const p = pointerToGraph(e.clientX, e.clientY);
     if (!p) return;
-    // A click on a settlement glyph opens its pinned detail card instead of
-    // picking the underlying cell (towns are inspected before you commit travel).
-    const b = findBurgAt(p.gx, p.gy);
-    if (b != null) { setSelectedPoi(null); setSelectedBurg(b); return; }
     // Pointer capture sends the completed mouse click to the SVG root, even
     // when the press began on a marker. Resolve visible POIs here as well as
     // in their keyboard handler, before the ordinary cell-travel path.
@@ -850,7 +846,15 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
       const distance = (poi.x - p.gx) ** 2 + (poi.y - p.gy) ** 2;
       if (distance <= nearestPoi) { nearestPoi = distance; poiHit = index; }
     });
-    if (poiHit != null) { inspectPoi(poiHit); return; }
+    // Overlapping inspection radii must not let a nearby town steal a click
+    // centered on a public site. Compare visible centers for both kinds; an
+    // exact tie keeps the settlement glyph, which is drawn above the marker.
+    // Either card still requires its own explicit travel confirmation.
+    const b = findBurgAt(p.gx, p.gy);
+    const burg = b != null ? model.burgs?.[b] : null;
+    const burgDistance = burg ? (burg.x - p.gx) ** 2 + (burg.y - p.gy) ** 2 : Infinity;
+    if (poiHit != null && nearestPoi < burgDistance) { inspectPoi(poiHit); return; }
+    if (b != null) { setSelectedPoi(null); setSelectedBurg(b); return; }
     setSelectedBurg(null);
     setSelectedPoi(null);
     if (!onPickCell) return;

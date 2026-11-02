@@ -67,7 +67,7 @@
 import { riverRendererRequiredLimits } from '@/systems/world3d/river/riverGpuLimits';
 
 import { WaterfallReconstructedFluid } from './waterfallReconstructedFluid';
-import { runWaterfallMpmDiagnostic, DIAGNOSTIC_LEDGE } from './waterfallMpmDiagnostic';
+import { runWaterfallMpmDiagnostic, DIAGNOSTIC_LEDGE, type WaterfallMpmStatus } from './waterfallMpmDiagnostic';
 import { Fn, storage, instanceIndex } from 'three/tsl';
 import { WaterfallTerrainComparisonView, type ComparisonState } from './waterfallTerrainComparisonView';
 import { createWaterfallPaceMeter } from './waterfallPaceMeter';
@@ -1600,10 +1600,10 @@ export class RiverReachView {
   private mpmSurface: WaterfallReconstructedFluid | null = null;
   private mpmCancelled = false;
   private mpmRunning: Promise<unknown> | null = null;
-  mpmReceipt: any = null;
+  mpmReceipt: WaterfallMpmStatus | null = null;
   /** An isolated physical diagnostic on this renderer; the original river is
    * still available by returning to its URL. No second coupled source exists. */
-  startMpmDiagnostic(status: (result: any) => void): void {
+  startMpmDiagnostic(status: (result: WaterfallMpmStatus) => void): void {
     if (this.mpmRunning) return;
     this.mpmCancelled = false;
     const flat=DIAGNOSTIC_LEDGE.triangles.flatMap(t=>t.flatMap(i=>[...DIAGNOSTIC_LEDGE.sourceVertices[i]]));

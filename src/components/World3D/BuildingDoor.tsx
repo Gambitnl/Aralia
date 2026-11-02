@@ -24,14 +24,15 @@ import type * as THREE from 'three';
 import type { SitePart } from '@/systems/worldforge/bridge/interiorParts';
 import { siteDoorKey, siteDoorLocalPose } from '@/systems/worldforge/bridge/sitePartTransform';
 import { GroundFurnishingContext } from './GroundFurnishingContext';
+import { useDoorLeafState } from './groundDoorStore';
 
 export function BuildingDoor({ part, siteId, rotationY, doorZSign }: { part: SitePart; siteId: string; rotationY: number; doorZSign: number }) {
   const context = useContext(GroundFurnishingContext);
   const group = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   useEffect(() => () => { if (typeof document !== 'undefined') document.body.style.cursor = 'auto'; }, []);
-  const open = context?.openDoors?.has(siteDoorKey(siteId, part)) ?? false;
-  const users = context?.doorUsers?.get(siteDoorKey(siteId, part));
+  // GG-580: this leaf renders when its own door changes, not when any door does.
+  const { open, users } = useDoorLeafState(context?.doors, siteDoorKey(siteId, part));
   const { offset, rotationY: angle } = siteDoorLocalPose(part, doorZSign, open);
   const axisX = part.door?.axis === 'x';
   const length = axisX ? part.w : part.d, thickness = axisX ? part.d : part.w;

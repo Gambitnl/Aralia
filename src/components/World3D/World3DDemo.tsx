@@ -256,7 +256,6 @@ const World3DDemo: React.FC = () => {
         const pair = pickSeamCellPair(atlas, fpp);
         const seam = buildSeamStitchedLocal(atlas, DEMO_WF_SEED, { feetPerPixel: fpp, ...pair });
         // Headless probes read this line for the empirical handoff residual.
-        // eslint-disable-next-line no-console
         console.info(
           `[seamProbe] cells=${seam.cellA}|${seam.cellB} seamWorldXFt=${Math.round(seam.seamWorldXFt)} ` +
             `maxJoinDeltaFt=${seam.maxJoinDeltaFt.toFixed(2)}`,

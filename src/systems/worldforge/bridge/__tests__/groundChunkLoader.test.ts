@@ -56,6 +56,7 @@ import {
   MOTIF_PART_TAG,
 } from "../interiorParts";
 import { TERRACE_STEP_ENCODED } from "../terrainTerraces";
+import { gradePlazaTerrainPads } from "../plazaTerrainPads";
 
 // ============================================================================
 // Fixed Bridge Fixtures
@@ -1216,6 +1217,16 @@ describe("makeGroundWorld building terrain pads", () => {
     const region = makeRegionArtifact();
     const baseline = localArtifactToWorldData(local, 42);
     const ground = makeGroundWorld(local, 42, region);
+    // GG-593: the bake grades each paved square before it levels the plots,
+    // so a hall or weigh house inside a square takes its pad from the graded
+    // paving. Grade the baseline the same way; every other plot is unchanged.
+    gradePlazaTerrainPads(
+      baseline.heights,
+      baseline.gridSize.cols,
+      baseline.gridSize.rows,
+      GROUND_METERS_PER_CELL,
+      ground.plazas ?? [],
+    );
 
     let unevenFootprintCells = 0;
     let wrongPadHeightBuildings = 0;

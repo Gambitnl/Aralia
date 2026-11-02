@@ -17,13 +17,8 @@
 // @dependencies-end
 
 /**
- * A TSL node expression.
- *
- * three 0.172 does not export `ShaderNodeObject` from `three/tsl`, and the
- * concrete node classes differ per expression — `vec2(a, b)` is a JoinNode
- * while `vec2(a, b).add(c)` is an OperatorNode. Naming one of them in a helper
- * signature rejects the other. This alias is the honest statement that the
- * shape is not expressible with the types this version ships.
+ * A TSL node expression. The alias and its reason now live in one shared place,
+ * src/types/tslNode.ts (GG-588), so each module no longer adds its own `any`.
+ * This module re-exports it for the ocean surface modules that import it here.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type TslNode = any;
+export type { TslNode } from '@/types/tslNode';

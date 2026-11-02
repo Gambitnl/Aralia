@@ -77,10 +77,10 @@ import { TERRAIN_LATTICE_M } from '@/systems/worldforge/bridge/streamedSurface';
 import { GROUND_METERS_PER_CELL } from '@/systems/worldforge/bridge/groundWorldAdapter';
 import { groundEditsThisSession, onGroundEdit, type GroundEditEvent } from '@/systems/worldforge/bridge/groundRecord';
 import type { LiveBedPatch } from '@/systems/world3d/river/riverLive';
+import type { TslNode } from '@/types/tslNode';
 
 /* TSL node graphs chain operators that @types/three 0.172 does not model. */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-type N = any;
+type N = TslNode; // Shared TSL alias (GG-588): see src/types/tslNode.ts.
 
 type RiverPageModule = typeof import('./riverReachScene');
 

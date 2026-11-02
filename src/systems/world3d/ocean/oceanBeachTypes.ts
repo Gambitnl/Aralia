@@ -26,11 +26,11 @@ import { type OceanField } from './oceanField';
 import { createOceanSeabed, type OceanSeabed } from './oceanSeabed';
 import { type SeabedParams } from './oceanSeabedMath';
 import { type SwashGridSpec, type BeachFrame, type SwashLedger, type BeachSite } from './oceanBeachMath';
+import type { TslNode } from '@/types/tslNode';
 
 
-/** A TSL node expression. See `oceanSurface.ts` for why this is `any`. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type TslNode = any;
+/** A TSL node expression: the shared alias in src/types/tslNode.ts (GG-588). */
+export type { TslNode };
 
 export interface OceanBeachOptions {
   readonly field: OceanField;

@@ -77,6 +77,12 @@ export interface DaylightOpening {
   center: V3;
   outward: V3;
   areaM2: number;
+  /**
+   * Depth of the hole in the wall (the reveal), meters: the thickness of the
+   * sill or head box around the pane, which sits in the wall's center plane.
+   * 0 when the pane has no sill or head part.
+   */
+  revealM: number;
 }
 
 interface Box { x0: number; x1: number; y0: number; y1: number; z0: number; z1: number }
@@ -86,6 +92,8 @@ export interface InteriorDaylight {
   openings: DaylightOpening[];
   /** Floor slabs (render frame) that define "inside" by their x-z footprint. */
   floors: Box[];
+  /** Each floor slab's color, index-aligned with `floors` (the sun bounce tint). */
+  floorColors: string[];
   /** Wall boxes that can block a window from a point. */
   occluders: Box[];
   /** The building's internally reflected component (0..1). */
@@ -127,9 +135,12 @@ export function insideFootprint(p: V3, floors: readonly Box[]): boolean {
  */
 export function buildInteriorDaylight(parts: readonly DaylightPart[], doorZSign: number): InteriorDaylight | null {
   const visible = parts.filter(isSitePartRenderable);
-  const floors = visible.filter((p) => p.walkSurface === 'floor').map((p) => boxOf(p, doorZSign));
+  const floorParts = visible.filter((p) => p.walkSurface === 'floor');
+  const floors = floorParts.map((p) => boxOf(p, doorZSign));
   if (floors.length === 0) return null;
+  const floorColors = floorParts.map((p) => p.colorHex);
   const occluders: Box[] = [];
+  const structure: Box[] = [];
   const openings: DaylightOpening[] = [];
   // BRE split-flux areas and reflectances (area-weighted).
   let areaAll = 0, reflAll = 0;
@@ -151,9 +162,10 @@ export function buildInteriorDaylight(parts: readonly DaylightPart[], doorZSign:
       const corners: [V3, V3, V3, V3] = alongX
         ? [{ x: b.x0, y: b.y0, z: c.z }, { x: b.x1, y: b.y0, z: c.z }, { x: b.x1, y: b.y1, z: c.z }, { x: b.x0, y: b.y1, z: c.z }]
         : [{ x: c.x, y: b.y0, z: b.z0 }, { x: c.x, y: b.y0, z: b.z1 }, { x: c.x, y: b.y1, z: b.z1 }, { x: c.x, y: b.y1, z: b.z0 }];
-      openings.push({ corners, center: c, outward, areaM2: (alongX ? p.w : p.d) * p.h });
+      openings.push({ corners, center: c, outward, areaM2: (alongX ? p.w : p.d) * p.h, revealM: 0 });
       continue;
     }
+    structure.push(b);
     if (p.h >= OCCLUDER_MIN_H_M) occluders.push(b);
     // Interior surface area of this box, split for the split-flux formula:
     // floors count low, ceilings high, walls half and half.
@@ -174,6 +186,17 @@ export function buildInteriorDaylight(parts: readonly DaylightPart[], doorZSign:
     }
   }
   if (openings.length === 0) return null;
+  // The reveal: the wall box just under (sill) or over (head) the pane.
+  for (const o of openings) {
+    const ys = o.corners.map((k) => k.y);
+    for (const y of [Math.min(...ys) - 0.05, Math.max(...ys) + 0.05]) {
+      for (const s of structure) {
+        if (o.center.x > s.x0 && o.center.x < s.x1 && y > s.y0 && y < s.y1 && o.center.z > s.z0 && o.center.z < s.z1) {
+          o.revealM = Math.max(o.revealM, o.outward.z !== 0 ? s.z1 - s.z0 : s.x1 - s.x0);
+        }
+      }
+    }
+  }
   const windowArea = openings.reduce((s, o) => s + o.areaM2, 0);
   const R = areaAll > 0 ? reflAll / areaAll : 0.5;
   const Rfw = areaLow > 0 ? reflLow / areaLow : R;
@@ -182,7 +205,7 @@ export function buildInteriorDaylight(parts: readonly DaylightPart[], doorZSign:
   const irc = A > 0
     ? Math.min(1, (GLASS_TRANSMITTANCE * windowArea / (A * (1 - Math.min(R, 0.95)))) * (BRE_C_UNOBSTRUCTED * Rfw + 5 * Rcw) / 100)
     : 0;
-  return { openings, floors, occluders, irc };
+  return { openings, floors, floorColors, occluders, irc };
 }
 
 // ── View factor ───────────────────────────────────────────────────────────
@@ -296,4 +319,160 @@ export function bakeInteriorSkyFactors(
 export const DAYLIGHT_GRID_M = 0.75;
 export function daylightSegments(sizeM: number): number {
   return Math.max(1, Math.min(16, Math.ceil(sizeM / DAYLIGHT_GRID_M)));
+}
+
+// ── Sun bounce (GG-594 part 2) ────────────────────────────────────────────
+
+/**
+ * The sunlit patch that one window throws onto its floor, as a rectangle.
+ *
+ * Why (GG-594, 2026-11-02): the sun reaches a room through its windows by the
+ * shadow map, but three.js has no global illumination, so the bright patch on
+ * the floor lit nothing else. A real room is lit mostly by that bounce. The
+ * renderer puts an upward area light on this patch (InteriorLights).
+ *
+ * The geometry: each pane point at height y above the floor projects along
+ * the sun ray to the floor at an inward distance (y - floorY) * (s . n) / s.y,
+ * and it shifts along the wall by -(y - floorY) * (s . t) / s.y. The true
+ * patch is a parallelogram. This rectangle has the same width, the same
+ * inward depth and the same center, so it has the same area and carries the
+ * same flux: area * s.y = lit area * (s . n) before the clip.
+ *
+ * The reveal (found in the live town, 2026-11-02): the pane sits in the
+ * center of a 0.46 m wall, and at a high sun the sill and head shade most of
+ * it. The lit area is the part of the pane that the beam clears on both wall
+ * faces: (h - T s.y / (s . n)) by (w - T |s . t| / (s . n)), for depth T.
+ *
+ * The clip: the patch stops at the far edge of the floor (adjacent floor slabs
+ * at the same level continue it) and at the first wall across the beam. The
+ * part beyond lands on a wall; it is not modeled. Outdoor shade on the window
+ * (a neighbor, a tree) is not modeled either.
+ */
+export interface SunFloorPatch {
+  /** Patch center on the top of the floor (render frame). */
+  center: V3;
+  /** Unit horizontal vector along the window's wall (the patch width). */
+  tangent: V3;
+  /** The window's unit outward normal; the patch lies on its inner side. */
+  outward: V3;
+  /** Size along `tangent` and along the inward normal, meters. */
+  width: number;
+  depth: number;
+  /** The lit floor's color: the bounce takes its reflectance and tint. */
+  floorHex: string;
+}
+
+/** Floors at the same level as the lit one continue the patch (meters). */
+const FLOOR_LEVEL_TOLERANCE_M = 0.05;
+/** A wall across the beam must stand at least this high above the floor. */
+const BEAM_WALL_MIN_RISE_M = 0.1;
+
+/**
+ * The sun patch of one window on the floor of its storey, or null when the
+ * sun is below the horizon, behind the window, or lands on no floor.
+ * `sun` points from the scene toward the sun, in the render frame.
+ */
+export function sunFloorPatch(day: InteriorDaylight, opening: DaylightOpening, sun: V3): SunFloorPatch | null {
+  const n = opening.outward;
+  const sn = dot(sun, n);
+  if (sun.y <= 1e-3 || sn <= 1e-3) return null;
+  const [a, b, , d] = opening.corners;
+  const c = opening.center;
+  const y0 = Math.min(a.y, d.y), y1 = Math.max(a.y, d.y);
+  // The storey floor: the highest slab under a point just inside the window
+  // whose top is at or below the sill.
+  const inX = c.x - n.x * 0.5, inZ = c.z - n.z * 0.5;
+  let fi = -1, floorY = -Infinity;
+  day.floors.forEach((f, i) => {
+    // Inclusive: a window center can sit right on a tile seam.
+    if (inX >= f.x0 && inX <= f.x1 && inZ >= f.z0 && inZ <= f.z1 && f.y1 <= y0 + 1e-3 && f.y1 > floorY) {
+      fi = i;
+      floorY = f.y1;
+    }
+  });
+  if (fi < 0) return null;
+  const wPane = Math.hypot(b.x - a.x, b.z - a.z);
+  if (wPane < 1e-6) return null;
+  const t = { x: (b.x - a.x) / wPane, y: 0, z: (b.z - a.z) / wPane };
+  const u = { x: -n.x, y: 0, z: -n.z };
+  const st = dot(sun, t);
+  // The reveal: a ray must clear the hole on both faces of the wall. Across
+  // the wall depth T it drops T * s.y / (s . n) and slides T * (s . t) / (s . n),
+  // so on the inner face only the band [y0, y1 - drop] is lit, and only the
+  // part of the width that the slid outer hole still covers.
+  const T = opening.revealM;
+  const drop = (T * sun.y) / sn;
+  const slide = (T * st) / sn;
+  const yTop = y1 - drop;
+  if (yTop <= y0) return null;
+  const qIn0 = Math.max(-wPane / 2, -wPane / 2 - slide);
+  const qIn1 = Math.min(wPane / 2, wPane / 2 - slide);
+  if (qIn1 <= qIn0) return null;
+  // From the inner face (T / 2 in from the pane plane) down to the floor:
+  // inward range [near, far] from the pane plane, tangent range around c.
+  const near = T / 2 + ((y0 - floorY) * sn) / sun.y;
+  let far = T / 2 + ((yTop - floorY) * sn) / sun.y;
+  const shift = (qIn0 + qIn1) / 2 - (((y0 + yTop) / 2 - floorY) * st) / sun.y;
+  let q0 = shift - (qIn1 - qIn0) / 2, q1 = shift + (qIn1 - qIn0) / 2;
+  // Coordinates of a box along u and t, relative to the window center.
+  const span = (bx: Box, axis: V3, origin: number): [number, number] => {
+    const lo = axis.x * (axis.x >= 0 ? bx.x0 : bx.x1) + axis.z * (axis.z >= 0 ? bx.z0 : bx.z1);
+    const hi = axis.x * (axis.x >= 0 ? bx.x1 : bx.x0) + axis.z * (axis.z >= 0 ? bx.z1 : bx.z0);
+    return [lo - origin, hi - origin];
+  };
+  const cu = dot(c, u), ct = dot(c, t);
+  // The floor slab at this level under a point, or -1. Live floors are laid
+  // in tiles (1.52 m in the town), so a patch can cross several slabs.
+  const floorAt = (px: number, pz: number) => day.floors.findIndex((f) =>
+    Math.abs(f.y1 - floorY) < FLOOR_LEVEL_TOLERANCE_M && px >= f.x0 && px <= f.x1 && pz >= f.z0 && pz <= f.z1);
+  // How far the floor runs from a point along a horizontal axis, across
+  // abutting slabs at the same level (axis coordinate relative to `origin`).
+  const runAlong = (start: number, px: number, pz: number, axis: V3, origin: number): number => {
+    let reach = span(day.floors[start], axis, origin)[1];
+    const at = px * axis.x + pz * axis.z - origin;
+    for (let hop = 0; hop < 16; hop++) {
+      const step = reach + 0.05 - at;
+      const k = floorAt(px + axis.x * step, pz + axis.z * step);
+      if (k < 0) break;
+      reach = Math.max(reach, span(day.floors[k], axis, origin)[1]);
+    }
+    return reach;
+  };
+  // The floor's reach along the beam, from the near edge of the patch.
+  const mid = shift;
+  const nx0 = c.x + u.x * (near + 0.01) + t.x * mid, nz0 = c.z + u.z * (near + 0.01) + t.z * mid;
+  const k0 = floorAt(nx0, nz0);
+  if (k0 < 0) return null;
+  far = Math.min(far, runAlong(k0, nx0, nz0, u, cu));
+  // The first wall across the beam. A box that straddles the window plane is
+  // the window's own wall (sill, head, jambs); it does not stop the patch.
+  for (const ob of day.occluders) {
+    if (ob.y1 < floorY + BEAM_WALL_MIN_RISE_M || ob.y0 > floorY + BEAM_WALL_MIN_RISE_M) continue;
+    const [u0] = span(ob, u, cu);
+    if (u0 <= 0) continue;
+    const [t0, t1] = span(ob, t, ct);
+    if (mid <= t0 || mid >= t1) continue;
+    far = Math.min(far, u0);
+  }
+  if (far - near < 0.01) return null;
+  // The width, clipped to the floor along the wall at the patch's middle.
+  const sm = (near + far) / 2;
+  const mx = c.x + u.x * sm + t.x * mid, mz = c.z + u.z * sm + t.z * mid;
+  const km = floorAt(mx, mz);
+  if (km < 0) return null;
+  const negT = { x: -t.x, y: 0, z: -t.z };
+  q0 = Math.max(q0, -runAlong(km, mx, mz, negT, -ct));
+  q1 = Math.min(q1, runAlong(km, mx, mz, t, ct));
+  const depth = far - near;
+  const width = q1 - q0;
+  if (depth < 0.01 || width < 0.01) return null;
+  const sMid = (near + far) / 2, qMid = (q0 + q1) / 2;
+  return {
+    center: { x: c.x + u.x * sMid + t.x * qMid, y: floorY, z: c.z + u.z * sMid + t.z * qMid },
+    tangent: t,
+    outward: { x: n.x, y: 0, z: n.z },
+    width,
+    depth,
+    floorHex: day.floorColors[k0],
+  };
 }

@@ -15,6 +15,7 @@
  *   lit       = sceneColor * aoFactor
  *   out       = renderOutput(lit)                      ACES at renderer exposure, then sRGB
  *   output    = smaa(out)                              edge anti-aliasing on the final image
+ *   meter     = log2 luminance grid of sceneColor      eye adaptation (GG-594 part 1), read back async
  *
  * WHAT IS THE SAME AS WEBGL
  * - No MSAA in the scene pass (`multisampling={0}` on WebGL) and SMAA last.
@@ -36,6 +37,16 @@
  *   - What it does NOT reach: the wide creases N8AO darkens through its soft
  *     range (a tree foot 64 -> 51 here against 34 on WebGL). That is a gap.
  *
+ * EYE ADAPTATION (GG-594 part 1, 2026-11-02). After each frame, on some
+ *   frames, a quad draws `sceneColor` into the shared METER_W by METER_H grid
+ *   of log2 luminance codes, and an async readback feeds the handle's
+ *   `EyeAdaptation`. The chain's owner then sets
+ *   `renderer.toneMappingExposure = baseExposure * eye.step(dt)`, which
+ *   `renderOutput` applies inside its ACES. The WebGL twin is an effect before
+ *   the composer's ACES (eyeAdaptationEffect.ts); the controller is shared
+ *   (src/systems/world3d/eyeAdaptation.ts). The meter reads the scene before
+ *   the AO, where WebGL reads it after; AO moves the average little.
+ *
  * WHAT IS NOT THE SAME (recorded in the domain doc)
  * - No clouds. `VolumetricClouds` is a takram WebGL effect; step 7 owns it.
  * - Normals come from depth, as N8AO does. An MRT normal target would be
@@ -49,13 +60,15 @@
  * sceneColor, sceneDepth)`) and rebuilds the output. `onWorldGpuPost(listener)`
  * tells a late-mounting layer when the chain exists.
  */
-import type { Camera, Scene } from 'three';
+import { UnsignedByteType, type Camera, type Scene } from 'three';
 import type { PostProcessing, WebGPURenderer } from 'three/webgpu';
+import { EYE_ADAPTATION, EyeAdaptation } from '../../../systems/world3d/eyeAdaptation';
+import type { TslNode } from '../../../types/tslNode';
 
 /* TSL node graphs chain operators that @types/three 0.172 does not model (no
- * ShaderNodeObject). The alias matches gpu/worldGpuSky.ts. */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-type N = any;
+ * ShaderNodeObject). The shared alias in types/tslNode.ts carries the one
+ * allowed `any` (GG-588), so this file declares none of its own. */
+type N = TslNode;
 
 /** The AO settings, kept as numbers so a rig can read them beside the result. */
 export const WORLD_GPU_AO = {
@@ -99,6 +112,10 @@ export interface WorldGpuPostHandle {
   readonly aoFactor: N;
   /** The GTAO node, for its uniforms (`radius`, `thickness`, `scale`, `samples`). */
   readonly ao: N;
+  /** The eye-adaptation controller this chain's meter feeds (GG-594 part 1). */
+  readonly eye: EyeAdaptation;
+  /** The renderer's exposure before adaptation; the owner sets base * eye.exposure. */
+  readonly baseExposure: number;
   /**
    * Replace the node the tone mapper reads. `null` restores `sceneColor * aoFactor`.
    * The water layer inserts its water here.
@@ -135,14 +152,15 @@ function publish(handle: WorldGpuPostHandle | null): void {
  * for them.
  */
 export async function buildWorldGpuPost(renderer: WebGPURenderer, scene: Scene, camera: Camera): Promise<WorldGpuPostHandle> {
-  const [{ PostProcessing }, tsl, { ao }, { denoise }, { smaa }] = await Promise.all([
+  const [{ PostProcessing, QuadMesh, NodeMaterial, RenderTarget }, tsl, { ao }, { denoise }, { smaa }] = await Promise.all([
     import('three/webgpu'),
     import('three/tsl'),
     import('three/examples/jsm/tsl/display/GTAONode.js'),
     import('three/examples/jsm/tsl/display/DenoiseNode.js'),
     import('three/examples/jsm/tsl/display/SMAANode.js'),
   ]);
-  const { pass, renderOutput, smoothstep, mix, textureLoad, ivec2, screenCoordinate, uniform, perspectiveDepthToViewZ } = tsl;
+  const { pass, renderOutput, smoothstep, mix, textureLoad, ivec2, screenCoordinate, uniform, perspectiveDepthToViewZ,
+    texture, uv, vec2, vec3, vec4, log2, max, dot, clamp } = tsl;
 
   const post = new PostProcessing(renderer);
   // renderOutput() below does the tone map and the color space; a second one
@@ -191,6 +209,34 @@ export async function buildWorldGpuPost(renderer: WebGPURenderer, scene: Scene, 
   };
   applyOutput(defaultLit());
 
+  // Eye adaptation meter (see the file comment). Four taps a cell at the
+  // quarter points, as the WebGL meter. Rendered to a target, so the renderer
+  // applies no tone mapping to it.
+  const { METER_W, METER_H, LOG2_MIN, LOG2_MAX } = EYE_ADAPTATION;
+  const eye = new EyeAdaptation();
+  const baseExposure = renderer.toneMappingExposure;
+  const meterTarget = new RenderTarget(METER_W, METER_H, { type: UnsignedByteType, depthBuffer: false });
+  const colorTexture = scenePass.getTexture('output');
+  const logLum = (dx: number, dy: number): N => log2(max(
+    dot(texture(colorTexture, uv().add(vec2(dx / METER_W, dy / METER_H))).rgb, vec3(0.2126, 0.7152, 0.0722)),
+    2 ** LOG2_MIN,
+  ));
+  const meterLog: N = logLum(-0.25, -0.25).add(logLum(0.25, -0.25)).add(logLum(-0.25, 0.25)).add(logLum(0.25, 0.25)).mul(0.25);
+  const meterMaterial = new NodeMaterial();
+  meterMaterial.fragmentNode = vec4(clamp(meterLog.sub(LOG2_MIN).div(LOG2_MAX - LOG2_MIN), 0, 1), 0, 0, 1);
+  meterMaterial.toneMapped = false;
+  const meterQuad = new QuadMesh(meterMaterial);
+  // WebGPU copies rows at a 256-byte stride: 64 RGBA8 texels exactly.
+  const rowTexels = Math.ceil((METER_W * 4) / 256) * 64;
+  const meter = async (): Promise<void> => {
+    if (disposed) return;
+    const previous = renderer.getRenderTarget();
+    renderer.setRenderTarget(meterTarget);
+    await meterQuad.renderAsync(renderer);
+    renderer.setRenderTarget(previous);
+    eye.read(() => renderer.readRenderTargetPixelsAsync(meterTarget, 0, 0, METER_W, METER_H) as Promise<ArrayLike<number>>, METER_W, METER_H, rowTexels);
+  };
+
   let disposed = false;
   const handle: WorldGpuPostHandle = {
     renderer,
@@ -202,6 +248,8 @@ export async function buildWorldGpuPost(renderer: WebGPURenderer, scene: Scene, 
     sceneDepth,
     aoFactor,
     ao: aoNode,
+    eye,
+    baseExposure,
     setComposite(fn) {
       if (disposed) return;
       applyOutput(fn ? fn(defaultLit(), { sceneColor, sceneDepth, aoFactor }) : defaultLit());
@@ -210,7 +258,12 @@ export async function buildWorldGpuPost(renderer: WebGPURenderer, scene: Scene, 
       if (disposed) return;
       // The repo's other R3F WebGPU pages fire renderAsync and do not await it:
       // useFrame is synchronous and the renderer is already initialized.
-      void post.renderAsync();
+      const drawn = post.renderAsync();
+      if (eye.hold === null && eye.wantsReading()) {
+        drawn.then(meter).catch((e: unknown) => {
+          console.warn('[world3d-webgpu] eye adaptation meter failed:', e);
+        });
+      }
     },
     dispose() {
       if (disposed) return;
@@ -223,9 +276,10 @@ export async function buildWorldGpuPost(renderer: WebGPURenderer, scene: Scene, 
       scenePass.dispose?.();
       aoNode.dispose?.();
       aoFactor.dispose?.();
+      meterTarget.dispose();
+      meterMaterial.dispose();
     },
   };
   publish(handle);
   return handle;
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */

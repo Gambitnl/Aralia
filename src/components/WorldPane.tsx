@@ -3,13 +3,14 @@
  * This component displays the game's message log, showing system messages,
  * player actions, and NPC dialogue. It automatically scrolls to the latest message.
  */
-import React, { useEffect, useRef, useContext } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useContext } from 'react';
 import { GameMessage } from '../types'; // Path relative to src/components/
 import { formatGameTime, getGameDay } from '@/utils/core';
 import Tooltip from './ui/Tooltip'; // Import the new Tooltip component
 import GlossaryContext from '../context/GlossaryContext';
 import { LoreService } from '../services/LoreService';
 import { UI_ID } from '../styles/uiIds';
+import { Button } from './ui/Button';
 
 interface WorldPaneProps {
   messages: GameMessage[];
@@ -34,6 +35,8 @@ interface WorldPaneProps {
 const WorldPane: React.FC<WorldPaneProps> = ({ messages, openingStatus }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const glossaryEntries = useContext(GlossaryContext);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [isFollowing, setIsFollowing] = useState(true);
   // Whether the reader is (near) the bottom of the log. Updated on every scroll,
   // read when new messages arrive: we only auto-follow when they were already at
   // the bottom, so scrolling UP to read history is never yanked back down by the
@@ -43,14 +46,15 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages, openingStatus }) => {
   /**
    * Scrolls the message container to the bottom.
    */
-  const scrollToBottom = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTo({
-        top: scrollContainerRef.current.scrollHeight,
-        behavior: 'smooth'
-      });
-    }
-  };
+  const scrollToBottom = useCallback(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    // Open on the result itself. A long smooth sweep exposes old history first
+    // and its intermediate scroll events can interrupt following new entries.
+    isAtBottomRef.current = true;
+    setIsFollowing(true);
+    el.scrollTo({ top: el.scrollHeight, behavior: 'auto' });
+  }, []);
 
   /** Recompute "is the reader at the bottom?" whenever they scroll. */
   const handleScroll = () => {
@@ -59,6 +63,7 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages, openingStatus }) => {
     // ~120px slack so being a line or two off the bottom still counts as
     // "following", but any deliberate scroll-up to read history does not.
     isAtBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+    setIsFollowing(isAtBottomRef.current);
   };
 
   // Follow new messages ONLY when the reader is already at the bottom. When they
@@ -66,7 +71,19 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages, openingStatus }) => {
   // their place.
   useEffect(() => {
     if (isAtBottomRef.current) scrollToBottom();
-  }, [messages]);
+  }, [messages, scrollToBottom]);
+
+  useEffect(() => {
+    if (typeof ResizeObserver === 'undefined') return;
+    // Fonts and the resizable desktop frame can settle after the initial
+    // scroll. Follow their real layout only while the reader wants the tail.
+    const observer = new ResizeObserver(() => {
+      if (isAtBottomRef.current) scrollToBottom();
+    });
+    if (scrollContainerRef.current) observer.observe(scrollContainerRef.current);
+    if (contentRef.current) observer.observe(contentRef.current);
+    return () => observer.disconnect();
+  }, [scrollToBottom]);
 
   /**
    * Determines the CSS class for a message based on its sender.
@@ -189,10 +206,14 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages, openingStatus }) => {
 
 
   return (
+    <div className="flex h-full min-h-0 flex-col">
     <div
       id={UI_ID.WORLD_PANE}
       data-testid={UI_ID.WORLD_PANE}
       ref={scrollContainerRef}
+      role="region"
+      aria-label="Game messages"
+      tabIndex={0}
       onScroll={handleScroll}
       className="flex-grow bg-gray-800 p-6 rounded-lg shadow-xl overflow-y-auto scrollable-content border border-gray-700 min-h-0"
     >
@@ -210,7 +231,7 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages, openingStatus }) => {
         the far left/right edges of a ~900px-wide panel. Bubbles + per-side alignment make the
         "right = me (player), left = world" convention (G11) legible at a glance.
       */}
-      <div className="mx-auto w-full max-w-3xl space-y-3 text-lg leading-relaxed pr-8">
+      <div ref={contentRef} className="mx-auto w-full max-w-3xl space-y-3 text-lg leading-relaxed pr-8">
         {messages.length === 0 && openingStatus === 'generating' && (
           <div
             data-testid="world-pane-opening-generating"
@@ -290,6 +311,15 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages, openingStatus }) => {
         })}
 
       </div>
+    </div>
+    <div className="flex justify-end mt-2">
+      <Button size="sm" variant="secondary" disabled={isFollowing || messages.length === 0}
+        onClick={() => {
+          scrollToBottom();
+          // Keep keyboard scrolling in the reader after this button is disabled.
+          scrollContainerRef.current?.focus({ preventScroll: true });
+        }}>Latest messages</Button>
+    </div>
     </div>
   );
 };

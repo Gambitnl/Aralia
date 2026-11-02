@@ -78,8 +78,9 @@ export function NearbyBuildingDoor({ground,loaded,readFootfall,enabled,onChange}
   useFrame((_,delta)=>{
     elapsed.current+=delta;if(elapsed.current<.1)return;elapsed.current=0;
     const c=current.current;
-    const found=c.enabled&&c.context?.onDoor?nearestBuildingDoor(c.candidates,c.readFootfall(),c.context.openDoors??CLOSED):null;
-    const users=found?c.context?.doorUsers?.get(found.candidate.id)??[]:[];
+    const doors=c.context?.doors?.read();
+    const found=c.enabled&&c.context?.onDoor?nearestBuildingDoor(c.candidates,c.readFootfall(),doors?.openDoors??CLOSED):null;
+    const users=found?doors?.doorUsers?.get(found.candidate.id)??[]:[];
     const signature=found?JSON.stringify([found.candidate.id,found.open,users,found.candidate.name]):'';
     if(signature===last.current)return;last.current=signature;
     if(!found){c.onChange?.(null);return;}
@@ -89,8 +90,9 @@ export function NearbyBuildingDoor({ground,loaded,readFootfall,enabled,onChange}
       if(!alive.current||!live.enabled||!live.context?.onDoor)return;
       // A stale button never opens yesterday's door after walking, unloading,
       // pausing or another resident starting to cross the threshold.
-      const now=nearestBuildingDoor(live.candidates,live.readFootfall(),live.context.openDoors??CLOSED);
-      if(now?.candidate.id!==id||now.open!==found.open||live.context.doorUsers?.get(id)?.length)return;
+      const liveDoors=live.context.doors?.read();
+      const now=nearestBuildingDoor(live.candidates,live.readFootfall(),liveDoors?.openDoors??CLOSED);
+      if(now?.candidate.id!==id||now.open!==found.open||liveDoors?.doorUsers?.get(id)?.length)return;
       live.context.onDoor(now.candidate.pick);
     }});
   });

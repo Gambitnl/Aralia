@@ -37,9 +37,9 @@ import {
   vec3,
 } from 'three/tsl';
 import { adoptInstanceNodes, makeInstanceMatrixNode } from './instanceNodes';
+import type { TslNode } from '@/types/tslNode';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-type N = any;
+type N = TslNode; // Shared TSL alias (GG-588): see src/types/tslNode.ts.
 
 class GrassWindNodeMaterial extends MeshStandardNodeMaterial {
   /** The shared clock object; `copy()` carries it, so `clone()` keeps swaying. */
@@ -109,4 +109,3 @@ export function makeGrassWindNodeMaterial(wind: { value: number }): MeshStandard
   m.vertexColors = true;
   return m;
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */

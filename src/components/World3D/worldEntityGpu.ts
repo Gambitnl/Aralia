@@ -15,7 +15,6 @@ import { swapEntityMaterialsForGpu } from '@/systems/entities3d/three/gpu/gpuMat
 export function adaptWorldEntityForWebGpu(root: Object3D): void {
   const result = swapEntityMaterialsForGpu(root);
   if (result.skipped.length > 0) {
-    // eslint-disable-next-line no-console
     console.error('[world3d-webgpu] entity material swap left materials unconverted:', result.skipped);
   }
 }

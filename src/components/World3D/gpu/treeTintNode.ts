@@ -45,9 +45,9 @@ import {
   vec4,
 } from 'three/tsl';
 import { adoptInstanceNodes, makeInstanceColorNode } from './instanceNodes';
+import type { TslNode } from '@/types/tslNode';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-type N = any;
+type N = TslNode; // Shared TSL alias (GG-588): see src/types/tslNode.ts.
 
 class TreeTintNodeMaterial extends MeshStandardNodeMaterial {
   /** How much of the biome hue the bark takes; `copy()` carries it for `clone()`. */
@@ -134,4 +134,3 @@ export function makeTreeTintNodeMaterial(barkTintBlend: number): MeshStandardNod
   m.roughness = 0.95;
   return m;
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */

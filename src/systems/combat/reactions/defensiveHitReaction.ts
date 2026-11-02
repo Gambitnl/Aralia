@@ -22,7 +22,7 @@
 // @dependencies-end
 
 import type { CombatCharacter, CombatState, ReactionSpellOption } from '@/types/combat';
-import type { Spell } from '@/types/spells';
+import type { Spell, SpellEffect } from '@/types/spells';
 import type { CommandContext } from '@/commands/base/SpellCommand';
 import { DefensiveCommand } from '@/commands/effects/DefensiveCommand';
 import { canAffordActionCost, consumeActionCost, getReactionSpellCost } from '@/utils/combat/actionEconomyUtils';
@@ -45,7 +45,7 @@ export async function resolveDefensiveHitReaction(
         const reactionCost = getReactionSpellCost(target, spellOption);
 
         return String(spellOption.castingTime?.unit ?? '').toLowerCase().includes('reaction') &&
-          spellOption.effects.some((effect: any) =>
+          spellOption.effects.some((effect: SpellEffect) =>
             effect.type === 'DEFENSIVE' &&
             effect.reactionTrigger?.event === 'when_hit'
           ) &&
