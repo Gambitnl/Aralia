@@ -146,14 +146,14 @@ function patchBuilderClass(proto: Record<PropertyKey, unknown>): void {
     // The bind groups are made from the arrays in sortBindingGroups (buildCode's first step).
     this.bindGroups = null;
     const origGetUniforms = this.getUniforms;
-    const self = this;
-    this.getUniforms = function (stage: string): string {
-      const block = origGetUniforms.call(self, stage);
+    // An arrow function keeps this builder as `this` (no alias), as `self` did.
+    this.getUniforms = (stage: string): string => {
+      const block = origGetUniforms.call(this, stage);
       if (stage !== 'fragment') return block;
       const r = stripSamplerDeclarations(block, new Set(dropped.keys()), new Map());
       // The next stage's bindings continue after the fragment's, as many lower.
       for (const [gi, list] of r.removed) {
-        for (const idx of Object.values(self.bindingsIndexes)) if (idx.group === gi) idx.binding -= list.length;
+        for (const idx of Object.values(this.bindingsIndexes)) if (idx.group === gi) idx.binding -= list.length;
       }
       return r.block;
     };

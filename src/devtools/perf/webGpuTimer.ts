@@ -74,15 +74,16 @@ export class WebGpuPassTimer implements PassClock {
   private constructor(private readonly device: GPUDevice) {
     this.original = device.createCommandEncoder;
     this.originalDescriptor = Object.getOwnPropertyDescriptor(device, 'createCommandEncoder');
-    const timer = this;
-    this.wrapped = function (descriptor?: GPUCommandEncoderDescriptor): GPUCommandEncoder {
-      const encoder = timer.original.call(device, descriptor);
-      if (timer.disposed) return encoder;
+    // Arrow functions keep this timer as `this` (no alias). The wrapper calls
+    // the original with the device as receiver, as before.
+    this.wrapped = (descriptor?: GPUCommandEncoderDescriptor): GPUCommandEncoder => {
+      const encoder = this.original.call(device, descriptor);
+      if (this.disposed) return encoder;
       const overheadStart = performance.now();
       const render = encoder.beginRenderPass;
       const compute = encoder.beginComputePass;
-      encoder.beginRenderPass = function (d) { return render.call(encoder, timer.stamp(d)); };
-      encoder.beginComputePass = function (d = {}) { return compute.call(encoder, timer.stamp(d)); };
+      encoder.beginRenderPass = (d) => render.call(encoder, this.stamp(d));
+      encoder.beginComputePass = (d = {}) => compute.call(encoder, this.stamp(d));
       recordPerfOverhead('probe', performance.now() - overheadStart);
       return encoder;
     };

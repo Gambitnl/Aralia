@@ -486,7 +486,8 @@ describe('World3DWrapper dungeon entry prompt', () => {
     const onAction = vi.fn();
     render(<World3DWrapper entryPosition={{x:0,y:0,z:0}} onAction={onAction} />);
     const menu = await screen.findByTestId('world-system-menu');
-    fireEvent.click(menu.querySelector('button')!);
+    // The bar now starts with "Adventure log"; open the system menu's own trigger.
+    fireEvent.click(menu.querySelector('button[aria-haspopup="menu"]')!);
     fireEvent.click(await screen.findByText('Save Game', {exact:true}));
     expect(onAction).toHaveBeenCalledWith(expect.objectContaining({type:'save_game'}));
   });

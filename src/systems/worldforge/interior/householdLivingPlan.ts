@@ -120,7 +120,7 @@ export function proposeHouseholdLivingPlan(before: BlueprintPlan,seed: SeedPath,
     gp('table',0,wide?10:17.5,2),gp('table',0,22.75,2),
     ...(wide?[10,22.75]:[17.5,22.75]).map(x=>gp('bench',0,x,5.3)),gp('chair',0,27,2),
     gp('barrel',0,4.5,8.55),gp('barrel',0,7.1,8.55),
-    gp('hearth',1,28.551706036745407,12.596587926509186,90),gp('table',1,25.55,16.7,90),gp('bench',1,21,17.05,90)];
+    gp('hearth',1,28.551706036745408,12.596587926509185,90),gp('table',1,25.55,16.7,90),gp('bench',1,21,17.05,90)];
   if(wide){
     // Dining serves the whole family while the route from the street to the
     // rear landing stays continuous. Provisions face the central aisle; the
@@ -148,7 +148,7 @@ export function proposeHouseholdLivingPlan(before: BlueprintPlan,seed: SeedPath,
     const rear=floor.rooms.find(r=>r.id===3)!;
     floor.furnishings=floor.furnishings.filter(p=>p.roomId!==3);
     floor.furnishings.push(...(rear.forSlot?[gp('bed',3,23.580839895013124,11.940419947506562,90),gp('chest',3,28.059580052493438,18.715748031496062),gp('chest',3,28.059580052493438,15.29)]
-      :[gp('desk',3,25,11.448293963254593),gp('chair',3,25,14),gp('shelf',3,28.715748031496062,16,90)]));
+      :[gp('desk',3,25,11.448293963254592),gp('chair',3,25,14),gp('shelf',3,28.715748031496062,16,90)]));
   }
   // Large sleeping wings use opposing headboards along the front wall. Their
   // broad shared side aisle can accommodate the measured armored visitor and
@@ -167,7 +167,7 @@ export function proposeHouseholdLivingPlan(before: BlueprintPlan,seed: SeedPath,
   // unassigned bedroom whose generic chest can block that mirrored entrance.
   for(const floor of plan.floors.filter(f=>f.level>0))for(const r of floor.rooms.filter(r=>!r.forSlot&&r.purpose==='study'&&r.bbox.w===15)){
     floor.furnishings=floor.furnishings.filter(p=>p.roomId!==r.id);
-    floor.furnishings.push(gp('desk',r.id,r.bbox.x+7.5,1.448293963254593),gp('chair',r.id,r.bbox.x+7.5,4),gp('shelf',r.id,r.bbox.x+(r.id===0?1.284251968503937:13.715748031496063),6,90));
+    floor.furnishings.push(gp('desk',r.id,r.bbox.x+7.5,1.448293963254593),gp('chair',r.id,r.bbox.x+7.5,4),gp('shelf',r.id,r.bbox.x+(r.id===0?1.284251968503937:13.715748031496062),6,90));
   }
   plan.stairs=Array.from({length:storeys-1},(_,fromLevel)=>({...returnStairPoint(layout,2.5,2.5),fromLevel,layout:structuredClone(layout)}));
   for(const floor of plan.floors){
@@ -246,7 +246,7 @@ function proposeSharedHallCottage(before:BlueprintPlan,seed:SeedPath):HouseholdL
   // The original beds are identified separately by the reference migration;
   // coordinates and array order alone never transfer someone's ownership.
   floor.furnishings=brief.slots.map((_,i)=>piece('bed',0,3.580839895013124,1.940419947506562+i*3.580839895013124,90));
-  floor.furnishings.push(piece('barrel',0,13.551706036745407,13.551706036745407),
+  floor.furnishings.push(piece('barrel',0,13.551706036745408,13.551706036745408),
     piece('hearth',2,16.448293963254592,2.596587926509186,90),
     piece('barrel',2,21.448293963254592,1.448293963254593),
     piece('table',2,23.223622047244096,12.0753280839895,90),

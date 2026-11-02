@@ -647,7 +647,7 @@ const normalizeSpellToken = (rawName: string): string => {
     .replace(/\[\[(?:[^|\]]+\|)?([^\]]+)\]\]/g, '$1')
     .replace(/\*\*|\*/g, '')
     .replace(/[’']/g, '')
-    .replace(/[\/_\u2013\u2014]/g, '-');
+    .replace(/[/_\u2013\u2014]/g, '-');
   const token = withLinks
     .trim()
     .toLowerCase()
@@ -762,7 +762,7 @@ const extractSpellGrantsFromTraitText = (
     grants.push(grant);
   };
 
-  const leveledMatches = [...traitDescription.matchAll(/starting at (\d+)(?:st|nd|rd|th)? level(?: and for higher levels)?[,;:]?\s*you can (?:also )?cast (?:the )?([a-z0-9_' \/-]+?) spell/gi)];
+  const leveledMatches = [...traitDescription.matchAll(/starting at (\d+)(?:st|nd|rd|th)? level(?: and for higher levels)?[,;:]?\s*you can (?:also )?cast (?:the )?([a-z0-9_' /-]+?) spell/gi)];
   leveledMatches.forEach((match) => {
     const rawLevel = match[1];
     const rawSpells = match[2];
@@ -839,7 +839,7 @@ const extractSpellGrantsFromTraitText = (
 
   // "spell" in "cast them using any spell slots you have" belongs to the slot
   // permission, not to a spell name; the lookahead keeps the scan off it.
-  const anyCastMatches = [...traitDescription.matchAll(/cast (?:the )?([a-z0-9_' \/-]+?) spell\b(?!\s*slots?\b)/gi)];
+  const anyCastMatches = [...traitDescription.matchAll(/cast (?:the )?([a-z0-9_' /-]+?) spell\b(?!\s*slots?\b)/gi)];
   anyCastMatches.forEach((match) => {
     const rawSpells = splitSpellNames(match[1]);
     const matchContext = traitDescription.slice(0, (match.index ?? 0) + match[0].length);
@@ -870,7 +870,7 @@ const extractSpellGrantsFromTraitText = (
   // rest." Read only the sentence the phrase sits in, so the level and the rest
   // budget come from that clause rather than an earlier one.
   const namedCastMatches = [...traitDescription.matchAll(
-    /\bcast\s+(?:the\s+)?([A-Z][A-Za-z'\/]*(?:\s+(?:of|with|without|or|the|and|in|from|to)\s+[A-Z][A-Za-z'\/]*|\s+[A-Z][A-Za-z'\/]*){0,8})/g
+    /\bcast\s+(?:the\s+)?([A-Z][A-Za-z'/]*(?:\s+(?:of|with|without|or|the|and|in|from|to)\s+[A-Z][A-Za-z'/]*|\s+[A-Z][A-Za-z'/]*){0,8})/g
   )];
   namedCastMatches.forEach((match) => {
     const sentence = sliceSentenceAt(traitDescription, match.index ?? 0);

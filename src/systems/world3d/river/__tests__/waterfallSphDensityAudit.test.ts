@@ -2,7 +2,7 @@
 import {describe,it,expect} from 'vitest';
 import {auditSphDensity} from '../waterfallSphDensityAudit';
 import {evaluateSphReceiver,sphReceiverKernel,type SphReceiverParticle} from '../waterfallSphReceiver';
-const rho0=Math.fround(16.173037246029705);
+const rho0=Math.fround(16.173037246029704);
 const plane={normalGravity:6.598920109103825,tangentGravity:7.2585,referenceDepth:rho0/1000,maximumSupportRadius:8};
 function patch(cols=9,rows=5,spacing=.2):SphReceiverParticle[]{
   return Array.from({length:cols*rows},(_,i)=>({x:Math.fround((Math.floor(i/cols)-1)*spacing),y:Math.fround((i%cols+.5-cols/2)*spacing),

@@ -116,7 +116,7 @@ describe('grassWindNode and treeTintNode (step 4)', () => {
     expect(m.vertexColors).toBe(true);
     expect(m.side).toBe(THREE.DoubleSide);
     expect(m.roughness).toBe(1);
-    expect(Object.getPrototypeOf(m).hasOwnProperty('setupPosition')).toBe(true);
+    expect(Object.prototype.hasOwnProperty.call(Object.getPrototypeOf(m), 'setupPosition')).toBe(true);
   });
 
   it('clones keep the wind clock and the bark blend (three clones through the bare constructor)', () => {
@@ -135,8 +135,8 @@ describe('grassWindNode and treeTintNode (step 4)', () => {
     expect(m.vertexColors).toBe(true);
     expect(m.side).toBe(THREE.DoubleSide);
     expect(m.roughness).toBe(0.95);
-    expect(Object.getPrototypeOf(m).hasOwnProperty('setupDiffuseColor')).toBe(true);
-    expect(Object.getPrototypeOf(m).hasOwnProperty('setupPosition')).toBe(true);
+    expect(Object.prototype.hasOwnProperty.call(Object.getPrototypeOf(m), 'setupDiffuseColor')).toBe(true);
+    expect(Object.prototype.hasOwnProperty.call(Object.getPrototypeOf(m), 'setupPosition')).toBe(true);
   });
 });
 

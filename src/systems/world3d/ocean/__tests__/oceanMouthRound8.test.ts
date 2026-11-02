@@ -54,7 +54,7 @@ describe('the film ends at the front (law 1)', () => {
 });
 
 describe('the breaking on the bar is depth-limited (law 2)', () => {
-  it("rises from 0.6 of McCowan\'s limit to all of it", () => {
+  it("rises from 0.6 of McCowan's limit to all of it", () => {
     expect(MCCOWAN_GAMMA).toBe(0.78);
     expect(depthLimitedBreakShare(0.59 * MCCOWAN_GAMMA, 1)).toBe(0);
     expect(depthLimitedBreakShare(MCCOWAN_GAMMA, 1)).toBeCloseTo(1, 12);
@@ -75,7 +75,7 @@ describe('the breaking on the bar is depth-limited (law 2)', () => {
     const m = battjesJanssenMarch({ xM: xs, depthM: hs, hrms0M: hrmsDeep * bathyShoalGain(d.tzS, hs[0]), tS: d.tzS, d50M: 0.00035, gamma: battjesStiveGamma(hrmsDeep, d.tzS) });
     return (s: number) => { const i = ss.findIndex((x) => Math.abs(x - s) < 0.26); return { h: hs[i], hrms: m.hrmsM[i], qb: m.qb[i] }; };
   };
-  it("breaks every crest on the bar\'s crest, and none in the channels or on the outer shelf", () => {
+  it("breaks every crest on the bar's crest, and none in the channels or on the outer shelf", () => {
     const axis = marchAt(d.mouthA);
     const crest = axis(-15);
     expect(crest.h).toBeLessThan(0.75);

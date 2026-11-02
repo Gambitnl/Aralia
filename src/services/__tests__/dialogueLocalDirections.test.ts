@@ -7,12 +7,13 @@ import type { AppAction } from '../../state/actionTypes';
 import DiscoveryLogPane from '../../components/Logbook/DiscoveryLogPane';
 
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, renderHook, screen } from '@testing-library/react';
 import { createMockGameState } from '../../utils/core/factories';
 import type { GameState, PlayerCharacter, RichNPC } from '../../types';
 import { processTopicSelection } from '../dialogueService';
 import { DialogueInterface } from '../../components/Dialogue/DialogueInterface';
 import { useDialogueSystem } from '../../hooks/useDialogueSystem';
+import { CURRENT_TOWN_LAYOUT_REVISION } from '../../systems/worldforge/town/townLayoutRevision';
 
 const officeMap=vi.hoisted(()=>({y:-300,present:true}));
 beforeEach(()=>Object.assign(officeMap,{y:-300,present:true}));
@@ -52,10 +53,8 @@ describe('factual local directions in normal dialogue',()=>{
     const p=make(),result=processTopicSelection('global_directions',p.state,{...p.session,discussedTopicIds:[]},0,p.npc),dispatch=vi.fn();
     const changed={...p.state,playerCell:{cellId:99,localeCoords:{x:0,y:0}}} as GameState;
     // The existing publication guard is also exposed through the controller hook.
-    let outcome:ReturnType<typeof useDialogueSystem>['handleTopicOutcome']|undefined;
-    function ReadHook(){outcome=useDialogueSystem(changed,dispatch).handleTopicOutcome;return null;}
-    render(React.createElement(ReadHook));
-    expect(()=>outcome!(result,'global_directions')).toThrow('no longer available');
+    const outcome=renderHook(()=>useDialogueSystem(changed,dispatch)).result.current.handleTopicOutcome;
+    expect(()=>outcome(result,'global_directions')).toThrow('no longer available');
     expect(dispatch).not.toHaveBeenCalled();
   });
 });
@@ -103,7 +102,9 @@ describe('directions retained in the existing player Logbook',()=>{
 
 const makePriest=()=>{
  const p=make(),day=getGameDay(p.state.gameTime);delete p.state.worldBusinesses.tavern;delete p.npc.businessId;p.npc.role='civilian';p.npc.occupation='keeps the household';
- p.state.townSim={253:{burgId:253,villagers:{84:{occupantId:84,name:p.npc.name,householdMemberId:'b143:head',homePlotId:143,bornDay:day-50*365,role:'priest',parentIds:[],childIds:[]}},lastSimDay:day,nextVillagerId:85}} as unknown as GameState['townSim'];return p;
+ // A saved town with no layoutRevision now gives only "You're in <town>." (no
+ // building directions until source admission), so the fixture states the current one.
+ p.state.townSim={253:{burgId:253,layoutRevision:CURRENT_TOWN_LAYOUT_REVISION,villagers:{84:{occupantId:84,name:p.npc.name,householdMemberId:'b143:head',homePlotId:143,bornDay:day-50*365,role:'priest',parentIds:[],childIds:[]}},lastSimDay:day,nextVillagerId:85}} as unknown as GameState['townSim'];return p;
 };
 describe('priest guidance through existing dialogue publication',()=>{
  const publishPriest=()=>{
@@ -121,9 +122,8 @@ describe('priest guidance through existing dialogue publication',()=>{
  it.each(['changed-office','changed-temple','missing-temple'])('rejects %s before publishing a now-stale answer',kind=>{
   const p=makePriest(),result=processTopicSelection('global_directions',p.state,{...p.session,discussedTopicIds:[]},0,p.npc),dispatch=vi.fn();
   if(kind==='changed-office')p.state.townSim[253].villagers[84].role='lord';if(kind==='changed-temple')officeMap.y=300;if(kind==='missing-temple')officeMap.present=false;
-  let outcome:ReturnType<typeof useDialogueSystem>['handleTopicOutcome']|undefined;
-  function Hook(){outcome=useDialogueSystem(p.state,dispatch).handleTopicOutcome;return null;}render(React.createElement(Hook));
-  expect(()=>outcome!(result,'global_directions')).toThrow('no longer available');expect(dispatch).not.toHaveBeenCalled();
+  const outcome=renderHook(()=>useDialogueSystem(p.state,dispatch)).result.current.handleTopicOutcome;
+  expect(()=>outcome(result,'global_directions')).toThrow('no longer available');expect(dispatch).not.toHaveBeenCalled();
  });
  it('retains original heard temple wording and speaker in the Logbook after save reload and a later office change',()=>{
   const {p,dispatch}=publishPriest(),actions=dispatch.mock.calls.map(c=>c[0] as AppAction);let saved=actions.reduce((s,a)=>({...s,...logReducer(s,a)}),p.state);

@@ -2,7 +2,8 @@
  * not establish rendered billows or a global water-light transport solution. */
 import { describe,expect,it } from 'vitest';
 import { DataUtils } from 'three';
-import { waterfallInterfaceNormal,waterfallTwoStream } from '../riverWaterfallView';
+// The optical functions moved out of riverWaterfallView.ts (agora-e9e1 split).
+import { waterfallInterfaceNormal,waterfallTwoStream } from '../riverWaterfallOptics';
 type V=readonly[number,number,number];
 const axes:readonly[V,V,V]=[[1,0,0],[0,1,0],[0,0,1]];
 const old:V=[0,0,1],view:V=[0,0,1],steps:V=[.2,.2,.2];

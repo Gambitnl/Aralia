@@ -191,7 +191,8 @@ describe('RestModal', () => {
       gameTime={new Date('2000-01-02T08:00:00Z')} lastLongRestAt="2000-01-02T00:00:00Z" rulesEdition="2014" />);
     expect(screen.getByRole('button', {name: 'Confirm Long Rest'})).toBeDisabled();
     await waitFor(() => expect(screen.getByText(/Wait at least 8 more hour/)).toBeVisible());
-    expect(screen.getByText(/Not enough rations and water/)).toBeVisible();
+    // The per-member meal plan replaced the old party-wide supply warning.
+    expect(screen.getByText(/No complete meal is available/)).toBeVisible();
     expect(screen.getByText(/Up to half/)).toBeVisible();
   });
 

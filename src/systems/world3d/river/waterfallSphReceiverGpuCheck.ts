@@ -102,7 +102,7 @@ export async function checkSphReceiverGpu(device:GPUDevice,mode:'equations'|'ari
       const badPair=[0,1/256].map(x=>({x,y:0,vx:0,vy:0,mass:1,rho:Math.fround(.0005960215930826962),h0:1,resident:true}));
       try{
         const actual=await gpu.evaluate(badPair,{...qPlane,referenceDepth:rho0/1000,maximumSupportRadius:100},'device-density');
-        const root=19.219062737338998,rho=.0024621678750193936;
+        const root=19.219062737338998,rho=.0024621678750193937;
         const rootError=Math.max(...actual.h.map(h=>Math.abs(h/root-1)));
         const pressureError=Math.max(...actual.rho.map(r=>Math.abs(r/rho-1)));
         const accepted=rootError<=1e-5&&pressureError<=2e-5;

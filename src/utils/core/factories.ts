@@ -474,6 +474,8 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       gameTime: resolvedGameTime, // This can fail if timeUtils is broken
       // Default short rest tracker aligned to the mock game clock.
       lodgingReservations: [], lodgingOffer: null, lodgingRestAdmission: null,
+      // Same starting values as initialGameState: no long rest yet, no partial travel minute.
+      lastLongRestAt: null, travelMinutesRemainder: 0,
       shortRestTracker: {
         restsTakenToday: 0,
         lastRestDay: getGameDay(resolvedGameTime),
@@ -734,6 +736,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       gameTime: new Date(),
       // Keep rest tracking stable in the fallback state.
       lodgingReservations: [], lodgingOffer: null, lodgingRestAdmission: null,
+      lastLongRestAt: null, travelMinutesRemainder: 0,
       shortRestTracker: {
         restsTakenToday: 0,
         lastRestDay: getGameDay(new Date()),

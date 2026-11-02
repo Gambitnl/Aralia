@@ -522,6 +522,9 @@ export class RiverGpuResident {
   this.device.pushErrorScope('validation');
   let scope:Promise<GPUError|null>|null=null;
   let session:ResidentSession|null=null,accepted=false;
+  // The validation error still wins over the body's own outcome; it is thrown
+  // after the cleanup instead of from inside it (no-unsafe-finally).
+  let published:RiverGpuResidentOutput|undefined,failure:unknown,failed=false,error:GPUError|null=null;
   try{
    session=this.open(input);
    const s=session,q=this.device.queue,[params,state,topology,source,,,,result,list]=s.buffers;
@@ -607,12 +610,11 @@ export class RiverGpuResident {
     const steps=tail[4],duration=tail[2];if(!residentReadbackIsFinite(tail)||!Number.isInteger(steps)||steps<1||steps>slots||changed>n)throw Error('Invalid resident interval publication');
     const records=changed?new Uint32Array(s.staging.getMappedRange(RECORDS_AT,changed*32).slice(0)):new Uint32Array(0);
     accepted=true;
-    return{records,launches,journal:tail.slice(8*4,(8+2*steps)*4),steps,duration,inVolume:tail[5],outVolume:tail[6],lastMaxSpeed:tail[1],awakeCells,uploadBytes,elapsedMs:performance.now()-start};
+    published={records,launches,journal:tail.slice(8*4,(8+2*steps)*4),steps,duration,inVolume:tail[5],outVolume:tail[6],lastMaxSpeed:tail[1],awakeCells,uploadBytes,elapsedMs:performance.now()-start};
    }finally{report('publish',publicationStart);}
-  }finally{
+  }catch(cause){failed=true;failure=cause;}finally{
    // A validation error must reject even if a failed dispatch left finite,
    // unchanged entry buffers. No such buffers may masquerade as publication.
-   let error:GPUError|null=null;
    try{error=await (scope??this.device.popErrorScope());}
    finally{
     const s=this.session;if(s&&s.staging.mapState==='mapped')s.staging.unmap();if(s&&s.launchStaging.mapState==='mapped')s.launchStaging.unmap();
@@ -621,7 +623,9 @@ export class RiverGpuResident {
     if(s&&(!accepted||error))s.valid=false;
     this.pending=false;
    }
-   if(error)throw Error('Resident GPU validation failed: '+error.message);
   }
+  if(error)throw Error('Resident GPU validation failed: '+error.message);
+  if(failed)throw failure;
+  return published!;
  }
 }

@@ -37,13 +37,16 @@ export function FurnishingFocusMarker({siteId, parts, doorZSign, focusedId}: {
   siteId: string; parts?: readonly FocusPart[]; doorZSign: number; focusedId?: string | null;
 }) {
   const part = focusedFurnishingPart(siteId, parts, focusedId);
+  // The outline depends only on the part's size. Plain values as dependencies
+  // (the compiler rule) keep the same rebuild points as the old part?.w list.
+  const width = part?.w, height = part?.h, depth = part?.d;
   const geometry = useMemo(() => {
-    if (!part) return null;
-    const box = new BoxGeometry(part.w + .04, part.h + .04, part.d + .04);
+    if (width === undefined || height === undefined || depth === undefined) return null;
+    const box = new BoxGeometry(width + .04, height + .04, depth + .04);
     const outline = new EdgesGeometry(box);
     box.dispose();
     return outline;
-  }, [part?.w, part?.h, part?.d, Boolean(part)]);
+  }, [width, height, depth]);
   useEffect(() => () => geometry?.dispose(), [geometry]);
   if (!part || !geometry) return null;
   const at = sitePartLocalOffset(part, doorZSign);

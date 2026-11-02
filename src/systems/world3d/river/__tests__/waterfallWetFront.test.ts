@@ -70,7 +70,7 @@ describe('coupled wet-to-dry edge', () => {
     // times. Earlier the always-wet anchor subtracted almost equal reservoirs,
     // losing about 1e-15 m3; elevation20m amplified that error into energy.
     const expectedVolume = 5.801489033019285e-7;
-    const expectedEnergy = .12505872719138173;
+    const expectedEnergy = .12505872719138172;
     expect(Math.abs(arrived.volume - expectedVolume) / expectedVolume).toBeLessThan(1e-12);
     const energy = arrived.energy + 1000 * 9.81 * 20 * arrived.volume;
     expect(Math.abs(energy - expectedEnergy) / expectedEnergy).toBeLessThan(1e-12);

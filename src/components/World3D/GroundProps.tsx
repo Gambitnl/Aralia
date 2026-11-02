@@ -326,7 +326,7 @@ const GroundProps: React.FC<GroundPropsProps> = ({ ground, sceneOrigin, onReady 
   );
 
   // Shared geometries for the instanced forms (module-stable shapes).
-  const geoms = useMemo(createPropGeometriesV1, []);
+  const geoms = useMemo(() => createPropGeometriesV1(), []);
   // Transform work runs only when the canonical prop placement changes. Live
   // frames reuse the resulting instance matrices without rebuilding anything.
   const composedBatches = useMemo(

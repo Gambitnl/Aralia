@@ -667,7 +667,7 @@ const DungeonScene: React.FC<{
   creatureActors,
 }) => {
   const masonry = theme === 'crypt' || theme === 'sewer';
-  const sightline = useMemo(createDungeonVisibilityUniforms,[]);
+  const sightline = useMemo(()=>createDungeonVisibilityUniforms(),[]);
   const indirect = useMemo(()=>createDungeonIndirectLight(plan),[plan,model]);
   useEffect(()=>()=>indirect.dispose(),[indirect]);
   const sightTarget = useMemo(() => new THREE.Vector3(),[]);

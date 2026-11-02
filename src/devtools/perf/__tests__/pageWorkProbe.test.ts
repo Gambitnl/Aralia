@@ -20,10 +20,10 @@ function setup(enabled=()=>true){
 }
 describe('main-thread message work',()=>{
   it('preserves property getter identity, this, event and thrown errors',()=>{
-    const s=setup();const error=Error('handler failure');let receiver:unknown;
-    const fn=function(this:unknown,event:Event){receiver=this;expect(event.type).toBe('message');s.advance(12);throw error;};
+    const s=setup();const error=Error('handler failure');const receivers:unknown[]=[];
+    const fn=function(this:unknown,event:Event){receivers.push(this);expect(event.type).toBe('message');s.advance(12);throw error;};
     s.worker.onmessage=fn;expect(s.worker.onmessage).toBe(fn);
-    expect(s.deliver).toThrow(error);expect(receiver).toBe(s.worker);
+    expect(s.deliver).toThrow(error);expect(receivers).toHaveLength(1);expect(receivers[0]).toBe(s.worker);
     expect(s.report).toHaveBeenCalledWith(expect.stringContaining('Worker message:'),100,112);
     s.worker.onmessage=null;expect(s.worker.onmessage).toBeNull();
   });
