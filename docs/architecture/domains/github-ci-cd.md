@@ -1,6 +1,6 @@
 # GitHub CI and deployment
 
-Verified: 2026-10-25 for shared composite Node/npm setup action (.github/actions/setup-node-env) and node_modules cache contract (H7, agora-9d53.7), production debt ratchet source, focused local CLI and gate tests, and the workflow audit below (gh run history and workflow states). Earlier pipeline and publication receipts below were verified 2026-10-04; this ratchet has no new hosted-run receipt.
+Verified: 2026-11-02 for the Heavy Simulation Tests lane (vitest `heavy` project, local `vitest list` lane counts, require-checks test) and the Playwright 1.64.1 upgrade for Ubuntu 26.04 (local tooling lane; no hosted-run receipt yet). Verified: 2026-10-25 for shared composite Node/npm setup action (.github/actions/setup-node-env) and node_modules cache contract (H7, agora-9d53.7), production debt ratchet source, focused local CLI and gate tests, and the workflow audit below (gh run history and workflow states). Earlier pipeline and publication receipts below were verified 2026-10-04; this ratchet has no new hosted-run receipt.
 
 Aralia checks pull requests and every push to master. GitHub Pages publishes the artifact from the same CI run only after every mandatory lane succeeds. Local recovery and deliberate public publication remain separate.
 
@@ -18,7 +18,7 @@ The Build job runs scripts/quality/bundle-budget.mjs on dist: it sums the gzip s
 
 ## Publication gate
 
-`CI Required` depends on all eight mandatory lanes and fails for failures, cancellations, or skipped lanes. Pages depends on both this gate and Build. Deployment has no standalone push or manual trigger. Its artifact comes from the caller's run; it does not rebuild a different commit. The Pages environment remains restricted to master.
+`CI Required` depends on all nine mandatory lanes and fails for failures, cancellations, or skipped lanes. Pages depends on both this gate and Build. Deployment has no standalone push or manual trigger. Its artifact comes from the caller's run; it does not rebuild a different commit. The Pages environment remains restricted to master.
 
 The main workstation's [nightly save](nightly-git-save.md) performs recovery separately from public publication. Reviewed commits still pass the local secret scan, sync check, Git hygiene, and intent gate. Pipeline repair publication uses the reviewed commit path without creating another full recovery backup.
 
@@ -26,7 +26,9 @@ The main workstation's [nightly save](nightly-git-save.md) performs recovery sep
 
 `scripts/ci/node-test-inventory.mjs` identifies tests importing Node's test runner across the existing tooling roots. Both the Node runner and Vitest exclusions use this inventory, so each file belongs to one runner. Node tests have four-worker concurrency and a two-minute per-test bound. Recovery fixtures use a pinned, checksum-verified Gitleaks executable and a default fixture configuration.
 
-Vitest retains the existing application and slow-test projects. Expensive terrain generation and mounted combat scenarios use the slow project's 60-second test timeout; ordinary tests retain their five-second limit. Application JSON results upload even after failure. Type-level tests also block the application lane.
+Vitest has three projects. Expensive terrain generation and mounted combat scenarios use the `generation` project's 60-second test timeout; ordinary tests in `app` retain their five-second limit. Application Tests runs `app` and `generation` under a 30-minute job limit. Heavy Simulation Tests runs the `heavy` project (ocean and river physics, plus generation sweeps over 140 s each) under a 45-minute job limit. Each heavy test keeps its own explicit timeout. `HEAVY_SUITE_GLOBS` in `vitest.config.ts` is the one list for that lane. Add a file there when Linux CI measures it over about 100 s. Before this split, one job ran all files and passed its 30-minute limit after 1,304 of 2,216 files (run 41363850920). Both jobs upload JSON results even after failure. Type-level tests also block the application lane.
+
+The Tooling Tests lane installs Chromium through Playwright. GitHub's `ubuntu-latest` image became Ubuntu 26.04 in late October 2026. Playwright 1.57 cannot install Chromium there; 1.61 and later can, and the repository uses 1.64.1.
 
 The repository policy accepts intentional package and lockfile updates from any author. npm ci checks their consistency. Compiler cache artifacts remain forbidden. Repair prompts require consistent dependency manifests instead of forbidding necessary lockfile updates.
 

@@ -80,7 +80,9 @@ jobs:
       - name: Install silhouette comparison dependency
         run: python -m pip install -r tools/creatureGate/requirements.txt
       - run: npm run test:types
-      - run: npm run test:bounded
+      # The "heavy" Vitest project runs in its own job below. These two projects
+      # hold every other test file (estimated 25 min on 2026-11-02).
+      - run: npm run test:bounded -- --project app --project generation
         env:
           VITEST_JSON_OUTPUT_FILE: ${{ runner.temp }}/vitest-results.json
       - uses: actions/upload-artifact@v7
@@ -88,6 +90,25 @@ jobs:
         with:
           name: application-test-results
           path: ${{ runner.temp }}/vitest-results.json
+          if-no-files-found: warn
+  heavy-tests:
+    name: Heavy Simulation Tests
+    runs-on: ubuntu-latest
+    # Ocean and river physics plus the longest generation sweeps (HEAVY_SUITE_GLOBS
+    # in vitest.config.ts). Single files take minutes on Linux CI; an estimated
+    # 16 min of Vitest time on 2026-11-02. The limit leaves room for growth.
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-node-env
+      - run: npm run test:bounded -- --project heavy
+        env:
+          VITEST_JSON_OUTPUT_FILE: ${{ runner.temp }}/vitest-heavy-results.json
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: heavy-test-results
+          path: ${{ runner.temp }}/vitest-heavy-results.json
           if-no-files-found: warn
   node-tests:
     name: Tooling Tests
@@ -129,7 +150,7 @@ jobs:
   required:
     name: CI Required
     if: always()
-    needs: [policy, typecheck, build, lint, validate, test, node-tests, quality-scan]
+    needs: [policy, typecheck, build, lint, validate, test, heavy-tests, node-tests, quality-scan]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

@@ -114,6 +114,35 @@ const SLOW_SUITE_GLOBS = [
 
 const SLOW_SUITE_TIMEOUT_MS = 60_000;
 
+// ============================================================================
+// Heavy simulation suites (CI slow lane, ruling of 2026-11-02)
+// ============================================================================
+// Ocean and river physics drive real fluid solvers and waterfall contact runs.
+// On Linux CI single files take minutes (oceanMouthRound15 466 s,
+// waterfallContactCoupling 447 s, waterfallContactFlow 381 s in run 41363850920),
+// and with them the one Application Tests job passed its 30-minute limit
+// after 1,304 of 2,216 files. CI runs this project in its own job with a longer
+// job limit; the normal job runs `app` and `generation` only.
+//
+// Nothing about how these tests run changes: same setup, same assertions, and
+// each test keeps its own explicit timeout. The default per-test timeout is the
+// generation lane's 60 s. A local `npm test` still runs every project.
+//
+// To add a suite: add a file or directory glob here when Linux CI measures the
+// file over about 100 s, or when it is ocean or river physics. Check that the
+// glob does not also match SLOW_SUITE_GLOBS, so each file has one lane.
+// ============================================================================
+const HEAVY_SUITE_GLOBS = [
+    'src/systems/world3d/ocean/**/*.{test,spec}.?(c|m)[jt]s?(x)',
+    'src/systems/world3d/river/**/*.{test,spec}.?(c|m)[jt]s?(x)',
+    'src/components/World3D/water/**/*.{test,spec}.?(c|m)[jt]s?(x)',
+    // Generation sweeps over 140 s each on Linux CI (run 41369799497). They are
+    // not physics, but they kept the normal job too close to its limit.
+    'src/systems/combat/worldScenario/__tests__/worldBattleScenario.test.ts',
+    'src/systems/worldforge/townsim/__tests__/townSimRegistration.test.ts',
+    'src/components/World3D/__tests__/worldGenCore.test.ts',
+];
+
 export default defineConfig({
     plugins: [react()],
     test: {
@@ -146,16 +175,16 @@ export default defineConfig({
             '@': path.resolve(__dirname, 'src'),
         },
         exclude: SHARED_EXCLUDE,
-        // WF-G112: the two lanes differ in exactly one setting, `testTimeout`. Both
+        // WF-G112: the lanes differ only in `include`/`exclude` and `testTimeout`. All
         // inherit everything above through `extends: true`, so jsdom, the setup file,
         // the alias, the worker ceiling, and the reporters stay identical and the union
-        // of the two `include` sets is the same file list a single-project run found.
+        // of the `include` sets is the same file list a single-project run found.
         projects: [
             {
                 extends: true,
                 test: {
                     name: 'app',
-                    exclude: SLOW_SUITE_GLOBS,
+                    exclude: [...SLOW_SUITE_GLOBS, ...HEAVY_SUITE_GLOBS],
                 },
             },
             {
@@ -163,6 +192,15 @@ export default defineConfig({
                 test: {
                     name: 'generation',
                     include: SLOW_SUITE_GLOBS,
+                    testTimeout: SLOW_SUITE_TIMEOUT_MS,
+                    hookTimeout: SLOW_SUITE_TIMEOUT_MS,
+                },
+            },
+            {
+                extends: true,
+                test: {
+                    name: 'heavy',
+                    include: HEAVY_SUITE_GLOBS,
                     testTimeout: SLOW_SUITE_TIMEOUT_MS,
                     hookTimeout: SLOW_SUITE_TIMEOUT_MS,
                 },
