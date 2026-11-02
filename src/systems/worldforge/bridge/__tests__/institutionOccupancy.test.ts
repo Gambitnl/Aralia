@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { institutionDutyStation, institutionOccupancyBuildings } from '../institutionOccupancy';
 import { residentDoorRoutes } from '../residentDoorRoutes';
 import { allGroundAgentsAt } from '../groundAgentMotion';
+import { legDepartureDelayHours } from '../../roster/townSnapshot';
 import { furnishingFootprint } from '../../interior/householdFurnish';
 import type { BlueprintPlan } from '../../interior/blueprintTypes';
 import type { TownRoster } from '../../roster/types';
@@ -149,7 +150,11 @@ describe('institution physical occupancy', () => {
     expect(delay).toBeGreaterThan(0);
     const ground = {rosters: [roster], townPlans: [{burgId: 675, plan, streetGraph: routed.streetGraph}],
       boundsFeet: {x: 0, y: 0}} as GroundWorld;
-    const leaving = allGroundAgentsAt(ground, 8)[0];
+    // NPC life (2026-11-02): a household leg departs a little after the hour
+    // (legDepartureDelayHours); the room gate already includes that wait.
+    const depart = legDepartureDelayHours(roster.occupants[0], 8);
+    expect(delay).toBeGreaterThan(depart);
+    const leaving = allGroundAgentsAt(ground, 8 + depart + 1e-6)[0];
     const arrived = allGroundAgentsAt(ground, 8 + delay + 1e-8)[0];
     expect(leaving.moving).toBe(true);
     expect(arrived.moving).toBe(false);

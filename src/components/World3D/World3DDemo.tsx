@@ -4,7 +4,8 @@
  * cleanup 2026-08-05: the legacy continent sandbox (generateMap → WorldData grid,
  * inline chunk loader) is gone. The demo now always runs the canonical Worldforge
  * ground pipeline — the same cell-addressed Local artifacts the game streams.
- * URL tuning: ?gx/?gy (grid window), ?dcell (atlas cell), ?wfseed, ?hour, ?seam=1.
+ * URL tuning: ?gx/?gy (grid window), ?dcell (atlas cell), ?burg (a town by burg
+ * id), ?wfseed, ?hour, ?seam=1, ?agentclock (a live townsfolk clock).
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
@@ -130,6 +131,25 @@ const World3DDemo: React.FC = () => {
   // scene keeps its defaults (sun 18.2 h, interior clock noon) as before.
   const sunHourParam = urlParams.get('sunhour');
   const sunHour = sunHourParam !== null && Number.isFinite(Number(sunHourParam)) ? Number(sunHourParam) : undefined;
+  // &agentclock=H (NPC life, 2026-11-02): a live townsfolk clock that starts
+  // at hour H and moves one game second per real second, as the game's passive
+  // clock does (useAppPhaseClock). &timescale=N runs it N times faster for a
+  // preview. Absent, the townsfolk clock stays as before (the sunhour value,
+  // else the crowd's own default).
+  const agentClockParam = urlParams.get('agentclock');
+  const agentClockStart = agentClockParam !== null && Number.isFinite(Number(agentClockParam)) ? Number(agentClockParam) : undefined;
+  const timeScale = Math.max(0, Number(urlParams.get('timescale') ?? 1)) || 1;
+  const [liveAgentClock, setLiveAgentClock] = useState(agentClockStart);
+  useEffect(() => {
+    if (agentClockStart === undefined) return;
+    const started = performance.now();
+    const timer = window.setInterval(() => {
+      // Whole game seconds, like ADVANCE_TIME { seconds: 1 } each second.
+      const gameSeconds = Math.floor(((performance.now() - started) / 1000) * timeScale);
+      setLiveAgentClock(((agentClockStart + gameSeconds / 3600) % 24 + 24) % 24);
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [agentClockStart, timeScale]);
   const seamMode = urlParams.get('seam') === '1';
 
   // GG-558 (2026-11-01): the cell this window opens onto. ?dcell= names the
@@ -139,6 +159,16 @@ const World3DDemo: React.FC = () => {
     if (seamMode) return null;
     if (dcell != null) return { cellId: dcell } as WorldforgeLocationEntry;
     if (!demoAtlas) return null;
+    // ?burg=N (NPC life, 2026-11-02): open the town of burg N, framed on the
+    // burg as the game's Enter 3D does (its cell plus its atlas position). Some
+    // towns (the capital Borieborum, 702 at world 903674813) have no legacy
+    // grid tile, so ?gx/?gy cannot reach them.
+    const burgParam = urlParams.get('burg');
+    if (burgParam != null) {
+      const burg = (demoAtlas.pack.burgs as Array<{ cell?: number; x?: number; y?: number } | undefined>)[Number(burgParam)];
+      if (!burg || burg.cell == null || burg.x == null || burg.y == null) throw new Error(`World3D demo: no burg ${burgParam} in world ${wfSeed}`);
+      return { cellId: burg.cell, centerPx: [burg.x, burg.y] } as WorldforgeLocationEntry;
+    }
     const gx = Number(urlParams.get('gx') ?? 16);
     const gy = Number(urlParams.get('gy') ?? 4);
     return resolveWorldforgeLocationEntry(wfSeed, gx, gy, 25, 16);
@@ -339,7 +369,7 @@ const World3DDemo: React.FC = () => {
             playerCharacter={groundMode ? demoCharacter : null}
             sceneCast={groundMode && urlParams.get('cast') === '1' ? demoCast : undefined}
             timeOfDayHours={sunHour}
-            agentClock={sunHour}
+            agentClock={liveAgentClock ?? sunHour}
           />
         </div>
       </div>

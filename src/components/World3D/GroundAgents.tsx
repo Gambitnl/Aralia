@@ -49,9 +49,16 @@ import { worldToScene } from '@/systems/world3d/sceneOrigin';
 import { WORLD3D_CONFIG } from '@/systems/world3d/config';
 import { registerAllParts } from '@/systems/entities3d/parts';
 import { CROWD_WALK_PHASES } from '@/systems/entities3d/three/crowdBake';
-import { crowdArchetypeForGroup, peekCrowdArchetype } from '@/systems/entities3d/recipeFromOccupant';
+import {
+  CROWD_ACTIVITIES,
+  stepCrowdActivityBake,
+  crowdArchetypeForGroup,
+  peekCrowdActivityFrames,
+  peekCrowdArchetype,
+} from '@/systems/entities3d/recipeFromOccupant';
 import { toonGradient, ENTITY_RENDER_MODE } from '@/systems/entities3d/three/toon';
 import { crowdInstancePlan, CROWD_GROUPS, type HeadingMemory } from './crowdInstancePlan';
+import { createCrowdRenderClock, stepCrowdRenderClock } from './crowdRenderClock';
 import {
   collectResidentHandoffIndex,
   residentAncestryIndex,
@@ -64,10 +71,28 @@ import { streetOwnedAgentNodes } from './streetOwnedAgents';
 
 registerAllParts();
 
-/** Instance cap per (group, phase) bucket. */
-const MAX_PER_BUCKET = 128;
-/** Recompute cadence (s): townsfolk amble, so a few Hz is plenty + cheap. */
+/** Instance cap per (group, phase) bucket. Raised from 128 (NPC life,
+ * 2026-11-02): with only outdoor people drawn, a busy midday market can
+ * hold more than 128 idle people of one ancestry. */
+const MAX_PER_BUCKET = 256;
+/** Recompute cadence (s of game time at the normal rate): a full crowd pass
+ * runs this often; walkers glide between two passes every frame. */
 const RECOMPUTE_INTERVAL_S = 0.3;
+/** Crowd level of detail: at most this many figures, nearest the camera first. */
+const MAX_DRAWN = 900;
+/** Figures farther than this from the camera (m) are not drawn. */
+const MAX_DRAW_DISTANCE_M = 320;
+
+/** Still crowds with activity poses redraw this often (s) for their frames. */
+const ACTIVITY_REDRAW_S = 0.12;
+/** The base CC0 clip pack: Idle_Talking and Idle_FoldArms for the crowd. */
+const CROWD_CLIP_PACK = 'anim/humanoid/human-base-animations.glb';
+
+/** One full crowd pass: outdoor street-owned people at one drawing clock. */
+interface CrowdPass {
+  clock: number;
+  nodes: Map<string, GroundAgentSceneNode>;
+}
 /** Default clock when nothing else supplies one (a lively morning commute). */
 const DEFAULT_CLOCK = 7.5;
 
@@ -85,8 +110,15 @@ interface GroundAgentsProps {
 }
 
 const GroundAgents: React.FC<GroundAgentsProps> = ({ ground, loaded, clock, sceneOrigin, figureScale = 1, bodyOwners }) => {
-  const sinceWrite = useRef(RECOMPUTE_INTERVAL_S); // write on first frame
   const timeRef = useRef(0);
+  // NPC life (2026-11-02): the crowd draws from a smoothed clock (see
+  // crowdRenderClock.ts) and glides walkers between two passes, so a walker no
+  // longer hops 1.2 m once a game second.
+  const renderClock = useRef(createCrowdRenderClock());
+  const passWindow = useRef<{ a: CrowdPass; b: CrowdPass } | null>(null);
+  const rewrite = useRef(true);
+  const lastCam = useRef({ x: Infinity, z: Infinity });
+  const sinceActivity = useRef(0);
   const headings = useRef<HeadingMemory>(new Map());
   const lastOwnershipHour = useRef<number | null>(null);
   const hasAgents = !!(ground && ground.townPlans && ground.townPlans.length);
@@ -131,48 +163,145 @@ const GroundAgents: React.FC<GroundAgentsProps> = ({ ground, loaded, clock, scen
     timer = setTimeout(step, 0);
     return () => { cancelled = true; if (timer) clearTimeout(timer); };
   }, [hasAgents, groups]);
+  // NPC life (2026-11-02): activity frames (talk, listen) come from the entity
+  // generator's clip pack. The pack loads once; each group then bakes its
+  // activity frames in its own macrotask, after all idle/walk groups are ready.
+  // Until a group has them, its people at errand places stand in the idle pose.
+  const [clips, setClips] = React.useState<Map<string, THREE.AnimationClip> | null>(null);
+  useEffect(() => {
+    if (!hasAgents) return;
+    let live = true;
+    import('@/systems/entities3d/anim/clipStore')
+      .then((m) => m.loadHumanoidClips(`${import.meta.env.BASE_URL}${CROWD_CLIP_PACK}`))
+      .then((loaded) => { if (live) setClips(loaded); })
+      .catch((error) => {
+        // Loud, not silent: the crowd keeps its idle pose at errand places.
+        console.error('[GroundAgents] crowd clip pack failed to load; no talk/listen poses', error);
+      });
+    return () => { live = false; };
+  }, [hasAgents]);
+  const [activityCount, setActivityCount] = React.useState(0);
+  useEffect(() => {
+    if (!hasAgents || !clips) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const step = () => {
+      if (cancelled) return;
+      // Wait for the idle/walk bake of every group first.
+      if (groups.some((g) => !peekCrowdArchetype(g))) { timer = setTimeout(step, 50); return; }
+      const next = groups.find((g) => !peekCrowdActivityFrames(g));
+      if (!next) return;
+      // One frame per macrotask (stepCrowdActivityBake); a finished group joins.
+      if (stepCrowdActivityBake(next, clips)) setActivityCount((n) => n + 1);
+      timer = setTimeout(step, 0);
+    };
+    timer = setTimeout(step, 0);
+    return () => { cancelled = true; if (timer) clearTimeout(timer); };
+  }, [hasAgents, clips, groups]);
   const buckets = useMemo(() => {
     if (!hasAgents) return null;
     const map = new Map<string, THREE.InstancedMesh>();
+    const add = (key: string, geometry: THREE.BufferGeometry) => {
+      const mesh = new THREE.InstancedMesh(geometry, material, MAX_PER_BUCKET);
+      mesh.count = 0;
+      mesh.frustumCulled = false;
+      map.set(key, mesh);
+    };
     for (const group of groups) {
       const arch = peekCrowdArchetype(group);
       if (!arch) continue;
-      for (let p = 0; p <= CROWD_WALK_PHASES; p++) {
-        const mesh = new THREE.InstancedMesh(arch.geometries[p], material, MAX_PER_BUCKET);
-        mesh.count = 0;
-        mesh.frustumCulled = false;
-        map.set(`${group}:${p}`, mesh);
+      for (let p = 0; p <= CROWD_WALK_PHASES; p++) add(`${group}:${p}`, arch.geometries[p]);
+      const activities = peekCrowdActivityFrames(group);
+      for (const a of activities ? CROWD_ACTIVITIES : []) {
+        activities!.get(a.name)!.forEach((g, f) => add(`${group}:${a.name}${f}`, g));
       }
     }
     return map;
-  }, [hasAgents, material, groups, bakedCount]);
+  }, [hasAgents, material, groups, bakedCount, activityCount]);
   // Source ancestries can change as chunks stream. Release only the retired
   // instance buffers; their cached shared geometry/material stay owned upstream.
   useEffect(() => () => buckets?.forEach(mesh => mesh.dispose()), [buckets]);
   // New buckets start with no instances. Write them on the next frame, so a
   // group that joins (GG-574) does not blank the crowd for one write interval.
-  useEffect(() => { sinceWrite.current = RECOMPUTE_INTERVAL_S; }, [buckets]);
+  useEffect(() => { rewrite.current = true; }, [buckets]);
+  // New interior packets change who the street owns: start a fresh window.
+  useEffect(() => { passWindow.current = null; }, [handoffs, ground]);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     timeRef.current += delta;
     if (!hasAgents || !buckets) return;
-    sinceWrite.current += delta;
     const override = (window as unknown as { __wfAgentClock?: number }).__wfAgentClock;
-    const c = override ?? clock ?? DEFAULT_CLOCK;
+    const source = override ?? clock ?? DEFAULT_CLOCK;
+    const c = stepCrowdRenderClock(renderClock.current, source, state.clock.elapsedTime);
     const ownershipHour = ((Math.floor(c) % 24) + 24) % 24;
     const ownershipChanged = lastOwnershipHour.current !== ownershipHour || lastBodyOwners.current !== bodyOwners?.current;
-    if (sinceWrite.current < RECOMPUTE_INTERVAL_S && !ownershipChanged) return;
-    sinceWrite.current = 0;
     lastOwnershipHour.current = ownershipHour;
     lastBodyOwners.current = bodyOwners?.current;
-    const nodes = streetOwnedAgentNodes(
-      groundAgentScenePositions(ground!, c, undefined),
-      ground!.rosters,
-      handoffs,
-      c,
-      bodyOwners?.current,
-    );
-    const plan = crowdInstancePlan(nodes, timeRef.current, headings.current, ancestries);
+
+    // Two full passes bracket the drawing clock: A at or before it, B one
+    // interval (in game time) ahead. Outdoor people only (the rest are inside).
+    const passAt = (at: number): CrowdPass => {
+      const nodes = streetOwnedAgentNodes(
+        groundAgentScenePositions(ground!, at, undefined, { outdoorsOnly: true }),
+        ground!.rosters,
+        handoffs,
+        at,
+        bodyOwners?.current,
+      );
+      return { clock: at, nodes: new Map(nodes.map((n) => [n.burgId + ':' + n.occupantId, n])) };
+    };
+    const stepH = (RECOMPUTE_INTERVAL_S * Math.max(renderClock.current.rate, 1e-3)) / 3600;
+    let w = passWindow.current;
+    if (!w || ownershipChanged || c < w.a.clock || c > w.b.clock + stepH) {
+      const a = passAt(c);
+      w = { a, b: passAt(c + stepH) };
+      rewrite.current = true;
+    } else if (c >= w.b.clock) {
+      w = { a: w.b, b: passAt(w.b.clock + stepH) };
+      rewrite.current = true;
+    }
+    passWindow.current = w;
+    const t = w.b.clock > w.a.clock ? Math.min(1, Math.max(0, (c - w.a.clock) / (w.b.clock - w.a.clock))) : 1;
+
+    // Walkers glide from A to B; everyone else stands at B. A person only in
+    // A has gone inside within this interval; a person only in B just left.
+    const mpc = WORLD3D_CONFIG.METERS_PER_CELL;
+    const camX = state.camera.position.x, camZ = state.camera.position.z;
+    const drawn: Array<{ node: GroundAgentSceneNode; d: number }> = [];
+    let walkers = 0;
+    for (const [key, nb] of w.b.nodes) {
+      const na = w.a.nodes.get(key);
+      let node = nb;
+      if (na && (na.moving || nb.moving)) {
+        walkers++;
+        const u = 1 - t;
+        node = {
+          ...nb,
+          moving: true,
+          xM: na.xM * u + nb.xM * t,
+          zM: na.zM * u + nb.zM * t,
+          gridX: na.gridX * u + nb.gridX * t,
+          gridY: na.gridY * u + nb.gridY * t,
+          surfaceY: na.surfaceY * u + nb.surfaceY * t,
+        };
+      }
+      const sp = worldToScene(node.gridX * mpc, node.gridY * mpc, sceneOrigin);
+      const d = Math.hypot(sp.x - camX, sp.z - camZ);
+      if (d <= MAX_DRAW_DISTANCE_M) drawn.push({ node, d });
+    }
+    // Still crowds need no rewrite until the window moves; walkers do, and so
+    // does a camera that moved far enough to change the nearest set. People
+    // at errand places step through their talk frames a few times a second.
+    const camMoved = Math.hypot(camX - lastCam.current.x, camZ - lastCam.current.z) > 8;
+    sinceActivity.current += delta;
+    const activityDue = activityCount > 0 && sinceActivity.current >= ACTIVITY_REDRAW_S;
+    if (!rewrite.current && walkers === 0 && !camMoved && !activityDue) return;
+    rewrite.current = false;
+    sinceActivity.current = 0;
+    lastCam.current = { x: camX, z: camZ };
+    drawn.sort((x, y) => x.d - y.d);
+    if (drawn.length > MAX_DRAWN) drawn.length = MAX_DRAWN;
+    const plan = crowdInstancePlan(drawn.map((x) => x.node), timeRef.current, headings.current, ancestries);
 
     const counts = new Map<string, number>();
     const matrix = new THREE.Matrix4();
@@ -180,16 +309,16 @@ const GroundAgents: React.FC<GroundAgentsProps> = ({ ground, loaded, clock, scen
     const q = new THREE.Quaternion();
     const scale = new THREE.Vector3();
     const up = new THREE.Vector3(0, 1, 0);
-    const mpc = WORLD3D_CONFIG.METERS_PER_CELL;
     for (const inst of plan) {
-      const key = `${inst.group}:${inst.phaseIdx}`;
+      const activityKey = inst.activity ? inst.group + ':' + inst.activity + inst.activityFrame : undefined;
+      const key = activityKey && buckets.has(activityKey) ? activityKey : inst.group + ':' + inst.phaseIdx;
       const mesh = buckets.get(key);
       if (!mesh) continue;
       const i = counts.get(key) ?? 0;
       if (i >= MAX_PER_BUCKET) continue;
-      const s = worldToScene(inst.node.gridX * mpc, inst.node.gridY * mpc, sceneOrigin);
+      const sp = worldToScene(inst.node.gridX * mpc, inst.node.gridY * mpc, sceneOrigin);
       // baked bodies have their feet at y=0 — no half-height lift
-      position.set(s.x, inst.node.surfaceY, s.z);
+      position.set(sp.x, inst.node.surfaceY, sp.z);
       q.setFromAxisAngle(up, inst.yaw);
       const k = inst.scale * figureScale;
       scale.set(k, k, k);
@@ -198,7 +327,13 @@ const GroundAgents: React.FC<GroundAgentsProps> = ({ ground, loaded, clock, scen
       counts.set(key, i + 1);
     }
     for (const [key, mesh] of buckets) {
-      mesh.count = counts.get(key) ?? 0;
+      const n = counts.get(key) ?? 0;
+      if (n === 0 && mesh.count === 0) continue;
+      mesh.count = n;
+      // An empty bucket issues no draw call; a full one uploads only its rows.
+      mesh.visible = n > 0;
+      mesh.instanceMatrix.clearUpdateRanges();
+      mesh.instanceMatrix.addUpdateRange(0, n * 16);
       mesh.instanceMatrix.needsUpdate = true;
     }
   });

@@ -25,6 +25,7 @@
 import { SeededRandom } from '@/utils/random/seededRandom';
 import type { GroundAgentSceneNode } from '@/systems/worldforge/bridge/groundAgentMotion';
 import { CROWD_WALK_PHASES } from '@/systems/entities3d/three/crowdBake';
+import { CROWD_ACTIVITIES, type CrowdActivity } from '@/systems/entities3d/recipeFromOccupant';
 
 /** Townsfolk ancestry mix (same weighting the household roster uses). */
 const WEIGHTED_GROUPS: Array<[string, number]> = [
@@ -56,11 +57,24 @@ export function groupForOccupant(occupantId: number): string {
   return 'Human';
 }
 
+/** A well-mixed 0..1 value per id. SeededRandom's first draw follows the
+ * seed too closely for neighboring ids (9 of 40 talked at a 60% rate). */
+function unitHash(id: number): number {
+  let h = Math.imul(id ^ 0x9e3779b9, 0x85ebca6b);
+  h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+
 export interface CrowdInstance {
   node: GroundAgentSceneNode;
   group: string;
   /** 0 = idle keyframe, 1..N = walk keyframes. */
   phaseIdx: number;
+  /** NPC life (2026-11-02): an activity pose for a still person at an errand
+   *  place, with its frame. The renderer falls back to idle (phaseIdx 0) when
+   *  the group's activity frames are not baked yet. */
+  activity?: CrowdActivity['name'];
+  activityFrame?: number;
   /** Facing (radians around +Y). */
   yaw: number;
   /** Per-agent size jitter around the archetype body. */
@@ -84,6 +98,13 @@ export function crowdInstancePlan(
     if (prev && (prev.x !== n.gridX || prev.z !== n.gridY)) {
       yaw = Math.atan2(n.gridX - prev.x, n.gridY - prev.z);
     }
+    // NPC life (2026-11-02): a person standing at an errand place turns to the
+    // point the group there faces, so a group reads as people together. Both
+    // axes share one scale (meters vs pseudo-grid), so the angle is the same.
+    if (!n.moving && n.faceXM !== undefined && n.faceZM !== undefined
+      && Math.hypot(n.faceXM - n.xM, n.faceZM - n.zM) > 0.05) {
+      yaw = Math.atan2(n.faceXM - n.xM, n.faceZM - n.zM);
+    }
     headings.set(n.occupantId, { x: n.gridX, z: n.gridY, yaw });
     const phaseIdx = n.moving
       ? 1 +
@@ -93,8 +114,28 @@ export function crowdInstancePlan(
           CROWD_WALK_PHASES)
       : 0;
     const scale = 0.92 + new SeededRandom(n.occupantId * 449 + 3).next() * 0.16;
+    // A still person at an errand place talks or listens; about 60% talk.
+    // Each person starts the loop at their own point, so a group does not
+    // gesture in step.
+    let activity: CrowdActivity | undefined;
+    let activityFrame: number | undefined;
+    if (!n.moving && n.faceXM !== undefined) {
+      const roll = unitHash(n.occupantId);
+      activity = CROWD_ACTIVITIES.find((a) => a.name === (roll < 0.6 ? 'talk' : 'listen'));
+      if (activity) {
+        const loop = (((timeS / activity.periodS + roll * 7.31) % 1) + 1) % 1;
+        activityFrame = Math.min(activity.frames - 1, Math.floor(loop * activity.frames));
+      }
+    }
     // Unknown legacy crowds retain the seeded mix. Known residents keep the
     // ancestry of their source body even when distance reduces visual detail.
-    return { node: n, group: sourceAncestries?.get(`${n.burgId}:${n.occupantId}`) ?? groupForOccupant(n.occupantId), phaseIdx, yaw, scale };
+    return {
+      node: n,
+      group: sourceAncestries?.get(`${n.burgId}:${n.occupantId}`) ?? groupForOccupant(n.occupantId),
+      phaseIdx,
+      yaw,
+      scale,
+      ...(activity ? { activity: activity.name, activityFrame } : {}),
+    };
   });
 }

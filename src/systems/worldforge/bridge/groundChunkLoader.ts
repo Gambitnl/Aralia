@@ -128,6 +128,8 @@ import {
 import type { TownRoster, Occupant } from "../roster/types";
 import { buildStreetGraph, frontDoorForPlot, type StreetGraph } from "../roster/agentPath";
 import { residentDoorRoutes } from "./residentDoorRoutes";
+import { keeperIndexIn, rowsWithKeeperAway, shopRowsWithKeeper, shopTakeoversAt } from "./shopKeeperOccupancy";
+import type { HouseholdMember } from "../town/household";
 import { institutionPlotForRole } from "../townsim/keyNpcs";
 import { institutionWorkplaceRoster } from "../roster/institutionWorkplaces";
 import { institutionDutyStation, institutionOccupancyBuildings } from "./institutionOccupancy";
@@ -4029,6 +4031,19 @@ function groundTowns(
         })
         .map((plot) => plot.id),
     );
+    // NPC lives (GG-595 item 4, 2026-11-02): the sim may name a new shop
+    // keeper (an heir, or a reopening). Record each shop's founding keeper and
+    // working hours from the canonical roster BEFORE the life filter below can
+    // drop a dead founder; shopKeeperOccupancy.ts then joins the sim keeper.
+    const shopFounders = new Map<number, { founder: Occupant; hours: number[] }>();
+    for (const plot of plan.plots) {
+      if (plot.role !== 'market' && plot.role !== 'workshop') continue;
+      const founder = roster.occupants.find((o) => o.workPlotId === plot.id);
+      if (!founder) continue;
+      const hours = Array.from({ length: 24 }, (_, h) => h).filter((h) => occupantLocationAt(founder, h).activity === 'working');
+      shopFounders.set(plot.id, { founder, hours });
+    }
+    const shopTakeovers = shopTakeoversAt(opts.townLife?.[t.burgId], shopFounders, opts.day ?? 0);
     roster.occupants = roster.occupants.filter(
       (occupant) =>
         (occupant.householdMemberId === undefined || renderablePlotIds.has(occupant.homePlotId)) &&
@@ -4069,6 +4084,18 @@ function groundTowns(
       }
     }
 
+    // The sim's new keeper works the shop: the street motion walks them there
+    // at the shop's hours. An heir who lives above the shop works at home.
+    for (const takeover of shopTakeovers.values()) {
+      const keeper = roster.occupants.find((o) => takeover.keeper.householdMemberId
+        ? o.householdMemberId === takeover.keeper.householdMemberId
+        : o.id === takeover.keeper.occupantId);
+      if (!keeper) continue;
+      keeper.workPlotId = takeover.plotId;
+      keeper.occupation = shopFounders.get(takeover.plotId)!.founder.occupation;
+      delete keeper.retired;
+    }
+
     // Founding-household briefs (BGv2 Task 11): each building generates FROM the
     // family the town names for it. The town seed MUST match the one the 2D
     // tooltips key households on — canonicalTownSeedPath(worldSeed, burgId), the
@@ -4078,6 +4105,21 @@ function groundTowns(
     // cross-references against; unpopulated towns carry no `pop`, so it is empty
     // and every building generates briefless exactly as before.
     const pops = householdPopulationsForPlan(plan);
+    // A keeper from another household carries their home identity to the shop
+    // counter: the same member record (race, age) and the same body seed.
+    const outsideKeeperHome = new Map<number, { member: HouseholdMember; householdMemberId: string; seedKey: string }>();
+    for (const takeover of shopTakeovers.values()) {
+      const homePlot = plan.plots.find((pl) => pl.id === takeover.keeper.homePlotId);
+      const population = homePlot ? householdPopulationForPlot(homePlot) : undefined;
+      const home = population ? householdForPlot(population, pops, townSeed)?.household : undefined;
+      const index = home ? keeperIndexIn(home, takeover.keeper) : undefined;
+      if (!home || index === undefined || !homePlot) continue;
+      outsideKeeperHome.set(takeover.plotId, {
+        member: home.members[index],
+        householdMemberId: householdMemberIdentity(home, index),
+        seedKey: `member:${homePlot.id}:${index}`,
+      });
+    }
     // Keep the established frontage preference while fitting source interiors.
     // The final graph below uses their actual door leaves once every building
     // is available; street motion and room arrival then share that one graph.
@@ -4284,16 +4326,39 @@ function groundTowns(
       // Per-member render packets: reuse the EXACT body pipeline the old inline
       // bake used, keyed on the same stable per-member seed so a family's bodies
       // stay constant. Occupation is already resolved on the schedule.
+      // NPC lives (GG-595 item 4): the sim keeper takes this shop's counter,
+      // and stands away from any other packet at those hours.
+      let scheduleRows = schedule?.occupants ?? [];
+      let outsideKeeperRow: { row: (typeof scheduleRows)[number]; home: { member: HouseholdMember; householdMemberId: string; seedKey: string } } | undefined;
+      if (schedule) {
+        for (const takeover of shopTakeovers.values()) {
+          if (takeover.plotId === p.id) {
+            const keeperIndex = keeperIndexIn(schedule.household, takeover.keeper);
+            const home = outsideKeeperHome.get(p.id);
+            if (keeperIndex === undefined && !home) continue; // no body to draw: leave the packet as it is
+            const outsideIndex = Math.max(schedule.household.members.length, ...scheduleRows.map((r) => r.memberIndex + 1));
+            const next = shopRowsWithKeeper(scheduleRows, takeover, keeperIndex, outsideIndex);
+            scheduleRows = next.rows;
+            if (next.outsideRow && home) outsideKeeperRow = { row: next.outsideRow, home };
+          } else {
+            scheduleRows = rowsWithKeeperAway(scheduleRows, schedule.household, takeover);
+          }
+        }
+      }
       const occupantsRender: BuildingOccupantRender[] | undefined = schedule
-        ? schedule.occupants.filter(o => {
+        ? scheduleRows.filter(o => {
+            if (outsideKeeperRow?.row === o) return true; // the sim's current keeper is alive
             const member = schedule.household.members[o.memberIndex];
             return !member || householdResidentAliveAt(opts.townLife?.[t.burgId],
               householdMemberIdentity(schedule.household, o.memberIndex), member.name, opts.day ?? 0, schedule.household.members.filter(m => m.name === member.name).length === 1);
           }).map((o) => {
-            const member = schedule.household.members[o.memberIndex];
-            const householdMemberId = member
-              ? householdMemberIdentity(schedule.household, o.memberIndex)
-              : undefined;
+            const outside = outsideKeeperRow?.row === o ? outsideKeeperRow.home : undefined;
+            const member = outside?.member ?? schedule.household.members[o.memberIndex];
+            const householdMemberId = outside
+              ? outside.householdMemberId
+              : member
+                ? householdMemberIdentity(schedule.household, o.memberIndex)
+                : undefined;
             const rosterMember = householdMemberId
               ? rosterByHouseholdMember.get(householdMemberId)
               : undefined;
@@ -4320,7 +4385,7 @@ function groundTowns(
               body: bodyPlanToOccupantBody(
                 generateBody(
                   occLike,
-                  childSeedPath(townSeed, `member:${p.id}:${o.memberIndex}`),
+                  childSeedPath(townSeed, outside?.seedKey ?? `member:${p.id}:${o.memberIndex}`),
                 ),
               ),
               stationsByHour: o.stationsByHour,

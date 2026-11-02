@@ -1,6 +1,6 @@
 # Town Map
 
-Verified: 2026-11-02 (GG-586 market square: measured at four bands and 24 sampled towns, Hafting rendered in the 2D town map at `step=town3d`). Earlier: 2026-11-02 (GG-577 shared courts in the old core and GG-569 civic grounds in the 3D bake, measured at four bands, rendered at `step=town3d` Real 3D for Paphina). Earlier: 2026-11-02 (GG-542: staff and patron parity between the building visit and the live schedule). Earlier: 2026-11-01 (town-map rules GG-560 to GG-567: main street, river channel, bridges, docks, gate hooks, house shape, front gardens, passages and civic grounds, measured at four bands and thirteen water towns, rendered at `step=town3d`; candidate homestead/parent-land/shared-approach planning and larger-town coverage failure; explicit candidate rural household/field source facts; fresh-only resolved building purpose and household-first prop wealth; native settled nave orbit, altar route and retained knowledge reload; requested-heading camera retraction and native temple bench/reload; measured retained-prop repair proposal and native movement contract; saved-revision factual readers and Local/address reconstruction; revision-aware building/rest readers, truthful routine reports and source-change inspector reset; recorded door widths, household reference drafts and native poor-home reload; saved town-layout registration and ground projection; retained town-layout reader and measured runtime precision; reached furnishing identity source and captured desktop component view; town-look rules GG-544 to GG-551, census of 813 towns; fitted civic labels and native library use; town roads meet the world roads, GG-541, census of 8 towns). Earlier, 2026-10-29: (canonical door-head alignment, measured standing clearance, actual Fenna entry/owned trade/counter examination and two native interior reloads; live Brooksmith work/home handoff, night manual full reload and continuous terrain walking; separate workplace attendance and retirement; ground recovery, finish-based rest cooldown and named-slot reload; source-grid combat handoff and actual Alrio defeat; observed Alrio growth, saved exploration knowledge, bounded stair/input gates and exact repaired world return; typed tavern services and saved local hooks; canonical proprietor reconciliation, clear activity targets, resident mouse selection, family/memory reload, in-place rest, saved front doors and qualified railed Hartdown traversal). Source-bound shelf rendering and owned-content examination were checked in the saved Menaikon visit.
+Verified: 2026-11-02 (street crowd errands, departures, outdoor-only drawing and talk/listen poses: see "Street crowd: errands, departures and outdoor drawing"). Earlier: 2026-11-02 (GG-586 market square: measured at four bands and 24 sampled towns, Hafting rendered in the 2D town map at `step=town3d`). Earlier: 2026-11-02 (GG-577 shared courts in the old core and GG-569 civic grounds in the 3D bake, measured at four bands, rendered at `step=town3d` Real 3D for Paphina). Earlier: 2026-11-02 (GG-542: staff and patron parity between the building visit and the live schedule). Earlier: 2026-11-01 (town-map rules GG-560 to GG-567: main street, river channel, bridges, docks, gate hooks, house shape, front gardens, passages and civic grounds, measured at four bands and thirteen water towns, rendered at `step=town3d`; candidate homestead/parent-land/shared-approach planning and larger-town coverage failure; explicit candidate rural household/field source facts; fresh-only resolved building purpose and household-first prop wealth; native settled nave orbit, altar route and retained knowledge reload; requested-heading camera retraction and native temple bench/reload; measured retained-prop repair proposal and native movement contract; saved-revision factual readers and Local/address reconstruction; revision-aware building/rest readers, truthful routine reports and source-change inspector reset; recorded door widths, household reference drafts and native poor-home reload; saved town-layout registration and ground projection; retained town-layout reader and measured runtime precision; reached furnishing identity source and captured desktop component view; town-look rules GG-544 to GG-551, census of 813 towns; fitted civic labels and native library use; town roads meet the world roads, GG-541, census of 8 towns). Earlier, 2026-10-29: (canonical door-head alignment, measured standing clearance, actual Fenna entry/owned trade/counter examination and two native interior reloads; live Brooksmith work/home handoff, night manual full reload and continuous terrain walking; separate workplace attendance and retirement; ground recovery, finish-based rest cooldown and named-slot reload; source-grid combat handoff and actual Alrio defeat; observed Alrio growth, saved exploration knowledge, bounded stair/input gates and exact repaired world return; typed tavern services and saved local hooks; canonical proprietor reconciliation, clear activity targets, resident mouse selection, family/memory reload, in-place rest, saved front doors and qualified railed Hartdown traversal). Source-bound shelf rendering and owned-content examination were checked in the saved Menaikon visit.
 
 Named household schedules share the occupancy owner's 07:00 breakfast, 08:00
 work and 18:00 return boundaries. Street travel uses existing route length at
@@ -1217,6 +1217,61 @@ Two same-name legacy Tomas Woodwick records at home158 remain unresolved, so
 keeper services stay unavailable rather than choosing a person without evidence.
 The Gameplay Flow tracker owns the precise receipt and physical replay gates.
 
+
+## Street crowd: errands, departures and outdoor drawing
+
+Verified: 2026-11-02 (unit tests; Node probes of the seed-42 demo town and of
+Borieborum, burg 702 at world 903674813; headless World3D demo shots and frame
+counts).
+
+The street crowd (`GroundAgents`) draws only people who are outside a
+building. `townMotionSnapshotAt` marks them `outdoors`: a walker, a person at
+an errand place, or an OUT person with no errand place. A person at home,
+asleep or at work is inside and is not drawn. Before this, everyone whose room
+packet was not loaded stood at their front door at every hour.
+
+Errands. `occupantLocationAt` gives each non-worker one OUT block a day and
+still reports the home plot for it, so interiors and businesses read OUT as
+"not in the house". `roster/errands.ts` `errandPlotFor(graph, occupant)`
+picks the public plot (market, workshop, temple or civic) that the person walks
+to. It reads only the street graph (`PlotEntrance.role`) and the occupant, so
+the crowd, the room arrival gate and any other holder of the same graph agree.
+Children favor the market and civic plots, adults the market, elders the
+market and the temple. The choice is among the 8 nearest places of the chosen
+role within about 400 m. `townSnapshot.occupantStopAt` swaps the OUT block to
+that plot. `recentCommute(occupant, hour, graph)` sees errand legs only when
+it gets the graph. `residentDoorUse` calls it without one, so an errand trip
+does not swing a door.
+
+Departures. A household leg leaves 0 to 39 minutes after the hour
+(`legDepartureDelayHours`, a hash of person and hour). Until then the person
+is still inside. `commuteArrivalDelayAtHour` adds the wait to the walk, so a
+room claims a body only after both.
+
+At the place. `errandSpotFor` puts the person on the street side of the door,
+up to 26 ft along the street each way, at one of 96 evenly spread points. The
+group faces the middle of that zone. Places next to each other can share
+street, so some people still stand closer than 0.5 m.
+
+Speed and smoothness. The 3D crowd walks everyone at 1.2 m/s
+(`measuredWalk`). The 2D agent preview keeps its half-hour legs for people
+with no household id. The game clock moves in whole game seconds, so
+`crowdRenderClock.ts` runs a drawing clock between the ticks, never past the
+next one. Two crowd passes 0.3 game seconds apart bracket that clock, and
+walkers glide between them every frame. Per person, the stop table, routes,
+leg times and errand spots are cached on the graph.
+
+Detail limits. At most 900 figures within 320 m of the camera are drawn,
+nearest first, with 256 per pose bucket. An empty bucket is hidden.
+
+Activities. A person at an errand place talks (`Idle_Talking`, 6 frames) or
+listens (`Idle_FoldArms`, 3 frames); about 60% talk. The frames come from the
+entity generator's clip system (`public/anim/humanoid/human-base-animations.glb`,
+loaded once) through `bakeCrowdClipFrames`, which freezes clip poses of the
+skinned body and moves each part with the bone under its anchor. These frames
+use the skinned body; the idle and walk frames use the segment body. Indoor
+activities (eating, sleeping, a smith at work) and stall keepers in the market
+square are not drawn yet.
 
 ## Physical contact with a current street resident
 

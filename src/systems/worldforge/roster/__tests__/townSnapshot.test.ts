@@ -4,7 +4,7 @@
  * at those same doors, and activities continue to match the schedule.
  */
 import { describe, it, expect } from 'vitest';
-import { townSnapshotAt, activityTallyAt, townMotionSnapshotAt, commuteArrivalDelayAtHour } from '../townSnapshot';
+import { townSnapshotAt, activityTallyAt, townMotionSnapshotAt, commuteArrivalDelayAtHour, legDepartureDelayHours } from '../townSnapshot';
 import { occupantLocationAt } from '../occupantSchedule';
 import { buildStreetGraph, frontDoorForPlot } from '../agentPath';
 import type { TownPlan } from '../../artifacts';
@@ -198,8 +198,11 @@ describe('townMotionSnapshotAt — street movement between plots', () => {
     // the plan footprint (a degenerate route or bad interpolation would escape).
     const xs = plan.plots.flatMap((p) => p.footprint.map((c) => c[0]));
     const ys = plan.plots.flatMap((p) => p.footprint.map((c) => c[1]));
-    const minX = Math.min(...xs), maxX = Math.max(...xs);
-    const minY = Math.min(...ys), maxY = Math.max(...ys);
+    // An errand group stands on the street in front of the market door, up
+    // to 26 ft along it each way (townSnapshot.ts errandSpotFor): allow that.
+    const margin = 30;
+    const minX = Math.min(...xs) - margin, maxX = Math.max(...xs) + margin;
+    const minY = Math.min(...ys) - margin, maxY = Math.max(...ys) + margin;
     for (let clock = 0; clock < 24; clock += 0.05) {
       const snap = townMotionSnapshotAt(plan, graph, roster, clock);
       expect(snap).toHaveLength(roster.occupants.length); // nobody vanishes mid-walk
@@ -234,17 +237,37 @@ describe('source household commute timing', () => {
     const graph = buildStreetGraph(plan);
     const person = {...roster.occupants[0], householdMemberId:'b10:head'};
     const actual = {...roster, occupants:[person]};
+    // NPC life (2026-11-02): a household leg departs up to 40 minutes after the
+    // hour. The room gate waits for that delay plus the measured walk.
+    const walk = 100 * .3048 / 1.2 / 3600;
+    const wait = legDepartureDelayHours(person, 8);
+    expect(wait).toBeGreaterThanOrEqual(0);
+    expect(wait).toBeLessThan(40 / 60);
     const duration = commuteArrivalDelayAtHour(graph,person,8);
-    expect(duration).toBeCloseTo(100 * .3048 / 1.2 / 3600, 8);
-    const departure = townMotionSnapshotAt(plan,graph,actual,8)[0];
-    const midway = townMotionSnapshotAt(plan,graph,actual,8+duration/2)[0];
+    expect(duration).toBeCloseTo(wait + walk, 8);
+    // A tenth of a game second after departure (exactly at the edge, float
+    // rounding can put the clock a hair before it).
+    const departure = townMotionSnapshotAt(plan,graph,actual,8+wait+0.1/3600)[0];
+    const midway = townMotionSnapshotAt(plan,graph,actual,8+wait+walk/2)[0];
     const arrived = townMotionSnapshotAt(plan,graph,actual,8+duration+1/3600)[0];
-    expect(departure).toMatchObject({x:5,y:0,moving:true});
+    expect(departure).toMatchObject({y:0,moving:true,outdoors:true});
+    expect(departure.x).toBeCloseTo(5,0);
     expect(midway.moving).toBe(true);
     expect(midway.x).toBeCloseTo(55,6);
-    expect(arrived).toMatchObject({x:105,y:0,moving:false});
+    expect(arrived).toMatchObject({x:105,y:0,moving:false,outdoors:false});
     expect(commuteArrivalDelayAtHour(graph,person,9)).toBe(0);
-    expect(commuteArrivalDelayAtHour(graph,person,18)).toBeCloseTo(duration,8);
-    expect(townMotionSnapshotAt(plan,graph,actual,18+duration+1/3600)[0]).toMatchObject({x:5,y:0,moving:false});
+    const evening = legDepartureDelayHours(person, 18);
+    expect(commuteArrivalDelayAtHour(graph,person,18)).toBeCloseTo(evening + walk,8);
+    expect(townMotionSnapshotAt(plan,graph,actual,18+evening+walk+1/3600)[0]).toMatchObject({x:5,y:0,moving:false});
+  });
+
+  it('keeps a person inside the origin building until their delayed departure', () => {
+    const graph = buildStreetGraph(plan);
+    const person = {...roster.occupants[0], householdMemberId:'b10:head'};
+    const actual = {...roster, occupants:[person]};
+    const wait = legDepartureDelayHours(person, 8);
+    if (wait < 2 / 3600) return; // this id departs on the hour; nothing to wait for
+    const early = townMotionSnapshotAt(plan,graph,actual,8+wait/2)[0];
+    expect(early).toMatchObject({x:5,y:0,moving:false,outdoors:false});
   });
 });

@@ -35,7 +35,8 @@
 import { SeededRandom } from '../../utils/random/seededRandom';
 import type { AgeBand, EntityRecipe } from './types';
 import { generateEntityBlueprint } from './generateEntityBlueprint';
-import { bakeCrowdArchetype } from './three/crowdBake';
+import { bakeCrowdArchetype, createCrowdClipBaker, type CrowdClipBaker } from './three/crowdBake';
+import type { AnimationClip, BufferGeometry } from 'three';
 import type { CrowdArchetype } from './three/crowdBake';
 
 // ============================================================================
@@ -159,4 +160,65 @@ export function crowdArchetypeForGroup(group: string): CrowdArchetype {
   // Cache the resulting geometries for future lookups.
   archetypeCache.set(group, arch);
   return arch;
+}
+
+// ============================================================================
+// Crowd Activity Frames (NPC life, 2026-11-02)
+// ============================================================================
+// Outdoor people at an errand place talk and listen. Their frames come from
+// the entity generator's clip system (bakeCrowdClipFrames), baked for the same
+// representative body as the group's idle and walk frames.
+// ============================================================================
+
+/** One crowd activity: the clip, how many frames, and the clip's loop time. */
+export interface CrowdActivity {
+  name: 'talk' | 'listen';
+  clip: string;
+  frames: number;
+  /** Seconds for one pass through the frames (the clip's own length). */
+  periodS: number;
+}
+
+/** Talkers gesture through Idle_Talking; listeners stand with folded arms. */
+export const CROWD_ACTIVITIES: readonly CrowdActivity[] = [
+  { name: 'talk', clip: 'Idle_Talking', frames: 6, periodS: 3.67 },
+  { name: 'listen', clip: 'Idle_FoldArms', frames: 3, periodS: 2.5 },
+];
+
+const activityCache = new Map<string, Map<string, BufferGeometry[]>>();
+
+/** The baked activity frames of a group (keyed by activity name), or null. */
+export function peekCrowdActivityFrames(group: string): Map<string, BufferGeometry[]> | null {
+  return activityCache.get(group) ?? null;
+}
+
+const activityBakers = new Map<string, CrowdClipBaker>();
+
+/**
+ * Advance a group's activity bake by one unit of work: the first call poses
+ * the group's body, each later call bakes one frame. Returns true once the
+ * group's frames are cached (peekCrowdActivityFrames then has them). The
+ * crowd calls this once per macrotask, so no task holds a whole group.
+ */
+export function stepCrowdActivityBake(group: string, clips: Map<string, AnimationClip>): boolean {
+  if (activityCache.has(group)) return true;
+  const baker = activityBakers.get(group);
+  if (!baker) {
+    const recipe = recipeFromOccupant({ id: hashGroup(group), ageBand: 'adult', race: group });
+    const blueprint = generateEntityBlueprint(recipe);
+    activityBakers.set(group, createCrowdClipBaker(blueprint, clips, CROWD_ACTIVITIES.map((a) => ({ clip: a.clip, frames: a.frames }))));
+    return false;
+  }
+  if (!baker.step()) return false;
+  const byClip = baker.result();
+  baker.dispose();
+  activityBakers.delete(group);
+  activityCache.set(group, new Map(CROWD_ACTIVITIES.map((a) => [a.name, byClip.get(a.clip)!] as const)));
+  return true;
+}
+
+/** Bake (once, in one go) and return a group's activity frames. */
+export function crowdActivityFramesForGroup(group: string, clips: Map<string, AnimationClip>): Map<string, BufferGeometry[]> {
+  while (!stepCrowdActivityBake(group, clips)) { /* one frame per step */ }
+  return activityCache.get(group)!;
 }

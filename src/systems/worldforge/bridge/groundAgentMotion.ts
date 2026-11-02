@@ -65,6 +65,12 @@ export interface GroundAgentMotion {
   zM: number;
   /** True while walking a street route between two plots. */
   moving: boolean;
+  /** True when outside a building (walking, or at an errand place). The street
+   *  crowd draws only these people; the rest are inside (NPC life, 2026-11-02). */
+  outdoors: boolean;
+  /** Ground meters of the point an errand group faces, when at one. */
+  faceXM?: number;
+  faceZM?: number;
   activity: ActivityKind;
 }
 
@@ -86,14 +92,21 @@ export function groundTownAgentsAt(
   boundsFeet: BoundsFeet,
   clock: number,
   graph: StreetGraph = buildStreetGraph(plan),
+  /** outdoorsOnly: only people outside a building (the street crowd). */
+  options: { outdoorsOnly?: boolean } = {},
 ): GroundAgentMotion[] {
-  return townMotionSnapshotAt(plan, graph, roster, clock).map((a) => ({
+  // The 3D crowd walks everyone at the measured speed (NPC life, 2026-11-02).
+  return townMotionSnapshotAt(plan, graph, roster, clock, { measuredWalk: true, outdoorsOnly: options.outdoorsOnly }).map((a) => ({
     burgId,
     occupantId: a.occupantId,
     name: a.name,
     xM: (a.x - boundsFeet.x) * FEET_TO_METERS,
     zM: (a.y - boundsFeet.y) * FEET_TO_METERS,
     moving: a.moving,
+    outdoors: a.outdoors,
+    ...(a.faceX !== undefined && a.faceY !== undefined
+      ? { faceXM: (a.faceX - boundsFeet.x) * FEET_TO_METERS, faceZM: (a.faceY - boundsFeet.y) * FEET_TO_METERS }
+      : {}),
     activity: a.activity,
   }));
 }
@@ -104,14 +117,14 @@ export function groundTownAgentsAt(
  * pairs each `townPlans` entry with its roster (by burgId) and flattens. Returns
  * `[]` when the ground world lacks the agent-motion inputs (e.g. a mocked world).
  */
-export function allGroundAgentsAt(ground: GroundWorld, clock: number): GroundAgentMotion[] {
+export function allGroundAgentsAt(ground: GroundWorld, clock: number, options: { outdoorsOnly?: boolean } = {}): GroundAgentMotion[] {
   if (!ground.townPlans || !ground.boundsFeet) return [];
   const bounds = ground.boundsFeet;
   const out: GroundAgentMotion[] = [];
   for (const { burgId, plan, streetGraph } of ground.townPlans) {
     const roster = ground.rosters.find((r) => r.burgId === burgId);
     if (!roster) continue;
-    out.push(...groundTownAgentsAt(burgId, plan, roster, bounds, clock, streetGraph ?? streetGraphForPlan(plan)));
+    out.push(...groundTownAgentsAt(burgId, plan, roster, bounds, clock, streetGraph ?? streetGraphForPlan(plan), options));
   }
   return out;
 }
@@ -147,9 +160,13 @@ export function groundAgentScenePositions(
   /** Optional per-occupant parametric body dims (from `generateBody`) so figures
    *  render at their real height/build instead of a uniform box. */
   bodies?: AgentBodyDims,
+  /** outdoorsOnly: skip people inside buildings (the street crowd draws only
+   *  outdoor people, and the terrain sample is the costly part of a pass). */
+  options: { outdoorsOnly?: boolean } = {},
 ): GroundAgentSceneNode[] {
   const mpc = WORLD3D_CONFIG.METERS_PER_CELL;
-  return allGroundAgentsAt(ground, clock).map((a) => {
+  const agents = allGroundAgentsAt(ground, clock, options);
+  return agents.map((a) => {
     const body = bodies?.get(a.occupantId);
     return {
       ...a,

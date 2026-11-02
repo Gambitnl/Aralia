@@ -22,8 +22,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 01/11/2026, 13:07:47
- * Dependents: components/MapPane.tsx, components/World3D/ResidentProfile.tsx, components/World3D/World3DWrapper.tsx, components/World3D/groundResidentInteraction.ts, components/World3D/libraryReadingAccess.ts, components/World3D/workbenchAccess.ts, components/World3D/worldGenCore.ts, components/Worldforge/TownBuildingInspector.tsx, hooks/actions/handleWorldEvents.ts, systems/economy/businessAttendance.ts, systems/religion/worldforgeTemple.ts, systems/social/npcDialogueMemory.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/roster/institutionWorkplaces.ts, systems/worldforge/townsim/householdNpc.ts, systems/worldforge/townsim/npcsForCell.ts, systems/worldforge/townsim/registerBurgMerchants.ts
+ * Last Sync: 02/11/2026, 11:11:49
+ * Dependents: components/MapPane.tsx, components/World3D/ResidentProfile.tsx, components/World3D/World3DWrapper.tsx, components/World3D/groundResidentInteraction.ts, components/World3D/libraryReadingAccess.ts, components/World3D/workbenchAccess.ts, components/World3D/worldGenCore.ts, components/Worldforge/TownBuildingInspector.tsx, hooks/actions/handleWorldEvents.ts, systems/economy/businessAttendance.ts, systems/religion/worldforgeTemple.ts, systems/social/npcDialogueMemory.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/shopKeeperOccupancy.ts, systems/worldforge/roster/institutionWorkplaces.ts, systems/worldforge/townsim/householdNpc.ts, systems/worldforge/townsim/npcsForCell.ts, systems/worldforge/townsim/registerBurgMerchants.ts, systems/worldforge/townsim/shopLife.ts
  * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
@@ -186,7 +186,9 @@ function isAliveOn(villager: Pick<LivingVillager, 'bornDay' | 'diedDay'>, day: n
 export type TownLifeVillager = Pick<LivingVillager, 'occupantId' | 'householdMemberId' | 'name' | 'homePlotId' | 'bornDay' | 'diedDay' | 'role'>;
 // Keep source selection beside the same read-only life projection; this is
 // copied from TownSim and never becomes another population or status store.
-export type TownLifeState = Pick<TownSimState, 'layoutRevision'> & {
+// `shops` (NPC lives, 2026-11-02) carries the sim's shop keepers to the 3D
+// bake, so a shop's counter shows the current keeper (shopKeeperOccupancy.ts).
+export type TownLifeState = Pick<TownSimState, 'layoutRevision' | 'shops'> & {
   villagers: Readonly<Record<number, TownLifeVillager>>;
 };
 export type TownLifeRegistry = Record<number, TownLifeState>;

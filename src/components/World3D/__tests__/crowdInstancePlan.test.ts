@@ -70,4 +70,39 @@ describe('crowdInstancePlan', () => {
     expect(a).toBeGreaterThan(0.85);
     expect(a).toBeLessThan(1.15);
   });
+
+  // NPC life (2026-11-02): people at an errand place face their group and
+  // talk or listen; walkers and people with no group keep the gait frames.
+  it('faces an errand group and gives its members a talk or listen frame', () => {
+    const headings = new Map<number, { x: number; z: number; yaw: number }>();
+    const members = Array.from({ length: 40 }, (_, i) => node({ occupantId: 100 + i, xM: 10, zM: 10, faceXM: 10, faceZM: 12 }));
+    const plan = crowdInstancePlan(members, 1.5, headings);
+    for (const inst of plan) {
+      expect(Math.abs(inst.yaw)).toBeLessThan(1e-9); // the face point lies in +z
+      expect(['talk', 'listen']).toContain(inst.activity);
+      expect(inst.activityFrame).toBeGreaterThanOrEqual(0);
+      expect(inst.phaseIdx).toBe(0);
+    }
+    const talkers = plan.filter((p) => p.activity === 'talk').length;
+    expect(talkers).toBeGreaterThan(10);
+    expect(talkers).toBeLessThan(35);
+  });
+
+  it('gives no activity to walkers or to people outside a group', () => {
+    const plan = crowdInstancePlan([
+      node({ occupantId: 1, moving: true, faceXM: 1, faceZM: 1 }),
+      node({ occupantId: 2 }),
+    ], 2, new Map());
+    expect(plan[0].activity).toBeUndefined();
+    expect(plan[1].activity).toBeUndefined();
+  });
+
+  it('steps a talker through its frames over time', () => {
+    const frames = new Set<number>();
+    for (let t = 0; t < 4; t += 0.1) {
+      const inst = crowdInstancePlan([node({ occupantId: 3, faceXM: 0, faceZM: 50 })], t, new Map())[0];
+      if (inst.activity) frames.add(inst.activityFrame!);
+    }
+    expect(frames.size).toBeGreaterThan(1);
+  });
 });

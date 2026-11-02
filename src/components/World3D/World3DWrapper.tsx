@@ -318,7 +318,12 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
   // Only life facts and admitted layout selection enter this worker signature. Wealth, gossip and clock
   // seconds must not tear down a town while the player is walking through it.
   const townLifeJson = useMemo(() => JSON.stringify(Object.fromEntries(
-    Object.entries(state.townSim ?? {}).map(([id, town]) => [id, {layoutRevision: town.layoutRevision, villagers: Object.fromEntries(Object.entries(town.villagers).map(([key, v]) => [key,
+    // Shop keepers (NPC lives, 2026-11-02): keeper and closure only, so the 3D
+    // counter follows an heir or a reopening; a fortune change never rebuilds.
+    Object.entries(state.townSim ?? {}).map(([id, town]) => [id, {layoutRevision: town.layoutRevision,
+      ...(town.shops ? {shops: Object.fromEntries(Object.entries(town.shops).map(([plot, s]) => [plot,
+        {keeperId: s.keeperId, sinceDay: s.sinceDay, ...(s.closedDay !== undefined ? {closedDay: s.closedDay} : {})}]))} : {}),
+      villagers: Object.fromEntries(Object.entries(town.villagers).map(([key, v]) => [key,
       {occupantId: v.occupantId, householdMemberId: v.householdMemberId, name: v.name,
         homePlotId: v.homePlotId, bornDay: v.bornDay, diedDay: v.diedDay, role: v.role}]))}]),
   )), [state.townSim]);

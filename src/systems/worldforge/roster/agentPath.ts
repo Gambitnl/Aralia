@@ -62,6 +62,10 @@ export interface PlotEntrance {
   streetSegmentIndex: number;
   /** Short doorway-to-street approach, in feet. */
   connectorLengthFt: number;
+  /** The plot's plan role ('house', 'market', 'temple' …). Errand selection
+   * (roster/errands.ts) reads it, so every layer that holds this graph picks
+   * the same public destination without the plan. Absent on hand-built graphs. */
+  role?: string;
 }
 
 export interface StreetGraph {
@@ -275,6 +279,7 @@ export function buildStreetGraph(
       streetPoint: bestStreet.point,
       streetSegmentIndex: bestStreet.segmentIndex,
       connectorLengthFt: bestStreet.distanceFt,
+      role: plot.role,
     });
   }
 

@@ -39,6 +39,10 @@ import {
   MeshBasicMaterial,
   Quaternion,
   Vector3,
+  type AnimationClip,
+  type Bone,
+  type Object3D,
+  type SkinnedMesh,
 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { EntityBlueprint, PartAnchors, PartPhase, Vec3Like } from '../types';
@@ -49,6 +53,8 @@ import type { LocomotionState } from './gaits';
 import { createSegmentBody } from './segmentBody';
 import { buildHeadForm } from './headForms';
 import { generateEntityBlueprint } from '../generateEntityBlueprint';
+import { assembleEntity, gameBodyOptions } from './assembleEntity';
+import { createSkinnedClipPlayer } from './skinnedClipPlayer';
 
 export const CROWD_WALK_PHASES = 8;
 const WALK_SPEED = 1.15;
@@ -208,4 +214,219 @@ export function bakeCrowdArchetype(blueprint: EntityBlueprint): CrowdArchetype {
     geometries.push(bakePose(blueprint, p / CROWD_WALK_PHASES));
   }
   return { geometries, heightM: heightM(blueprint.frame) };
+}
+
+// ============================================================================
+// Activity Frames From Clips (NPC life, 2026-11-02)
+// ============================================================================
+// The crowd's idle and walk frames come from the procedural gait. Activities
+// (talking, listening) come from the entity generator's CC0 clip system
+// (anim/clipStore.ts): the same retargeted clips the debugger plays, sampled
+// here into static frames. No second animation system: the clip player poses
+// the game's own skinned body, and this only freezes that pose.
+//
+// Limit (kept honest): the clip drives the skinned body, while modular parts
+// (brow, beard, ears) ride the procedural anchors. This bake moves each part
+// with the bone under its anchor, so a beard stays on a nodding jaw. The look
+// is the skinned body, not the segment body of the idle and walk frames.
+// ============================================================================
+
+/** One activity to bake: a clip name and how many frames to sample. */
+export interface CrowdClipRequest {
+  clip: string;
+  frames: number;
+}
+
+/** True when a Bone is among the object's ancestors (it already follows the pose). */
+function hasBoneAncestor(o: Object3D): boolean {
+  for (let p = o.parent; p; p = p.parent) if ((p as Bone).isBone) return true;
+  return false;
+}
+
+/** The biped bone that carries each part anchor. */
+const ANCHOR_BONE: Record<string, string> = {
+  head: 'head', browL: 'head', browR: 'head', earL: 'head', earR: 'head', jaw: 'head', crown: 'head',
+  chest: 'chest', back: 'chest', hips: 'pelvis', hipL: 'pelvis', hipR: 'pelvis', tailRoot: 'pelvis',
+  handL: 'handL', handR: 'handR',
+};
+
+/** The part container ('part:<id>') above a mesh, if any. */
+function partIdOf(o: Object3D): string | undefined {
+  for (let q: Object3D | null = o; q; q = q.parent) if (q.name.startsWith('part:')) return q.name.slice(5);
+  return undefined;
+}
+
+/** The skinned fill as a static, world-space, vertex-colored geometry. */
+function skinnedMeshToGeometry(mesh: SkinnedMesh): BufferGeometry {
+  const src = mesh.geometry;
+  const count = src.attributes.position.count;
+  const pos = new Float32Array(count * 3);
+  const v = new Vector3();
+  for (let i = 0; i < count; i++) {
+    v.fromBufferAttribute(src.attributes.position as BufferAttribute, i);
+    mesh.applyBoneTransform(i, v);
+    v.applyMatrix4(mesh.matrixWorld);
+    pos[i * 3] = v.x;
+    pos[i * 3 + 1] = v.y;
+    pos[i * 3 + 2] = v.z;
+  }
+  const geo = new BufferGeometry();
+  geo.setAttribute('position', new BufferAttribute(pos, 3));
+  if (src.index) geo.setIndex(src.index.clone());
+  const material = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
+  const c = (material as MeshBasicMaterial).color ?? new Color('#888888');
+  const srcColor = (material as MeshBasicMaterial).vertexColors ? (src.attributes.color as BufferAttribute | undefined) : undefined;
+  const colors = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    // vertexColors multiply the material color, as the toon shader does.
+    colors[i * 3] = (srcColor ? srcColor.getX(i) : 1) * c.r;
+    colors[i * 3 + 1] = (srcColor ? srcColor.getY(i) : 1) * c.g;
+    colors[i * 3 + 2] = (srcColor ? srcColor.getZ(i) : 1) * c.b;
+  }
+  geo.setAttribute('color', new BufferAttribute(colors, 3));
+  // Smooth normals across shared vertices. The frame stays indexed: the
+  // skinned body shares most corners, so this is about a quarter of the size
+  // of a flat copy, and it costs no vertex search.
+  geo.computeVertexNormals();
+  if (!geo.index) geo.setIndex([...Array(count).keys()]);
+  return geo;
+}
+
+/** A part mesh in world space, indexed (its own index, or 0..n-1). */
+function partMeshToIndexedGeometry(mesh: Mesh): BufferGeometry {
+  const geo = mesh.geometry.clone();
+  geo.applyMatrix4(mesh.matrixWorld);
+  const count = geo.attributes.position.count;
+  const colors = new Float32Array(count * 3);
+  const material = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
+  const c = (material as MeshBasicMaterial).color ?? new Color('#888888');
+  const attrColor = geo.attributes.color as BufferAttribute | undefined;
+  for (let i = 0; i < count; i++) {
+    colors[i * 3] = attrColor ? attrColor.getX(i) : c.r;
+    colors[i * 3 + 1] = attrColor ? attrColor.getY(i) : c.g;
+    colors[i * 3 + 2] = attrColor ? attrColor.getZ(i) : c.b;
+  }
+  geo.setAttribute('color', new BufferAttribute(colors, 3));
+  if (!geo.attributes.normal) geo.computeVertexNormals();
+  for (const name of Object.keys(geo.attributes)) {
+    if (name !== 'position' && name !== 'normal' && name !== 'color') geo.deleteAttribute(name);
+  }
+  if (!geo.index) geo.setIndex([...Array(count).keys()]);
+  return geo;
+}
+
+/** A bake in progress: one frame per `step()`, so a caller can spread the
+ * work over many tasks (a whole group in one task froze the page for 0.3 to
+ * 0.8 s in the World3D demo, 2026-11-02). */
+export interface CrowdClipBaker {
+  /** Bake the next frame. Returns true once every frame is done. */
+  step(): boolean;
+  /** The frames by clip name; complete only after step() returned true. */
+  result(): Map<string, BufferGeometry[]>;
+  /** Release the posed entity and the clip player. Safe to call twice. */
+  dispose(): void;
+}
+
+/**
+ * Start an activity-frame bake for one blueprint from retargeted clips. Each
+ * request yields `frames` geometries sampled evenly through its clip (feet at
+ * y = 0, same frame as the idle/walk frames). Throws at once when a clip is
+ * missing, so a renamed pack fails loudly.
+ */
+export function createCrowdClipBaker(
+  blueprint: EntityBlueprint,
+  clips: Map<string, AnimationClip>,
+  requests: CrowdClipRequest[],
+): CrowdClipBaker {
+  for (const r of requests) {
+    if (!clips.has(r.clip)) throw new Error(`entities3d: crowd clip bake has no clip "${r.clip}"`);
+  }
+  const handle = assembleEntity(blueprint, { ...gameBodyOptions(blueprint), renderMode: 'solid' });
+  let player: ReturnType<typeof createSkinnedClipPlayer> | null = null;
+  let disposed = false;
+  const dispose = () => {
+    if (disposed) return;
+    disposed = true;
+    player?.dispose();
+    handle.dispose();
+  };
+  try {
+    // Settle the procedural idle once: it builds the body and the parts.
+    handle.update(0.35, 1 / 60);
+    handle.group.updateMatrixWorld(true);
+    let fill: SkinnedMesh | undefined;
+    handle.group.traverse((o) => {
+      if ((o as SkinnedMesh).isSkinnedMesh && o.name === 'skinnedFill' && !fill) fill = o as SkinnedMesh;
+    });
+    if (!fill) throw new Error(`entities3d: crowd clip bake found no skinned fill for "${blueprint.label}"`);
+    const body = fill;
+    const bones = new Map(body.skeleton.bones.map((b) => [b.name, b]));
+    // Every visible plain mesh except outlines and the ground shadow. A mesh
+    // under a bone (the head form, the eyes) already follows the clip pose. A
+    // modular part follows the bone under its anchor: the bake applies that
+    // bone's motion from rest to the part's rest transform.
+    const parts: Array<{ mesh: Mesh; rest: Matrix4; bone?: Bone; boneRestInv?: Matrix4 }> = [];
+    handle.group.traverse((o) => {
+      const m = o as Mesh;
+      if (!m.isMesh || (m as unknown as SkinnedMesh).isSkinnedMesh) return;
+      if (/outline/i.test(m.name) || m.name === 'blobShadow') return;
+      for (let q: Object3D | null = m; q; q = q.parent) if (!q.visible) return;
+      if (hasBoneAncestor(m)) { parts.push({ mesh: m, rest: m.matrixWorld.clone() }); return; }
+      const partId = partIdOf(m);
+      const anchor = partId ? blueprint.parts.find((pt) => pt.partId === partId)?.anchor : undefined;
+      const bone = anchor ? bones.get(ANCHOR_BONE[anchor] ?? '') : undefined;
+      parts.push({ mesh: m, rest: m.matrixWorld.clone(), bone, boneRestInv: bone?.matrixWorld.clone().invert() });
+    });
+    const clipPlayer = createSkinnedClipPlayer(body, clips);
+    player = clipPlayer;
+    const out = new Map<string, BufferGeometry[]>(requests.map((r) => [r.clip, []] as [string, BufferGeometry[]]));
+    const delta = new Matrix4();
+    let requestIndex = 0;
+    let frameIndex = 0;
+    let playing = -1;
+    return {
+      step() {
+        if (disposed) throw new Error('entities3d: crowd clip bake stepped after dispose');
+        if (requestIndex >= requests.length) return true;
+        const r = requests[requestIndex];
+        if (playing !== requestIndex) { clipPlayer.play(r.clip, { fadeSec: 0 }); playing = requestIndex; }
+        clipPlayer.sampleAtPhase(frameIndex / r.frames);
+        handle.group.updateMatrixWorld(true);
+        const geometries: BufferGeometry[] = [skinnedMeshToGeometry(body)];
+        for (const { mesh, rest, bone, boneRestInv } of parts) {
+          if (bone && boneRestInv) {
+            delta.multiplyMatrices(bone.matrixWorld, boneRestInv);
+            mesh.matrixWorld.multiplyMatrices(delta, rest);
+          }
+          geometries.push(partMeshToIndexedGeometry(mesh));
+        }
+        const merged = mergeGeometries(geometries, false);
+        if (!merged) throw new Error(`entities3d: crowd clip bake produced no geometry for "${blueprint.label}"`);
+        out.get(r.clip)!.push(merged);
+        frameIndex++;
+        if (frameIndex >= r.frames) { requestIndex++; frameIndex = 0; }
+        return requestIndex >= requests.length;
+      },
+      result: () => out,
+      dispose,
+    };
+  } catch (error) {
+    dispose();
+    throw error;
+  }
+}
+
+/** Bake every activity frame at once (tests and offline tools). */
+export function bakeCrowdClipFrames(
+  blueprint: EntityBlueprint,
+  clips: Map<string, AnimationClip>,
+  requests: CrowdClipRequest[],
+): Map<string, BufferGeometry[]> {
+  const baker = createCrowdClipBaker(blueprint, clips, requests);
+  try {
+    while (!baker.step()) { /* one frame per step */ }
+    return baker.result();
+  } finally {
+    baker.dispose();
+  }
 }
