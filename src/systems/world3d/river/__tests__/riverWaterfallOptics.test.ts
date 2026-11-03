@@ -1,7 +1,9 @@
 /** Checks light and event-position limits without a renderer. These references
  * expose energy errors that a white waterfall screenshot could conceal. */
 import { describe, expect, it } from 'vitest';
-import { waterfallOpticalSegment, waterfallSkyBasis, waterfallSkyIrradiance, waterfallTwoStream } from '@/components/World3D/water/riverWaterfallView';
+// The optics moved out of riverWaterfallView into their own module; the view
+// imports them from there and does not re-export them.
+import { waterfallOpticalSegment, waterfallSkyBasis, waterfallSkyIrradiance, waterfallTwoStream } from '@/components/World3D/water/riverWaterfallOptics';
 
 describe('waterfall homogeneous transport', () => {
   it('preserves transparent, absorption-only, and scattering-only limits', () => {

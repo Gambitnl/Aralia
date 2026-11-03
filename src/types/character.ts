@@ -192,6 +192,8 @@ export interface Race {
   traits: string[];
   /** The parent race group this race belongs to (e.g., 'dwarf' for Hill Dwarf, Mountain Dwarf, etc.) */
   baseRace?: string;
+  /** Structured exemption from the -10 ft speed penalty when wearing heavy armor below its Strength requirement (GG-168). */
+  ignoresHeavyArmorSpeedPenalty?: boolean;
   /** Whether this race can be selected directly without choosing a subrace. Defaults to true if omitted. */
   isSelectableAsBase?: boolean;
   elvenLineages?: ElvenLineage[];

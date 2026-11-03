@@ -381,7 +381,10 @@ async function main(): Promise<void> {
             }
             browserConnectionMode = 'cdp';
           } catch {
-            browser = await chromium.launch({ headless: true });
+            // Security (2026-11-03): this opens D&D Beyond, an open-web site.
+            // Use the installed, self-updating Chrome with the sandbox ON;
+            // Playwright's defaults are bundled Chromium with the sandbox OFF.
+            browser = await chromium.launch({ channel: 'chrome', chromiumSandbox: true, headless: true });
             page = await browser.newPage({
               userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
               locale: 'en-US',

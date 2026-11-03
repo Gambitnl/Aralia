@@ -5,7 +5,13 @@
 
 import * as THREE from 'three/webgpu';
 
-export const WATERFALL_OPTICS = { g: 0.7, skyRows: 64 } as const;
+// ONE SET OF OPTICS (2026-11-03, claude-fall-lips; CI Typecheck run 41535506704).
+// The agora-e9e1 split copied these as g 0.7 and 64 rows, while the view's
+// shader kept g 0.75 and samples the tables as 65 rows. So the CPU tables and
+// the shader disagreed, and riverWaterfallOptics.test.ts (14/15 forward mass at
+// g 0.75) failed once its import was fixed. These are the pre-split values, and
+// the view now reads g and skyRows from here, so the two cannot drift again.
+export const WATERFALL_OPTICS = { g: 0.75, skyRows: 65 } as const;
 export const WATERFALL_INTERFACE = { lowContrast: 1/8, highContrast: 1/4, halfRelative: 2**-10, halfAbsolute: 2**-24, quantizationFactor: 4, precisionFactor: 16*2**-23 } as const;
 
 type WaterfallNormalVector = readonly [number,number,number];
@@ -156,11 +162,15 @@ export function waterfallSkyBasis(viewY: number): WaterfallSkyCell[] {
   const lo = Math.floor(p); const hi = Math.min(WATERFALL_OPTICS.skyRows - 1, lo + 1); const t = p - lo;
   return Array.from({ length: 3 }, (_, cell) => {
     const a = (cell * WATERFALL_OPTICS.skyRows + lo) * 4; const b = (cell * WATERFALL_OPTICS.skyRows + hi) * 4;
-    const direction: [number, number, number] = [
+    const blend: [number, number, number] = [
       data.directions[a] * (1 - t) + data.directions[b] * t,
       data.directions[a + 1] * (1 - t) + data.directions[b + 1] * t,
       data.directions[a + 2] * (1 - t) + data.directions[b + 2] * t,
     ];
+    // The shader normalizes the filtered table direction before it traces the
+    // ray; a blend of two unit rows is shorter than one, so do the same here.
+    const length = Math.hypot(...blend);
+    const direction = blend.map(v => v / length) as [number, number, number];
     const mass = data.directions[a + 3] * (1 - t) + data.directions[b + 3] * t;
     const zenithMix = data.moments[a] * (1 - t) + data.moments[b] * t;
     return { direction, mass, zenithMix };

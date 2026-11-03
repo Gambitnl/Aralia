@@ -9,6 +9,8 @@ export const HILL_DWARF_DATA: Race = {
     id: 'hill_dwarf',
     name: 'Hill Dwarf',
     baseRace: 'dwarf',
+    // Dwarves do not suffer the -10 ft speed penalty when wearing heavy armor below its Strength requirement (GG-168).
+    ignoresHeavyArmorSpeedPenalty: true,
     description:
         'Hill dwarves possess keen senses, deep intuition, and remarkable resilience. More connected to the surface world than their subterranean kin, they often build settlements into hillsides and rolling highlands. Their culture emphasizes wisdom and endurance, and they are known for their adaptability when interacting with other races. Like all dwarves, they take great pride in their craftsmanship and ancestral traditions.',
     abilityBonuses: [], // Flexible ASIs handled by Point Buy.

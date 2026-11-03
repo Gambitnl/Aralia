@@ -471,7 +471,7 @@ describe("resident handoff ownership", () => {
     const ground={rosters:[roster]} as Parameters<typeof createResidentStreetSampler>[0];
     const before=JSON.stringify({loaded,roster});
     const spy=vi.spyOn(groundMotion,'groundAgentScenePositions').mockImplementation((_ground,clock)=>[{
-      burgId:314,occupantId:4,name:occupant.name,xM:10+(clock-8)*3600*1.2,zM:20,moving:true,
+      burgId:314,occupantId:4,name:occupant.name,xM:10+(clock-8)*3600*1.2,zM:20,moving:true,outdoors:true,
       activity:'home',gridX:0,gridY:0,surfaceY:3.5,
     }]);
     try {
@@ -524,6 +524,8 @@ describe("resident handoff ownership", () => {
           xM: 0,
           zM: 0,
           moving: false,
+          // Street-ownership input: GroundAgents passes only outdoor people.
+          outdoors: true,
           activity: "home",
           gridX: 0,
           gridY: 0,
@@ -609,7 +611,7 @@ describe("resident handoff ownership", () => {
     const roster: TownRoster = {burgId:314, occupants:[{id:4,name:home.name,householdMemberId:home.householdMemberId,
       ageBand:'adult',homePlotId:91,workPlotId:1,occupation:'shopkeeper'}]};
     const node: GroundAgentSceneNode = {burgId:314,occupantId:4,name:home.name,xM:0,zM:0,
-      gridX:0,gridY:0,surfaceY:0,moving:true,activity:'working'};
+      gridX:0,gridY:0,surfaceY:0,moving:true,outdoors:true,activity:'working'};
     expect(streetOwnedAgentNodes([node],[roster],index,7)).toHaveLength(0);
     expect(streetOwnedAgentNodes([node],[roster],index,8.05)).toHaveLength(1);
     expect(streetOwnedAgentNodes([node],[roster],index,8.11)).toHaveLength(0);

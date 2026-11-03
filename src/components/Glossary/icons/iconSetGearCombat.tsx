@@ -7,6 +7,10 @@
  * icon is unchanged; it now arrives through a factory that takes the caller's
  * className so every SVG keeps sizing itself from GlossaryIcon's prop.
  *
+ * Recent updates:
+ * - Added `shield_star_outline` SVG entry (GG-181) to match `shield_star` and
+ *   the other `shield_*_outline` variants.
+ *
  * Called by: components/Glossary/IconRegistry.tsx (spread-merged into `icons`).
  * Depends on: React for the SVG elements.
  */
@@ -363,6 +367,11 @@ export const iconSetGearCombat = (className: string): Record<string, React.React
     shield_star: (
         <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
             <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1M15.08 16L12 14.15L8.93 16L9.74 12.5L7.03 10.16L10.61 9.85L12 6.55L13.39 9.84L16.97 10.15L14.26 12.5L15.08 16Z" />
+        </svg>
+    ),
+    shield_star_outline: (
+        <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+            <path d="M21 11C21 16.55 17.16 21.74 12 23C6.84 21.74 3 16.55 3 11V5L12 1L21 5V11M12 21C15.75 20 19 15.54 19 11.22V6.3L12 3.18L5 6.3V11.22C5 15.54 8.25 20 12 21M15.08 16L12 14.15L8.93 16L9.74 12.5L7.03 10.16L10.61 9.85L12 6.55L13.39 9.84L16.97 10.15L14.26 12.5L15.08 16Z" />
         </svg>
     ),
     // Weapon concept: Stylized elven/ranger's mark fantasy reticle.

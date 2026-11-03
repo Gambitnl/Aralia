@@ -106,73 +106,17 @@ const equipmentSlots: SlotDisplayInfo[] = [
 // ============================================================================
 // Slot Compatibility Rules (weapon vs armor)
 // ============================================================================
-// The paper doll above already knows which slots wear armor, hold a shield, and
-// wield a weapon. Those flags are exported here as a shared rule so the backpack
-// (InventoryList) and any future equip surface agree with the mannequin instead
-// of each re-deriving slot semantics. Only the weapon/armor distinction is
-// enforced: accessories (wondrous items) legitimately occupy hands, head, cloak,
-// rings and belt, so they stay permissive and keep their future feature space.
+// Re-exported from `src/utils/character/slotCompatibility.ts` (GG-167) so that
+// existing UI callers (`InventoryList.tsx`, tests) and the non-UI `EQUIP_ITEM`
+// reducer share one pure, React-free definition of which item kinds a slot accepts.
 // ============================================================================
-
-/** Slots that can hold a wielded weapon. */
-export const WEAPON_SLOTS: readonly EquipmentSlotType[] =
-  equipmentSlots.filter(s => s.isWeaponSlot).map(s => s.id);
-
-/** Slots that wear body armor (helm, breastplate, greaves, ...). */
-export const ARMOR_SLOTS: readonly EquipmentSlotType[] =
-  equipmentSlots.filter(s => s.isArmorSlot).map(s => s.id);
-
-/** Slots that can strap a shield. */
-export const SHIELD_SLOTS: readonly EquipmentSlotType[] =
-  equipmentSlots.filter(s => s.isShieldSlot).map(s => s.id);
-
-/**
- * Whether `item` is allowed to occupy `slot` under the weapon/armor rules.
- *
- * Why this exists: `canEquipItem` (utils/character/defense.ts) validates
- * proficiency, level and ability requirements but never checks that the item
- * kind matches the slot kind, so data-authored gear with a mismatched `slot`
- * (a greatsword slotted to `Torso`, a breastplate slotted to `MainHand`) used to
- * pass straight through to the reducer and land on the wrong body part.
- *
- * Preserved: non-weapon, non-armor kinds (accessories, wondrous items, anything
- * added later) return `true` here. This guard deliberately does not attempt to
- * police accessory placement, which has no settled rule yet.
- */
-export const slotAcceptsItem = (slot: EquipmentSlotType, item: Item): boolean => {
-  if (item.type === 'weapon') {
-    if (isTwoHandedWeapon(item)) {
-      return slot === 'MainHand';
-    }
-    return WEAPON_SLOTS.includes(slot);
-  }
-  if (item.type === 'armor') {
-    // A shield is armor by type but is strapped, not worn: it belongs in the
-    // off hand rather than in any of the body-armor slots.
-    return item.armorCategory === 'Shield'
-      ? SHIELD_SLOTS.includes(slot)
-      : ARMOR_SLOTS.includes(slot);
-  }
-  return true;
-};
-
-/**
- * Human-readable reason a slot rejects an item, or `undefined` when it accepts.
- * Used for the disabled Equip button's tooltip so a player sees why a piece of
- * gear cannot go where its data claims.
- */
-export const slotRejectionReason = (slot: EquipmentSlotType, item: Item): string | undefined => {
-  if (slotAcceptsItem(slot, item)) return undefined;
-  const label = equipmentSlots.find(s => s.id === slot)?.label ?? slot;
-  if (item.type === 'weapon') {
-    if (isTwoHandedWeapon(item) && slot === 'OffHand') {
-      return 'Two-handed weapons cannot be equipped in the off-hand.';
-    }
-    return `Weapons cannot be equipped in the ${label} slot.`;
-  }
-  if (item.armorCategory === 'Shield') return `A shield cannot be equipped in the ${label} slot.`;
-  return `Armor cannot be equipped in the ${label} slot.`;
-};
+export {
+  WEAPON_SLOTS,
+  ARMOR_SLOTS,
+  SHIELD_SLOTS,
+  slotAcceptsItem,
+  slotRejectionReason,
+} from '../../../utils/character/slotCompatibility';
 
 /**
  * A subtle SVG silhouette to go behind the slots, giving context to the "empty" spaces.

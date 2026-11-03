@@ -24,7 +24,8 @@ function fakeMesh(capacity?: number) {
 
 function node(over: Partial<GroundAgentSceneNode>): GroundAgentSceneNode {
   return {
-    burgId: 1, occupantId: 1, name: 'A', xM: 0, zM: 0, moving: false, activity: 'home',
+    // The street crowd draws only outdoor people, so a drawn node is outdoors.
+    burgId: 1, occupantId: 1, name: 'A', xM: 0, zM: 0, moving: false, outdoors: true, activity: 'home',
     gridX: 0, gridY: 0, surfaceY: 0, ...over,
   };
 }

@@ -1,6 +1,6 @@
 # Town Map
 
-Verified: 2026-11-02 (GG-604 suburb lanes: the lanes between suburb blocks are passages joined to the approach roads, measured on the demo town and Borieborum). Earlier: 2026-11-02 (GG-600 town work and GG-601 street joins, door steps, errand doors and errand slots: see "Street crowd: errands, departures and outdoor drawing"). Earlier: 2026-11-02 (GG-593 plaza pads: market squares and civic forecourts graded to at most 5 degrees in the 3D bake, measured at four bands and a town sample). Earlier: 2026-11-02 (street crowd errands, departures, outdoor-only drawing and talk/listen poses: see "Street crowd: errands, departures and outdoor drawing"). Earlier: 2026-11-02 (GG-586 market square: measured at four bands and 24 sampled towns, Hafting rendered in the 2D town map at `step=town3d`). Earlier: 2026-11-02 (GG-577 shared courts in the old core and GG-569 civic grounds in the 3D bake, measured at four bands, rendered at `step=town3d` Real 3D for Paphina). Earlier: 2026-11-02 (GG-542: staff and patron parity between the building visit and the live schedule). Earlier: 2026-11-01 (town-map rules GG-560 to GG-567: main street, river channel, bridges, docks, gate hooks, house shape, front gardens, passages and civic grounds, measured at four bands and thirteen water towns, rendered at `step=town3d`; candidate homestead/parent-land/shared-approach planning and larger-town coverage failure; explicit candidate rural household/field source facts; fresh-only resolved building purpose and household-first prop wealth; native settled nave orbit, altar route and retained knowledge reload; requested-heading camera retraction and native temple bench/reload; measured retained-prop repair proposal and native movement contract; saved-revision factual readers and Local/address reconstruction; revision-aware building/rest readers, truthful routine reports and source-change inspector reset; recorded door widths, household reference drafts and native poor-home reload; saved town-layout registration and ground projection; retained town-layout reader and measured runtime precision; reached furnishing identity source and captured desktop component view; town-look rules GG-544 to GG-551, census of 813 towns; fitted civic labels and native library use; town roads meet the world roads, GG-541, census of 8 towns). Earlier, 2026-10-29: (canonical door-head alignment, measured standing clearance, actual Fenna entry/owned trade/counter examination and two native interior reloads; live Brooksmith work/home handoff, night manual full reload and continuous terrain walking; separate workplace attendance and retirement; ground recovery, finish-based rest cooldown and named-slot reload; source-grid combat handoff and actual Alrio defeat; observed Alrio growth, saved exploration knowledge, bounded stair/input gates and exact repaired world return; typed tavern services and saved local hooks; canonical proprietor reconciliation, clear activity targets, resident mouse selection, family/memory reload, in-place rest, saved front doors and qualified railed Hartdown traversal). Source-bound shelf rendering and owned-content examination were checked in the saved Menaikon visit.
+Verified: 2026-11-02 (GG-608 every front door faces a street: blueprint entry rule and ribbon lot winding, measured on two towns and 40 sampled towns in revisions 1, 4 and 2). Earlier: 2026-11-02 (GG-604 suburb lanes: the lanes between suburb blocks are passages joined to the approach roads, measured on the demo town and Borieborum). Earlier: 2026-11-02 (GG-600 town work and GG-601 street joins, door steps, errand doors and errand slots: see "Street crowd: errands, departures and outdoor drawing"). Earlier: 2026-11-02 (GG-593 plaza pads: market squares and civic forecourts graded to at most 5 degrees in the 3D bake, measured at four bands and a town sample). Earlier: 2026-11-02 (street crowd errands, departures, outdoor-only drawing and talk/listen poses: see "Street crowd: errands, departures and outdoor drawing"). Earlier: 2026-11-02 (GG-586 market square: measured at four bands and 24 sampled towns, Hafting rendered in the 2D town map at `step=town3d`). Earlier: 2026-11-02 (GG-577 shared courts in the old core and GG-569 civic grounds in the 3D bake, measured at four bands, rendered at `step=town3d` Real 3D for Paphina). Earlier: 2026-11-02 (GG-542: staff and patron parity between the building visit and the live schedule). Earlier: 2026-11-01 (town-map rules GG-560 to GG-567: main street, river channel, bridges, docks, gate hooks, house shape, front gardens, passages and civic grounds, measured at four bands and thirteen water towns, rendered at `step=town3d`; candidate homestead/parent-land/shared-approach planning and larger-town coverage failure; explicit candidate rural household/field source facts; fresh-only resolved building purpose and household-first prop wealth; native settled nave orbit, altar route and retained knowledge reload; requested-heading camera retraction and native temple bench/reload; measured retained-prop repair proposal and native movement contract; saved-revision factual readers and Local/address reconstruction; revision-aware building/rest readers, truthful routine reports and source-change inspector reset; recorded door widths, household reference drafts and native poor-home reload; saved town-layout registration and ground projection; retained town-layout reader and measured runtime precision; reached furnishing identity source and captured desktop component view; town-look rules GG-544 to GG-551, census of 813 towns; fitted civic labels and native library use; town roads meet the world roads, GG-541, census of 8 towns). Earlier, 2026-10-29: (canonical door-head alignment, measured standing clearance, actual Fenna entry/owned trade/counter examination and two native interior reloads; live Brooksmith work/home handoff, night manual full reload and continuous terrain walking; separate workplace attendance and retirement; ground recovery, finish-based rest cooldown and named-slot reload; source-grid combat handoff and actual Alrio defeat; observed Alrio growth, saved exploration knowledge, bounded stair/input gates and exact repaired world return; typed tavern services and saved local hooks; canonical proprietor reconciliation, clear activity targets, resident mouse selection, family/memory reload, in-place rest, saved front doors and qualified railed Hartdown traversal). Source-bound shelf rendering and owned-content examination were checked in the saved Menaikon visit.
 
 Named household schedules share the occupancy owner's 07:00 breakfast, 08:00
 work and 18:00 return boundaries. Street travel uses existing route length at
@@ -644,9 +644,35 @@ subjects (GG-552). The rules, in `town/`:
   - Measured with `.agent/scratch/npc-life/faults.mts`: fitted doors whose
     step crosses another plot fell from 27 to 5 of 674 (demo town) and from
     184 to 9 of 1,151 (Borieborum). Routes that cut another plot for more than
-    3 ft fell from 98 to 22 (demo). The 14 doors left are blueprint entries
-    on a back or side wall (GG-608). Cost: the router has more nodes, and the
-    demo bake rose from about 20 s to 31 s (GG-605).
+    3 ft fell from 98 to 22 (demo). The 14 doors left were blueprint entries
+    on a back or side wall, fixed by GG-608 below. Cost: the router has more
+    nodes, and the demo bake rose from about 20 s to 31 s (GG-605).
+- **Every front door faces a street** (GG-608, Remy's ruling 2026-11-02,
+  "Fix all towns"). Two causes, two fixes:
+  - **Blueprint entry** (`interior/doors.ts`, every layout revision and old
+    saves too). The entry room is the main room when it touches the street;
+    else the public room on the street nearest the main room in door steps,
+    through public rooms only (a corridor first at each depth). No bedroom
+    or member's room (`forSlot`) is used or passed. Only when no public room
+    reaches the street does the old rule stay: the main room's outer wall.
+    Before, a main room with any outer wall took the entry, often on the back
+    wall or on a side party wall.
+  - **Ribbon lots** (`townSuburbs.ts`, revisions 2 and 3). A lot starts with
+    its road edge, wound so the lot lies to the left of it, because
+    `orientedQuad` reads the first edge as the street front. On the right
+    side of a road the winding was reversed, so those houses faced away from
+    their road.
+  - Rooms do not move; only the entry door and what reads it (windows,
+    clear space, stations). Sample of 8 towns per revision (world 903674813):
+    the entry moved in 65 of 643 buildings (revision 1), 65 of 649
+    (revision 4) and 166 of 2,314 (revision 2); world 1793146029630: 40 of 522
+    (revision 1) and 44 of 527 (revision 4). A saved observed building keeps
+    its saved plan.
+  - Measured with `.agent/scratch/npc-life/faults.mts`: 0 of 674 (demo) and
+    0 of 1,151 (Borieborum) door steps cross another plot, and no route cuts
+    a plot for more than 3 ft. Every demo door and 1,150 of 1,151 Borieborum
+    doors are on the front edge; the last is a keep whose door is on the
+    short side of its quad that touches its street.
 - **Ports reach the shore** (GG-547). `buildTownCore` runs the core out to two
   quay widths of any coast edge. A crowded town's wall stands back from the
   shore, so quays may seat on the suburb band outside the wall (`pierFor`).
@@ -1315,6 +1341,14 @@ agree. Staff are not drawn inside their workplace yet (its room packet admits
 only the keeper), and a staff or labor job is never baked as a static figure.
 Borieborum: 1,017 of 3,524 people work (70 before), and 906 different people
 walk from 07:00 to 09:00. Demo town: 600 of 2,109 (53 before).
+
+Route search (GG-605). Verified: 2026-11-02 (route parity probe of both
+towns and a unit test). The router takes its next node from a binary heap
+ordered by distance, then node id, which is the tie rule of the old full scan,
+so every route is the same as before. One search per start node is kept per
+graph (up to 512) and resumed for later goals. A route endpoint finds its
+entrance in a 1 ft grid of entrance centroids and doors. The burg 3 capital
+(1,733 buildings) spends 4.3 s in resident door routes, 97 s before.
 
 Street joins and door steps (GG-601). `buildStreetGraph` joins a street that
 ends on another street's span (`joinStreetEnds`, within 2 ft): it splits that

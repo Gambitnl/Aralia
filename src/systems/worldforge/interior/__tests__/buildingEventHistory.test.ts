@@ -155,7 +155,10 @@ describe('applyHistory', () => {
     // changed when age-led weathering became part of the resolved style; event
     // targets and the canonical event digest below remain independently pinned.
     // Re-pinned after the accepted larger footprint and construction dress.
-    expect(result.liveHistory?.historySignature).toBe('yxucgy');
+    // Re-pinned for GG-608 (Remy's ruling 2026-11-02, "Fix all towns"): this
+    // blueprint's street entry moved to a room on the street side. The event
+    // digest below did not change.
+    expect(result.liveHistory?.historySignature).toBe('1mfpal9');
     expect(buildingEventLogDigest(log)).toBe(buildingEventLogDigest([
       { day: 120, kind: 'fire-damage', payload: { severity: 2, incidentId: 'burg-3:day-120:fire' } },
       { day: 150, kind: 'abandonment', payload: { boardedFraction: 0.5 } },

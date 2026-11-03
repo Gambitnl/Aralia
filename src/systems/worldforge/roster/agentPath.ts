@@ -489,33 +489,110 @@ export function nearestNode(graph: StreetGraph, point: Point): number {
   return bestNode;
 }
 
+// GG-605 (2026-11-02): the search used to pick its next node by a scan of
+// every node, and each route ran it four times. A capital of 1,733 buildings
+// spent 97 s of a 120 s bake in it. Now a binary heap picks the next node, and
+// one search per start node is kept and resumed for later goals.
+//
+// What is preserved: every route. The old scan took the unfinished node with
+// the least distance and, on equal distance, the lowest node id; the heap
+// orders by (distance, node id), so the nodes finish in the same order. A node's
+// predecessor is fixed once it finishes, so a search resumed for a second goal
+// gives the same path as a fresh search that stops at that goal.
+
+interface NodeSearch {
+  distanceTo: Float64Array;
+  previous: Int32Array;
+  finished: Uint8Array;
+  /** Pending (distance, node) entries; stale ones are skipped when popped. */
+  heapDistance: number[];
+  heapNode: number[];
+}
+
+/** (distance, node id) order: the old scan's choice, including its tie rule. */
+function heapBefore(search: NodeSearch, a: number, b: number): boolean {
+  const da = search.heapDistance[a], db = search.heapDistance[b];
+  return da < db || (da === db && search.heapNode[a] < search.heapNode[b]);
+}
+
+function heapSwap(search: NodeSearch, a: number, b: number): void {
+  const d = search.heapDistance[a]; search.heapDistance[a] = search.heapDistance[b]; search.heapDistance[b] = d;
+  const n = search.heapNode[a]; search.heapNode[a] = search.heapNode[b]; search.heapNode[b] = n;
+}
+
+function heapPush(search: NodeSearch, distance: number, node: number): void {
+  search.heapDistance.push(distance);
+  search.heapNode.push(node);
+  for (let i = search.heapNode.length - 1; i > 0;) {
+    const up = (i - 1) >> 1;
+    if (!heapBefore(search, i, up)) break;
+    heapSwap(search, i, up);
+    i = up;
+  }
+}
+
+/** Remove the first entry; the caller reads it from slot 0 before the call. */
+function heapPop(search: NodeSearch): void {
+  const last = search.heapNode.length - 1;
+  heapSwap(search, 0, last);
+  search.heapDistance.pop();
+  search.heapNode.pop();
+  for (let i = 0; ;) {
+    const left = 2 * i + 1, right = left + 1;
+    let best = i;
+    if (left < last && heapBefore(search, left, best)) best = left;
+    if (right < last && heapBefore(search, right, best)) best = right;
+    if (best === i) break;
+    heapSwap(search, i, best);
+    i = best;
+  }
+}
+
+/** Searches kept per graph, most recently used last. A bake asks for routes
+ * from a few hundred start nodes; the cap bounds memory in a large capital. */
+const SEARCHES_PER_GRAPH = 512;
+const searchesByGraph = new WeakMap<StreetGraph, Map<number, NodeSearch>>();
+
+function searchFrom(graph: StreetGraph, start: number): NodeSearch {
+  let searches = searchesByGraph.get(graph);
+  if (!searches) { searches = new Map(); searchesByGraph.set(graph, searches); }
+  let search = searches.get(start);
+  if (search) {
+    searches.delete(start);
+  } else {
+    const nodeCount = graph.nodes.length;
+    search = {
+      distanceTo: new Float64Array(nodeCount).fill(Infinity),
+      previous: new Int32Array(nodeCount).fill(-1),
+      finished: new Uint8Array(nodeCount),
+      heapDistance: [],
+      heapNode: [],
+    };
+    search.distanceTo[start] = 0;
+    heapPush(search, 0, start);
+    if (searches.size >= SEARCHES_PER_GRAPH) searches.delete(searches.keys().next().value!);
+  }
+  searches.set(start, search);
+  return search;
+}
+
 /** Find a stable shortest sequence of graph nodes; return no sequence when disconnected. */
 function dijkstra(graph: StreetGraph, start: number, goal: number): number[] {
-  const nodeCount = graph.nodes.length;
-  const distanceTo = new Array<number>(nodeCount).fill(Infinity);
-  const previous = new Array<number>(nodeCount).fill(-1);
-  const finished = new Array<boolean>(nodeCount).fill(false);
-  distanceTo[start] = 0;
+  const search = searchFrom(graph, start);
+  const { distanceTo, previous, finished } = search;
 
-  for (;;) {
-    // Town graphs are small, so a linear nearest-node choice is simpler and
-    // deterministic. Node-id order breaks equal-cost ties.
-    let current = -1;
-    let bestDistance = Infinity;
-    for (let node = 0; node < nodeCount; node++) {
-      if (!finished[node] && distanceTo[node] < bestDistance) {
-        bestDistance = distanceTo[node];
-        current = node;
-      }
-    }
-    if (current === -1 || current === goal) break;
-
-    finished[current] = true;
+  // Resume until the goal finishes or nothing is left to reach.
+  while (!finished[goal] && search.heapNode.length > 0) {
+    const current = search.heapNode[0], distance = search.heapDistance[0];
+    heapPop(search);
+    if (finished[current] || distance !== distanceTo[current]) continue; // stale entry
+    finished[current] = 1;
     for (const edge of graph.adj[current]) {
       const candidateDistance = distanceTo[current] + edge.w;
       if (candidateDistance < distanceTo[edge.to]) {
         distanceTo[edge.to] = candidateDistance;
         previous[edge.to] = current;
+        heapPush(search, candidateDistance, edge.to);
       }
     }
   }
@@ -537,18 +614,52 @@ interface RouteConnection {
   streetSegmentIndex: number;
 }
 
+/** GG-605: entrances by 1 ft cell of their centroid and door, in entrance
+ * order, so a route endpoint no longer scans every entrance. */
+type EntranceIndex = Map<string, Array<{ order: number; entrance: PlotEntrance }>>;
+const entranceIndexByGraph = new WeakMap<StreetGraph, { size: number; cells: EntranceIndex }>();
+const cellKey = (x: number, y: number) => `${x},${y}`;
+function entranceMatching(graph: StreetGraph, point: Point): PlotEntrance | undefined {
+  let index = entranceIndexByGraph.get(graph);
+  if (!index || index.size !== graph.plotEntrances.size) {
+    const cells: EntranceIndex = new Map();
+    let order = 0;
+    for (const entrance of graph.plotEntrances.values()) {
+      for (const [x, y] of [entrance.centroid, entrance.door]) {
+        const key = cellKey(Math.floor(x), Math.floor(y));
+        let list = cells.get(key);
+        if (!list) { list = []; cells.set(key, list); }
+        if (list.at(-1)?.order !== order) list.push({ order, entrance });
+      }
+      order++;
+    }
+    index = { size: graph.plotEntrances.size, cells };
+    entranceIndexByGraph.set(graph, index);
+  }
+  // A match lies within 1e-6 ft, so it sits in this cell or a neighbor cell.
+  let best: { order: number; entrance: PlotEntrance } | undefined;
+  const cx = Math.floor(point[0]), cy = Math.floor(point[1]);
+  for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
+    for (const hit of index.cells.get(cellKey(cx + dx, cy + dy)) ?? []) {
+      if (best && hit.order >= best.order) continue;
+      if (pointsMatch(point, hit.entrance.centroid) || pointsMatch(point, hit.entrance.door)) best = hit;
+    }
+  }
+  return best?.entrance;
+}
+
 /** Replace a known plot centroid with its actual door before joining the street. */
 function connectionForPoint(graph: StreetGraph, point: Point): RouteConnection | undefined {
   // Existing motion callers pass plot centroids. A door is also accepted so a
   // route can be chained from a previously completed commute without drifting.
-  for (const entrance of graph.plotEntrances.values()) {
-    if (pointsMatch(point, entrance.centroid) || pointsMatch(point, entrance.door)) {
-      return {
-        endpoint: entrance.door,
-        streetPoint: entrance.streetPoint,
-        streetSegmentIndex: entrance.streetSegmentIndex,
-      };
-    }
+  // The first entrance in entrance order wins, as the old full scan did.
+  const entrance = entranceMatching(graph, point);
+  if (entrance) {
+    return {
+      endpoint: entrance.door,
+      streetPoint: entrance.streetPoint,
+      streetSegmentIndex: entrance.streetSegmentIndex,
+    };
   }
 
   // Arbitrary callers still receive segment-accurate snapping. Their true point

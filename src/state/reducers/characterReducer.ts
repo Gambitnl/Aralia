@@ -68,6 +68,7 @@ import {
   isTwoHandedWeapon,
 } from '../../utils/character';
 import { completePreparation, togglePreparationPlan } from '../../systems/gameplay/spellPreparation';
+import { slotAcceptsItem } from '../../utils/character/slotCompatibility';
 import { spellSlotsForClassLevel } from '../../systems/character/spellSlotProgression';
 import { isWeaponProficient } from '../../utils/character';
 import { rollDice } from '../../systems/dice/rollers';
@@ -395,6 +396,16 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                 : itemToEquip.slot || null;
 
             if (!targetSlot) return {};
+
+            // GG-167: Enforce shared mannequin weapon/armor slot-acceptance rules so
+            // mis-slotted items (e.g., a weapon with slot 'Torso' or body armor with
+            // slot 'MainHand') are refused cleanly before writing to equippedItems.
+            if (
+                (itemToEquip.slot && !slotAcceptsItem(itemToEquip.slot, itemToEquip)) ||
+                !slotAcceptsItem(targetSlot, itemToEquip)
+            ) {
+                return {};
+            }
 
             // GG-502: If trying to equip into OffHand while wielding a Two-Handed weapon in MainHand, refuse!
             if (targetSlot === 'OffHand' && isMainHandTwoHanded) {

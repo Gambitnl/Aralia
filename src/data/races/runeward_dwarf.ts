@@ -9,6 +9,8 @@ export const MARK_OF_WARDING_DWARF_DATA: Race = {
     id: 'runeward_dwarf',
     name: 'Runeward Dwarf',
     baseRace: 'dwarf',
+    // Dwarves do not suffer the -10 ft speed penalty when wearing heavy armor below its Strength requirement (GG-168).
+    ignoresHeavyArmorSpeedPenalty: true,
     description:
         'Etched with a sigil that pulses with protective energy, dwarves bearing the Mark of Warding are natural guardians and vault keepers. This hereditary gift grants them mastery over locks, wards, and protective enchantments, allowing them to create barriers that few can breach. Their mark glows when they craft magical seals or detect threats to what they guard. These marked dwarves are sought after as security specialists, vault masters, and protectors of valuable secrets, their innate understanding of defensive magic making them unmatched guardians.',
     abilityBonuses: [], // Flexible ASIs handled by Point Buy.

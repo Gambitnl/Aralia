@@ -17,7 +17,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
-import { collectInteriorLighting, scenePatchFor } from '../InteriorLights';
+import { collectInteriorLighting, InteriorLightingCache, scenePatchFor } from '../InteriorLights';
 import { sunFloorPatch } from '@/systems/world3d/interiorDaylight';
 import { chunkOriginWorld } from '@/systems/world3d/coords';
 import { worldToScene, type SceneOrigin } from '@/systems/world3d/sceneOrigin';
@@ -254,5 +254,59 @@ describe('collectInteriorLighting lit windows and lamps (night light out)', () =
     expect(dark.lamps).toHaveLength(0);
     const unscheduled = collectInteriorLighting([makeChunk(0, 0, site, [floor, pane, table])], origin);
     expect(unscheduled.windows).toHaveLength(0);
+  });
+});
+
+describe('InteriorLightingCache collects only the chunks that are new (GG-606)', () => {
+  const origin: SceneOrigin = { x: 3, z: -2 };
+  const site: OracleSite = { localX: 4, localZ: 5, surfaceY: 0, rotationY: 0.3, doorZSign: -1 };
+  const parts = [
+    { x: 0, z: 0, w: 6, d: 4, h: 0.1, baseY: -0.1, colorHex: '#9a8a72', walkSurface: 'floor' },
+    { x: 0, z: 2.15, w: 1.2, d: 0.04, h: 1.2, baseY: 0.9, colorHex: '#2f3a4d', lightRole: 'window' },
+    { x: 1.2, z: 0.8, w: 1, d: 1, h: 1.2, baseY: 0.3, colorHex: '#fff', lightRole: 'hearth' },
+    { x: -1, z: -0.5, w: 1.2, d: 0.8, h: 0.75, baseY: 0, colorHex: '#7a5a3a', furnishing: { kind: 'table' } },
+  ];
+  const lit = { litHours: Array.from({ length: 24 }, (_, h) => h >= 18) };
+  const a = makeChunk(0, 0, site, parts, lit);
+  const b = makeChunk(1, 0, site, parts, lit);
+  const c = makeChunk(0, 1, site, parts, lit);
+
+  it('builds one new chunk only, and reuses the lists of the chunks it kept', () => {
+    const cache = new InteriorLightingCache();
+    const first = cache.collect([a, b], origin);
+    expect(cache.lastBuilt).toEqual(['0|0', '1|0']);
+    // Every kind of source is present, so the test covers each list.
+    for (const list of Object.values(first)) expect(list.length).toBeGreaterThan(0);
+
+    const second = cache.collect([a, b, c], origin);
+    expect(cache.lastBuilt).toEqual(['0|1']);
+    // The same result as a full pass, in the same order...
+    expect(second).toEqual(collectInteriorLighting([a, b, c], origin));
+    // ...and the kept chunks' sources are the very objects built before.
+    const keys = ['hearths', 'shells', 'windows', 'lamps', 'apertures'] as const;
+    for (const k of keys) {
+      first[k].forEach((item, i) => expect(second[k][i]).toBe(item));
+    }
+  });
+
+  it('drops a chunk that leaves and builds it again when it comes back', () => {
+    const cache = new InteriorLightingCache();
+    cache.collect([a, b, c], origin);
+    const without = cache.collect([b, c], origin);
+    expect(cache.lastBuilt).toEqual([]);
+    expect(without).toEqual(collectInteriorLighting([b, c], origin));
+    cache.collect([a, b, c], origin);
+    expect(cache.lastBuilt).toEqual(['0|0']);
+  });
+
+  it('builds a chunk again when its bundle or the scene origin changes', () => {
+    const cache = new InteriorLightingCache();
+    cache.collect([a, b], origin);
+    const b2 = makeChunk(1, 0, { ...site, localX: 7 }, parts, lit);
+    const moved = cache.collect([a, b2], origin);
+    expect(cache.lastBuilt).toEqual(['1|0']);
+    expect(moved).toEqual(collectInteriorLighting([a, b2], origin));
+    cache.collect([a, b2], { x: 0, z: 0 });
+    expect(cache.lastBuilt).toEqual(['0|0', '1|0']);
   });
 });

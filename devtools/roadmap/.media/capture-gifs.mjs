@@ -1,8 +1,12 @@
 /**
- * Roadmap node GIF capture script.
- * Usage: node devtools/roadmap/.media/capture-gifs.mjs
- * Records animated GIFs for interactive spell system roadmap nodes.
- * Requires: playwright, ffmpeg on PATH
+ * This file records animated GIFs for interactive spell-system roadmap nodes.
+ *
+ * It launches a sandboxed system Chrome context with video recording enabled,
+ * drives the VSM drill-down, live axis filtering, and spell-branch handoff flows,
+ * and encodes the resulting WebM clips to GIF via `ffmpeg`.
+ *
+ * Called by: Developer CLI (`node devtools/roadmap/.media/capture-gifs.mjs`).
+ * Depends on: `playwright` (`chromium`), `ffmpeg` on `PATH`, and a local dev server at `localhost:3010`.
  */
 import { chromium } from 'playwright';
 import { writeFileSync, mkdirSync, existsSync, readdirSync, unlinkSync } from 'fs';
@@ -37,6 +41,8 @@ async function captureVsmDrillDown() {
   // GIF: VSM Drill-Down Navigator
   // Show: clicking Casting Time → bonus_action, then School → Evocation, axes update live
   const ctx = await chromium.launchPersistentContext('', {
+    channel: 'chrome',
+    chromiumSandbox: true,
     headless: true,
     recordVideo: { dir: VIDEO_TMP, size: { width: 900, height: 700 } },
   });
@@ -81,6 +87,8 @@ async function captureLiveAxisFiltering() {
   // GIF: Live Axis Filtering Engine (Spell Graph Overlay)
   // Show: expanding Spells node → overlay appears, clicking Casting Time → values with counts
   const ctx = await chromium.launchPersistentContext('', {
+    channel: 'chrome',
+    chromiumSandbox: true,
     headless: true,
     recordVideo: { dir: VIDEO_TMP, size: { width: 1400, height: 860 } },
   });
@@ -127,6 +135,8 @@ async function captureSpellBranchHandoff() {
   // GIF: Spell Branch Tab Handoff
   // Show: "Open in Spell Branch" clicked from graph overlay → tab switches, pre-seeded filter
   const ctx = await chromium.launchPersistentContext('', {
+    channel: 'chrome',
+    chromiumSandbox: true,
     headless: true,
     recordVideo: { dir: VIDEO_TMP, size: { width: 1400, height: 860 } },
   });

@@ -67,6 +67,61 @@ describe('street entry (frontage — Task 9)', () => {
     expect(eligible).toBeGreaterThan(60);
     expect(onStreet / eligible).toBeGreaterThanOrEqual(0.95);
   });
+
+  // GG-608 (Remy's ruling 2026-11-02, "Fix all towns"): a main room with no
+  // street wall used to take the entry on its back or side wall, so residents
+  // walked out through a neighbor. A room that opens off it and touches the
+  // street now takes the entry instead.
+  it('puts the entry on a corridor that reaches the street when the main room does not', () => {
+    // Row 0 is a corridor along the street; the main hall lies behind it.
+    const rg = [[1, 1], [0, 0], [0, 0]];
+    const cellsOf = (id: number) => rg.flatMap((row, cy) => row.flatMap((v, cx) => (v === id ? [{ cx, cy }] : [])));
+    const rooms = [
+      { id: 0, purpose: 'hall', isMain: true, cells: cellsOf(0), anchor: { cx: 0, cy: 1 }, area: 4 },
+      { id: 1, purpose: 'corridor', isCorridor: true, cells: cellsOf(1), anchor: { cx: 0, cy: 0 }, area: 2 },
+    ] as any;
+    const entry = wireDoors(rootSeedPath(7), rg, rooms).doors.find((d) => d.isEntry)!;
+    expect(entry.b).toBe(1);
+    expect(entry).toMatchObject({ axis: 'x', y: 0 });
+    expect(entry.openDir).toEqual({ nx: 0, ny: 1 });
+  });
+
+  it('never leaves the entry off the street when a public room the main room reaches touches it', () => {
+    let fallback = 0, checked = 0;
+    for (const type of ['cottage', 'townhouse', 'tenement', 'shop', 'tavern', 'manor'] as const) {
+      for (let seed = 0; seed < 60; seed++) {
+        const { rg, rooms, doors } = build(type, seed);
+        const entry = doors.find((d) => d.isEntry)!;
+        const main = rooms.find((r) => r.isMain)!;
+        const touches = (r: { cells: Array<{ cx: number; cy: number }> }) =>
+          r.cells.some((c) => (rg[c.cy - 1]?.[c.cx] ?? -1) < 0 && isMinYBoundary(rg, c));
+        // Public rooms the main room reaches through public rooms only.
+        const isPublic = (id: number) => { const r = rooms.find((q) => q.id === id)!; return !PRIVATE_PURPOSES.includes(r.purpose) && r.forSlot === undefined; };
+        const seen = new Set([main.id]); const stack = [main.id];
+        while (stack.length) {
+          const id = stack.pop()!;
+          for (const d of doors) {
+            if (d.isEntry || (d.a !== id && d.b !== id)) continue;
+            const other = d.a === id ? d.b : d.a;
+            if (!seen.has(other) && isPublic(other)) { seen.add(other); stack.push(other); }
+          }
+        }
+        const reachable = rooms.some((r) => seen.has(r.id) && touches(r));
+        checked++;
+        const onStreetEdge = entry.axis === 'x' && isMinYBoundary(rg, { cx: Math.floor(entry.x / CELL_FT), cy: entry.y / CELL_FT })
+          && (rg[entry.y / CELL_FT]?.[Math.floor(entry.x / CELL_FT)] ?? -1) === entry.b;
+        if (reachable) expect(onStreetEdge, `${type} seed ${seed}`).toBe(true);
+        else fallback++;
+      }
+    }
+    expect(checked).toBe(360);
+    // The old rule stays only where no public room reaches the street: the
+    // street side is all bedrooms or rooms set aside for one member, and a
+    // front door never opens into a bedroom. Pins the measured rate of these
+    // synthetic footprints (34 of 360); in the sampled real towns no house
+    // used it (demo 674 of 674 and Borieborum 1,150 of 1,151 doors on the front).
+    expect(fallback).toBeLessThanOrEqual(34);
+  });
 });
 
 describe('door swing (openDir / swingInto)', () => {

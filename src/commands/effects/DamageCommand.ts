@@ -366,11 +366,22 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
         }
 
         // --- Step 3: Handle Saving Throw ---
-        // If the effect requires a save (e.g., Dex save for Fireball), roll it here.
-        // saveEffect determines damage on success: 'half' (most spells), 'none' (cantrips), or 'negates_condition'
-        if (this.effect.condition.type === 'save' && this.effect.condition.saveType) {
-          // Calculate the spell save DC: 8 + proficiency + spellcasting modifier
-          let dc = calculateSpellDC(caster);
+        // If the effect requires a save (e.g., Dex save for Fireball or a
+        // monster/class save-for-half ability mapped through AbilityEffectMapper),
+        // roll it here. Spell effects use `type: 'save'` and derive DC from the
+        // caster's spellcasting stats, while mapped abilities carry `type: 'saving_throw'`
+        // and an explicit `saveDC`.
+        // saveEffect determines damage on success: 'half' (most spells/abilities), 'none' (cantrips), or 'negates_condition'
+        if (
+          (this.effect.condition.type === 'save' || this.effect.condition.type === 'saving_throw') &&
+          this.effect.condition.saveType
+        ) {
+          // Use the explicit ability save DC when provided; otherwise calculate
+          // the spell save DC (8 + proficiency + spellcasting modifier).
+          let dc =
+            typeof this.effect.condition.saveDC === 'number' && Number.isFinite(this.effect.condition.saveDC)
+              ? this.effect.condition.saveDC
+              : calculateSpellDC(caster);
 
           // Impeded spell schools on certain planes reduce DC
           if (planarModifier < 0) {

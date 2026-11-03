@@ -1,7 +1,11 @@
 /**
- * GIF capture via screenshot stitching for graph overlay features.
- * Takes timed page.screenshot() calls during interaction, combines with ffmpeg.
- * Usage: node devtools/roadmap/.media/capture-gifs-screenshots.mjs
+ * This file captures animated GIFs for the roadmap graph overlay by stitching timed screenshots.
+ *
+ * It launches a sandboxed system Chrome instance, steps through the Spell Branch and
+ * Live Axis Filtering interactions while saving PNG frames, and combines them with `ffmpeg`.
+ *
+ * Called by: Developer CLI (`node devtools/roadmap/.media/capture-gifs-screenshots.mjs`).
+ * Depends on: `playwright` (`chromium`), `ffmpeg` on `PATH`, and a local dev server at `localhost:3010`.
  */
 import { chromium } from 'playwright';
 import { writeFileSync, mkdirSync, existsSync, unlinkSync, readdirSync } from 'fs';
@@ -54,7 +58,7 @@ function framesToGif(framesDir, prefix, outputPath, cropFilter) {
 
 async function captureLiveAxisFiltering() {
   cleanFrames();
-  const browser = await chromium.launch({ headless: false });
+  const browser = await chromium.launch({ channel: 'chrome', chromiumSandbox: true, headless: false });
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
   await page.setViewportSize({ width: 1400, height: 860 });
@@ -125,7 +129,7 @@ async function captureLiveAxisFiltering() {
 
 async function captureSpellBranchHandoff() {
   cleanFrames();
-  const browser = await chromium.launch({ headless: false });
+  const browser = await chromium.launch({ channel: 'chrome', chromiumSandbox: true, headless: false });
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
   await page.setViewportSize({ width: 1400, height: 860 });
@@ -203,7 +207,7 @@ async function captureSpellBranchHandoff() {
 
 async function captureSpellBranchNavigatorOverview() {
   cleanFrames();
-  const browser = await chromium.launch({ headless: false });
+  const browser = await chromium.launch({ channel: 'chrome', chromiumSandbox: true, headless: false });
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
   await page.setViewportSize({ width: 900, height: 700 });

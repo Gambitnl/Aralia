@@ -42,7 +42,22 @@ function safeFile(root, relative) {
   return absolute;
 }
 
+// Scratch may live on another drive behind the project's directory junction.
+// Resolve existing parents before admitting a new output, so links cannot turn
+// an apparently local destination into a write outside the configured scratch.
+async function physicalPath(value) {
+  const absolute = path.resolve(value);
+  try { return await fs.realpath(absolute); }
+  catch (error) {
+    const parent = path.dirname(absolute);
+    if (error.code !== 'ENOENT' || parent === absolute) throw error;
+    return path.join(await physicalPath(parent), path.basename(absolute));
+  }
+}
+
 async function inputs(root, extras = [], extrasOnly = false, publicSource) {
+  root = await fs.realpath(root);
+  if (publicSource) publicSource = await fs.realpath(publicSource);
   const result = [];
   async function walk(relative, ancestors = new Set()) {
     const absolute = safeFile(root, relative);
@@ -95,8 +110,8 @@ async function verifyFiles(root, manifest, quietFence, extrasOnly = false) {
 
 export async function captureSourceCut({ projectRoot = PROJECT_ROOT, output, onProgress, extraInputs = [] }) {
   projectRoot = await fs.realpath(projectRoot);
-  output = path.resolve(output);
-  const scratch = path.join(projectRoot, '.agent', 'scratch');
+  output = await physicalPath(output);
+  const scratch = await physicalPath(path.join(projectRoot, '.agent', 'scratch'));
   if (!inside(scratch, output) || output === scratch) throw new Error('Source cuts belong in this project\'s ignored scratch directory');
   const files = await inputs(projectRoot, extraInputs);
   await fs.mkdir(path.dirname(output), { recursive: true });
@@ -121,6 +136,7 @@ export async function captureSourceCut({ projectRoot = PROJECT_ROOT, output, onP
 }
 
 export async function verifySourceCut(cut) {
+  cut = await fs.realpath(cut);
   const manifest = JSON.parse(await fs.readFile(path.join(cut, MANIFEST), 'utf8'));
   if (manifest.version !== 3 || !Array.isArray(manifest.files)) throw new Error('Unsupported or incomplete source-cut manifest');
   if ([...REQUIRED_FILES].some(name => !manifest.files.some(file => file.path === name))) throw new Error('Incomplete bootstrap/style capture');
@@ -129,12 +145,12 @@ export async function verifySourceCut(cut) {
     // Application source remains a distinct copy; arbitrary external links
     // and public-asset revisions cannot use this storage-saving mode.
     const base = await fs.realpath(manifest.sourceBase?.path ?? '');
-    const scratch = path.join(manifest.projectRoot, '.agent/scratch');
+    const scratch = await physicalPath(path.join(manifest.projectRoot, '.agent/scratch'));
     if (!inside(scratch, base) || base === await fs.realpath(cut)) throw new Error('Invalid shared public base');
     const text = await fs.readFile(path.join(base, MANIFEST), 'utf8');
     if (sha256(text) !== manifest.sourceBase.manifestSha256) throw new Error('Shared public base manifest changed');
     const publicPath = await fs.realpath(path.join(base, 'public'));
-    if (publicPath !== manifest.publicSource || publicPath !== await fs.realpath(path.join(cut, 'public')))
+    if (publicPath !== await fs.realpath(manifest.publicSource) || publicPath !== await fs.realpath(path.join(cut, 'public')))
       throw new Error('Shared public link does not match its recorded base');
     const publicFiles = files => files.filter(f => f.path.startsWith('public/'));
     if (JSON.stringify(publicFiles(manifest.files)) !== JSON.stringify(publicFiles(JSON.parse(text).files)))
@@ -152,8 +168,8 @@ export async function verifySourceCut(cut) {
 export async function completeSourceCut({ projectRoot = PROJECT_ROOT, base, output, additions = APPLICATION_EXTRAS, onProgress }) {
   projectRoot = await fs.realpath(projectRoot);
   base = await fs.realpath(base);
-  output = path.resolve(output);
-  const scratch = path.join(projectRoot, '.agent/scratch');
+  output = await physicalPath(output);
+  const scratch = await physicalPath(path.join(projectRoot, '.agent/scratch'));
   if (!inside(scratch, base) || !inside(scratch, output) || output === scratch) throw new Error('Source cuts belong in ignored scratch');
   const baseText = await fs.readFile(path.join(base, MANIFEST), 'utf8');
   const prior = JSON.parse(baseText);
@@ -196,13 +212,13 @@ export async function reviseSourceCut({ projectRoot = PROJECT_ROOT, base, output
   // world changes. Default revisions still read only the project checkout.
   replacementRoot = await fs.realpath(replacementRoot ?? projectRoot);
   if (replacementRoot !== await fs.realpath(projectRoot)
-    && !inside(path.join(projectRoot, '.agent', 'scratch'), replacementRoot)) {
+    && !inside(await physicalPath(path.join(projectRoot, '.agent', 'scratch')), replacementRoot)) {
     throw new Error('Replacement overlay must be inside this project ignored scratch');
   }
   projectRoot = await fs.realpath(projectRoot);
   base = await fs.realpath(base);
-  output = path.resolve(output);
-  const scratch = path.join(projectRoot, '.agent/scratch');
+  output = await physicalPath(output);
+  const scratch = await physicalPath(path.join(projectRoot, '.agent/scratch'));
   if (!inside(scratch, base) || !inside(scratch, output) || output === scratch) throw new Error('Source cuts belong in ignored scratch');
   if (!Array.isArray(replacements) || !replacements.length) throw new Error('Explicit replacement files are required');
   const changed = [...new Set(replacements.map(relative => {
@@ -287,6 +303,9 @@ export async function serveSourceCut(cut, port) {
   if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('An explicit local verification port is required');
   const manifest = await verifySourceCut(cut);
   const projectRoot = manifest.projectRoot;
+  // Shared immutable assets can now be on G: behind the scratch junction.
+  // Admit only the verified public directory, rather than all other snapshots.
+  const publicSource = manifest.publicSource ? await fs.realpath(manifest.publicSource) : undefined;
   // Vite's normal configuration/plugins and installed dependencies remain the
   // owners of transforms. Refuse a changed configuration or dependency contract.
   for (const name of ['vite.config.ts', 'package.json', 'package-lock.json']) {
@@ -307,7 +326,7 @@ export async function serveSourceCut(cut, port) {
     plugins: [{ name: 'reject-live-application-source', enforce: 'pre', load(id) {
       if (isLiveApplicationImport(id, projectRoot)) throw new Error(`Live application import rejected: ${id}`);
     } }],
-    server: { host: 'localhost', port, strictPort: true, hmr: false, fs: { allow: [projectRoot, cut] } },
+    server: { host: 'localhost', port, strictPort: true, hmr: false, fs: { allow: [projectRoot, cut, ...(publicSource ? [publicSource] : [])] } },
   });
   await server.listen();
   return server;

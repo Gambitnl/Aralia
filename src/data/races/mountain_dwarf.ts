@@ -9,6 +9,8 @@ export const MOUNTAIN_DWARF_DATA: Race = {
     id: 'mountain_dwarf',
     name: 'Mountain Dwarf',
     baseRace: 'dwarf',
+    // Dwarves do not suffer the -10 ft speed penalty when wearing heavy armor below its Strength requirement (GG-168).
+    ignoresHeavyArmorSpeedPenalty: true,
     description:
         'Mountain dwarves are strong and hardy, accustomed to a difficult life in rugged terrain. They\'re probably on the tall side for a dwarf and tend toward lighter coloration. Mountain dwarves are known for their skill at warfare and their superior craftsmanship in armor and weapons. Their kingdoms, carved from the hearts of mountains, are renowned throughout the world. Mountain dwarves pride themselves on their martial traditions, with many clans maintaining elite military orders that have protected their holds for countless generations.',
     abilityBonuses: [], // Flexible ASIs handled by Point Buy.

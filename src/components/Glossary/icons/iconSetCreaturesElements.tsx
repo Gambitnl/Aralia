@@ -7,6 +7,12 @@
  * icon is unchanged; it now arrives through a factory that takes the caller's
  * className so every SVG keeps sizing itself from GlossaryIcon's prop.
  *
+ * Recent updates:
+ * - Added `tree_outline` and `spider_outline` SVG entries (GG-181) to match their
+ *   filled siblings (`tree`, `spider`) and prevent `GlossaryIcon` from falling
+ *   back to literal Material Symbols text when those `GlossaryIconName` members
+ *   are requested.
+ *
  * Called by: components/Glossary/IconRegistry.tsx (spread-merged into `icons`).
  * Depends on: React for the SVG elements.
  */
@@ -233,6 +239,11 @@ export const iconSetCreaturesElements = (className: string): Record<string, Reac
             <path d="M11,21V16.74C10.53,16.91 10.03,17 9.5,17C7,17 5,15 5,12.5C5,11.23 5.5,10.09 6.36,9.27C6.13,8.73 6,8.13 6,7.5C6,5 8,3 10.5,3C12.06,3 13.44,3.8 14.25,5C14.33,5 14.41,5 14.5,5A5.5,5.5 0 0,1 20,10.5A5.5,5.5 0 0,1 14.5,16C14,16 13.5,15.93 13,15.79V21H11Z" />
         </svg>
     ),
+    tree_outline: (
+        <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+            <path d="M11,21V16.74C10.53,16.91 10.03,17 9.5,17C7,17 5,15 5,12.5C5,11.23 5.5,10.09 6.36,9.27C6.13,8.73 6,8.13 6,7.5C6,5 8,3 10.5,3C12.06,3 13.44,3.8 14.25,5C14.33,5 14.41,5 14.5,5A5.5,5.5 0 0,1 20,10.5A5.5,5.5 0 0,1 14.5,16C14,16 13.5,15.93 13,15.79V21H11M14.5,14A3.5,3.5 0 0,0 18,10.5A3.5,3.5 0 0,0 14.5,7C14.12,7 13.75,7.06 13.4,7.18L12.79,6.12C12.31,5.42 11.46,5 10.5,5A2.5,2.5 0 0,0 8,7.5C8,7.96 8.13,8.4 8.37,8.79L8.92,9.68L8.04,10.25C7.39,10.67 7,11.54 7,12.5A2.5,2.5 0 0,0 9.5,15C10.05,15 10.58,14.82 11,14.5V12H13V13.66C13.46,13.88 13.97,14 14.5,14Z" />
+        </svg>
+    ),
     flower: (
         <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
             <path d="M3,13A9,9 0 0,0 12,22C12,17 7.97,13 3,13M12,5.5A2.5,2.5 0 0,1 14.5,8A2.5,2.5 0 0,1 12,10.5A2.5,2.5 0 0,1 9.5,8A2.5,2.5 0 0,1 12,5.5M5.6,10.25A2.5,2.5 0 0,0 8.1,12.75C8.63,12.75 9.12,12.58 9.5,12.31C9.5,12.37 9.5,12.43 9.5,12.5A2.5,2.5 0 0,0 12,15A2.5,2.5 0 0,0 14.5,12.5C14.5,12.43 14.5,12.37 14.5,12.31C14.88,12.58 15.37,12.75 15.9,12.75C17.28,12.75 18.4,11.63 18.4,10.25C18.4,9.25 17.81,8.4 16.97,8C17.81,7.6 18.4,6.74 18.4,5.75C18.4,4.37 17.28,3.25 15.9,3.25C15.37,3.25 14.88,3.41 14.5,3.69C14.5,3.63 14.5,3.56 14.5,3.5A2.5,2.5 0 0,0 12,1A2.5,2.5 0 0,0 9.5,3.5C9.5,3.56 9.5,3.63 9.5,3.69C9.12,3.41 8.63,3.25 8.1,3.25A2.5,2.5 0 0,0 5.6,5.75C5.6,6.74 6.19,7.6 7.03,8C6.19,8.4 5.6,9.25 5.6,10.25M12,22A9,9 0 0,0 21,13C16,13 12,17 12,22Z" />
@@ -292,6 +303,11 @@ export const iconSetCreaturesElements = (className: string): Record<string, Reac
     spider: (
         <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
             <path d="M21.29 16.71L22.71 15.29L19.5 12.11L16.5 11.26L18.41 11L22.6 7.8L21.4 6.2L17.59 9.05L14.91 9.5L18.11 6.31L17 1.76L15 2.24L15.86 5.69L14.76 6.83A3 3 0 0 0 9.24 6.83L8.11 5.69L9 2.24L7 1.76L5.89 6.31L9.09 9.5L6.4 9.05L2.6 6.2L1.4 7.8L5.6 11L7.46 11.31L4.46 12.16L1.29 15.29L2.71 16.71L5.5 13.89L7.87 13.22L4 16.54V22H6V17.46L7.56 16.12A4.5 4.5 0 0 0 16.44 16.12L18 17.46V22H20V16.54L16.13 13.22L18.5 13.89Z" />
+        </svg>
+    ),
+    spider_outline: (
+        <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+            <path fillRule="evenodd" d="M21.29 16.71L22.71 15.29L19.5 12.11L16.5 11.26L18.41 11L22.6 7.8L21.4 6.2L17.59 9.05L14.91 9.5L18.11 6.31L17 1.76L15 2.24L15.86 5.69L14.76 6.83A3 3 0 0 0 9.24 6.83L8.11 5.69L9 2.24L7 1.76L5.89 6.31L9.09 9.5L6.4 9.05L2.6 6.2L1.4 7.8L5.6 11L7.46 11.31L4.46 12.16L1.29 15.29L2.71 16.71L5.5 13.89L7.87 13.22L4 16.54V22H6V17.46L7.56 16.12A4.5 4.5 0 0 0 16.44 16.12L18 17.46V22H20V16.54L16.13 13.22L18.5 13.89ZM12 6.5A1.5 1.5 0 1 0 12 9.5A1.5 1.5 0 1 0 12 6.5ZM12 11.5A2.5 2.5 0 1 0 12 16.5A2.5 2.5 0 1 0 12 11.5Z" />
         </svg>
     ),
     claw: (

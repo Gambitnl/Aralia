@@ -7,9 +7,11 @@
  * loop doors on leftover adjacencies. Privacy pass: the tree is a weighted
  * Prim that steers private rooms (PRIVATE_PURPOSES) into leaf positions fed
  * by corridors, avoids direct private↔main doors unless they are the only
- * connection, and loop doors never touch a private room. The street entry goes on an outer wall
- * edge of the MAIN room — or, when the main room touches no outer wall, on a
- * corridor connected to it — never a random back room. Exactly one entry
+ * connection, and loop doors never touch a private room. The street entry goes on the
+ * MAIN room when it touches the street, else on a corridor or public room
+ * that opens off it and touches the street (GG-608); only when none does, on
+ * any outer wall of the main room or a connected corridor. Never a random
+ * back room. Exactly one entry
  * per ground floor; non-ground floors pass streetEntry: false and get none.
  * Frontage (Task 9): the entry prefers a STREET edge — an outer edge on the
  * plan's min-y boundary (the 3D bridge maps the min-y face to the street,
@@ -293,25 +295,9 @@ export function wireDoors(
   // block is the last consumer of the 'doors' RNG stream, so skipping it
   // cannot shift any earlier draw.
   if (!streetEntry) return { doors };
-  let entryRoom = -1;
-  if ((outer.get(main.id) ?? []).length > 0) {
-    entryRoom = main.id;
-  } else {
-    const doorAdj = new Set(
-      doors.flatMap((d) => (d.a === main.id ? [d.b] : d.b === main.id ? [d.a] : [])),
-    );
-    const corridor = rooms
-      .filter((r) => r.isCorridor && doorAdj.has(r.id) && (outer.get(r.id) ?? []).length > 0)
-      .sort((a, b) => a.id - b.id)[0];
-    if (corridor) entryRoom = corridor.id;
-  }
-  if (entryRoom < 0) {
-    throw new Error(`doors: no outer wall for a street entry at ${path}`);
-  }
   // Street edges: outer TOP edges (axis 'x') sitting on the plan's min-y
   // boundary — the cell they cap is the topmost occupied cell in its column,
-  // so nothing of the footprint lies between it and the street. Prefer them;
-  // relax to every outer edge only when the room touches no street at all.
+  // so nothing of the footprint lies between it and the street.
   const isStreetEdge = (s: EdgeSite): boolean => {
     if (s.axis !== 'x') return false; // only horizontal edges face min-y
     const gx = Math.floor(s.x / CELL_FT);
@@ -320,6 +306,68 @@ export function wireDoors(
     for (let y = 0; y < gy; y++) if (at(gx, y) >= 0) return false; // occupied above
     return true;
   };
+  const onStreet = (id: number): boolean => (outer.get(id) ?? []).some(isStreetEdge);
+  const doorAdj = new Set(
+    doors.flatMap((d) => (d.a === main.id ? [d.b] : d.b === main.id ? [d.a] : [])),
+  );
+  const lowest = (list: BlueprintRoom[]): number | undefined =>
+    [...list].sort((a, b) => a.id - b.id)[0]?.id;
+  /** The public room nearest the main room (in door steps, through public
+   *  rooms only) that touches the street: a corridor first, then the lowest
+   *  id, at each depth. No private room or member's room (forSlot) is used
+   *  or passed. */
+  const nearestStreetRoom = (): number | undefined => {
+    const publicRoom = (id: number): boolean => !isPrivate(id) && roomById.get(id)?.forSlot === undefined;
+    const links = new Map<number, number[]>();
+    for (const d of doors) {
+      if (d.a < 0 || d.b < 0) continue;
+      links.set(d.a, [...(links.get(d.a) ?? []), d.b]);
+      links.set(d.b, [...(links.get(d.b) ?? []), d.a]);
+    }
+    const seen = new Set<number>([main.id]);
+    let ring = [main.id];
+    while (ring.length > 0) {
+      const next = [...new Set(ring.flatMap((id) => links.get(id) ?? []))]
+        .filter((id) => !seen.has(id) && publicRoom(id)).sort((a, b) => a - b);
+      for (const id of next) seen.add(id);
+      const hits = next.filter(onStreet).map((id) => roomById.get(id)!);
+      const pick = lowest(hits.filter((r) => r.isCorridor)) ?? lowest(hits);
+      if (pick !== undefined) return pick;
+      ring = next;
+    }
+    return undefined;
+  };
+  // GG-608 (Remy's ruling 2026-11-02, "Fix all towns"): the entry room must
+  // touch the street. Before, a main room with any outer wall took the entry
+  // even when none of its walls faced the street, so the door went on the
+  // back or a side wall (in a row house, a party wall), and the resident
+  // walked out through a neighbor. The order is now:
+  // 1. the main room, on the street;
+  // 2. else the public room on the street nearest the main room, in door
+  //    steps through public rooms only (a corridor first at each depth;
+  //    never a private room or a room set aside for one member, forSlot);
+  // 3. only when no such room exists, the old rule: the main room's outer
+  //    wall, else a corridor's.
+  // Every branch still makes exactly one draw from the 'doors' stream.
+  let entryRoom = -1;
+  if (onStreet(main.id)) {
+    entryRoom = main.id;
+  } else {
+    const street = nearestStreetRoom();
+    if (street !== undefined) {
+      entryRoom = street;
+    } else if ((outer.get(main.id) ?? []).length > 0) {
+      entryRoom = main.id;
+    } else {
+      const corridor = lowest(rooms.filter((r) => r.isCorridor && doorAdj.has(r.id) && (outer.get(r.id) ?? []).length > 0));
+      if (corridor !== undefined) entryRoom = corridor;
+    }
+  }
+  if (entryRoom < 0) {
+    throw new Error(`doors: no outer wall for a street entry at ${path}`);
+  }
+  // Prefer the street edges of the entry room; relax to every outer edge
+  // only when the room touches no street at all (rule 3).
   const allSites = outer.get(entryRoom) as EdgeSite[];
   const streetSites = allSites.filter(isStreetEdge);
   const entrySites = streetSites.length > 0 ? streetSites : allSites;

@@ -177,6 +177,8 @@ export interface AbilityEffect {
   grantedActionAreaSize?: number | "not_applicable";
   grantedActionAreaSizeUnit?: "feet" | "miles" | "not_applicable";
   grantedActionDamageDice?: string;
+  // Same tokens as `damageType` above. "cold" arrives from spell JSON ("Cold"
+  // lowercased by the battle-map bridge); "ice" stays for older rows.
   grantedActionDamageType?:
     | "physical"
     | "bludgeoning"
@@ -184,6 +186,7 @@ export interface AbilityEffect {
     | "slashing"
     | "magical"
     | "fire"
+    | "cold"
     | "ice"
     | "lightning"
     | "acid"

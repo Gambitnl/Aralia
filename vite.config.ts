@@ -435,8 +435,10 @@ export default defineConfig(async ({ mode, command }) => {
     // import(), so its bundle splits and the build failed. Every worker in src
     // is created with `{ type: 'module' }`, so ES output matches how the app
     // already loads them (and how the dev server serves them).
+    // `as const` keeps the literal: the async config callback widens a bare
+    // 'es' to string, and defineConfig then rejects the whole config (TS2769).
     worker: {
-      format: 'es',
+      format: 'es' as const,
     },
     build: {
       rollupOptions: {
@@ -498,7 +500,17 @@ export default defineConfig(async ({ mode, command }) => {
               if (id.includes('lucide-react')) {
                 return 'vendor-lucide';
               }
-              if (id.includes('pixi.js') || id.includes('@pixi') || id.includes('mini-signals') || id.includes('ismobilejs') || id.includes('earcut')) {
+              // EARCUT HAS ITS OWN CHUNK (2026-11-02, agora-257c; CI Build job
+              // 125586205920). It shared vendor-pixi, and the world road and
+              // water meshes (world3d/roadGeometry.ts, waterGeometry.ts) import
+              // it. roadGeometry sits in the main chunk, so main statically
+              // imported vendor-pixi and the menu loaded 1.35 MB of pixi.js
+              // (147 KiB gzip) for a 19 KB triangulator. Pixi still gets it,
+              // through this chunk.
+              if (/node_modules[\\/]earcut[\\/]/.test(id)) {
+                return 'vendor-earcut';
+              }
+              if (id.includes('pixi.js') || id.includes('@pixi') || id.includes('mini-signals') || id.includes('ismobilejs')) {
                 return 'vendor-pixi';
               }
               if (id.includes('@google/genai')) {

@@ -143,9 +143,16 @@ export const parseCursorDashboardText = (
 
 // The Playwright import stays lazy so normal Vite startup and unit tests do not
 // launch or even load browser automation. Tests inject a runner instead.
+//
+// Security (2026-11-03): these launches open the open web (cursor.com) in a
+// logged-in profile. Playwright turns the Chromium sandbox OFF by default and
+// its bundled Chromium can lag Chrome security fixes. So both launches use the
+// installed, self-updating Chrome with the sandbox ON.
+const OPEN_WEB_LAUNCH_OPTIONS = { channel: 'chrome', chromiumSandbox: true } as const;
+
 const getDefaultProbeRunner = async (profileDir: string): Promise<string> => {
   const { chromium } = await import('playwright');
-  const context = await chromium.launchPersistentContext(profileDir, { headless: true });
+  const context = await chromium.launchPersistentContext(profileDir, { ...OPEN_WEB_LAUNCH_OPTIONS, headless: true });
   const page = await context.newPage();
   try {
     await page.goto('https://cursor.com/dashboard', { waitUntil: 'domcontentloaded', timeout: 60_000 });
@@ -160,6 +167,7 @@ const getDefaultLoginOpener = async (profileDir: string, options: { homeDir: str
   void options;
   const { chromium } = await import('playwright');
   const context = await chromium.launchPersistentContext(profileDir, {
+    ...OPEN_WEB_LAUNCH_OPTIONS,
     headless: false,
   });
   const page = await context.newPage();

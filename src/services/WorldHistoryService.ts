@@ -18,8 +18,17 @@
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
  *
+ * This file converts world-simulation and faction-conflict outcomes into durable
+ * `WorldHistoryEvent` ledger entries.
+ *
+ * It seeds pre-campaign world history on first build and derives skirmish importance
+ * from the directional strength swing between winning and losing factions so the
+ * retention pruner preserves major upsets over routine expected routs.
+ *
+ * Called by: `src/systems/world/WorldEventManager.ts` and world-generation initialization.
+ * Depends on: `Faction`, `WorldHistoryEvent`, `SeededRandom`, and `timeUtils`.
+ *
  * @file src/services/WorldHistoryService.ts
- * Service for converting real-time game outcomes into permanent historical records.
  */
 
 import { WorldHistoryEvent, HistoricalParticipant } from '../types/history';
@@ -192,25 +201,37 @@ export class WorldHistoryService {
     return options[Math.floor(rng.next() * options.length)] ?? factions[0];
   }
 
+    // ============================================================================
+    // Skirmish Importance Derivation (GG-172)
+    // ============================================================================
+    // Formula:
+    //   importance = clamp(20, 100, Math.round(40 + (loserPower - winnerPower)))
+    //
+    // - Upset (winnerPower < loserPower): scores above the 40 base up to 100.
+    // - Even clash (winnerPower === loserPower): scores the 40 base.
+    // - Expected rout (winnerPower > loserPower): scores below 40 down to the 20 floor.
+    // ============================================================================
+
     /**
-     * Base importance assigned to a skirmish when no strength signal is available.
-     * Also the floor the derived importance is measured up from.
+     * Base importance assigned to an even skirmish or when no strength signal is available.
      */
     private static readonly SKIRMISH_BASE_IMPORTANCE = 40;
-    /** Importance is clamped to this band so a single clash never dominates the ledger. */
+    /** Importance is clamped to this band (20..100) so routine routs hit the floor and major upsets cap at 100. */
     private static readonly SKIRMISH_MIN_IMPORTANCE = 20;
     private static readonly SKIRMISH_MAX_IMPORTANCE = 100;
 
     /**
-     * Derives how memorable a skirmish is from the strength gap between the
-     * combatants, using the `power` field the Faction model already exposes
-     * (0-100 overall influence/strength).
+     * Derives how memorable a skirmish is from the directional strength swing
+     * between the combatants (`loserPower - winnerPower`), using the `power`
+     * field on `Faction` (0-100 overall influence/strength).
      *
-     * The wider the gap, the more the clash reshapes the balance of power — a
-     * lopsided rout or a stunning upset is a far more notable historical event
-     * than an even trade of blows, so the importance-aware pruner should keep it
-     * longer. When neither faction exposes a usable numeric `power` we fall back
-     * to the historical base importance (a no-op relative to the old hardcode).
+     * Formula: `clamp(20, 100, Math.round(40 + (loserPower - winnerPower)))`
+     *
+     * Upsets (where a weaker winner topples a stronger loser) reshape the balance
+     * of power and score above `SKIRMISH_BASE_IMPORTANCE` (40) up to `100`, while
+     * expected routs (where a stronger winner defeats a weaker loser as expected)
+     * score below `40` down to `SKIRMISH_MIN_IMPORTANCE` (20). When either faction
+     * lacks a usable numeric `power`, falls back to `SKIRMISH_BASE_IMPORTANCE` (40).
      */
     private static deriveSkirmishImportance(winner: Faction, loser: Faction): number {
         const base = WorldHistoryService.SKIRMISH_BASE_IMPORTANCE;
@@ -226,10 +247,10 @@ export class WorldHistoryService {
             return base;
         }
 
-        // Magnitude of the power swing (0 for an even match, up to 100 for a
-        // total mismatch across the canonical 0-100 power range).
-        const disparity = Math.abs(winnerPower - loserPower);
-        const importance = base + disparity;
+        // Directional swing: positive when an underdog wins (upset), zero on an
+        // even clash, negative when the stronger faction wins as expected (rout).
+        const upsetSwing = loserPower - winnerPower;
+        const importance = base + upsetSwing;
 
         return Math.round(
             Math.min(

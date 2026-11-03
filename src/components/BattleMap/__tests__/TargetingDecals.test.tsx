@@ -115,7 +115,10 @@ describe("TargetingDecals", () => {
         groundSampler={null}
       />,
     );
-    expect(probe.__bm3dDecalDebug?.["#ef4444/frame"]?.tiles).toBe(1);
-    expect(probe.__bm3dDecalDebug?.["#ef4444/frame-long-range"]?.tiles).toBe(1);
+    // Read the probe through a function: after `delete`, TypeScript narrows the
+    // property to undefined and does not see the write that render() makes.
+    const decalDebug = (): Record<string, { tiles: number }> | undefined => probe.__bm3dDecalDebug;
+    expect(decalDebug()?.["#ef4444/frame"]?.tiles).toBe(1);
+    expect(decalDebug()?.["#ef4444/frame-long-range"]?.tiles).toBe(1);
   });
 });

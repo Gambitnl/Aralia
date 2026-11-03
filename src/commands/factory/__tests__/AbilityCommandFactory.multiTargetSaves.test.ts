@@ -41,15 +41,11 @@ vi.mock('../../../systems/dice/rollers', async importOriginal => {
 // lanes must reach every target; a regression that silently resolves only
 // `targets[0]` would still pass every single-target sibling test.
 //
-// The save lane is deliberately a characterization test. `Ability` carries
-// `saveDC` and `saveAbility`, but neither `AbilityCommandFactory` nor
-// `AbilityEffectMapper` reads them today: the mapper hardcodes
-// `condition: { type: 'always' }`, so a save-for-half ability lands full damage
-// with no save rolled. The DamageCommand save lane it should be reaching
-// (`condition.type === 'saving_throw'` with `saveEffect: 'half'`) already
-// exists and is exercised by the spell-side tests. These cases record the
-// current, wrong-by-5e-rules behavior so the gap is visible and so the day the
-// mapper is wired the failure lands here instead of in the field.
+// The save lane verifies GG-171: `Ability` carries `saveDC` and `saveAbility`,
+// and `AbilityEffectMapper` translates them into a `saving_throw` condition
+// (`condition.type === 'saving_throw'` with `saveEffect: 'half'`) so
+// `DamageCommand` rolls the target's saving throw against the ability's DC and
+// halves damage on a success, while abilities without a save keep `always`.
 // ============================================================================
 
 /** Mocked Math.random value that yields a d20 of 12: floor(0.55 * 20) + 1. */
@@ -247,7 +243,7 @@ describe('AbilityCommandFactory save-bearing abilities', () => {
     effects: [{ type: 'damage', value: 8, damageType: 'fire' }]
   });
 
-  it('does not yet carry saveDC or saveAbility onto the mapped damage effect', () => {
+  it('carries saveDC and saveAbility onto the mapped damage effect', () => {
     const caster = createStrikeAttacker();
     const target = createDefender('save-target', 12);
 
@@ -262,20 +258,21 @@ describe('AbilityCommandFactory save-bearing abilities', () => {
     const damageCommand = commands[0] as DamageCommand;
     const mappedEffect = (damageCommand as any).effect;
 
-    // CHARACTERIZATION, not an endorsement. AbilityEffectMapper hardcodes
-    // `condition: { type: 'always' }`, so the ability's declared DC 15 Dexterity
-    // save never reaches the command that knows how to roll it. When the mapper
-    // learns to emit `{ type: 'saving_throw', saveType: 'Dexterity',
-    // saveDC: 15, saveEffect: 'half' }`, this expectation should flip.
-    expect(mappedEffect.condition).toEqual({ type: 'always' });
-    expect(mappedEffect.condition.saveDC).toBeUndefined();
-    expect(mappedEffect.condition.saveEffect).toBeUndefined();
+    // AbilityEffectMapper translates saveDC and saveAbility into a saving_throw
+    // condition that halves damage on a successful save.
+    expect(mappedEffect.condition).toEqual({
+      type: 'saving_throw',
+      saveType: 'Dexterity',
+      saveDC: 15,
+      saveEffect: 'half',
+    });
   });
 
-  it('applies full damage to a target that should have saved for half', async () => {
+  it('applies half damage when a target succeeds on the ability saving throw', async () => {
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(ROLL_TWELVE);
     const caster = createStrikeAttacker();
-    // A wildly high Dexterity would clear DC 15 on nearly any roll, so a wired
-    // save lane would leave this target on 16 HP, not 12.
+    // A Dexterity of 30 (+10 mod) clears DC 15 on a normal roll, leaving the
+    // target on 16 HP (half of 8 damage) and logging the saving throw.
     const nimble = createMockCombatCharacter({
       id: 'save-nimble',
       name: 'Nimble',
@@ -292,13 +289,17 @@ describe('AbilityCommandFactory save-bearing abilities', () => {
       {} as GameState
     );
 
-    const result = await commands[0].execute(createMockCombatState({
-      characters: [caster, nimble],
-      combatLog: []
-    }));
+    try {
+      const result = await commands[0].execute(createMockCombatState({
+        characters: [caster, nimble],
+        combatLog: []
+      }));
 
-    // Full 8 damage, no save rolled and none logged.
-    expect(result.characters.find(character => character.id === nimble.id)?.currentHP).toBe(12);
-    expect(result.combatLog.some(entry => /sav(e|ing)/i.test(entry.message))).toBe(false);
+      // Half of 8 damage = 4 damage (20 -> 16 HP), with the DC 15 Dexterity save logged.
+      expect(result.characters.find(character => character.id === nimble.id)?.currentHP).toBe(16);
+      expect(result.combatLog.some(entry => /succeeds Dexterity save.*vs DC 15/i.test(entry.message))).toBe(true);
+    } finally {
+      randomSpy.mockRestore();
+    }
   });
 });

@@ -332,6 +332,25 @@ export type ResidentStreetSampler = (residentKey: string, clock: number) => Inte
  * schedule. One cached snapshot serves every nearby actor at the same clock.
  * The one-second look-ahead supplies heading from the actual route, including
  * a freshly loaded traveller with no previous render frame. */
+// GG-606 (2026-11-02): every chunk arrival builds new street samplers (this
+// layer's and the door sampler's), and each one worked out the whole town crowd
+// again for the same clock: about 3 s over one demo load. The crowd positions
+// depend only on the ground and the clock, so the last few clocks are kept per
+// ground and shared. No caller writes to the returned nodes.
+const STREET_CLOCKS_KEPT = 4;
+const streetNodesByGround = new WeakMap<GroundWorld, Map<number, ReturnType<typeof groundAgentScenePositions>>>();
+function streetNodesAt(ground: GroundWorld, clock: number): ReturnType<typeof groundAgentScenePositions> {
+  let byClock = streetNodesByGround.get(ground);
+  if (!byClock) { byClock = new Map(); streetNodesByGround.set(ground, byClock); }
+  let nodes = byClock.get(clock);
+  if (!nodes) {
+    nodes = groundAgentScenePositions(ground, clock);
+    if (byClock.size >= STREET_CLOCKS_KEPT) byClock.delete(byClock.keys().next().value!);
+    byClock.set(clock, nodes);
+  }
+  return nodes;
+}
+
 export function createResidentStreetSampler(
   ground: GroundWorld | null | undefined, loaded: LoadedChunk[], origin: SceneOrigin,
 ): ResidentStreetSampler {
@@ -343,8 +362,8 @@ export function createResidentStreetSampler(
     if (lastClock !== clock) {
       const previous = motions;
       motions = new Map(); lastClock = clock;
-      const nodes = groundAgentScenePositions(ground, clock);
-      const ahead = nodes.some(n => n.moving) ? new Map(groundAgentScenePositions(ground, clock + 1 / 3600)
+      const nodes = streetNodesAt(ground, clock);
+      const ahead = nodes.some(n => n.moving) ? new Map(streetNodesAt(ground, clock + 1 / 3600)
         .map(n => [residentRenderKey(n.burgId, n.occupantId), n])) : new Map();
       for (const node of nodes) {
         const renderKey = residentRenderKey(node.burgId, node.occupantId), handoff = handoffs.get(renderKey);

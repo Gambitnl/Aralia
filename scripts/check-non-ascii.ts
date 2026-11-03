@@ -490,47 +490,42 @@ export function writeCharsetReviewReport(issues: Issue[], reportPath = CHARSET_R
 // findings remain manual so content intent is not accidentally rewritten.
 // ============================================================================
 
+/**
+ * THE KNOWN CHARACTER FIXES ON ONE STRING (2026-11-02, agora-257c). Mojibake
+ * repairs first (they are multi-character corruptions of one character), then
+ * forbidden characters, then the normalizations. A generator that writes data
+ * files (scripts/ingestPhbGlossary.ts) applies this to each string VALUE before
+ * it serializes, so the data it writes passes this check with no `--write`
+ * pass. Apply it to values, not to JSON text: a smart double quote becomes `"`,
+ * which JSON.stringify then escapes correctly.
+ */
+export function normalizeCharset(text: string): string {
+    let out = text;
+    for (const n of [...MOJIBAKE_NORMALIZATIONS, ...FORBIDDEN_CHARS, ...NORMALIZATIONS]) {
+        if (patternMatches(n.pattern, out)) out = out.replace(n.pattern, n.replacement);
+    }
+    return out;
+}
+
 export function fixFile(filePath: string): boolean {
-    let content = fs.readFileSync(filePath, 'utf-8');
-    let modified = false;
-
-    // Apply deterministic mojibake repairs before single-character fixes. These
-    // patterns are multi-character corruptions of one intended character.
-    for (const n of MOJIBAKE_NORMALIZATIONS) {
-        if (patternMatches(n.pattern, content)) {
-            content = content.replace(n.pattern, n.replacement);
-            modified = true;
-        }
-    }
-
-    // Apply FORBIDDEN_CHARS
-    for (const f of FORBIDDEN_CHARS) {
-        if (patternMatches(f.pattern, content)) {
-            content = content.replace(f.pattern, f.replacement);
-            modified = true;
-        }
-    }
+    const original = fs.readFileSync(filePath, 'utf-8');
 
     // Decode JSON escapes that hide printable ASCII (the strict finding
     // "Escaped U+00xx: Printable ASCII hidden by JSON escape"). The double
-    // quote and the backslash stay escaped because JSON requires it.
+    // quote and the backslash stay escaped because JSON requires it. A decoded
+    // escape is printable ASCII, so no character fix below touches it, and the
+    // order (formerly between the forbidden and the normalization passes) does
+    // not change the result.
+    let content = normalizeCharset(original);
     if (patternMatches(PRINTABLE_ASCII_ESCAPE, content)) {
         content = content.replace(PRINTABLE_ASCII_ESCAPE, (whole, hex: string) => {
             const code = Number.parseInt(hex, 16);
             if (code === 0x22 || code === 0x5c) return whole;
             return String.fromCharCode(code);
         });
-        modified = true;
     }
 
-    // Apply NORMALIZATIONS
-    for (const n of NORMALIZATIONS) {
-        if (patternMatches(n.pattern, content)) {
-            content = content.replace(n.pattern, n.replacement);
-            modified = true;
-        }
-    }
-
+    const modified = content !== original;
     if (modified) {
         fs.writeFileSync(filePath, content, 'utf-8');
     }
@@ -608,8 +603,16 @@ export function main() {
     // Only fail the build for strict issues (JSON/data files) that still remain
     // after the optional automatic fix pass. Soft docs findings stay advisory.
     if (strictIssues > 0) {
-        console.log('\n❌ Build failed due to strict charset issues in data files.');
-        process.exit(1);
+        // EXIT CODE, NOT process.exit (2026-11-02, agora-257c; CI job
+        // 125586205654). On Linux a pipe takes stdout asynchronously, and
+        // process.exit(1) dropped the queued output: the CI log stopped among
+        // 18,000 warnings and never showed the summary or the [ERROR] files.
+        // The strict files are listed again here, after the warnings.
+        const strictFiles = [...new Set(allIssues.filter((i) => i.severity === 'strict').map((i) => i.file))];
+        console.log(`\n❌ Build failed due to strict charset issues in data files (${strictFiles.length}):`);
+        for (const file of strictFiles) console.log(`  ${file}`);
+        console.log('Fix the generator that wrote them, or run `npm run fix:charset` for hand-made data.');
+        process.exitCode = 1;
     } else if (softIssues > 0) {
         console.log('\n⚠️ Soft warnings found in documentation (build passes).');
     }

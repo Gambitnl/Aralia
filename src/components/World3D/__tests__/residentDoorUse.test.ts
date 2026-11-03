@@ -51,7 +51,9 @@ describe('resident entry use',()=>{
     spy.mockReturnValue([{burgId:675,occupantId:84,name:'Fenna Hartham',xM:0,zM:0,surfaceY:0,moving:true}] as never);
     expect(createResidentDoorSampler(ground,loaded,{x:0,z:0})(8).size).toBe(1);
     spy.mockReturnValue([{burgId:675,occupantId:84,name:'Fenna Hartham',xM:10,zM:0,surfaceY:0,moving:true}] as never);
-    expect(createResidentDoorSampler(ground,loaded,{x:0,z:0})(8).size).toBe(0);
+    // GG-606: street positions are kept per ground and clock (a pure function of
+    // both), so the moved body is a new ground state, not the same ground again.
+    expect(createResidentDoorSampler({...ground},loaded,{x:0,z:0})(8).size).toBe(0);
     spy.mockRestore();
   });
   it('opens the home leaf for an errand trip when the town street graph is known (GG-601)',()=>{

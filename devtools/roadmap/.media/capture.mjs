@@ -1,7 +1,11 @@
 /**
- * Roadmap node media capture script.
- * Usage: node devtools/roadmap/.media/capture.mjs
- * Captures static PNG screenshots for spell system roadmap nodes.
+ * This file captures static PNG screenshots for spell-system roadmap nodes.
+ *
+ * It launches a sandboxed system Chrome instance, navigates to the roadmap's
+ * Spell Branch tab, and clips screenshots for data feed, V/S/M requirements, and axis filtering.
+ *
+ * Called by: Developer CLI (`node devtools/roadmap/.media/capture.mjs`).
+ * Depends on: `playwright` (`chromium`) and a local dev server at `localhost:3010`.
  */
 import { chromium } from 'playwright';
 import { writeFileSync } from 'fs';
@@ -13,7 +17,7 @@ const MEDIA_DIR = __dirname;
 const BASE_URL = 'http://localhost:3010/Aralia/devtools/roadmap/roadmap.html';
 
 async function capture() {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ channel: 'chrome', chromiumSandbox: true, headless: true });
   const page = await browser.newPage();
   await page.setViewportSize({ width: 1400, height: 860 });
 

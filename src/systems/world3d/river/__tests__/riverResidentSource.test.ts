@@ -18,11 +18,14 @@ describe('resident GPU source history', () => {
       requested.push({ at: live.simTime, duration: span });
       const journal = new Float32Array(steps * 8);
       for (let k = 0; k < steps; k++) journal.set([dt, 1, 0, 0, (k + 1) * dt, 0, 0, 0], k * 8);
-      return { records: new Uint32Array(0), journal, steps, duration: steps * dt, inVolume: input.discharge * steps * dt, outVolume: 0,
+      // This reach has no detected spill, so the device returns no launches.
+      return { records: new Uint32Array(0), launches: new Uint32Array(0), journal, steps, duration: steps * dt, inVolume: input.discharge * steps * dt, outVolume: 0,
         lastMaxSpeed: 1, awakeCells: 0, uploadBytes: 0, elapsedMs: 0 };
     };
     const synchronized: RiverGpuExecutor = async () => { throw Error('source history must not synchronize'); };
+    // RiverFloodStatus.source is optional in its type; LiveRiver.flood always sets it.
     const status = live.flood.source;
+    if (!status) throw new Error('LiveRiver.flood has no source history');
     const change = status.changes.find(c => c.timeS > live.simTime - status.flightDelayS);
     expect(change).toBeDefined();
     const arrival = change!.timeS + status.flightDelayS;

@@ -23,6 +23,7 @@ import {
   repairMarkdownLinks,
   repairSeeAlso,
 } from './glossary/lib/termLinks';
+import { normalizeCharset } from './check-non-ascii';
 
 // ============================================================================
 // Typed 5eTools Item Metadata Boundary
@@ -381,6 +382,40 @@ function findFilesWithBaseName(dir: string, baseName: string, results: string[] 
   return results;
 }
 
+/**
+ * ONE SERIALIZER FOR ENTRY FILES (2026-11-02, agora-257c; CI Data Validation
+ * job 125586205654). 5eTools text carries em-dashes, multiplication signs and
+ * fractions. `npm run validate:charset` fails on those in glossary JSON, so a
+ * local rebuild with the vendor data wrote 25 entries that failed CI (commit
+ * 2bdbee28b). Each string value now takes the checker's own fixes before it
+ * is written.
+ */
+export function entryJson(value: unknown): string {
+  return JSON.stringify(value, (_key, v: unknown) => (typeof v === 'string' ? normalizeCharset(v) : v), 2);
+}
+
+/**
+ * THE VENDOR SOURCE CHECK (2026-11-02, agora-257c; CI Build job 125586205920).
+ * `vendor/` is gitignored, so a clean clone (CI, a new developer) has no
+ * 5eTools data. The glossary entries this ingest writes are tracked, and the
+ * build uses them. Before this check, each missing file only printed a
+ * warning, and the ingest then wrote an EMPTY `.generated-manifest.json`
+ * over the tracked one (1,052 entries): a build from a clean clone changed a
+ * tracked file and hid the generated entries from the markup codemod.
+ * Returns false when the data folder is absent (the build uses the tracked
+ * entries). Throws when the folder is there but lacks a file: a partial
+ * vendor copy would write a partial glossary.
+ */
+export function vendorSourcesPresent(dataDir: string, files: readonly string[]): boolean {
+  if (!fs.existsSync(dataDir)) return false;
+  const missing = [...new Set(files)].filter((file) => !fs.existsSync(path.join(dataDir, file)));
+  if (missing.length > 0) {
+    throw new Error(`[ingestPhbGlossary] ${dataDir} exists but lacks ${missing.join(', ')}. `
+      + 'Restore the full 5eTools data, or remove the folder to build from the tracked glossary entries.');
+  }
+  return true;
+}
+
 function processSourceFiles() {
   const sources = [
     { file: 'skills.json', key: 'skill', category: 'Rules Glossary', outSubDir: 'rules' },
@@ -395,6 +430,12 @@ function processSourceFiles() {
     { file: 'items-base.json', key: 'itemProperty', category: 'Rules Glossary', outSubDir: 'rules' },
     { file: 'items-base.json', key: 'itemMastery', category: 'Rules Glossary', outSubDir: 'rules' },
   ];
+
+  if (!vendorSourcesPresent(VENDOR_DATA_DIR, sources.map((source) => source.file))) {
+    console.log(`No 5eTools data at ${VENDOR_DATA_DIR} (vendor/ is gitignored). `
+      + 'The ingest writes nothing; the build uses the tracked glossary entries and their manifest.');
+    return;
+  }
 
   let count = 0;
   // Records every entry file this ingest generates, so downstream codemods can
@@ -411,11 +452,8 @@ function processSourceFiles() {
   } catch { /* Optional item type metadata is allowed to be unavailable during glossary ingest. */ }
 
   for (const source of sources) {
+    // vendorSourcesPresent proved every source file exists.
     const fullPath = path.join(VENDOR_DATA_DIR, source.file);
-    if (!fs.existsSync(fullPath)) {
-      console.warn(`Source file not found: ${fullPath}`);
-      continue;
-    }
 
     const outDir = path.join(ENTRIES_BASE, source.outSubDir);
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
@@ -489,7 +527,7 @@ function processSourceFiles() {
           }
         }
 
-        writeFileSyncRetry(outPath, JSON.stringify(glossaryEntry, null, 2));
+        writeFileSyncRetry(outPath, entryJson(glossaryEntry));
         generatedPaths.push(path.relative(process.cwd(), outPath).replace(/\\/g, '/'));
         count++;
       }
@@ -531,7 +569,7 @@ function processSourceFiles() {
       }
     }
     if (dirty) {
-      writeFileSyncRetry(file, JSON.stringify(json, null, 2));
+      writeFileSyncRetry(file, entryJson(json));
       repaired++;
     }
   }

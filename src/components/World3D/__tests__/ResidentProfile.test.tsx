@@ -69,7 +69,7 @@ describe('physical resident profile', () => {
 
 describe('current institutional role in a physical profile',()=>{
  it('shows the same admitted priest as a relative and primary person, without changing their household work',()=>{
-  const source={villagers:{...life.villagers,82:{...life.villagers[82],role:'priest'}}}; const before=JSON.stringify(source);
+  const source={villagers:{...life.villagers,82:{...life.villagers[82],role:'priest' as const}}}; const before=JSON.stringify(source);
   const {rerender}=render(<ResidentProfile household={household} memberIndex={0} life={source} gameTime={clock} />);
   expect(screen.getByTestId('resident-current-family')).toHaveTextContent('Town role: priest');
   rerender(<ResidentProfile household={household} memberIndex={1} life={source} gameTime={clock} />);

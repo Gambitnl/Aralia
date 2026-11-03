@@ -1,7 +1,12 @@
 /**
- * GIF capture for graph overlay features using headful Playwright.
- * Uses non-headless mode to avoid rendering issues with the canvas overlay.
- * Usage: node devtools/roadmap/.media/capture-gifs-overlay.mjs
+ * This file records animated GIF captures for the roadmap tool's graph-overlay features.
+ *
+ * It launches a sandboxed system Chrome instance in headful mode to avoid canvas-overlay
+ * rendering glitches, records video interactions on the Spell Graph overlay, and converts
+ * them into optimized GIFs via two-pass `ffmpeg` palette generation.
+ *
+ * Called by: Developer CLI (`node devtools/roadmap/.media/capture-gifs-overlay.mjs`).
+ * Depends on: `playwright` (`chromium`), `ffmpeg` on `PATH`, and a local dev server at `localhost:3010`.
  */
 import { chromium } from 'playwright';
 import { writeFileSync, mkdirSync, existsSync, readdirSync, unlinkSync } from 'fs';
@@ -38,6 +43,8 @@ function cleanVideoTmp() {
 async function captureLiveAxisFiltering() {
   cleanVideoTmp();
   const ctx = await chromium.launchPersistentContext('', {
+    channel: 'chrome',
+    chromiumSandbox: true,
     headless: false,
     args: ['--window-size=1400,900', '--window-position=0,0'],
     recordVideo: { dir: VIDEO_TMP, size: { width: 1400, height: 860 } },
@@ -95,6 +102,8 @@ async function captureLiveAxisFiltering() {
 async function captureSpellBranchHandoff() {
   cleanVideoTmp();
   const ctx = await chromium.launchPersistentContext('', {
+    channel: 'chrome',
+    chromiumSandbox: true,
     headless: false,
     args: ['--window-size=1400,900', '--window-position=0,0'],
     recordVideo: { dir: VIDEO_TMP, size: { width: 1400, height: 860 } },

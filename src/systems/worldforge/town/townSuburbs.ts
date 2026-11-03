@@ -188,7 +188,14 @@ export function buildSuburbs(input: SuburbInput): SuburbRow[] {
         const nx = (-ty / tl) * side, ny = (tx / tl) * side;
         const p0: Pt = [a.p[0] + nx * half, a.p[1] + ny * half];
         const p1: Pt = [b.p[0] + nx * half, b.p[1] + ny * half];
-        const polygon: Pt[] = [p0, p1, [p1[0] + nx * depth, p1[1] + ny * depth], [p0[0] + nx * depth, p0[1] + ny * depth]];
+        // GG-608: the lot starts with its road edge, wound so the rest of the
+        // lot lies to the LEFT of that edge. The adapter (`orientedQuad`)
+        // reads the first edge as the street front and puts the house front
+        // on that side. On the right side of the road (side -1) the edge ran
+        // p0 -> p1 with the lot to its right, so every house there faced away
+        // from its road and its door opened onto the fields.
+        const far0: Pt = [p0[0] + nx * depth, p0[1] + ny * depth], far1: Pt = [p1[0] + nx * depth, p1[1] + ny * depth];
+        const polygon: Pt[] = side > 0 ? [p0, p1, far1, far0] : [p1, p0, far0, far1];
         if (fits(polygon)) {
           plots.push({ polygon, frontageEdge: 0, kind: 'frontage', shape: 'rect' });
           placed.push(polygon);

@@ -145,7 +145,9 @@ export function prepareResponsiveAtlas(
 
   // The shared one-shot owner releases the worker on either outcome. Keep both
   // replies together, then install into the same canonical cache after release.
-  const pending = runWorkerTask<ResponsiveAtlasRequest, ResponsiveAtlasResponse, ResponsiveAtlasPrepared>({
+  // The explicit type breaks the self-reference: the `.then` callback compares
+  // the cache entry against `pending` itself (TS7022 without it).
+  const pending: Promise<ResponsiveAtlasPrepared> = runWorkerTask<ResponsiveAtlasRequest, ResponsiveAtlasResponse, ResponsiveAtlasPrepared>({
     factory: workerFactory,
     request,
     formatError: (event) => {

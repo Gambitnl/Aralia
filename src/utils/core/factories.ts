@@ -14,6 +14,24 @@
  */
 // @dependencies-end
 
+/**
+ * ARCHITECTURAL CONTEXT:
+ * This file is the central test-fixture factory (`src/utils/core/factories.ts`).
+ * It builds complete, type-valid mock instances of `Spell`, `Faction`,
+ * `CommandContext`, `PlayerCharacter`, `GameState`, `CombatCharacter`,
+ * `CombatState`, `Item`, `Quest`, `Monster`, and `GameMessage` with defensive
+ * fallbacks so unit tests only have to specify the fields under test.
+ *
+ * Recent updates:
+ * - Restored `initialGameState` parity in `createMockGameState` (GG-182): the
+ *   5 modal visibility booleans (`isSalvageModalVisible`, `isBankModalVisible`,
+ *   `isRealEstateModalVisible`, `isShopModalVisible`, `isTradeRouteModalVisible`)
+ *   and `worldforgeTerrainRevision: 2` are initialized in both normal and
+ *   fallback returns so `factories.test.ts` key-parity assertions pass.
+ *
+ * @file src/utils/core/factories.ts
+ */
+
 import {
   Spell,
   SpellSchool,
@@ -459,6 +477,8 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       isImageLoading: false,
       error: null,
       worldSeed: 12345,
+      // Mirrors initialState.ts so mock game states carry the current terrain source revision.
+      worldforgeTerrainRevision: 2,
       isMapVisible: true,
       isPartyOverlayVisible: true,
       isNpcTestModalVisible: false,
@@ -721,6 +741,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       isImageLoading: false,
       error: "Critical Factory Error",
       worldSeed: 0,
+      worldforgeTerrainRevision: 2,
       isMapVisible: false,
       isPartyOverlayVisible: false,
       isNpcTestModalVisible: false,

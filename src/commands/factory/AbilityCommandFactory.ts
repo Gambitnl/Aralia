@@ -1750,7 +1750,9 @@ export class AbilityCommandFactory {
           return directCommand;
         }
 
-        const spellEffect = AbilityEffectMapper.mapToSpellEffect(effect);
+        // Forward the parent ability so save-bearing utility/area abilities
+        // carry their saveDC and saveAbility onto the mapped damage effect.
+        const spellEffect = AbilityEffectMapper.mapToSpellEffect(effect, ability);
         return spellEffect ? AbilityCommandFactory.createEffectCommand(spellEffect, context) : null;
       })
       .filter((command): command is SpellCommand => command !== null);

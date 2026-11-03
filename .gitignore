@@ -193,6 +193,13 @@ src/components/DesignPreview/steps/sidebyside/*
 !src/components/DesignPreview/steps/sidebyside/oceanExtras/
 !src/components/DesignPreview/steps/sidebyside/oceanExtras/**
 !src/components/DesignPreview/steps/PreviewDungeon.tsx
+# The waterfall comparison panel: git keeps it because the tracked test
+# WaterfallComparisonPanel.test.tsx imports it, and CI failed to resolve it
+# (2026-11-03). It imports only tracked river modules. The rest of the water
+# previews stay local.
+!src/components/DesignPreview/steps/water/
+src/components/DesignPreview/steps/water/*
+!src/components/DesignPreview/steps/water/WaterfallComparisonPanel.tsx
 # The World Battle Lab is a canonical Vistest/debug contract, not a local-only
 # preview experiment; keep this one scenario harness in shared history.
 !src/components/DesignPreview/steps/PreviewBattleMapScenarioLab.tsx

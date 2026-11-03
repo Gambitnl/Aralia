@@ -89,7 +89,7 @@ exports[`generateBuilding golden > manor seed 12345 is stable 1`] = `
         "study",
       ],
       "walls": 103,
-      "windows": 16,
+      "windows": 17,
     },
     {
       "doors": 9,
@@ -163,7 +163,7 @@ exports[`generateBuilding golden > shop seed 12345 is stable 1`] = `
         "workshop",
       ],
       "walls": 55,
-      "windows": 9,
+      "windows": 8,
     },
     {
       "doors": 5,

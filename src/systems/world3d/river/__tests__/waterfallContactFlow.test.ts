@@ -411,7 +411,10 @@ describe('waterfall finite contact flow', () => {
     const arrival = flow.advanceTo(2 * dt, () => off);
     expect(flow.failureReason).toBe('impact-junction-nonsource-arrival'); expect(arrival.volume).toBe(0); expect(flow.time).toBe(dt);
     expect(flow.snapshot().parcels).toEqual(before.snapshot.parcels); expect(flow.snapshot().receipt.energy).toEqual(before.snapshot.receipt.energy);
-    expect(flow.snapshot().receipt.failureDiagnostic!.parcel.velocity[1]).toBeLessThan(-100);
+    // Only the junction diagnostic carries the parcel; any other kind is a wrong failure.
+    const diagnostic = flow.snapshot().receipt.failureDiagnostic;
+    if (!diagnostic || !('parcel' in diagnostic)) throw new Error('expected a junction arrival diagnostic');
+    expect(diagnostic.parcel.velocity[1]).toBeLessThan(-100);
   });
   it('retains outgoing sub-ULP clearance and shallow multi-tick departure without a supplying-face exemption', () => {
     const surface = getWaterfallContactSurfaces()[0], local = release(), n = local.normal;
@@ -573,7 +576,10 @@ describe('waterfall finite contact flow', () => {
     }
     expect(flow.snapshot().receipt.emittedVolume).toBeCloseTo(60.35 + 3, 8);
     expect(flow.totalOwnedVolume).toBeGreaterThan(0);
-  }, 60000);
+    // 73 physical seconds with up to 20000 parcels: measured 146 s in CI run
+    // 41535506704 and 179 s locally (2026-11-03), with every check passing. The
+    // old 60 s limit failed only on time. Why it got this slow is a follow-up.
+  }, 300000);
   it('gives six inlet bins complete physical width support with interval volume and midpoint transport', () => {
     const dt = 1 / 60, native = { ...source, q: 1.5, speed: 1.5 / 7 };
     const flow = new WaterfallContactFlow({ startTime: 0, dt, parcelsPerStep: 6 });

@@ -283,16 +283,75 @@ export const INTERIOR_LIGHT_TUNING = {
   MAX_LAMP_LIGHTS,
 } as const;
 
-export function collectInteriorLighting(
-  loaded: LoadedChunk[],
-  origin: SceneOrigin,
-): { hearths: HearthLight[]; shells: ShellBounds[]; windows: WindowEmitter[]; lamps: LampLight[]; apertures: SunAperture[] } {
+/** Every interior light source of a chunk set, in scene space. */
+export interface InteriorLighting {
+  hearths: HearthLight[];
+  shells: ShellBounds[];
+  windows: WindowEmitter[];
+  lamps: LampLight[];
+  apertures: SunAperture[];
+}
+
+/** The lists of every loaded chunk, in `loaded` order (one pass, no cache). */
+export function collectInteriorLighting(loaded: LoadedChunk[], origin: SceneOrigin): InteriorLighting {
+  return mergeInteriorLighting(loaded.map((chunk) => collectChunkInteriorLighting(chunk, origin)));
+}
+
+/** Join per-chunk lists in order. The items themselves are shared, not copied. */
+function mergeInteriorLighting(parts: readonly InteriorLighting[]): InteriorLighting {
+  const all: InteriorLighting = { hearths: [], shells: [], windows: [], lamps: [], apertures: [] };
+  for (const p of parts) {
+    for (const x of p.hearths) all.hearths.push(x);
+    for (const x of p.shells) all.shells.push(x);
+    for (const x of p.windows) all.windows.push(x);
+    for (const x of p.lamps) all.lamps.push(x);
+    for (const x of p.apertures) all.apertures.push(x);
+  }
+  return all;
+}
+
+/**
+ * GG-606: keep each chunk's lists while the chunk stays loaded. A chunk
+ * arrival used to run `collectInteriorLighting` (and `buildInteriorDaylight`
+ * for every site) over the whole loaded set: 50 to 205 ms on the main thread
+ * per arrival, often twice. Now only a chunk that is new, or whose bundle or
+ * scene origin changed, is collected; the others reuse their lists, and the
+ * merge is a few thousand pushes. A chunk that leaves the set leaves the cache.
+ */
+export class InteriorLightingCache {
+  private byChunk = new Map<string, { bundle: object; originX: number; originZ: number; lists: InteriorLighting }>();
+  /** The `cx|cy` keys the last `collect` call built (not reused), for tests and probes. */
+  lastBuilt: string[] = [];
+
+  collect(loaded: LoadedChunk[], origin: SceneOrigin): InteriorLighting {
+    const next = new Map<string, { bundle: object; originX: number; originZ: number; lists: InteriorLighting }>();
+    const parts: InteriorLighting[] = [];
+    this.lastBuilt = [];
+    for (const chunk of loaded) {
+      const key = `${chunk.cx}|${chunk.cy}`;
+      let entry = this.byChunk.get(key);
+      if (!entry || entry.bundle !== chunk.bundle || entry.originX !== origin.x || entry.originZ !== origin.z) {
+        entry = { bundle: chunk.bundle, originX: origin.x, originZ: origin.z, lists: collectChunkInteriorLighting(chunk, origin) };
+        this.lastBuilt.push(key);
+      }
+      next.set(key, entry);
+      parts.push(entry.lists);
+    }
+    this.byChunk = next;
+    return mergeInteriorLighting(parts);
+  }
+}
+
+/** One chunk's light sources, in scene space (pure; allocates its lists). */
+export function collectChunkInteriorLighting(chunk: LoadedChunk, origin: SceneOrigin): InteriorLighting {
   const hearths: HearthLight[] = [];
   const shells: ShellBounds[] = [];
   const windows: WindowEmitter[] = [];
   const lamps: LampLight[] = [];
   const apertures: SunAperture[] = [];
-  for (const chunk of loaded) {
+  // One block per chunk (this was the body of a loop over every loaded chunk
+  // before GG-606; the indent is kept so the diff stays the change itself).
+  {
     const o = chunkOriginWorld(chunk.cx, chunk.cy);
     const chunkScene = worldToScene(o.x, o.y, origin); // chunk-local frame origin
     for (const s of chunk.bundle.sites) {
@@ -459,10 +518,13 @@ const InteriorLights: React.FC<{
   // this hour are skipped in the selector below.
   const hour = useInteriorHour();
   // Static-per-chunk-set lighting data (no per-frame rebuild). The key changes
-  // only when chunks stream in/out.
+  // only when chunks stream in/out, and then only the new chunks are
+  // collected (GG-606, InteriorLightingCache).
+  const lightingCache = useRef<InteriorLightingCache | null>(null);
+  lightingCache.current ??= new InteriorLightingCache();
   const loadedKey = loaded.map((c) => `${c.cx}|${c.cy}`).join(',');
   const { hearths, shells, windows, lamps, apertures } = useMemo(
-    () => collectInteriorLighting(loaded, origin),
+    () => lightingCache.current!.collect(loaded, origin),
     // loadedKey captures set membership; origin is frozen for the session.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [loadedKey, origin],

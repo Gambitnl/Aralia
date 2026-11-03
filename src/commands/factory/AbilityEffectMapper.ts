@@ -1,12 +1,31 @@
-import { AbilityEffect } from '@/types/combat';
-import { SpellEffect, DamageType, ConditionName } from '@/types/spells';
+import { Ability, AbilityEffect } from '@/types/combat';
+import { SpellEffect, DamageType, ConditionName, EffectCondition, SavingThrowAbility } from '@/types/spells';
 import { ConditionType } from '@/types/conditions';
 
-// This mapper is the bridge between lightweight battle-map abilities and the
-// shared spell-effect command pipeline. Monster attacks and simple combat
-// actions often store a flat `value`, while the command layer expects a dice
-// formula string; keeping that translation here preserves one execution path
-// for damage, healing, logs, and future command-side mechanics.
+/**
+ * This file translates battle-map ability effects into the shared spell-effect
+ * command format.
+ *
+ * Monster actions, class features, and weapon abilities use a compact `Ability`
+ * and `AbilityEffect` structure, whereas the combat execution engine runs on
+ * `SpellEffect` commands (`DamageCommand`, `HealingCommand`, `StatusConditionCommand`,
+ * `MovementCommand`). Converting ability payloads here lets both abilities and
+ * spells share one damage, saving-throw, healing, status, and movement pipeline.
+ *
+ * Called by: `AbilityCommandFactory.ts` (when building attack and utility commands)
+ * Depends on: combat and spell effect type definitions
+ */
+
+// ============================================================================
+// Magnitude And Distance Extraction
+// ============================================================================
+// Monster attacks and simple combat actions often store a flat `value`, while
+// the command layer expects a dice formula string or an explicit distance in
+// feet. These helpers normalize those values before command construction.
+// ============================================================================
+
+// Convert a flat numeric value or dice string into the dice formula string
+// that DamageCommand and HealingCommand roll.
 const getEffectMagnitudeFormula = (abilityEffect: AbilityEffect): string => {
   if (abilityEffect.dice) return abilityEffect.dice;
 
@@ -34,6 +53,13 @@ const getEffectDistanceFeet = (abilityEffect: AbilityEffect): number | undefined
   return undefined;
 };
 
+// ============================================================================
+// Condition And Saving Throw Normalization
+// ============================================================================
+// These helpers validate status condition names and saving-throw ability names
+// against the canonical unions expected by the command layer.
+// ============================================================================
+
 const KNOWN_CONDITION_NAMES: ReadonlySet<ConditionName> = new Set([
   ...Object.values(ConditionType),
   'Slowed',
@@ -43,24 +69,81 @@ const KNOWN_CONDITION_NAMES: ReadonlySet<ConditionName> = new Set([
   'Inspired' as ConditionName,
 ]);
 
+// Return the condition name only if it belongs to the known runtime set.
 const normalizeConditionName = (name: string): ConditionName | undefined => {
   return KNOWN_CONDITION_NAMES.has(name as ConditionName) ? (name as ConditionName) : undefined;
 };
 
+const SAVING_THROW_ABILITIES: readonly SavingThrowAbility[] = [
+  'Strength',
+  'Dexterity',
+  'Constitution',
+  'Intelligence',
+  'Wisdom',
+  'Charisma',
+];
+
+// Match an ability's saveAbility string (case-insensitively) to the canonical
+// SavingThrowAbility union used by DamageCommand.
+const normalizeSaveAbility = (saveAbility?: string): SavingThrowAbility | undefined => {
+  if (!saveAbility) return undefined;
+  return SAVING_THROW_ABILITIES.find(
+    candidate => candidate.toLowerCase() === saveAbility.toLowerCase()
+  );
+};
+
+// Build the effect condition for a damage payload. When the owning ability
+// declares both a save DC and a valid save ability, emit a saving-throw
+// condition that halves damage on a successful save; otherwise default to 'always'.
+const buildDamageCondition = (
+  ability?: Pick<Ability, 'saveDC' | 'saveAbility'>
+): EffectCondition => {
+  const saveType = normalizeSaveAbility(ability?.saveAbility);
+  if (
+    typeof ability?.saveDC === 'number' &&
+    Number.isFinite(ability.saveDC) &&
+    saveType
+  ) {
+    return {
+      type: 'saving_throw',
+      saveType,
+      saveDC: ability.saveDC,
+      saveEffect: 'half',
+    };
+  }
+
+  return { type: 'always' };
+};
+
+// ============================================================================
+// Ability-To-SpellEffect Mapper
+// ============================================================================
+// Converts a single AbilityEffect (plus optional parent Ability metadata such
+// as saveDC and saveAbility) into a SpellEffect that the command factory can
+// wrap in a concrete SpellCommand.
+// ============================================================================
+
 export class AbilityEffectMapper {
-  static mapToSpellEffect(abilityEffect: AbilityEffect): SpellEffect | null {
+  static mapToSpellEffect(
+    abilityEffect: AbilityEffect,
+    ability?: Pick<Ability, 'saveDC' | 'saveAbility'>
+  ): SpellEffect | null {
     switch (abilityEffect.type) {
       case 'damage':
+        // Map damage effects with a saving_throw condition when the parent
+        // ability specifies saveDC and saveAbility; otherwise keep 'always'
+        // (weapon attack rolls are handled by WeaponAttackCommand).
         return {
           type: 'DAMAGE',
           trigger: { type: 'immediate' },
-          condition: { type: 'always' }, // Attack roll is handled by Command wrapper
+          condition: buildDamageCondition(ability),
           damage: {
             dice: getEffectMagnitudeFormula(abilityEffect),
             type: abilityEffect.damageType || DamageType.Bludgeoning,
           },
         };
       case 'heal':
+        // Healing abilities always apply directly to their targets without a save.
         return {
           type: 'HEALING',
           trigger: { type: 'immediate' },
@@ -69,7 +152,9 @@ export class AbilityEffectMapper {
             dice: getEffectMagnitudeFormula(abilityEffect),
           },
         };
-      case 'status':
+      case 'status': {
+        // Ignore malformed status entries or unknown condition names so they do
+        // not corrupt character condition lists.
         if (!abilityEffect.statusEffect) return null;
 
         const statusConditionName = normalizeConditionName(abilityEffect.statusEffect.name);
@@ -84,8 +169,10 @@ export class AbilityEffectMapper {
             duration: { type: 'rounds', value: abilityEffect.statusEffect.duration },
           },
         };
+      }
       case 'movement':
       case 'teleport': {
+        // Translate push/teleport distance in feet onto the MovementCommand payload.
         const distance = getEffectDistanceFeet(abilityEffect);
 
         return {

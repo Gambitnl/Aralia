@@ -883,8 +883,8 @@ export function calculateCharacterSpeedFromRace(
 export function hasHeavyArmorSpeedPenalty(character: PlayerCharacter): boolean {
   const torso = character.equippedItems?.Torso;
   if (!torso || torso.type !== 'armor' || torso.armorCategory !== 'Heavy' || !torso.strengthRequirement) return false;
-  const armorExempt = character.race?.traits?.some(trait =>
-    /\bspeed is not reduced by wearing heavy armor\b/i.test(trait));
+  const armorExempt = character.race?.ignoresHeavyArmorSpeedPenalty === true;
+  // Structured race flag replaces free-text trait parsing (GG-168).
   return !armorExempt && (character.finalAbilityScores?.Strength ?? 10) < torso.strengthRequirement;
 }
 

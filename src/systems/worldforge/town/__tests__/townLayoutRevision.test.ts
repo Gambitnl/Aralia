@@ -58,9 +58,15 @@ describe('explicit town layout revision',()=>{
     // before rural source3. A captured pre-edit-source comparison proves this
     // exact roster is unchanged by the rural work; the old3f1d hash used an
     // earlier job reader, even though its layout/artifact hashes still match.
-    expect(hash(roster)).toBe('b5eb88d6e64d1668cb63f0742db00b03266cbe667f477e2fffbd6eb741f383ca');
+    // GG-607 (Remy's ruling, 2026-11-02: "Yes, old towns get jobs too"): the
+    // GG-600 town workplaces may change the revision-1 roster, so this hash
+    // was re-pinned. The revision-1 layout and artifact hashes above are
+    // unchanged; only the roster reader moved.
+    expect(hash(roster)).toBe('0063205395905bc1cdb821ae05303eef3b3d0d324987e0761d95c605a15c6316');
     expect(roster.occupants.find(person=>person.householdMemberId==='b20:head')).toEqual({
       id:55,name:'Tomas Dunfield',ageBand:'adult',homePlotId:20,occupation:'resident',householdMemberId:'b20:head',
+      // GG-607: the GG-600 job this ruling admits (he keeps the shop on plot 19).
+      employment:{plotId:19,role:'proprietor'},
     });
   });
   it('keeps the approved newer layout as the default, after a legacy read',()=>{

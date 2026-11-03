@@ -1,9 +1,20 @@
+/**
+ * This file tests the world-history ledger utilities (`src/utils/world/historyUtils.ts`).
+ *
+ * It verifies ledger initialization, importance-protected capacity pruning, tag filtering,
+ * participant lookups, location lookups (`findEventsByLocation`, GG-169), and inclusive
+ * date-range queries.
+ *
+ * Called by: Vitest test runner.
+ * Depends on: `historyUtils` and `WorldHistoryEvent` types.
+ */
 import { describe, it, expect } from 'vitest';
 import {
     createEmptyHistory,
     addHistoryEvent,
     getRelevantHistory,
     findEventsByParticipant,
+    findEventsByLocation,
     findEventsByDateRange
 } from '../historyUtils';
 import { WorldHistoryEvent } from '../../../types/history';
@@ -160,5 +171,43 @@ describe('historyUtils', () => {
 
         const results = findEventsByDateRange(history, 100, 200);
         expect(results).toHaveLength(0);
+    });
+
+    // ============================================================================
+    // Location Query Coverage (GG-169)
+    // ============================================================================
+    // Verifies `findEventsByLocation` matches on `locationId`, excludes non-matching
+    // or locationless events, and sorts multiple events at the same location newest-first.
+    // ============================================================================
+    describe('findEventsByLocation (GG-169)', () => {
+        const locationHistory = {
+            events: [
+                { ...mockEvent, id: 'evt-northford-old', timestamp: 120, locationId: 'northford' },
+                { ...mockEvent, id: 'evt-greyford', timestamp: 150, locationId: 'greyford' },
+                { ...mockEvent, id: 'evt-no-loc', timestamp: 180 },
+                { ...mockEvent, id: 'evt-northford-new', timestamp: 240, locationId: 'northford' },
+                { ...mockEvent, id: 'evt-northford-mid', timestamp: 190, locationId: 'northford' },
+            ],
+        };
+
+        it('returns matching events for a location', () => {
+            const results = findEventsByLocation(locationHistory, 'greyford');
+            expect(results).toHaveLength(1);
+            expect(results[0].id).toBe('evt-greyford');
+        });
+
+        it('returns an empty array when no events match the location', () => {
+            const results = findEventsByLocation(locationHistory, 'sunhaven');
+            expect(results).toHaveLength(0);
+        });
+
+        it('returns multiple events at the same location ordered newest-first', () => {
+            const results = findEventsByLocation(locationHistory, 'northford');
+            expect(results.map(e => e.id)).toEqual([
+                'evt-northford-new',
+                'evt-northford-mid',
+                'evt-northford-old',
+            ]);
+        });
     });
 });

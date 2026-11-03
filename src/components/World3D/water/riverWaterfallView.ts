@@ -64,7 +64,7 @@ import { createRiverFlowTextures, createRiverWaterMaterial, getRiverFoamTexture,
 import type { WaterfallLandingState } from '@/systems/world3d/river/riverFlowField';
 import type { RiverFlowMap } from '@/systems/world3d/river/riverFlowField';
 // Extracted optical functions (agora-e9e1 split)
-import { waterfallInterfaceNormal, waterfallOpticalSegment, waterfallTwoStream, waterfallSkyIrradiance, waterfallSkyBasis, getWaterfallSkyIrradianceTexture, getWaterfallSkyTextures, WATERFALL_INTERFACE } from './riverWaterfallOptics';
+import { waterfallInterfaceNormal, waterfallOpticalSegment, waterfallTwoStream, waterfallSkyIrradiance, waterfallSkyBasis, getWaterfallSkyIrradianceTexture, getWaterfallSkyTextures, WATERFALL_INTERFACE, WATERFALL_OPTICS as SHARED_WATERFALL_OPTICS } from './riverWaterfallOptics';
 import type { WaterfallNormalVector, WaterfallSkyCell } from './riverWaterfallTypes';
 
 /** Scanned rock belongs only to the new mountain and source ground.
@@ -394,7 +394,9 @@ export function materialSheetMaterial(U:RiverWaterUniforms,pool:ReturnType<typeo
   material.side=THREE.FrontSide;material.transparent=true;material.depthWrite=true;material.name='diagnostic coherent emitted material sheet';return material;
 }
 
-const WATERFALL_OPTICS = { radiusM: 0.003, minRadiusM: 0.001, maxRadiusM: 0.005, efficiency: 2, g: 0.75, skyRows: 65 } as const;
+// g and skyRows come from the optics module that builds the sky tables, so the
+// shader samples the same table size and phase function as the CPU reference.
+const WATERFALL_OPTICS = { radiusM: 0.003, minRadiusM: 0.001, maxRadiusM: 0.005, efficiency: 2, g: SHARED_WATERFALL_OPTICS.g, skyRows: SHARED_WATERFALL_OPTICS.skyRows } as const;
 
 
 // Optical functions extracted to riverWaterfallOptics.ts (agora-e9e1 split)

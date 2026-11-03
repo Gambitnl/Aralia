@@ -213,7 +213,9 @@ export interface EffectTrigger {
 
 /** Defines the condition under which an effect applies. */
 export interface EffectCondition {
-  type: "hit" | "save" | "always";
+  type: "hit" | "save" | "saving_throw" | "always";
+  /** Explicit save DC carried from a monster or class ability when it does not use spellcasting DC. */
+  saveDC?: number;
   saveType?: SavingThrowAbility;
   /** Source-backed `negates` is normalized by save-resolution runtimes when executed. */
   saveEffect?: "none" | "half" | "negates_condition" | "negates";

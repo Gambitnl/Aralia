@@ -11,7 +11,10 @@
 
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import type { GlossaryEntry } from '../../src/types/ui';
-import { buildItemMetadata } from '../ingestPhbGlossary';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { buildItemMetadata, entryJson, vendorSourcesPresent } from '../ingestPhbGlossary';
 
 describe('buildItemMetadata', () => {
   it('only includes allowed fields and preserves every standard transformation', () => {
@@ -199,5 +202,57 @@ describe('buildItemMetadata', () => {
       const typeMap = {};
       const metadata = buildItemMetadata(item, typeMap);
       expect(metadata).toBeNull();
+  });
+});
+
+// A clean clone has no gitignored vendor/ folder. The ingest must then write
+// nothing (the tracked entries and manifest stay), and a partial copy must stop.
+describe('vendorSourcesPresent', () => {
+  const files = ['feats.json', 'items-base.json', 'items-base.json'];
+
+  it('reports an absent data folder, so the ingest leaves the tracked output alone', () => {
+    const root = mkdtempSync(path.join(tmpdir(), 'ingest-vendor-'));
+    try {
+      expect(vendorSourcesPresent(path.join(root, 'vendor/5etools-src/data'), files)).toBe(false);
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  });
+
+  it('accepts a complete data folder', () => {
+    const root = mkdtempSync(path.join(tmpdir(), 'ingest-vendor-'));
+    try {
+      for (const file of files) writeFileSync(path.join(root, file), '{}');
+      expect(vendorSourcesPresent(root, files)).toBe(true);
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  });
+
+  it('stops on a partial data folder and names each missing file once', () => {
+    const root = mkdtempSync(path.join(tmpdir(), 'ingest-vendor-'));
+    try {
+      mkdirSync(root, { recursive: true });
+      writeFileSync(path.join(root, 'feats.json'), '{}');
+      expect(() => vendorSourcesPresent(root, files)).toThrow(/lacks items-base\.json\. /);
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  });
+});
+
+// A local rebuild with the vendor data once wrote 5eTools dashes and signs into
+// 25 tracked entries, and the strict charset check failed CI (commit 2bdbee28b).
+describe('entryJson', () => {
+  it('writes every string value as checker-clean ASCII and keeps the JSON valid', () => {
+    const entry = {
+      title: 'Carpet of Flying, 6 ft. × 9 ft.',
+      markdown: 'flint—or tinder—holds 1½ pints; the “deck” says …',
+      tags: ['source:xphb', 'en–dash'],
+      itemMetadata: { weight: 1.5 },
+    };
+    const text = entryJson(entry);
+    // Printable ASCII plus the newlines of the 2-space JSON layout.
+    expect([...text].filter((ch) => ch !== '\n' && (ch < ' ' || ch > '~'))).toEqual([]);
+    expect(JSON.parse(text)).toEqual({
+      title: 'Carpet of Flying, 6 ft. x 9 ft.',
+      markdown: 'flint-or tinder-holds 11/2 pints; the "deck" says ...',
+      tags: ['source:xphb', 'en-dash'],
+      itemMetadata: { weight: 1.5 },
+    });
   });
 });

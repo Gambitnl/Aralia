@@ -1,3 +1,13 @@
+/**
+ * This file tests the character state reducer (`src/state/reducers/characterReducer.ts`).
+ *
+ * It verifies gold and fencing transactions, XP and leveling, short/long rest recovery,
+ * racial spell grants, two-handed weapon/shield exclusivity (GG-502), party-wide attunement
+ * limits (GG-501), and equipment slot-compatibility enforcement (GG-167).
+ *
+ * Called by: Vitest test runner.
+ * Depends on: `characterReducer`, `createMockPlayerCharacter`, and character utility helpers.
+ */
 import { describe, it, expect } from 'vitest';
 import { ItemType } from '../../../types';
 import { characterReducer } from '../characterReducer';
@@ -1277,6 +1287,128 @@ describe('characterReducer', () => {
             expect(allowedAState.party).toBeDefined();
             expect(allowedAState.inventory?.find(i => i.id === 'attuned_ring_3')?.isAttuned).toBe(true);
             expect(allowedAState.inventory?.find(i => i.id === 'attuned_ring_3')?.attunedCharacterId).toBe('char-a');
+        });
+    });
+
+    // ============================================================================
+    // GG-167: EQUIP_ITEM Slot Compatibility Enforcement
+    // ============================================================================
+    // Ensures `EQUIP_ITEM` checks `slotAcceptsItem` so weapons authored with an
+    // armor slot (e.g. `Torso`) or body armor authored with a hand slot (`MainHand`)
+    // are refused before mutating `equippedItems`, while valid weapons and armor
+    // equip to `MainHand` and `Torso` normally.
+    // ============================================================================
+    describe('GG-167: EQUIP_ITEM slot compatibility enforcement', () => {
+        const torsoWeapon: Item = {
+            id: 'cursed_torso_greatsword',
+            name: 'Mis-slotted Greatsword',
+            description: 'A two-handed weapon erroneously authored with slot Torso.',
+            type: ItemType.Weapon,
+            slot: 'Torso',
+            properties: ['Two-Handed', 'Heavy'],
+        };
+
+        const torsoOneHandedWeapon: Item = {
+            id: 'cursed_torso_dagger',
+            name: 'Mis-slotted Dagger',
+            description: 'A one-handed weapon erroneously authored with slot Torso.',
+            type: ItemType.Weapon,
+            slot: 'Torso',
+            properties: ['Light', 'Finesse'],
+        };
+
+        const mainHandArmor: Item = {
+            id: 'cursed_hand_breastplate',
+            name: 'Mis-slotted Breastplate',
+            description: 'Body armor erroneously authored with slot MainHand.',
+            type: ItemType.Armor,
+            armorCategory: 'Medium',
+            slot: 'MainHand',
+            baseArmorClass: 14,
+        };
+
+        const normalSword: Item = {
+            id: 'normal_longsword',
+            name: 'Longsword',
+            description: 'A standard one-handed sword.',
+            type: ItemType.Weapon,
+            slot: 'MainHand',
+        };
+
+        const normalArmor: Item = {
+            id: 'normal_chainmail',
+            name: 'Chain Mail',
+            description: 'Standard heavy torso armor.',
+            type: ItemType.Armor,
+            armorCategory: 'Heavy',
+            slot: 'Torso',
+            baseArmorClass: 16,
+        };
+
+        it('refuses a weapon with slot Torso (both two-handed and one-handed) and armor with slot MainHand', () => {
+            const char = createMockPlayerCharacter({
+                id: 'slot-guard-char',
+                equippedItems: {},
+            });
+            const state = {
+                ...initialState,
+                party: [char],
+                inventory: [torsoWeapon, torsoOneHandedWeapon, mainHandArmor],
+                characterSheetModal: { isOpen: false, character: null },
+            } as GameState;
+
+            const afterTwoHanded = characterReducer(state, {
+                type: 'EQUIP_ITEM',
+                payload: { characterId: 'slot-guard-char', itemId: 'cursed_torso_greatsword' },
+            });
+            expect(afterTwoHanded).toEqual({});
+
+            const afterOneHanded = characterReducer(state, {
+                type: 'EQUIP_ITEM',
+                payload: { characterId: 'slot-guard-char', itemId: 'cursed_torso_dagger' },
+            });
+            expect(afterOneHanded).toEqual({});
+
+            const afterArmorInHand = characterReducer(state, {
+                type: 'EQUIP_ITEM',
+                payload: { characterId: 'slot-guard-char', itemId: 'cursed_hand_breastplate' },
+            });
+            expect(afterArmorInHand).toEqual({});
+        });
+
+        it('equips a normal sword to MainHand and a normal armor to Torso', () => {
+            const char = createMockPlayerCharacter({
+                id: 'slot-guard-char',
+                equippedItems: {},
+            });
+            let state = {
+                ...initialState,
+                party: [char],
+                inventory: [normalSword, normalArmor],
+                characterSheetModal: { isOpen: false, character: null },
+            } as GameState;
+
+            state = {
+                ...state,
+                ...characterReducer(state, {
+                    type: 'EQUIP_ITEM',
+                    payload: { characterId: 'slot-guard-char', itemId: 'normal_longsword' },
+                }),
+            } as GameState;
+
+            expect(state.party[0].equippedItems.MainHand?.id).toBe('normal_longsword');
+            expect(state.inventory.some(i => i.id === 'normal_longsword')).toBe(false);
+
+            state = {
+                ...state,
+                ...characterReducer(state, {
+                    type: 'EQUIP_ITEM',
+                    payload: { characterId: 'slot-guard-char', itemId: 'normal_chainmail' },
+                }),
+            } as GameState;
+
+            expect(state.party[0].equippedItems.Torso?.id).toBe('normal_chainmail');
+            expect(state.inventory.some(i => i.id === 'normal_chainmail')).toBe(false);
         });
     });
 

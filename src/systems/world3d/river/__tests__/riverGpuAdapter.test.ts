@@ -11,7 +11,8 @@ function interval(input:RiverGpuResidentInput,changes:[number,number,number,numb
   const journal=new Float32Array(16);journal.set([.01,3,0,input.nx*input.nz,.01,.02,0,1],0);journal.set([.01,3,0,input.nx*input.nz,.02,.04,0,1],8);
   const records=new Uint32Array(changes.length*8),values=new Float32Array(records.buffer);
   changes.forEach(([c,...rest],k)=>{records[k*8]=c<<4|flags;values.set(rest,k*8+1);});
-  return{records,journal,steps:2,duration:.02,inVolume:.04,outVolume:0,lastMaxSpeed:3,awakeCells:12,uploadBytes:0,elapsedMs:1};
+  // No spill runs on this reach, so the device returns no spill launches.
+  return{records,launches:new Uint32Array(0),journal,steps:2,duration:.02,inVolume:.04,outVolume:0,lastMaxSpeed:3,awakeCells:12,uploadBytes:0,elapsedMs:1};
 }
 
 function river() {

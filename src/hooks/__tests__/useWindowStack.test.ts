@@ -57,7 +57,9 @@ describe('window stack transitions', () => {
 
 describe('useWindowStack', () => {
   it('drives open, bring-to-front, replaceWith, open-state, and close through stable ids', () => {
-    const { result } = renderHook(() => useWindowStack(['map', 'party']));
+    // Name the full id set: inference from the initial stack alone gives
+    // 'map' | 'party', and this case later replaces the stack with 'sheet'.
+    const { result } = renderHook(() => useWindowStack<'map' | 'party' | 'sheet'>(['map', 'party']));
 
     expect(result.current.orderedOpenIds).toEqual(['map', 'party']);
     expect(result.current.isWindowOpen('map')).toBe(true);

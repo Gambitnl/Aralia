@@ -7,6 +7,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
     buildCharsetReviewReport,
     checkFile,
+    fixFile,
+    normalizeCharset,
     groupCharacterSummaryByAction,
     summarizeIssuesByCharacter,
     writeCharsetReviewReport,
@@ -196,5 +198,26 @@ describe('charset scan report and summary rollups', () => {
             warn.mockRestore();
             fs.rmSync(directory, { recursive: true, force: true });
         }
+    });
+});
+
+describe('normalizeCharset and fixFile', () => {
+    it('applies mojibake, forbidden and normalization fixes to one string', () => {
+        expect(normalizeCharset('aâ€™b﻿ c—d 1½ × …')).toBe("a'b c-d 11/2 x ...");
+        expect(normalizeCharset('plain ASCII')).toBe('plain ASCII');
+    });
+
+    it('fixes a file with the same rules, decodes hidden ASCII escapes, and leaves a clean file alone', () => {
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'charset-fix-'));
+        try {
+            const dirty = path.join(dir, 'dirty.json');
+            fs.writeFileSync(dirty, '{"t":"6 ft. × 9 ft.—\u0027ok\u0027 \u0022q\u0022"}', 'utf-8');
+            expect(fixFile(dirty)).toBe(true);
+            expect(fs.readFileSync(dirty, 'utf-8')).toBe('{"t":"6 ft. x 9 ft.-\'ok\' \u0022q\u0022"}');
+            expect(checkFile(dirty).filter((issue) => issue.severity === 'strict')).toEqual([]);
+            const clean = path.join(dir, 'clean.json');
+            fs.writeFileSync(clean, '{"t":"plain"}', 'utf-8');
+            expect(fixFile(clean)).toBe(false);
+        } finally { fs.rmSync(dir, { recursive: true, force: true }); }
     });
 });
