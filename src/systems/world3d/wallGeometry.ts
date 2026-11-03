@@ -64,7 +64,12 @@ export function buildWallMesh(data: ChunkData): WallMesh {
     if (closed) pts = pts.slice(0, -1);
     const n = pts.length;
     const L = pts.map((p) => gridPointToLocal(p.x, p.y, data.cx, data.cy));
-    const Y = pts.map((p) => heightAt(data, p.x, p.y) - WALL_BASE_SINK_M);
+    // GG-613: a retaining wall carries its own base and top at each point (it
+    // holds a pad above or below the ground), and its own width. A town wall
+    // stands WALL_HEIGHT_M on the ground with the standard width.
+    const retaining = ring.wallTopY?.length === ring.points.length && ring.wallBaseY?.length === ring.points.length;
+    const Y = pts.map((p, i) => retaining ? ring.wallBaseY![i] : heightAt(data, p.x, p.y) - WALL_BASE_SINK_M);
+    const topOf = (i: number) => retaining ? ring.wallTopY![i] : Y[i] + WALL_HEIGHT_M;
     const segCount = closed ? n : n - 1;
     // Horizontal normal of each segment (left of its direction).
     const segN = Array.from({ length: segCount }, (_, s) => {
@@ -72,7 +77,7 @@ export function buildWallMesh(data: ChunkData): WallMesh {
       const len = Math.hypot(b.x - a.x, b.z - a.z) || 1;
       return { x: -(b.z - a.z) / len, z: (b.x - a.x) / len };
     });
-    const h = WALL_HALF_WIDTH_M;
+    const h = retaining && ring.width[0] > 0 ? (ring.width[0] * M) / 2 : WALL_HALF_WIDTH_M;
     // Offset of each point: the miter of its two segments, or its one segment's
     // normal at an open end. The 1/cos stretch is capped so a hairpin stays sane.
     const off = L.map((_, i) => {
@@ -87,7 +92,7 @@ export function buildWallMesh(data: ChunkData): WallMesh {
     });
     const corner = (i: number, side: 1 | -1, top: boolean): number[] => [
       L[i].x + side * off[i].x,
-      Y[i] + (top ? WALL_HEIGHT_M : 0),
+      top ? topOf(i) : Y[i],
       L[i].z + side * off[i].z,
     ];
     /** Push a quad wound so its face looks along `normal`. */

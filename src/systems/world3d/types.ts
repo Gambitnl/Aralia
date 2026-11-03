@@ -375,6 +375,13 @@ export interface ClippedPolyline {
    * runs on across chunk seams instead of restarting at each one.
    */
   alongM?: number[];
+  /**
+   * GG-613: a retaining wall's own world-meter top and base at each point
+   * (length === points.length). Absent on town walls, which stand a fixed
+   * height on the ground.
+   */
+  wallTopY?: number[];
+  wallBaseY?: number[];
 }
 
 /** A site contained in a chunk, with chunk-local placement for geometry. */

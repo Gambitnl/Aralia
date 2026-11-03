@@ -88,7 +88,6 @@ import { validateEnv } from "./config/env";
 
 import { applyZIndexCssVariables } from "./styles/zIndex";
 
-import { installPerfAutoProbe } from "./devtools/perf";
 import * as SaveLoadService from "./services/saveLoadService";
 
 // Lazy load large components to reduce initial bundle size
@@ -97,7 +96,9 @@ import * as SaveLoadService from "./services/saveLoadService";
 // THE RENDERER PROBE, development builds only (2026-09-29). Module scope, so it
 // is installed before any 3D screen can build a renderer: it then measures
 // every three.js canvas the game draws, not only the ones with a PerfProbe.
-if (import.meta.env.DEV) installPerfAutoProbe();
+// GG-611 (2026-11-03): a dynamic import, so a production build drops the probe
+// from the first page. It resolves long before a player opens a 3D screen.
+if (import.meta.env.DEV) void import("./devtools/perf/rendererProbe").then((m) => m.installPerfAutoProbe());
 
 // --- Decoupled Developer Tools Registry ---
 // Some developer tools have been decoupled from the main application bundle to

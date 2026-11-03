@@ -32,7 +32,10 @@ import { DataLoaderGate } from "../providers/DataLoaderGate";
 import { GameProvider } from "../../state/GameContext";
 import { canUseDevTools, t } from "../../utils/core";
 import { Z_INDEX } from "../../styles/zIndex";
-import { PerfOverlay } from "../../devtools/perf";
+// GG-611 (2026-11-03): the perf overlay (about 86 KB) loads on demand, so the
+// first page does not carry it. It still mounts only with dev mode on, in any
+// build (Remy, 2026-09-30), so production keeps the overlay behind dev mode.
+const PerfOverlay = lazy(() => import("../../devtools/perf/PerfOverlayHost").then((m) => ({ default: m.PerfOverlay })));
 import { LoadingSpinner } from "../ui/LoadingSpinner";
 import { ConversationPanel } from "../ConversationPanel";
 import { OpeningSituationGate } from "../gameEntry/OpeningSituationGate";
@@ -155,7 +158,7 @@ export function AppShell({ gameState, dispatch, mainContent, ambientDialogue, de
             * a production build the probe is installed only when this mounts, so
             * a canvas built before dev mode came on is measured only if it
             * carries a PerfProbe (World3DScene does). */}
-          {gameState.isDevModeEnabled && <PerfOverlay />}
+          {gameState.isDevModeEnabled && <Suspense fallback={null}><PerfOverlay /></Suspense>}
 
           <Suspense fallback={null}>
             <NotificationSystem

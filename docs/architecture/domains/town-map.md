@@ -1,6 +1,6 @@
 # Town Map
 
-Verified: 2026-11-03 (GG-554 lot sizes in feet, GG-584 no movement blocker on a road, GG-581 cloister fallback; measured on the demo town, Borieborum, Legium and the band towns). Earlier: 2026-11-02 (GG-608 every front door faces a street: blueprint entry rule and ribbon lot winding, measured on two towns and 40 sampled towns in revisions 1, 4 and 2). Earlier: 2026-11-02 (GG-604 suburb lanes: the lanes between suburb blocks are passages joined to the approach roads, measured on the demo town and Borieborum). Earlier: 2026-11-02 (GG-600 town work and GG-601 street joins, door steps, errand doors and errand slots: see "Street crowd: errands, departures and outdoor drawing"). Earlier: 2026-11-02 (GG-593 plaza pads: market squares and civic forecourts graded to at most 5 degrees in the 3D bake, measured at four bands and a town sample). Earlier: 2026-11-02 (street crowd errands, departures, outdoor-only drawing and talk/listen poses: see "Street crowd: errands, departures and outdoor drawing"). Earlier: 2026-11-02 (GG-586 market square: measured at four bands and 24 sampled towns, Hafting rendered in the 2D town map at `step=town3d`). Earlier: 2026-11-02 (GG-577 shared courts in the old core and GG-569 civic grounds in the 3D bake, measured at four bands, rendered at `step=town3d` Real 3D for Paphina). Earlier: 2026-11-02 (GG-542: staff and patron parity between the building visit and the live schedule). Earlier: 2026-11-01 (town-map rules GG-560 to GG-567: main street, river channel, bridges, docks, gate hooks, house shape, front gardens, passages and civic grounds, measured at four bands and thirteen water towns, rendered at `step=town3d`; candidate homestead/parent-land/shared-approach planning and larger-town coverage failure; explicit candidate rural household/field source facts; fresh-only resolved building purpose and household-first prop wealth; native settled nave orbit, altar route and retained knowledge reload; requested-heading camera retraction and native temple bench/reload; measured retained-prop repair proposal and native movement contract; saved-revision factual readers and Local/address reconstruction; revision-aware building/rest readers, truthful routine reports and source-change inspector reset; recorded door widths, household reference drafts and native poor-home reload; saved town-layout registration and ground projection; retained town-layout reader and measured runtime precision; reached furnishing identity source and captured desktop component view; town-look rules GG-544 to GG-551, census of 813 towns; fitted civic labels and native library use; town roads meet the world roads, GG-541, census of 8 towns). Earlier, 2026-10-29: (canonical door-head alignment, measured standing clearance, actual Fenna entry/owned trade/counter examination and two native interior reloads; live Brooksmith work/home handoff, night manual full reload and continuous terrain walking; separate workplace attendance and retirement; ground recovery, finish-based rest cooldown and named-slot reload; source-grid combat handoff and actual Alrio defeat; observed Alrio growth, saved exploration knowledge, bounded stair/input gates and exact repaired world return; typed tavern services and saved local hooks; canonical proprietor reconciliation, clear activity targets, resident mouse selection, family/memory reload, in-place rest, saved front doors and qualified railed Hartdown traversal). Source-bound shelf rendering and owned-content examination were checked in the saved Menaikon visit.
+Verified: 2026-11-03 (GG-613 retaining walls and street ramps at pad edges, GG-614 churchyard grading, measured at four bands and 15 sampled towns). Earlier: 2026-11-03 (GG-554 lot sizes in feet, GG-584 no movement blocker on a road, GG-581 cloister fallback; measured on the demo town, Borieborum, Legium and the band towns). Earlier: 2026-11-02 (GG-608 every front door faces a street: blueprint entry rule and ribbon lot winding, measured on two towns and 40 sampled towns in revisions 1, 4 and 2). Earlier: 2026-11-02 (GG-604 suburb lanes: the lanes between suburb blocks are passages joined to the approach roads, measured on the demo town and Borieborum). Earlier: 2026-11-02 (GG-600 town work and GG-601 street joins, door steps, errand doors and errand slots: see "Street crowd: errands, departures and outdoor drawing"). Earlier: 2026-11-02 (GG-593 plaza pads: market squares and civic forecourts graded to at most 5 degrees in the 3D bake, measured at four bands and a town sample). Earlier: 2026-11-02 (street crowd errands, departures, outdoor-only drawing and talk/listen poses: see "Street crowd: errands, departures and outdoor drawing"). Earlier: 2026-11-02 (GG-586 market square: measured at four bands and 24 sampled towns, Hafting rendered in the 2D town map at `step=town3d`). Earlier: 2026-11-02 (GG-577 shared courts in the old core and GG-569 civic grounds in the 3D bake, measured at four bands, rendered at `step=town3d` Real 3D for Paphina). Earlier: 2026-11-02 (GG-542: staff and patron parity between the building visit and the live schedule). Earlier: 2026-11-01 (town-map rules GG-560 to GG-567: main street, river channel, bridges, docks, gate hooks, house shape, front gardens, passages and civic grounds, measured at four bands and thirteen water towns, rendered at `step=town3d`; candidate homestead/parent-land/shared-approach planning and larger-town coverage failure; explicit candidate rural household/field source facts; fresh-only resolved building purpose and household-first prop wealth; native settled nave orbit, altar route and retained knowledge reload; requested-heading camera retraction and native temple bench/reload; measured retained-prop repair proposal and native movement contract; saved-revision factual readers and Local/address reconstruction; revision-aware building/rest readers, truthful routine reports and source-change inspector reset; recorded door widths, household reference drafts and native poor-home reload; saved town-layout registration and ground projection; retained town-layout reader and measured runtime precision; reached furnishing identity source and captured desktop component view; town-look rules GG-544 to GG-551, census of 813 towns; fitted civic labels and native library use; town roads meet the world roads, GG-541, census of 8 towns). Earlier, 2026-10-29: (canonical door-head alignment, measured standing clearance, actual Fenna entry/owned trade/counter examination and two native interior reloads; live Brooksmith work/home handoff, night manual full reload and continuous terrain walking; separate workplace attendance and retirement; ground recovery, finish-based rest cooldown and named-slot reload; source-grid combat handoff and actual Alrio defeat; observed Alrio growth, saved exploration knowledge, bounded stair/input gates and exact repaired world return; typed tavern services and saved local hooks; canonical proprietor reconciliation, clear activity targets, resident mouse selection, family/memory reload, in-place rest, saved front doors and qualified railed Hartdown traversal). Source-bound shelf rendering and owned-content examination were checked in the saved Menaikon visit.
 
 Named household schedules share the occupancy owner's 07:00 breakfast, 08:00
 work and 18:00 return boundaries. Street travel uses existing route length at
@@ -991,13 +991,48 @@ it levels the building plots. `gradePlazaTerrainPads`
 Results: Sarprak places 6 of 6 (before 0 of 6), Hafting 26 of 26 (before
 25 of 26), Paphina 13 of 13 and Borieborum 66 of 66. Sample: 14 sampled towns place 365 of 365 market pieces at their plan positions; 3 of them have a square steeper than 5 degrees (up to 9.6), now graded to 5; the steepest ground under a piece is 5.0 degrees; the largest cut or fill at a square's edge is 3.4 m.
 
-Open: a steep square has a bank at its edge where the pad meets the natural
-ground; no retaining wall marks it yet. The graves of a churchyard stand on
-its grass, not on paving, so the plaza pads do not grade them. At Sarprak
-43 of 44 gravestones stand, but the civic-grounds prop pass still refuses 11
-pieces on steep ground. A village
-green with no room after its walk and centerpiece holds no stall (two of four
-sampled greens hold 0 or 1).
+Open: a village green with no room after its walk and centerpiece holds no
+stall (two of four sampled greens hold 0 or 1).
+
+### Churchyards and retaining walls in the 3D bake (GG-614, GG-613)
+
+Verified 2026-11-03 with `bank-probe4.mts` (session scratchpad), world
+903674813, against commit 093b78113 run from a `git archive` copy.
+
+- **Grading order.** `canonicalTownWaterAndDecks` returns `gradePads`: the
+  market square, then each churchyard's whole grounds (held to
+  `CHURCHYARD_MAX_GRADE_DEG` = 10 degrees and left as grass), then the other
+  civic paving. A churchyard and its forecourt therefore share one plane.
+  `GroundWorld.gradedPads` records the list.
+- **Retaining walls** (`retainPadEdges` in `bridge/plazaTerrainPads.ts`,
+  after the pads and before the building pads). Each pad edge is walked in
+  1 m steps, and the pad's plane is set against the natural ground two cells
+  out. Where the step is more than `PAD_WALL_STEP_M` = 1.2 m, a wall run
+  stands one cell out. 4 ft is the height above which codes (IBC 1807.2)
+  want an engineered retaining wall; over the two-cell skirt it is a bank of
+  about 22 degrees. The nodes within a cell outside take the pad's height,
+  so a grave or stall on the edge stands on the pad. The nodes past the wall
+  keep the natural height. A wall's top is a 0.4 m parapet above the higher
+  ground, and its base a 0.3 m footing below the lower ground.
+  `GroundWorld.retainingWalls` carries the runs with `wallTopY` and
+  `wallBaseY` per point, apart from the defense `walls`. Only the chunk wall
+  mesh draws both, and `wallGeometry` uses the per-point top and base.
+- **Streets** that meet a pad edge get no wall. Their ground takes up the
+  step the pad made at its nearest edge point and lets it out over the step
+  divided by `PAD_RAMP_GRADE` (1 in 8, the usual limit for a cart street).
+  So the pad adds at most 1 in 8 to a street's own grade.
+- Results (band towns): Sarprak 44 of 44 graves stand (before 33), 5 wall
+  runs, no bare step over 1.2 m (before 30 m), approach grade 0.109 m per m
+  (before 0.215). Hafting, Paphina and Borieborum need no wall. Markets keep
+  6 of 6, 26 of 26, 13 of 13 and 66 of 66 pieces. Sample (15 towns): bare
+  steps over 1.2 m 18 -> 3 m (single samples at a run end; a run needs
+  three points); graves 128 of 140 before and after.
+- Open: 12 sampled graves (Epicea 8, Cormopedrid 4) stand on a regional road
+  that crosses the churchyard, so the GG-584 rule keeps their stones off it
+  (GG-615). Some streets near squares step more than 1 in 8 where the pad
+  steps little: bridge deck ends and other later bake shaping (Borieborum),
+  and natural hillside streets (Hafting). Not checked in a rendered 3D view
+  (free memory under 6 GB).
 
 ## Town perimeter and skyline rendering
 

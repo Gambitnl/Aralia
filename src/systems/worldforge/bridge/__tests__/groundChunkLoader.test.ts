@@ -56,7 +56,7 @@ import {
   MOTIF_PART_TAG,
 } from "../interiorParts";
 import { TERRACE_STEP_ENCODED } from "../terrainTerraces";
-import { gradePlazaTerrainPads } from "../plazaTerrainPads";
+import { gradePlazaTerrainPads, retainPadEdges } from "../plazaTerrainPads";
 
 // ============================================================================
 // Fixed Bridge Fixtures
@@ -1220,12 +1220,27 @@ describe("makeGroundWorld building terrain pads", () => {
     // GG-593: the bake grades each paved square before it levels the plots,
     // so a hall or weigh house inside a square takes its pad from the graded
     // paving. Grade the baseline the same way; every other plot is unchanged.
-    gradePlazaTerrainPads(
+    // GG-613: then it retains the pad edges (walls, street ramps) on the same
+    // grid, still before the building pads.
+    const natural = baseline.heights.slice();
+    // GG-614: the same pads in the same order (churchyards graded too).
+    const pads = ground.gradedPads ?? [];
+    const receipts = gradePlazaTerrainPads(
       baseline.heights,
       baseline.gridSize.cols,
       baseline.gridSize.rows,
       GROUND_METERS_PER_CELL,
-      ground.plazas ?? [],
+      pads,
+    );
+    retainPadEdges(
+      baseline.heights,
+      natural,
+      baseline.gridSize.cols,
+      baseline.gridSize.rows,
+      GROUND_METERS_PER_CELL,
+      pads,
+      receipts,
+      ground.roads.filter((r) => r.sourceKind === "town-street").map((r) => ({ points: r.points, widthM: r.widthM })),
     );
 
     let unevenFootprintCells = 0;

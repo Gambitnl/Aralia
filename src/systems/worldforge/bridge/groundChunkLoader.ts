@@ -215,7 +215,12 @@ import {
   resolveTerrainTerraces,
   type TerrainTerraceReceipt,
 } from "./terrainTerraces";
-import { gradePlazaTerrainPads } from "./plazaTerrainPads";
+import { gradePlazaTerrainPads, retainPadEdges, PAD_WALL_HALF_WIDTH_M } from "./plazaTerrainPads";
+
+/** GG-614: a churchyard keeps a gentle fall of at most this (degrees). The
+ * gravestone surface gate allows 20; a hillside graveyard is graded gentle,
+ * not flat. */
+const CHURCHYARD_MAX_GRADE_DEG = 10;
 import { attachRibbonBed } from "./groundRibbonBed";
 import {
   resolveSnowLineFt,
@@ -274,6 +279,9 @@ export interface GroundPolyline {
    * the region river; `widthM` stays the physical width for crossings.
    */
   surfaceWidthM?: number[];
+  /** GG-613: a retaining wall's world-meter top and base at each point. */
+  wallTopY?: number[];
+  wallBaseY?: number[];
   /**
    * River-only surface height at every centerline point, in world meters.
    * This is computed once from the carved bed and shared by rendering and
@@ -598,6 +606,19 @@ export interface GroundWorld {
   crossings?: GroundCrossing[];
   /** Town defensive wall rings (closed polylines), ground meters. */
   walls: GroundPolyline[];
+  /**
+   * GG-613: retaining walls at the edges of graded pads (squares, forecourts,
+   * churchyards), ground meters, each with its own top and base. Kept apart
+   * from `walls`, which is the town's defense ring; only the wall meshes draw
+   * both. Optional: older worlds have none.
+   */
+  retainingWalls?: GroundPolyline[];
+  /**
+   * GG-613/GG-614: every pad the bake graded, in grading order (market
+   * square, churchyards, other civic paving), so a later pass or a test can
+   * read the same ground. Optional: older worlds have none.
+   */
+  gradedPads?: Array<{ pointsM: Array<{ x: number; z: number }>; maxGradeDeg?: number }>;
   /**
    * Town footprints wilderness vegetation must not grow inside, ground meters.
    * Optional because a world baked before this existed carries none, and the
@@ -2144,13 +2165,35 @@ export function makeGroundWorld(
   // (at most 5 degrees), so their stalls and pieces pass the prop surface gate
   // on a hillside. The building pads come after, so a hall or weigh house in a
   // square stands on the graded paving and every house keeps a level floor.
-  gradePlazaTerrainPads(
+  // GG-614: the churchyards are graded right after the market square, so a
+  // churchyard and its forecourt share one plane.
+  // GG-613: then every pad edge that steps more than PAD_WALL_STEP_M gets a
+  // retaining wall, and a street that meets such an edge a 1 in 8 ramp.
+  const padInputs = townContent.planGradePads;
+  const naturalHeights = wd.heights.slice();
+  const padReceipts = gradePlazaTerrainPads(
     wd.heights,
     wd.gridSize.cols,
     wd.gridSize.rows,
     GROUND_METERS_PER_CELL,
-    townContent.planPlazas,
+    padInputs,
   );
+  const padEdges = retainPadEdges(
+    wd.heights,
+    naturalHeights,
+    wd.gridSize.cols,
+    wd.gridSize.rows,
+    GROUND_METERS_PER_CELL,
+    padInputs,
+    padReceipts,
+    townContent.planStreets.map((s) => ({ points: s.points, widthM: s.widthM })),
+  );
+  const retainingWalls: GroundPolyline[] = padEdges.walls.map((w) => ({
+    points: w.points,
+    widthM: PAD_WALL_HALF_WIDTH_M * 2,
+    wallTopY: w.topY,
+    wallBaseY: w.baseY,
+  }));
   flattenBuildingTerrainPads(
     wd.heights,
     wd.gridSize.cols,
@@ -2484,6 +2527,8 @@ export function makeGroundWorld(
     roads,
     crossings,
     walls: townContent.planWalls,
+    ...(retainingWalls.length ? { retainingWalls } : {}),
+    ...(padInputs.length ? { gradedPads: padInputs } : {}),
     waterBodies: townContent.planWaterBodies,
     waterRuns: waterRunsFromLevels(
       dropRoofedWater(
@@ -3628,7 +3673,16 @@ export function canonicalTownWaterAndDecks(
   site: RegionTownSite,
   bounds: { x: number; y: number },
   layoutRevision: TownLayoutRevision = CURRENT_TOWN_LAYOUT_REVISION,
-): { waterBodies: GroundWaterBody[]; decks: GroundDeck[]; plazas: Array<{ pointsM: Array<{ x: number; z: number }> }> } {
+): {
+  waterBodies: GroundWaterBody[];
+  decks: GroundDeck[];
+  plazas: Array<{ pointsM: Array<{ x: number; z: number }> }>;
+  /** GG-614: every pad to grade, in grading order: the market square, then
+   * each churchyard's whole grounds (graded, left as grass), then the other
+   * civic paving. A pad keeps the nodes an earlier pad graded, so a
+   * churchyard and its forecourt share one plane. */
+  gradePads: Array<{ pointsM: Array<{ x: number; z: number }>; maxGradeDeg?: number }>;
+} {
   const townAtlas = getBridgeAtlas(worldSeed);
   const enginePlan = getCanonicalTownPlan(townAtlas, worldSeed, site.burgId, layoutRevision);
   const spanFt = townSpanFtForBurg(townAtlas, site.burgId);
@@ -3691,9 +3745,11 @@ export function canonicalTownWaterAndDecks(
   // The market square's own polygon (agora-257c, 2026-10-28): only its ring of
   // plaza-tier streets reached the bake, so the square's middle was bare floor.
   const plazas: Array<{ pointsM: Array<{ x: number; z: number }> }> = [];
+  let marketPads = 0;
   for (const c of feetPlan.civic) {
     if (c.kind === "plaza" && c.polygon.length >= 3) {
       plazas.push({ pointsM: c.polygon.map(([fx, fy]) => toM(fx, fy)) });
+      marketPads++;
       continue;
     }
     if (c.kind !== "dock" && c.kind !== "bridge") continue;
@@ -3721,7 +3777,17 @@ export function canonicalTownWaterAndDecks(
       }
     }
   }
-  return { waterBodies, decks, plazas };
+  // GG-614: a churchyard's grounds are graded as one gentle pad (left as
+  // grass), so its graves stand. It is graded before the forecourt: graded
+  // apart, the two planes met in a step that ran through a row of graves.
+  const churchyards: Array<{ pointsM: Array<{ x: number; z: number }>; maxGradeDeg: number }> = [];
+  for (const g of feetPlan.civicGrounds ?? []) {
+    if (g.setPiece === "churchyard" && g.grounds.length >= 3) {
+      churchyards.push({ pointsM: g.grounds.map(([fx, fy]) => toM(fx, fy)), maxGradeDeg: CHURCHYARD_MAX_GRADE_DEG });
+    }
+  }
+  const gradePads = [...plazas.slice(0, marketPads), ...churchyards, ...plazas.slice(marketPads)];
+  return { waterBodies, decks, plazas, gradePads };
 }
 
 /**
@@ -3749,6 +3815,8 @@ function groundTowns(
   planGatehouses: GroundWorld["gatehouses"];
   planWaterGates: NonNullable<GroundWorld["waterGates"]>;
   planPlazas: NonNullable<GroundWorld["plazas"]>;
+  /** GG-614: every pad to grade, in grading order (see canonicalTownWaterAndDecks). */
+  planGradePads: Array<{ pointsM: Array<{ x: number; z: number }>; maxGradeDeg?: number }>;
   settlementDefenses: GroundSettlementDefense[];
   rosters: TownRoster[];
   occupants: GroundOccupantSite[];
@@ -3770,6 +3838,7 @@ function groundTowns(
   const planGatehouses: GroundWorld["gatehouses"] = [];
   const planWaterGates: NonNullable<GroundWorld["waterGates"]> = [];
   const planPlazas: NonNullable<GroundWorld["plazas"]> = [];
+  const planGradePads: Array<{ pointsM: Array<{ x: number; z: number }>; maxGradeDeg?: number }> = [];
   const settlementDefenses: GroundSettlementDefense[] = [];
   const rosters: TownRoster[] = [];
   const occupants: GroundOccupantSite[] = [];
@@ -3818,6 +3887,7 @@ function groundTowns(
     planWaterBodies.push(...wd.waterBodies);
     planDecks.push(...wd.decks);
     planPlazas.push(...wd.plazas);
+    planGradePads.push(...wd.gradePads);
     // Player edits replay over the regenerated plan (GROUND-DELTA-1): a
     // modified plot changes its interior, a removed one vanishes, an added
     // building appears — deterministic base + delta layer (decision #14).
@@ -4540,6 +4610,7 @@ function groundTowns(
     planGatehouses,
     planWaterGates,
     planPlazas,
+    planGradePads,
     settlementDefenses,
     rosters,
     occupants,
@@ -5136,7 +5207,7 @@ export function sampleGroundChunk(
       const clipped = clipPolygonToChunk(p.pointsM, cx, cy);
       return clipped.length >= 3 ? [{ points: clipped.map((q) => pseudoGrid(q.x, q.z)) }] : [];
     }),
-    walls: ground.walls.flatMap((w) => clipGroundPolylineToChunk(w, cx, cy)),
+    walls: [...ground.walls, ...(ground.retainingWalls ?? [])].flatMap((w) => clipGroundPolylineToChunk(w, cx, cy)),
     // Water comes from two sources, because neither covers the other:
     //   - the LAND (waterRuns): hollows that fill and streams that collect,
     //     worked out by hydrology from the terrain itself;
@@ -5736,6 +5807,8 @@ function clipGroundPolylineToChunk(
   waterlineY?: number[];
   colorHex?: string;
   alongM?: number[];
+  wallTopY?: number[];
+  wallBaseY?: number[];
 }> {
   const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
   const M = WORLD3D_CONFIG.METERS_PER_CELL;
@@ -5748,8 +5821,8 @@ function clipGroundPolylineToChunk(
 
   // Segment-walk clip: inside points pass through; boundary crossings add
   // intersection points (incl. both-endpoints-outside pass-throughs).
-  const out: Array<{ x: number; z: number; waterlineY?: number; widthM?: number; alongM: number }> = [];
-  const push = (p: { x: number; z: number; waterlineY?: number; widthM?: number; alongM: number }) => {
+  const out: Array<{ x: number; z: number; waterlineY?: number; widthM?: number; alongM: number; topY?: number; baseY?: number }> = [];
+  const push = (p: { x: number; z: number; waterlineY?: number; widthM?: number; alongM: number; topY?: number; baseY?: number }) => {
     const last = out[out.length - 1];
     if (!last || Math.abs(last.x - p.x) > 1e-6 || Math.abs(last.z - p.z) > 1e-6)
       out.push(p);
@@ -5795,7 +5868,7 @@ function clipGroundPolylineToChunk(
     const pointWaterlineY = line.waterlineY?.[i];
     // A town channel's width, else the river's own width here (one water, 2026-10-30).
     const pointWidthM = line.surfaceWidthM?.[i] ?? line.widthAtM?.[i];
-    if (inside(p)) push({ ...p, waterlineY: pointWaterlineY, widthM: pointWidthM, alongM: alongAt });
+    if (inside(p)) push({ ...p, waterlineY: pointWaterlineY, widthM: pointWidthM, alongM: alongAt, topY: line.wallTopY?.[i], baseY: line.wallBaseY?.[i] });
     if (i < line.points.length - 1) {
       for (const h of edgeHits(p, line.points[i + 1])) {
         const nextWaterlineY = line.waterlineY?.[i + 1];
@@ -5809,7 +5882,8 @@ function clipGroundPolylineToChunk(
             ? undefined
             : pointWidthM + (nextWidthM - pointWidthM) * h.t;
         const segM = Math.hypot(line.points[i + 1].x - p.x, line.points[i + 1].z - p.z);
-        push({ x: h.x, z: h.z, waterlineY, widthM, alongM: alongAt + segM * h.t });
+        const lerp = (v?: number[]) => (v?.[i] == null || v[i + 1] == null ? undefined : v[i] + (v[i + 1] - v[i]) * h.t);
+        push({ x: h.x, z: h.z, waterlineY, widthM, alongM: alongAt + segM * h.t, topY: lerp(line.wallTopY), baseY: lerp(line.wallBaseY) });
       }
     }
   }
@@ -5836,6 +5910,10 @@ function clipGroundPolylineToChunk(
       ),
       ...(clippedWaterlineY ? { waterlineY: clippedWaterlineY } : {}),
       alongM: out.map((p) => p.alongM),
+      // GG-613: a retaining wall's own top and base ride through to the mesh.
+      ...(line.wallTopY && line.wallBaseY && out.every((p) => p.topY != null && p.baseY != null)
+        ? { wallTopY: out.map((p) => p.topY!), wallBaseY: out.map((p) => p.baseY!) }
+        : {}),
       // Style-family tint (e.g. wall runs) rides through so wallGeometry can
       // vertex-color the extruded barrier per town.
       colorHex: line.colorHex,
