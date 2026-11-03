@@ -25,13 +25,19 @@ describe('bounded native quad observation', () => {
     const installed = new THREE.BufferGeometry();
     installed.setAttribute('position', new THREE.BufferAttribute(source.raw.pos, 3));
     installed.setIndex(new THREE.BufferAttribute(source.raw.index, 1));
-    Object.assign(view, { data: { ...source }, waterfall: null, spillView: null,
-      water: { geometry: old }, quadApplication: 0, quadInstalled: null,
-      flowTex: Object.fromEntries(['flow0', 'flow1', 'flow2'].map(k => [k, { image: { data: null } }])),
+    // The water mesh, its material, flow textures and mirror now live in the
+    // view's RiverWaterLayer, and the view reads them through getters only.
+    // This stub layer keeps them CPU-only; flow textures are not under test.
+    const layer = { water: { geometry: old }, surface: { setFlowHalf: () => {} },
       waterMat: { uniforms: { uPoolImpactEnergy: { value: new THREE.Vector4() }, uPoolRefractionEdge: { value: 0 } } },
-      mirror: { setFlowHalf: () => {}, setPoolImpact: () => {} },
+      updateFlowTextures: () => false, setPoolImpact: () => {} };
+    Object.assign(view, { data: { ...source }, waterfall: null, spillView: null,
+      waterLayer: layer, renderer: { domElement: {} }, useFlowTextureDeltas: false,
+      flowLastPictureAt: 0, flowBlendSpanMs: 0, quadApplication: 0, quadInstalled: null,
       receivingConfiguration: () => ({ maskVersion: 1, enabled: false, configId: 'test' }),
-      prepareReceivingGeometry: (base: THREE.BufferGeometry) => { base.dispose(); return installed; } });
+      // applyFlowSnapshot now passes the sheet arrays (trimSpillSurface output),
+      // not a geometry, so there is nothing to dispose here.
+      prepareReceivingGeometry: () => installed });
     // Only these snapshot fields are read on the no-waterfall/no-spill path.
     const snapshot = { ...source, sheet: source.raw, simTime: 7, qIn: 0,
       t0: new Float32Array(16), t0h: new Uint16Array(16), t1h: new Uint16Array(16), t2h: new Uint16Array(16) } as unknown as RiverViewFlowSnapshot;
@@ -41,10 +47,14 @@ describe('bounded native quad observation', () => {
     expect(applied.installedSnapshot).toMatchObject({ simTime: 7, application: 1 });
     Object.assign(view, { waterfall: { setFlood: () => { throw new Error('application failed'); } } });
     expect(() => view.applyFlowSnapshot({ ...snapshot, simTime: 8 })).toThrow('application failed');
+    // Current contract (riverReachScene applyFlowSnapshot): an application
+    // clears the certificate before it mutates anything, because a failure can
+    // leave new textures beside the old geometry. So a failed application
+    // leaves NO certificate, not the prior one; only a completed one certifies.
     const failed = view.inspectQuad(1, 1);
-    if (!failed.ok) throw new Error('Expected prior quad');
-    expect(failed.installedSnapshot?.simTime).toBe(7);
-    Object.assign(view, { water: { geometry: installed.clone() } });
+    if (!failed.ok) throw new Error('Expected the quad to stay readable');
+    expect(failed.installedSnapshot).toBeNull();
+    Object.assign(layer, { water: { geometry: installed.clone() } });
     const rebuilt = view.inspectQuad(1, 1);
     if (!rebuilt.ok) throw new Error('Expected rebuilt quad');
     expect(rebuilt.installedSnapshot).toBeNull(); expect(rebuilt.raw.available).toBe(false);

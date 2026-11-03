@@ -48,7 +48,8 @@ describe('comparison readout ownership', () => {
     act(() => readings.publish(next));
     expect(screen.getByRole('button', { name: /Show waterfall controls/ })).toBeVisible();
     fireEvent.click(screen.getByRole('button', { name: /Show waterfall controls/ }));
-    fireEvent.click(screen.getByText('Existing water controls and terrain details'));
+    // The panel renamed this summary from "Existing ..." to "Experimental ...".
+    fireEvent.click(screen.getByText('Experimental water controls and terrain details'));
     fireEvent.click(screen.getByRole('button', { name: 'Start source' }));
     fireEvent.click(screen.getByRole('button', { name: 'Run existing water' }));
     expect(actions.onSource).toHaveBeenCalledWith(true);

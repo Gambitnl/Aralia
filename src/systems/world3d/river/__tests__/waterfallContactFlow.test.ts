@@ -576,10 +576,12 @@ describe('waterfall finite contact flow', () => {
     }
     expect(flow.snapshot().receipt.emittedVolume).toBeCloseTo(60.35 + 3, 8);
     expect(flow.totalOwnedVolume).toBeGreaterThan(0);
-    // 73 physical seconds with up to 20000 parcels: measured 146 s in CI run
-    // 41535506704 and 179 s locally (2026-11-03), with every check passing. The
-    // old 60 s limit failed only on time. Why it got this slow is a follow-up.
-  }, 300000);
+    // 73 physical seconds with about 3600 parcels in flight: 146 s in CI run
+    // 41535506704 and 164 s locally before the 2026-11-03 perf pass (identity
+    // cache, per-component releaseLocalPosition), 139 s locally after it. The
+    // rest is the per-tick rollback copy of every parcel, part of the tick's
+    // all-or-nothing design. The limit leaves room for a loaded machine.
+  }, 240000);
   it('gives six inlet bins complete physical width support with interval volume and midpoint transport', () => {
     const dt = 1 / 60, native = { ...source, q: 1.5, speed: 1.5 / 7 };
     const flow = new WaterfallContactFlow({ startTime: 0, dt, parcelsPerStep: 6 });

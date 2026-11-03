@@ -34,6 +34,9 @@ function fixture(wet = true) {
 }
 
 describe('worker-owned contact water enters the native pool', () => {
+  // Four tests below run the contact flow with a native pool. They took 60 s
+  // to 162 s locally and about 90 s each in CI run 41551325235 (2026-11-03),
+  // with every check passing; the 60 s project default failed them on time only.
   it('replaces legacy inflow, admits each arrival once, and drains after source-off', () => {
     const f = fixture(), initial = f.solver.volume();
     expect(f.solver.discharge).toBe(0);
@@ -58,7 +61,7 @@ describe('worker-owned contact water enters the native pool', () => {
     const accepted = f.solver.inVolume;
     f.advance(2);
     expect(f.solver.inVolume).toBe(accepted);
-  });
+  }, 240000);
 
   it('retains arrivals until a real wet receiver exists', () => {
     const f = fixture(false);
@@ -71,7 +74,7 @@ describe('worker-owned contact water enters the native pool', () => {
     r = f.receipt();
     expect(r.pool.pendingVolume).toBe(0);
     expect(f.solver.inVolume).toBeCloseTo(r.receipt.emittedVolume, 8);
-  });
+  }, 240000);
 
   it('converts momentum to the solver convention and rejects out-of-grid deposits', () => {
     const f = fixture(false);
@@ -97,7 +100,7 @@ describe('worker-owned contact water enters the native pool', () => {
     expect(f.receipt().pool.pendingVolume).toBe(before.pool.pendingVolume);
     f.advance(35);
     expect(f.solver.inVolume).toBeCloseTo(f.receipt().receipt.emittedVolume, 8);
-  });
+  }, 240000);
 
   it('keeps film ownership and rolls back a failed native pool while draining modes', () => {
     const f = fixture();
@@ -118,7 +121,7 @@ describe('worker-owned contact water enters the native pool', () => {
     expect(f.receipt().pool.requested).toBe(false);
     expect(f.solver.discharge).toBe(0);
     expect(f.solver.inVolume).toBeCloseTo(1.5, 8);
-  });
+  }, 240000);
 
   it('wakes an eligible sleeping native receiver and includes its speed in the next CFL step', () => {
     const grid = { x0: 0, z0: 0, dx: 1, nx: 5, nz: 5 };

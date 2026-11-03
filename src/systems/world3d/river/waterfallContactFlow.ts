@@ -301,10 +301,15 @@ function sweepPackedContact(start: ContactVec3, end: ContactVec3, plane: Float64
   return { fraction, position };
 }
 
+// Per component, with the same operations in the same order as the former
+// add(a, add(scale(sub(b, a), u), scale(sub(d, a), v))) then
+// add(anchor, add(scale(n, c), displacement)), so every result is bit-identical.
+// It runs for every released parcel at every tick, and the six temporary
+// vectors of the old form were most of its cost (perf pass 2026-11-03).
 function releaseLocalPosition(local: ContactReleaseLocal, surface: ContactSurface): ContactVec3 {
-  const [a, b, , d] = surface.vertices;
-  const anchor = add(a, add(scale(sub(b, a), local.anchor[0]), scale(sub(d, a), local.anchor[1])));
-  return add(anchor, add(scale(local.normal, local.clearance), local.displacement));
+  const [a, b, , d] = surface.vertices, [u, v] = local.anchor, n = local.normal, c = local.clearance, s = local.displacement;
+  const at = (i: number) => (a[i] + ((b[i] - a[i]) * u + (d[i] - a[i]) * v)) + (n[i] * c + s[i]);
+  return [at(0), at(1), at(2)];
 }
 function releaseLocalHeightParts(local: ContactReleaseLocal, surface: ContactSurface): [number, number] {
   const [a, b, , d] = surface.vertices;
