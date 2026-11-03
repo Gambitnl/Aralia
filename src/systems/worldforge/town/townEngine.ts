@@ -621,7 +621,11 @@ export function packWardFrontage(
   const interior = polygonCentroid(ward);
   const rng = rngFromPath(streamPath(seedPath, 'frontage'));
   const plots: BuildingPlot[] = [];
-  const minNegotiatedLotFt = CELL_FT * 5;
+  // GG-554 (2026-11-03): the five-cell lot rule is in feet. With a known plan
+  // scale one blueprint cell is CELL_FT / feetPerUnit units; without one (tests,
+  // schematic plans) the plan is read as feet, as before.
+  const cell = opts.feetPerUnit && opts.feetPerUnit > 0 ? CELL_FT / opts.feetPerUnit : CELL_FT;
+  const minNegotiatedLotFt = cell * 5;
 
   // Corner lots may poke past the ADJACENT block edge. Instead of clearing a
   // whole plot-depth around every corner (the old rule — it left bald corners),
@@ -658,8 +662,8 @@ export function packWardFrontage(
       // Keep the existing threshold separating miniature preview plans from
       // negotiated physical lots. Physical rows now reserve usable frontage;
       // miniature plans retain legacy packing and receive no fit receipt.
-      && plotWidth >= CELL_FT * 1.5
-      && baseDepth >= CELL_FT * 1.5;
+      && plotWidth >= cell * 1.5
+      && baseDepth >= cell * 1.5;
     // Attached frontage is one negotiated street envelope. A stable edge hash
     // keeps depth variety between blocks without asking adjacent buildings to
     // reconcile independently rolled rear boundaries later in the pipeline.
@@ -674,7 +678,7 @@ export function packWardFrontage(
         // with a 15/20ft miniature. Five cells leave space for rooms and a
         // character-sized route; wider wards retain their larger source lots.
         // The edge budget below seats fewer buildings rather than overlapping.
-        ? Math.max(minNegotiatedLotFt, Math.round(rolledWidth / CELL_FT) * CELL_FT)
+        ? Math.max(minNegotiatedLotFt, Math.round(rolledWidth / cell) * cell)
         : rolledWidth;
       if (t + w > L - corner) break;
       // Preserve the historical frontage RNG draw order even when the current
@@ -686,8 +690,8 @@ export function packWardFrontage(
         // Narrow wards can still be smaller than the preferred five-cell depth;
         // expanding them would overwrite streets or neighboring parcels.
         ? Math.min(
-            Math.max(CELL_FT, Math.floor(maxDepth / CELL_FT) * CELL_FT),
-            Math.max(minNegotiatedLotFt, Math.round(rowDepth / CELL_FT) * CELL_FT),
+            Math.max(cell, Math.floor(maxDepth / cell) * cell),
+            Math.max(minNegotiatedLotFt, Math.round(rowDepth / cell) * cell),
           )
         : variety
           ? baseDepth * (0.78 + individualDepthRoll * 0.44)
@@ -3394,6 +3398,7 @@ export function generateTownPlan(
     footprint, core, wards, civic, walls, streets, streetNetwork: [...streetNetwork, ...passages, ...approachWays, ...suburbLaneStreets], outskirts,
     profile, seedPath, townCenter, coreSpan, envSpan, form: 'wards',
     civicGrounds,
+    feetPerUnit: opts.feetPerUnit,
     unit: sizing.unit, laneWidth,
     ruralHouseholdSources: opts.ruralHouseholdSources,
     // Intramural open land: the ground the walls enclose that the wards never
@@ -3547,7 +3552,24 @@ function suburbLanes(
   const gridSize = Math.max(laneWidth * 8, 1e-6);
   const gkey = (x: number, y: number): string => `${Math.floor(x / gridSize)},${Math.floor(y / gridSize)}`;
   const grid = new Map<string, Pt[][]>();
-  for (const poly of plots) {
+  // GG-554: a house is drawn as its lot's bounding rectangle in the frame of
+  // its street edge (`orientedQuad`), with no inset once the lot has a lot
+  // profile. Test that rectangle, not the lot polygon, or a lane can clip the
+  // corner of a house drawn larger than its lot (Borieborum plot 1117).
+  const envelope = (poly: Pt[]): Pt[] => {
+    if (poly.length < 3) return poly;
+    const ang = Math.atan2(poly[1][1] - poly[0][1], poly[1][0] - poly[0][0]);
+    const cos = Math.cos(ang), sin = Math.sin(ang);
+    let u0 = Infinity, u1 = -Infinity, v0 = Infinity, v1 = -Infinity;
+    for (const [x, y] of poly) {
+      const u = x * cos + y * sin, v = -x * sin + y * cos;
+      u0 = Math.min(u0, u); u1 = Math.max(u1, u); v0 = Math.min(v0, v); v1 = Math.max(v1, v);
+    }
+    const back = (u: number, v: number): Pt => [u * cos - v * sin, u * sin + v * cos];
+    return [back(u0, v0), back(u1, v0), back(u1, v1), back(u0, v1)];
+  };
+  for (const lot of plots) {
+    const poly = envelope(lot);
     const bb = polygonBounds(poly);
     for (let gx = Math.floor(bb.minX / gridSize); gx <= Math.floor(bb.maxX / gridSize); gx++) {
       for (let gy = Math.floor(bb.minY / gridSize); gy <= Math.floor(bb.maxY / gridSize); gy++) {
@@ -3882,6 +3904,8 @@ function finishTownPlan(a: {
   unit: (ft: number) => number;
   laneWidth: number;
   civicGrounds?: CivicGrounds[];
+  /** GG-554: the real plan scale (feet per unit), when the plan has one. */
+  feetPerUnit?: number;
 }): TownPlan {
   const { footprint, core, wards, civic, walls, streets, outskirts, profile, seedPath, townCenter, coreSpan, envSpan } = a;
   // NO HOUSE IN A STREET (GG-564). The last word on every house, after every
@@ -4017,6 +4041,8 @@ function finishTownPlan(a: {
     civic,
     profile?.typology,
     seedPath,
+    // GG-554: lot checks in feet (the protected readers pass no scale).
+    a.feetPerUnit && a.feetPerUnit > 0 ? a.feetPerUnit : 1,
   );
   for (const plot of allPlots) plot.ensemble = ensembles.get(plot);
 
@@ -4222,6 +4248,7 @@ function generateLaneVillagePlan(
     streets, streetNetwork, outskirts, profile, seedPath,
     townCenter: layout.heart, coreSpan, envSpan: coreSpan, form: 'lanes',
     unit, laneWidth: sizing.laneWidth, civicGrounds,
+    feetPerUnit: opts.feetPerUnit,
     ruralHouseholdSources: opts.ruralHouseholdSources,
     openLandFor: () => layout.gardens.map((g) => ({ polygon: g.polygon, kind: g.kind, source: 'ward' as const, ...(g.front ? { front: true } : {}) })),
   });

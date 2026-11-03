@@ -231,11 +231,11 @@ describe("WorldForge battle scenario projection", () => {
       kind: "settlement-edge",
       source: "worldforge-settlement",
       sourceBurgId: 14,
-      // Re-pinned 2026-11-02 (GG-552 rule, after the GG-577 and GG-582 town
-      // layouts): a hedge run beside plot 295 now stands 0.7 m from the west
-      // gate's center, so the gate tile blocks and the nearest open tile wins.
-      // The hedge in the gateway is GG-584.
-      anchorTile: { x: 41, y: 29 },
+      // GG-584 (2026-11-03): no movement-blocking prop may stand on a road or
+      // in a gate opening, so the hedge beside plot 295 that blocked the west
+      // gate is gone and the anchor is the gate tile again (it was re-pinned
+      // to the nearest open tile, (41, 29), while the hedge stood there).
+      anchorTile: { x: 40, y: 30 },
       deployment: {
         player: "outside-approach",
         enemy: "inside-gate",

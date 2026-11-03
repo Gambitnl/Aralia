@@ -73,8 +73,8 @@
 import type { SeedPath } from '../seedPath';
 import { childSeedPath, rngFromPath, streamPath } from '../seedPath';
 import type { SeededRandom } from '../../../utils/random/seededRandom';
-import { CELL_METERS, type PropInstance, type PropAffiliation } from './propSchema';
-import { surfaceGateFor } from './catalog';
+import { CELL_METERS, type PropInstance, type PropAffiliation, type PropSizeClass } from './propSchema';
+import { PROPS_BY_ID, surfaceGateFor } from './catalog';
 import {
   FEET_PER_METER,
   fitToSurface,
@@ -116,6 +116,11 @@ export interface CtxBuilding {
 /** A polyline (road / wall) in ground meters — subset of GroundPolyline. */
 export interface CtxPolyline {
   points: Array<{ x: number; z: number }>;
+  /** Paved width (meters). GG-584: movement-blocking props keep off it. A road
+   * with no recorded width is not tested (older contexts and tests). */
+  widthM?: number;
+  /** Source role; a river run is not a road for the GG-584 rule. */
+  sourceKind?: 'region-road' | 'town-street' | 'river';
 }
 
 /** A dock / bridge deck slab — subset of GroundDeck. */
@@ -1303,6 +1308,10 @@ function placeRoadside(basePath: SeedPath, ctx: PropPlacementContext): PropInsta
     const rng = rngFromPath(childSeedPath(stream, `road:${ri}`));
     // Walk the polyline; drop a milestone every MILESTONE_SPACING_M, offset to
     // the verge (perpendicular, ~1 cell) so it never sits ON the road.
+    // GG-584: the verge is past the paved edge. One fixed cell from the line
+    // put the markers on any road wider than about 3 m; a road with no
+    // recorded width keeps the old one-cell offset.
+    const verge = road.widthM! > 0 ? road.widthM! / 2 + CELL_METERS * 0.5 : CELL_METERS;
     let sinceLast = MILESTONE_SPACING_M * uniform(rng, 0.3, 0.9); // stagger starts
     for (let i = 1; i < road.points.length; i++) {
       const a = road.points[i - 1], p = road.points[i];
@@ -1319,8 +1328,8 @@ function placeRoadside(basePath: SeedPath, ctx: PropPlacementContext): PropInsta
         const defId = rng.next() < 0.15 ? 'wayside-shrine' : 'milestone';
         out.push({
           defId,
-          xM: clamp(a.x + (p.x - a.x) * tc + nx * side * CELL_METERS, 0, ctx.extentMetersX),
-          zM: clamp(a.z + (p.z - a.z) * tc + nz * side * CELL_METERS, 0, ctx.extentMetersZ),
+          xM: clamp(a.x + (p.x - a.x) * tc + nx * side * verge, 0, ctx.extentMetersX),
+          zM: clamp(a.z + (p.z - a.z) * tc + nz * side * verge, 0, ctx.extentMetersZ),
           rotationRad: uniform(rng, 0, Math.PI * 2),
           variation: makeVariation(rng),
         });
@@ -1328,11 +1337,19 @@ function placeRoadside(basePath: SeedPath, ctx: PropPlacementContext): PropInsta
     }
     // A fingerpost at one end-vertex (junction proxy), ~40% of roads.
     if (rng.next() < 0.4) {
-      const end = rng.next() < 0.5 ? road.points[0] : road.points[road.points.length - 1];
+      const atStart = rng.next() < 0.5;
+      const end = atStart ? road.points[0] : road.points[road.points.length - 1];
+      const prev = atStart ? road.points[1] : road.points[road.points.length - 2];
+      // GG-584: the post stands on the verge beside the road end, not on it.
+      // The same two draws as before pick the side and a short step along.
+      const sideDraw = uniform(rng, -1, 1), alongDraw = uniform(rng, -1, 1);
+      const len = Math.hypot(end.x - prev.x, end.z - prev.z) || 1;
+      const ux = (end.x - prev.x) / len, uz = (end.z - prev.z) / len;
+      const s = sideDraw < 0 ? -1 : 1, back = Math.abs(alongDraw) * CELL_METERS;
       out.push({
         defId: 'fingerpost',
-        xM: clamp(end.x + uniform(rng, -1, 1) * CELL_METERS, 0, ctx.extentMetersX),
-        zM: clamp(end.z + uniform(rng, -1, 1) * CELL_METERS, 0, ctx.extentMetersZ),
+        xM: clamp(end.x - ux * back - uz * s * verge, 0, ctx.extentMetersX),
+        zM: clamp(end.z - uz * back + ux * s * verge, 0, ctx.extentMetersZ),
         rotationRad: uniform(rng, 0, Math.PI * 2),
         variation: makeVariation(rng),
       });
@@ -1403,6 +1420,9 @@ export interface PropPlacementStats {
   byPass: Record<string, SurfaceGateStats>;
   /** All passes summed. */
   total: SurfaceGateStats;
+  /** GG-584: props per pass dropped because they blocked a road or a gate
+   * opening (passes that dropped none are absent). */
+  offRoadByPass?: Record<string, number>;
 }
 
 /**
@@ -1500,13 +1520,86 @@ export function placePropsInstrumented(
   ];
 
   const byPass: Record<string, SurfaceGateStats> = {};
+  const offRoadByPass: Record<string, number> = {};
   const instances: PropInstance[] = [];
+  const clearOfRoads = roadClearanceTest(ctx);
   for (const [name, candidates] of passes) {
     const { kept, stats } = gatePass(ctx.surface, candidates, ctx.surfaceForProp);
     byPass[name] = stats;
+    let offRoad = 0;
     // Final safety net: never surface a non-renderable def (invisible referee
     // blocker). cluster()/emit() already guard; this makes the invariant total.
-    for (const inst of kept) if (RENDERABLE_DEF_IDS.has(inst.defId)) instances.push(inst);
+    for (const inst of kept) {
+      if (!RENDERABLE_DEF_IDS.has(inst.defId)) continue;
+      if (!clearOfRoads(inst)) { offRoad++; continue; }
+      instances.push(inst);
+    }
+    if (offRoad > 0) offRoadByPass[name] = offRoad;
   }
-  return { instances, stats: { byPass, total: sumStats(Object.values(byPass)) } };
+  return { instances, stats: { byPass, total: sumStats(Object.values(byPass)), offRoadByPass } };
+}
+
+// ── GG-584: no movement blocker on a road or in a gate opening ──────────────
+
+/** How far past its anchor a prop may not reach onto the paving (meters), by
+ * size class (S fits one 5-ft cell, M two, L three or more). A little under
+ * half the footprint, so a prop may overhang a street edge by a hand's width
+ * but never stand on the street. */
+const BODY_REACH_M: Record<PropSizeClass, number> = { S: 0.4, M: 0.75, L: 1 };
+/** A gate opening keeps this radius round its gatehouse center clear (meters).
+ * One cell: the road rule already keeps the passage clear, and guard clutter
+ * may still stand just inside the gate (\placeGates\). */
+export const GATE_OPENING_CLEAR_M = CELL_METERS;
+
+/**
+ * GG-584 (2026-11-03): a building-side hedge stood 0.7 m from the center of
+ * Legium's west gate, on its road, and blocked the gate in battle. Every pass
+ * now ends with one rule: a prop that blocks movement may not reach onto a
+ * road (its paved half width plus the prop's own reach) or into a gate
+ * opening. Props that do not block movement (signs, lanterns, rails) stay.
+ * Rivers and roads with no recorded width are not tested. Pure and
+ * deterministic: it only removes candidates, so no rng stream shifts.
+ */
+function roadClearanceTest(ctx: PropPlacementContext): (inst: PropInstance) => boolean {
+  const grid = new Map<string, Array<{ ax: number; az: number; bx: number; bz: number; half: number }>>();
+  const cell = CELL_METERS * 6;
+  let maxHalf = 0;
+  for (const road of ctx.roads) {
+    if (road.sourceKind === 'river' || !(road.widthM! > 0)) continue;
+    const half = road.widthM! / 2;
+    maxHalf = Math.max(maxHalf, half);
+    for (let i = 1; i < road.points.length; i++) {
+      const a = road.points[i - 1], b = road.points[i];
+      const seg = { ax: a.x, az: a.z, bx: b.x, bz: b.z, half };
+      for (let gx = Math.floor(Math.min(a.x, b.x) / cell); gx <= Math.floor(Math.max(a.x, b.x) / cell); gx++) {
+        for (let gz = Math.floor(Math.min(a.z, b.z) / cell); gz <= Math.floor(Math.max(a.z, b.z) / cell); gz++) {
+          const k = `${gx},${gz}`;
+          const list = grid.get(k);
+          if (list) list.push(seg); else grid.set(k, [seg]);
+        }
+      }
+    }
+  }
+  const gates = ctx.gatehouses ?? [];
+  if (grid.size === 0 && gates.length === 0) return () => true;
+  return (inst) => {
+    const def = PROPS_BY_ID.get(inst.defId);
+    if (!def?.referee.blocksMovement) return true;
+    const reach = BODY_REACH_M[def.sizeClass];
+    for (const g of gates) {
+      const r = GATE_OPENING_CLEAR_M + reach;
+      if ((inst.xM - g.xM) ** 2 + (inst.zM - g.zM) ** 2 < r * r) return false;
+    }
+    const span = Math.ceil((maxHalf + reach) / cell);
+    const gx0 = Math.floor(inst.xM / cell), gz0 = Math.floor(inst.zM / cell);
+    for (let gx = gx0 - span; gx <= gx0 + span; gx++) {
+      for (let gz = gz0 - span; gz <= gz0 + span; gz++) {
+        for (const s of grid.get(`${gx},${gz}`) ?? []) {
+          const r = s.half + reach;
+          if (distSqToSegment(inst.xM, inst.zM, s.ax, s.az, s.bx, s.bz) < r * r) return false;
+        }
+      }
+    }
+    return true;
+  };
 }

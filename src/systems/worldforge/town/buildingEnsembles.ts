@@ -150,8 +150,10 @@ function lotProfileForAttachedPlot(
   return choice % 2 === 0 ? 'left-return' : 'right-return';
 }
 
-/** Only stamp profiles that can survive the 5 ft blueprint grid as authored. */
-function hasNegotiableEnvelope(plot: BuildingPlot): boolean {
+/** Only stamp profiles that can survive the 5 ft blueprint grid as authored.
+ * GG-554: `feetPerUnit` turns plan units into feet; without it the plan is
+ * read as feet (the protected revision-1 and revision-4 reader). */
+function hasNegotiableEnvelope(plot: BuildingPlot, feetPerUnit = 1): boolean {
   const width = Math.hypot(
     plot.polygon[1][0] - plot.polygon[0][0],
     plot.polygon[1][1] - plot.polygon[0][1],
@@ -160,7 +162,7 @@ function hasNegotiableEnvelope(plot: BuildingPlot): boolean {
     plot.polygon.at(-1)![0] - plot.polygon[0][0],
     plot.polygon.at(-1)![1] - plot.polygon[0][1],
   );
-  return width >= 15 - 1e-6 && depth >= 15 - 1e-6;
+  return width * feetPerUnit >= 15 - 1e-6 && depth * feetPerUnit >= 15 - 1e-6;
 }
 
 /** Frontage width/depth in the packer's stable local frame. */
@@ -183,6 +185,12 @@ export function resolveBuildingEnsembles(
   civic: readonly CivicStructure[],
   typology: TownTypology | undefined,
   seedPath: SeedPath,
+  /** GG-554 (2026-11-03): feet per plan unit. The lot checks below compare
+   * real feet (15 ft and up). A canonical unit is townSpanFt / 1000 ft (1.2
+   * to 6), so read as feet a capital profiled none of its attached lots. The
+   * current layout passes it; the protected readers omit it and stay as they
+   * were. */
+  feetPerUnit = 1,
 ): Map<BuildingPlot, BuildingEnsemble> {
   const result = new Map<BuildingPlot, BuildingEnsemble>();
   const marketWards = marketWardIndices(wards, civic, typology);
@@ -257,12 +265,12 @@ export function resolveBuildingEnsembles(
         const envelope = plotEnvelopeSize(plot);
         const lotProfile = kind === 'detached'
           ? detachedCompoundProfile(
-              envelope.width,
-              envelope.depth,
+              envelope.width * feetPerUnit,
+              envelope.depth * feetPerUnit,
               parcelProfile!,
               lotKey,
             )
-          : !hasNegotiableEnvelope(plot)
+          : !hasNegotiableEnvelope(plot, feetPerUnit)
             ? undefined
             : lotProfileForAttachedPlot(leftShared, rightShared, lotKey);
         result.set(plot, {

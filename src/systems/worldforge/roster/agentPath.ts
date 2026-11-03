@@ -261,6 +261,11 @@ function clearStreetProjection(graph: StreetGraph, door: Point, ownId: number, i
 /** A dead end this close to another span joins it (ft). */
 const T_JOIN_FT = 2;
 
+/** A plan-only door takes the house front edge when that edge is no more
+ * than this much farther from a street than the nearest wall (ft): one
+ * door step (GG-554, GG-608). */
+const FRONT_DOOR_SLACK_FT = 5;
+
 /**
  * Split a span at each dead end that lies on it, so a T-junction is walkable.
  * Mutates the graph arrays in place. Deterministic: dead ends go in node
@@ -439,6 +444,21 @@ export function buildStreetGraph(
       const street = nearestStreetProjection(graph, door);
       if (street && (!bestStreet || street.distanceFt < bestStreet.distanceFt)) {
         bestDoor = door;
+        bestStreet = street;
+      }
+    }
+    // GG-554 / GG-608 (2026-11-03): a house front is its first edge, and its
+    // blueprint door is on that edge. When a deeper lot puts the back wall
+    // a little nearer another street (demo plot 398: 15.7 against 15.8 ft),
+    // the nearest midpoint alone chose the back wall. The front midpoint now
+    // wins when it is within one door step of the nearest. A building whose
+    // front faces away (a keep's long side) keeps its nearest wall.
+    if (!fitted?.every(Number.isFinite) && plot.footprint.length >= 2 && bestStreet) {
+      const [start, end] = plot.footprint;
+      const front: Point = [(start[0] + end[0]) / 2, (start[1] + end[1]) / 2];
+      const street = nearestStreetProjection(graph, front);
+      if (street && street.distanceFt <= bestStreet.distanceFt + FRONT_DOOR_SLACK_FT) {
+        bestDoor = front;
         bestStreet = street;
       }
     }

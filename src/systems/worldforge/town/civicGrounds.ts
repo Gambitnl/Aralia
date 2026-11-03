@@ -269,6 +269,33 @@ export function setPieceFeatures(a: SetPieceInput): CivicGroundsFeature[] {
           return [{ kind: 'cloister-walk', polygon: outer }, { kind: 'garth', polygon: inner }];
         }
       }
+      // GG-581 (2026-11-03): the search above shrinks the walk's width and
+      // length together, so where the grounds' corners are cut (Hafting) the
+      // width fell under 16 ft before a shorter, full-width walk was tried,
+      // and the side behind the building was never tried. Only when it finds
+      // nothing: try both flanks and the back, with width and length shrunk
+      // apart, and keep the walk with the most area. Every cloister the first
+      // search places stays exactly as it was.
+      let best: { outer: Pt[]; inner: Pt[]; area: number } | null = null;
+      for (const [dirS, dirF] of [[1, 0], [-1, 0], [0, -1]] as const) {
+        const room = dirS !== 0
+          ? (dirS > 0 ? maxS : -minS) - hb - gap - unit(2)
+          : -minF - hb - gap - unit(2);
+        for (let k = 1; k >= 0.5 - 1e-9; k -= 0.1) {
+          const l = hb * 2 * 0.9 * k;
+          for (let w = Math.min(hb * 2, room); w >= unit(16); w -= unit(2)) {
+            if (best && w * l <= best.area) break;
+            const mid = dirS !== 0 ? at(dirS * (hb + gap + w / 2), 0) : at(0, dirF * (hb + gap + w / 2));
+            // A flank walk runs along the building's axis; a back walk across it.
+            const outer = dirS !== 0 ? orientedRect(mid, f, w, l) : orientedRect(mid, f, l, w);
+            if (!outer.every((p) => pointInPolygon(p, grounds))) continue;
+            const inner = dirS !== 0 ? orientedRect(mid, f, w - 2 * walk, l - 2 * walk) : orientedRect(mid, f, l - 2 * walk, w - 2 * walk);
+            best = { outer, inner, area: w * l };
+            break;
+          }
+        }
+      }
+      if (best) return [{ kind: 'cloister-walk', polygon: best.outer }, { kind: 'garth', polygon: best.inner }];
       return out;
     }
     case 'bailey': {

@@ -240,7 +240,8 @@ export function groundToPlacementContext(
     rows: ground.rows,
     biomeIds: ground.biomeIds,
     buildings,
-    roads: ground.roads.map((r) => ({ points: r.points })),
+    // GG-584: width and role ride along so movement blockers keep off roads.
+    roads: ground.roads.map((r) => ({ points: r.points, widthM: r.widthM, ...(r.sourceKind ? { sourceKind: r.sourceKind } : {}) })),
     decks,
     plazas,
     courtyards,
