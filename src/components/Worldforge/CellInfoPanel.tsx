@@ -9,6 +9,9 @@
 import React from "react";
 import { MapPin, X, Layers, Mountain, Waves, Users, Crown, Anchor } from "lucide-react";
 import type { CellInfo } from "../../systems/worldforge/cellInfo";
+// GG-378: shared button style and control roles.
+import { Button } from "../ui/Button";
+import { BTN_ICON } from "../../styles/buttonStyles";
 
 export interface CellInfoPanelProps {
   info: CellInfo;
@@ -57,7 +60,7 @@ const CellInfoPanel: React.FC<CellInfoPanelProps> = ({ info, onClose, onDescend 
           type="button"
           onClick={onClose}
           data-testid="cell-info-close"
-          className="text-gray-400 hover:text-white p-1 rounded hover:bg-gray-800 transition-colors"
+          className={`${BTN_ICON} text-gray-400 hover:text-white p-1 hover:bg-gray-800`}
           title="Close"
         >
           <X size={16} />
@@ -100,17 +103,17 @@ const CellInfoPanel: React.FC<CellInfoPanelProps> = ({ info, onClose, onDescend 
 
       {/* Action */}
       <div className="px-4 py-3 border-t border-gray-800 bg-gray-950/30">
-        <button
+        <Button
           type="button"
           disabled={!isLand}
           onClick={() => onDescend(info.cellId)}
           data-testid="cell-info-descend"
-          className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold py-2 px-4 rounded-lg shadow-lg transition-all flex items-center justify-center gap-2"
+          variant="primary" size="sm" className="w-full"
           title={isLand ? "Generate the L1 region for this cell" : "Water cells cannot be entered"}
         >
-          <Layers size={14} />
-          {isLand ? "Descend into region" : "Water — no region"}
-        </button>
+          <span className="flex items-center justify-center gap-2"><Layers size={14} />
+          {isLand ? "Descend into region" : "Water — no region"}</span>
+        </Button>
       </div>
     </div>
   );

@@ -27,6 +27,8 @@ import {
   TableHeader,
   TableRow,
 } from '../ui/Table';
+// GG-378: shared control roles; each screen adds only its state colors.
+import { BTN_CHIP, BTN_CHIP_IDLE, BTN_CLEAR_INPUT, BTN_TERM_LINK } from '../../styles/buttonStyles';
 
 // ============================================================================
 // Props & Types
@@ -92,10 +94,10 @@ export const CoverObscurementTable: React.FC<CoverObscurementTableProps> = ({
             <button
               type="button"
               onClick={() => setTypeFilter('all')}
-              className={`px-2.5 py-1 text-xs rounded font-medium transition-colors ${
+              className={`${BTN_CHIP} ${
                 typeFilter === 'all'
                   ? 'bg-amber-500/20 border border-amber-400 text-amber-300'
-                  : 'text-gray-400 hover:text-gray-200'
+                  : BTN_CHIP_IDLE
               }`}
             >
               All Rules ({items.length})
@@ -103,10 +105,10 @@ export const CoverObscurementTable: React.FC<CoverObscurementTableProps> = ({
             <button
               type="button"
               onClick={() => setTypeFilter('cover')}
-              className={`px-2.5 py-1 text-xs rounded font-medium transition-colors ${
+              className={`${BTN_CHIP} ${
                 typeFilter === 'cover'
                   ? 'bg-sky-500/20 border border-sky-400 text-sky-300'
-                  : 'text-gray-400 hover:text-gray-200'
+                  : BTN_CHIP_IDLE
               }`}
             >
               Cover (3)
@@ -114,10 +116,10 @@ export const CoverObscurementTable: React.FC<CoverObscurementTableProps> = ({
             <button
               type="button"
               onClick={() => setTypeFilter('obscurement')}
-              className={`px-2.5 py-1 text-xs rounded font-medium transition-colors ${
+              className={`${BTN_CHIP} ${
                 typeFilter === 'obscurement'
                   ? 'bg-purple-500/20 border border-purple-400 text-purple-300'
-                  : 'text-gray-400 hover:text-gray-200'
+                  : BTN_CHIP_IDLE
               }`}
             >
               Obscurement (2)
@@ -138,7 +140,7 @@ export const CoverObscurementTable: React.FC<CoverObscurementTableProps> = ({
               <button
                 type="button"
                 onClick={() => setSearchTerm('')}
-                className="absolute right-2.5 top-1.5 text-gray-400 hover:text-gray-200 text-xs"
+                className={`absolute right-2.5 top-1.5 ${BTN_CLEAR_INPUT}`}
                 aria-label="Clear cover search"
               >
                 ✕
@@ -240,7 +242,7 @@ export const CoverObscurementTable: React.FC<CoverObscurementTableProps> = ({
                               key={termId}
                               type="button"
                               onClick={() => onNavigate?.(termId)}
-                              className="text-[10px] text-sky-400 hover:text-sky-200 bg-sky-900/40 hover:bg-sky-800/60 border border-sky-600/30 px-1.5 py-0.5 rounded transition-colors"
+                              className={BTN_TERM_LINK}
                             >
                               {termId.replace(/_/g, ' ')}
                             </button>

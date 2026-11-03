@@ -20,6 +20,8 @@ import type { RitualState } from '../../types/rituals';
 import { CloudFog, Mountain, UsersRound } from "lucide-react";
 import type { BattleMapTile as BattleMapTileData, CombatCharacter } from "../../types/combat";
 import { Z_INDEX } from "../../styles/zIndex";
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE, BTN_ICON } from "../../styles/buttonStyles";
 import {
   describeBattleMapTerrain,
   type BattleMapElevationPresentation as ElevationDescription,
@@ -188,7 +190,7 @@ export const BattleMapHUD: React.FC<BattleMapHUDProps> = ({
                 ? "Hide the fog-of-war veil (render only)"
                 : "Show the fog-of-war veil"
             }
-            className={`inline-flex h-9 items-center gap-1.5 rounded px-3 text-xs font-semibold transition-colors ${
+            className={`${BTN_FOCUS_VISIBLE} inline-flex h-9 items-center gap-1.5 rounded px-3 text-xs font-semibold transition-colors ${
               fogOfWarVisible
                 ? "bg-sky-700 text-white ring-2 ring-sky-300"
                 : "bg-gray-600 hover:bg-gray-500"
@@ -284,7 +286,7 @@ export const BattleMapHUD: React.FC<BattleMapHUDProps> = ({
           type="button"
           aria-label="Zoom out"
           onClick={() => onZoomBy(1 / 1.25)}
-          className="h-7 w-7 rounded bg-slate-800 text-sm font-bold text-slate-200 hover:bg-slate-700"
+          className={`${BTN_ICON} h-7 w-7 bg-slate-800 text-sm font-bold text-slate-200 hover:bg-slate-700`}
         >
           −
         </button>
@@ -295,7 +297,7 @@ export const BattleMapHUD: React.FC<BattleMapHUDProps> = ({
           type="button"
           aria-label="Zoom in"
           onClick={() => onZoomBy(1.25)}
-          className="h-7 w-7 rounded bg-slate-800 text-sm font-bold text-slate-200 hover:bg-slate-700"
+          className={`${BTN_ICON} h-7 w-7 bg-slate-800 text-sm font-bold text-slate-200 hover:bg-slate-700`}
         >
           +
         </button>
@@ -303,7 +305,7 @@ export const BattleMapHUD: React.FC<BattleMapHUDProps> = ({
           type="button"
           aria-label="Fit map to view"
           onClick={() => onSetUserZoom(fitScale)}
-          className={`h-7 rounded px-2 text-xs font-semibold ${
+          className={`${BTN_FOCUS_VISIBLE} h-7 rounded px-2 text-xs font-semibold ${
             userZoom !== null && Math.abs(boardScale - fitScale) < 0.001
               ? "bg-amber-700 text-amber-50"
               : "bg-slate-800 text-slate-200 hover:bg-slate-700"
@@ -315,7 +317,7 @@ export const BattleMapHUD: React.FC<BattleMapHUDProps> = ({
           type="button"
           aria-label="Reset zoom to automatic"
           onClick={() => onSetUserZoom(null)}
-          className={`h-7 rounded px-2 text-xs font-semibold ${
+          className={`${BTN_FOCUS_VISIBLE} h-7 rounded px-2 text-xs font-semibold ${
             userZoom === null
               ? "bg-amber-700 text-amber-50"
               : "bg-slate-800 text-slate-200 hover:bg-slate-700"
@@ -339,7 +341,7 @@ export const BattleMapHUD: React.FC<BattleMapHUDProps> = ({
                 aria-label={`${lineOfSightOverlayVisible ? "Hide" : "Show"} line of sight overlay`}
                 aria-pressed={lineOfSightOverlayVisible}
                 onClick={onToggleLineOfSight}
-                className={`flex items-center gap-1.5 rounded px-1.5 py-1 transition-colors ${
+                className={`${BTN_FOCUS_VISIBLE} flex items-center gap-1.5 rounded px-1.5 py-1 transition-colors ${
                   lineOfSightOverlayVisible
                     ? "text-slate-100 hover:bg-slate-800"
                     : "text-slate-500 hover:bg-slate-800/70 hover:text-slate-300"

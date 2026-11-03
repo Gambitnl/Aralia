@@ -44,6 +44,9 @@ import {
   DamageNumber,
 } from "../../types/combat";
 import ErrorBoundary from "../ui/ErrorBoundary";
+// GG-378: shared button style and control roles.
+import { Button } from "../ui/Button";
+import { BTN_FOCUS_VISIBLE } from "../../styles/buttonStyles";
 import { useTurnManager } from "../../hooks/combat/useTurnManager";
 import { useAbilitySystem } from "../../hooks/useAbilitySystem";
 import {
@@ -335,7 +338,7 @@ const ControlsHelp: React.FC<{ visible: boolean }> = ({ visible }) => {
     >
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800/90 hover:bg-gray-700/90 border border-gray-600/50 rounded-lg text-xs text-gray-300 backdrop-blur-sm shadow-lg transition-colors"
+        className={`${BTN_FOCUS_VISIBLE} flex items-center gap-1.5 px-3 py-1.5 bg-gray-800/90 hover:bg-gray-700/90 border border-gray-600/50 rounded-lg text-xs text-gray-300 backdrop-blur-sm shadow-lg transition-colors`}
         title="Toggle controls help"
       >
         <span className="text-amber-400">?</span>
@@ -1115,13 +1118,13 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
                   ))}
                 </select>
               </div>
-              <button
+              <Button
                 type="button"
                 onClick={handleGenerate}
-                className="h-7 rounded-md bg-green-600 px-3 text-xs font-semibold shadow hover:bg-green-500"
+                variant="success" size="sm" className="h-7"
               >
                 New Map
-              </button>
+              </Button>
             </>
           ) : (
             /* A real location replaces biome/randomize controls with its
@@ -1140,21 +1143,21 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
               </span>
             </div>
           )}
-          <button
+          <Button
             onClick={turnManager.endTurn}
             disabled={!turnManager.isCharacterTurn(currentCharacter?.id || "")}
-            className="h-7 rounded-md bg-orange-600 px-3 text-xs font-semibold shadow hover:bg-orange-500 disabled:bg-gray-500"
+            type="button" variant="action" size="sm" className="h-7"
           >
             End Turn
-          </button>
+          </Button>
           {/* [2026-05-21] 2D/3D render mode toggle */}
-          <button
+          <Button
             onClick={handleRenderModeToggle}
-            className="h-7 rounded-md bg-indigo-600 px-3 text-xs font-bold shadow hover:bg-indigo-500"
+            type="button" variant="primary" size="sm" className="h-7"
             title={`Switch to ${renderMode === "2d" ? "3D" : "2D"} view`}
           >
             {renderMode === "2d" ? "🎮 3D View" : "🗺️ 2D View"}
-          </button>
+          </Button>
           {renderMode === "2d" && (
             /* The asset overlay changes how busy the 2D board feels, so it
                lives with the other map controls instead of in the legend. */
@@ -1163,7 +1166,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
               aria-label={`${assetOverlayVisible ? "Hide" : "Show"} asset overlay`}
               aria-pressed={assetOverlayVisible}
               onClick={() => setAssetOverlayVisible((visible) => !visible)}
-              className={`h-7 rounded-md border px-2.5 text-xs font-semibold shadow transition-colors ${
+              className={`${BTN_FOCUS_VISIBLE} h-7 rounded-md border px-2.5 text-xs font-semibold shadow transition-colors ${
                 assetOverlayVisible
                   ? "border-amber-400/70 bg-amber-600 text-amber-50 hover:bg-amber-500"
                   : "border-slate-600/70 bg-slate-800/90 text-slate-300 hover:bg-slate-700"
@@ -1181,12 +1184,12 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
             onResetLayout={resetRailLayout}
             layoutIsDefault={railLayoutIsDefault}
           />
-          <button
+          <Button
             onClick={onExit}
-            className="h-7 rounded-md bg-red-600 px-3 text-xs font-semibold shadow hover:bg-red-500"
+            type="button" variant="danger" size="sm" className="h-7"
           >
             End Battle
-          </button>
+          </Button>
         </div>
       </div>
 

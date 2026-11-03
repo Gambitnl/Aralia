@@ -23,6 +23,11 @@ import PuzzleRuntimeModal from './PuzzleRuntimeModal';
 vi.mock('framer-motion', () => ({
   motion: {
     div: ({ children, ...props }: React.ComponentPropsWithoutRef<'div'>) => <div {...props}>{children}</div>,
+    // GG-378: the shared Button renders motion.button. This double drops the
+    // motion-only props and keeps every normal button prop.
+    button: React.forwardRef<HTMLButtonElement, React.ComponentPropsWithoutRef<'button'> & { whileTap?: unknown; transition?: unknown }>(
+      ({ children, whileTap: _whileTap, transition: _transition, ...props }, ref) => <button ref={ref} {...props}>{children}</button>,
+    ),
   },
 }));
 

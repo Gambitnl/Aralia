@@ -46,6 +46,8 @@ import {
 import { stepAgentSim, simulateMindsTo, type AgentMind, type AgentActivity } from '../../systems/worldforge/roster/agentSim';
 import { assignFamilies, familySummary } from '../../systems/worldforge/roster/family';
 import VillagerRegistry from './VillagerRegistry';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 /** Per-activity dot colour for the behaviour-sim view. */
 const ACTIVITY_HEX: Record<AgentActivity, string> = {
@@ -373,7 +375,7 @@ const AgentSimPreview: React.FC = () => {
 
       <div style={{ flex: '0 0 auto', width: '100%', maxWidth: 900, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }} data-testid="agentsim-readout">
-          <button
+          <button className={BTN_FOCUS_VISIBLE}
             onClick={() => setPlaying((p) => !p)}
             data-testid="agentsim-play"
             aria-label={playing ? 'Pause' : 'Play'}
@@ -393,7 +395,7 @@ const AgentSimPreview: React.FC = () => {
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 12, color: '#94a3b8' }}>
           <span>Speed</span>
           {[0.1, 0.25, 0.5, 1, 3, 10].map((s) => (
-            <button
+            <button className={BTN_FOCUS_VISIBLE}
               key={s}
               onClick={() => setSpeed(s)}
               style={{ padding: '3px 9px', borderRadius: 6, border: '1px solid #334155', cursor: 'pointer', fontSize: 12, background: speed === s ? '#2563eb' : '#0f172a', color: 'white' }}
@@ -410,7 +412,7 @@ const AgentSimPreview: React.FC = () => {
             style={{ width: 110, padding: '4px 8px', borderRadius: 6, background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155' }}
           />
           {[6, 7, 8, 12, 18].map((h) => (
-            <button
+            <button className={BTN_FOCUS_VISIBLE}
               key={h}
               onClick={() => setClockExt(h + 0.25)}
               style={{ padding: '4px 10px', borderRadius: 6, background: '#334155', color: 'white', border: 'none', cursor: 'pointer', fontSize: 12 }}
@@ -421,7 +423,7 @@ const AgentSimPreview: React.FC = () => {
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 12, color: '#94a3b8' }}>
           <span>{plan.plots.length} buildings</span>
-          <button
+          <button className={BTN_FOCUS_VISIBLE}
             onClick={() => setShowRegistry((s) => !s)}
             data-testid="registry-toggle"
             style={{ marginLeft: 'auto', padding: '4px 10px', borderRadius: 6, border: '1px solid #334155', cursor: 'pointer', fontSize: 12, background: showRegistry ? '#6d28d9' : '#0f172a', color: 'white' }}

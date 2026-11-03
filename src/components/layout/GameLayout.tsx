@@ -39,6 +39,8 @@ import ActionPane from '../ActionPane';
 import WorldPane from '../WorldPane';
 import { UI_ID } from '../../styles/uiIds';
 import type { PlayerWorldPosition } from '../../types';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 interface GameLayoutProps {
     /** The current location data object, including name, description, and biome. */
@@ -155,7 +157,7 @@ const GameLayout: React.FC<GameLayoutProps> = ({
                         onClick={openWorldMap}
                         disabled={disabled}
                         data-testid="open-world-map"
-                        className="min-w-0 flex-1 rounded-lg border border-amber-600/60 bg-gray-800 px-3 py-3 text-sm font-semibold text-amber-200 hover:bg-gray-700 disabled:opacity-50 sm:px-4 flex items-center justify-center gap-2"
+                        className={`${BTN_FOCUS_VISIBLE} min-w-0 flex-1 rounded-lg border border-amber-600/60 bg-gray-800 px-3 py-3 text-sm font-semibold text-amber-200 hover:bg-gray-700 disabled:opacity-50 sm:px-4 flex items-center justify-center gap-2`}
                         title="Open World Map (Hotkey: M)"
                     >
                         <span>🗺 Open World Map</span>

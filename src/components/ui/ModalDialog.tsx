@@ -34,6 +34,8 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { Z_INDEX } from '../../styles/zIndex';
+// GG-378: shared button style and control roles.
+import { BTN_ICON } from '../../styles/buttonStyles';
 
 export type ModalDialogSize = 'sm' | 'md' | 'lg' | 'xl';
 
@@ -132,7 +134,7 @@ export const ModalDialog: React.FC<ModalDialogProps> = ({
                     type="button"
                     onClick={onClose}
                     aria-label="Close"
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-gray-700 text-xl leading-none text-gray-400 transition-colors hover:border-red-800/60 hover:bg-red-900/30 hover:text-red-300"
+                    className={`${BTN_ICON} h-9 w-9 shrink-0 border border-gray-700 text-xl leading-none text-gray-400 hover:border-red-800/60 hover:bg-red-900/30 hover:text-red-300`}
                   >
                     ✕
                   </button>

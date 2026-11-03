@@ -14,6 +14,9 @@ import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import { DiceScaleSlider } from './DiceScaleSlider';
 import { DiceSVG } from './DiceSVGs';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_FOCUS_VISIBLE, BTN_ICON } from '../../styles/buttonStyles';
 
 interface DiceRollerModalProps {
     isOpen: boolean;
@@ -223,7 +226,7 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
                                                 {count > 0 && (
                                                     <button
                                                         onClick={(e) => removeDie(die, e)}
-                                                        className="absolute -left-2 top-1/2 -translate-y-1/2 w-5 h-5 bg-red-600 hover:bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        className={`${BTN_FOCUS_VISIBLE} absolute -left-2 top-1/2 -translate-y-1/2 w-5 h-5 bg-red-600 hover:bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity`}
                                                         title={`Remove ${die}`}
                                                     >
                                                         <Minus className="w-3 h-3" />
@@ -237,7 +240,7 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
                                                         addDie(die);
                                                     }}
                                                     disabled={!isReady || isRolling}
-                                                    className="absolute -right-2 top-1/2 -translate-y-1/2 w-5 h-5 bg-green-600 hover:bg-green-500 disabled:bg-gray-600 text-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    className={`${BTN_FOCUS_VISIBLE} absolute -right-2 top-1/2 -translate-y-1/2 w-5 h-5 bg-green-600 hover:bg-green-500 disabled:bg-gray-600 text-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity`}
                                                     title={`Add ${die}`}
                                                 >
                                                     <Plus className="w-3 h-3" />
@@ -268,14 +271,17 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
                                         />
                                         <span className="absolute -top-2 left-1 bg-gray-800 px-1 text-[9px] text-gray-400 uppercase font-bold">Mod</span>
                                     </div>
-                                    <button
+                                    <Button
+                                        variant="action"
                                         onClick={handleRoll}
                                         disabled={!isReady || isRolling || !hasPoolDice}
-                                        className="flex min-h-[42px] items-center justify-center gap-1 rounded-lg bg-amber-600 px-3 py-2 font-bold text-white shadow-lg transition-all hover:bg-amber-500 active:scale-95 disabled:cursor-not-allowed disabled:bg-gray-600"
+                                        className="min-h-[42px]"
                                     >
+                                        <span className="flex items-center justify-center gap-1">
                                         <Dice6 className="w-5 h-5" />
                                         {isRolling ? '...' : 'Roll'}
-                                    </button>
+                                        </span>
+                                    </Button>
 
                                     {/* Inline Result Display */}
                                     {lastResult && (
@@ -294,8 +300,9 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
                                     <button
                                         onClick={clearPool}
                                         disabled={!isReady}
-                                        className="flex min-h-[42px] items-center justify-center rounded-lg border border-gray-600 bg-gray-700 px-2 py-2 text-gray-200 transition-colors hover:bg-gray-600 disabled:bg-gray-800"
+                                        className={`${BTN_ICON} min-h-[42px] border border-gray-600 bg-gray-700 px-2 py-2 text-gray-200 hover:bg-gray-600 disabled:bg-gray-800`}
                                         title="Clear pool and dice"
+                                        aria-label="Clear pool and dice"
                                     >
                                         <RefreshCcw className="w-4 h-4" />
                                     </button>

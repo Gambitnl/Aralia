@@ -6,6 +6,8 @@
  */
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Z_INDEX } from '../../styles/zIndex';
+// GG-378: shared button style and control roles.
+import { Button } from './Button';
 
 interface Props {
   children: ReactNode;
@@ -71,12 +73,12 @@ class ErrorBoundary extends Component<Props, State> {
           )}
           {/* 
             A reset button could be added, but it's tricky to guarantee a safe state recovery.
-            <button
+            <Button
               onClick={this.handleReset}
-              className="mt-4 bg-amber-500 hover:bg-amber-600 text-gray-900 font-semibold py-2 px-4 rounded-lg"
+              type="button" variant="action" className="mt-4"
             >
               Try to recover
-            </button> 
+            </Button> 
           */}
         </div>
       );

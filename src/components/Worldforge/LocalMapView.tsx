@@ -22,6 +22,8 @@ import type { LocalArtifact } from "../../systems/worldforge/artifacts";
 import { groundFocusesForLocal, type GroundFocus } from "../../systems/worldforge/leaf3d/atlasGroundDrilldown";
 import { drawOverlay, type OverlayMarker } from "./overlay";
 import { getCleanNumber } from "./atlasDraw";
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from "../../styles/buttonStyles";
 
 /**
  * Interactive viewport for the L2 LOCAL layer (3,000 ft / 600×600 5-ft
@@ -332,7 +334,7 @@ const LocalMapView: React.FC<LocalMapViewProps> = ({
               type="button"
               onClick={() => onEnterGround(focus)}
               aria-label={`Enter ${focus.label} on Ground`}
-              className="flex min-h-11 items-center gap-2 rounded-lg border border-amber-300/40 bg-amber-950/80 px-3 text-xs font-semibold text-amber-100 hover:bg-amber-900"
+              className={`${BTN_FOCUS_VISIBLE} flex min-h-11 items-center gap-2 rounded-lg border border-amber-300/40 bg-amber-950/80 px-3 text-xs font-semibold text-amber-100 hover:bg-amber-900`}
             >
               <Footprints size={16} />
               <span className="flex flex-col items-start leading-tight">
@@ -359,7 +361,7 @@ const LocalMapView: React.FC<LocalMapViewProps> = ({
         <button
           type="button"
           onClick={() => zoomAtCenter(true)}
-          className="flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
+          className={`${BTN_FOCUS_VISIBLE} flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95`}
           title="Zoom In"
         >
           <ZoomIn size={18} />
@@ -367,7 +369,7 @@ const LocalMapView: React.FC<LocalMapViewProps> = ({
         <button
           type="button"
           onClick={resetView}
-          className="flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
+          className={`${BTN_FOCUS_VISIBLE} flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95`}
           title="Recenter / Fit Map"
         >
           <Maximize size={18} />
@@ -375,7 +377,7 @@ const LocalMapView: React.FC<LocalMapViewProps> = ({
         <button
           type="button"
           onClick={() => zoomAtCenter(false)}
-          className="flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
+          className={`${BTN_FOCUS_VISIBLE} flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95`}
           title="Zoom Out"
         >
           <ZoomOut size={18} />

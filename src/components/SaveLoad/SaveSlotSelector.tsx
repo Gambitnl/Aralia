@@ -20,6 +20,9 @@ import { ConfirmationModal } from '../ui/ConfirmationModal';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_ROW } from '../../styles/buttonStyles';
 
 interface SaveSlotSelectorProps {
   slots: SaveSlotSummary[];
@@ -186,7 +189,7 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
             <button
               key={slot.slotId}
               onClick={() => setSelectedSlotId(slot.slotId)}
-              className={`text-left border rounded-lg p-3 transition shadow-sm ${
+              className={`${BTN_ROW} border rounded-lg p-3 shadow-sm ${
                 selectedSlotId === slot.slotId
                   ? 'border-emerald-400 bg-emerald-900/20'
                   : 'border-gray-700 hover:border-emerald-500 hover:bg-gray-700/30'
@@ -212,57 +215,45 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
               placeholder="Name this memory..."
               className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-400"
             />
-            <button
+            <Button
+              variant="action"
               onClick={() => {
                 const trimmed = newSlotName.trim();
                 if (!trimmed) return;
                 handleSave(trimmed, trimmed);
               }}
               disabled={!newSlotName.trim() || isSavingDisabled}
-              className={`px-4 py-2 rounded-lg font-semibold transition ${
-                newSlotName.trim() && !isSavingDisabled
-                  ? 'bg-amber-500 hover:bg-amber-400 text-gray-900'
-                  : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-              }`}
             >
               Scribe Entry
-            </button>
+            </Button>
           </div>
         </div>
 
         <div className="flex items-center justify-between">
           <div className="space-x-2">
-            <button
+            <Button
+              variant="success"
               onClick={() => selectedSlotId && handleSave(selectedSlotId)}
               disabled={!selectedSlotId || isSavingDisabled}
-              className={`px-4 py-2 rounded-lg font-semibold transition ${
-                selectedSlotId && !isSavingDisabled
-                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
-                  : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-              }`}
             >
               Save to Selected
-            </button>
+            </Button>
             {allowAutoSave && (
-              <button
+              <Button
+                variant="primary"
                 onClick={() => handleSave(AUTO_SAVE_SLOT_KEY, 'Auto-Save', true)}
                 disabled={isSavingDisabled}
-                className={`px-4 py-2 rounded-lg font-semibold transition ${
-                  !isSavingDisabled
-                    ? 'bg-sky-600 hover:bg-sky-500 text-white'
-                    : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                }`}
               >
                 Update Auto-Save
-              </button>
+              </Button>
             )}
           </div>
-          <button
+          <Button
+            variant="secondary"
             onClick={close}
-            className="px-4 py-2 rounded-lg font-semibold bg-gray-700 hover:bg-gray-600 text-gray-100 border border-gray-600"
           >
             Cancel
-          </button>
+          </Button>
         </div>
         </div>
       </div>

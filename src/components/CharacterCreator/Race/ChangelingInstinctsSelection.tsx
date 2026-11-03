@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Skill } from '../../../types';
 import { SKILLS_DATA } from '../../../data/skills';
 import { CreationStepLayout } from '../ui/CreationStepLayout';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../../styles/buttonStyles';
 
 interface ChangelingInstinctsSelectionProps {
   onSkillsSelect: (skillIds: string[]) => void;
@@ -103,7 +105,7 @@ const ChangelingInstinctsSelection: React.FC<ChangelingInstinctsSelectionProps> 
                 type="button"
                 onClick={() => handleSkillToggle(skill.id)}
                 disabled={isDisabled}
-                className={`w-full text-left p-5 rounded-xl transition-all border-2 shadow-lg flex items-center gap-4 ${isSelected
+                className={`${BTN_FOCUS_VISIBLE} w-full text-left p-5 rounded-xl transition-all border-2 shadow-lg flex items-center gap-4 ${isSelected
                     ? 'bg-sky-800/40 border-sky-400 ring-2 ring-sky-500 ring-opacity-50 scale-[1.02]'
                     : isDisabled
                       ? 'bg-gray-800/30 border-gray-800 opacity-50 cursor-not-allowed'

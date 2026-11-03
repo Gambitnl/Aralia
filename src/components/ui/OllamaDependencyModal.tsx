@@ -52,6 +52,8 @@ import {
   setGroqProxyUrl,
   type GroqKeyStorage,
 } from '../../services/ai/aiProviderSettings';
+// GG-378: shared button style and control roles.
+import { BTN_ICON, BTN_ROW } from '../../styles/buttonStyles';
 
 interface OllamaDependencyModalProps {
   isOpen: boolean;
@@ -427,7 +429,7 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
                   type="button"
                   aria-label={isCollapsed ? 'Expand pane' : 'Collapse pane'}
                   title={isCollapsed ? 'Expand' : 'Collapse'}
-                  className="flex h-11 w-11 items-center justify-center rounded text-gray-400 hover:text-amber-200 hover:bg-gray-800 transition-colors"
+                  className={`${BTN_ICON} h-11 w-11 text-gray-400 hover:text-amber-200 hover:bg-gray-800`}
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsCollapsed((c) => !c);
@@ -452,7 +454,7 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
                   type="button"
                   aria-label="Close pane"
                   title="Close"
-                  className="flex h-11 w-11 items-center justify-center rounded text-gray-400 hover:text-amber-200 hover:bg-gray-800 transition-colors"
+                  className={`${BTN_ICON} h-11 w-11 text-gray-400 hover:text-amber-200 hover:bg-gray-800`}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleClose();
@@ -529,7 +531,7 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
                           aria-expanded={isOllamaInfoOpen}
                           aria-controls="ollama-info-body"
                           data-testid="ollama-info-toggle"
-                          className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left bg-amber-500/5 hover:bg-amber-500/10 transition-colors"
+                          className={`${BTN_ROW} flex w-full items-center justify-between gap-2 px-4 py-3 bg-amber-500/5 hover:bg-amber-500/10`}
                         >
                           <span className="font-semibold text-amber-200">
                             About Ollama — what it is and how to start it

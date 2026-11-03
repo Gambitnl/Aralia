@@ -36,6 +36,9 @@ import { useOptionalGameState } from '../../state/GameContext';
 import { burgIdForLocation } from '../../systems/worldforge/townsim/chronicleForLocation';
 import { requestMapDrillToPlayerTown } from '../Worldforge/mapFocusSignal';
 import { groupActionPaneActions, shortPersonActionLabel, type PersonGroup } from './actionPaneGrouping';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_FOCUS_VISIBLE, BTN_ROW } from '../../styles/buttonStyles';
 
 /**
  * A single person present at the location: their name is shown once as a
@@ -59,7 +62,7 @@ const PersonRow: React.FC<{
             onClick={() => group.talk && onAction(group.talk)}
             disabled={disabled}
             aria-label={group.talk.label}
-            className="flex-1 text-left px-4 py-2 bg-slate-700 hover:bg-slate-600 text-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className={`${BTN_ROW} flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-gray-100 disabled:opacity-40 disabled:cursor-not-allowed`}
           >
             💬 {group.name}
           </button>
@@ -73,7 +76,7 @@ const PersonRow: React.FC<{
             disabled={disabled}
             aria-expanded={expanded}
             aria-label={`${expanded ? 'Hide' : 'Show'} more options for ${group.name}`}
-            className="px-3 bg-slate-800 hover:bg-slate-700 text-gray-300 disabled:opacity-40 transition-colors"
+            className={`${BTN_FOCUS_VISIBLE} px-3 bg-slate-800 hover:bg-slate-700 text-gray-300 disabled:opacity-40 transition-colors`}
           >
             {expanded ? '▾' : '▸'}
           </button>
@@ -88,7 +91,7 @@ const PersonRow: React.FC<{
               onClick={() => onAction(action)}
               disabled={disabled}
               aria-label={action.label}
-              className="px-3 py-1 text-sm rounded bg-slate-700 hover:bg-slate-600 text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className={`${BTN_FOCUS_VISIBLE} px-3 py-1 text-sm rounded bg-slate-700 hover:bg-slate-600 text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors`}
             >
               {shortPersonActionLabel(action)}
             </button>
@@ -215,8 +218,8 @@ const ActionPane: React.FC<ActionPaneProps> = ({
             aria-label="Ask the Oracle"
           />
           <div className="flex gap-2">
-            <button onClick={handleOracleSubmit} disabled={disabled || !oracleQuery.trim()} className="flex-1 min-h-11 bg-green-600 text-white px-3 py-2 rounded hover:bg-green-500">Submit</button>
-            <button onClick={() => setIsOracleInputVisible(false)} className="flex-1 min-h-11 bg-gray-500 text-white px-3 py-2 rounded hover:bg-gray-400">Cancel</button>
+            <Button type="button" variant="success" onClick={handleOracleSubmit} disabled={disabled || !oracleQuery.trim()} className="flex-1 min-h-11">Submit</Button>
+            <Button type="button" variant="secondary" onClick={() => setIsOracleInputVisible(false)} className="flex-1 min-h-11">Cancel</Button>
           </div>
         </div>
       )}
@@ -266,7 +269,7 @@ const ActionPane: React.FC<ActionPaneProps> = ({
           <h3 className="text-sm font-semibold text-amber-300 mb-2">Shops</h3>
           {townId !== undefined && <div className="mb-3">
             <button type="button" onClick={openTownServices} disabled={disabled || isOracleInputVisible}
-              className="min-h-11 w-full rounded-lg border border-amber-400/50 bg-slate-900 px-4 py-2 text-left text-amber-200 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed">
+              className={`${BTN_ROW} min-h-11 w-full rounded-lg border border-amber-400/50 bg-slate-900 px-4 py-2 text-amber-200 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed`}>
               Town shops and services
             </button>
             <p className="mt-1 text-xs text-slate-300">Inspect the town plan for other businesses, keepers and guest beds.</p>

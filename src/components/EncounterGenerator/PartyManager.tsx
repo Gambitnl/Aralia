@@ -20,6 +20,8 @@ import React from 'react';
 import { TempPartyMember } from '../../types';
 import { AVAILABLE_CLASSES } from '../../constants';
 import { generateId } from '../../utils/core/idGenerator';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
 
 interface PartyManagerProps {
   party: TempPartyMember[];
@@ -100,13 +102,13 @@ export const PartyManager: React.FC<PartyManagerProps> = ({ party, onPartyChange
               />
 
               <div className="w-16 flex justify-center">
-                <button
+                <Button
                   onClick={() => handleRemoveMember(member.id)}
-                  className="px-3 py-1.5 bg-red-900/50 hover:bg-red-800 text-red-200 hover:text-white text-xs font-medium rounded border border-red-800/50 hover:border-red-700 transition-colors duration-200"
+                  type="button" variant="danger" size="sm"
                   aria-label={`Remove ${member.name}`}
                 >
                   Remove
-                </button>
+                </Button>
               </div>
             </div>
           ))
@@ -115,12 +117,12 @@ export const PartyManager: React.FC<PartyManagerProps> = ({ party, onPartyChange
 
       {/* Footer Actions */}
       <div className="p-3 bg-gray-800 border-t border-gray-700">
-        <button
+        <Button
           onClick={handleAddMember}
-          className="w-full py-2 bg-sky-700 hover:bg-sky-600 text-white font-semibold rounded-lg shadow-sm transition-colors duration-200 flex items-center justify-center space-x-2"
+          type="button" variant="primary" className="w-full"
         >
           <span>+ Add Party Member</span>
-        </button>
+        </Button>
       </div>
     </div>
   );

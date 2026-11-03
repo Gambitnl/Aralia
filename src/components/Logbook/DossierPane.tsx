@@ -14,6 +14,9 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { GameState, NPC, SuspicionLevel, GoalStatus } from '../../types';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_ROW } from '../../styles/buttonStyles';
 
 interface DossierPaneProps {
   isOpen: boolean;
@@ -145,7 +148,7 @@ const DossierPane: React.FC<DossierPaneProps> = ({ isOpen, onClose, metNpcIds, n
                       <li key={npc.id}>
                       <button
                           onClick={() => handleNpcSelect(npc.id)}
-                          className={`min-h-11 w-full rounded-md p-2.5 text-left text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-sky-400
+                          className={`${BTN_ROW} min-h-11 w-full rounded-md p-2.5 text-sm
                                       ${selectedNpcId === npc.id ? 'bg-sky-700 text-white shadow-md' : 'bg-gray-700 hover:bg-gray-600/70 text-gray-300'}`}
                       >
                           <span className="font-semibold">{npc.name}</span>
@@ -155,23 +158,27 @@ const DossierPane: React.FC<DossierPaneProps> = ({ isOpen, onClose, metNpcIds, n
                   </ul>
                   {totalPages > 1 && (
                     <div className="mt-3 pt-3 border-t border-gray-700 flex items-center justify-between gap-2 text-xs text-gray-300">
-                      <button
+                      <Button
                         type="button"
+                        variant="secondary"
+                        size="sm"
                         onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
                         disabled={currentPage === 1}
-                        className="min-h-11 rounded bg-gray-700 px-3 py-2 hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-40"
+                        className="min-h-11"
                       >
                         Previous
-                      </button>
+                      </Button>
                       <span aria-live="polite">Page {currentPage} of {totalPages}</span>
-                      <button
+                      <Button
                         type="button"
+                        variant="secondary"
+                        size="sm"
                         onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))}
                         disabled={currentPage === totalPages}
-                        className="min-h-11 rounded bg-gray-700 px-3 py-2 hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-40"
+                        className="min-h-11"
                       >
                         Next
-                      </button>
+                      </Button>
                     </div>
                   )}
                 </>

@@ -75,6 +75,9 @@ const EXEMPT_FILES: Record<string, string> = {
     'Ability button with bespoke active/cooldown visual states',
   'components/BattleMap/ActionEconomyBar.tsx':
     'Action economy pip buttons — tiny custom toggle',
+  // GG-378: the only raw buttons are round object-target markers placed by tile.
+  'components/BattleMap/BattleMapTokens.tsx':
+    'Map object-target tokens placed by tile position — not action buttons',
 
   // Party member portrait button in the HUD
   'components/Party/PartyPane/PartyCharacterButton.tsx':

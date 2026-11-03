@@ -26,6 +26,8 @@ import { CombatCharacter, Ability, AbilityCost } from '../../types/combat';
 import AbilityButton from './AbilityButton';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
+// GG-378: shared button style and control roles.
+import { BTN_ICON } from '../../styles/buttonStyles';
 
 interface AbilityPaletteProps {
   character: CombatCharacter | null;
@@ -203,7 +205,7 @@ const AbilityPalette: React.FC<AbilityPaletteProps> = ({
           <h3 className="text-[11px] font-bold uppercase tracking-[0.22em] text-amber-400/90">Abilities</h3>
           <button
             onClick={() => setIsExpanded(true)}
-            className="flex h-11 w-11 items-center justify-center rounded text-gray-400 transition-colors hover:bg-gray-700 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
+            className={`${BTN_ICON} h-11 w-11 text-gray-400 hover:bg-gray-700 hover:text-white`}
             title="Pop out into resizable window"
             aria-label="Pop out Abilities into resizable window"
           >

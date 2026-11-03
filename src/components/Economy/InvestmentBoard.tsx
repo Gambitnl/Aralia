@@ -11,6 +11,8 @@ import { WINDOW_KEYS } from '../../styles/uiIds';
 import { getAvailableLenders } from '../../systems/economy/LoanSystem';
 import { TradeRoute, LoanOffer } from '../../types/economy';
 import { formatGpAsCoins } from '../../utils/character';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
 
 interface InvestmentBoardProps {
     isOpen: boolean;
@@ -126,17 +128,15 @@ const CaravanNotice: React.FC<{
                     </p>
                 </div>
                 {onInvest && (
-                    <button
+                    <Button
+                        variant="success"
+                        size="sm"
                         onClick={() => onInvest(route.id, minInvestment)}
                         disabled={!canInvest}
-                        className={`px-3 py-1.5 rounded text-xs font-cinzel transition-colors
-                            ${canInvest
-                                ? 'bg-green-800 hover:bg-green-700 text-green-200 border border-green-600'
-                                : 'bg-gray-700 text-gray-500 cursor-not-allowed border border-gray-600'
-                            }`}
+                        className="font-cinzel"
                     >
                         Invest {formatGpAsCoins(minInvestment)}
-                    </button>
+                    </Button>
                 )}
             </div>
         </div>
@@ -161,12 +161,14 @@ const LoanNotice: React.FC<{
                 )}
             </div>
             {onTakeLoan && (
-                <button
+                <Button
+                    variant="action"
+                    size="sm"
                     onClick={() => onTakeLoan(offer, Math.min(1000, offer.maxAmount), offer.minDuration)}
-                    className="px-3 py-1.5 rounded text-xs font-cinzel bg-amber-800 hover:bg-amber-700 text-amber-200 border border-amber-600 transition-colors"
+                    className="font-cinzel"
                 >
                     Negotiate
-                </button>
+                </Button>
             )}
         </div>
     </div>

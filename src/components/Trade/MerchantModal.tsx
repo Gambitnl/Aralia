@@ -40,6 +40,9 @@ import { priceStockItem } from '../../data/economy/businessStock';
 import { BUSINESS_TEMPLATES } from '../../data/economy/businessTemplates';
 import { useBusinessAttendance } from '../../hooks/useBusinessAttendance';
 import { activeHagglePriceMultiplier, findActiveHaggleFact, roundToCopper } from '../../utils/economy/haggleFact';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 /**
  * Renders an item's glyph: an <img> when the item has a real icon asset
@@ -268,14 +271,14 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
         <div className="flex bg-gray-900 rounded p-1 gap-1">
             <button
                 onClick={() => setActiveTab('trade')}
-                className={`px-4 py-1.5 rounded text-sm font-bold uppercase tracking-wider transition-colors
+                className={`${BTN_FOCUS_VISIBLE} px-4 py-1.5 rounded text-sm font-bold uppercase tracking-wider transition-colors
                     ${activeTab === 'trade' ? 'bg-amber-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
             >
                 Trade
             </button>
             <button
                 onClick={() => setActiveTab('gossip')}
-                className={`px-4 py-1.5 rounded text-sm font-bold uppercase tracking-wider transition-colors
+                className={`${BTN_FOCUS_VISIBLE} px-4 py-1.5 rounded text-sm font-bold uppercase tracking-wider transition-colors
                     ${activeTab === 'gossip' ? 'bg-amber-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
             >
                 Rumors
@@ -342,14 +345,16 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                     <div className="flex flex-wrap gap-1.5">
                                         {HAGGLE_STRATEGIES.map(({ strategy, label, hint }) => (
                                             <Tooltip key={strategy} content={hint}>
-                                                <button
+                                                <Button
+                                                    variant="primary"
+                                                    size="sm"
                                                     onClick={() => handleHaggle(strategy)}
                                                     disabled={Boolean(activeHaggleFact || state.isLoading || (shopAttendance && !shopAttendance.open))}
                                                     aria-label={`Haggle using ${label}`}
-                                                    className="min-h-11 flex-1 justify-center px-3 py-1.5 rounded text-sm font-bold transition-colors flex items-center gap-1 bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                                                    className="min-h-11 flex-1"
                                                 >
                                                     {label}
-                                                </button>
+                                                </Button>
                                             </Tooltip>
                                         ))}
                                     </div>
@@ -376,17 +381,17 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                                     </Tooltip>
                                                 </div>
                                                 <div className="flex flex-col items-stretch gap-1 sm:items-end">
-                                                    <button
+                                                    <Button
+                                                        variant="success"
+                                                        size="sm"
                                                         onClick={() => handleBuy(item)}
                                                         disabled={!canAfford}
                                                         aria-label={`Buy ${item.name} for ${formatGpAsCoins(finalPrice)}`}
                                                         aria-describedby={needsMoreFunds ? `merchant-funds-shortfall-${idx}` : undefined}
-                                                        className={`min-h-11 justify-center px-3 py-1.5 rounded text-sm font-bold transition-colors flex items-center gap-1
-                                            ${canAfford ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-gray-600 text-gray-400 cursor-not-allowed'}
-                                        `}
+                                                        className="min-h-11"
                                                     >
                                                         <span>{formatGpAsCoins(finalPrice)}</span>
-                                                    </button>
+                                                    </Button>
                                                     {needsMoreFunds && (
                                                         <p id={`merchant-funds-shortfall-${idx}`} className="text-xs text-amber-200">
                                                             Need {formatGpAsCoins(finalPrice - availableFunds)} more
@@ -415,7 +420,9 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                 <div className="flex flex-col items-stretch gap-2 mb-3 sticky top-0 bg-gray-900/10 py-1 sm:flex-row sm:justify-between sm:items-center">
                                     <h3 className="text-lg font-bold text-amber-300">Your Inventory</h3>
                                     {junkItems.length > 0 && (
-                                        <button
+                                        <Button
+                                            variant="action"
+                                            size="sm"
                                             onClick={() => {
                                                 if (shopAttendance && !shopAttendance.open) return;
                                                 const itemsPayload = junkItems.map(item => {
@@ -428,10 +435,10 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                                     payload: { items: itemsPayload }
                                                 });
                                             }}
-                                            className="min-h-11 px-2 py-1 bg-amber-700 hover:bg-amber-600 text-white rounded text-xs font-semibold shadow-sm transition-colors"
+                                            className="min-h-11"
                                         >
                                             Sell All Junk ({formatGpAsCoins(junkValue)})
-                                        </button>
+                                        </Button>
                                     )}
                                 </div>
                                 <div className="space-y-2 pr-1 md:flex-grow md:overflow-y-auto md:scrollable-content md:pr-2">
@@ -448,16 +455,16 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                                     </div>
                                                 </div>
                                                 <div className="flex flex-col items-stretch gap-1 sm:items-end">
-                                                    <button
+                                                    <Button
+                                                        variant="action"
+                                                        size="sm"
                                                         onClick={() => handleSell(item)}
                                                         disabled={!canSell}
                                                         aria-label={`Sell ${item.name} for ${formatGpAsCoins(finalPrice)}`}
-                                                        className={`min-h-11 justify-center px-3 py-1.5 rounded text-sm font-bold transition-colors flex items-center gap-1
-                                            ${canSell ? 'bg-yellow-600 hover:bg-yellow-500 text-white' : 'bg-gray-600 text-gray-500 cursor-not-allowed'}
-                                        `}
+                                                        className="min-h-11"
                                                     >
                                                         <span>{formatGpAsCoins(finalPrice)}</span>
-                                                    </button>
+                                                    </Button>
                                                     {isModified && (
                                                         <span className={`text-[10px] font-bold ${multiplier > 0.5 ? 'text-green-400' : 'text-red-400'}`}>
                                                             {multiplier > 0.5 ? '▲ High Demand' : '▼ Low Demand'}
@@ -480,12 +487,13 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                         <span className="text-sm text-gray-400 mr-1">Your Coin Purse:</span>
                         <CoinPurseDisplay goldValue={availableFunds} />
                     </div>
-                    <button
+                    <Button
+                        variant="secondary"
                         onClick={onClose}
-                        className="min-h-11 w-full bg-gray-700 hover:bg-gray-600 text-white px-6 py-2 rounded-lg shadow-md transition-colors sm:w-auto"
+                        className="min-h-11 w-full sm:w-auto"
                     >
                         Leave {activeTab === 'gossip' ? 'Tavern' : 'Shop'}
-                    </button>
+                    </Button>
                 </div>
             </div>
         </WindowFrame>

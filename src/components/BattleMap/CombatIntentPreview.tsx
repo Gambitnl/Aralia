@@ -28,6 +28,8 @@ import { Crosshair, X } from 'lucide-react';
 import { Ability, TargetingType } from '../../types/combat';
 import { getAbilityIconVisual } from '../../utils/visuals/combatIconVisuals';
 import { COMBAT_COST_COLORS } from './combatUiTheme';
+// GG-378: shared button style and control roles.
+import { BTN_ICON } from '../../styles/buttonStyles';
 
 interface CombatIntentPreviewProps {
   ability: Ability;
@@ -118,7 +120,7 @@ export const CombatIntentPreview: React.FC<CombatIntentPreviewProps> = ({
           onClick={onCancel}
           aria-label={`Cancel ${ability.name} targeting`}
           title="Cancel targeting"
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-slate-700 bg-slate-900 text-slate-300 transition-colors hover:border-rose-500/70 hover:bg-rose-950 hover:text-rose-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+          className={`${BTN_ICON} h-8 w-8 shrink-0 border border-slate-700 bg-slate-900 text-slate-300 hover:border-rose-500/70 hover:bg-rose-950 hover:text-rose-200`}
         >
           <X size={16} />
         </button>

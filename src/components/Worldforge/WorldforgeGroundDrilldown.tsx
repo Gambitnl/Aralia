@@ -16,6 +16,8 @@
 
 import React, { useEffect, useMemo } from 'react';
 import { ArrowLeft, MapPin } from 'lucide-react';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 import World3DScene from '../World3D/World3DScene';
 import { createGroundChunkLoader } from '../../systems/worldforge/bridge/groundChunkLoader';
 import { heightToMeters } from '../../systems/world3d/config';
@@ -81,7 +83,7 @@ const WorldforgeGroundDrilldown: React.FC<Props> = ({ drilldown, onAscend }) => 
         />
       </div>
       <div className="pointer-events-none absolute bottom-2 left-2 right-2 z-30 flex flex-wrap items-center gap-2 rounded-xl border border-amber-300/30 bg-slate-950/90 px-3 py-2 text-xs text-slate-200 shadow-2xl backdrop-blur sm:bottom-auto sm:left-auto sm:right-4 sm:top-4 sm:max-w-[calc(100%-22rem)] sm:justify-end">
-        <button type="button" onClick={onAscend} className="pointer-events-auto flex min-h-11 items-center gap-2 rounded-lg border border-slate-600 bg-slate-800 px-3 font-semibold hover:bg-slate-700">
+        <button type="button" onClick={onAscend} className={`${BTN_FOCUS_VISIBLE} pointer-events-auto flex min-h-11 items-center gap-2 rounded-lg border border-slate-600 bg-slate-800 px-3 font-semibold hover:bg-slate-700`}>
           <ArrowLeft size={16} /> Return to local map
         </button>
         <MapPin size={15} className="text-amber-300" />

@@ -30,6 +30,8 @@ import { getWorldforgeLocalForLocation } from '@/systems/worldforge/bridge/legac
 import {
   makeGroundWorld,
 } from '@/systems/worldforge/bridge/groundChunkLoader';
+// GG-378: HUD buttons keep their inline glass style and get the shared keyboard focus ring.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 /** Worldforge world seed for the ground sandbox (matches World3DDemo). */
 const PROBE_WF_SEED = 42;
@@ -213,7 +215,7 @@ const WebGPUProbe: React.FC = () => {
             {/* ACTIVE error: the user (not the code) chooses to view the SAME scene
                 in WebGL. Same pose params (gx/gy/wfseed) are carried onto the
                 equivalent ground-world phase so the two views are comparable. */}
-            <button
+            <button className={BTN_FOCUS_VISIBLE}
               data-testid="probe-view-webgl"
               onClick={() => {
                 window.location.search = webglViewSearch;

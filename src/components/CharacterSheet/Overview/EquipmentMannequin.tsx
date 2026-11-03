@@ -117,6 +117,8 @@ export {
   slotAcceptsItem,
   slotRejectionReason,
 } from '../../../utils/character/slotCompatibility';
+// GG-378: shared button style and control roles.
+import { Button } from '../../ui/Button';
 
 /**
  * A subtle SVG silhouette to go behind the slots, giving context to the "empty" spaces.
@@ -200,13 +202,13 @@ const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSl
         <h3 className="text-xl font-semibold text-amber-400 font-cinzel">Equipment</h3>
         {onAutoEquip && (
           <Tooltip content="Automatically equips the best available gear from your inventory based on your proficiencies. Only items you are proficient with will be equipped.">
-            <button
+            <Button
               onClick={onAutoEquip}
-              className="min-h-11 px-3 py-2 text-xs bg-teal-700 hover:bg-teal-600 text-white rounded shadow transition-colors focus:outline-none focus:ring-2 focus:ring-teal-400"
+              type="button" variant="success" size="sm" className="min-h-11"
               aria-label="Auto-equip best gear based on proficiencies"
             >
               ⚡ Auto-Equip
-            </button>
+            </Button>
           </Tooltip>
         )}
       </div>

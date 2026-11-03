@@ -15,6 +15,9 @@
  */
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+// GG-378: shared button style and control roles.
+import { Button } from './Button';
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 interface BanterAttentionBannerProps {
   /** Name of the NPC who spoke. */
@@ -113,7 +116,7 @@ export const BanterAttentionBanner: React.FC<BanterAttentionBannerProps> = ({
                   {onExtendDeadline && (
                     <button
                       onClick={onExtendDeadline}
-                      className="px-1.5 py-0.5 bg-amber-800/60 hover:bg-amber-700/60 border border-amber-600/50 text-amber-300 text-[10px] font-semibold rounded transition-colors"
+                      className={`${BTN_FOCUS_VISIBLE} px-1.5 py-0.5 bg-amber-800/60 hover:bg-amber-700/60 border border-amber-600/50 text-amber-300 text-[10px] font-semibold rounded transition-colors`}
                       title="Extend reply window by 1 minute"
                     >
                       +1 min
@@ -131,19 +134,19 @@ export const BanterAttentionBanner: React.FC<BanterAttentionBannerProps> = ({
 
               {/* Action buttons */}
               <div className="flex gap-2 pt-1">
-                <button
+                <Button
                   onClick={handleOpenChat}
-                  className="flex-1 py-1.5 px-3 bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
+                  type="button" variant="action" size="sm" className="flex-1"
                 >
                   Open Chat ▸
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => setDismissed(true)}
-                  className="py-1.5 px-3 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs rounded-lg transition-colors"
+                  type="button" variant="secondary" size="sm"
                   title="Dismiss (banter continues in background)"
                 >
                   Dismiss
-                </button>
+                </Button>
               </div>
             </div>
           </div>

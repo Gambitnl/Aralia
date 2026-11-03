@@ -4,6 +4,8 @@
  */
 import React, { useState } from 'react';
 import { Quest, QuestStatus, QuestType } from '../../../types';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../../styles/buttonStyles';
 
 interface QuestLogSidebarProps {
     quests: Quest[];
@@ -49,7 +51,7 @@ export const QuestLogSidebar: React.FC<QuestLogSidebarProps> = ({
                 <div className="flex space-x-4 text-xs font-bold uppercase tracking-tight">
                     <button
                         onClick={() => setActiveTab('active')}
-                        className={`pb-2 transition-colors ${activeTab === 'active'
+                        className={`pb-2 transition-colors ${BTN_FOCUS_VISIBLE} ${activeTab === 'active'
                             ? 'border-b-2 border-amber-400 text-amber-400'
                             : 'text-slate-400 hover:text-slate-300'
                             }`}
@@ -58,7 +60,7 @@ export const QuestLogSidebar: React.FC<QuestLogSidebarProps> = ({
                     </button>
                     <button
                         onClick={() => setActiveTab('completed')}
-                        className={`pb-2 transition-colors ${activeTab === 'completed'
+                        className={`pb-2 transition-colors ${BTN_FOCUS_VISIBLE} ${activeTab === 'completed'
                             ? 'border-b-2 border-amber-400 text-amber-400'
                             : 'text-slate-400 hover:text-slate-300'
                             }`}

@@ -18,6 +18,8 @@ import { PlayerCharacter } from '../../types/character';
 import { Item } from '../../types/items';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useDice } from '../../context/DiceContext';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
 
 interface LockpickingModalProps {
     isOpen: boolean;
@@ -321,61 +323,59 @@ export const LockpickingModal: React.FC<LockpickingModalProps> = ({
                     {/* Actions Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-lg">
                         {/* 1. Detect Traps */}
-                        <button
+                        {/* GG-378: each lock action is a shared Button. The variant keeps the
+                            old color meaning; the disabled look now comes from the Button. */}
+                        <Button
                             ref={firstFocusableRef}
+                            variant="primary"
                             onClick={handleDetectTrap}
                             disabled={isRolling || !lockState.isLocked || trapDetected !== null}
-                            className={`flex flex-col items-center justify-center p-4 rounded-lg border transition-all ${trapDetected !== null
-                                    ? 'bg-gray-800 border-gray-700 text-gray-500 cursor-default'
-                                    : 'bg-indigo-900/40 border-indigo-700 hover:bg-indigo-900/60 hover:border-indigo-500'
-                                }`}
                         >
+                            <span className="flex flex-col items-center justify-center">
                             <Eye className="w-6 h-6 mb-2" />
                             <span className="font-bold">Inspect</span>
                             <span className="text-xs mt-1">Check for Traps</span>
-                        </button>
+                            </span>
+                        </Button>
 
                         {/* 2. Disarm Trap (conditional) */}
-                        <button
+                        <Button
+                            variant="success"
                             onClick={handleDisarmTrap}
                             disabled={isRolling || !trapDetected || trapDisarmed}
-                            className={`flex flex-col items-center justify-center p-4 rounded-lg border transition-all ${!trapDetected || trapDisarmed
-                                    ? 'bg-gray-800 border-gray-700 text-gray-500 opacity-50 cursor-not-allowed'
-                                    : 'bg-cyan-900/40 border-cyan-700 hover:bg-cyan-900/60 hover:border-cyan-500'
-                                }`}
                         >
+                            <span className="flex flex-col items-center justify-center">
                             <Shield className="w-6 h-6 mb-2" />
                             <span className="font-bold">Disarm</span>
                             <span className="text-xs mt-1">Make Safe</span>
-                        </button>
+                            </span>
+                        </Button>
 
                         {/* 3. Pick Lock */}
-                        <button
+                        <Button
+                            variant="action"
                             onClick={handlePickLock}
                             disabled={!canPickLock || isRolling}
-                            className={`flex flex-col items-center justify-center p-4 rounded-lg border transition-all ${!canPickLock || isRolling
-                                    ? 'bg-gray-800 border-gray-700 text-gray-500 cursor-not-allowed'
-                                    : 'bg-amber-900/40 border-amber-700 hover:bg-amber-900/60 hover:border-amber-500'
-                                }`}
                         >
+                            <span className="flex flex-col items-center justify-center">
                             <Key className="w-6 h-6 mb-2" />
                             <span className="font-bold">Pick Lock</span>
                             <span className="text-xs mt-1">Dexterity Check</span>
-                        </button>
+                            </span>
+                        </Button>
 
                         {/* 4. Force Open */}
-                        <button
+                        <Button
+                            variant="danger"
                             onClick={handleBreakLock}
                             disabled={!canBreak || isRolling}
-                            className={`flex flex-col items-center justify-center p-4 rounded-lg border transition-all ${!canBreak || isRolling
-                                    ? 'bg-gray-800 border-gray-700 text-gray-500 cursor-not-allowed'
-                                    : 'bg-red-900/40 border-red-700 hover:bg-red-900/60 hover:border-red-500'
-                                }`}
                         >
+                            <span className="flex flex-col items-center justify-center">
                             <Hammer className="w-6 h-6 mb-2" />
                             <span className="font-bold">Break</span>
                             <span className="text-xs mt-1">Strength Check</span>
-                        </button>
+                            </span>
+                        </Button>
                     </div>
                 </div>
             </div>

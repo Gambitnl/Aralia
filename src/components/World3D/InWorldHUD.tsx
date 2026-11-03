@@ -42,6 +42,8 @@ import type { PlayerWorldPosition } from '../../types';
 import type { WorldGenDiagnostics } from '../../types/world';
 import type { CanonicalTownIdentity } from '../../systems/worldforge/artifacts';
 import type { GroundFocus } from '../../systems/worldforge/leaf3d/atlasGroundDrilldown';
+// GG-378: HUD buttons keep their inline glass style and get the shared keyboard focus ring.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 interface InWorldHUDProps {
   /** Whether dev mode is enabled (controls DebugHUD visibility). */
@@ -166,7 +168,7 @@ const WorldViewTitle: React.FC<{
 
   return (
     <div ref={panelRef} style={{ position: 'relative' }}>
-      <button
+      <button className={BTN_FOCUS_VISIBLE}
         type="button"
         data-testid="hud-world-view-info"
         onClick={() => setIsOpen(!isOpen)}
@@ -312,7 +314,7 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
         }}
       >
         {isGroundMode && onFrameTownCell && (
-          <button
+          <button className={BTN_FOCUS_VISIBLE}
             type="button"
             data-testid="hud-frame-town-cell"
             onClick={onFrameTownCell}
@@ -343,10 +345,10 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
           </button>
         )}
         {isGroundMode && onFramePlayer && <button type="button" onClick={onFramePlayer} data-testid="hud-frame-player"
-          className="rounded border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-100 shadow-lg hover:bg-slate-700"
+          className={`${BTN_FOCUS_VISIBLE} rounded border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-100 shadow-lg hover:bg-slate-700`}
           title="Bring the camera back to your current position without moving you">To Player</button>}
         {isGroundMode && onOpenCellMap && (
-          <button
+          <button className={BTN_FOCUS_VISIBLE}
             type="button"
             data-testid="hud-open-cell-map"
             onClick={onOpenCellMap}
@@ -377,7 +379,7 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
           </button>
         )}
         {isGroundMode && onOpenTownPlan && (
-          <button
+          <button className={BTN_FOCUS_VISIBLE}
             type="button"
             data-testid="hud-open-town-plan"
             onClick={onOpenTownPlan}
@@ -408,7 +410,7 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
           </button>
         )}
         {onToggleGroundMode && (
-          <button
+          <button className={BTN_FOCUS_VISIBLE}
             type="button"
             data-testid="hud-toggle-ground-mode"
             // Cell-native play has no continent streamer to ascend into.
@@ -448,10 +450,10 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
         )}
         <ViewModeToggle onOpenMap={onOpenMap} />
         {isGroundMode && onShortRest && <button type="button" onClick={onShortRest} data-testid="hud-short-rest"
-          className="rounded border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-100 shadow-lg hover:bg-slate-700"
+          className={`${BTN_FOCUS_VISIBLE} rounded border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-100 shadow-lg hover:bg-slate-700`}
           title="Rest for an hour without leaving your location">Short Rest</button>}
         {isGroundMode && onLongRest && <button type="button" onClick={onLongRest} data-testid="hud-long-rest"
-          className="rounded border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-100 shadow-lg hover:bg-slate-700"
+          className={`${BTN_FOCUS_VISIBLE} rounded border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-100 shadow-lg hover:bg-slate-700`}
           title="Review an eight-hour rest and recovery before committing">Long Rest</button>}
       </div>
 
@@ -465,7 +467,7 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
           <span aria-hidden="true">🔒</span>
           <span>Camera held by {cameraHold.note}. Your camera controls are off.</span>
           <button type="button" data-testid="hud-camera-release" onClick={() => releaseCamera()}
-            className="rounded-full border border-amber-400 bg-amber-500 px-2 py-0.5 text-[11px] font-bold text-amber-950 hover:bg-amber-400"
+            className={`${BTN_FOCUS_VISIBLE} rounded-full border border-amber-400 bg-amber-500 px-2 py-0.5 text-[11px] font-bold text-amber-950 hover:bg-amber-400`}
             title="Give the camera back to your controls">Release camera</button>
         </div>
       )}

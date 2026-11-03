@@ -18,6 +18,8 @@
 import React from 'react';
 import { Footprints, Swords } from 'lucide-react';
 import type { Ability } from '../../types/combat';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 export interface CombatCommandToolbarProps {
     /** Current battle-map interaction mode. */
@@ -53,7 +55,7 @@ export const CombatCommandToolbar: React.FC<CombatCommandToolbarProps> = ({
             type="button"
             aria-pressed={actionMode === 'move'}
             aria-label="Move on the battle map"
-            className={`inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded px-3 text-xs font-semibold transition-colors ${
+            className={`${BTN_FOCUS_VISIBLE} inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded px-3 text-xs font-semibold transition-colors ${
                 actionMode === 'move'
                     ? 'bg-blue-600 text-white ring-2 ring-blue-300'
                     : 'bg-gray-600 hover:bg-gray-500'
@@ -75,7 +77,7 @@ export const CombatCommandToolbar: React.FC<CombatCommandToolbarProps> = ({
                     ? `Attack with ${quickAttack.name}`
                     : 'No direct action attack is ready'
             }
-            className={`inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded px-3 text-xs font-semibold transition-colors ${
+            className={`${BTN_FOCUS_VISIBLE} inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded px-3 text-xs font-semibold transition-colors ${
                 !quickAttack
                     ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
                     : quickAttackIsArmed

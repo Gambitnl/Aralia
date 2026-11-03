@@ -25,6 +25,9 @@ import { CombatCharacter } from '../../types/combat';
 import Tooltip from '../Tooltip';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_FOCUS_VISIBLE, BTN_ICON, BTN_ROW } from '../../styles/buttonStyles';
 import { getCreatureTokenVisual } from '../../utils/visuals/combatIconVisuals';
 import { COMBAT_PANEL, COMBAT_CARD, COMBAT_LABEL, COMBAT_TURN_RING_PLAYER, COMBAT_TURN_RING_ENEMY } from './combatUiTheme';
 
@@ -108,7 +111,7 @@ const PartyMemberDisplay: React.FC<PartyMemberDisplayProps> = ({ character, onCl
     <div className={`relative w-full ${COMBAT_CARD} p-2.5 border-2 ${isTurn ? COMBAT_TURN_RING_PLAYER : 'border-slate-700/70'} transition-all`}>
       <button
           onClick={onClick}
-          className="w-full text-left focus:outline-none"
+          className={`${BTN_ROW} w-full`}
           aria-label={`Select ${character.name}`}
       >
           {/* The roster portrait uses the same visual resolver as map tokens, so
@@ -145,7 +148,7 @@ const PartyMemberDisplay: React.FC<PartyMemberDisplayProps> = ({ character, onCl
       <div className="mt-1.5 flex items-center justify-end gap-1">
           <button
               onClick={onCenterCamera}
-              className="flex h-11 w-11 items-center justify-center rounded border border-slate-600 bg-slate-900/80 text-slate-300 transition-colors hover:border-amber-400 hover:text-amber-200"
+              className={`${BTN_ICON} h-11 w-11 border border-slate-600 bg-slate-900/80 text-slate-300 hover:border-amber-400 hover:text-amber-200`}
               title="Center map on character"
               aria-label={`Center map on ${character.name}`}
           >
@@ -153,7 +156,7 @@ const PartyMemberDisplay: React.FC<PartyMemberDisplayProps> = ({ character, onCl
           </button>
           <button
               onClick={(e) => { e.stopPropagation(); onInspect(); }}
-              className="flex h-11 w-11 items-center justify-center rounded border border-slate-600 bg-slate-900/80 text-sm text-slate-300 transition-colors hover:border-sky-500 hover:text-sky-300"
+              className={`${BTN_ICON} h-11 w-11 border border-slate-600 bg-slate-900/80 text-sm text-slate-300 hover:border-sky-500 hover:text-sky-300`}
               title="Inspect character"
               aria-label={`Inspect ${character.name}`}
           >
@@ -161,7 +164,7 @@ const PartyMemberDisplay: React.FC<PartyMemberDisplayProps> = ({ character, onCl
           </button>
           <button
               onClick={onToggleAuto}
-              className={`min-h-11 rounded border px-2 text-[10px] font-bold uppercase tracking-wider ${isAuto ? 'bg-purple-600/90 border-purple-400 text-white' : 'bg-slate-900/70 border-slate-600 text-slate-300'} transition-colors hover:bg-opacity-80`}
+              className={`${BTN_FOCUS_VISIBLE} min-h-11 rounded border px-2 text-[10px] font-bold uppercase tracking-wider ${isAuto ? 'bg-purple-600/90 border-purple-400 text-white' : 'bg-slate-900/70 border-slate-600 text-slate-300'} transition-colors hover:bg-opacity-80`}
               title="Toggle AI Control"
           >
               {isAuto ? 'AI ON' : 'AI OFF'}
@@ -200,7 +203,7 @@ const EnemyMemberDisplay: React.FC<EnemyMemberDisplayProps> = ({ character, onCl
     <div className={`relative w-full ${COMBAT_CARD} p-2.5 border-2 ${isTurn ? COMBAT_TURN_RING_ENEMY : 'border-slate-700/70'} transition-all`}>
       <button
           onClick={onClick}
-          className="w-full text-left focus:outline-none"
+          className={`${BTN_ROW} w-full`}
           aria-label={`Select ${character.name}`}
       >
           {/* Enemy roster cards now show the combat SVG identity used by map
@@ -242,7 +245,7 @@ const EnemyMemberDisplay: React.FC<EnemyMemberDisplayProps> = ({ character, onCl
       <div className="mt-1.5 flex items-center justify-end gap-1">
         <button
             onClick={(e) => { e.stopPropagation(); onCenterCamera(); }}
-            className="flex h-11 w-11 items-center justify-center rounded border border-slate-600 bg-slate-900/80 text-slate-300 transition-colors hover:border-amber-400 hover:text-amber-200"
+            className={`${BTN_ICON} h-11 w-11 border border-slate-600 bg-slate-900/80 text-slate-300 hover:border-amber-400 hover:text-amber-200`}
             title="Center map on character"
             aria-label={`Center map on ${character.name}`}
         >
@@ -251,7 +254,7 @@ const EnemyMemberDisplay: React.FC<EnemyMemberDisplayProps> = ({ character, onCl
 
         <button
             onClick={(e) => { e.stopPropagation(); onInspect(); }}
-            className="flex h-11 w-11 items-center justify-center rounded border border-slate-600 bg-slate-900/80 text-slate-300 transition-colors hover:border-sky-500 hover:text-sky-300"
+            className={`${BTN_ICON} h-11 w-11 border border-slate-600 bg-slate-900/80 text-slate-300 hover:border-sky-500 hover:text-sky-300`}
             title="Inspect character"
             aria-label={`Inspect ${character.name}`}
         >
@@ -343,18 +346,18 @@ const PartyDisplay: React.FC<PartyDisplayProps> = ({ characters, onCharacterSele
         {isExpanded ? (
           <div className="bg-gray-800/80 p-4 rounded-lg border border-gray-700 flex items-center justify-between">
             <span className="text-gray-400 text-xs italic">Party panel is popped out.</span>
-            <button
+            <Button
               onClick={() => setIsExpanded(false)}
-              className="min-h-11 rounded px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-gray-700 hover:text-white"
+              type="button" variant="ghost" size="sm" className="min-h-11"
             >
               Dock
-            </button>
+            </Button>
           </div>
         ) : (
           <div className="relative flex min-h-0 flex-1 flex-col gap-4 overflow-hidden sm:grid sm:grid-cols-2 sm:items-start lg:flex lg:flex-col lg:items-stretch">
             <button
               onClick={() => setIsExpanded(true)}
-              className="absolute top-2 right-2 z-10 flex h-11 w-11 items-center justify-center rounded text-gray-300 transition-colors hover:bg-gray-700/80 hover:text-white"
+              className={`${BTN_ICON} absolute top-2 right-2 z-10 h-11 w-11 text-gray-300 hover:bg-gray-700/80 hover:text-white`}
               title="Pop out into resizable window"
             >
               <ExpandIcon />

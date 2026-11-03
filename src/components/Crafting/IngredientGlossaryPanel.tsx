@@ -12,6 +12,8 @@ import {
     filterByRarity
 } from '../../systems/crafting/ingredientGlossary';
 import './IngredientGlossaryPanel.css';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 interface IngredientGlossaryPanelProps {
     onClose?: () => void;
@@ -85,7 +87,7 @@ export const IngredientGlossaryPanel: React.FC<IngredientGlossaryPanelProps> = (
         <div className="glossary-panel">
             <div className="glossary-header">
                 <h2>📖 Ingredient Glossary</h2>
-                {onClose && <button className="close-btn" onClick={onClose}>×</button>}
+                {onClose && <button className={`${BTN_FOCUS_VISIBLE} close-btn`} onClick={onClose}>×</button>}
             </div>
 
             {/* Stats Bar */}
@@ -162,7 +164,7 @@ export const IngredientGlossaryPanel: React.FC<IngredientGlossaryPanelProps> = (
                         filteredGlossary.map(entry => (
                             <button
                                 key={entry.id}
-                                className={`ingredient-item ${ownedCounts[entry.id] ? 'owned' : ''} ${selectedEntry?.id === entry.id ? 'selected' : ''}`}
+                                className={`${BTN_FOCUS_VISIBLE} ingredient-item ${ownedCounts[entry.id] ? 'owned' : ''} ${selectedEntry?.id === entry.id ? 'selected' : ''}`}
                                 onClick={() => setSelectedEntry(entry)}
                             >
                                 <span className="ing-icon">{entry.icon}</span>

@@ -5,6 +5,8 @@
  */
 import React from 'react';
 import { motion } from 'framer-motion';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 export interface Step {
   id: string;
@@ -36,7 +38,7 @@ export const WizardStepper: React.FC<WizardStepperProps> = ({ steps, onStepClick
             <button
               onClick={() => !step.isLocked && onStepClick(step.id)}
               disabled={step.isLocked}
-              className={`relative flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-300 z-[var(--z-index-content-overlay-low)] ${
+              className={`${BTN_FOCUS_VISIBLE} relative flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-300 z-[var(--z-index-content-overlay-low)] ${
                 step.isActive
                   ? 'border-amber-500 bg-amber-900/50 text-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.5)]'
                   : step.isCompleted

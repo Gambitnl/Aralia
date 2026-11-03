@@ -11,6 +11,8 @@ import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import { formatGpAsCoins } from '../../utils/character';
 import CoinPurseDisplay from '../ui/CoinPurseDisplay';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 type LedgerTab = 'treasury' | 'investments' | 'businesses' | 'debts';
 
@@ -60,7 +62,7 @@ const LedgerBook: React.FC<LedgerBookProps> = ({ isOpen, onClose }) => {
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`min-h-11 py-3 px-3 text-sm font-cinzel transition-colors flex items-center justify-center gap-2 sm:flex-1 sm:px-4
+                            className={`${BTN_FOCUS_VISIBLE} min-h-11 py-3 px-3 text-sm font-cinzel transition-colors flex items-center justify-center gap-2 sm:flex-1 sm:px-4
                                 ${activeTab === tab.id
                                     ? 'text-amber-200 bg-amber-800/40 border-b-2 border-amber-400'
                                     : 'text-amber-600 hover:text-amber-400 hover:bg-amber-800/20'

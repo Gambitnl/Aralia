@@ -5,6 +5,8 @@
 import React from 'react';
 import { JournalEntry, JournalEvent } from '../../../types/journal';
 import './JournalTab.css';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../../styles/buttonStyles';
 
 interface JournalSpreadProps {
     entry: JournalEntry | null;
@@ -185,7 +187,7 @@ export const JournalSpread: React.FC<JournalSpreadProps> = ({
                     <button
                         onClick={onPreviousPage}
                         disabled={!hasPreviousPage}
-                        className="journal-nav-btn"
+                        className={`journal-nav-btn ${BTN_FOCUS_VISIBLE}`}
                         aria-label="Previous page"
                     >
                         ◀
@@ -194,7 +196,7 @@ export const JournalSpread: React.FC<JournalSpreadProps> = ({
                     <button
                         onClick={onNextPage}
                         disabled={!hasNextPage}
-                        className="journal-nav-btn"
+                        className={`journal-nav-btn ${BTN_FOCUS_VISIBLE}`}
                         aria-label="Next page"
                     >
                         ▶

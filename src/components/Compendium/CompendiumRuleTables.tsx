@@ -26,6 +26,8 @@ import { ConditionTable } from './ConditionTable';
 import { CoverObscurementTable } from './CoverObscurementTable';
 import { CombatActionsTable } from './CombatActionsTable';
 import { WeaponMasteryTable } from './WeaponMasteryTable';
+// GG-378: shared control roles; each screen adds only its state colors.
+import { BTN_TAB, BTN_TAB_IDLE, BTN_CLEAR_INPUT, BTN_TEXT_LINK } from '../../styles/buttonStyles';
 
 // ============================================================================
 // Props & Tab Types
@@ -74,10 +76,10 @@ export const CompendiumRuleTables: React.FC<CompendiumRuleTablesProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('conditions')}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+            className={`${BTN_TAB} ${
               activeTab === 'conditions'
                 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/60 shadow-sm'
-                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+                : BTN_TAB_IDLE
             }`}
             data-testid="tab-conditions"
           >
@@ -87,10 +89,10 @@ export const CompendiumRuleTables: React.FC<CompendiumRuleTablesProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('cover_obscurement')}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+            className={`${BTN_TAB} ${
               activeTab === 'cover_obscurement'
                 ? 'bg-sky-500/20 text-sky-300 border border-sky-500/60 shadow-sm'
-                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+                : BTN_TAB_IDLE
             }`}
             data-testid="tab-cover"
           >
@@ -100,10 +102,10 @@ export const CompendiumRuleTables: React.FC<CompendiumRuleTablesProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('combat_actions')}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+            className={`${BTN_TAB} ${
               activeTab === 'combat_actions'
                 ? 'bg-purple-500/20 text-purple-300 border border-purple-500/60 shadow-sm'
-                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+                : BTN_TAB_IDLE
             }`}
             data-testid="tab-actions"
           >
@@ -113,10 +115,10 @@ export const CompendiumRuleTables: React.FC<CompendiumRuleTablesProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('weapon_mastery')}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+            className={`${BTN_TAB} ${
               activeTab === 'weapon_mastery'
                 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/60 shadow-sm'
-                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+                : BTN_TAB_IDLE
             }`}
             data-testid="tab-masteries"
           >
@@ -126,10 +128,10 @@ export const CompendiumRuleTables: React.FC<CompendiumRuleTablesProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('all')}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+            className={`${BTN_TAB} ${
               activeTab === 'all'
                 ? 'bg-rose-500/20 text-rose-300 border border-rose-500/60 shadow-sm'
-                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+                : BTN_TAB_IDLE
             }`}
             data-testid="tab-all"
           >
@@ -152,7 +154,7 @@ export const CompendiumRuleTables: React.FC<CompendiumRuleTablesProps> = ({
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1.5 text-gray-400 hover:text-gray-200 text-xs"
+                className={`absolute right-2.5 top-1.5 ${BTN_CLEAR_INPUT}`}
                 aria-label="Clear global search"
               >
                 ✕
@@ -231,14 +233,14 @@ export const CompendiumRuleTables: React.FC<CompendiumRuleTablesProps> = ({
                         <button
                           type="button"
                           onClick={() => setActiveTab(result.category)}
-                          className="text-amber-400 hover:text-amber-200 text-[11px] font-semibold"
+                          className={`text-amber-400 hover:text-amber-200 text-[11px] font-semibold ${BTN_TEXT_LINK}`}
                         >
                           View Table →
                         </button>
                         <button
                           type="button"
                           onClick={() => onNavigate?.(result.id)}
-                          className="text-sky-400 hover:text-sky-200 text-[11px] underline"
+                          className={`text-sky-400 hover:text-sky-200 text-[11px] underline ${BTN_TEXT_LINK}`}
                         >
                           Open in Glossary
                         </button>

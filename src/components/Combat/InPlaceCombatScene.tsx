@@ -69,6 +69,8 @@ import {
 import { worldToScene } from '../../systems/world3d/sceneOrigin';
 import { surfaceCombatWorldPoint } from '../../systems/combat/worldScenario/surfaceHostileContinuity';
 import { getOccupiedTiles } from '../../utils/combat';
+// GG-378: shared button style and control roles.
+import { BTN_CHIP } from '../../styles/buttonStyles';
 import { canAffordActionCost } from '../../utils/combat/actionEconomyUtils';
 import { useCombatValidation } from '../../hooks/combat/useCombatValidation';
 import { useTargetValidator } from '../../hooks/combat/useTargetValidator';
@@ -521,7 +523,7 @@ const InPlaceCombatScene: React.FC<InPlaceCombatSceneProps> = ({
               onClick={() => setArmedAbilityId(
                 ability.id === armedAbilityId ? null : ability.id,
               )}
-              className={`rounded px-2 py-1 text-xs transition-colors ${
+              className={`${BTN_CHIP} ${
                 ability.id === armedAbilityId
                   ? 'bg-amber-500 text-black'
                   : 'bg-gray-800/80 text-gray-200 hover:bg-gray-700'
@@ -536,7 +538,7 @@ const InPlaceCombatScene: React.FC<InPlaceCombatSceneProps> = ({
               type="button"
               data-testid="fip-ability-cancel"
               onClick={() => setArmedAbilityId(null)}
-              className="rounded bg-gray-700/80 px-2 py-1 text-xs text-gray-200 hover:bg-gray-600"
+              className={`${BTN_CHIP} bg-gray-700/80 text-gray-200 hover:bg-gray-600`}
             >
               Cancel
             </button>

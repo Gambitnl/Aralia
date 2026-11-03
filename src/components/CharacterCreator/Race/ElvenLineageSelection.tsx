@@ -7,6 +7,9 @@
 import React, { useState } from 'react';
 import { ElvenLineage, ElvenLineageType, AbilityScoreName } from '../../../types';
 import { RELEVANT_SPELLCASTING_ABILITIES } from '../../../constants';
+// GG-378: shared button style and control roles.
+import { Button } from '../../ui/Button';
+import { BTN_FOCUS_VISIBLE } from '../../../styles/buttonStyles';
 
 interface ElvenLineageSelectionProps {
   lineages: ElvenLineage[];
@@ -81,7 +84,7 @@ const ElvenLineageSelection: React.FC<ElvenLineageSelectionProps> = ({
               key={lineage.id}
               type="button"
               onClick={() => setSelectedLineageId(lineage.id as ElvenLineageType)}
-              className={`w-full text-left p-5 rounded-xl transition-all border-2 shadow-lg flex flex-col h-full ${isSelected
+              className={`${BTN_FOCUS_VISIBLE} w-full text-left p-5 rounded-xl transition-all border-2 shadow-lg flex flex-col h-full ${isSelected
                   ? `bg-sky-800/40 border-sky-400 ring-2 ring-sky-500 ring-opacity-50 scale-[1.02]`
                   : `bg-gray-800/60 hover:bg-gray-700/80 border-gray-700 hover:border-gray-500`
                 }`}
@@ -141,7 +144,7 @@ const ElvenLineageSelection: React.FC<ElvenLineageSelectionProps> = ({
                 key={ability}
                 type="button"
                 onClick={() => setSelectedSpellcastingAbility(ability)}
-                className={`px-6 py-2.5 rounded-lg font-medium transition-all border-2 ${selectedSpellcastingAbility === ability
+                className={`${BTN_FOCUS_VISIBLE} px-6 py-2.5 rounded-lg font-medium transition-all border-2 ${selectedSpellcastingAbility === ability
                     ? 'bg-sky-600 border-sky-400 text-white shadow-lg shadow-sky-900/40'
                     : 'bg-gray-700 hover:bg-gray-600 border-gray-600 text-gray-300 active:scale-95'
                   }`}
@@ -155,21 +158,21 @@ const ElvenLineageSelection: React.FC<ElvenLineageSelectionProps> = ({
       )}
 
       <div className="flex gap-4 max-w-md mx-auto mb-4">
-        <button
+        <Button
           type="button"
           onClick={onBack}
-          className="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-200 font-bold py-3 px-6 rounded-xl border border-gray-600 transition-colors"
+          variant="secondary" size="lg" className="flex-1"
         >
           Back
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           onClick={handleSubmit}
           disabled={!selectedLineageId || !selectedSpellcastingAbility}
-          className="flex-1 bg-sky-600 hover:bg-sky-500 disabled:bg-gray-800 disabled:text-gray-600 disabled:border-gray-800 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg active:scale-95"
+          variant="primary" size="lg" className="flex-1"
         >
           Confirm Lineage
-        </button>
+        </Button>
       </div>
     </div>
   );

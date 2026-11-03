@@ -4,6 +4,8 @@
  * Extracted from Glossary.tsx for better modularity.
  */
 import React from 'react';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
 
 interface GlossaryFooterProps {
     /** Last generated timestamp for the glossary index */
@@ -36,14 +38,14 @@ export const GlossaryFooter: React.FC<GlossaryFooterProps> = ({
                     <span className="ml-1">expand/collapse</span>
                 </span>
             </div>
-            <button
+            <Button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-lg shadow"
+                variant="primary"
                 aria-label="Close glossary"
             >
                 Close
-            </button>
+            </Button>
         </div>
     );
 };

@@ -13,6 +13,8 @@ import {
 } from '../../services/organizationService';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
+// GG-378: shared button style and control roles.
+import { BTN_ICON, BTN_TAB_UNDERLINE } from '../../styles/buttonStyles';
 
 interface OrganizationDashboardProps {
   initialOrganization: Organization;
@@ -94,7 +96,7 @@ const OrganizationDashboard: React.FC<OrganizationDashboardProps> = ({ initialOr
         {error && (
             <div className="shrink-0 bg-red-900/50 border-b border-red-800 text-red-200 px-4 py-2 text-sm flex justify-between items-center">
                 <span>⚠️ {error}</span>
-                <button onClick={() => setError(null)} className="text-red-300 hover:text-white">&times;</button>
+                <button onClick={() => setError(null)} aria-label="Dismiss error" className={`${BTN_ICON} text-red-300 hover:text-white`}>&times;</button>
             </div>
         )}
 
@@ -134,7 +136,7 @@ const OrganizationDashboard: React.FC<OrganizationDashboardProps> = ({ initialOr
 const NavButton: React.FC<{ active: boolean; onClick: () => void; children: React.ReactNode }> = ({ active, onClick, children }) => (
     <button
         onClick={onClick}
-        className={`px-6 py-3 text-sm font-medium transition-colors border-b-2 ${
+        className={`${BTN_TAB_UNDERLINE} ${
             active
             ? 'border-amber-500 text-amber-500 bg-gray-700/50'
             : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-700/30'

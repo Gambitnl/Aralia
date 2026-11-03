@@ -10,6 +10,8 @@ import { useGameState } from '../../state/GameContext';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import { PendingCourier } from '../../types/economy';
+// GG-378: shared button style and control roles.
+import { BTN_MEDIA } from '../../styles/buttonStyles';
 
 interface CourierPouchProps {
     isOpen: boolean;
@@ -104,7 +106,7 @@ const CourierMessage: React.FC<{
             <motion.button
                 layout
                 type="button"
-                className={`${cardClasses} w-full cursor-pointer text-left transition-colors hover:bg-amber-900/55 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-amber-950`}
+                className={`${BTN_MEDIA} ${cardClasses} w-full cursor-pointer text-left transition-colors hover:bg-amber-900/55 focus-visible:ring-offset-2 focus-visible:ring-offset-amber-950`}
                 onClick={onOpen}
                 aria-label={`Open sealed ${message.type.replace(/_/g, ' ')} message from ${sourceLabel}`}
             >

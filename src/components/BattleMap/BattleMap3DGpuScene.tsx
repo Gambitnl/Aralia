@@ -114,6 +114,8 @@ import {
 } from './gpu/terrainColorNode';
 import { buildGridColorNode, buildGridOpacityNode } from './gpu/gridOverlayNodes';
 import { PerfProbe } from '../../devtools/perf';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
 import { EntityModel } from './characters/characterActor/EntityModel';
 import type { AnimationState } from './characters/characterActor/models';
 import { TEAM_COLORS } from './characters/characterActor/actorTheme';
@@ -1039,14 +1041,14 @@ const BattleMap3DGpuScene: React.FC<Props> = ({
             <div className="mt-3">
               {/* Active error, not a dead end: ONE explicit click switches to the
                   normal WebGL renderer. The system never auto-falls-back. */}
-              <button
+              <Button
                 type="button"
                 onClick={onUseWebGL}
                 data-testid="webgpu-use-webgl-button"
-                className="rounded border border-sky-300/70 bg-sky-900/60 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-sky-100 transition-colors hover:bg-sky-800/70"
+                variant="primary" size="sm" className="uppercase tracking-[0.12em]"
               >
                 Use WebGL instead
-              </button>
+              </Button>
             </div>
           )}
         </div>

@@ -19,6 +19,8 @@ import { ZoomIn, ZoomOut, Maximize, ArrowLeft } from "lucide-react";
 import { drawRegion, computeRegionFitView } from "./regionDraw";
 import type { RegionArtifact } from "../../systems/worldforge/artifacts";
 import { drawOverlay, type OverlayMarker } from "./overlay";
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from "../../styles/buttonStyles";
 
 
 export interface RegionMapViewProps {
@@ -374,7 +376,7 @@ const RegionMapView: React.FC<RegionMapViewProps> = ({
         <button
           type="button"
           onClick={() => zoomAtCenter(true)}
-          className="flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
+          className={`${BTN_FOCUS_VISIBLE} flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95`}
           title="Zoom In"
         >
           <ZoomIn size={18} />
@@ -382,7 +384,7 @@ const RegionMapView: React.FC<RegionMapViewProps> = ({
         <button
           type="button"
           onClick={resetView}
-          className="flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
+          className={`${BTN_FOCUS_VISIBLE} flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95`}
           title="Reset View"
         >
           <Maximize size={18} />
@@ -390,7 +392,7 @@ const RegionMapView: React.FC<RegionMapViewProps> = ({
         <button
           type="button"
           onClick={() => zoomAtCenter(false)}
-          className="flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
+          className={`${BTN_FOCUS_VISIBLE} flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95`}
           title="Zoom Out"
         >
           <ZoomOut size={18} />

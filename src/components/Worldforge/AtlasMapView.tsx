@@ -55,6 +55,8 @@ const FULL_CACHE_MAX_SCALE = 4.0;
 const DEEP_CACHE_MARGIN_PX = 512;
 import type { FmgAtlasResult } from "../../systems/worldforge/fmg/generateAtlas";
 import { drawOverlay, type OverlayMarker } from "./overlay";
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from "../../styles/buttonStyles";
 
 
 // ============================================================================
@@ -731,7 +733,7 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
         <button
           type="button"
           onClick={fitView}
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-5 py-2.5 rounded-full shadow-2xl shadow-indigo-900/50 transition-all active:scale-95 animate-pulse"
+          className={`${BTN_FOCUS_VISIBLE} absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-5 py-2.5 rounded-full shadow-2xl shadow-indigo-900/50 transition-all active:scale-95 animate-pulse`}
         >
           <Maximize size={16} />
           Recenter Map
@@ -755,7 +757,7 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
         <button
           type="button"
           onClick={() => zoomAtCenter(true)}
-          className="flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
+          className={`${BTN_FOCUS_VISIBLE} flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95`}
           title="Zoom In"
         >
           <ZoomIn size={18} />
@@ -763,7 +765,7 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
         <button
           type="button"
           onClick={resetView}
-          className="flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
+          className={`${BTN_FOCUS_VISIBLE} flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95`}
           title="Recenter / Fit Map"
         >
           <Maximize size={18} />
@@ -771,7 +773,7 @@ const AtlasMapView: React.FC<AtlasMapViewProps> = ({
         <button
           type="button"
           onClick={() => zoomAtCenter(false)}
-          className="flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95"
+          className={`${BTN_FOCUS_VISIBLE} flex min-h-11 min-w-11 items-center justify-center p-2 hover:bg-gray-800 text-gray-300 hover:text-white rounded transition-all active:scale-95`}
           title="Zoom Out"
         >
           <ZoomOut size={18} />

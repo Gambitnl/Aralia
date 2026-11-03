@@ -16,6 +16,9 @@ import { AppAction } from '../../state/actionTypes';
 import { RACES_DATA, AVAILABLE_CLASSES } from '../../constants';
 import { t } from '../../utils/core';
 import { cleanAIJSON, safeJSONParse } from '../../utils/core';
+// GG-378: shared button style and control roles.
+import { Button } from './Button';
+import { BTN_ICON, BTN_TEXT_LINK } from '../../styles/buttonStyles';
 
 interface GameGuideModalProps {
     isOpen: boolean;
@@ -188,7 +191,7 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
                     </h2>
                     <button
                         onClick={onClose}
-                        className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-md text-3xl text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        className={`${BTN_ICON} h-11 w-11 flex-shrink-0 text-3xl text-gray-400 hover:text-white`}
                         aria-label="Close guide"
                     >
                         &times;
@@ -199,7 +202,7 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
                     <p>{t('game_guide.intro')}</p>
                     <button
                         onClick={() => setShowCreationTools(!showCreationTools)}
-                        className="mt-2 inline-flex min-h-11 items-center gap-1 rounded px-1 text-xs text-sky-400 hover:underline focus:outline-none focus:ring-2 focus:ring-sky-400"
+                        className={`${BTN_TEXT_LINK} mt-2 inline-flex min-h-11 items-center gap-1 px-1 text-xs text-sky-400 hover:underline`}
                     >
                         {showCreationTools ? t('game_guide.toggle_tools_hide') : t('game_guide.toggle_tools_show')}
                     </button>
@@ -239,13 +242,13 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
                                     </select>
                                 </div>
                             </div>
-                            <button
+                            <Button
                                 onClick={handleQuickGenerate}
                                 disabled={loading}
-                                className="min-h-11 w-full rounded bg-purple-700 px-3 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-purple-600 disabled:bg-gray-600 sm:text-xs"
+                                type="button" variant="primary" className="min-h-11 w-full"
                             >
                                 {t('game_guide.button_generate')}
-                            </button>
+                            </Button>
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -261,13 +264,13 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
                             placeholder={t('game_guide.placeholder_query')}
                             className="min-h-11 min-w-0 w-full flex-grow rounded-lg border border-gray-600 bg-gray-900 px-4 py-2 text-white outline-none focus:ring-2 focus:ring-blue-500"
                         />
-                        <button
+                        <Button
                             type="submit"
                             disabled={loading || !query.trim()}
-                            className="min-h-11 w-full rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-blue-500 disabled:bg-gray-600 sm:w-auto sm:flex-shrink-0"
+                            variant="primary" className="min-h-11 w-full sm:w-auto sm:flex-shrink-0"
                         >
                             {loading ? t('game_guide.button_thinking') : t('game_guide.button_ask')}
-                        </button>
+                        </Button>
                     </div>
                 </form>
 
@@ -299,12 +302,12 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
                             <p>{t('game_guide.character_label_ac')} <span className="text-blue-400">{generatedCharacter.armorClass}</span></p>
                         </div>
                         {onAction ? (
-                            <button
+                            <Button
                                 onClick={handleAddCharacter}
-                                className="w-full bg-green-600 hover:bg-green-500 text-white py-2 rounded font-bold shadow-md transition-colors"
+                                type="button" variant="success" className="w-full"
                             >
                                 {t('game_guide.button_add_party')}
-                            </button>
+                            </Button>
                         ) : (
                             <p className="text-xs text-red-400 italic">{t('game_guide.error_handler_missing')}</p>
                         )}

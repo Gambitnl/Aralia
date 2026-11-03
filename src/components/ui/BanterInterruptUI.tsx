@@ -28,6 +28,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from './Input';
 import { Z_INDEX } from '../../styles/zIndex';
+// GG-378: shared button style and control roles.
+import { Button } from './Button';
 
 interface BanterInterruptUIProps {
     isActive: boolean;
@@ -82,20 +84,20 @@ export const BanterInterruptUI: React.FC<BanterInterruptUIProps> = ({
                                 </div>
                             )}
 
-                            <button
+                            <Button
                                 onClick={() => setIsExpanded(true)}
-                                className="px-3 py-1.5 bg-green-600 hover:bg-green-500 text-white text-sm font-semibold rounded-lg transition-colors"
+                                type="button" variant="success" size="sm"
                             >
                                 ✋ Join In
-                            </button>
+                            </Button>
 
-                            <button
+                            <Button
                                 onClick={onEndBanter}
-                                className="px-2 py-1.5 bg-gray-600 hover:bg-gray-500 text-gray-300 text-sm rounded-lg transition-colors"
+                                type="button" variant="secondary" size="sm"
                                 title="End banter"
                             >
                                 ✕
-                            </button>
+                            </Button>
                         </div>
                     )}
 
@@ -116,20 +118,20 @@ export const BanterInterruptUI: React.FC<BanterInterruptUIProps> = ({
                                     autoFocus
                                     className="flex-grow"
                                 />
-                                <button
+                                <Button
                                     type="submit"
                                     disabled={!playerMessage.trim()}
-                                    className="px-4 py-2 bg-amber-600 hover:bg-amber-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
+                                    variant="action"
                                 >
                                     Send
-                                </button>
-                                <button
+                                </Button>
+                                <Button
                                     type="button"
                                     onClick={() => setIsExpanded(false)}
-                                    className="px-3 py-2 bg-gray-600 hover:bg-gray-500 text-gray-300 rounded-lg transition-colors"
+                                    variant="secondary"
                                 >
                                     Cancel
-                                </button>
+                                </Button>
                             </div>
 
                             <p className="mt-2 text-xs text-gray-500">

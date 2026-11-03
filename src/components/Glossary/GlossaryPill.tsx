@@ -35,6 +35,8 @@
 
 import React from 'react';
 import GlossaryTooltip from './GlossaryTooltip';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 // ============================================================================
 // Shared pill rendering
@@ -66,7 +68,7 @@ export const GlossaryPill: React.FC<GlossaryPillProps> = ({
     const pill = glossaryTermId ? (
         <button
             type="button"
-            className={`${baseClassName} cursor-pointer hover:bg-sky-700/60 focus:outline-none focus:ring-1 focus:ring-sky-400`}
+            className={`${baseClassName} cursor-pointer hover:bg-sky-700/60 ${BTN_FOCUS_VISIBLE}`}
             title={title}
         >
             {label}

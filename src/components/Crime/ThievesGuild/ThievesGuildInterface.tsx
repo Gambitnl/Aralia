@@ -7,6 +7,9 @@ import { LOCATIONS } from '../../../constants';
 import FenceInterface from './FenceInterface';
 import { WindowFrame } from '../../ui/WindowFrame';
 import { UI_ID, WINDOW_KEYS } from '../../../styles/uiIds';
+// GG-378: shared button style and control roles.
+import { Button } from '../../ui/Button';
+import { BTN_FOCUS_VISIBLE } from '../../../styles/buttonStyles';
 
 const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const { state, dispatch } = useGameState();
@@ -103,18 +106,18 @@ const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) =
                         You sense eyes upon you. The underworld has taken notice of your deeds, but you are not yet one of them.
                     </p>
                     <div className="flex justify-end gap-4">
-                        <button
+                        <Button
+                            variant="ghost"
                             onClick={onClose}
-                            className="px-4 py-2 text-gray-400 hover:text-white"
                         >
                             Leave
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                            variant="primary"
                             onClick={() => dispatch({ type: 'JOIN_GUILD', payload: { guildId: 'shadow_hands' } })}
-                            className="px-4 py-2 bg-purple-900 hover:bg-purple-800 text-white rounded border border-purple-700"
                         >
                             Seek Membership
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -140,9 +143,9 @@ const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) =
                         <div className="text-sm text-gray-400">Rank {guild.rank} • Reputation {guildReputation}</div>
                     </div>
                     <div className="flex space-x-2">
-                        <button onClick={() => setActiveTab('jobs')} className={`px-4 py-2 rounded ${activeTab === 'jobs' ? 'bg-purple-900 text-white' : 'bg-gray-700 text-gray-400'}`}>Jobs</button>
-                        <button onClick={() => setActiveTab('active')} className={`px-4 py-2 rounded ${activeTab === 'active' ? 'bg-purple-900 text-white' : 'bg-gray-700 text-gray-400'}`}>Active</button>
-                        <button onClick={() => setActiveTab('services')} className={`px-4 py-2 rounded ${activeTab === 'services' ? 'bg-purple-900 text-white' : 'bg-gray-700 text-gray-400'}`}>Services</button>
+                        <button onClick={() => setActiveTab('jobs')} className={`${BTN_FOCUS_VISIBLE} px-4 py-2 rounded ${activeTab ==='jobs' ? 'bg-purple-900 text-white' : 'bg-gray-700 text-gray-400'}`}>Jobs</button>
+                        <button onClick={() => setActiveTab('active')} className={`${BTN_FOCUS_VISIBLE} px-4 py-2 rounded ${activeTab ==='active' ? 'bg-purple-900 text-white' : 'bg-gray-700 text-gray-400'}`}>Active</button>
+                        <button onClick={() => setActiveTab('services')} className={`${BTN_FOCUS_VISIBLE} px-4 py-2 rounded ${activeTab ==='services' ? 'bg-purple-900 text-white' : 'bg-gray-700 text-gray-400'}`}>Services</button>
                     </div>
                 </div>
 
@@ -157,7 +160,7 @@ const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) =
                                         <div className={`text-xs inline-block px-2 py-1 rounded mt-1 ${getDifficultyColor(job.difficulty)}`}>Difficulty: {job.difficulty}</div>
                                         <div className="text-sm text-yellow-500 mt-1">Reward: {job.rewardGold}g • {job.rewardReputation} Rep</div>
                                     </div>
-                                    <button onClick={() => handleAcceptJob(job)} className="bg-purple-700 hover:bg-purple-600 px-3 py-1 rounded text-white text-sm">Accept</button>
+                                    <Button variant="primary" size="sm" onClick={() => handleAcceptJob(job)}>Accept</Button>
                                 </div>
                             ))}
                             {availableJobs.length === 0 && <p className="text-gray-400 text-center italic">No new jobs available right now.</p>}
@@ -173,8 +176,8 @@ const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) =
                                         <div className="text-sm text-yellow-500">Reward: {job.rewardGold}g</div>
                                     </div>
                                     <div className="flex gap-2">
-                                        <button onClick={() => handleCompleteJob(job)} className="bg-green-700 hover:bg-green-600 px-3 py-1 rounded text-white text-sm">Complete</button>
-                                        <button onClick={() => handleAbandonJob(job)} className="bg-red-900 hover:bg-red-800 px-3 py-1 rounded text-white text-sm">Abandon</button>
+                                        <Button variant="success" size="sm" onClick={() => handleCompleteJob(job)}>Complete</Button>
+                                        <Button variant="danger" size="sm" onClick={() => handleAbandonJob(job)}>Abandon</Button>
                                     </div>
                                 </div>
                             ))}
@@ -190,7 +193,7 @@ const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) =
                                     <p className="text-sm text-gray-400 my-2">{service.description}</p>
                                     <div className="flex justify-between items-center mt-4">
                                         <span className="text-yellow-500">{service.costGold}g</span>
-                                        <button onClick={() => handleUseService(service)} className="bg-purple-700 hover:bg-purple-600 px-3 py-1 rounded text-white text-sm">Use</button>
+                                        <Button variant="primary" size="sm" onClick={() => handleUseService(service)}>Use</Button>
                                     </div>
                                 </div>
                             ))}

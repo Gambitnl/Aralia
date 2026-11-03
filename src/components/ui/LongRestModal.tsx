@@ -27,6 +27,9 @@ import { PlayerCharacter, RacialRestChoiceData, Item } from '../../types';
 import { getRulesEdition, type RulesEdition } from '../../config/rulesEdition';
 import { preparationPlanError, preparationMinutes } from '../../systems/gameplay/spellPreparation';
 import { ModalDialog } from './ModalDialog';
+// GG-378: shared button style and control roles.
+import { Button } from './Button';
+import { BTN_ICON } from '../../styles/buttonStyles';
 
 interface LongRestModalProps {
   isOpen: boolean;
@@ -147,7 +150,7 @@ const LongRestModal: React.FC<LongRestModalProps> = ({ isOpen, party, onClose, o
         type="button"
         onClick={close}
         aria-label="Cancel long rest"
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-gray-400 transition-colors hover:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+        className={`${BTN_ICON} h-11 w-11 shrink-0 text-gray-400 hover:text-white`}
       >
         <span aria-hidden="true">x</span>
       </button>
@@ -164,25 +167,25 @@ const LongRestModal: React.FC<LongRestModalProps> = ({ isOpen, party, onClose, o
       id="long-rest"
       footer={
         <>
-          <button
+          <Button
             type="button"
             onClick={close}
-            className="min-h-11 px-4 py-2 text-sm text-gray-300 hover:text-white transition-colors"
+            variant="ghost" className="min-h-11"
           >
             Cancel
-          </button>
-          {onWait && <button type="button" onClick={() => handleWait()} disabled={isResting || Boolean(waitLocationError) || waitSeconds <= 0}
-            className="min-h-11 rounded border border-amber-700 px-4 py-2 text-sm text-amber-200 disabled:opacity-50">
+          </Button>
+          {onWait && <Button type="button" onClick={() => handleWait()} disabled={isResting || Boolean(waitLocationError) || waitSeconds <= 0}
+            variant="secondary" className="min-h-11">
             {isWaiting ? 'Waiting…' : waitLabel}
-          </button>}
-          <button
+          </Button>}
+          <Button
             type="button"
             onClick={handleConfirm}
             disabled={isResting || waitHours > 0 || noEligibleMembers || Boolean(locationError)}
-            className="min-h-11 px-4 py-2 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded font-medium transition-colors disabled:opacity-50"
+            variant="primary" className="min-h-11"
           >
             {isResting ? (isWaiting ? "Waiting…" : "Resting…") : "Confirm Long Rest"}
-          </button>
+          </Button>
         </>
       }
     >
@@ -217,8 +220,8 @@ const LongRestModal: React.FC<LongRestModalProps> = ({ isOpen, party, onClose, o
               disabled={isResting || hoursToWait >= 24} onChange={event => setMinutesToWait(Math.max(0, Math.min(59, Math.floor(Number(event.target.value) || 0))))}
               className="ml-2 min-h-11 w-20 rounded border border-slate-500 bg-slate-800 p-2 text-white" /></label>
             {waitSeconds === 0 && <span className="text-amber-200">Choose at least one minute to wait.</span>}
-            {waitHours > 1 && <button type="button" disabled={isResting || Boolean(waitLocationError)} onClick={() => handleWait(waitHours, 0)}
-              className="min-h-11 rounded border border-amber-700 px-3 py-2 text-amber-200 disabled:opacity-50">Wait until rest is eligible ({waitHours} hours)</button>}
+            {waitHours > 1 && <Button type="button" disabled={isResting || Boolean(waitLocationError)} onClick={() => handleWait(waitHours, 0)}
+              variant="secondary" className="min-h-11">Wait until rest is eligible ({waitHours} hours)</Button>}
           </div>}
           {waitHours > 0 && <p role="status" className="mt-2 text-amber-200">Wait at least {waitHours} more hour(s) before another long rest.</p>}
           {noEligibleMembers && <p role="status" className="mt-2 text-amber-200">At least one party member must have 1 HP to rest.</p>}

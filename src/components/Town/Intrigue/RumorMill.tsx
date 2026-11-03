@@ -33,6 +33,8 @@ import { TavernGossipSystem, PurchaseableRumor, chronicleRumorContext } from '..
 import { useGameState } from '../../../state/GameContext';
 import { formatGpAsCoins } from '../../../utils/character';
 import { INITIAL_QUESTS } from '../../../data/quests';
+// GG-378: shared button style and control roles.
+import { Button } from '../../ui/Button';
 
 interface RumorMillProps {
     merchantName: string;
@@ -176,17 +178,15 @@ export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, 
                                 </div>
 
                                 {!isPurchased && (
-                                    <button
+                                    <Button
+                                        variant="action"
+                                        size="sm"
                                         onClick={() => handlePurchase(rumor)}
                                         disabled={!canAfford}
-                                        className={`ml-3 px-3 py-1 text-sm font-bold rounded min-w-[80px]
-                                            ${canAfford
-                                                ? 'bg-amber-700 hover:bg-amber-600 text-amber-100 shadow-sm'
-                                                : 'bg-gray-700 text-gray-500 cursor-not-allowed'}
-                                        `}
+                                        className="ml-3 min-w-[80px]"
                                     >
                                         {formatGpAsCoins(rumor.cost)}
-                                    </button>
+                                    </Button>
                                 )}
                                 {isPurchased && (
                                      <span className="ml-3 text-xs text-green-400 font-bold uppercase border border-green-900 bg-green-900/30 px-2 py-1 rounded">

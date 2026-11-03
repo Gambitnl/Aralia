@@ -2,6 +2,9 @@ import React, { useMemo, useState } from 'react';
 import { Action, Faction } from '../../../types';
 import { LeverageGoal } from '../../../systems/intrigue/LeverageSystem';
 import { Secret } from '../../../types/identity';
+// GG-378: shared button style and control roles.
+import { Button } from '../../ui/Button';
+import { BTN_FOCUS_VISIBLE } from '../../../styles/buttonStyles';
 
 interface LeverageUIProps {
     knownSecrets: Secret[];
@@ -115,7 +118,7 @@ export const LeverageUI: React.FC<LeverageUIProps> = ({
                         <button
                             key={goal}
                             onClick={() => setSelectedGoal(goal)}
-                            className={`p-2 rounded text-sm font-bold transition-colors ${
+                            className={`${BTN_FOCUS_VISIBLE} p-2 rounded text-sm font-bold transition-colors ${
                                 selectedGoal === goal
                                     ? 'bg-amber-700 text-white ring-2 ring-amber-400'
                                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
@@ -127,17 +130,14 @@ export const LeverageUI: React.FC<LeverageUIProps> = ({
                 </div>
             </div>
 
-            <button
+            <Button
+                variant="danger"
                 onClick={handleApply}
                 disabled={!selectedSecretId || !selectedTargetId}
-                className={`w-full py-2 rounded font-bold transition-colors ${
-                    selectedSecretId && selectedTargetId
-                        ? 'bg-red-700 hover:bg-red-600 text-white'
-                        : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                }`}
+                className="w-full"
             >
                 Apply Leverage
-            </button>
+            </Button>
 
             {lastMessage && (
                 <div className="bg-gray-800 border border-gray-700 rounded p-3 mt-2">

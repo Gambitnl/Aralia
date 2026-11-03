@@ -45,6 +45,9 @@ import {
   listStandardUnlockFlags,
   listUnlockFlags,
 } from '../../systems/dialogue/unlockRegistry';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_FOCUS_VISIBLE, BTN_ICON } from '../../styles/buttonStyles';
 
 // Badge colors for known Debug Log categories (unknown categories get gray).
 // The Debug Log records rare invisible engine actions — startup self-heal
@@ -275,7 +278,7 @@ const DevMenu: React.FC<DevMenuProps> = ({
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-200 text-3xl"
+            className={`${BTN_ICON} text-gray-400 hover:text-gray-200 text-3xl`}
             aria-label="Close developer menu"
           >
             &times;
@@ -299,7 +302,7 @@ const DevMenu: React.FC<DevMenuProps> = ({
             </div>
             <button
               onClick={handleToggleDevMode}
-              className={`shrink-0 rounded-lg px-4 py-2 text-sm font-semibold shadow-md transition-colors ${
+              className={`${BTN_FOCUS_VISIBLE} shrink-0 rounded-lg px-4 py-2 text-sm font-semibold shadow-md transition-colors ${
                 isDevModeEnabled
                   ? 'bg-emerald-700 text-white hover:bg-emerald-600'
                   : 'bg-slate-600 text-white hover:bg-slate-500'
@@ -319,12 +322,12 @@ const DevMenu: React.FC<DevMenuProps> = ({
               Debug Log
             </h3>
             {debugLog.length > 0 && (
-              <button
+              <Button
                 onClick={handleClearDebugLog}
-                className="shrink-0 rounded-lg px-3 py-1 text-xs font-semibold bg-slate-600 text-white hover:bg-slate-500"
+                type="button" variant="secondary" size="sm" className="shrink-0"
               >
                 Clear Log
-              </button>
+              </Button>
             )}
           </div>
           {debugLog.length === 0 ? (
@@ -362,7 +365,7 @@ const DevMenu: React.FC<DevMenuProps> = ({
                       key={btn.action}
                       ref={isFirstButton ? firstFocusableElementRef : null}
                       onClick={btn.onClick || (() => onDevAction(btn.action))}
-                      className={`relative w-full text-white font-semibold py-2 px-3 rounded-lg shadow-md transition-colors text-sm ${btn.style || 'bg-gray-600 hover:bg-gray-500'}`}
+                      className={`${BTN_FOCUS_VISIBLE} relative w-full text-white font-semibold py-2 px-3 rounded-lg shadow-md transition-colors text-sm ${btn.style || 'bg-gray-600 hover:bg-gray-500'}`}
                     >
                       {btn.label}
                       {showBadge && (
@@ -428,7 +431,7 @@ const DevMenu: React.FC<DevMenuProps> = ({
                     <span className="text-gray-500 shrink-0">via {entry.sourceNpcId}</span>
                   )}
                 </span>
-                <button
+                <Button
                   onClick={() =>
                     dispatch(
                       entry.isSet
@@ -436,10 +439,10 @@ const DevMenu: React.FC<DevMenuProps> = ({
                         : { type: 'SET_UNLOCK_FLAG', payload: { flag: entry.flag, sourceTopicId: 'dev_menu' } },
                     )
                   }
-                  className="shrink-0 rounded px-2 py-0.5 text-xs font-semibold bg-slate-600 text-white hover:bg-slate-500"
+                  type="button" variant="secondary" size="sm" className="shrink-0"
                 >
                   {entry.isSet ? 'Clear' : 'Set'}
-                </button>
+                </Button>
               </li>
             ))}
           </ul>
@@ -448,13 +451,13 @@ const DevMenu: React.FC<DevMenuProps> = ({
         {/* State Viewer */}
         <StateViewer state={_state} />
 
-        <button
+        <Button
           onClick={onClose}
-          className="mt-6 bg-red-700 hover:bg-red-600 text-white font-semibold py-3 px-4 rounded-lg shadow"
+          type="button" variant="danger" size="lg" className="mt-6"
           aria-label="Close developer menu"
         >
           Close Dev Menu
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -27,6 +27,8 @@ import { AbilityScoreIcon } from '../../../utils/abilityIcons';
 import { FEATS_DATA } from '../../../data/feats/featsData';
 import { classFeaturesForLevel } from '../../../data/classes/classFeatureProgression';
 import { useCharacterProficiencies } from '../../../hooks/useCharacterProficiencies';
+// GG-378: shared button style and control roles.
+import { BTN_ROW } from '../../../styles/buttonStyles';
 
 /**
  * This file displays the core statistics and capabilities of a character.
@@ -80,7 +82,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
         <div className="p-3 bg-gray-700/50 rounded-md border border-gray-600/60">
             <button
                 onClick={() => setIsCollapsed(!isCollapsed)}
-                className="flex min-h-11 w-full items-center justify-between gap-3 rounded px-1 text-left"
+                className={`${BTN_ROW} flex min-h-11 w-full items-center justify-between gap-3 rounded px-1`}
             >
                 <h4 className={`text-lg font-semibold font-cinzel ${accentColor} flex items-center gap-2`}>
                     <span className="text-sm">{icon}</span> {title}

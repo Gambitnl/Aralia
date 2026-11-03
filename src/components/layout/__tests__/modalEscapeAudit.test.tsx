@@ -431,7 +431,9 @@ describe('Escape-key modal close audit: overlays that handle Escape themselves',
             isLongRestModalVisible: true,
         } as Partial<GameState>));
 
-        await screen.findByRole('dialog', { name: /Long Rest/i });
+        // The lazy dialog chunk can take longer than the 1 s default to load in
+        // jsdom. This wait failed with the pre-GG-378 LongRestModal too.
+        await screen.findByRole('dialog', { name: /Long Rest/i }, { timeout: 5000 });
 
         dispatched.length = 0;
         pressEscape();

@@ -19,6 +19,9 @@ import { Spell, UtilityEffect, isExecutableControlOption } from '../../types/spe
 import { detectSuspiciousInput } from '../../utils/core';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_ROW } from '../../styles/buttonStyles';
 
 /**
  * This modal collects the missing player decision before a spell command runs.
@@ -126,7 +129,7 @@ const AISpellInputModal: React.FC<AISpellInputModalProps> = ({ spell, onSubmit, 
                             <button
                                 key={option.label}
                                 onClick={() => onSubmit(option.label)}
-                                className="w-full text-left bg-gray-900 border border-amber-700/60 hover:border-amber-400 hover:bg-gray-700 rounded p-3 text-gray-100 transition-colors"
+                                className={`${BTN_ROW} w-full bg-gray-900 border border-amber-700/60 hover:border-amber-400 hover:bg-gray-700 rounded p-3 text-gray-100`}
                             >
                                 <span className="block font-bold text-amber-300">{option.label}</span>
                                 <span className="block text-sm text-gray-300 mt-1">{option.summary}</span>
@@ -156,20 +159,20 @@ const AISpellInputModal: React.FC<AISpellInputModalProps> = ({ spell, onSubmit, 
                 )}
 
                 <div className="flex justify-end gap-3">
-                    <button
+                    <Button
                         onClick={onCancel}
-                        className="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600 text-gray-200 font-bold transition-colors"
+                        type="button" variant="secondary"
                     >
                         Cancel
-                    </button>
+                    </Button>
                     {!isStructuredChoice && (
-                        <button
+                        <Button
                             onClick={handleSubmit}
                             disabled={!input.trim() || !!error}
-                            className="px-4 py-2 rounded bg-amber-600 hover:bg-amber-500 text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            type="button" variant="action"
                         >
                             Confirmed Cast
-                        </button>
+                        </Button>
                     )}
                 </div>
             </div>

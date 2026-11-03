@@ -29,6 +29,8 @@ import {
   isStepReachedAndComplete,
   SidebarStepConfig,
 } from './config/sidebarSteps';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE, BTN_ROW } from '../../styles/buttonStyles';
 
 interface CreationSidebarProps {
   currentStep: CreationStep;
@@ -102,7 +104,7 @@ const SidebarStepRow: React.FC<{
       onClick={handleClick}
       disabled={!canNavigate}
       className={`
-        w-full min-h-11 flex items-center gap-3 py-2 px-3 rounded-md text-left transition-colors
+        ${BTN_ROW} w-full min-h-11 flex items-center gap-3 py-2 px-3 rounded-md
         ${isNested ? 'ml-4' : ''}
         ${isCurrent ? 'bg-gray-700/50' : ''}
         ${canNavigate ? 'hover:bg-gray-700/70 cursor-pointer' : 'cursor-default'}
@@ -245,7 +247,7 @@ const CreationSidebar: React.FC<CreationSidebarProps> = ({
           <button
             type="button"
             onClick={handleStartOverClick}
-            className={`w-full min-h-11 text-xs rounded-md px-2 py-2 border transition-colors ${
+            className={`${BTN_FOCUS_VISIBLE} w-full min-h-11 text-xs rounded-md px-2 py-2 border transition-colors ${
               confirmingReset
                 ? 'bg-red-900/50 border-red-500 text-red-200 hover:bg-red-800/60'
                 : 'bg-transparent border-gray-600 text-gray-400 hover:border-red-500/60 hover:text-red-300'

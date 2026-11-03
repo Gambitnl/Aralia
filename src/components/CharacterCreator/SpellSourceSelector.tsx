@@ -20,6 +20,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { MagicInitiateSource } from '../../types';
 import { ClassIcon } from '../../utils/classIcons';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 /**
  * Display metadata for each supported spellcasting class.
@@ -120,7 +122,7 @@ const SpellSourceSelector: React.FC<SpellSourceSelectorProps> = ({
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
               className={`
-                p-3 rounded-lg border text-left transition-all duration-200 w-full
+                ${BTN_FOCUS_VISIBLE} p-3 rounded-lg border text-left transition-all duration-200 w-full
                 ${
                   isSelected
                     ? 'bg-amber-900/25 border-amber-500/80 shadow-[0_0_14px_rgba(245,158,11,0.2)]'

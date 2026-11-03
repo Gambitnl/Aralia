@@ -9,6 +9,8 @@ import { getTimeModifiers } from '@/systems/time/seasonContract';
 import { getMoonPhase, MoonPhase, getHoliday, getMonthName } from '@/systems/time/CalendarSystem';
 import { motion } from 'framer-motion';
 import Tooltip from './Tooltip';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 interface TimeWidgetProps {
   gameTime: Date;
@@ -97,7 +99,7 @@ export const TimeWidget: React.FC<TimeWidgetProps> = ({ gameTime, onPassTimeClic
               disabled={disabled}
               whileTap={!disabled ? { scale: 0.95 } : undefined}
               whileHover={!disabled ? { scale: 1.05 } : undefined}
-              className="p-2 bg-gray-700 hover:bg-gray-600 rounded-full text-gray-300 transition-colors"
+              className={`${BTN_FOCUS_VISIBLE} p-2 bg-gray-700 hover:bg-gray-600 rounded-full text-gray-300 transition-colors`}
               aria-label="Pass Time"
               title="Pass Time"
             >

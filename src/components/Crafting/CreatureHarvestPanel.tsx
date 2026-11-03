@@ -23,6 +23,9 @@ import { useGameState } from '../../state/GameContext';
 import { attemptCreatureHarvest, getHarvestableParts } from '../../systems/crafting/creatureHarvestSystem';
 import { HarvestableCreature, CreaturePart, getCreatureById } from '../../systems/crafting/creatureHarvestData';
 import { resolveCraftingCrafter, NO_CRAFTER_MESSAGE } from './crafterAdapter';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 import './CreatureHarvestPanel.css';
 
 interface CreatureHarvestPanelProps {
@@ -47,7 +50,7 @@ export const CreatureHarvestPanel: React.FC<CreatureHarvestPanelProps> = ({ crea
         return (
             <div className="creature-harvest-panel error">
                 <p>Unknown creature: {creatureId}</p>
-                {onClose && <button onClick={onClose}>Close</button>}
+                {onClose && <Button variant="secondary" size="sm" onClick={onClose}>Close</Button>}
             </div>
         );
     }
@@ -58,7 +61,7 @@ export const CreatureHarvestPanel: React.FC<CreatureHarvestPanelProps> = ({ crea
         return (
             <div className="creature-harvest-panel error">
                 <p>{NO_CRAFTER_MESSAGE}</p>
-                {onClose && <button onClick={onClose}>Close</button>}
+                {onClose && <Button variant="secondary" size="sm" onClick={onClose}>Close</Button>}
             </div>
         );
     }
@@ -116,7 +119,7 @@ export const CreatureHarvestPanel: React.FC<CreatureHarvestPanelProps> = ({ crea
         <div className="creature-harvest-panel">
             <div className="harvest-header">
                 <h2>🦴 Harvest: {creature.name}</h2>
-                {onClose && <button className="close-btn" onClick={onClose}>×</button>}
+                {onClose && <button className={`${BTN_FOCUS_VISIBLE} close-btn`} onClick={onClose}>×</button>}
             </div>
 
             <div className="creature-info">
@@ -145,13 +148,15 @@ export const CreatureHarvestPanel: React.FC<CreatureHarvestPanelProps> = ({ crea
                                 <span>Yield: {part.baseYield}</span>
                             </div>
                         </div>
-                        <button
-                            className="harvest-btn"
+                        <Button
+                            variant="action"
+                            size="sm"
+                            className="whitespace-nowrap"
                             onClick={() => handleHarvest(part)}
                             disabled={isHarvesting || harvestedParts.has(part.id)}
                         >
                             {harvestedParts.has(part.id) ? 'Harvested' : isHarvesting ? '...' : 'Harvest'}
-                        </button>
+                        </Button>
                     </div>
                 ))}
             </div>

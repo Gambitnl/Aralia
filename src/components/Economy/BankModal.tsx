@@ -55,6 +55,9 @@ import { WINDOW_KEYS } from '../../styles/uiIds';
 import { getAvailableLenders } from '../../systems/economy/LoanSystem';
 import { LoanOffer, PlayerInvestment, TradeRoute } from '../../types/economy';
 import { formatGpAsCoins } from '../../utils/character';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_TAB } from '../../styles/buttonStyles';
 
 // ============================================================================
 // Props & Types
@@ -184,7 +187,7 @@ export const BankModal: React.FC<BankModalProps> = ({
                     <button
                         type="button"
                         onClick={() => setActiveTab('loans')}
-                        className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
+                        className={`${BTN_TAB} flex items-center gap-1.5 cursor-pointer ${
                             activeTab === 'loans'
                                 ? 'bg-amber-600 text-white shadow-sm'
                                 : 'bg-slate-800/70 text-slate-300 hover:bg-slate-700'
@@ -197,7 +200,7 @@ export const BankModal: React.FC<BankModalProps> = ({
                     <button
                         type="button"
                         onClick={() => setActiveTab('debts')}
-                        className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
+                        className={`${BTN_TAB} flex items-center gap-1.5 cursor-pointer ${
                             activeTab === 'debts'
                                 ? 'bg-amber-600 text-white shadow-sm'
                                 : 'bg-slate-800/70 text-slate-300 hover:bg-slate-700'
@@ -210,7 +213,7 @@ export const BankModal: React.FC<BankModalProps> = ({
                     <button
                         type="button"
                         onClick={() => setActiveTab('investments')}
-                        className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
+                        className={`${BTN_TAB} flex items-center gap-1.5 cursor-pointer ${
                             activeTab === 'investments'
                                 ? 'bg-amber-600 text-white shadow-sm'
                                 : 'bg-slate-800/70 text-slate-300 hover:bg-slate-700'
@@ -267,17 +270,19 @@ export const BankModal: React.FC<BankModalProps> = ({
                                                     </div>
                                                 </div>
 
-                                                <button
+                                                <Button
                                                     type="button"
+                                                    variant="action"
+                                                    size="sm"
                                                     onClick={() => {
                                                         setSelectedLoanOffer(offer);
                                                         setLoanAmount(Math.min(offer.maxAmount, 100));
                                                         setLoanDuration(offer.minDuration || 30);
                                                     }}
-                                                    className="w-full py-2 px-3 rounded-lg text-xs font-semibold bg-amber-600 hover:bg-amber-500 text-slate-950 transition-colors cursor-pointer"
+                                                    className="w-full"
                                                 >
                                                     {isSelected ? 'Configuring Agreement...' : 'Request Loan'}
-                                                </button>
+                                                </Button>
                                             </div>
                                         );
                                     })
@@ -328,20 +333,22 @@ export const BankModal: React.FC<BankModalProps> = ({
                                     </div>
 
                                     <div className="flex gap-2 justify-end">
-                                        <button
+                                        <Button
                                             type="button"
+                                            variant="secondary"
+                                            size="sm"
                                             onClick={() => setSelectedLoanOffer(null)}
-                                            className="py-2 px-4 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer"
                                         >
                                             Cancel
-                                        </button>
-                                        <button
+                                        </Button>
+                                        <Button
                                             type="button"
+                                            variant="action"
+                                            size="sm"
                                             onClick={handleConfirmLoan}
-                                            className="py-2 px-5 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 cursor-pointer"
                                         >
                                             Sign Agreement (+{loanAmount} GP)
-                                        </button>
+                                        </Button>
                                     </div>
                                 </div>
                             )}
@@ -375,14 +382,15 @@ export const BankModal: React.FC<BankModalProps> = ({
                                                 </div>
                                             </div>
 
-                                            <button
+                                            <Button
                                                 type="button"
+                                                variant="success"
+                                                size="sm"
                                                 onClick={() => handleRepayDebt(loan)}
                                                 disabled={!canAfford}
-                                                className="py-2 px-4 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                                             >
                                                 Repay {totalDue} GP
-                                            </button>
+                                            </Button>
                                         </div>
                                     );
                                 })
@@ -416,8 +424,10 @@ export const BankModal: React.FC<BankModalProps> = ({
                                                 <span className="font-semibold text-amber-400">{Math.round(route.riskLevel * 100)}%</span>
                                             </div>
 
-                                            <button
+                                            <Button
                                                 type="button"
+                                                variant="action"
+                                                size="sm"
                                                 onClick={() => {
                                                     if (onInvestInCaravan) {
                                                         onInvestInCaravan(route.id, 50);
@@ -429,10 +439,10 @@ export const BankModal: React.FC<BankModalProps> = ({
                                                     }
                                                 }}
                                                 disabled={(state.gold || 0) < 50}
-                                                className="w-full py-1.5 rounded-lg text-xs font-semibold bg-amber-600 hover:bg-amber-500 text-slate-950 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                                                className="w-full"
                                             >
                                                 Back Caravan (50 GP)
-                                            </button>
+                                            </Button>
                                         </div>
                                     ))
                                 )}

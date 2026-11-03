@@ -24,6 +24,8 @@ import { WINDOW_KEYS } from '../../styles/uiIds';
 import TownAgentSnapshotView from '../Worldforge/TownAgentSnapshotView';
 import { WindowFrame } from '../ui/WindowFrame';
 import { OPEN_AGENT_SIM_EVENT } from './devOverlayEvents';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 /**
  * Dev-only live overlay for the agent-sim substrate (piece 2 mount point).
@@ -100,7 +102,7 @@ const AgentSimDevOverlay: React.FC = () => {
               aria-label="Scrub town clock"
               data-testid="agent-sim-clock-scrub"
             />
-            <button
+            <button className={BTN_FOCUS_VISIBLE}
               type="button"
               onClick={() => setScrub(null)}
               style={{ background: '#21262d', color: '#c9d1d9', border: '1px solid #30363d', borderRadius: 4, fontSize: 10, cursor: 'pointer', padding: '1px 6px' }}

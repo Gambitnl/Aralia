@@ -10,6 +10,8 @@
  * current() } drives it and reads back stats for automated verification.
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
 import { SeededRandom } from '../../utils/random/seededRandom';
 import { makeSeedPath, seedFromPath } from '../../systems/worldforge/seedPath';
 import { buildDemoTownPlan } from '../../systems/worldforge/town/demoTownPlan';
@@ -115,10 +117,10 @@ const LivingWorldPreview: React.FC = () => {
         <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', maxWidth: '100%' }}>Years: {years}
           <input type="range" min={0} max={120} value={years} onChange={(e) => setYears(Number(e.target.value))} style={{ width: 'min(220px, 100%)' }} />
         </label>
-        <button onClick={() => setSeed((s) => s + 1)}
-          style={{ background: '#2563eb', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 12px', cursor: 'pointer', fontSize: 13 }}>
+        <Button type="button" variant="primary" size="sm"
+          onClick={() => setSeed((s) => s + 1)}>
           Reroll
-        </button>
+        </Button>
       </div>
 
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>

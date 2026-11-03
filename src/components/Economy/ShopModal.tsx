@@ -54,6 +54,9 @@ import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import { Item } from '../../types';
 import { formatGpAsCoins } from '../../utils/character';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_TAB } from '../../styles/buttonStyles';
 
 // ============================================================================
 // Props & Types
@@ -182,7 +185,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({
                     <button
                         type="button"
                         onClick={() => setActiveTab('buy')}
-                        className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
+                        className={`${BTN_TAB} flex items-center gap-1.5 cursor-pointer ${
                             activeTab === 'buy'
                                 ? 'bg-amber-600 text-white shadow-sm'
                                 : 'bg-slate-800/70 text-slate-300 hover:bg-slate-700'
@@ -195,7 +198,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({
                     <button
                         type="button"
                         onClick={() => setActiveTab('sell')}
-                        className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
+                        className={`${BTN_TAB} flex items-center gap-1.5 cursor-pointer ${
                             activeTab === 'sell'
                                 ? 'bg-amber-600 text-white shadow-sm'
                                 : 'bg-slate-800/70 text-slate-300 hover:bg-slate-700'
@@ -237,14 +240,16 @@ export const ShopModal: React.FC<ShopModalProps> = ({
                                                     </div>
                                                 </div>
 
-                                                <button
+                                                <Button
                                                     type="button"
+                                                    variant="action"
+                                                    size="sm"
                                                     onClick={() => handlePurchase(item)}
                                                     disabled={!canAfford}
-                                                    className="shrink-0 py-1.5 px-3 rounded-lg text-xs font-bold bg-amber-600 hover:bg-amber-500 text-slate-950 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                                                    className="shrink-0"
                                                 >
                                                     Buy ({cost} GP)
-                                                </button>
+                                                </Button>
                                             </div>
                                         );
                                     })}
@@ -284,13 +289,15 @@ export const ShopModal: React.FC<ShopModalProps> = ({
                                                     </div>
                                                 </div>
 
-                                                <button
+                                                <Button
                                                     type="button"
+                                                    variant="success"
+                                                    size="sm"
                                                     onClick={() => handleSale(item)}
-                                                    className="shrink-0 py-1.5 px-3 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition-colors cursor-pointer"
+                                                    className="shrink-0"
                                                 >
                                                     Sell (+{value} GP)
-                                                </button>
+                                                </Button>
                                             </div>
                                         );
                                     })}

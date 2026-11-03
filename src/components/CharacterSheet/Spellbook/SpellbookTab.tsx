@@ -47,6 +47,8 @@ import SpellSlotDisplay from './SpellSlotDisplay';
 import SpellDetailPane from './SpellDetailPane';
 import CastSpellControls from './CastSpellControls';
 import { SpellSummaryCard } from '../../ui/SpellSummaryCard';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE, BTN_TEXT_LINK } from '../../../styles/buttonStyles';
 
 // ============================================================================
 // Spellbook Rules and Inputs
@@ -264,7 +266,7 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party,
                         <button
                             key={level}
                             onClick={() => setCurrentLevel(level)}
-                            className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${currentLevel === level
+                            className={`${BTN_FOCUS_VISIBLE} px-2.5 py-1 rounded text-xs font-semibold transition-all ${currentLevel === level
                                 ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/20'
                                 : 'bg-slate-700 text-slate-400 hover:bg-slate-600 hover:text-white'
                                 }`}
@@ -329,7 +331,7 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party,
                                 const prepareButton = spell.level > 0 && canPrepare && maxPrepared !== null && !isKnownCaster ? (
                                     <button
                                         title={choiceError ?? "Plan a change for the next eligible long rest; current spells stay active."}
-                                        className={`min-h-11 md:min-h-0 px-2 py-0.5 text-[10px] font-bold uppercase rounded transition-all disabled:opacity-40 disabled:cursor-not-allowed ${isPlanned && !isLocked
+                                        className={`${BTN_FOCUS_VISIBLE} min-h-11 md:min-h-0 px-2 py-0.5 text-[10px] font-bold uppercase rounded transition-all disabled:opacity-40 disabled:cursor-not-allowed ${isPlanned && !isLocked
                                             ? 'bg-slate-600 text-slate-200 hover:bg-slate-500'
                                             : isAtPrepLimit && !isPrepared
                                                 ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
@@ -413,7 +415,7 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction, party,
                             <p className="mt-1 text-amber-300">After rest: {plannedCount} / {maxPrepared} prepared. {planError ?? 'These choices apply when you complete the rest.'}</p>
                             <p>{plan.preparedSpells.map(id => allSpellsData[id]?.name ?? id).join(', ') || 'No planned spells.'}</p>
                             {preparationMinutes(character, edition) > 0 && <p>Prayer or study: {preparationMinutes(character, edition)} additional minutes after the rest, at your current location.</p>}
-                            <button type="button" className="min-h-11 md:min-h-0 mt-2 underline text-amber-200" onClick={() => onAction({type: 'TOGGLE_PREPARED_SPELL', label: 'Reset spell preparation plan', payload: {characterId: character.id!, spellId: '', resetPlan: true}})}>Reset planned changes</button>
+                            <button type="button" className={`${BTN_TEXT_LINK} min-h-11 md:min-h-0 mt-2 underline text-amber-200`} onClick={() => onAction({type: 'TOGGLE_PREPARED_SPELL', label: 'Reset spell preparation plan', payload: {characterId: character.id!, spellId: '', resetPlan: true}})}>Reset planned changes</button>
                         </>}
                     </div>
                 )}

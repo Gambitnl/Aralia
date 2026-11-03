@@ -26,6 +26,8 @@ import { choosesSubclassInCreator, getSubclassLevel, type RulesEdition } from '.
 import _Tooltip from '../../Tooltip';
 import { CreationStepLayout } from '../ui/CreationStepLayout';
 import { SpellCard } from './SpellCard';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../../styles/buttonStyles';
 import { SubclassChoiceSection, type SubclassChoiceOption } from './SubclassChoiceSection';
 
 interface DruidFeatureSelectionProps {
@@ -127,7 +129,7 @@ const DruidFeatureSelection: React.FC<DruidFeatureSelectionProps> = ({
               <button
                 key={order.id}
                 onClick={() => handleOrderSelect(order.id)}
-                className={`text-left p-4 rounded-xl transition-all border-2 ${
+                className={`${BTN_FOCUS_VISIBLE} text-left p-4 rounded-xl transition-all border-2 ${
                   selectedOrder === order.id 
                     ? 'bg-sky-900/40 border-sky-500 shadow-md' 
                     : 'bg-gray-800 border-gray-700 hover:border-gray-600'

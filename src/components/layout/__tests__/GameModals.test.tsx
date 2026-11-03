@@ -464,7 +464,9 @@ describe('GameModals focus-trap coverage', () => {
 
         createProps(boardGameState, { dispatch });
 
-        expect(await screen.findByRole('dialog', { name: 'Investment Notice Board' })).toBeInTheDocument();
+        // GG-378: the board's lazy chunk now imports the shared <Button> and so
+        // framer-motion. Its first load in jsdom can take longer than the 1 s default.
+        expect(await screen.findByRole('dialog', { name: 'Investment Notice Board' }, { timeout: 5000 })).toBeInTheDocument();
 
         fireEvent.click(screen.getByRole('button', { name: /^Invest / }));
         expect(dispatch).toHaveBeenCalledWith({

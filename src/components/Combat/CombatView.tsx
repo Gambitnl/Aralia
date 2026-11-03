@@ -83,6 +83,9 @@ import {
 import { Z_INDEX } from "../../styles/zIndex";
 import { UI_ID, WINDOW_KEYS } from "../../styles/uiIds";
 import { WindowFrame } from "../ui/WindowFrame";
+// GG-378: shared button style and control roles.
+import { Button } from "../ui/Button";
+import { BTN_FOCUS_VISIBLE, BTN_ICON } from "../../styles/buttonStyles";
 import { useCombatAI } from "../../hooks/combat/useCombatAI";
 import { AIConfigProvider } from "../../context/AIConfigContext";
 import InitiativeTracker from "../BattleMap/InitiativeTracker";
@@ -1067,16 +1070,16 @@ const CombatView: React.FC<CombatViewProps> = ({
             {battleState === "victory" &&
               harvestableEnemies.length > 0 &&
               !isHarvestPanelOpen && (
-                <button
+                <Button
                   onClick={() => setIsHarvestPanelOpen(true)}
-                  className="w-full py-3 mb-3 bg-red-700 hover:bg-red-600 text-white font-bold rounded-lg shadow-lg transition-colors flex items-center justify-center gap-2"
-                >
+                  type="button" variant="danger" size="lg" className="w-full mb-3"
+                ><span className="inline-flex items-center gap-2">
                   <span>🦴</span> Harvest Creature Parts (
                   {harvestableEnemies.length})
-                </button>
+                </span></Button>
               )}
 
-            <button
+            <Button
               onClick={() => {
                 // Carry each surviving party member's post-combat resources back
                 // to the persistent character so HP, spent spell slots, and used
@@ -1127,14 +1130,14 @@ const CombatView: React.FC<CombatViewProps> = ({
                   },
                 );
               }}
-              className="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg shadow-lg transition-colors"
+              type="button" variant="action" size="lg" className="w-full"
             >
               {battleState === "victory"
                 ? "Collect & Continue"
                 : battleState === "flee"
                 ? "Retreat & Continue"
                 : "Return to Title"}
-            </button>
+            </Button>
           </motion.div>
         </div>
       )}
@@ -1246,7 +1249,7 @@ const CombatView: React.FC<CombatViewProps> = ({
             {/* [2026-05-21] 2D/3D toggle in pop-out window */}
             <button
               onClick={() => setRenderMode(renderMode === "2d" ? "3d" : "2d")}
-              className="absolute top-2 right-2 z-10 inline-flex min-h-11 min-w-11 items-center justify-center rounded bg-gray-800/60 px-3 py-2 text-sm font-bold text-gray-300 transition-colors hover:bg-gray-700/80 hover:text-white"
+              className={`${BTN_FOCUS_VISIBLE} absolute top-2 right-2 z-10 inline-flex min-h-11 min-w-11 items-center justify-center rounded bg-gray-800/60 px-3 py-2 text-sm font-bold text-gray-300 transition-colors hover:bg-gray-700/80 hover:text-white`}
               title={`Switch to ${renderMode === "2d" ? "3D" : "2D"} view`}
             >
               {renderMode === "2d" ? "3D" : "2D"}
@@ -1428,7 +1431,7 @@ const CombatView: React.FC<CombatViewProps> = ({
             </span>
             <button
               onClick={dismissCoach}
-              className="rounded border border-amber-700/60 px-2 py-0.5 text-xs font-semibold text-amber-200 hover:bg-amber-900/50"
+              className={`${BTN_FOCUS_VISIBLE} rounded border border-amber-700/60 px-2 py-0.5 text-xs font-semibold text-amber-200 hover:bg-amber-900/50`}
               aria-label="Dismiss combat hint"
             >
               Got it
@@ -1538,7 +1541,7 @@ const CombatView: React.FC<CombatViewProps> = ({
                         : "2d",
                     )
                   }
-                  className="inline-flex min-h-11 min-w-11 items-center justify-center rounded bg-gray-800/60 px-3 py-2 text-sm font-bold text-gray-300 transition-colors hover:bg-gray-700/80 hover:text-white"
+                  className={`${BTN_FOCUS_VISIBLE} inline-flex min-h-11 min-w-11 items-center justify-center rounded bg-gray-800/60 px-3 py-2 text-sm font-bold text-gray-300 transition-colors hover:bg-gray-700/80 hover:text-white`}
                   title={`Switch to ${renderMode === "2d" ? (hasInPlaceHandoff ? "in-world" : "3D") : "2D"} view`}
                 >
                   {renderMode === "2d"
@@ -1549,7 +1552,7 @@ const CombatView: React.FC<CombatViewProps> = ({
                 </button>
                 <button
                   onClick={() => setIsBattleMapExpanded(true)}
-                  className="inline-flex h-11 w-11 items-center justify-center rounded bg-gray-800/60 text-gray-300 transition-colors hover:bg-gray-700/80 hover:text-white"
+                  className={`${BTN_ICON} h-11 w-11 bg-gray-800/60 text-gray-300 hover:bg-gray-700/80 hover:text-white`}
                   title="Pop out battle map into resizable window"
                 >
                   <svg

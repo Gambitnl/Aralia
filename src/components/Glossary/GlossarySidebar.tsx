@@ -44,6 +44,8 @@ import type { GateResult } from './spellGateChecker';
 // - getCategoryColor: Returns color classes for category headers
 import { getCategoryIcon, highlightSearchTerm, getCategoryColor } from './glossaryUIUtils';
 import { buildGateLabel } from './spellGateChecker';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE, BTN_ROW } from '../../styles/buttonStyles';
 
 // Define the props interface for the GlossarySidebar component
 // This ensures type safety and documents all expected input properties
@@ -190,7 +192,7 @@ const GlossaryEntryNode: React.FC<{
                         <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); onToggleParentEntry(entry.id); }}
-                            className={`min-h-11 min-w-11 text-xs text-gray-400 group-hover:text-sky-300 transition-transform transform ${isExpanded ? 'rotate-90' : ''}`}
+                            className={`min-h-11 min-w-11 text-xs text-gray-400 group-hover:text-sky-300 transition-transform transform ${BTN_FOCUS_VISIBLE} ${isExpanded ? 'rotate-90' : ''}`}
                             aria-label={isExpanded ? `Collapse ${entry.title}` : `Expand ${entry.title}`}
                         >
                             ▶
@@ -202,7 +204,7 @@ const GlossaryEntryNode: React.FC<{
                     <button
                         type="button"
                         onClick={() => onEntrySelect(entry)}
-                        className={`w-full min-h-11 text-left px-2 py-2 ${indentClass} ${isParent && !isExpanded && selectedEntry?.id === entry.id ? 'font-semibold' : ''} ${!isParent && selectedEntry?.id === entry.id ? 'font-semibold' : ''}`}
+                        className={`${BTN_ROW} w-full min-h-11 px-2 py-2 ${indentClass} ${isParent && !isExpanded && selectedEntry?.id === entry.id ? 'font-semibold' : ''} ${!isParent && selectedEntry?.id === entry.id ? 'font-semibold' : ''}`}
                         disabled={disabled}
                         title={gateLabel || entry.title}
                     >
@@ -299,7 +301,7 @@ export const GlossarySidebar: React.FC<GlossarySidebarProps> = ({
                 <button
                     type="button"
                     onClick={() => setIsSearchExpanded(!isSearchExpanded)}
-                    className={`w-full p-2 font-semibold cursor-pointer hover:bg-gray-700/50 transition-colors rounded-md text-lg flex justify-between items-center ${searchTerm ? 'text-sky-400' : 'text-purple-400'}`}
+                    className={`${BTN_ROW} w-full p-2 font-semibold cursor-pointer hover:bg-gray-700/50 rounded-md text-lg flex justify-between items-center ${searchTerm ? 'text-sky-400' : 'text-purple-400'}`}
                 >
                     <span className="flex items-center">
                         <span className="mr-2">🔍</span>
@@ -342,7 +344,7 @@ export const GlossarySidebar: React.FC<GlossarySidebarProps> = ({
                         {/* Category header button - toggles category expansion */}
                         <button
                             type="button"
-                            className={`w-full p-2 font-semibold cursor-pointer hover:bg-gray-700/50 transition-colors rounded-md text-lg flex justify-between items-center text-left ${getCategoryColor(category)}`}
+                            className={`${BTN_ROW} w-full p-2 font-semibold cursor-pointer hover:bg-gray-700/50 rounded-md text-lg flex justify-between items-center ${getCategoryColor(category)}`}
                             onClick={() => onToggleCategory(category)}
                             aria-expanded={isExpanded}
                         >

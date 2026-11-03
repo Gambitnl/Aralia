@@ -26,6 +26,8 @@ import {
   getSpellLevelLabel,
 } from '../../utils/character';
 import { SpellSummaryCard } from '../ui/SpellSummaryCard';
+// GG-378: shared button style and control roles.
+import { BTN_ICON, BTN_TEXT_LINK } from '../../styles/buttonStyles';
 
 interface FeatSpellPickerProps {
   /** The spell requirement configuration */
@@ -221,7 +223,7 @@ const FeatSpellPicker: React.FC<FeatSpellPickerProps> = ({
                         event.stopPropagation();
                         setExpandedSpellId(isExpanded ? null : spell.id);
                       }}
-                      className="p-1 text-gray-500 hover:text-gray-300 transition-colors flex-shrink-0"
+                      className={`${BTN_ICON} p-1 text-gray-500 hover:text-gray-300 flex-shrink-0`}
                       aria-label={isExpanded ? 'Collapse spell details' : 'Expand spell details'}
                     >
                       <svg
@@ -280,7 +282,7 @@ const FeatSpellPicker: React.FC<FeatSpellPickerProps> = ({
               setSearchQuery('');
               setSchoolFilter('all');
             }}
-            className="mt-2 text-amber-500 hover:text-amber-400 transition-colors"
+            className={`${BTN_TEXT_LINK} mt-2 text-amber-500 hover:text-amber-400`}
           >
             Clear filters
           </button>

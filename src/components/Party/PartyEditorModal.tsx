@@ -42,6 +42,9 @@ import {
   canSavePremadeCharacters,
   PremadeCharacterSummary,
 } from '../../services/premadeCharacterService';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 // ============================================================================
 // Props
@@ -325,22 +328,22 @@ const PartyEditorModal: React.FC<PartyEditorModalProps> = ({ isOpen, onClose, in
             </h3>
             <div className="flex items-center gap-2">
               {showPremadePicker && availablePremadeCharacters.length > 0 && (
-                <button
+                <Button
                   onClick={handleLoadAllPremades}
                   disabled={isLoadingPremade}
                   aria-label="Add All Premade Characters"
-                  className="px-3 py-1.5 bg-sky-700 hover:bg-sky-600 text-white text-xs font-semibold rounded-lg shadow transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+                  type="button" variant="primary" size="sm"
                 >
                   + Add All
-                </button>
+                </Button>
               )}
-              <button
+              <Button
                 onClick={() => setShowPremadePicker(!showPremadePicker)}
                 disabled={availablePremadeCharacters.length === 0 || isLoadingPremade}
-                className="px-3 py-1.5 bg-amber-700 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg shadow transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+                type="button" variant="action" size="sm"
               >
                 {isLoadingPremade ? 'Loading...' : showPremadePicker ? 'Hide Roster' : `Browse (${availablePremadeCharacters.length})`}
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -352,7 +355,7 @@ const PartyEditorModal: React.FC<PartyEditorModalProps> = ({ isOpen, onClose, in
                   key={pc.filename}
                   onClick={() => handleLoadPremade(pc)}
                   disabled={isLoadingPremade}
-                  className="w-full text-left p-3 bg-gray-700/50 hover:bg-gray-600/50 rounded-lg border border-gray-600/50 hover:border-amber-500/50 transition-all group"
+                  className={`${BTN_FOCUS_VISIBLE} w-full text-left p-3 bg-gray-700/50 hover:bg-gray-600/50 rounded-lg border border-gray-600/50 hover:border-amber-500/50 transition-all group`}
                 >
                   <div className="flex justify-between items-start">
                     <div>
@@ -410,7 +413,7 @@ const PartyEditorModal: React.FC<PartyEditorModalProps> = ({ isOpen, onClose, in
                     title={hasFullData
                       ? `Export ${member.name} as a premade character JSON file`
                       : 'Cannot export template-only characters — only party members with full data can be exported'}
-                    className={`px-3 py-1 text-xs rounded-md border transition-colors ${hasFullData
+                    className={`${BTN_FOCUS_VISIBLE} px-3 py-1 text-xs rounded-md border transition-colors ${hasFullData
                       ? 'bg-sky-900/30 hover:bg-sky-800/50 text-sky-300 border-sky-700/50 hover:border-sky-500/50 cursor-pointer'
                       : 'bg-gray-800/30 text-gray-600 border-gray-700/30 cursor-not-allowed'
                       }`}
@@ -439,19 +442,19 @@ const PartyEditorModal: React.FC<PartyEditorModalProps> = ({ isOpen, onClose, in
         {/* Footer — Save Party and Cancel buttons                           */}
         {/* ================================================================ */}
         <div className="mt-6 pt-4 border-t border-gray-700 flex justify-between items-center">
-          <button
+          <Button
             onClick={handleSaveClick}
             disabled={editableParty.length === 0}
-            className="px-6 py-2 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-lg shadow disabled:bg-gray-500 disabled:cursor-not-allowed"
+            type="button" variant="success"
           >
             Save Party
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={onClose}
-            className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-lg shadow"
+            type="button" variant="secondary"
           >
             Cancel
-          </button>
+          </Button>
         </div>
       </div>
       </WindowFrame>

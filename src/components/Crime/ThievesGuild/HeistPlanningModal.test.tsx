@@ -68,7 +68,8 @@ describe('HeistPlanningModal', () => {
             />
         );
 
-        const startButton = screen.getByText('Begin Heist');
+        // GG-378: the shared Button wraps its label in a span, so find the button by its role.
+        const startButton = screen.getByRole('button', { name: 'Begin Heist' });
         expect(startButton).toHaveProperty('disabled', true);
 
         const approachButton = screen.getByText('Stealth').closest('button');

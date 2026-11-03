@@ -11,6 +11,8 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import type { Occupant } from '../../systems/worldforge/roster/types';
 import type { FamilyTies } from '../../systems/worldforge/roster/family';
+// GG-378: shared button style and control roles.
+import { BTN_TEXT_LINK } from '../../styles/buttonStyles';
 
 /** Race → dot colour, so a bloodline reads as one hue (a married-in spouse differs). */
 const RACE_HEX: Record<string, string> = {
@@ -56,7 +58,7 @@ const VillagerRegistryImpl: React.FC<VillagerRegistryProps> = ({
   }, [selectedId]);
 
   const KinLink: React.FC<{ id: number }> = ({ id }) => (
-    <button
+    <button className={BTN_TEXT_LINK}
       onClick={(e) => { e.stopPropagation(); onSelect(id); }}
       style={{ background: 'none', border: 'none', padding: 0, margin: 0, color: '#a5b4fc', cursor: 'pointer', font: 'inherit', textDecoration: 'underline dotted' }}
     >

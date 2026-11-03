@@ -2,6 +2,8 @@ import React from 'react';
 import { GuildMembership } from '../../../types/crime';
 import { WindowFrame } from '../../ui/WindowFrame';
 import { ThievesGuildSystem } from '../../../systems/crime/ThievesGuildSystem';
+// GG-378: shared button style and control roles.
+import { BTN_ROW } from '../../../styles/buttonStyles';
 
 interface ThievesGuildSafehouseProps {
     membership: GuildMembership;
@@ -38,7 +40,7 @@ export const ThievesGuildSafehouse: React.FC<ThievesGuildSafehouseProps> = ({
                                 key={service.id}
                                 disabled={isLocked}
                                 onClick={() => onUseService(service.id, service.costGold, service.name)}
-                                className={`p-4 rounded border text-left transition-all ${
+                                className={`${BTN_ROW} p-4 rounded border ${
                                     isLocked 
                                         ? 'bg-gray-800 border-gray-700 opacity-50 cursor-not-allowed'
                                         : 'bg-gray-800 border-gray-600 hover:bg-gray-700 hover:border-purple-500'

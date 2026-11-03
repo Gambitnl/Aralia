@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { DRILL_LAYER_DEFS, type DrillLayerId, type LayerDef } from './useDrillLayers';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 export interface DrillLayerPanelProps<K extends string> {
   layers: Record<K, boolean>;
@@ -19,7 +21,7 @@ function DrillLayerPanel<K extends string = DrillLayerId>({ layers, toggle, defs
   const items = defs ?? (DRILL_LAYER_DEFS as ReadonlyArray<LayerDef<string>> as ReadonlyArray<LayerDef<K>>);
   return (
     <div style={{ position: 'absolute', top: 8, right: 8, fontFamily: 'sans-serif', zIndex: 3 }}>
-      <button
+      <button className={BTN_FOCUS_VISIBLE}
         type="button"
         onClick={() => setOpen((o) => !o)}
         data-testid="drill-layers-toggle"

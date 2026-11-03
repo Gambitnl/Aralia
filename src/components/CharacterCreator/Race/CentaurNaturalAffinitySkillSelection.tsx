@@ -7,6 +7,9 @@ import React, { useState } from 'react';
 import { Skill } from '../../../types';
 import { SKILLS_DATA } from '../../../data/skills';
 import { SkillIcon } from '../../../utils/skillIcons';
+// GG-378: shared button style and control roles.
+import { Button } from '../../ui/Button';
+import { BTN_FOCUS_VISIBLE } from '../../../styles/buttonStyles';
 
 interface CentaurNaturalAffinitySkillSelectionProps {
   onSkillSelect: (skillId: string) => void;
@@ -65,7 +68,7 @@ const CentaurNaturalAffinitySkillSelection: React.FC<CentaurNaturalAffinitySkill
               key={skill.id}
               type="button"
               onClick={() => setSelectedSkillId(skill.id)}
-              className={`w-full text-left p-6 rounded-2xl transition-all border-2 shadow-lg flex items-center gap-5 ${isSelected
+              className={`${BTN_FOCUS_VISIBLE} w-full text-left p-6 rounded-2xl transition-all border-2 shadow-lg flex items-center gap-5 ${isSelected
                   ? 'bg-sky-800/40 border-sky-400 ring-2 ring-sky-500 ring-opacity-50 scale-[1.03]'
                   : 'bg-gray-800/60 hover:bg-gray-700/80 border-gray-700 hover:border-gray-500'
                 }`}
@@ -94,21 +97,21 @@ const CentaurNaturalAffinitySkillSelection: React.FC<CentaurNaturalAffinitySkill
       </div>
 
       <div className="flex gap-4 max-w-md mx-auto mb-4">
-        <button
+        <Button
           type="button"
           onClick={onBack}
-          className="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-200 font-bold py-3 px-6 rounded-xl border border-gray-600 transition-colors"
+          variant="secondary" size="lg" className="flex-1"
         >
           Back
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           onClick={handleSubmit}
           disabled={!selectedSkillId}
-          className="flex-1 bg-sky-600 hover:bg-sky-500 disabled:bg-gray-800 disabled:text-gray-600 disabled:border-gray-800 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg active:scale-95"
+          variant="primary" size="lg" className="flex-1"
         >
           Confirm Skill
-        </button>
+        </Button>
       </div>
     </div>
   );

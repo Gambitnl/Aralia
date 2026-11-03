@@ -40,6 +40,8 @@ import { useGameState } from '../../state/GameContext';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import { MarketEvent, TradeRoute } from '../../types/economy';
+// GG-378: shared button style and control roles.
+import { BTN_TAB } from '../../styles/buttonStyles';
 
 // ============================================================================
 // Props & Types
@@ -129,7 +131,7 @@ export const TradeRouteModal: React.FC<TradeRouteModalProps> = ({
                     <button
                         type="button"
                         onClick={() => setActiveTab('routes')}
-                        className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
+                        className={`${BTN_TAB} flex items-center gap-1.5 cursor-pointer ${
                             activeTab === 'routes'
                                 ? 'bg-amber-600 text-white shadow-sm'
                                 : 'bg-slate-800/70 text-slate-300 hover:bg-slate-700'
@@ -142,7 +144,7 @@ export const TradeRouteModal: React.FC<TradeRouteModalProps> = ({
                     <button
                         type="button"
                         onClick={() => setActiveTab('events')}
-                        className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
+                        className={`${BTN_TAB} flex items-center gap-1.5 cursor-pointer ${
                             activeTab === 'events'
                                 ? 'bg-amber-600 text-white shadow-sm'
                                 : 'bg-slate-800/70 text-slate-300 hover:bg-slate-700'

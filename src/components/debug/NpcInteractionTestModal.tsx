@@ -7,6 +7,8 @@ import { MotionProps } from 'framer-motion';
 import { Action } from '../types';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
 
 interface NpcInteractionTestModalProps {
   isOpen: boolean;
@@ -103,12 +105,12 @@ const NpcInteractionTestModal: React.FC<NpcInteractionTestModalProps> = ({ isOpe
             </div>
             {currentStep.hasTeleport && (
               <div className="pt-2">
-                <button
+                <Button
                   onClick={handleTeleportAndClose}
-                  className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors"
+                  type="button" variant="primary" className="w-full"
                 >
                   Teleport to Hermit
-                </button>
+                </Button>
               </div>
             )}
             <div>
@@ -119,15 +121,15 @@ const NpcInteractionTestModal: React.FC<NpcInteractionTestModalProps> = ({ isOpe
         </div>
 
         <div className="mt-6 flex justify-between items-center shrink-0">
-          <button
+          <Button
             onClick={() => setStep(s => Math.max(1, s - 1))}
             disabled={step === 1}
-            className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white font-semibold rounded-lg shadow disabled:opacity-50"
+            type="button" variant="secondary"
           >
             Previous Step
-          </button>
+          </Button>
           <span className="text-sm text-gray-400">Step {step} of {testSteps.length}</span>
-          <button
+          <Button
             onClick={() => {
               if (step < testSteps.length) {
                 setStep(s => s + 1);
@@ -135,10 +137,10 @@ const NpcInteractionTestModal: React.FC<NpcInteractionTestModalProps> = ({ isOpe
                 onClose();
               }
             }}
-            className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-lg shadow"
+            type="button" variant="primary"
           >
             {step < testSteps.length ? 'Next Step' : 'Finish Test'}
-          </button>
+          </Button>
         </div>
 
       </div>

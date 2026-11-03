@@ -82,6 +82,8 @@ import { createGroundWorkerChunkLoader } from './createGroundWorkerChunkLoader';
 import type { DisposableChunkLoader } from './createGroundWorkerChunkLoader';
 import { useOffThreadBridgeAtlas } from '@/components/Worldforge/useOffThreadBridgeAtlas';
 import { pickSeamCellPair, buildSeamStitchedLocal } from '@/systems/worldforge/bridge/seamProbe';
+// GG-378: HUD buttons keep their inline glass style and get the shared keyboard focus ring.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 /** Worldforge world seed for the ground/seam sandbox (matches the .agent probes). */
 const DEMO_WF_SEED = 42;
@@ -313,7 +315,7 @@ const World3DDemo: React.FC = () => {
           ? 'This URL-only harness reconstructs a canonical cell-addressed Local artifact for diagnostics. Player exploration enters through Atlas and preserves its selected artifact in memory.'
           : 'Right-click and drag to pan the camera across the landscape. Chunks will stream in and out in real time!'}
         {dcell != null && (
-          <button
+          <button className={BTN_FOCUS_VISIBLE}
             type="button"
             onClick={() => setShow2dSubmap((v) => !v)}
             style={{

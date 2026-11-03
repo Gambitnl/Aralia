@@ -26,6 +26,9 @@ import { GameState, DiscoveryEntry, DiscoveryType, NPC, KnownFact } from '../../
 import { formatGameDate, formatGameDateTime } from '@/utils/core';
 import Tooltip from '../ui/Tooltip';
 import { UI_ID } from '../../styles/uiIds';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_ICON, BTN_ROW } from '../../styles/buttonStyles';
 
 interface DiscoveryLogPaneProps {
   isOpen: boolean;
@@ -257,7 +260,7 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
           <button
             ref={firstFocusableElementRef}
             onClick={onClose}
-            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-md text-2xl text-gray-400 hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-sky-400"
+            className={`${BTN_ICON} h-11 w-11 flex-shrink-0 text-2xl text-gray-400 hover:text-gray-200`}
             aria-label="Close journal"
           >
             &times;
@@ -322,7 +325,7 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
                     <li key={entry.id}>
                       <button
                         onClick={() => handleEntrySelect(entry)}
-                        className={`w-full min-h-11 text-left p-2.5 rounded-md transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-sky-400
+                        className={`${BTN_ROW} w-full min-h-11 p-2.5 rounded-md text-sm
                                       ${selectedEntry?.id === entry.id ? 'bg-sky-700 text-white shadow-md' : 'bg-gray-700 hover:bg-gray-600/70 text-gray-300'}`}
                       >
                         <div className="flex items-center">
@@ -340,23 +343,27 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
                 </ul>
                 {totalPages > 1 && (
                   <div className="mt-3 pt-3 border-t border-gray-700 flex items-center justify-between gap-2 text-xs text-gray-300">
-                    <button
+                    <Button
                       type="button"
+                      variant="secondary"
+                      size="sm"
                       onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
                       disabled={currentPage === 1}
-                      className="min-h-11 px-3 py-2 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="min-h-11"
                     >
                       Previous
-                    </button>
+                    </Button>
                     <span aria-live="polite">Page {currentPage} of {totalPages}</span>
-                    <button
+                    <Button
                       type="button"
+                      variant="secondary"
+                      size="sm"
                       onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))}
                       disabled={currentPage === totalPages}
-                      className="min-h-11 px-3 py-2 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="min-h-11"
                     >
                       Next
-                    </button>
+                    </Button>
                   </div>
                 )}
               </>
@@ -426,19 +433,22 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
 
         {/* Footer Actions */}
         <div className="mt-4 flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-gray-700 pt-4">
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={onMarkAllRead}
             disabled={entries.every(e => e.isRead)}
-            className="min-h-11 px-4 py-2 text-sm bg-gray-600 hover:bg-gray-500 text-white font-semibold rounded-md shadow disabled:opacity-50 disabled:cursor-not-allowed"
+            className="min-h-11"
           >
             Mark All as Read
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
             onClick={onClose}
-            className="min-h-11 whitespace-nowrap px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-lg shadow sm:px-6"
+            className="min-h-11 whitespace-nowrap"
           >
             Close Log
-          </button>
+          </Button>
         </div>
       </div>
     </div>

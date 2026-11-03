@@ -7,6 +7,9 @@
 import React, { useState } from 'react';
 import { DraconicAncestorType } from '../../../types';
 import { DRAGONBORN_ANCESTRIES } from '../../../constants';
+// GG-378: shared button style and control roles.
+import { Button } from '../../ui/Button';
+import { BTN_FOCUS_VISIBLE } from '../../../styles/buttonStyles';
 
 interface DragonbornAncestrySelectionProps {
   onAncestrySelect: (ancestryType: DraconicAncestorType) => void;
@@ -70,7 +73,7 @@ const DragonbornAncestrySelection: React.FC<DragonbornAncestrySelectionProps> = 
         type="button"
         key={ancestry.type}
         onClick={() => setSelectedAncestorType(ancestry.type)}
-        className={`w-full text-left p-4 rounded-lg transition-all border-2 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-opacity-75 ${
+        className={`${BTN_FOCUS_VISIBLE} w-full text-left p-4 rounded-lg transition-all border-2 shadow-md hover:shadow-lg ${
           isSelected
             ? 'bg-sky-700 border-sky-400 ring-sky-500 scale-[1.02]'
             : 'bg-gray-700 hover:bg-gray-650 border-gray-600 hover:border-gray-500 ring-transparent'
@@ -131,23 +134,23 @@ const DragonbornAncestrySelection: React.FC<DragonbornAncestrySelectionProps> = 
       </div>
 
       <div className="flex gap-4 mt-8">
-        <button
+        <Button
           type="button"
           onClick={onBack}
-          className="w-1/2 bg-gray-600 hover:bg-gray-500 text-white font-semibold py-3 px-4 rounded-lg shadow transition-colors"
+          variant="secondary" size="lg" className="w-1/2"
           aria-label="Go back to race selection"
         >
           Back
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           onClick={handleSubmit}
           disabled={!selectedAncestorType}
-          className="w-1/2 bg-green-600 hover:bg-green-500 disabled:bg-gray-500 text-white font-semibold py-3 px-4 rounded-lg shadow transition-colors"
+          variant="success" size="lg" className="w-1/2"
           aria-label="Confirm selected draconic ancestry"
         >
           Confirm Ancestry
-        </button>
+        </Button>
       </div>
     </div>
   );

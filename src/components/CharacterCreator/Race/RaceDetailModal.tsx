@@ -7,6 +7,9 @@ import React, { useState, useMemo } from 'react';
 import ImageModal from '../../ImageModal';
 import { WindowFrame } from '../../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../../styles/uiIds';
+// GG-378: shared button style and control roles.
+import { Button } from '../../ui/Button';
+import { BTN_MEDIA, BTN_ROW, BTN_TEXT_LINK } from '../../../styles/buttonStyles';
 // Race details can deep-link into the shared glossary modal
 import SingleGlossaryEntryModal from '../../Glossary/SingleGlossaryEntryModal';
 
@@ -94,7 +97,7 @@ const CollapsibleTrait: React.FC<{ name: string; description: string, onSpellCli
         <div className="bg-gray-800/50 border border-gray-700 rounded-md">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex justify-between items-center p-3 text-lg font-semibold text-sky-300 hover:bg-sky-900/30 transition-colors"
+                className={`${BTN_ROW} w-full flex justify-between items-center p-3 text-lg font-semibold text-sky-300 hover:bg-sky-900/30`}
                 aria-expanded={isOpen}
             >
                 {name}
@@ -119,7 +122,7 @@ const CollapsibleTrait: React.FC<{ name: string; description: string, onSpellCli
                                         <tr key={index} className="border-b border-gray-700/50">
                                             <td className="py-1.5 px-2 text-amber-400">{spell.level}</td>
                                             <td className="py-1.5 px-2">
-                                                <button onClick={() => onSpellClick(toKebabCase(spell.name))} className="text-sky-400 hover:text-sky-200 underline transition-colors">
+                                                <button onClick={() => onSpellClick(toKebabCase(spell.name))} className={`${BTN_TEXT_LINK} text-sky-400 hover:text-sky-200 underline`}>
                                                     {spell.name}
                                                 </button>
                                             </td>
@@ -181,12 +184,12 @@ const RaceDetailModal: React.FC<RaceDetailModalProps> = ({ race, onSelect, onClo
               {race.image && (
                   <button
                     type="button"
-                    className="relative group cursor-pointer"
+                    className={`${BTN_MEDIA} group cursor-pointer`}
                     onClick={() => setIsImageExpanded(true)}
                     aria-label={`Expand ${race.name} image`}
                   >
                     <img src={race.image} alt={`${race.name} illustration`} className="w-full h-auto rounded-lg object-contain shadow-lg border border-gray-700"/>
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-2xl" aria-hidden="true">🔍</div>
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 flex items-center justify-center transition-opacity text-white text-2xl" aria-hidden="true">🔍</div>
                   </button>
               )}
                <div className="p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
@@ -220,8 +223,8 @@ const RaceDetailModal: React.FC<RaceDetailModalProps> = ({ race, onSelect, onClo
           
           {/* Footer */}
           <div className="mt-6 flex gap-4 pt-4 border-t border-gray-700 shrink-0">
-            <button onClick={onClose} className="flex-1 bg-gray-600 hover:bg-gray-500 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-colors">Back to List</button>
-            <button onClick={() => onSelect(race.id)} className="flex-1 bg-green-600 hover:bg-green-500 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-colors">Select {race.name}</button>
+            <Button type="button" variant="secondary" size="lg" onClick={onClose} className="flex-1">Back to List</Button>
+            <Button type="button" variant="success" size="lg" onClick={() => onSelect(race.id)} className="flex-1">Select {race.name}</Button>
           </div>
         </div>
       </WindowFrame>

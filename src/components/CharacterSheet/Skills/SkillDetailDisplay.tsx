@@ -18,6 +18,9 @@ import { Z_INDEX } from '../../../styles/zIndex';
 import Tooltip from '../../ui/Tooltip';
 // Inline glossary tooltips live under the Glossary folder
 import GlossaryTooltip from '../../Glossary/GlossaryTooltip';
+// GG-378: shared button style and control roles.
+import { Button } from '../../ui/Button';
+import { BTN_ICON } from '../../../styles/buttonStyles';
 
 interface SkillDetailDisplayProps {
   isOpen: boolean;
@@ -91,7 +94,7 @@ const SkillDetailDisplay: React.FC<SkillDetailDisplayProps> = ({ isOpen, onClose
           <button
             ref={closeButtonRef}
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-200 text-3xl p-1 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-400"
+            className={`${BTN_ICON} text-gray-400 hover:text-gray-200 text-3xl p-1`}
             aria-label="Close skill details"
           >
             &times;
@@ -204,13 +207,13 @@ const SkillDetailDisplay: React.FC<SkillDetailDisplayProps> = ({ isOpen, onClose
 
         {/* Footer */}
         <div className="mt-6 pt-4 border-t border-gray-600 flex justify-end">
-          <button
+          <Button
             onClick={onClose}
-            className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-lg shadow transition-colors focus:outline-none focus:ring-2 focus:ring-sky-400"
+            type="button" variant="primary"
             aria-label="Close skill details"
           >
             Close
-          </button>
+          </Button>
         </div>
       </div>
     </div>

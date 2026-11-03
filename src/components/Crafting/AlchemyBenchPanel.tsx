@@ -49,6 +49,9 @@ import {
     resolveAlchemyBenchCraftingState
 } from './alchemyBenchSelectors';
 import { WINDOW_KEYS } from '../../styles/uiIds';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 import {
     describeCraftingBenchActionMismatch,
     isCraftingBenchAction
@@ -368,25 +371,25 @@ export const AlchemyBenchPanel: React.FC<AlchemyBenchPanelProps> = ({ onClose })
             <div className="crafting-filters">
                 <div className="tool-tabs">
                     <button
-                        className={selectedTool === 'all' ? 'active' : ''}
+                        className={`${BTN_FOCUS_VISIBLE} ${selectedTool === 'all' ? 'active' : ''}`}
                         onClick={() => setSelectedTool('all')}
                     >
                         All
                     </button>
                     <button
-                        className={selectedTool === 'alchemist_supplies' ? 'active' : ''}
+                        className={`${BTN_FOCUS_VISIBLE} ${selectedTool === 'alchemist_supplies' ? 'active' : ''}`}
                         onClick={() => setSelectedTool('alchemist_supplies')}
                     >
                         ⚗️ Alchemy
                     </button>
                     <button
-                        className={selectedTool === 'herbalism_kit' ? 'active' : ''}
+                        className={`${BTN_FOCUS_VISIBLE} ${selectedTool === 'herbalism_kit' ? 'active' : ''}`}
                         onClick={() => setSelectedTool('herbalism_kit')}
                     >
                         🌿 Herbalism
                     </button>
                     <button
-                        className={selectedTool === 'poisoners_kit' ? 'active' : ''}
+                        className={`${BTN_FOCUS_VISIBLE} ${selectedTool === 'poisoners_kit' ? 'active' : ''}`}
                         onClick={() => setSelectedTool('poisoners_kit')}
                     >
                         ☠️ Poison
@@ -421,7 +424,7 @@ export const AlchemyBenchPanel: React.FC<AlchemyBenchPanelProps> = ({ onClose })
                         displayedRecipes.map(status => (
                             <button
                                 key={status.recipe.id}
-                                className={`recipe-item ${status.canCraft ? 'craftable' : 'locked'} ${!status.isKnown ? 'unknown' : ''} ${selectedRecipe?.recipe.id === status.recipe.id ? 'selected' : ''}`}
+                                className={`${BTN_FOCUS_VISIBLE} recipe-item ${status.canCraft ? 'craftable' : 'locked'} ${!status.isKnown ? 'unknown' : ''} ${selectedRecipe?.recipe.id === status.recipe.id ? 'selected' : ''}`}
                                 onClick={() => { setSelectedRecipe(status); setBatchSize(1); }}
                             >
                                 <span className="recipe-icon">{getCategoryIcon(status.recipe.category)}</span>
@@ -508,7 +511,7 @@ export const AlchemyBenchPanel: React.FC<AlchemyBenchPanelProps> = ({ onClose })
                                                 {[1, 2, 3, 4, 5].map(qty => (
                                                     <button
                                                         key={qty}
-                                                        className={`batch-btn ${batchSize === qty ? 'active' : ''} ${qty > batchInfo.maxCraftable ? 'disabled' : ''}`}
+                                                        className={`${BTN_FOCUS_VISIBLE} batch-btn ${batchSize === qty ? 'active' : ''} ${qty > batchInfo.maxCraftable ? 'disabled' : ''}`}
                                                         onClick={() => setBatchSize(qty)}
                                                         disabled={qty > batchInfo.maxCraftable}
                                                     >
@@ -535,13 +538,14 @@ export const AlchemyBenchPanel: React.FC<AlchemyBenchPanelProps> = ({ onClose })
                                         </div>
                                     </div>
 
-                                    <button
-                                        className="craft-button"
+                                    <Button
+                                        variant="action"
+                                        className="w-full"
                                         disabled={!selectedRecipe.canCraft || isCrafting || (batchSize > 1 && (!batchInfo || batchInfo.maxCraftable < batchSize))}
                                         onClick={handleCraft}
                                     >
                                         {isCrafting ? '⏳ Crafting...' : `🔨 Craft ${batchSize}x ${selectedRecipe.recipe.name}`}
-                                    </button>
+                                    </Button>
 
                                     {!selectedRecipe.canCraft && (
                                         <div className="craft-warning">
@@ -565,13 +569,14 @@ export const AlchemyBenchPanel: React.FC<AlchemyBenchPanelProps> = ({ onClose })
                                             <span>💰 {getResearchCost(selectedRecipe.recipe.rarity).gold} GP</span>
                                             <span>⏱️ {getResearchCost(selectedRecipe.recipe.rarity).days} days</span>
                                         </div>
-                                        <button
-                                            className="research-button"
+                                        <Button
+                                            variant="primary"
+                                            className="w-full"
                                             disabled={state.gold < getResearchCost(selectedRecipe.recipe.rarity).gold || isResearching}
                                             onClick={handleResearch}
                                         >
                                             {isResearching ? '📚 Researching...' : '📜 Research Recipe'}
-                                        </button>
+                                        </Button>
                                     </div>
                                 </>
                             )}
@@ -606,19 +611,19 @@ export const AlchemyBenchPanel: React.FC<AlchemyBenchPanelProps> = ({ onClose })
                 {/* Tab Navigation */}
                 <div className="tab-navigation">
                     <button
-                        className={`tab-btn ${activeTab === 'recipes' ? 'active' : ''}`}
+                        className={`${BTN_FOCUS_VISIBLE} tab-btn ${activeTab === 'recipes' ? 'active' : ''}`}
                         onClick={() => setActiveTab('recipes')}
                     >
                         📜 Recipes
                     </button>
                     <button
-                        className={`tab-btn ${activeTab === 'experiment' ? 'active' : ''}`}
+                        className={`${BTN_FOCUS_VISIBLE} tab-btn ${activeTab === 'experiment' ? 'active' : ''}`}
                         onClick={() => setActiveTab('experiment')}
                     >
                         🔬 Experiment
                     </button>
                     <button
-                        className={`tab-btn ${activeTab === 'glossary' ? 'active' : ''}`}
+                        className={`${BTN_FOCUS_VISIBLE} tab-btn ${activeTab === 'glossary' ? 'active' : ''}`}
                         onClick={() => setActiveTab('glossary')}
                     >
                         📖 Glossary

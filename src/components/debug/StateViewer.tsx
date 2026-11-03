@@ -4,6 +4,8 @@
  */
 import React, { useState } from 'react';
 import { GameState } from '../../types';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE, BTN_ROW } from '../../styles/buttonStyles';
 
 interface StateViewerProps {
   state: GameState;
@@ -45,7 +47,7 @@ const StateViewer: React.FC<StateViewerProps> = ({ state }) => {
     <div className="mt-4 pt-4 border-t border-gray-600">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between w-full text-left text-sm font-medium text-gray-300 hover:text-white"
+        className={`${BTN_ROW} flex items-center justify-between w-full text-sm font-medium text-gray-300 hover:text-white`}
       >
         <span>State Inspector</span>
         <span className="text-xs text-gray-500">
@@ -61,7 +63,7 @@ const StateViewer: React.FC<StateViewerProps> = ({ state }) => {
               <button
                 key={preset.path}
                 onClick={() => setSelectedPath(preset.path)}
-                className={`px-2 py-1 text-xs rounded ${
+                className={`${BTN_FOCUS_VISIBLE} px-2 py-1 text-xs rounded ${
                   selectedPath === preset.path
                     ? 'bg-sky-600 text-white'
                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
@@ -83,7 +85,7 @@ const StateViewer: React.FC<StateViewerProps> = ({ state }) => {
             />
             <button
               onClick={() => setSelectedPath('')}
-              className="px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600"
+              className={`${BTN_FOCUS_VISIBLE} px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600`}
             >
               Clear
             </button>
@@ -104,7 +106,7 @@ const StateViewer: React.FC<StateViewerProps> = ({ state }) => {
             onClick={() => {
               navigator.clipboard.writeText(JSON.stringify(currentValue, null, 2));
             }}
-            className="w-full py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600"
+            className={`${BTN_FOCUS_VISIBLE} w-full py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600`}
           >
             Copy to Clipboard
           </button>

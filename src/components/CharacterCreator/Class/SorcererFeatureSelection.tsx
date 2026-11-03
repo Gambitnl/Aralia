@@ -25,6 +25,8 @@ import { Spell, Class as CharClass } from '../../../types';
 import { getSubclassLevel, type RulesEdition } from '../../../config/rulesEdition';
 import { CreationStepLayout } from '../ui/CreationStepLayout';
 import { SpellCard } from './SpellCard';
+// GG-378: shared button style and control roles.
+import { BTN_ROW } from '../../../styles/buttonStyles';
 
 /** One Sorcerous Origin offered at level 1, derived from SUBCLASSES.sorcerer by the caller. */
 export interface SorcerousOriginOption {
@@ -120,7 +122,7 @@ const SorcererFeatureSelection: React.FC<SorcererFeatureSelectionProps> = ({
                     type="button"
                     onClick={() => setSelectedOriginId(origin.id)}
                     aria-pressed={isSelected}
-                    className={`text-left p-3 rounded-lg border transition-colors ${
+                    className={`${BTN_ROW} p-3 rounded-lg border ${
                       isSelected
                         ? 'bg-amber-900/40 border-amber-400'
                         : 'bg-gray-800 border-gray-700 hover:border-amber-600'

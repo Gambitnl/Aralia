@@ -9,6 +9,9 @@ import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { findGlossaryEntryAndPath } from '../../utils/visuals';
 import { fetchWithTimeout } from '../../utils/context';
 import { assetUrl } from '../../config/env';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_ICON } from '../../styles/buttonStyles';
 
 /**
  * Spell glossary entries are manifest-driven: their content lives in a per-spell
@@ -137,7 +140,7 @@ const SingleGlossaryEntryModal: React.FC<SingleGlossaryEntryModalProps> = ({ isO
                 </h2>
                 <button
                   onClick={onClose}
-                  className="text-gray-400 hover:text-gray-200 text-3xl font-bold p-1 leading-none"
+                  className={`text-gray-400 hover:text-gray-200 text-3xl font-bold p-1 leading-none ${BTN_ICON}`}
                   aria-label="Close"
                 >
                   &times;
@@ -157,13 +160,13 @@ const SingleGlossaryEntryModal: React.FC<SingleGlossaryEntryModalProps> = ({ isO
                 )}
               </div>
               <div className="glossary-entry-modal-footer">
-                 <button
+                 <Button
                     onClick={onClose}
-                    className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-lg shadow transition-colors focus:outline-none focus:ring-2 focus:ring-sky-400"
+                    type="button" variant="primary"
                     aria-label="Close glossary entry"
                   >
                     Close
-                  </button>
+                  </Button>
               </div>
             </>
           )}

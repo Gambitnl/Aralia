@@ -6,6 +6,9 @@ import React, { useState } from 'react';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import { OllamaLogEntry } from '../../types';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 interface BanterDebugLogEntry {
     timestamp: Date;
@@ -62,7 +65,7 @@ export const UnifiedDebugLogViewer: React.FC<UnifiedDebugLogViewerProps> = ({
             {onToggleBanterPause && (
                 <button
                     onClick={onToggleBanterPause}
-                    className={`px-2 py-0.5 text-xs font-semibold uppercase tracking-wider transition-colors rounded ${isBanterPaused
+                    className={`${BTN_FOCUS_VISIBLE} px-2 py-0.5 text-xs font-semibold uppercase tracking-wider transition-colors rounded ${isBanterPaused
                         ? 'bg-red-900/50 text-red-200 border border-red-500 hover:bg-red-800/50'
                         : 'bg-emerald-900/50 text-emerald-200 border border-emerald-500 hover:bg-emerald-800/50'
                         }`}
@@ -86,7 +89,7 @@ export const UnifiedDebugLogViewer: React.FC<UnifiedDebugLogViewerProps> = ({
                 <div className="flex border-b border-gray-700 bg-gray-800/50">
                     <button
                         onClick={() => setActiveTab('banter')}
-                        className={`flex-1 py-2 px-4 text-center font-cinzel font-bold transition-colors ${activeTab === 'banter'
+                        className={`${BTN_FOCUS_VISIBLE} flex-1 py-2 px-4 text-center font-cinzel font-bold transition-colors ${activeTab === 'banter'
                             ? 'bg-gray-700 text-pink-400 border-b-2 border-pink-400'
                             : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700/30'
                             }`}
@@ -95,7 +98,7 @@ export const UnifiedDebugLogViewer: React.FC<UnifiedDebugLogViewerProps> = ({
                     </button>
                     <button
                         onClick={() => setActiveTab('ollama')}
-                        className={`flex-1 py-2 px-4 text-center font-cinzel font-bold transition-colors ${activeTab === 'ollama'
+                        className={`${BTN_FOCUS_VISIBLE} flex-1 py-2 px-4 text-center font-cinzel font-bold transition-colors ${activeTab === 'ollama'
                             ? 'bg-gray-700 text-emerald-400 border-b-2 border-emerald-400'
                             : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700/30'
                             }`}
@@ -115,19 +118,19 @@ export const UnifiedDebugLogViewer: React.FC<UnifiedDebugLogViewerProps> = ({
                                 </div>
                                 <div className="flex gap-2">
                                     {onForceBanterTrigger && (
-                                        <button
+                                        <Button
                                             onClick={onForceBanterTrigger}
-                                            className="px-2 py-1 text-xs bg-green-700 hover:bg-green-600 text-white rounded shadow"
+                                            type="button" variant="success" size="sm"
                                         >
                                             ⚡ Force Trigger
-                                        </button>
+                                        </Button>
                                     )}
-                                    <button
+                                    <Button
                                         onClick={onClearBanterLogs}
-                                        className="px-2 py-1 text-xs bg-gray-600 hover:bg-gray-500 text-white rounded shadow"
+                                        type="button" variant="secondary" size="sm"
                                     >
                                         Clear
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
 

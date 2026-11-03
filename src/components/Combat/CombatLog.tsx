@@ -36,6 +36,8 @@
 
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { WindowFrame } from '../ui/WindowFrame';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE, BTN_ICON } from '../../styles/buttonStyles';
 import type { CombatLogEntry } from '../../types/combat';
 import {
   type CombatMessage,
@@ -405,7 +407,7 @@ export const CombatLog: React.FC<CombatLogProps> = ({
             role="tab"
             aria-selected={isActive}
             onClick={() => handleSelectChannel(tab.id)}
-            className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors whitespace-nowrap ${
+            className={`${BTN_FOCUS_VISIBLE} px-2 py-0.5 rounded text-[11px] font-medium transition-colors whitespace-nowrap ${
               isActive
                 ? 'bg-amber-500/20 border border-amber-500/50 text-amber-200'
                 : 'text-gray-400 hover:text-gray-200 hover:bg-slate-800/60'
@@ -518,7 +520,7 @@ export const CombatLog: React.FC<CombatLogProps> = ({
           {!isExpanded && (
             <button
               onClick={() => setIsExpanded(true)}
-              className="flex h-11 w-11 items-center justify-center rounded text-gray-400 transition-colors hover:bg-gray-700 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
+              className={`${BTN_ICON} h-11 w-11 text-gray-400 hover:bg-gray-700 hover:text-white`}
               title="Pop out into resizable window"
               aria-label="Pop out Combat Log into resizable window"
             >

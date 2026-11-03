@@ -17,6 +17,8 @@ import { generateTownRoster } from '../../systems/worldforge/roster/generateTown
 import { groundSurfaceY, type GroundWorld } from '../../systems/worldforge/bridge/groundChunkLoader';
 import GroundAgents from '../World3D/GroundAgents';
 import { PerfProbe } from '../../devtools/perf';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 const FT = 0.3048;
 const SYLL = ['ar', 'be', 'cor', 'dun', 'el', 'fen', 'gor', 'hal', 'kel', 'mor', 'tan', 'wyn'];
@@ -119,7 +121,7 @@ const AgentSim3DPreview: React.FC = () => {
           <strong style={{ width: 60, fontVariantNumeric: 'tabular-nums' }}>{hh}:{mm}</strong>
           <input type="range" min={0} max={24} step={0.05} value={clock} onChange={(e) => setClock(Number(e.target.value))} style={{ flex: 1 }} data-testid="agentsim3d-clock" />
           {[3, 6, 7.5, 12, 18].map((h) => (
-            <button key={h} onClick={() => setClock(h)} style={{ padding: '4px 10px', borderRadius: 6, background: '#334155', color: 'white', border: 'none', cursor: 'pointer', fontSize: 12 }}>
+            <button key={h} className={BTN_FOCUS_VISIBLE} onClick={() => setClock(h)} style={{ padding: '4px 10px', borderRadius: 6, background: '#334155', color: 'white', border: 'none', cursor: 'pointer', fontSize: 12 }}>
               {String(Math.floor(h)).padStart(2, '0')}:{String(Math.floor((h % 1) * 60)).padStart(2, '0')}
             </button>
           ))}

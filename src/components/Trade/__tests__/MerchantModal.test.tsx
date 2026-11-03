@@ -39,6 +39,10 @@ vi.mock('framer-motion', () => ({
     div: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement> & { children?: React.ReactNode }) => (
       <div {...props}>{children}</div>
     ),
+    // GG-378: the shared Button renders motion.button. The mock drops the motion-only props.
+    button: ({ children, whileTap: _whileTap, transition: _transition, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children?: React.ReactNode; whileTap?: unknown; transition?: unknown }) => (
+      <button {...props}>{children}</button>
+    ),
   },
   AnimatePresence: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
 }));

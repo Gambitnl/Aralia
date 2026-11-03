@@ -42,6 +42,9 @@ import type {CompanionStartingLead} from '../../systems/companions/companionWorl
 import type { CellTraits } from './atlasSvg';
 import type { FmgWorldResult } from '../../systems/worldforge/fmg/generateWorld';
 import { useOffThreadBridgeAtlas } from './useOffThreadBridgeAtlas';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_FOCUS_VISIBLE, BTN_ROW } from '../../styles/buttonStyles';
 import { listSelectableTowns, groupTownsByState, type SelectableTown } from '../../systems/worldforge/local/startTowns';
 
 export interface StartPointSelectionProps {
@@ -451,9 +454,9 @@ const StartPointChooser: React.FC<StartPointSelectionProps & { world: FmgWorldRe
         </div>
 
         <div role="group" aria-label="Starting town view" style={{display:'flex',gap:8,flexShrink:0}}>
-          <button type="button" aria-pressed={!showPublicPlans} onClick={() => {setShowPublicPlans(false);setSearch('');setRegionFilter(ALL_REGIONS);setTownPage(0);}}
+          <button type="button" className={BTN_FOCUS_VISIBLE} aria-pressed={!showPublicPlans} onClick={() => {setShowPublicPlans(false);setSearch('');setRegionFilter(ALL_REGIONS);setTownPage(0);}}
             style={{minHeight:40,padding:'6px 10px',border:'1px solid #334155',borderRadius:6,background:!showPublicPlans?'#1d4ed8':'#0f172a',color:'#f1f5f9'}}>All towns</button>
-          <button type="button" aria-pressed={showPublicPlans} onClick={() => {setSearch('');setRegionFilter(ALL_REGIONS);setTownPage(0);setShowPublicPlans(true);}}
+          <button type="button" className={BTN_FOCUS_VISIBLE} aria-pressed={showPublicPlans} onClick={() => {setSearch('');setRegionFilter(ALL_REGIONS);setTownPage(0);setShowPublicPlans(true);}}
             style={{minHeight:40,padding:'6px 10px',border:'1px solid #334155',borderRadius:6,background:showPublicPlans?'#1d4ed8':'#0f172a',color:'#f1f5f9'}}>People with plans</button>
         </div>
         {showPublicPlans && <div style={{fontSize:12,color:'#cbd5e1',flexShrink:0}}>
@@ -553,7 +556,7 @@ const StartPointChooser: React.FC<StartPointSelectionProps & { world: FmgWorldRe
           {renderedTowns.map((t) => {
             const isSel = t.burgIndex === selectedIndex;
             return (
-              <button
+              <button className={BTN_ROW}
                 key={t.burgIndex}
                 id={`start-town-opt-${t.burgIndex}`}
                 data-testid="start-town-row"
@@ -598,25 +601,25 @@ const StartPointChooser: React.FC<StartPointSelectionProps & { world: FmgWorldRe
             aria-label="Town result pages"
             style={{ order: isCompactLayout ? 2 : undefined, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}
           >
-            <button
+            <Button
               type="button"
               onClick={() => showTownPage(safeTownPage - 1)}
               disabled={safeTownPage === 0}
-              style={{ minHeight: 44, padding: '8px 12px', borderRadius: 6, border: '1px solid #334155', background: '#1e293b', color: '#f1f5f9' }}
+              variant="secondary" style={{ minHeight: 44 }}
             >
               Previous towns
-            </button>
+            </Button>
             <span aria-hidden style={{ color: '#94a3b8', fontSize: 12 }}>
               {safeTownPage + 1} of {townPageCount}
             </span>
-            <button
+            <Button
               type="button"
               onClick={() => showTownPage(safeTownPage + 1)}
               disabled={safeTownPage >= townPageCount - 1}
-              style={{ minHeight: 44, padding: '8px 12px', borderRadius: 6, border: '1px solid #334155', background: '#1e293b', color: '#f1f5f9' }}
+              variant="secondary" style={{ minHeight: 44 }}
             >
               Next towns
-            </button>
+            </Button>
           </nav>
         )}
 
@@ -641,17 +644,17 @@ const StartPointChooser: React.FC<StartPointSelectionProps & { world: FmgWorldRe
                 {activeTown.stateName} · {formatPopulation(activeTown.population)} inhabitants{activeTown.isPort ? ' · port' : ''}
               </div>
             </div>
-            <button
-              data-testid="start-highlight"
+            <Button
+              type="button" variant="secondary" size="sm" data-testid="start-highlight"
               onClick={triggerPulse}
               title="Flash this town's location on the map"
               style={{
-                flexShrink: 0, minHeight: 44, padding: '8px 10px', borderRadius: 6, border: '1px solid #7f1d1d',
-                background: '#1f2937', color: '#fca5a5', cursor: 'pointer', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap',
+                flexShrink: 0, minHeight: 44,
+                whiteSpace: 'nowrap',
               }}
             >
               ◎ Highlight
-            </button>
+            </Button>
           </div>
         )}
 
@@ -681,36 +684,36 @@ const StartPointChooser: React.FC<StartPointSelectionProps & { world: FmgWorldRe
           }}
         >
           {onBack && (
-            <button
-              onClick={onBack}
-              style={{ minHeight: 44, padding: isCompactLayout ? '8px 10px' : '10px 14px', borderRadius: 6, background: '#334155', color: 'white', border: 'none', cursor: 'pointer', minWidth: 0 }}
+            <Button
+              type="button" variant="secondary" onClick={onBack}
+              style={{ minHeight: 44, minWidth: 0 }}
             >
               Back
-            </button>
+            </Button>
           )}
-          <button
-            data-testid="start-surprise"
+          <Button
+            type="button" variant="secondary" data-testid="start-surprise"
             onClick={surpriseMe}
             title="Pick a random town"
-            style={{ minHeight: 44, padding: isCompactLayout ? '8px 10px' : '10px 14px', borderRadius: 6, background: '#334155', color: 'white', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', minWidth: 0 }}
+            style={{ minHeight: 44, whiteSpace: 'nowrap', minWidth: 0 }}
           >
             🎲 Surprise me
-          </button>
-          <button
-            data-testid="start-confirm"
+          </Button>
+          <Button
+            type="button" variant="success" data-testid="start-confirm"
             onClick={confirm}
             disabled={!activeTown}
             style={{
-              flex: 1, minHeight: 44, padding: isCompactLayout ? '8px 10px' : '10px 14px', borderRadius: 6, border: 'none', fontWeight: 700,
-              background: activeTown ? '#16a34a' : '#1e293b', color: activeTown ? 'white' : '#64748b',
-              cursor: activeTown ? 'pointer' : 'not-allowed',
+              flex: 1, minHeight: 44,
+              // GG-378: <Button> sets the colors, padding, cursor and disabled look.
+              // Only the layout stays inline.
               gridColumn: fullWidthConfirm ? '1 / -1' : undefined,
               gridRow: isCompactLayout ? 1 : undefined,
               minWidth: 0,
             }}
           >
             {activeTown ? `Begin in ${activeTown.name} →` : 'Select a town'}
-          </button>
+          </Button>
         </div>
       </aside>
     </div>

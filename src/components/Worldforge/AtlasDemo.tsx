@@ -64,6 +64,9 @@ import {
 import { useOptionalGameState } from "../../state/GameContext";
 import { acceptedGroundPoint, quoteLocalGroundJourney, type LocalJourneyQuote } from "../../systems/worldforge/travel/localGroundJourney";
 import { LocalJourneyPreview } from "./LocalJourneyPreview";
+// GG-378: shared button style and control roles.
+import { Button } from "../ui/Button";
+import { BTN_FOCUS_VISIBLE } from "../../styles/buttonStyles";
 import type { DiscoveredHiddenSite } from "../../types/state";
 import { discoveredSiteBelongsToWorld } from "../../systems/worldforge/leaf3d/atlasGroundContinuity";
 
@@ -792,7 +795,7 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
           <button
             type="button"
             onClick={() => setPanelOpen((o) => !o)}
-            className="pointer-events-auto self-start flex min-h-11 items-center gap-2 bg-gray-900/85 backdrop-blur-md border border-gray-800 hover:border-gray-700 text-gray-300 hover:text-white px-3 py-2 rounded-lg shadow-xl transition-all active:scale-95"
+            className={`${BTN_FOCUS_VISIBLE} pointer-events-auto self-start flex min-h-11 items-center gap-2 bg-gray-900/85 backdrop-blur-md border border-gray-800 hover:border-gray-700 text-gray-300 hover:text-white px-3 py-2 rounded-lg shadow-xl transition-all active:scale-95`}
             title={panelOpen ? "Collapse options" : "Expand options"}
           >
             {panelOpen ? <PanelLeftClose size={16} /> : <Menu size={16} />}
@@ -826,7 +829,7 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
                     <button
                       type="button"
                       onClick={randomizeSeed}
-                      className="flex min-h-11 min-w-11 items-center justify-center bg-gray-800 border border-gray-700 hover:bg-gray-700 text-gray-300 hover:text-white p-2 rounded-lg transition-all active:scale-95"
+                      className={`${BTN_FOCUS_VISIBLE} flex min-h-11 min-w-11 items-center justify-center bg-gray-800 border border-gray-700 hover:bg-gray-700 text-gray-300 hover:text-white p-2 rounded-lg transition-all active:scale-95`}
                       title="Randomize Seed"
                     >
                       <Dices size={16} />
@@ -856,7 +859,7 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
                     <button
                       type="button"
                       onClick={() => setCellsDesired(1000)}
-                      className={`min-h-11 py-2 text-xs font-mono font-bold rounded-md transition-all ${
+                      className={`${BTN_FOCUS_VISIBLE} min-h-11 py-2 text-xs font-mono font-bold rounded-md transition-all ${
                         cellsDesired === 1000
                           ? "bg-indigo-600 text-white shadow-md"
                           : "text-gray-500 hover:text-gray-300 hover:bg-gray-900/50"
@@ -867,7 +870,7 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
                     <button
                       type="button"
                       onClick={() => setCellsDesired(10000)}
-                      className={`min-h-11 py-2 text-xs font-mono font-bold rounded-md transition-all ${
+                      className={`${BTN_FOCUS_VISIBLE} min-h-11 py-2 text-xs font-mono font-bold rounded-md transition-all ${
                         cellsDesired === 10000
                           ? "bg-indigo-600 text-white shadow-md"
                           : "text-gray-500 hover:text-gray-300 hover:bg-gray-900/50"
@@ -878,13 +881,13 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
                   </div>
                 </div>
 
-                <button
+                <Button
                   type="button"
                   onClick={handleGenerate}
                   disabled={isGenerating}
-                  className="w-full min-h-11 mt-1 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 active:from-indigo-700 active:to-indigo-800 disabled:opacity-50 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer sm:mt-2"
+                  variant="primary" className="w-full min-h-11 mt-1 sm:mt-2"
                 >
-                  {isGenerating ? (
+                  <span className="flex items-center justify-center gap-2">{isGenerating ? (
                     <>
                       <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       Generating...
@@ -894,8 +897,8 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
                       <Sparkles size={16} />
                       Generate World
                     </>
-                  )}
-                </button>
+                  )}</span>
+                </Button>
               </div>
               )}
 
@@ -1116,14 +1119,14 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
                 )}
               </div>
 
-              <button
+              <Button
                 type="button"
                 onClick={viewMode === "ground" ? handleGroundAscend : viewMode === "local" ? handleLocalAscend : handleAscend}
-                className="w-full mt-2 bg-gray-800 border border-gray-700 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                variant="secondary" className="w-full mt-2"
               >
-                <ArrowLeft size={16} />
-                {viewMode === "ground" ? "Return to Local Map" : viewMode === "local" ? "Ascend to Region" : "Ascend to World Map"}
-              </button>
+                <span className="flex items-center justify-center gap-2"><ArrowLeft size={16} />
+                {viewMode === "ground" ? "Return to Local Map" : viewMode === "local" ? "Ascend to Region" : "Ascend to World Map"}</span>
+              </Button>
             </div>
           )}
             </div>
@@ -1217,7 +1220,7 @@ const AtlasDemo: React.FC<AtlasDemoProps> = ({
               data-testid="worldforge-travel-toggle"
               aria-pressed={travelMode}
               onClick={() => setTravelMode((t) => !t)}
-              className={`absolute top-3 left-1/2 -translate-x-1/2 z-20 flex min-h-11 items-center gap-2 px-4 py-2 rounded-full text-xs font-bold shadow-xl transition-all active:scale-95 border ${
+              className={`${BTN_FOCUS_VISIBLE} absolute top-3 left-1/2 -translate-x-1/2 z-20 flex min-h-11 items-center gap-2 px-4 py-2 rounded-full text-xs font-bold shadow-xl transition-all active:scale-95 border ${
                 travelMode
                   ? "bg-rose-600 hover:bg-rose-500 text-white border-rose-400"
                   : "bg-gray-900/85 backdrop-blur-md hover:bg-gray-800 text-gray-200 border-gray-700"

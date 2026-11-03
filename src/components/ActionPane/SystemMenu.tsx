@@ -28,6 +28,8 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useKeyboardNavigation } from '../../hooks/useKeyboardNavigation';
 import { ActionButton } from './ActionButton';
 import { UI_ID } from '../../styles/uiIds';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 // MENU1 — Semantic menu-item coloring.
 // The shared ActionButton color-codes by action.type, producing an unrelated
@@ -307,7 +309,7 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
         ref={triggerRef}
         onClick={handleToggleMenu}
         disabled={disabled}
-        className="flex min-h-11 items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg shadow transition-colors"
+        className={`${BTN_FOCUS_VISIBLE} flex min-h-11 items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg shadow transition-colors`}
         aria-haspopup="menu"
         aria-expanded={isMenuOpen}
       >

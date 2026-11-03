@@ -1,4 +1,6 @@
 import React from 'react';
+// GG-378: shared button style and control roles.
+import { BTN_TEXT_LINK } from '../../styles/buttonStyles';
 
 // Category icons mapping - returns SVG icons for each glossary category
 export const getCategoryIcon = (category: string): React.ReactNode => {
@@ -199,7 +201,7 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({
       <button
         type="button"
         onClick={onNavigateToCategory}
-        className="min-h-11 px-2 py-2 hover:text-sky-300 transition-colors inline-flex items-center gap-1 rounded"
+        className={`min-h-11 px-2 py-2 hover:text-sky-300 inline-flex items-center gap-1 ${BTN_TEXT_LINK}`}
       >
         {getCategoryIcon(category)}
         <span>{category}</span>
@@ -211,7 +213,7 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({
           <button
             type="button"
             onClick={() => onNavigateToParent?.(index)}
-            className="min-h-11 px-2 py-2 hover:text-sky-300 transition-colors truncate max-w-[150px] rounded"
+            className={`min-h-11 px-2 py-2 hover:text-sky-300 truncate max-w-[150px] ${BTN_TEXT_LINK}`}
             title={parent}
           >
             {parent}

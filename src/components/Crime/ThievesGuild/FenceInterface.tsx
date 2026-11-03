@@ -21,6 +21,9 @@ import { GuildService } from '../../../types/crime';
 import { Item, ItemRarity, ItemRarityDefinitions } from '../../../types/items';
 import { WindowFrame } from '../../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../../styles/uiIds';
+// GG-378: shared button style and control roles.
+import { Button } from '../../ui/Button';
+import { BTN_CHIP } from '../../../styles/buttonStyles';
 
 /**
  * FenceInterface is the Thieves' Guild selling screen for suspicious goods.
@@ -131,19 +134,19 @@ const FenceInterface: React.FC<FenceInterfaceProps> = ({ service, onClose }) => 
                         <div className="p-2 border-b border-gray-800 flex gap-2">
                             <button
                                 onClick={() => setFilter('all')}
-                                className={`px-2 py-1 text-xs rounded ${filter === 'all' ? 'bg-amber-900 text-amber-100' : 'bg-gray-800 text-gray-400'}`}
+                                className={`${BTN_CHIP} ${filter ==='all' ? 'bg-amber-900 text-amber-100' : 'bg-gray-800 text-gray-400'}`}
                             >
                                 All
                             </button>
                             <button
                                 onClick={() => setFilter('treasures')}
-                                className={`px-2 py-1 text-xs rounded ${filter === 'treasures' ? 'bg-amber-900 text-amber-100' : 'bg-gray-800 text-gray-400'}`}
+                                className={`${BTN_CHIP} ${filter ==='treasures' ? 'bg-amber-900 text-amber-100' : 'bg-gray-800 text-gray-400'}`}
                             >
                                 Treasures
                             </button>
                             <button
                                 onClick={() => setFilter('weapons')}
-                                className={`px-2 py-1 text-xs rounded ${filter === 'weapons' ? 'bg-amber-900 text-amber-100' : 'bg-gray-800 text-gray-400'}`}
+                                className={`${BTN_CHIP} ${filter ==='weapons' ? 'bg-amber-900 text-amber-100' : 'bg-gray-800 text-gray-400'}`}
                             >
                                 Weapons
                             </button>
@@ -199,12 +202,14 @@ const FenceInterface: React.FC<FenceInterfaceProps> = ({ service, onClose }) => 
                                     </div>
                                 </div>
 
-                                <button
+                                <Button
+                                    variant="action"
+                                    size="lg"
                                     onClick={handleSell}
-                                    className="w-full py-3 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded shadow-lg transition-transform active:scale-95"
+                                    className="w-full"
                                 >
                                     Sell Item
-                                </button>
+                                </Button>
                             </div>
                         ) : (
                             <div className="text-center text-gray-400">

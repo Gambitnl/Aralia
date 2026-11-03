@@ -27,6 +27,8 @@
 import React from 'react';
 import { useMapSurface } from '../../hooks/useWorldViewMode';
 import type { MapSurface } from '../../types';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 const OPTIONS: Array<{ value: MapSurface; label: string; accessibleName: string }> = [
   { value: 'classic', label: 'Play', accessibleName: 'Show game view' },
@@ -57,7 +59,7 @@ const MapSurfaceToggle: React.FC = () => {
             aria-label={accessibleName}
             title={label}
             onClick={() => setSurface(value)}
-            className={`flex min-h-11 min-w-11 items-center justify-center rounded px-2 font-outfit text-[11px] transition-colors sm:px-3 sm:text-xs ${
+            className={`${BTN_FOCUS_VISIBLE} flex min-h-11 min-w-11 items-center justify-center rounded px-2 font-outfit text-[11px] transition-colors sm:px-3 sm:text-xs ${
               active
                 ? 'bg-slate-600 font-semibold text-gray-100'
                 : 'bg-transparent font-normal text-gray-400 hover:text-gray-200'

@@ -13,6 +13,9 @@ import React, { useState } from 'react';
 import { MissingChoice } from '../types';
 import { ModalDialog } from './ModalDialog';
 import { UI_ID } from '../../styles/uiIds';
+// GG-378: shared button style and control roles.
+import { Button } from './Button';
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 interface MissingChoiceModalProps {
   isOpen: boolean;
@@ -70,14 +73,14 @@ const MissingChoiceModal: React.FC<MissingChoiceModalProps> = ({
       testId={UI_ID.MISSING_CHOICE_MODAL}
       footer={
         <>
-          <button onClick={onClose} className="px-4 py-2 text-gray-400 hover:text-white">Cancel</button>
-          <button
+          <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button
             onClick={handleConfirm}
             disabled={!resolvedSelectedOptionId}
-            className="px-6 py-2 bg-amber-600 hover:bg-amber-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-lg shadow"
+            type="button" variant="action"
           >
             Confirm
-          </button>
+          </Button>
         </>
       }
     >
@@ -89,7 +92,7 @@ const MissingChoiceModal: React.FC<MissingChoiceModalProps> = ({
           <button
             key={option.id}
             onClick={() => setSelectedOption({ choiceId: missingChoice.id, optionId: option.id })}
-            className={`w-full text-left p-3 rounded-lg border transition-all ${
+            className={`${BTN_FOCUS_VISIBLE} w-full text-left p-3 rounded-lg border transition-all ${
               resolvedSelectedOptionId === option.id
                 ? 'bg-amber-600/30 border-amber-500 ring-1 ring-amber-500'
                 : 'bg-gray-700/50 border-gray-600 hover:bg-gray-700'

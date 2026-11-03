@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { HeistPlan } from '../../../types/crime';
 import { WindowFrame } from '../../ui/WindowFrame';
+// GG-378: shared button style and control roles.
+import { Button } from '../../ui/Button';
+import { BTN_ROW } from '../../../styles/buttonStyles';
 
 type HeistApproach = {
     type: string;
@@ -43,7 +46,7 @@ export const HeistPlanningModal: React.FC<HeistPlanningModalProps> = ({
                                         setSelectedType(approach.type);
                                         onSelectApproach(approach);
                                     }}
-                                    className={`rounded-lg border p-4 text-left transition-colors ${
+                                    className={`${BTN_ROW} rounded-lg border p-4 ${
                                         selectedType === approach.type
                                             ? 'border-amber-500 bg-amber-900/50'
                                             : 'border-gray-600 bg-gray-800 hover:bg-gray-700'
@@ -75,19 +78,19 @@ export const HeistPlanningModal: React.FC<HeistPlanningModalProps> = ({
                 </div>
 
                 <div data-testid="heist-planning-footer" className="flex flex-wrap justify-end gap-2 border-t border-gray-700 bg-gray-950/60 p-4">
-                    <button 
+                    <Button
+                        variant="secondary"
                         onClick={onClose}
-                        className="rounded bg-gray-700 px-4 py-2 text-white hover:bg-gray-600"
                     >
                         Cancel
-                    </button>
-                    <button 
+                    </Button>
+                    <Button
+                        variant="action"
                         onClick={onStartHeist}
                         disabled={!selectedType}
-                        className="rounded bg-amber-600 px-6 py-2 font-bold text-white hover:bg-amber-500 disabled:bg-gray-600 disabled:text-gray-400"
                     >
                         Begin Heist
-                    </button>
+                    </Button>
                 </div>
             </div>
         </WindowFrame>

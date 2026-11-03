@@ -8,6 +8,8 @@ import { motion } from 'framer-motion';
 import { Class as CharClass, Item } from '../../types';
 import { WEAPONS_DATA, MASTERY_DATA } from '../../constants';
 import { CreationStepLayout } from './ui/CreationStepLayout';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 interface WeaponMasterySelectionProps {
   charClass: CharClass;
@@ -226,7 +228,7 @@ const WeaponMasterySelection: React.FC<WeaponMasterySelectionProps> = ({
               <button 
                 key={mode.id}
                 onClick={() => setViewMode(mode.id as ViewMode)} 
-                className={`px-3 py-1 text-[11px] font-bold uppercase tracking-wider rounded-md transition-all border ${
+                className={`${BTN_FOCUS_VISIBLE} px-3 py-1 text-[11px] font-bold uppercase tracking-wider rounded-md transition-all border ${
                   viewMode === mode.id 
                     ? 'bg-amber-900/40 border-amber-600 text-amber-300 shadow-sm' 
                     : 'bg-gray-800 border-gray-700 text-gray-500 hover:text-gray-300 hover:border-gray-600'

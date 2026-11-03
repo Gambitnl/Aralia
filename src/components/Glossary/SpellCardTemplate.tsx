@@ -16,6 +16,8 @@
 
 import React from 'react';
 import GlossaryTooltip from './GlossaryTooltip';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 /**
  * Spell data structure from V2 JSON schema
@@ -524,7 +526,7 @@ const renderDescriptionWithRuleChips = (
                 >
                     <button
                         type="button"
-                        className="spell-card-tag inline-flex align-middle mx-0.5 cursor-pointer hover:bg-sky-700/60 focus:outline-none focus:ring-1 focus:ring-sky-400"
+                        className={`spell-card-tag inline-flex align-middle mx-0.5 cursor-pointer hover:bg-sky-700/60 ${BTN_FOCUS_VISIBLE}`}
                     >
                         {matchedRule.label}
                     </button>
@@ -581,7 +583,7 @@ const SpellReferencedRuleChips: React.FC<{
                         >
                             <button
                                 type="button"
-                                className="spell-card-tag cursor-pointer hover:bg-sky-700/60 focus:outline-none focus:ring-1 focus:ring-sky-400"
+                                className={`spell-card-tag cursor-pointer hover:bg-sky-700/60 ${BTN_FOCUS_VISIBLE}`}
                             >
                                 {tagChipText}
                             </button>

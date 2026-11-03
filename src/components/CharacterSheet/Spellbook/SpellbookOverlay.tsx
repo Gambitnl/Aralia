@@ -33,6 +33,8 @@ import SpellSlotDisplay from './SpellSlotDisplay';
 import CastSpellControls from './CastSpellControls';
 import SpellDetailPane from './SpellDetailPane';
 import { getPreparedSpellsAffectingLimit, isRacialSpellLockedForPreparation, getMaxPreparedSpells } from '../../../utils/character/characterUtils';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../../styles/buttonStyles';
 
 // Casters that pick spells permanently (no daily preparation step).
 const KNOWN_CASTER_CLASS_IDS = ['bard', 'sorcerer', 'warlock', 'ranger'];
@@ -190,7 +192,7 @@ const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, 
                 <button
                   key={level}
                   onClick={() => setCurrentLevel(level)}
-                  className={`px-2.5 py-1 rounded text-xs font-medium transition-all ${currentLevel === level
+                  className={`${BTN_FOCUS_VISIBLE} px-2.5 py-1 rounded text-xs font-medium transition-all ${currentLevel === level
                       ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/20'
                       : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white'
                     }`}
@@ -248,7 +250,7 @@ const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, 
                         {/* Prepare/Unprepare button - only for leveled spells */}
                         {spell.level > 0 && isKnown && (
                           <button
-                            className={`opacity-0 group-hover:opacity-100 px-2 py-0.5 text-[10px] font-bold uppercase rounded transition-all ${isPrepared && !isLocked
+                            className={`${BTN_FOCUS_VISIBLE} opacity-0 group-hover:opacity-100 focus-visible:opacity-100 px-2 py-0.5 text-[10px] font-bold uppercase rounded transition-all ${isPrepared && !isLocked
                                 ? 'bg-slate-600 text-slate-200 hover:bg-slate-500'
                                 : isAtPrepLimit && !isPrepared
                                   ? 'bg-slate-700 text-slate-500 cursor-not-allowed'

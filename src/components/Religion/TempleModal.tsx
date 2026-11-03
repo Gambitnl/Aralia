@@ -25,6 +25,8 @@ import { DEITIES } from '../../data/deities';
 import { getDivineStanding } from '../../utils/world';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
 
 // ============================================================================
 // Holy Symbol Glyphs
@@ -214,19 +216,15 @@ const TempleModal: React.FC<TempleModalProps> = ({
                                                 <span className={`font-cinzel font-bold ${canAfford ? 'text-amber-400' : 'text-red-400'}`}>
                                                     {formatGpAsCoins(cost)}
                                                 </span>
-                                                <button
+                                                <Button
+                                                    variant="action"
+                                                    size="sm"
                                                     onClick={() => handleService(service)}
                                                     disabled={isLocked || !canAfford}
-                                                    className={`
-                                                        px-4 py-1.5 rounded text-sm font-bold uppercase tracking-wider transition-colors
-                                                        ${isLocked || !canAfford
-                                                            ? 'bg-gray-800 text-gray-600 cursor-not-allowed border border-gray-700'
-                                                            : 'bg-amber-700 hover:bg-amber-600 text-white shadow-lg shadow-amber-900/20'
-                                                        }
-                                                    `}
+                                                    className="uppercase tracking-wider"
                                                 >
                                                     {isLocked ? 'Locked' : 'Partake'}
-                                                </button>
+                                                </Button>
                                             </div>
                                         </div>
                                     </div>

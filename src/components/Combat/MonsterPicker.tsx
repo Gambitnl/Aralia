@@ -2,6 +2,8 @@ import React, { useMemo, useState } from 'react';
 import { useBestiary, BestiaryEntry } from '../../hooks/data/useBestiary';
 import { registerMonster } from '../../data/adapters/runtimeMonsterRegistry';
 import { crToXp } from '../../utils/combat/encounterDifficulty';
+// GG-378: shared button style and control roles.
+import { BTN_ROW } from '../../styles/buttonStyles';
 
 export interface PickedMonster {
   name: string;
@@ -109,7 +111,7 @@ const MonsterPicker: React.FC<MonsterPickerProps> = ({ onAdd }) => {
           <button
             key={`${entry.name}-${entry.source}`}
             onClick={() => handleAdd(entry)}
-            className="w-full flex justify-between items-center px-3 py-1.5 rounded bg-gray-700/60 hover:bg-amber-900/40 border border-gray-600 hover:border-amber-500 text-left transition-colors"
+            className={`${BTN_ROW} w-full flex justify-between items-center px-3 py-1.5 rounded bg-gray-700/60 hover:bg-amber-900/40 border border-gray-600 hover:border-amber-500`}
           >
             <span className="text-sm text-white font-medium truncate">{entry.name}</span>
             <span className="text-xs text-gray-400 shrink-0 ml-2">

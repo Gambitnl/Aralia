@@ -26,6 +26,8 @@ import {
   TableHeader,
   TableRow,
 } from '../ui/Table';
+// GG-378: shared control roles; each screen adds only its state colors.
+import { BTN_CLEAR_INPUT, BTN_TERM_LINK } from '../../styles/buttonStyles';
 
 // ============================================================================
 // Props & Types
@@ -100,7 +102,7 @@ export const WeaponMasteryTable: React.FC<WeaponMasteryTableProps> = ({
               <button
                 type="button"
                 onClick={() => setSearchTerm('')}
-                className="absolute right-2.5 top-1.5 text-gray-400 hover:text-gray-200 text-xs"
+                className={`absolute right-2.5 top-1.5 ${BTN_CLEAR_INPUT}`}
                 aria-label="Clear mastery search"
               >
                 ✕
@@ -190,7 +192,7 @@ export const WeaponMasteryTable: React.FC<WeaponMasteryTableProps> = ({
                             key={termId}
                             type="button"
                             onClick={() => onNavigate?.(termId)}
-                            className="text-[10px] text-sky-400 hover:text-sky-200 bg-sky-900/40 hover:bg-sky-800/60 border border-sky-600/30 px-1.5 py-0.5 rounded transition-colors"
+                            className={BTN_TERM_LINK}
                           >
                             {termId.replace(/_/g, ' ')}
                           </button>

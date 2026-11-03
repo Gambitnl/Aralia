@@ -30,6 +30,9 @@ import { PlayerCharacter, HitPointDiceSpendMap, HitPointDiceSpend, HitPointDiceP
 import { buildHitPointDicePools, getAbilityModifierValue } from '../../utils/character';
 import { ModalDialog } from './ModalDialog';
 import { getShortRestTiming } from '../../systems/gameplay/restTiming';
+// GG-378: shared button style and control roles.
+import { Button } from './Button';
+import { BTN_ICON } from '../../styles/buttonStyles';
 
 interface RestModalProps {
   isOpen: boolean;
@@ -134,7 +137,7 @@ const RestModal: React.FC<RestModalProps> = ({ isOpen, party, onClose, onConfirm
       </h2>
       <button
         onClick={close}
-        className="flex h-11 w-11 items-center justify-center rounded-md text-gray-400 transition-colors hover:text-white focus:outline-none focus:ring-2 focus:ring-sky-400"
+        className={`${BTN_ICON} h-11 w-11 text-gray-400 hover:text-white`}
         aria-label="Close short rest"
         type="button"
       >
@@ -145,21 +148,21 @@ const RestModal: React.FC<RestModalProps> = ({ isOpen, party, onClose, onConfirm
 
   const footer = (
     <>
-      <button
+      <Button
         onClick={close}
-        className="min-h-11 flex-1 bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg"
+        variant="secondary" className="min-h-11 flex-1"
         type="button"
       >
         Cancel
-      </button>
-      <button
+      </Button>
+      <Button
         onClick={handleConfirm}
         disabled={busy || Boolean(restError)}
-        className="min-h-11 flex-1 bg-amber-600 hover:bg-amber-500 disabled:bg-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-semibold py-2 px-4 rounded-lg"
+        variant="action" className="min-h-11 flex-1"
         type="button"
       >
         {busy ? 'Resting…' : 'Begin Rest'}
-      </button>
+      </Button>
     </>
   );
 
@@ -254,7 +257,7 @@ const RestModal: React.FC<RestModalProps> = ({ isOpen, party, onClose, onConfirm
                         <div className="ml-auto flex items-center gap-2">
                           <button
                             type="button"
-                            className="h-11 w-11 rounded bg-gray-700 text-gray-200 hover:bg-gray-600 disabled:opacity-40"
+                            className={`${BTN_ICON} h-11 w-11 bg-gray-700 text-gray-200 hover:bg-gray-600 disabled:opacity-40`}
                             onClick={() => updateSpend(characterId, pool, -1)}
                             disabled={busy || atMin}
                             aria-label={`Spend fewer d${pool.die} for ${member.name}`}
@@ -264,7 +267,7 @@ const RestModal: React.FC<RestModalProps> = ({ isOpen, party, onClose, onConfirm
                           <div className="w-8 text-center text-sm text-gray-100">{selected}</div>
                           <button
                             type="button"
-                            className="h-11 w-11 rounded bg-gray-700 text-gray-200 hover:bg-gray-600 disabled:opacity-40"
+                            className={`${BTN_ICON} h-11 w-11 bg-gray-700 text-gray-200 hover:bg-gray-600 disabled:opacity-40`}
                             onClick={() => updateSpend(characterId, pool, 1)}
                             disabled={busy || atMax}
                             aria-label={`Spend more d${pool.die} for ${member.name}`}

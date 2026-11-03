@@ -41,6 +41,12 @@ vi.mock('framer-motion', () => ({
     div: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement> & { children?: React.ReactNode }) => (
       <div {...props}>{children}</div>
     ),
+    // GG-378: LevelUpModal and FeatSelection use the shared <Button>, which renders motion.button.
+    // Drop the motion-only props so the DOM gets plain button attributes.
+    button: ({ children, whileTap: _whileTap, whileHover: _whileHover, transition: _transition, ...props }:
+      React.ButtonHTMLAttributes<HTMLButtonElement> & { children?: React.ReactNode; whileTap?: unknown; whileHover?: unknown; transition?: unknown }) => (
+      <button {...props}>{children}</button>
+    ),
   },
   AnimatePresence: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
 }));

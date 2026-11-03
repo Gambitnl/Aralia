@@ -58,6 +58,9 @@ import { WINDOW_KEYS } from '../../styles/uiIds';
 import { BusinessState, WorldBusiness } from '../../types/business';
 import { canPurchaseBusiness } from '../../systems/economy/BusinessAcquisition';
 import { formatGpAsCoins } from '../../utils/character';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_TAB } from '../../styles/buttonStyles';
 
 // ============================================================================
 // Props & Types
@@ -165,7 +168,7 @@ export const RealEstateModal: React.FC<RealEstateModalProps> = ({
                     <button
                         type="button"
                         onClick={() => setActiveTab('holdings')}
-                        className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
+                        className={`${BTN_TAB} flex items-center gap-1.5 cursor-pointer ${
                             activeTab === 'holdings'
                                 ? 'bg-amber-600 text-white shadow-sm'
                                 : 'bg-slate-800/70 text-slate-300 hover:bg-slate-700'
@@ -178,7 +181,7 @@ export const RealEstateModal: React.FC<RealEstateModalProps> = ({
                     <button
                         type="button"
                         onClick={() => setActiveTab('market')}
-                        className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
+                        className={`${BTN_TAB} flex items-center gap-1.5 cursor-pointer ${
                             activeTab === 'market'
                                 ? 'bg-amber-600 text-white shadow-sm'
                                 : 'bg-slate-800/70 text-slate-300 hover:bg-slate-700'
@@ -268,14 +271,16 @@ export const RealEstateModal: React.FC<RealEstateModalProps> = ({
                                                     <p className="text-xs text-slate-400 mt-1 capitalize">{prop.businessType.replaceAll('_', ' ')} in {prop.locationId}</p>
                                                 </div>
 
-                                                <button
+                                                <Button
                                                     type="button"
+                                                    variant="action"
+                                                    size="sm"
                                                     onClick={() => handleBuyProperty(prop)}
                                                     disabled={!canAfford}
-                                                    className="w-full py-2 px-3 rounded-lg text-xs font-bold bg-amber-600 hover:bg-amber-500 text-slate-950 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                                                    className="w-full"
                                                 >
                                                     {canAfford ? `Acquire Deed (${price} GP)` : `Requires ${price} GP`}
-                                                </button>
+                                                </Button>
                                             </div>
                                         );
                                     })}

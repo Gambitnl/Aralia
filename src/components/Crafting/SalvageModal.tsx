@@ -57,6 +57,9 @@ import { Item, PlayerCharacter } from '../../types';
 import { resolveCraftingCrafter, NO_CRAFTER_MESSAGE } from './crafterAdapter';
 import { formatGpAsCoins } from '../../utils/character';
 import { resolveItemAssetSrc, resolveItemVisual } from '../../utils/visuals/visualUtils';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_CHIP, BTN_ICON, BTN_ROW, BTN_TAB } from '../../styles/buttonStyles';
 
 // ============================================================================
 // Types & Yield Formulas
@@ -541,7 +544,7 @@ export const SalvageModal: React.FC<SalvageModalProps> = ({ onClose, station }) 
                                     key={tab.id}
                                     type="button"
                                     onClick={() => setSelectedCategory(tab.id)}
-                                    className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors flex items-center gap-1 cursor-pointer ${
+                                    className={`${BTN_TAB} flex items-center gap-1 cursor-pointer ${
                                         selectedCategory === tab.id
                                             ? 'bg-amber-600 text-white shadow-sm'
                                             : 'bg-slate-800/70 text-slate-300 hover:bg-slate-700'
@@ -576,7 +579,7 @@ export const SalvageModal: React.FC<SalvageModalProps> = ({ onClose, station }) 
                                                 setSelectedItemId(item.id);
                                                 setSalvageQuantity(1);
                                             }}
-                                            className={`w-full text-left p-2.5 rounded-lg border transition-all flex items-center justify-between cursor-pointer ${
+                                            className={`${BTN_ROW} w-full p-2.5 rounded-lg border flex items-center justify-between cursor-pointer ${
                                                 isSelected
                                                     ? 'bg-amber-950/40 border-amber-500/80 shadow-md ring-1 ring-amber-500/40'
                                                     : 'bg-slate-900/60 border-slate-800 hover:bg-slate-800/80 hover:border-slate-700'
@@ -675,7 +678,8 @@ export const SalvageModal: React.FC<SalvageModalProps> = ({ onClose, station }) 
                                             <button
                                                 type="button"
                                                 onClick={() => setSalvageQuantity(q => Math.max(1, q - 1))}
-                                                className="w-7 h-7 rounded bg-slate-800 text-slate-200 hover:bg-slate-700 font-bold text-sm cursor-pointer"
+                                                className={`${BTN_ICON} w-7 h-7 bg-slate-800 text-slate-200 hover:bg-slate-700 font-bold text-sm cursor-pointer`}
+                                                aria-label="Decrease salvage quantity"
                                             >
                                                 -
                                             </button>
@@ -689,14 +693,15 @@ export const SalvageModal: React.FC<SalvageModalProps> = ({ onClose, station }) 
                                                         Math.min(activeItem.quantity || 1, q + 1),
                                                     )
                                                 }
-                                                className="w-7 h-7 rounded bg-slate-800 text-slate-200 hover:bg-slate-700 font-bold text-sm cursor-pointer"
+                                                className={`${BTN_ICON} w-7 h-7 bg-slate-800 text-slate-200 hover:bg-slate-700 font-bold text-sm cursor-pointer`}
+                                                aria-label="Increase salvage quantity"
                                             >
                                                 +
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={() => setSalvageQuantity(activeItem.quantity || 1)}
-                                                className="px-2 py-1 text-xs rounded bg-slate-800 text-slate-300 hover:bg-slate-700 cursor-pointer ml-1"
+                                                className={`${BTN_CHIP} bg-slate-800 text-slate-300 hover:bg-slate-700 cursor-pointer ml-1`}
                                             >
                                                 Max
                                             </button>
@@ -705,12 +710,14 @@ export const SalvageModal: React.FC<SalvageModalProps> = ({ onClose, station }) 
                                 )}
 
                                 {/* Dismantle Action Button */}
-                                <button
+                                <Button
                                     type="button"
+                                    variant="action"
                                     onClick={handleExecuteSalvage}
                                     disabled={isProcessing || !hasCrafter || Boolean(sourceAccessError)}
-                                    className="w-full py-3 px-4 rounded-lg font-bold text-sm bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 shadow-lg shadow-amber-950/40 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full"
                                 >
+                                    <span className="flex items-center justify-center gap-2">
                                     <Flame className="w-4 h-4 text-slate-950" />
                                     <span>
                                         {!hasCrafter
@@ -719,7 +726,8 @@ export const SalvageModal: React.FC<SalvageModalProps> = ({ onClose, station }) 
                                             ? 'Dismantling Equipment...'
                                             : `Dismantle ${salvageQuantity > 1 ? `${salvageQuantity} Items` : 'Equipment'}`}
                                     </span>
-                                </button>
+                                    </span>
+                                </Button>
                             </>
                         ) : (
                             <div className="p-8 text-center text-slate-400 space-y-2 my-auto">

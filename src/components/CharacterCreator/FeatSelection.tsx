@@ -47,6 +47,9 @@ import SpellSourceSelector from './SpellSourceSelector';
 import { getSchoolIcon } from '../../utils/character';
 import { CreationStepLayout } from './ui/CreationStepLayout';
 import { SplitPaneLayout } from '../ui/SplitPaneLayout';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 import { SKILLS_DATA } from '../../data/skills';
 
 interface FeatOption extends Feat {
@@ -299,7 +302,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
                 <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">Feats</span>
                 <button
                   onClick={() => setShowEligibleOnly(v => !v)}
-                  className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-200 transition-colors"
+                  className={`${BTN_FOCUS_VISIBLE} flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-200 transition-colors`}
                   title={showEligibleOnly ? 'Show all feats' : 'Show eligible feats only'}
                 >
                   <span className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors flex-shrink-0 ${showEligibleOnly ? 'bg-amber-600' : 'bg-gray-600'}`}>
@@ -330,7 +333,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
                         setViewedFeatId(feat.id);
                         if (feat.isEligible) handleSelect(feat.id);
                       }}
-                      className={`w-full text-left px-3 py-2.5 rounded-lg transition-all duration-150 border flex flex-col gap-0.5 ${
+                      className={`${BTN_FOCUS_VISIBLE} w-full text-left px-3 py-2.5 rounded-lg transition-all duration-150 border flex flex-col gap-0.5 ${
                         isSelected && isFeatFullyConfigured
                           ? 'bg-green-900/25 border-green-600/50 shadow-sm'
                           : isSelected
@@ -375,12 +378,12 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
               {/* Skip — pinned at bottom of list pane */}
               {allowSkip && (
                 <div className="flex-shrink-0 pt-3 mt-2 border-t border-gray-700/50">
-                  <button
+                  <Button
                     onClick={handleSkip}
-                    className="w-full text-sm text-gray-500 hover:text-gray-300 py-2 rounded-lg hover:bg-gray-700/40 transition-colors"
+                    type="button" variant="ghost" size="sm" className="w-full"
                   >
                     Skip feat selection
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>
@@ -552,7 +555,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
                                 <button
                                   key={ability}
                                   onClick={() => onSetFeatChoice(selectedFeatId!, 'selectedAbilityScore', ability)}
-                                  className={`px-3 py-2 rounded border text-sm transition-colors ${
+                                  className={`${BTN_FOCUS_VISIBLE} px-3 py-2 rounded border text-sm transition-colors ${
                                     selectedASI === ability
                                       ? 'bg-amber-600 border-amber-400 text-white'
                                       : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
@@ -577,7 +580,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
                                 <button
                                   key={damageType}
                                   onClick={() => onSetFeatChoice(selectedFeatId!, 'selectedDamageType', damageType)}
-                                  className={`px-3 py-2 rounded border text-sm transition-colors ${
+                                  className={`${BTN_FOCUS_VISIBLE} px-3 py-2 rounded border text-sm transition-colors ${
                                     selectedDamageType === damageType
                                       ? 'bg-sky-700 border-sky-400 text-white'
                                       : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
@@ -607,7 +610,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
                                     key={skill.id}
                                     disabled={isKnown || (!isSkillSelected && isMaxed)}
                                     onClick={() => handleSkillToggle(skill.id)}
-                                    className={`px-2 py-1.5 rounded text-xs text-left border ${
+                                    className={`${BTN_FOCUS_VISIBLE} px-2 py-1.5 rounded text-xs text-left border ${
                                       isKnown
                                         ? 'bg-gray-800/50 border-gray-800 text-gray-600 opacity-50'
                                         : isSkillSelected

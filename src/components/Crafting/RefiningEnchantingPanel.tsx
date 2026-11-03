@@ -43,6 +43,9 @@ import {
     getMaxBatchSize,
     getRecipeReadiness,
 } from './refiningEnchantingSelectors';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_FOCUS_VISIBLE, BTN_ROW } from '../../styles/buttonStyles';
 
 // ============================================================================
 // Workshop Contract and Display Helpers
@@ -243,7 +246,7 @@ export const RefiningEnchantingPanel: React.FC<RefiningEnchantingPanelProps> = (
                         role="tab"
                         aria-selected={activeTab === 'refine'}
                         onClick={() => switchTab('refine')}
-                        className={`group flex min-h-16 items-center gap-3 rounded-lg border px-4 py-3 text-left transition-colors ${
+                        className={`${BTN_FOCUS_VISIBLE} group flex min-h-16 items-center gap-3 rounded-lg border px-4 py-3 text-left transition-colors ${
                             activeTab === 'refine'
                                 ? 'border-orange-600/70 bg-orange-950/40 text-orange-100 shadow-inner'
                                 : 'border-slate-700/70 bg-slate-900/60 text-stone-400 hover:border-orange-900/70 hover:text-stone-200'
@@ -261,7 +264,7 @@ export const RefiningEnchantingPanel: React.FC<RefiningEnchantingPanelProps> = (
                         role="tab"
                         aria-selected={activeTab === 'enchant'}
                         onClick={() => switchTab('enchant')}
-                        className={`group flex min-h-16 items-center gap-3 rounded-lg border px-4 py-3 text-left transition-colors ${
+                        className={`${BTN_FOCUS_VISIBLE} group flex min-h-16 items-center gap-3 rounded-lg border px-4 py-3 text-left transition-colors ${
                             activeTab === 'enchant'
                                 ? 'border-violet-600/70 bg-violet-950/40 text-violet-100 shadow-inner'
                                 : 'border-slate-700/70 bg-slate-900/60 text-stone-400 hover:border-violet-900/70 hover:text-stone-200'
@@ -313,7 +316,7 @@ export const RefiningEnchantingPanel: React.FC<RefiningEnchantingPanelProps> = (
                                 <button
                                     key={recipe.id}
                                     onClick={() => selectRecipe(recipe.id)}
-                                    className={`group flex w-full items-center gap-3 border-b border-slate-800/80 px-4 py-3 text-left transition-colors ${
+                                    className={`${BTN_ROW} group flex w-full items-center gap-3 border-b border-slate-800/80 px-4 py-3 ${
                                         selected
                                             ? activeTab === 'refine' ? 'bg-orange-950/35' : 'bg-violet-950/35'
                                             : 'hover:bg-slate-800/60'
@@ -454,7 +457,7 @@ export const RefiningEnchantingPanel: React.FC<RefiningEnchantingPanelProps> = (
                                                 <button
                                                     key={qty}
                                                     onClick={() => setBatchSize(qty)}
-                                                    className={`h-9 w-10 rounded-md border text-sm transition-colors ${
+                                                    className={`${BTN_FOCUS_VISIBLE} h-9 w-10 rounded-md border text-sm transition-colors ${
                                                         batchSize === qty
                                                             ? 'border-orange-500 bg-orange-700/60 text-orange-100'
                                                             : 'border-slate-700 bg-slate-900 text-stone-500 hover:border-slate-500'
@@ -469,23 +472,22 @@ export const RefiningEnchantingPanel: React.FC<RefiningEnchantingPanelProps> = (
                                     </section>
                                 )}
 
-                                <button
+                                {/* GG-378: the shared Button sets the color, padding and disabled look.
+                                    Refine keeps the amber "do it" color; Enchant takes the primary color. */}
+                                <Button
+                                    variant={activeTab === 'refine' ? 'action' : 'primary'}
                                     onClick={activeTab === 'refine' ? handleRefine : handleEnchant}
                                     disabled={!readiness.canCraft || isWorking || !hasCrafter}
-                                    className={`flex min-h-12 w-full items-center justify-center gap-2 rounded-lg border font-cinzel text-sm transition-colors ${
-                                        readiness.canCraft && !isWorking && hasCrafter
-                                            ? activeTab === 'refine'
-                                                ? 'border-orange-500 bg-orange-700 text-orange-50 hover:bg-orange-600'
-                                                : 'border-violet-500 bg-violet-700 text-violet-50 hover:bg-violet-600'
-                                            : 'cursor-not-allowed border-slate-700 bg-slate-900 text-stone-600'
-                                    }`}
+                                    className="min-h-12 w-full font-cinzel"
                                 >
+                                    <span className="flex items-center justify-center gap-2">
                                     {isWorking
                                         ? <><LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> Working…</>
                                         : activeTab === 'refine'
                                             ? <><Hammer className="h-4 w-4" aria-hidden="true" /> Refine {batchSize}× {selectedRecipe.name}</>
                                             : <><WandSparkles className="h-4 w-4" aria-hidden="true" /> Attempt {selectedRecipe.name}</>}
-                                </button>
+                                    </span>
+                                </Button>
                                 {!readiness.canCraft && (
                                     <p className="flex items-center gap-2 text-xs text-red-300/80"><AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" /> Missing materials — gather or buy the stock marked above.</p>
                                 )}

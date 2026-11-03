@@ -28,6 +28,9 @@ import { classFeaturesForLevel } from '../../data/classes/classFeatureProgressio
 import { SKILLS_DATA } from '../../data/skills';
 import { EXPERTISE_CHOICE_KEY } from '../../utils/character/skillModifierUtils';
 import type { FeatChoiceState, FeatChoiceValue } from '../CharacterCreator/state/characterCreatorState';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_ICON, BTN_ROW } from '../../styles/buttonStyles';
 
 interface LevelUpModalProps {
   isOpen: boolean;
@@ -332,7 +335,7 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
                     key={option.id}
                     type="button"
                     onClick={() => setSelectedClassId(option.id)}
-                    className={`p-3 rounded border text-left transition-colors ${
+                    className={`${BTN_ROW} p-3 rounded border ${
                       selectedClassId === option.id
                         ? 'bg-amber-700/30 border-amber-500 text-white'
                         : 'bg-gray-700/50 border-gray-600 text-gray-200 hover:bg-gray-700'
@@ -383,7 +386,7 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
                             type="button"
                             onClick={() => handleExpertiseToggle(grant.id, skillId, allowance)}
                             aria-pressed={isPicked}
-                            className={`p-2 rounded border text-left text-sm transition-colors ${
+                            className={`${BTN_ROW} p-2 rounded border text-sm ${
                               isPicked
                                 ? 'bg-amber-700/30 border-amber-500 text-white'
                                 : 'bg-gray-700/50 border-gray-600 text-gray-200 hover:bg-gray-700'
@@ -413,7 +416,7 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
                 <button
                   type="button"
                   onClick={() => setStep('asi')}
-                  className="p-4 rounded-lg border border-gray-600 bg-gray-700/50 hover:bg-gray-700 text-left"
+                  className={`${BTN_ROW} p-4 rounded-lg border border-gray-600 bg-gray-700/50 hover:bg-gray-700`}
                 >
                   <div className="font-semibold text-amber-300">Ability Score Improvement</div>
                   <div className="text-xs text-gray-400">Spend {asiBudget} points across your abilities.</div>
@@ -421,7 +424,7 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
                 <button
                   type="button"
                   onClick={() => setStep('feat')}
-                  className="p-4 rounded-lg border border-gray-600 bg-gray-700/50 hover:bg-gray-700 text-left"
+                  className={`${BTN_ROW} p-4 rounded-lg border border-gray-600 bg-gray-700/50 hover:bg-gray-700`}
                 >
                   <div className="font-semibold text-amber-300">Feat</div>
                   <div className="text-xs text-gray-400">Select a feat you qualify for.</div>
@@ -453,7 +456,7 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
                         <button
                           type="button"
                           onClick={() => handleAbilityAdjust(ability, -1)}
-                          className="w-7 h-7 rounded bg-gray-700 text-gray-200 hover:bg-gray-600 disabled:opacity-40"
+                          className={`${BTN_ICON} w-7 h-7 bg-gray-700 text-gray-200 hover:bg-gray-600 disabled:opacity-40`}
                           disabled={increase <= 0}
                           aria-label={`Decrease ${ability}`}
                         >
@@ -463,7 +466,7 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
                         <button
                           type="button"
                           onClick={() => handleAbilityAdjust(ability, 1)}
-                          className="w-7 h-7 rounded bg-gray-700 text-gray-200 hover:bg-gray-600 disabled:opacity-40"
+                          className={`${BTN_ICON} w-7 h-7 bg-gray-700 text-gray-200 hover:bg-gray-600 disabled:opacity-40`}
                           disabled={remainingAsi <= 0 || base + increase >= 20}
                           aria-label={`Increase ${ability}`}
                         >
@@ -475,21 +478,21 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
                 })}
               </div>
               <div className="flex gap-3 pt-3">
-                <button
+                <Button
                   type="button"
                   onClick={() => setStep('choice')}
-                  className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 rounded-lg"
+                  variant="secondary" className="flex-1"
                 >
                   Back
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={() => handleConfirm('asi')}
-                  className="flex-1 bg-amber-600 hover:bg-amber-500 text-white font-semibold py-2 rounded-lg disabled:bg-gray-600 disabled:cursor-not-allowed"
+                  variant="action" className="flex-1"
                   disabled={totalAsiSpent !== asiBudget || !areExpertisePicksComplete}
                 >
                   Confirm Level Up
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -523,7 +526,7 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
                         key={sub.id}
                         type="button"
                         onClick={() => setSelectedSubclassId(sub.id)}
-                        className={`p-3 rounded border text-left transition-colors ${
+                        className={`${BTN_ROW} p-3 rounded border ${
                           selectedSubclassId === sub.id
                             ? 'bg-amber-700/30 border-amber-500 text-white'
                             : 'bg-gray-700/50 border-gray-600 text-gray-200 hover:bg-gray-700'
@@ -547,21 +550,21 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
                 </>
               )}
               <div className="flex gap-3 pt-3">
-                <button
+                <Button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 rounded-lg"
+                  variant="secondary" className="flex-1"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={() => handleConfirm('base')}
                   disabled={(needsSubclassChoice && !selectedSubclassId) || !areExpertisePicksComplete}
-                  className="flex-1 bg-amber-600 hover:bg-amber-500 text-white font-semibold py-2 rounded-lg disabled:bg-gray-600 disabled:cursor-not-allowed"
+                  variant="action" className="flex-1"
                 >
                   Confirm Level Up
-                </button>
+                </Button>
               </div>
             </div>
           )}

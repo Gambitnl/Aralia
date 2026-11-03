@@ -22,6 +22,8 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
+// GG-378: HUD buttons keep their inline glass style and get the shared keyboard focus ring.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 interface HUDControlPanelProps {
   /** Callback when "Open Map" is clicked. */
@@ -103,7 +105,7 @@ const HUDControlPanel: React.FC<HUDControlPanelProps> = ({
 
   return (
     <div ref={panelRef} style={{ position: 'relative' }}>
-      <button
+      <button className={BTN_FOCUS_VISIBLE}
         onClick={() => setIsOpen(!isOpen)}
         style={{
           padding: '6px 12px',
@@ -198,7 +200,7 @@ const HUDControlPanel: React.FC<HUDControlPanelProps> = ({
                 View tools
               </div>
               {isLocaleMapAvailable && onToggleLocaleMap && (
-                <button
+                <button className={BTN_FOCUS_VISIBLE}
                   type="button"
                   data-testid="hud-toggle-locale-map"
                   onClick={() => runControlAction(onToggleLocaleMap)}
@@ -211,7 +213,7 @@ const HUDControlPanel: React.FC<HUDControlPanelProps> = ({
                 </button>
               )}
               {isDevModeEnabled && onOpenAgentSim && (
-                <button
+                <button className={BTN_FOCUS_VISIBLE}
                   type="button"
                   data-testid="hud-open-agent-sim"
                   onClick={() => runControlAction(onOpenAgentSim)}
@@ -224,7 +226,7 @@ const HUDControlPanel: React.FC<HUDControlPanelProps> = ({
                 </button>
               )}
               {isDevModeEnabled && onOpenTownHistory && (
-                <button
+                <button className={BTN_FOCUS_VISIBLE}
                   type="button"
                   data-testid="hud-open-town-history"
                   onClick={() => runControlAction(onOpenTownHistory)}
@@ -257,7 +259,7 @@ const HUDControlPanel: React.FC<HUDControlPanelProps> = ({
           >
             Leave 3D
           </div>
-          <button
+          <button className={BTN_FOCUS_VISIBLE}
             type="button"
             data-testid="hud-open-map"
             onClick={handleOpenMap}
@@ -283,7 +285,7 @@ const HUDControlPanel: React.FC<HUDControlPanelProps> = ({
               Back to the game world map
             </div>
           </button>
-          <button
+          <button className={BTN_FOCUS_VISIBLE}
             onClick={handleExitToMenu}
             title="Quit to the main menu (leaves the game)"
             style={{

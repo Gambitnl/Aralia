@@ -51,6 +51,9 @@ import { GlossaryResizeHandles } from './GlossaryResizeHandles';
 import { useGlossaryModal } from './hooks/useGlossaryModal';
 import { useGlossarySearch } from './hooks/useGlossarySearch';
 import { useGlossaryKeyboardNav, useFlattenedEntries } from './hooks/useGlossaryKeyboardNav';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_FOCUS_VISIBLE, BTN_ICON } from '../../styles/buttonStyles';
 
 interface SpellReferencedRule {
   label: string;
@@ -476,7 +479,7 @@ const Glossary: React.FC<GlossaryProps> = ({
       <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[var(--z-index-modal-background)] p-4">
         <div className="bg-gray-900 text-gray-200 p-6 rounded-xl shadow-2xl border border-gray-700">
           <p className="text-red-400">{error || "Glossary index is empty or failed to load. Please check console."}</p>
-          <button ref={firstFocusableElementRef} onClick={onClose} className="mt-4 px-4 py-2 bg-sky-600 text-white rounded">Close</button>
+          <Button type="button" variant="primary" ref={firstFocusableElementRef} onClick={onClose} className="mt-4">Close</Button>
         </div>
       </div>
     );
@@ -492,7 +495,7 @@ const Glossary: React.FC<GlossaryProps> = ({
         <button
           type="button"
           onClick={() => setShowSpellGateChecks((current) => !current)}
-          className={`px-2 py-1 rounded-md text-xs font-semibold border transition-colors focus:outline-none focus:ring-2 focus:ring-sky-400 ${
+          className={`px-2 py-1 rounded-md text-xs font-semibold border transition-colors ${BTN_FOCUS_VISIBLE} ${
             showSpellGateChecks
               ? 'bg-sky-700 border-sky-500 text-white'
               : 'bg-gray-800 border-gray-600 text-gray-300 hover:text-white hover:border-gray-500'
@@ -508,7 +511,7 @@ const Glossary: React.FC<GlossaryProps> = ({
         type="button"
         onClick={handleRefreshGlossaryDiagnostics}
         disabled={isCheckingSpells}
-        className={`flex h-11 w-11 items-center justify-center rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-colors ${
+        className={`h-11 w-11 ${BTN_ICON} ${
           isCheckingSpells
             ? 'text-emerald-400 animate-pulse cursor-wait'
             : 'text-gray-500 hover:text-emerald-400'

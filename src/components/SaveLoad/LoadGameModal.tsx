@@ -11,6 +11,8 @@ import { SaveSlotSummary } from '../../services/saveLoadService';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
 
 interface LoadGameModalProps {
   slots: SaveSlotSummary[];
@@ -58,19 +60,21 @@ const LoadGameModal: React.FC<LoadGameModalProps> = ({ slots, onClose, onLoadSlo
           <p className="text-xs text-gray-400">Saved {new Date(slot.lastSaved).toLocaleString()}</p>
         </div>
         <div className="flex shrink-0 gap-2">
-          <button
+          <Button
+            variant="success"
+            size="sm"
             onClick={() => onLoadSlot(slot.slotId)}
-            className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-semibold"
           >
             Load
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
             onClick={() => handleDeleteClick(slot)}
-            className="px-3 py-2 bg-red-700 hover:bg-red-600 text-white rounded-lg text-sm font-semibold"
             aria-label={`Delete save ${slot.slotName}`}
           >
             Delete
-          </button>
+          </Button>
         </div>
       </div>
       <div className="grid grid-cols-3 gap-2 text-xs text-gray-300 mt-3">

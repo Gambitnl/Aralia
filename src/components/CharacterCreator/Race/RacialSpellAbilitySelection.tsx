@@ -10,6 +10,9 @@ import { AbilityScoreName, AbilityScores, Class as CharClass } from '../../../ty
 import { RELEVANT_SPELLCASTING_ABILITIES } from '../../../constants';
 import { getAbilityModifierString } from '../../../utils/character';
 import { AbilityScoreIcon } from '../../../utils/abilityIcons';
+// GG-378: shared button style and control roles.
+import { Button } from '../../ui/Button';
+import { BTN_FOCUS_VISIBLE } from '../../../styles/buttonStyles';
 
 export interface RacialSpellAbilitySelectionProps {
   // The name of the race for display purposes (e.g., "Aarakocra")
@@ -74,7 +77,7 @@ const RacialSpellAbilitySelection: React.FC<RacialSpellAbilitySelectionProps> = 
               <button
                 key={ability}
                 onClick={() => setSelectedAbility(ability)}
-                className={`p-4 rounded-lg transition-colors border-2 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-opacity-75 min-w-[140px] relative flex flex-col items-center justify-center text-center ${
+                className={`${BTN_FOCUS_VISIBLE} p-4 rounded-lg transition-colors border-2 shadow-md hover:shadow-lg min-w-[140px] relative flex flex-col items-center justify-center text-center ${
                   selectedAbility === ability
                     ? 'bg-sky-700 border-sky-500 ring-sky-500 text-white'
                     : 'bg-gray-700 hover:bg-gray-600 border-gray-600 hover:border-sky-600 text-gray-300 ring-transparent'
@@ -98,21 +101,21 @@ const RacialSpellAbilitySelection: React.FC<RacialSpellAbilitySelectionProps> = 
       </div>
       
       <div className="flex gap-4 mt-8">
-        <button
+        <Button
           onClick={onBack}
-          className="w-1/2 bg-gray-600 hover:bg-gray-500 text-white font-semibold py-3 px-4 rounded-lg shadow transition-colors"
+          type="button" variant="secondary" size="lg" className="w-1/2"
           aria-label="Go back to ability scores"
         >
           Back
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={handleSubmit}
           disabled={!selectedAbility}
-          className="w-1/2 bg-green-600 hover:bg-green-500 disabled:bg-gray-500 text-white font-semibold py-3 px-4 rounded-lg shadow transition-colors"
+          type="button" variant="success" size="lg" className="w-1/2"
           aria-label="Confirm spellcasting ability"
         >
           Confirm Ability
-        </button>
+        </Button>
       </div>
     </motion.div>
   );

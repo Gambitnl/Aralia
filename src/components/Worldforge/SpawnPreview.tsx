@@ -26,6 +26,8 @@ import { wfBiomeIndexToLegacyId } from '../../systems/worldforge/local/wfBiomeTo
 import { LOCATIONS, STARTING_LOCATION_ID } from '../../data/world/locations';
 import { BIOMES } from '../../data/biomes';
 import { generateWorldSeed } from '../../utils/random/generateWorldSeed';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
 // Grid retirement (agora-608b): the `MapData` import was dead here — spawn
 // auditing reads the Worldforge atlas cells directly, never a tile grid.
 
@@ -180,12 +182,12 @@ const SpawnPreview: React.FC = () => {
 
         {/* Controls */}
         <div style={{ display: 'flex', gap: 8 }}>
-          <button
+          <Button
+            type="button" variant="primary" className="flex-1"
             onClick={() => reroll()}
-            style={{ flex: 1, padding: '8px 12px', borderRadius: 6, background: '#2563eb', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 600 }}
           >
             🎲 Reroll
-          </button>
+          </Button>
           <input
             value={seedInput}
             onChange={(e) => setSeedInput(e.target.value)}
@@ -193,12 +195,12 @@ const SpawnPreview: React.FC = () => {
             style={{ width: 110, padding: '8px', borderRadius: 6, background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155' }}
             placeholder="seed"
           />
-          <button
+          <Button
+            type="button" variant="secondary"
             onClick={() => reroll(Number(seedInput))}
-            style={{ padding: '8px 10px', borderRadius: 6, background: '#334155', color: 'white', border: 'none', cursor: 'pointer' }}
           >
             Go
-          </button>
+          </Button>
         </div>
 
         {/* Spawn detail */}
@@ -221,12 +223,12 @@ const SpawnPreview: React.FC = () => {
         {/* Batch audit */}
         <div style={{ borderTop: '1px solid #1e293b', paddingTop: 16 }}>
           <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-            <button onClick={() => runAudit(25)} style={{ flex: 1, padding: '8px', borderRadius: 6, background: '#0f766e', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+            <Button type="button" variant="success" className="flex-1" onClick={() => runAudit(25)}>
               Audit ×25
-            </button>
-            <button onClick={() => runAudit(200)} style={{ flex: 1, padding: '8px', borderRadius: 6, background: '#0f766e', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+            </Button>
+            <Button type="button" variant="success" className="flex-1" onClick={() => runAudit(200)}>
               Audit ×200
-            </button>
+            </Button>
           </div>
           {batch && (
             <div data-testid="spawn-batch" data-failures={batch.failures.length} style={{ fontSize: 13 }}>

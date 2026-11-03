@@ -28,6 +28,9 @@ import {
 } from '../../systems/crafting/experimentalAlchemy';
 import { learnRecipe, CrafterProgression } from '../../systems/crafting/crafterProgression';
 import { REAGENT_DATABASE } from '../../systems/crafting/alchemySystem';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 import './ExperimentPanel.css';
 
 interface ExperimentPanelProps {
@@ -217,7 +220,7 @@ export const ExperimentPanel: React.FC<ExperimentPanelProps> = ({
         <div className="experiment-panel">
             <div className="experiment-header">
                 <h2>🔬 Experimental Alchemy</h2>
-                {onClose && <button className="close-btn" onClick={onClose}>×</button>}
+                {onClose && <button className={`${BTN_FOCUS_VISIBLE} close-btn`} onClick={onClose}>×</button>}
             </div>
 
             <p className="experiment-intro">
@@ -234,7 +237,7 @@ export const ExperimentPanel: React.FC<ExperimentPanelProps> = ({
                             return (
                                 <button
                                     key={item.id}
-                                    className="ingredient-btn"
+                                    className={`${BTN_FOCUS_VISIBLE} ingredient-btn`}
                                     draggable={selectedIngredients.length < 4}
                                     onClick={() => handleAddIngredient(item)}
                                     onDragStart={(event) => handleIngredientDragStart(item, event)}
@@ -272,7 +275,7 @@ export const ExperimentPanel: React.FC<ExperimentPanelProps> = ({
                             <div key={slot} className={`cauldron-slot ${selectedIngredients[slot] ? 'filled' : 'empty'}`}>
                                 {selectedIngredients[slot] ? (
                                     <button
-                                        className="slot-content"
+                                        className={`${BTN_FOCUS_VISIBLE} slot-content`}
                                         onClick={() => handleRemoveIngredient(slot)}
                                     >
                                         <span className="slot-name">{selectedIngredients[slot].name}</span>
@@ -309,13 +312,14 @@ export const ExperimentPanel: React.FC<ExperimentPanelProps> = ({
                     </div>
 
                     {/* Experiment Button */}
-                    <button
-                        className="experiment-btn"
+                    <Button
+                        variant="action"
+                        className="w-full"
                         onClick={handleExperiment}
                         disabled={selectedIngredients.length < 2 || isExperimenting}
                     >
                         {isExperimenting ? '⏳ Mixing...' : '🧪 Experiment!'}
-                    </button>
+                    </Button>
 
                     {/* Result Display */}
                     {experimentResult && (

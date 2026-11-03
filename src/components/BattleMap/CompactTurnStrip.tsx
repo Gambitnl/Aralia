@@ -35,6 +35,8 @@ import {
   Sword,
 } from 'lucide-react';
 import { CombatCharacter } from '../../types/combat';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE, BTN_ICON } from '../../styles/buttonStyles';
 
 // ============================================================================
 // Public Contract
@@ -126,7 +128,7 @@ const CompactTurnStrip: React.FC<CompactTurnStripProps> = ({
         <button
           type="button"
           onClick={onRestoreCommands}
-          className="flex h-8 w-8 items-center justify-center rounded-md border border-sky-700/70 bg-sky-950/70 text-sky-200 hover:bg-sky-900"
+          className={`${BTN_ICON} h-8 w-8 border border-sky-700/70 bg-sky-950/70 text-sky-200 hover:bg-sky-900`}
           aria-label="Show combat commands"
           title="Show combat commands"
         >
@@ -206,7 +208,7 @@ const CompactTurnStrip: React.FC<CompactTurnStripProps> = ({
       <button
         type="button"
         onClick={onRestoreCommands}
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-sky-700/70 bg-sky-950/70 text-sky-200 hover:bg-sky-900"
+        className={`${BTN_ICON} h-8 w-8 shrink-0 border border-sky-700/70 bg-sky-950/70 text-sky-200 hover:bg-sky-900`}
         aria-label="Show combat commands"
         title="Show combat commands"
       >
@@ -223,7 +225,7 @@ const CompactTurnStrip: React.FC<CompactTurnStripProps> = ({
           data-testid="compact-turn-strip-escape"
           onClick={onEscape}
           disabled={!isCharactersTurn}
-          className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-amber-500/70 bg-amber-800 px-2.5 text-xs font-bold text-amber-50 shadow hover:bg-amber-700 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800 disabled:text-slate-500"
+          className={`${BTN_FOCUS_VISIBLE} inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-amber-500/70 bg-amber-800 px-2.5 text-xs font-bold text-amber-50 shadow hover:bg-amber-700 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800 disabled:text-slate-500`}
           aria-label={`Escape combat with ${character.name}`}
           title={escapeReason ?? 'Flee the battlefield for your full movement'}
         >
@@ -240,7 +242,7 @@ const CompactTurnStrip: React.FC<CompactTurnStripProps> = ({
           type="button"
           onClick={() => { void onEndTurn(); }}
           disabled={!isCharactersTurn}
-          className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-orange-500/70 bg-orange-700 px-2.5 text-xs font-bold text-orange-50 shadow hover:bg-orange-600 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800 disabled:text-slate-500"
+          className={`${BTN_FOCUS_VISIBLE} inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-orange-500/70 bg-orange-700 px-2.5 text-xs font-bold text-orange-50 shadow hover:bg-orange-600 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800 disabled:text-slate-500`}
           aria-label={`End ${character.name}'s turn`}
         >
           <SkipForward size={15} />

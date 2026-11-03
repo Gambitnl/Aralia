@@ -229,8 +229,10 @@ describe('ActionPane', () => {
 
     fireEvent.click(screen.getByText('Ask the Oracle'));
     const oracleInput = screen.getByPlaceholderText('Ask your question...');
-    const submitButton = screen.getByText('Submit');
-    const cancelButton = screen.getByText('Cancel');
+    // GG-378: Submit and Cancel are shared <Button>s, which wrap the label in a
+    // <span>, so query the button itself by role.
+    const submitButton = screen.getByRole('button', { name: 'Submit' });
+    const cancelButton = screen.getByRole('button', { name: 'Cancel' });
 
     // The Oracle prompt appears inside the narrow ActionPane, so its controls
     // need explicit touch-sized targets instead of relying on compact defaults.

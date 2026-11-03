@@ -6,6 +6,8 @@
 import React, { useState } from 'react';
 import { FightingStyle } from '../../../types'; 
 import { CreationStepLayout } from '../ui/CreationStepLayout';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../../styles/buttonStyles';
 
 interface FighterFeatureSelectionProps {
   styles: FightingStyle[]; 
@@ -46,7 +48,7 @@ const FighterFeatureSelection: React.FC<FighterFeatureSelectionProps> = ({
           <button
             key={style.id}
             onClick={() => handleSelect(style.id)}
-            className={`w-full text-left p-4 rounded-xl transition-all border-2 ${
+            className={`${BTN_FOCUS_VISIBLE} w-full text-left p-4 rounded-xl transition-all border-2 ${
               selectedStyleId === style.id
                 ? 'bg-sky-900/40 border-sky-500 shadow-[0_0_15px_rgba(14,165,233,0.2)]'
                 : 'bg-gray-800 border-gray-700 hover:border-gray-600'

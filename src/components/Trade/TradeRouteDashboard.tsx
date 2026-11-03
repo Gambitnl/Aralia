@@ -8,6 +8,8 @@ import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import RouteCard from './RouteCard';
 import MarketEventCard from './MarketEventCard';
+// GG-378: shared button style and control roles.
+import { BTN_TAB_UNDERLINE } from '../../styles/buttonStyles';
 
 interface TradeRouteDashboardProps {
     tradeRoutes: TradeRoute[];
@@ -25,7 +27,7 @@ const TradeNavButton: React.FC<{
 }> = ({ tabId, activeTab, onSelect, children }) => (
     <button
         onClick={() => onSelect(tabId)}
-        className={`px-6 py-3 text-sm font-medium transition-colors border-b-2 ${activeTab === tabId
+        className={`${BTN_TAB_UNDERLINE} ${activeTab === tabId
             ? 'border-amber-500 text-amber-500 bg-gray-700/50'
             : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-700/30'
             }`}

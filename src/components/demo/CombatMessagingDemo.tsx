@@ -8,6 +8,8 @@
 import React, { useEffect } from 'react';
 import { useCombatMessaging } from '../../hooks/combat/useCombatMessaging';
 import type { CombatCharacter } from '../../types/combat';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
 
 // Mock combat characters for demonstration
 const mockCharacters: Record<string, any> = {
@@ -138,12 +140,12 @@ export const CombatMessagingDemo: React.FC<{ onExit?: () => void }> = ({ onExit 
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-amber-400">Combat Messaging System Demo</h1>
           {onExit && (
-            <button
+            <Button
               onClick={onExit}
-              className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow-md transition-colors"
+              type="button" variant="danger"
             >
               Exit Demo
-            </button>
+            </Button>
           )}
         </div>
         

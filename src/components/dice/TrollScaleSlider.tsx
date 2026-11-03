@@ -8,6 +8,8 @@
  */
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+// GG-378: shared button style and control roles.
+import { BTN_ICON } from '../../styles/buttonStyles';
 
 interface TrollScaleSliderProps {
     value: number;
@@ -201,8 +203,9 @@ export const TrollScaleSlider: React.FC<TrollScaleSliderProps> = ({
                 <button
                     onClick={handleIncrement}
                     disabled={value >= max}
-                    className="relative w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:opacity-50 rounded-lg border border-gray-600 transition-colors group"
+                    className={`${BTN_ICON} relative w-10 h-10 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:opacity-50 border border-gray-600 group`}
                     title="Increase dice size"
+                    aria-label="Increase dice size"
                 >
                     <span className="absolute -top-1 -right-1 text-xs font-bold text-green-400 group-hover:text-green-300">+</span>
                     <SheepSVG className="w-6 h-6" />
@@ -247,8 +250,9 @@ export const TrollScaleSlider: React.FC<TrollScaleSliderProps> = ({
                 <button
                     onClick={handleDecrement}
                     disabled={value <= min}
-                    className="relative w-10 h-10 flex items-center justify-center bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:opacity-50 rounded-lg border border-gray-600 transition-colors group"
+                    className={`${BTN_ICON} relative w-10 h-10 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:opacity-50 border border-gray-600 group`}
                     title="Decrease dice size"
+                    aria-label="Decrease dice size"
                 >
                     <span className="absolute -bottom-1 -right-1 text-xs font-bold text-red-400 group-hover:text-red-300">−</span>
                     <PoopSVG className="w-6 h-6" />

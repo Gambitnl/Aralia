@@ -8,6 +8,8 @@ import { AbilityScores } from '../../../types';
 import { SKILLS_DATA } from '../../../data/skills';
 import { CreationStepLayout } from '../ui/CreationStepLayout';
 import { SkillIcon } from '../../../utils/skillIcons';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../../styles/buttonStyles';
 
 interface HumanSkillSelectionProps {
   abilityScores: AbilityScores; 
@@ -48,7 +50,7 @@ const HumanSkillSelection: React.FC<HumanSkillSelectionProps> = ({ abilityScores
           <button
             key={skill.id}
             onClick={() => handleSelect(skill.id)}
-            className={`w-full text-left p-4 rounded-xl transition-all border-2 ${
+            className={`${BTN_FOCUS_VISIBLE} w-full text-left p-4 rounded-xl transition-all border-2 ${
               selectedSkillId === skill.id
                 ? 'bg-sky-900/40 border-sky-500 shadow-md'
                 : 'bg-gray-800 border-gray-700 hover:border-gray-600'

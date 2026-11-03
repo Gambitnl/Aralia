@@ -41,6 +41,9 @@ import React from 'react';
 import { Ability, CombatCharacter, ReactionSpellOption } from '../../types/combat';
 import { canAffordActionCost, getReactionSpellCost } from '../../utils/combat/actionEconomyUtils';
 import { ModalDialog } from '../ui/ModalDialog';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 
 // ============================================================================
@@ -99,12 +102,12 @@ export const ReactionPrompt: React.FC<ReactionPromptProps> = ({
             ariaDescribedBy="reaction-description"
             footer={
                 // Decline reaction and resume normal turn flow
-                <button
+                <Button
                     onClick={() => onResolve(null)}
-                    className="px-4 py-2 text-gray-400 hover:text-white transition-colors text-sm font-medium hover:bg-white/5 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+                    type="button" variant="ghost" size="sm"
                 >
                     Skip Reaction
-                </button>
+                </Button>
             }
         >
             {/* Modal Title Bar */}
@@ -149,7 +152,7 @@ export const ReactionPrompt: React.FC<ReactionPromptProps> = ({
                         <button
                             key={weaponAbility.id}
                             onClick={() => onResolve(weaponAbility.id)}
-                            className="w-full group relative overflow-hidden p-4 rounded-lg bg-gray-800 border border-gray-700 hover:border-purple-500/50 hover:bg-gray-800/80 transition-all duration-200 text-left focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+                            className={`${BTN_FOCUS_VISIBLE} w-full group relative overflow-hidden p-4 rounded-lg bg-gray-800 border border-gray-700 hover:border-purple-500/50 hover:bg-gray-800/80 transition-all duration-200 text-left`}
                         >
                             <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                             <div className="flex items-center justify-between relative z-[var(--z-index-content-overlay-low)]">
@@ -182,7 +185,7 @@ export const ReactionPrompt: React.FC<ReactionPromptProps> = ({
                         onClick={() => onResolve(spell.id)}
                         disabled={!available}
                         title={!available ? 'Reaction or spell resource unavailable' : undefined}
-                        className="w-full group relative overflow-hidden p-4 rounded-lg bg-gray-800 border border-gray-700 hover:border-purple-500/50 hover:bg-gray-800/80 transition-all duration-200 text-left focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+                        className={`${BTN_FOCUS_VISIBLE} w-full group relative overflow-hidden p-4 rounded-lg bg-gray-800 border border-gray-700 hover:border-purple-500/50 hover:bg-gray-800/80 transition-all duration-200 text-left`}
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         <div className="flex items-center justify-between relative z-[var(--z-index-content-overlay-low)]">

@@ -4,6 +4,8 @@ import { AlertTriangle, CheckCircle2, Clock3, FileText, GitBranch, ListChecks, R
 import type { AtlasBacklogRetirementExport, AtlasRawExport } from './atlasTypes';
 import { buildAtlasViewModel } from './atlasViewModel';
 import './atlasExplorer.css';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 /**
  * Browser-visible explorer for the Aralia Atlas Knowledge Tree.
@@ -191,7 +193,7 @@ export function AtlasExplorer(): React.ReactElement {
         </div>
         <div className="atlas-header-actions">
           <button
-            className="atlas-action-button"
+            className={`atlas-action-button ${BTN_FOCUS_VISIBLE}`}
             disabled={reconcileState.status === 'running'}
             onClick={handleAtlasReconcile}
             type="button"
@@ -234,7 +236,7 @@ export function AtlasExplorer(): React.ReactElement {
             {visibleBranches.map((branch) => (
               <button
                 key={branch.id}
-                className={branch.id === selectedBranch?.id ? 'atlas-branch atlas-branch-active' : 'atlas-branch'}
+                className={`${branch.id === selectedBranch?.id ? 'atlas-branch atlas-branch-active' : 'atlas-branch'} ${BTN_FOCUS_VISIBLE}`}
                 onClick={() => setSelectedBranchId(branch.id)}
                 type="button"
               >

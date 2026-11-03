@@ -8,6 +8,8 @@ import React from 'react';
 import { motion, MotionProps } from 'framer-motion';
 import { Z_INDEX } from '../../styles/zIndex';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 interface ImageModalProps {
   src: string;
@@ -45,7 +47,7 @@ const ImageModal: React.FC<ImageModalProps> = ({ src, alt, onClose }) => {
       <button
         type="button"
         onClick={(e) => e.stopPropagation()}
-        className="p-0 border-0 bg-transparent focus:outline-none"
+        className={`${BTN_FOCUS_VISIBLE} p-0 border-0 bg-transparent`}
         aria-label="Image preview"
       >
         <img
@@ -56,7 +58,7 @@ const ImageModal: React.FC<ImageModalProps> = ({ src, alt, onClose }) => {
       </button>
        <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-white hover:text-gray-300 text-4xl font-bold bg-black/50 p-1 rounded-full leading-none"
+            className={`${BTN_FOCUS_VISIBLE} absolute top-4 right-4 text-white hover:text-gray-300 text-4xl font-bold bg-black/50 p-1 rounded-full leading-none`}
             aria-label="Close image viewer"
         >
             &times;

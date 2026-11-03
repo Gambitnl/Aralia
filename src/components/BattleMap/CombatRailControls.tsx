@@ -31,6 +31,8 @@ import {
   PanelRightOpen,
   RotateCcw,
 } from 'lucide-react';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE, BTN_ICON } from '../../styles/buttonStyles';
 
 // ============================================================================
 // Public Controls
@@ -69,7 +71,7 @@ const CombatRailControls: React.FC<CombatRailControlsProps> = ({
       aria-pressed={rosterVisible}
       title={`${rosterVisible ? 'Hide' : 'Show'} party and enemy roster`}
       onClick={onToggleRoster}
-      className={`flex h-9 w-9 items-center justify-center rounded-md transition-colors ${
+      className={`${BTN_FOCUS_VISIBLE} flex h-9 w-9 items-center justify-center rounded-md transition-colors ${
         rosterVisible
           ? 'bg-sky-700 text-sky-50 hover:bg-sky-600'
           : 'text-slate-400 hover:bg-slate-700 hover:text-slate-100'
@@ -87,7 +89,7 @@ const CombatRailControls: React.FC<CombatRailControlsProps> = ({
       aria-pressed={commandVisible}
       title={`${commandVisible ? 'Hide' : 'Show'} actions, abilities, and combat log`}
       onClick={onToggleCommand}
-      className={`flex h-9 w-9 items-center justify-center rounded-md transition-colors ${
+      className={`${BTN_FOCUS_VISIBLE} flex h-9 w-9 items-center justify-center rounded-md transition-colors ${
         commandVisible
           ? 'bg-sky-700 text-sky-50 hover:bg-sky-600'
           : 'text-slate-400 hover:bg-slate-700 hover:text-slate-100'
@@ -106,7 +108,7 @@ const CombatRailControls: React.FC<CombatRailControlsProps> = ({
       title="Reset combat panel visibility and widths"
       onClick={onResetLayout}
       disabled={layoutIsDefault}
-      className="flex h-9 w-9 items-center justify-center rounded-md text-slate-300 transition-colors hover:bg-slate-700 hover:text-white disabled:cursor-default disabled:text-slate-600 disabled:hover:bg-transparent"
+      className={`${BTN_ICON} h-9 w-9 text-slate-300 hover:bg-slate-700 hover:text-white disabled:cursor-default disabled:text-slate-600 disabled:hover:bg-transparent`}
     >
       <RotateCcw size={16} />
     </button>

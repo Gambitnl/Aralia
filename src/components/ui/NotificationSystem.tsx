@@ -12,6 +12,8 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Notification } from '../../types';
 import type { AppAction } from '../../state/actionTypes';
 import { UI_ID } from '../../styles/uiIds';
+// GG-378: shared button style and control roles.
+import { BTN_ICON } from '../../styles/buttonStyles';
 
 interface NotificationSystemProps {
   notifications: Notification[];
@@ -67,7 +69,7 @@ const NotificationToast: React.FC<{ notification: Notification; onDismiss: (id: 
           <div className="ml-4 flex flex-shrink-0">
             <button
               type="button"
-              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md bg-transparent text-white hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
+              className={`${BTN_ICON} min-h-11 min-w-11 bg-transparent text-white hover:text-gray-200`}
               onClick={() => onDismiss(notification.id)}
             >
               <span className="sr-only">Close</span>

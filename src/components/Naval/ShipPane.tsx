@@ -7,6 +7,9 @@ import { WINDOW_KEYS } from '../../styles/uiIds';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/Table';
 import Tooltip from '../ui/Tooltip';
 import { calculateFirepower, describeFirepower } from '../../utils/naval/firepower';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 interface ShipPaneProps {
   ship: Ship;
@@ -245,13 +248,15 @@ const VoyageTab: React.FC<VoyageTabProps> = ({ voyage, onAdvanceDay }) => {
           <p className="text-gray-400 text-sm mt-1">Close this pane to return to the world.</p>
         </div>
       ) : (
-        <button
+        <Button
+          variant="primary"
+          size="lg"
           onClick={onAdvanceDay}
           disabled={!onAdvanceDay}
-          className="w-full py-3 bg-blue-700 hover:bg-blue-600 disabled:bg-gray-700 disabled:text-gray-500 text-white font-semibold rounded-lg transition-colors"
+          className="w-full"
         >
           Advance a day at sea
-        </button>
+        </Button>
       )}
 
       {/* Voyage log */}
@@ -290,7 +295,7 @@ const logEntryColor = (type: VoyageLogEntry['type']): string => {
 const NavButton = ({ active, onClick, icon, label }: { active: boolean, onClick: () => void, icon: React.ReactNode, label: string }) => (
   <button
     onClick={onClick}
-    className={`flex items-center gap-2 px-4 py-2 rounded transition-colors text-sm font-medium ${active
+    className={`${BTN_FOCUS_VISIBLE} flex items-center gap-2 px-4 py-2 rounded transition-colors text-sm font-medium ${active
       ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
       : 'hover:bg-gray-800 text-gray-400 hover:text-gray-200'
       }`}

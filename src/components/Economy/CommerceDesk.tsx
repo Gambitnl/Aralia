@@ -39,6 +39,9 @@ import {
     selectVenturesSummary,
 } from './commerceDeskSelectors';
 import { MarketEvent, PlayerInvestment, TradeRoute } from '../../types/economy';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_FOCUS_VISIBLE, BTN_ICON } from '../../styles/buttonStyles';
 
 // ============================================================================
 // Desk Navigation
@@ -139,7 +142,7 @@ const CommerceDesk: React.FC<CommerceDeskProps> = ({ isOpen, onClose }) => {
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`group flex min-h-14 items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors ${selected
+                                    className={`${BTN_FOCUS_VISIBLE} group flex min-h-14 items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors ${selected
                                         ? 'border-amber-700/70 bg-amber-950/70 text-amber-100 shadow-inner'
                                         : 'border-transparent text-stone-400 hover:border-amber-900/50 hover:bg-amber-950/30 hover:text-stone-200'
                                     }`}
@@ -255,12 +258,14 @@ const SectionHeading: React.FC<{ children: React.ReactNode }> = ({ children }) =
 );
 
 const DeskLinkButton: React.FC<{ onClick: () => void; children: React.ReactNode }> = ({ onClick, children }) => (
-    <button
+    <Button
+        variant="action"
+        size="sm"
         onClick={onClick}
-        className="min-h-10 rounded-md border border-amber-700/70 bg-amber-900/60 px-3 py-2 font-cinzel text-xs text-amber-100 transition-colors hover:border-amber-500 hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+        className="min-h-10 font-cinzel"
     >
         {children}
-    </button>
+    </Button>
 );
 
 // ============================================================================
@@ -369,7 +374,7 @@ const PriceControl: React.FC<{ multiplier: number; onChange: (next: number) => v
         <button
             onClick={() => onChange(Math.round((multiplier - 0.1) * 10) / 10)}
             disabled={multiplier <= 0.5}
-            className="h-9 w-9 rounded-md border border-amber-800/70 bg-amber-950/70 text-amber-200 transition-colors hover:bg-amber-900 disabled:opacity-40"
+            className={`${BTN_ICON} h-9 w-9 border border-amber-800/70 bg-amber-950/70 text-amber-200 hover:bg-amber-900 disabled:opacity-40`}
             aria-label="Lower prices"
         >
             −
@@ -378,7 +383,7 @@ const PriceControl: React.FC<{ multiplier: number; onChange: (next: number) => v
         <button
             onClick={() => onChange(Math.round((multiplier + 0.1) * 10) / 10)}
             disabled={multiplier >= 2}
-            className="h-9 w-9 rounded-md border border-amber-800/70 bg-amber-950/70 text-amber-200 transition-colors hover:bg-amber-900 disabled:opacity-40"
+            className={`${BTN_ICON} h-9 w-9 border border-amber-800/70 bg-amber-950/70 text-amber-200 hover:bg-amber-900 disabled:opacity-40`}
             aria-label="Raise prices"
         >
             +
@@ -493,12 +498,14 @@ const VenturesPage: React.FC<{
                                     Staked {formatGpAsCoins(inv.principalGold)} — pays {formatGpAsCoins(inv.currentValue)}
                                 </p>
                             </div>
-                            <button
+                            <Button
+                                variant="success"
+                                size="sm"
                                 onClick={() => onCollect(inv.id)}
-                                className="px-3 py-1.5 rounded text-xs font-cinzel bg-green-800 hover:bg-green-700 text-green-200 border border-green-600 transition-colors"
+                                className="font-cinzel"
                             >
                                 Collect {formatGpAsCoins(inv.currentValue)}
-                            </button>
+                            </Button>
                         </div>
                     ))}
                 </div>
@@ -548,13 +555,15 @@ const VenturesPage: React.FC<{
                                         {loan.interestRate ? ` · ${(loan.interestRate * 100).toFixed(1)}% interest` : ''}
                                     </p>
                                 </div>
-                                <button
+                                <Button
+                                    variant="danger"
+                                    size="sm"
                                     onClick={() => onRepay(loan, repayAmount)}
                                     disabled={repayAmount <= 0}
-                                    className="px-3 py-1.5 rounded text-xs font-cinzel bg-red-900/60 hover:bg-red-800 disabled:opacity-40 text-red-200 border border-red-700 transition-colors"
+                                    className="font-cinzel"
                                 >
                                     Repay {formatGpAsCoins(repayAmount)}
-                                </button>
+                                </Button>
                             </div>
                         );
                     })}

@@ -8,6 +8,8 @@
 
 import React from 'react';
 import { useWorldViewMode } from '../../hooks/useWorldViewMode';
+// GG-378: HUD buttons keep their inline glass style and get the shared keyboard focus ring.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 interface ViewModeToggleProps {
   /** Callback when switching to atlas mode. */
@@ -37,7 +39,7 @@ const ViewModeToggle: React.FC<ViewModeToggleProps> = ({ onOpenMap }) => {
         borderRadius: '4px',
       }}
     >
-      <button
+      <button className={BTN_FOCUS_VISIBLE}
         onClick={handleSwitchTo3D}
         style={{
           padding: '6px 12px',
@@ -53,7 +55,7 @@ const ViewModeToggle: React.FC<ViewModeToggleProps> = ({ onOpenMap }) => {
       >
         3D
       </button>
-      <button
+      <button className={BTN_FOCUS_VISIBLE}
         type="button"
         data-testid="hud-atlas-toggle"
         onClick={handleSwitchToAtlas}

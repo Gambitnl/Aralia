@@ -10,6 +10,8 @@ import { GlossaryIcon } from '../../Glossary/IconRegistry';
 import { getTraitIcon } from '../../../utils/traits/traitIcons';
 import GlossaryContext from '../../../context/GlossaryContext';
 import { findGlossaryEntryAndPath } from '../../../utils/visuals/glossaryUtils';
+// GG-378: shared button style and control roles.
+import { BTN_TEXT_LINK } from '../../../styles/buttonStyles';
 
 interface BaseTraits {
     type?: string;
@@ -250,7 +252,7 @@ export const CharacterCreatorTraitsTable: React.FC<CharacterCreatorTraitsTablePr
                                                                             title={broken ? 'Glossary entry unavailable' : undefined}
                                                                             // Spell links open glossary detail modals, so keep their hit area
                                                                             // as usable as the surrounding creator buttons even inside tables.
-                                                                            className={`-my-2 inline-flex min-h-11 min-w-11 items-center justify-center rounded px-2 py-2 underline transition-colors ${
+                                                                            className={`${BTN_TEXT_LINK} -my-2 inline-flex min-h-11 min-w-11 items-center justify-center px-2 py-2 underline ${
                                                                                 broken
                                                                                     ? 'text-red-400 hover:text-red-300'
                                                                                     : 'text-sky-400 hover:text-sky-200'

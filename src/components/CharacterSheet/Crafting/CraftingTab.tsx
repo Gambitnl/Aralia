@@ -6,6 +6,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { GatheringPanel, AlchemyBenchPanel, RefiningEnchantingPanel, SalvageModal } from '../../Crafting';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../../styles/buttonStyles';
 
 interface CraftingTabProps {
     disabled?: boolean;
@@ -55,7 +57,7 @@ export const CraftingTab: React.FC<CraftingTabProps> = ({ disabled = false }) =>
                         whileTap={!disabled ? { scale: 0.98 } : undefined}
                         whileHover={!disabled ? { scale: 1.02 } : undefined}
                         className={`
-              flex flex-col items-center gap-3 p-6 rounded-xl
+              ${BTN_FOCUS_VISIBLE} flex flex-col items-center gap-3 p-6 rounded-xl
               border-2 transition-all duration-200
               ${!disabled
                                 ? 'bg-gradient-to-br from-green-900/60 to-green-800/40 border-green-600/50 hover:border-green-400 hover:shadow-lg hover:shadow-green-900/30 text-white cursor-pointer'
@@ -75,7 +77,7 @@ export const CraftingTab: React.FC<CraftingTabProps> = ({ disabled = false }) =>
                         whileTap={!disabled ? { scale: 0.98 } : undefined}
                         whileHover={!disabled ? { scale: 1.02 } : undefined}
                         className={`
-              flex flex-col items-center gap-3 p-6 rounded-xl
+              ${BTN_FOCUS_VISIBLE} flex flex-col items-center gap-3 p-6 rounded-xl
               border-2 transition-all duration-200
               ${!disabled
                                 ? 'bg-gradient-to-br from-purple-900/60 to-purple-800/40 border-purple-600/50 hover:border-purple-400 hover:shadow-lg hover:shadow-purple-900/30 text-white cursor-pointer'
@@ -95,7 +97,7 @@ export const CraftingTab: React.FC<CraftingTabProps> = ({ disabled = false }) =>
                         whileTap={!disabled ? { scale: 0.98 } : undefined}
                         whileHover={!disabled ? { scale: 1.02 } : undefined}
                         className={`
-              flex flex-col items-center gap-3 p-6 rounded-xl
+              ${BTN_FOCUS_VISIBLE} flex flex-col items-center gap-3 p-6 rounded-xl
               border-2 transition-all duration-200
               ${!disabled
                                 ? 'bg-gradient-to-br from-orange-900/60 to-orange-800/40 border-orange-600/50 hover:border-orange-400 hover:shadow-lg hover:shadow-orange-900/30 text-white cursor-pointer'
@@ -115,7 +117,7 @@ export const CraftingTab: React.FC<CraftingTabProps> = ({ disabled = false }) =>
                         whileTap={!disabled ? { scale: 0.98 } : undefined}
                         whileHover={!disabled ? { scale: 1.02 } : undefined}
                         className={`
-              flex flex-col items-center gap-3 p-6 rounded-xl
+              ${BTN_FOCUS_VISIBLE} flex flex-col items-center gap-3 p-6 rounded-xl
               border-2 transition-all duration-200
               ${!disabled
                                 ? 'bg-gradient-to-br from-amber-900/60 to-amber-800/40 border-amber-600/50 hover:border-amber-400 hover:shadow-lg hover:shadow-amber-900/30 text-white cursor-pointer'

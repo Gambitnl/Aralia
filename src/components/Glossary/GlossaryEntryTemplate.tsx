@@ -9,6 +9,8 @@ import ImageModal from '../ImageModal';
 import { GlossaryEntry } from '../../types';
 
 import { ENV } from '../../config/env';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE, BTN_MEDIA } from '../../styles/buttonStyles';
 
 /**
  * Helper to resolve image URLs for Vite deployments.
@@ -134,7 +136,7 @@ export const GlossaryEntryTemplate: React.FC<GlossaryEntryTemplateProps> = ({
                                 {entry.maleImageUrl ? (
                                     <button
                                         type="button"
-                                        className="relative group cursor-zoom-in w-full"
+                                        className={`${BTN_MEDIA} group cursor-zoom-in w-full`}
                                         onClick={() => setExpandedImage({ src: resolveImageUrl(entry.maleImageUrl)!, alt: `${entry.title} male` })}
                                         aria-label={`Expand ${entry.title} male image`}
                                     >
@@ -156,7 +158,7 @@ export const GlossaryEntryTemplate: React.FC<GlossaryEntryTemplateProps> = ({
                                 {entry.femaleImageUrl ? (
                                     <button
                                         type="button"
-                                        className="relative group cursor-zoom-in w-full"
+                                        className={`${BTN_MEDIA} group cursor-zoom-in w-full`}
                                         onClick={() => setExpandedImage({ src: resolveImageUrl(entry.femaleImageUrl)!, alt: `${entry.title} female` })}
                                         aria-label={`Expand ${entry.title} female image`}
                                     >
@@ -281,7 +283,7 @@ export const GlossaryEntryTemplate: React.FC<GlossaryEntryTemplateProps> = ({
                                 <div className="flex flex-wrap gap-1.5">
                                     {entry.seeAlso.map(termId => (
                                         <button key={termId} onClick={() => onNavigate?.(cleanTermId(termId))}
-                                            className="text-sky-400 hover:text-sky-200 hover:bg-sky-800/50 bg-sky-900/50 px-2 py-0.5 rounded-md text-xs transition-colors focus:outline-none focus:ring-1 focus:ring-sky-400">
+                                            className={`text-sky-400 hover:text-sky-200 hover:bg-sky-800/50 bg-sky-900/50 px-2 py-0.5 rounded-md text-xs transition-colors ${BTN_FOCUS_VISIBLE}`}>
                                             {termLabelFromId(termId)}
                                         </button>
                                     ))}

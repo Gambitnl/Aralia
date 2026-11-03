@@ -25,6 +25,8 @@ import type { AppAction } from '../../state/actionTypes';
 import type { Puzzle, PuzzleResult } from '../../systems/puzzles/types';
 import { requestPuzzleHint, type PuzzleRuntimeHintResult } from '../../systems/puzzles/puzzleRuntime';
 import { attemptPuzzleInput } from '../../systems/puzzles/puzzleSystem';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
 
 interface PuzzleRuntimeModalProps {
   isOpen: boolean;
@@ -255,13 +257,13 @@ export const PuzzleRuntimeModal: React.FC<PuzzleRuntimeModalProps> = ({
                         placeholder="Speak your answer"
                         className="flex-1 rounded border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-300"
                       />
-                      <button
+                      <Button
                         type="submit"
+                        variant="success"
                         disabled={riddleAnswer.trim().length === 0}
-                        className="rounded border border-emerald-500 bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-600 disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-800 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300"
                       >
                         Answer
-                      </button>
+                      </Button>
                     </form>
                   )}
 
@@ -269,14 +271,15 @@ export const PuzzleRuntimeModal: React.FC<PuzzleRuntimeModalProps> = ({
                     sequenceSteps.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {sequenceSteps.map(step => (
-                          <button
+                          <Button
                             key={step}
                             type="button"
+                            variant="secondary"
+                            size="sm"
                             onClick={() => handleAttempt(step)}
-                            className="rounded border border-slate-500 bg-slate-800 px-3 py-2 text-sm font-medium text-slate-100 hover:border-amber-400 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-300"
                           >
                             {step}
-                          </button>
+                          </Button>
                         ))}
                       </div>
                     ) : (
@@ -292,14 +295,15 @@ export const PuzzleRuntimeModal: React.FC<PuzzleRuntimeModalProps> = ({
                     unplacedItems.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {unplacedItems.map(itemId => (
-                          <button
+                          <Button
                             key={itemId}
                             type="button"
+                            variant="secondary"
+                            size="sm"
                             onClick={() => handleAttempt(itemId)}
-                            className="rounded border border-slate-500 bg-slate-800 px-3 py-2 text-sm font-medium text-slate-100 hover:border-amber-400 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-300"
                           >
                             Place {itemId}
-                          </button>
+                          </Button>
                         ))}
                       </div>
                     ) : (
@@ -327,14 +331,17 @@ export const PuzzleRuntimeModal: React.FC<PuzzleRuntimeModalProps> = ({
             </section>
 
             <div className="mt-auto flex justify-end">
-              <button
+              <Button
                 type="button"
+                variant="action"
+                size="sm"
                 onClick={handleHintRequest}
-                className="inline-flex items-center gap-2 rounded border border-amber-500 bg-amber-700 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-300"
               >
+                <span className="flex items-center gap-2">
                 <Lightbulb className="h-4 w-4" aria-hidden="true" />
                 Ask for Hint
-              </button>
+                </span>
+              </Button>
             </div>
           </div>
         </div>

@@ -24,6 +24,9 @@ import { Monster, GroundingChunk, Action, TempPartyMember } from '../../types';
 import { CLASSES_DATA } from '../../constants';
 import { t } from '../../utils/core';
 import { WindowFrame } from '../ui/WindowFrame';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_CHIP, BTN_FOCUS_VISIBLE, BTN_ICON, BTN_ROW } from '../../styles/buttonStyles';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import MonsterPicker, { PickedMonster } from './MonsterPicker';
 import { calculateDifficulty, DifficultyTier } from '../../utils/combat/encounterDifficulty';
@@ -349,7 +352,7 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
         <div className="flex border-b border-gray-600 mb-4 shrink-0">
           <button
             onClick={() => setTab('ai')}
-            className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${
+            className={`${BTN_FOCUS_VISIBLE} px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${
               tab === 'ai'
                 ? 'border-amber-400 text-amber-300'
                 : 'border-transparent text-gray-400 hover:text-gray-200'
@@ -359,7 +362,7 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
           </button>
           <button
             onClick={() => setTab('custom')}
-            className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${
+            className={`${BTN_FOCUS_VISIBLE} px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${
               tab === 'custom'
                 ? 'border-amber-400 text-amber-300'
                 : 'border-transparent text-gray-400 hover:text-gray-200'
@@ -369,7 +372,7 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
           </button>
           <button
             onClick={() => setTab('bestiary')}
-            className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${
+            className={`${BTN_FOCUS_VISIBLE} px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${
               tab === 'bestiary'
                 ? 'border-emerald-400 text-emerald-300'
                 : 'border-transparent text-gray-400 hover:text-gray-200'
@@ -395,7 +398,7 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
                       setBestiarySeedCounter(0);
                       setBestiaryGenerated(false); // trigger re-gen via useEffect
                     }}
-                    className={`px-3 py-1 text-xs font-semibold rounded transition-colors ${
+                    className={`${BTN_CHIP} ${
                       bestiaryDifficulty === d
                         ? d === 'Easy'   ? 'bg-green-700 text-green-200'
                         : d === 'Medium' ? 'bg-yellow-700 text-yellow-200'
@@ -407,15 +410,15 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
                     {d}
                   </button>
                 ))}
-                <button
+                <Button
                   onClick={() => {
                     setBestiarySeedCounter(prev => prev + 1);
                     setBestiaryGenerated(false); // trigger re-gen via useEffect
                   }}
-                  className="ml-auto px-3 py-1 text-xs font-semibold rounded bg-emerald-800/60 text-emerald-300 hover:bg-emerald-700/60 border border-emerald-700/50 transition-colors"
+                  type="button" variant="success" size="sm" className="ml-auto"
                 >
                   🎲 Reroll
-                </button>
+                </Button>
               </div>
 
               {/* Lair toggle */}
@@ -427,7 +430,7 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
                     setLairOnly(next);
                     setBestiaryGenerated(false); // trigger re-gen via useEffect
                   }}
-                  className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none ${
+                  className={`${BTN_FOCUS_VISIBLE} relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
                     lairOnly ? 'bg-amber-600' : 'bg-gray-600'
                   }`}
                   role="switch"
@@ -492,13 +495,13 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
                             <div className="flex items-center gap-1 shrink-0">
                               <button
                                 onClick={() => setLiveMonsters(prev => prev.map((m, j) => j === i ? { ...m, quantity: Math.max(0, m.quantity - 1) } : m))}
-                                className="w-6 h-6 flex items-center justify-center rounded bg-gray-600 hover:bg-gray-500 text-gray-200 text-sm font-bold leading-none transition-colors"
+                                className={`${BTN_ICON} w-6 h-6 bg-gray-600 hover:bg-gray-500 text-gray-200 text-sm font-bold leading-none`}
                                 aria-label={`Decrease ${monster.name} count`}
                               >−</button>
                               <span className="w-6 text-center text-sm font-bold text-white tabular-nums">{qty}</span>
                               <button
                                 onClick={() => setLiveMonsters(prev => prev.map((m, j) => j === i ? { ...m, quantity: m.quantity + 1 } : m))}
-                                className="w-6 h-6 flex items-center justify-center rounded bg-gray-600 hover:bg-gray-500 text-gray-200 text-sm font-bold leading-none transition-colors"
+                                className={`${BTN_ICON} w-6 h-6 bg-gray-600 hover:bg-gray-500 text-gray-200 text-sm font-bold leading-none`}
                                 aria-label={`Increase ${monster.name} count`}
                               >+</button>
                             </div>
@@ -528,7 +531,7 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
                   <div className="border border-gray-700 rounded-lg overflow-hidden">
                     <button
                       onClick={() => setShowSearch(s => !s)}
-                      className="w-full flex items-center justify-between px-3 py-2 bg-gray-800/60 hover:bg-gray-700/60 text-xs font-semibold text-gray-300 transition-colors"
+                      className={`${BTN_ROW} w-full flex items-center justify-between px-3 py-2 bg-gray-800/60 hover:bg-gray-700/60 text-xs font-semibold text-gray-300`}
                     >
                       <span>＋ Add Monster from Library</span>
                       <span className="text-gray-400">{showSearch ? '▲' : '▼'}</span>
@@ -615,7 +618,7 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
                       </div>
                       <button
                         onClick={() => removeCustomMonster(m.name, m.isLair)}
-                        className="text-gray-400 hover:text-red-400 text-xs ml-2 transition-colors"
+                        className={`${BTN_ICON} text-gray-400 hover:text-red-400 text-xs ml-2`}
                         aria-label={`Remove ${m.name}`}
                       >
                         ✕
@@ -665,20 +668,20 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
         </div>
 
         <div className="mt-6 pt-4 border-t border-gray-700 flex justify-between items-center">
-          <button
+          <Button
             ref={firstFocusableElementRef}
             onClick={handleSimulateBattle}
             disabled={!canSimulate}
-            className="px-6 py-2 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-lg shadow disabled:bg-gray-500 disabled:cursor-not-allowed"
+            type="button" variant="success"
           >
             {t('encounter_modal.simulate')}
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={onClose}
-            className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-lg shadow"
+            type="button" variant="primary"
           >
             {t('encounter_modal.close')}
-          </button>
+          </Button>
         </div>
       </div>
       </WindowFrame>

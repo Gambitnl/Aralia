@@ -6,6 +6,8 @@ import React, { useEffect, useRef } from 'react';
 import { GeminiLogEntry } from '../../types';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
 
 interface GeminiLogViewerProps {
   isOpen: boolean;
@@ -71,13 +73,13 @@ const GeminiLogViewer: React.FC<GeminiLogViewerProps> = ({ isOpen, onClose, logE
           <div ref={logEndRef} />
         </div>
 
-        <button
+        <Button
           onClick={onClose}
-          className="mt-6 bg-sky-600 hover:bg-sky-500 text-white font-semibold py-2 px-6 rounded-lg shadow self-center"
+          type="button" variant="primary" className="mt-6 self-center"
           aria-label="Close Gemini log viewer"
         >
           Close Log Viewer
-        </button>
+        </Button>
       </div>
     </WindowFrame>
   );

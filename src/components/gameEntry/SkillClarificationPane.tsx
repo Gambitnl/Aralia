@@ -1,6 +1,8 @@
 import React from 'react';
 import { Z_INDEX } from '../../styles/zIndex';
 import type { IntentSkillInfo } from '../../systems/gameEntry/resolveDeEscalationIntent';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE, BTN_TEXT_LINK } from '../../styles/buttonStyles';
 
 interface Props {
   candidates: IntentSkillInfo[];
@@ -16,7 +18,7 @@ export const SkillClarificationPane: React.FC<Props> = ({ candidates, onPick, on
     <p className="text-xs text-gray-400 mb-2">Pick the skill you mean. Bold = you're proficient.</p>
     {candidates.map((c) => (
       <button key={c.name} type="button" data-testid={`skill-pick-${c.name}`} onClick={() => onPick(c)}
-        className={`flex justify-between items-center px-3 py-2 rounded border text-sm transition-colors
+        className={`${BTN_FOCUS_VISIBLE} flex justify-between items-center px-3 py-2 rounded border text-sm transition-colors
           ${c.proficient ? 'border-amber-500/70 bg-amber-900/20 text-amber-100 font-semibold' : 'border-gray-700 bg-gray-800 text-gray-200'}`}>
         <span>
           {c.name}
@@ -27,6 +29,6 @@ export const SkillClarificationPane: React.FC<Props> = ({ candidates, onPick, on
         <span className="tabular-nums">{`${c.modifier >= 0 ? '+' : ''}${c.modifier}`}</span>
       </button>
     ))}
-    <button type="button" onClick={onCancel} className="mt-2 text-xs text-gray-500 hover:text-gray-300 self-end">Cancel</button>
+    <button type="button" onClick={onCancel} className={`${BTN_TEXT_LINK} mt-2 text-xs text-gray-500 hover:text-gray-300 self-end`}>Cancel</button>
   </div>
 );

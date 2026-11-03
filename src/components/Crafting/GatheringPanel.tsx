@@ -24,6 +24,9 @@ import { useGameState } from '../../state/GameContext';
 import { attemptIdentification, attemptHarvest, IdentificationResult, HarvestingResult } from '../../systems/crafting/gatheringSystem';
 import { GatherableResource, Biome } from '../../systems/crafting/gatheringData';
 import { resolveCraftingCrafter, NO_CRAFTER_MESSAGE } from './crafterAdapter';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 import './GatheringPanel.css';
 
 // Map location types to biomes (simplified)
@@ -69,7 +72,7 @@ export const GatheringPanel: React.FC<GatheringPanelProps> = ({ onClose }) => {
             <div className="gathering-panel">
                 <div className="gathering-header">
                     <h2>🌿 Herbalism &amp; Gathering</h2>
-                    {onClose && <button className="close-btn" onClick={onClose}>×</button>}
+                    {onClose && <button className={`${BTN_FOCUS_VISIBLE} close-btn`} onClick={onClose}>×</button>}
                 </div>
                 <p className="gathering-empty">{NO_CRAFTER_MESSAGE}</p>
             </div>
@@ -122,7 +125,7 @@ export const GatheringPanel: React.FC<GatheringPanelProps> = ({ onClose }) => {
         <div className="gathering-panel">
             <div className="gathering-header">
                 <h2>🌿 Herbalism & Gathering</h2>
-                {onClose && <button className="close-btn" onClick={onClose}>×</button>}
+                {onClose && <button className={`${BTN_FOCUS_VISIBLE} close-btn`} onClick={onClose}>×</button>}
             </div>
 
             <div className="gathering-info">
@@ -142,13 +145,14 @@ export const GatheringPanel: React.FC<GatheringPanelProps> = ({ onClose }) => {
             </div>
 
             <div className="gathering-actions">
-                <button
-                    className="identify-btn"
+                <Button
+                    variant="success"
+                    className="w-full"
                     onClick={handleIdentify}
                     disabled={isIdentifying}
                 >
                     {isIdentifying ? '🔍 Searching...' : '🔍 Search for Flora (Nature Check)'}
-                </button>
+                </Button>
             </div>
 
             {identificationResult && (
@@ -162,7 +166,7 @@ export const GatheringPanel: React.FC<GatheringPanelProps> = ({ onClose }) => {
                                 {identificationResult.identifiedResources.map(resource => (
                                     <button
                                         key={resource.id}
-                                        className={`resource-item ${selectedResource?.id === resource.id ? 'selected' : ''}`}
+                                        className={`${BTN_FOCUS_VISIBLE} resource-item ${selectedResource?.id === resource.id ? 'selected' : ''}`}
                                         onClick={() => setSelectedResource(resource)}
                                         style={{ borderColor: getRarityColor(resource.rarity) }}
                                         title={resource.properties ? `Properties: ${resource.properties.join(', ')}` : ''}
@@ -188,13 +192,14 @@ export const GatheringPanel: React.FC<GatheringPanelProps> = ({ onClose }) => {
                         <p>Expected Yield: {selectedResource.baseYield}</p>
                     </div>
 
-                    <button
-                        className="harvest-btn"
+                    <Button
+                        variant="action"
+                        className="w-full mt-3"
                         onClick={handleHarvest}
                         disabled={isHarvesting}
                     >
                         {isHarvesting ? '🌱 Harvesting...' : '🌱 Harvest (Herbalism Kit Check)'}
-                    </button>
+                    </Button>
                 </div>
             )}
 
