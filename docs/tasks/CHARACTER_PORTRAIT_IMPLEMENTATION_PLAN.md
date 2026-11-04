@@ -239,9 +239,10 @@ When disabled:
    - Validate localStorage size remains reasonable (no huge base64 payloads).
 
 ### Session Hygiene
-After verification completes, execute `/session-ritual` to:
-- Sync modified file dependencies via the Codebase Visualizer.
-- Extract terminal learnings discovered during this task.
-- Review and propose inline TODOs for future work.
+After verification completes, close the session with
+`public/agent-docs/workflows/session-ritual.md`. Pick the close case there, and do only
+the steps for that case: gap rows, domain docs, the planmap topic, Agora release and the
+report. (Updated 2026-11-03: the earlier steps here, dependency sync by each agent and
+terminal learnings, are retired. That file lists the reasons.)
 
 <!-- aralia-backlog-walked: {"source":"docs/tasks/backlog-retirement/RETIREMENT_LEDGER.md","path":"CHARACTER_PORTRAIT_IMPLEMENTATION_PLAN.md","sha256WithoutMarker":"8a48ff9a1e0612c28d1a259ca8be4733600e2fac2d1117abdb84fd47b1576c54","markedAtUtc":"2026-08-09T20:14:16.034Z"} -->

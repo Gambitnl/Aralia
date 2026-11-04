@@ -18,7 +18,7 @@
 - `npm run quality:debt:strict` runs the same summary and fails on typecheck or lint command failure
 - `npm run verify` runs the broader verification chain
 
-When working as an agent in this repo, prefer the workflow wrappers and session rules defined in [`../AGENTS.md`](../AGENTS.md), including `/test-ts`, dependency sync expectations, and `/session-ritual`.
+When working as an agent in this repo, prefer the workflow wrappers and session rules defined in [`../AGENTS.md`](../AGENTS.md), including `/test-ts`, dependency sync expectations, and the session close procedure in [`../public/agent-docs/workflows/session-ritual.md`](../public/agent-docs/workflows/session-ritual.md).
 
 ### Push Checks And Type Debt
 

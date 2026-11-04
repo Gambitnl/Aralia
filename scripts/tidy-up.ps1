@@ -1,13 +1,11 @@
 <#
-What: This script is a dummy/warning script that points users to the AI-driven workflow.
-Why: Previously, this was a manual script. Now, the "Tidy Up" process requires conversation context
-     that only an agent can provide. This script prevents users from running the old version.
-How: It simply prints warning messages to the terminal.
+What: This script prints a pointer to the Aralia session close procedure.
+Why: The tidy-up chain is retired (Remy, 2026-11-03). The one close procedure is
+     public/agent-docs/workflows/session-ritual.md. An agent reads it in its own
+     session, because the close steps need the conversation context.
+How: It prints messages to the terminal. It starts no agent and changes no file.
 #>
 
-# ============================================================================
-# Environment Setup
-# ============================================================================
 param(
     [Parameter(ValueFromRemainingArguments = $true)]
     [string[]]$Args
@@ -16,21 +14,7 @@ param(
 $root = Resolve-Path (Join-Path $PSScriptRoot "..")
 Set-Location $root
 
-# This script has been deprecated in favor of an agent-first workflow.
-# Automated scripts launch "blind" instances of the Codex CLI that lack context of your conversation history,
-# making them unable to accurately extract terminal learnings or log session summaries.
-
-# ============================================================================
-# Warning Messages
-# ============================================================================
-Write-Host "The tidy-up script is now an agent workflow." -ForegroundColor Yellow
-Write-Host "Please ask your active AI agent to execute the '/tidy-up' workflow instead, so it can use your actual conversation history to log changes." -ForegroundColor Cyan
-Write-Host "Canonical workflow doc: public/agent-docs/workflows/tidy-up.md" -ForegroundColor Cyan
-Write-Host "Modes: light, standard, full, push. The active agent should choose by risk and blast radius." -ForegroundColor Cyan
-Write-Host "Local-only calibration files may live under .agent/workflows/, but shared workflow docs do not." -ForegroundColor Cyan
-
-# WHAT CHANGED: Updated the warning message to include new mandatory checkpoints.
-# WHY IT CHANGED: We've added "Roadmap Orchestration" and "User Profile Calibration" 
-# to the end-of-session ritual. These must be done by the agent to ensure 
-# the project status and user preferences stay in sync.
-Write-Host "Full tidy-up includes mandatory roadmap-node orchestration and user-profile calibration checkpoints with explicit report blocks." -ForegroundColor Cyan
+Write-Host "The tidy-up chain is retired." -ForegroundColor Yellow
+Write-Host "To close a session, read public/agent-docs/workflows/session-ritual.md in your active agent session." -ForegroundColor Cyan
+Write-Host "Pick the close case there (small fix, feature session, unfinished hand-over, dispatched worker) and do only its steps." -ForegroundColor Cyan
+Write-Host "Section 7 of that file lists each retired tidy-up step and the reason." -ForegroundColor Cyan
