@@ -182,6 +182,14 @@ describe('CharacterSheetModal', () => {
     expect(screen.queryByTestId('spellbook-tab')).not.toBeInTheDocument();
   });
 
+  it('opens directly on Spellbook when requested by the party shortcut', () => {
+    render(<CharacterSheetModal {...defaultProps} initialTab="spellbook" />);
+
+    expect(screen.getByRole('tab', { name: 'Spellbook' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByTestId('spellbook-tab')).toBeInTheDocument();
+    expect(screen.queryByTestId('character-overview')).not.toBeInTheDocument();
+  });
+
   it('calls onClose when the close button is clicked', () => {
     const onClose = vi.fn();
     render(<CharacterSheetModal {...defaultProps} onClose={onClose} />);

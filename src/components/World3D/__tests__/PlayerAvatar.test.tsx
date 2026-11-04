@@ -8,7 +8,7 @@ import PlayerAvatar from '../PlayerAvatar';
 import type { PlayerCharacter } from '@/types/character';
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
 
-const harness = vi.hoisted(() => ({ frame: null as null | ((state: unknown, delta: number) => void), waterY: undefined as number | undefined, wideOnUpdate: false }));
+const harness = vi.hoisted(() => ({ frame: null as null | ((state: unknown, delta: number) => void), waterY: undefined as number | undefined, wideOnUpdate: false, narrowOnUpdate: false }));
 vi.mock('@react-three/fiber', () => ({ useFrame: (frame: typeof harness.frame) => { harness.frame = frame; } }));
 vi.mock('@react-three/drei', () => ({ Html: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
 vi.mock('@/systems/entities3d/parts', () => ({ registerAllParts: vi.fn() }));
@@ -28,6 +28,9 @@ vi.mock('@/systems/entities3d/three/assembleEntity', () => ({
         const body=new THREE.Mesh(new THREE.BoxGeometry(1.4,1.7,.8),new THREE.MeshBasicMaterial());
         body.name='wideBody';body.position.y=.85;group.add(body);
       }
+      // A moving figure can return to a narrower visible idle pose. The old
+      // animation extreme must not remain an invisible permanent obstacle.
+      if(harness.narrowOnUpdate){const body=group.getObjectByName('wideBody');if(body)body.scale.x=.2;}
     }) };
   },
 }));
@@ -57,7 +60,7 @@ describe('player avatar movement', () => {
     expect(position.toArray()).toEqual(reached.toArray());
     expect(group.getAttribute('position')).toBe('0,1,0');
   });
-  beforeEach(() => { harness.frame = null; harness.waterY = undefined; harness.wideOnUpdate = false; });
+  beforeEach(() => { harness.frame = null; harness.waterY = undefined; harness.wideOnUpdate = false; harness.narrowOnUpdate = false; });
 
   it('resolves a new arrival with no ground position instead of preserving the old camera datum', () => {
     const props = { ground, sceneOrigin: { x: 100, z: 200 }, startSurfaceY: 6.166488720703125, character };
@@ -228,6 +231,24 @@ describe('player avatar movement', () => {
     const position=new THREE.Vector3(0,1,0);Object.assign(view.getByTestId('player-avatar'),{position});
     act(()=>harness.frame!({clock:{elapsedTime:1},camera:{position:new THREE.Vector3()}},.1));
     expect(position.x).toBe(0);expect(space.get('player')!.radiusM).toBeGreaterThan(.7);
+  });
+
+  it('releases an old animation extreme only after the visible body settles at idle',()=>{
+    harness.wideOnUpdate=true;
+    const space=new Map();
+    const view=render(<ActorPersonalSpaceContext.Provider value={space}><PlayerAvatar ground={ground} sceneOrigin={{x:100,z:200}}
+      startSurfaceY={1} character={character} groundPos={{xM:100,zM:200,yM:1}}/></ActorPersonalSpaceContext.Provider>);
+    const position=new THREE.Vector3(0,1,0);Object.assign(view.getByTestId('player-avatar'),{position});
+    const frame={clock:{elapsedTime:1},camera:{position:new THREE.Vector3()}};
+    act(()=>harness.frame!(frame,.1));
+    expect(space.get('player')!.footprint.maxXM).toBeCloseTo(.7);
+    harness.narrowOnUpdate=true;
+    act(()=>{for(let i=0;i<6;i++)harness.frame!(frame,.1);});
+    const settled=space.get('player')!;
+    expect(settled.footprint.maxXM).toBeCloseTo(.14);
+    expect(settled.radiusM).toBeGreaterThanOrEqual(Math.hypot(.14,.4));
+    expect(settled.radiusM).toBeLessThan(.5);
+    expect(position.toArray()).toEqual([0,1,0]);
   });
 
   it('uses the drawn box to pass a neighbor whose circular margin is empty',()=>{

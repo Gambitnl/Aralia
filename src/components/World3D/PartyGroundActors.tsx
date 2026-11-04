@@ -40,16 +40,22 @@ function Follower({member,index,...props}:Omit<Props,'members'>&{member:PartyCom
  const recipe=useMemo(()=>member.recipe,[recipeKey]);
  const trail=useRef(new PartyGroundTrail(member.trail)),feet=useRef({...member.position});
  const target=useRef<{xM:number;zM:number}|null>(null),blocked=useRef(false),lastLeader=useRef<CompanionPosition|null>(null);
+ const frameTime=useRef(0),retryAfter=useRef(0);
  const [notice,setNotice]=useState<string|null>(null);
  const initialized=useRef(member.canFollow);
  useEffect(()=>{blocked.current=false;},[props.openDoors]);
- useFrame(()=>{
+ useFrame(({clock})=>{
+  frameTime.current=clock.elapsedTime;
   const leader=props.leader.current;if(!leader||props.paused){target.current=null;return;}
   const near=Math.hypot(leader.xM-feet.current.xM,leader.zM-feet.current.zM,leader.yM-feet.current.yM)<=3;
   if((!initialized.current||trail.current.overflowed)&&near){trail.current.reunite(leader);initialized.current=true;setNotice(null);}
   if(!initialized.current){target.current=null;return;}
-  if(lastLeader.current&&Math.hypot(leader.xM-lastLeader.current.xM,leader.zM-lastLeader.current.zM)>.15)blocked.current=false;
-  lastLeader.current={...leader};trail.current.observe(leader);
+  // People can clear the saved route while the leader waits. Retry through
+  // PlayerAvatar's same ground/body solver; never move the feet here.
+  if(blocked.current&&frameTime.current>=retryAfter.current)blocked.current=false;
+  // Measure accumulated leader movement, not one frame's tiny displacement.
+  if(!lastLeader.current||Math.hypot(leader.xM-lastLeader.current.xM,leader.zM-lastLeader.current.zM)>.15){blocked.current=false;lastLeader.current={...leader};}
+  trail.current.observe(leader);
   if(trail.current.overflowed){target.current=null;setNotice(`${member.character.name} lost your trail. Return to them.`);return;}
   target.current=blocked.current?null:trail.current.target(feet.current,2.25*(index+1));
  },-.7);
@@ -58,8 +64,8 @@ function Follower({member,index,...props}:Omit<Props,'members'>&{member:PartyCom
   groundPos={member.position} ground={props.ground} sceneOrigin={props.sceneOrigin} startSurfaceY={member.position.yM}
   openDoors={props.openDoors} walkingSurfaces={props.walkingSurfaces}
   onTalk={props.onTalk?()=>props.onTalk!(member.character.id):undefined} actorNotice={notice}
-  onPositionChange={pose=>{feet.current=pose;props.onPosition?.(member.character.id,pose,trail.current.snapshot());}}
-  onMovementBlocked={()=>{blocked.current=true;target.current=null;setNotice(`${member.character.name}'s way is blocked. Wait or find another approach.`);}}
+  onPositionChange={pose=>{if(Math.hypot(pose.xM-feet.current.xM,pose.yM-feet.current.yM,pose.zM-feet.current.zM)>.01)setNotice(null);feet.current=pose;props.onPosition?.(member.character.id,pose,trail.current.snapshot());}}
+  onMovementBlocked={()=>{blocked.current=true;retryAfter.current=frameTime.current+.75;target.current=null;setNotice(`${member.character.name}'s way is blocked. Wait or find another approach.`);}}
  />;
 }
 export default function PartyGroundActors({members,...props}:Props){

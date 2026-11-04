@@ -134,6 +134,18 @@ describe('PartyPane', () => {
     expect(screen.getByText('(+250)')).toBeInTheDocument();
   });
 
+  it('routes the party Spells action to the selected character and Spellbook tab', () => {
+    const character = {
+      ...mockCharacter,
+      spellbook: { cantrips: ['light'], preparedSpells: [], knownSpells: [] },
+    };
+    const onViewCharacterSheet = vi.fn();
+    render(<PartyPane {...mockProps} party={[character]} onViewCharacterSheet={onViewCharacterSheet} />);
+
+    fireEvent.click(screen.getByRole('button', { name: "Open Test Character's spells" }));
+    expect(onViewCharacterSheet).toHaveBeenCalledWith(character, 'spellbook');
+  });
+
   it('does not render companion relationship details when companion context is missing', () => {
     render(<PartyPane {...mockProps} />);
 

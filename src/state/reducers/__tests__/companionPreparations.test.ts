@@ -87,6 +87,54 @@ describe('companion road preparations', () => {
     }
   });
 
+  it('remembers a new supply request after consumption without reopening the kept promise', () => {
+    const state = choose(promised(), 'deliver');
+    state.companions[ELARA].inventory = [];
+    expect(preparationChoices(state).some(item => item.choice === 'resupply')).toBe(false);
+    expect(choose(state, 'resupply')).toEqual(state);
+    const asked = choose(state, 'recall'), repeated = choose(asked, 'recall');
+    expect(asked.activeConversation?.messages.at(-1)?.text).toContain('Two more rations and two water-days');
+    expect(asked.companions[ELARA].memories.at(-1)?.tags).toContain('resupply-requested');
+    expect(repeated.companions[ELARA].memories).toEqual(asked.companions[ELARA].memories);
+    expect(asked.questLog).toBe(state.questLog);
+    expect(asked.companions[ELARA].questline).toBe(state.companions[ELARA].questline);
+    expect(asked.inventory).toBe(state.inventory);
+    expect(preparationChoices(asked).find(item => item.choice === 'resupply')?.disabled).toBe(false);
+  });
+
+  it('replenishes real personal supplies once without trust farming, quest reset or new travel consent', () => {
+    const state = choose(promised(), 'deliver');
+    state.companions[ELARA].inventory = [];
+    const asked = choose(state, 'recall'), next = choose(asked, 'resupply');
+    expect(daysOfFood(next.inventory)).toBe(1);
+    expect(daysOfWater(next.inventory)).toBe(1);
+    expect(daysOfFood(next.companions[ELARA].inventory!)).toBe(2);
+    expect(daysOfWater(next.companions[ELARA].inventory!)).toBe(2);
+    expect(next.companions[ELARA].inventory![0].sourceId).toBe('actual-ration-stock');
+    expect(next.companions[ELARA].memories.at(-1)?.tags).toContain('supplies-replenished');
+    for (const key of ['relationships', 'questline', 'goals', 'travelAgreement'] as const)
+      expect(next.companions[ELARA][key]).toEqual(asked.companions[ELARA][key]);
+    expect(next.questLog).toBe(asked.questLog);
+    expect(next.gold).toBe(asked.gold);
+    expect(choose(next, 'resupply')).toEqual(next);
+    expect(preparationChoices(next).some(item => item.choice === 'resupply')).toBe(false);
+    const reloaded = JSON.parse(JSON.stringify(asked)) as GameState;
+    reloaded.gameTime = new Date(asked.gameTime);
+    expect(daysOfFood(choose(reloaded, 'resupply').companions[ELARA].inventory!)).toBe(2);
+  });
+
+  it.each(['short-water', 'pending', 'not-player-turn', 'absent', 'wrong-world'] as const)('rechecks a repeated supply handover: %s', condition => {
+    let state = choose(promised(), 'deliver');
+    state.companions[ELARA].inventory = [];
+    state = choose(state, 'recall');
+    if (condition === 'short-water') state.inventory = [{...ITEMS.rations, quantity: 3}];
+    if (condition === 'pending') state.activeConversation!.pendingResponse = true;
+    if (condition === 'not-player-turn') state.activeConversation!.isPlayerTurn = false;
+    if (condition === 'absent') state.currentLocationActiveDynamicNpcIds = [];
+    if (condition === 'wrong-world') state.worldSeed = 78;
+    expect(choose(state, 'resupply')).toEqual(state);
+  });
+
   it('accepts split stacks without replacing their original properties', () => {
     const state = promised();
     state.inventory = [{ ...ITEMS.rations, quantity: 1, sourceId: 'first' }, { ...ITEMS.rations, quantity: 3, sourceId: 'second' }, { ...ITEMS['water-day'], quantity: 2 }];
@@ -123,7 +171,11 @@ describe('companion road preparations', () => {
     loaded.gameTime = new Date(delivered.gameTime);
     const promoted = { ...loaded, ...companionReducer(loaded, { type: 'RECRUIT_COMPANION', payload: promoteCompanionToMember(loaded.companions[ELARA]) }) };
     const dismissed = { ...promoted, ...companionReducer(promoted, { type: 'DISMISS_PARTY_MEMBER', payload: { memberId: ELARA } }) };
-    const recalled = choose(dismissed, 'recall');
+    expect(choose(dismissed, 'recall')).toEqual(dismissed);
+    // Dismissal does not grant remote conversation. This fixture represents
+    // a later local reunion; actual separation/reunion still needs native play.
+    const reunited = {...dismissed, currentLocationActiveDynamicNpcIds: [ELARA]};
+    const recalled = choose(reunited, 'recall');
     expect(recalled.activeConversation?.messages.at(-1)?.text).toContain('promise you kept');
     expect(recalled.companions[ELARA].inventory).toEqual(delivered.companions[ELARA].inventory);
     expect(recalled.companions[ELARA].goals).toEqual(delivered.companions[ELARA].goals);

@@ -85,6 +85,32 @@ const ally = {
 } as unknown as PlayerCharacter;
 
 describe('CastSpellControls', () => {
+    it('explains how to become eligible when no object is held for Light',()=>{
+        const character=makeCharacter({spellbook:{cantrips:['light'],knownSpells:[],preparedSpells:[]},equippedItems:{}});
+        const state=createMockGameState({phase:GamePhase.PLAYING,party:[character]}),onAction=vi.fn();
+        const spell={...detectMagic,id:'light',name:'Light',level:0} as Spell;
+        render(<GameProvider state={state} dispatch={vi.fn()}><CastSpellControls spell={spell} character={character} isReadyToCast onAction={onAction}/></GameProvider>);
+        expect(screen.getByRole('status')).toHaveTextContent('No eligible object is held');
+        expect(screen.getByRole('status')).toHaveTextContent('Equip an object in either hand first');
+        expect(screen.getByRole('button',{name:'Cast Light on selected object'})).toBeDisabled();
+        expect(onAction).not.toHaveBeenCalled();
+    });
+
+    it('requires an explicit own object for Light and refuses a stale reviewed item',()=>{
+        const item={...ALL_ITEMS.mace},character=makeCharacter({spellbook:{cantrips:['light'],knownSpells:[],preparedSpells:[]},equippedItems:{MainHand:item}});
+        const state=createMockGameState({phase:GamePhase.PLAYING,party:[character]}),onAction=vi.fn();
+        const spell={...detectMagic,id:'light',name:'Light',level:0} as Spell;
+        const ui=(s:typeof state)=><GameProvider state={s} dispatch={vi.fn()}><CastSpellControls spell={spell} character={s.party[0]} isReadyToCast onAction={onAction}/></GameProvider>;
+        const view=render(ui(state)),button=screen.getByRole('button',{name:'Cast Light on selected object'});
+        expect(button).toBeDisabled();
+        fireEvent.change(screen.getByLabelText('Object'),{target:{value:'MainHand'}});expect(button).toBeEnabled();
+        view.rerender(ui({...state,party:[{...character,equippedItems:{MainHand:{...item}}}]}));
+        expect(button).toBeDisabled();expect(onAction).not.toHaveBeenCalled();
+        fireEvent.change(screen.getByLabelText('Object'),{target:{value:''}});
+        view.rerender(ui(state));fireEvent.change(screen.getByLabelText('Object'),{target:{value:'MainHand'}});fireEvent.click(button);
+        expect(onAction.mock.calls[0][0].payload.outOfCombat.light).toMatchObject({slot:'MainHand',sourceItem:item,color:'#fff1ca'});
+        expect(onAction.mock.calls[0][0].payload.outOfCombat.targetCharacterId).toBe(character.id);
+    });
     it('follows the filled unit receipt when a cast separates one vessel from a stack',async()=>{
         const character=makeCharacter({spellbook:{cantrips:[],knownSpells:['create-or-destroy-water'],preparedSpells:['create-or-destroy-water']}});
         const vessel={...ALL_ITEMS.waterskin,quantity:3},onAction=vi.fn();

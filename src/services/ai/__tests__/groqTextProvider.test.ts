@@ -65,6 +65,23 @@ describe('groqGenerateForTask / groqChatForTask (network)', () => {
     vi.unstubAllGlobals();
   });
 
+  it('cancels the selected cloud request when an optional greeting is abandoned', async () => {
+    let begin!: () => void;
+    const started = new Promise<void>(resolve => { begin = resolve; });
+    fetchMock.mockImplementationOnce(async (_url, options) => new Promise((_resolve, reject) => {
+      options.signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true });
+      begin();
+    }));
+    const controller = new AbortController();
+    const result = groqGenerateForTask({ apiKey: 'fixture-key', model: 'fixture-model' }, {
+      taskType: 'conversation_continuation', prompt: 'Hello', signal: controller.signal,
+    });
+    await started;
+    controller.abort();
+    expect(await result).toMatchObject({ ok: false, error: 'Request cancelled.', model: 'fixture-model' });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it('generate: posts to Groq with Bearer auth and returns the adapted shape', async () => {
     fetchMock.mockResolvedValue({
       ok: true,

@@ -21,7 +21,7 @@ interface PartyOverlayProps {
     /** Optional record of companions in state */
     companions?: Record<string, Companion>;
     /** Callback when viewing a character's full sheet */
-    onViewCharacterSheet: (character: PlayerCharacter) => void;
+    onViewCharacterSheet: (character: PlayerCharacter, initialTab?: 'overview' | 'spellbook') => void;
     /** Callback when fixing a missing character choice */
     onFixMissingChoice: (character: PlayerCharacter, missing: MissingChoice) => void;
     /** Callback to initiate a long rest */

@@ -1,6 +1,6 @@
-/** An explicit compatibility proposal for the played left-return inn family.
- * The parcel and original source stay intact. A one-cell wider rear wing gives
- * retained guest rooms a public landing instead of routing through bedrooms.
+/** Explicit compatibility proposals for inspected inn circulation families.
+ * The parcel and original source stay intact. Depending on the inspected
+ * family, a wider rear landing or direct common-room passages serve guests.
  * This is a bounded migration recipe, not a replacement for every inn. */
 
 // @dependencies-start
@@ -8,8 +8,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/10/2026, 17:24:19
- * Dependents: state/reducers/townReducer.ts, systems/worldforge/interior/buildingSource.ts
+ * Last Sync: 03/11/2026, 08:18:36
+ * Dependents: components/World3D/World3DWrapper.tsx, state/reducers/townReducer.ts, systems/worldforge/interior/buildingSource.ts
  * Imports: 8 files
  *
  * MULTI-AGENT SAFETY:
@@ -30,8 +30,10 @@ import {furnishingFootprint} from './householdFurnish';
 import {siteDoorId} from '../bridge/sitePartTransform';
 
 export const GUEST_CIRCULATION_RECIPE = 'left-return-guest-circulation-v1' as const;
+export const PUBLIC_GUEST_DOORS_RECIPE = 'rectangular-public-guest-doors-v1' as const;
+type GuestCirculationRecipe = typeof GUEST_CIRCULATION_RECIPE | typeof PUBLIC_GUEST_DOORS_RECIPE;
 export interface GuestCirculationRepair {
-  version: 1; recipe: typeof GUEST_CIRCULATION_RECIPE;
+  version: 1; recipe: GuestCirculationRecipe;
   sourceSignature: string; planSignature: string; plan: BlueprintPlan;
   admittedAt: string;
   position: {tileX: number; tileY: number; xM: number; zM: number; yM: number};
@@ -41,6 +43,60 @@ const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
 const cells = (x: number, y: number, w: number, h: number): Cell[] =>
   Array.from({length: w * h}, (_, i) => ({cx: x + i % w, cy: y + Math.floor(i / w)}));
 const eq = (a: number, b: number) => Math.abs(a - b) < 1e-6;
+const PUBLIC_GUEST_ROOM_SHAPES: Array<[number, BlueprintRoom['purpose'], number, number, number, number]> = [
+  [0, 'common-room', 0, 0, 20, 20], [1, 'guest-room', 20, 0, 10, 10],
+  [2, 'guest-room', 20, 10, 10, 10], [3, 'kitchen', 0, 20, 15, 10], [4, 'kitchen', 15, 20, 15, 10]];
+
+/** Cheap admission prefilter. The planner below still checks the actual room
+ * cells, wall edges and furniture routes before offering a retained revision. */
+export function guestCirculationRecipeFor(plan: BlueprintPlan): GuestCirculationRecipe | undefined {
+  if (plan.type !== 'inn') return;
+  if (plan.ensemble?.lotProfile === 'left-return') return GUEST_CIRCULATION_RECIPE;
+  const ground = plan.floors.find(f => f.level === 0);
+  if (plan.widthFt === 30 && plan.depthFt === 30 && ground?.rooms.length === 5
+    && ground.doors.length === 6 && !plan.doorLeafProfile && !plan.liveHistory?.eventsApplied
+    && PUBLIC_GUEST_ROOM_SHAPES.every(([id, purpose, x, y, w, d]) => ground.rooms.some(r =>
+      r.id === id && r.purpose === purpose && same(r.bbox, {x, y, w, d})))) return PUBLIC_GUEST_DOORS_RECIPE;
+}
+
+/** This old rectangular family put two guestrooms behind one another and a
+ * kitchen. Add public common-room passages without moving a paid bed, changing
+ * a room, or replacing any existing opening. Legacy passages remain leafless;
+ * this does not enroll an old inn in the separate private-leaf profile. */
+function publicGuestDoorProposal(before: BlueprintPlan): BlueprintPlan | undefined {
+  if (guestCirculationRecipeFor(before) !== PUBLIC_GUEST_DOORS_RECIPE || before.liveHistory?.eventsApplied) return;
+  const ground = before.floors.find(f => f.level === 0)!;
+  if (before.footprintCells.length !== 36 || cells(0, 0, 6, 6).some(c =>
+    !before.footprintCells.some(p => p.cx === c.cx && p.cy === c.cy))
+    || PUBLIC_GUEST_ROOM_SHAPES.some(([id, purpose, x, y, w, d]) => {
+      const room = ground.rooms.find(r => r.id === id);
+      return !room || room.purpose !== purpose || !same(room.bbox, {x, y, w, d})
+        || room.cells.length !== Number(w) * Number(d) / 25
+        || cells(Number(x) / 5, Number(y) / 5, Number(w) / 5, Number(d) / 5).some(c =>
+          !room.cells.some(p => p.cx === c.cx && p.cy === c.cy));
+    })) return;
+  const after = structuredClone(before), floor = after.floors.find(f => f.level === 0)!;
+  const added = [doorFor(floor, 20, 7.5, 'y'), doorFor(floor, 20, 12.5, 'y')];
+  // Remove only the two actual separating wall cells. Keep the other wall
+  // bytes and all existing windows, including history-bearing exterior walls.
+  if (added.some(d => floor.doors.some(old => old.axis === d.axis && old.x === d.x && old.y === d.y)
+    || floor.walls.filter(w => w.kind === 'inner' && w.axis === d.axis && w.x === d.x && w.y === d.y).length !== 1)) return;
+  floor.doors.push(...added);
+  floor.walls = floor.walls.filter(w => !added.some(d => d.axis === w.axis && d.x === w.x && d.y === w.y));
+  floor.wallRuns = mergeWallRuns(floor.walls);
+  if (![1, 2].every(id => roomFurnishingsReachable(floor, id, .5)) || !retainBackstory(before, after)) return;
+  return after;
+}
+
+/** Validate the new recipe's narrow structural delta on load. No source or
+ * furniture generator runs here, and every unrelated field must remain exact. */
+export function guestCirculationRevisionAgrees(before: BlueprintPlan, after: BlueprintPlan, recipe: string): boolean {
+  if (!guestCirculationReferencesAgree(before, after)) return false;
+  if (recipe === GUEST_CIRCULATION_RECIPE) return guestCirculationRecipeFor(before) === GUEST_CIRCULATION_RECIPE;
+  if (recipe !== PUBLIC_GUEST_DOORS_RECIPE) return false;
+  const expected = publicGuestDoorProposal(before);
+  return !!expected && same(expected, after);
+}
 
 function doorFor(floor: BlueprintFloor, x: number, y: number, axis: 'x' | 'y'): BlueprintDoor {
   const sides = stairDoorCells({x, y, axis});
@@ -138,11 +194,12 @@ export function guestCirculationReferencesAgree(before: BlueprintPlan, after: Bl
   });
 }
 
-/** Only the inspected geometry family is supported initially. Other plans,
+/** Only the inspected geometry families are supported. Other plans,
  * live damaged/extended foundations and unresolved histories keep their source.
  * Filling two rear cells retains the left-return and open courtyard, with no
  * change to the old envelope, site origin, entry or aligned return stair. */
 export function planGuestCirculation(before: BlueprintPlan, townSeed: SeedPath, onRefusal?: (reason: string) => void): BlueprintPlan | undefined {
+  if (guestCirculationRecipeFor(before) === PUBLIC_GUEST_DOORS_RECIPE) return publicGuestDoorProposal(before);
   const refuse = (reason: string) => {onRefusal?.(reason); return undefined;};
   if (before.type !== 'inn' || before.widthFt !== 30 || before.depthFt !== 25
     || before.ensemble?.lotProfile !== 'left-return' || before.liveHistory?.eventsApplied

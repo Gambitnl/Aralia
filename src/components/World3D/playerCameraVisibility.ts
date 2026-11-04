@@ -1,3 +1,5 @@
+/** Keep the walking camera clear of opaque scenery using the drawn figure.
+ * Asymmetric anatomy must not turn empty bounding-box corners into body parts. */
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
@@ -21,7 +23,96 @@ export type CameraPoint = readonly [number, number, number];
 /** Nearest opaque town structure or ground surface along the camera arm. */
 export type PlayerCameraSightline = (focus: CameraPoint, eye: CameraPoint) => number | null;
 
-/** Query real mounted buildings, decks, terrain and roads, never the avatar or NPCs.
+/** Select actual drawn vertices at the figure's six extremes. A tail's overall
+ * box also contains empty space above it; a porch in that space cannot hide the
+ * person. Keep vertex references so warm camera queries follow current skin,
+ * morph and world transforms without scanning the whole figure for every ray. */
+function createBodySurfaceSamples() {
+  type Sample = {mesh: THREE.Mesh; index: number; edgeIndex?: number; blend?: number};
+  let signature='', scannedAt=-Infinity, selected: Sample[]=[];
+  const vertex=new THREE.Vector3(),neighbor=new THREE.Vector3();
+  const attributeIds=new WeakMap<object,number>();let nextAttributeId=0;
+  const attributeId=(attribute: object|null)=>{
+    if(!attribute)return 0;
+    if(!attributeIds.has(attribute))attributeIds.set(attribute,++nextAttributeId);
+    return attributeIds.get(attribute)!;
+  };
+  const visible=(material: THREE.Material|undefined)=>Boolean(material?.visible&&material.opacity>0);
+  return (player: THREE.Object3D,time: number): CameraPoint[] => {
+    player.updateWorldMatrix(true,true);
+    const meshes: THREE.Mesh[]=[];
+    player.traverseVisible(object=>{
+      const mesh=object as THREE.Mesh;
+      if(!mesh.isMesh||mesh.name==='blobShadow'||!mesh.geometry.getAttribute('position'))return;
+      const materials=Array.isArray(mesh.material)?mesh.material:[mesh.material];
+      if(materials.some(visible))meshes.push(mesh);
+    });
+    const nextSignature=meshes.map(mesh=>{
+      const g=mesh.geometry,p=g.getAttribute('position'),materials=Array.isArray(mesh.material)?mesh.material:[mesh.material];
+      return [mesh.uuid,g.uuid,attributeId(p),p.count,'version' in p?p.version:p.data.version,attributeId(g.index),g.index?.version,
+        g.drawRange.start,g.drawRange.count,materials.map(visible).join(','),
+        g.groups.map(group=>[group.start,group.count,group.materialIndex].join(',')).join(';')].join(':');
+    }).join('|');
+    if(nextSignature!==signature||time-scannedAt>=1000){
+      const extremes: Array<Sample|undefined>=Array(6),values=[Infinity,-Infinity,Infinity,-Infinity,Infinity,-Infinity];
+      for(const mesh of meshes){
+        const g=mesh.geometry,index=g.index,start=g.drawRange.start,end=Math.min(index?.count??g.getAttribute('position').count,start+g.drawRange.count);
+        const materials=mesh.material;
+        const ranges=Array.isArray(materials)?g.groups.filter(group=>visible(materials[group.materialIndex??0]))
+          .map(group=>[Math.max(start,group.start),Math.min(end,group.start+group.count)]):[[start,end]];
+        const visited=new Set<number>();
+        for(const [first,last] of ranges)for(let offset=first;offset<last;offset++){
+          const i=index?index.getX(offset):offset;
+          if(visited.has(i))continue;visited.add(i);
+          mesh.getVertexPosition(i,vertex);vertex.applyMatrix4(mesh.matrixWorld);
+          if(![vertex.x,vertex.y,vertex.z].every(Number.isFinite))continue;
+          for(let axis=0;axis<6;axis++){
+            const coordinate=vertex.getComponent(Math.floor(axis/2));
+            if(axis%2?coordinate>values[axis]:coordinate<values[axis]){
+              values[axis]=coordinate;extremes[axis]={mesh,index:i};
+            }
+          }
+        }
+      }
+      selected=extremes.filter((sample): sample is Sample=>Boolean(sample))
+        .filter((sample,i,all)=>all.findIndex(other=>other.mesh===sample.mesh&&other.index===sample.index)===i);
+      // Do not cast from a sole's exact ground-contact boundary: a rising
+      // bank can intersect that point while the person still has a clear
+      // view. Preserve the existing 12 cm foot allowance on a real adjacent
+      // triangle edge, rather than raising a point into empty space.
+      const footHeight=values[2]+Math.min(.12,(values[3]-values[2])*.1);
+      selected=selected.filter(sample=>{
+        const {mesh,index:source}=sample,g=mesh.geometry,index=g.index;
+        mesh.getVertexPosition(source,vertex);vertex.applyMatrix4(mesh.matrixWorld);
+        if(vertex.y>=footHeight)return true;
+        const start=g.drawRange.start,end=Math.min(index?.count??g.getAttribute('position').count,start+g.drawRange.count),materials=mesh.material;
+        const ranges=Array.isArray(materials)?g.groups.filter(group=>visible(materials[group.materialIndex??0]))
+          .map(group=>[Math.max(start,group.start),Math.min(end,group.start+group.count)]):[[start,end]];
+        let shortest=Infinity;
+        for(const [first,last] of ranges)for(let offset=first;offset+2<last;offset+=3){
+          const triangle=[0,1,2].map(i=>index?index.getX(offset+i):offset+i);
+          if(!triangle.includes(source))continue;
+          for(const i of triangle){
+            mesh.getVertexPosition(i,neighbor);neighbor.applyMatrix4(mesh.matrixWorld);
+            if(neighbor.y<=footHeight)continue;
+            const blend=(footHeight-vertex.y)/(neighbor.y-vertex.y),distance=vertex.distanceToSquared(neighbor)*blend*blend;
+            if(distance<shortest){shortest=distance;sample.edgeIndex=i;sample.blend=blend;}
+          }
+        }
+        return sample.edgeIndex!==undefined;
+      });
+      signature=nextSignature;scannedAt=time;
+    }
+    return selected.map(({mesh,index,edgeIndex,blend})=>{
+      mesh.getVertexPosition(index,vertex);
+      if(edgeIndex!==undefined){mesh.getVertexPosition(edgeIndex,neighbor);vertex.lerp(neighbor,blend!);}
+      vertex.applyMatrix4(mesh.matrixWorld);
+      return [vertex.x,vertex.y,vertex.z] as const;
+    });
+  };
+}
+
+/** Query real mounted buildings, decks, terrain, roads and scenery, never the avatar or NPCs.
  * A clear building-only ray can still put the eye above an opaque bridge while
  * the accepted body stands underneath it, or inside a hill after walking down.
  * Reuse the rendered surfaces for visibility; geometry and feet stay unchanged. */
@@ -30,7 +121,8 @@ export function createPlayerCameraSightline(getScene: () => THREE.Scene | null,
   const raycaster = new THREE.Raycaster(), focus = new THREE.Vector3(), direction = new THREE.Vector3();
   let cachedScene: THREE.Scene | null = null, refreshedAt = -Infinity;
   let player: THREE.Object3D | null = null, sampledFrame = -1;
-  const playerBounds = new THREE.Box3(), partBounds = new THREE.Box3();
+  const sampleBody=createBodySurfaceSamples();
+  let playerPoints: CameraPoint[]=[];
   let buildings: Array<{ root: THREE.Object3D; bounds: THREE.Box3 }> = [];
   return (from, to) => {
     const scene = getScene();
@@ -45,7 +137,10 @@ export function createPlayerCameraSightline(getScene: () => THREE.Scene | null,
       scene.traverse(object => {
         if (object.name === 'world3d:player') player = object;
         if (object.name === 'world3d:site-building' || object.name === 'world3d:decks'
-          || object.name === 'world3d:terrain' || object.name === 'world3d:roads') buildings.push({ root: object,
+          || object.name === 'world3d:terrain' || object.name === 'world3d:roads'
+          // The played Dragon doorway was hidden by a real overturned barrel.
+          // Include its rendered prop batch; keep the barrel and its source intact.
+          || object.name === 'ground-props') buildings.push({ root: object,
           bounds: new THREE.Box3().setFromObject(object).expandByScalar(2) });
       });
       cachedScene = scene; refreshedAt = time;
@@ -58,25 +153,11 @@ export function createPlayerCameraSightline(getScene: () => THREE.Scene | null,
       // A clear torso ray alone can still hide the head behind a door lintel.
       const frame = Math.floor(time / 16);
       if (frame !== sampledFrame) {
-        player.updateWorldMatrix(true, true); playerBounds.makeEmpty();
-        // A projected shadow is wider than the real figure and can put empty
-        // sample points inside a door frame. Only visible body parts frame it.
-        player.traverseVisible(object => {
-          const mesh = object as THREE.Mesh;
-          if (!mesh.isMesh || mesh.name === 'blobShadow') return;
-          const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-          if (!materials.some(material => material?.visible && material.opacity > 0)) return;
-          playerBounds.union(partBounds.setFromObject(mesh));
-        });
+        playerPoints=sampleBody(player,time);
         sampledFrame = frame;
       }
-      if (playerBounds.isEmpty()) return 0;
-      const x = (playerBounds.min.x + playerBounds.max.x) / 2, z = (playerBounds.min.z + playerBounds.max.z) / 2;
-      const y = (playerBounds.min.y + playerBounds.max.y) / 2;
-      const halfX = (playerBounds.max.x - playerBounds.min.x) * 0.42;
-      const halfZ = (playerBounds.max.z - playerBounds.min.z) * 0.42;
-      points.push([x, playerBounds.max.y - 0.06, z], [x, playerBounds.min.y + 0.12, z],
-        [x - halfX, y, z], [x + halfX, y, z], [x, y, z - halfZ], [x, y, z + halfZ]);
+      if (!playerPoints.length) return 0;
+      points.push(...playerPoints);
     }
     let nearest: number | null = null;
     const updated = new Set<THREE.Object3D>();

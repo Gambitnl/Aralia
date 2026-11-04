@@ -11,7 +11,7 @@ interface PartyPaneProps {
     /** Optional companion data to enrich the party cards */
     companions?: Record<string, Companion>;
     /** Callback when a character's "more" button is clicked (opens character sheet) */
-    onViewCharacterSheet: (character: PlayerCharacter) => void;
+    onViewCharacterSheet: (character: PlayerCharacter, initialTab?: 'overview' | 'spellbook') => void;
     /** Callback when a missing choice warning is clicked */
     onFixMissingChoice: (character: PlayerCharacter, missing: MissingChoice) => void;
     /**

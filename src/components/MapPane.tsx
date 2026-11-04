@@ -2,6 +2,8 @@
  * @file MapPane.tsx
  * World map modal surface. Worldforge native renderers (SVG/canvas) are the sole
  * cartography system. The Azgaar iframe has been retired (2026-06-24).
+ * A funded land/ferry destination pick opens a cancellable journey review;
+ * only explicit departure hands its unchanged route effects to gameplay.
  *
  * Grid retirement (agora-608b): the pane takes NO `MapData`. It renders the
  * cell-native Worldforge atlas (`getBridgeAtlas(worldSeed)`), resolves every pick
@@ -392,6 +394,12 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
     /** Hired-ferry fare (gp) to deduct on a FULL-completion commit (travel G15). */
     ferryFareGp?: number;
   } | null>(null);
+  // A destination pick is planning, even with enough supplies. Retain the exact
+  // existing seeded effects so review/cancel cannot spend time or reroll events.
+  const [pendingJourneyReview, setPendingJourneyReview] = useState<{
+    cellId: number; tile: WorldCellView; route: RoutePlan; meta: TravelMeta; label: string;
+    inputs: string; transportLabel: string; preference: string; terrain: string;
+  } | null>(null);
   // One-time explainer: the FIRST time the player tries to set out underprovisioned
   // we teach the risk (halt-short, starvation, companion fallout) + the mitigations,
   // then never show it again (persisted). Subsequent shortfalls jump straight to the
@@ -548,6 +556,14 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
     transportSpeedMph(selectedTransport.option),
     partyExhaustionLevel(transportParty),
   ), [selectedTransport, transportParty]);
+
+  // Changed feet, packs, party, season or route controls require a new review.
+  // Compare values because optional array props can be recreated by callers.
+  const journeyReviewInputs = JSON.stringify([worldforgeSeed, playerAtlasCell,
+    groundState?.playerGroundPos, transportId, routePreference, seaPref,
+    seasonTravelMultiplier, partyTravelSpeedMph, provisionInventory, partyGold,
+    partySize, travelMinutesRemainder, partySurvivalModifier, transportParty]);
+  useEffect(() => { setPendingJourneyReview(null); }, [journeyReviewInputs, interactionMode]);
 
   const travelField = useMemo(() => {
     if (interactionMode !== 'travel' || !worldforgeAtlas || playerAtlasCell == null) return null;
@@ -849,7 +865,11 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
     burgId?: number };
   const [submapStack, setSubmapStack] = useState<DrillTier[]>([]);
 
-  useEffect(() => { setSubmapStack([]); }, [worldforgeSeed]);
+  const townDrillAppliedRef = useRef(false);
+  useEffect(() => {
+    townDrillAppliedRef.current = false;
+    setSubmapStack([]);
+  }, [worldforgeSeed]);
 
   // Cell-native (Stage 6): land cells are explorable on the atlas. The legacy
   // grid-tile fog (mapData.tiles[].discovered via a proportional projection) is
@@ -938,9 +958,15 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
   }, []);
   useEffect(() => {
     const burgId = wantDrillBurgRef.current;
-    if (burgId == null || !worldforgeAtlas) return;
+    if (burgId == null || !worldforgeAtlas || townDrillAppliedRef.current) return;
     const stack = buildTownDrillStack(burgId);
-    if (stack) setSubmapStack(stack);
+    if (stack) {
+      // Town Plan chooses the opening view once. Live clock/exploration updates
+      // must not pull the player's later regional browsing back into town.
+      // The world reset above also resets this guard for StrictMode's replay.
+      townDrillAppliedRef.current = true;
+      setSubmapStack(stack);
+    }
   }, [worldforgeAtlas, buildTownDrillStack]);
 
   // Click a neighbour in the neighbourhood view → recenter on it, but only if
@@ -1101,18 +1127,27 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
         tripDays,
         mode: 'full',
       });
-      // Ungated (no consumers) or in range → travel now, spending the supplies used.
+      // Ungated/in-range trips still need an explicit departure. Review the
+      // existing metadata; cancellation never reaches the gameplay executor.
       if (partySize <= 0 || decision.status.inRange) {
         const provision: TravelProvisionEffect | undefined = partySize > 0
           ? { rationsToSpend: decision.rationsToSpend, waterToSpend: decision.waterToSpend, remainderMinutes }
           : undefined;
         const tripSeconds = Math.round(route.minutes * 60);
         const forcedMarch = deriveForcedMarch(tripSeconds);
-        onTileClick(0, 0, tile, { seconds: tripSeconds, routeLineage: { fromCellId: route.cells[0], intendedCellId: info.i, cells: [...route.cells] }, encounterMessage, encounter, provision, destinationCell, ...(ferryFareGp > 0 ? { ferryFareGp } : {}), ...(forcedMarch ? { forcedMarch } : {}), ...(navDrift ? { navDrift } : {}), ...(tripEvent ? { tripEvent } : {}) });
+        setPendingTravel(null);
+        setPendingJourneyReview({ cellId: info.i, tile, route,
+          meta: { seconds: tripSeconds, routeLineage: { fromCellId: route.cells[0], intendedCellId: info.i, cells: [...route.cells] }, encounterMessage, encounter, provision, destinationCell, ...(ferryFareGp > 0 ? { ferryFareGp } : {}), ...(forcedMarch ? { forcedMarch } : {}), ...(navDrift ? { navDrift } : {}), ...(tripEvent ? { tripEvent } : {}) },
+          label: destinationCell.name ?? `Cell #${info.i}`, inputs: journeyReviewInputs,
+          transportLabel: selectedTransport.label,
+          preference: routePreference === 'cautious' ? 'Favor safer ground' : 'Fastest route',
+          terrain: [...new Set(route.cells.map(cell => cellTraits(worldforgeAtlas, cell).biome).filter(Boolean))].join(' → '),
+        });
         return;
       }
       // Underprovisioned → open the choice flow instead of moving. Carry the fare
       // so it's deducted on a full-completion commit after the choice resolves.
+      setPendingJourneyReview(null);
       setPendingTravel({
         cellId: info.i,
         route,
@@ -1121,7 +1156,7 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
         ...(ferryFareGp > 0 ? { ferryFareGp } : {}),
       });
     }
-  }, [interactionMode, handleAtlasDrill, worldforgeAtlas, allow3DEntry, onEnter3DAtCell, allowTravel, onTileClick, planSelectedAtlasRoute, planAtlasMultiModal, worldforgeSeed, provisionInventory, partySize, partyGold, partySurvivalModifier, transportParty, navInfoOf, seaPref, onSetSail, showMapNotice, isAtlasLandCell, isExploredCell, encounterMetaForRoute]);
+  }, [interactionMode, handleAtlasDrill, worldforgeAtlas, allow3DEntry, onEnter3DAtCell, allowTravel, onTileClick, planSelectedAtlasRoute, planAtlasMultiModal, worldforgeSeed, provisionInventory, partySize, partyGold, partySurvivalModifier, transportParty, navInfoOf, seaPref, onSetSail, showMapNotice, isAtlasLandCell, isExploredCell, encounterMetaForRoute, journeyReviewInputs, selectedTransport, routePreference]);
 
   // ── Underprovisioned travel choice resolution ──────────────────────────────
   // Exact route cells and cumulative edge minutes resolve a partial stop; no
@@ -1283,6 +1318,14 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
       mode: 'full',
     }).status;
   }, [pendingTravel, provisionInventory, partySize]);
+
+  // Match the executor's rounded delay accounting without revealing the
+  // event outcome or changing any provision/forced-march effects in the quote.
+  const reviewedMeta = pendingJourneyReview?.meta;
+  const reviewedDelaySeconds = (reviewedMeta?.navDrift?.lost
+    ? Math.max(0, Math.round(reviewedMeta.navDrift.extraSeconds)) : 0)
+    + Math.max(0, Math.round(reviewedMeta?.tripEvent?.extraSeconds ?? 0));
+  const reviewedTotalSeconds = (reviewedMeta?.seconds ?? 0) + reviewedDelaySeconds;
 
   // These display submaps are not a georeferenced journey receipt. Ask the
   // gameplay authority about initial entry at the real Atlas cell; a live body
@@ -1812,6 +1855,8 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
                 areaFocus={learnedAreaFocus}
                 onPickCell={handleWorldforgePick}
                 travelActive={interactionMode === 'travel'}
+                reviewedDestination={pendingJourneyReview ? {cellId: pendingJourneyReview.cellId, name: pendingJourneyReview.label} : null}
+                travelActionLabel={seaPref === 'ship' ? undefined : 'Review journey →'}
                 planRoute={planAtlasRoute}
                 planMultiModalRoute={planAtlasMultiModal}
                 ferryFareForRoute={ferryFareForRoute}
@@ -1825,6 +1870,38 @@ const PreparedMapPane: React.FC<PreparedMapPaneProps> = ({
                 dungeonSites={worldforgeDungeonSites}
               />
             )}
+            {/* Keep map controls available for actual route comparisons. This is
+                a review, not a modal that blocks changing transport or terrain preference. */}
+            {pendingJourneyReview && <section aria-label={`Review journey to ${pendingJourneyReview.label}`}
+              data-testid="world-journey-review"
+              className="absolute bottom-4 right-4 z-20 max-h-[70%] w-[min(480px,94%)] overflow-auto rounded-xl border border-amber-700 bg-stone-950 p-5 text-stone-100 shadow-2xl">
+              <h2 className="text-xl font-semibold text-amber-200">Journey to {pendingJourneyReview.label}</h2>
+              <p className="mt-2">{pendingJourneyReview.transportLabel} · {pendingJourneyReview.preference}</p>
+              <p className="mt-2 text-sm text-stone-300">{pendingJourneyReview.terrain}</p>
+              <dl className="my-4 grid grid-cols-2 gap-2 text-sm">
+                <dt>Distance</dt><dd>{(pendingJourneyReview.route.miles * 1.609344).toFixed(2)} km</dd>
+                <dt>Route time</dt><dd>{formatTravelTime(Math.ceil(pendingJourneyReview.meta.seconds / 60))}</dd>
+                <dt>Navigation and delays</dt><dd>{formatTravelTime(Math.ceil(reviewedDelaySeconds / 60))}</dd>
+                <dt>Total travel time</dt><dd>{formatTravelTime(Math.ceil(reviewedTotalSeconds / 60))}</dd>
+                <dt>Food / water spent</dt><dd>{pendingJourneyReview.meta.provision?.rationsToSpend ?? 0} / {pendingJourneyReview.meta.provision?.waterToSpend ?? 0}</dd>
+                <dt>Carried food / water days</dt><dd>{daysOfFood(provisionInventory)} / {daysOfWater(provisionInventory)}</dd>
+                <dt>Route danger</dt><dd>{Math.round(pendingJourneyReview.route.danger * 100)}%</dd>
+                {(pendingJourneyReview.meta.ferryFareGp ?? 0) > 0 && <><dt>Ferry fare</dt><dd>{pendingJourneyReview.meta.ferryFareGp} GP</dd></>}
+              </dl>
+              <p className="text-sm text-stone-300">The total includes navigation and delays. The journey log records what happens. Selecting or canceling this review leaves your position and supplies unchanged.</p>
+              {pendingJourneyReview.meta.forcedMarch && <p className="mt-3 text-amber-300">This journey risks exhaustion from a forced march.</p>}
+              <div className="mt-4 flex justify-end gap-3">
+                <button type="button" className={`${toolbarButtonClass} border border-stone-600 bg-stone-800`}
+                  onClick={() => setPendingJourneyReview(null)}>Stay here</button>
+                <button type="button" className={`${toolbarButtonClass} bg-amber-700 text-white`}
+                  disabled={pendingJourneyReview.inputs !== journeyReviewInputs}
+                  onClick={() => {
+                    if (pendingJourneyReview.inputs !== journeyReviewInputs) return;
+                    const journey = pendingJourneyReview; setPendingJourneyReview(null);
+                    onTileClick(0, 0, journey.tile, journey.meta);
+                  }}>Set out</button>
+              </div>
+            </section>}
             {/* One-time risk explainer — shown the FIRST time the player would set
                 out underprovisioned, before the choice panel. Teaches the stakes +
                 the ways to go farther, then never appears again. */}

@@ -11,9 +11,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/10/2026, 12:06:53
+ * Last Sync: 03/11/2026, 17:38:23
  * Dependents: state/appState.ts
- * Imports: 17 files
+ * Imports: 18 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -44,7 +44,7 @@ import { mergeConversationArchive } from '../../systems/companions/conversationT
 export function companionReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
     case 'SPEND_TRAVEL_PROVISIONS':
-      return spendPartyProvisions(state, action.payload.rations, action.payload.water) ?? {};
+      return spendPartyProvisions(state, action.payload.rations, action.payload.water, action.payload.destinationCellId) ?? {};
     case 'RECORD_COMPANION_ARRIVALS': {
       const { worldSeed, locationId, arrivals } = action.payload;
       const expected = arrivingCompanions(state), feet = state.playerGroundPos;

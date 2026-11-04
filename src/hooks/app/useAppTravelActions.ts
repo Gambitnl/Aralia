@@ -5,9 +5,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/10/2026, 09:38:09
+ * Last Sync: 03/11/2026, 03:31:46
  * Dependents: App.tsx, components/layout/AppShell.tsx, hooks/app/useAppAtlasEntry.ts
- * Imports: 16 files
+ * Imports: 17 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -30,6 +30,7 @@ import { resolveForcedMarch } from "../../systems/travel/forcedMarch";
 import { rollD20 } from "../../systems/dice/rollers";
 import { formatTravelTime } from "../../systems/travel/travelReadout";
 import { prepareTravelBattlefield } from "../../systems/travel/prepareTravelBattlefield";
+import { prepareHistoricalTownArrival } from '../../systems/worldforge/town/prepareHistoricalTownLoad';
 import { prepareCompanionJourney } from "../../systems/companions/companionJourney";
 import { hasPersonalPartyProvisions, spendPartyProvisions } from "../../systems/travel/partyProvisions";
 
@@ -144,7 +145,7 @@ export function useAppTravelActions(
           .filter((pc) => pc.id)
           .map((pc) => ({ id: pc.id as string, hp: pc.hp }));
         const personal = hasPersonalPartyProvisions(gameState);
-        if (personal && (prov.rationsToSpend > 0 || prov.waterToSpend > 0)) dispatch({ type: 'SPEND_TRAVEL_PROVISIONS', payload: { rations: prov.rationsToSpend, water: prov.waterToSpend } });
+        if (personal && (prov.rationsToSpend > 0 || prov.waterToSpend > 0)) dispatch({ type: 'SPEND_TRAVEL_PROVISIONS', payload: { rations: prov.rationsToSpend, water: prov.waterToSpend, ...(travelMeta?.routeLineage ? {destinationCellId:travelMeta.routeLineage.intendedCellId} : {}) } });
         for (const action of buildProvisionActions(
           prov,
           companionViews,
@@ -263,6 +264,21 @@ export function useAppTravelActions(
         return;
       }
 
+      // Resolve an older destination before any cost, roll or movement. A town
+      // must not render today's streets beneath yesterday's recorded people.
+      // No arrival feet are chosen here; normal ground entry still owns them.
+      let townSource:ReturnType<typeof prepareHistoricalTownArrival>;
+      try{townSource=prepareHistoricalTownArrival(gameState,travelMeta?.destinationCell);}
+      catch(error){
+        console.error('[travel source] destination preparation failed',error);
+        const message='The route could not be prepared. You have not set out.';
+        addMessage(message,'system');dispatch({type:'ADD_NOTIFICATION',payload:{type:'info',message}});return false;
+      }
+      if(townSource.status==='unresolved'){
+        addMessage(townSource.message,'system');dispatch({type:'ADD_NOTIFICATION',payload:{type:'info',message:townSource.message}});return false;
+      }
+      const townArrivalSource=townSource.status==='qualified'?townSource.receipt:undefined;
+
       // Consent and actual departure presence are checked before any movement,
       // food, fare, time or risk is committed. MOVE_PLAYER rechecks the receipt.
       const sharedJourney = travelMeta?.routeLineage ? { seconds: travelSeconds, route: travelMeta.routeLineage } : undefined;
@@ -274,7 +290,7 @@ export function useAppTravelActions(
         return false;
       }
       const provision = travelMeta?.provision;
-      if (provision && hasPersonalPartyProvisions(gameState) && !spendPartyProvisions(gameState, provision.rationsToSpend, provision.waterToSpend)) {
+      if (provision && hasPersonalPartyProvisions(gameState) && !spendPartyProvisions(gameState, provision.rationsToSpend, provision.waterToSpend, travelMeta?.routeLineage?.intendedCellId)) {
         const message = 'The traveling party no longer carries the quoted food and water. Review supplies before setting out.';
         addMessage(message, 'system'); dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'info', message } }); return false;
       }
@@ -322,6 +338,7 @@ export function useAppTravelActions(
             destinationCell: travelMeta?.destinationCell,
             sharedJourney,
             arrivalGameTime,
+            ...(townArrivalSource?{townArrivalSource}:{}),
           },
         });
         if (travelSeconds > 0)
@@ -363,6 +380,7 @@ export function useAppTravelActions(
                 destinationCell: travelMeta?.destinationCell,
                 sharedJourney,
                 arrivalGameTime,
+                ...(townArrivalSource?{townArrivalSource}:{}),
               },
             });
             recordCellDiscovery(destCellId!, targetLocId);

@@ -31,6 +31,22 @@
  * and in proxy mode it never touches the browser at all.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 03/11/2026, 08:46:15
+ * Dependents: services/ai/textProviderRouter.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type {
   OllamaGenerateResponse,
   OllamaChatResponse,
@@ -162,15 +178,19 @@ async function fetchWithTimeout(
 ): Promise<Response> {
   const startTime = Date.now();
   const controller = new AbortController();
+  // Abandoning a greeting must release the selected provider request too.
+  // Retain its independent network timeout and distinguish the two failures.
+  const signal = options.signal ? AbortSignal.any([options.signal, controller.signal]) : controller.signal;
   const id = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(url, { ...options, signal: controller.signal });
+    const response = await fetch(url, { ...options, signal });
     clearTimeout(id);
     return response;
   } catch (error: any) {
     clearTimeout(id);
     const elapsed = Date.now() - startTime;
     if (error?.name === 'AbortError') {
+      if (options.signal?.aborted) throw new Error('Request cancelled.');
       throw new Error(
         `Groq request timed out after ${elapsed}ms (timeout set to ${timeoutMs}ms).`
       );
@@ -187,7 +207,8 @@ async function postChatCompletion(
   ctx: GroqCallContext,
   messages: { role: string; content: string }[],
   params: ModelParams,
-  format?: ResponseFormat
+  format?: ResponseFormat,
+  signal?: AbortSignal
 ): Promise<
   | { ok: true; json: OpenAiChatCompletion }
   | { ok: false; error: string; statusCode?: number }
@@ -221,6 +242,7 @@ async function postChatCompletion(
         method: 'POST',
         headers: endpoint.headers,
         body: JSON.stringify(body),
+        signal,
       },
       ctx.timeoutMs ?? DEFAULT_TIMEOUT_MS
     );
@@ -258,7 +280,7 @@ async function postChatCompletion(
  */
 export async function groqGenerateForTask(
   ctx: GroqCallContext,
-  options: { taskType: TaskType; prompt: string; format?: ResponseFormat; overrides?: ModelParams }
+  options: { taskType: TaskType; prompt: string; format?: ResponseFormat; overrides?: ModelParams; signal?: AbortSignal }
 ): Promise<
   | { ok: true; data: OllamaGenerateResponse; model: string }
   | { ok: false; error: string; model?: string; statusCode?: number }
@@ -269,7 +291,8 @@ export async function groqGenerateForTask(
     ctx,
     [{ role: 'user', content: options.prompt }],
     merged,
-    options.format ?? profile.format
+    options.format ?? profile.format,
+    options.signal
   );
   if (!result.ok) {
     // statusCode lets the router see a rate limit (429) and try the next pool model.

@@ -4,6 +4,22 @@
  * This is the main content area of the Party Overlay modal.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 03/11/2026, 12:44:43
+ * Dependents: components/Party/PartyPane/index.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React from 'react';
 import { PlayerCharacter, MissingChoice, Companion } from '../../../types';
 import PartyMemberCard from './PartyMemberCard';
@@ -19,7 +35,7 @@ interface PartyPaneProps {
     /** Optional companion data to enrich the party cards */
     companions?: Record<string, Companion>;
     /** Callback when a character's "more" button is clicked (opens character sheet) */
-    onViewCharacterSheet: (character: PlayerCharacter) => void;
+    onViewCharacterSheet: (character: PlayerCharacter, initialTab?: 'overview' | 'spellbook') => void;
     /** Callback when a missing choice warning is clicked */
     onFixMissingChoice: (character: PlayerCharacter, missing: MissingChoice) => void;
     /**
@@ -98,6 +114,7 @@ const PartyPane: React.FC<PartyPaneProps> = ({
                         companion={companion}
                         isLeader={index === 0}
                         onMoreClick={() => onViewCharacterSheet(member)}
+                        onSpellsClick={() => onViewCharacterSheet(member, 'spellbook')}
                         onMissingChoiceClick={onFixMissingChoice}
                         onDismiss={onDismissMember}
                     />

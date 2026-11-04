@@ -1,16 +1,8 @@
 {
   "_comment": "Reviewed raw-button debt. New paths fail immediately; remove a path when its buttons migrate or receive an explicit exemption.",
   "reviewedNeedsWorkPaths": [
-    "components/CharacterSheet/CharacterSheetModal.tsx",
-    "components/CharacterSheet/Overview/InventoryList.tsx",
-    "components/CharacterSheet/Spellbook/CastSpellControls.tsx",
     "components/ConversationPanel/ConversationPanel.tsx",
-    "components/layout/AppShell.tsx",
-    "components/layout/GameModals.tsx",
     "components/MapPane.tsx",
-    "components/Party/PartyOverlay.tsx",
-    "components/Party/PartyPane/PartyMemberCard.tsx",
-    "components/ui/CollapsibleBanterPanel.tsx",
-    "components/Worldforge/AtlasSvgView.tsx"
+    "components/ui/CollapsibleBanterPanel.tsx"
   ]
 }

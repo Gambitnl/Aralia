@@ -1,17 +1,25 @@
 import React from 'react';
-import {render} from '@testing-library/react';
+import {fireEvent, render} from '@testing-library/react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import * as THREE from 'three';
 const fixture = vi.hoisted(() => ({
   frame: null as null | ((state: any, delta: number) => void),
-  controls: {minDistance: 2, target: {x: 0, y: 0, z: 0,
+  controlsFrame: null as null | ((state: any, delta: number) => void),
+  start: undefined as undefined | (() => void),
+  controls: {enabled: true, minDistance: 2, target: {x: 0, y: 0, z: 0,
     set(x: number, y: number, z: number) { this.x = x; this.y = y; this.z = z; },
     toArray() { return [this.x, this.y, this.z]; }}, update: vi.fn()},
 }));
-vi.mock('@react-three/fiber', () => ({useFrame: (frame: any) => {fixture.frame = frame;}}));
+vi.mock('@react-three/fiber', () => ({useFrame: (frame: any, priority = 0) => {
+  if (priority < 0) fixture.controlsFrame = frame;
+  else fixture.frame = frame;
+} }));
 vi.mock('@react-three/drei', async () => {
   const React = await import('react');
+  const {useFrame} = await import('@react-three/fiber');
   return {MapControls: React.forwardRef((_props, ref) => {
+    useFrame(() => { if (fixture.controls.enabled !== false) fixture.controls.update(); }, -1);
+    fixture.start = (_props as {onStart?: () => void}).onStart;
     React.useImperativeHandle(ref, () => fixture.controls);
     return null;
   })};
@@ -20,6 +28,60 @@ import FreeRoamCameraController from '../FreeRoamCameraController';
 
 describe('explicit camera commands', () => {
   beforeEach(() => fixture.controls.update.mockReset());
+  it('applies camera damping once per rendered frame before wall corrections', () => {
+    const camera = new THREE.PerspectiveCamera();
+    render(<FreeRoamCameraController initialTarget={[0,0,0]} sceneOrigin={{x:0,z:0}} onPositionChange={vi.fn()} />);
+    fixture.controlsFrame!({camera}, .016);
+    fixture.frame!({camera}, .016);
+    expect(fixture.controls.update).toHaveBeenCalledTimes(1);
+  });
+  it('applies the same command refined after the inn geometry loads, once at unchanged feet', () => {
+    const camera = new THREE.PerspectiveCamera(), body = [0,1,0] as const, notify = vi.fn();
+    let innLoaded = false;
+    const view = (position: readonly [number,number,number]) => <FreeRoamCameraController
+      initialTarget={body} sceneOrigin={{x:0,z:0}} onPositionChange={notify}
+      getPlayerTarget={() => body} playerSightline={(_focus, eye) => innLoaded && eye[2] > 2.5 ? 2.5 : null}
+      frameRequest={{kind:'player',nonce:201,target:body,position,height:0}}/>;
+    const {rerender} = render(view([0,1,6]));
+    fixture.frame!({camera},.1); notify.mockClear();
+    innLoaded = true; fixture.frame!({camera},.1);
+    expect(camera.position.z).toBeLessThan(3);
+    // Streaming discovers a different legal heading at these same feet.
+    rerender(view([4,1,0])); fixture.frame!({camera},.1);
+    expect(camera.position.toArray()).toEqual([4,1,0]);
+    camera.position.set(3.5,1,0);
+    fixture.frame!({camera},0);
+    expect(camera.position.toArray()).toEqual([3.5,1,0]);
+    expect(fixture.controls.target.toArray()).toEqual(body);
+    expect(notify).not.toHaveBeenCalled();
+  });
+  it.each(['keyboard', 'pointer'] as const)('leaves deliberate %s control ahead of a later streamed refinement', input => {
+    const camera = new THREE.PerspectiveCamera(), body = [0,1,0] as const;
+    const view = (position: readonly [number,number,number], nonce=202) => <FreeRoamCameraController
+      initialTarget={body} sceneOrigin={{x:0,z:0}} onPositionChange={vi.fn()}
+      getPlayerTarget={() => body} playerSightline={() => null}
+      frameRequest={{kind:'player',nonce,target:body,position,height:0}}/>;
+    const {rerender} = render(view([0,1,6])); fixture.frame!({camera},.1);
+    if (input === 'keyboard') fireEvent.keyDown(window,{code:'KeyW',key:'w'});
+    else fixture.start!();
+    rerender(view([4,1,0])); fixture.frame!({camera},.1);
+    expect(camera.position.toArray()).toEqual([0,1,6]);
+    if (input === 'keyboard') fireEvent.keyUp(window,{code:'KeyW',key:'w'});
+    // A later explicit To Player is still a new command.
+    rerender(view([4,1,0],203)); fixture.frame!({camera},.1);
+    expect(camera.position.toArray()).toEqual([4,1,0]);
+  });
+  it('does not reframe a streamed result around feet that have moved since the command', () => {
+    const camera = new THREE.PerspectiveCamera(); let body: readonly [number,number,number] = [0,1,0];
+    const view = (position: readonly [number,number,number]) => <FreeRoamCameraController
+      initialTarget={[0,1,0]} sceneOrigin={{x:0,z:0}} onPositionChange={vi.fn()}
+      getPlayerTarget={() => body} playerSightline={() => null}
+      frameRequest={{kind:'player',nonce:204,target:body,position,height:0}}/>;
+    const {rerender} = render(view([0,1,6])); fixture.frame!({camera},.1);
+    body = [1,1,0]; rerender(view([5,1,0])); fixture.frame!({camera},.1);
+    expect(camera.position.toArray()).toEqual([0,1,6]);
+    expect(fixture.controls.target.toArray()).toEqual([0,1,0]);
+  });
   it('keeps the requested arm over a bank when a higher pitch clears the same heading', () => {
     const camera = new THREE.PerspectiveCamera(), body = [0,1.15,0] as const;
     const radius = Math.hypot(6,1.45);
@@ -56,8 +118,8 @@ describe('explicit camera commands', () => {
       onPositionChange={notify} minDistance={2} getPlayerTarget={() => body}
       playerSightline={(_focus, eye) => blocked && eye[0] > 2.5 ? 2.5 : null}
       frameRequest={{kind:'player',nonce:105,target:body,position:[0,1,6],height:0}} />);
-    fixture.frame!({camera}, .1); notify.mockClear();
-    turn = true; fixture.frame!({camera}, .1);
+    fixture.controlsFrame!({camera}, .1); fixture.frame!({camera}, .1); notify.mockClear();
+    turn = true; fixture.controlsFrame!({camera}, .1); fixture.frame!({camera}, .1);
     expect(camera.position.x).toBeCloseTo(2.3);
     expect(camera.position.z).toBeCloseTo(0);
     expect(controls.target.toArray()).toEqual(body);
@@ -89,15 +151,16 @@ describe('explicit camera commands', () => {
     controls.enableDamping = true;
     controls.update.mockImplementation(() => {
       camera.position.x += momentum;
+      camera.position.z = Math.sqrt(Math.max(0, 36 - camera.position.x ** 2));
       momentum *= controls.enableDamping ? .5 : 0;
     });
     render(<FreeRoamCameraController initialTarget={body} sceneOrigin={{x:0,z:0}}
       onPositionChange={vi.fn()} minDistance={2} getPlayerTarget={() => body}
       playerSightline={(_focus, eye) => eye[0] > .01 ? .1 : null}
       frameRequest={{kind:'player',nonce:102,target:body,position:[0,1,6],height:0}} />);
-    fixture.frame!({camera}, .1);
+    fixture.controlsFrame!({camera}, .1); fixture.frame!({camera}, .1);
     momentum = 6;
-    fixture.frame!({camera}, .1);
+    fixture.controlsFrame!({camera}, .1); fixture.frame!({camera}, .1);
     expect(camera.position.toArray()).toEqual([0,1,6]);
     expect(momentum).toBe(0);
     expect(controls.enableDamping).toBe(true);

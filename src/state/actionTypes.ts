@@ -174,6 +174,8 @@ export type AppAction =
         destinationCell?: { cellId: number; anchor: Entry3DAnchor };
         /** Actual reached time for the journal; ADVANCE_TIME still owns clock changes. */
         arrivalGameTime?: string;
+        /** Qualified destination source; no body position or travel outcome is supplied. */
+        townArrivalSource?: import('../systems/worldforge/town/historicalTownLoadContract').HistoricalTownArrivalReceipt;
         sharedJourney?: { seconds: number; route: import('../types/travelMeta').TravelRouteLineage };
       };
     }
@@ -684,7 +686,7 @@ export type AppAction =
     }
   // Party Recruitment Actions
   | { type: "RECORD_COMPANION_ARRIVALS"; payload: { worldSeed: number; locationId: string; arrivals: Array<{ companionId: string; journeyId: string; position: { xM: number; yM: number; zM: number } }> } }
-  | { type: "SPEND_TRAVEL_PROVISIONS"; payload: { rations: number; water: number } }
+  | { type: "SPEND_TRAVEL_PROVISIONS"; payload: { rations: number; water: number; destinationCellId?: number } }
   | { type: "RECRUIT_COMPANION"; payload: RecruitPayload }
   | { type: "DISMISS_PARTY_MEMBER"; payload: { memberId: string } }
   // Notification Actions

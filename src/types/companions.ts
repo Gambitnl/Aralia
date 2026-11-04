@@ -11,8 +11,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 29/10/2026, 13:56:06
- * Dependents: components/CharacterSheet/CharacterSheetModal.tsx, components/CharacterSheet/Details/CharacterDetailsTab.tsx, components/ConversationPanel/CompanionGoalWorkChoices.tsx, components/ConversationPanel/CompanionTravelChoices.tsx, components/DesignPreview/steps/PreviewComponents.tsx, components/Party/RelationshipsPane.tsx, components/ui/CollapsibleBanterPanel.tsx, components/ui/CompanionCard.tsx, components/ui/CompanionReaction.tsx, data/banter.ts, data/companions.ts, hooks/actions/handleNpcInteraction.ts, hooks/useCompanionBanter.ts, hooks/useCompanionCommentary.ts, services/BanterDisplayService.ts, services/ollama/banter.ts, services/ollama/facts.ts, services/ollama/index.ts, state/reducers/companionGoalDestinationReducer.ts, state/reducers/companionGoalWorkReducer.ts, state/reducers/companionPreparationReducer.ts, state/reducers/companionRumorReducer.ts, state/reducers/companionTravelReducer.ts, systems/companions/BanterManager.ts, systems/companions/CompanionReactionSystem.ts, systems/companions/RelationshipManager.ts, systems/companions/companionJourney.ts, systems/companions/companionPreparations.ts, systems/companions/companionRumors.ts, systems/companions/companionWhereabouts.ts, systems/companions/companionWorldActivities.ts, systems/party/authoredCompanionCapabilities.ts, systems/party/authoredCompanionToRichNpc.ts, systems/party/npcToPartyMember.ts, systems/party/recruitConsent.ts, systems/party/recruitTypes.ts, systems/party/restoreAuthoredCompanionBuild.ts, types/index.ts, utils/character/companionFactories.ts
+ * Last Sync: 03/11/2026, 17:38:23
+ * Dependents: components/CharacterSheet/CharacterSheetModal.tsx, components/CharacterSheet/Details/CharacterDetailsTab.tsx, components/ConversationPanel/CompanionGoalWorkChoices.tsx, components/ConversationPanel/CompanionTravelChoices.tsx, components/DesignPreview/steps/PreviewComponents.tsx, components/Party/RelationshipsPane.tsx, components/ui/CollapsibleBanterPanel.tsx, components/ui/CompanionCard.tsx, components/ui/CompanionReaction.tsx, data/banter.ts, data/companions.ts, hooks/actions/handleNpcInteraction.ts, hooks/useCompanionBanter.ts, hooks/useCompanionCommentary.ts, services/BanterDisplayService.ts, services/ollama/banter.ts, services/ollama/facts.ts, services/ollama/index.ts, state/reducers/companionGoalDestinationReducer.ts, state/reducers/companionGoalWorkReducer.ts, state/reducers/companionPreparationReducer.ts, state/reducers/companionRumorReducer.ts, state/reducers/companionTravelReducer.ts, systems/companions/BanterManager.ts, systems/companions/CompanionReactionSystem.ts, systems/companions/RelationshipManager.ts, systems/companions/companionJourney.ts, systems/companions/companionPreparations.ts, systems/companions/companionRumors.ts, systems/companions/companionWhereabouts.ts, systems/companions/companionWorldActivities.ts, systems/companions/conversationTranscript.ts, systems/party/authoredCompanionCapabilities.ts, systems/party/authoredCompanionToRichNpc.ts, systems/party/npcToPartyMember.ts, systems/party/recruitConsent.ts, systems/party/recruitTypes.ts, systems/party/restoreAuthoredCompanionBuild.ts, types/index.ts, utils/character/companionFactories.ts
  * Imports: 1 files
  *
  * MULTI-AGENT SAFETY:
@@ -121,7 +121,7 @@ export interface CompanionQuestline {
 }
 
 /** Fixed, authored conversation choices; free text still uses the intent reader. */
-export type CompanionPreparationChoice = 'ask' | 'promise' | 'decline' | 'deliver' | 'withdraw' | 'recall';
+export type CompanionPreparationChoice = 'ask' | 'promise' | 'decline' | 'deliver' | 'withdraw' | 'recall' | 'resupply';
 
 /** A public work offer remains separate from a recruitment invitation. */
 export type CompanionGoalWorkChoice = 'ask' | 'accept' | 'decline' | 'withdraw' | 'report' | 'recall';
@@ -296,9 +296,14 @@ export interface CompanionTravelAgreement {
    * survives refusal and reload without granting unrestricted following. */
   exploration?: { response:'offered'|'accepted'|'declined'|'withdrawn';
     discussedAt:number; respondedAt?:number; terms:string[]; concerns:string[] };
+  /** Water stays with its owner. This budget permits extra shared consumption
+   * on one source-bound return, separately from membership or entry consent. */
+  returnWater?: { response:'offered'|'accepted'|'declined'|'used'; amount:number;
+    journeyId:string; fromLocationId:string; destinationCellId:number;
+    discussedAt:number; respondedAt?:number; usedAt?:number };
 
 }
-export type CompanionTravelChoice = 'discuss_work'|'invite'|'propose_goal'|'accept_terms'|'decline_terms'|'recall_terms'|'recall_journey'|'discuss_entry'|'accept_entry_terms'|'decline_entry_terms'|'recall_entry_terms';
+export type CompanionTravelChoice = 'discuss_work'|'invite'|'propose_goal'|'accept_terms'|'decline_terms'|'recall_terms'|'recall_journey'|'discuss_entry'|'accept_entry_terms'|'decline_entry_terms'|'recall_entry_terms'|'discuss_return_water'|'accept_return_water'|'decline_return_water';
 
 export interface Companion {
   id: string;

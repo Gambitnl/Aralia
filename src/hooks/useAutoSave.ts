@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 11/07/2026, 01:14:26
- * Dependents: App.tsx
+ * Last Sync: 03/11/2026, 12:44:43
+ * Dependents: hooks/app/useAppPreferences.ts
  * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
@@ -21,7 +21,7 @@ import * as SaveLoadService from '../services/saveLoadService';
 
 /**
  * This hook protects an active adventure from refreshes, crashes, and accidental
- * closure. It writes a frequently refreshed auto-save, preserves the last safe
+ * closure. It writes a regularly refreshed auto-save, preserves the last safe
  * exploration state before combat, and now creates slower checkpoint tiers that
  * let a player recover from mistakes discovered after the rapid auto-save changed.
  *
@@ -32,11 +32,10 @@ import * as SaveLoadService from '../services/saveLoadService';
  * `saveGame` returns back into state, unlike the manual save paths. Every
  * autosave therefore writes the same counter for the whole session, so an
  * autosave slot reloaded twice replays the same dice — which is exactly the
- * property the save-scum setting is protecting. Dispatching here would also
- * re-arm this hook's own state-change effect on every write.
+ * property the save-scum setting is protecting. The rolling timer reads the
+ * latest state ref, so the one-second clock updates do not reset its cadence.
  */
 
-const AUTO_SAVE_DEBOUNCE_MS = 1500;
 const AUTO_SAVE_THROTTLE_MS = 10_000;
 
 // Combat runtime is hook-local and never serialized, so autosaving mid-combat
@@ -51,12 +50,12 @@ const isCombatPhase = (phase: GamePhase) =>
   phase === GamePhase.BATTLE_MAP_DEMO;
 
 /**
- * Auto-saves the running game to the autosave slot (localStorage).
+ * Auto-saves the running game to the autosave slot (IndexedDB when available).
  *
  * Design intent:
  * - This is for "refresh safety" and crash resilience.
  * - It should not spam notifications.
- * - It should be throttled/debounced to avoid excessive localStorage writes.
+ * - It writes immediately, then on a stable ten-second cadence while eligible.
  */
 export function useAutoSave(gameState: GameState, enabledOverride?: boolean) {
   const enabled = enabledOverride ?? (gameState.autoSaveEnabled ?? true);
@@ -71,9 +70,10 @@ export function useAutoSave(gameState: GameState, enabledOverride?: boolean) {
   const latestStateRef = useRef(gameState);
   latestStateRef.current = gameState;
 
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastSaveAtRef = useRef<number>(0);
+  const timerRef = useRef<number | null>(null);
+  const initialSaveTimerRef = useRef<number | null>(null);
   const isSavingRef = useRef(false);
+  const activeSaveRef = useRef<Promise<unknown> | null>(null);
   const checkpointSavingRef = useRef<Set<string>>(new Set());
   const prevPhaseRef = useRef<GamePhase>(gameState.phase);
 
@@ -85,23 +85,23 @@ export function useAutoSave(gameState: GameState, enabledOverride?: boolean) {
     if (!state.party || state.party.length === 0) return;
 
     isSavingRef.current = true;
+    const pendingSave = SaveLoadService.saveGame(
+      state,
+      SaveLoadService.AUTO_SAVE_SLOT_KEY,
+      undefined,
+      { displayName: 'Auto-Save', isAutoSave: true },
+    );
+    activeSaveRef.current = pendingSave;
     try {
-      const result = await SaveLoadService.saveGame(
-        state,
-        SaveLoadService.AUTO_SAVE_SLOT_KEY,
-        undefined,
-        { displayName: 'Auto-Save', isAutoSave: true },
-      );
-      if (result.success) {
-        lastSaveAtRef.current = Date.now();
-      }
+      await pendingSave;
     } finally {
       isSavingRef.current = false;
+      if (activeSaveRef.current === pendingSave) activeSaveRef.current = null;
     }
   };
 
   // One-shot pre-combat checkpoint: when the player crosses from an exploration
-  // phase into combat, snapshot the (still-exploration) GameState to the autosave
+  // phase into combat, snapshot the transition GameState to the autosave
   // slot. Combat itself never autosaves, so this checkpoint becomes the resume
   // point if the player refreshes or closes mid-fight. The loader heals the
   // checkpoint's phase back to PLAYING.
@@ -113,19 +113,32 @@ export function useAutoSave(gameState: GameState, enabledOverride?: boolean) {
     if (isCombatPhase(gameState.phase) && isGameplayPhase(prevPhase)) {
       const state = latestStateRef.current;
       if (!state.party || state.party.length === 0) return;
-      if (isSavingRef.current) return;
-      isSavingRef.current = true;
       void (async () => {
+        // A periodic rolling write may already be serializing the prior state.
+        // Let it finish, then write this transition snapshot so combat entry
+        // cannot silently lose its dedicated recovery point.
+        const inFlight = activeSaveRef.current;
+        if (inFlight) {
+          try {
+            await inFlight;
+          } catch {
+            // The transition checkpoint is still useful if the rolling write failed.
+          }
+        }
+        if (isSavingRef.current) return;
+        isSavingRef.current = true;
+        const checkpointSave = SaveLoadService.saveGame(
+          state,
+          SaveLoadService.AUTO_SAVE_SLOT_KEY,
+          undefined,
+          { displayName: 'Pre-Combat Checkpoint', isAutoSave: true },
+        );
+        activeSaveRef.current = checkpointSave;
         try {
-          const result = await SaveLoadService.saveGame(
-            state,
-            SaveLoadService.AUTO_SAVE_SLOT_KEY,
-            undefined,
-            { displayName: 'Pre-Combat Checkpoint', isAutoSave: true },
-          );
-          if (result.success) lastSaveAtRef.current = Date.now();
+          await checkpointSave;
         } finally {
           isSavingRef.current = false;
+          if (activeSaveRef.current === checkpointSave) activeSaveRef.current = null;
         }
       })();
     }
@@ -134,30 +147,26 @@ export function useAutoSave(gameState: GameState, enabledOverride?: boolean) {
   useEffect(() => {
     if (!eligible) return undefined;
 
-    // Debounce + throttle: frequent actions reschedule, but we still guarantee
-    // a save at least every AUTO_SAVE_THROTTLE_MS while the player is active.
-    //
-    // The guarantee has to be a SHORTER delay, never a longer one. The world
-    // clock dispatches a fresh state about once a second during exploration,
-    // so every re-arm of a 1.5s debounce was cancelled by the next tick before
-    // it could fire — the rolling save starved for as long as the player kept
-    // playing, and only the reload-time emergency save persisted anything.
-    // Once the throttle window has elapsed, save on this change instead of
-    // waiting for a quiet moment that an active game never provides.
-    if (timerRef.current) clearTimeout(timerRef.current);
-    const now = Date.now();
-    const sinceLast = now - lastSaveAtRef.current;
-    const delay = sinceLast >= AUTO_SAVE_THROTTLE_MS ? 0 : AUTO_SAVE_DEBOUNCE_MS;
-
-    timerRef.current = setTimeout(() => {
+    // Keep one rolling cadence for the whole eligible session. The game clock
+    // replaces GameState every second, so tying timer setup to that object did
+    // needless timer churn even though the save itself is throttled. Reads from
+    // latestStateRef keep each checkpoint current without restarting the clock.
+    // Preserve the old zero-delay first save so an eligibility change before
+    // the next task turn can cancel it (for example, leaving play immediately).
+    initialSaveTimerRef.current = window.setTimeout(() => {
       void saveNow();
-    }, delay);
+    }, 0);
+    timerRef.current = window.setInterval(() => {
+      void saveNow();
+    }, AUTO_SAVE_THROTTLE_MS);
 
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (initialSaveTimerRef.current) clearTimeout(initialSaveTimerRef.current);
       timerRef.current = null;
+      initialSaveTimerRef.current = null;
     };
-  }, [eligible, gameState]);
+  }, [eligible]);
 
   // ========================================================================
   // Recovery Checkpoint Tiers

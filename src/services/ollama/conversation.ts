@@ -6,6 +6,22 @@
  * Conversation continuation and summarization functionality.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 03/11/2026, 08:46:15
+ * Dependents: services/ollama/index.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type {
     BanterContext,
     ConversationParticipant,
@@ -114,12 +130,15 @@ Tags: "personal", "quest", "humor", "conflict", "location", "past", "future", "b
 /**
  * Continues an ongoing interactive conversation.
  * Returns a single response from the speaking companion.
+ * Optional greetings can cancel their provider work when the authored greeting
+ * takes over; this never fabricates a reply or changes the chosen model.
  */
 export async function continueConversation(
     participants: ConversationParticipant[],
     history: { speakerId: string; text: string }[],
     contextData: BanterContext,
-    client: OllamaClient = getDefaultClient()
+    client: OllamaClient = getDefaultClient(),
+    options: { signal?: AbortSignal } = {}
 ): Promise<OllamaResult<ConversationResponse>> {
     // Determine who should respond
     const lastSpeaker = history[history.length - 1]?.speakerId;
@@ -131,6 +150,7 @@ export async function continueConversation(
 
     const result = await client.generateForTask({
         taskType: 'conversation_continuation',
+        signal: options.signal,
         prompt,
         // numPredict carried over from the prior hardcoded value so single-turn
         // replies have headroom even on chatty models.

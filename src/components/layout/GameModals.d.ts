@@ -66,7 +66,8 @@ interface GameModalsProps {
     handleModelChange: (model: string | null) => void;
     handleNavigateToGlossaryFromTooltip: (termId: string) => void;
     handleOpenGlossary: (initialTermId?: string) => void;
-    handleOpenCharacterSheet: (character: PlayerCharacter) => void;
+    handleOpenCharacterSheet: (character: PlayerCharacter, initialTab?: 'overview' | 'spellbook') => void;
+    characterSheetInitialTab?: 'overview' | 'spellbook';
     onOllamaDontShowAgain?: (value: boolean) => void;
     isBanterPaused?: boolean;
     toggleBanterPause?: () => void;

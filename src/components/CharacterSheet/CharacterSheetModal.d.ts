@@ -34,6 +34,8 @@ interface CharacterSheetModalProps {
     journal?: JournalState;
     /** Full party, used by the spellbook's out-of-combat cast target picker. */
     party?: PlayerCharacter[];
+    /** Choose the spellbook when opened from the party's direct Spells action. */
+    initialTab?: 'overview' | 'spellbook';
 }
 declare const CharacterSheetModal: React.FC<CharacterSheetModalProps>;
 export default CharacterSheetModal;

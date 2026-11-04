@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { continueConversation } from '../conversation';
 import type { OllamaClient } from '../client';
 import type { BanterContext, ConversationParticipant } from '../../../types/ollama';
@@ -18,6 +18,13 @@ describe('continueConversation player-input sanitization', () => {
     weather: 'Clear',
     timeOfDay: 'evening',
   } as unknown as BanterContext;
+
+  it('passes the greeting owner cancellation through to task generation', async () => {
+    const signal = new AbortController().signal;
+    const generateForTask = vi.fn(async () => ({ ok: true, model: 'test-model', data: { response: '{"text":"Hello."}' } }));
+    await continueConversation(participants, [], context, { generateForTask } as unknown as OllamaClient, { signal });
+    expect(generateForTask).toHaveBeenCalledWith(expect.objectContaining({ signal }));
+  });
 
   function makeCapturingClient(capture: { prompt?: string }): OllamaClient {
     return {

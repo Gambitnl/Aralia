@@ -119,6 +119,52 @@ describe('deliberate companion travel consent',()=>{
 });
 
 
+describe('Elara decides whether to share water for the known return',()=>{
+ function atTemple(){
+  const offered=offer(ready()),s={...offered,...choose(offered,'accept_terms')},c=s.companions.elara_vance;
+  c.journeyDeparture={...c.whereabouts!};
+  s.currentLocationId='cell_777';s.playerCell={cellId:777,localeCoords:null};
+  c.whereabouts={...c.whereabouts!,locationId:s.currentLocationId};
+  c.journey={id:'real-arrival',worldSeed:77,from:{cellId:700,locationId:'cell_700',position:{xM:10,yM:0,zM:10}},to:{cellId:777,locationId:s.currentLocationId},intendedCellId:777,routeCells:[700,777],departedAt:0,arrivalAt:1,status:'arrived'};
+  c.memories.push({id:'real-arrival:arrived',type:'event',timestamp:1,importance:5,text:'Actual shared journey',tags:['shared-journey','arrived']});
+  c.inventory=[createMockItem({id:'water-day',quantity:1,description:'Her own sealed water',acquiredAt:4})];
+  s.inventory=[createMockItem({id:'water-day',quantity:0.25})];
+  return s;
+ }
+ it('offers and accepts limited sharing without moving water or inventing carrying capacity',()=>{
+  const s=atTemple(),before=structuredClone(s),p=choose(s,'discuss_return_water');
+  expect(p.inventory).toBeUndefined();expect(p.companions!.elara_vance.inventory).toBe(s.companions.elara_vance.inventory);
+  expect(p.companions!.elara_vance.travelAgreement!.returnWater).toMatchObject({response:'offered',amount:0.25,destinationCellId:700});
+  const offered={...s,...p},accepted=choose(offered,'accept_return_water'),c=accepted.companions!.elara_vance;
+  expect(accepted.inventory).toBeUndefined();expect(c.inventory).toBe(s.companions.elara_vance.inventory);
+  expect(c.relationships).toBe(s.companions.elara_vance.relationships);expect(c.goals).toBe(s.companions.elara_vance.goals);
+  expect(c.travelAgreement!.response).toBe('accepted');expect(c.travelAgreement!.exploration).toBe(s.companions.elara_vance.travelAgreement!.exploration);
+  expect(c.memories.at(-1)?.tags).toContain('return-water-accepted');
+  expect(choose({...offered,...accepted},'accept_return_water')).toEqual({});expect(s).toEqual(before);
+ });
+ it('can decline the offer without changing either bag or opening the temple',()=>{
+  const s=atTemple(),p=choose(s,'discuss_return_water'),offered={...s,...p},no=choose(offered,'decline_return_water');
+  expect(no.inventory).toBeUndefined();expect(no.companions!.elara_vance.inventory).toBe(s.companions.elara_vance.inventory);
+  expect(no.companions!.elara_vance.travelAgreement!.returnWater?.response).toBe('declined');
+  expect(choose({...offered,...no},'accept_return_water')).toEqual({});
+ });
+ it.each(['remote','wrong-world','no-arrival','changed-water','mistrust'] as const)('refuses stale %s acceptance without a transfer',kind=>{
+  const s=atTemple(),p=choose(s,'discuss_return_water'),offered={...s,...p};
+  if(kind==='remote')offered.playerGroundPos!.xM=100;
+  if(kind==='wrong-world')offered.worldSeed=78;
+  if(kind==='no-arrival')offered.companions.elara_vance.journey=undefined;
+  if(kind==='changed-water')offered.inventory=[];
+  if(kind==='mistrust')offered.companions.elara_vance.relationships.player.approval=-1;
+  expect(choose(offered,'accept_return_water')).toEqual({});
+ });
+ it('refuses to promise water that would take her below the stated half-day reserve',()=>{
+  const s=atTemple();s.companions.elara_vance.inventory![0].quantity=0.5;
+  const p=choose(s,'discuss_return_water');expect(p.inventory).toBeUndefined();
+  expect(p.companions!.elara_vance.travelAgreement!.returnWater?.response).toBe('declined');
+  expect(p.activeConversation!.messages.at(-1)?.text).toMatch(/own half-day/);
+ });
+});
+
 describe('Kaelen can discuss his advertised work without accepting a contract',()=>{
  function available(){
   const state=ready(),c=structuredClone(COMPANIONS.kaelen_thorne);

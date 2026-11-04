@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/10/2026, 13:56:06
+ * Last Sync: 03/11/2026, 01:34:27
  * Dependents: components/ConversationPanel/ConversationPanel.tsx
- * Imports: 6 files
+ * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,7 +14,7 @@
  */
 // @dependencies-end
 
-import {companionSiteRiskContext} from '@/systems/companions/companionSiteRisk';
+import {companionSiteRiskContext,companionReturnWaterOffer} from '@/systems/companions/companionSiteRisk';
 /** Invitations are separate from gifts, reports and accepting expedition terms.
  * Every button sends only an identity and choice; latest state decides consent. */
 
@@ -43,6 +43,11 @@ export function CompanionTravelChoices({state,dispatch,disabled}:{state:GameStat
   }
   if(a)choices.push({choice:'recall_terms',label:'Recall our travel terms'});
   if(sharedJourneyRecall(c,state.worldSeed,state.currentLocationId))choices.push({choice:'recall_journey',label:'Recall our shared journey'});
+  const returnOffer=companionReturnWaterOffer(state,id),waterOffer=a?.returnWater;
+  if(returnOffer){
+   choices.push({choice:'discuss_return_water',label:waterOffer?.response==='accepted'?'Recall our return-water sharing':`Discuss water for the return to ${returnOffer.home.burgName}`});
+   if(waterOffer?.response==='offered')choices.push({choice:'accept_return_water',label:`Agree to share up to ${waterOffer.amount} water-days on the return`},{choice:'decline_return_water',label:'Do not share her reserve'});
+  }
   if(!choices.length)return null;
   return <section key={id} aria-label={`Travel with ${c.identity.name}`} className="rounded-lg border border-amber-500/30 bg-slate-900 p-3 text-gray-200">
    <p className="font-semibold text-amber-200">{work?'Working together':'Travel together'}</p>

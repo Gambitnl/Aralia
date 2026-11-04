@@ -42,6 +42,8 @@ import { OpeningSituationGate } from "../gameEntry/OpeningSituationGate";
 import { CollapsibleBanterPanel } from "../ui/CollapsibleBanterPanel";
 import { BanterAttentionBanner } from "../ui/BanterAttentionBanner";
 import { DiceOverlay } from "../dice/DiceOverlay";
+// GG-378: shared button style and control roles.
+import { Button } from "../ui/Button";
 
 const NotificationSystem = lazy(() =>
   import("../ui/NotificationSystem").then((module) => ({
@@ -65,11 +67,12 @@ interface AppShellProps {
   handleTileClick: ReturnType<typeof useAppTravelActions>["handleTileClick"];
   handleEnter3DAtCell: ReturnType<typeof useAppAtlasEntry>["handleEnter3DAtCell"];
   handleOpenGlossary: (initialTermId?: string) => void;
-  handleOpenCharacterSheet: (character: PlayerCharacter) => void;
+  handleOpenCharacterSheet: (character: PlayerCharacter, initialTab?: 'overview' | 'spellbook') => void;
+  characterSheetInitialTab: 'overview' | 'spellbook';
   handleCloseCharacterSheet: () => void; handleClosePartyOverlay: () => void; handleDismissMember: (id: string) => void;
 }
 
-export function AppShell({ gameState, dispatch, mainContent, ambientDialogue, developerMenu, worldGeneration, missingChoice, currentLocationData, npcs, itemsInCurrentLocation, isUIInteractive, processAction, handleTileClick, handleEnter3DAtCell, handleOpenGlossary, handleOpenCharacterSheet, handleCloseCharacterSheet, handleClosePartyOverlay, handleDismissMember }: AppShellProps) {
+export function AppShell({ gameState, dispatch, mainContent, ambientDialogue, developerMenu, worldGeneration, missingChoice, currentLocationData, npcs, itemsInCurrentLocation, isUIInteractive, processAction, handleTileClick, handleEnter3DAtCell, handleOpenGlossary, handleOpenCharacterSheet, characterSheetInitialTab, handleCloseCharacterSheet, handleClosePartyOverlay, handleDismissMember }: AppShellProps) {
   const { forceBanter, isBanterActive, isWaitingForNextLine, isGenerating, generatingSpeakerName, secondsUntilNextLine, playerInterrupt, endBanter, banterHistory, isPlayerDirected, isWaitingForPlayerResponse, playerResponseDeadlineSeconds, extendPlayerResponseDeadline, extendNpcLineDelay, isBanterPaused, setIsBanterPaused, setOllamaWarningDismissed } = ambientDialogue;
   const { handleDevMenuAction, handleModelChange, handleNavigateToGlossaryFromTooltip } = developerMenu;
   const { canRegenerateWorldMap, worldGenerationLockedReason, handleRegenerateWorldMap } = worldGeneration;
@@ -190,12 +193,12 @@ export function AppShell({ gameState, dispatch, mainContent, ambientDialogue, de
               className="bg-red-800 text-white p-4 fixed top-0 left-0 right-0 text-center"
             >
               {t("app.ui.error.message", { message: gameState.error })}
-              <button
+              <Button
                 onClick={() => dispatch({ type: "SET_ERROR", payload: null })}
-                className="ml-4 bg-red-600 px-2 py-1 rounded"
+                type="button" variant="danger" size="sm" className="ml-4"
               >
                 {t("app.ui.error.dismiss")}
-              </button>
+              </Button>
             </div>
           )}
 
@@ -258,6 +261,7 @@ export function AppShell({ gameState, dispatch, mainContent, ambientDialogue, de
               }
               handleOpenGlossary={handleOpenGlossary}
               handleOpenCharacterSheet={handleOpenCharacterSheet}
+              characterSheetInitialTab={characterSheetInitialTab}
 
               onForceBanterTrigger={forceBanter}
               onClearBanterLogs={() =>

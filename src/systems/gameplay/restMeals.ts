@@ -83,7 +83,9 @@ export function planRestMeals(state: MealState, deniedIds: string[] = []) {
   const unfed = state.party.filter(person => !fedIds.includes(person.id)).map(person => person.id);
   const summary = [
     privateIds.length ? `${names(privateIds)} will use their own supplies for their own meal.` : '',
-    sharedFood || sharedWater ? `Shared supplies: ${sharedFood} ration(s), ${sharedWater} water supply unit(s).` : '',
+    // Distinguish the whole carried bag from the allocation for this meal.
+    `Carried shared food / water: ${count(shared, 'rations')} / ${count(shared, 'water-day')} day(s).`,
+    sharedFood || sharedWater ? `This meal uses ${sharedFood} ration(s) and ${sharedWater} water supply unit(s) from shared supplies.` : '',
     fedIds.length ? `Eating: ${names(fedIds)}.` : 'No complete meal is available; no supplies will be consumed.',
     unfed.length ? `Without a meal: ${names(unfed)}. Starving members cannot recover Hit Points.` : '',
   ].filter(Boolean).join(' ');

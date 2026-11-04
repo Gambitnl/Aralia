@@ -374,8 +374,14 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
       const measured=standingBodyFootprint(handle.group);
       if(measured){
         const old=personalBody.footprint;
-        personalBody.radiusM=Math.max(personalBody.radiusM,measured.radiusM);
-        personalBody.footprint={...measured,minXM:Math.min(old.minXM,measured.minXM),maxXM:Math.max(old.maxXM,measured.maxXM),minZM:Math.min(old.minZM,measured.minZM),maxZM:Math.max(old.maxZM,measured.maxZM)};
+        // Keep the moving pose's full sweep while striding. Once the visible
+        // figure settles, measure its actual idle anatomy and carried gear
+        // again: an earlier arm or wing extension must not remain an invisible
+        // permanent body that traps the party between otherwise clear people.
+        // This changes no feet, neighbor, door permission or terrain clearance.
+        const settled=l.speed<=.05;
+        personalBody.radiusM=settled?measured.radiusM:Math.max(personalBody.radiusM,measured.radiusM);
+        personalBody.footprint=settled?measured:{...measured,minXM:Math.min(old.minXM,measured.minXM),maxXM:Math.max(old.maxXM,measured.maxXM),minZM:Math.min(old.minZM,measured.minZM),maxZM:Math.max(old.maxZM,measured.maxZM)};
       }
       personalSpace.set(bodyKey,{xM:curXM,zM:curZM,yM:g.position.y,...personalBody});
       personalRadiusSample.current=0;

@@ -8,9 +8,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/10/2026, 17:15:11
+ * Last Sync: 03/11/2026, 06:28:41
  * Dependents: components/ConversationPanel/ConversationPanel.tsx, hooks/actions/actionHandlers.ts
- * Imports: 18 files
+ * Imports: 19 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -19,6 +19,7 @@
  */
 // @dependencies-end
 
+import {prepareObjectLightCast} from '../../systems/gameplay/objectLightCasting';
 import React from 'react';
 import { GameState, HitPointDiceSpendMap, HitPointDicePool, RacialRestChoiceData, Spell, SpellSlots } from '../../types';
 import { AppAction } from '../../state/actionTypes';
@@ -174,6 +175,14 @@ export function handleOutOfCombatSpellbookCast(
     addMessage: AddMessageFn
 ): void {
     const caster = gameState.party.find(member => member.id === payload.characterId);
+    if(spell.id==='light') {
+        const result=prepareObjectLightCast(gameState,payload);
+        if('error'in result){addMessage(result.error,'system');return;}
+        // Reducer rechecks the selected object before recording success. Do not
+        // fall through to a body buff or speculate that illumination happened.
+        dispatch({type:'CAST_SPELL',payload});
+        return;
+    }
     if (spell.id===CONTAINED_WATER_SPELL_ID) {
         const result=prepareContainedWaterCast(gameState,payload);
         if ('error' in result) {addMessage(result.error,'system');return;}

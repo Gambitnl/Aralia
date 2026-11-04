@@ -32,6 +32,21 @@ const stub = {
 } as any;
 
 describe('AtlasSvgView', () => {
+  it('keeps the reviewed route drawn after pointer inspection leaves its destination', () => {
+    const pick=vi.fn(), route=vi.fn((cell:number):RoutePlan|null=>cell===1
+      ? {cells:[0,1],points:[[2,2],[7,7]],miles:2,minutes:60,danger:0.2}:null);
+    const props={atlas:stub,width:600,height:400,travelActive:true,onPickCell:pick,planRoute:route};
+    const view=render(<AtlasSvgView {...props} reviewedDestination={{cellId:1,name:'Reviewed village'}} travelActionLabel="Review journey →"/>);
+    const svg=view.getByTestId('atlas-svg-view');
+    vi.spyOn(svg,'getBoundingClientRect').mockReturnValue({left:0,top:0,width:600,height:400} as DOMRect);
+    fireEvent.pointerMove(svg,{clientX:1,clientY:1,pointerType:'mouse'});
+    expect(route).toHaveBeenLastCalledWith(1);
+    expect(svg.querySelector('polyline[stroke-dasharray="6 4"]')).toHaveAttribute('points','2.0,2.0 7.0,7.0');
+    view.rerender(<AtlasSvgView {...props} reviewedDestination={null}/>);
+    expect(svg.querySelector('polyline[stroke-dasharray="6 4"]')).toBeNull();
+    expect(pick).not.toHaveBeenCalled();
+  });
+
   function renderPublicPoi(keepMenuOpen = false, nearbyTown = false) {
     const pick = vi.fn();
     const plan = vi.fn<(cell: number) => RoutePlan | null>(() => ({ cells: [0, 1], points: [[2, 2], [7, 7]], miles: 2, minutes: 60, danger: 0.2 }));

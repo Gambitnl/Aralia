@@ -8,10 +8,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 28/10/2026, 12:51:04
- * Dependents: components/ConversationPanel/CompanionPreparationChoices.tsx, hooks/actions/handleNpcInteraction.ts, state/reducers/companionPreparationReducer.ts
+ * Last Sync: 03/11/2026, 11:04:19
+ * Dependents: components/ConversationPanel/CompanionPreparationChoices.tsx, hooks/actions/handleNpcInteraction.ts, state/reducers/companionPreparationReducer.ts, systems/companions/companionJourneyReadiness.ts
  * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
@@ -114,7 +114,20 @@ export function preparationChoices(state: GameState): Array<{ choice: CompanionP
       { choice: 'deliver', label: 'Give Elara 2 rations and 2 water-days', disabled: !hasPreparationSupplies(state.inventory) },
       { choice: 'withdraw', label: 'Tell Elara I cannot keep my promise' },
     ];
-    case 'supplied': return [{ choice: 'recall', label: 'Ask about her preparations' }];
+    case 'supplied': return [
+      { choice: 'recall', label: 'Ask about her preparations' },
+      ...(!hasPreparationSupplies(companion.inventory ?? []) && preparationResupplyRequested(companion)
+        ? [{ choice: 'resupply' as const, label: 'Give Elara 2 more rations and 2 water-days', disabled: !hasPreparationSupplies(state.inventory) }]
+        : []),
+    ];
     default: return [{ choice: 'ask', label: 'Ask how her preparations are going' }];
   }
+}
+
+/** A current request survives recall and reload; a real handover resolves it.
+ * The first fulfilled promise stays fulfilled and cannot award trust again. */
+export function preparationResupplyRequested(companion: Companion): boolean {
+  const latest = [...companion.memories].reverse().find(memory => memory.tags.includes(ELARA_PREPARATIONS_QUEST_ID)
+    && (memory.tags.includes('resupply-requested') || memory.tags.includes('supplies-replenished')));
+  return Boolean(latest?.tags.includes('resupply-requested'));
 }

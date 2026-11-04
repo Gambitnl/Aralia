@@ -14,7 +14,7 @@
  */
 // @dependencies-end
 
-import {companionSiteRiskContext,companionSiteRiskConcerns,ENTRANCE_SURVEY_TERMS} from '@/systems/companions/companionSiteRisk';
+import {companionSiteRiskContext,companionSiteRiskConcerns,companionReturnWaterOffer,ENTRANCE_SURVEY_TERMS} from '@/systems/companions/companionSiteRisk';
 /** Deliberate invitations preserve the person's answer and use the existing
  * consent/promotion pipeline. No caller can pass a prebuilt recruit or force a
  * yes. The companion reducer remains the sole two-store membership owner. */
@@ -98,6 +98,29 @@ export function applyCompanionTravelChoice(state:GameState,id:string,choice:Comp
    c.travelAgreement={...c.travelAgreement!,exploration:{response:'offered',discussedAt:now,terms:[...ENTRANCE_SURVEY_TERMS],concerns:[]}};
    words='Shall we inspect the entrance floor together?';reply='I want a better account for my restoration work, but we do not know what is inside. I would inspect the entrance floor with you and keep our way back. This is an inspection, not a promise of treasure. Either of us can call for retreat. This is not an agreement to descend further. Do you agree?';event='entry-terms-offered';
   }
+ }else if(['discuss_return_water','accept_return_water','decline_return_water'].includes(choice)){
+  const offer=companionReturnWaterOffer(state,id);if(!active||!offer)return {patch:{}};
+  const previous=c.travelAgreement!.returnWater;
+  if(choice==='accept_return_water'){
+   if(previous?.response!=='offered'||offer.reason||previous.amount!==offer.amount||previous.journeyId!==c.journey?.id
+    ||previous.fromLocationId!==state.currentLocationId||previous.destinationCellId!==offer.home.cellId||!offer.water)return {patch:{}};
+   // The water remains in its actual owner's bag. Only the later, reviewed
+   // return may consume this limited surplus; no spare vessel is invented.
+   c.travelAgreement={...c.travelAgreement!,returnWater:{...previous,response:'accepted',respondedAt:now}};
+   words=`I agree to share up to ${offer.amount} water-days from your supplies on our return to ${offer.home.burgName}.`;
+   reply=`Then we may share up to ${offer.amount} water-days from my supplies on that return. I will keep carrying the water until we drink it. We still need to review the route and choose how to ration or forage. This does not change my decision about entering the temple. My restoration remains unfinished.`;event='return-water-accepted';
+  }else if(choice==='decline_return_water'){
+   if(previous?.response!=='offered')return {patch:{}};
+   c.travelAgreement={...c.travelAgreement!,returnWater:{...previous,response:'declined',respondedAt:now}};
+   words='Keep your water. I will not accept that offer.';reply='Then the water stays in my bag. We still need a workable way back.';event='return-water-declined';
+  }else if(previous?.response==='accepted'&&previous.journeyId===c.journey?.id){
+   words='What water did you agree to share?';reply=`We agreed to share up to ${previous.amount} extra water-days from my own bag on the return to ${offer.home.burgName}. The water stays with me until we drink it. My other supplies are mine. We still decide the route risks together.`;
+  }else{
+   c.travelAgreement={...c.travelAgreement!,returnWater:{response:offer.reason?'declined':'offered',amount:offer.amount,journeyId:c.journey!.id,fromLocationId:state.currentLocationId,destinationCellId:offer.home.cellId,discussedAt:now}};
+   words=`Could we share water for the return to ${offer.home.burgName}?`;
+   reply=offer.reason??`We should return to ${offer.home.burgName} to resupply before adding another risk here. I can share up to ${offer.amount} extra water-days from my road provisions on that return, keeping at least half a day reserved for myself. I will carry the water until we drink it. This is not a full journey's supply or permission to enter the temple. We must review the route and decide whether to ration or forage. Do you agree to that limited sharing?`;
+   event=offer.reason?'return-water-refused':'return-water-offered';
+  }
  }else if(choice==='recall_journey'){
 
   const recalled=sharedJourneyRecall(c,state.worldSeed,state.currentLocationId,state.party.find(person=>person.id===id)?.conditions?.includes('exhaustion'));
@@ -110,10 +133,10 @@ export function applyCompanionTravelChoice(state:GameState,id:string,choice:Comp
    :c.travelAgreement.response==='declined'?'You declined my proposed terms. We have not agreed to travel together.':'I offered to inspect the temple together, with deeper risks decided together and a way back. You have not accepted those terms.';
  }else return {patch:{}};
  if(event){
-  const tags=[event.startsWith('entry-')?'expedition-risk':'recruitment',event,`world:${state.worldSeed}`];
+  const tags=[event.startsWith('entry-')?'expedition-risk':event.startsWith('return-water-')?'return-provisions':'recruitment',event,`world:${state.worldSeed}`];
   // Repeating the same refusal is a reminder, not a stream of new memories.
   const memoryText=event==='refused'?reply:`${traveler}: ${words} ${c.identity.name}: ${reply}`;
-  const duplicate=(event==='refused'||event==='entry-refused')&&c.memories.some(m=>tags.every(t=>m.tags.includes(t))&&m.text===memoryText);
+  const duplicate=(event==='refused'||event==='entry-refused'||event==='return-water-refused'||event==='return-water-offered')&&c.memories.some(m=>tags.every(t=>m.tags.includes(t))&&m.text===memoryText);
   if(!duplicate){const memory:CompanionMemory={id:generateId(),type:'event',timestamp:now,importance:7,tags,
    text:memoryText};c={...c,memories:[...c.memories,memory]};}
  }

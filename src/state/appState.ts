@@ -9,9 +9,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/10/2026, 19:01:52
+ * Last Sync: 03/11/2026, 17:38:23
  * Dependents: App.tsx, components/DesignPreview/steps/PreviewEconCraft.tsx, components/DesignPreview/steps/PreviewEquipment.tsx
- * Imports: 61 files
+ * Imports: 63 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -20,6 +20,7 @@
  */
 // @dependencies-end
 
+import { historicalTownArrivalUpdate } from '../systems/worldforge/town/historicalTownLoadContract';
 import { archiveSavedOpenConversation } from '../systems/companions/conversationTranscript';
 import { GameState, GamePhase, PlayerCharacter, SuspicionLevel, UnderdarkState, Companion, CompanionReactionRule, Relationship } from '../types';
 import { CompanionSoul } from '../types/companion';
@@ -876,6 +877,14 @@ export function appReducer(state: GameState, action: AppAction): GameState {
         }
 
         case 'MOVE_PLAYER': {
+            // Source metadata commits with the move, before the destination is
+            // mounted. No existing body is repositioned by this receipt.
+            const source=action.payload.townArrivalSource;
+            const sourceUpdate=source&&action.payload.destinationCell
+                ? historicalTownArrivalUpdate(state,action.payload.destinationCell.cellId,source):undefined;
+            if(source&&!sourceUpdate)return {...state,messages:[...state.messages,{
+                id:Date.now(),text:'The destination changed while the route was prepared. Review the journey before setting out.',sender:'system',timestamp:new Date(state.gameTime),
+            }]};
             // Leaving a cell does not erase the people who remained behind.
             // Only the actual outgoing encounter can establish this placement.
             const shared = prepareCompanionJourney({ ...state, companions: retainCompanionWhereabouts(state) }, action.payload);
@@ -904,6 +913,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 'a new place';
             return {
                 ...state,
+                ...sourceUpdate,
                 currentLocationId: action.payload.newLocationId,
                 // The move commits before ADVANCE_TIME. Only the journal uses
                 // the explicit reached time; clock/resource behavior stays owned

@@ -1,10 +1,18 @@
+/**
+ * Copyright (c) 2024 Aralia RPG
+ * Licensed under the MIT License
+ *
+ * @file src/state/reducers/conversationReducer.ts
+ * Handles interactive companion conversation state updates.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:29:16
- * Dependents: appState.ts
+ * Last Sync: 03/11/2026, 09:07:06
+ * Dependents: state/appState.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -13,14 +21,6 @@
  * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 // @dependencies-end
-
-/**
- * Copyright (c) 2024 Aralia RPG
- * Licensed under the MIT License
- *
- * @file src/state/reducers/conversationReducer.ts
- * Handles interactive companion conversation state updates.
- */
 
 import { GameState } from '../../types';
 import { AppAction } from '../actionTypes';
@@ -80,6 +80,9 @@ export function conversationReducer(state: GameState, action: AppAction): Partia
                 activeConversation: {
                     ...state.activeConversation,
                     pendingResponse: action.payload,
+                    // Finishing the response wait yields the floor even when
+                    // the provider returned no words. No NPC message is invented.
+                    ...(!action.payload ? { isPlayerTurn: true } : {}),
                 },
             };
         }

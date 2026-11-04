@@ -1,6 +1,7 @@
-/** Frozen exterior-prop corrections belong to the reached building source.
- * Original prop/household data is retained; replay replaces exactly one stable
- * prop address. This first reader pins the nearby generated prop baseline:
+/** Frozen prop corrections belong to the reached building source.
+ * Original prop/household data is retained; replay replaces one stable prop
+ * address, or retires unowned legacy wilderness dressing inside a Temple floor.
+ * This reader pins the nearby generated prop baseline:
  * changes outside the qualified yard remain independent; nearby source drift
  * needs a migration, never a silent property reroll.
  */
@@ -10,9 +11,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 01/11/2026, 03:58:01
+ * Last Sync: 03/11/2026, 10:37:06
  * Dependents: components/World3D/World3DWrapper.tsx, state/reducers/townReducer.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/interior/buildingSource.ts, systems/worldforge/props/freshPropClearance.ts
- * Imports: 11 files
+ * Imports: 12 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -25,7 +26,8 @@ import type { GroundWorld } from '../bridge/groundChunkLoader';
 import type { BuildingSourcesByBurg, ObservedBuildingSource, BuildingSourcePosition } from '../interior/buildingSource';
 import { buildingPlanSignature, readObservedBuildingSource } from '../interior/buildingSource';
 import { outsideLayoutRepairEnvelope } from '../interior/buildingLayoutRepair';
-import { siteOrientationFromQuad } from '../bridge/sitePartTransform';
+import { siteOrientationFromQuad, worldOffsetToSiteLocal } from '../bridge/sitePartTransform';
+import { blueprintSiteOrigin } from '../interior/blueprintTypes';
 import { makeGroundWorldProbe, runPropPlacementGate } from '../bridge/propPlacementGate';
 import { fnv1a } from '../seedPath';
 import { propSourceId, type PropInstance } from './propSchema';
@@ -36,12 +38,15 @@ import type { RenderedGroundPropShape, RenderedGroundPropBounds } from '@/system
 
 export interface ExteriorPropRevision {
   version: 1;
-  recipe: 'woodpile-exterior-v1';
+  recipe: 'woodpile-exterior-v1' | 'temple-interior-wild-prop-v1';
   worldSeed: number; burgId: number; plotId: number; cellId: number;
   sourceSignature: string; mountedSignature: string;
   baselineSignature: string;
   predecessors: string[];
   original: PropInstance; revised: PropInstance;
+  /** Retirement keeps the exact original and its place in the ordered baseline.
+   * The revised source marker is retained as evidence, not mounted as a prop. */
+  originalIndex?: number;
   neighbours: RenderedGroundPropBounds[];
   admittedAt: string; position: BuildingSourcePosition;
   bodyRadiusM: number; characterSignature: string;
@@ -55,6 +60,28 @@ const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
 const copy = <T>(v: T): T => JSON.parse(JSON.stringify(v));
 function nearbyBaseline(props: readonly PropInstance[], original: PropInstance) {
   return props.filter(p => Math.hypot(p.xM-original.xM,p.zM-original.zM)<=25);
+}
+
+/** Only legacy, unowned wilderness dressing inside an actual observed Temple
+ * floor is eligible. Courtyards, yards, other buildings and owned/retained props
+ * keep their sources. A plant near a building is not enough to retire it. */
+export function isInteriorWildPropCandidate(source: ObservedBuildingSource, ground: GroundWorld, prop: PropInstance): boolean {
+  if (!['bush', 'boulder'].includes(prop.defId) || prop.affiliation !== undefined || prop.retainedSourceId !== undefined) return false;
+  const visit = readObservedBuildingSource({worldSeed: source.worldSeed, burgId: source.burgId, source}, source.plotId,
+    JSON.parse(source.historySignature) ?? undefined);
+  if (visit.plan.type !== 'temple') return false;
+  const building = ground.buildings.find(b => b.id === `wf-plot-${source.burgId}-${source.plotId}`);
+  if (!building || building.blueprintSignature !== buildingPlanSignature(visit.plan)
+    || Math.hypot(building.xM-source.site.xM,building.zM-source.site.zM)>1e-6) return false;
+  const frame = siteOrientationFromQuad(building.cornersM);
+  if (frame.rotationY !== source.site.rotationY || frame.doorZSign !== source.site.doorZSign) return false;
+  const local = worldOffsetToSiteLocal(prop.xM-building.xM,prop.zM-building.zM,frame.rotationY);
+  const x=local.lx,z=local.lz*-frame.doorZSign,origin=blueprintSiteOrigin(visit.plan);
+  const cx=Math.floor(x/.3048+origin.x),cy=Math.floor(z/.3048+origin.y);
+  // Blueprint cells are five feet, while the fitted floor parts are in meters.
+  const room=visit.plan.floors.find(f=>f.level===0)?.rooms.find(r=>r.cells.some(c=>c.cx===Math.floor(cx/5)&&c.cy===Math.floor(cy/5)));
+  return !!room && building.parts.some(p=>p.walkSurface==='floor'&&Math.abs(p.baseY??0)<1e-6
+    &&p.h>0&&Math.abs(x-p.x)<=p.w/2&&Math.abs(z-p.z)<=p.d/2);
 }
 
 /** All current doors/roads/building envelopes participate, not just the home
@@ -92,7 +119,7 @@ function validateRevision(receipt: ExteriorPropRevision, source: ObservedBuildin
   const { signature, ...body } = receipt;
   const finite = (v: unknown): boolean => typeof v === 'number' ? Number.isFinite(v)
     : !v || typeof v !== 'object' || Object.values(v).every(finite);
-  if (!finite(receipt) || receipt.version !== 1 || receipt.recipe !== 'woodpile-exterior-v1'
+  if (!finite(receipt) || receipt.version !== 1 || !['woodpile-exterior-v1','temple-interior-wild-prop-v1'].includes(receipt.recipe)
     || signature !== propDataSignature(body) || !Number.isFinite(Date.parse(receipt.admittedAt))
     || receipt.worldSeed !== source.worldSeed || receipt.burgId !== source.burgId || receipt.plotId !== source.plotId
     || receipt.cellId !== source.cellId || receipt.sourceSignature !== source.planSignature
@@ -105,8 +132,21 @@ function validateRevision(receipt: ExteriorPropRevision, source: ObservedBuildin
     || !mounted.blueprintSignature) throw Error('Exterior prop building source changed');
   if (receipt.baselineSignature !== propDataSignature(nearbyBaseline(baseline,receipt.original))) throw Error('Exterior prop baseline changed; a source migration is required');
   const id = propSourceId(receipt.original), originals = baseline.filter(p => propSourceId(p) === id);
-  if (originals.length !== 1 || !same(originals[0], receipt.original) || receipt.original.defId !== 'woodpile'
+  if (originals.length !== 1 || !same(originals[0], receipt.original)
     || receipt.revised.retainedSourceId !== id || propSourceId(receipt.revised) !== id) throw Error('Exterior prop identity changed');
+  if(receipt.recipe==='temple-interior-wild-prop-v1'){
+    const bound=receipt.neighbours[0],revised={...copy(receipt.original),retainedSourceId:id};
+    if(!isInteriorWildPropCandidate(source,ground,receipt.original)||!same(revised,receipt.revised)
+      ||!Number.isSafeInteger(receipt.originalIndex)||receipt.originalIndex!==baseline.findIndex(p=>propSourceId(p)===id)
+      ||receipt.neighbours.length!==1||!bound||bound.sourceId!==id||bound.defId!==receipt.original.defId
+      ||bound.xM!==receipt.original.xM||bound.zM!==receipt.original.zM||bound.rotationRad!==receipt.original.rotationRad
+      ||bound.scale!==receipt.original.variation.scale||bound.variant!==receipt.original.variation.variant
+      ||!(bound.radiusM>0&&bound.radiusM<=3)
+      ||Math.hypot(receipt.original.xM-receipt.position.xM,receipt.original.zM-receipt.position.zM)<=3+receipt.bodyRadiusM+.25)
+      throw Error('Invalid Temple interior prop retirement');
+    return;
+  }
+  if(receipt.original.defId!=='woodpile')throw Error('Exterior prop identity changed');
   const old = copy(receipt.original), revised = copy(receipt.revised);
   delete old.surface; delete old.retainedSourceId; delete revised.surface; delete revised.retainedSourceId;
   delete old.retainedRenderRecipe; delete revised.retainedRenderRecipe;
@@ -163,6 +203,21 @@ export function freezeExteriorPropRevision(input: {
   return receipt;
 }
 
+/** Same ordered retained-source protocol as a woodpile correction. The invalid
+ * legacy dressing leaves the rendered set, while its complete original remains
+ * in the source receipt. No new destination, loot or terrain change is created. */
+export function freezeInteriorWildPropRetirement(input:{source:ObservedBuildingSource;ground:GroundWorld;original:PropInstance;
+  measured:RenderedGroundPropBounds;admittedAt:string;position:BuildingSourcePosition;bodyRadiusM:number;characterSignature:string;predecessors?:string[]}):ExteriorPropRevision {
+  const {source,ground,original}=input,id=propSourceId(original);
+  const body:Omit<ExteriorPropRevision,'signature'>={version:1,recipe:'temple-interior-wild-prop-v1',
+    worldSeed:source.worldSeed,burgId:source.burgId,plotId:source.plotId,cellId:source.cellId,sourceSignature:source.planSignature,
+    mountedSignature:ground.buildings.find(b=>b.id===`wf-plot-${source.burgId}-${source.plotId}`)?.blueprintSignature??'',
+    baselineSignature:propDataSignature(nearbyBaseline(ground.props,original)),predecessors:[...(input.predecessors??[])],
+    original:copy(original),revised:{...copy(original),retainedSourceId:id},originalIndex:ground.props.findIndex(p=>propSourceId(p)===id),
+    neighbours:[copy(input.measured)],admittedAt:input.admittedAt,position:copy(input.position),bodyRadiusM:input.bodyRadiusM,characterSignature:input.characterSignature};
+  const receipt={...body,signature:propDataSignature(body)};validateRevision(receipt,source,ground,ground.props);return receipt;
+}
+
 export function exteriorRevisionChain(ground: GroundWorld, sources?: BuildingSourcesByBurg) {
   const receipts = Object.values(sources ?? {}).flatMap(town => Object.values(town)
     .filter(source => ground.buildings.some(b => b.id === `wf-plot-${source.burgId}-${source.plotId}`)).flatMap(source =>
@@ -182,6 +237,12 @@ export function exteriorPropBaseline(ground: GroundWorld, sources: BuildingSourc
   const out = [...ground.props];
   for (const { receipt } of exteriorRevisionChain(ground, sources).reverse()) {
     const matches = out.map((p, i) => ({ p, i })).filter(({ p }) => propSourceId(p) === propSourceId(receipt.original));
+    if(receipt.recipe==='temple-interior-wild-prop-v1'){
+      const {signature,...body}=receipt;
+      if(matches.length||signature!==propDataSignature(body)||!Number.isSafeInteger(receipt.originalIndex)
+        ||receipt.originalIndex! < 0||receipt.originalIndex! > out.length)throw Error('Mounted Temple prop retirement changed');
+      out.splice(receipt.originalIndex!,0,copy(receipt.original));continue;
+    }
     if (matches.length !== 1 || !same(matches[0].p, receipt.revised)) throw Error('Mounted exterior prop revision changed');
     out[matches[0].i] = copy(receipt.original);
   }
@@ -198,7 +259,9 @@ export function replayExteriorPropRevisions(ground: GroundWorld, baseline: PropI
     const id = propSourceId(receipt.original);
     if (used.has(id)) throw Error('Duplicate retained exterior prop source');
     used.add(id);
-    out[out.findIndex(p => propSourceId(p) === id)] = copy(receipt.revised);
+    const index=out.findIndex(p=>propSourceId(p)===id);
+    if(receipt.recipe==='temple-interior-wild-prop-v1')out.splice(index,1);
+    else out[index] = copy(receipt.revised);
   }
   return out;
 }

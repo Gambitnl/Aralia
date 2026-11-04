@@ -58,6 +58,8 @@ import { JournalTab } from './Journal';
 import LevelUpModal from './LevelUpModal';
 
 import type { RulesEdition } from '../../config/rulesEdition';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 interface CharacterSheetModalProps {
   isOpen: boolean;
@@ -73,6 +75,8 @@ interface CharacterSheetModalProps {
   /** Full party, used by the spellbook's out-of-combat cast target picker. */
   party?: PlayerCharacter[];
   rulesEdition?: RulesEdition;
+  /** Choose the spellbook when opened from the party's direct Spells action. */
+  initialTab?: 'overview' | 'spellbook';
 }
 
 type SheetTab = 'overview' | 'skills' | 'details' | 'family' | 'spellbook' | 'crafting' | 'journal';
@@ -90,17 +94,18 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
   journal,
   party,
   rulesEdition,
+  initialTab = 'overview',
 }) => {
   const [activeTab, setActiveTab] = useState<SheetTab>('overview');
   const [filterBySlot, setFilterBySlot] = useState<EquipmentSlotType | null>(null);
   const [isLevelUpOpen, setIsLevelUpOpen] = useState(false);
 
   useEffect(() => {
-    // Reset to overview tab when modal opens or character changes
-    setActiveTab('overview');
+    // Start at the requested sheet section when opened or when the selected character changes.
+    setActiveTab(initialTab);
     // Close any level-up flow when switching characters.
     setIsLevelUpOpen(false);
-  }, [isOpen, character?.id]);
+  }, [isOpen, character?.id, initialTab]);
 
   const handleSlotClick = (slot: EquipmentSlotType, item?: Item) => {
     if (item && character) {
@@ -114,11 +119,11 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
     return null;
   }
 
-  const hasSpells = character.spellbook && (
+  const hasSpells = Boolean(character.spellbook && (
     character.spellbook.cantrips.length > 0 ||
     character.spellbook.preparedSpells.length > 0 ||
     character.spellbook.knownSpells.length > 0
-  );
+  ) || (character.race.knownSpells?.length ?? 0) > 0);
   const hasFamily = character.richNpcData?.family && character.richNpcData.family.length > 0;
   const canLevel = !!character.id && canLevelUp(character);
 
@@ -161,7 +166,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
         >
           <button
             onClick={() => setActiveTab('overview')}
-            className={`flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap px-2.5 py-2.5 text-sm font-medium font-cinzel transition-colors sm:justify-start sm:px-4 ${activeTab === 'overview' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
+            className={`${BTN_FOCUS_VISIBLE} flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap px-2.5 py-2.5 text-sm font-medium font-cinzel transition-colors sm:justify-start sm:px-4 ${activeTab === 'overview' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
             role="tab"
             aria-selected={activeTab === 'overview'}
           >
@@ -169,7 +174,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('skills')}
-            className={`flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap px-2.5 py-2.5 text-sm font-medium font-cinzel transition-colors sm:justify-start sm:px-4 ${activeTab === 'skills' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
+            className={`${BTN_FOCUS_VISIBLE} flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap px-2.5 py-2.5 text-sm font-medium font-cinzel transition-colors sm:justify-start sm:px-4 ${activeTab === 'skills' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
             role="tab"
             aria-selected={activeTab === 'skills'}
           >
@@ -177,7 +182,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('details')}
-            className={`flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap px-2.5 py-2.5 text-sm font-medium font-cinzel transition-colors sm:justify-start sm:px-4 ${activeTab === 'details' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
+            className={`${BTN_FOCUS_VISIBLE} flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap px-2.5 py-2.5 text-sm font-medium font-cinzel transition-colors sm:justify-start sm:px-4 ${activeTab === 'details' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
             role="tab"
             aria-selected={activeTab === 'details'}
           >
@@ -186,7 +191,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
           {hasFamily && (
             <button
               onClick={() => setActiveTab('family')}
-              className={`flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap px-2.5 py-2.5 text-sm font-medium font-cinzel transition-colors sm:justify-start sm:px-4 ${activeTab === 'family' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
+              className={`${BTN_FOCUS_VISIBLE} flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap px-2.5 py-2.5 text-sm font-medium font-cinzel transition-colors sm:justify-start sm:px-4 ${activeTab === 'family' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
               role="tab"
               aria-selected={activeTab === 'family'}
             >
@@ -196,7 +201,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
           {hasSpells && (
             <button
               onClick={() => setActiveTab('spellbook')}
-              className={`flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap px-2.5 py-2.5 text-sm font-medium font-cinzel transition-colors sm:justify-start sm:px-4 ${activeTab === 'spellbook' ? 'border-b-2 border-purple-400 text-purple-300' : 'text-gray-400 hover:text-white'}`}
+              className={`${BTN_FOCUS_VISIBLE} flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap px-2.5 py-2.5 text-sm font-medium font-cinzel transition-colors sm:justify-start sm:px-4 ${activeTab === 'spellbook' ? 'border-b-2 border-purple-400 text-purple-300' : 'text-gray-400 hover:text-white'}`}
               role="tab"
               aria-selected={activeTab === 'spellbook'}
             >
@@ -205,7 +210,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
           )}
           <button
             onClick={() => setActiveTab('crafting')}
-            className={`flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap px-2.5 py-2.5 text-sm font-medium font-cinzel transition-colors sm:justify-start sm:px-4 ${activeTab === 'crafting' ? 'border-b-2 border-green-400 text-green-300' : 'text-gray-400 hover:text-white'}`}
+            className={`${BTN_FOCUS_VISIBLE} flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap px-2.5 py-2.5 text-sm font-medium font-cinzel transition-colors sm:justify-start sm:px-4 ${activeTab === 'crafting' ? 'border-b-2 border-green-400 text-green-300' : 'text-gray-400 hover:text-white'}`}
             role="tab"
             aria-selected={activeTab === 'crafting'}
           >
@@ -213,7 +218,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('journal')}
-            className={`flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap px-2.5 py-2.5 text-sm font-medium font-cinzel transition-colors sm:justify-start sm:px-4 ${activeTab === 'journal' ? 'border-b-2 border-amber-500 text-amber-400' : 'text-gray-400 hover:text-white'}`}
+            className={`${BTN_FOCUS_VISIBLE} flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap px-2.5 py-2.5 text-sm font-medium font-cinzel transition-colors sm:justify-start sm:px-4 ${activeTab === 'journal' ? 'border-b-2 border-amber-500 text-amber-400' : 'text-gray-400 hover:text-white'}`}
             role="tab"
             aria-selected={activeTab === 'journal'}
           >
@@ -223,7 +228,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
             <div className="ml-auto flex items-center">
               <button
                 onClick={() => setIsLevelUpOpen(true)}
-                className="min-h-11 px-3 py-1.5 text-xs font-semibold rounded-full bg-emerald-600/80 hover:bg-emerald-500 text-white"
+                className={`${BTN_FOCUS_VISIBLE} min-h-11 px-3 py-1.5 text-xs font-semibold rounded-full bg-emerald-600/80 hover:bg-emerald-500 text-white`}
                 aria-label={`Level up ${character.name}`}
               >
                 Level Up

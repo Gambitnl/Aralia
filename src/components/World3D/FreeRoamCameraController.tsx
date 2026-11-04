@@ -92,8 +92,22 @@ const FreeRoamCameraController: React.FC<FreeRoamCameraControllerProps> = ({
   React.useEffect(() => () => {selfVisibility.restore(); closeProjection.restore();}, [selfVisibility, closeProjection]);
   const sinceReport = useRef(0);
   const lastReported = useRef(new THREE.Vector2(NaN, NaN));
-  // Last frame-request nonce we acted on, so a command applies exactly once.
+  // Keep the explicit command distinct from its later streamed geometry result.
+  // A loading-time view may be refined until the person moves or takes control.
   const appliedFrameNonce = useRef<string | null>(null);
+  const appliedFrameRequest = useRef<CameraFrameRequest | null>(null);
+  const mayRefinePlayerFrame = useRef(false);
+  const heldViewKeys = useRef(new Set<string>());
+  const cancelPlayerRefinement = React.useCallback(() => { mayRefinePlayerFrame.current = false; }, []);
+  React.useEffect(() => {
+    const down = (event: KeyboardEvent) => { heldViewKeys.current.add(event.code || event.key); cancelPlayerRefinement(); };
+    const up = (event: KeyboardEvent) => { heldViewKeys.current.delete(event.code || event.key); };
+    const blur = () => { heldViewKeys.current.clear(); cancelPlayerRefinement(); };
+    window.addEventListener('keydown', down);
+    window.addEventListener('keyup', up);
+    window.addEventListener('blur', blur);
+    return () => { window.removeEventListener('keydown', down); window.removeEventListener('keyup', up); window.removeEventListener('blur', blur); };
+  }, [cancelPlayerRefinement]);
   // A wall shortens the visible camera arm, not the player's chosen zoom.
   // Retain that choice so leaving a doorway restores the view automatically.
   const requestedPlayerDistance = useRef<number | null>(null);
@@ -137,8 +151,26 @@ const FreeRoamCameraController: React.FC<FreeRoamCameraControllerProps> = ({
     // Done in useFrame so the controls ref is guaranteed live; a steep angle (12%
     // of height) keeps MapControls out of its gimbal-locked straight-down pole.
     const frameKey = frameRequest ? `${frameRequest.kind ?? 'frame'}:${frameRequest.nonce}` : null;
-    if (frameRequest && frameKey !== appliedFrameNonce.current) {
+    const previousRequest = appliedFrameRequest.current;
+    const bodyAtRequest = getPlayerTarget?.();
+    if (mayRefinePlayerFrame.current && previousRequest && bodyAtRequest
+      && Math.hypot(...bodyAtRequest.map((value, i) => value - previousRequest.target[i])) > .01) {
+      mayRefinePlayerFrame.current = false;
+    }
+    // The first request can precede the inn meshes. Once they arrive, accept
+    // the newly checked view of the SAME stationary feet, without a second click.
+    // Orbit/pan/zoom or keyboard input owns the view from then on; a streamed
+    // rerender must never redirect held movement or snap back a deliberate view.
+    const refinedPlayerFrame = frameRequest?.kind === 'player' && frameKey === appliedFrameNonce.current
+      && mayRefinePlayerFrame.current && heldViewKeys.current.size === 0 && previousRequest && bodyAtRequest
+      && frameRequest.position && previousRequest.position
+      && frameRequest.target.every((value, i) => Math.abs(value - previousRequest.target[i]) <= .01)
+      && frameRequest.position.some((value, i) => Math.abs(value - previousRequest.position![i]) > 1e-6)
+      && (!playerSightline || playerSightline(frameRequest.target, frameRequest.position) === null);
+    if (frameRequest && (frameKey !== appliedFrameNonce.current || refinedPlayerFrame)) {
+      if (frameKey !== appliedFrameNonce.current) mayRefinePlayerFrame.current = frameRequest.kind === 'player';
       appliedFrameNonce.current = frameKey;
+      appliedFrameRequest.current = frameRequest;
       const [tx, ty, tz] = frameRequest.target;
       const off = frameRequest.height * (frameRequest.oblique ? 0.8 : 0.12);
       if (frameRequest.position) three.camera.position.set(...frameRequest.position);
@@ -156,6 +188,7 @@ const FreeRoamCameraController: React.FC<FreeRoamCameraControllerProps> = ({
     // The keyboard translates the arm before this pass. Keep a centered player
     // view at the real floor height, then retract before opaque rendered walls.
     // Panning away and town/combat overview commands retain their own framing.
+    let wallShortenedCamera = false;
     if (frameRequest?.kind === 'player') {
       const body = getPlayerTarget?.();
       if (body && Math.hypot(controls.target.x - body[0], controls.target.z - body[2]) < 1) {
@@ -209,13 +242,18 @@ const FreeRoamCameraController: React.FC<FreeRoamCameraControllerProps> = ({
           // Retract immediately for walls; recover gradually along the same
           // heading. Changing the yaw here would redirect held walking keys.
           const distance = Math.min(clearDistance, currentDistance + 3 * Math.min(Math.max(delta, 0), .1));
+          wallShortenedCamera = distance < currentDistance - .02;
           const fraction = clearDistance > 0 ? distance / clearDistance : 1;
           controls.minDistance = Math.min(minDistance, distance);
           three.camera.position.set(focus[0] + (clearEye[0] - focus[0]) * fraction,
             focus[1] + (clearEye[1] - focus[1]) * fraction, focus[2] + (clearEye[2] - focus[2]) * fraction);
         }
       }
-      controls.update();
+      if (wallShortenedCamera) {
+        // A rejected turn still needs its leftover damping checked against the wall.
+        // Ordinary clear orbit/pan input gets only MapControls’ one normal update.
+        controls.update();
+      }
       if (playerSightline && (!body || Math.hypot(controls.target.x - body[0], controls.target.z - body[2]) < 1)) {
         const focus: CameraPoint = [controls.target.x, controls.target.y, controls.target.z];
         let eye: CameraPoint = [three.camera.position.x, three.camera.position.y, three.camera.position.z];
@@ -331,6 +369,7 @@ const FreeRoamCameraController: React.FC<FreeRoamCameraControllerProps> = ({
     <MapControls
       makeDefault
       ref={controlsRef}
+      onStart={cancelPlayerRefinement}
       target={controlsInitialTarget}
       minDistance={minDistance}
       maxDistance={maxDistance}

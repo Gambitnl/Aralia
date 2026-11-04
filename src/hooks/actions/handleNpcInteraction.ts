@@ -8,9 +8,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/10/2026, 03:11:09
+ * Last Sync: 03/11/2026, 08:46:15
  * Dependents: hooks/actions/actionHandlers.ts
- * Imports: 31 files
+ * Imports: 32 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -333,12 +333,17 @@ function buildConversationContext(state: GameState): BanterContext {
     };
 }
 
-async function withGreetingDeadline<T>(request: Promise<T>, waitMs: number): Promise<T | null> {
+async function withGreetingDeadline<T>(request: Promise<T>, waitMs: number, controller?: AbortController): Promise<T | null> {
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
         return await Promise.race([
             request,
-            new Promise<null>(resolve => { timer = setTimeout(() => resolve(null), waitMs); }),
+            new Promise<null>(resolve => { timer = setTimeout(() => {
+                // Resolve the optional wait before cancelling: even providers
+                // that reject synchronously cannot replace the authored greeting.
+                resolve(null);
+                controller?.abort();
+            }, waitMs); }),
         ]);
     } finally {
         if (timer !== undefined) clearTimeout(timer);
@@ -522,11 +527,15 @@ export async function handleTalk({
         // Bound both optional waits below the action watchdog. A late result has
         // no writer attached, so it cannot reopen or overwrite a later meeting.
         const available = await withGreetingDeadline(OllamaService.isAvailable(), 1500);
+        // The authored greeting is ready after eight seconds. Its abandoned
+        // generation must not compete with the player's next intent request.
+        const greetingRequest = new AbortController();
         const result = available ? await withGreetingDeadline(OllamaService.continueConversation(
             [participant],
             [],
-            context
-        ), 8000) : null;
+            context,
+            { signal: greetingRequest.signal }
+        ), 8000, greetingRequest) : null;
 
         if (result?.metadata) {
             addGeminiLog(

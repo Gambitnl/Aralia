@@ -11,8 +11,10 @@ import {computeBurgMerchants} from '../../townsim/registerBurgMerchants';
 import {townBuildingVisit} from '../../../../components/Worldforge/townBuildingVisit';
 import {captureObservedBuildingSource,buildingPlanSignature} from '../../interior/buildingSource';
 import {guestBedsForVisit} from '../../../gameplay/lodging';
-import {historicalTownLoadJoinError,prepareHistoricalTownLoad} from '../../town/prepareHistoricalTownLoad';
+import {historicalTownLoadJoinError,prepareHistoricalTownLoad,prepareHistoricalTownArrival} from '../../town/prepareHistoricalTownLoad';
+import {historicalTownArrivalUpdate} from '../../town/historicalTownLoadContract';
 import type {TownRoster} from '../../roster/types';
+import {COMPANIONS} from '../../../../data/companions';
 
 let baseline:GameState,ground:GroundWorld,roster:TownRoster;
 beforeAll(()=>{
@@ -64,6 +66,30 @@ beforeAll(()=>{
 },120000);
 
 describe('independent historical-town load producer and existing site joins',()=>{
+ function returnedParty(){
+  const state=structuredClone(baseline),c=structuredClone(COMPANIONS.elara_vance),feet=state.playerGroundPos!;
+  c.inParty=true;const position={xM:feet.xM+0.1,zM:feet.zM,yM:groundSurfaceY(ground,feet.xM+0.1,feet.zM)},arrival=state.gameTime.getTime()-1000;
+  c.whereabouts={worldSeed:state.worldSeed,locationId:state.currentLocationId,source:'party',observedAt:arrival,position};
+  c.journey={id:'earned-return',worldSeed:state.worldSeed,from:{cellId:1507,locationId:'cell_1507',position},to:{cellId:1506,locationId:state.currentLocationId},intendedCellId:1506,routeCells:[1507,1506],departedAt:arrival-10000,arrivalAt:arrival,status:'arrived'};
+  c.memories=[{id:'earned-return:arrived',type:'event',timestamp:arrival,importance:5,text:'Returned together',tags:['shared-journey','arrived']}];
+  state.companions={...state.companions,[c.id]:c};state.party.push(createMockPlayerCharacter({id:c.id}));return state;
+ }
+ it('independently admits both actual exterior bodies without changing their identities, feet or journey',()=>{
+  const state=returnedParty(),before=JSON.stringify(state);
+  expect(prepareHistoricalTownLoad(state)).toMatchObject({status:'qualified',burgId:188,revision:1});
+  expect(JSON.stringify(state)).toBe(before);
+ },120000);
+ it.each(['height','wrong-world','remote','no-arrival','unplaced'] as const)('does not admit a companion with unresolved %s evidence',kind=>{
+  const state=returnedParty(),c=state.companions.elara_vance;
+  if(kind==='height')c.whereabouts!.position!.yM+=0.1;
+  if(kind==='wrong-world')c.whereabouts!.worldSeed+=1;
+  if(kind==='remote')c.whereabouts!.locationId='cell_1507';
+  if(kind==='no-arrival')c.memories=[];
+  if(kind==='unplaced')delete c.whereabouts!.position;
+  const before=JSON.stringify(state);
+  expect(historicalTownLoadJoinError(state,ground,188,1,roster)).toBeTypeOf('string');
+  expect(JSON.stringify(state)).toBe(before);
+ });
  it('regenerates both readers and qualifies the earlier source without changing the generated saved state',()=>{
   const state=structuredClone(baseline),before=JSON.stringify(state);
   expect(prepareHistoricalTownLoad(state)).toMatchObject({status:'qualified',burgId:188,revision:1,observations:2,founders:237});
@@ -102,3 +128,49 @@ describe('independent historical-town load producer and existing site joins',()=
   expect(prepareHistoricalTownLoad(state)).toMatchObject({status:'unresolved'});
  });
 });
+
+
+describe('recorded destination source before a new arrival',()=>{
+  function departure(){const state=structuredClone(baseline);state.playerCell={cellId:1507,localeCoords:null};state.currentLocationId='cell_1507';state.playerGroundPos=null;state.entry3DAnchor={cellId:1507};return state;}
+  const target={cellId:1506,anchor:{cellId:1506,centerPx:[376.7,199.25] as const}};
+  it('independently qualifies the recorded destination before a body exists there and commits only its metadata with normal movement',async()=>{
+    const state=departure(),before=JSON.stringify(state),result=prepareHistoricalTownArrival(state,target);
+    expect(result.status).toBe('qualified');if(result.status!=='qualified')return;
+    expect(result.receipt).toMatchObject({worldSeed:state.worldSeed,cellId:1506,burgId:188,revision:1,terrainRevision:2});
+    const update=historicalTownArrivalUpdate(state,1506,result.receipt)!;
+    expect(update.townSim[188]).toEqual({...state.townSim[188],layoutRevision:1});
+    expect(update.worldforgeTerrainRevision).toBe(2);expect(JSON.stringify(state)).toBe(before);
+    const {appReducer}=await import('../../../../state/appState');
+    const moved=appReducer(state,{type:'MOVE_PLAYER',payload:{newLocationId:'cell_1506',activeDynamicNpcIds:null,destinationCell:target,townArrivalSource:result.receipt}});
+    expect(moved.playerCell?.cellId).toBe(1506);expect(moved.playerGroundPos).toBeNull();expect(moved.townSim[188]).toEqual(update.townSim[188]);
+    for(const key of ['inventory','gold','gameTime','npcMemory','worldBusinesses','generatedNpcs'] as const)expect(moved[key]).toEqual(state[key]);
+  },120000);
+  it.each(['founder','business'] as const)('refuses unresolved %s evidence before creating an arrival',kind=>{
+    const state=departure();if(kind==='founder')Object.values(state.townSim[188].villagers)[0].name='Different person';
+    else state.worldBusinesses.biz_burg_188_plot_8.businessType='farm';
+    const before=JSON.stringify(state);expect(prepareHistoricalTownArrival(state,target)).toMatchObject({status:'unresolved'});expect(JSON.stringify(state)).toBe(before);
+  },120000);
+  it('does not turn a local source request into an unsupported-body load or relocation',()=>{
+    const state=structuredClone(baseline);state.playerGroundPos!.yM!+=.358;const before=JSON.stringify(state);
+    expect(prepareHistoricalTownArrival(state,target)).toEqual({status:'not-needed'});
+    expect(prepareHistoricalTownLoad(state)).toMatchObject({status:'unresolved'});expect(JSON.stringify(state)).toBe(before);
+  },120000);
+  it('refuses a source receipt after a record, clock, world or destination changes',()=>{
+    const state=departure(),result=prepareHistoricalTownArrival(state,target);expect(result.status).toBe('qualified');if(result.status!=='qualified')return;
+    const changed=structuredClone(state);changed.gameTime=new Date(changed.gameTime.getTime()+1000);
+    expect(historicalTownArrivalUpdate(changed,1506,result.receipt)).toBeUndefined();
+    expect(historicalTownArrivalUpdate(state,1507,result.receipt)).toBeUndefined();
+    expect(historicalTownArrivalUpdate({...state,worldSeed:state.worldSeed+1},1506,result.receipt)).toBeUndefined();
+    const townChanged=structuredClone(state);Object.values(townChanged.townSim[188].villagers)[0].name='Different person';
+    expect(historicalTownArrivalUpdate(townChanged,1506,result.receipt)).toBeUndefined();
+  },120000);
+});
+
+
+it('checks a recorded village population even without a merchant or observed interior',()=>{
+  const state=structuredClone(baseline);state.playerCell={cellId:1507,localeCoords:null};state.currentLocationId='cell_1507';state.playerGroundPos=null;
+  state.worldBusinesses={};state.generatedNpcs={};state.townSim[188].buildingSources={};state.lodgingReservations=[];state.discoveryLog=[];
+  Object.values(state.townSim[188].villagers)[0].name='Different founder';const before=JSON.stringify(state);
+  expect(prepareHistoricalTownArrival(state,{cellId:1506,anchor:{cellId:1506,centerPx:[376.7,199.25]}})).toMatchObject({status:'unresolved'});
+  expect(JSON.stringify(state)).toBe(before);
+},120000);

@@ -27,7 +27,7 @@ import { QuestStatus } from '@/types/quests';
 import { getQuestById } from '@/data/quests';
 import { generateId } from '@/utils/core/idGenerator';
 import { RelationshipManager } from '@/systems/companions/RelationshipManager';
-import { preparationCompanion, preparationQuestline, transferPreparationSupplies, ELARA_PREPARATIONS_QUEST_ID, PREPARATION_OBJECTIVE_ID } from '@/systems/companions/companionPreparations';
+import { preparationCompanion, preparationQuestline, transferPreparationSupplies, hasPreparationSupplies, preparationResupplyRequested, ELARA_PREPARATIONS_QUEST_ID, PREPARATION_OBJECTIVE_ID } from '@/systems/companions/companionPreparations';
 import { questReducer } from './questReducer';
 import { appendQuestJournalEvent, createQuestJournalEvent } from '@/systems/quests/questJournal';
 
@@ -103,9 +103,24 @@ export function applyCompanionPreparationChoice(state: GameState, companionId: s
     words = 'Here are the two rations and two days of water I promised.';
     reply = 'You kept your word. I have the provisions now, and I will remember your help. The restoration work is still ahead of me.';
     memory = remember(`${traveler} kept their promise and gave me two rations and two water-days. I carry those provisions for my journey.`, 'promise-fulfilled');
+  } else if (choice === 'resupply' && stage === 'supplied') {
+    // Ask first, then hand over actual stacks. Replenishment is neither a new
+    // promise reward nor permission to enter the temple or spend her belongings.
+    if (!preparationResupplyRequested(original) || hasPreparationSupplies(original.inventory ?? [])) return {};
+    const transfer = transferPreparationSupplies(state.inventory);
+    if (!transfer) return {};
+    inventory = transfer.remaining;
+    companion.inventory = [...(original.inventory ?? []), ...transfer.given];
+    words = 'Here are two more rations and two water-days for your journey.';
+    reply = 'Thank you. I will carry these for the road. We still need to decide the next risks together.';
+    memory = remember(`${traveler} gave me two more rations and two water-days after I asked to replenish my road supplies. These are my provisions; our travel terms remain unchanged.`, 'supplies-replenished');
   } else if (choice === 'recall' && stage === 'supplied') {
     words = 'How are your preparations going?';
     reply = 'I remember the provisions you brought and the promise you kept. Restoring the temple is still my goal.';
+    if (!hasPreparationSupplies(original.inventory ?? [])) {
+      reply += ' I need to replenish my food and water for the road. Two more rations and two water-days would help, if you can spare them.';
+      if (!preparationResupplyRequested(original)) memory = remember(`I asked ${traveler} whether they could spare two more rations and two water-days for my restoration journey. Their earlier promise was kept; this is a new preparation need.`, 'resupply-requested');
+    }
   } else return {};
 
   if (memory) companion.memories = [...original.memories, memory];

@@ -44,7 +44,7 @@
 // ============================================================================
 // React hooks - useReducer for complex state management, useCallback for memoized functions,
 // useEffect for side effects
-import React, { useReducer, useCallback, useEffect } from "react";
+import React, { useReducer, useCallback, useEffect, useState } from "react";
 import { GameMessage, Item, PlayerCharacter, GamePhase } from "./types";
 import { AppPhaseContent } from "./components/screens/AppPhaseContent";
 // State management - appReducer handles all state updates via actions, initialGameState provides defaults
@@ -114,6 +114,9 @@ if (import.meta.env.DEV) void import("./devtools/perf/rendererProbe").then((m) =
 // ============================================================================
 
 const App: React.FC = () => {
+  // Keep the party's requested sheet destination as transient UI state; normal
+  // character-sheet opens still return to Overview and casting state is untouched.
+  const [characterSheetInitialTab, setCharacterSheetInitialTab] = useState<'overview' | 'spellbook'>('overview');
   // Validate environment variables on startup
   useEffect(() => {
     validateEnv();
@@ -275,13 +278,15 @@ const App: React.FC = () => {
   const { handleEnter3DAtCell } = atlasEntry;
 
   const handleOpenCharacterSheet = useCallback(
-    (character: PlayerCharacter) => {
+    (character: PlayerCharacter, initialTab: 'overview' | 'spellbook' = 'overview') => {
+      setCharacterSheetInitialTab(initialTab);
       dispatch({ type: "OPEN_CHARACTER_SHEET", payload: character });
     },
     [dispatch],
   );
 
   const handleCloseCharacterSheet = useCallback(() => {
+    setCharacterSheetInitialTab('overview');
     dispatch({ type: "CLOSE_CHARACTER_SHEET" });
   }, [dispatch]);
 
@@ -385,6 +390,7 @@ const App: React.FC = () => {
     currentLocationData={currentLocationData} npcs={npcs} itemsInCurrentLocation={itemsInCurrentLocation} isUIInteractive={isUIInteractive}
     processAction={processAction} handleTileClick={handleTileClick} handleEnter3DAtCell={handleEnter3DAtCell}
     handleOpenGlossary={handleOpenGlossary} handleOpenCharacterSheet={handleOpenCharacterSheet}
+    characterSheetInitialTab={characterSheetInitialTab}
     handleCloseCharacterSheet={handleCloseCharacterSheet} handleClosePartyOverlay={handleClosePartyOverlay} handleDismissMember={handleDismissMember}
   />;
 };

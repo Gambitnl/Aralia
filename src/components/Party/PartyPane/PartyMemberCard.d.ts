@@ -16,6 +16,8 @@ interface PartyMemberCardProps {
     companion?: Companion;
     /** Callback when the "more" button is clicked (opens character sheet) */
     onMoreClick: () => void;
+    /** Opens the selected character's existing spellbook when they have spell entries. */
+    onSpellsClick?: () => void;
     /** Callback when missing choice warning is clicked */
     onMissingChoiceClick: (char: PlayerCharacter, missing: MissingChoice) => void;
     /**

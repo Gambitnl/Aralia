@@ -57,9 +57,37 @@ describe('guest-bed examination action', () => {
       if (unavailable === 'other-business') f.stay.businessId = 'another-inn';
       render(<GuestBedRestAction {...f} index={0}/>);
       expect(screen.queryByRole('button')).toBeNull();
-      expect(screen.getByText(/Ask the innkeeper/)).toBeTruthy();
+      expect(screen.getByText(unavailable === 'used' ? /You already used your paid night/ : /Ask the innkeeper/)).toBeTruthy();
     });
   }
+  it('recalls a used paid night without changing its receipt or invoking recovery', () => {
+    const f = fixture(); f.stay.usedAt = '0351-01-06T15:00:00.000Z';
+    const before = JSON.stringify(f.state);
+    render(<GuestBedRestAction {...f} index={0}/>);
+    expect(screen.getByText(/You already used your paid night/).textContent).toContain('The Howling Shield');
+    expect(screen.queryByRole('button')).toBeNull();
+    expect(f.onUse).not.toHaveBeenCalled();
+    expect(JSON.stringify(f.state)).toBe(before);
+  });
+  for (const mismatch of ['other-bed', 'foreign-world', 'future', 'invalid-date'] as const) {
+    it(`does not recall an unrelated used receipt: ${mismatch}`, () => {
+      const f = fixture(); f.stay.usedAt = '0351-01-06T15:00:00.000Z';
+      if (mismatch === 'other-bed') f.stay.beds[0].roomId = 9;
+      if (mismatch === 'foreign-world') f.stay.worldSeed = 99;
+      if (mismatch === 'future') f.stay.usedAt = '0351-01-07T15:00:00.000Z';
+      if (mismatch === 'invalid-date') f.stay.usedAt = 'invalid';
+      render(<GuestBedRestAction {...f} index={0}/>);
+      expect(screen.queryByText(/You already used/)).toBeNull();
+      expect(screen.queryByRole('button')).toBeNull();
+    });
+  }
+  it('uses the current reservation when an older paid night was used', () => {
+    const f = fixture();
+    f.state.lodgingReservations!.unshift({...f.stay, id: 'old', usedAt: '0351-01-06T15:00:00.000Z'});
+    render(<GuestBedRestAction {...f} index={0}/>);
+    expect(screen.getByRole('button', {name: 'Use reserved guest bed'})).toBeTruthy();
+    expect(screen.queryByText(/You already used/)).toBeNull();
+  });
   it('retains private household beds and non-bed furnishings without a use action', () => {
     const f = fixture();
     f.visit.plan.floors[0].rooms[0].forSlot = 'head,spouse';

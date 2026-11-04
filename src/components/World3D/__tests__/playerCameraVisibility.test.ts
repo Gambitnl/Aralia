@@ -12,6 +12,38 @@ function fixture() {
 }
 
 describe('rendered player camera sightline', () => {
+  it('includes the real instanced scenery that crowded the played tavern doorway', () => {
+    const scene = new THREE.Scene(), props = new THREE.Group(); props.name = 'ground-props';
+    const barrel = new THREE.InstancedMesh(new THREE.CylinderGeometry(.4, .4, 1, 8),
+      new THREE.MeshBasicMaterial({side: THREE.DoubleSide}), 1);
+    barrel.setMatrixAt(0, new THREE.Matrix4().makeTranslation(0, 1.4, 3));
+    barrel.instanceMatrix.needsUpdate = true; props.add(barrel); scene.add(props);
+    const query = createPlayerCameraSightline(() => scene), focus = [0, 1.15, 0] as const, eye = [0, 1.6, 6] as const;
+    const original = Array.from(barrel.instanceMatrix.array);
+    expect(query(focus, eye)).not.toBeNull();
+    const clear = cameraBeforeBuilding(focus, eye, query)!;
+    expect(clear).not.toBeNull(); expect(clear[2]).toBeLessThan(3); expect(query(focus, clear)).toBeNull();
+    props.visible = false; expect(query(focus, eye)).toBeNull();
+    props.visible = true; expect(query(focus, eye)).not.toBeNull();
+    expect(Array.from(barrel.instanceMatrix.array)).toEqual(original);
+  });
+  it('does not turn empty space above an asymmetric tail into a body obstruction', () => {
+    const scene=new THREE.Scene(),player=new THREE.Group(),building=new THREE.Group();
+    player.name='world3d:player';building.name='world3d:site-building';
+    const body=new THREE.Mesh(new THREE.BoxGeometry(.4,1.8,.4),new THREE.MeshBasicMaterial());
+    body.position.y=.9;player.add(body);
+    const tail=new THREE.Mesh(new THREE.BoxGeometry(.1,.2,1.8),new THREE.MeshBasicMaterial());
+    tail.position.set(0,.2,-.9);player.add(tail);
+    // This post sits in the whole figure's box, above its low tail, but is
+    // clear of every drawn body part and of their view toward the street.
+    const post=new THREE.Mesh(new THREE.BoxGeometry(.15,.25,.15),new THREE.MeshBasicMaterial({side:THREE.DoubleSide}));
+    post.position.set(0,.9,-1.6);building.add(post);scene.add(player,building);
+    const query=createPlayerCameraSightline(()=>scene);
+    expect(query([0,1.15,0],[0,2.6,6])).toBeNull();
+    expect(player.position.toArray()).toEqual([0,0,0]);
+    expect(post.position.toArray()).toEqual([0,.9,-1.6]);
+  });
+
   it('keeps exact dense-building clearance without rereading the entire structure on warm rays', () => {
     // Native temple profiling found repeated full triangle scans in this path.
     // Count source reads instead of imposing a machine-dependent time limit.
@@ -30,6 +62,29 @@ describe('rendered player camera sightline', () => {
     reads.mockRestore();
     wall.position.x = 1000;
     expect(query(from, to)).toBeNull();
+  });
+  it('follows actual body transforms on warm frames without rescanning every vertex per camera ray',()=>{
+    const scene=new THREE.Scene(),body=new THREE.Mesh(new THREE.BoxGeometry(.4,1.8,.4),new THREE.MeshBasicMaterial());
+    body.name='world3d:player';body.position.y=.9;scene.add(body);let time=0;
+    const query=createPlayerCameraSightline(()=>scene,()=>time),reads=vi.spyOn(body,'getVertexPosition');
+    expect(query([0,1.15,0],[0,2.6,6])).toBeNull();
+    expect(reads.mock.calls.length).toBeGreaterThan(6);reads.mockClear();
+    body.position.x=.1;
+    for(let i=0;i<2;i++){time+=20;expect(query([.1,1.15,0],[.1,2.6,6])).toBeNull();}
+    // Six surface points use at most two edge vertices each per warm frame.
+    expect(reads.mock.calls.length).toBeLessThanOrEqual(24);
+    reads.mockRestore();
+  });
+  it('does not frame unused position-buffer vertices as visible anatomy',()=>{
+    const scene=new THREE.Scene(),body=new THREE.Mesh(new THREE.BoxGeometry(.4,1.8,.4),new THREE.MeshBasicMaterial());
+    body.name='world3d:player';body.position.y=.9;
+    const original=body.geometry.getAttribute('position'),positions=new Float32Array((original.count+1)*3);
+    positions.set(original.array);positions.set([0,8,-2],original.count*3);
+    body.geometry.setAttribute('position',new THREE.BufferAttribute(positions,3));
+    const building=new THREE.Group();building.name='world3d:site-building';
+    const beam=new THREE.Mesh(new THREE.BoxGeometry(4,.2,.2),new THREE.MeshBasicMaterial({side:THREE.DoubleSide}));
+    beam.position.set(0,7.8,0);building.add(beam);scene.add(body,building);
+    expect(createPlayerCameraSightline(()=>scene)([0,1.15,0],[0,2.6,6])).toBeNull();
   });
   it('does not treat the projected ground shadow as the physical figure width', () => {
     const scene = new THREE.Scene(), building = new THREE.Group(), player = new THREE.Group();

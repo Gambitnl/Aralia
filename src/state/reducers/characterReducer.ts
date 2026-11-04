@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 02/11/2026, 19:20:11
+ * Last Sync: 03/11/2026, 06:28:41
  * Dependents: state/appState.ts, state/reducers/questReducer.ts, systems/worldforge/dungeon/world/dungeonObjectResolution.ts
- * Imports: 24 files
+ * Imports: 26 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -17,6 +17,7 @@
 import { isPreparedMageArmor } from '../../utils/spells/preparedMageArmor';
 import { planRestMeals } from '../../systems/gameplay/restMeals';
 import { removePreviousPreparedConcentration } from '../../utils/spells/outOfCombatCasting';
+import {prepareObjectLightCast} from '../../systems/gameplay/objectLightCasting';
 import {containedWaterDays,consumeProvision} from '../../systems/travel/containedWater';
 import {prepareContainedWaterCast,CONTAINED_WATER_SPELL_ID} from '../../systems/gameplay/containedWaterCasting';
 /**
@@ -659,6 +660,11 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
         }
 
         case 'CAST_SPELL': {
+            // Object choice, binding and recast replacement settle atomically.
+            if(action.payload.outOfCombat&&action.payload.spellId==='light') {
+                const result=prepareObjectLightCast(state,action.payload);
+                return 'error'in result?{}:result.patch;
+            }
             // Container, source, current preparation and slot are settled together.
             // The generic spell path cannot spend a water slot without a choice.
             if (action.payload.outOfCombat&&action.payload.spellId===CONTAINED_WATER_SPELL_ID) {

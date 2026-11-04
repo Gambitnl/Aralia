@@ -41,6 +41,8 @@ import {
     getTotalHitDice,
     getPrimaryHitDieSize
 } from '../../../utils/character/partyStatUtils';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE, BTN_ICON } from '../../../styles/buttonStyles';
 
 // -----------------------------------------------------------------------------
 // Props Interface
@@ -53,6 +55,8 @@ interface PartyMemberCardProps {
     companion?: Companion;
     /** Callback when the "more" button is clicked (opens character sheet) */
     onMoreClick: () => void;
+    /** Opens the selected character's existing spellbook when they have spell entries. */
+    onSpellsClick?: () => void;
     /** Callback when missing choice warning is clicked */
     onMissingChoiceClick: (char: PlayerCharacter, missing: MissingChoice) => void;
     /**
@@ -296,10 +300,15 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
     character,
     companion,
     onMoreClick,
+    onSpellsClick,
     onMissingChoiceClick,
     onDismiss,
     isLeader
 }) => {
+    const relationshipLevel = companion?.relationships.player?.level ?? 'stranger';
+    // The saved "stranger" tier means neutral approval (0–99), not an unmet
+    // person. A kept promise or shared journey must not erase the meeting.
+    const relationshipLabel = relationshipLevel === 'stranger' ? 'neutral' : relationshipLevel;
     // Calculate HP percentage for the health bar
     const healthPercentage = Math.max(0, Math.min(100, (character.hp / character.maxHp) * 100));
 
@@ -329,6 +338,13 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
     // Check if character is a caster (has spell slots)
     const hasSpellSlots = character.spellSlots &&
         Object.values(character.spellSlots).some(slot => slot.max > 0);
+    const spellbook = character.spellbook;
+    const hasSpellEntries = Boolean(
+        spellbook?.cantrips?.length ||
+        spellbook?.preparedSpells?.length ||
+        spellbook?.knownSpells?.length ||
+        character.race.knownSpells?.length
+    );
 
     // The party leader (the `player` id) cannot be dismissed by the player.
     // Only render a Dismiss control for non-leader members when a handler is wired.
@@ -367,7 +383,7 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
                                  e.stopPropagation();
                                  onMissingChoiceClick(character, missingChoices[0]);
                              }}
-                             className="absolute -right-3 -top-3 flex h-11 w-11 items-start justify-end rounded-full text-red-200 transition-transform hover:scale-105"
+                             className={`${BTN_FOCUS_VISIBLE} absolute -right-3 -top-3 flex h-11 w-11 items-start justify-end rounded-full text-red-200 transition-transform hover:scale-105`}
                              aria-label="Fix missing character selection"
                         >
                             {/* The button target is finger-sized, but the red badge stays visually compact on the portrait. */}
@@ -412,8 +428,8 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
                         {companion && (
                             <div className="flex items-center gap-1.5 mt-1 text-[10px]">
                                 <span className="text-gray-400">Relationship:</span>
-                                <span className={`${LEVEL_COLORS[companion.relationships['player']?.level || 'stranger'] || 'text-gray-400'} font-bold uppercase tracking-wider`}>
-                                    {companion.relationships['player']?.level || 'stranger'}
+                                <span className={`${LEVEL_COLORS[relationshipLevel] || 'text-gray-400'} font-bold uppercase tracking-wider`}>
+                                    {relationshipLabel}
                                 </span>
                                 <span className="text-gray-400 font-mono">
                                     ({(companion.relationships['player']?.approval ?? 0) >= 0 ? `+${companion.relationships['player']?.approval ?? 0}` : companion.relationships['player']?.approval})
@@ -566,11 +582,22 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
                     finalAbilityScores={character.finalAbilityScores}
                 />
 
+                {hasSpellEntries && onSpellsClick && (
+                    <button
+                        type="button"
+                        onClick={onSpellsClick}
+                        className="min-h-11 rounded border border-purple-400/40 bg-purple-950/50 px-3 text-xs font-semibold text-purple-100 hover:border-purple-300 hover:bg-purple-900/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-300"
+                        aria-label={`Open ${character.name}'s spells`}
+                    >
+                        Spells
+                    </button>
+                )}
+
                 {/* More button - opens character sheet */}
                 <Tooltip content="View Character Sheet">
                     <button
                         onClick={onMoreClick}
-                        className="flex h-11 w-11 items-center justify-center rounded hover:bg-white/10 text-gray-400 hover:text-amber-400 transition-colors"
+                        className={`${BTN_ICON} h-11 w-11 hover:bg-white/10 text-gray-400 hover:text-amber-400`}
                         aria-label={`More options for ${character.name}`}
                     >
                         <svg

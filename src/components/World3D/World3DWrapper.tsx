@@ -22,9 +22,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/11/2026, 01:29:05
+ * Last Sync: 03/11/2026, 08:18:36
  * Dependents: components/screens/PlayingScreen.tsx
- * Imports: 82 files
+ * Imports: 83 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -134,9 +134,10 @@ import {
 import {captureRenderedGroundPropShape, measureRenderedGroundProps} from './groundPropGeometry';
 import {verifyRenderedPropSupport} from './groundPropSupport';
 import {proposeExteriorPropRepair, exteriorPropClearanceIssues} from '../../systems/worldforge/props/exteriorPropRepair';
-import {exteriorRevisionContext, exteriorRevisionChain, freezeExteriorPropRevision, propDataSignature} from '../../systems/worldforge/props/exteriorPropRevision';
+import {exteriorRevisionContext, exteriorRevisionChain, freezeExteriorPropRevision, freezeInteriorWildPropRetirement, isInteriorWildPropCandidate, propDataSignature} from '../../systems/worldforge/props/exteriorPropRevision';
 import {propSourceId} from '../../systems/worldforge/props/propSchema';
 import {makeGroundWorldProbe, runPropPlacementGate} from '../../systems/worldforge/bridge/propPlacementGate';
+import {guestCirculationRecipeFor} from '../../systems/worldforge/interior/guestCirculation';
 import {bedsideStorageMoves, outsideLayoutRepairEnvelope} from '../../systems/worldforge/interior/buildingLayoutRepair';
 import type { BuildingSourcesByBurg } from '../../systems/worldforge/interior/buildingSource';
 import type { BuildingEventLogsByBurg } from '../../systems/worldforge/interior/blueprintTypes';
@@ -414,7 +415,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
       // Household revisions share the acknowledged outside-pose protocol. A
       // missing town revision waits for its owning source admission first.
       const household=!source.householdRevision&&source.plan.type==='cottage'&&(town.layoutRevision===1||town.layoutRevision===2);
-      if (!household&&(source.circulationRepair || source.plan.type !== 'inn' || source.plan.ensemble?.lotProfile !== 'left-return')) continue;
+      if (!household&&(source.circulationRepair || !guestCirculationRecipeFor(source.plan))) continue;
       const mounted = groundRef.current?.buildings.find(b => b.id === `wf-plot-${source.burgId}-${source.plotId}`);
       if (!mounted?.blueprintSignature) continue;
       const orientation = siteOrientationFromQuad(mounted.cornersM);
@@ -444,10 +445,11 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
         ||(town.layoutRevision!==1&&town.layoutRevision!==2)||!outsideLayoutRepairEnvelope(source.plan,source.site,actual.pose)
         ||Math.hypot(actual.pose.xM-source.site.xM,actual.pose.zM-source.site.zM)>20
         ||(source.plan.type==='cottage'&&!source.householdRevision)
-        ||(source.plan.type==='inn'&&source.plan.ensemble?.lotProfile==='left-return'&&!source.circulationRepair))continue;
+        ||(guestCirculationRecipeFor(source.plan)&&!source.circulationRepair))continue;
       const building=ground.buildings.find(b=>b.id===`wf-plot-${source.burgId}-${source.plotId}`);
       if(!building?.blueprintSignature)continue;
-      for(const original of ground.props.filter(p=>p.defId==='woodpile'&&!p.retainedSourceId)){
+      for(const original of ground.props.filter(p=>!p.retainedSourceId&&(p.defId==='woodpile'
+        ||source.plan.type==='temple'&&['bush','boulder'].includes(p.defId)))){
         const key=`${source.worldSeed}:${source.burgId}:${source.plotId}:${building.blueprintSignature}:${propSourceId(original)}`;
         if(attemptedPropRevisions.current.has(key))continue;
         const dx=original.xM-source.site.xM,dz=original.zM-source.site.zM;
@@ -455,6 +457,19 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
         try{
           const measured=measureRenderedGroundProps(propLayer.root,propLayer.origin,ground.props,{xM:original.xM,zM:original.zM,radiusM:25});
           if(measured.issues.length)continue;
+          if(original.defId!=='woodpile'){
+            if(source.exteriorPropRevisions?.[propSourceId(original)]||!isInteriorWildPropCandidate(source,ground,original))continue;
+            const bound=measured.bounds.find(row=>row.sourceId===propSourceId(original));if(!bound||bound.radiusM>3)continue;
+            // Retire only after every represented body is clear. Source and
+            // actual stationary outside-player checks remain in the reducer.
+            if([...propLayer.bodies.values()].some(other=>other.yM<bound.maxYM&&other.yM+other.heightM>bound.minYM
+              &&Math.hypot(other.xM-original.xM,other.zM-original.zM)<=bound.radiusM+other.radiusM+.25))continue;
+            const receipt=freezeInteriorWildPropRetirement({source,ground,original,measured:bound,
+              admittedAt:new Date(state.gameTime).toISOString(),position:{...position,yM:position.yM},bodyRadiusM:body.radiusM,
+              characterSignature:propDataSignature(state.party[0]),predecessors:exteriorRevisionChain(ground,sources).map(r=>r.receipt.signature)});
+            attemptedPropRevisions.current.add(key);
+            dispatch({type:'ADMIT_EXTERIOR_PROP_REVISION',payload:{receipt,ground}});return;
+          }
           const ctx=exteriorRevisionContext(ground,original,measured.bounds);
           if(!exteriorPropClearanceIssues({x:original.xM,z:original.zM},ctx).includes(building.id))continue;
           attemptedPropRevisions.current.add(key);

@@ -36,6 +36,8 @@ import {
 } from './atlasKeyboardNavigation';
 import { FEET_PER_FMG_PIXEL } from '../../systems/worldforge/adapter/atlasArtifact';
 import { FEET_PER_METER } from '../../systems/worldforge/units';
+// GG-378: the map buttons keep their inline styles and get the shared keyboard focus ring.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 // Load the optional globe only when requested; flat maps keep their existing path.
 const AtlasGlobeView = React.lazy(() => import('./AtlasGlobeView'));
@@ -82,6 +84,10 @@ export interface AtlasSvgViewProps {
   onPickCell?: (info: CellTraits) => void;
   /** Travel mode: when true, hovering a cell previews the fastest route to it. */
   travelActive?: boolean;
+  /** A parent journey review keeps its exact route visible after the card closes. */
+  reviewedDestination?: { cellId: number; name: string } | null;
+  /** Name the callback action honestly when the parent reviews before departure. */
+  travelActionLabel?: string;
   /** Plan the fastest route from the player to a hovered cell id (MapPane supplies). */
   planRoute?: (toCell: number) => RoutePlan | null;
   /** Plan a pre-segmented mixed land/sea route for the hovered cell. */
@@ -383,7 +389,7 @@ const LAYER_CHOICE_MARK_STYLE: React.CSSProperties = {
   background: 'rgba(15,23,42,0.9)',
 };
 
-const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height = 540, marker = null, markers = [], areaFocus = null, pulseToken = null, onPickCell, travelActive = false, planRoute, planMultiModalRoute, ferryFareForRoute, faintPathForRoute, forestNameForRoute, passNameForRoute, transportLabel = 'on foot', provisionRings = [], provisionLineForMinutes, prefsScope, fitMode = 'contain', dungeonSites, preparedModel }) => {
+const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height = 540, marker = null, markers = [], areaFocus = null, pulseToken = null, onPickCell, travelActive = false, reviewedDestination = null, travelActionLabel, planRoute, planMultiModalRoute, ferryFareForRoute, faintPathForRoute, forestNameForRoute, passNameForRoute, transportLabel = 'on foot', provisionRings = [], provisionLineForMinutes, prefsScope, fitMode = 'contain', dungeonSites, preparedModel }) => {
   // MapPane supplies the worker-built model. The fallback preserves every
   // existing caller that owns an already-generated atlas outside that route.
   const model = useMemo(
@@ -967,14 +973,14 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
     const cell = poi.cell ?? findCellAtPoint(atlas, poi.x, poi.y);
     return { name: poi.name ?? poi.type?.replace(/[-_]/g, ' ') ?? 'Point of interest', type: poi.type?.replace(/[-_]/g, ' '), traits: cell >= 0 ? cellTraits(atlas, cell) : null };
   }, [selectedPoi, visible.markers, model.poiMarkers, atlas]);
-  const pinnedDestination = !!(selectedBurgInfo || selectedPoiInfo);
+  const pinnedDestination = !!(selectedBurgInfo || selectedPoiInfo || reviewedDestination);
   const hoveredOutline = hoveredCell != null ? cellPolygonPoints(atlas, hoveredCell) : '';
 
   // Town glyphs can sit in a neighboring coastal cell. Preview the exact town
   // cell that Travel here commits, and keep a selected town pinned while its
   // card is open. Otherwise a shorter hovered route misstates time and supplies.
-  const travelTargetCell = selectedPoiInfo?.traits?.i ?? selectedBurgInfo?.traits?.i ?? hoveredBurgInfo?.traits?.i ?? hoveredCell;
-  const travelTargetName = selectedPoiInfo?.name ?? selectedBurgInfo?.name ?? hoveredBurgInfo?.name;
+  const travelTargetCell = selectedPoiInfo?.traits?.i ?? selectedBurgInfo?.traits?.i ?? reviewedDestination?.cellId ?? hoveredBurgInfo?.traits?.i ?? hoveredCell;
+  const travelTargetName = selectedPoiInfo?.name ?? selectedBurgInfo?.name ?? reviewedDestination?.name ?? hoveredBurgInfo?.name;
   const travelRoute = useMemo<RoutePlan | null>(
     () => (travelActive && planRoute && travelTargetCell != null ? planRoute(travelTargetCell) : null),
     [travelActive, planRoute, travelTargetCell],
@@ -1588,7 +1594,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
         { label: 'Zoom out', text: '−', hint: 'Zoom out (-)', action: () => zoomFromCenter(1 / 1.25), disabled: view.k <= 0.05 },
         { label: 'Fit world', text: 'Fit world', hint: 'Show the whole map (Home)', action: resetView, disabled: false },
       ].map((control) => (
-        <button key={control.label} type="button" aria-label={control.label} title={control.hint}
+        <button className={BTN_FOCUS_VISIBLE} key={control.label} type="button" aria-label={control.label} title={control.hint}
           onClick={control.action} disabled={control.disabled}
           style={{ minWidth: 44, minHeight: 44, padding: '8px 10px', borderRadius: 4, border: '1px solid #475569', background: 'rgba(15,23,42,0.92)', color: '#e2e8f0', fontSize: 12, cursor: control.disabled ? 'default' : 'pointer', opacity: control.disabled ? 0.5 : 1 }}>
           {control.text}
@@ -1597,7 +1603,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
     </div>
     {/* Find Me — zoom to the player's current cell (top-left). */}
     {marker ? (
-      <button
+      <button className={BTN_FOCUS_VISIBLE}
         type="button"
         onClick={centerOnPlayer}
         title="Zoom to your current location"
@@ -1642,7 +1648,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
     ) : null}
     <div role="group" aria-label="Map projection" style={{ position: 'absolute', top: 8, left: 8, display: 'flex', gap: 4 }}>
       {(['map', 'globe'] as const).map(mode => (
-        <button key={mode} type="button" aria-pressed={projection === mode}
+        <button className={BTN_FOCUS_VISIBLE} key={mode} type="button" aria-pressed={projection === mode}
           onClick={() => { setProjection(mode); setHoveredCell(null); setHoveredBurg(null); setSelectedBurg(null); touchArmedCellRef.current = null; }}
           style={{ minHeight: 44, padding: '8px 14px', borderRadius: 4, border: '1px solid #64748b', background: projection === mode ? '#334e68' : '#0f172a', color: '#f1f5f9', cursor: 'pointer', fontSize: 12 }}>
           {mode === 'map' ? 'Map' : 'Globe'}
@@ -1650,7 +1656,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
       ))}
     </div>
     <div ref={layersMenuRef} style={{ position: 'absolute', top: 8, right: 8, fontFamily: 'sans-serif' }}>
-      <button
+      <button className={BTN_FOCUS_VISIBLE}
         type="button"
         onClick={() => {
           if (!layersOpen) updateLayersViewportMaxHeight();
@@ -1770,7 +1776,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
             </select>
           </label>
 
-          <button
+          <button className={BTN_FOCUS_VISIBLE}
             type="button"
             onClick={resetLayers}
             style={{ marginTop: 8, width: '100%', minHeight: 44, background: '#1e293b', color: '#e2e8f0', border: '1px solid #475569', borderRadius: 4, padding: '8px 10px', fontSize: 12, cursor: 'pointer' }}
@@ -1860,16 +1866,16 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
         style={{ ...selectedTownCardStyle, width: compactTownCard ? undefined : 320, maxWidth: 'calc(100% - 36px)', fontSize: 14, lineHeight: 1.5, maxHeight: Math.max(180, height - 32), overflowY: 'auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <strong>{selectedPoiInfo.name}</strong>
-          <button type="button" aria-label="Close point of interest details" onClick={() => setSelectedPoi(null)}
+          <button className={BTN_FOCUS_VISIBLE} type="button" aria-label="Close point of interest details" onClick={() => setSelectedPoi(null)}
             style={{ minWidth: 44, minHeight: 44, background: 'transparent', border: 0, color: '#f5ecd8', cursor: 'pointer', fontSize: 22 }}>×</button>
         </div>
         {selectedPoiInfo.type ? <div>Map marker: {selectedPoiInfo.type}</div> : null}
         <p>Approximate map area. The marker does not confirm an entrance, occupants or a safe approach. Explore on the ground to learn more.</p>
         {travelReadout}
-        {onPickCell && selectedPoiInfo.traits ? <button type="button" disabled={travelActive && !displayedRoute}
+        {onPickCell && selectedPoiInfo.traits ? <button className={BTN_FOCUS_VISIBLE} type="button" disabled={travelActive && !displayedRoute}
           onClick={() => { onPickCell(selectedPoiInfo.traits!); setSelectedPoi(null); }}
           style={{ marginTop: 8, width: '100%', minHeight: 44, padding: '8px 12px', background: '#b3892f', border: 0, borderRadius: 4, color: '#1c1409', fontWeight: 700, fontSize: 14, opacity: travelActive && !displayedRoute ? 0.6 : 1, cursor: travelActive && !displayedRoute ? 'not-allowed' : 'pointer' }}>
-          {travelActive ? 'Travel to this area' : 'Choose this area'}
+          {travelActive ? (travelActionLabel ?? 'Travel to this area') : 'Choose this area'}
         </button> : null}
       </section>
     ) : null}
@@ -1884,7 +1890,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
           <strong style={{ fontSize: 14, color: '#fbf3e0' }}>
             {selectedBurgInfo.name ?? selectedBurgInfo.traits?.burg?.name ?? 'Settlement'}
           </strong>
-          <button
+          <button className={BTN_FOCUS_VISIBLE}
             type="button"
             onClick={() => setSelectedBurg(null)}
             aria-label="Close town details"
@@ -1897,7 +1903,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
         {renderTownInfo(selectedBurgInfo, 'full')}
         {travelReadout}
         {onPickCell && selectedBurgInfo.traits ? (
-          <button
+          <button className={BTN_FOCUS_VISIBLE}
             type="button"
             onClick={() => {
               if (selectedBurgInfo.traits) onPickCell(selectedBurgInfo.traits);
@@ -1908,7 +1914,7 @@ const AtlasSvgView: React.FC<AtlasSvgViewProps> = ({ atlas, width = 960, height 
               background: '#b3892f', border: 'none', borderRadius: 4,
               color: '#1c1409', fontWeight: 700, fontSize: 12,
             }}
-          >{travelActive ? 'Travel here →' : 'Go here →'}</button>
+          >{travelActive ? (travelActionLabel ?? 'Travel here →') : 'Go here →'}</button>
         ) : null}
       </div>
     ) : null}

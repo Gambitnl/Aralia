@@ -24,6 +24,22 @@
  * model that answered is recorded for the AI settings pane.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 03/11/2026, 08:46:15
+ * Dependents: services/CompanionGenerator.ts, services/ollama/client.ts
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type {
   OllamaGenerateResponse,
   OllamaChatResponse,
@@ -130,6 +146,7 @@ function buildGroqContext(): { ctx: GroqCallContext; missing?: string } {
  * local path, so the viewer never misses a Groq call.
  */
 export async function routeGenerateForTask(options: {
+  signal?: AbortSignal;
   taskType: TaskType;
   prompt: string;
   format?: ResponseFormat;

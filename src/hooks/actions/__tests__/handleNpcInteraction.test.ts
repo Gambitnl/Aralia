@@ -728,6 +728,11 @@ describe('companion first meeting without a model', () => {
       await vi.advanceTimersByTimeAsync(8000);
       const dispatch = await pending;
       const calls = dispatch.mock.calls.length;
+      // The UI already has its authored introduction; release actual provider
+      // work before the player submits another line, not merely its late text.
+      const signal = vi.mocked(OllamaService.continueConversation).mock.calls[0][3]?.signal;
+      expect(signal).toBeInstanceOf(AbortSignal);
+      expect(signal?.aborted).toBe(true);
       finish({ success: true, data: { speakerId: 'elara_vance', text: 'Late greeting' } } as Awaited<ReturnType<typeof OllamaService.continueConversation>>);
       await Promise.resolve();
       expect(dispatch.mock.calls).toHaveLength(calls);

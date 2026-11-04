@@ -1,10 +1,52 @@
 # NPCs / Companions
 
+## Exact player conversation transcripts
+
+Verified: 2026-11-03.
+
+The existing archivedBanters store retains delivered player-conversation lines. useConversation archives exact attributed words before End summarization. Summary failure and short exchanges do not erase those words; duplicate and stale closes preserve the earlier archive and replacement conversation. Exact transcripts and generated semantic memories remain separate. No new approval, promise, consent or private lore follows from an archive.
+
+conversationTranscript carries optional known-world, participant and capture provenance. Prompt recall is bounded to two recent conversations and four lines in the same known world. Every current participant must have witnessed the historical exchange; a subset of its witnesses is allowed, while an added outsider excludes it. Legacy entries with unknown provenance and conflicting versions remain stored and displayable without entering prompt recall. Quoted words, narrator events and unanswered questions are not established facts or renewed agreement.
+
+The existing Party Chat Memories tab displays the archive. One actual cold startup and normal Continue Journey preserve the original six-line Elara exchange in that view. The original question is visibly attributed to You; all six native accessibility lines retain order and speaker labels. New generated recall, native End-summary behavior and another save/reload cycle remain open in the owning gameplay tracker. The current UI uses a real-world timestamp and raw location identifier; world chronology and useful place naming remain a presentation gap.
+
+See [save and load](save-load.md#loaded-player-conversations) for the load boundary and [the current companion checkpoint](../../projects/gameplay-flow/ISSUE_HANDOFFS.md) for evidence and limits.
+
+## Delivered local directions participate in conversation recall
+
+Verified: 2026-11-03,80 affected tests/four scoped paths0, actual Cora Talk/directions/recall, rendered inspection and38-group reload qualification.
+
+NpcDirectionsDialoguePublication uses the existing interaction history with global_directions/local-directions provenance. processTopicSelection stamps the checked answer and full current speaker key; publishSpokenNpcReply repeats live session/topic/speaker and resolveNpcLocalDirections checks before publishing exact words. The existing lastSpokenDialogue pointer makes repeated directions the latest real delivery while preserving the first record/date. Generic recall includes them. Old journal notes/display-only answers and failed generation never become speech; authored knowledge overrides remain authoritative.
+
+Actual Cora replay corrects last-discussion recall from an older family reply to the just-heard directions. One source note remains, her three prior records remain exact and one direction record is added. Same-life fullreload recall preserves history4/one meeting/48accounts36unread and all other NPC memories. Saved founding biographies remain unchanged; current age/office/family use the already existing life readers. A separate failed generated rumor request grants no knowledge and remains unresolved. See [the played travel evidence](../../projects/gameplay-flow/TRACKER.md#the-dedication-reaches-a-real-priest-and-remembered-directions).
+
+## Street workers, frontage waiting and supported courtesy steps
+
+Verified: 2026-11-03.
+
+Roster employment can name more workers than a building's interior packet can place. createResidentStreetSampler keeps a source worker without a current indoor station on the public frontage, using workplaceWaitingSpotFor and the existing errand standing calculation. The keeper's workPlotId, employment records, schedules, household keys and names stay with their original owners. A fallback waiting target does not prove indoor attendance or create room capacity. Full physical staff-room integration remains open.
+
+Street source targets use groundWalkHeight so a real floor slab, rather than terrain alone, supports their feet. This does not change accepted player coordinates. Later separation and movement still require the ordinary ground/water, support, door, headroom and measured-body checks. It supplies neither a private-room permission nor a passage through a tall resident.
+
+yieldActorStep keeps its0.08m default. A street caller with a geometry-admitted step may opt into at most0.22m, matching the existing walking allowance. The route search remains within that height of its starting floor. Indoor courtesy retains0.08m and its own source-slab boundary. Invalid allowances, unavailable geometry and protected bodies still refuse movement. This avoids trapping a child at the inn's actual0.12192m doorstep without shrinking the body or granting a storey change.
+
+Native Fianna play reaches Oroten's plot65 common room, meets its actual keeper, buys the listed supplies and pays for an unused upper guest bed. The six owned source/test paths have89 passing affected cases and clean scoped types. The exact36-group save/reload, costs, discovered hours and remaining camera/room-access limits live in gameplay-flow/TRACKER.md, A real Oroten inn arrival pays for provisions and an unused guest bed. This is not acceptance of all NPC routines, private circulation or interior rendering.
+
+## Actual return and source continuity
+
+Verified: 2026-11-03. Native browser reader4 reproduces all298 Sedanes founders;21 later births explain319 saved people. The earlier return mixed those people with layout2 ground and remains protected, without safe load admission. The normal map-travel path now qualifies destination identity before costs and carries source metadata through the move. A separate exact copy of the earned temple checkpoint replays the9h9m return normally on layout4/terrain2; both actual Constitution saves pass. Named23:16:59/fullreload23:19:08 preserves32 checked groups, distinct feet, memories, belongings and goals; normal Talk/Recall remembers the return and unfinished restoration. All40 primary records/33 original archives remain exact. The complete companion arc remains open. See gameplay-flow/TRACKER.md, Recorded destination sources survive the actual return and reload.
+
+## Return-water consent
+
+Verified: 2026-11-03. At the actual temple, a joined Elara can discuss the return to her remembered source settlement. The shared site/contact selector requires an actual arrived source leg and retained arrival memory. Trust, known home and real private water determine whether she offers a bounded extra-water share while reserving her own half-day. Offer and player acceptance are separate remembered choices. The water stays in her bag. The existing travel precheck and settlement use the intended destination to authorize only that return, then mark permission used; default private surplus is protected. Entry permission, approval, quests, personal identity and abilities remain separate.
+
+Actual offered/accepted/recall/refusal and32-group/33-archive full reload are qualified in gameplay-flow/TRACKER.md, Return-water consent without moving belongings. Actual return spending and skill use remain next, not accepted by fixtures.
+
 ## Current owned-supply preparation
 
 Verified: 2026-10-31 in the native2560x1249 game. After normally opening his owned Priest's Pack, Bram uses his already-prepared Create or Destroy Water once to fill its existing half-gallon skin. The real cost is one level-one slot; one dated log entry is added. The skin contributes only0.25 water-days. Elara keeps her own1/1 supplies, memories, approval15, accepted travel terms and declined entrance decision. Mechanics live in items-trade-inventory.md; the detailed receipt lives in gameplay-flow/TRACKER.md, Actual water preparation and persistent refusal.
 
-Full document reload and explicit Load retain all32 checked groups including the cast log and32 older named saves exactly. The ordinary temple doorway still refuses entry after this partial preparation; all32 groups remain unchanged through that refusal. No visit, extra spell cost, private supply transfer or automatic agreement is awarded. This is Bram's preparation, not proof of Elara's ability use or a completed companion story.
+Full document reload and explicit Load retain all32 checked groups including the cast log and32 older named saves exactly. The ordinary temple doorway still refuses entry after this partial preparation; all32 groups remain unchanged through that refusal. No visit, extra spell cost, private supply transfer or automatic agreement is awarded. This is Bram's preparation, not proof of Elara's ability use or a completed companion story. Later current-autosave Continue retains32/32 groups and all33 named archives. Native desktop inspection verifies local spellbook SVG icons and all nine inventory rows, with the full skin and spent slot retained.
 
 Next discuss a bounded resupply/return plan to the known source town and use Elara's actual skills. Existing pooled travel supplies must not stand in for permission to spend her private goods. Keep the restoration and entrance terms, any dissent and the earned route consequences. The freeform preparation question timed out before sending; roster stranger wording, legacy images, authored appearance/held-gear presentation and historical28/31 drift remain unresolved. Restoration, combat, meaningful disagreement, return consequences and separation/reunion remain open.
 
@@ -1167,6 +1209,41 @@ Native desktop discussion, repeated recall and full document reload are verified
 Verified: 2026-10-31. Native Gwyn reaches Grangengen inn plot 0 through the real open doorway. Its firsthand-public-visit record retains the keeper's original off-duty status. One normal short rest advances past 08:00 with its daily count and cooldown; current keeper/trade availability then follows the source shift. Nessa's working packet npc_burg_40_plot_0 retains household member b83:head, life 189 and birth day -17154. Her sourced introduction states innkeeper, ownership of The Golden Barrel and town office of priest. Her family statement names spouse Katla Fairbourne. An office grants no demonstrated spellcasting.
 
 Her seven-field speaker identity and original four dialogue records survive a normal full reload with twenty-one exact PRESENT groups. Explicit family recall quotes her earlier words and direct recognition retains one first-meeting fact, disposition 50 and no duplicate dialogue record. The generated bandit exchange remains attributed hearsay without an inspected encounter binding. The public-history response instead binds actual library plot 56 and publishes one directions note. Grangengen currently has no canonical local dungeon legends; none is fabricated. The library is referred to, not visited. The owning [native receipt](../../projects/gameplay-flow/TRACKER.md#stowed-gear-clears-a-real-inn-doorway) preserves source identity, clocks and limits. Player render authority lives in [Entity Studio](entity-studio.md#empty-player-equipment-is-an-explicit-render-choice); native clearance messages live in [Town Map](town-map.md#vertical-clearance-notices).
+
+## A companion arrives in the town that still owns its people
+
+prepareHistoricalTownArrival shares the existing historical-town source comparison with load admission. It checks the destination before the normal travel hook spends anything. Its source receipt adds no party member, reputation, quest completion, private supply transfer or preselected arrival position. MOVE_PLAYER records the admitted layout/terrain before the destination ground mounts; ordinary placement then records each companion's actual arrived leg and memory. The saved town life, family ties, belongings, public work, private goals, consent and refusal remain authoritative.
+
+A historical saved body keeps stricter support checks. A return that already mixed old town people with different streets is preserved as evidence, not silently teleported or rewritten. Exact-copy replay initialization is separate from the subsequent native travel and full-reload proof; it is not new-world generation or evidence that the original mixed return became loadable. Actual companion class skills, combat, restoration, meaningful disagreement/consequences and dismissal/reunion remain requirements of the full arc.
+
+
+## Optional greetings and failed reply ownership
+
+Verified: 2026-11-03 through source, focused checks and native greeting/request observation; native failure-alert/turn-release, normal End, grounded personal-plan recall and34-group full reload.
+
+An optional generated greeting has an eight-second window before the source-grounded authored greeting opens. Its owner now cancels the generation fetch through the existing conversation facade, task router and chosen provider. Cancelling during model discovery prevents a later generation from starting. Local and cloud request timeouts remain distinct from cancellation, and model choices remain unchanged. Native Talk records an aborted browser request and the normal authored return greeting. Backend model-work release is not independently proved.
+
+A talk intent completing successfully delivers the player line once, then the intent indicator ends. A failed companion reply yields the player turn and shows a separate alert; it adds no NPC words, trust or consent. The delivered player words stay in the transcript. A late result or failure from a different conversation cannot unlock or write into its replacement. This extends the existing pending/turn reducer rather than manufacturing an NPC reply to recover control. The native lockup that motivated it is archived. Repaired actual replay shows the failure alert, enabled controls and normal End; the pending-stage render no longer claims intent reading after classification. The companion Tracker retains the separate generated-response failure and full-arc gaps.
+
+
+## Guarded following and a paid companion rest
+
+Verified: 2026-11-03 through source,27 focused cases/four scoped type paths, actual desktop following/stairs/paid rest and34-group full reload.
+
+PartyGroundActors accumulates leader displacement before clearing a blocked route and retries stationary obstructions at0.75-second intervals. A retry supplies the existing saved trail to PlayerAvatar's ground/body solver; it never assigns feet or grants passage. Only reported movement clears the blocked notice. Pausing, normal following distance, trail loss, physical collisions and consent remain unchanged. Native replay includes an actual body block, leader clearance, continued follower movement while the leader stands still, both stair flights and entry into the booked room.
+
+PartyMemberCard presents the existing stranger tier (neutral approval0–99) as Neutral. Saved relationship level, approval, memories, thresholds and consent are unchanged. Native post-reload roster reads Neutral (+15).
+
+A reserved guest bed opens the existing long-rest review at the player's actual supported bed reach. Actual played Room1 rest consumes the paid night once, restores eligible slots and uses each companion's own available provisions separately from shared supplies. It does not renew exploration consent, transfer private goods or complete restoration work. Full reload retains the used booking, depleted private meal, prior refusal and34 checked groups exactly. Cold revisit refuses reuse and now explains the matching used paid night without granting another rest; an active new reservation retains precedence. Existing cross-guest-room circulation and obstructed interior camera remain product gaps; successful passage does not approve either design. See [the played receipt](../../projects/gameplay-flow/TRACKER.md#a-paid-room-supports-a-real-companion-rest).
+
+
+## Replenishment after the first promise
+
+Verified: 2026-11-03 through37focused cases/seven scoped type paths, native request/handover/cold revisit and34-group full reload.
+
+The fulfilled Road Preparations chapter remains fulfilled after consumption. Asking about preparations can reveal a new shortage grounded in the companion's actual personal inventory and active public restoration goal. A resupply-requested memory records her optional request. Only an unresolved request exposes the deliberate resupply choice. The existing atomic two-ration/two-water-day transfer preserves each stack's attributes, moves goods to her inventory and appends supplies-replenished; it grants no approval, quest reward, recruitment or entrance consent. Repeated asking cannot duplicate an open request, and already adequate personal stocks prevent another handover. Presence, remembered meeting, current-world chapter, player turn and both real resources are rechecked at commit. Her original promise and earlier refusals survive.
+
+Actual played replenishment conserves shared and personal goods and both memories through full reload. Cold recall shows retained personal stock and no duplicate gift; its authored sentence still recalls the first promise rather than explicitly narrating the latest gift. Native dismissal/reunion and deeper restoration consequences remain unqualified. The affected reunion fixture separately caught a missing shared darkvision import; its bounded repair retains existing assembly intent and grants no new native recruitment proof. See [the played receipt](../../projects/gameplay-flow/TRACKER.md#replenish-personal-supplies-without-reopening-a-kept-promise).
 
 ## Town residents react to the player and ask for help
 

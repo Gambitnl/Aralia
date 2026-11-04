@@ -110,12 +110,8 @@ describe('useAutoSave checkpoint tiers', () => {
     expect(saveGameMock).not.toHaveBeenCalled();
   });
 
-  it('keeps writing the rolling auto-save while the world clock ticks every second', async () => {
-    // The in-game clock dispatches a new state about once a second during
-    // exploration. Each new state re-arms the auto-save debounce, so a purely
-    // debounced timer never gets its quiet moment and the rolling save starves:
-    // 60+ seconds of real play produced zero writes, and only the reload-time
-    // emergency save persisted anything (resume-journey GAPS #4).
+  it('keeps a stable ten-second rolling cadence while the world clock ticks every second', async () => {
+    // Frequent clock state replacement should not restart the persistence timer.
     let state = playingState();
     const { rerender } = renderHook(() => useAutoSave(state, true));
 
@@ -127,12 +123,57 @@ describe('useAutoSave checkpoint tiers', () => {
       });
     }
 
-    // AUTO_SAVE_THROTTLE_MS is 10s, so 30 seconds of ticking owes at least two
-    // rolling writes on top of the immediate first one.
+    // The first checkpoint is immediate, followed by one write per ten seconds.
     const rollingWrites = saveGameMock.mock.calls.filter(
       ([, slotId]) => slotId === SaveLoadService.AUTO_SAVE_SLOT_KEY,
     );
-    expect(rollingWrites.length).toBeGreaterThanOrEqual(2);
+    expect(rollingWrites).toHaveLength(4);
+    expect(rollingWrites.map(([, , , options]) => options)).toEqual([
+      { displayName: 'Auto-Save', isAutoSave: true },
+      { displayName: 'Auto-Save', isAutoSave: true },
+      { displayName: 'Auto-Save', isAutoSave: true },
+      { displayName: 'Auto-Save', isAutoSave: true },
+    ]);
+    expect(rollingWrites.at(-1)?.[0]).toEqual(expect.objectContaining({ gameTime: new Date(30_000) }));
+  });
+
+  it('preserves the one-shot pre-combat checkpoint without rolling writes during combat', async () => {
+    let finishFirstSave!: (result: Awaited<ReturnType<typeof SaveLoadService.saveGame>>) => void;
+    saveGameMock.mockImplementationOnce(() => new Promise((resolve) => {
+      finishFirstSave = resolve;
+    }));
+
+    let state = playingState();
+    const { rerender } = renderHook(() => useAutoSave(state, true));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    state = { ...state, phase: GamePhase.COMBAT };
+    rerender();
+
+    expect(saveGameMock).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      finishFirstSave({ success: true, message: 'saved', diceSaveCounter: 0 });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(saveGameMock).toHaveBeenCalledWith(
+      expect.objectContaining({ phase: GamePhase.COMBAT }),
+      SaveLoadService.AUTO_SAVE_SLOT_KEY,
+      undefined,
+      { displayName: 'Pre-Combat Checkpoint', isAutoSave: true },
+    );
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000);
+    });
+
+    expect(saveGameMock.mock.calls.filter(([, slotId]) => slotId === SaveLoadService.AUTO_SAVE_SLOT_KEY))
+      .toHaveLength(2);
+    expect(saveGameMock.mock.calls.filter(([, slotId]) => slotId !== SaveLoadService.AUTO_SAVE_SLOT_KEY))
+      .toHaveLength(0);
   });
 
   it('stops checkpoint timers when the player leaves exploration', async () => {

@@ -216,6 +216,7 @@ export function useGameInitialization({
   // Reads saved state from local storage and either restores the full game
   // or falls back to the main menu with an error notification.
   const handleLoadGameFlow = useCallback(async (slotId?: string) => {
+    dispatch({ type: 'SET_ERROR', payload: null });
     // Show loading overlay while the save file is read and parsed.
     dispatch({ type: 'SET_LOADING', payload: { isLoading: true } });
 
@@ -240,9 +241,13 @@ export function useGameInitialization({
       dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'success', message: result.message || "Game loaded successfully." } });
     } else {
       // Load failed: notify the player and return them to the main menu.
+      // A refused source check is actionable after a short toast disappears.
+      // Keep its exact reason in the existing dismissible global error banner.
       addMessage(result.message || "Failed to load game.", "system");
       dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'error', message: result.message || "Failed to load game." } });
       dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU });
+      // Phase transitions clear old errors, so publish this refusal afterward.
+      dispatch({ type: 'SET_ERROR', payload: result.message || 'Failed to load game.' });
     }
 
     // Clear the loading overlay.

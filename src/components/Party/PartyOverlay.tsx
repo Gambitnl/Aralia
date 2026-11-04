@@ -33,6 +33,8 @@ import { WINDOW_KEYS } from '../../styles/uiIds';
 import PartyPane from './PartyPane';
 import Tooltip from '../ui/Tooltip';
 import { GlossaryIcon } from '../Glossary/IconRegistry';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE } from '../../styles/buttonStyles';
 
 // -----------------------------------------------------------------------------
 // Constants
@@ -55,7 +57,7 @@ interface PartyOverlayProps {
     /** Optional record of companions in state */
     companions?: Record<string, Companion>;
     /** Callback when viewing a character's full sheet */
-    onViewCharacterSheet: (character: PlayerCharacter) => void;
+    onViewCharacterSheet: (character: PlayerCharacter, initialTab?: 'overview' | 'spellbook') => void;
     /** Callback when fixing a missing character choice */
     onFixMissingChoice: (character: PlayerCharacter, missing: MissingChoice) => void;
     /** Callback to initiate a long rest */
@@ -124,7 +126,7 @@ const FooterButton: React.FC<FooterButtonProps> = ({
             type="button"
             onClick={onClick}
             disabled={disabled}
-            className={`${baseClasses} ${variantClasses} ${disabledClasses}`}
+            className={`${BTN_FOCUS_VISIBLE} ${baseClasses} ${variantClasses} ${disabledClasses}`}
         >
             <GlossaryIcon name={iconName} className="w-5 h-5" />
             <span>{label}</span>

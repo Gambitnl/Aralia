@@ -48,6 +48,7 @@ import {
   buildHitPointDicePools,
   applyRacialSpellGrantsByLevel,
   getRacialSpellAbilityFromSelection,
+  calculateCharacterDarkvisionFromRace,
 } from '../../utils/character';
 
 // --- Helper Functions for Character Assembly ---
@@ -388,17 +389,12 @@ function calculateCharacterSpeed(race: Race, lineageId?: string): number {
   }
   return speed;
 }
-function calculateCharacterDarkvision(race: Race, lineageId?: string): number {
-  let range = 0;
-  const dvTrait = race.traits.find(t => t.toLowerCase().includes('darkvision'));
-  if (dvTrait) {
-    const match = dvTrait.match(/(\d+)/);
-    if (match) range = parseInt(match[1], 10);
-  }
-  if ((race.id === 'elf' && lineageId === 'drow') || race.id === 'duergar' || race.id === 'dwarf' || race.id === 'orc') {
-    range = Math.max(range, 120);
-  }
-  return range;
+// GG-260: the builder used to keep a private copy of the darkvision rule. It
+// now reads the one shared rule in utils/character/stats.ts, which quick
+// characters (quickCharacterGenerator) also use, so the two cannot drift.
+// The private speed copy above is unchanged here.
+function calculateCharacterDarkvision(race: Race, racialSelections: CharacterAssemblyState['racialSelections']): number {
+  return calculateCharacterDarkvisionFromRace(race, racialSelections);
 }
 
 function assembleCastingProperties(state: CharacterAssemblyState): {
@@ -604,7 +600,7 @@ export function assemblePlayerCharacter(currentState: CharacterAssemblyState, cu
       hitPointDice: undefined,
       armorClass: 10 + getAbilityModifierValue(finalAbilityScores.Dexterity),
       speed: calculateCharacterSpeed(selectedRace, racialSelections['elf']?.choiceId as 'drow' | 'high_elf' | 'wood_elf' | undefined),
-      darkvisionRange: calculateCharacterDarkvision(selectedRace, racialSelections['elf']?.choiceId as 'drow' | 'high_elf' | 'wood_elf' | undefined),
+      darkvisionRange: calculateCharacterDarkvision(selectedRace, racialSelections),
       transportMode: 'foot',
       selectedWeaponMasteries: currentState.selectedWeaponMasteries || [],
       feats: assembleSelectedFeats(currentState),

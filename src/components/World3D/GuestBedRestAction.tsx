@@ -35,7 +35,19 @@ export function GuestBedRestAction({state, visit, businessId, level, index, onUs
   const bed = guestBedsForVisit(visit).find(bed => bed.level === level && bed.index === index);
   if (!bed) return null;
   const stay = activeLodgingReservation(state, businessId);
-  if (!stay) return <p>Ask the innkeeper to reserve a guest bed before sleeping here.</p>;
+  if (!stay) {
+    // A used night is a receipt, not renewed permission. Explain the exact
+    // booked bed without offering another rest or borrowing another world's stay.
+    const now = new Date(state.gameTime).getTime();
+    const used = state.lodgingReservations?.filter(previous => previous.businessId === businessId
+      && previous.worldSeed === state.worldSeed && previous.usedAt
+      && Date.parse(previous.usedAt) <= now
+      && previous.beds.some(reserved => reserved.level === bed.level
+        && reserved.index === bed.index && reserved.roomId === bed.roomId))
+      .sort((a, b) => Date.parse(b.usedAt!) - Date.parse(a.usedAt!))[0];
+    if (used) return <p>You already used your paid night at {used.businessName}. Ask the innkeeper for a new reservation if you need another rest.</p>;
+    return <p>Ask the innkeeper to reserve a guest bed before sleeping here.</p>;
+  }
   const included = stay.beds.some(reserved => reserved.level === bed.level
     && reserved.index === bed.index && reserved.roomId === bed.roomId);
   if (!included) {

@@ -15,9 +15,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/10/2026, 09:00:18
+ * Last Sync: 03/11/2026, 06:54:54
  * Dependents: components/CharacterSheet/Overview/index.ts
- * Imports: 16 files
+ * Imports: 17 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -26,6 +26,7 @@
  */
 // @dependencies-end
 
+import {objectLightDetails} from '../../../systems/gameplay/objectLightCasting';
 import React, { useMemo, useState } from 'react';
 import { getPartyFundsGp } from '../../../systems/economy/partyFunds';
 import { gpToCoins, isCurrencyItemId } from '../../../utils/character/coinPurseUtils';
@@ -44,6 +45,8 @@ import Tooltip from '../../ui/Tooltip';
 import { ItemComparisonPanel } from './ItemComparisonPanel';
 import {activeCarriedTorches, torchUseError} from '../../../systems/underdark/carriedItemLight';
 import { CoinBadge } from '../../ui/CoinPurseDisplay';
+// GG-378: shared button style and control roles.
+import { BTN_FOCUS_VISIBLE, BTN_ICON } from '../../../styles/buttonStyles';
 
 /**
  * This file displays a list of the items carried by a character, including bags and currency.
@@ -245,6 +248,10 @@ const ITEM_TYPE_FILTERS: { id: ItemTypeFilter; label: string; icon: string; type
 
 const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, character, onAction, filterBySlot, onClearFilter }) => {
   const gameContext = useOptionalGameState();
+  // The normal sheet passes the party's actual shared inventory. Keep personal
+  // previews honest too: do not rename an unrelated supplied inventory as shared.
+  const sharedInventory=Boolean(gameContext&&gameContext.state.inventory===inventory);
+  const rootLabel=sharedInventory?'Party supplies':'Backpack';
   const [mealIndex, setMealIndex] = useState<number | null>(null);
   const [torchFeedback, setTorchFeedback] = useState<string | null>(null);
   /**
@@ -484,7 +491,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
     if (!bucket) return null;
 
     const containerItem = bucket.containerItem as (InventoryEntry & { instanceId: string }) | undefined;
-    const containerName = containerItem ? containerItem.name : (bucketId === INFORMATION_BUCKET_ID ? 'Information' : 'Backpack');
+    const containerName = containerItem ? containerItem.name : (bucketId === INFORMATION_BUCKET_ID ? 'Information' : rootLabel);
     const isCollapsed = collapsedContainers[bucketId];
     const availableCapacitySlots = containerItem?.capacitySlots;
     const availableCapacityWeight = containerItem?.capacityWeight;
@@ -499,7 +506,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
           <div className="flex items-center gap-2">
             {containerItem ? (
               <button
-                className="flex min-h-11 min-w-11 items-center justify-center rounded text-amber-400 transition-colors hover:text-amber-200 focus:ring-1 focus:ring-amber-400/50"
+                className={`${BTN_ICON} min-h-11 min-w-11 text-amber-400 hover:text-amber-200`}
                 onClick={() => setCollapsedContainers(prev => ({ ...prev, [bucketId]: !prev[bucketId] }))}
                 aria-label={isCollapsed ? `Expand ${containerName}` : `Collapse ${containerName}`}
               >
@@ -598,6 +605,8 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
               // Container controls must not squeeze names. The pane-width query
               // below puts them beside the name only when there is actual room.
               const hasContainerControls = containerEntries.length > 0;
+              const objectLight=gameContext?objectLightDetails(gameContext.state,child):null;
+              const equipLabel=`Equip ${child.name}${objectLight?` — Light by ${objectLight.casterName}`:''}`;
               const torchErrorId = torchError ? 'torch-eligibility-' + child.sourceIndex : undefined;
               const useVerb = child.id === 'torch' ? 'Light' : child.id === 'water-day' ? 'Drink' : isFood ? 'Eat' : 'Use';
 
@@ -663,6 +672,9 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                               </span>
                             )}
                           </div>
+                          {objectLight&&<span className="whitespace-normal text-xs text-amber-200" data-testid="inventory-object-light">
+                            Light by {objectLight.casterName} · {objectLight.remainingMinutes} min left · {objectLight.exposed?'shining':'concealed in pack'}
+                          </span>}
                           {child.id === 'torch' && <span className="text-xs text-amber-200">Unlit · {Math.ceil(child.lightFuelMinutes ?? 60)} min fuel · 20 ft bright + 20 ft dim</span>}
                           {torchError && <span id={torchErrorId} className="text-xs text-amber-100">{torchError}</span>}
                           {child.perishable && (
@@ -681,7 +693,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                           onChange={e => handleMoveToContainer(child, e.target.value)}
                           aria-label={`Move ${child.name} to container`}
                         >
-                          <option value={ROOT_CONTAINER_ID}>Backpack</option>
+                          <option value={ROOT_CONTAINER_ID}>{rootLabel}</option>
                           {containerEntries.map(container => (
                             <option key={container.instanceId} value={container.id} disabled={container.id === child.id}>
                               {container.name}
@@ -702,7 +714,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                         }}
                           disabled={isExpired || Boolean(torchError)}
                           aria-describedby={torchErrorId}
-                          className="min-h-11 rounded bg-green-700 px-3 py-2 text-xs text-white shadow-sm transition-colors hover:bg-green-600 disabled:bg-gray-600"
+                          className={`${BTN_FOCUS_VISIBLE} min-h-11 rounded bg-green-700 px-3 py-2 text-xs text-white shadow-sm transition-colors hover:bg-green-600 disabled:bg-gray-600`}
                           aria-label={`${useVerb} ${child.name}`}
                         >
                           {useVerb}
@@ -711,7 +723,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                       {child.readableContent && (
                         /* Readable items (e.g. a pocketed broadsheet keepsake) open their frozen snapshot. */
                         <button onClick={() => onAction({ type: 'READ_ITEM', label: `Read ${child.name}`, payload: { itemId: child.id } })}
-                          className="min-h-11 rounded bg-amber-700 px-3 py-2 text-xs text-white shadow-sm transition-colors hover:bg-amber-600"
+                          className={`${BTN_FOCUS_VISIBLE} min-h-11 rounded bg-amber-700 px-3 py-2 text-xs text-white shadow-sm transition-colors hover:bg-amber-600`}
                           aria-label={`Read ${child.name}`}
                         >
                           Read
@@ -721,15 +733,15 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                         <Tooltip content={canBeEquipped ? (cantEquipReason ? `Equip ${child.name}\n⚠️ ${cantEquipReason}` : `Equip ${child.name}`) : (cantEquipReason || "Cannot equip")}>
                           <button onClick={() => onAction({ type: 'EQUIP_ITEM', label: `Equip ${child.name}`, payload: { itemId: child.id, characterId: character.id!, inventoryIndex: child.sourceIndex, inventoryItem: inventory[child.sourceIndex] } })}
                             disabled={!canBeEquipped}
-                            className="min-h-11 rounded bg-sky-700 px-3 py-2 text-xs text-white shadow-sm transition-colors hover:bg-sky-600 disabled:cursor-not-allowed disabled:bg-gray-600"
-                            aria-label={`Equip ${child.name}`}
+                            className={`${BTN_FOCUS_VISIBLE} min-h-11 rounded bg-sky-700 px-3 py-2 text-xs text-white shadow-sm transition-colors hover:bg-sky-600 disabled:cursor-not-allowed disabled:bg-gray-600`}
+                            aria-label={equipLabel}
                           >
                             Equip
                           </button>
                         </Tooltip>
                       )}
                       <button onClick={() => onAction({ type: 'TOGGLE_ITEM_JUNK', label: `Toggle Junk ${child.name}`, payload: { itemId: child.id } })}
-                        className={`min-h-11 rounded px-3 py-2 text-xs shadow-sm transition-colors ${
+                        className={`${BTN_FOCUS_VISIBLE} min-h-11 rounded px-3 py-2 text-xs shadow-sm transition-colors ${
                           child.isJunk
                             ? 'bg-amber-700 hover:bg-amber-600 text-white'
                             : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
@@ -739,7 +751,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                         {child.isJunk ? 'Junk' : 'Mark Junk'}
                       </button>
                       <button onClick={() => onAction({ type: 'DROP_ITEM', label: `Drop ${child.name}`, payload: { itemId: child.id, characterId: character.id! } })}
-                        className="min-h-11 rounded bg-red-800 px-3 py-2 text-xs text-white shadow-sm transition-colors hover:bg-red-700"
+                        className={`${BTN_FOCUS_VISIBLE} min-h-11 rounded bg-red-800 px-3 py-2 text-xs text-white shadow-sm transition-colors hover:bg-red-700`}
                         aria-label={`Drop ${child.name}`}
                       >
                         Drop
@@ -796,12 +808,12 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
         {gameContext && activeCarriedTorches(gameContext.state).filter(source => source.bearerId === character.id).map(source => (
           <div key={source.id} className="mb-3 flex items-center justify-between gap-2 text-sm text-amber-200">
             <span>Burning torch · {Math.ceil(source.durationRemaining)} min fuel</span>
-            <button type="button" className="rounded border border-amber-600 px-2 py-1" onClick={() => onAction({
+            <button type="button" className={`${BTN_FOCUS_VISIBLE} rounded border border-amber-600 px-2 py-1`} onClick={() => onAction({
               type: 'USE_ITEM', label: 'Extinguish torch', payload: {itemId: 'torch', characterId: character.id!, light: {action: 'extinguish', sourceId: source.id}}
             })}>Extinguish torch</button>
           </div>
         ))}
-        <h4 className="text-xs font-semibold font-cinzel text-amber-500 mb-2 uppercase tracking-widest border-b border-gray-700 pb-1">Coin Pouch</h4>
+        <h4 className="text-xs font-semibold font-cinzel text-amber-500 mb-2 uppercase tracking-widest border-b border-gray-700 pb-1">{sharedInventory?'Party funds':'Coin Pouch'}</h4>
         <div className="flex justify-start items-center gap-3 flex-wrap">
           <CoinBadge type="pp" amount={currency.PP} />
           <CoinBadge type="gp" amount={currency.GP} />
@@ -843,7 +855,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                         label: `Unattune ${item.name}`,
                         payload: { characterId: character.id!, itemId: item.id }
                       })}
-                      className="min-h-11 rounded bg-purple-750 px-3 py-2 text-[10px] font-medium text-white shadow-sm transition-colors hover:bg-purple-650"
+                      className={`${BTN_FOCUS_VISIBLE} min-h-11 rounded bg-purple-750 px-3 py-2 text-[10px] font-medium text-white shadow-sm transition-colors hover:bg-purple-650`}
                     >
                       Attuned
                     </button>
@@ -855,7 +867,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                         payload: { characterId: character.id!, itemId: item.id }
                       })}
                       disabled={totalAttunedCount >= 3}
-                      className="min-h-11 rounded bg-amber-800 px-3 py-2 text-[10px] font-medium text-amber-200 shadow-sm transition-all hover:bg-amber-700 hover:text-white disabled:bg-gray-800 disabled:text-gray-500 disabled:opacity-50"
+                      className={`${BTN_FOCUS_VISIBLE} min-h-11 rounded bg-amber-800 px-3 py-2 text-[10px] font-medium text-amber-200 shadow-sm transition-all hover:bg-amber-700 hover:text-white disabled:bg-gray-800 disabled:text-gray-500 disabled:opacity-50`}
                       title="Currently attuned to another party member. Click to attune to this character."
                     >
                       Re-attune
@@ -868,7 +880,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                         payload: { characterId: character.id!, itemId: item.id }
                       })}
                       disabled={totalAttunedCount >= 3}
-                      className="min-h-11 rounded bg-gray-700 px-3 py-2 text-[10px] font-medium text-purple-200 shadow-sm transition-all hover:bg-purple-800 hover:text-white disabled:bg-gray-800 disabled:text-gray-500 disabled:opacity-50"
+                      className={`${BTN_FOCUS_VISIBLE} min-h-11 rounded bg-gray-700 px-3 py-2 text-[10px] font-medium text-purple-200 shadow-sm transition-all hover:bg-purple-800 hover:text-white disabled:bg-gray-800 disabled:text-gray-500 disabled:opacity-50`}
                     >
                       Attune
                     </button>
@@ -890,7 +902,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
           <button
             type="button"
             onClick={onClearFilter}
-            className="flex min-h-11 items-center gap-1 rounded bg-gray-700 px-3 py-2 text-xs text-white shadow-sm transition-colors hover:bg-gray-600 focus:ring-1 focus:ring-gray-400"
+            className={`${BTN_FOCUS_VISIBLE} flex min-h-11 items-center gap-1 rounded bg-gray-700 px-3 py-2 text-xs text-white shadow-sm transition-colors hover:bg-gray-600`}
             aria-label="Clear filter"
           >
             <FilterX size={12} />
@@ -902,13 +914,14 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
       {/* Weight & List Header */}
       {/* Displays the inventory weight summary and standard item list section header. */}
       <div className="flex flex-wrap justify-between items-center gap-x-2 gap-y-1 mb-2 px-1">
-        <h3 className="font-semibold font-cinzel text-sky-400 text-sm">Backpack</h3>
+        <h3 className="font-semibold font-cinzel text-sky-400 text-sm">{sharedInventory?'Shared party supplies':'Backpack'}</h3>
         <span className="max-w-full shrink-0 text-xs text-gray-400" data-testid="inventory-encumbrance">
           Weight: {totalInventoryWeight} / {encumbrance.carrying.carryingCapacity.toFixed(0)} lbs
           <span className={`ml-2 font-semibold ${encumbranceTone}`}>{encumbranceLabel}</span>
         </span>
       </div>
 
+      {sharedInventory&&<p className="mb-3 px-1 text-xs text-slate-300">These supplies and funds are shared by the party. Equipped items remain with each character.</p>}
       {mealIndex !== null && <PartyMealConfirmation key={mealIndex} inventory={inventory}
         party={gameContext?.state.party ?? [character]} selectedIndex={mealIndex} onAction={onAction} onCancel={() => setMealIndex(null)} />}
 
@@ -928,7 +941,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
               <button
                 type="button"
                 onClick={() => setActiveTypeFilter(filter.id)}
-                className={`
+                className={`${BTN_FOCUS_VISIBLE} 
                   flex min-h-11 items-center gap-1 rounded-md border px-3 py-2 text-xs transition-all
                   ${isActive
                     ? 'bg-sky-700 border-sky-500 text-white shadow-md'
@@ -952,7 +965,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
           {renderContainer(ROOT_CONTAINER_ID)}
           {(containerBuckets.get(INFORMATION_BUCKET_ID)?.children.length ?? 0) > 0 && renderContainer(INFORMATION_BUCKET_ID)}
         </div>
-      ) : <p className="text-sm text-gray-400 italic p-4 text-center border border-dashed border-gray-700 rounded">Backpack is empty.</p>}
+      ) : <p className="text-sm text-gray-400 italic p-4 text-center border border-dashed border-gray-700 rounded">{sharedInventory?'Party supplies are empty.':'Backpack is empty.'}</p>}
     </div>
   );
 };

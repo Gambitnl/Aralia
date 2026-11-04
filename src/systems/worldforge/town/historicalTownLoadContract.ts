@@ -4,10 +4,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 02/11/2026, 18:02:39
- * Dependents: services/saveLoad/loadHistoricalTownSource.ts, services/saveLoad/saveLoadCore.ts, systems/worldforge/town/prepareHistoricalTownLoad.ts
+ * Last Sync: 03/11/2026, 03:31:46
+ * Dependents: services/saveLoad/loadHistoricalTownSource.ts, services/saveLoad/saveLoadCore.ts, state/appState.ts, systems/worldforge/town/prepareHistoricalTownLoad.ts
  * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
@@ -36,4 +36,37 @@ export function needsHistoricalTownLoad(state:GameState):boolean {
     && (Object.values(town.buildingSources??{}).some(source=>source.cellId===cell)
       || Object.values(state.worldBusinesses??{}).some(business=>business.burgId===town.burgId
         && business.locationId===`cell_${cell}`)));
+}
+
+/** A new arrival has no destination feet yet. Its source receipt identifies the
+ * recorded town before movement; it cannot admit or reposition a saved body. */
+export interface HistoricalTownArrivalReceipt {
+  worldSeed:number; cellId:number; burgId:number; revision:TownLayoutRevision;
+  terrainRevision:TerrainSourceRevision; signature:string;
+}
+export type HistoricalTownArrivalResult = {status:'not-needed'}
+  | {status:'unresolved';message:string}
+  | {status:'qualified';receipt:HistoricalTownArrivalReceipt};
+
+/** Bind the transient receipt to existing records, not to another status store.
+ * The clock is included because an intervening day can change people or shops. */
+export function historicalTownArrivalSignature(state:GameState,burgId:number):string {
+  return JSON.stringify({worldSeed:state.worldSeed,time:state.gameTime,town:state.townSim[burgId],
+    businesses:Object.entries(state.worldBusinesses??{}).filter(([,b])=>b.burgId===burgId),
+    people:Object.entries(state.generatedNpcs??{}).filter(([,n])=>(n as {worldforgeHousehold?:{burgId:number}}).worldforgeHousehold?.burgId===burgId)});
+}
+
+/** Apply only the independently qualified source in the same MOVE that leaves
+ * the origin. Every person, possession and life event stays byte-for-byte. A
+ * stale/misdirected receipt cannot rewrite metadata or move an existing body. */
+export function historicalTownArrivalUpdate(state:GameState,cellId:number,receipt:HistoricalTownArrivalReceipt):
+  Pick<GameState,'townSim'|'worldforgeTerrainRevision'>|undefined {
+  const town=state.townSim[receipt.burgId];
+  if(!town||receipt.worldSeed!==state.worldSeed||receipt.cellId!==cellId||state.playerCell?.cellId===cellId
+    ||![1,2,4].includes(receipt.revision)||![1,2].includes(receipt.terrainRevision)
+    ||town.layoutRevision!==undefined&&town.layoutRevision!==receipt.revision
+    ||state.worldforgeTerrainRevision!==undefined&&state.worldforgeTerrainRevision!==receipt.terrainRevision
+    ||receipt.signature!==historicalTownArrivalSignature(state,receipt.burgId))return undefined;
+  return {townSim:{...state.townSim,[receipt.burgId]:{...town,layoutRevision:receipt.revision}},
+    worldforgeTerrainRevision:receipt.terrainRevision};
 }

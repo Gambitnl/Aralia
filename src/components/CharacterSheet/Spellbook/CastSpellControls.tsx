@@ -4,7 +4,8 @@
  *
  * Renders a Cast button for the selected spell when it is sensibly castable
  * outside combat (healing, buffs, utility — not attack/save combat spells),
- * with a minimal party-member target picker for ally-targeted spells.
+ * with a party-member picker for ally spells and an explicit own-object picker
+ * for Light. A cast message alone never establishes object illumination.
  * Dispatches CAST_SPELL with an `outOfCombat` payload; the handler in
  * hooks/actions/handleResourceActions.ts deducts the slot and applies effects.
  */
@@ -14,9 +15,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/10/2026, 17:15:11
+ * Last Sync: 03/11/2026, 06:28:41
  * Dependents: components/CharacterSheet/Spellbook/SpellbookOverlay.tsx, components/CharacterSheet/Spellbook/SpellbookTab.tsx
- * Imports: 6 files
+ * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -25,6 +26,7 @@
  */
 // @dependencies-end
 
+import ObjectLightControls from './ObjectLightControls';
 import React, { useEffect, useState } from 'react';
 import { PlayerCharacter, Spell, Action, type Item } from '../../../types';
 import {useOptionalGameState} from '../../../state/GameContext';
@@ -36,6 +38,9 @@ import {
     isSpellCastableOutOfCombat,
     spellNeedsPartyTarget,
 } from '../../../utils/spells/outOfCombatCasting';
+// GG-378: shared button style and control roles.
+import { Button } from '../../ui/Button';
+import { BTN_FOCUS_VISIBLE } from '../../../styles/buttonStyles';
 
 interface CastSpellControlsProps {
     spell: Spell;
@@ -65,6 +70,7 @@ const CastSpellControls: React.FC<CastSpellControlsProps> = ({
     }, [spell.id]);
 
     const castability = getOutOfCombatCastability(character, spell);
+    if(spell.id==='light')return <ObjectLightControls character={character} isReadyToCast={isReadyToCast} notReadyReason={notReadyReason} onAction={onAction}/>;
     if (spell.id===CONTAINED_WATER_SPELL_ID) return <ContainedWaterControls spell={spell} character={character}
         isReadyToCast={isReadyToCast} notReadyReason={notReadyReason} onAction={onAction}/>;
 
@@ -118,7 +124,7 @@ const CastSpellControls: React.FC<CastSpellControlsProps> = ({
                 data-testid="cast-spell-button"
                 disabled={disabled}
                 onClick={handleCastClick}
-                className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded transition-all ${disabled
+                className={`${BTN_FOCUS_VISIBLE} px-3 py-1 text-xs font-bold uppercase tracking-wider rounded transition-all ${disabled
                     ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
                     : 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-lg shadow-emerald-500/20'
                     }`}
@@ -149,7 +155,7 @@ const CastSpellControls: React.FC<CastSpellControlsProps> = ({
                             <button
                                 key={member.id}
                                 onClick={() => cast(member.id!)}
-                                className="px-2 py-0.5 text-xs rounded bg-slate-700 text-slate-200 hover:bg-purple-600 hover:text-white transition-colors"
+                                className={`${BTN_FOCUS_VISIBLE} px-2 py-0.5 text-xs rounded bg-slate-700 text-slate-200 hover:bg-purple-600 hover:text-white transition-colors`}
                             >
                                 {member.name} ({member.hp}/{member.maxHp} HP)
                             </button>
@@ -188,8 +194,8 @@ function ContainedWaterControls({spell,character,isReadyToCast,notReadyReason,on
     return <section aria-label="Contained water casting" className="border-b border-slate-700 bg-slate-800/30 px-6 py-4 text-sm text-slate-200">
         <p className="font-semibold">Choose what to do with water</p>
         <div className="my-3 flex flex-wrap gap-3">
-            <button className={`rounded border px-3 py-2 ${mode==='create'?'border-emerald-300 bg-emerald-900 text-white':'border-slate-500'}`} aria-pressed={mode==='create'} onClick={()=>setMode('create')}>Create contained water</button>
-            <button className={`rounded border px-3 py-2 ${mode==='destroy'?'border-emerald-300 bg-emerald-900 text-white':'border-slate-500'}`} aria-pressed={mode==='destroy'} onClick={()=>setMode('destroy')}>Destroy contained water</button>
+            <button className={`${BTN_FOCUS_VISIBLE} rounded border px-3 py-2 ${mode==='create'?'border-emerald-300 bg-emerald-900 text-white':'border-slate-500'}`} aria-pressed={mode==='create'} onClick={()=>setMode('create')}>Create contained water</button>
+            <button className={`${BTN_FOCUS_VISIBLE} rounded border px-3 py-2 ${mode==='destroy'?'border-emerald-300 bg-emerald-900 text-white':'border-slate-500'}`} aria-pressed={mode==='destroy'} onClick={()=>setMode('destroy')}>Destroy contained water</button>
         </div>
         <p className="mb-3 text-slate-300">Rain and fog require an area in the world; this panel selects a carried vessel.</p>
         <label className="block">Open vessel
@@ -207,11 +213,11 @@ function ContainedWaterControls({spell,character,isReadyToCast,notReadyReason,on
         {/* This is a preview of another cast, not a receipt for the last one.
             The saved log and actual slot pips report the completed action. */}
         {error&&<p className="mt-2 text-amber-200">{error.replace(' No spell slot was spent.','')}</p>}
-        <button className="mt-3 rounded bg-emerald-700 px-4 py-2 font-semibold disabled:opacity-50" disabled={!payload||!offer||Boolean(error)}
+        <Button type="button" variant="success" className="mt-3" disabled={!payload||!offer||Boolean(error)}
             onClick={()=>{if(!payload||!state||'error'in prepareContainedWaterCast(state,payload))return;
                 const castId=generateId();setSubmittedId(castId);
                 onAction({type:'CAST_SPELL',label:`${mode==='create'?'Create':'Destroy'} contained water`,payload:{...payload,
                     outOfCombat:{...payload.outOfCombat,water:{...payload.outOfCombat.water,castId}}}});
-            }}>{mode==='create'?'Create water in selected vessel':'Destroy water in selected vessel'}</button>
+            }}>{mode==='create'?'Create water in selected vessel':'Destroy water in selected vessel'}</Button>
     </section>;
 }

@@ -7,9 +7,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 29/10/2026, 13:56:06
+ * Last Sync: 03/11/2026, 01:34:27
  * Dependents: components/ConversationPanel/CompanionTravelChoices.tsx, components/World3D/DungeonExpeditionOverlay.tsx, components/World3D/hooks/useInteriorTransition.ts, state/reducers/companionTravelReducer.ts
- * Imports: 4 files
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -22,6 +22,7 @@ import type { GameState } from '@/types/state';
 import type { DungeonIdentity } from '@/systems/worldforge/dungeon/world/dungeonIdentity';
 import { planRestMeals } from '@/systems/gameplay/restMeals';
 import { exhaustionLevelFromConditions } from '@/utils/combat/physicsUtils';
+import { resourceDays, WATER_ITEM_ID } from '@/systems/travel/provisioning';
 
 export const ENTRANCE_SURVEY_TERMS = [
   'Inspect the entrance floor together for my restoration work.',
@@ -59,6 +60,30 @@ export function companionSiteRiskConcerns(state: GameState, id: string): string[
   const without = state.party.filter(person => !meals.fedIds.includes(person.id));
   if (without.length) concerns.push(`${without.map(person => person.name).join(', ')} has no complete day of food and water reserved for the way back. My own supplies are not a shared pantry.`);
   return concerns;
+}
+
+/** A compassionate return offer uses the person's real remaining road water.
+ * Half a day is a stated reserve for this offer, not a promise that a route is
+ * safe or supplied. Water stays with its owner until a reviewed return actually
+ * consumes it. The map still quotes time, hazards and ration choices. */
+export function companionReturnWaterOffer(state: GameState, id: string) {
+  const context = companionSiteRiskContext(state, id);
+  if (!context) return undefined;
+  const {companion: c} = context, home = c.publicActivity, departure = c.journeyDeparture, leg = c.journey;
+  if (!home || home.worldSeed !== state.worldSeed || home.companionId !== id
+    || departure?.worldSeed !== state.worldSeed || departure.locationId !== home.locationId
+    || home.locationId !== `cell_${home.cellId}` || home.cellId === state.playerCell?.cellId
+    || leg?.status !== 'arrived' || leg.worldSeed !== state.worldSeed || leg.to.locationId !== state.currentLocationId
+    || !c.memories.some(m => m.id === `${leg.id}:arrived` && m.tags.includes('shared-journey'))) return undefined;
+  const amount = Math.max(0, 0.5 - resourceDays(state.inventory, WATER_ITEM_ID));
+  // These legacy provisions are actual transferable water. A filled private
+  // vessel is not silently donated or duplicated by this handover.
+  const waterIndex = (c.inventory ?? []).findIndex(i => i.id === WATER_ITEM_ID && Number.isFinite(i.quantity ?? 1) && (i.quantity ?? 1) > 0);
+  const water = c.inventory?.[waterIndex];
+  const reason = (c.relationships.player?.approval ?? 0) < 10 ? 'I do not trust this plan enough to share my reserve.'
+    : !amount ? 'You already carry at least half a water-day. Let us review the return route before using more of my reserve.'
+    : !water || (water.quantity ?? 1) - amount < 0.5 ? 'I will not promise water that would leave me without my own half-day reserve.' : undefined;
+  return {context, home, amount, water, waterIndex, reason};
 }
 
 /** Both the live doorway and stair action check the saved answer. An existing

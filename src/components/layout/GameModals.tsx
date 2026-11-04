@@ -97,6 +97,8 @@ const LockpickingModal = lazy(() => import('../puzzles/LockpickingModal'));
 const PuzzleRuntimeModal = lazy(() => import('../puzzles/PuzzleRuntimeModal'));
 const DiceRollerModal = lazy(() => import('../dice/DiceRollerModal'));
 import {lodgingRestError, propertyRestError, restEnvironmentError} from '../../systems/gameplay/lodging';
+// GG-378: shared button style and control roles.
+import { Button } from '../ui/Button';
 const LodgingModal = lazy(() => import('../ui/LodgingModal'));
 const LongRestModal = lazy(() => import('../ui/LongRestModal'));
 const RestModal = lazy(() => import('../ui/RestModal'));
@@ -139,7 +141,8 @@ interface GameModalsProps {
     handleModelChange: (model: string | null) => void;
     handleNavigateToGlossaryFromTooltip: (termId: string) => void;
     handleOpenGlossary: (initialTermId?: string) => void;
-    handleOpenCharacterSheet: (character: PlayerCharacter) => void;
+    handleOpenCharacterSheet: (character: PlayerCharacter, initialTab?: 'overview' | 'spellbook') => void;
+    characterSheetInitialTab?: 'overview' | 'spellbook';
     onOllamaDontShowAgain?: (value: boolean) => void;
     isBanterPaused?: boolean;
     toggleBanterPause?: () => void;
@@ -174,6 +177,7 @@ const GameModals: React.FC<GameModalsProps> = ({
     handleNavigateToGlossaryFromTooltip,
     handleOpenGlossary,
     handleOpenCharacterSheet,
+    characterSheetInitialTab = 'overview',
     onOllamaDontShowAgain,
     isBanterPaused,
     toggleBanterPause,
@@ -550,6 +554,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                                 onNavigateToGlossary={handleNavigateToGlossaryFromTooltip}
                                 party={gameState.party}
                                 rulesEdition={getRulesEdition(gameState)}
+                                initialTab={characterSheetInitialTab}
                             />
                         </ErrorBoundary>
                     </Suspense>
@@ -848,20 +853,20 @@ const GameModals: React.FC<GameModalsProps> = ({
                                 const canAfford = gameState.gold >= STARTER_SHIP_COST;
                                 return (
                                     <div className="flex items-center justify-center gap-3">
-                                        <button
+                                        <Button
                                             onClick={() => dispatch({ type: 'NAVAL_PURCHASE_STARTER_SHIP' })}
                                             disabled={!canAfford}
                                             title={canAfford ? undefined : `You need ${STARTER_SHIP_COST} gp (you have ${gameState.gold} gp).`}
-                                            className={`px-4 py-2 rounded text-white ${canAfford ? 'bg-sky-700 hover:bg-sky-600' : 'bg-gray-700 opacity-50 cursor-not-allowed'}`}
+                                            type="button" variant="primary"
                                         >
                                             Acquire a Sloop ({STARTER_SHIP_COST} gp)
-                                        </button>
-                                        <button
+                                        </Button>
+                                        <Button
                                             onClick={() => dispatch({ type: 'TOGGLE_NAVAL_DASHBOARD' })}
-                                            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-white"
+                                            type="button" variant="secondary"
                                         >
                                             Close
-                                        </button>
+                                        </Button>
                                     </div>
                                 );
                             })()}

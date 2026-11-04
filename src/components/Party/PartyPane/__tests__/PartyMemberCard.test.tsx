@@ -215,6 +215,22 @@ describe('PartyMemberCard', () => {
     expect(mockProps.onMoreClick).toHaveBeenCalled();
   });
 
+  it('offers a direct spellbook action only for characters with learned or granted spells', () => {
+    const onSpellsClick = vi.fn();
+    const characterWithSpells = {
+      ...mockCharacter,
+      spellbook: { cantrips: ['light'], preparedSpells: [], knownSpells: [] },
+    };
+    const { rerender } = render(<PartyMemberCard {...mockProps} character={characterWithSpells} onSpellsClick={onSpellsClick} />);
+
+    fireEvent.click(screen.getByRole('button', { name: "Open Aethelgard's spells" }));
+    expect(onSpellsClick).toHaveBeenCalledTimes(1);
+
+    const withoutSpells = { ...mockCharacter, spellbook: { cantrips: [], preparedSpells: [], knownSpells: [] } };
+    rerender(<PartyMemberCard {...mockProps} character={withoutSpells} onSpellsClick={onSpellsClick} />);
+    expect(screen.queryByRole('button', { name: "Open Aethelgard's spells" })).not.toBeInTheDocument();
+  });
+
   it('shows missing choice warning and fires callback when clicked', () => {
     mockCharacter.name = 'Incomplete Character';
     render(<PartyMemberCard {...mockProps} character={mockCharacter} />);
@@ -255,6 +271,18 @@ describe('PartyMemberCard', () => {
     expect(screen.getByText('Relationship:')).toBeInTheDocument();
     expect(screen.getByText('friend')).toBeInTheDocument();
     expect(screen.getByText('(+150)')).toBeInTheDocument();
+  });
+
+  it('describes the neutral approval tier without claiming a traveling companion is unmet', () => {
+    mockCompanion.relationships.player.level = 'stranger';
+    mockCompanion.relationships.player.approval = 15;
+    mockCompanion.inParty = true;
+    const before = structuredClone(mockCompanion);
+    render(<PartyMemberCard {...mockProps} companion={mockCompanion} />);
+    expect(screen.getByText('neutral')).toBeInTheDocument();
+    expect(screen.getByText('(+15)')).toBeInTheDocument();
+    expect(screen.queryByText('stranger')).not.toBeInTheDocument();
+    expect(mockCompanion).toEqual(before);
   });
 
   it('does not render companion relationship details when companion is absent', () => {
