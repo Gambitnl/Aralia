@@ -45,7 +45,7 @@ export function resolveDamage(
     sourceCharacter?: CombatCharacter,
     damageTrigger?: 'turn_start' | 'turn_end' | 'on_start_turn_in_area' | 'on_end_turn_in_area',
 ): CombatCharacter {
-    const { addDamageNumber, breakConcentrationThroughCommandLayer, characters, onLogEntry, processRepeatSaves, spellZones } = ctx;
+    const { addDamageNumber, breakConcentrationThroughCommandLayer, characters, concentrationSaveRng, onLogEntry, processRepeatSaves, spellZones } = ctx;
     let updatedCharacter = { ...character };
 
     // The same defense calculator serves immediate, environmental, and
@@ -155,7 +155,9 @@ export function resolveDamage(
     // cleans as it does so; rolling here as well would clean twice and log
     // twice for one packet.
     if (character.concentratingOn && finalAmount > 0 && updatedCharacter.currentHP > 0) {
-        const check = checkConcentration(updatedCharacter, finalAmount);
+        const check = concentrationSaveRng
+            ? checkConcentration(updatedCharacter, finalAmount, undefined, concentrationSaveRng)
+            : checkConcentration(updatedCharacter, finalAmount);
 
         onLogEntry({
             id: generateId(),

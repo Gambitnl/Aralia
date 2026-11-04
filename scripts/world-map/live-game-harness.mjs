@@ -601,7 +601,12 @@ export async function runLiveMapHarness(options = parseHarnessArgs(process.argv.
   const sourceFingerprint = await fingerprintCurrentMapSources();
 
   try {
-    browser = await chromium.launch({ headless: !options.headed });
+    browser = await chromium.launch({
+      // Use installed Chrome updates and retain its process sandbox.
+      channel: 'chrome',
+      chromiumSandbox: true,
+      headless: !options.headed,
+    });
     const before = await captureBeforeReceipt(browser);
     const context = await browser.newContext({ viewport: DEFAULT_VIEWPORT });
     const page = await context.newPage();

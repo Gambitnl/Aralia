@@ -157,4 +157,43 @@ describe('useTurnManager rolled summon scheduling', () => {
 
     randomSpy.mockRestore();
   });
+
+  it('initializes combat with surprise, giving surprised combatants disadvantage on initiative', () => {
+    const hero = createMockCombatCharacter({ id: 'hero', name: 'Hero', stats: { ...createMockCombatCharacter().stats, dexterity: 10, baseInitiative: 0 } });
+    const ambushedMonster = createMockCombatCharacter({ id: 'monster', name: 'Monster', stats: { ...createMockCombatCharacter().stats, dexterity: 10, baseInitiative: 0 } });
+
+    // Mock Math.random to return predictable values:
+    // hero rolls once: 0.5 (face 11)
+    // ambushedMonster rolls twice (disadvantage): 0.8 (face 17) and 0.1 (face 3) -> takes 3
+    const randomSpy = vi.spyOn(Math, 'random');
+    randomSpy.mockReturnValueOnce(0.5); // hero: 11
+    randomSpy.mockReturnValueOnce(0.8); // monster roll 1: 17
+    randomSpy.mockReturnValueOnce(0.1); // monster roll 2: 3 -> min is 3
+
+    let charactersState: CombatCharacter[] = [hero, ambushedMonster];
+    const onCharacterUpdate = (updatedCharacter: CombatCharacter) => {
+      charactersState = charactersState.map(character =>
+        character.id === updatedCharacter.id ? updatedCharacter : character
+      );
+    };
+    const logEntries: CombatLogEntry[] = [];
+    const onLogEntry = (entry: CombatLogEntry) => logEntries.push(entry);
+
+    const { result } = renderHook(() => useTurnManager({
+      characters: charactersState,
+      mapData: null,
+      onCharacterUpdate,
+      onLogEntry,
+    }));
+
+    act(() => {
+      result.current.initializeCombat(charactersState, { surprisedCharacterIds: ['monster'] });
+    });
+
+    expect(result.current.turnState.turnOrder).toEqual(['hero', 'monster']);
+    const startLog = logEntries.find(e => e.message.startsWith('Combat begins!'));
+    expect(startLog?.data?.surprisedCharacterIds).toEqual(['monster']);
+
+    randomSpy.mockRestore();
+  });
 });

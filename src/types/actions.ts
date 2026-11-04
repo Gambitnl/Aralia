@@ -55,6 +55,8 @@ export interface CastSpellPayload {
   outOfCombat?: { targetCharacterId: string;
     /** Explicit contained-water choice, tied to the exact reviewed owned item. */
     water?: {mode:'create'|'destroy';inventoryIndex:number;sourceItem:Item;castId:string};
+    /** Reviewed own held object; another person's equipment is never inferred. */
+    light?: {slot:'MainHand'|'OffHand';sourceItem:Item;castId:string;color:string};
   };
 }
 

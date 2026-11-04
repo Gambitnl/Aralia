@@ -27,6 +27,20 @@ than just the ability to type a name.
 or an explicit `@callsign` mention. These wake a dormant orchestrator; other
 traffic does not.
 
+**Seat** — the durable identity that owns campaigns across sessions. Taken
+at sign-in and freed when its holder's presence drops (§13).
+
+**Attended** — a campaign whose seat has a live session in it right now. The
+only field that answers "does this campaign have an owner"; `ownerStatus` does
+not.
+
+**Unattended closure** — the WF-G83 path by which an orchestrator, master or
+human closes a campaign that is unattended and whose owner session is gone, with
+a mandatory reason and an `adoptedClosure` history entry (§13).
+
+**Shrink** — releasing one path from a multi-path lock while the rest of the
+record, its id and its expiry survive (§10, WF-G122).
+
 **Activation adapter** — the registered, audited bridge that can start or
 resume one model's harness when a wake-worthy message arrives and that harness
 is absent. Unverified adapters must report `wake-unavailable`, not pretend.

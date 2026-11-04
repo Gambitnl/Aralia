@@ -40,21 +40,17 @@ describe('timeUtils', () => {
 
         it('should format game time correctly', () => {
             const date = new Date(Date.UTC(351, 0, 1, 14, 30, 0));
-            // Expect local time format but based on UTC input.
-            // The function uses toLocaleTimeString with timeZone: 'UTC', so it should be stable.
-            // However, toLocaleTimeString depends on locale. We can check if it contains the time parts.
             const formatted = formatGameTime(date);
-            // Default locale might vary, but standard English usually works.
-            // If checking exact string is flaky, check parts.
-            // But let's assume default behaviour for now as in existing app usage.
-            // Ideally we check if it includes "2:30" or "14:30".
-            expect(formatted).toBeTruthy();
+            expect(formatted).toMatch(/(?:14|2):30/);
+            expect(formatGameTime(date, { hour: '2-digit', minute: '2-digit', hour12: false })).toBe('14:30');
         });
 
         it('should format game date correctly', () => {
             const date = new Date(Date.UTC(351, 0, 1));
             const formatted = formatGameDate(date);
-            expect(formatted).toBeTruthy();
+            expect(formatted).toContain('351');
+            expect(formatted).toMatch(/1.*1.*351|351.*1.*1/);
+            expect(formatGameDate(date, { year: 'numeric', month: '2-digit', day: '2-digit' })).toMatch(/(?:01\/01\/0?351|0?351-01-01|01\.01\.0?351)/);
         });
 
         it('should calculate game day correctly', () => {

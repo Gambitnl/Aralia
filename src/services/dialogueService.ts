@@ -8,9 +8,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 29/10/2026, 22:28:58
+ * Last Sync: 03/11/2026, 11:10:17
  * Dependents: components/Dialogue/DialogueConversationView.tsx, components/Dialogue/DialogueInterface.tsx, hooks/useConversation.ts, hooks/useDialogueSystem.ts, systems/puzzles/dialogueBridge.ts
- * Imports: 16 files
+ * Imports: 18 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -684,6 +684,13 @@ export function processTopicSelection(
     const statement=resolveNpcInstitutionStatement(gameState,session.npcId,topicId);
     const key=npcDialogueSpeakerKey(gameState,session.npcId);
     if (key && statement?.text===directText) dialogue={topicId,speakerKey:key,source:{kind:'institution-statement',snapshot:statement.snapshot}};
+  }
+  // The journal and conversation retain the same actually delivered directions.
+  // Publication rechecks the current town/source; no old note is promoted into
+  // speech and repeating directions keeps their original discovery identity.
+  if(directText&&topicId==='global_directions'){
+    const key=npcDialogueSpeakerKey(gameState,session.npcId);
+    if(key)dialogue={topicId,speakerKey:key,source:{kind:'local-directions',snapshot:directText}};
   }
   return {
     status: 'neutral',

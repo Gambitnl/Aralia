@@ -137,13 +137,51 @@ export function domainDocDrift(repoRoot, { domainDir = 'docs/architecture/domain
    * reported — and every one pointed at a file sitting right there. A checker
    * that invents faults is worse than no checker, because somebody acts on it. */
   const PATH_RE = /(?:^|[\s`(])(src\/[A-Za-z0-9_\-./]+\.(?:tsx|jsx|ts|js))(?![A-Za-z0-9])/g;
+
+  /* Deletion-log and retirement line pattern (GG-524).
+   *
+   * Domain docs keep audit logs and lists of retired or deleted files (e.g.
+   * `town-map.md` listing deleted RealmSmith generators or `planes-travel.md`
+   * noting removed services in a `Verified:` header).
+   *
+   * A line is a deletion log line if it meets any of:
+   * 1. Contains removal phrasing with dates: `(deleted|retired|removed) YYYY-MM-DD`
+   * 2. Contains verb removal phrasing: `(were|was|are|is) (deleted|retired|removed|gone)`
+   * 3. Contains bullet list removal syntax: `- (deleted|retired|removed)`
+   * 4. Starts with a `Verified: YYYY-MM-DD` audit header
+   *
+   * In addition, sections headed by `## Retired` or paragraphs introduced by
+   * `RETIRED` log historical context and are excluded from live drift checks.
+   */
+  const DELETION_LINE_RE = /(?:\b(?:deleted|retired|removed)\s+\d{4}-\d{2}-\d{2}\b|\b(?:were|was|are|is)\s+(?:deleted|retired|removed|gone)\b|[-–—]\s*(?:deleted|retired|removed)\b|^Verified:\s*\d{4}-\d{2}-\d{2}\b)/i;
+
   const stale = [];
   for (const f of docs) {
     const text = fs.readFileSync(path.join(abs, f), 'utf8');
+    const lines = text.split(/\r?\n/);
     const missing = [];
-    for (const m of text.matchAll(PATH_RE)) {
-      const p = m[1];
-      if (!fs.existsSync(path.join(repoRoot, p))) missing.push(p);
+    let inRetiredSection = false;
+    let inRetiredBlock = false;
+
+    for (const line of lines) {
+      if (/^#+\s+/i.test(line)) {
+        inRetiredSection = /^#+\s+Retired\b/i.test(line);
+        inRetiredBlock = false;
+      }
+      if (line.trim() === '') {
+        inRetiredBlock = false;
+      } else if (/^RETIRED\b/i.test(line)) {
+        inRetiredBlock = true;
+      }
+
+      if (inRetiredSection || inRetiredBlock || DELETION_LINE_RE.test(line)) {
+        continue;
+      }
+
+      for (const m of line.matchAll(PATH_RE)) {
+        const p = m[1];
+        if (!fs.existsSync(path.join(repoRoot, p))) missing.push(p);
+      }
     }
     if (missing.length) stale.push({ doc: `${domainDir}/${f}`, missing: [...new Set(missing)] });
   }

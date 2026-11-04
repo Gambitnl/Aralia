@@ -38,7 +38,6 @@
 
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { CombatCharacter, CombatLogEntry, BattleMapData, LightSource, Ability } from '../../types/combat';
-import { AI_THINKING_DELAY_MS } from '../../config/combatConfig';
 import { generateId } from '../../utils/combat';
 import { calculateMovementTotal } from '../../utils/combat/actionEconomyUtils';
 import { useActionEconomy } from './useActionEconomy';
@@ -57,14 +56,12 @@ import { reconcileGrappleMaintenance } from '../../utils/combat/grappleUtils';
 import { advanceRuntimeStatusConditionsAtTurnEnd } from '../../utils/combat/statusConditionUtils';
 
 interface UseTurnManagerProps {
-  difficulty?: keyof typeof AI_THINKING_DELAY_MS;
   characters: CombatCharacter[];
   mapData: BattleMapData | null;
   onCharacterUpdate: (character: CombatCharacter) => void;
   onLogEntry: (entry: CombatLogEntry) => void;
   onRoundElapsed?: (seconds: number) => void;
   onCharacterRemove?: (characterId: string) => void;
-  autoCharacters?: Set<string>;
   onMapUpdate?: (mapData: BattleMapData) => void;
   /** Optional deterministic full initiative total for visual/replay harnesses. */
   initiativeRoller?: (character: CombatCharacter) => number;
@@ -72,6 +69,8 @@ interface UseTurnManagerProps {
   scheduledEffectDiceRoller?: ScheduledEffectDiceRoller;
   /** Optional deterministic scheduled-save d20 source for visual/replay harnesses. */
   scheduledEffectSaveRng?: ScheduledEffectSaveRng;
+  /** Optional deterministic concentration-save d20 source for hook-path damage (GG-261). */
+  concentrationSaveRng?: () => number;
   requestReaction?: (
     attackerId: string,
     targetId: string,
@@ -106,12 +105,11 @@ export const useTurnManager = ({
   onLogEntry,
   onRoundElapsed,
   onCharacterRemove,
-  autoCharacters,
   onMapUpdate,
   initiativeRoller,
   scheduledEffectDiceRoller,
   scheduledEffectSaveRng,
-  difficulty = 'normal',
+  concentrationSaveRng,
   requestReaction,
   executeReactionSpell
 }: UseTurnManagerProps) => {
@@ -340,16 +338,13 @@ export const useTurnManager = ({
     addDamageNumber,
     scheduledEffectDiceRoller,
     scheduledEffectSaveRng,
+    concentrationSaveRng,
     // Concentration cleanup ends the lights a concentration spell created, and
     // hook-path damage breaks concentration inside the engine, so the list this
     // hook owns is lent to it and taken back cleaned (agora-f821.43).
     activeLightSources,
     onActiveLightSourcesUpdate: setActiveLightSources,
   });
-
-  // Stabilize optional auto-controlled character set
-  const defaultAutoCharacters = useMemo(() => new Set<string>(), []);
-  const managedAutoCharacters = autoCharacters ?? defaultAutoCharacters;
 
   // --- Turn lifecycle (MOD-3.10) ---
   // Called at the EXACT position rollInitiative / startTurnFor / initializeCombat /

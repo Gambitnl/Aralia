@@ -16,6 +16,9 @@ async function main() {
 
   // Launch persistent context in headed mode
   const context = await chromium.launchPersistentContext(PROFILE_DIR, {
+    // Use installed Chrome updates and retain its process sandbox.
+    channel: 'chrome',
+    chromiumSandbox: true,
     headless: false,
     viewport: { width: 1366, height: 768 },
     args: [

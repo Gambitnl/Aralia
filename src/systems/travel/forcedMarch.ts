@@ -35,7 +35,14 @@
 import type { PlayerCharacter } from '../../types/character';
 import { getAbilityModifierValue } from '../../utils/character/statUtils';
 import { calculateProficiencyBonus, hasSavingThrowProficiency } from '../../utils/character/savingThrowUtils';
-import { calculateExhaustionEffects, getExhaustionD20Penalty } from '../../utils/combat/physicsUtils';
+import {
+  calculateExhaustionEffects,
+  getExhaustionD20Penalty,
+  EXHAUSTION_CONDITION,
+  exhaustionLevelFromConditions,
+} from '../../utils/combat/physicsUtils';
+
+export { EXHAUSTION_CONDITION };
 
 /** One member's forced-march Constitution save outcome. */
 export interface ForcedMarchSaveResult {
@@ -114,27 +121,16 @@ const MPH_PER_SPEED_FOOT = 1 / 10;
 /** Slowest a worn-out party can still be said to travel, so time stays finite. */
 const MIN_EXHAUSTED_MPH = 0.5;
 
-/** The condition string App applies party-wide when a forced march bites. */
-export const EXHAUSTION_CONDITION = 'exhaustion';
-
 /**
  * Exhaustion level carried by the party, as travel reads it: the WORST member's
  * level, since the group moves at its slowest member's pace.
  *
- * Today the party-wide condition is a flat string, so a party either carries
- * exhaustion (level 1) or does not. Numbered forms ('exhaustion_2') are read
- * when present so a future stacking implementation needs no change here —
- * see docs/projects/GLOBAL_GAPS.md for the open stacking gap.
+ * Uses the canonical exhaustionLevelFromConditions parser (GG-217).
  */
 export function partyExhaustionLevel(party: readonly { conditions?: string[] }[]): number {
   let worst = 0;
   for (const pc of party) {
-    for (const raw of pc.conditions ?? []) {
-      const c = String(raw).toLowerCase();
-      if (c === EXHAUSTION_CONDITION) worst = Math.max(worst, 1);
-      const numbered = /^exhaustion[_ -]?(\d)$/.exec(c);
-      if (numbered) worst = Math.max(worst, Number(numbered[1]));
-    }
+    worst = Math.max(worst, exhaustionLevelFromConditions(pc.conditions));
   }
   return worst;
 }

@@ -18,6 +18,45 @@ describe('UnderdarkMechanics', () => {
         };
     };
 
+    const boundLight = (): LightSource => ({id:'owned-light',type:'spell',name:'Light on Sickle',radius:40,
+        durationRemaining:60,isActive:true,bearerId:'caster',expiresAtGameTime:Date.parse('2025-01-01T13:00:00Z'),
+        objectLight:{casterId:'caster',slot:'MainHand',color:'#fff1ca',spellId:'light'}});
+    const withHeldLight = (state: GameState): GameState => ({...state, party:[{id:'caster',
+        equippedItems:{MainHand:{id:'sickle',name:'Sickle',lightSpellId:'owned-light'}}}] as unknown as GameState['party']});
+
+    it('derives bound Light once from the advanced clock while preserving torch fuel and source state', () => {
+        const light=boundLight(),torch:LightSource={id:'torch',type:'torch',name:'Torch',radius:20,durationRemaining:60,isActive:true};
+        const state=withHeldLight(createTestState({activeLightSources:[light,torch]}));
+        state.gameTime=new Date('2025-01-01T12:00:01Z');
+        const before=JSON.stringify(state),result=UnderdarkMechanics.processTime(state,1);
+        expect(result.underdark.activeLightSources.find(s=>s.id==='owned-light')?.durationRemaining).toBeCloseTo(60-1/60,10);
+        expect(result.underdark.activeLightSources.find(s=>s.id==='torch')?.durationRemaining).toBeCloseTo(60-1/60,10);
+        expect(JSON.stringify(state)).toBe(before);
+    });
+
+    it('keeps the final second of bound Light even when an old cached countdown is low', () => {
+        const light={...boundLight(),durationRemaining:.0001};
+        const state=withHeldLight(createTestState({activeLightSources:[light]}));
+        state.gameTime=new Date('2025-01-01T12:59:59Z');
+        const result=UnderdarkMechanics.processTime(state,1);
+        expect(result.underdark.activeLightSources[0].durationRemaining).toBeCloseTo(1/60,10);
+        expect(result.underdark.activeLightSources[0].isActive).toBe(true);
+        expect(result.messages).toEqual([]);
+    });
+
+    it('expires a packed bound light at its deadline while retaining its inactive source identity', () => {
+        const state=createTestState({activeLightSources:[boundLight()]});
+        state.gameTime=new Date('2025-01-01T12:30:00Z');
+        const packed=UnderdarkMechanics.processTime(state,60);
+        expect(packed.underdark.activeLightSources[0]).toMatchObject({isActive:false,durationRemaining:30});
+        state.underdark=packed.underdark;state.gameTime=new Date('2025-01-01T13:00:00Z');
+        const expired=UnderdarkMechanics.processTime(state,1800);
+        expect(expired.underdark.activeLightSources).toHaveLength(1);
+        expect(expired.underdark.activeLightSources[0]).toMatchObject({id:'owned-light',isActive:false,durationRemaining:0});
+        expect(expired.messages).toEqual([]);
+        expect(UnderdarkMechanics.processTime({...state,underdark:expired.underdark},1).messages).toEqual([]);
+    });
+
     it('should consume light source duration', () => {
         const torch: LightSource = {
             id: 'torch1',

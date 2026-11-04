@@ -2,7 +2,7 @@
  * @file generatedGlossaryItems.ts
  * AUTO-GENERATED FILE. DO NOT EDIT DIRECTLY.
  * 
- * Generated from public/data/glossary/entries/equipment and magic_items.
+ * Generated from public/data/glossary/entries/equipment.
  */
 
 import { Item, ItemRarity } from '../../types/index.js';

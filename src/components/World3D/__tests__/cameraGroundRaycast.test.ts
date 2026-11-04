@@ -23,6 +23,50 @@ function oracle(mesh: THREE.Mesh, query: THREE.Raycaster) {
 }
 
 describe('exact camera ground candidates', () => {
+  it('checks nearby instanced scenery without rereading every town prop on warm rays', () => {
+    const mesh = new THREE.InstancedMesh(new THREE.CylinderGeometry(.4, .4, 2, 8),
+      new THREE.MeshBasicMaterial({side: THREE.DoubleSide}), 2000), matrix = new THREE.Matrix4();
+    for (let i = 0; i < mesh.count; i++) mesh.setMatrixAt(i, matrix.makeTranslation(i ? i * 3 : 0, 1.5, 3));
+    mesh.instanceMatrix.needsUpdate = true; mesh.updateMatrixWorld(true);
+    const query = ray(), expected = oracle(mesh, query), original = Array.from(mesh.instanceMatrix.array);
+    expect(expected).not.toBeNull(); expect(nearestGroundCameraHit(mesh, query)).toBeCloseTo(expected!, 10);
+    const reads = vi.spyOn(mesh, 'getMatrixAt');
+    for (let i = 0; i < 4; i++) expect(nearestGroundCameraHit(mesh, query)).toBeCloseTo(expected!, 10);
+    expect(reads.mock.calls.length).toBeLessThan(20); reads.mockRestore();
+    expect(Array.from(mesh.instanceMatrix.array)).toEqual(original);
+  });
+  it('invalidates instanced scenery bounds when matrices, geometry or active count change', () => {
+    const mesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 2, 1),
+      new THREE.MeshBasicMaterial({side: THREE.DoubleSide}), 2), matrix = new THREE.Matrix4();
+    mesh.setMatrixAt(0, matrix.makeTranslation(0, 1.5, 3));
+    mesh.setMatrixAt(1, matrix.makeTranslation(20, 1.5, 3));
+    mesh.instanceMatrix.needsUpdate = true; mesh.updateMatrixWorld(true);
+    const query = ray(); expect(nearestGroundCameraHit(mesh, query)).not.toBeNull();
+    mesh.setMatrixAt(0, matrix.makeTranslation(20, 1.5, 3)); mesh.instanceMatrix.needsUpdate = true;
+    expect(nearestGroundCameraHit(mesh, query)).toBeNull();
+    mesh.setMatrixAt(1, matrix.makeTranslation(0, 1.5, 3)); mesh.instanceMatrix.needsUpdate = true;
+    expect(nearestGroundCameraHit(mesh, query)).not.toBeNull();
+    mesh.count = 1; expect(nearestGroundCameraHit(mesh, query)).toBeNull();
+    mesh.count = 2; expect(nearestGroundCameraHit(mesh, query)).not.toBeNull();
+    mesh.geometry = new THREE.BoxGeometry(1, .01, 1);
+    expect(nearestGroundCameraHit(mesh, query)).toBeNull();
+    mesh.geometry = new THREE.BoxGeometry(1, 2, 1);
+    const position = mesh.geometry.getAttribute('position');
+    expect(nearestGroundCameraHit(mesh, query)).not.toBeNull();
+    for (let i = 0; i < position.count; i++) position.setX(i, position.getX(i) + 20);
+    position.needsUpdate = true; expect(nearestGroundCameraHit(mesh, query)).toBeNull();
+  });
+  it('matches native instanced triangles through parent transforms and retains custom raycast ownership', () => {
+    const mesh = new THREE.InstancedMesh(new THREE.BoxGeometry(.6, 2, .6),
+      new THREE.MeshBasicMaterial({side: THREE.DoubleSide}), 1);
+    mesh.setMatrixAt(0, new THREE.Matrix4().makeTranslation(0, 1.5, 3));
+    mesh.position.set(12, 4, -9); mesh.rotation.y = .7; mesh.scale.set(1.2, .8, 1.4); mesh.updateMatrixWorld(true);
+    const query = ray(new THREE.Vector3(0, 1.15, 0).applyMatrix4(mesh.matrixWorld),
+      new THREE.Vector3(0, 1.55, 6).applyMatrix4(mesh.matrixWorld));
+    expect(nearestGroundCameraHit(mesh, query)).toBeCloseTo(oracle(mesh, query)!, 10);
+    mesh.raycast = vi.fn(); expect(nearestGroundCameraHit(mesh, query)).toBeNull();
+    expect(mesh.raycast).toHaveBeenCalledOnce();
+  });
   it('preserves custom raycast behavior on decorative or specially shaped mounted pieces', () => {
     const mesh = slope(), query = ray();mesh.updateMatrixWorld(true);
     mesh.raycast = vi.fn();

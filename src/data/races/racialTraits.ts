@@ -45,11 +45,23 @@ type RacialTraitResetCondition = 'short_rest' | 'long_rest';
 
 type RacialResourceMax = number | 'proficiency_bonus';
 
+export interface RacialResourceDice {
+  die: string;
+  count: number | 'proficiency_bonus';
+}
+
 export interface RacialResourceMechanic {
   id: string;
   maxUses: RacialResourceMax;
   resetOn: RacialTraitResetCondition;
   sourceLabel?: string;
+  /**
+   * Optional dice pool rolled when this resource is spent (for example,
+   * Aasimar Healing Hands rolls d4s equal to Proficiency Bonus — GG-266).
+   * Kept separate from `maxUses` so a dice-scaling phrase never inflates the
+   * usage count of a once-per-rest trait.
+   */
+  dice?: RacialResourceDice;
 }
 
 export interface RacialTraitActivationWindow {
@@ -632,14 +644,55 @@ const parseRacialTraitResourceReset = (trait: string): RacialTraitResetCondition
   return null;
 };
 
+/**
+ * GG-266: extracts the usage count for a rest-gated racial trait without
+ * confusing dice scaling ("roll a number of d4s equal to your Proficiency
+ * Bonus") or damage/save DC formulas ("extra radiant damage equals your
+ * Proficiency Bonus", "DC 8 + your Proficiency Bonus") with the number of uses.
+ * An explicit "a number of times equal to your Proficiency Bonus" phrase wins;
+ * otherwise an explicit single-use rest clause ("Once you use this trait, you
+ * can't use it again until you finish a Long Rest") resolves to 1.
+ */
 const parseRacialTraitResourceMax = (trait: string): RacialResourceMax => {
-  const proficiencyMatch = trait.match(/proficiency bonus/i);
-  if (proficiencyMatch) return 'proficiency_bonus';
+  if (/a\s+number\s+of\s+times\s+equal\s+to\s+your\s+proficiency\s+bonus/i.test(trait)) {
+    return 'proficiency_bonus';
+  }
 
   const numericMatch = trait.match(/(?:a number of times|number of times equal to|up to|at most)\s+(\d+)/i);
   if (numericMatch) return parseInt(numericMatch[1], 10);
 
+  // Explicit single-use rest clause (e.g. Aasimar Healing Hands, Radiant Soul,
+  // Radiant Consumption, Necrotic Shroud) where "Proficiency Bonus" appears
+  // earlier only for healing dice, extra damage, or save DC.
+  if (/\bonce\s+you\s+(?:use|cast)\b[^.]*?can(?:not|['’]t)\s+(?:use|cast|do\s+so)\s+(?:it\s+|this\s+(?:trait|feature)\s+)?again\s+until\s+you\s+finish\s+a\s+(?:short|long)\s+rest/i.test(trait)) {
+    return 1;
+  }
+
+  // Fallback for compact prose that links proficiency bonus directly to uses or rests
+  // without the full "a number of times equal to" wording.
+  if (/(?:uses?|times?)[^.;]*?proficiency\s+bonus|proficiency\s+bonus[^.;]*?(?:per\s+(?:a\s+)?(?:short|long)\s+rest|uses?)/i.test(trait)) {
+    return 'proficiency_bonus';
+  }
+
   return 1;
+};
+
+/**
+ * GG-266: extracts a dice pool whose count scales with Proficiency Bonus or a
+ * fixed number (e.g., "roll a number of d4s equal to your Proficiency Bonus" on
+ * Aasimar Healing Hands), kept separate from `maxUses`.
+ */
+const parseRacialTraitResourceDice = (trait: string): RacialResourceDice | undefined => {
+  const pbDiceMatch = trait.match(
+    /roll\s+a\s+number\s+of\s+(d\d+)s?\s+equal\s+to\s+your\s+proficiency\s+bonus/i,
+  );
+  if (pbDiceMatch) {
+    return {
+      die: pbDiceMatch[1].toLowerCase(),
+      count: 'proficiency_bonus',
+    };
+  }
+  return undefined;
 };
 
 const normalizeSpellToken = (rawName: string): string => {
@@ -1060,12 +1113,14 @@ const parseTraitResourceMechanics = (raceId: string, traitName: string, trait: s
   if (!resetOn) return resources;
 
   const maxUses = parseRacialTraitResourceMax(trait);
+  const dice = parseRacialTraitResourceDice(trait);
   const resourceId = `${raceId}__${toResourceSlug(traitName)}__resource`;
   resources.push({
     id: resourceId,
     maxUses,
     resetOn,
     sourceLabel: `${traitName} usage`,
+    ...(dice ? { dice } : {}),
   });
 
   return resources;

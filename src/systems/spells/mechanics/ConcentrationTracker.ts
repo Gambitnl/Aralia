@@ -247,9 +247,10 @@ export class ConcentrationTracker {
   static rollConcentrationSave(
     character: CombatCharacter,
     damage: number,
-    rulesEdition?: RulesEdition
+    rulesEdition?: RulesEdition,
+    rng?: () => number,
   ): { success: boolean; dc: number; roll: number } {
     // Delegate to centralized checkConcentration to ensure consistent 2024 DC 30 capping, proficiency, and bonuses
-    return checkConcentration(character, damage, rulesEdition)
+    return rng ? checkConcentration(character, damage, rulesEdition, rng) : checkConcentration(character, damage, rulesEdition)
   }
 }

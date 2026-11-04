@@ -33,6 +33,7 @@ import type { RitualState } from '../rituals.js';
 import type { Position, ActionEconomyState, Direction } from './primitives.js';
 import type { StatusEffect, ActiveEffect, ActiveCondition, ConcentrationState, ActiveRider, SavePenaltyRider } from './effects.js';
 import type { RacialReaction, Ability } from './actions.js';
+import type { TerrainMovementPolicy } from '../../utils/combat/movementUtils';
 
 export type { CharacterStats };
 
@@ -531,6 +532,8 @@ export interface CombatCharacter {
     initiativeBonus?: number;
     initiativeProficiency?: boolean;
     ignoreDifficultTerrain?: boolean;
+    terrainPolicyId?: 'earth-walk' | 'timberwalk' | 'any-difficult-terrain';
+    terrainPolicy?: TerrainMovementPolicy;
     breathWeapon?: RacialBreathWeapon;
     savageAttacks?: boolean;
     reactions?: RacialReaction[];
@@ -554,6 +557,9 @@ export interface CombatCharacter {
    * union and a unit test pins the two together.
    */
   terrainPolicyId?: 'earth-walk' | 'timberwalk' | 'any-difficult-terrain';
+  terrainPolicy?: TerrainMovementPolicy;
+  /** Whether this creature is surprised at combat start (GG-258). */
+  isSurprised?: boolean;
   // Optional bookkeeping for analytics/logs; these were used in factories/tests.
   damageDealt?: unknown[];
   healingDone?: unknown[];

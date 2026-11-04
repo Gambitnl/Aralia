@@ -38,6 +38,11 @@ export interface CombatState {
   isActive: boolean;
   characters: CombatCharacter[];
   /**
+   * Character IDs currently marked as surprised at combat start (GG-258).
+   * Allows surprise state to be queried directly from CombatState as well as TurnState.
+   */
+  surprisedCharacterIds?: string[];
+  /**
    * Live spell zones carried through command execution so damage commands can
    * respect map-based resistance and immunity auras without flattening them
    * into character sheets too early.

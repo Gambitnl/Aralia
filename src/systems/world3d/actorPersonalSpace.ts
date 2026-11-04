@@ -95,30 +95,30 @@ export interface ActorYieldRouteState {
  search?:{origin:ActorPoint;queue:YieldRouteNode[];head:number;expanded:number;seen:Set<string>};
  exhausted?:boolean;retryFrames?:number;
 }
-function prepareYieldRoute(state:ActorYieldRouteState,from:ActorPoint,goal:ActorPoint,key:string,body:ActorBody,space:ActorSpace) {
+function prepareYieldRoute(state:ActorYieldRouteState,from:ActorPoint,goal:ActorPoint,key:string,body:ActorBody,space:ActorSpace,maxStepHeightM:number) {
  const n=(v:number)=>Math.round(v*1000),f=body.footprint;
- const signature=JSON.stringify([key,n(goal.xM),n(goal.yM),n(goal.zM),n(body.radiusM),n(body.heightM),f&&[n(f.minXM),n(f.maxXM),n(f.minZM),n(f.maxZM),n(f.yawRad)],
+ const signature=JSON.stringify([maxStepHeightM,key,n(goal.xM),n(goal.yM),n(goal.zM),n(body.radiusM),n(body.heightM),f&&[n(f.minXM),n(f.maxXM),n(f.minZM),n(f.maxZM),n(f.yawRad)],
   [...space].filter(([id])=>id==='player'||id.startsWith('companion:')).map(([id,b])=>[id,Math.round(b.xM*10),Math.round(b.yM*10),Math.round(b.zM*10)])]);
  state.following=false;
  if(state.signature!==signature||(state.expected&&Math.hypot(from.xM-state.expected.xM,from.zM-state.expected.zM,from.yM-state.expected.yM)>.005)){
   state.signature=signature;state.expected={...from};state.floorYM=from.yM;state.path=undefined;state.search=undefined;state.exhausted=false;state.retryFrames=0;
  }
 }
-function followYieldRoute(from:ActorPoint,key:string,body:ActorBody,hardSpace:ActorSpace,step:number,probe:ActorProbe,state:ActorYieldRouteState) {
+function followYieldRoute(from:ActorPoint,key:string,body:ActorBody,hardSpace:ActorSpace,step:number,probe:ActorProbe,state:ActorYieldRouteState,maxStepHeightM:number) {
  while(state.path?.length&&Math.hypot(state.path[0].xM-from.xM,state.path[0].zM-from.zM)<.004)state.path.shift();
  const target=state.path?.[0];if(!target)return null;
  const d=Math.hypot(target.xM-from.xM,target.zM-from.zM),share=Math.min(1,step/d);
  const candidate=probe({xM:from.xM+(target.xM-from.xM)*share,zM:from.zM+(target.zM-from.zM)*share,yM:from.yM},from,step);
- if(!candidate||Math.abs(candidate.yM-(state.floorYM??from.yM))>.08){state.path=undefined;state.search=undefined;return {...from,blocked:true};}
+ if(!candidate||Math.abs(candidate.yM-(state.floorYM??from.yM))>maxStepHeightM){state.path=undefined;state.search=undefined;return {...from,blocked:true};}
  let reached=clipActorStep(from,candidate,key,body,hardSpace);
  const supported=probe(reached,from,step);
- if(!supported||Math.abs(supported.yM-(state.floorYM??from.yM))>.08){state.path=undefined;state.search=undefined;return {...from,blocked:true};}
+ if(!supported||Math.abs(supported.yM-(state.floorYM??from.yM))>maxStepHeightM){state.path=undefined;state.search=undefined;return {...from,blocked:true};}
  reached=clipActorStep(from,supported,key,body,hardSpace);
  if(reached.blocked||Math.hypot(reached.xM-from.xM,reached.zM-from.zM)<1e-5){state.path=undefined;state.search=undefined;}
  state.expected={xM:reached.xM,yM:reached.yM,zM:reached.zM};state.following=Math.hypot(reached.xM-from.xM,reached.zM-from.zM)>1e-5;
  return reached;
 }
-function searchYieldRoute(from:ActorPoint,key:string,body:ActorBody,space:ActorSpace,hardSpace:ActorSpace,step:number,probe:ActorProbe,state:ActorYieldRouteState) {
+function searchYieldRoute(from:ActorPoint,key:string,body:ActorBody,space:ActorSpace,hardSpace:ActorSpace,step:number,probe:ActorProbe,state:ActorYieldRouteState,maxStepHeightM:number) {
  const protectedSpace=new Map([...space].filter(([id])=>id==='player'||id.startsWith('companion:')));
  if(!actorSpaceOverlaps(from,key,body,protectedSpace))return {...from,blocked:true};
  if(state.exhausted){if((state.retryFrames??0)>0){state.retryFrames=(state.retryFrames??0)-1;return {...from,blocked:true};}state.exhausted=false;state.search=undefined;}
@@ -131,14 +131,14 @@ function searchYieldRoute(from:ActorPoint,key:string,body:ActorBody,space:ActorS
  for(let work=0;work<2&&search.head<search.queue.length&&search.expanded<128;work++){
   const node=search.queue[search.head++];search.expanded++;
   if(node.path.length&&!actorSpaceOverlaps(node.point,key,body,protectedSpace)){
-   state.path=node.path;state.search=undefined;return followYieldRoute(from,key,body,hardSpace,step,probe,state)??{...from,blocked:true};
+   state.path=node.path;state.search=undefined;return followYieldRoute(from,key,body,hardSpace,step,probe,state,maxStepHeightM)??{...from,blocked:true};
   }
   if(node.path.length>=12)continue;
   for(let i=0;i<8;i++){
    const angle=i*Math.PI/4,q={xM:node.point.xM+.12*Math.cos(angle),zM:node.point.zM+.12*Math.sin(angle),yM:node.point.yM};
-   const geometry=probe(q,node.point,.12);if(!geometry||Math.abs(geometry.yM-node.point.yM)>.08||Math.abs(geometry.yM-search.origin.yM)>.08)continue;
+   const geometry=probe(q,node.point,.12);if(!geometry||Math.abs(geometry.yM-node.point.yM)>maxStepHeightM||Math.abs(geometry.yM-search.origin.yM)>maxStepHeightM)continue;
    const clipped=clipActorStep(node.point,geometry,key,body,hardSpace),supported=probe(clipped,node.point,.12);
-   if(!supported||Math.abs(supported.yM-node.point.yM)>.08||Math.abs(supported.yM-search.origin.yM)>.08)continue;
+   if(!supported||Math.abs(supported.yM-node.point.yM)>maxStepHeightM||Math.abs(supported.yM-search.origin.yM)>maxStepHeightM)continue;
    const reached=clipActorStep(node.point,supported,key,body,hardSpace);
    if(Math.hypot(reached.xM-node.point.xM,reached.zM-node.point.zM)<.004)continue;
    const id=Math.round((reached.xM-search.origin.xM)/.04)+':'+Math.round((reached.zM-search.origin.zM)/.04);
@@ -203,20 +203,25 @@ function overlapScore(point:ActorPoint,key:string,body:ActorBody,space:ActorSpac
 /** Take one small, geometry-approved yield step. No valid escape means wait,
  * never push the player, hide a resident or jump a wall/storey. Once clear,
  * the same resolver walks the resident back toward the scheduled activity. */
-export function yieldActorStep(from:ActorPoint,goal:ActorPoint,key:string,body:ActorBody,space:ActorSpace,budget:number,probe:ActorProbe,hardSpace:ActorSpace=space,routeState?:ActorYieldRouteState) {
+export function yieldActorStep(from:ActorPoint,goal:ActorPoint,key:string,body:ActorBody,space:ActorSpace,budget:number,probe:ActorProbe,hardSpace:ActorSpace=space,routeState?:ActorYieldRouteState,maxStepHeightM=.08) {
+  // Most callers remain on one source slab. Street callers may opt into the
+  // walk solver's existing floor-step allowance, after their geometry probe
+  // admits it. Keep the whole search within that height of its starting floor
+  // so repeated small steps cannot invent a staircase or another storey.
+  if(!Number.isFinite(maxStepHeightM)||maxStepHeightM<0||maxStepHeightM>.22)return {...from,blocked:true};
   const step=Math.max(0,Math.min(.12,budget));
   if(!step)return {...from,blocked:false};
-  if(routeState){prepareYieldRoute(routeState,from,goal,key,body,space);const routed=followYieldRoute(from,key,body,hardSpace,step,probe,routeState);if(routed)return routed;}
+  if(routeState){prepareYieldRoute(routeState,from,goal,key,body,space,maxStepHeightM);const routed=followYieldRoute(from,key,body,hardSpace,step,probe,routeState,maxStepHeightM);if(routed)return routed;}
   const score=overlapScore(from,key,body,space);
   if(score<1e-8){
     const dx=goal.xM-from.xM,dz=goal.zM-from.zM,d=Math.hypot(dx,dz);
     if(d<1e-5)return {...from,blocked:false};
     const t=Math.min(1,step/d),candidate=probe({xM:from.xM+dx*t,zM:from.zM+dz*t,yM:from.yM});
-    if(!candidate||Math.abs(candidate.yM-from.yM)>.08)return {...from,blocked:true};
+    if(!candidate||Math.abs(candidate.yM-from.yM)>maxStepHeightM)return {...from,blocked:true};
     const clipped=clipActorStep(from,candidate,key,body,space);
     if(!clipped.blocked)return clipped;
     const supported=probe(clipped);
-    return supported&&Math.abs(supported.yM-from.yM)<=.08?{...supported,blocked:true}:{...from,blocked:true};
+    return supported&&Math.abs(supported.yM-from.yM)<=maxStepHeightM?{...supported,blocked:true}:{...from,blocked:true};
   }
   const directions:Array<[number,number]>=[];
   for(const [id,other] of space)if(id!==key&&sharesHeight(from,body.heightM,other)){
@@ -245,17 +250,17 @@ export function yieldActorStep(from:ActorPoint,goal:ActorPoint,key:string,body:A
   let best:ActorPoint|null=null,bestScore=score,bestProtected=overlapScore(from,key,body,protectedSpace);
   for(const [x,z] of directions){
     let candidate=probe({xM:from.xM+x*step,zM:from.zM+z*step,yM:from.yM});
-    if(!candidate||Math.abs(candidate.yM-from.yM)>.08)continue;
+    if(!candidate||Math.abs(candidate.yM-from.yM)>maxStepHeightM)continue;
     const clipped=clipActorStep(from,candidate,key,body,barriers);
     if(clipped.blocked)candidate=probe(clipped);
-    if(!candidate||Math.abs(candidate.yM-from.yM)>.08)continue;
+    if(!candidate||Math.abs(candidate.yM-from.yM)>maxStepHeightM)continue;
     const nextScore=overlapScore(candidate,key,body,space);
     const nextProtected=overlapScore(candidate,key,body,protectedSpace);
     if(nextProtected<bestProtected-1e-8||(Math.abs(nextProtected-bestProtected)<=1e-8&&nextScore<bestScore-1e-8)){
       bestProtected=nextProtected;bestScore=nextScore;best=candidate;
     }
   }
-  return best?{...best,blocked:false}:routeState?searchYieldRoute(from,key,body,space,hardSpace,step,probe,routeState):{...from,blocked:true};
+  return best?{...best,blocked:false}:routeState?searchYieldRoute(from,key,body,space,hardSpace,step,probe,routeState,maxStepHeightM):{...from,blocked:true};
 }
 
 /** A stationary source point may already be occupied when its body mounts. */

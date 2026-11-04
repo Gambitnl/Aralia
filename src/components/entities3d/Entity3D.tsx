@@ -71,6 +71,10 @@ export interface Entity3DProps {
   /** Skinned weight style (slice 3): 'rigid' segment-look default or
    * 'smooth' one-piece blended tubes. Only read when bodyTech is 'skinned'. */
   skinnedWeights?: 'rigid' | 'smooth';
+  /** Worn cloth as shaped meshes ('rigid', default) or GPU cloth ('cloth',
+   * needs bodyTech 'skinned' + skinnedWeights 'smooth'). Character
+   * cloth+armor campaign, 2026-11-04: the forge A/B switch. */
+  garments?: 'rigid' | 'cloth';
   /** Rebuild materials after assembly (for example the WebGPU world's swap of
    * the GLSL toon materials, ADR 0009). Keep its identity stable: a new
    * function rebuilds the body. */
@@ -100,6 +104,7 @@ export function Entity3D({
   renderMode,
   bodyTech,
   skinnedWeights,
+  garments,
   showBones = false,
   heroStyle = false,
   showOutline = true,
@@ -110,11 +115,11 @@ export function Entity3D({
   // without rebuilding the handle merely because an options object changed.
   const handle = useMemo(
     () => {
-      const assembled = assembleEntity(blueprint, { resolutionScale, fieldUpdateHz, renderMode, bodyTech, skinnedWeights });
+      const assembled = assembleEntity(blueprint, { resolutionScale, fieldUpdateHz, renderMode, bodyTech, skinnedWeights, garments });
       adaptMaterials?.(assembled.group);
       return assembled;
     },
-    [blueprint, fieldUpdateHz, resolutionScale, renderMode, bodyTech, skinnedWeights, adaptMaterials],
+    [blueprint, fieldUpdateHz, resolutionScale, renderMode, bodyTech, skinnedWeights, garments, adaptMaterials],
   );
   useEffect(() => {
     handle.retain();

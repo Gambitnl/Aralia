@@ -9,8 +9,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 28/10/2026, 19:15:01
- * Dependents: components/BattleMap/dungeon/Dungeon3DPreview.tsx, data/underdark/biomes.ts, data/underdarkFactions.ts, hooks/useUnderdarkLighting.ts, services/underdarkService.ts, systems/underdark/UnderdarkFactionSystem.ts, systems/underdark/UnderdarkMechanics.ts, systems/underdark/carriedItemLight.ts, types/index.ts
+ * Last Sync: 03/11/2026, 06:28:41
+ * Dependents: components/BattleMap/dungeon/Dungeon3DPreview.tsx, data/underdark/biomes.ts, data/underdarkFactions.ts, hooks/useUnderdarkLighting.ts, services/underdarkService.ts, systems/gameplay/objectLightCasting.ts, systems/underdark/UnderdarkFactionSystem.ts, systems/underdark/UnderdarkMechanics.ts, systems/underdark/carriedItemLight.ts, types/index.ts
  * Imports: 1 files
  *
  * MULTI-AGENT SAFETY:
@@ -37,6 +37,8 @@ export interface LightSource {
     brightRadius?: number;
     dimRadius?: number;
     expiresAtGameTime?: number;
+    /** Spell provenance; bearer follows the marked object through ordinary equipment changes. */
+    objectLight?: {spellId: 'light'; casterId:string;slot:'MainHand'|'OffHand';color:string};
 }
 
 export type DepthLayer = 'upper' | 'middle' | 'lower' | 'abyss';

@@ -1,9 +1,9 @@
 /**
  * Level-gated racial movement modes (agora-431e).
  *
- * `deriveAlternateMovementSpeeds` reads a race's whole trait list at once and
- * has no level to judge it by, so a level-1 Dragonborn reads as already flying.
- * These cases pin the level window instead: Draconic Flight is silent until
+ * `deriveAlternateMovementSpeeds` used to read a race's whole trait list at once
+ * with no level, so a level-1 Dragonborn read as already flying (GG-259). It is
+ * level-gated now. These cases pin the level window: Draconic Flight is silent until
  * level 5, an ungated flight trait is live from level 1, and a mode written on
  * the core "Speed:" line is never gated.
  */
@@ -51,12 +51,24 @@ describe('getRacialMovementSpeedsForLevel (agora-431e)', () => {
     expect(getRacialMovementSpeedsForLevel(late)).toEqual({ fly: 30 });
   });
 
-  it('is the level-gated half of the level-blind parser it wraps', () => {
+  // GG-259: this case used to pin the fault (the public helper returned
+  // { fly: 30 } for a level-1 Dragonborn). The helper is level-gated now.
+  it('deriveAlternateMovementSpeeds gives a level-1 Dragonborn no flight', () => {
     const character = createMockPlayerCharacter({ level: 1, race: DRAGONBORN_DATA });
 
-    // The existing helper cannot see the level, which is the gap this closes.
-    expect(deriveAlternateMovementSpeeds(character)).toEqual({ fly: 30 });
+    expect(deriveAlternateMovementSpeeds(character)).toEqual({});
     expect(getRacialMovementSpeedsForLevel(character, 1)).toEqual({});
+  });
+
+  it('deriveAlternateMovementSpeeds unlocks Draconic Flight at level 5, not level 4', () => {
+    expect(deriveAlternateMovementSpeeds(createMockPlayerCharacter({ level: 4, race: DRAGONBORN_DATA }))).toEqual({});
+    expect(deriveAlternateMovementSpeeds(createMockPlayerCharacter({ level: 5, race: DRAGONBORN_DATA }))).toEqual({ fly: 30 });
+    // An explicit level overrides the character's own level.
+    expect(deriveAlternateMovementSpeeds(createMockPlayerCharacter({ level: 1, race: DRAGONBORN_DATA }), 5)).toEqual({ fly: 30 });
+  });
+
+  it('deriveAlternateMovementSpeeds keeps an ungated level-1 flight (Aarakocra)', () => {
+    expect(deriveAlternateMovementSpeeds(createMockPlayerCharacter({ level: 1, race: AARAKOCRA_DATA }))).toEqual({ fly: 30 });
   });
 
   it('keeps an ungated racial flight available from level 1', () => {

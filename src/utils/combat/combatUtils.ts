@@ -197,8 +197,11 @@ const TERRAIN_MOVEMENT_POLICIES: Record<TerrainMovementPolicyId, TerrainMovement
 
 /** The terrain movement policy this combatant moves under, or null when none applies. */
 export function resolveCombatantTerrainMovementPolicy(
-  character: Pick<CombatCharacter, 'terrainPolicyId' | 'ignoreDifficultTerrain' | 'modifiers'>,
+  character: Pick<CombatCharacter, 'terrainPolicy' | 'terrainPolicyId' | 'ignoreDifficultTerrain' | 'modifiers'>,
 ): TerrainMovementPolicy | null {
+  if (character.terrainPolicy) {
+    return character.terrainPolicy;
+  }
   if (character.terrainPolicyId) {
     return TERRAIN_MOVEMENT_POLICIES[character.terrainPolicyId];
   }
@@ -1616,8 +1619,9 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     primalBeastForm: player.primalBeastForm,
     // Read the race's trait prose once for the QUALIFIED waiver (GG-257). The
     // flat boolean above cannot say whether Earth Walk covers the water square
-    // the mover is about to enter; this id can.
-    terrainPolicyId: resolveTerrainMovementPolicyFromTraits(player.race?.traits)?.id,
+    // the mover is about to enter; this id/policy can.
+    terrainPolicyId: player.terrainPolicyId ?? resolveTerrainMovementPolicyFromTraits(player.race?.traits)?.id,
+    terrainPolicy: player.terrainPolicy ?? (resolveTerrainMovementPolicyFromTraits(player.race?.traits) ?? undefined),
   };
 
   // --------------------------------------------------------------------------

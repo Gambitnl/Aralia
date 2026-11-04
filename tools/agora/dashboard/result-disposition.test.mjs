@@ -58,7 +58,13 @@ test('dashboard distinguishes triage, unclassified legacy results, and substanti
   try {
     // Browser startup belongs inside the cleanup boundary. If Chromium cannot
     // launch, the private daemon and temp store are still closed below.
-    browser = await within('Chromium launch', chromium.launch({ headless: true, timeout: 5000 }));
+    browser = await within('Chromium launch', chromium.launch({
+      // Use installed Chrome updates and retain its process sandbox.
+      channel: 'chrome',
+      chromiumSandbox: true,
+      headless: true,
+      timeout: 5000,
+    }));
 
     // Register one fixture author and create the two records whose visual
     // treatment must never collapse into the same completion signal.

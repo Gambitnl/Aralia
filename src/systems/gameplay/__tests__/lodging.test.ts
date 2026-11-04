@@ -7,7 +7,7 @@ import { createMockGameState, createMockPlayerCharacter } from '../../../utils/c
 import { characterReducer } from '../../../state/reducers/characterReducer';
 import { worldReducer } from '../../../state/reducers/worldReducer';
 import { townBuildingVisit } from '../../../components/Worldforge/townBuildingVisit';
-import { guestBedsForVisit, guestBedDescription, lodgingKeeperOnDuty, lodgingOfferError, lodgingRestError, reserveLodging, submergedRestError, propertyRestError, rememberRestGround, restEnvironmentError } from '../lodging';
+import { guestBedsForVisit, guestBedsWithStairAccess, guestBedStairIssue, guestBedDescription, lodgingKeeperOnDuty, lodgingOfferError, lodgingRestError, reserveLodging, submergedRestError, propertyRestError, rememberRestGround, restEnvironmentError } from '../lodging';
 import type { GroundWorld } from '../../worldforge/bridge/groundChunkLoader';
 import { metersToHeight } from '../../world3d/config';
 import type { LodgingOffer, LodgingRestAdmission } from '../../../types/rest';
@@ -46,6 +46,34 @@ function booked() {
 }
 
 describe('source lodging', () => {
+  it('keeps four source bed identities while refusing new legacy-stair offers', () => {
+    // Same bed/chest index pattern as the observed inn; geometry and source
+    // generation are qualified separately by native play, not by this fixture.
+    const visit = {plan: {type:'inn', stairs:[{fromLevel:0,x:7.5,y:2.5}], floors:[{level:1,
+      rooms:[{id:0,purpose:'guest-room'},{id:1,purpose:'guest-room'}],
+      furnishings:[{kind:'bed',roomId:0},{kind:'chest',roomId:0},{kind:'bed',roomId:0},{kind:'bed',roomId:1},{kind:'chest',roomId:1},{kind:'bed',roomId:1}]}]}} as unknown as ReturnType<typeof townBuildingVisit>;
+    const before = JSON.stringify(visit);
+    const beds = guestBedsForVisit(visit);
+    expect(beds).toHaveLength(4);
+    expect(beds[0]).toEqual({level: 1, index: 0, roomId: 0});
+    expect(guestBedsWithStairAccess(visit)).toEqual([]);
+    expect(guestBedStairIssue(visit, beds[0])).toContain('No usable stair route');
+    expect(guestBedsForVisit(visit)).toEqual(beds);
+    expect(JSON.stringify(visit)).toBe(before);
+  });
+  it('retains ground offers and requires a return flight at every intermediate storey', () => {
+    const visit = {plan:{type:'inn', stairs:[{fromLevel:0,x:0,y:0,layout:{kind:'return'}}], floors:[
+      {level:0,rooms:[{id:0,purpose:'guest-room'}],furnishings:[{kind:'bed',roomId:0},{kind:'bed',roomId:0}]},
+      {level:1,rooms:[{id:0,purpose:'guest-room'}],furnishings:[{kind:'bed',roomId:0}]},
+      {level:2,rooms:[{id:0,purpose:'guest-room'}],furnishings:[{kind:'bed',roomId:0}]},
+    ]}} as unknown as ReturnType<typeof townBuildingVisit>;
+    const beds = guestBedsForVisit(visit), offered = guestBedsWithStairAccess(visit);
+    expect(beds).toHaveLength(4);
+    expect(offered.filter(bed => bed.level === 0)).toHaveLength(2);
+    expect(offered.some(bed => bed.level === 1)).toBe(true);
+    expect(offered.some(bed => bed.level === 2)).toBe(false);
+    expect(offered.every(bed => guestBedStairIssue(visit, bed) === null)).toBe(true);
+  });
   it('refuses the actual published river bank overdraw without widening the town water to its regional width', () => {
     const ground = sourceGround({rivers: [{sourceKind: 'river', points: [{x: 10, z: 64}, {x: 110, z: 64}],
       widthM: 68, surfaceWidthM: [4, 4], waterlineY: [6, 4]}]});

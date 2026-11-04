@@ -63,7 +63,11 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
   + `<path d="${poly(footprint)}" fill="none" stroke="#3a2a14" stroke-width="2.5"/>`
   + `</svg>`;
 
-const browser = await chromium.launch();
+const browser = await chromium.launch({
+  // Use installed Chrome updates and retain its process sandbox.
+  channel: 'chrome',
+  chromiumSandbox: true,
+});
 const page = await browser.newPage({ viewport: { width: W, height: H } });
 await page.setContent(`<!doctype html><body style="margin:0">${svg}</body>`);
 const outDir = path.join(__dirname, '../../.agent/town-compare');

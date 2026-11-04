@@ -24,6 +24,10 @@ export default defineConfig({
     ],
     /* Shared settings for all the projects below. */
     use: {
+        // Use installed Chrome updates and keep its process sandbox enabled.
+        channel: 'chrome',
+        launchOptions: { chromiumSandbox: true },
+
         /* Base URL to use in actions like `await page.goto('/')`. */
         baseURL: 'http://localhost:3001/Aralia/',
 

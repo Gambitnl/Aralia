@@ -12,9 +12,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 31/10/2026, 03:11:09
+ * Last Sync: 03/11/2026, 11:10:17
  * Dependents: components/World3D/World3DWrapper.tsx, hooks/actions/handleNpcInteraction.ts, hooks/useDialogueSystem.ts, services/dialogueService.ts, state/reducers/worldReducer.ts
- * Imports: 10 files
+ * Imports: 11 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -24,7 +24,7 @@
 // @dependencies-end
 
 import type {GameState} from '../../types/state';
-import type {NpcDialoguePublication,NpcWorkDialoguePublication,NpcPersonalDialoguePublication,NpcGeneratedDialoguePublication,NpcInstitutionDialoguePublication,Interaction} from '../../types/memory';
+import type {NpcDialoguePublication,NpcWorkDialoguePublication,NpcPersonalDialoguePublication,NpcGeneratedDialoguePublication,NpcInstitutionDialoguePublication,NpcDirectionsDialoguePublication,Interaction} from '../../types/memory';
 import {householdNpcAliveAt,householdNpcDescription} from '../worldforge/townsim/householdNpc';
 import {villagerForResident} from '../worldforge/roster/agentLife';
 import {getGameDay} from '../../utils/core';
@@ -33,6 +33,7 @@ import {createEmptyMemory} from '../../utils/world/memoryUtils';
 import {NPCS} from '../../data/world/npcs';
 import type {RichNPC,NpcMemory} from '../../types/world';
 import {resolveNpcInstitutionStatement} from './npcInstitutionStatements';
+import {resolveNpcLocalDirections} from '../travel/npcLocalDirections';
 
 /** Household dialogue uses today's admitted life, not the founding biography.
  * Other authored personalities retain their existing voice and facts. Saved
@@ -69,6 +70,12 @@ function validInstitutionPublication(value:unknown):value is NpcInstitutionDialo
   return !!data && (data.topicId==='household_temple'||data.topicId==='household_office_history'||data.topicId==='household_public_history')
     && typeof data.speakerKey==='string' && data.source?.kind==='institution-statement'
     && typeof data.source.snapshot==='string' && !!data.source.snapshot;
+}
+
+function validDirectionsPublication(value:unknown):value is NpcDirectionsDialoguePublication {
+  const data=value as Partial<NpcDirectionsDialoguePublication>|undefined;
+  return !!data&&data.topicId==='global_directions'&&typeof data.speakerKey==='string'
+    &&data.source?.kind==='local-directions'&&typeof data.source.snapshot==='string'&&!!data.source.snapshot.trim();
 }
 
 /** A venue packet is not a person. Only the already admitted current life can
@@ -110,7 +117,7 @@ function admittedSpokenHistory(state:GameState,npcId:string,key:string|undefined
 export function latestSpokenDialogueReplies(state:GameState,npcId:string,max=3):Interaction[] {
   if (!Number.isFinite(max)||max<=0) return [];
   const entries=admittedSpokenHistory(state,npcId,generatedDialogueSpeakerKey(state,npcId),value=>
-    validGeneratedPublication(value)||validInstitutionPublication(value)||validPublication(value)||validPersonalPublication(value))
+    validGeneratedPublication(value)||validInstitutionPublication(value)||validDirectionsPublication(value)||validPublication(value)||validPersonalPublication(value))
     .sort((a,b)=>a.record.date-b.record.date);
   // Repeating an older fact is still the latest real delivery. Honor the
   // pointer in the original memory without changing that record's first date.
@@ -145,6 +152,25 @@ function publishInstitutionReply(state:GameState,npcId:string|null,response:stri
   const record:Interaction={id:'dialogue:'+npcId+':'+Number(state.gameTime)+':'+history.length,date:Number(state.gameTime),
     type:'dialogue',summary:response,attitudeChange:0,significance:3,
     dialogue:{topicId:dialogue.topicId,speakerKey:dialogue.speakerKey,source:{...dialogue.source}}};
+  return {...display,npcMemory:{...state.npcMemory,[npcId]:{...memory,interactions:[...history,record]}}};
+}
+
+/** Directions already enter the discovery log. The same delivered words must
+ * also participate in last-discussion recall, with current source and speaker
+ * checks. Old journal notes are never backfilled into a conversation. */
+function publishDirectionsReply(state:GameState,npcId:string|null,response:string|null,dialogue:NpcDirectionsDialoguePublication):Partial<GameState> {
+  if(!npcId||!response?.trim()||!validDirectionsPublication(dialogue)
+    ||state.activeDialogueSession?.npcId!==npcId||!state.activeDialogueSession.discussedTopicIds.includes(dialogue.topicId)
+    ||dialogue.speakerKey!==npcDialogueSpeakerKey(state,npcId)||!Number.isFinite(Number(state.gameTime)))return {};
+  const npc=state.generatedNpcs[npcId];
+  if(!npc||resolveNpcLocalDirections(state,npc)!==response||dialogue.source.snapshot!==response)return {};
+  const memory=state.npcMemory[npcId]??createEmptyMemory(),history=memory.interactions??[];
+  const display={lastInteractedNpcId:npcId,lastNpcResponse:response};
+  if(history.some(record=>record.type==='dialogue'&&validDirectionsPublication(record.dialogue)
+    &&record.dialogue.speakerKey===dialogue.speakerKey&&record.dialogue.source.snapshot===response&&record.summary===response))return display;
+  const record:Interaction={id:'dialogue:'+npcId+':'+Number(state.gameTime)+':'+history.length,date:Number(state.gameTime),
+    type:'dialogue',summary:response,attitudeChange:0,significance:3,
+    dialogue:{topicId:'global_directions',speakerKey:dialogue.speakerKey,source:{...dialogue.source}}};
   return {...display,npcMemory:{...state.npcMemory,[npcId]:{...memory,interactions:[...history,record]}}};
 }
 
@@ -255,6 +281,7 @@ export function latestSpokenPersonalReply(state: GameState,npcId:string,topicId:
  * change between selecting a topic and delivering its answer rejects both. */
 function publishSpokenNpcReplyContent(state:GameState,npcId:string|null,response:string|null,dialogue:NpcDialoguePublication):Partial<GameState> {
   if (validGeneratedPublication(dialogue)) return publishGeneratedReply(state,npcId,response,dialogue);
+  if (validDirectionsPublication(dialogue)) return publishDirectionsReply(state,npcId,response,dialogue);
   if (validInstitutionPublication(dialogue)) return publishInstitutionReply(state,npcId,response,dialogue);
   if (validPublication(dialogue)) return publishSpokenWorkReply(state,npcId,response,dialogue);
   if (!npcId || !response?.trim() || !validPersonalPublication(dialogue)

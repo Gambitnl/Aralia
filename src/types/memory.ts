@@ -88,7 +88,14 @@ export interface NpcInstitutionDialoguePublication {
   speakerKey:string;
   source:{kind:'institution-statement';snapshot:string};
 }
-export type NpcDialoguePublication = NpcWorkDialoguePublication | NpcPersonalDialoguePublication | NpcGeneratedDialoguePublication | NpcInstitutionDialoguePublication;
+/** Delivered local directions join the same attributed conversation history.
+ * Their exact checked wording is retained; no visit, route or access is granted. */
+export interface NpcDirectionsDialoguePublication {
+  topicId:'global_directions';
+  speakerKey:string;
+  source:{kind:'local-directions';snapshot:string};
+}
+export type NpcDialoguePublication = NpcWorkDialoguePublication | NpcPersonalDialoguePublication | NpcGeneratedDialoguePublication | NpcInstitutionDialoguePublication | NpcDirectionsDialoguePublication;
 
 export interface Interaction {
   /** When present, summary is the exact spoken reply, not a new world fact. */

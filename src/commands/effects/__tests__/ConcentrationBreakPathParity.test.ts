@@ -14,16 +14,11 @@ import type { DamageEffect } from '@/types/spells';
 import type { PlayerCharacter } from '@/types';
 import type { ScheduledSpellEffect } from '@/systems/spells/effects';
 
-// Both paths roll the concentration save through this one function, and neither
-// exposes a die seam for it, so the outcome is pinned here. Everything else in
-// the module keeps its real implementation.
-vi.mock('@/utils/character', async (importOriginal) => {
-    const actual = await importOriginal<typeof import('@/utils/character')>();
-    return {
-        ...actual,
-        checkConcentration: vi.fn(() => ({ success: false, dc: 10, roll: 7 })),
-    };
-});
+// GG-261: Both the hook path (useTurnManager / useCombatEngine) and the command
+// path (DamageCommand) thread an optional concentrationSaveRng into the real
+// checkConcentration -> rollSavingThrow pipeline, so no module mock is needed.
+// A fixed die of (7 - 0.5) / 20 produces a d20 face of 7 against DC 10.
+const FIXED_FAIL_CONCENTRATION_RNG = () => (7 - 0.5) / 20;
 
 // These fixtures deliberately build the same concentration setup through the
 // hook path and the command path so future cleanup changes cannot drift apart.
@@ -227,7 +222,8 @@ describe('Concentration break parity between hook and command paths', () => {
             characters: [caster, ally, unrelatedAlly],
             mapData: null,
             onCharacterUpdate,
-            onLogEntry
+            onLogEntry,
+            concentrationSaveRng: FIXED_FAIL_CONCENTRATION_RNG,
         }));
 
         const scheduledEffect: ScheduledSpellEffect = {
@@ -341,7 +337,8 @@ describe('Concentration break parity between hook and command paths', () => {
             characters: [caster, ally, unrelatedAlly],
             mapData: null,
             onCharacterUpdate,
-            onLogEntry
+            onLogEntry,
+            concentrationSaveRng: FIXED_FAIL_CONCENTRATION_RNG,
         }));
 
         const scheduledEffect: ScheduledSpellEffect = {
@@ -418,6 +415,7 @@ describe('Concentration break parity between hook and command paths', () => {
             castAtLevel: 2,
             caster: commandCaster,
             targets: [commandTarget],
+            concentrationSaveRng: FIXED_FAIL_CONCENTRATION_RNG,
             gameState: createMockGameState({
                 party: [
                     createMockPlayerCharacter({ id: caster.id, name: 'Caster' }),

@@ -51,6 +51,55 @@
   },
   "topics": [
     {
+      "id": "character-cloth-armor",
+      "title": "Character cloth and armor",
+      "sub": "better player and NPC characters - cloth that swings and collides with the skinned body; armor types (plate, chain, leather, padded) from equippedItems; live in game with a cheap far level of detail for 300-NPC towns",
+      "campaign": "rendering",
+      "status": "active",
+      "deps": [
+        {
+          "id": "entity-skeleton-pivot",
+          "kind": "hard",
+          "why": "cloth pins and armor plates ride the skinned 39-bone biped that every game surface uses"
+        },
+        {
+          "id": "entity-generator-3d",
+          "kind": "hard",
+          "why": "recipes, class kits, gear parts and crowdBake are the seams this work extends"
+        }
+      ],
+      "open": 6,
+      "features": [
+        {
+          "title": "Scope: target look, body route, cloth method, armor types, crowd budget (question sheet)",
+          "status": "active",
+          "note": "Remy 2026-11-03 rejected the current Aralia look and the Wildkin armor look. Sheet https://claude.ai/artifact/71CWggvG5XFdxNx5j6TCWM (rounds 1-3). SETTLED 2026-11-04: target look = the generated knight/wizard/ranger lineup Remy called 'amazing' (heroic stylized, about 5 heads tall, thick bevelled plates with a gold rim band, big hands and feet, trim at every hem, no outlines; file .agent/scratch/charcloth/target-look.webp, ignored); both bodies in a forge A/B (authored side code-sculpted from the target picture); GPU particle cloth; all 6 garments; all 8 armor types; every biped incl. tails and hooves; 1 ms frame limit; replace after eye check. OPEN: q10 WebGL texture cloth vs WebGPU compute."
+        },
+        {
+          "title": "Baseline: forge captures and 300-NPC town frame cost before any change",
+          "status": "done",
+          "note": "2026-11-04, headless Chrome on the real GPU, ?phase=world3d&ground=1&agentclock=13: 2,111 residents, 410 crowd figures drawn; crowd shown 13.4 fps, hidden 14.8 fps, median frame 50 ms both, CPU-bound. Rig .agent/scratch/charcloth/budget-rig.mjs."
+        },
+        {
+          "title": "Cloth on the skinned body: cape, robe, skirt, tabard; collides with legs and body; forge A/B + test",
+          "status": "active",
+          "note": "2026-11-04 CAPE BUILT: WebGL GPU cloth (src/systems/entities3d/three/cloth/: bodyColliders, garmentPanels, clothAtlas, clothShaders, clothSystem, clothGarment); assembleEntity garments:'cloth'. Forge A/B design.html?step=entityforge&cloth=1. Rendered check scripts/verification/clothClearance.mjs: human, hill_dwarf, half_orc, halfling all 0 points inside while walking a circle. 22 unit tests. Waiting on Remy's eye (q7) before the rigid capeCloak is deleted. Next: robe, skirt, tabard, hood, trousers; gap: slung gear (lute, quiver) is not a collider."
+        },
+        {
+          "title": "Armor types driven by equippedItems: plate, chain, leather, padded; forge A/B + test",
+          "status": "specced"
+        },
+        {
+          "title": "Game surfaces: PlayerAvatar, InteriorOccupants, crowdBake use the new gear; far level of detail",
+          "status": "specced"
+        },
+        {
+          "title": "Measure the 300-NPC town frame cost after; Remy eyeball live in game",
+          "status": "specced"
+        }
+      ]
+    },
+    {
       "id": "world-props",
       "title": "Beautification wave",
       "sub": "beauty first, perf later · anchor: BG3 · realism climbs everywhere",

@@ -1,7 +1,13 @@
 import { chromium } from 'playwright';
 
 (async () => {
-  const browser = await chromium.launch({ headless: true, args: ['--enable-unsafe-swiftshader'] });
+  const browser = await chromium.launch({
+    // Use installed Chrome updates and retain its process sandbox.
+    channel: 'chrome',
+    chromiumSandbox: true,
+    headless: true,
+    args: ['--enable-unsafe-swiftshader'],
+  });
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   
   console.log('Navigating to town...');

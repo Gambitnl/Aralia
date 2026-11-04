@@ -76,6 +76,19 @@ describe('Concentration System', () => {
             const result2014 = checkConcentration(mockTarget, 70, '2014');
             expect(result2014.dc).toBe(35);
         })
+
+        it('accepts an optional deterministic rng in checkConcentration (GG-261)', () => {
+            const mockTarget = createMockCombatCharacter();
+            mockTarget.stats.constitution = 10; // +0 modifier
+
+            // Face 9 vs DC 10 -> failure
+            const failed = checkConcentration(mockTarget, 10, '2024', () => (9 - 0.5) / 20);
+            expect(failed).toEqual({ success: false, dc: 10, roll: 9 });
+
+            // Face 10 vs DC 10 -> success
+            const passed = checkConcentration(mockTarget, 10, '2024', () => (10 - 0.5) / 20);
+            expect(passed).toEqual({ success: true, dc: 10, roll: 10 });
+        })
     })
 
     describe('SpellCommandFactory', () => {

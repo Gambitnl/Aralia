@@ -61,7 +61,10 @@ import { isSpeciesGait } from './speciesSkeleton';
 import { createSkinnedClipPlayer, type SkinnedClipPlayer } from './skinnedClipPlayer';
 import type { AnimationClip } from 'three';
 import { buildHeadForm, buildHumanoidHead, HUMANOID_EYE, PLAN_EYE_STATION } from './headForms';
-import { bipedSkullRadiusM } from './skeletonBuilder';
+import { bipedRestPose, bipedSkullRadiusM, type BipedBoneName } from './skeletonBuilder';
+import { bipedClothColliders, defaultClothMargins } from './cloth/bodyColliders';
+import { capePanel } from './cloth/garmentPanels';
+import { ClothGarment } from './cloth/clothGarment';
 import type { PartChoice } from './partVariants';
 import type { SkinnedMesh } from 'three';
 import { HAFT_WEAPON_IDS } from '../parts/gearWeapons';
@@ -132,7 +135,18 @@ export interface AssembleOptions {
    * It brings its own head, so no humanoid head is mounted. Needs bodyTech
    * 'skinned' on a biped gait; anything else throws. */
   rig?: SkinnedMesh;
+  /** How worn cloth is built (character cloth+armor campaign, 2026-11-04).
+   * 'rigid' (default) = the shaped mesh parts (capeCloak is a fixed half
+   * cylinder). 'cloth' = GPU particle cloth that hangs, swings and collides
+   * with the body (three/cloth/). Needs a skinned smooth biped; anything
+   * else throws. This is the forge A/B switch for Remy's eye check (sheet
+   * 71CWggvG q7): once 'cloth' passes, it becomes the only path and the
+   * rigid cloth parts are deleted. */
+  garments?: 'rigid' | 'cloth';
 }
+
+/** Body-part ids that become simulated cloth when garments is 'cloth'. */
+const CLOTH_PART_IDS: ReadonlySet<string> = new Set(['capeCloak']);
 
 const IDLE: LocomotionState = {
   position: new Vector3(),
@@ -192,6 +206,11 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
   }
   // a foreign rig brings its own head
   const headChoice = options.rig ? 'none' : (options.parts?.head ?? 'humanoid');
+  const clothGarments = options.garments === 'cloth';
+  if (clothGarments && (bodyTech !== 'skinned' || options.skinnedWeights !== 'smooth' || gait !== 'biped' || blueprint.planSpec || options.rig)) {
+    // fail loudly: cloth hangs on the measured smooth biped skin only
+    throw new Error("assembleEntity: garments 'cloth' needs a skinned smooth procedural biped (bodyTech skinned, skinnedWeights smooth, biped gait, no plan, no rig)");
+  }
 
   const group = new Group();
   group.name = `entity:${blueprint.label}`;
@@ -329,8 +348,14 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     // with the gritty kit; smaller whites read grim, not cute.
     eyeScale: Number(faceSculptParams?.eyeScale ?? 1),
   };
+  const clothParts: typeof blueprint.parts = [];
   for (const instance of blueprint.parts) {
     if (instance.partId === 'faceSculpt') continue;
+    if (clothGarments && CLOTH_PART_IDS.has(instance.partId)) {
+      // built as simulated cloth below, on the skinned body
+      clothParts.push(instance);
+      continue;
+    }
     const def = getPart(instance.partId);
     const params = instance.params ?? {};
     if (def.kind === 'chain') {
@@ -405,6 +430,29 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     container.add(object);
     partsRoot.add(container);
     meshContainers.push({ container, anchor: instance.anchor });
+  }
+
+  // --- simulated cloth (character cloth+armor campaign, 2026-11-04)
+  // The colliders are fitted to THIS figure's drawn skin; the cut is sized
+  // from them, so one cape fits every race. The garment mesh is a child of
+  // the group (lifetime, visibility) but draws in world space.
+  const garments: ClothGarment[] = [];
+  if (clothParts.length > 0 && skinnedBody) {
+    const skeleton = skinnedBody.skinnedMesh.skeleton;
+    const boneIndex = new Map(skeleton.bones.map((b, i) => [b.name as BipedBoneName, i]));
+    const colliders = bipedClothColliders(frame, bipedRestPose(frame), boneIndex, skinnedBody.skinnedMesh.geometry, defaultClothMargins(hM));
+    for (const instance of clothParts) {
+      if (instance.partId !== 'capeCloak') throw new Error(`assembleEntity: no cloth cut for part "${instance.partId}"`);
+      const panel = capePanel(colliders, hM, { length: 'calf' });
+      const outer = new Color(palette.accentHex);
+      const garment = new ClothGarment(panel, skinnedBody.skinnedMesh, colliders, group, {
+        colorHex: `#${outer.getHexString()}`,
+        // the lining: the same dye, a value step darker (target lineup)
+        liningHex: `#${outer.clone().multiplyScalar(0.55).getHexString()}`,
+      });
+      group.add(garment.mesh);
+      garments.push(garment);
+    }
   }
 
   // --- skinned chain parts (skeleton pivot slice 6)
@@ -1003,6 +1051,8 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     // texture; the traverse below re-hits the meshes harmlessly
     skinnedBody?.dispose();
     skinnedChains?.dispose();
+    // cloth leaves the GPU system first, then its mesh goes with the rest
+    for (const g of garments) g.dispose();
     group.traverse((o: Object3D) => {
       const m = o as Mesh;
       if (m.isMesh || (o as unknown as { isLineSegments?: boolean }).isLineSegments) {

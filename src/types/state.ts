@@ -25,6 +25,7 @@ import { Faction, PlayerFactionStanding } from './factions.js';
 import { Companion } from './companions.js';
 import { DivineFavor, Temple, ReligionState } from './religion.js';
 import { Fence, GuildMembership, HeistPlan, Crime, Bounty } from './crime/index.js';
+import type { InfernalContract } from './infernal.js';
 import { UnderdarkState } from './underdark.js';
 import { EconomyState } from './economy.js';
 import { Action, BattlefieldSourceGapReason, GroundingChunk } from './actions.js';
@@ -507,7 +508,12 @@ export interface GameState {
   fences: Record<string, Fence>;
   thievesGuild?: GuildMembership;
   activeHeist?: HeistPlan | null;
-  activeContracts?: unknown[];
+  /**
+   * Signed infernal contracts (GG-254). Typed with the real contract shape so
+   * InfernalMechanics no longer guesses its own records at run time. Only
+   * InfernalMechanics.signContract writes this list.
+   */
+  activeContracts?: InfernalContract[];
 
   dynamicLocations: Record<string, Location>;
   dynamicNPCs?: Record<string, NPC>;

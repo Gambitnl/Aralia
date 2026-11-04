@@ -167,3 +167,41 @@ test('a genuinely missing .ts file is still reported', () => {
   assert.equal(r.stale.length, 1);
   assert.deepEqual(r.stale[0].missing, ['src/utils/glossaryUtils.ts']);
 });
+
+test('drift skips paths inside deletion-log lines (GG-524)', () => {
+  const root = fixture({
+    'src/systems/combat/live.ts': '',
+    'docs/architecture/domains/combat.md': [
+      '- src/systems/combat/live.ts',
+      '- src/services/BuildingGenerator.ts - deleted 2026-09-23, agora-e840.7',
+      'Verified: 2026-09-28 (src/services/travelService.ts was removed)',
+      '- src/systems/combat/trulyMissing.ts',
+    ].join('\n'),
+  });
+  const r = domainDocDrift(root);
+  assert.equal(r.checkable, true);
+  assert.equal(r.stale.length, 1);
+  assert.deepEqual(r.stale[0].missing, ['src/systems/combat/trulyMissing.ts']);
+});
+
+test('drift skips paths inside retired sections and blocks (GG-524)', () => {
+  const root = fixture({
+    'src/systems/combat/live.ts': '',
+    'docs/architecture/domains/town.md': [
+      'RETIRED 2026-09-14 (agora-e840.5). The RealmSmith stack is gone.',
+      'src/services/RealmSmithAssetPainter.ts and src/services/RealmSmithTownGenerator.ts were deleted.',
+      '',
+      '## Retired Names',
+      '- src/services/RoadGenerator.ts - deleted 2026-09-23',
+      '',
+      '## Live Section',
+      '- src/systems/combat/live.ts',
+      '- src/systems/combat/trulyMissing.ts',
+    ].join('\n'),
+  });
+  const r = domainDocDrift(root);
+  assert.equal(r.checkable, true);
+  assert.equal(r.stale.length, 1);
+  assert.deepEqual(r.stale[0].missing, ['src/systems/combat/trulyMissing.ts']);
+});
+

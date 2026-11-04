@@ -275,13 +275,21 @@ export const CRAFTED_ITEMS: Record<string, Item> = {
     cost: '1000',
     weight: 0.5,
     rarity: ItemRarity.Rare,
-    // Deferred 2026-09-09 -> GG-219. AttackRiderSystem already matches
-    // conditional bonus damage against an incoming attack, and
-    // TargetConditionFilter carries creatureTypes (src/types/combat.ts:75), but
-    // riders can only be registered from spells and abilities — item data has no
-    // path in. Kept as narrative utility so the +6d6-vs-Dragons intent survives
-    // until that path exists.
-    effect: utilityEffect('Adds significant bonus damage vs Dragons for one hour.'),
+    // GG-219: Item-side rider descriptor consumed by RegisterRiderCommand or item application.
+    effect: {
+      type: 'rider',
+      damage: { dice: '6d6', type: 'force' },
+      duration: { type: 'hours', value: 1 },
+      consumption: 'unlimited',
+      targetFilter: {
+        creatureTypes: ['Dragon'],
+      },
+      attackFilter: {
+        weaponType: 'any',
+        attackType: 'weapon',
+      },
+      description: 'Adds +6d6 bonus damage vs Dragons for 1 hour.',
+    },
   },
   potion_of_gaseous_form: {
     id: 'potion_of_gaseous_form',

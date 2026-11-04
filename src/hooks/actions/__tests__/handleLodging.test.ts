@@ -28,6 +28,26 @@ beforeEach(() => {
   } as unknown as ReturnType<typeof townBuildingVisit>);
 });
 describe('keeper lodging actions', () => {
+  it('refuses a new upper-room quote behind legacy stairs before any payment', async () => {
+    const props = fixture(), visit = structuredClone(townBuildingVisit(1, 1, 106));
+    visit.plan.floors[0].level = 1;
+    visit.plan.stairs = [{fromLevel: 0, x: 2.5, y: 2.5}];
+    vi.mocked(townBuildingVisit).mockReturnValue(visit);
+    const before = JSON.stringify(props.gameState);
+    await handleRequestLodging(props, 'inn');
+    expect(props.addMessage).toHaveBeenCalledWith(expect.stringContaining('no usable stair route'), 'system');
+    expect(props.dispatch.mock.calls.some(([a]) => ['SHOW_LODGING_OFFER', 'RESERVE_LODGING'].includes(a.type))).toBe(false);
+    expect(JSON.stringify(props.gameState)).toBe(before);
+  });
+  it('withdraws an upstairs quote when its usable stair disappears before confirmation', async () => {
+    const props = fixture(), visit = structuredClone(townBuildingVisit(1, 1, 106));
+    visit.plan.floors[0].level = 1;
+    visit.plan.stairs = [];
+    vi.mocked(townBuildingVisit).mockReturnValue(visit);
+    await handleBookLodging(props, {...quote, beds: [{level: 1, index: 0, roomId: 6}]});
+    expect(props.dispatch.mock.calls.some(([a]) => a.type === 'RESERVE_LODGING')).toBe(false);
+    expect(props.dispatch).toHaveBeenCalledWith({type: 'SHOW_LODGING_OFFER', payload: {offer: expect.anything(), error: expect.stringContaining('no usable stair route')}});
+  });
   it('quotes the existing owner and bed without spending or resting', async () => {
     const props = fixture();
     await handleRequestLodging(props, 'inn');

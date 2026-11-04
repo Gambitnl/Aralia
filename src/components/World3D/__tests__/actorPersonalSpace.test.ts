@@ -219,3 +219,15 @@ it('does not accumulate small supported rises into an unscheduled storey change'
  const stairs=(q:ActorPoint,start:ActorPoint=npc)=>q.xM<.65||q.zM<0?null:{...q,xM:Math.min(.7,q.xM),yM:start.yM+.05};
  for(let i=0;i<180;i++)expect(yieldActorStep(npc,npc,'npc',npc,actorCourtesySpace(space),.12,stairs,space,route)).toMatchObject(npc);
 });
+
+
+it('permits an admitted street doorstep only when opted in, retaining body and geometry barriers',()=>{
+ const npc=body(0),space=new Map([['npc',npc]]),goal=p(.12),floor=(q:ActorPoint)=>({...q,yM:.12192});
+ expect(yieldActorStep(npc,goal,'npc',npc,space,.12,floor,space,{})).toMatchObject({...npc,blocked:true});
+ expect(yieldActorStep(npc,goal,'npc',npc,space,.12,floor,space,{},.22)).toMatchObject({xM:.12,zM:0,yM:.12192,blocked:false});
+ expect(yieldActorStep(npc,goal,'npc',npc,space,.12,()=>null,space,{},.22)).toMatchObject({...npc,blocked:true});
+ expect(yieldActorStep(npc,goal,'npc',npc,space,.12,q=>({...q,yM:.23}),space,{},.22)).toMatchObject({...npc,blocked:true});
+ expect(yieldActorStep(npc,goal,'npc',npc,space,.12,floor,space,{},.23)).toMatchObject({...npc,blocked:true});
+ const occupied=new Map([...space,['player',body(.7)] as const]);
+ expect(yieldActorStep(npc,goal,'npc',npc,occupied,.12,floor,occupied,{},.22).xM).toBeLessThan(.12);
+});

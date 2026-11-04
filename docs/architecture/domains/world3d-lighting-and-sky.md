@@ -1,6 +1,14 @@
 # World3D Lighting & Sky
 
-Verified: 2026-11-02 for house lighting, including GG-594 parts 1 to 3 (code, unit tests; parts 2 and 3 by WebGL captures, part 1 by WebGL and WebGPU captures, each with a perf A-B); 2026-11-01 for the cloud resolve edge rule (code in both cloud setups; motion captures from 2026-10-29)
+Verified: 2026-11-03 for night eye adaptation (code, unit tests, WebGL night captures with a perf A-B; WebGPU night not rendered); 2026-11-03 for native object-Light stow/re-equip and shield-to-mace recast; 2026-11-03 for explicit Light object/source binding and native shield cast/settled reload; 2026-11-03 for the spellbook Light status versus ground source distinction (source inspection and native Elara cast/render/reload); 2026-11-02 for house lighting, including GG-594 parts 1 to 3 and the per-chunk light lists of GG-606 (code, unit tests; parts 2 and 3 by WebGL captures, part 1 by WebGL and WebGPU captures, each with a perf A-B); 2026-11-01 for the cloud resolve edge rule (code in both cloud setups; motion captures from 2026-10-29)
+
+## Open exterior doorways and live daylight
+
+Verified: 2026-11-03, source/30focused checks/five scoped type paths and native Oroten inn close/reopen/fullreload.
+
+buildInteriorDaylight accepts the building's live open door IDs. Perimeter door apertures use their real unswung leaf rectangle, full air transmission and the existing sky view-factor/wall-occlusion/reflection model. An internal doorway is not a new outdoor source. A supplied closed-door ledger keeps a windowless room dark instead of selecting outdoor materials. Windows keep their glass factor and existing source schedule. SiteBuilding's useDoorOpenSignature subscription rebuilds only its affected room; a distant leaf or a resident using an already-open leaf does not rebuild all town interiors.
+
+This extends indirect sky admission only. InteriorLights' fixed sun-bounce lists still use static windows, not dynamic doors. No camera fill is added. Actual plot65 has one upper dormer and no ground window; its open entry is now present in the mounted bake. Native close/reopen changes and restores the real sky attributes at exact accepted feet. The inspected common room remains very dark at16x adapted exposure; neither comfortable room navigation nor a whole lighting fix is accepted. The source compact stair also blocks normal walking. See gameplay-flow/TRACKER.md, An open inn doorway admits daylight; the legacy stair still blocks arrival, for played costs, unchanged paid reservation and36-group continuity. Object-targeted Light remains its separate owner and acceptance boundary.
 
 ## Purpose
 
@@ -25,9 +33,10 @@ facades live in `streamed-3d-world.md`; game-time systems live in
 - `src/components/World3D/InteriorLights.tsx` - hearth lights, lit-window area lights, sun-bounce area lights and table lamps (no fill light since GG-594 part 1)
 - `src/systems/world3d/eyeAdaptation.ts` - eye adaptation: the meter code, the exposure rule and its time response (shared by both renderers)
 - `src/components/World3D/eyeAdaptationEffect.ts` - the WebGL exposure step and meter, before the composer's ACES; the WebGPU meter is in `gpu/worldGpuPost.ts`
+- `src/components/World3D/nightLightModel.ts` - the night light model: the street frame's log2 level for each hour, from `sunFromTime`
 - `src/components/World3D/tableLamp.ts` - the table lamp mesh and its placement constants
 - `src/components/World3D/liveInteriors.ts` - which buildings have their rooms mounted now
-- Tests: `src/components/World3D/__tests__/World3DLighting.test.ts`, `src/components/World3D/sky/__tests__/cloudsSceneEdgeResolve.test.ts`, `src/systems/world3d/__tests__/interiorDaylight.test.ts`, `src/components/World3D/__tests__/InteriorLights.test.ts`, `src/components/World3D/__tests__/InteriorLights.test.tsx`, `src/components/World3D/__tests__/tableLamp.test.ts`, `src/systems/world3d/__tests__/eyeAdaptation.test.ts`
+- Tests: `src/components/World3D/__tests__/World3DLighting.test.ts`, `src/components/World3D/sky/__tests__/cloudsSceneEdgeResolve.test.ts`, `src/systems/world3d/__tests__/interiorDaylight.test.ts`, `src/components/World3D/__tests__/InteriorLights.test.ts`, `src/components/World3D/__tests__/InteriorLights.test.tsx`, `src/components/World3D/__tests__/tableLamp.test.ts`, `src/systems/world3d/__tests__/eyeAdaptation.test.ts`, `src/components/World3D/__tests__/nightLightModel.test.ts`
 
 ## How the 24h cycle works NOW
 
@@ -223,6 +232,19 @@ lights now go dark by intensity 0, and every light pool (4 hearths, 8 window
 or bounce slots, 4 lamps) mounts at full size while any interior building
 is loaded. The light count changes only when the town streams in or out.
 
+**Light lists per chunk (GG-606, 2026-11-02).** InteriorLights keeps the
+light sources of each loaded chunk (`InteriorLightingCache`). When a chunk
+arrives, only that chunk is collected (`collectChunkInteriorLighting`, which
+runs `buildInteriorDaylight` on its sites). The other chunks reuse their lists,
+and the merged list keeps the same order. A chunk that leaves is dropped; a
+new bundle or a new scene origin collects the chunk again. Before, each arrival
+collected every loaded site again, often twice. Headless profile of the
+World3D demo (669 buildings, a 20 s window while the last chunks load; rig
+`.agent/scratch/gg606/profile.mjs`): lighting time 2,234 ms before, 43 ms
+after. Per arrival task: 10 to 205 ms before, about 1 ms after. One first
+build of a chunk with many houses took 40 ms. Tasks of 250 ms or more: 20
+before, 13 after (the chunk mount and the door sampler remain).
+
 **Rendered check for parts 2 and 3 (2026-11-02, WebGL, same demo).** The rig
 (`.agent/scratch/houselight/rig2.mjs`) holds the camera in a live house and
 compares the new code with parts 2 and 3 switched off at run time (bounce
@@ -264,11 +286,10 @@ sets its own exposure from the light it measures:
   reach that ACES. WebGPU: `renderer.toneMappingExposure` is the base 1.05
   times the exposure, and `renderOutput` applies it; its meter reads
   `sceneColor` in `gpu/worldGpuPost.ts`.
-- Night is not adapted. The sun model keeps its intensity at night and makes
-  the look dark through color, so a frame-only rule would lift the night street.
-  The upper clamp fades from 16 to 1 over dusk (`daylightWeight`, from the
-  same sun angle as `sunFromTime`). Night rooms keep their hearth and lamp
-  lights.
+- Night adapts a little (Remy, 2026-11-02: "Adapt a little at night"; see
+  "Night adaptation" below). The upper clamp fades from 16 by day to 4 at
+  night over dusk (`daylightWeight`, from the same sun angle as
+  `sunFromTime`), and at night the key follows the night light model.
 - `window.__wf3dEye` is the live controller: `measuredLog2`, `exposure`,
   `target`, and `hold` (a fixed exposure for an A-B; it also stops the meter).
 
@@ -291,13 +312,49 @@ sRGB value (0 to 255) of a 15 px box at a projected probe point.
   WebGL GPU 37.6 and 34.2 ms against 36.8 and 35.0 ms; WebGPU GPU 10.7 and
   13.5 ms against 13.7 and 11.1 ms. No change past the noise.
 
+**Night adaptation (2026-11-03).** Remy ruled "Adapt a little at night". The
+sun model does not make the night dark through light intensity:
+`sunFromTime` keeps the key light at 1.5 and raises the hemisphere light to
+6.0. The dark look comes from color (a moonlit key, a navy sky light) and from
+the dark sky dome and fog. So a frame-only rule cannot tell the night street
+from a dark room by day, and with the day key it would lift the night street.
+- The night light model (`nightLightModel.ts`) gives the street frame's log2
+  level for each hour: weighted direct key on the ground, sky light and sky
+  dome, all from `sunFromTime`. The weights were fitted to the meter at the
+  demo's start view at 13, 19, 20, 21, 23 and 2 h (WebGL, at exposure 1:
+  -3.6, -4.9, -6.2, -5.8, -5.7, -5.8). It fits within 0.17 stop rms. A
+  ground-light term alone misses by 0.62 stop. Twilight (20 h) is the darkest
+  hour of the model and of the meter.
+- The key is the darker of the day key (-5) and the model street level plus
+  0.5 stop (`keyAt`). By day the street is far above -5, so nothing changes.
+  At night the street gets 2^0.5 = 1.4x. A hearth room as bright as the street
+  gets about the same or none, so the fire still stands out. Only a frame
+  darker than the night street is lifted more, up to the night cap of 4x.
+- Both owners set `eye.streetLog2` from the model when the hour changes.
+
+**Rendered check for night adaptation (2026-11-03, WebGL, town demo).** Rig:
+`.agent/scratch/houselight/rig4.mjs`. Proof sheet:
+`.agent/scratch/houselight/gg594_night_proof.png`.
+- 23 h street: exposure 1.38 (target 1.38). Frame mean luma 43 to 54. The
+  ground, roofs and stalls show their shapes; lit windows still stand out.
+- 23 h, a room lit by its hearth: it measures -4.2, brighter than the night
+  street, so the exposure stays 1. The fire's glow on the wall and floor
+  stands out, and the far corner stays dark.
+- 13 h street: exposure 1, the day look is unchanged.
+- Frame cost at 23 h, A-B-A-B, held (meter off) against adapting: GPU 30.5
+  and 30.5 ms against 30.3 and 31.6 ms. No change past the noise.
+- Not covered: WebGPU at night (same controller and model, not rendered), and
+  a dark unlit room at night (the unit tests cover its 4x cap).
+
 **Open items.**
 - The meter weighs every part of the frame the same. A bright window that
   fills much of the view holds the exposure down; center weighting is a
   later cut if play shows it.
 - The WebGL meter reads the frame after the AO pass, the WebGPU meter before
   it. The averages agree within one stop in the room check.
-- Night adaptation (a scotopic range) needs its own ruling.
+- The night light model is fitted to one view of one town. A view with
+  much more sky, or a retuned sun model, needs a new fit (the unit test pins
+  the calibration hours).
 - The sun bounce has no shadows: a wall between the patch and a point does
   not stop it. Furniture on the patch and outdoor shade on the window (a
   neighbor, a tree) do not cut the patch's flux. The bounce is one bounce
@@ -341,3 +398,43 @@ day/night).
   captures is unclassified - present in both day and night, suspected
   pre-existing N8AO/post-chain behaviour, not yet bisected against the night
   port.
+
+
+## Spellbook Light and ground illumination
+
+### Bound Light at the world clock boundary
+
+Verified: 2026-11-03, nineteen focused clock/binding checks, two scoped type
+paths and Fianna's native cast, movement, save and full reload.
+
+ADVANCE_TIME passes the already advanced gameTime into
+UnderdarkMechanics.processTime. A bound object's duration now comes once from
+its absolute expiry at that clock, including while packed. It does not also
+lose the tick's elapsed seconds. Ordinary torch fuel and historical unbound
+spells keep their existing elapsed-consumption rule. Expired object bindings
+remain inactive with the same source identity; they are not converted into a
+new cast or removed as burned fuel. Their final second is retained correctly.
+
+Actual Fianna play found a one-second early counter on her held Sickle.
+After repair, its 16:21:07 expiry and native 15:25:18 clock give exactly
+55.81666666666667 remaining minutes. Save/full reload preserve the item marker,
+caster, bearer, color and absolute expiry, plus one drawn handR light. The
+native light makes nearby Tankard floor, wall and residents visible and supports
+ordinary movement around a child. Full photometric range, opaque-wall
+occlusion, broad room readability and NPC appearance fidelity remain open.
+The full played costs and source/private-room boundary live in the gameplay-flow
+Tracker section, A stair-aware lodging choice reaches the Tankard with real
+object light.
+
+Light now uses an explicit own-object spellbook path through ObjectLightControls, objectLightCasting and the existing CAST_SPELL reducer. The available targets are the caster's own equipped main-hand/off-hand objects. A reviewed object reference prevents stale selection; an item lightSpellId persists the actual target through normal equipment movement and save/reload. Unpositioned room decorations and another person's carried possessions are not inferred as eligible targets. The spell's prose permits the caster's own carried object; the generic object-registry worn/carried exclusion still needs an ownership-aware adapter before broader targeting.
+
+The existing underdark.activeLightSources list stores the bound object's caster, hand, color and absolute one-hour expiry. Recasting replaces only that caster's bound source. Derived exposure resolves the marked item on a real party hand; stored objects and departed bearers do not illuminate the current party. Underdark world ticks expire the source and exclude inactive sources from bright-light calculation. Historical unbound Light character statuses are not converted into object sources.
+
+GroundCarriedTorch retains the burning-torch path and additionally projects an enchanted held object at its actual model hand anchor. It adds no spare hand or torch flame and stays outside measured collision anatomy. Actual Elara play casts on her shield, stows it (no actor light), re-equips that same object (same source/expiry), then recasts on her mace (one replacement source and handR light). Her slots remain2/2. Full reload retains binding, caster/color/absolute expiry and all other source fields while the countdown advances. The character's light is visible, but useful room illumination, photometric range, opaque-wall occlusion and wider cover/dismissal interaction remain unqualified. Cross-bearer binding retains fixture proof only. The actual Rusty Fox common-room view remains dark while Elara is still blocked outside; it does not establish useful carried light inside the room. Details and open work live in gameplay-flow Tracker/GF-G32.
+
+
+### Played nearby illumination with Elara
+
+Verified: 2026-11-03 through normal inn entry, equipment controls and directly inspected desktop renders.
+
+Elara follows her saved walking trail into the Rusty Fox common room. Packing her lit mace removes its one handR PointLight; re-equipping that exact item restores the same source and absolute expiry. At unchanged party feet and camera, the packed view leaves nearby floor and wall nearly black, while the held view reveals the doorway, floor and bench. This proves useful nearby exploration illumination. It does not qualify complete spell range, opaque-wall occlusion or general room readability. No ambient fill, resource grant, new cast or follower admission change was used. The companion Tracker milestone retains the actual play and continuity boundaries.

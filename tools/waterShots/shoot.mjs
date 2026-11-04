@@ -386,6 +386,9 @@ if (!todo.length) {
 fs.mkdirSync(OUT, { recursive: true });
 
 const browser = await chromium.launch({
+  // Use installed Chrome updates and retain its process sandbox.
+  channel: 'chrome',
+  chromiumSandbox: true,
   headless: true,
   executablePath: CHROME,
   args: [

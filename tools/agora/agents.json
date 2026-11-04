@@ -308,7 +308,7 @@
           "note": "free/approved account capacity only — a paid upgrade or an account change needs operator approval"
         }
       ],
-      "notes": "Preferred Google-family lane per policy. The dashboard quantified the quota and proved PTY dispatch, so the lane is worker-ready. The bare `agy -p` probe produced no output, so dispatch goes through the dashboard prompt-file runner."
+      "notes": "Preferred Google-family lane per policy. The dashboard quantified the quota and proved PTY dispatch, so the lane is worker-ready. Dispatch goes through the dashboard prompt-file runner. A bare `agy -p` probe once produced no output. On 2026-11-03 a direct headless call with the model named worked: `agy --model gemini-3.8-flash-high -p \"<prompt>\"` (binary at C:\\Users\\Gambit\\AppData\\Local\\agy\\bin\\agy.exe, version 1.1.22). Gemini 3.8 Flash runs on the Google plan and handles image review: put the image in the working folder and tell it to open the file. The `claude-*` models that `agy models` lists need paid AI credits; with an empty balance they fail with 429 RESOURCE_EXHAUSTED."
     },
     "cursor": {
       "label": "Cursor CLI",

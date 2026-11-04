@@ -22,6 +22,7 @@ import { describe, it, expect } from 'vitest';
 import { createQuickCharacter, createQuickCombatCharacter } from '../quickCharacterGenerator';
 import { ALL_RACES_DATA } from '../../../data/races';
 import { calculateCharacterSpeedFromRace } from '../../character/characterUtils';
+import { calculateCharacterDarkvisionFromRace } from '../../character/stats';
 import type { Race } from '../../../types';
 
 const BASE = { classId: 'fighter', level: 5, stats: [16, 12, 14, 10, 10, 10] as [number, number, number, number, number, number] };
@@ -84,6 +85,42 @@ describe('createQuickCharacter speed derivation (agora-0202)', () => {
     // been live; this records why removing it is safe today.
     expect(ALL_RACES_DATA.dwarf).toBeUndefined();
     expect(ALL_RACES_DATA.gnome).toBeUndefined();
+  });
+});
+
+// GG-260: quick characters used to get 60 ft darkvision for any race whose
+// traits mention darkvision, so Deep Gnome, Duergar and Drow (120 ft) were
+// wrong. They now read the shared rule that the character builder also uses.
+describe('createQuickCharacter darkvision derivation (GG-260)', () => {
+  it('agrees with the canonical race range for every race in the catalog', () => {
+    const mismatched: string[] = [];
+    for (const [raceId, race] of Object.entries(ALL_RACES_DATA) as Array<[string, Race]>) {
+      const character = createQuickCharacter({ ...BASE, raceId });
+      if (!character) {
+        mismatched.push(`${raceId}: quick assembly returned null`);
+        continue;
+      }
+      const canonical = calculateCharacterDarkvisionFromRace(race, {});
+      if (character.darkvisionRange !== canonical) {
+        mismatched.push(`${raceId}: quick ${character.darkvisionRange} vs canonical ${canonical}`);
+      }
+    }
+    expect(mismatched, mismatched.join('; ')).toEqual([]);
+  });
+
+  it('resolves 120 ft for Deep Gnome and Duergar, and for a Drow-lineage Elf', () => {
+    expect(createQuickCharacter({ ...BASE, raceId: 'deep_gnome' })!.darkvisionRange).toBe(120);
+    expect(createQuickCharacter({ ...BASE, raceId: 'duergar' })!.darkvisionRange).toBe(120);
+    const drow = createQuickCharacter({
+      ...BASE,
+      raceId: 'elf',
+      racialSelections: { elf: { choiceId: 'drow' } } as never,
+    });
+    expect(drow!.darkvisionRange).toBe(120);
+  });
+
+  it('keeps 0 ft for a race with no darkvision', () => {
+    expect(createQuickCharacter({ ...BASE, raceId: 'human' })!.darkvisionRange).toBe(0);
   });
 });
 

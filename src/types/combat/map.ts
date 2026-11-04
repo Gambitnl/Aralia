@@ -49,6 +49,8 @@ export interface SelectedSpellObjectTarget {
   isMagical?: boolean;
   isFixedToSurface?: boolean;
   isCoveredByOpaqueMaterial?: boolean;
+  /** Material the object is composed of (GG-206; e.g. wood, stone, iron). */
+  material?: string;
   /** Optional damage facts preserved for Mending-style repair spells. */
   damageState?: SelectedSpellObjectDamageState;
   /** Live combat interaction state for doors, containers, devices, and breakable objects. */

@@ -27,7 +27,7 @@ import { renderBlueprintSvg } from '../../systems/worldforge/interior/renderBlue
 import type { ObservedBuildingSource } from '../../systems/worldforge/interior/buildingSource';
 import type { BuildingEventHistory } from '../../systems/worldforge/interior/blueprintTypes';
 import { townBuildingVisit } from './townBuildingVisit';
-import { guestBedsForVisit, guestBedDescription, lodgingKeeperOnDuty, LODGING_COST_PER_MEMBER_GP } from '../../systems/gameplay/lodging';
+import { guestBedsForVisit, guestBedsWithStairAccess, guestBedStairIssue, guestBedDescription, lodgingKeeperOnDuty, LODGING_COST_PER_MEMBER_GP } from '../../systems/gameplay/lodging';
 import type { LodgingReservation } from '../../types/rest';
 import { formatGameDateTime } from '../../utils/core/timeUtils';
 import { getGameDay } from '../../utils/core';
@@ -109,6 +109,9 @@ export default function TownBuildingInspector({ worldSeed, burgId, plotId, hour,
   const retiredFromTrade = head?.occupation === 'retired' || head?.occupation.startsWith('retired ');
   const keeperUnavailableReason = `${keeperAlive && retiredFromTrade ? 'The proprietor is retired from this trade. ' : ''}${keeperAttendance?.reason ?? 'No keeper is on duty here.'}`;
   const floor = visit?.plan.floors.find((candidate) => candidate.level === level) ?? visit?.plan.floors[0];
+  const guestBeds = visit ? guestBedsForVisit(visit) : [];
+  const offeredBeds = visit ? guestBedsWithStairAccess(visit) : [];
+  const reservedStairIssue = visit && reservation?.beds.map(bed => guestBedStairIssue(visit, bed)).find(Boolean);
   const svg = useMemo(() => visit && floor ? renderBlueprintSvg(visit.plan, floor.level, {
     occupancy,
     manifests: visit.manifests,
@@ -131,6 +134,7 @@ export default function TownBuildingInspector({ worldSeed, burgId, plotId, hour,
           <p>{reservation.beds.map(bed => guestBedDescription(visit, bed)).join('; ')}.</p>
           <p>Paid {reservation.costGp} GP. Valid until {formatGameDateTime(new Date(reservation.expiresAt))}. Food and water are separate.</p>
           {!reservation.usedAt && <p>Reach a reserved bed through the inn and select Use reserved guest bed. A reservation does not relocate the party.</p>}
+            {!reservation.usedAt && reservedStairIssue && <p className="mt-2 text-amber-200">{reservedStairIssue} Your paid reservation remains recorded and unused.</p>}
         </section>}
         {visit.household && <section aria-label="Household" className="mb-4">
           <h4 className="font-semibold">{currentFamily ? currentFamily.person.name + "’s family" : visit.household.summary}</h4>
@@ -166,9 +170,10 @@ export default function TownBuildingInspector({ worldSeed, burgId, plotId, hour,
         {visit.isBusiness && onKeeperAction && <div className="mb-4 flex flex-wrap gap-2">
           <Button variant="action" size="sm" disabled={!keeperOnDuty} onClick={() => { if (keeperOnDuty) onKeeperAction('talk'); }}>Talk to keeper</Button>
           <Button variant="action" size="sm" disabled={!keeperOnDuty} onClick={() => { if (keeperOnDuty) onKeeperAction('shop'); }}>Browse goods</Button>
-          {guestBedsForVisit(visit).length > 0 && <>
-            <Button variant="action" size="sm" disabled={!keeperOnDuty || !lodgingKeeperOnDuty(visit, currentHour)} onClick={() => onKeeperAction('lodging')}>Ask about guest beds</Button>
-            <p className="w-full text-sm text-slate-300">{guestBedsForVisit(visit).length} guest beds · {LODGING_COST_PER_MEMBER_GP} GP per traveler for one night. Private bedrooms are not for hire.</p>
+          {guestBeds.length > 0 && <>
+            <Button variant="action" size="sm" disabled={!keeperOnDuty || !lodgingKeeperOnDuty(visit, currentHour) || offeredBeds.length === 0} onClick={() => onKeeperAction('lodging')}>Ask about guest beds</Button>
+            <p className="w-full text-sm text-slate-300">{guestBeds.length} guest beds · {LODGING_COST_PER_MEMBER_GP} GP per traveler for one night. Private bedrooms are not for hire.</p>
+            {offeredBeds.length < guestBeds.length && <p className="w-full text-sm text-amber-200">{offeredBeds.length === 0 ? 'The guest rooms have no usable stair route. No new stay can be booked here.' : `${offeredBeds.length} beds can be booked; the other guest rooms have no usable stair route.`}</p>}
           </>}
           {!keeperOnDuty && <p className="w-full text-sm text-slate-300">{keeperUnavailableReason}{keeperAlive && <> {guestBedsForVisit(visit).length > 0 ? 'Guest beds cannot be booked without a keeper on duty.' : 'Trading and keeper conversation are unavailable.'}</>}</p>}
         </div>}

@@ -119,21 +119,25 @@ describe('useActionExecutor', () => {
         const restrainedMover: CombatCharacter = {
             ...mockCharacter,
             position: { x: 0, y: 0 },
-            // Seeded as a previous trigger of THIS zone: the status mirror
-            // carries no source (that is what the executor writes) and the
-            // condition mirror carries the zone_effect source. Ownership
-            // matching therefore refreshes both records in place.
+            // Seeded as a previous trigger of THIS zone (GG-192): both the
+            // status mirror and the condition mirror carry matching
+            // zone_effect / spellId / casterId provenance so ownership
+            // matching refreshes and removes both records together.
             statusEffects: [{
                 id: 'existing-restrained',
                 name: 'Restrained',
                 type: 'debuff',
-                duration: 3
+                duration: 3,
+                source: 'zone_effect',
+                sourceSpellId: 'entangling-zone',
+                sourceCasterId: 'caster'
             }],
             conditions: [{
                 name: 'Restrained',
                 duration: { type: 'rounds', value: 3 },
                 appliedTurn: 0,
-                source: 'zone_effect'
+                source: 'zone_effect',
+                sourceCasterId: 'caster'
             }]
         };
         mockConsumeAction.mockReturnValue(restrainedMover);
@@ -163,12 +167,16 @@ describe('useActionExecutor', () => {
         expect(movedUpdate?.statusEffects.filter(effect => effect.name === 'Restrained')).toHaveLength(1);
         expect(movedUpdate?.statusEffects[0]).toMatchObject({
             id: 'existing-restrained',
-            duration: 1
+            duration: 1,
+            source: 'zone_effect',
+            sourceSpellId: 'entangling-zone',
+            sourceCasterId: 'caster'
         });
         expect(movedUpdate?.conditions?.filter(condition => condition.name === 'Restrained')).toHaveLength(1);
         expect(movedUpdate?.conditions?.[0]).toMatchObject({
             appliedTurn: mockTurnState.currentTurn,
-            source: 'zone_effect'
+            source: 'zone_effect',
+            sourceCasterId: 'caster'
         });
     });
 

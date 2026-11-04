@@ -144,6 +144,53 @@ describe('paired runtime condition ownership', () => {
     expect(trapRemoved.character.conditions).toEqual([]);
     expect(trapRemoved.character.actionEconomy.movement.total).toBe(30);
   });
+
+  it('removes both halves of a zone-applied Restrained in one call when statusEffect and activeCondition share zone_effect provenance (GG-192)', () => {
+    const zoneStatus: StatusEffect = {
+      id: 'zone-restrained-1',
+      name: 'Restrained',
+      type: 'debuff',
+      duration: 1,
+      effect: { type: 'condition' },
+      icon: '💀',
+      source: 'zone_effect',
+      sourceSpellId: 'entangling-zone',
+      sourceCasterId: 'caster',
+    };
+    const zoneCondition: ActiveCondition = {
+      name: 'Restrained',
+      duration: { type: 'rounds', value: 1 },
+      appliedTurn: 1,
+      source: 'zone_effect',
+      sourceCasterId: 'caster',
+    };
+    const otherStatus = status('net-restrained', 'Restrained', 'training-net', 'other-caster');
+    const otherCondition = condition('Restrained', 'training-net', 'other-caster');
+
+    let character = applyRuntimeStatusCondition(target(), zoneStatus, zoneCondition).character;
+    character = applyRuntimeStatusCondition(character, otherStatus, otherCondition).character;
+
+    expect(character.statusEffects).toHaveLength(2);
+    expect(character.conditions).toHaveLength(2);
+
+    // Removing the zone-applied Restrained clears both its status and its paired
+    // active condition in one call while keeping the second source intact.
+    const afterZoneRemoved = removeRuntimeStatusCondition(character, zoneStatus);
+    expect(afterZoneRemoved.removedStatusEffects).toBe(1);
+    expect(afterZoneRemoved.removedConditions).toBe(1);
+    expect(afterZoneRemoved.character.statusEffects.map(effect => effect.id)).toEqual(['net-restrained']);
+    expect(afterZoneRemoved.character.conditions?.map(entry => entry.source)).toEqual(['training-net']);
+
+    // And when the zone-applied Restrained is the sole source, removing it leaves
+    // zero orphaned records in either mirror and restores walking speed.
+    const singleApplied = applyRuntimeStatusCondition(target(), zoneStatus, zoneCondition);
+    const singleRemoved = removeRuntimeStatusCondition(singleApplied.character, singleApplied.appliedStatus);
+    expect(singleRemoved.removedStatusEffects).toBe(1);
+    expect(singleRemoved.removedConditions).toBe(1);
+    expect(singleRemoved.character.statusEffects).toEqual([]);
+    expect(singleRemoved.character.conditions).toEqual([]);
+    expect(singleRemoved.character.actionEconomy.movement.total).toBe(30);
+  });
 });
 
 // ============================================================================

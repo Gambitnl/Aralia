@@ -1835,7 +1835,8 @@ async function cmdUnlock(out, parsed, env, baseUrl, repoRoot=REPO_ROOT) {
 async function cmdUnlockOne(out, parsed, env, baseUrl) {
   // Iteration-1 (Wave-1 workflow feedback): agents kept calling `unlock <path>`
   // and getting 404 because it only accepted a lock id. Now accepts a lock id,
-  // a file path you hold, or `--mine` / no-arg to release ALL your locks.
+  // a file path you hold, or `--mine` to release ALL your locks (GG-387: the
+  // old no-arg release-all form now refuses instead).
   const token = needToken(out, parsed, env, baseUrl);
   if (!token) return { code: 1 };
   const arg = parsed._[0];
@@ -1851,11 +1852,20 @@ async function cmdUnlockOne(out, parsed, env, baseUrl) {
     return { code: 1 };
   }
 
-  // Otherwise resolve YOUR locks and release by path (arg given) or all (--mine / no arg).
+  // Otherwise resolve YOUR locks and release by path (arg given) or all (--mine).
+  // GG-387: a missing path used to mean "release all", so any stray flag that
+  // left no positional (for example `unlock --help`) dropped every lock. Now
+  // only an explicit `--mine` releases everything; a bare `unlock` (or the old
+  // `--all`) refuses before any request reaches the daemon.
+  if (!arg && parsed.flags.mine !== true) {
+    out.log('unlock: no lock id or path given, so nothing was released.');
+    out.log('  Pass a <lockId> or a file path you hold, or run `unlock --mine` to release ALL your locks.');
+    return { code: 1 };
+  }
   const me = loadIdentity(env, baseUrl);
   const myId = me && me.agentId;
   if (!myId) { out.log('unlock: no stored identity — pass a <lockId>, or `register` first'); return { code: 1 }; }
-  const releaseAll = !arg || parsed.flags.mine === true || parsed.flags.all === true;
+  const releaseAll = parsed.flags.mine === true;
   const lr = await api(baseUrl, 'GET', '/locks');
   const mineLocks = ((lr.json && lr.json.locks) || []).filter((l) => l.agentId === myId);
   const targets = releaseAll
@@ -2490,6 +2500,35 @@ function taskUsage(sub) {
     ? entries.filter(([line]) => line.startsWith(`  task ${name} `))
     : entries;
   return `Task commands:\n${(matching.length ? matching : entries).flat().join('\n')}`;
+}
+
+// GG-387: true when the caller asked for help on a command. parseArgs keeps
+// `-h` as a positional and may give `--help` the next token as its value, so
+// the raw argument list is checked as well as the parsed flag.
+function wantsCommandHelp(parsed) {
+  return parsed.flags.help !== undefined
+    || (parsed.raw || []).some((a) => a === '-h' || a === '--help' || a.startsWith('--help='));
+}
+
+// GG-387: help for one command, cut from the canonical usage text so it cannot
+// drift from top-level help. `task` keeps its per-subcommand view. A command
+// with no entry of its own gets the whole usage text.
+function commandUsage(command, sub) {
+  if (command === 'task') return taskUsage(sub);
+  const entries = [];
+  let current = null;
+  for (const line of usageText().split('\n')) {
+    if (new RegExp(`^  ${command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:\\s|$)`).test(line)) {
+      current = [line];
+      entries.push(current);
+    } else if (current && /^\s{4,}\S/.test(line)) {
+      current.push(line);
+    } else {
+      current = null;
+    }
+  }
+  if (!entries.length) return usageText();
+  return `${command} usage (no command was run):\n${entries.flat().join('\n')}\nRun with no arguments or \`help\` for every command.`;
 }
 
 // WF-G322: an evidence file is read by the CLI, not interpreted by the shell.
@@ -4468,6 +4507,16 @@ export async function run(argv, {
 
   if (!command || command === 'help' || command === '--help' || command === '-h') {
     out.log(usageText());
+    return { code: 0, lines: out.lines };
+  }
+
+  // GG-387: `unlock --help` used to reach cmdUnlockOne, which read the missing
+  // path as "release all" and dropped 35 of one agent's locks. A help request
+  // is read-only, so `<command> --help` / `-h` is answered here, before any
+  // command handler runs or any request reaches the daemon. `gap add` keeps
+  // its own fuller help text (WF-G216), which already returns before filing.
+  if (wantsCommandHelp(parsed) && !(command === 'gap' && (!parsed._[0] || parsed._[0] === 'add'))) {
+    out.log(commandUsage(command, parsed._.filter((a) => a !== '-h')[0]));
     return { code: 0, lines: out.lines };
   }
 

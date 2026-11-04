@@ -155,6 +155,9 @@ async function main() {
   const gpuArgs = ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist', '--enable-gpu', '--enable-unsafe-webgpu'];
   const softwareArgs = ['--use-gl=angle', '--use-angle=swiftshader', '--disable-gpu'];
   const browser = await chromium.launch({
+    // Use installed Chrome updates and retain its process sandbox.
+    channel: 'chrome',
+    chromiumSandbox: true,
     headless: !opts.headed,
     args: opts.software ? softwareArgs : gpuArgs,
   });

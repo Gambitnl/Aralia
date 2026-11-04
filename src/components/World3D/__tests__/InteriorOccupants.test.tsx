@@ -42,6 +42,8 @@ import {
 import { GroundFurnishingContext } from "../GroundFurnishingContext";
 import { streetOwnedAgentNodes } from "../streetOwnedAgents";
 import * as groundMotion from '@/systems/worldforge/bridge/groundAgentMotion';
+import {buildStreetGraph,frontDoorForPlot} from '@/systems/worldforge/roster/agentPath';
+import type {TownPlan} from '@/systems/worldforge/artifacts';
 import {
   InteriorHourProvider,
   useInteriorClockRef,
@@ -468,7 +470,7 @@ describe("resident handoff ownership", () => {
     const occupant={...joinedOccupant(),race:'Human'},loaded=loadedWith([occupant]);
     const roster:TownRoster={burgId:314,occupants:[{id:4,name:occupant.name,householdMemberId:occupant.householdMemberId,
       ageBand:'adult',occupation:'resident',homePlotId:10}]};
-    const ground={rosters:[roster]} as Parameters<typeof createResidentStreetSampler>[0];
+    const ground={rosters:[roster],cols:2,rows:2,heights:new Float32Array(4).fill(.5),buildings:[]} as unknown as Parameters<typeof createResidentStreetSampler>[0];
     const before=JSON.stringify({loaded,roster});
     const spy=vi.spyOn(groundMotion,'groundAgentScenePositions').mockImplementation((_ground,clock)=>[{
       burgId:314,occupantId:4,name:occupant.name,xM:10+(clock-8)*3600*1.2,zM:20,moving:true,outdoors:true,
@@ -477,7 +479,7 @@ describe("resident handoff ownership", () => {
     try {
       const sample=createResidentStreetSampler(ground,loaded,{x:5,z:7});
       const moving=sample('314:home-10:head',8)!;
-      expect(moving.position).toEqual({x:5,y:3.5,z:13});
+      expect(moving.position).toEqual({x:5,y:9,z:13});
       expect(moving.rotationY).toBeCloseTo(Math.PI/2,10);
       expect(moving.moving).toBe(true);
       expect(sample('314:home-10:head',8)).toBe(moving);
@@ -490,6 +492,33 @@ describe("resident handoff ownership", () => {
       expect(createResidentStreetSampler({rosters:[wrong]} as typeof ground,loaded,{x:0,z:0})('314:home-10:head',8)).toBeNull();
       expect(residentAncestryIndex([{...roster,occupants:[{...roster.occupants[0],name:'Successor'}]}],collectResidentHandoffIndex(loaded)).size).toBe(0);
     } finally {spy.mockRestore();}
+  });
+
+  it('keeps workers missing an interior packet at distinct frontage waits, with normal travel and real stations unchanged',()=>{
+    const plan={burgId:314,streets:[{id:1,widthFt:8,centerline:[[-20,0],[130,0]]}],plots:[
+      {id:10,role:'house',footprint:[[0,0],[10,0],[10,10],[0,10]]},
+      {id:20,role:'market',footprint:[[100,0],[110,0],[110,10],[100,10]]},
+    ]} as unknown as TownPlan;
+    const streetGraph=buildStreetGraph(plan),door=frontDoorForPlot(streetGraph,20)!;
+    const first=joinedOccupant(),second={...joinedOccupant(),id:5,name:'Pell Greendown',householdMemberId:'home-11:head',stationsByHour:Array(24).fill(null)};
+    const roster:TownRoster={burgId:314,occupants:[first,second].map(o=>({id:o.id,name:o.name,householdMemberId:o.householdMemberId,ageBand:'adult',occupation:'resident',homePlotId:10,employment:{plotId:20,role:'staff'}}))};
+    const loaded=loadedWith([first,second]),ground={rosters:[roster],townPlans:[{burgId:314,plan,streetGraph}],boundsFeet:{x:0,y:0},cols:2,rows:2,heights:new Float32Array(4).fill(.5),buildings:[]} as unknown as Parameters<typeof createResidentStreetSampler>[0];
+    const before=JSON.stringify({loaded,roster}),node={burgId:314,xM:door[0]*.3048,zM:door[1]*.3048,moving:false,outdoors:false,activity:'working',gridX:0,gridY:0,surfaceY:2} as const;
+    // This actual source slab is 0.12192m above terrain: the former street
+    // sampler left a doorway body below it, preventing courtesy steps.
+    ground!.buildings.push({id:'frontage-slab',xM:node.xM,zM:node.zM,cornersM:[{x:node.xM-.3,z:node.zM-.3},{x:node.xM+.3,z:node.zM-.3},{x:node.xM+.3,z:node.zM+.3},{x:node.xM-.3,z:node.zM+.3}],parts:[{x:0,z:0,w:.6,d:.6,h:.12192,baseY:0,colorHex:'#aaa',walkSurface:'floor'}]} as never);
+    const spy=vi.spyOn(groundMotion,'groundAgentScenePositions').mockImplementation(()=>[first,second].map(o=>({...node,occupantId:o.id,name:o.name})));
+    try{
+      const sample=createResidentStreetSampler(ground,loaded,{x:0,z:0});
+      const a=sample('314:home-10:head',12)!,b=sample('314:home-11:head',12)!;
+      expect(a.position).not.toEqual(b.position);expect(a.position.y).toBe(9);expect(a.moving).toBe(false);
+      expect(Math.hypot(a.position.x-node.xM,a.position.z-node.zM)).toBeGreaterThan(.76);
+      // A real current room station still owns this person; it is never
+      // converted into a public wait merely because they have a staff job.
+      const supported=sample('314:home-10:head',7)!.position;
+      expect(supported.x).toBe(node.xM);expect(supported.z).toBe(node.zM);expect(supported.y).toBeCloseTo(9.12192,8);
+      expect(JSON.stringify({loaded,roster})).toBe(before);
+    }finally{spy.mockRestore();}
   });
 
   it("conserves population while ownership crosses the hour boundary", () => {

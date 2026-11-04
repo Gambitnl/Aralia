@@ -1092,7 +1092,8 @@ export class WeaponAttackCommand implements SpellCommand {
             targetId: currentTarget.id,
             attackType: attackEventClassification.attackType,
             weaponType: attackEventClassification.weaponType,
-            isHit: false
+            isHit: false,
+            targetCreatureTypes: currentTarget.creatureTypes,
           };
           const missRiders = riderSystem.getMatchingRiders(newState, missAttackContext);
 
@@ -1158,7 +1159,8 @@ export class WeaponAttackCommand implements SpellCommand {
           targetId: currentTarget.id,
           attackType: attackEventClassification.attackType,
           weaponType: attackEventClassification.weaponType,
-          isHit: true
+          isHit: true,
+          targetCreatureTypes: currentTarget.creatureTypes,
         };
 
         matchingHitRiders = riderSystem.getMatchingRiders(newState, attackContext);

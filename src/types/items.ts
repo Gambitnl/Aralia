@@ -276,6 +276,21 @@ export type ItemEffect =
   | { type: 'damage'; damageType: string; dice: string; value?: number }
   | { type: 'restore_resource'; resource: string; amount: number }
   | { type: 'utility'; description: string }
+  | {
+      type: 'rider';
+      damage: { dice: string; type: string };
+      duration: { type: 'rounds' | 'minutes' | 'hours'; value: number };
+      consumption?: 'unlimited' | 'first_hit' | 'per_turn' | 'per_instance_hit_or_miss';
+      targetFilter?: {
+        creatureTypes?: string[];
+        excludeCreatureTypes?: string[];
+      };
+      attackFilter?: {
+        weaponType?: 'melee' | 'ranged' | 'melee_weapon' | 'ranged_weapon' | 'unarmed' | 'any';
+        attackType?: 'weapon' | 'spell' | 'unarmed' | 'any';
+      };
+      description?: string;
+    }
   | string; // Legacy compatibility while migration completes
 
 export interface Item {
@@ -291,6 +306,8 @@ export interface Item {
   /** Authored capacity for a liquid vessel; legacy waterskins retain four pints. */
   waterCapacityGallons?: number;
   /** Actual water stays with the vessel when it is moved, sold or dropped. */
+  /** Durable binding to one actual Light target; the light list owns expiry. */
+  lightSpellId?: string;
   containedWater?: {gallons:number;lastCastId?:string};
   /** The classification of the item. */
   type: ItemType;

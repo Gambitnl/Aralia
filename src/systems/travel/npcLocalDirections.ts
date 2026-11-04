@@ -1,7 +1,7 @@
 /**
- * Residents can locate their own town and registered public workplace from the
- * canonical map. This is a factual conversation answer, not generated advice:
- * it grants no discovery, route, entrance, opening hours or safe-passage promise.
+ * Residents locate their own town, registered public workplace and mapped
+ * public gates from the canonical map. These factual answers do not grant a
+ * visit, a travel route, opening hours or safe passage.
  */
 
 // @dependencies-start
@@ -60,7 +60,8 @@ export function resolveNpcLocalDirections(state: GameState, npc: NPC): string | 
   if (!business?.name?.trim() || business.burgId !== identity.burgId || business.locationId !== state.currentLocationId
       || !Number.isInteger(business.plotId)) {
     const temple=priestTempleLocation(state,resident,identity,atlas);
-    return temple ? location+' '+temple : location;
+    const gates=temple ? undefined : publicGateLocations(state,identity,atlas);
+    return temple ? location+' '+temple : gates ? location+' '+gates : location;
   }
 
   // The map and ground share this north-up source plan. A zero translation
@@ -80,6 +81,19 @@ export function resolveNpcLocalDirections(state: GameState, npc: NPC): string | 
   // Use the fitted public building type, not a legacy ledger's trade category.
   // A taverner's old enchanter stock does not turn their tavern into a new shop.
   return `${location} ${business.name.trim()} is my ${plot.pop.buildingType.replaceAll('-', ' ')}, ${area}.`;
+}
+
+/** A resident without a verified workplace still knows the marked public ways
+ * out of their own town. Keep the map's gate numbers and north-up source; this
+ * locates gates without promising an open leaf, a safe crossing or admission. */
+function publicGateLocations(state:GameState,identity:{burgId:number},atlas:ReturnType<typeof getBridgeAtlas>):string|undefined {
+  const {plan}=canonicalArtifactTownForSiteFromAtlas(atlas,state.worldSeed,{
+    burgId:identity.burgId,envelope:{x:0,y:0,width:0,height:0},gates:[],
+  },state.townSim?.[identity.burgId]?.layoutRevision);
+  const gates=plan.gates??[];
+  if(!gates.length||gates.some(p=>p.length!==2||!p.every(Number.isFinite)||Math.hypot(...p)===0)
+    ||new Set(gates.map(p=>p.join(','))).size!==gates.length)return undefined;
+  return gates.map(([x,y],index)=>`Gate ${index+1} is in the ${sectors[bearingToDirection(x,y)]} part of town.`).join(' ');
 }
 
 /** The current priest can locate the town's source temple without inventing a

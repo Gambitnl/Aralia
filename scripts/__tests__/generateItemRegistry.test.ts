@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { describe, it, expect } from 'vitest';
-import { convertEntryToItem, inferAccessorySlot } from '../generateItemRegistry';
+import { collectSourceFiles, convertEntryToItem, inferAccessorySlot, ITEM_SOURCE_DIRS } from '../generateItemRegistry';
 import { ItemType } from '../../src/types/items';
 
 /**
@@ -366,31 +366,14 @@ describe('inferAccessorySlot', () => {
  * agents writing that file.
  */
 describe('generated registry — acceptance (shape + duplicate ids)', () => {
-  const ENTRIES_BASE = path.join(process.cwd(), 'public/data/glossary/entries');
-  // Mirrors generateItemRegistry.ts's EQUIPMENT_DIR / MAGIC_ITEMS_DIR. As of
-  // 2026-09-09 magic_items/ no longer exists on disk (its contents live
-  // under equipment/ now); getAllFiles tolerates a missing dir, so this list
-  // stays accurate for both layouts without failing when one is absent.
-  const SOURCE_DIRS = ['equipment', 'magic_items'].map((d) => path.join(ENTRIES_BASE, d));
+  // GG-164: read the generator's own source list, so this test scans exactly
+  // the folders the generator does. The dead magic_items/ entry is gone, and
+  // collectSourceFiles() throws if a listed folder is missing.
+  const sourceFiles = collectSourceFiles(ITEM_SOURCE_DIRS);
 
   // GG-576: read the game's own ItemType list. The hand-written copy that was
   // here lacked 'service', which the Stabling item now uses.
   const ALLOWED_TYPES = new Set<string>(Object.values(ItemType));
-
-  function getAllJsonFiles(dirPath: string, out: string[] = []): string[] {
-    if (!fs.existsSync(dirPath)) return out;
-    for (const file of fs.readdirSync(dirPath)) {
-      const full = path.join(dirPath, file);
-      if (fs.statSync(full).isDirectory()) {
-        getAllJsonFiles(full, out);
-      } else if (file.endsWith('.json')) {
-        out.push(full);
-      }
-    }
-    return out;
-  }
-
-  const sourceFiles = SOURCE_DIRS.flatMap((dir) => getAllJsonFiles(dir));
 
   // Same accumulation the generator does: convert every source file, skip
   // entries with no itemMetadata, key by id. Also keep the raw id sequence
@@ -446,5 +429,26 @@ describe('generated registry — acceptance (shape + duplicate ids)', () => {
     // entries — if it doesn't, something clobbered a key despite no
     // duplicate ids being found above (a bug in this test, not the data).
     expect(Object.keys(registry).length).toBe(idSequence.length);
+  });
+});
+
+/**
+ * GG-164: a missing source folder used to be skipped in silence (the dead
+ * entries/magic_items/ entry hid this for months). It must now stop the run
+ * with a message that names the missing folder and the list to fix.
+ */
+describe('collectSourceFiles — missing source folder (GG-164)', () => {
+  it('lists only folders that exist', () => {
+    for (const dir of ITEM_SOURCE_DIRS) {
+      expect(fs.existsSync(dir), `${dir} must exist`).toBe(true);
+    }
+    expect(ITEM_SOURCE_DIRS.some((dir) => dir.includes('magic_items'))).toBe(false);
+  });
+
+  it('throws a clear message naming a missing folder', () => {
+    const missing = path.join(process.cwd(), 'public/data/glossary/entries/magic_items');
+    expect(() => collectSourceFiles([...ITEM_SOURCE_DIRS, missing])).toThrow(
+      /item source folder not found: .*magic_items.*ITEM_SOURCE_DIRS/,
+    );
   });
 });

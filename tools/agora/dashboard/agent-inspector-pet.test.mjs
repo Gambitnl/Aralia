@@ -70,7 +70,13 @@ test('agent inspector renders the assigned pet portrait and nine distinct still 
     assert.equal(registration.status, 201);
     assert.equal(registration.body.pet.displayName, 'SD Girlfriend');
 
-    browser = await within('Chromium launch', chromium.launch({ headless: true, timeout: 5000 }));
+    browser = await within('Chromium launch', chromium.launch({
+      // Use installed Chrome updates and retain its process sandbox.
+      channel: 'chrome',
+      chromiumSandbox: true,
+      headless: true,
+      timeout: 5000,
+    }));
     const page = await within('browser page creation', browser.newPage({ viewport: { width: 1280, height: 900 } }));
     page.setDefaultTimeout(5000);
     await within('dashboard navigation', page.goto(baseUrl + '/', { waitUntil: 'domcontentloaded', timeout: 5000 }));

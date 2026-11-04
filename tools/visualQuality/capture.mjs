@@ -175,6 +175,8 @@ const pieces = piece === 'all' ? Object.keys(SUBJECTS) : [piece];
 
 const { chromium } = await import('playwright');
 const browser = await chromium.launch({
+  // Use installed Chrome updates and retain its process sandbox.
+  chromiumSandbox: true,
   headless: true,
   channel: 'chrome',
   args: ['--ignore-gpu-blocklist', '--enable-unsafe-swiftshader', '--use-gl=angle', '--use-angle=swiftshader'],

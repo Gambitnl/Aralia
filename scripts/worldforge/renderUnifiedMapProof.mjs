@@ -48,7 +48,11 @@ for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
 console.log('unified grid biome counts:', counts);
 
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${rects}</svg>`;
-const browser = await chromium.launch();
+const browser = await chromium.launch({
+  // Use installed Chrome updates and retain its process sandbox.
+  channel: 'chrome',
+  chromiumSandbox: true,
+});
 const page = await browser.newPage({ viewport: { width: W, height: H } });
 await page.setContent(`<!doctype html><body style="margin:0">${svg}</body>`);
 const outDir = path.join(__dirname, '../../.agent/scratch');

@@ -36,6 +36,65 @@ type GroundIndex = {
 const indices = new WeakMap<THREE.BufferGeometry, GroundIndex>();
 const version = (attribute: GroundIndex['position']) => 'version' in attribute ? attribute.version : attribute.data.version;
 
+type InstanceIndex = {
+  matrix: THREE.InstancedBufferAttribute; matrixVersion: number; count: number;
+  geometry: THREE.BufferGeometry; position: GroundIndex['position']; positionVersion: number;
+  cells: Map<string, number[]>; wide: number[]; boxes: THREE.Box3[];
+};
+const instanceIndices = new WeakMap<THREE.InstancedMesh, InstanceIndex>();
+
+/** Street props share a handful of meshes across the whole town. Index their
+ * actual instance bounds once, then check only instances crossed by this short
+ * camera arm. The exact source triangles still decide visibility; these boxes
+ * never become collision shapes or replace a prop's identity or transform. */
+function instanceIndex(mesh: THREE.InstancedMesh): InstanceIndex {
+  const position = mesh.geometry.getAttribute('position'), previous = instanceIndices.get(mesh);
+  if (previous?.matrix === mesh.instanceMatrix && previous.matrixVersion === mesh.instanceMatrix.version
+    && previous.count === mesh.count && previous.geometry === mesh.geometry
+    && previous.position === position && previous.positionVersion === version(position)) return previous;
+  const shape = new THREE.Box3(), vertex = new THREE.Vector3(), matrix = new THREE.Matrix4();
+  for (let i = 0; i < position.count; i++) shape.expandByPoint(vertex.fromBufferAttribute(position, i));
+  const cells = new Map<string, number[]>(), wide: number[] = [], boxes: THREE.Box3[] = [];
+  for (let i = 0; i < mesh.count; i++) {
+    mesh.getMatrixAt(i, matrix);
+    const box = shape.clone().applyMatrix4(matrix); boxes.push(box);
+    const minX = Math.floor(box.min.x / CELL_M), maxX = Math.floor(box.max.x / CELL_M);
+    const minZ = Math.floor(box.min.z / CELL_M), maxZ = Math.floor(box.max.z / CELL_M);
+    if (!Number.isFinite(minX + maxX + minZ + maxZ) || (maxX - minX + 1) * (maxZ - minZ + 1) > 256) {
+      wide.push(i); continue;
+    }
+    for (let x = minX; x <= maxX; x++) for (let z = minZ; z <= maxZ; z++) {
+      const key = `${x},${z}`, list = cells.get(key);
+      if (list) list.push(i); else cells.set(key, [i]);
+    }
+  }
+  const result = {matrix: mesh.instanceMatrix, matrixVersion: mesh.instanceMatrix.version, count: mesh.count,
+    geometry: mesh.geometry, position, positionVersion: version(position), cells, wide, boxes};
+  instanceIndices.set(mesh, result); return result;
+}
+
+function nearbyInstances(mesh: THREE.InstancedMesh, raycaster: THREE.Raycaster): number[] {
+  const indexed = instanceIndex(mesh), inverse = mesh.matrixWorld.clone().invert();
+  const ray = raycaster.ray.clone().applyMatrix4(inverse);
+  const start = raycaster.ray.at(raycaster.near, new THREE.Vector3()).applyMatrix4(inverse);
+  const end = raycaster.ray.at(raycaster.far, new THREE.Vector3()).applyMatrix4(inverse);
+  const candidates = new Set(indexed.wide);
+  let x = Math.floor(start.x / CELL_M), z = Math.floor(start.z / CELL_M);
+  const endX = Math.floor(end.x / CELL_M), endZ = Math.floor(end.z / CELL_M);
+  const dx = end.x - start.x, dz = end.z - start.z, stepX = Math.sign(dx), stepZ = Math.sign(dz);
+  let nextX = dx ? ((x + (stepX > 0 ? 1 : 0)) * CELL_M - start.x) / dx : Infinity;
+  let nextZ = dz ? ((z + (stepZ > 0 ? 1 : 0)) * CELL_M - start.z) / dz : Infinity;
+  const deltaX = dx ? CELL_M / Math.abs(dx) : Infinity, deltaZ = dz ? CELL_M / Math.abs(dz) : Infinity;
+  for (let remaining = Math.abs(endX - x) + Math.abs(endZ - z) + 1; remaining > 0; remaining--) {
+    for (const i of indexed.cells.get(`${x},${z}`) ?? []) candidates.add(i);
+    if (x === endX && z === endZ) break;
+    if (nextX < nextZ) { x += stepX; nextX += deltaX; }
+    else if (nextZ < nextX) { z += stepZ; nextZ += deltaZ; }
+    else { x += stepX; z += stepZ; nextX += deltaX; nextZ += deltaZ; }
+  }
+  return [...candidates].filter(i => ray.intersectsBox(indexed.boxes[i]));
+}
+
 /** Index the actual rendered triangles once, without changing their arrays.
  * A town road mesh can contain hundreds of thousands of faces. The walking
  * camera needs only the few cells crossed by its short arm, not a full scan
@@ -85,6 +144,21 @@ export function nearestGroundCameraHit(root: THREE.Object3D, raycaster: THREE.Ra
     if (!mesh.isMesh || !mesh.layers.test(raycaster.layers)) return;
     const geometry = mesh.geometry, position = geometry.getAttribute('position');
     if (!position) return;
+    if (mesh instanceof THREE.InstancedMesh && mesh.raycast === THREE.InstancedMesh.prototype.raycast
+      && !mesh.morphTexture && !geometry.morphAttributes.position?.length && Number.isFinite(raycaster.far)) {
+      const candidates = nearbyInstances(mesh, raycaster);
+      if (!candidates.length) return;
+      // A private query object uses the same triangles/materials at each exact
+      // instance matrix. It is never mounted and never changes a live mesh.
+      const probe = new THREE.Mesh(geometry, mesh.material), matrix = new THREE.Matrix4();
+      probe.layers.mask = mesh.layers.mask;
+      for (const i of candidates) {
+        mesh.getMatrixAt(i, matrix); probe.matrixWorld.multiplyMatrices(mesh.matrixWorld, matrix);
+        const hit = nearestGroundCameraHit(probe, raycaster);
+        if (hit !== null && (nearest === null || hit < nearest)) nearest = hit;
+      }
+      return;
+    }
     // Ordinary static structural meshes share this exact index. Preserve the
     // native path for animated meshes, custom decorative raycasts (including
     // lamps that intentionally yield), or unusual ranges rather than indexing

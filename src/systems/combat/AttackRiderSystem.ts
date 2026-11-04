@@ -42,6 +42,7 @@
  */
 
 import { ActiveRider, CombatState } from '@/types/combat';
+import { CreatureTaxonomy } from '../creatures/CreatureTaxonomy';
 
 // ============================================================================
 // Attack Context
@@ -57,6 +58,8 @@ export interface AttackContext {
     attackType: "weapon" | "spell" | "unarmed";
     weaponType?: "melee" | "ranged" | "unarmed";
     isHit: boolean;
+    /** Target creature types for conditional riders (GG-219, e.g. Dragon). */
+    targetCreatureTypes?: string[];
 }
 
 // ============================================================================
@@ -129,9 +132,22 @@ export function isRiderHitEligible(rider: ActiveRider, context: AttackContext): 
  * If the rider has a targetId set, it only matches attacks against that target.
  * Riders without a targetId (like Divine Favor) match attacks against anyone.
  */
-export function isRiderTargetMatch(rider: ActiveRider, context: AttackContext): boolean {
+export function isRiderTargetMatch(
+    rider: ActiveRider,
+    context: AttackContext,
+    targetCreatureTypes?: string[],
+): boolean {
     // If the rider is locked to a specific target, only that target triggers it.
     if (rider.targetId && rider.targetId !== context.targetId) return false;
+
+    // Target condition filter check (GG-219; e.g. creatureTypes such as 'Dragon')
+    if (rider.targetFilter) {
+        const types = context.targetCreatureTypes ?? targetCreatureTypes ?? [];
+        if (!CreatureTaxonomy.isValidTarget(types, rider.targetFilter)) {
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -225,11 +241,14 @@ export class AttackRiderSystem {
         const attacker = state.characters.find(c => c.id === context.attackerId);
         if (!attacker || !attacker.riders) return [];
 
+        const target = state.characters.find(c => c.id === context.targetId);
+        const targetTypes = context.targetCreatureTypes ?? target?.creatureTypes ?? [];
+
         // Each rider must pass all four predicate gates to match.
         // The predicates are composed here but can be tested individually.
         return attacker.riders.filter(rider =>
             isRiderHitEligible(rider, context) &&
-            isRiderTargetMatch(rider, context) &&
+            isRiderTargetMatch(rider, context, targetTypes) &&
             isRiderTurnAvailable(rider) &&
             isRiderAttackFilterMatch(rider, context)
         );

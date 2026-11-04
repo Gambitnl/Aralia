@@ -197,6 +197,11 @@ export interface CommandContext {
    */
   reactionRng?: () => number
   /**
+   * Optional die source for Constitution concentration saves after damage (GG-261).
+   * Lets tests and replays pin the concentration roll without mocking the module.
+   */
+  concentrationSaveRng?: () => number
+  /**
    * Stable id for one delivered damage hit. Retained/replayed callers reuse it;
    * ordinary commands fall back to their own stable command id plus target id.
    */

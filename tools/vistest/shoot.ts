@@ -506,38 +506,21 @@ const CAPTURE_ARGS = [
 ];
 
 /**
- * Launch the capture browser, preferring Playwright's own build and falling back
- * to an installed Chrome.
- *
- * Why the fallback exists: `npx playwright install` cannot write its browser
- * cache on this machine — `%LOCALAPPDATA%\ms-playwright` is a junction whose
- * target is a junction to ITSELF, so `mkdir` fails with ELOOP and no browser is
- * ever downloaded. That is a filesystem problem outside this repo, but it left
- * the whole visual-capture rig dead, and a dead rig means visual work gets
- * judged on claims instead of screenshots. Chrome is already installed, and for
- * screenshot capture a system Chrome is a fine substitute.
- *
- * Fails loudly when neither is available: a capture rig that silently produces
- * nothing is worse than one that stops.
+ * Use installed Chrome so browser security updates are independent of Playwright
+ * releases. Keep Chromium's process sandbox enabled. Missing Chrome or a sandbox
+ * failure stops capture; returning to the older bundled browser would undo this
+ * protection. The existing capture and GPU settings are preserved.
  */
 async function launchCaptureBrowser(): Promise<Browser> {
   try {
-    return await chromium.launch({ headless: true, args: CAPTURE_ARGS });
-  } catch (bundledError) {
-    const message = bundledError instanceof Error ? bundledError.message : String(bundledError);
-    if (!/Executable doesn't exist/i.test(message)) throw bundledError;
-    console.warn('vistest: Playwright browser missing; falling back to installed Chrome.');
-    try {
-      return await chromium.launch({ headless: true, channel: 'chrome', args: CAPTURE_ARGS });
-    } catch (chromeError) {
-      const detail = chromeError instanceof Error ? chromeError.message : String(chromeError);
-      throw new Error(
-        `vistest: no capture browser available.\n` +
-        `  Playwright build: ${message.split('\n')[0]}\n` +
-        `  Installed Chrome: ${detail.split('\n')[0]}\n` +
-        `  Fix one of them — visual work cannot be verified without a capture browser.`,
-      );
-    }
+    return await chromium.launch({ headless: true, channel: 'chrome', chromiumSandbox: true, args: CAPTURE_ARGS });
+  } catch (chromeError) {
+    const detail = chromeError instanceof Error ? chromeError.message : String(chromeError);
+    throw new Error(
+      `vistest: sandboxed installed Chrome is unavailable.\n` +
+      `  ${detail.split('\n')[0]}\n` +
+      `  Install/update Chrome or repair sandbox support before retrying capture.`,
+    );
   }
 }
 

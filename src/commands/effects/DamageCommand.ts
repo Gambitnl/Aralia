@@ -857,8 +857,11 @@ export class DamageCommand extends BaseEffectCommand<DamageEffect> {
           });
         } else {
           // GG-458 / agora-c887: Respect 2024 DC 30 cap on concentration saves while preserving uncapped 2014 rules.
+          // GG-261: Thread optional concentrationSaveRng so tests and replays can pin the save die without mocking the module.
           const rulesEdition = this.context.rulesEdition ?? getRulesEdition(this.context.gameState);
-          const check = checkConcentration(target, finalDamage, rulesEdition);
+          const check = this.context.concentrationSaveRng
+            ? checkConcentration(target, finalDamage, rulesEdition, this.context.concentrationSaveRng)
+            : checkConcentration(target, finalDamage, rulesEdition);
 
           if (!check.success) {
             // Concentration broken - execute command to clean up the spell's effects

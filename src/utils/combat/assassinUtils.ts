@@ -93,11 +93,13 @@ export function calculateAssassinateModifiers(
 // and every creature at or after that index has not. Deriving it here stops
 // each caller from re-reading the initiative order and guessing.
 //
-// Surprise is different. This engine carries no surprise state at all — there
-// is no surprised condition, status effect, or initiative flag anywhere in the
-// combat types — so `targetIsSurprised` stays an explicit caller fact rather
-// than a derived one. When a surprise round lands, this is the single place
-// that reads it.
+// Surprise:
+// Under 2024 rules (public/data/glossary/entries/rules/surprise.json), surprise
+// is a combat-start readiness state. In Aralia, surprise can be recorded on
+// CombatState.surprisedCharacterIds, TurnState.surprisedCharacterIds, or directly
+// on the CombatCharacter via isSurprised or statusEffects.
+// `targetIsSurprised` remains supported as an explicit caller override, but
+// defaults to deriving surprise directly from the combat state.
 // ============================================================================
 
 export type AssassinateFailure =
@@ -115,6 +117,20 @@ export interface AssassinateResolution {
 }
 
 /**
+ * Checks whether a target is currently considered surprised in the given combat state (GG-258).
+ * Checks state.surprisedCharacterIds, turnState.surprisedCharacterIds, target.isSurprised,
+ * and statusEffects ('surprised').
+ */
+export function isCharacterSurprised(state: CombatState, characterId: string): boolean {
+  if (state.surprisedCharacterIds?.includes(characterId)) return true;
+  if (state.turnState?.surprisedCharacterIds?.includes(characterId)) return true;
+  const target = state.characters.find(c => c.id === characterId);
+  if (target?.isSurprised) return true;
+  if (target?.statusEffects?.some(s => s.name?.toLowerCase() === 'surprised' || s.id?.toLowerCase() === 'surprised')) return true;
+  return false;
+}
+
+/**
  * Reports whether a creature has already taken its turn in the current round.
  * Returns undefined when the creature is not in the initiative order, so the
  * caller can fail instead of treating an unknown creature as a fresh target.
@@ -128,12 +144,12 @@ export function hasActedThisRound(state: CombatState, characterId: string): bool
 /**
  * The Assassinate entry point for attack resolution. It reads both combatants
  * out of the state, derives the target's turn status from the initiative
- * order, and returns the advantage/critical modifiers to apply to the pending
- * attack roll. A rogue without the `assassinate` ability gets neither.
+ * order and surprise state, and returns the advantage/critical modifiers to
+ * apply to the pending attack roll. A rogue without the `assassinate` ability gets neither.
  */
 export function resolveAssassinateAgainstTarget(
   state: CombatState,
-  request: { assassinId: string; targetId: string; targetIsSurprised: boolean },
+  request: { assassinId: string; targetId: string; targetIsSurprised?: boolean },
 ): AssassinateResolution {
   const none: AssassinateModifiers = { advantage: false, criticalOnHit: false };
 
@@ -151,10 +167,12 @@ export function resolveAssassinateAgainstTarget(
     return { modifiers: none, resolved: false, failure: 'target_not_in_turn_order' };
   }
 
+  const isSurprised = request.targetIsSurprised ?? isCharacterSurprised(state, target.id);
+
   return {
     modifiers: calculateAssassinateModifiers(assassin, {
       hasActedThisRound: targetHasActedThisRound,
-      isSurprised: request.targetIsSurprised,
+      isSurprised,
     }),
     resolved: true,
     targetHasActedThisRound,

@@ -691,6 +691,9 @@ async function main(): Promise<void> {
   try {
     if (options.browserFallbackOnly) {
       browser = await chromium.launch({
+        // Use installed Chrome updates and retain its process sandbox.
+        channel: 'chrome',
+        chromiumSandbox: true,
         headless: true,
       });
       page = await browser.newPage({

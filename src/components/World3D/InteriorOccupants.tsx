@@ -39,9 +39,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 01/11/2026, 18:13:13
+ * Last Sync: 03/11/2026, 05:10:22
  * Dependents: components/World3D/GroundAgents.tsx, components/World3D/World3DScene.tsx, components/World3D/libraryReadingAccess.ts, components/World3D/residentDoorUse.ts, components/World3D/streetOwnedAgents.ts
- * Imports: 17 files
+ * Imports: 19 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -70,12 +70,13 @@ import OccupantFigure from "./OccupantFigure";
 import { useInteriorClockRef } from "./InteriorHourContext";
 import { GroundFurnishingContext } from './GroundFurnishingContext';
 import type { ReadResidentPick } from './groundResidentInteraction';
-import { groundAgentScenePositions } from '@/systems/worldforge/bridge/groundAgentMotion';
+import { groundAgentScenePositions, streetGraphForTown } from '@/systems/worldforge/bridge/groundAgentMotion';
+import { workplaceWaitingSpotFor } from '@/systems/worldforge/roster/townSnapshot';
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
 import { ActorPersonalSpaceContext } from './ActorPersonalSpaceContext';
 import { actorCourtesySpace, actorSpaceOverlaps, clipActorStep, yieldActorStep, canActorTurn, type ActorPoint, type ActorFootprint, type ActorYieldRouteState } from './actorPersonalSpace';
 import { resolveGroundWaterWalk } from './groundWaterMovement';
-import type { GroundWalkSurfaces } from './groundBuildingMotion';
+import { groundWalkHeight, type GroundWalkSurfaces } from './groundBuildingMotion';
 import { siteDoorKey, worldOffsetToSiteLocal } from '@/systems/worldforge/bridge/sitePartTransform';
 import {cancelResidentInteriorPlanning,createResidentPlanningFrameBudget,type ResidentPlanningFrameBudget,advanceResidentInteriorRoute,heldResidentFoot,residentRouteRegion,residentRouteRadius,type ResidentInteriorRouteState} from './residentInteriorMotion';
 import type { TownRoster } from '@/systems/worldforge/roster/types';
@@ -356,6 +357,20 @@ export function createResidentStreetSampler(
 ): ResidentStreetSampler {
   if (!ground) return () => null;
   const handoffs = collectResidentHandoffIndex(loaded), source = residentRosterIndex(ground.rosters ?? []);
+  // Employment currently reaches more people than the room packets do. Keep
+  // those source workers visible at a public waiting place, without claiming
+  // they entered or worked indoors. The existing body/walk solver still owns
+  // subsequent motion and clearance; this never moves the player's feet.
+  const waiting=new Map<string,{xM:number;zM:number}>();
+  if(ground.boundsFeet)for(const town of ground.townPlans??[]){
+    const roster=ground.rosters?.find(r=>r.burgId===town.burgId);if(!roster)continue;
+    const graph=streetGraphForTown(town);
+    for(const person of roster.occupants){
+      const spot=workplaceWaitingSpotFor(graph,person,roster.occupants);
+      if(spot)waiting.set(residentRenderKey(roster.burgId,person.id),{
+        xM:(spot.spot[0]-ground.boundsFeet.x)*FEET_TO_METERS,zM:(spot.spot[1]-ground.boundsFeet.y)*FEET_TO_METERS});
+    }
+  }
   let lastClock: number | undefined;
   let motions = new Map<string, InteriorOccupantMotion>();
   return (residentKey, clock) => {
@@ -370,9 +385,16 @@ export function createResidentStreetSampler(
         // A reused household head key cannot turn a successor into an older
         // packet's person. Name is an additional guard, never the join itself.
         if (!handoff || source.get(renderKey) !== handoff.stableKey || node.name !== handoff.occupant.name) continue;
-        const point = worldToScene(node.xM, node.zM, origin), next = ahead.get(renderKey);
+        const workWait=!node.moving&&!node.outdoors&&node.activity==='working'
+          &&!(handoff.locations??[handoff.occupant]).some(o=>residentRenderOwnerAtClock(o,clock)==='interior')?waiting.get(renderKey):undefined;
+        const position=workWait??node;
+        const point = worldToScene(position.xM, position.zM, origin), next = ahead.get(renderKey);
         const dx = next ? next.xM - node.xM : 0, dz = next ? next.zM - node.zM : 0;
-        motions.set(handoff.stableKey, {position: {x: point.x, y: node.surfaceY, z: point.z}, moving: node.moving,
+        // Terrain height omits a doorway's real floor thickness. Starting a
+        // street body below that slab made even a small courtesy step exceed
+        // its vertical limit. Use the existing support resolver for the source
+        // target; accepted feet and all later walking limits remain separate.
+        motions.set(handoff.stableKey, {position: {x: point.x, y: groundWalkHeight(ground,position), z: point.z}, moving: node.moving,
           rotationY: Math.hypot(dx, dz) > 1e-8 ? Math.atan2(dx, dz) : previous.get(handoff.stableKey)?.rotationY ?? 0});
       }
     }
@@ -904,6 +926,10 @@ export const InteriorOccupantActor: React.FC<{
       if(Math.abs(from.yM-desired.yM)>.2){yielded.current=null;yieldRoute.current={};from=desired;}
       if(shape.footprint)shape.footprint={...shape.footprint,yawRad:group.rotation.y};
       const body={...from,...shape}, reservation=actorCourtesySpace(personalSpace);
+      // A public street may meet a real doorstep. The walking probe already
+      // checks that step, slope, water and headroom; allow its 22cm step here.
+      // Indoor courtesy remains on its source slab with the old 8cm limit.
+      const yieldStepHeight=location?.occ ? .08 : .22;
       // A person stopped beside another yielding resident makes room before
       // bodies touch. The physical map below still prevents a new collision.
       const underPressure=actorSpaceOverlaps(from,bodyKey,body,reservation);
@@ -922,9 +948,9 @@ export const InteriorOccupantActor: React.FC<{
             if(!floors?.some(f=>Math.abs(local.lx-f.x)<=f.w/2&&Math.abs(z-f.z)<=f.d/2))return null;
           }
           const walk=resolveGroundWaterWalk(ground,start,point,budgetM,{standingHeightM:shape.heightM},openDoors,walkingSurfaces);
-          return walk.water.mode==='dry'&&Math.abs(walk.yM-start.yM)<=.08?{xM:walk.xM,yM:walk.yM,zM:walk.zM}:null;
+          return walk.water.mode==='dry'&&Math.abs(walk.yM-start.yM)<=yieldStepHeight?{xM:walk.xM,yM:walk.yM,zM:walk.zM}:null;
         };
-        const reached=yieldActorStep(from,desired,bodyKey,body,reservation,INTERIOR_WALK_METERS_PER_SECOND*Math.min(.1,Math.max(0,delta)),probe,personalSpace,yieldRoute.current);
+        const reached=yieldActorStep(from,desired,bodyKey,body,reservation,INTERIOR_WALK_METERS_PER_SECOND*Math.min(.1,Math.max(0,delta)),probe,personalSpace,yieldRoute.current,yieldStepHeight);
         const dx=reached.xM-from.xM,dz=reached.zM-from.zM,moving=Math.hypot(dx,dz)>1e-5;
         yielded.current=Math.hypot(reached.xM-desired.xM,reached.zM-desired.zM)>.015?reached:null;
         motion={...motion,position:{x:reached.xM-interaction.origin.x,y:reached.yM,z:reached.zM-interaction.origin.z},

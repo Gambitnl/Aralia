@@ -4,7 +4,7 @@
  * at those same doors, and activities continue to match the schedule.
  */
 import { describe, it, expect } from 'vitest';
-import { townSnapshotAt, activityTallyAt, townMotionSnapshotAt, commuteArrivalDelayAtHour, legDepartureDelayHours } from '../townSnapshot';
+import { townSnapshotAt, activityTallyAt, townMotionSnapshotAt, commuteArrivalDelayAtHour, legDepartureDelayHours, workplaceWaitingSpotFor } from '../townSnapshot';
 import { occupantLocationAt } from '../occupantSchedule';
 import { buildStreetGraph, frontDoorForPlot } from '../agentPath';
 import type { TownPlan } from '../../artifacts';
@@ -269,5 +269,22 @@ describe('source household commute timing', () => {
     if (wait < 2 / 3600) return; // this id departs on the hour; nothing to wait for
     const early = townMotionSnapshotAt(plan,graph,actual,8+wait/2)[0];
     expect(early).toMatchObject({x:5,y:0,moving:false,outdoors:false});
+  });
+});
+
+
+describe('unrepresented workplace frontage',()=>{
+  it('keeps real workers distinct on the street side without changing jobs or keeper ownership',()=>{
+    const graph=buildStreetGraph(plan);
+    const workers=[2,3,4].map(id=>({id,name:'Worker '+id,ageBand:'adult' as const,homePlotId:10,occupation:'resident' as const,employment:{plotId:20,role:'staff' as const}}));
+    const keeper={...roster.occupants[0],employment:{plotId:20,role:'proprietor' as const}},people=[keeper,...workers];
+    const before=JSON.stringify(people),door=frontDoorForPlot(graph,20)!;
+    const spots=workers.map(p=>workplaceWaitingSpotFor(graph,p,people)!.spot);
+    expect(new Set(spots.map(p=>p.join(','))).size).toBe(workers.length);
+    for(const spot of spots)expect(Math.hypot(spot[0]-door[0],spot[1]-door[1])).toBeGreaterThan(2.5);
+    expect(workplaceWaitingSpotFor(graph,keeper,people)).toBeUndefined();
+    expect(workplaceWaitingSpotFor(graph,{...workers[0]},people)).toBeUndefined();
+    expect(workplaceWaitingSpotFor(graph,workers[0],[...people].reverse())!.spot).toEqual(spots[0]);
+    expect(JSON.stringify(people)).toBe(before);
   });
 });

@@ -3,6 +3,23 @@
  * Implements core Underdark mechanics: light source consumption, sanity decay, and madness.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 03/11/2026, 06:28:41
+ * Dependents: state/reducers/worldReducer.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import {resolveObjectLight} from '../gameplay/objectLightCasting';
 import { GameState, GameMessage } from '../../types';
 import { UnderdarkState, LightSource } from '../../types/underdark';
 import { UNDERDARK_BIOMES } from '../../data/underdark/biomes';
@@ -21,7 +38,7 @@ export class UnderdarkMechanics {
         const nextUnderdark: UnderdarkState = {
             ...state.underdark,
             sanity: { ...state.underdark.sanity },
-            activeLightSources: [...state.underdark.activeLightSources.map(s => ({ ...s }))]
+            activeLightSources: [...state.underdark.activeLightSources.map(s => resolveObjectLight(state,{ ...s }))]
         };
         const messages: GameMessage[] = [];
 
@@ -33,6 +50,27 @@ export class UnderdarkMechanics {
             const remainingSources: LightSource[] = [];
 
             for (const source of nextUnderdark.activeLightSources) {
+                // ADVANCE_TIME supplies the already advanced world clock.
+                // Bound Light has an absolute expiry, including while packed;
+                // subtracting this tick again ended it early in actual play.
+                // Torches and historical unbound spells retain their fuel rule.
+                if (source.objectLight && Number.isFinite(source.expiresAtGameTime)) {
+                    const now = state.gameTime.getTime();
+                    source.durationRemaining = Math.max(0, (source.expiresAtGameTime! - now) / 60000);
+                    if (source.durationRemaining <= 0) {
+                        // Keep the existing inactive binding as source history.
+                        // Expiry is neither a new cast nor a fuel burn event.
+                        remainingSources.push(source);
+                        continue;
+                    }
+                    const previous = (source.expiresAtGameTime! - (now - seconds * 1000)) / 60000;
+                    if (source.isActive && source.durationRemaining <= 10 && previous > 10) {
+                        messages.push({id: Date.now() + Math.random(), sender: 'system', timestamp: new Date(now),
+                            text: `Your ${source.name} will fade within ten minutes.`});
+                    }
+                    remainingSources.push(source);
+                    continue;
+                }
                 if (source.isActive) {
                     source.durationRemaining -= minutesPassed;
 
@@ -70,7 +108,7 @@ export class UnderdarkMechanics {
             let ambientLight = currentBiome.baseLightLevel;
 
             // Artificial Light Overrides
-            if (nextUnderdark.activeLightSources.length > 0) {
+            if (nextUnderdark.activeLightSources.some(source=>source.isActive&&source.durationRemaining>0)) {
                 if (currentBiome.id === 'shadowfell_rift') {
                     // Shadowfell dampens light
                     ambientLight = 'dim';

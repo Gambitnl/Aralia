@@ -12,6 +12,9 @@ import { CHTHONIC_TIEFLING_DATA } from '../chthonic_tiefling';
 import { DRACONBLOOD_DRAGONBORN_DATA } from '../draconblood_dragonborn';
 import { FIRE_GENASI_DATA } from '../fire_genasi';
 import { FOREST_GNOME_DATA } from '../forest_gnome';
+import { FALLEN_AASIMAR_DATA } from '../fallen_aasimar';
+import { PROTECTOR_AASIMAR_DATA } from '../protector_aasimar';
+import { SCOURGE_AASIMAR_DATA } from '../scourge_aasimar';
 import type { Race } from '../../../types';
 
 /**
@@ -270,5 +273,45 @@ describe('Racial spell parsing reconciliation (agora-9d61 / G63)', () => {
     expect(ids).toContain('elementalism');
     expect(ids).toContain('gust-of-wind');
     expect(ids).not.toContain('gust');
+  });
+});
+
+describe('Aasimar Healing Hands and transformation resource parsing (GG-266)', () => {
+  it.each([
+    ['fallen_aasimar', FALLEN_AASIMAR_DATA],
+    ['protector_aasimar', PROTECTOR_AASIMAR_DATA],
+    ['scourge_aasimar', SCOURGE_AASIMAR_DATA],
+  ])('parses %s Healing Hands with maxUses 1, long_rest reset, and d4 dice equal to proficiency bonus', (raceId, race) => {
+    const trait = featureTrait(race, 'Healing Hands');
+    expect(trait.resources).toEqual([
+      {
+        id: `${raceId}__healing_hands__resource`,
+        maxUses: 1,
+        resetOn: 'long_rest',
+        sourceLabel: 'Healing Hands usage',
+        dice: {
+          die: 'd4',
+          count: 'proficiency_bonus',
+        },
+      },
+    ]);
+  });
+
+  it('parses Aasimar level-3 transformation traits as once per Long Rest despite Proficiency Bonus damage/DC mentions', () => {
+    expect(featureTrait(FALLEN_AASIMAR_DATA, 'Necrotic Shroud').resources?.[0]).toMatchObject({
+      id: 'fallen_aasimar__necrotic_shroud__resource',
+      maxUses: 1,
+      resetOn: 'long_rest',
+    });
+    expect(featureTrait(PROTECTOR_AASIMAR_DATA, 'Radiant Soul').resources?.[0]).toMatchObject({
+      id: 'protector_aasimar__radiant_soul__resource',
+      maxUses: 1,
+      resetOn: 'long_rest',
+    });
+    expect(featureTrait(SCOURGE_AASIMAR_DATA, 'Radiant Consumption').resources?.[0]).toMatchObject({
+      id: 'scourge_aasimar__radiant_consumption__resource',
+      maxUses: 1,
+      resetOn: 'long_rest',
+    });
   });
 });

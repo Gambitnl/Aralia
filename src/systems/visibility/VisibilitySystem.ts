@@ -115,6 +115,72 @@ export class VisibilitySystem {
   }
 
   /**
+   * Calculates the light level at a specific target position relative to a light source.
+   * D&D 5e Rules (PHB p. 183):
+   * - Bright light: Within the defined bright radius.
+   * - Dim light: Between the bright radius and the end of the dim radius.
+   * - Darkness: Beyond the dim radius.
+   *
+   * Chebyshev distance (5-5-5 grid rule). Single owner for light level calculations (GG-209).
+   */
+  static calculatePointLightLevel(
+    target: Position,
+    sourceOrigin: Position,
+    brightRadius: number,
+    dimRadius: number
+  ): LightLevel {
+    const dx = Math.abs(target.x - sourceOrigin.x);
+    const dy = Math.abs(target.y - sourceOrigin.y);
+    const distance = Math.max(dx, dy) * GRID_SCALE;
+
+    if (distance <= brightRadius) {
+      return 'bright';
+    } else if (distance <= brightRadius + dimRadius) {
+      return 'dim';
+    } else {
+      return 'darkness';
+    }
+  }
+
+  /**
+   * Alias for calculatePointLightLevel to preserve the single-point calculateLightLevel signature (GG-209).
+   */
+  static calculateLightLevel(
+    target: Position,
+    sourceOrigin: Position,
+    brightRadius: number,
+    dimRadius: number
+  ): LightLevel {
+    return this.calculatePointLightLevel(target, sourceOrigin, brightRadius, dimRadius);
+  }
+
+  /**
+   * Determines the effective light level at a position given multiple light sources.
+   * - Bright light overrides Dim light and Darkness.
+   * - Dim light overrides Darkness.
+   *
+   * Single owner for light level calculations (GG-209).
+   */
+  static getCombinedLightLevel(
+    target: Position,
+    sources: { position: Position; brightRadius: number; dimRadius: number }[]
+  ): LightLevel {
+    let hasDim = false;
+
+    for (const source of sources) {
+      const level = this.calculatePointLightLevel(target, source.position, source.brightRadius, source.dimRadius);
+      if (level === 'bright') {
+        return 'bright';
+      }
+      if (level === 'dim') {
+        hasDim = true;
+      }
+    }
+
+    return hasDim ? 'dim' : 'darkness';
+  }
+
+  /**
    * Calculates what a specific observer can see.
    *
    * @param observer The character looking around.

@@ -1,6 +1,100 @@
 # Overland Travel
 
-Verified: 2026-11-02
+Verified: 2026-11-03
+
+## Map entry and subsequent browsing
+
+Verified: 2026-11-03. Town Plan is an opening camera/drill choice, not repeated authority over subsequent browsing. Native Fianna inspection exposes a repeated entry effect that restores town after choosing Region when live callbacks change. The local one-shot guard resets with the world/StrictMode reset; a StrictMode/live-time-and-exploration regression passes. Rendered adoption remains pending on the cached no-watch server. The same37gameplay groups remain exact through inspection, including accepted feet and Light; browsing must never award arrival, knowledge or movement. Shared readiness19-path compiler repair is now clean0/0, but explicit stable source/runtime handback is still required before adopting the map repair on the cached preview. No native replay or reload of that repair has yet occurred. See [the current evidence boundary](../../projects/gameplay-flow/TRACKER.md#town-plan-entry-overrides-regional-browsing).
+
+## Held object Light across a public doorway loop
+
+Verified: 2026-11-03, native reviewed cast, matched-camera rendered inspection, public walking and two37-distinct-group save/fullreload checkpoints.
+
+An ordinary recast on Fianna's held Sickle replaces only her previous expired Light binding. It starts a new absolute one-hour expiry and spends no spell slot. The existing hand emitter illuminates the real room; no exposure or scene substitution is used. Other party fields,resources,memories,discoveries and source data stay exact. The original door can be closed from reached public ground,loaded closed,reopened and walked through normally. A return to the same public room creates no second visit or directions account.
+
+The native exterior checkpoint retains59.0333minutes at14:37:07; the returned checkpoint retains58.3167minutes at14:37:50,always expiring15:36:09. These are36 distinct core groups plus the timed Light group. Accepted ground feet and their corresponding locale coordinates survive each reload; coordinates across actual walking are expected to change together. Narrow camera/body/scenery quality remains separate from a successful light and source-preserving public transition. See [the played loop](../../projects/gameplay-flow/TRACKER.md#held-light-survives-the-real-public-doorway-loop).
+
+## Source tavern contact and scenery-aware walking cameras
+
+Verified: 2026-11-03, source,34 affected camera checks,four clean scoped type paths and native source-contact/full-reload evidence.
+
+Player-camera visibility now includes the mounted ground-props group. The played Dragon crop contains an actual overturned-barrel instance; lead-only fading was already active. cameraGroundRaycast indexes ordinary unmorphed instance bounds in their mesh frame, selects only crossed nearby candidates and applies the existing exact triangle/material rules at each real instance matrix. Matrix version/count, geometry and position changes rebuild the candidate index. Custom-raycast and morphed instances retain their native behavior. This changes visibility queries only, never props, accepted feet, physical colliders, people, ownership or source data. Native adoption keeps36 core groups plus the original Light source exact. Dark/cramped interior framing remains unaccepted.
+
+The original public room/floor guard refuses a corridor contact. Actual walking through the source inner opening then reaches Doran's normal Meet/Talk actions. His delivered local directions use the existing geographic resolver, source identity and memory-publication pipeline. One actual visit and one attributed directions note persist; recall after fullreload quotes the same words without a second note or meeting. The examined hearth retains the complete original plan, household and manifests. See [the native tavern encounter](../../projects/gameplay-flow/TRACKER.md#a-real-tavern-visit-and-remembered-directions). This is scripted source dialogue, not freeform/provider, rumor, quest or bed acceptance.
+
+## Provisioned public recovery after an earned forced march
+
+Verified: 2026-11-03, actual Dubkinetsk play and save/full-document-reload.
+
+The normal public-ground long rest is separate from a lodging reservation. At the qualified dry supported arrival point, environment/property admission permits recovery: eight hours pass, one ration and one water are spent, exhaustion clears and the existing travel meal counter resets to0. Gold,feet,discoveries,TownSim and expired historical reservations remain exact. NPC-memory maintenance proceeds through its existing rest pipeline. The16-hour cooldown is then visible.36distinct raw groups plus the original expired Light source qualify after reload.
+
+All six real Dubkinetsk public houses are inspected without replacing keepers or layouts. Active businesses19/78/138 have only upstairs beds behind known unusable compact stairs;18is deceased and66/76retired. Fox76 has return stairs but no keeper. No new bed is sold. The original Dragon78 public doorway is physically opened/entered after real wall/alignment refusals,then saved/reloaded with36distinct core groups exact. Its close interior camera and actual keeper interaction remain unqualified. See [native recovery and the reached threshold](../../projects/gameplay-flow/TRACKER.md#dubkinetsk-recovery-preserves-the-earned-journey).
+
+## Lodging after travel and known stair refusals
+
+Verified: 2026-11-03, source, affected booking checks and native Oroten quote/door/common-room/save/fullreload.
+
+guestBedsForVisit remains the canonical inventory for property, historical preparation and existing reservation joins. guestBedStairIssue and guestBedsWithStairAccess select new commercial offers separately: each vertical link must have a known return flight, rather than the legacy277mm-riser compact stair normal walking refuses. Ground beds need no stair. This clears a known vertical refusal only; body/gear, private circulation, doors and actual bed arrival retain their own gates. Request and confirmation recheck the same source, party, keeper and bed selection before the existing atomic payment. Old paid stays are neither removed, reassigned nor refunded. The inspector shows their access issue beside the retained paid room and disables a new offer when none clears the stair check.
+
+Native Oroten evidence distinguishes four Anvil beds/zero new offers from11Tankard beds/two ground offers. The5SP modal reserves one exact bed for24hours, food/water and eligibility separate, with no refund for an unused stay. Payment never moves the body or grants recovery. The initial Tankard play also exposed a different limit: a ground room may route through another guest room despite clearing the stair test. That finding required the bounded public-passage revision below; it never granted consent to transit an unreserved room. The retained two-door proposal, actual costs, one Sickle Light cast and37-present-group continuity are recorded in gameplay-flow/TRACKER.md, A stair-aware lodging choice reaches the Tankard with real object light.
+
+## Retained public guest passages and paid recovery
+
+Verified: 2026-11-03, source, 23 affected checks, scoped types, rendered normal walking, paid bed use and save/full reload.
+
+guestCirculation now also supports rectangular-public-guest-doors-v1 for the inspected 30 by 30 foot inn family. A cheap room-shape prefilter and a stricter planner retain the lot, shell, original room cells, windows, all existing door indexes, furnishings and source identities. Two common-room passages replace only their actual inner wall cells. Original openings remain legacy leafless passages. The separate private-room-leaves-v1 profile is not adopted. Unsupported source shapes and history attachments refuse. Read-back validates the recipe identity and exact permitted delta without a building or furniture generator. Wall-history targets stay on their original physical runs.
+
+The existing source-admission protocol requires a fresh acknowledged, stationary solo body outside the whole building's three-meter margin and a matching mounted foundation/site. In native Tankard play Fianna walked out and stood at X448.3508006532358/Z413.69664523418953/Y13.628991044813286. Existing bedside-storage-clearance-v1 first recorded a separate chest4 move from X26.284251968503938 to28.715748031496062 plan feet. The public-door revision then retained that admitted furnishing foundation exactly. The immutable original blueprint-v1:hwp9ho, all11 bed references, goods, both reservations and actual feet remained unchanged. Outside admission and a full reload preceded re-entry.
+
+Normal walking then reached paid ground bed level0/index3/room1 directly from the common room. A straight doorway approach met the retained bed corner; a short normal sidestep cleared it. No unreserved bedroom, collision exception or relocation was used. Use reserved guest bed admitted the exact standing position X441.67394019895556/Z416.9436119346432/Y13.800269449302442. The normal five-hour wait advanced15:28:02 to20:28:02 without provisions, recovery or movement. The subsequent eight-hour rest completed0351-01-07T04:28:02Z, consumed one food and one water day, cleared exhaustion and the accumulated travelMinutesRemainder, and marked only the Tankard reservation used. Gold remained15.33GP, HP10/10 and level1 slots1/1; the paid Anvil night stayed unused. The Light source expired naturally at16:21:07, retaining its binding and absolute expiry with zero duration and no emitter after reload.
+
+Full-reload proof covers36 raw present groups plus the explicit37th Underdark group, manual/named archive bytes, message prefix, exact bedside XYZ, used lodging, resources and discovered-account identities. The wait/rest also added eight source-attributed Town Routine entries for remote residents. These are routine reports, not eight explored places or earned story discoveries; observation scope remains open. Dark close-room camera framing, unsupported Anvil stairs, landscape quality and the complete travel/discovery journey are not accepted by this local recovery proof.
+
+## Observed routine knowledge and the morning Temple approach
+
+Verified: 2026-11-03, source,23 affected checks/two scoped type paths, native four-hour wait, actual public walking and37-group fullreload.
+
+handleTownRoutineEvents retains its source/revision/life-aware schedule comparison. canObserveChange is an optional positive-observer capability; without it no ADD_DISCOVERY_ENTRY is emitted. Wait and long rest supply no observer. Observed reports are capped after the observer, while the returned world comparison retains its bounded contract. NPC schedules and existing journal accounts are not changed. No production positive routine observer is connected yet: a future surface must establish the actual source, physical situation and observation. The eight previously played remote routine accounts remain history.
+
+The actual paid-room morning wait04:29:51→08:29:51 advances four hours without recovery or provision costs, retaining45 accounts33 unread and the exact paid-bed position. Source rosters remain exact; pure schedule changes and the live morning actor layer are separate evidence. The initial static GroundWorld.occupants list is not a live actor-state probe. A proof poll of that snapshot timed out after successful waiting and was corrected read-only; the wait was not repeated. Normal save/fullreload qualifies the unchanged accounts and recovered resources. Sleep suppression has affected-handler/fixture proof; another native rest was not forced for acceptance.
+
+Fianna then casts one normal held-Sickle Light, leaves through the known public passage/inn door, and chooses the main Temple from the public plan. A refused direct market approach leads to a real street detour. The selected map source matches the reached cross-decorated temple facade and guarded door. Opening the leaf moves no feet. Actual crossing stops outside the raised floor, so no temple visit, contact or reward is recorded. Existing entry-approach derivation refuses its six-tread/one-meter scope before testing water; larger real support requires its own bounded design. Normal withdrawal leaves the saved, full-reloaded stand-off clear of the entire entrance. See [morning source proof](../../projects/gameplay-flow/TRACKER.md#morning-knowledge-stays-grounded-on-the-played-temple-route), GF-G124.
+
+The ambient gossip and stilt-walk/canopy profile encountered during this same play have distinct unresolved observation/representation gaps, GF-G125/GF-G126. Their source history and cultural intent stay intact. Neither is counted as a newly explored place.
+
+## Guarded public Temple entrance and an earned dedication
+
+Verified: 2026-11-03,12 affected cases/two scoped type paths, actual rendered stair/door/nave/altar play and37-group fullreload/reread.
+
+addBuildingEntryApproaches keeps the existing modest stoop first. Only Temple roles can fall back to at most eight treads and1.25m total rise, with the same0.17m riser and0.28m tread limits. The full landing/flight still requires dry support, clear soil and neighboring parcels. Physical side posts/handrails use the existing SitePart beam representation. Original parts, source floor/door, terrain and ordinary walking stay intact. Unresolved support still refuses.
+
+Actual Oroten source1gjyya0 adopts seven treads, one landing and44 guard elements while the saved body stands outside. Native walking climbs, aligns with the narrow unchanged leaf, crosses and reaches public nave2. The existing public discovery owner grants one source visit. Normal altar examination/read then grants one source-identified Chernovism dedication, including the dualist tradition, associated deity Luzha and named priest Cora Dunmill. A named priest in an inscription does not establish a present NPC, permission or a quest.
+
+Fullreload retains accepted nave XYZ, plans,47 accounts35 unread,2food/1water,15.33GP, no exhaustion and the used Tankard/unused Anvil stays. Normal reread after reload leaves the discovery array exact. Timed Light retains its original current-cast identity/09:30:11 expiry and correct handR emitter. Source bushes/rocks intruding into this same nave remain an observed prop integration gap. See [supported arrival and dedication](../../projects/gameplay-flow/TRACKER.md#supported-temple-arrival-earns-a-source-dedication), GF-G127. The older refusal section records the pre-repair boundary.
+
+## Retained legacy wilderness props inside observed Temple floors
+
+Verified: 2026-11-03,37 affected tests/three scoped type paths, normal exit/admission/reentry/altar play, rendered inspection and37-group reload qualification.
+
+ExteriorPropRevision also owns temple-interior-wild-prop-v1. It retains each complete unowned bush/boulder original, stable ID, original array index and ordered predecessor chain while removing the object from replay. Eligibility requires both an observed ground room cell and an actual mounted floor with matching source/pose. Courtyards/outdoor/owned/retained props and stale sources refuse. The existing stationary actual-footfall/outside-envelope/reducer guards remain; every represented body must be clear before admission. No world regeneration or new prop store is added.
+
+Actual Oroten public nave replay retires three exact sources after leaving normally.8828 other props/terrain/roads remain exact, and all36 manual-save groups differ only by those receipts. A rejected intermediate worker/unsaved-furniture capture is documented separately. Actual reentry, rendered altar and normal rereads/fullreload retain47accounts/35unread and source1gjyya0 without duplicate/debit; timed Light keeps its absolute expiry/handR emitter. Cora's visible label/body is not a meeting or consent. Close/low moving camera and wider interior/readability remain open. See [the played evidence](../../projects/gameplay-flow/TRACKER.md#retained-temple-props-clear-the-played-public-nave), GF-G127.
+
+## A physically reached priest confirms earned Temple knowledge
+
+Verified: 2026-11-03,actual public-nave Meet/Talk, normal conversation replay, rendered inspection and38-group reload qualification.
+
+Fianna follows the actual Chernovism altar account to Cora Dunmill through existing room/floor/reach/current-life guards. The saved life and visual-roster slots differ; stable household b14:head and full saved-life speaker provenance prevent a numeric-slot identity join. Introduction/dedication/current family are spoken; a failed rumor is not knowledge. One temple-center directions note persists, while its limited wording does not establish useful onward navigation.
+
+The reproduced last-discussion omission is repaired in the existing [NPC dialogue memory owner](npcs-companions.md#delivered-local-directions-participate-in-conversation-recall). Native replay/fullreload keep one meeting/one note/history4,48accounts36unread,resources/retained prop receipts and exact accepted nave XYZ. No service, quest or reward is invented. Continue normal exit, preparation and consequential onward route play. See [the actual contact receipt](../../projects/gameplay-flow/TRACKER.md#the-dedication-reaches-a-real-priest-and-remembered-directions).
+
+## Paid provisioning, a long foot journey and a qualified wetland arrival
+
+Verified: 2026-11-03,actual source shop/stock/route/arrival play, rendered inspection, production geometry queries and38-group reload qualification.
+
+The native Pantry19 purchase uses existing merchant stock and actual prices: one ration/two water units spend0.40GP,add12lb and leave3/3 days. Existing full-day travel accounting banks fractional minutes: the52.70km Dubkinetsk leg takes76,935clock seconds and carries1282.2570699283583 minutes without crossing its first24-hour provision charge. This does not grant recovery; the failed DC23 forced-march save adds exhaustion while HP/gold/provisions stay intact. The journey log and one destination discovery persist with previous lore, source observations and meetings. Recovery still has its own admission, meal and time rules.
+
+New arrival feet remain exact across fullreload. The live accepted Dubkinetsk point is dry, supported and passes public-entry body fit beside an elevated deck. A low camera view is not evidence that these feet should be moved. Expired Light keeps its original source/expiry and0emitters. Current camera/landscape views and physical inn recovery remain unaccepted. See [the actual played leg](../../projects/gameplay-flow/TRACKER.md#paid-supplies-carry-a-forced-march-to-dubkinetsk); broader route/progress qualification remains in GF-G37/GF-G40.
 
 ## Purpose
 
@@ -329,9 +423,10 @@ physical and route refusals while diagnosing the source relationship.
 
 ## Player visibility beneath bridges
 
-The existing player camera sightline queries mounted world3d:site-building and
-world3d:decks roots. It uses actual transformed opaque faces, player body bounds
-and visible-parent/material rules. A bridge is an occluder even when no building
+The existing player camera sightline queries mounted world3d:site-building,
+world3d:decks, world3d:terrain, world3d:roads and ground-props roots. It uses
+actual transformed opaque faces, drawn player-body surface samples and
+visible-parent/material rules. A bridge is an occluder even when no building
 intersects the camera arm. NPCs and unrelated scene actors remain excluded.
 The existing framing/retraction controller owns the resulting eye position;
 walking direction, accepted feet, geometry and travel permission are unchanged.
@@ -447,7 +542,19 @@ This is a source candidate under GF-G85. Future naturally earned native log and
 rendered verification remain pending; do not reroll Perrin's failed journey or
 rewrite its historical account to qualify the new wording.
 
+## World journey review
+
+MapPane retains funded land/ferry picks as a pending journey before calling the gameplay executor. The existing town/POI action is labeled Review journey; bare cell and keyboard picks also reach this review. It keeps the exact WorldCellView, RoutePlan and seeded TravelMeta, so cancellation spends nothing and confirmation does not reroll outcomes. The rendered card shows transport/preference, source biomes, distance, route time, rounded navigation/event delays, total time, the existing provision debit, actual carried food/water days, route danger and applicable fare/forced-march warning. The total uses the executor's delay accounting without revealing event text. No new travel rule or resource grant is introduced.
+
+Accepted origin, party/packs, transport, route preference, sea mode, season or travel-tally changes invalidate the pending plan. AtlasSvgView can keep that reviewed destination's exact route visible after the detail card closes; its default callback labels remain compatible outside MapPane. The established underprovisioned choice and owned-ship branches retain their owners. Native Oroten play verifies reversible comparison, explicit departure, exact38119second transaction, failed forced-march consequence, unique arrival discovery and save/full-reload continuity. Current route evidence and unresolved limits belong in the Gameplay Flow Tracker.
+
+WorldMap source accounting still prepares provision and forced-march metadata from base route minutes while the executor adds navigation/event delays. This actual Oroten trip has zero such delay, so its exact paid tally does not qualify delayed cross-day or fatigue-boundary accounting. That source gap remains open; preserve the completed journey without retroactive charges or rerolls.
+
+The restMeals summary distinguishes the shared bag's carried food/water days from the allocation consumed by the next meal. The underlying allocation and ownership rules are unchanged. Native solo camp preparation verifies3food/2waterdays before the meal and2/1after it; the three-hour eligibility wait grants no recovery, while the actual eight-hour rest resets the travel-day tally before the reviewed march.
+
 ## Local journey time review
+
+An unqualified street route is described as surveyed ground and crossings without a continuous mapped street route, including when the selected focus is within a town. Its review explains that navigation away from maintained streets can add hours even to a short walk. This is general rule information, not disclosure of the seeded event story or drift direction. It neither changes the existing 1d6-hour lost-navigation rule nor grants road qualification. The actual Kodok quote and rejected departure are documented in the Gameplay Flow Tracker.
 
 LocalJourneyPreview keeps the complete LocalJourneyQuote as the departure authority. When that total includes time beyond the route itself, it shows Route time, Navigation and delays, and Total travel time. It uses the existing travelReadout formatter. Quiet trips keep a single Travel time row. The source quote already carries navigation and event time; this display does not roll again, change costs or expose event text or drift direction before departure. The journey log remains responsible for the actual consequence narrative. Food, water, encounter risk, forced-march warnings, refusal and explicit confirmation retain their existing owners.
 
@@ -487,6 +594,10 @@ This is an explicit source-factual answer, not an AI-failure fallback. Normal di
 
 Native Putivl play confirms a source-factual compass answer does not qualify its approach. A bank walk can be admitted by building walls yet refused by the mounted deck standing-body query. Preserve such refusal and accepted height; a route description never grants a collision waiver or a lifted bridge arrival. The measured Gameplay Flow checkpoint and read-only geometry diagnosis are recorded in the living project records. Meeting/topic memory persists across later play and true reload. Current-interaction fields can clear while the existing Logbook retains the published directions as an attributed conversation account; neither grants physical arrival.
 
+A living resident without a verified business or priest office can also locate the actual numbered public gates of the admitted saved town layout. The same canonical adapter supplies the gate centers used by Local and Ground; zero translation preserves their north-up sectors and numbering. Missing, malformed, duplicate or center-point gate geometry adds no gate claim. This common public wayfinding never borrows a business, reveals a private home, overrides authored knowledge, or promises an open gate or safe passage. Native Orla play verifies all four mounted Kodok gate identities, heard-quotation history and repeat dedupe; the current Gameplay Flow Tracker owns the played proof.
+
+TownPlanView labels its existing gatehouse markers with the same one-based canonical gate order as resident directions. Their glyphs stay readable in screen pixels under the existing pan/zoom transform. These are public location labels, not arrival, discovery, access or route-admission actions. The party marker remains projected from accepted feet. Native Kodok play follows heard Gate4 to its actual opening and flooded outer approach; fine water admission still belongs to Ground, and the schematic does not certify a dry crossing.
+
 ### Retaining heard directions in the existing Logbook
 
 After the existing direct-reply identity/geography publication guard succeeds, useDialogueSystem records global_directions as an NPC Interaction account with the actual speaker and exact delivered words. The existing Logbook owns search, read status and save persistence; no second travel journal is introduced. Stable world/source/words identity and a local-directions knowledge flag let logReducer ignore repeated advice, including rapid repeat publication, while preserving changed advice, another source/world and ordinary repeat NPC events. This is learned advice, not LOCATION_DISCOVERY: no map coordinates, site visit, movement, safe-route grant, XP or resource reward is added. No historical wording is backfilled from cleared transient replies. Native continuity qualification belongs in the living Gameplay Flow records.
@@ -510,6 +621,8 @@ The entry uses the actual observation game time and describes the fitted room an
 localGroundJourney first tries localTownStreetRoute against the selected Local's exact town plan with saved deltas applied. This reuses buildStreetGraph and routeAlongStreets from the resident route system without changing its geometry or NPC state. Travelers keep their exact accepted endpoints; a roster centroid-to-door substitution is not allowed.
 
 Both endpoints and the whole path must lie on authored street widths and outside private plot footprints. Two-foot samples retain the existing regional land, river-crossing, survey and owning-cell admission. Unqualified street edges are removed from a temporary graph before searching, so a valid longer land approach can beat a blocked geometric shortcut. The roster's disconnected straight fallback is refused unless both endpoints genuinely share one authored street span. No town bounding box, name or gate label grants travel permission.
+
+Native Kodok play demonstrates that physically reaching a street can change a route qualification without changing rules: the rejected short off-street option retains its five-hour navigation delay, while a normal3.071m approach enables the slightly longer53.43m/48s mapped-street journey. Its48s charge, exact absolute endpoint,0.8min provision remainder and35-group save/full-reload continuity are recorded in the Gameplay Flow Tracker. This does not qualify every town frontage or the first streaming frame.
 
 A qualified route uses the existing road speed, danger, grade and navigation rules, plus ordinary season and exhaustion costs. Maintained road navigation has DC0; country routes retain their previous rules and seeded event streams. Events, encounters, supplies and forced march still use the existing travel transaction. Route geometry participates in the street quote key so changed source paths require a fresh review. The preview describes mapped town streets explicitly; it does not promise an event-free journey. Native Putivl evidence includes the longer222.463m land route and a normal199s charged arrival, while an unrecorded river link remains rejected.
 
@@ -535,7 +648,7 @@ publicBuildingDiscovery records a first-hand public-room visit only when accepte
 
 A visit does not supply a temple dedication. The normal altar reading uses templeDedicationAccessError for fresh public-room reach and resolveWorldforgeTempleIdentity for the actual atlas-cell religion and canonical main temple. A unique living office holder supplies the optional clergy listing; a missing or disputed office stays unknown. The existing discovery log retains a stable snapshot of the faith and listed clergy. An unchanged reread keeps the first account, while a later succession can produce a new historical account without rewriting earlier knowledge. Reading grants no meeting, attendance, service, permission or recovery.
 
-In player follow, camera collision retracts along the same yaw and can reject a blocked stationary orbit by recalling its last checked clear view. An orbit gesture therefore does not guarantee its requested bearing near a facade. The View compass reports the rendered bearing; ordinary WASD uses that camera-relative direction. Neither framing nor its refusal relocates accepted feet. When collision shortens a requested player-follow arm, FreeRoamCameraController compares legal lower and higher pitch candidates along that same yaw before accepting a short view. Each candidate uses the existing mounted structure/ground sightline query; requested zoom, gradual arm recovery and the final post-damping check remain. This can clear a rising outdoor bank without changing physical support or input heading. The existing cameraGroundRaycast exact triangle index serves static mounted buildings and decks as well as terrain and roads, so a short indoor arm does not scan every structural triangle for every body sample. It caches candidate selection only. Live transforms, attribute/index changes and material rules remain authoritative. Animated, instanced, custom-raycast and unusual-range meshes retain the native raycast path; decorative geometry that intentionally yields therefore remains nonblocking. Initial To Player admission remains a separate playerCameraFrame query; a follow-camera improvement does not prove that every interior can be framed after reload.
+In player follow, camera collision retracts along the same yaw and can reject a blocked stationary orbit by recalling its last checked clear view. An orbit gesture therefore does not guarantee its requested bearing near a facade. The View compass reports the rendered bearing; ordinary WASD uses that camera-relative direction. Neither framing nor its refusal relocates accepted feet. When collision shortens a requested player-follow arm, FreeRoamCameraController compares legal lower and higher pitch candidates along that same yaw before accepting a short view. Each candidate uses the existing mounted structure/ground sightline query; requested zoom, gradual arm recovery and the final post-damping check remain. This can clear a rising outdoor bank without changing physical support or input heading. The existing cameraGroundRaycast exact triangle index serves static mounted buildings and decks as well as terrain and roads, so a short indoor arm does not scan every structural triangle for every body sample. It caches candidate selection only. Live transforms, attribute/index changes and material rules remain authoritative. Ordinary unmorphed instanced scenery now uses a cached per-instance broad phase and the same exact triangle query. Animated or morphed meshes, custom raycasts and unusual geometry ranges retain native raycast semantics; decorative geometry that intentionally yields therefore remains nonblocking. Initial To Player admission remains a separate playerCameraFrame query; a follow-camera improvement does not prove that every interior can be framed after reload.
 
 ## Moving near-foot drawing off the browser thread
 

@@ -31,6 +31,12 @@ import {
 } from '../../utils/combat/actionEconomyUtils';
 import { getCombatantToPositionDistanceFeet } from '../../utils/spatial/elevationGeometry';
 import { hasLineOfSight } from '../../utils/spatial/lineOfSight';
+import {
+  getObjectAC,
+  getObjectHPAverage,
+  type ObjectMaterial,
+  type ObjectSize,
+} from '../../utils/combat/physicsUtils';
 
 // ============================================================================
 // Public Transaction Contract
@@ -46,6 +52,12 @@ export interface ObjectInteractionRequest {
   operation: ObjectInteractionOperation;
   damage?: number;
   maxDistanceFeet?: number;
+  /**
+   * Attack roll made against the object's Armor Class (GG-206).
+   * When provided on a damage operation, the attack must equal or exceed
+   * the object's AC to hit and deal damage; otherwise the attack misses.
+   */
+  attackRoll?: number;
 }
 
 export interface ObjectInteractionResult {
@@ -54,6 +66,10 @@ export interface ObjectInteractionResult {
   characters: CombatCharacter[];
   mapData: BattleMapData;
   cost: ObjectInteractionCost | null;
+  /** Whether the attack roll hit the object's AC (undefined for open/use or unrolled attacks). */
+  isHit?: boolean;
+  /** The target object's effective Armor Class. */
+  armorClass?: number;
 }
 
 // ============================================================================
@@ -71,7 +87,28 @@ function reject(
 }
 
 function interactionStateOf(targetObject: TargetableMapObject): MapObjectInteractionState | null {
-  return targetObject.interactionState ?? null;
+  const existing = targetObject.interactionState ?? null;
+  if (!existing) return null;
+
+  // GG-206: Seed material, size, AC, and HP defaults if missing
+  const material = (existing.material ?? targetObject.material ?? 'wood') as ObjectMaterial;
+  const size = (existing.size ?? (targetObject.size?.toLowerCase() || 'medium')) as ObjectSize;
+  const armorClass = existing.armorClass ?? getObjectAC(material);
+  const maxHitPoints = existing.maxHitPoints > 0
+    ? existing.maxHitPoints
+    : getObjectHPAverage(size, existing.isFragile ?? false);
+  const hitPoints = existing.hitPoints !== undefined && existing.hitPoints > 0
+    ? existing.hitPoints
+    : maxHitPoints;
+
+  return {
+    ...existing,
+    material,
+    size,
+    armorClass,
+    maxHitPoints,
+    hitPoints,
+  };
 }
 
 function resolveCost(
@@ -142,6 +179,36 @@ export function resolveObjectInteraction(input: {
   const cost = resolveCost(actor, request.operation);
   if (!cost) return reject('No free interaction or Action remains.', characters, mapData);
 
+  // GG-206: If an attackRoll is provided for a damage operation, compare against object AC.
+  const objectAC = interactionState.armorClass ?? 10;
+  if (request.operation === 'damage' && request.attackRoll !== undefined && request.attackRoll < objectAC) {
+    // Attack missed the object's AC! Action is spent on the attack attempt, but no damage is dealt.
+    const paidActor = consumeActionCost(actor, { type: cost });
+    const nextState: MapObjectInteractionState = {
+      ...interactionState,
+      resolvedEventIds: [...interactionState.resolvedEventIds, request.eventId],
+    };
+    const nextObject = { ...targetObject, interactionState: nextState };
+    const nextMapData = {
+      ...mapData,
+      targetableObjects: (mapData.targetableObjects ?? []).map(candidate => (
+        candidate.id === nextObject.id ? nextObject : candidate
+      )),
+    };
+    const nextCharacters = characters.map(character => (
+      character.id === paidActor.id ? paidActor : character
+    ));
+    return {
+      accepted: true,
+      isHit: false,
+      armorClass: objectAC,
+      reason: `Attack roll (${request.attackRoll}) missed ${targetObject.name}'s AC ${objectAC}.`,
+      characters: nextCharacters,
+      mapData: nextMapData,
+      cost,
+    };
+  }
+
   // All gates are now complete. Payment and object replacement are constructed
   // together, so no invalid branch can spend only one half of the transaction.
   const paidActor = consumeActionCost(actor, { type: cost });
@@ -169,6 +236,8 @@ export function resolveObjectInteraction(input: {
 
   return {
     accepted: true,
+    isHit: request.operation === 'damage' ? true : undefined,
+    armorClass: objectAC,
     reason: request.operation === 'damage'
       ? `${targetObject.name} took ${damage} damage and has ${hitPoints}/${interactionState.maxHitPoints} HP.`
       : request.operation === 'open'

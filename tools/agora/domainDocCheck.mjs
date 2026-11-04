@@ -12,6 +12,7 @@
  * Depends on: Node's built-in `node:fs` and `node:path` modules.
  */
 
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -144,7 +145,39 @@ export function checkDomainDocText(markdownText, { repoRoot, file = 'unknown.md'
     }
   }
 
-  return { checked, unresolved };
+  // LOCAL-ONLY PATHS (2026-11-03, agora-257c; CI Tooling Tests job
+  // 125639352404). Some current files are gitignored on purpose (AGENTS.md:
+  // Design Preview holds local-only files; entities3d/vendor too). A clean
+  // clone can never hold them, so CI reported 34 entity-studio and ui-modals
+  // paths as stale although they exist in the owner's checkout. An absent path
+  // that git ignores is reported as local-only, not as unresolved: no clone
+  // can check it. Outside a git repository (a test temp folder) nothing is
+  // ignored, so every absent path stays unresolved.
+  const ignored = gitIgnoredPaths(rootDir, unresolved.map((entry) => entry.path));
+  return {
+    checked,
+    unresolved: unresolved.filter((entry) => !ignored.has(entry.path)),
+    localOnly: unresolved.filter((entry) => ignored.has(entry.path)),
+  };
+}
+
+/**
+ * Returns the subset of `relPaths` that `.gitignore` covers in `rootDir`,
+ * through one `git check-ignore --stdin` call. Exit 1 means none is ignored;
+ * any other failure (no git, not a repository) also means none.
+ */
+export function gitIgnoredPaths(rootDir, relPaths) {
+  if (relPaths.length === 0) return new Set();
+  try {
+    const out = execFileSync('git', ['-C', rootDir, 'check-ignore', '--stdin'], {
+      input: relPaths.join('\n'),
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'ignore'],
+    });
+    return new Set(out.split(/\r?\n/).filter(Boolean).map((p) => p.replace(/\\/g, '/')));
+  } catch (error) {
+    return new Set();
+  }
 }
 
 /**
@@ -168,6 +201,7 @@ export function checkAllDomainDocs({
 
   let checkedCount = 0;
   const unresolved = [];
+  const localOnly = [];
 
   for (const name of docFiles) {
     const absFile = path.join(absDomainsDir, name);
@@ -176,12 +210,14 @@ export function checkAllDomainDocs({
     const result = checkDomainDocText(text, { repoRoot: rootDir, file: relFile });
     checkedCount += result.checked.length;
     unresolved.push(...result.unresolved);
+    localOnly.push(...result.localOnly);
   }
 
   return {
     filesScanned: docFiles.length,
     checkedCount,
     unresolved,
+    localOnly,
   };
 }
 
@@ -208,6 +244,10 @@ if (isDirectMain) {
     process.exit(1);
   }
   console.log(
-    `domainDocCheck: OK (${result.filesScanned} domain docs scanned, ${result.checkedCount} current-state paths resolved, 0 unresolved)`
+    `domainDocCheck: OK (${result.filesScanned} domain docs scanned, ${result.checkedCount} current-state paths checked, 0 unresolved)`
   );
+  if (result.localOnly.length > 0) {
+    console.log(`domainDocCheck: ${result.localOnly.length} gitignored (local-only) path(s) are absent here and were not checked:`);
+    for (const item of result.localOnly) console.log(`  ${item.file}:${item.line} -> ${item.path}`);
+  }
 }

@@ -3,7 +3,12 @@ import path from 'path';
 
 async function main() {
   console.log('Starting Playwright for Combat Messaging Demo...');
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({
+    // Use installed Chrome updates and retain its process sandbox.
+    channel: 'chrome',
+    chromiumSandbox: true,
+    headless: true,
+  });
   const context = await browser.newContext({
     viewport: { width: 1280, height: 800 }
   });

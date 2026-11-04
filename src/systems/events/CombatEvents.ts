@@ -26,6 +26,8 @@ export interface CombatEvent {
     phase?: CombatEventPhase;
 }
 
+export type MovementReason = 'voluntary' | 'forced' | 'teleport' | 'pull';
+
 export interface MovementEvent extends CombatEvent {
     type: 'unit_move';
     unitId: string;
@@ -33,6 +35,7 @@ export interface MovementEvent extends CombatEvent {
     to: Position;
     cost: number;
     isForced: boolean;
+    reason: MovementReason;
 }
 
 export interface AttackEvent extends CombatEvent {

@@ -6,8 +6,8 @@ import {
   isRiderTurnAvailable,
   isRiderAttackFilterMatch,
 } from './AttackRiderSystem';
-import type { ActiveRider, CombatState } from '../../types/combat';
-import type { AttackContext, RiderMatchResult } from './AttackRiderSystem';
+import type { ActiveRider, CombatCharacter, CombatState } from '../../types/combat';
+import type { AttackContext } from './AttackRiderSystem';
 
 /**
  * This file proves the shared attack-rider matching system used by next-attack spells.
@@ -230,6 +230,24 @@ describe('isRiderTargetMatch', () => {
   it('rejects when the rider target does not match the attack target', () => {
     const rider = createMinimalRider({ targetId: 'marked-enemy' });
     const context = createMinimalContext({ targetId: 'different-enemy' });
+    expect(isRiderTargetMatch(rider, context)).toBe(false);
+  });
+
+  it('matches when the rider targetFilter matches target creature types', () => {
+    const rider = createMinimalRider({ targetFilter: { creatureTypes: ['Dragon'] } });
+    const context = createMinimalContext({ targetCreatureTypes: ['Dragon'] });
+    expect(isRiderTargetMatch(rider, context)).toBe(true);
+  });
+
+  it('rejects when the rider targetFilter does not match target creature types', () => {
+    const rider = createMinimalRider({ targetFilter: { creatureTypes: ['Dragon'] } });
+    const context = createMinimalContext({ targetCreatureTypes: ['Humanoid'] });
+    expect(isRiderTargetMatch(rider, context)).toBe(false);
+  });
+
+  it('rejects when target has no creature types and rider requires a specific creature type', () => {
+    const rider = createMinimalRider({ targetFilter: { creatureTypes: ['Dragon'] } });
+    const context = createMinimalContext({ targetCreatureTypes: undefined });
     expect(isRiderTargetMatch(rider, context)).toBe(false);
   });
 });
@@ -494,5 +512,85 @@ describe('AttackRiderSystem hit-or-miss rider consumption', () => {
 
     expect(matches).toEqual([rider]);
     expect(attackerAfterHit?.riders).toEqual([]);
+  });
+});
+
+describe('AttackRiderSystem creature-type conditional riders (Oil of Dragon\'s Bane)', () => {
+  it('matches against a target with Dragon creature type and does not match against Humanoid', () => {
+    const riderSystem = new AttackRiderSystem();
+    const dragonBaneRider: ActiveRider = {
+      id: 'oil-dragons-bane',
+      spellId: 'item-oil_of_dragons_bane',
+      casterId: 'attacker',
+      sourceName: "Oil of Dragon's Bane",
+      effect: {
+        type: 'DAMAGE',
+        damage: { dice: '6d6', type: 'force' },
+        trigger: { type: 'on_attack_hit' },
+        condition: { type: 'always' },
+      } as unknown as ActiveRider['effect'],
+      consumption: 'unlimited',
+      targetFilter: { creatureTypes: ['Dragon'] },
+      attackFilter: { weaponType: 'any', attackType: 'weapon' },
+      usedThisTurn: false,
+      duration: { type: 'hours', value: 1 },
+    };
+
+    const dragonEnemy: CombatCharacter = {
+      id: 'dragon-enemy',
+      name: 'Red Dragon',
+      team: 'enemy',
+      creatureTypes: ['Dragon'],
+      currentHP: 100,
+      maxHP: 100,
+      position: { x: 1, y: 0 },
+    } as unknown as CombatCharacter;
+
+    const humanoidEnemy: CombatCharacter = {
+      id: 'humanoid-enemy',
+      name: 'Bandit',
+      team: 'enemy',
+      creatureTypes: ['Humanoid'],
+      currentHP: 20,
+      maxHP: 20,
+      position: { x: 2, y: 0 },
+    } as unknown as CombatCharacter;
+
+    const attacker: CombatCharacter = {
+      id: 'attacker',
+      name: 'Attacker',
+      team: 'player',
+      currentHP: 30,
+      maxHP: 30,
+      position: { x: 0, y: 0 },
+      riders: [dragonBaneRider],
+    } as unknown as CombatCharacter;
+
+    const state: CombatState = {
+      isActive: true,
+      characters: [attacker, dragonEnemy, humanoidEnemy],
+      combatLog: [],
+    } as unknown as CombatState;
+
+    const matchesDragon = riderSystem.getMatchingRiders(state, {
+      attackerId: 'attacker',
+      targetId: 'dragon-enemy',
+      attackType: 'weapon',
+      weaponType: 'melee',
+      isHit: true,
+      targetCreatureTypes: dragonEnemy.creatureTypes,
+    });
+    expect(matchesDragon).toHaveLength(1);
+    expect(matchesDragon[0].id).toBe('oil-dragons-bane');
+
+    const matchesHumanoid = riderSystem.getMatchingRiders(state, {
+      attackerId: 'attacker',
+      targetId: 'humanoid-enemy',
+      attackType: 'weapon',
+      weaponType: 'melee',
+      isHit: true,
+      targetCreatureTypes: humanoidEnemy.creatureTypes,
+    });
+    expect(matchesHumanoid).toHaveLength(0);
   });
 });

@@ -708,8 +708,6 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({
     onLogEntry: handleLogEntry,
     onMapUpdate: setMapData,
     initiativeRoller,
-    autoCharacters,
-    difficulty: "normal",
   });
 
   const initializeCombat = turnManager.initializeCombat;

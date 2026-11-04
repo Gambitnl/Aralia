@@ -97,6 +97,39 @@ describe('resolveAssassinateAgainstTarget', () => {
     expect(result.modifiers).toEqual({ advantage: false, criticalOnHit: true });
   });
 
+  it('derives surprise automatically from CombatState.surprisedCharacterIds without explicit caller flag', () => {
+    const state = createRoundState([createAssassin(), createEnemy('early-bandit'), createEnemy('late-bandit')]);
+    state.surprisedCharacterIds = ['early-bandit'];
+
+    const result = resolveAssassinateAgainstTarget(state, {
+      assassinId: 'assassin',
+      targetId: 'early-bandit',
+    });
+    expect(result.modifiers).toEqual({ advantage: false, criticalOnHit: true });
+  });
+
+  it('derives surprise automatically from character.isSurprised', () => {
+    const surprisedBandit = createEnemy('surprised-bandit');
+    surprisedBandit.isSurprised = true;
+    const state = createMockCombatState({
+      characters: [createAssassin(), surprisedBandit],
+      turnState: {
+        currentTurn: 0,
+        turnOrder: ['assassin', 'surprised-bandit'],
+        currentCharacterId: 'assassin',
+        phase: 'action',
+        actionsThisTurn: [],
+      },
+    });
+
+    const result = resolveAssassinateAgainstTarget(state, {
+      assassinId: 'assassin',
+      targetId: 'surprised-bandit',
+    });
+    // Assassin goes first: advantage is true because target hasn't acted, and criticalOnHit is true because target is surprised!
+    expect(result.modifiers).toEqual({ advantage: true, criticalOnHit: true });
+  });
+
   it('fails by name for a non-Assassin, a missing combatant, and a target outside the order', () => {
     const rogue = createMockCombatCharacter({ id: 'rogue', name: 'Rogue', team: 'player' });
     const bystander = createEnemy('bystander');

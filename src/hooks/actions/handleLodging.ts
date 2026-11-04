@@ -23,7 +23,7 @@ import type { GameState } from '../../types/state';
 import type { LodgingOffer } from '../../types/rest';
 import type { AppAction } from '../../state/actionTypes';
 import type { AddMessageFn } from './actionHandlerTypes';
-import { guestBedsForVisit, guestBedDescription, lodgingKeeperOnDuty, lodgingOfferError, activeLodgingReservation, LODGING_COST_PER_MEMBER_GP } from '../../systems/gameplay/lodging';
+import { guestBedsForVisit, guestBedsWithStairAccess, guestBedStairIssue, guestBedDescription, lodgingKeeperOnDuty, lodgingOfferError, activeLodgingReservation, LODGING_COST_PER_MEMBER_GP } from '../../systems/gameplay/lodging';
 
 type Props = { gameState: GameState; dispatch: React.Dispatch<AppAction>; addMessage: AddMessageFn };
 
@@ -39,12 +39,16 @@ async function sourceOffer(state: GameState, businessId: string): Promise<Lodgin
   const visit = townBuildingVisit(state.worldSeed, business.burgId, business.plotId,
     state.townSim?.[business.burgId]?.buildingEvents?.[business.plotId],
       state.townSim?.[business.burgId]?.buildingSources?.[business.plotId], state.townSim?.[business.burgId]?.layoutRevision);
-  const beds = guestBedsForVisit(visit);
-  if (!beds.length) throw new Error('This building has no guest beds available for lodging.');
+  if (!guestBedsForVisit(visit).length) throw new Error('This building has no guest beds available for lodging.');
   if (!lodgingKeeperOnDuty(visit, new Date(state.gameTime).getUTCHours())) throw new Error('No innkeeper is on duty to arrange a stay. Private or occupied beds are not available.');
-  if (beds.length < state.party.length) throw new Error(`Only ${beds.length} guest beds are available for ${state.party.length} travelers.`);
   const reserved = activeLodgingReservation(state, businessId);
-  if (reserved) throw new Error(`Your paid guest bed is already reserved here: ${reserved.beds.map(bed => guestBedDescription(visit, bed)).join('; ')}. It expires at ${reserved.expiresAt}. Reach that bed before resting; you will not be charged again.`);
+  if (reserved) {
+    const accessIssue = reserved.beds.map(bed => guestBedStairIssue(visit, bed)).find(Boolean);
+    throw new Error(`Your paid guest bed is already reserved here: ${reserved.beds.map(bed => guestBedDescription(visit, bed)).join('; ')}. It expires at ${reserved.expiresAt}. ${accessIssue ?? 'Reach that bed before resting.'} You will not be charged again.`);
+  }
+  const beds = guestBedsWithStairAccess(visit);
+  if (!beds.length) throw new Error('The guest rooms have no usable stair route. No lodging payment has been taken.');
+  if (beds.length < state.party.length) throw new Error(`Only ${beds.length} guest beds have a usable stair route for ${state.party.length} travelers.`);
   return {
     businessId, businessName: business.name, keeperId: business.ownerId, keeperName: keeper.name,
     worldSeed: state.worldSeed, cellId: state.playerCell.cellId, locationId: state.currentLocationId,

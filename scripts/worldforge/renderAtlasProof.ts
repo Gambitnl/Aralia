@@ -118,7 +118,12 @@ async function main() {
   // drawAtlas function source code, render both styled views, and benchmark redraw times.
   // --------------------------------------------------------------------------
   console.log("Launching headless browser for rendering...");
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({
+    // Use installed Chrome updates and retain its process sandbox.
+    channel: 'chrome',
+    chromiumSandbox: true,
+    headless: true,
+  });
   try {
   const page = await browser.newPage({ viewport: { width: W, height: H } });
 

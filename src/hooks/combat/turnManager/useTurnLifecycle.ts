@@ -254,14 +254,14 @@ export const useTurnLifecycle = ({
 }: UseTurnLifecycleProps) => {
 
   // --- Initialization & Setup ---
-  const rollInitiative = useCallback((character: CombatCharacter): number => {
+  const rollInitiative = useCallback((character: CombatCharacter, options?: { isSurprised?: boolean }): number => {
     // Production combat keeps real d20 randomness. Deterministic scenario and
     // replay harnesses may inject a stable total so identical world seeds do
     // not produce visually different active turns between captures.
     if (initiativeRoller) {
       return initiativeRoller(character);
     }
-    return rollInitiativeTotal(character);
+    return rollInitiativeTotal(character, Math.random, { isSurprised: options?.isSurprised ?? character.isSurprised });
   }, [initiativeRoller]);
 
   const startTurnFor = useCallback((character: CombatCharacter) => {
@@ -513,22 +513,30 @@ export const useTurnLifecycle = ({
     );
   }, [characters, handleCharacterUpdateWrapped, onLogEntry, processRepeatSaves, processStartOfTurnEffects, turnState.currentTurn]);
 
-  const initializeCombat = useCallback((initialCharacters: CombatCharacter[]) => {
+  const initializeCombat = useCallback((
+    initialCharacters: CombatCharacter[],
+    options?: { surprisedCharacterIds?: string[] },
+  ) => {
     // A new encounter or deterministic Reset creates a fresh member boundary;
     // no completion receipt from the previous sequence may suppress it.
     completedTurnBoundaryRef.current = null;
     resetActionReceiptsRef.current?.();
+    const surprisedIds = options?.surprisedCharacterIds ?? [];
     // 1. Roll initiatives
-    const charactersWithInitiative = initialCharacters.map(char => ({
-      ...char,
-      initiative: rollInitiative(char),
-      // Every combatant starts with a facing, because directional spells that
-      // carry no target point read it at zone creation. A combatant that has
-      // no authored facing looks at the nearest enemy. A combatant with no
-      // enemy on the field looks south, which is the default screen-down
-      // direction of the grid.
-      facing: char.facing ?? facingTowardNearestEnemy(char, initialCharacters) ?? 'south'
-    }));
+    const charactersWithInitiative = initialCharacters.map(char => {
+      const isSurprised = surprisedIds.includes(char.id) || char.isSurprised === true;
+      return {
+        ...char,
+        isSurprised: isSurprised ? true : char.isSurprised,
+        initiative: rollInitiative(char, { isSurprised }),
+        // Every combatant starts with a facing, because directional spells that
+        // carry no target point read it at zone creation. A combatant that has
+        // no authored facing looks at the nearest enemy. A combatant with no
+        // enemy on the field looks south, which is the default screen-down
+        // direction of the grid.
+        facing: char.facing ?? facingTowardNearestEnemy(char, initialCharacters) ?? 'south'
+      };
+    });
 
     // 2. Delegate sorting to TurnOrder hook
     initializeTurnOrder(charactersWithInitiative);
@@ -559,6 +567,7 @@ export const useTurnLifecycle = ({
         turnOrder: sorted.map(c => c.id),
         initiatives: sorted.map(c => ({ id: c.id, initiative: c.initiative })),
         turnGroups,
+        surprisedCharacterIds: charactersWithInitiative.filter(c => c.isSurprised).map(c => c.id),
         groupContract: {
           actionOwnership: 'member',
           movementOwnership: 'member',

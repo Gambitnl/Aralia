@@ -127,19 +127,12 @@ export class InfernalMechanics {
    * Checks for breached contracts in the game state.
    */
   static checkBreach(gameState: GameState): void {
-    const rawContracts = gameState.activeContracts;
-    if (!Array.isArray(rawContracts)) return;
-
-    const activeContracts = rawContracts.filter((contract): contract is InfernalContract => {
-      return (
-        typeof contract === 'object' &&
-        contract !== null &&
-        typeof (contract as { status: unknown }).status === 'string' &&
-        typeof (contract as { id: unknown }).id === 'string' &&
-        typeof (contract as { type: unknown }).type === 'string' &&
-        typeof (contract as { signeeName: unknown }).signeeName === 'string'
-      );
-    });
+    // GG-254: GameState.activeContracts is typed InfernalContract[] now, so the
+    // hand-written four-field shape guard that used to sit here is gone. The
+    // list is written only by signContract with a full contract, and no save
+    // migration produces other shapes, so no load-time check was needed.
+    const activeContracts = gameState.activeContracts;
+    if (!activeContracts) return;
 
     for (const contract of activeContracts) {
         if (contract.status === 'active') {

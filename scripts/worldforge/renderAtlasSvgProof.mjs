@@ -69,7 +69,11 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
   + `<rect width="${W}" height="${H}" fill="#1f4a73"/>`
   + `<g transform="scale(${k})"><rect width="${model.width}" height="${model.height}" fill="#1f4a73"/>${oceanPaths}<g filter="url(#atlas-soften)">${paths}</g>${riverPaths}${borderPath}${routePaths}${coast}${burgMarks}</g>${labelText}${markerSvg}</svg>`;
 
-const browser = await chromium.launch();
+const browser = await chromium.launch({
+  // Use installed Chrome updates and retain its process sandbox.
+  channel: 'chrome',
+  chromiumSandbox: true,
+});
 const page = await browser.newPage({ viewport: { width: W, height: H } });
 await page.setContent(`<!doctype html><body style="margin:0">${svg}</body>`);
 const outDir = path.join(__dirname, '../../.agent/azgaar-ref');

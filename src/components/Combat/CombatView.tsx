@@ -636,9 +636,7 @@ const CombatView: React.FC<CombatViewProps> = ({
     // ADVANCE_TIME. CombatView stays a coordinator and does not own the global
     // clock directly.
     onRoundElapsed,
-    autoCharacters, // Pass auto characters to turn manager if needed, but easier to modify turnManager props to accept "isAuto" check
     onMapUpdate: setMapData,
-    difficulty: state.combatDifficulty ?? "normal",
     requestReaction: useCallback(
       (
         attackerId: string,

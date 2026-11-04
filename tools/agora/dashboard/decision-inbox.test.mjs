@@ -70,7 +70,12 @@ test('WF353: inspector resolves typed and legacy dependencies; badges count only
   const app=createAgoraServer({dir});let browser;
   try{
     await new Promise(resolve=>app.listen(0,resolve));
-    browser=await chromium.launch({headless:true});
+    browser=await chromium.launch({
+      // Use installed Chrome updates and retain its process sandbox.
+      channel: 'chrome',
+      chromiumSandbox: true,
+      headless:true,
+    });
     const page=await browser.newPage({viewport:{width:1400,height:1000}});
     page.setDefaultTimeout(5000);
     const rows=[task('agora-done','',{state:'done',title:'Finished predecessor',formerIds:['legacy-done'],deps:[]}),
@@ -118,7 +123,12 @@ test('disclosures survive polling, manual refresh and task switches without free
   let browser;
   try {
     await new Promise((resolve) => app.listen(0, resolve));
-    browser = await chromium.launch({ headless: true });
+    browser = await chromium.launch({
+      // Use installed Chrome updates and retain its process sandbox.
+      channel: 'chrome',
+      chromiumSandbox: true,
+      headless: true,
+    });
     const page = await browser.newPage();
     // Call the real registered poll callback without making the test wait 30s.
     await page.addInitScript(() => {
@@ -173,7 +183,12 @@ test('inbox renders safe readable requests and filters on desktop/mobile without
   let browser;
   try {
     await new Promise((resolve) => app.listen(0, resolve));
-    browser = await chromium.launch({ headless: true });
+    browser = await chromium.launch({
+      // Use installed Chrome updates and retain its process sandbox.
+      channel: 'chrome',
+      chromiumSandbox: true,
+      headless: true,
+    });
     const page = await browser.newPage({ viewport: { width: 1400, height: 1000 } });
     const rows = [task('pick', 'NEEDS REMY RULING: choose A or B', { title: 'Choose skeleton canon', campaignId: 'canon', refs: ['https://example.com/sheet'], creatorAgent: { handle: 'planner-123' } }),
       task('hands', "Needs Remy's hands: download the result", { title: 'Download rig', body: '<script>window.untrusted = true</script>' }),

@@ -256,7 +256,12 @@ async function renderRegion(
     if (pts.length >= 4) riverBands.push({ pts, w });
   }
 
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({
+    // Use installed Chrome updates and retain its process sandbox.
+    channel: 'chrome',
+    chromiumSandbox: true,
+    headless: true,
+  });
   const page = await browser.newPage({ viewport: { width: W, height: H } });
 
   await page.setContent(`<canvas id="c" width="${W}" height="${H}" style="display:block"></canvas>`);
@@ -471,7 +476,12 @@ async function renderTownRegion(
     envelopes.push({ x: ex, y: ey, w: ew, h: eh, gates });
   }
 
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({
+    // Use installed Chrome updates and retain its process sandbox.
+    channel: 'chrome',
+    chromiumSandbox: true,
+    headless: true,
+  });
   const page = await browser.newPage({ viewport: { width: W, height: H } });
   await page.setContent(`<canvas id="c" width="${W}" height="${H}" style="display:block"></canvas>`);
 

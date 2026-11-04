@@ -117,4 +117,28 @@ describe('buildInitiativeOrder', () => {
     expect(buildInitiativeOrder([actor, orphan]).map(character => character.id))
       .toEqual(['orphan', 'actor']);
   });
+
+  it('rolls with disadvantage when surprised (2024 rules: takes lower of two d20 rolls)', () => {
+    const surprisedActor = createInitiativeActor('surprised-actor', 0, 10, 0); // Dex +0, baseInit 0
+    surprisedActor.isSurprised = true;
+
+    // Rolls 0.9 (face 19) then 0.2 (face 5). Disadvantage takes 5 + 0 = 5.
+    let callCount = 0;
+    const rolls = [0.9, 0.2];
+    const mockRng = () => rolls[callCount++];
+
+    const result = rollInitiativeTotal(surprisedActor, mockRng);
+    expect(result).toBe(5);
+  });
+
+  it('rolls with advantage when advantage option is provided', () => {
+    const actor = createInitiativeActor('fast-actor', 0, 10, 0);
+
+    let callCount = 0;
+    const rolls = [0.2, 0.9];
+    const mockRng = () => rolls[callCount++];
+
+    const result = rollInitiativeTotal(actor, mockRng, { advantage: true });
+    expect(result).toBe(19);
+  });
 });

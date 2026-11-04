@@ -62,27 +62,29 @@ export function calculateConcentrationDC(
  * Rolls a Constitution saving throw for the character without evaluating a DC.
  * Uses the centralized saving throw logic to respect proficiency, bonuses, and centralized RNG.
  */
-export function rollConcentrationSave(character: CombatCharacter): number {
+export function rollConcentrationSave(character: CombatCharacter, rng?: () => number): number {
     // Constitution saving throw
-    const result = rollSavingThrow(character, 'Constitution', 0); // DC 0 as we just want the total
+    const result = rollSavingThrow(character, 'Constitution', 0, undefined, undefined, undefined, rng ? { rng } : undefined); // DC 0 as we just want the total
     return result.total;
 }
 
 /**
  * Checks if a character passes their concentration check after taking damage.
- * 
+ *
  * @param character The character taking damage who is currently concentrating.
  * @param damageDealt The amount of damage taken (determines DC).
  * @param rulesEdition Rules edition governing whether the DC 30 cap applies.
+ * @param rng Optional deterministic d20 source threaded from CommandContext or combat hooks (GG-261).
  * @returns Object containing success status, the calculated DC, and the actual roll total.
  */
 export function checkConcentration(
     character: CombatCharacter,
     damageDealt: number,
-    rulesEdition: RulesEdition = DEFAULT_RULES_EDITION
+    rulesEdition: RulesEdition = DEFAULT_RULES_EDITION,
+    rng?: () => number,
 ): { success: boolean; dc: number; roll: number } {
     const dc = calculateConcentrationDC(damageDealt, rulesEdition)
-    const result = rollSavingThrow(character, 'Constitution', dc)
+    const result = rollSavingThrow(character, 'Constitution', dc, undefined, undefined, undefined, rng ? { rng } : undefined)
 
     return {
         success: result.success,

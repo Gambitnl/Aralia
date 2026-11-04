@@ -80,6 +80,11 @@ interface UseCombatEngineProps {
      */
     scheduledEffectSaveRng?: ScheduledEffectSaveRng;
     /**
+     * Optional deterministic d20 source for concentration saves triggered by
+     * hook-path damage (GG-261). Mirrors CommandContext.concentrationSaveRng.
+     */
+    concentrationSaveRng?: () => number;
+    /**
      * Light sources currently on the board, owned by the composing hook.
      *
      * Concentration cleanup ends the lights a concentration spell created, and
@@ -122,6 +127,7 @@ export const useCombatEngine = ({
     addDamageNumber,
     scheduledEffectDiceRoller,
     scheduledEffectSaveRng,
+    concentrationSaveRng,
     activeLightSources,
     onActiveLightSourcesUpdate,
 }: UseCombatEngineProps) => {
@@ -198,7 +204,7 @@ export const useCombatEngine = ({
         currentTurnNumber = 0,
         sourceCharacter?: CombatCharacter,
         damageTrigger?: 'turn_start' | 'turn_end' | 'on_start_turn_in_area' | 'on_end_turn_in_area',
-    ): CombatCharacter => resolveDamage({ addDamageNumber, breakConcentrationThroughCommandLayer, characters, onLogEntry, processRepeatSaves, spellZones }, character, amount, source, damageType, currentTurnNumber, sourceCharacter, damageTrigger), [addDamageNumber, breakConcentrationThroughCommandLayer, characters, onLogEntry, processRepeatSaves, spellZones]);
+    ): CombatCharacter => resolveDamage({ addDamageNumber, breakConcentrationThroughCommandLayer, characters, concentrationSaveRng, onLogEntry, processRepeatSaves, spellZones }, character, amount, source, damageType, currentTurnNumber, sourceCharacter, damageTrigger), [addDamageNumber, breakConcentrationThroughCommandLayer, characters, concentrationSaveRng, onLogEntry, processRepeatSaves, spellZones]);
 
     const shouldKeepScheduledEffectAfterTrigger = useCallback((
         scheduledEffect: ScheduledSpellEffect,

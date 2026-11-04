@@ -72,7 +72,9 @@ Commands:
                                           capture is earliest post-grant, not a physical exclusive lock;
                                           review later peer edits before acknowledging any current digest
   unlock <lockId|path>                    release a lock you hold (by id OR file path)
-  unlock --mine                           release ALL locks you hold
+  unlock --mine                           release ALL locks you hold (the only release-all form;
+                                          a bare `unlock` refuses and releases nothing - GG-387)
+  <command> --help | -h                   print that command's usage; never runs the command
   unlock <lockId> --force                 release a STALE/GONE holder's lock (refused if online)
   locks                                   list active locks, each with its repo and how long
                                           the holder has been idle (WF-G116/WF-G119)

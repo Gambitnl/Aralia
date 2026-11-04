@@ -1591,6 +1591,22 @@ describe('entry treads meeting a downhill street',()=>{
   function slope(){return {cols:12,rows:12,heights:Array.from({length:144},(_,i)=>
     metersToHeight(2-Math.max(0,6.096-Math.floor(i/12)*1.524)*.22+((i%12)*1.524-6.096)*.04)),
     buildings:[structuredClone(b)]} as GroundWorld;}
+  it('adds a guarded public Temple flight after the modest stoop refuses, without changing the source or walking limits',()=>{
+    const ground=slope();ground.heights=Array.from({length:144},(_,i)=>metersToHeight(2-Math.min(1,Math.max(0,4.572-Math.floor(i/12)*1.524)*.65)));
+    expect(connect(ground).buildings[0]).toBe(ground.buildings[0]);
+    ground.buildings[0]={...ground.buildings[0],role:'temple'};
+    const before=JSON.stringify(ground),next=connect(ground),parts=next.buildings[0].parts.filter(p=>p.tag==='entry-approach');
+    // A soil-contact tread can be omitted; the guarded fallback must still
+    // provide a complete physically walked route rather than a nominal count.
+    expect(parts.some(p=>p.walkSurface==='tread')).toBe(true);
+    expect(parts.some(p=>p.beam&&p.beam.dy!==0)).toBe(true);
+    expect(parts.filter(p=>p.beam&&p.beam.dx===0&&p.beam.dz===0).length).toBeGreaterThan(10);
+    expect(JSON.stringify(ground)).toBe(before);expect(next.heights).toBe(ground.heights);
+    const entry={x:6.096,z:4.572},normal={x:0,z:-1},opens=new Set([siteDoorKey(b.id,b.parts[2])]);
+    expect(walk(next,opens,entry,normal).reached).toBe(true);
+    expect(walk(next,new Set(),entry,normal).reached).toBe(false);
+    expect(addBuildingEntryApproaches(ground.buildings,(x,z)=>groundSurfaceY(ground,x,z),()=>false)[0]).toBe(ground.buildings[0]);
+  });
   it('walks exposed treads into the floor while retaining the existing grade and closed-door guard',()=>{
     const ground=slope(),entry={x:6.096,z:4.572},normal={x:0,z:-1},opens=new Set([siteDoorKey(b.id,b.parts[2])]);
     expect(walk(ground,opens,entry,normal).reached).toBe(false);

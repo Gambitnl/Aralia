@@ -21,9 +21,20 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand';
 import { CommandContext } from '../base/SpellCommand';
 import { SpellEffect } from '@/types/spells';
-import { CombatState, ActiveRider } from '@/types/combat';
+import { CombatState, ActiveRider, CombatCharacter } from '@/types/combat';
 import { AttackRiderSystem } from '../../systems/combat/AttackRiderSystem';
 import { generateId } from '../../utils/core/idGenerator';
+import type { ItemEffect } from '@/types/items';
+
+/** The rider variant of an item effect (GG-219). */
+type RiderItemEffect = Extract<ItemEffect, { type: 'rider' }>;
+
+// 2026-11-04 type fix: `typeof x === 'object'` narrowed the unknown effect only
+// to `object`, so every field read below failed the typecheck. This guard
+// narrows it to the rider shape that types/items.ts declares.
+function isRiderItemEffect(effect: unknown): effect is RiderItemEffect {
+    return typeof effect === 'object' && effect !== null && (effect as { type?: unknown }).type === 'rider';
+}
 
 /**
  * Command that registers a "Rider" effect on a character.
@@ -91,6 +102,7 @@ export class RegisterRiderCommand extends BaseEffectCommand {
             consumption: ('consumption' in trigger ? trigger.consumption : undefined) || 'unlimited',
             attackFilter: ('attackFilter' in trigger ? trigger.attackFilter : undefined) || {},
             usedThisTurn: false,
+            targetFilter: ('condition' in this.effect && this.effect.condition && 'targetFilter' in this.effect.condition) ? this.effect.condition.targetFilter : undefined,
             duration: {
                 type: this.context.effectDuration?.type ?? 'minutes',
                 value: this.context.effectDuration?.value ?? 1
@@ -125,5 +137,53 @@ export class RegisterRiderCommand extends BaseEffectCommand {
             return this.context.targets[0].id;
         }
         return undefined;
+    }
+    /**
+     * Helper to create a RegisterRiderCommand from an item that has an ItemEffect with type rider (GG-219).
+     */
+    static fromItem(
+        item: { id: string; name: string; effect?: unknown },
+        character: CombatCharacter,
+    ): RegisterRiderCommand {
+        const itemEffect = isRiderItemEffect(item.effect) ? item.effect : null;
+        const damageDice = itemEffect?.damage?.dice ?? '1d6';
+        const damageType = itemEffect?.damage?.type ?? 'force';
+        const durationType = itemEffect?.duration?.type ?? 'hours';
+        const durationValue = itemEffect?.duration?.value ?? 1;
+        const targetFilter = itemEffect?.targetFilter;
+        const attackFilter = itemEffect?.attackFilter ?? { weaponType: 'any', attackType: 'weapon' };
+        const consumption = itemEffect?.consumption ?? 'unlimited';
+
+        const spellEffect: SpellEffect = {
+            type: 'DAMAGE',
+            trigger: {
+                type: 'on_attack_hit',
+                frequency: 'every_time',
+                consumption,
+                attackFilter,
+            },
+            condition: {
+                type: 'hit',
+                targetFilter,
+            },
+            damage: {
+                dice: damageDice,
+                type: damageType,
+            },
+        };
+
+        const context: CommandContext = {
+            spellId: item.id,
+            spellName: item.name,
+            caster: character,
+            targets: [character],
+            castAtLevel: 0,
+            effectDuration: {
+                type: durationType,
+                value: durationValue,
+            },
+        };
+
+        return new RegisterRiderCommand(spellEffect, context);
     }
 }

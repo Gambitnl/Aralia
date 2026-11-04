@@ -24,9 +24,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/11/2026, 01:29:05
+ * Last Sync: 03/11/2026, 08:18:36
  * Dependents: state/appState.ts
- * Imports: 20 files
+ * Imports: 21 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -52,7 +52,7 @@ import {canonicalTownSeedPath} from '../../systems/worldforge/town/canonicalTown
 import {proposeHouseholdLivingPlan} from '../../systems/worldforge/interior/householdLivingPlan';
 import {freezeHouseholdLayoutRevision,householdLayoutDoorStates} from '../../systems/worldforge/interior/householdLayoutRevision';
 import {buildBuildingHistoryParts} from '../../systems/worldforge/bridge/buildingHistoryParts';
-import {planGuestCirculation, guestCirculationDoorMoves, GUEST_CIRCULATION_RECIPE} from '../../systems/worldforge/interior/guestCirculation';
+import {planGuestCirculation, guestCirculationDoorMoves, guestCirculationRecipeFor} from '../../systems/worldforge/interior/guestCirculation';
 import { buildingPlanSignature, readObservedBuildingSource, observedBuildingSourceIsCurrent } from '../../systems/worldforge/interior/buildingSource';
 import type { TownSimState } from '../../systems/worldforge/townsim/types';
 import {
@@ -226,7 +226,7 @@ export function townReducer(state: GameState, action: AppAction): Partial<GameSt
                 if (Object.hasOwn(doors, move.to) && doors[move.to] !== previousDoors[move.from]) return {};
                 doors[move.to] = previousDoors[move.from];
             }
-            const circulationRepair = {version: 1 as const, recipe: GUEST_CIRCULATION_RECIPE, sourceSignature: mountedSignature,
+            const circulationRepair = {version: 1 as const, recipe: guestCirculationRecipeFor(foundation)!, sourceSignature: mountedSignature,
                 planSignature: buildingPlanSignature(plan), plan, doorMoves, admittedAt: new Date(state.gameTime).toISOString(),
                 position: {...position, yM: position.yM}};
             // Only an explicit, reference-preserving revision and any required

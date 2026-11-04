@@ -20,6 +20,18 @@ function fixture(){
  return {source,handle};
 }
 describe('actual ground carried torch',()=>{
+ it('projects a marked held object with both hands occupied, not an unbound Light buff',()=>{
+  const {handle}=fixture();
+  const full={...character,equippedItems:{MainHand:{id:'mace',lightSpellId:'spell'},OffHand:{id:'shield'}}} as unknown as PlayerCharacter;
+  const state=harness.context!.state;state.party=[full];
+  state.underdark.activeLightSources=[{id:'spell',name:'Light',type:'spell',isActive:true,radius:40,durationRemaining:60,
+    expiresAtGameTime:state.gameTime.getTime()+3600000,objectLight:{spellId:'light',casterId:full.id!,slot:'MainHand',color:'#fff1ca'}}];
+  const view=render(<GroundCarriedTorch character={full} handle={handle}/>);
+  expect(view.queryByTestId('ground-carried-torch')).toBeNull();
+  expect(view.getByTestId('ground-object-light').getAttribute('name')).toContain('spell:handR');
+  state.party=[{...full,equippedItems:{}}];view.rerender(<GroundCarriedTorch character={state.party[0]} handle={handle}/>);
+  expect(view.queryByTestId('ground-object-light')).toBeNull();
+ });
  it('does not light an owned unlit torch or a preview without game state',()=>{
   const {handle}=fixture();harness.context!.state.underdark.activeLightSources=[];
   const view=render(<GroundCarriedTorch character={character} handle={handle}/>);

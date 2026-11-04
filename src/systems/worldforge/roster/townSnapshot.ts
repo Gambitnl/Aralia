@@ -17,8 +17,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 02/11/2026, 21:55:43
- * Dependents: components/World3D/residentDoorUse.ts, components/Worldforge/TownAgentSnapshotView.tsx, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/residentDoorRoutes.ts
+ * Last Sync: 03/11/2026, 05:10:22
+ * Dependents: components/World3D/InteriorOccupants.tsx, components/World3D/residentDoorUse.ts, components/Worldforge/TownAgentSnapshotView.tsx, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/residentDoorRoutes.ts
  * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
@@ -341,6 +341,31 @@ function zoneHalfAlongFt(graph: StreetGraph, plotId: number): number {
 export function errandSpotFor(graph: StreetGraph, occupant: Occupant, plotId: number): ErrandSpot | undefined {
   if (plotId === occupant.homePlotId || plotId === occupantWorkPlotId(occupant)) return undefined;
   if (errandPlotFor(graph, occupant) !== plotId) return undefined;
+  return frontageStandingSpot(graph, occupant, plotId, errandSlotsByGraph.get(graph)?.slot.get(occupant));
+}
+
+/** A scheduled worker whose room packet cannot admit them still exists on
+ * the public frontage. Reuse the errand standing layout, at the street end
+ * of the connector, rather than stacking bodies in the doorway. This is a
+ * waiting place, not an indoor station, a completed commute or permission.
+ * The keeper's workPlotId and every job/schedule/source identity stay intact.
+ * Room capacity and physical staff entry remain separate unfinished work. */
+export function workplaceWaitingSpotFor(graph:StreetGraph,occupant:Occupant,people:readonly Occupant[]):ErrandSpot|undefined {
+  const plotId=occupant.employment?.plotId;
+  if(plotId===undefined||occupant.workPlotId===plotId||!people.includes(occupant))return undefined;
+  let slots=workplaceWaitingSlots.get(people);
+  if(!slots){
+    slots=new WeakMap();workplaceWaitingSlots.set(people,slots);
+    const groups=new Map<number,Occupant[]>();
+    for(const person of people){const place=person.employment?.plotId;if(place===undefined||person.workPlotId===place)continue;
+      const group=groups.get(place)??[];group.push(person);groups.set(place,group);}
+    for(const group of groups.values())group.sort((a,b)=>a.id-b.id).forEach((person,index)=>slots!.set(person,index));
+  }
+  return frontageStandingSpot(graph,occupant,plotId,slots.get(occupant),true);
+}
+const workplaceWaitingSlots=new WeakMap<readonly Occupant[],WeakMap<Occupant,number>>();
+
+function frontageStandingSpot(graph:StreetGraph,occupant:Occupant,plotId:number,slot?:number,waiting=false):ErrandSpot|undefined {
   const entrance = graph.plotEntrances.get(plotId);
   if (!entrance) return undefined;
   const [dx, dy] = entrance.door;
@@ -357,12 +382,13 @@ export function errandSpotFor(graph: StreetGraph, occupant: Occupant, plotId: nu
     const tl = Math.hypot(bx - ax, by - ay);
     if (tl > 1) { tx = (bx - ax) / tl; ty = (by - ay) / tl; }
   }
-  // Depth: from just outside the door to just short of the street center, so
-  // a group never meets the group of a place across the street (GG-601).
-  const near = Math.min(3, Math.max(1.5, entrance.connectorLengthFt * 0.4));
+  // Errand groups use the connector before the street center (GG-601).
+  // Workers without an interior station wait at its street end instead of
+  // occupying the door. These are targets, not a substitute for body/terrain
+  // admission or proof that a workplace has room for its scheduled staff.
+  const near = waiting ? Math.max(3, entrance.connectorLengthFt) : Math.min(3, Math.max(1.5, entrance.connectorLengthFt * 0.4));
   const far = entrance.connectorLengthFt - 1.5;
   const half = zoneHalfAlongFt(graph, plotId);
-  const slot = errandSlotsByGraph.get(graph)?.slot.get(occupant);
   let along: number, depth: number;
   if (slot !== undefined) {
     // A registered slot: a grid that fills from the door outward, the middle

@@ -5,7 +5,14 @@ import { strip5eToolsMarkup } from '../src/data/adapters/5eTools/shared';
 
 const ENTRIES_BASE = path.join(process.cwd(), 'public/data/glossary/entries');
 const EQUIPMENT_DIR = path.join(ENTRIES_BASE, 'equipment');
-const MAGIC_ITEMS_DIR = path.join(ENTRIES_BASE, 'magic_items');
+/**
+ * GG-164: every folder the registry is built from. Magic items used to live in
+ * a second folder, entries/magic_items/, which was merged into equipment/ and
+ * no longer exists. The old scan skipped a missing folder in silence, so a
+ * moved or renamed source would have shrunk the registry with no warning.
+ * collectSourceFiles() now refuses a missing folder instead.
+ */
+export const ITEM_SOURCE_DIRS: readonly string[] = [EQUIPMENT_DIR];
 const OUT_FILE = path.join(process.cwd(), 'src/data/items/generatedGlossaryItems.ts');
 
 
@@ -39,6 +46,22 @@ function resolveDamageType(token: string): string | undefined {
   if (full) return full;
   if (value.length === 1) return DAMAGE_TYPE_BY_CODE[value.toLowerCase()];
   return undefined;
+}
+
+/**
+ * GG-164: every JSON file under the given source folders. A missing folder is
+ * an error, not an empty list: the registry must never shrink quietly because
+ * a source folder moved.
+ */
+export function collectSourceFiles(dirs: readonly string[] = ITEM_SOURCE_DIRS): string[] {
+  const missing = dirs.filter((dir) => !fs.existsSync(dir) || !fs.statSync(dir).isDirectory());
+  if (missing.length > 0) {
+    throw new Error(
+      `generateItemRegistry: item source folder not found: ${missing.join(', ')}. `
+      + 'Update ITEM_SOURCE_DIRS in scripts/generateItemRegistry.ts to the folder that now holds these entries.',
+    );
+  }
+  return dirs.flatMap((dir) => getAllFiles(dir));
 }
 
 function getAllFiles(dirPath: string, arrayOfFiles: string[] = []): string[] {
@@ -446,10 +469,9 @@ export function convertEntryToItem(data: any): { id: string; item: Record<string
 }
 
 function main(): void {
-  const allFiles = [
-    ...getAllFiles(EQUIPMENT_DIR),
-    ...getAllFiles(MAGIC_ITEMS_DIR)
-  ];
+  // GG-164: one source list, and a missing folder stops the run (see
+  // ITEM_SOURCE_DIRS). The old second scan of entries/magic_items/ is gone.
+  const allFiles = collectSourceFiles();
 
   const generatedItems: Record<string, any> = {};
 
@@ -472,7 +494,7 @@ function main(): void {
  * @file generatedGlossaryItems.ts
  * AUTO-GENERATED FILE. DO NOT EDIT DIRECTLY.
  * 
- * Generated from public/data/glossary/entries/equipment and magic_items.
+ * Generated from public/data/glossary/entries/equipment.
  */
 
 import { Item, ItemRarity } from '../../types/index.js';

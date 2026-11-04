@@ -12,6 +12,7 @@ import { RegisterRiderCommand } from '../RegisterRiderCommand';
 import type { CommandContext } from '../../base/SpellCommand';
 import type { CombatCharacter, CombatState } from '../../../types/combat';
 import type { SpellEffect } from '../../../types/spells';
+import { ItemRarity, ItemType, type Item } from '../../../types/items';
 
 // ============================================================================
 // Rider Registration Fixtures
@@ -93,5 +94,39 @@ describe('RegisterRiderCommand', () => {
 
         expect(riderIds).toHaveLength(2);
         expect(new Set(riderIds).size).toBe(2);
+    });
+
+    it('creates and registers a rider from an item effect with targetFilter and duration', () => {
+        const item: Item = {
+            id: 'oil_of_dragons_bane',
+            name: "Oil of Dragon's Bane",
+            type: ItemType.Potion,
+            category: 'consumable',
+            rarity: ItemRarity.Rare,
+            weight: 0.1,
+            value: 500,
+            description: 'Deals 6d6 force damage against Dragons',
+            effect: {
+                type: 'rider',
+                damage: { dice: '6d6', type: 'force' },
+                duration: { type: 'hours', value: 1 },
+                consumption: 'unlimited',
+                targetFilter: { creatureTypes: ['Dragon'] },
+                attackFilter: { weaponType: 'any', attackType: 'weapon' },
+            },
+        };
+
+        const command = RegisterRiderCommand.fromItem(item, caster);
+        expect(command).not.toBeNull();
+        if (!command) return;
+
+        const stateAfter = command.execute(createState());
+        const updatedCaster = stateAfter.characters.find(character => character.id === caster.id);
+        const rider = updatedCaster?.riders?.find(r => r.sourceName === "Oil of Dragon's Bane");
+
+        expect(rider).toBeDefined();
+        expect(rider?.targetFilter?.creatureTypes).toEqual(['Dragon']);
+        expect(rider?.consumption).toBe('unlimited');
+        expect(rider?.duration).toEqual({ type: 'hours', value: 1 });
     });
 });

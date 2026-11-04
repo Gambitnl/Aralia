@@ -61,6 +61,8 @@ export interface DamageResolutionContext {
     addDamageNumber: (value: number, position: Position, type: 'damage' | 'heal' | 'miss') => void;
     breakConcentrationThroughCommandLayer: (concentrator: CombatCharacter) => CombatCharacter;
     characters: CombatCharacter[];
+    /** Optional deterministic d20 source for concentration saves triggered by hook-path damage (GG-261). */
+    concentrationSaveRng?: () => number;
     onLogEntry: (entry: CombatLogEntry) => void;
     processRepeatSaves: RepeatSaveRunner;
     spellZones: ActiveSpellZone[];

@@ -93,6 +93,10 @@ describe('Prompt Inspection', () => {
     console.log('\n--- PROMPT CONTENT ---\n');
     console.log(callArgs.contents);
 
-    expect(true).toBe(true);
+    expect(callArgs.config.systemInstruction).toContain('You narrate immediate outcomes of player actions in a high fantasy RPG.');
+    expect(callArgs.contents).toContain('Action: I listen closely to the patrons.');
+    expect(callArgs.contents).toContain('Name: Kaelen');
+    expect(callArgs.contents).toContain('The Rusty Anchor');
+    expect(callArgs.contents).toContain('Find the spy');
   });
 });

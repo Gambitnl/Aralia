@@ -11,6 +11,7 @@ import type { WorldCellView } from '../../../types';
 import { createMockGameState, createMockPlayerCharacter } from '../../../utils/core/factories';
 import * as rollers from '../../../systems/dice/rollers';
 import { makeCellLocationId } from '../../../utils/location/cellLocationId';
+import * as townArrival from '../../../systems/worldforge/town/prepareHistoricalTownLoad';
 import { useAppTravelActions } from '../useAppTravelActions';
 
 const cell: WorldCellView = { cellId: 42, x: 0, y: 0, biomeId: 'plains', discovered: true, isPlayerCurrent: false };
@@ -219,4 +220,43 @@ describe('App travel commit boundary', () => {
       'system',
     );
   });
+});
+
+
+describe('recorded destination source before departure',()=>{
+  it('withholds movement, clock, supplies, fare and dice when destination qualification refuses',()=>{
+    const state=createMockGameState(),before=JSON.stringify(state),dispatch=vi.fn(),message=vi.fn();
+    const refusal='The destination cannot be prepared without changing its recorded people or places. You have not set out.';
+    const check=vi.spyOn(townArrival,'prepareHistoricalTownArrival').mockReturnValue({status:'unresolved',message:refusal});
+    const dice=vi.spyOn(rollers,'rollD20'),previousRolls=dice.mock.calls.length;
+    try{
+      const {result}=renderHook(()=>useAppTravelActions(state,dispatch,message));
+      expect(result.current.handleTileClick(0,0,cell,{seconds:40000,destinationCell:{cellId:42,anchor:{cellId:42}},ferryFareGp:3,forcedMarch:{hours:11,saveDC:13}})).toBe(false);
+      expect(dispatch.mock.calls.map(([a])=>a.type)).toEqual(['ADD_NOTIFICATION']);
+      expect(message).toHaveBeenCalledWith(refusal,'system');expect(dice).toHaveBeenCalledTimes(previousRolls);expect(JSON.stringify(state)).toBe(before);
+    }finally{check.mockRestore();dice.mockRestore();}
+  });
+  it('carries a qualified source on the existing move without adding another state transaction',()=>{
+    const receipt={worldSeed:12,cellId:42,burgId:8,revision:1 as const,terrainRevision:2 as const,signature:'independent-source'};
+    const check=vi.spyOn(townArrival,'prepareHistoricalTownArrival').mockReturnValue({status:'qualified',receipt});
+    try{
+      const dispatch=vi.fn(),{result}=renderHook(()=>useAppTravelActions(createMockGameState(),dispatch,vi.fn()));
+      expect(result.current.handleTileClick(0,0,cell,{seconds:60,destinationCell:{cellId:42,anchor:{cellId:42}}})).toBe(true);
+      expect(dispatch.mock.calls.filter(([a])=>a.type==='MOVE_PLAYER')).toHaveLength(1);
+      expect(dispatch.mock.calls.find(([a])=>a.type==='MOVE_PLAYER')![0].payload.townArrivalSource).toBe(receipt);
+      expect(dispatch.mock.calls.filter(([a])=>a.type==='ADVANCE_TIME')).toHaveLength(1);
+    }finally{check.mockRestore();}
+  });
+});
+
+
+it('withholds the whole journey and surfaces unexpected source-preparation failure',()=>{
+  const check=vi.spyOn(townArrival,'prepareHistoricalTownArrival').mockImplementation(()=>{throw new Error('unavailable source');});
+  const log=vi.spyOn(console,'error').mockImplementation(()=>{}),state=createMockGameState(),dispatch=vi.fn(),message=vi.fn(),before=JSON.stringify(state);
+  try{
+    const {result}=renderHook(()=>useAppTravelActions(state,dispatch,message));
+    expect(result.current.handleTileClick(0,0,cell,{seconds:3600,destinationCell:{cellId:42,anchor:{cellId:42}},ferryFareGp:3})).toBe(false);
+    expect(dispatch.mock.calls.map(([a])=>a.type)).toEqual(['ADD_NOTIFICATION']);
+    expect(message).toHaveBeenCalledWith('The route could not be prepared. You have not set out.','system');expect(JSON.stringify(state)).toBe(before);
+  }finally{check.mockRestore();log.mockRestore();}
 });

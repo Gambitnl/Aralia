@@ -32,14 +32,42 @@
 import { getExhaustionD20Penalty } from './physicsUtils';
 import type { CombatCharacter } from '../../types/combat';
 
+export interface RollInitiativeOptions {
+  /**
+   * Whether the creature has advantage or disadvantage on initiative.
+   * Under 2024 rules (public/data/glossary/entries/rules/surprise.json), a surprised
+   * creature has Disadvantage on the initiative roll.
+   */
+  advantage?: boolean;
+  disadvantage?: boolean;
+  /** Whether the creature is surprised (applies disadvantage per 2024 rules). */
+  isSurprised?: boolean;
+}
+
 export function rollInitiativeTotal(
   character: CombatCharacter,
   randomSource: () => number = Math.random,
+  options: RollInitiativeOptions = {},
 ): number {
   // Convert the supplied random fraction into the same inclusive d20 face used
   // by production combat, then add Dexterity and the authored initiative bonus.
   const dexterityModifier = Math.floor((character.stats.dexterity - 10) / 2);
-  const d20Face = Math.floor(randomSource() * 20) + 1;
+  const firstRoll = Math.floor(randomSource() * 20) + 1;
+
+  const isSurprised = options.isSurprised ?? character.isSurprised ?? false;
+  const hasDisadvantage = Boolean(options.disadvantage || isSurprised);
+  const hasAdvantage = Boolean(options.advantage);
+
+  let d20Face = firstRoll;
+  // If advantage and disadvantage cancel out, roll a single die
+  if (hasAdvantage && !hasDisadvantage) {
+    const secondRoll = Math.floor(randomSource() * 20) + 1;
+    d20Face = Math.max(firstRoll, secondRoll);
+  } else if (hasDisadvantage && !hasAdvantage) {
+    const secondRoll = Math.floor(randomSource() * 20) + 1;
+    d20Face = Math.min(firstRoll, secondRoll);
+  }
+
   // Initiative is a Dexterity D20 test; exhaustion changes the total, not tie policy.
   return d20Face + dexterityModifier + character.stats.baseInitiative - getExhaustionD20Penalty(character);
 }

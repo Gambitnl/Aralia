@@ -47,8 +47,9 @@ import type { TownRoster } from '../../systems/worldforge/roster/types';
 // answers "where is occupant O, doing what, at hour H?" deterministically from
 // the occupant's static record. Nothing in the game loop read it. The pass
 // below is the bridge: on a world-time advance it diffs each occupant's block
-// between the hour the clock left and the hour it arrived at, and emits the
-// transitions as world events for the town the player is standing in.
+// between the hour the clock left and the hour it arrived at. These are world
+// changes, not automatic player knowledge. A caller with an actual observation
+// guard may report a witnessed transition; waiting or sleep supplies none.
 //
 // FACTIONS: there is no faction half to bridge. A schedule entry cannot name a
 // faction — `roster/types.Occupant` carries only id/name/ageBand/home/work/
@@ -112,12 +113,20 @@ export interface TownRoutineEventOptions {
    * their own instead of paying for atlas + town generation.
    */
   resolveRoster?: (worldSeed: number, burgId: number, layoutRevision?: TownLayoutRevision) => TownRoster | undefined;
-  /** Cap on emitted events. */
+  /** The caller must establish the actual resident/source, current physical
+   * space and observation before returning true. A town-wide roster or a time
+   * skip is not an observer. Omission preserves changes but emits no knowledge.
+   * This capability keeps the existing routine writer available to a genuine
+   * observation surface without guessing visibility from town membership. */
+  canObserveChange?: (change: Readonly<NpcRoutineChange>) => boolean;
+  /** Cap on returned changes and separately on observed reports. */
   max?: number;
 }
 
 /**
- * Emit NPC location changes as world events for the town the player is in.
+ * Compare the current town's routines and report only witnessed changes.
+ * Bulk wait/rest callers retain the comparison without writing remote events
+ * into Discoveries. NPC scheduling and all historical accounts stay intact.
  *
  * Called on a world-time advance. Returns [] when the player is not standing in
  * a burg, or when the start and end UTC hours are the same (inside one hour,
@@ -175,9 +184,16 @@ export async function handleTownRoutineEvents(
   const living = life ? {...roster, occupants: roster.occupants.filter(person =>
     residentAliveAt(life, person, getGameDay(left), nameCounts.get(nameKey(person)) === 1)
       && residentAliveAt(life, person, getGameDay(arrived), nameCounts.get(nameKey(person)) === 1))} : roster;
-  const changes = townRoutineChanges(living, fromHour, toHour, options.max);
+  const limit = options.max ?? MAX_ROUTINE_EVENTS_PER_ADVANCE;
+  // Apply a real observer before its report cap: four remote roster rows must
+  // not hide a fifth resident the player actually witnessed. Ordinary time
+  // skips retain the original bounded comparison without scanning every row.
+  const changes = townRoutineChanges(living, fromHour, toHour, options.canObserveChange ? Infinity : limit);
+  const observed = options.canObserveChange
+    ? changes.filter(change => options.canObserveChange!(change) === true).slice(0, Math.max(0, limit))
+    : [];
 
-  for (const change of changes) {
+  for (const change of observed) {
     dispatch({
       type: 'ADD_DISCOVERY_ENTRY',
       payload: {
@@ -198,7 +214,7 @@ export async function handleTownRoutineEvents(
     });
   }
 
-  return changes;
+  return changes.slice(0, Math.max(0, limit));
 }
 
 /**

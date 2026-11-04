@@ -54,14 +54,11 @@ import {
 } from './statUtils';
 import {
   applyRacialSpellGrantsByLevel,
-  getActiveRacialFeatureTraitsForCharacter,
-  deriveAlternateMovementSpeeds,
   resolveClassHitDie,
   getHpBonusPerLevelFromFeats,
   normalizeClassLevels,
   buildHitPointDicePools,
   getHitPointDiceTotal,
-  type MovementMode,
 } from './stats';
 import { calculateArmorClass } from './defense';
 
@@ -786,151 +783,13 @@ export const applyXpAndHandleLevelUps = (
 // ============================================================================
 // Level-Gated Racial Movement Modes
 // ============================================================================
-// A race can grant a movement mode that only starts at a later character
-// level. Dragonborn Draconic Flight, which begins at level 5, is the case
-// this was written for. `deriveAlternateMovementSpeeds` reads every race
-// trait at once and has no level to judge them by, so on its own it hands a
-// level-1 Dragonborn a flying speed.
-//
-// This pairs that same speed parser with the level window the racial trait
-// parser already records, so a mode is reported only once its trait is live.
-//
-// Resolution contract (WF-G277):
-// - Core "Speed:" line modes (e.g., "Speed: 30 feet, Swim 30 feet") are read
-//   directly from `character.race.traits` and are always active from level 1.
-// - Feature-granted modes resolve through `getActiveRacialFeatureTraitsForCharacter`:
-//   canonical race IDs (present in `getRacialTraitLibrary().byRaceId`) use their
-//   cached canonical trait entries by ID (plus any `racialSelections` choice IDs),
-//   while unlisted inline custom/NPC/fixture race IDs fall back to parsing
-//   `character.race.traits` through `buildRacialTraitLibrary` on demand.
-//
-// Preserved: the speed prose parser stays the one place that decides how a
-// speed sentence is read (numeric, comma form, and "equal to your walking
-// speed"), and the level window stays owned by the racial trait library.
-// Neither is re-implemented here.
-//
-// Caller status (agora-81ba, agora-db71.30 / GG-259): both the character sheet
-// overview (`CharacterOverview.tsx`) and the combat actor builder
-// (`createPlayerCombatCharacter` in `src/utils/combat/combatUtils.ts`) call
-// `getRacialMovementSpeedsForLevel`, so later-level modes such as Draconic
-// Flight stay off the sheet and off `stats.extraMovementSpeeds` until their
-// unlock level is reached.
+// GG-259: the level-gated movement readers moved to stats.ts, beside the speed
+// prose parser they wrap, so the public `deriveAlternateMovementSpeeds` can be
+// level-gated itself without an import cycle. They are re-exported here so
+// existing `../character/progression` imports keep working unchanged.
 // ============================================================================
-
-/**
- * One movement mode a race grants, with the trait and level window it comes
- * from. A mode written on the core "Speed:" line is reported as always-on
- * (`minLevel` 1) under the trait name `Speed`.
- */
-export interface RacialMovementUnlock {
-  mode: MovementMode;
-  speedFeet: number;
-  minLevel: number;
-  maxLevel?: number;
-  traitName: string;
-}
-
-// Re-run the shared alternate-movement prose parser against a specific subset
-// of trait lines so we can attribute each unlocked speed to the trait that
-// granted it while keeping the base "Speed:" line in scope.
-const readMovementSpeedsFromTraits = (
-  character: PlayerCharacter,
-  traits: string[],
-): Partial<Record<MovementMode, number>> => deriveAlternateMovementSpeeds({
-  ...character,
-  race: { ...character.race, traits },
-});
-
-/**
- * Lists the movement modes a character's race has actually unlocked at a given
- * level, one entry per granting trait.
- *
- * Canonical race IDs resolve feature traits through the cached racial trait
- * library by ID; unlisted inline race IDs fall back to parsing
- * `character.race.traits` through `buildRacialTraitLibrary` (WF-G277).
- *
- * @param {PlayerCharacter} character - The character whose race is read.
- * @param {number} targetLevel - Character level to judge trait windows against.
- * @returns {RacialMovementUnlock[]} Unlocked modes; empty when the race grants none.
- */
-export const getRacialMovementUnlocksForLevel = (
-  character: PlayerCharacter,
-  targetLevel: number = character.level ?? 1,
-): RacialMovementUnlock[] => {
-  const race = character.race;
-  if (!race?.traits?.length) return [];
-
-  // The core "Speed:" line carries the walking speed and, in the comma form
-  // ("Speed: 30 feet, Swim 30 feet"), an alternate mode of its own. It states
-  // no level, so it is always on and every per-trait read keeps it in view:
-  // a trait that says "equal to your walking speed" needs it to resolve.
-  const baseSpeedTraits = race.traits.filter(trait => trait.toLowerCase().startsWith('speed:'));
-  const baseSpeeds = readMovementSpeedsFromTraits(character, baseSpeedTraits);
-
-  const unlocks: RacialMovementUnlock[] = (Object.keys(baseSpeeds) as MovementMode[])
-    .flatMap((mode) => {
-      const speedFeet = baseSpeeds[mode];
-      return speedFeet === undefined
-        ? []
-        : [{ mode, speedFeet, minLevel: 1, traitName: 'Speed' }];
-    });
-
-  // Walk each racial feature trait active at `targetLevel` and check whether
-  // its prose grants an additional or faster movement mode beyond the base line.
-  getActiveRacialFeatureTraitsForCharacter(character, targetLevel).forEach((trait) => {
-    const traitText = trait.sourceText ?? `${trait.traitName}: ${trait.traitDescription}`;
-    const speeds = readMovementSpeedsFromTraits(character, [...baseSpeedTraits, traitText]);
-
-    (Object.keys(speeds) as MovementMode[]).forEach((mode) => {
-      const speedFeet = speeds[mode];
-      if (speedFeet === undefined) return;
-      // Already reported from the core line; the trait added nothing here.
-      if (baseSpeeds[mode] === speedFeet) return;
-      unlocks.push({
-        mode,
-        speedFeet,
-        minLevel: trait.minLevel,
-        maxLevel: trait.maxLevel,
-        traitName: trait.traitName,
-      });
-    });
-  });
-
-  return unlocks;
-};
-
-/**
- * Level-gated companion to `deriveAlternateMovementSpeeds`: the alternate
- * movement speeds a character has at a level, with later-level racial traits
- * left out until that level is reached.
- *
- * Resolution contract (WF-G277):
- * - Modes on the core `Speed:` line are always included from level 1.
- * - Canonical race IDs resolve feature traits from `getRacialTraitLibrary().byRaceId`
- *   by ID (and `racialSelections` choice IDs).
- * - Unlisted inline race objects (whose `race.id` is absent from the canonical
- *   library) fall back to parsing `character.race.traits` through
- *   `buildRacialTraitLibrary`, preserving both ungated and level-gated trait
- *   movement grants for custom races, NPCs, and test fixtures.
- *
- * @param {PlayerCharacter} character - The character whose race is read.
- * @param {number} targetLevel - Character level to judge trait windows against.
- * @returns {Partial<Record<MovementMode, number>>} Mode to speed in feet.
- */
-export const getRacialMovementSpeedsForLevel = (
-  character: PlayerCharacter,
-  targetLevel: number = character.level ?? 1,
-): Partial<Record<MovementMode, number>> => {
-  const speeds: Partial<Record<MovementMode, number>> = {};
-
-  getRacialMovementUnlocksForLevel(character, targetLevel).forEach((unlock) => {
-    const current = speeds[unlock.mode];
-    // Two traits can grant the same mode; the faster grant is the one that
-    // applies, exactly as the level-blind parser resolves overlapping prose.
-    if (current === undefined || unlock.speedFeet > current) {
-      speeds[unlock.mode] = unlock.speedFeet;
-    }
-  });
-
-  return speeds;
-};
+export {
+  getRacialMovementUnlocksForLevel,
+  getRacialMovementSpeedsForLevel,
+  type RacialMovementUnlock,
+} from './stats';

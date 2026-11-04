@@ -613,6 +613,7 @@ export interface TurnStartCombatLogData extends CommonCombatLogData {
   round?: number;
   turnOrder?: string[];
   turnGroups?: CombatTurnGroup[];
+  surprisedCharacterIds?: string[];
   groupContract?: Pick<
     ActiveCombatTurnGroup,
     "actionOwnership" | "movementOwnership" | "reactionOwnership" | "effectTiming"

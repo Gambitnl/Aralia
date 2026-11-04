@@ -1,8 +1,8 @@
 /**
  * @file handleTownRoutineEvents.test.ts
- * Acceptance for the Worldforge routine bridge (agora-13a9.1): advancing the
- * world clock across an hour boundary in a town WITH a roster must emit at
- * least one NPC location event.
+ * The Worldforge routine bridge keeps source/life-aware schedule comparisons.
+ * Only an explicit observer may turn a transition into player knowledge;
+ * passing time in a town alone must not reveal remote residents' routines.
  *
  * The burg resolver is stubbed because the real one reads the FMG atlas; the
  * roster is injected for the same reason. Everything under test — the schedule
@@ -46,12 +46,13 @@ describe('handleTownRoutineEvents', () => {
     dispatch = vi.fn();
   });
 
-  it('emits at least one NPC location event when an hour passes in a town with a roster', async () => {
+  it('emits a source-attributed routine event when an observer actually admits the change', async () => {
     // 03:00 (everyone asleep at home) -> 04:00 is still night, so advance into
     // the working day: 11:00, one hour on from 10:00.
     const changes = await handleTownRoutineEvents(stateAt(12, 42), dispatchFn(), {
       hoursAdvanced: 8,
       resolveRoster: () => ROSTER,
+      canObserveChange: change => change.occupantId === 1,
     });
 
     expect(changes.length).toBeGreaterThan(0);
@@ -69,8 +70,9 @@ describe('handleTownRoutineEvents', () => {
 
   it('retains the complete year351 observation date across an overnight schedule change', async () => {
     const state=stateAt(3,42);state.gameTime=new Date('0351-01-04T03:39:16.000Z');
-    const changes=await handleTownRoutineEvents(state,dispatchFn(),{hoursAdvanced:8,resolveRoster:()=>ROSTER});
+    const changes=await handleTownRoutineEvents(state,dispatchFn(),{hoursAdvanced:8,resolveRoster:()=>ROSTER,canObserveChange:()=>true});
     expect(changes.length).toBeGreaterThan(0);
+    expect(dispatch).toHaveBeenCalled();
     for(const [action]of dispatch.mock.calls){
       expect(action.payload.gameTime).toBe('0351-01-04T03:39:16.000Z');
       expect(action.payload.source.id).toBe('burg_7');
@@ -84,6 +86,30 @@ describe('handleTownRoutineEvents', () => {
     });
     expect(changes).toEqual([]);
     expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('retains routine changes without inventing knowledge during unobserved waiting or sleep', async () => {
+    for (const hoursAdvanced of [3, 8]) {
+      const state = stateAt(8, 42); state.gameTime = new Date('2024-01-01T08:00:00.000Z');
+      const before = JSON.stringify(state), dispatch = vi.fn();
+      const changes = await handleTownRoutineEvents(state, dispatch, {hoursAdvanced, resolveRoster: () => ROSTER});
+      expect(changes).toEqual(townRoutineChanges(ROSTER, 8 - hoursAdvanced, 8));
+      expect(changes.length).toBeGreaterThan(0);
+      expect(dispatch).not.toHaveBeenCalled();
+      expect(JSON.stringify(state)).toBe(before);
+    }
+  });
+
+  it('requires positive observation and applies its cap after remote changes', async () => {
+    const roster = {...ROSTER, occupants: Array.from({length: 6}, (_, i) => ({...ROSTER.occupants[0], id: i + 1, name: 'Resident ' + (i + 1)}))};
+    const dispatch = vi.fn();
+    await handleTownRoutineEvents(stateAt(12, 42), dispatch, {hoursAdvanced: 8, resolveRoster: () => roster, max: 1,
+      canObserveChange: change => change.occupantId === 6});
+    expect(dispatch).toHaveBeenCalledTimes(1);
+    expect(dispatch.mock.calls[0][0].payload.content).toContain('Resident 6');
+    const denied = vi.fn();
+    await handleTownRoutineEvents(stateAt(12, 42), denied, {hoursAdvanced: 8, resolveRoster: () => roster, canObserveChange: () => false});
+    expect(denied).not.toHaveBeenCalled();
   });
 
   it('emits nothing when the advance stays inside one hour', async () => {
@@ -168,9 +194,10 @@ describe('saved town routine source and life continuity', () => {
       bornDay:status==='not-born'?day+1:day-10000,...(status==='deceased'?{diedDay:day-1}:{}),
       parentIds:[],childIds:[],wealth:50};
     const before=JSON.stringify({state,ROSTER}),dispatch=vi.fn();
-    const changes=await handleTownRoutineEvents(state,dispatch,{hoursAdvanced:8,resolveRoster:()=>ROSTER,max:1});
+    const changes=await handleTownRoutineEvents(state,dispatch,{hoursAdvanced:8,resolveRoster:()=>ROSTER,max:1,canObserveChange:()=>true});
     expect(changes).toHaveLength(1);
     expect(changes[0].name).toBe('Orin Fell');
+    expect(dispatch).toHaveBeenCalledTimes(1);
     expect(JSON.stringify(dispatch.mock.calls)).not.toContain('Hedda Barrow');
     expect(JSON.stringify({state,ROSTER})).toBe(before);
   });

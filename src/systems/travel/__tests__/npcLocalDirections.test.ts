@@ -5,7 +5,7 @@ import type { GameState, RichNPC } from '../../../types';
 import { resolveNpcLocalDirections } from '../npcLocalDirections';
 
 const source = vi.hoisted(() => ({ present: true, alive: true, x: 300, y: -300,
-  revisions:[] as unknown[], home: 'b143', residential: false, valid: true, cell: 1885 }));
+  revisions:[] as unknown[], home: 'b143', residential: false, valid: true, cell: 1885, gates:[] as Array<[number,number]> }));
 vi.mock('../../worldforge/bridge/legacySubmapBridge', () => ({ getBridgeAtlas: () => ({
   pack: { burgs: { 253: { i: 253, cell: source.cell, name: 'Putivl' } } },
 }) }));
@@ -15,7 +15,7 @@ vi.mock('../../worldforge/town/canonicalTown', () => ({ townSpanFtForBurg: () =>
   canonicalArtifactTownForSiteFromAtlas: (_atlas:unknown,_seed:number,_site:unknown,revision?:unknown) => (source.revisions.push(revision),{ plan: { plots: [{ id: 27, role: 'market',
     footprint: source.valid ? [[source.x-5,source.y-5],[source.x+5,source.y-5],[source.x+5,source.y+5],[source.x-5,source.y+5]] : [[NaN,0]],
     pop: { buildingType: 'tavern', residential: source.residential, proprietorHomeId: source.home },
-  }] } }),
+  }],gates:source.gates } }),
 }));
 const make = () => {
   const npc = { id:'hilda', name:'Hilda Fairbourne', businessId:'tavern', role:'merchant',
@@ -25,7 +25,7 @@ const make = () => {
       burgId:253,plotId:27,locationId:'cell_1885',businessType:'enchanter_shop'}} as unknown as GameState['worldBusinesses']});
   return {state,npc};
 };
-beforeEach(() => Object.assign(source,{revisions:[],present:true,alive:true,x:300,y:-300,home:'b143',residential:false,valid:true,cell:1885}));
+beforeEach(() => Object.assign(source,{revisions:[],present:true,alive:true,x:300,y:-300,home:'b143',residential:false,valid:true,cell:1885,gates:[]}));
 describe('source-bound local directions', () => {
   it('uses the fitted tavern and north-up geometry, not a legacy enchanter ledger', () => {
     const {state,npc}=make(),before=JSON.stringify(state);
@@ -60,10 +60,22 @@ describe('source-bound local directions', () => {
     expect(resolveNpcLocalDirections(state,npc)).toBe("You're in Putivl.");
   });
   it('retains authored directions and identity uncertainty', () => {
+    source.gates=[[-300,-300]];
     const {state,npc}=make(); npc.knowledgeProfile={baseOpenness:0,topicOverrides:{global_directions:{known:true,willingnessModifier:-10}}};
     expect(resolveNpcLocalDirections(state,npc)).toBeUndefined();
     delete npc.knowledgeProfile;
     expect(resolveNpcLocalDirections(state,{...npc,name:'Different person'})).toBeUndefined();
+  });
+  it('gives a non-owner the actual public gate numbers without borrowing another business',()=>{
+    const {state,npc}=make();state.worldBusinesses.tavern.ownerId='someone-else';
+    source.gates=[[-300,-300],[300,0]];
+    const before=JSON.stringify(state);
+    expect(resolveNpcLocalDirections(state,npc)).toBe("You're in Putivl. Gate 1 is in the northwestern part of town. Gate 2 is in the eastern part of town.");
+    expect(JSON.stringify(state)).toBe(before);
+  });
+  it.each(([[[NaN,1]],[[10,20],[10,20]],[[0,0]]] as Array<Array<[number,number]>>).map(gates=>({gates})))('withholds ambiguous or malformed public gate geometry $gates',({gates})=>{
+    const {state,npc}=make();state.worldBusinesses={};source.gates=gates;
+    expect(resolveNpcLocalDirections(state,npc)).toBe("You're in Putivl.");
   });
 });
 
@@ -74,6 +86,7 @@ describe('saved business direction layout',()=>{
   expect(source.revisions).toEqual([1]);expect(JSON.stringify(state)).toBe(before);
  });
  it('keeps a verified town name without inventing directions from an unresolved layout',()=>{
+  source.gates=[[-300,-300]];
   const {state,npc}=make();state.townSim={253:{burgId:253,villagers:{},chronicle:{burgId:253,events:[],nextEventId:1},lastSimDay:0,nextVillagerId:1}};
   expect(resolveNpcLocalDirections(state,npc)).toBe("You're in Putivl.");expect(source.revisions).toEqual([]);
  });

@@ -78,18 +78,20 @@ export function addBuildingEntryApproaches(
       const contact=point(face+.3),gap=top-surfaceYAt(contact.x,contact.z);
       if(!Number.isFinite(gap)||gap<=.2)continue;
       let approach:SitePart[]|undefined;
-      // This bounded stoop handles modest street/floor differences. A larger
-      // drop or obstructed frontage needs its own entrance design; retaining the
-      // original building keeps that unfinished case visible rather than
-      // inventing a tall stair, lowering a floor or bypassing a neighboring plot.
+      // Preserve the original modest stoop first. The inspected public Temple
+      // needs a separate, guarded flight: its falling street defeats the old
+      // six-tread/one-meter scope despite a clear landing. Other roles keep
+      // that scope; neither profile changes the walking step or source grade.
       // Prefer the existing fully exposed stoop exactly. Soil-contact treads
       // are a second pass only for entrances the original derivation refused.
-      for(const meetsSoil of [false,true])for(let count=1;count<=6&&!approach;count++){
+      const profiles=[{maxCount:6,maxRise:1,guarded:false},
+        ...(building.role==='temple'?[{maxCount:8,maxRise:1.25,guarded:true}]:[])];
+      for(const profile of profiles)for(const meetsSoil of [false,true])for(let count=1;count<=profile.maxCount&&!approach;count++){
         const end=landingEnd+count*TREAD;
         const bottomSamples=[-.5,0,.5].map(t=>point(end+.25,t*width));
         const bottom=Math.min(...bottomSamples.map(p=>surfaceYAt(p.x,p.z)));
         const rise=(top-bottom)/(count+1);
-        if(!Number.isFinite(rise)||rise<=0||rise>MAX_RISER||top-bottom>1)continue;
+        if(!Number.isFinite(rise)||rise<=0||rise>MAX_RISER||top-bottom>profile.maxRise)continue;
         const boxes=[{near:-.06,far:landingEnd,top,kind:'landing' as const},
           ...Array.from({length:count},(_,i)=>({near:landingEnd+i*TREAD,far:landingEnd+(i+1)*TREAD,top:top-(i+1)*rise,kind:'tread' as const}))];
         const candidate:SitePart[]=[];let admitted=true;
@@ -114,7 +116,36 @@ export function addBuildingEntryApproaches(
             h:box.top-bottomY,baseY:bottomY-base,colorHex:STAIR_COLOR,tag:TAG,
             walkSurface:box.kind,stairSolid:true});
         }
-        if(admitted&&candidate.some(p=>p.walkSurface==='tread'))approach=candidate;
+        if(admitted&&candidate.some(p=>p.walkSurface==='tread')){
+          if(profile.guarded){
+            // Shared beam metadata draws an actual sloped rail. Its conservative
+            // collision box remains at the side, preserving a clear central
+            // passage. Close-set posts also guard the exposed landing edges;
+            // the door and bottom approach stay open for ordinary walking.
+            const thickness=.04,side=width/2-thickness/2,hand=.95;
+            const beam=(out0:number,out1:number,along:number,y0:number,y1:number)=>{
+              const x0=leaf.x+nx*out0+tx*along,z0=leaf.z+nz*out0+tz*along;
+              const x1=leaf.x+nx*out1+tx*along,z1=leaf.z+nz*out1+tz*along;
+              candidate.push({x:(x0+x1)/2,z:(z0+z1)/2,w:Math.abs(x1-x0)+thickness,d:Math.abs(z1-z0)+thickness,
+                h:Math.abs(y1-y0)+thickness,baseY:Math.min(y0,y1)-base-thickness/2,colorHex:STAIR_COLOR,tag:TAG,
+                beam:{dx:x1-x0,dy:y1-y0,dz:z1-z0,thickness}});
+            };
+            for(const sign of [-1,1]){
+              const along=sign*side;
+              beam(-.04,landingEnd,along,top+hand,top+hand);
+              beam(landingEnd,end,along,top+hand,top-count*rise+hand);
+              const intervals=Math.ceil((end+.04)/.14);
+              for(let i=0;i<=intervals;i++){
+                const out=-.04+(end+.04)*i/intervals;
+                const tread=out<landingEnd?0:Math.min(count,Math.floor((out-landingEnd)/TREAD)+1);
+                const soil=point(out,along),postBase=Math.max(top-tread*rise,surfaceYAt(soil.x,soil.z));
+                const rail=top+hand-Math.max(0,(out-landingEnd)/TREAD)*rise;
+                if(rail>postBase)beam(out,out,along,postBase,rail);
+              }
+            }
+          }
+          approach=candidate;
+        }
       }
       if(approach)additions.push(...approach);
     }

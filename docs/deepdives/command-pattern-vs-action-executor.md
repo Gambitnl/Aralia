@@ -138,12 +138,15 @@ The header of `src/systems/combat/AttackEventEmitter.ts:25` states
 "Called by: useActionExecutor". That is wrong. `useActionExecutor.ts` does not import
 `attackEvents`.
 
-### F8. The `unit_move` event has no listener
+### F8. The `unit_move` event has no listener — RESOLVED (GG-262)
 
-`useActionExecutor.ts:1103-1110` emits `unit_move`. No file calls
-`combatEvents.on('unit_move', ...)`. The only `combatEvents.on` call in production is
-`ReactiveEffectCommand.ts:176`, for `unit_cast`. Command-side forced movement does not
-emit `unit_move` at all, so the event is not a trustworthy movement feed today.
+RESOLVED 2026-11-03 (agy-round3). `unit_move` was previously emitted only by the
+hook layer (`moveExecutionFlow.ts`, formerly `useActionExecutor.ts`). Command-side
+forced movement, pull, and teleport in `MovementCommand.ts` now emit `unit_move`
+with consistent payload semantics (`from`, `to`, `cost`, `isForced`, and a new
+`reason: 'voluntary' | 'forced' | 'teleport' | 'pull'` field). The feed is complete
+and trustworthy across all ways a creature changes tile, ready for downstream
+subscribers (presentation layers, telemetry, AI).
 
 ### F9. Rollback and undo were dead code — RESOLVED, both deleted
 
@@ -170,8 +173,8 @@ the hook uses `AreaEffectTracker`, and the command uses
 Opportunity attacks correctly do not fire for forced movement or teleport
 (`src/systems/combat/reactions/OpportunityAttackSystem.ts:91`).
 
-Two gaps remain. Movement-trigger debuffs run only in the hook
-(`useActionExecutor.ts:1120-1136`). The `unit_move` event is emitted only by the hook.
+One gap remains. Movement-trigger debuffs run only in the hook
+(`useActionExecutor.ts:1120-1136`). The `unit_move` event parity was completed under GG-262.
 
 ### F11. Action cost is paid twice, from the same base state
 

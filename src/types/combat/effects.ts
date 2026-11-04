@@ -542,6 +542,11 @@ export interface ActiveRider {
     type: EffectDuration["type"];
     value?: number;
   };
+  /**
+   * Filter on target properties (e.g. creatureTypes, conditions).
+   * Used for bane oils and conditional riders (GG-219).
+   */
+  targetFilter?: TargetConditionFilter;
 }
 
 
@@ -1029,6 +1034,14 @@ export interface MapObjectInteractionState {
   destroyed: boolean;
   ownerId?: string;
   resolvedEventIds: string[];
+  /** Material the object is made of (GG-206; determines Armor Class via physicsUtils.getObjectAC). */
+  material?: string;
+  /** Size classification of the object (GG-206; tiny, small, medium, large, etc.). */
+  size?: string;
+  /** Armor Class of the object (derived from material or explicitly authored; GG-206). */
+  armorClass?: number;
+  /** Whether the object is fragile (used with getObjectHP). */
+  isFragile?: boolean;
 }
 
 

@@ -31,7 +31,12 @@ for (const sig of ['SIGINT', 'SIGTERM']) {
 }
 
 try {
-  browser = await chromium.launch({ headless: true });
+  browser = await chromium.launch({
+    // Use installed Chrome updates and retain its process sandbox.
+    channel: 'chrome',
+    chromiumSandbox: true,
+    headless: true,
+  });
   const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
   await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await page.waitForTimeout(waitMs);

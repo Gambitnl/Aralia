@@ -12,7 +12,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { VisibilitySystem } from '../VisibilitySystem';
-import { BattleMapData, BattleMapTile, LightSource, CombatCharacter, TargetableMapObject } from '../../../types/combat';
+import { BattleMapData, BattleMapTile, LightSource, CombatCharacter, TargetableMapObject, Position } from '../../../types/combat';
 
 // Mock Data Generators
 function createMockMap(width: number, height: number): BattleMapData {
@@ -257,6 +257,57 @@ describe('VisibilitySystem', () => {
         endpointMap,
         VisibilitySystem.calculateLightLevels(endpointMap, []),
       ).get('2-0')).toBe('hidden');
+    });
+  });
+
+  describe('calculatePointLightLevel and getCombinedLightLevel (GG-209)', () => {
+    // Standard Torch: 20ft bright, 20ft dim
+    const TORCH_BRIGHT = 20;
+    const TORCH_DIM = 20;
+    const origin: Position = { x: 10, y: 10 };
+
+    it('returns bright light within bright radius', () => {
+      const target: Position = { x: 12, y: 10 }; // 10ft away
+      expect(VisibilitySystem.calculatePointLightLevel(target, origin, TORCH_BRIGHT, TORCH_DIM)).toBe('bright');
+      expect(VisibilitySystem.calculateLightLevel(target, origin, TORCH_BRIGHT, TORCH_DIM)).toBe('bright');
+    });
+
+    it('returns bright light at the edge of bright radius', () => {
+      const target: Position = { x: 14, y: 10 }; // 20ft away (4 tiles)
+      expect(VisibilitySystem.calculatePointLightLevel(target, origin, TORCH_BRIGHT, TORCH_DIM)).toBe('bright');
+    });
+
+    it('returns dim light just outside bright radius', () => {
+      const target: Position = { x: 15, y: 10 }; // 25ft away
+      expect(VisibilitySystem.calculatePointLightLevel(target, origin, TORCH_BRIGHT, TORCH_DIM)).toBe('dim');
+    });
+
+    it('returns dim light at the edge of dim radius', () => {
+      const target: Position = { x: 18, y: 10 }; // 40ft away
+      expect(VisibilitySystem.calculatePointLightLevel(target, origin, TORCH_BRIGHT, TORCH_DIM)).toBe('dim');
+    });
+
+    it('returns darkness outside total radius', () => {
+      const target: Position = { x: 19, y: 10 }; // 45ft away
+      expect(VisibilitySystem.calculatePointLightLevel(target, origin, TORCH_BRIGHT, TORCH_DIM)).toBe('darkness');
+    });
+
+    it('handles diagonals correctly for light (5-5-5 rule)', () => {
+      const targetBright: Position = { x: 14, y: 14 }; // 4 tiles diagonal = 20ft
+      expect(VisibilitySystem.calculatePointLightLevel(targetBright, origin, TORCH_BRIGHT, TORCH_DIM)).toBe('bright');
+
+      const targetDim: Position = { x: 15, y: 15 }; // 5 tiles diagonal = 25ft
+      expect(VisibilitySystem.calculatePointLightLevel(targetDim, origin, TORCH_BRIGHT, TORCH_DIM)).toBe('dim');
+    });
+
+    it('determines combined light level from multiple sources', () => {
+      const source1 = { position: { x: 0, y: 0 }, brightRadius: 20, dimRadius: 20 };
+      const source2 = { position: { x: 10, y: 0 }, brightRadius: 20, dimRadius: 20 };
+      const sources = [source1, source2];
+
+      expect(VisibilitySystem.getCombinedLightLevel({ x: 2, y: 0 }, sources)).toBe('bright');
+      expect(VisibilitySystem.getCombinedLightLevel({ x: 5, y: 0 }, sources)).toBe('dim');
+      expect(VisibilitySystem.getCombinedLightLevel({ x: 10, y: 10 }, sources)).toBe('darkness');
     });
   });
 });

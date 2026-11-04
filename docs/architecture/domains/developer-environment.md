@@ -1,11 +1,49 @@
 # Developer environment
 
-Verified: 2026-10-31 (immutable application verification copies); local service proxy recovery last checked 2026-10-29; other environment sections last checked 2026-10-25.
+Verified: 2026-11-03 (Playwright launch hardening); immutable application verification copies last checked 2026-10-31; local service proxy recovery last checked 2026-10-29; other environment sections last checked 2026-10-25.
 
 Aralia supports local Windows development and GitHub Codespaces. Both run the
 same Vite application and dev-only Hero Lab API. Codespaces is an optional
 development workspace. It does not replace GitHub Pages for public deployment
 or Hugging Face for TRELLIS model generation.
+
+## Browser automation security
+
+Repository-owned Chromium launch sites explicitly select installed Chrome with
+`channel: 'chrome'` and `chromiumSandbox: true`. The Playwright test configuration
+sets the same policy through `use.channel` and `use.launchOptions`. This includes
+capture tools, dashboard browser tests, account probes and the archived canonical
+retrieval launcher. The visual-test capture helper stops with an actionable error
+if sandboxed Chrome cannot launch; it no longer prefers bundled Chromium. Keep
+Chrome updated separately from the Playwright package. A missing browser or
+sandbox failure must not be worked around with `--no-sandbox`.
+
+A tracked-source audit verified 42 direct Chromium launch sites plus the test
+configuration. The six changed TypeScript files passed scoped typechecking, and
+all 11 affected dashboard tests passed, including six browser cases against
+disposable local servers. Playwright's test configuration also loaded and listed
+its six application tests; those application journeys were not run. A fresh
+Chrome process rendered a local smoke page;
+`chrome://version` showed no sandbox-disabling flags and `chrome://sandbox`
+reported renderer lockdown at untrusted integrity. This checks Chromium's process
+sandbox, not VM/container isolation or every browser subsystem. Existing GPU
+capture settings and intentional login profiles remain in place.
+
+The local Codex Playwright MCP configuration is pinned to `@playwright/mcp@0.0.83`
+with `--browser chrome --sandbox --isolated`; `codex mcp get playwright` confirms
+the saved arguments. Its browsing profile is disposable and does not reuse the
+previous persistent login directory. Saved configuration changes require restarting
+the MCP server/client; this does not attest an already-running server. Profile
+isolation is not operating-system isolation: untrusted open-web browsing still
+needs a separately provisioned VM or non-root container without host credentials
+or home-directory mounts. No such environment was provisioned by this change.
+
+On this Windows host, the built-in Chrome update check staged version
+`156.0.8078.80`, while fresh launches still reported `156.0.8078.74` and the update
+page requested a relaunch. Existing user browser processes were not terminated.
+Finish Chrome's relaunch and verify the running version before treating the
+security update as active. The built-in updater was checked in a disposable
+profile without accessing the user's signed-in profile.
 
 ## Local Design Preview and hot reload
 

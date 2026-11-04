@@ -68,4 +68,10 @@ export interface TurnState {
   activeGroup?: ActiveCombatTurnGroup | null;
   phase: "planning" | "action" | "resolution" | "end_turn";
   actionsThisTurn: CombatAction[];
+  /**
+   * Character IDs currently marked as surprised at combat start (GG-258).
+   * Surprised creatures roll initiative with Disadvantage (2024 rules) and
+   * grant automatic critical hits to Assassins.
+   */
+  surprisedCharacterIds?: string[];
 }

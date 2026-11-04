@@ -146,7 +146,6 @@ export const ClassBattlefieldDemo: React.FC<ClassBattlefieldDemoProps> = ({
     onLogEntry: handleLogEntry,
     onMapUpdate: setMapData,
     initiativeRoller,
-    difficulty: 'normal',
   });
 
   // Start the ordinary turn state once the deterministic board has mounted. The

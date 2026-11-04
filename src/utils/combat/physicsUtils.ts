@@ -24,7 +24,8 @@
 // @dependencies-end
 
 import { DiceRoll } from '../../types/dice';
-import { Position } from '../../types/combat';
+import { Position, LightLevel } from '../../types/combat';
+import { VisibilitySystem } from '../../systems/visibility/VisibilitySystem';
 
 // 2026-09-09: both former TODOs here (#1320 object AC/HP, #1321 suffocation) were
 // checked against the code and neither is a wire-up any more — each needs a type or
@@ -40,7 +41,7 @@ import { Position } from '../../types/combat';
 export type ObjectSize = 'tiny' | 'small' | 'medium' | 'large' | 'huge' | 'gargantuan';
 export type ObjectMaterial = 'cloth' | 'paper' | 'rope' | 'crystal' | 'glass' | 'ice' | 'wood' | 'bone' | 'stone' | 'iron' | 'steel' | 'mithral' | 'adamantine';
 
-export type LightLevel = 'bright' | 'dim' | 'darkness';
+export type { LightLevel };
 
 /**
  * A pool of dice that does not describe damage.
@@ -359,10 +360,7 @@ export function calculateChebyshevDistance(a: Position, b: Position): number {
 // expose) pending the convergence tracked as GG-209.
 /**
  * Calculates the light level at a specific target position relative to a light source.
- * D&D 5e Rules (PHB p. 183):
- * - Bright light: Within the defined bright radius.
- * - Dim light: Between the bright radius and the end of the dim radius.
- * - Darkness: Beyond the dim radius.
+ * Re-scoped to delegate to VisibilitySystem as the single light-level owner (GG-209).
  *
  * @param target - The position to check for illumination.
  * @param sourceOrigin - The origin of the light source.
@@ -376,21 +374,12 @@ export function calculateLightLevel(
   brightRadius: number,
   dimRadius: number
 ): LightLevel {
-  const distance = calculateChebyshevDistance(target, sourceOrigin);
-
-  if (distance <= brightRadius) {
-    return 'bright';
-  } else if (distance <= brightRadius + dimRadius) {
-    return 'dim';
-  } else {
-    return 'darkness';
-  }
+  return VisibilitySystem.calculatePointLightLevel(target, sourceOrigin, brightRadius, dimRadius);
 }
 
 /**
  * Determines the effective light level at a position given multiple light sources.
- * - Bright light overrides Dim light and Darkness.
- * - Dim light overrides Darkness.
+ * Re-scoped to delegate to VisibilitySystem as the single light-level owner (GG-209).
  *
  * @param target - The position to check.
  * @param sources - A list of light sources with their resolved positions.
@@ -400,19 +389,7 @@ export function getCombinedLightLevel(
   target: Position,
   sources: { position: Position; brightRadius: number; dimRadius: number }[]
 ): LightLevel {
-  let hasDim = false;
-
-  for (const source of sources) {
-    const level = calculateLightLevel(target, source.position, source.brightRadius, source.dimRadius);
-    if (level === 'bright') {
-      return 'bright'; // Maximum illumination reached
-    }
-    if (level === 'dim') {
-      hasDim = true;
-    }
-  }
-
-  return hasDim ? 'dim' : 'darkness';
+  return VisibilitySystem.getCombinedLightLevel(target, sources);
 }
 
 /** The condition string used repo-wide when exhaustion is applied to a character. */

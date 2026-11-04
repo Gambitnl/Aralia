@@ -42,6 +42,25 @@ export function guestBedsForVisit(visit: TownBuildingVisit): GuestBedReference[]
   }));
 }
 
+/** Keep actual beds and old bookings intact. New offers must not sell an
+ * upstairs bed behind the legacy 277 mm risers that normal walking refuses.
+ * A return flight clears this known structural refusal only; body clearance,
+ * room privacy, doors and actual arrival still have their normal gates. */
+export function guestBedStairIssue(visit: TownBuildingVisit, bed: GuestBedReference): string | null {
+  for (let level = Math.min(0, bed.level); level < Math.max(0, bed.level); level++) {
+    if (!visit.plan.stairs?.some(stair => stair.fromLevel === level && stair.layout?.kind === 'return')) {
+      return 'No usable stair route reaches this guest room.';
+    }
+  }
+  return null;
+}
+
+/** A separate commercial selection: never filter the canonical bed inventory
+ * used to validate retained reservations, property and historical references. */
+export function guestBedsWithStairAccess(visit: TownBuildingVisit): GuestBedReference[] {
+  return guestBedsForVisit(visit).filter(bed => !guestBedStairIssue(visit, bed));
+}
+
 /** The blueprint numbers non-corridor rooms in display order. A source room ID
  * can have gaps, so adding one to that ID gives directions to the wrong label. */
 export function guestBedDescription(visit: TownBuildingVisit, bed: GuestBedReference): string {

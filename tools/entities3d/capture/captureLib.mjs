@@ -131,6 +131,8 @@ export function normalizeUrl(url) {
  */
 export async function launchCaptureBrowser({ width = 1100, height = 900 } = {}) {
   const browser = await chromium.launch({
+    // Use installed Chrome updates and retain its process sandbox.
+    chromiumSandbox: true,
     channel: 'chrome',
     executablePath: CHROME,
     headless: true,

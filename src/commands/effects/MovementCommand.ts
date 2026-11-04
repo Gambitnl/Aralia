@@ -1,11 +1,17 @@
+/**
+ * @file src/commands/effects/MovementCommand.ts
+ * Command for executing movement-based effects in combat.
+ * Handles forced movement (push/pull), teleports, speed modifications, and collision detection.
+ */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 26/08/2026, 10:40:08
- * Dependents: commands/effects/GraspingVineCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts, components/DesignPreview/steps/scenarioControls/tauntForcedTargetingScenarioControls.ts, hooks/combat/engine/useCombatEngine.ts, utils/combat/shoveUtils.ts
- * Imports: 11 files
+ * Last Sync: 03/11/2026, 16:53:51
+ * Dependents: commands/effects/GraspingVineCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/spell/effectRegistry.ts, commands/factory/spell/movement.ts, components/DesignPreview/steps/scenarioControls/tauntForcedTargetingScenarioControls.ts, hooks/combat/engine/useCombatEngine.ts, utils/combat/shoveUtils.ts
+ * Imports: 12 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -14,25 +20,20 @@
  */
 // @dependencies-end
 
-/**
- * @file src/commands/effects/MovementCommand.ts
- * Command for executing movement-based effects in combat.
- * Handles forced movement (push/pull), teleports, speed modifications, and collision detection.
- */
-
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { MovementEffect } from '@/types/spells'
 import { CombatState, CombatCharacter, Position, StatusEffect, ActiveCondition } from '@/types/combat'
 // Use the existing distance leaf: the combat barrel also exports shove commands,
 // which import this command and would close a module initialization cycle.
-import { getDistance } from '../../utils/combat/combatUtils'
+import { getDistance, resolveCombatantTerrainMovementPolicy } from '../../utils/combat/combatUtils'
 import { findPath } from '../../utils/spatial/pathfinding'
 import { calculatePathMovementCost } from '../../utils/combat/movementUtils'
 import { calculateMovementTotal } from '../../utils/combat/actionEconomyUtils'
 import { getTerrainHazards, getTerrainMovementCost } from '../../systems/environment/EnvironmentSystem'
 import { evaluateHazard } from '../../systems/environment/hazards'
 import { applyCommandAreaMovementEffects } from './commandAreaMovementEffects'
+import { combatEvents } from '../../systems/events/CombatEvents'
 
 interface TenserDiskRemoval {
     disk: CombatCharacter;
@@ -147,6 +148,15 @@ export class MovementCommand extends BaseEffectCommand {
         const updatedState = this.updateCharacter(state, target.id, {
             position: destination
         })
+        combatEvents.emit({
+            type: 'unit_move',
+            unitId: target.id,
+            from: target.position,
+            to: destination,
+            cost: 0,
+            isForced: true,
+            reason: 'forced'
+        })
         const landingState = this.applyLandingTerrainEffects(updatedState, target.id, destination)
         const zoneState = applyCommandAreaMovementEffects(landingState, target.id, target.position, destination, movementPath)
         const distanceMoved = tiles * 5
@@ -205,6 +215,15 @@ export class MovementCommand extends BaseEffectCommand {
 
         const updatedState = this.updateCharacter(state, target.id, {
             position: destination
+        })
+        combatEvents.emit({
+            type: 'unit_move',
+            unitId: target.id,
+            from: target.position,
+            to: destination,
+            cost: 0,
+            isForced: true,
+            reason: 'pull'
         })
         const landingState = this.applyLandingTerrainEffects(updatedState, target.id, destination)
         const zoneState = applyCommandAreaMovementEffects(landingState, target.id, target.position, destination, movementPath)
@@ -407,6 +426,15 @@ export class MovementCommand extends BaseEffectCommand {
 
         const updatedState = this.updateCharacter(state, target.id, { position: finalDestination })
         const landingState = this.applyLandingTerrainEffects(updatedState, target.id, finalDestination)
+        combatEvents.emit({
+            type: 'unit_move',
+            unitId: target.id,
+            from: origin,
+            to: finalDestination,
+            cost: 0,
+            isForced: false,
+            reason: 'teleport'
+        })
         const actualDistanceTiles = getDistance(origin, finalDestination)
         const actualDistanceFeet = actualDistanceTiles * 5
         const teleportLogData = {
@@ -762,6 +790,15 @@ export class MovementCommand extends BaseEffectCommand {
             const updatedState = this.updateCharacter(nextState, nextTarget.id, {
                 position: { x: bestX, y: bestY }
             })
+            combatEvents.emit({
+                type: 'unit_move',
+                unitId: nextTarget.id,
+                from: target.position,
+                to: { x: bestX, y: bestY },
+                cost: 0,
+                isForced: true,
+                reason: 'forced'
+            })
             const landingState = this.applyLandingTerrainEffects(updatedState, nextTarget.id, { x: bestX, y: bestY })
             const zoneState = applyCommandAreaMovementEffects(landingState, nextTarget.id, target.position, { x: bestX, y: bestY }, movementPath)
 
@@ -969,6 +1006,7 @@ export class MovementCommand extends BaseEffectCommand {
             return null
         }
 
+        const terrainPolicy = resolveCombatantTerrainMovementPolicy(target)
         const startDistance = getDistance(caster.position, target.position)
         const candidateTiles = Array.from(state.mapData.tiles.values())
             .filter(tile => !tile.blocksMovement)
@@ -990,12 +1028,12 @@ export class MovementCommand extends BaseEffectCommand {
         let bestPathCost = Number.POSITIVE_INFINITY
 
         for (const candidateTile of candidateTiles) {
-            const path = findPath(startTile, candidateTile, state.mapData)
+            const path = findPath(startTile, candidateTile, state.mapData, {}, 1, terrainPolicy)
             if (path.length <= 1) {
                 continue
             }
 
-            const pathCost = calculatePathMovementCost(path)
+            const pathCost = calculatePathMovementCost(path, terrainPolicy)
             if (pathCost > distanceFeet) {
                 continue
             }

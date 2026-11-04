@@ -12,6 +12,7 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -66,6 +67,26 @@ test('WF-G195: checkDomainDocText flags missing paths under current-state headin
     assert.equal(result.unresolved.length, 1);
     assert.equal(result.unresolved[0].path, 'src/systems/missingEntry.ts');
     assert.equal(result.unresolved[0].line, 10);
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+// A clean clone (CI) cannot hold gitignored local-only files, so an absent
+// ignored path is local-only, while an absent tracked path stays stale.
+test('WF-G195: an absent gitignored path is local-only, an absent plain path is unresolved', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aralia-domain-doc-git-'));
+  try {
+    execFileSync('git', ['init', '-q', tmpDir]);
+    fs.writeFileSync(path.join(tmpDir, '.gitignore'), 'src/localOnly/\n');
+    const markdown = [
+      '## Verified Current Entry Points',
+      '- Local-only file: `src/localOnly/Scene.tsx`',
+      '- Stale file: `src/systems/missingEntry.ts`',
+    ].join('\n');
+    const result = checkDomainDocText(markdown, { repoRoot: tmpDir, file: 'docs/architecture/domains/sample.md' });
+    assert.deepEqual(result.unresolved.map((entry) => entry.path), ['src/systems/missingEntry.ts']);
+    assert.deepEqual(result.localOnly.map((entry) => entry.path), ['src/localOnly/Scene.tsx']);
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }

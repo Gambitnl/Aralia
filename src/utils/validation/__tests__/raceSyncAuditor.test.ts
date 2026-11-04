@@ -58,14 +58,22 @@ describe('raceSyncAuditor', () => {
 
   /**
    * Test that the auditor identifies missing glossary entries.
-   * We know there's a gap of ~55 races without glossary entries.
+   * Exactly 8 races in character creator currently lack glossary entries.
    */
   it('identifies missing glossary entries', () => {
     const result = auditRaceSync();
 
-    // If 0, it means we are fully synced! Ideally this should mock data to test detection,
-    // but running against live data means we must accept perfection.
-    expect(result.missingGlossaryEntries.length).toBeGreaterThanOrEqual(0);
+    expect(result.missingGlossaryEntries).toEqual([
+      'abyssal_tiefling',
+      'copper_dragonborn',
+      'goblin',
+      'gold_dragonborn',
+      'halfling',
+      'infernal_tiefling',
+      'orc',
+      'silver_dragonborn',
+    ]);
+    expect(result.missingGlossaryEntries.length).toBe(8);
 
     // Each missing entry should be a race ID string
     result.missingGlossaryEntries.forEach((raceId) => {

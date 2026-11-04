@@ -11,8 +11,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 01/11/2026, 01:29:05
- * Dependents: components/World3D/World3DWrapper.tsx, components/World3D/worldGenCore.ts, components/Worldforge/TownBuildingInspector.tsx, components/Worldforge/townBuildingVisit.ts, state/actionTypes.ts, state/reducers/townReducer.ts, systems/worldforge/bridge/buildingOccupancy.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/interiorParts.ts, systems/worldforge/interior/generateInterior.ts, systems/worldforge/interior/householdLayoutRevision.ts, systems/worldforge/props/exteriorPropRevision.ts, systems/worldforge/town/buildingPlotInput.ts, systems/worldforge/town/historicalTownLayout.ts, systems/worldforge/town/prepareHistoricalTownLoad.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/types.ts
+ * Last Sync: 03/11/2026, 08:18:36
+ * Dependents: components/World3D/World3DWrapper.tsx, components/World3D/worldGenCore.ts, components/Worldforge/TownBuildingInspector.tsx, state/actionTypes.ts, state/reducers/townReducer.ts, systems/worldforge/bridge/buildingOccupancy.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/interiorParts.ts, systems/worldforge/interior/generateInterior.ts, systems/worldforge/interior/householdLayoutRevision.ts, systems/worldforge/props/exteriorPropRevision.ts, systems/worldforge/town/buildingPlotInput.ts, systems/worldforge/town/historicalTownLayout.ts, systems/worldforge/town/prepareHistoricalTownLoad.ts, systems/worldforge/town/townBuildingVisit.ts, systems/worldforge/townsim/buildingHistoryCompaction.ts, systems/worldforge/townsim/types.ts
  * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
@@ -26,7 +26,7 @@ import {fnv1a, rootSeedPath, childSeedPath, streamPath, type SeedPath} from '../
 import type {BlueprintPlan, BuildingEventHistory} from './blueprintTypes';
 import type {ContainerManifest} from './manifests';
 import {applyFurnitureLayoutMoves, outsideLayoutRepairEnvelope, FURNITURE_REPAIR_RECIPE, type FurnitureLayoutRepair} from './buildingLayoutRepair';
-import {GUEST_CIRCULATION_RECIPE, guestCirculationReferencesAgree, guestCirculationDoorMoves, type GuestCirculationRepair} from './guestCirculation';
+import {guestCirculationRevisionAgrees, guestCirculationDoorMoves, type GuestCirculationRepair} from './guestCirculation';
 import type {Household} from '../town/household';
 import type {ExteriorPropRevision} from '../props/exteriorPropRevision';
 import {validateHouseholdLayoutRevision, type HouseholdLayoutRevision} from './householdLayoutRevision';
@@ -168,12 +168,12 @@ export function readObservedBuildingSource(context: BuildingSourceContext, plotI
   let foundation = copy.furnishingRepair ? applyFurnitureLayoutMoves(copy.plan, copy.furnishingRepair.moves) : copy.plan;
   if (copy.circulationRepair) {
     const revision = copy.circulationRepair;
-    if (revision.version !== 1 || revision.recipe !== GUEST_CIRCULATION_RECIPE
+    if (revision.version !== 1
       || !Number.isFinite(Date.parse(revision.admittedAt))
       || revision.sourceSignature !== buildingPlanSignature(foundation)
       || revision.planSignature !== buildingPlanSignature(revision.plan)
       || JSON.stringify(revision.doorMoves) !== JSON.stringify(guestCirculationDoorMoves(foundation, revision.plan))
-      || !guestCirculationReferencesAgree(foundation, revision.plan)) throw new Error('The recorded guest layout no longer matches its original references.');
+      || !guestCirculationRevisionAgrees(foundation, revision.plan, revision.recipe)) throw new Error('The recorded guest layout no longer matches its original references.');
     // The admitted result is frozen. Future generator/roof changes cannot
     // silently rebuild the player's recorded rooms or history attachments.
     foundation = revision.plan;

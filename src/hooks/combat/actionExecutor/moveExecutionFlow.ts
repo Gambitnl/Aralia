@@ -73,17 +73,17 @@ export async function runMoveExecutionFlow(
     facing: movedFacing ?? (resolvedMovementCharacter ?? character).facing,
   };
 
-  // A published movement fact with no subscriber today. It is kept as the
-  // movement feed other surfaces can read, but it is NOT complete: command-side
-  // forced movement, pull and teleport do not emit it, so nothing may treat it
-  // as the whole record of who moved (WF gap filed with agora-f821.45).
+  // Movement feed event for downstream consumers (e.g. 3D visuals, telemetry, AI).
+  // GG-262: unit_move is emitted by both voluntary movement (here) and MovementCommand
+  // (forced/push, pull, teleport) carrying consistent coordinates and movement reason.
   combatEvents.emit({
     type: 'unit_move',
     unitId: character.id,
     from: previousPosition,
     to: action.targetPosition,
     cost: action.cost.movementCost || 0,
-    isForced: false
+    isForced: false,
+    reason: 'voluntary'
   });
 
   updatedCharacter = processTileEffects(updatedCharacter, action.targetPosition);
@@ -222,15 +222,29 @@ export async function runMoveExecutionFlow(
 
             if (appliedCondition) {
               const durationRounds = 1;
+              // GG-192: both runtime condition mirrors must carry the same source
+              // ('zone_effect'), sourceSpellId, and sourceCasterId so
+              // conditionBelongsToStatus() and removeRuntimeStatusCondition()
+              // treat them as one owned pair and remove both halves together.
+              const zoneSpellId = effect.sourceContext?.spellId;
+              const zoneCasterId = effect.sourceContext?.casterId;
               const statusEffect = {
-                id: generateId(), name: effect.statusName, type: 'debuff' as const,
-                duration: durationRounds, effect: { type: 'condition' as const }, icon: '💀'
+                id: generateId(),
+                name: effect.statusName,
+                type: 'debuff' as const,
+                duration: durationRounds,
+                effect: { type: 'condition' as const },
+                icon: '💀',
+                source: 'zone_effect',
+                ...(zoneSpellId ? { sourceSpellId: zoneSpellId } : {}),
+                ...(zoneCasterId ? { sourceCasterId: zoneCasterId } : {}),
               };
               const activeCondition = {
                 name: effect.statusName,
                 duration: { type: 'rounds' as const, value: durationRounds },
                 appliedTurn: turnState.currentTurn,
-                source: 'zone_effect'
+                source: 'zone_effect',
+                ...(zoneCasterId ? { sourceCasterId: zoneCasterId } : {}),
               };
               const applied = applyRuntimeStatusCondition(updatedCharacter, statusEffect, activeCondition);
               updatedCharacter = applied.character;

@@ -1290,8 +1290,16 @@ const TownPlanView: React.FC<TownPlanViewProps> = ({
         {layers.walls && plan.walls.ring.length > 0 && (
           <path d={poly(plan.walls.ring)} fill="none" stroke="#6b5836" strokeWidth={3} strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
         )}
+        {/* Gate numbers share the canonical gatehouse order used in resident
+            directions. Labels locate an entrance; they do not promise passage. */}
         {layers.walls && plan.walls.gatehouses.map((g, i) => (
-          <rect key={`g${i}`} x={g[0] - 4} y={g[1] - 4} width={8} height={8} fill="#5a4a2a" stroke="#2a1f10" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+          <g key={`g${i}`} role="img" aria-label={`Gate ${i + 1}`}
+            transform={`translate(${g[0]},${g[1]})`} pointerEvents="none">
+            <title>{`Gate ${i + 1}`}</title>
+            <rect x={-4} y={-4} width={8} height={8} fill="#5a4a2a" stroke="#2a1f10" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+            <text x={8 / view.k} y={-8 / view.k} fontSize={12 / view.k} fontWeight={700}
+              fill="#3a2a14" stroke="#fff7da" strokeWidth={3 / view.k} paintOrder="stroke">{`Gate ${i + 1}`}</text>
+          </g>
         ))}
         <path d={poly(plan.footprint)} fill="none" stroke="#3a2a14" strokeWidth={2} vectorEffect="non-scaling-stroke" />
         {/* Selected building highlight outline */}

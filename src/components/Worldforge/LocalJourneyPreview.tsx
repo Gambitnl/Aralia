@@ -36,7 +36,11 @@ export function LocalJourneyPreview({ quote, onCancel, onConfirm }: {
       <h2 id="local-journey-title" className="text-xl font-semibold text-amber-200">Journey to {quote.label}</h2>
       <p className="mt-3">Walk {(quote.route.miles * 1.609344).toFixed(2)} km {quote.routeKind === 'town-streets'
         ? 'along mapped town streets. Maintained roads provide clear wayfinding; travel events and costs still apply.'
-        : 'through the surrounding country, using its surveyed land and crossings.'}</p>
+        : 'over surveyed ground and crossings, without a continuous mapped street route.'}</p>
+      {/* A short route can still carry the existing hours-long navigation
+          penalty. Explain the rule without revealing its seeded story or
+          granting road benefits merely because the destination is a town. */}
+      {quote.routeKind !== 'town-streets' && <p className="mt-2 text-sm text-stone-300">Away from maintained streets, losing your bearings can add hours, even to a short walk. The estimate includes that time.</p>}
       <dl className="my-4 grid grid-cols-2 gap-2">
         {delaySeconds > 0 && <>
           <dt>Route time</dt><dd>{formatTravelTime(Math.ceil(routeSeconds / 60))}</dd>

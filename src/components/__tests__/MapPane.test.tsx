@@ -96,6 +96,19 @@ describe('MapPane', () => {
     expect(screen.getByRole('navigation', { name: 'Submap tier path' })).toHaveTextContent('Sypege');
   }, 60000);
 
+  it('keeps the chosen region after live map props change under StrictMode', async () => {
+    requestMapDrillToPlayerTown(10);
+    const props = {worldSeed: 1793146029630, playerAtlasCellId: 4565, onTileClick: vi.fn(), onClose: vi.fn(), allowTravel: true};
+    const view = render(<React.StrictMode><MapPane {...props} exploredCellIds={[4565]} gameTime={new Date('0351-01-01T12:00:00Z')} /></React.StrictMode>);
+    expect(await screen.findByTestId('town-plan-view')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', {name: /Region · Sypege/}));
+    expect(screen.queryByTestId('town-plan-view')).not.toBeInTheDocument();
+    view.rerender(<React.StrictMode><MapPane {...props} exploredCellIds={[4565, 4566]} gameTime={new Date('0351-01-01T12:00:01Z')} /></React.StrictMode>);
+    await waitFor(() => expect(screen.queryByTestId('town-plan-view')).not.toBeInTheDocument());
+    expect(screen.getByRole('navigation', {name: 'Submap tier path'})).toHaveTextContent('Region · Sypege');
+    expect(props.onTileClick).not.toHaveBeenCalled();
+  }, 60000);
+
   it('restores an undersized saved map window to a usable desktop viewport', async () => {
     localStorage.setItem('world-map-window', JSON.stringify({ width: 600, height: 400 }));
 
