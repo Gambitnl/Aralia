@@ -79,9 +79,10 @@ const PRE_UTILITY = [
 ];
 
 /** Was: services/ollama/taskProfiles.ts PROSE_MODELS */
+// The first two swapped on 2026-11-04: qwen3:8b is now the prose default.
 const PRE_PROSE = [
-  'qwen3.5:9b-q4_K_M',
   'qwen3:8b-q4_K_M',
+  'qwen3.5:9b-q4_K_M',
   'gemma4:12b',
   'adi0adi/ollama_stheno-8b_v3.1_q6k',
   'granite4.1:8b-q4_K_M',

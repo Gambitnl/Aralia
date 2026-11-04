@@ -132,8 +132,11 @@ export const OLLAMA_TASK_MODELS: {
   ],
   /** Atmosphere: location and encounter descriptions — prose with consistency. */
   prose: [
-    'qwen3.5:9b-q4_K_M',
+    // Default moved to qwen3:8b-q4_K_M (Remy, 2026-11-04): qwen3.5:9b is not
+    // installed on the dev PC, so the opening scene failed. qwen3.5 stays in
+    // the catalog so the AI-settings picker still offers it.
     'qwen3:8b-q4_K_M',
+    'qwen3.5:9b-q4_K_M',
     'gemma4:12b',
     'adi0adi/ollama_stheno-8b_v3.1_q6k',
     'granite4.1:8b-q4_K_M',
