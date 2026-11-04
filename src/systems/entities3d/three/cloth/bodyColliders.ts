@@ -93,6 +93,14 @@ export interface ClothCollider {
   /** Half-width and half-depth profiles, A to B, fitted + margin, meters. */
   readonly hx: readonly number[];
   readonly hz: readonly number[];
+  /** Section exponent: 2 = ellipse, 4 = rounded box. The fit picks, per
+   * piece, the one that floats least over the skin it covers (2026-11-04:
+   * a fixed 4 bulged 4-8 cm off a round chest at the diagonals, and the
+   * half-orc's cape hung 6-7 cm off the back). */
+  readonly n: number;
+  /** The cloth margin folded into hx/hz, meters: the drawn skin sits this
+   * far inside the collider surface. */
+  readonly margin: number;
 }
 
 export interface ClothColliderMargins {
@@ -119,10 +127,14 @@ interface Draft {
   z: Vector3;
   hx: Profile;
   hz: Profile;
+  n: number;
   /** Rest (driver) radius at A and B — used only to ASSIGN skin to pieces. */
   rr0: number;
   rr1: number;
 }
+
+/** The exponents the fit may choose from. */
+const SECTION_EXPONENTS = [2, 3, 4] as const;
 
 const WORLD_X = new Vector3(1, 0, 0);
 const WORLD_Y = new Vector3(0, 1, 0);
@@ -170,13 +182,13 @@ function local(d: Draft, px: number, py: number, pz: number): { s: number; u: nu
   };
 }
 
-/** Fourth-power section norm: < 1 inside, 1 on the surface. */
+/** Section norm with the draft's exponent: < 1 inside, 1 on the surface. */
 function sectionNorm(d: Draft, l: ReturnType<typeof local>): number {
   const hx = profileAt(d.hx, l.u);
   const hz = profileAt(d.hz, l.u);
   const hy = Math.min(hx, hz);
-  const tx = l.ox / hx, tz = l.oz / hz, ty = l.along / hy;
-  return tx * tx * tx * tx + tz * tz * tz * tz + ty * ty * ty * ty;
+  const tx = Math.abs(l.ox / hx), tz = Math.abs(l.oz / hz), ty = Math.abs(l.along / hy);
+  return Math.pow(tx, d.n) + Math.pow(tz, d.n) + Math.pow(ty, d.n);
 }
 
 /**
@@ -207,7 +219,7 @@ export function bipedClothColliders(
     else y.copy(WORLD_Y);
     const x = new Vector3(), z = new Vector3();
     sectionFrame(y, x, z);
-    const d: Draft = { id, bone, boneIndex: indexOf(bone), a, b, y, len, x, z, hx: new Array(PROFILE_KNOTS).fill(seed), hz: new Array(PROFILE_KNOTS).fill(seed), rr0, rr1 };
+    const d: Draft = { id, bone, boneIndex: indexOf(bone), a, b, y, len, x, z, hx: new Array(PROFILE_KNOTS).fill(seed), hz: new Array(PROFILE_KNOTS).fill(seed), n: 4, rr0, rr1 };
     drafts.push(d);
     return d;
   };
@@ -363,26 +375,53 @@ export function bipedClothColliders(
       }
     }
   };
+  // EXPONENT. The same fit runs once per section exponent (ellipse to rounded
+  // box) and the piece keeps the exponent whose fitted shape floats least
+  // over the skin it owns. A rounded box hugs a flat back and a mitt; an
+  // ellipse hugs a round thigh or chest — a fixed 4 stood 4-8 cm off the
+  // round sections at their diagonals (measured 2026-11-04).
   for (const d of drafts) {
     const verts = owned.get(d) ?? [];
     if (verts.length === 0) continue;
     const ls = verts.map((v) => local(d, pos.getX(v), pos.getY(v), pos.getZ(v)));
     const us = ls.map((l) => l.u);
-    envelope(d.hx, us, ls.map((l) => Math.abs(l.ox)));
-    envelope(d.hz, us, ls.map((l) => Math.abs(l.oz)));
-    for (let pass = 0; pass < 3; pass++) {
-      const needX: number[] = [];
-      const needZ: number[] = [];
-      for (const l of ls) {
-        const qx = Math.abs(l.ox) / profileAt(d.hx, l.u);
-        const qz = Math.abs(l.oz) / profileAt(d.hz, l.u);
-        if (qx ** 4 + qz ** 4 <= 1) { needX.push(0); needZ.push(0); continue; }
-        if (qx >= qz) { needX.push((Math.abs(l.ox) / Math.pow(1 - Math.min(0.9, qz ** 4), 0.25)) * 1.001); needZ.push(0); }
-        else { needZ.push((Math.abs(l.oz) / Math.pow(1 - Math.min(0.9, qx ** 4), 0.25)) * 1.001); needX.push(0); }
+    const seedX = d.hx.slice();
+    const seedZ = d.hz.slice();
+    let bestFloat = Infinity;
+    let bestX = d.hx, bestZ = d.hz, bestN = d.n;
+    for (const n of SECTION_EXPONENTS) {
+      const hx = seedX.slice();
+      const hz = seedZ.slice();
+      envelope(hx, us, ls.map((l) => Math.abs(l.ox)));
+      envelope(hz, us, ls.map((l) => Math.abs(l.oz)));
+      for (let pass = 0; pass < 3; pass++) {
+        const needX: number[] = [];
+        const needZ: number[] = [];
+        for (const l of ls) {
+          const qx = Math.abs(l.ox) / profileAt(hx, l.u);
+          const qz = Math.abs(l.oz) / profileAt(hz, l.u);
+          if (qx ** n + qz ** n <= 1) { needX.push(0); needZ.push(0); continue; }
+          if (qx >= qz) { needX.push((Math.abs(l.ox) / Math.pow(1 - Math.min(0.9, qz ** n), 1 / n)) * 1.001); needZ.push(0); }
+          else { needZ.push((Math.abs(l.oz) / Math.pow(1 - Math.min(0.9, qx ** n), 1 / n)) * 1.001); needX.push(0); }
+        }
+        envelope(hx, us, needX);
+        envelope(hz, us, needZ);
       }
-      envelope(d.hx, us, needX);
-      envelope(d.hz, us, needZ);
+      // float of this shape: mean radial gap between each owned vertex and
+      // the fitted surface along its own ray (the contact rule's distance)
+      let gap = 0;
+      for (const l of ls) {
+        const hxu = profileAt(hx, l.u), hzu = profileAt(hz, l.u), hyu = Math.min(hxu, hzu);
+        const N = Math.pow(Math.pow(Math.abs(l.ox / hxu), n) + Math.pow(Math.abs(l.oz / hzu), n) + Math.pow(Math.abs(l.along / hyu), n), 1 / n);
+        const ray = Math.sqrt(l.ox * l.ox + l.oz * l.oz + l.along * l.along);
+        gap += N > 1e-9 ? (ray / N) * (1 - N) : hyu;
+      }
+      gap /= ls.length;
+      if (gap < bestFloat) { bestFloat = gap; bestX = hx; bestZ = hz; bestN = n; }
     }
+    d.hx = bestX;
+    d.hz = bestZ;
+    d.n = bestN;
   }
 
   return drafts.map((d) => {
@@ -397,13 +436,15 @@ export function bipedClothColliders(
       z: [d.z.x, d.z.y, d.z.z],
       hx: d.hx.map((h) => h + m),
       hz: d.hz.map((h) => h + m),
+      n: d.n,
+      margin: m,
     };
   });
 }
 
 function writePacked(out: Float32Array, o: number, c: ClothCollider, a: V3, b: V3, x: V3, z: V3): void {
   out[o] = a[0]; out[o + 1] = a[1]; out[o + 2] = a[2]; out[o + 3] = 0;
-  out[o + 4] = b[0]; out[o + 5] = b[1]; out[o + 6] = b[2]; out[o + 7] = 0;
+  out[o + 4] = b[0]; out[o + 5] = b[1]; out[o + 6] = b[2]; out[o + 7] = c.n; // B.w = section exponent
   out[o + 8] = x[0]; out[o + 9] = x[1]; out[o + 10] = x[2]; out[o + 11] = 0;
   out[o + 12] = z[0]; out[o + 13] = z[1]; out[o + 14] = z[2]; out[o + 15] = 0;
   for (let k = 0; k < PROFILE_KNOTS; k++) {
@@ -492,8 +533,9 @@ export function colliderClearanceOf(caps: Float32Array, i: number, px: number, p
   const hx = packedProfileAt(caps, o + 16, u);
   const hz = packedProfileAt(caps, o + 16 + PROFILE_KNOTS, u);
   const hy = Math.min(hx, hz);
-  const qx = ox / hx, qz = oz / hz, qy = along / hy;
-  const n = Math.pow(qx * qx * qx * qx + qz * qz * qz * qz + qy * qy * qy * qy, 0.25);
+  const qx = Math.abs(ox / hx), qz = Math.abs(oz / hz), qy = Math.abs(along / hy);
+  const e = caps[o + 7];
+  const n = Math.pow(Math.pow(qx, e) + Math.pow(qz, e) + Math.pow(qy, e), 1 / e);
   // radial distance in meters ≈ (n − 1) × the section size along that ray
   const ray = Math.sqrt(ox * ox + oz * oz + along * along);
   return n > 1e-9 ? (ray / n) * (n - 1) : -Math.min(hx, hz);

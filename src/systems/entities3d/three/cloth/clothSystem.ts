@@ -115,6 +115,19 @@ const skinM = new Matrix4();
 const initM = new Matrix4();
 const tmp = new Vector3();
 
+/**
+ * How much one collider's push-out counts when a point is inside several
+ * (SOLVE_FRAGMENT overlap rule). The body outranks a limb, a limb outranks a
+ * hand or foot: a hand that presses the cape onto the back leaves the cape on
+ * the back, under the hand, not through the back.
+ */
+export function pushWeight(id: string): number {
+  if (id.startsWith('hand') || id.startsWith('foot')) return 0.25;
+  if (id.endsWith('.fore') || id.endsWith('.shin')) return 0.5;
+  if (id.startsWith('torso')) return 1;
+  return 0.75;
+}
+
 export class ClothSystem {
   private readonly packer = new ClothAtlasPacker();
   private readonly data: AtlasData = createAtlasData();
@@ -303,6 +316,8 @@ export class ClothSystem {
       // colliders
       poseClothColliders(src.colliders, src.bones, src.boneInverses, posed);
       for (let c = 0; c < src.colliders.length; c++) {
+        // A.w carries the push weight (the pad of the A texel is free)
+        posed[c * CLOTH_COLLIDER_STRIDE + 3] = pushWeight(src.colliders[c].id);
         const ci = slot.colliderStart + c;
         const x = (ci % COLLIDERS_PER_ROW) * 8;
         const y = Math.floor(ci / COLLIDERS_PER_ROW);

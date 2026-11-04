@@ -18,7 +18,7 @@
  *
  * Data layout: see clothAtlas.ts (per-texel static textures) and
  * bodyColliders.ts (8 texels per collider: A, B, X, Z, hx0-3, hx4-7,
- * hz0-3, hz4-7). three r172 compiles every ShaderMaterial as GLSL 300 es on
+ * hz0-3, hz4-7; A.w = push weight, B.w = section exponent). three r172 compiles every ShaderMaterial as GLSL 300 es on
  * WebGL2, so texelFetch is available and gl_FragColor is mapped for us.
  */
 import { ATLAS_SIZE } from './clothAtlas';
@@ -127,10 +127,15 @@ float profileAt(vec4 a, vec4 b, float u) {
 }
 
 // Push p out of one rounded-box collider (bodyColliders.ts contact rule).
-vec3 pushOut(vec3 p, int ci) {
+// Returns the pushed point and, in w, the collider's push weight (A.w in the
+// packed texel; clothSystem.ts pushWeight) — 0 when the point was outside.
+vec4 pushOut(vec3 p, int ci) {
   ivec2 base = ivec2((ci - (ci / ${COLLIDERS_PER_ROW}) * ${COLLIDERS_PER_ROW}) * 8, ci / ${COLLIDERS_PER_ROW});
-  vec3 A = at(uColl, base).xyz;
-  vec3 B = at(uColl, base + ivec2(1, 0)).xyz;
+  vec4 Aw = at(uColl, base);
+  vec3 A = Aw.xyz;
+  vec4 Be = at(uColl, base + ivec2(1, 0));
+  vec3 B = Be.xyz;
+  float e = Be.w;
   vec3 X = at(uColl, base + ivec2(2, 0)).xyz;
   vec3 Z = at(uColl, base + ivec2(3, 0)).xyz;
   vec3 ab = B - A;
@@ -146,11 +151,21 @@ vec3 pushOut(vec3 p, int ci) {
   float hx = profileAt(at(uColl, base + ivec2(4, 0)), at(uColl, base + ivec2(5, 0)), u);
   float hz = profileAt(at(uColl, base + ivec2(6, 0)), at(uColl, base + ivec2(7, 0)), u);
   float hy = min(hx, hz);
-  float qx = ox / hx, qz = oz / hz, qy = al / hy;
-  float n4 = qx * qx * qx * qx + qz * qz * qz * qz + qy * qy * qy * qy;
-  if (n4 >= 1.0 || n4 < 1e-12) return p;
-  float k = pow(n4, -0.25);
-  return A + Y * sc + (X * ox + Z * oz + Y * al) * k;
+  float qx = abs(ox / hx), qz = abs(oz / hz), qy = abs(al / hy);
+  // section exponent per piece (2 ellipse .. 4 rounded box), bodyColliders.ts
+  float n4 = pow(qx, e) + pow(qz, e) + pow(qy, e);
+  if (n4 >= 1.0 || n4 < 1e-12) return vec4(p, 0.0);
+  float k = pow(n4, -1.0 / e);
+  return vec4(A + Y * sc + (X * ox + Z * oz + Y * al) * k, Aw.w);
+}
+
+// True when c is outside every collider of the garment.
+bool clearOfAll(vec3 c, int start, int count) {
+  for (int k = 0; k < ${MAX_GARMENT_COLLIDERS}; k++) {
+    if (k >= count) break;
+    if (pushOut(c, start + k).w > 0.0) return false;
+  }
+  return true;
 }
 
 void main() {
@@ -193,14 +208,54 @@ void main() {
     if (L > rest2.w && L > 1e-6) p = a + d * (rest2.w / L);
   }
 
-  // body colliders of this garment, then the floor
+  // body colliders of this garment, then the floor.
+  // OVERLAP RULE (2026-11-04): a point inside ONE collider takes its push.
+  // A point inside several (the chest and a deltoid at the shoulder; a
+  // deltoid and the upper arm when the arm swings back on the cape's edge)
+  // has no single exit: each collider's push lands inside the other, and
+  // their averaged push cancels where the two faces oppose. So the point
+  // tries every single exit and every exit PAIR (out of i, then out of j
+  // from there) and takes the shortest that lands clear of all of them —
+  // for two overlapping shapes that is the rim where their surfaces meet.
+  // When no try is clear, the weighted average still makes progress; the
+  // weight favors the body over a hand, so a hand that swings back onto
+  // the cape pinches it against the back instead of through it.
   int gs = int(meta.x);
   vec4 g = texelFetch(uGarment, ivec2(gs - (gs / 256) * 256, gs / 256), 0);
   int start = int(g.x);
   int count = int(g.y);
-  for (int k = 0; k < ${MAX_GARMENT_COLLIDERS}; k++) {
-    if (k >= count) break;
-    p = pushOut(p, start + k);
+  for (int round = 0; round < 3; round++) {
+    vec3 push = vec3(0.0);
+    float wsum = 0.0;
+    int inside = 0;
+    for (int k = 0; k < ${MAX_GARMENT_COLLIDERS}; k++) {
+      if (k >= count) break;
+      vec4 q = pushOut(p, start + k);
+      if (q.w > 0.0) { push += (q.xyz - p) * q.w; wsum += q.w; inside++; }
+    }
+    if (inside == 0) break;
+    if (inside == 1) { p += push / wsum; continue; }
+    vec3 best = p + push / wsum;
+    float bestD = 1e9;
+    for (int i = 0; i < ${MAX_GARMENT_COLLIDERS}; i++) {
+      if (i >= count) break;
+      vec4 qi = pushOut(p, start + i);
+      if (qi.w <= 0.0) continue;
+      for (int j = -1; j < ${MAX_GARMENT_COLLIDERS}; j++) {
+        if (j >= count) break;
+        vec3 c = qi.xyz;
+        if (j >= 0) {
+          if (j == i) continue;
+          vec4 qj = pushOut(c, start + j);
+          if (qj.w <= 0.0) continue; // c is already clear of j: the single exit covers it
+          c = qj.xyz;
+        }
+        float d = distance(c, p);
+        if (d >= bestD) continue;
+        if (clearOfAll(c, start, count)) { bestD = d; best = c; }
+      }
+    }
+    p = best;
   }
   p.y = max(p.y, g.z);
   gl_FragColor = vec4(p, 1.0);

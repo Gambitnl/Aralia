@@ -29,10 +29,30 @@ import {
   type SkinnedMesh,
   type WebGLRenderer,
 } from 'three';
-import { CLOTH_COLLIDER_STRIDE, colliderClearance, poseClothColliders, type ClothCollider } from './bodyColliders';
+import { CLOTH_COLLIDER_STRIDE, colliderClearanceOf, poseClothColliders, type ClothCollider } from './bodyColliders';
 import type { ClothPanel } from './garmentPanels';
 import { clothSystemFor, type ClothSource, type ClothSystem } from './clothSystem';
 import { toonMaterial } from '../toon';
+
+/** What measureClearance reports: the aggregate plus the trapping collider. */
+export interface ClothClearance {
+  points: number;
+  /** points deeper than 1 mm inside the body */
+  inside: number;
+  /** meters; negative = inside */
+  minClearance: number;
+  hemY: number;
+  /** inside count per collider id */
+  insideBy: Record<string, number>;
+  /** points deeper than the collider's cloth margin: through the DRAWN SKIN.
+   * A point inside the margin only is cloth pressed flat on the body (a hand
+   * or an arm that pinches it), not a cut-through. */
+  throughSkin: number;
+  /** meters past the skin for the deepest point (0 when none is through) */
+  worstSkinDepth: number;
+  /** the deepest point, or null when every point is clear */
+  worst: { row: number; col: number; collider: string; depthM: number } | null;
+}
 
 export interface ClothGarmentOptions {
   colorHex: string;
@@ -70,6 +90,8 @@ export class ClothGarment implements ClothSource {
       if (i === undefined) throw new Error(`clothGarment: the skeleton has no "${name}" bone`);
       return i;
     };
+    // order does not matter: the solver averages every collider's push
+    // (clothShaders.ts overlap rule, weights from clothSystem.ts pushWeight)
     this.colliders = panel.colliders.map((id) => {
       const c = allColliders.find((k) => k.id === id);
       if (!c) throw new Error(`clothGarment: the figure has no "${id}" collider`);
@@ -185,23 +207,44 @@ vec3 objectNormal = normalize(cross(clothAt(_r) - clothAt(_l), clothAt(_d) - clo
    * body; `minClearance` is the worst point (meters, negative = inside).
    * Synchronous GPU read — never on a hot path.
    */
-  measureClearance(): { points: number; inside: number; minClearance: number; hemY: number } | null {
+  measureClearance(): ClothClearance | null {
     const p = this.readPositions();
     if (!p) return null;
     const caps = new Float32Array(this.colliders.length * CLOTH_COLLIDER_STRIDE);
     poseClothColliders(this.colliders, this.bones, this.boneInverses, caps);
     let inside = 0;
     let minClearance = Infinity;
+    const insideBy: Record<string, number> = {};
+    let worst: ClothClearance['worst'] = null;
+    let throughSkin = 0;
+    let worstSkinDepth = 0;
     const n = p.length / 3;
     for (let i = 0; i < n; i++) {
-      const d = colliderClearance(caps, this.colliders.length, p[i * 3], p[i * 3 + 1], p[i * 3 + 2]);
-      if (d < -0.001) inside++;
-      if (d < minClearance) minClearance = d;
+      // per collider, so a rig can name the piece that traps the cloth
+      // (the 2026-11-04 walk-circle failures were arm-against-back pinches)
+      let d = Infinity;
+      let by = '';
+      let margin = 0;
+      for (let k = 0; k < this.colliders.length; k++) {
+        const dk = colliderClearanceOf(caps, k, p[i * 3], p[i * 3 + 1], p[i * 3 + 2]);
+        if (dk < d) { d = dk; by = this.colliders[k].id; margin = this.colliders[k].margin; }
+      }
+      if (d < -0.001) {
+        inside++;
+        insideBy[by] = (insideBy[by] ?? 0) + 1;
+        const skinDepth = -d - margin;
+        if (skinDepth > 0.001) throughSkin++;
+        if (skinDepth > worstSkinDepth) worstSkinDepth = skinDepth;
+      }
+      if (d < minClearance) {
+        minClearance = d;
+        worst = { row: Math.floor(i / this.panel.cols), col: i % this.panel.cols, collider: by, depthM: -d };
+      }
     }
     const hemRow = (this.panel.rows - 1) * this.panel.cols;
     let hemY = 0;
     for (let c = 0; c < this.panel.cols; c++) hemY += p[(hemRow + c) * 3 + 1] / this.panel.cols;
-    return { points: n, inside, minClearance, hemY };
+    return { points: n, inside, minClearance, hemY, insideBy, worst, throughSkin, worstSkinDepth };
   }
 
   dispose(): void {
