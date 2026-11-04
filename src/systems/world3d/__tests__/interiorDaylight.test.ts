@@ -90,6 +90,40 @@ function oneRoomHouse(extra: DaylightPart[] = []): DaylightPart[] {
 }
 
 describe('buildInteriorDaylight', () => {
+  it('admits sky through an actual open exterior door in a windowless room, then removes it on closing', () => {
+    const parts = oneRoomHouse().filter(p => p.lightRole !== 'window');
+    parts.push({ x: 0, z: 2.15, w: 1.2, d: .06, h: 2.1, baseY: 0, colorHex: '#65462f', door: { id: 'front' } });
+    expect(buildInteriorDaylight(parts, -1)).toBeNull();
+    expect(buildInteriorDaylight(parts, -1, new Set(['another-door']))!.openings).toHaveLength(0);
+    const open = buildInteriorDaylight(parts, -1, new Set(['front']))!;
+    expect(open.openings).toHaveLength(1);
+    expect(open.openings[0].transmittance).toBe(1);
+    const near = interiorSkyFactor(open, { x: 0, y: .05, z: 1.5 }, up);
+    const back = interiorSkyFactor(open, { x: 0, y: .05, z: -1.5 }, up);
+    expect(near).toBeGreaterThan(back);
+    expect(back).toBeGreaterThan(0);
+    const closed = buildInteriorDaylight(parts, -1, new Set())!;
+    expect(closed.openings).toHaveLength(0);
+    expect(interiorSkyFactor(closed, { x: 0, y: .05, z: 1.5 }, up)).toBe(0);
+  });
+
+  it('does not treat an open internal door as a new sky source or change window-only daylight', () => {
+    const parts = oneRoomHouse();
+    const original = buildInteriorDaylight(parts, -1)!;
+    parts.push({ x: 0, z: 0, w: 1.2, d: .06, h: 2.1, colorHex: '#65462f', door: { id: 'bedroom' } });
+    expect(buildInteriorDaylight(parts, -1, new Set(['bedroom']))).toEqual(original);
+  });
+
+  it('retains structural occlusion between the open doorway and the back room', () => {
+    const parts = oneRoomHouse().filter(p => p.lightRole !== 'window');
+    parts.push({ x: 0, z: 2.15, w: 1.2, d: .06, h: 2.1, colorHex: '#65462f', door: { id: 'front' } });
+    const open = buildInteriorDaylight(parts, -1, new Set(['front']))!;
+    const divided = buildInteriorDaylight([...parts, { x: 0, z: 0, w: 6, d: .3, h: 2.8, colorHex: '#cfc7b8' }], -1, new Set(['front']))!;
+    const p = { x: 0, y: .05, z: -1.5 };
+    expect(interiorSkyFactor(divided, p, up)).toBeCloseTo(divided.irc, 10);
+    expect(interiorSkyFactor(open, p, up)).toBeGreaterThan(interiorSkyFactor(divided, p, up));
+  });
+
   // doorZSign -1 keeps z as authored (sitePartLocalOffset flips by -doorZSign).
   const day = buildInteriorDaylight(oneRoomHouse(), -1)!;
 

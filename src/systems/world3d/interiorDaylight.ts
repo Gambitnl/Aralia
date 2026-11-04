@@ -1,7 +1,7 @@
 /**
  * @file interiorDaylight.ts
  * @description How much sky light reaches each point inside a building, from
- * the building's real window openings. Pure: no three.js, unit-tested.
+ * the building's real windows and open exterior doors. Pure: no three.js.
  *
  * Why (Remy, 2026-11-02): "windows should allow light through". Before this,
  * the sky (hemisphere) light lit every interior surface as if the building
@@ -36,6 +36,23 @@
  * x and z in meters with z already flipped by doorZSign, y up from the
  * building's surface.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 03/11/2026, 06:30:03
+ * Dependents: components/World3D/InteriorLights.tsx, components/World3D/World3DScene.tsx
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { isSitePartRenderable, sitePartLocalOffset } from '../worldforge/bridge/sitePartTransform';
 
 /** Clear-glass transmittance; also the BRE split-flux glazing factor. */
@@ -65,7 +82,7 @@ export interface DaylightPart {
   lightRole?: 'window' | 'hearth';
   walkSurface?: string;
   furnishing?: unknown;
-  door?: unknown;
+  door?: { id: string };
   beam?: unknown;
   renderRole?: 'tactical-only';
   tag?: string;
@@ -77,6 +94,8 @@ export interface DaylightOpening {
   center: V3;
   outward: V3;
   areaM2: number;
+  /** Open air transmits fully; omitted on legacy/window data (clear glass). */
+  transmittance?: number;
   /**
    * Depth of the hole in the wall (the reveal), meters: the thickness of the
    * sill or head box around the pane, which sits in the wall's center plane.
@@ -130,10 +149,11 @@ export function insideFootprint(p: V3, floors: readonly Box[]): boolean {
 
 /**
  * Collect the openings, floor footprint, occluders and the IRC for one
- * building from its parts. Returns null when the building has no floor slab
- * (no interior to light) or no window.
+ * building from its parts. The optional door ledger admits only actual open
+ * exterior leaves. A windowless room with a supplied ledger stays dark when
+ * its last door closes; it must not fall back to an outdoor material.
  */
-export function buildInteriorDaylight(parts: readonly DaylightPart[], doorZSign: number): InteriorDaylight | null {
+export function buildInteriorDaylight(parts: readonly DaylightPart[], doorZSign: number, openDoorIds?: ReadonlySet<string>): InteriorDaylight | null {
   const visible = parts.filter(isSitePartRenderable);
   const floorParts = visible.filter((p) => p.walkSurface === 'floor');
   const floors = floorParts.map((p) => boxOf(p, doorZSign));
@@ -147,22 +167,28 @@ export function buildInteriorDaylight(parts: readonly DaylightPart[], doorZSign:
   let areaLow = 0, reflLow = 0;
   let areaHigh = 0, reflHigh = 0;
   for (const p of visible) {
-    if (p.furnishing || p.door || p.beam) continue;
+    if (p.furnishing || p.beam) continue;
+    const openDoor = !!p.door && !!openDoorIds?.has(p.door.id);
+    if (p.door && !openDoor) continue;
     // Facade dressing (courses, trim, shutters) sits outside the rooms.
     if (p.tag !== undefined && DRESSING_TAGS.has(p.tag)) continue;
     const b = boxOf(p, doorZSign);
-    if (p.lightRole === 'window') {
+    if (p.lightRole === 'window' || openDoor) {
       // The pane fills the opening. Its thin axis is the wall normal.
       const alongX = p.w >= p.d;
       const c = { x: (b.x0 + b.x1) / 2, y: (b.y0 + b.y1) / 2, z: (b.z0 + b.z1) / 2 };
       const n = alongX ? { x: 0, y: 0, z: 1 } : { x: 1, y: 0, z: 0 };
       // Outward = the side with no floor under it.
       const probe = { x: c.x + n.x * 0.5, y: c.y, z: c.z + n.z * 0.5 };
+      // Only a perimeter doorway sees the outdoor sky. An open bedroom door
+      // remains circulation between rooms, never an invented exterior light.
+      if (openDoor && insideFootprint(probe, floors) && insideFootprint({ x: c.x - n.x * 0.5, y: c.y, z: c.z - n.z * 0.5 }, floors)) continue;
       const outward = insideFootprint(probe, floors) ? { x: -n.x, y: 0, z: -n.z } : n;
       const corners: [V3, V3, V3, V3] = alongX
         ? [{ x: b.x0, y: b.y0, z: c.z }, { x: b.x1, y: b.y0, z: c.z }, { x: b.x1, y: b.y1, z: c.z }, { x: b.x0, y: b.y1, z: c.z }]
         : [{ x: c.x, y: b.y0, z: b.z0 }, { x: c.x, y: b.y0, z: b.z1 }, { x: c.x, y: b.y1, z: b.z1 }, { x: c.x, y: b.y1, z: b.z0 }];
-      openings.push({ corners, center: c, outward, areaM2: (alongX ? p.w : p.d) * p.h, revealM: 0 });
+      openings.push({ corners, center: c, outward, areaM2: (alongX ? p.w : p.d) * p.h, revealM: 0,
+        ...(openDoor ? { transmittance: 1 } : {}) });
       continue;
     }
     structure.push(b);
@@ -185,7 +211,7 @@ export function buildInteriorDaylight(parts: readonly DaylightPart[], doorZSign:
       areaHigh += a / 2; reflHigh += (a / 2) * r;
     }
   }
-  if (openings.length === 0) return null;
+  if (openings.length === 0 && !(openDoorIds && visible.some(p => p.door))) return null;
   // The reveal: the wall box just under (sill) or over (head) the pane.
   for (const o of openings) {
     const ys = o.corners.map((k) => k.y);
@@ -198,12 +224,13 @@ export function buildInteriorDaylight(parts: readonly DaylightPart[], doorZSign:
     }
   }
   const windowArea = openings.reduce((s, o) => s + o.areaM2, 0);
+  const transmittedArea = openings.reduce((s, o) => s + o.areaM2 * (o.transmittance ?? GLASS_TRANSMITTANCE), 0);
   const R = areaAll > 0 ? reflAll / areaAll : 0.5;
   const Rfw = areaLow > 0 ? reflLow / areaLow : R;
   const Rcw = areaHigh > 0 ? reflHigh / areaHigh : R;
   const A = areaAll + windowArea;
   const irc = A > 0
-    ? Math.min(1, (GLASS_TRANSMITTANCE * windowArea / (A * (1 - Math.min(R, 0.95)))) * (BRE_C_UNOBSTRUCTED * Rfw + 5 * Rcw) / 100)
+    ? Math.min(1, (transmittedArea / (A * (1 - Math.min(R, 0.95)))) * (BRE_C_UNOBSTRUCTED * Rfw + 5 * Rcw) / 100)
     : 0;
   return { openings, floors, floorColors, occluders, irc };
 }
@@ -290,9 +317,9 @@ export function interiorSkyFactor(day: InteriorDaylight, p: V3, n: V3): number {
     for (const b of day.occluders) {
       if (segmentHitsBox(probe, d, 1e-4, tEnd, b)) { blocked = true; break; }
     }
-    if (!blocked) direct += f;
+    if (!blocked) direct += f * (o.transmittance ?? GLASS_TRANSMITTANCE);
   }
-  return Math.min(1, GLASS_TRANSMITTANCE * direct + day.irc);
+  return Math.min(1, direct + day.irc);
 }
 
 /**

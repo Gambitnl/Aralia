@@ -29,11 +29,19 @@
  *   before the ACES pass. WebGPU: the renderer's `toneMappingExposure`, which
  *   `renderOutput` applies inside its ACES.
  *
- * NIGHT IS NOT ADAPTED (a choice of this slice, recorded in GG-594). The sun
+ * NIGHT ADAPTS A LITTLE (Remy 2026-11-02: "Adapt a little at night"). The sun
  * model keeps its intensity at night and darkens the look through color, so a
- * frame-only rule would lift the whole night street. `maxExposureAt` lets the
- * full range act only while the sun is up and fades it to 1 over dusk. Night
- * rooms keep the hearth and lamp lights they had.
+ * frame-only rule would lift the whole night street toward day. Two things
+ * stop that:
+ *   - The owner sets `streetLog2` from a night light model of the sun state
+ *     (components/World3D/nightLightModel.ts): the normal street level for the
+ *     hour. The key is the darker of KEY_LOG2 and that street level plus
+ *     NIGHT_LIFT_STOPS. So the night street gets only the small lift, a hearth
+ *     room as bright as the street gets about the same, and only a frame darker
+ *     than the night street is lifted more.
+ *   - The upper clamp fades from MAX_EXPOSURE by day to NIGHT_MAX_EXPOSURE at
+ *     night, over dusk (`maxExposureAt`). A dark room at night shows shapes,
+ *     and lamps and fires still stand out.
  */
 
 // @dependencies-start
@@ -73,6 +81,14 @@ export const EYE_ADAPTATION = {
   MIN_EXPOSURE: 1,
   /** The most a dark frame is lifted (by day). */
   MAX_EXPOSURE: 16,
+  /** The most a dark frame is lifted at night (2 stops): "adapt a little". */
+  NIGHT_MAX_EXPOSURE: 4,
+  /**
+   * The key's place above the modeled street level, in stops. At night it
+   * is the lift the street itself gets (2^0.5 = 1.4x); by day the street is
+   * far above KEY_LOG2 and this does nothing.
+   */
+  NIGHT_LIFT_STOPS: 0.5,
   /** Seconds (time constant) for the image to brighten, in a dark room. */
   BRIGHTEN_TAU_S: 1.2,
   /** Seconds for the image to darken, back into the light. */
@@ -122,10 +138,20 @@ export function daylightWeight(hours: number): number {
   return t * t * (3 - 2 * t);
 }
 
-/** The largest exposure allowed at this hour (1 at night). */
+/** The largest exposure allowed at this hour: 16 by day, 4 at night (log blend over dusk). */
 export function maxExposureAt(hours: number): number {
-  const { MIN_EXPOSURE, MAX_EXPOSURE } = EYE_ADAPTATION;
-  return MIN_EXPOSURE + (MAX_EXPOSURE - MIN_EXPOSURE) * daylightWeight(hours);
+  const { NIGHT_MAX_EXPOSURE, MAX_EXPOSURE } = EYE_ADAPTATION;
+  const lo = Math.log2(NIGHT_MAX_EXPOSURE), hi = Math.log2(MAX_EXPOSURE);
+  return 2 ** (lo + (hi - lo) * daylightWeight(hours));
+}
+
+/**
+ * The key for this hour: the darker of the day key and the modeled street
+ * level plus the night lift. With no street model it is the day key.
+ */
+export function keyAt(streetLog2: number | null, dayKeyLog2: number = EYE_ADAPTATION.KEY_LOG2): number {
+  if (streetLog2 === null || !Number.isFinite(streetLog2)) return dayKeyLog2;
+  return Math.min(dayKeyLog2, streetLog2 + EYE_ADAPTATION.NIGHT_LIFT_STOPS);
 }
 
 /** The exposure that brings a frame's log2 average to the key, clamped. */
@@ -155,9 +181,11 @@ export class EyeAdaptation {
   target = 1;
   /** The game hour (sets the allowed range). */
   hours = 13;
+  /** The modeled street level for this hour (nightLightModel.ts), or null for the day key. */
+  streetLog2: number | null = null;
   /** A rig override: a fixed exposure, or null to adapt. */
   hold: number | null = null;
-  /** The key, kept on the instance so a rig can sweep it. */
+  /** The day key, kept on the instance so a rig can sweep it. */
   keyLog2: number = EYE_ADAPTATION.KEY_LOG2;
   private frame = 0;
   private reading = false;
@@ -183,7 +211,7 @@ export class EyeAdaptation {
       return this.exposure;
     }
     if (this.measuredLog2 === null) return this.exposure;
-    this.target = targetExposure(this.measuredLog2, maxExposureAt(this.hours), this.keyLog2);
+    this.target = targetExposure(this.measuredLog2, maxExposureAt(this.hours), keyAt(this.streetLog2, this.keyLog2));
     this.exposure = adaptExposure(this.exposure, this.target, Math.min(dtS, 0.25));
     return this.exposure;
   }

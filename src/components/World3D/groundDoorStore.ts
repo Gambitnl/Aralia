@@ -82,6 +82,14 @@ export function createGroundDoorStore(initial: GroundDoorState = {}): GroundDoor
 const NO_STORE = (_listener: () => void) => () => {};
 const EMPTY: GroundDoorState = {};
 
+/** A building's daylight changes only when one of its own leaves opens or
+ * closes. A stable string avoids rebuilding rooms for distant doors or for
+ * changes in who is using an already-open door. */
+export function useDoorOpenSignature(store: GroundDoorStore | undefined, keys: readonly string[]): string {
+  return useSyncExternalStore(store ? store.subscribe : NO_STORE,
+    () => keys.map(key => store?.read().openDoors?.has(key) ? '1' : '0').join(''));
+}
+
 /** One leaf's open flag and users. Renders only when this key changes. */
 export function useDoorLeafState(store: GroundDoorStore | undefined, key: string): { open: boolean; users: readonly string[] | undefined } {
   const subscribe = store ? store.subscribe : NO_STORE;

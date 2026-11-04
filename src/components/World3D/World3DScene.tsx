@@ -21,9 +21,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 31/10/2026, 20:26:15
+ * Last Sync: 03/11/2026, 06:30:03
  * Dependents: components/Combat/InPlaceCombatScene.tsx, components/DesignPreview/steps/PreviewTown3D.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx, components/Worldforge/WorldforgeGroundDrilldown.tsx
- * Imports: 84 files
+ * Imports: 92 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -123,7 +123,7 @@ import type { ActorSpace } from './actorPersonalSpace';
 import PartyGroundActors from './PartyGroundActors';
 import type { PartyCompanionPresence, CompanionPosition } from '@/systems/companions/companionWhereabouts';
 import { GroundFurnishingContext } from './GroundFurnishingContext';
-import { createGroundDoorStore } from './groundDoorStore';
+import { createGroundDoorStore, useDoorOpenSignature } from './groundDoorStore';
 import { BuildingDoor } from './BuildingDoor';
 import type { AvatarFootfall, FurnishingPick } from './groundFurnishingInteraction';
 import GroundMovePlane from './GroundMovePlane';
@@ -151,6 +151,7 @@ import { WORLD3D_CONFIG } from '@/systems/world3d/config';
 import {
   isSitePartRenderable,
   sitePartLocalOffset,
+  siteDoorKey,
 } from '@/systems/worldforge/bridge/sitePartTransform';
 import { EffectComposer, N8AO, ToneMapping, SMAA } from '@react-three/postprocessing';
 import { ToneMappingMode } from 'postprocessing';
@@ -169,6 +170,7 @@ import { getRoadSurfaceNodeMaterial, getRoadVergeNodeMaterial } from './gpu/road
 import { buildWorldGpuPost, type WorldGpuPostHandle } from './gpu/worldGpuPost';
 import { EyeAdaptationEffect } from './eyeAdaptationEffect';
 import { EyeAdaptation } from '../../systems/world3d/eyeAdaptation';
+import { streetLog2At } from './nightLightModel';
 import { publishWorldGround, publishWorldPlayer } from './water/worldGroundHook';
 import type { WebGPURenderer } from 'three/webgpu';
 import type { PlayerWorldPosition } from '@/types';
@@ -821,6 +823,10 @@ const WorldGpuPostChain: React.FC<{ timeOfDayHours?: number }> = ({ timeOfDayHou
   const { gl, scene, camera } = useThree();
   const hoursRef = React.useRef(timeOfDayHours ?? DEFAULT_TIME_OF_DAY_H);
   hoursRef.current = timeOfDayHours ?? DEFAULT_TIME_OF_DAY_H;
+  // The night light model's street level for the hour (night adaptation).
+  const streetLog2 = useMemo(() => streetLog2At(timeOfDayHours ?? DEFAULT_TIME_OF_DAY_H), [timeOfDayHours]);
+  const streetRef = React.useRef(streetLog2);
+  streetRef.current = streetLog2;
   const handleRef = React.useRef<WorldGpuPostHandle | null>(null);
   React.useEffect(() => {
     let cancelled = false;
@@ -865,6 +871,7 @@ const WorldGpuPostChain: React.FC<{ timeOfDayHours?: number }> = ({ timeOfDayHou
     if (h) {
       // Eye adaptation (GG-594 part 1): renderOutput's ACES reads this.
       h.eye.hours = hoursRef.current;
+      h.eye.streetLog2 = streetRef.current;
       (gl as unknown as WebGPURenderer).toneMappingExposure = h.baseExposure * h.eye.step(delta);
       h.render();
     } else gl.render(scene, camera);
@@ -889,7 +896,12 @@ const EyeAdaptationStep: React.FC<{ timeOfDayHours?: number }> = ({ timeOfDayHou
       effect.dispose();
     };
   }, [effect]);
-  useEffect(() => { effect.eye.hours = timeOfDayHours ?? DEFAULT_TIME_OF_DAY_H; }, [effect, timeOfDayHours]);
+  useEffect(() => {
+    const hours = timeOfDayHours ?? DEFAULT_TIME_OF_DAY_H;
+    effect.eye.hours = hours;
+    // Night adaptation: the key follows the modeled street level of the hour.
+    effect.eye.streetLog2 = streetLog2At(hours);
+  }, [effect, timeOfDayHours]);
   return <primitive object={effect} dispose={null} />;
 };
 
@@ -1236,6 +1248,12 @@ const SiteBuilding: React.FC<{
   renderInterior: boolean;
 }> = React.memo(({ site: s, renderInterior }) => {
   const furnishingContext = React.useContext(GroundFurnishingContext);
+  // The reached inn can have no ground-floor window. Its actual open entry
+  // still admits sky light; only this building's door changes rebuild its bake.
+  const daylightDoors = useMemo(() => renderInterior ? (s.parts ?? []).filter(p => p.door) : [], [s, renderInterior]);
+  const daylightDoorKeys = useMemo(() => daylightDoors.map(p => siteDoorKey(s.id, p)), [s.id, daylightDoors]);
+  const daylightDoorSignature = useDoorOpenSignature(furnishingContext?.doors, daylightDoorKeys);
+  const daylightOpenIds = useMemo(() => new Set(daylightDoors.filter((_, i) => daylightDoorSignature[i] === '1').map(p => p.door!.id)), [daylightDoors, daylightDoorSignature]);
   const [hoveredFurnishing, setHoveredFurnishing] = React.useState<number | null>(null);
   const groupRef = useRef<THREE.Group>(null);
   const roofRef = useRef<THREE.Mesh>(null);
@@ -1276,11 +1294,11 @@ const SiteBuilding: React.FC<{
   // The table lamps burn while the household's windows are lit.
   const lampsLit = !!s.litHours?.[((wholeHour % 24) + 24) % 24];
   // Interior daylight (see INTERIOR DAYLIGHT): the window openings, floor
-  // footprint, wall occluders and interreflection of this building. Null when
-  // it has no floor or no window; those buildings keep the old materials.
+  // footprint, wall occluders and interreflection of this building. A supplied
+  // door ledger keeps windowless rooms dark when their final opening closes.
   const daylight = useMemo(
-    () => (hasLiveInterior && s.parts ? buildInteriorDaylight(s.parts, s.doorZSign ?? -1) : null),
-    [hasLiveInterior, s],
+    () => (hasLiveInterior && s.parts ? buildInteriorDaylight(s.parts, s.doorZSign ?? -1, daylightOpenIds) : null),
+    [hasLiveInterior, s, daylightOpenIds],
   );
   const skyBakeCache = useRef<{ day: object | null; byLook: Map<string, Float32Array> }>({ day: null, byLook: new Map() });
   const mergedStructure = useMemo(() => {
@@ -1670,6 +1688,23 @@ const SiteBuilding: React.FC<{
   );
 });
 
+// GG-606 (2026-11-03): a town chunk that streams in used to mount all of its
+// buildings in one React commit (about 1.1 s in the seed-42 demo, most of it
+// `buildExteriorGeometry`). A newly mounted far chunk now adds its buildings a
+// few per animation frame. The player's own chunk still mounts at once, and a
+// chunk that has finished once shows every later change at once (a new bundle
+// for the same chunk keeps its buildings on screen). Same buildings, same order.
+const SITES_PER_FRAME = 12;
+function useStagedSiteCount(total: number, immediate: boolean): number {
+  const [count, setCount] = React.useState(immediate ? Infinity : SITES_PER_FRAME);
+  useEffect(() => {
+    if (count >= total) { if (count !== Infinity) setCount(Infinity); return; }
+    const frame = requestAnimationFrame(() => setCount((shown) => shown + SITES_PER_FRAME));
+    return () => cancelAnimationFrame(frame);
+  }, [count, total]);
+  return count;
+}
+
 const SitePieces: React.FC<{
   chunk: LoadedChunk;
   origin: SceneOrigin;
@@ -1681,9 +1716,10 @@ const SitePieces: React.FC<{
   // the player's current chunk carries enterable detail at any one time.
   const renderInteriors = chunk.cx === detailAnchor.cx && chunk.cy === detailAnchor.cy;
   const chunkWorldOrigin = chunkOriginWorld(chunk.cx, chunk.cy);
+  const shown = useStagedSiteCount(chunk.bundle.sites.length, renderInteriors);
   return (
     <group name="world3d:sites" position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
-      {chunk.bundle.sites.map((s) =>
+      {chunk.bundle.sites.slice(0, shown).map((s) =>
         s.markerOnly ? null : s.boxWidth && s.boxDepth && s.boxHeight ? (
           <SiteBuilding
             key={`${chunk.cx}|${chunk.cy}|${s.id}`}

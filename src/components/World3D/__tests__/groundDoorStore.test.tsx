@@ -13,7 +13,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { SitePart } from '@/systems/worldforge/bridge/interiorParts';
 import { siteDoorKey } from '@/systems/worldforge/bridge/sitePartTransform';
 import { GroundFurnishingContext } from '../GroundFurnishingContext';
-import { createGroundDoorStore, type GroundDoorStore } from '../groundDoorStore';
+import { createGroundDoorStore, useDoorOpenSignature, type GroundDoorStore } from '../groundDoorStore';
 import { BuildingDoor } from '../BuildingDoor';
 
 // The hover label is a DOM overlay in the real canvas; it never shows here.
@@ -46,6 +46,25 @@ function mount(store: GroundDoorStore) {
 }
 
 describe('ground door store (GG-580)', () => {
+  it('rebakes daylight only for the building whose open leaves changed, not its resident users', () => {
+    const store = createGroundDoorStore(), counts = [0, 0, 0];
+    const Room = ({ index }: { index: number }) => {
+      const signature = useDoorOpenSignature(store, [keyOf(SITES[index])]);
+      counts[index]++;
+      return <span data-testid={`room-${index}`}>{signature}</span>;
+    };
+    const view = render(<>{SITES.map((_, index) => <Room key={index} index={index} />)}</>);
+    expect(counts).toEqual([1, 1, 1]);
+    act(() => store.set({ openDoors: new Set([keyOf(SITES[1])]) }));
+    expect(counts).toEqual([1, 2, 1]);
+    expect(view.getByTestId('room-1').textContent).toBe('1');
+    act(() => store.set({ openDoors: new Set([keyOf(SITES[1])]), doorUsers: new Map([[keyOf(SITES[1]), ['Tomas']]]) }));
+    expect(counts).toEqual([1, 2, 1]);
+    act(() => store.set({ openDoors: new Set() }));
+    expect(counts).toEqual([1, 3, 1]);
+    expect(view.getByTestId('room-1').textContent).toBe('0');
+  });
+
   it('renders only the door leaf whose own state changed', () => {
     const store = createGroundDoorStore({ openDoors: new Set(), doorUsers: new Map() });
     const { counts } = mount(store);
