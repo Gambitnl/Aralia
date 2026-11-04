@@ -20,6 +20,23 @@
  * NO FALLBACK: a transport or parse failure throws. The caller shows an honest
  * error and the player retries. Nothing is guessed.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 03/11/2026, 15:40:04
+ * Dependents: components/ConversationPanel/ConversationPanel.tsx
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { OllamaClient } from '../../services/ollama/client';
 import { getDefaultClient } from '../../services/ollama/client';
 import { parseJsonRobustly } from '../../services/ollama/jsonParser';
@@ -30,6 +47,7 @@ import { clampCheckDc, normalizeStakes } from './clampCheckDc';
 
 interface Deps {
     client?: OllamaClient;
+    signal?: AbortSignal;
 }
 
 interface RawIntent {
@@ -121,7 +139,12 @@ export async function resolvePlayerIntent(
         taskType: 'situation_analysis',
         prompt,
         format: 'json',
+        signal: deps.signal,
     });
+
+    if (deps.signal?.aborted) {
+        throw new DOMException('The intent request was cancelled.', 'AbortError');
+    }
 
     if (!result.ok) {
         const errorMsg = 'error' in result && typeof result.error === 'string' ? result.error : undefined;

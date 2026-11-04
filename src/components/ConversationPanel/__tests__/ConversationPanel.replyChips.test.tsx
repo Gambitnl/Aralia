@@ -12,17 +12,28 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ConversationPanel } from '../ConversationPanel';
 import type { GameState } from '../../../types';
+import type { ModelPreparationResult } from '../../../services/ollama';
+import { OLLAMA_TIMEOUT_MS } from '../../../config/llmProviderConfig';
 
-const sendPlayerMessage = vi.fn();
+const sendPlayerMessage = vi.fn().mockResolvedValue({ delivery: 'delivered', reply: 'failed' });
+const prepareForTask = vi.fn(async (_task?: unknown, _options?: { signal?: AbortSignal }): Promise<ModelPreparationResult> => ({ status: 'ready', model: 'test-model' }));
 const runIntentFlow = vi.fn().mockResolvedValue({ outcome: 'combat', note: '' });
 const resolvePlayerIntent = vi.fn().mockResolvedValue({ kind: 'attack' });
+const replyState = vi.hoisted(() => ({ error: null as string | null }));
 
 vi.mock('../../../hooks/useConversation', () => ({
   useConversation: () => ({
     sendPlayerMessage: (...a: unknown[]) => sendPlayerMessage(...a),
     endConversation: vi.fn(),
     isInteractionLocked: false,
+    preparationStatus: null,
+    cancelPreparation: vi.fn(),
+    responseError: replyState.error,
   }),
+}));
+
+vi.mock('../../../services/ollama', () => ({
+  OllamaService: { prepareForTask: (...a: unknown[]) => prepareForTask(...a) },
 }));
 
 vi.mock('../../../hooks/useDeEscalation', () => ({
@@ -87,6 +98,44 @@ function makePeacefulState(): GameState {
 describe('ConversationPanel unavailable intent reader', () => {
   afterEach(() => vi.useRealTimers());
 
+  it('shows a provider failure as an alert outside the fictional transcript', () => {
+    replyState.error = 'No reply was received. Your words remain in the conversation.';
+    try {
+      render(<ConversationPanel gameState={makePeacefulState()} dispatch={vi.fn()} />);
+      expect(screen.getByRole('alert')).toHaveTextContent(replyState.error);
+    } finally { replyState.error = null; }
+  });
+
+  it('stops displaying intent reading while the actual companion reply is pending', async () => {
+    vi.clearAllMocks();
+    resolvePlayerIntent.mockResolvedValueOnce({ kind: 'talk' });
+    sendPlayerMessage.mockImplementationOnce(() => new Promise(() => {}));
+    render(<ConversationPanel gameState={makePeacefulState()} dispatch={vi.fn()} />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'What do you want to do next?' } });
+    fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Enter' });
+    await waitFor(() => expect(sendPlayerMessage).toHaveBeenCalledOnce());
+    expect(screen.queryByText(/Preparing local dialogue/)).not.toBeInTheDocument();
+  });
+
+  it('delivers a valid local-model reply after fifteen seconds exactly once', async () => {
+    vi.useFakeTimers();
+    vi.clearAllMocks();
+    let finish!: (intent: { kind: string }) => void;
+    resolvePlayerIntent.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+    render(<ConversationPanel gameState={makePeacefulState()} dispatch={vi.fn()} />);
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: 'Thank you. What do you want to do next?' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    await act(async () => { await vi.advanceTimersByTimeAsync(20000); });
+    expect(input).toBeDisabled();
+    expect(screen.queryByTestId('intent-error')).not.toBeInTheDocument();
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(resolvePlayerIntent).toHaveBeenCalledTimes(1);
+    await act(async () => { finish({ kind: 'talk' }); });
+    expect(sendPlayerMessage).toHaveBeenCalledExactlyOnceWith('Thank you. What do you want to do next?', undefined, expect.any(AbortSignal));
+    expect(runIntentFlow).not.toHaveBeenCalled();
+  });
+
   it('returns the unsent words and ignores an attack arriving after the deadline', async () => {
     vi.useFakeTimers();
     vi.clearAllMocks();
@@ -96,14 +145,49 @@ describe('ConversationPanel unavailable intent reader', () => {
     const input = screen.getByRole('textbox');
     fireEvent.change(input, { target: { value: 'Where is your temple?' } });
     fireEvent.keyDown(input, { key: 'Enter' });
-    expect(screen.getByText('Reading your intent…')).toBeInTheDocument();
+    expect(screen.getByText(/Preparing your local dialogue model/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /End conversation/i })).toBeEnabled();
-    await act(async () => { await vi.advanceTimersByTimeAsync(15000); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(OLLAMA_TIMEOUT_MS + 5000); });
     expect(input).toHaveValue('Where is your temple?');
     expect(input).toBeEnabled();
     expect(screen.getByTestId('intent-error')).toHaveTextContent('Try again, or end the conversation.');
     await act(async () => { finish({ kind: 'attack' }); });
     expect(runIntentFlow).not.toHaveBeenCalled();
+    expect(sendPlayerMessage).not.toHaveBeenCalled();
+  });
+
+  it('cancels local preparation, restores the one unsent line, and never classifies it', async () => {
+    vi.clearAllMocks();
+    prepareForTask.mockImplementationOnce((_task?: unknown, { signal }: { signal?: AbortSignal } = {}) => new Promise(resolve => {
+      signal?.addEventListener('abort', () => resolve({ status: 'cancelled' as const }), { once: true });
+    }));
+    render(<ConversationPanel gameState={makePeacefulState()} dispatch={vi.fn()} />);
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: 'Why restore the temple?' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    await screen.findByText(/Preparing your local dialogue model/);
+    await act(async () => { fireEvent.click(screen.getByTestId('cancel-dialogue-preparation')); });
+    expect(input).toHaveValue('Why restore the temple?');
+    expect(resolvePlayerIntent).not.toHaveBeenCalled();
+    expect(sendPlayerMessage).not.toHaveBeenCalled();
+  });
+
+  it('shows message understanding after local prep without labeling remote/action reading as local or NPC speech', async () => {
+    vi.clearAllMocks();
+    let finish!: (intent: { kind: string }) => void;
+    resolvePlayerIntent.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+    render(<ConversationPanel gameState={makePeacefulState()} dispatch={vi.fn()} />);
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: 'I ask where the temple stands.' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    await waitFor(() => expect(resolvePlayerIntent).toHaveBeenCalledOnce());
+    expect(screen.getByText(/Understanding your message/)).toBeInTheDocument();
+    expect(screen.queryByText(/Preparing your local dialogue model/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/NPC/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /End conversation/i })).toBeEnabled();
+    fireEvent.click(screen.getByTestId('cancel-dialogue-preparation'));
+    expect(input).toHaveValue('I ask where the temple stands.');
+    await act(async () => { finish({ kind: 'talk' }); });
     expect(sendPlayerMessage).not.toHaveBeenCalled();
   });
 
@@ -114,6 +198,7 @@ describe('ConversationPanel unavailable intent reader', () => {
     const view = render(<ConversationPanel gameState={makePeacefulState()} dispatch={vi.fn()} />);
     fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Where is your temple?' } });
     fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Enter' });
+    await waitFor(() => expect(resolvePlayerIntent).toHaveBeenCalledOnce());
     view.unmount();
     await act(async () => { finish({ kind: 'attack' }); });
     expect(runIntentFlow).not.toHaveBeenCalled();
@@ -129,11 +214,12 @@ describe('ConversationPanel unavailable intent reader', () => {
     const view = render(<ConversationPanel gameState={first} dispatch={vi.fn()} />);
     fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Where is your temple?' } });
     fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Enter' });
+    await waitFor(() => expect(resolvePlayerIntent).toHaveBeenCalledOnce());
     const next = makePeacefulState();
     next.activeConversation!.id = 'next-conversation';
     view.rerender(<ConversationPanel gameState={next} dispatch={vi.fn()} />);
     expect(screen.getByRole('textbox')).toBeEnabled();
-    expect(screen.queryByText('Reading your intent…')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Preparing local dialogue/)).not.toBeInTheDocument();
     await act(async () => { finish({ kind: 'attack' }); });
     expect(runIntentFlow).not.toHaveBeenCalled();
     expect(sendPlayerMessage).not.toHaveBeenCalled();
@@ -165,6 +251,7 @@ describe('ConversationPanel suggested-reply chips', () => {
         "What's this about?",
         expect.objectContaining({ hostile: true, tension: 'standoff' }),
         expect.anything(),
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
       );
       expect(runIntentFlow).toHaveBeenCalledTimes(1);
     });
@@ -186,7 +273,8 @@ describe('ConversationPanel suggested-reply chips', () => {
     fireEvent.click(screen.getAllByTestId('reply-chip')[0]);
     await waitFor(() => expect(resolvePlayerIntent).toHaveBeenCalledTimes(1));
 
-    expect(resolvePlayerIntent.mock.calls[0]).toEqual(freeTextArgs);
+    expect(resolvePlayerIntent.mock.calls[0].slice(0, 3)).toEqual(freeTextArgs.slice(0, 3));
+    expect(resolvePlayerIntent.mock.calls[0][3]).toEqual(expect.objectContaining({ signal: expect.any(AbortSignal) }));
   });
 });
 
@@ -211,6 +299,7 @@ describe('ConversationPanel universal intent reading', () => {
         'Perhaps I can help.',
         expect.objectContaining({ hostile: false }),
         expect.anything(),
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
       );
     });
   });
@@ -223,7 +312,8 @@ describe('ConversationPanel universal intent reading', () => {
     fireEvent.change(input, { target: { value: 'Hello there.' } });
     fireEvent.keyDown(input, { key: 'Enter' });
 
-    await waitFor(() => expect(sendPlayerMessage).toHaveBeenCalledWith('Hello there.'));
+    await waitFor(() => expect(sendPlayerMessage).toHaveBeenCalledWith('Hello there.', undefined, expect.any(AbortSignal)));
+    expect(input).toHaveValue('');
     expect(runIntentFlow).not.toHaveBeenCalled();
   });
 

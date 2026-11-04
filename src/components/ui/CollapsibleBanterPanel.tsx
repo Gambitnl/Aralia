@@ -31,7 +31,7 @@
  */
 // @dependencies-end
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WindowFrame } from './WindowFrame';
 import { UI_ID } from '../../styles/uiIds';
@@ -62,7 +62,10 @@ interface CollapsibleBanterPanelProps {
   history: BanterHistoryLine[];
   archivedBanters: BanterMoment[];
   companions: Record<string, Companion>;
-  onInterrupt: (message: string) => void;
+  onInterrupt: (message: string, controls?: {
+    onPreparationStatus?: (status: 'preparing' | 'ready' | 'cancelled' | 'error', message?: string) => void;
+    onCancel?: (cancel: () => void) => void;
+  }) => void;
   onEndBanter: () => void;
   // Player-directed banter additions:
   /** True when the session is in PLAYER_DIRECTED mode. */
@@ -129,6 +132,9 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
   const [activeTab, setActiveTab] = useState<Tab>('LIVE');
   const [selectedMomentId, setSelectedMomentId] = useState<string | null>(null);
   const [playerMessage, setPlayerMessage] = useState('');
+  const [isPreparingPlayerReply, setIsPreparingPlayerReply] = useState(false);
+  const [playerReplyNotice, setPlayerReplyNotice] = useState<string | null>(null);
+  const cancelPreparationRef = useRef<(() => void) | null>(null);
 
   // Auto-collapse when banter ends; auto-switch to Live tab when it starts
   useEffect(() => {
@@ -149,10 +155,33 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (playerMessage.trim()) {
-      onInterrupt(playerMessage.trim());
+    if (playerMessage.trim() && !isPreparingPlayerReply) {
+      setIsPreparingPlayerReply(true);
+      setPlayerReplyNotice(null);
+      onInterrupt(playerMessage.trim(), {
+        onCancel: (cancel) => { cancelPreparationRef.current = cancel; },
+        onPreparationStatus: (status, message) => {
+          if (status !== 'preparing') setIsPreparingPlayerReply(false);
+          if (status === 'ready') setPlayerReplyNotice(null);
+          else if (message) setPlayerReplyNotice(message);
+          if (status !== 'preparing') cancelPreparationRef.current = null;
+        },
+      });
       setPlayerMessage('');
     }
+  };
+
+  const handleEndBanter = () => {
+    cancelPreparationRef.current = null;
+    setIsPreparingPlayerReply(false);
+    onEndBanter();
+  };
+
+  const handleCancelPreparation = () => {
+    cancelPreparationRef.current?.();
+    cancelPreparationRef.current = null;
+    setIsPreparingPlayerReply(false);
+    setPlayerReplyNotice('Your message is recorded. Continue when ready or end Party Chat.');
   };
 
   /**
@@ -285,6 +314,16 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
             </div>
           </div>
         )}
+        {/* The submitted player line is already in Party Chat; model startup only gates the NPC response. */}
+        {isPreparingPlayerReply && (
+          <div role="status" className="flex items-center justify-between gap-2 rounded border border-amber-700/40 bg-amber-950/20 px-3 py-2 text-xs text-amber-200">
+            <span>Preparing your companion's reply. Your message is recorded.</span>
+            <button type="button" onClick={handleCancelPreparation} className="min-h-11 rounded border border-amber-700/50 px-3 text-amber-100 hover:bg-amber-900/40">Cancel</button>
+          </div>
+        )}
+        {!isPreparingPlayerReply && playerReplyNotice && (
+          <div role="status" className="rounded border border-amber-700/40 bg-amber-950/20 px-3 py-2 text-xs text-amber-200">{playerReplyNotice}</div>
+        )}
         {isActive && isWaiting && secondsRemaining > 0 && !isGenerating && !isWaitingForPlayerResponse && (
           <div className="flex items-center justify-between px-3 py-1.5 rounded text-xs border bg-gray-800/40 border-gray-600/40 text-gray-400">
             <span className="flex items-center gap-1">
@@ -321,7 +360,7 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
             type="text"
             value={playerMessage}
             onChange={(e) => setPlayerMessage(e.target.value)}
-            placeholder={isWaitingForPlayerResponse ? 'Reply to them...' : 'Type your reply...'}
+            placeholder={isPreparingPlayerReply ? 'Your message is recorded...' : isWaitingForPlayerResponse ? 'Reply to them...' : 'Type your reply...'}
             className={`flex-grow px-3 py-2 bg-gray-900/50 border rounded text-gray-200 placeholder-gray-500 text-sm focus:outline-none
               ${isWaitingForPlayerResponse
                 ? 'border-amber-500/70 focus:border-amber-400'
@@ -331,7 +370,7 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
           />
           <button
             type="submit"
-            disabled={!playerMessage.trim()}
+            disabled={!playerMessage.trim() || isPreparingPlayerReply}
             className="px-3 py-2 bg-amber-600 hover:bg-amber-500 disabled:bg-gray-700 disabled:text-gray-500 text-white text-sm font-semibold rounded transition-colors"
           >
             Send
@@ -452,6 +491,7 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
         headerActions={
           <div className="flex items-center gap-2 [&>button]:inline-flex [&>button]:min-h-11 [&>button]:min-w-11 [&>button]:items-center [&>button]:justify-center">
             {devBanterBadge}
+            {isActive && <button onClick={handleEndBanter} className="rounded px-2 text-xs text-amber-200 hover:bg-gray-700" aria-label="End Party Chat">End</button>}
             <button
               onClick={() => setMode('EXPANDED')}
               className="flex h-11 w-11 items-center justify-center rounded text-gray-400 hover:bg-gray-700 hover:text-white"
@@ -501,6 +541,7 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
               floating window controls. */}
           <div className="flex items-center gap-2 [&>button]:inline-flex [&>button]:min-h-11 [&>button]:min-w-11 [&>button]:items-center [&>button]:justify-center">
             {devBanterBadge}
+            {isActive && <button onClick={handleEndBanter} className="rounded px-2 text-xs text-amber-200 hover:bg-gray-700" aria-label="End Party Chat">End</button>}
             <button onClick={() => setMode('FLOATING')} className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white" title="Pop out">⇱</button>
             <button onClick={() => setMode('COLLAPSED')} className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white" title="Collapse">→</button>
           </div>

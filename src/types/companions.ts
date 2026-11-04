@@ -160,11 +160,28 @@ export interface ReactionResult {
 }
 
 export interface BanterLine {
+  /** Original conversation message identity; absent on legacy ambient banter. */
+  messageId?: string;
+  /** Authored choices/events already have their own memory owner. */
+  memoryHandled?: boolean;
   speakerId: string;
   speakerName?: string;
   text: string;
   emotion?: string; // Optional emotion/anim
   delay?: number; // Time before next line
+}
+
+/** Provenance that lets exact spoken transcripts be scoped without treating
+ * legacy/ambient banter as world-qualified NPC knowledge. */
+export interface PlayerConversationArchiveSource {
+  kind: 'player-conversation';
+  conversationId: string;
+  /** Missing only when an older save did not retain a usable world identity. */
+  worldSeed?: number;
+  capture: 'ended' | 'loaded-open' | 'conflict';
+  pendingAtCapture: boolean;
+  /** Attempt is recorded before summary work so reload cannot duplicate effects. */
+  semanticStatus: 'not-run' | 'attempted';
 }
 
 export interface BanterDefinition {
@@ -189,6 +206,8 @@ export interface BanterMoment {
   locationId: string;
   participants: string[];
   lines: BanterLine[];
+  /** Absent on legacy/ambient banter, which remains displayable but is not recalled. */
+  source?: PlayerConversationArchiveSource;
 }
 
 /**

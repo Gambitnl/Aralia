@@ -20,6 +20,7 @@
  */
 // @dependencies-end
 
+import { archiveSavedOpenConversation } from '../systems/companions/conversationTranscript';
 import { GameState, GamePhase, PlayerCharacter, SuspicionLevel, UnderdarkState, Companion, CompanionReactionRule, Relationship } from '../types';
 import { CompanionSoul } from '../types/companion';
 import { retainCompanionWhereabouts, companionsAtDestination } from '../systems/companions/companionWhereabouts';
@@ -866,6 +867,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 dynamicLocations: loadedState.dynamicLocations || {},
                 activeDialogueSession: null,
                 activeConversation: null,
+                // Keep saved delivered words before resetting transient dialogue UI.
+                // This archives speech only; it does not replay the conversation.
+                archivedBanters: archiveSavedOpenConversation(loadedState),
                 isDialogueInterfaceOpen: false,
                 banterCooldowns: loadedState.banterCooldowns || {}
             };

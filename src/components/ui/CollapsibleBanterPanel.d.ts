@@ -47,7 +47,10 @@ interface CollapsibleBanterPanelProps {
     history: BanterHistoryLine[];
     archivedBanters: BanterMoment[];
     companions: Record<string, Companion>;
-    onInterrupt: (message: string) => void;
+    onInterrupt: (message: string, controls?: {
+        onPreparationStatus?: (status: 'preparing' | 'ready' | 'cancelled' | 'error', message?: string) => void;
+        onCancel?: (cancel: () => void) => void;
+    }) => void;
     onEndBanter: () => void;
     /** True when the session is in PLAYER_DIRECTED mode. */
     isPlayerDirected?: boolean;

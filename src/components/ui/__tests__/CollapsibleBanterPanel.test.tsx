@@ -56,4 +56,32 @@ describe('CollapsibleBanterPanel', () => {
     expect(screen.getByRole('button', { name: /Live Chat/i })).toHaveClass('min-h-11');
     expect(screen.getByRole('button', { name: 'Memories' })).toHaveClass('min-h-11');
   });
+
+  it('shows recorded-message preparation with working Cancel and End controls', () => {
+    const cancelPreparation = vi.fn();
+    const onInterrupt = vi.fn((_message: string, nextControls?: { onPreparationStatus?: (status: 'preparing' | 'ready' | 'cancelled' | 'error', message?: string) => void; onCancel?: (cancel: () => void) => void }) => {
+      nextControls?.onCancel?.(cancelPreparation);
+      nextControls?.onPreparationStatus?.('preparing');
+    });
+    const onEndBanter = vi.fn();
+    render(<CollapsibleBanterPanel
+      {...baseProps}
+      isActive
+      isPlayerDirected
+      isWaitingForPlayerResponse
+      onInterrupt={onInterrupt}
+      onEndBanter={onEndBanter}
+    />);
+    fireEvent.click(screen.getByRole('button', { name: 'Open party chat' }));
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'I want to hear your story.' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    expect(onInterrupt.mock.calls[0][0]).toBe('I want to hear your story.');
+    expect(screen.getByRole('status')).toHaveTextContent('Preparing your companion\'s reply. Your message is recorded.');
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(cancelPreparation).toHaveBeenCalledOnce();
+    expect(screen.getByRole('status')).toHaveTextContent('Your message is recorded. Continue when ready or end Party Chat.');
+    fireEvent.click(screen.getByRole('button', { name: 'End Party Chat' }));
+    expect(onEndBanter).toHaveBeenCalledOnce();
+  });
 });

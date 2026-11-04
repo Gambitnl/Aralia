@@ -72,7 +72,8 @@ export class OllamaModelNotInstalledError extends Error {
 
 export async function resolveModelForTask(
     client: OllamaClient,
-    taskType: TaskType
+    taskType: TaskType,
+    options: { signal?: AbortSignal } = {},
 ): Promise<string | null> {
     const profile = getTaskProfile(taskType);
     const wanted = resolveOllamaModel(profile.category);
@@ -83,7 +84,9 @@ export async function resolveModelForTask(
     if (cached && matchesChoice(cached)) return cached;
     taskModelCache.delete(taskType);
 
-    const installed = await client.listModels();
+    if (options.signal?.aborted) return null;
+    const installed = await client.listModels(options);
+    if (options.signal?.aborted) return null;
     if (!installed || installed.length === 0) return null;
     const found = installed.find(m => matchesChoice(m.name));
     if (!found) throw new OllamaModelNotInstalledError(wanted, profile.category, taskType);

@@ -12,6 +12,22 @@
  * @file src/services/ollama/index.ts
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 03/11/2026, 15:40:04
+ * Dependents: components/ConversationPanel/ConversationPanel.tsx, hooks/actions/handleNpcInteraction.ts, hooks/useCompanionBanter.ts, hooks/useCompanionCommentary.ts, hooks/useConversation.ts, hooks/useOllamaCheck.ts, services/ollamaTextService.ts
+ * Imports: 10 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 // Re-export all types
 export type {
     OllamaConfig,
@@ -41,6 +57,7 @@ export { DEFAULT_OLLAMA_CONFIG } from '../../types/ollama';
 
 // Re-export client
 export { OllamaClient, getDefaultClient, resetDefaultClient } from './client';
+export type { ModelPreparationResult } from './client';
 
 // Re-export router + task profiles
 export { resolveModelForTask, resetRouterCache } from './router';
@@ -51,6 +68,7 @@ export { parseJsonRobustly, extractTextField } from './jsonParser';
 
 // Import for facade
 import type { BanterDefinition } from '../../types/companions';
+import type { ModelPreparationResult } from './client';
 import type {
     BanterContext,
     BanterParticipant,
@@ -61,7 +79,8 @@ import type {
     ReactionCompanion,
     ReactionEvent,
     ReactionResponse,
-    OllamaResult
+    OllamaResult,
+    TaskType
 } from '../../types/ollama';
 import { getDefaultClient } from './client';
 import { generateBanter, generateBanterLine, generatePlayerDirectedLine, generateEscalationLine } from './banter';
@@ -76,6 +95,14 @@ export { extractDiscoveredFacts } from './facts';
  * All methods delegate to the modular implementations.
  */
 export class OllamaService {
+    /** Prepare the selected provider/model for a deliberate dialogue turn. */
+    static async prepareForTask(
+        taskType: TaskType,
+        options: { signal?: AbortSignal } = {},
+    ): Promise<ModelPreparationResult> {
+        return getDefaultClient().prepareForTask(taskType, options);
+    }
+
     /**
      * Checks if the Ollama service is reachable.
      */
@@ -153,9 +180,10 @@ export class OllamaService {
     static async continueConversation(
         participants: ConversationParticipant[],
         history: { speakerId: string; text: string }[],
-        contextData: BanterContext
+        contextData: BanterContext,
+        options: { signal?: AbortSignal } = {}
     ): Promise<OllamaResult<ConversationResponse>> {
-        return continueConversation(participants, history, contextData);
+        return continueConversation(participants, history, contextData, getDefaultClient(), options);
     }
 
     /**

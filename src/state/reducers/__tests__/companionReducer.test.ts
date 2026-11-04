@@ -41,6 +41,68 @@ describe('companionReducer', () => {
         expect(newState.archivedBanters?.[0]).toEqual(moment);
     });
 
+    it('retains an unanswered player line verbatim in the serializable archive without changing companion state', () => {
+        const transcript: BanterMoment = {
+            id: 'conversation-42',
+            timestamp: 1234567890,
+            locationId: 'temple',
+            participants: ['cmp1'],
+            lines: [
+                { speakerId: 'cmp1', speakerName: 'Elara', text: 'I am trying to restore the temple.' },
+                { speakerId: 'player', speakerName: 'You', text: 'Why did you want to restore the temple to begin with?' },
+            ],
+        };
+        const state = {
+            ...mockInitialState,
+            companions: { cmp1: { id: 'cmp1', identity: { name: 'Elara' }, loyalty: 50 } },
+        } as unknown as GameState;
+
+        const patch = companionReducer(state, { type: 'ARCHIVE_BANTER', payload: transcript });
+        const savedStateProjection = JSON.parse(JSON.stringify({ ...state, ...patch })) as GameState;
+
+        expect(savedStateProjection.archivedBanters).toEqual([transcript]);
+        expect(savedStateProjection.archivedBanters[0].lines.at(-1)).toEqual(transcript.lines[1]);
+        expect(savedStateProjection.companions.cmp1).toEqual(state.companions.cmp1);
+    });
+
+    it('deduplicates archive retries by the persisted conversation ID and keeps the first transcript', () => {
+        const first: BanterMoment = {
+            id: 'same-conversation', timestamp: 1, locationId: 'temple', participants: ['cmp1'],
+            lines: [{ speakerId: 'player', text: 'Why did you want to restore the temple?' }],
+        };
+        const retry: BanterMoment = {
+            ...first,
+            lines: [{ speakerId: 'player', text: 'A stale retry must not replace the original words.' }],
+        };
+        const state = { ...mockInitialState, archivedBanters: [first] } as GameState;
+
+        expect(companionReducer(state, { type: 'ARCHIVE_BANTER', payload: retry })).toEqual({});
+        expect(state.archivedBanters).toEqual([first]);
+    });
+
+    it('preserves a divergent same-ID transcript as an explicitly unqualified conflict entry', () => {
+        const first: BanterMoment = {
+            id: 'conversation-conflict', timestamp: 1, locationId: 'temple', participants: ['cmp1'],
+            source: { kind: 'player-conversation', conversationId: 'conversation-conflict', worldSeed: 77,
+                capture: 'ended', pendingAtCapture: false, semanticStatus: 'attempted' },
+            lines: [{ messageId: 'question', speakerId: 'player', speakerName: 'You', text: 'Why?' }],
+        };
+        const other: BanterMoment = {
+            ...first,
+            lines: [{ messageId: 'question', speakerId: 'player', speakerName: 'You', text: 'A conflicting save branch.' }],
+        };
+        const state = { ...mockInitialState, archivedBanters: [first] } as GameState;
+
+        const patch = companionReducer(state, { type: 'ARCHIVE_BANTER', payload: other });
+
+        expect(patch.archivedBanters).toHaveLength(2);
+        expect(patch.archivedBanters?.find(entry => entry.id === first.id)).toEqual(first);
+        expect(patch.archivedBanters?.find(entry => entry.source?.capture === 'conflict')).toMatchObject({
+            lines: other.lines,
+            source: { kind: 'player-conversation', worldSeed: 77, capture: 'conflict' },
+        });
+    });
+
     it('should prepend new banters to archive', () => {
         const moment1: BanterMoment = {
             id: 'm1',

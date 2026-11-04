@@ -5,8 +5,8 @@
  * this hook handles the interactive dialog panel where players can send
  * specific messages, @mention NPCs, and receive AI-generated responses.
  *
- * It persists conversation history into NPC memory and triggers approval
- * changes based on sentiment analysis of the exchange.
+ * It archives exact delivered conversation lines separately from the semantic
+ * memory summary, which may be absent or rejected by the provider.
  *
  * Called by: ConversationPanel.tsx
  */
@@ -16,9 +16,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 28/10/2026, 12:51:04
+ * Last Sync: 03/11/2026, 17:38:22
  * Dependents: components/ConversationPanel/ConversationPanel.tsx
- * Imports: 12 files
+ * Imports: 13 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -34,7 +34,7 @@
  * @file src/hooks/useConversation.ts
  * Hook to manage interactive companion conversations.
  */
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { GameState } from '../types';
 import { getWeatherSummary } from '../types/environment';
 import { AppAction } from '../state/actionTypes';
@@ -48,6 +48,12 @@ import { OPENING_QUEST_ID, OPENING_QUEST_OBJECTIVE_ID } from '../systems/gameEnt
 import { buildNpcDialoguePromptContext } from '../services/dialogueService';
 import { describeNpcHearsay, resolveDialogueNpc } from './useDialogueSystem';
 import { npcChatAttitudeHint } from '../systems/social/npcLifeReactions';
+import {
+    canMergeConversationArchive,
+    conversationArchiveEntry,
+    findMatchingConversationArchive,
+    rememberedConversationSpeech,
+} from '../systems/companions/conversationTranscript';
 
 export interface UseConversationResult {
     /** Start a new conversation with a companion */
@@ -60,12 +66,23 @@ export interface UseConversationResult {
      * player's words and the reply, so it reaches the model inside the history
      * and the NPCs answer the OUTCOME instead of only the words.
      */
-    sendPlayerMessage: (text: string, mechanicalNote?: string) => Promise<void>;
+    sendPlayerMessage: (text: string, mechanicalNote?: string, signal?: AbortSignal) => Promise<ConversationTurnResult>;
+    /** Current local model preparation is visible to the panel and can be canceled. */
+    preparationStatus: 'preparing-unsent' | 'preparing-delivered' | null;
+    cancelPreparation: () => void;
     /** End the conversation and generate memory summary */
     endConversation: () => Promise<void>;
     /** Whether currently blocked from sending because it's not player turn or waiting for AI response */
     isInteractionLocked: boolean;
+    /** A failed provider reply is not silence or an in-world refusal. */
+    responseError: string | null;
 }
+
+/** Player delivery and NPC reply are separate outcomes: a provider failure must
+ * never make recorded player words look like an unsent draft. */
+export type ConversationTurnResult =
+    | { delivery: 'not-delivered'; reason: 'cancelled' | 'preparation-error' }
+    | { delivery: 'delivered'; reply: 'received' | 'failed' | 'cancelled' };
 
 export function useConversation(
     gameState: GameState,
@@ -82,6 +99,36 @@ export function useConversation(
     }, [gameState]);
 
     const conversation = gameState.activeConversation;
+    const [responseError, setResponseError] = useState<string | null>(null);
+    const [preparationStatus, setPreparationStatus] = useState<UseConversationResult['preparationStatus']>(null);
+    const preparationController = useRef<AbortController | null>(null);
+    const preparationConversationId = useRef<string | null>(null);
+    const preparationTurn = useRef(0);
+    const endingConversationIds = useRef(new Set<string>());
+    const cancelPreparation = useCallback(() => {
+        const activeController = preparationController.current;
+        activeController?.abort();
+        preparationController.current = null;
+        preparationTurn.current += 1;
+        setPreparationStatus(null);
+        const active = gameStateRef.current.activeConversation;
+        if (activeController && active?.id === preparationConversationId.current) {
+            dispatch({ type: 'SET_CONVERSATION_PENDING', payload: false });
+        }
+        preparationConversationId.current = null;
+    }, [dispatch]);
+    useEffect(() => {
+        setPreparationStatus(null);
+        return () => {
+            if (preparationConversationId.current === conversation?.id) {
+                preparationController.current?.abort();
+                preparationController.current = null;
+                preparationConversationId.current = null;
+                preparationTurn.current += 1;
+            }
+        };
+    }, [conversation?.id]);
+    useEffect(() => { setResponseError(null); }, [conversation?.id]);
     const isPending = conversation?.pendingResponse ?? false;
     const isPlayerTurn = conversation?.isPlayerTurn ?? false;
     const isInteractionLocked = isPending || !isPlayerTurn;
@@ -144,6 +191,11 @@ export function useConversation(
             // talks with the same attitude as its greeting. Companions keep
             // their own approval systems, so they get no stance line.
             state.companions[id] ? '' : npcChatAttitudeHint(state, id),
+            rememberedConversationSpeech(
+                state.archivedBanters,
+                state.worldSeed,
+                state.activeConversation?.participants ?? companionIds,
+            ),
         ].filter(Boolean).join(' ');
         const withKnowledge = (personality: string, id: string): string => {
             const knowledge = knowledgeFor(id);
@@ -244,9 +296,15 @@ export function useConversation(
      * @param mechanicalNote - Optional resolved-check line, narrated after the
      *   player's words so the NPCs react to the result of what was attempted.
      */
-    const sendPlayerMessage = useCallback(async (text: string, mechanicalNote?: string) => {
+    const sendPlayerMessage = useCallback(async (text: string, mechanicalNote?: string, signal?: AbortSignal): Promise<ConversationTurnResult> => {
         const state = gameStateRef.current;
-        if (!state.activeConversation || state.activeConversation.pendingResponse || !state.activeConversation.isPlayerTurn) return;
+        if (preparationController.current || !state.activeConversation || state.activeConversation.pendingResponse || !state.activeConversation.isPlayerTurn) {
+            return { delivery: 'not-delivered', reason: 'cancelled' };
+        }
+        setResponseError(null);
+        const note = mechanicalNote?.trim();
+        const conversationId = state.activeConversation.id;
+        const ownsConversation = () => gameStateRef.current.activeConversation?.id === conversationId;
 
         // Extract @mention to determine who is being addressed
         const mentionMatch = text.match(/@(\w+)/i);
@@ -263,29 +321,89 @@ export function useConversation(
             }
         }
 
-        // Add player message
+        const controller = new AbortController();
+        preparationController.current = controller;
+        preparationConversationId.current = conversationId;
+        const turn = ++preparationTurn.current;
+        const abortFromCaller = () => controller.abort();
+        signal?.addEventListener('abort', abortFromCaller, { once: true });
+        const unlinkCaller = () => signal?.removeEventListener('abort', abortFromCaller);
+        const ownsTurn = () => preparationController.current === controller
+            && preparationTurn.current === turn
+            && ownsConversation();
         const playerMessage: ConversationMessage = {
-            id: generateId(),
-            speakerId: 'player',
-            text,
-            timestamp: Date.now(),
+            id: generateId(), speakerId: 'player', text, timestamp: Date.now(),
         };
+        const noteMessage: ConversationMessage | null = note
+            ? { id: generateId(), speakerId: 'narrator', text: note, timestamp: Date.now() }
+            : null;
+        let playerLineDelivered = !!note;
+        // Resolved mechanics already changed the world; preserve their attributed
+        // line even if preparation is canceled before the NPC can answer.
+        if (note) {
+            dispatch({ type: 'ADD_CONVERSATION_MESSAGE', payload: playerMessage });
+            if (noteMessage) dispatch({ type: 'ADD_CONVERSATION_MESSAGE', payload: noteMessage });
+        }
+        dispatch({ type: 'SET_CONVERSATION_PENDING', payload: true });
+        setPreparationStatus(note ? 'preparing-delivered' : 'preparing-unsent');
+        let preparation: Awaited<ReturnType<typeof OllamaService.prepareForTask>>;
+        try {
+            preparation = await OllamaService.prepareForTask('conversation_continuation', { signal: controller.signal });
+        } catch (error) {
+            unlinkCaller();
+            if (!ownsTurn()) return playerLineDelivered
+                ? { delivery: 'delivered', reply: 'cancelled' }
+                : { delivery: 'not-delivered', reason: 'cancelled' };
+            setPreparationStatus(null);
+            if (ownsConversation()) dispatch({ type: 'SET_CONVERSATION_PENDING', payload: false });
+            preparationController.current = null;
+            preparationConversationId.current = null;
+            setResponseError(error instanceof Error ? error.message : 'Local dialogue could not be prepared.');
+            return playerLineDelivered
+                ? { delivery: 'delivered', reply: 'failed' }
+                : { delivery: 'not-delivered', reason: 'preparation-error' };
+        }
+        if (!ownsTurn()) {
+            unlinkCaller();
+            return playerLineDelivered
+                ? { delivery: 'delivered', reply: 'cancelled' }
+                : { delivery: 'not-delivered', reason: 'cancelled' };
+        }
+        if (preparation.status === 'cancelled' || controller.signal.aborted) {
+            unlinkCaller();
+            setPreparationStatus(null);
+            dispatch({ type: 'SET_CONVERSATION_PENDING', payload: false });
+            preparationController.current = null;
+            preparationConversationId.current = null;
+            return playerLineDelivered
+                ? { delivery: 'delivered', reply: 'cancelled' }
+                : { delivery: 'not-delivered', reason: 'cancelled' };
+        }
+        if (preparation.status === 'error') {
+            unlinkCaller();
+            setPreparationStatus(null);
+            setResponseError(note
+                ? 'Local dialogue could not be prepared. Your resolved attempt remains recorded; you can continue or end the conversation.'
+                : 'Local dialogue could not be prepared. Your line is still available to retry or continue.');
+            if (ownsConversation()) dispatch({ type: 'SET_CONVERSATION_PENDING', payload: false });
+            preparationController.current = null;
+            preparationConversationId.current = null;
+            return playerLineDelivered
+                ? { delivery: 'delivered', reply: 'failed' }
+                : { delivery: 'not-delivered', reason: 'preparation-error' };
+        }
 
-        dispatch({ type: 'ADD_CONVERSATION_MESSAGE', payload: playerMessage });
+        // Add player message only once the continuation model is ready. A canceled
+        // ordinary line stays in the input; resolved check notes are preserved below.
+        if (!note) {
+            dispatch({ type: 'ADD_CONVERSATION_MESSAGE', payload: playerMessage });
+            playerLineDelivered = true;
+        }
+        setPreparationStatus(null);
 
         // The check result is a real message in the transcript, not a UI badge:
         // the player reads it, and the prose model reads it too because the
         // history below is built from these same messages.
-        const note = mechanicalNote?.trim();
-        const noteMessage: ConversationMessage | null = note
-            ? { id: generateId(), speakerId: 'narrator', text: note, timestamp: Date.now() }
-            : null;
-        if (noteMessage) {
-            dispatch({ type: 'ADD_CONVERSATION_MESSAGE', payload: noteMessage });
-        }
-
-        dispatch({ type: 'SET_CONVERSATION_PENDING', payload: true });
-
         // Get AI response - prioritize the addressed companion
         const participantIds = addressedCompanionId
             ? [addressedCompanionId, ...state.activeConversation.participants.filter(id => id !== addressedCompanionId)]
@@ -304,26 +422,53 @@ export function useConversation(
             text: m.text,
         }));
 
-        const result = await OllamaService.continueConversation(participants, history, context);
+        try {
+            const result = await OllamaService.continueConversation(participants, history, context, { signal: controller.signal });
+            if (!ownsTurn() || controller.signal.aborted) {
+                return playerLineDelivered
+                    ? { delivery: 'delivered', reply: 'cancelled' }
+                    : { delivery: 'not-delivered', reason: 'cancelled' };
+            }
 
-        // AI-call logging is centralized in the Ollama client (ollamaLogSink /
-        // useOllamaLogBridge); call sites no longer log individually.
+            // AI-call logging is centralized in the Ollama client (ollamaLogSink /
+            // useOllamaLogBridge); call sites no longer log individually.
 
-        const response = result.success ? result.data : null;
+            const response = result.success ? result.data : null;
 
-        if (response) {
-            const aiMessage: ConversationMessage = {
-                id: generateId(),
-                speakerId: response.speakerId,
-                text: response.text,
-                emotion: response.emotion,
-                timestamp: Date.now(),
-            };
+            if (response) {
+                const aiMessage: ConversationMessage = {
+                    id: generateId(),
+                    speakerId: response.speakerId,
+                    text: response.text,
+                    emotion: response.emotion,
+                    timestamp: Date.now(),
+                };
 
-            dispatch({ type: 'ADD_CONVERSATION_MESSAGE', payload: aiMessage });
+                dispatch({ type: 'ADD_CONVERSATION_MESSAGE', payload: aiMessage });
+                return { delivery: 'delivered', reply: 'received' };
+            } else {
+                // Keep the player's delivered words, but never present a transport
+                // failure as the companion's decision to ignore or agree with them.
+                setResponseError('No reply was received. Your words remain in the conversation. You can continue or end the conversation.');
+                return { delivery: 'delivered', reply: 'failed' };
+            }
+        } catch {
+            if (!ownsTurn() || controller.signal.aborted) {
+                return playerLineDelivered
+                    ? { delivery: 'delivered', reply: 'cancelled' }
+                    : { delivery: 'not-delivered', reason: 'cancelled' };
+            }
+            setResponseError('No reply was received. Your words remain in the conversation. You can continue or end the conversation.');
+            return { delivery: 'delivered', reply: 'failed' };
+        } finally {
+            unlinkCaller();
+            if (ownsTurn()) {
+                setPreparationStatus(null);
+                dispatch({ type: 'SET_CONVERSATION_PENDING', payload: false });
+                preparationController.current = null;
+                preparationConversationId.current = null;
+            }
         }
-
-        dispatch({ type: 'SET_CONVERSATION_PENDING', payload: false });
     }, [dispatch, buildContext, getParticipantData]);
 
     /**
@@ -335,6 +480,36 @@ export function useConversation(
         if (!state.activeConversation) return;
 
         const conversation = state.activeConversation;
+        // This guard covers overlapping clicks only. Persisted archive identity
+        // below handles a remount/reload; a permanent hook-local set would
+        // incorrectly block an older save loaded with the same active ID.
+        if (endingConversationIds.current.has(conversation.id)) return;
+        endingConversationIds.current.add(conversation.id);
+        try {
+        const archiveEntry = conversationArchiveEntry(state, 'ended', 'attempted');
+        const existingArchive = archiveEntry
+            ? findMatchingConversationArchive(state.archivedBanters, archiveEntry)
+            : undefined;
+        const semanticAlreadyAttempted = existingArchive?.source?.semanticStatus === 'attempted';
+
+        if (archiveEntry && !canMergeConversationArchive(state.archivedBanters, archiveEntry)) {
+            // A same-source ID with different delivered words is a divergent
+            // snapshot. Keep the active transcript available instead of silently
+            // replacing either version or applying social effects twice.
+            setResponseError('This conversation conflicts with an archived transcript and remains open.');
+            return;
+        }
+
+        // The reducer merges only a verified exact-prefix continuation. Its
+        // persisted status distinguishes load capture from completed End work.
+        if (archiveEntry) dispatch({ type: 'ARCHIVE_BANTER', payload: archiveEntry });
+
+        if (semanticAlreadyAttempted) {
+            if (gameStateRef.current.activeConversation?.id === conversation.id) {
+                dispatch({ type: 'END_CONVERSATION' });
+            }
+            return;
+        }
 
         // Partition participants: companions persist into companion memory/approval;
         // situational strangers (the opening-situation NPCs, which are NOT companions)
@@ -380,12 +555,16 @@ export function useConversation(
                 text: m.text,
             }));
 
+            try {
             const result = await OllamaService.summarizeConversation(participants, history, context);
 
             // AI-call logging is centralized in the Ollama client (ollamaLogSink /
             // useOllamaLogBridge); call sites no longer log individually.
 
-            const summary = result.success ? result.data : null;
+            // A close requested for an old conversation may finish after a new
+            // one starts. Keep its transcript archive, but never publish its
+            // semantic summary or approval into the replacement conversation.
+            const summary = gameStateRef.current.activeConversation?.id === conversation.id && result.success ? result.data : null;
 
             if (summary) {
                 // Companions: memory + approval (unchanged behavior).
@@ -454,10 +633,22 @@ export function useConversation(
                 }
             }
 
-            dispatch({ type: 'SET_CONVERSATION_PENDING', payload: false });
+            } catch {
+                // The exact transcript is already archived. Summary failure is
+                // not a reason to strand the conversation or lose its words.
+            } finally {
+                if (gameStateRef.current.activeConversation?.id === conversation.id) {
+                    dispatch({ type: 'SET_CONVERSATION_PENDING', payload: false });
+                }
+            }
         }
 
-        dispatch({ type: 'END_CONVERSATION' });
+        if (gameStateRef.current.activeConversation?.id === conversation.id) {
+            dispatch({ type: 'END_CONVERSATION' });
+        }
+        } finally {
+            endingConversationIds.current.delete(conversation.id);
+        }
     }, [dispatch, buildContext, getParticipantData]);
 
     return {
@@ -465,5 +656,8 @@ export function useConversation(
         sendPlayerMessage,
         endConversation,
         isInteractionLocked,
+        responseError,
+        preparationStatus,
+        cancelPreparation,
     };
 }

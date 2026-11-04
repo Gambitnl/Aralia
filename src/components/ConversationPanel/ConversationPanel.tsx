@@ -20,9 +20,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/10/2026, 07:13:28
+ * Last Sync: 03/11/2026, 15:40:04
  * Dependents: components/ConversationPanel/index.ts
- * Imports: 23 files
+ * Imports: 25 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -35,10 +35,12 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { GameState } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import { useConversation } from '../../hooks/useConversation';
+import { OllamaService } from '../../services/ollama';
 import { useDeEscalation } from '../../hooks/useDeEscalation';
 import { assetUrl } from '../../config/env';
 import { SKILLS_DATA } from '../../data/skills';
 import { resolvePlayerIntent } from '../../systems/intent/resolvePlayerIntent';
+import { OLLAMA_TIMEOUT_MS } from '../../config/llmProviderConfig';
 import type {
     IntentScene,
     IntentSkillInfo,
@@ -78,6 +80,8 @@ interface PendingAttempt {
 }
 
 /** A missing intent reply must not consume the player's words or invent an action.
+ * Allow the provider's full request budget plus model-discovery overhead. The old
+ * 15-second cutoff discarded valid local-model replies before their request ended.
  * The provider may finish later; only the bounded result below can reach gameplay. */
 async function readIntentWithinDeadline(read: Promise<PlayerIntent>): Promise<PlayerIntent> {
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -85,7 +89,7 @@ async function readIntentWithinDeadline(read: Promise<PlayerIntent>): Promise<Pl
         return await Promise.race([
             read,
             new Promise<never>((_, reject) => {
-                timer = setTimeout(() => reject(new Error('Your words could not be interpreted in time. Try again, or end the conversation.')), 15000);
+                timer = setTimeout(() => reject(new Error('Your words could not be interpreted in time. Try again, or end the conversation.')), OLLAMA_TIMEOUT_MS + 5000);
             }),
         ]);
     } finally {
@@ -94,10 +98,12 @@ async function readIntentWithinDeadline(read: Promise<PlayerIntent>): Promise<Pl
 }
 
 export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState, dispatch }) => {
-    const { sendPlayerMessage, endConversation, isInteractionLocked } = useConversation(gameState, dispatch);
+    const { sendPlayerMessage, endConversation, isInteractionLocked, responseError, preparationStatus, cancelPreparation } = useConversation(gameState, dispatch);
 
     const conversation = gameState.activeConversation;
     const intentRequest = useRef(0);
+    const intentController = useRef<AbortController | null>(null);
+    const intentText = useRef('');
     const isPlayerTurn = conversation?.isPlayerTurn ?? false;
     const [inputText, setInputText] = useState('');
     const [showMentionMenu, setShowMentionMenu] = useState(false);
@@ -111,11 +117,16 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
     const [intentError, setIntentError] = useState<string | null>(null);
     /** True while the reader judges the line. The input locks so one line cannot be sent twice. */
     const [isReadingIntent, setIsReadingIntent] = useState(false);
+    /** True only during the local empty-prompt startup stage, not intent reading. */
+    const [isPreparingIntent, setIsPreparingIntent] = useState(false);
     // Each conversation owns its reader lock. Replacing the speaker releases
     // the old lock and invalidates any classification still on its way back.
     useEffect(() => {
+        intentController.current?.abort();
+        intentController.current = null;
         setIsReadingIntent(false);
-        return () => { intentRequest.current += 1; };
+        setIsPreparingIntent(false);
+        return () => { intentRequest.current += 1; intentController.current?.abort(); };
     }, [conversation?.id]);
     const [pendingClarification, setPendingClarification] = useState<
         { candidateSkills: string[]; text: string } | null
@@ -399,23 +410,41 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
         const text = raw.trim();
         if (!text || isInteractionLocked || isReadingIntent || !conversation || !isPlayerTurn) return;
 
-        setInputText('');
         setShowMentionMenu(false);
         setIntentError(null);
 
         if (!pc) {
-            await sendPlayerMessage(text);
+            const sent = await sendPlayerMessage(text);
+            if (sent.delivery === 'delivered') setInputText('');
+            else setInputText(text);
             return;
         }
 
+        setInputText('');
         setIsReadingIntent(true);
+        setIsPreparingIntent(true);
         const request = ++intentRequest.current;
+        const controller = new AbortController();
+        intentController.current = controller;
+        intentText.current = text;
         try {
-            const intent = await readIntentWithinDeadline(resolvePlayerIntent(text, scene, skillInfos));
+            const readiness = await OllamaService.prepareForTask('situation_analysis', { signal: controller.signal });
+            if (request !== intentRequest.current) return;
+            setIsPreparingIntent(false);
+            if (readiness.status === 'cancelled' || request !== intentRequest.current) {
+                setInputText(text);
+                return;
+            }
+            if (readiness.status === 'error') throw new Error('Local dialogue could not be prepared. Your line is ready to retry.');
+            const intent = await readIntentWithinDeadline(resolvePlayerIntent(text, scene, skillInfos, { signal: controller.signal }));
             if (request !== intentRequest.current) return;
 
             if (intent.kind === 'talk') {
-                await sendPlayerMessage(text);
+                // Classification is finished. The conversation's own pending
+                // lock now covers the companion reply; do not label it as intent.
+                setIsReadingIntent(false);
+                const sent = await sendPlayerMessage(text, undefined, controller.signal);
+                if (sent.delivery === 'not-delivered') setInputText(text);
                 return;
             }
             if (intent.kind === 'ambiguous') {
@@ -430,11 +459,14 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
         } catch (e) {
             if (request !== intentRequest.current) return;
             setInputText(text);
-            setIntentError(
-                e instanceof Error ? e.message : 'Could not read your intent — try rephrasing.',
-            );
+            if (!controller.signal.aborted) setIntentError(e instanceof Error ? e.message : 'Could not read your intent — try rephrasing.');
         } finally {
-            if (request === intentRequest.current) setIsReadingIntent(false);
+            if (request === intentRequest.current) {
+                setIsReadingIntent(false);
+                setIsPreparingIntent(false);
+            }
+            if (intentController.current === controller) intentController.current = null;
+            if (request === intentRequest.current) intentText.current = '';
         }
     }, [
         isInteractionLocked, isReadingIntent, conversation, isPlayerTurn, pc, scene, skillInfos,
@@ -458,12 +490,34 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
 
     // Handle end conversation
     const handleEndConversation = useCallback(async () => {
+        intentRequest.current += 1;
+        intentController.current?.abort();
+        intentController.current = null;
+        cancelPreparation();
         await endConversation();
-    }, [endConversation]);
+    }, [endConversation, cancelPreparation]);
+
+    const handleCancelPreparation = useCallback(() => {
+        intentRequest.current += 1;
+        intentController.current?.abort();
+        intentController.current = null;
+        cancelPreparation();
+        if (intentText.current) setInputText(intentText.current);
+        intentText.current = '';
+        setIsReadingIntent(false);
+        setIsPreparingIntent(false);
+    }, [cancelPreparation]);
 
     if (!conversation) return null;
 
     const inputLocked = isInteractionLocked || isReadingIntent || !isPlayerTurn;
+    const preparingLocally = preparationStatus !== null || isPreparingIntent;
+    const showingTurnStatus = preparingLocally || isReadingIntent;
+    const turnStatusText = preparationStatus === 'preparing-delivered'
+        ? 'Preparing your local dialogue model. Your resolved attempt is recorded; no reply has been added.'
+        : preparingLocally
+            ? 'Preparing your local dialogue model. Your line has not been recorded yet.'
+            : 'Understanding your message. Your line has not been recorded yet.';
 
     return (
         <div className="conversation-panel">
@@ -474,7 +528,7 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
                 <button
                     className="conversation-close-btn"
                     onClick={handleEndConversation}
-                    disabled={isInteractionLocked}
+                    disabled={isInteractionLocked && !showingTurnStatus}
                     title="End Conversation"
                     aria-label="End conversation"
                 >
@@ -538,9 +592,10 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
 
 
 
-                {isReadingIntent && (
+                {showingTurnStatus && (
                     <div data-testid="reading-intent" className="conversation-message companion pending">
-                        <span className="message-text">Reading your intent…</span>
+                        <span className="message-text">{turnStatusText}</span>
+                        <button type="button" data-testid="cancel-dialogue-preparation" onClick={handleCancelPreparation}>Cancel</button>
                     </div>
                 )}
 
@@ -659,6 +714,12 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
             {intentError && (
                 <div data-testid="intent-error" className="text-red-400 text-xs px-4 pb-2">
                     {intentError}
+                </div>
+            )}
+
+            {responseError && (
+                <div role="alert" className="text-red-400 text-xs px-4 pb-2">
+                    {responseError}
                 </div>
             )}
 

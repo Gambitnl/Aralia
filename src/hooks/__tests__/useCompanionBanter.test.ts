@@ -47,6 +47,7 @@ const forceNpcToNpcManualStart = () => {
 vi.mock('../../services/ollama', () => ({
     OllamaService: {
         isAvailable: vi.fn(),
+        prepareForTask: vi.fn(),
         generateBanterLine: vi.fn(),
         generatePlayerDirectedLine: vi.fn(),
         generateEscalationLine: vi.fn(),
@@ -60,6 +61,12 @@ const originalRandom = Math.random;
 beforeEach(() => {
     Math.random = vi.fn().mockReturnValue(0);
     vi.mocked(OllamaService.isAvailable).mockResolvedValue(true);
+    vi.mocked(OllamaService.prepareForTask).mockResolvedValue({ status: 'ready', model: 'test-model' } as any);
+    vi.mocked(OllamaService.generateBanterLine).mockResolvedValue({
+        success: true,
+        data: { speakerId: 'elara_vance', text: 'I will answer you.', emotion: 'neutral', isConcluding: false },
+        metadata: { id: 'banter-reply', prompt: 'p', response: 'r', model: 'm' }
+    } as any);
     vi.mocked(OllamaService.generatePlayerDirectedLine).mockResolvedValue({
         success: true,
         data: {
@@ -133,6 +140,98 @@ describe('useCompanionBanter', () => {
         vi.clearAllMocks();
     });
 
+    it('prepares only after a player submits a banter reply and stops the response deadline while preparing', async () => {
+        let finishPreparation!: (result: { status: 'ready'; model: string }) => void;
+        let submittedHistory: Array<{ speakerId: string; speakerName: string; text: string }> = [];
+        vi.mocked(OllamaService.prepareForTask).mockImplementation(() => new Promise(resolve => { finishPreparation = resolve; }));
+        vi.mocked(OllamaService.generateBanterLine).mockImplementation(async (_participants, history) => {
+            submittedHistory = history.map(line => ({ ...line }));
+            return { success: true, data: { speakerId: 'elara_vance', text: 'I will answer you.', emotion: 'neutral', isConcluding: false }, metadata: { id: 'id', prompt: 'p', response: 'r', model: 'm' } } as any;
+        });
+        const { result } = renderHook(() => useCompanionBanter(baseGameState, mockDispatch));
+
+        await act(async () => { await result.current.forceBanter(); });
+        expect(result.current.isWaitingForPlayerResponse).toBe(true);
+        expect(OllamaService.prepareForTask).not.toHaveBeenCalled();
+
+        act(() => { result.current.playerInterrupt('I want to hear your story.'); });
+        expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({
+            type: 'ADD_MESSAGE', payload: expect.objectContaining({ sender: 'player', text: expect.stringContaining('I want to hear your story.') })
+        }));
+        expect(OllamaService.prepareForTask).toHaveBeenCalledWith('companion_banter', expect.any(Object));
+        expect(vi.mocked(OllamaService.prepareForTask).mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
+        expect(result.current.isPreparingPlayerReply).toBe(true);
+        expect(result.current.isWaitingForPlayerResponse).toBe(false);
+        expect(result.current.playerResponseDeadlineSeconds).toBe(0);
+        expect(OllamaService.generateBanterLine).not.toHaveBeenCalled();
+
+        await act(async () => { await vi.advanceTimersByTimeAsync(120_000); });
+        expect(OllamaService.generateEscalationLine).not.toHaveBeenCalled();
+
+        await act(async () => { finishPreparation({ status: 'ready', model: 'test-model' }); await Promise.resolve(); });
+        expect(result.current.isPreparingPlayerReply).toBe(false);
+        await act(async () => { await vi.advanceTimersByTimeAsync(1500); });
+        expect(OllamaService.generateBanterLine).toHaveBeenCalledTimes(1);
+        expect(submittedHistory).toContainEqual({ speakerId: 'kaelen_thorne', speakerName: 'You', text: 'I want to hear your story.' });
+    });
+
+    it('cancels an older prepared reply without losing its committed words or blocking a newer reply', async () => {
+        const pending: Array<(result: { status: 'ready'; model: string }) => void> = [];
+        let submittedHistory: Array<{ speakerId: string; speakerName: string; text: string }> = [];
+        vi.mocked(OllamaService.prepareForTask).mockImplementation(() => new Promise(resolve => { pending.push(resolve); }));
+        vi.mocked(OllamaService.generateBanterLine).mockImplementation(async (_participants, history) => {
+            submittedHistory = history.map(line => ({ ...line }));
+            return { success: true, data: { speakerId: 'elara_vance', text: 'I will answer you.', emotion: 'neutral', isConcluding: false }, metadata: { id: 'id', prompt: 'p', response: 'r', model: 'm' } } as any;
+        });
+        const { result } = renderHook(() => useCompanionBanter(baseGameState, mockDispatch));
+        await act(async () => { await result.current.forceBanter(); });
+
+        act(() => { result.current.playerInterrupt('First committed reply.'); });
+        const firstSignal = vi.mocked(OllamaService.prepareForTask).mock.calls[0][1]?.signal;
+        act(() => { result.current.cancelPlayerReply(); });
+        expect(firstSignal?.aborted).toBe(true);
+        expect(result.current.isPreparingPlayerReply).toBe(false);
+
+        act(() => { result.current.playerInterrupt('Second committed reply.'); });
+        const secondSignal = vi.mocked(OllamaService.prepareForTask).mock.calls[1][1]?.signal;
+        expect(secondSignal?.aborted).toBe(false);
+        await act(async () => { pending[0]({ status: 'ready', model: 'old-model' }); await Promise.resolve(); });
+        expect(result.current.isPreparingPlayerReply).toBe(true);
+        expect(OllamaService.generateBanterLine).not.toHaveBeenCalled();
+        expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({
+            type: 'ADD_MESSAGE', payload: expect.objectContaining({ sender: 'player', text: expect.stringContaining('First committed reply.') })
+        }));
+        await act(async () => { pending[1]({ status: 'ready', model: 'new-model' }); await Promise.resolve(); });
+        expect(result.current.isPreparingPlayerReply).toBe(false);
+        await act(async () => { await vi.advanceTimersByTimeAsync(1500); });
+        expect(OllamaService.generateBanterLine).toHaveBeenCalledTimes(1);
+        expect(submittedHistory).toContainEqual(expect.objectContaining({ text: 'Second committed reply.' }));
+    });
+
+    it('ignores readiness that settles after its banter ended and a new session began', async () => {
+        const pending: Array<(result: { status: 'ready'; model: string }) => void> = [];
+        vi.mocked(OllamaService.prepareForTask).mockImplementation(() => new Promise(resolve => { pending.push(resolve); }));
+        let submittedHistory: Array<{ speakerId: string; speakerName: string; text: string }> = [];
+        vi.mocked(OllamaService.generateBanterLine).mockImplementation(async (_participants, history) => {
+            submittedHistory = history.map(line => ({ ...line }));
+            return { success: true, data: { speakerId: 'elara_vance', text: 'A new answer.', emotion: 'neutral', isConcluding: false }, metadata: { id: 'id', prompt: 'p', response: 'r', model: 'm' } } as any;
+        });
+        const { result } = renderHook(() => useCompanionBanter(baseGameState, mockDispatch));
+        await act(async () => { await result.current.forceBanter(); });
+        act(() => { result.current.playerInterrupt('Old session words.'); });
+        act(() => { result.current.endBanter(); });
+        await act(async () => { await result.current.forceBanter(); });
+        act(() => { result.current.playerInterrupt('New session words.'); });
+
+        await act(async () => { pending[0]({ status: 'ready', model: 'old-model' }); await Promise.resolve(); });
+        expect(result.current.isPreparingPlayerReply).toBe(true);
+        expect(OllamaService.generateBanterLine).not.toHaveBeenCalled();
+        await act(async () => { pending[1]({ status: 'ready', model: 'new-model' }); await Promise.resolve(); });
+        await act(async () => { await vi.advanceTimersByTimeAsync(1500); });
+        expect(submittedHistory.some(line => line.text === 'Old session words.')).toBe(false);
+        expect(submittedHistory).toContainEqual(expect.objectContaining({ text: 'New session words.' }));
+    });
+
     it('should not check for banter if not in PLAYING phase', async () => {
         const gameState = { ...baseGameState, phase: GamePhase.LOAD_TRANSITION };
         renderHook(() => useCompanionBanter(gameState, mockDispatch));
@@ -188,6 +287,7 @@ describe('useCompanionBanter', () => {
         });
 
         expect(OllamaService.generateBanterLine).toHaveBeenCalled();
+        expect(OllamaService.prepareForTask).not.toHaveBeenCalled();
         // AI-call logging moved out of this hook and into the central Ollama
         // client sink (ollamaLogSink / useOllamaLogBridge), so the hook no longer
         // dispatches ADD_OLLAMA_LOG_ENTRY itself. It still surfaces the line as a

@@ -1,19 +1,3 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- *
- * Last Sync: 09/06/2026, 04:34:00
- * Dependents: App.tsx
- * Imports: 7 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * ARCHITECTURAL CONTEXT:
  * This hook is the 'Social Brain' of Aralia. It manages the lifecycle 
@@ -32,6 +16,22 @@
  *   like NPC personality markers and current player gear for context-aware 
  *   dialogue.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 03/11/2026, 15:40:04
+ * Dependents: hooks/app/useAppAmbientDialogue.ts
+ * Imports: 8 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * This hook drives the "ambient life" system where NPCs talk.
@@ -130,6 +130,13 @@ export const useCompanionBanter = (
   const playerDeadlineSecondsRef = useRef(0);
   /** Mirror of secondsUntilNextLine kept as a ref so extendNpcLineDelay can read it without stale closures. */
   const nextLineSecondsRef = useRef(0);
+  // Player replies are committed before local-model preparation begins. The
+  // request/session tokens keep late readiness or generation results from an
+  // ended banter session out of a newer transcript.
+  const banterSessionRef = useRef(0);
+  const playerReplyRequestRef = useRef(0);
+  const playerReplyControllerRef = useRef<AbortController | null>(null);
+  const playerReplyNeedsContinuationRef = useRef(false);
 
   // ── State (drives UI) ────────────────────────────────────────────────────
   const [isBanterActive, setIsBanterActive] = useState(false);
@@ -144,6 +151,8 @@ export const useCompanionBanter = (
   const [isWaitingForPlayerResponse, setIsWaitingForPlayerResponse] = useState(false);
   /** Countdown in seconds for the player to reply (0 when not waiting). */
   const [playerResponseDeadlineSeconds, setPlayerResponseDeadlineSeconds] = useState(0);
+  const [isPreparingPlayerReply, setIsPreparingPlayerReply] = useState(false);
+  const [playerReplyNotice, setPlayerReplyNotice] = useState<string | null>(null);
 
   // ============================================================================
   // Pacing and Orchestration
@@ -185,6 +194,13 @@ export const useCompanionBanter = (
   // endBanter
   // ============================================================================
   const endBanter = useCallback(() => {
+    banterSessionRef.current += 1;
+    playerReplyRequestRef.current += 1;
+    playerReplyControllerRef.current?.abort();
+    playerReplyControllerRef.current = null;
+    playerReplyNeedsContinuationRef.current = false;
+    setIsPreparingPlayerReply(false);
+    setPlayerReplyNotice(null);
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
@@ -276,6 +292,8 @@ export const useCompanionBanter = (
   // handlePlayerIgnored — called when player's 2-minute response window expires
   // ============================================================================
   const handlePlayerIgnored = useCallback(async () => {
+    const sessionId = banterSessionRef.current;
+    const requestId = playerReplyRequestRef.current;
     ignoreCountRef.current++;
     setIsWaitingForPlayerResponse(false);
     setPlayerResponseDeadlineSeconds(0);
@@ -322,6 +340,8 @@ export const useCompanionBanter = (
       ignoreCountRef.current
     );
 
+    if (sessionId !== banterSessionRef.current || requestId !== playerReplyRequestRef.current) return;
+
     setIsGenerating(false);
     setGeneratingSpeakerName(null);
 
@@ -366,7 +386,9 @@ export const useCompanionBanter = (
   // ============================================================================
   // generateNextLine
   // ============================================================================
-  const generateNextLine = useCallback(async () => {
+  const generateNextLine = useCallback(async (playerReplyRequestId?: number) => {
+    const sessionId = banterSessionRef.current;
+    const requestId = playerReplyRequestId ?? playerReplyRequestRef.current;
     const mode = banterModeRef.current;
 
     // NPC_TO_NPC still requires 2+ participants; PLAYER_DIRECTED only needs 1
@@ -438,6 +460,9 @@ export const useCompanionBanter = (
       );
     }
 
+    // Ending/restarting while generation is in flight invalidates its result.
+    if (sessionId !== banterSessionRef.current || requestId !== playerReplyRequestRef.current) return;
+
     setIsGenerating(false);
     setGeneratingSpeakerName(null);
 
@@ -498,6 +523,7 @@ export const useCompanionBanter = (
 
     const newHistoryItem: BanterHistoryLine = { speakerId, speakerName, text, isDirectedAtPlayer: isDirectedLine };
     banterHistoryRef.current.push(newHistoryItem);
+    if (hasPlayerResponded) playerReplyNeedsContinuationRef.current = false;
     setBanterHistory(prev => [...prev, newHistoryItem]);
 
     dispatch({
@@ -531,11 +557,79 @@ export const useCompanionBanter = (
     }
   }, [dispatch, endBanter, handlePlayerIgnored]);
 
+  const cancelPlayerReply = useCallback(() => {
+    if (!playerReplyNeedsContinuationRef.current) return;
+    playerReplyRequestRef.current += 1;
+    playerReplyControllerRef.current?.abort();
+    playerReplyControllerRef.current = null;
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setIsGenerating(false);
+    setGeneratingSpeakerName(null);
+    setIsPreparingPlayerReply(false);
+    setPlayerReplyNotice('Your message is recorded. Continue when ready or end Party Chat.');
+  }, []);
+
+  const preparePlayerReply = useCallback(async (
+    requestId: number,
+    controls?: { onPreparationStatus?: (status: 'preparing' | 'ready' | 'cancelled' | 'error', message?: string) => void; onCancel?: (cancel: () => void) => void },
+  ) => {
+    const sessionId = banterSessionRef.current;
+    if (!playerReplyNeedsContinuationRef.current || !isBanterActive) return;
+    const controller = new AbortController();
+    playerReplyControllerRef.current = controller;
+    setIsPreparingPlayerReply(true);
+    setPlayerReplyNotice(null);
+    controls?.onPreparationStatus?.('preparing');
+    controls?.onCancel?.(cancelPlayerReply);
+    try {
+      const readiness = await OllamaService.prepareForTask('companion_banter', { signal: controller.signal });
+      if (sessionId !== banterSessionRef.current || requestId !== playerReplyRequestRef.current || playerReplyControllerRef.current !== controller) return;
+      setIsPreparingPlayerReply(false);
+      playerReplyControllerRef.current = null;
+      if (readiness.status === 'cancelled' || controller.signal.aborted) {
+        const message = 'Your message is recorded. The companion response was canceled; continue when ready or end Party Chat.';
+        setPlayerReplyNotice(message);
+        controls?.onPreparationStatus?.('cancelled', message);
+        return;
+      }
+      if (readiness.status === 'error') {
+        const message = 'Your message is recorded, but the companion response could not be prepared. You may send another line or end Party Chat.';
+        setPlayerReplyNotice(message);
+        controls?.onPreparationStatus?.('error', message);
+        return;
+      }
+      setPlayerReplyNotice(null);
+      controls?.onPreparationStatus?.('ready');
+      timeoutRef.current = setTimeout(() => {
+        if (sessionId === banterSessionRef.current && requestId === playerReplyRequestRef.current) generateNextLine(requestId);
+      }, 1500);
+    } catch {
+      if (sessionId !== banterSessionRef.current || requestId !== playerReplyRequestRef.current || playerReplyControllerRef.current !== controller) return;
+      playerReplyControllerRef.current = null;
+      setIsPreparingPlayerReply(false);
+      const message = 'Your message is recorded, but the companion response could not be prepared. You may send another line or end Party Chat.';
+      setPlayerReplyNotice(message);
+      controls?.onPreparationStatus?.('error', message);
+    }
+  }, [cancelPlayerReply, generateNextLine, isBanterActive]);
+
+  const continuePlayerReply = useCallback(() => {
+    if (!playerReplyNeedsContinuationRef.current || !isBanterActive || playerReplyControllerRef.current) return;
+    const requestId = ++playerReplyRequestRef.current;
+    void preparePlayerReply(requestId);
+  }, [isBanterActive, preparePlayerReply]);
+
   // ============================================================================
   // playerInterrupt — player joins banter mid-session
   // ============================================================================
-  const playerInterrupt = useCallback((playerMessage: string) => {
+  const playerInterrupt = useCallback((playerMessage: string, controls?: { onPreparationStatus?: (status: 'preparing' | 'ready' | 'cancelled' | 'error', message?: string) => void; onCancel?: (cancel: () => void) => void }) => {
     if (!isBanterActive || !contextRef.current) return;
+    // The typed line is committed once before any model work. The countdown is
+    // stopped immediately so startup time cannot count as player silence.
+    if (playerReplyControllerRef.current) return;
 
     // Cancel any pending timeout (NPC timer or player response timer)
     if (timeoutRef.current) {
@@ -564,6 +658,8 @@ export const useCompanionBanter = (
     const newPlayerItem: BanterHistoryLine = { speakerId: playerId, speakerName: playerName, text: playerMessage };
     banterHistoryRef.current.push(newPlayerItem);
     setBanterHistory(prev => [...prev, newPlayerItem]);
+    playerReplyNeedsContinuationRef.current = true;
+    setPlayerReplyNotice(null);
 
     dispatch({
       type: 'ADD_MESSAGE',
@@ -577,7 +673,7 @@ export const useCompanionBanter = (
     });
 
     turnRef.current++;
-    setIsGenerating(true);
+    setIsGenerating(false);
 
     const nextLikelySpeaker = participantsRef.current.find(p => p.id !== playerId);
     if (participantsRef.current.length >= 1 && nextLikelySpeaker) {
@@ -586,8 +682,9 @@ export const useCompanionBanter = (
       setGeneratingSpeakerName(null);
     }
 
-    setTimeout(() => { generateNextLine(); }, 1500);
-  }, [isBanterActive, dispatch, generateNextLine, isWaitingForPlayerResponse]);
+    const requestId = ++playerReplyRequestRef.current;
+    void preparePlayerReply(requestId, controls);
+  }, [isBanterActive, dispatch, preparePlayerReply, isWaitingForPlayerResponse]);
 
   // ============================================================================
   // extendPlayerResponseDeadline — adds 60 s to the player's reply window
@@ -778,6 +875,13 @@ export const useCompanionBanter = (
       return;
     }
 
+    banterSessionRef.current += 1;
+    playerReplyRequestRef.current += 1;
+    playerReplyControllerRef.current?.abort();
+    playerReplyControllerRef.current = null;
+    playerReplyNeedsContinuationRef.current = false;
+    setIsPreparingPlayerReply(false);
+    setPlayerReplyNotice(null);
     const { locName, timeOfDay } = setupBanterSession(availableCompanions, state, mode, now);
     logEntry('STARTED', true, `${mode} @ ${locName} (${timeOfDay})`);
 
@@ -824,6 +928,13 @@ export const useCompanionBanter = (
       return;
     }
 
+    banterSessionRef.current += 1;
+    playerReplyRequestRef.current += 1;
+    playerReplyControllerRef.current?.abort();
+    playerReplyControllerRef.current = null;
+    playerReplyNeedsContinuationRef.current = false;
+    setIsPreparingPlayerReply(false);
+    setPlayerReplyNotice(null);
     const { locName, timeOfDay } = setupBanterSession(availableCompanions, state, mode, now);
     logEntry('FORCE STARTED', true, `${mode} @ ${locName} (${timeOfDay})`);
 
@@ -840,6 +951,9 @@ export const useCompanionBanter = (
   useEffect(() => {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      playerReplyControllerRef.current?.abort();
+      playerReplyControllerRef.current = null;
+      banterSessionRef.current += 1;
       isGeneratingRef.current = false;
     };
   }, []);
@@ -855,6 +969,10 @@ export const useCompanionBanter = (
     generatingSpeakerName,
     secondsUntilNextLine,
     playerInterrupt,
+    isPreparingPlayerReply,
+    playerReplyNotice,
+    cancelPlayerReply,
+    continuePlayerReply,
     endBanter,
     banterHistory,
     // Player-directed banter additions:

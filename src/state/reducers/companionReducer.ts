@@ -39,6 +39,7 @@ import { arrivingCompanions } from '../../systems/companions/companionJourney';
 import { spendPartyProvisions } from '../../systems/travel/partyProvisions';
 import { promoteCompanionToMember } from '../../systems/party/npcToPartyMember';
 import { authoredCompanionCapabilities } from '../../systems/party/authoredCompanionCapabilities';
+import { mergeConversationArchive } from '../../systems/companions/conversationTranscript';
 
 export function companionReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
@@ -466,9 +467,8 @@ export function companionReducer(state: GameState, action: AppAction): Partial<G
       // We prepend it so the newest are first (or append if preferred, but usually history is newest-first)
       // Actually, standard arrays are usually push, and UI sorts. Let's prepend for easy "recent" access.
       const moment = action.payload;
-      return {
-        archivedBanters: [moment, ...(state.archivedBanters || [])]
-      };
+      const archivedBanters = mergeConversationArchive(state.archivedBanters, moment);
+      return archivedBanters === state.archivedBanters ? {} : { archivedBanters };
     }
 
     default:

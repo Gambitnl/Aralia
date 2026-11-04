@@ -97,6 +97,15 @@ describe('resolvePlayerIntent', () => {
             expect.objectContaining({ taskType: 'situation_analysis', format: 'json' }),
         );
     });
+
+    it('forwards cancellation and refuses a late classification after cancellation', async () => {
+        const controller = new AbortController();
+        const client = clientSaying({ kind: 'attack' });
+        controller.abort();
+        await expect(resolvePlayerIntent('leave me alone', SCENE, SKILLS, { client, signal: controller.signal }))
+            .rejects.toMatchObject({ name: 'AbortError' });
+        expect(client.generateForTask).toHaveBeenCalledWith(expect.objectContaining({ signal: controller.signal }));
+    });
 });
 
 describe('buildIntentPrompt', () => {

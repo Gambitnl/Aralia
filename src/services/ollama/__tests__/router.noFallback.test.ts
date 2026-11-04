@@ -62,4 +62,12 @@ describe('model changes after an earlier request',()=>{
   await resolveModelForTask(client,'npc_dialogue');setOllamaModelChoice('dialogue','missing');
   await expect(resolveModelForTask(client,'npc_dialogue')).rejects.toThrow(/missing/);
  });
+ it('passes the preparation cancellation signal to model discovery',async()=>{
+  const signal=new AbortController().signal;
+  const listModels=vi.fn(async()=>[{name:'selected:latest'}]);
+  const client={listModels} as unknown as OllamaClient;
+  setOllamaModelChoice('dialogue','selected');
+  expect(await resolveModelForTask(client,'npc_dialogue',{signal})).toBe('selected:latest');
+  expect(listModels).toHaveBeenCalledWith({signal});
+ });
 });
