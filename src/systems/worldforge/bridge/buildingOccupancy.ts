@@ -40,6 +40,7 @@
 // @dependencies-end
 
 import type { SeedPath } from '../seedPath';
+import { stationPose, type StationPoseInfo } from '../interior/stationPose';
 import type { Feet } from '../units';
 import { blueprintForPlot, type InteriorPlotInput } from '../interior/generateInterior';
 import type { BlueprintPlan } from '../interior/blueprintTypes';
@@ -89,6 +90,9 @@ export interface StationFeetPoint {
   activity: OccupancyStationPoint['activity'];
   /** Source room identity is carried only by the opt-in private-leaf profile. */
   roomId?:number;
+  /** GG-598: what the body does here (sit, sleep, work-at, stand), the piece it
+   * uses and the point it faces, from the station's activity and furniture. */
+  pose?: StationPoseInfo;
 }
 
 /** Resident-only permission over an actual sleeping-room claim. This is not
@@ -207,7 +211,9 @@ function stationToFeet(
   const floor = plan.floors.find((f) => f.level === st.level);
   if (!floor) return null;
   const roomIdentity=plan.doorLeafProfile&&st.roomId!==undefined?{roomId:st.roomId}:{};
-  if (st.standingPosition) return {...st.standingPosition, level: st.level, activity: st.activity,...roomIdentity};
+  const poseInfo = stationPose(plan, st);
+  const pose = poseInfo ? { pose: poseInfo } : {};
+  if (st.standingPosition) return {...st.standingPosition, level: st.level, activity: st.activity,...roomIdentity,...pose};
 
   let x: Feet;
   let y: Feet;
@@ -229,7 +235,7 @@ function stationToFeet(
     x = (room.anchor.cx + 0.5) * 5;
     y = (room.anchor.cy + 0.5) * 5;
   }
-  return { xFt: x, yFt: y, level: st.level, activity: st.activity,...roomIdentity };
+  return { xFt: x, yFt: y, level: st.level, activity: st.activity,...roomIdentity,...pose };
 }
 
 /**

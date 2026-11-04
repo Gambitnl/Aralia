@@ -386,6 +386,18 @@ uses distance at 1.2 m/s, while the hourly home/out owner and exact frontage
 handoff stay intact. Transit still follows straight segments and has no queue
 or collision-aware route around furniture and stairs.
 
+Station poses (GG-598). Verified: 2026-11-03 (unit tests and a Node count over
+59 Sypege households). `interior/stationPose.ts` names what the body does at
+each home station, from its activity and the furniture there: `sleep` on the
+station's bed (a sleeper past the room's bed count shares the nearest bed in
+the room), `sit` at a meal on the nearest chair or bench in reach, facing the
+table, `sit` by the hearth only with a seat in reach, `work-at` an anvil, forge
+hearth or workbench, `sit` at a desk or loom, `stand` behind a counter, and
+`work-at` a barrel, shelf, chest or table for chores. The occupancy bridge
+carries the result on each baked station as `pose` (the pose, the piece used
+and the point faced). `POSE_CLIPS` names the clip per pose. The near bodies do
+not play the pose yet; that is the 3D side of GG-598.
+
 ## Physical furnishing examination
 
 Production interior parts carry canonical floor, room, furnishing index, and

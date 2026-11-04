@@ -125,6 +125,10 @@ async function loadAndRetarget(packUrl: string): Promise<Map<string, AnimationCl
 
   const out = new Map<string, AnimationClip>();
   for (const clip of gltf.animations) {
+    // GG-606 (2026-11-03): retarget one clip per task. The whole pack in one
+    // loop held the main thread for 0.7 to 0.9 s while a town loaded. Each clip
+    // is retargeted exactly as before; only the time between clips changed.
+    if (out.size > 0) await new Promise<void>((resolve) => setTimeout(resolve, 0));
     const retargeted = retargetClip(target, source, clip, { names, hip: 'pelvis', localOffsets } as Parameters<typeof retargetClip>[3]) as AnimationClip;
     const inPlace = stripToInPlace(retargeted);
     inPlace.name = clip.name;
