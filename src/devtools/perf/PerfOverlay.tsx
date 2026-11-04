@@ -301,6 +301,9 @@ const button: React.CSSProperties = {
   cursor: 'pointer',
 };
 
+/** A pinned header action: the shared button look, sized to its label (2026-11-04). */
+const pinnedButton: React.CSSProperties = { ...button, flex: '0 0 auto', padding: '2px 8px' };
+
 const chip = (on: boolean): React.CSSProperties => ({
   ...button,
   flex: '0 0 auto',
@@ -1176,6 +1179,76 @@ const PerfOverlayBody: React.FC = () => {
         <button type="button" onClick={() => setMode('pill')} title="Collapse (Alt+P)" style={{ ...button, flex: '0 0 auto', padding: '1px 6px' }}>
           –
         </button>
+        {/* PINNED ACTIONS (Remy, 2026-11-04: the capture and readings buttons "should be
+          * pinned on the top left side" of the panel). They were the last rows of the
+          * diagnosis column, so a long tab pushed them off screen. They now sit in the
+          * sticky header, left-aligned, and stay visible while the panel scrolls. Same
+          * buttons, same handlers and titles; only the place changed. */}
+        {active && !minified && (
+          <div data-testid="perf-pinned-actions" style={{ flexBasis: '100%', display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-start', gap: 4, marginTop: 2 }}>
+            <button
+              type="button"
+              style={{
+                ...pinnedButton,
+                color: active.recordingSec !== null ? '#0f172a' : '#cbd5e1',
+                background: active.recordingSec !== null ? '#f87171' : 'rgba(30,41,59,0.9)',
+              }}
+              onClick={() => {
+                const s = sessionFor(active.id);
+                if (!s) return;
+                if (s.isRecording) setCapture(s.stopRecording());
+                else {
+                  setCapture(null);
+                  s.startRecording();
+                }
+              }}
+              title="Capture every frame, then report the distribution"
+            >
+              {active.recordingSec !== null ? `stop ${active.recordingSec.toFixed(0)}s` : 'record'}
+            </button>
+            <button
+              type="button"
+              style={pinnedButton}
+              onClick={() => {
+                const s = sessionFor(active.id);
+                if (s) onCopy(s.report());
+              }}
+              title="Copy the live reading and the diagnosis as text"
+            >
+              {copied ? 'copied' : 'copy'}
+            </button>
+            <button
+              type="button"
+              style={{ ...pinnedButton, color: baseline ? '#082f49' : '#cbd5e1', background: baseline ? '#7dd3fc' : 'rgba(30,41,59,0.9)' }}
+              onClick={toggleMark}
+              title={baseline ? 'Clear the marked column' : 'Save the numbers now as the marked column (see compare)'}
+            >
+              {baseline ? 'unmark' : 'mark'}
+            </button>
+            <button type="button" style={pinnedButton} onClick={() => sessionFor(active.id)?.reset()} title="Throw away the window after a rebuild">
+              reset
+            </button>
+            <button
+              type="button"
+              style={{ ...pinnedButton, color: gifState ? '#082f49' : '#cbd5e1', background: gifState ? '#7dd3fc' : 'rgba(30,41,59,0.9)' }}
+              disabled={gifState !== null}
+              onClick={() => captureGif(active.id, active.label)}
+              title={`Record ${GIF_CAPTURE_DEFAULTS.seconds} s of this surface at ${GIF_CAPTURE_DEFAULTS.fps} fps, at most ${GIF_CAPTURE_DEFAULTS.maxWidth} px wide, into a GIF file that downloads. Not a measurement: the frame times during the capture are not a reading of the scene.`}
+            >
+              {gifState ?? 'capture GIF'}
+            </button>
+            {gifDownload && (
+              <a
+                href={gifDownload.url}
+                download={gifDownload.name}
+                style={{ ...pinnedButton, textAlign: 'center', textDecoration: 'none', color: '#7dd3fc' }}
+                title={`${gifDownload.name}. GIF ready. If the automatic download did not arrive, use Save GIF.`}
+              >
+                Save GIF · {(gifDownload.bytes / 1024).toFixed(0)} kB
+              </a>
+            )}
+          </div>
+        )}
       </div>
 
       {maximized && <div style={{ color: '#94a3b8', marginBottom: 12 }}>Live scene continues in the background · Restore or press Escape to return.</div>}
@@ -1470,79 +1543,6 @@ const PerfOverlayBody: React.FC = () => {
             {tab === 'memory' && <MemoryTab s={active} />}
             {tab === 'compare' && <CompareTab s={active} base={baseline} baseAt={marked?.at ?? null} budgetMs={budgetMs} onMark={toggleMark} />}
           </div>
-
-          <div style={{ display: 'flex', gap: 4, marginTop: 7 }}>
-            <button
-              type="button"
-              style={{
-                ...button,
-                color: active.recordingSec !== null ? '#0f172a' : '#cbd5e1',
-                background: active.recordingSec !== null ? '#f87171' : 'rgba(30,41,59,0.9)',
-              }}
-              onClick={() => {
-                const s = sessionFor(active.id);
-                if (!s) return;
-                if (s.isRecording) setCapture(s.stopRecording());
-                else {
-                  setCapture(null);
-                  s.startRecording();
-                }
-              }}
-              title="Capture every frame, then report the distribution"
-            >
-              {active.recordingSec !== null ? `stop ${active.recordingSec.toFixed(0)}s` : 'record'}
-            </button>
-            <button
-              type="button"
-              style={button}
-              onClick={() => {
-                const s = sessionFor(active.id);
-                if (s) onCopy(s.report());
-              }}
-              title="Copy the live reading and the diagnosis as text"
-            >
-              {copied ? 'copied' : 'copy'}
-            </button>
-            <button
-              type="button"
-              style={{ ...button, color: baseline ? '#082f49' : '#cbd5e1', background: baseline ? '#7dd3fc' : 'rgba(30,41,59,0.9)' }}
-              onClick={toggleMark}
-              title={baseline ? 'Clear the marked column' : 'Save the numbers now as the marked column (see compare)'}
-            >
-              {baseline ? 'unmark' : 'mark'}
-            </button>
-            <button type="button" style={button} onClick={() => sessionFor(active.id)?.reset()} title="Throw away the window after a rebuild">
-              reset
-            </button>
-          </div>
-          {/* The bottom row: the GIF capture. Its own row, so the four readings
-              buttons above keep their width, and the capture's countdown has room. */}
-          <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
-            <button
-              type="button"
-              style={{ ...button, flex: 1, color: gifState ? '#082f49' : '#cbd5e1', background: gifState ? '#7dd3fc' : 'rgba(30,41,59,0.9)' }}
-              disabled={gifState !== null}
-              onClick={() => captureGif(active.id, active.label)}
-              title={`Record ${GIF_CAPTURE_DEFAULTS.seconds} s of this surface at ${GIF_CAPTURE_DEFAULTS.fps} fps, at most ${GIF_CAPTURE_DEFAULTS.maxWidth} px wide, into a GIF file that downloads. Not a measurement: the frame times during the capture are not a reading of the scene.`}
-            >
-              {gifState ?? 'capture GIF'}
-            </button>
-          </div>
-          {gifDownload && (
-            <div style={{ marginTop: 4 }}>
-              <a
-                href={gifDownload.url}
-                download={gifDownload.name}
-                style={{ ...button, display: 'block', textAlign: 'center', color: '#7dd3fc' }}
-                title={gifDownload.name}
-              >
-                Save GIF · {(gifDownload.bytes / 1024).toFixed(0)} kB
-              </a>
-              <div style={{ marginTop: 3, color: '#94a3b8', fontSize: 10 }}>
-                GIF ready. If the automatic download did not arrive, use Save GIF.
-              </div>
-            </div>
-          )}
 
           {capture && (
             <div style={{ marginTop: 6 }}>
