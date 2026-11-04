@@ -35,18 +35,18 @@ describe('MapPane', () => {
     const travel = vi.fn(), keeperAction = vi.fn();
     render(<MapPane worldSeed={1793176397587} playerAtlasCellId={1885} gameTime={new Date('0351-01-03T19:12:45Z')}
       onTileClick={travel} onClose={vi.fn()} allowTravel onTownKeeperAction={keeperAction}
-      getTownBusinessName={(_burg, plot) => [1, 23].includes(plot) ? 'The Gilded Consortium' : [13, 127].includes(plot) ? 'The Gilded Remedy' : undefined} />);
+      getTownBusinessName={(_burg, plot) => [164, 186].includes(plot) ? 'The Gilded Consortium' : [5, 188].includes(plot) ? 'The Gilded Remedy' : undefined} />);
     const selector = await screen.findByLabelText('Inspect a building') as HTMLSelectElement;
     const label = (id: string) => Array.from(selector.options).find(option => option.value === id)?.text;
-    expect(label('1')).toBe('The Gilded Consortium · inn · building 2');
-    expect(label('23')).toBe('The Gilded Consortium · inn · building 24');
-    expect(label('13')).toBe('The Gilded Remedy · inn · building 14');
-    expect(label('127')).toBe('The Gilded Remedy · inn · building 128');
+    expect(label('164')).toBe('The Gilded Consortium · inn · building 165');
+    expect(label('186')).toBe('The Gilded Consortium · inn · building 187');
+    expect(label('5')).toBe('The Gilded Remedy · inn · building 6');
+    expect(label('188')).toBe('The Gilded Remedy · inn · building 189');
     fireEvent.click(screen.getByRole('button', {name: 'Find inns and taverns'}));
-    expect(label('1')).toBe('The Gilded Consortium · inn · building 2');
-    expect(label('23')).toBe('The Gilded Consortium · inn · building 24');
-    fireEvent.change(selector, {target: {value: '23'}});
-    expect(await screen.findByTestId('town-building-inspector')).toHaveTextContent('Marek Hartley');
+    expect(label('164')).toBe('The Gilded Consortium · inn · building 165');
+    expect(label('186')).toBe('The Gilded Consortium · inn · building 187');
+    fireEvent.change(selector, {target: {value: '186'}});
+    expect(await screen.findByTestId('town-building-inspector')).toHaveTextContent('Cora Fairsmith');
     expect(travel).not.toHaveBeenCalled();
     expect(keeperAction).not.toHaveBeenCalled();
   }, 60000);
@@ -55,15 +55,15 @@ describe('MapPane', () => {
     const keeperAction = vi.fn(), travel = vi.fn();
     render(<MapPane worldSeed={1793146029630} playerAtlasCellId={4337} gameTime={new Date('0351-01-03T15:54:03Z')}
       onTileClick={travel} onClose={vi.fn()} allowTravel onTownKeeperAction={keeperAction}
-      getTownBusinessName={(_burg, plot) => plot === 157 ? 'The Shadowed Enchantments' : undefined} />);
+      getTownBusinessName={(_burg, plot) => plot === 154 ? 'The Shadowed Enchantments' : undefined} />);
     const selector = await screen.findByLabelText('Inspect a building') as HTMLSelectElement;
-    expect(Array.from(selector.options).find(option => option.value === '157')?.text).toBe('The Shadowed Enchantments · inn');
+    expect(Array.from(selector.options).find(option => option.value === '154')?.text).toBe('The Shadowed Enchantments · inn');
     fireEvent.click(screen.getByRole('button', {name: 'Find inns and taverns'}));
     const values = Array.from(selector.options).map(option => option.value);
-    expect(values).toEqual(expect.arrayContaining(['33', '76', '157']));
+    expect(values).toEqual(expect.arrayContaining(['32', '119', '154']));
     expect(values).not.toContain('79');
     expect(values).not.toContain('35');
-    fireEvent.change(selector, {target: {value: '157'}});
+    fireEvent.change(selector, {target: {value: '154'}});
     expect(await screen.findByTestId('town-building-inspector')).toHaveTextContent('inn · Menaikon');
     expect(screen.getByRole('button', {name: 'Ask about guest beds'})).toBeEnabled();
     expect(keeperAction).not.toHaveBeenCalled();
@@ -75,15 +75,15 @@ describe('MapPane', () => {
   it('opens local building details and keeper actions, but hides private inspection for a distant town', async () => {
     requestMapDrillToPlayerTown(10);
     const keeperAction = vi.fn();
-    // Bryn at plot 50 is on duty at noon. Lys at plot 0 is retired, so the
-    // attendance gate correctly refuses his former generic keeper shortcut.
+    // Fenna Woodbourne keeps shop 12 and is on duty at noon. Lys Greenford at
+    // shop 18 is retired, so the attendance gate refuses that keeper shortcut.
     const props = { worldSeed: 1793146029630, gameTime: new Date('0351-01-01T12:00:00Z'), onTileClick: vi.fn(), onClose: vi.fn(), allowTravel: true, onTownKeeperAction: keeperAction };
     const view = render(<MapPane {...props} playerAtlasCellId={4565} />);
     const selector = await screen.findByLabelText('Inspect a building');
-    fireEvent.change(selector, { target: { value: '50' } });
+    fireEvent.change(selector, { target: { value: '12' } });
     expect(await screen.findByTestId('town-building-inspector')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Talk to keeper' }));
-    expect(keeperAction).toHaveBeenCalledWith(10, 50, 'talk');
+    expect(keeperAction).toHaveBeenCalledWith(10, 12, 'talk');
     view.rerender(<MapPane {...props} playerAtlasCellId={4566} />);
     expect(screen.queryByLabelText('Inspect a building')).not.toBeInTheDocument();
     expect(screen.queryByTestId('town-building-inspector')).not.toBeInTheDocument();

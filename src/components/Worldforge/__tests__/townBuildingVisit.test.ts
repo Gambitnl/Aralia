@@ -120,7 +120,8 @@ describe('known saved layout in building readers', () => {
     expect(townBuildingChoices(worldSeed,burg,2)).toEqual(current);
   });
   it('refuses an unsupported revision instead of silently inspecting another town', () => {
-    expect(()=>townBuildingChoices(worldSeed,burg,3 as never)).toThrow('unsupported layout revision');
-    expect(()=>townBuildingVisit(worldSeed,burg,19,undefined,undefined,3 as never)).toThrow('unsupported layout revision');
+    // GG-618 (2026-11-04): revisions 1 to 4 are supported now, so 5 is unknown.
+    expect(()=>townBuildingChoices(worldSeed,burg,5 as never)).toThrow('unsupported layout revision');
+    expect(()=>townBuildingVisit(worldSeed,burg,19,undefined,undefined,5 as never)).toThrow('unsupported layout revision');
   });
 });

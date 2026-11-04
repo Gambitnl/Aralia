@@ -133,13 +133,21 @@ describe('source lodging', () => {
     state.entry3DAnchor = {cellId: 1389, centerPx: [521.4, 167.91]};
     state.playerGroundPos = {tileX: 1389, tileY: 0, xM: 461.7653487070642, zM: 440.5069050835613, yM: -5.4327929628891685};
     expect(await propertyRestError(state)).toContain('below the water');
-  });
-  it('offers actual guest beds in staffed inn 106, but no retired keeper consent in inn 3', () => {
-    const active = townBuildingVisit(offer.worldSeed, 1, 106);
+    // The first call builds the whole town cold; 5 s was too short (GG-618).
+  }, 60000);
+  // GG-618 (2026-11-04): later town generation renumbered the plots, made inns
+  // workplace-only and moved guest rooms upstairs. Tavern 322 is the staffed
+  // public house in this town with a guest bed behind a usable return stair.
+  // Its keeper works the public-house band (12:00-22:59), not at 08:00.
+  it('offers actual guest beds in staffed tavern 322, but no consent outside hours or from a retired keeper', () => {
+    const active = townBuildingVisit(offer.worldSeed, 1, 322);
     expect(guestBedsForVisit(active).length).toBeGreaterThan(0);
-    expect(guestBedDescription(active, guestBedsForVisit(active)[0])).toBe('Room 5, ground floor');
-    expect(lodgingKeeperOnDuty(active, 8)).toBe(true);
-    expect(lodgingKeeperOnDuty(townBuildingVisit(offer.worldSeed, 1, 3), 8)).toBe(false);
+    expect(guestBedDescription(active, guestBedsForVisit(active)[0])).toBe('Room 1, floor 1');
+    expect(lodgingKeeperOnDuty(active, 14)).toBe(true);
+    expect(lodgingKeeperOnDuty(active, 8)).toBe(false);
+    // Inn 268 of Menaikon belongs to a retired innkeeper: no hour gives consent.
+    const retired = townBuildingVisit(1793146029630, 675, 268);
+    expect(Array.from({length: 24}, (_, hour) => lodgingKeeperOnDuty(retired, hour)).some(Boolean)).toBe(false);
     expect(guestBedsForVisit(townBuildingVisit(offer.worldSeed, 1, 52))).toEqual([]);
     for (const bed of guestBedsForVisit(active)) {
       const floor = active.plan.floors.find(f => f.level === bed.level)!;

@@ -19,7 +19,8 @@ describe('saved building source changes',()=>{
   fireEvent.click(screen.getAllByRole('button',{name:'Examine desk'})[0]);
   expect(screen.getByText('desk in the study.')).toBeInTheDocument();
   rerender(<TownBuildingInspector {...props} life={{layoutRevision:2,villagers:{}}}/>);
-  expect(screen.getByRole('heading',{name:'townhouse'})).toBeInTheDocument();
+  // GG-618 (2026-11-04): revision 2 now places an inn on plot 19.
+  expect(screen.getByRole('heading',{name:'inn'})).toBeInTheDocument();
   expect(screen.queryByText('bed in the hall.')).not.toBeInTheDocument();
   expect(screen.queryByText('desk in the study.')).not.toBeInTheDocument();
   fireEvent.change(screen.getByRole('combobox'),{target:{value:'1'}});
