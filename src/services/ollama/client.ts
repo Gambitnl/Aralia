@@ -43,6 +43,40 @@ import { generateId } from '../../utils/core/idGenerator';
 import { isGroqActive, routeGenerateForTask, routeChatForTask } from '../ai/textProviderRouter';
 import { hasGroqApiKey } from '../ai/aiProviderSettings';
 
+/** Result of preparing one selected local model without creating model prose. */
+export type ModelPreparationResult =
+    | { status: 'ready'; model: string }
+    | { status: 'not-required'; provider: 'groq' }
+    | { status: 'cancelled'; model?: string }
+    | { status: 'error'; error: string; model?: string };
+
+interface SharedModelPreparation {
+    key: string;
+    controller: AbortController;
+    waiters: number;
+    settled: boolean;
+    promise: Promise<ModelPreparationResult>;
+}
+
+const modelPreparations = new Map<string, SharedModelPreparation>();
+const MODEL_PREPARATION_TIMEOUT_MS = 300_000;
+
+function waitForSignal<T>(work: Promise<T>, signal?: AbortSignal): Promise<T> {
+    if (!signal) return work;
+    if (signal.aborted) return Promise.reject(new DOMException('Request cancelled.', 'AbortError'));
+    return new Promise<T>((resolve, reject) => {
+        const onAbort = () => {
+            signal.removeEventListener('abort', onAbort);
+            reject(new DOMException('Request cancelled.', 'AbortError'));
+        };
+        signal.addEventListener('abort', onAbort, { once: true });
+        work.then(
+            value => { signal.removeEventListener('abort', onAbort); resolve(value); },
+            error => { signal.removeEventListener('abort', onAbort); reject(error); },
+        );
+    });
+}
+
 /**
  * Low-level HTTP client for Ollama API.
  */
@@ -70,11 +104,14 @@ export class OllamaClient {
     ): Promise<Response> {
         const startTime = Date.now();
         const controller = new AbortController();
+        // An optional greeting can stop being relevant before the provider's
+        // timeout. Cancel its network work as well as ignoring its late words.
+        const signal = options.signal ? AbortSignal.any([options.signal, controller.signal]) : controller.signal;
         const id = setTimeout(() => controller.abort(), timeoutMs);
         try {
             const response = await fetch(url, {
                 ...options,
-                signal: controller.signal
+                signal
             });
             clearTimeout(id);
             return response;
@@ -82,6 +119,7 @@ export class OllamaClient {
             clearTimeout(id);
             const elapsed = Date.now() - startTime;
             if (error.name === 'AbortError') {
+                if (options.signal?.aborted) throw new Error('Request cancelled.');
                 throw new Error(`Request timed out after ${elapsed}ms (timeout set to ${timeoutMs}ms).`);
             }
             throw error;
@@ -196,7 +234,9 @@ export class OllamaClient {
         return found.name;
     }
 
-    async listModels(): Promise<OllamaModel[] | null> {
+    async listModels(options: { signal?: AbortSignal } = {}): Promise<OllamaModel[] | null> {
+        const signal = options.signal;
+        if (signal?.aborted) return null;
         const now = Date.now();
         if (
             this.cachedModelList !== null &&
@@ -205,9 +245,10 @@ export class OllamaClient {
             return this.cachedModelList;
         }
         try {
-            const res = await fetch(`${this.config.apiBase}/tags`);
+            const res = await fetch(`${this.config.apiBase}/tags`, signal ? { signal } : undefined);
             if (!res.ok) return null;
-            const data = await res.json() as { models: OllamaModel[] };
+            const data = await waitForSignal(res.json() as Promise<{ models: OllamaModel[] }>, signal);
+            if (signal?.aborted) return null;
             const models = Array.isArray(data.models) ? data.models : [];
             this.cachedModelList = models;
             this.cachedModelListTimestamp = now;
@@ -229,8 +270,195 @@ export class OllamaClient {
      * Resolve a model name for a given TaskType. Convenience wrapper around the
      * standalone `resolveModelForTask` to keep call sites tidy.
      */
-    async resolveModel(taskType: TaskType): Promise<string | null> {
-        return resolveModelForTask(this, taskType);
+    async resolveModel(taskType: TaskType, options: { signal?: AbortSignal } = {}): Promise<string | null> {
+        return resolveModelForTask(this, taskType, options);
+    }
+
+    /**
+     * Load the selected local model only when a player starts a typed dialogue
+     * turn. The empty prompt returns no NPC words; the task's context and compute
+     * choices are preserved, and concurrent matching requests share one load.
+     */
+    async prepareForTask(
+        taskType: TaskType,
+        options: { signal?: AbortSignal } = {},
+    ): Promise<ModelPreparationResult> {
+        if (isGroqActive()) return { status: 'not-required', provider: 'groq' };
+        if (options.signal?.aborted) return { status: 'cancelled' };
+
+        const stageController = new AbortController();
+        let timedOut = false;
+        const abortFromCaller = () => stageController.abort();
+        options.signal?.addEventListener('abort', abortFromCaller, { once: true });
+        const timeoutId = setTimeout(() => {
+            timedOut = true;
+            stageController.abort();
+        }, MODEL_PREPARATION_TIMEOUT_MS);
+        try {
+            return await waitForSignal(this.prepareForTaskWithin(taskType, stageController.signal), stageController.signal);
+        } catch (error) {
+            if (timedOut) {
+                const message = `Ollama model preparation timed out after ${MODEL_PREPARATION_TIMEOUT_MS}ms.`;
+                this.logPreparationFailure(taskType, message);
+                return { status: 'error', error: message };
+            }
+            if (options.signal?.aborted || stageController.signal.aborted) return { status: 'cancelled' };
+            const message = error instanceof Error ? error.message : String(error);
+            this.logPreparationFailure(taskType, message);
+            return { status: 'error', error: message };
+        } finally {
+            clearTimeout(timeoutId);
+            options.signal?.removeEventListener('abort', abortFromCaller);
+        }
+    }
+
+    private async prepareForTaskWithin(taskType: TaskType, signal: AbortSignal): Promise<ModelPreparationResult> {
+
+        const profile = getTaskProfile(taskType);
+        let model: string | null;
+        try {
+            model = await waitForSignal(this.resolveModel(taskType, { signal }), signal);
+        } catch (error) {
+            if (signal.aborted) return { status: 'cancelled' };
+            const message = error instanceof Error ? error.message : String(error);
+            this.logPreparationFailure(taskType, message);
+            return { status: 'error', error: message };
+        }
+        if (signal.aborted) return { status: 'cancelled', model: model ?? undefined };
+        if (!model) {
+            this.logPreparationFailure(taskType, 'NO_MODEL');
+            return { status: 'error', error: 'NO_MODEL' };
+        }
+
+        const computeMode = getOllamaComputeMode(profile.category);
+        const numGpu = computeMode === 'cpu' ? 0 : undefined;
+        const numCtx = profile.params.numCtx;
+        const key = JSON.stringify(['ollama', this.config.apiBase, model, numCtx, computeMode]);
+        let shared = modelPreparations.get(key);
+
+        // A canceled transport is allowed to settle before a deliberate retry
+        // starts another load for the same model.
+        if (shared?.controller.signal.aborted && !shared.settled) {
+            try {
+                await waitForSignal(shared.promise, signal);
+            } catch {
+                return { status: 'cancelled', model };
+            }
+            if (signal.aborted) return { status: 'cancelled', model };
+            shared = modelPreparations.get(key);
+        }
+
+        if (!shared) {
+            const entry: SharedModelPreparation = {
+                key,
+                controller: new AbortController(),
+                waiters: 0,
+                settled: false,
+                promise: Promise.resolve({ status: 'cancelled', model }),
+            };
+            modelPreparations.set(key, entry);
+            entry.promise = this.loadModelForTask(taskType, model, numCtx, numGpu, entry.controller)
+                .finally(() => {
+                    entry.settled = true;
+                    if (modelPreparations.get(key) === entry) modelPreparations.delete(key);
+                });
+            shared = entry;
+        }
+
+        return this.waitForSharedPreparation(shared, model, signal);
+    }
+
+    private async loadModelForTask(
+        taskType: TaskType,
+        model: string,
+        numCtx: number | undefined,
+        numGpu: number | undefined,
+        controller: AbortController,
+    ): Promise<ModelPreparationResult> {
+        const logId = generateId();
+        emitOllamaLog({ id: logId, phase: 'start', taskType, model, prompt: '' });
+        const signal = controller.signal;
+        let timedOut = false;
+        const timeoutId = setTimeout(() => {
+            timedOut = true;
+            // Keep the startup bound through response-body parsing as well as fetch headers.
+            controller.abort();
+        }, MODEL_PREPARATION_TIMEOUT_MS);
+        try {
+            const requestOptions = this.buildOptions({ numCtx, numGpu });
+            const response = await this.fetchWithTimeout(`${this.config.apiBase}/generate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                // Ollama loads the model for an empty prompt without creating a reply.
+                // keep_alive stays omitted so the service keeps its default policy.
+                body: JSON.stringify({ model, prompt: '', stream: false, options: requestOptions }),
+                signal,
+            }, MODEL_PREPARATION_TIMEOUT_MS);
+
+            if (!response.ok) throw new Error(`Ollama model preparation failed: ${response.statusText}`);
+            const data = await waitForSignal(response.json() as Promise<{ done?: boolean }>, signal);
+            if (data.done !== true) throw new Error('Ollama model preparation did not complete.');
+
+            emitOllamaLog({ id: logId, phase: 'success', taskType, model, response: '' });
+            return { status: 'ready', model };
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            emitOllamaLog({ id: logId, phase: 'error', taskType, model, error: message });
+            return timedOut
+                ? { status: 'error', error: `Ollama model preparation timed out after ${MODEL_PREPARATION_TIMEOUT_MS}ms.`, model }
+                : signal.aborted
+                ? { status: 'cancelled', model }
+                : { status: 'error', error: message, model };
+        } finally {
+            clearTimeout(timeoutId);
+        }
+    }
+
+    private logPreparationFailure(taskType: TaskType, message: string): void {
+        const id = generateId();
+        emitOllamaLog({ id, phase: 'start', taskType, prompt: '' });
+        emitOllamaLog({ id, phase: 'error', taskType, error: message });
+    }
+
+    private waitForSharedPreparation(
+        shared: SharedModelPreparation,
+        model: string,
+        signal?: AbortSignal,
+    ): Promise<ModelPreparationResult> {
+        if (signal?.aborted) {
+            if (shared.waiters === 0 && !shared.settled) {
+                shared.controller.abort();
+            }
+            return Promise.resolve({ status: 'cancelled', model });
+        }
+
+        shared.waiters += 1;
+        return new Promise(resolve => {
+            let finished = false;
+            const release = () => {
+                shared.waiters = Math.max(0, shared.waiters - 1);
+                if (shared.waiters === 0 && !shared.settled) {
+                    // Cancel the expensive load only after its last caller leaves.
+                    // Keep its entry until the transport settles so an immediate
+                    // retry cannot overlap a still-unwinding model load.
+                    shared.controller.abort();
+                }
+            };
+            const onAbort = () => {
+                if (finished) return;
+                finished = true;
+                release();
+                resolve({ status: 'cancelled', model });
+            };
+            if (signal) signal.addEventListener('abort', onAbort, { once: true });
+            shared.promise.then(result => {
+                if (finished) return;
+                finished = true;
+                signal?.removeEventListener('abort', onAbort);
+                release();
+                resolve(result);
+            });
+        });
     }
 
     /**
@@ -262,6 +490,7 @@ export class OllamaClient {
      * Call the generate endpoint.
      */
     async generate(options: {
+        signal?: AbortSignal;
         model: string;
         prompt: string;
         format?: ResponseFormat;
@@ -295,7 +524,8 @@ export class OllamaClient {
             const res = await this.fetchWithTimeout(`${this.config.apiBase}/generate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
+                body: JSON.stringify(body),
+                signal: options.signal
             });
 
             if (!res.ok) {
@@ -372,6 +602,7 @@ export class OllamaClient {
      * Returns `{ ok: false, error: 'NO_MODEL' }` if no installed model matched.
      */
     async generateForTask(options: {
+        signal?: AbortSignal;
         taskType: TaskType;
         prompt: string;
         format?: ResponseFormat;
@@ -393,7 +624,22 @@ export class OllamaClient {
         const logId = generateId();
         emitOllamaLog({ id: logId, phase: 'start', taskType: options.taskType, prompt: options.prompt });
 
-        const model = await this.resolveModel(options.taskType);
+        let model: string | null;
+        try {
+            model = await this.resolveModel(options.taskType);
+        } catch (error) {
+            // A configured model that is not installed throws during discovery.
+            // Report that failure through the same log/result path as transport
+            // errors, without silently choosing another model or leaving the
+            // player's request looking permanently pending.
+            const message = error instanceof Error ? error.message : String(error);
+            emitOllamaLog({ id: logId, phase: 'error', taskType: options.taskType, error: message });
+            return { ok: false, error: message };
+        }
+        if (options.signal?.aborted) {
+            emitOllamaLog({ id: logId, phase: 'error', taskType: options.taskType, error: 'Request cancelled.' });
+            return { ok: false, error: 'Request cancelled.' };
+        }
         if (!model) {
             emitOllamaLog({ id: logId, phase: 'error', taskType: options.taskType, error: 'NO_MODEL' });
             return { ok: false, error: 'NO_MODEL' };
@@ -401,6 +647,7 @@ export class OllamaClient {
 
         const merged: ModelParams = { ...profile.params, ...(options.overrides ?? {}) };
         const result = await this.generate({
+            signal: options.signal,
             model,
             prompt: options.prompt,
             format: options.format ?? profile.format,

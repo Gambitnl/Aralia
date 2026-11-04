@@ -37,7 +37,8 @@
  * 
  * @file src/components/CharacterCreator/CharacterCreator.tsx
  */
-import React, { useReducer, useCallback, useContext, useMemo, useState } from 'react';
+import React, { useReducer, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { prewarmOpeningModel } from '../../systems/gameEntry/prewarmOpeningModel';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   PlayerCharacter,
@@ -202,6 +203,13 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({
   onDraftChange,
   previewHeaderActions,
 }) => {
+  // Start to load the opening-scene model while the player builds a character
+  // (2026-11-04), so the opening does not wait for a cold load from disk. Only
+  // the real game creator does this: Design Preview passes its own draft key.
+  useEffect(() => {
+    if (draftStorageKey === STORAGE_KEY) prewarmOpeningModel();
+  }, [draftStorageKey]);
+
   // Load only the draft owned by this creator surface. Design Preview supplies
   // its own key so experimenting there cannot overwrite a player's live draft.
   const [state, dispatch] = useReducer(characterCreatorReducer, initialCharacterCreatorState, (initial) => {

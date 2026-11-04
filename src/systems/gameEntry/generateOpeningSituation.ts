@@ -294,6 +294,22 @@ export async function generateOpeningSituation(
 
     const prompt = `${SYSTEM_INSTRUCTION}\n\n${buildOpeningSituationPrompt(character, location, deps.moodHint)}`;
 
+    // Load the model first, under the 300 s preparation limit (Remy,
+    // 2026-11-04). A cold load from a slow disk took about 80 s, and the 90 s
+    // request limit below then had too little time left for the reply. This
+    // waits for the same shared load that the character creator started
+    // (prewarmOpeningModel). Test clients without the method skip this step.
+    if (typeof client.prepareForTask === 'function') {
+        const prepared = await client.prepareForTask('opening_situation');
+        if (prepared.status === 'error') {
+            throw new OpeningSituationUnavailableError(
+                prepared.error === 'NO_MODEL'
+                    ? 'No Ollama model available to generate the opening situation.'
+                    : `Ollama unavailable: ${prepared.error}`,
+            );
+        }
+    }
+
     const result = await client.generateForTask({
         taskType: 'opening_situation',
         prompt,

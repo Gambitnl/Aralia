@@ -147,6 +147,28 @@ describe('generateOpeningSituation', () => {
         );
     });
 
+    // 2026-11-04: the model loads first, under its own 300 s limit, so a cold
+    // load from a slow disk no longer uses up the 90 s request limit.
+    it('loads the model before the request, and fails honestly when the load fails', async () => {
+        const order: string[] = [];
+        const ready = {
+            ...fakeClient(async () => { order.push('generate'); return { ok: true, data: { response: GOOD_RESPONSE }, model: 'stub' }; }),
+            prepareForTask: async (taskType: string) => { order.push(`prepare:${taskType}`); return { status: 'ready', model: 'stub' }; },
+        } as unknown as OllamaClient;
+        await generateOpeningSituation(CHARACTER, LOCATION, { client: ready, idFactory: () => 'npc-x' });
+        expect(order).toEqual(['prepare:opening_situation', 'generate']);
+
+        let generated = false;
+        const failed = {
+            ...fakeClient(async () => { generated = true; return { ok: true, data: { response: GOOD_RESPONSE }, model: 'stub' }; }),
+            prepareForTask: async () => ({ status: 'error', error: 'Ollama model preparation timed out after 300000ms.' }),
+        } as unknown as OllamaClient;
+        await expect(generateOpeningSituation(CHARACTER, LOCATION, { client: failed })).rejects.toThrow(
+            /Ollama unavailable: Ollama model preparation timed out/,
+        );
+        expect(generated).toBe(false);
+    });
+
     it('THROWS (no fallback) when the output is unparseable', async () => {
         const client = fakeClient(async () => ({
             ok: true,
