@@ -159,6 +159,35 @@ describe('TOWNSIM_REGISTER_BURG reducer (Plan D wiring)', () => {
     expect(migrated.chronicle).toBe(oldTown.chronicle);
     expect(migrated.buildingEvents).toBe(oldTown.buildingEvents);
   });
+
+  // 2026-11-04 (GG-595 follow-up 1): a town saved before 2026-11-02 has no shop
+  // records. The next entry fills them from the saved people, once.
+  it('fills shop records for an old saved burg without replacing people or history', () => {
+    const base = { ...createMockGameState(), worldSeed: SEED };
+    const registered = worldReducer(
+      base,
+      { type: 'TOWNSIM_REGISTER_BURG', payload: { burgId: firstBurgId! } } as never,
+    ).townSim![firstBurgId!];
+    expect(Object.keys(registered.shops ?? {}).length).toBeGreaterThan(0);
+    const oldTown = { ...registered, shops: undefined };
+    const filled = worldReducer(
+      { ...base, townSim: { [firstBurgId!]: oldTown } },
+      { type: 'TOWNSIM_REGISTER_BURG', payload: { burgId: firstBurgId! } } as never,
+    ).townSim![firstBurgId!];
+
+    expect(Object.keys(filled.shops!).sort()).toEqual(Object.keys(registered.shops!).sort());
+    // Every open shop has a living keeper from the saved people.
+    for (const record of Object.values(filled.shops!)) {
+      if (record.keeperId === null) continue;
+      expect(filled.villagers[record.keeperId]?.diedDay).toBeUndefined();
+    }
+    expect(filled.villagers).toBe(oldTown.villagers);
+    expect(filled.chronicle).toBe(oldTown.chronicle);
+    expect(filled.buildingEvolution).toBe(oldTown.buildingEvolution);
+    // A second entry changes nothing.
+    expect(worldReducer({ ...base, townSim: { [firstBurgId!]: filled } },
+      { type: 'TOWNSIM_REGISTER_BURG', payload: { burgId: firstBurgId! } } as never)).toEqual({});
+  });
 });
 
 
@@ -190,7 +219,7 @@ describe('saved canonical town layout selection', () => {
   it('does not guess a revision or hydrate new-lot growth into an unversioned save', () => {
     const base = { ...createMockGameState(), worldSeed: SEED };
     const registered = buildTownSimStateForBurg(SEED, firstBurgId!, 100);
-    const oldTown = { ...registered, layoutRevision: undefined, buildingEvolution: undefined };
+    const oldTown = { ...registered, layoutRevision: undefined, buildingEvolution: undefined, shops: undefined };
     const before = JSON.stringify(oldTown);
     expect(worldReducer({ ...base, townSim: { [firstBurgId!]: oldTown } },
       { type: 'TOWNSIM_REGISTER_BURG', payload: { burgId: firstBurgId! } } as never)).toEqual({});

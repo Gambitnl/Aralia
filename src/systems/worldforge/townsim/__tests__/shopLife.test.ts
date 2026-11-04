@@ -10,6 +10,7 @@ import { advanceRegistry, type TownSimRegistry } from '../townSimRegistry';
 import {
   applyPersonalFortune,
   DRIFT_FORTUNE_RANGE,
+  fillShopsForSavedTown,
   fortuneStream,
   KEEPER_FORTUNE_RANGE,
   POOR_WEALTH,
@@ -70,6 +71,61 @@ describe('seedShopsFromRoster', () => {
     expect(shops[10]).toEqual({ keeperId: 3, sinceDay: -100, trade: 'smithy' });
     expect(shops[11]).toMatchObject({ keeperId: null, closedDay: -100 });
     expect(shops[12]).toBeUndefined();
+  });
+});
+
+/**
+ * 2026-11-04 (GG-595 follow-up 1): an old saved town without shop records gets
+ * them on the next town entry, reconciled with the saved people.
+ */
+describe('fillShopsForSavedTown', () => {
+  const plan = { plots: [
+    { id: 10, role: 'workshop', pop: { buildingType: 'smithy' } },
+    { id: 11, role: 'market' },
+    { id: 12, role: 'workshop' },
+    { id: 13, role: 'market' },
+  ] } as unknown as Pick<TownPlan, 'plots'>;
+  const roster = { burgId: 7, occupants: [
+    { id: 1, name: 'Bram Stone', workPlotId: 10 },
+    { id: 5, name: 'Ilse Marsh', workPlotId: 11 },
+    { id: 6, name: 'Oswin Reed', workPlotId: 12 },
+  ] } as unknown as TownRoster;
+
+  it("keeps a living founder, gives a dead founder's shop to the heir, closes it with no heir", () => {
+    const s = town([
+      villager({ occupantId: 1, name: 'Bram Stone', childIds: [2], diedDay: 300, bornDay: -60 * DAYS_PER_YEAR }),
+      villager({ occupantId: 2, name: 'Mara Stone', parentIds: [1], bornDay: -25 * DAYS_PER_YEAR }),
+      villager({ occupantId: 5, name: 'Ilse Marsh' }),
+      villager({ occupantId: 6, name: 'Oswin Reed', diedDay: 200 }),
+    ]);
+    const before = JSON.stringify(s);
+    const shops = fillShopsForSavedTown(plan, roster, s, 400);
+    expect(shops[10]).toEqual({ keeperId: 2, sinceDay: 300, trade: 'smithy' });
+    expect(shops[11]).toMatchObject({ keeperId: 5, sinceDay: 400 });
+    expect(shops[12]).toMatchObject({ keeperId: null, closedDay: 200 });
+    // No worker in the roster: closed from the fill day.
+    expect(shops[13]).toMatchObject({ keeperId: null, closedDay: 400 });
+    // Pure: the saved town and its chronicle are not changed.
+    expect(JSON.stringify(s)).toBe(before);
+  });
+
+  it('does not trust a roster worker whose saved villager has another name', () => {
+    const s = town([villager({ occupantId: 1, name: 'Someone Else' }), villager({ occupantId: 5, name: 'Ilse Marsh' })]);
+    const shops = fillShopsForSavedTown(plan, roster, s, 400);
+    expect(shops[10]).toMatchObject({ keeperId: null, closedDay: 400 });
+    expect(shops[11].keeperId).toBe(5);
+  });
+
+  it("gives a filled town working succession: the heir's later death passes the shop on", () => {
+    const s = town([
+      villager({ occupantId: 1, name: 'Bram Stone', childIds: [2], diedDay: 300, bornDay: -60 * DAYS_PER_YEAR }),
+      villager({ occupantId: 2, name: 'Mara Stone', parentIds: [1], spouseId: 3, bornDay: -25 * DAYS_PER_YEAR }),
+      villager({ occupantId: 3, name: 'Hal Stone', spouseId: 2 }),
+    ]);
+    s.shops = fillShopsForSavedTown(plan, roster, s, 400);
+    die(s, 2, 450);
+    expect(s.shops[10]).toEqual({ keeperId: 3, sinceDay: 450, trade: 'smithy' });
+    expect(s.chronicle.events.at(-1)).toMatchObject({ kind: 'shop_succession', subjectId: 3 });
   });
 });
 

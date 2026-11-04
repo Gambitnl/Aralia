@@ -1167,3 +1167,22 @@ Native desktop discussion, repeated recall and full document reload are verified
 Verified: 2026-10-31. Native Gwyn reaches Grangengen inn plot 0 through the real open doorway. Its firsthand-public-visit record retains the keeper's original off-duty status. One normal short rest advances past 08:00 with its daily count and cooldown; current keeper/trade availability then follows the source shift. Nessa's working packet npc_burg_40_plot_0 retains household member b83:head, life 189 and birth day -17154. Her sourced introduction states innkeeper, ownership of The Golden Barrel and town office of priest. Her family statement names spouse Katla Fairbourne. An office grants no demonstrated spellcasting.
 
 Her seven-field speaker identity and original four dialogue records survive a normal full reload with twenty-one exact PRESENT groups. Explicit family recall quotes her earlier words and direct recognition retains one first-meeting fact, disposition 50 and no duplicate dialogue record. The generated bandit exchange remains attributed hearsay without an inspected encounter binding. The public-history response instead binds actual library plot 56 and publishes one directions note. Grangengen currently has no canonical local dungeon legends; none is fabricated. The library is referred to, not visited. The owning [native receipt](../../projects/gameplay-flow/TRACKER.md#stowed-gear-clears-a-real-inn-doorway) preserves source identity, clocks and limits. Player render authority lives in [Entity Studio](entity-studio.md#empty-player-equipment-is-an-explicit-render-choice); native clearance messages live in [Town Map](town-map.md#vertical-clearance-notices).
+
+## Town residents react to the player and ask for help
+
+Verified: 2026-11-04, against `src/systems/social/npcLifeReactions.ts` and its tests.
+
+A resident's attitude to the player is a stance: warm, friendly, neutral, wary, cold or shuns. `npcGreetingStance` scores the stored disposition, the good and bad talk this NPC heard about the player, a witnessed crime in this town and the resident's sim mood. The greeting prompt in `handleTalk` uses the stance. At "shuns" the NPC turns away and no conversation opens.
+
+Both free-text lanes read the same stance from the current state through `npcChatAttitudeHint`. The dialogue window reply (`useDialogueSystem.generateResponse`) adds it to the system prompt. When the stance falls to "shuns" during a talk, that reply is the authored line "I have nothing more to say to you." and no model call is made. The conversation panel (`useConversation`) adds the stance to each non-companion speaker. Companions keep their own approval systems and get no stance line.
+
+A resident can ask the player for help with one trouble at a time. `resolveResidentTrouble` checks the troubles in this order and offers the first that is not already in the quest log:
+
+1. Fire: a town fire within 90 days, and the home still has unrepaired fire damage. The gift is 25 gold and adds 40 sim wealth.
+2. Plague: a town plague within 90 days, the resident is not rich, and a spouse or child is alive. The gift is 15 gold and adds 15.
+3. Grief: a spouse, child or parent died within 60 days, and the resident is not rich. The gift is 5 gold and adds 10.
+4. Hardship: the resident's wealth is at or below the poor line. The gift is 10 gold and adds 30.
+
+Every request is an ordinary Quest sent through OFFER_QUEST and ACCEPT_QUEST. A fire, plague or grief request id names its source chronicle event, so the same event never gives two requests. The hardship id names the sim year. HELP_TOWNSFOLK pays an accepted request in one step: the world slice charges the gold, adds the sim wealth and appends a `player_intervention` receipt; the quest slice completes the quest only when that receipt exists; the town slice records a donation deed as town talk. A replayed action, a stale quest or a short purse changes nothing.
+
+Old saved towns get shop records on the next town entry (`fillShopsForSavedTown` in `townsim/shopLife.ts`), so shop succession and closure work there too. The fill writes no chronicle events. Open items are in GG-595, GG-596 and GG-617 in `docs/projects/GLOBAL_GAPS.md`.

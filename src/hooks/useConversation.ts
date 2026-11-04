@@ -47,6 +47,7 @@ import { buildActionMemoryDispatches } from '../systems/memory/actionMemoryMatri
 import { OPENING_QUEST_ID, OPENING_QUEST_OBJECTIVE_ID } from '../systems/gameEntry/openingQuest';
 import { buildNpcDialoguePromptContext } from '../services/dialogueService';
 import { describeNpcHearsay, resolveDialogueNpc } from './useDialogueSystem';
+import { npcChatAttitudeHint } from '../systems/social/npcLifeReactions';
 
 export interface UseConversationResult {
     /** Start a new conversation with a companion */
@@ -139,6 +140,10 @@ export function useConversation(
         const knowledgeFor = (id: string): string => [
             buildNpcDialoguePromptContext(state, id, resolveDialogueNpc(state, id)),
             describeNpcHearsay(state, id),
+            // NPC lives (2026-11-04, GG-596 follow-up 2): a non-companion speaker
+            // talks with the same attitude as its greeting. Companions keep
+            // their own approval systems, so they get no stance line.
+            state.companions[id] ? '' : npcChatAttitudeHint(state, id),
         ].filter(Boolean).join(' ');
         const withKnowledge = (personality: string, id: string): string => {
             const knowledge = knowledgeFor(id);

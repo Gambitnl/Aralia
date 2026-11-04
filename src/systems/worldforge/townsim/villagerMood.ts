@@ -65,8 +65,10 @@ function kinOf(town: MoodTown, occupantId: number): Map<number, 'spouse' | 'pare
   const kin = new Map<number, 'spouse' | 'parent' | 'child'>();
   if (!v) return kin;
   if (v.spouseId !== undefined) kin.set(v.spouseId, 'spouse');
-  for (const id of v.parentIds) kin.set(id, 'parent');
-  for (const id of v.childIds) kin.set(id, 'child');
+  // A partial or hand-built record can omit the kin arrays (2026-11-04: the
+  // npcInstitutionStatements fixture). No listed kin means no kin to read.
+  for (const id of v.parentIds ?? []) kin.set(id, 'parent');
+  for (const id of v.childIds ?? []) kin.set(id, 'child');
   return kin;
 }
 

@@ -17,8 +17,10 @@ import type { RichNPC } from '../../types/world';
 import { QuestStatus, type Quest } from '../../types/quests';
 import { getGameDay } from '../../utils/core';
 import { householdFamilyAt, householdNpcAliveAt } from '../worldforge/townsim/householdNpc';
-import { villagerMood, villagerRecentLife, type Mood } from '../worldforge/townsim/villagerMood';
-import { POOR_WEALTH } from '../worldforge/townsim/shopLife';
+import { GRIEF_DAYS, villagerMood, villagerRecentLife, WORRY_DAYS, type Mood } from '../worldforge/townsim/villagerMood';
+import { POOR_WEALTH, RICH_WEALTH } from '../worldforge/townsim/shopLife';
+import { disasterSummary } from '../worldforge/townsim/disasters';
+import { hasUnrepairedBuildingFire } from '../worldforge/interior/buildingEventHistory';
 import type { LifeEvent, TownSimState } from '../worldforge/townsim/types';
 import { getRumorsForNpc } from '../intrigue/RumorMillSystem';
 import { isWantedInTown } from './watchReaction';
@@ -95,7 +97,7 @@ const MOOD_WORDS: Record<Mood, string> = {
 };
 
 function playerName(state: GameState): string {
-  return state.party[0]?.name?.trim() || 'the stranger';
+  return state.party?.[0]?.name?.trim() || 'the stranger';
 }
 
 /**
@@ -148,6 +150,25 @@ export function npcGreetingPromptLine(state: GameState, npcId: string): string {
   return parts.join(' ');
 }
 
+/**
+ * The attitude line for a free-text chat reply (2026-11-04, GG-596 follow-up 2).
+ * It is the same stance, mood and reasons that set the greeting, read again
+ * from the current state, so a talk that changed the disposition changes the
+ * next reply too. Both chat lanes use it: the dialogue window free text
+ * (useDialogueSystem.generateResponse) and the conversation panel
+ * (useConversation) for non-companion speakers.
+ */
+export function npcChatAttitudeHint(state: GameState, npcId: string): string {
+  return `Your attitude toward the player now: ${npcGreetingPromptLine(state, npcId)}`;
+}
+
+/**
+ * The authored reply when an NPC shuns the player in mid-talk. The greeting
+ * already turns away a shunning NPC, so this applies only when the stance falls
+ * to "shuns" during a conversation. No model call is made for it.
+ */
+export const NPC_SHUN_REPLY = 'I have nothing more to say to you.';
+
 /** The narration when an NPC shuns the player. */
 export function npcShunMessage(npcName: string, state: GameState): string {
   return isWantedInTown(state.notoriety?.knownCrimes, state.currentLocationId)
@@ -181,16 +202,54 @@ export function resolveNpcRecentLifeReply(state: GameState, npcId: string): stri
 // ---------------------------------------------------------------------------
 // Troubles and help requests (existing quest system)
 // ---------------------------------------------------------------------------
+//
+// 2026-11-04 (GG-596 follow-up 1): hardship was the only trouble. Fire, plague
+// and grief now also become help requests. Each trouble reads a fact the sim
+// already records; nothing here stores a second copy of it:
+// - fire: a town fire within HELP_DISASTER_DAYS, and the resident's home still
+//   has unrepaired fire damage (`hasUnrepairedBuildingFire`).
+// - plague: a town plague within HELP_DISASTER_DAYS, the resident is not rich,
+//   and a spouse or child of the resident is alive (a family to protect).
+// - grief: a spouse, child or parent died within GRIEF_DAYS, and the resident
+//   is not rich (the gift pays for the burial).
+// - hardship: the resident is poor (wealth at or below POOR_WEALTH).
+// All four use the same Quest shape, the same OFFER_QUEST and ACCEPT_QUEST path
+// and the same HELP_TOWNSFOLK transaction. Only the gold, the sim wealth and the
+// words change by kind. PRESERVED: the hardship quest id, gift and text are
+// unchanged, so a hardship request in an older save still pays out.
+
+export type TroubleKind = 'fire' | 'plague' | 'grief' | 'hardship';
 
 /** Gold the player gives to see a poor resident through hard times. */
 export const HARDSHIP_GIFT_GOLD = 10;
 /** Sim wealth the gift adds. It lifts a resident above the poor line (POOR_WEALTH). */
 export const HARDSHIP_GIFT_WEALTH = 30;
+/** Every help request has one objective: give the gold. The id is shared by all kinds. */
 export const HARDSHIP_OBJECTIVE_ID = 'give_coin';
-const HARDSHIP_QUEST_PREFIX = 'townsfolk_hardship_';
+export const HELP_OBJECTIVE_ID = HARDSHIP_OBJECTIVE_ID;
+/** A fire or plague is a trouble for this many days after the town event. */
+export const HELP_DISASTER_DAYS = WORRY_DAYS;
+
+/** The gold the player gives and the sim wealth it adds, by trouble. */
+export const HELP_TERMS: Record<TroubleKind, { gold: number; wealth: number }> = {
+  // Repairs to a burned home cost the most, and the gift restores the most.
+  fire: { gold: 25, wealth: 40 },
+  // A healer's fee. The family stays, so the wealth gain is small.
+  plague: { gold: 15, wealth: 15 },
+  // A burial. A small gift; the family keeps a little more.
+  grief: { gold: 5, wealth: 10 },
+  hardship: { gold: HARDSHIP_GIFT_GOLD, wealth: HARDSHIP_GIFT_WEALTH },
+};
+
+/** The order in which a resident names a trouble. The first that applies wins. */
+const TROUBLE_ORDER: TroubleKind[] = ['fire', 'plague', 'grief', 'hardship'];
+
+const HELP_QUEST_PREFIX = 'townsfolk_';
+const HELP_QUEST_ID = /^townsfolk_(fire|plague|grief|hardship)_/;
+const HARDSHIP_QUEST_PREFIX = `${HELP_QUEST_PREFIX}hardship_`;
 
 export interface ResidentTrouble {
-  kind: 'hardship';
+  kind: TroubleKind;
   /** What the resident says when asked. */
   text: string;
   quest: Quest;
@@ -201,45 +260,155 @@ export function hardshipQuestId(npcId: string, day: number): string {
   return `${HARDSHIP_QUEST_PREFIX}${npcId}_y${Math.floor(day / 365)}`;
 }
 
+/**
+ * The deterministic id of a fire, plague or grief request: one per resident per
+ * source chronicle event (the disaster or the death), so a second fire is a new
+ * request and a replay of the same one is not.
+ */
+export function eventHelpQuestId(kind: Exclude<TroubleKind, 'hardship'>, npcId: string, sourceEventId: number): string {
+  return `${HELP_QUEST_PREFIX}${kind}_${npcId}_e${sourceEventId}`;
+}
+
 export function isHardshipQuestId(questId: string): boolean {
   return questId.startsWith(HARDSHIP_QUEST_PREFIX);
 }
 
+/** The trouble kind of a townsfolk help request id, or undefined for any other quest. */
+export function helpQuestKind(questId: string): TroubleKind | undefined {
+  return HELP_QUEST_ID.exec(questId)?.[1] as TroubleKind | undefined;
+}
+
+export function isHelpQuestId(questId: string): boolean {
+  return helpQuestKind(questId) !== undefined;
+}
+
+/** The gold an accepted help request asks for. */
+export function helpQuestGold(quest: Pick<Quest, 'id'>): number {
+  return HELP_TERMS[helpQuestKind(quest.id) ?? 'hardship'].gold;
+}
+
+type Relation = 'spouse' | 'child' | 'parent';
+
+/** Close kin of a villager with the relation word. A dead spouse keeps spouseId. */
+function closeKin(town: TownSimState, occupantId: number): Map<number, Relation> {
+  const self = town.villagers[occupantId];
+  const kin = new Map<number, Relation>();
+  if (!self) return kin;
+  if (self.spouseId !== undefined) kin.set(self.spouseId, 'spouse');
+  for (const id of self.parentIds ?? []) kin.set(id, 'parent');
+  for (const id of self.childIds ?? []) kin.set(id, 'child');
+  return kin;
+}
+
+/** The newest town disaster of one kind within the help window, or undefined. */
+function recentDisaster(town: TownSimState, kind: 'fire' | 'plague', day: number): LifeEvent | undefined {
+  const summary = disasterSummary(kind);
+  return town.chronicle.events
+    .filter((event) => event.kind === 'disaster' && event.summary === summary
+      && event.day <= day && day - event.day <= HELP_DISASTER_DAYS)
+    .sort((a, b) => b.day - a.day || b.id - a.id)[0];
+}
+
+/** Days-ago words for a resident's own speech. */
+function agoWords(eventDay: number, day: number): string {
+  const n = day - eventDay;
+  return n <= 0 ? 'today' : n === 1 ? 'yesterday' : `${n} days ago`;
+}
+
+interface TroubleDraft {
+  kind: TroubleKind;
+  id: string;
+  title: string;
+  /** Quest log text after the resident's name. */
+  ask: string;
+  text: string;
+}
+
+/** Every trouble that applies to this resident now, in TROUBLE_ORDER. */
+function troubleDrafts(life: ResidentLife, npcId: string): TroubleDraft[] {
+  const { town, occupantId, day } = life;
+  const person = town.villagers[occupantId];
+  if (!person) return [];
+  const name = life.resident.name;
+  const rich = person.wealth >= RICH_WEALTH;
+  const kin = closeKin(town, occupantId);
+  const alive = (id: number) => {
+    const v = town.villagers[id];
+    return v !== undefined && v.bornDay <= day && (v.diedDay === undefined || v.diedDay > day);
+  };
+  const drafts: TroubleDraft[] = [];
+  for (const kind of TROUBLE_ORDER) {
+    const gold = HELP_TERMS[kind].gold;
+    if (kind === 'fire') {
+      const fire = recentDisaster(town, 'fire', day);
+      if (!fire || !hasUnrepairedBuildingFire(town.buildingEvents?.[person.homePlotId])) continue;
+      drafts.push({ kind, id: eventHelpQuestId('fire', npcId, fire.id), title: `Rebuild After the Fire for ${name}`,
+        ask: `lost part of their home in the fire and asked you for ${gold} gold to repair it.`,
+        text: `The fire ${agoWords(fire.day, day)} burned my home, and it still stands damaged. With ${gold} gold I could repair it.` });
+    } else if (kind === 'plague') {
+      const plague = recentDisaster(town, 'plague', day);
+      const family = [...kin].some(([id, relation]) => relation !== 'parent' && alive(id));
+      if (!plague || rich || !family) continue;
+      drafts.push({ kind, id: eventHelpQuestId('plague', npcId, plague.id), title: `A Healer for ${name}'s Family`,
+        ask: `fears the plague for their family and asked you for ${gold} gold to pay a healer.`,
+        text: `The sickness came ${agoWords(plague.day, day)} and I fear for my family. A healer asks ${gold} gold, and I cannot pay it.` });
+    } else if (kind === 'grief') {
+      if (rich) continue;
+      const death = town.chronicle.events
+        .filter((event) => event.kind === 'death' && kin.has(event.subjectId)
+          && event.day <= day && day - event.day <= GRIEF_DAYS)
+        .sort((a, b) => b.day - a.day || b.id - a.id)[0];
+      if (!death) continue;
+      const relation = kin.get(death.subjectId)!;
+      const dead = town.villagers[death.subjectId]?.name ?? 'my kin';
+      drafts.push({ kind, id: eventHelpQuestId('grief', npcId, death.id), title: `A Burial for ${dead}`,
+        ask: `is in mourning for their ${relation} ${dead} and asked you for ${gold} gold for the burial.`,
+        text: `My ${relation} ${dead} died ${agoWords(death.day, day)}. I cannot pay for a proper burial. Could you spare ${gold} gold?` });
+    } else if (person.wealth <= POOR_WEALTH) {
+      drafts.push({ kind, id: hardshipQuestId(npcId, day), title: `Hard Times for ${name}`,
+        ask: `has fallen on hard times and asked you for ${gold} gold to get through them.`,
+        text: `Times are hard. My purse is nearly empty. If you could spare ${gold} gold, I would not forget it.` });
+    }
+  }
+  return drafts;
+}
+
 /**
- * The trouble a resident would ask the player to help with, if any.
- * Only hardship is a trouble for now: a living adult at or below POOR_WEALTH.
- * A request already in the quest log (offered, active or done) is not repeated;
- * an abandoned one can be offered again.
+ * The trouble a resident would ask the player to help with, if any. The first
+ * trouble in TROUBLE_ORDER that is not already in the quest log wins. A request
+ * already in the log (offered, active or done) is not repeated; an abandoned one
+ * can be offered again. So after the player helps with a fire, the same resident
+ * can still ask for help with a burial.
  */
 export function resolveResidentTrouble(state: GameState, npcId: string): ResidentTrouble | undefined {
   const life = resolveResidentLife(state, npcId);
   if (!life) return undefined;
-  const person = life.town.villagers[life.occupantId];
-  if (!person || person.wealth > POOR_WEALTH) return undefined;
-  const id = hardshipQuestId(npcId, life.day);
-  const prior = state.questLog.find((quest) => quest.id === id);
-  if (prior && prior.status !== QuestStatus.Abandoned) return undefined;
+  const open = troubleDrafts(life, npcId).find((draft) => {
+    const prior = state.questLog.find((quest) => quest.id === draft.id);
+    return !prior || prior.status === QuestStatus.Abandoned;
+  });
+  if (!open) return undefined;
   const name = life.resident.name;
+  const gold = HELP_TERMS[open.kind].gold;
   const quest: Quest = {
-    id,
-    title: `Hard Times for ${name}`,
-    description: `${name} has fallen on hard times and asked you for ${HARDSHIP_GIFT_GOLD} gold to get through them.`,
+    id: open.id,
+    title: open.title,
+    description: `${name} ${open.ask}`,
     giverId: npcId,
     giverName: name,
     status: QuestStatus.Available,
-    objectives: [{ id: HARDSHIP_OBJECTIVE_ID, description: `Give ${name} ${HARDSHIP_GIFT_GOLD} gold.`, isCompleted: false }],
+    objectives: [{ id: HELP_OBJECTIVE_ID, description: `Give ${name} ${gold} gold.`, isCompleted: false }],
   };
-  return {
-    kind: 'hardship',
-    text: `Times are hard. My purse is nearly empty. If you could spare ${HARDSHIP_GIFT_GOLD} gold, I would not forget it.`,
-    quest,
-  };
+  return { kind: open.kind, text: open.text, quest };
 }
 
-/** The accepted hardship request this resident is waiting on, if any. */
-export function activeHardshipQuest(state: GameState, npcId: string): Quest | undefined {
-  return state.questLog.find((quest) => isHardshipQuestId(quest.id) && quest.giverId === npcId && quest.status === QuestStatus.Active);
+/** The accepted help request (any kind) this resident is waiting on, if any. */
+export function activeHelpQuest(state: GameState, npcId: string): Quest | undefined {
+  return state.questLog.find((quest) => isHelpQuestId(quest.id) && quest.giverId === npcId && quest.status === QuestStatus.Active);
 }
+
+/** @deprecated Kept for older callers; every help kind now counts. Use activeHelpQuest. */
+export const activeHardshipQuest = activeHelpQuest;
 
 /** The town receipt for a help gift, keyed by the quest id. */
 export function helpReceipt(town: TownSimState, questId: string): LifeEvent | undefined {
@@ -250,6 +419,14 @@ export type HelpTownsfolkResult =
   | { status: 'resolved'; burgId: number; town: TownSimState; gold: number; outcome: LifeEvent }
   | { status: 'not_found' | 'insufficient_gold' | 'already_resolved' };
 
+/** The receipt line, by trouble. The hardship words are the original ones. */
+const HELP_RECEIPT_WORDS: Record<TroubleKind, string> = {
+  fire: 'to repair their home after the fire',
+  plague: 'to pay a healer during the plague',
+  grief: 'for a burial',
+  hardship: 'in hard times',
+};
+
 /**
  * One atomic help transaction, in the style of resolveTownSituation: the player
  * pays the gift, the resident's sim wealth rises, and the town chronicle gets a
@@ -257,27 +434,30 @@ export type HelpTownsfolkResult =
  * Stale, replayed and unaffordable inputs fail closed and change nothing.
  */
 export function resolveHelpTownsfolk(state: GameState, npcId: string, questId: string): HelpTownsfolkResult {
-  const quest = activeHardshipQuest(state, npcId);
-  if (!quest || quest.id !== questId) return { status: 'not_found' };
+  const quest = state.questLog.find((entry) => entry.id === questId && isHelpQuestId(entry.id)
+    && entry.giverId === npcId && entry.status === QuestStatus.Active);
+  if (!quest) return { status: 'not_found' };
+  const kind = helpQuestKind(quest.id)!;
+  const terms = HELP_TERMS[kind];
   const life = resolveResidentLife(state, npcId);
   if (!life) return { status: 'not_found' };
   if (helpReceipt(life.town, questId)) return { status: 'already_resolved' };
-  if (state.gold < HARDSHIP_GIFT_GOLD) return { status: 'insufficient_gold' };
+  if (state.gold < terms.gold) return { status: 'insufficient_gold' };
   const person = life.town.villagers[life.occupantId];
-  const actorName = state.party[0]?.name?.trim() || 'A traveler';
+  const actorName = state.party?.[0]?.name?.trim() || 'A traveler';
   const outcome: LifeEvent = {
     id: life.town.chronicle.nextEventId,
     day: life.day,
     kind: 'player_intervention',
     subjectId: life.occupantId,
     relatedIds: [],
-    summary: `${actorName} gave ${person.name} ${HARDSHIP_GIFT_GOLD} gold in hard times.`,
+    summary: `${actorName} gave ${person.name} ${terms.gold} gold ${HELP_RECEIPT_WORDS[kind]}.`,
     provenance: { sourceKey: `help:${questId}`, actorName },
   };
   const town: TownSimState = {
     ...life.town,
-    villagers: { ...life.town.villagers, [life.occupantId]: { ...person, wealth: person.wealth + HARDSHIP_GIFT_WEALTH } },
+    villagers: { ...life.town.villagers, [life.occupantId]: { ...person, wealth: person.wealth + terms.wealth } },
     chronicle: { ...life.town.chronicle, events: [...life.town.chronicle.events, outcome], nextEventId: life.town.chronicle.nextEventId + 1 },
   };
-  return { status: 'resolved', burgId: life.burgId, town, gold: state.gold - HARDSHIP_GIFT_GOLD, outcome };
+  return { status: 'resolved', burgId: life.burgId, town, gold: state.gold - terms.gold, outcome };
 }

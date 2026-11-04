@@ -37,6 +37,7 @@ import { raidPressureForBurg } from "../../systems/worldforge/dungeon/world/raid
 import {
   buildTownSimStateForBurg,
   buildingEvolutionForBurg,
+  shopsForSavedBurg,
 } from "../../systems/worldforge/townsim/townSimRegistration";
 import { resolveTownSituation } from "../../systems/worldforge/townsim/townSituation";
 import { resolveHelpTownsfolk } from "../../systems/social/npcLifeReactions";
@@ -480,22 +481,35 @@ export function worldReducer(
       const registry = state.townSim ?? {}; // legacy saves may lack townSim
       if (registry[burgId]) {
         const existing = registry[burgId];
-        if (existing.buildingEvolution) return {};
+        // 2026-11-04 (GG-595 follow-up 1): a saved town can also lack shop
+        // records (saved before 2026-11-02). Each missing part is filled on its
+        // own; a town that has both returns no change, as before.
+        if (existing.buildingEvolution && existing.shops) return {};
         // An unversioned saved town may predate today's streets and lot IDs.
         // Keep its people/history intact until source admission resolves that
-        // layout; never attach growth geometry from an unrelated new town.
+        // layout; never attach growth geometry or shop plots from an unrelated
+        // new town.
         if (existing.layoutRevision === undefined) return {};
         // Old saves already own their people and history. Hydrate only the
-        // immutable lot-safe growth briefs that did not exist in that schema.
+        // immutable lot-safe growth briefs and the shop records that did not
+        // exist in that schema. The shop fill reads the saved villagers, so an
+        // heir keeps a dead founder's shop; it writes no chronicle events.
         return {
           townSim: {
             ...registry,
             [burgId]: {
               ...existing,
-              buildingEvolution: buildingEvolutionForBurg(
+              buildingEvolution: existing.buildingEvolution ?? buildingEvolutionForBurg(
                 state.worldSeed,
                 burgId,
                 existing.layoutRevision,
+              ),
+              shops: existing.shops ?? shopsForSavedBurg(
+                state.worldSeed,
+                burgId,
+                existing,
+                existing.layoutRevision,
+                getGameDay(state.gameTime),
               ),
             },
           },

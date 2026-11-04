@@ -42,6 +42,7 @@ import { buildRumorDialogueContext } from '../systems/intrigue/RumorMillSystem';
 import { buildPropagatedFactDialogueContext } from '../systems/memory/factPropagation';
 import { getGameDay } from '../utils/core';
 import {currentNpcDialogueProfile,generatedDialogueSpeakerKey} from '../systems/social/npcDialogueMemory';
+import { npcChatAttitudeHint, npcGreetingStance, NPC_SHUN_REPLY } from '../systems/social/npcLifeReactions';
 
 /**
  * Resolves a dialogue speaker from BOTH NPC tables (agora-f821.6, deepdive F7).
@@ -156,13 +157,18 @@ export const useDialogueSystem = (
         // facts that arrived through propagateFact. Kept separate from the witness
         // block above, because hearsay may be wrong and eyewitness memory may not.
         const hearsayHint = describeNpcHearsay(gameState, session.npcId);
+        // NPC lives (2026-11-04, GG-596 follow-up 2): the free-text reply uses
+        // the same attitude as the greeting (warm, cold, wary...), read from the
+        // current state so a change during the talk reaches the next reply.
+        const reaction = npcGreetingStance(gameState, session.npcId);
+        const attitudeHint = npcChatAttitudeHint(gameState, session.npcId);
         const basePrompt = currentNpcDialogueProfile(gameState,npc.id) ?? '';
         if (!basePrompt) throw new Error("This speaker has no dialogue profile.");
         const speakerKey=generatedDialogueSpeakerKey(gameState,npc.id);
         if (!speakerKey) throw new Error('This speaker has no current identity.');
         const playerPrompt=sanitizeAIPromptText(prompt ?? '');
         const requestId=crypto.randomUUID();
-        const systemPrompt = [basePrompt, speechHint, memoryHint, hearsayHint]
+        const systemPrompt = [basePrompt, speechHint, memoryHint, hearsayHint, attitudeHint]
             .filter(Boolean)
             .join(' ');
 
@@ -172,6 +178,13 @@ export const useDialogueSystem = (
             && generatedDialogueSpeakerKey(latestState.current,npc.id)===speakerKey
             && currentNpcDialogueProfile(latestState.current,npc.id)===basePrompt;
         if (!stillOwned()) throw new Error('This reply is no longer requested.');
+        if (reaction.refuses) {
+            // The stance fell to "shuns" during this talk. The NPC gives the
+            // authored refusal and no model call is made. This is authored
+            // speech, so it carries no generated-exchange publication.
+            dispatch({ type: 'SET_LAST_NPC_INTERACTION', payload: { npcId: npc.id, response: NPC_SHUN_REPLY } });
+            return NPC_SHUN_REPLY;
+        }
         try {
             const result = await OllamaTextService.generateNPCResponse(
                 npc.name,

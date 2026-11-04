@@ -15,8 +15,10 @@
  *     (worldSeed, burgId, day, occupantId), never from the life-event rng, so
  *     every existing death, birth and economy draw stays byte-identical.
  *
- * PRESERVED: old saves without `shops` stay "untracked"; rules 1 and 2 then do
- * nothing. Rule 3 runs for every town (it needs no shop record).
+ * PRESERVED: a town without `shops` stays "untracked"; rules 1 and 2 then do
+ * nothing. Rule 3 runs for every town (it needs no shop record). Since
+ * 2026-11-04 an old saved town with a known layout revision gets its records
+ * on the next town entry (fillShopsForSavedTown, TOWNSIM_REGISTER_BURG).
  *
  * All functions here are pure apart from the explicit `state` argument that
  * rollTownDay already owns as its private clone.
@@ -129,6 +131,68 @@ export function seedShopsFromRoster(
     shops[plot.id] = worker
       ? { keeperId: worker.id, sinceDay: startDay, trade }
       : { keeperId: null, sinceDay: startDay, closedDay: startDay, trade };
+  }
+  return shops;
+}
+
+/**
+ * Fill shop records for a saved town that predates them (2026-11-04, GG-595
+ * follow-up 1). A town saved before 2026-11-02 has people and history but no
+ * `shops`, so no shop could pass to an heir or close. This lazy fill runs once,
+ * on the next town entry, and gives such a town the same records a new town
+ * gets, reconciled with what happened since the town was seeded:
+ *  - the founding keeper comes from the canonical roster, as in
+ *    seedShopsFromRoster. The roster must match the saved people: a worker id
+ *    whose saved villager has another name is not trusted, and that shop
+ *    starts closed;
+ *  - a living founder keeps the shop;
+ *  - a dead founder's shop goes to the heir that rule 1 picks today (eldest
+ *    living adult child with no shop, then the spouse), from the death day;
+ *  - with no heir, the shop is closed from the death day, so rule 2 can reopen
+ *    it at the next year boundary when the closure is a year old.
+ * The fill writes NO chronicle events: the sim did not record those changes
+ * when they happened, and a back-dated diary line would invent history.
+ * Pure: returns new records and mutates nothing.
+ */
+export function fillShopsForSavedTown(
+  plan: Pick<TownPlan, 'plots'>,
+  roster: TownRoster,
+  town: Pick<TownSimState, 'villagers'>,
+  day: number,
+): Record<number, TownShopRecord> {
+  const seeded = seedShopsFromRoster(plan, roster, day);
+  const shops: Record<number, TownShopRecord> = {};
+  // Founders first, so a living founder keeps their own shop before any heir
+  // of another shop is chosen.
+  const pending: number[] = [];
+  for (const plotId of sortedPlotIds(seeded)) {
+    const record = seeded[plotId];
+    const worker = roster.occupants.find((o) => o.id === record.keeperId);
+    const founder = record.keeperId === null ? undefined : town.villagers[record.keeperId];
+    if (!founder || !worker || founder.name !== worker.name) {
+      shops[plotId] = { keeperId: null, sinceDay: day, closedDay: day, trade: record.trade };
+    } else if (isAlive(founder)) {
+      shops[plotId] = record;
+    } else {
+      pending.push(plotId);
+    }
+  }
+  for (const plotId of pending) {
+    const record = seeded[plotId];
+    const founder = town.villagers[record.keeperId!];
+    const diedDay = founder.diedDay ?? day;
+    const holders = shopKeeperIds(shops);
+    const eligible = (v: LivingVillager | undefined): v is LivingVillager =>
+      v !== undefined && isAlive(v) && isAdult(v, day) && !holders.has(v.occupantId);
+    const children = founder.childIds
+      .map((id) => town.villagers[id])
+      .filter(eligible)
+      .sort((a, b) => a.bornDay - b.bornDay || a.occupantId - b.occupantId);
+    const spouse = founder.spouseId !== undefined ? town.villagers[founder.spouseId] : undefined;
+    const heir = children[0] ?? (eligible(spouse) ? spouse : undefined);
+    shops[plotId] = heir
+      ? { keeperId: heir.occupantId, sinceDay: diedDay, trade: record.trade }
+      : { keeperId: null, sinceDay: diedDay, closedDay: diedDay, trade: record.trade };
   }
   return shops;
 }

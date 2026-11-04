@@ -1657,13 +1657,31 @@
           "verified": "2026-11-02"
         },
         {
-          "title": "More troubles and wider stance use",
+          "title": "Fire, plague and grief help requests",
+          "status": "done",
+          "status_note": "GG-596 follow-up 1: a damaged home after a fire, a family at risk in a plague and a burial after a kin death become help requests through OFFER_QUEST and HELP_TOWNSFOLK, each with its own gold and sim wealth.",
+          "verified": "2026-11-04"
+        },
+        {
+          "title": "Free-text chat uses the greeting stance",
+          "status": "done",
+          "status_note": "GG-596 follow-up 2: the dialogue window reply and the conversation panel read the current stance; a stance that falls to shuns gives an authored refusal with no model call.",
+          "verified": "2026-11-04"
+        },
+        {
+          "title": "Old saved towns get shop records",
+          "status": "done",
+          "status_note": "GG-595 follow-up 1: on the next town entry, fillShopsForSavedTown gives a saved town shop owners and working inheritance, from the saved people and with no back-dated events.",
+          "verified": "2026-11-04"
+        },
+        {
+          "title": "Remaining troubles, stance and identity work",
           "status": "planned",
-          "status_note": "GG-595 and GG-596 follow-ups: fire, plague, grief and closed-shop troubles; stance in free-text conversation; faction standing; old-save shop backfill; heir identity in 3D."
+          "status_note": "GG-595 and GG-596 follow-ups: closed-shop trouble; item help (medicine); faction standing in the stance; heir merchant identity and hours; 3D check of an inherited shop (GG-617)."
         }
       ],
       "tier": "strategic",
-      "updated": "2026-11-02"
+      "updated": "2026-11-04"
     },
     {
       "id": "village-biome-flavor-coverage",

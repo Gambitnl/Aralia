@@ -41,7 +41,7 @@ import { makeSeedPath, seedFromPath } from '../seedPath';
 import { DAYS_PER_YEAR } from './constants';
 import { assignKeyNpcs } from './keyNpcs';
 import { initTownSimState } from './townSim';
-import { seedShopsFromRoster } from './shopLife';
+import { fillShopsForSavedTown, seedShopsFromRoster } from './shopLife';
 import { advanceTown } from './townSimRegistry';
 import type { TownSimState } from './types';
 import type { TownPlan } from '../artifacts';
@@ -129,6 +129,28 @@ export function buildingEvolutionForBurg(
     cultureType: getBurgCultureType(worldSeed, burgId),
     climate: climateForBiomeId(biomeId),
   });
+}
+
+/**
+ * Shop records for a previously saved burg that has none (2026-11-04, GG-595
+ * follow-up 1). Like buildingEvolutionForBurg, this rebuilds only the missing
+ * part from the saved layout revision. The saved villagers, chronicle and
+ * history are read, never replaced. See fillShopsForSavedTown for the rules.
+ */
+export function shopsForSavedBurg(
+  worldSeed: number,
+  burgId: number,
+  town: Pick<TownSimState, 'villagers'>,
+  layoutRevision: TownLayoutRevision,
+  day: number,
+): NonNullable<TownSimState['shops']> {
+  const atlas = getBridgeAtlas(worldSeed);
+  const enginePlan = getCanonicalTownPlan(atlas, worldSeed, burgId, layoutRevision);
+  const { plan } = toArtifactPlan(enginePlan, burgId);
+  const roster = generateTownRoster(plan, canonicalTownSeedPath(worldSeed, burgId), {
+    nameFor: getBurgNamer(worldSeed, burgId),
+  });
+  return fillShopsForSavedTown(plan, roster, town, day);
 }
 
 /**

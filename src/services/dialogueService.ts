@@ -40,7 +40,7 @@ import type { NpcDialoguePublication } from '../types/memory';
 import type { WorldBusiness } from '../types/business';
 import { shareableRumorNotes, rumorSubject } from '../systems/companions/companionRumors';
 import { resolveNpcLocalDirections } from '../systems/travel/npcLocalDirections';
-import { activeHardshipQuest, HARDSHIP_GIFT_GOLD, npcGreetingStance, resolveNpcRecentLifeReply, resolveResidentTrouble } from '../systems/social/npcLifeReactions';
+import { activeHelpQuest, helpQuestGold, npcGreetingStance, resolveNpcRecentLifeReply, resolveResidentTrouble } from '../systems/social/npcLifeReactions';
 import type { Quest } from '../types/quests';
 
 const TOPIC_REGISTRY: Record<string, ConversationTopic> = {};
@@ -385,7 +385,9 @@ const HOUSEHOLD_TOPICS: ConversationTopic[] = [
   // NPC lives (2026-11-02): the resident's own sim life, troubles and the help the player gives.
   {id:'household_news', label:'How have you been?', category:'personal', playerPrompt:'How have you been?', isOneTime:true},
   {id:'household_trouble', label:'Is something troubling you?', category:'personal', playerPrompt:'Is something troubling you?', isOneTime:true},
-  {id:'household_help', label:'Here is the coin you asked for.', category:'personal', playerPrompt:`Here is the ${HARDSHIP_GIFT_GOLD} gold you asked for.`, isOneTime:true},
+  // 2026-11-04: the gift now depends on the trouble (fire, plague, grief or
+  // hardship), so the player line names no fixed amount.
+  {id:'household_help', label:'Here is the coin you asked for.', category:'personal', playerPrompt:'Here is the gold you asked for.', isOneTime:true},
 ];
 export function resolveHouseholdPersonalReply(gameState: GameState, session: DialogueSession, topicId: string, npc?: NPC): string | undefined {
   if (topicId==='conversation_recall') {
@@ -445,7 +447,8 @@ export function resolveHouseholdPersonalReply(gameState: GameState, session: Dia
     return stance==='cold'||stance==='shuns' ? undefined : resolveResidentTrouble(gameState,resident.id)?.text;
   }
   if (topicId === 'household_help') {
-    return activeHardshipQuest(gameState,resident.id) && gameState.gold >= HARDSHIP_GIFT_GOLD
+    const quest=activeHelpQuest(gameState,resident.id);
+    return quest && gameState.gold >= helpQuestGold(quest)
       ? 'Thank you. I will not forget this.' : undefined;
   }
   if (topicId === 'household_meeting') {
@@ -690,7 +693,7 @@ export function processTopicSelection(
     ...(directText !== undefined ? {directReply: {npcId: session.npcId, text: directText,...(dialogue ? {dialogue} : {})}} : {}),
     ...(storefront ? { openMerchant: { npcId: session.npcId, businessId: storefront.id, ...(rumorInquiry ? {initialTab: 'gossip' as const} : {}) } } : {}),
     ...(directText !== undefined && topicId==='household_trouble' ? (() => { const trouble=resolveResidentTrouble(gameState,session.npcId); return trouble ? {offerQuest: trouble.quest} : {}; })() : {}),
-    ...(directText !== undefined && topicId==='household_help' ? (() => { const quest=activeHardshipQuest(gameState,session.npcId); return quest ? {helpTownsfolk: {npcId: session.npcId, questId: quest.id}} : {}; })() : {}),
+    ...(directText !== undefined && topicId==='household_help' ? (() => { const quest=activeHelpQuest(gameState,session.npcId); return quest ? {helpTownsfolk: {npcId: session.npcId, questId: quest.id}} : {}; })() : {}),
   };
 }
 
