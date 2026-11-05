@@ -11,9 +11,12 @@
  *     tube's radius pinch inside an anchored window; the perpendicular
  *     position re-centers on the slice centroid. No pinch in window = the
  *     station stays (honest: geometry gets a vote, not a veto).
- *   - every digit joint: re-centered inside its own finger tube by a local
- *     centroid, moved perpendicular to the chain only. Too few local
- *     samples = the joint stays and the report says so.
+ *   - thumbs: a tube TRACE from the in-mesh thumb_01, link by link.
+ *   - the four fingers (index..pinky): a tip-inward TRACE gives each
+ *     finger's own centerline; the chain is then STRAIGHTENED — knuckle
+ *     (rig row station, traced cross-section, dorsal bias) to tip, the two
+ *     middle joints on that straight line (agora-e758, 2026-11-05). Too few
+ *     samples = the finger keeps its joints and the report says so.
  *
  * Output goes through the Skeleton Lab's landmark door:
  * <id>.landmarks.json { joints, auto } — the rig job pins these on its
@@ -23,7 +26,12 @@
  * re-saves every pin as manual (the lab has no provenance) — rerun this
  * tool after manual sessions if you want geometry to re-vote.
  *
- * Run: node tools/entities3d/centerlineFit.mjs <id> [...] [--dry]
+ * Run: node tools/entities3d/centerlineFit.mjs <id> [...] [--dry] [--no-fingers]
+ *   --no-fingers  skip the finger trace (a stale finger fit then drops out
+ *                 of the landmarks file on write, and the rig job falls back
+ *                 to its heuristic finger chains)
+ *   CENTERLINE_DEBUG=1  print the arm radius profile and every finger's
+ *                 per-slice trace (x:radius:y,z in mm) for diagnosis
  * Then: node tools/entities3d/rigBaseMeshes.mjs --pack <id> (+ bump
  * BASE_MESH_RIG_VERSION in baseMeshCatalog.ts) to bake the result.
  */
@@ -35,14 +43,18 @@ const BASE_DIR = path.join(ROOT, 'public', 'references', 'basemesh');
 
 const argv = process.argv.slice(2);
 const DRY = argv.includes('--dry');
-// --fingers: the tip-inward finger trace. PARKED 2026-08-24: it places
-// chains beautifully at REST (each inside its own splayed finger) but the
-// pack clips are authored for PARALLEL fingers — splayed flexion axes
-// scissor the curls into each other under Walk/Idle. Until chains are
-// STRAIGHTENED (parallel flexion axes, the pro convention), the heuristic
-// finger landmarks stay the motion-good default.
-const FINGERS = argv.includes('--fingers');
-const ids = argv.filter((a) => a !== '--dry' && a !== '--fingers');
+// The tip-inward finger trace. History: PARKED 2026-08-24 behind
+// --fingers — it placed chains inside each finger at REST, but the chains
+// followed the traced curve, so the flexion axes splayed and the pack clips
+// (authored for PARALLEL fingers) scissored the curls under Walk/Idle.
+// UN-PARKED 2026-11-05 (agora-e758, Remy's ruling on sheet "Board Sweep
+// Decisions" q12): the chains are now STRAIGHTENED (see the finger block),
+// and the trace is the DEFAULT. Proof on the three lowpoly bodies: gate
+// S1a passes on every finger joint, Walk and Idle t=0.5 captures are
+// coherent, and Greeting finger-only crossings fell 27 -> 13.
+// --fingers is still accepted (it was the old opt-in) and changes nothing.
+const FINGERS = !argv.includes('--no-fingers');
+const ids = argv.filter((a) => a !== '--dry' && a !== '--fingers' && a !== '--no-fingers');
 if (!ids.length) throw new Error('usage: node tools/entities3d/centerlineFit.mjs <id> [...] [--dry]');
 
 // ---------------------------------------------------------------- glb parse
@@ -218,6 +230,7 @@ for (const id of ids) {
     const tube = samples.filter((p) => p[0] * sgn > Math.abs(sh[0]) + 0.02 * H && Math.abs(p[1] - sh[1]) < 0.13 * H);
     const flip = tube.map((p) => [p[0] * sgn, p[1], p[2]]); // work in +x
     const prof = tubeProfile(flip, 0, Math.abs(sh[0]) + 0.02 * H, Math.abs(tip[0]) + 0.01, 0.008 * H);
+    if (process.env.CENTERLINE_DEBUG) console.log(`    dbg arm_${side} x:r`, prof.filter((s) => s.a > 0.3 * H).map((s) => `${(s.a * 1000).toFixed(0)}:${(s.r * 1000).toFixed(1)}`).join(' '));
     for (const [bone, win] of [[`lowerarm_${side}`, 0.05], [`hand_${side}`, 0.04]]) {
       const cur = joints.get(bone);
       const r = pinchSnap(prof, 0, [Math.abs(cur[0]) * 1, cur[1], cur[2]], win * H);
@@ -381,16 +394,20 @@ for (const id of ids) {
       report.push(`  fingers_${side}: kept (tip band never split into 4, best ${clusters.length})`);
       continue;
     }
-    const tips = clusters
+    // each tip carries its cluster centroid AND the finger's own outer end
+    // (max x of the cluster): the straightened chain runs through the
+    // centroid and stops just inside that end (agora-e758)
+    const tipGroups = clusters
       .sort((a, b) => b.length - a.length)
       .slice(0, 4)
-      .map((g) => [0, 1, 2].map((k) => g.reduce((s, p) => s + p[k], 0) / g.length));
+      .map((g) => ({ c: [0, 1, 2].map((k) => g.reduce((s, p) => s + p[k], 0) / g.length), end: Math.max(...g.map((p) => p[0])) }));
     report.push(`  fingers_${side}: 4 tips at gap ${(usedGap * 1000).toFixed(1)}mm`);
     // assign tips to fingers by ANATOMY, not by the (wrong) old joints:
     // palm-down T-pose, thumb forward (+z) — so index..pinky order by z
     // descending. The thumb itself never reaches the tip band.
     const fingerNames = ['index', 'middle', 'ring', 'pinky'];
-    tips.sort((a, b) => b[2] - a[2]);
+    tipGroups.sort((a, b) => b.c[2] - a.c[2]);
+    const tips = tipGroups.map((t) => t.c);
     // SLICE-WALK from the tips inward (Remy's "...what?!" 2026-08-24: a
     // plain search ball spans the 2mm inter-finger gap, centroids drift
     // into the crack, chains cross). Per x-slice, cluster at the SAME gap
@@ -439,39 +456,94 @@ for (const id of ids) {
         f.radii.push(r);
       }
     }
+    if (process.env.CENTERLINE_DEBUG) for (const f of fingers) console.log(`    dbg ${f.name}_${side} x/r/n:`, f.line.slice(1).map((c, i) => `${(c[0] * 1000).toFixed(0)}:${(f.radii[i] * 1000).toFixed(1)}:${((c[1]) * 1000).toFixed(0)},${(c[2] * 1000).toFixed(0)}`).join(' '));
     for (const f of fingers) {
       const line = f.line;
       if (line.length < 6) {
         report.push(`  ${f.name}_${side}: kept (trace only ${line.length} slices)`);
         continue;
       }
-      // the true knuckle (MCP) sits a bit INSIDE the palm from the web:
-      // extend the last direction by one slice-and-a-half
-      const tail = line[line.length - 1];
-      const prev = line[Math.max(0, line.length - 4)];
-      let inDir = [tail[0] - prev[0], tail[1] - prev[1], tail[2] - prev[2]];
-      const il = Math.hypot(...inDir) || 1;
-      inDir = inDir.map((v) => v / il);
-      const knuckle = tail.map((v, k) => v + inDir[k] * 1.5 * SLICE);
-      line.push(knuckle);
-      // arc-length stations tip -> knuckle; joints at knuckle 0/45/75/97%
-      const arc = [0];
-      for (let i = 1; i < line.length; i++) arc.push(arc[i - 1] + Math.hypot(line[i][0] - line[i - 1][0], line[i][1] - line[i - 1][1], line[i][2] - line[i - 1][2]));
-      const L = arc[arc.length - 1];
-      const at = (fracFromKnuckle) => {
-        const want = L * (1 - fracFromKnuckle); // arc runs from the TIP
-        let i = 0;
-        while (i < arc.length - 1 && arc[i + 1] < want) i++;
-        const t = (want - arc[i]) / Math.max(arc[i + 1] - arc[i], 1e-9);
-        return line[i].map((v, k) => v + (line[Math.min(i + 1, line.length - 1)][k] - v) * t);
+      // STRAIGHTENED CHAIN (agora-e758, Remy's ruling 2026-09-28 on sheet
+      // "Board Sweep Decisions" q12: straighten the chains in Aralia).
+      //
+      // What changed, and why:
+      //  1. The two middle joints used to sit ON the traced curve (45% and
+      //     75% of its arc). A curve has small kinks, so the bones of one
+      //     finger pointed in different directions and their flexion axes
+      //     turned away from each other. The pack clips curl the fingers
+      //     about PARALLEL axes, so the curls scissored (Walk crumple, 24e).
+      //     Now the middle joints sit on the STRAIGHT line from the knuckle
+      //     center to the tip, at the same 45% and 75% stations. This is the
+      //     convention of the pro reference rig (GabrielNeias hand).
+      //  2. The knuckle STATION (how far along the finger) now comes from
+      //     the rig's own knuckle row, not from the radius jump. Measured
+      //     2026-11-05 on the three lowpoly bodies: the lowpoly fingers
+      //     TAPER into the palm, so a 1.55x jump fired anywhere from 57 mm
+      //     to 128 mm from the tip (the long ones ran almost to the wrist).
+      //     The rig's row (hand proportions) matched the visible bump in the
+      //     radius profile on the male, and it is the row that is already
+      //     motion-good. The knuckle CROSS-SECTION (where in the finger) is
+      //     still detected: the traced centerline at that station, plus the
+      //     dorsal bias. The trace ends at the jump; when the jump fires
+      //     before the station, the line extends straight from its last
+      //     slices (the finger is a straight tube by then).
+      //  3. The tip is the line through the tip-band centroid, stopped 3 mm
+      //     inside the finger's own outer end. The old tip sat ~7 mm short
+      //     of the end, and the heuristic leaf sat OUTSIDE the mesh.
+      // Preserved: tip detection, the Voronoi slice-walk, the dorsal bias.
+      // Uncertain: a mesh with a strongly CURLED rest finger would put the
+      // straight line outside the flesh — the report prints the distance
+      // from the chord to the trace at both middle stations to show it.
+      const stationJ = joints.get(`${f.name}_01_${side}`);
+      if (!stationJ) {
+        report.push(`  ${f.name}_${side}: kept (no ${f.name}_01_${side} in the rig)`);
+        continue;
+      }
+      const kx = stationJ[0] * sgn;
+      // the centerline point at x = kx: interpolate inside the trace, else
+      // extend the last slices in a straight line
+      const centerAtX = (x) => {
+        for (let i = 0; i < line.length - 1; i++) {
+          const p = line[i];
+          const q = line[i + 1];
+          if ((p[0] - x) * (q[0] - x) <= 0 && p[0] !== q[0]) {
+            const t = (x - p[0]) / (q[0] - p[0]);
+            return p.map((v, k) => v + (q[k] - v) * t);
+          }
+        }
+        const tail = line[line.length - 1];
+        const prev = line[Math.max(0, line.length - 4)];
+        const dx = tail[0] - prev[0];
+        if (Math.abs(dx) < 1e-6) throw new Error(`${id}/${f.name}_${side}: trace has no x run to extend`);
+        const t = (x - tail[0]) / dx;
+        return tail.map((v, k) => v + (tail[k] - prev[k]) * t);
       };
+      const knuckleC = centerAtX(kx);
+      const traceEnd = line[line.length - 1][0];
       const meanR = f.radii.reduce((a, b) => a + b, 0) / f.radii.length;
       const back = (p) => [p[0] * sgn, p[1], p[2]];
-      // dorsal bias at the knuckle only (+y, palms-down T-pose)
-      move(`${f.name}_01_${side}`, back([knuckle[0], knuckle[1] + 0.33 * meanR, knuckle[2]]), 'finger trace knuckle, dorsal-biased');
-      move(`${f.name}_02_${side}`, back(at(0.45)), 'finger trace 45%');
-      move(`${f.name}_03_${side}`, back(at(0.75)), 'finger trace 75%');
-      move(`${f.name}_04_leaf_${side}`, back(at(1 - 0.03)), 'finger trace tip');
+      // straight line: knuckle center -> tip-band centroid, extended to 3 mm
+      // inside the finger's outer end
+      const tipC = line[0];
+      const dir = tipC.map((v, k) => v - knuckleC[k]);
+      if (dir[0] <= 0) throw new Error(`${id}/${f.name}_${side}: tip centroid is not outward of the knuckle station`);
+      const endX = tipGroups[fingers.indexOf(f)].end - 0.003 * H;
+      const tipJ = knuckleC.map((v, k) => v + dir[k] * ((endX - knuckleC[0]) / dir[0]));
+      const onChord = (frac) => knuckleC.map((v, k) => v + (tipJ[k] - v) * frac);
+      const knuckleJ = [knuckleC[0], knuckleC[1] + 0.33 * meanR, knuckleC[2]];
+      // honest report: distance from the straight chain to the traced curve
+      // at each middle station (a large number means a bent finger mesh)
+      const dev = [0.45, 0.75].map((fr) => {
+        const b = onChord(fr);
+        const a = centerAtX(b[0]);
+        return Math.hypot(a[1] - b[1], a[2] - b[2]);
+      });
+      const chordLen = Math.hypot(tipJ[0] - knuckleC[0], tipJ[1] - knuckleC[1], tipJ[2] - knuckleC[2]);
+      report.push(`  ${f.name}_${side}: straightened; length ${(chordLen * 1000).toFixed(1)}mm, chord vs trace ${dev.map((d) => (d * 1000).toFixed(1)).join('/')}mm, r=${(meanR * 1000).toFixed(1)}mm, trace ${kx >= traceEnd ? 'reached' : `extended ${((traceEnd - kx) * 1000).toFixed(0)}mm to`} the knuckle row`);
+      move(`${f.name}_01_${side}`, back(knuckleJ), 'finger trace knuckle (rig row station), dorsal-biased');
+      move(`${f.name}_02_${side}`, back(onChord(0.45)), 'finger trace straightened 45%');
+      move(`${f.name}_03_${side}`, back(onChord(0.75)), 'finger trace straightened 75%');
+      move(`${f.name}_04_leaf_${side}`, back(tipJ), 'finger trace tip');
     }
   }
 

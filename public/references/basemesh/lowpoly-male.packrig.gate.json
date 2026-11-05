@@ -1,5 +1,5 @@
 {
- "pass": false,
+ "pass": true,
  "checks": [
   {
    "name": "root-at-origin",
@@ -13,8 +13,8 @@
   },
   {
    "name": "symmetry",
-   "pass": false,
-   "detail": "thumb_02_l~0.031 thumb_03_l~0.035 thumb_04_leaf_l~0.035"
+   "pass": true,
+   "detail": "all 33 side pairs mirror within 0.025"
   },
   {
    "name": "bone-lengths",

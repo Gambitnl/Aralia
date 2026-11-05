@@ -14,7 +14,7 @@
   {
    "name": "symmetry",
    "pass": false,
-   "detail": "hand_l~0.025 metacarp_index_l~0.025 index_01_l~0.025 index_02_l~0.025 index_03_l~0.025 index_04_leaf_l~0.025 metacarp_middle_l~0.025 middle_01_l~0.025 middle_02_l~0.025 middle_03_l~0.025 middle_04_leaf_l~0.025 metacarp_pinky_l~0.025 pinky_01_l~0.025 pinky_02_l~0.025 pinky_03_l~0.025 pinky_04_leaf_l~0.025 metacarp_ring_l~0.025 ring_01_l~0.025 ring_02_l~0.025 ring_03_l~0.025 ring_04_leaf_l~0.025 thumb_01_l~0.025"
+   "detail": "hand_l~0.025 index_01_l~0.026 metacarp_ring_l~0.025 thumb_01_l~0.025"
   },
   {
    "name": "bone-lengths",

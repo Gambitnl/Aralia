@@ -8730,6 +8730,14 @@
             "built": "2026-08-23"
           },
           "note": "Remy's ask: slow animations down or freeze a state for part review; a frozen pose is a capturable URL for the part gate."
+        },
+        {
+          "title": "Straightened finger chains on the pack rigs: traced finger centerline, knuckle to tip on one straight line (finger trace un-parked)",
+          "status": "done",
+          "history": {
+            "built": "2026-11-05"
+          },
+          "note": "agora-e758, on Remy's ruling of 2026-09-28 (sheet Board Sweep Decisions, q12). centerlineFit.mjs: the finger trace is the default; the knuckle keeps the rig row station with the traced cross-section and dorsal bias; the middle joints sit on the straight knuckle-to-tip line. Three lowpoly pack rigs re-fitted (BASE_MESH_RIG_VERSION 2026-11-05a). digitBandGate S1a passes on every finger joint; Walk and Idle t=0.5 captures coherent; Greeting finger-only crossings 27 to 13. Open: GG-667 (female wrist asymmetry), GG-668 (female thumb), GG-669 (M1 residue, R2 banded weights), GG-670 (sculpt bodies)."
         }
       ],
       "verified": "2026-09-09"
@@ -9304,7 +9312,7 @@
         },
         {
           "title": "Own repository at F:/Repos/question-sheet, linked into ~/.claude/skills; public GitHub release waits on GG-660",
-          "status": "active"
+          "status": "done"
         }
       ]
     },

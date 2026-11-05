@@ -1,6 +1,6 @@
 # Entity Studio
 
-Verified: 2026-10-31 for explicit empty player gear below; 2026-10-24 for the React entry/implementation boundary; preview and carve-out inventory retains its 2026-10-22 scope.
+Verified: 2026-11-05 for the centerlineFit finger chains; 2026-10-31 for explicit empty player gear below; 2026-10-24 for the React entry/implementation boundary; preview and carve-out inventory retains its 2026-10-22 scope.
 
 ## Purpose
 
@@ -247,7 +247,7 @@ Vite registers these plugins locally to serve the preview dashboards:
 - `tools/entities3d/splitBaseMeshes.mjs`: Splits downloaded Sketchfab basemesh packs into individual components.
 - `tools/entities3d/rigBaseMeshes.mjs`: Spawns background Blender processes to bind biped skeletons and pack-rig armatures.
 - `tools/entities3d/bakeReferenceHand.mjs`: Bakes low-poly hand geometries into JSON meshes.
-- `tools/entities3d/centerlineFit.mjs`: Fits joint locations against bone centerlines.
+- `tools/entities3d/centerlineFit.mjs`: Fits joint locations against the mesh's own centerlines and writes them to `<id>.landmarks.json` for the next `rigBaseMeshes.mjs --pack` run. Elbow, wrist, knee and ankle snap to the radius pinch. Each thumb is traced link by link. Each of the four fingers is traced from the tip inward, and then its chain is STRAIGHTENED: the knuckle keeps the rig's knuckle row station (the radius jump is not reliable on the tapered lowpoly fingers) with the traced cross-section plus a dorsal bias, and the two middle joints sit on the straight line from the knuckle to the tip. A straight chain keeps the flexion axes of one finger parallel, which the pack clips need. `--no-fingers` skips the finger trace. `tools/entities3d/digitBandGate.mjs` is the gate for the finger chains.
 - `tools/blender/rig_basemesh.py`: Blender python script that applies bone-heat skin weights to body meshes.
 - `tools/blender/tpose_basemesh.py`: Blender script that bakes arms-down meshes into T-poses.
 - `tools/creatureHero/convert.py` / `convert.mjs`: Connects to `microsoft/TRELLIS.2` Space via Gradio client to process images.
