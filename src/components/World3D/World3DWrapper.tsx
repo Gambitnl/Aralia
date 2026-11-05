@@ -1249,19 +1249,24 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
   // Freeze accepted party feet and the exact candidate sites only when the HUD
   // issues To Player. Follower steps may update partyCompanions, but cannot
   // restart room lookup or camera framing for this one-shot request.
+  // This is a deliberate point-in-time capture. The next explicit camera
+  // request reads newer accepted feet; follower animation does not move it.
+  // 2026-11-05: the inputs come through a ref, so the memo depends on the
+  // request nonce alone without an eslint-disable (debt ratchet). Same values:
+  // the ref holds this render's view, saved feet and companions.
+  const cameraFrameInputs = useRef({ view: wfGroundView, saved: state.playerGroundPos, partyCompanions });
+  cameraFrameInputs.current = { view: wfGroundView, saved: state.playerGroundPos, partyCompanions };
   const cameraFrameRequestSnapshot = useMemo(() => {
     const ground = groundRef.current, live = avatarFootfall.current;
-    if (!framePlayerNonce || !wfGroundView || !ground) return null;
+    const { view, saved, partyCompanions: members } = cameraFrameInputs.current;
+    if (!framePlayerNonce || !view || !ground) return null;
     const player = live?.ground === ground ? {...live.pose}
-      : state.playerGroundPos ? {xM:state.playerGroundPos.xM,zM:state.playerGroundPos.zM,yM:state.playerGroundPos.yM ?? wfGroundView.surfaceY} : null;
-    const companions = partyCompanions.map(member => ({id:member.character.id,position:{...member.position}}));
+      : saved ? {xM:saved.xM,zM:saved.zM,yM:saved.yM ?? view.surfaceY} : null;
+    const companions = members.map(member => ({id:member.character.id,position:{...member.position}}));
     const playerSite = player ? residentSiteAt(ground, player) : null;
     // Only the leader's current plot can admit party framing. A companion in a
     // different site is already excluded by its exact footprint identity.
     return {nonce:framePlayerNonce,ground,player,companions,siteIds:playerSite?[playerSite.id]:[]};
-    // This is a deliberate point-in-time capture. The next explicit camera
-    // request reads newer accepted feet; follower animation does not move it.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [framePlayerNonce]);
   const cameraPlanSignature = useMemo(() => {
     const request = cameraFrameRequestSnapshot;
