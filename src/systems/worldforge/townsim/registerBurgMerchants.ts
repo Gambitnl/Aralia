@@ -104,6 +104,12 @@ export function computeBurgMerchants(
   existingBusinesses: Record<string, WorldBusiness> | undefined,
   life?: TownLifeState & Pick<ShopLifeView, 'shops'>,
 ): BurgMerchants {
+  // A retained town without a qualified layout must keep its recorded people
+  // and shops. Both 2D arrival and deferred 3D registration call this owner;
+  // guarding only the hook still lets 3D reinterpret old plot IDs. A genuinely
+  // new town has no life record and can register normally. This does not repair
+  // an already mixed-source save or infer which historical layout it used.
+  if (life !== undefined && life.layoutRevision === undefined) return {npcs:[],businesses:[]};
   const atlas = getBridgeAtlas(worldSeed);
   const enginePlan = getCanonicalTownPlan(atlas, worldSeed, burgId, life?.layoutRevision);
   // Match the 3D bake's plot ids: same canonical plan, same burg-determined scale

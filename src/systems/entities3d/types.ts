@@ -90,6 +90,12 @@ export interface Frame {
   /** Idle posture: 0 (or absent) = upright … 1 = full forward hunch — the
    * trapezius-dominant lean (orc). Biped driver + rest pose only. */
   hunch?: number;
+  /** Body style preset. 'heroic' = the target-look proportions (character
+   * cloth+armor campaign, Remy 2026-11-05: the generated knight/wizard/ranger
+   * lineup): about 5 heads tall, wide shoulders, short legs, big hands and
+   * feet, club forearms. Read by bipedBodyRadii (skeletonBuilder) and the
+   * loft; absent = today's look. Set it through heroicFrame(). */
+  style?: 'heroic';
 }
 
 export interface Palette {

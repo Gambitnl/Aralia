@@ -34,6 +34,7 @@ import { type SceneCastMember } from './SceneCast';
 import type { GroundWorld } from '@/systems/worldforge/bridge/groundChunkLoader';
 import type { ChunkLoader } from '@/systems/world3d/types';
 import type { PlayerWorldPosition } from '@/types';
+import type { TownBuildingVisit } from '../Worldforge/townBuildingVisit';
 interface World3DSceneProps {
     loader: ChunkLoader;
     /** World-space position to center streaming + the scene origin on at mount. */
@@ -76,6 +77,8 @@ interface World3DSceneProps {
      */
     sceneCast?: SceneCastMember[];
     partyCompanions?: import('@/systems/companions/companionWhereabouts').PartyCompanionPresence[];
+    /** Accepted people and only their candidate visit plans, frozen per To Player request. */
+    cameraFrameRoomData?: { nonce: number; ground: GroundWorld; player: import('./groundFurnishingInteraction').AvatarFootfall | null; companions: Array<{ id: string; position: import('@/systems/companions/companionWhereabouts').CompanionPosition }>; siteIds: string[]; visits: ReadonlyMap<string, TownBuildingVisit>; planSignature: string; plansReady?: boolean };
     partyPaused?: boolean;
     onCompanionPositionChange?: (id: string, position: import('@/systems/companions/companionWhereabouts').CompanionPosition, trail: import('@/systems/companions/companionWhereabouts').CompanionPosition[]) => void;
     /**

@@ -9,9 +9,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/10/2026, 22:01:54
- * Dependents: services/dialogueService.ts, systems/social/npcInstitutionStatements.ts
- * Imports: 10 files
+ * Last Sync: 05/11/2026, 04:42:14
+ * Dependents: services/dialogueService.ts, systems/social/npcDialogueMemory.ts, systems/social/npcInstitutionStatements.ts
+ * Imports: 16 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -30,6 +30,12 @@ import { polygonCentroid } from '../worldforge/submap/submapEngine';
 import { getGameDay } from '../../utils/core';
 import { institutionPlotForRole } from '../worldforge/townsim/keyNpcs';
 import { bearingToDirection } from './navDrift';
+import { shopKeeperAt } from '../worldforge/townsim/shopLife';
+import { villagerForResident } from '../worldforge/roster/agentLife';
+import { attendanceForVisit } from '../../systems/economy/businessAttendance';
+import { townBuildingVisit } from '../worldforge/town/townBuildingVisit';
+import { householdMemberIdentity } from '../worldforge/town/householdBrief';
+import { ALL_ITEMS } from '../../data/items';
 
 const sectors = { N: 'northern', NE: 'northeastern', E: 'eastern', SE: 'southeastern',
   S: 'southern', SW: 'southwestern', W: 'western', NW: 'northwestern' } as const;
@@ -81,6 +87,89 @@ export function resolveNpcLocalDirections(state: GameState, npc: NPC): string | 
   // Use the fitted public building type, not a legacy ledger's trade category.
   // A taverner's old enchanter stock does not turn their tavern into a new shop.
   return `${location} ${business.name.trim()} is my ${plot.pop.buildingType.replaceAll('-', ' ')}, ${area}.`;
+}
+
+export type LocalStockDirectionResult =
+  | { status: 'found'; itemId?: string; businessId: string; burgId: number; plotId: number; snapshot: string }
+  | { status: 'unknown'; itemId?: string };
+
+export interface LocalFactRequest { itemId?:string; itemRequested:boolean; subject:string }
+
+export function localFactUncertaintyReply(query:LocalFactRequest):string {
+  return `I can't point you to a nearby ${query.itemRequested ? `source for ${query.subject}` : 'shop'} from what I know.`;
+}
+
+/** Resolve a local purchase answer only from a current admitted town plan,
+ * open keeper record, explicit NPC/business join and already-persisted stock.
+ * This read never seeds stock or turns a nearby building into the speaker's employer. */
+export function resolveNpcLocalStockDirections(state: GameState, npc: NPC, itemId?: string, itemRequested=Boolean(itemId)): LocalStockDirectionResult {
+  if(itemRequested&&!itemId)return {status:'unknown'};
+  let townLine:string|undefined;
+  try { townLine = resolveNpcLocalDirections(state, npc); } catch { return {status:'unknown',...(itemId?{itemId}:{})}; }
+  if (!townLine) return { status: 'unknown', ...(itemId ? { itemId } : {}) };
+  const resident = state.generatedNpcs?.[npc.id] as (RichNPC & { worldforgeHousehold?: { burgId:number; memberId:string } }) | undefined;
+  const cell = state.playerCell?.cellId;
+  const burgId = resident?.worldforgeHousehold?.burgId;
+  if (!resident || cell == null || typeof burgId !== 'number' || !Number.isInteger(burgId)) return { status:'unknown', ...(itemId ? {itemId}: {}) };
+  let atlas:ReturnType<typeof getBridgeAtlas>,town:NonNullable<GameState['townSim'][number]>,plan:ReturnType<typeof canonicalArtifactTownForSiteFromAtlas>['plan'];
+  try {
+    atlas = getBridgeAtlas(state.worldSeed);
+    const savedTown = state.townSim?.[burgId];
+    if (!savedTown || savedTown.layoutRevision === undefined) return { status:'unknown', ...(itemId ? {itemId}: {}) };
+    town=savedTown;
+    plan=canonicalArtifactTownForSiteFromAtlas(atlas,state.worldSeed,{burgId,envelope:{x:0,y:0,width:0,height:0},gates:[]},town.layoutRevision).plan;
+  } catch { return {status:'unknown',...(itemId?{itemId}:{})}; }
+  const candidates: Array<{business:NonNullable<GameState['worldBusinesses'][string]>;plotId:number;area:string}> = [];
+  for (const business of Object.values(state.worldBusinesses ?? {})) {
+    // A person may answer from their own registered shop, but public presence
+    // in town does not grant access to another merchant's private stock ledger.
+    if (business.ownerId !== npc.id || business.ownerType !== 'npc' || !business.id
+      || state.worldBusinesses[business.id] !== business || business.burgId !== burgId
+      || business.locationId !== state.currentLocationId || !Number.isInteger(business.plotId)
+      || !business.name?.trim() || !Array.isArray(business.stock)) continue;
+    const plotId = business.plotId as number;
+    const matchingPlots = plan.plots.filter(value => value.id === plotId);
+    const plot = matchingPlots.length === 1 ? matchingPlots[0] : undefined;
+    const owner = state.generatedNpcs?.[business.ownerId] as (RichNPC & {worldforgeHousehold?:{burgId:number;memberId:string}})|undefined;
+    const ownerIdentity = owner?.worldforgeHousehold;
+    if (!owner || owner.id !== npc.id || owner.name !== npc.name || ownerIdentity?.burgId !== burgId || !plot
+      || !['market','workshop'].includes(plot.role) || plot.pop?.residential !== false
+      || plot.pop?.proprietorHomeId !== ownerIdentity.memberId.split(':')[0]) continue;
+    const keeper = shopKeeperAt(town, plotId, getGameDay(state.gameTime));
+    if (keeper.status !== 'open') continue;
+    const linkedKeeper = villagerForResident(town, {name:keeper.keeper.name,homePlotId:keeper.keeper.homePlotId,
+      householdMemberId:keeper.keeper.householdMemberId});
+    if (!linkedKeeper || linkedKeeper.occupantId !== keeper.keeper.occupantId
+      || ownerIdentity.memberId !== linkedKeeper.householdMemberId) continue;
+    // Match the same retained building source and current UTC work schedule
+    // used by trade UI. A living shopkeeper may still be off duty this hour.
+    try {
+      const visit=townBuildingVisit(state.worldSeed,business.burgId!,plotId,town.buildingEvents?.[plotId],
+        town.buildingSources?.[plotId],town.layoutRevision);
+      if(visit.plot?.id!==plotId||visit.plot.role!=='market'&&visit.plot.role!=='workshop'
+        ||!visit.household||householdMemberIdentity(visit.household,0)!==ownerIdentity.memberId
+        ||!attendanceForVisit(visit,new Date(state.gameTime).getUTCHours(),town,getGameDay(state.gameTime)).open)continue;
+    } catch { continue; }
+    const matchingStock = itemId ? business.stock.filter(line => line.itemId === itemId) : [];
+    if (itemId && (matchingStock.length !== 1 || !Number.isSafeInteger(matchingStock[0].quantity) || matchingStock[0].quantity <= 0)) continue;
+    const [x,y] = polygonCentroid(plot.footprint);
+    const span = townSpanFtForBurg(atlas, burgId);
+    if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(span) || span <= 0) continue;
+    const area = Math.hypot(x,y) <= span*.12 ? 'near the town center' : `in the ${sectors[bearingToDirection(x,y)]} part of town`;
+    candidates.push({business,plotId,area});
+  }
+  if (candidates.length !== 1) return { status:'unknown', ...(itemId ? {itemId}: {}) };
+  const {business,plotId,area} = candidates[0];
+  // Keep the selected persisted ledger checked here too; a shop-only question
+  // has no item ID, and missing stock never becomes an invitation to seed it.
+  const stock = business.stock;
+  if (!Array.isArray(stock)) return {status:'unknown',...(itemId?{itemId}:{})};
+  const itemName = itemId ? ALL_ITEMS[itemId]?.name : undefined;
+  if (itemId && !itemName) return {status:'unknown',itemId};
+  const townName=atlas.pack.burgs?.[burgId]?.name?.trim();
+  if(!townName)return {status:'unknown',...(itemId?{itemId}:{})};
+  const snapshot = `I keep ${business.name.trim()}, ${area} in ${townName}. It's open now.${itemId ? ` I have ${stock.find(line=>line.itemId===itemId)!.quantity} ${itemName} available.` : ''}`;
+  return {status:'found', ...(itemId ? {itemId}: {}), businessId:business.id, burgId, plotId, snapshot};
 }
 
 /** A resident without a verified workplace still knows the marked public ways

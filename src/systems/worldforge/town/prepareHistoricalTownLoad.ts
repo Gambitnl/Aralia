@@ -234,13 +234,29 @@ function historicalTownSiteJoinError(state:GameState,ground:GroundWorld,burgId:n
     const npc=raw as RichNPC&{worldforgeHousehold?:{burgId:number;memberId:string}};
     if(npc.worldforgeHousehold?.burgId!==burgId)continue;
     const people=Object.values(town.villagers).filter(p=>p.householdMemberId===npc.worldforgeHousehold!.memberId);
-    if(people.length!==1||people[0].name!==npc.name)return refuse(`a recorded character (${id}) has an unresolved identity.`);
+    let person=people.length===1?people[0]:undefined;
+    if(people.length===0){
+      // A played legacy person can lack the later household-link field. The
+      // independently qualified founding roster supplies an exact person ID;
+      // never match by name alone, change a recorded link or move them home.
+      const founders=roster.occupants.filter(p=>p.householdMemberId===npc.worldforgeHousehold!.memberId);
+      const saved=founders.length===1?town.villagers[founders[0].id]:undefined;
+      if(saved&&saved.householdMemberId===undefined&&saved.occupantId===founders[0].id
+        &&saved.name===founders[0].name
+        &&Object.values(town.villagers).filter(p=>p.occupantId===saved.occupantId).length===1)person=saved;
+    }
+    if(!person||person.name!==npc.name)return refuse(`a recorded character (${id}) has an unresolved identity.`);
   }
   for(const business of Object.values(state.worldBusinesses??{})){
     if(business.burgId!==burgId)continue;
     const plot=plan.plots.find(p=>p.id===business.plotId);
+    // Existing shops retain their original trade and stock when registration
+    // learns to respect fitted building use. The earlier source selected trade
+    // only from role + plot ID. Accept that exact retained rule as well as the
+    // current one; neither permits another plot, arbitrary trade or owner.
     if(!plot||!['market','workshop'].includes(plot.role)
-      ||business.businessType!==businessTypeForTownPlot(plot.role,plot.id,plot.pop?.buildingType))
+      ||![businessTypeForTownPlot(plot.role,plot.id,plot.pop?.buildingType),
+        businessTypeForTownPlot(plot.role,plot.id)].includes(business.businessType))
       return refuse('a saved business no longer matches its original workplace.');
     if(business.ownerId==='player')continue;
     const owner=state.generatedNpcs?.[business.ownerId] as RichNPC&{worldforgeHousehold?:{memberId:string}}|undefined;

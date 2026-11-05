@@ -1,6 +1,82 @@
 # Save and load
 
-Verified: 2026-11-03
+Verified: 2026-11-04
+
+## Retained regional and foundation profiles
+
+The existing worldforgeTerrainRevision selects both regional terrain and the
+building foundation grid. Sources 1 and 2 retain their prior behavior and
+artifact shape; new generation still defaults to 2. Source 3 pairs regional
+reader 1 with retained cell-center foundations. Source 4 pairs regional reader
+2 with those foundations. See [ADR 0016](../../adr/0016-retained-foundation-source-profiles.md).
+
+Only the new profiles add terrainSourceRevision to their transient Region.
+The ordinary ground builder reads that provenance before constructing terrain.
+Region/Local cache keys distinguish every profile without changing seed paths.
+Native Atlas reconstruction retains the selected source instead of borrowing a
+current live receipt merely because its address matches. Rest and worker builds
+receive the same Region provenance through their existing source paths.
+
+Unknown saves compare all supported profiles. Multiple complete matches remain
+an explicit refusal; source choice is never inferred from save age. Qualified
+worker receipts copy source metadata only, and ordinary saving persists it.
+The affected suites pass 80 distinct cases with 11 scoped files reporting zero
+errors or suppressed imported errors. A real service/worker check validates an
+explicit-source-3 native payload copy; absent-source admission refuses the two
+qualifying profiles. No recovery copy or native rendered adoption was applied.
+
+## Emergency snapshot ordering
+
+A synchronous beforeunload emergency can be older than the last completed IndexedDB save. Startup compares valid payload timestamps and retains a target that is at least as new. Explicit checksums, including zero, must validate; incompatible save versions are not trusted. Invalid emergency bytes remain available for diagnosis. Legacy bare payload recovery is retained. Cleanup removes only the exact captured emergency bytes, so an asynchronous operation cannot erase a replacement snapshot.
+
+Actual original-profile startup preserved the newer valid autosave counter 86 over an emergency snapshot 11 milliseconds older at counter 85. The retained autosave and all 35 named payloads were byte-exact; only the superseded emergency was removed. Focused recovery and startup coverage passed 12 cases, with two scoped source files reporting zero errors. This does not establish a complete companion story or a later named-save reload.
+
+## Legacy household-link compatibility
+
+Historical town admission accepts an absent optional householdMemberId in a
+legacy resident when the independently generated founding ID and name still
+match. It retains unique source roles, recorded-role conflicts, duplicate-person
+checks, real birth evidence, current homes and observed foundations. It never
+fills in a missing link or changes a saved person to make a reader qualify.
+
+A recorded household NPC without a stored resident link can join through the
+already qualified founding roster's exact person ID and name. This preserves a
+resident who has moved home; a name-only guess cannot bind an NPC. Existing
+conflicting links, ambiguous source roles and duplicate saved IDs still refuse.
+All business, keeper, building, bed, source and exact physical-support checks
+remain mandatory. The affected suites pass 36 and 35 cases, with scoped
+files reporting zero errors and zero suppressed imported errors.
+
+This repairs missing schema information, not mixed saved worlds. The current
+Sana replay advances past those boundaries but still refuses genuine recorded
+NPC conflicts. A disposable recovery proposal also fails and remains rejected;
+it was never loaded or saved. The [dungeon domain](dungeon-expeditions.md#legacy-household-links-during-source-admission)
+owns that campaign evidence and the remaining source-reconciliation work.
+
+Both 2D arrival and deferred 3D registration use `computeBurgMerchants`, which
+now emits no NPC/business updates when a retained town has no qualified layout
+revision. This closes the shared-entry gap left by guarding only the 2D hook.
+Fresh towns without a life record still register normally. Two regression cases
+failed before the guard; all 13 merchant cases pass, and both changed files
+type-check without errors or suppressed imported errors. This is prevention,
+not permission to load or rewrite a mixed-source campaign.
+
+## Retained business trade policies
+
+Source admission accepts either the current fitted-use registration rule or
+the earlier exact role-and-plot trade draw for an existing business. Retained
+code at 220b4db23 confirms that earlier rule. Registration preserves an existing
+shop's trade and stock, so new registration policy cannot invalidate that
+history. The original plot must still be a workplace and its proprietor must
+still join to the founding or simulated keeper; unrelated trades and owners
+remain refusals. Admission never changes the trade, stock or building to fit.
+
+The 35-case historical-load suite passes, including the new legacy-trade,
+unrelated-trade and wrong-owner boundaries. The positive and owner-boundary
+regressions failed before the repair. Both changed files type-check without
+errors or suppressed imported errors. A disposable Sana proposal now clears
+these joins but still fails exact physical support under both terrain readers.
+No native recovery, body adjustment or source selection was applied.
 
 ## Loaded player conversations
 

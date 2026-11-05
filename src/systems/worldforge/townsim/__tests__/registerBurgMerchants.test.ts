@@ -22,6 +22,22 @@ function findShopBurg(layoutRevision: TownLayoutRevision = 2): { burgId: number;
 }
 
 describe('computeBurgMerchants — 2D/3D town identity', () => {
+  it.each(['empty', 'recorded'] as const)('waits for source admission in an unversioned saved town (%s)', kind => {
+    const {burgId,shopPlotIds} = findShopBurg();
+    const npcId = townMerchantNpcId(burgId,shopPlotIds[0]);
+    const bizId = townMerchantBizId(burgId,shopPlotIds[0]);
+    const npcs = kind === 'recorded' ? {[npcId]:{id:npcId,name:'Retained keeper'} as never} : {};
+    const businesses = kind === 'recorded' ? {[bizId]:{id:bizId,inventory:[{id:'earned-stock',quantity:3}]} as never} : {};
+    const life = {villagers:{}};
+    const before = JSON.stringify({npcs,businesses,life});
+
+    // Both entry surfaces call this function. Neither may populate missing
+    // shops or reinterpret existing people using the current default layout.
+    expect(computeBurgMerchants(SEED,burgId,1,npcs,businesses,life))
+      .toEqual({npcs:[],businesses:[]});
+    expect(JSON.stringify({npcs,businesses,life})).toBe(before);
+  });
+
   it('uses the saved earlier layout for every merchant plot', () => {
     const {burgId,shopPlotIds} = findShopBurg(1);
     const life = {layoutRevision:1 as const,villagers:{}};

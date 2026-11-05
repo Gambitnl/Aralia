@@ -5,9 +5,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/10/2026, 22:01:54
+ * Last Sync: 04/11/2026, 21:37:49
  * Dependents: App.tsx, components/screens/AppPhaseContent.tsx
- * Imports: 5 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -23,6 +23,7 @@ import type { AppAction } from "../../state/actionTypes";
 import { atlasGroundAddressFromDrilldown, type AtlasGroundDrilldown } from "../../systems/worldforge/leaf3d/atlasGroundDrilldown";
 import { restoreAtlasGroundDrilldown } from "../../systems/worldforge/leaf3d/atlasGroundRestore";
 import { CURRENT_TOWN_LAYOUT_REVISION, type TownLayoutStates } from "../../systems/worldforge/town/townLayoutRevision";
+import { CURRENT_TERRAIN_REVISION } from "../../systems/worldforge/region/terrainSource";
 
 export function useAppAtlasRuntime(gameState: GameState, dispatch: Dispatch<AppAction>) {
   // The object-rich receipt remains transient even though Wave 2 now saves its
@@ -43,9 +44,11 @@ export function useAppAtlasRuntime(gameState: GameState, dispatch: Dispatch<AppA
     // Live cartographer receipts use current generation. A selected older
     // town instead needs revision-aware reconstruction before address checks;
     // do not retain a current receipt merely because the address is equal.
+    // Retained foundation profiles also need their source-tagged Region rebuilt.
+    // The same address alone cannot authorize today's foundation mask.
     const olderSelection = Object.values(townLayouts).some(town =>
       town.layoutRevision !== undefined && town.layoutRevision !== CURRENT_TOWN_LAYOUT_REVISION);
-    if (atlasGroundDrilldown && gameState.atlasGroundAddress && !olderSelection && gameState.worldforgeTerrainRevision !== 1) {
+    if (atlasGroundDrilldown && gameState.atlasGroundAddress && !olderSelection && (gameState.worldforgeTerrainRevision ?? CURRENT_TERRAIN_REVISION) === CURRENT_TERRAIN_REVISION) {
       const transientAddress = atlasGroundAddressFromDrilldown(atlasGroundDrilldown);
       // Loading another slot can replace reducer state without remounting App.
       // Keep Wave 1 object identity only when it belongs to the active address;

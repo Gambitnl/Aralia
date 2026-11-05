@@ -31,6 +31,29 @@ function fixture(){
 }
 
 describe('historical layout qualification',()=>{
+ it.each(['all','some'] as const)('admits absent legacy household links (%s) without inventing them',kind=>{
+  const input=fixture();
+  delete input.town.villagers[1].householdMemberId;
+  if(kind==='all')delete input.town.villagers[2].householdMemberId;
+  const before=JSON.stringify(input);
+  expect(qualifyHistoricalTownLayout(input)).toEqual({status:'qualified',revision:1,observations:1,founders:2});
+  expect(JSON.stringify(input)).toBe(before);
+  expect(input.town.villagers[1].householdMemberId).toBeUndefined();
+ });
+ it.each(['changed-name','recorded-role','undocumented-birth','duplicate-source-role'] as const)('keeps identity/history checks when legacy links are absent: %s',kind=>{
+  const input=fixture();delete input.town.villagers[1].householdMemberId;
+  if(kind==='changed-name')input.town.villagers[1].name='Different person';
+  if(kind==='recorded-role')input.town.villagers[2].householdMemberId='b9:head';
+  if(kind==='duplicate-source-role'){
+   delete input.town.villagers[2].householdMemberId;
+   input.candidates[0].foundingRoster.occupants[1].householdMemberId='b1:head';
+  }
+  if(kind==='undocumented-birth')input.town.villagers[3]={occupantId:3,name:'Pip',race:'Human',bornDay:0,
+   homePlotId:2,parentIds:[1,2],childIds:[],wealth:0};
+  const before=JSON.stringify(input);
+  expect(qualifyHistoricalTownLayout(input)).toMatchObject({status:'unresolved',reason:'no-match'});
+  expect(JSON.stringify(input)).toBe(before);
+ });
  it('requires a unique full founding match for explicitly unobserved exterior admission',()=>{
   const input={...fixture(),allowUnobservedExterior:true};input.town.buildingSources={};
   // With no foundations, two identical founding rosters are ambiguous even

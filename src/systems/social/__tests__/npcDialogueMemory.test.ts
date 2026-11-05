@@ -1,6 +1,6 @@
 /** A resident can recall words actually delivered to this player, across later world changes. */
 import {describe,it,expect} from 'vitest';
-import {npcDialogueSpeakerKey,latestSpokenGeneratedReplies,generatedDialogueSpeakerKey} from '../npcDialogueMemory';
+import {npcDialogueSpeakerKey,latestSpokenGeneratedReplies,latestSpokenDialogueReplies,generatedDialogueSpeakerKey} from '../npcDialogueMemory';
 import {worldReducer} from '../../../state/reducers/worldReducer';
 import {createMockGameState} from '../../../utils/core/factories';
 import {createEmptyMemory} from '../../../utils/world/memoryUtils';
@@ -80,6 +80,43 @@ describe('spoken NPC work memory',()=>{
  it('does not overwrite the first statement or its date when a later report is spoken',()=>{const {state}=make();const first=publish(state);const original=JSON.stringify(first.npcMemory.fenna.interactions![0]);const later={...first,gameTime:new Date(first.gameTime.getTime()+86400000),worldBusinesses:{shop:{...first.worldBusinesses.shop,lastDailyReport:{...first.worldBusinesses.shop.lastDailyReport,day:5,revenue:10,costs:12,profit:-2}}}};const a=action(later);if(a.type==='SET_LAST_NPC_INTERACTION')a.payload.response='My latest takings did not cover costs.';const next={...later,...worldReducer(later,a)};expect(next.npcMemory.fenna.interactions).toHaveLength(2);expect(JSON.stringify(next.npcMemory.fenna.interactions![0])).toBe(original);});
  it('keeps the original reported concerns independent of later account mutations',()=>{const {state}=make();state.worldBusinesses.shop.lastDailyReport.supplyIssues=['Original delivery issue.'];const next=publish(state);state.worldBusinesses.shop.lastDailyReport.supplyIssues.push('Later issue.');expect((next.npcMemory.fenna.interactions![0].dialogue?.source as {supplyIssues?:string[]})?.supplyIssues).toEqual(['Original delivery issue.']);});
  it('keeps old display-only callers on their existing path without inventing a conversation record',()=>{const {state}=make();expect(worldReducer(state,{type:'SET_LAST_NPC_INTERACTION',payload:{npcId:'fenna',response:line}})).toEqual({lastInteractedNpcId:'fenna',lastNpcResponse:line});expect(state.npcMemory.fenna.interactions).toEqual([]);});
+ it('recalls the exact local shopping question with its attributed reply wording',()=>{
+  const {state,npc}=make(),prompt='I am Bram. Elara and I need food for our return journey. Where can I buy rations nearby?';
+  const response='I know of one open shop in Putivl: The Provisions, in the northern part of town; its listed stock shows 4 rations.';
+  state.npcMemory.fenna.interactions=[{id:'local-question',date:Number(state.gameTime),type:'dialogue',summary:response,attitudeChange:0,significance:3,
+    dialogue:{topicId:'global_directions',speakerKey:generatedDialogueSpeakerKey(state,'fenna')!,source:{kind:'local-directions',snapshot:response,
+      query:{outcome:'found',playerPrompt:prompt,itemRequested:true,subject:'Rations',itemId:'rations',businessId:'shop',burgId:675,plotId:27}}}}];
+  expect(buildNpcDialoguePromptContext(state,'fenna',npc)).toContain(JSON.stringify(prompt));
+  expect(buildNpcDialoguePromptContext(state,'fenna',npc)).toContain(JSON.stringify(response));
+ });
+ it('refuses a local source publication after its town/shop source can no longer be revalidated',()=>{
+  const {state}=make(),response='The Provisions has rations.';
+  const action={type:'SET_LAST_NPC_INTERACTION',payload:{npcId:'fenna',response,dialogue:{topicId:'global_directions',
+    speakerKey:generatedDialogueSpeakerKey(state,'fenna'),source:{kind:'local-directions',snapshot:response,query:{outcome:'found',playerPrompt:'Where nearby?',itemRequested:true,subject:'Rations',itemId:'rations',businessId:'shop',burgId:675,plotId:27}}}}} as unknown as AppAction;
+  expect(worldReducer(state,action)).toEqual({});
+  expect(state.npcMemory.fenna.interactions).toEqual([]);
+ });
+ it('remembers an honest unanswered local item question and advances recency without making a fact',()=>{
+  const {state}=make();
+  const prompt='Where can I buy moonstone nearby?',response="I can't point you to a nearby source for moonstone from what I know.";
+  const oldQuote='Marge keeps moonstone in her shop.';
+  state.npcMemory.fenna.interactions=[{id:'marge-quote',date:Number(state.gameTime)-1000,type:'dialogue',summary:oldQuote,attitudeChange:0,significance:3,
+    dialogue:{topicId:'generated_exchange',speakerKey:generatedDialogueSpeakerKey(state,'fenna')!,source:{kind:'generated-exchange',requestId:'heard-marge',playerPrompt:'Where do you buy it?'}}}];
+  const action:AppAction={type:'SET_LAST_NPC_INTERACTION',payload:{npcId:'fenna',response,dialogue:{topicId:'global_directions',
+    speakerKey:generatedDialogueSpeakerKey(state,'fenna')!,source:{kind:'local-directions',snapshot:response,
+      query:{outcome:'unknown',playerPrompt:prompt,itemRequested:true,subject:'moonstone'}}}}};
+  const heard={...state,...worldReducer(state,action)};
+  expect(heard.npcMemory.fenna.interactions?.at(-1)).toMatchObject({summary:response,dialogue:{source:{query:{outcome:'unknown',playerPrompt:prompt}}}});
+  expect(heard.npcMemory.fenna.interactions?.[0].summary).toBe(oldQuote);
+  expect(latestSpokenDialogueReplies(heard,'fenna').at(-1)?.summary).toBe(response);
+  expect(heard.npcMemory.fenna.knownFacts).toEqual(state.npcMemory.fenna.knownFacts);
+  const firstId=heard.npcMemory.fenna.interactions!.at(-1)!.id;
+  const laterTime=new Date(Number(heard.gameTime)+5000),repeatState={...heard,gameTime:laterTime};
+  const repeated={...repeatState,...worldReducer(repeatState,action)};
+  expect(repeated.npcMemory.fenna.interactions).toHaveLength(2);
+  expect(repeated.npcMemory.fenna.interactions!.at(-1)!.id).toBe(firstId);
+  expect(repeated.npcMemory.fenna.lastSpokenDialogue).toEqual({interactionId:firstId,deliveredAt:Number(laterTime)});
+ });
 });
 
 const personalFixture=()=>{

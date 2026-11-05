@@ -8,15 +8,27 @@ import {makeGroundWorld,groundSurfaceY,type GroundWorld} from '../groundChunkLoa
 import {siteOrientationFromQuad} from '../sitePartTransform';
 import {buildTownSimStateForBurg,townRosterForBurg} from '../../townsim/townSimRegistration';
 import {computeBurgMerchants} from '../../townsim/registerBurgMerchants';
+import {businessTypeForTownPlot} from '../../townsim/townBusinessIdentity';
 import {townBuildingVisit} from '../../../../components/Worldforge/townBuildingVisit';
 import {captureObservedBuildingSource,buildingPlanSignature} from '../../interior/buildingSource';
 import {guestBedsForVisit} from '../../../gameplay/lodging';
 import {historicalTownLoadJoinError,prepareHistoricalTownLoad,prepareHistoricalTownArrival} from '../../town/prepareHistoricalTownLoad';
-import {historicalTownArrivalUpdate} from '../../town/historicalTownLoadContract';
+import {historicalTownArrivalSignature,historicalTownArrivalUpdate} from '../../town/historicalTownLoadContract';
 import type {TownRoster} from '../../roster/types';
 import {COMPANIONS} from '../../../../data/companions';
 
 let baseline:GameState,ground:GroundWorld,roster:TownRoster;
+function legacyRecordedFounder(){
+ const state=structuredClone(baseline);
+ const npc=Object.values(state.generatedNpcs).find(raw=>{
+  const tag=(raw as {worldforgeHousehold?:{burgId:number;memberId:string}}).worldforgeHousehold;
+  return tag?.burgId===188&&roster.occupants.some(p=>p.householdMemberId===tag.memberId&&p.name===raw.name);
+ })!;
+ const tag=(npc as typeof npc&{worldforgeHousehold:{memberId:string}}).worldforgeHousehold;
+ const founder=roster.occupants.find(p=>p.householdMemberId===tag.memberId)!;
+ delete state.townSim[188].villagers[founder.id].householdMemberId;
+ return {state,npc,founder,memberId:tag.memberId};
+}
 beforeAll(()=>{
  const worldSeed=1793432134128,burgId=188,cellId=1506;
  const life=buildTownSimStateForBurg(worldSeed,burgId,1,1);
@@ -98,6 +110,40 @@ describe('independent historical-town load producer and existing site joins',()=
  it('matches actual merchants, owned sources, recorded doors and the paid inn visit before mount',()=>{
   expect(historicalTownLoadJoinError(baseline,ground,188,1,roster)).toBeUndefined();
  });
+ it.each(['legacy','unrelated-trade','wrong-owner'] as const)('checks the retained registration trade without rewriting stock: %s',kind=>{
+  const state=structuredClone(baseline),plan=ground.townPlans!.find(t=>t.burgId===188)!.plan;
+  const business=Object.values(state.worldBusinesses).find(b=>{
+   const plot=plan.plots.find(p=>p.id===b.plotId);
+   return plot&&businessTypeForTownPlot(plot.role,plot.id)!==businessTypeForTownPlot(plot.role,plot.id,plot.pop?.buildingType);
+  })!;
+  expect(business).toBeDefined();
+  const plot=plan.plots.find(p=>p.id===business.plotId)!;
+  business.businessType=businessTypeForTownPlot(plot.role,plot.id);
+  if(kind==='unrelated-trade')business.businessType=plot.role==='market'?'farm':'enchanter_shop';
+  if(kind==='wrong-owner')business.ownerId='unrelated-owner';
+  const before=JSON.stringify(state),result=historicalTownLoadJoinError(state,ground,188,1,roster);
+  if(kind==='legacy')expect(result).toBeUndefined();
+  else expect(result).toContain(kind==='wrong-owner'?'proprietor':'workplace');
+  expect(JSON.stringify(state)).toBe(before);
+ });
+ it.each(['original-home','moved-home'] as const)('joins an unlinked legacy NPC through the qualified founding ID: %s',kind=>{
+  const {state,founder}=legacyRecordedFounder();
+  if(kind==='moved-home')state.townSim[188].villagers[founder.id].homePlotId=
+   roster.occupants.find(p=>p.homePlotId!==founder.homePlotId)!.homePlotId;
+  const before=JSON.stringify(state);
+  expect(historicalTownLoadJoinError(state,ground,188,1,roster)).toBeUndefined();
+  expect(JSON.stringify(state)).toBe(before);
+ });
+ it.each(['name','recorded-link','duplicate-source-role','duplicate-saved-id'] as const)('refuses a conflicting legacy NPC join: %s',kind=>{
+  const {state,npc,founder,memberId}=legacyRecordedFounder(),source=structuredClone(roster);
+  if(kind==='name')npc.name='Someone else';
+  if(kind==='recorded-link')state.townSim[188].villagers[founder.id].householdMemberId='different:head';
+  if(kind==='duplicate-source-role')source.occupants.push({...founder,id:999999,householdMemberId:memberId});
+  if(kind==='duplicate-saved-id')state.townSim[188].villagers[999999]={...state.townSim[188].villagers[founder.id]};
+  const before=JSON.stringify(state);
+  expect(historicalTownLoadJoinError(state,ground,188,1,source)).toContain('recorded character');
+  expect(JSON.stringify(state)).toBe(before);
+ });
  it.each(['business','proprietor','other-keeper','door','bed','keeper','lore','inn-name','height','interior'] as const)('refuses unresolved %s joins without changing records',kind=>{
   const state=structuredClone(baseline);
   if(kind==='business')state.worldBusinesses.biz_burg_188_plot_8.businessType='farm';
@@ -133,6 +179,17 @@ describe('independent historical-town load producer and existing site joins',()=
 describe('recorded destination source before a new arrival',()=>{
   function departure(){const state=structuredClone(baseline);state.playerCell={cellId:1507,localeCoords:null};state.currentLocationId='cell_1507';state.playerGroundPos=null;state.entry3DAnchor={cellId:1507};return state;}
   const target={cellId:1506,anchor:{cellId:1506,centerPx:[376.7,199.25] as const}};
+  it.each([3,4] as const)('retains explicitly qualified source %i in the arrival transaction',terrainRevision=>{
+    const state=departure();delete state.worldforgeTerrainRevision;
+    const before=JSON.stringify(state),receipt={worldSeed:state.worldSeed,cellId:1506,burgId:188,
+      revision:1 as const,terrainRevision,signature:historicalTownArrivalSignature(state,188)};
+    const update=historicalTownArrivalUpdate(state,1506,receipt);
+    expect(update?.worldforgeTerrainRevision).toBe(terrainRevision);
+    expect(update?.townSim[188]).toEqual({...state.townSim[188],layoutRevision:1});
+    expect(JSON.stringify(state)).toBe(before);
+    // An explicit current source cannot be replaced by a historical receipt.
+    expect(historicalTownArrivalUpdate({...state,worldforgeTerrainRevision:2},1506,receipt)).toBeUndefined();
+  });
   it('independently qualifies the recorded destination before a body exists there and commits only its metadata with normal movement',async()=>{
     const state=departure(),before=JSON.stringify(state),result=prepareHistoricalTownArrival(state,target);
     expect(result.status).toBe('qualified');if(result.status!=='qualified')return;

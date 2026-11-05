@@ -338,7 +338,9 @@ export function assembleEntity(blueprint: EntityBlueprint, options: AssembleOpti
     noseWidth: Number(faceSculptParams?.noseWidth ?? 1),
     mouthWidth: Number(faceSculptParams?.mouthWidth ?? 1),
     // round 23 (humanoid-anatomy): jaw mass (see headForms.HumanoidFaceParams)
-    jawWidth: Number(faceSculptParams?.jawWidth ?? 1),
+    // heroic body (2026-11-05): the target lineup has a square jaw and a wide
+    // flat chin; the heroic frame widens whatever jaw the race carries
+    jawWidth: Number(faceSculptParams?.jawWidth ?? 1) * (frame.style === 'heroic' ? 1.25 : 1),
     // round 13 (humanoid-anatomy): >1 raises the upper lid (smaller cap,
     // less forward roll) — the round-12 orc's "droopy half-lidded ... sleepy"
     // read. Assembler furniture only; buildHumanoidHead ignores it.

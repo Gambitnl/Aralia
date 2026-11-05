@@ -451,6 +451,94 @@ export function bipedHandDigits(sgn: 1 | -1, handR: number, palmLen: number, fin
  * numbers — parity with the driver is the whole point, and the tests compare
  * against a live driver stepped with dt = 0.
  */
+/**
+ * The heroic frame preset (character cloth+armor campaign, 2026-11-05).
+ * Measured from the target lineup (anatomy.json in the campaign workspace):
+ * 5.15 head-units tall, 2.8 HU shoulder span, 1.94 HU hip-to-floor, hands
+ * 0.8 HU, feet 1.0 HU. The knobs below are solved against bipedRestPose
+ * (heroicBody.test.ts measures the result); the style flag turns on the
+ * hand, wrist, deltoid and boot rules in bipedBodyRadii.
+ */
+export function heroicFrame(frame: Frame): Frame {
+  return {
+    ...frame,
+    style: 'heroic',
+    // the sculpted head spans 1.47 skull radii = height/7 at headScale 1
+    headScale: frame.headScale * 1.36,
+    limbLengthFt: frame.limbLengthFt * 0.78,
+    shoulderWidthFt: frame.shoulderWidthFt * 1.08,
+    armLengthFt: frame.armLengthFt * 0.95,
+    bulk: Math.max(frame.bulk, 1.08),
+  };
+}
+
+/** Every limb, hand and foot radius of the biped body, meters. */
+export interface BipedBodyRadii {
+  r: number;
+  skullR: number;
+  armR: number;
+  shoulderR: number;
+  elbowR: number;
+  wristR: number;
+  deltoidR: number;
+  handR: number;
+  palmLen: number;
+  fingerLen: number;
+  legR: number;
+  thighR: number;
+  kneeR: number;
+  ankleR: number;
+  footHalfW: number;
+  heelBack: number;
+  toeFwd: number;
+  heelH: number;
+  toeH: number;
+  toeOutX: number;
+}
+
+/**
+ * ONE source for the body radii (2026-11-05). bipedRestPose (the bind pose
+ * the skinned loft is built on) and BipedDriver.buildBody (the segment
+ * renderer and the posed digits) each carried a copy of these formulas with
+ * "Mirror:" notes; the heroic style would have needed the change in both.
+ * The round notes that explain each number stay beside the former copies.
+ * Heroic rules: the wrist keeps 0.82 of the elbow (a club forearm, wrist
+ * nearly as wide as the elbow), the deltoid cap grows 12 percent, the hand
+ * floor rises from 0.4 to 0.5 skull radii (0.76 head-units long; 0.56 read as a flat slab), and the
+ * boot grows 1.5x in length and 1.25x in width (1.0 x 0.5 head-units).
+ */
+export function bipedBodyRadii(frame: Frame): BipedBodyRadii {
+  const hM = heightM(frame);
+  const r = hM * 0.105 * frame.bulk;
+  const skullR = bipedSkullRadiusM(frame);
+  const slimT = bipedSlimT(frame);
+  const heroic = frame.style === 'heroic';
+  const armLenM = frame.armLengthFt * FT_TO_M;
+  const legLenM = frame.limbLengthFt * FT_TO_M;
+  const armR = Math.max(r * 0.3, armLenM * 0.085);
+  const armBulkT = Math.min(0.6, Math.max(0, frame.bulk - 1));
+  const shoulderR = armR * (1.48 + 0.5 * armBulkT + 0.42 * slimT);
+  const elbowR = armR * (0.68 - 0.12 * armBulkT - 0.06 * slimT);
+  const wristR = heroic ? elbowR * 0.82 : armR * (0.49 - 0.06 * armBulkT - 0.04 * slimT);
+  const deltoidR = armR * (1.7 + 0.5 * armBulkT + 0.5 * slimT) * (heroic ? 1.12 : 1);
+  const handR = Math.max(armR * 1.0, skullR * (heroic ? 0.5 : 0.4));
+  const palmLen = handR * 1.28;
+  const fingerLen = handR * 0.95;
+  const legR = Math.max(r * 0.36, legLenM * 0.105);
+  const thighR = Math.max(legR * 1.32, r * 0.58);
+  const kneeR = Math.max(legR * 0.46, thighR * 0.35);
+  const ankleR = legR * 0.44;
+  const bootLen = heroic ? 1.5 : 1;
+  const bootW = heroic ? 1.25 : 1;
+  const footHalfW = Math.max(ankleR * (1.78 + 0.5 * slimT), legR * (0.8 + 0.14 * slimT)) * bootW;
+  const heelBack = legR * 0.9 * bootLen;
+  const toeFwd = legR * 2.1 * bootLen;
+  const heelH = legR * 0.62 * Math.sqrt(bootLen);
+  const toeH = legR * 0.34 * Math.sqrt(bootLen);
+  const toeOutX = legR * (0.85 + 0.1 * slimT) * bootW;
+  return { r, skullR, armR, shoulderR, elbowR, wristR, deltoidR, handR, palmLen, fingerLen, legR, thighR, kneeR, ankleR, footHalfW, heelBack, toeFwd, heelH, toeH, toeOutX };
+}
+
 export function bipedRestPose(frame: Frame): BipedRestPose {
   const hM = heightM(frame);
   const hr = headRadiusM(frame);
@@ -572,7 +660,9 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
 
   // buildBody uses the BARE half shoulder width for the shoulder joint
   const shoulderXBody = (frame.shoulderWidthFt * FT_TO_M) / 2 + shoulderOut;
-  const armR = Math.max(r * 0.3, armLen * 0.085);
+  // every radius below comes from bipedBodyRadii (one source with the
+  // driver, 2026-11-05); the round notes above the former lines are history
+  const { armR, shoulderR, elbowR, wristR, deltoidR, handR, palmLen, fingerLen, legR, thighR, kneeR, ankleR, footHalfW, heelBack, toeFwd, heelH, toeH, toeOutX } = bipedBodyRadii(frame);
   // round 6 (humanoid-anatomy): near 3:1 shoulder-to-wrist taper + palm-block
   // hand — mirror of the BipedDriver.buildBody arm loop (the stance formulas
   // above keep the round-4 armR * 1.6 term; the deltoid ball itself is 1.7)
@@ -592,10 +682,6 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
   // same amounts the bulky term does, which puts the human's shoulder:wrist at
   // ≈4:1 on the segment and its deltoid at ≈2× the forearm — the grunt ratio
   // the dwarf already hits. Mirror: BipedDriver.buildBody arm loop.
-  const armBulkT = Math.min(0.6, Math.max(0, frame.bulk - 1));
-  const shoulderR = armR * (1.48 + 0.5 * armBulkT + 0.42 * slimT);
-  const elbowR = armR * (0.68 - 0.12 * armBulkT - 0.06 * slimT);
-  const wristR = armR * (0.49 - 0.06 * armBulkT - 0.04 * slimT);
   // round 15 (humanoid-anatomy): FIST SCALE — the round-14 verdict's "plain
   // spheres" were hands at 0.38–0.44 of skull width; the references block
   // fists at ~0.6–0.7. The fist half-width now carries a skull-derived floor
@@ -609,16 +695,11 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
   // hand-research round 4: fist scale-down (see the mirror note in
   // BipedDriver.buildBody — real digits grew the envelope past the round-19
   // budget and the dwarf fist read as a fat ball).
-  const handR = Math.max(armR * 1.0, skullR * 0.4);
-  const palmLen = handR * 1.28;
-  const fingerLen = handR * 0.95;
   // round 1 (humanoid-anatomy): near 2:1 thigh-to-calf taper — mirror of the
   // BipedDriver.buildBody leg radii
-  const legR = Math.max(r * 0.36, legLen * 0.105);
   // round 13 (humanoid-anatomy): torso-derived thigh-root floor (0.58 r) so
   // bulky frames' legs match their torso; knee keeps half the root. Mirror:
   // BipedDriver.buildBody leg radii.
-  const thighR = Math.max(legR * 1.32, r * 0.58);
   // round 14 (humanoid-anatomy): knee 0.72 legR → 0.62 (and the thigh-root
   // fraction 0.5 → 0.44) — the round-13 thighs read as "constant-width
   // tubes"; the reference thighs narrow visibly toward the knee. Mirror:
@@ -635,12 +716,10 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
   // fraction 0.4 → 0.35) — round 20: "thigh and shin are close to the same
   // width ... reference thighs taper hard into the knee". Mirror:
   // BipedDriver.buildBody leg radii.
-  const kneeR = Math.max(legR * 0.46, thighR * 0.35);
   // round 19 (humanoid-anatomy): ankle 0.36 → 0.44 legR — Remy's live
   // eyeball: "pinched ankles" snapping into the boot lump; the calf bell
   // (smoothBipedGeometry .shin stations) now lands on a real ankle. Mirror:
   // BipedDriver.buildBody.
-  const ankleR = legR * 0.44;
 
   const segments: RestSegment[] = [];
   const balls: RestBall[] = [];
@@ -757,7 +836,7 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
     // shoulder raise, and receives Mixamo shoulder tracks. The pose sink's
     // emission table (BALL_BONE) keeps upperArm — that write is position-only
     // and the arm.upper segment overwrites it.
-    balls.push({ id: `deltoid${side}`, bone: `clavicle${side}` as BipedBoneName, center: [shoulder.x, shoulder.y, shoulder.z], r: armR * (1.7 + 0.5 * armBulkT + 0.5 * slimT) });
+    balls.push({ id: `deltoid${side}`, bone: `clavicle${side}` as BipedBoneName, center: [shoulder.x, shoulder.y, shoulder.z], r: deltoidR });
     segments.push({
       id: `arm${side}.upper`,
       bone: `upperArm${side}` as BipedBoneName,
@@ -877,17 +956,11 @@ export function bipedRestPose(frame: Frame): BipedRestPose {
   // and the slim ankle is the narrowest of the three subjects, so the same
   // multiplier bought the human the least width. Slim frames now carry their
   // own wider floor and a bigger toe splay. Bulky frames are unchanged.
-  const footHalfW = Math.max(ankleR * (1.78 + 0.5 * slimT), legR * (0.8 + 0.14 * slimT));
-  const heelBack = legR * 0.9;
-  const toeFwd = legR * 2.1;
-  const heelH = legR * 0.62;
-  const toeH = legR * 0.34;
   // round 23 (humanoid-anatomy): the toes SPLAY harder. Round 22 read "no
   // left/right difference" on every boot, and a mirrored toe-out is the only
   // thing that can produce one from a front camera — two feet that both point
   // straight at the lens are the same shape. The bulky base was 0.5 legR (about
   // 6° on a 2.1-legR foot), which reads as manufacturing tolerance, not stance.
-  const toeOutX = legR * (0.85 + 0.1 * slimT);
   for (const sgn of [-1, 1] as const) {
     const side = sgn < 0 ? 'L' : 'R';
     const foot: [number, number, number] = [sgn * stanceHalf, 0, 0.01];

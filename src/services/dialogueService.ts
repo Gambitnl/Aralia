@@ -8,9 +8,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 03/11/2026, 11:10:17
+ * Last Sync: 05/11/2026, 04:42:14
  * Dependents: components/Dialogue/DialogueConversationView.tsx, components/Dialogue/DialogueInterface.tsx, hooks/useConversation.ts, hooks/useDialogueSystem.ts, systems/puzzles/dialogueBridge.ts
- * Imports: 18 files
+ * Imports: 19 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -39,9 +39,53 @@ import { resolveNpcPersonalStatement } from '../systems/social/npcPersonalStatem
 import type { NpcDialoguePublication } from '../types/memory';
 import type { WorldBusiness } from '../types/business';
 import { shareableRumorNotes, rumorSubject } from '../systems/companions/companionRumors';
-import { resolveNpcLocalDirections } from '../systems/travel/npcLocalDirections';
+import { localFactUncertaintyReply, resolveNpcLocalDirections, resolveNpcLocalStockDirections } from '../systems/travel/npcLocalDirections';
 import { activeHelpQuest, helpQuestGold, npcGreetingStance, resolveNpcRecentLifeReply, resolveResidentTrouble } from '../systems/social/npcLifeReactions';
 import type { Quest } from '../types/quests';
+import { ALL_ITEMS } from '../data/items';
+
+export interface LocalFactQuestion { itemId?: string; subject: string; itemRequested:boolean; playerPrompt: string }
+
+/** Only explicitly local shopping questions enter this factual shortcut; all
+ * ordinary social speech and remote speculation retain the selected model path. */
+export function classifyLocalFactQuestion(prompt: string): LocalFactQuestion | undefined {
+  const text = prompt.trim();
+  if (!text || !/\b(?:nearby|near me|around here|in this town|here in town|locally)\b/i.test(text)
+    || !/\b(?:where|whereabouts|find|buy|get|purchase|shop|store|market)\b/i.test(text)) return undefined;
+  const shoppingItem=text.match(/\b(?:buy|purchase|find|get)\s+(?:(?:a|an|some|the)\s+)?([a-z][a-z '-]{1,40}?)(?=\s+(?:nearby|near me|around here|in this town|here in town|locally)\b|[?.!,]|$)/i)?.[1]?.trim();
+  const itemMention=text.match(/\b(?:rations?|food|provisions?|supplies)\b/i)?.[0];
+  const shopQuestion=/\b(?:shop|store|market|merchant|trader)\b/i.test(text);
+  if (!itemMention && !shopQuestion && !shoppingItem) return undefined;
+  const normalized=(value:string)=>value.toLowerCase().replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim();
+  let itemId = /\brations?\b/i.test(text) && ALL_ITEMS.rations ? 'rations' : undefined;
+  const explicitItem=shoppingItem??itemMention;
+  if (!itemId && explicitItem) {
+    const sought=normalized(explicitItem);
+    const matches=Object.entries(ALL_ITEMS).filter(([id,item])=>normalized(id)===sought||normalized(item.name)===sought);
+    if (matches.length===1) itemId=matches[0][0];
+  }
+  const itemRequested=!!explicitItem;
+  const subject=itemId ? ALL_ITEMS[itemId].name : explicitItem || 'shop';
+  return { ...(itemId ? {itemId}:{}), subject, itemRequested, playerPrompt:text };
+}
+
+export function resolveFreeformLocalFactReply(gameState:GameState,npc:NPC,prompt:string,speakerKey:string):
+  {handled:true;response:string;publication?:NpcDialoguePublication}|undefined {
+  const query=classifyLocalFactQuestion(prompt);
+  if (!query) return undefined;
+  const result=resolveNpcLocalStockDirections(gameState,npc,query.itemId,query.itemRequested);
+  if (result.status!=='found') {
+    const response=localFactUncertaintyReply(query);
+    return {handled:true,response,publication:{topicId:'global_directions',speakerKey,
+      source:{kind:'local-directions',snapshot:response,query:{outcome:'unknown',playerPrompt:query.playerPrompt,
+        itemRequested:query.itemRequested,subject:query.subject,...(query.itemId?{itemId:query.itemId}:{})}}}};
+  }
+  const response=result.snapshot;
+  return {handled:true,response,publication:{topicId:'global_directions',speakerKey,
+    source:{kind:'local-directions',snapshot:response,query:{outcome:'found',playerPrompt:query.playerPrompt,
+      itemRequested:query.itemRequested,subject:query.subject,...(query.itemId?{itemId:query.itemId}:{}),
+      businessId:result.businessId,burgId:result.burgId,plotId:result.plotId}}}};
+}
 
 const TOPIC_REGISTRY: Record<string, ConversationTopic> = {};
 
@@ -850,7 +894,9 @@ export function buildNpcDialoguePromptContext(
   // Retain only three recent exchanges so old speech cannot bury today's facts.
   const spoken=latestSpokenDialogueReplies(gameState,npcId).map(record=>{
     const topic=HOUSEHOLD_TOPICS.find(candidate=>candidate.id===record.dialogue?.topicId)??TOPIC_REGISTRY[record.dialogue?.topicId??''];
-    const input=record.dialogue?.source.kind==='generated-exchange'?record.dialogue.source.playerPrompt:topic?.playerPrompt;
+    const input=record.dialogue?.source.kind==='generated-exchange'?record.dialogue.source.playerPrompt
+      :record.dialogue?.source.kind==='local-directions'&&record.dialogue.source.query?.playerPrompt
+        ? record.dialogue.source.query.playerPrompt : topic?.playerPrompt;
     return 'At '+new Date(record.date).toISOString()+', the conversation input was '+JSON.stringify(input??'a prior conversation')
       +' and you replied '+JSON.stringify(record.summary)+'.';
   });

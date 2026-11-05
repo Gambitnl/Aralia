@@ -7,9 +7,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 03/11/2026, 06:28:41
+ * Last Sync: 04/11/2026, 22:17:11
  * Dependents: components/CharacterSheet/Spellbook/CastSpellControls.tsx
- * Imports: 4 files
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -21,7 +21,7 @@
 import React,{useState} from 'react';
 import {useOptionalGameState} from '../../../state/GameContext';
 import type {Action,CastSpellPayload,Item,PlayerCharacter} from '../../../types';
-import {LIGHT_OBJECT_SLOTS,prepareObjectLightCast,type LightObjectSlot} from '../../../systems/gameplay/objectLightCasting';
+import {activeObjectLights,LIGHT_OBJECT_SLOTS,prepareObjectLightCast,type LightObjectSlot} from '../../../systems/gameplay/objectLightCasting';
 import {generateId} from '../../../utils/core/idGenerator';
 // GG-378: shared button style, the same as the water cast in CastSpellControls.
 import { Button } from '../../ui/Button';
@@ -37,14 +37,24 @@ export default function ObjectLightControls({character,isReadyToCast,notReadyRea
     const item=caster?.equippedItems?.[slot];
     return item?[{slot,item}]:[];
   });
+  // The closed picker should report success only while this caster still holds
+  // the marked object and its timed Light source is active. Other casters,
+  // packed objects and expired lights do not count as a current result.
+  const activeLight=state&&caster?activeObjectLights(state).find(light=>
+    light.objectLight?.casterId===caster.id&&light.bearerId===caster.id):undefined;
+  const activeSlot=activeLight?.objectLight?.slot;
+  const activeItem=activeSlot?caster?.equippedItems?.[activeSlot]:undefined;
+  const currentLight=activeLight&&activeSlot&&activeItem?.lightSpellId===activeLight.id?
+    {source:activeLight,slot:activeSlot,item:activeItem}:undefined;
   const payload:CastSpellPayload={characterId:character.id!,spellId:'light',spellLevel:0,
     outOfCombat:{targetCharacterId:character.id!,...(selection?{light:{...selection,color,castId:'review'}}:{})}};
   const offer=state?prepareObjectLightCast(state,payload):null;
   const error=!isReadyToCast?(notReadyReason??'This spell is not ready.'):
-    selection&&offer&&'error'in offer?offer.error:!selection&&heldObjects.length?'Choose an object to touch before casting Light.':undefined;
+    selection&&offer&&'error'in offer?offer.error:!selection&&heldObjects.length&&!currentLight?'Choose an object to touch before casting Light.':undefined;
   return <section aria-label="Light object casting" className="border-b border-slate-700 bg-slate-800/30 px-6 py-4 text-sm text-slate-200">
     <p className="font-semibold">Light an object you hold</p>
     <p className="mt-2 text-slate-300">{character.name} touches their own object. It sheds bright light for 20 feet and dim light for another 20 feet, for one hour. Recasting ends their previous Light.</p>
+    {currentLight&&<p className="mt-2 text-emerald-200">Current Light: {character.name}'s {currentLight.slot==='MainHand'?'main-hand':'off-hand'} {currentLight.item.name}. Bright light reaches 20 feet, with dim light another 20 feet. {Math.ceil(currentLight.source.durationRemaining)} minutes remain; no spell slot was spent.</p>}
     {!heldObjects.length&&<p role="status" className="mt-2 text-amber-200">No eligible object is held. Equip an object in either hand first; packed items and another person’s objects cannot be selected.</p>}
     <div className="my-3 flex flex-wrap items-center gap-4">
       <label>Object <select aria-label="Object" className="ml-2 rounded border border-slate-500 bg-slate-900 px-3 py-2" value={selection?.slot??''} onChange={e=>{

@@ -1151,7 +1151,7 @@ export function buildSmoothBipedGeometry(
 
   // round 18 (humanoid-anatomy): pec-ladder softening — 1 at human bulk,
   // easing toward 0.45 as bulk climbs past 1 (orc ≈ 0.5, dwarf ≈ 0.45).
-  const soft = frame ? Math.max(0.45, 1 - 1.3 * Math.max(0, frame.bulk - 1)) : 1;
+  const soft = frame?.style === 'heroic' ? 0.45 : frame ? Math.max(0.45, 1 - 1.3 * Math.max(0, frame.bulk - 1)) : 1;
   // round 22 (humanoid-anatomy): slim-frame strength — the same curve
   // skeletonBuilder.bipedSlimT uses (kept inline: this module takes an
   // optional frame and must not import the driver's helpers for one number).

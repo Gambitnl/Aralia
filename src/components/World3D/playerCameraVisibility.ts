@@ -1,13 +1,14 @@
 /** Keep the walking camera clear of opaque scenery using the drawn figure.
  * Asymmetric anatomy must not turn empty bounding-box corners into body parts. */
+
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/10/2026, 21:49:36
+ * Last Sync: 05/11/2026, 05:10:51
  * Dependents: components/World3D/FreeRoamCameraController.tsx, components/World3D/World3DScene.tsx, components/World3D/playerCameraFrame.ts
- * Imports: 1 files
+ * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -17,11 +18,15 @@
 // @dependencies-end
 
 import * as THREE from 'three';
-import {nearestGroundCameraHit} from './cameraGroundRaycast';
+import {nearestGroundCameraHit, nearestGroundCameraHits, type GroundCameraRayRoot} from './cameraGroundRaycast';
+import {TABLE_LAMP_NO_HIT_RAYCAST} from './tableLamp';
 
 export type CameraPoint = readonly [number, number, number];
 /** Nearest opaque town structure or ground surface along the camera arm. */
-export type PlayerCameraSightline = (focus: CameraPoint, eye: CameraPoint) => number | null;
+export type PlayerCameraSightline = ((focus: CameraPoint, eye: CameraPoint, subjectId?: string) => number | null) & {
+  /** Reuse scene bounds only inside one synchronous camera retraction solve. */
+  withSynchronousSolve?: <T>(solve: (sightline: PlayerCameraSightline) => T) => T;
+};
 
 /** Select actual drawn vertices at the figure's six extremes. A tail's overall
  * box also contains empty space above it; a porch in that space cannot hide the
@@ -118,82 +123,158 @@ function createBodySurfaceSamples() {
  * Reuse the rendered surfaces for visibility; geometry and feet stay unchanged. */
 export function createPlayerCameraSightline(getScene: () => THREE.Scene | null,
   now: () => number = () => performance.now()): PlayerCameraSightline {
-  const raycaster = new THREE.Raycaster(), focus = new THREE.Vector3(), direction = new THREE.Vector3();
-  let cachedScene: THREE.Scene | null = null, refreshedAt = -Infinity;
-  let player: THREE.Object3D | null = null, sampledFrame = -1;
-  const sampleBody=createBodySurfaceSamples();
+  const focus = new THREE.Vector3(), direction = new THREE.Vector3();
+  const raycasterPool: THREE.Raycaster[] = [];
+  let sampledPlayer: THREE.Object3D | null = null, sampledFrame = -1;
+  const bodySamplers=new WeakMap<THREE.Object3D,ReturnType<typeof createBodySurfaceSamples>>();
+  const sampleActor=(actor:THREE.Object3D,time:number)=>{
+    let sample=bodySamplers.get(actor);
+    if(!sample){sample=createBodySurfaceSamples();bodySamplers.set(actor,sample);}
+    return sample(actor,time);
+  };
   let playerPoints: CameraPoint[]=[];
-  let buildings: Array<{ root: THREE.Object3D; bounds: THREE.Box3 }> = [];
-  return (from, to) => {
+  const collectScene = (scene: THREE.Scene): {
+    player: THREE.Object3D | null;
+    companions: Map<string, THREE.Object3D>;
+    buildings: Array<{root: THREE.Object3D; bounds: THREE.Box3; batchSafe: boolean}>;
+  } => {
+    let player: THREE.Object3D | null = null;
+    const companions = new Map<string, THREE.Object3D>();
+    const buildings: Array<{root: THREE.Object3D; bounds: THREE.Box3; batchSafe: boolean}> = [];
+    const buildingByRoot = new Map<THREE.Object3D, (typeof buildings)[number]>();
+    scene.traverse(object => {
+      if (object.name === 'world3d:player') player = object;
+      else if (object.name.startsWith('world3d:companion:')) companions.set(object.name.slice('world3d:companion:'.length), object);
+      if (object.name === 'world3d:site-building' || object.name === 'world3d:decks'
+        || object.name === 'world3d:terrain' || object.name === 'world3d:roads'
+        // The played Dragon doorway was hidden by a real overturned barrel.
+        // Include its rendered prop batch; keep the barrel and its source intact.
+        || object.name === 'ground-props') {
+        object.updateWorldMatrix(true, true);
+        const building = {root: object, bounds: new THREE.Box3().setFromObject(object).expandByScalar(2), batchSafe: true};
+        buildings.push(building); buildingByRoot.set(object, building);
+      }
+      if (object instanceof THREE.Mesh && object.raycast !== THREE.Mesh.prototype.raycast
+        && object.raycast !== TABLE_LAMP_NO_HIT_RAYCAST
+        && !(object instanceof THREE.InstancedMesh && object.raycast === THREE.InstancedMesh.prototype.raycast)) {
+        let ancestor: THREE.Object3D | null = object;
+        while (ancestor && ancestor !== scene && !buildingByRoot.has(ancestor)) ancestor = ancestor.parent;
+        const owningBuilding = ancestor ? buildingByRoot.get(ancestor) : undefined;
+        if (owningBuilding) owningBuilding.batchSafe = false;
+      }
+    });
+    return {player, companions, buildings};
+  };
+  let solvePreparation: {scene: THREE.Scene; data: ReturnType<typeof collectScene>} | null = null;
+  let preparationRevision = 0;
+  const sightline: PlayerCameraSightline = (from, to, subjectId) => {
     const scene = getScene();
     // No mounted scene is unknown clearance, not proof of a clear arm.
     if (!scene) return 0;
     const time = now();
-    // Streaming changes the occluder roster. Cache its broad phase, but read
-    // live leaf transforms for every ray so opening a door clears it immediately.
-    if (scene !== cachedScene || time - refreshedAt >= 1000) {
-      buildings = []; player = null; sampledFrame = -1;
-      scene.updateMatrixWorld(true);
-      scene.traverse(object => {
-        if (object.name === 'world3d:player') player = object;
-        if (object.name === 'world3d:site-building' || object.name === 'world3d:decks'
-          || object.name === 'world3d:terrain' || object.name === 'world3d:roads'
-          // The played Dragon doorway was hidden by a real overturned barrel.
-          // Include its rendered prop batch; keep the barrel and its source intact.
-          || object.name === 'ground-props') buildings.push({ root: object,
-          bounds: new THREE.Box3().setFromObject(object).expandByScalar(2) });
-      });
-      cachedScene = scene; refreshedAt = time;
-    }
+    // A streamed door, prop group or terrain root must affect this query as
+    // soon as it is mounted; no scene roster survives between calls.
+    const prepared = solvePreparation?.scene === scene ? solvePreparation.data : null;
+    const {player, companions, buildings} = prepared ?? collectScene(scene);
     const distance = Math.hypot(to[0] - from[0], to[1] - from[1], to[2] - from[2]);
     if (distance < 1e-6) return null;
     const points: CameraPoint[] = [from];
-    if (player?.parent) {
+    if (subjectId) {
+      // The explicit To Player command may include a source-qualified nearby
+      // companion. Sample that mounted body only for this one visibility query;
+      // ordinary live follow continues to test the player alone.
+      const subject = companions.get(subjectId) ?? scene.getObjectByName(`world3d:companion:${subjectId}`) ?? null;
+      if (!subject?.parent) return 0;
+      subject.updateWorldMatrix(true, true);
+      points.push(...sampleActor(subject,time));
+    } else if (player?.parent) {
       // The actual figure supplies its height and width, including small races.
       // A clear torso ray alone can still hide the head behind a door lintel.
+      if (player !== sampledPlayer) { sampledPlayer = player; sampledFrame = -1; }
+      player.updateWorldMatrix(true, true);
       const frame = Math.floor(time / 16);
       if (frame !== sampledFrame) {
-        playerPoints=sampleBody(player,time);
+        playerPoints=sampleActor(player,time);
         sampledFrame = frame;
       }
       if (!playerPoints.length) return 0;
       points.push(...playerPoints);
     }
-    let nearest: number | null = null;
-    const updated = new Set<THREE.Object3D>();
+    const raycasters: THREE.Raycaster[] = [], armLengths: number[] = [];
     for (const point of points) {
-    focus.set(...point); direction.set(...to).sub(focus);
-    const sampleLength = direction.length();
-    if (sampleLength < 1e-6) continue;
-    raycaster.set(focus, direction.divideScalar(sampleLength));
-    raycaster.near = 0.01; raycaster.far = sampleLength;
-    for (const { root, bounds } of buildings) {
+      focus.set(...point); direction.set(...to).sub(focus);
+      const sampleLength = direction.length();
+      if (sampleLength < 1e-6) continue;
+      const rayIndex = raycasters.length;
+      const query = raycasterPool[rayIndex] ?? (raycasterPool[rayIndex] = new THREE.Raycaster());
+      query.set(focus, direction.divideScalar(sampleLength)); query.near = 0.01; query.far = sampleLength;
+      raycasters.push(query); armLengths.push(sampleLength);
+    }
+    const activeRoots: GroundCameraRayRoot[] = [];
+    for (const {root, bounds, batchSafe} of buildings) {
       let ancestor: THREE.Object3D | null = root;
       while (ancestor && ancestor !== scene && ancestor.visible) ancestor = ancestor.parent;
-      if (ancestor !== scene || !scene.visible || !raycaster.ray.intersectsBox(bounds)) continue;
-      if (!updated.has(root)) { root.updateWorldMatrix(true, true); updated.add(root); }
-      // Dense interior floors/walls need the same exact triangle candidate
-      // index as terrain. Native temple play spent most sampled CPU time in
-      // full building scans. The helper still reads current leaf transforms,
-      // material sides/visibility and custom raycasts; nothing becomes clear
-      // merely because it is expensive, and no physical geometry is changed.
-      const hit = nearestGroundCameraHit(root, raycaster);
-      if (hit !== null) {
-        const armDistance = hit / sampleLength * distance;
-        if (nearest === null || armDistance < nearest) nearest = armDistance;
+      if (ancestor !== scene || !scene.visible) continue;
+      const applies = raycasters.map(query => query.ray.intersectsBox(bounds));
+      if (!applies.some(Boolean)) continue;
+      root.updateWorldMatrix(true, true);
+      activeRoots.push({root, applies, batchSafe});
+    }
+    // One visible-tree walk serves every drawn-body ray in this synchronous
+    // sightline. No mesh roster survives the call, so streamed doors, props,
+    // visibility changes and moved objects are collected again next time.
+    const fallback = () => {
+      // A custom raycast may mutate doors, props, visibility or transforms.
+      // Drop the shared solve preparation before running the ordered live path.
+      preparationRevision++;
+      solvePreparation = null;
+      const hits: Array<number | null> = [];
+      for (let index = 0; index < raycasters.length; index++) {
+        const query = raycasters[index]; let nearest: number | null = null;
+        // A custom raycast may change another root, so refresh the scene roster
+        // before each sequential fallback ray just as the original loop did.
+        for (const {root, bounds} of collectScene(scene).buildings) {
+          let parent: THREE.Object3D | null = root;
+          while (parent && parent !== scene && parent.visible) parent = parent.parent;
+          if (parent !== scene || !scene.visible || !query.ray.intersectsBox(bounds)) continue;
+          root.updateWorldMatrix(true, true);
+          const hit = nearestGroundCameraHit(root, query);
+          if (hit !== null && (nearest === null || hit < nearest)) nearest = hit;
+        }
+        hits.push(nearest);
       }
-    }
-    }
-    return nearest;
+      return hits;
+    };
+    // A single center ray also permits custom callbacks. Invalidate its solve
+    // snapshot before execution, even though it has no multi-ray batch to skip.
+    const hits = activeRoots.some(root => root.batchSafe === false)
+      ? fallback() : nearestGroundCameraHits(activeRoots, raycasters, fallback);
+    return hits.reduce<number | null>((nearest, hit, index) => {
+      if (hit === null) return nearest;
+      const armDistance = hit / armLengths[index] * distance;
+      return nearest === null || armDistance < nearest ? armDistance : nearest;
+    }, null);
   };
+  sightline.withSynchronousSolve = solve => {
+    const scene = getScene();
+    const previous = solvePreparation;
+    const revision = preparationRevision;
+    solvePreparation = scene ? {scene, data: collectScene(scene)} : null;
+    try { return solve(sightline); }
+    // An inner custom query invalidates its outer snapshot as well. Restoring
+    // that old roster would hide objects the callback has just mounted.
+    finally { solvePreparation = preparationRevision === revision ? previous : null; }
+  };
+  return sightline;
 }
 
 /** Retract the eye before opaque structure on its existing arm; feet and focus never move. */
 export function cameraBeforeBuilding(focus: CameraPoint, eye: CameraPoint,
   sightline: PlayerCameraSightline): CameraPoint | null {
+  const solve = (query: PlayerCameraSightline) => {
   let candidate = eye;
   for (let attempt = 0; attempt < 5; attempt++) {
-  const hit = sightline(focus, candidate);
+  const hit = query(focus, candidate);
   if (hit === null) return candidate;
   const length = Math.hypot(candidate[0] - focus[0], candidate[1] - focus[1], candidate[2] - focus[2]);
   const available = hit - 0.2;
@@ -204,6 +285,8 @@ export function cameraBeforeBuilding(focus: CameraPoint, eye: CameraPoint,
     focus[1] + (candidate[1] - focus[1]) * ratio, focus[2] + (candidate[2] - focus[2]) * ratio];
   }
   return null;
+  };
+  return sightline.withSynchronousSolve ? sightline.withSynchronousSolve(solve) : solve(sightline);
 }
 
 /** The map's near plane cannot crop rooms after a legal walking-scale retraction.

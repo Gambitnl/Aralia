@@ -30,7 +30,7 @@
 // @dependencies-end
 
 import type { GameState } from '../../types';
-import { SafeStorage, logger, safeJSONParse } from '../../utils/core';
+import { SafeStorage, logger, safeJSONParse, simpleHash } from '../../utils/core';
 import * as IDBStorage from '../indexedDBStorageService';
 import {
   AUTO_SAVE_SLOT,
@@ -38,6 +38,7 @@ import {
   DEFAULT_SAVE_SLOT,
   EMERGENCY_SAVE_KEY,
   MIGRATION_FLAG_KEY,
+  SAVE_GAME_VERSION,
   SLOT_PREFIX,
 } from './saveLoadConstants';
 import { getIndexedDbAvailability, setIndexedDbAvailable } from './saveLoadHelpers';
@@ -160,12 +161,72 @@ async function recoverEmergencySave(): Promise<void> {
     const parsed = safeJSONParse<{ slotId?: string }>(emergencyData);
     const slotId = parsed?.slotId || AUTO_SAVE_SLOT;
 
+    // A beforeunload snapshot can be written just before an IndexedDB save
+    // finishes. Keep the target when it is valid and at least as new; legacy
+    // payloads without a comparable timestamp still follow normal recovery.
+    const emergency = inspectSaveTimestamp(emergencyData);
+    if (!emergency.valid) {
+      // A damaged modern snapshot is evidence to preserve, not a candidate to
+      // overwrite the current save with or silently discard during startup.
+      logger.warn('Kept invalid emergency save for diagnosis', { slotId });
+      return;
+    }
+
+    const existingData = await IDBStorage.getSave(slotId);
+    const existing = inspectSaveTimestamp(existingData);
+    if (existing.valid && existing.timestamp !== null && emergency.timestamp !== null && existing.timestamp >= emergency.timestamp) {
+      clearEmergencyIfCurrent(emergencyData);
+      logger.info('Kept newer or equally recent IndexedDB save over emergency snapshot', { slotId });
+      return;
+    }
+
     // Write to IndexedDB and clean up localStorage.
     await IDBStorage.putSave(slotId, emergencyData);
-    SafeStorage.removeItem(EMERGENCY_SAVE_KEY);
+    clearEmergencyIfCurrent(emergencyData);
     logger.info('Recovered emergency save from localStorage', { slotId });
   } catch (error) {
     logger.error('Failed to recover emergency save', { error });
+  }
+}
+
+/** Checks the existing checksum convention without treating an explicitly
+ * supplied zero or malformed value as the legacy absence of a checksum. */
+function inspectSaveTimestamp(raw: string | null): { valid: boolean; timestamp: number | null } {
+  if (!raw) return { valid: false, timestamp: null };
+  const parsed = safeJSONParse<Record<string, unknown>>(raw);
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return { valid: false, timestamp: null };
+
+  const hasState = Object.prototype.hasOwnProperty.call(parsed, 'state');
+  const looksLikeEnvelope = hasState || 'slotId' in parsed || 'version' in parsed || 'checksum' in parsed;
+  const candidate = hasState ? parsed.state : parsed;
+  if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) {
+    return { valid: false, timestamp: null };
+  }
+  // An envelope without its state is malformed. Bare legacy GameState objects
+  // remain readable, including older saves without a comparison timestamp.
+  if (looksLikeEnvelope && !hasState) return { valid: false, timestamp: null };
+
+  if (Object.prototype.hasOwnProperty.call(parsed, 'checksum')) {
+    const checksum = parsed.checksum;
+    if (typeof checksum !== 'number' || !Number.isFinite(checksum) || simpleHash(JSON.stringify(candidate)) !== checksum) {
+      return { valid: false, timestamp: null };
+    }
+  }
+
+  const saveVersion = (candidate as Record<string, unknown>).saveVersion;
+  if (saveVersion && saveVersion !== SAVE_GAME_VERSION) return { valid: false, timestamp: null };
+
+  const timestamp = (candidate as Record<string, unknown>).saveTimestamp;
+  return {
+    valid: true,
+    timestamp: typeof timestamp === 'number' && Number.isFinite(timestamp) ? timestamp : null,
+  };
+}
+
+/** An awaited IndexedDB operation must not erase a newer synchronous snapshot. */
+function clearEmergencyIfCurrent(recoveredBytes: string): void {
+  if (SafeStorage.getItem(EMERGENCY_SAVE_KEY) === recoveredBytes) {
+    SafeStorage.removeItem(EMERGENCY_SAVE_KEY);
   }
 }
 

@@ -37,16 +37,14 @@ import {createPlayerCameraSelfVisibility} from './playerCameraSelfVisibility';
 import { sceneToWorld, type SceneOrigin } from '@/systems/world3d/sceneOrigin';
 
 /**
- * One-shot camera framing command. Bumping `nonce` (vs the last applied value)
- * snaps the camera to look straight down at `target` from `height` meters up,
- * with a slight horizontal offset so the view reads as a steep overhead rather
- * than a gimbal-locked top-down. Used by the HUD "Town Cell" button to pull the
- * camera up to frame the whole town without leaving the 3D scene.
+ * One-shot camera framing command. Town requests create an overhead view;
+ * player and party requests return to a source-checked view inside the scene.
+ * Bumping `nonce` applies a new request without changing world or actor state.
  */
 export interface CameraFrameRequest {
   nonce: number;
-  /** Distinguish town and player commands even when their counters match. */
-  kind?: 'town' | 'player';
+  /** A party frame is a bounded one-shot checked against every included body; it is not live group follow. */
+  kind?: 'town' | 'player' | 'party';
   /** Optional scene-local camera position for a source-checked street view. */
   position?: readonly [number, number, number];
   target: readonly [number, number, number];
@@ -96,6 +94,11 @@ const FreeRoamCameraController: React.FC<FreeRoamCameraControllerProps> = ({
   // A loading-time view may be refined until the person moves or takes control.
   const appliedFrameNonce = useRef<string | null>(null);
   const appliedFrameRequest = useRef<CameraFrameRequest | null>(null);
+  // A validated party view is deliberately stationary until the camera or
+  // accepted footing actually changes. Keep its real focus and arm so later
+  // wall checks protect the chosen party framing without following the leader.
+  const partyCameraPose = useRef<{key: string; focus: CameraPoint; eye: CameraPoint;
+    player: CameraPoint | null; playerOffset: number} | null>(null);
   const mayRefinePlayerFrame = useRef(false);
   const heldViewKeys = useRef(new Set<string>());
   const cancelPlayerRefinement = React.useCallback(() => { mayRefinePlayerFrame.current = false; }, []);
@@ -167,6 +170,7 @@ const FreeRoamCameraController: React.FC<FreeRoamCameraControllerProps> = ({
       && frameRequest.target.every((value, i) => Math.abs(value - previousRequest.target[i]) <= .01)
       && frameRequest.position.some((value, i) => Math.abs(value - previousRequest.position![i]) > 1e-6)
       && (!playerSightline || playerSightline(frameRequest.target, frameRequest.position) === null);
+    let partyFrameApplied = false;
     if (frameRequest && (frameKey !== appliedFrameNonce.current || refinedPlayerFrame)) {
       if (frameKey !== appliedFrameNonce.current) mayRefinePlayerFrame.current = frameRequest.kind === 'player';
       appliedFrameNonce.current = frameKey;
@@ -183,20 +187,54 @@ const FreeRoamCameraController: React.FC<FreeRoamCameraControllerProps> = ({
       lastPlayerElevation.current = null;
       lastClearPlayerView.current = null;
       controls.update();
+      if (frameRequest.kind === 'party' && frameRequest.position && frameKey !== null) {
+        const focus: CameraPoint = [controls.target.x, controls.target.y, controls.target.z];
+        const eye: CameraPoint = [three.camera.position.x, three.camera.position.y, three.camera.position.z];
+        const player = getPlayerTarget?.() ?? null;
+        const playerOffset = player ? Math.hypot(focus[0] - player[0], focus[2] - player[2]) : Infinity;
+        partyCameraPose.current = {key: frameKey, focus, eye, player, playerOffset};
+        // The explicit party selector has already checked every included body.
+        // Retain that pose as the first safe heading for a later changed view.
+        if (!playerSightline || playerSightline(focus, eye) === null) lastClearPlayerView.current = {focus, eye};
+        partyFrameApplied = true;
+      } else partyCameraPose.current = null;
     }
 
-    // The keyboard translates the arm before this pass. Keep a centered player
-    // view at the real floor height, then retract before opaque rendered walls.
+    const partyState = frameRequest?.kind === 'party' && partyCameraPose.current?.key === frameKey
+      ? partyCameraPose.current : null;
+    const partyFocus: CameraPoint = [controls.target.x, controls.target.y, controls.target.z];
+    const partyEye: CameraPoint = [three.camera.position.x, three.camera.position.y, three.camera.position.z];
+    const partyPlayer = getPlayerTarget?.() ?? null;
+    const partyFocusMove = partyState ? Math.hypot(partyFocus[0] - partyState.focus[0], partyFocus[2] - partyState.focus[2]) : 0;
+    const partyPlayerMove = partyState && partyPlayer && partyState.player
+      ? Math.hypot(partyPlayer[0] - partyState.player[0], partyPlayer[2] - partyState.player[2]) : 0;
+    const partyMoveFollowsFeet = partyFocusMove > .02 && partyPlayerMove > .02 && partyState && partyPlayer && partyState.player
+      && Math.hypot((partyFocus[0] - partyState.focus[0]) - (partyPlayer[0] - partyState.player[0]),
+        (partyFocus[2] - partyState.focus[2]) - (partyPlayer[2] - partyState.player[2])) < .08;
+    const partyArmChanged = partyState && Math.hypot(
+      (partyEye[0] - partyFocus[0]) - (partyState.eye[0] - partyState.focus[0]),
+      (partyEye[1] - partyFocus[1]) - (partyState.eye[1] - partyState.focus[1]),
+      (partyEye[2] - partyFocus[2]) - (partyState.eye[2] - partyState.focus[2])) > .02;
+    const nearPartyFocus = partyState && partyPlayer
+      && Math.hypot(partyFocus[0] - partyPlayer[0], partyFocus[2] - partyPlayer[2]) <= Math.max(1, partyState.playerOffset + .75);
+    const checkChangedPartyView = Boolean(partyState && !partyFrameApplied && nearPartyFocus
+      && (partyArmChanged || partyMoveFollowsFeet));
+
+    // The keyboard translates the arm before this pass. Check changed party
+    // views at their current focus and retract before opaque rendered walls.
     // Panning away and town/combat overview commands retain their own framing.
     let wallShortenedCamera = false;
-    if (frameRequest?.kind === 'player') {
+    let partyViewCheckedClear = false;
+    if (frameRequest?.kind === 'player' || checkChangedPartyView) {
       const body = getPlayerTarget?.();
-      if (body && Math.hypot(controls.target.x - body[0], controls.target.z - body[2]) < 1) {
+      const focusNearPlayer = body && Math.hypot(controls.target.x - body[0], controls.target.z - body[2])
+        < (frameRequest?.kind === 'party' && partyState ? Math.max(1, partyState.playerOffset + .75) : 1);
+      if (frameRequest?.kind === 'player' && body && focusNearPlayer) {
         const rise = body[1] - controls.target.y;
         three.camera.position.y += rise;
         controls.target.y = body[1];
       }
-      if (playerSightline && (!body || Math.hypot(controls.target.x - body[0], controls.target.z - body[2]) < 1)) {
+      if (playerSightline && (frameRequest?.kind === 'party' ? focusNearPlayer : !body || focusNearPlayer)) {
         const focus: CameraPoint = [controls.target.x, controls.target.y, controls.target.z];
         const eye: CameraPoint = [three.camera.position.x, three.camera.position.y, three.camera.position.z];
         const currentDistance = Math.hypot(eye[0] - focus[0], eye[1] - focus[1], eye[2] - focus[2]);
@@ -304,7 +342,10 @@ const FreeRoamCameraController: React.FC<FreeRoamCameraControllerProps> = ({
             }
           }
         }
-        if (finalClear) lastClearPlayerView.current = {focus, eye};
+        if (finalClear) {
+          lastClearPlayerView.current = {focus, eye};
+          if (frameRequest?.kind === 'party') partyViewCheckedClear = true;
+        }
         lastPlayerDistance.current = three.camera.position.distanceTo(controls.target);
         lastPlayerElevation.current = Math.atan2(three.camera.position.y - controls.target.y,
           Math.hypot(three.camera.position.x - controls.target.x, three.camera.position.z - controls.target.z));
@@ -314,9 +355,22 @@ const FreeRoamCameraController: React.FC<FreeRoamCameraControllerProps> = ({
     // A town command or deliberate pan starts a different view. Do not carry
     // its orbit history back into player follow after inspection.
     const followedBody = getPlayerTarget?.();
-    if (frameRequest?.kind !== 'player' || (followedBody
-      && Math.hypot(controls.target.x - followedBody[0], controls.target.z - followedBody[2]) >= 1)) {
+    if ((frameRequest?.kind !== 'player' && frameRequest?.kind !== 'party')
+      || (frameRequest?.kind === 'player' && followedBody
+        && Math.hypot(controls.target.x - followedBody[0], controls.target.z - followedBody[2]) >= 1)
+      || (frameRequest?.kind === 'party' && !nearPartyFocus)) {
       lastClearPlayerView.current = null;
+    }
+
+    const deliberatePartyPan = Boolean(partyState && partyFocusMove > .02 && !partyMoveFollowsFeet && !partyArmChanged);
+    if (partyState && (partyViewCheckedClear || deliberatePartyPan)) {
+      // Compare future changes with the actual checked pose, not a new center
+      // around Bram. A pan that moves focus away from the frozen party center
+      // remains the player's choice and is outside these wall-follow checks.
+      partyCameraPose.current = { ...partyState,
+        focus: [controls.target.x, controls.target.y, controls.target.z],
+        eye: [three.camera.position.x, three.camera.position.y, three.camera.position.z],
+        player: getPlayerTarget?.() ?? null };
     }
 
     // When real walls compress the arm against the figure, keep the room

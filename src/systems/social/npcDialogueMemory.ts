@@ -33,7 +33,7 @@ import {createEmptyMemory} from '../../utils/world/memoryUtils';
 import {NPCS} from '../../data/world/npcs';
 import type {RichNPC,NpcMemory} from '../../types/world';
 import {resolveNpcInstitutionStatement} from './npcInstitutionStatements';
-import {resolveNpcLocalDirections} from '../travel/npcLocalDirections';
+import {localFactUncertaintyReply,resolveNpcLocalDirections,resolveNpcLocalStockDirections,type LocalFactRequest} from '../travel/npcLocalDirections';
 
 /** Household dialogue uses today's admitted life, not the founding biography.
  * Other authored personalities retain their existing voice and facts. Saved
@@ -74,8 +74,13 @@ function validInstitutionPublication(value:unknown):value is NpcInstitutionDialo
 
 function validDirectionsPublication(value:unknown):value is NpcDirectionsDialoguePublication {
   const data=value as Partial<NpcDirectionsDialoguePublication>|undefined;
+  const query=data?.source?.query;
   return !!data&&data.topicId==='global_directions'&&typeof data.speakerKey==='string'
-    &&data.source?.kind==='local-directions'&&typeof data.source.snapshot==='string'&&!!data.source.snapshot.trim();
+    &&data.source?.kind==='local-directions'&&typeof data.source.snapshot==='string'&&!!data.source.snapshot.trim()
+    &&(!query||typeof query.playerPrompt==='string'&&!!query.playerPrompt.trim()&&typeof query.itemRequested==='boolean'
+      &&typeof query.subject==='string'&&!!query.subject.trim()&&(!query.itemId||typeof query.itemId==='string')
+      &&(query.outcome==='unknown'||query.outcome==='found'&&typeof query.businessId==='string'
+        &&Number.isInteger(query.burgId)&&Number.isInteger(query.plotId)));
 }
 
 /** A venue packet is not a person. Only the already admitted current life can
@@ -159,6 +164,26 @@ function publishInstitutionReply(state:GameState,npcId:string|null,response:stri
  * also participate in last-discussion recall, with current source and speaker
  * checks. Old journal notes are never backfilled into a conversation. */
 function publishDirectionsReply(state:GameState,npcId:string|null,response:string|null,dialogue:NpcDirectionsDialoguePublication):Partial<GameState> {
+  const query=dialogue.source.query;
+  if(query) {
+    if(!npcId||!response?.trim()||!validDirectionsPublication(dialogue)||state.activeDialogueSession?.npcId!==npcId
+      ||dialogue.speakerKey!==generatedDialogueSpeakerKey(state,npcId)||!Number.isFinite(Number(state.gameTime)))return {};
+    const npc=(state.generatedNpcs[npcId]??NPCS[npcId]) as RichNPC|undefined;
+    if(!npc)return {};
+    const current=resolveNpcLocalStockDirections(state,npc,query.itemId,query.itemRequested);
+    if(query.outcome==='unknown') {
+      if(current.status!=='unknown'||response!==localFactUncertaintyReply(query)||dialogue.source.snapshot!==response)return {};
+    } else if(current.status!=='found'||current.snapshot!==response||query.businessId!==current.businessId
+      ||query.burgId!==current.burgId||query.plotId!==current.plotId||dialogue.source.snapshot!==response)return {};
+    const memory=state.npcMemory[npcId]??createEmptyMemory(),history=memory.interactions??[];
+    const display={lastInteractedNpcId:npcId,lastNpcResponse:response};
+    if(history.some(record=>record.type==='dialogue'&&validDirectionsPublication(record.dialogue)
+      &&record.dialogue.speakerKey===dialogue.speakerKey&&record.summary===response
+      &&JSON.stringify(record.dialogue.source.query)===JSON.stringify(query)))return display;
+    const record:Interaction={id:'dialogue:'+npcId+':'+Number(state.gameTime)+':'+history.length,date:Number(state.gameTime),
+      type:'dialogue',summary:response,attitudeChange:0,significance:3,dialogue:{topicId:'global_directions',speakerKey:dialogue.speakerKey,source:{...dialogue.source,query:{...query}}}};
+    return {...display,npcMemory:{...state.npcMemory,[npcId]:{...memory,interactions:[...history,record]}}};
+  }
   if(!npcId||!response?.trim()||!validDirectionsPublication(dialogue)
     ||state.activeDialogueSession?.npcId!==npcId||!state.activeDialogueSession.discussedTopicIds.includes(dialogue.topicId)
     ||dialogue.speakerKey!==npcDialogueSpeakerKey(state,npcId)||!Number.isFinite(Number(state.gameTime)))return {};

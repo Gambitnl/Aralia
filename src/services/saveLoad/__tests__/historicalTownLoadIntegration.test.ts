@@ -29,12 +29,12 @@ describe('saved-town preflight in ordinary loadGame',()=>{
   expect(result).not.toHaveProperty('data');expect(localStorage.getItem(key)).toBe(before);
   expect(notify).toHaveBeenCalledWith({type:'warning',message:result.message});
  });
- it('selects the qualified revision in loaded data, then preserves it through an ordinary resave/reload',async()=>{
+ it.each([1,3,4] as const)('selects qualified source %i in loaded data, then preserves it through an ordinary resave/reload',async terrainRevision=>{
   const old=fixture();delete old.worldforgeTerrainRevision;
   await saveGame(old);const before=localStorage.getItem(key);
   vi.mocked(loadHistoricalTownSource).mockImplementation(async state=>({
-   state:{...state,worldforgeTerrainRevision:1,townSim:{...state.townSim,8:{...state.townSim[8],layoutRevision:1}}},
-   result:{status:'qualified',burgId:8,revision:1,terrainRevision:1,observations:1,founders:1,surfaceY:2}}));
+   state:{...state,worldforgeTerrainRevision:terrainRevision,townSim:{...state.townSim,8:{...state.townSim[8],layoutRevision:1}}},
+   result:{status:'qualified',burgId:8,revision:1,terrainRevision,observations:1,founders:1,surfaceY:2}}));
   const result=await loadGame(key);expect(result.success).toBe(true);
   if(!result.success||!('data' in result)||!result.data)throw new Error('Expected loaded state');
   expect(result.data.townSim[8].layoutRevision).toBe(1);expect(result.data.playerGroundPos).toEqual(fixture().playerGroundPos);
@@ -42,7 +42,7 @@ describe('saved-town preflight in ordinary loadGame',()=>{
   await saveGame(result.data);const reloaded=await loadGame(key);
   expect(reloaded.success).toBe(true);if(!reloaded.success||!('data' in reloaded)||!reloaded.data)throw new Error('Expected reload');
   expect(reloaded.data.townSim[8].layoutRevision).toBe(1);
-  expect(reloaded.data.worldforgeTerrainRevision).toBe(1);
+  expect(reloaded.data.worldforgeTerrainRevision).toBe(terrainRevision);
   expect(vi.mocked(loadHistoricalTownSource)).toHaveBeenCalledTimes(1);
  });
  it('reports a failed worker separately from corrupt save data and leaves storage intact',async()=>{

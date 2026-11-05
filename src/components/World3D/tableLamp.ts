@@ -16,7 +16,27 @@
  * Both geometries are lathes around +y with their base at y = 0 (the table
  * top). They are built once and shared by every lamp.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 05/11/2026, 05:10:51
+ * Dependents: components/World3D/InteriorLights.tsx, components/World3D/World3DScene.tsx, components/World3D/cameraGroundRaycast.ts, components/World3D/playerCameraVisibility.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import * as THREE from 'three';
+
+/** This emitter mesh is visible but never blocks the camera's structure rays. */
+export const TABLE_LAMP_NO_HIT_RAYCAST: THREE.Object3D['raycast'] = () => {};
 
 /** Furniture that holds a lamp when the household has its lamps lit. */
 export const LAMP_FURNITURE: ReadonlySet<string> = new Set(['table', 'desk', 'writing-desk', 'counter', 'workbench']);

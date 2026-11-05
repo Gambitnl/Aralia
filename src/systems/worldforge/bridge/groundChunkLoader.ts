@@ -21,9 +21,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 02/11/2026, 18:02:39
+ * Last Sync: 04/11/2026, 21:37:49
  * Dependents: components/Combat/InPlaceCombatScene.tsx, components/DesignPreview/steps/JudgeLandCompare.tsx, components/DesignPreview/steps/PreviewTown3D.tsx, components/DesignPreview/steps/landTerrainJob.ts, components/DesignPreview/steps/landTypeCensus.ts, components/World3D/DungeonEntrances.tsx, components/World3D/FarShells.tsx, components/World3D/GroundAgents.tsx, components/World3D/GroundMovePlane.tsx, components/World3D/GroundProps.tsx, components/World3D/InteriorOccupants.tsx, components/World3D/NearbyBuildingDoor.tsx, components/World3D/NearbyFurnishing.tsx, components/World3D/PartyGroundActors.tsx, components/World3D/PlayerAvatar.tsx, components/World3D/VolumeGroundBubble.tsx, components/World3D/WebGPUProbe.tsx, components/World3D/WebGPUProbeScene.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DScene.tsx, components/World3D/World3DWrapper.tsx, components/World3D/canopyInterior.ts, components/World3D/combat/InPlaceCombatLayer.tsx, components/World3D/createGroundWorkerChunkLoader.ts, components/World3D/createVolumeBubbleClient.ts, components/World3D/createWorldGenClient.ts, components/World3D/footingMeshWorker.ts, components/World3D/groundChunkWorker.ts, components/World3D/groundFootingRecovery.ts, components/World3D/groundInteriorRoute.ts, components/World3D/groundPlacementInspection.ts, components/World3D/groundResidentInteraction.ts, components/World3D/groundSwimming.ts, components/World3D/groundWaterMovement.ts, components/World3D/hooks/useInPlaceCombatTransition.ts, components/World3D/hooks/useInteriorTransition.ts, components/World3D/hooks/useWorld3DDiscovery.ts, components/World3D/initialTownEntry.ts, components/World3D/partyJourneyArrival.ts, components/World3D/playerCameraFrame.ts, components/World3D/publicBuildingDiscovery.ts, components/World3D/residentDoorUse.ts, components/World3D/residentInteriorMotion.ts, components/World3D/useFootingMeshes.ts, components/World3D/useGroundKeyboardControls.ts, components/World3D/volumeBubbleWorker.ts, components/World3D/water/riverWorldSite.ts, components/World3D/water/worldGroundHook.ts, components/World3D/worldGenCore.ts, components/Worldforge/AgentSim3DPreview.tsx, components/Worldforge/WorldforgeGroundDrilldown.tsx, systems/combat/worldScenario/liveSettlementEncounter.ts, systems/combat/worldScenario/statePatrolWorldEvent.ts, systems/combat/worldScenario/surfaceHostileContinuity.ts, systems/combat/worldScenario/surfaceHostileEncounter.ts, systems/combat/worldScenario/surfaceHostileTemplate.ts, systems/combat/worldScenario/travelAmbushBattlefield.ts, systems/combat/worldScenario/worldBattleScenario.ts, systems/gameplay/lodging.ts, systems/world3d/groundBuildingMotion.ts, systems/world3d/groundSurfaceYM.ts, systems/worldforge/bridge/buildingEntryApproach.ts, systems/worldforge/bridge/dungeonEntrances.ts, systems/worldforge/bridge/groundAgentMotion.ts, systems/worldforge/bridge/groundChunkMesh.ts, systems/worldforge/bridge/groundChunkWorkerCore.ts, systems/worldforge/bridge/groundHostiles.ts, systems/worldforge/bridge/groundProps.ts, systems/worldforge/bridge/groundRibbonBed.ts, systems/worldforge/bridge/groundWaterMovement.ts, systems/worldforge/bridge/groundWaterSurfaceQuery.ts, systems/worldforge/bridge/institutionOccupancy.ts, systems/worldforge/bridge/residentDoorRoutes.ts, systems/worldforge/bridge/streamedSurface.ts, systems/worldforge/bridge/townVegetation.ts, systems/worldforge/dungeon/world/dungeonEntryRuntime.ts, systems/worldforge/props/exteriorPropRevision.ts, systems/worldforge/props/freshPropClearance.ts, systems/worldforge/props/propGenerationSource.ts, systems/worldforge/props/propLandUse.ts, systems/worldforge/props/prospectivePropPlacement.ts, systems/worldforge/provenance/groundProvenance.ts, systems/worldforge/town/prepareHistoricalTownLoad.ts, systems/worldforge/travel/localGroundJourney.ts, types/combat/actors.ts
- * Imports: 82 files
+ * Imports: 83 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -216,6 +216,7 @@ import {
   type TerrainTerraceReceipt,
 } from "./terrainTerraces";
 import { gradePlazaTerrainPads, retainPadEdges, PAD_WALL_HALF_WIDTH_M } from "./plazaTerrainPads";
+import { terrainSourceFoundationGrid } from "../region/terrainSource";
 
 /** GG-614: a churchyard keeps a gentle fall of at most this (degrees). The
  * gravestone surface gate allows 20; a hillside graveyard is graded gentle,
@@ -2132,6 +2133,9 @@ export function makeGroundWorld(
   region?: RegionArtifact,
   opts: MakeGroundWorldOptions = {},
 ): GroundWorld {
+  // Validate before building anything. Missing provenance keeps the established
+  // height-node recipe; retained profiles explicitly preserve the older mask.
+  const foundationGrid = terrainSourceFoundationGrid(region?.terrainSourceRevision);
   // The anchor cell's biome decides whether this window's `grass` ground is
   // open meadow or a forest FLOOR (leaf litter). Resolved here rather than in
   // the adapter because only the bridge knows the atlas; without an anchor
@@ -2199,6 +2203,7 @@ export function makeGroundWorld(
     wd.gridSize.cols,
     wd.gridSize.rows,
     townContent.buildings,
+    foundationGrid,
   );
 
   // Carve a shallow basin under each town water body (so the flat water surface
@@ -2598,6 +2603,7 @@ function flattenBuildingTerrainPads(
   cols: number,
   rows: number,
   buildings: GroundWorld["buildings"],
+  gridLocation: "cell-center" | "height-sample",
 ): void {
   // Pad heights are sampled from the original terrain before any plot changes.
   // This avoids construction order affecting nearby buildings.
@@ -2648,13 +2654,13 @@ function flattenBuildingTerrainPads(
       cols,
       rows,
       building.cornersM,
-      "height-sample",
+      gridLocation,
     );
     const footprintSet = new Set(footprintIndexes);
 
-    // Terrain reads these array values at integer grid nodes. Flattening the
-    // offset cell centers shifted pads half a cell and left soil in doorways.
-    // Keep existing building datums/parts; only align their level soil samples.
+    // Current sources align soil to integer height nodes. Retained sources
+    // preserve the original center-index mask and its saved terrain support.
+    // Neither recipe changes the building datums or authored part geometry.
     for (const index of footprintIndexes) {
       footprintPads.set(index, padHeight);
     }

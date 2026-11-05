@@ -111,17 +111,22 @@ export function qualifyHistoricalTownLayout(input: {
     if (!plots.size || plots.size!==candidate.plotIds.length
       || candidate.plotIds.some(id=>!Number.isSafeInteger(id)||id<0)) return 'invalid-plots';
     const founders=candidate.foundingRoster.occupants;
+    const foundingMembers=founders.flatMap(person=>person.householdMemberId===undefined?[]:[person.householdMemberId]);
     if (!founders.length || new Set(founders.map(person=>person.id)).size!==founders.length
+      || new Set(foundingMembers).size!==foundingMembers.length
       || founders.some(person=>!Number.isSafeInteger(person.id)||person.id<=0
         || typeof person.name!=='string'||!person.name.trim()||!plots.has(person.homePlotId)
         || person.workPlotId!==undefined&&!plots.has(person.workPlotId)
         || person.civicWorkplace!==undefined&&!plots.has(person.civicWorkplace.plotId))) return 'invalid-roster';
     for (const person of founders) {
       const saved=town.villagers[person.id];
+      // Older played towns predate the optional household link. Exact founder
+      // IDs/names, recorded links, births and foundations still identify the
+      // source; absence alone is not a conflicting role. Never fill it in here.
       if (!saved || saved.occupantId!==person.id || saved.name!==person.name
-        || saved.householdMemberId!==person.householdMemberId
+        || saved.householdMemberId!==undefined&&saved.householdMemberId!==person.householdMemberId
         || Object.values(town.villagers).filter(other=>other.occupantId===person.id).length!==1
-        || person.householdMemberId!==undefined&&Object.values(town.villagers)
+        || saved.householdMemberId!==undefined&&Object.values(town.villagers)
           .filter(other=>other.householdMemberId===person.householdMemberId).length!==1) return 'founder-mismatch';
     }
     const foundingIds=new Set(founders.map(person=>person.id));

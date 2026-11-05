@@ -29,7 +29,7 @@ import { Euler, Matrix4, Quaternion, Vector3 } from 'three';
 import type { Frame, SegmentSink } from '../../types';
 import { FT_TO_M } from '../../types';
 import { solveKnee } from '../ik';
-import { ARM_LINK_K, bipedHandDigits, bipedShoulderOutM, bipedSkullRadiusM, bipedSlimT } from '../skeletonBuilder';
+import { ARM_LINK_K, bipedBodyRadii, bipedHandDigits, bipedShoulderOutM, bipedSkullRadiusM, bipedSlimT } from '../skeletonBuilder';
 import { TreadmillLeg } from '../legs';
 import { BaseDriver } from './baseDriver';
 import { V_BEND, V_HAND, V_HIP, V_KNEE, wrapIntersectYZ } from './poseUtils';
@@ -392,7 +392,9 @@ export class BipedDriver extends BaseDriver {
     // shoulderXBody.
     const shoulderX = (this.frame.shoulderWidthFt * FT_TO_M) / 2 + bipedShoulderOutM(this.frame);
     const armLen = this.frame.armLengthFt * FT_TO_M;
-    const armR = Math.max(r * 0.3, armLen * 0.085);
+    // every radius below comes from bipedBodyRadii (one source with
+    // bipedRestPose, 2026-11-05); the round notes above the former lines are history
+    const { armR, shoulderR, elbowR, wristR, deltoidR, handR, palmLen, fingerLen } = bipedBodyRadii(this.frame);
     // round 2 (humanoid-anatomy): deltoid ball buries the arm root into the
     // chest.
     // round 6 (humanoid-anatomy): near 3:1 shoulder-to-wrist taper (1.48 armR
@@ -424,10 +426,6 @@ export class BipedDriver extends BaseDriver {
     // armBulkT is 0 at bulk 1, so the human collected none of round 20's taper
     // work ("one constant-diameter tube from deltoid to wrist"). Mirror:
     // skeletonBuilder.bipedRestPose arm loop.
-    const armBulkT = Math.min(0.6, Math.max(0, this.frame.bulk - 1));
-    const shoulderR = armR * (1.48 + 0.5 * armBulkT + 0.42 * slimT);
-    const elbowR = armR * (0.68 - 0.12 * armBulkT - 0.06 * slimT);
-    const wristR = armR * (0.49 - 0.06 * armBulkT - 0.04 * slimT);
     // round 15 (humanoid-anatomy): FIST SCALE — the round-14 "plain sphere"
     // hands were 0.38–0.44 of skull width; references block fists at
     // ~0.6–0.7. Fist half-width now carries a skull-derived floor (0.6
@@ -442,9 +440,6 @@ export class BipedDriver extends BaseDriver {
     // so the same handR now draws a bigger fist. Scale down: skull floor
     // 0.45 → 0.40, arm term 1.05 → 1.0, palm 1.35 → 1.28 handR. Mirror:
     // skeletonBuilder.bipedRestPose.
-    const handR = Math.max(armR * 1.0, this.skullR * 0.4);
-    const palmLen = handR * 1.28;
-    const fingerLen = handR * 0.95;
     for (const sgn of [-1, 1] as const) {
       const side = sgn < 0 ? 'L' : 'R';
       const hand = this.wrist[sgn < 0 ? 0 : 1];
@@ -471,7 +466,7 @@ export class BipedDriver extends BaseDriver {
       // bulk term as shoulderR — the boulder shoulder the WoW grunt leads
       // with. Mirror: bipedRestPose deltoid ball.
       // round 22 (humanoid-anatomy): + the slim floor. Mirror: bipedRestPose.
-      sink.ball('deltoid' + side, V_SH.x, V_SH.y, V_SH.z, armR * (1.7 + 0.5 * armBulkT + 0.5 * slimT));
+      sink.ball('deltoid' + side, V_SH.x, V_SH.y, V_SH.z, deltoidR);
       sink.seg('arm' + side + '.upper', V_SH.x, V_SH.y, V_SH.z, V_KNEE.x, V_KNEE.y, V_KNEE.z, shoulderR, elbowR);
       sink.seg('arm' + side + '.fore', V_KNEE.x, V_KNEE.y, V_KNEE.z, hand.x, hand.y, hand.z, elbowR, wristR);
       // real-finger update: palm frame + digit emission. A GRIP hand (this
@@ -617,14 +612,14 @@ export class BipedDriver extends BaseDriver {
     // into the pelvis mass, and the knee bend pushed outward so knees track
     // over the feet instead of pinching knock-kneed inward. Mirror:
     // skeletonBuilder.bipedRestPose leg loop.
-    const legR = Math.max(r * 0.36, this.legLenM * 0.105);
+    // leg and boot radii: bipedBodyRadii (one source with bipedRestPose, 2026-11-05)
+    const { legR, thighR, kneeR, ankleR, footHalfW, heelBack, toeFwd, heelH, toeH, toeOutX } = bipedBodyRadii(this.frame);
     // round 13 (humanoid-anatomy): thigh roots carry a TORSO-derived floor
     // (0.58 r) — the round-12 orc balanced "a fridge on two sticks" because
     // legR runs on leg length while the torso runs on bulk. Bulky frames now
     // root thighs thick enough for the hips they hang from (the knee keeps
     // half the root so the taper stays believable); slim frames are
     // unchanged (legR * 1.32 still wins). Mirror: bipedRestPose leg radii.
-    const thighR = Math.max(legR * 1.32, r * 0.58);
     // round 14 (humanoid-anatomy): knee 0.72 → 0.62 legR (root fraction
     // 0.5 → 0.44) — thighs must narrow visibly toward the knee. Mirror:
     // bipedRestPose leg radii.
@@ -635,10 +630,8 @@ export class BipedDriver extends BaseDriver {
     // round 21 (humanoid-anatomy): knee pinches again (0.46 legR / 0.35
     // thighR) — round 20: "thigh and shin are close to the same width".
     // Mirror: bipedRestPose leg radii.
-    const kneeR = Math.max(legR * 0.46, thighR * 0.35);
     // round 19 (humanoid-anatomy): ankle 0.36 → 0.44 legR — Remy: "pinched
     // ankles". Mirror: bipedRestPose leg radii.
-    const ankleR = legR * 0.44;
     // round 5 (humanoid-anatomy): heel-to-toe wedge feet — a tapered segment
     // from a heel BEHIND the ankle to a toe box in front, sole flat on the
     // ground (each end's center rides at its own radius), replacing the
@@ -653,14 +646,8 @@ export class BipedDriver extends BaseDriver {
     // round 22 (humanoid-anatomy): slim frames get their own boot floor and a
     // bigger toe splay — the round-21 boot landed on the dwarf and left the
     // human "small rounded nubs". Mirror: bipedRestPose leg loop.
-    const footHalfW = Math.max(ankleR * (1.78 + 0.5 * slimT), legR * (0.8 + 0.14 * slimT));
-    const heelBack = legR * 0.9;
-    const toeFwd = legR * 2.1;
-    const heelH = legR * 0.62;
-    const toeH = legR * 0.34;
     // round 23 (humanoid-anatomy): harder toe splay — the only front-camera
     // channel for a left/right foot difference. Mirror: bipedRestPose.
-    const toeOutX = legR * (0.85 + 0.1 * slimT);
     for (const [i, leg] of this.legs.entries()) {
       const side = i === 0 ? 'L' : 'R';
       const sgn = i === 0 ? -1 : 1;

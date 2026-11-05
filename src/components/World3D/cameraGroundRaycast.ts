@@ -8,9 +8,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/10/2026, 21:49:36
+ * Last Sync: 05/11/2026, 05:10:51
  * Dependents: components/World3D/playerCameraVisibility.ts
- * Imports: None
+ * Imports: 1 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -20,6 +20,7 @@
 // @dependencies-end
 
 import * as THREE from 'three';
+import {TABLE_LAMP_NO_HIT_RAYCAST} from './tableLamp';
 
 // Dense road/terrain faces need smaller bins than the town's sparse posts.
 // A six-meter arm should not test every face across an eight-meter square.
@@ -32,6 +33,8 @@ type GroundIndex = {
   cells: Map<string, number[]>;
   wide: number[];
   triangleBounds: Float64Array;
+  geometryBounds: THREE.Box3 | null;
+  empty: boolean;
 };
 const indices = new WeakMap<THREE.BufferGeometry, GroundIndex>();
 const version = (attribute: GroundIndex['position']) => 'version' in attribute ? attribute.version : attribute.data.version;
@@ -107,17 +110,32 @@ function groundIndex(geometry: THREE.BufferGeometry): GroundIndex {
   const cells = new Map<string, number[]>(), wide: number[] = [];
   const count = index?.count ?? position.count;
   const triangleBounds = new Float64Array(Math.floor(count / 3) * 6);
+  const geometryBounds = new THREE.Box3().makeEmpty();
+  let boundsProven = true, triangleCount = 0;
   for (let offset = 0; offset + 2 < count; offset += 3) {
     const a = index ? index.getX(offset) : offset;
     const b = index ? index.getX(offset + 1) : offset + 1;
     const c = index ? index.getX(offset + 2) : offset + 2;
-    const minX = Math.floor(Math.min(position.getX(a), position.getX(b), position.getX(c)) / CELL_M);
-    const maxX = Math.floor(Math.max(position.getX(a), position.getX(b), position.getX(c)) / CELL_M);
-    const minZ = Math.floor(Math.min(position.getZ(a), position.getZ(b), position.getZ(c)) / CELL_M);
-    const maxZ = Math.floor(Math.max(position.getZ(a), position.getZ(b), position.getZ(c)) / CELL_M);
+    const ax = position.getX(a), ay = position.getY(a), az = position.getZ(a);
+    const bx = position.getX(b), by = position.getY(b), bz = position.getZ(b);
+    const cx = position.getX(c), cy = position.getY(c), cz = position.getZ(c);
+    triangleCount++;
+    const triangleMinX = Math.min(ax, bx, cx), triangleMaxX = Math.max(ax, bx, cx);
+    const triangleMinY = Math.min(ay, by, cy), triangleMaxY = Math.max(ay, by, cy);
+    const triangleMinZ = Math.min(az, bz, cz), triangleMaxZ = Math.max(az, bz, cz);
+    if (Number.isFinite(ax) && Number.isFinite(ay) && Number.isFinite(az)
+      && Number.isFinite(bx) && Number.isFinite(by) && Number.isFinite(bz)
+      && Number.isFinite(cx) && Number.isFinite(cy) && Number.isFinite(cz)) {
+      geometryBounds.min.set(Math.min(geometryBounds.min.x, triangleMinX), Math.min(geometryBounds.min.y, triangleMinY), Math.min(geometryBounds.min.z, triangleMinZ));
+      geometryBounds.max.set(Math.max(geometryBounds.max.x, triangleMaxX), Math.max(geometryBounds.max.y, triangleMaxY), Math.max(geometryBounds.max.z, triangleMaxZ));
+    } else {
+      // An incomplete or non-finite source triangle cannot prove a safe reject.
+      boundsProven = false;
+    }
+    const minX = Math.floor(triangleMinX / CELL_M), maxX = Math.floor(triangleMaxX / CELL_M);
+    const minZ = Math.floor(triangleMinZ / CELL_M), maxZ = Math.floor(triangleMaxZ / CELL_M);
     triangleBounds.set([
-      Math.min(position.getX(a), position.getX(b), position.getX(c)), Math.min(position.getY(a), position.getY(b), position.getY(c)), Math.min(position.getZ(a), position.getZ(b), position.getZ(c)),
-      Math.max(position.getX(a), position.getX(b), position.getX(c)), Math.max(position.getY(a), position.getY(b), position.getY(c)), Math.max(position.getZ(a), position.getZ(b), position.getZ(c)),
+      triangleMinX, triangleMinY, triangleMinZ, triangleMaxX, triangleMaxY, triangleMaxZ,
     ], offset * 2);
     if (![minX, maxX, minZ, maxZ].every(Number.isFinite)) continue;
     if ((maxX - minX + 1) * (maxZ - minZ + 1) > 4096) { wide.push(offset); continue; }
@@ -126,22 +144,100 @@ function groundIndex(geometry: THREE.BufferGeometry): GroundIndex {
       if (bucket) bucket.push(offset); else cells.set(key, [offset]);
     }
   }
-  const result = {position, positionVersion: version(position), index, indexVersion: index?.version ?? 0, cells, wide, triangleBounds};
+  const result = {position, positionVersion: version(position), index, indexVersion: index?.version ?? 0,
+    cells, wide, triangleBounds, geometryBounds: boundsProven ? geometryBounds : null, empty: triangleCount === 0};
   indices.set(geometry, result); return result;
 }
 
 /** Exact Three ray/triangle and material-side semantics after a local broad
  * phase. This is visibility only: it supplies no footing or movement result.
  * Transforms, draw ranges, material groups and current visibility stay live. */
+export type GroundCameraRayRoot = {
+  root: THREE.Object3D;
+  applies: readonly boolean[];
+  /** The caller already found a meaningful custom raycast during its live scene walk. */
+  batchSafe?: boolean;
+};
+
+/** Keep single-ray callers on the same exact path while letting one sightline
+ * reuse its visible scene walk for every drawn-body sample. */
 export function nearestGroundCameraHit(root: THREE.Object3D, raycaster: THREE.Raycaster): number | null {
+  return nearestGroundCameraHitLegacy(root, raycaster);
+}
+
+/** Find the nearest rendered obstruction for each ray while visiting each root
+ * once. The supplied fallback preserves the old ray-by-ray order when a custom
+ * raycast can change the scene as it runs. */
+export function nearestGroundCameraHits(roots: readonly GroundCameraRayRoot[], raycasters: readonly THREE.Raycaster[],
+  fallback?: () => Array<number | null>): Array<number | null> {
+  // A single ray already has no duplicate scene walk to remove. Keeping it on
+  // the original ordered path also preserves custom side effects without a probe.
+  if (raycasters.length < 2) return raycasters.map(raycaster => {
+    let nearest: number | null = null;
+    roots.forEach(({root, applies}) => {
+      if (!applies[0]) return;
+      const hit = nearestGroundCameraHitLegacy(root, raycaster);
+      if (hit !== null && (nearest === null || hit < nearest)) nearest = hit;
+    });
+    return nearest;
+  });
+  const orderedFallback = () => {
+    if (fallback) return fallback();
+    return raycasters.map((raycaster, rayIndex) => {
+      let nearest: number | null = null;
+      roots.forEach(({root, applies}) => {
+        if (!applies[rayIndex]) return;
+        const hit = nearestGroundCameraHitLegacy(root, raycaster);
+        if (hit !== null && (nearest === null || hit < nearest)) nearest = hit;
+      });
+      return nearest;
+    });
+  };
+  // The caller's existing scene walk can identify custom callbacks before the
+  // query, avoiding a probe traversal that would then be repeated in fallback.
+  if (roots.some(({batchSafe}) => batchSafe === false)) return orderedFallback();
+  const visibleMeshes = roots.map(({root, applies}) => {
+    const meshes: THREE.Mesh[] = [];
+    if (applies.some(Boolean)) root.traverseVisible(object => {
+      const mesh = object as THREE.Mesh;
+      if (mesh.isMesh) meshes.push(mesh);
+    });
+    return meshes;
+  });
+  // A custom raycast may open a door, move another root, or otherwise change
+  // what a later ray sees. Re-run the caller's original ordered query in that
+  // case so batching never freezes those meaningful side effects.
+  if (visibleMeshes.some(meshes => meshes.some(mesh => mesh.raycast !== THREE.Mesh.prototype.raycast
+    && mesh.raycast !== TABLE_LAMP_NO_HIT_RAYCAST
+    && !(mesh instanceof THREE.InstancedMesh && mesh.raycast === THREE.InstancedMesh.prototype.raycast)))) {
+    return orderedFallback();
+  }
+
+  const results = raycasters.map((): number | null => null);
+  roots.forEach(({applies}, rootIndex) => {
+    const meshes = visibleMeshes[rootIndex];
+    raycasters.forEach((raycaster, rayIndex) => {
+      if (!applies[rayIndex]) return;
+      const hit = nearestGroundCameraHitMeshes(meshes, raycaster);
+      if (hit !== null && (results[rayIndex] === null || hit < results[rayIndex]!)) results[rayIndex] = hit;
+    });
+  });
+  return results;
+}
+
+function nearestGroundCameraHitLegacy(root: THREE.Object3D, raycaster: THREE.Raycaster): number | null {
+  return nearestGroundCameraHitMeshes([], raycaster, root);
+}
+
+function nearestGroundCameraHitMeshes(meshes: readonly THREE.Mesh[], raycaster: THREE.Raycaster,
+  liveRoot?: THREE.Object3D): number | null {
   let nearest: number | null = null;
   const inverse = new THREE.Matrix4(), ray = new THREE.Ray();
   const start = new THREE.Vector3(), end = new THREE.Vector3();
   const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), hit = new THREE.Vector3();
   const triangleBox = new THREE.Box3();
-  root.traverseVisible(object => {
-    const mesh = object as THREE.Mesh;
-    if (!mesh.isMesh || !mesh.layers.test(raycaster.layers)) return;
+  const visit = (mesh: THREE.Mesh) => {
+    if (!mesh.layers.test(raycaster.layers)) return;
     const geometry = mesh.geometry, position = geometry.getAttribute('position');
     if (!position) return;
     if (mesh instanceof THREE.InstancedMesh && mesh.raycast === THREE.InstancedMesh.prototype.raycast
@@ -177,7 +273,12 @@ export function nearestGroundCameraHit(root: THREE.Object3D, raycaster: THREE.Ra
     inverse.copy(mesh.matrixWorld).invert(); ray.copy(raycaster.ray).applyMatrix4(inverse);
     start.copy(raycaster.ray.origin).addScaledVector(raycaster.ray.direction, raycaster.near).applyMatrix4(inverse);
     end.copy(raycaster.ray.origin).addScaledVector(raycaster.ray.direction, raycaster.far).applyMatrix4(inverse);
-    const indexed = groundIndex(geometry), candidates = new Set(indexed.wide);
+    const indexed = groundIndex(geometry);
+    // Every indexed triangle must fit this source-derived box before it can
+    // reject a ray. Empty triangle lists are a proven miss; malformed source
+    // data disables the shortcut and keeps the established exact path.
+    if (indexed.empty || (indexed.geometryBounds && !ray.intersectsBox(indexed.geometryBounds))) return;
+    const candidates = new Set(indexed.wide);
     let x = Math.floor(start.x / CELL_M), z = Math.floor(start.z / CELL_M);
     const endX = Math.floor(end.x / CELL_M), endZ = Math.floor(end.z / CELL_M);
     const dx = end.x - start.x, dz = end.z - start.z, stepX = Math.sign(dx), stepZ = Math.sign(dz);
@@ -220,7 +321,14 @@ export function nearestGroundCameraHit(root: THREE.Object3D, raycaster: THREE.Ra
         if (distance >= raycaster.near && distance <= raycaster.far && (nearest === null || distance < nearest)) nearest = distance;
       }
     }
-  });
+  };
+  if (liveRoot) {
+    // Preserve Three's ordered visibility walk for custom raycasts: each mesh
+    // is queried before traversal advances to its next sibling.
+    liveRoot.traverseVisible(object => { const mesh = object as THREE.Mesh; if (mesh.isMesh) visit(mesh); });
+  } else {
+    for (const mesh of meshes) visit(mesh);
+  }
   return nearest;
 }
 

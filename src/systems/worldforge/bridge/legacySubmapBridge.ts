@@ -41,7 +41,7 @@
 
 import { type FmgAtlasResult } from "../fmg/generateAtlas";
 import { generateFmgWorld, type FmgWorldResult } from "../fmg/generateWorld";
-import { generateRegionFromSource, type TerrainSourceRevision } from "../region/terrainSource";
+import { generateRegionFromSource, terrainSourceCacheTag, type TerrainSourceRevision } from "../region/terrainSource";
 import { generateLocal } from "../local/generateLocal";
 import { rootSeedPath } from "../seedPath";
 import { FEET_PER_FMG_PIXEL } from "../adapter/atlasArtifact";
@@ -487,7 +487,7 @@ export function getWorldforgeLocalForCell(
   const centerTag = opts.centerPx ? `@${Math.round(opts.centerPx[0])},${Math.round(opts.centerPx[1])}` : '';
   // Terrain is a separate saved source identity (ADR0013/0015). A town
   // layout must not silently select another generation system.
-  const terrainTag = opts.terrainRevision === 1 ? '/terrain:pre-oct30' : '';
+  const terrainTag = terrainSourceCacheTag(opts.terrainRevision);
   const regionKey = `${worldforgeSeedString(worldSeed)}/cell:${anchorCellId}${centerTag}${terrainTag}`;
   let region = regionCache.get(regionKey);
   if (!region) {

@@ -1,6 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
 import * as THREE from 'three';
 import {cameraBeforeBuilding, createPlayerCameraSightline} from '../playerCameraVisibility';
+import {TABLE_LAMP_NO_HIT_RAYCAST} from '../tableLamp';
 
 function fixture() {
   const scene = new THREE.Scene(), building = new THREE.Group();
@@ -12,6 +13,68 @@ function fixture() {
 }
 
 describe('rendered player camera sightline', () => {
+  it('walks each active building once for all sampled body points in one sightline', () => {
+    const scene = new THREE.Scene(), player = new THREE.Mesh(new THREE.BoxGeometry(.4, 1.8, .4), new THREE.MeshBasicMaterial());
+    const building = new THREE.Group(); building.name = 'world3d:site-building';
+    const wall = new THREE.Mesh(new THREE.BoxGeometry(8, 4, .2), new THREE.MeshBasicMaterial({side: THREE.DoubleSide}));
+    wall.position.z = 3; building.add(wall); player.name = 'world3d:player'; player.position.y = .9;
+    scene.add(player, building);
+    const walk = vi.spyOn(building, 'traverseVisible'), query = createPlayerCameraSightline(() => scene);
+    expect(query([0, 1.15, 0], [0, 2.6, 6])).not.toBeNull();
+    expect(walk).toHaveBeenCalledOnce();
+    wall.visible = false; expect(query([0, 1.15, 0], [0, 2.6, 6])).toBeNull();
+    const newDoor = new THREE.Mesh(new THREE.BoxGeometry(1, 2, .2), new THREE.MeshBasicMaterial({side: THREE.DoubleSide}));
+    newDoor.position.set(0, 1, 3); building.add(newDoor);
+    expect(query([0, 1.15, 0], [0, 2.6, 6])).not.toBeNull();
+    newDoor.position.x = 100; building.updateMatrixWorld(true);
+    expect(query([0, 1.15, 0], [0, 2.6, 6])).toBeNull();
+    const streamed = new THREE.Group(); streamed.name = 'world3d:site-building';
+    const lintel = new THREE.Mesh(new THREE.BoxGeometry(2, 2, .2), new THREE.MeshBasicMaterial({side: THREE.DoubleSide}));
+    lintel.position.set(0, 1.5, 3); streamed.add(lintel); scene.add(streamed);
+    expect(query([0, 1.15, 0], [0, 2.6, 6])).not.toBeNull();
+    scene.remove(streamed);
+    expect(query([0, 1.15, 0], [0, 2.6, 6])).toBeNull();
+  });
+  it('refreshes newly mounted roots between rays when a custom raycast mutates the scene', () => {
+    const scene = new THREE.Scene(), player = new THREE.Mesh(new THREE.BoxGeometry(.4, 1.8, .4), new THREE.MeshBasicMaterial());
+    player.name = 'world3d:player'; player.position.y = .9;
+    const source = new THREE.Group(); source.name = 'world3d:site-building';
+    const custom = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial()); custom.position.y = 1.5;
+    const streamed = new THREE.Group(); streamed.name = 'world3d:site-building';
+    const door = new THREE.Mesh(new THREE.BoxGeometry(2, 2, .2), new THREE.MeshBasicMaterial({side: THREE.DoubleSide})); door.position.set(0, 1.5, 3);
+    streamed.add(door); let mounted = false;
+    custom.raycast = () => { if (!mounted) { mounted = true; scene.add(streamed); } };
+    source.add(custom); scene.add(player, source);
+    expect(createPlayerCameraSightline(() => scene)([0, 1.15, 0], [0, 2.6, 6])).not.toBeNull();
+    expect(streamed.parent).toBe(scene);
+  });
+
+  it('checks a qualified companion body even when the player has a clear view', () => {
+    const scene = new THREE.Scene(), building = new THREE.Group();
+    building.name = 'world3d:site-building';
+    const player = new THREE.Mesh(new THREE.BoxGeometry(.4, 1.8, .4), new THREE.MeshBasicMaterial());
+    player.name = 'world3d:player'; player.position.set(0, .9, 0);
+    const companion = player.clone();
+    companion.name = 'world3d:companion:elara_vance'; companion.position.x = 2;
+    // A narrow opaque post hides Elara's upper body, while both center rays
+    // and Bram's complete figure remain clear. Framing must notice her body.
+    const post = new THREE.Mesh(new THREE.BoxGeometry(.6, .5, .2),
+      new THREE.MeshBasicMaterial({side: THREE.DoubleSide}));
+    post.position.set(1, 1.5, 3); building.add(post); scene.add(player, companion, building);
+    const query = createPlayerCameraSightline(() => scene), eye = [0, 1.2, 6] as const;
+    expect(query([0, 1.15, 0], eye)).toBeNull();
+    expect(query([2, 1.15, 0], eye, 'elara_vance')).not.toBeNull();
+    expect(companion.position.toArray()).toEqual([2, .9, 0]);
+    post.visible = false;
+    expect(query([2, 1.15, 0], eye, 'elara_vance')).toBeNull();
+  });
+
+  it('keeps a missing companion body unqualified instead of assuming clearance', () => {
+    const scene = new THREE.Scene();
+    const query = createPlayerCameraSightline(() => scene);
+    expect(query([2, 1.15, 0], [0, 2, 6], 'elara_vance')).toBe(0);
+  });
+
   it('includes the real instanced scenery that crowded the played tavern doorway', () => {
     const scene = new THREE.Scene(), props = new THREE.Group(); props.name = 'ground-props';
     const barrel = new THREE.InstancedMesh(new THREE.CylinderGeometry(.4, .4, 1, 8),
@@ -124,6 +187,60 @@ describe('rendered player camera sightline', () => {
     expect(clear[2]).toBeCloseTo(98.3);
     expect(query(focus, clear)).toBeNull();
     expect(focus).toEqual([100, 2, 100]); expect(eye).toEqual([100, 2, 94]);
+  });
+  it('prepares scene bounds once per synchronous retraction solve and releases them before the next solve', () => {
+    const scene = new THREE.Scene(), building = new THREE.Group(); building.name = 'world3d:site-building';
+    const lampBody = new THREE.Mesh(new THREE.BoxGeometry(.3, .3, .3), new THREE.MeshBasicMaterial());
+    const flame = new THREE.Mesh(new THREE.BoxGeometry(.2, .2, .2), new THREE.MeshBasicMaterial());
+    lampBody.raycast = TABLE_LAMP_NO_HIT_RAYCAST; flame.raycast = TABLE_LAMP_NO_HIT_RAYCAST;
+    lampBody.position.set(0, 1.5, 1); flame.position.set(.2, 1.5, 1);
+    const wall = new THREE.Mesh(new THREE.BoxGeometry(4, 3, .2), new THREE.MeshBasicMaterial({side: THREE.DoubleSide}));
+    wall.position.set(0, 1.5, 3); building.add(lampBody, flame, wall); scene.add(building);
+    const query = createPlayerCameraSightline(() => scene);
+    const sceneWalk = vi.spyOn(scene, 'traverse'), boundsBuild = vi.spyOn(THREE.Box3.prototype, 'setFromObject');
+    const focus = [0, 1.15, 0] as const, eye = [0, 2.6, 6] as const;
+    const clear = cameraBeforeBuilding(focus, eye, query);
+    expect(clear).not.toBeNull(); expect(clear).not.toEqual(eye);
+    expect(sceneWalk).toHaveBeenCalledOnce();
+    expect(boundsBuild).toHaveBeenCalledOnce();
+
+    // A new independent solve sees the newly streamed root and makes fresh bounds.
+    const second = new THREE.Group(); second.name = 'world3d:site-building';
+    const secondWall = new THREE.Mesh(new THREE.BoxGeometry(4, 3, .2), new THREE.MeshBasicMaterial({side: THREE.DoubleSide}));
+    secondWall.position.set(0, 1.5, 4); second.add(secondWall); scene.add(second);
+    expect(cameraBeforeBuilding(focus, eye, query)).not.toBeNull();
+    expect(sceneWalk).toHaveBeenCalledTimes(2);
+    // The second solve sees two mounted roots and prepares both from scratch.
+    expect(boundsBuild).toHaveBeenCalledTimes(3);
+    sceneWalk.mockRestore(); boundsBuild.mockRestore();
+  });
+  it.each([false, true])('discards prepared roots after a custom single-ray mutation, nested=%s', nested => {
+    const scene = new THREE.Scene(), building = new THREE.Group(); building.name = 'world3d:site-building';
+    const custom = new THREE.Mesh(new THREE.BoxGeometry(.5, .5, .5), new THREE.MeshBasicMaterial());
+    custom.position.set(0, 1.5, 1); building.add(custom); scene.add(building);
+    const streamed = new THREE.Group(); streamed.name = 'world3d:site-building';
+    const wall = new THREE.Mesh(new THREE.BoxGeometry(4, 3, .2), new THREE.MeshBasicMaterial({side: THREE.DoubleSide}));
+    wall.position.set(0, 1.5, 3); streamed.add(wall);
+    let mounted = false;
+    custom.raycast = () => { if (!mounted) { mounted = true; scene.add(streamed); } };
+    const query = createPlayerCameraSightline(() => scene);
+    const focus = [0, 1.15, 0] as const, eye = [0, 2.6, 6] as const;
+    query.withSynchronousSolve?.(outer => {
+      const first = nested ? query.withSynchronousSolve?.(inner => inner(focus, eye)) : outer(focus, eye);
+      expect(first).toBeNull();
+      // The next ray must see the wall mounted by the first callback, even if
+      // an inner solve has just finished and the outer solve is still active.
+      expect(outer(focus, eye)).not.toBeNull();
+    });
+  });
+  it('releases a scoped preparation when its synchronous solve throws', () => {
+    const scene = new THREE.Scene(), query = createPlayerCameraSightline(() => scene);
+    expect(() => query.withSynchronousSolve?.(() => { throw new Error('fixture failure'); }))
+      .toThrow('fixture failure');
+    const building = new THREE.Group(); building.name = 'world3d:site-building';
+    const wall = new THREE.Mesh(new THREE.BoxGeometry(4, 3, .2), new THREE.MeshBasicMaterial({side: THREE.DoubleSide}));
+    wall.position.set(0, 1.5, 3); building.add(wall); scene.add(building);
+    expect(query([0, 1.15, 0], [0, 2.6, 6])).not.toBeNull();
   });
   it('ignores hidden parents and transparent glass but retains opaque structure', () => {
     const {scene, building, wall} = fixture(), query = createPlayerCameraSightline(() => scene);

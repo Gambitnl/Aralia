@@ -68,7 +68,7 @@ interface DialogueInterfaceProps {
     onClose: () => void;
     onUpdateSession: (newSession: DialogueSession) => void;
     onTopicOutcome?: (result: ProcessTopicResult, topicId: string) => void;
-    onGenerateResponse: (prompt: string, signal?: AbortSignal) => Promise<string>;
+    onGenerateResponse: (prompt: string, signal?: AbortSignal, options?: { kind: 'topic' | 'speech'; onPreparationChange: (preparing: boolean) => void }) => Promise<string>;
     /**
      * Invokes the "Invite to party" flow for this NPC. The downstream consent
      * gate still resolves trust and consent. Ordinary household residents need an
@@ -136,6 +136,7 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
         getOpeningResponse(gameState, npc, session),
     );
     const [isThinking, setIsThinking] = useState(false);
+    const [isPreparingLocalDialogue, setIsPreparingLocalDialogue] = useState(false);
     const [lastTopicResult, setLastTopicResult] = useState<ProcessTopicResult | null>(null);
     const [replyError, setReplyError] = useState<string | null>(null);
     const [speechDraft, setSpeechDraft] = useState('');
@@ -153,6 +154,7 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
     useEffect(() => {
         invalidateReply();
         setIsThinking(false);
+        setIsPreparingLocalDialogue(false);
         setReplyError(null);
         setLastTopicResult(null);
         setSpeechDraft('');
@@ -167,6 +169,7 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
     const endConversation = () => {
         invalidateReply();
         setIsThinking(false);
+        setIsPreparingLocalDialogue(false);
         onClose();
     };
 
@@ -176,9 +179,17 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
         replyRequest.current = { id, controller };
         setReplyError(null);
         setIsThinking(true);
+        setIsPreparingLocalDialogue(false);
         setLastReplyRequest({prompt,kind});
         try {
-            const response = await onGenerateResponse(prompt, controller.signal);
+            const response = await onGenerateResponse(prompt, controller.signal, {
+                kind,
+                onPreparationChange: preparing => {
+                    if (replyRequest.current?.id === id && !controller.signal.aborted) {
+                        setIsPreparingLocalDialogue(preparing);
+                    }
+                },
+            });
             if (replyRequest.current?.id !== id || controller.signal.aborted) return false;
             if (!response.trim()) throw new Error('Empty reply');
             setCurrentResponse(response);
@@ -192,8 +203,19 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
             if (replyRequest.current?.id === id) {
                 replyRequest.current = null;
                 setIsThinking(false);
+                setIsPreparingLocalDialogue(false);
             }
         }
+    };
+
+    const cancelPendingReply = () => {
+        if (!replyRequest.current) return;
+        replyRequest.current.controller.abort();
+        replyRequest.current = null;
+        replySerial.current++;
+        setIsThinking(false);
+        setIsPreparingLocalDialogue(false);
+        setReplyError(null);
     };
 
     // ------------------------------------------------------------------
@@ -426,6 +448,8 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
                     : npc.baseDescription}
                 currentResponse={isGraphMode ? graphResponse : currentResponse}
                 isThinking={isGraphMode ? false : isThinking}
+                isPreparingLocalDialogue={!isGraphMode && isPreparingLocalDialogue}
+                onCancelReply={!isGraphMode && isThinking && lastReplyRequest?.kind === 'speech' ? cancelPendingReply : undefined}
                 topicResult={isGraphMode ? null : lastTopicResult}
                 topics={isGraphMode ? graphChoiceTopics : availableTopics}
                 onTopicSelect={

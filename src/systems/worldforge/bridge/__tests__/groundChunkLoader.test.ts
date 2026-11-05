@@ -1212,6 +1212,29 @@ describe("sampleGroundChunk occupant sites", () => {
 // ============================================================================
 
 describe("makeGroundWorld building terrain pads", () => {
+  it.each([3, 4] as const)("reads the historical foundation grid from source profile %i", revision => {
+    const local = makeLocalArtifact(), region = makeRegionArtifact();
+    const before = JSON.stringify({local, region});
+    const current = makeGroundWorld(local, 42, region, {skipProps: true});
+    const retained = {...region, terrainSourceRevision: revision};
+    const first = makeGroundWorld(local, 42, retained, {skipProps: true});
+    const second = makeGroundWorld(local, 42, retained, {skipProps: true});
+    // Foundation masks change terrain support, not streets or plot identities.
+    expect(first.heights).not.toEqual(current.heights);
+    expect(second.heights).toEqual(first.heights);
+    expect(first.buildings.map(b=>[b.id,b.cornersM])).toEqual(current.buildings.map(b=>[b.id,b.cornersM]));
+    expect(JSON.stringify({local,region})).toBe(before);
+  });
+  it.each([1, 2] as const)("preserves the existing foundation grid for source %i", revision => {
+    const local = makeLocalArtifact(), region = makeRegionArtifact();
+    const ordinary = makeGroundWorld(local, 42, region, {skipProps: true});
+    const explicit = makeGroundWorld(local, 42, {...region,terrainSourceRevision:revision}, {skipProps: true});
+    expect(explicit.heights).toEqual(ordinary.heights);
+  });
+  it("refuses an unsupported explicit foundation source instead of using today's grid",()=>{
+    const region=Object.assign(makeRegionArtifact(),{terrainSourceRevision:99});
+    expect(()=>makeGroundWorld(makeLocalArtifact(),42,region,{skipProps:true})).toThrow('unsupported terrain');
+  });
   it("levels every footprint to its centroid or negotiated row terrace", () => {
     const local = makeLocalArtifact();
     const region = makeRegionArtifact();

@@ -42,6 +42,8 @@ export interface DialogueConversationViewProps {
     npcDescription: string;
     currentResponse: string | null;
     isThinking: boolean;
+    isPreparingLocalDialogue?: boolean;
+    onCancelReply?: () => void;
     replyError?: string | null;
     onRetryResponse?: () => void;
     topicResult?: ProcessTopicResult | null;
@@ -83,6 +85,8 @@ export const DialogueConversationView: React.FC<DialogueConversationViewProps> =
     npcDescription,
     currentResponse,
     isThinking,
+    isPreparingLocalDialogue = false,
+    onCancelReply,
     replyError,
     onRetryResponse,
     topicResult,
@@ -121,12 +125,18 @@ export const DialogueConversationView: React.FC<DialogueConversationViewProps> =
                             Retry reply
                         </button>}
                     </div> : <p className="text-base leading-relaxed text-gray-200 md:text-lg">
-                        {isThinking ? (
+                        {isPreparingLocalDialogue ? (
+                            <span role="status" className="text-gray-300">Preparing reply… Your words have not been recorded yet.</span>
+                        ) : isThinking ? (
                             <span className="animate-pulse text-gray-500">Thinking...</span>
                         ) : (
                             currentResponse
                         )}
                     </p>}
+                    {isThinking && onCancelReply && <button type="button" onClick={onCancelReply}
+                        className={`${BTN_BASE} ml-4 min-h-11 border border-amber-700 bg-gray-800 px-3 py-2 text-amber-100 hover:bg-gray-700`}>
+                        Cancel reply
+                    </button>}
                 </div>
 
                 {/* Mechanical feedback stays close to the reply it explains. */}

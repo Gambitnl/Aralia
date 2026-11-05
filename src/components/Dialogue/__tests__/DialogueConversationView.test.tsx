@@ -84,4 +84,13 @@ describe('DialogueConversationView', () => {
     expect(onInvite).toHaveBeenCalledTimes(1);
     expect(onEndConversation).toHaveBeenCalledTimes(1);
   });
+
+  it('shows local dialogue preparation with an operable cancel control while retaining the exit',()=>{
+    const onCancelReply=vi.fn();
+    render(<DialogueConversationView npcDescription="A keeper." currentResponse="Welcome." isThinking topics={topics} onTopicSelect={vi.fn()} isPreparingLocalDialogue onCancelReply={onCancelReply} onEndConversation={vi.fn()}/>);
+    expect(screen.getByText(/Preparing reply…/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button',{name:'Cancel reply'}));
+    expect(onCancelReply).toHaveBeenCalledOnce();
+    expect(screen.getByRole('button',{name:'End Conversation'})).toBeEnabled();
+  });
 });

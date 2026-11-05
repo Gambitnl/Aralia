@@ -7,10 +7,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 29/10/2026, 05:38:30
- * Dependents: components/World3D/GroundFurnishingContext.ts, components/World3D/InteriorOccupants.tsx, components/World3D/World3DWrapper.tsx
+ * Last Sync: 04/11/2026, 22:17:11
+ * Dependents: components/World3D/GroundFurnishingContext.ts, components/World3D/InteriorOccupants.tsx, components/World3D/World3DScene.tsx, components/World3D/World3DWrapper.tsx
  * Imports: 12 files
  *
  * MULTI-AGENT SAFETY:
@@ -72,6 +72,41 @@ export function residentNpcId(burgId: number, memberId: string, workPlotId?: num
   return workPlotId === undefined ? `npc_burg_${burgId}_member_${memberId}` : `npc_burg_${burgId}_plot_${workPlotId}`;
 }
 
+/** Resolve the blueprint room occupied by an accepted body at a qualified site.
+ * Camera framing reuses this same site/floor/cell rule; missing or stale source
+ * facts remain unknown and can never pull the view toward a guessed room. */
+export function residentRoomAt(physicalPlan: TownBuildingVisit['plan'], transform: SiteGroupTransform,
+  pose: Pick<AvatarFootfall, 'xM' | 'zM' | 'yM'>): {level: number; id: number} | null {
+  if (![pose.xM, pose.zM, pose.yM, transform.groupX, transform.groupZ, transform.surfaceY,
+    transform.rotationY, transform.doorZSign].every(Number.isFinite)) return null;
+  const origin = blueprintSiteOrigin(physicalPlan), FT = .3048;
+  const local = worldOffsetToSiteLocal(pose.xM - transform.groupX, pose.zM - transform.groupZ, transform.rotationY);
+  const cx = Math.floor((local.lx / FT + origin.x) / 5);
+  const cy = Math.floor((local.lz * -transform.doorZSign / FT + origin.y) / 5);
+  const level = Math.round((pose.yM - transform.surfaceY) / (BLUEPRINT_STOREY_FT * FT));
+  if (Math.abs(pose.yM - transform.surfaceY - level * BLUEPRINT_STOREY_FT * FT) > .75) return null;
+  const room = physicalPlan.floors.find(f => f.level === level)?.rooms.find(r => r.cells.some(c => c.cx === cx && c.cy === cy));
+  return room ? {level, id: room.id} : null;
+}
+
+/** Identify one exact generated plot containing accepted feet; overlaps and
+ * boundary/outside positions stay unknown instead of choosing the nearest site. */
+export function residentSiteAt(ground: GroundWorld, pose: Pick<AvatarFootfall, 'xM' | 'zM'>) {
+  if (![pose.xM, pose.zM].every(Number.isFinite)) return null;
+  const matches = ground.buildings.filter(building => {
+    const points = building.cornersM;
+    if (points.length < 3) return false;
+    let inside = false;
+    for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+      const a = points[i], b = points[j];
+      if ((a.z > pose.zM) !== (b.z > pose.zM)
+        && pose.xM < ((b.x - a.x) * (pose.zM - a.z)) / (b.z - a.z) + a.x) inside = !inside;
+    }
+    return inside;
+  });
+  return matches.length === 1 ? matches[0] : null;
+}
+
 export function residentReachError(visit: TownBuildingVisit, pick: ResidentPick | null, player: AvatarFootfall | null, access?: {ground: GroundWorld; openDoors?: ReadonlySet<string>; spaceVisit?: TownBuildingVisit}): string | null {
   if (!pick || residentMemberIndex(visit, pick.memberId) < 0) return 'This resident is no longer here.';
   if (access?.spaceVisit && /^wf-plot-\d+-(\d+)$/.exec(pick.siteId)?.[1] !== String(access.spaceVisit.plot.id))
@@ -88,17 +123,8 @@ export function residentReachError(visit: TownBuildingVisit, pick: ResidentPick 
     return null;
   }
   const physicalPlan = access?.spaceVisit?.plan ?? visit.plan;
-  const t = pick.transform, origin = blueprintSiteOrigin(physicalPlan), FT = .3048;
-  const roomAt = (pose: AvatarFootfall) => {
-    const local = worldOffsetToSiteLocal(pose.xM - t.groupX, pose.zM - t.groupZ, t.rotationY);
-    const cx = Math.floor((local.lx / FT + origin.x) / 5);
-    const cy = Math.floor((local.lz * -t.doorZSign / FT + origin.y) / 5);
-    const level = Math.round((pose.yM - t.surfaceY) / (BLUEPRINT_STOREY_FT * FT));
-    if (Math.abs(pose.yM - t.surfaceY - level * BLUEPRINT_STOREY_FT * FT) > .75) return null;
-    const room = physicalPlan.floors.find(f => f.level === level)?.rooms.find(r => r.cells.some(c => c.cx === cx && c.cy === cy));
-    return room && { level, id: room.id };
-  };
-  const bodyRoom = roomAt(pick.pose), playerRoom = roomAt(player);
+  const bodyRoom = residentRoomAt(physicalPlan, pick.transform, pick.pose);
+  const playerRoom = residentRoomAt(physicalPlan, pick.transform, player);
   if (!bodyRoom || !playerRoom || bodyRoom.level !== playerRoom.level || bodyRoom.id !== playerRoom.id) return 'Enter the same room and floor to meet this resident.';
   return Math.hypot(player.xM - pick.pose.xM, player.zM - pick.pose.zM) <= 2.5 ? null : 'Move closer to meet this resident.';
 }

@@ -96,6 +96,53 @@ describe('CastSpellControls', () => {
         expect(onAction).not.toHaveBeenCalled();
     });
 
+    it('shows Light only after its actual source is committed to the caster-held object',()=>{
+        const shield={...ALL_ITEMS.shield};
+        const character=makeCharacter({spellbook:{cantrips:['light'],knownSpells:[],preparedSpells:[]},equippedItems:{OffHand:shield}});
+        const state=createMockGameState({phase:GamePhase.PLAYING,party:[character]}),onAction=vi.fn();
+        state.gameTime=new Date('0351-01-05T13:16:42Z');
+        state.underdark={...state.underdark,activeLightSources:[]};
+        const spell={...detectMagic,id:'light',name:'Light',level:0} as Spell;
+        const ui=(s:typeof state)=><GameProvider state={s} dispatch={vi.fn()}><CastSpellControls spell={spell} character={s.party[0]} isReadyToCast onAction={onAction}/></GameProvider>;
+        const view=render(ui(state));
+        fireEvent.change(screen.getByLabelText('Object'),{target:{value:'OffHand'}});
+        fireEvent.click(screen.getByRole('button',{name:'Cast Light on selected object'}));
+        expect(onAction).toHaveBeenCalledTimes(1);
+        expect(screen.queryByText(/Current Light:/)).not.toBeInTheDocument();
+
+        const action=onAction.mock.calls[0][0];
+        const committed={...state,...characterReducer(state,{type:'CAST_SPELL',payload:action.payload})};
+        view.rerender(ui(committed));
+        expect(screen.getByText(/Current Light: Lyra's off-hand Shield/)).toBeVisible();
+        expect(screen.queryByText('Choose an object to touch before casting Light.')).not.toBeInTheDocument();
+        expect(screen.getByRole('button',{name:'Cast Light on selected object'})).toBeDisabled();
+        expect(committed.party[0].spellSlots).toEqual(state.party[0].spellSlots);
+        expect(committed.party[0].equippedItems?.OffHand?.lightSpellId).toBeTruthy();
+    });
+
+    it.each(['foreign caster','expired','stowed'] as const)('does not show current Light for a %s source',kind=>{
+        const shield={...ALL_ITEMS.shield};
+        const character=makeCharacter({spellbook:{cantrips:['light'],knownSpells:[],preparedSpells:[]},equippedItems:{OffHand:shield}});
+        const state=createMockGameState({phase:GamePhase.PLAYING,party:[character]}),onAction=vi.fn();
+        state.gameTime=new Date('0351-01-05T13:16:42Z');
+        state.underdark={...state.underdark,activeLightSources:[]};
+        const cast={characterId:character.id!,spellId:'light',spellLevel:0 as const,
+            outOfCombat:{targetCharacterId:character.id!,light:{slot:'OffHand' as const,sourceItem:shield,castId:`seed-${kind}`,color:'#fff1ca'}}};
+        const valid={...state,...characterReducer(state,{type:'CAST_SPELL',payload:cast})};
+        const source={...valid.underdark.activeLightSources[0]!};
+        const actualItem=valid.party[0].equippedItems!.OffHand!;
+        if(kind==='foreign caster')source.objectLight={...source.objectLight!,casterId:'someone-else'};
+        if(kind==='expired')source.expiresAtGameTime=state.gameTime.getTime()-1;
+        valid.underdark={...valid.underdark,activeLightSources:[source]};
+        if(kind==='stowed'){
+            valid.party[0]={...valid.party[0],equippedItems:{}};
+            valid.inventory=[...valid.inventory,actualItem];
+        }
+        const spell={...detectMagic,id:'light',name:'Light',level:0} as Spell;
+        render(<GameProvider state={valid} dispatch={vi.fn()}><CastSpellControls spell={spell} character={valid.party[0]} isReadyToCast onAction={onAction}/></GameProvider>);
+        expect(screen.queryByText(/Current Light:/)).not.toBeInTheDocument();
+    });
+
     it('requires an explicit own object for Light and refuses a stale reviewed item',()=>{
         const item={...ALL_ITEMS.mace},character=makeCharacter({spellbook:{cantrips:['light'],knownSpells:[],preparedSpells:[]},equippedItems:{MainHand:item}});
         const state=createMockGameState({phase:GamePhase.PLAYING,party:[character]}),onAction=vi.fn();

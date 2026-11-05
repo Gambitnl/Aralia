@@ -12,9 +12,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 28/10/2026, 22:33:15
+ * Last Sync: 05/11/2026, 02:59:03
  * Dependents: components/ui/GameGuideModal.tsx, hooks/actions/handleItemInteraction.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleObservation.ts, hooks/actions/handleOracle.ts, hooks/actions/handleWorldEvents.ts, hooks/useDialogueSystem.ts
- * Imports: 4 files
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -24,8 +24,10 @@
 // @dependencies-end
 
 import { getDefaultClient } from './ollama/client';
+import type { ModelPreparationResult } from './ollama/client';
 import type { TaskType, ModelParams } from './ollama';
 import { isGeminiFallbackReady } from './ai/aiCredentials';
+import { isGroqActive } from './ai/textProviderRouter';
 import { generateText as generateGeminiText } from './gemini/core';
 
 // Types matching Gemini service interface
@@ -119,7 +121,8 @@ async function generateText(
   taskType: TaskType,
   prompt: string,
   systemInstruction: string | undefined,
-  overrides?: ModelParams
+  overrides?: ModelParams,
+  signal?: AbortSignal
 ): Promise<StandardizedResult<OllamaTextData>> {
   try {
     const client = getDefaultClient();
@@ -132,13 +135,14 @@ async function generateText(
     const result = await client.generateForTask({
       taskType,
       prompt: fullPrompt,
-      overrides
+      overrides,
+      signal
     });
 
     if (!result.ok) {
       // Ollama could not serve the request — redirect to Gemini if the player
       // configured that fallback; otherwise surface the Ollama error.
-      const fallback = await tryGeminiFallback(taskType, prompt, systemInstruction);
+      const fallback = signal?.aborted ? null : await tryGeminiFallback(taskType, prompt, systemInstruction);
       if (fallback) {
         return fallback;
       }
@@ -175,7 +179,7 @@ async function generateText(
   } catch (error: unknown) {
     // A thrown error usually means Ollama is unreachable; try Gemini before
     // giving up so an offline local server doesn't block narrative generation.
-    const fallback = await tryGeminiFallback(taskType, prompt, systemInstruction);
+    const fallback = signal?.aborted ? null : await tryGeminiFallback(taskType, prompt, systemInstruction);
     if (fallback) {
       return fallback;
     }
@@ -251,7 +255,8 @@ Describe the wilderness the player is currently in, focusing on immediate sights
 export async function generateNPCResponse(
   npcName: string,
   playerAction: string,
-  npcContext: string
+  npcContext: string,
+  options: { signal?: AbortSignal } = {}
 ): Promise<StandardizedResult<OllamaTextData>> {
   const systemInstruction = "You are role-playing an NPC in a high fantasy RPG. Answer the player in 1-2 complete sentences using only the supplied facts. Keep the speaker's voice, but do not invent named people or places, personal or family history, physical actions, promises or quest offers. If the context does not support an answer, say you do not know.";
 
@@ -261,7 +266,18 @@ NPC Context: ${npcContext}
 
 Respond in-character in 1-2 sentences.`;
 
-  return await generateText('npc_dialogue', prompt, systemInstruction);
+  return await generateText('npc_dialogue', prompt, systemInstruction, undefined, options.signal);
+}
+
+/** Prepare the selected local NPC dialogue model without asking it for prose. */
+export async function prepareNPCResponse(
+  signal?: AbortSignal,
+  onLocalPreparationStart?: () => void
+): Promise<ModelPreparationResult> {
+  if (isGroqActive()) return { status: 'not-required', provider: 'groq' };
+  if (signal?.aborted) return { status: 'cancelled' };
+  onLocalPreparationStart?.();
+  return await getDefaultClient().prepareForTask('npc_dialogue', { signal });
 }
 
 /**

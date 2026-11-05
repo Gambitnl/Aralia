@@ -1,6 +1,6 @@
 # UI buttons and control roles
 
-Verified: 2026-11-03 against the working tree after the GG-378 migration (button audit debt list at 22 paths with group 4 in progress).
+Verified: 2026-11-05 against the tree after a16e9b448 (button audit passes; debt list at 3 paths, all held by GG-378).
 
 Aralia has one shared button style. Every clickable control in a production
 screen uses it, or the audit lists the file as debt. This page tells you which
@@ -59,5 +59,8 @@ same 2 px sky ring for keyboard focus only. A control that shows on hover only
 
 ## Open items
 
-GG-378 in `docs/projects/GLOBAL_GAPS.md` holds the paths that are still on the
-debt list and the reason for each.
+- GG-378 in `docs/projects/GLOBAL_GAPS.md` holds the 3 paths that are still on the
+  debt list and the reason for each.
+- GG-628: Remy has not chosen whether the CombatView top toolbar keeps its own
+  `COMBAT_BTN_*` constants or moves to `<Button>`.
+- GG-629: Remy has not reviewed the new look of the moved screens.

@@ -316,6 +316,82 @@ describe('explicit camera commands', () => {
     expect(camera.position.toArray()).toEqual([8, 9, 10]);
     expect(onPositionChange).not.toHaveBeenCalled();
   });
+  it('keeps a validated party one-shot out of lead-only wall follow near the player', () => {
+    const camera = new THREE.PerspectiveCamera();
+    const target = [0, 1.15, 0] as const, partyEye = [0, 3.75, 1] as const;
+    const props = {initialTarget: target, sceneOrigin: {x: 0, z: 0}, onPositionChange: vi.fn(),
+      // A valid party arm clears the lead body; repeated updates must preserve it.
+      playerSightline: (_focus: readonly [number, number, number], eye: readonly [number, number, number]) => eye[2] > 2 ? 2 : null,
+      getPlayerTarget: () => target};
+    const frameRequest = {kind: 'party' as const, nonce: 2, target, position: partyEye, height: 2.6};
+    const {rerender} = render(<FreeRoamCameraController {...props} frameRequest={frameRequest} />);
+    fixture.frame!({camera}, 0.01);
+    expect(camera.position.toArray()).toEqual(partyEye);
+    expect(fixture.controls.target.toArray()).toEqual(target);
+    fixture.frame!({camera}, 0.01);
+    rerender(<FreeRoamCameraController {...props} frameRequest={frameRequest} />);
+    fixture.frame!({camera}, 0.01);
+    expect(camera.position.toArray()).toEqual(partyEye);
+    expect(fixture.controls.target.toArray()).toEqual(target);
+    // A clear deliberate orbit remains under the player's control.
+    fixture.start!();
+    camera.position.set(1, 4, 2);
+    fixture.frame!({camera}, 0.01);
+    expect(camera.position.toArray()).toEqual([1, 4, 2]);
+    expect(fixture.controls.target.toArray()).toEqual(target);
+  });
+  it('checks an occluded party orbit on its actual arm without moving the party focus', () => {
+    const camera = new THREE.PerspectiveCamera();
+    const target = [0, 1.15, 0] as const, clearEye = [0, 3.75, 1] as const;
+    const sightline = (_focus: readonly [number, number, number], eye: readonly [number, number, number]) =>
+      eye[2] > 1.04 ? 2 : null;
+    const props = {initialTarget: target, sceneOrigin: {x: 0, z: 0}, onPositionChange: vi.fn(),
+      playerSightline: sightline, getPlayerTarget: () => target};
+    render(<FreeRoamCameraController {...props} frameRequest={{kind: 'party', nonce: 3,
+      target, position: clearEye, height: 2.6}} />);
+    fixture.frame!({camera}, 0.01);
+    expect(camera.position.toArray()).toEqual(clearEye);
+    fixture.start!();
+    // Several small damped rotations accumulate against the last clear pose.
+    for (const z of [1.01, 1.02, 1.03]) {
+      camera.position.set(0, 3.75, z);
+      fixture.frame!({camera}, 0.01);
+      expect(camera.position.z).toBeCloseTo(z, 8);
+    }
+    camera.position.set(0, 3.75, 1.05); // The next damped step enters an opaque post.
+    fixture.frame!({camera}, 0.01);
+    expect(camera.position.z).toBeLessThan(1.04);
+    expect(fixture.controls.target.toArray()).toEqual(target);
+  });
+  it('checks accepted party-follow translation at the translated focus and keeps deliberate pan-away', () => {
+    const camera = new THREE.PerspectiveCamera();
+    let player: readonly [number, number, number] = [0, 1.15, 0];
+    const target: readonly [number, number, number] = [0, 1.15, 0];
+    const eye: readonly [number, number, number] = [0, 3.75, 1];
+    const sightline = (focus: readonly [number, number, number], at: readonly [number, number, number]) =>
+      focus[0] > 2.5 && at[2] > 0.8 ? 0.8 : null;
+    const props = {initialTarget: target, sceneOrigin: {x: 0, z: 0}, onPositionChange: vi.fn(),
+      playerSightline: sightline, getPlayerTarget: () => player};
+    render(<FreeRoamCameraController {...props} frameRequest={{kind: 'party', nonce: 4,
+      target, position: eye, height: 2.6}} />);
+    fixture.frame!({camera}, 0.01);
+    player = [3, 1.15, 0];
+    fixture.controls.target.set(3, 1.15, 0);
+    camera.position.set(3, 3.75, 1);
+    fixture.frame!({camera}, 0.01);
+    expect(fixture.controls.target.toArray()).toEqual([3, 1.15, 0]);
+    expect(camera.position.x).toBeCloseTo(3);
+    expect(camera.position.z).toBeLessThan(0.8);
+
+    // A stationary player plus equal eye/focus translation is a deliberate
+    // pan, so retain the user's selected view instead of snapping it back.
+    fixture.start!();
+    fixture.controls.target.set(8, 1.15, 0);
+    camera.position.set(8, 3.75, 1);
+    fixture.frame!({camera}, 0.01);
+    expect(fixture.controls.target.toArray()).toEqual([8, 1.15, 0]);
+    expect(camera.position.toArray()).toEqual([8, 3.75, 1]);
+  });
 });
 
 

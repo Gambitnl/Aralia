@@ -2,8 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock the Ollama client so we can force it "unavailable".
 const generateForTask = vi.fn();
+const prepareForTask = vi.fn();
 vi.mock('../ollama/client', () => ({
-  getDefaultClient: () => ({ generateForTask }),
+  getDefaultClient: () => ({ generateForTask, prepareForTask }),
 }));
 
 // Mock the Gemini core text generator used by the fallback path.
@@ -18,13 +19,53 @@ vi.mock('../ai/aiCredentials', () => ({
   isGeminiFallbackReady: () => isGeminiFallbackReady(),
 }));
 
-import { generateActionOutcome } from '../ollamaTextService';
+const isGroqActive = vi.fn();
+vi.mock('../ai/textProviderRouter', () => ({ isGroqActive: () => isGroqActive() }));
+
+import { generateActionOutcome, generateNPCResponse, prepareNPCResponse } from '../ollamaTextService';
 
 describe('ollamaTextService Gemini fallback', () => {
   beforeEach(() => {
     generateForTask.mockReset();
+    prepareForTask.mockReset();
     generateGeminiText.mockReset();
     isGeminiFallbackReady.mockReset();
+    isGroqActive.mockReset();
+  });
+
+  it('prepares only the selected local NPC task and forwards cancellation to generation', async () => {
+    const controller = new AbortController();
+    const onStart = vi.fn();
+    isGroqActive.mockReturnValue(false);
+    prepareForTask.mockResolvedValue({ status: 'ready', model: 'selected' });
+    generateForTask.mockResolvedValue({ ok: true, data: { response: 'A reply' }, model: 'selected' });
+
+    await expect(prepareNPCResponse(controller.signal, onStart)).resolves.toEqual({ status: 'ready', model: 'selected' });
+    await generateNPCResponse('A resident', 'Where is the market?', 'public facts', { signal: controller.signal });
+
+    expect(prepareForTask).toHaveBeenCalledWith('npc_dialogue', { signal: controller.signal });
+    expect(onStart).toHaveBeenCalledOnce();
+    expect(generateForTask).toHaveBeenCalledWith(expect.objectContaining({ taskType: 'npc_dialogue', signal: controller.signal }));
+  });
+
+  it('skips local preparation for the already selected remote provider', async () => {
+    const onStart = vi.fn();
+    isGroqActive.mockReturnValue(true);
+    await expect(prepareNPCResponse(undefined, onStart)).resolves.toEqual({ status: 'not-required', provider: 'groq' });
+    expect(onStart).not.toHaveBeenCalled();
+    expect(prepareForTask).not.toHaveBeenCalled();
+  });
+
+  it('does not start the configured remote fallback after the player cancels the request', async () => {
+    const controller = new AbortController();
+    controller.abort();
+    generateForTask.mockResolvedValue({ ok: false, error: 'Request cancelled.' });
+    isGeminiFallbackReady.mockReturnValue(true);
+
+    const result = await generateNPCResponse('A resident', 'A canceled question', 'public facts', { signal: controller.signal });
+
+    expect(result.success).toBe(false);
+    expect(generateGeminiText).not.toHaveBeenCalled();
   });
 
   it('uses Ollama when it succeeds (no fallback)', async () => {

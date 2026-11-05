@@ -88,12 +88,15 @@ export interface NpcInstitutionDialoguePublication {
   speakerKey:string;
   source:{kind:'institution-statement';snapshot:string};
 }
+export type NpcLocalDirectionsQuery =
+  | {outcome:'found';playerPrompt:string;itemRequested:boolean;subject:string;itemId?:string;businessId:string;burgId:number;plotId:number}
+  | {outcome:'unknown';playerPrompt:string;itemRequested:boolean;subject:string;itemId?:string};
 /** Delivered local directions join the same attributed conversation history.
  * Their exact checked wording is retained; no visit, route or access is granted. */
 export interface NpcDirectionsDialoguePublication {
   topicId:'global_directions';
   speakerKey:string;
-  source:{kind:'local-directions';snapshot:string};
+  source:{kind:'local-directions';snapshot:string;query?:NpcLocalDirectionsQuery};
 }
 export type NpcDialoguePublication = NpcWorkDialoguePublication | NpcPersonalDialoguePublication | NpcGeneratedDialoguePublication | NpcInstitutionDialoguePublication | NpcDirectionsDialoguePublication;
 

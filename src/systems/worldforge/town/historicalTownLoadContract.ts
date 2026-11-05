@@ -19,7 +19,7 @@
 
 import type {GameState} from '../../../types';
 import type {TownLayoutRevision} from './townLayoutRevision';
-import type {TerrainSourceRevision} from '../region/terrainSource';
+import {TERRAIN_SOURCE_REVISIONS,type TerrainSourceRevision} from '../region/terrainSource';
 
 export type HistoricalTownLoadResult =
   | {status:'not-needed'}
@@ -63,7 +63,7 @@ export function historicalTownArrivalUpdate(state:GameState,cellId:number,receip
   Pick<GameState,'townSim'|'worldforgeTerrainRevision'>|undefined {
   const town=state.townSim[receipt.burgId];
   if(!town||receipt.worldSeed!==state.worldSeed||receipt.cellId!==cellId||state.playerCell?.cellId===cellId
-    ||![1,2,4].includes(receipt.revision)||![1,2].includes(receipt.terrainRevision)
+    ||![1,2,4].includes(receipt.revision)||!TERRAIN_SOURCE_REVISIONS.includes(receipt.terrainRevision)
     ||town.layoutRevision!==undefined&&town.layoutRevision!==receipt.revision
     ||state.worldforgeTerrainRevision!==undefined&&state.worldforgeTerrainRevision!==receipt.terrainRevision
     ||receipt.signature!==historicalTownArrivalSignature(state,receipt.burgId))return undefined;

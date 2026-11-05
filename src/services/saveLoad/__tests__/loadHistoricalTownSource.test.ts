@@ -30,6 +30,20 @@ function fixture(){
 const qualified={status:'qualified',burgId:8,revision:1,terrainRevision:2,observations:1,founders:1,surfaceY:2} as const;
 
 describe('saved-town one-shot load transaction',()=>{
+ it.each([3,4] as const)('copies qualified source %i metadata without changing the campaign or body',async terrainRevision=>{
+  const state=fixture(),worker=new FakeWorker();delete state.worldforgeTerrainRevision;
+  const before=JSON.stringify(state);
+  const pending=loadHistoricalTownSource(state,{workerFactory:()=>worker as unknown as Worker});
+  worker.emit({...qualified,terrainRevision});
+  const admitted=await pending;
+  expect(admitted.result.status).toBe('qualified');
+  expect(admitted.state.worldforgeTerrainRevision).toBe(terrainRevision);
+  expect(admitted.state.townSim[8]).toEqual({...state.townSim[8],layoutRevision:1});
+  for(const key of Object.keys(state) as Array<keyof typeof state>){
+   if(key!=='townSim'&&key!=='worldforgeTerrainRevision')expect(admitted.state[key]).toBe(state[key]);
+  }
+  expect(JSON.stringify(state)).toBe(before);expect(worker.terminated).toBe(true);
+ });
  it('checks a pre-capture played exterior and copies only its qualified cell-affine revision',async()=>{
   const state=fixture();state.townSim[8].buildingSources={};delete state.worldforgeTerrainRevision;
   state.worldBusinesses={legacy:{id:'legacy',burgId:8,locationId:'cell_9'} as never};

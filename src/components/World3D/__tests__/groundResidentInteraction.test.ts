@@ -1,7 +1,7 @@
 /** Meetings must use a real nearby household member, not a destination or a
  * duplicate stranger. Family facts must survive the rich-NPC generation bridge. */
 import { describe, expect, it } from 'vitest';
-import { createHouseholdResidentNpc, civicResidentHomePlot, residentMemberIndex, residentNpcId, residentReachError, type ResidentPick } from '../groundResidentInteraction';
+import { createHouseholdResidentNpc, civicResidentHomePlot, residentMemberIndex, residentNpcId, residentReachError, residentRoomAt, residentSiteAt, type ResidentPick } from '../groundResidentInteraction';
 import type { TownBuildingVisit } from '../../Worldforge/townBuildingVisit';
 import { householdMemberIdentity } from '../../../systems/worldforge/town/householdBrief';
 import { siteLocalToScene } from '../interiorPlacement';
@@ -52,9 +52,24 @@ describe('physical resident meetings', () => {
   });
   for (const yaw of [0, .7, -2.2]) for (const sign of [-1, 1]) it(`uses the actual room under yaw ${yaw}, mirror ${sign}`, () => {
     const p = pick(yaw, sign); p.pose = pose(p);
+    expect(residentRoomAt(visit.plan, p.transform, p.pose)).toEqual({level: 0, id: 1});
+    expect(residentRoomAt(visit.plan, p.transform, pose(p, 9, 7.5, 1))).toEqual({level: 1, id: 1});
     expect(residentReachError(visit, p, pose(p, 9))).toBeNull();
     expect(residentReachError(visit, p, pose(p, 9, 7.5, 1))).toContain('same room and floor');
     expect(residentReachError(visit, p, pose(p, 15.1))).toContain('same room and floor');
+  });
+  it('returns unknown when accepted feet do not resolve to a plan room and rejects invalid site transforms', () => {
+    const p = pick();
+    expect(residentRoomAt(visit.plan, p.transform, pose(p, 15.1))).toBeNull();
+    expect(residentRoomAt(visit.plan, {...p.transform, rotationY: Number.NaN}, pose(p))).toBeNull();
+  });
+  it('resolves a current plot only when one exact footprint contains accepted feet', () => {
+    const first = {id:'wf-plot-10-1', cornersM:[{x:0,z:0},{x:10,z:0},{x:10,z:10},{x:0,z:10}]} as import('../../../systems/worldforge/bridge/groundChunkLoader').GroundWorld['buildings'][number];
+    const ground = {buildings:[first]} as unknown as import('../../../systems/worldforge/bridge/groundChunkLoader').GroundWorld;
+    expect(residentSiteAt(ground, {xM:5,zM:5})).toBe(first);
+    expect(residentSiteAt(ground, {xM:15,zM:5})).toBeNull();
+    expect(residentSiteAt({...ground, buildings:[first, {...first,id:'wf-plot-10-2'}]}, {xM:5,zM:5})).toBeNull();
+    expect(residentSiteAt(ground, {xM:Number.NaN,zM:5})).toBeNull();
   });
   it('rejects missing bodies, stale identities, distant feet and pending arrival', () => {
     const p = pick(); p.pose = pose(p, 1);

@@ -21,9 +21,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 03/11/2026, 06:30:03
+ * Last Sync: 04/11/2026, 22:17:10
  * Dependents: components/Combat/InPlaceCombatScene.tsx, components/DesignPreview/steps/PreviewTown3D.tsx, components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx, components/Worldforge/WorldforgeGroundDrilldown.tsx
- * Imports: 92 files
+ * Imports: 94 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -40,7 +40,7 @@ import * as THREE from 'three';
 import { buildBeamGeometry } from '@/systems/world3d/beamGeometry';
 import { bakeInteriorSkyFactors, buildInteriorDaylight, daylightSegments, interiorSkyFactor } from '@/systems/world3d/interiorDaylight';
 import { makeInteriorMaterial, quantizeSkyView, type InteriorMaterialLook } from './interiorDaylightMaterial';
-import { LAMP_BODY_HEX, LAMP_FURNITURE, tableLampBodyGeometry, tableLampFlameGeometry, tableLampFlameMaterial } from './tableLamp';
+import { LAMP_BODY_HEX, LAMP_FURNITURE, TABLE_LAMP_NO_HIT_RAYCAST, tableLampBodyGeometry, tableLampFlameGeometry, tableLampFlameMaterial } from './tableLamp';
 import { markInteriorLive } from './liveInteriors';
 import { DEFAULT_TIME_OF_DAY_H, SHADOW_ONLY_LAYER } from './World3DLighting';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -97,7 +97,11 @@ import { createResidentDoorSampler, mergeResidentDoorOpens } from './residentDoo
 import { InteriorHourProvider, useInteriorHour, emissiveForPart } from './InteriorHourContext';
 import FreeRoamCameraController, { type CameraFrameRequest } from './FreeRoamCameraController';
 import {playerCameraFrame} from './playerCameraFrame';
+import type {PlayerCameraRoom, PlayerCameraPartyRoomCandidate} from './playerCameraFrame';
 import {createPlayerCameraSightline} from './playerCameraVisibility';
+import {residentRoomAt, residentSiteAt} from './groundResidentInteraction';
+import type {TownBuildingVisit} from '../Worldforge/townBuildingVisit';
+import type {SiteGroupTransform} from '@/systems/worldforge/bridge/sitePartTransform';
 import { syncVegetationInstanceMatrices } from './vegetationInstanceMatrices';
 import { VegetationTreeField } from './vegetation/VegetationTreeField';
 import { UnderstoryField } from './vegetation/UnderstoryField';
@@ -233,6 +237,10 @@ interface World3DSceneProps {
    */
   sceneCast?: SceneCastMember[];
   partyCompanions?: PartyCompanionPresence[];
+  /** Accepted people and only their candidate visit plans, frozen per To Player request. */
+  cameraFrameRoomData?: {nonce:number;ground:GroundWorld;player:AvatarFootfall|null;
+    companions:Array<{id:string;position:CompanionPosition}>;siteIds:string[];
+    visits:ReadonlyMap<string,TownBuildingVisit>;planSignature:string;plansReady?:boolean};
   partyPaused?: boolean;
   onCompanionPositionChange?: (id: string, position: CompanionPosition, trail: CompanionPosition[]) => void;
   /**
@@ -1566,7 +1574,7 @@ const SiteBuilding: React.FC<{
           const off = sitePartLocalOffset(p, s.doorZSign ?? -1);
           return (
             <group key={`lamp-${i}`} name="world3d:table-lamp" position={[off.x, off.y + p.h / 2, off.z]}>
-              <mesh geometry={tableLampBodyGeometry()} receiveShadow={castsLocalShadow} raycast={() => undefined} dispose={null}>
+              <mesh geometry={tableLampBodyGeometry()} receiveShadow={castsLocalShadow} raycast={TABLE_LAMP_NO_HIT_RAYCAST} dispose={null}>
                 <primitive
                   object={furnishingSky.has(i)
                     ? sharedInteriorMaterial({ color: LAMP_BODY_HEX, map: null, emissive: '#000000', emissiveIntensity: 0, skyView: furnishingSky.get(i)! })
@@ -1575,7 +1583,7 @@ const SiteBuilding: React.FC<{
                   dispose={null}
                 />
               </mesh>
-              <mesh geometry={tableLampFlameGeometry()} visible={lampsLit} raycast={() => undefined} dispose={null}>
+              <mesh geometry={tableLampFlameGeometry()} visible={lampsLit} raycast={TABLE_LAMP_NO_HIT_RAYCAST} dispose={null}>
                 <primitive object={tableLampFlameMaterial()} attach="material" dispose={null} />
               </mesh>
             </group>
@@ -1961,6 +1969,7 @@ const WorldUnderside: React.FC = () => {
   );
 };
 
+/** Exact footprint containment rejects cross-wall proximity and overlaps. */
 const World3DScene: React.FC<World3DSceneProps> = ({
   loader,
   start,
@@ -1979,6 +1988,7 @@ const World3DScene: React.FC<World3DSceneProps> = ({
   onPlayerFrameUnavailable,
   sceneCast,
   partyCompanions,
+  cameraFrameRoomData,
   partyPaused,
   onCompanionPositionChange,
   onSelectNpc,
@@ -2257,23 +2267,75 @@ const World3DScene: React.FC<World3DSceneProps> = ({
     return { kind: 'town', nonce: frameTownCellNonce, target, height, oblique: true };
   }, [frameTownCellNonce, groundWorld, sceneOrigin, startSurfaceY]);
 
+  // Hold the current camera while the exact plot lookup is pending. Applying
+  // a player-only eye first caused the played repeat command to jump twice.
+  const roomPlansPending = cameraFrameRoomData?.nonce === framePlayerNonce
+    && cameraFrameRoomData.ground === groundWorld && cameraFrameRoomData.siteIds.length > 0
+    && cameraFrameRoomData.plansReady === false;
+  const playerFrameRefinement = useRef<{nonce:number;inputKey:string;
+    refinements:number;request:CameraFrameRequest|null}>({nonce:0,inputKey:'',refinements:0,request:null});
   const playerFrameRequest = useMemo(() => {
+    const snapshot = cameraFrameRoomData?.nonce === framePlayerNonce && cameraFrameRoomData.ground === groundWorld
+      ? cameraFrameRoomData : null;
+    // The live inn exhausted all three retries on unrelated landscape chunks
+    // before its room plan arrived. Only this command's site, plan readiness
+    // and scene origin can spend the bounded refinement budget.
+    const inputKey=JSON.stringify([snapshot?.planSignature,snapshot?.plansReady,
+      snapshot?.siteIds.map(id=>[id,snapshot.visits.has(id)]),sceneOrigin,
+      loaded.flatMap(chunk=>chunk.bundle.sites.filter(site=>snapshot?.siteIds.includes(site.id))
+        .map(site=>[site.id,chunk.cx,chunk.cy,site.localX,site.localZ,site.surfaceY,site.rotationY,site.doorZSign]))]);
+    const previous=playerFrameRefinement.current;
+    if(framePlayerNonce!==previous.nonce){
+      previous.nonce=framePlayerNonce;previous.inputKey=inputKey;
+      previous.refinements=0;previous.request=null;
+    }else if(inputKey!==previous.inputKey){
+      if(previous.refinements>=3)return previous.request;
+      previous.refinements++;previous.inputKey=inputKey;
+    }else return previous.request;
     if (!framePlayerNonce) return null;
-    const foot = actualFootfall.current ?? (playerGroundPos ? {
+    if (roomPlansPending) { previous.request=null; return null; }
+    const foot = snapshot?.player ?? actualFootfall.current ?? (playerGroundPos ? {
       ...playerGroundPos, yM: playerGroundPos.yM ?? startSurfaceY,
     } : null);
-    return playerCameraFrame(groundWorld, foot, sceneOrigin, framePlayerNonce, playerSightline);
+    // Room membership is resolved only for an explicit camera return. Both
+    // people must land inside one exact source footprint and resolve through
+    // its current rendered transform and TownBuildingVisit plan; ambiguity or
+    // missing streamed/source facts retains the established player-only frame.
+    const roomFor = (pose: {xM:number;zM:number;yM:number} | null): PlayerCameraRoom | null => {
+      if (!pose || !groundWorld || !snapshot || snapshot.ground !== groundWorld) return null;
+      const building = residentSiteAt(groundWorld, pose);
+      if (!building || !snapshot.siteIds.includes(building.id)) return null;
+      const visit = snapshot.visits.get(building.id);
+      if (!visit) return null;
+      let transform: SiteGroupTransform | null = null;
+      for (const chunk of loaded) {
+        const site = chunk.bundle.sites.find(candidate => candidate.id === building.id);
+        if (!site) continue;
+        const chunkOrigin = chunkOriginWorld(chunk.cx, chunk.cy);
+        transform = {groupX: chunkOrigin.x + site.localX, groupZ: chunkOrigin.y + site.localZ,
+          surfaceY: site.surfaceY, rotationY: site.rotationY ?? 0, doorZSign: site.doorZSign ?? -1};
+        break;
+      }
+      if (!transform) return null;
+      const room = residentRoomAt(visit.plan, transform, pose);
+      return room ? {siteId: building.id, level: room.level, roomId: room.id} : null;
+    };
+    const partyRoom = foot && snapshot ? {player: roomFor(foot), companions: snapshot.companions.map(member => ({
+      id:member.id, position: member.position, room: roomFor(member.position),
+    })) as PlayerCameraPartyRoomCandidate[]} : undefined;
+    previous.request=playerCameraFrame(groundWorld, foot, sceneOrigin, framePlayerNonce, playerSightline, partyRoom);
+    return previous.request;
     // Footing is intentionally sampled only on this explicit request, not on
     // every footfall. Ordinary orbiting and keyboard camera motion stay free.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [framePlayerNonce, groundWorld, sceneOrigin]);
+  }, [framePlayerNonce, groundWorld, sceneOrigin, cameraFrameRoomData, loaded, roomPlansPending]);
   const reportedPlayerFrame = useRef(0);
   useEffect(() => {
     if (!framePlayerNonce) { reportedPlayerFrame.current = 0; return; }
-    if (playerFrameRequest || reportedPlayerFrame.current === framePlayerNonce) return;
+    if (roomPlansPending || playerFrameRequest || reportedPlayerFrame.current === framePlayerNonce) return;
     reportedPlayerFrame.current = framePlayerNonce;
     onPlayerFrameUnavailable?.();
-  }, [framePlayerNonce, playerFrameRequest, onPlayerFrameUnavailable]);
+  }, [framePlayerNonce, playerFrameRequest, onPlayerFrameUnavailable, roomPlansPending]);
 
   // Kick off the first window once (in absolute world coords).
   React.useEffect(() => {

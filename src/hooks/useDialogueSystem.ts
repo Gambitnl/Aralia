@@ -17,9 +17,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/10/2026, 21:54:20
+ * Last Sync: 05/11/2026, 02:59:03
  * Dependents: components/layout/GameModals.tsx, hooks/useConversation.ts
- * Imports: 13 files
+ * Imports: 14 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -32,7 +32,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { GameState, Action, DiscoveryType } from '../types';
 import type { NPC } from '../types/world';
 import { AppAction } from '../state/actionTypes';
-import { ProcessTopicResult, buildNpcDialoguePromptContext, resolveDialogueStorefront, resolveHouseholdPersonalReply } from '../services/dialogueService';
+import { ProcessTopicResult, buildNpcDialoguePromptContext, resolveDialogueStorefront, resolveHouseholdPersonalReply, resolveFreeformLocalFactReply } from '../services/dialogueService';
 import * as OllamaTextService from '../services/ollamaTextService';
 import { NPCS } from '../data/world/npcs';
 import { sanitizeAIPromptText } from '../utils/core/securityUtils';
@@ -136,7 +136,11 @@ export const useDialogueSystem = (
      * Generates a response from the NPC through the existing configured text service.
      * Stores the result in the game state for history tracking.
      */
-    const generateResponse = useCallback(async (prompt: string, signal?: AbortSignal): Promise<string> => {
+    const generateResponse = useCallback(async (
+        prompt: string,
+        signal?: AbortSignal,
+        options: { kind?: 'topic' | 'speech'; onPreparationChange?: (preparing: boolean) => void } = {},
+    ): Promise<string> => {
         const generation = ++replyGeneration.current;
         const revision = conversation.current.revision;
         const session = gameState.activeDialogueSession;
@@ -185,13 +189,44 @@ export const useDialogueSystem = (
             dispatch({ type: 'SET_LAST_NPC_INTERACTION', payload: { npcId: npc.id, response: NPC_SHUN_REPLY } });
             return NPC_SHUN_REPLY;
         }
+        if (options.kind === 'speech') {
+            const local = resolveFreeformLocalFactReply(gameState, npc, prompt, speakerKey);
+            if (local?.handled) {
+                if (!stillOwned()) throw new Error('This reply is no longer requested.');
+                dispatch({type:'SET_LAST_NPC_INTERACTION',payload:{npcId:npc.id,response:local.response,
+                    ...(local.publication ? {dialogue:local.publication} : {})}});
+                return local.response;
+            }
+        }
         try {
+            // Typed Talk starts the selected local task's existing bounded load
+            // stage first. Authored topics already resolved their game effects
+            // and keep their existing direct request path.
+            if (options.kind === 'speech') {
+                if (signal?.aborted) throw new Error('This reply is no longer requested.');
+                let preparation: Awaited<ReturnType<typeof OllamaTextService.prepareNPCResponse>>;
+                try {
+                    preparation = await OllamaTextService.prepareNPCResponse(
+                        signal,
+                        () => options.onPreparationChange?.(true),
+                    );
+                } finally {
+                    options.onPreparationChange?.(false);
+                }
+                if (preparation.status === 'error') {
+                    throw new Error(preparation.error);
+                }
+                if (preparation.status === 'cancelled' || !stillOwned()) {
+                    throw new Error('This reply is no longer requested.');
+                }
+            }
             const result = await OllamaTextService.generateNPCResponse(
                 npc.name,
                 // The player's free-form dialogue line — neutralize prompt-injection
                 // markers before it reaches the model.
                 playerPrompt,
-                systemPrompt
+                systemPrompt,
+                { signal }
             );
 
             // Closing the window cancels publication, even if the transport is

@@ -72,7 +72,7 @@
       "features": [
         {
           "title": "Scope: target look, body route, cloth method, armor types, crowd budget (question sheet)",
-          "status": "active",
+          "status": "done",
           "note": "Remy 2026-11-03 rejected the current Aralia look and the Wildkin armor look. Sheet https://claude.ai/artifact/71CWggvG5XFdxNx5j6TCWM (rounds 1-3). SETTLED 2026-11-04: target look = the generated knight/wizard/ranger lineup Remy called 'amazing' (heroic stylized, about 5 heads tall, thick bevelled plates with a gold rim band, big hands and feet, trim at every hem, no outlines; file .agent/scratch/charcloth/target-look.webp, ignored); both bodies in a forge A/B (authored side code-sculpted from the target picture); GPU particle cloth; all 6 garments; all 8 armor types; every biped incl. tails and hooves; 1 ms frame limit; replace after eye check. OPEN: q10 WebGL texture cloth vs WebGPU compute."
         },
         {
@@ -88,7 +88,7 @@
         {
           "title": "Target-look body: heroic body code-sculpted from the target picture, rigged, forge A/B against the procedural body",
           "status": "active",
-          "note": "Started 2026-11-04 after Remy asked about the bodies. The procedural loft is the rejected look (chest top radius 23.7 cm, deltoid radius 14.7 cm on a 1.86 m human). Route (sheet q2): img2threejs with the animated-character profile sculpts the body from .agent/scratch/charcloth/target-look.webp as code, exports a GLB (feet on y=0, height 1, T-pose, our 39 bone names), tools/blender/rig_basemesh.py gives it Blender bone-heat weights, and the forge loads it as assembleEntity options.rig, the Part Lab path (createSkinnedFromRig, frameFromRig). The cloth colliders refit to the new skin (bipedClothColliders takes any skinned biped geometry)."
+          "note": "ROUTE RULED by Remy 2026-11-05 (AskUserQuestion): the heroic body is built in the Aralia one-piece loft, not through img2threejs (its implicit SDF path caps at a 64-cell grid and its character template is stacked capsules, the segmented look). The img2threejs workspace keeps the measurements (anatomy.json: 5.15 HU tall, 2.8 HU shoulders, 1.94 HU legs, hands 0.8 HU, feet 1.0 HU). BUILT 2026-11-05: Frame.style 'heroic'; skeletonBuilder.heroicFrame (headScale x1.36, limb x0.78, shoulder x1.08, arm x0.95, bulk >= 1.08) and bipedBodyRadii, ONE source of the limb, hand and foot radii for bipedRestPose and BipedDriver (both carried mirrored copies before); heroic rules: wrist 0.82 of the elbow, deltoid x1.12, hand floor 0.56 skullR, boot x1.5 long x1.25 wide. Forge body A/B design.html?step=entityforge&body=1 (left current, right heroic without ink). Test heroicBody.test.ts: heroic human = 5.09 heads, 2.77 HU shoulders, 1.88 HU legs, hand 0.85 HU, foot 0.92 HU; today's body = 6.72 heads (fails the gate); cloth colliders cover the heroic skin; entities3d suite 468 tests pass. Honest read of the capture: the proportions moved to the target, the sculpt is still the muscle loft (pec and ab ledges), the bowl helmet and pauldrons scale with the bigger skull and read oversized. NEXT: soft barrel chest on heroic, square jaw, smoother boot, no-ink default, then Remy's eye."
         },
         {
           "title": "Armor types driven by equippedItems: plate, chain, leather, padded; forge A/B + test",
@@ -102,7 +102,8 @@
           "title": "Measure the 300-NPC town frame cost after; Remy eyeball live in game",
           "status": "specced"
         }
-      ]
+      ],
+      "updated": "2026-11-05"
     },
     {
       "id": "world-props",
@@ -1457,7 +1458,10 @@
           "status": "done",
           "link": "docs/architecture/domains/world-map.md#globe-view",
           "status_note": "Map / Globe shares canonical atlas artwork, latitude/longitude bounds and layers. Rotation, zoom, reset, keyboard controls and graphics-loss recovery; ungenerated territory stays uncharted and travel selection stays on Map. Flat-map terrain and overlays now update together during held drags. Verified 2026-10-27: 39 focused tests, scoped typecheck, desktop/phone Design Preview, held-pointer displacement, and worldmap runtime globe rendering. No end-to-end gameplay travel or full-world seam acceptance. Proof: .agent/scratch/worldmap-globe/.",
-          "history": { "designed": "2026-10-27", "built": "2026-10-27" }
+          "history": {
+            "designed": "2026-10-27",
+            "built": "2026-10-27"
+          }
         },
         {
           "title": "World map route preference parity",
@@ -2113,11 +2117,16 @@
           "status": "done",
           "status_note": "Agora task from TODO at src/components/ui/Tooltip.tsx:56 (sweep 2026-09-13)",
           "verified": "2026-09-13"
+        },
+        {
+          "title": "Shared button style: game screens use Button or BTN_* control roles (GG-378)",
+          "status": "active",
+          "status_note": "149 of 152 debt screens moved and pushed (a16e9b448). Left: ConversationPanel, MapPane, CollapsibleBanterPanel (GG-378). Open: GG-628 CombatView toolbar choice, GG-629 Remy visual review. Rules: docs/architecture/domains/ui-buttons.md."
         }
       ],
       "tier": "strategic",
       "verified": "2026-09-09",
-      "updated": "2026-09-13"
+      "updated": "2026-11-05"
     },
     {
       "id": "early-game-playable",

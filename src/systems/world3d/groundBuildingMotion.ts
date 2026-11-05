@@ -412,6 +412,44 @@ export function groundBodyVolumeClear(ground:GroundWorld,from:Point&{yM:number},
   return true;
 }
 
+/** Walking-only recovery from a measured body already intersecting a solid.
+ * Every pre-existing overlap must make strictly less horizontal penetration
+ * along its nearest exit normal; new contacts and malformed source geometry
+ * still block. Swimming and other callers keep the strict volume query above. */
+export function groundBodyVolumeRecoveryClear(ground:GroundWorld,from:Point&{yM:number},to:Point&{yM:number},body:ActorBody,doors:ReadonlySet<string>=CLOSED_DOORS):boolean {
+  if(!body.footprint||!isValidGroundBodyFootprint(body.footprint)||![from.xM,from.yM,from.zM,to.xM,to.yM,to.zM,body.heightM,body.radiusM].every(Number.isFinite)||body.heightM<=0||body.radiusM<=0)return false;
+  const distance=Math.hypot(to.xM-from.xM,to.zM-from.zM),dx=to.xM-from.xM,dz=to.zM-from.zM;
+  for(const b of buildingsFor(ground,doors)){
+    if(Math.hypot(from.xM-b.x,from.zM-b.z)>b.radius+body.radiusM+distance)continue;
+    if(!validMeasuredBuilding(b))return false;
+    for(const s of b.solids){
+      if(s.tactical)continue;
+      // The real sweep already reports its initial overlap. Reuse that fact
+      // rather than repeating a zero-length volume sweep for every clear solid.
+      const solid=solidBody(b,s),sweep=sweepActorVolumes(from,to,body,solid);
+      if(!sweep)return false;
+      if(!sweep.inside){
+        if(sweep.hit)return false;
+        continue;
+      }
+      // Existing penetration grants only a horizontal escape, never a shortcut
+      // to another floor or through the top/bottom of the intersected object.
+      if(Math.abs(to.yM-from.yM)>1e-8)return false;
+      const before=sweepActorBoxes(from,to,body,solid),after=sweepActorBoxes(to,to,body,solid);
+      const outward=before?dx*before.nx+dz*before.nz:0;
+      if(!before?.inside||before.depth<=1e-8||!after||after.depth>=before.depth-1e-8
+        ||outward<=1e-8)return false;
+      // A long diagonal can reduce the minimum depth yet leave through a
+      // different face. Require the nearest separating plane to be reached
+      // before any other exit during this step. Short, still-overlapping steps
+      // remain valid while they make strict progress toward that same escape.
+      const nearestExit=before.depth/outward;
+      if(sweep.leave<Math.min(1,nearestExit)-1e-8)return false;
+    }
+  }
+  return true;
+}
+
 function supportAt(ground: GroundWorld, point: Point, footY: number, doors: ReadonlySet<string>, surfaces?: GroundWalkSurfaces): SupportPoint | null {
   const terrain = groundSurfaceYM(ground, point.xM, point.zM);
   let result: SupportPoint | null = terrain <= footY + 0.22 && terrain >= footY - 0.3 ? { yM: terrain, onStairs: false, terrain: true } : null;

@@ -1,6 +1,6 @@
 # Dungeon expeditions
 
-Verified: 2026-11-02
+Verified: 2026-11-04
 
 Worldforge owns each dungeon's source site, frozen seed path, history, geometry,
 inhabitants and objects. Gameplay uses that source rather than a preview seed.
@@ -38,9 +38,216 @@ reopening the same profile, a read-only check finds a newer native autosave at
 63,35/1686 cells, timestamp 1793574904843, beyond the last inputs sent here.
 Its provenance is unresolved; preserve it and do not import an older proof or
 overwrite it. The user has been asked whether this is their newer play.
-Further source edits are held for the coordinated repository sync requested by
-claude-town-look, followed by normal native verification. No fight, victory,
-new claimed reward or completed expedition follows from this visual work.
+The coordinated repository sync completed and the user resumed the goal.
+November 4 verification preserves the newer checkpoint as authoritative; its
+earlier unexplained movement remains unattributed. No fight, victory, new
+claimed reward or completed expedition follows from this visual work.
+
+## Legacy household links during source admission
+
+The November 4 normal Continue refuses the current source before gameplay
+mounts. A read-only producer observer first reports no matching historical
+layout for either terrain reader. Reader 4 independently matches all 491 saved
+founder IDs and names, and all 26 later residents have their saved birth evidence.
+The mismatch is 473 absent optional householdMemberId fields in legacy people;
+no recorded household link conflicts. Missing information is retained as missing.
+
+The layout qualifier now accepts that absence while checking exact IDs/names,
+unique source roles, recorded links, births, homes and observed foundations.
+The following recorded-NPC join uses the independently qualified founding
+roster's exact person ID when the saved link is absent. It does not match by
+name alone, assign a household link, move a resident home, revive anyone or
+rewrite NPC memory. Conflicting links and duplicate source or saved identities
+still refuse. All business, keeper, door, bed, source and physical support checks
+remain in their existing owners.
+
+Two layout regressions and two NPC regressions fail before their repairs.
+The affected suites then pass 36 and 32 cases respectively; four scoped files
+have zero type errors and zero suppressed imported errors. Native replay after
+the layout repair advances to the recorded-character join, confirming the first
+boundary is repaired in the actual producer. The complete repaired producer and
+ordinary native load still require qualification. Desktop lighting/options,
+bake timing, gameplay and save/full-reload proof remain open.
+
+All eight native payloads are byte-exact after the refused load and read-only
+diagnosis; their sorted payload archive SHA-256 is
+65c99bf73600d9282978a11db89d974565312e154dcebd967930ed65f61ccc79.
+The current autosave remains 63,35/1686 cells, 9/9 HP and 20.69 gold. The original
+profile is retained; no older proof was imported. The bounded source-check
+window has ended and its shared runtime lease is released. No gameplay, render,
+inference or test workload remains active from this pass. The
+[save/load domain](save-load.md#legacy-household-link-compatibility) owns the
+generic compatibility behavior.
+
+### Mixed saved NPC source projections
+
+The complete repaired producer still refuses npc_burg_675_plot_157: the newest
+record calls the shopkeeper Joss Greendown, who has no matching saved villager.
+Retained native records call the same NPC Sten Ironwell, matching saved person
+228. The old and new TownSim populations are byte-exact. Party, inventory and
+discoveries are also exact; source projections instead grow from 115 to 163
+generated NPCs and from 111 to 159 businesses. Ten existing NPC identities
+change, including Bram Ironton to Mara Hartcroft. Existing shared NPC memories
+and business objects remain byte-exact. This drift was missed during the
+earlier reload check; it is not accepted world progression.
+
+A disposable proposal replaces only the three drifted projection registries
+from the retained native witness, keeping all 138 other latest fields exact.
+It still refuses an older record, npc_burg_675_plot_16 / Edmund Dunhall, which
+already has no matching saved villager in the witness. That proposal is
+rejected. It was never loaded into gameplay or saved. Restoring an older whole
+campaign, renaming a person, deleting the 48 added projections or relaxing the
+source guard is not an accepted remedy.
+
+Static inspection identifies a recipe difference to measure next:
+`computeBurgMerchants` scales the canonical plan before `toArtifactPlan` and
+roster generation; `townRosterForBurg` and `buildTownSimStateForBurg` adapt the
+unscaled plan. The adapter filters small plots before assigning IDs, and roster
+capacity depends on generated bedrooms. A bounded read-only worker comparison
+now confirms scale changes reader4 from 491 to 500 founders, with 481 numeric
+ID/name disagreements against the saved census. Styling alone changes none.
+However, neither reader4 recipe contains Edmund; both make plot16 a house.
+Reader2 contains Edmund at b28:head, assigned as proprietor at plot29, while
+its plot16 worker is Ned Stonedown. Its 1559 unscaled founders disagree with
+the retained census. Thus scaling alone is disproved as Edmund's cause, and
+none of these recipes qualifies his saved plot16 tavern. Full comparison proof
+is ignored at `.agent/scratch/dungeon-expedition/nov4-compare-source-recipes-all-result.json`.
+
+The comparison also exposed a prevention gap: the 2D registration hook waits
+for source admission, while deferred 3D registration calls the shared merchant
+owner directly. `computeBurgMerchants` now returns no NPC/business updates for
+an existing town without a qualified layout. A fresh town without a life record
+still registers normally. Two regressions failed before this guard; all 13
+merchant cases now pass, including earlier-layout and stock preservation, and
+both changed files type-check with zero errors or suppressed imported errors.
+This prevents further default-layout projection through either caller; it does
+not reconcile the already conflicting campaign or qualify a native reload.
+
+The eight-slot offline audit narrows the first retained appearance: Edmund and
+The Howling Dragon at plot16 are absent in the October29 1-hour, 15-minute and
+30-minute checkpoints, and present in the November2 manual save and every newer
+slot. The recorded tavern has foundedDay5 and no NPC facts or interactions.
+This is a provenance boundary, not permission to erase the records. All eight
+native data payloads remain byte-exact after these diagnostics, with the same
+SHA256 65c99bf73600d9282978a11db89d974565312e154dcebd967930ed65f61ccc79.
+The read-only proof is `nov4-native-preservation-and-npc16.json` in the same
+ignored scratch directory.
+
+### Pre-conflict proposal and retained trades
+
+The bounded native-copy proposal uses only the three projection registries from
+checkpoint1793306038449. All 138 other latest fields and the census remain
+exact. It compares 67/63/72 NPC/business/memory entries with the latest
+163/159/168. All shared businesses and memory records are byte-exact; eight
+shared NPC records differ only in identity/biography fields. The 96 added memory
+rows have no facts, interactions or goals. This audits a candidate, not authority
+to erase records or change the campaign. No candidate was loaded or saved.
+
+The first proposal passes NPC joins but exposes a separate compatibility error:
+13 of the 30 retained businesses in burg675 differ from the newer fitted-use
+trade rule, while all 30 match the earlier role-and-plot draw or current rule.
+Git220b4db23 independently retains that earlier registration rule. Admission now
+accepts those exact earlier trades without changing stock, owners or buildings;
+all original workplace/keeper checks remain. All 35 affected cases pass,
+including legacy-trade acceptance and unrelated-trade/wrong-owner refusal.
+The positive and owner-boundary regressions failed before the fix. Both changed
+files type-check with zero errors and zero suppressed imported errors.
+
+After refreshing the owned3021 server with that tested repair, the disposable
+producer clears the identity, business and other site joins but refuses the
+latest saved feet under both terrain readers1 and2. Its input remains exact.
+The proposal remains rejected and unapplied. Final native reads again preserve
+all eight payloads and the same SHA256 above. Proof is
+`nov4-preconflict-proposal-result.json` and
+`nov4-preconflict-business-result.json` in ignored scratch.
+
+### Exact return-support measurement
+
+The bounded read-only reconstruction now measures both terrain readers at the
+exact saved x468.56632298736395/z470.794030803515/y4.065515117089452. Both give
+continuous terrain Y3.9926996844378215: 0.07281543265163082 meters below the
+saved feet. Movement footing support is true and water evidence is valid/dry;
+the exact source-height comparison is the refusal. Ordinary movement support
+alone does not establish unchanged source geometry.
+
+The latest exterior position, active dungeon return context and pre-conflict
+checkpoint are exact matches, as are all seven retained active-visit slots.
+The retained nearest-cell sampler instead gives Y3.9174446044921876, which also
+fails to reproduce the saved feet. This disproves sampler selection alone as
+the cause; no height tolerance or body correction is accepted. Diagnostic input
+and all eight native payloads remain exact. Proof is
+`nov4-exact-support-result.json` and `nov4-saved-return-pose-timeline.json` in
+ignored scratch.
+
+Structural comparison against Git220b4db23 finds one code difference in
+`flattenBuildingTerrainPads`: the current call explicitly selects height-grid
+nodes, while the retained call uses cell centers. All other function code is
+identical after comments/formatting are removed. The comparison hashes and
+retained function are archived in ignored `nov4-pad-source-comparison.json` and
+`nov4-retained-pad-function.txt`. This comparison identifies the single source
+variation tested in the next bounded experiment.
+
+### Retained pad-grid cause reproduced
+
+A disposable module restores only that retained grid argument in the served
+ground builder. Both terrain readers then reproduce continuous ground
+Y4.065515117089068 against saved Y4.065515117089452, a difference of
+3.8458125573015423e-13 meters. Footing remains supported and dry. The exterior,
+pre-conflict and active dungeon-return poses all give the same result. This
+reproduces the 7.28-centimeter source change without moving Sana, increasing a
+tolerance, altering application code or applying a recovery. Worker input and
+all eight native payloads remain exact, with the same SHA256 above.
+
+The experiment records one edit, served/candidate function hashes and every
+measured point in ignored `nov4-retained-pad-result.json`. It proves the pad-grid
+cause at the saved position. It does not qualify the whole world: both regional
+readers match locally, and the original mixed NPC projections remain untouched.
+No native recovery or complete source selection has been accepted.
+
+### Versioned reader and recovery review
+
+The retained foundation recipe is now implemented through the existing terrain
+source identity, not another save store or global pad rollback. Sources 1 and 2
+keep their prior recipes and new games still use 2. Source 3 uses regional reader 1
+with retained center-index foundations; source 4 pairs regional reader 2 with those
+foundations. Region provenance reaches ordinary ground, worker, Atlas and rest
+builds; caches distinguish profiles without changing generation seeds.
+
+Five regressions failed before implementation. The affected checks now pass 80
+distinct cases: 8 source cases, 7 foundation cases, 37 admission cases,
+20 worker transaction cases and 8 storage cases. All 11 changed TypeScript files report
+zero errors and zero suppressed imported errors. One scoped header pass updated
+only owned source headers; no dependent source or unrelated work was written.
+
+The normal source-loading service and real worker validate an explicit source 3
+proposal from the newest native payload: burg 675, town reader 4, 491 founders,
+zero observed foundations and surface Y4.065515117089068. Its 137 other campaign
+fields are exact. Town life is exact except the qualified layout marker; the
+three proposed projection registries come from the audited pre-conflict witness.
+Input remains exact. Proof and the non-importable, unapproved candidate are in
+ignored `nov4-source3-service-proof.json` and
+`nov4-source3-proposal-not-approved.json`.
+
+Absent-source replay correctly refuses selection: sources 1 and 2 fail exact support,
+while 3 and 4 both qualify. `nov4-profile-ambiguity-result.json` records that real
+producer result. The reference audit finds no added NPC/business IDs outside
+the three proposed registries; all 96 added memory rows are identical defaults
+with no recorded facts, interactions or goals. A read-only recovery-store audit
+finds no emergency, defeat, fallback autosave or session-cache payload at this
+origin. All eight native IndexedDB payloads remain byte-exact with the same
+SHA256 above. No new slot or profile was created, and no source choice or load
+was applied to the native campaign.
+
+A user choice is requested for an isolated recovery copy using source 3. That
+copy would restore eight NPC records and omit 96 mismatched shop/NPC projections
+while preserving the latest party, inventory, rewards and dungeon progress.
+The original profile/saved payloads must remain intact. This is a proposed
+explicit source choice, not a claim that regional history was uniquely inferred.
+If approved, validate an isolated copy, use the normal save/load path, inspect
+the actual desktop result, then verify ordinary save/full reload before resuming
+expedition actions. Until that choice, no recovery application is authorized.
+Lighting, incremental bake, actual expedition outcomes and full continuity
+remain open; no new expedition outcome was played during this source repair.
 
 ## Existing owners
 

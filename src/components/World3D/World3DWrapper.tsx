@@ -40,7 +40,7 @@ import { doorInteractionError } from './groundDoorInteraction';
 import type {NearbyBuildingDoorAction} from './NearbyBuildingDoor';
 import type {NearbyFurnishingAction,ResolveFurnishingPlan} from './NearbyFurnishing';
 import {GuestBedRestAction} from './GuestBedRestAction';
-import { createHouseholdResidentNpc, civicResidentHomePlot, residentMemberIndex, residentNpcId, residentReachError, type ReadResidentPick } from './groundResidentInteraction';
+import { createHouseholdResidentNpc, civicResidentHomePlot, residentMemberIndex, residentNpcId, residentReachError, residentSiteAt, type ReadResidentPick } from './groundResidentInteraction';
 import { siteDoorKey, siteOrientationFromQuad } from '@/systems/worldforge/bridge/sitePartTransform';
 import { recipeFromCharacter, recipeFromRichNpc } from '@/systems/entities3d/recipeFromCharacter';
 import { createForgeAssetService } from '@/systems/worldforge/assets/forgeAssetService';
@@ -376,7 +376,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
   const [worldGenError, setWorldGenError] = useState<string | null>(null);
   // Bumped when Stage B patches props into the live ground, so the scene re-renders
   // the prop layer. Only the setter is used — any state change forces the re-read.
-  const [, setGroundNonce] = useState(0);
+  const [groundNonce, setGroundNonce] = useState(0);
   // Set when WF_GROUND succeeds: walking-scale spawn + camera profile +
   // the resolved tile (the unit-scope for persisted ground positions).
   const [wfGroundView, setWfGroundView] = useState<{
@@ -501,6 +501,12 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
   const [isWorkbenchOpen, setIsWorkbenchOpen] = useState(false);
   const [furnishingError, setFurnishingError] = useState<string | null>(null);
   const [residentInspection, setResidentInspection] = useState<{visit: TownBuildingVisit; spaceVisit: TownBuildingVisit; burgId: number; memberIndex: number; npcId: string; read: ReadResidentPick; ground: GroundWorld} | null>(null);
+  const [cameraVisitCache, setCameraVisitCache] = useState<{
+    nonce: number; ground: GroundWorld; visits: ReadonlyMap<string, TownBuildingVisit>;
+    planSignature: string;
+  } | null>(null);
+  const cameraPlanInputs = useRef({worldSeed: state.worldSeed ?? 42, townSim: state.townSim});
+  cameraPlanInputs.current = {worldSeed: state.worldSeed ?? 42, townSim: state.townSim};
   const openDoorSignature = useMemo(() => Object.entries(state.townSim ?? {}).flatMap(([burgId, town]) =>
     Object.entries(town.buildingDoors ?? {}).flatMap(([plotId, doors]) => Object.entries(doors)
       .filter(([, open]) => open).map(([doorId]) => `wf-plot-${burgId}-${plotId}/${doorId}`))).sort().join('\n'), [state.townSim]);
@@ -1240,6 +1246,66 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
   }, [wfGroundView?.tile, handleGroundPositionChange, dispatch]);
 
   const partyCompanions = useMemo(() => partyCompanionPresence(state), [state.party, state.companions, state.generatedNpcs, state.worldSeed, state.currentLocationId, state.playerGroundPos]);
+  // Freeze accepted party feet and the exact candidate sites only when the HUD
+  // issues To Player. Follower steps may update partyCompanions, but cannot
+  // restart room lookup or camera framing for this one-shot request.
+  const cameraFrameRequestSnapshot = useMemo(() => {
+    const ground = groundRef.current, live = avatarFootfall.current;
+    if (!framePlayerNonce || !wfGroundView || !ground) return null;
+    const player = live?.ground === ground ? {...live.pose}
+      : state.playerGroundPos ? {xM:state.playerGroundPos.xM,zM:state.playerGroundPos.zM,yM:state.playerGroundPos.yM ?? wfGroundView.surfaceY} : null;
+    const companions = partyCompanions.map(member => ({id:member.character.id,position:{...member.position}}));
+    const playerSite = player ? residentSiteAt(ground, player) : null;
+    // Only the leader's current plot can admit party framing. A companion in a
+    // different site is already excluded by its exact footprint identity.
+    return {nonce:framePlayerNonce,ground,player,companions,siteIds:playerSite?[playerSite.id]:[]};
+    // This is a deliberate point-in-time capture. The next explicit camera
+    // request reads newer accepted feet; follower animation does not move it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [framePlayerNonce]);
+  const cameraPlanSignature = useMemo(() => {
+    const request = cameraFrameRequestSnapshot;
+    if (!request) return null;
+    return JSON.stringify([groundNonce, state.worldSeed ?? 42, request.ground.artifactSeedPath,
+      request.siteIds.map(id => {
+        const identity = /^wf-plot-(\d+)-(\d+)$/.exec(id);
+        if (!identity) return [id];
+        const town = state.townSim?.[Number(identity[1])], plotId = Number(identity[2]);
+        return [id, town?.layoutRevision ?? null, town?.buildingEvents?.[plotId] ?? null,
+          town?.buildingSources?.[plotId] ?? null];
+      })]);
+  }, [cameraFrameRequestSnapshot, groundNonce, state.worldSeed, state.townSim]);
+  useEffect(() => {
+    const request = cameraFrameRequestSnapshot, planSignature = cameraPlanSignature;
+    if (!request || !planSignature || request.ground !== groundRef.current) { setCameraVisitCache(null); return; }
+    const {worldSeed, townSim} = cameraPlanInputs.current;
+    let cancelled = false;
+    void import('../Worldforge/townBuildingVisit').then(({townBuildingVisit}) => {
+      const visits = new Map<string, TownBuildingVisit>();
+      for (const id of request.siteIds) {
+        const identity = /^wf-plot-(\d+)-(\d+)$/.exec(id);
+        if (!identity) continue;
+        const burgId = Number(identity[1]), plotId = Number(identity[2]), town = townSim?.[burgId];
+        visits.set(id, townBuildingVisit(worldSeed, burgId, plotId,
+          town?.buildingEvents?.[plotId], town?.buildingSources?.[plotId], town?.layoutRevision));
+      }
+      if (!cancelled && groundRef.current === request.ground) setCameraVisitCache({nonce:request.nonce,ground:request.ground,visits,planSignature});
+    }).catch(() => {
+      // A failed lookup is terminal, unlike a lookup still in flight. Let the
+      // scene try its ordinary player fallback rather than wait indefinitely.
+      if (!cancelled && groundRef.current === request.ground) setCameraVisitCache({
+        nonce:request.nonce,ground:request.ground,visits:new Map(),planSignature});
+    });
+    return () => { cancelled = true; };
+  }, [cameraFrameRequestSnapshot, cameraPlanSignature]);
+  const cameraFrameRoomData = useMemo(() => {
+    const request = cameraFrameRequestSnapshot;
+    if (!request || !cameraPlanSignature) return undefined;
+    const cached = cameraVisitCache?.nonce === request.nonce && cameraVisitCache.ground === request.ground
+      && cameraVisitCache.planSignature === cameraPlanSignature ? cameraVisitCache : null;
+    return {...request, visits:cached?.visits ?? new Map<string,TownBuildingVisit>(),
+      plansReady:cached !== null,planSignature:cameraPlanSignature};
+  }, [cameraFrameRequestSnapshot, cameraPlanSignature, cameraVisitCache]);
   const companionCheckpoints = useRef(new Map<string, { at: number; key: string }>());
   const handleCompanionPositionChange = useCallback((id: string, pose: CompanionPosition, trail: CompanionPosition[]) => {
     if (![pose.xM, pose.yM, pose.zM].every(Number.isFinite) || !Number.isFinite(state.worldSeed)) return;
@@ -1622,6 +1688,9 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({
           }})}
           sceneCast={wfGroundView ? retainedCast.cast : undefined}
           partyCompanions={wfGroundView ? partyCompanions : undefined}
+          cameraFrameRoomData={cameraFrameRoomData?.nonce === framePlayerNonce
+            && cameraFrameRoomData.ground === groundRef.current
+            && cameraFrameRoomData.planSignature === cameraPlanSignature ? cameraFrameRoomData : undefined}
           partyPaused={!!activeDungeonEntry || commitmentOpen || isWorkbenchOpen || !!state.activeConversation}
           onCompanionPositionChange={activeDungeonEntry || commitmentOpen ? undefined : handleCompanionPositionChange}
           onSelectNpc={isWorkbenchOpen ? undefined : handleSelectCastNpc}

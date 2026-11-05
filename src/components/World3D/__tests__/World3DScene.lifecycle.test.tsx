@@ -41,7 +41,7 @@ vi.mock('@react-three/fiber', () => ({
     React.useEffect(() => {
       const domElement = { addEventListener: vi.fn() };
       lastCanvasDomElement = domElement;
-      onCreated?.({ gl: { domElement } });
+      onCreated?.({ gl: { domElement }, scene: new THREE.Scene() });
     }, [onCreated]);
 
     return (
@@ -138,12 +138,13 @@ vi.mock('../useChunkStreaming', () => ({
 // The real controller is R3F-aware, so the test substitutes a minimal shell that exposes the
 // props we care about without pulling in frame-loop machinery.
 vi.mock('../FreeRoamCameraController', () => ({
-  default: ({ initialTarget, sceneOrigin, onPositionChange }: any) => (
+  default: ({ initialTarget, sceneOrigin, onPositionChange, frameRequest }: any) => (
     <div
       data-testid="camera-controller"
       data-has-on-position-change={String(typeof onPositionChange === 'function')}
       data-initial-target={JSON.stringify(initialTarget)}
       data-scene-origin={JSON.stringify(sceneOrigin)}
+      data-frame-kind={frameRequest?.kind ?? 'none'}
     />
   ),
 }));
@@ -162,6 +163,26 @@ const makeLoader = (): ChunkLoader =>
   });
 
 describe('World3DScene lifecycle proof', () => {
+  it('waits for a room-plan result before applying a player fallback or reporting failure', () => {
+    const unavailable = vi.fn(), loader = makeLoader();
+    const ground = {cols:1,rows:1,heights:[0],buildings:[]} as unknown as NonNullable<React.ComponentProps<typeof World3DScene>['cameraFrameRoomData']>['ground'];
+    const data = {nonce:1,ground,player:{xM:100,zM:100,yM:0},
+      companions:[{id:'elara',position:{xM:101,zM:100,yM:0}}],
+      siteIds:['home'],visits:new Map(),planSignature:'same-plan',plansReady:false};
+    const {rerender} = render(<World3DScene loader={loader} start={[100,0,100]}
+      groundWorld={ground} framePlayerNonce={1} cameraFrameRoomData={data}
+      onPlayerFrameUnavailable={unavailable} />);
+    // Waiting is not a failed frame and must not briefly apply a lead-only eye.
+    expect(screen.getByTestId('camera-controller')).toHaveAttribute('data-frame-kind','none');
+    expect(unavailable).not.toHaveBeenCalled();
+    // A terminal lookup with no usable room can still use the ordinary player
+    // fallback. It must not leave the command waiting indefinitely.
+    rerender(<World3DScene loader={loader} start={[100,0,100]} groundWorld={ground}
+      framePlayerNonce={1} cameraFrameRoomData={{...data,plansReady:true}}
+      onPlayerFrameUnavailable={unavailable} />);
+    expect(screen.getByTestId('camera-controller')).toHaveAttribute('data-frame-kind','player');
+    expect(unavailable).not.toHaveBeenCalled();
+  });
   beforeEach(() => {
     mockUpdate.mockClear();
     mockOnChunkUpdate.mockClear();
