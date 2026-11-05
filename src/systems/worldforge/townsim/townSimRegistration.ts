@@ -20,9 +20,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/10/2026, 21:11:55
- * Dependents: hooks/actions/handleWorldEvents.ts, state/reducers/worldReducer.ts
- * Imports: 20 files
+ * Last Sync: 05/11/2026, 11:29:02
+ * Dependents: hooks/actions/handleWorldEvents.ts, state/reducers/worldReducer.ts, systems/worldforge/town/prepareHistoricalTownLoad.ts
+ * Imports: 21 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:

@@ -11,9 +11,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 16/10/2026, 07:56:21
+ * Last Sync: 05/11/2026, 11:29:02
  * Dependents: components/World3D/water/riverSpillView.ts, systems/world3d/river/riverLive.ts, systems/world3d/river/riverSolver.ts, systems/world3d/river/riverTerrainCourse.ts, systems/world3d/river/riverTerrainRaster.ts
- * Imports: 2 files
+ * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:

@@ -16,9 +16,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 03/11/2026, 17:38:22
+ * Last Sync: 05/11/2026, 11:29:02
  * Dependents: components/ConversationPanel/ConversationPanel.tsx
- * Imports: 13 files
+ * Imports: 14 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:

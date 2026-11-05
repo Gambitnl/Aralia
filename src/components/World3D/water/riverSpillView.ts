@@ -10,9 +10,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 16/10/2026, 07:56:21
+ * Last Sync: 05/11/2026, 11:29:02
  * Dependents: components/World3D/water/riverReachScene.ts, components/World3D/water/riverSpillInstances.ts, components/World3D/water/riverTerrainCourseView.ts
- * Imports: 7 files
+ * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:

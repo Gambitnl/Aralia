@@ -26,6 +26,22 @@
  * Deferred: the clip playback and the body placement on the piece (3D side).
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 05/11/2026, 11:29:02
+ * Dependents: systems/worldforge/bridge/buildingOccupancy.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { BlueprintFloor, BlueprintFurnishing, BlueprintPlan } from './blueprintTypes';
 import type { OccupantStation } from './occupancy';
 

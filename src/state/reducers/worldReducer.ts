@@ -8,9 +8,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/10/2026, 12:21:46
+ * Last Sync: 05/11/2026, 11:29:02
  * Dependents: state/appState.ts
- * Imports: 33 files
+ * Imports: 34 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:

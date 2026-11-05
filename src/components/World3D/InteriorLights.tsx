@@ -46,9 +46,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 29/10/2026, 20:17:36
+ * Last Sync: 05/11/2026, 11:29:02
  * Dependents: components/World3D/World3DScene.tsx
- * Imports: 5 files
+ * Imports: 11 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:

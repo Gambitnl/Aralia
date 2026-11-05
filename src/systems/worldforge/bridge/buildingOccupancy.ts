@@ -28,9 +28,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 01/11/2026, 18:13:13
- * Dependents: components/World3D/residentInteriorMotion.ts, systems/world3d/buildingSceneModel.ts, systems/world3d/types.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/institutionOccupancy.ts
- * Imports: 12 files
+ * Last Sync: 05/11/2026, 11:29:02
+ * Dependents: components/World3D/residentInteriorMotion.ts, systems/world3d/buildingSceneModel.ts, systems/world3d/types.ts, systems/worldforge/bridge/groundChunkLoader.ts, systems/worldforge/bridge/institutionOccupancy.ts, systems/worldforge/bridge/shopKeeperOccupancy.ts
+ * Imports: 13 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:

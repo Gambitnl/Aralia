@@ -33,6 +33,22 @@
  * the ribbons, the sun through the mist as a rainbow.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 05/11/2026, 11:29:02
+ * Dependents: components/World3D/water/riverLandingSpray.ts, components/World3D/water/riverSpillView.ts, components/World3D/water/riverWaterfallView.ts, systems/world3d/river/riverSpillTransfer.ts, systems/world3d/river/waterfallTerrainProfiles.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { SPLASH_AIR_RHO, SPLASH_Q_EXT, SPLASH_STABLE_DROP_M, splashCoupledShare, splashCoupledStableDrop, splashDragPerSpeed, splashTerminalSpeedMs, splashTurbulentSigma } from '../ocean/oceanSplashLaws';
 
 export const G = 9.81;

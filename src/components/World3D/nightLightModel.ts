@@ -22,6 +22,23 @@
  * 2026-11-02, `.agent/scratch/houselight/nightcal`): rms 0.17 stop over six
  * hours; a ground-light term alone misses by 0.62 stop rms.
  */
+
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 05/11/2026, 11:29:02
+ * Dependents: components/World3D/World3DScene.tsx
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import * as THREE from 'three';
 import { sunFromTime } from './World3DLighting';
 

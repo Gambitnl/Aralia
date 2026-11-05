@@ -1655,10 +1655,14 @@
           "status": "specced",
           "note": "The water is in the baked scene (the LAND pane paints it red and it shows; Opomis shows open sea at the frame edge). Only the aim is missing. Needs a camera control in World3DScene, which was held by a peer all session.",
           "decision": true
+        },
+        {
+          "title": "Graded pads in the 3D bake: market squares, forecourts and churchyards levelled (GG-593, GG-614), retaining walls over 1.2 m steps and 1-in-8 street ramps (GG-613); 3D look review open (GG-637)",
+          "status": "active"
         }
       ],
       "tier": "strategic",
-      "updated": "2026-09-09",
+      "updated": "2026-11-05",
       "verified": "2026-09-09",
       "status_note": "Prior finding, now fixed: town streets were invisible in the streamed game until a 2026-07-18 fix (down-facing winding was front-culled, heights sampled under terrain); the 2026-08-24 roads slice added townStreetNetwork.ts generation, gatehouse seating, and per-edge ward-block inset so painted ribbon width matches the gap, at a cost of -6% buildings across 40 towns."
     },
@@ -9286,7 +9290,7 @@
       "title": "Question-sheet tool",
       "campaign": "tooling",
       "status": "done",
-      "updated": "2026-10-25",
+      "updated": "2026-11-05",
       "deps": [],
       "status_note": "Work from the question sheet \"The question sheet itself\". Each feature is one task-list row.",
       "features": [
@@ -9297,6 +9301,10 @@
         {
           "title": "Build the category and overlap system",
           "status": "done"
+        },
+        {
+          "title": "Own repository at F:/Repos/question-sheet, linked into ~/.claude/skills; public GitHub release waits on GG-660",
+          "status": "active"
         }
       ]
     },

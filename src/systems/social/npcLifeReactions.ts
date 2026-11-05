@@ -12,6 +12,22 @@
  * Everything here is pure and deterministic for one game state.
  */
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 05/11/2026, 11:29:02
+ * Dependents: hooks/actions/handleNpcInteraction.ts, hooks/useConversation.ts, hooks/useDialogueSystem.ts, services/dialogueService.ts, state/reducers/questReducer.ts, state/reducers/townReducer.ts, state/reducers/worldReducer.ts
+ * Imports: 12 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { GameState } from '../../types/state';
 import type { RichNPC } from '../../types/world';
 import { QuestStatus, type Quest } from '../../types/quests';
